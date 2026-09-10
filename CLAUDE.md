@@ -9528,3 +9528,141 @@ the Google Reviews branch is parked behind. The file is ready; publishing it is 
 about whether these internal brand tools go on a public Pages site, which is not a call to
 make silently. Its links are **relative**, so it works as a local home page opened off the
 disk and as a Pages root without editing anything.
+
+# CAMPAIGN'S TEMPLATE CARDS ARE REAL RENDERS NOW, and the skeleton had drifted exactly as predicted
+
+This reverses the recorded decision to leave them alone. That note said converting them
+"means real renders of four free-form module sets, and its skeleton is not carrying a wrong
+depiction the way Organic's was" — and the request that changed it was a screenshot of that
+depiction going wrong. Measured on the pre-change build, `tplMarks` was:
+
+- printing `provident.` at the card's own 7% instead of where `drawLogo` puts it, so the
+  Payment plan card wrote the wordmark **across its own price bars**
+- washing a mocked `i.scrim` two-tone band over every card
+- sizing bars from a hand table (`H`/`W`) that no longer matched what `modPx` reserves
+
+So a card runs the SAME `buildOps` the export runs, at `TPL_SCALE` .22, on the 1:1 canvas.
+`tplMarks` is **deleted**, not left dead.
+
+## CAMPAIGN NEEDS NO `TPLDEMO` TABLE, and that is the one place it is simpler than Organic
+
+Organic needs demo copy because `tplSlides` deliberately seeds nothing. Campaign's
+`TPL.mods` already carry the kit's own copy — 'Waterfront living, measured returns', the
+Time/Venue spec row, 'AED 2.6M' — so the render has real words with **nothing invented**.
+
+## ONE STATE BUILDER, AND THAT IS THE WHOLE POINT OF THE REFACTOR
+
+`CampaignStudio.tplState(id)` is extracted out of `pickTpl` and read by both, so the card
+cannot depict a template that picking it would not build. A second copy for the preview is
+precisely how the skeleton came to disagree with the artwork in the first place.
+
+**Proved behaviour-preserving through the REAL path in both documents**, not by reading the
+diff: stub `snapshotCurrent` and `applyProject` to capture instead of apply, call the actual
+`pickTpl` for all four templates in the pre-change file and in the new one, pass the result
+between them through `localStorage`, and compare `modules` / `clusters` / `logoPos` /
+`screen` / `campaign`. **All four IDENTICAL.**
+
+## A DEMO QR, PORTED FROM ORGANIC VERBATIM
+
+`buildOps` draws the quiet zone as a plain `#FFFFFF` rect the moment `state.qr.show` is true
+and only fills it when an asset exists — and `defaults()` has `show: true`. So every card
+would have carried **a blank white square**, which is the exact "showing squares" defect
+Organic's own cards were fixed for. Turning `qr.show` off would have hidden a thing every
+real campaign ships, so the deterministic LCG grid is ported instead — same seed, same
+function, so the two documents cannot drift.
+
+**No other asset is supplied.** There is no photo, cut-out or partner mark: those are the
+user's own files and a template card must not depict one it invented. `buildOps` gates the
+background on `bg && bg.img`, so with none it simply draws the canvas ground — verified, no
+placeholder.
+
+## NO HOVER REEL, AND THAT IS A DIFFERENCE RATHER THAN AN OMISSION
+
+Organic's slides are all 3:4, so reeling through them inside a 3:4 tile never crops. A
+Campaign template is ONE design across three canvases — 1:1, 9:16, 16:9 — and a 9:16 render
+in a square tile under `background-size:cover` loses most of its height. The card shows the
+1:1 master, which is the shape `cardMini` already is.
+
+**No theme in the render key either**, where Organic's carries one. `newVariant` sets
+`bg:'dark'`, so all four templates render on the dark canvas palette and the cards are a
+uniform set in both chrome themes — there is no paper kind for a ground swap to fix.
+
+## THE TILE IS CHROME AGAIN
+
+`.p-c-p` / `.p-tpl-c` were pinned canvas-dark in both themes, three times over, because the
+marks were white bars that a white tile hid. The cards are opaque renders now, so the pin's
+reason is gone and the tile is only visible for the frame before a render lands. Un-pinned in
+one appended block.
+
+**The dead `.p-c-p i` mark rules are LEFT WHERE THEY ARE**, deliberately: nothing emits an
+`<i>` into that tile any more, a selector matching nothing costs nothing, and deleting six
+rules out of the middle of an 870-block sheet is the operation that once swallowed half a
+stylesheet as nested CSS. Organic deleted its equivalents behind a full `added === 0` audit;
+this pass did not need to.
+
+## Verification
+
+| | |
+|---|---|
+| artwork-path lines | 124 -> 126, and **both differences are ADDITIONS** — the two new `tplRenderAll` call sites. No existing emitter changed. |
+| `pickTpl` state, all four templates | **IDENTICAL** to the pre-change build, captured through the real function |
+| renders | 4 of 4, op counts 13-14, W/H 1080x1080, clusters and `logoPos` matching each template's own spec (`d` splits hero/hook top, `g` puts the wordmark bottom) |
+| the tiles in the DOM | 4 of 4 carry `.p-c-shot` with a webp background, and **0 stray `<i>` marks** |
+| self-start | `_tplTick` had already completed before the probe ran — 0ms of polling |
+| authored CSS blocks | 870 -> **872**, depth 0, the two new rules the sheet's tail |
+| `renderVals` keys | 288 -> 288, and the 14 the naive scan flags are **identical in the pre-change file** — nested object literals at the same indentation, not top-level repeats |
+| interpolation sweep | 274 top-level refs before and after, none added, none gone |
+
+# THE LANDING PAGE SHOWS THE STUDIOS' OWN RENDERS, AND THE IMAGE TOOL CARD IS OUT
+
+Two changes on `index.html`, both by request.
+
+**The Web Image Studio card is removed** — "for now", so it is a deletion of the card and
+its two dead mark rules (`.lp-m`, `.lp-mm`), not of the tool. The copy followed rather than
+being left stale: the h1 is "Two studios, one brand system.", the lede drops "and the
+websites", and the meta description drops the tool. A landing page whose headline miscounts
+its own cards is the same class of defect as a control that outlives its render.
+
+**Each card now carries a strip of the real template renders above its title** — the same
+`buildOps` output the splash cards show and the export writes, captured at each studio's own
+`TPL_SCALE` and saved into `preview/`. Nine files, 52KB: four Campaign at 237x237 and five
+Organic at 237x316. That replaces an abstract canvas-shape mark that could only state the
+RATIO with one that states the whole layout.
+
+**THEY ARE A STATIC SNAPSHOT, and that is the honest cost.** This page cannot run either
+engine — that is the whole reason it links the library rather than importing a studio — so a
+template redesign leaves them stale until recaptured. **The regeneration route:** serve the
+project, open each studio, reach the engine through the documented fiber walk
+(`.p-shell` -> `__reactFiber$…` -> walk `.return` to `stateNode.logic` -> `.active()`), poll
+`_tplKey` until `tplRenderAll` has settled, then read `_tplShots` and write `shots[id][0]`
+per template to `preview/<studio>-<id>.webp`. A POST-capable local server is the way to get
+the data URLs to disk, the same harness the award assets were encoded with.
+
+**ORGANIC'S SET IS THE LIGHT-THEME RENDER, and that is a decision.** `tplGroundSwap` makes
+the paper kinds follow the theme, and light is the branch recorded as **byte-identical to the
+export**. Its dark swap exists to stop one white tile jarring inside the studio's own dark
+splash of five cards; a strip of five thumbs inside one landing-page card is a different
+context, where the variety IS the information — two of the five genuinely produce paper. So
+the page shows what the templates really make in both themes. Campaign's four need no such
+call: they are theme-independent.
+
+## `height:auto` IS LOAD-BEARING ON A FLEX-SIZED `<img>`, and this cost a round
+
+The thumbs first rendered tall and cropped — 108x237 and 85x316 — with `aspect-ratio` having
+no effect at all. **An `<img>`'s `width`/`height` ATTRIBUTES are presentational hints, so the
+height was DEFINITE at the file's own 237/316px** while `flex:1 1 0` set the width; and
+`aspect-ratio` only ever supplies a MISSING dimension, so it could not win.
+
+`height:auto` fixes it — and the better fix than adding an `aspect-ratio` at all, because the
+box then takes the attributes' own intrinsic ratio, which is the render's real aspect and
+therefore **cannot disagree with the file** the way a hand-written ratio could. The `--a`
+variable those thumbs carried is deleted. Measured after: 108x108 at ratio 1.000 and 85x112
+at 0.754.
+
+`flex:1 1 0` with an auto height also means the row always fits its card and never needs a
+scrollbar — the widths shrink and the height follows. Verified at 1240 and at 375: no page
+overflow, no strip overflow, thumbs down to 68x68 and 53x70, and the two cards' titles within
+5px of each other.
+
+Contrast, both themes, ancestor opacity composited, transitions finished: **0 failures**.
+Elevation shadows: **0**.

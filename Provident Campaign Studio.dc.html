@@ -2856,6 +2856,28 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 /* the bar scrolls rather than dropping controls, but the lockup is 167px wide
    and it is the one thing on it that can afford to give room back. */
 @media (max-width:760px){ :root{ --ps-wm-h:16px } }
+
+/* ═══ 23. THE TEMPLATE TILE IS CHROME AGAIN ═════════════════════════════════
+   `.p-c-p` and `.p-tpl-c` were pinned canvas-dark in BOTH themes — three times over,
+   the last one winning — because the template cards were hand-drawn skeletons whose
+   marks are white bars, and a white tile hid them completely. The cards are real
+   opaque renders now, each carrying its own canvas ground, so the tile is only ever
+   visible for the frame before a render lands: it goes back to being a surface, and
+   it follows the theme like every other card in the app.
+
+   THE DEAD `.p-c-p i` MARK RULES ARE LEFT WHERE THEY ARE. Nothing emits an `<i>` into
+   this tile any more, and the standing rule here is that a selector matching nothing
+   costs nothing — where deleting six rules out of the middle of an 850-rule sheet is
+   the operation that once swallowed half a stylesheet as nested CSS.
+
+   A faithful render of a dark-canvas ad is dark in both themes, and all four Campaign
+   templates use `bg:'dark'`, so the cards are a uniform set rather than one bright
+   tile among black ones. That is why this needs no per-theme ground swap where
+   Organic's paper kinds do.
+
+   Reverting is deleting this block. */
+.p-c-p,.p-tpl-c{background:var(--ps-card); border-color:var(--ps-hair)}
+.p-c:hover .p-c-p{background:var(--ps-fill); border-color:var(--ps-line)}
 </style>
 </helmet>
 
@@ -2909,7 +2931,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
         <div class="p-grid2" style="margin-bottom:26px">
           <sc-for list="{{ tplCards }}" as="tc" hint-placeholder-count="4">
             <button onClick="{{ tc.pick }}" class="p-c">
-              <span class="p-c-p" style="{{ cardMini }}"><sc-for list="{{ tc.marks }}" as="mk" hint-placeholder-count="4"><i class="{{ mk.cls }}" style="{{ mk.style }}">{{ mk.text }}<em>{{ mk.serif }}</em>{{ mk.post }}</i></sc-for></span>
+              <!-- The card is the REAL render, from the same `buildOps` the export runs.
+                   No hover reel: a Campaign template is one design across three canvases,
+                   not a carousel — see `tplCardView`. -->
+              <span class="p-c-p" style="{{ cardMini }}">
+                <sc-if value="{{ tc.ready }}" hint-placeholder-val="{{ true }}">
+                  <span class="p-c-shot" style="{{ tc.master }}"></span>
+                </sc-if>
+              </span>
               <span class="p-c-n">{{ tc.name }}</span>
               <span class="p-c-m">{{ tc.desc }}</span>
             </button>
@@ -4130,39 +4159,127 @@ class CampaignStudio extends StudioBase {
     { id: 'h', name: 'Spec ladder', desc: 'Unit mix as tracked caps over a full spec ladder', preset: 'bottom', logo: 'top',
       mods: [['hero', { text: 'Branded residences', serif: 'Branded' }], ['eyebrow', { text: 'Studios, 1–2 bed apartments' }], ['spec', { cols: [{ l: 'Starting price', v: 'AED 799,000' }, { l: 'Payment plan', v: '40/60' }, { l: 'Handover', v: 'Q4 2028' }] }]] }
   ];
-  // Miniature for the splash card. The wordmark, eyebrow and hero are set as REAL
-  // text so the card reads as the layout; everything below them stays a bar.
-  static tplMarks(tpl) {
-    const H = { hook: 5, body: 4.5, tags: 5, spec: 9, price: 10, cta: 7, list: 8 };
-    const W = { hook: 50, body: 42, tags: 58, spec: 70, price: 44, cta: 30, list: 54 };
-    const top = tpl.preset === 'top';
-    const marks = [{ cls: 'scrim', text: '', style: top ? 'left:0;right:0;top:0;height:56%;transform:scaleY(-1)' : 'left:0;right:0;bottom:0;height:60%' }];
-    marks.push({ cls: 'tx', text: 'provident.',
-      style: (tpl.logo === 'bottom' ? 'left:9%;bottom:7%' : 'left:9%;top:7%') + ';font-weight:300;font-size:5.6cqw;line-height:1;letter-spacing:.04em;color:#fff' });
-    const eb = (tpl.mods.find(m => m[0] === 'eyebrow') || [])[1];
-    const hero = (tpl.mods.find(m => m[0] === 'hero') || [])[1];
-    const bars = tpl.mods.filter(m => ['eyebrow', 'hero'].indexOf(m[0]) < 0);
-    let off = 12;
-    bars.slice().reverse().forEach(md => {
-      const ty = md[0], h = H[ty] || 5, w = W[ty] || 40;
-      marks.push({ cls: ty === 'cta' ? 'gold' : (ty === 'body' || ty === 'tags' ? 'dim' : ''), text: '',
-        style: 'left:9%;' + (top ? 'top:' : 'bottom:') + off + '%;width:' + w + '%;height:' + h + '%' });
-      off += h + 5;
-    });
-    if (hero) {
-      const parts = CampaignStudio.lines(hero.text)[0] || hero.text || '';
-      const sw = hero.serif || '';
-      const i = sw ? parts.indexOf(sw) : -1;
-      marks.push({ cls: 'tx',
-        text: i >= 0 ? parts.slice(0, i) : parts,
-        serif: i >= 0 ? sw : '',
-        post: i >= 0 ? parts.slice(i + sw.length) : '',
-        style: 'left:9%;right:12%;' + (top ? 'top:' : 'bottom:') + (off + 2) + '%;font-weight:100;font-size:10cqw;line-height:1.06;color:#fff' });
-      off += 26;
-    }
-    if (eb) marks.push({ cls: 'tx', text: eb.text || '',
-      style: 'left:9%;right:12%;' + (top ? 'top:' : 'bottom:') + off + '%;font-weight:500;font-size:3.1cqw;line-height:1.2;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4' });
-    return marks;
+  // ══ THE TEMPLATE CARD IS THE REAL RENDER ═══════════════════════════════════════════
+  // It was a hand-drawn skeleton — `tplMarks` — and it had drifted exactly as this file
+  // predicts a second layout will: the wordmark sat at the card's own 7% rather than where
+  // `drawLogo` puts it (so the Payment plan card printed `provident.` across its price
+  // bars), the mocked scrim washed a two-tone band over every card, and the bars were sized
+  // from a hand table that no longer matched what `modPx` reserves.
+  //
+  // So a card runs the SAME `buildOps` the export runs, at TPL_SCALE, on the 1:1 canvas.
+  // Change a template, a token or a layout rule and the card follows for free. This is the
+  // conversion Organic did; it was recorded here as deliberately not done because the
+  // skeleton "is not carrying a wrong depiction the way Organic's was", and attachment 1
+  // of this request is that depiction going wrong.
+  //
+  // NO TPLDEMO TABLE, and that is the one place Campaign is simpler than Organic. Organic
+  // needs demo copy because `tplSlides` deliberately seeds nothing; Campaign's `TPL.mods`
+  // already carry the kit's own copy, so the render has real words with nothing invented.
+  static TPL_SCALE = .22;    // 1080 -> 238px on the 1:1 canvas, ample for a card
+
+  // ONE STATE BUILDER, read by `pickTpl` AND the splash card, so the card cannot depict a
+  // template that picking it would not build. It was inline in `pickTpl`; a second copy for
+  // the preview is exactly how the skeleton came to disagree with the artwork.
+  static tplState(id) {
+    const tpl = CampaignStudio.TPL.find(x => x.id === id);
+    if (!tpl) return null;
+    const d = CampaignStudio.defaults();
+    d.modules = tpl.mods.map((md, i) => Object.assign({ id: 'm' + (i + 1), type: md[0] }, JSON.parse(JSON.stringify(md[1]))));
+    const v = d.variants[0];
+    d.modules.forEach(m => { v.clusters[m.id] = (tpl.preset === 'top') ? 'top' : ((tpl.preset === 'split' && ['eyebrow', 'hero', 'hook'].indexOf(m.type) >= 0) ? 'top' : 'bottom'); });
+    v.logoPos = tpl.logo === 'bottom' ? 'bottom' : 'top';
+    return d;
+  }
+
+  // A DEMO QR, because `buildOps` draws the quiet zone as a plain white rect the moment
+  // `qr.show` is true and only fills it when an asset exists — so a card with no code is a
+  // blank white square on all four templates, which is the "showing squares" Organic's own
+  // cards were fixed for. Turning `qr.show` off would hide a thing every real campaign
+  // ships. DETERMINISTIC — an LCG off a fixed seed, never Math.random — so a card is
+  // byte-stable between renders and an op or thumbnail diff over this surface stays
+  // meaningful. Ported from Organic verbatim so the two documents cannot drift.
+  static _qrDemo = null;
+  static async qrDemoReady() {
+    if (CampaignStudio._qrDemo) return CampaignStudio._qrDemo;
+    let entry = null;
+    try {
+      const N = 25, px = 8, c = document.createElement('canvas');
+      c.width = c.height = N * px;
+      const g = c.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+      let sd = 20260908;
+      const rnd = () => (sd = (sd * 1103515 + 12345) % 2147483647) / 2147483647;
+      const fin = (r, k) => (r < 8 && k < 8) || (r < 8 && k >= N - 8) || (r >= N - 8 && k < 8);
+      g.fillStyle = '#000';
+      for (let r = 0; r < N; r++) for (let k = 0; k < N; k++) {
+        if (!fin(r, k) && rnd() > .5) g.fillRect(k * px, r * px, px, px);
+      }
+      [[0, 0], [0, N - 7], [N - 7, 0]].forEach(p => {
+        const r = p[0], k = p[1];
+        g.fillStyle = '#000'; g.fillRect(k * px, r * px, 7 * px, 7 * px);
+        g.fillStyle = '#fff'; g.fillRect((k + 1) * px, (r + 1) * px, 5 * px, 5 * px);
+        g.fillStyle = '#000'; g.fillRect((k + 2) * px, (r + 2) * px, 3 * px, 3 * px);
+      });
+      const u = c.toDataURL('image/png');
+      const img = new Image();
+      // settle on error too: a decode that FAILED is also settled, and waiting on an event
+      // that will never fire would hang the whole preview pass
+      await new Promise(res => { img.onload = res; img.onerror = res; img.src = u; });
+      entry = img.naturalWidth ? { img, u } : null;
+    } catch (e) {}
+    return (CampaignStudio._qrDemo = entry);
+  }
+
+  // Renders every template once and caches a data URL. Key-guarded on the FACE being ready,
+  // because a render taken before it lands would cache a card drawn in the fallback and
+  // never retry — the same reason `tplRenderAll` exists in Organic.
+  async tplRenderAll() {
+    if (this._tplBusy) return;
+    // NO THEME IN THE KEY, unlike Organic's. `newVariant` sets bg:'dark', so every template
+    // renders on the DARK canvas palette and all four cards are dark in both chrome themes.
+    // There is no paper kind here, so there is nothing for a ground swap to do.
+    const key = 'v1|' + (window.providentFontFam || '');
+    if (this._tplKey === key) return;
+    this._tplBusy = true;
+    try {
+      const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+      await Promise.all(['300 41px "Google Sans Flex"', '400 59px "Google Sans Flex"',
+        '300 92px "Google Sans Flex"', '500 24px "Google Sans Flex"', '400 50px "Google Sans Flex"',
+        '300 34px "Google Sans Flex"', '400 30px "Google Sans Flex"'].map(safe));
+      try { await document.fonts.ready; } catch (e) {}
+      const qr = await CampaignStudio.qrDemoReady();
+      const out = {};
+      CampaignStudio.TPL.forEach(tp => {
+        try {
+          const st = CampaignStudio.tplState(tp.id);
+          if (!st) return;
+          // The QR is the ONLY asset supplied. There is no photo, cut-out or partner mark to
+          // hand it: those are the user's own files and a template card must not depict one
+          // it invented. `buildOps` gates the background on `bg && bg.img`, so with none it
+          // simply draws the canvas ground.
+          const built = this.buildOps(st, 0, 'sq', qr ? { qr } : {});
+          out[tp.id] = [this.renderOpsToCanvas(built, CampaignStudio.TPL_SCALE)
+            .toDataURL('image/webp', 0.8)];
+        } catch (e) {}
+      });
+      this._tplShots = out;
+      this._tplKey = key;
+      this.forceUpdate();
+    } catch (e) { console.warn('[provident] template previews', e); }
+    this._tplBusy = false;
+  }
+
+  tplCardView(id) {
+    const shots = ((this._tplShots || {})[id]) || [];
+    return {
+      ready: shots.length > 0,
+      master: { backgroundImage: 'url("' + (shots[0] || '') + '")' }
+      // NO HOVER REEL, and that is a real difference from Organic rather than an omission.
+      // Its slides are all 3:4, so reeling through them in a 3:4 tile never crops. A
+      // Campaign template is ONE design across three canvases — 1:1, 9:16 and 16:9 — and a
+      // 9:16 render in this square tile under background-size:cover loses most of its
+      // height. The card shows the 1:1 master, which is the shape the tile already is.
+    };
   }
   static SCRIMS = {
     dark: [['Brand navy', '#1A2942'], ['Deep navy', '#0F1B2D'], ['Slate', '#2F4960'], ['Charcoal', '#2B2B2B'], ['Warm black', '#1A1614'], ['Black', '#000000']],
@@ -6321,16 +6438,13 @@ class CampaignStudio extends StudioBase {
   }
   // Seed a campaign from one of the kit families.
   async pickTpl(id) {
-    const tpl = CampaignStudio.TPL.find(x => x.id === id);
-    if (!tpl) return;
+    // The state comes from `tplState`, the same builder the splash card renders, so the
+    // project you get is the design the card showed you.
+    const d = CampaignStudio.tplState(id);
+    if (!d) return;
     await this.snapshotCurrent();
-    const d = CampaignStudio.defaults();
     d.screen = 'editor';
     d.campaign = '';
-    d.modules = tpl.mods.map((md, i) => Object.assign({ id: 'm' + (i + 1), type: md[0] }, JSON.parse(JSON.stringify(md[1]))));
-    const v = d.variants[0];
-    d.modules.forEach(m => { v.clusters[m.id] = (tpl.preset === 'top') ? 'top' : ((tpl.preset === 'split' && ['eyebrow', 'hero', 'hook'].indexOf(m.type) >= 0) ? 'top' : 'bottom'); });
-    v.logoPos = tpl.logo === 'bottom' ? 'bottom' : 'top';
     await this.applyProject(d, {});
   }
   async newProject() {
@@ -7196,7 +7310,8 @@ class CampaignStudio extends StudioBase {
       cardMini: { aspectRatio: '1/1' },   // campaign cards are square, like the 1:1 canvas
       tplCount: CampaignStudio.TPL.length,
       recentCount: recents.length,
-      tplCards: CampaignStudio.TPL.map(tp => ({ name: tp.name, desc: tp.desc, marks: CampaignStudio.tplMarks(tp), pick: () => this.pickTpl(tp.id) })),
+      tplCards: CampaignStudio.TPL.map(tp => Object.assign({ name: tp.name, desc: tp.desc,
+        pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       splashLoadOn: true,
       projLabel: (s.campaign || '').trim() || 'Untitled campaign',
       projMeta: s.variants.length + (s.variants.length === 1 ? ' variant' : ' variants'),
@@ -7770,6 +7885,7 @@ class Component extends DCLogic {
     // One engine, mounted once. This used to be syncEngine(), which unmounted one
     // studio and mounted the other whenever state.studio changed.
     try { this.eng.componentDidMount(); } catch (e) { console.warn(e); }
+    this._tplTick();
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
   }
@@ -7778,6 +7894,17 @@ class Component extends DCLogic {
     StudioBase.autoGrow();
     // mockSync returns early unless the design actually changed, so this cannot loop.
     if (this.state.mockOpen) { const a = this.active(); if (a && a.mockSync) a.mockSync(); }
+    this._tplTick();
+  }
+  // The splash's template cards are REAL renders. Key-guarded inside `tplRenderAll`, so
+  // calling it on every update — and once at mount, because the splash is the opening
+  // screen and may never see an update before the user looks at a card — is a no-op after
+  // the first pass. Campaign has no "Pick a template" screen, so the splash is the only
+  // surface that needs it.
+  _tplTick() {
+    const e = this.active();
+    if (!e || !e.tplRenderAll || !e.state) return;
+    if (e.state.screen === 'splash') e.tplRenderAll();
   }
   componentWillUnmount() {
     if (this._beforeUnload) window.removeEventListener('beforeunload', this._beforeUnload);

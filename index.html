@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Provident Design Studio</title>
-<meta name="description" content="Provident Design Studio — Campaign ads, Organic posts and the Web Image Studio.">
+<meta name="description" content="Provident Design Studio — Campaign ads and Organic posts.">
 
 <!-- SET data-theme BEFORE FIRST PAINT. Light-first, and the key is `provident-theme`,
      the SAME one all three studios read — so a choice made here carries straight into
@@ -59,18 +59,36 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column}
 .lp-c-b{font-size:14px; font-weight:400; line-height:1.5; color:var(--ps-ink-2);
   margin:12px 0 0}
 
-.lp-c-t{display:flex; align-items:flex-end; justify-content:space-between; gap:12px}
-/* THE MARK IS THE STUDIO'S OWN CANVAS SHAPE, sized from --a, its aspect. One fixed
-   44px box height keeps three different shapes on one baseline, and the shape cannot
-   drift from the canvas it depicts because it IS the ratio. */
-.lp-m{display:block; height:44px; width:calc(44px * var(--a)); border-radius:5px;
-  background:var(--ps-fill); border:1px solid var(--ps-line)}
-/* the image tool is not one canvas — it is many placements out of one photo, so its
-   mark is three aspects, not one. */
-.lp-mm{display:flex; align-items:flex-end; gap:4px; height:44px}
-.lp-mm i{display:block; height:calc(44px * .62); width:calc(44px * .62 * var(--a));
-  border-radius:4px; background:var(--ps-fill); border:1px solid var(--ps-line)}
-.lp-mm i:nth-child(2){height:44px; width:calc(44px * var(--a))}
+.lp-c-t{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-top:16px}
+
+/* ── THE TEMPLATE PREVIEWS ARE THE STUDIOS' OWN RENDERS ─────────────────────
+   Not mockups and not an abstract canvas-shape mark: each thumb is the same
+   `buildOps` render the splash cards show and the export writes, captured at the
+   studios' own TPL_SCALE and saved into preview/. That replaces a mark that could
+   only state the RATIO with one that states the whole layout.
+
+   THEY ARE A STATIC SNAPSHOT, and that is the one honest cost. This page cannot run
+   either engine — that is the whole reason it links the library rather than importing
+   a studio — so a template redesign leaves these stale until they are recaptured.
+   The regeneration route is recorded in CLAUDE.md.
+
+   ORGANIC'S SET IS THE LIGHT-THEME RENDER, which is byte-identical to its export;
+   its dark-mode ground swap exists to stop one white tile jarring inside the studio's
+   own dark splash, and that is not this context. Campaign's four are theme-independent
+   because every template renders on the dark canvas palette.
+
+   flex:1 with aspect-ratio, so the row always fits its card and never needs a
+   scrollbar — the widths shrink and the height follows the canvas's own ratio. */
+.lp-t{display:flex; gap:8px; margin:0; align-items:flex-start}
+/* height:auto IS LOAD-BEARING. An <img>'s width/height ATTRIBUTES are presentational
+   hints, so height was definite at the file's own 237/316px while flex set the width —
+   the thumbs came out tall and cropped and an `aspect-ratio` here could never win,
+   because aspect-ratio only supplies a MISSING dimension. With height:auto the box
+   takes the attributes' own intrinsic ratio, which is the render's real aspect and
+   therefore cannot disagree with the file the way a hand-written ratio could. */
+.lp-t img{flex:1 1 0; min-width:0; width:100%; height:auto; display:block;
+  border-radius:6px; border:1px solid var(--ps-hair); background:var(--ps-fill)}
 
 .lp-c-go{width:30px; height:30px; flex:none; border-radius:var(--ps-pill);
   display:inline-flex; align-items:center; justify-content:center;
@@ -154,58 +172,53 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column}
 <main class="lp">
   <div class="lp-h">
     <p class="p-cap">Choose a studio</p>
-    <h1>Three tools, one brand system.</h1>
-    <p class="lp-lede">Everything Provident publishes — paid, organic and the websites —
-      built on one set of tokens, one typeface and one grid. Pick where you are working.</p>
+    <h1>Two studios, one brand system.</h1>
+    <p class="lp-lede">Everything Provident publishes — paid and organic — built on one set
+      of tokens, one typeface and one grid. Pick where you are working.</p>
   </div>
 
   <div class="lp-g">
       <a class="lp-c" href="Provident Campaign Studio.dc.html">
+        <span class="lp-t" aria-hidden="true">
+          <img src="preview/campaign-f.webp" alt="" width="237" height="237">
+          <img src="preview/campaign-d.webp" alt="" width="237" height="237">
+          <img src="preview/campaign-g.webp" alt="" width="237" height="237">
+          <img src="preview/campaign-h.webp" alt="" width="237" height="237">
+        </span>
         <span class="lp-c-t">
-          <span class="lp-m" style="--a:1"></span>
+          <h2>Campaign ads</h2>
           <span class="lp-c-go" aria-hidden="true">
             <svg viewBox="0 -960 960 960"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg>
           </span>
         </span>
-        <h2>Campaign ads</h2>
         <p class="lp-c-d">Paid Meta ads</p>
         <p class="lp-c-b">A free-form design-component palette. Build once, ship 1:1, 9:16 and 16:9 — with per-variant layout, scrim and scaling.</p>
         <ul class="lp-c-m">
-          <li>1:1 · 9:16 · 16:9</li>
-          <li>4 starting points</li>
+          <li>New launch · Event · Payment plan · Spec ladder</li>
+          <li>1:1 · 9:16 · 16:9 from one build</li>
           <li>Meta placement preview</li>
         </ul>
       </a>
       <a class="lp-c" href="Provident Organic Studio.dc.html">
+        <span class="lp-t" aria-hidden="true">
+          <img src="preview/organic-listed.webp" alt="" width="237" height="316">
+          <img src="preview/organic-weekly.webp" alt="" width="237" height="316">
+          <img src="preview/organic-agents.webp" alt="" width="237" height="316">
+          <img src="preview/organic-review.webp" alt="" width="237" height="316">
+          <img src="preview/organic-award.webp" alt="" width="237" height="316">
+        </span>
         <span class="lp-c-t">
-          <span class="lp-m" style="--a:.75"></span>
+          <h2>Organic posts</h2>
           <span class="lp-c-go" aria-hidden="true">
             <svg viewBox="0 -960 960 960"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg>
           </span>
         </span>
-        <h2>Organic posts</h2>
         <p class="lp-c-d">Feed and story posts</p>
         <p class="lp-c-b">Five locked templates with a guided, one-question-at-a-time run. The layout is template-owned; you supply the words and the photographs.</p>
         <ul class="lp-c-m">
+          <li>Just listed · Weekly · Top agents · Reviews · Award</li>
           <li>3:4 feed · 9:16 story</li>
-          <li>5 templates</li>
           <li>Guided setup</li>
-        </ul>
-      </a>
-      <a class="lp-c" href="web-image-studio.html">
-        <span class="lp-c-t">
-          <span class="lp-mm"><i style="--a:1.6"></i><i style="--a:1"></i><i style="--a:.62"></i></span>
-          <span class="lp-c-go" aria-hidden="true">
-            <svg viewBox="0 -960 960 960"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg>
-          </span>
-        </span>
-        <h2>Web Image Studio</h2>
-        <p class="lp-c-d">Website photography</p>
-        <p class="lp-c-b">One photo in, every placement out — sized to the pixel, under 300KB, written flat into a folder you pick.</p>
-        <ul class="lp-c-m">
-          <li>providentestate.com</li>
-          <li>offplan-dubai.com</li>
-          <li>provident.ae landing pages</li>
         </ul>
       </a>
   </div>
