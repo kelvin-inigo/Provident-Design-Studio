@@ -1,0 +1,287 @@
+{
+  "brand-core": {
+    "$description": "Tier 1 constants — identical across every campaign and placement.",
+    "color": {
+      "deep-navy": {
+        "$type": "color",
+        "$value": "#1A2942"
+      },
+      "provident-navy": {
+        "$type": "color",
+        "$value": "#2F4960"
+      },
+      "gold": {
+        "$type": "color",
+        "$value": "#C9A96A",
+        "$description": "Accent on navy/dark + colour of every serif emphasis word"
+      },
+      "brass": {
+        "$type": "color",
+        "$value": "#B0905C",
+        "$description": "Eyebrows on light"
+      },
+      "orange": {
+        "$type": "color",
+        "$value": "#F3793C",
+        "$description": "Light backgrounds only — never on navy"
+      },
+      "cream": {
+        "$type": "color",
+        "$value": "#F4F1EC"
+      },
+      "mist": {
+        "$type": "color",
+        "$value": "#ECE7DF",
+        "$description": "Support copy on navy"
+      },
+      "stone": {
+        "$type": "color",
+        "$value": "#D4CFC4",
+        "$description": "Eyebrows / data labels on navy"
+      },
+      "white": {
+        "$type": "color",
+        "$value": "#FFFFFF"
+      }
+    },
+    "font": {
+      "sans": {
+        "$type": "string",
+        "$value": "Google Sans Flex",
+        "$description": "Everything"
+      },
+      "serif-accent": {
+        "$type": "string",
+        "$value": "Source Serif 4",
+        "$description": "One word in the hero headline only. Upright, always Gold"
+      },
+      "weight-hero": {
+        "$type": "number",
+        "$value": 100,
+        "$description": "Main hero headline only"
+      },
+      "weight-light": {
+        "$type": "number",
+        "$value": 300,
+        "$description": "All other headers, body, large numerals"
+      },
+      "weight-medium": {
+        "$type": "number",
+        "$value": 500,
+        "$description": "Buttons, eyebrows, labels"
+      }
+    },
+    "radius": {
+      "glass": {
+        "$type": "number",
+        "$value": 27
+      },
+      "pill": {
+        "$type": "number",
+        "$value": 999
+      }
+    },
+    "logo": {
+      "min-height": {
+        "$type": "number",
+        "$value": 24,
+        "$description": "Wordmark never below 24px tall"
+      },
+      "clear-space": {
+        "$type": "number",
+        "$value": 1,
+        "$description": "Multiplier: clear space = 1× logo height on all sides"
+      },
+      "placement": {
+        "$type": "string",
+        "$value": "left or center",
+        "$description": "Never right-aligned"
+      }
+    }
+  },
+  "campaign-accent": {
+    "$description": "One collection, mode per campaign batch — re-theme a whole batch in one click. Accent obeys the law: gold on dark, orange on light.",
+    "campaign-dark": {
+      "accent": {
+        "$type": "color",
+        "$value": "#C9A96A"
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "#1A2942"
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "#FFFFFF"
+      },
+      "text-support": {
+        "$type": "color",
+        "$value": "#ECE7DF"
+      },
+      "eyebrow": {
+        "$type": "color",
+        "$value": "#D4CFC4"
+      }
+    },
+    "campaign-light": {
+      "accent": {
+        "$type": "color",
+        "$value": "#F3793C"
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "#F4F1EC"
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "#1A2942"
+      },
+      "text-support": {
+        "$type": "color",
+        "$value": "#6B7280"
+      },
+      "eyebrow": {
+        "$type": "color",
+        "$value": "#B0905C"
+      }
+    }
+  },
+  "placement": {
+    "$description": "Figma collection 'Placement' with 2 modes: 1:1 and 9:16. Bind frame padding, auto-layout gaps, text sizes and asset sizes to these — switching the mode resizes the whole ad. Canvas is 1080 wide in both.",
+    "1x1": {
+      "canvas-w": {
+        "$type": "number",
+        "$value": 1080
+      },
+      "canvas-h": {
+        "$type": "number",
+        "$value": 1080
+      },
+      "gap-module": {
+        "$type": "number",
+        "$value": 36,
+        "$description": "Between modules in a cluster"
+      },
+      "gap-stack": {
+        "$type": "number",
+        "$value": 24,
+        "$description": "Inside a module (eyebrow→headline→hook)"
+      },
+      "type-hero": {
+        "$type": "number",
+        "$value": 85
+      },
+      "type-headline": {
+        "$type": "number",
+        "$value": 59
+      },
+      "type-hook": {
+        "$type": "number",
+        "$value": 35
+      },
+      "type-body": {
+        "$type": "number",
+        "$value": 28
+      },
+      "type-eyebrow": {
+        "$type": "number",
+        "$value": 24
+      },
+      "size-logo": {
+        "$type": "number",
+        "$value": 41,
+        "$description": "Wordmark type size"
+      },
+      "size-qr": {
+        "$type": "number",
+        "$value": 86
+      },
+      "size-cta-h": {
+        "$type": "number",
+        "$value": 64
+      },
+      "padding-top": {
+        "$type": "number",
+        "$value": 80
+      },
+      "padding-bottom": {
+        "$type": "number",
+        "$value": 80
+      },
+      "padding-left": {
+        "$type": "number",
+        "$value": 80
+      },
+      "padding-right": {
+        "$type": "number",
+        "$value": 80
+      }
+    },
+    "9x16": {
+      "canvas-w": {
+        "$type": "number",
+        "$value": 1080
+      },
+      "canvas-h": {
+        "$type": "number",
+        "$value": 1920
+      },
+      "gap-module": {
+        "$type": "number",
+        "$value": 44
+      },
+      "gap-stack": {
+        "$type": "number",
+        "$value": 30
+      },
+      "type-hero": {
+        "$type": "number",
+        "$value": 103
+      },
+      "type-headline": {
+        "$type": "number",
+        "$value": 71
+      },
+      "type-hook": {
+        "$type": "number",
+        "$value": 41
+      },
+      "type-body": {
+        "$type": "number",
+        "$value": 28
+      },
+      "type-eyebrow": {
+        "$type": "number",
+        "$value": 28
+      },
+      "size-logo": {
+        "$type": "number",
+        "$value": 50
+      },
+      "size-qr": {
+        "$type": "number",
+        "$value": 86
+      },
+      "size-cta-h": {
+        "$type": "number",
+        "$value": 72
+      },
+      "padding-top": {
+        "$type": "number",
+        "$value": 174
+      },
+      "padding-bottom": {
+        "$type": "number",
+        "$value": 360
+      },
+      "padding-left": {
+        "$type": "number",
+        "$value": 100
+      },
+      "padding-right": {
+        "$type": "number",
+        "$value": 100
+      }
+    }
+  }
+}

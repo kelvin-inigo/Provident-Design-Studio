@@ -1,0 +1,27 @@
+/* Provident Estate — type system. Two voices: Google Sans Flex (primary: display/body/UI) + Source Serif 4 Light Italic (accent: editorial — light italic only). */
+:root{
+--font-sans:'Google Sans Flex',system-ui,sans-serif;
+--font-accent:'Source Serif 4',Georgia,serif; /* italic 300 only */
+--weight-accent:300; /* @kind font */
+/* Weight logic */
+--weight-light:300; /* the storyteller — body copy, large numerals */
+--weight-regular:400; /* the structure — headings, emphasis (never bold in running text) */
+--weight-medium:500; /* the interface — buttons, labels, navigation */
+--weight-bold:700; /* data on video only, tabular figures */
+/* Scale (landing-page standard) */
+--text-h1:clamp(32px,4vw,48px); --lh-h1:1.15; /* @kind other */ --ls-h1:-0.01em;
+--text-h2:clamp(28px,3.4vw,40px); --lh-h2:1.15; /* @kind other */ --ls-h2:-0.01em;
+--text-h3:19px; --lh-h3:1.35; /* @kind other */
+--text-quote:clamp(20px,2vw,24px); --ls-quote:-0.015em; /* Source Serif 4, italic, light 300 */
+--text-body:17px; --lh-body:1.7; /* @kind other */
+--text-stat:clamp(32px,3.8vw,44px); --ls-stat:-0.01em;
+--text-eyebrow:12.5px; --ls-eyebrow:0.16em; /* caps, Medium 500, Brass on light / Gold on slides */
+--text-button:16px;
+--text-label:13px;
+/* Wordmark */
+--ls-wordmark:0.04em; /* Google Sans Flex Light, lowercase */
+--measure-body:68ch;
+}
+body{font-family:var(--font-sans);font-weight:var(--weight-light);font-size:var(--text-body);line-height:var(--lh-body);color:var(--text-body);background:var(--bg-page)}
+a{color:var(--link);text-decoration-color:var(--stone)}
+a:hover{color:var(--deep-navy)}

@@ -1,0 +1,1359 @@
+/* ============================================================================
+   PROVIDENT UI — the chrome design system
+   ----------------------------------------------------------------------------
+   The TOOL's interface: Campaign Ad Studio, Organic Post Studio, the project
+   browser, the guided run, and any webapp built on this system.
+
+   THIS IS NOT THE BRAND SYSTEM. Exported artwork reads CampaignStudio.PAL and
+   OrganicStudio.ART and never touches a --ps-* token; that separation is
+   verified, and it is what lets the chrome be re-themed without moving a single
+   pixel of a finished ad. For brand web components (Button, Card, Eyebrow, Stat)
+   see the _ds/provident-estate-design-system-<hash> folder.
+   (That path deliberately carries no trailing wildcard. A star followed by a slash
+    ANYWHERE in this comment — including inside a path, and including inside quotes
+    while explaining the hazard — terminates it. It did, 14 lines early, and Chrome
+    then consumed the @font-face block below as an invalid rule's body and discarded
+    it: the sheet parsed with ZERO CSSFontFaceRule while the woff2 returned 200, so
+    the guide silently fell back to system-ui — a measured 5.0% width shift that
+    invalidates every number it publishes. It only ever looked correct on machines
+    with the face installed locally. Do not write the sequence here at all.)
+
+   Every number here was MEASURED off the running studio, not read out of its
+   stylesheet — several controls differ from what that sheet appears to say,
+   because override blocks at its end rewrite them.
+
+   USAGE
+     <link rel="stylesheet" href="ui-design-system/provident-ui.css">
+     <html data-theme="light">     <!-- omit the attribute for dark, the default -->
+
+   TO CHANGE THE SYSTEM: edit this file, then say what changed. The studios carry
+   their CSS inlined in a <helmet> block plus ~500 colour literals in JS style
+   objects that no stylesheet can reach, so a change here is pushed into them in
+   the same pass rather than inherited.
+   ============================================================================ */
+
+
+/* ── 1. FONT ────────────────────────────────────────────────────────────────
+   Google Sans Flex is a variable face with an optical-size axis: the same
+   nominal size is not the same width at different sizes. Repoint this URL if
+   you copy the library somewhere else; nothing else in the file references it. */
+@font-face{
+  font-family:'Google Sans Flex';
+  src:url('../_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/assets/fonts/GoogleSansFlex-Variable.woff2') format('woff2');
+  font-weight:1 1000;font-style:normal;font-display:swap;
+}
+
+
+/* ── 2. TOKENS ──────────────────────────────────────────────────────────────
+   Dark is the default and needs no attribute. Light re-declares only what
+   changes. Never give a colour its only definition inside the light block.
+
+   THE BASIS OF THIS SYSTEM CHANGED, AND THIS IS WHAT IT IS NOW:
+
+     structure   nexu-io/open-design, design-systems/coinbase - its radius scale,
+                 its ring-not-shadow elevation, its foreground focus ring, its
+                 weight hierarchy, its 150ms/cubic-bezier(0.2,0,0,1) motion.
+     colour      PROVIDENT NAVY #1A2942, and a tint ramp that is the navy's own.
+     type        Google Sans Flex, unchanged - the one thing that never moved.
+
+   THE TINT RAMP IS THE NAVY AT AN OPACITY, and that was verified rather than
+   assumed. The four supplied tints are #1A2942 laid over WHITE at exactly 4 / 8 /
+   12 / 20 percent, and the two shades are it darkened by 20 / 36 percent:
+
+     Tint 04  #F6F6F7   navy at  4%   "field disabled"
+     Tint 08  #EDEEF0   navy at  8%   "quiet hover"
+     Tint 12  #E4E5E8   navy at 12%   "sunken"
+     Tint 16  #DADDE1   navy at 16%   GENERATED - see --ps-accent below
+     Tint 20  #D1D4DA   navy at 20%   "disabled fill"
+     Shade 20 #152135   navy -20%     "fill hover"
+     Shade 36 #101A29   navy -36%     "fill pressed"
+
+   So the ramp is GENERATIVE: any step the app needs comes from the same rule, and
+   Tint 16 exists because the five named steps were all spoken for. Do not add a
+   grey here that is not on this ramp - a neutral grey beside a navy tint reads as
+   a different system, which is what the ramp exists to prevent.
+
+   TWO REGISTERS, BY JOB. This is the oldest surviving rule in the file and it has
+   now been re-derived on four different accents, so treat it as settled:
+
+     --ps-accent    the RESTING selected state. Every ON tile, tab, pill, nav row.
+                    A TINT, never the navy itself - the navy solid is 14.59:1
+                    against white as a block, which is right for an action and far
+                    too heavy for a state, and using it here makes every rail loud
+                    at once with nothing left for the action you should take.
+     --ps-primary   the navy solid, reserved BY NAME for the top bar and for a
+                    panel's one primary. One loud thing per region.
+     --ps-accent-h  the same navy, and it is what a primary FILLS with - .p-btn and
+                    .p-gold already read this token, so they take the strong
+                    register with no rule change.
+
+   THE NAVY HAS NO BOUNDARY OF ITS OWN ON THE DARK THEME. #1A2942 measures 1.25:1
+   against --ps-app, so as a block it is invisible and only its white label reads.
+   Every navy fill therefore carries a --ps-link hairline: 6.61:1 against the
+   ground and 5.27:1 against the navy, clear of 1.4.11 on both sides. On light the
+   same hairline is navy on navy and deliberately invisible, which is harmless.
+   DO NOT "fix" the asymmetry by lightening the fill - a navy light enough to carry
+   its own 3:1 boundary on near-black is no longer navy.
+
+   AND THE COROLLARY, which is where a careless propagation breaks this: a deep
+   navy cannot be a MARK. A border, an inset ring, a slider thumb, a caret, a
+   diagram bar, the accent used as text - all resolve to --ps-link, never to
+   --ps-accent. The property is the test: `background` is a fill, everything else
+   is a mark. */
+:root{
+  /* surfaces. Two Coinbase values anchor the ends - #0A0B0D takes the STAGE and
+     #282B31 the control surface - and the four steps between them are derived,
+     because a four-surface app shell needs them and a dark theme is not in the
+     supplied ramp at all. Without them every shell surface sat on #0A0B0D and the
+     rail, the stage and the ground read as one flat black. */
+  --ps-app:#131519;  --ps-sb:#131519;    --ps-card:#1D2024;  --ps-card-h:#252931;
+  --ps-stage:#0A0B0D;--ps-deep:#131519;  --ps-chip:#282B31;
+  /* control fills — a control is a fill, not an outline */
+  --ps-fill:#282B31; --ps-fill-h:#31353C;
+  /* the ON surface. In light this is Tint 16; in dark the ramp inverts - a tint of
+     the navy over near-black is invisible, so dark tints toward the INK instead and
+     #243352 is the navy lifted one step, so it still reads as navy against neutral
+     greys rather than muddying into them. */
+  --ps-fill-on:#243352;
+  /* Tint 20's own label is "disabled fill". A navy primary at opacity .4 was a
+     washed-out navy ghost at 2.04:1; a flat neutral with quiet ink is both
+     unmistakably disabled and legible. Dark cannot use a tint of the navy for the
+     same reason as above, so it takes a step off the control surface. */
+  --ps-fill-dis:#22262C;
+  /* lines. Coinbase's border is its muted grey at 20%, which is invisible on
+     near-black; same hue, alpha raised for the dark ground. */
+  --ps-hair:rgba(148,154,166,.16); --ps-line:rgba(148,154,166,.24);
+  /* ink. Quiet ink is AA or it is not shipped: Coinbase's --muted #5B616E measures
+     3.17:1 on #0A0B0D and fails outright, so dark takes it lightened until it
+     clears the CARD as well — 6.97 on the ground, 5.02 on --ps-fill. */
+  --ps-ink:#FFFFFF; --ps-ink-2:#C3C8D0; --ps-dim:#949AA6; --ps-mute:#949AA6;
+  /* the accent — see the register note above */
+  --ps-accent:#243352;      /* the RESTING state, white label 12.57 */
+  --ps-accent-h:#1A2942;    /* the navy: what a primary fills with, white label 14.59 */
+  --ps-accent-h2:#22355A;   /* dark LIFTS on hover; Shade 20/36 darken and belong to light */
+  --ps-accent-q:rgba(135,156,197,.16);  /* the quiet wash — from the MARK, because a
+                               wash of #1A2942 on a dark ground is not a wash at all */
+  /* Ink ON the resting tint. PER THEME, unlike the fills: in light the tint is pale
+     so the ink is the navy (10.70:1); in dark the tint is deep so the ink is white
+     (12.57). This is the one accent job whose direction follows the ground. */
+  --ps-accent-i:#FFFFFF; --ps-accent-i-q:rgba(255,255,255,.92);
+  /* THE NAVY LIFTED INTO A MARK. #879CC5 is 6.61:1 on the app surface, 5.13 on a
+     control fill and 5.27 as the hairline on the navy itself. A navy hairline on a
+     dark ground would be invisible, which is the whole reason this token exists.
+     It was #578BFA at one point — 4.38:1 on --ps-fill, which fails AA at the 10px
+     the spacer tile paints. A mark must clear every surface it can land on. */
+  --ps-link:#879CC5;
+  /* THE FOCUS RING IS THE FOREGROUND COLOUR, not the accent — Coinbase's
+     --focus-ring is `0 0 0 2px var(--fg)`, so it inverts with the theme and is the
+     one ring that cannot fail on any ground. --ps-focus stays declared because ~30
+     rules read it as an ON-state hairline; the RING itself is --ps-ink (section 15). */
+  --ps-focus:#879CC5;
+  /* brand orange — the LOGOTYPE's period, and nothing else. Coinbase's palette is a
+     blue-and-white binary and carries no orange; the wordmark's dot is Provident's
+     own mark rather than chrome, and it is the one deliberate departure. It measures
+     2.76:1 and is exempt as part of a logotype. */
+  --ps-brand:#F3793C; --ps-brand-h:#FF8A4C;
+  /* the primary ramp: rest / hover / pressed. Shade 20 and Shade 36 are the
+     attachment's "fill hover" and "fill pressed" — in LIGHT. Dark presses DOWN to
+     Shade 20 because its rest is the navy and its hover LIFTS, so darkening is the
+     correct direction for a press there. */
+  --ps-primary:#1A2942; --ps-primary-h:#22355A; --ps-primary-a:#152135;
+  --ps-primary-i:#FFFFFF;
+  /* status. Coinbase states these as SURFACE colours and this system reads them as
+     INK on a faint wash, so each is retuned to clear 4.5 as ink: only --danger
+     needed lifting for dark. */
+  --ps-bad:#F07272; --ps-bad-q:rgba(240,114,114,.16);
+  --ps-good:#22B457;--ps-good-q:rgba(34,180,87,.18);
+  --ps-warn:#EAB308; --ps-warn-q:rgba(234,179,8,.16);
+  /* depth. --elev-flat is `none` and --elev-ring is a 1px border: Coinbase takes its
+     depth from the contrast between light and dark sections, so there is nothing to
+     lift. A 0-blur 0-offset box-shadow elsewhere in this file is a state RING, not
+     elevation — distinguish them by offset and blur, never by the absence of `inset`. */
+  --ps-shadow:none; --ps-shade:transparent;
+  /* skeleton marks inside diagram tiles */
+  --ps-skel:rgba(255,255,255,.42); --ps-skel-q:rgba(255,255,255,.18);
+  /* informational tints — on the mark's hue, so they sit on the ramp */
+  --ps-tint-1:rgba(135,156,197,.16); --ps-tint-2:rgba(22,163,74,.16);
+  --ps-tint-3:rgba(135,156,197,.16); --ps-tint-ink:#879CC5;
+
+  /* geometry. THE PILL IS THE SIGNATURE, and it reverses the pass before this one:
+     Coinbase's rule is "don't use sharp corners on CTAs — 56px minimum", and at a
+     36px control height a 56px radius IS a full pill. Checked before applying that
+     every --ps-r-ctl reader is a labelled control, so nothing that should stay a
+     rectangle became a capsule. A FIELD IS NOT A CTA and keeps --radius-sm; cards
+     and tiles take --radius-md. */
+  --ps-r-sm:8px; --ps-r:16px; --ps-r-lg:16px;
+  /* CHECK EVERY READER ACROSS LINE BREAKS BEFORE CHANGING THIS. Making it the pill
+     turned .p-in into a capsule field, .p-tile (a component card) into a capsule and
+     .p-icons (a grid container) into one too — all three named in this file's own rules
+     as things that must never be pills. A single-line grep missed all three because
+     their rules span lines. */
+  --ps-r-ctl:9999px; /* every labelled action, and the segmented containers */
+  --ps-r-tile:16px;  /* option tile */
+  --ps-r-drop:16px;  /* dashed drop zone */
+  --ps-r-field:8px;  /* a field, and the guided run's big text box */
+  --ps-pill:9999px;
+  --ps-secpad:16px;   /* the ONE declaration a full-bleed divider cancels */
+  --ps-dockpad:14px;  /* the dock's own inset — a different token on purpose */
+  --ps-qr:120px; --ps-railc:281px;
+  /* THE LAYOUT RAIL DELIVERS THE FRAME'S 288 CONTENT COLUMN, and a scrollbar is
+     why the number is not 320. Measured: 320 + a 1px seam gave a 277 column,
+     because Chrome takes 11px for the bar this rail always shows. 332 =
+     288 + 32 padding + 11 scrollbar + 1 seam, exactly as the palette rail's
+     272 = 229 + 32 + 11. Take the CONTENT width from a design, never the frame
+     width, whenever the real element scrolls. This token is the rail's whole
+     footprint and the dock's right offset reads it, so the two cannot drift. */
+  --ps-railr:332px;
+
+  /* type */
+  --ps-font:'Google Sans Flex',system-ui,sans-serif;
+
+  /* motion — TWO tokens, and the split is load-bearing. --ps-ease used to mean
+     ".16s ease", i.e. duration AND easing, so ten rules named it ALONE as a
+     transition's whole timing. Redeclaring it as a bare cubic-bezier silently
+     removed the DURATION from every one of them: the
+     shorthand's first <time> is the duration, and with none the transition runs at
+     0s and never animates. It cost .p-tile-a's hover fade in a shipping file before
+     it was caught. The names are honest now — --ps-motion is the time, --ps-ease is
+     the curve — and every call site passes BOTH. */
+  --ps-motion:150ms; --ps-ease:cubic-bezier(0.2,0,0,1);
+
+  /* the select chevron. A data URI cannot read a CSS variable, so the whole
+     url() is the variable — one per theme, which is how the arrow follows the
+     ink. NOTE: no viewBox. Design Cursor camel-cases attribute names inside a
+     CSS string, so `viewBox` arrives as `sc-camel-view-box` and the SVG paints
+     nothing. width/height give the intrinsic square and the translate maps the
+     icon's own -960..0 Y range into 0..960. Keep it this way if you ever paste
+     this file into a .dc.html. */
+  --ps-chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='960' fill='%23949AA6'%3E%3Cpath transform='translate(0 960)' d='M480-357.85 253.85-584 296-626.15l184 184 184-184L706.15-584 480-357.85Z'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="light"]{
+  /* --bg #FFFFFF is Coinbase's; the STAGE takes Tint 12, whose own label is
+     "sunken", so the white cards read against it. Nothing FILLED sits directly on
+     the stage — every field and chip is inside a card — which is what makes it safe
+     for the stage and --ps-fill-h to share Tint 12. */
+  --ps-app:#FFFFFF; --ps-sb:#FFFFFF; --ps-card:#FFFFFF; --ps-card-h:#F6F6F7;
+  --ps-stage:#E4E5E8;--ps-deep:#FFFFFF;--ps-chip:#EDEEF0;
+  --ps-fill:#EDEEF0; --ps-fill-h:#E4E5E8;
+  /* TINT 16, generated by the ramp's own rule rather than taken from the five named
+     steps — and that is deliberate. Tint 04 is a card's lift, Tint 08 a quiet
+     control, Tint 12 the sunken stage, Tint 20 the disabled fill: reusing one for
+     the SELECTED state would have made selected and disabled, or selected and the
+     stage, the same tone. Navy ink on it measures 10.70:1. */
+  --ps-fill-on:#DADDE1;
+  --ps-fill-dis:#D1D4DA;
+  --ps-hair:rgba(91,97,110,.14); --ps-line:rgba(91,97,110,.20);
+  /* Coinbase's --fg and --muted verbatim: 6.21:1 on white, 5.44 on the surface.
+     --ps-ink-2 is the step between them and is derived. */
+  --ps-ink:#0A0B0D; --ps-ink-2:#3D434E; --ps-dim:#5B616E; --ps-mute:#5B616E;
+  --ps-accent:#DADDE1;
+  --ps-accent-h:#1A2942; --ps-accent-h2:#152135;
+  --ps-accent-q:rgba(26,41,66,.06);
+  --ps-accent-i:#1A2942;
+  --ps-link:#1A2942;    /* the navy IS the mark in light: 14.59 on white */
+  --ps-focus:#1A2942;
+  --ps-brand:#F3793C; --ps-brand-h:#E06A2E;
+  --ps-primary:#1A2942; --ps-primary-h:#152135; --ps-primary-a:#101A29;
+  --ps-bad:#C81E1E; --ps-bad-q:rgba(200,30,30,.10);
+  --ps-good:#0F7A3A;--ps-good-q:rgba(15,122,58,.10);
+  --ps-warn:#8A6206; --ps-warn-q:rgba(138,98,6,.12);
+  --ps-skel:rgba(10,11,13,.55); --ps-skel-q:rgba(10,11,13,.26);
+  --ps-tint-1:rgba(26,41,66,.08); --ps-tint-2:rgba(15,122,58,.10);
+  --ps-tint-3:rgba(26,41,66,.08); --ps-tint-ink:#1A2942;
+  --ps-chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='960' height='960' fill='%235B616E'%3E%3Cpath transform='translate(0 960)' d='M480-357.85 253.85-584 296-626.15l184 184 184-184L706.15-584 480-357.85Z'/%3E%3C/svg%3E");
+}
+
+/* LEGACY ALIASES — kept so rules written against the old names flip for free.
+   THE TRAP: --ps-navy resolves to --ps-card-h, which is #F6F6F7 in light mode.
+   Any surface still painted with it turns near-white while literal #fff ink
+   stays put. That single alias caused three whole screens to go unreadable.
+   --ps-gold / --ps-orange / --ps-blue point at --ps-accent-h rather than
+   --ps-accent, because ~34 of their call sites are FILLS on an action and the
+   resting tint would leave them near-invisible. */
+:root{
+  --ps-navy:var(--ps-card-h); --ps-navy-2:var(--ps-primary);
+  --ps-gold:var(--ps-accent-h); --ps-gold-d:var(--ps-dim);
+  --ps-cream:var(--ps-ink);   --ps-sand:var(--ps-ink);
+  --ps-line-2:var(--ps-line); --ps-orange:var(--ps-accent-h);
+  --ps-blue:var(--ps-accent-h);
+  /* --ps-blue-lt means "the light blue" and 44 rules across the studios read it as
+     INK. It points at --ps-link, which is literally what the name says. */
+  --ps-blue-lt:var(--ps-link);
+  --ps-blue-dk:var(--ps-primary);
+}
+
+/* ── 3. BASE ───────────────────────────────────────────────────────────────
+   16 / 400 / 1.5 is --text-base at --leading-body. REGULAR 400 is the default
+   weight, which reverses the Light 300 body two earlier systems asked for: 600 is a
+   button or a caption, 400 is everything else, and 300 is gone. Verified before
+   committing to it that the embedded Google Sans Flex renders seven distinct weights
+   from 100 to 900, so 600 does not silently clamp to 500 — measure the axis, never
+   trust the @font-face descriptor. */
+.ps, .p-shell{
+  font-family:var(--ps-font); font-size:16px; font-weight:400; line-height:1.5;
+  color:var(--ps-ink); background:var(--ps-app);
+  -webkit-font-smoothing:antialiased;
+}
+.ps *,.p-shell *{box-sizing:border-box}
+/* A FORM CONTROL DOES NOT INHERIT THE FAMILY. button/input/select/textarea take the UA's
+   own font, so `font-family` on the shell never reached them and every control class had
+   to say `font-family:inherit` for itself — .p-in, .p-btn-q, .p-link and .p-badge all do,
+   and .p-range and .p-tri-in were simply missed and shipped in Arial.
+
+   FAMILY ONLY, and that is the whole lesson of this rule. The studios pair it with
+   `color:inherit` on a BARE `button,input,select,textarea` selector, which every class
+   beats at (0,0,1). Scoped to the shell it becomes (0,1,1) and outspecifies .p-btn
+   (0,1,0) — so adding colour here took the declared ink off every button in the system:
+   white on the accent dropped to --ps-ink on the accent, 5.17:1 to 4.29. Colour was never
+   the gap; each control declares its own. */
+.ps button,.ps input,.ps select,.ps textarea,
+.p-shell button,.p-shell input,.p-shell select,.p-shell textarea{font-family:inherit}
+
+
+/* ── 4. TYPE ROLES ─────────────────────────────────────────────────────────
+   NO ALL-CAPS ANYWHERE. Captions, option labels and group headings are sentence
+   case at normal tracking. Tracked caps at 500 is a CANVAS role — eyebrows in
+   exported artwork — and must not appear in the tool's UI. */
+
+/* section / group heading */
+/* align-items is BASELINE, not center: a caption is a 12.5px name beside an 11.5px quiet
+   half, and baseline is what lines the two runs up. Both studios ship baseline; `center`
+   centred the two line boxes instead, and was never measured. */
+.p-cap{
+  font-size:13px; font-weight:600; color:var(--ps-dim);
+  text-transform:none; letter-spacing:normal;
+  display:flex; align-items:baseline; gap:8px;
+}
+/* THE CAPTION'S QUIET HALF WAS NEVER DECLARED HERE, only .p-lab's was — so an <s> inside
+   a caption kept the UA's line-through and inherited the caption's own 12.5px/500. Both
+   studios declare it; these are their measured values. */
+.p-cap > s{
+  text-decoration:none; font-style:normal;
+  font-size:13px; font-weight:400; letter-spacing:normal; text-transform:none;
+  font-variant-numeric:tabular-nums; color:var(--ps-dim);
+}
+/* the one heading with a rule under it: a section reads as a region */
+.p-sec > .p-cap{
+  color:var(--ps-ink-2); padding:0 var(--ps-secpad) 11px;
+  margin-inline:calc(var(--ps-secpad) * -1);
+  border-bottom:1px solid var(--ps-hair);
+}
+.p-subcap{font-size:13px;font-weight:600;color:var(--ps-dim);text-transform:none;
+  letter-spacing:normal;padding:13px 0 11px}
+
+/* field label — sentence case, NOT an eyebrow. Grouping it with the captions
+   once forced 500/.1em on every label in the rail and read heavy and gappy. */
+.p-lab{
+  display:flex; align-items:center; gap:6px;
+  font-size:13px; font-weight:400; color:var(--ps-ink);
+}
+/* the quiet value beside a label — "never right", "100% · over black" — pushed
+   right, which is the reference's label-left / value-right row */
+.p-lab > s{
+  margin-left:auto; text-align:right; text-decoration:none; font-style:normal;
+  font-size:13px; font-weight:400; font-variant-numeric:tabular-nums;
+  color:var(--ps-dim);
+}
+/* a SECOND label inside the same group. One group is one seam, so a sub-heading
+   is spacing — never another divider. */
+.p-lab-2{margin-top:6px}
+
+.p-hint{font-size:11px;font-weight:300;line-height:1.5;color:var(--ps-dim)}
+.p-eye{font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ps-link)}
+
+
+/* ── 5. STRUCTURE: sections, groups, edge-to-edge dividers ─────────────────
+   A control group is a BAND, not a card. Forty outlined boxes have no
+   hierarchy, because nothing in the stack is quieter than anything else.
+
+   A divider closes a region and is EDGE TO EDGE: the row cancels the section's
+   side padding with a negative margin and re-adds it as padding, so the border
+   spans the whole rail and reads as a seam across it rather than an underline
+   under one control. --ps-secpad is the single declaration of that inset, so
+   the two can never drift. */
+.p-sec{padding:12px var(--ps-secpad) 18px; display:flex; flex-direction:column;
+  border-radius:var(--ps-r)}
+/* 15px vertical in a RAIL, which is what ships. A group inside the dock is 13px 14px —
+   the dock has its own inset token and its own rhythm. */
+.p-grp{
+  display:flex; flex-direction:column; gap:9px;
+  padding:15px 16px;
+  margin-inline:calc(var(--ps-secpad) * -1);
+  padding-inline:var(--ps-secpad);
+  border-bottom:1px solid var(--ps-hair);
+}
+/* the last row closes its region: a trailing hairline above the section's own
+   edge reads as a stray line */
+.p-grp:last-child{border-bottom:0}
+/* a group inside a column row is ALREADY contained — no band, no seam */
+.p-row-c > .p-grp{margin-inline:0;padding-inline:0;border-bottom:0}
+.p-row-c{display:flex;gap:10px}
+
+/* A full-bleed row used as a button must NOT take width:100% — that resolves
+   against the container and then shifts left, leaving the seam short at both
+   ends. align-self:stretch (the column default) resolves the width as
+   container-inner MINUS the item's own margins, which negative margins widen. */
+.p-grp-row{align-self:stretch}
+
+
+/* ── 6. BUTTONS ────────────────────────────────────────────────────────────
+   A pill means an OBVIOUS button. A card, a specimen tile, a grid container and
+   a drop zone are all clickable and none of them looks like a button, so none
+   of them is a pill. */
+.p-ghost,.p-btn,.p-prev,.p-dock-t,.p-ic{
+  font-family:inherit; cursor:pointer; display:inline-flex; align-items:center;
+  justify-content:center; gap:6px; border:1px solid transparent;
+  transition:background-color var(--ps-motion) var(--ps-ease),border-color var(--ps-motion) var(--ps-ease),
+             color var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease);
+}
+
+/* secondary / default — the workhorse */
+.p-ghost{
+  height:36px; padding:10px 18px; border-radius:var(--ps-pill);
+  font-size:14px; font-weight:600; letter-spacing:.16px;
+  color:var(--ps-ink); background:var(--ps-fill);
+}
+.p-ghost:hover{background:var(--ps-fill-h)}
+.p-ghost[data-on]{
+  background:var(--ps-accent); color:var(--ps-accent-i); border-color:var(--ps-link);
+  box-shadow:0 0 0 3px var(--ps-accent-q);
+}
+
+/* primary — THE ONE CONTROL THAT RESTS IN THE BRIGHT REGISTER. Everything else that is
+   selected or on is the dominant navy; the action you should take is the only loud thing
+   on the screen, which is what "reserve the bright blue for important interactions" buys.
+   No added stroke: a labelled fill is announced by its label (6.54:1), not by its edge,
+   and one primary per panel does not need a ring to be found. */
+.p-btn{
+  height:36px; padding:10px 16px; border-radius:var(--ps-pill); border:0;
+  font-size:14px; font-weight:600; letter-spacing:.16px;
+  /* THE PRIMARY CARRIES ITS OWN INK. This read --ps-accent-i, which is the ink for the
+     resting TINT and is therefore the navy itself in light — navy on navy, invisible.
+     Both halves come from the --ps-primary pair. Every re-skin of this system has
+     produced this one inversion exactly once; enumerate the --ps-accent-i readers
+     against their new fill rather than guessing which ones matter. */
+  color:var(--ps-primary-i); background:var(--ps-accent-h);
+  /* the navy has no boundary of its own on the dark theme — 1.25:1 on --ps-app — so
+     every navy fill carries the mark as a hairline. In light it is navy on navy and
+     deliberately invisible. */
+  box-shadow:inset 0 0 0 1px var(--ps-link);
+}
+.p-btn:hover{background:var(--ps-accent-h2)}
+
+/* the ONLY two orange controls, and both live in the top bar */
+.p-prev,.p-sw-studio{
+  height:29px; padding:7px 14px; border-radius:var(--ps-pill);
+  font-size:12px; font-weight:500; line-height:1; color:var(--ps-accent-i); background:var(--ps-brand);
+}
+.p-prev:hover,.p-sw-studio:hover{background:var(--ps-brand-h)}
+
+/* TWO HEIGHTS, AND THE RULE FOR WHICH GOES WHERE.
+   35px (the default above) is a top-bar or panel action — it has room and it should
+   read as the primary weight of its region. `.p-sm` is 29px and belongs to a control
+   INSIDE a rail group, where four extra pixels a row lengthens three rails you already
+   scroll. It sets height and padding only, so the parent's weight and colour carry
+   through and a compact button is visibly the same button, not a different one. */
+.p-ghost.p-sm,.p-btn.p-sm,.p-danger.p-sm{height:29px; padding:7px 14px}
+
+/* destructive — the one action that must not be mistaken for its neighbour.
+   Tokens, not literals: the reds differ per theme (#F0705F on dark, #D92D20 on light)
+   and a hardcoded pair reads as a muddy smudge in one of them. It keeps the pill: it is
+   an obvious button, and a 6px rect here was the one rogue radius in the studio. */
+.p-danger{
+  height:35px; padding:9px 19px; border-radius:var(--ps-pill);
+  font-family:inherit; cursor:pointer; display:inline-flex; align-items:center;
+  justify-content:center; gap:6px;
+  font-size:12px; font-weight:500;
+  color:var(--ps-bad); background:var(--ps-bad-q); border:1px solid transparent;
+  transition:background-color var(--ps-motion) var(--ps-ease),border-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease);
+}
+.p-danger:hover{border-color:var(--ps-bad)}
+
+/* quiet — undo/redo and their kind */
+.p-btn-q{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  height:29px; padding:7px 13px; border-radius:var(--ps-pill); border:1px solid transparent;
+  font-size:14px; font-weight:600; letter-spacing:.16px;
+  color:var(--ps-ink-2); background:var(--ps-fill);
+  cursor:pointer; font-family:inherit;
+}
+.p-btn-q:disabled{opacity:.4; cursor:default}
+
+/* small outlined link — "Edit layout separately" */
+.p-link{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:24px; padding:5px 11px; border-radius:var(--ps-pill);
+  font-size:11px; font-weight:500; color:var(--ps-link);
+  background:transparent; border:1px solid var(--ps-line); cursor:pointer;
+  font-family:inherit;
+}
+/* it brightens to full ink on hover. --ps-accent is a FILL colour now and reads 3.59 on
+   the dark ground, which is under the bar for 11px text — a hover must not be quieter
+   than the rest state. */
+.p-link:hover{border-color:var(--ps-link); color:var(--ps-ink)}
+
+/* badge — a plate's Master / Variant 2 label. Title case, no tracking:
+   tracking is a tracked-caps device and reads as gappy on mixed case. */
+.p-badge{
+  padding:7px 14px; border-radius:var(--ps-pill); font-size:12px; font-weight:500;
+  color:var(--ps-ink-2); background:transparent; border:1px solid var(--ps-line);
+  cursor:pointer; font-family:inherit;
+}
+.p-badge[data-on]{background:var(--ps-ink); color:var(--ps-app); border-color:transparent}
+
+/* Icon-only: the one LABEL-LESS button in the top bar, square and flush rather
+   than 5px short. GEOMETRY ONLY — it composes with .p-ghost for its surface,
+   exactly as the studios' markup does (class="p-ghost p-ico-t p-ico-o").
+   Re-declaring fill/border/colour here made the guide's specimen work standalone
+   while the same markup rendered as a grey 2px UA button in both studios. */
+.p-ico-o{
+  width:35px; height:35px; padding:0; justify-content:center; flex:none;
+  border-radius:var(--ps-pill); box-sizing:border-box;
+}
+/* THE ICON SITS BESIDE THE LABEL, not over it. This was written from a phrase rather
+   than measured, and it is arithmetically impossible as it stood: .p-ghost is 35px tall
+   with 9px of vertical padding, leaving a 17px content box — a 16px glyph stacked over a
+   12px label needs about 30. Every button shipping this class in the studios computes
+   `row` with a 6px gap, and the guide's own specimen only looked right because I gave it
+   an inline height:auto and smaller padding to make the column fit. An inline override
+   on a specimen is the tell that the class does not work as declared. */
+.p-ico-t{display:inline-flex; align-items:center; gap:6px; flex:none}
+
+/* ══ SEGMENTED PAIR, AND THE PADDING PROPORTION THAT WAS WRONG ═══════════════════
+   Two halves of ONE control, so ON is a FILL, never a ring.
+
+   THE PILL WAS THIN. At 4px vertical against 12px horizontal — a 1:3 ratio — the button
+   inside the track measured 22.4px in a 30px container: a sliver of colour floating in a
+   trough. It is the one button in the system with NO fixed height, so its vertical
+   padding is the only thing setting its size, and 4px was set as though a height would
+   catch it. 8px makes the pill 30.4px in a 40px track, which is what a segmented control
+   should look like.
+
+   The ratio is the general rule and it now holds across every role: a button's side
+   padding is LARGER than its vertical padding, but only slightly — the band is 1.5 to
+   1.8, never the 3:1 and 4:1 that some of these carried. A pill needs horizontal room or
+   the text touches the curve; it does not need three times as much. */
+.p-tabs{
+  display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:5px;
+  background:var(--ps-fill); border-radius:var(--ps-pill); padding:5px;
+}
+.p-tabs button{
+  border:0; background:transparent; cursor:pointer; font-family:inherit;
+  padding:8px 14px; border-radius:var(--ps-pill); line-height:1.2;
+  font-size:12px; font-weight:500; color:var(--ps-ink-2);
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease);
+}
+/* the inset hairline is the ON half's only boundary on the dark theme, where the
+   navy fill and the track it sits in are 1.15:1 apart. It is invisible on light. */
+.p-tabs button[data-on]{background:var(--ps-accent); color:var(--ps-accent-i);
+  box-shadow:inset 0 0 0 1px var(--ps-link)}
+
+/* a two-line choice row — an 8px rect, because a capsule round two lines of
+   text reads as a lozenge rather than a button */
+.p-choice{
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  padding:8px 12px; border-radius:var(--ps-r-lg);
+  background:transparent; border:1px solid transparent; cursor:pointer;
+  font-family:inherit; font-size:13px; color:var(--ps-ink); text-align:left;
+}
+.p-choice s{text-decoration:none;font-size:11px;font-weight:300;color:var(--ps-dim)}
+.p-choice:hover{background:var(--ps-fill)}
+.p-choice[data-on]{background:var(--ps-accent-q); border-color:var(--ps-link)}
+/* On a TINTED surface the quiet ink comes from the foreground, never from grey. --ps-dim
+   is measured against the page ground, and on the accent wash it lands at 4.46:1 dark and
+   4.42:1 light — under the 4.5 body minimum in one theme and inside the noise in the
+   other. --ps-ink-2 is the foreground's own quiet tier: 6.33 and 7.12, still visibly
+   quieter than the label's --ps-ink. */
+.p-choice[data-on] s{color:var(--ps-ink-2)}
+
+/* one icon cell — a button, so a pill; the grid that holds them is not */
+/* `color` is not optional on a button: six rules touched .p-ic and none set it, so it
+   inherited the UA's `buttontext` — a BLACK glyph on a dark fill, measured 1.27:1. */
+.p-ic{aspect-ratio:1/1; padding:6px; border-radius:var(--ps-pill);
+  background:var(--ps-fill); color:var(--ps-ink)}
+.p-ic:hover{background:var(--ps-fill-h); border-color:var(--ps-link)}
+.p-icons{display:grid; gap:6px; border-radius:var(--ps-r-sm)}
+
+
+/* ── 7. FIELDS ─────────────────────────────────────────────────────────────
+   A field's guidance is its own line, not part of its label: at a 277px rail
+   the combined string wraps and orphans the example value, which reads as a
+   broken row rather than as help. */
+/* the wrapper doubles as a label in the studio, so it carries the label type */
+.p-fld{display:flex; flex-direction:column; gap:4px;
+  font-size:12px; font-weight:300; color:var(--ps-dim)}
+.p-in{
+  width:100%; box-sizing:border-box; height:36px; padding:8px 10px;
+  font-family:inherit; font-size:14px; font-weight:400;
+  color:var(--ps-ink); background-color:var(--ps-fill);
+  /* A FIELD IS A FILL. The 1px is transparent and kept only so the box does not jump
+     when focus or an error paints it — a visible resting stroke is the wireframe look
+     this system removed. Two panels once overrode it with a cream literal that never
+     flipped (1.07:1 on a light ground); the override is gone, not re-tokened. */
+  border:1px solid transparent; border-radius:var(--ps-r-field);
+  transition:background-color var(--ps-motion) var(--ps-ease),border-color var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease);
+}
+textarea.p-in{height:auto; min-height:72px; line-height:1.5; resize:vertical}
+.p-in::placeholder{color:var(--ps-dim)}
+.p-in:hover{background-color:var(--ps-fill-h)}
+/* The focus ring stays. It is not decoration — it is the only thing that says
+   where the keyboard is. */
+.p-in:focus-visible{
+  outline:2px solid var(--ps-ink); outline-offset:2px;
+  background-color:var(--ps-fill-h); border-color:transparent;
+}
+/* The old rule set `outline:none` and substituted a --ps-accent-q shadow, which measures
+   1.18:1 in dark and 1.04:1 against the field's own fill in light — so it discarded a UA
+   ring worth 7.77:1 and replaced it with nothing you can see. It also fired on mouse
+   click, which is what makes authors delete focus rings in the first place;
+   :focus-visible is the selector that distinguishes the two. */
+.p-in[data-bad]{border-color:var(--ps-bad); box-shadow:0 0 0 2px var(--ps-bad-q)}
+.p-bad{color:var(--ps-bad); font-size:11px; font-weight:400}
+
+/* A <select> has no empty state: with an unset value the browser shows the
+   FIRST option, so the control reads as answered while the field is still ''.
+   Commit the displayed value when the control is first shown. */
+select.p-in{
+  appearance:none; -webkit-appearance:none; padding-right:32px; cursor:pointer;
+  background-image:var(--ps-chev); background-repeat:no-repeat;
+  background-position:right 9px center; background-size:18px 18px;
+}
+/* NEVER use the `background` SHORTHAND on these: it resets background-image to
+   none and the chevron vanishes on hover and focus. Re-assert it here so no
+   later shorthand can wipe it. */
+select.p-in:hover,select.p-in:focus,select.p-in:active{
+  background-image:var(--ps-chev); background-repeat:no-repeat;
+  background-position:right 9px center; background-size:18px 18px;
+}
+select.p-in option{background:var(--ps-card); color:var(--ps-ink)}
+
+/* stepper */
+.p-step{display:flex; align-items:center; gap:6px}
+.p-step button{
+  width:28px; height:28px; border-radius:var(--ps-pill); border:1px solid transparent;
+  background:var(--ps-fill); color:var(--ps-ink); cursor:pointer;
+  font-family:inherit; font-size:13px; line-height:1;
+}
+.p-step button:hover{background:var(--ps-fill-h)}
+.p-step b{min-width:28px; text-align:center; font-size:14px; font-weight:400}
+
+/* a bare input inside a .p-fld label is content-box with 10px of side padding
+   and width:100%, so it overruns its column and puts a stray horizontal
+   scrollbar in the rail */
+.p-fld > input,.p-fld > textarea,.p-fld > select{box-sizing:border-box}
+
+
+/* ── 8. OPTION TILES ───────────────────────────────────────────────────────
+   Stop boxing a box in a box. The button carries NOTHING — the frame, the fill
+   and the selected outline live on the tile inside it, and the label sits
+   outside and below. Selected is an OUTLINE, never a wash, so two options read
+   as one object in two states rather than a filled tile beside an empty one. */
+.p-opts{display:grid; gap:8px; grid-auto-flow:column; grid-auto-columns:1fr}
+.p-opts-2{grid-template-columns:1fr 1fr; grid-auto-flow:row}
+.p-opt{
+  display:flex; flex-direction:column; gap:4px; align-items:stretch;
+  background:none; border:0; padding:0; cursor:pointer;
+  font-family:inherit; font-size:11.5px; font-weight:400; color:var(--ps-ink-2);
+}
+.p-opt[data-on]{color:var(--ps-ink)}
+
+/* A miniature is a DIAGRAM, not a picture of a canvas. Flat surface, skeleton
+   marks — the device a picker uses to say "where the thing sits". Height is
+   FIXED, never an aspect-ratio: a square makes two-up tiles taller than
+   three-up ones and the rail loses its rhythm. */
+/* flex:none — a tile is a fixed 62px object and must not shrink when the row runs out of
+   room; both studios declare it and this file did not. */
+.p-mini{
+  position:relative; flex:none; height:62px; border-radius:var(--ps-r-tile); overflow:hidden;
+/* ══ THE FRAME COMES OFF THE TILE ═══════════════════════════════════════════════
+   Counted in Campaign's Layout rail: 19 visible strokes, and SEVEN of them carried no
+   information at all — a 1px hairline round each unselected tile, on top of the fill the
+   tile already has. The remaining twelve all say something: four accent rings say which
+   option is on, seven seams say a region ends here, one ring says which colour is chosen.
+
+   This system decided years of passes ago that "a control is a quiet FILL, not an
+   outline — at rail density the strokes add up to more visual weight than the controls
+   themselves", and it measured that pass at 27 borders down to 8. The option tile was
+   never included: it kept the fill AND the frame. Eleven tiles in one rail is where that
+   shows, and it is exactly what "too many strokes" was pointing at.
+
+   The fill carries the extent on its own, which is not a guess — the palette row is the
+   same token with no border at the same size and reads fine in both themes.
+
+   The selection gets STRONGER for free: the accent ring is now the only stroke in its
+   group instead of one of three, so it is the thing your eye lands on. And the pair still
+   reads as one object in two states, which is why the ON state stays an outline here
+   rather than a wash: a fill with a ring beside a plain fill, not a filled tile beside an
+   empty one. */
+  background:var(--ps-fill);
+  transition:box-shadow var(--ps-motion) var(--ps-ease),background-color var(--ps-motion) var(--ps-ease);
+}
+.p-opt:hover .p-mini{background:var(--ps-fill-h)}
+/* THE SELECTED TILE, AND THE THREE-STOP SLIDER, ARE ONE TREATMENT. They are the two
+   controls that sit next to each other in the Layout rail and they used to disagree on
+   every axis: the tile was a quiet fill with a 2px ring and accent-coloured bars, the
+   slider's fill was the accent itself with a 1px ring and WHITE marks. Same question
+   ("which of these is on?"), two answers.
+
+   They are now the same object: --ps-accent fill, a 2px --ps-link ring, white marks.
+
+   NOTE THIS REVERSES THE REASONING IN THE BLOCK ABOVE, and the reversal is the accent
+   change, not a change of mind. That comment argued the ON state should stay an outline
+   rather than a wash, because a wash in a bright mid blue is a loud blob beside a plain
+   tile. --ps-accent is #101E39 now: DARKER than the rail, so the filled tile reads as a
+   recessed navy chip rather than a blob, and filling it is what the system's own rule
+   ("an ON state is a fill, not a ring") asked for all along. The ring stays because on
+   the dark theme the navy has no boundary of its own — see the token block. */
+.p-opt[data-on] .p-mini{background:var(--ps-accent); box-shadow:inset 0 0 0 2px var(--ps-link)}
+/* A bar is --ps-skel. `-q` is the DIM MODIFIER, not the default: this rule said
+   --ps-skel-q, so the guide documented the quiet variant as the normal one while
+   both studios ship --ps-skel — a diagram that reads a third fainter than the
+   thing it is documenting. */
+.p-mini i{position:absolute; border-radius:var(--ps-pill); background:var(--ps-skel)}
+.p-mini i.dim{background:var(--ps-skel-q)}
+.p-mini i.scrim{background:var(--ps-skel-q); border-radius:0}
+/* QUIETNESS AS OPACITY, one last time. This was `--ps-accent; opacity:.5`, which
+   composites to 1.66:1 in dark and 1.96:1 in light — the exact error this system has
+   removed twice already (.gd-skip, the token prefix on the guide) and still shipped here.
+   And on a dark ground "dimmer" means "closer to the ground", so there is no accent step
+   that is both quieter than its sibling and higher-contrast: the axis genuinely opposes
+   itself. So the dim mark keeps the NEUTRAL skeleton token it already uses at rest, and
+   the accent is left to mean one thing — this is the content you picked. The diagram's
+   secondary furniture stops competing with it, and both themes now land on one declared
+   value (1.79 dark, 1.69 light) instead of on whatever happens to be behind them. */
+.p-opt[data-on] .p-mini i.dim,.p-opt[data-on] .p-mini i.scrim{
+  background:var(--ps-skel-q); opacity:1}
+/* MARKS INSIDE THE ACCENT FILL ARE WHITE; marks on a quiet surface are skeleton ink.
+   That is the slider's own rule (.p-tri-f .p-tri-k against .p-tri-k) and the tile follows
+   it now that the tile is filled. 14.15:1 on the navy, against 7.27 for the ink step. */
+/* the tile's diagram marks and the slider's stop marks sit INSIDE the resting fill,
+   so they take that fill's own ink — not white. At --ps-accent-i-q (white at 92%) they
+   vanished on the light tint, which is the same inversion as .p-btn one layer down. */
+.p-opt[data-on] .p-mini i{background:var(--ps-accent-i)}
+/* A big glyph instead of bars, when the option is a MODE rather than a layout.
+   It is a MODIFIER ON .p-mini, never a tile of its own — the studios' markup is
+   <span class="p-mini p-mini-i">, so the surface, the radius and the selected
+   ring all stay on .p-mini. This rule used to re-declare all three, which is the
+   "box in a box" the option tiles exist to remove, and it documented a
+   standalone usage that renders unstyled in both studios. */
+.p-mini-i{
+  display:flex; align-items:center; justify-content:center; color:var(--ps-ink-2);
+}
+.p-opt[data-on] .p-mini-i{color:var(--ps-accent-i)}
+.p-mini-i svg{width:26px;height:26px;fill:currentColor;display:block}
+/* a glyph in a tile is a <b>, NEVER an <i> — `.p-mini i` is the absolutely
+   positioned skeleton bar and a glyph in one inherits all of it */
+/* THE GLYPH SPECIMEN TILE, which was missing from this library entirely while both
+   studios shipped it: the Typeface English / Arabic pair, where the tile IS the
+   specimen of the face it selects. `.p-mini b{font-weight:300}` used to sit here
+   instead — a weight neither studio uses, on a generic selector that caught any <b>
+   in any tile. Weight 400 is the specimen weight; the body scale is 300.
+
+   line-height 1 CROPS the Arabic glyph: an Arabic letter carries its tail below the
+   baseline and a line box exactly one em tall has nowhere to put it, so the specimen
+   read as a clipped mark rather than a letter. Arabic also has to be set LARGER — an
+   Arabic letter body measures 46 per 100px against a Latin cap's 72.8, the same
+   measurement AR.eyebrow is built on, so the same nominal size looks a third smaller.
+   Measured glyph boxes: 35.1px Latin, 45.9px Arabic, both centred in the 62px tile. */
+.p-mini-g{display:flex; align-items:center; justify-content:center; color:var(--ps-ink-2)}
+.p-mini-g b{font-style:normal; font-weight:400; font-size:27px; line-height:1.3}
+.p-mini-ar b{font-family:'Readex Pro',var(--ps-font);
+  font-size:34px; line-height:1.35}
+.p-opt[data-on] .p-mini-g{color:var(--ps-accent-i)}
+
+
+/* ── 9. SLIDERS ────────────────────────────────────────────────────────────
+   accent-color alone leaves the control almost invisible on the dark rails, so
+   the track and thumb are explicit. A slider TRACK stays fully rounded: that is
+   the control's own shape, and squaring it makes the thumb sit oddly. */
+/* -webkit-appearance:none IS LOAD-BEARING. Without it on the INPUT, Chrome keeps
+   native rendering and silently ignores every ::-webkit-slider-* rule below — the
+   control then shows a thicker bar with a FILLED progress portion and a bigger thumb,
+   while the stylesheet appears to say otherwise. The fill is the tell: WebKit has no
+   progress pseudo-element, so a custom slider cannot have one. Never set accent-color
+   here; it only tints the native rendering you are turning off. */
+input[type=range].p-range{
+  -webkit-appearance:none; appearance:none;
+  width:100%; height:18px; background:transparent; cursor:pointer;
+}
+input[type=range].p-range::-webkit-slider-runnable-track{
+  height:4px; border-radius:var(--ps-pill); background:var(--ps-line);
+}
+/* No stroke on a thumb. The 2px ring also made the box 18px while margin-top
+   assumed 14px, so the thumb sat 2px below the track's centre line. Without it
+   the arithmetic is exact: -(14 - 4) / 2 = -5. */
+input[type=range].p-range::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:14px; height:14px; margin-top:-5px; border:none; border-radius:50%;
+  background:var(--ps-link); box-shadow:0 1px 4px var(--ps-shade);
+}
+/* A THUMB IS A MARK, NOT A FILL: it carries no label, so it has to read against the
+   track and the rail on its own. The dominant navy measures 1.15:1 on the track. */
+input[type=range].p-range:hover::-webkit-slider-thumb{background:var(--ps-focus)}
+input[type=range].p-range::-moz-range-track{height:4px;border-radius:var(--ps-pill);background:var(--ps-line)}
+input[type=range].p-range::-moz-range-progress{height:4px;border-radius:var(--ps-pill);background:var(--ps-link)}
+input[type=range].p-range::-moz-range-thumb{
+  width:14px;height:14px;border:none;border-radius:50%;background:var(--ps-link);
+}
+
+/* THE THREE-STOP SLIDER — two capsules with a 5px gutter.
+   A real <input type=range> sits over the artwork at opacity 0, so
+   click-to-position, drag and the arrow keys all come for free. */
+.p-trirow{display:flex; align-items:center; gap:12px}
+/* the preset's NAME sits BESIDE the track, not inside the fill. Inside, it moved
+   with the value and crowded the first marks; outside it is a steady label and
+   the track is nothing but scale. Fixed width so the track does not resize as
+   the name changes length. */
+.p-tri-l{flex:none; width:54px; font-size:13px; font-weight:400; line-height:13px}
+/* The 5px gutter may be this padding OR absolute insets on .p-tri-w — the studio
+   uses insets (left/right/top/bottom:5px) and that is equivalent, so do not
+   "fix" one to match the other. Only the gutter itself is the spec. */
+.p-tri{
+  position:relative; flex:1; height:44px; border-radius:var(--ps-pill);
+  background:var(--ps-fill); padding:5px; overflow:hidden;
+}
+.p-tri-w{position:relative; height:34px; border-radius:var(--ps-pill); overflow:hidden}
+.p-tri-f{
+  position:absolute; inset:0 auto 0 0; border-radius:var(--ps-pill);
+  background:var(--ps-accent); overflow:hidden;
+  /* the fill's EXTENT is the value, so the extent has to be visible: the navy reads
+     1.15:1 against the dark track and this ring reads 6.33. The white marks inside it
+     (14.15) say which stops are covered; the ring says how far it goes. 2px, matching
+     the option tile — see THE SELECTED TILE above; these two are one treatment. */
+  box-shadow:inset 0 0 0 2px var(--ps-link);
+}
+/* THE OVERLAY INPUT MUST OUT-SPECIFY input[type=range]. That base rule sets
+   height:18px, and an attribute selector (0,1,1) beats a bare class (0,1,0) —
+   so the invisible input covered only the TOP 18px of a 44px control and the
+   whole lower half was dead. It read as "takes a lot of clicks to move". */
+/* -webkit-appearance:none IS LOAD-BEARING HERE TOO, and this file explains that at
+   length forty lines above and then left it off. Without it on the INPUT, Chrome keeps
+   native rendering and silently ignores the ::-webkit-slider-thumb rule below — so the
+   thumb is NOT zeroed, a click maps thumb-centre travel instead of the full track, and
+   both ends of the control are dead. That is the exact defect the zero-width thumb
+   exists to remove. Only this library was affected: all three studios carry a broad
+   `input[type=range]{appearance:none}` base rule that happens to catch it, which is why
+   the guide's three-stop specimen behaved differently from the shipped control, and why
+   only the clone-diff found it — appearance: guide auto, studio none. */
+input[type=range].p-tri-in{
+  -webkit-appearance:none; appearance:none;
+  position:absolute; left:0; top:0; width:100%; height:100%;
+  margin:0; padding:0; opacity:0; cursor:pointer; background:transparent;
+}
+/* a zero-width thumb makes the click map the FULL track instead of thumb-centre
+   travel, so the stops are even thirds and both ends are reachable at the edge */
+input[type=range].p-tri-in::-webkit-slider-thumb{
+  width:0;height:0;margin-top:0;border:none;box-shadow:none;background:transparent;
+}
+input[type=range].p-tri-in::-moz-range-thumb{width:0;height:0;border:none;background:transparent}
+/* marks are ELEMENTS, not a repeating gradient — the chrome carries no gradient
+   fills — and they are drawn TWICE: ink on the track, white inside the fill.
+   One colour cannot read on both #487194 and a light track. */
+.p-tri-k{position:absolute; top:50%; transform:translateY(-50%);
+  width:3px; height:11px; border-radius:var(--ps-pill); background:var(--ps-skel)}
+.p-tri-f .p-tri-k{background:var(--ps-accent-i)}
+
+
+/* ── 10. DROP ZONES ────────────────────────────────────────────────────────
+   A dashed drop zone keeps its outline: there the dash IS the affordance, not
+   decoration. And it is not a button — a pill round a two-line target reads as
+   a lozenge, so it keeps a generous rounded rect. */
+.p-dash{
+  display:flex; align-items:center; justify-content:center;
+  padding:9px 10px; border-radius:var(--ps-r-drop);
+  background:var(--ps-fill); border:1px dashed var(--ps-hair);
+  color:var(--ps-ink-2); font-family:inherit; font-size:12px; font-weight:500;
+  cursor:pointer; transition:background-color var(--ps-motion) var(--ps-ease),border-color var(--ps-motion) var(--ps-ease);
+}
+.p-dash:hover{background:var(--ps-card-h); border-color:var(--ps-line)}
+
+/* Every QR field is ONE object: a fixed square drop target with a details
+   column beside it. FIXED width, never align-self:stretch + aspect-ratio —
+   this row's height varies with whether a number, an error and a link are
+   showing, so deriving the width from it makes the same control three sizes.
+   border-box, or the error ring grows the square from 120 to 128. */
+.p-qrrow{display:flex; align-items:flex-start; gap:12px}
+.p-qr{flex:none; width:var(--ps-qr); box-sizing:border-box}
+.p-qr-t{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px}
+
+
+/* ── 11. SURFACES ──────────────────────────────────────────────────────────
+   Dividers only where a region ends. A rail already differs from the stage by
+   colour, so it needs no edge of its own. */
+.p-rail{background:var(--ps-sb); overflow-y:auto}
+.p-stage{background:var(--ps-stage)}
+.p-card{background:var(--ps-fill); border-radius:var(--ps-r); border:1px solid transparent}
+.p-card:hover{background:var(--ps-fill-h)}
+
+.p-top{
+  height:54px; display:flex; align-items:center; gap:8px; padding:0 10px;
+  background:var(--ps-sb); overflow-x:auto;
+}
+
+/* a floating control needs an OPAQUE surface in both modes: a 12% accent wash
+   is legible on #0A0D11 and all but invisible on #E9E6E1 */
+/* no fixed height: one line measures 35px and a pill with a sub-line 50px */
+.p-dock-t{
+  min-height:35px; padding:10px 18px; border-radius:var(--ps-pill); gap:8px;
+  background:var(--ps-card); border:1px solid var(--ps-line);
+  box-shadow:0 6px 18px var(--ps-shade);
+  font-size:12px; font-weight:400; color:var(--ps-ink);
+}
+.p-dock-b{
+  padding:var(--ps-dockpad); border-radius:var(--ps-r);
+  background:var(--ps-card); box-shadow:0 18px 44px var(--ps-shade);
+  display:flex; flex-direction:column; gap:12px;
+}
+/* The dock is a panel, so it takes the same edge-to-edge seams as a rail — but
+   cancelling ITS OWN inset. Two different paddings, two different tokens.
+   A panel's groups are also 13px VERTICAL where a rail's are 15px. That half was
+   stated in the comment above .p-grp and never declared, so this guide computed
+   a rail's 15px inside a dock while both studios ship 13px. Two contained values
+   is a system; one that only exists in a comment is a drift. */
+.p-dock-b .p-grp,.p-share-m .p-grp{
+  padding-block:13px;
+  margin-inline:calc(var(--ps-dockpad) * -1); padding-inline:var(--ps-dockpad);
+}
+
+/* A position:absolute menu inside a scrolling panel gets clipped — an Export
+   dropdown opening upward inside an overflow-y:auto panel is simply
+   unreachable. Inside a scrolling panel, expand in flow instead. */
+.p-pop{
+  background:var(--ps-card); border:1px solid var(--ps-line);
+  border-radius:var(--ps-r); box-shadow:var(--ps-shadow); padding:12px;
+  animation:p-rise .16s ease-out;
+}
+@keyframes p-rise{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+
+/* ── 12. FEEDBACK ──────────────────────────────────────────────────────────
+   The info icon is a filled disc, not a ring — ten rings per rail was real
+   noise. */
+/* A DISC, NOT A RING — ten rings per rail was real noise. But a disc filled with
+   SOLID accent is ten bright dots, which is the same problem in the other direction:
+   it is a quiet accent-tinted disc with accent ink. 15px, not 14: measured off the
+   studio, where this control appears about ten times per rail. (I wrote this rule from
+   CLAUDE.md's phrase "filled disc" instead of measuring it, and got both wrong.) */
+.p-info{
+  width:15px; height:15px; border-radius:50%; flex:none;
+  display:inline-flex; align-items:center; justify-content:center;
+  background:var(--ps-accent-q);
+  /* THE TINT CARRIES THE MEANING; THE INK CARRIES THE GLYPH — the same conclusion the
+     guide's own contrast badge reached, and the disc was the one control still ignoring
+     it. Accent ink on the accent wash measured 2.69:1 dark and 4.42 light: a 10px glyph,
+     about ten times a rail, under the body minimum in BOTH themes. --ps-tint-ink was the
+     first answer and it is not enough either — 4.70 on a rail card but 4.27 on the page
+     ground, so it passes or fails depending on what it happens to sit on. --ps-ink-2
+     clears the bar on every ground in both themes (6.33-7.19 dark, 6.47-7.12 light) and
+     the accent-q wash still says the disc is informational. */
+  color:var(--ps-ink-2);
+  font-size:10px; font-weight:500; font-style:normal;
+  border:none; cursor:help;
+}
+/* NOT .p-chip: that class is a 26px colour swatch in the studio and predates this
+   library. A name collision in a mirrored system is worse than a long name. */
+.p-tag{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 10px; border-radius:var(--ps-pill);
+  background:var(--ps-chip); color:var(--ps-ink-2);
+  font-size:11px; font-weight:400;
+}
+.p-tag[data-tone="good"]{background:var(--ps-good-q); color:var(--ps-good)}
+.p-tag[data-tone="bad"]{background:var(--ps-bad-q);  color:var(--ps-bad)}
+.p-tag[data-tone="info"]{background:var(--ps-tint-1); color:var(--ps-tint-ink)}
+.p-note{
+  padding:10px 12px; border-radius:var(--ps-r);
+  background:var(--ps-tint-1); color:var(--ps-tint-ink);
+  font-size:12px; font-weight:300; line-height:1.5;
+}
+
+/* ── 11b. THE PALETTE ROW ───────────────────────────────────────────────────
+   .p-tile was one of FOUR classes this library put a focus ring on and never defined —
+   so the file rang a control it did not describe, and the guide had no specimen for it.
+   Measured off Campaign's Design Components rail, where it is the only palette in the
+   system: a row you click to add a component to the canvas.
+
+   IT WAS A BOX INSIDE A BOX AND THE INNER ONE WAS INVISIBLE. The row carried a surface,
+   a border and a radius, and the specimen inside it carried another surface, radius and
+   7px 9px of padding — both measured rgba(255,255,255,.05), the same colour. The inner
+   frame bought nothing you could see and cost ~14px of height on each of thirteen rows:
+   about 180px of scroll for no visual effect. The rail scrolled 1.53x its own viewport.
+
+   Same conclusion as .p-opt: stop boxing a box in a box. One surface, and the specimen
+   sits on it with AIR instead of a frame — which is more honest anyway, because these are
+   type specimens and what separates them is weight, size and tracking, never a container.
+
+   THE CORNER CARRIES BOTH STATE AND ACTION, and that is the interaction. At rest it
+   reports how many of this component are already on the canvas — state the palette never
+   had, so clicking three times gave you three eyebrows and no acknowledgement. On hover
+   the count fades out and the add glyph fades in. One place to look, and the swap is what
+   says the row is live. */
+.p-tile{
+  position:relative; display:flex; flex-direction:column; gap:6px;
+  box-sizing:border-box; text-align:left; font-family:inherit;
+  background:var(--ps-fill); border:1px solid transparent;
+  border-radius:10px; padding:8px 10px;
+  cursor:pointer; color:var(--ps-ink);
+  transition:background-color var(--ps-motion) var(--ps-ease),border-color var(--ps-motion) var(--ps-ease);
+}
+.p-tile:hover{background:var(--ps-fill-h)}
+/* border-box EXPLICITLY on the children. The reset is `.ps *,.p-shell *` here, but the
+   studios do not mirror it, so a `width:100%` child plus padding overflows its row by
+   exactly the padding — which is how the count badge kept landing on the role hint. */
+.p-tile-n{display:flex; justify-content:space-between; box-sizing:border-box;
+  align-items:baseline; gap:9px; padding-right:22px}
+.p-tile-n b{font-weight:400; font-size:13px; flex:none}
+/* the role hint is the least important of the three things here — you read it once — so
+   it is the one that truncates rather than colliding */
+.p-tile-n s{font-style:normal; text-decoration:none; font-weight:300; font-size:11px;
+  color:var(--ps-dim); min-width:0; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; text-align:right}
+.p-tile:has(.p-tile-c) .p-tile-n{padding-right:30px}
+/* NO frame: what is left is the specimen's own line box */
+.p-tile-p{display:flex; align-items:center; box-sizing:border-box; min-height:20px}
+.p-tile-a{position:absolute; top:9px; right:9px; width:17px; height:17px;
+  display:inline-flex; align-items:center; justify-content:center;
+  color:var(--ps-link); opacity:0; transition:opacity var(--ps-motion) var(--ps-ease)}
+.p-tile-a .p-g{width:15px; height:15px}
+.p-tile:hover .p-tile-a,.p-tile:focus-visible .p-tile-a{opacity:1}
+.p-tile-c{position:absolute; top:8px; right:8px; min-width:18px; height:18px;
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:0 5px; border-radius:var(--ps-pill);
+  /* A SOLID FILL CARRIES --ps-primary-i. This read --ps-accent-i, which is the ink for
+     the resting TINT and is therefore the navy itself in light — so this badge measured
+     1.00:1, navy on navy, and the guide's own self-test is what caught it. Fifth time
+     this system has produced exactly this inversion; the rule is written down two
+     sections up and it still needs applying by hand at every reader. */
+  background:var(--ps-accent-h); color:var(--ps-primary-i);
+  font-size:10px; font-weight:500; font-variant-numeric:tabular-nums;
+  transition:opacity var(--ps-motion) var(--ps-ease)}
+.p-tile:hover .p-tile-c{opacity:0}
+/* THE ONE AUTHORED MOMENT IN THIS LIBRARY, and the only thing in it that runs longer than
+   the 140-200ms hover envelope. A confirmation has to be NOTICED rather than merely felt,
+   so it is 280ms — still ease-out, still no overshoot and no loop. The wash starts at the
+   accent and settles to the row's own surface, so what you see is which row landed.
+   Drive it from a DELEGATED listener that stamps data-added and clears it: a palette
+   re-renders on every state change, so a per-row handler would be re-bound on each one.
+   If a re-render drops the attribute mid-animation the flash just ends early — it degrades
+   to no confirmation, never to a stuck state. */
+.p-tile[data-added]{animation:p-tile-add .28s ease-out}
+@keyframes p-tile-add{
+  from{background:var(--ps-accent-q); box-shadow:inset 0 0 0 1px var(--ps-link)}
+  to  {background:var(--ps-fill);     box-shadow:none}
+}
+
+/* skeleton bars, for a card that has not rendered yet */
+.p-skel{background:var(--ps-skel-q); border-radius:var(--ps-pill); height:8px}
+
+/* ── 12b. ICONS ────────────────────────────────────────────────────────────
+   THE LIBRARY HAD NO ICON RULE, while `.p-mini-i svg` assumed one and both studios ship
+   the primitive under the placement-mock's namespace (`.mk-g`) purely because that is
+   where it was first needed. An icon is authored SVG on the Material Symbols Rounded
+   wght300 grid — the chrome's weight, and the only build Google publishes at it — sized
+   from the parent's font-size so a glyph in a 12px button and a glyph in a 17px row are
+   the same optical weight, and filled with currentColor so it inherits every state the
+   control already has. Never a unicode character: those are a different family per
+   platform, carry no consistent stroke, and are read out by a screen reader. */
+.p-g{width:1em; height:1em; flex:none; display:block; fill:currentColor}
+
+
+/* ── 13. SCROLLBARS ────────────────────────────────────────────────────────
+   Default scrollbars render as bright gutters against the dark rails. Style
+   every scroll surface — the standards property AND the WebKit pseudos, or one
+   of the two engines keeps the old value. Colours are tokens, not literals: a
+   cream at 20% is invisible on a light rail. */
+.ps-scroll,.p-rail,.p-sec,.p-pop,textarea.p-in{
+  scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent;
+}
+.ps-scroll::-webkit-scrollbar,.p-rail::-webkit-scrollbar,.p-sec::-webkit-scrollbar,
+.p-pop::-webkit-scrollbar,textarea.p-in::-webkit-scrollbar{width:9px;height:9px}
+.ps-scroll::-webkit-scrollbar-track,.p-rail::-webkit-scrollbar-track,
+.p-sec::-webkit-scrollbar-track,.p-pop::-webkit-scrollbar-track,
+textarea.p-in::-webkit-scrollbar-track{background:transparent}
+.ps-scroll::-webkit-scrollbar-thumb,.p-rail::-webkit-scrollbar-thumb,
+.p-sec::-webkit-scrollbar-thumb,.p-pop::-webkit-scrollbar-thumb,
+textarea.p-in::-webkit-scrollbar-thumb{
+  background:var(--ps-line); border-radius:var(--ps-pill);
+  border:2px solid transparent; background-clip:content-box;
+}
+.ps-scroll::-webkit-scrollbar-thumb:hover,.p-rail::-webkit-scrollbar-thumb:hover,
+.p-sec::-webkit-scrollbar-thumb:hover{background:var(--ps-link);background-clip:content-box}
+
+
+/* ── 14. MOTION ────────────────────────────────────────────────────────────
+   140–200ms, ease-out, 3px of travel, no overshoot, no pulsing, no looping.
+   Two earlier passes used spring curves and read as fussy. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+
+/* ── 15. FOCUS ──────────────────────────────────────────────────────────────
+   Appended as its own block rather than renumbered into section 6, which is the
+   convention in this project: a later block wins without touching 8 section
+   headers, and reverting is deleting it.
+
+   THE RING DID NOT EXIST. Before this, the whole system carried exactly TWO
+   :focus rules and zero :focus-visible — both on fields — so all 20 other
+   control classes fell back to the UA's amber `outline auto 1px rgb(229,151,0)`,
+   a colour in neither palette, untested against a 999px pill on a dark fill.
+   `provident-ui.tokens.json` states the ring as binding rule #3.
+
+   :focus-visible, never :focus. A plain :focus fires on mouse click too, which
+   is the reason authors reach for `outline:none` and delete the ring altogether
+   — exactly what happened here.
+
+   The offset is load-bearing: it puts the ring on the page ground rather than on
+   the control's own fill, which is the adjacent colour WCAG 1.4.11 measures
+   against. --ps-focus clears 3:1 on every ground in both themes (5.26 dark,
+   5.56 light); --ps-accent would not (2.96 dark). */
+.p-ghost:focus-visible,.p-btn:focus-visible,.p-btn-q:focus-visible,
+.p-prev:focus-visible,.p-danger:focus-visible,.p-link:focus-visible,
+.p-badge:focus-visible,.p-choice:focus-visible,.p-ic:focus-visible,
+.p-ico-o:focus-visible,.p-dock-t:focus-visible,.p-opt:focus-visible,
+.p-tile:focus-visible,.p-dash:focus-visible,.p-sw:focus-visible,
+.p-tabs button:focus-visible,.p-seg button:focus-visible,
+.p-nav:focus-visible,.p-nav2:focus-visible,.p-step button:focus-visible,
+.p-tag:focus-visible,select.p-in:focus-visible,textarea.p-in:focus-visible,
+input[type=range].p-range:focus-visible,input[type=range].p-tri-in:focus-visible{
+  outline:2px solid var(--ps-ink); outline-offset:2px;
+}
+/* FOUR OF THOSE SELECTORS ARE THE ONLY MENTION THIS LIBRARY MAKES OF THEM. .p-tile,
+   .p-seg, .p-nav and .p-nav2 all ship real rules and real markup in the studios and have
+   no base rule here, so this file rings a control it does not otherwise describe — the
+   inverse of the rule that every class declared here must exist in both studios, and the
+   reason none of the four has a specimen on the guide. Measure them off the running rails
+   and add them; do not delete them from this list in the meantime, because the ring is
+   correct and it is the half that is load-bearing. */
+/* The three-stop slider's input is transparent and absolutely positioned over the
+   capsule, so its own ring would be invisible — the ring goes on the capsule. */
+.p-tri:has(input:focus-visible){outline:2px solid var(--ps-ink); outline-offset:2px}
+
+/* ── 16. BROWSER SURFACES ───────────────────────────────────────────────────
+   The parts nobody draws still carry the design, and they ship with defaults
+   belonging to no design system. Scrollbars were already themed here; selection,
+   the caret, the underline offset and tabular figures were not. Numerals matter
+   in this system specifically: the guide and both studios are full of value
+   tables, and proportional digits make a column of 4px / 6px / 999px ragged. */
+/* A SELECTION HAS TO READ AS ONE. The accent at 18% measured 1.18:1 against the dark
+   ground and 1.25 against the light one — a highlight you cannot see is worse than the
+   browser's, which at least works. Solid accent with --ps-accent-i is the same pairing
+   every filled control in this system uses (5.12:1), it needs no new value, and because
+   both tokens are single-valued it cannot drift between themes. */
+::selection{background:rgba(26,41,66,.18); color:inherit}
+.ps,.p-shell{caret-color:var(--ps-link); text-underline-offset:2px}
+.p-fld > s,.p-lab > s,.p-cap > s,.p-hint,.p-tag,.p-badge,
+table,.p-in[type=number]{font-variant-numeric:tabular-nums}
+
+/* ── 17. DISABLED, PRESSED, AND THE TWO HEADING DEFAULTS ────────────────────
+   Appended as its own block rather than renumbered into sections 4 and 6, which
+   is the convention here: a later block wins without touching eight section
+   headers, and reverting is deleting it.
+
+   DISABLED IS A FLAT FILL, NOT A DIMMED ACCENT. Tint 20's own label in the
+   supplied ramp is "disabled fill", and it earns it: a navy primary at
+   `opacity: .4` was a washed-out navy ghost measuring 2.04:1, while a flat
+   neutral with quiet ink is both unmistakably disabled and legible — 6.70:1 in
+   light, 9.02 in dark. WCAG 1.4.3 exempts a disabled control either way, so this
+   is a legibility choice rather than a compliance one.
+
+   .p-btn-q KEEPS ITS OPACITY, deliberately. It is the QUIET button — Undo and
+   Redo — and a flat slab would make it louder disabled than enabled. */
+.p-btn:disabled,.p-btn:disabled:hover{
+  background:var(--ps-fill-dis); color:var(--ps-ink-2);
+  border-color:transparent; box-shadow:none; opacity:1; cursor:not-allowed;
+}
+.p-btn-q:disabled{opacity:.4; cursor:not-allowed}
+
+/* PRESSED is Shade 36 in light and Shade 20 in dark, and the direction differs on
+   purpose: light's primary rests on the navy and darkens to press, while dark's
+   rests on the navy and LIFTS to hover, so darkening is what reads as a press
+   there. #101A29 on a near-black ground would simply vanish. */
+.p-btn:active:not(:disabled),.p-ghost[data-on]:active,.p-prev:active{
+  background:var(--ps-primary-a); color:var(--ps-primary-i);
+}
+
+/* headings take --tracking-display and the tight leading; the display sizes
+   themselves are NOT in this library, because the supplied scale runs 80 / 64 / 52
+   / 36 / 32 for a hero page and the studios are dense four-column workspaces. The
+   role that matches a rail heading is the FEATURE TITLE, 18/600/1.33. */
+.ps h1,.ps h2,.ps h3,.p-shell h1,.p-shell h2,.p-shell h3{
+  font-weight:400; line-height:1.11; letter-spacing:-.01em;
+}
+.p-sec-h{font-size:18px; font-weight:600; line-height:1.33; letter-spacing:normal}
+.ps ::placeholder,.p-shell ::placeholder{font-weight:400; color:var(--ps-dim)}
+
+
+/* ── 18. THE TOP BAR AND THE LAYOUT RAIL, MEASURED OFF UI-Kelvz ─────────────
+   Two supplied frames — the `Header` (1990 x 55) and the Layout rail's
+   `Container` (320 x 1170) — read in Figma Dev Mode rather than off an image.
+
+   THE HEADLINE IS WHAT DID NOT CHANGE. Group padding 15/16 with a 9px gap, the
+   two-up tile row at gap 8, the tile column at gap 4, the tile at 62px on a
+   16px radius, --ps-accent as the selected fill, the 11.5px tile label, a
+   13/600 --ps-ink-2 section header over a 13/400 --ps-ink group label at 150%
+   leading, buttons at 14/600 with +0.16px, the pill radius, the --ps-hair
+   edge-to-edge seam and the --ps-link slider thumb are all EXACTLY what this
+   library already declares. Every colour in both frames is a token in this
+   file. What follows is the short list of real differences.
+
+   ONE HEIGHT FOR THE WHOLE BAR. The frame puts every top-bar control on 36 and
+   the bar itself on 55. Measured before: the bar was 54 and its controls ran
+   29 (Undo/Redo), 31 (Preview), 35 (the switcher track) and 36 (everything
+   else) — four heights in one row, which is what made the bar read as
+   assembled rather than designed. .p-sm still exists and still means 29, but
+   it belongs INSIDE a rail group; nothing in the top bar takes it.
+
+   THE ICON SIZE WAS ALREADY RIGHT and is worth recording because it looks
+   wrong on paper: the frame's bar icons draw 10.6px of ink, which is a 15px em
+   at Material's ~0.71 ink ratio and is the 14px label's own cap height. Both
+   studios ship 15px. An icon matched to the cap height rather than to the em
+   is why a 36px bar does not read as crowded. */
+
+.p-top{
+  height:55px; gap:14px; padding:0 16px;
+  background:var(--ps-app); border-bottom:1px solid var(--ps-hair);
+}
+.p-btn-q{height:36px}
+.p-ico-o{height:36px}
+
+/* PREVIEW IS THE NAVY ACTION, AND THIS LIBRARY WAS THE LAST PLACE STILL PAINTING
+   IT ORANGE. Both re-skinned documents moved it when orange stopped being a fill
+   — the brand's own rule is that orange is punctuation, and white on it measures
+   2.76:1 — and the kit kept the old pair. The rule above is therefore now about
+   ONE orange control, .p-sw-studio, which is the splash's switcher and appears
+   in neither supplied frame; it is left alone rather than changed in a pass that
+   is about two other screens. */
+.p-prev,.p-prev[data-on]{
+  height:36px; padding:7px 14px;
+  font-size:14px; font-weight:600; letter-spacing:.16px; line-height:normal;
+  color:var(--ps-primary-i); background:var(--ps-primary);
+  box-shadow:inset 0 0 0 1px var(--ps-link);
+}
+.p-prev:hover,.p-prev[data-on]:hover{background:var(--ps-primary-h)}
+
+/* THE SEGMENTED TRACK IS 36 WITH A 3px GUTTER AND NO EDGE OF ITS OWN.
+   --ps-card on --ps-app is a full step of surface, so the 1px hairline the
+   studios carried was a second boundary around a shape that already has one —
+   the same "surfaces, not strokes" finding the tile frame got. 3px rather than
+   2px is what puts the button at 30 in a 36 track, the proportion a segmented
+   control needs; at 2px it was 31 in 35 and read as a fill with a leak.
+
+   SCOPED TO .p-top DELIBERATELY. .p-seg is also the placement mock's
+   platform/view pair, which is ordinary selection state at its own size. */
+/* ══ .p-seg NOW HAS A BASE RULE HERE, which closes half of a gap this library has
+   been recording against itself. Rule 31 says every class it RINGS must also have a
+   base rule, and named `.p-seg` as one of four that appeared only in the
+   focus-visible list — real rules and real markup in both studios, nothing here,
+   and therefore no specimen. The supplied Header frame specifies this control, so
+   leaving it undeclared while adding an override for it would have made this file
+   describe a control it does not define.
+
+   MEASURED OFF THE RUNNING STUDIO, not written from the frame: track flex/0 0 auto,
+   button 30px at 7px 14px, nowrap, and the ON state's own 1px --ps-link ring, which
+   is the navy-has-no-boundary rule one layer down. The frame corroborates the track
+   and the type; the studio is where the rest came from. */
+.p-seg{
+  display:flex; flex:0 0 auto; gap:2px;
+  border-radius:var(--ps-pill); background:var(--ps-card);
+}
+.p-seg button{
+  font-family:inherit; cursor:pointer; white-space:nowrap;
+  border:0; border-radius:var(--ps-pill); background:transparent;
+  font-size:14px; font-weight:600; letter-spacing:.16px;
+  color:var(--ps-ink-2);
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease);
+}
+.p-seg button:hover{color:var(--ps-ink)}
+/* two halves of ONE control, so ON is a FILL and never a ring — and the fill takes
+   the PRIMARY register in the top bar, because "which app am I in" is the loudest
+   question on that row. The 1px --ps-link inset is what gives the navy a boundary. */
+.p-seg button[data-on]{
+  background:var(--ps-primary); color:var(--ps-primary-i);
+  box-shadow:inset 0 0 0 1px var(--ps-link);
+}
+
+.p-top .p-seg{
+  height:36px; padding:3px; gap:2px; box-sizing:border-box;
+  border:0; border-radius:var(--ps-pill); background:var(--ps-card);
+}
+.p-top .p-seg button{height:30px; padding:7px 14px}
+/* AND THE FRAME'S ARGUMENT DOES NOT HOLD IN LIGHT, which is a defect I shipped for
+   one round and measured out again. --ps-card IS --ps-app in the light theme, so
+   dropping the hairline left the track at 1.00:1 against its own bar — an invisible
+   trough. The frame is a DARK frame and "the surface step is the boundary" is only
+   true where there is a step. Light therefore takes --ps-fill, the token that means
+   a quiet contained surface, AND keeps the hairline. Two treatments in two themes
+   with one reason, which is the same shape as the navy hairline being deliberately
+   invisible in light — just inverted. */
+:root[data-theme="light"] .p-top .p-seg{
+  background:var(--ps-fill); border:1px solid var(--ps-hair);
+}
+
+/* ══ THE DELIVERY TRIO IS ONE OUTLINED GROUP ═════════════════════════════════
+   Projects · Source folder · Save were three separate pills with three separate
+   fills — three objects for one job, and the widest single run of chrome in the
+   bar. The frame makes them ONE hairline-outlined capsule with 1px vertical
+   rules between the cells: the group says "this is where the project lives" and
+   the rules say where one control ends.
+
+   The cells give up their own fill, so the group's outline is the only boundary
+   and the hover is the only fill — which is the surfaces-not-strokes rule
+   arriving at the same answer from the other side. overflow:hidden is what
+   clips a cell's hover to the capsule at the two ends.
+
+   A CELL IS NOT A BUTTON THAT LOST ITS PILL. It keeps .p-ghost's type, ink,
+   icon gap and 36px row; only the surface and the corner come off. */
+.p-tgrp{
+  display:flex; align-items:stretch; flex:none;
+  height:36px; box-sizing:border-box;
+  border:1px solid var(--ps-hair); border-radius:var(--ps-pill);
+  background:transparent; overflow:hidden;
+}
+.p-tgrp > .p-ghost{
+  height:auto; align-self:stretch; padding:0 18px;
+  border:0; border-radius:0; background:transparent; box-shadow:none;
+}
+.p-tgrp > .p-ghost + .p-ghost{border-left:1px solid var(--ps-hair)}
+.p-tgrp > .p-ghost:hover{background:var(--ps-fill)}
+.p-tgrp > .p-ghost[data-on]{background:var(--ps-accent); color:var(--ps-accent-i)}
+
+/* A SECTION HEADER CARRIES A QUIET RIGHT VALUE — "Layout … Master", the variant
+   you are editing. .p-lab and .p-grp already push their own quiet half right;
+   the section header was the one heading that did not, so its value sat against
+   the title as though it were part of it.
+
+   SCOPED TO .p-sec DELIBERATELY, and this is the check that mattered: the image
+   tool writes 26 output SIZES into a caption's quiet half inside a 172px column,
+   where the value WRAPS under its label. A blanket `.p-cap > s{margin-left:auto}`
+   would have right-aligned all 26. */
+.p-sec > .p-cap > s{margin-left:auto; text-align:right}
+
+/* the group's bottom padding is 16, not 15 — padding-block only, so the
+   full-bleed inline padding cannot be disturbed. It stays weaker than
+   `.p-dock-b .p-grp` (0,2,0), so a panel's group keeps its own 13px rhythm. */
+/* SPECIFICITY, NOT ORDER — the trap this project has recorded twice and hit again
+   here. A bare `.p-grp` (0,1,0) declared last still loses to `.p-sec > .p-grp`
+   (0,2,0) declared 340 rules earlier, which carries `padding: 15px 0`. Measured
+   after the first attempt: the computed padding was still 15px top AND bottom.
+   The scoped form is listed alongside the bare one so a standalone group (the
+   guide's own specimens) is covered too. A dock group is not `.p-sec > .p-grp`,
+   so it keeps its own 13px rhythm. */
+.p-grp,.p-sec > .p-grp,.p-nest > .p-grp{padding-block:15px 16px}
+
+/* THE SELECTED TILE'S RING IS 1px, AND THE LABEL TAKES THE WEIGHT.
+   The frame draws a 1px edge where this file had 2px, and it puts the selected
+   label at 500 against its neighbours' 400 — so the state is carried by the
+   type as well as by the fill, and the stroke gets to be a whisper. At eleven
+   tiles a rail that is the difference between a diagram and a wireframe.
+
+   THE FRAME'S COLOUR IS NOT TAKEN, and the departure is measured: it draws the
+   edge in #FFFFFF at 20%, which composites over the --ps-accent fill to #4C5465
+   and reads 2.4:1 against the ground — under 1.4.11's 3:1 for a non-text
+   indicator. --ps-link is 3.4:1 on the fill and 6.6:1 on the ground. So the
+   WEIGHT is the frame's and the ink stays the token, which is the same call this
+   system has made on four accents now: the hairline is what gives a navy fill a
+   boundary, and it does not get quieter than the bar. */
+.p-opt[data-on] .p-mini{box-shadow:inset 0 0 0 1px var(--ps-link)}
+.p-opt[data-on]{font-weight:500}

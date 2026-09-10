@@ -1,0 +1,39 @@
+/* Provident Estate — colour system. Laws: no orange on blue; white headings on navy; blue text on light; orange at dot scale only (≤1–2% of any frame). */
+:root{
+/* Core */
+--deep-navy:#1A2942; /* primary surface + default text on light */
+--provident-navy:#2F4960; /* brand voice, secondary */
+--orange:#F3793C; /* the dot — accents only, never text/fills/CTAs */
+--paper:#FAF8F4; /* primary background */
+/* Extended neutrals */
+--cream:#F4F1EC;
+--mist:#ECE7DF;
+--stone:#D4CFC4;
+--muted:#6B7280; /* descriptions on light */
+--charcoal:#1A1A1A;
+--brass:#B0905C; /* luxury accent, eyebrows on light */
+/* Presentation-only */
+--slide-navy:#1A2B4A;
+--slide-cream:#F2EDE3; /* headline colour on slide navy */
+--gold:#C9A96A; /* slide eyebrows & labels */
+/* Semantic aliases */
+--bg-page:var(--paper);
+--surface-card:#FFFFFF;
+--surface-raised:var(--cream);
+--surface-dark:var(--deep-navy);
+--text-heading:var(--deep-navy);
+--text-body:var(--deep-navy);
+--text-secondary:var(--provident-navy);
+--text-muted:var(--muted);
+--text-on-dark:#FFFFFF;
+--text-on-dark-support:var(--mist);
+--text-on-dark-label:var(--stone);
+--accent-dot:var(--orange);
+--accent-luxury:var(--brass);
+--border-subtle:var(--mist);
+--border-strong:var(--stone);
+--btn-fill:var(--deep-navy); /* CTAs are navy, never orange */
+--btn-fill-hover:var(--provident-navy);
+--link:var(--provident-navy);
+--overlay-scrim:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,0)); /* @kind other */ /* over imagery, bottom→top */
+}

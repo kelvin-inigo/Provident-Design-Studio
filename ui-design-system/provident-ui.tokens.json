@@ -1,0 +1,352 @@
+{
+  "$name": "Provident UI — chrome design system",
+  "$description": "Tokens for the TOOL's own interface: studios, splash, guided run, and any webapp built on this system. This is NOT the brand/canvas system — exported artwork reads CampaignStudio.PAL / OrganicStudio.ART and never these values. See _ds/ for the brand web components.",
+  "$version": "3.0.0",
+  "$updated": "2026-09-10",
+  "$source": "Structure from nexu-io/open-design, design-systems/coinbase (design-tokens.json, value for value - not its DESIGN.md prose, which names roles without giving every number). Colour is PROVIDENT NAVY #1A2942 and a tint ramp that is the navy's own. Type is unchanged: Google Sans Flex. Every value here is read back off the running studio as a COMPUTED value, never grepped from a stylesheet - these files end in override blocks, so what a rule appears to say and what a control computes are routinely different. Two supplied Figma frames (UI-Kelvz: the Header, 1990x55, and the Layout rail Container, 320x1170) were read in Dev Mode on 2026-09-10 and CONFIRMED this token set rather than changing it: every colour in both is already a token here. See the rules for the short list of component values they did move.",
+  "theme": {
+    "$note": "data-theme on <html>. LIGHT is the default now - the bare :root carries DARK, so the attribute is what a light app sets, and all three consumers plus the reference page default to light. Set it BEFORE first paint from a blocking script in <head>, or getComputedStyle returns a mixed pre/post-flip picture that reads exactly like a theming bug.",
+    "dark": {
+      "surface": {
+        "--ps-app": "#131519",
+        "--ps-sb": "#131519",
+        "--ps-card": "#1D2024",
+        "--ps-card-h": "#252931",
+        "--ps-stage": "#0A0B0D",
+        "--ps-deep": "#131519",
+        "--ps-chip": "#282B31",
+        "$derivation": "#0A0B0D and #282B31 are the supplied system's two documented dark values and they anchor the ends - the near-black takes the STAGE, the dark card takes the control surface. #131519, #1D2024, #252931 and #31353C are derived, because a four-surface app shell needs them and the supplied ramp has no dark theme at all. Without them every shell surface sat on #0A0B0D and the rail, the stage and the ground read as one flat black."
+      },
+      "fill": {
+        "--ps-fill": "#282B31",
+        "--ps-fill-h": "#31353C",
+        "--ps-fill-on": "#243352",
+        "--ps-fill-dis": "#22262C",
+        "$onSurface": "In light the ON surface is Tint 16; in dark the ramp INVERTS - a tint of the navy over near-black is invisible, so dark tints toward the INK and #243352 is the navy lifted one step, so it still reads as navy against neutral greys rather than muddying in.",
+        "$disabled": "Tint 20's own label is 'disabled fill'. A navy primary at opacity .4 was a washed-out ghost at 2.04:1; a flat neutral with quiet ink is unmistakably disabled AND legible (6.70 light / 9.02 dark). 1.4.3 exempts it either way, so this is legibility."
+      },
+      "line": {
+        "--ps-hair": "rgba(148,154,166,.16)",
+        "--ps-line": "rgba(148,154,166,.24)",
+        "$note": "The supplied border is its muted grey at 20%, invisible on near-black. Same hue, alpha raised for the dark ground."
+      },
+      "ink": {
+        "--ps-ink": "#FFFFFF",
+        "--ps-ink-2": "#C3C8D0",
+        "--ps-dim": "#949AA6",
+        "--ps-mute": "#949AA6",
+        "$note": "AA or it does not ship. The supplied --muted #5B616E measures 3.17:1 on #0A0B0D and fails outright, so dark takes it lightened until it clears the CARD as well - 6.97 on the ground, 5.02 on --ps-fill."
+      },
+      "accent": {
+        "$derivation": "TWO REGISTERS, BY JOB. This is the oldest surviving rule in the system and it has now been re-derived on four different accents, so treat it as settled: a colour used as the resting fill of every selected control is loud everywhere and therefore emphatic nowhere, leaving no register for the action you should actually take. The navy solid is 14.59:1 against white as a BLOCK - right for an action, far too heavy for a state.",
+        "--ps-accent": "#243352",
+        "--ps-accent-h": "#1A2942",
+        "--ps-accent-h2": "#22355A",
+        "--ps-accent-q": "rgba(135,156,197,.16)",
+        "--ps-accent-i": "#FFFFFF",
+        "--ps-accent-i-q": "rgba(255,255,255,.92)",
+        "--ps-link": "#879CC5",
+        "--ps-focus": "#879CC5",
+        "--ps-primary": "#1A2942",
+        "--ps-primary-h": "#22355A",
+        "--ps-primary-a": "#152135",
+        "--ps-primary-i": "#FFFFFF",
+        "--ps-brand": "#F3793C",
+        "--ps-brand-h": "#FF8A4C",
+        "$noBoundary": "THE NAVY HAS NO BOUNDARY OF ITS OWN ON THE DARK THEME: #1A2942 is 1.25:1 against --ps-app, so as a block it is invisible and only its white label reads. Every navy fill therefore carries a --ps-link hairline - 6.61:1 against the ground and 5.27:1 against the navy, clear of 1.4.11 on both sides. On light the same hairline is navy on navy and deliberately invisible. DO NOT lighten the fill to 'fix' it: a navy light enough to carry its own 3:1 boundary on near-black is no longer navy.",
+        "$mark": "A deep navy cannot be a MARK. A border, an inset ring, a slider thumb, a caret, a diagram bar, the accent used as text - all resolve to --ps-link, never --ps-accent. The property is the test: `background` is a fill, everything else is a mark. --ps-link was #578BFA at one point and measured 4.38:1 on --ps-fill, which fails AA at the 10px the spacer tile paints: a mark must clear every surface it can land on.",
+        "$inkPerTheme": "--ps-accent-i is PER THEME, unlike the fills: in light the resting tint is pale so its ink is the navy (10.70:1); in dark the tint is deep so its ink is white (12.57). This is the one accent job whose direction follows the ground.",
+        "$brand": "ORANGE IS THE LOGOTYPE'S PERIOD AND NOTHING ELSE. The supplied palette is a blue-and-white binary and carries no orange; the wordmark's dot is Provident's own mark rather than chrome, and it is the one deliberate departure. 2.76:1, exempt as a logotype."
+      },
+      "status": {
+        "--ps-bad": "#F07272",
+        "--ps-bad-q": "rgba(240,114,114,.16)",
+        "--ps-good": "#22B457",
+        "--ps-good-q": "rgba(34,180,87,.18)",
+        "--ps-warn": "#EAB308",
+        "--ps-warn-q": "rgba(234,179,8,.16)",
+        "$note": "The supplied system states these as SURFACE colours and this system reads them as INK on a faint wash, so each is retuned to clear 4.5 THERE. Both dark tiers were shipped measured against the page ground instead and printed 4.36 and 4.25 on their own washes - the library's own swatch self-test caught it. Each wash is recomputed FROM its new ink so the pair stays internally consistent."
+      },
+      "depth": {
+        "--ps-shadow": "none",
+        "--ps-shade": "transparent",
+        "$note": "--elev-flat is `none` and --elev-ring is a 1px border: the system takes its depth from the contrast between light and dark surfaces, so there is nothing to lift. A 0-blur 0-offset box-shadow elsewhere is a state RING, not elevation - distinguish them by offset and blur, never by the absence of `inset`."
+      },
+      "skeleton": {
+        "--ps-skel": "rgba(255,255,255,.42)",
+        "--ps-skel-q": "rgba(255,255,255,.18)"
+      },
+      "tint": {
+        "--ps-tint-1": "rgba(135,156,197,.16)",
+        "--ps-tint-2": "rgba(22,163,74,.16)",
+        "--ps-tint-3": "rgba(135,156,197,.16)",
+        "--ps-tint-ink": "#879CC5"
+      },
+      "icon": {
+        "$note": "Select/dropdown chevron, a Material Symbols keyboard_arrow_down baked in as a data URI. NEVER write viewBox inside a CSS string — Design Cursor camel-cases attribute names, including inside a data URI, so it arrives as sc-camel-view-box and the SVG paints nothing. width/height plus transform=\"translate(0 960)\" give the same glyph with no camelCase attribute.",
+        "--ps-chev": "url(...) — see provident-ui.css; the fill is --ps-ink-2 in dark and #5A6675 in light"
+      }
+    },
+    "light": {
+      "surface": {
+        "--ps-app": "#FFFFFF",
+        "--ps-sb": "#FFFFFF",
+        "--ps-card": "#FFFFFF",
+        "--ps-card-h": "#F6F6F7",
+        "--ps-stage": "#E4E5E8",
+        "--ps-deep": "#FFFFFF",
+        "--ps-chip": "#EDEEF0",
+        "$note": "The STAGE takes Tint 12, whose own label is 'sunken', so the white cards read against it. Nothing FILLED sits directly on the stage - every field and chip is inside a card - which is what makes it safe for the stage and --ps-fill-h to share Tint 12."
+      },
+      "fill": {
+        "--ps-fill": "#EDEEF0",
+        "--ps-fill-h": "#E4E5E8",
+        "--ps-fill-on": "#DADDE1",
+        "--ps-fill-dis": "#D1D4DA"
+      },
+      "line": {
+        "--ps-hair": "rgba(91,97,110,.14)",
+        "--ps-line": "rgba(91,97,110,.20)"
+      },
+      "ink": {
+        "--ps-ink": "#0A0B0D",
+        "--ps-ink-2": "#3D434E",
+        "--ps-dim": "#5B616E",
+        "--ps-mute": "#5B616E",
+        "$note": "--fg and --muted verbatim from the supplied set: 6.21:1 on white, 5.44 on the surface. --ps-ink-2 is the step between them and is derived."
+      },
+      "accent": {
+        "--ps-accent": "#DADDE1",
+        "--ps-accent-h": "#1A2942",
+        "--ps-accent-h2": "#152135",
+        "--ps-accent-q": "rgba(26,41,66,.06)",
+        "--ps-accent-i": "#1A2942",
+        "--ps-link": "#1A2942",
+        "--ps-focus": "#1A2942",
+        "--ps-primary": "#1A2942",
+        "--ps-primary-h": "#152135",
+        "--ps-primary-a": "#101A29",
+        "--ps-brand": "#F3793C",
+        "--ps-brand-h": "#E06A2E",
+        "$note": "The navy IS the mark in light - 14.59 on white - so --ps-link and --ps-focus are the navy itself and the ON-state hairline is deliberately invisible on a navy fill."
+      },
+      "status": {
+        "--ps-bad": "#C81E1E",
+        "--ps-bad-q": "rgba(200,30,30,.10)",
+        "--ps-good": "#0F7A3A",
+        "--ps-good-q": "rgba(15,122,58,.10)",
+        "--ps-warn": "#8A6206",
+        "--ps-warn-q": "rgba(138,98,6,.12)",
+        "$note": "Each clears 4.5 as INK on its own wash: 4.91 / 4.73 / 4.65. --ps-bad shipped at #DC2626, which is 4.83 on WHITE and 4.14 on its own wash - measured against the wrong ground, the same nesting error the .p-tabs ON state made one pass earlier."
+      },
+      "depth": {
+        "--ps-shadow": "none",
+        "--ps-shade": "transparent"
+      },
+      "skeleton": {
+        "--ps-skel": "rgba(10,11,13,.55)",
+        "--ps-skel-q": "rgba(10,11,13,.26)"
+      },
+      "tint": {
+        "--ps-tint-1": "rgba(26,41,66,.08)",
+        "--ps-tint-2": "rgba(15,122,58,.10)",
+        "--ps-tint-3": "rgba(26,41,66,.08)",
+        "--ps-tint-ink": "#1A2942"
+      },
+      "icon": {
+        "$note": "Select/dropdown chevron, a Material Symbols keyboard_arrow_down baked in as a data URI. NEVER write viewBox inside a CSS string — Design Cursor camel-cases attribute names, including inside a data URI, so it arrives as sc-camel-view-box and the SVG paints nothing. width/height plus transform=\"translate(0 960)\" give the same glyph with no camelCase attribute.",
+        "--ps-chev": "url(...) — see provident-ui.css; the fill is --ps-ink-2 in dark and #5A6675 in light"
+      }
+    }
+  },
+  "radius": {
+    "$rule": "THE PILL IS THE SIGNATURE: the supplied rule is \"don't use sharp corners on CTAs - 56px minimum\", and at a 36px control height a 56px radius IS a full pill. Checked before applying that every --ps-r-ctl reader is a labelled control, so nothing that should stay a rectangle became a capsule. A FIELD IS NOT A CTA and keeps --radius-sm.",
+    "--ps-r-sm": "8px",
+    "--ps-r": "16px",
+    "--ps-r-lg": "16px",
+    "--ps-r-ctl": "9999px",
+    "--ps-r-tile": "16px",
+    "--ps-r-drop": "16px",
+    "--ps-r-field": "8px",
+    "--ps-pill": "9999px",
+    "circle": "50% - not a token: it is a shape, never restyled"
+  },
+  "space": {
+    "$rule": "Section padding is the ONE declaration a full-bleed divider cancels, so it can never drift from the negative margin that reverses it.",
+    "--ps-secpad": "16px",
+    "--ps-dockpad": "14px",
+    "sectionPadding": "12px 16px 18px",
+    "groupPadding": "13px 14px",
+    "groupGap": "9px",
+    "fieldGap": "4px",
+    "labelGap": "6px",
+    "captionGap": "8px",
+    "rowGap": "10px",
+    "panelGap": "12px",
+    "$note": "Only --ps-secpad and --ps-dockpad are custom properties; the rest are the measured values component rules use directly. A panel group is 13px vertical, a rail group 15px — two containers, two tokens."
+  },
+  "size": {
+    "--ps-qr": "120px",
+    "--ps-railc": "281px",
+    "--ps-railr": "332px",
+    "topBar": "55px",
+    "button": "35px",
+    "buttonSm": "29px - a control INSIDE a rail group, never the top bar",
+    "field": "36px",
+    "tile": "62px",
+    "dockPill": "50px",
+    "sliderTrack": "4px",
+    "sliderThumb": "14px",
+    "iconOnly": "35x36px - the one label-less button in the bar",
+    "$note": "--ps-qr, --ps-railc and --ps-railr are custom properties; the rest are measured component values. topBar, topBarControl, segTrack and buttonGroup were measured off the supplied Header frame.",
+    "topBarControl": "36px - EVERY control in the top bar, one height",
+    "topBarIcon": "15px em / 10.6px ink - the 14px label's own cap height",
+    "segTrack": "36px with a 3px gutter, so the button is 30",
+    "buttonGroup": "36px - the outlined delivery capsule, cells at 0 18px",
+    "railContent": "288px in the Layout rail, 229px in the palette rail - the CONTENT column each frame specifies, which is what --ps-railr and the palette rail's 272 are derived from"
+  },
+  "icon": {
+    "$rule": "An icon is authored SVG on the Material Symbols Rounded wght300 grid — the chrome's weight, and the only build Google publishes at it. Never a unicode character: those are a different family per platform, carry no consistent stroke, and are announced by a screen reader.",
+    "$class": ".p-g",
+    "size": "1em — from the parent's font-size, so a glyph in a 12px button and one in a 17px row are the same optical weight",
+    "fill": "currentColor, so it inherits every state the control already has",
+    "$tileSize": "26px inside .p-mini-i, which the library has always declared and had nothing to style until the guide's specimens stopped using unicode stand-ins",
+    "$source": "fonts.gstatic.com/s/i/short-term/release/materialsymbolsrounded/<name>/wght300/24px.svg, baked in as path data — the same provenance as the studios' own 23 glyphs, so it still works offline. Every one shares the 0 -960 960 960 viewBox.",
+    "$note": "The library had NO icon rule at all, while .p-mini-i svg assumed one and both studios shipped the primitive under the placement mock's namespace (.mk-g) purely because that is where it was first needed."
+  },
+  "type": {
+    "$family": "'Google Sans Flex', system-ui, sans-serif",
+    "$rule": "NO ALL-CAPS ANYWHERE IN THE CHROME. Captions, option labels and group headings are sentence case - the supplied scale has no tracked-caps role at all, which restores this library's own long-standing rule after one system reversed it. Uppercasing a caption also REWROTE DATA in a studio once, turning `402 x 769` into `402 X 769`. THE CANVAS KEEPS ITS TRACKED CAPS: 'tracked caps at 500' is a binding ARTWORK rule and every textTransform:'uppercase' in the studios' JS is a canvas preview mirroring an op.",
+    "base": {
+      "size": "16px",
+      "weight": 400,
+      "lineHeight": 1.5
+    },
+    "caption": {
+      "size": "13px",
+      "weight": 600,
+      "lineHeight": 1.5,
+      "role": "section and group headings, SENTENCE CASE"
+    },
+    "label": {
+      "size": "13px",
+      "weight": 400,
+      "lineHeight": 1.7,
+      "role": "field label, sentence case"
+    },
+    "value": {
+      "size": "13px",
+      "weight": 400,
+      "role": "the quiet value beside a label, pushed right, tabular figures"
+    },
+    "hint": {
+      "size": "11px",
+      "weight": 300,
+      "lineHeight": 1.5,
+      "role": "guidance under a control"
+    },
+    "button": {
+      "size": "14px",
+      "weight": 600,
+      "letterSpacing": ".16px"
+    },
+    "buttonPrimary": {
+      "size": "14px",
+      "weight": 600,
+      "letterSpacing": ".16px"
+    },
+    "input": {
+      "size": "14px",
+      "weight": 400
+    },
+    "badge": {
+      "size": "12px",
+      "weight": 500
+    },
+    "$token": "--ps-font",
+    "sectionHeading": {
+      "size": "18px",
+      "weight": 600,
+      "lineHeight": 1.33,
+      "role": "the supplied system's FEATURE TITLE. Its display sizes (80/64/52/36/32 at 1.00 leading) are NOT in this library: that is a hero page and the studios are dense four-column workspaces, where a 36px section heading breaks the layout outright."
+    },
+    "$weights": "600 is a button or a caption, 400 is everything else, 300 is GONE. Verified before committing to it that the embedded Google Sans Flex renders seven distinct weights from 100 to 900, so 600 does not silently clamp to 500 - measure the axis, never trust the @font-face descriptor."
+  },
+  "motion": {
+    "$rule": "150ms on cubic-bezier(0.2,0,0,1). TWO tokens, and the split is load-bearing.",
+    "--ps-motion": "150ms",
+    "--ps-ease": "cubic-bezier(0.2,0,0,1)",
+    "$trap": "--ps-ease used to mean '.16s ease', i.e. duration AND easing, so ten rules named it alone as a transition's whole timing. Redeclaring it as a bare cubic-bezier silently removed the DURATION from every one of them - the shorthand's first <time> is the duration, and with none the transition runs at 0s and never animates. It cost .p-tile-a's hover fade in a shipping file before it was caught. EVERY call site passes BOTH tokens.",
+    "travel": "3px",
+    "properties": "background-color, border-color, color, box-shadow, transform"
+  },
+  "rules": [
+    "THE PILL IS BACK: every labelled action is --ps-r-ctl (9999px). A field is not a CTA and takes --ps-r-field; cards, tiles and drop zones take --radius-md.",
+    "TWO REGISTERS BY JOB: --ps-accent is the resting selected state and is a TINT; --ps-primary is the navy solid, reserved by name for the top bar and a panel's one primary.",
+    "EVERY NAVY FILL CARRIES A --ps-link HAIRLINE. The navy is 1.25:1 on the dark ground and has no boundary of its own; in light the hairline is navy on navy and deliberately invisible.",
+    "A DEEP NAVY CANNOT BE A MARK. The property is the test: `background` is a fill, everything else resolves to --ps-link.",
+    "DISABLED IS A FLAT --ps-fill-dis WITH --ps-ink-2, not a dimmed accent. .p-btn-q keeps its opacity: it is the quiet button and a flat slab would make it louder disabled than enabled.",
+    "THE FOCUS RING IS THE FOREGROUND COLOUR (--ps-ink at 2px with a 2px offset), not the accent, so it inverts with the theme and cannot fail on any ground. :focus-visible, never :focus.",
+    "NO ELEVATION. --ps-shadow is `none`; a 0-blur 0-offset box-shadow is a state ring.",
+    "EVERY TRANSITION PASSES BOTH --ps-motion AND --ps-ease. Naming --ps-ease alone leaves the declaration with no duration.",
+    "EVERY CLASS THIS LIBRARY DEFINES MUST HAVE A BASE RULE IN ALL THREE CONSUMERS. Verify with the clone-diff: import this page's own .demo specimens into the target and diff computed values in lockstep, scoped to the classes the target's live DOM actually uses.",
+    "A control is a quiet FILL that lifts on hover and takes the accent when it is on. Not an outline — at rail density, strokes add up to more weight than the controls.",
+    "THE OPTION TILE WAS NEVER INCLUDED IN THAT PASS and it is where the rule showed most: it kept the fill AND a 1px hairline, and Campaign's Layout rail holds eleven tiles. Counted there: 19 visible strokes, of which 7 carried no information — one decorative frame per unselected tile. The frame is gone; the fill carries the extent, which the palette row already proved at the same token and size. What is left all says something: 4 accent rings say which option is on, 7 seams say a region ends, 1 ring says which colour is chosen. The selection also reads harder for free, because its ring is now the only stroke in its group rather than one of three.",
+    "Every stroke that survives a stroke pass must carry information. That is the test, not a target count: a hairline that only repeats what a fill already says is the one to remove, and a hairline that is the sole thing making a near-ground swatch visible is the one to keep.",
+    "The ON state is FILLED, never ringed — WITH ONE CARVE-OUT, and it is written here because the two statements otherwise contradict each other and a later pass will \"fix\" the wrong one. A segmented pair, a ghost button and a nav row fill when they are on. The OPTION TILE rings instead, deliberately: a tile is a diagram with marks inside it, so a wash would fight the marks and the pair would read as a filled tile beside an empty one rather than as one object in two states. Now that the unselected tile has no stroke at all, that ring is the only stroke in its group and does the job on its own.",
+    "The focus ring stays. It is not decoration; it is the only thing that says where the keyboard is.",
+    "A dashed drop zone keeps its outline — there the dash IS the affordance.",
+    "No gradient fills in the chrome. The only two-stop gradients left draw the select chevron and the placement-mock device body, which is illustration.",
+    "Orange (--ps-brand) is a TOP-BAR colour and appears on exactly two controls: the studio switcher and Preview. Everything else selects with --ps-accent.",
+    "Inline style objects beat any stylesheet rule, so a themed control written in JS must say var(--ps-token), never a literal.",
+    "data-* state flags must be '1' or undefined, never a boolean — data-on=\"false\" still matches [data-on].",
+    "A divider closes a region and is edge to edge: margin-inline: calc(var(--ps-secpad) * -1) with matching padding. A :last-child carries no seam.",
+    "One group is one seam. A sub-heading inside a group is spacing (6px), never another rule.",
+    "Ink on a filled accent or brand surface is --ps-accent-i (and --ps-accent-i-q for a mark). It does NOT flip with the theme, because --ps-accent and --ps-brand do not either.",
+    "A modifier composes, it never re-declares its base. .p-mini-i sits on .p-mini and .p-ico-o sits on .p-ghost — giving either its own surface documents a standalone usage that renders as an unstyled UA control in the studios.",
+    "A bar in a tile is --ps-skel; --ps-skel-q is the .dim MODIFIER, not the default.",
+    "A button's side padding is LARGER than its vertical padding, but only SLIGHTLY: the band is about 1.5 to 1.8, never the 3:1 or 4:1 that .p-tabs button (4/12), .p-badge (4/14), .p-tag (3/10) and .p-link (3/12) used to carry. A pill needs horizontal room or the text touches the curve; it does not need three times as much. Watch the buttons with NO fixed height — .p-tabs button is the one where vertical padding is the only thing setting the size, and 4px left the pill 22px tall inside a 30px track, a sliver of colour floating in a trough. 8px 14px makes it a 30px pill in a 40px track.",
+    "The accent used as a MARK is --ps-link, never --ps-accent. The fill is dark by design so it can carry white; on a dark tile the fill measures 2.79 and the ink step measures 6.31. That is the difference between a selection you look for and one you see.",
+    "A dim mark keeps its NEUTRAL token in both states. Selected, it was --ps-accent at opacity .5 — 1.66:1 dark, 1.96 light — and on a dark ground \"dimmer\" can only mean \"closer to the ground\", so no accent step is both quieter than its sibling and higher-contrast. Leaving the accent to mean one thing (this is the content you picked) is what resolves it.",
+    "The tint carries the meaning; the ink carries the glyph. .p-info shipped accent ink on the accent wash — 2.69:1 dark, 4.42 light on a 10px glyph, about ten times a rail. --ps-tint-ink is not enough either (4.70 on a card, 4.27 on the page ground, so it passes or fails depending on what it sits on); --ps-ink-2 clears the bar on every ground in both themes.",
+    "Quiet ink on a TINTED surface comes from the foreground, never from grey. --ps-dim is measured against the page ground and lands at 4.46:1 / 4.42 on the accent wash; --ps-ink-2 is 6.33 / 7.12 and is still visibly quieter than the label.",
+    "A selection has to read as one. ::selection was the accent at 18% — 1.18:1 dark, 1.25 light — which is worse than the browser's default, because that one at least works. Solid --ps-accent with --ps-accent-i is 5.12:1 and cannot drift between themes.",
+    "Every class this library RINGS must also have a base rule here. .p-tile, .p-seg, .p-nav and .p-nav2 appear only in the focus-visible list: real rules and real markup in both studios, nothing here, and therefore no specimen on the guide. This is the inverse of the rule above it and it is still open.",
+    "ONE HEIGHT FOR THE WHOLE TOP BAR: 36. Measured before the supplied Header frame landed, the bar ran four heights in one row - 29 (.p-btn-q), 31 (.p-prev), 35 (.p-seg) and 36 (.p-ghost) - which is what made it read as assembled rather than designed. .p-sm still means 29 and still belongs inside a rail group; nothing in the top bar takes it.",
+    "AN ICON IN THE TOP BAR IS MATCHED TO THE LABEL'S CAP HEIGHT, not to its em. The frame draws 10.6px of ink, which is a 15px em at Material's ~0.71 ink ratio and is exactly a 14px label's cap height. It looks small written down and is why a 36px bar does not read as crowded.",
+    "THE DELIVERY TRIO IS ONE OUTLINED GROUP (.p-tgrp), not three pills. The cells give up their own fill so the group's hairline is the only boundary and the hover is the only fill - the surfaces-not-strokes rule reached from the other side. A cell keeps .p-ghost's type, ink, icon gap and row height; only the surface and the corner come off.",
+    "A SECTION HEADER'S QUIET VALUE IS PUSHED RIGHT, scoped to .p-sec. .p-lab and .p-grp already did this; the section header did not, so its value sat against the title as though it were part of it. It must NOT be a blanket .p-cap > s rule: the image tool writes 26 output sizes into a caption's quiet half inside a 172px column, where the value wraps UNDER its label, and a blanket rule right-aligns all 26.",
+    "TAKE THE CONTENT WIDTH FROM A DESIGN, NEVER THE FRAME WIDTH, whenever the real element scrolls. A static frame has no scrollbar. The Layout rail's frame is 320 with 16 padding, i.e. a 288 content column; at 320 the real rail delivered 277, because Chrome takes 11px. 332 = 288 + 32 + 11 + 1, exactly as the palette rail's 272 = 229 + 32 + 11.",
+    "A SELECTED TILE'S STATE IS CARRIED BY ITS TYPE AS WELL AS ITS FILL, which is what lets the stroke be a whisper: the label goes to 500 against its neighbours' 400 and the ring drops from 2px to 1px. At eleven tiles a rail that is the difference between a diagram and a wireframe.",
+    "WHERE A DRAWING'S HAIRLINE FAILS 1.4.11, TAKE ITS WEIGHT AND KEEP THE TOKEN. The frame draws the selected tile's edge in #FFFFFF at 20%, which composites over --ps-accent to #4C5465 and reads 2.4:1 against the ground - under 3:1 for a non-text indicator. --ps-link is 3.4:1 on the fill and 6.6:1 on the ground. Fourth accent in a row to reach the same conclusion: the hairline is what gives a navy fill a boundary, and it does not get quieter than the bar.",
+    "PREVIEW IS THE NAVY ACTION. This library was the last place still painting it --ps-brand; both re-skinned documents moved it when orange stopped being a fill, because white on orange measures 2.76:1 and the brand's own rule is that orange is punctuation. .p-sw-studio is now the only orange fill left here and appears in neither supplied frame - flagged, not changed."
+  ],
+  "a11y": {
+    "$rule": "4.5:1 for text, 3:1 for a non-text indicator (WCAG AA). This REPLACES the 2.4:1 bar this project previously audited against.",
+    "$why": "2.4 was never a decision — it was the number that made the audit pass. It is why --ps-dim shipped at 2.73:1 across seven library roles in one of two supported themes, and why an audit run against it reported clean. A bar below AA converts a real failure into a passing measurement.",
+    "text": "4.5:1",
+    "largeText": "3:1",
+    "nonText": "3:1",
+    "disabled": "exempt — WCAG 1.4.3",
+    "$method": "Composite ancestor OPACITY before measuring. Comparing a computed color against the nearest opaque ancestor background misses everything above it: the ink is often correct and the inherited alpha is what kills it. Quietness expressed as opacity does not survive the theme flip.",
+    "$selfEnforcing": "ui-design-system/index.html prints a live contrast ratio per ink-bearing token, per theme, so a number the page prints is a number it cannot quietly ship below. It currently reports ZERO fails and ZERO large-only in BOTH themes. It earns its keep: this pass it caught the navy solids printing 1.00:1 (the `fill` role's ink fallback was the TINT's ink, which is the navy itself in light) and both dark status tiers failing on their own washes - four token defects that per-app audits missed, because the apps do not currently render those chips.",
+    "$roles": "A token declares its role in data-toks: `ink` (on --ps-app, 4.5), `fill` (the system's declared ink ON it, 4.5), `on:<token>` (ink on a named tint, 4.5), `ring` (non-text indicator, 3), `mark` (a diagram mark on the tile fill, 3), `quiet` (a dim modifier — the number prints, the verdict is withheld, because quieter-than-its-sibling is the definition and a fail badge there is the page crying wolf).",
+    "$exempt": [
+      "The wordmark's accent period, 3.49:1 dark. WCAG 1.4.3 exempts text that is part of a logo or brand name; provident. is the logotype.",
+      "A .dim diagram mark (1.79 dark / 1.69 light). Decorative, and quieter than its sibling by construction.",
+      "Disabled controls, per 1.4.3."
+    ],
+    "$open": []
+  },
+  "$basis": {
+    "$ramp": "THE TINT RAMP IS THE NAVY AT AN OPACITY, and that was verified rather than assumed: the four supplied tints are #1A2942 laid over WHITE at exactly 4/8/12/20 percent and the two shades are it darkened by 20/36 percent. Four exact matches, two channels off by one to rounding. So the ramp is GENERATIVE - any step the app needs comes from the same rule.",
+    "tint04": "#F6F6F7  navy  4% over white  - field disabled / a card's lift",
+    "tint08": "#EDEEF0  navy  8% over white  - quiet control, quiet hover",
+    "tint12": "#E4E5E8  navy 12% over white  - sunken: the stage, and a control's hover",
+    "tint16": "#DADDE1  navy 16% over white  - GENERATED. The five named steps were all spoken for, so reusing one for the SELECTED state would have made selected and disabled, or selected and the stage, the same tone.",
+    "tint20": "#D1D4DA  navy 20% over white  - disabled fill",
+    "shade20": "#152135  navy -20%  - fill hover (LIGHT only; dark lifts instead)",
+    "shade36": "#101A29  navy -36%  - fill pressed (LIGHT only)",
+    "$doNotAdd": "Do not add a grey that is not on this ramp. A neutral grey beside a navy tint reads as a different system, which is what the ramp exists to prevent."
+  }
+}

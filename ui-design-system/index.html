@@ -1,0 +1,1649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Provident UI — Design System</title>
+<link rel="stylesheet" href="provident-ui.css">
+<script>
+/* Restore the theme BEFORE first paint. Setting data-theme from a script at the end
+   of the body flashes the wrong theme AND leaves getComputedStyle returning a mixed
+   pre/post-flip picture — some elements report the old palette while :root already
+   reports the new one, which reads exactly like a theming bug. Any app on this system
+   wants this three-line block in its <head>. */
+try{ if (localStorage.getItem('provident-theme') !== 'dark')
+  document.documentElement.setAttribute('data-theme','light'); }catch(e){}
+</script>
+<style>
+/* ── The reference page's own layout. It uses nothing but library tokens, so
+      the page is itself a test: if a token is wrong, this page looks wrong. ── */
+html{background:var(--ps-app)}
+/* ── THE PAGE'S OWN GEOMETRY, declared once ─────────────────────────────────────
+   --pg-pad is to this page what --ps-secpad is to a rail: the ONE declaration that a
+   full-bleed seam cancels, so the negative margin can never drift from the padding
+   that reverses it. Same reasoning, same shape — because the seam that spans its
+   container is this system's signature structural move and the page had been using a
+   hairline tucked under a heading instead.
+
+   The reading column and the evidence column are deliberately different widths. Prose
+   is measured (66ch, inside the 65-75 band); specimens, swatch grids and value tables
+   take the full width. That is what removes the 228px of dead space on the right at
+   1440 without stretching a line of body copy past where it stops being readable. */
+:root{ --pg-pad:44px; --pg-max:1180px; --pg-read:66ch; }
+/* The page carries class="ps", so the base type, ink, ground, box-sizing, caret-color and
+   text-underline-offset all come from the library rather than being restated here. It used
+   to redeclare the type and skip the rest: section 16's browser-surface block is scoped to
+   .ps / .p-shell, so the page that documents the themed caret shipped the UA's. */
+body{margin:0}
+a{color:var(--ps-link);text-decoration:none}
+a:hover{text-decoration:underline}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+code{background:var(--ps-fill);padding:1px 5px;border-radius:var(--ps-r-sm);color:var(--ps-ink-2)}
+
+/* header */
+.hd{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;
+  height:54px;padding:0 var(--pg-pad);background:var(--ps-sb);
+  border-bottom:1px solid var(--ps-hair)}
+/* aligned to --pg-pad so the wordmark sits on the same left edge as the masthead
+   title and every section heading below it — the bar had its own 20px inset, so
+   nothing in the header lined up with anything in the page. */
+.hd b{font-size:20px;font-weight:300;letter-spacing:.04em}
+.hd b i{font-style:normal;color:var(--ps-link)}
+.hd s{text-decoration:none;font-size:12px;font-weight:400;color:var(--ps-dim)}
+.spring{flex:1}
+
+/* shell */
+.wrap{display:grid;grid-template-columns:212px minmax(0,1fr);gap:0;align-items:start}
+.nav{position:sticky;top:54px;max-height:calc(100vh - 54px);overflow-y:auto;
+  padding:30px 14px 60px;border-right:1px solid var(--ps-hair)}
+/* Rows at 30px with real gutters: fourteen links at 23px read as a dense list of
+   strings rather than a set of places. The transition is the library's own --ps-ease,
+   which is what every other pointer-responsive surface in this system uses. */
+.nav a{display:block;padding:6px 11px;border-radius:var(--ps-r);
+  font-size:13px;font-weight:400;color:var(--ps-ink-2);
+  transition:background-color var(--ps-ease),color var(--ps-ease)}
+.nav a:hover{background:var(--ps-fill);color:var(--ps-ink);text-decoration:none}
+/* WHERE YOU ARE, in a sticky nav over a 14,890px document with fourteen sections. It had
+   no current state at all, so the sidebar told you what exists and never what you are
+   reading. A FILL, not a stroke, and the accent — the same thing [data-on] means on every
+   control in the library. aria-current carries it for a screen reader. */
+.nav a[aria-current="true"]{background:var(--ps-fill-on);color:var(--ps-ink);font-weight:500}
+.nav p{margin:30px 0 8px;padding:0 11px;font-size:11.5px;font-weight:500;color:var(--ps-dim)}
+.nav p:first-child{margin-top:0}
+/* The masthead is full-bleed inside main, so main carries the page padding and the
+   band cancels it. 1180 against the old 1000 is what closes the 228px of dead space
+   measured at 1440; the reading measure is held separately by --pg-read, so nothing
+   got wider that should not have. */
+main{padding:0 var(--pg-pad) 140px;max-width:var(--pg-max)}
+
+/* ── SECTION RHYTHM AND TYPE SCALE ──────────────────────────────────────────────
+   THE SCALE WAS INVERTED AND HAD NO TOP. Measured before this: h1 34px/300, h2 22px,
+   body 17px and .lede FIFTEEN — the intro to every section set smaller than the body
+   text it introduces, which is the hierarchy upside down. And 34px is not a display
+   size on a 1440px screen, so the page had no peak anywhere in 2300px of scroll: it
+   ran heading, prose, specimens at one density fourteen times.
+
+   Light 300 at display scale is this brand's own move, not an import — the wordmark is
+   300 and the canvas Jumbo went Light for exactly this reason: past about 1.5x the
+   heading step, Regular reads as a slab. h2 keeps 400 because it is structural rather
+   than expressive. Tracking tightens as the size grows, which is what stops a large
+   Light line from looking loose. */
+section{margin:0 0 92px;scroll-margin-top:78px}
+h1{font-size:clamp(44px,6vw,84px);font-weight:300;line-height:1.02;
+  letter-spacing:-.032em;margin:0 0 22px}
+h2{font-size:30px;font-weight:400;line-height:1.12;letter-spacing:-.018em;margin:0 0 26px;
+  padding-bottom:16px;
+  /* EDGE TO EDGE, cancelling --pg-pad — the system's own seam, which spans its
+     container and reads as a division of the page rather than an underline under
+     three words. A rail does this with --ps-secpad; the page does it with --pg-pad. */
+  margin-inline:calc(var(--pg-pad) * -1);padding-inline:var(--pg-pad);
+  border-bottom:1px solid var(--ps-hair)}
+h3{font-size:15.5px;font-weight:500;margin:44px 0 14px;color:var(--ps-ink);
+  letter-spacing:-.005em}
+.lede{font-size:19px;font-weight:300;line-height:1.55;color:var(--ps-ink-2);
+  max-width:56ch;margin:0 0 34px}
+p{max-width:var(--pg-read)}
+/* ── THE MEASURE IS THE RULE, AND IT HAS TO BE ENFORCED ─────────────────────────
+   Widening main to close the dead space is only half an idea: everything prose-shaped
+   has to stay in the reading column or the page just gets wider lines. A callout and a
+   code sample are prose; a table of two sentences per row is prose. What earns the full
+   width is EVIDENCE — the specimens, the swatch grids, the radius scale — because those
+   are the things you compare across, and comparison wants them side by side.
+
+   That split is the whole composition: a narrow column you read down, and wide bands of
+   the real thing you look across. */
+.warn,pre.code,.why,.rules li,table{max-width:var(--pg-read)}
+.sw,.scale{max-width:none}
+/* text-wrap does the last mile that no max-width can: `balance` stops a display line
+   dropping one orphaned word, `pretty` fixes the last line of a paragraph. Both are
+   progressive — a browser without them lays out exactly as before. */
+h1,h2,h3{text-wrap:balance}
+.lede,p,.why,.rules li{text-wrap:pretty}
+.why{margin:20px 0 0;font-size:13px;font-weight:300;line-height:1.65;
+  color:var(--ps-dim)}
+.why b{font-weight:500;color:var(--ps-ink-2)}
+
+/* ── THE MASTHEAD ───────────────────────────────────────────────────────────────
+   The page used to open on a 34px heading and a paragraph: no arrival, no statement,
+   nothing that says what this is before you start reading it. This is the one peak in
+   the scroll — full-bleed on the rail ground, the title at display scale, and closed
+   by the system's own seam.
+
+   It carries NO eyebrow above the heading. A tracked label over a title is the single
+   most reflexive way to make a page look designed, and it is also the one thing this
+   chrome forbids outright: there is no all-caps anywhere in it. The heading carries
+   its own weight. There is no metric strip either — a row of big numbers under a title
+   is a template, and the numbers this page has to publish are contrast ratios, which
+   belong beside the token they judge.
+
+   The accent PERIOD is the whole flourish, and it is the brand's own: `provident.` is
+   the wordmark and the dot is the only place the mark lets colour in. Using it on the
+   title is the page finally speaking in its own vocabulary. */
+.mast{margin-inline:calc(var(--pg-pad) * -1);padding:76px var(--pg-pad) 0;
+  background:var(--ps-sb);
+  border-bottom:1px solid var(--ps-hair);margin-bottom:58px}
+.mast h1{margin:0 0 26px}
+.mast h1 i{font-style:normal;color:var(--ps-link)}
+.mast .lede{margin:0 0 62px}
+/* One authored moment, inside this project's own envelope: 200ms, ease-out, 3px of
+   travel, no overshoot, no loop, and it runs once from an already-visible default so
+   nothing depends on it. prefers-reduced-motion is handled by the library. */
+@media (prefers-reduced-motion:no-preference){
+  .mast h1,.mast .lede{animation:pg-rise .2s ease-out both}
+  .mast .lede{animation-delay:.05s}
+}
+@keyframes pg-rise{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* specimen */
+/* ── THE SPECIMEN ROW IS A COMPOSITION, NOT A STRETCH ───────────────────────────
+   Letting the stage take the full 1092px put a 100px button alone in 800px of void.
+   Capping the ROW instead of hugging each stage is the right trade: every specimen
+   down the page starts and ends on the same two edges, so the eye tracks one rhythm,
+   and the control still has generous room without swimming in it.
+
+   The seam stays local rather than going edge to edge — the h2 above it already spans
+   the page, and two full-bleed rules at different scales fight each other. This one
+   closes a row inside a region; that one divides the page. */
+.spec{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:32px;
+  align-items:start;padding:26px 0;max-width:960px;
+  border-bottom:1px solid var(--ps-hair)}
+.spec:last-child{border-bottom:0}
+/* THE SPECIMENS WERE BEING TESTED ON THE WRONG GROUND. A control's surface is --ps-fill,
+   and that fill is tuned to the RAIL: measured against --ps-sb / --ps-card it is 1.13:1 in
+   light and 1.13 in dark — the same quiet step in both, which is the "surfaces, not strokes"
+   decision working exactly as intended. Against --ps-app it is 1.12 in dark and 1.02 in
+   LIGHT, because #F3F1EE and #F5F3F0 are two steps apart. So on this page, in light mode, a
+   .p-ghost, a .p-tabs track and the whole outer capsule of .p-tri had no visible extent —
+   and none of that is true of the studios, where these controls sit on a rail. The page was
+   misrepresenting the library rather than testing it. The specimen sits on the rail ground
+   now, which is the condition it actually ships in. */
+.demo{display:flex;flex-wrap:wrap;align-items:center;gap:10px;min-width:0;
+  background:var(--ps-sb);border-radius:var(--ps-r);padding:14px}
+/* A specimen is sized to a plausible rail width (190–340px), which is the point — a control
+   shown at page width is not the control anyone ships. But an inline `width` is a floor the
+   page cannot honour on a 375px phone: the 340px note and the 320px QR row ran past a 335px
+   content column. max-width in the stylesheet constrains an inline width without touching
+   twenty markup sites, and it costs nothing wherever there is room. */
+.demo,.demo > *,.anat{max-width:100%}
+/* ── THE SPEC COLUMN IS A VALUE TABLE ───────────────────────────────────────────
+   It used to be grey mono text floating in the right third with 2px rows — no surface,
+   no weight, and the values sat wherever the label ended. It is now the library's own
+   documented row: label left, value right, one seam per row, tabular figures so a
+   column of 4px / 999px / 12.5px lines up. That row is a component this page defines
+   (.p-lab > s); using it here is the page reading its own documentation.
+
+   It sits on --ps-fill, which is the system's control surface, so the two halves of a
+   specimen are plainly two different kinds of thing: the stage where the control lives
+   and the record of what it measures. */
+.facts{font-size:11.5px;line-height:1.5;color:var(--ps-dim);
+  background:var(--ps-fill);border-radius:var(--ps-r);padding:4px 12px}
+.facts div{display:flex;gap:12px;justify-content:space-between;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid var(--ps-hair)}
+.facts div:last-child{border-bottom:0}
+.facts span:first-child{flex:none}
+.facts span:last-child{color:var(--ps-ink-2);text-align:right;
+  font-family:ui-monospace,Menlo,monospace;font-size:11px}
+/* The library themes tabular figures because "the guide and both studios are full of value
+   tables, and proportional digits make a column of 4px / 6px / 999px ragged" — and then
+   listed .p-hint, .p-tag, .p-badge and `table`, missing all three of the guide's own value
+   columns. These are them: the facts values, the contrast badges and the swatch readouts. */
+.facts span:last-child,.ratio,.sw u s,.scale figure b,.scale figure{font-variant-numeric:tabular-nums}
+/* THE SPECIMEN AND ITS FACTS WERE SWAPPED ON EVERY SECTION THAT HAS A HEADING. .spec is
+   `minmax(0,1fr) 232px` — demo left, facts right — and a .nm heading is a grid item too,
+   so it took column 1 and pushed .demo into the 232px column while .facts wrapped onto the
+   next row and stretched to 668px. Measured: demo 232 / facts 668, against the intended
+   668 / 232. Every value in the facts table then sat ~500px from its own label. It read as
+   correct only in the two sections with no heading — Type roles and Spacing — which are
+   the two the page opens on. The heading spans both columns. */
+.nm{grid-column:1/-1;font-size:13.5px;font-weight:500;color:var(--ps-ink);margin:0 0 12px}
+.nm code{margin-left:6px}
+
+/* token swatches */
+/* The swatch grid is the widest piece of evidence on the page and it was the thinnest
+   thing on it: a 44px band over a cramped 10.5px caption. The colour is the subject, so
+   it gets the room — and the caption gets enough air for the name, the value and the
+   contrast badge to sit as three readable lines rather than a block. */
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:10px}
+.sw div{border:1px solid var(--ps-hair);border-radius:var(--ps-r-lg);overflow:hidden}
+.sw i{display:block;height:64px}
+.sw u{display:block;text-decoration:none;padding:9px 11px 10px;background:var(--ps-fill);
+  font-size:11px;line-height:1.5;color:var(--ps-ink-2);
+  font-family:ui-monospace,Menlo,monospace}
+.sw u b{display:block;font-weight:500;color:var(--ps-ink);font-size:11px}
+.sw u s{display:block;text-decoration:none;color:var(--ps-dim)}
+/* The token's prefix is de-emphasised, never deleted — the full `--ps-name` has to
+   be Ctrl+F-able on the page that documents it. */
+/* The prefix is quieted with a TOKEN, not with opacity. Fading it to .55 composited
+   to 3.51:1 — under AA at 11px — which is the same error this pass had just removed
+   from .gd-skip. Quietness expressed as an alpha does not survive a ground change. */
+.sw u b .pfx{color:var(--ps-dim);font-weight:400}
+/* The live contrast ratio, computed against --ps-app in the current theme. A number
+   the page prints is a number the page cannot quietly ship below. */
+.ratio{font-style:normal;font-weight:500;font-size:9.5px;padding:1px 5px;border-radius:var(--ps-pill);
+  margin-left:5px;white-space:nowrap;vertical-align:1px}
+/* The badge states a number, so the number has to clear the bar the badge reports on.
+   Status ink ON its own status tint measured 4.47 (good) and 3.71 (bad) at 9.5px — a
+   contrast badge failing contrast. The tint carries the meaning; --ps-ink carries the
+   digits. */
+.ratio[data-tone="aa"]{background:var(--ps-good-q);color:var(--ps-ink)}
+.ratio[data-tone="aa-lg"]{background:var(--ps-fill);color:var(--ps-ink)}
+.ratio[data-tone="fail"]{background:var(--ps-bad-q);color:var(--ps-ink)}
+.ratio[data-tone="na"]{background:var(--ps-chip);color:var(--ps-ink-2)}
+/* the pairing the number is about — "ink on it", "as a ring". Without it a badge beside a
+   fill token reads as a claim about the fill. */
+.pair{display:block;text-decoration:none;color:var(--ps-dim);font-size:9.5px;
+  letter-spacing:0;margin-top:1px}
+/* keep the status hue readable as a cue without carrying the text */
+.ratio[data-tone="aa"]{box-shadow:inset 0 0 0 1px var(--ps-good)}
+.ratio[data-tone="fail"]{box-shadow:inset 0 0 0 1px var(--ps-bad)}
+
+/* Callouts. SURFACES, NOT STROKES — this system's own rule, and these two were the last
+   place on the page still breaking it: a 2px coloured border-left plus a half-squared
+   radius, which is the one callout shape that reads as pasted in from another system. The
+   tint already carries the tone, so the stroke was saying it twice; a hairline in the same
+   hue closes the shape instead, and the radius is the scale's own. */
+.warn{background:var(--ps-bad-q);box-shadow:inset 0 0 0 1px var(--ps-bad-q);
+  padding:16px 18px;border-radius:var(--ps-r-lg);margin:26px 0;
+  font-size:13.5px;font-weight:300;line-height:1.65;color:var(--ps-ink)}
+.warn b{font-weight:500}
+/* The tone stays in the TINT. Colouring the callout's opening phrase instead put 13px of
+   --ps-bad / --ps-good on their own light tints — 3.77 and 4.47 — so the fix for the
+   stroke introduced four contrast failures of its own. The wash says which kind of note
+   this is; --ps-ink says the words. */
+.ok{background:var(--ps-good-q);box-shadow:inset 0 0 0 1px var(--ps-good-q)}
+
+/* radius + spacing scales */
+.scale{display:flex;flex-wrap:wrap;gap:10px}
+.scale figure{margin:0;text-align:center;font-size:11px;color:var(--ps-dim)}
+.scale figure i{display:block;width:70px;height:52px;background:var(--ps-fill);
+  box-shadow:inset 0 0 0 1px var(--ps-line);margin-bottom:5px}
+.scale figure b{display:block;font-weight:500;color:var(--ps-ink);font-size:11.5px}
+
+/* the divider anatomy demo */
+/* the code sample. It was a 5-property inline style, on the page whose Rules that bite
+   section opens with "inline style objects beat any stylesheet rule". */
+pre.code{background:var(--ps-fill);padding:14px 16px;border-radius:var(--ps-r);
+  overflow-x:auto;font-size:12px;line-height:1.7;margin:0 0 14px}
+pre.code code{background:none;padding:0}
+
+.anat{background:var(--ps-sb);border-radius:var(--ps-r);width:300px;overflow:hidden;
+  /* The stage is the rail ground now, so this box shares its fill and only the ring
+     delineates it — --ps-line, the system's own "a region ends here" value (1.37:1),
+     rather than --ps-hair, which reads at 1.23 when the two surfaces are identical. */
+  box-shadow:inset 0 0 0 1px var(--ps-line)}
+.anat .p-sec{padding:12px var(--ps-secpad) 18px}
+
+/* rules list */
+.rules{list-style:none;padding:0;margin:22px 0 0}
+.rules li{padding:15px 0 15px 28px;border-bottom:1px solid var(--ps-hair);
+  font-size:13.5px;font-weight:300;line-height:1.65;position:relative}
+.rules li:last-child{border-bottom:0}
+.rules li::before{content:'';position:absolute;left:6px;top:23px;
+  width:6px;height:6px;border-radius:50%;background:var(--ps-accent)}
+.rules li b{font-weight:500}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-weight:300;margin-top:22px}
+th{text-align:left;font-size:11.5px;font-weight:500;color:var(--ps-dim);
+  padding:0 16px 10px 0;border-bottom:1px solid var(--ps-hair)}
+td{padding:13px 16px 13px 0;border-bottom:1px solid var(--ps-hair);
+  vertical-align:top;color:var(--ps-ink-2);line-height:1.6}
+td:first-child{color:var(--ps-ink);white-space:nowrap}
+
+@media (max-width:860px){
+  /* CHANGE THE TOKEN, NOT main's PADDING. The masthead and every h2 seam are full-bleed
+     by cancelling --pg-pad with a negative margin, so overriding main's padding directly
+     — which is what this rule used to do — would have left all of them overhanging the
+     viewport by the difference. This is the same reason --ps-secpad exists in the library:
+     one declaration, and the thing that reverses it derives from it. */
+  :root{ --pg-pad:20px; }
+  .wrap{grid-template-columns:1fr}
+  .nav{position:static;max-height:none;border-right:0;
+    border-bottom:1px solid var(--ps-hair);display:flex;flex-wrap:wrap;gap:2px;
+    padding:14px var(--pg-pad)}
+  .nav p{display:none}
+  main{padding:0 var(--pg-pad) 80px}
+  .mast{padding-top:44px;margin-bottom:40px}
+  .spec{grid-template-columns:1fr;gap:18px}
+  section{margin-bottom:64px}
+}
+</style>
+</head>
+<body class="ps">
+
+<!-- ICONS. Material Symbols Rounded at wght300 — the chrome's weight, and the only
+     build Google publishes at it — fetched from
+     fonts.gstatic.com/s/i/short-term/release/materialsymbolsrounded/<name>/wght300/24px.svg
+     and baked in as path data, the same provenance as the studios' own 23 glyphs, so the
+     page still works offline. Every one shares the 0 -960 960 960 viewBox.
+     These replaced unicode stand-ins (a half-circle, a star, a sun, a moon, two arrows and
+     two guillemets). A unicode character is a different family on every platform, carries
+     no consistent stroke or weight, and is announced by a screen reader — so the specimens
+     were not showing the icon system, and `.p-mini-i svg`, which the library has always
+     declared at 26px, had nothing to style. writing viewBox in MARKUP is safe; the
+     camel-case hazard is CSS strings inside a .dc.html. -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+<defs>
+<symbol id="i-dark-mode" viewBox="0 -960 960 960"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></symbol>
+<symbol id="i-light-mode" viewBox="0 -960 960 960"><path d="M565-395q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Zm-212.46 42.46Q300-405.08 300-480q0-74.92 52.54-127.46Q405.08-660 480-660q74.92 0 127.46 52.54Q660-554.92 660-480q0 74.92-52.54 127.46Q554.92-300 480-300q-74.92 0-127.46-52.54ZM80-450q-12.77 0-21.38-8.62Q50-467.23 50-480t8.62-21.38Q67.23-510 80-510h90q12.77 0 21.38 8.62Q200-492.77 200-480t-8.62 21.38Q182.77-450 170-450H80Zm710 0q-12.77 0-21.38-8.62Q760-467.23 760-480t8.62-21.38Q777.23-510 790-510h90q12.77 0 21.38 8.62Q910-492.77 910-480t-8.62 21.38Q892.77-450 880-450h-90ZM458.62-768.62Q450-777.23 450-790v-90q0-12.77 8.62-21.38Q467.23-910 480-910t21.38 8.62Q510-892.77 510-880v90q0 12.77-8.62 21.38Q492.77-760 480-760t-21.38-8.62Zm0 710Q450-67.23 450-80v-90q0-12.77 8.62-21.38Q467.23-200 480-200t21.38 8.62Q510-182.77 510-170v90q0 12.77-8.62 21.38Q492.77-50 480-50t-21.38-8.62ZM240.23-678.38l-50.31-48.93q-8.92-8.31-8.61-20.88.31-12.58 8.61-21.89 9.31-9.3 21.7-9.3 12.38 0 21.07 9.3L282-720.15q8.69 9.3 8.69 21.07T282-678q-8.31 9.31-20.38 8.81-12.08-.5-21.39-9.19Zm487.08 488.46L678-239.85q-8.69-9.3-8.69-21.38 0-12.08 8.69-20.77 8.31-9.31 20.38-8.81 12.08.5 21.39 9.19l50.31 48.93q8.92 8.31 8.61 20.88-.31 12.58-8.61 21.89-9.31 9.3-21.7 9.3-12.38 0-21.07-9.3ZM678-678q-9.31-8.31-8.81-20.38.5-12.08 9.19-21.39l48.93-50.31q8.31-8.92 20.88-8.61 12.58.31 21.89 8.61 9.3 9.31 9.3 21.7 0 12.38-9.3 21.07L720.15-678q-9.3 8.69-21.07 8.69T678-678ZM189.92-189.92q-9.3-9.31-9.3-21.7 0-12.38 9.3-21.07L239.85-282q9.3-8.69 21.38-8.69 12.08 0 20.77 8.69 8.92 8.31 8.42 20.38-.5 12.08-8.8 21.39l-48.93 50.31q-8.69 9.3-21.07 9-12.39-.31-21.7-9ZM480-480Z"/></symbol>
+<symbol id="i-star" viewBox="0 -960 960 960"><path d="m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143Zm126-5.46-155.61 93.84q-8.7 5.08-17.43 4.27-8.73-.81-15.8-5.88-7.08-5.08-10.93-13.27-3.84-8.19-1.23-18.12l41.31-176.69-137.38-118.92q-7.7-6.69-9.81-15.5-2.12-8.81 1.11-17.12 3.23-8.3 9.31-13.57t16.62-6.89l181.3-15.84L451.85-763q3.84-9.31 11.65-13.77 7.81-4.46 16.5-4.46 8.69 0 16.5 4.46 7.81 4.46 11.65 13.77l70.39 166.85 181.3 15.84q10.54 1.62 16.62 6.89 6.08 5.27 9.31 13.57 3.23 8.31 1.11 17.12-2.11 8.81-9.81 15.5L639.69-408.31 681-231.62q2.61 9.93-1.23 18.12-3.85 8.19-10.93 13.27-7.07 5.07-15.8 5.88-8.73.81-17.43-4.27L480-292.46ZM480-470Z"/></symbol>
+<symbol id="i-undo" viewBox="0 -960 960 960"><path d="M318.08-220q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h257.07q62.62 0 107.77-41.35 45.16-41.34 45.16-102.11 0-60.77-45.16-101.93-45.15-41.15-107.77-41.15H294.31l90.23 90.23q8.69 8.7 8.69 21.08 0 12.38-8.69 21.08-8.69 8.69-21.27 8.5-12.58-.2-20.88-8.5L205.31-571.23q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l137.08-137.07q8.69-8.69 21.07-8.69 12.39 0 21.08 8.69 8.69 8.69 8.5 21.27-.19 12.57-8.5 20.88l-90.23 90.23h280.84q87.77 0 150.35 58.58t62.58 144.5q0 85.92-62.58 144.69Q662.92-220 575.15-220H318.08Z"/></symbol>
+<symbol id="i-redo" viewBox="0 -960 960 960"><path d="M665.69-566.54H384.85q-62.62 0-107.77 41.15-45.16 41.16-45.16 101.93 0 60.77 45.16 102.11Q322.23-280 384.85-280h257.07q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62H384.85q-87.77 0-150.35-58.77t-62.58-144.69q0-85.92 62.58-144.5t150.35-58.58h280.84l-90.23-90.23q-8.31-8.31-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69l137.08 137.07q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L617.61-434.15q-8.3 8.3-20.88 8.5-12.58.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08l90.23-90.23Z"/></symbol>
+<symbol id="i-chevron-left" viewBox="0 -960 960 960"><path d="m418.15-480 162.93 162.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L359.15-454.69q-5.61-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.31-6.23 7.92-11.85l179.77-179.77q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L418.15-480Z"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 -960 960 960"><path d="M517.85-480 354.92-642.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69l179.77 179.77q5.61 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.31 6.23-7.92 11.85L397.08-274.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L517.85-480Z"/></symbol>
+<symbol id="i-projects" viewBox="0 -960 960 960"><path d="M450-177.23v-285.54L200-607.54v278.62q0 3.07 1.54 5.77 1.54 2.69 4.61 4.61L450-177.23Zm60 0 243.85-141.31q3.07-1.92 4.61-4.61 1.54-2.7 1.54-5.77v-278.62L510-462.77v285.54Zm-30-337.23 247-142.77-240.85-139.31q-3.07-1.92-6.15-1.92-3.08 0-6.15 1.92L233-657.23l247 142.77ZM176.16-265.85q-17.08-9.84-26.62-26.3-9.54-16.47-9.54-36.16v-303.38q0-19.69 9.54-36.16 9.54-16.46 26.62-26.3l267.69-154.08q17.07-9.85 36.15-9.85t36.15 9.85l267.69 154.08q17.08 9.84 26.62 26.3 9.54 16.47 9.54 36.16v303.38q0 19.69-9.54 36.16-9.54 16.46-26.62 26.3L516.15-111.77q-17.07 9.85-36.15 9.85t-36.15-9.85L176.16-265.85ZM480-480Z"/></symbol>
+<symbol id="i-folder" viewBox="0 -960 960 960"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></symbol>
+<symbol id="i-save" viewBox="0 -960 960 960"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></symbol>
+<symbol id="i-preview" viewBox="0 -960 960 960"><path d="M212.31-140q-29.92 0-51.12-21.19Q140-182.39 140-212.31v-535.38q0-29.92 21.19-51.12Q182.39-820 212.31-820h535.38q29.92 0 51.12 21.19Q820-777.61 820-747.69v535.38q0 29.92-21.19 51.12Q777.61-140 747.69-140H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85V-680H200v467.69q0 5.39 3.46 8.85t8.85 3.46Zm135.81-138.92q-58.35-38.93-86.2-101.08 27.85-62.15 86.2-101.08Q406.46-580 480-580q73.54 0 131.88 38.92 58.35 38.93 86.2 101.08-27.85 62.15-86.2 101.08Q553.54-300 480-300q-73.54 0-131.88-38.92Zm227.15-33.16q43.5-24.38 70.65-67.92-27.15-43.54-70.65-67.92-43.5-24.39-95.27-24.39-51.77 0-95.27 24.39-43.5 24.38-70.65 67.92 27.15 43.54 70.65 67.92 43.5 24.39 95.27 24.39 51.77 0 95.27-24.39ZM480-440Zm37.11 37.11q15.2-15.19 15.2-37.11t-15.2-37.11q-15.19-15.2-37.11-15.2t-37.11 15.2q-15.2 15.19-15.2 37.11t15.2 37.11q15.19 15.2 37.11 15.2t37.11-15.2Z"/></symbol>
+</defs>
+</svg>
+
+<header class="hd">
+  <b>provident<i>.</i></b>
+  <s>UI Design System</s>
+  <span class="spring"></span>
+  <s id="themeName">Dark</s>
+  <button class="p-ghost p-ico-o" id="themeBtn" title="Switch to light">
+    <svg class="p-g" style="width:18px;height:18px" aria-hidden="true"><use id="themeIcon" href="#i-light-mode"/></svg>
+  </button>
+</header>
+
+<div class="wrap">
+<nav class="nav">
+  <p>Foundations</p>
+  <a href="#about">What this is</a>
+  <a href="#tokens">Colour tokens</a>
+  <a href="#type">Type roles</a>
+  <a href="#radius">Radius</a>
+  <a href="#space">Spacing &amp; dividers</a>
+  <p>Components</p>
+  <a href="#buttons">Buttons</a>
+  <a href="#fields">Fields</a>
+  <a href="#tiles">Option tiles</a>
+  <a href="#palette">Palette row</a>
+  <a href="#sliders">Sliders</a>
+  <a href="#drops">Drop zones &amp; QR</a>
+  <a href="#surfaces">Surfaces</a>
+  <a href="#feedback">Feedback</a>
+  <p>Working with it</p>
+  <a href="#rules">Rules that bite</a>
+  <a href="#change">Changing the system</a>
+</nav>
+
+<main>
+
+<section id="about">
+  <!-- The accent period is the brand's own and its only flourish: `provident.` is the
+       wordmark and the dot is the single place the mark lets colour in. No eyebrow above
+       the title — this chrome carries no all-caps, and a tracked label over a heading is
+       the most reflexive way to make a page look designed rather than be designed. -->
+  <div class="mast">
+    <h1>Provident UI<i>.</i></h1>
+    <p class="lede">The design system for the <b>tool's own interface</b> — Campaign Ad
+    Studio, Organic Post Studio, the project browser, the guided run, and any webapp built
+    on top. Every number here was measured off the running studio.</p>
+  </div>
+
+  <div class="warn ok">
+    <b>This is not the brand system.</b> Exported artwork reads
+    <code>CampaignStudio.PAL</code> and <code>OrganicStudio.ART</code> and never touches a
+    <code>--ps-*</code> token. That separation is verified across 126 component × variant ×
+    size combinations, and it is what lets the chrome be re-themed without moving a pixel of
+    a finished ad. For brand web components see <code>_ds/</code>.
+  </div>
+
+  <h3>Using it</h3>
+  <p>Two lines. LIGHT is the default now; dark is what the bare <code>:root</code>
+  carries, so the attribute is what a light app sets. The three consumers all default
+  to light, and this page follows them.</p>
+  <pre class="code"><code>&lt;link rel="stylesheet" href="ui-design-system/provident-ui.css"&gt;
+&lt;html data-theme="light"&gt;   &lt;!-- the default; omit for dark --&gt;</code></pre>
+  <p class="why">Three files ship together: <b>provident-ui.css</b> is what you build on,
+  <b>provident-ui.tokens.json</b> is the machine-readable copy for build tools, and this page
+  is what you read and prompt against.</p>
+  <p class="why"><b>Serve this page rather than opening it from Finder.</b> Chrome refuses a
+  relative <i>font</i> URL over <code>file://</code>, so a double-clicked copy falls back to
+  system sans and every measurement on this page shifts — the same reason the standalone
+  image tool base64-embeds its font. Any static server works:
+  <code>python3 -m http.server</code> from the project root, then open
+  <code>/ui-design-system/</code>.</p>
+</section>
+
+<section id="tokens">
+  <h2>Colour tokens</h2>
+  <p class="lede">Each swatch shows the value <b>resolving live in the theme you are viewing</b>
+  — the toggle in the header re-reads them.</p>
+
+  <h3>Surfaces</h3>
+  <div class="sw" data-toks="--ps-app,--ps-sb,--ps-card,--ps-card-h,--ps-stage,--ps-chip"></div>
+
+  <h3>Control fills</h3>
+  <div class="sw" data-toks="--ps-fill,--ps-fill-h,--ps-fill-on"></div>
+  <p class="why"><b>A control is a fill, not an outline.</b> Every control once carried a 1px
+  stroke and at rail density the whole panel read as a wireframe — the strokes added up to
+  more visual weight than the controls themselves. A control is now a quiet fill that lifts
+  on hover and takes the accent when it is on. Measured across three rails: 27 visible
+  borders became 8.</p>
+
+  <h3>Lines</h3>
+  <div class="sw" data-toks="--ps-hair,--ps-line"></div>
+
+  <h3>Ink</h3>
+  <div class="sw" data-toks="--ps-ink|ink,--ps-ink-2|ink,--ps-dim|ink"></div>
+
+  <h3>Accent</h3>
+  <div class="sw" data-toks="--ps-accent|fill,--ps-accent-h|fill,--ps-accent-h2|fill,--ps-accent-q,--ps-link|ink,--ps-focus|ring,--ps-brand|logo,--ps-brand-h|logo,--ps-primary|fill"></div>
+  <p class="why"><b>The accent is derived from Provident Navy, and it used to be derived
+  away from it.</b> <code>#487194</code> sat at <code>hsl(208, 34%, 43%)</code> while
+  <code>#1A2942</code> is <code>hsl(218, 44%, 18%)</code> — <i>less</i> saturated than the
+  brand colour, with its hue 10° warmer. Desaturating away from Provident is the one
+  direction that makes a colour look switched off.</p>
+  <p class="why"><b>Then a single vivid mid blue was tried, and rejected for a better
+  reason.</b> <code>#2968D6</code> was correctly derived — same hue as the navy, twice the
+  chroma, and it cost nothing (the white label went 5.17&nbsp;→&nbsp;5.19). But a mid blue
+  used as the resting fill of <i>every</i> selected control is loud everywhere and
+  therefore emphatic nowhere: there was no register left for the action you should
+  actually take.</p>
+  <p class="why"><b>Three registers, by job.</b> <code>--ps-accent</code>
+  <code>#101E39</code> is the <b>dominant</b> resting fill — every selected pill, ON tile,
+  active tab, nav row and wash — and it carries the highest label contrast in the system
+  at <b>16.58</b>. <code>--ps-accent-h</code> <code>#2053D0</code> is <b>hover</b>, and the
+  resting fill of an important action, so there is exactly one loud thing per screen.
+  <code>--ps-accent-h2</code> is that action&rsquo;s own hover, so it still lifts.</p>
+  <p class="warn"><b>The deep fill has no boundary of its own on the dark theme.</b>
+  <code>#101E39</code> measures <b>1.00–1.15:1</b> against every dark surface, so as a
+  block it is invisible and only its white label reads. Every dark-theme ON state
+  therefore carries a <code>--ps-link</code> hairline, which clears 3:1 against both the
+  fill (<b>7.27</b>) and every dark ground (<b>6.70–8.18</b>). On light it needs none — the
+  same fill measures <b>14.97</b> on the app — so the light hairline is deliberately
+  invisible, and harmless. Do not &ldquo;fix&rdquo; that asymmetry by lightening the fill;
+  the hairline <i>is</i> the fix.</p>
+  <p class="why"><b>A deep navy cannot be a mark.</b> Anything that must read on the ground
+  rather than carry ink of its own — a border, an inset ring, a slider thumb, a caret, a
+  diagram bar, the accent used as text — resolves to <code>--ps-link</code>, never to
+  <code>--ps-accent</code>. The property is the test: <code>background</code> is a fill,
+  everything else is a mark. That one rule reclassified about 90 declarations across the
+  three mirrors.</p>
+  <p class="why"><b>Orange is still a top-bar colour</b>, used by exactly two controls,
+  both genuinely primary: the studio switcher and Preview.</p>
+
+  <h3>Status &amp; tints</h3>
+  <div class="sw" data-toks="--ps-good|on:--ps-good-q,--ps-good-q,--ps-bad|on:--ps-bad-q,--ps-bad-q,--ps-tint-1,--ps-tint-ink|on:--ps-tint-1"></div>
+
+  <h3>Skeleton</h3>
+  <div class="sw" data-toks="--ps-skel|mark,--ps-skel-q|quiet"></div>
+
+  <div class="warn">
+    <b>The alias trap.</b> Legacy names are kept so older rules flip for free — but
+    <code>--ps-navy</code> resolves to <code>--ps-card-h</code>, which is
+    <code>#FAF9F7</code> in light mode. Any surface still painted with it turns near-white
+    while literal <code>#fff</code> ink stays put. That one alias made three whole screens
+    unreadable at 1.05:1 contrast. If you are writing new CSS, use the real token names:
+    <code>--ps-navy · --ps-gold · --ps-cream · --ps-sand · --ps-orange · --ps-blue</code>
+    all exist only for compatibility.
+  </div>
+</section>
+
+<section id="type">
+  <h2>Type roles</h2>
+  <p class="lede">One family: Google Sans Flex. Light 300 is the default weight for
+  everything; 400 is a label or an input, 500 is a button or a heading.</p>
+
+  <div class="spec">
+    <div class="demo"><span style="font-size:17px;font-weight:300">Body — the studio's live base</span></div>
+    <div class="facts">
+      <div><span>role</span><span>base</span></div>
+      <div><span>size</span><span>17px</span></div>
+      <div><span>weight</span><span>300</span></div>
+      <div><span>line-height</span><span>1.7</span></div>
+    </div>
+  </div>
+  <div class="spec">
+    <div class="demo" style="align-items:stretch;width:280px"><div class="p-sec" style="padding:0"><span class="p-cap">Section heading<s>Master</s></span></div></div>
+    <div class="facts">
+      <div><span>class</span><span>.p-cap</span></div>
+      <div><span>size</span><span>12.5px</span></div>
+      <div><span>weight</span><span>500</span></div>
+      <div><span>tracking</span><span>0</span></div>
+    </div>
+  </div>
+  <div class="spec">
+    <div class="demo" style="width:260px">
+      <label class="p-lab" style="width:100%">Scrim opacity <s>70% · fade 40%</s></label>
+    </div>
+    <div class="facts">
+      <div><span>class</span><span>.p-lab / &gt; s</span></div>
+      <div><span>size</span><span>13px</span></div>
+      <div><span>weight</span><span>400 / 300</span></div>
+      <div><span>value</span><span>margin-left:auto</span></div>
+    </div>
+  </div>
+  <div class="spec">
+    <div class="demo"><span class="p-hint">Numbers only, shown as AED 12,200,000</span></div>
+    <div class="facts">
+      <div><span>class</span><span>.p-hint</span></div>
+      <div><span>size</span><span>11px</span></div>
+      <div><span>weight</span><span>300</span></div>
+      <div><span>line-height</span><span>1.5</span></div>
+    </div>
+  </div>
+
+  <div class="warn">
+    <b>No all-caps anywhere in the chrome.</b> Captions, option labels and group headings are
+    sentence case at normal tracking. Tracked caps at 500 is a <i>canvas</i> role — eyebrows
+    in exported artwork — and it is a binding brand rule there, not here. A field label is a
+    sentence-case label, <b>not an eyebrow</b>: grouping it with the captions once forced
+    500 weight and .1em tracking on every label in the rail and read heavy and gappy.
+  </div>
+  <p class="why">A field's guidance is <b>its own line</b>, never appended to its label. At a
+  277px rail column, <code>Price — numbers only, shown as AED 12,200,000</code> wraps and
+  orphans the example value, which reads as a broken row rather than as help.</p>
+</section>
+
+<section id="radius">
+  <h2>Radius</h2>
+  <p class="lede">One scale. A pill means an <b>obvious button</b>.</p>
+  <div class="scale">
+    <figure><i style="border-radius:var(--ps-r-sm)"></i><b data-r="--ps-r-sm"></b>--ps-r-sm</figure>
+    <figure><i style="border-radius:var(--ps-r)"></i><b data-r="--ps-r"></b>--ps-r · panels</figure>
+    <figure><i style="border-radius:var(--ps-r-lg)"></i><b data-r="--ps-r-lg"></b>--ps-r-lg · 2-line rows</figure>
+    <figure><i style="border-radius:var(--ps-r-ctl)"></i><b data-r="--ps-r-ctl"></b>--ps-r-ctl · fields</figure>
+    <figure><i style="border-radius:var(--ps-r-tile)"></i><b data-r="--ps-r-tile"></b>--ps-r-tile · tiles</figure>
+    <figure><i style="border-radius:var(--ps-r-drop)"></i><b data-r="--ps-r-drop"></b>--ps-r-drop · drop zones</figure>
+    <figure><i style="border-radius:var(--ps-r-field)"></i><b data-r="--ps-r-field"></b>--ps-r-field · guided</figure>
+    <figure><i style="border-radius:var(--ps-pill)"></i><b data-r="--ps-pill"></b>--ps-pill · buttons</figure>
+    <figure><i style="border-radius:50%"></i><b>50%</b>circles — a shape, not a token</figure>
+  </div>
+  <p class="why"><b>Every swatch above is drawn with the token and labelled from it.</b> It
+  used to hardcode <code>border-radius:4px … 999px</code> and print the numbers as text — so
+  the one section documenting the radius scale was the one section that was not a live test
+  of it, and changing <code>--ps-r-tile</code> left this page still showing 13px. The
+  <code>50%</code> circle is the exception because it is a shape rather than a token.</p>
+  <p class="why">The base is a flat <b>6px</b> taken from the structure of
+  dwtc.provident.ae — no pills on panels. Buttons override it to a full capsule by request.
+  A card, a specimen tile, a grid container and a dashed drop zone are all clickable and
+  none of them <i>looks</i> like a button, so none of them is a pill — a sweep that included
+  the card classes turned every project miniature into a circle.</p>
+  <p class="why"><b>Two shapes are deliberate exceptions.</b> The three-stop slider is a full
+  capsule, track and fill; the two-line choice rows are an 8px rect, because a capsule round
+  two lines of text reads as a lozenge.</p>
+</section>
+
+<section id="space">
+  <h2>Spacing &amp; dividers</h2>
+  <p class="lede">A control group is a <b>band</b>, not a card — a quiet header, its
+  controls, and a hairline before the next one.</p>
+
+  <div class="spec">
+    <div class="demo">
+      <div class="anat">
+        <div class="p-sec">
+          <div class="p-cap">Layout</div>
+          <div class="p-grp">
+            <label class="p-lab">Background <s>Dark</s></label>
+            <input class="p-in" value="Bottom cluster">
+          </div>
+          <div class="p-grp">
+            <label class="p-lab">Alignment <s>Centred</s></label>
+            <div class="p-tabs"><button data-on>Left</button><button>Centre</button></div>
+          </div>
+          <div class="p-grp">
+            <label class="p-lab">Vertical spacing <s>Medium</s></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>section padding</span><span>12 / 16 / 18</span></div>
+      <div><span>--ps-secpad</span><span>16px</span></div>
+      <div><span>group padding</span><span>13px 14px</span></div>
+      <div><span>group gap</span><span>9px</span></div>
+      <div><span>field gap</span><span>4px</span></div>
+      <div><span>label gap</span><span>6px</span></div>
+      <div><span>caption gap</span><span>8px</span></div>
+      <div><span>row gap</span><span>10px</span></div>
+      <div><span>panel gap</span><span>12px</span></div>
+    </div>
+  </div>
+
+  <p class="why"><b>A divider is edge to edge.</b> A row carries
+  <code>margin-inline: calc(var(--ps-secpad) * -1)</code> with matching
+  <code>padding-inline</code>, so its border spans the whole rail and reads as a seam across
+  it rather than as an underline under one control. <code>--ps-secpad</code> is the single
+  declaration of that inset, so the negative margin cannot drift from it.</p>
+
+  <ul class="rules">
+    <li><b>A <code>:last-child</code> carries no seam.</b> The last row closes its region; a
+    trailing hairline above the section's own edge reads as a stray line.</li>
+    <li><b>One group is one seam.</b> The divider separates groups; it never appears
+    <i>inside</i> one. A sub-heading within a group is <code>.p-lab-2</code> — 6px of space,
+    not a rule. Getting this wrong made one control read as four stacked sections.</li>
+    <li><b><code>width:100%</code> on a flex item defeats the negative margin.</b> It resolves
+    against the container and then shifts left, leaving the seam 32px short at both ends.
+    Omit it and <code>align-self:stretch</code> resolves the width as container-inner
+    <i>minus</i> the item's own margins — which negative margins therefore widen.</li>
+    <li><b>A group inside a column row is already contained</b> — no band, no seam.</li>
+    <li><b>The dock cancels its own inset, not the rail's.</b> <code>--ps-dockpad</code> is
+    14px against the section's 16px. Two different paddings, two different tokens; using one
+    for both puts the seam 2px off at one of them.</li>
+  </ul>
+</section>
+
+<section id="buttons">
+  <h2>Buttons</h2>
+
+  <div class="spec">
+    <p class="nm">Secondary <code>.p-ghost</code></p>
+    <div class="demo">
+      <button class="p-ghost">Source folder</button>
+      <button class="p-ghost" data-on>Selected</button>
+    </div>
+    <div class="facts">
+      <div><span>height</span><span>35px</span></div>
+      <div><span>padding</span><span>10px 18px</span></div>
+      <div><span>type</span><span>12px / 500</span></div>
+      <div><span>tracking</span><span>.01em</span></div>
+      <div><span>radius</span><span>999px</span></div>
+      <div><span>fill</span><span>--ps-fill</span></div>
+      <div><span>on</span><span>accent + hairline + ring</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Primary <code>.p-btn</code></p>
+    <div class="demo"><button class="p-btn">Export JPEG 2×</button></div>
+    <div class="facts">
+      <div><span>height</span><span>36px</span></div>
+      <div><span>padding</span><span>10px 16px</span></div>
+      <div><span>type</span><span>13px / 500</span></div>
+      <div><span>fill</span><span>--ps-accent-h</span></div>
+      <div><span>hover</span><span>--ps-accent-h2</span></div>
+      <div><span>ink</span><span>--ps-accent-i</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Preview <code>.p-prev</code> — top bar only</p>
+    <div class="demo"><button class="p-prev"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-preview"/></svg>Preview</button></div>
+    <div class="facts">
+      <div><span>height</span><span>36px</span></div>
+      <div><span>padding</span><span>7px 14px</span></div>
+      <div><span>type</span><span>14px / 600 / +.16px</span></div>
+      <div><span>fill</span><span>--ps-primary</span></div>
+      <div><span>edge</span><span>1px --ps-link</span></div>
+    </div>
+    <p class="why">It was <code>--ps-brand</code> here and nowhere else: both re-skinned
+      documents moved it to the navy action when orange stopped being a fill, and this
+      library was the last place still painting it orange. White on orange measures
+      2.76:1, and the brand's own rule is that orange is punctuation.</p>
+  </div>
+
+  <div class="spec">
+    <p class="nm">The top bar <code>.p-top</code> — one height, and every control on it</p>
+    <div class="demo" style="flex-direction:column;align-items:stretch;padding:0">
+      <header class="p-top">
+        <span class="p-wm">provident<b>.</b></span>
+        <div class="p-seg">
+          <button data-on>Campaign ads</button>
+          <button>Organic posts</button>
+        </div>
+        <div class="p-tgrp">
+          <button class="p-ghost p-ico-t"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-projects"/></svg>Projects</button>
+          <button class="p-ghost p-ico-t"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-folder"/></svg>Source folder</button>
+          <button class="p-ghost p-ico-t" data-on><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-save"/></svg>Save</button>
+        </div>
+        <span style="flex:1"></span>
+        <button class="p-ghost p-ico-t p-ico-o"><svg class="p-g" style="width:18px;height:18px" aria-hidden="true"><use href="#i-dark-mode"/></svg></button>
+        <button class="p-btn-q"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-undo"/></svg>Undo</button>
+        <button class="p-btn-q" disabled><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-redo"/></svg>Redo</button>
+        <button class="p-prev"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-preview"/></svg>Preview</button>
+      </header>
+    </div>
+    <div class="facts">
+      <div><span>bar</span><span>55px, pad 0 16, gap 14</span></div>
+      <div><span>ground</span><span>--ps-app</span></div>
+      <div><span>edge</span><span>1px --ps-hair, bottom</span></div>
+      <div><span>every control</span><span>36px</span></div>
+      <div><span>icon</span><span>15px em / 10.6px ink</span></div>
+    </div>
+    <p class="why">ONE HEIGHT FOR THE WHOLE BAR. Before the supplied Header frame landed it
+      ran four in one row — 29 for <code>.p-btn-q</code>, 31 for <code>.p-prev</code>, 35
+      for the segmented track and 36 for everything else — which is what made it read as
+      assembled rather than designed. <code>.p-sm</code> still means 29 and still belongs
+      inside a rail group; nothing here takes it. The icon is matched to the label's cap
+      height rather than to its em, which is why a 36px bar does not read as crowded.</p>
+    <p class="why">This specimen carries NO inline overrides, deliberately. The bar was
+      declared in this library with no specimen at all, and the first attempt at one reused
+      <code>.p-top</code> as a stripped wrapper for the segmented pair — height, padding,
+      ground and edge all overridden inline. An inline override on a specimen is the tell
+      that the class does not work as declared, and the guide-versus-studio diff duly
+      reported six differences on a class that was fine.</p>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Segmented pair <code>.p-seg</code> — the studio switcher</p>
+    <div class="facts">
+      <div><span>track</span><span>36px, pad 3, gap 2</span></div>
+      <div><span>surface</span><span>--ps-card</span></div>
+      <div><span>button</span><span>30px, 7px 14px</span></div>
+      <div><span>type</span><span>14px / 600 / +.16px</span></div>
+      <div><span>on</span><span>--ps-primary + 1px --ps-link</span></div>
+    </div>
+    <p class="why">Two halves of ONE control, so ON is a fill and never a ring — and in
+      the top bar the fill takes the PRIMARY register, because "which app am I in" is the
+      loudest question on that row. 3px of gutter rather than 2 is what puts the button at
+      30 in a 36 track; at 2px it was 31 in 35 and read as a fill with a leak. The track
+      carries no edge of its own in dark, where <code>--ps-card</code> is a full step of
+      surface — and keeps one in light, where <code>--ps-card</code> IS the bar.</p>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Button group <code>.p-tgrp</code> — the top bar's delivery trio</p>
+    <div class="demo">
+      <div class="p-tgrp">
+        <button class="p-ghost p-ico-t"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-projects"/></svg>Projects</button>
+        <button class="p-ghost p-ico-t"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-folder"/></svg>Source folder</button>
+        <button class="p-ghost p-ico-t"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-save"/></svg>Save</button>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>height</span><span>36px</span></div>
+      <div><span>edge</span><span>1px --ps-hair</span></div>
+      <div><span>corner</span><span>--ps-pill</span></div>
+      <div><span>cell</span><span>0 18px, gap 6</span></div>
+      <div><span>rule</span><span>1px --ps-hair</span></div>
+    </div>
+    <p class="why">Three separate pills for one job were the widest run of chrome in the
+      bar. The cells give up their own fill, so the group's hairline is the only boundary
+      and the hover is the only fill — the surfaces-not-strokes rule reached from the
+      other side. A cell keeps <code>.p-ghost</code>'s type, ink, icon gap and row; only
+      the surface and the corner come off.</p>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Quiet <code>.p-btn-q</code> · Link <code>.p-link</code> · Badge <code>.p-badge</code></p>
+    <div class="demo">
+      <button class="p-btn-q"><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-undo"/></svg>Undo</button>
+      <button class="p-btn-q" disabled><svg class="p-g" style="width:15px;height:15px" aria-hidden="true"><use href="#i-redo"/></svg>Redo</button>
+      <button class="p-link">Edit layout separately</button>
+      <button class="p-badge" data-on>Master</button>
+      <button class="p-badge">Variant 2</button>
+    </div>
+    <div class="facts">
+      <div><span>quiet</span><span>29px · 7/13 · 400</span></div>
+      <div><span>disabled</span><span>opacity .4</span></div>
+      <div><span>link</span><span>24px · 5/11 · 11px</span></div>
+      <div><span>badge</span><span>7px 14px · 500</span></div>
+      <div><span>badge on</span><span>ink fill, app ink</span></div>
+    </div>
+  </div>
+  <p class="why"><b>Badges are Title case.</b> The all-caps sweep swept
+  <code>text-transform</code>, which cannot reach a string that is <i>literally</i> uppercase
+  in a render value — <code>'MASTER'</code> was the survivor. The .14em tracking went with
+  it: tracking is a tracked-caps device and reads as gappy on mixed case.</p>
+
+  <div class="spec">
+    <p class="nm">Compact <code>.p-sm</code> — a control inside a rail group</p>
+    <div class="demo">
+      <button class="p-ghost p-sm">Centre it</button>
+      <button class="p-ghost p-sm" data-on>Visible — local campaigns</button>
+      <button class="p-btn p-sm">Apply</button>
+    </div>
+    <div class="facts">
+      <div><span>height</span><span>29px</span></div>
+      <div><span>padding</span><span>7px 14px</span></div>
+      <div><span>sets</span><span>height + padding only</span></div>
+      <div><span>inherits</span><span>weight, colour, state</span></div>
+    </div>
+  </div>
+  <p class="why"><b>Two heights, and the rule for which goes where.</b> 35px is a top-bar or
+  panel action — it has room and should read as the primary weight of its region. 29px
+  belongs to a control <i>inside</i> a rail group, where four extra pixels a row lengthens
+  three rails you already scroll. <code>.p-sm</code> sets height and padding only, so a
+  compact button is visibly the same button rather than a different one.</p>
+
+  <div class="spec">
+    <p class="nm">Destructive <code>.p-danger</code></p>
+    <div class="demo">
+      <button class="p-danger">Delete component</button>
+      <button class="p-danger p-sm">Delete</button>
+    </div>
+    <div class="facts">
+      <div><span>ink</span><span>--ps-bad</span></div>
+      <div><span>fill</span><span>--ps-bad-q</span></div>
+      <div><span>hover</span><span>border --ps-bad</span></div>
+      <div><span>radius</span><span>999px</span></div>
+    </div>
+  </div>
+  <p class="why">Tokens, not literals: the reds differ per theme (#F0705F on dark, #D92D20 on
+  light), and the hardcoded pair this replaced read as a muddy smudge in one of them. It keeps
+  the pill — it is an obvious button, and the 6px rect it used to carry was the <b>only rogue
+  radius</b> in the studio.</p>
+
+  <div class="spec">
+    <p class="nm">Segmented <code>.p-tabs</code></p>
+    <div class="demo" style="width:240px">
+      <div class="p-tabs" style="width:100%"><button data-on>Opacity</button><button>Fade</button></div>
+    </div>
+    <div class="facts">
+      <div><span>track padding</span><span>5px</span></div>
+      <div><span>gap</span><span>5px</span></div>
+      <div><span>button padding</span><span>8px 14px</span></div>
+      <div><span>radius</span><span>999px</span></div>
+      <div><span>on</span><span>FILL, never a ring</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Two-line choice <code>.p-choice</code></p>
+    <div class="demo" style="flex-direction:column;align-items:stretch;width:260px">
+      <button class="p-choice" data-on>JPEG 2×<s>Zip · q94, smaller files</s></button>
+      <button class="p-choice">PNG 2×<s>Zip · lossless, ~6 MB a frame</s></button>
+    </div>
+    <div class="facts">
+      <div><span>radius</span><span>8px, not a pill</span></div>
+      <div><span>padding</span><span>8px 12px</span></div>
+      <div><span>on</span><span>--ps-accent-q + border</span></div>
+      <div><span>sub-line on</span><span>--ps-ink-2, not --ps-dim</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Icon-only <code>.p-ico-o</code> · icon cell <code>.p-ic</code></p>
+    <div class="demo">
+      <button class="p-ghost p-ico-o"><svg class="p-g" style="width:18px;height:18px" aria-hidden="true"><use href="#i-dark-mode"/></svg></button>
+      <button class="p-ghost p-ico-t"><svg class="p-g" style="width:20px;height:20px" aria-hidden="true"><use href="#i-preview"/></svg>Preview</button>
+      <button class="p-ic" style="width:38px"><svg class="p-g" style="width:19px;height:19px" aria-hidden="true"><use href="#i-star"/></svg></button>
+    </div>
+    <div class="facts">
+      <div><span>size</span><span>35 × 35</span></div>
+      <div><span>padding</span><span>0 · centred</span></div>
+      <div><span>radius</span><span>999px</span></div>
+    </div>
+  </div>
+  <p class="why">The icon-only button is the one <b>label-less</b> control in the top bar, so
+  it needs an explicit square box — it once shipped with no <code>.p-ghost</code> class at
+  all and rendered as a bare glyph between four proper buttons.</p>
+</section>
+
+<section id="fields">
+  <h2>Fields</h2>
+
+  <div class="spec">
+    <p class="nm">Text <code>.p-in</code> · with label and hint <code>.p-fld</code></p>
+    <div class="demo" style="flex-direction:column;align-items:stretch;width:300px">
+      <label class="p-fld">
+        <span class="p-lab">Marketing USP</span>
+        <input class="p-in" placeholder="Stunning Beach View Villa">
+        <span class="p-hint">Title Case, capped at 2 lines on the card</span>
+      </label>
+    </div>
+    <div class="facts">
+      <div><span>height</span><span>36px</span></div>
+      <div><span>padding</span><span>8px 10px</span></div>
+      <div><span>type</span><span>14px / 400</span></div>
+      <div><span>radius</span><span>10px</span></div>
+      <div><span>fill</span><span>--ps-fill</span></div>
+      <div><span>focus</span><span>2px --ps-focus</span></div>
+      <div><span>offset</span><span>2px, on the ground</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Select <code>select.p-in</code></p>
+    <div class="demo" style="width:300px">
+      <select class="p-in" style="width:100%"><option>Villa</option><option>Apartment</option><option>Townhouse</option></select>
+    </div>
+    <div class="facts">
+      <div><span>chevron</span><span>--ps-chev</span></div>
+      <div><span>glyph</span><span>Material 300</span></div>
+      <div><span>position</span><span>right 9px</span></div>
+      <div><span>size</span><span>18 × 18</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Stepper <code>.p-step</code> · error state <code>[data-bad]</code></p>
+    <div class="demo" style="gap:20px">
+      <div class="p-step"><button aria-label="Decrease"><svg class="p-g" style="width:16px;height:16px" aria-hidden="true"><use href="#i-chevron-left"/></svg></button><b>3</b><button aria-label="Increase"><svg class="p-g" style="width:16px;height:16px" aria-hidden="true"><use href="#i-chevron-right"/></svg></button></div>
+      <div style="width:180px">
+        <input class="p-in" data-bad value="1234" style="width:100%">
+        <div class="p-bad" style="margin-top:4px">11 digits required.</div>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>stepper</span><span>28px circles</span></div>
+      <div><span>error border</span><span>--ps-bad</span></div>
+      <div><span>error ring</span><span>2px --ps-bad-q</span></div>
+    </div>
+  </div>
+
+  <div class="warn">
+    <b>A <code>&lt;select&gt;</code> has no empty state.</b> With an unset value the browser
+    shows the <i>first</i> option, so the control reads as answered while the field is still
+    <code>''</code> — the dropdown looks broken and the preview stays blank. Commit the
+    displayed value the moment the control becomes current.
+  </div>
+  <p class="why"><b>Never use the <code>background</code> shorthand on a select.</b> The
+  chevron is a <code>background-image</code>, and the shorthand resets it to
+  <code>none</code> — so the arrow vanished the moment you hovered or focused. Use
+  <code>background-color</code>, and re-assert the image on every interactive state.</p>
+</section>
+
+<section id="tiles">
+  <h2>Option tiles</h2>
+  <p class="lede">A miniature is a <b>diagram</b>, not a picture of a canvas. Reach for one
+  when the option changes <i>where something sits</i>; when it changes a mode, use a glyph.</p>
+
+  <div class="spec">
+    <p class="nm">Layout preset <code>.p-opt</code> + <code>.p-mini</code></p>
+    <div class="demo" style="width:280px">
+      <div class="p-opts" style="width:100%">
+        <button class="p-opt" data-on>
+          <span class="p-mini">
+            <i style="left:12%;right:12%;top:62%;height:7%"></i>
+            <i style="left:12%;right:34%;top:76%;height:7%"></i>
+          </span>Bottom</button>
+        <button class="p-opt">
+          <span class="p-mini">
+            <i style="left:12%;right:12%;top:18%;height:7%"></i>
+            <i style="left:12%;right:34%;top:74%;height:7%"></i>
+          </span>Split</button>
+        <button class="p-opt">
+          <span class="p-mini">
+            <i style="left:12%;right:12%;top:18%;height:7%"></i>
+            <i style="left:12%;right:34%;top:32%;height:7%"></i>
+          </span>Top</button>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>tile height</span><span>62px fixed</span></div>
+      <div><span>tile radius</span><span>13px</span></div>
+      <div><span>selected fill</span><span>--ps-accent</span></div>
+      <div><span>selected stroke</span><span>inset 2px --ps-link</span></div>
+      <div><span>unselected</span><span>--ps-fill, no stroke</span></div>
+      <div><span>marks</span><span>--ps-skel → --ps-accent-i-q</span></div>
+      <div><span>.dim</span><span>--ps-skel-q, in both states</span></div>
+      <div><span>label gap</span><span>4px, outside</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Mode tile <code>.p-mini-i</code></p>
+    <div class="demo" style="width:190px">
+      <div class="p-opts" style="width:100%">
+        <button class="p-opt" data-on><span class="p-mini p-mini-i"><svg class="p-g" aria-hidden="true"><use href="#i-dark-mode"/></svg></span>Dark</button>
+        <button class="p-opt"><span class="p-mini p-mini-i"><svg class="p-g" aria-hidden="true"><use href="#i-light-mode"/></svg></span>Light</button>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>glyph</span><span>a &lt;b&gt;, never &lt;i&gt;</span></div>
+      <div><span>on</span><span>--ps-accent fill, glyph → --ps-accent-i</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Glyph specimen tile <code>.p-mini-g</code> · <code>.p-mini-ar</code></p>
+    <div class="demo" style="width:190px">
+      <div class="p-opts" style="width:100%">
+        <button class="p-opt" data-on><span class="p-mini p-mini-g"><b>A</b></span>English</button>
+        <button class="p-opt"><span class="p-mini p-mini-g p-mini-ar"><b>ع</b></span>Arabic</button>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>weight</span><span>400 — the specimen weight, not the 300 body</span></div>
+      <div><span>Latin</span><span>27px / 1.3 → 35.1px glyph box</span></div>
+      <div><span>Arabic</span><span>34px / 1.35 → 45.9px glyph box</span></div>
+      <div><span>why bigger</span><span>Arabic body 46 per 100px vs a Latin cap's 72.8</span></div>
+      <div><span>never</span><span>line-height 1 — it crops the Arabic tail</span></div>
+    </div>
+  </div>
+
+  <ul class="rules">
+    <li><b>The button carries nothing at all.</b> The frame, the fill and the selected outline
+    live on the tile inside it, and the label sits outside and below. Boxing a box in a box
+    was the old shape.</li>
+    <li><b>The selected tile and the three-stop slider are ONE treatment</b> —
+    <code>--ps-accent</code> fill, a 2px <code>--ps-link</code> ring, white marks. They are
+    the two controls that sit next to each other in the Layout rail and they used to
+    disagree on every axis: the tile was a quiet fill with an accent-coloured diagram, the
+    slider was an accent fill with white marks. Same question, two answers.</li>
+    <li><b>This reverses an earlier rule here</b> — &ldquo;selected is an outline, never a
+    wash&rdquo; — and the reversal is the accent change, not a change of mind. A wash in a
+    bright mid blue was a loud blob beside a plain tile. <code>--ps-accent</code> is
+    <code>#101E39</code> now: <i>darker</i> than the rail, so the filled tile reads as a
+    recessed navy chip, and filling it is what this system's own rule (an ON state is a
+    fill, not a ring) asked for all along. The ring stays because on the dark theme the
+    navy has no boundary of its own.</li>
+    <li><b>Marks inside the accent fill are white; marks on a quiet surface are skeleton
+    ink.</b> That was the slider's own rule and the tile follows it now that the tile is
+    filled — <b>14.15:1</b> on the navy, against 7.27 for the ink step.</li>
+    <li><b>The unselected tile has no stroke at all.</b> It used to carry a 1px hairline on
+    top of the fill it already has, and eleven tiles in one rail is where that shows:
+    counted in Campaign's Layout rail, <b>19 visible strokes, 7 of which said nothing</b>.
+    The fill carries the extent. This system decided long ago that a control is a quiet
+    fill rather than an outline — measured then at 27 borders down to 8 — and the option
+    tile was simply never included in that pass. The selection gets stronger for free: its
+    ring is now the only stroke in its group instead of one of three.</li>
+    <li><b>Height is fixed at 62px, never an <code>aspect-ratio</code>.</b> A square makes
+    two-up tiles taller than three-up ones and the rail loses its rhythm.</li>
+    <li><b>A glyph in a tile is a <code>&lt;b&gt;</code>.</b> <code>.p-mini i</code> is the
+    absolutely-positioned skeleton bar, and a glyph in one inherits all of it.</li>
+    <li><b>State flags are <code>'1'</code> or <code>undefined</code>, never a boolean.</b>
+    React renders <code>data-on={false}</code> as the string <code>"false"</code>, which
+    <code>[data-on]</code> matches — so every tile lights up at once.</li>
+  </ul>
+</section>
+
+<section id="palette">
+  <h2>Palette row</h2>
+  <p class="lede">A row you click to add something. Campaign's Design Components rail is
+  the only one in the system, and it is where the pattern was measured.</p>
+
+  <div class="spec">
+    <p class="nm">Palette row <code>.p-tile</code></p>
+    <div class="demo" style="flex-direction:column;align-items:stretch;width:264px;gap:2px">
+      <button class="p-tile">
+        <span class="p-tile-n"><b>Eyebrow</b><s>tracked caps</s></span>
+        <span class="p-tile-p"><span style="font-weight:500;font-size:9px;letter-spacing:.16em;color:var(--ps-ink-2)">NEW LAUNCH · BUSINESS BAY</span></span>
+        <span class="p-tile-c">2</span>
+        <span class="p-tile-a" aria-hidden="true"><svg class="p-g" viewBox="0 -960 960 960"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span>
+      </button>
+      <button class="p-tile">
+        <span class="p-tile-n"><b>Hero headline</b><s>Regular 400</s></span>
+        <span class="p-tile-p"><span style="font-weight:400;font-size:16px;color:var(--ps-ink)">Waterfront living</span></span>
+        <span class="p-tile-a" aria-hidden="true"><svg class="p-g" viewBox="0 -960 960 960"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span>
+      </button>
+    </div>
+    <div class="facts">
+      <div><span>surface</span><span>--ps-fill</span></div>
+      <div><span>padding</span><span>8px 10px</span></div>
+      <div><span>gap</span><span>6px</span></div>
+      <div><span>radius</span><span>--ps-r-ctl</span></div>
+      <div><span>name</span><span>13px / 400</span></div>
+      <div><span>role</span><span>11px / 300, truncates</span></div>
+      <div><span>specimen</span><span>no frame of its own</span></div>
+      <div><span>corner</span><span>count at rest, + on hover</span></div>
+      <div><span>added</span><span>280ms accent wash</span></div>
+    </div>
+  </div>
+
+  <ul class="rules">
+    <li><b>The specimen has no frame.</b> The row used to carry a surface, a border and a
+    radius, and the specimen inside carried <i>another</i> surface, radius and 7px 9px of
+    padding — both measured <code>rgba(255,255,255,.05)</code>, <b>the same colour</b>. The
+    inner frame bought nothing visible and cost ~14px on each of thirteen rows: about 180px
+    of scroll for no effect. Same conclusion as the option tile — stop boxing a box in a
+    box.</li>
+    <li><b>The corner carries state at rest and the action on hover.</b> The count says how
+    many are already on the canvas — the palette used to report nothing, so three clicks
+    gave you three eyebrows and no acknowledgement. On hover the count fades out and the
+    add glyph fades in. One place to look, and the swap is what says the row is live.</li>
+    <li><b>The role hint truncates; it never collides.</b> It is the least important of the
+    three things in the row — you read it once — so it is the one that gives way.</li>
+    <li><b>The add confirmation is the one authored moment</b>, and the only thing in this
+    library that runs past the 140–200ms hover envelope. A confirmation has to be
+    <i>noticed</i>, not merely felt: 280ms, ease-out, no overshoot, no loop, starting at
+    the accent and settling to the row's own surface so you see which row landed.</li>
+    <li><b>Stamp it from a delegated listener.</b> A palette re-renders on every state
+    change, so a per-row handler is re-bound on each one and a handler built in the render
+    values has no node. Delegate, stamp <code>data-added</code>, clear it on a timer — and
+    if a re-render drops the attribute mid-animation the flash simply ends early, which
+    degrades to no confirmation rather than to a stuck state.</li>
+    <li><b><code>box-sizing:border-box</code> on the children, explicitly.</b> The studios
+    do not mirror this library's own reset, so a <code>width:100%</code> child plus padding
+    overflows its row by exactly the padding — which is how the count badge kept landing on
+    the role hint however much room was reserved for it.</li>
+  </ul>
+</section>
+
+<section id="sliders">
+  <h2>Sliders</h2>
+
+  <div class="spec">
+    <p class="nm">Range <code>.p-range</code></p>
+    <div class="demo" style="width:280px">
+      <input type="range" class="p-range" min="0" max="100" value="70" style="width:100%">
+    </div>
+    <div class="facts">
+      <div><span>track</span><span>4px · 999px</span></div>
+      <div><span>track fill</span><span>--ps-line</span></div>
+      <div><span>thumb</span><span>14px circle</span></div>
+      <div><span>thumb fill</span><span>--ps-link</span></div>
+      <div><span>margin-top</span><span>-5px</span></div>
+      <div><span>stroke</span><span>none</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Three-stop <code>.p-tri</code></p>
+    <div class="demo" style="width:300px">
+      <div class="p-trirow" style="width:100%">
+        <span class="p-tri-l">Medium</span>
+        <div class="p-tri">
+          <div class="p-tri-w">
+            <i class="p-tri-k" style="left:6%"></i><i class="p-tri-k" style="left:35%"></i>
+            <i class="p-tri-k" style="left:65%"></i><i class="p-tri-k" style="left:94%"></i>
+            <div class="p-tri-f" style="width:71%">
+              <i class="p-tri-k" style="left:8.45%"></i><i class="p-tri-k" style="left:49.3%"></i>
+              <i class="p-tri-k" style="left:91.5%"></i>
+            </div>
+          </div>
+          <input type="range" class="p-tri-in" min="0" max="2" value="1">
+        </div>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>control</span><span>44px capsule</span></div>
+      <div><span>gutter</span><span>5px, all sides</span></div>
+      <div><span>inner</span><span>34px capsule</span></div>
+      <div><span>marks</span><span>3 × 11, at 6/35/65/94</span></div>
+      <div><span>name column</span><span>54px fixed</span></div>
+      <div><span>click zones</span><span>0–25 / 25–75 / 75–100</span></div>
+    </div>
+  </div>
+
+  <ul class="rules">
+    <li><b>No stroke on a thumb.</b> The 2px ring also made the box 18px while
+    <code>margin-top</code> assumed 14px, so the thumb sat 2px below the track's centre
+    line. Without it the arithmetic is exact: <code>-(14 - 4) / 2 = -5</code>.</li>
+    <li><b>An overlay input must out-specify <code>input[type=range]</code>.</b> That base
+    rule sets <code>height:18px</code>, and an attribute selector (0,1,1) beats a bare class
+    (0,1,0) — so the invisible input covered only the top 18px of a 44px control and the
+    whole lower half was dead. It read as "takes a lot of clicks just to slide it".</li>
+    <li><b>Zero the thumb.</b> A range input maps a click across the <i>thumb-centre
+    travel</i>, not the track, so a default 18px thumb leaves a strip at each end where
+    pressing changes nothing. <code>width:0</code> makes the travel the full track.</li>
+    <li><b>Marks are elements, drawn twice</b> — ink on the track, white inside the fill. One
+    colour cannot read on both #487194 and a light track. Never a
+    <code>repeating-linear-gradient</code>: the chrome carries no gradient fills.</li>
+    <li><b>The preset's name sits beside the track, not inside the fill.</b> Inside, it moved
+    with the value and crowded the first marks; the column is a fixed width so the track
+    does not resize as the name changes length.</li>
+  </ul>
+</section>
+
+<section id="drops">
+  <h2>Drop zones &amp; QR</h2>
+
+  <div class="spec">
+    <p class="nm">Drop zone <code>.p-dash</code></p>
+    <div class="demo" style="width:280px">
+      <button class="p-dash" style="width:100%;height:64px">Drop SVG / PNG</button>
+    </div>
+    <div class="facts">
+      <div><span>radius</span><span>14px, not a pill</span></div>
+      <div><span>border</span><span>1px dashed --ps-hair</span></div>
+      <div><span>surface</span><span>--ps-fill</span></div>
+      <div><span>type</span><span>12px / 500</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">QR row <code>.p-qrrow</code></p>
+    <div class="demo" style="width:320px">
+      <div class="p-qrrow" style="width:100%">
+        <div class="p-qr"><button class="p-dash" style="width:100%;aspect-ratio:1/1">QR</button></div>
+        <div class="p-qr-t">
+          <span class="p-lab">Listing number</span>
+          <input class="p-in" placeholder="11 digits">
+          <span class="p-hint">The QR carries it — it is not printed on the card</span>
+        </div>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>--ps-qr</span><span>120px</span></div>
+      <div><span>sizing</span><span>fixed width</span></div>
+      <div><span>box-sizing</span><span>border-box</span></div>
+      <div><span>gap</span><span>12px</span></div>
+      <div><span>column gap</span><span>5px</span></div>
+    </div>
+  </div>
+
+  <ul class="rules">
+    <li><b>The dash is the affordance</b>, not decoration — a drop zone is the one control
+    that keeps its outline while everything else became a fill.</li>
+    <li><b>The square is a fixed width, not <code>align-self:stretch</code> +
+    <code>aspect-ratio</code>.</b> This row's height varies with whether a number, an error
+    and a link are showing, so deriving the width from it makes the same control a different
+    size on three screens — the opposite of unifying them.</li>
+    <li><b><code>box-sizing:border-box</code>, or the error state's 2px ring plus 2px padding
+    grow the square from 120 to 128</b> and the control resizes the moment a QR is
+    missing.</li>
+    <li><b>A panel photo slot takes the aspect ratio of the canvas it feeds.</b> A fixed
+    height frames a 9:16 photo as a letterbox and so lies about the crop.</li>
+  </ul>
+</section>
+
+<section id="surfaces">
+  <h2>Surfaces</h2>
+
+  <div class="spec">
+    <p class="nm">Ground &amp; panels</p>
+    <div class="demo">
+      <div style="display:flex;border-radius:var(--ps-r);overflow:hidden;width:300px;height:96px">
+        <div style="width:96px;background:var(--ps-sb);display:flex;align-items:flex-end;padding:6px;font-size:11px;color:var(--ps-dim)">rail</div>
+        <div style="flex:1;background:var(--ps-stage);display:flex;align-items:flex-end;padding:6px;font-size:11px;color:var(--ps-dim)">stage</div>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>rail</span><span>--ps-sb</span></div>
+      <div><span>stage</span><span>--ps-stage</span></div>
+      <div><span>card</span><span>--ps-card</span></div>
+      <div><span>hover</span><span>--ps-card-h</span></div>
+      <div><span>top bar</span><span>54px · --ps-sb</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Floating dock <code>.p-dock-t</code> / <code>.p-dock-b</code></p>
+    <div class="demo" style="flex-direction:column;align-items:flex-start">
+      <div class="p-dock-b" style="width:240px">
+        <div class="p-grp" style="border-bottom:0;padding-bottom:0">
+          <label class="p-lab">Typeface <s>English</s></label>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="p-dock-t">Add Variant</button>
+        <button class="p-dock-t">All Variants</button>
+      </div>
+    </div>
+    <div class="facts">
+      <div><span>pill height</span><span>35px, 50 w/ sub-line</span></div>
+      <div><span>pill padding</span><span>10px 18px</span></div>
+      <div><span>pill shadow</span><span>0 6px 18px</span></div>
+      <div><span>panel padding</span><span>14px</span></div>
+      <div><span>panel shadow</span><span>0 18px 44px</span></div>
+      <div><span>panel gap</span><span>12px</span></div>
+    </div>
+  </div>
+  <p class="why">A floating control needs an <b>opaque</b> surface in both modes: a 12% accent
+  wash is legible on #0A0D11 and all but invisible on #E9E6E1.</p>
+
+  <div class="spec">
+    <p class="nm">Popover <code>.p-pop</code></p>
+    <div class="demo"><div class="p-pop" style="width:220px">
+      <div class="p-lab" style="margin-bottom:8px">Export</div>
+      <button class="p-btn" style="width:100%">Export PNG 2×</button>
+    </div></div>
+    <div class="facts">
+      <div><span>radius</span><span>--ps-r</span></div>
+      <div><span>border</span><span>1px --ps-line</span></div>
+      <div><span>shadow</span><span>--ps-shadow</span></div>
+      <div><span>enter</span><span>160ms · 3px rise</span></div>
+    </div>
+  </div>
+
+  <ul class="rules">
+    <li><b>A <code>position:absolute</code> menu inside a scrolling panel gets clipped.</b>
+    An export dropdown opening upward inside an <code>overflow-y:auto</code> panel put its
+    first row out of reach entirely. Inside a scrolling panel, expand in flow.</li>
+    <li><b>A popover must be told to close.</b> Close on <code>blur</code>,
+    <code>visibilitychange</code>, Escape and an outside <code>pointerdown</code> — one
+    survived a window switch and sat over the editor.</li>
+    <li><b>Never put a transition on a fixed sheet that re-renders every frame.</b> A rAF tick
+    restarts the transition before it finishes; it then sits permanently in
+    <code>playState: 'running'</code>, and a running transition <i>holds its interpolated
+    value, beating every normal declaration</i>. The one-line check is
+    <code>el.getAnimations().filter(a =&gt; a.playState === 'running')</code>.</li>
+  </ul>
+</section>
+
+<section id="feedback">
+  <h2>Feedback</h2>
+
+  <div class="spec">
+    <p class="nm">Chips, info disc, notes</p>
+    <div class="demo">
+      <span class="p-tag">Neutral</span>
+      <span class="p-tag" data-tone="good">Ready</span>
+      <span class="p-tag" data-tone="bad">Blocked</span>
+      <span class="p-tag" data-tone="info">43% copy</span>
+      <span class="p-lab">Scrim <span class="p-info">i</span></span>
+    </div>
+    <div class="facts">
+      <div><span>tag</span><span>5px 10px · 11px</span></div>
+      <div><span>info</span><span>15px tinted disc</span></div>
+      <div><span>info ink</span><span>--ps-ink-2</span></div>
+      <div><span>ring count</span><span>0 — a disc, not a ring</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <p class="nm">Note <code>.p-note</code></p>
+    <div class="demo" style="width:340px">
+      <div class="p-note">Photos are stored at export-grade resolution, so a 2160px export
+      stays sharp.</div>
+    </div>
+    <div class="facts">
+      <div><span>surface</span><span>--ps-tint-1</span></div>
+      <div><span>ink</span><span>--ps-tint-ink</span></div>
+      <div><span>type</span><span>12px / 300 / 1.5</span></div>
+    </div>
+  </div>
+
+  <p class="why"><b>Help prose lives in tooltips</b>, not inline. Anything explanatory is
+  passed as <code>data-tip</code> on the label's info icon rather than set as a paragraph —
+  ten rings per rail was real noise, which is also why the icon is a filled disc.</p>
+  <p class="why"><b>Quietness expressed as opacity does not survive the theme flip.</b> White
+  at 38% on near-black is legible; <code>#5A6675</code> at 38% on white is not — locked-layer
+  chips measured 1.36:1. Where the opacity only means "this is quiet", set
+  <code>opacity:1</code> and move the quietness into the token, which already carries it in
+  both modes. Where opacity encodes <i>state</i>, leave it alone.</p>
+</section>
+
+<section id="rules">
+  <h2>Rules that bite</h2>
+  <p class="lede">Each of these cost a real debugging round. They are the reason the system
+  looks the way it does.</p>
+  <ul class="rules">
+    <li><b>Inline style objects beat any stylesheet rule.</b> A themed control written in JS
+    must say <code>background: 'var(--ps-fill)'</code>, never a literal — a CSS rule can
+    never win. This is why ~500 literals in JS style objects had to be converted by hand,
+    and why a change to this file is pushed into the studios rather than inherited.</li>
+    <li><b>A missing style key renders the browser's default white box.</b> When a control's
+    look is supplied by an interpolated style object rather than a class, an omitted property
+    is invisible in the source and looks like a theming failure in the browser. Default the
+    key at the factory so a new row cannot reintroduce it.</li>
+    <li><b>Declaring a rule last is not enough when an earlier rule is more specific.</b> A
+    two-class selector at 0,2,0 outranks a bare class in a later block.</li>
+    <li><b>An empty <code>data-</code> attribute still matches its selector.</b>
+    <code>[data-icon-tint]</code> matched <code>data-icon-tint=""</code>, so the tint layer
+    painted white when tinting was off — a guaranteed preview/export mismatch.</li>
+    <li><b><code>:empty</code> does not match an interpolated span.</b> Template
+    interpolation leaves a whitespace text node, so a <code>:empty::before</code> placeholder
+    never appears. Use a real value or an explicit flag.</li>
+    <li><b>Never write an interpolated URL into <code>src</code>.</b> The literal placeholder
+    text is fetched as a path on every load, twice over — the preload scanner reads it
+    straight out of the file, and the framework mounts the markup once more before
+    interpolating. Use <code>data-src</code> and promote it after mount, skipping any value
+    that still contains braces.</li>
+    <li><b>Never write <code>viewBox</code> inside a CSS string in a <code>.dc.html</code>.</b>
+    Design Cursor camel-cases attribute names, including inside a CSS data URI, so the SVG
+    silently has no viewBox: it decodes fine, reports a size, and paints nothing.</li>
+    <li><b>A <code>svg</code> type selector out-specifies a size class.</b>
+    <code>.wrap svg{width:100%}</code> is 0,1,1 and <code>.mark{width:6.9cqw}</code> is
+    0,1,0 — every mark rendered at the full size of its container.</li>
+    <li><b>The rAF tick does not fire while the browser pane is not compositing.</b> Anything
+    driven by it reads as dead. Screenshot before diagnosing the code.</li>
+    <li><b>Reload into a theme rather than toggling into it</b> when measuring.
+    <code>getComputedStyle</code> can return a mixed pre/post-flip picture that looks exactly
+    like a theming bug.</li>
+    <li><b>An audit that composites opacity is the only one that finds invisible text.</b>
+    Comparing computed <code>color</code> against the nearest opaque ancestor background
+    misses everything above it — the ink is often correct and the inherited alpha is what
+    kills it. Walk the chain multiplying <code>opacity</code>, composite, then measure.</li>
+  </ul>
+</section>
+
+<section id="change">
+  <h2>Changing the system</h2>
+  <p class="lede">This file is the place to decide; the studios are updated to match in the
+  same pass.</p>
+
+  <table>
+    <thead><tr><th>What you say</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>"Make the accent warmer"</td><td><code>--ps-accent</code>, <code>-h</code>, <code>-h2</code> and the quiet wash
+      steps change here and in both studios' token blocks. Every selection, focus ring,
+      slider and active state follows from the one token.</td></tr>
+      <tr><td>"Buttons should be less round"</td><td>The pill sweep is the radius on
+      <code>.p-ghost / .p-btn / .p-prev / .p-badge / .p-tabs</code> plus the
+      <code>borderRadius</code> written inline by the studios' button factories — a
+      stylesheet alone cannot reach those.</td></tr>
+      <tr><td>"Is it all applied?"</td><td>Don't trust a spot check. Load this page in a
+      hidden same-origin iframe, copy its specimen sections' <code>innerHTML</code> into a
+      container <b>inside <code>.p-shell</code></b>, and diff computed values
+      element-for-element. Identical markup, two stylesheets, one document. Mounted outside
+      the shell, every ancestor-scoped rule is skipped and half the controls report the
+      browser default. Compare design properties only, never width/height.</td></tr>
+      <tr><td>"I keep seeing different buttons"</td><td>Enumerate every
+      <code>&lt;button&gt;</code>, group them by computed
+      height + padding + size + weight + radius, and check each group maps to a role on this
+      page. Campaign measured <b>15 shapes for what the guide defines as 10 roles</b>; the
+      fix was mostly the JS style objects, not CSS. Do not eyeball it — the values that
+      disagree are 2–4px apart.</td></tr>
+      <tr><td>"Tighten the rails"</td><td><code>--ps-secpad</code> and the group padding.
+      Because the divider's negative margin is derived from that token, the seams stay
+      edge to edge automatically.</td></tr>
+      <tr><td>"Add a control I don't have"</td><td>It is designed here first, with its
+      specimen and its numbers, then implemented in whichever studio needs it.</td></tr>
+      <tr><td>"Start a new webapp on this"</td><td>Link <code>provident-ui.css</code>, set
+      <code>data-theme</code>, and use the classes on this page. Nothing else is
+      required.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What is deliberately not here</h3>
+  <p class="why">The <b>canvas / brand output</b> system — the type scale, the two palettes,
+  canvas margins, the layout guard rails. That is a different system with a different
+  authority: it is a binding brand specification for artwork, it must not follow the
+  chrome's theme, and it already has its own sheet inside the app. Merging the two is what
+  leaked the UI's blue into eight places in finished posts.</p>
+
+  <h3>Files</h3>
+  <table>
+    <tbody>
+      <tr><td><code>provident-ui.css</code></td><td>The library. Tokens, both themes, and
+      every component class on this page.</td></tr>
+      <tr><td><code>provident-ui.tokens.json</code></td><td>The same tokens, machine
+      readable, with the rules attached.</td></tr>
+      <tr><td><code>index.html</code></td><td>This page. It links the stylesheet, so it is
+      a live test of the library rather than a description of it.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+</div>
+
+<script>
+// ── swatches: render each token with the value RESOLVING LIVE in this theme, so
+//    the page proves the tokens work rather than restating the source.
+// WCAG relative luminance. The bar on this page is 4.5:1 for text and 3:1 for a
+// non-text indicator — NOT the 2.4:1 this project used to audit against, which is
+// precisely why --ps-dim shipped failing AA in one of two supported themes.
+function _rgb(c){
+  c = String(c).trim();
+  // A custom property comes back as its RAW declared value, so hex is the common case
+  // here, not rgb(). Scraping digits out of `#8A939F` matches the digits INSIDE the hex
+  // and yields NaN — which is exactly what this printed before the check was measured.
+  var h = c.match(/^#([0-9a-f]{3,8})$/i);
+  if (h) {
+    var x = h[1];
+    if (x.length === 3 || x.length === 4) x = x.split('').map(function(d){ return d + d; }).join('');
+    return { r:parseInt(x.slice(0,2),16), g:parseInt(x.slice(2,4),16), b:parseInt(x.slice(4,6),16),
+             a: x.length === 8 ? parseInt(x.slice(6,8),16)/255 : 1 };
+  }
+  var m = c.match(/[\d.]+/g); if (!m || m.length < 3) return null;
+  return { r:+m[0], g:+m[1], b:+m[2], a: m.length > 3 ? +m[3] : 1 };
+}
+function _lum(c){
+  function f(v){ v /= 255; return v <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); }
+  return .2126*f(c.r) + .7152*f(c.g) + .0722*f(c.b);
+}
+function contrastRatio(fg, bg){
+  var a = _rgb(fg), b = _rgb(bg); if (!a || !b) return null;
+  // composite a translucent ink onto the ground first, or the number is fiction
+  if (a.a < 1) a = { r:a.r*a.a + b.r*(1-a.a), g:a.g*a.a + b.g*(1-a.a), b:a.b*a.a + b.b*(1-a.a) };
+  var l1 = _lum(a), l2 = _lum(b);
+  return (Math.max(l1,l2) + .05) / (Math.min(l1,l2) + .05);
+}
+// ── ROLES. The badge used to measure ONE relationship for every token — the token as ink
+//    on --ps-app — and most of these tokens are not ink on the page ground. That produced
+//    a page confidently printing the wrong number in five of eight cases:
+//
+//      --ps-brand  printed "2.49:1 FAILS AA" as ink on the ground, which it never is; it
+//                  is a FILL, and the real failure — white on that orange, 2.76 — was
+//                  printed nowhere.
+//      --ps-accent printed a reassuring 4.66 as ink, while shipping as a fill and as a
+//                  non-text indicator (2.79 on a tile fill in dark).
+//      --ps-good / --ps-bad printed ink-on-ground and passed, while their actual role is
+//                  ink on their OWN tint, where they measure 4.47 and 3.77.
+//      --ps-focus  was in the badge's regex and in no swatch list at all, so the one token
+//                  whose entire justification is a measured number never printed one.
+//
+//    So a token declares its role in data-toks (`--ps-brand|fill`) and the badge measures
+//    the pairing that role actually ships, at that role's bar. The rest carry no badge,
+//    because a surface has no ink of its own to state.
+var ROLES = {
+  // the token IS the ink, read on the page ground
+  ink:  { bar:4.5, pair:'on --ps-app',  fg:function(t){return t;},        bg:function(){return ['--ps-app'];} },
+  // the token is a FILL, so the number is the system's declared ink ON it
+  // THE FALLBACK IS --ps-primary-i, NOT --ps-accent-i. --ps-accent-i is the ink for the
+  // resting TINT and is the navy itself in light, so using it as the generic fill ink made
+  // every navy solid print 1.00:1 — the page crying wolf about its own primary. A token
+  // with its own -i (--ps-accent) still wins; everything else carries white.
+  fill: { bar:4.5, pair:'ink on it',    fg:function(t,has){return has(t+'-i') ? t+'-i' : '--ps-primary-i';},
+                                        bg:function(t){return ['--ps-app', t];} },
+  // a non-text indicator: WCAG 1.4.11 is 3:1, not 4.5
+  ring: { bar:3,   pair:'as a ring',    fg:function(t){return t;},        bg:function(){return ['--ps-app'];} },
+  // a diagram mark, measured where it lives: the option tile's fill inside a rail card
+  mark: { bar:3,   pair:'as a mark',    fg:function(t){return t;},        bg:function(){return ['--ps-app','--ps-card','--ps-fill'];} },
+  // A dim modifier is quieter than its sibling BY CONSTRUCTION, and on a dark ground
+  // "quieter" can only mean "closer to the ground" — so 3:1 is not the bar for it and a
+  // fail badge here would be the page crying wolf, which is what this pass just removed
+  // from --ps-brand. The number still prints; only the verdict is withheld.
+  // A LOGOTYPE HAS NO CONTRAST REQUIREMENT. --ps-brand's only reader is the wordmark's
+  // period; it measures 2.76:1 and is exempt under the same clause the studios record.
+  // The number still prints — only the verdict is withheld.
+  logo: { bar:0,   pair:'logotype · exempt', fg:function(t){return t;},
+                                        bg:function(){return ['--ps-app'];} },
+  quiet:{ bar:0,   pair:'dim modifier · decorative', fg:function(t){return t;},
+                                        bg:function(){return ['--ps-app','--ps-card','--ps-fill'];} }
+};
+function badgeFor(token, role, cs){
+  var T = function(n){ return cs.getPropertyValue(n).trim(); };
+  var has = function(n){ return !!T(n); };
+  var spec, fgTok, stack, pair;
+  if (role && role.indexOf('on:') === 0){      // ink on a named tint
+    spec = { bar:4.5 }; fgTok = token; stack = ['--ps-app', role.slice(3)];
+    pair = 'ink on ' + role.slice(3);
+  } else {
+    spec = ROLES[role]; if (!spec) return '';
+    fgTok = spec.fg(token, has); stack = spec.bg(token); pair = spec.pair;
+  }
+  // composite the whole ground stack, then the ink, or the number is fiction
+  var g = {r:255,g:255,b:255,a:1};
+  for (var k = 0; k < stack.length; k++){ var c = _rgb(T(stack[k])); if (c && c.a > 0) g = _over(c, g); }
+  var f = _rgb(T(fgTok)); if (!f) return '';
+  var r = _cr(_over(f, g), g);
+  var bar = spec.bar;
+  var tone, label;
+  if (bar === 0){ tone = 'na'; label = 'exempt'; }
+  else { tone = r >= bar ? 'aa' : (bar === 4.5 && r >= 3 ? 'aa-lg' : 'fail');
+         label = r >= bar ? 'AA' : (bar === 4.5 && r >= 3 ? 'large only' : 'FAILS'); }
+  return ' <em class="ratio" data-tone="' + tone + '" title="' + fgTok + ' on '
+       + stack.join(' + ') + ', bar ' + bar + ':1">' + r.toFixed(2) + ':1 ' + label + '</em>'
+       + '<s class="pair">' + pair + '</s>';
+}
+function _over(f, b){
+  if (f.a >= 1) return f;
+  return { r:f.r*f.a + b.r*(1-f.a), g:f.g*f.a + b.g*(1-f.a), b:f.b*f.a + b.b*(1-f.a), a:1 };
+}
+function _cr(a, b){ var l1 = _lum(a), l2 = _lum(b); return (Math.max(l1,l2) + .05) / (Math.min(l1,l2) + .05); }
+function paintSwatches(){
+  var cs = getComputedStyle(document.documentElement);
+  document.querySelectorAll('.sw[data-toks]').forEach(function(box){
+    box.innerHTML = box.dataset.toks.split(',').map(function(entry){
+      var bits = entry.trim().split('|'), t = bits[0], role = bits[1] || '';
+      var v = cs.getPropertyValue(t).trim();
+      var chk = 'background-image:linear-gradient(45deg,var(--ps-card) 25%,transparent 25%,transparent 75%,var(--ps-card) 75%),linear-gradient(45deg,var(--ps-card) 25%,transparent 25%,transparent 75%,var(--ps-card) 75%);background-size:10px 10px;background-position:0 0,5px 5px;';
+      var alpha = /rgba|,\s*\.\d/.test(v);
+      // The full token name ships. It used to be stripped to `dim`, so searching this
+      // page for `--ps-dim` returned ZERO hits — on the token reference page — and the
+      // fallback (`fill`, `accent`, `ink`) collided with 12-22 prose instances each.
+      // The prefix is de-emphasised with a span, never deleted.
+      var nm = '<b><span class="pfx">--ps-</span>' + t.replace('--ps-','') + '</b>';
+      return '<div><i style="' + (alpha ? chk : '') + 'background-color:' + v + '"></i>'
+           + '<u>' + nm + '<s>' + v + badgeFor(t, role, cs) + '</s></u></div>';
+    }).join('');
+  });
+}
+
+// ── the radius scale labels itself FROM the tokens it draws with, so the section is a live
+//    test of the scale rather than a picture of it. It used to hardcode both.
+function paintRadius(){
+  var cs = getComputedStyle(document.documentElement);
+  document.querySelectorAll('.scale figure b[data-r]').forEach(function(b){
+    b.textContent = cs.getPropertyValue(b.dataset.r).trim();
+  });
+}
+paintSwatches();
+paintRadius();
+
+// ── theme toggle. The library scopes light to :root[data-theme="light"], so this
+//    is the whole mechanism — the same one the studios use.
+// `name` at global scope in a classic script assigns to window.name — a Window
+// accessor that coerces its value to a string — so `name.textContent = ...` was a
+// silent no-op and this label read "Dark" in light mode permanently. Renamed.
+var btn = document.getElementById('themeBtn'), themeLabel = document.getElementById('themeName');
+var themeIcon = document.getElementById('themeIcon');
+// The glyph shows the mode the button switches TO, which is what the studios' own sun/moon
+// pair does; the label beside it states the mode you are in. Both are drawn icons now — a
+// unicode half-circle is a different family on every platform.
+function syncTheme(isLight){
+  themeLabel.textContent = isLight ? 'Light' : 'Dark';
+  btn.setAttribute('aria-pressed', isLight ? 'true' : 'false');
+  btn.title = isLight ? 'Switch to dark' : 'Switch to light';
+  themeIcon.setAttribute('href', isLight ? '#i-dark-mode' : '#i-light-mode');
+}
+function setTheme(t){
+  if (t === 'light') document.documentElement.setAttribute('data-theme','light');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('provident-theme', t); } catch(e){}
+  syncTheme(t === 'light');
+  paintSwatches();
+  paintRadius();
+}
+// the head script already applied it before paint; just sync the chrome
+syncTheme(document.documentElement.getAttribute('data-theme') === 'light');
+btn.addEventListener('click', function(){
+  setTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+});
+
+// ── WHERE YOU ARE. Fourteen sections down a 14,890px document behind a sticky nav that
+//    had no current state, so the sidebar listed what exists and never what you were
+//    reading. The last section whose top has passed the sticky header wins; rAF-throttled,
+//    so a scroll costs one read rather than one per event.
+(function(){
+  var links = [].slice.call(document.querySelectorAll('.nav a[href^="#"]'));
+  var secs = links.map(function(a){ return document.getElementById(a.hash.slice(1)); });
+  var HEADER = 70, queued = false, current = null;
+  function mark(){
+    queued = false;
+    var y = window.scrollY + HEADER + 1, hit = 0;
+    for (var k = 0; k < secs.length; k++){ if (secs[k] && secs[k].offsetTop <= y) hit = k; }
+    // at the very bottom the last section wins even if it is shorter than the viewport
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) hit = secs.length - 1;
+    if (hit === current) return;
+    if (current !== null) links[current].removeAttribute('aria-current');
+    links[hit].setAttribute('aria-current', 'true');
+    current = hit;
+  }
+  addEventListener('scroll', function(){ if (!queued){ queued = true; requestAnimationFrame(mark); } }, {passive:true});
+  addEventListener('resize', mark, {passive:true});
+  mark();
+})();
+</script>
+</body>
+</html>

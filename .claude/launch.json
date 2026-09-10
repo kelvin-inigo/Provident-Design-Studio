@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "studio",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["/private/tmp/claude-501/-Users-rizi-Documents-Provident-Design-Studio/d4a3f64e-effb-4710-9988-b9b0efb02f32/scratchpad/serve.py"],
+      "port": 8777
+    }
+  ]
+}

@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,200..900&display=swap">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/colors.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/typography.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/styles.css">
+<script src="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>body{margin:0;background:#E9E4DB}a{color:#2F4960}a:hover{color:#1A2942}
+input,textarea,button{font-family:inherit}
+input[type=range]{accent-color:#1A2942;width:100%}
+.canvasbg>image-slot:not([data-filled]){pointer-events:none}
+.qrbox image-slot{pointer-events:none}
+.qrbox image-slot::part(empty){display:none}
+.qrbox image-slot::part(ring){display:none}
+.modwrap{position:relative}
+.modwrap .modhandle{opacity:0;transition:opacity .12s}
+.modwrap:hover .modhandle{opacity:1}
+.tip{cursor:help}</style>
+</helmet>
+<div style="font-family:var(--font-sans);color:#1A2942;display:flex;height:100vh;overflow:hidden">
+
+<sc-if value="{{ onSplash }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;background:#1A2942;z-index:60;display:flex;align-items:center;justify-content:center">
+  <div style="width:540px;display:flex;flex-direction:column;gap:18px;color:#fff">
+    <div style="font-weight:300;font-size:38px;letter-spacing:.04em">provident.</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="font-weight:100;font-size:34px">Campaign Ad Studio</div>
+      <div style="font-weight:300;font-size:14px;color:#ECE7DF">1:1 + 9:16 Meta ads on the 2026 brand system.</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onClick="{{ newProject }}" style="flex:1;background:#C9A96A;color:#1A2942;border:none;border-radius:999px;padding:12px 18px;font-weight:500;font-size:14px;cursor:pointer">+ New project</button>
+      <button onClick="{{ continueSession }}" style="flex:1;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(236,231,223,.4);border-radius:999px;padding:12px 18px;font-weight:500;font-size:14px;cursor:pointer">Continue last session</button>
+    </div>
+    <div style="font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#C9A96A;margin-top:8px">Recent projects</div>
+    <sc-for list="{{ recentsView }}" as="r" hint-placeholder-count="0">
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border:1px solid rgba(236,231,223,.25);border-radius:12px;padding:12px 16px">
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-weight:400;font-size:15px">{{ r.name }}</span><span style="font-weight:300;font-size:12px;color:#ECE7DF;opacity:.7">{{ r.meta }}</span></div>
+        <button onClick="{{ r.load }}" style="background:#fff;color:#1A2942;border:none;border-radius:999px;padding:7px 16px;font-weight:500;font-size:13px;cursor:pointer">Load</button>
+      </div>
+    </sc-for>
+    <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}"><div style="font-weight:300;font-size:13px;color:#ECE7DF;opacity:.6">No recent projects yet — the current session is stored here when you start or load another project.</div></sc-if>
+  </div>
+</div>
+</sc-if>
+
+<aside style="width:260px;flex:none;background:#fff;border-right:1px solid #D4CFC4;padding:18px;display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div style="font-weight:300;font-size:21px;letter-spacing:.04em;flex:1">provident<span style="color:#F3793C">.</span></div>
+    <button onClick="{{ openSplash }}" style="background:#C9A96A;color:#1A2942;border:none;border-radius:999px;padding:7px 14px;font-weight:500;font-size:12px;cursor:pointer;flex:none">⌂ Projects</button>
+  </div>
+  <div style="display:flex;gap:7px">
+    <button onClick="{{ undo }}" style="{{ undoStyle }}">↺ Undo</button>
+    <button onClick="{{ redo }}" style="{{ redoStyle }}">↻ Redo</button>
+  </div>
+  <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="5">
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:7px"><span style="font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">{{ cat.name }}</span><span style="font-weight:300;font-size:11px;color:#6B7280">{{ cat.hint }}</span></div>
+      <sc-for list="{{ cat.items }}" as="p" hint-placeholder-count="2">
+        <button onClick="{{ p.add }}" style="display:flex;flex-direction:column;gap:5px;text-align:left;background:#FAF8F4;border:1px solid #ECE7DF;border-radius:10px;padding:8px 10px;cursor:pointer" style-hover="border-color:#B0905C">
+          <span style="display:flex;justify-content:space-between;width:100%;align-items:baseline"><span style="font-weight:400;font-size:13px">{{ p.label }}</span><span style="font-weight:300;font-size:11px;color:#6B7280">{{ p.desc }}</span></span>
+          <span style="display:flex;align-items:center;background:#1A2942;border-radius:6px;padding:7px 9px;width:100%;box-sizing:border-box;min-height:18px"><span style="{{ p.sampleStyle }}">{{ p.sampleText }}</span></span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-for>
+</aside>
+
+<main onClick="{{ clearSel }}" style="flex:1;display:flex;gap:36px;align-items:flex-start;overflow:auto;padding:28px;background:#1E1E1E">
+  <sc-for list="{{ variantViews }}" as="v" hint-placeholder-count="0">
+    <div style="display:flex;flex-direction:column;gap:10px;flex:none">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="{{ v.badgeStyle }}">{{ v.badge }}</span>
+        <button onClick="{{ v.activate }}" style="{{ v.activateStyle }}">{{ v.activateLabel }}</button>
+        <button onClick="{{ v.remove }}" style="{{ v.removeStyle }}">Remove</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-weight:300;font-size:12px;color:#9BA3AE">9:16 {{ v.storyState }}</span>
+        <button onClick="{{ v.toggleStory }}" style="{{ v.storyBtnStyle }}">{{ v.storyBtnLabel }}</button>
+      </div>
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.sq.cwPx }}" style="{{ v.sq.canvasStyle }}">
+        <div class="canvasbg" style="position:absolute;inset:0"><image-slot id="{{ v.bgId }}" shape="rect" placeholder="Upload background in the right panel" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></div>
+        <div style="{{ v.sq.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.guideStyle }}"></div></sc-if>
+        <div style="{{ v.sq.frameStyle }}">
+          <div style="{{ v.sq.logoStyle }}">provident.</div>
+          <div style="{{ v.sq.stackStyle }}">
+            <sc-for list="{{ v.sq.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.pre }}<em style="{{ m.serifStyle }}">{{ m.serif }}</em>{{ m.post }}</div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="{{ v.sq.fgStyle }}"></div></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+      </div>
+      <span style="font-weight:300;font-size:12px;color:#9BA3AE">1080 × 1080</span>
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.st.cwPx }}" style="{{ v.st.canvasStyle }}">
+        <div class="canvasbg" style="position:absolute;inset:0"><image-slot id="{{ v.bgId }}" shape="rect" placeholder="Shares the 1:1 background" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></div>
+        <div style="{{ v.st.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.st.guideStyle }}"></div></sc-if>
+        <div style="{{ v.st.frameStyle }}">
+          <div style="{{ v.st.logoStyle }}">provident.</div>
+          <div style="{{ v.st.stackStyle }}">
+            <sc-for list="{{ v.st.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.pre }}<em style="{{ m.serifStyle }}">{{ m.serif }}</em>{{ m.post }}</div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="{{ v.st.fgStyle }}"></div></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.st.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+      </div>
+      <span style="font-weight:300;font-size:12px;color:#9BA3AE">1080 × 1920 · story</span>
+    </div>
+  </sc-for>
+</main>
+
+<aside style="width:320px;flex:none;background:#fff;border-left:1px solid #D4CFC4;display:flex;flex-direction:column;overflow-y:auto">
+  <div style="padding:18px;display:flex;flex-direction:column;gap:12px;background:#FAF8F4;border-bottom:4px solid #1A2942">
+    <div style="font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">This module</div>
+    <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:400;font-size:14px">{{ selTypeLabel }}</span><span style="font-weight:300;font-size:11px;color:#6B7280">{{ selContext }}</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-weight:300;font-size:12px;color:#6B7280">Style variant — per design variant</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <sc-for list="{{ selVarOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onClick="{{ selToTop }}" style="{{ selTopStyle }}">Top</button>
+          <button onClick="{{ selToBottom }}" style="{{ selBottomStyle }}">Bottom</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onClick="{{ selUp }}" style="{{ smallBtnStyle }}">↑</button>
+          <button onClick="{{ selDown }}" style="{{ smallBtnStyle }}">↓</button>
+          <button onClick="{{ selDelete }}" style="{{ dangerBtnStyle }}">Delete</button>
+        </div>
+        <button onClick="{{ selHideToggle }}" style="{{ selHideStyle }}">{{ selHideLabel }}</button>
+        <sc-if value="{{ selHasText }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:4px;font-weight:300;font-size:12px;color:#6B7280">Text — linked across all variants
+            <input value="{{ selText }}" onChange="{{ onSelText }}" style="border:1px solid #D4CFC4;border-radius:8px;padding:8px 10px;font-size:14px;color:#1A2942;background:#fff">
+          </label>
+        </sc-if>
+        <sc-if value="{{ selIsHero }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:4px;font-weight:300;font-size:12px;color:#6B7280">Serif word (gold, whole word)
+            <input value="{{ selSerif }}" onChange="{{ onSelSerif }}" style="border:1px solid #D4CFC4;border-radius:8px;padding:8px 10px;font-size:14px;color:#1A2942;background:#fff">
+          </label>
+        </sc-if>
+        <sc-if value="{{ selIsTags }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:4px;font-weight:300;font-size:12px;color:#6B7280">Chips (comma-separated) — linked
+            <textarea value="{{ selChips }}" onChange="{{ onSelChips }}" rows="2" style="border:1px solid #D4CFC4;border-radius:8px;padding:8px 10px;font-size:14px;color:#1A2942;background:#fff;resize:vertical"></textarea>
+          </label>
+        </sc-if>
+        <sc-if value="{{ selIsSpec }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:4px;font-weight:300;font-size:12px;color:#6B7280">Columns — label | value per line — linked
+            <textarea value="{{ selCols }}" onChange="{{ onSelCols }}" rows="3" style="border:1px solid #D4CFC4;border-radius:8px;padding:8px 10px;font-size:14px;color:#1A2942;background:#fff;resize:vertical"></textarea>
+          </label>
+        </sc-if>
+        <sc-if value="{{ selIsPrice }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;flex-direction:column;gap:4px;font-weight:300;font-size:12px;color:#6B7280">Small label — linked
+            <input value="{{ selSub }}" onChange="{{ onSelSub }}" style="border:1px solid #D4CFC4;border-radius:8px;padding:8px 10px;font-size:14px;color:#1A2942;background:#fff">
+          </label>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noSel }}" hint-placeholder-val="{{ true }}">
+      <div style="font-weight:300;font-size:13px;color:#6B7280;line-height:1.5">Click a module on any canvas to edit it here. Text is linked across variants; style variants and position are per design variant.</div>
+    </sc-if>
+  </div>
+
+  <div style="padding:18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #ECE7DF">
+    <div style="font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">This variant · {{ activeName }}</div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <span style="font-weight:400;font-size:13px">Layout preset</span>
+      <div style="display:flex;gap:7px">
+        <button onClick="{{ layoutBottom }}" style="{{ smallBtnStyle }}">Bottom</button>
+        <button onClick="{{ layoutSplit }}" style="{{ smallBtnStyle }}">Split</button>
+        <button onClick="{{ layoutTop }}" style="{{ smallBtnStyle }}">Top</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <span style="font-weight:400;font-size:13px">Alignment</span>
+      <div style="display:flex;gap:7px">
+        <button onClick="{{ alignLeft }}" style="{{ alignLeftStyle }}">Left</button>
+        <button onClick="{{ alignCenter }}" style="{{ alignCenterStyle }}">Center</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font-weight:400;font-size:13px">Scrim height <span style="font-weight:300;color:#6B7280">{{ scrimH }}%</span></span>
+      <input type="range" min="25" max="75" step="5" value="{{ scrimH }}" onChange="{{ onScrimH }}">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <span style="font-weight:400;font-size:13px">Vertical spacing</span>
+      <div style="display:flex;gap:7px">
+        <button onClick="{{ gapTight }}" style="{{ gapTightStyle }}">Tight</button>
+        <button onClick="{{ gapNormal }}" style="{{ gapNormalStyle }}">Normal</button>
+        <button onClick="{{ gapRoomy }}" style="{{ gapRoomyStyle }}">Roomy</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <span style="font-weight:400;font-size:13px">Logo <span style="font-weight:300;color:#6B7280">(never right)</span></span>
+      <div style="display:flex;gap:7px">
+        <button onClick="{{ logoLeft }}" style="{{ logoLeftStyle }}">Left</button>
+        <button onClick="{{ logoCenter }}" style="{{ logoCenterStyle }}">Center</button>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button onClick="{{ logoTop }}" style="{{ logoTopStyle }}">Top</button>
+        <button onClick="{{ logoBottom }}" style="{{ logoBottomStyle }}">Bottom</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font-weight:400;font-size:13px;display:flex;align-items:center;gap:6px">Background image <span class="tip" data-tip="To reframe: hover the photo on the canvas → Edit (or double-click), then drag to move and scroll to zoom. Drag-and-drop keeps the full resolution for export." style="{{ infoStyle }}">i</span></span>
+      <image-slot id="{{ activeBgId }}" shape="rounded" radius="10" placeholder="Drop photo here" style="width:100%;height:88px"></image-slot>
+      <span style="font-weight:300;font-size:11px;color:#6B7280;line-height:1.5">{{ bgStatus }}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font-weight:400;font-size:13px;display:flex;align-items:center;gap:6px">Overlap image <span class="tip" data-tip="Drop a cutout PNG — it sits above the text and automatically matches the background photo's position and zoom (reframe the background and the cutout follows). Pair with the Jumbo hero for the parallax look." style="{{ infoStyle }}">i</span></span>
+      <button onClick="{{ fgToggle }}" style="{{ fgToggleStyle }}">{{ fgToggleLabel }}</button>
+      <sc-if value="{{ fgOn }}" hint-placeholder-val="{{ false }}">
+        <image-slot id="{{ activeFgId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop cutout PNG" style="width:100%;height:88px"></image-slot>
+      </sc-if>
+
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font-weight:400;font-size:13px;display:flex;align-items:center;gap:6px">Hidden in this variant <span class="tip" data-tip="Hidden modules collapse and their neighbours move up. Hide or show a module per variant from the module panel; re-show it here." style="{{ infoStyle }}">i</span></span>
+      <sc-for list="{{ hiddenList }}" as="hm" hint-placeholder-count="0">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:300;font-size:12px;color:#6B7280;flex:1">{{ hm.name }}</span><button onClick="{{ hm.show }}" style="{{ smallBtnStyle }}">Show</button></div>
+      </sc-for>
+      <sc-if value="{{ noHidden }}" hint-placeholder-val="{{ true }}"><span style="font-weight:300;font-size:11px;color:#6B7280">Nothing hidden.</span></sc-if>
+    </div>
+  </div>
+
+  <div style="padding:18px;display:flex;flex-direction:column;gap:12px;background:#1A2942;color:#fff;flex:1">
+    <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#C9A96A">Campaign-wide</span><span class="tip tip-dark" data-tip="Exports produce one zip: Name_Variant_Size.png (or .svg) for every variant in both sizes. Session files include the design and its images." style="{{ infoStyleDark }}">i</span></div>
+    <button onClick="{{ addVariant }}" style="{{ addVariantStyle }}">{{ addVariantLabel }}</button>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font-weight:400;font-size:13px">QR code <span style="font-weight:300;color:#ECE7DF;opacity:.7">locked — same on every variant</span></span>
+      <div style="display:flex;gap:10px;align-items:center">
+        <image-slot id="adstudio-qr" shape="rounded" radius="10" placeholder="QR" style="width:58px;height:58px;flex:none"></image-slot>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+          <button onClick="{{ qrToggle }}" style="{{ qrToggleStyle }}">{{ qrToggleLabel }}</button>
+          <div style="display:flex;gap:6px">
+            <button onClick="{{ qrLeft }}" style="{{ qrLeftStyle }}">Left</button>
+            <button onClick="{{ qrRight }}" style="{{ qrRightStyle }}">Right</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="height:1px;background:rgba(236,231,223,.25)"></div>
+    <label style="display:flex;flex-direction:column;gap:4px;font-weight:300;font-size:12px;color:#ECE7DF">Campaign name
+      <input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="e.g. International Buyers Q3" style="border:1px solid rgba(236,231,223,.35);border-radius:8px;padding:8px 10px;font-size:14px;color:#1A2942;background:#fff">
+    </label>
+    <div style="display:flex;gap:7px">
+      <button onClick="{{ exportPng }}" style="{{ exportBtnStyle }}">Export PNG 2×</button>
+      <button onClick="{{ exportSvg }}" style="{{ exportBtnStyle }}">Export SVG</button>
+    </div>
+    <div style="font-weight:300;font-size:12px;color:#ECE7DF;opacity:.8">{{ exportStatus }}</div>
+    <div style="height:1px;background:rgba(236,231,223,.25)"></div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <button onClick="{{ saveSession }}" style="{{ exportBtnStyle }}">Save session</button>
+      <label style="{{ exportBtnStyle }}">Load session<input type="file" accept="application/json" onChange="{{ onLoadSession }}" style="display:none"></label>
+    </div>
+
+  </div>
+</aside>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1560,&quot;height&quot;:950},&quot;showGuides&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;},&quot;displayWidth&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:460,&quot;min&quot;:380,&quot;max&quot;:640,&quot;step&quot;:20,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Canvas&quot;}}">
+class Component extends DCLogic {
+  state = Component.load();
+  static defaults() {
+    return {
+      campaign: '', sel: null, activeVi: 0, exportStatus: '', screen: 'splash',
+      qr: { show: true, corner: 'right' },
+      modules: [
+        { id: 'm1', type: 'eyebrow', text: 'New launch · Business Bay' },
+        { id: 'm2', type: 'hero', text: 'Waterfront living, measured returns', serif: 'measured' },
+        { id: 'm3', type: 'hook', text: '1–3 BR residences from AED 1.9M' },
+        { id: 'm4', type: 'tags', chips: ['0% property tax', '10% rental yield', '10-year Golden Visa'] },
+        { id: 'm5', type: 'cta', text: 'Register your interest' }
+      ],
+      variants: [Component.newVariant('Master')]
+    };
+  }
+  static newVariant(name) { return { name, clusters: {}, mvar: {}, align: 'left', gapScale: 1.5, scrimH: 45, logoAlign: 'left', story: null }; }
+  static load() {
+    const d = Component.defaults();
+    let resume = false;
+    try { resume = localStorage.getItem('adstudio-resume') === '1'; if (resume) localStorage.removeItem('adstudio-resume'); } catch (e) {}
+    try {
+      const raw = localStorage.getItem('provident-ad-studio-v2');
+      if (raw) { const p = JSON.parse(raw); if (p && p.variants && p.modules) return Object.assign(d, p, { exportStatus: '', sel: null, screen: resume ? 'editor' : 'splash' }); }
+      const old = localStorage.getItem('provident-ad-studio');
+      if (old) {
+        const p = JSON.parse(old);
+        if (p && p.base) {
+          d.modules = p.base.map(m => { const c = Object.assign({}, m); delete c.cluster; return c; });
+          const v = Component.newVariant('Master');
+          p.base.forEach(m => { v.clusters[m.id] = m.cluster || 'bottom'; });
+          v.align = p.align || 'left'; v.gapScale = p.gapScale || 1.5; v.scrimH = p.scrimH || 45; v.logoAlign = p.logoAlign || 'left';
+          d.variants = [v];
+          if (p.qr) d.qr = p.qr;
+        }
+      }
+    } catch (e) {}
+    return d;
+  }
+  static strip(o) { const c = Object.assign({}, o); delete c.sel; delete c.screen; delete c.exportStatus; delete c.activeVi; return JSON.stringify(c); }
+  upd(fn) {
+    this.setState(prev => {
+      const n = fn(JSON.parse(JSON.stringify(prev)));
+      try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
+      if (Component.strip(prev) !== Component.strip(n)) {
+        this._undoStack = (this._undoStack || []).concat([JSON.parse(JSON.stringify(prev))]).slice(-5);
+        this._redoStack = [];
+      }
+      return n;
+    });
+  }
+  restore(st) {
+    const n = Object.assign({}, st, { screen: 'editor' });
+    try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
+    this.setState(n);
+  }
+  undo() {
+    const u = this._undoStack || [];
+    if (!u.length) return;
+    this._redoStack = (this._redoStack || []).concat([JSON.parse(JSON.stringify(this.state))]).slice(-5);
+    this.restore(u.pop());
+  }
+  redo() {
+    const r = this._redoStack || [];
+    if (!r.length) return;
+    this._undoStack = (this._undoStack || []).concat([JSON.parse(JSON.stringify(this.state))]).slice(-5);
+    this.restore(r.pop());
+  }
+
+  componentDidMount() {
+    try {
+      ['100 85px', '300 35px', '500 24px'].forEach(f => document.fonts.load(f + ' "Google Sans Flex"').catch(() => {}));
+      document.fonts.load('300 85px "Source Serif 4"').catch(() => {});
+    } catch (e) {}
+    // instant fixed-position tooltips for .tip icons (top layer, never clipped)
+    this._tipHide = () => { if (this._tipEl) { this._tipEl.remove(); this._tipEl = null; } };
+    this._tipOver = e => {
+      const t = e.target && e.target.closest && e.target.closest('.tip');
+      if (!t || (this._tipEl && this._tipEl._for === t)) return;
+      this._tipHide();
+      const d = document.createElement('div');
+      d.textContent = t.getAttribute('data-tip') || '';
+      d.style.cssText = 'position:fixed;z-index:9999;width:250px;background:#1A2942;color:#ECE7DF;font:300 11px/1.5 "Google Sans Flex",sans-serif;padding:9px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none;border:1px solid rgba(201,169,106,.4)';
+      const r = t.getBoundingClientRect();
+      d.style.left = Math.max(8, Math.min(window.innerWidth - 266, r.left - 125)) + 'px';
+      d.style.top = (r.bottom + 6) + 'px';
+      d._for = t;
+      document.body.appendChild(d);
+      this._tipEl = d;
+    };
+    this._tipOut = e => { if (this._tipEl && e.target.closest && e.target.closest('.tip') === this._tipEl._for) this._tipHide(); };
+    document.addEventListener('mouseover', this._tipOver, true);
+    document.addEventListener('mouseout', this._tipOut, true);
+    this._assetView = { crops: {}, fg: {} };
+    this._refreshAV = () => {
+      fetch('.image-slots.state.json').then(r => r.ok ? r.json() : {}).catch(() => ({})).then(sc => {
+        sc = sc || {};
+        const norm = v => !v ? null : (typeof v === 'string' ? { u: v, s: 1, x: 0, y: 0 } : v);
+        for (let i = 0; i < 3; i++) {
+          const b = norm(sc['adstudio-bg-' + i]);
+          this._assetView.crops[i] = b ? { s: b.s || 1, x: b.x || 0, y: b.y || 0 } : { s: 1, x: 0, y: 0 };
+          const f = norm(sc['adstudio-fg-' + i]);
+          if (f && f.u) {
+            const cur = this._assetView.fg[i];
+            if (!cur || cur.u !== f.u) {
+              const im = new Image();
+              im.onload = () => { this._assetView.fg[i] = { u: f.u, w: im.naturalWidth, h: im.naturalHeight }; this.forceUpdate(); };
+              im.src = f.u;
+            }
+          } else delete this._assetView.fg[i];
+        }
+        this.forceUpdate();
+      });
+    };
+    this._refreshAV();
+    this._reframeEnd = e => { if (e.detail && e.detail.active === false) setTimeout(this._refreshAV, 250); };
+    document.addEventListener('image-slot:reframe', this._reframeEnd, true);
+    this._dropRefresh = () => setTimeout(this._refreshAV, 600);
+    document.addEventListener('drop', this._dropRefresh, true);
+    // live-follow: every frame, pin each overlap layer to its background slot's rendered image box
+    const tick = () => {
+      try {
+        document.querySelectorAll('[data-fgv]').forEach(layer => {
+          const vi = layer.getAttribute('data-fgv');
+          const canvas = layer.parentElement;
+          const slot = canvas && canvas.querySelector('image-slot[id="adstudio-bg-' + vi + '"]');
+          const inner = layer.firstElementChild;
+          if (!inner) return;
+          if (slot && slot.hasAttribute('data-filled') && slot.shadowRoot) {
+            const img = slot.shadowRoot.querySelector('.frame img');
+            if (img && img.style.width) {
+              inner.style.left = img.style.left; inner.style.top = img.style.top;
+              inner.style.width = img.style.width; inner.style.height = img.style.height;
+            }
+          }
+        });
+      } catch (e) {}
+      this._rafId = requestAnimationFrame(tick);
+    };
+    this._rafId = requestAnimationFrame(tick);
+  }
+  componentWillUnmount() {
+    if (this._reframeEnd) document.removeEventListener('image-slot:reframe', this._reframeEnd, true);
+    if (this._dropRefresh) document.removeEventListener('drop', this._dropRefresh, true);
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    if (this._tipOver) { document.removeEventListener('mouseover', this._tipOver, true); document.removeEventListener('mouseout', this._tipOut, true); this._tipHide(); }
+  }
+
+  // ---------- export engine ----------
+  static PXT = {
+    sq: { W: 1080, H: 1080, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86 },
+    st: { W: 1080, H: 1920, pad: [174, 100, 360, 100], gapS: 30, hero: 103, headline: 71, hook: 41, body: 28, eyebrow: 28, logo: 50, ctaF: 35, ctaPV: 20, qr: 104 }
+  };
+  static DIVV = { line: [1, 1], line2: [2, 1], line4: [4, 1], soft: [1, .4], soft2: [2, .4] };
+  mctx() { if (!this._m) this._m = document.createElement('canvas').getContext('2d'); return this._m; }
+  meas(text, px, weight, serif, ls) {
+    const m = this.mctx();
+    m.font = `${weight} ${px}px "${serif ? 'Source Serif 4' : 'Google Sans Flex'}"`;
+    let w = m.measureText(text).width;
+    if (ls) w += ls * Math.max(0, text.length - 1);
+    return w;
+  }
+  wrapRuns(runs, maxW) {
+    const words = [];
+    runs.forEach(r => (r.text || '').split(/\s+/).forEach(t => { if (t) words.push({ t, r }); }));
+    const lines = []; let line = [], w = 0;
+    const sp = r => this.meas(' ', r.px, r.weight, r.serif, 0);
+    words.forEach(word => {
+      const ww = this.meas(word.t, word.r.px, word.r.weight, word.r.serif, 0);
+      const add = line.length ? sp(word.r) + ww : ww;
+      if (line.length && w + add > maxW) { lines.push({ parts: line, width: w }); line = [word]; w = ww; }
+      else { line.push(word); w += add; }
+    });
+    if (line.length) lines.push({ parts: line, width: w });
+    return lines;
+  }
+  buildOps(state, vi, sizeKey, assets) {
+    const tk = Component.PXT[sizeKey], W = tk.W, H = tk.H;
+    const v = state.variants[vi];
+    const eff = (sizeKey === 'st' && v.story) ? v.story : v;
+    const clusterOf = id => eff.clusters[id] || 'bottom';
+    const [pT, pR, pB, pL] = tk.pad;
+    const innerW = W - pL - pR;
+    const center = v.align === 'center';
+    const gap = tk.gapS * v.gapScale;
+    const ops = [];
+    ops.push({ op: 'rect', x: 0, y: 0, w: W, h: H, fill: '#66707c' });
+    const bg = assets['bg' + vi];
+    if (bg && bg.img) {
+      const iw = bg.img.naturalWidth, ih = bg.img.naturalHeight;
+      const base = Math.max(W / iw, H / ih), k = base * (bg.s || 1);
+      const dw = iw * k, dh = ih * k;
+      const mx = Math.max(0, (dw / W - 1) * 50), my = Math.max(0, (dh / H - 1) * 50);
+      const bx = Math.max(-mx, Math.min(mx, bg.x || 0)), by = Math.max(-my, Math.min(my, bg.y || 0));
+      const cx = (50 + bx) / 100 * W, cy = (50 + by) / 100 * H;
+      ops.push({ op: 'image', img: bg.img, url: bg.u, x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh, clip: { x: 0, y: 0, w: W, h: H } });
+    }
+    const hid = v.hidden || {};
+    const list = state.modules.filter(m => !hid[m.id]);
+    const wgt = c => list.filter(m => clusterOf(m.id) === c && m.type !== 'divider' && m.type !== 'spacer').reduce((a, m) => a + (m.type === 'hero' ? 3 : 1), 0);
+    const wT = wgt('top'), wB = wgt('bottom');
+    const N = a => `rgba(26,41,66,${a})`;
+    const sh = v.scrimH, shE = Math.min(sh + 30, 100);
+    let stops, dir;
+    if (wT === 0 && wB === 0) { stops = [[0, N(.15)], [1, N(.15)]]; dir = 'down'; }
+    else if (wB >= wT && wT === 0) { stops = [[0, N(.05)], [1 - sh / 100, N(.45)], [1, N(.95)]]; dir = 'down'; }
+    else if (wT > wB && wB === 0) { stops = [[0, N(.95)], [sh / 100, N(.45)], [Math.min(1, shE / 100), N(.05)], [1, N(.05)]]; dir = 'down'; }
+    else { const e = sh * .8 / 100; stops = [[0, N(.85)], [e, N(.15)], [1 - e, N(.15)], [1, N(.85)]]; dir = 'down'; }
+    if (stops.length === 3) stops.unshift([Math.max(0, 1 - shE / 100), N(.05)]);
+    ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops });
+    // logo — 80px clear space around it
+    const CLEAR = 80;
+    const logoLS = tk.logo * .04;
+    const logoW = this.meas('provident.', tk.logo, 300, false, logoLS);
+    const logoX = v.logoAlign === 'center' ? (W - logoW) / 2 : pL;
+    const logoBottom = v.logoPos === 'bottom';
+    ops.push({ op: 'text', x: logoX, y: logoBottom ? H - pB - tk.logo * .35 : pT + tk.logo * .8, px: tk.logo, weight: 300, fill: '#fff', text: 'provident.', ls: logoLS });
+    // modules
+    const modH = m => {
+      const mv = v.mvar[m.id];
+      if (m.type === 'divider') return (Component.DIVV[mv] || [1, 1])[0];
+      if (m.type === 'spacer') return m.h || 60;
+      if (m.type === 'eyebrow') return tk.eyebrow * 1.2 + (mv === 'frame' ? tk.eyebrow * 1.3 : 0);
+      if (m.type === 'hero') {
+        const hpx = mv === 'jumbo' ? tk.hero * 1.55 : tk.hero;
+        return this.heroLines(m, v, tk, innerW).length * hpx * 1.08;
+      }
+      if (m.type === 'hook') return (mv === 'glass' ? tk.hook * 2.4 : tk.hook * 1.25);
+      if (m.type === 'body') return tk.body * 1.4;
+      if (m.type === 'tags') return this.chipRows(m, tk, innerW).length * (tk.eyebrow + 22 + 12) - 12;
+      if (m.type === 'spec') return v.mvar[m.id] === 'ladder' ? (m.cols || []).length * (30 + tk.eyebrow * .8 * 1.3 + 5 + tk.hook * 1.3) : tk.eyebrow * 1.2 + 8 + tk.hook * 1.2;
+      if (m.type === 'price') return (mv === 'glass' ? tk.eyebrow * 1.2 + tk.headline * 1.15 + 44 : tk.eyebrow * 1.2 + 8 + tk.headline * 1.15);
+      if (m.type === 'cta') return tk.ctaF + 2 * tk.ctaPV;
+      return tk.body;
+    };
+    const drawMod = (m, y) => {
+      const mv = v.mvar[m.id];
+      const cxAnchor = center ? W / 2 : pL;
+      const T = (text, px, weight, fill, yy, o) => {
+        o = o || {};
+        const ls = o.ls || 0;
+        const tw = this.meas(o.upper ? text.toUpperCase() : text, px, weight, o.serif, ls);
+        const x = center ? (W - tw) / 2 : pL + (o.dx || 0);
+        ops.push({ op: 'text', x, y: yy, px, weight, fill, text: o.upper ? text.toUpperCase() : text, ls, serif: o.serif });
+        return tw;
+      };
+      if (m.type === 'eyebrow') {
+        const ls = tk.eyebrow * .16;
+        if (mv === 'frame') {
+          const tw = this.meas((m.text || '').toUpperCase(), tk.eyebrow, 500, false, ls);
+          const bw = tw + tk.eyebrow * 2.6, bh = tk.eyebrow * 2.4;
+          const bx = center ? (W - bw) / 2 : pL;
+          ops.push({ op: 'rrect', x: bx, y, w: bw, h: bh, r: 0, stroke: 'rgba(236,231,223,.55)', sw: 2 });
+          ops.push({ op: 'text', x: bx + tk.eyebrow * 1.3, y: y + bh / 2 + tk.eyebrow * .38, px: tk.eyebrow, weight: 500, fill: '#fff', text: (m.text || '').toUpperCase(), ls });
+        } else if (mv === 'rule') {
+          const tw = this.meas((m.text || '').toUpperCase(), tk.eyebrow, 500, false, ls);
+          const ruleW = 76;
+          const total = tw + 2 * (ruleW + 24);
+          const x0 = center ? (W - total) / 2 : pL;
+          const midY = y + tk.eyebrow * .6;
+          ops.push({ op: 'rect', x: x0, y: midY, w: ruleW, h: 2, fill: '#C9A96A' });
+          ops.push({ op: 'text', x: x0 + ruleW + 24, y: y + tk.eyebrow, px: tk.eyebrow, weight: 500, fill: '#D4CFC4', text: (m.text || '').toUpperCase(), ls });
+          ops.push({ op: 'rect', x: x0 + ruleW + 48 + tw, y: midY, w: ruleW, h: 2, fill: '#C9A96A' });
+        } else {
+          T(m.text || '', tk.eyebrow, 500, '#D4CFC4', y + tk.eyebrow, { ls, upper: true });
+        }
+      } else if (m.type === 'hero') {
+        const hpx = mv === 'jumbo' ? tk.hero * 1.55 : tk.hero;
+        const lines = this.heroLines(m, v, tk, innerW);
+        lines.forEach((ln, i) => {
+          const yy = y + (i + .82) * hpx * 1.08;
+          let x = center ? (W - ln.width) / 2 : pL;
+          ln.parts.forEach((word, j) => {
+            const r = word.r;
+            const wW = this.meas(word.t, r.px, r.weight, r.serif, 0);
+            ops.push({ op: 'text', x, y: yy, px: r.px, weight: r.weight, fill: r.fill, text: word.t, serif: r.serif });
+            x += wW + this.meas(' ', r.px, r.weight, r.serif, 0);
+          });
+        });
+      } else if (m.type === 'hook' || m.type === 'body') {
+        const px = m.type === 'hook' ? tk.hook : tk.body;
+        if (m.type === 'hook' && mv === 'glass') {
+          const tw = this.meas(m.text || '', px, 300, false, 0);
+          const bw = tw + px * 2.2, bh = px * 2.3;
+          const bx = center ? (W - bw) / 2 : pL;
+          ops.push({ op: 'rrect', x: bx, y, w: bw, h: bh, r: 27, fill: 'rgba(255,255,255,.10)', stroke: 'rgba(255,255,255,.22)', sw: 2 });
+          ops.push({ op: 'text', x: bx + px * 1.1, y: y + bh / 2 + px * .36, px, weight: 300, fill: '#ECE7DF', text: m.text || '' });
+        } else if (m.type === 'body' && mv === 'note') {
+          const tw = this.meas(m.text || '', px, 300, false, 0);
+          ops.push({ op: 'text', x: W - pR - tw, y: y + px, px, weight: 300, fill: '#ECE7DF', text: m.text || '' });
+        } else {
+          T(m.text || '', px, 300, '#ECE7DF', y + px);
+        }
+      } else if (m.type === 'tags') {
+        const rows = this.chipRows(m, tk, innerW);
+        const gold = mv === 'gold';
+        rows.forEach((row, ri) => {
+          const rh = tk.eyebrow + 22;
+          const totalW = row.reduce((a, c) => a + c.w, 0) + (row.length - 1) * 16;
+          let x = center ? (W - totalW) / 2 : pL;
+          const yy = y + ri * (rh + 12);
+          row.forEach(c => {
+            ops.push({ op: 'rrect', x, y: yy, w: c.w, h: rh, r: rh / 2, stroke: gold ? 'rgba(201,169,106,.6)' : 'rgba(236,231,223,.45)', sw: 2 });
+            ops.push({ op: 'text', x: x + 28, y: yy + rh / 2 + tk.eyebrow * .36, px: tk.eyebrow, weight: 300, fill: gold ? '#C9A96A' : '#ECE7DF', text: c.t });
+            x += c.w + 16;
+          });
+        });
+      } else if (m.type === 'spec') {
+        const cols = m.cols || [];
+        const ls = tk.eyebrow * .8 * .16;
+        if (mv === 'ladder') {
+          // mirrors the canvas ladder: 15px vertical padding, label, 5px gap, value, hairline between rows, edge to edge
+          const labH = tk.eyebrow * .8 * 1.3, valH = tk.hook * 1.3, padV = 15, g2 = 5;
+          let yy = y;
+          cols.forEach((c, i) => {
+            if (i > 0) ops.push({ op: 'rect', x: pL, y: yy, w: innerW, h: 1, fill: 'rgba(236,231,223,.3)' });
+            ops.push({ op: 'text', x: pL, y: yy + padV + tk.eyebrow * .8, px: tk.eyebrow * .8, weight: 500, fill: '#D4CFC4', text: (c.l || '').toUpperCase(), ls });
+            ops.push({ op: 'text', x: pL, y: yy + padV + labH + g2 + tk.hook, px: tk.hook, weight: 300, fill: '#fff', text: c.v || '' });
+            yy += padV * 2 + labH + g2 + valH;
+          });
+        } else {
+          // full-width row: columns fill corner to corner, 0.5px verticals between
+          const n = Math.max(1, cols.length);
+          const colW = innerW / n;
+          const rowH = tk.eyebrow * .8 + 8 + tk.hook + 10;
+          cols.forEach((c, i) => {
+            const x = pL + i * colW + (i > 0 ? 28 : 0);
+            ops.push({ op: 'text', x, y: y + tk.eyebrow * .8, px: tk.eyebrow * .8, weight: 500, fill: '#D4CFC4', text: (c.l || '').toUpperCase(), ls });
+            ops.push({ op: 'text', x, y: y + tk.eyebrow * .8 + 8 + tk.hook, px: tk.hook, weight: 300, fill: '#fff', text: c.v || '' });
+            if (i > 0) ops.push({ op: 'rect', x: pL + i * colW, y: y, w: .5, h: rowH, fill: 'rgba(236,231,223,.55)' });
+          });
+        }
+      } else if (m.type === 'price') {
+        const ls = tk.eyebrow * .16;
+        if (mv === 'glass') {
+          const w1 = this.meas((m.sub || '').toUpperCase(), tk.eyebrow, 500, false, ls);
+          const w2 = this.meas(m.text || '', tk.headline, 300, false, 0);
+          const bw = Math.max(w1, w2) + 60, bh = tk.eyebrow * 1.2 + tk.headline * 1.15 + 44;
+          const bx = center ? (W - bw) / 2 : pL;
+          ops.push({ op: 'rrect', x: bx, y, w: bw, h: bh, r: 27, fill: 'rgba(255,255,255,.10)', stroke: 'rgba(255,255,255,.22)', sw: 2 });
+          ops.push({ op: 'text', x: bx + 30, y: y + 22 + tk.eyebrow, px: tk.eyebrow, weight: 500, fill: '#D4CFC4', text: (m.sub || '').toUpperCase(), ls });
+          ops.push({ op: 'text', x: bx + 30, y: y + 22 + tk.eyebrow * 1.2 + tk.headline, px: tk.headline, weight: 300, fill: '#fff', text: m.text || '' });
+        } else {
+          T(m.sub || '', tk.eyebrow, 500, '#D4CFC4', y + tk.eyebrow, { ls, upper: true });
+          T(m.text || '', tk.headline, 300, '#fff', y + tk.eyebrow * 1.2 + 8 + tk.headline);
+        }
+      } else if (m.type === 'cta') {
+        const outline = mv === 'outline';
+        const tw = this.meas(m.text || '', tk.ctaF, 500, false, 0);
+        const bw = tw + tk.ctaF * 3.2, bh = tk.ctaF + 2 * tk.ctaPV;
+        const bx = center ? (W - bw) / 2 : pL;
+        ops.push({ op: 'rrect', x: bx, y, w: bw, h: bh, r: bh / 2, fill: outline ? null : '#fff', stroke: outline ? 'rgba(255,255,255,.7)' : null, sw: 2 });
+        ops.push({ op: 'text', x: bx + tk.ctaF * 1.6, y: y + bh / 2 + tk.ctaF * .36, px: tk.ctaF, weight: 500, fill: outline ? '#fff' : '#1A2942', text: m.text || '' });
+      } else if (m.type === 'divider') {
+        const dv = Component.DIVV[mv] || [1, 1];
+        ops.push({ op: 'rect', x: pL, y, w: innerW, h: dv[0], fill: `rgba(255,255,255,${dv[1]})` });
+      }
+    };
+    const top = list.filter(m => clusterOf(m.id) === 'top');
+    const bot = list.filter(m => clusterOf(m.id) === 'bottom');
+    let y = logoBottom ? pT : pT + tk.logo * 1.2 + CLEAR;
+    top.forEach(m => { drawMod(m, y); y += modH(m) + gap; });
+    const botH = bot.reduce((a, m) => a + modH(m) + gap, -gap);
+    let y2 = (logoBottom ? H - pB - tk.logo * 1.2 - CLEAR : H - pB) - botH;
+    bot.forEach(m => { drawMod(m, y2); y2 += modH(m) + gap; });
+    // foreground / overlap cutout — above text, follows the background's crop
+    const fg = assets['fg' + vi];
+    if (v.fg && fg && fg.img) {
+      // draw the cutout into the SAME box the background occupies (matches the live-follow view)
+      const ref = (bg && bg.img) ? bg.img : fg.img;
+      const rw = ref.naturalWidth, rh = ref.naturalHeight;
+      const bgc = bg || { s: 1, x: 0, y: 0 };
+      const base = Math.max(W / rw, H / rh), k = base * (bgc.s || 1);
+      const dw = rw * k, dh = rh * k;
+      const cx = (50 + (bgc.x || 0)) / 100 * W, cy = (50 + (bgc.y || 0)) / 100 * H;
+      ops.push({ op: 'image', img: fg.img, url: fg.u, x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh, clip: { x: 0, y: 0, w: W, h: H } });
+    }
+    // QR — clean white square, no stroke; uploaded code fills the box
+    if (state.qr.show) {
+      const qs = tk.qr;
+      const qx = state.qr.corner === 'left' ? pL : W - pR - qs;
+      const qy = H - pB - qs;
+      ops.push({ op: 'rect', x: qx, y: qy, w: qs, h: qs, fill: '#fff' });
+      if (assets.qr && assets.qr.img) ops.push({ op: 'image', img: assets.qr.img, url: assets.qr.u, x: qx, y: qy, w: qs, h: qs, clip: { x: qx, y: qy, w: qs, h: qs, r: 0 } });
+    }
+    return { W, H, ops };
+  }
+  heroLines(m, v, tk, maxW) {
+    const mv = v.mvar[m.id];
+    const hpx = mv === 'jumbo' ? tk.hero * 1.55 : tk.hero;
+    const t = m.text || '', w = mv === 'sans' ? '' : (m.serif || '');
+    const i = w ? t.indexOf(w) : -1;
+    const runs = [];
+    const sans = { px: hpx, weight: 100, fill: '#fff', serif: false };
+    if (i >= 0) {
+      if (t.slice(0, i)) runs.push(Object.assign({}, sans, { text: t.slice(0, i) }));
+      runs.push({ px: hpx, weight: 300, fill: '#C9A96A', serif: true, text: w });
+      if (t.slice(i + w.length)) runs.push(Object.assign({}, sans, { text: t.slice(i + w.length) }));
+    } else runs.push(Object.assign({}, sans, { text: t }));
+    return this.wrapRuns(runs, maxW);
+  }
+  chipRows(m, tk, maxW) {
+    const rows = []; let row = [], w = 0;
+    (m.chips || []).forEach(t => {
+      const cw = this.meas(t, tk.eyebrow, 300, false, 0) + 56;
+      if (row.length && w + 16 + cw > maxW) { rows.push(row); row = []; w = 0; }
+      row.push({ t, w: cw }); w += (row.length > 1 ? 16 : 0) + cw;
+    });
+    if (row.length) rows.push(row);
+    return rows;
+  }
+  renderOpsToCanvas(built, scale) {
+    const c = document.createElement('canvas');
+    c.width = built.W * scale; c.height = built.H * scale;
+    const ctx = c.getContext('2d');
+    ctx.scale(scale, scale);
+    const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r || 0); };
+    built.ops.forEach(o => {
+      if (o.op === 'rect') { ctx.fillStyle = o.fill; ctx.fillRect(o.x, o.y, o.w, o.h); }
+      else if (o.op === 'rrect') {
+        rr(o.x, o.y, o.w, o.h, o.r);
+        if (o.fill) { ctx.fillStyle = o.fill; ctx.fill(); }
+        if (o.stroke) { ctx.strokeStyle = o.stroke; ctx.lineWidth = o.sw || 1; ctx.stroke(); }
+      } else if (o.op === 'grad') {
+        const g = ctx.createLinearGradient(0, o.y, 0, o.y + o.h);
+        o.stops.forEach(s => g.addColorStop(Math.min(1, Math.max(0, s[0])), s[1]));
+        ctx.fillStyle = g; ctx.fillRect(o.x, o.y, o.w, o.h);
+      } else if (o.op === 'image') {
+        ctx.save();
+        if (o.clip) { rr(o.clip.x, o.clip.y, o.clip.w, o.clip.h, o.clip.r || 0); ctx.clip(); }
+        ctx.drawImage(o.img, o.x, o.y, o.w, o.h);
+        ctx.restore();
+      } else if (o.op === 'text') {
+        ctx.font = `${o.weight} ${o.px}px "${o.serif ? 'Source Serif 4' : 'Google Sans Flex'}"`;
+        try { ctx.letterSpacing = (o.ls || 0) + 'px'; } catch (e) {}
+        ctx.fillStyle = o.fill;
+        ctx.fillText(o.text, o.x, o.y);
+        try { ctx.letterSpacing = '0px'; } catch (e) {}
+      }
+    });
+    return c;
+  }
+  renderOpsToSvg(built) {
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    let defs = '', body = '', gi = 0, ci = 0;
+    built.ops.forEach(o => {
+      if (o.op === 'rect') body += `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="${o.fill}"/>`;
+      else if (o.op === 'rrect') body += `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" rx="${o.r || 0}" fill="${o.fill || 'none'}"${o.stroke ? ` stroke="${o.stroke}" stroke-width="${o.sw || 1}"` : ''}/>`;
+      else if (o.op === 'grad') {
+        gi++;
+        defs += `<linearGradient id="g${gi}" x1="0" y1="${o.y}" x2="0" y2="${o.y + o.h}" gradientUnits="userSpaceOnUse">` + o.stops.map(s => `<stop offset="${Math.min(1, Math.max(0, s[0]))}" stop-color="${s[1].startsWith('rgba') ? '#1A2942' : s[1]}" stop-opacity="${s[1].startsWith('rgba') ? s[1].match(/,([\d.]+)\)/)[1] : 1}"/>`).join('') + '</linearGradient>';
+        body += `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="url(#g${gi})"/>`;
+      } else if (o.op === 'image') {
+        ci++;
+        if (o.clip) defs += `<clipPath id="c${ci}"><rect x="${o.clip.x}" y="${o.clip.y}" width="${o.clip.w}" height="${o.clip.h}" rx="${o.clip.r || 0}"/></clipPath>`;
+        body += `<image href="${o.url}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" preserveAspectRatio="none"${o.clip ? ` clip-path="url(#c${ci})"` : ''}/>`;
+      } else if (o.op === 'text') {
+        const fam = o.serif ? 'Source Serif 4' : 'Google Sans Flex';
+        body += `<text x="${o.x}" y="${o.y}" font-family="${fam}" font-size="${o.px}" font-weight="${o.weight}" fill="${o.fill}"${o.ls ? ` letter-spacing="${o.ls}"` : ''}>${esc(o.text)}</text>`;
+      }
+    });
+    return `<svg width="${built.W}" height="${built.H}" viewBox="0 0 ${built.W} ${built.H}" xmlns="http://www.w3.org/2000/svg">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
+  }
+  static crcTable = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  crc32(buf) { let c = 0xFFFFFFFF; for (let i = 0; i < buf.length; i++) c = Component.crcTable[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  zip(files) {
+    const enc = new TextEncoder();
+    const parts = [], central = [];
+    let offset = 0;
+    files.forEach(f => {
+      const name = enc.encode(f.name), data = f.data;
+      const crc = this.crc32(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, 0, true); lh.setUint16(12, 0, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+      lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), name, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+      ch.setUint16(28, name.length, true);
+      ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    let cdSize = 0; central.forEach(p => cdSize += p.length);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: 'application/zip' });
+  }
+  download(blob, name) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  }
+  async loadAssets(state) {
+    let sidecar = {};
+    try { const r = await fetch('.image-slots.state.json'); if (r.ok) sidecar = await r.json(); } catch (e) {}
+    const norm = v => !v ? null : (typeof v === 'string' ? { u: v, s: 1, x: 0, y: 0 } : v);
+    const loadImg = u => new Promise(res => { if (!u) return res(null); const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = u; });
+    const assets = {};
+    for (let vi = 0; vi < state.variants.length; vi++) {
+      const v = norm(sidecar['adstudio-bg-' + vi]);
+      if (v && v.u) { const img = await loadImg(v.u); if (img) assets['bg' + vi] = { img, u: v.u, s: v.s, x: v.x, y: v.y }; }
+      const fgv = norm(sidecar['adstudio-fg-' + vi]);
+      if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + vi] = { img, u: fgv.u, s: fgv.s, x: fgv.x, y: fgv.y }; }
+    }
+    const q = norm(sidecar['adstudio-qr']);
+    if (q && q.u) { const img = await loadImg(q.u); if (img) assets.qr = { img, u: q.u }; }
+    return assets;
+  }
+  vLabel(vi) { return vi === 0 ? 'Master' : 'Variant ' + (vi + 1); }
+  async doExport(kind) {
+    const state = this.state;
+    const name = (state.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
+    this.setState({ exportStatus: 'Rendering…' });
+    try {
+      const safeLoad = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+      await Promise.all(['100 103px "Google Sans Flex"', '300 41px "Google Sans Flex"', '500 28px "Google Sans Flex"', '300 103px "Source Serif 4"'].map(safeLoad));
+      const assets = await this.loadAssets(state);
+      const files = [];
+      for (let vi = 0; vi < state.variants.length; vi++) {
+        for (const sizeKey of ['sq', 'st']) {
+          const built = this.buildOps(state, vi, sizeKey, assets);
+          const suffix = sizeKey === 'sq' ? '1x1' : '9x16';
+          if (kind === 'png') {
+            const c = this.renderOpsToCanvas(built, 2);
+            const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+            files.push({ name: `${name}_${this.vLabel(vi)}_${suffix}.png`, data: new Uint8Array(await blob.arrayBuffer()) });
+          } else {
+            files.push({ name: `${name}_${this.vLabel(vi)}_${suffix}.svg`, data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
+          }
+        }
+      }
+      this.download(this.zip(files), `${name}.zip`);
+      this.setState({ exportStatus: `Exported ${files.length} files → ${name}.zip` });
+    } catch (err) {
+      console.warn(err);
+      this.setState({ exportStatus: 'Export failed: ' + (err && err.message || err) });
+    }
+  }
+  async saveSessionFile() {
+    let sidecar = {};
+    try { const r = await fetch('.image-slots.state.json'); if (r.ok) sidecar = await r.json(); } catch (e) {}
+    const data = { app: 'provident-ad-studio', v: 2, state: this.state, images: sidecar };
+    const name = (this.state.campaign || 'session').replace(/[^\w\-. ]/g, '').trim() || 'session';
+    this.download(new Blob([JSON.stringify(data)], { type: 'application/json' }), name + '.adstudio.json');
+  }
+  async uploadBg(file) {
+    if (!file) return;
+    this.setState({ exportStatus: 'Processing photo…' });
+    try {
+      const bmp = await createImageBitmap(file);
+      const enc = (cap, q) => {
+        const sc = Math.min(1, cap / Math.max(bmp.width, bmp.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(bmp.width * sc)); c.height = Math.max(1, Math.round(bmp.height * sc));
+        c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+        return c.toDataURL('image/webp', q);
+      };
+      const vi = this.state.activeVi;
+      const hires = enc(2600, .88), preview = enc(1200, .85);
+      try { localStorage.setItem('adstudio-hires-' + vi, hires); } catch (e) { localStorage.removeItem('adstudio-hires-' + vi); }
+      let sidecar = {};
+      try { const r = await fetch('.image-slots.state.json'); if (r.ok) sidecar = await r.json(); } catch (e) {}
+      sidecar['adstudio-bg-' + vi] = { u: preview, s: 1, x: 0, y: 0 };
+      if (window.omelette && window.omelette.writeFile) {
+        await Promise.resolve(window.omelette.writeFile('.image-slots.state.json', JSON.stringify(sidecar)));
+        location.reload();
+      } else this.setState({ exportStatus: 'Cannot save the photo in this view.' });
+    } catch (e) { this.setState({ exportStatus: 'Could not read that image.' }); }
+  }
+  // ---------- projects / splash ----------
+  readRecents() { try { return JSON.parse(localStorage.getItem('adstudio-recents')) || []; } catch (e) { return []; } }
+  async snapshotCurrent() {
+    let sidecar = {};
+    try { const r = await fetch('.image-slots.state.json'); if (r.ok) sidecar = await r.json(); } catch (e) {}
+    const own = {};
+    Object.keys(sidecar).forEach(k => { if (/^adstudio-/.test(k)) own[k] = sidecar[k]; });
+    const st = JSON.parse(JSON.stringify(this.state));
+    st.sel = null; st.screen = 'editor'; st.exportStatus = '';
+    const entry = { name: st.campaign || 'Untitled', ts: Date.now(), state: st, images: own };
+    let rec = this.readRecents().filter(r => r.name !== entry.name);
+    rec.unshift(entry); rec = rec.slice(0, 3);
+    try { localStorage.setItem('adstudio-recents', JSON.stringify(rec)); }
+    catch (e) { try { localStorage.setItem('adstudio-recents', JSON.stringify(rec.map(r => ({ name: r.name, ts: r.ts, state: r.state })))); } catch (e2) {} }
+  }
+  clearHires() { for (let i = 0; i < 3; i++) { try { localStorage.removeItem('adstudio-hires-' + i); localStorage.removeItem('adstudio-hires-fg-' + i); } catch (e) {} } }
+  async applyProject(state, images) {
+    try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(state)); localStorage.setItem('adstudio-resume', '1'); } catch (e) {}
+    this.clearHires();
+    if (window.omelette && window.omelette.writeFile) {
+      let sidecar = {};
+      try { const r = await fetch('.image-slots.state.json'); if (r.ok) sidecar = await r.json(); } catch (e) {}
+      Object.keys(sidecar).forEach(k => { if (/^adstudio-/.test(k)) delete sidecar[k]; });
+      Object.assign(sidecar, images || {});
+      await Promise.resolve(window.omelette.writeFile('.image-slots.state.json', JSON.stringify(sidecar))).catch(() => {});
+    }
+    location.reload();
+  }
+  async newProject() {
+    await this.snapshotCurrent();
+    const d = Component.defaults();
+    d.screen = 'editor';
+    d.modules = [
+      { id: 'm1', type: 'eyebrow', text: 'New launch · Dubai' },
+      { id: 'm2', type: 'hero', text: 'Your headline here', serif: 'headline' }
+    ];
+    await this.applyProject(d, {});
+  }
+  async openRecent(i) {
+    const r = this.readRecents()[i];
+    if (!r) return;
+    await this.snapshotCurrent();
+    await this.applyProject(r.state, r.images || {});
+  }
+  loadSessionFile(file) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const d = JSON.parse(rd.result);
+        if (!d || d.app !== 'provident-ad-studio' || !d.state) { this.setState({ exportStatus: 'Not a valid session file.' }); return; }
+        localStorage.setItem('provident-ad-studio-v2', JSON.stringify(Object.assign(d.state, { exportStatus: '' })));
+        if (d.images && window.omelette && window.omelette.writeFile) {
+          Promise.resolve(window.omelette.writeFile('.image-slots.state.json', JSON.stringify(d.images))).catch(() => {}).then(() => location.reload());
+        } else location.reload();
+      } catch (e) { this.setState({ exportStatus: 'Could not read session file.' }); }
+    };
+    rd.readAsText(file);
+  }
+
+  // ---------- views ----------
+  renderVals() {
+    const s = this.state;
+    const cq = px => (px / 10.8).toFixed(2) + 'cqw';
+    const dispW = Math.round(Math.min(Math.max(this.props.displayWidth ?? 460, 380), 640));
+    const PXT = Component.PXT;
+    const list = s.modules;
+    const VOPT = {
+      eyebrow: [['plain', 'Plain'], ['rule', 'Rule-flanked'], ['frame', 'Framed']],
+      hero: [['serif', 'Serif word'], ['sans', 'All sans'], ['jumbo', 'Jumbo']],
+      hook: [['plain', 'Plain'], ['glass', 'Glass card']],
+      body: [['plain', 'Plain'], ['note', 'Corner note']],
+      tags: [['mist', 'Mist'], ['gold', 'Gold']],
+      spec: [['row', 'Row'], ['ladder', 'Ladder']],
+      price: [['plain', 'Plain'], ['glass', 'Glass bar']],
+      cta: [['pill', 'White pill'], ['outline', 'Outline']],
+      divider: [['line', '1px'], ['line2', '2px'], ['line4', '4px'], ['soft', '1px · 40%'], ['soft2', '2px · 40%']],
+      spacer: [['plain', 'Drag handle on canvas']]
+    };
+    const labels = { eyebrow: ['Eyebrow', 'tracked caps'], hero: ['Hero headline', 'Thin 100'], hook: ['Hook line', 'one-glance'], body: ['Body line', 'support'], tags: ['Tag chips', 'pills'], spec: ['Spec data', 'row / ladder'], cta: ['CTA button', 'one per ad'], price: ['Price block', 'label + figure'], divider: ['Divider', 'white line'], spacer: ['Spacer', 'draggable height'] };
+
+    const mkCanvas = (vi, sizeKey) => {
+      const v = s.variants[vi];
+      const tk = PXT[sizeKey];
+      const eff = (sizeKey === 'st' && v.story) ? v.story : v;
+      const hid = v.hidden || {};
+      const clusterOf = id => eff.clusters[id] || 'bottom';
+      const center = v.align === 'center';
+      const gap = cq(tk.gapS * v.gapScale);
+      const wgt = c => list.filter(m => clusterOf(m.id) === c && m.type !== 'divider' && m.type !== 'spacer' && !hid[m.id]).reduce((a, m) => a + (m.type === 'hero' ? 3 : 1), 0);
+      const wT = wgt('top'), wB = wgt('bottom');
+      const N = a => `rgba(26,41,66,${a})`;
+      const h = v.scrimH, hE = Math.min(h + 30, 100);
+      let scrim;
+      if (wT === 0 && wB === 0) scrim = N(.15);
+      else if (wB >= wT && wT === 0) scrim = `linear-gradient(to top, ${N(.95)}, ${N(.45)} ${h}%, ${N(.05)} ${hE}%)`;
+      else if (wT > wB && wB === 0) scrim = `linear-gradient(to bottom, ${N(.95)}, ${N(.45)} ${h}%, ${N(.05)} ${hE}%)`;
+      else { const e = Math.round(h * .8); scrim = `linear-gradient(to bottom, ${N(.85)}, ${N(.15)} ${e}%, ${N(.15)} ${100 - e}%, ${N(.85)})`; }
+      const [pT, pR, pB, pL] = tk.pad;
+      const width = sizeKey === 'sq' ? dispW : Math.round(dispW * .58);
+      const mk = m => {
+        const mv = v.mvar[m.id];
+        const seld = s.sel && s.sel.id === m.id && s.sel.vi === vi;
+        const isNote = m.type === 'body' && mv === 'note';
+        const view = {
+          isSpacer: false,
+          isEyebrow: m.type === 'eyebrow' && mv !== 'rule',
+          isEyebrowRule: m.type === 'eyebrow' && mv === 'rule',
+          isHero: m.type === 'hero',
+          isText: m.type === 'hook' || m.type === 'body',
+          isTags: m.type === 'tags',
+          isSpec: m.type === 'spec' && mv !== 'ladder',
+          isSpecLadder: m.type === 'spec' && mv === 'ladder',
+          isCta: m.type === 'cta', isPrice: m.type === 'price', isDiv: m.type === 'divider', isSpacerMod: m.type === 'spacer',
+          text: m.text || '', sub: (m.sub || '').toUpperCase(),
+          chips: (m.chips || []).map(t => ({ t })),
+          cols: (m.cols || []).map((c, i) => ({
+            l: (c.l || '').toUpperCase(), v: c.v || '',
+            rowStyle: mv === 'ladder' ? { display: 'flex', flexDirection: 'column', gap: '0.5cqw', padding: '1.4cqw 0', borderTop: i > 0 ? '1px solid rgba(236,231,223,.3)' : 'none' } : {},
+            colStyle: { display: 'flex', flexDirection: 'column', gap: '0.5cqw', flex: '1 1 0', borderLeftWidth: i > 0 ? '0.5px' : '0', borderLeftStyle: i > 0 ? 'solid' : 'none', borderLeftColor: 'rgba(236,231,223,.55)', paddingLeft: i > 0 ? '2.6cqw' : '0' }
+          })),
+          select: e => { e.stopPropagation(); this.upd(x => { x.sel = { vi, story: sizeKey === 'st', id: m.id }; x.activeVi = vi; return x; }); },
+          wrapStyle: { pointerEvents: 'auto', cursor: 'pointer', outline: seld ? '2px dashed rgba(201,169,106,.95)' : '2px dashed transparent', outlineOffset: '3px', maxWidth: '100%', alignSelf: (m.type === 'divider' || m.type === 'spec' || m.type === 'spacer') ? 'stretch' : (isNote ? 'flex-end' : undefined), padding: m.type === 'divider' ? '0.9cqw 0' : undefined },
+          handleStyle: { position: 'absolute', left: '-4.6cqw', top: '50%', transform: 'translateY(-50%)', background: '#C9A96A', color: '#1A2942', borderRadius: '0.8cqw', padding: '0.6cqw 0.9cqw', fontSize: '1.9cqw', lineHeight: 1, pointerEvents: 'none', opacity: seld ? 1 : undefined },
+          serifStyle: { fontFamily: "'Source Serif 4',serif", fontStyle: 'normal', fontWeight: 300, color: '#C9A96A' },
+          chipStyle: { border: '1px solid ' + (mv === 'gold' ? 'rgba(201,169,106,.6)' : 'rgba(236,231,223,.45)'), color: mv === 'gold' ? '#C9A96A' : '#ECE7DF', fontWeight: 300, fontSize: cq(tk.eyebrow), padding: '.9cqw 2.6cqw', borderRadius: '999px', whiteSpace: 'nowrap' },
+          labStyle: { fontWeight: 500, fontSize: cq(tk.eyebrow * .8), letterSpacing: '.16em', textTransform: 'uppercase', color: '#D4CFC4' },
+          valStyle: { fontWeight: 300, fontSize: cq(tk.hook), color: '#fff' },
+          rowStyle: {}, ruleStyle: {}, ladStyle: {}, priceBoxStyle: {}
+        };
+        if (m.type === 'eyebrow') {
+          view.tStyle = { fontWeight: 500, fontSize: cq(tk.eyebrow), letterSpacing: '.16em', textTransform: 'uppercase', color: mv === 'frame' ? '#fff' : '#D4CFC4' };
+          if (mv === 'frame') { view.tStyle.border = '1px solid rgba(236,231,223,.55)'; view.tStyle.padding = '1.3cqw 3cqw'; view.tStyle.display = 'inline-block'; }
+          if (mv === 'rule') {
+            view.rowStyle = { display: 'flex', alignItems: 'center', gap: '2.2cqw' };
+            view.ruleStyle = { width: '7cqw', height: '2px', background: '#C9A96A', flex: 'none' };
+          }
+        } else if (m.type === 'hero') {
+          view.tStyle = mv === 'jumbo'
+            ? { fontWeight: 100, fontSize: cq(tk.hero * 1.55), lineHeight: 1.02, letterSpacing: '-0.01em', color: '#fff' }
+            : { fontWeight: 100, fontSize: cq(tk.hero), lineHeight: 1.08, color: '#fff' };
+          const t = m.text || '', w = mv === 'sans' ? '' : (m.serif || '');
+          const i = w ? t.indexOf(w) : -1;
+          if (i >= 0) { view.pre = t.slice(0, i); view.serif = w; view.post = t.slice(i + w.length); }
+          else { view.pre = t; view.serif = ''; view.post = ''; }
+        } else if (m.type === 'hook') {
+          view.tStyle = { fontWeight: 300, fontSize: cq(tk.hook), color: '#ECE7DF' };
+          if (mv === 'glass') { view.tStyle.background = 'rgba(255,255,255,.10)'; view.tStyle.border = '1px solid rgba(255,255,255,.22)'; view.tStyle.backdropFilter = 'blur(14px)'; view.tStyle.borderRadius = '2.5cqw'; view.tStyle.padding = '1.6cqw 2.8cqw'; view.tStyle.display = 'inline-block'; }
+        } else if (m.type === 'body') {
+          view.tStyle = { fontWeight: 300, fontSize: cq(tk.body), color: '#ECE7DF', lineHeight: 1.45, textAlign: isNote ? 'right' : 'inherit' };
+        } else if (m.type === 'tags') {
+          view.rowStyle = { display: 'flex', gap: '1.5cqw', flexWrap: 'wrap', justifyContent: center ? 'center' : 'flex-start' };
+        } else if (m.type === 'spec') {
+          view.rowStyle = { display: 'flex', width: '100%' };
+          view.ladStyle = { display: 'flex', flexDirection: 'column', width: '100%' };
+        } else if (m.type === 'cta') {
+          const outline = mv === 'outline';
+          view.tStyle = { display: 'inline-block', background: outline ? 'transparent' : '#fff', color: outline ? '#fff' : '#1A2942', border: outline ? '1px solid rgba(255,255,255,.7)' : 'none', fontWeight: 500, fontSize: cq(tk.ctaF), padding: `${cq(tk.ctaPV)} ${cq(tk.ctaPV * 2.6)}`, borderRadius: '999px' };
+        } else if (m.type === 'price') {
+          view.valStyle = { fontWeight: 300, fontSize: cq(tk.headline), color: '#fff' };
+          view.priceBoxStyle = { display: 'flex', flexDirection: 'column', gap: '0.6cqw' };
+          if (mv === 'glass') { view.priceBoxStyle.background = 'rgba(255,255,255,.10)'; view.priceBoxStyle.border = '1px solid rgba(255,255,255,.22)'; view.priceBoxStyle.backdropFilter = 'blur(14px)'; view.priceBoxStyle.borderRadius = '2.5cqw'; view.priceBoxStyle.padding = '2cqw 2.8cqw'; }
+        } else if (m.type === 'divider') {
+          const dv = Component.DIVV[mv] || [1, 1];
+          view.tStyle = { height: dv[0] + 'px', background: '#fff', opacity: dv[1], width: '100%' };
+        } else if (m.type === 'spacer') {
+          view.tStyle = { height: cq(m.h || 60), width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: seld ? 'rgba(201,169,106,.08)' : 'transparent' };
+          view.shStyle = { pointerEvents: 'auto', cursor: 'ns-resize', background: '#C9A96A', color: '#1A2942', borderRadius: '999px', padding: '0.5cqw 1.6cqw', fontSize: '1.9cqw', fontWeight: 500, lineHeight: 1.4, opacity: seld ? 1 : .45, userSelect: 'none' };
+          view.spacerDrag = e => {
+            e.stopPropagation(); e.preventDefault();
+            const cwEl = e.target.closest('[data-cwpx]');
+            const cw = cwEl ? +cwEl.getAttribute('data-cwpx') : 460;
+            const startY = e.clientY, startH = m.h || 60, id = m.id;
+            const mvFn = ev => {
+              const nh = Math.max(8, Math.min(500, Math.round(startH + (ev.clientY - startY) * 1080 / cw)));
+              this.setState(st => { const n = JSON.parse(JSON.stringify(st)); const mm = n.modules.find(z => z.id === id); if (mm) mm.h = nh; return n; });
+            };
+            const upFn = () => {
+              document.removeEventListener('pointermove', mvFn);
+              document.removeEventListener('pointerup', upFn);
+              try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(this.state)); } catch (err) {}
+            };
+            document.addEventListener('pointermove', mvFn);
+            document.addEventListener('pointerup', upFn);
+          };
+        }
+        return view;
+      };
+      const top = list.filter(m => clusterOf(m.id) === 'top' && !hid[m.id]).map(mk);
+      const bot = list.filter(m => clusterOf(m.id) === 'bottom' && !hid[m.id]).map(mk);
+      const spacer = { isSpacer: true, isEyebrow: false, isEyebrowRule: false, isHero: false, isText: false, isTags: false, isSpec: false, isSpecLadder: false, isCta: false, isPrice: false, isDiv: false, isSpacerMod: false, chips: [], cols: [], select: () => {}, wrapStyle: { flex: 1, alignSelf: 'stretch', pointerEvents: 'none' }, handleStyle: { display: 'none' } };
+      let fgStyle = { display: 'none' };
+      const fgA = this._assetView && this._assetView.fg[vi];
+      if (fgA && fgA.w) {
+        const crop = (this._assetView.crops && this._assetView.crops[vi]) || { s: 1, x: 0, y: 0 };
+        const CW = tk.W, CH = tk.H;
+        const base = Math.max(CW / fgA.w, CH / fgA.h), k = base * (crop.s || 1);
+        fgStyle = { position: 'absolute', left: (50 + (crop.x || 0)) + '%', top: (50 + (crop.y || 0)) + '%', width: (fgA.w * k / CW * 100) + '%', height: (fgA.h * k / CH * 100) + '%', transform: 'translate(-50%,-50%)', maxWidth: 'none', backgroundImage: `url("${fgA.u}")`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' };
+      }
+      return {
+        fgStyle,
+        canvasStyle: { width: width + 'px', aspectRatio: sizeKey === 'sq' ? '1/1' : '9/16', containerType: 'inline-size', position: 'relative', overflow: 'hidden', flex: 'none', background: '#66707c', boxShadow: '0 8px 30px rgba(0,0,0,.5)', fontFamily: "'Google Sans Flex',sans-serif", lineHeight: 1.3, outline: s.activeVi === vi ? '2px solid rgba(201,169,106,.9)' : '2px solid transparent', outlineOffset: '4px' },
+        scrimStyle: { position: 'absolute', inset: 0, background: scrim, pointerEvents: 'none' },
+        guideStyle: { position: 'absolute', top: cq(pT), right: cq(pR), bottom: cq(pB), left: cq(pL), border: '1px dashed rgba(201,169,106,.75)', pointerEvents: 'none' },
+        frameStyle: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', padding: `${cq(pT)} ${cq(pR)} ${cq(pB)} ${cq(pL)}`, pointerEvents: 'none', color: '#fff' },
+        logoStyle: v.logoPos === 'bottom'
+          ? { fontWeight: 300, fontSize: cq(tk.logo), letterSpacing: '.04em', color: '#fff', alignSelf: v.logoAlign === 'center' ? 'center' : 'flex-start', marginTop: cq(80), flex: 'none', order: 2 }
+          : { fontWeight: 300, fontSize: cq(tk.logo), letterSpacing: '.04em', color: '#fff', alignSelf: v.logoAlign === 'center' ? 'center' : 'flex-start', marginBottom: cq(80), flex: 'none' },
+        stackStyle: { display: 'flex', flexDirection: 'column', gap, alignItems: center ? 'center' : 'flex-start', textAlign: center ? 'center' : 'left', flex: 1, minHeight: 0 },
+        items: [...top, spacer, ...bot],
+        cwPx: width,
+        qrStyle: { position: 'absolute', bottom: cq(pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(pR), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#fff', pointerEvents: 'none', overflow: 'hidden' }
+      };
+    };
+
+    const btn = on => ({ flex: 1, background: on ? '#1A2942' : '#FAF8F4', color: on ? '#fff' : '#1A2942', border: '1px solid ' + (on ? '#1A2942' : '#D4CFC4'), borderRadius: '999px', padding: '6px 9px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' });
+    const darkBtn = { background: 'rgba(255,255,255,.12)', color: '#fff', border: '1px solid rgba(236,231,223,.4)', borderRadius: '999px', padding: '7px 12px', fontWeight: 500, fontSize: '12px', cursor: 'pointer', textAlign: 'center' };
+
+    const variantViews = s.variants.map((v, vi) => ({
+      badge: vi === 0 ? 'MASTER' : 'VARIANT ' + (vi + 1),
+      badgeStyle: { background: vi === 0 ? '#C9A96A' : 'rgba(255,255,255,.14)', color: vi === 0 ? '#1A2942' : '#fff', fontWeight: 500, fontSize: '11px', letterSpacing: '.14em', padding: '4px 10px', borderRadius: '5px' },
+      activate: () => this.upd(x => { x.activeVi = vi; return x; }),
+      activateLabel: s.activeVi === vi ? 'Editing' : 'Edit',
+      activateStyle: { background: s.activeVi === vi ? '#fff' : 'transparent', color: s.activeVi === vi ? '#1A2942' : '#9BA3AE', border: '1px solid ' + (s.activeVi === vi ? '#fff' : 'rgba(255,255,255,.3)'), borderRadius: '999px', padding: '4px 12px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
+      remove: () => { if (vi === 0) return; this.upd(x => { x.variants.splice(vi, 1); x.activeVi = 0; x.sel = null; return x; }); },
+      removeStyle: { display: vi === 0 ? 'none' : 'block', background: 'transparent', color: '#9BA3AE', border: '1px solid rgba(255,255,255,.25)', borderRadius: '999px', padding: '4px 12px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
+      storyState: v.story ? '· detached' : '· mirrors 1:1',
+      toggleStory: () => this.upd(x => { const vv = x.variants[vi]; vv.story = vv.story ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)) }; return x; }),
+      storyBtnLabel: v.story ? 'Re-link' : 'Edit 9:16 separately',
+      storyBtnStyle: { background: 'transparent', color: '#C9A96A', border: '1px solid rgba(201,169,106,.5)', borderRadius: '999px', padding: '3px 10px', fontWeight: 500, fontSize: '11px', cursor: 'pointer' },
+      bgId: 'adstudio-bg-' + vi,
+      fgId: 'adstudio-fg-' + vi,
+      fgOn: !!v.fg && !!(this._assetView && this._assetView.fg[vi]),
+      fgVi: String(vi),
+      selectVariant: e => { e.stopPropagation(); this.upd(x => { x.activeVi = vi; x.sel = null; return x; }); },
+      sq: mkCanvas(vi, 'sq'),
+      st: mkCanvas(vi, 'st')
+    }));
+
+    const addDefaults = {
+      eyebrow: { text: 'Exclusive launch' }, hero: { text: 'Own the skyline view', serif: 'skyline' },
+      hook: { text: 'From AED 1.2M · handover 2028' }, body: { text: 'Flexible payment plans available.' },
+      tags: { chips: ['0% property tax', '10% rental yield'] },
+      spec: { cols: [{ l: 'Starting price', v: 'AED 799,000' }, { l: 'Payment plan', v: '40/60' }, { l: 'Handover', v: 'Q4 2028' }] },
+      cta: { text: 'Register your interest' }, price: { sub: 'Prices from', text: 'AED 2.6M' }, divider: {}, spacer: { h: 60 }
+    };
+    const samples = {
+      eyebrow: ['NEW LAUNCH · BUSINESS BAY', { fontWeight: 500, fontSize: '9px', letterSpacing: '.16em', color: '#D4CFC4' }],
+      hero: ['Waterfront living', { fontWeight: 100, fontSize: '16px', color: '#fff' }],
+      hook: ['From AED 1.9M', { fontWeight: 300, fontSize: '12px', color: '#ECE7DF' }],
+      body: ['Flexible payment plans.', { fontWeight: 300, fontSize: '11px', color: '#ECE7DF' }],
+      tags: ['0% property tax', { border: '1px solid rgba(236,231,223,.45)', color: '#ECE7DF', fontWeight: 300, fontSize: '10px', padding: '2px 9px', borderRadius: '999px' }],
+      spec: ['AED 799,000', { fontWeight: 300, fontSize: '13px', color: '#fff' }],
+      cta: ['Register interest', { background: '#fff', color: '#1A2942', fontWeight: 500, fontSize: '10px', padding: '3px 11px', borderRadius: '999px' }],
+      price: ['AED 2.6M', { fontWeight: 300, fontSize: '14px', color: '#fff' }],
+      divider: ['', { display: 'block', height: '1px', background: '#fff', width: '100%' }],
+      spacer: ['↕ draggable gap', { fontWeight: 300, fontSize: '10px', color: '#C9A96A', border: '1px dashed rgba(201,169,106,.5)', borderRadius: '6px', padding: '3px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }]
+    };
+    const mkAdd = type => () => this.upd(x => { const id = 'm' + Date.now() + Math.floor(Math.random() * 99); x.modules.push(Object.assign({ id, type }, JSON.parse(JSON.stringify(addDefaults[type])))); x.sel = { vi: x.activeVi, story: false, id }; return x; });
+    const item = type => ({ label: labels[type][0], desc: labels[type][1], add: mkAdd(type), sampleText: samples[type][0], sampleStyle: samples[type][1] });
+    const paletteCats = [
+      { name: '1 · Lead-in', hint: 'reads first', items: ['eyebrow'].map(item) },
+      { name: '2 · Headline', hint: 'the hero', items: ['hero'].map(item) },
+      { name: '3 · Support', hint: 'hook & body', items: ['hook', 'body'].map(item) },
+      { name: '4 · Data', hint: 'facts & figures', items: ['tags', 'spec', 'price'].map(item) },
+      { name: '5 · Action', hint: 'one per ad', items: ['cta'].map(item) },
+      { name: 'Structure', hint: '', items: ['divider', 'spacer'].map(item) }
+    ];
+
+    const sel = s.sel;
+    const selM = sel ? list.find(m => m.id === sel.id) || null : null;
+    const av = s.variants[s.activeVi] || s.variants[0];
+    const editContent = fn => this.upd(x => { const m = x.modules.find(mm => sel && mm.id === sel.id); if (m) fn(m); return x; });
+    const setCluster = c => this.upd(x => {
+      if (!sel) return x;
+      const vv = x.variants[sel.vi] || x.variants[0];
+      const target = (sel.story && vv.story) ? vv.story : vv;
+      target.clusters[sel.id] = c;
+      return x;
+    });
+    const selCluster = selM && sel ? (() => { const vv = s.variants[sel.vi] || s.variants[0]; const t = (sel.story && vv.story) ? vv.story : vv; return t.clusters[sel.id] || 'bottom'; })() : 'bottom';
+    const move = dir => this.upd(x => {
+      if (!sel) return x;
+      const vv = x.variants[sel.vi] || x.variants[0];
+      const eff = (sel.story && vv.story) ? vv.story : vv;
+      const cOf = id => eff.clusters[id] || 'bottom';
+      const i = x.modules.findIndex(m => m.id === sel.id); if (i < 0) return x;
+      const sib = x.modules.map((m, j) => ({ m, j })).filter(o => cOf(o.m.id) === cOf(sel.id));
+      const k = sib.findIndex(o => o.j === i), t = k + dir;
+      if (t < 0 || t >= sib.length) return x;
+      const a = sib[k].j, b = sib[t].j;
+      const tmp = x.modules[a]; x.modules[a] = x.modules[b]; x.modules[b] = tmp;
+      return x;
+    });
+    const selVarOpts = selM ? (VOPT[selM.type] || []).map(([key, label], idx) => {
+      const cur = (s.variants[sel.vi] || s.variants[0]).mvar[selM.id] || VOPT[selM.type][0][0];
+      return { label, set: () => this.upd(x => { (x.variants[sel.vi] || x.variants[0]).mvar[selM.id] = key; return x; }), style: btn(cur === key) };
+    }) : [];
+
+    const setAv = fn => this.upd(x => { fn(x.variants[x.activeVi] || x.variants[0]); return x; });
+    const preset = fn => () => setAv(vv => { list.forEach(m => { vv.clusters[m.id] = fn(m); }); });
+
+    const hidAv = av.hidden || {};
+    const hiddenList = Object.keys(hidAv).map(id => {
+      const m = s.modules.find(mm => mm.id === id);
+      if (!m) return null;
+      return { name: labels[m.type][0] + (m.text ? ' · ' + m.text.slice(0, 18) : ''), show: () => this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; if (vv.hidden) delete vv.hidden[id]; return x; }) };
+    }).filter(Boolean);
+    const recents = this.readRecents();
+    return {
+      paletteCats, variantViews,
+      onSplash: s.screen === 'splash',
+      newProject: () => this.newProject(),
+      continueSession: () => this.upd(x => { x.screen = 'editor'; return x; }),
+      openSplash: () => this.upd(x => { x.screen = 'splash'; return x; }),
+      recentsView: recents.map((r, i) => ({ name: r.name, meta: new Date(r.ts).toLocaleDateString() + ' · ' + ((r.state && r.state.variants || []).length) + ' variant(s)', load: () => this.openRecent(i) })),
+      noRecents: recents.length === 0,
+      fgOn: !!av.fg,
+      activeFgId: 'adstudio-fg-' + s.activeVi,
+      fgToggle: () => setAv(vv => { vv.fg = !vv.fg; }),
+      fgToggleLabel: av.fg ? 'Shown on this variant' : 'Off',
+      fgToggleStyle: btn(!!av.fg),
+      hiddenList, noHidden: hiddenList.length === 0,
+      infoStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #B0905C', color: '#B0905C', fontSize: '10px', fontWeight: 500, cursor: 'help', flex: 'none', fontStyle: 'normal' },
+      infoStyleDark: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '50%', border: '1px solid #C9A96A', color: '#C9A96A', fontSize: '10px', fontWeight: 500, cursor: 'help', flex: 'none', fontStyle: 'normal' },
+      guidesOn: this.props.showGuides ?? false,
+      qrShow: s.qr.show,
+      activeName: this.vLabel(s.activeVi),
+      activeBgId: 'adstudio-bg-' + s.activeVi,
+      hasSel: !!selM, noSel: !selM,
+      selTypeLabel: selM ? labels[selM.type][0] : '',
+      selContext: sel ? this.vLabel(sel.vi) + (sel.story ? ' · 9:16' : ' · 1:1') : '',
+      selVarOpts,
+      selHasText: !!selM && ['tags', 'spec', 'divider', 'spacer'].indexOf(selM.type) < 0,
+      undo: () => this.undo(),
+      redo: () => this.redo(),
+      undoStyle: Object.assign(btn(false), { opacity: (this._undoStack || []).length ? 1 : .4 }),
+      redoStyle: Object.assign(btn(false), { opacity: (this._redoStack || []).length ? 1 : .4 }),
+      selIsHero: !!selM && selM.type === 'hero',
+      selIsTags: !!selM && selM.type === 'tags',
+      selIsSpec: !!selM && selM.type === 'spec',
+      selIsPrice: !!selM && selM.type === 'price',
+      selText: selM ? (selM.text || '') : '', selSerif: selM ? (selM.serif || '') : '', selSub: selM ? (selM.sub || '') : '',
+      selChips: selM && selM.chips ? selM.chips.join(', ') : '',
+      selCols: selM && selM.cols ? selM.cols.map(c => c.l + ' | ' + c.v).join('\n') : '',
+      onSelText: e => editContent(m => { m.text = e.target.value; }),
+      onSelSerif: e => editContent(m => { m.serif = e.target.value; }),
+      onSelSub: e => editContent(m => { m.sub = e.target.value; }),
+      onSelChips: e => editContent(m => { m.chips = e.target.value.split(',').map(t => t.trim()).filter(Boolean); }),
+      onSelCols: e => editContent(m => { m.cols = e.target.value.split('\n').map(line => { const p = line.split('|'); return { l: (p[0] || '').trim(), v: (p[1] || '').trim() }; }).filter(c => c.l || c.v); }),
+      selToTop: () => setCluster('top'), selToBottom: () => setCluster('bottom'),
+      selTopStyle: btn(selCluster === 'top'), selBottomStyle: btn(selCluster === 'bottom'),
+      selUp: () => move(-1), selDown: () => move(1),
+      clearSel: () => { if (s.sel) this.upd(x => { x.sel = null; return x; }); },
+      selHideToggle: () => this.upd(x => { if (!sel) return x; const vv = x.variants[sel.vi] || x.variants[0]; vv.hidden = vv.hidden || {}; if (vv.hidden[sel.id]) delete vv.hidden[sel.id]; else vv.hidden[sel.id] = true; return x; }),
+      selHideLabel: sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id] ? 'Hidden in ' + this.vLabel(sel.vi) + ' — show' : 'Hide in ' + this.vLabel(sel ? sel.vi : 0),
+      selHideStyle: btn(!!(sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id])),
+      bgStatus: 'Photos are stored at up to 2600px — exports stay sharp.',
+      selDelete: () => this.upd(x => { if (!sel) return x; const i = x.modules.findIndex(m => m.id === sel.id); if (i >= 0) x.modules.splice(i, 1); x.sel = null; return x; }),
+      layoutBottom: preset(() => 'bottom'),
+      layoutTop: preset(() => 'top'),
+      layoutSplit: preset(m => (['eyebrow', 'hero', 'hook'].indexOf(m.type) >= 0 ? 'top' : 'bottom')),
+      alignLeft: () => setAv(vv => { vv.align = 'left'; }),
+      alignCenter: () => setAv(vv => { vv.align = 'center'; }),
+      alignLeftStyle: btn(av.align === 'left'), alignCenterStyle: btn(av.align === 'center'),
+      scrimH: av.scrimH,
+      onScrimH: e => { const val = +e.target.value; setAv(vv => { vv.scrimH = val; }); },
+      gapTight: () => setAv(vv => { vv.gapScale = 1; }),
+      gapNormal: () => setAv(vv => { vv.gapScale = 1.5; }),
+      gapRoomy: () => setAv(vv => { vv.gapScale = 2.1; }),
+      gapTightStyle: btn(av.gapScale === 1), gapNormalStyle: btn(av.gapScale === 1.5), gapRoomyStyle: btn(av.gapScale === 2.1),
+      logoLeft: () => setAv(vv => { vv.logoAlign = 'left'; }),
+      logoCenter: () => setAv(vv => { vv.logoAlign = 'center'; }),
+      logoLeftStyle: btn(av.logoAlign === 'left'), logoCenterStyle: btn(av.logoAlign === 'center'),
+      logoTop: () => setAv(vv => { vv.logoPos = 'top'; }),
+      logoBottom: () => setAv(vv => { vv.logoPos = 'bottom'; }),
+      logoTopStyle: btn((av.logoPos || 'top') === 'top'), logoBottomStyle: btn(av.logoPos === 'bottom'),
+      addVariant: () => this.upd(x => { if (x.variants.length >= 3) return x; const src = x.variants[x.activeVi] || x.variants[0]; const nv = JSON.parse(JSON.stringify(src)); nv.name = 'Variant ' + (x.variants.length + 1); x.variants.push(nv); x.activeVi = x.variants.length - 1; return x; }),
+      addVariantLabel: s.variants.length >= 3 ? 'Max 3 variants' : '+ Add variant (copies ' + this.vLabel(s.activeVi) + ')',
+      addVariantStyle: Object.assign({}, darkBtn, s.variants.length >= 3 ? { opacity: .45, cursor: 'default' } : {}),
+      qrToggle: () => this.upd(x => { x.qr.show = !x.qr.show; return x; }),
+      qrToggleLabel: s.qr.show ? 'Shown on all variants' : 'Hidden',
+      qrToggleStyle: darkBtn,
+      qrLeft: () => this.upd(x => { x.qr.corner = 'left'; return x; }),
+      qrRight: () => this.upd(x => { x.qr.corner = 'right'; return x; }),
+      qrLeftStyle: Object.assign({}, darkBtn, s.qr.corner === 'left' ? { background: '#fff', color: '#1A2942' } : {}),
+      qrRightStyle: Object.assign({}, darkBtn, s.qr.corner === 'right' ? { background: '#fff', color: '#1A2942' } : {}),
+      campaign: s.campaign,
+      onCampaign: e => this.upd(x => { x.campaign = e.target.value; return x; }),
+      exportPng: () => this.doExport('png'),
+      exportSvg: () => this.doExport('svg'),
+      exportBtnStyle: Object.assign({ flex: 1 }, darkBtn),
+      exportStatus: s.exportStatus || 'Ready.',
+      saveSession: () => this.saveSessionFile(),
+      onLoadSession: e => { const f = e.target.files && e.target.files[0]; if (f) this.loadSessionFile(f); e.target.value = ''; },
+      smallBtnStyle: btn(false),
+      dangerBtnStyle: { flex: 1, background: '#fff', color: '#B3261E', border: '1px solid #E5C1BE', borderRadius: '999px', padding: '6px 9px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' }
+    };
+  }
+}
+</script>
+</body>
+</html>

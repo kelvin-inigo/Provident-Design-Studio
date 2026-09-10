@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,200..900&display=swap">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/colors.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/typography.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/styles.css">
+<script src="_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/_ds_bundle.js"></script>
+<style>body{margin:0;background:#FAF8F4}
+</style>
+</helmet>
+<div style="font-family:var(--font-sans);color:#1A2942;max-width:1560px;margin:0 auto;padding:100px;display:flex;flex-direction:column;gap:120px">
+
+<header style="display:flex;flex-direction:column;gap:18px;max-width:820px">
+  <div style="font-weight:300;font-size:44px;letter-spacing:.04em">provident<span style="color:#F3793C">.</span></div>
+  <h1 style="margin:0;font-weight:300;font-size:48px;line-height:1.15;letter-spacing:-.01em">Provident ad design system</h1>
+  <p style="margin:0;font-weight:300;font-size:18px;line-height:1.7;color:#2F4960">The 12 modules recurring across 32 campaign ads, rebuilt to the 2026 brand guideline: Google Sans Flex only (300/400/500), Source Serif 4 reserved for single-word emphasis in the biggest headline only (upright, never italic), orange on light backgrounds only, gold on navy, flat brand surfaces. All type and spacing in container units so every canvas scales without breaking.</p>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">01 · Design tokens</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">Colour, type, spacing, radius</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:20px">
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#1A2942"></div><div style="font-weight:500;font-size:14px">Deep Navy · #1A2942</div><div style="font-weight:300;font-size:13px;color:#6B7280">Primary surface · text on light</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#2F4960"></div><div style="font-weight:500;font-size:14px">Provident Navy · #2F4960</div><div style="font-weight:300;font-size:13px;color:#6B7280">Secondary surface · support text</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#F3793C"></div><div style="font-weight:500;font-size:14px">Signature Orange · #F3793C</div><div style="font-weight:300;font-size:13px;color:#6B7280">Logo dot · light backgrounds only, never on navy</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#C9A96A"></div><div style="font-weight:500;font-size:14px">Gold · #C9A96A</div><div style="font-weight:300;font-size:13px;color:#6B7280">Accent on navy — replaces orange on dark</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#B0905C"></div><div style="font-weight:500;font-size:14px">Brass · #B0905C</div><div style="font-weight:300;font-size:13px;color:#6B7280">Eyebrows and accents on light</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#F4F1EC;border:1px solid #D4CFC4"></div><div style="font-weight:500;font-size:14px">Cream · #F4F1EC</div><div style="font-weight:300;font-size:13px;color:#6B7280">Light surface colourway</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#FAF8F4;border:1px solid #D4CFC4"></div><div style="font-weight:500;font-size:14px">Paper · #FAF8F4</div><div style="font-weight:300;font-size:13px;color:#6B7280">Page background</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#ECE7DF"></div><div style="font-weight:500;font-size:14px">Mist · #ECE7DF</div><div style="font-weight:300;font-size:13px;color:#6B7280">Support copy on dark</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#D4CFC4"></div><div style="font-weight:500;font-size:14px">Stone · #D4CFC4</div><div style="font-weight:300;font-size:13px;color:#6B7280">Data labels · eyebrows on dark</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:#6B7280"></div><div style="font-weight:500;font-size:14px">Muted · #6B7280</div><div style="font-weight:300;font-size:13px;color:#6B7280">Descriptions on light</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e);display:flex;align-items:center;justify-content:center"><div style="width:70%;height:60%;border-radius:10px;background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22)"></div></div><div style="font-weight:500;font-size:14px">Glass · white @ 10%</div><div style="font-weight:300;font-size:13px;color:#6B7280">blur 18px · 1px border white @ 22%</div></div>
+    <div style="display:flex;flex-direction:column;gap:10px"><div style="height:110px;border-radius:8px;background:linear-gradient(to top,#1A2942,rgba(26,41,66,0)),linear-gradient(160deg,#8d9aa8,#5c6b7a)"></div><div style="font-weight:500;font-size:14px">Scrim</div><div style="font-weight:300;font-size:13px;color:#6B7280">Deep Navy 100%→0%, bottom to top, over imagery</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+    <div style="background:#fff;border:1px solid #ECE7DF;border-radius:12px;padding:36px;display:flex;flex-direction:column;gap:18px">
+      <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">Meta-ads type scale · minor third ×1.200 · cqw (≈px at 1080)</div>
+      <div style="display:flex;align-items:baseline;gap:20px"><span style="font-weight:300;font-size:47px;width:56%;flex:none">Price hero 9.5</span><span style="font-weight:300;font-size:14px;color:#6B7280">≈103px — weight 300, large numerals</span></div>
+      <div style="display:flex;align-items:baseline;gap:20px"><span style="font-weight:300;font-size:27px;width:56%;flex:none">Headline 5.5 · 6.6 · 7.9</span><span style="font-weight:300;font-size:14px;color:#6B7280">≈59–85px — Light 300 in both faces; hierarchy by size, never weight</span></div>
+      <div style="display:flex;align-items:baseline;gap:20px"><span style="font-weight:300;font-size:23px;width:56%;flex:none">Setup line 4.6</span><span style="font-weight:300;font-size:14px;color:#6B7280">≈50px — weight 300, above the headline</span></div>
+      <div style="display:flex;align-items:baseline;gap:20px"><span style="font-weight:300;font-size:15px;width:56%;flex:none">Hook / body 3.2–3.8</span><span style="font-weight:300;font-size:14px;color:#6B7280">≈35–41px — weight 300, one line</span></div>
+      <div style="display:flex;align-items:baseline;gap:20px"><span style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;width:56%;flex:none">Label 2.6</span><span style="font-weight:300;font-size:14px;color:#6B7280">≈28px — weight 500, tracked caps — eyebrows only</span></div>
+      <div style="display:flex;align-items:baseline;gap:20px"><span style="font-weight:300;font-size:13px;width:56%;flex:none">Small 2.2 — the floor</span><span style="font-weight:300;font-size:14px;color:#6B7280">≈24px — nothing smaller anywhere on an ad; no micro type</span></div>
+      <div style="border-top:1px solid #ECE7DF;padding-top:16px;font-weight:300;font-size:15px;line-height:1.7;color:#2F4960">Two voices: Google Sans Flex carries everything. Headers are Light 300 — except the main hero headline (the biggest headline of the layout), which is Thin 100. Source Serif 4 — upright, never italic, always Gold #C9A96A — appears only as <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">one</em> emphasised word inside that hero headline; smaller headings, subheads and body never use it. It swaps the whole word only — never a syllable blended into a sans word. Meta floor: no type below 2.2cqw (≈24px at 1080) anywhere on an ad. Every size sits on the minor-third scale (×1.200 from the 2.2 floor): 2.2 · 2.6 · 3.2 · 3.8 · 4.6 · 5.5 · 6.6 · 7.9 · 9.5 — no off-scale sizes.</div>
+    </div>
+    <div style="background:#fff;border:1px solid #ECE7DF;border-radius:12px;padding:36px;display:flex;flex-direction:column;gap:18px">
+      <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">Spacing &amp; radius</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-weight:300;font-size:15px;line-height:1.6">
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:120px;height:14px;background:#ECE7DF;flex:none"></span>Safe margin — 4% of canvas, all sides. Nothing crosses it.</div>
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:72px;height:14px;background:#ECE7DF;flex:none"></span>Module gap — 4 cqw between stacked modules</div>
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:36px;height:14px;background:#ECE7DF;flex:none"></span>Stack gap — 2 cqw inside a lockup</div>
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:44px;height:28px;background:#1A2942;border-radius:0;flex:none"></span>Kicker bar radius — 0</div>
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:44px;height:28px;background:#1A2942;border-radius:6px;flex:none"></span>Glass card radius — 2.5% of canvas width</div>
+        <div style="display:flex;align-items:center;gap:16px"><span style="width:44px;height:28px;background:#1A2942;border-radius:999px;flex:none"></span>Chips &amp; pills — fully rounded</div>
+      </div>
+      <div style="border-top:1px solid #ECE7DF;padding-top:16px;font-weight:300;font-size:15px;line-height:1.7;color:#2F4960">9:16 canvases additionally respect Instagram safe zones: ≈23% clear at top, ≈22% of height clear at bottom, right rail clear — campaign copy never sits under platform UI.</div>
+    </div>
+  </div>
+</section>
+
+<section id="mods-a" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">02 · Component library</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">The 16 modules</h2>
+    <p style="margin:0;font-weight:300;font-size:17px;color:#6B7280;max-width:70ch">Provident&rsquo;s owned campaign vocabulary — every ad is assembled from these. Each shown on a stand-in backdrop (CSS gradient in place of the property render). All internal sizes in cqw so the module scales with its canvas.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px">
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">1 · Headline lockup</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">32 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Two lines, centred, upper third. Both lines Light 300 — hierarchy comes from size, never weight.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.9),rgba(26,41,66,.35))"></div>
+      <div style="position:relative;padding:8cqw 6cqw;display:flex;flex-direction:column;gap:9cqw;align-items:center;text-align:center">
+        <div style="display:flex;flex-direction:column;gap:1.5cqw"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Invest in Dubai</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Commercial Real Estate</span></div>
+        <div style="display:flex;flex-direction:column;gap:1.5cqw"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">What you can buy for less than</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">AED 1 <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">million</em></span></div>
+        <div style="display:flex;flex-direction:column;gap:1.8cqw;align-items:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Own your office</span><span style="background:#C9A96A;color:#1A2942;font-weight:500;font-size:2.6cqw;letter-spacing:.14em;text-transform:uppercase;padding:1.1cqw 2.6cqw;border-radius:999px">Next to the metro</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">On Sheikh Zayed Road</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">2 · Kicker bar</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">19 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Short qualifier directly under the headline. Hairline-framed or rule-flanked, never a solid fill — a filled bar reads as a CTA. ≈40% of headline size, zero radius.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.9),rgba(26,41,66,.35))"></div>
+      <div style="position:relative;padding:8cqw 6cqw;display:flex;flex-direction:column;gap:4cqw;align-items:center">
+        <span style="border:1px solid rgba(236,231,223,.55);color:#fff;font-weight:400;font-size:2.6cqw;padding:1.4cqw 4cqw">Act before prices move higher</span>
+        <div style="display:flex;align-items:center;gap:2.5cqw;color:#fff;font-weight:400;font-size:2.6cqw"><span style="width:7cqw;height:1px;background:#C9A96A"></span>In the World Trade Centre<span style="width:7cqw;height:1px;background:#C9A96A"></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1.2cqw;color:#fff;font-weight:400;font-size:2.6cqw"><span style="width:9cqw;height:1px;background:#C9A96A"></span>Next to the metro</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">3 · Stat row with icons</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">5 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Two variants: with gold icons, or type-only. Tight vertical rhythm. The figure is 500, the word after it is 300 — always.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#1A2942">
+      <div style="position:relative;padding:6cqw 10cqw;display:flex;flex-direction:column;gap:2cqw;color:#fff">
+        <div style="display:flex;align-items:center">
+          <div style="flex:1;display:flex;align-items:center;gap:2.5cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:5.5cqw;height:5.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v4h4M10 12h6M10 16h6"></path></svg><span style="font-size:3.8cqw"><span style="font-weight:500">0%</span> <span style="font-weight:300;color:#ECE7DF">Property Tax</span></span></div>
+          <div style="width:1px;height:7cqw;background:rgba(236,231,223,.35)"></div>
+          <div style="flex:1;display:flex;align-items:center;gap:2.5cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:5.5cqw;height:5.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M4 19L10 13l3 3 7-8"></path><path d="M20 8v4M20 8h-4"></path></svg><span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Strong Value Growth</span></div>
+        </div>
+        <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+        <div style="display:flex;align-items:center;gap:2.5cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:5.5cqw;height:5.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg><span style="font-size:3.8cqw"><span style="font-weight:500">10%+</span> <span style="font-weight:300;color:#ECE7DF">Rental Yields</span></span></div>
+      </div>
+    </div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#1A2942">
+      <div style="position:relative;padding:6cqw 10cqw;display:flex;flex-direction:column;gap:2cqw;color:#fff">
+        <div style="display:flex;align-items:center">
+          <div style="flex:1;text-align:center;font-size:3.8cqw"><span style="font-weight:500">0%</span> <span style="font-weight:300;color:#ECE7DF">Property Tax</span></div>
+          <div style="width:1px;height:6cqw;background:rgba(236,231,223,.35)"></div>
+          <div style="flex:1;text-align:center;font-weight:300;font-size:3.2cqw;color:#ECE7DF">Strong Value Growth</div>
+        </div>
+        <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+        <div style="text-align:center;font-size:3.8cqw"><span style="font-weight:500">10%+</span> <span style="font-weight:300;color:#ECE7DF">Rental Yields</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">4 · Inline stat card</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">6 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Faint glass panel: hairline rule, light label, oversized figure with a light trailing word.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.85),rgba(26,41,66,.3))"></div>
+      <div style="position:relative;padding:8cqw 16cqw;display:flex;justify-content:center">
+        <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:4cqw 7cqw;display:flex;flex-direction:column;gap:2cqw;align-items:center;text-align:center">
+          <div style="width:14cqw;height:1px;background:rgba(255,255,255,.4)"></div>
+          <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Earn a Minimum</span>
+          <span style="color:#fff;font-size:7.9cqw"><span style="font-weight:500">10%</span> <span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Rental Yield</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">5 · Bracket frame</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">2 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Thin corner brackets framing a label plus a figure. 1px stroke, arm ≈8% of frame width.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#2F4960">
+      <div style="position:relative;padding:8cqw;display:flex;gap:8cqw;justify-content:center">
+        <div style="position:relative;padding:4cqw 6cqw;display:flex;flex-direction:column;gap:1.5cqw;align-items:center;text-align:center;color:#fff">
+          <span style="position:absolute;top:0;left:0;width:5cqw;height:5cqw;border-top:1px solid #C9A96A;border-left:1px solid #C9A96A"></span>
+          <span style="position:absolute;top:0;right:0;width:5cqw;height:5cqw;border-top:1px solid #C9A96A;border-right:1px solid #C9A96A"></span>
+          <span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Premium Projects</span>
+          <span style="font-weight:300;font-size:5.5cqw">AED 1M</span>
+          <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">and below</span>
+        </div>
+        <div style="position:relative;padding:4cqw 6cqw;display:flex;flex-direction:column;gap:1.5cqw;align-items:center;text-align:center;color:#fff">
+          <span style="position:absolute;top:0;left:0;width:5cqw;height:5cqw;border-top:1px solid #C9A96A;border-left:1px solid #C9A96A"></span>
+          <span style="position:absolute;top:0;right:0;width:5cqw;height:5cqw;border-top:1px solid #C9A96A;border-right:1px solid #C9A96A"></span>
+          <span style="position:absolute;bottom:0;left:0;width:5cqw;height:5cqw;border-bottom:1px solid #C9A96A;border-left:1px solid #C9A96A"></span>
+          <span style="position:absolute;bottom:0;right:0;width:5cqw;height:5cqw;border-bottom:1px solid #C9A96A;border-right:1px solid #C9A96A"></span>
+          <span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Handover</span>
+          <span style="font-weight:300;font-size:5.5cqw">Q4 2027</span>
+          <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">all four corners</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">6 · Price block</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">21 of 32 · signature</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Three stacked parts: light label → huge figure → fine print. Currency symbol swaps cleanly (AED / $ / €). Variant (b) sits straight on the image, all Google Sans Flex.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.9),rgba(26,41,66,.3))"></div>
+      <div style="position:relative;padding:7cqw 8cqw;display:flex;gap:6cqw;align-items:center;justify-content:center;flex-wrap:wrap">
+        <div style="position:relative;background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:4.5cqw 6cqw 3cqw;display:flex;flex-direction:column;gap:1.5cqw;align-items:center;text-align:center">
+          <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1.2cqw 3.5cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+          <span style="font-weight:300;font-size:7.9cqw;color:#fff"><span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">AED</span> 1.4M</span>
+          <span style="font-weight:300;font-size:2.2cqw;color:#D4CFC4">Full Floors Also Available</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1.5cqw;align-items:center;text-align:center">
+          <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Offices available from</span>
+          <span style="font-weight:300;font-size:9.5cqw;color:#fff">€ 238,000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</section>
+<section id="mods-b" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px">
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">7 · White label chip</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">8 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">White pill, navy text, fully rounded. Straddles a glass card&rsquo;s top edge, or stands alone as a timestamp.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#2F4960">
+      <div style="position:relative;padding:8cqw;display:flex;flex-direction:column;gap:5cqw;align-items:center">
+        <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1.4cqw 4cqw;border-radius:999px">Join Us on The <span style="font-weight:500">4th &amp; 5th</span> of July</span>
+        <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1.4cqw 4cqw;border-radius:999px">10:00 AM &ndash; 5:00 PM</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">8 · Glass card</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">10 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Translucent blurred panel. Radius 2.5 cqw, 1px light border. Editorial variant: top-left, left-aligned, gold rule on its left edge.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.85),rgba(26,41,66,.25))"></div>
+      <div style="position:relative;padding:8cqw;display:flex;gap:5cqw;align-items:flex-start">
+        <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:4cqw 6cqw;display:flex;flex-direction:column;gap:1.5cqw;align-items:center;text-align:center;flex:1">
+          <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Bottom-centre stack</span>
+          <span style="font-weight:300;font-size:5.5cqw;color:#fff">AED 980K</span>
+        </div>
+        <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;border-left:0.6cqw solid #C9A96A;padding:4cqw 5cqw;display:flex;flex-direction:column;gap:1.5cqw;flex:1">
+          <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#C9A96A">The RAW Factor</span>
+          <span style="font-weight:300;font-size:3.2cqw;line-height:1.5;color:#fff">Editorial corner card, left-aligned</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">9 · CTA button</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">6 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Sentence case, weight 500, never shouty. Navy fill on light surfaces; white fill on navy or imagery. Never orange, never gold, never gradients.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(90deg,#1A2942 50%,#F4F1EC 50%)">
+      <div style="position:relative;padding:8cqw;display:flex;align-items:center">
+        <div style="flex:1;display:flex;justify-content:center"><span style="background:#fff;color:#1A2942;font-weight:500;font-size:3.2cqw;padding:2.2cqw 5cqw;border-radius:999px">Get Project Details</span></div>
+        <div style="flex:1;display:flex;justify-content:center"><span style="background:#1A2942;color:#fff;font-weight:500;font-size:3.2cqw;padding:2.2cqw 5cqw;border-radius:1cqw">Register to view</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">10 · Feature strip</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">16 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Pipe-separated benefits on one line, small and light, just above the logo. Pipes lighter than the text.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#1A2942">
+      <div style="position:relative;padding:7cqw;display:flex;flex-direction:column;gap:3.5cqw;align-items:center;color:#ECE7DF">
+        <div style="font-weight:300;font-size:2.6cqw;display:flex;gap:2.2cqw">Prime Location<span style="opacity:.4">|</span>Metro Connectivity</div>
+        <div style="font-weight:300;font-size:2.6cqw;display:flex;gap:2.2cqw">Premium Projects<span style="opacity:.4">|</span>Prime Locations<span style="opacity:.4">|</span>Special Offers</div>
+        <div style="font-weight:300;font-size:2.6cqw;display:flex;gap:2.2cqw">4 &amp; 5 July<span style="opacity:.4">|</span>10:00 AM &ndash; 5:00 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">11 · QR placeholder</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">8 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Reserved corner slot for the DLD permit QR: a small rounded rectangle at the 4% margin, bottom corner. Visible but never dominant.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#2F4960">
+      <div style="position:relative;padding:7cqw;display:flex;align-items:flex-end;justify-content:space-between">
+        <span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Bottom corner · 4% margin</span>
+        <div style="width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">12 · Logo</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">32 of 32</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Main wordmark only — no sub-brand lockups. Weight 300, lowercase. Orange dot on light only, all-white on navy or imagery. Placed bottom-left or bottom-centre — never right.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(90deg,#1A2942 50%,#F4F1EC 50%)">
+      <div style="position:relative;padding:8cqw;display:flex;align-items:center">
+        <div style="flex:1;display:flex;justify-content:flex-start;padding-left:4cqw"><span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span></div>
+        <div style="flex:1;display:flex;justify-content:center"><span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#1A2942">provident<span style="color:#F3793C">.</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</section>
+<section id="fams-a" style="display:flex;flex-direction:column;gap:60px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">03 · Layout families</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">Five complete ads · 1:1 and 9:16</h2>
+    <p style="margin:0;font-weight:300;font-size:17px;color:#6B7280;max-width:70ch">Scaled down; internal proportions are exact. Every ad runs a full-bleed background image; modules cluster top and bottom so a clear centre window keeps the image visible and in focus. 9:16 canvases keep copy inside Instagram safe zones.</p>
+  </div>
+
+  <div data-screen-label="Family A" style="display:flex;flex-direction:column;gap:20px">
+    <div style="font-weight:400;font-size:19px">A · &ldquo;Invest in Dubai&rdquo; <span style="font-weight:300;font-size:14px;color:#6B7280">— headline top · centre image window · stat + price cluster bottom · small QR corner + logo</span></div>
+    <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+      <div style="container-type:inline-size;width:520px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.95),rgba(26,41,66,.45) 45%,rgba(26,41,66,.1))"></div>
+        <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Invest in Dubai</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Commercial Real Estate</span></div>
+          <div style="flex:1"></div>
+          <div style="position:relative;background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:3.5cqw 6cqw 2.5cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;text-align:center">
+            <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1A2942;font-weight:500;font-size:2.2cqw;padding:1cqw 3cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+            <span style="font-weight:300;font-size:7.9cqw;color:#fff"><span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">AED</span> 1.4M</span>
+            <span style="font-weight:300;font-size:2.2cqw;color:#D4CFC4">Full Floors Also Available</span>
+            <div style="width:12cqw;height:1px;background:rgba(255,255,255,.35)"></div>
+            <span style="color:#fff;font-size:3.8cqw"><span style="font-weight:500">10%</span> <span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Minimum Rental Yield</span></span>
+          </div>
+          <div style="height:4.5cqw"></div>
+          <div style="width:100%;display:flex">
+            <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+          </div>
+        </div>
+      </div>
+      <div style="container-type:inline-size;width:320px;aspect-ratio:9/16;position:relative;overflow:hidden;flex:none;background:linear-gradient(200deg,#a7b2bd,#5c6b7a 60%,#2f3f50)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,.5) 40%,rgba(26,41,66,0) 66%)"></div>
+        <div style="position:absolute;left:6cqw;right:8cqw;top:26cqw;bottom:41cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="display:flex;flex-direction:column;gap:1.6cqw;text-align:center"><span style="font-weight:300;font-size:6.6cqw;color:#ECE7DF">Invest in Dubai</span><span style="font-weight:300;font-size:7.9cqw;color:#fff">Commercial Real Estate</span></div>
+          <div style="flex:1"></div>
+          <div style="position:relative;background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:4.5cqw 8cqw 3cqw;display:flex;flex-direction:column;gap:1.4cqw;align-items:center;text-align:center">
+            <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1A2942;font-weight:500;font-size:3.2cqw;padding:1.4cqw 4cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+            <span style="font-weight:300;font-size:9.5cqw;color:#fff"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">AED</span> 1.4M</span>
+            <span style="font-weight:300;font-size:2.6cqw;color:#D4CFC4">Full Floors Also Available</span>
+            <div style="width:14cqw;height:1px;background:rgba(255,255,255,.35)"></div>
+            <span style="color:#fff;font-size:4.6cqw"><span style="font-weight:500">10%</span> <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Minimum Rental Yield</span></span>
+          </div>
+          <div style="height:5.5cqw"></div>
+          <div style="width:100%;display:flex">
+            <span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div data-screen-label="Family B" style="display:flex;flex-direction:column;gap:20px">
+    <div style="font-weight:400;font-size:19px">B · &ldquo;Prices Rose 9.7%&rdquo; <span style="font-weight:300;font-size:14px;color:#6B7280">— headline + kicker top · centre image window · price on bare image · feature strip · logo</span></div>
+    <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+      <div style="container-type:inline-size;width:520px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(160deg,#9aa5b0,#66707c 50%,#3a4653)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.97),rgba(26,41,66,.5) 45%,rgba(26,41,66,.15))"></div>
+        <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Dubai Commercial Property</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Prices Rose 9.7% in 2026!</span></div>
+          <div style="height:3.5cqw"></div>
+          <span style="border:1px solid rgba(236,231,223,.55);color:#fff;font-weight:400;font-size:2.6cqw;padding:1.3cqw 3.8cqw">Act Before Prices Move Higher</span>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:1.2cqw;align-items:center;text-align:center">
+            <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Offices available from</span>
+            <span style="font-weight:300;font-size:9.5cqw;color:#fff">€ 238,000</span>
+          </div>
+          <div style="height:4.5cqw"></div>
+          <div style="display:flex;flex-direction:column;gap:3cqw;align-items:center">
+            <div style="font-weight:300;font-size:2.6cqw;color:#ECE7DF;display:flex;gap:2cqw">Prime Location<span style="opacity:.4">|</span>Metro Connectivity</div>
+            <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+          </div>
+        </div>
+      </div>
+      <div style="container-type:inline-size;width:320px;aspect-ratio:9/16;position:relative;overflow:hidden;flex:none;background:linear-gradient(200deg,#9aa5b0,#66707c 55%,#323e4b)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,.55) 38%,rgba(26,41,66,0) 64%)"></div>
+        <div style="position:absolute;left:6cqw;right:8cqw;top:26cqw;bottom:41cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="display:flex;flex-direction:column;gap:1.6cqw;text-align:center"><span style="font-weight:300;font-size:5.5cqw;color:#ECE7DF">Dubai Commercial Property</span><span style="font-weight:300;font-size:7.9cqw;color:#fff">Prices Rose 9.7% in 2026!</span></div>
+          <div style="height:5cqw"></div>
+          <span style="border:1px solid rgba(236,231,223,.55);color:#fff;font-weight:400;font-size:3.2cqw;padding:1.6cqw 4.5cqw">Act Before Prices Move Higher</span>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:1.6cqw;align-items:center;text-align:center">
+            <span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Offices available from</span>
+            <span style="font-weight:300;font-size:11.4cqw;color:#fff">€ 238,000</span>
+          </div>
+          <div style="height:5.5cqw"></div>
+          <div style="display:flex;flex-direction:column;gap:4cqw;align-items:center">
+            <div style="font-weight:300;font-size:3.2cqw;color:#ECE7DF;display:flex;gap:2.4cqw">Prime Location<span style="opacity:.4">|</span>Metro Connectivity</div>
+            <span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div data-screen-label="Family C" style="display:flex;flex-direction:column;gap:20px">
+    <div style="font-weight:400;font-size:19px">C · &ldquo;Own Your Office SZR&rdquo; <span style="font-weight:300;font-size:14px;color:#6B7280">— 3-line headline with gold pill · icon stat row · CTA · logo · centre image window</span></div>
+    <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+      <div style="container-type:inline-size;width:520px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(160deg,#98a3ae,#5f6d7b 55%,#394654)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.96),rgba(26,41,66,.5) 45%,rgba(26,41,66,.75) 80%,rgba(26,41,66,.9))"></div>
+        <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.8cqw;align-items:center;text-align:center">
+            <span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Own Your Office</span>
+            <span style="background:#C9A96A;color:#1A2942;font-weight:500;font-size:2.2cqw;letter-spacing:.14em;text-transform:uppercase;padding:1cqw 2.6cqw;border-radius:999px">Next to the metro</span>
+            <span style="font-weight:300;font-size:5.5cqw;color:#fff">On Sheikh Zayed Road</span>
+          </div>
+          <div style="flex:1"></div>
+          <div style="width:80%;display:flex;flex-direction:column;gap:1.8cqw;color:#fff">
+            <div style="display:flex;align-items:center">
+              <div style="flex:1;display:flex;align-items:center;gap:2cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:4.5cqw;height:4.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v4h4M10 12h6M10 16h6"></path></svg><span style="font-size:3.2cqw"><span style="font-weight:500">0%</span> <span style="font-weight:300;color:#ECE7DF">Property Tax</span></span></div>
+              <div style="width:1px;height:6cqw;background:rgba(236,231,223,.35)"></div>
+              <div style="flex:1;display:flex;align-items:center;gap:2cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:4.5cqw;height:4.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M4 19L10 13l3 3 7-8"></path><path d="M20 8v4M20 8h-4"></path></svg><span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Strong Value Growth</span></div>
+            </div>
+            <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+            <div style="display:flex;align-items:center;gap:2cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:4.5cqw;height:4.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg><span style="font-size:3.2cqw"><span style="font-weight:500">10%+</span> <span style="font-weight:300;color:#ECE7DF">Rental Yields</span></span></div>
+          </div>
+          <div style="height:5cqw"></div>
+          <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:2cqw 5cqw;border-radius:999px">Get Project Details</span>
+          <div style="height:4.5cqw"></div>
+          <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        </div>
+      </div>
+      <div style="container-type:inline-size;width:320px;aspect-ratio:9/16;position:relative;overflow:hidden;flex:none;background:linear-gradient(200deg,#98a3ae,#5f6d7b 55%,#33404e)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,.5) 45%,rgba(26,41,66,.75) 82%,rgba(26,41,66,.92))"></div>
+        <div style="position:absolute;left:6cqw;right:8cqw;top:26cqw;bottom:41cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="display:flex;flex-direction:column;gap:2.4cqw;align-items:center;text-align:center">
+            <span style="font-weight:300;font-size:6.6cqw;color:#ECE7DF">Own Your Office</span>
+            <span style="background:#C9A96A;color:#1A2942;font-weight:500;font-size:3.2cqw;letter-spacing:.14em;text-transform:uppercase;padding:1.4cqw 3.4cqw;border-radius:999px">Next to the metro</span>
+            <span style="font-weight:300;font-size:7.9cqw;color:#fff">On Sheikh Zayed Road</span>
+          </div>
+          <div style="flex:1"></div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:2.2cqw;color:#fff">
+            <div style="display:flex;align-items:center">
+              <div style="flex:1;display:flex;align-items:center;gap:2.4cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:5.5cqw;height:5.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v4h4M10 12h6M10 16h6"></path></svg><span style="font-size:3.8cqw"><span style="font-weight:500">0%</span> <span style="font-weight:300;color:#ECE7DF">Property Tax</span></span></div>
+              <div style="width:1px;height:7cqw;background:rgba(236,231,223,.35)"></div>
+              <div style="flex:1;display:flex;align-items:center;gap:2.4cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:5.5cqw;height:5.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M4 19L10 13l3 3 7-8"></path><path d="M20 8v4M20 8h-4"></path></svg><span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Strong Value Growth</span></div>
+            </div>
+            <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+            <div style="display:flex;align-items:center;gap:2.4cqw;justify-content:center"><svg viewBox="0 0 24 24" style="width:5.5cqw;height:5.5cqw;stroke:#C9A96A;stroke-width:1.5;fill:none"><path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path></svg><span style="font-size:3.8cqw"><span style="font-weight:500">10%+</span> <span style="font-weight:300;color:#ECE7DF">Rental Yields</span></span></div>
+          </div>
+          <div style="height:5cqw"></div>
+          <span style="background:#fff;color:#1A2942;font-weight:500;font-size:3.8cqw;padding:2.6cqw 6.5cqw;border-radius:999px">Get Project Details</span>
+          <div style="height:4.5cqw"></div>
+          <span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="fams-b" style="display:flex;flex-direction:column;gap:60px">
+
+  <div data-screen-label="Family D" style="display:flex;flex-direction:column;gap:20px">
+    <div style="font-weight:400;font-size:19px">D · &ldquo;DWTC Event&rdquo; <span style="font-weight:300;font-size:14px;color:#6B7280">— headline · white chip · glass event card · logo · centre image window</span></div>
+    <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+      <div style="container-type:inline-size;width:520px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(160deg,#a39a8d,#6e6a61 55%,#3f4148)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.96),rgba(26,41,66,.5) 45%,rgba(26,41,66,.75) 80%,rgba(26,41,66,.9))"></div>
+        <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Premium Projects, Prime Locations</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Under One Roof</span></div>
+          <div style="height:3.5cqw"></div>
+          <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1.4cqw 4cqw;border-radius:999px">Join Us on The 4th &amp; 5th of July</span>
+          <div style="flex:1"></div>
+          <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:2.5cqw 6cqw;display:flex;flex-direction:column;gap:.9cqw;align-items:center;text-align:center">
+            <span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Premium Projects</span>
+            <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.18em;text-transform:uppercase;color:#C9A96A">Under</span>
+            <span style="font-weight:300;font-size:6.6cqw;color:#fff"><span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">AED</span> 1M</span>
+            <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.2cqw;padding:.9cqw 2.8cqw;border-radius:999px">10:00 AM &ndash; 5:00 PM</span>
+            <span style="font-weight:300;font-size:2.2cqw;color:#D4CFC4">Dubai World Trade Centre</span>
+          </div>
+          <div style="height:5cqw"></div>
+          <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        </div>
+      </div>
+      <div style="container-type:inline-size;width:320px;aspect-ratio:9/16;position:relative;overflow:hidden;flex:none;background:linear-gradient(200deg,#a39a8d,#6e6a61 55%,#3a3c42)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,.5) 45%,rgba(26,41,66,.75) 82%,rgba(26,41,66,.92))"></div>
+        <div style="position:absolute;left:6cqw;right:8cqw;top:26cqw;bottom:41cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="display:flex;flex-direction:column;gap:1.4cqw;text-align:center"><span style="font-weight:300;font-size:5.5cqw;color:#ECE7DF">Premium Projects, Prime Locations</span><span style="font-weight:300;font-size:6.6cqw;color:#fff">Under One Roof</span></div>
+          <div style="height:3.5cqw"></div>
+          <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1.4cqw 4.2cqw;border-radius:999px">Join Us on The 4th &amp; 5th of July</span>
+          <div style="flex:1"></div>
+          <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:2.5cqw 6cqw;display:flex;flex-direction:column;gap:.9cqw;align-items:center;text-align:center">
+            <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">Premium Projects</span>
+            <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.18em;text-transform:uppercase;color:#C9A96A">Under</span>
+            <span style="font-weight:300;font-size:7.9cqw;color:#fff"><span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">AED</span> 1M</span>
+            <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1cqw 3.2cqw;border-radius:999px">10:00 AM &ndash; 5:00 PM</span>
+            <span style="font-weight:300;font-size:2.6cqw;color:#D4CFC4">Dubai World Trade Centre</span>
+          </div>
+          <div style="height:5cqw"></div>
+          <span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div data-screen-label="Family E" style="display:flex;flex-direction:column;gap:20px">
+    <div style="font-weight:400;font-size:19px">E · &ldquo;RAW Factor&rdquo; series <span style="font-weight:300;font-size:14px;color:#6B7280">— top-left editorial card · centre image window · headline + info rows bottom · logo bottom-left</span></div>
+    <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+      <div style="container-type:inline-size;width:520px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(135deg,#b3aca2,#7d786e 50%,#4a4a48)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.95),rgba(26,41,66,.4) 50%,rgba(26,41,66,.15))"></div>
+        <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:flex-start;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-left:0.6cqw solid #C9A96A;border-radius:2.5cqw;padding:2.6cqw 4cqw;display:flex;flex-direction:column;gap:1cqw">
+            <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#C9A96A">The RAW Factor</span>
+            <span style="font-weight:300;font-size:2.6cqw;color:#fff">Episode 07 · Business Bay</span>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:1.2cqw"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Is Business Bay</span><span style="font-weight:100;font-size:5.5cqw;color:#fff">Still <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">undervalued</em>?</span></div>
+          <div style="height:4.5cqw"></div>
+          <div style="display:flex;flex-direction:column;gap:2cqw;width:100%">
+            <div style="border:1px solid rgba(236,231,223,.4);border-radius:999px;padding:1.8cqw 4cqw;font-size:2.6cqw;color:#fff"><span style="font-weight:500">For Home Buyers:</span> <span style="font-weight:300;color:#ECE7DF">Perfect for everyday living.</span></div>
+            <div style="border:1px solid rgba(236,231,223,.4);border-radius:999px;padding:1.8cqw 4cqw;font-size:2.6cqw;color:#fff"><span style="font-weight:500">For Investors:</span> <span style="font-weight:300;color:#ECE7DF">Strong rental demand, rising yields.</span></div>
+          </div>
+          <div style="height:5cqw"></div>
+          <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        </div>
+      </div>
+      <div style="container-type:inline-size;width:320px;aspect-ratio:9/16;position:relative;overflow:hidden;flex:none;background:linear-gradient(200deg,#b3aca2,#7d786e 55%,#42423f)">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,.5) 40%,rgba(26,41,66,.1) 70%)"></div>
+        <div style="position:absolute;left:6cqw;right:8cqw;top:26cqw;bottom:41cqw;display:flex;flex-direction:column;align-items:flex-start;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+          <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-left:0.8cqw solid #C9A96A;border-radius:2.5cqw;padding:3.2cqw 5cqw;display:flex;flex-direction:column;gap:1.2cqw">
+            <span style="font-weight:500;font-size:2.6cqw;letter-spacing:.16em;text-transform:uppercase;color:#C9A96A">The RAW Factor</span>
+            <span style="font-weight:300;font-size:3.2cqw;color:#fff">Episode 07 · Business Bay</span>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:1.6cqw"><span style="font-weight:300;font-size:6.6cqw;color:#ECE7DF">Is Business Bay</span><span style="font-weight:100;font-size:7.9cqw;color:#fff">Still <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">undervalued</em>?</span></div>
+          <div style="height:4.5cqw"></div>
+          <div style="display:flex;flex-direction:column;gap:2.6cqw;width:100%">
+            <div style="border:1px solid rgba(236,231,223,.4);border-radius:999px;padding:2.4cqw 5cqw;font-size:3.2cqw;color:#fff"><span style="font-weight:500">For Home Buyers:</span> <span style="font-weight:300;color:#ECE7DF">Perfect for everyday living.</span></div>
+            <div style="border:1px solid rgba(236,231,223,.4);border-radius:999px;padding:2.4cqw 5cqw;font-size:3.2cqw;color:#fff"><span style="font-weight:500">For Investors:</span> <span style="font-weight:300;color:#ECE7DF">Strong rental demand, rising yields.</span></div>
+          </div>
+          <div style="height:5cqw"></div>
+          <span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="cwgrid" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">04 · Colourway grid</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">Family A across all four colourways</h2>
+    <p style="margin:0;font-weight:300;font-size:17px;color:#6B7280;max-width:70ch">Same geometry, different surface: Imagery + scrim · flat Deep Navy · flat Provident Navy · Cream. On light surfaces text flips to navy, accents to brass, and the logo dot returns to orange.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:30px">
+
+    <div style="container-type:inline-size;aspect-ratio:1/1;position:relative;overflow:hidden;background:linear-gradient(160deg,#8d9aa8,#5c6b7a 55%,#3d4d5e)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.95),rgba(26,41,66,.45) 45%,rgba(26,41,66,.1))"></div>
+      <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+        <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Invest in Dubai</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Commercial Real Estate</span></div>
+        <div style="flex:1"></div>
+        <div style="position:relative;background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:3.5cqw 6cqw 2.5cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;text-align:center">
+          <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1A2942;font-weight:500;font-size:2.2cqw;padding:1cqw 3cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+          <span style="font-weight:300;font-size:7.9cqw;color:#fff"><span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">AED</span> 1.4M</span>
+          <span style="font-weight:300;font-size:2.2cqw;color:#D4CFC4">Full Floors Also Available</span>
+        </div>
+        <div style="height:4.5cqw"></div>
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+      </div>
+    </div>
+
+    <div style="container-type:inline-size;aspect-ratio:1/1;position:relative;overflow:hidden;background:#1A2942">
+      <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+        <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Invest in Dubai</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Commercial Real Estate</span></div>
+        <div style="flex:1"></div>
+        <div style="position:relative;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:2.5cqw;padding:3.5cqw 6cqw 2.5cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;text-align:center">
+          <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1A2942;font-weight:500;font-size:2.2cqw;padding:1cqw 3cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+          <span style="font-weight:300;font-size:7.9cqw;color:#fff"><span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">AED</span> 1.4M</span>
+          <span style="font-weight:300;font-size:2.2cqw;color:#C9A96A">Full Floors Also Available</span>
+        </div>
+        <div style="height:4.5cqw"></div>
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+      </div>
+    </div>
+
+    <div style="container-type:inline-size;aspect-ratio:1/1;position:relative;overflow:hidden;background:#2F4960">
+      <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;letter-spacing:.08em">QR</div>
+        <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#ECE7DF">Invest in Dubai</span><span style="font-weight:300;font-size:5.5cqw;color:#fff">Commercial Real Estate</span></div>
+        <div style="flex:1"></div>
+        <div style="position:relative;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:2.5cqw;padding:3.5cqw 6cqw 2.5cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;text-align:center">
+          <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1A2942;font-weight:500;font-size:2.2cqw;padding:1cqw 3cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+          <span style="font-weight:300;font-size:7.9cqw;color:#fff"><span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">AED</span> 1.4M</span>
+          <span style="font-weight:300;font-size:2.2cqw;color:#C9A96A">Full Floors Also Available</span>
+        </div>
+        <div style="height:4.5cqw"></div>
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+      </div>
+    </div>
+
+    <div style="container-type:inline-size;aspect-ratio:1/1;position:relative;overflow:hidden;background:#F4F1EC">
+      <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;align-items:center;line-height:1.3"><div style="position:absolute;right:0;bottom:0;width:8cqw;height:8cqw;border-radius:1.4cqw;background:#fff;border:1px solid #D4CFC4;display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#6B7280;letter-spacing:.08em">QR</div>
+        <div style="margin-top:2cqw;display:flex;flex-direction:column;gap:1.2cqw;text-align:center"><span style="font-weight:300;font-size:4.6cqw;color:#2F4960">Invest in Dubai</span><span style="font-weight:300;font-size:5.5cqw;color:#1A2942">Commercial Real Estate</span></div>
+        <div style="flex:1"></div>
+        <div style="position:relative;background:#fff;border:1px solid #D4CFC4;border-radius:2.5cqw;padding:3.5cqw 6cqw 2.5cqw;display:flex;flex-direction:column;gap:1cqw;align-items:center;text-align:center">
+          <span style="position:absolute;top:0;left:50%;transform:translate(-50%,-50%);background:#1A2942;color:#fff;font-weight:500;font-size:2.2cqw;padding:1cqw 3cqw;border-radius:999px;white-space:nowrap">Office Units From</span>
+          <span style="font-weight:300;font-size:7.9cqw;color:#1A2942"><span style="font-weight:300;font-size:3.8cqw;color:#6B7280">AED</span> 1.4M</span>
+          <span style="font-weight:300;font-size:2.2cqw;color:#B0905C">Full Floors Also Available</span>
+        </div>
+        <div style="height:4.5cqw"></div>
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#1A2942">provident<span style="color:#F3793C">.</span></span>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section id="swap" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">05 · Swap guide</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">New project, same system</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+    <div style="background:#fff;border:1px solid #ECE7DF;border-radius:12px;padding:36px;display:flex;flex-direction:column;gap:16px">
+      <div style="font-weight:400;font-size:19px">Change freely</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-weight:300;font-size:16px;line-height:1.6;color:#2F4960">
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#F3793C;flex:none;margin-top:9px"></span><span>Backdrop — property render or photograph, always under the navy scrim</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#F3793C;flex:none;margin-top:9px"></span><span>Colourway — imagery, Deep Navy, Provident Navy, or Cream</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#F3793C;flex:none;margin-top:9px"></span><span>Headline copy, kicker copy, feature-strip benefits</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#F3793C;flex:none;margin-top:9px"></span><span>Currency and figure in the price block — AED / $ / € swap in place</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#F3793C;flex:none;margin-top:9px"></span><span>CTA label, QR destination, event dates and venue</span></div>
+      </div>
+    </div>
+    <div style="background:#1A2942;border-radius:12px;padding:36px;display:flex;flex-direction:column;gap:16px">
+      <div style="font-weight:400;font-size:19px;color:#fff">Never moves</div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-weight:300;font-size:16px;line-height:1.6;color:#ECE7DF">
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A96A;flex:none;margin-top:9px"></span><span>4% safe margin — nothing crosses it; 9:16 adds the Instagram safe zones</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A96A;flex:none;margin-top:9px"></span><span>Image outweighs text — modules cover at most ~40% of the canvas; only essential elements survive: headline, one hook or spec, CTA, logo, QR</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A96A;flex:none;margin-top:9px"></span><span>Logo left or centre, never right; QR a small rounded corner placeholder, never dominant</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A96A;flex:none;margin-top:9px"></span><span>Two weights per lockup (300 setup / 400 payoff); figures 500, the word after them 300</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A96A;flex:none;margin-top:9px"></span><span>Google Sans Flex everywhere; serif only as one emphasised word in the biggest headline — upright, never italic</span></div>
+        <div style="display:flex;gap:12px"><span style="width:8px;height:8px;border-radius:50%;background:#C9A96A;flex:none;margin-top:9px"></span><span>No orange on navy — gold carries dark-surface accents; CTAs navy or white, never orange</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+<div style="font-family:var(--font-sans);color:#1A2942;max-width:1560px;margin:0 auto;padding:0 100px 100px;display:flex;flex-direction:column;gap:120px">
+
+<section id="refstudy" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">06 · Data &amp; action modules</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">Spec, price and response modules</h2>
+    <p style="margin:0;font-weight:300;font-size:17px;line-height:1.7;color:#6B7280;max-width:70ch">The second half of the library: spec data as quiet ladders and rows, a single info bar carrying price, terms and handover in one glance, and the response elements — status tag, register CTA, corner note. Modules 13&ndash;16, same rules as 1&ndash;12.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:40px">
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">13 · Spec ladder</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">spec data</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Stacked eyebrow + value pairs split by hairlines, left-aligned. Figures 500, eyebrows tracked caps in Stone.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#1A2942">
+      <div style="position:relative;padding:6cqw 10cqw;display:flex;flex-direction:column;color:#fff;line-height:1.3">
+        <div style="display:flex;flex-direction:column;gap:.8cqw;padding:2cqw 0"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Starting price</span><span style="font-weight:300;font-size:4.6cqw">AED 799,000</span></div>
+        <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+        <div style="display:flex;flex-direction:column;gap:.8cqw;padding:2cqw 0"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Payment plan</span><span style="font-weight:300;font-size:4.6cqw">40/60</span></div>
+        <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+        <div style="display:flex;flex-direction:column;gap:.8cqw;padding:2cqw 0"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Handover</span><span style="font-weight:300;font-size:4.6cqw">Q4 2028</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">14 · Spec row</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">spec data</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">The ladder laid horizontally for bottom clusters — three pairs, hairline verticals between.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#1A2942">
+      <div style="position:relative;padding:7cqw 8cqw;display:flex;align-items:center;color:#fff;line-height:1.3">
+        <div style="flex:1;display:flex;flex-direction:column;gap:.8cqw"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Starting price</span><span style="font-weight:300;font-size:3.2cqw;white-space:nowrap">AED 799,000</span></div>
+        <div style="width:1px;height:8cqw;background:rgba(236,231,223,.3);margin:0 2cqw"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:.8cqw"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Payment plan</span><span style="font-weight:300;font-size:3.8cqw">40/60</span></div>
+        <div style="width:1px;height:8cqw;background:rgba(236,231,223,.3);margin:0 3cqw"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:.8cqw"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Handover</span><span style="font-weight:300;font-size:3.8cqw">Q4 2028</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">15 · Info bar</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">pricing</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">One bottom bar: price anchor left, glass segments right for terms and handover.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(160deg,#9db4c4,#7b93a4 50%,#5d7261)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.85),rgba(26,41,66,.2))"></div>
+      <div style="position:relative;padding:7cqw 6cqw;display:flex;align-items:flex-end;gap:4cqw;color:#fff;line-height:1.3">
+        <div style="display:flex;flex-direction:column;gap:.6cqw"><span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Prices from</span><span style="font-weight:300;font-size:5.5cqw">AED 2.6M</span></div>
+        <div style="flex:1"></div>
+        <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:2cqw 4cqw;display:flex;align-items:center;gap:3cqw">
+          <div style="display:flex;flex-direction:column;gap:.4cqw"><span style="font-weight:300;font-size:2.2cqw;color:#ECE7DF">Book your unit</span><span style="font-weight:300;font-size:3.2cqw">Pay 20%</span></div>
+          <div style="width:1px;height:6cqw;background:rgba(236,231,223,.35)"></div>
+          <div style="display:flex;flex-direction:column;gap:.4cqw"><span style="font-weight:300;font-size:2.2cqw;color:#ECE7DF">Handover</span><span style="font-weight:300;font-size:3.2cqw">2030</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-weight:400;font-size:19px">16 · Outline tag &amp; corner note</span><span style="font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B0905C">response</span></div>
+    <div style="font-weight:300;font-size:14px;color:#6B7280">Hairline-framed status tag and outlined register CTA (sentence case, weight 500); right-aligned corner note for a secondary message, light 300 — never tracked caps.</div>
+    <div style="container-type:inline-size;position:relative;overflow:hidden;border-radius:12px;background:#1A2942">
+      <div style="position:relative;padding:6cqw 8cqw;display:flex;flex-direction:column;gap:4cqw;align-items:center;line-height:1.3">
+        <span style="border:1px solid rgba(236,231,223,.55);color:#fff;font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;padding:1.4cqw 3.5cqw">Limited units available</span>
+        <span style="border:1px solid rgba(255,255,255,.7);color:#fff;font-weight:500;font-size:2.6cqw;padding:1.8cqw 5cqw;border-radius:999px">Register your interest</span>
+        <span style="font-weight:300;font-size:2.6cqw;line-height:1.5;color:#ECE7DF;text-align:right;align-self:flex-end;max-width:46cqw">Discover Motor City&rsquo;s first branded residences.</span>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</section>
+
+<section id="replicas" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">07 · Layout families G &middot; H &middot; I</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">Data-led families</h2>
+    <p style="margin:0;font-weight:300;font-size:17px;color:#6B7280;max-width:70ch">Three owned families built on the data and response modules. Gradients stand in for the photography.</p>
+  </div>
+  <div style="display:flex;gap:40px;flex-wrap:wrap">
+
+    <div data-screen-label="Family G" style="container-type:inline-size;width:460px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(170deg,#7e99ad,#9db4c4 30%,#8aa08f 70%,#5d7261)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(26,41,66,.6),rgba(26,41,66,.05) 40%,rgba(26,41,66,.05) 60%,rgba(26,41,66,.85))"></div>
+      <div style="position:absolute;inset:5cqw;display:flex;flex-direction:column;line-height:1.3">
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        <div style="height:3.5cqw"></div>
+        <div style="font-weight:100;font-size:6.6cqw;line-height:1.12;color:#fff">Urban living, <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">redefined</em></div>
+        <div style="height:2cqw"></div>
+        <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF;max-width:60cqw">1 to 4 BR apartments, duplexes and penthouses</span>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:flex-end;gap:3cqw">
+          <div style="display:flex;flex-direction:column;gap:.6cqw;color:#fff"><span style="font-weight:300;font-size:2.6cqw;color:#ECE7DF">Prices from</span><span style="font-weight:300;font-size:5.5cqw">AED 2.6M</span></div>
+          <div style="flex:1"></div>
+          <div style="background:rgba(255,255,255,.10);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.22);border-radius:2.5cqw;padding:1.8cqw 3.5cqw;display:flex;align-items:center;gap:2.5cqw;color:#fff">
+            <div style="display:flex;flex-direction:column;gap:.3cqw"><span style="font-weight:300;font-size:2.2cqw;color:#ECE7DF">Book your unit</span><span style="font-weight:500;font-size:2.6cqw">Pay 20%</span></div>
+            <div style="width:1px;height:5.5cqw;background:rgba(236,231,223,.35)"></div>
+            <div style="display:flex;flex-direction:column;gap:.3cqw"><span style="font-weight:300;font-size:2.2cqw;color:#ECE7DF">Handover</span><span style="font-weight:500;font-size:2.6cqw">2030</span></div>
+          </div>
+          <div style="width:7cqw;height:7cqw;border-radius:1.2cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;flex:none">QR</div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Family H" style="container-type:inline-size;width:460px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(250deg,#c2a68a,#8a7a6d 45%,#4a4a52)">
+      <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(26,41,66,.88),rgba(26,41,66,.45) 55%,rgba(26,41,66,.15))"></div>
+      <div style="position:absolute;inset:5cqw;display:flex;flex-direction:column;line-height:1.3">
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        <div style="flex:1"></div>
+        <div style="font-weight:100;font-size:6.6cqw;line-height:1.15;color:#fff;max-width:62cqw">Motor City&rsquo;s first <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">branded</em> residences</div>
+        <div style="height:3cqw"></div>
+        <div style="height:1px;width:58cqw;background:rgba(236,231,223,.3)"></div>
+        <div style="height:2cqw"></div>
+        <span style="font-weight:500;font-size:2.6cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Studios, 1&ndash;2 bed apartments</span>
+        <div style="height:2cqw"></div>
+        <div style="display:flex;align-items:flex-end">
+          <div style="display:flex;flex-direction:column;color:#fff;width:58cqw">
+            <div style="display:flex;flex-direction:column;gap:.6cqw;padding:1.6cqw 0"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Starting price</span><span style="font-weight:300;font-size:3.8cqw">AED 799,000</span></div>
+            <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+            <div style="display:flex;flex-direction:column;gap:.6cqw;padding:1.6cqw 0"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Payment plan</span><span style="font-weight:300;font-size:3.8cqw">40/60</span></div>
+            <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+            <div style="display:flex;flex-direction:column;gap:.6cqw;padding:1.6cqw 0"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Handover</span><span style="font-weight:300;font-size:3.8cqw">Q4 2028</span></div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;flex-direction:column;gap:2cqw;align-items:flex-end">
+            <span style="border:1px solid rgba(236,231,223,.55);color:#fff;font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;padding:1.2cqw 3cqw;white-space:nowrap">Limited units</span>
+            <div style="width:7cqw;height:7cqw;border-radius:1.2cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF">QR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-screen-label="Family I" style="container-type:inline-size;width:460px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(170deg,#8a91a8,#6b6478 50%,#3a3648)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,.92),rgba(26,41,66,.3) 45%,rgba(26,41,66,.25))"></div>
+      <div style="position:absolute;inset:5cqw;display:flex;flex-direction:column;line-height:1.3">
+        <div style="display:flex;align-items:flex-start">
+          <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+          <div style="flex:1"></div>
+          <span style="font-weight:300;font-size:2.6cqw;line-height:1.5;color:#ECE7DF;text-align:right;max-width:38cqw">Discover Motor City&rsquo;s first branded residences.</span>
+        </div>
+        <div style="flex:1"></div>
+        <div style="font-weight:100;font-size:6.6cqw;line-height:1.15;color:#fff;max-width:66cqw">Offering <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">joyful</em> reconnection</div>
+        <div style="height:2.5cqw"></div>
+        <span style="font-weight:500;font-size:2.6cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">Studios, 1&ndash;2 bed apartments</span>
+        <div style="height:2.5cqw"></div>
+        <div style="height:1px;background:rgba(236,231,223,.3)"></div>
+        <div style="height:2.5cqw"></div>
+        <div style="display:flex;flex-direction:column;gap:2.5cqw;color:#fff">
+          <div style="display:flex;align-items:flex-end;gap:4cqw">
+            <div style="display:flex;flex-direction:column;gap:.5cqw"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.14em;text-transform:uppercase;color:#D4CFC4;white-space:nowrap">Starting price</span><span style="font-weight:500;font-size:2.6cqw;white-space:nowrap">AED 799,000</span></div>
+            <div style="display:flex;flex-direction:column;gap:.5cqw"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.14em;text-transform:uppercase;color:#D4CFC4;white-space:nowrap">Payment plan</span><span style="font-weight:500;font-size:2.6cqw;white-space:nowrap">40/60</span></div>
+            <div style="display:flex;flex-direction:column;gap:.5cqw"><span style="font-weight:500;font-size:2.2cqw;letter-spacing:.14em;text-transform:uppercase;color:#D4CFC4;white-space:nowrap">Handover</span><span style="font-weight:500;font-size:2.6cqw;white-space:nowrap">Q4 2028</span></div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:2.5cqw">
+            <span style="border:1px solid rgba(255,255,255,.7);color:#fff;font-weight:500;font-size:2.2cqw;padding:1.3cqw 3cqw;border-radius:999px;white-space:nowrap">Register interest</span>
+            <div style="flex:1"></div>
+            <div style="width:6cqw;height:6cqw;border-radius:1.1cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF;flex:none">QR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="billboard" style="display:flex;flex-direction:column;gap:40px">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#B0905C">08 · Experiment</div>
+    <h2 style="margin:0;font-weight:300;font-size:34px">Family F · Billboard logic</h2>
+    <p style="margin:0;font-weight:300;font-size:17px;line-height:1.7;color:#6B7280;max-width:70ch">The image is the poster, everything reads in under two seconds — eyebrow, title, one hook line, a metadata tag row instead of paragraphs, then one primary action. Left-aligned, bottom-anchored, image window on the right/top.</p>
+  </div>
+  <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+
+    <div data-screen-label="F · 1:1" style="container-type:inline-size;width:520px;aspect-ratio:1/1;position:relative;overflow:hidden;flex:none;background:linear-gradient(250deg,#a8b6c2,#6b7d8d 50%,#374757)">
+      <div style="position:absolute;inset:0;background:linear-gradient(75deg,rgba(26,41,66,.95),rgba(26,41,66,.5) 45%,rgba(26,41,66,.05))"></div>
+      <div style="position:absolute;inset:4cqw;display:flex;flex-direction:column;line-height:1.3">
+        <span style="font-weight:300;font-size:3.8cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        <div style="flex:1"></div>
+        <div style="display:flex;flex-direction:column;gap:2.5cqw;max-width:64cqw">
+          <span style="font-weight:500;font-size:2.2cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">New launch · Business Bay</span>
+          <div style="font-weight:100;font-size:7.9cqw;line-height:1.1;color:#fff">Waterfront living, <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">measured</em> returns</div>
+          <span style="font-weight:300;font-size:3.2cqw;color:#ECE7DF">1&ndash;3 BR residences from AED 1.9M</span>
+          <div style="display:flex;gap:1.5cqw;flex-wrap:wrap">
+            <span style="border:1px solid rgba(236,231,223,.45);color:#ECE7DF;font-weight:300;font-size:2.2cqw;padding:.9cqw 2.6cqw;border-radius:999px">0% property tax</span>
+            <span style="border:1px solid rgba(236,231,223,.45);color:#ECE7DF;font-weight:300;font-size:2.2cqw;padding:.9cqw 2.6cqw;border-radius:999px">10% rental yield</span>
+            <span style="border:1px solid rgba(236,231,223,.45);color:#ECE7DF;font-weight:300;font-size:2.2cqw;padding:.9cqw 2.6cqw;border-radius:999px">10-year Golden Visa</span>
+          </div>
+          <div style="display:flex;gap:2cqw;align-items:center">
+            <span style="background:#fff;color:#1A2942;font-weight:500;font-size:2.6cqw;padding:1.7cqw 4.5cqw;border-radius:999px;white-space:nowrap">Register your interest</span>
+            <span style="border:1px solid rgba(255,255,255,.7);color:#fff;font-weight:500;font-size:2.6cqw;padding:1.7cqw 4.5cqw;border-radius:999px;white-space:nowrap">View brochure</span>
+          </div>
+        </div>
+        <div style="position:absolute;right:0;bottom:0;width:7cqw;height:7cqw;border-radius:1.2cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF">QR</div>
+      </div>
+    </div>
+
+    <div data-screen-label="F · 9:16" style="container-type:inline-size;width:320px;aspect-ratio:9/16;position:relative;overflow:hidden;flex:none;background:linear-gradient(200deg,#a8b6c2,#6b7d8d 55%,#31404f)">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(26,41,66,1),rgba(26,41,66,.55) 42%,rgba(26,41,66,.05) 68%)"></div>
+      <div style="position:absolute;left:6cqw;right:8cqw;top:26cqw;bottom:41cqw;display:flex;flex-direction:column;line-height:1.3">
+        <span style="font-weight:300;font-size:4.6cqw;letter-spacing:.04em;color:#fff">provident.</span>
+        <div style="flex:1"></div>
+        <div style="display:flex;flex-direction:column;gap:3.5cqw">
+          <span style="font-weight:500;font-size:2.6cqw;letter-spacing:.16em;text-transform:uppercase;color:#D4CFC4">New launch · Business Bay</span>
+          <div style="font-weight:100;font-size:9.5cqw;line-height:1.1;color:#fff">Waterfront living, <em style="font-family:var(--font-accent);font-style:normal;font-weight:300;color:#C9A96A">measured</em> returns</div>
+          <span style="font-weight:300;font-size:3.8cqw;color:#ECE7DF">1&ndash;3 BR residences from AED 1.9M</span>
+          <div style="display:flex;gap:1.8cqw;flex-wrap:wrap">
+            <span style="border:1px solid rgba(236,231,223,.45);color:#ECE7DF;font-weight:300;font-size:2.6cqw;padding:1.1cqw 3.2cqw;border-radius:999px">0% property tax</span>
+            <span style="border:1px solid rgba(236,231,223,.45);color:#ECE7DF;font-weight:300;font-size:2.6cqw;padding:1.1cqw 3.2cqw;border-radius:999px">10% rental yield</span>
+            <span style="border:1px solid rgba(236,231,223,.45);color:#ECE7DF;font-weight:300;font-size:2.6cqw;padding:1.1cqw 3.2cqw;border-radius:999px">10-year Golden Visa</span>
+          </div>
+          <div style="display:flex;gap:2.4cqw;align-items:center">
+            <span style="background:#fff;color:#1A2942;font-weight:500;font-size:3.2cqw;padding:2cqw 5.5cqw;border-radius:999px;white-space:nowrap">Register your interest</span>
+            <div style="flex:1"></div>
+            <div style="width:8cqw;height:8cqw;border-radius:1.4cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-weight:300;font-size:2.2cqw;color:#ECE7DF">QR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</div></x-dc>
+</body>
+</html>
