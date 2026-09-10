@@ -2803,12 +2803,11 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 .gd-sec[data-state="done"] .gd-sec-n .gd-sec-ok{display:block}
 .gd-sec[data-state="done"] .gd-sec-s{background:var(--ps-good-q);color:var(--ps-good)}
 /* skipped past with something missing: amber disc, amber count, and the header names it */
-.gd-sec[data-state="warn"] .gd-sec-n{background:var(--ps-warn);color:#1D1D1F;border-color:var(--ps-warn)}
+.gd-sec[data-state="warn"] .gd-sec-n{background:var(--ps-warn);color:var(--ps-app);border-color:var(--ps-warn)}
 .gd-sec[data-state="warn"] .gd-sec-n .gd-sec-wn{display:block;width:20px;height:20px}
 .gd-sec[data-state="warn"] .gd-sec-s{background:var(--ps-warn-q);color:var(--ps-warn)}
 .gd-sec[data-state="warn"] .gd-sec-h{border-bottom-color:var(--ps-warn)}
 .gd-sec[data-state="warn"] .gd-sec-t{color:var(--ps-warn)}
-:root[data-theme="light"] .gd-sec[data-state="warn"] .gd-sec-n{color:#fff}
 
 /* the drops: pictures 4:3 (backgrounds, the parallax cut-out, every agent, the partner
    mark), QR 1:1 */
@@ -2830,14 +2829,53 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
 /* the page strip: a page left with something missing */
 .gd-ptile[data-warn] .gd-pthumb{border-color:var(--ps-warn);box-shadow:0 0 0 2px var(--ps-warn-q)}
-.gd-ptile[data-warn] s{color:var(--ps-warn)}
+.gd-ptile[data-warn] s{color:var(--ps-ink)}
 .gd-ptile[data-warn] .gd-pthumb::after{content:'!';position:absolute;right:-6px;top:-6px;width:16px;height:16px;
-  border-radius:50%;background:var(--ps-warn);color:#1D1D1F;font:700 10px/16px var(--ps-font);text-align:center}
+  border-radius:50%;background:var(--ps-warn);color:var(--ps-app);font:700 10px/16px var(--ps-font);text-align:center}
 .gd-pthumb{position:relative;overflow:visible}
 .gd-pthumb .gd-pt-img{border-radius:6px}
 
 @media (max-width:1060px){
   .gd-qrow .gd-drop-ph{width:150px;max-width:150px}
+}
+/* ══ 26. THE FORM IS THE RIGHT RAIL IN THE EDITOR ════════════════════════════════════
+   One markup, one builder, two homes. `.gd[data-mode="editor"]` and its body are
+   display:contents, so `.gd-in-zone` is a flex child of .p-body in the old rail's slot; the
+   preview column, the Back/Next bar, the blocked list and the progress bar are hidden. The
+   step rail (the disc's vertical line) is dropped at this width and the disc sits inline in
+   the header; drops shrink to 150px. Everything else — fields, pairs, section states, the
+   4:3 pictures and the 1:1 QR — is the guided run's, unchanged. */
+.gd[data-mode="editor"]{display:contents;animation:none}
+.gd[data-mode="editor"] .gd-body{display:contents}
+.gd[data-mode="editor"] .gd-pv-zone,.gd[data-mode="editor"] .gd-prog,
+.gd[data-mode="editor"] .gd-nav,.gd[data-mode="editor"] .gd-ask-tail{display:none}
+.gd[data-mode="editor"] .gd-in-zone{flex:0 0 322px;width:322px;box-sizing:border-box;min-height:0;
+  border-right:0;border-left:1px solid var(--ps-line);background:var(--ps-sb)}
+.gd[data-mode="editor"] .gd-head{padding:16px 16px 12px;gap:4px}
+.gd[data-mode="editor"] .gd-head b{font-size:17px}
+.gd[data-mode="editor"] .gd-head s{font-size:12px}
+.gd[data-mode="editor"] .gd-askwrap{padding:16px 16px 26px;gap:22px}
+.gd[data-mode="editor"] .gd-sec{padding-left:0;gap:12px}
+.gd[data-mode="editor"] .gd-sec::before{display:none}
+.gd[data-mode="editor"] .gd-sec-n{position:static;width:22px;height:22px;font-size:10.5px}
+.gd[data-mode="editor"] .gd-sec-n svg{width:14px;height:14px}
+.gd[data-mode="editor"] .gd-sec[data-state="warn"] .gd-sec-n .gd-sec-wn{width:17px;height:17px}
+.gd[data-mode="editor"] .gd-sec-h{font-size:13px;gap:8px;padding-bottom:9px}
+.gd[data-mode="editor"] .gd-sec-s{font-size:11px;padding:4px 8px}
+.gd[data-mode="editor"] .gd-sec-g{gap:14px 10px}
+.gd[data-mode="editor"] .gd-qrow .gd-drop-ph{width:150px;max-width:150px}
+.gd[data-mode="editor"] .gd-qrow .gd-drop-sq{width:100px;max-width:100px}
+.gd[data-mode="editor"] .gd-big{padding:10px 12px;font-size:14px}
+.gd[data-mode="editor"] .gd-bigstep span{font-size:17px;min-width:34px}
+.gd-empty{display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:14px;
+  background:var(--ps-fill)}
+.gd-empty b{font:500 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.gd-empty s{font:400 12px/1.5 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-style:normal}
+/* below 1200px the rail is a sheet, exactly as the aside it replaced was */
+@media (max-width:1200px){
+  .gd[data-mode="editor"] .gd-in-zone{position:fixed;top:56px;bottom:0;width:min(340px,88vw);
+    z-index:60;right:calc(-1 * min(340px,88vw) - 12px);border:none;padding-bottom:64px}
+  .gd[data-mode="editor"] .gd-in-zone[data-open]{right:0}
 }
 </style>
 </helmet>
@@ -2940,319 +2978,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
 <!-- ══ TEMPLATE PICKER — Organic Post Studio ════════════════════════════ -->
 <!-- ══ STEP-BY-STEP RUN (Organic) ═══════════════════════════════════════ -->
-<sc-if value="{{ onGuide }}" hint-placeholder-val="{{ false }}">
-<div class="gd">
-  <div class="gd-body">
-    <!-- THE FORM: one page, top to bottom. Sections in a fixed order — Pages · Words ·
-         Agent · Pictures · QR & listing — so the words always come before the pictures,
-         and every page reads the same way. -->
-    <div class="gd-in-zone">
-      <div class="gd-head">
-        <s class="gd-kick">{{ tplLabel }} · {{ gdWhere }}</s>
-        <b>{{ gdPageTitle }}</b>
-        <s>{{ gdPagePurpose }}</s>
-      </div>
-
-      <div class="gd-askwrap">
-        <sc-for list="{{ gdSecs }}" as="sec" hint-placeholder-count="3">
-        <section class="gd-sec" data-sec="{{ sec.idx }}" data-state="{{ sec.state }}">
-          <!-- a numbered step: the disc becomes a tick once everything in the section is
-               there, and an amber mark if you moved on past it with something missing -->
-          <h3 class="gd-sec-h">
-            <i class="gd-sec-n"><b>{{ sec.no }}</b><svg class="gd-sec-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><svg class="gd-sec-wn" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-400v-240h80v240h-80Zm40 160q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Z"/></svg></i>
-            <span class="gd-sec-t">{{ sec.title }}</span>
-            <span class="gd-sec-s">{{ sec.note }}</span>
-          </h3>
-          <div class="gd-sec-g">
-            <sc-for list="{{ sec.items }}" as="a" hint-placeholder-count="3">
-            <sc-if value="{{ a.isGroup }}" hint-placeholder-val="{{ false }}">
-              <span class="gd-grp">{{ a.group }}</span>
-            </sc-if>
-            <sc-if value="{{ a.isRow }}" hint-placeholder-val="{{ true }}">
-            <div class="gd-ask" data-k="{{ a.key }}" data-half="{{ a.half }}">
-              <div class="gd-ask-h">
-                <b class="gd-askq">{{ a.label }}</b>
-              </div>
-
-              <sc-if value="{{ a.isField }}" hint-placeholder-val="{{ true }}">
-                <sc-if value="{{ a.row.isSeg }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-segs"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
-                </sc-if>
-                <sc-if value="{{ a.row.isSel }}" hint-placeholder-val="{{ false }}">
-                  <select value="{{ a.row.val }}" onChange="{{ a.row.setSel }}" class="gd-big gd-bigsel">
-                    <sc-for list="{{ a.row.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.v }}</option></sc-for>
-                  </select>
-                </sc-if>
-                <sc-if value="{{ a.row.isStep }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-bigstep">
-                    <button onClick="{{ a.row.dec }}" class="gd-stepb">‹</button>
-                    <span>{{ a.row.val }}</span>
-                    <button onClick="{{ a.row.inc }}" class="gd-stepb">›</button>
-                  </div>
-                </sc-if>
-                <sc-if value="{{ a.row.isInput }}" hint-placeholder-val="{{ true }}">
-                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" class="gd-big" placeholder="Type your answer here…">
-                </sc-if>
-                <sc-if value="{{ a.row.isArea }}" hint-placeholder-val="{{ false }}">
-                  <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
-                  <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
-                </sc-if>
-                <span class="gd-hint">{{ a.row.hint }}</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isPhoto }}" hint-placeholder-val="{{ false }}">
-                <!-- a THUMB with its label beside it, the shape the QR and portrait rows already
-                     have. Full-width at 3:4 it was 600px tall and made every page scroll. -->
-                <div class="gd-qrow">
-                  <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
-                    <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
-                  </div>
-                  <div class="gd-qrow-t">
-                    <s>{{ a.photoLabel }}</s>
-                    <s>Kept at full resolution for export. Drag it, or click to browse. On the card, drag the photo to move it and a corner grip to scale it.</s>
-                    <sc-if value="{{ a.phResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.phReset }}" class="gd-link">Reset photo scale &amp; position</button></sc-if>
-                  </div>
-                </div>
-              </sc-if>
-
-              <!-- THE PARALLAX LAYER: a toggle, off by default, and the drop only once it is on. -->
-              <sc-if value="{{ a.isPx }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
-                <sc-if value="{{ a.pxOn }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-qrow">
-                    <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
-                      <image-slot id="{{ a.pxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
-                    </div>
-                    <div class="gd-qrow-t">
-                      <s>{{ a.pxLabel }}</s>
-                      <s>A PNG cut-out of the picture’s own foreground — the building, the car — so it passes in front of the status. It locks to the background’s position and zoom.</s>
-                    </div>
-                  </div>
-                </sc-if>
-                <span class="gd-hint">Optional. Off by default; turn it on when the picture has a foreground worth lifting.</span>
-              </sc-if>
-
-              <!-- THE GROUP PHOTO LAYER, the rail's own control: choose a figure here, drag it
-                   on the card. The keys are the rail's (`grpPills`…), valid because this page IS
-                   the active slide. -->
-              <sc-if value="{{ a.isGrp }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ grpPills }}" as="gp" hint-placeholder-count="5"><button onClick="{{ gp.set }}" class="gd-seg" style="{{ gp.style }}">{{ gp.label }}</button></sc-for></div>
-                <span class="gd-hint">{{ grpHint }}</span>
-                <sc-if value="{{ grpSelOn }}" hint-placeholder-val="{{ false }}">
-                  <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ grpScalePct }}</s></b>
-                  <div class="gd-slide"><input type="range" min="12" max="160" step="1" value="{{ grpScaleVal }}" onChange="{{ onGrpScale }}" class="gd-range"></div>
-                  <div class="gd-segs">
-                    <button onClick="{{ grpPin }}" class="gd-seg">Stand on bottom</button>
-                    <button onClick="{{ grpPinAll }}" class="gd-seg">Stand all</button>
-                  </div>
-                </sc-if>
-                <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}"><span class="gd-hint">Choose a layer above to size it. The five portraits come from the rank pages.</span></sc-if>
-                <button onClick="{{ a.grpReset }}" class="gd-link">Reset positions</button>
-              </sc-if>
-
-              <!-- THE AWARD'S PARTNER MARK and its tint, from the rail's All-slides group. -->
-              <sc-if value="{{ a.isAlogo }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-qrow">
-                  <div class="gd-drop gd-drop-ph" data-done="{{ a.alogoDone }}">
-                    <image-slot id="smp-alogo" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
-                  </div>
-                  <div class="gd-qrow-t">
-                    <s>{{ a.alogoLabel }}</s>
-                    <s>Fitted to its box by its own ink, so a padded file still lines up.</s>
-                    <div class="gd-segs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" class="gd-seg" style="{{ ao.style }}">{{ ao.label }}</button></sc-for></div>
-                    <s>A brand-kit SVG is usually navy, which all but disappears on this ground — Match canvas recolours it.</s>
-                  </div>
-                </div>
-              </sc-if>
-
-              <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
-                <span class="gd-hint">{{ a.storyHint }}</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isName }}" hint-placeholder-val="{{ false }}">
-                <sc-if value="{{ a.nameWeekly }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-segs gd-pair">
-                    <select value="{{ monthVal }}" onChange="{{ onMonth }}" class="gd-big gd-bigsel"><sc-for list="{{ monthOpts }}" as="o" hint-placeholder-count="12"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select>
-                    <select value="{{ weekVal }}" onChange="{{ onWeek }}" class="gd-big gd-bigsel"><sc-for list="{{ weekOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select>
-                  </div>
-                </sc-if>
-                <input value="{{ a.nameVal }}" onChange="{{ a.setName }}" class="gd-big" placeholder="{{ a.namePh }}">
-                <span class="gd-hint">Optional — a custom name overrides the convention. Files will be named {{ filePreview }}</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isQr }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-qrow">
-                  <div class="gd-drop gd-drop-sq" data-done="{{ a.qrDone }}">
-                    <image-slot id="{{ a.qrSlot }}" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
-                  </div>
-                  <div class="gd-qrow-t">
-                    <s>{{ a.qrLabel }}</s>
-                    <sc-if value="{{ a.qrLink }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.openQrLink }}" class="gd-link">Visit QR code link ↗</button></sc-if>
-                  </div>
-                </div>
-              </sc-if>
-
-              <sc-if value="{{ a.isPages }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-pages">
-                  <sc-for list="{{ a.pageRows }}" as="r" hint-placeholder-count="2">
-                    <div class="gd-page-r">
-                      <b>{{ r.name }}</b>
-                      <span class="p-spring"></span>
-                      <s data-fixed="{{ r.fixed }}">Always included</s>
-                      <button onClick="{{ r.del }}" class="gd-page-x" data-can="{{ r.canDel }}">Delete</button>
-                    </div>
-                  </sc-for>
-                </div>
-                <button onClick="{{ a.addPage }}" class="gd-addpage" data-can="{{ a.canAddPage }}">{{ a.addPageLabel }}</button>
-                <span class="gd-hint">The first {{ a.pageWord }} is always part of the post. Add more now and you will be asked for each one in turn.</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isProj }}" hint-placeholder-val="{{ false }}">
-                <input value="{{ a.projVal }}" onChange="{{ a.setProj }}" class="gd-big" placeholder="Type your answer here…">
-                <span class="gd-hint">{{ a.projHint }}</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isAgent2 }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.agent2Opts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
-                <span class="gd-hint">A second agent adds a matching name, role and headshot beside the first.</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isPortrait }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-qrow">
-                  <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
-                    <image-slot id="{{ a.portraitSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
-                  </div>
-                  <div class="gd-qrow-t">
-                    <s>{{ a.portraitLabel }}</s>
-                    <s>A PNG cut-out on a transparent background. The face is found and framed for you, so any crop works.</s>
-                  </div>
-                </div>
-              </sc-if>
-
-              <sc-if value="{{ a.isScrim }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-slide">
-                  <input type="range" min="0" max="100" value="{{ a.scrimVal }}" onChange="{{ a.setScrim }}" class="gd-range">
-                  <b class="gd-rangev">{{ a.scrimPct }}</b>
-                </div>
-                <span class="gd-hint">The dark wash sits behind the words so they stay readable over the photo. Watch the preview — lower it until the photo comes through, raise it if the text is fighting the image.</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isImgO }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-slide">
-                  <input type="range" min="10" max="100" value="{{ a.imgOVal }}" onChange="{{ a.setImgO }}" class="gd-range">
-                  <b class="gd-rangev">{{ a.imgOPct }}</b>
-                </div>
-                <span class="gd-hint">How much of the photo shows through. Pull it down for a quieter, more typographic card.</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isDest }}" hint-placeholder-val="{{ false }}">
-                <sc-if value="{{ a.destSupported }}" hint-placeholder-val="{{ true }}">
-                  <div class="gd-dest" data-set="{{ a.destSetOn }}">
-                    <div class="gd-dest-t">
-                      <b>{{ a.destName }}</b>
-                      <s>Everything this post exports goes straight in here — the images, the story sizes and the session file.</s>
-                    </div>
-                    <button onClick="{{ a.destPick }}" class="gd-destb">{{ a.destLabel }}</button>
-                  </div>
-                </sc-if>
-                <sc-if value="{{ a.destUnsupported }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-expok">
-                    <b>This browser cannot hold a folder</b>
-                    <s>Safari and Firefox have no folder picker, so you will be asked where to put each file as it downloads instead. Chrome or Edge can remember a folder for the whole project.</s>
-                  </div>
-                </sc-if>
-                <span class="gd-hint">Required — the run will not export until there is somewhere to put the files.</span>
-              </sc-if>
-
-              <sc-if value="{{ a.isExport }}" hint-placeholder-val="{{ false }}">
-                <sc-if value="{{ a.expBlocked }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-expbad">
-                    <b>Not ready yet</b>
-                    <sc-for list="{{ a.expBlockers }}" as="b" hint-placeholder-count="2"><s>{{ b.t }}</s></sc-for>
-                  </div>
-                </sc-if>
-                <sc-if value="{{ a.expClear }}" hint-placeholder-val="{{ true }}">
-                  <div class="gd-expok">
-                    <b>Everything needed is here.</b>
-                    <s>{{ a.storyNote }}</s>
-                  </div>
-                  <div class="gd-exprow">
-                    <button onClick="{{ a.expZip }}" class="gd-expb gd-expb-p">Save all</button>
-                    <sc-if value="{{ a.expPdfOn }}" hint-placeholder-val="{{ false }}">
-                      <button onClick="{{ a.expPdf }}" class="gd-expb">Download as PDF</button>
-                    </sc-if>
-                  </div>
-                </sc-if>
-                <span class="gd-hint">{{ a.expNote }}</span>
-              </sc-if>
-
-
-
-              <span class="gd-askbad" data-bad="{{ a.badOn }}">{{ a.issueShown }}</span>
-            </div>
-            </sc-if>
-            </sc-for>
-          </div>
-        </section>
-        </sc-for>
-      </div>
-
-      <!-- Raised only when Next is refused: what this page is still missing, each row a
-           jump to the field. At rest the form carries the questions and nothing else. -->
-      <div class="gd-ask-tail" data-on="{{ gdBlockOn }}">
-        <sc-if value="{{ gdBlockOn }}" hint-placeholder-val="{{ false }}">
-          <div class="gd-blocked">
-            <b>{{ gdBlockTitle }}</b>
-            <s>{{ gdBlockLead }} Pick one to fill in.</s>
-            <sc-for list="{{ gdBlockRows }}" as="r" hint-placeholder-count="3">
-              <button onClick="{{ r.go }}" class="gd-blocked-r">{{ r.t }}</button>
-            </sc-for>
-            <sc-if value="{{ gdBlockMoreOn }}" hint-placeholder-val="{{ false }}">
-              <i class="gd-blocked-m">{{ gdBlockMore }}</i>
-            </sc-if>
-          </div>
-        </sc-if>
-      </div>
-
-      <div class="gd-nav">
-        <button onClick="{{ gdBack }}" class="gd-btn" data-off="{{ gdBackOff }}">Back</button>
-        <span class="p-spring"></span>
-        <button onClick="{{ gdNext }}" class="gd-btn gd-btn-p" data-ready="{{ gdNextReady }}">{{ gdNextLabel }}</button>
-      </div>
-    </div>
-
-    <!-- THE POST: this page's card, large, with every page as a labelled thumb beneath it
-         and Finish as the last tile. That strip is the ONE navigation besides Back/Next —
-         the numbered type-stepper, the ask chevrons and the slide bar are gone. -->
-    <div class="gd-pv-zone">
-      <div class="gd-stage">
-        <div class="gd-card gd-card-1">
-          <sc-if value="{{ gdCard.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ gdCard.src }}" alt="preview"></sc-if>
-          <sc-if value="{{ gdCard.noShot }}" hint-placeholder-val="{{ true }}">
-            <div class="gd-lines"><sc-for list="{{ gdCard.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
-          </sc-if>
-        </div>
-      </div>
-      <div class="gd-pstrip">
-        <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="3">
-          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-warn="{{ c.warn }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}">
-            <span class="gd-pthumb">
-              <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-pt-img" data-src="{{ c.src }}" alt=""></sc-if>
-              <sc-if value="{{ c.isFinish }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></sc-if>
-            </span>
-            <s>{{ c.t }}</s>
-          </button>
-        </sc-for>
-      </div>
-      <span class="gd-help">{{ gdNote }}</span>
-    </div>
-  </div>
-
-  <div class="gd-prog"><i style="{{ gdProgStyle }}"></i></div>
-</div>
-</sc-if>
-
 <sc-if value="{{ onPick }}" hint-placeholder-val="{{ false }}">
 <div class="p-over">
   <div class="p-over-in p-over-wide">
@@ -3759,246 +3484,331 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <div class="p-cvbar"><b>{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ toggleStory }}" class="p-btn-q" data-on="{{ storyOnFlag }}" title="The story is always built and always exported — this only shows or hides its canvas">{{ storyBtnLabel }}</button><i>{{ exportStatus }}</i></div>
 </div>
 
-<aside class="p-rail p-rail-r" data-open="{{ shPanelOnLayout }}">
-  <div class="p-sec p-sec-a">
-    <div class="p-cap">This slide <s>{{ activeName }}</s></div>
-    <sc-for list="{{ slideFields }}" as="f" hint-placeholder-count="3">
-      <sc-if value="{{ f.isSeg }}" hint-placeholder-val="{{ false }}">
-        <div class="p-fld"><span>{{ f.label }}</span>
-          <div class="p-row"><sc-for list="{{ f.opts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
-          <sc-if value="{{ f.hintOn }}" hint-placeholder-val="{{ true }}"><span class="p-hint">{{ f.hint }}</span></sc-if>
-        </div>
-      </sc-if>
-      <sc-if value="{{ f.isInput }}" hint-placeholder-val="{{ true }}">
-        <label class="p-fld">{{ f.label }}
-          <input value="{{ f.val }}" onChange="{{ f.set }}" style="{{ f.inputStyle }}">
-          <sc-if value="{{ f.hintOn }}" hint-placeholder-val="{{ true }}"><span class="p-hint">{{ f.hint }}</span></sc-if>
-          <sc-if value="{{ f.errOn }}" hint-placeholder-val="{{ false }}"><span class="p-bad">{{ f.errText }}</span></sc-if>
-        </label>
-      </sc-if>
-      <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ false }}">
-        <label class="p-fld">{{ f.label }}
-          <textarea value="{{ f.val }}" onChange="{{ f.set }}" rows="6" class="p-in"></textarea>
-          <sc-if value="{{ f.hintOn }}" hint-placeholder-val="{{ true }}"><span class="p-hint">{{ f.hint }}</span></sc-if>
-        </label>
-      </sc-if>
-      <sc-if value="{{ f.isSelect }}" hint-placeholder-val="{{ false }}">
-        <div class="p-fld"><span>{{ f.label }}</span>
-          <select value="{{ f.val }}" onChange="{{ f.set }}" class="p-in">
-            <sc-for list="{{ f.opts2 }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.v }}</option></sc-for>
-          </select>
-          <sc-if value="{{ f.hintOn }}" hint-placeholder-val="{{ true }}"><span class="p-hint">{{ f.hint }}</span></sc-if>
-        </div>
-      </sc-if>
-      <sc-if value="{{ f.isStep }}" hint-placeholder-val="{{ false }}">
-        <div class="p-fld"><span>{{ f.label }}</span>
-          <div class="p-row-c" style="gap:8px">
-            <button onClick="{{ f.dec }}" class="p-icon">‹</button>
-            <span style="min-width:36px;text-align:center;font-weight:400;font-size:15px">{{ f.val }}</span>
-            <button onClick="{{ f.inc }}" class="p-icon">›</button>
-          </div>
-          <sc-if value="{{ f.hintOn }}" hint-placeholder-val="{{ true }}"><span class="p-hint">{{ f.hint }}</span></sc-if>
-        </div>
-      </sc-if>
-      <sc-if value="{{ f.isNote }}" hint-placeholder-val="{{ false }}">
-        <div style="{{ f.noteStyle }}">{{ f.label }}</div>
-      </sc-if>
-    </sc-for>
-    <!-- The group shot's LAYER control. It is its own object — a picker, a size slider and
-         two buttons — rather than a `slideFields` row, because none of the six row types
-         fits it and inventing a seventh to hold one control is worse than a gated group.
-         The drag stays on the canvas by request; this is only how a layer is chosen. -->
-    <sc-if value="{{ grpCtlOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">Group photo layer <s>{{ grpSelLabel }}</s> <span class="tip" data-tip="The five rank portraits, front to back. Pick one here — a figure standing behind another cannot be clicked on the canvas at all — then drag it on the canvas to move it. Size is anchored to the bottom, so a figure grows upward and keeps its feet on the floor." style="{{ infoStyle }}">i</span></span>
-        <div class="p-row">
-          <sc-for list="{{ grpPills }}" as="gp" hint-placeholder-count="5">
-            <button onClick="{{ gp.set }}" style="{{ gp.style }}">{{ gp.label }}</button>
-          </sc-for>
-        </div>
-        <span class="p-hint">{{ grpHint }}</span>
-        <sc-if value="{{ grpSelOn }}" hint-placeholder-val="{{ false }}">
-          <span class="p-lab p-lab-2">Size <s>{{ grpScalePct }}</s></span>
-          <input type="range" min="12" max="160" step="1" value="{{ grpScaleVal }}" onChange="{{ onGrpScale }}">
-          <div class="p-row">
-            <button onClick="{{ grpPin }}" style="{{ grpPinStyle }}">Stand on bottom</button>
-            <button onClick="{{ grpPinAll }}" style="{{ grpPinStyle }}">Stand all</button>
-          </div>
-        </sc-if>
-        <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}">
-          <span class="p-hint">Choose a layer above to size it.</span>
-        </sc-if>
+<!-- THE FORM HAS TWO HOMES. On the guided screen it is the fixed overlay under the top
+     bar; in the editor (`data-mode="editor"`) `.gd` and `.gd-body` are display:contents,
+     the preview column, nav and progress bar are hidden, and `.gd-in-zone` becomes the
+     RIGHT RAIL — one markup, one builder, so the rail cannot drift from the run. It sits
+     where the old `.p-rail-r` aside was so that, as a flex child of .p-body, it lands
+     after the stage. -->
+<sc-if value="{{ gdFormOn }}" hint-placeholder-val="{{ false }}">
+<div class="gd" data-mode="{{ gdModeAttr }}">
+  <div class="gd-body">
+    <!-- THE FORM: one page, top to bottom. Sections in a fixed order — Pages · Words ·
+         Agent · Pictures · QR & listing — so the words always come before the pictures,
+         and every page reads the same way. -->
+    <div class="gd-in-zone" data-open="{{ shPanelOnLayout }}">
+      <div class="gd-head">
+        <s class="gd-kick">{{ tplLabel }} · {{ gdWhere }}</s>
+        <b>{{ gdPageTitle }}</b>
+        <s>{{ gdPagePurpose }}</s>
       </div>
-    </sc-if>
-  </div>
 
-  <div class="p-sec p-sec-b">
-    <div class="p-cap">Canvas <s>{{ activeName }}</s></div>
-    <sc-if value="{{ scrimAllowed }}" hint-placeholder-val="{{ true }}">
-      <div class="p-grp">
-        <span class="p-lab">{{ scrimLabel }} <s>{{ scrimH }}%</s> <span class="tip" data-tip="Scrims only cover the text areas (plus 20px breathing room), fading out 60px beyond — never the whole photo. The slider sets how dark the band is." style="{{ infoStyle }}">i</span></span>
-        <input type="range" min="20" max="90" step="5" value="{{ scrimH }}" onChange="{{ onScrimH }}">
-      </div>
-    </sc-if>
-    <!-- Photo strength was fully wired — state, both renderers, the preview and the guided
-         run's Look step — and had NO control in the advanced rail: `imgOVal` / `onImgO`
-         were read only by the retired wizard's markup, so the expert workspace was the one
-         place the value could not be set. It used to be ungated on the reasoning that every
-         kind carries either a background photograph or the cover's group figures; the review
-         template carries neither, so it reads `imgOUsed` now. -->
-    <sc-if value="{{ imgOAllowed }}" hint-placeholder-val="{{ true }}">
-      <div class="p-grp">
-        <span class="p-lab">Photo strength <s>{{ imgOVal }}%</s> <span class="tip" data-tip="Fades the photograph towards the canvas ground so the copy carries over it. It reaches every photo in the post — the backgrounds, the ranking portraits and the cover's group shot." style="{{ infoStyle }}">i</span></span>
-        <input type="range" min="10" max="100" step="5" value="{{ imgOVal }}" onChange="{{ onImgO }}">
-      </div>
-    </sc-if>
-    <!-- THE AGENT IS THE REVIEW'S ONE UPLOAD, and the drop zone says so: it carries the
-         aspect of the window she is drawn in — the drawing's red dashed box, the right
-         52.5% of the canvas at full height — rather than the 58px circle it was, which
-         depicted a crop this card has not used since it was rebuilt to the SVG. A slot
-         that shows a circle for a full-height cut-out is the same class of lie a
-         hand-drawn miniature is. -->
-    <sc-if value="{{ reviewAgentOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">Agent — this review <span class="tip" data-tip="Each review slide carries its own agent, standing full height in the right-hand window in front of the card. Drop a PNG cut-out on a transparent background: the face is found automatically and framed the same way every time, so a headshot, a half-body and a full-body cut-out all land identically, and whatever falls outside the window is cropped." style="{{ infoStyle }}">i</span></span>
-        <div class="p-row-c">
-          <image-slot id="{{ activeAgentSlotId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="{{ revAgentSlotStyle }}"></image-slot>
-          <div class="p-grp" style="gap:6px;flex:1">
-            <input value="{{ rAgentNameVal }}" onChange="{{ onRAgentName }}" placeholder="Agent name" class="p-in p-in-s">
-            <input value="{{ rAgentRoleVal }}" onChange="{{ onRAgentRole }}" placeholder="Agent role" class="p-in p-in-s">
-            <span class="p-hint">The role prints in tracked caps under the name.</span>
-          </div>
-        </div>
-      </div>
-    </sc-if>
-    <sc-if value="{{ propQrOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">Property QR code <span class="tip" data-tip="Each property slide carries its own QR code — 220 × 220 px on export, a 6px white quiet-zone ring, 4px corners, bottom right with the listing number underneath." style="{{ infoStyle }}">i</span></span>
-        <div class="p-qrrow">
-          <div class="p-qr" style="{{ propQrWrapStyle }}"><image-slot id="{{ activeQrId }}" shape="rounded" radius="14" placeholder="QR"></image-slot></div>
-          <div class="p-qr-t">
-            <span>Listing Number</span>
-            <input value="{{ listnoVal }}" onChange="{{ onListno }}" maxlength="11" inputmode="numeric" placeholder="65424510605" style="{{ listnoInputStyle }}">
-            <span class="p-hint">11 digits, under the QR</span>
-            <sc-if value="{{ listnoErrOn }}" hint-placeholder-val="{{ false }}"><span class="p-bad">{{ listnoErrText }}</span></sc-if>
-            <sc-if value="{{ propQrLinkOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openPropQrLink }}" style="{{ qrLinkBtnStyle }}">Visit QR Code Link</button></sc-if>
-          </div>
-        </div>
-        <sc-if value="{{ propQrErrOn }}" hint-placeholder-val="{{ false }}"><span class="p-bad">Required — upload this property's QR code.</span></sc-if>
-      </div>
-    </sc-if>
-    <sc-if value="{{ coverQrOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">Cover QR code <span class="tip" data-tip="Shown on the cover and the closing slide — they share this one code. 220 × 220 px on export, a 6px white quiet-zone ring, 4px corners, centred above the bottom margin." style="{{ infoStyle }}">i</span></span>
-        <div class="p-qrrow">
-          <div class="p-qr" style="{{ coverQrWrapStyle }}"><image-slot id="smp-qr-cover" shape="rounded" radius="14" placeholder="QR"></image-slot></div>
-          <div class="p-qr-t">
-            <sc-if value="{{ coverQrLinkOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openCoverQrLink }}" style="{{ qrLinkBtnStyle }}">Visit QR Code Link</button></sc-if>
-          </div>
-        </div>
-        <sc-if value="{{ coverQrErrOn }}" hint-placeholder-val="{{ false }}"><span class="p-bad">Required — upload the cover / CTA QR code.</span></sc-if>
-      </div>
-    </sc-if>
-    <sc-if value="{{ bgAllowed }}" hint-placeholder-val="{{ true }}">
-      <div class="p-grp">
-        <span class="p-lab">Background image <span class="tip" data-tip="On the canvas: drag the photo to move it, drag a corner grip to scale it, or double-click it to reframe (drag and scroll to zoom). The parallax layer follows all three. Drag-and-drop keeps the full resolution for export, and feed and story share the photo." style="{{ infoStyle }}">i</span></span>
-        <image-slot id="{{ activeBgId }}" shape="rounded" radius="10" placeholder="Drop photo here" style="width:100%;aspect-ratio:4/3"></image-slot>
-        <span class="p-hint">{{ bgStatus }}</span>
-        <!-- The way back. Scaling and panning into a corner is easy to do and fiddly to
-             undo by hand, so the reset is beside the photo it resets. -->
-        <sc-if value="{{ phResetOn }}" hint-placeholder-val="{{ false }}">
-          <div class="p-row"><button onClick="{{ phReset }}" style="{{ phResetStyle }}">Reset photo scale &amp; position</button></div>
+      <div class="gd-askwrap">
+        <!-- a page the template writes entirely (the weekly closing slide) has nothing to
+             fill in; in the rail that has to be said rather than shown as an empty column -->
+        <sc-if value="{{ gdEmptyOn }}" hint-placeholder-val="{{ false }}">
+          <div class="gd-empty"><b>{{ gdEmptyTitle }}</b><s>{{ gdEmptyText }}</s></div>
         </sc-if>
-      </div>
-    </sc-if>
-    <sc-if value="{{ pxAllowed }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">Parallax layer <s>{{ pxStateLabel }}</s> <span class="tip" data-tip="Off by default. Turn it on and drop a PNG cut-out of the picture's own foreground — the building, the car, whatever should pass in front of the status. It locks to the background photo's position and zoom automatically, so reframing the background moves both together." style="{{ infoStyle }}">i</span></span>
-        <div class="p-row"><sc-for list="{{ pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
-        <sc-if value="{{ pxOn }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="{{ pxCutId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="{{ pxCutStyle }}"></image-slot>
-        </sc-if>
-      </div>
-    </sc-if>
-  </div>
-
-  <!-- THE SECTION IS GATED ON WHETHER IT HAS ANYTHING IN IT, and that is a pre-existing
-       empty region rather than something the review introduced: all three of its groups
-       are template-scoped (`agentOn` and `qrGlobalOn` are listed-only, `awLogoGrpOn` is
-       award-only), so weekly, Top agents AND Google reviews have all been rendering a
-       caption over nothing. One derived predicate fixes all three — the general fix this
-       codebase reaches for rather than a per-template list. -->
-  <sc-if value="{{ allSlidesOn }}" hint-placeholder-val="{{ true }}">
-  <div class="p-sec p-sec-c">
-    <div class="p-cap">All slides <span class="tip tip-dark" data-tip="{{ allSlidesTip }}" style="{{ infoStyleDark }}">i</span></div>
-    <sc-if value="{{ agentOn }}" hint-placeholder-val="{{ true }}">
-      <div class="p-grp">
-        <span class="p-lab">Agent <span class="tip tip-dark" data-tip="Drop a PNG cut-out of the agent on a transparent background. She stands over the panel at the bottom right, in front of the status — never cropped to a circle. The face is found automatically and framed the same way every time, so a headshot, a half-body and a full-body cut-out all land identically; whatever falls outside that frame is cropped." style="{{ infoStyleDark }}">i</span></span>
-        <div class="p-row-c">
-          <image-slot id="{{ agentCutId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="{{ agentCutStyle }}"></image-slot>
-          <div class="p-grp" style="gap:6px;flex:1">
-            <input value="{{ agentNameVal }}" onChange="{{ onAgentName }}" placeholder="Name" class="p-in p-in-s">
-            <input value="{{ agentRoleVal }}" onChange="{{ onAgentRole }}" placeholder="Role" class="p-in p-in-s">
-          </div>
-        </div>
-        <sc-if value="{{ agent2Allowed }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ agent2Toggle }}" style="{{ agent2ToggleStyle }}">{{ agent2ToggleLabel }}</button>
-          <sc-if value="{{ agent2On }}" hint-placeholder-val="{{ false }}">
-            <div class="p-row-c">
-              <image-slot id="smp-agent-2" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:112px;aspect-ratio:4/3;flex:none"></image-slot>
-              <div class="p-grp" style="gap:6px;flex:1">
-                <input value="{{ agent2NameVal }}" onChange="{{ onAgent2Name }}" placeholder="Second agent name" class="p-in p-in-s">
-                <input value="{{ agent2RoleVal }}" onChange="{{ onAgent2Role }}" placeholder="Second agent role" class="p-in p-in-s">
-                <span class="p-hint">With two agents the post shows both, stacked side by side.</span>
-              </div>
-            </div>
-          </sc-if>
-        </sc-if>
-      </div>
-    </sc-if>
-    <!-- THE AWARD'S PARTNER MARK. Project level, and in All slides rather than This slide
-         for the reason the listed card's listing number is: `award` has exactly one slide,
-         so per-slide and per-project are the same thing there. -->
-    <sc-if value="{{ awLogoGrpOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">Partner mark <s>SVG or PNG</s></span>
-        <div class="p-qrrow">
-          <div class="p-qr"><image-slot id="smp-alogo" shape="rounded" radius="14" placeholder="SVG"></image-slot></div>
-          <div class="p-qr-t">
-            <span>Colour</span>
-            <div class="p-row">
-              <sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2">
-                <button onClick="{{ ao.set }}" style="{{ ao.style }}">{{ ao.label }}</button>
-              </sc-for>
-            </div>
-            <span class="p-hint">A brand-kit SVG is usually navy, which all but disappears on this ground.</span>
-          </div>
-        </div>
-        <span class="p-hint">Fitted to the box by its own ink, so a padded file still lines up.</span>
-      </div>
-    </sc-if>
-    <sc-if value="{{ qrGlobalOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-grp">
-        <span class="p-lab">QR code <s>220 × 220 px on export</s></span>
-        <div class="p-qrrow">
-          <div class="p-qr" style="{{ qrGlobalWrapStyle }}"><image-slot id="smp-qr" shape="rounded" radius="14" placeholder="QR"></image-slot></div>
-          <div class="p-qr-t">
-            <sc-if value="{{ listedListnoOn }}" hint-placeholder-val="{{ false }}">
-            <span>Listing Number</span>
-            <input value="{{ listnoVal }}" onChange="{{ onListno }}" maxlength="11" inputmode="numeric" placeholder="65424510605" style="{{ listnoInputStyle }}">
-            <span class="p-hint">11 digits, under the QR</span>
-            <sc-if value="{{ listnoErrOn }}" hint-placeholder-val="{{ false }}"><span class="p-bad">{{ listnoErrText }}</span></sc-if>
+        <sc-for list="{{ gdSecs }}" as="sec" hint-placeholder-count="3">
+        <section class="gd-sec" data-sec="{{ sec.idx }}" data-state="{{ sec.state }}">
+          <!-- a numbered step: the disc becomes a tick once everything in the section is
+               there, and an amber mark if you moved on past it with something missing -->
+          <h3 class="gd-sec-h">
+            <i class="gd-sec-n"><b>{{ sec.no }}</b><svg class="gd-sec-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><svg class="gd-sec-wn" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-400v-240h80v240h-80Zm40 160q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Z"/></svg></i>
+            <span class="gd-sec-t">{{ sec.title }}</span>
+            <span class="gd-sec-s">{{ sec.note }}</span>
+          </h3>
+          <div class="gd-sec-g">
+            <sc-for list="{{ sec.items }}" as="a" hint-placeholder-count="3">
+            <sc-if value="{{ a.isGroup }}" hint-placeholder-val="{{ false }}">
+              <span class="gd-grp">{{ a.group }}</span>
             </sc-if>
-            <sc-if value="{{ listedQrLinkOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openListedQrLink }}" style="{{ qrLinkBtnStyle }}">Visit QR Code Link</button></sc-if>
+            <sc-if value="{{ a.isRow }}" hint-placeholder-val="{{ true }}">
+            <div class="gd-ask" data-k="{{ a.key }}" data-half="{{ a.half }}">
+              <div class="gd-ask-h">
+                <b class="gd-askq">{{ a.label }}</b>
+              </div>
+
+              <sc-if value="{{ a.isField }}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{ a.row.isSeg }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-segs"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                </sc-if>
+                <sc-if value="{{ a.row.isSel }}" hint-placeholder-val="{{ false }}">
+                  <select value="{{ a.row.val }}" onChange="{{ a.row.setSel }}" class="gd-big gd-bigsel">
+                    <sc-for list="{{ a.row.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.v }}</option></sc-for>
+                  </select>
+                </sc-if>
+                <sc-if value="{{ a.row.isStep }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-bigstep">
+                    <button onClick="{{ a.row.dec }}" class="gd-stepb">‹</button>
+                    <span>{{ a.row.val }}</span>
+                    <button onClick="{{ a.row.inc }}" class="gd-stepb">›</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ a.row.isInput }}" hint-placeholder-val="{{ true }}">
+                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" class="gd-big" placeholder="Type your answer here…">
+                </sc-if>
+                <sc-if value="{{ a.row.isArea }}" hint-placeholder-val="{{ false }}">
+                  <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
+                  <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
+                </sc-if>
+                <span class="gd-hint">{{ a.row.hint }}</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isPhoto }}" hint-placeholder-val="{{ false }}">
+                <!-- a THUMB with its label beside it, the shape the QR and portrait rows already
+                     have. Full-width at 3:4 it was 600px tall and made every page scroll. -->
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
+                    <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.photoLabel }}</s>
+                    <s>{{ a.photoHint }}</s>
+                    <sc-if value="{{ a.phResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.phReset }}" class="gd-link">Reset photo scale &amp; position</button></sc-if>
+                  </div>
+                </div>
+              </sc-if>
+
+              <!-- THE PARALLAX LAYER: a toggle, off by default, and the drop only once it is on. -->
+              <sc-if value="{{ a.isPx }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <sc-if value="{{ a.pxOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-qrow">
+                    <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
+                      <image-slot id="{{ a.pxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    </div>
+                    <div class="gd-qrow-t">
+                      <s>{{ a.pxLabel }}</s>
+                      <s>A PNG cut-out of the picture’s own foreground — the building, the car — so it passes in front of the status. It locks to the background’s position and zoom.</s>
+                    </div>
+                  </div>
+                </sc-if>
+                <span class="gd-hint">Optional. Off by default; turn it on when the picture has a foreground worth lifting.</span>
+              </sc-if>
+
+              <!-- THE GROUP PHOTO LAYER, the rail's own control: choose a figure here, drag it
+                   on the card. The keys are the rail's (`grpPills`…), valid because this page IS
+                   the active slide. -->
+              <sc-if value="{{ a.isGrp }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ grpPills }}" as="gp" hint-placeholder-count="5"><button onClick="{{ gp.set }}" class="gd-seg" style="{{ gp.style }}">{{ gp.label }}</button></sc-for></div>
+                <span class="gd-hint">{{ grpHint }}</span>
+                <sc-if value="{{ grpSelOn }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ grpScalePct }}</s></b>
+                  <div class="gd-slide"><input type="range" min="12" max="160" step="1" value="{{ grpScaleVal }}" onChange="{{ onGrpScale }}" class="gd-range"></div>
+                  <div class="gd-segs">
+                    <button onClick="{{ grpPin }}" class="gd-seg">Stand on bottom</button>
+                    <button onClick="{{ grpPinAll }}" class="gd-seg">Stand all</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}"><span class="gd-hint">Choose a layer above to size it. The five portraits come from the rank pages.</span></sc-if>
+                <button onClick="{{ a.grpReset }}" class="gd-link">Reset positions</button>
+              </sc-if>
+
+              <!-- THE AWARD'S PARTNER MARK and its tint, from the rail's All-slides group. -->
+              <sc-if value="{{ a.isAlogo }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.alogoDone }}">
+                    <image-slot id="smp-alogo" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.alogoLabel }}</s>
+                    <s>Fitted to its box by its own ink, so a padded file still lines up.</s>
+                    <div class="gd-segs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" class="gd-seg" style="{{ ao.style }}">{{ ao.label }}</button></sc-for></div>
+                    <s>A brand-kit SVG is usually navy, which all but disappears on this ground — Match canvas recolours it.</s>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <span class="gd-hint">{{ a.storyHint }}</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isName }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ a.nameWeekly }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-segs gd-pair">
+                    <select value="{{ monthVal }}" onChange="{{ onMonth }}" class="gd-big gd-bigsel"><sc-for list="{{ monthOpts }}" as="o" hint-placeholder-count="12"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select>
+                    <select value="{{ weekVal }}" onChange="{{ onWeek }}" class="gd-big gd-bigsel"><sc-for list="{{ weekOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select>
+                  </div>
+                </sc-if>
+                <input value="{{ a.nameVal }}" onChange="{{ a.setName }}" class="gd-big" placeholder="{{ a.namePh }}">
+                <span class="gd-hint">Optional — a custom name overrides the convention. Files will be named {{ filePreview }}</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isQr }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-sq" data-done="{{ a.qrDone }}">
+                    <image-slot id="{{ a.qrSlot }}" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.qrLabel }}</s>
+                    <sc-if value="{{ a.qrLink }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.openQrLink }}" class="gd-link">Visit QR code link ↗</button></sc-if>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ a.isPages }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-pages">
+                  <sc-for list="{{ a.pageRows }}" as="r" hint-placeholder-count="2">
+                    <div class="gd-page-r">
+                      <b>{{ r.name }}</b>
+                      <span class="p-spring"></span>
+                      <s data-fixed="{{ r.fixed }}">Always included</s>
+                      <button onClick="{{ r.del }}" class="gd-page-x" data-can="{{ r.canDel }}">Delete</button>
+                    </div>
+                  </sc-for>
+                </div>
+                <button onClick="{{ a.addPage }}" class="gd-addpage" data-can="{{ a.canAddPage }}">{{ a.addPageLabel }}</button>
+                <span class="gd-hint">The first {{ a.pageWord }} is always part of the post. Add more now and you will be asked for each one in turn.</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isProj }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ a.projVal }}" onChange="{{ a.setProj }}" class="gd-big" placeholder="Type your answer here…">
+                <span class="gd-hint">{{ a.projHint }}</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isAgent2 }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.agent2Opts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <span class="gd-hint">A second agent adds a matching name, role and headshot beside the first.</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isPortrait }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
+                    <image-slot id="{{ a.portraitSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.portraitLabel }}</s>
+                    <s>A PNG cut-out on a transparent background. The face is found and framed for you, so any crop works.</s>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ a.isScrim }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-slide">
+                  <input type="range" min="0" max="100" value="{{ a.scrimVal }}" onChange="{{ a.setScrim }}" class="gd-range">
+                  <b class="gd-rangev">{{ a.scrimPct }}</b>
+                </div>
+                <span class="gd-hint">The dark wash sits behind the words so they stay readable over the photo. Watch the preview — lower it until the photo comes through, raise it if the text is fighting the image.</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isImgO }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-slide">
+                  <input type="range" min="10" max="100" value="{{ a.imgOVal }}" onChange="{{ a.setImgO }}" class="gd-range">
+                  <b class="gd-rangev">{{ a.imgOPct }}</b>
+                </div>
+                <span class="gd-hint">How much of the photo shows through. Pull it down for a quieter, more typographic card.</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isDest }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ a.destSupported }}" hint-placeholder-val="{{ true }}">
+                  <div class="gd-dest" data-set="{{ a.destSetOn }}">
+                    <div class="gd-dest-t">
+                      <b>{{ a.destName }}</b>
+                      <s>Everything this post exports goes straight in here — the images, the story sizes and the session file.</s>
+                    </div>
+                    <button onClick="{{ a.destPick }}" class="gd-destb">{{ a.destLabel }}</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ a.destUnsupported }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-expok">
+                    <b>This browser cannot hold a folder</b>
+                    <s>Safari and Firefox have no folder picker, so you will be asked where to put each file as it downloads instead. Chrome or Edge can remember a folder for the whole project.</s>
+                  </div>
+                </sc-if>
+                <span class="gd-hint">Required — the run will not export until there is somewhere to put the files.</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isExport }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ a.expBlocked }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-expbad">
+                    <b>Not ready yet</b>
+                    <sc-for list="{{ a.expBlockers }}" as="b" hint-placeholder-count="2"><s>{{ b.t }}</s></sc-for>
+                    <sc-if value="{{ a.expMoreOn }}" hint-placeholder-val="{{ false }}"><i class="gd-blocked-m">{{ a.expMore }}</i></sc-if>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ a.expClear }}" hint-placeholder-val="{{ true }}">
+                  <div class="gd-expok">
+                    <b>Everything needed is here.</b>
+                    <s>{{ a.storyNote }}</s>
+                  </div>
+                  <div class="gd-exprow">
+                    <button onClick="{{ a.expZip }}" class="gd-expb gd-expb-p">Save all</button>
+                    <sc-if value="{{ a.expPdfOn }}" hint-placeholder-val="{{ false }}">
+                      <button onClick="{{ a.expPdf }}" class="gd-expb">Download as PDF</button>
+                    </sc-if>
+                  </div>
+                </sc-if>
+                <span class="gd-hint">{{ a.expNote }}</span>
+              </sc-if>
+
+
+
+              <span class="gd-askbad" data-bad="{{ a.badOn }}">{{ a.issueShown }}</span>
+            </div>
+            </sc-if>
+            </sc-for>
           </div>
-        </div>
-        <span class="p-hint">Always on the post, fixed bottom-right.</span>
-        <sc-if value="{{ qrGlobalErrOn }}" hint-placeholder-val="{{ false }}"><span class="p-bad">Required — upload the QR code (or hide it).</span></sc-if>
+        </section>
+        </sc-for>
       </div>
-    </sc-if>
+
+      <!-- Raised only when Next is refused: what this page is still missing, each row a
+           jump to the field. At rest the form carries the questions and nothing else. -->
+      <div class="gd-ask-tail" data-on="{{ gdBlockOn }}">
+        <sc-if value="{{ gdBlockOn }}" hint-placeholder-val="{{ false }}">
+          <div class="gd-blocked">
+            <b>{{ gdBlockTitle }}</b>
+            <s>{{ gdBlockLead }} Pick one to fill in.</s>
+            <sc-for list="{{ gdBlockRows }}" as="r" hint-placeholder-count="3">
+              <button onClick="{{ r.go }}" class="gd-blocked-r">{{ r.t }}</button>
+            </sc-for>
+            <sc-if value="{{ gdBlockMoreOn }}" hint-placeholder-val="{{ false }}">
+              <i class="gd-blocked-m">{{ gdBlockMore }}</i>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+
+      <div class="gd-nav">
+        <button onClick="{{ gdBack }}" class="gd-btn" data-off="{{ gdBackOff }}">Back</button>
+        <span class="p-spring"></span>
+        <button onClick="{{ gdNext }}" class="gd-btn gd-btn-p" data-ready="{{ gdNextReady }}">{{ gdNextLabel }}</button>
+      </div>
+    </div>
+
+    <!-- THE POST: this page's card, large, with every page as a labelled thumb beneath it
+         and Finish as the last tile. That strip is the ONE navigation besides Back/Next —
+         the numbered type-stepper, the ask chevrons and the slide bar are gone. -->
+    <div class="gd-pv-zone">
+      <div class="gd-stage">
+        <div class="gd-card gd-card-1">
+          <sc-if value="{{ gdCard.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ gdCard.src }}" alt="preview"></sc-if>
+          <sc-if value="{{ gdCard.noShot }}" hint-placeholder-val="{{ true }}">
+            <div class="gd-lines"><sc-for list="{{ gdCard.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
+          </sc-if>
+        </div>
+      </div>
+      <div class="gd-pstrip">
+        <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-warn="{{ c.warn }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}">
+            <span class="gd-pthumb">
+              <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-pt-img" data-src="{{ c.src }}" alt=""></sc-if>
+              <sc-if value="{{ c.isFinish }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></sc-if>
+            </span>
+            <s>{{ c.t }}</s>
+          </button>
+        </sc-for>
+      </div>
+      <span class="gd-help">{{ gdNote }}</span>
+    </div>
   </div>
-  </sc-if>
-</aside>
+
+  <div class="gd-prog"><i style="{{ gdProgStyle }}"></i></div>
+</div>
+</sc-if>
+
 
 
 </div>
@@ -4886,7 +4696,15 @@ class OrganicStudio extends StudioBase {
   // if it renders more than one slide, or if it can grow to — and "can grow" is the page cap
   // the rail's own `canAddSlide` reads, so the chip on the splash and the button in the rail
   // are two readings of one fact and cannot come to disagree.
-  static TPLGROW = { weekly: 6, review: 10 };
+  // WEEKLY IS 15 BY REQUEST, up from 6. `review` is unchanged.
+  // THIS IS THE ONLY PLACE A PAGE CAP IS DECLARED, and it was not before: `gdPageMax`,
+  // `gdAddPage`'s guard and the rail's `addSlide` each carried their own literal 6 or 10,
+  // so raising this constant alone would have left `canAddSlide` — the only reader that
+  // read it — offering a button that `addSlide` silently refused. All four read it now.
+  static TPLGROW = { weekly: 15, review: 10 };
+  // The kind a template's repeated page is, which is what maps a cap onto a slide kind.
+  static GROWKIND = { weekly: 'prop', review: 'review' };
+  static growMax(tpl) { return OrganicStudio.TPLGROW[tpl] || 0; }
   static tplIsCarousel(t) {
     return (OrganicStudio.tplSlides(t) || []).length > 1 || !!OrganicStudio.TPLGROW[t];
   }
@@ -7647,14 +7465,50 @@ class OrganicStudio extends StudioBase {
     const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
     return Math.max(.4, Math.min(.9, (cardW * dpr) / OrganicStudio.PXT.ft.W));
   }
+  // ── A PER-SLIDE RENDER KEY, and the 15-property cap is what made it necessary ────────
+  // `gdKeyOf` is the WHOLE project, so one character re-rendered every card. Measured at 15
+  // properties (17 slides): one keystroke rebuilt all 17 bitmaps and exactly ONE differed —
+  // 1213ms on a retina display, of which ~1130 was work thrown away. The cost is the WebP
+  // encode rather than the ops or the assets (measured: loadAssets 8-16ms and
+  // renderOpsToCanvas 16ms for all 17, against ~71ms per slide for toDataURL).
+  //
+  // A slide's key carries everything its own render can read, and each term is here because
+  // something reads it:
+  //   the scale and the photo stamp — the two things outside the project state
+  //   the PROJECT-level values — every card reads scrimH, imgO, the agent, the QR flags
+  //   the kind SEQUENCE — `bgIndexFor` and `taRank` are position-dependent
+  //   its own fields
+  //   the ranking COVER's fields — the one cross-slide FIELD read in this engine: every
+  //     rank card draws `Top agent - taDate(cover)` and `<cover.team> Team`.
+  // Miss one of those and a card goes stale, which is far worse than a slow one.
+  gdSlideKey(si) {
+    const s = this.state, slides = s.slides || [];
+    const proj = Object.assign({}, s);
+    delete proj.slides;
+    const sl = slides[si];
+    const cov = slides.find(z => z.kind === 'tacover');
+    return this.gdScale().toFixed(3) + '|' + (this._filledStamp || '')
+      + '|' + OrganicStudio.strip(proj)
+      + '|' + slides.map(z => z.kind).join(',')
+      + '|' + JSON.stringify(sl || null)
+      + '|' + (cov && cov !== sl ? JSON.stringify(cov) : '');
+  }
   async gdRenderAll() {
     const st = this.state;
     const assets = await this.loadAssets(st, 'ft');
-    const out = {};
-    for (let i = 0; i < (st.slides || []).length; i++) {
+    const n = (st.slides || []).length;
+    const out = Object.assign({}, this._gdShots || {});
+    const keys = Object.assign({}, this._gdShotKeys || {});
+    for (let i = 0; i < n; i++) {
+      const k = this.gdSlideKey(i);
+      if (keys[i] === k && out[i]) continue;      // this card cannot have changed
       const built = this.buildOps(st, i, 'ft', assets);
       out[i] = this.renderOpsToCanvas(built, this.gdScale()).toDataURL('image/webp', 0.88);
+      keys[i] = k;
     }
+    // a deleted page must not leave its bitmap behind for the next page to inherit
+    Object.keys(out).forEach(i => { if (+i >= n) { delete out[i]; delete keys[i]; } });
+    this._gdShotKeys = keys;
     return out;
   }
   // THE SCALE IS IN THE KEY, because it is derived from the viewport now: without it a
@@ -7770,6 +7624,7 @@ class OrganicStudio extends StudioBase {
       v.photoSlot = id;
       v.photoDone = filled[id] ? '1' : undefined;
       v.photoLabel = filled[id] ? 'Picture added — click to replace' : 'Drop a picture, or click to choose';
+      v.photoHint = this.bgStatusFor(ask.si);
       // the rail's reset, offered only once a canvas gesture has moved the photo
       v.phResetOn = (sl.kind === 'listed' && !!(sl.f.phx || sl.f.phy || (sl.f.phs && sl.f.phs !== 1))) ? '1' : undefined;
       v.phReset = () => this.upd(x => { const t = x.slides[ask.si]; if (t && t.f) { delete t.f.phx; delete t.f.phy; delete t.f.phs; } return x; });
@@ -7837,7 +7692,13 @@ class OrganicStudio extends StudioBase {
     }
     if (v.isExport) {
       const b = this.gdExportBlockers();
-      v.expBlockers = b.map(t => ({ t }));
+      // CAPPED, for the reason the per-page blocked list is: at 15 properties this is 32
+      // rows — a cover QR, then a QR and an 11-digit number per property, then the folder —
+      // and 32 rows is the wall of fields again, raised at the worst moment. You can only
+      // fix one at a time, and the page strip's warnings say which pages they are on.
+      v.expBlockers = b.slice(0, OrganicStudio.GD_BLOCK_MAX).map(t => ({ t }));
+      v.expMoreOn = b.length > OrganicStudio.GD_BLOCK_MAX ? '1' : undefined;
+      v.expMore = '+ ' + (b.length - OrganicStudio.GD_BLOCK_MAX) + ' more, on the pages marked above';
       v.expClear = b.length === 0;
       v.expBlocked = b.length > 0;
       v.expPdfOn = ((s.slides || []).length > 1) ? '1' : undefined;
@@ -7867,7 +7728,7 @@ class OrganicStudio extends StudioBase {
     // is not. With a whole page on screen, every dropdown on it is displaying an answer,
     // so every unfilled one is committed, in one state write.
     const plan = this.gdPlan();
-    const st = this.gdStepIndex();
+    const st = this.gdFormStep();     // the run's step, or the rail's active page
     const writes = [];
     plan.asks.forEach(ask => {
       if (ask.step !== st || ask.kind !== 'field') return;
@@ -7897,13 +7758,8 @@ class OrganicStudio extends StudioBase {
   // Templates that repeat a page: weekly repeats a property, review repeats a review card.
   // The first one is fixed — a weekly with no property is not a post — so only the extras
   // can be deleted, which mirrors the rail.
-  gdPageKind() {
-    const t = this.state.tpl;
-    if (t === 'weekly') return 'prop';
-    if (t === 'review') return 'review';
-    return null;
-  }
-  gdPageMax() { return this.gdPageKind() === 'review' ? 10 : 6; }
+  gdPageKind() { return OrganicStudio.GROWKIND[this.state.tpl] || null; }
+  gdPageMax() { return OrganicStudio.growMax(this.state.tpl); }
   gdPageRows() {
     const kind = this.gdPageKind();
     if (!kind) return [];
@@ -8039,6 +7895,32 @@ class OrganicStudio extends StudioBase {
     return '';
   }
   gdStepIndex() { return Math.max(0, Math.min(this.guideSteps().length - 1, this.state.gdStep || 0)); }
+  // WHICH PAGE THE FORM IS SHOWING. On the guided screen that is the run's own step; in the
+  // editor the same form is the right rail and shows the ACTIVE slide's page, or -1 when
+  // that slide produced no asks (the weekly closing slide). One answer for the view builder,
+  // the select seeding and the reach listener, so they cannot disagree.
+  gdFormStep() {
+    const s = this.state;
+    if (s.screen !== 'editor') return this.gdStepIndex();
+    const n = (s.slides || []).length;
+    const asi = Math.max(0, Math.min(n - 1, s.activeSi || 0));
+    return this.guideSteps().findIndex(st => st.k === 'page' && st.si === asi);
+  }
+  // The background photo's status line, shared by the rail's old key and the form's photo
+  // row: what is stored, at what size, and whether the closing slide is borrowing the cover's.
+  bgStatusFor(si) {
+    const s = this.state, slides = s.slides || [], sl = slides[si];
+    if (!sl) return '';
+    const coverIdx = Math.max(0, slides.findIndex(z => z.kind === 'cover'));
+    const shared = (sl.kind === 'cta' && s.tpl === 'weekly');
+    const bi = shared ? coverIdx : si;
+    const d = this._assetView && this._assetView.bgDims && this._assetView.bgDims[bi];
+    const linked = shared ? 'Linked — the closing slide uses the cover photo. ' : '';
+    if (sl.kind === 'tagent' && !d) return 'Required — drop this agent’s studio portrait as a CUT-OUT PNG on a transparent background. It stands in front of the ranking numeral, so a rectangular photo would cover it.';
+    if (d && Math.max(d.w, d.h) < 2160) return linked + '⚠ Stored at ' + d.w + '×' + d.h + ' — under the 2160px export target, so it will be upscaled. Re-drop the original file.';
+    if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story. On the card, drag the photo to move it and a corner grip to scale it.';
+    return linked || 'Kept at full resolution for export; feed and story share it. On the card, drag the photo to move it and a corner grip to scale it.';
+  }
   // Whether this ask can ever block Next at all — the requirement kinds. A section made
   // only of judgements (Look) or optional uploads is "done" once it has been passed, not
   // the moment the page opens; a section of requirements is done when they are all met.
@@ -9576,11 +9458,17 @@ class OrganicStudio extends StudioBase {
       ...(() => {
         // ══ THE VIEW: one page, top to bottom ═════════════════════════════════════
         const plan = this.gdPlan(), steps = plan.steps, asks = plan.asks;
-        const idx = this.gdStepIndex();
-        const step = steps[idx] || steps[0];
-        const isFinish = !!(step && step.k === 'finish');
         const slides = s.slides || [];
-        const sl = step ? slides[step.si] : null;
+        // THE FORM HAS TWO HOMES. `editor` means it is the right rail, showing the ACTIVE
+        // slide's page with no gate and no Finish — plus the Look section on every page,
+        // because the wash and the story toggle are project-wide and the rail always had
+        // them. Everything below reads `idx`, which is -1 for a slide that asks nothing.
+        const editor = s.screen === 'editor';
+        const asi = Math.max(0, Math.min(slides.length - 1, s.activeSi || 0));
+        const idx = this.gdFormStep();
+        const step = idx >= 0 ? steps[idx] : (editor ? null : steps[0]);
+        const isFinish = !!(step && step.k === 'finish');
+        const sl = editor ? slides[asi] : (step ? slides[step.si] : null);
         const shots = this.gdShots();
         const filled = this._filled || {};
         const pages = steps.filter(z => z.k === 'page').length;
@@ -9721,9 +9609,14 @@ class OrganicStudio extends StudioBase {
         // Property details…) is its own full-width label whenever it changes.
         const secs = [];
         const reach = (this._gdReach && this._gdReach.step === idx) ? this._gdReach.sec : -1;
-        const blocked = !!(this._gdBlock && this._gdBlock.length);
+        // a refused Next belongs to the run; the rail never refuses anything
+        const blocked = !editor && !!(this._gdBlock && this._gdBlock.length);
         OrganicStudio.GDSECORDER.forEach(sec => {
-          const here = asks.map((q, i) => ({ q, i })).filter(o => o.q.step === idx && o.q.sec === sec);
+          // in the rail: this slide's own sections, every Look ask, and neither Pages (the
+          // slides list is the left rail) nor Save (the Share panel)
+          const here = asks.map((q, i) => ({ q, i })).filter(o => o.q.sec === sec && (editor
+            ? (sec === 'look' ? true : (sec !== 'pages' && sec !== 'save' && o.q.step === idx))
+            : o.q.step === idx));
           if (!here.length) return;
           const rows = here.map(o => this.gdRowView(o.q, o.i, slides[o.q.si], f => rowFor(f, o.q.si), filled, () => focusAsk(o.i)));
           for (let i = 0; i < rows.length; i++) {
@@ -9767,12 +9660,21 @@ class OrganicStudio extends StudioBase {
         const live = (this._gdBlock || []).filter(g => asks[g.i] && this.gdAskIssue(asks[g.i]) && asks[g.i].step === idx);
         const more = live.length - OrganicStudio.GD_BLOCK_MAX;
         const nextStep = steps[idx + 1] || null;
+        // the rail's empty page: nothing but the template's own text on it
+        const pageOnly = secs.filter(z => z.key !== 'look');
+        const fixed = sl ? (OrganicStudio.FIXEDTEXT[sl.kind] || []) : [];
         return {
+          gdFormOn: s.screen === 'guide' || editor,
+          gdModeAttr: editor ? 'editor' : 'guide',
+          gdEmptyOn: (editor && sl && !pageOnly.length) ? '1' : undefined,
+          gdEmptyTitle: 'Nothing to fill in on this page',
+          gdEmptyText: (fixed.length ? 'The template writes ' + fixed.map(t => t.charAt(0).toLowerCase() + t.slice(1)).join(', ') + '.' : 'The template writes this page.')
+            + ((sl && sl.kind === 'cta') ? ' It shares the cover’s photo and QR code.' : ''),
           gdStepNo: idx + 1,
           gdTotal: steps.length,
-          gdPageTitle: step ? step.t : '',
-          gdPagePurpose: step ? step.d : '',
-          gdWhere: isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages),
+          gdPageTitle: editor ? this.sLabel(asi) : (step ? step.t : ''),
+          gdPagePurpose: editor ? ((OrganicStudio.PAGE[(sl || {}).kind] || ['', ''])[1]) : (step ? step.d : ''),
+          gdWhere: editor ? 'All controls' : (isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages)),
           gdIsFinish: isFinish,
           gdSecs: secs,
           gdProgStyle: { width: (steps.length ? ((idx + 1) / steps.length * 100) : 0).toFixed(1) + '%' },
@@ -9788,7 +9690,9 @@ class OrganicStudio extends StudioBase {
           gdAskNext: advance,            // the document-level Enter handler reads this
           gdNextLabel: isFinish ? 'Done' : (nextStep ? 'Next: ' + nextStep.t : 'Next'),
           gdNextReady: this.gdStepGaps(idx, asks).length ? undefined : '1',
-          gdCard: sl ? cardFor(step.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
+          // in the editor the rail's slide can have NO page step (the weekly closing slide),
+          // so the card — hidden there anyway — is keyed on the active slide, not the step
+          gdCard: sl ? cardFor(editor ? asi : step.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
           // the page strip under the card: every page as a labelled thumb, then Finish.
           // Done is only ever a page BEHIND you that is clear — Finish is never ticked.
           gdStrip: steps.map((st2, i) => {
@@ -9911,12 +9815,12 @@ class OrganicStudio extends StudioBase {
       addSlideLabel: s.tpl === 'review' ? '+ Add review slide' : '+ Add property slide',
       addSlide: () => this.upd(x => {
         if (x.tpl === 'review') {
-          if (x.slides.filter(z => z.kind === 'review').length >= 10) return x;
+          if (x.slides.filter(z => z.kind === 'review').length >= OrganicStudio.growMax('review')) return x;
           x.slides.push(OrganicStudio.slide('review', { reviewer: 'Client name · Provident client', quote: '', agentName: '', agentRole: '' }));
           x.activeSi = x.slides.length - 1;
           return x;
         }
-        if (x.slides.filter(z => z.kind === 'prop').length >= 6) return x;
+        if (x.slides.filter(z => z.kind === 'prop').length >= OrganicStudio.growMax('weekly')) return x;
         const ns = OrganicStudio.slide('prop', { title: '2 bed apartment in Building name', community: 'Community', listno: '' });
         const ci = x.slides.findIndex(z => z.kind === 'cta');
         x.slides.splice(ci >= 0 ? ci : x.slides.length, 0, ns);
@@ -9949,7 +9853,12 @@ class OrganicStudio extends StudioBase {
       qrGlobalWrapStyle: (s.tpl === 'listed' && s.qr.show && !filled['smp-qr']) ? Object.assign({}, qrWrapErr, { flex: 'none' }) : { flex: 'none' },
       qrGlobalErrOn: s.tpl === 'listed' && s.qr.show && !filled['smp-qr'],
       hasMissing: missing.length > 0,
-      missingText: 'Missing before export: ' + missing.join(' · '),
+      // The same cap, and for the same reason: at 15 properties this line ran to 987
+      // characters, which is a paragraph rather than a message.
+      missingText: 'Missing before export: '
+        + missing.slice(0, OrganicStudio.GD_BLOCK_MAX).join(' · ')
+        + (missing.length > OrganicStudio.GD_BLOCK_MAX
+            ? ' · + ' + (missing.length - OrganicStudio.GD_BLOCK_MAX) + ' more' : ''),
       activeName: this.sLabel(asi),
       slideFields,
       // THE STORY CANVAS IS OFF BY DEFAULT, APP-WIDE, and behind an explicit toggle. It
@@ -10016,7 +9925,10 @@ class OrganicStudio extends StudioBase {
           // still waiting instead.
           grpPills: order.map(r => (byRank[r]
             ? { label: r, style: btn(sel === r), set: () => { this._grpSel = r; this.forceUpdate(); } }
-            : { label: r, style: Object.assign({}, btn(false), { opacity: .38, cursor: 'default' }), set: () => this.forceUpdate() })),
+            // QUIET, NOT FADED: `opacity:.38` composited to 1.94:1 in light mode on these five
+            // labels. Quietness expressed as opacity does not survive a theme flip; the quiet
+            // tier lives in the token, which reads 4.9-5.0:1 on this fill in both themes.
+            : { label: r, style: Object.assign({}, btn(false), { color: 'var(--ps-dim)', cursor: 'default' }), set: () => this.forceUpdate() })),
           grpSelOn: !!selG,
           grpNoneOn: !selG,
           grpSelLabel: sel || '',
@@ -10055,15 +9967,7 @@ class OrganicStudio extends StudioBase {
       phResetStyle: Object.assign({ flex: 1 }, darkBtn),
       phReset: () => this.upd(x => { const t = x.slides[asi]; if (t && t.f) { delete t.f.phx; delete t.f.phy; delete t.f.phs; } return x; }),
       activeBgId: 'smp-bg-' + ((asl.kind === 'cta' && s.tpl === 'weekly') ? (s.slides[coverIdx] || asl).id : asl.id),
-      bgStatus: (() => {
-        const bi = (asl.kind === 'cta' && s.tpl === 'weekly') ? coverIdx : asi;
-        const d = this._assetView && this._assetView.bgDims && this._assetView.bgDims[bi];
-        const linked = (asl.kind === 'cta' && s.tpl === 'weekly') ? 'Linked — the CTA slide uses the cover photo. ' : '';
-        if (asl.kind === 'tagent' && !d) return 'Required — drop this agent\u2019s studio portrait as a CUT-OUT PNG on a transparent background. It stands in front of the ranking numeral, so a rectangular photo would cover it.';
-        if (d && Math.max(d.w, d.h) < 2160) return linked + '⚠ Stored at ' + d.w + '×' + d.h + ' — under the 2160px export target, so it will be upscaled. Re-drop the original file.';
-        if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story.';
-        return linked || 'Feed and story share this photo. Images are stored at export-grade resolution (up to 3840px).';
-      })(),
+      bgStatus: this.bgStatusFor(asi),
       propQrOn: asl.kind === 'prop',
       coverQrOn: asl.kind === 'cover',
       activeQrId: 'smp-qr-' + asl.id,
@@ -10323,7 +10227,9 @@ class Component extends DCLogic {
     this._gdKey = e => {
       if (e.key !== 'Enter' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
       const a = this.active();
-      if (!a || !a.state || a.state.screen !== 'guide') return;
+      // the form is the rail in the editor too: Enter is "next field" there as well, and
+      // only on the guided screen does the last field turn the page
+      if (!a || !a.state || (a.state.screen !== 'guide' && a.state.screen !== 'editor')) return;
       const t = e.target;
       const tag = t && t.tagName;
       if (tag === 'TEXTAREA') return;
@@ -10339,6 +10245,7 @@ class Component extends DCLogic {
         const at = fs.indexOf(t);
         if (at >= 0 && at < fs.length - 1) { e.preventDefault(); fs[at + 1].focus(); return; }
       }
+      if (a.state.screen !== 'guide') return;
       const v = a.renderVals && a.renderVals();
       if (v && typeof v.gdAskNext === 'function') { e.preventDefault(); v.gdAskNext(); }
     };
@@ -10349,12 +10256,12 @@ class Component extends DCLogic {
     // target (an image-slot's own input) is retargeted to its host, so `closest` still works.
     this._gdReachEv = e => {
       const a = this.active();
-      if (!a || !a.state || a.state.screen !== 'guide') return;
+      if (!a || !a.state || (a.state.screen !== 'guide' && a.state.screen !== 'editor')) return;
       const t = e.target;
       const sec = t && t.closest ? t.closest('.gd-sec[data-sec]') : null;
       if (!sec) return;
       const n = +sec.getAttribute('data-sec');
-      const st = a.gdStepIndex();
+      const st = a.gdFormStep();
       const r = a._gdReach;
       if (!r || r.step !== st || n > r.sec) { a._gdReach = { step: st, sec: n }; a.forceUpdate(); }
     };
@@ -10384,11 +10291,12 @@ class Component extends DCLogic {
     StudioBase.autoGrow();
     // keep the step-by-step run's card renders current; the sync is key-guarded
     const a2 = this.active();
-    if (a2 && a2.gdSync && a2.state && a2.state.screen === 'guide') {
+    if (a2 && a2.state && (a2.state.screen === 'guide' || a2.state.screen === 'editor')) {
       // seed BEFORE the render sync, so the card is built from the value the dropdown is
-      // already showing rather than from the blank it would otherwise read
+      // already showing rather than from the blank it would otherwise read. The form is the
+      // rail in the editor too, so its dropdowns are seeded there as well.
       if (a2.gdSeedSelect) a2.gdSeedSelect();
-      a2.gdSync();
+      if (a2.state.screen === 'guide' && a2.gdSync) a2.gdSync();
     }
     this._tplTick(a2);
   }

@@ -9900,3 +9900,226 @@ than a theme flip. `opacity:1`.
   guided screen plus the top bar: **2 flags each, the disabled Back and the disabled Redo**,
   both 1.4.3-exempt. **0 elevation shadows.**
 - The test origin's `localStorage` was cleared afterwards; the viewport reset.
+
+# WEEKLY TAKES 15 PROPERTIES, AND THE CAP WAS DECLARED IN FOUR PLACES
+
+`OrganicStudio.TPLGROW.weekly` is **15**, up from 6, by request. `review` is unchanged at 10.
+A 15-property weekly is **17 slides** — cover, fifteen properties, closing slide — and 16
+guided pages plus Finish.
+
+**RAISING THE CONSTANT ALONE WOULD HAVE SHIPPED A BUTTON THAT DID NOTHING.** `TPLGROW` was
+documented as the one place a page cap lives and it was not: `gdPageMax()` returned
+`review ? 10 : 6`, `gdAddPage` guarded on that, and the rail's `addSlide` carried its own
+`>= 10` and `>= 6` literals. Only `canAddSlide` read the constant — so at 6 properties the
+rail would have offered *+ Add property slide* while `addSlide` silently refused. All four
+read `OrganicStudio.growMax(tpl)` now.
+
+`GROWKIND` (`weekly: 'prop'`, `review: 'review'`) is the kind a template's repeated page is,
+and `gdPageKind()` reads it rather than carrying the same mapping a second time. **It was
+declared unread for one edit** — the dead-control defect this file's own audit went looking
+for — and given its reader in the same pass rather than left as a table nothing consults.
+
+Verified live: the rail's Add button pressed until it disappeared lands on **exactly 15
+properties / 17 slides** and then retires itself (`canAddSlide` false, button gone); the
+guided run's Pages ask adds to 15 and stops; page 1 stays undeletable; the order holds
+(cover first, CTA last); `sLabel` pads, so the rail reads *Property 15*. The strip's 17 tiles
+wrap to **2 rows, 198px**, with no overflow in the preview column and no horizontal scroll.
+
+## THE CAP EXPOSED A FULL RE-RENDER PER KEYSTROKE, and that is now per slide
+
+`gdKeyOf` is the whole project, so **one character re-rendered every card**. Measured at 15
+properties: one keystroke rebuilt all 17 bitmaps and **exactly one differed** — 1213ms on a
+retina display, ~1130 of it thrown away. At 6 properties that waste was tolerable; at 15 it
+is a second of stale preview per keypress, so the cap is what made it worth fixing.
+
+**THE COST IS THE WEBP ENCODE, not the ops or the assets** — measured separately:
+`loadAssets` 8–16ms and `renderOpsToCanvas` **16ms for all 17**, against ~71ms per slide for
+`toDataURL('image/webp')`. So the fix is to skip the encode for cards that cannot have
+changed, not to make the render cheaper.
+
+`gdSlideKey(si)` is that key, and **every term is there because something reads it**:
+
+| term | why |
+|---|---|
+| the scale, the photo stamp | the two inputs outside the project state |
+| the PROJECT-level values (`strip(state)` minus `slides`) | every card reads `scrimH`, `imgO`, the agent, the QR flags |
+| the kind SEQUENCE | `bgIndexFor` and `taRank` are position-dependent |
+| its own fields | the obvious one |
+| **the ranking COVER's fields** | the one cross-slide FIELD read in this engine — every rank card draws `Top agent - taDate(cover)` and `<cover.team> Team` |
+
+That last term is the one a naive per-slide cache gets wrong. Found by walking `buildOps`
+for cross-slide reads rather than assuming: `bgIndexFor`, `grpLayers`, `taDate(...)` and
+`slides.find(z => z.kind === 'tacover')`. **Miss one and a card goes stale, which is far
+worse than a slow one.**
+
+**PROVED THE CACHE CANNOT SERVE A STALE CARD.** A 17-slide weekly with distinct copy per
+page, cached set against a full uncached rebuild at the same scale: **17 slides, 0
+mismatches, 17 distinct bitmaps.** Then each invalidation path, counted by instrumenting
+`toDataURL` rather than by wall clock (the shell's own `componentDidUpdate` sync fires first,
+so a manual `gdSync` afterwards reports 0ms and tells you nothing):
+
+| change | encodes |
+|---|---|
+| cold | 17 |
+| one field on one page | **1** (was 17) |
+| `scrimH` 40 → 85, project level | 16 of 16 |
+| `imgO` | 16 of 16 |
+| the ranking cover's team, on the agents template | **6 of 6** — the cross-slide term proving itself |
+| a page deleted | 16 — every index shifts, so every key does |
+
+**A MEASUREMENT THAT LOOKED LIKE A BUG AND WAS MY OWN TEST.** A project-level `scrimH` write
+reported **0 encodes**, which reads exactly like the cache going stale on a value every card
+draws. The previous probe had already set that value, so the second write was a no-op and the
+key correctly did not move. **Write a genuinely different value before believing an
+invalidation test.**
+
+## THE EXPORT GATE BECAME A WALL, and this file already had the rule
+
+At 15 properties `gdExportBlockers()` returns **32** items — the cover QR, then a QR and an
+11-digit number per property, then the folder. The Finish step rendered all 32 rows and the
+Share panel's `.p-alert` ran to **987 characters**. That is the wall of rows *What is left is
+shown only when it BLOCKS you* caps at `GD_BLOCK_MAX` for the per-page list, and the cap had
+simply never been applied to these two. Both capped now: **5 rows + "+ 27 more, on the pages
+marked above"**, and the alert measures **180 characters**. The page strip's own warning
+badges are what say which pages they are on.
+
+## AN INVERSION IN THE WARN TREATMENT, from the pass before this one
+
+`--ps-warn` is a **light** amber in dark and a **dark** brown in light, and both the section
+disc and the page tile's `!` badge inked it with a literal `#1D1D1F` — invisible in light
+mode. **Sixth instance of the fill-inverts-ink-does-not defect in this project.**
+`var(--ps-app)` is near-black in dark and white in light, i.e. exactly the opposite of
+`--ps-warn`, so one token reads on both and the `[data-theme="light"]` override it needed is
+deleted. Measured after: white on `rgb(138,98,6)` in light, `rgb(19,21,25)` on
+`rgb(234,179,8)` in dark.
+
+The warned tile's **label** was `--ps-warn` on the stage at 11px: **4.35:1**, just under AA.
+The ring and the badge are non-text indicators and carry the state at 3:1, so the label takes
+`--ps-ink` instead of the status hue — which also makes it the loudest label in the row.
+
+## Verification
+
+- **Zero artwork-path lines in the whole-file diff** (15 hunks, 68 added / 18 removed). The
+  `buildOps` and `renderOpsToCanvas` call sites inside `gdRenderAll` are byte-identical and
+  simply moved inside a guard, so no op can have moved; the removed-line list is the cap
+  literals, the four warn declarations and the two uncapped lists.
+- Sheet: one closing style tag, comments 290/290, brace depth 0, 1023 top-level blocks;
+  guided markup `sc-if` 43/43, `sc-for` 16/16.
+- **Contrast at 15 properties, both themes reloaded into, transitions finished, ancestor
+  opacity composited, guided screen plus the top bar: 1 flag each — the disabled Redo**,
+  1.4.3-exempt. **0 elevation shadows.** No console errors through the whole exercise.
+- `studio-base.js` is byte-identical to its backup; Campaign, the image tool and
+  `ui-design-system/` are untouched. The test origin's `localStorage` was cleared and the
+  viewport reset.
+
+## Left as a decision, not applied
+
+- **`RECENT_THUMBS` is 6**, so a 17-slide weekly's recents card reels through the first six
+  of seventeen. That is the reel's own cap and it predates this change; raising it embeds
+  seventeen thumbnails in every recents entry, which is what the cap exists to bound.
+- **`loadAssets` has no decode cache** and refetches `.image-slots.state.json` with
+  `cache: 'no-store'` on every sync. Cheap here (8–16ms, no photos in the test project), but
+  with 15 real photos and 15 QRs it is 30 decodes plus a multi-megabyte parse per keystroke,
+  and it is now the largest remaining cost in the guided run. A URL-keyed memo would be safe
+  — a re-upload produces a new URL — but it also sits on the EXPORT path, so it wants its own
+  pass and its own proof.
+
+# THE GUIDED FORM IS THE RIGHT RAIL IN ALL CONTROLS — one markup, two homes
+
+By request: "keep that design flowing in all template windows in All Controls." The old
+`.p-rail-r` aside — This slide / Canvas / All slides, ~240 lines of hand-written groups — is
+**deleted**, and the guided run's form renders in its place. Not a restyle and not a copy:
+the SAME `<div class="gd">` block, the SAME `gdSecs` builder, in two homes.
+
+**HOW THE TWO HOMES WORK.** The block moved out of its old place before the header and into
+`.p-body`, where the aside was, so it is the last flex child after the stage. Its gate is
+`gdFormOn` (guide OR editor) and it carries `data-mode`. In guide mode nothing changed — it is
+still the fixed overlay at `top:56px`, z 150, and fixed positioning does not care where in
+the DOM it sits (verified: rect top 56, height 804, preview column shown, 3 tiles). In editor
+mode `.gd` and `.gd-body` are **`display:contents`**, so `.gd-in-zone` becomes a flex child of
+`.p-body` directly — a 322px rail on the stage's right edge — while the preview column, the
+Back/Next bar, the blocked list and the progress bar are hidden. Measured: zone width 322 at
+left 1078, which is the stage's right edge exactly.
+
+**WHAT THE RAIL SHOWS.** The active slide's page — Words · Agent · Pictures · QR & listing —
+plus **Look on every page** (wash, photo strength, the story toggle: project-wide values the
+rail always had), and neither Pages (the slides list is the left rail) nor Save (the Share
+panel). No gate, no Finish. A slide that asks nothing — the weekly closing slide — gets a
+note instead of an empty column: *Nothing to fill in on this page. The template writes
+headline, button label. It shares the cover's photo and QR code.*
+
+`gdFormStep()` is the one answer to "which page is the form showing": the run's step on the
+guided screen, the active slide's page step in the editor, or -1 when that slide produced no
+asks. The view builder, `gdSeedSelect` and the reach listener all read it, so a dropdown on
+the rail is seeded exactly as on the run (verified: Property type → Villa, City → Dubai on
+arrival) and a section's done/warn state works in both homes.
+
+**A -1 STEP BROKE THE HIDDEN CARD.** `gdCard` read `step.si` and threw on the closing slide,
+because `sl` (the active slide) was truthy while `step` was null. Keyed on the active slide in
+editor mode. The whole form failed to render for one slide kind, with no console error on the
+first render — found by the probe reading `.gd-head b` as null.
+
+**ENTER IS "NEXT FIELD" IN BOTH HOMES; only on the guided screen does the last field turn the
+page.** Verified by dispatching the key ON the focused input — a keydown dispatched on
+`document` has no field as its target and the handler correctly ignores it, which the first
+probe misread as a defect.
+
+**THE 4:3 / 1:1 RULE REACHES THE RAIL BY CONSTRUCTION NOW**, since the rail's drops ARE the
+run's: 150 × 113 for every picture (backgrounds, the parallax cut-out, every agent, the
+partner mark) and 100 × 100 for the QR, at the rail's width. The old rail's own slot sizes
+(`agentCutStyle`, `revAgentSlotStyle`, `pxCutStyle`) are still declared and now unread.
+
+## Adapted to the rail's width, in one appended CSS block
+
+The vertical step rail (the disc's connecting line) is dropped and the disc sits inline in the
+header at 22px; headers 13px, the state pill 11px; fields 14px at 10px 12px; drops 150 / 100.
+Everything else — pairs, hints, section states, the empty-page note — is the run's CSS
+unchanged. Below 1200px the rail is a sheet exactly as the aside was: `position:fixed`,
+`right:calc(-1 * min(340px,88vw) - 12px)`, `[data-open]{right:0}`, driven by the same
+`shPanelOnLayout` and the panel bar's Slide button. Verified at 1100px: off-screen closed,
+`right:0` at `top:56` open, closed again by the veil.
+
+## What went with the aside, deliberately
+
+- **Inline errors at rest** (`Required — upload this property's QR code`, the listing number's
+  red text). The run's rule is that a gap is named when it blocks: the section pill reads
+  *2 to fill in*, and export surfaces the whole list in the Share alert and on Finish.
+- **The `i` tooltips.** Their prose is in the rows' hints now; the photo row's hint is the old
+  `bgStatus` line via `bgStatusFor(si)`, so the stored-size warning and the "linked to the
+  cover" note survive.
+- **The rail's render keys are NOT deleted** — `grpCtlOn`, `propQrOn`, `coverQrOn`,
+  `reviewAgentOn`, `agentOn`, `qrGlobalOn`, `awLogoGrpOn`, `bgAllowed`, `pxAllowed`,
+  `scrimAllowed`, `imgOAllowed`, `allSlidesOn`, `activeBgId`, `listnoVal` and the whole
+  `slideFields` builder are computed and read by nothing. Deleting render keys that look unused
+  is how ~14KB of Campaign's `renderVals` was once lost; they cost a few microseconds.
+- **The left rail is untouched** — Template, the Slides list, the Add button.
+
+## A PRE-EXISTING FAILURE THE WIDER AUDIT CAUGHT
+
+The group photo layer's five rank pills quieted an unplaced rank with **`opacity:.38`**, which
+composited to **1.94:1 in light** on all five labels. It was the rail's own control and it had
+never been audited in light on the agents template. Quietness expressed as opacity does not
+survive a theme flip — the fourth time this exact rule has caught a live element — so the
+quiet tier moves into the token: `--ps-dim` at opacity 1, 4.9–5.0:1 on that fill in both
+themes. The pills are shared by both homes, so the run is fixed by the same edit.
+
+## Verification
+
+- **Zero artwork-path lines in the whole-file diff** (30 hunks, 421 added / 568 removed —
+  the aside). `buildOps`, both renderers, every geometry source and `ART` are untouched.
+- Sheet: one closing style tag, comments 292/292, brace depth 0, 1046 top-level blocks. The
+  markup's `<sc-if>` count is 116/115 and **the backup is 154/153 — the same one-off**, the
+  documented bare `<sc-if>` inside a CSS comment; a stack walk never goes negative.
+- Interpolation sweep: 143 refs, 18 unresolved, every one the documented baseline;
+  `slideFields` left the ref list because its markup did.
+- Per template in the editor: listed → Words (4) · Agent (2) · Pictures (1) · QR & listing
+  (2) · Look; weekly property → Words · Pictures · QR · Look, 14 rows; weekly closing slide →
+  the note + Look; agents cover → Words · Pictures (5 pills, size, Stand, Reset) · Look; rank
+  → the cut-out requirement in the photo hint; award → Partner mark + tint; review → Agent
+  with a 4:3 drop and the `0 words · 0 of 14 lines` counter.
+- **Contrast, both themes reloaded into, transitions finished, ancestor opacity composited,
+  over the form rail, the left rail, the canvas bar and the top bar: 1 flag each, the
+  disabled Redo**, 1.4.3-exempt (the guided screen adds the disabled Back on page 1). **0
+  elevation shadows.** No console errors across every template and both modes.
+- `studio-base.js`, Campaign, the image tool and `ui-design-system/` are untouched. The test
+  origin's `localStorage` was cleared and the viewport reset.
