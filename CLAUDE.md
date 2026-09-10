@@ -8494,7 +8494,11 @@ needed. Its one real drift was `--ps-blue`, which the kit re-points at `--ps-acc
 solid) while it still pointed at `--ps-accent` (the tint): ~34 of that alias's call sites are
 fills on an action, and the resting tint leaves those near-invisible. Closed.
 
-**ORGANIC IS 56 TOKENS BEHIND AND IS NOT DONE.** It is still wholly on the pre-Prov-Toys kit,
+> **DONE — see *ORGANIC IS ON THE KIT* at the end of this file.** Organic now measures
+> **0 differ / 0 missing** against the kit across all 73 tokens in both themes, with one
+> deliberate exception (`--ps-railr`). The paragraph below is the record of what was owed.
+
+**ORGANIC WAS 56 TOKENS BEHIND.** It is still wholly on the pre-Prov-Toys kit,
 so this is a re-skin rather than a propagation, and it carries three things the other two did
 not: its five locked templates' canvas previews, the `.gd-*` guided run (which no other
 document has), and the guided setup being a **projection of the advanced rail**, which must
@@ -8667,3 +8671,860 @@ render agreed.
   costs nothing; the per-item `countOn` render key is likewise unread now.
 - `ui-design-system/index.html`, `provident-ui.tokens.json`, `studio-base.js` and Organic are
   untouched by this pass; `provident-ui.css` changed only for the two radius defects above.
+
+# THE TOP BAR AND THE LAYOUT RAIL WERE REDESIGNED TO TWO MORE FIGMA FRAMES
+
+Two supplied frames from the same file the palette rail came from — **UI-Kelvz**
+(`figma.com/design/y50w2SoYG86FPAMC0tpfzR`): the **`Header`** at node `1-1338`, 1990 x 55,
+and the **Layout rail's `Container`** at node `1-935`, 320 x 1170. Read in Dev Mode through
+the user's own Chrome session, the same route the `Aside` frame needed — the Figma connector
+still cannot OAuth non-interactively.
+
+## THE HEADLINE IS HOW LITTLE MOVED, AND THAT IS THE RESULT
+
+Measured live against both frames, the following were already **exactly** what ships: the
+group's 15/16 padding and 9px gap, the tile row's gap 8 and the tile column's gap 4, the
+tile at 62px on a 16px radius, `--ps-accent` `#243352` as the selected fill, the 11.5px
+tile label, a 13/600 `--ps-ink-2` section header over a 13/400 `--ps-ink` group label at
+19.5px leading, buttons at 14/600 with +0.16px, the `--ps-hair` edge-to-edge seam, the 4px
+`--ps-line` slider track with its `--ps-link` thumb, the 15px bar icon, the
+`--ps-link`-at-16% info disc, and the wordmark at 79px with its orange period. **Every
+colour in both frames is a token this system already declares.** Two frames of a
+four-column workspace and the whole delta is the list below.
+
+**READ THE FRAME'S DIMENSION BOX AS THE CONTENT BOX.** Figma's Dev Mode diagram shows the
+CONTENT box in the dashed rectangle with the paddings around it, so the rail's `288 x 1140`
+plus `12/16/18/16` is a **320-wide** frame, not a 288-wide one. Getting this backwards for
+twenty minutes made a 140px tile look impossible in a 256 column. The check that settles it
+is any child with margins: the wordmark reads `75 x 15` with `padding: 0 2px` and 16 left /
+1895 right, and 16 + 75 + 4 + 1895 = 1990 exactly.
+
+## WHAT ACTUALLY CHANGED
+
+| | was | frame |
+|---|---|---|
+| `.p-top` | 54 tall | **55** |
+| every top-bar control | 29 (`.p-btn-q`) · 31 (`.p-prev`) · 35 (`.p-seg`) · 36 (the rest) | **36, all of them** |
+| the switcher track | pad 2, 1px `--ps-hair` | **pad 3, no edge** (dark only — see below) |
+| Projects · Source folder · Save | three separate pills | **one outlined capsule with 1px rules** |
+| `.p-sec > .p-cap > s` | not pushed right | **`margin-left:auto`** |
+| `.p-grp` bottom padding | 15 | **16** |
+| the selected tile's ring | 2px | **1px, then none at all** — see the last section |
+| the selected tile's label | 400 | **500** |
+| the Layout rail's content column | 277 | **288** |
+
+**ONE HEIGHT FOR THE WHOLE BAR IS THE change with the most effect for the least edit.** Four
+heights in one row is what made that bar read as assembled rather than designed, and nothing
+in it needs `.p-sm` — that modifier means 29 and belongs inside a rail group, which is a
+different context with a different reason.
+
+**THE BAR ICON WAS ALREADY RIGHT and is worth recording because it looks wrong written
+down.** The frame's icons draw **10.6px of ink**, which is a 15px em at Material's ~0.71 ink
+ratio and is exactly a 14px label's cap height. Both studios ship 15px. An icon matched to
+the cap height rather than to the em is why a 36px bar does not read as crowded.
+
+## THE DELIVERY TRIO IS ONE OUTLINED GROUP — `.p-tgrp`
+
+Three separate pills with three separate fills, for one job, and the widest run of chrome in
+the bar. The frame makes them one hairline capsule with 1px vertical rules between the
+cells: the group says "this is where the project lives" and the rules say where one control
+ends. The cells give up their own fill, so the group's outline is the only boundary and the
+hover is the only fill — **which is the surfaces-not-strokes rule arriving at the same
+answer from the other side**, and it removes two fills while adding one outline.
+
+`overflow:hidden` is what clips a cell's hover to the capsule at the two ends. A cell keeps
+`.p-ghost`'s type, ink, icon gap and 36px row; only the surface and the corner come off.
+
+**`sc-if` IS REMOVED AT RENDER AND ITS CHILDREN ARE HOISTED**, which is what makes the child
+and adjacent-sibling selectors safe here — the Source-folder cell sits inside
+`<sc-if folderOn>`, so a surviving wrapper element would have broken both `>` and `+`.
+Verified rather than assumed: **0 `sc-if` elements in the rendered bar, and that button's
+parent is `header.p-top`.**
+
+## THE RAIL DELIVERS THE FRAME'S 288 COLUMN, AND THE SCROLLBAR IS WHY 320 IS NOT ENOUGH
+
+A static frame has no scrollbar. What the frame specifies is a **288 content column**, and
+measured live, `width:320px` plus the 1px seam gave **277** — Chrome takes 11px for the bar
+this rail always shows. So `.p-rail-r` is **331 + 1** and `--ps-railr` moved to **332**:
+288 + 32 padding + 11 scrollbar + 1 seam, exactly as the palette rail's 272 = 229 + 32 + 11.
+The tile row lands on the frame's **140** each.
+
+**`--ps-railr` HAD TO MOVE WITH IT.** The dock's right offset is
+`calc(var(--ps-railc) + var(--ps-railr) + 28px)`, so leaving the token at 321 would have put
+the dock 11px off the stage's edge.
+
+**AND THE COST IS REAL, so it is the one thing here to overrule if it is not wanted:** the
+stage gives up 11px. Nothing was clipping at 277 — checked, and the only overflow anywhere
+in that rail is `.p-tri-f`, which is the three-stop slider's own clipped mark layer. This is
+the design's column being delivered, not a defect being fixed. The palette rail's case was
+forced (a descriptor was losing 5px); this one is consistency.
+
+## FOUR THINGS THE FRAMES DO NOT GET
+
+- ~~**THE SELECTED TILE'S RING KEEPS `--ps-link`, and takes only the frame's WEIGHT.**~~
+  **WRONG, AND SUPERSEDED THE SAME DAY — the frame draws NO border on that tile and the ring
+  is gone entirely.** See *A SOLID NAVY FILL CARRIES NO STROKE* at the end of this file.
+  What this bullet reported as a 1px `#FFFFFF`-at-20% edge is the skeleton BAR inside the
+  tile: I read it off Dev Mode's "Selection colors" list, which summarises every colour in
+  the node's SUBTREE rather than the node's own properties. The tile's own Style block is
+  `border-radius` and `background`, nothing else.
+- **THE SWITCHER TRACK KEEPS ITS EDGE IN LIGHT, and I shipped that wrong for one round.**
+  The frame's argument for dropping the hairline is that `--ps-card` on `--ps-app` is a full
+  step of surface — true in dark, and **false in light, where `--ps-card` IS `--ps-app`**.
+  Dropping it left the track at **1.00:1 against its own bar**, an invisible trough. Light
+  therefore takes `--ps-fill` and keeps the hairline (1.16 and 1.22 against the bar); dark
+  takes the frame verbatim. **A DARK FRAME'S REASONING ABOUT A SURFACE STEP HAS TO BE
+  RE-MEASURED IN LIGHT BEFORE IT IS APPLIED THERE** — this system's tints are near-white on
+  a white ground, so "the fill carries the boundary" is a claim about one theme only.
+- **The 16:9 Scaling row stays.** The frame draws only `1:1` and `9:16`. Campaign has three
+  canvases, and an omission is not evidence of absence — the rule this file already records
+  for the frames that drew no top chrome.
+- **`#616161` at 20% is read as `--ps-hair`.** The Header's group outline is drawn in that
+  grey where the `Aside` frame's group stroke was `#949AA6` at 16% — `--ps-hair` exactly.
+  Two hairline greys for one job in one file is drawing slop, not a second token; the
+  composited difference is 35 against 40 of 255.
+
+## TWO DEFECTS THE PASS TURNED UP, NEITHER FROM THE FRAMES
+
+- **The guide's `.p-tile-c` was 1.00:1 in light — navy on navy — and its own self-test is
+  what caught it.** The badge filled with `--ps-accent-h` (a SOLID) and inked with
+  `--ps-accent-i`, which is the ink for the resting TINT and is therefore the navy itself in
+  light. **Fifth time this system has produced exactly this inversion.** The rule is written
+  down — every solid fill carries `--ps-primary-i`; only `--ps-accent` has its own ink — and
+  it still has to be applied by hand at every reader. Campaign's copy of the class is dead
+  markup, which is why only the guide flagged it.
+- **`.p-prev` was the last place in the library still painting Preview ORANGE.** Both
+  re-skinned documents moved it when orange stopped being a fill; the kit kept the old
+  `.p-prev,.p-sw-studio` pair. `.p-sw-studio` is now the only orange fill in the library, it
+  appears in neither frame, and it is **flagged rather than changed**.
+
+## THE LIBRARY GAINED `.p-seg` AND A REAL TOP-BAR SPECIMEN
+
+`provident-ui.tokens.json`'s rule 31 records four classes the library only ever RINGS —
+`.p-tile`, `.p-seg`, `.p-nav`, `.p-nav2` — with real rules and real markup in both studios,
+nothing in the library, and therefore no specimen. Adding an override for `.p-top .p-seg`
+while leaving `.p-seg` undeclared would have made the file describe a control it does not
+define, so **`.p-seg` now has a base rule, measured off the running studio** (track
+`flex:0 0 auto`, button 30px at 7px 14px, `nowrap`, and the ON state's own 1px `--ps-link`
+ring). Two of the four are still open.
+
+**AN INLINE OVERRIDE ON A SPECIMEN IS THE TELL THAT THE CLASS DOES NOT WORK AS DECLARED, and
+the first attempt at this one was exactly that.** `.p-top` was declared in the library with
+no specimen at all, so the segmented pair was mounted in a `.p-top` wrapper carrying inline
+`height:auto;padding:0;background:none;border:0` — and the guide-versus-studio diff
+immediately reported **six differences on a class that was fine**. It is a real top bar now:
+wordmark, switcher, group, toggle, Undo, Redo, Preview, no overrides.
+
+## VERIFICATION
+
+- **Contrast, reloaded into each theme, transitions finished, ancestor opacity composited,
+  and diffed against a `_PRE` copy served alongside:**
+
+| | dark | light |
+|---|---|---|
+| Campaign | **3, identical to PRE** | **4, identical to PRE** |
+| web image studio | **0** | **1** |
+| Organic | **3, identical to PRE** | **3, identical to PRE** |
+| the guide | **0 self-test fails, 0 large-only** | **0 / 0** |
+
+  Campaign's dark three are the disabled Undo/Redo pair plus the splash's `▦` nav glyph at
+  4.45 — **present in the PRE build at the same value**, so it is this project's baseline and
+  not this pass. Light adds the logotype's orange period at 2.76 and the copy-coverage chip
+  at 3.75 in its amber state, which this file already flags as one token if it should move.
+  **Zero new failures anywhere.** Elevation shadows: 0 in Campaign, the image tool and the
+  guide's own components; Organic's 3 are its canvas plates on the old kit, identical to PRE.
+
+- **Guide against Campaign, 13 component roles, computed values:** 15 differences down to
+  **7, and all seven are provably inert.** Three are `justify-content` where the measured
+  free space is **between −0.48px and +0.38px** — there is nothing to distribute, because
+  Campaign's `.p-ghost` never declares it and the boxes are content-sized. One is
+  `flex:0 0 auto` against `0 1 auto` in a row that never shrinks. Three are `.p-mini`
+  centring on the base in Campaign and on the `.p-mini-i` modifier in the library — the
+  documented equivalent-implementation case. `.p-prev`'s 14px line box WAS closed to
+  `normal`: this file's base rule uses the `font` shorthand, which sets leading as a side
+  effect.
+
+- **Sheets parse and nothing was swallowed**: Campaign 848 rules (830 before), the image
+  tool 348, Organic 868, the library 175 of 178 authored blocks — the three missing are
+  `-moz-`-only blocks Chrome drops, which is the documented baseline. All four brace-walk to
+  depth 0 with matched comment delimiters, **one closing style element each**, and the
+  library still parses **1 `CSSFontFaceRule`**, so the star-slash trap is not reintroduced.
+
+- **The canvas was not re-checked and did not need to be.** This pass changed chrome
+  component rules and one width; no line containing `ops.push`, `buildOps(`, `palOf(` or
+  either renderer was touched in any file, and `--ps-*` reaches no op. The four-way proof
+  from the Provident-Navy pass still holds by construction.
+
+## PROPAGATION
+
+Section 18 of `ui-design-system/provident-ui.css` is upstream; the three consumers carry it
+as one appended block each.
+
+| | took |
+|---|---|
+| Campaign | all of it, plus the `.p-tgrp` markup wrap and the 332 rail |
+| web image studio | the bar (55, 36, the track, `.p-ico-o`), the band's 16px bottom, `.p-tgrp` as a base rule it does not use |
+| Organic | the bar, the band's 16px bottom, and the `.p-tgrp` markup wrap — **the top bar is the same markup in both documents, so the wrapper had to land here too** |
+
+**NOT propagated, and why:** the option-tile rules (the 1px ring, the 500-weight label).
+There is **no `.p-opt` in Organic's markup at all** and none in the image tool's, so they
+would match nothing. They travel with the token set when Organic's re-skin lands.
+
+**A CORRECTION I MADE MID-PASS, and it is this file's own rule biting me.** I first wrote
+that Organic's band padding could not be propagated because its rails were on the pre-band
+rhythm — `.p-grp` at `gap:5px` with no padding and no seam. That was read off the FIRST
+`.p-grp` declaration instead of the winner: `.p-sec > .p-grp` carries `padding: 15px 0` 350
+rules later and the full-bleed pair 70 after that, so Organic's group computes **15px 16px
+with a `--ps-hair` seam and a 9px gap — the kit's band exactly.** Check the winner, not the
+rule. These sheets all end in override blocks and that is why this file says so twice
+already.
+
+**AND THE SAME TRAP, IN ITS SPECIFICITY FORM, ate the first attempt at the band padding.** A
+bare `.p-grp{padding-block:15px 16px}` declared last still loses to `.p-sec > .p-grp`
+(0,2,0) declared 340 rules earlier — measured after the first edit, the computed padding was
+still 15px top AND bottom. The shipped selector lists both forms. It stays weaker than
+`.p-dock-b > .p-grp`, so a panel's group keeps its own 13px rhythm — verified at 13px 14px
+with the dock open.
+
+# A SOLID NAVY FILL CARRIES NO STROKE
+
+By explicit design decision, made in the UI-Kelvz frames themselves: *"i simply remove the
+strokes on the blue buttons."* Re-read on the current file — both frames had been edited
+since the pass above — and confirmed at the node level:
+
+| | the node's own Style block |
+|---|---|
+| the selected option tile | `border-radius: 16px; background: #243352` — nothing else |
+| the switcher's ON half | `border-radius: 9999px; background: #1A2942` — nothing else |
+| Preview | `border: 1px solid rgba(0,0,0,0)`, i.e. **explicitly transparent** |
+
+## THE MISREADING THAT PUT A RING THERE FOR ONE ROUND
+
+**Dev Mode's "Selection colors" is a summary of every colour in the node's SUBTREE, not a
+list of the node's own properties.** The tile's entry included `#FFFFFF · 20%`, I read that
+as a 1px white border on the tile, and built a whole measured argument on it — that the
+frame's white-at-20% composites to `#4C5465` and fails 1.4.11, so the *weight* was the
+frame's and the ink should stay `--ps-link`. That 20% white is the **skeleton bar inside the
+tile**: clicking it directly returns `53.19 x 6px`, radius 9999, `background: #FFFFFF 20%`.
+
+**Read the node's Style block. "Selection colors" tells you what is in the subtree.**
+
+## THIS REVERSES A RULE RE-DERIVED ON FOUR SUCCESSIVE ACCENTS
+
+So the measurement stays on the record rather than being quietly dropped. Measured live in
+dark, after the change:
+
+| | |
+|---|---|
+| selected fill against the rail | **1.45:1** |
+| selected fill against the UNSELECTED fill | **1.13:1** |
+| selected label against the rail | 18.28:1 at weight 500 |
+| unselected label against the rail | 10.87:1 at weight 400 |
+| selected label against unselected label | **1.68:1** |
+
+Every previous pass answered the first row with a `--ps-link` hairline and wrote *"do not
+lighten the fill; the hairline is the fix."* The hairline is gone; the fill is the whole
+treatment.
+
+**WHAT MAKES IT DEFENSIBLE RATHER THAN MERELY INSTRUCTED:** the state is carried by the
+LABEL — `--ps-ink` at 500 against `--ps-ink-2` at 400 — and text is governed by 1.4.3, which
+both sides pass at 18.28 and 10.87. So the information is conveyed by something that
+measures, and the fill is decorative. **The corollary is the thing to hold on to: a control
+that fills with navy and carries NO label needs its boundary back.**
+
+**AND THE HONEST COST, which is the 1.13:1 row.** With the ring gone, the two tiles differ
+mostly in HUE at nearly equal lightness — a navy against a neutral grey — plus the label. A
+viewer who loses hue loses most of it. If it ever needs more presence without a stroke, the
+lever is the FILL's lightness, not a ring; and going lighter than `#243352` departs from the
+frame.
+
+## THE LINE IS THE FILL, NOT THE CONTROL
+
+- **A SOLID loses its stroke** — `--ps-accent`, `--ps-primary`, `--ps-accent-h`. That is the
+  option tile, the segmented halves (`.p-seg`, `.p-tabs`), `.p-btn`, `.p-prev`,
+  `.p-ghost[data-on]`, `.p-tgrp`'s Save cell, `.p-ws[data-on]`, `.p-nav2[data-on]`,
+  `.p-br-new` / `.p-cta`, `.p-tile[data-on]`, `btn(on)` in both studios,
+  `agent2ToggleStyle`, and the guided run's own blue buttons in Organic.
+- **A WASH keeps its ring** — `--ps-accent-q` at 13–22%. `.p-choice[data-on]`,
+  `.p-nav[data-on]`, the palette tile's add-flash keyframe, `.gd-expok`, `.gd-link`, and
+  `row(on)` in `studio-base.js`. A wash has nothing else to show it.
+- **The FOCUS ring is untouched** and is not a stroke on a fill: it is the only thing that
+  says where the keyboard is, it sits on the page ground at a 2px offset, and it takes
+  `--ps-ink` so it inverts with the theme.
+- **The COLOUR SWATCH keeps its ring**, and it is the one survivor the sweep still reports.
+  `.p-sw`'s fill IS the value being chosen, so the fill cannot also be the state — this
+  file's own rule is "one ring says which colour is chosen". It happens to read as a navy
+  fill whenever the navy swatch is the active one, which is why it shows up in the sweep.
+
+**ONE PLACE THIS REACHES A CONTROL THAT IS NOT A BUTTON, deliberately:** `.p-tri-f`, the
+three-stop slider's fill. This system has an explicit rule that the selected tile and that
+slider are ONE treatment, so leaving its 2px ring would put the pair back in the
+disagreement that rule exists to close. Its extent is still readable — the white marks
+inside the fill are 14.15:1 and are placed to be counted (2 of 4 inside the blue at Tight,
+3 at Medium, 4 at Roomy) — and the preset is named in the column beside the track.
+
+## TWO PROBE LESSONS, BOTH OF WHICH HID A REAL SURVIVOR
+
+- **A CUSTOM PROPERTY RETURNS ITS RAW DECLARED VALUE, so a sweep that compares computed
+  backgrounds against tokens has to parse HEX as well as `rgb()`.** The first sweep reported
+  **zero** navy-filled elements in the whole document, which reads as "already clean" and is
+  the opposite. Same trap the guide's own swatch parser hit when it printed `NaN` for eight
+  tokens.
+- **SWEEP COMPUTED BACKGROUNDS, NOT SELECTORS — AND COVER BOTH SCREENS.** Reading selectors
+  missed `.p-nav2[data-on]`, the splash's Library rows: they fill with `--ps-fill-on`, which
+  **RESOLVES to `--ps-accent`**, so an older note in this file calling them "a quiet wash"
+  is wrong. It also only surfaced on the run where the SPLASH was on screen — the dark run
+  had been taken in the editor, so it reported 22 navy elements against light's 33.
+
+## VERIFICATION
+
+Sweep: every element whose computed background equals `--ps-accent`, `--ps-primary`,
+`--ps-accent-h`, `--ps-accent-h2` or `--ps-primary-h`, checked for a visible border or any
+box-shadow, transitions finished first, both screens present, reloaded into each theme.
+
+| | solid-navy elements | with a stroke |
+|---|---|---|
+| Campaign, dark | 24 | **1** — the colour swatch |
+| Campaign, light | 33 | **1** — the same swatch |
+| Organic, dark / light | 9 / 7 | **0 / 0** |
+| web image studio | 2 | **0** |
+| the guide, dark / light | 22 / 30 | **0 / 0** |
+
+**Campaign before the change: 12 of 24 carried a stroke.** Contrast is unchanged everywhere
+— Campaign dark 3 / light 4, Organic 3 / 3, the image tool 0 / 1, the guide **0 self-test
+fails and 0 large-only in both themes** — and elevation shadows are still 0 in Campaign, the
+image tool and the guide (Organic's 3 are its canvas plates on the old kit). All four sheets
+brace-walk to depth 0 with matched comment delimiters and one closing style element each.
+
+`border-color: transparent` rather than `border: 0` throughout, so the 1px width stays and
+nothing reflows.
+
+# THE PROPAGATION REPORT, MEASURED — AND WHAT IS RAMP-INDEPENDENT
+
+Asked for as "push the ui changes to `ui-design-system` and reflect it to Organic and the
+image tool". The kit already carried this session's work (sections 18 and 19); what this
+pass did was **measure** the two mirrors against it rather than assume, close everything
+that could close, and name what cannot.
+
+**Method:** collect every `--ps-*` custom property DECLARED in each document's own sheets,
+read each one's computed value off `:root`, and diff against the same dump from the guide.
+Computed, not parsed — these sheets all end in override blocks, so what a declaration says
+and what a token resolves to are routinely different.
+
+| | tokens | differ | missing | verdict |
+|---|---|---|---|---|
+| the guide | 73 | — | — | upstream |
+| web image studio | 66 | **0** | 9 | **fully in step** |
+| Organic | 69 | **57** | 4 | the ramp |
+
+**THE IMAGE TOOL IS DONE.** Zero value differences on every token it shares. Its 9 absences
+are the documented app-specific set — `--ps-dockpad`, `--ps-qr`, `--ps-railc`, `--ps-railr`
+are studio geometry it has no equivalent of, and `--ps-gold` / `--ps-gold-d` / `--ps-line-2`
+/ `--ps-orange` / `--ps-sand` are legacy aliases it never needed.
+
+## TWO LIVE DEFECTS THIS FOUND, AND THE FIRST IS THE ONE THIS FILE ALREADY CLAIMED FIXED
+
+**`.p-tile-a`'S TRANSITION WAS DEAD IN CAMPAIGN, ON 13 ELEMENTS.** Measured:
+`transition: opacity cubic-bezier(0.2, 0, 0, 1)` with `transitionDuration: 0s` — the palette
+card's hover-revealed add button had no fade at all. This is *exactly* the bug the
+`--ps-EASE CHANGED MEANING` section documents, and that section ends "the names are honest
+now — `--ps-motion` is the time, `--ps-ease` is the curve — and every call site passes
+BOTH." **The kit's 11 call sites do. Neither studio's did.** The claim was made about the
+library and not checked against its consumers. Both are `var(--ps-motion) var(--ps-ease)`
+now, and Campaign measures `opacity 0.15s cubic-bezier(0.2, 0, 0, 1)`.
+
+**ORGANIC USED `var(--ps-ease)` AND DECLARED IT NOWHERE**, so that declaration was an
+invalid substitution and was dropped entirely — the same control dead for a second,
+different reason. It declares both tokens now.
+
+## THE LINE THAT MADE THIS PASS POSSIBLE: RAMP-INDEPENDENT vs RAMP-DEPENDENT
+
+Organic is 57 values behind, and every one of those 57 is a **colour, a radius or an
+elevation** — the ramp. So they cannot land one at a time: `--ps-fill` going from
+`rgba(255,255,255,.05)` to `#282B31` is translucent-to-opaque and changes every nested
+control, and `--ps-r-ctl` going from `10px` to `9999px` is the documented breakage that
+turns its `.p-tile` into a capsule.
+
+**What IS ramp-independent carries no colour and no geometry that another rule depends on,
+and can therefore land ahead of the re-skin.** Three things qualified and all three shipped:
+
+| | landed in |
+|---|---|
+| `--ps-motion` / `--ps-ease` — a duration and a curve | Organic |
+| `.p-tile-a`'s transition reading both | Campaign + Organic |
+| `.p-top .p-seg button` at 14/600/+0.16px — the BUTTON type role, which the frame states and which Campaign and the image tool already computed; Organic was on the pre-Coinbase 12/500 | Organic |
+| `.p-top .p-seg`'s track on `--ps-card` — a later rule in the image tool had it one step louder on `--ps-fill` | web image studio |
+
+**`--ps-fill-dis` and `--ps-primary-a` were deliberately NOT added to Organic**, even though
+they complete the "missing" list. They are Coinbase-ramp colours, and giving a document on
+the old ramp two tokens from the new one is half a re-skin — worse than the gap.
+
+**AND `--ps-railr` STAYS AT 321 IN ORGANIC.** The kit's 332 was derived from the Layout
+rail's 288 content column in a CAMPAIGN frame. Organic's `.p-rail-r` is its Slide rail, a
+different rail with different content that no frame specifies. Propagating a width because
+the token happens to be shared would be the frame-width mistake in another form.
+
+## WHAT ORGANIC'S RE-SKIN STILL OWES, now with the list in hand
+
+The 57 break down as: the whole colour ramp (grounds, fills, inks, the navy family, the
+status trio and their washes), the whole radius scale (`--ps-r` 6→16, `--ps-r-sm` 4→8,
+`--ps-r-lg` 8→16, `--ps-r-ctl` 10→9999, `--ps-r-tile` 13→16, `--ps-r-drop` 14→16,
+`--ps-r-field` 16→8, `--ps-pill` 999→9999), and elevation (`--ps-shadow`
+`0 10px 30px rgba(0,0,0,.5)` → `none`, `--ps-shade` → `transparent`).
+
+Four fixes have to travel WITH them or the token swap breaks something:
+
+1. **`.p-tile` needs an explicit radius.** It reads `--ps-r-ctl`, which is 10px in Organic
+   today and 9999px in the kit. Campaign hit this and answered it with a literal 10px.
+2. **`--ps-r-field` 16→8 changes the guided run's text boxes**, which this file records as
+   deliberately 16px — "clearly rounded without becoming a lozenge… not a pill, a text box
+   is not a button". That is a decision to re-make, not a value to swap.
+3. **The `.gd-*` guided run carries its own old-blue literals and `--ps-blue-lt` strokes.**
+   The no-stroke pass already took the solid-filled ones; the fills themselves are still on
+   the old ramp.
+4. **`--ps-shadow` → `none` removes Organic's two RAIL shadows** (measured: `.p-rail-l` and
+   `.p-rail-r` each carry `0 10px 30px rgba(0,0,0,.5)`). That is what the Coinbase
+   ring-not-shadow rule wants, and it is a visible change to both rails.
+
+And `OrganicStudio.ART` must be proved unmoved the way Campaign's was — op signatures over
+five templates x every slide x both canvases, `ART` byte-identical, zero chrome tokens in
+any op colour.
+
+## VERIFICATION
+
+Reloaded into each theme, transitions finished, and every measurement diffed against a
+`_PRE3` copy served alongside:
+
+| | contrast | elevation shadows | strokes on a solid navy |
+|---|---|---|---|
+| Campaign | 2 dark / 4 light | 0 | 1 — the colour swatch, by design |
+| Organic | 3 / 3, **identical to PRE3** | 5, **identical to PRE3** | 0 |
+| web image studio | **0** / 1 | 0 | 0 |
+
+Organic's five are its own and pre-date this pass: two rail shadows on the old
+`--ps-shadow`, three canvas plates. Sheets: the kit 179 top-level blocks, Campaign 864,
+Organic 890, the image tool 365 — all at brace depth 0 with matched comment delimiters and
+one closing style element each.
+
+
+# ORGANIC IS ON THE KIT — the last consumer, and the artwork was proved unmoved three ways
+
+`Provident Organic Studio.dc.html` measures **73 tokens, 0 differ, 0 missing** against
+`ui-design-system/` in **both** themes. It was 57 differ / 4 missing. The propagation
+contract is now discharged for all three consumers.
+
+**ONE TOKEN IS DELIBERATELY NOT TAKEN: `--ps-railr` stays at 321 here, against the kit's
+332.** The kit's 332 is 288 + 32 padding + 11 scrollbar + 1 seam, derived from the Layout
+rail's content column in a *Campaign* frame. This document's `.p-rail-r` is its **Slide**
+rail — a different rail, different content, specified by no frame — and the token drives the
+dock's right offset, so it has to describe the rail that is actually there. Measured after:
+offset **321**, client 309. Do not "reconcile" it.
+
+## THE CANVAS CANNOT BE REACHED FROM THE CHROME LAYER, and that is structural
+
+Three independent proofs, in increasing cost. The first is the one worth reaching for first
+next time, because it is free and it is the strongest:
+
+| proof | result |
+|---|---|
+| **whole-file diff against the pre-re-skin copy** | **7 hunks, 5 replaced lines, 165 added — and ZERO artwork lines among them.** The only two diff lines matching `ops.push` / `buildOps(` / a renderer / an `ART`-family block are inside a comment I wrote quoting those names. |
+| `buildOps`'s own text | **46,053 bytes, 0 occurrences of `--ps-`** — a token swap has nothing to reach |
+| op signatures, 5 templates x every slide x both canvases x each template card in both themes | **34 groups, 451 ops, 34 identical** |
+
+**PREFER THE WHOLE-FILE DIFF OVER A HASH OF A HEURISTIC LINE SET.** The baseline for this
+pass was a sha256 of every line matching ~24 artwork patterns, and reproducing that pattern
+list exactly a turn later was guesswork. Diffing the entire file against the `_PRE` copy and
+then grepping the DIFF for artwork markers answers the same question with no pattern list to
+get wrong, and it also catches anything the pattern list would have missed.
+
+### A GROUP THAT HASHES DIFFERENTLY IS NOT NECESSARILY A GROUP THAT CHANGED
+
+The op-signature diff first reported **33 of 34** identical, with `weekly/prop/1/ft` differing
+at an unchanged op count of 23. Then the two hashes **swapped** when the files were re-probed
+in the other order — which is the tell.
+
+Compared op-for-op instead of by hash: **0 differences.** And running the same probe twice
+against the *same* file back to back: identical. The variation is across a page LOAD, and
+diffing PRE against PRE from two different loads isolated it to 12 ops carrying two stable
+states:
+
+```
+the hugging spec panel:  w 761.680  (cold)   vs   w 753.805  (warm)
+its four column edges:   209.2 / 331.2 / 467.6 / 706.1   vs   213.1 / 335.2 / 471.5 / 705.7
+```
+
+**753.8 and those four warm edges are the numbers this file already records as CORRECT** —
+see *The weekly template was rebuilt to three supplied SVGs*: "with every weight actually
+loaded it is 753.8, and its four column edges land at 213.1 / 335.2 / 471.5 / 705.7 against a
+drawn 212 / 334 / 470 / 706 — every number within 1.5px. **The 8px error was one unwarmed
+weight.**" So this is that documented condition, live and pre-existing, and it is identical in
+both files.
+
+**It is a real latent defect, flagged rather than fixed:** whichever surface measures that
+panel FIRST after a load — a recents thumbnail, a template card, the guided run's card — can
+land on the cold 761.7 while the editor and the export land on 753.8. `wkSpecBox` should warm
+the weights it measures with, the way `tplRenderAll` already awaits eight `document.fonts.load`
+pairs. It is outside a re-skin's scope.
+
+**And a cold-vs-warm test INSIDE one load proves nothing here** — it returned 0 differences,
+because the page's own `tplRenderAll` has already warmed the face by the time a probe runs.
+Only the first measurement after a load is cold.
+
+## THE RAMP IS ONE APPENDED BLOCK, PLUS THE FIXES IT FORCES
+
+The convention this file already used for three re-skins: redefine the token layer rather
+than rewriting ~900 rules, and reverting is deleting from the block to the end of the element.
+Sheet integrity after: **910 top-level blocks, depth 0, 272/272 comments, 1 closing style tag,
+903 rules parse.**
+
+**Two things had to be DERIVED, because the supplied ramp is light-only.** The tints are
+Provident Navy over **white** and the shades **darken** — both meaningless on a near-black
+ground. So dark tints toward the INK (`--ps-fill-on` `#243352`, the navy lifted one step so it
+still reads as navy beside neutral greys) and dark's hover **lifts** (`#22355A`) where light's
+darkens. The four-level neutral shell (`#0A0B0D` stage through `#282B31` control) is the kit's.
+
+**THE LEGACY ALIASES BECAME `var()` POINTERS, and that is what made the swap reach ~34 call
+sites for free.** They were literals here, so they would otherwise have kept the old ramp
+while everything around them moved.
+
+### The four things the token swap forces
+
+1. **`--ps-r-field` 16 -> 8 would take the guided run's big fields with it**, and their 16px is
+   a recorded decision ("on a ~55px field it is clearly rounded without becoming a lozenge…
+   not a pill — a text box is not a button"). Exactly one reader, so the decision is held
+   explicitly: `.gd-big,.gd-bigta,.gd-bigsel{border-radius:16px}`.
+2. **`--ps-r-ctl` 10 -> 9999px is the documented capsule hazard.** This document has **zero
+   `.p-tile` in its markup** (checked — the palette rail is Campaign's), so nothing actually
+   breaks; the literal is carried anyway so the three texts stay diffable.
+3. **`--ps-shadow` -> `none` removes THIS DOCUMENT'S TWO RAIL SHADOWS** as well as the
+   popover's. Measured before: `.p-rail-l` and `.p-rail-r` each carried
+   `0 10px 30px rgba(0,0,0,.5)`. Intended.
+4. **`--ps-shade` -> `transparent`** neutralises the slider thumb and the floating panels'
+   drops.
+
+### AND THE FIELD RADIUS HAD TO BE RESTATED, which the token alone did not deliver
+
+`--ps-r-field` computes 8px and the kit's `.p-in` computes 8px — but a later literal here sets
+`.p-in,select.p-in,textarea.p-in,.p-ghost,.p-icon,.p-tile,.p-dash,.p-hexin{border-radius:10px}`
+and wins, so **every field in this document measured 10px against the kit's 8.**
+
+**The probe that found it, and the trap inside it.** Build the same synthetic element for ~19
+classes in the kit and in this file and diff the computed radius: **5 classes differed, and
+FOUR of those were `.p-icon` / `.p-hexin` / `.p-nav2` / `.p-ws` reading `0px` in the kit — i.e.
+classes the library does not declare at all.** A bare-class probe cannot tell an undeclared
+class from a drift; `0px` from a synthetic element is a UA default. `.p-in` was the only real
+one. The other classes in that literal already compute correctly (ghost 9999 from the pill
+sweep, dash 16, tile 10 by the hold above), so only the field is restated.
+
+## SIX INVERSIONS, AND THE FIFTH ONE IS THE LESSON
+
+**This is the fifth re-skin in this project to produce exactly one bug: a fill that inverts
+against an ink that does not.** `--ps-accent-i` is the ink for the resting TINT and is
+therefore the NAVY in light; on a SOLID navy fill it is navy on navy. Every solid carries
+`--ps-primary-i`, which is white in both themes.
+
+Five were pre-empted by **enumerating every `--ps-accent-i` / `--ps-accent-i-q` reader off the
+parsed sheet and checking each against its NEW fill** — 11 readers, 5 wrong:
+
+| | was | now |
+|---|---|---|
+| `.p-tile-c` | `--ps-accent-i` on `--ps-accent-h` | `--ps-primary-i` |
+| `.gs-btn` | same | `--ps-primary-i` |
+| `.p-opt[data-on] .p-mini i` | `--ps-accent-i-q`, white 92%, on what became a pale tint | `--ps-accent-i` |
+| `.p-tri-f .p-tri-k` | same | `--ps-accent-i` |
+| `.gd-expb-p` / `.gd-btn-p` | no ink of their own, inheriting navy | `--ps-primary-i` |
+
+**THE SIXTH WAS MISSED BY THAT ENUMERATION AND CAUGHT BY THE AUDIT, and the reason it was
+missed is worth more than the fix.** `.p-ws[data-on] .p-ws-s` — the active studio row's
+descriptor — measured **1.24:1** in light. It is on the **SPLASH**, and the enumeration was run
+while reading the editor's rules; it is in the parsed sheet either way, so the miss was mine
+for reading the list rather than intersecting it with what actually renders. Campaign had
+already answered it, and the answer is this project's own rule: **quietness expressed as
+OPACITY does not survive a flip**, so it moves into the token — `--ps-ink-2` at `opacity:1`.
+
+**Enumerate the readers off the sheet AND walk the rendered screens. Neither alone is
+enough** — the sheet misses nothing but tells you nothing about which fill wins; the walk
+only sees what is mounted.
+
+## A QUIET INK INSIDE AN ON FILL IS READ AGAINST THAT FILL, NOT AGAINST THE PAGE
+
+The one genuinely new finding, and it is the **fourth** instance of this nesting error in this
+project (the `.p-tabs` ON state, light `--ps-bad`, both dark status tiers, now this).
+
+Measured after the ramp landed: the splash Library row's `▦` chip and the palette nav button's
+hint both compute `--ps-dim` `#949AA6` over `--ps-fill-on` `#243352` at **4.45:1** against a
+4.5 bar — 1% short, on two elements, in dark only.
+
+**It is invisible to the kit's own self-test, which measures every ink token against
+`--ps-app` alone.** On `--ps-app` that same ink is 6.51:1. That blind spot is the finding: a
+page that prints a live contrast ratio per token is only as good as the grounds it measures
+against, and an ON fill is a ground.
+
+Both step up a tier — `--ps-ink-2`, which measures 10.55 / 10.59 on that fill and is still
+visibly the quiet tier beside `--ps-ink`.
+
+**NOT pushed to the kit, deliberately: the kit declares neither `.p-nav2` nor its children at
+all** — that is the recorded open item about ringed-but-undeclared library classes — so there
+is nothing there to keep in step, and opening that job is a decision rather than part of a
+re-skin. **Campaign computes the identical 4.45 on the identical two selectors today.**
+
+## ORANGE STOPPED BEING A FILL HERE TOO, AND THIS WAS THE LAST DOCUMENT CARRYING IT
+
+Measured on the render before touching it: the switcher's active button and Preview both
+computed `rgb(243,121,60)` with white ink at **2.76:1** — the exact deferred AA exemption both
+re-skinned documents retired and the kit's own section 18 then closed. Organic is the one
+consumer that never got that pass, so it kept the whole "orange-in-the-top-bar" override block.
+
+**Specificity, not order, again.** `.p-top .p-seg button[data-on]` is (0,3,0) and beats the
+bare (0,2,0) rule above it; **`.p-prev:hover` has to be restated** because the orange
+`.p-prev:hover` is (0,2,0) and would otherwise beat a bare `.p-prev` in the appended block
+however far below it that block sits. Measured after: **0 orange fills** anywhere in the
+document, in either theme.
+
+**AND THAT LEAVES `--ps-brand` WITH NO WINNING READER IN THIS FILE AT ALL.** Campaign and the
+image tool both keep exactly one — the wordmark's period, which is a logotype and carries no
+contrast requirement. Organic's wordmark is `<span class="p-wm">provident.</span>`, one text
+node with nothing to colour, which is precisely the state Campaign was in before its markup
+edit. **Flagged, not changed:** giving Organic its orange period is a two-token markup edit on
+the brand's most sensitive mark, and nothing asked for it.
+
+## THE GUIDED RUN'S CARDS: RING, NOT SHADOW
+
+The last three elevation shadows in the document, and a token swap could not reach them —
+`.gd-card`, `.gd-card-s` and `.gd-card-s[data-on]` all spell their own `rgba(0,0,0,.3-.46)`
+drops as literals, and the active card's ring was a literal **white**.
+
+**The guided run is a projection of the advanced workspace, so it takes the answer the
+advanced plate just took**: `canvasStyle` went `boxShadow:'none'` with a `--ps-focus` ring for
+the active canvas, and these cards are the same object one screen over. A white card on
+`--ps-stage` needs no drop to sit forward of it; what it needs is a boundary in **light**,
+where that step is 1.16, and Coinbase spells that `--elev-ring`. So: a 1px `--ps-hair` ring,
+and 2px `--ps-focus` on the active one.
+
+## FOUR JS CHROME LITERALS, because an inline style beats every rule
+
+All four are in `renderVals`, none is read by an op — checked, not assumed:
+
+- `canvasStyle`'s plate drop shadow `0 ${uz(8)} ${uz(30)} rgba(0,0,0,.5)` -> **`'none'`**,
+  making it byte-for-byte Campaign's
+- the active-canvas outline, `guideStyle`'s dashed margin guide, and the group-photo layer's
+  selection outline — all three the retired chrome blue `rgba(78,122,158,*)` -> **`--ps-focus`**
+
+Measured after: **`rgba(78,122,158` appears 0 times in the file.**
+
+## A SHADOW AUDIT MUST JUDGE THE COLOUR, NOT ONLY THE GEOMETRY
+
+My own probe reported `.p-share-m` as a surviving elevation shadow. It computes
+`rgba(0,0,0,0) 0px 18px 44px` — the offsets are still declared and `--ps-shade` is
+`transparent` now, so it paints nothing. **The audit was reporting its own token fix as a
+survivor.** Judge the alpha as well as the offset and blur — and this is the counterpart of
+the existing rule that a 0-offset 0-blur ring is a state affordance rather than elevation.
+
+## Verification
+
+Reloaded into each theme, never toggled into, with every `CSSTransition` finished first (this
+pane's document timeline is frozen, so a transition otherwise reports its start value forever),
+across **all three screens**: the splash, the guided run and the editor.
+
+| | contrast fails | elevation shadows | solid-navy fills / with a stroke |
+|---|---|---|---|
+| splash, dark / light | **2 / 2** | 0 / 0 | 11 / 9 — **0 strokes** |
+| guided run, dark / light | **2 / 2** | 0 / 0 | 8 / 8 — **0 strokes** |
+| editor, dark / light | **2 / 2** | 0 / 0 | 5 / 4 — **0 strokes** |
+
+**Every flag in all six runs is the same pair — the disabled Undo/Redo buttons, exempt under
+1.4.3.** Zero real failures. The PRE measured **3 dark / 3 light** (including the orange at
+2.76) and **5 elevation shadows**, so both themes improved on their own baseline.
+
+Also measured: rail offset **321** / client 309, matching the deliberate token; top bar **56**
+(55 + its border) with a **36** segmented track; `.p-sec > .p-grp` padding **`15px 16px 16px`**,
+the kit's band exactly; `.p-in` **8px**, `.p-tile` 10px, `.p-dash` 16px, `.p-ghost` 9999px;
+`--ps-motion` 150ms and `--ps-ease` `cubic-bezier(0.2,0,0,1)` both resolving.
+
+`ui-design-system/`, `studio-base.js`, `Provident Campaign Studio.dc.html` and
+`web-image-studio.html` are **untouched by this pass** — it was kit-to-mirror, not
+mirror-to-kit, so nothing is owed to the other two. The test origin's `localStorage` was
+cleared afterwards.
+
+## Left as decisions, not applied
+
+- **`.p-modal-in` still carries `box-shadow:0 20px 60px rgba(0,0,0,.4)` and `background:#fff`,
+  and it is byte-identical in Campaign.** A shared pre-existing literal, in neither the kit nor
+  this pass's scope; changing Organic alone would put the two out of step, which is worse than
+  the shadow.
+- **The `▦` / hint pair at 4.45 in Campaign**, above — two lines there if it should match.
+- **Organic's orange period**, above.
+- **`wkSpecBox` should warm the weights it measures with**, above.
+
+# THE WORDMARK IS THE SUPPLIED LOCKUP, AND ONE ASSET SERVES BOTH THEMES
+
+`provident.` plus a `DESIGN STUDIO` badge, from two supplied files —
+`prov-DS-dark.svg` and `prov-DS-light.svg`. It replaced the text wordmark
+(`<span class="p-wm">provident<b>.</b></span>`) in **all four documents in one pass**, and
+the library now *declares* `.p-wm` for the first time: it had used the class in
+`index.html` with **no rule in `provident-ui.css` at all**, which is the reverse of the
+recorded "classes the library defines and neither studio implements" gap.
+
+## THE TWO FILES ARE BYTE-IDENTICAL GEOMETRY, and that is the finding
+
+Not similar — **identical**. 24 drawable elements each, and every `d` / `points` string
+the same. The only difference between them is fill:
+
+| | ink | the period |
+|---|---|---|
+| `prov-DS-dark.svg` | `#1a2942` Provident Navy | `#f3793c` brand orange |
+| `prov-DS-light.svg` | `#fff` | `#fff` — **no orange at all** |
+
+So this is **one asset plus two token values**, not two assets. 9KB of path data is
+mirrored once per document and the theme picks the ink — there is no second copy to keep
+in step, which halves what the propagation contract has to carry. Check this before
+mirroring any supplied pair; two files named for two themes are very often one drawing.
+
+**A LOGO FILE NAMED FOR ITS OWN COLOUR INVERTS AGAINST A THEME NAMED FOR ITS GROUND.**
+The source calls the navy one "dark"; this system calls a theme dark when its *ground* is
+dark. So `prov-DS-dark` is the **light** theme's and `prov-DS-light` is **dark**'s. Mapped
+by what reads on the ground, never by the filename.
+
+## `--ps-wm-h` IS DERIVED, NOT CHOSEN
+
+The lockup is **8.8017:1** (802.41 x 91.17) and its `provident.` portion is 361.13 of that
+width — 45%. At **19px** tall that portion renders at **75px**, which is exactly what the
+text wordmark measured off the supplied Header frame. So the badge is **added beside a
+wordmark that has not changed size**, rather than the wordmark being shrunk to make room
+for it. Measured box: **167.22 x 19**, identical in all four documents and both themes.
+It steps to 16px below 760px, where the lockup is 140.8 wide and the bar still does not
+scroll.
+
+## THE INK IS `currentColor`, SO ONE DECLARATION THEMES THE WHOLE LOCKUP
+
+`.p-wm{color:var(--ps-wm)}` and `.p-wm-a{fill:currentColor}`; the period carries
+`.p-wm-d{fill:var(--ps-wm-dot)}` and is the single child that opts out. `fill` is an
+inherited SVG property, so a directly-applied declaration on the dot beats the inherited
+value and no `!important` or extra specificity is needed.
+
+**Neither existing ink token could have carried it.** In light the supplied ink is
+`#1A2942`, which is `--ps-primary` — `--ps-ink` is `#0A0B0D`, a near-black that is off
+brand for the mark. In dark the supplied ink is `#FFFFFF`, which *is* `--ps-ink` — but
+`--ps-primary` is navy in both themes and would be invisible on `#131519`. A logotype is
+its own role, so it gets its own token.
+
+## `viewBox` IS SAFE IN INLINE MARKUP AND UNSAFE ONLY IN A CSS STRING
+
+Worth settling, because the recorded trap reads like it applies everywhere: Design Cursor
+camel-cases attribute names and that is what turned `viewBox` into `sc-camel-view-box`,
+silently painting an empty box. **That is a CSS-data-URI hazard, not a markup one** —
+Campaign carries 40+ inline `<svg viewBox="0 -960 960 960">` icons that render correctly,
+and `.p-wm-a`'s `viewBox` was read back from the live DOM intact in all four documents. So
+an inline `<svg>` is the right form here, and a base64 `mask-image` — which would have
+been the safe answer if the trap were general — is not needed. It also could not have
+given the period its own colour without a second layer.
+
+## THE ORANGE PERIOD IS GONE FROM THE DARK THEME, and that is the supplied art
+
+`--ps-wm-dot` follows the files: `#F3793C` in light, `#FFFFFF` in dark. Measured, the dot
+is 18.28:1 in dark (i.e. the same white as the ink) and **2.76:1 in light — unchanged from
+the text period it replaced**, and exempt as part of a logotype.
+
+That retires the one orange mark on the dark screen, which is the theme studio users work
+in, and it is a real departure from the recorded thread that "PROVIDENT'S LOGOTYPE STAYS
+ORANGE". It ships as supplied because two files were given and named per theme. **It is
+one value to reverse** — set `--ps-wm-dot` to `var(--ps-brand)` in the bare `:root` and
+the brand period is back in both themes with nothing else moving.
+
+Note this also gives Organic a `--ps-brand` reader again. It had **none** after the orange
+top bar was retired, which was flagged and open; the lockup closes it in light mode.
+
+## THE CANVAS WAS NOT TOUCHED, AND A BINDING RULE SAYS IT MUST NOT BE
+
+`drawLogo` still draws the plain `provident.` text op on exported artwork. That is not
+caution, it is the campaign rules: *"Logo: main provident. wordmark only (no sub-brand
+lockups)"* — and `DESIGN STUDIO` is a sub-brand lockup. So the lockup is **chrome only**,
+and putting it on a canvas would break an explicit brand rule rather than merely change a
+render.
+
+Proved by the whole-file diff, which is the free and strongest check:
+
+| | hunks | added | removed | artwork-path lines in the diff |
+|---|---|---|---|---|
+| Campaign | 2 | 67 | 1 | **0** |
+| Organic | 2 | 67 | 1 | **0** |
+| web image studio | 2 | 67 | 1 | **0** |
+| `provident-ui.css` | 1 | 39 | 0 | **0** |
+| `index.html` | 1 | 28 | 1 | **0** |
+
+The one removed line per consumer is the old text wordmark. No line containing `ops.push`,
+`buildOps(`, either renderer, `palOf(`, `drawLogo`, `static PAL` or `static SCRIMS` differs
+in any file, so no op diff was needed — the canvas cannot have moved.
+
+## VERIFICATION
+
+Reloaded into each theme rather than toggled into, with every `CSSTransition` finished
+first (this pane's document timeline is frozen, so a transition otherwise reports its start
+value forever). The lockup was rasterised from the live DOM **with its computed fills baked
+in** — a data-URI SVG is an isolated document and cannot read the page's custom properties,
+the same reason the webfont does not survive that path.
+
+| | dark | light |
+|---|---|---|
+| box | 167.22 x 19 | 167.22 x 19 |
+| elements present | 24 | 24 |
+| `viewBox` | intact | intact |
+| ink pixel | `#FFFFFF` at **18.28:1** | `#1A2942` at **14.59:1** |
+| period pixel | `#FFFFFF` at 18.28:1 | `#F3793C` at 2.76:1, logotype-exempt |
+| badge ring / interior | paints / **transparent** | paints / **transparent** |
+
+**Identical in all four documents in both themes.** The transparent interior is what says
+the badge's two-subpath nonzero winding survived — it is a ring, not a filled slab, and
+merging the 23 ink elements into one `<path>` to save ~500 bytes is what would have risked
+it. They are kept separate deliberately.
+
+Kit after: **181 rules parsed** (175 before, plus this block's 6), **1 `CSSFontFaceRule`**
+so the star-slash trap is not reintroduced, `.p-wm` / `.p-wm-a` / `.p-wm-d` all declared,
+and the guide's own live self-test reports **0 fails and 0 large-only** in both themes.
+All three HTML documents keep exactly **one closing style tag**, comment delimiters matched,
+brace depth 0.
+
+# A LANDING PAGE AT THE REPO ROOT, AND IT LINKS THE LIBRARY RATHER THAN MIRRORING IT
+
+`index.html` at the project root — a home-page select menu for the three tools, ready to
+serve as a GitHub Pages root.
+
+**IT IS THE FOURTH CONSUMER AND THE FIRST THAT IS NOT A MIRROR.** The studios have to
+mirror `provident-ui.css` for two recorded reasons — ~500 colour literals in JS style
+objects that no stylesheet can reach, and being opened straight off the disk. A landing
+page has neither problem, so it **`<link>`s** the kit: it cannot drift, it is a fourth live
+test of the library rather than a fourth copy of it, and it needed no token block of its
+own. The mirror count is unchanged at three.
+
+**Linking it also supplies the real typeface for free**, and that is a property of where
+the stylesheet lives rather than luck: `@font-face` resolves its `url()` against the
+**stylesheet**, so the kit's `../_ds/…/GoogleSansFlex-Variable.woff2` resolves to the repo
+root from `ui-design-system/`. Verified the way the kit's own font bug taught — measure one
+string against the fallback: **1553.2px against 1656.8**, a 6.3% delta, so the real face is
+rendering rather than silently falling back to system sans.
+
+**The theme key is shared on purpose.** The page writes `provident-theme`, the same key all
+three studios read, so a choice made on the front door carries straight into whichever
+studio you open and back again. Set before first paint by a blocking head script, per the
+recorded rule; light-first, matching all three consumers.
+
+**Each card's mark is the studio's own canvas shape**, sized from an `--a` aspect on one
+fixed 44px box height — the recorded rule that a miniature must be the canvas shape and
+cannot drift from what it depicts, because it *is* the ratio. Measured: **1, 0.75**. The
+image tool gets three rects instead of one, because it is not one canvas — it is many
+placements out of one photo, and a single rect would claim otherwise. Its copy, name and
+descriptor come from `Component.STUDIOS` verbatim so the page cannot disagree with the
+switcher.
+
+Measured: **0 elevation shadows** in either theme (a card is a ring — the elevation rule
+this system runs on), **0 contrast failures** in either theme with ancestor opacity
+composited, no horizontal overflow at 1400 or at 375, cards stacking at 339px wide, and the
+36px `h1` finally giving Coinbase's display step an element to land on — the kit records it
+as available with "no element here to land on".
+
+**IT IS COMMITTED NOWHERE AND CANNOT BE PUSHED FROM HERE.** No `gh`, no `~/.ssh`, and
+`git credential-osxkeychain get` returns no stored github.com credential — the same blocker
+the Google Reviews branch is parked behind. The file is ready; publishing it is a decision
+about whether these internal brand tools go on a public Pages site, which is not a call to
+make silently. Its links are **relative**, so it works as a local home page opened off the
+disk and as a Pages root without editing anything.

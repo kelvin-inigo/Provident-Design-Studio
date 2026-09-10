@@ -416,8 +416,8 @@
 }
 .p-ghost:hover{background:var(--ps-fill-h)}
 .p-ghost[data-on]{
-  background:var(--ps-accent); color:var(--ps-accent-i); border-color:var(--ps-link);
-  box-shadow:0 0 0 3px var(--ps-accent-q);
+  background:var(--ps-accent); color:var(--ps-accent-i);
+  border-color:transparent; box-shadow:none;
 }
 
 /* primary — THE ONE CONTROL THAT RESTS IN THE BRIGHT REGISTER. Everything else that is
@@ -434,10 +434,10 @@
      produced this one inversion exactly once; enumerate the --ps-accent-i readers
      against their new fill rather than guessing which ones matter. */
   color:var(--ps-primary-i); background:var(--ps-accent-h);
-  /* the navy has no boundary of its own on the dark theme — 1.25:1 on --ps-app — so
-     every navy fill carries the mark as a hairline. In light it is navy on navy and
-     deliberately invisible. */
-  box-shadow:inset 0 0 0 1px var(--ps-link);
+  /* NO STROKE — see section 19. The navy still has no boundary of its own against a
+     dark ground (1.25:1 on --ps-app), and the hairline that used to answer that was
+     removed by design decision: a navy fill is the whole treatment. */
+  box-shadow:none;
 }
 .p-btn:hover{background:var(--ps-accent-h2)}
 
@@ -544,10 +544,11 @@
   font-size:12px; font-weight:500; color:var(--ps-ink-2);
   transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease);
 }
-/* the inset hairline is the ON half's only boundary on the dark theme, where the
-   navy fill and the track it sits in are 1.15:1 apart. It is invisible on light. */
+/* NO STROKE — see section 19. The ON half and the track it sits in are 1.15:1 apart
+   on the dark theme and the hairline that answered that is gone by design decision;
+   the label's own ink is what says which half is on. */
 .p-tabs button[data-on]{background:var(--ps-accent); color:var(--ps-accent-i);
-  box-shadow:inset 0 0 0 1px var(--ps-link)}
+  box-shadow:none}
 
 /* a two-line choice row — an 8px rect, because a capsule round two lines of
    text reads as a lozenge rather than a button */
@@ -705,7 +706,7 @@ select.p-in option{background:var(--ps-card); color:var(--ps-ink)}
    recessed navy chip rather than a blob, and filling it is what the system's own rule
    ("an ON state is a fill, not a ring") asked for all along. The ring stays because on
    the dark theme the navy has no boundary of its own — see the token block. */
-.p-opt[data-on] .p-mini{background:var(--ps-accent); box-shadow:inset 0 0 0 2px var(--ps-link)}
+.p-opt[data-on] .p-mini{background:var(--ps-accent); box-shadow:none}
 /* A bar is --ps-skel. `-q` is the DIM MODIFIER, not the default: this rule said
    --ps-skel-q, so the guide documented the quiet variant as the normal one while
    both studios ship --ps-skel — a diagram that reads a third fainter than the
@@ -817,11 +818,14 @@ input[type=range].p-range::-moz-range-thumb{
 .p-tri-f{
   position:absolute; inset:0 auto 0 0; border-radius:var(--ps-pill);
   background:var(--ps-accent); overflow:hidden;
-  /* the fill's EXTENT is the value, so the extent has to be visible: the navy reads
-     1.15:1 against the dark track and this ring reads 6.33. The white marks inside it
-     (14.15) say which stops are covered; the ring says how far it goes. 2px, matching
-     the option tile — see THE SELECTED TILE above; these two are one treatment. */
-  box-shadow:inset 0 0 0 2px var(--ps-link);
+  /* NO STROKE — see section 19, and note this is the one place that decision reaches
+     a control that is not a button. These two are ONE treatment by an explicit rule
+     (see THE SELECTED TILE above), so the tile losing its ring has to take the
+     slider's with it or the pair disagrees again. The extent is still readable: the
+     white marks inside the fill are 14.15:1 and are placed to be counted — 2 of 4
+     inside the blue at Tight, 3 at Medium, 4 at Roomy — and the preset is named in
+     the column beside the track. */
+  box-shadow:none;
 }
 /* THE OVERLAY INPUT MUST OUT-SPECIFY input[type=range]. That base rule sets
    height:18px, and an attribute selector (0,1,1) beats a bare class (0,1,0) —
@@ -1229,7 +1233,7 @@ table,.p-in[type=number]{font-variant-numeric:tabular-nums}
   height:36px; padding:7px 14px;
   font-size:14px; font-weight:600; letter-spacing:.16px; line-height:normal;
   color:var(--ps-primary-i); background:var(--ps-primary);
-  box-shadow:inset 0 0 0 1px var(--ps-link);
+  box-shadow:none;
 }
 .p-prev:hover,.p-prev[data-on]:hover{background:var(--ps-primary-h)}
 
@@ -1268,10 +1272,10 @@ table,.p-in[type=number]{font-variant-numeric:tabular-nums}
 .p-seg button:hover{color:var(--ps-ink)}
 /* two halves of ONE control, so ON is a FILL and never a ring — and the fill takes
    the PRIMARY register in the top bar, because "which app am I in" is the loudest
-   question on that row. The 1px --ps-link inset is what gives the navy a boundary. */
+   question on that row. NO STROKE: see section 19. */
 .p-seg button[data-on]{
   background:var(--ps-primary); color:var(--ps-primary-i);
-  box-shadow:inset 0 0 0 1px var(--ps-link);
+  box-shadow:none;
 }
 
 .p-top .p-seg{
@@ -1342,18 +1346,97 @@ table,.p-in[type=number]{font-variant-numeric:tabular-nums}
    so it keeps its own 13px rhythm. */
 .p-grp,.p-sec > .p-grp,.p-nest > .p-grp{padding-block:15px 16px}
 
-/* THE SELECTED TILE'S RING IS 1px, AND THE LABEL TAKES THE WEIGHT.
-   The frame draws a 1px edge where this file had 2px, and it puts the selected
-   label at 500 against its neighbours' 400 — so the state is carried by the
-   type as well as by the fill, and the stroke gets to be a whisper. At eleven
-   tiles a rail that is the difference between a diagram and a wireframe.
+/* THE SELECTED TILE HAS NO RING AT ALL, AND THE LABEL CARRIES THE STATE.
+   See section 19 for the decision and the measurement. What is left here is the
+   half that did not change: the selected label goes to 500 against its
+   neighbours' 400, so the state is carried by the type as well as by the fill.
 
-   THE FRAME'S COLOUR IS NOT TAKEN, and the departure is measured: it draws the
-   edge in #FFFFFF at 20%, which composites over the --ps-accent fill to #4C5465
-   and reads 2.4:1 against the ground — under 1.4.11's 3:1 for a non-text
-   indicator. --ps-link is 3.4:1 on the fill and 6.6:1 on the ground. So the
-   WEIGHT is the frame's and the ink stays the token, which is the same call this
-   system has made on four accents now: the hairline is what gives a navy fill a
-   boundary, and it does not get quieter than the bar. */
-.p-opt[data-on] .p-mini{box-shadow:inset 0 0 0 1px var(--ps-link)}
+   A CORRECTION TO WHAT THIS BLOCK FIRST SAID. It reported the frame as drawing a
+   1px #FFFFFF-at-20% edge on this tile and argued that the weight was the
+   frame's while the ink stayed the token. The frame draws NO border: that white
+   at 20% is the skeleton BAR inside the tile, and I read it off Dev Mode's
+   "Selection colors" list, which summarises every colour in the subtree rather
+   than the selected node's own properties. Read the node's Style block. */
+.p-opt[data-on] .p-mini{box-shadow:none}
 .p-opt[data-on]{font-weight:500}
+
+
+/* ── 19. A SOLID NAVY FILL CARRIES NO STROKE ────────────────────────────────
+   By explicit design decision, taken in the UI-Kelvz frames themselves: "i
+   simply remove the strokes on the blue buttons". Re-read on the current file
+   and confirmed at the node level rather than off Dev Mode's colour summary —
+   the selected tile is `background:#243352` plus a 16px radius and nothing
+   else, the switcher's ON half is `#1A2942` plus a pill, and Preview carries a
+   border that is explicitly `1px solid transparent`.
+
+   THIS REVERSES A RULE THIS SYSTEM HAS RE-DERIVED ON FOUR SUCCESSIVE ACCENTS,
+   and the reversal is a decision rather than a discovery, so the measurement
+   stays on the record: --ps-accent #243352 is 1.43:1 against --ps-app and
+   --ps-primary #1A2942 is 1.25:1, so a navy fill has NO boundary of its own on
+   the dark theme. Every previous pass answered that with a --ps-link hairline
+   and wrote "do not lighten the fill; the hairline is the fix". The hairline is
+   now gone and the fill is the whole treatment.
+
+   WHAT STILL IDENTIFIES THE STATE, which is why this is defensible rather than
+   merely instructed: the selected option's LABEL goes to --ps-ink at 500 where
+   its neighbours are --ps-ink-2 at 400, and the segmented halves, the primary
+   and Preview all carry their own ink at 5:1 or better. Text is governed by
+   1.4.3, which every one of those passes — so the state is conveyed by
+   something that measures, and the fill is decorative. That is the whole
+   argument; if a control ever fills with navy and carries no label, it needs
+   its boundary back.
+
+   WHAT KEEPS ITS RING, and the line is the fill: a control filled with the
+   WASH (--ps-accent-q, 13-22%) is not a blue button and has nothing else to
+   show it — .p-choice[data-on], .p-nav[data-on], the palette tile's add flash.
+   Only the SOLIDS lost their stroke.
+
+   The FOCUS ring is untouched and is not a stroke on a fill: it is the only
+   thing that says where the keyboard is, it sits on the page ground at a 2px
+   offset, and it takes --ps-ink so it inverts with the theme.
+
+   ONE PLACE THIS REACHES A CONTROL THAT IS NOT A BUTTON, deliberately:
+   .p-tri-f, the three-stop slider's fill. This system has an explicit rule that
+   the selected tile and that slider are ONE treatment, so leaving its ring
+   would put the pair back in the disagreement that rule exists to close. Its
+   extent is still readable from the white marks inside it, which are 14.15:1
+   and are placed to be counted, plus the preset named beside the track. */
+
+/* ═══ 22. THE WORDMARK IS THE SUPPLIED LOCKUP ═══════════════════════════════
+   provident. plus the DESIGN STUDIO badge, from the two supplied source files
+   prov-DS-dark.svg and prov-DS-light.svg.
+
+   THE TWO FILES ARE BYTE-IDENTICAL GEOMETRY — 24 drawable elements each, and
+   the ONLY difference between them is fill. So the art is mirrored ONCE and the
+   theme picks the ink: there is no second copy of 9KB of path data to keep in
+   step, in this file or in the other three.
+
+   THE SOURCE NAMES THEM BY THE LOGO'S COLOUR AND THIS SYSTEM NAMES THEMES BY
+   THE GROUND, so the mapping is inverted. The navy-ink file, prov-DS-dark, is
+   the LIGHT theme's; the white-ink file, prov-DS-light, is DARK's. Mapped by
+   what actually reads on the ground, never by the filename.
+
+   --ps-wm-h IS DERIVED, NOT CHOSEN. The lockup is 8.8017:1 and its provident.
+   portion is 361.13 of the 802.41 width, so 19px tall renders that portion at
+   the 75px the text wordmark measured. The badge is ADDED BESIDE a wordmark
+   that has not changed size, rather than shrinking the wordmark to fit it.
+
+   --ps-wm-dot FOLLOWS THE ART: brand orange in light, WHITE in dark, because
+   the white-ink file carries no orange. That retires the one orange mark on the
+   dark screen, and it is one token if the brand period should stay orange in
+   both — set it to var(--ps-brand) in the bare :root.
+
+   The ink is currentColor off .p-wm, so a single colour declaration themes the
+   whole lockup and the dot is the one child that opts out.
+
+   Reverting is deleting this block and restoring the text span. */
+:root{ --ps-wm:#FFFFFF; --ps-wm-dot:#FFFFFF; --ps-wm-h:19px }
+:root[data-theme="light"]{ --ps-wm:#1A2942; --ps-wm-dot:#F3793C }
+
+.p-wm{display:inline-flex; align-items:center; flex:none; padding:0 2px;
+  user-select:none; color:var(--ps-wm)}
+.p-wm-a{height:var(--ps-wm-h); width:auto; display:block; fill:currentColor}
+.p-wm-d{fill:var(--ps-wm-dot)}
+/* the bar scrolls rather than dropping controls, but the lockup is 167px wide
+   and it is the one thing on it that can afford to give room back. */
+@media (max-width:760px){ :root{ --ps-wm-h:16px } }

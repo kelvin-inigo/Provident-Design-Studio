@@ -979,7 +979,7 @@ select.p-in option{background:var(--ps-card);color:var(--ps-ink)}
 .p-tile-a{position:absolute; top:9px; right:9px; width:17px; height:17px;
   display:inline-flex; align-items:center; justify-content:center;
   border-radius:50%; color:var(--ps-link); opacity:0;
-  transition:opacity var(--ps-ease)}
+  transition:opacity var(--ps-motion) var(--ps-ease)}
 .p-tile-a .p-g{width:15px; height:15px}
 .p-tile:hover .p-tile-a,.p-tile:focus-visible .p-tile-a{opacity:1}
 
@@ -2771,6 +2771,91 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
    project has made on four accents now. */
 .p-opt[data-on] .p-mini{box-shadow:inset 0 0 0 1px var(--ps-link)}
 .p-opt[data-on]{font-weight:500}
+
+/* ===============================================================================
+   20.  A SOLID NAVY FILL CARRIES NO STROKE
+   ===============================================================================
+   By explicit design decision, taken in the UI-Kelvz frames themselves: "i simply
+   remove the strokes on the blue buttons". Confirmed at the node level rather than
+   off Dev Mode's colour summary — the selected tile is `background:#243352` plus a
+   16px radius and nothing else, the switcher's ON half is `#1A2942` plus a pill, and
+   Preview carries a border that is explicitly `1px solid transparent`.
+
+   THIS REVERSES A RULE THIS PROJECT RE-DERIVED ON FOUR SUCCESSIVE ACCENTS, so the
+   measurement stays on the record: --ps-accent is 1.43:1 against --ps-app and
+   --ps-primary 1.25:1, i.e. a navy fill has NO boundary of its own on the dark theme.
+   Every previous pass answered that with a --ps-link hairline and wrote "do not
+   lighten the fill; the hairline is the fix". The hairline is gone and the fill is
+   the whole treatment.
+
+   WHAT STILL IDENTIFIES THE STATE: the selected option's LABEL is --ps-ink at 500
+   where its neighbours are --ps-ink-2 at 400, and the segmented halves, the primary
+   and Preview all carry their own ink at 5:1 or better. Text is governed by 1.4.3,
+   which they all pass. If a control ever fills with navy and carries no label, it
+   needs its boundary back.
+
+   WHAT KEEPS ITS RING: a control filled with the WASH (--ps-accent-q, 13-22%) is not
+   a blue button and has nothing else to show it. Only the SOLIDS lost their stroke.
+   The focus ring is untouched — it is not a stroke on a fill.
+
+   Reverting is deleting from the rule below to the end of this element. */
+
+.p-opt[data-on] .p-mini{box-shadow:none}
+.p-tri-f{box-shadow:none}
+.p-tabs button[data-on]{box-shadow:none}
+.p-seg button[data-on],.p-top .p-seg button[data-on]{box-shadow:none;border-color:transparent}
+.p-ghost[data-on],.p-top .p-ghost[data-on],.p-top .p-ghost[data-on]:hover,
+.p-share .p-ghost[data-on],.p-tgrp > .p-ghost[data-on]{box-shadow:none;border-color:transparent}
+.p-btn,.p-btn:hover,.p-gold{box-shadow:none}
+.p-prev,.p-prev[data-on],.p-prev:hover{box-shadow:none;border-color:transparent}
+.p-ws[data-on],.p-ws[data-on]:hover{border-color:transparent;box-shadow:none}
+/* the splash's Library rows fill with --ps-fill-on, which RESOLVES to --ps-accent — the
+   same resting-selected solid the option tile uses, not the "quiet wash" the earlier note
+   in this file called it. Found by sweeping computed backgrounds against the token values
+   rather than by reading selectors, and only on the run where the splash was on screen. */
+.p-nav2[data-on],.p-nav2[data-on]:hover{border-color:transparent;box-shadow:none}
+.p-br-new,.p-cta{box-shadow:none}
+/* the palette card's own selected state, same family */
+.p-tile[data-on]{box-shadow:none}
+
+/* ═══ 22. THE WORDMARK IS THE SUPPLIED LOCKUP ═══════════════════════════════
+   provident. plus the DESIGN STUDIO badge, from the two supplied source files
+   prov-DS-dark.svg and prov-DS-light.svg.
+
+   THE TWO FILES ARE BYTE-IDENTICAL GEOMETRY — 24 drawable elements each, and
+   the ONLY difference between them is fill. So the art is mirrored ONCE and the
+   theme picks the ink: there is no second copy of 9KB of path data to keep in
+   step, in this file or in the other three.
+
+   THE SOURCE NAMES THEM BY THE LOGO'S COLOUR AND THIS SYSTEM NAMES THEMES BY
+   THE GROUND, so the mapping is inverted. The navy-ink file, prov-DS-dark, is
+   the LIGHT theme's; the white-ink file, prov-DS-light, is DARK's. Mapped by
+   what actually reads on the ground, never by the filename.
+
+   --ps-wm-h IS DERIVED, NOT CHOSEN. The lockup is 8.8017:1 and its provident.
+   portion is 361.13 of the 802.41 width, so 19px tall renders that portion at
+   the 75px the text wordmark measured. The badge is ADDED BESIDE a wordmark
+   that has not changed size, rather than shrinking the wordmark to fit it.
+
+   --ps-wm-dot FOLLOWS THE ART: brand orange in light, WHITE in dark, because
+   the white-ink file carries no orange. That retires the one orange mark on the
+   dark screen, and it is one token if the brand period should stay orange in
+   both — set it to var(--ps-brand) in the bare :root.
+
+   The ink is currentColor off .p-wm, so a single colour declaration themes the
+   whole lockup and the dot is the one child that opts out.
+
+   Reverting is deleting this block and restoring the text span. */
+:root{ --ps-wm:#FFFFFF; --ps-wm-dot:#FFFFFF; --ps-wm-h:19px }
+:root[data-theme="light"]{ --ps-wm:#1A2942; --ps-wm-dot:#F3793C }
+
+.p-wm{display:inline-flex; align-items:center; flex:none; padding:0 2px;
+  user-select:none; color:var(--ps-wm)}
+.p-wm-a{height:var(--ps-wm-h); width:auto; display:block; fill:currentColor}
+.p-wm-d{fill:var(--ps-wm-dot)}
+/* the bar scrolls rather than dropping controls, but the lockup is 167px wide
+   and it is the one thing on it that can afford to give room back. */
+@media (max-width:760px){ :root{ --ps-wm-h:16px } }
 </style>
 </helmet>
 
@@ -2863,7 +2948,34 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 <!-- ══ TOP BAR ════════════════════════════════════════════════════════ -->
 <!-- ══ TOP BAR — shared chrome ══════════════════════════════════════════ -->
 <header class="p-top">
-  <span class="p-wm">provident<b>.</b></span>
+  <span class="p-wm">
+    <svg class="p-wm-a" viewBox="0 0 802.41 91.17" role="img" aria-label="Provident Design Studio">
+      <path d="M344.32,29.82v-4.79h-9.63v-10.16h-5.26v10.16h-6.32v4.79h6.32v26.24c0,4.11.87,6.94,2.61,8.51,1.74,1.54,3.84,2.31,6.29,2.31.74,0,1.48-.07,2.24-.2.76-.1,1.51-.27,2.24-.51.76-.24,1.14-.35,1.14-.35v-4.98s-.38.12-1.14.35c-.74.24-1.37.41-1.91.51-.54.08-1.14.12-1.8.12-1.4,0-2.49-.42-3.27-1.26-.76-.84-1.14-2.38-1.14-4.63v-26.12h9.63Z"/>
+      <path d="M300.57,24.33c-2.65,0-5.11.68-7.39,2.04-2.25,1.36-4,3.06-5.22,5.1v-6.43h-5.18v41.15h5.26v-23.65c0-3.79,1.12-6.86,3.35-9.22,2.25-2.38,4.94-3.57,8.05-3.57,3.41,0,5.87,1.05,7.39,3.14,1.52,2.09,2.28,4.8,2.28,8.12v25.18h5.26v-26.16c0-4.63-1.21-8.39-3.64-11.3-2.4-2.93-5.78-4.39-10.15-4.39Z"/>
+      <path d="M253.71,24.33c-5.37,0-9.99,2.01-13.86,6.04-3.87,4-5.81,9.07-5.81,15.22s1.94,11.27,5.81,15.3c3.87,4,8.54,6,14.01,6,2.92,0,5.44-.42,7.57-1.26,2.13-.86,4.02-2.12,5.66-3.77,1.64-1.67,3.13-3.94,4.45-6.79l-4.67-2.24c-1.25,2.2-2.48,3.88-3.68,5.06-1.18,1.15-2.52,2.04-4.04,2.67-1.52.6-3.28.9-5.29.9-3.75,0-7.11-1.48-10.07-4.43-2.67-2.68-4.13-6.04-4.4-10.08h32.93v-3.22c0-5.6-1.72-10.22-5.15-13.89-3.41-3.69-7.89-5.53-13.46-5.53ZM239.69,41.9c.57-2.93,1.87-5.48,3.88-7.65,2.84-3.06,6.23-4.59,10.15-4.59s6.9,1.16,9.3,3.49c2.4,2.33,3.65,5.24,3.75,8.75h-27.08Z"/>
+      <path d="M218.42,31.67c-1.25-2.08-3.08-3.77-5.51-5.07-2.84-1.52-5.96-2.28-9.34-2.28-5.25,0-9.73,2-13.46,6-3.73,3.97-5.59,9.06-5.59,15.26s1.84,11.14,5.51,15.22c3.7,4.05,8.14,6.08,13.31,6.08,3.48,0,6.65-.76,9.52-2.28,2.48-1.34,4.35-3.07,5.63-5.21v6.78h5.18V10.01h-5.26v21.66ZM214.74,56.96c-2.65,3.06-6.09,4.59-10.33,4.59s-7.66-1.44-10.4-4.32c-2.75-2.88-4.12-6.76-4.12-11.65s1.36-8.71,4.08-11.61c2.72-2.9,6.2-4.35,10.44-4.35s7.5,1.49,10.22,4.47c2.72,2.95,4.08,6.79,4.08,11.49s-1.32,8.29-3.97,11.38Z"/>
+      <rect x="168.05" y="25.03" width="5.26" height="41.15"/>
+      <path d="M170.64,12.17c-1.01,0-1.88.36-2.6,1.08-.72.72-1.09,1.59-1.09,2.6s.36,1.95,1.09,2.68c.72.72,1.59,1.08,2.6,1.08s1.95-.36,2.68-1.08c.72-.72,1.09-1.62,1.09-2.68s-.36-1.88-1.09-2.6-1.62-1.08-2.68-1.08Z"/>
+      <polygon points="140.63 57.75 140.52 57.98 140.41 57.75 128.2 25.03 122.61 25.03 138.2 66.18 142.5 66.18 158.13 25.03 152.87 25.03 140.63 57.75"/>
+      <path d="M94.94,24.33c-5.64,0-10.36,2.11-14.15,6.32-3.8,4.18-5.7,9.17-5.7,14.94s1.9,10.84,5.7,15.02c3.8,4.18,8.52,6.28,14.15,6.28s10.33-2.09,14.15-6.28c3.85-4.18,5.77-9.19,5.77-15.02s-1.92-10.76-5.77-14.94c-3.82-4.21-8.54-6.32-14.15-6.32ZM105.16,56.84c-2.87,3.01-6.27,4.51-10.22,4.51s-7.34-1.5-10.18-4.51c-2.84-3.03-4.27-6.79-4.27-11.26s1.42-8.2,4.27-11.18c2.84-3.01,6.24-4.51,10.18-4.51s7.35,1.5,10.22,4.51c2.87,2.98,4.3,6.71,4.3,11.18s-1.43,8.22-4.3,11.26Z"/>
+      <path d="M67.06,24.4c-.51-.05-.92-.08-1.21-.08-2.06,0-4.07.59-6.03,1.77-1.96,1.15-3.66,2.97-5.11,5.45v-6.51h-5.18v41.15h5.26v-23.06c0-4.16,1.1-7.41,3.31-9.77,2.21-2.38,4.77-3.57,7.68-3.57.29,0,.75.03,1.36.08.61.05,1.13.13,1.54.24.44.08.66.12.66.12v-5.49s-.25-.04-.74-.12c-.49-.1-1-.17-1.54-.2Z"/>
+      <path d="M20.33,24.33c-3.48,0-6.58.72-9.3,2.16-2.7,1.44-4.64,3.22-5.85,5.33v-6.79H0v56.13h5.26v-21.6c1.25,2.06,3.08,3.74,5.51,5.04,2.84,1.52,5.94,2.27,9.3,2.27,5.27,0,9.77-1.99,13.49-5.96,3.73-4,5.59-9.11,5.59-15.34s-1.85-11.09-5.55-15.14c-3.68-4.08-8.1-6.12-13.27-6.12ZM29.67,57.24c-2.72,2.9-6.2,4.35-10.44,4.35s-7.5-1.48-10.22-4.43c-2.7-2.98-4.04-6.84-4.04-11.57s1.32-8.28,3.97-11.34c2.65-3.06,6.08-4.59,10.29-4.59s7.66,1.44,10.4,4.31c2.77,2.88,4.15,6.75,4.15,11.61s-1.37,8.75-4.12,11.65Z"/>
+      <path d="M409.61,29.23h-10.58v32.71h10.58c4.96,0,9-1.52,12.02-4.51,3.02-2.99,4.55-6.99,4.55-11.89s-1.54-8.85-4.57-11.83c-3.03-2.98-7.07-4.48-12.01-4.48ZM404.86,34.77h4.62c3.35,0,6.02.95,7.93,2.82,1.91,1.87,2.88,4.55,2.88,7.95s-.97,6.16-2.88,8.07c-1.89,1.89-4.54,2.85-7.86,2.85h-.07s-4.62,0-4.62,0v-21.7Z"/>
+      <polygon points="440.69 56.38 440.69 48.23 453.14 48.23 453.64 48.23 453.64 47.73 453.64 43.46 453.64 42.96 453.14 42.96 440.69 42.96 440.69 34.79 453.83 34.79 454.33 34.79 454.33 34.29 454.33 29.73 454.33 29.23 453.83 29.23 435.41 29.23 434.91 29.23 434.91 29.73 434.91 61.44 434.91 61.94 435.41 61.94 454.1 61.94 454.6 61.94 454.6 61.44 454.6 56.88 454.6 56.38 454.1 56.38 440.69 56.38"/>
+      <path d="M476.17,42.48c-4.01-1.32-5.47-2.21-5.98-2.72-.72-.71-1.07-1.48-1.07-2.37,0-1.07.42-1.91,1.27-2.56.89-.67,2.06-1.02,3.47-1.02.86,0,1.64.13,2.32.4.67.26,1.26.65,1.77,1.14.51.5,1,1.25,1.46,2.21l.21.43.44-.18,4.27-1.79.49-.21-.23-.48c-.85-1.73-1.75-3.06-2.68-3.97-.94-.92-2.09-1.63-3.42-2.13-1.32-.49-2.82-.74-4.47-.74-3.09,0-5.67.88-7.67,2.6-2.02,1.74-3.04,3.93-3.04,6.49,0,2.25.73,4.18,2.18,5.74,1.42,1.53,3.9,2.9,7.39,4.08,2.71.9,4.57,1.79,5.52,2.64.9.81,1.34,1.72,1.34,2.79,0,1.35-.48,2.41-1.46,3.24-.99.84-2.32,1.27-3.95,1.27-1.03,0-1.97-.18-2.79-.54-.81-.36-1.51-.88-2.08-1.55-.58-.69-1.24-1.91-1.96-3.64l-.19-.46-.46.19-4.38,1.79-.46.19.18.46c.96,2.4,1.94,4.18,2.9,5.28.98,1.12,2.24,2.01,3.76,2.65,1.51.64,3.25.96,5.19.96,3.29,0,6.05-.9,8.19-2.66,2.17-1.79,3.27-4.24,3.27-7.29,0-2.41-.79-4.49-2.34-6.19-1.53-1.67-3.88-3.03-6.99-4.05Z"/>
+      <polygon points="494.33 29.23 493.83 29.23 493.83 29.73 493.83 61.44 493.83 61.94 494.33 61.94 499.2 61.94 499.7 61.94 499.7 61.44 499.7 29.73 499.7 29.23 499.2 29.23 494.33 29.23"/>
+      <path d="M541.48,43.67h-16.6v5.16h10.86c-.33,2.53-1.36,4.55-3.07,5.99-1.83,1.56-4.24,2.35-7.16,2.35-3.14,0-5.82-1.1-7.98-3.26-2.16-2.17-3.25-4.98-3.25-8.37s1.09-6.19,3.24-8.29c2.15-2.1,4.85-3.17,8.02-3.17,1.01,0,1.97.11,2.86.32.89.21,1.7.52,2.43.92.72.4,1.67,1.17,2.8,2.27l.36.35.35-.36,3.28-3.39.35-.36-.36-.35c-1.46-1.4-2.77-2.42-3.9-3.04-1.14-.62-2.43-1.11-3.85-1.44-1.41-.33-2.9-.5-4.42-.5-4.72,0-8.78,1.64-12.05,4.88-3.28,3.24-4.94,7.33-4.94,12.14s1.65,8.84,4.91,12.12c3.25,3.28,7.31,4.97,12.06,5.03,4.73,0,8.64-1.49,11.63-4.42,2.99-2.93,4.51-6.82,4.51-11.54l-.04-2.56v-.49Z"/>
+      <polygon points="570.08 29.23 569.58 29.23 569.58 29.73 569.58 47.25 569.71 51.56 555.74 29.47 555.59 29.23 555.31 29.23 549.87 29.23 549.37 29.23 549.37 29.73 549.37 61.44 549.37 61.94 549.87 61.94 554.63 61.94 555.13 61.94 555.13 61.44 555.13 42.86 555 38.54 569.73 61.71 569.87 61.94 570.15 61.94 574.84 61.94 575.34 61.94 575.34 61.44 575.34 29.73 575.34 29.23 574.84 29.23 570.08 29.23"/>
+      <path d="M613.06,42.48c-4.01-1.32-5.47-2.21-5.98-2.72-.72-.71-1.07-1.48-1.07-2.37,0-1.07.42-1.91,1.27-2.56.89-.67,2.06-1.02,3.47-1.02.86,0,1.64.13,2.32.4.67.26,1.26.65,1.77,1.14.51.5,1,1.25,1.46,2.21l.21.43.44-.18,4.27-1.79.49-.21-.23-.48c-.85-1.73-1.75-3.06-2.68-3.97-.94-.92-2.09-1.63-3.42-2.13-1.32-.49-2.82-.74-4.47-.74-3.09,0-5.67.88-7.67,2.6-2.02,1.74-3.04,3.93-3.04,6.49,0,2.25.73,4.18,2.18,5.74,1.42,1.53,3.9,2.9,7.39,4.08,2.71.9,4.57,1.79,5.52,2.64.9.81,1.34,1.72,1.34,2.79,0,1.35-.48,2.41-1.46,3.24-.99.84-2.32,1.27-3.95,1.27-1.03,0-1.97-.18-2.79-.54-.81-.36-1.51-.88-2.08-1.55-.58-.69-1.24-1.91-1.96-3.64l-.19-.46-.46.19-4.38,1.79-.46.19.18.46c.96,2.4,1.94,4.18,2.9,5.28.98,1.12,2.24,2.01,3.76,2.65,1.51.64,3.25.96,5.19.96,3.29,0,6.05-.9,8.19-2.66,2.17-1.79,3.27-4.24,3.27-7.29,0-2.41-.79-4.49-2.35-6.19-1.53-1.67-3.88-3.03-6.99-4.05Z"/>
+      <polygon points="628.32 29.23 627.82 29.23 627.82 29.73 627.82 34.29 627.82 34.79 628.32 34.79 636.61 34.79 636.61 61.44 636.61 61.94 637.11 61.94 641.96 61.94 642.46 61.94 642.46 61.44 642.46 34.79 650.71 34.79 651.21 34.79 651.21 34.29 651.21 29.73 651.21 29.23 650.71 29.23 628.32 29.23"/>
+      <path d="M678.14,29.23h-.5v20.45c0,2.31-.61,4.16-1.8,5.49-1.2,1.33-2.81,1.98-4.92,1.98s-3.72-.65-4.9-1.98c-1.18-1.33-1.78-3.18-1.78-5.49v-20.45h-5.85v20.3c0,3.85,1.16,7.03,3.43,9.46,2.29,2.44,5.35,3.68,9.09,3.68s6.89-1.22,9.14-3.61c2.24-2.39,3.38-5.59,3.38-9.53v-20.3h-5.3Z"/>
+      <path d="M703.63,29.23h-10.58v32.71h10.58c4.96,0,9-1.52,12.02-4.51,3.02-2.99,4.55-6.99,4.55-11.89s-1.54-8.85-4.57-11.83c-3.03-2.97-7.07-4.48-12.01-4.48ZM714.31,45.54c0,3.45-.97,6.16-2.88,8.07-1.89,1.89-4.54,2.85-7.86,2.85h-.07s-4.62,0-4.62,0v-21.7h4.62c3.35,0,6.02.95,7.93,2.82,1.91,1.87,2.88,4.55,2.88,7.95Z"/>
+      <polygon points="729.43 29.23 728.93 29.23 728.93 29.73 728.93 61.44 728.93 61.94 729.43 61.94 734.3 61.94 734.8 61.94 734.8 61.44 734.8 29.73 734.8 29.23 734.3 29.23 729.43 29.23"/>
+      <path d="M760.36,28.5c-4.68,0-8.69,1.62-11.94,4.83-3.25,3.2-4.9,7.31-4.9,12.19s1.64,9.03,4.87,12.27c3.23,3.24,7.26,4.89,11.97,4.89s8.71-1.65,11.95-4.91c3.23-3.26,4.87-7.37,4.87-12.22s-1.65-9.03-4.91-12.23c-3.26-3.2-7.26-4.82-11.91-4.82ZM771.31,45.54c0,3.3-1.06,6.07-3.14,8.23-2.08,2.15-4.7,3.25-7.81,3.25s-5.74-1.09-7.82-3.25c-2.09-2.16-3.15-4.94-3.15-8.26s1.07-6.05,3.17-8.17c2.1-2.12,4.72-3.2,7.8-3.2s5.68,1.07,7.78,3.18c2.1,2.11,3.16,4.88,3.16,8.21Z"/>
+      <path d="M781.64,0h-387.07c-11.45,0-20.77,9.32-20.77,20.77v49.63c0,11.45,9.32,20.77,20.77,20.77h387.07c11.45,0,20.77-9.32,20.77-20.77V20.77c0-11.45-9.32-20.77-20.77-20.77ZM797.3,20.77v49.63c0,8.63-7.02,15.66-15.66,15.66h-387.07c-8.63,0-15.66-7.02-15.66-15.66V20.77c0-8.63,7.02-15.66,15.66-15.66h387.07c8.63,0,15.66,7.02,15.66,15.66Z"/>
+      <path class="p-wm-d" d="M357.14,67.05c2.21,0,3.99-1.79,3.99-3.99s-1.79-3.99-3.99-3.99-3.99,1.79-3.99,3.99,1.79,3.99,3.99,3.99Z"/>
+    </svg>
+  </span>
   <div class="p-seg">
     <sc-for list="{{ shTabs }}" as="tb" hint-placeholder-count="2"><button onClick="{{ tb.set }}" data-on="{{ tb.on }}">{{ tb.label }}</button></sc-for>
   </div>
@@ -6831,7 +6943,7 @@ class CampaignStudio extends StudioBase {
     // ~14 inline style objects (Overlap on/off, cluster top/bottom, the icon-picker
     // steps, Organic's Status and Period pairs, Undo/Redo...), and an inline style beats
     // any rule — so the sweep has to land here, not in the stylesheet.
-    const btn = on => ({ flex: 1, background: on ? 'var(--ps-accent)' : 'var(--ps-fill)', color: on ? 'var(--ps-accent-i)' : 'var(--ps-ink-2)', border: '1px solid ' + (on ? 'var(--ps-link)' : 'transparent'), borderRadius: 'var(--ps-pill)', padding: '6px 12px', fontWeight: on ? 500 : 400, fontSize: '12px', cursor: 'pointer', boxShadow: 'none' });
+    const btn = on => ({ flex: 1, background: on ? 'var(--ps-accent)' : 'var(--ps-fill)', color: on ? 'var(--ps-accent-i)' : 'var(--ps-ink-2)', border: '1px solid transparent', borderRadius: 'var(--ps-pill)', padding: '6px 12px', fontWeight: on ? 500 : 400, fontSize: '12px', cursor: 'pointer', boxShadow: 'none' });
     // Pill corners, set HERE and not in the stylesheet: darkBtn is spread into inline
     // style objects and an inline style beats any rule. It backs the dock's own toggles
     // (which float over the canvas) and the Share panel's Export button, so all of them

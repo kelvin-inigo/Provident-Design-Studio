@@ -85,6 +85,12 @@
       "icon": {
         "$note": "Select/dropdown chevron, a Material Symbols keyboard_arrow_down baked in as a data URI. NEVER write viewBox inside a CSS string — Design Cursor camel-cases attribute names, including inside a data URI, so it arrives as sc-camel-view-box and the SVG paints nothing. width/height plus transform=\"translate(0 960)\" give the same glyph with no camelCase attribute.",
         "--ps-chev": "url(...) — see provident-ui.css; the fill is --ps-ink-2 in dark and #5A6675 in light"
+      },
+      "wordmark": {
+        "--ps-wm": "#FFFFFF",
+        "--ps-wm-dot": "#FFFFFF",
+        "$source": "prov-DS-light.svg - the white-ink supplied file. Named 'light' for the LOGO's colour; it is the DARK theme's, because white ink reads on a dark ground.",
+        "$note": "The white-ink file carries NO orange, so the dark theme has no orange mark. Set --ps-wm-dot to var(--ps-brand) to keep the brand period in both themes; it is one value."
       }
     },
     "light": {
@@ -156,6 +162,12 @@
       "icon": {
         "$note": "Select/dropdown chevron, a Material Symbols keyboard_arrow_down baked in as a data URI. NEVER write viewBox inside a CSS string — Design Cursor camel-cases attribute names, including inside a data URI, so it arrives as sc-camel-view-box and the SVG paints nothing. width/height plus transform=\"translate(0 960)\" give the same glyph with no camelCase attribute.",
         "--ps-chev": "url(...) — see provident-ui.css; the fill is --ps-ink-2 in dark and #5A6675 in light"
+      },
+      "wordmark": {
+        "--ps-wm": "#1A2942",
+        "--ps-wm-dot": "#F3793C",
+        "$source": "prov-DS-dark.svg - the navy-ink supplied file. Named 'dark' for the LOGO's colour; it is the LIGHT theme's.",
+        "$note": "--ps-wm is Provident Navy, NOT --ps-ink (#0A0B0D). The logotype is its own role, and the supplied art specifies the navy."
       }
     }
   },
@@ -213,6 +225,17 @@
     "$tileSize": "26px inside .p-mini-i, which the library has always declared and had nothing to style until the guide's specimens stopped using unicode stand-ins",
     "$source": "fonts.gstatic.com/s/i/short-term/release/materialsymbolsrounded/<name>/wght300/24px.svg, baked in as path data — the same provenance as the studios' own 23 glyphs, so it still works offline. Every one shares the 0 -960 960 960 viewBox.",
     "$note": "The library had NO icon rule at all, while .p-mini-i svg assumed one and both studios shipped the primitive under the placement mock's namespace (.mk-g) purely because that is where it was first needed."
+  },
+  "wordmark": {
+    "$rule": "The wordmark is the supplied LOCKUP - provident. plus the DESIGN STUDIO badge - as one inline SVG, never text. It is a logotype: no contrast requirement, and it must not be recoloured to satisfy an audit.",
+    "$class": ".p-wm > svg.p-wm-a, with .p-wm-d on the period",
+    "$art": "ONE asset. The two supplied files are BYTE-IDENTICAL geometry - 24 drawable elements each - and differ only in fill, so the theme picks the ink and there is no second copy to keep in step.",
+    "--ps-wm-h": "19px, 16px below 760px",
+    "aspect": "8.8017:1 - 802.41 x 91.17. height:var(--ps-wm-h) with width:auto derives the width from the viewBox.",
+    "box": "167.22 x 19px",
+    "$derivation": "--ps-wm-h IS DERIVED, NOT CHOSEN. The provident. portion is 361.13 of the 802.41 width, so 19px renders it at the 75px the text wordmark measured - the badge is ADDED BESIDE a wordmark that has not changed size.",
+    "$ink": "fill:currentColor off .p-wm's color, so one colour declaration themes the whole lockup and the period is the single child that opts out.",
+    "$canvas": "CHROME ONLY. Exported artwork still draws the plain provident. text through drawLogo, because the campaign rules bind the canvas to 'the main wordmark only, no sub-brand lockups' - and DESIGN STUDIO is a sub-brand lockup."
   },
   "type": {
     "$family": "'Google Sans Flex', system-ui, sans-serif",
@@ -317,9 +340,18 @@
     "THE DELIVERY TRIO IS ONE OUTLINED GROUP (.p-tgrp), not three pills. The cells give up their own fill so the group's hairline is the only boundary and the hover is the only fill - the surfaces-not-strokes rule reached from the other side. A cell keeps .p-ghost's type, ink, icon gap and row height; only the surface and the corner come off.",
     "A SECTION HEADER'S QUIET VALUE IS PUSHED RIGHT, scoped to .p-sec. .p-lab and .p-grp already did this; the section header did not, so its value sat against the title as though it were part of it. It must NOT be a blanket .p-cap > s rule: the image tool writes 26 output sizes into a caption's quiet half inside a 172px column, where the value wraps UNDER its label, and a blanket rule right-aligns all 26.",
     "TAKE THE CONTENT WIDTH FROM A DESIGN, NEVER THE FRAME WIDTH, whenever the real element scrolls. A static frame has no scrollbar. The Layout rail's frame is 320 with 16 padding, i.e. a 288 content column; at 320 the real rail delivered 277, because Chrome takes 11px. 332 = 288 + 32 + 11 + 1, exactly as the palette rail's 272 = 229 + 32 + 11.",
-    "A SELECTED TILE'S STATE IS CARRIED BY ITS TYPE AS WELL AS ITS FILL, which is what lets the stroke be a whisper: the label goes to 500 against its neighbours' 400 and the ring drops from 2px to 1px. At eleven tiles a rail that is the difference between a diagram and a wireframe.",
-    "WHERE A DRAWING'S HAIRLINE FAILS 1.4.11, TAKE ITS WEIGHT AND KEEP THE TOKEN. The frame draws the selected tile's edge in #FFFFFF at 20%, which composites over --ps-accent to #4C5465 and reads 2.4:1 against the ground - under 3:1 for a non-text indicator. --ps-link is 3.4:1 on the fill and 6.6:1 on the ground. Fourth accent in a row to reach the same conclusion: the hairline is what gives a navy fill a boundary, and it does not get quieter than the bar.",
-    "PREVIEW IS THE NAVY ACTION. This library was the last place still painting it --ps-brand; both re-skinned documents moved it when orange stopped being a fill, because white on orange measures 2.76:1 and the brand's own rule is that orange is punctuation. .p-sw-studio is now the only orange fill left here and appears in neither supplied frame - flagged, not changed."
+    "A SELECTED TILE'S STATE IS CARRIED BY ITS TYPE: the label goes to --ps-ink at 500 against its neighbours' --ps-ink-2 at 400. This rule once ended \"which is what lets the stroke be a whisper - the ring drops from 2px to 1px\"; there is no ring at all now, so the type is not helping the stroke, it IS the state. At eleven tiles a rail that is the difference between a diagram and a wireframe.",
+    "SUPERSEDED, SAME DAY, BY DESIGN DECISION - A SOLID NAVY FILL CARRIES NO STROKE. This rule read \"where a drawing's hairline fails 1.4.11, take its weight and keep the token\", and it rested on a misreading: the frame draws NO border on the selected tile. Dev Mode's \"Selection colors\" list summarises every colour in the node's SUBTREE, not the node's own properties, so the #FFFFFF-at-20% I attributed to a border is the skeleton BAR inside the tile. Read the node's Style block.",
+    "PREVIEW IS THE NAVY ACTION. This library was the last place still painting it --ps-brand; both re-skinned documents moved it when orange stopped being a fill, because white on orange measures 2.76:1 and the brand's own rule is that orange is punctuation. .p-sw-studio is now the only orange fill left here and appears in neither supplied frame - flagged, not changed.",
+    "A SOLID NAVY FILL CARRIES NO STROKE, by explicit design decision. This reverses a rule re-derived on four successive accents. The measurement stays on the record: --ps-accent is 1.43:1 against --ps-app and --ps-primary 1.25:1, so a navy fill has no boundary of its own on the dark theme, and every previous pass answered that with a --ps-link hairline. The state is carried by the LABEL instead - --ps-ink at 500 against --ps-ink-2 at 400 - which is text, governed by 1.4.3, and passes. A control that fills with navy and carries NO label needs its boundary back.",
+    "THE LINE IS THE FILL, NOT THE CONTROL: a solid (--ps-accent / --ps-primary / --ps-accent-h) loses its stroke; a WASH (--ps-accent-q at 13-22%) keeps its ring, because a wash has nothing else to show it. .p-choice, .p-nav, the palette tile's add flash and the guided run's .gd-expok / .gd-link all keep theirs. The focus ring is untouched - it is not a stroke on a fill.",
+    "DEV MODE'S \"SELECTION COLORS\" IS A SUBTREE SUMMARY, NOT THE NODE'S OWN PROPERTIES. Reading a child's fill as the parent's border is what put a 1px ring on the selected tile for one round. The node's Style block is the authority.",
+    "SWEEP COMPUTED BACKGROUNDS AGAINST THE TOKEN VALUES, not selectors, when removing a treatment - and cover both screens. Selector-reading missed .p-nav2[data-on], whose fill is --ps-fill-on and therefore RESOLVES to --ps-accent even though an older note in this system called it a quiet wash; and it only surfaced on the run where the splash was on screen rather than the editor.",
+    "A CUSTOM PROPERTY RETURNS ITS RAW DECLARED VALUE, so a probe that compares computed backgrounds against tokens must parse HEX as well as rgb(). The first sweep for navy fills reported zero elements for exactly this reason - the same trap the guide's own swatch parser hit when it printed NaN for eight tokens.",
+    "THE WORDMARK IS A LOCKUP, NOT TEXT, and it is chrome only. .p-wm holds an inline SVG; exported artwork keeps the plain provident. text op, because the campaign rules bind the canvas to the main wordmark with no sub-brand lockups.",
+    "A LOGO FILE NAMED FOR ITS OWN COLOUR INVERTS AGAINST A THEME NAMED FOR ITS GROUND. prov-DS-dark is the navy-ink art and belongs to the LIGHT theme. Map a supplied asset by what reads on the ground, never by the filename.",
+    "viewBox IS SAFE IN INLINE SVG MARKUP and unsafe only inside a CSS string. Design Cursor camel-cases attribute names in a CSS data URI - which is what turned viewBox into sc-camel-view-box - but 40+ inline icons in Campaign carry viewBox and render correctly. Verified again for .p-wm-a: the attribute survives intact.",
+    "THE LANDING PAGE LINKS THE LIBRARY RATHER THAN MIRRORING IT. The studios mirror because they carry ~500 colour literals in JS style objects and are opened off the disk; index.html at the repo root has neither problem, so it is a fourth live consumer and cannot drift. The kit's @font-face resolves ../_ds/ against the STYLESHEET, so linking it from the root also supplies the real Google Sans Flex."
   ],
   "a11y": {
     "$rule": "4.5:1 for text, 3:1 for a non-text indicator (WCAG AA). This REPLACES the 2.4:1 bar this project previously audited against.",
