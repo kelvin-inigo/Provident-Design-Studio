@@ -2649,6 +2649,119 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 /* the bar scrolls rather than dropping controls, but the lockup is 167px wide
    and it is the one thing on it that can afford to give room back. */
 @media (max-width:760px){ :root{ --ps-wm-h:16px } }
+
+/* ═══ 24. THE GUIDED RUN IS ONE PAGE AT A TIME, TOP TO BOTTOM ═══════════════
+   The screen used to be one small chunk of questions centred in a column, a
+   numbered stepper of content TYPES over the card, ask chevrons under the column
+   and a slide bar along the foot — three navigations, none of them saying where
+   in the POST you were. It is a FORM now: the page's name and purpose, then its
+   sections stacked in a fixed order (Pages · Words · Agent · Pictures · QR &
+   listing), then Back / Next pinned at the foot. Beside it the page's card, and
+   under the card every page as a labelled thumb with Finish as the last tile —
+   the one place to see and jump to where you are.
+
+   Fields are FORM-sized, not question-sized. The old 19-26px question and
+   17-22px answer were built for one ask filling a screen; eight of them at that
+   size is a wall. 13.5px labels over 15px fields is a form a non-designer has
+   filled in a hundred times. The 16px field radius is the recorded decision and
+   stays; the drop zones and the card keep theirs.
+
+   Only the classes that still render are restyled. The stepper, chevrons, slide
+   bar, lock chips and number badge are gone from the MARKUP; their rules below
+   this block match nothing and are left, per the standing rule.
+
+   Reverting is deleting this block and restoring the markup and the gdPlan()
+   view from the pre-change copy. */
+.gd-top{padding:14px 28px}
+.gd-count{font:500 12px/1 var(--ps-font);color:var(--ps-ink-2)}
+
+.gd-in-zone{flex:0 0 clamp(440px,37vw,580px)}
+.gd-head{padding:22px 28px 14px;gap:5px;border-bottom:1px solid var(--ps-hair)}
+.gd-head b{font:600 22px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.gd-head s{font-size:13px;line-height:1.5}
+
+.gd-askwrap{justify-content:flex-start;gap:28px;padding:20px 28px 26px}
+.gd-askwrap:has(.gd-ask:nth-child(4)){justify-content:flex-start}
+
+.gd-sec{display:flex;flex-direction:column;gap:14px}
+.gd-sec-h{display:flex;align-items:center;gap:10px;margin:0;padding-bottom:10px;
+  border-bottom:1px solid var(--ps-hair);
+  font:600 12px/1 var(--ps-font);color:var(--ps-dim);letter-spacing:0;text-transform:none}
+.gd-sec-h i{font-style:normal;width:20px;height:20px;border-radius:50%;flex:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--ps-fill);color:var(--ps-ink-2);font:600 10.5px/1 var(--ps-font)}
+/* two columns; a row spans both unless the builder paired it */
+.gd-sec-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 12px;
+  align-items:start}
+.gd-ask{grid-column:1 / -1;gap:7px;animation:none}
+.gd-ask[data-half]{grid-column:auto}
+.gd-grp{grid-column:1 / -1;margin-bottom:-6px;
+  font:500 11.5px/1 var(--ps-font);color:var(--ps-ink-2);opacity:1}
+.gd-ask-h{gap:0}
+.gd-askq{font:500 13.5px/1.35 var(--ps-font);letter-spacing:0;color:var(--ps-ink)}
+
+.gd-big{padding:11px 14px;font-size:15px;line-height:1.35;border-radius:16px}
+.gd-bigta{font-size:14.5px;line-height:1.5}
+.gd-bigsel{padding-right:40px}
+.gd-bigstep{gap:12px}
+.gd-bigstep span{font-size:20px;min-width:40px}
+.gd-stepb{width:32px;height:32px;font-size:15px}
+.gd-seg{padding:9px 12px;font-size:13px}
+.gd-hint{font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
+.gd-drop{border-radius:14px}
+.gd-qrow .gd-drop-sq{width:110px;max-width:110px}
+.gd-qrow .gd-drop-ph{flex:none;width:132px;max-width:132px}
+.gd-qrow-t s{font-size:12px;color:var(--ps-ink-2)}
+.gd-qrow-t s + s{color:var(--ps-dim);font-size:11.5px}
+/* the row a blocked-list click landed on: a ring for a second, then gone */
+.gd-ask[data-hit]{animation:gdHit 1.1s var(--ps-ease) both}
+@keyframes gdHit{0%,60%{box-shadow:0 0 0 2px var(--ps-focus);border-radius:10px}100%{box-shadow:0 0 0 0 transparent}}
+.gd-rangev{font-size:17px}
+.gd-page-r{padding:10px 12px}
+.gd-page-r b{font-size:13px}
+.gd-addpage{padding:10px 14px;font-size:12.5px}
+.gd-dest{padding:13px 14px}
+.gd-expbad,.gd-expok{padding:12px 14px}
+
+/* the foot of the form: the blocked list (only when raised) and Back / Next */
+.gd-ask-tail{padding:0 28px 12px}
+.gd-nav{flex:none;display:flex;align-items:center;gap:10px;padding:14px 28px 18px;
+  border-top:1px solid var(--ps-hair);background:var(--ps-sb)}
+.gd-btn{padding:11px 20px;font:500 13px/1 var(--ps-font);border-radius:var(--ps-pill)}
+.gd-btn[data-off]{opacity:.32;pointer-events:none}
+
+/* the post */
+.gd-pv-zone{gap:16px;padding:22px 30px 18px}
+.gd-card-1{height:min(58vh,600px)}
+.gd-pstrip{flex:none;display:flex;align-items:flex-start;justify-content:center;gap:12px;
+  flex-wrap:wrap;max-width:100%;padding:0 10px}
+.gd-ptile{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0;
+  background:transparent;border:none;padding:0;cursor:pointer}
+.gd-pthumb{width:54px;height:72px;border-radius:7px;overflow:hidden;box-sizing:border-box;
+  background:var(--ps-card);border:1px solid var(--ps-hair);
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
+.gd-pt-img{width:100%;height:100%;object-fit:cover;display:block}
+.gd-ptile:hover .gd-pthumb{border-color:var(--ps-line)}
+/* the current page's ring is the FOREGROUND, the way every focus ring here is */
+.gd-ptile[data-on] .gd-pthumb{border-color:var(--ps-ink);box-shadow:0 0 0 2px var(--ps-ink)}
+.gd-ptile[data-done] .gd-pthumb{border-color:var(--ps-good)}
+.gd-ptile[data-fin] .gd-pthumb{background:var(--ps-fill)}
+.gd-ptile[data-fin] .gd-pthumb svg{width:22px;height:22px;fill:var(--ps-ink-2)}
+.gd-ptile[data-fin][data-on] .gd-pthumb svg{fill:var(--ps-ink)}
+.gd-ptile s{font-style:normal;text-decoration:none;max-width:88px;text-align:center;
+  font:500 11px/1.25 var(--ps-font);color:var(--ps-dim)}
+.gd-ptile[data-on] s{color:var(--ps-ink)}
+.gd-ptile[data-done] s{color:var(--ps-ink-2)}
+.gd-ptile:focus-visible{outline:none}
+.gd-ptile:focus-visible .gd-pthumb{outline:2px solid var(--ps-ink);outline-offset:2px}
+.gd-help{max-width:520px;font-size:12px}
+
+@media (max-width:1060px){
+  .gd-in-zone{flex:0 0 400px}
+  .gd-sec-g{grid-template-columns:minmax(0,1fr)}
+  .gd-ask[data-half]{grid-column:1 / -1}
+}
 </style>
 </helmet>
 
@@ -2755,30 +2868,35 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <div class="gd-top">
     <span class="gd-crumb">{{ tplLabel }}</span>
     <span class="p-spring"></span>
+    <span class="gd-count">{{ gdWhere }}</span>
+    <span class="p-spring"></span>
     <button onClick="{{ gdSkip }}" class="gd-skip">Skip to all controls</button>
   </div>
 
   <div class="gd-body">
-    <!-- input zone: one question at a time -->
+    <!-- THE FORM: one page, top to bottom. Sections in a fixed order — Pages · Words ·
+         Agent · Pictures · QR & listing — so the words always come before the pictures,
+         and every page reads the same way. -->
     <div class="gd-in-zone">
       <div class="gd-head">
         <b>{{ gdPageTitle }}</b>
         <s>{{ gdPagePurpose }}</s>
-        <sc-if value="{{ gdPageOf }}" hint-placeholder-val="{{ true }}"><i class="gd-onslide">{{ gdPageOf }}</i></sc-if>
       </div>
 
-
       <div class="gd-askwrap">
-        <!-- ONE CHUNK PER SCREEN. Every question this step asks for this card is on screen
-             together — the run reads as five or six short screens instead of thirty
-             one-line ones, which is the whole reason for chunking it. -->
-        <sc-for list="{{ gdRows }}" as="a" hint-placeholder-count="3">
-        <div class="gd-ask" data-k="{{ a.key }}">
-          <span class="gd-grp">{{ a.group }}</span>
-          <div class="gd-ask-h">
-            <i class="gd-askno">{{ a.no }}</i>
-            <b class="gd-askq">{{ a.label }}</b>
-          </div>
+        <sc-for list="{{ gdSecs }}" as="sec" hint-placeholder-count="3">
+        <section class="gd-sec">
+          <h3 class="gd-sec-h"><i>{{ sec.no }}</i>{{ sec.title }}</h3>
+          <div class="gd-sec-g">
+            <sc-for list="{{ sec.items }}" as="a" hint-placeholder-count="3">
+            <sc-if value="{{ a.isGroup }}" hint-placeholder-val="{{ false }}">
+              <span class="gd-grp">{{ a.group }}</span>
+            </sc-if>
+            <sc-if value="{{ a.isRow }}" hint-placeholder-val="{{ true }}">
+            <div class="gd-ask" data-k="{{ a.key }}" data-half="{{ a.half }}">
+              <div class="gd-ask-h">
+                <b class="gd-askq">{{ a.label }}</b>
+              </div>
 
               <sc-if value="{{ a.isField }}" hint-placeholder-val="{{ true }}">
                 <sc-if value="{{ a.row.isSeg }}" hint-placeholder-val="{{ false }}">
@@ -2806,10 +2924,17 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               </sc-if>
 
               <sc-if value="{{ a.isPhoto }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-drop" data-done="{{ a.photoDone }}">
-                  <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="12" placeholder="Drop a picture, or click to choose" style="width:100%;aspect-ratio:3/4"></image-slot>
+                <!-- a THUMB with its label beside it, the shape the QR and portrait rows already
+                     have. Full-width at 3:4 it was 600px tall and made every page scroll. -->
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
+                    <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:3/4"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.photoLabel }}</s>
+                    <s>Kept at full resolution for export. Drag it, or click to browse.</s>
+                  </div>
                 </div>
-                <span class="gd-hint">{{ a.photoLabel }} · kept at full resolution for export</span>
               </sc-if>
 
               <sc-if value="{{ a.isQr }}" hint-placeholder-val="{{ false }}">
@@ -2916,94 +3041,68 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               </sc-if>
 
 
-          <span class="gd-askbad" data-bad="{{ a.badOn }}">{{ a.issueShown }}</span>
-        </div>
-        </sc-for>
 
-        <div class="gd-ask gd-ask-tail" data-on="{{ gdBlockOn }}">
-          <sc-if value="{{ gdBlockOn }}" hint-placeholder-val="{{ false }}">
-            <div class="gd-blocked">
-              <b>{{ gdBlockTitle }}</b>
-              <s>{{ gdBlockLead }} Pick one to fill in.</s>
-              <sc-for list="{{ gdBlockRows }}" as="r" hint-placeholder-count="3">
-                <button onClick="{{ r.go }}" class="gd-blocked-r">{{ r.t }}</button>
-              </sc-for>
-              <sc-if value="{{ gdBlockMoreOn }}" hint-placeholder-val="{{ false }}">
-                <i class="gd-blocked-m">{{ gdBlockMore }}</i>
-              </sc-if>
+              <span class="gd-askbad" data-bad="{{ a.badOn }}">{{ a.issueShown }}</span>
             </div>
-          </sc-if>
-
-          <div class="gd-ask-f">
-            <button onClick="{{ gdAskNext }}" class="gd-ok" data-ready="{{ gdAskOk }}">{{ gdOkLabel }}</button>
-            <span class="gd-kbd">press <b>Enter</b> ↵</span>
-            <span class="p-spring"></span>
-            <span class="gd-askbad" data-bad="{{ gdAskBad }}">{{ gdAskIssue }}</span>
+            </sc-if>
+            </sc-for>
           </div>
-        </div>
+        </section>
+        </sc-for>
       </div>
 
-      <div class="gd-asknav">
-        <button onClick="{{ gdAskPrev }}" class="gd-chev" title="Previous question">Previous</button>
-        <button onClick="{{ gdNext }}" class="gd-chev" title="Next question">Next</button>
+      <!-- Raised only when Next is refused: what this page is still missing, each row a
+           jump to the field. At rest the form carries the questions and nothing else. -->
+      <div class="gd-ask-tail" data-on="{{ gdBlockOn }}">
+        <sc-if value="{{ gdBlockOn }}" hint-placeholder-val="{{ false }}">
+          <div class="gd-blocked">
+            <b>{{ gdBlockTitle }}</b>
+            <s>{{ gdBlockLead }} Pick one to fill in.</s>
+            <sc-for list="{{ gdBlockRows }}" as="r" hint-placeholder-count="3">
+              <button onClick="{{ r.go }}" class="gd-blocked-r">{{ r.t }}</button>
+            </sc-for>
+            <sc-if value="{{ gdBlockMoreOn }}" hint-placeholder-val="{{ false }}">
+              <i class="gd-blocked-m">{{ gdBlockMore }}</i>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+
+      <div class="gd-nav">
+        <button onClick="{{ gdBack }}" class="gd-btn" data-off="{{ gdBackOff }}">Back</button>
+        <span class="p-spring"></span>
+        <button onClick="{{ gdNext }}" class="gd-btn gd-btn-p" data-ready="{{ gdNextReady }}">{{ gdNextLabel }}</button>
       </div>
     </div>
 
-    <!-- preview zone -->
+    <!-- THE POST: this page's card, large, with every page as a labelled thumb beneath it
+         and Finish as the last tile. That strip is the ONE navigation besides Back/Next —
+         the numbered type-stepper, the ask chevrons and the slide bar are gone. -->
     <div class="gd-pv-zone">
-      <div class="gd-pv-head">
-        <span class="gd-count">Step {{ gdStepNo }} of {{ gdTotal }} · {{ gdPageTitle }}</span>
-        <div class="gd-steps">
-          <sc-for list="{{ gdDots }}" as="d" hint-placeholder-count="4">
-            <button onClick="{{ d.go }}" class="gd-step" data-on="{{ d.on }}" data-done="{{ d.done }}" title="{{ d.t }}">
-              <i class="gd-step-p">{{ d.mark }}</i>
-              <s>{{ d.t }}</s>
-            </button>
-          </sc-for>
+      <div class="gd-stage">
+        <div class="gd-card gd-card-1">
+          <sc-if value="{{ gdCard.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ gdCard.src }}" alt="preview"></sc-if>
+          <sc-if value="{{ gdCard.noShot }}" hint-placeholder-val="{{ true }}">
+            <div class="gd-lines"><sc-for list="{{ gdCard.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
+          </sc-if>
         </div>
       </div>
-      <sc-if value="{{ gdSingle }}" hint-placeholder-val="{{ true }}">
-        <div class="gd-stage">
-          <div class="gd-card gd-card-1">
-            <sc-if value="{{ gdCard.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ gdCard.src }}" alt="preview"></sc-if>
-            <sc-if value="{{ gdCard.noShot }}" hint-placeholder-val="{{ true }}">
-              <div class="gd-lines"><sc-for list="{{ gdCard.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
-            </sc-if>
-          </div>
-        </div>
-      </sc-if>
-      <sc-if value="{{ gdCarousel }}" hint-placeholder-val="{{ false }}">
-        <div class="gd-reel"><div class="gd-strip">
-          <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="5">
-            <button onClick="{{ c.go }}" class="gd-card gd-card-s" data-on="{{ c.onOn }}" title="{{ c.name }}">
-              <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ c.src }}" alt="{{ c.name }}"></sc-if>
-              <sc-if value="{{ c.noShot }}" hint-placeholder-val="{{ true }}">
-                <div class="gd-lines"><sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
-              </sc-if>
-                </button>
-          </sc-for>
-        </div></div>
-      </sc-if>
-      <div class="gd-pv-foot">
-        <span class="gd-help">{{ gdHelp }}</span>
-        <div class="gd-locks">
-          <span class="gd-locks-l">Locked by the template</span>
-          <sc-for list="{{ gdLocked }}" as="l" hint-placeholder-count="4"><span class="gd-chip">{{ l.t }}</span></sc-for>
-        </div>
+      <div class="gd-pstrip">
+        <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}">
+            <span class="gd-pthumb">
+              <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-pt-img" data-src="{{ c.src }}" alt=""></sc-if>
+              <sc-if value="{{ c.isFinish }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></sc-if>
+            </span>
+            <s>{{ c.t }}</s>
+          </button>
+        </sc-for>
       </div>
+      <span class="gd-help">{{ gdNote }}</span>
     </div>
   </div>
 
   <div class="gd-prog"><i style="{{ gdProgStyle }}"></i></div>
-  <sc-if value="{{ gdCarousel }}" hint-placeholder-val="{{ false }}">
-    <div class="gd-foot">
-      <button onClick="{{ gdSlidePrev }}" class="gd-btn gd-btn-p" data-off="{{ gdSlideFirstOn }}">Previous Slide</button>
-      <div class="p-spring"></div>
-      <span class="gd-slidelab">{{ gdSlideLabel }}</span>
-      <div class="p-spring"></div>
-      <button onClick="{{ gdSlideNext }}" class="gd-btn gd-btn-p" data-off="{{ gdSlideLastOn }}">Next Slide</button>
-    </div>
-  </sc-if>
 </div>
 </sc-if>
 
@@ -3173,8 +3272,9 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       <i class="gs-q"></i>
       <div class="gs-card"><b class="gs-l1"></b><b class="gs-l2"></b><b class="gs-l3"></b></div>
     </div>
-    <s class="gs-help">One question at a time, with the post building beside you. It asks only
-      for what this template needs and will not let you finish with anything missing.</s>
+    <s class="gs-help">Page by page — the words, then the pictures — with the post building
+      beside you. It asks only for what this template needs and will not let you finish
+      with anything missing.</s>
     <button onClick="{{ gdOpen }}" class="gs-btn" title="Re-run the guided setup">Guided setup</button>
   </div>
 </aside>
@@ -4897,7 +4997,10 @@ class OrganicStudio extends StudioBase {
   }
   // `storyOn` joins the chrome keys: which canvases are on SCREEN is not a change to the
   // artwork, so it must not churn the undo stack, the re-render key or a recents thumbnail.
-  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; return JSON.stringify(c); }
+  // gdStep and gdAsk are the run's POSITION. They were not stripped, so every Next pushed
+  // an undo entry (the stack is 5 deep) and re-keyed the guided card cache, re-rendering
+  // every slide on each move. Where you are standing is not a change to the post.
+  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.gdStep; delete c.gdAsk; return JSON.stringify(c); }
   upd(fn) {
     this.markDirty();
     this.setState(prev => {
@@ -7150,7 +7253,7 @@ class OrganicStudio extends StudioBase {
     review:  ['The review', 'Who said it', 'Agent'],
     // No 'Headline' tier: the ranking cover's headline is template-written, so that
     // heading named a group with no fields under it.
-    tacover: ['Period', 'Team'],
+    tacover: ['Period', 'When', 'Team'],   // tier 2 is the month/quarter/year, tier 3 the team
     tagent:  ['Name', 'Role', 'Blurb'],
     // No 'Headline' tier: the award's headline is template-written, so that heading would
     // name a group with no fields under it — the fix `tacover` already carries.
@@ -7275,36 +7378,96 @@ class OrganicStudio extends StudioBase {
   static lockedFor(kind) {
     return OrganicStudio.LOCKED.concat(OrganicStudio.FIXEDTEXT[kind] || []);
   }
-  // FOUR PHASES, BY CATEGORY — copy, then pictures, then refinement, then export.
-  // This is the requested shape and it is the one to keep: a non-designer is asked for
-  // one kind of thing at a time, and the two judgement calls (how strong the wash and
-  // the photo read) come only after there is a finished-looking post to judge. An
-  // earlier pass ran one step per slide instead, which interleaved "write the headline"
-  // with "upload a photo" on every card and never asked about refinement at all.
   static GD_BLOCK_MAX = 5;   // rows shown when a step is refused; the rest are counted
-  // SIX CHUNKS, EACH ONE SMALL. The run used to be Words -> Pictures, which meant one
-  // step held every line of copy in the post and the next held every image — accurate, but
-  // it read as two long stretches. Splitting the content by WHAT IT IS gives shorter steps
-  // that announce themselves, which is the whole point: nobody should feel they are part
-  // way through something endless.
-  static GDPHASE = [
-    { k: 'content', t: 'Content', d: 'Every line of copy in the post' },
-    { k: 'photo',   t: 'Photo',   d: 'The background picture for each page' },
-    { k: 'agent',   t: 'Agent',   d: 'Who is on the card — photo, name and role' },
-    { k: 'listing', t: 'Listing', d: 'The QR code and the reference number' },
-    { k: 'polish',  t: 'Look',    d: 'How strong the wash and the photo read' },
-    { k: 'export',  t: 'Save',    d: 'Where it goes, then the files' }
-  ];
-  // Only the chunks this template actually needs. A Google review has no QR and no listing
-  // number; Top agents has no QR either — showing an empty step would be a step that says
-  // "nothing to do here", which is worse than not showing it. `pi` keeps each step's index
-  // into GDPHASE, so an ask's `phase` stays stable however many steps are on screen.
-  guideSteps() {
-    const asks = this.guideAsks();
-    return OrganicStudio.GDPHASE
-      .map((p, i) => ({ kind: p.k, pi: i, t: p.t, d: p.d }))
-      .filter(st => asks.some(a => a.phase === st.pi));
+  // ══ THE RUN IS ONE PAGE AT A TIME, TOP TO BOTTOM ══════════════════════════════════
+  // This reverses the six category steps (Content -> Photo -> Agent -> Listing -> Look ->
+  // Save), and the reversal is by explicit instruction: the run felt "disoriented" and
+  // like it was "jumping from page to page". Measured on weekly with ONE property, the
+  // category order walked Cover -> Property -> Cover -> Property -> Cover -> Property before
+  // reaching Look — the same two pages visited three times, once per content TYPE. With
+  // three properties that is twelve hops.
+  //
+  // A non-designer's model of a post is the post's own: page by page, and on each page
+  // the words first and the pictures after. So a STEP IS A PAGE. Its questions are one
+  // scrolling form in fixed section order — Pages · Words · Agent · Pictures · QR &
+  // listing — and the card beside it fills in as you type. When every page is done there
+  // is one Finish step: the two look judgements, then where the files go, then the files.
+  //
+  // The earlier record that "one step per slide … is still wrong" was about a version
+  // that interleaved a headline with a photo on every card AND dropped refinement and
+  // export from the run. Neither is true here: the sections keep words before pictures
+  // on every page, and Finish still carries Look and Save.
+  //
+  // ONE BUILDER for both the steps and the asks, because they define each other: a slide
+  // is a step only if it produced an ask, and an ask's step is its slide's position in
+  // that list. Two functions deriving the pair separately is how they would come to
+  // disagree.
+  static GDSEC = {
+    pages: 'Pages in this post', words: 'Words', agent: 'Agent', pictures: 'Pictures',
+    listing: 'QR code & listing number', look: 'Look', save: 'Save'
+  };
+  static GDSECORDER = ['pages', 'words', 'agent', 'pictures', 'listing', 'look', 'save'];
+  gdPlan() {
+    const s = this.state, slides = s.slides || [], raw = [];
+    const pageKind = this.gdPageKind();
+    slides.forEach((sl, si) => {
+      const fs = OrganicStudio.fieldsFor(sl.kind, sl.f);
+      // PAGES — how many, asked once and on the FIRST page. Adding a page appends a step
+      // after the current one, so nothing the user has already walked renumbers.
+      if (pageKind && si === 0) raw.push({ si, sec: 'pages', kind: 'pages' });
+      // WORDS — every line of copy, in the hierarchy order the rail uses. A review card's
+      // agent name and role go to its Agent section beside the headshot; a ranking card is
+      // ABOUT its agent, so there the name and role ARE the words.
+      [1, 2, 3, 4].forEach(t => {
+        fs.filter(f => f.tier === t && f.flags.indexOf('img') < 0
+                    && !(sl.kind === 'review' && OrganicStudio.isAgentField(sl.kind, f.k)))
+          .forEach(f => raw.push({ si, sec: 'words', kind: 'field', k: f.k, group: OrganicStudio.tierName(sl.kind, t) }));
+      });
+      // AGENT — who is on the card. Project-level on a listed card (`s.agent`), so it is
+      // asked on that card's one page; per-slide on a review.
+      if (s.tpl === 'listed' && sl.kind === 'listed') {
+        raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.name', label: 'Agent name', req: true });
+        raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.role', label: 'Agent role', req: true, hint: 'e.g. Consultant · Primary Sales' });
+        raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent', label: 'Agent photo — PNG cut-out', hint: 'A cut-out on a transparent background — the face is found and framed for you, so any crop works' });
+        raw.push({ si, sec: 'agent', kind: 'agent2' });
+        if (s.agent2On) {
+          raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent2.name', label: 'Second agent name', req: true });
+          raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent2.role', label: 'Second agent role', req: true });
+          raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent-2', label: 'Second agent photo' });
+        }
+      }
+      if (sl.kind === 'review') {
+        fs.filter(f => OrganicStudio.isAgentField(sl.kind, f.k))
+          .forEach(f => raw.push({ si, sec: 'agent', kind: 'field', k: f.k }));
+        raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent-r' + sl.id, label: 'Agent photo' });
+      }
+      // PICTURES — the background, and on a listed card the parallax cut-out over it.
+      if (this.gdWantsPhoto(si)) raw.push({ si, sec: 'pictures', kind: 'photo' });
+      if (sl.kind === 'listed') raw.push({ si, sec: 'pictures', kind: 'portrait', slot: 'smp-fg-' + sl.id, label: 'Parallax layer — foreground PNG', hint: 'Optional. A cut-out of the picture’s foreground, so it passes in front of the status.' });
+      // QR & LISTING — the code and the reference it pairs with, last on the page.
+      const qr = this.gdQrFor(si);
+      if (qr) raw.push({ si, sec: 'listing', kind: 'qr', qrId: qr });
+      fs.filter(f => f.flags.indexOf('img') >= 0).forEach(f => raw.push({ si, sec: 'listing', kind: 'field', k: f.k }));
+    });
+    // FINISH — post-level, once. Both look settings are gated on the render actually
+    // reading them (`scrimUsed`, `imgOUsed`), because the run is a projection of the rail.
+    const fin = [];
+    if (this.scrimUsed(s)) fin.push({ sec: 'look', kind: 'scrim' });
+    if (this.imgOUsed(s)) fin.push({ sec: 'look', kind: 'imgo' });
+    fin.push({ sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
+    // the steps: every slide that asked for something, in slide order, then Finish
+    const pageSis = [];
+    raw.forEach(a => { if (pageSis.indexOf(a.si) < 0) pageSis.push(a.si); });
+    const steps = pageSis.map(si => ({ k: 'page', si, t: this.sLabel(si),
+      d: (OrganicStudio.PAGE[slides[si].kind] || ['', ''])[1] }));
+    const lastSi = pageSis.length ? pageSis[pageSis.length - 1] : 0;
+    steps.push({ k: 'finish', si: lastSi, t: 'Finish', d: 'Check how it reads, then choose where the files go.' });
+    raw.forEach(a => { a.step = pageSis.indexOf(a.si); });
+    fin.forEach(a => { a.si = lastSi; a.step = steps.length - 1; });
+    return { steps, asks: raw.concat(fin) };
   }
+  guideSteps() { return this.gdPlan().steps; }
+  guideAsks() { return this.gdPlan().asks; }
   // The card is the real 3:4 render, not a hand-drawn approximation: the same buildOps
   // the export uses, at a fraction of the scale. That is the only way it can look
   // exactly like the template and stay that way as the template changes.
@@ -7323,7 +7486,7 @@ class OrganicStudio extends StudioBase {
   // `innerHeight` is 0 while the browser pane is not laid out, which falls to 900.
   gdScale() {
     const vh = ((typeof window !== 'undefined' && window.innerHeight) || 0) || 900;
-    const cardW = Math.min(vh * .66, 660) * .75;
+    const cardW = Math.min(vh * .58, 600) * .75;   // mirrors .gd-card-1's min(58vh,600px)
     const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
     return Math.max(.4, Math.min(.9, (cardW * dpr) / OrganicStudio.PXT.ft.W));
   }
@@ -7366,8 +7529,8 @@ class OrganicStudio extends StudioBase {
   // render exactly one of these and page between them.
   gdAskLabelFor(ask, sl) {
     if (!ask) return '';
-    if (ask.kind === 'photo') return 'Add the picture for ' + this.sLabel(ask.si);
-    if (ask.kind === 'qr') return 'Add the QR code for ' + this.sLabel(ask.si);
+    if (ask.kind === 'photo') return 'Background picture';
+    if (ask.kind === 'qr') return 'QR code';
     if (ask.kind === 'scrim') return 'How strong should the wash behind the text be?';
     if (ask.kind === 'imgo') return 'How strong should the photo itself be?';
     if (ask.kind === 'dest') return 'Where should the files be saved?';
@@ -7402,7 +7565,11 @@ class OrganicStudio extends StudioBase {
     if (v.isField && sl) {
       const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
       v.row = f ? rowFor(f) : null;
+      // A number is short, so two of them share a row — Bed | Bath, Area | Price. Only
+      // a PAIR is halved (see the section builder): a lone half field reads as unfinished.
+      v.wantHalf = !!(f && (f.flags.indexOf('step') >= 0 || f.flags.indexOf('num') >= 0 || f.flags.indexOf('sel') >= 0));
     }
+    if (v.isProj) v.wantHalf = /\.(name|role)$/.test(ask.pk || '');
     if (v.isPhoto && sl) {
       const id = 'smp-bg-' + this.bgSidFor(sl);
       v.photoSlot = id;
@@ -7497,91 +7664,37 @@ class OrganicStudio extends StudioBase {
     return v;
   }
   gdSeedSelect() {
-    const asks = this.guideAsks();
-    const ask = asks[this.gdAskIndex()];
-    if (!ask || ask.kind !== 'field') return;
-    const sl = (this.state.slides || [])[ask.si];
-    if (!sl) return;
-    const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
-    if (!f) return;
-    const at = f.flags.indexOf('sel@');
-    const inl = f.flags.indexOf('sel:');
-    if (at < 0 && inl < 0) return;
-    if (String(sl.f[ask.k] == null ? '' : sl.f[ask.k]).trim()) return;   // already answered
-    let first = '';
-    if (at >= 0) {
-      const key = f.flags.slice(at + 4).split(' ')[0];
-      const lists = {
-        ptypes: this.state.ptypes || ['Villa', 'Apartment', 'Townhouse', 'Penthouse'],
-        teams: this.state.teams || ['Primary Sales', 'Secondary Sales'],
-        city: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
-        months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
-        years: [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map(String)
-      };
-      first = (lists[key] || [])[0] || '';
-    } else first = f.flags.slice(inl + 4).split('|')[0] || '';
-    if (!first) return;
-    this.upd(x => { x.slides[ask.si].f[ask.k] = first; return x; });
-  }
-  // ── One question at a time (Typeform pattern) ──────────────────────────────
-  // The run is still organised by page, but a page is answered one ask at a time:
-  // the question is the whole screen's focus, Enter advances, and the preview beside
-  // it fills in as each answer lands. `asks` is the flat sequence; the page is simply
-  // the slide the current ask belongs to, so there is one index to keep, not two.
-  guideAsks() {
-    const out = [];
-    const slides = this.state.slides || [];
-    // How many pages, before any of them are filled in. It goes FIRST on purpose: adding
-    // or deleting a page re-derives this whole list, and anything before the change keeps
-    // its index — so the user is never thrown to a different question by adding a page.
-    if (this.gdPageKind()) out.push({ phase: 0, si: 0, kind: 'pages', group: 'Pages' });
-    // 0 — CONTENT. Every line of copy, slide by slide so the preview stays on one card
-    // while it fills, and within each slide in hierarchy order. The agent's own name and
-    // role are NOT here: they belong with the agent's photo in step 2.
-    slides.forEach((sl, si) => {
-      const fs = OrganicStudio.fieldsFor(sl.kind, sl.f);
-      [1, 2, 3, 4].forEach(t => {
-        fs.filter(f => f.tier === t && f.flags.indexOf('img') < 0
-                    && !OrganicStudio.isAgentField(sl.kind, f.k)).forEach(f => {
-          out.push({ phase: 0, si, kind: 'field', k: f.k, group: OrganicStudio.tierName(sl.kind, t) });
-        });
-      });
+    // A <select> has no empty state: with an unset value it SHOWS its first option while
+    // the field is still '' and the card stays blank — a dropdown that looks answered and
+    // is not. With a whole page on screen, every dropdown on it is displaying an answer,
+    // so every unfilled one is committed, in one state write.
+    const plan = this.gdPlan();
+    const st = this.gdStepIndex();
+    const writes = [];
+    plan.asks.forEach(ask => {
+      if (ask.step !== st || ask.kind !== 'field') return;
+      const sl = (this.state.slides || [])[ask.si];
+      if (!sl) return;
+      const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
+      if (!f) return;
+      const at = f.flags.indexOf('sel@'), inl = f.flags.indexOf('sel:');
+      if (at < 0 && inl < 0) return;
+      if (String(sl.f[ask.k] == null ? '' : sl.f[ask.k]).trim()) return;   // already answered
+      let first = '';
+      if (at >= 0) {
+        const key = f.flags.slice(at + 4).split(' ')[0];
+        const lists = {
+          ptypes: this.state.ptypes || ['Villa', 'Apartment', 'Townhouse', 'Penthouse'],
+          teams: this.state.teams || ['Primary Sales', 'Secondary Sales'],
+          city: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
+          months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+          years: [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map(String)
+        };
+        first = (lists[key] || [])[0] || '';
+      } else first = f.flags.slice(inl + 4).split('|')[0] || '';
+      if (first) writes.push([ask.si, ask.k, first]);
     });
-    // 1 — PHOTO. The background picture for each page, and nothing else.
-    slides.forEach((sl, si) => {
-      if (this.gdWantsPhoto(si)) out.push({ phase: 1, si, kind: 'photo', group: 'Photo' });
-      // The parallax cut-out belongs with the pictures, not with the agent.
-      if (sl.kind === 'listed') out.push({ phase: 1, si, kind: 'portrait', slot: 'smp-fg-' + sl.id, label: 'Parallax layer — foreground PNG', group: 'Photo', hint: 'Optional. A cut-out of the picture\u2019s foreground, so it passes in front of the status.' });
-    });
-    // 2 — AGENT. Photo, name and role together, which is how the block reads on the card.
-    this.gdAgentAsks(2).forEach(a => out.push(a));
-    // 3 — LISTING. The QR and the reference number it pairs with.
-    slides.forEach((sl, si) => {
-      const qr = this.gdQrFor(si);
-      if (qr) out.push({ phase: 3, si, kind: 'qr', qrId: qr, group: 'Listing' });
-      OrganicStudio.fieldsFor(sl.kind, sl.f).filter(f => f.flags.indexOf('img') >= 0).forEach(f => {
-        out.push({ phase: 3, si, kind: 'field', k: f.k, group: 'Listing' });
-      });
-    });
-    // 4 — LOOK. Both settings are post-level, not per-slide, so they carry slide 0 purely
-    // so the preview has a card to show; on a carousel the filmstrip shows every slide
-    // reacting at once. Fixed at 0 rather than activeSi, because an ask list that shifted
-    // with the selection would renumber itself under the user.
-    // Only ask when the answer reaches the artwork — the ranking template takes no wash at
-    // all, so this question had no effect there either.
-    if (this.scrimUsed(this.state)) out.push({ phase: 4, si: 0, kind: 'scrim', group: 'Look' });
-    // AND THE SAME TEST FOR PHOTO STRENGTH, because the run is a PROJECTION of the advanced
-    // workspace: gating the rail's slider on `imgOUsed` and leaving this ask ungated would
-    // have the run asking a question the workspace cannot answer — the exact inversion the
-    // dead-feature audit records, in the direction it warns about. Check both ways.
-    // On the review template both drop out, so the Look step disappears entirely.
-    if (this.imgOUsed(this.state)) out.push({ phase: 4, si: 0, kind: 'imgo', group: 'Look' });
-    // 5 — SAVE. Where the files go, then the files. Choosing the destination is a step of
-    // its own and is required: the run should never hand someone a download and leave them
-    // hunting for it.
-    out.push({ phase: 5, si: 0, kind: 'dest', group: 'Save' });
-    out.push({ phase: 5, si: 0, kind: 'export', group: 'Save' });
-    return out;
+    if (writes.length) this.upd(x => { writes.forEach(([si, k, v]) => { x.slides[si].f[k] = v; }); return x; });
   }
   // Templates that repeat a page: weekly repeats a property, review repeats a review card.
   // The first one is fixed — a weekly with no property is not a post — so only the extras
@@ -7628,10 +7741,8 @@ class OrganicStudio extends StudioBase {
       return x;
     });
   }
-  // Which agent asks this template needs, per phase. A listed card prints a name, a role
-  // and a portrait (optionally a second agent); a review card prints the avatar and takes
-  // its name and role from the slide's own fields, so it needs only the portrait.
-  // One name per ask, used by the checklist and by the question heading.
+  // One name per ask, used by the blocked list. No page suffix: the list is only ever
+  // raised for the page on screen, so naming the page would say where you already are.
   gdAskTitle(ask) {
     if (!ask) return '';
     if (ask.kind === 'pages') return this.gdPageKind() === 'review' ? 'How many reviews' : 'How many properties';
@@ -7641,55 +7752,18 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'imgo') return 'Photo strength';
     if (ask.kind === 'dest') return 'Where to save';
     if (ask.kind === 'export') return 'Export';
+    if (ask.kind === 'photo') return 'Background picture';
+    if (ask.kind === 'qr') return 'QR code';
     const sl = (this.state.slides || [])[ask.si];
-    const nm = this.sLabel(ask.si);
-    if (ask.kind === 'photo') return nm + ' — picture';
-    if (ask.kind === 'qr') return nm + ' — QR code';
     const f = sl ? OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k) : null;
-    return (f ? f.t : ask.k || '') + (this.gdPageKind() ? ' · ' + nm : '');
+    return f ? f.t : (ask.k || '');
   }
-  // Which per-slide fields ARE agent details, so the Content step can leave them out and
-  // the Agent step can pick them up. A review card credits its agent; a Top agents card is
-  // ABOUT one, so its name and role belong here too — only the blurb stays as copy.
+  // Which per-slide fields ARE agent details. A review card credits its agent, so its
+  // name and role sit in the Agent section beside the headshot; a ranking card is ABOUT
+  // its agent, so there the name and role are the card's words and stay in Words.
   static AGENTFIELDS = { review: ['agentName', 'agentRole'], tagent: ['name', 'role'] };
   static isAgentField(kind, k) {
     return (OrganicStudio.AGENTFIELDS[kind] || []).indexOf(k) >= 0;
-  }
-  // Everything about the people on the card, in one step: photo, then name, then role —
-  // the order the block reads in. Project-level for a listed card (`s.agent`), per-slide
-  // for a review or a ranking card.
-  gdAgentAsks(phase) {
-    const s = this.state, out = [];
-    if (phase !== 2) return out;
-    if (s.tpl === 'listed') {
-      // The agent's picture is a PNG cut-out standing at the bottom right — never a
-      // circle crop. The parallax layer is a different image and is asked for with the
-      // rest of the pictures, in phase 1.
-      out.push({ phase: 2, si: 0, kind: 'portrait', slot: 'smp-agent', label: 'Agent photo — PNG cut-out', group: 'Agent', hint: 'A cut-out on a transparent background — the face is found and framed for you, so any crop works' });
-      out.push({ phase: 2, si: 0, kind: 'proj', pk: 'agent.name', label: 'Agent name', req: true, group: 'Agent' });
-      out.push({ phase: 2, si: 0, kind: 'proj', pk: 'agent.role', label: 'Agent role', req: true, group: 'Agent', hint: 'e.g. Consultant · Primary Sales' });
-      out.push({ phase: 2, si: 0, kind: 'agent2', group: 'Agent' });
-      if (s.agent2On) {
-        out.push({ phase: 2, si: 0, kind: 'portrait', slot: 'smp-agent-2', label: 'Second agent photo', group: 'Agent' });
-        out.push({ phase: 2, si: 0, kind: 'proj', pk: 'agent2.name', label: 'Second agent name', req: true, group: 'Agent' });
-        out.push({ phase: 2, si: 0, kind: 'proj', pk: 'agent2.role', label: 'Second agent role', req: true, group: 'Agent' });
-      }
-      return out;
-    }
-    // per-slide agents: the portrait slot is smp-agent-r<id> on a review, smp-bg-<id> is
-    // the full-bleed portrait on a ranking card and is asked for as the Photo step instead
-    (s.slides || []).forEach((sl, si) => {
-      const fields = OrganicStudio.AGENTFIELDS[sl.kind];
-      if (!fields) return;
-      if (sl.kind === 'review') {
-        out.push({ phase: 2, si, kind: 'portrait', slot: 'smp-agent-r' + sl.id,
-          label: 'Agent photo — ' + this.sLabel(si), group: 'Agent' });
-      }
-      OrganicStudio.fieldsFor(sl.kind, sl.f)
-        .filter(f => fields.indexOf(f.k) >= 0)
-        .forEach(f => out.push({ phase: 2, si, kind: 'field', k: f.k, group: 'Agent' }));
-    });
-    return out;
   }
   // Project-level values addressed as 'agent.name'. Two levels is all any of them need.
   gdProjGet(pk) {
@@ -7705,14 +7779,14 @@ class OrganicStudio extends StudioBase {
       return x;
     });
   }
-  // What a whole phase is still short of, derived from the SAME per-ask gate that stops
-  // you on a single question — so "what blocks the step" and "what you can click to fix
-  // it" cannot disagree, and each gap carries the index of the ask that fills it.
-  gdPhaseGaps(pi, asks) {
+  // What a whole STEP is still short of, derived from the SAME per-ask gate that marks a
+  // single field — so "what blocks Next" and "what you can click to fix it" cannot
+  // disagree, and each gap carries the index of the ask that fills it.
+  gdStepGaps(stepIdx, asks) {
     const list = asks || this.guideAsks();
     const out = [];
     list.forEach((a, i) => {
-      if (a.phase !== pi) return;
+      if (a.step !== stepIdx) return;
       if (this.gdAskIssue(a)) out.push({ i, t: this.gdAskTitle(a) });
     });
     return out;
@@ -7723,9 +7797,11 @@ class OrganicStudio extends StudioBase {
     if (this.folderSupported() && !this.folderName()) out.push('A folder to save into');
     return out;
   }
-  gdPhaseIssues(pi, asks) {
-    if (pi === 5) return this.gdExportBlockers();
-    return this.gdPhaseGaps(pi, asks).map(g => g.t);
+  gdStepIssues(stepIdx, plan) {
+    const p = plan || this.gdPlan();
+    const st = p.steps[stepIdx];
+    if (st && st.k === 'finish') return this.gdExportBlockers();
+    return this.gdStepGaps(stepIdx, p.asks).map(g => g.t);
   }
   gdAskIndex() { return Math.max(0, Math.min(this.guideAsks().length - 1, this.state.gdAsk || 0)); }
   // What this one ask is short of — an empty string when it is satisfied.
@@ -9275,67 +9351,61 @@ class OrganicStudio extends StudioBase {
       onGuide: s.screen === 'guide',
       gdOpen: () => this.upd(x => { x.screen = 'guide'; x.gdStep = 0; return x; }),
       ...(() => {
-        const steps = this.guideSteps();
-        const asks = this.guideAsks();
-        const aIdx = this.gdAskIndex();
-        const ask = asks[aIdx] || null;
-        // the step IS the phase the current ask belongs to
-        const idx = ask ? Math.max(0, steps.findIndex(st => st.pi === ask.phase)) : this.gdStepIndex();
-        const step = steps[idx] || null;
-        const sl = ask ? (s.slides || [])[ask.si] : null;
-        const issues = this.gdPhaseIssues(idx);
-        const carousel = (s.slides || []).length > 1;
+        // ══ THE VIEW: one page, top to bottom ═════════════════════════════════════
+        const plan = this.gdPlan(), steps = plan.steps, asks = plan.asks;
+        const idx = this.gdStepIndex();
+        const step = steps[idx] || steps[0];
+        const isFinish = !!(step && step.k === 'finish');
+        const slides = s.slides || [];
+        const sl = step ? slides[step.si] : null;
         const shots = this.gdShots();
-        const page = [step ? step.t : 'Step', step ? step.d : ''];
-        // Moving between asks also moves activeSi, which is what lets the input column
-        // reuse every per-slide control the editor's rail already has — the QR slot, the
-        // overlap toggle, the review agent — instead of a second copy of each.
-        const goAsk = i => this.upd(x => {
-          this._gdBlock = null;             // moving anywhere dismisses the blocked list
-          const n = Math.max(0, Math.min(asks.length - 1, i));
-          x.gdAsk = n;
-          x.gdStep = asks[n].phase;
-          x.activeSi = asks[n].si;
+        const filled = this._filled || {};
+        const pages = steps.filter(z => z.k === 'page').length;
+        // Moving between pages also moves activeSi, which is what lets the form reuse every
+        // per-slide control the editor's rail already has — the QR slot, the review agent —
+        // instead of a second copy of each. gdAsk is kept pointing at the page's first ask.
+        const goStep = i => this.upd(x => {
+          this._gdBlock = null;
+          const n = Math.max(0, Math.min(steps.length - 1, i));
+          x.gdStep = n;
+          x.gdAsk = Math.max(0, asks.findIndex(q => q.step === n));
+          x.activeSi = steps[n].si;
+          // the form is ONE scroller across pages, so a new page would open wherever the
+          // last one was left; after the render lands, start it at its top (setTimeout,
+          // not rAF — rAF never fires while the pane is hidden)
+          setTimeout(() => { const w = document.querySelector('.gd-askwrap'); if (w) w.scrollTop = 0; }, 0);
           return x;
         });
-        // a phase dot jumps to that phase's first question
-        const goTo = i => {
-          const st2 = steps[Math.max(0, Math.min(steps.length - 1, i))];
-          if (!st2) return;
-          const at = asks.findIndex(a => a.phase === st2.pi);
-          if (at >= 0) goAsk(at);
+        // A blocked-list row points at a field that is ON SCREEN — the list is only ever
+        // raised for the page you are on — so "go" scrolls to it and puts the cursor in it.
+        const focusAsk = i => {
+          const el = document.querySelector('.gd-ask[data-k="a' + i + '"]');
+          if (!el) return;
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          const f = el.querySelector('input,select,textarea');
+          if (f) f.focus();
+          // a drop zone has nothing to put a cursor in, so the row itself flashes — the
+          // same restart-the-attribute device the palette's add confirmation uses
+          el.removeAttribute('data-hit'); void el.offsetWidth; el.setAttribute('data-hit', '1');
+          clearTimeout(el._hitT);
+          el._hitT = setTimeout(() => { try { el.removeAttribute('data-hit'); } catch (err) {} }, 1100);
         };
-        // Crossing into the next phase is the gate: it holds until everything that
-        // phase asked for is actually there, and says what is outstanding.
-        // Next moves by CHUNK, not by question: the whole chunk is on screen, so it is
-        // the whole chunk that has to be answered before it can be left behind.
-        const keyOf = a => a.phase + ':' + (a.phase <= 3 ? a.si : 0);
+        // Next leaves the page only when everything it asked for is there; otherwise it
+        // names what is missing, each row a jump to the field. On Finish it hands over to
+        // the full editor — downloading is the buttons on that page.
         const advance = () => {
-          const cur = ask ? keyOf(ask) : null;
-          const mine = asks.map((a, i) => ({ a, i })).filter(o => keyOf(o.a) === cur);
-          const gapsHere = mine.filter(o => this.gdAskIssue(o.a)).map(o => ({ i: o.i, t: this.gdAskTitle(o.a) }));
-          if (gapsHere.length) { this._gdBlock = gapsHere; this.forceUpdate(); return; }
-          const nextAt = asks.findIndex(a => keyOf(a) !== cur && asks.indexOf(a) > mine[mine.length - 1].i);
-          const next = nextAt >= 0 ? asks[nextAt] : null;
-          if (next && next.phase !== ask.phase) {
-            // Leaving a STEP also checks the step as a whole — a carousel's other cards
-            // are in the same phase but a different chunk, and they still have to be done.
-            const gaps = this.gdPhaseGaps(ask.phase, asks);
-            if (gaps.length) { this._gdBlock = gaps; this.forceUpdate(); return; }
-          }
+          const mine = asks.map((q, i) => ({ q, i })).filter(o => o.q.step === idx);
+          const gaps = mine.filter(o => this.gdAskIssue(o.q)).map(o => ({ i: o.i, t: this.gdAskTitle(o.q) }));
+          if (gaps.length) { this._gdBlock = gaps; this.forceUpdate(); return; }
           this._gdBlock = null;
-          // The last chunk is the end of the run, so Next there hands off to the full
-          // editor rather than doing nothing. Downloading is the buttons on that chunk.
-          if (!next) { this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }); return; }
-          goAsk(nextAt);
+          if (idx >= steps.length - 1) { this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }); return; }
+          goStep(idx + 1);
         };
         const cardFor = (si2, slide) => ({
           src: shots[si2] || '', hasShot: !!shots[si2], noShot: !shots[si2],
           rows: (OrganicStudio.SKEL[slide.kind] || []).map(([k, size, w]) =>
             ({ barStyle: { width: w + '%' }, barCls: 'gd-bar gd-b-' + size }))
         });
-        // Every field of this page, grouped exactly as the all-controls rail groups
-        // them, and rendered with the same control the rail uses.
         const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
         const thisYear = new Date().getFullYear();
         const LISTS = {
@@ -9346,8 +9416,9 @@ class OrganicStudio extends StudioBase {
           years: [thisYear - 1, thisYear, thisYear + 1].map(String)
         };
         const ADDNEW = { ptypes: '+ Add new type…', teams: '+ Add new team…' };
-        const rowFor = f => {
-          const raw = sl.f[f.k] == null ? '' : String(sl.f[f.k]);
+        const rowFor = (f, si) => {
+          const slide = slides[si];
+          const raw = slide.f[f.k] == null ? '' : String(slide.f[f.k]);
           const req = f.flags.indexOf('req') >= 0;
           const bad = req && (!raw.trim() || (f.flags.indexOf('len11') >= 0 && raw.replace(/\D/g, '').length !== 11));
           // `seg:` values CONTAIN spaces ("Just listed|Just sold"), so take everything
@@ -9360,7 +9431,7 @@ class OrganicStudio extends StudioBase {
           const selIn = f.flags.indexOf('sel:') >= 0 ? f.flags.slice(f.flags.indexOf('sel:') + 4).split('|') : null;
           const isStep = f.flags.indexOf('step') >= 0;
           const words = f.flags.indexOf('w40') >= 0 ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
-          const write = v => this.upd(x => { x.slides[ask.si].f[f.k] = v; return x; });
+          const write = v => this.upd(x => { x.slides[si].f[f.k] = v; return x; });
           let opts = null, addKey = null;
           if (selAt) {
             const list = (LISTS[selAt[1]] || []).slice();
@@ -9388,7 +9459,7 @@ class OrganicStudio extends StudioBase {
                   const key = selAt[1];
                   x[key] = x[key] || LISTS[key].slice();
                   if (x[key].indexOf(nv) < 0) x[key].push(nv);
-                  x.slides[ask.si].f[f.k] = nv; return x;
+                  x.slides[si].f[f.k] = nv; return x;
                 });
                 return;
               }
@@ -9404,261 +9475,77 @@ class OrganicStudio extends StudioBase {
             }
           };
         };
-        const tiers = [];
-        let imgRows = [];
-        if (sl) {
-          const fs = OrganicStudio.fieldsFor(sl.kind, sl.f);
-          imgRows = fs.filter(f => f.flags.indexOf('img') >= 0).map(rowFor);
-          [1, 2, 3, 4].forEach(t => {
-            const inTier = fs.filter(f => f.tier === t && f.flags.indexOf('img') < 0);
-            if (!inTier.length) return;
-            tiers.push({ name: OrganicStudio.tierName(sl.kind, t), rows: inTier.map(rowFor) });
+
+        // ── the page's sections, in fixed order ──────────────────────────────────
+        // Each row is one ask; a run of two half-width rows shares a line, a lone one is
+        // widened back — an odd half field reads as unfinished. A tier name (Headline,
+        // Property details…) is its own full-width label whenever it changes.
+        const secs = [];
+        OrganicStudio.GDSECORDER.forEach(sec => {
+          const here = asks.map((q, i) => ({ q, i })).filter(o => o.q.step === idx && o.q.sec === sec);
+          if (!here.length) return;
+          const rows = here.map(o => this.gdRowView(o.q, o.i, slides[o.q.si], f => rowFor(f, o.q.si), filled, () => focusAsk(o.i)));
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i], nxt = rows[i + 1], prv = rows[i - 1];
+            const pairNext = r.wantHalf && nxt && nxt.wantHalf && !nxt._paired && (nxt.group || '') === (r.group || '');
+            const pairPrev = prv && prv.half === '1' && !prv._closed;
+            if (pairNext) { r.half = '1'; nxt.half = '1'; nxt._paired = true; nxt._closed = true; }
+            else if (!pairPrev || prv._closed !== true) { /* falls through as full */ }
+            if (!r.half) r.half = undefined;
+          }
+          const items = [];
+          let lastGroup = null;
+          rows.forEach(r => {
+            // a tier that holds one field with the tier's own name ("Award / Award") would
+            // print that name twice; the label earns its line only over two fields or a
+            // field called something else
+            const inGroup = rows.filter(z => z.group === r.group);
+            const worth = inGroup.length > 1 || (inGroup[0] && inGroup[0].label !== r.group);
+            if (sec === 'words' && r.group && r.group !== lastGroup && worth) {
+              items.push({ key: r.key + 'g', isGroup: true, isRow: false, group: r.group });
+            }
+            lastGroup = r.group;
+            items.push(Object.assign(r, { isGroup: false, isRow: true }));
           });
-        }
-        const filled = this._filled || {};
-        const qrId = ask ? this.gdQrFor(ask.si) : null;
-        const wantPhoto = ask ? this.gdWantsPhoto(ask.si) : false;
-        const photoId = sl ? 'smp-bg-' + this.bgSidFor(sl) : 'smp-none';
+          secs.push({ key: sec, no: String(secs.length + 1), title: OrganicStudio.GDSEC[sec], items });
+        });
+        const live = (this._gdBlock || []).filter(g => asks[g.i] && this.gdAskIssue(asks[g.i]) && asks[g.i].step === idx);
+        const more = live.length - OrganicStudio.GD_BLOCK_MAX;
+        const nextStep = steps[idx + 1] || null;
         return {
           gdStepNo: idx + 1,
           gdTotal: steps.length,
-          gdPageTitle: page[0],
-          gdPagePurpose: page[1],
-          gdPageOf: (sl && ask && ask.phase <= 3) ? this.sLabel(ask.si) : '',
-          gdTiers: tiers,
-          gdWantPhoto: wantPhoto,
-          gdPhotoSlot: photoId,
-          gdPhotoDone: filled[photoId] ? '1' : undefined,
-          gdPhotoLabel: filled[photoId] ? 'Picture added — click to replace' : 'Drop a picture, or click to choose',
-          // ── the CHUNK on screen ────────────────────────────────────────────────
-          // A chunk is one step's questions for one card. Post-level steps (Look, Save)
-          // have no card, so they are one chunk each.
-          gdRows: (() => {
-            const keyOf = a => a.phase + ':' + (a.phase <= 3 ? a.si : 0);
-            const cur = ask ? keyOf(ask) : null;
-            return asks.map((a, i) => ({ a, i }))
-              .filter(o => keyOf(o.a) === cur)
-              .map(o => this.gdRowView(o.a, o.i, sl, rowFor, filled, () => goAsk(o.i)));
-          })(),
-          gdAskNo: aIdx + 1,
-          gdAskTotal: asks.length,
-          gdAskGroup: ask ? ask.group : '',
-          gdAskKey: 'a' + aIdx,
-          gdProgStyle: { width: (asks.length ? ((aIdx + 1) / asks.length * 100) : 0).toFixed(1) + '%' },
-          gdAskIsField: !!(ask && ask.kind === 'field'),
-          gdAskIsPhoto: !!(ask && ask.kind === 'photo'),
-          gdAskIsQr: !!(ask && ask.kind === 'qr'),
-          ...(() => {
-            const live = (this._gdBlock || []).filter(g => asks[g.i] && this.gdAskIssue(asks[g.i]));
-            const more = live.length - OrganicStudio.GD_BLOCK_MAX;
-            return {
-              gdBlockOn: live.length ? '1' : undefined,
-              gdBlockTitle: (step ? step.t : 'This step') + ' is not finished',
-              gdBlockLead: live.length === 1
-                ? 'One answer is still missing.'
-                : live.length + ' answers are still missing.',
-              gdBlockRows: live.slice(0, OrganicStudio.GD_BLOCK_MAX)
-                .map(g => ({ t: g.t, go: () => goAsk(g.i) })),
-              gdBlockMoreOn: more > 0 ? '1' : undefined,
-              gdBlockMore: more > 0 ? ('+ ' + more + ' more after these') : ''
-            };
-          })(),
-          gdAskIsDest: !!(ask && ask.kind === 'dest'),
-          gdDestSupported: this.folderSupported(),
-          gdDestUnsupported: !this.folderSupported(),
-          gdDestName: this.folderName() || 'No folder chosen yet',
-          gdDestSetOn: this.folderName() ? '1' : undefined,
-          gdDestLabel: this.folderName() ? 'Change folder' : 'Choose a folder…',
-          gdDestPick: async () => {
-            const f = this.folderApi();
-            if (!f || !f.supported) return;
-            try {
-              // NOT folderOpen(): it returns early on an existing handle without ever
-              // opening the picker, so "Change folder" silently handed back the folder
-              // already set and looked broken. Only re-grant silently when nothing is
-              // chosen yet — a remembered folder whose permission lapsed is parked on
-              // `pending`, and ensure() revives it without a second prompt.
-              let h = f.handle ? null : await f.ensure();
-              if (!h) h = await f.pick();
-              if (h) {
-                this.setState({ exportStatus: 'Files will be saved into "' + f.name + '".' });
-                this.forceUpdate();
-              }
-            } catch (e) { /* the picker was dismissed — leave the current folder alone */ }
-          },
-          gdAskIsPages: !!(ask && ask.kind === 'pages'),
-          gdPageWord: this.gdPageKind() === 'review' ? 'review' : 'property',
-          gdPageRows: this.gdPageRows().map(r => ({
-            name: this.sLabel(r.si),
-            n: r.n,
-            canDel: this.gdPageRows().length > 1 && r.n > 1 ? '1' : undefined,
-            fixed: r.n === 1 ? '1' : undefined,
-            del: () => this.gdDelPage(r.id)
-          })),
-          gdCanAddPage: this.gdPageRows().length < this.gdPageMax() ? '1' : undefined,
-          gdAddPageLabel: '+ Add another ' + (this.gdPageKind() === 'review' ? 'review' : 'property'),
-          gdAddPage: () => this.gdAddPage(),
-          gdAskIsProj: !!(ask && ask.kind === 'proj'),
-          gdAskIsAgent2: !!(ask && ask.kind === 'agent2'),
-          gdAskIsPortrait: !!(ask && ask.kind === 'portrait'),
-          gdProjVal: (ask && ask.kind === 'proj') ? this.gdProjGet(ask.pk) : '',
-          gdProjHint: (ask && ask.hint) || '',
-          gdSetProj: e => { const v = e.target.value; if (ask && ask.pk) this.gdProjSet(ask.pk, v); },
-          gdAgent2Opts: ['One agent', 'Two agents'].map((lab, i) => ({
-            label: lab,
-            on: (!!s.agent2On === (i === 1)) ? '1' : undefined,
-            set: () => this.upd(x => { x.agent2On = (i === 1); return x; })
-          })),
-          gdPortraitSlot: (ask && ask.slot) || 'smp-none',
-          gdPortraitDone: (ask && ask.slot && filled[ask.slot]) ? '1' : undefined,
-          gdPortraitLabel: (ask && ask.slot && filled[ask.slot])
-            ? 'Photo added — click to replace' : 'Drop a headshot, or click to choose',
-          gdAskIsScrim: !!(ask && ask.kind === 'scrim'),
-          gdAskIsImgO: !!(ask && ask.kind === 'imgo'),
-          gdAskIsExport: !!(ask && ask.kind === 'export'),
-          gdAskLabel: (() => {
-            if (!ask) return '';
-            if (ask.kind === 'photo') return 'Add the picture for ' + this.sLabel(ask.si);
-            if (ask.kind === 'qr') return 'Add the QR code for ' + this.sLabel(ask.si);
-            if (ask.kind === 'scrim') return 'How strong should the wash behind the text be?';
-            if (ask.kind === 'imgo') return 'How strong should the photo itself be?';
-            if (ask.kind === 'dest') return 'Where should the files be saved?';
-            if (ask.kind === 'export') return 'Ready to export';
-            if (ask.kind === 'pages') return this.gdPageKind() === 'review'
-              ? 'How many reviews in this post?' : 'How many properties in this post?';
-            if (ask.kind === 'proj') return ask.label || '';
-            if (ask.kind === 'agent2') return 'How many agents are on this card?';
-            if (ask.kind === 'portrait') return ask.label || 'Agent photo';
-            const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
-            return f ? f.t : '';
-          })(),
-          // ── refinement: the two settings the run asks about, as the rail's sliders ──
-          gdScrimVal: s.scrimH == null ? 50 : s.scrimH,
-          gdScrimPct: (s.scrimH == null ? 50 : s.scrimH) + '%',
-          gdSetScrim: e => { const v = +e.target.value; this.upd(x => { x.scrimH = v; return x; }); },
-          gdImgOVal: s.imgO == null ? 100 : s.imgO,
-          gdImgOPct: (s.imgO == null ? 100 : s.imgO) + '%',
-          gdSetImgO: e => { const v = +e.target.value; this.upd(x => { x.imgO = v; return x; }); },
-          // ── export: the whole gate, plus the files ──────────────────────────────
-          gdExpBlockers: this.gdExportBlockers().map(t => ({ t })),
-          gdExpClear: this.gdExportBlockers().length === 0,
-          gdExpBlocked: this.gdExportBlockers().length > 0,
-          gdExpZip: () => {
-            const b = this.gdExportBlockers();
-            if (b.length) { this.setState({ exportStatus: 'Still needed — ' + b.join(', ') }); return; }
-            this.doExport('png');
-          },
-          // A PDF of a single card is just that card — the document only means something
-          // for a carousel, and it is the feed reading of it.
-          gdExpPdfOn: ((s.slides || []).length > 1) ? '1' : undefined,
-          gdExpNote: (this.folderName()
-            ? 'Both sizes are written straight into "' + this.folderName() + '", together with the session file and Assets.'
-            : 'Both sizes are included.')
-            + ((s.slides || []).length > 1 ? ' The PDF is the feed pages only.' : ''),
-          gdExpPdf: () => {
-            const b = this.gdExportBlockers();
-            if (b.length) { this.setState({ exportStatus: 'Still needed — ' + b.join(', ') }); return; }
-            this.doExport('pdf');
-          },
-          // The story canvas is built and exported all along — it is only kept off this
-          // screen so there is one thing to look at, not two.
-          gdStoryNote: 'Feed 3:4 is what you are shaping. The 9:16 story is built from the ' +
-            'same answers and is included in the export.',
-          gdAsk: (() => {
-            if (!ask || ask.kind !== 'field') return null;
-            const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
-            return f ? rowFor(f) : null;
-          })(),
-          gdAskIssue: this.gdAskIssue(ask),
-          gdAskBad: this.gdAskIssue(ask) ? '1' : undefined,
-          gdAskOk: this.gdAskIssue(ask) ? undefined : '1',
-          gdAskLast: aIdx >= asks.length - 1,
-          gdAskNotLast: aIdx < asks.length - 1,
-          gdAskFirst: aIdx === 0,
-          gdAskPrev: () => goAsk(aIdx - 1),
-          // Enter advances, exactly as a Typeform does. A textarea keeps Enter for a
-          // newline, so only Shift-free single-line fields take the shortcut.
-          gdAskNext: advance,
-          gdChunkTotal: (() => {
-            const keyOf = a => a.phase + ':' + (a.phase <= 3 ? a.si : 0);
-            const seen = {}; asks.forEach(a => { seen[keyOf(a)] = 1; });
-            return Object.keys(seen).length;
-          })(),
-          gdChunkNo: (() => {
-            const keyOf = a => a.phase + ':' + (a.phase <= 3 ? a.si : 0);
-            const order = []; asks.forEach(a => { const k = keyOf(a); if (order.indexOf(k) < 0) order.push(k); });
-            return ask ? order.indexOf(keyOf(ask)) + 1 : 1;
-          })(),
-          gdOkLabel: (ask && ask.kind === 'export') ? 'Done' : 'OK',
-          gdImgRows: imgRows,
-          gdHasImages: !!(wantPhoto || qrId || imgRows.length || (sl && sl.kind !== 'review')),
-          gdWantQr: !!qrId,
-          gdQrLink: (qrId && this._qrLinks && this._qrLinks[qrId]) ? '1' : undefined,
-          gdOpenQrLink: () => { const u = (this._qrLinks || {})[qrId]; if (u) window.open(u, '_blank', 'noopener'); },
-          gdQrSlot: qrId || 'smp-none',
-          gdQrDone: (qrId && filled[qrId]) ? '1' : undefined,
-          gdQrLabel: (qrId && filled[qrId]) ? 'QR added — click to replace' : 'Drop the QR code',
-          gdSharesPhoto: !!(sl && !wantPhoto && sl.kind !== 'review'),
-          gdNoPhoto: !!(sl && sl.kind === 'review'),
-          gdLocked: OrganicStudio.lockedFor(sl ? sl.kind : '').map(t => ({ t })),
-          gdHelp: (() => {
-            const n = asks.filter(a => a.phase === idx).length;
-            const done = n - asks.filter((a, i) => a.phase === idx && i >= aIdx).length;
-            return (step ? step.t : 'This step') + ' — ' + Math.min(done + 1, n) + ' of ' + n +
-              '. The post builds as you answer, and what you see is exactly what exports.';
-          })(),
-          gdCarousel: carousel,
-          gdSingle: !carousel,
-          gdCard: sl ? cardFor(ask.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
-          gdStrip: carousel ? (s.slides || []).map((z, i) => Object.assign(cardFor(i, z), {
-            onOn: i === (ask ? ask.si : 0) ? '1' : undefined,
-            name: this.sLabel(i),
-            go: () => goTo(i)
-          })) : [],
-          gdIssueList: issues.map(t => ({ t })),
-          gdBlocked: issues.length > 0,
-          gdBlockedOn: issues.length ? '1' : undefined,
-          gdReady: issues.length ? undefined : '1',
-          gdHint: issues.length
-            ? ('Still needed in ' + (step ? step.t : 'this step') + ' — ' + issues.join(', '))
-            : ((step ? step.t : 'This step') + ' is complete.'),
-          gdCanBack: idx > 0,
-          gdIsFirst: idx === 0,
-          gdIsLast: idx >= steps.length - 1,
-          gdNotLast: idx < steps.length - 1,
-          gdDots: steps.map((st2, i) => {
-            // A step is only "done" once it is BEHIND you and clear — Refinement requires
-            // nothing, so marking it complete on sight would tick a step never visited.
-            const done = i < idx && !this.gdPhaseIssues(st2.pi, asks).length;
-            return {
-              t: st2.t,
-              mark: done ? '✓' : String(i + 1),
-              on: i === idx ? '1' : undefined,
-              done: done ? '1' : undefined,
-              go: () => goTo(i)
-            };
-          }),
-          gdBack: () => goAsk(aIdx - 1),
+          gdPageTitle: step ? step.t : '',
+          gdPagePurpose: step ? step.d : '',
+          gdWhere: isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages),
+          gdIsFinish: isFinish,
+          gdSecs: secs,
+          gdProgStyle: { width: (steps.length ? ((idx + 1) / steps.length * 100) : 0).toFixed(1) + '%' },
+          gdBlockOn: live.length ? '1' : undefined,
+          gdBlockTitle: (step ? step.t : 'This page') + ' is not finished',
+          gdBlockLead: live.length === 1 ? 'One answer is still missing.' : live.length + ' answers are still missing.',
+          gdBlockRows: live.slice(0, OrganicStudio.GD_BLOCK_MAX).map(g => ({ t: g.t, go: () => focusAsk(g.i) })),
+          gdBlockMoreOn: more > 0 ? '1' : undefined,
+          gdBlockMore: more > 0 ? ('+ ' + more + ' more after these') : '',
+          gdBack: () => goStep(idx - 1),
+          gdBackOff: idx === 0 ? '1' : undefined,
           gdNext: advance,
-          // Slide navigation, distinct from ask navigation: jump to this phase's first ask
-          // on the neighbouring slide. Phases 2 and 3 are post-level and have no slides,
-          // so the bar is inert there.
-          gdSlideLabel: (sl && ask && ask.phase <= 3) ? this.sLabel(ask.si) : (step ? step.t : ''),
-          gdSlideFirstOn: (!ask || ask.phase > 3 || ask.si <= 0) ? '1' : undefined,
-          gdSlideLastOn: (!ask || ask.phase > 3 || ask.si >= (s.slides || []).length - 1) ? '1' : undefined,
-          gdSlidePrev: () => {
-            if (!ask || ask.phase > 3) return;
-            const at = asks.findIndex(a => a.phase === ask.phase && a.si === ask.si - 1);
-            if (at >= 0) goAsk(at);
-          },
-          gdSlideNext: () => {
-            if (!ask || ask.phase > 3) return;
-            const at = asks.findIndex(a => a.phase === ask.phase && a.si === ask.si + 1);
-            if (at >= 0) goAsk(at);
-          },
-          // The run now ends WITH export, so this is only a hand-off to the full editor.
-          // It does not re-gate: the export step already reports the blockers, and
-          // refusing to open the editor would leave nowhere to go and fix them.
+          gdAskNext: advance,            // the document-level Enter handler reads this
+          gdNextLabel: isFinish ? 'Done — open the full editor' : (nextStep ? 'Next: ' + nextStep.t : 'Next'),
+          gdNextReady: this.gdStepGaps(idx, asks).length ? undefined : '1',
+          gdCard: sl ? cardFor(step.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
+          // the page strip under the card: every page as a labelled thumb, then Finish.
+          // Done is only ever a page BEHIND you that is clear — Finish is never ticked.
+          gdStrip: steps.map((st2, i) => {
+            const done = st2.k === 'page' && i < idx && !this.gdStepGaps(i, asks).length;
+            const c = st2.k === 'page' ? cardFor(st2.si, slides[st2.si]) : { src: '', hasShot: false, noShot: false, rows: [] };
+            return Object.assign(c, { t: st2.t, isFinish: st2.k === 'finish' ? '1' : undefined,
+              on: i === idx ? '1' : undefined, done: done ? '1' : undefined, go: () => goStep(i) });
+          }),
+          gdNote: isFinish
+            ? 'What you see is exactly what exports. The 9:16 story is built from the same answers'
+              + (s.storyOn ? ' and is included.' : ', and ships once its canvas is shown under the stage.')
+            : 'The grid, margins, wordmark and wash are the template’s. You fill in only what changes from post to post.',
           gdFinish: () => this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }),
           gdSkip: () => this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }),
           gdKey: 'k' + idx
@@ -10174,6 +10061,16 @@ class Component extends DCLogic {
       if (tag === 'TEXTAREA') return;
       // let a real button take its own Enter rather than double-firing
       if (tag === 'BUTTON' || (t && t.isContentEditable)) return;
+      // ON A PAGE OF FIELDS, Enter is "next field", the way a form works — only from the
+      // last field on the page does it turn the page. Fields inside <image-slot> live in
+      // its shadow root and are not in this list, which is right: Enter there is its own.
+      const wrap = document.querySelector('.gd-askwrap');
+      if (wrap && t && wrap.contains(t) && (tag === 'INPUT' || tag === 'SELECT')) {
+        const fs = Array.prototype.slice.call(wrap.querySelectorAll('input,select,textarea'))
+          .filter(el => !el.disabled && el.type !== 'range' && el.offsetParent);
+        const at = fs.indexOf(t);
+        if (at >= 0 && at < fs.length - 1) { e.preventDefault(); fs[at + 1].focus(); return; }
+      }
       const v = a.renderVals && a.renderVals();
       if (v && typeof v.gdAskNext === 'function') { e.preventDefault(); v.gdAskNext(); }
     };

@@ -3260,6 +3260,14 @@ project folder still bypasses the dialog entirely and writes straight into it.
 
 ## Organic step-by-step run
 
+> **SUPERSEDED, BY EXPLICIT INSTRUCTION: the run is ONE PAGE AT A TIME now, not six content
+> chunks.** The "SIX CHUNKS … do not reorganise it" rule and "if per-slide stepping looks
+> attractive again, it is still wrong" below both stood until the run was reported as
+> disoriented and jumping page to page. See *THE GUIDED RUN IS ONE PAGE AT A TIME* at the
+> end of this file for the shape that ships and why the old objection no longer applies.
+> Everything below about what is ASKED — FIELDS, FIXEDTEXT, gating, the pages ask going
+> first, seeding a select, Enter at the document — is still true; only the ORDER changed.
+
 A new post opens on `screen: 'guide'` — a **screen of its own**, not a rail in the editor:
 one question at a time beside the post, which fills in as each answer lands.
 
@@ -9666,3 +9674,127 @@ overflow, no strip overflow, thumbs down to 68x68 and 53x70, and the two cards' 
 
 Contrast, both themes, ancestor opacity composited, transitions finished: **0 failures**.
 Elevation shadows: **0**.
+
+
+# THE GUIDED RUN IS ONE PAGE AT A TIME, TOP TO BOTTOM
+
+`Provident Organic Studio.dc.html`'s guided setup was rebuilt by explicit instruction: it
+felt "disoriented", it was "jumping from page to page", and the ask was to think like a
+non-designer — data top to bottom, text before images, page per page, simpler than the rail.
+
+## THE DISORIENTATION WAS MEASURED, NOT FELT
+
+The six category steps (Content · Photo · Agent · Listing · Look · Save) visited every page
+once per content TYPE. On weekly with a single property the walk was
+
+```
+Content/Cover → Content/Property → Photo/Cover → Photo/Property → Listing/Cover →
+Listing/Property → Look → Save            8 screens, the same two pages three times each
+```
+
+and with three properties it was twelve hops between pages before Look. On top of that the
+screen carried **three navigations** — a numbered stepper of content types over the card,
+Previous/Next ask chevrons under the column, and a Previous Slide / Next Slide bar along the
+foot — none of which said where in the POST you were, plus a masked filmstrip that cut the
+neighbour card off at the edge so it read as broken.
+
+## A STEP IS A PAGE
+
+`gdPlan()` is one builder for both the steps and the asks, because they define each other: a
+slide is a step only if it produced an ask, and an ask's step is its slide's position in that
+list. Every page's questions are ONE scrolling form in a fixed section order —
+
+**Pages in this post · Words · Agent · Pictures · QR code & listing number**
+
+— so the words always come before the pictures and every page reads the same way. When the
+last page is done there is one **Finish** step: the two look judgements, then where the files
+go, then the files. Measured plans:
+
+| template | steps |
+|---|---|
+| weekly (1 property) | Cover · Property 01 · Finish — **3 screens, was 8** |
+| listed | Listing · Finish |
+| review | Google review · Finish |
+| agents | Cover · Rank 01 … Rank 05 · Finish |
+| award | Award · Finish |
+
+**The recorded objection to per-slide stepping does not apply.** That note was about a
+version that interleaved a headline with a photo on every card AND dropped refinement and
+export from the run. Here the sections keep words before pictures on every page, and Finish
+still carries Look and Save.
+
+**The pages ask is on the FIRST page**, whatever kind it is (the cover on weekly, Review 01
+on reviews). Adding a page appends a step after the current one, so nothing already walked
+renumbers — the same reason it used to go first in the flat list.
+
+**Agent details sit where the card puts them.** A listed card's agent is project-level and is
+asked on that card's one page; a review's name, role and headshot form its Agent section; a
+ranking card is ABOUT its agent, so there the name and role ARE the words and stay in Words.
+
+## THE SCREEN IS A FORM, AND FIELDS ARE FORM-SIZED
+
+Left: the page's name and purpose, the sections, then Back / Next pinned at the foot. Right:
+the page's card large, and under it **every page as a labelled thumb with Finish as the last
+tile** — the one navigation besides Back/Next. Top bar: template · `Page 2 of 2` · Skip.
+
+The old question was 19-26px over a 17-22px answer, built for one ask filling a screen;
+eight of them at that size is a wall. Now: **13.5px/500 labels over 44px fields at 15px**,
+section headers 12px/600 with a numbered disc, tier names (Headline, Property details) as
+their own 11.5px line. **Two short answers share a row** — Bed | Bath, Area | Price, Month |
+Year, Agent name | Agent role — and only a PAIR is halved: a lone half field reads as
+unfinished. The 16px field radius is the recorded decision and stays.
+
+**The background-picture drop is a 144x188 thumb with its label beside it**, the shape the QR
+and portrait rows already had. Full-width at 3:4 it was 600px tall and made every page scroll
+before the user had read it.
+
+**A tier label earns its line only over two fields, or a field called something else.**
+`Award / Award`, `Occasion / Occasion`, `Place / Place` was the tier name printed above its
+only field. And `TIERNAMES.tacover` named the month/quarter/year tier "Team": it is
+`['Period', 'When', 'Team']` now.
+
+## WHAT NEXT, ENTER AND THE GATE DO
+
+- **Next leaves a page only when everything it asked for is there**; otherwise the blocked
+  list rises above the buttons naming each gap (capped at 5, "+ N more"), and a row scrolls to
+  the field, puts the cursor in it, and **flashes the row** — a drop zone has nothing to put a
+  cursor in, so the flash is what the eye lands on. Verified: an empty property page named
+  five and "+ 2 more"; the cover named its picture and its QR.
+- **Enter is "next field" on a page of fields**, the way a form works; only from the LAST
+  field does it turn the page. Verified through the real document-level handler: USP → Property
+  type, and Enter from Listing number raised the gate. `image-slot` inputs live in a shadow
+  root and are correctly not in that list.
+- **A new page opens at its top.** The form is one scroller across pages and kept the last
+  page's offset — the listed page opened scrolled to its Agent section. Reset after the render
+  lands with `setTimeout`, not rAF, which never fires while the pane is hidden.
+- **Every unfilled dropdown on the page is seeded**, not just "the ask you are on" — with a
+  whole page on screen every `<select>` is displaying an answer, and the card must agree with
+  all of them. One state write.
+- **Done on Finish hands over to the full editor**; downloading is the buttons on that page.
+
+## A DEFECT THIS FIXED THAT NOBODY HAD REPORTED
+
+`strip()` did not delete `gdStep` / `gdAsk`, so **every Next pushed an undo entry** (the stack
+is 5 deep) and re-keyed the guided card cache, re-rendering every slide on each move. Where you
+are standing is not a change to the post. Both are stripped now; measured `_undoStack` depth
+after walking three pages: **0**.
+
+## Verification
+
+- **Artwork: 0 artwork-path lines in the whole-file diff** (55 hunks, 461 added / 564 removed,
+  all guided chrome). No `ops.push`, renderer, `drawLogo`, `ART` or geometry-source line moved.
+- **Sheet**: one closing style tag, comments balanced, brace depth 0, 973 authored blocks.
+  Guided markup `sc-if` 30/30, `sc-for` 10/10. Zero references left to the removed API
+  (`gdAgentAsks`, `gdPhaseGaps`, `gdPhaseIssues`, `GDPHASE`, `gdRows`, `gdDots`, `.phase`).
+- **Interpolation sweep against the pre-change file**: refs 220 → 207, unresolved 30 → 24,
+  **none newly unresolved**; the 7 added keys all resolve; 32 view keys, no duplicates.
+- **Contrast on the guide screen, both themes, ancestor opacity composited, transitions
+  finished: one flag each, and it is the DISABLED Back button on page 1** (opacity .32,
+  1.4.3-exempt). **0 elevation shadows.**
+- Card 374x499 at 1400x860, tiles 54x72, form column 519px; the cover page's form is 761px of
+  content in a 639px viewport at that height, i.e. one short scroll.
+
+**Left as it was, deliberately:** the rail's own copy of every control (the run reuses them
+through `activeSi`), `FIELDS`/`FIXEDTEXT`/`PAGE`, the export gate, and the recents/thumb
+plumbing. The old `.gd-steps` / `.gd-foot` / `.gd-asknav` / `.gd-locks` rules are left in the
+sheet matching nothing, per the standing rule.
