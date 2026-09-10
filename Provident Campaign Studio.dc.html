@@ -2674,8 +2674,15 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
 /* Preview already carried the navy here; what it did not carry was the bar's
    height, because its winning rule declares padding and no height, so it
-   computed 31 from its own line box. */
-.p-prev,.p-prev[data-on]{height:36px}
+   computed 31 from its own line box.
+
+   AND ITS LEADING WAS A DRIFT FROM THE KIT, caught by the guide-versus-studio
+   diff rather than by looking: this file's base rule uses the `font` SHORTHAND
+   (`font:500 12px/1`), which sets line-height as a side effect, so the button
+   computed a 14px line box where the library and the frame both say `normal`.
+   Inert at 36px with align-items:center, but a value difference on a class the
+   frame specifies is worth closing. */
+.p-prev,.p-prev[data-on]{height:36px;line-height:normal}
 
 /* THE SEGMENTED TRACK IS 36 WITH A 3px GUTTER AND NO EDGE OF ITS OWN.
    --ps-card on --ps-app is a full step of surface, so the 1px hairline was a
