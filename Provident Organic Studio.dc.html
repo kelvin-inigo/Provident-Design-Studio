@@ -2762,6 +2762,83 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   .gd-sec-g{grid-template-columns:minmax(0,1fr)}
   .gd-ask[data-half]{grid-column:1 / -1}
 }
+/* ══ 25. THE GUIDED RUN IS THE MAIN WINDOW ═══════════════════════════════════════════
+   The real top bar sits above it — the guided screen's own bar (crumb · count · Skip) is
+   gone from the markup, and the top bar carries a Guided | All controls switch instead.
+   Every section is a STEP in a vertical rail: a numbered disc, a title, and a state at the
+   right — a tick once everything in it is there, an amber mark if the user moved on past
+   it with something missing. Every picture drop is 4:3 and every QR 1:1, by request.
+   Reverting is deleting this block and restoring the markup from the pre-change copy. */
+.p-top{position:relative;z-index:160}
+.gd{top:56px}
+.p-seg-mode button{min-width:0}
+.gd-head{gap:6px}
+.gd-kick{font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);letter-spacing:0;text-transform:none;
+  text-decoration:none;font-style:normal;opacity:1}
+.gd-head b{margin-top:2px}
+
+/* the steps */
+.gd-askwrap{gap:26px}
+.gd-sec{position:relative;padding-left:38px;gap:14px}
+.gd-sec::before{content:'';position:absolute;left:12px;top:30px;bottom:-26px;width:2px;
+  background:var(--ps-hair);border-radius:1px}
+.gd-sec:last-child::before{display:none}
+.gd-sec[data-state="done"]::before{background:var(--ps-good-q)}
+.gd-sec-h{position:relative;display:flex;align-items:center;gap:10px;margin:0;padding:2px 0 10px;
+  border-bottom:1px solid var(--ps-hair);font:600 14px/1.2 var(--ps-font);color:var(--ps-ink)}
+.gd-sec-n{position:absolute;left:-38px;top:-1px;width:26px;height:26px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  background:var(--ps-fill);color:var(--ps-ink-2);border:1px solid var(--ps-line);
+  font:600 11.5px/1 var(--ps-font);font-style:normal;flex:none}
+.gd-sec-n b{font:inherit}
+.gd-sec-n svg{display:none;width:16px;height:16px;fill:currentColor}
+.gd-sec-t{flex:1;min-width:0}
+.gd-sec-s{flex:none;font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);
+  padding:5px 9px;border-radius:var(--ps-pill);background:var(--ps-fill)}
+/* the section under the cursor */
+.gd-sec[data-state="cur"] .gd-sec-n{background:var(--ps-ink);color:var(--ps-app);border-color:var(--ps-ink)}
+/* done: a green disc with a tick, and the count reads Done */
+.gd-sec[data-state="done"] .gd-sec-n{background:var(--ps-good);color:#fff;border-color:var(--ps-good)}
+.gd-sec[data-state="done"] .gd-sec-n b,.gd-sec[data-state="warn"] .gd-sec-n b{display:none}
+.gd-sec[data-state="done"] .gd-sec-n .gd-sec-ok{display:block}
+.gd-sec[data-state="done"] .gd-sec-s{background:var(--ps-good-q);color:var(--ps-good)}
+/* skipped past with something missing: amber disc, amber count, and the header names it */
+.gd-sec[data-state="warn"] .gd-sec-n{background:var(--ps-warn);color:#1D1D1F;border-color:var(--ps-warn)}
+.gd-sec[data-state="warn"] .gd-sec-n .gd-sec-wn{display:block;width:20px;height:20px}
+.gd-sec[data-state="warn"] .gd-sec-s{background:var(--ps-warn-q);color:var(--ps-warn)}
+.gd-sec[data-state="warn"] .gd-sec-h{border-bottom-color:var(--ps-warn)}
+.gd-sec[data-state="warn"] .gd-sec-t{color:var(--ps-warn)}
+:root[data-theme="light"] .gd-sec[data-state="warn"] .gd-sec-n{color:#fff}
+
+/* the drops: pictures 4:3 (backgrounds, the parallax cut-out, every agent, the partner
+   mark), QR 1:1 */
+.gd-qrow .gd-drop-ph{flex:none;width:188px;max-width:188px}
+.gd-qrow .gd-drop-sq{width:110px;max-width:110px}
+.gd-qrow-t .gd-link,.gd-qrow-t .gd-segs{margin-top:2px}
+/* the drop's two caption lines were still carrying the dark-only era's opacity:.5 under
+   their re-tokened ink — 3.62:1 and 2.56:1 composited. Quietness is in the token. */
+.gd-qrow-t s,.gd-qrow-t s + s{opacity:1}
+.gd-count2{font:500 11.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.gd-count2[data-over]{color:var(--ps-bad)}
+.gd-sub{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+.gd-subv{font:400 12px/1 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.gd-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gd-pair .gd-big{width:100%;box-sizing:border-box}
+/* a seg that carries the rail's own inline style (the group pills, the tint pair) keeps
+   the pill shape and takes the rail's fill */
+.gd-seg[style]{min-width:0}
+
+/* the page strip: a page left with something missing */
+.gd-ptile[data-warn] .gd-pthumb{border-color:var(--ps-warn);box-shadow:0 0 0 2px var(--ps-warn-q)}
+.gd-ptile[data-warn] s{color:var(--ps-warn)}
+.gd-ptile[data-warn] .gd-pthumb::after{content:'!';position:absolute;right:-6px;top:-6px;width:16px;height:16px;
+  border-radius:50%;background:var(--ps-warn);color:#1D1D1F;font:700 10px/16px var(--ps-font);text-align:center}
+.gd-pthumb{position:relative;overflow:visible}
+.gd-pthumb .gd-pt-img{border-radius:6px}
+
+@media (max-width:1060px){
+  .gd-qrow .gd-drop-ph{width:150px;max-width:150px}
+}
 </style>
 </helmet>
 
@@ -2865,28 +2942,27 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 <!-- ══ STEP-BY-STEP RUN (Organic) ═══════════════════════════════════════ -->
 <sc-if value="{{ onGuide }}" hint-placeholder-val="{{ false }}">
 <div class="gd">
-  <div class="gd-top">
-    <span class="gd-crumb">{{ tplLabel }}</span>
-    <span class="p-spring"></span>
-    <span class="gd-count">{{ gdWhere }}</span>
-    <span class="p-spring"></span>
-    <button onClick="{{ gdSkip }}" class="gd-skip">Skip to all controls</button>
-  </div>
-
   <div class="gd-body">
     <!-- THE FORM: one page, top to bottom. Sections in a fixed order — Pages · Words ·
          Agent · Pictures · QR & listing — so the words always come before the pictures,
          and every page reads the same way. -->
     <div class="gd-in-zone">
       <div class="gd-head">
+        <s class="gd-kick">{{ tplLabel }} · {{ gdWhere }}</s>
         <b>{{ gdPageTitle }}</b>
         <s>{{ gdPagePurpose }}</s>
       </div>
 
       <div class="gd-askwrap">
         <sc-for list="{{ gdSecs }}" as="sec" hint-placeholder-count="3">
-        <section class="gd-sec">
-          <h3 class="gd-sec-h"><i>{{ sec.no }}</i>{{ sec.title }}</h3>
+        <section class="gd-sec" data-sec="{{ sec.idx }}" data-state="{{ sec.state }}">
+          <!-- a numbered step: the disc becomes a tick once everything in the section is
+               there, and an amber mark if you moved on past it with something missing -->
+          <h3 class="gd-sec-h">
+            <i class="gd-sec-n"><b>{{ sec.no }}</b><svg class="gd-sec-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><svg class="gd-sec-wn" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-400v-240h80v240h-80Zm40 160q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Z"/></svg></i>
+            <span class="gd-sec-t">{{ sec.title }}</span>
+            <span class="gd-sec-s">{{ sec.note }}</span>
+          </h3>
           <div class="gd-sec-g">
             <sc-for list="{{ sec.items }}" as="a" hint-placeholder-count="3">
             <sc-if value="{{ a.isGroup }}" hint-placeholder-val="{{ false }}">
@@ -2919,6 +2995,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 </sc-if>
                 <sc-if value="{{ a.row.isArea }}" hint-placeholder-val="{{ false }}">
                   <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
+                  <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
                 </sc-if>
                 <span class="gd-hint">{{ a.row.hint }}</span>
               </sc-if>
@@ -2928,13 +3005,80 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                      have. Full-width at 3:4 it was 600px tall and made every page scroll. -->
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
-                    <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:3/4"></image-slot>
+                    <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
                   <div class="gd-qrow-t">
                     <s>{{ a.photoLabel }}</s>
-                    <s>Kept at full resolution for export. Drag it, or click to browse.</s>
+                    <s>Kept at full resolution for export. Drag it, or click to browse. On the card, drag the photo to move it and a corner grip to scale it.</s>
+                    <sc-if value="{{ a.phResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.phReset }}" class="gd-link">Reset photo scale &amp; position</button></sc-if>
                   </div>
                 </div>
+              </sc-if>
+
+              <!-- THE PARALLAX LAYER: a toggle, off by default, and the drop only once it is on. -->
+              <sc-if value="{{ a.isPx }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <sc-if value="{{ a.pxOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-qrow">
+                    <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
+                      <image-slot id="{{ a.pxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    </div>
+                    <div class="gd-qrow-t">
+                      <s>{{ a.pxLabel }}</s>
+                      <s>A PNG cut-out of the picture’s own foreground — the building, the car — so it passes in front of the status. It locks to the background’s position and zoom.</s>
+                    </div>
+                  </div>
+                </sc-if>
+                <span class="gd-hint">Optional. Off by default; turn it on when the picture has a foreground worth lifting.</span>
+              </sc-if>
+
+              <!-- THE GROUP PHOTO LAYER, the rail's own control: choose a figure here, drag it
+                   on the card. The keys are the rail's (`grpPills`…), valid because this page IS
+                   the active slide. -->
+              <sc-if value="{{ a.isGrp }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ grpPills }}" as="gp" hint-placeholder-count="5"><button onClick="{{ gp.set }}" class="gd-seg" style="{{ gp.style }}">{{ gp.label }}</button></sc-for></div>
+                <span class="gd-hint">{{ grpHint }}</span>
+                <sc-if value="{{ grpSelOn }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ grpScalePct }}</s></b>
+                  <div class="gd-slide"><input type="range" min="12" max="160" step="1" value="{{ grpScaleVal }}" onChange="{{ onGrpScale }}" class="gd-range"></div>
+                  <div class="gd-segs">
+                    <button onClick="{{ grpPin }}" class="gd-seg">Stand on bottom</button>
+                    <button onClick="{{ grpPinAll }}" class="gd-seg">Stand all</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}"><span class="gd-hint">Choose a layer above to size it. The five portraits come from the rank pages.</span></sc-if>
+                <button onClick="{{ a.grpReset }}" class="gd-link">Reset positions</button>
+              </sc-if>
+
+              <!-- THE AWARD'S PARTNER MARK and its tint, from the rail's All-slides group. -->
+              <sc-if value="{{ a.isAlogo }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.alogoDone }}">
+                    <image-slot id="smp-alogo" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.alogoLabel }}</s>
+                    <s>Fitted to its box by its own ink, so a padded file still lines up.</s>
+                    <div class="gd-segs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" class="gd-seg" style="{{ ao.style }}">{{ ao.label }}</button></sc-for></div>
+                    <s>A brand-kit SVG is usually navy, which all but disappears on this ground — Match canvas recolours it.</s>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <span class="gd-hint">{{ a.storyHint }}</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isName }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ a.nameWeekly }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-segs gd-pair">
+                    <select value="{{ monthVal }}" onChange="{{ onMonth }}" class="gd-big gd-bigsel"><sc-for list="{{ monthOpts }}" as="o" hint-placeholder-count="12"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select>
+                    <select value="{{ weekVal }}" onChange="{{ onWeek }}" class="gd-big gd-bigsel"><sc-for list="{{ weekOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select>
+                  </div>
+                </sc-if>
+                <input value="{{ a.nameVal }}" onChange="{{ a.setName }}" class="gd-big" placeholder="{{ a.namePh }}">
+                <span class="gd-hint">Optional — a custom name overrides the convention. Files will be named {{ filePreview }}</span>
               </sc-if>
 
               <sc-if value="{{ a.isQr }}" hint-placeholder-val="{{ false }}">
@@ -2976,10 +3120,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
               <sc-if value="{{ a.isPortrait }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
-                  <div class="gd-drop gd-drop-sq" data-done="{{ a.portraitDone }}">
-                    <image-slot id="{{ a.portraitSlot }}" shape="circle" radius="6" placeholder="Headshot" style="width:100%;aspect-ratio:1/1"></image-slot>
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
+                    <image-slot id="{{ a.portraitSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <div class="gd-qrow-t"><s>{{ a.portraitLabel }}</s></div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.portraitLabel }}</s>
+                    <s>A PNG cut-out on a transparent background. The face is found and framed for you, so any crop works.</s>
+                  </div>
                 </div>
               </sc-if>
 
@@ -3089,7 +3236,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </div>
       <div class="gd-pstrip">
         <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="3">
-          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}">
+          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-warn="{{ c.warn }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}">
             <span class="gd-pthumb">
               <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-pt-img" data-src="{{ c.src }}" alt=""></sc-if>
               <sc-if value="{{ c.isFinish }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></sc-if>
@@ -3183,6 +3330,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   </sc-if>
   <button onClick="{{ saveSession }}" class="p-ghost p-ico-t" data-on="{{ dirtyOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></svg>{{ saveLabel }}</button>
   </div>
+  <!-- GUIDED IS THE MAIN WINDOW; the full editor is the other half of this one switch.
+       Rendered only while one of the two workspaces is on screen. -->
+  <sc-if value="{{ gdModeOn }}" hint-placeholder-val="{{ true }}">
+    <div class="p-seg p-seg-mode">
+      <button onClick="{{ gdModeGuide }}" data-on="{{ gdModeGuideOn }}" title="Guided setup — page by page">Guided</button>
+      <button onClick="{{ gdModeEditor }}" data-on="{{ gdModeEditorOn }}" title="Every control at once">All controls</button>
+    </div>
+  </sc-if>
   <div class="p-spring"></div>
   <button onClick="{{ shThemeToggle }}" class="p-ghost p-ico-t p-ico-o" title="{{ shThemeTitle }}" aria-label="{{ shThemeTitle }}"><sc-if value="{{ shThemeIsDark }}" hint-placeholder-val="{{ true }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-760.16q-8.62-8.63-8.62-21.38v-87.69q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.69q0 12.75-8.63 21.38-8.63 8.62-21.38 8.62-12.76 0-21.37-8.62Zm213.23 88.31q-8.31-8.3-8.12-20.57.19-12.27 8.5-21.58l61-62.38q9.03-9.31 21.44-9.31 12.41 0 21.8 9.39 8.61 8.61 8.61 20.99 0 12.39-8.7 21.08L714-671.85q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7ZM781.54-450q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h87.69q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62h-87.69ZM458.62-69.4Q450-78.02 450-90.77v-87.31q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.31q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM246.39-671.85l-62.77-61.38q-9.31-8.99-9.31-21.73 0-12.73 9.31-21.42 8.69-8.31 21.33-8.31 12.64 0 20.82 8.31l62.77 62.77q8.31 8.18 8.31 20.82t-8.23 20.94q-8.98 8.31-20.95 8.31-11.98 0-21.28-8.31Zm487.23 488.23L672.23-246q-8.31-9.31-8.5-21.58-.19-12.27 8.04-20.57 8.23-8.31 20.58-8.31 12.34 0 21.65 8.69l62.38 61.39q8.93 8.3 8.62 20.88-.31 12.58-8.73 21.88-9.19 9.31-21.83 9.31-12.65 0-20.82-9.31ZM90.77-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q78.02-510 90.77-510h87.69q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H90.77ZM184-183.62q-8.31-8.69-8.5-21.27-.19-12.57 8.12-20.88l62-62q8.69-8.69 20.77-8.69 12.07 0 21.38 8.61 9.31 9.39 9.31 21.66t-9.31 21.57l-61 61q-9.31 9.31-21.95 9.31-12.64 0-20.82-9.31Zm140.23-140.52Q260-388.28 260-479.91q0-91.63 64.14-155.86Q388.28-700 479.91-700q91.63 0 155.86 64.14Q700-571.72 700-480.09q0 91.63-64.14 155.86Q571.72-260 480.09-260q-91.63 0-155.86-64.14ZM593-367q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47ZM480-480Z"/></svg></sc-if><sc-if value="{{ shThemeIsLight }}" hint-placeholder-val="{{ false }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></sc-if></button>
   <button onClick="{{ undo }}" class="p-btn-q" disabled="{{ undoOff }}">↺ Undo</button>
@@ -3267,16 +3422,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <sc-if value="{{ canAddSlide }}" hint-placeholder-val="{{ false }}">
     <button onClick="{{ addSlide }}" class="p-dash">{{ addSlideLabel }}</button>
   </sc-if>
-  <div class="gs-promo">
-    <div class="gs-anim" aria-hidden="true">
-      <i class="gs-q"></i>
-      <div class="gs-card"><b class="gs-l1"></b><b class="gs-l2"></b><b class="gs-l3"></b></div>
-    </div>
-    <s class="gs-help">Page by page — the words, then the pictures — with the post building
-      beside you. It asks only for what this template needs and will not let you finish
-      with anything missing.</s>
-    <button onClick="{{ gdOpen }}" class="gs-btn" title="Re-run the guided setup">Guided setup</button>
-  </div>
 </aside>
 
 <div class="p-stagecol">
@@ -3757,7 +3902,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <sc-if value="{{ bgAllowed }}" hint-placeholder-val="{{ true }}">
       <div class="p-grp">
         <span class="p-lab">Background image <span class="tip" data-tip="On the canvas: drag the photo to move it, drag a corner grip to scale it, or double-click it to reframe (drag and scroll to zoom). The parallax layer follows all three. Drag-and-drop keeps the full resolution for export, and feed and story share the photo." style="{{ infoStyle }}">i</span></span>
-        <image-slot id="{{ activeBgId }}" shape="rounded" radius="10" placeholder="Drop photo here" style="width:100%;aspect-ratio:3/4"></image-slot>
+        <image-slot id="{{ activeBgId }}" shape="rounded" radius="10" placeholder="Drop photo here" style="width:100%;aspect-ratio:4/3"></image-slot>
         <span class="p-hint">{{ bgStatus }}</span>
         <!-- The way back. Scaling and panning into a corner is easy to do and fiddly to
              undo by hand, so the reset is beside the photo it resets. -->
@@ -3768,8 +3913,11 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     </sc-if>
     <sc-if value="{{ pxAllowed }}" hint-placeholder-val="{{ false }}">
       <div class="p-grp">
-        <span class="p-lab">Parallax layer <span class="tip" data-tip="Drop a PNG cut-out of the picture's own foreground — the building, the car, whatever should pass in front of the status. It locks to the background photo's position and zoom automatically, so reframing the background moves both together." style="{{ infoStyle }}">i</span></span>
-        <image-slot id="{{ pxCutId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="{{ pxCutStyle }}"></image-slot>
+        <span class="p-lab">Parallax layer <s>{{ pxStateLabel }}</s> <span class="tip" data-tip="Off by default. Turn it on and drop a PNG cut-out of the picture's own foreground — the building, the car, whatever should pass in front of the status. It locks to the background photo's position and zoom automatically, so reframing the background moves both together." style="{{ infoStyle }}">i</span></span>
+        <div class="p-row"><sc-for list="{{ pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" style="{{ o.style }}">{{ o.label }}</button></sc-for></div>
+        <sc-if value="{{ pxOn }}" hint-placeholder-val="{{ false }}">
+          <image-slot id="{{ pxCutId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="{{ pxCutStyle }}"></image-slot>
+        </sc-if>
       </div>
     </sc-if>
   </div>
@@ -3797,7 +3945,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <button onClick="{{ agent2Toggle }}" style="{{ agent2ToggleStyle }}">{{ agent2ToggleLabel }}</button>
           <sc-if value="{{ agent2On }}" hint-placeholder-val="{{ false }}">
             <div class="p-row-c">
-              <image-slot id="smp-agent-2" shape="circle" placeholder="Photo" style="width:76px;height:76px;flex:none"></image-slot>
+              <image-slot id="smp-agent-2" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:112px;aspect-ratio:4/3;flex:none"></image-slot>
               <div class="p-grp" style="gap:6px;flex:1">
                 <input value="{{ agent2NameVal }}" onChange="{{ onAgent2Name }}" placeholder="Second agent name" class="p-in p-in-s">
                 <input value="{{ agent2RoleVal }}" onChange="{{ onAgent2Role }}" placeholder="Second agent role" class="p-in p-in-s">
@@ -4920,7 +5068,10 @@ class OrganicStudio extends StudioBase {
       // The cut-out IS the agent's picture on this card, so it is always on — there is
       // no toggle to find and nothing is lost by removing one that Organic never showed
       // (fgAllowed was hardcoded false).
-      if (sl.kind === 'listed') sl.fg = true;
+      // REVERSED: the parallax layer is a TOGGLE now, off by default. A slide written by
+      // the older build carries `fg: true` and keeps it; only a slide with no answer at
+      // all starts off.
+      if (sl.kind === 'listed' && sl.fg == null) sl.fg = false;
       if (sl.kind === 'review' && sl.f.agentName == null) {
         sl.f.agentName = (p.agent && p.agent.name) || '';
         sl.f.agentRole = (p.agent && p.agent.role) || '';
@@ -4990,7 +5141,7 @@ class OrganicStudio extends StudioBase {
       // look as though the screen did not exist. Resume keeps 'guide' when that is
       // where the project was.
       return Object.assign(d, p, { exportStatus: warn,
-        screen: resume ? (p.screen === 'guide' ? 'guide' : 'editor') : 'splash' });
+        screen: resume ? (p.screen === 'editor' ? 'editor' : 'guide') : 'splash' });
     }
     if (warn) d.exportStatus = warn;
     return d;
@@ -6310,7 +6461,7 @@ class OrganicStudio extends StudioBase {
     // built for does not move.
     const drawFg = () => {
       const fg = assets['fg' + si];
-      if (!((sl.fg || sl.kind === 'listed') && fg && fg.img)) return;
+      if (!(sl.fg && fg && fg.img)) return;
       const p = this.photoPlace(sl, tk, fg.img, bg);
       ops.push({ op: 'image', img: fg.img, url: fg.u, x: p.x, y: p.y, w: p.w, h: p.h, clip: p.clip });
     };
@@ -7443,7 +7594,12 @@ class OrganicStudio extends StudioBase {
       }
       // PICTURES — the background, and on a listed card the parallax cut-out over it.
       if (this.gdWantsPhoto(si)) raw.push({ si, sec: 'pictures', kind: 'photo' });
-      if (sl.kind === 'listed') raw.push({ si, sec: 'pictures', kind: 'portrait', slot: 'smp-fg-' + sl.id, label: 'Parallax layer — foreground PNG', hint: 'Optional. A cut-out of the picture’s foreground, so it passes in front of the status.' });
+      // THE RAIL'S OTHER PICTURE CONTROLS, on the page they belong to: the parallax toggle
+      // (listed), the group photo layer (the ranking cover) and the partner mark (award).
+      // The run is the main window now, so everything the rail offers has a place here.
+      if (sl.kind === 'listed') raw.push({ si, sec: 'pictures', kind: 'px' });
+      if (sl.kind === 'tacover') raw.push({ si, sec: 'pictures', kind: 'grp' });
+      if (sl.kind === 'award') raw.push({ si, sec: 'pictures', kind: 'alogo' });
       // QR & LISTING — the code and the reference it pairs with, last on the page.
       const qr = this.gdQrFor(si);
       if (qr) raw.push({ si, sec: 'listing', kind: 'qr', qrId: qr });
@@ -7454,7 +7610,8 @@ class OrganicStudio extends StudioBase {
     const fin = [];
     if (this.scrimUsed(s)) fin.push({ sec: 'look', kind: 'scrim' });
     if (this.imgOUsed(s)) fin.push({ sec: 'look', kind: 'imgo' });
-    fin.push({ sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
+    fin.push({ sec: 'look', kind: 'story' });
+    fin.push({ sec: 'save', kind: 'name' }, { sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
     // the steps: every slide that asked for something, in slide order, then Finish
     const pageSis = [];
     raw.forEach(a => { if (pageSis.indexOf(a.si) < 0) pageSis.push(a.si); });
@@ -7540,6 +7697,11 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'proj') return ask.label || '';
     if (ask.kind === 'agent2') return 'How many agents are on this card?';
     if (ask.kind === 'portrait') return ask.label || 'Agent photo';
+    if (ask.kind === 'px') return 'Parallax layer';
+    if (ask.kind === 'grp') return 'Group photo layer';
+    if (ask.kind === 'alogo') return 'Partner mark';
+    if (ask.kind === 'story') return 'Story 9:16';
+    if (ask.kind === 'name') return 'File name';
     if (!sl) return '';
     const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
     return f ? f.t : '';
@@ -7562,6 +7724,39 @@ class OrganicStudio extends StudioBase {
     v.isImgO = ask.kind === 'imgo';
     v.isDest = ask.kind === 'dest';
     v.isExport = ask.kind === 'export';
+    v.isPx = ask.kind === 'px';
+    v.isGrp = ask.kind === 'grp';
+    v.isAlogo = ask.kind === 'alogo';
+    v.isStory = ask.kind === 'story';
+    v.isName = ask.kind === 'name';
+    if (v.isPx && sl) {
+      v.pxOn = sl.fg ? '1' : undefined;
+      v.pxOpts = ['Off', 'On'].map((lab, k) => ({ label: lab, on: (!!sl.fg === (k === 1)) ? '1' : undefined,
+        set: () => this.upd(x => { x.slides[ask.si].fg = (k === 1); return x; }) }));
+      v.pxSlot = 'smp-fg-' + sl.id;
+      v.pxDone = filled[v.pxSlot] ? '1' : undefined;
+      v.pxLabel = filled[v.pxSlot] ? 'Cut-out added — click to replace' : 'Drop the foreground PNG, or click to choose';
+    }
+    if (v.isGrp && sl) {
+      v.grpReset = () => this.upd(x => { const c = x.slides[ask.si]; if (c && c.f) delete c.f.grp; return x; });
+    }
+    if (v.isAlogo) {
+      v.alogoDone = filled['smp-alogo'] ? '1' : undefined;
+      v.alogoLabel = filled['smp-alogo'] ? 'Mark added — click to replace' : 'Drop the partner’s SVG or PNG, or click to choose';
+    }
+    if (v.isStory) {
+      v.storyOpts = ['Feed only', 'Feed + story'].map((lab, k) => ({ label: lab, on: (!!s.storyOn === (k === 1)) ? '1' : undefined,
+        set: () => this.upd(x => { x.storyOn = (k === 1); return x; }) }));
+      v.storyHint = s.storyOn
+        ? 'The 9:16 story is built from the same answers and ships beside the feed, told apart by a _9x16 suffix.'
+        : 'Only the 3:4 feed ships. Turn the story on to export a 9:16 of every page as well.';
+    }
+    if (v.isName) {
+      v.nameVal = s.customName || '';
+      v.namePh = this.baseName();
+      v.setName = e => { const val = e.target.value; this.upd(x => { x.customName = val; return x; }); };
+      v.nameWeekly = s.tpl === 'weekly' ? '1' : undefined;
+    }
     if (v.isField && sl) {
       const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
       v.row = f ? rowFor(f) : null;
@@ -7575,6 +7770,9 @@ class OrganicStudio extends StudioBase {
       v.photoSlot = id;
       v.photoDone = filled[id] ? '1' : undefined;
       v.photoLabel = filled[id] ? 'Picture added — click to replace' : 'Drop a picture, or click to choose';
+      // the rail's reset, offered only once a canvas gesture has moved the photo
+      v.phResetOn = (sl.kind === 'listed' && !!(sl.f.phx || sl.f.phy || (sl.f.phs && sl.f.phs !== 1))) ? '1' : undefined;
+      v.phReset = () => this.upd(x => { const t = x.slides[ask.si]; if (t && t.f) { delete t.f.phx; delete t.f.phy; delete t.f.phs; } return x; });
     }
     if (v.isQr) {
       v.qrSlot = ask.qrId || 'smp-none';
@@ -7754,6 +7952,11 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'export') return 'Export';
     if (ask.kind === 'photo') return 'Background picture';
     if (ask.kind === 'qr') return 'QR code';
+    if (ask.kind === 'px') return 'Parallax layer';
+    if (ask.kind === 'grp') return 'Group photo layer';
+    if (ask.kind === 'alogo') return 'Partner mark';
+    if (ask.kind === 'story') return 'Story 9:16';
+    if (ask.kind === 'name') return 'File name';
     const sl = (this.state.slides || [])[ask.si];
     const f = sl ? OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k) : null;
     return f ? f.t : (ask.k || '');
@@ -7810,6 +8013,7 @@ class OrganicStudio extends StudioBase {
     // Refinement is a judgement, never a requirement. Export reports the whole gate.
     if (ask.kind === 'scrim' || ask.kind === 'imgo') return '';
     if (ask.kind === 'agent2' || ask.kind === 'pages') return '';
+    if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name') return '';
     // A portrait is asked for but not gated: a listed card still reads without one, and
     // blocking the run on it would strand anyone who does not have the headshot to hand.
     if (ask.kind === 'portrait') return '';
@@ -7835,6 +8039,19 @@ class OrganicStudio extends StudioBase {
     return '';
   }
   gdStepIndex() { return Math.max(0, Math.min(this.guideSteps().length - 1, this.state.gdStep || 0)); }
+  // Whether this ask can ever block Next at all — the requirement kinds. A section made
+  // only of judgements (Look) or optional uploads is "done" once it has been passed, not
+  // the moment the page opens; a section of requirements is done when they are all met.
+  gdAskGated(ask) {
+    if (!ask) return false;
+    if (ask.kind === 'photo' || ask.kind === 'qr' || ask.kind === 'export') return true;
+    if (ask.kind === 'proj') return !!ask.req;
+    if (ask.kind === 'dest') return this.folderSupported();
+    if (ask.kind !== 'field') return false;
+    const sl = (this.state.slides || [])[ask.si];
+    const f = sl ? OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k) : null;
+    return !!(f && f.flags.indexOf('req') >= 0);
+  }
   // A CTA slide reuses the cover's picture and a review card has none, so neither asks
   // for one of its own.
   // A review card is scrimmed rather than gradient-banded, which is why this used to
@@ -9083,7 +9300,7 @@ class OrganicStudio extends StudioBase {
         remove: mkRemove(si),
         removeStyle: { display: canRemove(si) ? 'block' : 'none', background: 'transparent', color: 'var(--ps-ink-2)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
         bgId: 'smp-bg-' + ((sl.kind === 'cta' && s.tpl === 'weekly') ? (s.slides[coverIdx] || sl).id : sl.id),
-        fgOn: (!!sl.fg || sl.kind === 'listed') && !!(this._assetView && this._assetView.fg[si]),
+        fgOn: !!sl.fg && !!(this._assetView && this._assetView.fg[si]),
         fgVi: ((sl.kind === 'cta' && s.tpl === 'weekly') ? (s.slides[coverIdx] || sl).id : sl.id),
         qrOn: (sl.kind === 'listed' && s.qr.show) || sl.kind === 'prop' || sl.kind === 'cover' || sl.kind === 'cta',
         qrId: sl.kind === 'prop' ? 'smp-qr-' + sl.id : (sl.kind === 'cover' || sl.kind === 'cta') ? 'smp-qr-cover' : 'smp-qr',
@@ -9350,6 +9567,12 @@ class OrganicStudio extends StudioBase {
       // ── the step-by-step run ────────────────────────────────────────────────
       onGuide: s.screen === 'guide',
       gdOpen: () => this.upd(x => { x.screen = 'guide'; x.gdStep = 0; return x; }),
+      // the top bar's Guided | All controls switch — one control, two workspaces
+      gdModeOn: s.screen === 'guide' || s.screen === 'editor',
+      gdModeGuideOn: s.screen === 'guide' ? '1' : undefined,
+      gdModeEditorOn: s.screen === 'editor' ? '1' : undefined,
+      gdModeGuide: () => { if (s.screen !== 'guide') this.upd(x => { x.screen = 'guide'; return x; }); },
+      gdModeEditor: () => { if (s.screen !== 'editor') this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }); },
       ...(() => {
         // ══ THE VIEW: one page, top to bottom ═════════════════════════════════════
         const plan = this.gdPlan(), steps = plan.steps, asks = plan.asks;
@@ -9366,6 +9589,9 @@ class OrganicStudio extends StudioBase {
         // instead of a second copy of each. gdAsk is kept pointing at the page's first ask.
         const goStep = i => this.upd(x => {
           this._gdBlock = null;
+          this._gdReach = null;
+          // a page you leave is a page you have seen; the strip warns on a seen page with gaps
+          (this._gdVisited = this._gdVisited || {})[idx] = 1;
           const n = Math.max(0, Math.min(steps.length - 1, i));
           x.gdStep = n;
           x.gdAsk = Math.max(0, asks.findIndex(q => q.step === n));
@@ -9398,7 +9624,9 @@ class OrganicStudio extends StudioBase {
           const gaps = mine.filter(o => this.gdAskIssue(o.q)).map(o => ({ i: o.i, t: this.gdAskTitle(o.q) }));
           if (gaps.length) { this._gdBlock = gaps; this.forceUpdate(); return; }
           this._gdBlock = null;
-          if (idx >= steps.length - 1) { this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }); return; }
+          // Finish's Done goes back to Projects: the run is the main window now, so there
+          // is no other workspace to hand over to. All controls is one click in the top bar.
+          if (idx >= steps.length - 1) { this.upd(x => { x.screen = 'splash'; return x; }); return; }
           goStep(idx + 1);
         };
         const cardFor = (si2, slide) => ({
@@ -9431,6 +9659,17 @@ class OrganicStudio extends StudioBase {
           const selIn = f.flags.indexOf('sel:') >= 0 ? f.flags.slice(f.flags.indexOf('sel:') + 4).split('|') : null;
           const isStep = f.flags.indexOf('step') >= 0;
           const words = f.flags.indexOf('w40') >= 0 ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
+          // the rail's own read-outs on the two long fields: words against the blurb's cap,
+          // and lines against the review card's 14
+          let counter = words ? words + ' / ' + OrganicStudio.TA_BLURB_MAX + ' words' : '';
+          let over = words > OrganicStudio.TA_BLURB_MAX;
+          if (slide.kind === 'review' && f.k === 'quote') {
+            const rb = this.revBox(OrganicStudio.PXT.ft, slide.f);
+            const wq = raw.trim() ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
+            counter = wq + (wq === 1 ? ' word' : ' words') + ' · ' + rb.quote.length + ' of 14 lines';
+            over = !!rb.truncated;
+            if (over) counter += ' — the card is full, trim the review';
+          }
           const write = v => this.upd(x => { x.slides[si].f[f.k] = v; return x; });
           let opts = null, addKey = null;
           if (selAt) {
@@ -9446,7 +9685,7 @@ class OrganicStudio extends StudioBase {
             isSeg: !!seg, isSel: !!opts, isStep,
             isArea: !seg && !opts && !isStep && f.flags.indexOf('area') >= 0,
             isInput: !seg && !opts && !isStep && f.flags.indexOf('area') < 0,
-            counter: words ? words + ' / 40 words' : '', overOn: words > 40 ? '1' : undefined,
+            counter, counterOn: counter ? '1' : undefined, overOn: over ? '1' : undefined,
             segs: (seg || []).map(o => ({ label: o, on: raw === o ? '1' : undefined, set: () => write(o) })),
             opts: (opts || []).map(v => ({ v })),
             // the rail's dropdowns can add a new entry to the list; keep that here
@@ -9481,6 +9720,8 @@ class OrganicStudio extends StudioBase {
         // widened back — an odd half field reads as unfinished. A tier name (Headline,
         // Property details…) is its own full-width label whenever it changes.
         const secs = [];
+        const reach = (this._gdReach && this._gdReach.step === idx) ? this._gdReach.sec : -1;
+        const blocked = !!(this._gdBlock && this._gdBlock.length);
         OrganicStudio.GDSECORDER.forEach(sec => {
           const here = asks.map((q, i) => ({ q, i })).filter(o => o.q.step === idx && o.q.sec === sec);
           if (!here.length) return;
@@ -9507,7 +9748,21 @@ class OrganicStudio extends StudioBase {
             lastGroup = r.group;
             items.push(Object.assign(r, { isGroup: false, isRow: true }));
           });
-          secs.push({ key: sec, no: String(secs.length + 1), title: OrganicStudio.GDSEC[sec], items });
+          // THE STEP'S STATE. `reach` is the furthest section the user has touched on this
+          // page (a click or a focus inside it), `blocked` is a refused Next. A section is
+          // DONE when nothing in it is missing — at once if it holds requirements, or once
+          // it has been passed if it holds only judgements. It WARNS when something is
+          // missing and the user has already moved past it, or Next was refused.
+          const secIdx = secs.length;
+          const gaps = here.filter(o => this.gdAskIssue(o.q)).length;
+          const reqN = here.filter(o => this.gdAskGated(o.q)).length;
+          const passed = secIdx < reach || blocked;
+          let state, note;
+          if (gaps && passed) { state = 'warn'; note = gaps === 1 ? '1 missing' : gaps + ' missing'; }
+          else if (!gaps && (reqN || passed)) { state = 'done'; note = 'Done'; }
+          else if (secIdx === reach) { state = 'cur'; note = reqN ? (reqN === 1 ? '1 to fill in' : reqN + ' to fill in') : 'Optional'; }
+          else { state = undefined; note = reqN ? (reqN === 1 ? '1 to fill in' : reqN + ' to fill in') : 'Optional'; }
+          secs.push({ key: sec, idx: String(secIdx), no: String(secIdx + 1), title: OrganicStudio.GDSEC[sec], items, state, note });
         });
         const live = (this._gdBlock || []).filter(g => asks[g.i] && this.gdAskIssue(asks[g.i]) && asks[g.i].step === idx);
         const more = live.length - OrganicStudio.GD_BLOCK_MAX;
@@ -9531,16 +9786,20 @@ class OrganicStudio extends StudioBase {
           gdBackOff: idx === 0 ? '1' : undefined,
           gdNext: advance,
           gdAskNext: advance,            // the document-level Enter handler reads this
-          gdNextLabel: isFinish ? 'Done — open the full editor' : (nextStep ? 'Next: ' + nextStep.t : 'Next'),
+          gdNextLabel: isFinish ? 'Done' : (nextStep ? 'Next: ' + nextStep.t : 'Next'),
           gdNextReady: this.gdStepGaps(idx, asks).length ? undefined : '1',
           gdCard: sl ? cardFor(step.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
           // the page strip under the card: every page as a labelled thumb, then Finish.
           // Done is only ever a page BEHIND you that is clear — Finish is never ticked.
           gdStrip: steps.map((st2, i) => {
-            const done = st2.k === 'page' && i < idx && !this.gdStepGaps(i, asks).length;
+            const g = st2.k === 'page' ? this.gdStepGaps(i, asks).length : 0;
+            const seen = i < idx || !!(this._gdVisited && this._gdVisited[i]);
+            const done = st2.k === 'page' && seen && i !== idx && !g;
+            // a page you have been on and left with something missing carries a warning
+            const warn = st2.k === 'page' && seen && i !== idx && g > 0;
             const c = st2.k === 'page' ? cardFor(st2.si, slides[st2.si]) : { src: '', hasShot: false, noShot: false, rows: [] };
             return Object.assign(c, { t: st2.t, isFinish: st2.k === 'finish' ? '1' : undefined,
-              on: i === idx ? '1' : undefined, done: done ? '1' : undefined, go: () => goStep(i) });
+              on: i === idx ? '1' : undefined, done: done ? '1' : undefined, warn: warn ? '1' : undefined, go: () => goStep(i) });
           }),
           gdNote: isFinish
             ? 'What you see is exactly what exports. The 9:16 story is built from the same answers'
@@ -9833,7 +10092,10 @@ class OrganicStudio extends StudioBase {
       // honest consequence of depicting a full-height window rather than a crop the card
       // does not use. There is room for it: on this template the Canvas section holds this
       // one group and nothing else.
-      revAgentSlotStyle: { width: '84px', aspectRatio: (1 - OrganicStudio.REV.photoL) + ' / ' + (OrganicStudio.PXT.ft.H / OrganicStudio.PXT.ft.W), flex: 'none' },
+      // 4:3 by request, like every other picture drop in the app. It USED to carry the
+      // window's own aspect (a 84 x 213 column) so the target depicted the crop; the user
+      // chose one shape for every upload over that, and the hint still says what the crop is.
+      revAgentSlotStyle: { width: '112px', aspectRatio: '4 / 3', flex: 'none' },
       activeAgentSlotId: 'smp-agent-r' + asl.id,
       rAgentNameVal: asl.f.agentName || '',
       rAgentRoleVal: asl.f.agentRole || '',
@@ -9867,9 +10129,15 @@ class OrganicStudio extends StudioBase {
       // the bottom right) and the parallax layer (per slide, a cut-out of the picture's
       // own foreground that locks to the background's crop). Neither is a circle.
       agentCutId: 'smp-agent',
-      agentCutStyle: { width: '84px', flex: 'none', aspectRatio: '3 / 4' },
+      agentCutStyle: { width: '112px', flex: 'none', aspectRatio: '4 / 3' },
       pxCutId: 'smp-fg-' + asl.id,
-      pxCutStyle: { width: '100%', aspectRatio: '3 / 4' },
+      // EVERY PICTURE DROP IS 4:3 — backgrounds, the parallax cut-out and every agent — and
+      // every QR is 1:1, by request. The rail and the guided run carry the same shapes.
+      pxCutStyle: { width: '100%', aspectRatio: '4 / 3' },
+      pxOn: !!asl.fg,
+      pxStateLabel: asl.fg ? 'on' : 'off',
+      pxOpts: ['Off', 'On'].map((lab, k) => ({ label: lab, style: btn(!!asl.fg === (k === 1)),
+        set: () => this.upd(x => { x.slides[asi].fg = (k === 1); return x; }) })),
       agentNameVal: s.agent.name || '',
       agentRoleVal: s.agent.role || '',
       onAgentName: e => { const v = e.target.value; this.upd(x => { x.agent.name = v; return x; }); },
@@ -10075,6 +10343,23 @@ class Component extends DCLogic {
       if (v && typeof v.gdAskNext === 'function') { e.preventDefault(); v.gdAskNext(); }
     };
     document.addEventListener('keydown', this._gdKey, true);
+    // HOW FAR DOWN THE PAGE THE USER HAS REACHED. A click or a focus inside a section marks
+    // it, and every section above it counts as passed — which is what lets an earlier
+    // section warn the moment the user moves on with something missing. A shadow-root
+    // target (an image-slot's own input) is retargeted to its host, so `closest` still works.
+    this._gdReachEv = e => {
+      const a = this.active();
+      if (!a || !a.state || a.state.screen !== 'guide') return;
+      const t = e.target;
+      const sec = t && t.closest ? t.closest('.gd-sec[data-sec]') : null;
+      if (!sec) return;
+      const n = +sec.getAttribute('data-sec');
+      const st = a.gdStepIndex();
+      const r = a._gdReach;
+      if (!r || r.step !== st || n > r.sec) { a._gdReach = { step: st, sec: n }; a.forceUpdate(); }
+    };
+    document.addEventListener('pointerdown', this._gdReachEv, true);
+    document.addEventListener('focusin', this._gdReachEv, true);
     this._popKey = e => { if (e.key === 'Escape') this._closePops(); };
     this._popOut = e => {
       if (!this.state.shareOpen) return;
@@ -10132,6 +10417,8 @@ class Component extends DCLogic {
       window.removeEventListener('blur', this._closePops);
       document.removeEventListener('visibilitychange', this._popHide);
       document.removeEventListener('keydown', this._gdKey, true);
+      document.removeEventListener('pointerdown', this._gdReachEv, true);
+      document.removeEventListener('focusin', this._gdReachEv, true);
       document.removeEventListener('keydown', this._popKey, true);
       document.removeEventListener('pointerdown', this._popOut, true);
     }

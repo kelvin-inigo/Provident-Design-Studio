@@ -9798,3 +9798,105 @@ after walking three pages: **0**.
 through `activeSi`), `FIELDS`/`FIXEDTEXT`/`PAGE`, the export gate, and the recents/thumb
 plumbing. The old `.gd-steps` / `.gd-foot` / `.gd-asknav` / `.gd-locks` rules are left in the
 sheet matching nothing, per the standing rule.
+
+# THE GUIDED RUN IS THE MAIN WINDOW, AND IT CARRIES EVERY CONTROL THE RAIL HAS
+
+By explicit instruction, one pass after the page-by-page rebuild: the guided screen is the
+workspace Organic opens on, it sits under the real top bar, and every control the advanced
+rail offers has a place on a page. The full editor is still there as **All controls**, one
+click away in the top bar — a **Guided | All controls** segmented pair beside the delivery
+group, rendered while either workspace is on screen. The rail's own "Guided setup" promo
+block is deleted from the markup; the switch is that button in the place it belongs.
+
+**Resume opens on the guided screen** unless the project was explicitly left in the editor
+(`p.screen === 'editor'`), which reverses the old `'guide' ? 'guide' : 'editor'` default.
+Finish's Done goes back to Projects rather than handing over to the editor: there is no
+other workspace to hand over to any more.
+
+**Mechanically it is still the fixed overlay** — `.gd{top:56px}` under a 55px bar plus its
+border, and `.p-top{position:relative;z-index:160}` so the Share menu stacks above it.
+Verified with `elementFromPoint` inside the open menu.
+
+## What the pages gained, so the rail has nothing the run does not
+
+| page | section | added |
+|---|---|---|
+| listed | Pictures | the **parallax toggle** (Off/On) and its drop, shown only when on; the photo's *Reset scale & position*, offered once a gesture has moved it |
+| ranking cover | Pictures | the **Group photo layer** — the rail's own `grpPills` / size slider / Stand on bottom / Stand all, plus Reset positions. The keys are the rail's, valid because the page IS the active slide |
+| award | Pictures | the **partner mark** drop and its Match canvas / Original tint |
+| review, ranks | Words | the rail's read-outs under the long field: `13 words · 3 of 14 lines` on the review, words against the 40-word cap on the blurb, red when over |
+| Finish | Look | **Story 9:16**, Feed only / Feed + story — the canvas-bar toggle, in the run |
+| Finish | Save | **File name**: the custom name, and month / week on weekly, with the resulting filename in the hint |
+
+None of the new asks is gated (`gdAskIssue` returns '' for `px` / `grp` / `alogo` / `story` /
+`name`); they are the rail's judgements, not requirements.
+
+## THE PARALLAX LAYER IS OFF BY DEFAULT AND BEHIND A TOGGLE — a reversal
+
+It was always on for a listed card: `normState` forced `sl.fg = true` and both paint paths
+read `(sl.fg || sl.kind === 'listed')`. Now `sl.fg` alone gates the op and the preview, a new
+slide starts `false`, and only a slide with **no answer at all** (`fg == null`) is defaulted —
+so a project written by the older build keeps its `true` and its cut-out keeps drawing. The
+toggle is in both surfaces: `pxOpts` in the rail, the `px` ask in the run.
+
+**This is the one artwork-path change in the pass, and it is the requested one.** The
+whole-file diff against the pre-change copy carries exactly two artwork lines — the `drawFg`
+gate and the `normState` default. No `ops.push`, renderer, geometry source or `ART` line moved.
+
+## EVERY PICTURE DROP IS 4:3 AND EVERY QR IS 1:1, in both surfaces
+
+Backgrounds, the parallax cut-out, every agent and the partner mark are `aspect-ratio:4/3`;
+the QR stays square. In the run that is one 188px-wide thumb class for every picture and
+110px for the QR; in the rail the background slot went 3:4 → 4:3, `pxCutStyle` with it, and
+the three agent slots (`agentCutStyle`, the second agent, `revAgentSlotStyle`) went to
+112 × 84. Measured after: run 188 × 141 / 110 × 110, rail 277 × 208 / 112 × 84 / 112 × 112.
+
+**This overrides a recorded decision.** The review's agent slot used to carry the window's
+own aspect (84 × 213) so the target depicted the crop; the user chose one shape for every
+upload, and the hint still says what the crop is. The headshots also stopped being circles —
+the cards never crop to a circle, so a circular target was the same class of lie.
+
+## A SECTION IS A NUMBERED STEP WITH A STATE
+
+Each section is a step in a vertical rail: a 26px numbered disc on the left with a hairline
+running down to the next, a 14/600 title, and a state pill at the right. Three states, read
+off the same per-ask gate as Next:
+
+- **done** — nothing in it is missing: at once for a section holding requirements, once it
+  has been passed for one holding only judgements (`gdAskGated` is the "can this ever block"
+  test). Green disc with a tick, pill reads *Done*.
+- **warn** — something is missing AND the user has moved on past it (a click or focus in a
+  later section) or Next was refused. Amber disc with a mark, amber title, pill *N missing*.
+- **cur** — the section under the cursor. Ink disc.
+
+"Moved past" is `_gdReach`, set by a capture-phase `pointerdown` / `focusin` listener on the
+document matching `.gd-sec[data-sec]` — a shadow-root target (an image-slot's own input) is
+retargeted to its host, so `closest` still works. It resets on every page change. **The page
+strip carries the same warning**: a page you have been on and left with gaps (`_gdVisited`)
+gets an amber ring and a `!` badge on its thumb.
+
+Verified live: a pointerdown in the QR section turned Pages *Done* and Pictures *1 missing*;
+Next refused turned QR *1 missing* too; leaving the cover for Property 01 put the badge on
+the cover's tile.
+
+## A SURVIVOR THE AUDIT CAUGHT
+
+`.gd-qrow-t s` — the two caption lines beside every drop — had been re-tokened to
+`--ps-ink-2` / `--ps-dim` while the dark-only era's `opacity:.5` was still winning: **3.62:1
+and 2.56:1** composited. Quietness expressed as opacity does not survive a re-token any more
+than a theme flip. `opacity:1`.
+
+## Verification
+
+- Sheet: 1 closing style tag, comments 289/289, brace depth 0, 1022 top-level blocks;
+  guided markup `sc-if` 42/42, `sc-for` 16/16; header `sc-if` 8/8.
+- Interpolation sweep: 213 refs, 20 unresolved and every one the documented baseline
+  (`expPickVals` keys, the `const`-then-shorthand keys, `true`/`false`); `weekVal` is
+  declared on a shared line and is a false positive. All new keys resolve.
+- Plans: weekly Cover · Property 01 · Finish; listed Words (5) · Agent (4) · Pictures
+  (Background, Parallax) · QR & listing (2); agents cover Words + Group photo layer; award
+  Words + Partner mark; Finish Look (wash, photo, story) · Save (name, folder, export).
+- Contrast, both themes reloaded into, transitions finished, ancestor opacity composited,
+  guided screen plus the top bar: **2 flags each, the disabled Back and the disabled Redo**,
+  both 1.4.3-exempt. **0 elevation shadows.**
+- The test origin's `localStorage` was cleared afterwards; the viewport reset.
