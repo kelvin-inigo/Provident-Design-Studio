@@ -10287,3 +10287,67 @@ the panel is open (`.p-ghost[data-on] .p-chev`).
   `ui-design-system/` are untouched. **Organic's top bar and canvas bar still carry the old
   Undo/Redo arrows and the baseline-aligned bar** — the top bar is the same markup in both
   documents, so this is a visible divergence until the same two edits land there.
+
+# THE PROJECT BROWSER'S SIDEBAR, AND THE TOP BAR OFF ORGANIC'S SPLASH
+
+Asked for with both studios' welcome screens screenshotted: "improve the UI of this welcome
+window for both studio specially on the left side bar", "fix also the overlapping happening
+on organic post studio, the top navigation doesn't need to appear on organic post studio",
+and "use W3.org icons". Three things, all chrome, mirrored into both documents because the
+splash is the same markup in both. **Zero artwork-path lines in either whole-file diff**
+(Campaign 4 hunks, 40 added / 5 removed; Organic 7 hunks, 46 / 5).
+
+**THE OVERLAP WAS A Z-INDEX I HAD ADDED.** The guided-window pass gave Organic
+`.p-top{position:relative;z-index:160}` so the Share menu would stack over the guided overlay
+(z 150). The splash and the template picker are `.p-over` overlays at **z 60**, so the bar —
+never gated in either document, and simply covered by Campaign's overlay — painted over
+Organic's splash and hid its own header row (the `All` title, the theme toggle, Open Session
+and + New post sat under it). It is gated now: `<sc-if value="{{ shTopOn }}">` around the
+header, with `shTopOn: s.screen !== 'splash' && s.screen !== 'pick'`. Verified by driving
+`screen` through the engine: **present at 56px on the guided screen, absent on the splash and
+on the picker.** Campaign's bar is left as it was — in the DOM, under its overlay
+(`elementFromPoint` at its centre returns the splash's title).
+
+**THE FIVE NAV GLYPHS ARE INLINE SVG NOW.** `▦ ◫ ◷ ◰ ↻` were Unicode characters rendered
+from whatever font the OS chose — the one place in the chrome that still was. They are
+Material Symbols Rounded at wght300, the family every other icon in the bar already is:
+`grid_view` (All), `space_dashboard` (Templates), `schedule` (Recent), `folder_open` (Open
+folder — the top bar's own path, reused) and `history` (Continue last). **"W3.org icons" is
+read as SVG icons** — the SVG namespace is `w3.org/2000/svg`, and the W3C publishes no icon
+set — and it is worth checking that reading if a specific set was meant.
+
+**A NAV ROW IS QUIET AT REST.** `.p-nav2` filled every row with `--ps-fill`, so the Library and
+Session lists were a stack of five filled pills with the active one navy — nothing in the
+list quieter than anything else. A row is transparent now, `--ps-fill` on hover, the resting
+accent when it is the view: 38px, 13.5/500, the icon in an 18px box, the count as a small
+`--ps-fill` pill at the right. **The ON row's icon and count inherit the row's ink**, which
+closes the recorded 4.45:1 pair for Campaign — the `▦` chip used to keep `--ps-dim` over the
+navy fill. The studio rows keep their canvas-shape chip (the mark IS the ratio), on a 16px
+card with the name at 13/600 and the descriptor at 11.5/400; section labels are 11.5/500 with
+room above them. The 13.5/500 row departs from the Coinbase button role (14/600) that a later
+rule had put on `.p-nav2`: a sidebar nav list is not a row of buttons.
+
+**AND ONE DEFECT THE AUDIT FOUND BEHIND THE OVERLAY.** Organic's active slide badge
+(`badgeStyle`) filled with `--ps-accent` and inked `--ps-primary-i` — white in both themes on
+a fill that is a pale tint in light: **1.36:1**, the recorded fill-inverts-ink-does-not class,
+and the exact object Campaign's own pass fixed. It reads `--ps-accent-i` now. It was caught
+because the contrast walk cannot see that the splash covers the editor; that is a false
+positive for the splash and a real finding for the editor, which is why it was fixed rather
+than dismissed.
+
+## Verification
+
+- Sheets: one closing style tag each, comments balanced (Campaign 319/319, Organic 293/293),
+  brace depth 0, 964 / 1068 top-level blocks; markup `sc-if` 145/145 and 116/116 (Organic +1
+  for the gate), stack walk never negative. Interpolation sweep: no newly unresolved key in
+  either file; `shTopOn` resolves.
+- Measured at 1440 × 900 in both studios: sidebar rows 38 tall, icons 17 × 17, studio rows
+  51 on a 16px radius, the header row at y 26 with the title `All`, no top bar in Organic's
+  DOM on the splash.
+- **Contrast on the splash, both themes reloaded into, transitions finished, ancestor opacity
+  composited: Organic dark 0 / light 0 after the badge fix; Campaign dark 0 / light 3, all
+  three in the editor behind the overlay** — the disabled Undo/Redo pair and the amber
+  coverage chip, both already recorded. **0 elevation shadows** in all four runs.
+- The test origin's `localStorage` was cleared and the viewport reset; `studio-base.js`,
+  the image tool and `ui-design-system/` are untouched. `.p-ws*` and `.p-nav2` are app
+  markup with no kit rule, so nothing is owed to the library.

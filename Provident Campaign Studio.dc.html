@@ -3019,6 +3019,41 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 .p-ico-o{width:36px;height:36px}
 .p-chev{width:14px;height:14px;margin-left:-3px;transition:transform var(--ps-motion) var(--ps-ease)}
 .p-ghost[data-on] .p-chev{transform:rotate(180deg)}
+
+/* ═══ 26. THE PROJECT BROWSER'S SIDEBAR ═══════════════════════════════════════════
+   By request, with the browser screenshotted in both studios: "improve the UI of this
+   welcome window… specially on the left side bar". What it is now:
+     · the STUDIO rows keep their canvas-shape chip (the recorded design — the mark IS the
+       ratio) on a 16px card, name 13/600 over an 11.5/400 descriptor;
+     · a SECTION label is 11.5/500 quiet, sentence case, with room above it;
+     · a NAV row is a quiet pill — transparent at rest, `--ps-fill` on hover, the resting
+       accent when it is the view — 38px tall, 13.5/500, an INLINE SVG icon in an 18px box
+       where a Unicode glyph used to sit (▦ ◫ ◷ ◰ ↻ rendered from whatever font the OS
+       chose), and its count as a small pill at the right. The five glyphs are Material
+       Symbols Rounded at wght300, the family every other icon in the chrome already is;
+     · the ON row's icon and count take the row's own ink. The chip used to keep `--ps-dim`
+       over the navy fill — the recorded 4.45:1 pair — and now inherits.
+   The rows used to be a stack of FILLED pills (`.p-nav2{background:var(--ps-fill)}`), so
+   nothing in the list was quieter than anything else and the one that mattered read as one
+   of five. Reverting is deleting this block and restoring the markup from the pre copy. */
+.p-br-sb{gap:2px;padding:18px 14px 22px}
+.p-ws{gap:12px;padding:8px 10px;border-radius:var(--ps-r);margin-bottom:2px}
+.p-ws-a{width:32px;height:32px}
+.p-ws-sh{border-radius:6px}
+.p-ws-n{font:600 13px/1.25 var(--ps-font)}
+.p-ws-s{font:400 11.5px/1.3 var(--ps-font)}
+.p-sec-l{font:500 11.5px/1.2 var(--ps-font);color:var(--ps-dim);padding:18px 12px 8px;letter-spacing:0}
+.p-nav2{height:38px;padding:0 12px 0 11px;gap:10px;background:transparent;border-radius:var(--ps-pill);
+  font:500 13.5px/1.2 var(--ps-font);color:var(--ps-ink-2);letter-spacing:0}
+.p-nav2:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-nav2 i{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;opacity:1;color:var(--ps-dim)}
+.p-nav2 i svg{width:17px;height:17px;fill:currentColor;flex:none}
+.p-nav2 s{margin-left:auto;font:500 11px/1 var(--ps-font);color:var(--ps-dim);opacity:1;
+  padding:3px 7px;border-radius:var(--ps-pill);background:var(--ps-fill);min-width:12px;text-align:center}
+.p-nav2[data-on],.p-nav2[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.p-nav2[data-on] i,.p-nav2[data-on] s{color:inherit}
+.p-nav2[data-on] s{background:rgba(128,128,128,.22)}
+.p-br-h{gap:12px}
 </style>
 </helmet>
 
@@ -3041,13 +3076,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </sc-for>
 
       <div class="p-sec-l">Library</div>
-      <button onClick="{{ shViewAll }}" data-on="{{ shViewAllOn }}" class="p-nav2"><i>▦</i>All</button>
-      <button onClick="{{ shViewTpl }}" data-on="{{ shViewTplOn }}" class="p-nav2"><i>◫</i>Templates<s>{{ tplCount }}</s></button>
-      <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i>◷</i>Recent<s>{{ recentCount }}</s></button>
+      <button onClick="{{ shViewAll }}" data-on="{{ shViewAllOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-520q-24.54 0-42.27-17.73Q140-555.46 140-580v-180q0-24.54 17.73-42.27Q175.46-820 200-820h180q24.54 0 42.27 17.73Q440-784.54 440-760v180q0 24.54-17.73 42.27Q404.54-520 380-520H200Zm0 380q-24.54 0-42.27-17.73Q140-175.46 140-200v-180q0-24.54 17.73-42.27Q175.46-440 200-440h180q24.54 0 42.27 17.73Q440-404.54 440-380v180q0 24.54-17.73 42.27Q404.54-140 380-140H200Zm380-380q-24.54 0-42.27-17.73Q520-555.46 520-580v-180q0-24.54 17.73-42.27Q555.46-820 580-820h180q24.54 0 42.27 17.73Q820-784.54 820-760v180q0 24.54-17.73 42.27Q784.54-520 760-520H580Zm0 380q-24.54 0-42.27-17.73Q520-175.46 520-200v-180q0-24.54 17.73-42.27Q555.46-440 580-440h180q24.54 0 42.27 17.73Q820-404.54 820-380v180q0 24.54-17.73 42.27Q784.54-140 760-140H580ZM200-580h180v-180H200v180Zm380 0h180v-180H580v180Zm0 380h180v-180H580v180Zm-380 0h180v-180H200v180Zm380-380Zm0 200Zm-200 0Zm0-200Z"/></svg></i>All</button>
+      <button onClick="{{ shViewTpl }}" data-on="{{ shViewTplOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60H450v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM510-200h237.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-480H510v280Zm0-340h250v-207.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H510v220Z"/></svg></i>Templates<s>{{ tplCount }}</s></button>
+      <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
       <div class="p-sec-l">Session</div>
-      <button onClick="{{ openSession }}" class="p-nav2"><i>◰</i>Open folder…</button>
+      <button onClick="{{ openSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></i>Open folder…</button>
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
-        <button onClick="{{ continueSession }}" class="p-nav2"><i>↻</i>Continue last</button>
+        <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i>Continue last</button>
       </sc-if>
     </div>
 
