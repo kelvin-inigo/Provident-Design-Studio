@@ -3275,6 +3275,9 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             </sc-if>
           </sc-if>
           <sc-if value="{{ sl.isProp }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ sl.ft.wkUsps }}" as="uc" hint-placeholder-count="3">
+              <div style="{{ uc.style }}"><span style="{{ uc.labStyle }}">{{ uc.t }}</span></div>
+            </sc-for>
             <sc-for list="{{ sl.ft.wkTitleLines }}" as="tl" hint-placeholder-count="2">
               <div style="{{ tl.style }}">{{ tl.t }}</div>
             </sc-for>
@@ -3435,6 +3438,9 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             </sc-if>
           </sc-if>
           <sc-if value="{{ sl.isProp }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ sl.st.wkUsps }}" as="uc" hint-placeholder-count="3">
+              <div style="{{ uc.style }}"><span style="{{ uc.labStyle }}">{{ uc.t }}</span></div>
+            </sc-for>
             <sc-for list="{{ sl.st.wkTitleLines }}" as="tl" hint-placeholder-count="2">
               <div style="{{ tl.style }}">{{ tl.t }}</div>
             </sc-for>
@@ -3964,6 +3970,11 @@ class OrganicStudio extends StudioBase {
     // What it buys: 35% of the blurred backdrop shows through against 18% at the old .82, so
     // the blur roughly doubles in read. Over a dark suit it is 14.6:1 at any of these.
     deepGlass: 'rgba(26,41,66,.65)',
+    // THE WEEKLY SPEC PANEL'S OWN GLASS, from the supplied snippet: white at .22 over a
+    // 50px backdrop blur (`WK.panelBlur`). It is the one LIGHT glass in the file — the
+    // ranking, listed and review panels are `deepGlass` — and it keeps those panels' own
+    // hairlines (`hairEdge` outside, `hair` between the columns), by the earlier request.
+    lightGlass: 'rgba(255,255,255,.22)',
     warm: '#FAF8F4',                                   // the role and the badge's label
     // THE RANKING PANEL'S TWO HAIRLINES, and both are panel-only — one call site each, so
     // changing them cannot reach another slide kind. `hair` is the divider INSIDE the panel
@@ -4050,10 +4061,27 @@ class OrganicStudio extends StudioBase {
     qr: 220, qrR: 4, qrRing: 6,   // 220 not `tk.qr`'s 250, and a 6px white quiet-zone ring
     qrDrop: 20,          // cover/CTA: the centred QR clears the bottom margin by this much,
                          // which reproduces the drawn y of 1110 exactly
-    titleGap: 3.14,      // wordmark baseline -> property title's first baseline, in ptitle
+    titleGap: 3.14,      // wordmark baseline -> property title's first baseline, in ptitle —
+                         // the NO-CHIP case only; with USP chips the title hangs off them
     titleLead: 1.24,     // 57 at 46
-    panelGap: 1.348,     // title's last baseline -> the spec panel's top, in ptitle
+    titleMaxW: 760,      // the title's wrap column, by request — the second drawing's text
+                         // frame is 760 wide at x 160, and 920 let a line run too long
+    // ── THE USP CHIPS, from the second property drawing ─────────────────────────────
+    // The Marketing USP is typed as points separated by a bar — "Marina view | Vacant |
+    // Open to offers" — and each point is a hairline-framed chip in a centred row between
+    // the wordmark and the title. Every number is the drawing's: 148/98/178 x 48 at rx 12,
+    // 16/500 caps at .1em in `warm`, ~14 of side padding, 20 between chips.
+    uspPx: 16 / 24,      // the chip label against `eyebrow`, so the story follows for free
+    uspTrack: .1,
+    uspH: 48, uspR: 12, uspPadX: 14, uspGap: 20,   // `uspGap` is the row gap too
+    uspGapTop: 2.022,    // wordmark baseline -> the chip row's top, in ptitle (93 at 46)
+    uspGapBot: 1.613,    // the last chip row's bottom -> the title's first baseline (74.2)
+    panelGap: 1.113,     // title's last baseline -> the spec panel's top, in ptitle — 51.2 on
+                         // the second drawing; the first drawing had 62 (1.348)
     panelR: 28, panelPad: 50, panelPadV: 51, colGap: 80,
+    panelBlur: 50,       // the supplied snippet's feGaussianBlur stdDeviation, which is what a
+                         // CSS blur(Npx) means too. NOT `TA.panelBlur` — this panel is a
+                         // different material, see `ART.lightGlass`
     listnoLead: 1.21     // 23 at 19
   };
   // Both weekly headlines are template-owned fixed text, so the line break is AUTHORED.
@@ -4590,7 +4618,7 @@ class OrganicStudio extends StudioBase {
   static TPLDEMO = {
     listed:  { status: 'Just sold', usp: 'Stunning Beach View', ptype: 'Villa', building: 'Palm Jumeirah', price: '12000000', listno: '32185296341' },
     cover:   {},
-    prop:    { usp: 'Ready to Move', ptype: 'Villa', building: 'Arabian Ranches', city: 'Dubai', beds: '3', baths: '5', area: '3216', price: '3220000', listno: '32185296341' },
+    prop:    { usp: 'Ready to move | Vacant | Sea view', ptype: 'Villa', building: 'Arabian Ranches', city: 'Dubai', beds: '3', baths: '5', area: '3216', price: '3220000', listno: '32185296341' },
     cta:     {},
     // A LONGER QUOTE THAN THE CARD USED TO CARRY, because the card's column is now bounded
     // by the agent's window (352, not the card's 771) and the old one line left the tile
@@ -5768,11 +5796,20 @@ class OrganicStudio extends StudioBase {
   // "in" ahead of a BUILDING, because on two lines a city alone stood as its own line and
   // needed none. In one sentence "Apartment Dubai" is wrong and "Apartment in Dubai" is
   // right, so the test is "is there any location", not "is there a building".
+  //
+  // THE USP IS NOT IN THE SENTENCE ANY MORE — it is the chip row above it (`propUsps`), per
+  // the second drawing, whose title starts "Apartment in …". The sentence is the type and
+  // the location.
   propTitle(f) {
-    const head = [f.usp ? this.toTitle(f.usp) : '', f.ptype ? this.toTitle(f.ptype) : ''].filter(Boolean).join(' ');
+    const head = f.ptype ? this.toTitle(f.ptype) : '';
     const loc = [f.building ? this.toTitle(f.building) : '', f.city ? this.toTitle(f.city) : ''].filter(Boolean).join(', ');
     if (!loc) return head;
     return head ? head + ' in ' + loc : 'In ' + loc;
+  }
+  // The Marketing USP is typed as points separated by a bar — "Marina view | Vacant | Open
+  // to offers" — and each point is one chip, in tracked caps. A USP with no bar is one chip.
+  propUsps(f) {
+    return String(f.usp || '').split('|').map(t => t.trim().replace(/\s+/g, ' ')).filter(Boolean).map(t => t.toUpperCase());
   }
   propTitleWrapped(f, tk, bw) {
     const t = this.propTitle(f);
@@ -5834,8 +5871,35 @@ class OrganicStudio extends StudioBase {
     const h = cols.length ? specH + 2 * K.panelPadV : 0;
     const w = cols.length ? Math.min(innerW, natural(lpx, px)) : 0;
     const x = pL + (innerW - w) / 2;
-    const titleLines = this.propTitleWrapped(f, tk, innerW);
-    const t1 = pT + tk.logo * .8 + K.titleGap * tk.ptitle;   // the title's first baseline
+    // ── THE USP CHIPS: an auto-layout row, centred, wrapping inside the title's column ──
+    // Each chip hugs its label (ink width plus `uspPadX` each side); chips run left to right
+    // with `uspGap` between them and wrap to a new row when the next would cross the column,
+    // each row centred on the canvas axis. The title then hangs off the LAST row, so more
+    // points push everything below them down — that is the "auto layout" the request asks
+    // for — and with no USP at all the row collapses and the title takes its old anchor.
+    const logoBase = pT + tk.logo * .8;
+    // (`tcW` / `tcX`, not `colW` / `colX` — this function already declares `colX` for the
+    // panel's column edges below, and a second `const` of the same name is a SyntaxError
+    // that takes the whole engine down at boot.)
+    const tcW = Math.min(innerW, K.titleMaxW), tcX = pL + (innerW - tcW) / 2;
+    const upx = tk.eyebrow * K.uspPx, uls = upx * K.uspTrack;
+    const uspRows = []; let urow = [], urw = 0;
+    const pushRow = () => { if (urow.length) { uspRows.push({ items: urow, w: urw }); urow = []; urw = 0; } };
+    this.propUsps(f).forEach(t => {
+      const cw = Math.min(tcW, this.meas(t, upx, 500, false, uls) - uls + 2 * K.uspPadX);
+      if (urow.length && urw + K.uspGap + cw > tcW) pushRow();
+      urw += (urow.length ? K.uspGap : 0) + cw; urow.push({ t, w: cw });
+    });
+    pushRow();
+    const chipTop = logoBase + K.uspGapTop * tk.ptitle, chips = [];
+    uspRows.forEach((r, ri) => {
+      let ccx = tcX + (tcW - r.w) / 2; const cy = chipTop + ri * (K.uspH + K.uspGap);
+      r.items.forEach(c => { chips.push({ t: c.t, x: ccx, y: cy, w: c.w, h: K.uspH }); ccx += c.w + K.uspGap; });
+    });
+    const chipBottom = uspRows.length ? chipTop + uspRows.length * K.uspH + (uspRows.length - 1) * K.uspGap : 0;
+    const titleLines = this.propTitleWrapped(f, tk, tcW);
+    // the title's first baseline: off the last chip row, or off the wordmark when there is none
+    const t1 = uspRows.length ? chipBottom + K.uspGapBot * tk.ptitle : logoBase + K.titleGap * tk.ptitle;
     const lead = tk.ptitle * K.titleLead;
     const y = t1 + (titleLines.length - 1) * lead + K.panelGap * tk.ptitle;
     // each column's own left edge, and the divider MIDWAY in the gap that follows it
@@ -5848,7 +5912,7 @@ class OrganicStudio extends StudioBase {
     // the ink block is centred in the panel; the drawing puts its baselines 2.1px higher,
     // which is the block's own cap-height asymmetry and not worth a magic offset
     const specY = y + (h - specH) / 2;
-    return { cols, ws, colX, divX, x, y, w, h, px, lpx, specH, specY, titleLines, t1, lead, innerW };
+    return { cols, ws, colX, divX, x, y, w, h, px, lpx, specH, specY, titleLines, t1, lead, innerW, chips, upx, uls };
   }
   propSpecCols(f) {
     return [
@@ -6747,6 +6811,13 @@ class OrganicStudio extends StudioBase {
       const K = OrganicStudio.WK;
       drawLogo('center', 'top');
       const B = this.wkSpecBox(f, tk);
+      // THE USP CHIPS — the weekly cover's own hairline-framed kicker, one per point, laid out
+      // by `wkSpecBox`. The label's baseline is centred the way the cover chip's is.
+      B.chips.forEach(c => {
+        ops.push({ op: 'rrect', x: c.x, y: c.y, w: c.w, h: c.h, r: K.uspR, stroke: A.ink, sw: 1 });
+        ops.push({ op: 'text', x: c.x + K.uspPadX, y: c.y + c.h / 2 + B.upx * OrganicStudio.TA.ordAsc / 2,
+                   px: B.upx, weight: 500, fill: A.warm, text: c.t, ls: B.uls });
+      });
       // the title is CENTRED now, not flush left: the drawing centres the whole top block
       // on the canvas axis, under the centred wordmark. `drawLines` carries the centring
       // and this run has no tracking for it to drop.
@@ -6761,14 +6832,15 @@ class OrganicStudio extends StudioBase {
                    weight: 300, fill: A.ink, text: t });
       });
       if (B.cols.length) {
-        // THE PANEL IS THE LISTED CARD'S GLASS, by request — the same backdrop blur at
-        // `TA.panelBlur` over `deepGlass`, the same 1px `hairEdge` stroke outside and the
-        // same 1px `hair` for the dividers inside, so the two templates' panels are one
-        // material. It was a hairline-only frame at full white with .55 splits, which is what
-        // `Property.svg` draws; the request overrules the drawing here. `backdrop-filter` has
-        // no canvas equivalent, so the blur op precedes the fill and carries its box.
-        ops.push({ op: 'blur', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, amount: OrganicStudio.TA.panelBlur });
-        ops.push({ op: 'rrect', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, fill: A.deepGlass, stroke: A.hairEdge, sw: 1 });
+        // THE PANEL IS A LIGHT GLASS, from the supplied snippet — white at .22 over a 50px
+        // backdrop blur (`WK.panelBlur`) — with the listed card's hairlines kept from the
+        // request before it: the 1px `hairEdge` stroke outside and 1px `hair` between the
+        // columns. It was the listed card's navy `deepGlass` for one pass, and before that a
+        // hairline-only frame at full white, which is what the first `Property.svg` drew.
+        // `backdrop-filter` has no canvas equivalent, so the blur op precedes the fill and
+        // carries its box.
+        ops.push({ op: 'blur', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, amount: K.panelBlur });
+        ops.push({ op: 'rrect', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, fill: A.lightGlass, stroke: A.hairEdge, sw: 1 });
         B.divX.forEach(dx => ops.push({ op: 'rect', x: dx, y: B.specY, w: 1, h: B.specH, fill: A.hair }));
         B.cols.forEach((c, i) => {
           ops.push({ op: 'text', x: B.colX[i], y: B.specY + B.lpx, px: B.lpx, weight: 500, fill: A.mute, text: (c.l || '').toUpperCase(), ls: B.lpx * .16 });
@@ -7272,7 +7344,10 @@ class OrganicStudio extends StudioBase {
   // Grouping and labels are taken from the all-controls rail, so the guided run offers
   // the same control for the same field — a dropdown where the rail has a dropdown, a
   // ‹ › stepper where it has a stepper. Flags:
-  //   req · num · len11 · area · w40 · seg:a|b · sel:a|b · sel@list · step · img
+  //   req · num · digits · len11 · area · w40 · seg:a|b · sel:a|b · sel@list · step · img
+  // `num` filters to digits and a decimal point and makes the field HALF width; `digits`
+  // filters to digits alone with no length cap and leaves the field full width; `len11`
+  // is `digits` plus a hard eleven, and only the `listed` card still carries it.
   // `img` means the field belongs in the Images group beside the picture and the QR.
   // Photo strength, 10-100, over the canvas ground. Organic had no equivalent of
   // Campaign's bgO, and the guided run asks for one.
@@ -7302,18 +7377,21 @@ class OrganicStudio extends StudioBase {
     listed:[['status', 1, 'Status', 'seg:Just listed|Just sold', ''],
             ['usp', 1, 'Marketing USP', 'req', 'Shown in Title Case \u2014 e.g. Stunning Beach View'],
             ['ptype', 1, 'Property type', 'req sel@ptypes', ''],
-            ['building', 1, 'Community / building', 'req', 'Shown in Title Case'],
+            ['building', 1, 'Community / building', 'req', 'Title Case — a word typed in CAPITALS stays in capitals'],
             ['price', 2, 'Price in AED', 'req num', 'Numbers only — shown as AED 12,200,000'],
             ['listno', 3, 'Listing number', 'req len11 img', 'Exactly 11 digits']],
-    prop:  [['usp', 1, 'Marketing USP', '', 'Shown in Title Case \u2014 e.g. Ready To Move'],
+    prop:  [['usp', 1, 'Marketing USP', '', 'Separate points with | \u2014 e.g. Marina view | Vacant | Open to offers. Each becomes a chip above the title'],
             ['ptype', 1, 'Property type', 'req sel@ptypes', ''],
-            ['building', 1, 'Community / building', 'req', 'Shown in Title Case'],
+            ['building', 1, 'Community / building', 'req', 'Title Case — a word typed in CAPITALS stays in capitals'],
             ['city', 1, 'City', 'req sel@city', ''],
             ['beds', 2, 'Bed', 'req step', ''],
             ['baths', 2, 'Bath', 'req step', ''],
             ['area', 2, 'Area', 'req num', 'Numbers only — shown as 9,918 sq.ft.'],
             ['price', 2, 'Price in AED', 'req num', 'Numbers only — shown as AED 12,200,000'],
-            ['listno', 3, 'Listing number', 'req len11 img', 'Exactly 11 digits']],
+            // NO LENGTH RULE HERE, by request — a weekly listing number is numbers only and
+            // as many of them as the listing has. The `listed` card above still carries
+            // `len11`; the two fields are deliberately different now.
+            ['listno', 3, 'Listing number', 'req digits img', 'Numbers only']],
     review:[['quote', 1, 'The review', 'req area', 'What the client actually said'],
             ['reviewer', 2, 'Who wrote it', 'req', 'e.g. Phillips · Provident client'],
             ['agentName', 3, 'Agent name', '', ''],
@@ -8058,7 +8136,7 @@ class OrganicStudio extends StudioBase {
         if (sl.kind !== 'prop') return;
         const lbl = this.sLabel(i);
         if (!filled['smp-qr-' + sl.id]) missing.push(lbl + ' QR code');
-        if ((sl.f.listno || '').length !== 11) missing.push(lbl + ' listing number (11 digits)');
+        if (!String(sl.f.listno || '').trim()) missing.push(lbl + ' listing number');
       });
     }
     if (s.tpl === 'agents') s.slides.forEach((sl, i) => { if (sl.kind === 'tagent' && !filled['smp-bg-' + sl.id]) missing.push(this.sLabel(i) + ' portrait'); });
@@ -9102,6 +9180,13 @@ class OrganicStudio extends StudioBase {
         const abs = (x, y) => ({ position: 'absolute', left: cq(x), top: cq(y) });
         const LH = px => StudioBase.baseLH(px);
         const B = this.wkSpecBox(f, tk);
+        // the USP chips, one box each at `wkSpecBox`'s own x/y/w — the cover chip's construction
+        K.wkUsps = B.chips.map(c => ({ t: c.t,
+          style: Object.assign(abs(c.x, c.y), { width: cq(c.w), height: cq(c.h), boxSizing: 'border-box',
+            borderRadius: cq(KW.uspR), border: '1px solid ' + A.ink, pointerEvents: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }),
+          labStyle: { fontWeight: 500, fontSize: cq(B.upx), letterSpacing: '.1em',
+            lineHeight: cq(LH(B.upx)), color: A.warm, whiteSpace: 'nowrap' } }));
         // one line per OP, so a title that wraps to three still matches the export
         K.wkTitleLines = B.titleLines.map((ln, i) => ({
           t: (ln.parts || []).map(p => p.t).join(' '),
@@ -9109,15 +9194,15 @@ class OrganicStudio extends StudioBase {
             width: cq(tk.W), textAlign: 'center', fontWeight: 300, fontSize: cq(tk.ptitle),
             lineHeight: cq(LH(tk.ptitle)), color: A.ink }) }));
         K.wkPanelOn = B.cols.length > 0;
-        // THE LISTED CARD'S GLASS, mirrored — `deepGlass` fill, the 1px `hairEdge` edge and
-        // the backdrop blur at `TA.panelBlur`. The blur is a plain px length and NOT cq():
-        // the box is laid out at true canvas units and shrunk with `zoom`, so 30px here is
-        // 30 canvas units, which is the op's own `amount` — the listed panel's convention.
+        // THE LIGHT GLASS, mirrored — `lightGlass` fill, the 1px `hairEdge` edge and the
+        // backdrop blur at `WK.panelBlur`. The blur is a plain px length and NOT cq(): the
+        // box is laid out at true canvas units and shrunk with `zoom`, so 50px here is 50
+        // canvas units, which is the op's own `amount` — the listed panel's convention.
         K.wkPanelStyle = Object.assign(abs(B.x, B.y), {
           width: cq(B.w), height: cq(B.h), boxSizing: 'border-box', pointerEvents: 'none',
-          borderRadius: cq(KW.panelR), background: A.deepGlass, border: '1px solid ' + A.hairEdge,
-          backdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)',
-          WebkitBackdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)' });
+          borderRadius: cq(KW.panelR), background: A.lightGlass, border: '1px solid ' + A.hairEdge,
+          backdropFilter: 'blur(' + KW.panelBlur + 'px)',
+          WebkitBackdropFilter: 'blur(' + KW.panelBlur + 'px)' });
         // the dividers are the listed panel's own `hair` — 1px at .25
         K.wkDivs = B.divX.map(dx => Object.assign(abs(dx, B.specY),
           { width: '1px', height: cq(B.specH), background: A.hair }));
@@ -9356,7 +9441,7 @@ class OrganicStudio extends StudioBase {
         if (sl2.kind !== 'prop') return;
         const lbl = this.sLabel(i2);
         if (!filled['smp-qr-' + sl2.id]) missing.push(lbl + ' QR code');
-        if ((sl2.f.listno || '').length !== 11) missing.push(lbl + ' listing number (11 digits)');
+        if (!String(sl2.f.listno || '').trim()) missing.push(lbl + ' listing number');
       });
     }
     if (s.tpl === 'agents') s.slides.forEach((sl2, i2) => { if (sl2.kind === 'tagent' && !filled['smp-bg-' + sl2.id]) missing.push(this.sLabel(i2) + ' portrait'); });
@@ -9668,6 +9753,9 @@ class OrganicStudio extends StudioBase {
             set: e => {
               let val = e.target.value;
               if (f.flags.indexOf('num') >= 0) val = String(val).replace(/[^\d.]/g, '');
+              // `digits` has NO `slice` — that is the whole difference from `len11`, and it
+              // has to be tested first because 'len11' contains no 'digits' but both filter.
+              if (f.flags.indexOf('digits') >= 0) val = String(val).replace(/\D/g, '');
               if (f.flags.indexOf('len11') >= 0) val = String(val).replace(/\D/g, '').slice(0, 11);
               write(val);
             }
@@ -10045,7 +10133,7 @@ class OrganicStudio extends StudioBase {
       activeQrId: 'smp-qr-' + asl.id,
       listedListnoOn: asl.kind === 'listed',
       listnoVal: asl.f.listno || '',
-      onListno: e => { const v = String(e.target.value).replace(/\D/g, '').slice(0, 11); e.target.value = v; this.upd(x => { x.slides[asi].f.listno = v; return x; }); },
+      onListno: e => { const v = String(e.target.value).replace(/\D/g, ''); e.target.value = v; this.upd(x => { x.slides[asi].f.listno = v; return x; }); },
       listnoInputStyle: Object.assign({}, (asl.f.listno || '').length === 11 ? inpBase : inpErr, { width: '100%' }),
       listnoErrOn: (asl.f.listno || '').length !== 11,
       listnoErrText: (asl.f.listno || '').length ? 'Must be exactly 11 digits (' + (asl.f.listno || '').length + '/11).' : 'Required — enter the 11-digit listing number.',

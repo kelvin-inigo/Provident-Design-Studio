@@ -145,14 +145,26 @@ class StudioBase {
   // preposition, and without it the one-line price read "Starting From AED 6.7M".
   static SMALLWORDS = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'if', 'in',
     'nor', 'of', 'on', 'or', 'per', 'so', 'the', 'to', 'up', 'via', 'vs', 'yet'];
+  // AN ALL-CAPS WORD IS KEPT EXACTLY AS TYPED, and that is the one exception to Title Case.
+  // It was lower-casing the tail of every word unconditionally, so "Blakely Tower, JLT" came
+  // out "Jlt" and "Tower A" came out "Tower a" — this market is full of acronyms (JLT, DIFC,
+  // JVC, MBR City, UAE) and lettered towers, and an acronym re-cased is simply wrong rather
+  // than merely restyled. It also means a user who deliberately types a word in capitals gets
+  // capitals on the canvas, which is what was asked for on the Community / building field.
+  //
+  // The test is `w === w.toUpperCase() && w !== w.toLowerCase()`: the second half is what
+  // says the word contains at least one CASED character, so "1361" and "-" fall through to
+  // the normal path (where they are unchanged anyway) and an accented "ÉCOLE" is caught the
+  // same as an ASCII one. A word that is all caps is never looked up in SMALLWORDS either:
+  // somebody who types "PALM JUMEIRAH IN DUBAI" meant all of it.
   static toTitle(t) {
     let first = true;
     return String(t || '').replace(/\S+/g, w => {
+      const wasFirst = first; first = false;
+      if (w === w.toUpperCase() && w !== w.toLowerCase()) return w;
       const low = w.toLowerCase();
       const cap = w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
-      const out = (!first && StudioBase.SMALLWORDS.indexOf(low) >= 0) ? low : cap;
-      first = false;
-      return out;
+      return (!wasFirst && StudioBase.SMALLWORDS.indexOf(low) >= 0) ? low : cap;
     });
   }
 

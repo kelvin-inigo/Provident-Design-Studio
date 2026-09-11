@@ -3028,6 +3028,15 @@ A slide kind with no asked fields is fine — it simply contributes nothing to p
 
 ## Title Case follows the brand's own copy
 
+**AN ALL-CAPS WORD IS KEPT EXACTLY AS TYPED, and that is the one exception.** `toTitle` used
+to lower-case the tail of every word unconditionally, so "Blakely Tower, JLT" came out "Jlt",
+"DIFC" came out "Difc" and "Tower A" came out "Tower a" — this market runs on acronyms and
+lettered towers, and an acronym re-cased is wrong rather than merely restyled. The test is
+`w === w.toUpperCase() && w !== w.toLowerCase()`: the second half is what says the word holds
+at least one CASED character, so "1361" and "-" fall through to the normal path (unchanged
+either way) and an accented "ÉCOLE" is caught the same as an ASCII one. An all-caps word is
+never looked up in SMALLWORDS — somebody who types "PALM JUMEIRAH IN DUBAI" meant all of it.
+
 `toTitle` keeps small words lowercase after the first word, because the fixed headline is
 "New Listings Available **this** Week". Capitalising every word gave "Ready **To** Move",
 which contradicted the very headlines it sits beside. `SMALLWORDS` holds the list; the first
@@ -8433,7 +8442,7 @@ in any op colour — still holds by construction.
 - Feed 3:4 is 1080×1440 with 80/90px margins; story 9:16 is 1080×1920 with a 200px top margin so platform UI stays clear of the copy.
 - Layouts are fixed per template — the studio exposes fields, not free positioning. Nothing should drift off the grid. **The award card insets its text column 30px INSIDE the margin (110 on the feed), and that is not a grid violation** — the rule is about content escaping the margin, and both the SVG and the finished render agree on 110. See *A FIFTH TEMPLATE*.
 - Scrims cover only the text areas (plus ~20px breathing room), fading out ~60px beyond — never the whole photo. **Three kinds carry no ADJUSTABLE wash and the rail's control disappears with them** (`scrimUsed`): the paper kinds `tacover` and `tagent`, which take none at all, and `review`, whose wash is now the supplied drawing's own FIXED navy ramp — one full-canvas gradient, transparent to y 720 and solid by 1283, emitted from `REV.scrimTop` / `REV.scrimFull` so the story follows. A slider over a fixed ramp is a control with nothing to set. The `listed` card keeps one band behind its wordmark and status — it was briefly removed on the reasoning that they sat on black, but that black was a photograph a bad 4:3 crop had cut away.
-- Property and weekly-listing slides require their own QR code and an 11-digit listing number; export is blocked until both are present. On the **weekly** template the QR is 220x220 with a 6px white quiet-zone ring and 4px corners (centred above the bottom margin on the cover and closing slide, bottom right on the property page) — the `listed` card keeps `tk.qr`'s 250 at r8. The "small rounded rectangle in a bottom CORNER" line in the campaign rules is a campaign rule; organic layouts are template-owned, and these three are drawn.
+- Property and weekly-listing slides require their own QR code and a listing number; export is blocked until both are present. **The eleven-digit rule is the `listed` card's alone now** — by request the weekly property page takes numbers only, as many as the listing has, and its gate asks whether a number is there rather than how long it is. See *THE WEEKLY LISTING NUMBER HAS NO LENGTH RULE*. On the **weekly** template the QR is 220x220 with a 6px white quiet-zone ring and 4px corners (centred above the bottom margin on the cover and closing slide, bottom right on the property page) — the `listed` card keeps `tk.qr`'s 250 at r8. The "small rounded rectangle in a bottom CORNER" line in the campaign rules is a campaign rule; organic layouts are template-owned, and these three are drawn.
 - Top-agent slides need a full-bleed studio portrait each, and the blurb is capped at 40 words. **The cap's stated reason is obsolete twice over** — there is no gold ranking numeral (the brass is the place badge) and the numeral now sits BEHIND the glass panel rather than beside the blurb, so it clears nothing. Keep the number, which is a sensible panel-height rule; the justification is what has expired.
 - Photos are stored at export-grade resolution (up to 2560px on the long side) so a 2160px export stays sharp; feed and story share one photo per slide.
 - Exports write **flat** — one file per slide per size, told apart by a `_3x4` / `_9x16` suffix, not by folders. **The story is only included while its canvas is shown** (the Show story 9:16 toggle in the canvas bar); hidden, only `_3x4` ships. The PDF is **feed pages only**, and always has been.
@@ -10416,3 +10425,185 @@ Sheet integrity unchanged (1 closing style tag, 293/293 comments, depth 0, raw `
 `sc-for` counts identical to the backup); no CSS and no markup changed. The `_PRE` copy was
 removed from the project folder, the server stopped and the test origin's storage cleared.
 Backup at `scratchpad/pre/O8.html`.
+
+
+# THE WEEKLY PROPERTY PAGE, REBUILT TO A SECOND DRAWING: USP CHIPS, A 760 COLUMN, A LIGHT GLASS
+
+Supplied as `property.svg` (1080 x 1440) plus a snippet for the panel's material, one pass
+after the title became a flowing sentence. Three things, all on the `prop` slide kind and
+therefore scoped to weekly by construction. Op census, five templates x every slide x both
+canvases against the pre-pass backup (`scratchpad/pre/O9.html`): **24 groups, 22
+byte-identical, and the only two that differ are `weekly/prop` on the feed and the story.**
+The whole-file diff is 18 hunks and every artwork line in it is inside `WK`, `ART`,
+`propTitle` / `propUsps`, `wkSpecBox`, the `prop` ops branch or the `prop` preview branch.
+
+**THE MARKETING USP IS A ROW OF CHIPS, and the bar is the separator.** The field is typed as
+points separated by `|` — `Marina view | Vacant | Open to offers` — and `propUsps` splits,
+trims, drops empties and upper-cases each; a USP with no bar is one chip. Each chip is the
+weekly cover's own hairline-framed kicker at the drawing's numbers: 48 tall, rx 12, 1px
+`ART.ink` stroke, no fill, 16/500 caps at .1em in `ART.warm`, ~14 of side padding and 20
+between chips, the row centred on the canvas axis. **The label is `tk.eyebrow x (16/24)`,
+not a literal 16**, so the story's 28px eyebrow gives it 18.7 there for free; the chip's box
+is absolute, as the cover chip's 86 is.
+
+**IT IS AN AUTO LAYOUT, which is what the request asked for in those words.** `wkSpecBox`
+lays the chips out left to right and wraps to a new row when the next would cross the
+column, each row centred; the title's first baseline hangs off the LAST row
+(`uspGapBot`), the panel hangs off the title's last line (`panelGap`), and the QR stays
+bottom-anchored. So more points, or a longer title, push everything beneath them down. With
+no USP at all the row collapses and the title takes its old anchor off the wordmark
+(`titleGap`) — an empty item in an auto layout takes no space.
+
+**THE TITLE IS TYPE + LOCATION NOW, and it wraps at 760.** The drawing's title starts
+"Apartment in …" because the USP moved up into the chips, so `propTitle` dropped the USP from
+the sentence. Its text frame is 760 wide at x 160 (`titleMaxW`), where the column had been the
+whole 920 inner width; the request stated the number outright. Measured with the
+screenshot's copy: the feed breaks after "Park", exactly where the drawing breaks.
+
+**EVERY NUMBER LANDED ON THE DRAWING MINUS THE WORDMARK'S OWN 5.2**, which is the one
+consistent shift this file records for every template (`pT + tk.logo * .8` = 122.8 against a
+drawn 128):
+
+| | drawn | ours |
+|---|---|---|
+| chip row top | 221 | **215.8** |
+| chip x / w | 308 / 148 · 476 / 98 · 594 / 178 | 303.7 / 150.9 · 474.7 / 99.6 · 594.3 / 181.9 |
+| chip label baseline below the chip top | 29 | 29.8 |
+| title first baseline | 343.2 | **338.0** |
+| title lead | 57 | 57.1 |
+| panel top | 451.4 | **446.2** |
+| panel h / r | 172 / 28 | 171.8 / 28 |
+
+The chip widths are 2-4 wider than drawn — the tracked-caps width discrepancy this file has
+measured on every export from that tool, in the same direction — so the row is 8 wider and
+its centre is still 540. `panelGap` went 1.348 -> **1.113**: the second drawing puts the
+panel 51.2 below the title's last baseline where the first put it at 62.
+
+**THE PANEL IS A LIGHT GLASS NOW — `ART.lightGlass`, white at .22, over a 50px blur.** The
+snippet: a 757 x 172 rx 28 rect at `fill-opacity="0.22"` with an `feGaussianBlur
+stdDeviation="50"`, which is what a CSS `blur(50px)` means too. It is the one light glass in
+the file — the ranking, listed and review panels are `deepGlass` — and it lives in
+`WK.panelBlur`, not `TA.panelBlur`, because it is a different material. **The hairlines are
+the listed card's, kept from the request before this one:** 1px `hairEdge` outside and 1px
+`hair` between the columns; the drawing's own .33 stroke and .5 dividers are the same values
+the listed card's drawing carried and the user then asked to halve.
+
+**50 IS THE FIRST RADIUS IN USE ABOVE THE CANVAS BLUR'S DOWNSAMPLE THRESHOLD.**
+`q = max(1, round(amount / 24))` is **2** here, so the padded-tile path built for the
+rejected 235 does live work for the first time. Proved rather than assumed: a black/white
+comb painted under the panel and rendered at export scales 1 and 2 reads **sd 0.5 inside
+the panel against sd 63.5 outside**, mean 146, alpha 255 at every sample, canvas 2160 x
+2880 at 2x — the blur paints, blurs, and hands back no blank canvas.
+
+**A LIGHT GLASS PUTS WHITE COPY ON WHATEVER THE PHOTOGRAPH IS, and that is the one thing to
+know before shipping a real page on it.** Measured, white at .22 composited: over black the
+value ink reads **11.7:1** and the `mute` label 7.6; over a mid grey **2.75 / 1.77**; over
+white **1.00 / 1.55**. The material only reads over dark photography — the drawing's designer
+set white text on it, so that is the design's assumption, not a defect introduced here — and
+the top wash stops at the title, so nothing darkens the backdrop behind the panel. If a bright
+listing photo makes the panel unreadable, the levers are the fill's alpha, the ink, or letting
+the wash run under the panel again; none is applied.
+
+**A SCOPE COLLISION TOOK THE ENGINE DOWN AT BOOT, and the console named it.** The chip block
+declared `const colX` for the title column inside `wkSpecBox`, which already declares `colX`
+for the panel's column edges further down — a `SyntaxError: Identifier 'colX' has already
+been declared` that failed the whole logic-class eval, so the shell mounted with no engine
+and the splash never rendered. This is the documented "audit every declaration in the target
+scope" trap in its plainest form; the block's locals are `tcW` / `tcX` / `ccx` now, and the
+function's declared names were listed and checked for repeats before reloading. **Read the
+console first when the engine is missing** — the fiber walk finding `.p-shell` with no
+`logic.eng` is exactly what a failed class eval looks like.
+
+**`upd(fn)` REQUIRES `fn` TO RETURN THE STATE.** A probe wrote `E.upd(x => { x.screen =
+'editor'; })` and nothing happened, silently — `setState(prev => fn(clone))` returned
+`undefined`. Every call site in the file ends `return x;`. Worth knowing before concluding
+a state write is broken.
+
+The guided form's and the rail's USP hint reads *Separate points with | — e.g. Marina view |
+Vacant | Open to offers. Each becomes a chip above the title*; `TPLDEMO.weekly.prop.usp` is
+`Ready to move | Vacant | Sea view` so the template card depicts the row. Preview against
+ops, one coordinate space: chips within 0.4 canvas px on every box, the panel 174 / 446 /
+732 x 172 against 174.2 / 446.2 / 731.6 x 171.8, the title's baselines within 0.6, the
+preview computing `blur(50px)` and `rgba(255,255,255,.22)`. Sheet integrity unchanged
+(1 closing style tag, 293/293 comments, depth 0; `sc-for` +2 for the two chip loops, `sc-if`
+unchanged). The `_PRE` copy was removed, the server stopped, the test origin's storage cleared.
+
+
+# THE WEEKLY LISTING NUMBER HAS NO LENGTH RULE, AND TYPED CAPITALS SURVIVE TITLE CASE
+
+Two small requests on the weekly listings template. Both are input-and-copy rules; **neither
+moves a pixel of existing artwork** — op census over five templates x every slide x both
+canvases, against the pre-change copy served alongside: **24 groups, 24 byte-identical.**
+
+## The eleven-digit rule is gone from the weekly property page
+
+`FIELDS.prop`'s listno went `'req len11 img'` -> **`'req digits img'`**, hint "Exactly 11
+digits" -> "Numbers only". Everything follows from that one flag except the export gate,
+which tested the length **directly** rather than through the flag and needed editing in both
+of its copies (`exportBlockers` and the duplicate inside `renderVals`): it asks whether a
+number is there now, and its message is `<slide> listing number` rather than
+`… (11 digits)`.
+
+**`digits` IS A NEW FLAG RATHER THAN A REUSE OF `num`, and that is not fussiness.** `num`
+permits a decimal point (`/[^\d.]/`), which a listing number must not carry, and — the part
+that would have been invisible — `wantHalf` reads `num` to make a field HALF width, so
+reusing it would silently have paired the listing number with whatever row sat beside it.
+`digits` filters to digits with **no `slice`**, which is the whole difference from `len11`.
+
+**THE `listed` CARD STILL CARRIES `len11`, deliberately.** The request named the weekly
+template, so the Just Sold card keeps "Exactly 11 digits" and its own gate. The two fields
+look identical in the form and now behave differently; that is one flag and two gate lines
+if it should match.
+
+Verified by typing into the real field: `abc 321-852-963-411-234 xyz` stores
+**`321852963411234`** (15 digits, letters and dashes stripped, nothing truncated), twenty
+nines stores twenty, five digits raises no blocker and no red row, an empty field still
+reports *This one is required.* and still blocks export, and the canvas prints the 15-digit
+number under the QR.
+
+## An ALL-CAPS word survives Title Case
+
+The Community / building field is `toTitle`d, so a user who typed capitals got them
+lower-cased. `StudioBase.toTitle` now returns an all-caps word verbatim — see *Title Case
+follows the brand's own copy* for the test and why it is Unicode-safe.
+
+**IT IS IN `StudioBase`, SO IT REACHES EVERY ORGANIC CALL SITE — and exactly zero Campaign
+ones.** Measured rather than assumed: Campaign's document contains **0 occurrences of
+`toTitle(`**, so the shared file changed and that studio cannot have moved; it was booted
+afterwards regardless (286 render keys, 14 ops on the first template). The Organic call sites
+it does reach are the listed card's status and `listedLine`, the property title, the review's
+reviewer and agent name, the ranking card's name and the award's title — every one of them a
+short field the user types, where keeping their capitals is the same right answer.
+
+**AND IT MOVES NOTHING THAT EXISTS TODAY.** Proved by censusing the demo states twice in one
+load, once with the old implementation monkey-patched back: **0 of 24 groups differ.** No
+`TPLDEMO` value is all caps, so the new branch only ever fires on copy somebody types.
+
+| typed | was | now |
+|---|---|---|
+| `PALM JUMEIRAH` | Palm Jumeirah | **PALM JUMEIRAH** |
+| `Blakely Tower, JLT` | Blakely Tower, Jlt | **Blakely Tower, JLT** |
+| `Tower A` | Tower a | **Tower A** |
+| `MBR City` | Mbr City | **MBR City** |
+| `3BR duplex` | 3br Duplex | **3BR Duplex** |
+| `palm jumeirah` · `ready to move villa` · `1361` | unchanged | unchanged |
+
+## A CACHED `studio-base.js` MADE THE EDIT LOOK INERT, and this is the third shape of that trap
+
+The file on disk was correct from the first write, and the page reported the OLD behaviour —
+"PALM JUMEIRAH" still coming back "Palm Jumeirah" — because `studio-base.js` is a
+`<script src>` and the browser served it from cache across reloads. Same class as the
+recorded "the guide `<link>`s its stylesheet, so the iframe serves a CACHED copy", and it
+reads exactly like "the fix did not land".
+
+**The check that settles it in one call:** compare `StudioBase.toTitle.toString()` against the
+bytes on the server (`fetch('/studio-base.js', {cache:'reload'})`). That both diagnoses it and
+refreshes the HTTP cache entry, so the next plain reload runs the new file. **Any pass that
+edits `studio-base.js` has to do this** — the `.dc.html` documents are re-fetched because
+their URL is what you navigate to; the shared script is not.
+
+A probe artefact worth keeping too: a search for "the input whose ancestor mentions *Listing
+number*" walked five parents up and matched the **first** input on the page, because by that
+depth the ancestor holds the whole section's text. It silently drove the Marketing USP field
+and reported the listing number as never changing. **Identify a field by its own row, not by
+an ancestor's text.**
