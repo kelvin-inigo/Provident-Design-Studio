@@ -10351,3 +10351,68 @@ than dismissed.
 - The test origin's `localStorage` was cleared and the viewport reset; `studio-base.js`,
   the image tool and `ui-design-system/` are untouched. `.p-ws*` and `.p-nav2` are app
   markup with no kit rule, so nothing is owed to the library.
+
+
+# THE WEEKLY PROPERTY TITLE IS ONE FLOWING SENTENCE, AND ITS SPEC PANEL IS THE LISTED GLASS
+
+Two requests on `Provident Organic Studio.dc.html`'s weekly property page, both with
+screenshots. "I don't want the text having a line break like this — it should be 1 flowing
+sentence, keep the functionality as it is", and "add the blur container we have on just sold,
+copy also the stroke width and opacity of the dividers and the container stroke".
+
+**THIS PASS CHANGES ARTWORK, by request, and it is scoped to one slide kind.** The whole-file
+diff against the pre-change copy is 8 hunks, and every artwork-marker line in it is inside
+`propTitleWrapped`, the `prop` branch of `buildOps`, the `prop` branch of the preview, or
+`scrimBands`' `prop` case. Op census over five templates x every slide x both canvases:
+**24 groups, 22 byte-identical, and the only two that differ are `weekly/prop` on the feed and
+on the story.**
+
+**THE TITLE WAS TWO LINES WRAPPED SEPARATELY, so the break after "in" was forced.**
+`propLines` returns `[head + ' in', building + ', ' + city]` and `propTitleWrapped` ran each
+through `wrapRuns` on its own — so "Apartment in" ended a line however much room the column
+had. `propTitle(f)` composes the one sentence and `propTitleWrapped` wraps it once; the
+fields, the rail and the guided form are untouched (verified: the rail's inputs still carry
+USP, type, building, city, area and price). `propLines` stays for the two dead `titleL1` /
+`titleL2` render keys, by the standing rule.
+
+**The connector is added whenever a LOCATION follows the head, not only ahead of a building.**
+On two lines a lone city stood as its own line and needed none; in one sentence "Apartment
+Dubai" is wrong and "Apartment in Dubai" is right. That is the one semantic change beyond the
+join, and it only bites on a page with a city and no building.
+
+Measured with the screenshot's copy: the feed wraps to three lines — "Marina-view, Vacant and
+Open to Offers" / "Apartment in Blakely Tower, Park Island, Dubai" / "Marina, Dubai" — the
+story to three different ones, and the preview's six baselines land within **0.4 canvas px**
+of the ops (integer `offsetTop` rounding). Both surfaces read `wkSpecBox`, so they cannot
+disagree.
+
+**THE PANEL IS THE LISTED CARD'S MATERIAL, copied value for value:** a `blur` op at
+`TA.panelBlur` (30) under `ART.deepGlass` (`rgba(26,41,66,.65)`), the container stroke 1px in
+`ART.hairEdge` (.165), the dividers 1px in `ART.hair` (.25) — the same four tokens the listed
+panel and the review card read, so there is still one glass in this file. It was a 1px
+full-white frame with .55 dividers, which is what `Property.svg` draws; the request overrules
+the drawing here. The preview mirrors it with `backdrop-filter: blur(30px)` — a plain px
+length, not `cq()`, per the listed panel's convention — and measured box-for-box: feed
+`174 / 443 / 732 x 172` against the op's `174.2 / 443.3 / 731.6 x 171.8`, dividers at
+306 / 443 / 671 against 306.3 / 442.6 / 671.1; the story likewise. The preview's border
+computes to 2.45 canvas units, the documented device-pixel floor the other two glass panels
+share.
+
+**THE TOP WASH NOW ENDS AT THE TITLE, NOT AT THE PANEL.** The band used to run to the panel's
+bottom plus 20; it runs to the title's last baseline plus 20 now. That is the listed card's
+own rule — a glass surface needs no band of its own, and a wash under it darkens the backdrop
+the blur exists to show, which is exactly what once made the ranking panel read as opaque.
+Note the band's 240px fade-out still reaches under the panel's top (feed: band ends 401, panel
+443–615), so the glass emerges from the wash rather than sitting on clean photograph; the fade
+length is `bandStops`' shared constant and was not touched. One line to revert.
+
+**Measured and flagged, not changed: the spec LABEL on the glass.** `A.mute` at 19px/500 on
+the glass over a pure-white photograph composites to **3.04:1**; the value in `A.ink` is
+4.73 and `A.warm` would be 4.45. Over black they are 11.1 and 17.3. The listed panel's runs
+are all `A.ink`; switching the label would match it and clear AA, but the request named the
+container and the strokes only.
+
+Sheet integrity unchanged (1 closing style tag, 293/293 comments, depth 0, raw `sc-if` /
+`sc-for` counts identical to the backup); no CSS and no markup changed. The `_PRE` copy was
+removed from the project folder, the server stopped and the test origin's storage cleared.
+Backup at `scratchpad/pre/O8.html`.

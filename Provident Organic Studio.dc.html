@@ -5758,10 +5758,26 @@ class OrganicStudio extends StudioBase {
     if (f.city) l2 += (l2 ? ', ' : '') + this.toTitle(f.city);
     return [l1, l2].filter(Boolean);
   }
+  // ONE FLOWING SENTENCE, by request — "Marina-view, Vacant and Open to Offers Apartment in
+  // Blakely Tower, Park Island, Dubai Marina, Dubai" wraps wherever the column says, with no
+  // authored break between the head and the location. `propLines` used to hand the wrapper
+  // two lines and each was wrapped on its own, which forced a break after "in" whatever the
+  // measure. The fields are untouched; only the sentence the canvas draws changed.
+  //
+  // The connector is added whenever a LOCATION follows the head — `propLines` only added
+  // "in" ahead of a BUILDING, because on two lines a city alone stood as its own line and
+  // needed none. In one sentence "Apartment Dubai" is wrong and "Apartment in Dubai" is
+  // right, so the test is "is there any location", not "is there a building".
+  propTitle(f) {
+    const head = [f.usp ? this.toTitle(f.usp) : '', f.ptype ? this.toTitle(f.ptype) : ''].filter(Boolean).join(' ');
+    const loc = [f.building ? this.toTitle(f.building) : '', f.city ? this.toTitle(f.city) : ''].filter(Boolean).join(', ');
+    if (!loc) return head;
+    return head ? head + ' in ' + loc : 'In ' + loc;
+  }
   propTitleWrapped(f, tk, bw) {
-    let lines = [];
-    this.propLines(f).forEach(t => { lines = lines.concat(this.wrapRuns([{ text: t, px: tk.ptitle, weight: 300, fill: OrganicStudio.ART.ink }], bw)); });
-    return lines;
+    const t = this.propTitle(f);
+    if (!t) return [];
+    return this.wrapRuns([{ text: t, px: tk.ptitle, weight: 300, fill: OrganicStudio.ART.ink }], bw);
   }
   // TWO EXPLICIT LINES, and that IS the design rather than a convenience — the same call
   // the agents cover had to make, for the same measured reason. "New Listings Available"
@@ -5902,11 +5918,14 @@ class OrganicStudio extends StudioBase {
       // no scrim — the glass card carries the text
     } else if (sl.kind === 'prop') {
       // Both bands come off `wkSpecBox`, so the wash cannot disagree with the block it is
-      // there to carry. The bottom band stays: the listing number is the quietest run in
-      // the template and it sits on a photograph.
+      // there to carry. The top band ends at the TITLE now, not at the panel: the panel is
+      // the listed card's glass, and that card's own rule is that a glass surface needs no
+      // band of its own — a wash under it only darkens the backdrop the blur exists to show,
+      // which is the very thing that once made the ranking panel read as opaque. The bottom
+      // band stays: the listing number is the quietest run in the template and it sits on a
+      // photograph.
       const K = OrganicStudio.WK, B = this.wkSpecBox(f, tk);
-      bands.push([0, (B.cols.length ? B.y + B.h
-                                    : B.t1 + (B.titleLines.length - 1) * B.lead) + 20]);
+      bands.push([0, B.t1 + (B.titleLines.length - 1) * B.lead + 20]);
       const listnoH = f.listno ? 2 * tk.listno * K.listnoLead + 14 : 0;
       bands.push([H - pB - K.qr - listnoH - 20, H]);
     }
@@ -6742,11 +6761,15 @@ class OrganicStudio extends StudioBase {
                    weight: 300, fill: A.ink, text: t });
       });
       if (B.cols.length) {
-        // the frame at full white and the dividers at .55 — the drawing draws that step
-        // deliberately (no opacity on the frame, `opacity="0.5"` on the splits), so the box
-        // reads and the splits whisper.
-        ops.push({ op: 'rrect', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, stroke: A.ink, sw: 1 });
-        B.divX.forEach(dx => ops.push({ op: 'rect', x: dx, y: B.specY, w: 1, h: B.specH, fill: A.ruleM }));
+        // THE PANEL IS THE LISTED CARD'S GLASS, by request — the same backdrop blur at
+        // `TA.panelBlur` over `deepGlass`, the same 1px `hairEdge` stroke outside and the
+        // same 1px `hair` for the dividers inside, so the two templates' panels are one
+        // material. It was a hairline-only frame at full white with .55 splits, which is what
+        // `Property.svg` draws; the request overrules the drawing here. `backdrop-filter` has
+        // no canvas equivalent, so the blur op precedes the fill and carries its box.
+        ops.push({ op: 'blur', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, amount: OrganicStudio.TA.panelBlur });
+        ops.push({ op: 'rrect', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, fill: A.deepGlass, stroke: A.hairEdge, sw: 1 });
+        B.divX.forEach(dx => ops.push({ op: 'rect', x: dx, y: B.specY, w: 1, h: B.specH, fill: A.hair }));
         B.cols.forEach((c, i) => {
           ops.push({ op: 'text', x: B.colX[i], y: B.specY + B.lpx, px: B.lpx, weight: 500, fill: A.mute, text: (c.l || '').toUpperCase(), ls: B.lpx * .16 });
           ops.push({ op: 'text', x: B.colX[i], y: B.specY + B.lpx + 10 + B.px, px: B.px, weight: 300, fill: A.ink, text: c.v || '' });
@@ -9086,12 +9109,18 @@ class OrganicStudio extends StudioBase {
             width: cq(tk.W), textAlign: 'center', fontWeight: 300, fontSize: cq(tk.ptitle),
             lineHeight: cq(LH(tk.ptitle)), color: A.ink }) }));
         K.wkPanelOn = B.cols.length > 0;
-        // the frame at full white, the splits at .55 — the step the drawing draws
+        // THE LISTED CARD'S GLASS, mirrored — `deepGlass` fill, the 1px `hairEdge` edge and
+        // the backdrop blur at `TA.panelBlur`. The blur is a plain px length and NOT cq():
+        // the box is laid out at true canvas units and shrunk with `zoom`, so 30px here is
+        // 30 canvas units, which is the op's own `amount` — the listed panel's convention.
         K.wkPanelStyle = Object.assign(abs(B.x, B.y), {
-          width: cq(B.w), height: cq(B.h), boxSizing: 'border-box',
-          borderRadius: cq(KW.panelR), border: '1px solid ' + A.ink });
+          width: cq(B.w), height: cq(B.h), boxSizing: 'border-box', pointerEvents: 'none',
+          borderRadius: cq(KW.panelR), background: A.deepGlass, border: '1px solid ' + A.hairEdge,
+          backdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)',
+          WebkitBackdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)' });
+        // the dividers are the listed panel's own `hair` — 1px at .25
         K.wkDivs = B.divX.map(dx => Object.assign(abs(dx, B.specY),
-          { width: '1px', height: cq(B.specH), background: A.ruleM }));
+          { width: '1px', height: cq(B.specH), background: A.hair }));
         // one column per cell at its OWN measured width — the panel hugs, so per-cell
         // widths are the rule here, not the equal columns an edge-to-edge row takes
         K.wkCols = B.cols.map((c, i) => ({
