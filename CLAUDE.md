@@ -10208,3 +10208,82 @@ nothing here reads it.
   **0 elevation shadows.** No console errors.
 - `studio-base.js`, Organic, the image tool and `ui-design-system/` are untouched. The test
   origin's `localStorage` was cleared and the viewport reset.
+
+# THE SECTION HEADS LOST THEIR NUMBERS, AND FOUR CAMPAIGN SURFACES WERE TIDIED
+
+Feedback on the pass above, with six screenshots: "number is not necessary" on the section
+heads, the Background head "doesn't need to have status", and fix/improve on the Hidden
+components block, the all-variants dock, the canvas bar and the top bar's right cluster. All
+chrome — section 25 of `Provident Campaign Studio.dc.html`'s sheet plus markup and render
+keys. **Zero artwork-path lines in the whole-file diff** (22 hunks, 158 added / 44 removed).
+
+**A SECTION HEAD IS A TITLE, AN OPTIONAL QUIET DESCRIPTOR UNDER IT, AND A PILL ONLY WHERE
+THE PILL CAN CHANGE.** The numbered disc is `display:none` and out of the markup. Of the five
+heads, three keep a pill — *This component* (Pick a component / N to fill in / Done),
+*Hidden components* (N hidden / None) and *All variants* (1 to fill in / Done) — and the tick
+moved from the disc into the pill (`.p-shd-tk`, shown on `[data-state="done"]`). *Background
+image* lost its pill by instruction, and *Layout*'s "Optional" went with it: **a pill whose
+text can never change is decoration, not state.** `secBgState` / `secBgNote` /
+`secLayoutNote` are still computed and now unread, by the standing rule about render keys.
+
+**THE DESCRIPTOR WENT UNDER THE TITLE BECAUSE THE HEAD WAS GENUINELY FULL.** "This component"
+(106px) + "Master · 1:1" (61) + the Done pill (62) measured 173 in a 165px title column, so
+the descriptor ellipsised with nothing to spare. It is a second 11.5px line now
+(`.p-shd-t` wraps, `> s` takes `flex:1 0 100%`), which is the guided form's own section-head
+shape; the info tip stays on the title line, and the head is `align-items:flex-start` so the
+pill sits on the title row rather than centred over two lines.
+
+**THE HIDDEN LIST IS ONE FILLED BOX, A ROW PER COMPONENT** — kind in ink over its copy in
+dim, both ellipsised, Show as a small ghost and Delete as a text-only red at the right, the
+full string in the row's `title`. **Beside each other the copy got 33px** of a 237px rail next
+to two text buttons, which is why kind and copy stack. This partly reverses the recorded
+"name-over-buttons is the only layout that survives a long name": the buttons sit beside the
+name now, and the name survives by truncating rather than by wrapping. The empty state is the
+`.p-empty` note, gated on a new `hasHidden` flag — a filled box around nothing is the
+`:empty`-never-matches trap, since DC leaves whitespace text nodes.
+
+**THE DOCK'S TWO TOGGLES ARE PAIRS, AND EACH GROUP RUNS FULL WIDTH.** *Visible | Hidden* and
+*Off | On* as `.p-tabs` over a one-line hint, then the drop row, then the group's own controls
+under it — instead of a toggle and tiles crammed beside a drop that stretched to their height.
+The QR is a fixed 100px square (`.p-drop-sq`) exactly as every other drop is a fixed 4:3, and
+its corner tiles are labelled *Bottom left / Bottom right* and **render only while the code is
+visible** (`qrShowFlag`) — a corner for a code that is not printed is the dead-control defect
+the audit went looking for. Each half has its own setter and flag (`qrSetShow` / `qrSetHide` /
+`qrHiddenOn`, `coSetOn` / `coSetOff` / `coOffOn`); the old `qrToggle` / `coToggle` keys stay.
+**The body is taller for it**, so its cap went `52vh` → `calc(100vh - 196px)` (it clears the
+bar and the pill row) and its scrollbar joined the styled set — it had been the browser
+default, the only scroller in the document that was.
+
+**THE CANVAS BAR IS A 44px TOOLBAR**: name 13/500 ink, the variant count a quiet pill, the
+status a dot-and-word chip at the right — green dot and `Ready` at rest, a dim dot and the
+message otherwise (`cvOkOn` / `cvStatus`; the Share panel keeps the sentence verbatim). The
+`<1200px` rule that pads the bar's bottom for the panel bar is restated in the block, because
+the block's own `padding` shorthand would otherwise have beaten it.
+
+**UNDO AND REDO JOINED THE DELIVERY TRIO'S CAPSULE** (`.p-tgrp.p-tgrp-h`) with the Material
+Rounded `undo` / `redo` glyphs — the bar's icons are all that family at wght300 and the two
+font arrows were the last that were not. Disabled is `opacity:.45` on the cell, 1.4.3-exempt,
+which is what `.p-btn-q` did. The theme toggle is a true 36 × 36 circle (it was 35 × 36 — two
+rules, two values). Share's `▾` is the Material `keyboard_arrow_down`, and it turns 180° while
+the panel is open (`.p-ghost[data-on] .p-chev`).
+
+## Verification
+
+- Sheet: one closing style tag, comments 318/318, brace depth 0, 947 top-level blocks; markup
+  `sc-if` 145/145 and `sc-for` 46/46. Interpolation sweep: 299 refs, 13 unresolved — the
+  documented baseline — and **none newly unresolved**; all 14 new keys resolve.
+- Measured at 1440 × 900: every top-bar control 36 tall (was 29 / 31 / 35 / 36); QR drop
+  100 × 100 with an 88 × 88 slot; the partner-mark and photo drops 140 × 108 with 128 × 96
+  slots; the bar 45 with its border; the hidden row 46; the descriptor line 165 / 288 wide
+  with no truncation.
+- **Contrast, both themes reloaded into, transitions finished, ancestor opacity composited,
+  with a component selected, one hidden, the dock open and the collaboration logo on: dark 0,
+  light 2** — the disabled Redo and the copy-coverage chip's amber at 3.75, both already
+  recorded. **One elevation shadow in both themes: `.p-selctl`, the floating component
+  control** (`0 8px 22px rgba(0,0,0,.45)`), pre-existing and untouched — earlier audits did
+  not catch it because that control is `display:none` until the tick pins it. Flagged, not
+  changed: it floats over artwork, which is the one place a ring cannot be relied on.
+- The test origin's `localStorage` was cleared; `studio-base.js`, Organic, the image tool and
+  `ui-design-system/` are untouched. **Organic's top bar and canvas bar still carry the old
+  Undo/Redo arrows and the baseline-aligned bar** — the top bar is the same markup in both
+  documents, so this is a visible divergence until the same two edits land there.
