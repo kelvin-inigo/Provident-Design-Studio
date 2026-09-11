@@ -10750,3 +10750,95 @@ whether it arrived where you meant, and what it actually hit.
   one is four corner grips and a `ras` multiplier away from matching them.
 - **The `listed` card's own agent still cannot be moved.** She is framed by the same
   `agentPlace` and would take the same treatment; nothing asked for it.
+
+# THE LANDING PAGE IS A STAGE, NOT A LIST — the studios' own renders reel through it
+
+`index.html` at the repo root was redesigned to carry the same language the studios now
+carry (the 55px bar, the 36px pill controls, the ring-not-shadow cards, the 16px radius,
+150ms motion on the kit's curve) and to be interesting rather than a two-card menu. It is
+still the **fourth consumer and the first that is not a mirror** — it `<link>`s
+`ui-design-system/provident-ui.css`, so every colour, radius, motion value and type role on
+it is a token and there is no local palette to keep in step.
+
+## What a card is now
+
+Each studio card is an `<article>` with, top to bottom: a **4:3 stage** on `--ps-stage`
+holding the template render at contain-fit (never cover — a crop hides the layout, which is
+the one thing the preview exists to show); a **filmstrip** of one thumb per template with
+the current one ringed in `--ps-link` and a caption naming it; the title row with the
+studio's own canvas-shape chip (the mark IS the ratio — 1 and .75 from one `--a` variable),
+the name and an arrow pill; then the descriptor, body and the format facts as `.p-tag`s.
+
+**THE STAGE REELS ON HOVER, on the splash's own three numbers.** LEAD .35s before the first
+step, a .45s glide on `var(--ps-ease)`, DWELL 3s on each frame, and it **stops on the last
+frame** exactly as the studios' recents and template cards do — a card you are about to
+click should not keep moving. A thumb click jumps straight to its template and restarts the
+hold. Nothing runs at rest, and `prefers-reduced-motion` stops the reel, the entrance and the
+hover lift. Verified with a REAL pointer hover, not a synthetic event: frame 1 by 700ms,
+frame 2 by 3.9s, parked there 3.6s after the pointer left.
+
+**A STRETCHED LINK, NOT AN `<a>` AROUND THE CARD.** The filmstrip is a row of real
+`<button>`s, and a button inside a link is invalid and would navigate on every click. The
+title's own `<a>` carries an `::after` at `inset:0`, so the whole card is the link; the thumb
+row sits at `z-index:1` above it. Everything else — including the tags — falls UNDER the
+link, deliberately, so the card has exactly one region that does not navigate and it is the
+one with its own job. Verified: `elementFromPoint` at the stage centre and on a tag returns
+the link; on a thumb it returns the button; a real click on a thumb changed the caption and
+`aria-current` and `location.href` did not move.
+
+**THE FOCUS RING GOES ON THE CARD, through `:has()`.** `.lp-link{outline:none}` and
+`.lp-c:has(.lp-link:focus-visible)` takes the 2px `--ps-ink` ring at a 2px offset — a ring
+on a zero-size link whose pseudo does the work would be invisible. Verified with five real
+Tab presses: the title link is focused, `:focus-visible` matches, the card computes
+`solid 2px` ink.
+
+## THE PREVIEWS WERE RECAPTURED AT 2x, AND THE ROUTE IS THE DOCUMENTED ONE
+
+The big stage draws the render at ~302px tall, which is a **1.27x upscale of the 237px
+snapshots** the strip used to carry — visibly soft on a hero surface. All nine were
+recaptured at `.44` (2x each studio's `TPL_SCALE`) through the fiber walk: `.p-shell` ->
+`__reactFiber$…` -> walk `.return` to `stateNode.logic.eng`, wait for `_tplKey`, then
+`E.constructor.qrDemoReady()`, `E.buildOps(state, 0, 'ft'|'sq', assets)`,
+`E.constructor.tplGroundSwap(built, kind, false)` (Organic, light — the branch recorded as
+byte-identical to the export), `E.renderOpsToCanvas(built, .44).toDataURL('image/webp', .86)`,
+POSTed to a 20-line local server that writes `preview/<studio>-<id>.webp`. **Reach the
+class through `E.constructor`, never by name** — `OrganicStudio` is declared inside the
+`text/x-dc` block and is not a global, which cost one round here. Nine files, 475x475 and
+475x633, **97.6KB** total (was 52KB). The `<img>` width/height attributes carry the new
+dimensions so the box keeps taking the file's own intrinsic ratio.
+
+**Bust the cache before believing a recapture.** The page's `<img>`s served the old 237px
+files from the browser cache after the write; `fetch(url, {cache:'reload'})` per file, then
+reload, is what made `naturalWidth` report 475.
+
+## Two things that were wrong in the first cut, both caught by the checks
+
+- **`animation-fill-mode: both` on the card's entrance would have killed the hover lift.**
+  A forward fill keeps the `to` keyframe's `transform:none` applied after the animation
+  ends, and an animation beats every normal declaration, so `.lp-c:hover{transform}` could
+  never win. It is `backwards` — the `from` state during the stagger delay, nothing after.
+- **The tags sat above the stretched link** at `z-index:1`, so clicking a format fact did
+  nothing while clicking the air beside it navigated. Removed; only the filmstrip opts out.
+
+## Verification
+
+Reloaded into each theme, every animation and transition finished first (this pane's
+document timeline is frozen — the card read `translateY(3px)` at `opacity` 1 with
+`document.timeline.currentTime` at 0 until they were), ancestor opacity composited:
+
+| | light | dark |
+|---|---|---|
+| text elements checked / contrast fails | 21 / **0** | 21 / **0** |
+| elevation shadows (offset or blur > 0) | **0** | **0** |
+| horizontal overflow at 1400 / 375 | none / none | — |
+
+At 1400: cards 527 wide, stage 497x340, renders 302 tall, thumbs 34x34 and 26x34,
+`h1` 52px. At 375: `h1` 32px, stage 309x232, thumbs and caption on one 305px row with no
+strip overflow, tags on two rows, the top bar 55 tall and not scrolling. The image `ring`
+(`0 0 0 1px var(--ps-hair)`) is a 0-offset 0-blur state edge, not elevation. The test
+origin's `localStorage` was cleared afterwards and both local servers stopped.
+
+**Not changed:** the studios, `studio-base.js` and `ui-design-system/` — this page consumes
+the kit and touched nothing upstream. The reel's `LEAD` / `DWELL` are restated in this
+page's own script rather than read from `StudioBase.REEL_*`, because the page deliberately
+loads no studio code; if those constants move, this file has two numbers to follow them.
