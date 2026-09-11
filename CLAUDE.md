@@ -10607,3 +10607,146 @@ number*" walked five parents up and matched the **first** input on the page, bec
 depth the ancestor holds the whole section's text. It silently drove the Marketing USP field
 and reported the listing number as never changing. **Identify a field by its own row, not by
 an ancestor's text.**
+
+
+# ONE GLASS FOR EVERY TEMPLATE, A PANEL-COLOUR CONTROL, AND THE REVIEW'S PORTRAIT MOVES
+
+Three requests, with a container SVG supplied for the material. All three are Organic-only;
+`studio-base.js`, Campaign and the image tool are untouched.
+
+## The glass is one material now, from the supplied SVG
+
+`fill="#FFFFFF" fill-opacity="0.22"` inside a 1px `rgba(255,255,255,0.33)` stroke at r28 over
+`feGaussianBlur stdDeviation="14"`. That is now what all five glass panels draw — the listed
+card's footer, the weekly spec box, the ranking card's blurb panel, the ranking cover's bar
+and the review card — where they previously ran **two fills and three blurs** (30 on four of
+them, 50 on the weekly panel after the pass before this).
+
+| | was | now |
+|---|---|---|
+| blur | `TA.panelBlur` 30 · `WK.panelBlur` 50 | **`TA.panelBlur` 14**, and `WK.panelBlur` is DELETED rather than left as a second number that can drift |
+| edge | `hairEdge` .165 | **.33** |
+| fill | `deepGlass` navy .65 (four panels) · `lightGlass` white .22 (weekly) | **the post's choice**, `glassOf(state)` |
+
+**THE .33 EDGE REVERSES THE HALVING THIS FILE RECORDS**, and it is the supplied SVG that
+overrules it: the earlier "halve the hairlines" request took the edge .33 -> .165 and the
+divider .5 -> .25. Only the EDGE moved back; the divider is still .25, so half that
+instruction stands. One token to restore.
+
+## The fill is a project-level choice, and the two do NOT share an alpha
+
+`state.glassFill` is `'white'` (the supplied value, and the default) or `'navy'`, offered as a
+segmented pair in the Look section — so it reaches the guided run's Finish step and the
+All-controls rail from one markup, as every ask does. **Ungated, and that was checked rather
+than assumed:** all five templates draw a panel, so a predicate here would be one that is
+always true, which is the noise the dead-feature audit's own rule warns against.
+
+**NAVY KEEPS ITS OWN .65 AND THAT IS THE ONE DEPARTURE FROM THE SNIPPET.** Measured, white
+copy on each fill:
+
+| backdrop | white .22 | navy .65 | navy at the supplied .22 |
+|---|---|---|---|
+| black | 11.73 | 17.28 | 19.93 |
+| mid grey | 2.75 | 9.35 | 5.19 |
+| **white** | **1.00** | **4.73** | **1.55** |
+
+Giving navy the white's alpha would put four existing templates below the floor this file
+already derived for navy glass (about .515 for large text). One value in `ART` if the literal
+.22 is wanted for both.
+
+**AND THE WHITE GLASS IS A DARK-PHOTOGRAPH MATERIAL, which is worth stating plainly rather
+than burying.** At 1.00:1 over a white backdrop its copy is invisible, and 2.75 over mid grey
+is under AA. That is the supplied design's own assumption, not a defect introduced here — the
+drawing sets white text on it — but a bright listing photo will break a white panel and the
+navy option is the answer.
+
+**THE DEFAULT REACHES EXISTING WORK.** A project saved before this carries no `glassFill` and
+`glassOf` reads that as white, so every saved post moves to the new material rather than only
+new ones — which is what "all templates" asked for. `strip()` does not delete it: it changes
+the artwork, so it belongs in the undo stack, the render key and the saved file.
+
+**`taVariant` AND `taCard` TAKE THE FILL AS AN ARGUMENT, never read `this.state`.** `buildOps`
+works on the state it is handed, and a helper that reaches for the live one silently returns
+the wrong answer for every render driven by another — a recents thumbnail, a template card, a
+session being loaded. `taRank` already records that exact coupling as a bug; this is the same
+shape, avoided rather than repeated.
+
+### The review's template card would have vanished on paper
+
+The review card's skeleton draws on the theme's ground, and in light that ground is paper.
+White at .22 over white paper **is** white, and its .33 white stroke is invisible on it too —
+the card would have disappeared outright and taken its own copy with it. So `tplGroundSwap`
+swaps a white glass to the navy one when the ground is paper; in dark it draws the project's
+own. Preview only, and the same shape as the paper-kinds ground swap beside it. Verified:
+dark ground `#000` with the white glass, light ground `#FFFFFF` with the navy.
+
+## The review's portrait can be dragged
+
+`revAgentPlace(Bx, m, f, tk)` is `agentPlace` plus a stored offset — so the drop, the
+face-framing and the window clip are all unchanged and only the drawn box moves inside the
+window. ONE function, read by `buildOps` and by the preview, so the two cannot place her
+differently. The offset is a fraction of the CANVAS, so one value serves the feed and the
+story, and it is clamped at **±`REV.dragMax` (.5)** AT STORE TIME.
+
+**THE CLAMP IS A HARD SYMMETRIC BOUND, NOT A COVERAGE TEST, and that is deliberate.**
+`agentPlace` covers the window exactly on one axis, so a "keep it covering" clamp would pin
+that axis dead and read as a broken drag. Clamping at store time is what stops an overshoot
+creating a zone where dragging back moves nothing until it has been retraced — the trap
+`clampCentre` records in the image tool and the listed card's pan repeats.
+
+**THE HIT LAYER IS THE AGENT'S WINDOW, not the whole canvas**, so the rest of the card still
+takes a click and still activates the slide — which is where it differs from the listed
+card's full-canvas pan layer. `pointerEvents: 'auto'` is set EXPLICITLY because it sits inside
+`frameStyle`, which is `pointer-events: none` and inherits: that is exactly why the ranking
+cover's five figures once shipped un-draggable while their arithmetic checked out. z 11 clears
+the card, the copy and the portrait, and this kind mounts no image-slot on the canvas, so
+there is no z-index 10 host to beat.
+
+**Reachability proved separately from the handler**, per this file's own rule:
+`document.elementFromPoint` over a 9-point grid inside the layer returns the layer **9 of 9**.
+
+## A PROBE TRAP THAT LOOKED EXACTLY LIKE AN UN-HITTABLE LAYER
+
+Two real `left_click_drag` calls did nothing — no undo entry, no stored value — which is the
+precise signature of the bug the rule above exists to catch, and I was one step from
+recording it as one. It was the probe. Logging every pointer and mouse event at the document
+during a drag showed the events arriving **trusted** and at the wrong place:
+
+```
+asked for (625, 400)   ->   pointerdown@800,512 T  -> target .p-stage
+```
+
+**The Browser pane's screenshot coordinate frame is not the page's CSS pixel space.** Here it
+was a uniform **1.28x** (800/625, 512/400), so a coordinate read out of
+`getBoundingClientRect()` has to be DIVIDED by that factor before it is passed to a click or a
+drag. At (488, 325) the same drag landed on the layer and worked first time.
+
+**Log the events before concluding a layer is unreachable.** `isTrusted` plus the reported
+`clientX/clientY` plus the `target` tells you in one call whether the input arrived at all,
+whether it arrived where you meant, and what it actually hit.
+
+## Verification
+
+- **Op census, five templates x every slide x both canvases: 24 groups, and the 18 that
+  changed are exactly the 18 that carry a glass panel** — listed, weekly's property page, the
+  agents cover and all five ranks, and the review, on both canvases. The 6 identical are
+  weekly's cover and closing slide and the award, which have no panel.
+- Every glass op in both fills: blur **14**, stroke `rgba(255,255,255,.33)` at 1px, r 28, fill
+  following the control. The preview mirrors it — `blur(14px)`, `rgba(26,41,66,0.65)`,
+  border `rgba(255,255,255,0.33)`.
+- **The drag, with a REAL pointer**: `rax` 0.1364 and `ray` 0.075 against a predicted 0.1367 /
+  0.0742 (the residual is the 1.28 coordinate conversion), **exactly one undo entry** for the
+  gesture, and the preview's box at `584 / 108 / 720 x 1440` against the op's
+  `583.8 / 108 / 720 x 1440` — 0.2 canvas px.
+- Interpolation sweep against the backup: 144 refs before and after, 52 unresolved before and
+  after, **none newly unresolved**. Sheet: one closing style tag, 293/293 comments, depth 0.
+- The test origin's `localStorage` was cleared and the `_PRE` copy removed from the project
+  folder.
+
+## Left as a decision, not applied
+
+- **The portrait moves but does not SCALE.** The request was "move/drag"; the listed card's
+  photo and the ranking cover's figures both carry a corner-scale gesture as well, and this
+  one is four corner grips and a `ras` multiplier away from matching them.
+- **The `listed` card's own agent still cannot be moved.** She is framed by the same
+  `agentPlace` and would take the same treatment; nothing asked for it.

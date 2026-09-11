@@ -3350,6 +3350,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             <div style="{{ sl.ft.revReviewerStyle }}">{{ sl.reviewer }}</div>
             <sc-if value="{{ sl.ft.revAgentOn }}" hint-placeholder-val="{{ false }}">
               <div style="{{ sl.ft.revAgentStyle }}"></div>
+              <div onPointerDown="{{ sl.ft.revDragDown }}" style="{{ sl.ft.revDragStyle }}"></div>
             </sc-if>
             <div style="{{ sl.ft.revLogoStyle }}">provident.</div>
             <div style="{{ sl.ft.revNameStyle }}">{{ sl.rAgentName }}</div>
@@ -3513,6 +3514,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             <div style="{{ sl.st.revReviewerStyle }}">{{ sl.reviewer }}</div>
             <sc-if value="{{ sl.st.revAgentOn }}" hint-placeholder-val="{{ false }}">
               <div style="{{ sl.st.revAgentStyle }}"></div>
+              <div onPointerDown="{{ sl.st.revDragDown }}" style="{{ sl.st.revDragStyle }}"></div>
             </sc-if>
             <div style="{{ sl.st.revLogoStyle }}">provident.</div>
             <div style="{{ sl.st.revNameStyle }}">{{ sl.rAgentName }}</div>
@@ -3666,6 +3668,11 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 </div>
               </sc-if>
 
+              <sc-if value="{{ a.isGlass }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <s class="gd-hint">{{ a.glassHint }}</s>
+              </sc-if>
+
               <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-segs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <span class="gd-hint">{{ a.storyHint }}</span>
@@ -3726,7 +3733,8 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   </div>
                   <div class="gd-qrow-t">
                     <s>{{ a.portraitLabel }}</s>
-                    <s>A PNG cut-out on a transparent background. The face is found and framed for you, so any crop works.</s>
+                    <s>A PNG cut-out on a transparent background. The face is found and framed for you, so any crop works. Drag her on the card to move her.</s>
+                    <sc-if value="{{ a.raResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.raReset }}" class="gd-link">Reset photo position</button></sc-if>
                   </div>
                 </div>
               </sc-if>
@@ -3974,6 +3982,10 @@ class OrganicStudio extends StudioBase {
     // 50px backdrop blur (`WK.panelBlur`). It is the one LIGHT glass in the file — the
     // ranking, listed and review panels are `deepGlass` — and it keeps those panels' own
     // hairlines (`hairEdge` outside, `hair` between the columns), by the earlier request.
+    // THE DEFAULT FILL FOR EVERY GLASS PANEL IN THE FILE, from the supplied container SVG:
+    // `fill="#FFFFFF" fill-opacity="0.22"`. `deepGlass` above is the other half of the pair
+    // the Panel colour control offers, and it keeps its own measured .65 rather than taking
+    // this .22 — see `glassOf` for why one alpha cannot serve both hues.
     lightGlass: 'rgba(255,255,255,.22)',
     warm: '#FAF8F4',                                   // the role and the badge's label
     // THE RANKING PANEL'S TWO HAIRLINES, and both are panel-only — one call site each, so
@@ -3985,7 +3997,11 @@ class OrganicStudio extends StudioBase {
     // Both halved by request: the divider .5 -> .25 and the external stroke .33 -> .165.
     // "Reduce to 50%" read as HALVE rather than as set-to-.5, because set-to-.5 would have
     // raised the stroke and left the divider untouched — neither of which is a reduction.
-    hair: 'rgba(255,255,255,.25)', hairEdge: 'rgba(255,255,255,.165)',
+    // `hairEdge` IS .33 AGAIN, and that reverses the halving this file records two notes
+    // below. The supplied container SVG states `stroke="rgba(255,255,255,0.33)"` outright and
+    // it is the newest explicit instruction, so it wins; the halving's own reasoning is kept
+    // under it because the divider's .25 is still halved and only the EDGE moved back.
+    hair: 'rgba(255,255,255,.25)', hairEdge: 'rgba(255,255,255,.33)',
     // THE LISTED PANEL TAKES THE RANKING PANEL'S OWN HAIRLINES, by request — `hairEdge`
     // (.165) outside and `hair` (.25) for the divider inside. The drawing states .33 and .5;
     // both read too loud beside the ranking card, and matching that card is the point of
@@ -4079,9 +4095,6 @@ class OrganicStudio extends StudioBase {
     panelGap: 1.113,     // title's last baseline -> the spec panel's top, in ptitle — 51.2 on
                          // the second drawing; the first drawing had 62 (1.348)
     panelR: 28, panelPad: 50, panelPadV: 51, colGap: 80,
-    panelBlur: 50,       // the supplied snippet's feGaussianBlur stdDeviation, which is what a
-                         // CSS blur(Npx) means too. NOT `TA.panelBlur` — this panel is a
-                         // different material, see `ART.lightGlass`
     listnoLead: 1.21     // 23 at 19
   };
   // Both weekly headlines are template-owned fixed text, so the line break is AUTHORED.
@@ -4093,6 +4106,27 @@ class OrganicStudio extends StudioBase {
   // (`scrimUsed` is what actually gates the control) — but the table is more useful as a
   // complete list of the kinds than as a list of the ones that happen to read it.
   static SCRIMD = { listed: 75, cover: 80, prop: 85, cta: 75, review: 70, tacover: 80, tagent: 85, award: 80 };
+  // ══ ONE GLASS, EVERY TEMPLATE, AND THE POST PICKS ITS COLOUR ═══════════════════════
+  // By request, with a container SVG: white at .22 over a 14px backdrop blur inside a 1px
+  // rgba(255,255,255,.33) stroke at r28. That is now the material of all five glass panels —
+  // the listed card's footer, the ranking card's blurb panel, the ranking cover's bar, the
+  // weekly spec panel and the review card — where they previously ran three different
+  // blurs (30 / 50) and two fills. `TA.panelBlur` is the single blur; `WK.panelBlur` is
+  // deleted rather than left as a second number that can drift.
+  //
+  // THE TWO FILLS DO NOT SHARE AN ALPHA, and that is the one place this departs from the
+  // snippet. White at .22 is the supplied value. Navy at .22 measures 1.6:1 for white copy
+  // over a bright photograph — unreadable — where `deepGlass`'s .65 is the floor this file
+  // already derived for exactly this panel ("the most transparent it can be while its own
+  // copy stays legible", about .515 for large text). Giving navy the white's alpha would
+  // take four existing templates below their own recorded floor. One value in `ART` if the
+  // literal .22 is wanted for both.
+  //
+  // The fill is PROJECT level: one post is one material, and every template carries a panel,
+  // so there is nothing to gate the control on.
+  static glassOf(state) {
+    return (state && state.glassFill === 'navy') ? OrganicStudio.ART.deepGlass : OrganicStudio.ART.lightGlass;
+  }
   // ══ THE GROUND TEXTURE ══════════════════════════════════════════════════════════════
   // A soft-focus studio light on a wall, laid over the portrait at 30% in LUMINOSITY. The
   // blend is the point, not the opacity: luminosity keeps only the texture's own light and
@@ -4364,6 +4398,13 @@ class OrganicStudio extends StudioBase {
     // two cards frame a face by one rule: `agentPlace` covers the box and then puts the
     // crown on that mark, clamped.
     photoL: .475, headTop: .04,
+    // HOW FAR THE PORTRAIT CAN BE DRAGGED, as a fraction of the canvas on each axis. A hard
+    // symmetric bound rather than a coverage test: `agentPlace` covers the window exactly on
+    // one axis, so a "keep it covering" clamp would pin that axis dead and read as a broken
+    // drag. Clamped AT STORE TIME, which is what stops an overshoot creating a zone where
+    // dragging back moves nothing until it has been retraced — the trap `clampCentre`
+    // records in the image tool and the listed card's own pan repeats.
+    dragMax: .5,
     scrimTop: .5,       // x H -> 720, where the navy band begins
     scrimFull: .891     // x H -> 1283, where it reaches solid navy
   };
@@ -4506,7 +4547,11 @@ class OrganicStudio extends StudioBase {
                          // from the team, and .14 splits them inside the +-10px a screenshot
                          // edge is worth at this scale — and it is the brand's own
                          // tracked-caps value, derived the same way for the listed status.
-    panelBlur: 30     // RANKING CARD ONLY. The listed card's footer panel, its date chip
+    // THE ONE GLASS BLUR, for every template — 14, the supplied SVG's own
+    // `feGaussianBlur stdDeviation`, which is what a CSS `blur(Npx)` means too. It was 30
+    // here and 50 on the weekly panel, so the cards did not read as one material; the name
+    // stays `TA.panelBlur` because four of the five sites already read it.
+    panelBlur: 14    // (was: RANKING CARD ONLY. The listed card's footer panel, its date chip
                       // and the review card carry their own hardcoded `amount:` literals
                       // (16 / 10 / 16), so this token reaches this panel and nothing else.
                       // 30 is roughly double the house value: enough that the portrait
@@ -4693,6 +4738,12 @@ class OrganicStudio extends StudioBase {
         // must not flip — `gnd` is the named flag that tells two identical whites apart.
         // The `kind === 'award'` half of this test is what keeps that card byte-identical.
         else if (!dark && o.fill === A.ink && (kind === 'award' || o.gnd)) o.fill = A.deep;
+        // AND THE CARD'S OWN GLASS HAS TO SURVIVE THE PAPER GROUND. White at .22 over white
+        // paper IS white, and its .33 white stroke is invisible on it too — the card would
+        // disappear outright and take its own copy with it. So on paper the skeleton draws
+        // the navy glass whatever the project chose; in dark it draws the project's own.
+        // Preview only, and the same shape as the paper-kinds ground swap above it.
+        else if (!dark && o.op === 'rrect' && o.fill === A.lightGlass) o.fill = A.deepGlass;
       });
       return built;
     }
@@ -4923,6 +4974,12 @@ class OrganicStudio extends StudioBase {
       teams: ['Primary Sales', 'Secondary Sales'],
       activeSi: 0, exportStatus: '', screen: 'splash', tpl: 'weekly',
       qr: { show: true, corner: 'right' },
+      // WHITE, matching the supplied container SVG. A project saved before this carries no
+      // value and `glassOf` reads that as white too, so the change reaches existing work
+      // rather than only new posts — which is what "all templates" asked for. `strip` does
+      // NOT delete it: it changes the artwork, so it belongs in the undo stack, the render
+      // key and the saved project.
+      glassFill: 'white',
       agent: { name: '', role: '' },
       agent2: { name: '', role: '' }, agent2On: false,
       slides: OrganicStudio.tplSlides('weekly')
@@ -5648,6 +5705,21 @@ class OrganicStudio extends StudioBase {
     y = Math.max(B.agentTop + B.agentH - (ink.y + ih) * dh, y);
     return { x, y, w: dw, h: dh, clip };
   }
+  // THE REVIEW'S PORTRAIT CAN BE MOVED, by request. `agentPlace` still frames her on her
+  // face and still hands back the window as the clip, so the drop, the framing and the crop
+  // are all unchanged; this only offsets the drawn box inside that window. ONE function,
+  // read by `buildOps` and by the preview, so the two cannot place her differently — the
+  // rule every geometry source in this file follows.
+  //
+  // The offset is a fraction of the CANVAS, so one stored value serves the feed and the
+  // story, which is the same reason the cover's group figures store fractions.
+  revAgentPlace(Bx, m, f, tk) {
+    const p = this.agentPlace(Bx, m);
+    const M = OrganicStudio.REV.dragMax;
+    const cl = v => Math.max(-M, Math.min(M, v || 0));
+    return { x: p.x + cl(f && f.rax) * tk.W, y: p.y + cl(f && f.ray) * tk.H,
+             w: p.w, h: p.h, clip: p.clip };
+  }
   // Greedy wrap of ONE plain run, measured with its own tracking — wrapRuns measures at
   // ls 0, which breaks a tracked-caps line (the agent's role) at the wrong word. Past
   // `max` lines the tail is folded back into the last one and ellipsised, so the panel's
@@ -6015,7 +6087,7 @@ class OrganicStudio extends StudioBase {
     return { l1: 'Top Agents', l2, text: 'Top Agents ' + l2, serif: '' };
   }
   // period-driven design variants for the agent card
-  taVariant(period) {
+  taVariant(period, fill) {
     // THE PANEL IS GLASS, AND THE BLUR IS NOT A SEPARATE FEATURE FROM THE FILL. Reading the
     // supplied SVG's flat #1a2942 literally is what silently dropped the blur: a
     // backdrop-filter under an OPAQUE fill has no visible effect whatever, so there was
@@ -6030,8 +6102,12 @@ class OrganicStudio extends StudioBase {
     //
     // This is a deliberate departure from the supplied file. Setting `fill` back to
     // ART.deep reverts it — and takes the blur with it, which is the whole point.
+    // `fill` IS PASSED IN, never read off `this.state`: `buildOps` works on the state it was
+    // handed, and a helper that reaches for the live one silently returns the wrong answer
+    // for every render driven by another — a recents thumbnail, a template card, a session
+    // being loaded. `taRank` already records that exact coupling as a bug.
     return { key: period || 'Monthly', radius: OrganicStudio.TA.panelR, badge: 'plain', topBar: false, keyline: false,
-             fill: OrganicStudio.ART.deepGlass, stroke: OrganicStudio.ART.hairEdge,
+             fill: fill || OrganicStudio.ART.lightGlass, stroke: OrganicStudio.ART.hairEdge,
              blur: OrganicStudio.TA.panelBlur };
   }
   // ── THE COVER'S GROUP, in PAINT ORDER, each with the box it draws at. ONE function, read
@@ -6167,7 +6243,7 @@ class OrganicStudio extends StudioBase {
   // IT IS NOT DRAWN IN BRASS. Two strings in the template picker described it that way and
   // were stale against a binding rule — that colour is gone from canvas output entirely.
   // It takes the neutral cream the rest of the artwork uses, and both strings are fixed.
-  taCard(f, tk, period) {
+  taCard(f, tk, period, fill) {
     const T = OrganicStudio.TA, A = OrganicStudio.ART;
     const innerW = tk.W - tk.pad[1] - tk.pad[3];
     const P = OrganicStudio.PXT.ft, pk = innerW / (P.W - P.pad[1] - P.pad[3]);
@@ -6193,7 +6269,7 @@ class OrganicStudio extends StudioBase {
     const badgeH = T.badgeH * pk, badgeMid = (yName + yRole) / 2;
     return { pad, contentW, pk, bpx, npx, rpx, lead, bl, yB0, blurbH, yRule, yName, yRole, h,
              badgeH, badgeMid, badgeTop: badgeMid - badgeH / 2, badgeR: T.badgeR * pk,
-             badgePadX: T.badgePadX * pk, v: this.taVariant(period) };
+             badgePadX: T.badgePadX * pk, v: this.taVariant(period, fill) };
   }
   // '1st' … '5th', and its badge label. Derived from position like taRank, never authored.
   taOrd(si, st) { const r = this.taRank(si, st); return r ? (OrganicStudio.TA_ORD[+r - 1] || '') : ''; }
@@ -6426,7 +6502,7 @@ class OrganicStudio extends StudioBase {
       if (B.cardH) {
         ops.push({ op: 'blur', x: B.cardX, y: B.cardY, w: B.cardW, h: B.cardH, r: L.cardR, amount: OrganicStudio.TA.panelBlur });
         ops.push({ op: 'rrect', x: B.cardX, y: B.cardY, w: B.cardW, h: B.cardH, r: L.cardR,
-          fill: A.deepGlass, stroke: A.hairEdge, sw: 1 });
+          fill: OrganicStudio.glassOf(state), stroke: A.hairEdge, sw: 1 });
         // 4 — a row is its wrapped lines, each on its own baseline off the row's own y. The
         // column stops before the agent with `colGap` of padding, so long copy breaks
         // instead of running under her and the panel takes the height by growing UPWARD.
@@ -6553,7 +6629,7 @@ class OrganicStudio extends StudioBase {
       // five ranking panels do, so the cover cannot drift from them: brand navy at .65 over
       // its own backdrop blur with a hairline edge. It stands ON the bottom margin, which is
       // what puts its floor where the reference draws it.
-      const v = this.taVariant(this.taPeriodOf(state));
+      const v = this.taVariant(this.taPeriodOf(state), OrganicStudio.glassOf(state));
       const P = OrganicStudio.PXT.ft, bk = innerW / (P.W - P.pad[1] - P.pad[3]);
       const barH = T.coverBarH * bk, barY = H - pB - barH, barR = T.panelR * bk, barPad = T.pad * bk;
       ops.push({ op: 'blur', x: pL, y: barY, w: innerW, h: barH, r: barR, amount: v.blur });
@@ -6628,7 +6704,7 @@ class OrganicStudio extends StudioBase {
       // same `Math.max` cover `background-size: cover` does in the preview.
       pushTex();
 
-      const c = this.taCard(f, tk, this.taPeriodOf(state)), v = c.v;
+      const c = this.taCard(f, tk, this.taPeriodOf(state), OrganicStudio.glassOf(state)), v = c.v;
       const cy = H - pB - c.h;
 
       // ── THE ORDINAL, the design's dominant element: the supplied vector numeral, fitted
@@ -6839,8 +6915,8 @@ class OrganicStudio extends StudioBase {
         // hairline-only frame at full white, which is what the first `Property.svg` drew.
         // `backdrop-filter` has no canvas equivalent, so the blur op precedes the fill and
         // carries its box.
-        ops.push({ op: 'blur', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, amount: K.panelBlur });
-        ops.push({ op: 'rrect', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, fill: A.lightGlass, stroke: A.hairEdge, sw: 1 });
+        ops.push({ op: 'blur', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, amount: OrganicStudio.TA.panelBlur });
+        ops.push({ op: 'rrect', x: B.x, y: B.y, w: B.w, h: B.h, r: K.panelR, fill: OrganicStudio.glassOf(state), stroke: A.hairEdge, sw: 1 });
         B.divX.forEach(dx => ops.push({ op: 'rect', x: dx, y: B.specY, w: 1, h: B.specH, fill: A.hair }));
         B.cols.forEach((c, i) => {
           ops.push({ op: 'text', x: B.colX[i], y: B.specY + B.lpx, px: B.lpx, weight: 500, fill: A.mute, text: (c.l || '').toUpperCase(), ls: B.lpx * .16 });
@@ -6889,7 +6965,7 @@ class OrganicStudio extends StudioBase {
       // panel and the listed panel already carry. The drawing states an OPAQUE #1a2942 with
       // a .33 stroke; reading that literally is what silently dropped the blur on the
       // ranking card, and there is one glass panel edge in this file.
-      ops.push({ op: 'rrect', x: Bx.x, y: Bx.y, w: Bx.w, h: Bx.h, r: R.cardR, fill: A.deepGlass, stroke: A.hairEdge, sw: 1 });
+      ops.push({ op: 'rrect', x: Bx.x, y: Bx.y, w: Bx.w, h: Bx.h, r: R.cardR, fill: OrganicStudio.glassOf(state), stroke: A.hairEdge, sw: 1 });
       // FIVE STARS FITTED TO THE DRAWN ROW BY SOLVING THE TRACKING. `meas` reserves one unit
       // per character including the last, so the ink of an n-character run is natural +
       // (n-1)*ls — hence `(starW - natural) / (n-1)`. At the measured 30px that comes out at
@@ -6913,8 +6989,8 @@ class OrganicStudio extends StudioBase {
       // arrives large. One rule beats two.
       const rag = assets['ragent' + si];
       if (rag && rag.img) {
-        const p = this.agentPlace(Bx, { head: rag.head, ink: rag.ink,
-          aspect: (rag.img.naturalWidth || 1) / (rag.img.naturalHeight || 1) });
+        const p = this.revAgentPlace(Bx, { head: rag.head, ink: rag.ink,
+          aspect: (rag.img.naturalWidth || 1) / (rag.img.naturalHeight || 1) }, f, tk);
         ops.push({ op: 'image', img: rag.img, url: rag.u, x: p.x, y: p.y, w: p.w, h: p.h, clip: p.clip });
       }
       // The identity block, bottom-left on the ground. Tracked caps at 500 for the role is
@@ -7569,6 +7645,11 @@ class OrganicStudio extends StudioBase {
     const fin = [];
     if (this.scrimUsed(s)) fin.push({ sec: 'look', kind: 'scrim' });
     if (this.imgOUsed(s)) fin.push({ sec: 'look', kind: 'imgo' });
+    // UNGATED, and that is checked rather than assumed: every one of the five templates
+    // draws a glass panel (the listed footer, the weekly spec box, the ranking blurb panel,
+    // the ranking cover's bar, the review card), so a predicate here would be one that is
+    // always true — the noise the dead-feature audit's own rule warns about.
+    fin.push({ sec: 'look', kind: 'glass' });
     fin.push({ sec: 'look', kind: 'story' });
     fin.push({ sec: 'save', kind: 'name' }, { sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
     // the steps: every slide that asked for something, in slide order, then Finish
@@ -7685,6 +7766,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'qr') return 'QR code';
     if (ask.kind === 'scrim') return 'How strong should the wash behind the text be?';
     if (ask.kind === 'imgo') return 'How strong should the photo itself be?';
+    if (ask.kind === 'glass') return 'What colour should the panels be?';
     if (ask.kind === 'dest') return 'Where should the files be saved?';
     if (ask.kind === 'export') return 'Ready to export';
     if (ask.kind === 'pages') return this.gdPageKind() === 'review'
@@ -7723,6 +7805,7 @@ class OrganicStudio extends StudioBase {
     v.isGrp = ask.kind === 'grp';
     v.isAlogo = ask.kind === 'alogo';
     v.isStory = ask.kind === 'story';
+    v.isGlass = ask.kind === 'glass';
     v.isName = ask.kind === 'name';
     if (v.isPx && sl) {
       v.pxOn = sl.fg ? '1' : undefined;
@@ -7738,6 +7821,15 @@ class OrganicStudio extends StudioBase {
     if (v.isAlogo) {
       v.alogoDone = filled['smp-alogo'] ? '1' : undefined;
       v.alogoLabel = filled['smp-alogo'] ? 'Mark added — click to replace' : 'Drop the partner’s SVG or PNG, or click to choose';
+    }
+    if (v.isGlass) {
+      // The two fills the request names, and they do not share an alpha — see `glassOf`.
+      v.glassOpts = [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1],
+        on: ((s.glassFill === 'navy' ? 'navy' : 'white') === o[0]) ? '1' : undefined,
+        set: () => this.upd(x => { x.glassFill = o[0]; return x; }) }));
+      v.glassHint = s.glassFill === 'navy'
+        ? 'Brand navy at 65%, over the same blur. Reads on a bright photograph where the white does not.'
+        : 'White at 22%, over the same blur. Made for a dark photograph — on a bright one the copy on it will not read.';
     }
     if (v.isStory) {
       v.storyOpts = ['Feed only', 'Feed + story'].map((lab, k) => ({ label: lab, on: (!!s.storyOn === (k === 1)) ? '1' : undefined,
@@ -7781,6 +7873,11 @@ class OrganicStudio extends StudioBase {
       v.portraitSlot = ask.slot || 'smp-none';
       v.portraitDone = filled[v.portraitSlot] ? '1' : undefined;
       v.portraitLabel = filled[v.portraitSlot] ? 'Photo added — click to replace' : 'Drop a headshot, or click to choose';
+      // Offered only once she has actually been moved. A reset that resets nothing is the
+      // purposeless control the dead-feature audit went looking for.
+      const psl = (this.state.slides || [])[ask.si];
+      v.raResetOn = (psl && psl.kind === 'review' && psl.f && (psl.f.rax || psl.f.ray)) ? '1' : undefined;
+      v.raReset = () => this.upd(x => { const t = x.slides[ask.si]; if (t && t.f) { delete t.f.rax; delete t.f.ray; } return x; });
     }
     if (v.isProj) {
       v.projVal = this.gdProjGet(ask.pk);
@@ -7945,6 +8042,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'proj' || ask.kind === 'portrait') return ask.label || '';
     if (ask.kind === 'scrim') return 'Wash strength';
     if (ask.kind === 'imgo') return 'Photo strength';
+    if (ask.kind === 'glass') return 'Panel colour';
     if (ask.kind === 'dest') return 'Where to save';
     if (ask.kind === 'export') return 'Export';
     if (ask.kind === 'photo') return 'Background picture';
@@ -8008,7 +8106,7 @@ class OrganicStudio extends StudioBase {
   gdAskIssue(ask) {
     if (!ask) return '';
     // Refinement is a judgement, never a requirement. Export reports the whole gate.
-    if (ask.kind === 'scrim' || ask.kind === 'imgo') return '';
+    if (ask.kind === 'scrim' || ask.kind === 'imgo' || ask.kind === 'glass') return '';
     if (ask.kind === 'agent2' || ask.kind === 'pages') return '';
     if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name') return '';
     // A portrait is asked for but not gated: a listed card still reads without one, and
@@ -8477,6 +8575,7 @@ class OrganicStudio extends StudioBase {
         revReviewerStyle: { display: 'none' }, revLogoStyle: { display: 'none' },
         revNameStyle: { display: 'none' }, revRoleStyle: { display: 'none' },
         revAgentOn: false, revAgentStyle: { display: 'none' },
+        revDragStyle: { display: 'none' }, revDragDown: () => {},
         // Declared for EVERY kind: a render key only some kinds set falls back to the
         // browser default, which is how an unstyled layer gets onto a canvas.
         lPhotoOn: false, lPhotoStyle: { display: 'none' }, lPanOn: undefined,
@@ -8662,7 +8761,7 @@ class OrganicStudio extends StudioBase {
         // ranking panel and the listed chip already use.
         K.lCardStyle = { position: 'absolute', left: cq(B.cardX), top: cq(B.cardY), width: cq(B.cardW),
           height: cq(B.cardH), boxSizing: 'border-box', pointerEvents: 'none',
-          background: A.deepGlass, border: '1px solid ' + A.hairEdge, borderRadius: cq(R.cardR),
+          background: OrganicStudio.glassOf(s), border: '1px solid ' + A.hairEdge, borderRadius: cq(R.cardR),
           backdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)',
           WebkitBackdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)' };
         // A row is its wrapped LINES, one absolute box each — the ops place every line
@@ -8943,7 +9042,7 @@ class OrganicStudio extends StudioBase {
         K.taHeadStyle = Object.assign(abs(0, hb1 - bIn(hpx, hlead)),
           { width: cq(tk.W), textAlign: 'center', fontWeight: 300, fontSize: cq(hpx),
             lineHeight: cq(hlead), color: A.deep, zIndex: 1, pointerEvents: 'none' });
-        const v = this.taVariant(this.taPeriodOf(s));
+        const v = this.taVariant(this.taPeriodOf(s), OrganicStudio.glassOf(s));
         const P = OrganicStudio.PXT.ft, bk = innerW2 / (P.W - P.pad[1] - P.pad[3]);
         const barH = T.coverBarH * bk, barY = tk.H - pB - barH, barPad = T.pad * bk;
         const bpx = tk.eyebrow;
@@ -9098,7 +9197,7 @@ class OrganicStudio extends StudioBase {
         })) : [];
       } else if (kind === 'tagent') {
         const T = OrganicStudio.TA, A = OrganicStudio.ART;
-        const c = this.taCard(f, tk, this.taPeriodOf(s)), v = c.v;
+        const c = this.taCard(f, tk, this.taPeriodOf(s), OrganicStudio.glassOf(s)), v = c.v;
         const innerW2 = tk.W - pR - pL, cy = tk.H - pB - c.h;
         // ABSOLUTELY POSITIONED, off the same offsets buildOps draws from, so the two cannot
         // accumulate different stacks. The frame is `position:absolute; inset:0`, so an
@@ -9200,9 +9299,9 @@ class OrganicStudio extends StudioBase {
         // canvas units, which is the op's own `amount` — the listed panel's convention.
         K.wkPanelStyle = Object.assign(abs(B.x, B.y), {
           width: cq(B.w), height: cq(B.h), boxSizing: 'border-box', pointerEvents: 'none',
-          borderRadius: cq(KW.panelR), background: A.lightGlass, border: '1px solid ' + A.hairEdge,
-          backdropFilter: 'blur(' + KW.panelBlur + 'px)',
-          WebkitBackdropFilter: 'blur(' + KW.panelBlur + 'px)' });
+          borderRadius: cq(KW.panelR), background: OrganicStudio.glassOf(s), border: '1px solid ' + A.hairEdge,
+          backdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)',
+          WebkitBackdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)' });
         // the dividers are the listed panel's own `hair` — 1px at .25
         K.wkDivs = B.divX.map(dx => Object.assign(abs(dx, B.specY),
           { width: '1px', height: cq(B.specH), background: A.hair }));
@@ -9252,7 +9351,7 @@ class OrganicStudio extends StudioBase {
         // and shrunk with `zoom`, so 30px here is 30 canvas units — the op's own `amount`.
         K.revCardStyle = { position: 'absolute', left: cq(Bx.x), top: cq(Bx.y),
           width: cq(Bx.w), height: cq(Bx.h), boxSizing: 'border-box', pointerEvents: 'none',
-          background: A2.deepGlass, border: '1px solid ' + A2.hairEdge, borderRadius: cq(R.cardR),
+          background: OrganicStudio.glassOf(s), border: '1px solid ' + A2.hairEdge, borderRadius: cq(R.cardR),
           backdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)',
           WebkitBackdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)' };
         // The same solved tracking the op uses, so the row's ink lands on 182 on both sides.
@@ -9276,7 +9375,7 @@ class OrganicStudio extends StudioBase {
         const rv = this._assetView && this._assetView.ragent && this._assetView.ragent[si];
         K.revAgentOn = !!(rv && rv.u);
         if (K.revAgentOn) {
-          const p = this.agentPlace(Bx, rv);
+          const p = this.revAgentPlace(Bx, rv, f, tk);
           const ins = [Math.max(0, p.clip.y - p.y), Math.max(0, (p.x + p.w) - (p.clip.x + p.clip.w)),
             Math.max(0, (p.y + p.h) - (p.clip.y + p.clip.h)), Math.max(0, p.clip.x - p.x)];
           K.revAgentStyle = { position: 'absolute', left: cq(p.x), top: cq(p.y),
@@ -9284,6 +9383,55 @@ class OrganicStudio extends StudioBase {
             clipPath: 'inset(' + ins.map(n => cq(n)).join(' ') + ')',
             backgroundImage: `url("${rv.u}")`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' };
         } else K.revAgentStyle = { display: 'none' };
+        // ── DRAG HER. The layer is the agent's WINDOW, not the whole canvas, so the rest of
+        // the card still takes a click and still activates the slide. `pointerEvents: auto`
+        // is set EXPLICITLY because this sits inside `frameStyle`, which is
+        // `pointer-events: none` and inherits — the exact reason the ranking cover's five
+        // figures shipped un-draggable while their arithmetic checked out. z 11 clears the
+        // card, the copy and the portrait; nothing on this kind mounts an image-slot on the
+        // canvas, so there is no z-index 10 host to beat.
+        K.revDragStyle = { position: 'absolute', left: cq(Bx.agentLeft), top: cq(Bx.agentTop),
+          width: cq(Bx.agentW), height: cq(Bx.agentH), zIndex: 11,
+          cursor: K.revAgentOn ? 'move' : 'default',
+          pointerEvents: K.revAgentOn ? 'auto' : 'none' };
+        K.revDragDown = e => {
+          if (!K.revAgentOn) return;
+          e.stopPropagation(); e.preventDefault();
+          // px-per-canvas-unit off the LAYER's own rect. The canvas box is shrunk with
+          // `zoom`, so a rect is real CSS px while `Bx.agentW` is canvas units; dividing is
+          // what keeps the drag 1:1 with the pointer at any preview size.
+          const rr = e.currentTarget.getBoundingClientRect();
+          const perX = Math.max(1e-6, rr.width / Bx.agentW), perY = Math.max(1e-6, rr.height / Bx.agentH);
+          const sx = e.clientX, sy = e.clientY;
+          const M = OrganicStudio.REV.dragMax;
+          const f0 = { x: (f.rax || 0), y: (f.ray || 0) };
+          const cl = v => Math.max(-M, Math.min(M, v));
+          // ONE undo entry for the whole gesture: the move writes through raw setState and
+          // the release commits. `_undoStack` is 5 deep, so a per-frame push would erase
+          // real history — the rule the listed pan and the group figures both follow.
+          const pre = JSON.parse(JSON.stringify(this.state));
+          const mv = ev => {
+            const d = { rax: +cl(f0.x + (ev.clientX - sx) / perX / tk.W).toFixed(4),
+                        ray: +cl(f0.y + (ev.clientY - sy) / perY / tk.H).toFixed(4) };
+            this.setState(st => {
+              const n = JSON.parse(JSON.stringify(st));
+              const tgt = n.slides[si]; if (!tgt || !tgt.f) return st;
+              Object.assign(tgt.f, d);
+              return n;
+            });
+          };
+          const up = () => {
+            document.removeEventListener('pointermove', mv);
+            document.removeEventListener('pointerup', up);
+            this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
+            this._redoStack = [];
+            this.markDirty();
+            try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(this.state)); } catch (e2) {}
+            this.forceUpdate();
+          };
+          document.addEventListener('pointermove', mv);
+          document.addEventListener('pointerup', up);
+        };
         // No background upload on this kind, so the photo window is not drawn at all —
         // leaving a drop target nothing paints is worse than having none.
         K.bgWrapStyle = { display: 'none' };
