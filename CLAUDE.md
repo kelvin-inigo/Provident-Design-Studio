@@ -10123,3 +10123,88 @@ themes. The pills are shared by both homes, so the run is fixed by the same edit
   elevation shadows.** No console errors across every template and both modes.
 - `studio-base.js`, Campaign, the image tool and `ui-design-system/` are untouched. The test
   origin's `localStorage` was cleared and the viewport reset.
+
+# CAMPAIGN'S RAILS TAKE THE GUIDED FORM'S LANGUAGE
+
+By request, one pass after Organic's guided form became its All-controls rail: "do the same
+refinements on the UI" in `Provident Campaign Studio.dc.html`. Campaign has no guided run and
+no gate, so what carries over is the form's VOCABULARY, applied to the rails it already has —
+the component rail, the Layout rail and the all-variants dock. Three things, all chrome, one
+appended CSS block (section 24) plus the markup wraps and one set of render keys.
+
+**A SECTION HEAD IS A NUMBERED DISC, A 13/600 TITLE AND A STATE PILL.** `.p-shd` — not
+`.p-step`, which is already the kit's stepper component in this file. The pill says what the
+section wants: *This component* reads **Pick a component** with nothing selected, **N to fill
+in** when the selected component has an empty text, small label, chip list, column list or
+graphic file, and **Done** with a green tick otherwise; *Background image* reads Done or 1 to
+fill in off the active variant's photo; *All variants* reads off the QR — 1 to fill in only
+while the QR is set to visible and missing; *Hidden components* counts; *Layout* is Optional.
+None of it gates anything; a component with no text renders nothing, and the head says so
+before the export does. Verified live: blank the hero's text and the head flips to *1 to fill
+in*, restore it and it flips back to *Done*.
+
+**A DROP IS A DASHED 4:3 THUMB WITH ITS CAPTION BESIDE IT AND A GREEN EDGE ONCE A FILE IS
+IN.** Every picture — the background, the two per-size own photos, the overlap cut-out, the
+graphic file, the partner mark — is `aspect-ratio 4/3`; the QR stays 1:1. That **reverses the
+recorded rule that a background slot carries its canvas's own aspect** (1:1 / 9:16 / 16:9, so
+the target depicted the crop) and the graphic's full-width 88px strip; one shape for every
+upload was the user's decision, applied to Organic first, and the crop is what the reframe
+overlay is for. Measured at rail width: 128 x 96 for every picture, 102 x 102 for the QR.
+
+**CAMPAIGN HAD NO FILL MAP.** Organic's tick has always built `_filled` from the sidecar; this
+engine's `_refreshAV` reads the same file and never kept the answer. It does now, and
+re-renders only when the map changes, so a quiet frame costs nothing. The drop rows' done
+state and the section heads read it.
+
+**FIELDS ARE FORM-SIZED, SCOPED TO THE RAILS AND THE DOCK**: 13/500 ink labels over 42px
+fields at 14px on a 16px radius, 11.5/400 dim hints. The Share panel and the hex input keep
+the kit's 36px field — `:not(.p-in-s)` and the `.p-rail` / `.p-dock-b` scope are what keep
+them out.
+
+## Two things measured wrong on the first cut, and why
+
+- **The partner mark's drop came out 1.08:1, then 1.04:1.** The dock's row is
+  `align-items:stretch` so the QR square can take its row's height (the recorded trick), and
+  the wrapper — then the slot — took the row's height instead of the 4:3. `maxWidth` clamping
+  produced the first number; removing the stretch trick from the mark but not from the wrapper
+  produced the second. **A drop sizes itself from its picture's aspect and never from its
+  row**: `.p-drop{align-self:flex-start}`, and only `.p-drop-fill` — the QR — opts back into
+  the stretch. Measured after: 127 x 95.
+- **The multi-line text hint composited to 2.89:1 in BOTH themes.** `<span style="opacity:.65">`
+  on the "Enter for a new line, up to 4" qualifier — quietness as an inline opacity, the trap
+  this file records repeatedly, and one the rail audits had never seen because they never had
+  a text component selected. The span reads `--ps-dim` at opacity 1 now.
+
+## What the frames still own
+
+The Layout rail's option tiles (62px, the frame's), the palette rail's cards and group boxes,
+the 15/16 group padding and the all-variants dock's own geometry are untouched — the Figma
+frames specify them and the guided form has no counterpart. **The one measured departure**: the
+Layout rail's group label goes 13/400 → 13/500 so one label weight runs across all three rails;
+the `Container` frame states 400. One rule (`.p-rail .p-lab`) if it should go back.
+
+## A STALE COPY SITS IN A SUBFOLDER
+
+`Provident Campaign Studio/Provident Campaign Studio.dc.html` (514KB, 7 September) is an older
+copy of the root file (599KB, live), and the desktop app's `@` path completion offers it. The
+root file is the one every pass edits and the one CLAUDE.md's "both `.dc.html` files must sit
+in THIS folder" rule refers to. It was left in place — deleting a file is the user's call — and
+nothing here reads it.
+
+## Verification
+
+- **Zero artwork-path lines in the whole-file diff** (17 hunks, 139 added / 16 removed): no
+  `ops.push`, renderer, `palOf`, `scrimStops`, `drawMod`, `modPx`, `heroLines`, `specBox`,
+  `PAL` or `SCRIMS` line moved. This pass is CSS, markup wraps and render keys.
+- Sheet: one closing style tag, comments 310/310, brace depth 0, 902 top-level blocks. The
+  markup's `<sc-if>` count is 144/143 in the backup and after — the documented one-off.
+- Interpolation sweep: 295 refs, 22 unresolved, every one the documented Campaign baseline;
+  two new keys (`secHiddenState`, `secLayoutState`) were referenced before they were declared
+  and are declared `undefined` now, so a `data-state` attribute resolves to nothing rather than
+  to its own placeholder text.
+- **Contrast, both themes reloaded into, transitions finished, ancestor opacity composited,
+  over all three rails, the open dock, the canvas bar and the top bar, with a component
+  selected and the collaboration logo on: 1 flag each, the disabled Redo**, 1.4.3-exempt.
+  **0 elevation shadows.** No console errors.
+- `studio-base.js`, Organic, the image tool and `ui-design-system/` are untouched. The test
+  origin's `localStorage` was cleared and the viewport reset.

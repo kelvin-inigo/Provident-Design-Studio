@@ -2878,6 +2878,68 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
    Reverting is deleting this block. */
 .p-c-p,.p-tpl-c{background:var(--ps-card); border-color:var(--ps-hair)}
 .p-c:hover .p-c-p{background:var(--ps-fill); border-color:var(--ps-line)}
+/* ═══ 24. THE RAILS TAKE THE GUIDED FORM'S LANGUAGE ═══════════════════════════════
+   Ported from Organic's guided run, which is also its All-controls rail now, by request
+   ("do the same refinements"). Three things, all chrome:
+     · a SECTION HEAD is a numbered disc, a 13/600 title and a state pill at the right —
+       "Done" with a green tick when the section wants nothing more, "N to fill in",
+       "Optional", "Pick a component";
+     · a DROP is a dashed 4:3 thumb (the QR stays 1:1) with its caption beside it and a
+       solid green edge once a file is in — replacing bare slots at the canvas's own aspect
+       and a full-width 88px strip for the graphic;
+     · FIELDS are form-sized — 13/500 ink labels over 42px fields at 14px on a 16px radius,
+       11.5px dim hints — scoped to the rails and the dock so the Share panel and the hex
+       input keep the kit's 36px.
+   The Layout rail's option tiles, the palette rail's cards and the frame's 15/16 group
+   padding are untouched: the Figma frames specify those and the guided run has no
+   counterpart to them. Its group LABEL goes 13/400 → 13/500 with the other two rails, so
+   one weight runs across the workspace — the one measured departure from that frame.
+   Reverting is deleting this block and restoring the markup from the pre-change copy. */
+.p-shd{display:flex;align-items:center;gap:8px;font:600 13px/1.2 var(--ps-font);color:var(--ps-ink);letter-spacing:0}
+.p-shd-n{width:22px;height:22px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  box-sizing:border-box;background:var(--ps-fill);color:var(--ps-ink-2);border:1px solid var(--ps-line);
+  font:600 10.5px/1 var(--ps-font);font-style:normal}
+.p-shd-n b{font:inherit}
+.p-shd-n svg{display:none;width:14px;height:14px;fill:currentColor}
+.p-shd-t{flex:1;min-width:0;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.p-shd-t > s{font:400 11.5px/1 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-style:normal;margin-left:0;text-align:left}
+.p-shd-s{flex:none;font:500 11px/1 var(--ps-font);color:var(--ps-dim);padding:4px 8px;border-radius:var(--ps-pill);background:var(--ps-fill)}
+.p-shd[data-state="done"] .p-shd-n{background:var(--ps-good);color:#fff;border-color:var(--ps-good)}
+.p-shd[data-state="done"] .p-shd-n b{display:none}
+.p-shd[data-state="done"] .p-shd-n svg{display:block}
+.p-shd[data-state="done"] .p-shd-s{background:var(--ps-good-q);color:var(--ps-good)}
+.p-subcap.p-shd{margin:0;padding:13px 0 11px;border-bottom:1px solid var(--ps-hair)}
+.p-dock-b .p-shd,.p-dock-b .p-shd .p-shd-t{color:var(--ps-ink)}
+
+/* the drops */
+.p-droprow{display:flex;align-items:flex-start;gap:12px}
+.p-drop{position:relative;flex:none;width:140px;max-width:140px;box-sizing:border-box;padding:5px;border-radius:14px;
+  border:1.5px dashed var(--ps-line);background:var(--ps-fill);
+  transition:border-color var(--ps-motion) var(--ps-ease),background var(--ps-motion) var(--ps-ease)}
+.p-drop:hover{border-color:var(--ps-focus)}
+/* a drop sizes itself from its picture's aspect and never from its row: inside a stretched
+   flex row (the dock's) the wrapper took the row's height and the slot followed the box
+   instead of its 4:3 — measured 127 x 122. Only the QR opts back into the stretch. */
+.p-drop{align-self:flex-start}
+.p-drop-fill{align-self:stretch}
+.p-drop[data-done]{border-style:solid;border-color:var(--ps-good);background:var(--ps-good-q)}
+.p-drop image-slot{display:block;width:100%}
+/* the dock's two: the WRAPPER carries the stretch-and-aspect trick the slot used to, so the
+   square (QR) and the 4:3 (partner mark) still take their row's height */
+.p-drop-fill{width:auto;max-width:none}
+.p-drop-fill image-slot{width:100%;height:100%;aspect-ratio:auto}
+.p-drop-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;padding-top:2px}
+.p-drop-t s{font:500 12px/1.4 var(--ps-font);color:var(--ps-ink-2);text-decoration:none;font-style:normal}
+.p-drop-t s + s{font-weight:400;font-size:11.5px;color:var(--ps-dim)}
+
+/* the fields, in the rails and the dock only */
+.p-rail .p-fld,.p-dock-b .p-fld{gap:7px;font:500 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.p-rail .p-lab,.p-dock-b .p-lab{font:500 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.p-rail .p-lab > s,.p-dock-b .p-lab > s,.p-rail .p-fld > span{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-style:normal}
+.p-rail .p-in:not(.p-in-s),.p-dock-b .p-in:not(.p-in-s){height:42px;padding:10px 12px;font-size:14px;border-radius:16px}
+.p-rail textarea.p-in,.p-dock-b textarea.p-in{height:auto;min-height:84px;line-height:1.5}
+.p-rail .p-hint,.p-dock-b .p-hint{font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
+.p-empty{font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim);padding:14px 16px;border-radius:14px;background:var(--ps-fill)}
 </style>
 </helmet>
 
@@ -3290,11 +3352,11 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <div class="p-dock-in">
       <sc-if value="{{ allVarsOn }}" hint-placeholder-val="{{ false }}">
         <div class="p-dock-b">
-  <div class="p-cap">All variants <span class="tip tip-dark" data-tip="Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a zip of Name_Variant_Size.png or .svg for every variant in every size, or a single PDF. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere." style="{{ infoStyleDark }}">i</span></div>
+  <div class="p-cap p-shd" data-state="{{ secVarsState }}"><i class="p-shd-n"><b>1</b><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></i><span class="p-shd-t">All variants <span class="tip tip-dark" data-tip="Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a zip of Name_Variant_Size.png or .svg for every variant in every size, or a single PDF. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere." style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s">{{ secVarsNote }}</span></div>
   <div class="p-grp">
     <span class="p-lab">QR code</span>
     <div class="p-row-c" style="align-items:stretch">
-      <image-slot id="adstudio-qr" shape="rounded" radius="10" placeholder="QR" style="{{ qrSlotStyle }}"></image-slot>
+      <div class="p-drop p-drop-fill" data-done="{{ qrDoneOn }}" style="{{ qrSlotStyle }}"><image-slot id="adstudio-qr" shape="rounded" radius="8" placeholder="QR"></image-slot></div>
       <div class="p-grp" style="gap:6px;flex:1">
         <button onClick="{{ qrToggle }}" class="p-ghost p-sm" data-on="{{ qrVisibleOn }}">{{ qrToggleLabel }}</button>
         <div class="p-opts">
@@ -3328,7 +3390,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <button onClick="{{ coToggle }}" class="p-ghost p-sm" data-on="{{ coBrandOn }}">{{ coToggleLabel }}</button>
     <sc-if value="{{ coOnFlag }}" hint-placeholder-val="{{ false }}">
       <div class="p-row-c" style="align-items:stretch">
-        <image-slot id="adstudio-colog" fit="contain" shape="rounded" radius="10" placeholder="Partner SVG" style="{{ coSlotStyle }}"></image-slot>
+        <div class="p-drop" data-done="{{ coDoneOn }}"><image-slot id="adstudio-colog" fit="contain" shape="rounded" radius="8" placeholder="Partner SVG" style="{{ coSlotStyle }}"></image-slot></div>
         <div class="p-grp" style="gap:8px;flex:1">
           <span class="p-lab">Size <s>{{ coScale }}% of the wordmark</s></span>
           <input type="range" min="60" max="160" step="2" value="{{ coScale }}" onChange="{{ onCoScale }}">
@@ -3502,7 +3564,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
 <aside class="p-rail p-rail-c" data-open="{{ shPanelOnComponent }}">
   <div class="p-sec p-sec-a">
-    <div class="p-cap">This component <s>{{ selContext }}</s></div>
+    <div class="p-cap p-shd" data-state="{{ secCompState }}"><i class="p-shd-n"><b>1</b><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></i><span class="p-shd-t">This component <s>{{ selContext }}</s></span><span class="p-shd-s">{{ secCompNote }}</span></div>
     <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
       <div class="p-grp" style="gap:11px">
         <div class="p-lab">{{ selTypeLabel }}</div>
@@ -3547,7 +3609,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           </label>
         </sc-if>
         <sc-if value="{{ selTextMulti }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Text — linked across all variants <span style="opacity:.65">· Enter for a new {{ selLineWord }}, up to {{ selLineMax }}</span>
+          <label class="p-fld">Text — linked across all variants <span>· Enter for a new {{ selLineWord }}, up to {{ selLineMax }}</span>
             <textarea value="{{ selText }}" onChange="{{ onSelText }}" rows="2" class="p-in"></textarea>
             <span class="p-hint">{{ selLineInfo }}</span>
           </label>
@@ -3577,7 +3639,10 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
         <sc-if value="{{ selIsGraphic }}" hint-placeholder-val="{{ false }}">
           <div class="p-grp">
             <span class="p-lab">Graphic file <span class="tip" data-tip="SVG, PNG, JPEG or WebP. An SVG is kept as vector and travels into Assets/ untouched; bitmaps are capped at export-grade resolution. Re-uploading overwrites the same file in Assets/." style="{{ infoStyle }}">i</span></span>
-            <image-slot id="{{ selGraphicSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;height:88px"></image-slot>
+            <div class="p-droprow">
+              <div class="p-drop" data-done="{{ gDoneOn }}"><image-slot id="{{ selGraphicSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot></div>
+              <div class="p-drop-t"><s>{{ gDropLabel }}</s><s>An SVG stays vector and travels into Assets/ untouched; bitmaps are capped at export-grade. Re-uploading overwrites the same file.</s></div>
+            </div>
             <span class="p-cap">Placement<s>where it sits</s></span>
             <div class="p-opts">
               <button onClick="{{ gFloatOff }}" data-on="{{ gStackOn }}" class="p-opt">
@@ -3614,7 +3679,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   </div>
 
   <div class="p-sec p-sec-b">
-    <div class="p-subcap">Background image</div>
+    <div class="p-subcap p-shd" data-state="{{ secBgState }}"><i class="p-shd-n"><b>2</b><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></i><span class="p-shd-t">Background image</span><span class="p-shd-s">{{ secBgNote }}</span></div>
     <div class="p-nest">
       <div class="p-grp">
         <span class="p-lab">Image opacity <s>{{ bgO }}% · over black</s></span>
@@ -3622,27 +3687,39 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </div>
       <div class="p-grp">
         <span class="p-lab">Photo <span class="tip" data-tip="{{ bgStatus }} Double-click the photo on the canvas to reframe it — drag to move, scroll to zoom, or use the zoom slider and anchor buttons in the overlay. Drop keeps export-grade resolution." style="{{ infoStyle }}">i</span></span>
-        <sc-for list="{{ activeBgSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop photo here" style="{{ bgSlotStyle }}"></image-slot></sc-for>
+        <div class="p-droprow">
+          <div class="p-drop" data-done="{{ bgDoneOn }}"><sc-for list="{{ activeBgSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop a picture" style="{{ bgSlotStyle }}"></image-slot></sc-for></div>
+          <div class="p-drop-t"><s>{{ bgDropLabel }}</s><s>Full bleed on every canvas. Double-click it on the canvas to reframe — drag to move, scroll to zoom.</s></div>
+        </div>
         <sc-if value="{{ bgSepStOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">9:16 own photo</span>
-          <sc-for list="{{ activeBgStSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 9:16 photo" style="{{ bgSlotStStyle }}"></image-slot></sc-for>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ bgStDoneOn }}"><sc-for list="{{ activeBgStSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 9:16 picture" style="{{ bgSlotStStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop-t"><s>{{ bgStDropLabel }}</s><s>Used by the 9:16 story instead of the shared picture.</s></div>
+          </div>
         </sc-if>
         <sc-if value="{{ bgSepLsOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">16:9 own photo</span>
-          <sc-for list="{{ activeBgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 16:9 photo" style="{{ bgSlotLsStyle }}"></image-slot></sc-for>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ bgLsDoneOn }}"><sc-for list="{{ activeBgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 16:9 picture" style="{{ bgSlotLsStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><s>Used by the 16:9 canvas instead of the shared picture.</s></div>
+          </div>
         </sc-if>
       </div>
       <div class="p-grp">
         <span class="p-lab">Overlap image <span class="tip" data-tip="Drop a cutout PNG — it sits over the hero headline only, so the eyebrow, hook, body, tags, spec, price, CTA, wordmark and QR all stay on top of it. It automatically matches the background photo's position and zoom, so reframing the background carries the cutout with it. Pair with the Jumbo hero for the parallax look." style="{{ infoStyle }}">i</span></span>
         <button onClick="{{ fgToggle }}" class="p-ghost p-sm" data-on="{{ fgShownOn }}">{{ fgToggleLabel }}</button>
         <sc-if value="{{ fgOn }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="{{ activeFgId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop cutout PNG" style="{{ bgSlotStyle }}"></image-slot>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ fgDoneOn }}"><image-slot id="{{ activeFgId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop the cut-out" style="{{ bgSlotStyle }}"></image-slot></div>
+            <div class="p-drop-t"><s>{{ fgDropLabel }}</s><s>A PNG cut-out of the photo’s own foreground. It sits over the hero headline only and follows the photo’s position and zoom.</s></div>
+          </div>
         </sc-if>
       </div>
     </div>
 
 
-    <div class="p-subcap">Hidden Design Components <span class="tip" data-tip="Hidden components collapse and their neighbours move up, per variant. Show puts one back in this variant; Delete removes it from the campaign entirely, across every variant." style="{{ infoStyle }}">i</span></div>
+    <div class="p-subcap p-shd" data-state="{{ secHiddenState }}"><i class="p-shd-n"><b>3</b><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></i><span class="p-shd-t">Hidden components <span class="tip" data-tip="Hidden components collapse and their neighbours move up, per variant. Show puts one back in this variant; Delete removes it from the campaign entirely, across every variant." style="{{ infoStyle }}">i</span></span><span class="p-shd-s">{{ secHiddenNote }}</span></div>
     <sc-for list="{{ hiddenList }}" as="hm" hint-placeholder-count="0">
       <div class="p-hid"><span class="p-fld">{{ hm.name }}</span><div class="p-row"><button onClick="{{ hm.show }}" class="p-ghost p-sm">Show</button><button onClick="{{ hm.del }}" class="p-danger p-sm">Delete</button></div></div>
     </sc-for>
@@ -3653,7 +3730,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
 
   <div class="p-sec p-sec-b">
-    <div class="p-cap">Layout <s>{{ activeName }}</s></div>
+    <div class="p-cap p-shd" data-state="{{ secLayoutState }}"><i class="p-shd-n"><b>1</b><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></i><span class="p-shd-t">Layout <s>{{ activeName }}</s></span><span class="p-shd-s">{{ secLayoutNote }}</span></div>
 
     <div class="p-grp-w">
       <span class="p-lab">Background <span class="tip" data-tip="Dark is the navy/black system: white copy, gold accents. Light flips the canvas to white with navy copy and orange accents — orange is a light-background colour in the brand rules, gold is its navy counterpart. Serif emphasis stays gold in both. Switching resets the scrim colour to that mode's default." style="{{ infoStyle }}">i</span></span>
@@ -4003,6 +4080,12 @@ class CampaignStudio extends StudioBase {
       fetch('.image-slots.state.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(sc => {
         sc = sc || {};
         const norm = v => !v ? null : (typeof v === 'string' ? { u: v, s: 1, x: 0, y: 0 } : v);
+        // WHICH SLOTS HOLD A PICTURE — the map Organic's tick has always built, read by the
+        // rails' drop rows for their done state and by the section heads. Re-rendered only
+        // when it actually changes, so this costs nothing on a quiet frame.
+        const nf = {};
+        Object.keys(sc).forEach(k => { const v = norm(sc[k]); nf[k] = !!(v && v.u); });
+        if (JSON.stringify(nf) !== JSON.stringify(this._filled || {})) { this._filled = nf; this.forceUpdate(); }
         for (let i = 0; i < 3; i++) {
           const b = norm(sc['adstudio-bg-' + i]);
           this._assetView.crops[i] = b ? { s: b.s || 1, x: b.x || 0, y: b.y || 0 } : { s: 1, x: 0, y: 0 };
@@ -7344,12 +7427,57 @@ class CampaignStudio extends StudioBase {
       qrShow: s.qr.show,
       activeName: this.vLabel(s.activeVi),
       activeBgId: 'adstudio-bg-' + s.activeVi,
+      // ── THE RAILS IN THE GUIDED FORM'S LANGUAGE: a drop is a dashed thumb with its caption
+      // beside it and a done state; a section head is a numbered disc, a title and a state
+      // pill. Ported from Organic's guided run, which is also its All-controls rail now.
+      ...(() => {
+        const filled = this._filled || {};
+        const on = k => filled[k] ? '1' : undefined;
+        const lab = (k, what, verb) => filled[k] ? what + ' added — click to replace' : 'Drop ' + verb + ', or click to choose';
+        const vi = s.activeVi;
+        // This component: what the selected component still has empty. Nothing here is a
+        // gate — Campaign has none — but a component with no text renders nothing, and the
+        // head should say so before the export does.
+        let need = 0;
+        if (selM) {
+          const t = selM.type;
+          if (['tags', 'spec', 'divider', 'spacer', 'graphic'].indexOf(t) < 0 && !String(selM.text || '').trim()) need++;
+          if (t === 'price' && !String(selM.sub || '').trim()) need++;
+          if (t === 'tags' && !(selM.chips && selM.chips.length)) need++;
+          if (t === 'spec' && !(selM.cols && selM.cols.length)) need++;
+          if (t === 'graphic' && !filled['adstudio-mod-' + selM.id]) need++;
+        }
+        const bgOk = !!filled['adstudio-bg-' + vi];
+        const qrNeed = !!(s.qr && s.qr.show) && !filled['adstudio-qr'];
+        return {
+          bgDoneOn: on('adstudio-bg-' + vi), bgDropLabel: lab('adstudio-bg-' + vi, 'Picture', 'a picture'),
+          bgStDoneOn: on('adstudio-bg-' + vi + '-st'), bgStDropLabel: lab('adstudio-bg-' + vi + '-st', 'Picture', 'the 9:16 picture'),
+          bgLsDoneOn: on('adstudio-bg-' + vi + '-ls'), bgLsDropLabel: lab('adstudio-bg-' + vi + '-ls', 'Picture', 'the 16:9 picture'),
+          fgDoneOn: on('adstudio-fg-' + vi), fgDropLabel: lab('adstudio-fg-' + vi, 'Cut-out', 'the cut-out PNG'),
+          gDoneOn: selM ? on('adstudio-mod-' + selM.id) : undefined,
+          gDropLabel: selM ? lab('adstudio-mod-' + selM.id, 'Graphic', 'an SVG or PNG') : '',
+          qrDoneOn: on('adstudio-qr'), coDoneOn: on('adstudio-colog'),
+          secCompState: (selM && !need) ? 'done' : undefined,
+          secCompNote: !selM ? 'Pick a component' : (need ? (need === 1 ? '1 to fill in' : need + ' to fill in') : 'Done'),
+          secBgState: bgOk ? 'done' : undefined, secBgNote: bgOk ? 'Done' : '1 to fill in',
+          secHiddenNote: hiddenList.length ? (hiddenList.length === 1 ? '1 hidden' : hiddenList.length + ' hidden') : 'None',
+          // two heads that carry no state — the pill is a plain count or 'Optional'. Declared so
+          // the attribute resolves to nothing rather than to its own placeholder text.
+          secHiddenState: undefined, secLayoutState: undefined,
+          secLayoutNote: 'Optional',
+          secVarsState: qrNeed ? undefined : 'done', secVarsNote: qrNeed ? '1 to fill in' : 'Done'
+        };
+      })(),
       activeBgSlot: [{ id: 'adstudio-bg-' + s.activeVi, key: 'side' + s.activeVi }],
       // The sidebar preview is a thumbnail of the canvas it feeds, so the framing you
       // see here is the framing the canvas crops to. A fixed 88px box lied about a 9:16.
-      bgSlotStyle: { width: '100%', aspectRatio: '1 / 1' },
-      bgSlotStStyle: { width: '100%', aspectRatio: '9 / 16' },
-      bgSlotLsStyle: { width: '100%', aspectRatio: '16 / 9' },
+      // EVERY PICTURE DROP IS 4:3 AND EVERY QR IS 1:1, by request — the rule Organic's two
+      // homes already follow. This REVERSES the slots carrying the canvas's own aspect
+      // (1:1 / 9:16 / 16:9) so the target depicted the crop; one shape for every upload was
+      // chosen over that, and the crop is what the reframe overlay is for.
+      bgSlotStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSlotStStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSlotLsStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSepStOn: !!(av.bgSep && av.bgSep.st),
       bgSepLsOn: !!(av.bgSep && av.bgSep.ls),
       activeBgStSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-st' }],
@@ -7663,7 +7791,9 @@ class CampaignStudio extends StudioBase {
       coToggleLabel: (s.colog && s.colog.on) ? 'On — provident. | partner' : 'Off — wordmark only',
       coBrandOn: (s.colog && s.colog.on) ? '1' : undefined,
       coToggleStyle: darkBtn,
-      coSlotStyle: { display: 'block', flex: 'none', alignSelf: 'stretch', width: 'auto', maxWidth: '40%', aspectRatio: '1 / 1' },
+      // a fixed 4:3 thumb inside its dashed drop, like every other picture; the stretch trick
+      // stays on the QR alone, where the square genuinely follows its row's height
+      coSlotStyle: { display: 'block', width: '100%', aspectRatio: '4 / 3' },
       coScale: (s.colog && s.colog.scale != null) ? s.colog.scale : 100,
       onCoScale: e => { const n = +e.target.value; this.upd(x => { x.colog = Object.assign({ on: false, scale: 100, tint: true }, x.colog); x.colog.scale = n; return x; }); },
       coTintOnSel: (!s.colog || s.colog.tint !== false) ? '1' : undefined,
