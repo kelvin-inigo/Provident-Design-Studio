@@ -1048,6 +1048,14 @@ leaves every content box equal instead, which is the trap Campaign's spec row do
 
 ### A single identity line fits; it does not wrap
 
+> **REVERSED BY REQUEST — the listed card's role WRAPS now**, because
+> "CONSULTANT - PRIMARY & SECONDARY SALES" is a real and common answer that a one-line fit
+> could only render at 14.5px. The orphan this section objects to is real and is answered by
+> a WIDOW RULE rather than by refusing to wrap. See *THE AGENT'S ROLE WRAPS* at the end of
+> this file. The optical-size lesson below — a linear solve cannot fit this font, the fit has
+> to be stepped, and the predicate must be the consumer's own test — is unchanged and still
+> load-bearing.
+
 "SENIOR CONSULTANT · PALM JUMEIRAH" measured ~446px against the listed panel's 422px column,
 so it broke and orphaned "JUMEIRAH" — a two-line role with one word on the second reads as a
 mistake and grew the panel for it. The price on the row above already fits-to-width for
@@ -11008,3 +11016,105 @@ integrity: one closing style tag, 297/297 comments, depth 0; raw `sc-if` -5/-5 a
 -3/-3 against the backup — exactly the blocks removed. The test origin's slots were cleared,
 its IndexedDB deleted and its `localStorage` cleared; the `_PRE` copy removed; both servers
 stopped.
+
+# THE AGENT'S ROLE WRAPS, AND A WIDOW RULE PICKS THE BREAK
+
+By request, on the listed card: *"CONSULTANT - PRIMARY SALES / CONSULTANT - SECONDARY SALES /
+CONSULTANT - PRIMARY & SECONDARY SALES — these are the common text that user will input. If
+the text is too long, example is the 3rd one, have it so it breaks into a new line and
+autolayouts upwards."* This reverses *A single identity line fits; it does not wrap*.
+
+**THE THIRD STRING IS 605 WIDE AGAINST A COLUMN OF 365 TO 547**, so the old fit-to-one-line
+treatment rendered it at its `roleMin` floor of 19.7px and STILL overflowed — by 131px at the
+narrow column, which runs past the 50px gap and 81px into the agent. That is what the
+screenshot shows.
+
+## THE ORDER OF THE TWO TREATMENTS IS THE WHOLE FIX
+
+A fit left in front of a wrap renders a long role **both shrunken and broken**, which is worse
+than either. So the fit runs first, is **conditional on achieving one line**, and the wrap
+happens at FULL size:
+
+```js
+while (!fits(rpx) && rpx > fl) rpx = Math.max(fl, rpx - .25);
+if (fits(rpx)) rolePx = rpx;                                   // a near-miss shrinks
+else roleLines = this.roleWrap(role, rolePx, colW, L.roleMax);  // a long one wraps at 24
+```
+
+**`roleMin` WENT .82 -> .94, and that is a consequence rather than a preference.** Its old job
+was to hold a long role on one line at any cost; the role wraps now, so all it has left to do
+is absorb a near-miss — 6% is what that needs. The knock-on is real and intended: a role that
+used to shrink to 19.7px and sit on one line now wraps at 24px.
+
+## THE WIDOW RULE, and it is what makes three roles in one format read as one treatment
+
+A greedy wrap fills line one, and at two of the three column widths that widows the last word:
+`CONSULTANT - PRIMARY / SALES` at 365 and `CONSULTANT - PRIMARY & SECONDARY / SALES` at 547.
+That orphan is exactly the objection the superseded section raises, and it is right.
+
+These roles are written `<title> - <department>`, so **when the greedy wrap leaves ONE word on
+the last line and the string carries a spaced dash whose two halves both fit, break at the
+dash instead.** A greedy wrap that already ends on two or more words is balanced and is left
+alone — `CONSULTANT - PRIMARY & / SECONDARY SALES` is that case, and the dash break would be
+worse there. Measured across every column width:
+
+| | 365 (no USP) | 473 (the real case) | 547 (4+ chips) |
+|---|---|---|---|
+| `CONSULTANT - PRIMARY SALES` | `CONSULTANT -` / `PRIMARY SALES` | **one line** | one line |
+| `CONSULTANT - SECONDARY SALES` | `CONSULTANT -` / `SECONDARY SALES` | **one line** | one line |
+| `CONSULTANT - PRIMARY & SECONDARY SALES` | greedy, 2 words | **greedy, 2 words** | `CONSULTANT -` / `PRIMARY & …` |
+| `SENIOR CONSULTANT - PALM JUMEIRAH` | dash | dash | one line |
+
+**THE MIDDLE COLUMN IS THE ONE THAT MATTERS, and it is the requested behaviour exactly**: the
+first two on one line at full 24px, the third broken. 473 is the real column because the
+Marketing USP is `req` — every real listed card has chips, and the chips are what shrink the
+agent and widen the column (`ak`). 365 is the empty state while the form is still being
+filled. And the last row is the `SENIOR CONSULTANT · PALM JUMEIRAH` the old section complains
+about: it is a clean two-line block now instead of an orphan.
+
+## THE PANEL GROWS UPWARD — the USP's own pattern, not a new one
+
+`base -= (roleLines.length - 1) * rolePx * L.roleLead` **before** the row is placed, so the
+LAST line stays on its fixed step off the floor and `base` becomes the FIRST line's baseline.
+The name then sits `stepRole` above the TOP of the role rather than above a line buried in the
+middle of it, and every row above follows. Verified: **every last baseline lands 57.0 off the
+floor** in all 24 role x column x canvas combinations, and the panel is exactly one lead (31)
+taller whenever the role takes a second line — 456 -> 487, 378 -> 409, 524 -> 555. The agent's
+box grows with it, because her height is `cardH x agentH x ak`.
+
+**Capped at `roleMax` (2) lines**, ellipsised past it — a three-line role is a sentence pasted
+into the wrong field. A 70-character role sets on two lines and ends in an ellipsis.
+
+## Verification
+
+- **Op census, five templates x every slide x both canvases PLUS the listed card driven with
+  each of the three real roles: 30 groups, 28 byte-identical.** The only two that changed are
+  the long role's own, at **22 -> 23 ops** — one extra text op, which is the second line. The
+  two short roles are byte-identical, so nothing that renders on one line today moves, and
+  `preview/organic-listed.webp` needed no recapture (the demo role does not wrap).
+- **No overflow anywhere**: the widest line of every case measures inside its own column.
+- **Preview against ops, one coordinate space**: both lines at `dX 0.00`, `dY 0.20 / 0.00`,
+  `23.976px / 500 / 2.376px letter-spacing / rgb(255,255,255)`; the panel `80 / 863 / 920 x
+  487` against the op's `80 / 863.2 / 920 x 486.8`.
+- Sheet and markup integrity **identical to the backup** — one closing style tag, 297/297
+  comments, depth 0, `sc-if` 116/114 and `sc-for` 55/54 (this pass authored no CSS and no
+  markup).
+
+**A TRAP THAT COST A ROUND AND IS ALREADY IN THIS FILE FOR `studio-base.js`: THE `.dc.html`
+ITSELF CAN BE SERVED FROM CACHE.** Navigating to the same URL after an edit re-ran the OLD
+document — every measurement came back at the old `roleMin` of .82 and the fix read as inert.
+`fetch(location.pathname, {cache:'reload'})` and then navigate. The tell was
+`C.LISTED.roleMin` reading .82 while the bytes on disk and the bytes `curl` fetched both read
+.94: **when the file and the server agree and the page does not, it is the cache.**
+
+**`pickTpl` RELOADS THE DOCUMENT**, so a probe that calls it loses everything after that line.
+Set `state.tpl` and `screen` through `upd()` instead when the point is to measure, not to
+start a project.
+
+## Left as it is
+
+- **The hint now reads "e.g. Consultant - Primary Sales — a long one breaks onto a second
+  line"**, with a hyphen rather than the middot it carried, because the dash is what the widow
+  rule keys on and what the three supplied strings use.
+- **The review card's own agent role is untouched** — it has its own fit in `revBox`, and the
+  request named the listed card.

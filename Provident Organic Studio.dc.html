@@ -5456,7 +5456,10 @@ class OrganicStudio extends StudioBase {
     // that stopped the story's larger tokens truncating copy that fitted on the feed
     uspPx: 27, pricePx: 55, namePx: 35, rolePx: 24,
     copyTrack: -.024,     // the USP and the price carry it; the name and role do not
-    roleMin: .82, priceMin: .72, uspMax: 2,
+    // `roleMin` ABSORBS A MARGINAL OVERFLOW ONLY. It was .82, where its job was to keep a
+    // long role on ONE line at any cost; the role WRAPS now, so a deep fit would render it
+    // both shrunken and broken. 6% is what a near-miss needs and no more.
+    roleMin: .94, roleMax: 2, roleLead: 1.3, priceMin: .72, uspMax: 2,
     // The agent's CROP BOX. Its width is a fraction of the PANEL, never of its own height —
     // the copy column is what is left beside it, and a column that re-measured every time
     // the copy wrapped could not settle. Both ratios are the drawing's: 475 x 634 against a
@@ -5629,17 +5632,27 @@ class OrganicStudio extends StudioBase {
       const pw = this.meas(price, pricePx, 400, false, pricePx * L.copyTrack);
       if (pw > colW) pricePx = Math.max(pricePx * L.priceMin, pricePx * colW / pw);
     }
+    // ── THE ROLE WRAPS, by request: "CONSULTANT - PRIMARY & SECONDARY SALES" is a real and
+    // common answer and it is 605 wide against a column of 365 to 547, so fitting it to one
+    // line meant 14.5px type. THE ORDER OF THE TWO TREATMENTS IS THE WHOLE POINT: try for a
+    // one-line fit FIRST and keep the smaller size only if it actually achieves one line,
+    // otherwise wrap at FULL size. A role that is both shrunken and broken is the worst of
+    // the two and is what a fit left in front of a wrap produces every time.
+    //
+    // A LINEAR SOLVE CANNOT FIT THIS FONT: Google Sans Flex carries an optical-size axis, so
+    // width per em is not constant with px — measured elsewhere in this project at a 21%
+    // swing — and `px * colW / measured` lands slightly OVER the column every time. It has to
+    // be STEPPED, and the predicate must be `wrapPlain`'s own `wide()` test verbatim, trailing
+    // tracking unit included: fitting the INK leaves up to one unit of overhang, which is
+    // exactly enough for the consumer to break the line anyway.
+    let roleLines = role ? [role] : [];
     if (role) {
-      // A LINEAR SOLVE CANNOT FIT THIS FONT, and that is why the first attempt still
-      // wrapped. Google Sans Flex carries an optical-size axis, so width per em is not
-      // constant with px — measured elsewhere in this project at a 21% swing — and
-      // `px * colW / measured` therefore lands slightly OVER the column every time. It has
-      // to be STEPPED, and the predicate must be `wrapPlain`'s own `wide()` test verbatim,
-      // trailing tracking unit included: fitting the INK leaves up to one unit of overhang,
-      // which is exactly enough for the consumer to break the line anyway.
       const fits = px => this.meas(role, px, 500, false, px * .1) <= colW;
       const fl = rolePx * L.roleMin;
-      while (!fits(rolePx) && rolePx > fl) rolePx = Math.max(fl, rolePx - .25);
+      let rpx = rolePx;
+      while (!fits(rpx) && rpx > fl) rpx = Math.max(fl, rpx - .25);
+      if (fits(rpx)) rolePx = rpx;
+      else roleLines = this.roleWrap(role, rolePx, colW, L.roleMax);
     }
     const uspLines = usp ? this.wrapPlain(usp, uspPx, 300, uspPx * L.copyTrack, colW, L.uspMax) : [];
 
@@ -5653,7 +5666,14 @@ class OrganicStudio extends StudioBase {
     // EVERY RUN IS WHITE, because the panel is dark glass now rather than the light card
     // it used to be — the drawing sets all four at #fff and the ink has to follow the
     // ground it sits on, which is the same `isPaper` lesson `drawLogo` records.
-    if (role) { rows.unshift({ k: 't', lines: [role], px: rolePx, w: 500, ls: rolePx * .1, fill: A.ink, y: base - rolePx, lh: 1.3 }); }
+    // The role's EXTRA lines push everything above them up, exactly as the USP's do: the
+    // LAST line stays on the fixed step off the floor and `base` becomes the FIRST line's
+    // baseline, so the name sits `stepRole` above the top of the role rather than above a
+    // line buried in the middle of it.
+    if (role) {
+      base -= (roleLines.length - 1) * rolePx * L.roleLead;
+      rows.unshift({ k: 't', lines: roleLines, px: rolePx, w: 500, ls: rolePx * .1, fill: A.ink, y: base - rolePx, lh: L.roleLead });
+    }
     if (name) { if (role) base -= L.stepRole; rows.unshift({ k: 't', lines: [name], px: namePx, w: 400, ls: 0, fill: A.ink, y: base - namePx, lh: 1.25 }); }
     let ruleY = null;
     if ((name || role) && (usp || price)) { base -= L.stepName; ruleY = base; }
@@ -5797,6 +5817,27 @@ class OrganicStudio extends StudioBase {
       return out.slice(0, max - 1).concat([last + '…']);
     }
     return out;
+  }
+  // ── THE ROLE'S WRAP, WITH A WIDOW RULE ───────────────────────────────────────────────
+  // A greedy wrap fills line one and can leave a single short word alone on line two —
+  // "SENIOR CONSULTANT - PALM / JUMEIRAH", which is the very render the fit-to-one-line
+  // treatment this replaced was written to avoid, and which a plain wrap reproduces for
+  // "CONSULTANT - PRIMARY / SALES" at the narrow column and for "... SECONDARY / SALES" at
+  // the wide one.
+  //
+  // These roles are written as "<title> - <department>", so when the greedy wrap widows the
+  // last word AND the string carries a spaced dash whose two halves both fit, break THERE:
+  // the dash is the break the copy already implies, and it is the same break at every column
+  // width, which is what makes three roles in one format read as one treatment. A greedy wrap
+  // that ends on two or more words is already balanced and is left alone — that is what
+  // "CONSULTANT - PRIMARY & / SECONDARY SALES" is, and the dash break would be worse there.
+  roleWrap(role, px, colW, max) {
+    const greedy = this.wrapPlain(role, px, 500, px * .1, colW, max);
+    if (greedy.length < 2 || greedy[greedy.length - 1].trim().split(/\s+/).length > 1) return greedy;
+    const m = /^(.*?\s[-\u2013\u2014])\s(\S.*)$/.exec(role);
+    if (!m) return greedy;
+    const fits = t => this.meas(t, px, 500, false, px * .1) <= colW;
+    return (fits(m[1]) && fits(m[2])) ? [m[1], m[2]] : greedy;
   }
   // ONE derivation of the listed card's deal, read by the title, the price and `fieldShown`.
   // `listed` is the status test; `deal` is '' on a sold card (a sold property is neither for
@@ -7694,7 +7735,7 @@ class OrganicStudio extends StudioBase {
       // asked on that card's one page; per-slide on a review.
       if (s.tpl === 'listed' && sl.kind === 'listed') {
         raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.name', label: 'Agent name', req: true });
-        raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.role', label: 'Agent role', req: true, hint: 'e.g. Consultant · Primary Sales' });
+        raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.role', label: 'Agent role', req: true, hint: 'e.g. Consultant - Primary Sales — a long one breaks onto a second line' });
         raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent', label: 'Agent photo — PNG cut-out', hint: 'A cut-out on a transparent background — the face is found and framed for you, so any crop works' });
         // THE SECOND AGENT IS GONE, by request — the "How many agents are on this card?"
         // ask, the two-column layout and the rail toggle with it. A saved project keeps its
