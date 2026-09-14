@@ -8442,7 +8442,7 @@ in any op colour — still holds by construction.
 - Feed 3:4 is 1080×1440 with 80/90px margins; story 9:16 is 1080×1920 with a 200px top margin so platform UI stays clear of the copy.
 - Layouts are fixed per template — the studio exposes fields, not free positioning. Nothing should drift off the grid. **The award card insets its text column 30px INSIDE the margin (110 on the feed), and that is not a grid violation** — the rule is about content escaping the margin, and both the SVG and the finished render agree on 110. See *A FIFTH TEMPLATE*.
 - Scrims cover only the text areas (plus ~20px breathing room), fading out ~60px beyond — never the whole photo. **Three kinds carry no ADJUSTABLE wash and the rail's control disappears with them** (`scrimUsed`): the paper kinds `tacover` and `tagent`, which take none at all, and `review`, whose wash is now the supplied drawing's own FIXED navy ramp — one full-canvas gradient, transparent to y 720 and solid by 1283, emitted from `REV.scrimTop` / `REV.scrimFull` so the story follows. A slider over a fixed ramp is a control with nothing to set. The `listed` card keeps one band behind its wordmark and status — it was briefly removed on the reasoning that they sat on black, but that black was a photograph a bad 4:3 crop had cut away.
-- Property and weekly-listing slides require their own QR code and a listing number; export is blocked until both are present. **The eleven-digit rule is the `listed` card's alone now** — by request the weekly property page takes numbers only, as many as the listing has, and its gate asks whether a number is there rather than how long it is. See *THE WEEKLY LISTING NUMBER HAS NO LENGTH RULE*. On the **weekly** template the QR is 220x220 with a 6px white quiet-zone ring and 4px corners (centred above the bottom margin on the cover and closing slide, bottom right on the property page) — the `listed` card keeps `tk.qr`'s 250 at r8. The "small rounded rectangle in a bottom CORNER" line in the campaign rules is a campaign rule; organic layouts are template-owned, and these three are drawn.
+- Property and weekly-listing slides require their own QR code and a listing number; export is blocked until both are present. **There is NO eleven-digit rule anywhere any more** — first the weekly property page and then the `listed` card went to numbers only, as many as the listing has, and every gate asks whether a number is there rather than how long it is. See *THE WEEKLY LISTING NUMBER HAS NO LENGTH RULE* and *SIX FIXES ON THE LISTED CARD*. On the **weekly** template the QR is 220x220 with a 6px white quiet-zone ring and 4px corners (centred above the bottom margin on the cover and closing slide, bottom right on the property page) — the `listed` card keeps `tk.qr`'s 250 at r8. The "small rounded rectangle in a bottom CORNER" line in the campaign rules is a campaign rule; organic layouts are template-owned, and these three are drawn.
 - Top-agent slides need a full-bleed studio portrait each, and the blurb is capped at 40 words. **The cap's stated reason is obsolete twice over** — there is no gold ranking numeral (the brass is the place badge) and the numeral now sits BEHIND the glass panel rather than beside the blurb, so it clears nothing. Keep the number, which is a sensible panel-height rule; the justification is what has expired.
 - Photos are stored at export-grade resolution (up to 2560px on the long side) so a 2160px export stays sharp; feed and story share one photo per slide.
 - Exports write **flat** — one file per slide per size, told apart by a `_3x4` / `_9x16` suffix, not by folders. **The story is only included while its canvas is shown** (the Show story 9:16 toggle in the canvas bar); hidden, only `_3x4` ships. The PDF is **feed pages only**, and always has been.
@@ -10842,3 +10842,169 @@ origin's `localStorage` was cleared afterwards and both local servers stopped.
 the kit and touched nothing upstream. The reel's `LEAD` / `DWELL` are restated in this
 page's own script rather than read from `StudioBase.REEL_*`, because the page deliberately
 loads no studio code; if those constants move, this file has two numbers to follow them.
+
+# THE LISTED CARD TAKES THE WEEKLY PAGE'S CHIPS, A SALE/RENT LINE AND A BLACK SCRIM
+
+Three requests on `Provident Organic Studio.dc.html`'s Just listed / Just sold card, with a
+mock attached: the Marketing USP typed as `Fully Fitted | Full-Floor | Canal Views` and
+shown as chips at the top of the panel; the line under them reading
+`{type} for {Sale|Rent} in {location}` with the price keeping its formatting and taking
+`/year` or `/month` on a rental; and a black scrim between the photograph and the glass
+panel with a control for its strength. **This pass changes artwork, by request, and it is
+scoped to one slide kind**: op census over five templates x every slide x both canvases
+against the pre-change copy served alongside — **24 groups, 22 byte-identical, and the only
+two that differ are `listed` on the feed and the story** (15 -> 21 ops).
+
+**THE DEAL IS ASKED ONLY WHILE THE STATUS SAYS JUST LISTED.** "If it's selected, these new
+fields should appear" is read as the Status control: a sold property is neither for sale nor
+for rent, so `fieldShown` drops `deal` on a sold card and `per` unless the deal is Rent. The
+canvas reads the same derivation — `OrganicStudio.listedDeal(f)` returns `{listed, deal,
+per}` with the defaults the card already used for its status (`Just listed`, so `Sale`, and
+`Year`) — and `listedLine` / `listedPrice` / `fieldShown` all call it, so the form and the
+canvas cannot disagree. Measured on the demo copy:
+
+| status / deal / period | title | price | fields asked |
+|---|---|---|---|
+| listed · Sale | Villa for Sale in Palm Jumeirah | AED 12 Million | + deal |
+| listed · Rent · Year | Villa for Rent in Palm Jumeirah | AED 12 Million/year | + deal, per |
+| listed · Rent · Month | Villa for Rent in Palm Jumeirah | AED 12 Million/month | + deal, per |
+| sold | Villa in Palm Jumeirah | AED 12 Million | neither |
+
+The USP is out of the title sentence and into the chips — the exact move the weekly property
+page made one pass earlier, so the two templates now read the field the same way. The
+`building` field is labelled **Location** now (the mock's "Building 12, Bay Square"); its key
+is unchanged, so saved projects keep their value.
+
+**THE CHIPS ARE THE WEEKLY PAGE'S, FLUSH LEFT IN THE PANEL'S COLUMN.** Same 48 x r12 box, 14
+of side padding, 20 between chips and rows, `ART.ink` stroke, 16/500 caps at .1em in
+`ART.warm` — the label `pk`-scaled like every run in this panel (15.3 on the story), the box
+not, like every baseline step. They wrap at the agent's own column (`colW`), which on the demo
+copy puts three points on two rows, and they hang ABOVE the title: `chipTop` 50 from the
+panel's top to the first row and `chipToTitle` 56 from the last row's bottom to the title's
+first baseline, both read off the mock (its panel-to-chip is ~48, chip-bottom-to-title-baseline
+~56, title-to-price 65 against the existing 68.6). The panel grows upward to hold them — with
+no USP the row collapses and the title takes its old `padTop`, measured: panel 524 tall with
+two chip rows, 378 with none.
+
+**THE SCRIM IS A FLAT BLACK RECT OVER THE WHOLE CANVAS, drawn AFTER the photo and its parallax
+cut-out and BEFORE the panel's blur.** Above the cut-out on purpose: the cut-out is the
+picture's own foreground, and a foreground left bright over a darkened picture reads as a
+second exposure. `state.shade` is 0-100, **35 when a project carries no value** (`shadeAlpha`,
+the `glassOf` call: the request was to add it, so it reaches saved cards), and it is a **Look**
+ask gated on `shadeUsed` — the one kind that draws it — so it appears on the listed template's
+Finish step and its All-controls rail and on no other template (verified: weekly's Look is
+`scrim, imgo, glass, story`; listed's is `scrim, shade, imgo, glass, story`). It is not
+`scrimH`: that drives the fading top band behind the wordmark and the status, which stays.
+Both paint paths read the local black helper `N(a)`, so no colour literal entered the artwork.
+
+**THE PREVIEW'S LAYER ORDER MOVED, and the status is above the cut-out now as the op has it.**
+Document order is the paint order for z-auto siblings, so the shade got its own div — declared
+`display:none` for every kind, set in the listed branch — placed after the parallax layer and
+before the status and the frame. The status div had sat BEFORE the parallax layer, i.e. under
+the cut-out in the editor while the op draws it after the panel; it sits after the shade now,
+which is the op's order. Verified off the DOM's own child list: band 3, shade 4, status 5,
+frame 6, the shade computing `rgba(0,0,0,.35)`.
+
+**Preview against ops, one coordinate space:** card `80 / 826 / 920 x 524` against
+`80 / 826.4 / 920 x 523.6`; all three chips within **0.4 canvas px** on x/y/w and exact on h;
+four row baselines within 0.4; the chip border `#fff`, radius 12, label 16px `#FAF8F4`.
+
+`TPLDEMO.listed` shows the design now (`Just listed`, Sale, `Marina view | Vacant | Open to
+offers`), so the template card and the landing page's `organic-listed.webp` were recaptured
+(475 x 633, the documented 2x route). Interpolation sweep against the pre-change copy: 144 refs
+and 52 unresolved before and after, none new. Sheet integrity unchanged — one closing style tag,
+297/297 comments; raw `sc-if` +1/+1 and `sc-for` +2/+2, the new slider block and the two chip
+loops. The `_PRE` copy was removed, the servers stopped, the test origin's storage cleared.
+`studio-base.js`, Campaign, the image tool and `ui-design-system/` are untouched.
+
+**Left as it is, deliberately:** a segmented control with no answer yet lights neither half
+while the canvas draws its default — the deal reads "Sale" and the status "Just listed" before
+either is touched. That is how the status has always behaved; making a default read as selected
+is one change in the form's row builder and would apply to every `seg` field at once.
+
+# SIX FIXES ON THE LISTED CARD, AND THE GUIDED CANVAS FOLLOWS A REPLACED PHOTO
+
+Six requests on `Provident Organic Studio.dc.html`, with two screenshots attached. Four are
+on the Just listed / Just sold card, one is app-wide, one is the guided run's refresh. Op
+census over five templates x every slide x both canvases against the pre-change copy served
+alongside: **24 groups, 22 byte-identical, and the only two that differ are `listed` on the
+feed and the story** (21 -> 22 ops — the flat scrim became two gradient bands).
+
+**THE SECOND AGENT IS GONE.** The "How many agents are on this card?" ask, the One agent /
+Two agents pair, the second name, role and portrait asks, the two-column `agentColsGeom`
+layout in the ops and its preview row are all deleted; the rail's toggle had already gone
+with the aside. `agent2` / `agent2On` stay in state (and `normState` still fills them) so a
+saved project loads, and the `smp-agent-2` asset plumbing stays because a slot that is never
+filled costs nothing. Nothing reads any of it. The agent section of the listed page is name,
+role, portrait.
+
+**NO ELEVEN-DIGIT RULE ANYWHERE.** `FIELDS.listed`'s listing number is `req digits img` with
+the hint "Numbers only", the same flag the weekly page took one pass earlier, and the export
+gate — in both of its copies — asks `!trim()` rather than `length !== 11`. Verified live:
+`12345` raises no blocker, an empty field still blocks with "Listing number". The `len11`
+parser and its readers survive with no field carrying the flag.
+
+**THE AGENT SHRINKS PROPORTIONALLY UNTIL THE CHIPS FIT ON ONE LINE.** `listedBox` measures the
+chip row's one-line width FIRST and, when it does not fit beside the drawn box, scales the box
+— width AND height by one factor `ak` — until it does, no further than `LISTED.agentMin`
+(.6). On the demo copy (three chips, 472 wide) that is **ak .7633: the box goes 454 x 694 ->
+347 x 530** on the feed and the row sits on one line; a short USP leaves ak at 1; a four-chip
+USP meets the floor and wraps to two rows, which is the honest answer when the two cannot
+both have the width. The chips' own widths are clamped to the widest column the floor allows,
+so a single chip can never exceed the column. **Solved with half a pixel of slack**: `ak`
+makes the column exactly the row's width, and an exact tie wrapped the last chip on a
+floating-point hair (the feed wrapped where the story, rounding the other way, did not).
+`agentPlace` reads the box from `listedBox`, so both surfaces frame her identically — the
+crown lands on the mark to 0.00 on a synthetic cut-out.
+
+**THE BLACK SCRIM IS TWO BANDS, TOP AND BOTTOM.** `shadeBands(B, H)` returns `[0, top]` and
+`[cardY, H]` — the top band ending where the listed card's wash does (the status's descent
+plus 20), the bottom starting at the panel's top — and both go through `bandStops`, so each
+carries the same 240px eased fade every wash in this file has. The ops emit two `grad` ops
+where there was one `rect`; the preview's shade div carries two `linear-gradient`s at the
+op's own stops (verified: solid to 24.8%, out by 41.5%; in from 45.4%, solid from 62.1%).
+A card with no panel yet has the top band alone; a panel reaching the status collapses the
+two into one. The middle of the photograph is clear now, which is the whole request.
+
+**Flagged, not changed: the wash and the shade both darken the TOP.** `scrimBands`' listed
+band and the shade's top band have the same extent, so two sliders — Wash strength and Photo
+darkening — now reach one region. That overlap existed before this pass (the flat shade
+covered the top too); the bands only make it legible. If one control should own the top, the
+listed entry in `scrimBands` is the one to drop (which also retires the Wash ask on this
+template through `scrimUsed`).
+
+**THE CORNER GRIPS ARE GONE** — the blue-and-white squares at the canvas corners in the second
+screenshot. The `lPhGrips` markup in both canvases, the grip builder and the corner branch of
+the pointer gesture are deleted; `phStart` is the move alone. `phs` is still applied by
+`photoPlace` and still cleared by Reset, so a saved scale survives, and zooming is the reframe
+overlay's (double-click the photo). The photo hint says so instead of naming a grip.
+`LISTED.handle` / `handleIn` went with their only reader. The ranking cover's figure handles
+(`gh`, also `data-gdir`) are a different feature and are untouched.
+
+**THE GUIDED CANVAS FOLLOWS A REPLACED PHOTO AT ONCE.** Two causes, two fixes:
+
+- **`_filledStamp` moved only when a slot flipped between empty and filled.** A REPLACED
+  picture is filled before and after, so `gdKeyOf` / `gdSlideKey` never changed and the card
+  kept the old photo until an unrelated field edit re-keyed it — the reported bug. The same
+  held for a reframed crop. `_refreshAV` now fingerprints the sidecar it reads (per slot: the
+  data URL's length plus a 48-char tail, never the whole string, and its `s/x/y/f`) and bumps
+  the stamp when the signature moves — taken on the very read `gdRenderAll` repeats.
+- **The picker path fired no trigger at all.** `_refreshAV` ran off `drop`,
+  `image-slot:reframe` and the fill-flip scan; a Replace through the picker on a filled slot
+  is none of those. The 500ms fill scan now fingerprints each slot's own shadow `<img>` src
+  (the QR scan already reads that element) and schedules `_refreshAV` when it moves; the first
+  sighting only records it, so boot does not trigger a refresh storm.
+
+Verified through the slot's own `_ingest` on the test origin (`providentRuntime.mode ===
+'indexeddb'`, the probe refusing outright on `omelette`): first fill reached the card in
+600ms; **the REPLACE — the failing case — reached it in 200ms**, the stamp moved both times,
+the state was untouched, and the card's centre pixel read the second image's colour.
+
+**Preview against ops, one coordinate space:** panel `80 / 894 / 920 x 456` against
+`80 / 894.4 / 920 x 455.6`; three chips within 0.6 canvas px on every term; 0 `[data-gdir]`
+in the canvas. `TPLDEMO.listed` renders a one-line chip row now, so
+`preview/organic-listed.webp` was recaptured (475 x 633, the documented 2x route). Sheet
+integrity: one closing style tag, 297/297 comments, depth 0; raw `sc-if` -5/-5 and `sc-for`
+-3/-3 against the backup — exactly the blocks removed. The test origin's slots were cleared,
+its IndexedDB deleted and its `localStorage` cleared; the `_PRE` copy removed; both servers
+stopped.

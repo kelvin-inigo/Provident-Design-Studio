@@ -3210,9 +3210,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <sc-if value="{{ sl.ft.lPhotoOn }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.ft.lPhotoStyle }}"></div>
             <div onPointerDown="{{ sl.ft.lPanDown }}" onDoubleClick="{{ sl.ft.lPanDbl }}" data-pan="{{ sl.ft.lPanOn }}" style="{{ sl.ft.lPanStyle }}"></div>
-            <sc-for list="{{ sl.ft.lPhGrips }}" as="pg" hint-placeholder-count="0">
-              <span onPointerDown="{{ pg.drag }}" data-gdir="{{ pg.dir }}" style="{{ pg.style }}"></span>
-            </sc-for>
           </sc-if>
         </div>
         <div style="{{ sl.ft.taTexStyle }}"></div>
@@ -3224,14 +3221,22 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
              the stack. Declared for every kind (`display:none`), like `taTexStyle`. -->
         <div style="{{ sl.ft.revBgStyle }}"></div>
         <div style="{{ sl.ft.scrimStyle }}"></div>
+        <sc-if value="{{ sl.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ sl.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="{{ sl.ft.fgStyle }}"></div></div></sc-if>
+        <!-- the listed card's black scrim: after the photo and its cut-out, before the status
+             and the panel — the op's own order, mirrored by DOCUMENT order. display:none on
+             every other kind. The status moved below it so it stays above the cut-out, as the
+             op draws it. -->
+        <div style="{{ sl.ft.shadeStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.ft.guideStyle }}"></div></sc-if>
         <sc-if value="{{ sl.isListed }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.ft.lWordStyle }}">{{ sl.ft.lWord }}</div></sc-if>
-        <sc-if value="{{ sl.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ sl.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="{{ sl.ft.fgStyle }}"></div></div></sc-if>
         <div style="{{ sl.ft.frameStyle }}">
           <div style="{{ sl.ft.logoStyle }}">provident.</div>
           <sc-if value="{{ sl.isListed }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ sl.ft.lCardOn }}" hint-placeholder-val="{{ false }}">
               <div style="{{ sl.ft.lCardStyle }}">
+                <sc-for list="{{ sl.ft.lChips }}" as="lc" hint-placeholder-count="0">
+                  <div style="{{ lc.style }}"><span style="{{ lc.labStyle }}">{{ lc.t }}</span></div>
+                </sc-for>
                 <sc-for list="{{ sl.ft.lRows }}" as="lr" hint-placeholder-count="0">
                   <sc-if value="{{ lr.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ lr.style }}">{{ lr.t }}</div></sc-if>
                   <sc-if value="{{ lr.isRule }}" hint-placeholder-val="{{ false }}"><div style="{{ lr.style }}"></div></sc-if>
@@ -3239,27 +3244,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               </div>
             </sc-if>
             <sc-if value="{{ sl.ft.lAgentOn }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.ft.lAgentStyle }}"></div></sc-if>
-            <sc-if value="{{ sl.ft.lTwo }}" hint-placeholder-val="{{ false }}">
-            <div style="{{ sl.ft.agentRowStyle }}">
-              <div style="{{ sl.ft.agentColStyle }}">
-                <div class="avslot" style="{{ sl.ft.agentPhotoStyle }}"><image-slot id="smp-agent" shape="circle" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div>
-                <div style="display:flex;flex-direction:column;gap:0.5cqw">
-                  <span style="{{ sl.ft.agentNameStyle }}">{{ agent1Name }}</span>
-                  <span style="{{ sl.ft.agentRoleStyle }}">{{ agent1Role }}</span>
-                </div>
-              </div>
-              <sc-if value="{{ agent2On }}" hint-placeholder-val="{{ false }}">
-                <div style="{{ sl.ft.agentVruleStyle }}"></div>
-                <div style="{{ sl.ft.agentColStyle }}">
-                  <div class="avslot" style="{{ sl.ft.agentPhotoStyle }}"><image-slot id="smp-agent-2" shape="circle" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div>
-                  <div style="display:flex;flex-direction:column;gap:0.5cqw">
-                    <span style="{{ sl.ft.agentNameStyle }}">{{ agent2Name }}</span>
-                    <span style="{{ sl.ft.agentRoleStyle }}">{{ agent2Role }}</span>
-                  </div>
-                </div>
-              </sc-if>
-            </div>
-            </sc-if>
           </sc-if>
           <!-- THE WEEKLY COVER AND CLOSING SLIDE are ONE layout now, from Cover.svg and
                CTA.svg: the same centred wordmark, headline block, 86-tall chip and centred
@@ -3374,9 +3358,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <sc-if value="{{ sl.st.lPhotoOn }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.st.lPhotoStyle }}"></div>
             <div onPointerDown="{{ sl.st.lPanDown }}" onDoubleClick="{{ sl.st.lPanDbl }}" data-pan="{{ sl.st.lPanOn }}" style="{{ sl.st.lPanStyle }}"></div>
-            <sc-for list="{{ sl.st.lPhGrips }}" as="pg" hint-placeholder-count="0">
-              <span onPointerDown="{{ pg.drag }}" data-gdir="{{ pg.dir }}" style="{{ pg.style }}"></span>
-            </sc-for>
           </sc-if>
         </div>
         <div style="{{ sl.st.taTexStyle }}"></div>
@@ -3388,14 +3369,22 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
              the stack. Declared for every kind (`display:none`), like `taTexStyle`. -->
         <div style="{{ sl.st.revBgStyle }}"></div>
         <div style="{{ sl.st.scrimStyle }}"></div>
+        <sc-if value="{{ sl.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ sl.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="{{ sl.st.fgStyle }}"></div></div></sc-if>
+        <!-- the listed card's black scrim: after the photo and its cut-out, before the status
+             and the panel — the op's own order, mirrored by DOCUMENT order. display:none on
+             every other kind. The status moved below it so it stays above the cut-out, as the
+             op draws it. -->
+        <div style="{{ sl.st.shadeStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.st.guideStyle }}"></div></sc-if>
         <sc-if value="{{ sl.isListed }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.st.lWordStyle }}">{{ sl.st.lWord }}</div></sc-if>
-        <sc-if value="{{ sl.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ sl.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"><div style="{{ sl.st.fgStyle }}"></div></div></sc-if>
         <div style="{{ sl.st.frameStyle }}">
           <div style="{{ sl.st.logoStyle }}">provident.</div>
           <sc-if value="{{ sl.isListed }}" hint-placeholder-val="{{ false }}">
             <sc-if value="{{ sl.st.lCardOn }}" hint-placeholder-val="{{ false }}">
               <div style="{{ sl.st.lCardStyle }}">
+                <sc-for list="{{ sl.st.lChips }}" as="lc" hint-placeholder-count="0">
+                  <div style="{{ lc.style }}"><span style="{{ lc.labStyle }}">{{ lc.t }}</span></div>
+                </sc-for>
                 <sc-for list="{{ sl.st.lRows }}" as="lr" hint-placeholder-count="0">
                   <sc-if value="{{ lr.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ lr.style }}">{{ lr.t }}</div></sc-if>
                   <sc-if value="{{ lr.isRule }}" hint-placeholder-val="{{ false }}"><div style="{{ lr.style }}"></div></sc-if>
@@ -3403,27 +3392,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               </div>
             </sc-if>
             <sc-if value="{{ sl.st.lAgentOn }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.st.lAgentStyle }}"></div></sc-if>
-            <sc-if value="{{ sl.st.lTwo }}" hint-placeholder-val="{{ false }}">
-            <div style="{{ sl.st.agentRowStyle }}">
-              <div style="{{ sl.st.agentColStyle }}">
-                <div class="avslot" style="{{ sl.st.agentPhotoStyle }}"><image-slot id="smp-agent" shape="circle" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div>
-                <div style="display:flex;flex-direction:column;gap:0.5cqw">
-                  <span style="{{ sl.st.agentNameStyle }}">{{ agent1Name }}</span>
-                  <span style="{{ sl.st.agentRoleStyle }}">{{ agent1Role }}</span>
-                </div>
-              </div>
-              <sc-if value="{{ agent2On }}" hint-placeholder-val="{{ false }}">
-                <div style="{{ sl.st.agentVruleStyle }}"></div>
-                <div style="{{ sl.st.agentColStyle }}">
-                  <div class="avslot" style="{{ sl.st.agentPhotoStyle }}"><image-slot id="smp-agent-2" shape="circle" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div>
-                  <div style="display:flex;flex-direction:column;gap:0.5cqw">
-                    <span style="{{ sl.st.agentNameStyle }}">{{ agent2Name }}</span>
-                    <span style="{{ sl.st.agentRoleStyle }}">{{ agent2Role }}</span>
-                  </div>
-                </div>
-              </sc-if>
-            </div>
-            </sc-if>
           </sc-if>
           <!-- THE WEEKLY COVER AND CLOSING SLIDE are ONE layout now, from Cover.svg and
                CTA.svg: the same centred wordmark, headline block, 86-tall chip and centred
@@ -3721,11 +3689,6 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 <span class="gd-hint">{{ a.projHint }}</span>
               </sc-if>
 
-              <sc-if value="{{ a.isAgent2 }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.agent2Opts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
-                <span class="gd-hint">A second agent adds a matching name, role and headshot beside the first.</span>
-              </sc-if>
-
               <sc-if value="{{ a.isPortrait }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
@@ -3745,6 +3708,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <b class="gd-rangev">{{ a.scrimPct }}</b>
                 </div>
                 <span class="gd-hint">The dark wash sits behind the words so they stay readable over the photo. Watch the preview — lower it until the photo comes through, raise it if the text is fighting the image.</span>
+              </sc-if>
+
+              <sc-if value="{{ a.isShade }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-slide">
+                  <input type="range" min="0" max="100" value="{{ a.shadeVal }}" onChange="{{ a.setShade }}" class="gd-range">
+                  <b class="gd-rangev">{{ a.shadePct }}</b>
+                </div>
+                <span class="gd-hint">A black scrim at the top and the bottom of the photo — behind the status, and under the panel — leaving the middle clear. Raise it until the copy reads; 0 leaves the photograph untouched.</span>
               </sc-if>
 
               <sc-if value="{{ a.isImgO }}" hint-placeholder-val="{{ false }}">
@@ -4661,7 +4632,7 @@ class OrganicStudio extends StudioBase {
   // a blank layout. These strings exist only to fill a preview and are applied to a THROWAWAY
   // state built here — `pickTpl` still starts from `tplSlides` with everything empty.
   static TPLDEMO = {
-    listed:  { status: 'Just sold', usp: 'Stunning Beach View', ptype: 'Villa', building: 'Palm Jumeirah', price: '12000000', listno: '32185296341' },
+    listed:  { status: 'Just listed', deal: 'Sale', usp: 'Marina view | Vacant | Open to offers', ptype: 'Villa', building: 'Palm Jumeirah', price: '12000000', listno: '32185296341' },
     cover:   {},
     prop:    { usp: 'Ready to move | Vacant | Sea view', ptype: 'Villa', building: 'Arabian Ranches', city: 'Dubai', beds: '3', baths: '5', area: '3216', price: '3220000', listno: '32185296341' },
     cta:     {},
@@ -4980,6 +4951,9 @@ class OrganicStudio extends StudioBase {
       // NOT delete it: it changes the artwork, so it belongs in the undo stack, the render
       // key and the saved project.
       glassFill: 'white',
+      // the listed card's black scrim, 0-100 — see `shadeAlpha`, which also answers for a
+      // saved project that carries no value
+      shade: 35,
       agent: { name: '', role: '' },
       agent2: { name: '', role: '' }, agent2On: false,
       slides: OrganicStudio.tplSlides('weekly')
@@ -5137,6 +5111,19 @@ class OrganicStudio extends StudioBase {
         const norm = v => !v ? null : (typeof v === 'string' ? { u: v, s: 1, x: 0, y: 0 } : v);
         this._filled = {};
         Object.keys(sc).forEach(k => { const v = norm(sc[k]); this._filled[k] = !!(v && v.u); });
+        // THE SIDECAR'S OWN SIGNATURE MOVES THE RENDER KEY. `_filledStamp` used to change only
+        // when a slot flipped between empty and filled, so REPLACING a photo — filled before,
+        // filled after — or reframing its crop left every guided card's key where it was and
+        // the card showed the old picture until some unrelated field changed. The signature
+        // is each slot's bytes (length plus a tail of the data URL, never the whole string)
+        // and its crop, taken here because this is the read `gdRenderAll` will repeat.
+        const sig = Object.keys(sc).sort().map(k => {
+          const v = norm(sc[k]); if (!(v && v.u)) return k;
+          const u = String(v.u);
+          return k + '=' + u.length + ':' + u.slice(-48) + '@' + (v.s || 1) + ',' + (v.x || 0) + ',' + (v.y || 0) + ',' + (v.f || '');
+        }).join('|');
+        if (this._scSig !== undefined && this._scSig !== sig) this._filledStamp = String(Date.now());
+        this._scSig = sig;
         const n = (this.state.slides || []).length;
         this._assetView.bgDims = this._assetView.bgDims || {};
         // one-time migration: legacy index-keyed slots → slide-id keys (index
@@ -5289,13 +5276,24 @@ class OrganicStudio extends StudioBase {
         const now = Date.now();
         if (now - lastFillScan > 500) {
           lastFillScan = now;
-          let changed = false;
+          let changed = false, swapped = false;
           this._filled = this._filled || {};
+          this._slotFp = this._slotFp || {};
           document.querySelectorAll('image-slot[id]').forEach(sl => {
             const on = sl.hasAttribute('data-filled');
             if (on && !this._filled[sl.id]) { this._filled[sl.id] = true; changed = true; }
             else if (!on && this._filled[sl.id] && sl.closest('aside')) { this._filled[sl.id] = false; changed = true; }
             if (changed) this._filledStamp = String(now);
+            // A REPLACED picture flips nothing — the slot is filled before and after — and the
+            // picker path fires neither `drop` nor `image-slot:reframe`, so no trigger reached
+            // `_refreshAV` and the canvas kept the old photo until a field changed. Fingerprint
+            // the slot's own <img> (length plus a tail; a data URL can be megabytes) and re-read
+            // the sidecar when it moves. The first sighting only records it.
+            const sim = sl.shadowRoot && sl.shadowRoot.querySelector('.frame img');
+            const ssrc = (sim && sim.getAttribute('src')) || '';
+            const sfp = ssrc ? ssrc.length + ':' + ssrc.slice(-48) : '';
+            if (this._slotFp[sl.id] !== undefined && this._slotFp[sl.id] !== sfp) swapped = true;
+            this._slotFp[sl.id] = sfp;
             // decode QR slots → "Visit QR link" buttons (BarcodeDetector, where available)
             if (on && /^smp-qr/.test(sl.id) && window.BarcodeDetector) {
               const img = sl.shadowRoot && sl.shadowRoot.querySelector('.frame img');
@@ -5326,7 +5324,7 @@ class OrganicStudio extends StudioBase {
           if (changed && this._avStamp !== this._filledStamp) {
             this._avStamp = this._filledStamp;
             setTimeout(this._refreshAV, 300);
-          }
+          } else if (swapped) setTimeout(this._refreshAV, 300);
         }
         // ── A LIVE-FOLLOW HACK WAS HERE AND IT IS DELETED. ────────────────────────────
         // It walked every `[data-fgv]` layer and copied the image-slot's INTERNAL <img>
@@ -5464,19 +5462,32 @@ class OrganicStudio extends StudioBase {
     // the copy wrapped could not settle. Both ratios are the drawing's: 475 x 634 against a
     // 961.32 x 416 panel.
     agentH: 634 / 416, agentW: 475 / 961.32, agentIn: 0,
+    // THE BOX SHRINKS PROPORTIONALLY — width and height by one factor — until the USP chips
+    // fit on ONE line, by request, and no further than this fraction of its drawn size. Past
+    // the floor the chips wrap instead: a chip row is copy, the agent is the card's subject,
+    // and neither may erase the other.
+    agentMin: .6,
     headTop: .04,         // the head's top, x the box's height
     // THE PADDING THE USP WRAPS AT, by request. The drawing cannot supply it — its column
     // is 436 wide and the line breaks at 287, so that break was typed by hand, not measured.
     // 50 is the panel's own pad, which keeps one rhythm, and it leaves the price at its full
     // nominal size (312.4 of a 365.5 column). Raising it past ~103 starts shrinking the price.
     colGap: 50,
+    // ── THE USP CHIPS, at the top of the panel — the weekly property page's chip, moved
+    // onto this card by request. Same box (48 tall, r12, 14 of side padding, 20 between and
+    // between rows) and the same 16px/500 caps at .1em; only the label is `pk`-scaled, like
+    // every other run in this panel. `chipTop` is the panel's top -> the first row; `chipToTitle`
+    // the last row's bottom -> the title's first baseline, both read off the mock.
+    chipPx: 16, chipH: 48, chipR: 12, chipPadX: 14, chipGap: 20, chipTrack: .1,
+    chipTop: 50, chipToTitle: 56,
     qrIn: 33,             // the QR's inset from the panel's bottom-right corner
     // THE CANVAS SCALE, on top of the cover fit and of the reframe overlay's own zoom.
     // Its floor is 1 and that is not a preference: this is the BACKGROUND, so anything
     // under cover would show the ground through it. You zoom in and pan; you cannot zoom
-    // out past the frame.
-    phsMin: 1, phsMax: 4,
-    handle: 11, handleIn: 26   // the corner grips, and their inset from the canvas corners
+    // out past the frame. THE CORNER GRIPS THAT USED TO WRITE IT ARE GONE, by request — a
+    // saved `phs` still applies and Reset still clears it; zooming is the reframe overlay's
+    // (double-click the photo).
+    phsMin: 1, phsMax: 4
   };
   // ── THE PHOTO'S WINDOW AND ITS ANCHOR ────────────────────────────────────────────────
   // THE WINDOW IS THE WHOLE CANVAS ON EVERY KIND. It was briefly a 4:3 block pinned to the
@@ -5576,11 +5587,10 @@ class OrganicStudio extends StudioBase {
     const P = OrganicStudio.PXT.ft, pk = innerW / (P.W - P.pad[1] - P.pad[3]);
     const uspPx = L.uspPx * pk, namePx = L.namePx * pk;
     let rolePx = L.rolePx * pk;   // let: the role is fitted to one line below
-    const usp = this.listedLine(f);
-    const price = this.fmtPriceBig(f.price);
+    const usp = this.listedLine(f);        // the TITLE line now (type / deal / location); the USP is the chip row
+    const price = this.listedPrice(f);      // "AED 12 Million", plus /year or /month on a rental
     const name = String((state.agent && state.agent.name) || '').trim();
     const role = String((state.agent && state.agent.role) || '').trim().toUpperCase();
-    const two = !!state.agent2On;
 
     // The copy column stops before the agent's crop box with `colGap` of PADDING, so the
     // USP wraps when it reaches her instead of running under her — the behaviour asked for.
@@ -5588,9 +5598,29 @@ class OrganicStudio extends StudioBase {
     // re-flow the moment one lands, and the guided run asks for the copy a whole step
     // before the portrait.
     const cardX = pL, cardW = innerW;
-    const agentW = cardW * L.agentW;
-    const agentRight = cardX + cardW - L.agentIn, agentLeft = agentRight - agentW;
-    const colX = cardX + L.cardPad, colW = Math.max(80, agentLeft - L.colGap - colX);
+    const agentW0 = cardW * L.agentW;
+    const agentRight = cardX + cardW - L.agentIn;
+    const colX = cardX + L.cardPad;
+    // ── THE AGENT GIVES WAY TO THE CHIPS, by request: "reduce the agent's image
+    // proportionally, I need those USPs on one line as much as possible". The chips'
+    // one-line width is measured FIRST, and if it does not fit beside the drawn box the box
+    // is scaled down — width AND height by one factor `ak`, so the figure stays in proportion
+    // — until it does, no further than `agentMin`. A short USP leaves the agent at her drawn
+    // size (ak 1); a long one meets the floor and the row wraps, which is the honest answer
+    // when the two cannot both have the width. The floor also bounds the widest column the
+    // chips may ever claim (`colMax`), so one chip can never be wider than the column.
+    const upx = L.chipPx * pk, uls = upx * L.chipTrack;
+    const colMax = agentRight - L.colGap - colX - agentW0 * L.agentMin;
+    const chipW = this.propUsps(f).map(t => ({ t, w: Math.min(colMax, this.meas(t, upx, 500, false, uls) - uls + 2 * L.chipPadX) }));
+    const oneLine = chipW.reduce((a, c, i) => a + c.w + (i ? L.chipGap : 0), 0);
+    // Solved with HALF A PIXEL of slack: `ak` makes the column equal to the row's width, and
+    // an exact tie wraps the last chip on a floating-point hair (it did — the feed wrapped
+    // where the story, rounding the other way, did not).
+    let ak = 1;
+    if (oneLine > agentRight - L.colGap - colX - agentW0)
+      ak = Math.max(L.agentMin, Math.min(1, (agentRight - L.colGap - colX - oneLine - .5) / agentW0));
+    const agentW = agentW0 * ak, agentLeft = agentRight - agentW;
+    const colW = Math.max(80, agentLeft - L.colGap - colX);
 
     // The price is a FIGURE and must never break: fit it to the column, down to `priceMin`
     // of its nominal size. The story used to set "AED 3.2 Million" over two lines.
@@ -5635,16 +5665,38 @@ class OrganicStudio extends StudioBase {
       rows.unshift({ k: 't', lines: uspLines, px: uspPx, w: 300, ls: uspPx * L.copyTrack, fill: A.ink, y: base - uspPx, lh: L.uspLead });
     }
     if (ruleY != null) rows.push({ k: 'rule', y: ruleY });
-    const anyRow = rows.some(r => r.k === 't');
-    // `base` is now the TOP row's own first baseline, whichever row that is
-    const cardY = anyRow ? base - L.padTop : floor;
+    const anyText = rows.some(r => r.k === 't');
+    // `base` is now the TOP text row's own first baseline, whichever row that is.
+
+    // ── THE USP CHIPS, laid out left to right from the column's edge and wrapping at the
+    // agent's own column — the weekly page's chip, flush left here rather than centred
+    // because this panel's copy is a left-aligned column. They hang ABOVE the title: the
+    // panel grows upward to hold every row, which is the same "auto layout" the weekly page
+    // carries. With no USP the row collapses and the title takes its old `padTop`.
+    const chipRows = []; let crow = [], crw = 0;
+    const pushRow = () => { if (crow.length) { chipRows.push({ items: crow, w: crw }); crow = []; crw = 0; } };
+    chipW.forEach(c => {
+      const cw = Math.min(colW, c.w);
+      if (crow.length && crw + L.chipGap + cw > colW) pushRow();
+      crw += (crow.length ? L.chipGap : 0) + cw; crow.push({ t: c.t, w: cw });
+    });
+    pushRow();
+    const chipsH = chipRows.length ? chipRows.length * L.chipH + (chipRows.length - 1) * L.chipGap : 0;
+    const chipBottom = chipRows.length ? (anyText ? base - L.chipToTitle : floor - L.padBot) : 0;
+    const chipTop = chipBottom - chipsH, chips = [];
+    chipRows.forEach((r, ri) => {
+      let ccx = colX; const cy = chipTop + ri * (L.chipH + L.chipGap);
+      r.items.forEach(c => { chips.push({ t: c.t, x: ccx, y: cy, w: c.w, h: L.chipH }); ccx += c.w + L.chipGap; });
+    });
+    const anyRow = anyText || chips.length > 0;
+    const cardY = chips.length ? chipTop - L.chipTop : (anyText ? base - L.padTop : floor);
     const cardH = anyRow ? floor - cardY : 0;
 
     // The agent's crop box: flush right, standing on the panel's floor, growing with it.
     // Every upload is scaled and placed so its HEAD lands in the same place inside this
     // box and then CLIPPED to it — which is what makes a headshot and a full-body shot
     // render as the same framing. See StudioBase.headBox.
-    const agentH = cardH ? cardH * L.agentH : H * .3;
+    const agentH = (cardH ? cardH * L.agentH : H * .3) * ak;   // `ak`: the same factor the width took
     const agentBot = H - pB, agentTop = agentBot - agentH;
     const headTop = agentTop + agentH * L.headTop, headCx = agentLeft + agentW / 2;
 
@@ -5659,7 +5711,7 @@ class OrganicStudio extends StudioBase {
     const qrX = cardX + cardW - L.qrIn - qs, qrY = floor - L.qrIn - qs;
 
     return { word, wpx, wordW, wordX, wordY,
-      rows, cardX, cardY, cardW, cardH, two, colX, colW,
+      rows, chips, upx, uls, cardX, cardY, cardW, cardH, ak, colX, colW,
       agentH, agentW, agentBot, agentTop, agentLeft, agentRight, headTop, headCx,
       qrOn, qs, qrX, qrY, innerW };
   }
@@ -5746,30 +5798,35 @@ class OrganicStudio extends StudioBase {
     }
     return out;
   }
+  // ONE derivation of the listed card's deal, read by the title, the price and `fieldShown`.
+  // `listed` is the status test; `deal` is '' on a sold card (a sold property is neither for
+  // sale nor for rent) and defaults to Sale on a listed one, exactly as the status itself
+  // defaults to Just listed; `per` is '' unless the deal is Rent, and defaults to Year.
+  static listedDeal(f) {
+    f = f || {};
+    const listed = String(f.status || 'Just listed') === 'Just listed';
+    const deal = listed ? (f.deal === 'Rent' ? 'Rent' : 'Sale') : '';
+    const per = deal === 'Rent' ? (f.per === 'Month' ? 'Month' : 'Year') : '';
+    return { listed, deal, per };
+  }
   listedLine(f) {
-    // The USP leads, then the type, then the community — "Stunning Beach View Villa in
-    // Palm Jumeirah". Title Case throughout, which is the standing rule for all four of
-    // these short fields; propLines learned the same lesson when it used to lower-case
-    // the type and produced "Ready to Move villa in …".
-    let t = f.usp ? this.toTitle(f.usp) : '';
-    if (f.ptype) t += (t ? ' ' : '') + this.toTitle(f.ptype);
-    if (f.building) t += (t ? ' ' + (f.conj || 'in') + ' ' : '') + this.toTitle(f.building);
+    // THE TITLE LINE: "{type} for {Sale|Rent} in {location}" — "Office for Rent in Building
+    // 12, Bay Square", per the supplied mock. The USP is NOT in this sentence any more: it is
+    // the chip row above it (`propUsps`, the weekly page's rule). On a SOLD card the deal
+    // words drop out and it reads "Office in Building 12, Bay Square". Title Case on the
+    // typed fields, the standing rule; propLines learned the same lesson when it used to
+    // lower-case the type and produced "Ready to Move villa in …".
+    const d = OrganicStudio.listedDeal(f);
+    let t = f.ptype ? this.toTitle(f.ptype) : '';
+    if (d.deal) t += (t ? ' for ' : 'For ') + d.deal;
+    if (f.building) t += (t ? ' ' + (f.conj || 'in') + ' ' : 'In ') + this.toTitle(f.building);
     return t;
   }
-  // two-agent auto-layout row — shared by live canvas + export.
-  // Equal flexible columns; text wraps at full size (never shrinks); QR bottom-aligned in the same row.
-  agentColsGeom(state, tk) {
-    const innerW = tk.W - tk.pad[1] - tk.pad[3];
-    const gap = 56;
-    const availW = innerW - (state.qr.show && state.qr.corner === 'right' ? tk.qr + gap : 0);
-    const colW = (availW - gap * 2 - 1) / 2;
-    const a2 = state.agent2 || {};
-    const wrap = (t, px, w) => this.wrapRuns([{ text: t || '', px, weight: w, fill: OrganicStudio.ART.ink }], colW);
-    const c1 = { name: wrap(state.agent.name, tk.name, 400), role: wrap(state.agent.role, tk.role, 300) };
-    const c2 = { name: wrap(a2.name, tk.name, 400), role: wrap(a2.role, tk.role, 300) };
-    const textH = c => c.name.length * tk.name * 1.25 + 8 + c.role.length * tk.role * 1.35;
-    const blockH = tk.photo + 20 + Math.max(textH(c1), textH(c2));
-    return { gap, colW, c1, c2, blockH };
+  // "AED 12 Million" as before, and "/year" or "/month" on it once the deal is Rent — the
+  // same formatting with the period appended, which is what the request asked for.
+  listedPrice(f) {
+    const p = this.fmtPriceBig(f.price), d = OrganicStudio.listedDeal(f);
+    return p && d.per ? p + '/' + d.per.toLowerCase() : p;
   }
   // ── THE GOOGLE REVIEW CARD'S ONE GEOMETRY SOURCE ───────────────────────────────────
   // Read by `buildOps`, by the preview and by the rail's own word-count note, the shape
@@ -6425,17 +6482,6 @@ class OrganicStudio extends StudioBase {
       const dw = av.pct.w / 100 * fw, dh = av.pct.h / 100 * fh;
       ops.push({ op: 'image', img: av.img, url: av.u, x: fx + av.pct.l / 100 * fw - dw / 2, y: fy + av.pct.t / 100 * fh - dh / 2, w: dw, h: dh, clip: { x: fx, y: fy, w: fw, h: fh, r: r || 0 } });
     };
-    const agentPhoto = (x, y, s2, av) => {
-      ops.push({ op: 'rrect', x, y, w: s2, h: s2, r: s2 / 2, fill: A.hold, stroke: A.holdEdge, sw: 2 });
-      if (av && av.img && av.pct) pctImg(av, x, y, s2, s2, s2 / 2);
-      else if (av && av.img) {
-        const iw = av.img.naturalWidth, ih = av.img.naturalHeight;
-        const k = Math.max(s2 / iw, s2 / ih) * (av.s || 1);
-        const dw = iw * k, dh = ih * k;
-        const cx = x + (50 + (av.x || 0)) / 100 * s2, cy = y + (50 + (av.y || 0)) / 100 * s2;
-        ops.push({ op: 'image', img: av.img, url: av.u, x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh, clip: { x, y, w: s2, h: s2, r: s2 / 2 } });
-      }
-    };
     // `r` and `ring` default to what the listed card has always drawn, so only the weekly
     // kinds take the drawing's 4px corner and its 6px white quiet-zone ring.
     const drawQr = (qx, qy, qs, asset, r, ring) => {
@@ -6496,6 +6542,15 @@ class OrganicStudio extends StudioBase {
       // black ground above the photo now), but it still belongs to the photograph and still
       // moves with it.
       drawFg();
+      // 2b — THE BLACK SCRIM, between the photograph (and its cut-out) and the glass panel,
+      // at `state.shade`. TOP AND BOTTOM, by request, not the whole canvas: one band behind
+      // the wordmark and the status and one from the panel's top to the floor, each with
+      // `bandStops`' own 240px eased fade, so the middle of the photograph stays clear. It
+      // sits ABOVE the cut-out on purpose — the cut-out is the picture's own foreground, and
+      // a foreground left bright over a darkened picture would read as a second exposure.
+      const shade = OrganicStudio.shadeAlpha(state);
+      if (shade > 0) this.shadeBands(B, H).forEach(b => ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H,
+        stops: this.bandStops(b[0], b[1], shade, H).map(p => [p[0], N(p[1].toFixed(3))]) }));
       // 3 — THE PANEL IS THE RANKING CARD'S MATERIAL, by request: the same backdrop blur at
       // `TA.panelBlur` over `deepGlass`. `backdrop-filter` has no canvas equivalent, so the
       // blur op must precede the translucent fill and carry the same x/y/w/h/r.
@@ -6503,6 +6558,14 @@ class OrganicStudio extends StudioBase {
         ops.push({ op: 'blur', x: B.cardX, y: B.cardY, w: B.cardW, h: B.cardH, r: L.cardR, amount: OrganicStudio.TA.panelBlur });
         ops.push({ op: 'rrect', x: B.cardX, y: B.cardY, w: B.cardW, h: B.cardH, r: L.cardR,
           fill: OrganicStudio.glassOf(state), stroke: A.hairEdge, sw: 1 });
+        // 3b — THE USP CHIPS at the top of the panel: the weekly page's hairline-framed
+        // kicker, one per point, laid out by `listedBox`. The label's baseline is centred
+        // the way the cover chip's is.
+        B.chips.forEach(c => {
+          ops.push({ op: 'rrect', x: c.x, y: c.y, w: c.w, h: c.h, r: L.chipR, stroke: A.ink, sw: 1 });
+          ops.push({ op: 'text', x: c.x + L.chipPadX, y: c.y + c.h / 2 + B.upx * OrganicStudio.TA.ordAsc / 2,
+                     px: B.upx, weight: 500, fill: A.warm, text: c.t, ls: B.uls });
+        });
         // 4 — a row is its wrapped lines, each on its own baseline off the row's own y. The
         // column stops before the agent with `colGap` of padding, so long copy breaks
         // instead of running under her and the panel takes the height by growing UPWARD.
@@ -6516,25 +6579,10 @@ class OrganicStudio extends StudioBase {
       //     the crop box, so a headshot, a half-body and a full-body upload all render
       //     identically; ink-box placement is the fallback when the head cannot be read.
       const ag = assets.agent;
-      if (ag && ag.img && !B.two) {
+      if (ag && ag.img) {
         const iw = ag.img.naturalWidth || 1, ih = ag.img.naturalHeight || 1;
         const p = this.agentPlace(B, { head: ag.head, ink: ag.ink, aspect: iw / ih });
         ops.push({ op: 'image', img: ag.img, url: ag.u, x: p.x, y: p.y, w: p.w, h: p.h, clip: p.clip });
-      }
-      if (B.two) {
-        const g = this.agentColsGeom(state, tk);
-        const py0 = H - pB - g.blockH;
-        const col = (x, av, c) => {
-          agentPhoto(x, py0, tk.photo, av);
-          const ty = py0 + tk.photo + 20;
-          this.drawLines(ops, c.name, x, ty, tk.name * 1.25, false, W);
-          const ry = ty + c.name.length * tk.name * 1.25 + 8;
-          this.drawLines(ops, c.role.map(ln => ({ parts: ln.parts.map(p => ({ t: p.t, r: Object.assign({}, p.r, { fill: A.soft }) })), width: ln.width })), x, ry, tk.role * 1.35, false, W);
-        };
-        col(pL, assets.agent, g.c1);
-        const rx = pL + g.colW + g.gap;
-        ops.push({ op: 'rect', x: rx, y: py0, w: 1, h: g.blockH, fill: A.ruleM });
-        col(rx + g.gap, assets.agent2, g.c2);
       }
       // 6 — the wordmark, CENTRED at the top. It was top-LEFT; all four of this template
       // set's drawings centre it.
@@ -7428,6 +7476,24 @@ class OrganicStudio extends StudioBase {
   // Photo strength, 10-100, over the canvas ground. Organic had no equivalent of
   // Campaign's bgO, and the guided run asks for one.
   static imgAlpha(st) { const v = st && st.imgO; return (v == null ? 100 : Math.max(10, Math.min(100, v))) / 100; }
+  // THE BLACK SCRIM between the listed card's photograph and its glass panel, 0-100, by
+  // request — a flat black fill over the whole canvas, drawn after the photo and the
+  // parallax cut-out and before the panel. 35 when a project carries no value, so it reaches
+  // saved cards too (the same call `glassOf` made). Listed only: `shadeUsed` gates the ask.
+  static shadeAlpha(st) { const v = st && st.shade; return (v == null ? 35 : Math.max(0, Math.min(100, v))) / 100; }
+  shadeUsed(state) { return (state.slides || []).some(sl => sl.kind === 'listed'); }
+  // WHERE THE SCRIM SITS: two bands, read by the ops and by the preview so neither can put
+  // the darkening somewhere the other does not. The top band ends where the listed card's
+  // wash does (the status's descent plus 20); the bottom band starts at the panel's top and
+  // runs to the floor. Both take `bandStops`' fade beyond those edges. A card with no panel
+  // yet has only the top band; a panel tall enough to reach the status leaves nothing to
+  // keep clear and the two collapse into one.
+  shadeBands(B, H) {
+    const top = B.wordY + B.wpx * .18 + 20;
+    if (!B.cardH) return [[0, top]];
+    if (B.cardY <= top) return [[0, H]];
+    return [[0, top], [B.cardY, H]];
+  }
   static TIERNAMES = {
     prop:    ['Headline', 'Property details'],
     listed:  ['Headline', 'Price'],
@@ -7450,12 +7516,18 @@ class OrganicStudio extends StudioBase {
     // background photo and a QR, which are asked for in phase 1.
     cover: [],
     cta:   [],
+    // THE USP IS A CHIP ROW HERE TOO, by request — the weekly property page's own `|` rule,
+    // at the top of the glass panel. Sale/Rent and the rent period are asked ONLY while the
+    // status says Just listed (`fieldShown`): a sold property is neither for sale nor for
+    // rent, and the period only exists once Rent is picked. `seg:` stays the LAST flag.
     listed:[['status', 1, 'Status', 'seg:Just listed|Just sold', ''],
-            ['usp', 1, 'Marketing USP', 'req', 'Shown in Title Case \u2014 e.g. Stunning Beach View'],
+            ['usp', 1, 'Marketing USP', 'req', 'Separate points with | \u2014 e.g. Fully Fitted | Full-Floor | Canal Views. Each becomes a chip at the top of the panel'],
             ['ptype', 1, 'Property type', 'req sel@ptypes', ''],
-            ['building', 1, 'Community / building', 'req', 'Title Case — a word typed in CAPITALS stays in capitals'],
-            ['price', 2, 'Price in AED', 'req num', 'Numbers only — shown as AED 12,200,000'],
-            ['listno', 3, 'Listing number', 'req len11 img', 'Exactly 11 digits']],
+            ['deal', 1, 'For sale or rent', 'seg:Sale|Rent', 'Reads \u201CApartment for Rent in \u2026\u201D on the card'],
+            ['per', 1, 'Rent period', 'seg:Year|Month', 'The price shows /year or /month'],
+            ['building', 1, 'Location', 'req', 'e.g. Building 12, Bay Square \u2014 Title Case; a word typed in CAPITALS stays in capitals'],
+            ['price', 2, 'Price in AED', 'req num', 'Numbers only \u2014 shown as AED 12 Million'],
+            ['listno', 3, 'Listing number', 'req digits img', 'Numbers only']],
     prop:  [['usp', 1, 'Marketing USP', '', 'Separate points with | \u2014 e.g. Marina view | Vacant | Open to offers. Each becomes a chip above the title'],
             ['ptype', 1, 'Property type', 'req sel@ptypes', ''],
             ['building', 1, 'Community / building', 'req', 'Title Case — a word typed in CAPITALS stays in capitals'],
@@ -7464,9 +7536,10 @@ class OrganicStudio extends StudioBase {
             ['baths', 2, 'Bath', 'req step', ''],
             ['area', 2, 'Area', 'req num', 'Numbers only — shown as 9,918 sq.ft.'],
             ['price', 2, 'Price in AED', 'req num', 'Numbers only — shown as AED 12,200,000'],
-            // NO LENGTH RULE HERE, by request — a weekly listing number is numbers only and
-            // as many of them as the listing has. The `listed` card above still carries
-            // `len11`; the two fields are deliberately different now.
+            // NO LENGTH RULE, by request — a listing number is numbers only and as many of
+            // them as the listing has. The `listed` card above dropped its `len11` one pass
+            // later, so every listing-number field in the app is `digits` now; the flag and
+            // its readers survive only so a hand-edited spec can still ask for it.
             ['listno', 3, 'Listing number', 'req digits img', 'Numbers only']],
     review:[['quote', 1, 'The review', 'req area', 'What the client actually said'],
             ['reviewer', 2, 'Who wrote it', 'req', 'e.g. Phillips · Provident client'],
@@ -7495,7 +7568,15 @@ class OrganicStudio extends StudioBase {
   // ones drop out — the run then asks for a quarter only when the period IS Quarterly,
   // which is what the rail has always done.
   static fieldShown(kind, k, f) {
-    // A transferred date is only a fact about a card that says Sold.
+    if (kind === 'listed') {
+      // Sale/Rent is a fact about a card that says LISTED — a sold property is neither —
+      // and the rent period only exists once Rent is picked. Same derivation the card's
+      // own title and price read (`listedDeal`), so the form and the canvas cannot disagree.
+      const d = OrganicStudio.listedDeal(f);
+      if (k === 'deal') return d.listed;
+      if (k === 'per') return d.deal === 'Rent';
+      return true;
+    }
     if (kind !== 'tacover') return true;
     const p = (f && f.period) || 'Monthly';
     if (k === 'mon') return p === 'Monthly';
@@ -7615,12 +7696,9 @@ class OrganicStudio extends StudioBase {
         raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.name', label: 'Agent name', req: true });
         raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.role', label: 'Agent role', req: true, hint: 'e.g. Consultant · Primary Sales' });
         raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent', label: 'Agent photo — PNG cut-out', hint: 'A cut-out on a transparent background — the face is found and framed for you, so any crop works' });
-        raw.push({ si, sec: 'agent', kind: 'agent2' });
-        if (s.agent2On) {
-          raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent2.name', label: 'Second agent name', req: true });
-          raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent2.role', label: 'Second agent role', req: true });
-          raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent-2', label: 'Second agent photo' });
-        }
+        // THE SECOND AGENT IS GONE, by request — the "How many agents are on this card?"
+        // ask, the two-column layout and the rail toggle with it. A saved project keeps its
+        // `agent2` / `agent2On`; nothing reads them.
       }
       if (sl.kind === 'review') {
         fs.filter(f => OrganicStudio.isAgentField(sl.kind, f.k))
@@ -7644,6 +7722,8 @@ class OrganicStudio extends StudioBase {
     // reading them (`scrimUsed`, `imgOUsed`), because the run is a projection of the rail.
     const fin = [];
     if (this.scrimUsed(s)) fin.push({ sec: 'look', kind: 'scrim' });
+    // the listed card's black scrim, gated on the one kind that draws it
+    if (this.shadeUsed(s)) fin.push({ sec: 'look', kind: 'shade' });
     if (this.imgOUsed(s)) fin.push({ sec: 'look', kind: 'imgo' });
     // UNGATED, and that is checked rather than assumed: every one of the five templates
     // draws a glass panel (the listed footer, the weekly spec box, the ranking blurb panel,
@@ -7765,6 +7845,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'photo') return 'Background picture';
     if (ask.kind === 'qr') return 'QR code';
     if (ask.kind === 'scrim') return 'How strong should the wash behind the text be?';
+    if (ask.kind === 'shade') return 'How much should the photo darken at the top and bottom?';
     if (ask.kind === 'imgo') return 'How strong should the photo itself be?';
     if (ask.kind === 'glass') return 'What colour should the panels be?';
     if (ask.kind === 'dest') return 'Where should the files be saved?';
@@ -7772,7 +7853,6 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'pages') return this.gdPageKind() === 'review'
       ? 'How many reviews in this post?' : 'How many properties in this post?';
     if (ask.kind === 'proj') return ask.label || '';
-    if (ask.kind === 'agent2') return 'How many agents are on this card?';
     if (ask.kind === 'portrait') return ask.label || 'Agent photo';
     if (ask.kind === 'px') return 'Parallax layer';
     if (ask.kind === 'grp') return 'Group photo layer';
@@ -7795,9 +7875,9 @@ class OrganicStudio extends StudioBase {
     v.isQr = ask.kind === 'qr';
     v.isPages = ask.kind === 'pages';
     v.isProj = ask.kind === 'proj';
-    v.isAgent2 = ask.kind === 'agent2';
     v.isPortrait = ask.kind === 'portrait';
     v.isScrim = ask.kind === 'scrim';
+    v.isShade = ask.kind === 'shade';
     v.isImgO = ask.kind === 'imgo';
     v.isDest = ask.kind === 'dest';
     v.isExport = ask.kind === 'export';
@@ -7884,12 +7964,6 @@ class OrganicStudio extends StudioBase {
       v.projHint = ask.hint || '';
       v.setProj = e => this.gdProjSet(ask.pk, e.target.value);
     }
-    if (v.isAgent2) {
-      v.agent2Opts = ['One agent', 'Two agents'].map((lab, k) => ({
-        label: lab, on: (!!s.agent2On === (k === 1)) ? '1' : undefined,
-        set: () => this.upd(x => { x.agent2On = (k === 1); return x; })
-      }));
-    }
     if (v.isPages) {
       v.pageWord = this.gdPageKind() === 'review' ? 'review' : 'property';
       v.pageRows = this.gdPageRows().map(r => ({
@@ -7906,6 +7980,11 @@ class OrganicStudio extends StudioBase {
       v.scrimVal = s.scrimH == null ? 50 : s.scrimH;
       v.scrimPct = v.scrimVal + '%';
       v.setScrim = e => { const n = +e.target.value; this.upd(x => { x.scrimH = n; return x; }); };
+    }
+    if (v.isShade) {
+      v.shadeVal = s.shade == null ? 35 : s.shade;
+      v.shadePct = v.shadeVal + '%';
+      v.setShade = e => { const n = +e.target.value; this.upd(x => { x.shade = n; return x; }); };
     }
     if (v.isImgO) {
       v.imgOVal = s.imgO == null ? 100 : s.imgO;
@@ -8038,9 +8117,9 @@ class OrganicStudio extends StudioBase {
   gdAskTitle(ask) {
     if (!ask) return '';
     if (ask.kind === 'pages') return this.gdPageKind() === 'review' ? 'How many reviews' : 'How many properties';
-    if (ask.kind === 'agent2') return 'One or two agents';
     if (ask.kind === 'proj' || ask.kind === 'portrait') return ask.label || '';
     if (ask.kind === 'scrim') return 'Wash strength';
+    if (ask.kind === 'shade') return 'Photo darkening';
     if (ask.kind === 'imgo') return 'Photo strength';
     if (ask.kind === 'glass') return 'Panel colour';
     if (ask.kind === 'dest') return 'Where to save';
@@ -8106,8 +8185,8 @@ class OrganicStudio extends StudioBase {
   gdAskIssue(ask) {
     if (!ask) return '';
     // Refinement is a judgement, never a requirement. Export reports the whole gate.
-    if (ask.kind === 'scrim' || ask.kind === 'imgo' || ask.kind === 'glass') return '';
-    if (ask.kind === 'agent2' || ask.kind === 'pages') return '';
+    if (ask.kind === 'scrim' || ask.kind === 'shade' || ask.kind === 'imgo' || ask.kind === 'glass') return '';
+    if (ask.kind === 'pages') return '';
     if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name') return '';
     // A portrait is asked for but not gated: a listed card still reads without one, and
     // blocking the run on it would strand anyone who does not have the headshot to hand.
@@ -8157,8 +8236,8 @@ class OrganicStudio extends StudioBase {
     const linked = shared ? 'Linked — the closing slide uses the cover photo. ' : '';
     if (sl.kind === 'tagent' && !d) return 'Required — drop this agent’s studio portrait as a CUT-OUT PNG on a transparent background. It stands in front of the ranking numeral, so a rectangular photo would cover it.';
     if (d && Math.max(d.w, d.h) < 2160) return linked + '⚠ Stored at ' + d.w + '×' + d.h + ' — under the 2160px export target, so it will be upscaled. Re-drop the original file.';
-    if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story. On the card, drag the photo to move it and a corner grip to scale it.';
-    return linked || 'Kept at full resolution for export; feed and story share it. On the card, drag the photo to move it and a corner grip to scale it.';
+    if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story. On the card, drag the photo to move it and double-click it to reframe and zoom.';
+    return linked || 'Kept at full resolution for export; feed and story share it. On the card, drag the photo to move it and double-click it to reframe and zoom.';
   }
   // Whether this ask can ever block Next at all — the requirement kinds. A section made
   // only of judgements (Look) or optional uploads is "done" once it has been passed, not
@@ -8226,7 +8305,7 @@ class OrganicStudio extends StudioBase {
     const missing = [];
     if (s.tpl === 'listed') {
       if (!filled['smp-qr']) missing.push('QR code');
-      if (((s.slides[0] && s.slides[0].f.listno) || '').length !== 11) missing.push('Listing number (11 digits)');
+      if (!String((s.slides[0] && s.slides[0].f.listno) || '').trim()) missing.push('Listing number');
     }
     if (s.tpl === 'weekly') {
       if (!filled['smp-qr-cover']) missing.push('Cover / CTA QR code');
@@ -8563,6 +8642,7 @@ class OrganicStudio extends StudioBase {
         // ranking card — a render key that only some kinds set renders as the browser
         // default, so it is declared here and overridden there rather than left undefined.
         taTexStyle: { display: 'none' },
+        shadeStyle: { display: 'none' },   // the listed card's black scrim — set in its branch
         // The award card's layers, declared for EVERY kind for the reason the line below
         // gives — a render key only some kinds set renders as the browser default.
         awOn: false, awBgStyle: { display: 'none' }, awFgStyle: { display: 'none' },
@@ -8777,12 +8857,28 @@ class OrganicStudio extends StudioBase {
               fontWeight: r.w, fontSize: cq(r.px), lineHeight: cq(LH(r.px)),
               letterSpacing: r.ls ? cq(r.ls) : 0, color: r.fill }) }));
         });
+        // the USP chips, one box each at `listedBox`'s own x/y/w, inside the panel's div so
+        // they are placed off the panel's corner exactly as the rows are
+        K.lChips = B.chips.map(c => ({ t: c.t,
+          style: { position: 'absolute', left: cq(c.x - B.cardX), top: cq(c.y - B.cardY), width: cq(c.w), height: cq(c.h),
+            boxSizing: 'border-box', borderRadius: cq(R.chipR), border: '1px solid ' + A.ink, pointerEvents: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center' },
+          labStyle: { fontWeight: 500, fontSize: cq(B.upx), letterSpacing: '.1em',
+            lineHeight: cq(LH(B.upx)), color: A.warm, whiteSpace: 'nowrap' } }));
+        // THE BLACK SCRIM — its own div, declared for every kind and set here, placed in the
+        // markup AFTER the parallax layer and BEFORE the status and the frame: document order
+        // is the paint order for z-auto siblings, and that is the op's own order.
+        const shade = OrganicStudio.shadeAlpha(s);
+        K.shadeStyle = shade > 0
+          ? { position: 'absolute', inset: 0, pointerEvents: 'none',
+              background: this.shadeBands(B, tk.H).map(b => 'linear-gradient(to bottom, ' + this.bandStops(b[0], b[1], shade, tk.H).map(p => `${N(p[1].toFixed(3))} ${(p[0] * 100).toFixed(2)}%`).join(', ') + ')').join(', ') }
+          : { display: 'none' };
         // the agent's own PNG, framed on her face and clipped to the crop box exactly as
         // the op does it. clip-path rather than a wrapper div: the insets are in the
         // element's own coordinate space, so cq() canvas units land on the op's pixels
         // and no markup has to grow a second node in both size canvases.
         const agv = this._agentView;
-        K.lAgentOn = !!(agv && agv.u) && !B.two;
+        K.lAgentOn = !!(agv && agv.u);
         if (K.lAgentOn) {
           const p = this.agentPlace(B, agv);
           const ins = [Math.max(0, p.clip.y - p.y), Math.max(0, (p.x + p.w) - (p.clip.x + p.clip.w)),
@@ -8792,14 +8888,6 @@ class OrganicStudio extends StudioBase {
             clipPath: 'inset(' + ins.map(n => cq(n)).join(' ') + ')',
             backgroundImage: `url("${agv.u}")`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' };
         } else K.lAgentStyle = { display: 'none' };
-        K.lTwo = B.two;
-        const two = !!s.agent2On;
-        K.agentRowStyle = { display: 'flex', alignItems: 'stretch', gap: cq(56), paddingRight: s.qr.show && s.qr.corner === 'right' ? cq(tk.qr + 56) : 0 };
-        K.agentColStyle = two ? { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: cq(20), flex: '1 1 0', minWidth: 0 } : { display: 'flex', alignItems: 'center', gap: cq(30) };
-        K.agentVruleStyle = { width: '1px', background: OrganicStudio.ART.ruleM, alignSelf: 'stretch', flex: 'none' };
-        K.agentPhotoStyle = { width: cq(tk.photo), height: cq(tk.photo), borderRadius: '50%', background: OrganicStudio.ART.hold, border: '1px solid ' + OrganicStudio.ART.holdEdge, position: 'relative', overflow: 'hidden', flex: 'none' };
-        K.agentNameStyle = { fontWeight: 400, fontSize: cq(tk.name), lineHeight: 1.25, color: OrganicStudio.ART.ink };
-        K.agentRoleStyle = { fontWeight: 300, fontSize: cq(tk.role), lineHeight: 1.35, color: OrganicStudio.ART.soft, marginTop: two ? cq(8) : 0 };
         // The QR sits ABOVE the panel on the left — the status owns the top band. Its
         // number is not printed here (`listnoOn` is prop-only), so there is no style for it.
         K.qrStyle = Object.assign(qrBase(B.qs, OrganicStudio.WK.qrR, OrganicStudio.WK.qrRing),
@@ -8824,10 +8912,10 @@ class OrganicStudio extends StudioBase {
           K.lPanOn = (p.mx > 0 || p.my > 0) ? '1' : undefined;
           K.bgSlotStyle = Object.assign({}, K.bgSlotStyle, { opacity: 0 });
         }
-        // ── DRAG TO MOVE, CORNER GRIPS TO SCALE, DOUBLE-CLICK TO REFRAME ───────────────
-        // The gesture set Campaign's floating graphic has, on the background photograph —
-        // and the parallax cut-out follows all three for free, because every one of them
-        // writes through `photoPlace`.
+        // ── DRAG TO MOVE, DOUBLE-CLICK TO REFRAME ─────────────────────────────────────
+        // On the background photograph, with the parallax cut-out following both for free
+        // because each writes through `photoPlace`. The corner grips that scaled it are gone
+        // by request; the reframe overlay's zoom is where scaling lives now.
         //
         // THE DOUBLE-CLICK HAD TO BE FORWARDED, and that was a regression this pass fixed:
         // this layer sits ON TOP of the image-slot, so it swallowed the double-click that
@@ -8851,13 +8939,11 @@ class OrganicStudio extends StudioBase {
           const slot = box && box.querySelector('image-slot');
           if (slot) slot.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
         };
-        // ONE gesture builder for the move and for all four corners, the shape the ranking
-        // cover's figures use. `mode` is 'move' or the corner's own direction.
-        const phStart = (e, mode) => {
+        // The move gesture, the shape the ranking cover's figures use.
+        const phStart = e => {
           if (!K.lPhotoOn) return;
           e.stopPropagation(); e.preventDefault();
-          // the CANVAS's on-screen box, not the grip's — a corner grip is 11px and its own
-          // rect would make every delta meaningless
+          // the CANVAS's on-screen box, which is what the fraction delta is measured over
           const host = document.querySelector('.p-plate [data-pan]') || e.currentTarget;
           const rr = host.getBoundingClientRect();
           const cw = Math.max(1, rr.width), ch = Math.max(1, rr.height);
@@ -8871,27 +8957,14 @@ class OrganicStudio extends StudioBase {
           const pp = this.photoPlace(sl, tk, { naturalWidth: bgv.w, naturalHeight: bgv.h }, crop);
           const bgx = (crop && crop.x) || 0, bgy = (crop && crop.y) || 0;
           const lim = (v, m, b) => Math.max((-m - b) / 100, Math.min((m - b) / 100, v));
-          const dh0 = pp.h;   // the drawn height at drag start, for the corner gain
           // ONE undo entry for the whole gesture: the move writes through raw setState and
           // the release commits. `_undoStack` is only 5 deep, so a per-frame push would
           // erase real history — the same rule the group figures' drag follows.
           const pre = JSON.parse(JSON.stringify(this.state));
           const mv = ev => {
-            const d = {};
-            if (mode === 'move') {
-              d.phx = +lim(f0.x + (ev.clientX - sx) / cw, pp.mx, bgx).toFixed(4);
-              d.phy = +lim(f0.y + (ev.clientY - sy) / ch, pp.my, bgy).toFixed(4);
-            } else {
-              // A CORNER SCALES PROPORTIONALLY and about the crop's own centre, so the point
-              // of the photograph under the middle of the canvas stays there. Dragging a
-              // corner OUTWARD grows it; both edges move, so the height grows by twice the
-              // pointer's travel, which is where the 2 comes from.
-              const dx = (ev.clientX - sx) * (mode.indexOf('w') >= 0 ? -1 : 1);
-              const dy = (ev.clientY - sy) * (mode.indexOf('n') >= 0 ? -1 : 1);
-              const dd = (Math.abs(dx) > Math.abs(dy) ? dx : dy) * (tk.H / ch);
-              const L2 = OrganicStudio.LISTED;
-              d.phs = +Math.max(L2.phsMin, Math.min(L2.phsMax, f0.s * (1 + 2 * dd / dh0))).toFixed(4);
-            }
+            const d = {
+              phx: +lim(f0.x + (ev.clientX - sx) / cw, pp.mx, bgx).toFixed(4),
+              phy: +lim(f0.y + (ev.clientY - sy) / ch, pp.my, bgy).toFixed(4) };
             this.setState(st => {
               const n = JSON.parse(JSON.stringify(st));
               const tgt = n.slides[si]; if (!tgt) return st;
@@ -8911,27 +8984,7 @@ class OrganicStudio extends StudioBase {
           document.addEventListener('pointermove', mv);
           document.addEventListener('pointerup', up);
         };
-        K.lPanDown = e => phStart(e, 'move');
-        // THE GRIPS SIT AT THE CANVAS'S OWN CORNERS, not the photograph's. The picture is
-        // larger than the frame — that overflow is what there is to pan into — so its own
-        // corners are off-canvas and unreachable. The frame's corners are the crop's, which
-        // is the gesture every photo tool uses. Only on the ACTIVE slide, so the other
-        // plates stay clean, and above everything on this card.
-        K.lPhGripsOn = K.lPhotoOn && si === (s.activeSi || 0);
-        const HG = OrganicStudio.LISTED;
-        K.lPhGrips = K.lPhGripsOn ? ['nw', 'ne', 'sw', 'se'].map(dirK => ({
-          dir: dirK,
-          style: {
-            position: 'absolute', zIndex: 12, width: uz(HG.handle), height: uz(HG.handle),   // above the pan layer
-            background: 'var(--ps-accent-h)', border: uz(2) + ' solid #fff', borderRadius: uz(2),
-            cursor: (dirK === 'nw' || dirK === 'se' ? 'nwse' : 'nesw') + '-resize',
-            pointerEvents: 'auto',
-            left: cq(dirK[1] === 'w' ? HG.handleIn : tk.W - HG.handleIn),
-            top: cq(dirK[0] === 'n' ? HG.handleIn : tk.H - HG.handleIn),
-            marginLeft: uz(-HG.handle / 2), marginTop: uz(-HG.handle / 2)
-          },
-          drag: e => phStart(e, dirK)
-        })) : [];
+        K.lPanDown = phStart;
       } else if (kind === 'cover' || kind === 'cta') {
         // ABSOLUTELY POSITIONED off the same numbers buildOps draws from — the idiom the
         // ranking card and the agents cover already use, and the reason the two surfaces
@@ -9581,7 +9634,7 @@ class OrganicStudio extends StudioBase {
     const missing = [];
     if (s.tpl === 'listed') {
       if (!filled['smp-qr']) missing.push('QR code');
-      if (((s.slides[0] && s.slides[0].f.listno) || '').length !== 11) missing.push('Listing number (11 digits)');
+      if (!String((s.slides[0] && s.slides[0].f.listno) || '').trim()) missing.push('Listing number');
     }
     if (s.tpl === 'weekly') {
       if (!filled['smp-qr-cover']) missing.push('Cover / CTA QR code');
@@ -10282,9 +10335,9 @@ class OrganicStudio extends StudioBase {
       listedListnoOn: asl.kind === 'listed',
       listnoVal: asl.f.listno || '',
       onListno: e => { const v = String(e.target.value).replace(/\D/g, ''); e.target.value = v; this.upd(x => { x.slides[asi].f.listno = v; return x; }); },
-      listnoInputStyle: Object.assign({}, (asl.f.listno || '').length === 11 ? inpBase : inpErr, { width: '100%' }),
-      listnoErrOn: (asl.f.listno || '').length !== 11,
-      listnoErrText: (asl.f.listno || '').length ? 'Must be exactly 11 digits (' + (asl.f.listno || '').length + '/11).' : 'Required — enter the 11-digit listing number.',
+      listnoInputStyle: Object.assign({}, (asl.f.listno || '').length ? inpBase : inpErr, { width: '100%' }),
+      listnoErrOn: !(asl.f.listno || '').length,
+      listnoErrText: 'Required — enter the listing number.',
       propQrLinkOn: asl.kind === 'prop' && !!(this._qrLinks || {})['smp-qr-' + asl.id],
       openPropQrLink: () => { const u = (this._qrLinks || {})['smp-qr-' + asl.id]; if (u) window.open(u, '_blank'); },
       coverQrLinkOn: asl.kind === 'cover' && !!(this._qrLinks || {})['smp-qr-cover'],
