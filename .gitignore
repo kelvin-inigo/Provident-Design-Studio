@@ -15,3 +15,6 @@ Thumbs.db
 # the server and the scripts are tracked.
 tools/rembg/.venv/
 tools/rembg/**/__pycache__/
+
+# Claude Code working files — backups, patch scripts and probe outputs. Never part of the project.
+scratchpad/

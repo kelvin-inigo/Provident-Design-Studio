@@ -3471,7 +3471,17 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <div class="p-dock-in">
       <sc-if value="{{ allVarsOn }}" hint-placeholder-val="{{ false }}">
         <div class="p-dock-b">
-  <div class="p-cap p-shd" data-state="{{ secVarsState }}"><span class="p-shd-t">All variants <span class="tip tip-dark" data-tip="Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a zip of Name_Variant_Size.png or .svg for every variant in every size, or a single PDF. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere." style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secVarsNote }}</span></div>
+  <div class="p-cap p-shd" data-state="{{ secVarsState }}"><span class="p-shd-t">{{ allVarsTitle }} <span class="tip tip-dark" data-tip="{{ allVarsTip }}" style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secVarsNote }}</span></div>
+  <div class="p-grp">
+    <span class="p-lab">Format <span class="tip tip-dark" data-tip="A single ad is one design in up to three A/B variants that share their copy. A carousel is up to ten pages that swipe, each with its own copy and photo — exported as _page1, _page2, … Switching keeps everything you have made." style="{{ infoStyleDark }}">i</span></span>
+    <div class="p-tabs"><button onClick="{{ modeSingle }}" data-on="{{ modeSingleOn }}">Single ad</button><button onClick="{{ modeCarousel }}" data-on="{{ modeCarouselOn }}">Carousel</button></div>
+    <span class="p-hint">{{ modeHint }}</span>
+    <sc-if value="{{ modeCarouselFlag }}" hint-placeholder-val="{{ false }}">
+      <span class="p-lab">Story 9:16</span>
+      <div class="p-tabs"><button onClick="{{ storyShow }}" data-on="{{ storyShownOn }}">Shown</button><button onClick="{{ storyHide }}" data-on="{{ storyHiddenOn }}">Hidden</button></div>
+      <span class="p-hint">{{ storyHint }}</span>
+    </sc-if>
+  </div>
   <div class="p-grp">
     <span class="p-lab">QR code</span>
     <div class="p-tabs"><button onClick="{{ qrSetShow }}" data-on="{{ qrVisibleOn }}">Visible</button><button onClick="{{ qrSetHide }}" data-on="{{ qrHiddenOn }}">Hidden</button></div>
@@ -3479,7 +3489,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <sc-if value="{{ qrShowFlag }}" hint-placeholder-val="{{ true }}">
     <div class="p-droprow">
       <div class="p-drop p-drop-sq" data-done="{{ qrDoneOn }}"><image-slot id="adstudio-qr" shape="rounded" radius="8" placeholder="QR" style="{{ qrSlotStyle }}"></image-slot></div>
-      <div class="p-drop-t"><s>{{ qrDropLabel }}</s><s>One code for every variant and every size. PNG or SVG, on a white quiet zone.</s></div>
+      <div class="p-drop-t"><s>{{ qrDropLabel }}</s><s>{{ qrOneCode }}</s></div>
     </div>
     <span class="p-lab">Corner</span>
     <div class="p-opts">
@@ -3534,8 +3544,8 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
         </div>
       </sc-if>
       <div class="p-dock-r">
-        <button onClick="{{ addVariant }}" class="p-dock-t" class="p-dock-t" title="{{ addVariantLabel }}">Add Variant</button>
-        <button onClick="{{ toggleAllVars }}" class="p-dock-t" data-on="{{ allVarsOn }}">All Variants Option</button>
+        <button onClick="{{ addVariant }}" class="p-dock-t" title="{{ addVariantLabel }}">{{ addVariantText }}</button>
+        <button onClick="{{ toggleAllVars }}" class="p-dock-t" data-on="{{ allVarsOn }}">{{ allVarsBtn }}</button>
       </div>
     </div>
   </div>
@@ -3558,7 +3568,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </sc-for>
     </div>
   </sc-for>
-  <div class="p-foot">Design components are shared across variants; position, style and visibility are per variant. Copy edits apply everywhere.</div>
+  <div class="p-foot">{{ railFoot }}</div>
 </aside>
 
 <div class="p-stagecol">
@@ -3602,6 +3612,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
       <span class="p-meta">1080 × 1080 · master layout · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
+      <sc-if value="{{ v.stOn }}" hint-placeholder-val="{{ true }}">
       <div class="p-plate-f">
         <span class="p-meta">9:16 story {{ v.storyState }}</span>
         <button onClick="{{ v.toggleStory }}" style="{{ v.storyBtnStyle }}">{{ v.storyBtnLabel }}</button>
@@ -3639,6 +3650,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.st.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
       <span class="p-meta">1080 × 1920 · story · <span style="{{ v.st.coverStyle }}" class="tip" data-tip="{{ v.st.coverTip }}">{{ v.st.coverLabel }}</span></span>
+      </sc-if>
       <div class="p-plate-f">
         <span class="p-meta">16:9 wide {{ v.wideState }}</span>
         <button onClick="{{ v.toggleWide }}" style="{{ v.wideBtnStyle }}">{{ v.wideBtnLabel }}</button>
@@ -3697,7 +3709,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           </select>
         </label>
         <sc-if value="{{ selIsSpec }}" hint-placeholder-val="{{ false }}">
-          <span class="p-fld">Figures — linked across all variants</span>
+          <span class="p-fld">Figures — {{ textScope }}</span>
           <div class="p-row">
             <button onClick="{{ toggleFigTop }}" class="p-ghost p-sm" data-on="{{ figTopSetOn }}">{{ figTopLabel }}</button>
             <button onClick="{{ toggleBig }}" class="p-ghost p-sm" data-on="{{ bigSetOn }}">{{ bigLabel }}</button>
@@ -3727,12 +3739,12 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           </label>
         </sc-if>
         <sc-if value="{{ selTextSingle }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Text — linked across all variants
+          <label class="p-fld">Text — {{ textScope }}
             <input value="{{ selText }}" onChange="{{ onSelText }}" class="p-in">
           </label>
         </sc-if>
         <sc-if value="{{ selTextMulti }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Text — linked across all variants <span>· Enter for a new {{ selLineWord }}, up to {{ selLineMax }}</span>
+          <label class="p-fld">Text — {{ textScope }} <span>· Enter for a new {{ selLineWord }}, up to {{ selLineMax }}</span>
             <textarea value="{{ selText }}" onChange="{{ onSelText }}" rows="2" class="p-in"></textarea>
             <span class="p-hint">{{ selLineInfo }}</span>
           </label>
@@ -4009,6 +4021,10 @@ class CampaignStudio extends StudioBase {
   static defaults() {
     return {
       campaign: '', sel: null, activeVi: 0, exportStatus: '', screen: 'splash',
+      // `single` is today's ad: up to 3 A/B variants sharing one set of copy. `carousel`
+      // makes those same variants PAGES — up to 10, each with its own copy — and lets the
+      // 9:16 be dropped. See `modulesFor` / `modList` for how a page's own list is read and written.
+      adMode: 'single', storyOn: true,
       qr: { show: true, corner: 'right' },
       // Co-branding is a fact about the campaign, not about one variant, so it lives
       // at project level beside the QR and one upload serves every variant and size.
@@ -4023,7 +4039,7 @@ class CampaignStudio extends StudioBase {
       variants: [CampaignStudio.newVariant('Master')]
     };
   }
-  static newVariant(name) { return { name, clusters: {}, mvar: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100 }, bg: 'dark', logoAlign: 'left', story: null }; }
+  static newVariant(name) { return { name, clusters: {}, mvar: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100 }, bg: 'dark', logoAlign: 'left', story: null, mods: null }; }
   // `Object.assign(defaults, saved)` is SHALLOW, so a saved `variants` array
   // replaces the defaults outright and every per-variant key added since that
   // session was written stays missing. Most render paths guard with `== null`,
@@ -4044,6 +4060,8 @@ class CampaignStudio extends StudioBase {
     if (!v.gapB || typeof v.gapB !== 'object') v.gapB = {};
     if (!v.gfloat || typeof v.gfloat !== 'object') v.gfloat = {};
     if (!v.gpos || typeof v.gpos !== 'object') v.gpos = {};
+    // a carousel page's OWN component list; null until the project first goes carousel
+    if (v.mods != null && !Array.isArray(v.mods)) v.mods = null;
     if (v.align !== 'center') v.align = 'left';
     if (typeof v.gapScale !== 'number' || !isFinite(v.gapScale)) v.gapScale = 1.5;
     if (v.scrimH == null) v.scrimH = 45;
@@ -4067,16 +4085,18 @@ class CampaignStudio extends StudioBase {
     strip: { type: 'tags', set: {}, mvar: { rule: 'rule', dot: 'dot', plain: 'plain' } },
     rating: { type: 'spec', set: { big: false, figTop: false }, mvar: { pill: 'boxrow', plain: 'row' } }
   };
-  static normState(p) {
-    delete p.fx;   // exchange rates, from the withdrawn price-conversion pass
-    p.modules = (p.modules || []).filter(m => m && typeof m === 'object' && m.id);
-    p.modules.forEach(m => {
+  // Every migration a MODULE LIST needs, so the shared list and each carousel page's own
+  // list go through the same one. `variants` is the set whose per-id bookkeeping the
+  // list's ids live in — every variant for the shared list, the page alone for a page.
+  static normModList(mods, variants) {
+    mods = (mods || []).filter(m => m && typeof m === 'object' && m.id);
+    mods.forEach(m => {
       const mg = CampaignStudio.MERGED[m.type];
       if (!mg) return;
       const was = m.type;
       m.type = mg.type;
       Object.assign(m, mg.set);
-      (p.variants || []).forEach(v => {
+      variants.forEach(v => {
         if (!v || !v.mvar) return;
         const old = v.mvar[m.id];
         if (old != null) v.mvar[m.id] = mg.mvar[old] || (mg.type === 'spec' ? 'ladder' : 'mist');
@@ -4084,15 +4104,13 @@ class CampaignStudio extends StudioBase {
       });
       if (was === 'rating') { m.cols = (m.cols || []).map(c => ({ l: c.l || '', v: c.v || '' })); }
     });
-    p.variants = (p.variants || []).map(CampaignStudio.normVariant);
-    if (!p.variants.length) p.variants = [CampaignStudio.newVariant('Master')];
     // Float and its position began on the MODULE, which linked every variant to one
     // placement. Lift any of those onto every variant, then drop them, so a project
     // saved by that build opens with the placement it had.
-    p.modules.forEach(m => {
+    mods.forEach(m => {
       if (m.type !== 'graphic' || m.float == null) return;
       const fx = m.fx == null ? .5 : m.fx, fy = m.fy == null ? .5 : m.fy;
-      p.variants.forEach(v => {
+      variants.forEach(v => {
         v.gfloat = v.gfloat || {}; v.gpos = v.gpos || {};
         if (m.float) { v.gfloat[m.id] = true; if (!v.gpos[m.id]) v.gpos[m.id] = { x: fx, y: fy }; }
       });
@@ -4100,7 +4118,27 @@ class CampaignStudio extends StudioBase {
     });
     // Currency markers, from the withdrawn price-symbol pass — the price is once
     // again exactly the text that was typed.
-    p.modules.forEach(m => { delete m.cur; });
+    mods.forEach(m => { delete m.cur; });
+    return mods;
+  }
+  static normState(p) {
+    delete p.fx;   // exchange rates, from the withdrawn price-conversion pass
+    p.variants = (p.variants || []).map(CampaignStudio.normVariant);
+    if (!p.variants.length) p.variants = [CampaignStudio.newVariant('Master')];
+    p.modules = CampaignStudio.normModList(p.modules, p.variants);
+    if (p.adMode !== 'carousel') p.adMode = 'single';
+    if (p.storyOn !== false) p.storyOn = true;
+    p.variants.forEach(v => {
+      if (Array.isArray(v.mods)) v.mods = CampaignStudio.normModList(v.mods, [v]);
+      else if (p.adMode === 'carousel') {
+        // A carousel written by the FIRST carousel build: page 1 shared the list and pages
+        // 2+ carried `pageOv`, a per-component content override. Resolve each page to its
+        // own list once. Ids are kept — a slot copy needs the store, which is not here.
+        const ov = v.pageOv || {};
+        v.mods = p.modules.map(m => JSON.parse(JSON.stringify(ov[m.id] ? Object.assign({}, m, ov[m.id], { id: m.id, type: m.type }) : m)));
+      }
+      delete v.pageOv;
+    });
     p.variants.forEach(v => { delete v.cur; ['story', 'wideOv'].forEach(k => { if (v[k]) delete v[k].cur; }); });
     if (typeof p.activeVi !== 'number' || p.activeVi < 0 || p.activeVi >= p.variants.length) p.activeVi = 0;
     return p;
@@ -4151,7 +4189,10 @@ class CampaignStudio extends StudioBase {
     if (warn) d.exportStatus = warn;
     return d;
   }
-  static strip(o) { const c = Object.assign({}, o); delete c.sel; delete c.screen; delete c.exportStatus; delete c.activeVi; delete c.exportMenuOpen; delete c.exportKind; return JSON.stringify(c); }
+  static strip(o) { const c = Object.assign({}, o); delete c.sel; delete c.screen; delete c.exportStatus; delete c.activeVi; delete c.exportMenuOpen; delete c.exportKind;
+    // Which sizes are on screen is not a change to the artwork — the same call Organic's
+    // storyOn makes. `adMode` is NOT stripped: it changes which copy renders.
+    delete c.storyOn; return JSON.stringify(c); }
   persist() { try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(this.state)); } catch (e) {} }
   upd(fn) {
     const prev = JSON.parse(JSON.stringify(this.state));
@@ -5351,6 +5392,111 @@ class CampaignStudio extends StudioBase {
       return pa - pb;
     });
   }
+  // ── SINGLE AD vs CAROUSEL ─────────────────────────────────────────────────────────
+  // A single ad is the master-and-variants machinery it always was: ONE component list,
+  // `state.modules`, shared by every variant, each variant deciding only layout, style,
+  // order, visibility and photo. A carousel is NOT that. Its pages are disconnected from
+  // one another and from the single ad: EVERY PAGE OWNS ITS OWN COMPONENT LIST, `v.mods`,
+  // and a component on one page has no counterpart anywhere else — adding, deleting,
+  // reordering, editing or re-uploading on a page reaches that page alone.
+  //
+  // The two worlds touch at exactly one moment: switching to carousel forks each existing
+  // variant's view of the single ad into that page's own list, with FRESH ids and its own
+  // copies of any graphic or icon files, so from then on nothing is shared. Switching back
+  // leaves `state.modules` exactly as it was and keeps every page's list for the round trip.
+  //
+  // `modulesFor` is the one READ boundary and `modList` the one WRITE boundary. Everything
+  // downstream reads `m.text`, `m.chips`, `m.cols`… off whichever list those hand back.
+  static RECENT_THUMBS = 6;
+  static isCarousel(s) { return !!s && s.adMode === 'carousel'; }
+  static maxVars(s) { return CampaignStudio.isCarousel(s) ? 10 : 3; }
+  // The 9:16 can only be dropped on a carousel; a single ad always ships every size.
+  static storyShown(s) { return !CampaignStudio.isCarousel(s) || s.storyOn !== false; }
+  static sizesFor(s, v) { const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); return out; }
+  // The list a render of page/variant `vi` reads. Never mutate what this returns.
+  static modulesFor(s, vi) {
+    if (!CampaignStudio.isCarousel(s)) return s.modules || [];
+    const v = s.variants[vi] || s.variants[0];
+    return (v && Array.isArray(v.mods)) ? v.mods : (s.modules || []);
+  }
+  // The WRITABLE list for `vi`, on a draft state inside upd(). A carousel page with no
+  // list yet is forked on demand, so no write can ever land on the single ad's list.
+  static modList(x, vi) {
+    if (!CampaignStudio.isCarousel(x)) { x.modules = x.modules || []; return x.modules; }
+    const v = x.variants[vi] || x.variants[0], i = x.variants.indexOf(v);
+    if (!Array.isArray(v.mods)) CampaignStudio.forkPage(x, i, x.modules || [], { keepOld: true });
+    return v.mods;
+  }
+  // Every component that renders anywhere in the project — what the asset loader and the
+  // export's Assets/ writer have to cover.
+  static allMods(s) {
+    if (!CampaignStudio.isCarousel(s)) return s.modules || [];
+    const seen = {}, out = [];
+    s.variants.forEach((v, i) => CampaignStudio.modulesFor(s, i).forEach(m => { if (!seen[m.id]) { seen[m.id] = 1; out.push(m); } }));
+    return out;
+  }
+  static freshId() { CampaignStudio._idn = (CampaignStudio._idn || 0) + 1; return 'm' + Date.now().toString(36) + CampaignStudio._idn.toString(36) + Math.floor(Math.random() * 36).toString(36); }
+  // Give page `vi` its own list, cloned from `srcMods` under FRESH ids. Every per-id map
+  // the page carries (clusters, style variant, hidden, order, spacing, float, position —
+  // on the base and on a detached size) follows the ids, and any graphic or icon file is
+  // copied to the new id so the art travels with the component. `keepOld` leaves the old
+  // keys in place too: a variant forked FROM the single ad still has to find them when the
+  // project goes back to single, while a page forked from another page does not.
+  static forkPage(x, vi, srcMods, opt) {
+    const v = x.variants[vi]; if (!v) return;
+    const keepOld = !!(opt && opt.keepOld), map = {};
+    v.mods = (srcMods || []).map(m => { const c = JSON.parse(JSON.stringify(m)); c.id = CampaignStudio.freshId(); map[m.id] = c.id; return c; });
+    const olds = Object.keys(map);
+    [v, v.story, v.wideOv].forEach(o => {
+      if (!o) return;
+      ['clusters', 'mvar', 'hidden', 'gapB', 'gfloat', 'gpos'].forEach(k => {
+        if (!o[k]) return;
+        olds.forEach(old => { if (o[k][old] !== undefined) { o[k][map[old]] = JSON.parse(JSON.stringify(o[k][old])); if (!keepOld) delete o[k][old]; } });
+      });
+      if (Array.isArray(o.ord)) o.ord = o.ord.flatMap(id => map[id] ? (keepOld ? [id, map[id]] : [map[id]]) : [id]);
+      // a page forked from a PAGE owns exactly its own ids — anything else is a stale key
+      if (!keepOld) {
+        const own = new Set(v.mods.map(m => m.id));
+        ['clusters', 'mvar', 'hidden', 'gapB', 'gfloat', 'gpos'].forEach(k => { if (o[k]) Object.keys(o[k]).forEach(id => { if (!own.has(id)) delete o[k][id]; }); });
+        if (Array.isArray(o.ord)) o.ord = o.ord.filter(id => own.has(id));
+      }
+    });
+    const IS = customElements.get('image-slot');
+    if (IS && IS.copySlot) olds.forEach(old => {
+      IS.copySlot('adstudio-mod-' + old, 'adstudio-mod-' + map[old]);
+      for (let i = 0; i < CampaignStudio.ICON_MAX; i++) IS.copySlot('adstudio-ic-' + old + '-' + i, 'adstudio-ic-' + map[old] + '-' + i);
+    });
+  }
+  // THE ONE WRITE PATH for a component's content. `x` is the draft state inside upd().
+  static writeMod(x, vi, id, fn) {
+    const m = CampaignStudio.modList(x, vi).find(mm => mm.id === id);
+    if (m) fn(m);
+  }
+  // Drop a component from page/variant `vi`'s list and clear the bookkeeping behind it. On
+  // a single ad the list is shared, so every variant's maps are swept; on a carousel the
+  // id exists on this page alone, and its graphic and icon files go with it.
+  static dropMod(x, vi, id) {
+    const ml = CampaignStudio.modList(x, vi), i = ml.findIndex(m => m.id === id);
+    if (i < 0) return false;
+    ml.splice(i, 1);
+    const car = CampaignStudio.isCarousel(x);
+    x.variants.forEach((vv, k) => {
+      if (car && k !== (x.variants.indexOf(x.variants[vi] || x.variants[0]))) return;
+      [vv, vv.story, vv.wideOv].forEach(o => {
+        if (!o) return;
+        ['clusters', 'mvar', 'hidden', 'gapB', 'gfloat', 'gpos'].forEach(kk => { if (o[kk]) delete o[kk][id]; });
+        if (Array.isArray(o.ord)) o.ord = o.ord.filter(z => z !== id);
+      });
+    });
+    if (x.sel && x.sel.id === id) x.sel = null;
+    if (car) CampaignStudio.clearModArt([id]);
+    return true;
+  }
+  static clearModArt(ids) {
+    const IS = customElements.get('image-slot');
+    if (!IS || !IS.moveSlot) return;
+    ids.forEach(id => { IS.moveSlot(null, 'adstudio-mod-' + id); for (let i = 0; i < CampaignStudio.ICON_MAX; i++) IS.moveSlot(null, 'adstudio-ic-' + id + '-' + i); });
+  }
   static sizeOv(v, size) { return (size === 'st' && v.story) ? v.story : ((size === 'ls' && v.wideOv) ? v.wideOv : null); }
   modPx(m, v, tk, innerW, ov) {
     const mv = v.mvar[m.id];
@@ -5523,7 +5669,7 @@ class CampaignStudio extends StudioBase {
       ops.push({ op: 'image', img: bg.img, url: bg.u, x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh, clip: { x: 0, y: 0, w: W, h: H }, alpha: (v.bgO == null ? 100 : v.bgO) / 100, isBg: true });
     }
     const hid = v.hidden || {};
-    const list = CampaignStudio.orderedFor(eff, state.modules).filter(m => !hid[m.id]);
+    const list = CampaignStudio.orderedFor(eff, CampaignStudio.modulesFor(state, vi)).filter(m => !hid[m.id]);
     const sc = this.scrimStops(v, tk, list, clusterOf, gov);
     const scrimCss = sc.stops.map(st2 => [st2[0], `rgba(${sc.base},${+st2[1].toFixed(3)})`]);
     ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: scrimCss, horiz: sc.horiz });
@@ -6389,7 +6535,7 @@ class CampaignStudio extends StudioBase {
         if (b2 && b2.u) { const img = await loadImg(b2.u); if (img) assets['bg' + vi + '_' + sz] = { img, u: b2.u, s: b2.s, x: b2.x, y: b2.y }; }
       }
     }
-    for (const m of (state.modules || [])) {
+    for (const m of CampaignStudio.allMods(state)) {
       if (m.type === 'graphic') {
         const g = norm(sidecar['adstudio-mod-' + m.id]);
         if (g && g.u) { const img = await loadImg(g.u); if (img) assets['mod' + m.id] = { img, u: g.u }; }
@@ -6418,7 +6564,7 @@ class CampaignStudio extends StudioBase {
   async applyIcon(modId, rawName) {
     const name = CampaignStudio.iconName(rawName);
     const i = (this._iconStep || 0) + 1;
-    const what = (this.state.modules.find(m => m.id === modId) || {}).type === 'tags' ? 'Chip ' : 'Step ';
+    const what = (CampaignStudio.modulesFor(this.state, this.state.activeVi).find(m => m.id === modId) || {}).type === 'tags' ? 'Chip ' : 'Step ';
     if (!name) { this.setState({ exportStatus: 'Type an icon name first.' }); return; }
     const slot = this.iconSlotEl(modId);
     if (!slot || !slot._ingest) {
@@ -6444,7 +6590,10 @@ class CampaignStudio extends StudioBase {
     if (slot && slot.clearSlot) { slot.clearSlot(); this.markDirty(); this.setState({ exportStatus: 'Cleared the icon on step ' + i + '.' }); }
     else this.setState({ exportStatus: 'Step ' + i + ' is not on screen.' });
   }
-  vLabel(vi) { return vi === 0 ? 'Master' : 'Variant ' + (vi + 1); }
+  vLabel(vi) { return CampaignStudio.isCarousel(this.state) ? 'Page ' + (vi + 1) : (vi === 0 ? 'Master' : 'Variant ' + (vi + 1)); }
+  // The export's own token: `page1`, not `Page 1` — a filename wants no space, and
+  // `_page1` was the requested form. A single ad keeps `Master` / `Variant 2`.
+  fileLabel(vi) { return CampaignStudio.isCarousel(this.state) ? 'page' + (vi + 1) : this.vLabel(vi); }
   async doExport(kind) {
     const state = this.state;
     const name = (state.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
@@ -6457,7 +6606,7 @@ class CampaignStudio extends StudioBase {
         const pages = [];
         for (const sizeKey of ['sq', 'st', 'ls']) {
           for (let vi = 0; vi < state.variants.length; vi++) {
-            if (sizeKey === 'ls' && !state.variants[vi].wide) continue;
+            if (!CampaignStudio.sizesFor(state, state.variants[vi]).includes(sizeKey)) continue;
             const built = this.buildOps(state, vi, sizeKey, assets);
             const cv = this.renderOpsToCanvas(built, 2);
             const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.95));
@@ -6471,14 +6620,14 @@ class CampaignStudio extends StudioBase {
       }
       const files = [];
       for (let vi = 0; vi < state.variants.length; vi++) {
-        for (const sizeKey of (state.variants[vi].wide ? ['sq', 'st', 'ls'] : ['sq', 'st'])) {
+        for (const sizeKey of CampaignStudio.sizesFor(state, state.variants[vi])) {
           const built = this.buildOps(state, vi, sizeKey, assets);
           const suffix = sizeKey === 'sq' ? '1x1' : (sizeKey === 'st' ? '9x16' : '16x9');
           if (kind === 'png' || kind === 'jpg') {
             const r = await this.rasterFile(built, kind);
-            files.push({ name: `${name}_${this.vLabel(vi)}_${suffix}.${r.ext}`, data: r.data });
+            files.push({ name: `${name}_${this.fileLabel(vi)}_${suffix}.${r.ext}`, data: r.data });
           } else {
-            files.push({ name: `${name}_${this.vLabel(vi)}_${suffix}.svg`, data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
+            files.push({ name: `${name}_${this.fileLabel(vi)}_${suffix}.svg`, data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
           }
         }
       }
@@ -6496,7 +6645,7 @@ class CampaignStudio extends StudioBase {
       const u = U(own[id]);
       if (u) out.push({ name: 'Assets/' + base + '.' + E(u), data: B(u) });
     };
-    const lab = vi => vi === 0 ? 'master' : 'variant-' + (vi + 1);
+    const lab = vi => CampaignStudio.isCarousel(this.state) ? 'page-' + (vi + 1) : (vi === 0 ? 'master' : 'variant-' + (vi + 1));
     (this.state.variants || []).forEach((v, vi) => {
       put('adstudio-bg-' + vi, 'background-' + lab(vi));
       put('adstudio-bg-' + vi + '-st', 'background-' + lab(vi) + '-9x16');
@@ -6505,7 +6654,7 @@ class CampaignStudio extends StudioBase {
     });
     put('adstudio-qr', 'qr');
     put('adstudio-colog', 'logo-partner');
-    (this.state.modules || []).forEach(m => {
+    CampaignStudio.allMods(this.state).forEach(m => {
       if (m.type === 'graphic') put('adstudio-mod-' + m.id, 'graphic-' + CampaignStudio.slug(m.text || m.id));
       if (m.type === 'steps' || m.type === 'tags') {
         for (let i = 0; i < CampaignStudio.ICON_MAX; i++) put('adstudio-ic-' + m.id + '-' + i, 'icon-' + CampaignStudio.slug(m.id) + '-' + (i + 1));
@@ -6603,7 +6752,7 @@ class CampaignStudio extends StudioBase {
     return out;
   }
   mockCopy() {
-    const list = this.state.modules || [];
+    const list = CampaignStudio.modulesFor(this.state, this.state.activeVi);
     const of = t => { const m = list.find(x => x.type === t); return m || null; };
     const txt = t => { const m = of(t); return m ? String(m.text || '').replace(/\n+/g, ' ').trim() : ''; };
     const price = of('price');
@@ -6626,7 +6775,7 @@ class CampaignStudio extends StudioBase {
     const thumbs = [];
     try {
       const assets = await this.loadAssets(st);
-      for (let vi = 0; vi < Math.min(3, st.variants.length); vi++) {
+      for (let vi = 0; vi < Math.min(CampaignStudio.RECENT_THUMBS, st.variants.length); vi++) {
         thumbs.push(this.renderOpsToCanvas(this.buildOps(st, vi, 'sq', assets), .22).toDataURL('image/webp', .72));
       }
     } catch (e) {}
@@ -6689,7 +6838,8 @@ class CampaignStudio extends StudioBase {
       ? Math.round(Math.max(200, Math.min(vwNow - 64, 640)))
       : Math.round(Math.min(Math.max(this.props.displayWidth ?? 460, 380), 640));
     const PXT = CampaignStudio.PXT;
-    const list = s.modules;
+    // The ACTIVE page's copy: the rail's selected component reads its text from here.
+    const list = CampaignStudio.modulesFor(s, s.activeVi);
     const VOPT = {
       eyebrow: [['plain', 'Plain'], ['rule', 'Rule-flanked'], ['frame', 'Framed'], ['fill', 'Filled']],
       hero: [['plain', 'Regular'], ['jumbo', 'Jumbo · Light'], ['fade', 'Fade out']],
@@ -6711,6 +6861,9 @@ class CampaignStudio extends StudioBase {
     const mkCanvas = (vi, sizeKey) => {
       let v = s.variants[vi];
       const tk = CampaignStudio.tkFor(sizeKey, s.variants[vi]);
+      // THIS plate's copy — a carousel page's own text, or the shared list. Named apart
+      // from the rail's `list` (the active page's) so the two cannot be confused.
+      const plist = CampaignStudio.modulesFor(s, vi);
       const cq = px => (px / (tk.W / 100)).toFixed(2) + 'cqw';
       const eff = CampaignStudio.sizeOv(v, sizeKey) || v;
       // The unlinked size's own record, or null while linked — the preview has to read
@@ -6724,7 +6877,7 @@ class CampaignStudio extends StudioBase {
       const gapPx = m => CampaignStudio.gapBefore(v, m, tk);
       const colW0 = (tk.col && !center) ? tk.col : tk.W - tk.pad[3] - tk.pad[1];
       const isFl = m => CampaignStudio.isFloatG(eff, m);
-      const sc = this.scrimStops(v, tk, list.filter(m => !hid[m.id] && !isFl(m)), clusterOf, gov);
+      const sc = this.scrimStops(v, tk, plist.filter(m => !hid[m.id] && !isFl(m)), clusterOf, gov);
       const scrim = `linear-gradient(${sc.horiz ? 'to right' : 'to bottom'}, ${sc.stops.map(st2 => `rgba(${sc.base},${+st2[1].toFixed(3)}) ${(st2[0] * 100).toFixed(1)}%`).join(', ')})`;
       const [pT, pR, pB, pL] = tk.pad;
       const width = sizeKey === 'sq' ? dispW : (sizeKey === 'ls' ? Math.round(dispW * 1.18) : Math.round(dispW * .58));
@@ -7085,7 +7238,7 @@ class CampaignStudio extends StudioBase {
                 const nv = n.variants[vi] || n.variants[0];
                 const t = CampaignStudio.sizeOv(nv, sizeKey);
                 if (t) { t.gscale = t.gscale || {}; t.gaspect = t.gaspect || {}; t.gscale[id] = g; t.gaspect[id] = asp; }
-                else { const mm = n.modules.find(z => z.id === id); if (mm) { mm.gscale = g; mm.gaspect = asp; } }
+                else CampaignStudio.writeMod(n, vi, id, mm => { mm.gscale = g; mm.gaspect = asp; });
                 return n;
               });
             };
@@ -7131,7 +7284,7 @@ class CampaignStudio extends StudioBase {
             const startY = e.clientY, startH = m.h || 60, id = m.id;
             const mvFn = ev => {
               const nh = Math.max(8, Math.min(500, Math.round(startH + (ev.clientY - startY) * 1080 / cw)));
-              this.setState(st => { const n = JSON.parse(JSON.stringify(st)); const mm = n.modules.find(z => z.id === id); if (mm) mm.h = nh; return n; });
+              this.setState(st => { const n = JSON.parse(JSON.stringify(st)); const mm = CampaignStudio.modulesFor(n, vi).find(z => z.id === id); if (mm) mm.h = nh; return n; });
             };
             const upFn = () => {
               document.removeEventListener('pointermove', mvFn);
@@ -7144,7 +7297,7 @@ class CampaignStudio extends StudioBase {
         }
         return view;
       };
-      const ordered = CampaignStudio.orderedFor(eff, list);
+      const ordered = CampaignStudio.orderedFor(eff, plist);
       // NOT `.map(mk)` — mk takes a second argument now, and map would hand it the index
       const floatMods = ordered.filter(m => isFl(m) && !hid[m.id]).map(m => mk(m));
       const topM = ordered.filter(m => !isFl(m) && clusterOf(m.id) === 'top' && !hid[m.id]);
@@ -7282,12 +7435,31 @@ class CampaignStudio extends StudioBase {
       // sweep over text-transform, which cannot reach a string that is literally uppercase
       // in the JS — these badges were the survivors. Tracking goes back to normal with it:
       // .14em is a tracked-caps device and reads as gappy on mixed case.
-      badge: vi === 0 ? 'Master' : 'Variant ' + (vi + 1),
+      badge: this.vLabel(vi),
       badgeStyle: { background: vi === 0 ? 'var(--ps-accent)' : 'var(--ps-fill-h)', color: vi === 0 ? 'var(--ps-accent-i)' : 'var(--ps-ink)', fontWeight: 500, fontSize: '12px', letterSpacing: 'normal', padding: '4px 14px', borderRadius: 'var(--ps-pill)' },
       activate: () => this.upd(x => { x.activeVi = vi; return x; }),
       activateLabel: s.activeVi === vi ? 'Editing' : 'Edit',
       activateStyle: { background: s.activeVi === vi ? 'var(--ps-ink)' : 'transparent', color: s.activeVi === vi ? 'var(--ps-app)' : 'var(--ps-ink-2)', border: '1px solid ' + (s.activeVi === vi ? 'transparent' : 'var(--ps-line)'), borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
-      remove: () => { if (vi === 0) return; this.upd(x => { x.variants.splice(vi, 1); x.activeVi = 0; x.sel = null; return x; }); },
+      remove: () => {
+        if (vi === 0) return;
+        // PHOTOS ARE KEYED BY INDEX (`adstudio-bg-<vi>`), so every later variant has to
+        // take its own photo down a slot with it — or each survivor shows its neighbour's
+        // picture and the last one's is orphaned. Pre-existing; with 10 pages it is common.
+        const n = s.variants.length, IS = customElements.get('image-slot');
+        if (IS && IS.moveSlot) {
+          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-fg-' + k];
+          for (let k = vi; k < n - 1; k++) ids(k).forEach((to, j) => IS.moveSlot(ids(k + 1)[j], to));
+          ids(n - 1).forEach(id => IS.moveSlot(null, id));
+        }
+        // On a carousel the page's components exist nowhere else, so their files go too —
+        // unless an id is still in use (a list forked with `keepOld`, or the single ad's own).
+        if (CampaignStudio.isCarousel(s)) {
+          const used = new Set((s.modules || []).map(m => m.id));
+          s.variants.forEach((vv, k) => { if (k !== vi) CampaignStudio.modulesFor(s, k).forEach(m => used.add(m.id)); });
+          CampaignStudio.clearModArt(CampaignStudio.modulesFor(s, vi).map(m => m.id).filter(id => !used.has(id)));
+        }
+        this.upd(x => { x.variants.splice(vi, 1); x.activeVi = Math.min(vi, x.variants.length - 1); x.sel = null; return x; });
+      },
       removeStyle: { display: vi === 0 ? 'none' : 'block', background: 'transparent', color: 'var(--ps-ink-2)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
       storyState: v.story ? '· detached' : '· mirrors 1:1',
       toggleStory: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.story = vv.story ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)), mvar: {} }; return x; }); },
@@ -7301,6 +7473,8 @@ class CampaignStudio extends StudioBase {
       bgLsSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.ls) ? '-ls' : ''), key: 'ls' + vi + !!(v.bgSep && v.bgSep.ls) }],
       storyBtnLabel: v.story ? 'Re-link layout' : 'Edit layout separately',
       wideState: v.wide ? (v.wideOv ? '· detached' : '· mirrors 1:1') : '',
+      // the 9:16 plate is gated on this; a single ad always shows it
+      stOn: CampaignStudio.storyShown(s),
       wideOn: !!v.wide,
       toggleWide: e => { e.stopPropagation(); this.upd(x => { x.variants[vi].wide = !x.variants[vi].wide; return x; }); },
       wideBtnLabel: v.wide ? 'Hide 16:9' : 'Show 16:9',
@@ -7347,7 +7521,7 @@ class CampaignStudio extends StudioBase {
       graphic: ['⬚ SVG / PNG slot', { fontWeight: 300, fontSize: '10px', color: 'var(--ps-ink-2)', border: '1px dashed var(--ps-line)', borderRadius: '10px', padding: '3px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }],
       steps: ['① ② ③  numbered plates', { fontWeight: 400, fontSize: '10px', color: 'var(--ps-ink)' }]
     };
-    const mkAdd = type => () => this.upd(x => { const id = 'm' + Date.now() + Math.floor(Math.random() * 99); x.modules.push(Object.assign({ id, type }, JSON.parse(JSON.stringify(addDefaults[type])))); x.sel = { vi: x.activeVi, size: 'sq', id }; return x; });
+    const mkAdd = type => () => this.upd(x => { const id = CampaignStudio.freshId(); CampaignStudio.modList(x, x.activeVi).push(Object.assign({ id, type }, JSON.parse(JSON.stringify(addDefaults[type])))); x.sel = { vi: x.activeVi, size: 'sq', id }; return x; });
     // `count` is what is already on the canvas for this type — the state the palette
     // never reported. `list` is the ordered, unhidden module list for the active variant,
     // so the number is what you can actually see rather than what the project holds.
@@ -7397,7 +7571,7 @@ class CampaignStudio extends StudioBase {
       fn(CampaignStudio.sizeOv(nv, (x.sel && x.sel.size) || 'sq') || nv);
       return x;
     });
-    const editContent = fn => this.upd(x => { const m = x.modules.find(mm => sel && mm.id === sel.id); if (m) fn(m); return x; });
+    const editContent = fn => this.upd(x => { if (sel) CampaignStudio.writeMod(x, sel.vi != null ? sel.vi : x.activeVi, sel.id, fn); return x; });
     const setCluster = c => this.upd(x => {
       if (!sel) return x;
       const vv = x.variants[sel.vi] || x.variants[0];
@@ -7413,7 +7587,7 @@ class CampaignStudio extends StudioBase {
       const vv = x.variants[sel.vi] || x.variants[0];
       const target = CampaignStudio.sizeOv(vv, sel.size) || vv;
       const cOf = id => target.clusters[id] || 'bottom';
-      const ord = CampaignStudio.orderedFor(target, x.modules).map(m => m.id);
+      const ord = CampaignStudio.orderedFor(target, CampaignStudio.modulesFor(x, sel.vi != null ? sel.vi : x.activeVi)).map(m => m.id);
       const cluster = cOf(sel.id);
       const sibs = ord.filter(id => cOf(id) === cluster);
       const k = sibs.indexOf(sel.id), to = k + dir;
@@ -7444,12 +7618,12 @@ class CampaignStudio extends StudioBase {
       const vv = x.variants[x.activeVi] || x.variants[0];
       [vv, vv.story, vv.wideOv].forEach(o => {
         if (!o || !o.clusters) return;
-        x.modules.forEach(m => { o.clusters[m.id] = fn(m); });
+        CampaignStudio.modulesFor(x, x.activeVi).forEach(m => { o.clusters[m.id] = fn(m); });
       });
       return x;
     });
     const clusterAt = m => av.clusters[m.id] || 'bottom';
-    const realMods = s.modules.filter(m => m.type !== 'divider' && m.type !== 'spacer');
+    const realMods = list.filter(m => m.type !== 'divider' && m.type !== 'spacer');
     const allBottom = realMods.length > 0 && realMods.every(m => clusterAt(m) === 'bottom');
     const allTop = realMods.length > 0 && realMods.every(m => clusterAt(m) === 'top');
 
@@ -7466,7 +7640,7 @@ class CampaignStudio extends StudioBase {
     const scrimTabF = this._scrimTab === 'f';
     const hidAv = av.hidden || {};
     const hiddenList = Object.keys(hidAv).map(id => {
-      const m = s.modules.find(mm => mm.id === id);
+      const m = list.find(mm => mm.id === id);
       if (!m) return null;
       return {
         name: labels[m.type][0] + (m.text ? ' · ' + m.text.slice(0, 18) : ''),
@@ -7475,23 +7649,9 @@ class CampaignStudio extends StudioBase {
         kind: labels[m.type][0], snip: m.text ? String(m.text).replace(/\s+/g, ' ') : '',
         full: labels[m.type][0] + (m.text ? ' · ' + String(m.text).replace(/\s+/g, ' ') : ''),
         show: () => this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; if (vv.hidden) delete vv.hidden[id]; return x; }),
-        // Delete drops the component campaign-wide, clearing the per-variant
-        // position/style/hidden bookkeeping so nothing dangles behind it.
-        del: () => this.upd(x => {
-          const i = x.modules.findIndex(mm => mm.id === id);
-          if (i >= 0) x.modules.splice(i, 1);
-          x.variants.forEach(vv => {
-            [vv, vv.story, vv.wideOv].forEach(o => {
-              if (!o) return;
-              if (o.hidden) delete o.hidden[id];
-              if (o.clusters) delete o.clusters[id];
-              if (o.mvar) delete o.mvar[id];
-              if (Array.isArray(o.ord)) o.ord = o.ord.filter(z => z !== id);
-            });
-          });
-          if (x.sel && x.sel.id === id) x.sel = null;
-          return x;
-        })
+        // Delete drops the component — from every variant on a single ad, from this page
+        // alone on a carousel — and clears the bookkeeping behind it.
+        del: () => this.upd(x => { CampaignStudio.dropMod(x, x.activeVi, id); return x; })
       };
     }).filter(Boolean);
     const recents = this.readRecents();
@@ -7528,12 +7688,42 @@ class CampaignStudio extends StudioBase {
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       splashLoadOn: true,
       projLabel: (s.campaign || '').trim() || 'Untitled campaign',
-      projMeta: s.variants.length + (s.variants.length === 1 ? ' variant' : ' variants'),
+      projMeta: s.variants.length + (CampaignStudio.isCarousel(s) ? (s.variants.length === 1 ? ' page' : ' pages') : (s.variants.length === 1 ? ' variant' : ' variants')),
       exportPdfOn: true,
-      exportJpgDesc: 'Zip · q94, smallest — what Meta ingests',
-      exportPngDesc: 'Zip · lossless, large files',
-      exportSvgDesc: 'Zip · vector text, embedded photos',
-      exportPdfDesc: 'One file · 1:1, then 9:16, then 16:9',
+      // ── Format: single ad or carousel, and the carousel's story toggle ──
+      modeSingleOn: CampaignStudio.isCarousel(s) ? undefined : '1',
+      modeCarouselOn: CampaignStudio.isCarousel(s) ? '1' : undefined,
+      modeCarouselFlag: CampaignStudio.isCarousel(s),
+      // Back to single leaves `modules` as the ad had it and keeps each page's own list.
+      modeSingle: () => this.upd(x => { if (x.adMode === 'single') return x; x.adMode = 'single'; x.storyOn = true; x.sel = null; return x; }),
+      // Going carousel forks every variant that has no list of its own off the single ad —
+      // fresh ids, its own art — so the pages start where the ad was and are linked to
+      // nothing from then on. A page that already has a list (a round trip) keeps it.
+      modeCarousel: () => this.upd(x => { if (x.adMode === 'carousel') return x; x.adMode = 'carousel'; x.variants.forEach((v, i) => { if (!Array.isArray(v.mods)) CampaignStudio.forkPage(x, i, x.modules || [], { keepOld: true }); }); x.sel = null; return x; }),
+      modeHint: CampaignStudio.isCarousel(s)
+        ? 'Up to 10 pages, each with its own copy and photo. Exports Name_page1_1x1, Name_page2_1x1, … The pages are the variants you already have.'
+        : 'One ad, up to 3 A/B variants sharing the same copy. Exports Name_Master_1x1, Name_Variant 2_1x1, …',
+      storyShownOn: CampaignStudio.storyShown(s) ? '1' : undefined,
+      storyHiddenOn: CampaignStudio.storyShown(s) ? undefined : '1',
+      storyShow: () => this.upd(x => { x.storyOn = true; return x; }),
+      // hiding the story also drops a selection that lives on it — the floating control
+      // would otherwise pin to a plate that is no longer there
+      storyHide: () => this.upd(x => { x.storyOn = false; if (x.sel && x.sel.size === 'st') x.sel = null; return x; }),
+      storyHint: CampaignStudio.storyShown(s) ? 'Every page also renders and exports at 1080 × 1920.' : 'Feed sizes only — nothing renders or exports at 9:16.',
+      allVarsTitle: CampaignStudio.isCarousel(s) ? 'All pages' : 'All variants',
+      qrOneCode: 'One code for every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + ' and every size. PNG or SVG, on a white quiet zone.',
+      allVarsBtn: CampaignStudio.isCarousel(s) ? 'All Pages Option' : 'All Variants Option',
+      allVarsTip: CampaignStudio.isCarousel(s)
+        ? 'Everything here applies to every page at once. Up to ten pages share one set of design components and one QR code; each page carries its own copy and photo. Export writes a zip of Name_pageN_Size.png or .svg for every page in every size, or a single PDF. Session files carry the design and its photos, so they reopen anywhere.'
+        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a zip of Name_Variant_Size.png or .svg for every variant in every size, or a single PDF. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
+      textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
+      railFoot: CampaignStudio.isCarousel(s)
+        ? 'Design components are shared across pages; each page has its own copy, position, style and visibility. An edit on one page never changes another.'
+        : 'Design components are shared across variants; position, style and visibility are per variant. Copy edits apply everywhere.',
+      exportJpgDesc: 'Zip · q94, smallest — what Meta ingests' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
+      exportPngDesc: 'Zip · lossless, large files' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
+      exportSvgDesc: 'Zip · vector text, embedded photos' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
+      exportPdfDesc: CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 16:9' : 'One file · 1:1, then 16:9 — 9:16 hidden',
       ...this.expPickVals(true),
       ...this.splashNoteVals(),
       fgOn: !!av.fg,
@@ -7610,7 +7800,7 @@ class CampaignStudio extends StudioBase {
       bgSlotStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotStStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotLsStyle: { width: '100%', aspectRatio: '4 / 3' },
-      bgSepStOn: !!(av.bgSep && av.bgSep.st),
+      bgSepStOn: CampaignStudio.storyShown(s) && !!(av.bgSep && av.bgSep.st),
       bgSepLsOn: !!(av.bgSep && av.bgSep.ls),
       activeBgStSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-st' }],
       activeBgLsSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-ls' }],
@@ -7687,7 +7877,7 @@ class CampaignStudio extends StudioBase {
       selGapHint: (() => {
         if (!selM) return '';
         const cl = selEff.clusters[selM.id] || 'bottom';
-        const inCluster = CampaignStudio.orderedFor(selEff, s.modules)
+        const inCluster = CampaignStudio.orderedFor(selEff, CampaignStudio.modulesFor(s, sel.vi != null ? sel.vi : s.activeVi))
           .filter(m => !CampaignStudio.isFloatG(selEff, m) && !(selV.hidden || {})[m.id]
             && (selEff.clusters[m.id] || 'bottom') === cl);
         if (CampaignStudio.isFloatG(selEff, selM)) return 'Floating components are placed by hand, so spacing does not apply.';
@@ -7755,7 +7945,7 @@ class CampaignStudio extends StudioBase {
       selHideLabel: sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id] ? 'Hidden in ' + this.vLabel(sel.vi) + ' — show' : 'Hide in ' + this.vLabel(sel ? sel.vi : 0),
       selHideStyle: btn(!!(sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id])),
       bgStatus: 'Photos are stored at up to 3840px — 2× every canvas, so exports never upscale.',
-      selDelete: () => this.upd(x => { if (!sel) return x; const i = x.modules.findIndex(m => m.id === sel.id); if (i >= 0) x.modules.splice(i, 1); x.sel = null; return x; }),
+      selDelete: () => this.upd(x => { if (!sel) return x; CampaignStudio.dropMod(x, sel.vi != null ? sel.vi : x.activeVi, sel.id); x.sel = null; return x; }),
       layoutBottom: preset(() => 'bottom'),
       layoutTop: preset(() => 'top'),
       layoutSplit: preset(m => (['eyebrow', 'hero', 'hook'].indexOf(m.type) >= 0 ? 'top' : 'bottom')),
@@ -7886,14 +8076,27 @@ class CampaignStudio extends StudioBase {
         const i = Math.max(0, Math.min(2, Math.round(+e.target.value) || 0));
         setAv(vv => { vv.gapScale = CampaignStudio.GAPVALS[i]; });
       },
-      addVariant: () => this.upd(x => { if (x.variants.length >= 3) return x; const src = x.variants[x.activeVi] || x.variants[0]; const nv = JSON.parse(JSON.stringify(src)); nv.name = 'Variant ' + (x.variants.length + 1); x.variants.push(nv); x.activeVi = x.variants.length - 1; return x; }),
-      addVariantLabel: s.variants.length >= 3 ? 'Max 3 variants' : '+ Add variant (copies ' + this.vLabel(s.activeVi) + ')',
+      addVariant: () => this.upd(x => {
+        if (x.variants.length >= CampaignStudio.maxVars(x)) return x;
+        const srcVi = x.activeVi, src = x.variants[srcVi] || x.variants[0];
+        const nv = JSON.parse(JSON.stringify(src));
+        nv.name = (CampaignStudio.isCarousel(x) ? 'Page ' : 'Variant ') + (x.variants.length + 1);
+        x.variants.push(nv); x.activeVi = x.variants.length - 1;
+        // A new PAGE starts as a copy of the one you are on — its own list, its own ids, its
+        // own copies of any graphic or icon file — and is linked to nothing from then on.
+        if (CampaignStudio.isCarousel(x)) CampaignStudio.forkPage(x, x.variants.length - 1, CampaignStudio.modulesFor(x, srcVi), { keepOld: false });
+        return x;
+      }),
+      addVariantText: CampaignStudio.isCarousel(s) ? 'Add Page' : 'Add Variant',
+      addVariantLabel: s.variants.length >= CampaignStudio.maxVars(s)
+        ? (CampaignStudio.isCarousel(s) ? 'Max 10 pages' : 'Max 3 variants')
+        : (CampaignStudio.isCarousel(s) ? '+ Add page (copies ' : '+ Add variant (copies ') + this.vLabel(s.activeVi) + ')',
       // Matches .p-dock-t exactly: darkBtn's `--ps-fill-h` is #EAE7E2 on the light stage
       // (#E9E6E1), so the button had no visible edge and read as bare text beside the
       // other pill. Set here because darkBtn is inline and beats any rule.
       addVariantStyle: Object.assign({}, darkBtn,
         { background: 'var(--ps-card)', color: 'var(--ps-ink)', border: '1px solid var(--ps-line)', padding: '9px 18px', fontWeight: 400 },
-        s.variants.length >= 3 ? { opacity: .45, cursor: 'default' } : {}),
+        s.variants.length >= CampaignStudio.maxVars(s) ? { opacity: .45, cursor: 'default' } : {}),
       qrToggle: () => this.upd(x => { x.qr.show = !x.qr.show; return x; }),
       // the dock says the state as a PAIR now — Visible | Hidden, Off | On — so each half
       // needs its own setter and its own flag; the toggle keys above stay for any other reader
@@ -7901,7 +8104,7 @@ class CampaignStudio extends StudioBase {
       qrSetHide: () => this.upd(x => { x.qr.show = false; return x; }),
       qrHiddenOn: s.qr.show ? undefined : '1',
       qrShowFlag: !!s.qr.show,
-      qrHint: s.qr.show ? 'Local campaigns: the code prints in a bottom corner on every variant.' : 'International campaigns: no code is printed, and none is asked for.',
+      qrHint: s.qr.show ? 'Local campaigns: the code prints in a bottom corner on every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + '.' : 'International campaigns: no code is printed, and none is asked for.',
       coSetOn: () => this.upd(x => { x.colog = Object.assign({ on: false, scale: 100, tint: true }, x.colog); x.colog.on = true; return x; }),
       coSetOff: () => this.upd(x => { x.colog = Object.assign({ on: false, scale: 100, tint: true }, x.colog); x.colog.on = false; return x; }),
       coOffOn: (s.colog && s.colog.on) ? undefined : '1',
@@ -7989,8 +8192,8 @@ class CampaignStudio extends StudioBase {
         t.gpos = t.gpos || {}; if (!t.gpos[selM.id]) t.gpos[selM.id] = { x: .5, y: .5 };
       }); },
       gFloatCentre: () => { if (selM) setSelTarget(t => { t.gpos = t.gpos || {}; t.gpos[selM.id] = { x: .5, y: .5 }; }); },
-      gTintSet: () => { if (selM) this.upd(x => { const mm = x.modules.find(z => z.id === selM.id); if (mm) mm.tintIcon = true; return x; }); },
-      gTintClear: () => { if (selM) this.upd(x => { const mm = x.modules.find(z => z.id === selM.id); if (mm) mm.tintIcon = false; return x; }); },
+      gTintSet: () => { if (selM) this.upd(x => { CampaignStudio.writeMod(x, x.activeVi, selM.id, mm => { mm.tintIcon = true; }); return x; }); },
+      gTintClear: () => { if (selM) this.upd(x => { CampaignStudio.writeMod(x, x.activeVi, selM.id, mm => { mm.tintIcon = false; }); return x; }); },
       saveSession: () => this.saveSessionFile(),
       smallBtnStyle: btn(false),
       // Three hardcoded reds and a 6px radius — the last rogue corner on a button in this

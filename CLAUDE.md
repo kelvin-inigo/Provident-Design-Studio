@@ -11353,3 +11353,133 @@ identifier are comments. Preview against ops on the listed card: name **300 / rg
 unchanged against the pre-change copy (1 closing style tag, comments 297/297, `sc-if` and
 `sc-for` identical), 1080 CSS rules, 213 render keys. No geometry moved: only weight and fill
 changed, and neither is a term in any panel height.
+
+# CAMPAIGN HAS A CAROUSEL MODE, AND ITS PAGES ARE DISCONNECTED FROM EACH OTHER
+
+By request: a choice between the single ad Campaign has always been and a **carousel of up
+to 10 pages**, with export names carrying `_page1`, `_page2`, … and, on a carousel, the option
+to drop the 9:16. Then, one pass later, the rule that decides its shape: **"carousels don't
+need to be connected to the first page — elements placed on certain pages are disconnected
+from each other; treat them as separate from the single-page logic of Master to variant."**
+
+**Proved inert for today's ad at the op level: 8 groups (4 templates × 1:1 and 9:16), 112
+ops, 0 differing** against the pre-change build served alongside — twice, once for each pass.
+In `single` mode nothing about the render moved.
+
+## THE ARCHITECTURE: A PAGE IS A VARIANT THAT OWNS ITS OWN COMPONENT LIST
+
+Campaign's variants were built as A/B alternatives of ONE ad — each has its own layout,
+clusters, style variants, visibility, order, photo and detached sizes, and all of them share
+`state.modules`, the component list AND its text. That master-to-variant link is exactly what
+a carousel must not have. So `state.adMode` (`'single'` | `'carousel'`) flips the cap
+(3 → 10), the labels, and WHICH LIST a page reads and writes: on a carousel every variant
+carries **`v.mods`**, a complete component list of its own. Every rail control, drag, dock
+button, photo slot and export loop is the one that already existed; only the list under them
+changes.
+
+**The first cut was `pageOv` — page 1 sharing the list, pages 2+ carrying per-component
+content overrides with freeze-on-write — and it was replaced the same day**, because a shared
+list still links the pages by *structure*: adding a component on page 3 put it on every page,
+deleting it on page 2 took it off every page, and a graphic uploaded on one page was the same
+file on all of them. The user's instruction names that link as the thing to remove.
+
+```js
+static modulesFor(s, vi)      // THE read boundary: v.mods on a carousel, state.modules on a single ad
+static modList(x, vi)         // THE write boundary, on a draft inside upd(); forks a page on demand
+static allMods(s)             // every component that renders anywhere — the asset loader and Assets/ writer
+static forkPage(x, vi, src, {keepOld})
+static dropMod(x, vi, id)     // the one delete, both for the rail's Hidden list and the floating control
+```
+
+Ten reads and writes route through those. `writeMod` is `modList(...).find(...)` then the
+edit — no freeze, nothing to snapshot, because there is nothing shared to protect.
+
+## THE TWO WORLDS TOUCH AT EXACTLY ONE MOMENT
+
+**Switching to carousel forks every variant that has no list yet off the single ad**, so the
+pages START where the ad was and are linked to nothing from then on. `forkPage` clones the
+source list under **fresh ids** (`freshId()`), moves every per-id map the variant carries —
+clusters, style variant, hidden, order, spacing, float and position, on the base and on a
+detached size — onto the new ids, and **copies any graphic or icon file** to the new id
+through a new `ImageSlot.copySlot`, so the art travels with the component instead of being
+shared by it.
+
+**`keepOld` is the one subtlety.** A variant forked FROM the single ad keeps its old keys
+beside the new ones (`{keepOld: true}`), because switching back to single has to find them —
+measured: after a round trip, variant 2's clusters for `m1`–`m5` are all still there. A page
+forked from another PAGE (`Add Page`) drops everything that is not its own (`keepOld: false`):
+Page 3 forked from a six-component Page 2 carries exactly its own ids and no others.
+
+**Switching back to single leaves `state.modules` byte-for-byte as it was** and keeps every
+page's list, so the round trip loses nothing in either direction. Measured: `modules`
+unchanged through carousel → edits on three pages → single; forward again, every page's text
+and order intact. Undo reverses the switch.
+
+**Measured, all on one build:** two variants forked into pages with disjoint fresh ids while
+the ad kept `m1`–`m5`; a Hook added on page 2 → page 1 stays 5, page 2 goes 6, the ad stays
+5; hero edited on page 2 then page 1 → three different texts, each page's ops carrying only
+its own; Page 3 added from page 2 → copy included, fresh ids, own bookkeeping only; a
+component deleted on page 2 → page 3 keeps its copy, page 2's key gone; a reorder on page 3 →
+pages 1 and 2 untouched. A PNG dropped on page 1's graphic, Page 3 forked → its own record
+under its own id with the same bytes; Page 3 removed → its copy cleared, page 1's kept.
+
+## THE STORY TOGGLE IS PROJECT-LEVEL AND CAROUSEL-ONLY
+
+`state.storyOn` (default true, stripped like Organic's — which sizes are on screen is not a
+change to the artwork) gates the 9:16 plate (`v.stOn`), the rail's own-photo row, the raster
+and PDF export loops (`sizesFor`), and the four export descriptions. `storyShown(s)` is the one
+predicate. It composes with the existing per-variant `wide`: carousel + hidden gives `sq, ls`.
+Hiding the story also drops a selection that lived on it, or the floating control would pin to
+a plate that is no longer there.
+
+## EXPORT NAMES
+
+`fileLabel(vi)` is `page1` on a carousel — a filename wants no space — and `Master` /
+`Variant 2` on a single ad, so nothing existing renames. Verified with delivery stubbed: story
+hidden, **10 files** `Waterfront_page1_1x1.jpg` … `page10`, none at 9x16; story shown, **20**,
+ten of them `_9x16`. Asset files follow (`background-page-3`).
+
+## THE PRE-EXISTING BUG: PHOTOS ARE KEYED BY INDEX, AND REMOVE NEVER MOVED THEM
+
+Every Campaign photo slot is `adstudio-bg-<vi>` (plus `-st`, `-ls`, and `adstudio-fg-<vi>`).
+`remove` spliced the variant array and left the slots where they were — so deleting a middle
+variant put every later variant on its neighbour's photo and orphaned the last one. Rare with
+three variants; routine with ten pages.
+
+`ImageSlot.moveSlot(fromId, toId)` is a new static beside `cloneSlot`, going through the
+store's own `setSlot` so the in-memory copy, the sidecar write and every bound element stay in
+step — writing the sidecar directly would be undone by the next save. `remove` shifts every
+later variant's four slots down one and clears the last. **Measured: RED / GREEN / BLUE on
+pages 1-3, remove page 2 → RED / BLUE / ∅.** `activeVi` also stays where you were
+(`min(vi, n-2)`) rather than jumping to the master. `save()` coalesces in-flight writes, so
+the remap costs at most two sidecar writes.
+
+## Smaller things
+
+- `RECENT_THUMBS` is **6** for Campaign now (was a literal 3, "its variant ceiling") — the
+  same cap and the same trade Organic records: a 10-page carousel's recents card reels the
+  first six.
+- `normState` defaults `adMode` / `storyOn` on an old project, and a carousel written by the
+  FIRST carousel build (one shared list plus per-page `pageOv` overrides) is resolved into
+  per-page lists once, `pageOv` deleted. Verified on a hand-built legacy state: page 2's own
+  hero text survives, a dangling override is dropped.
+- Labels follow the mode everywhere they were hard-coded: plate badge, `projMeta`, the dock's
+  two buttons, the All-variants head and its tooltip, the rail footer, and the three
+  "linked across all variants" field labels, which read "this page only" on a carousel.
+- 303 render keys (286 + exactly the 17 new), no duplicates; 977 CSS rules, unchanged (this
+  pass authored no CSS); `sc-if` +2/+2 for the two gates; 17 new root refs, all declared once,
+  none newly unresolved.
+
+## Left as decisions, not applied
+
+- **A new page does not copy the source page's PHOTO**, only its design, copy and art — the
+  behaviour "Add variant" always had. A carousel page usually wants its own picture; one
+  `copySlot` per photo slot if it should inherit.
+- **The placement Preview still offers Story and Reels tabs with the story hidden.** It is a
+  mock of a placement rather than an export list; hiding the tabs is a shell-side gate on
+  `storyShown`.
+- **Switching to `single` with more than three pages keeps them all.** The cap governs adding,
+  not existing; the button simply reads `Max 3 variants`.
+- **A legacy first-build carousel migrates with its ids kept**, so two of its pages that
+  carried the same graphic still share that file until one of them re-uploads. `normState`
+  runs without the store, so it cannot copy slots; a one-off `forkPage` on load would.
