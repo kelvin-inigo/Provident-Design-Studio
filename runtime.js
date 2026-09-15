@@ -5,7 +5,7 @@
 // image-slot.js can execute at any time. Everything here has to already exist
 // when it does.
 //
-// Three jobs:
+// Four jobs:
 //
 //   1. Storage. image-slot.js gates ALL editing — upload, Replace, double-click
 //      reframe — on window.omelette.writeFile, which only the Design Cursor
@@ -20,6 +20,9 @@
 //
 //   3. One image encoder. A single export-grade copy per image, in the smallest
 //      format the browser can actually write.
+//
+//   4. Background removal, when the local rembg service is running. A capability
+//      the document opts into per slot, never a requirement — see section 4.
 
 (function () {
   'use strict';
@@ -338,6 +341,111 @@
   };
   W.providentFolder = folder;
   folder.restore();
+
+  // ── 4. Background removal, through a local service ────────────────────────
+  // Agent photos on the Organic templates are CUT-OUTS: the ranking card stands
+  // the portrait above its own ground, texture and numeral, so a rectangular
+  // photo covers all three. Asking a non-designer to supply a transparent PNG is
+  // the single biggest thing the guided run cannot do for them.
+  //
+  // The model that does it is ~1.1GB and needs an ONNX runtime, so it cannot
+  // live in a single-file document that opens off the disk with no build step.
+  // It runs as a loopback service instead — tools/rembg/serve.sh — and this is
+  // the whole of the studio's side of that contract:
+  //
+  //   * If the service is up, an agent photo is cut out on its way into the
+  //     store, and nothing downstream knows the difference: what lands in
+  //     providentEncodeFile is an ordinary PNG with alpha.
+  //   * If it is not, the upload behaves exactly as it always did. This is a
+  //     CAPABILITY, never a requirement — the studio must keep working offline
+  //     with nothing installed, which is the reason it is a single file.
+  //
+  // WHICH slots get cut out is not decided here. The document marks them with
+  // `data-cutout` and image-slot.js reads it, so the runtime stays a provider
+  // and Campaign — which mounts no such slot — is untouched.
+  var CUT_URL = 'http://127.0.0.1:7311';
+  try {
+    var over = W.localStorage && W.localStorage.getItem('provident-cutout-url');
+    if (over) CUT_URL = String(over).replace(/\/+$/, '');
+  } catch (e) {}
+
+  // A probe is one request per 15s at most: the rail asks on every render, and
+  // a dead port would otherwise mean a connection refused per keystroke.
+  var cutAt = 0, cutPending = null;
+  var CUT_TTL = 15000;
+
+  function withTimeout(ms) {
+    // AbortController rather than Promise.race: a racing timeout leaves the
+    // request running, and a 12s inference held open per keystroke would queue
+    // behind the lock in the server and make every later upload slower.
+    var c = new AbortController();
+    var t = setTimeout(function () { c.abort(); }, ms);
+    return { signal: c.signal, done: function () { clearTimeout(t); } };
+  }
+
+  var cutout = {
+    // 'unknown' until the first probe answers — the UI says nothing rather than
+    // claiming the feature is missing while it is still being looked for.
+    state: 'unknown',
+    url: CUT_URL,
+    info: null,
+
+    probe: function (force) {
+      var now = Date.now();
+      if (!force && cutPending && now - cutAt < CUT_TTL) return cutPending;
+      cutAt = now;
+      var to = withTimeout(2500);
+      cutPending = fetch(CUT_URL + '/health', { signal: to.signal, cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          to.done();
+          var on = !!(j && j.ok);
+          cutout.info = j;
+          setState(on ? 'on' : 'off');
+          return on;
+        })
+        .catch(function () { to.done(); setState('off'); return false; });
+      return cutPending;
+    },
+
+    // file -> File (PNG with alpha). Throws Error(message) with something a
+    // person can act on; the caller keeps the original on failure.
+    run: function (file) {
+      var to = withTimeout(180000); // a cold first request can be slow
+      return fetch(CUT_URL + '/cutout', {
+        method: 'POST', body: file, signal: to.signal, cache: 'no-store'
+      }).then(function (r) {
+        if (r.ok) return r.blob().then(function (b) {
+          return { blob: b, note: r.headers.get('X-Cutout') || 'cutout' };
+        });
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          throw new Error(j.error || ('Background removal failed (' + r.status + ').'));
+        });
+      }).then(function (o) {
+        to.done();
+        setState('on');
+        var name = String(file.name || 'photo').replace(/\.[^.]+$/, '');
+        return new File([o.blob], name + '-cutout.png', { type: 'image/png' });
+      }, function (e) {
+        to.done();
+        if (e && e.name === 'AbortError') throw new Error('Background removal timed out.');
+        // A refused connection is the service being off, not a broken upload —
+        // re-probe so the UI stops offering it.
+        if (e instanceof TypeError) { setState('off'); throw new Error('OFFLINE'); }
+        throw e;
+      });
+    }
+  };
+
+  function setState(s) {
+    if (cutout.state === s) return;
+    cutout.state = s;
+    try {
+      document.dispatchEvent(new CustomEvent('provident-cutout', { detail: { state: s } }));
+    } catch (e) {}
+  }
+
+  W.providentCutout = cutout;
 
   // ── 5. Storage stand-in ───────────────────────────────────────────────────
   // Inside Design Cursor the real thing already exists — leave it alone.

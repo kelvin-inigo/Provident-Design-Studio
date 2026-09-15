@@ -3206,7 +3206,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
              over that drags the crop. Same three-part shape as the ranking cover's
              group figures, and for the same reason: a computed layer can match the op,
              a slot cannot. -->
-        <div class="canvasbg" style="{{ sl.ft.bgWrapStyle }}"><image-slot id="{{ sl.bgId }}" shape="rect" placeholder="Drop photo here or use the right panel" style="{{ sl.ft.bgSlotStyle }}"></image-slot>
+        <div class="canvasbg" style="{{ sl.ft.bgWrapStyle }}"><image-slot id="{{ sl.bgId }}" data-cutout="{{ sl.bgCut }}" shape="rect" placeholder="Drop photo here or use the right panel" style="{{ sl.ft.bgSlotStyle }}"></image-slot>
           <sc-if value="{{ sl.ft.lPhotoOn }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.ft.lPhotoStyle }}"></div>
             <div onPointerDown="{{ sl.ft.lPanDown }}" onDoubleClick="{{ sl.ft.lPanDbl }}" data-pan="{{ sl.ft.lPanOn }}" style="{{ sl.ft.lPanStyle }}"></div>
@@ -3354,7 +3354,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
              over that drags the crop. Same three-part shape as the ranking cover's
              group figures, and for the same reason: a computed layer can match the op,
              a slot cannot. -->
-        <div class="canvasbg" style="{{ sl.st.bgWrapStyle }}"><image-slot id="{{ sl.bgId }}" shape="rect" placeholder="Shares the feed photo" style="{{ sl.st.bgSlotStyle }}"></image-slot>
+        <div class="canvasbg" style="{{ sl.st.bgWrapStyle }}"><image-slot id="{{ sl.bgId }}" data-cutout="{{ sl.bgCut }}" shape="rect" placeholder="Shares the feed photo" style="{{ sl.st.bgSlotStyle }}"></image-slot>
           <sc-if value="{{ sl.st.lPhotoOn }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.st.lPhotoStyle }}"></div>
             <div onPointerDown="{{ sl.st.lPanDown }}" onDoubleClick="{{ sl.st.lPanDbl }}" data-pan="{{ sl.st.lPanOn }}" style="{{ sl.st.lPanStyle }}"></div>
@@ -3576,11 +3576,12 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                      have. Full-width at 3:4 it was 600px tall and made every page scroll. -->
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
-                    <image-slot id="{{ a.photoSlot }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    <image-slot id="{{ a.photoSlot }}" data-cutout="{{ a.photoCut }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
                   <div class="gd-qrow-t">
                     <s>{{ a.photoLabel }}</s>
                     <s>{{ a.photoHint }}</s>
+                    <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.phResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.phReset }}" class="gd-link">Reset photo scale &amp; position</button></sc-if>
                   </div>
                 </div>
@@ -3692,11 +3693,12 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               <sc-if value="{{ a.isPortrait }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
-                    <image-slot id="{{ a.portraitSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    <image-slot id="{{ a.portraitSlot }}" data-cutout="1" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
                   <div class="gd-qrow-t">
                     <s>{{ a.portraitLabel }}</s>
-                    <s>A PNG cut-out on a transparent background. The face is found and framed for you, so any crop works. Drag her on the card to move her.</s>
+                    <s>The face is found and framed for you, so any crop works. Drag her on the card to move her.</s>
+                    <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.raResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.raReset }}" class="gd-link">Reset photo position</button></sc-if>
                   </div>
                 </div>
@@ -5269,6 +5271,12 @@ class OrganicStudio extends StudioBase {
     document.addEventListener('image-slot:reframe', this._reframeEnd, true);
     this._dropRefresh = () => setTimeout(this._refreshAV, 600);
     document.addEventListener('drop', this._dropRefresh, true);
+    // The background-removal service can be started and stopped while the studio is
+    // open, so the rail has to follow it rather than read it once. The event fires only
+    // on a CHANGE, and the poll below is TTL-cached to one request per 15s.
+    this._cutTick = () => this.forceUpdate();
+    document.addEventListener('provident-cutout', this._cutTick);
+    try { window.providentCutout && window.providentCutout.probe(); } catch (e) {}
     let lastFillScan = 0;
     const tick = () => {
       try {
@@ -5369,6 +5377,7 @@ class OrganicStudio extends StudioBase {
         } else if (strip && strip._shift) { strip._shift = 0; strip.style.transform = 'none'; }
       } catch (e) {}
       try { StudioBase.promoteImgs(); StudioBase.autoGrow(); } catch (e) {}
+      try { window.providentCutout && window.providentCutout.probe(); } catch (e) {}
       this._rafId = requestAnimationFrame(tick);
     };
     this._rafId = requestAnimationFrame(tick);
@@ -5376,6 +5385,7 @@ class OrganicStudio extends StudioBase {
   componentWillUnmount() {
     if (this._reframeEnd) document.removeEventListener('image-slot:reframe', this._reframeEnd, true);
     if (this._dropRefresh) document.removeEventListener('drop', this._dropRefresh, true);
+    if (this._cutTick) document.removeEventListener('provident-cutout', this._cutTick);
     if (this._rafId) cancelAnimationFrame(this._rafId);
   }
 
@@ -5672,9 +5682,9 @@ class OrganicStudio extends StudioBase {
     // line buried in the middle of it.
     if (role) {
       base -= (roleLines.length - 1) * rolePx * L.roleLead;
-      rows.unshift({ k: 't', lines: roleLines, px: rolePx, w: 500, ls: rolePx * .1, fill: A.ink, y: base - rolePx, lh: L.roleLead });
+      rows.unshift({ k: 't', lines: roleLines, px: rolePx, w: 500, ls: rolePx * .1, fill: A.brass, y: base - rolePx, lh: L.roleLead });
     }
-    if (name) { if (role) base -= L.stepRole; rows.unshift({ k: 't', lines: [name], px: namePx, w: 400, ls: 0, fill: A.ink, y: base - namePx, lh: 1.25 }); }
+    if (name) { if (role) base -= L.stepRole; rows.unshift({ k: 't', lines: [name], px: namePx, w: 300, ls: 0, fill: A.ink, y: base - namePx, lh: 1.25 }); }
     let ruleY = null;
     if ((name || role) && (usp || price)) { base -= L.stepName; ruleY = base; }
     if (price) { base -= (ruleY != null ? L.stepRule : (name || role ? L.stepName : 0)); rows.unshift({ k: 't', lines: [price], px: pricePx, w: 400, ls: pricePx * L.copyTrack, fill: A.ink, y: base - pricePx, lh: 1.2 }); }
@@ -5906,7 +5916,10 @@ class OrganicStudio extends StudioBase {
     };
     const idW = Math.max(120, agentLeft - R.colGap - x);
     const revPx = fit(this.toTitle(f.reviewer || ''), R.revPx, 400, 0, colW);
-    const namePx = fit(this.toTitle(f.agentName || ''), R.namePx, 400, 0, idW);
+    // 300, not 400: the agent's name is drawn Light, and a fit measured at a heavier
+    // weight than the one that ships is the "match the consumer, not the geometry" trap
+    // this file records — Light is narrower, so a 400 measure shrinks a name that fits.
+    const namePx = fit(this.toTitle(f.agentName || ''), R.namePx, 300, 0, idW);
     const rolePx = fit(String(f.agentRole || '').toUpperCase(), R.rolePx, 500, R.roleTrack, idW);
     // THE PARTS SUM TO THE DRAWN HEIGHT EXACTLY at the drawing's own 12 lines, which is
     // what says the decomposition is right rather than merely close: 174.5 + 11x38.4 +
@@ -6841,8 +6854,8 @@ class OrganicStudio extends StudioBase {
       // .82 for the FIRST baseline to land on yB0 rather than most of a line below it.
       this.drawLines(ops, c.bl, pL + c.pad, cy + c.yB0 - c.lead * .82, c.lead, false, W);
       ops.push({ op: 'rect', x: pL + c.pad, y: cy + c.yRule, w: c.contentW, h: 1, fill: A.hair });
-      ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yName, px: c.npx, weight: 400, fill: A.ink, text: this.toTitle(f.name || '') });
-      ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yRole, px: c.rpx, weight: 500, fill: A.warm,
+      ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yName, px: c.npx, weight: 300, fill: A.ink, text: this.toTitle(f.name || '') });
+      ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yRole, px: c.rpx, weight: 500, fill: A.brass,
         text: (f.role || '').toUpperCase(), ls: c.rpx * .1 });
 
       // ── THE PLACE BADGE, flush with the content's right edge and centred on the
@@ -7084,9 +7097,12 @@ class OrganicStudio extends StudioBase {
       }
       // The identity block, bottom-left on the ground. Tracked caps at 500 for the role is
       // the brand's eyebrow role and the drawing's own weight, so nothing is overruled here.
-      ops.push({ op: 'text', x: Bx.x, y: Bx.nameY, px: Bx.namePx, weight: 400, fill: A.ink,
+      ops.push({ op: 'text', x: Bx.x, y: Bx.nameY, px: Bx.namePx, weight: 300, fill: A.ink,
         text: this.toTitle(f.agentName || ''), gnd: true });
-      ops.push({ op: 'text', x: Bx.x, y: Bx.roleY, px: Bx.rolePx, weight: 500, fill: A.ink,
+      // `gnd` stays and is now INERT on this run: tplGroundSwap only swaps a fill that is
+      // still A.ink, and brass reads on paper and on black alike — the same call the award
+      // card's brass line already records. It is kept so the flag comes back if the fill does.
+      ops.push({ op: 'text', x: Bx.x, y: Bx.roleY, px: Bx.rolePx, weight: 500, fill: A.brass,
         text: String(f.agentRole || '').toUpperCase(), ls: Bx.rolePx * R.roleTrack, gnd: true });
     }
     return { W, H, ops };
@@ -7736,7 +7752,7 @@ class OrganicStudio extends StudioBase {
       if (s.tpl === 'listed' && sl.kind === 'listed') {
         raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.name', label: 'Agent name', req: true });
         raw.push({ si, sec: 'agent', kind: 'proj', pk: 'agent.role', label: 'Agent role', req: true, hint: 'e.g. Consultant - Primary Sales — a long one breaks onto a second line' });
-        raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent', label: 'Agent photo — PNG cut-out', hint: 'A cut-out on a transparent background — the face is found and framed for you, so any crop works' });
+        raw.push({ si, sec: 'agent', kind: 'portrait', slot: 'smp-agent', label: 'Agent photo', hint: 'The face is found and framed for you, so any crop works' });
         // THE SECOND AGENT IS GONE, by request — the "How many agents are on this card?"
         // ask, the two-column layout and the rail toggle with it. A saved project keeps its
         // `agent2` / `agent2On`; nothing reads them.
@@ -7979,6 +7995,9 @@ class OrganicStudio extends StudioBase {
       v.photoDone = filled[id] ? '1' : undefined;
       v.photoLabel = filled[id] ? 'Picture added — click to replace' : 'Drop a picture, or click to choose';
       v.photoHint = this.bgStatusFor(ask.si);
+      v.photoCut = sl.kind === 'tagent' ? '1' : undefined;
+      v.cutNote = this.cutoutNote(!!v.photoCut);
+      v.cutNoteOn = v.cutNote ? '1' : undefined;
       // the rail's reset, offered only once a canvas gesture has moved the photo
       v.phResetOn = (sl.kind === 'listed' && !!(sl.f.phx || sl.f.phy || (sl.f.phs && sl.f.phs !== 1))) ? '1' : undefined;
       v.phReset = () => this.upd(x => { const t = x.slides[ask.si]; if (t && t.f) { delete t.f.phx; delete t.f.phy; delete t.f.phs; } return x; });
@@ -7994,6 +8013,8 @@ class OrganicStudio extends StudioBase {
       v.portraitSlot = ask.slot || 'smp-none';
       v.portraitDone = filled[v.portraitSlot] ? '1' : undefined;
       v.portraitLabel = filled[v.portraitSlot] ? 'Photo added — click to replace' : 'Drop a headshot, or click to choose';
+      v.cutNote = this.cutoutNote(true);
+      v.cutNoteOn = v.cutNote ? '1' : undefined;
       // Offered only once she has actually been moved. A reset that resets nothing is the
       // purposeless control the dead-feature audit went looking for.
       const psl = (this.state.slides || [])[ask.si];
@@ -8275,7 +8296,7 @@ class OrganicStudio extends StudioBase {
     const bi = shared ? coverIdx : si;
     const d = this._assetView && this._assetView.bgDims && this._assetView.bgDims[bi];
     const linked = shared ? 'Linked — the closing slide uses the cover photo. ' : '';
-    if (sl.kind === 'tagent' && !d) return 'Required — drop this agent’s studio portrait as a CUT-OUT PNG on a transparent background. It stands in front of the ranking numeral, so a rectangular photo would cover it.';
+    if (sl.kind === 'tagent' && !d) return 'Required — this agent’s studio portrait. It stands in front of the ranking numeral, so it is drawn as a cut-out.';
     if (d && Math.max(d.w, d.h) < 2160) return linked + '⚠ Stored at ' + d.w + '×' + d.h + ' — under the 2160px export target, so it will be upscaled. Re-drop the original file.';
     if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story. On the card, drag the photo to move it and double-click it to reframe and zoom.';
     return linked || 'Kept at full resolution for export; feed and story share it. On the card, drag the photo to move it and double-click it to reframe and zoom.';
@@ -8299,6 +8320,16 @@ class OrganicStudio extends StudioBase {
   // exclude it — but it has a background slot like every other kind and the rail has
   // always offered it, so the run has to ask.
   gdWantsPhoto(si) { return this.photoOwn((this.state.slides || [])[si]); }
+  // ONE sentence about background removal, read by every row that drops an agent, so the
+  // picture row and the portrait row can never describe the service differently. Empty
+  // while the first probe is still out: saying nothing beats claiming it is missing.
+  cutoutNote(isCut) {
+    const api = window.providentCutout;
+    if (!isCut || !api) return '';
+    if (api.state === 'on') return 'The background is removed for you when you drop a photo here.';
+    if (api.state === 'off') return 'Drop a cut-out PNG, or start tools/rembg/serve.sh and one will be made for you.';
+    return '';
+  }
   gdQrFor(si) {
     const s = this.state, sl = (s.slides || [])[si];
     if (!sl) return null;
@@ -9352,10 +9383,10 @@ class OrganicStudio extends StudioBase {
             lineHeight: cq(c.lead), color: A.ink });
         K.taRuleStyle = Object.assign(abs(c.pad, c.yRule), { width: cq(c.contentW), height: uz(1), background: A.hair });
         K.taNameStyle = Object.assign(abs(c.pad, c.yName - c.npx),
-          { fontWeight: 400, fontSize: cq(c.npx), lineHeight: cq(LH(c.npx)), color: A.ink, whiteSpace: 'nowrap' });
+          { fontWeight: 300, fontSize: cq(c.npx), lineHeight: cq(LH(c.npx)), color: A.ink, whiteSpace: 'nowrap' });
         K.taRoleStyle = Object.assign(abs(c.pad, c.yRole - c.rpx),
           { fontWeight: 500, fontSize: cq(c.rpx), letterSpacing: '.1em', textTransform: 'uppercase',
-            lineHeight: cq(LH(c.rpx)), color: A.warm, whiteSpace: 'nowrap' });
+            lineHeight: cq(LH(c.rpx)), color: A.brass, whiteSpace: 'nowrap' });
         K.taBadgeStyle = Object.assign(abs(0, c.badgeTop), {
           left: 'auto', right: cq(c.pad), height: cq(c.badgeH), borderRadius: cq(c.badgeR),
           background: A.brass, display: 'flex', alignItems: 'center', padding: `0 ${cq(c.badgePadX)}`,
@@ -9460,8 +9491,8 @@ class OrganicStudio extends StudioBase {
         // ITEM whose box top is the frame's padding edge; this one is absolute, so `baseLH`
         // already puts its baseline exactly `px` below its own top and `txt` is exact.
         K.revLogoStyle = txt(Bx.x, Bx.logoBase, tk.logo, 300, A2.ink, tk.logo * .04);
-        K.revNameStyle = txt(Bx.x, Bx.nameY, Bx.namePx, 400, A2.ink, 0);
-        K.revRoleStyle = txt(Bx.x, Bx.roleY, Bx.rolePx, 500, A2.ink, Bx.rolePx * R.roleTrack);
+        K.revNameStyle = txt(Bx.x, Bx.nameY, Bx.namePx, 300, A2.ink, 0);
+        K.revRoleStyle = txt(Bx.x, Bx.roleY, Bx.rolePx, 500, A2.brass, Bx.rolePx * R.roleTrack);
         // THE AGENT, framed and clipped exactly as the op does it — through the same
         // `agentPlace`, then `clip-path: inset()` rather than a wrapper div, because the
         // insets are in the element's own coordinate space so cq() canvas units land on the
@@ -9580,6 +9611,10 @@ class OrganicStudio extends StudioBase {
         remove: mkRemove(si),
         removeStyle: { display: canRemove(si) ? 'block' : 'none', background: 'transparent', color: 'var(--ps-ink-2)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
         bgId: 'smp-bg-' + ((sl.kind === 'cta' && s.tpl === 'weekly') ? (s.slides[coverIdx] || sl).id : sl.id),
+        // A ranking card's "background" IS the agent, standing above the ground, the
+        // texture and the numeral — so it is the one photo kind that has to arrive as a
+        // cut-out. Every other kind's background is a photograph and must be left whole.
+        bgCut: sl.kind === 'tagent' ? '1' : undefined,
         fgOn: !!sl.fg && !!(this._assetView && this._assetView.fg[si]),
         fgVi: ((sl.kind === 'cta' && s.tpl === 'weekly') ? (s.slides[coverIdx] || sl).id : sl.id),
         qrOn: (sl.kind === 'listed' && s.qr.show) || sl.kind === 'prop' || sl.kind === 'cover' || sl.kind === 'cta',

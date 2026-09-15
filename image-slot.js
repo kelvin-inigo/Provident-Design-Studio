@@ -452,6 +452,17 @@
     '  border:2px solid rgba(127,127,127,.25);border-top-color:currentColor;' +
     '  animation:om-slot-spin .7s linear infinite}' +
     '@keyframes om-slot-spin{to{transform:rotate(360deg)}}' +
+    // Pre-encode work (background removal) runs a 1024x1024 network and takes
+    // SECONDS, so unlike a replacement it needs the spinner on an EMPTY slot
+    // too — where a first fill deliberately shows none — and a line saying what
+    // is taking the time. column-reverse puts ::after (the ring) above the
+    // message, since a pseudo-element is always the last child in layout.
+    ':host([data-working]) .loading{display:flex;flex-direction:column-reverse;gap:9px}' +
+    ':host([data-working]) .frame img{visibility:hidden}' +
+    ':host([data-working]) .empty{opacity:.22}' +
+    '.loadmsg:empty{display:none}' +
+    '.loadmsg{font:11px/1.35 system-ui,-apple-system,sans-serif;opacity:.8;' +
+    '  text-align:center;max-width:88%;text-wrap:balance}' +
     // Reduced motion: the static two-tone ring still reads as "working".
     '@media (prefers-reduced-motion:reduce){.loading::after{animation:none}}' +
     '.credit{position:absolute;left:6px;bottom:6px;max-width:calc(100% - 12px);display:none;' +
@@ -581,7 +592,7 @@
         '    <div class="sub">or <u>browse files</u></div></div>' +
         '  <div class="attr-error" part="attribution-error">' + warnIcon +
         '    <div class="cap">This photo needs attribution</div></div>' +
-        '  <div class="loading" part="loading"></div>' +
+        '  <div class="loading" part="loading"><span class="loadmsg" part="loading-message"></span></div>' +
         '  <div class="ring" part="ring"></div>' +
         '</div>' +
         // Outside .frame, like .spill/.ctl — the frame's overflow:hidden +
@@ -1049,7 +1060,12 @@
       }
       try {
         const w = this.clientWidth || this.offsetWidth || MAX_DIM;
-        const url = await toDataUrl(file, w);
+        // Background removal, before the encode, so everything downstream —
+        // the encoder, the store, the canvas, the export — sees an ordinary
+        // PNG with alpha and knows nothing about it.
+        const src = await this._cutout(file, gen);
+        if (gen !== this._gen) return;
+        const url = await toDataUrl(src, w);
         if (gen !== this._gen) return;
         // Only exit reframe once the new image is in hand — a rejected type
         // or decode failure leaves the in-progress crop untouched.
@@ -1073,6 +1089,44 @@
         this._setError('Could not read that image.');
         console.warn('<image-slot> ingest failed:', err);
       }
+    }
+
+    // Cut the background out, when the DOCUMENT asked for it on this slot
+    // (`data-cutout`) and the local service is up. Returns the file to encode.
+    //
+    // A FAILURE HERE MUST NEVER COST THE UPLOAD. The photo is what the user
+    // actually has; the cut-out is a convenience on top of it. So every path
+    // that is not a clean success returns the original and the slot fills as it
+    // always did — the service being off is silent, anything else says why.
+    async _cutout(file, gen) {
+      const api = window.providentCutout;
+      if (!api || !this.hasAttribute('data-cutout')) return file;
+      // An SVG has no background to remove and would be rasterised by the
+      // attempt — the same reason providentEncodeFile routes it around canvas.
+      if (/svg/i.test(file.type || '') || /\.svg$/i.test(file.name || '')) return file;
+      if (!(await api.probe())) return file;
+      if (gen !== this._gen) return file;
+
+      this.setAttribute('data-working', '');
+      this._setMsg('Removing the background…');
+      try {
+        return await api.run(file);
+      } catch (e) {
+        // OFFLINE is the service going away between the probe and the upload:
+        // the photo still lands, and the rail already says the feature is off.
+        if (!e || e.message !== 'OFFLINE') {
+          this._setError((e && e.message) || 'Background removal failed.');
+        }
+        return file;
+      } finally {
+        this.removeAttribute('data-working');
+        this._setMsg('');
+      }
+    }
+
+    _setMsg(text) {
+      const n = this.shadowRoot && this.shadowRoot.querySelector('.loadmsg');
+      if (n) n.textContent = text || '';
     }
 
     // Empty this slot. Goes through setSlot so the shared in-memory store, the

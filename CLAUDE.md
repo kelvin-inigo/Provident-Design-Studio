@@ -11118,3 +11118,238 @@ start a project.
   rule keys on and what the three supplied strings use.
 - **The review card's own agent role is untouched** — it has its own fit in `revBox`, and the
   request named the listed card.
+
+# AGENT PHOTOS ARE CUT OUT ON UPLOAD, BY A LOCAL rembg SERVICE
+
+Every agent photo in Organic is drawn as a **cut-out** — the ranking card stands the
+portrait above its own white ground, the ground texture and the giant numeral, so a
+rectangular photo covers all three, and the listed and review agents are clipped to a
+window and framed on the face. The studio asked for a transparent PNG and had no way to
+make one. [danielgatis/rembg](https://github.com/danielgatis/rembg) now makes it, from
+`tools/rembg/`.
+
+**Proved inert at the op level the free way: the whole-file diff against the pre-change
+copy is 39 changed lines and ZERO of them are artwork lines** — no `ops.push`, no
+renderer, no `buildOps(`, no `ART`, no geometry source. This pass is the runtime, the
+slot, markup and render keys, so no op can have moved and no op census was needed.
+
+## THE SERVICE IS A CAPABILITY, NEVER A REQUIREMENT, and that is the load-bearing rule
+
+The studio is one `.dc.html` that opens straight off the disk with no build step — the
+reason its fonts and template art are base64'd into it. A 1.1GB model plus an ONNX
+runtime cannot go in there, and there is no JS toolchain on this machine to bundle a
+WASM build with even if it could.
+
+So the model runs as a loopback service and **the studio must keep working with nothing
+installed**. Measured, with the service stopped: an upload to a cut-out slot still lands
+in **5ms**, the original is stored unchanged, no error is shown (the service being off
+is not a failure), and the drop zone's own line says how to turn it on. Do not let a
+later pass make this a hard dependency; it would cost the single-file property.
+
+## WHICH SLOTS IS THE DOCUMENT'S DECISION, NOT THE RUNTIME'S
+
+`runtime.js` provides `window.providentCutout` and knows nothing about templates; the
+document marks the slots with **`data-cutout`** and `image-slot.js` reads it. That is
+what keeps Campaign — which mounts no such slot — untouched by construction, verified:
+**0 `data-cutout` in Campaign**, and it boots at 286 render keys and 977 CSS rules.
+
+| slot | where |
+|---|---|
+| `smp-agent` | the listed card's agent, project level |
+| `smp-agent-r<id>` | the review card's agent, per slide |
+| `smp-bg-<id>` where `sl.kind === 'tagent'` | a ranking portrait — the form row AND the canvas slot |
+
+`bgCut` and `photoCut` are `'1'`/`undefined` per the standing flag rule. **The ranking
+COVER correctly gets none** — it composites the five rank portraits and has no photo of
+its own — verified in the DOM: the cover's canvas slot reads `null` while all five
+`tagent` slots read `'1'`.
+
+**`runtime.js` HAS TWO EARLY RETURNS AND THE BLOCK HAD TO GO ABOVE THEM.** Section 5
+returns early for `omelette` (Design Cursor, the environment the user actually works in)
+and again for a browser with no IndexedDB. A capability declared after those exists in a
+test browser and nowhere else — which is the worst possible place for the bug to hide.
+Anything new in `runtime.js` that is not storage goes **before** the Storage stand-in.
+
+## THE EDGE IS THE WHOLE REQUEST, AND THE MODES WERE MEASURED
+
+"Fuzzy edges" is not vagueness — it is a specific defect: a semi-transparent edge pixel
+keeps the **backdrop's colour** mixed into it, so the subject carries a halo of whatever
+it was shot against. Measured on Provident's own studio portraits (dark suit on a dark
+wall; a ponytail against it) — the drift of an edge pixel's colour from the opaque
+subject beside it, and the share of edge pixels notably darker than that subject:
+
+| mode | soft edge px | colour drift | dark halo |
+|---|---|---|---|
+| `naive` | 7 815 | 16.16 | **16.3%** |
+| `decontaminate` | 7 815 | 7.90 | 0.7% |
+| `alpha_matting` | 13 274 | 7.60 | 1.3% |
+| **`vitmatte` — SHIPPED** | 12 977 | 10.72 | **1.7%** |
+
+`naive` is the halo: one edge pixel in six.
+
+**`alpha_matting` MEASURES WELL AND LOOKS WORST, which is why the table is not the
+decision.** It widens the soft band by 70% and the extra is invented — a visible grey
+frizz around shoulders and hair in the side-by-side renders, i.e. exactly the thing the
+request was about. `vitmatte` widens the band too, but there the extra pixels are real
+hair. **Render the comparison and look at it; a fringe metric cannot see a wide soft
+halo.**
+
+## THE 977MB MODEL IS THE DECISION, AND IT IS ABOUT *WHO*, NOT ABOUT EDGES
+
+ViTMatte does the edge work whatever produced the coarse mask, so on a single figure all
+three segmenters look alike and the cheap one looks like a free win. They part company on
+**who to keep**. On a portrait cropped out of a group shot:
+
+| model | size | per photo | result |
+|---|---|---|---|
+| **`bria-rmbg` — SHIPPED** | 977MB | 12-19s | the subject alone |
+| `isnet-general-use` | 170MB | 2.6-3.4s | **kept a whole second person from the background**, semi-transparent |
+| `u2net_human_seg` | 168MB | 2.0s | the same failure |
+
+Agent photos are routinely shot in an office or at an event with colleagues behind them,
+so that is the common case rather than an edge case. The default is correct rather than
+fast; `--model isnet-general-use` is a documented flag for a clean backdrop.
+
+**CoreML was measured and REJECTED**: `--provider coreml` stalls indefinitely compiling
+a 977MB BiRefNet — 0% CPU, 1.6GB resident, no progress after ten minutes. The flag is
+kept only so the next reader does not re-derive why a Mac tool is not using the Neural
+Engine. It was not tried with a smaller model.
+
+## TWO GUARDS THAT MATTER MORE THAN THE MODEL
+
+- **An upload that is ALREADY a cut-out passes straight through, byte for byte.**
+  Verified: 425 896 bytes in, 425 896 out, in 11ms. Users have been supplying hand-made
+  transparent PNGs for months, and re-running a matting model on one could only damage
+  it. The test is >2% fully-transparent pixels.
+- **A failure never costs the upload.** `_cutout` returns the ORIGINAL on every path that
+  is not a clean success; the service being off is silent, anything else sets the slot's
+  error line. The photo is what the user has; the cut-out is a convenience on top of it.
+
+**The empty-result guard catches TOTAL erasure and nothing subtler, deliberately.** A
+salient-object model hands back an arbitrary blob for an image with no subject —
+measured at **44.6% opaque on a flat grey field** — and a real portrait is often 20-60%
+opaque too, so no coverage threshold can separate them. Detecting "that isn't a person"
+is not that guard's job.
+
+## THE SLOT NEEDED A SPINNER ON AN *EMPTY* SLOT, which it deliberately never had
+
+`data-swapping` is set only when the slot is already filled, because a first fill is
+supposed to keep its placeholder rather than flash a spinner. A 12-second wait makes that
+wrong. `data-working` shows the ring and a message whatever the fill state, and dims the
+placeholder behind it. Verified end to end: `data-working` set with "Removing the
+background…", cleared on completion, **10.4s**, stored as `data:image/png` at 378KB —
+the encoder picks PNG on its own because `file.type` is `image/png`, so alpha survives
+with no change to `providentEncodeFile`.
+
+`column-reverse` on `.loading` is what puts the ring above the message: a pseudo-element
+is always the last child in layout, so the ring would otherwise sit under the text.
+
+## A HINT MUST NOT CONTRADICT THE CONTROL BESIDE IT
+
+`bgStatusFor` opened with "drop this agent's studio portrait as a CUT-OUT PNG on a
+transparent background", and the new line under it says the background is removed for
+you. Two sentences, one screen, opposite instructions. The hint states the REQUIREMENT
+("it is drawn as a cut-out") and `cutoutNote()` states how it is met — one fact in one
+place, read by the picture row and the portrait row alike so they cannot drift.
+
+`cutoutNote` returns **empty while the first probe is still out**. Saying nothing beats
+claiming the feature is missing before anyone has looked.
+
+## THE PROBE IS TTL'D AND POLLED FROM THE TICK, so starting the service needs no reload
+
+15s cache, polled from Organic's existing rAF tick (a `Date.now()` compare per frame) and
+re-rendered off a `provident-cutout` event that fires only on a CHANGE. Verified: stop the
+service and the drop zone's line flips to "start tools/rembg/serve.sh"; start it and the
+line flips back with **no reload**.
+
+## Verification
+
+- **0 artwork lines** in the whole-file diff; sheet 1 closing style tag, comments 297/297,
+  `sc-if` 116/114 -> **118/116** (exactly the two gated note lines, on the documented
+  2-off baseline), `sc-for` unchanged, 1080 CSS rules parse, 213 render keys, no duplicate.
+- Interpolation sweep against the pre-change copy: 140 refs both sides, **none added,
+  none removed**.
+- Scope, measured: a weekly property photo on a non-cut-out slot made **0 service calls**,
+  took 14ms and stored as JPEG. All three agent templates opted in and read coherently.
+- The card renders as a true cut-out: the textured ground reads **(231,231,231)** beside
+  the figure where the office wall would have been. SVG export clean — 3 images, PNG data
+  URI present, nothing unescaped.
+- The test ran against `providentRuntime.mode === 'indexeddb'`; `.image-slots.state.json`
+  is untouched (mtime unchanged), and the test origin's localStorage and IndexedDB were
+  cleared afterwards.
+
+## Left as decisions, not applied
+
+- **The parallax cut-out (`smp-fg-<id>`) is not opted in.** It is a cut-out of the
+  *picture's own foreground* rather than an agent, and the request named agent photos. One
+  attribute if it is wanted.
+- **12-19s per photo, on CPU.** The levers are `--model isnet-general-use` (5x, at the
+  cost above) and `--refine decontaminate` (worth only ~2s — the segmenter is the cost,
+  not the refiner).
+- **The original is not kept.** A bad cut-out is fixed by re-dropping the photo. Keeping
+  both would double the sidecar for every agent.
+
+# THE AGENT'S NAME IS LIGHT AND THE DESIGNATION IS BRASS, on all three cards
+
+By request: the agent's **name** drops to **Light 300** (size and colour unchanged), and the
+**designation** keeps its weight and size and takes **`#B0905C`** — which is `ART.brass`, a
+token that already existed, so no colour was spelled out at a call site.
+
+**Applied to all three cards that print an agent**, because an identity block is a type
+treatment and two of them were already identical by design:
+
+| card | name | role |
+|---|---|---|
+| `listed` | 35 / **300** / `ink` | 24 / 500 / .1em / **`brass`** (was `ink`) |
+| `review` | 35 / **300** / `ink` | 24 / 500 / .1em / **`brass`** (was `ink`) |
+| `tagent` | 35 / **300** / `ink` | 24 / 500 / .1em / **`brass`** (was `warm`) |
+
+**The listed card needed ONE edit per run and the preview followed for free**, because
+`K.lRows` reads `r.w` and `r.fill` straight off the row objects `listedBox` builds — the
+single-geometry-source design paying out. The review and ranking cards carry separate
+preview styles and needed both halves, per the parity contract.
+
+**THE PLACE BADGE'S LABEL STAYS `A.warm`, and that is the trap in this edit.** The ranking
+card's role op and its badge-label op are both `weight: 500, fill: A.warm` and sit twelve
+lines apart; swapping both would have put brass on the brass badge. Verified after: the
+role is `#B0905C` and `1ST PLACE` is still `#FAF8F4`.
+
+## A FIT MEASURED AT THE OLD WEIGHT IS THE "MATCH THE CONSUMER" TRAP
+
+`revBox` fits the agent's name to the column with `fit(..., R.namePx, 400, 0, idW)` — and
+the op now draws it at 300. Light is narrower than Regular, so the stale predicate shrinks a
+name that would have fitted. It measures at 300 now. The listed card needed no such change:
+its name is a single unfitted line, and its ROLE fit is still weight 500, which is unchanged.
+
+## THE CONTRAST TRADE IS REAL, AND IT GOES BOTH WAYS
+
+Brass is not uniformly better or worse than the white it replaced — it swaps one failure mode
+for another. Measured, the role composited over each glass fill and both photo extremes:
+
+| panel | photo | brass now | white before |
+|---|---|---|---|
+| white glass .22 (**the default**) | bright | **3.00** | **1.00** |
+| white glass .22 | dark | 3.06 | 9.19 |
+| navy glass .65 | bright | **1.57** | 4.73 |
+| navy glass .65 | dark | 5.34 | 16.04 |
+
+The run is 24px tracked caps, so the bar is WCAG **large text at 3:1**.
+
+- **On the default white glass this is an IMPROVEMENT.** White ink on a white panel over a
+  bright listing photo measured **1.00:1** — literally invisible — and brass is a steady 3.0
+  whatever is behind it. That defect was live and nobody had measured it.
+- **On navy glass over a bright photo brass measures 1.57:1 and fails.** A sunny exterior or
+  a white interior behind the panel will lose the designation. That is the one case to watch;
+  the levers are the panel's own fill (Panel colour → navy is where it bites) or darkening the
+  wash behind it.
+
+**This is the THIRD exemption to "no gold in canvas output at all"**, after the ranking card's
+place badge and the award line. All three were explicit requests. Reverting is one token per
+card.
+
+**Verification:** 28 changed lines, and the only two that do not name a `name`/`role`
+identifier are comments. Preview against ops on the listed card: name **300 / rgb(255,255,255)
+/ 34.992px**, role **500 / rgb(176,144,92) / 23.976px** — both surfaces identical. Sheet
+unchanged against the pre-change copy (1 closing style tag, comments 297/297, `sc-if` and
+`sc-for` identical), 1080 CSS rules, 213 render keys. No geometry moved: only weight and fill
+changed, and neither is a term in any panel height.

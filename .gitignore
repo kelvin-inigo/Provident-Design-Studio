@@ -9,3 +9,9 @@ Thumbs.db
 
 # Claude Code / local agent permissions & machine-specific configs
 .claude/*.local.json
+
+# Background-removal service (tools/rembg). The private Python environment and
+# the ~1.1GB of model weights are rebuilt by tools/rembg/install.sh; the source,
+# the server and the scripts are tracked.
+tools/rembg/.venv/
+tools/rembg/**/__pycache__/
