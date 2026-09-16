@@ -2912,6 +2912,53 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 .p-nav2[data-on] i,.p-nav2[data-on] s{color:inherit}
 .p-nav2[data-on] s{background:rgba(128,128,128,.22)}
 .p-br-h{gap:12px}
+
+/* ── The carousel template's chrome: the preset tiles in the left rail and the stats rows.
+   Two columns of tiles rather than the kit's one-row grid, because five do not fit a rail. ── */
+.p-opts-cs{display:grid;grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.p-opts-cs .p-opt{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:0;background:none;border:0;text-align:left;cursor:pointer;color:var(--ps-ink-2);font:400 11.5px/1.3 var(--ps-font)}
+.p-opts-cs .p-opt[data-on]{color:var(--ps-ink)}
+.p-opts-cs .p-mini{position:relative;display:block;height:62px;overflow:hidden}
+.p-opts-cs .p-mini i{position:absolute;display:block;background:var(--ps-skel)}
+.p-opts-cs .p-opt[data-on] .p-mini i{background:var(--ps-accent-i)}
+.gd-statrow .gd-drop-sq{width:84px;max-width:84px}
+.gd-link[data-on]{color:var(--ps-ink);border-color:var(--ps-link)}
+.gd-stepb[data-can="0"]{opacity:.35;pointer-events:none}
+
+/* ══ 27. THE RICH BODY EDITOR ════════════════════════════════════════════════════════
+   One line is one block, and the field draws each block the way the canvas does — the
+   quote behind its brass rule, the callout on a panel, the list against its check. The
+   toolbar retypes whichever rows the selection touches. No inline formatting: bold would
+   be expressible and italic would not (the bundled face is upright-only), and half a set
+   is worse than none. The bullet's tick is a BASE64 mask — a raw SVG data URI in a CSS
+   string has its attribute names camel-cased and paints an empty box. */
+.rt{display:flex;flex-direction:column;gap:8px}
+.rt-bar{display:flex;flex-wrap:wrap;gap:4px}
+.rt-b{height:28px;padding:0 10px;border-radius:var(--ps-r-ctl);border:1px solid transparent;
+  background:var(--ps-fill);color:var(--ps-ink-2);font-size:11.5px;font-weight:500;line-height:1;
+  cursor:pointer;white-space:nowrap;
+  transition:background var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.rt-b:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.rt-b[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.rt-ed{min-height:118px;max-height:340px;overflow-y:auto;padding:12px 14px;border-radius:16px;
+  background:var(--ps-fill);color:var(--ps-ink);font-size:14px;line-height:1.55;font-weight:400;
+  outline:none;word-break:break-word}
+.rt-ed:focus{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rt-ed>div{margin:0 0 6px;min-height:1.55em}
+.rt-ed>div:last-child{margin-bottom:0}
+.rt-ed>div[data-b="q"]{margin:10px 0;padding-left:13px;border-left:3px solid #B0905C;font-weight:300}
+/* the panel is a TOKEN step, never a white wash: rgba(255,255,255,.06) is a step up on a
+   dark ground and 1.01:1 on a light one — the fill-inverts-ink-does-not defect, again */
+.rt-ed>div[data-b="c"]{position:relative;margin:10px 0;padding:10px 12px 10px 26px;border-radius:10px;
+  background:var(--ps-fill-h);border:1px solid var(--ps-line)}
+.rt-ed>div[data-b="c"]::before{content:"";position:absolute;left:11px;top:10px;bottom:10px;width:3px;
+  border-radius:2px;background:#B0905C}
+.rt-ed>div[data-b="b"]{position:relative;padding-left:26px}
+.rt-ed>div[data-b="b"]::before{content:"";position:absolute;left:3px;top:.42em;width:13px;height:13px;
+  background:#B0905C;-webkit-mask:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Ik0zODItMjQwIDE1NC00NjhsNTctNTcgMTcxIDE3MSAzNjctMzY3IDU3IDU3LTQyNCA0MjRaIi8+PC9zdmc+") center/contain no-repeat;mask:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Ik0zODItMjQwIDE1NC00NjhsNTctNTcgMTcxIDE3MSAzNjctMzY3IDU3IDU3LTQyNCA0MjRaIi8+PC9zdmc+") center/contain no-repeat}
+.rt-ed>div[data-b="d"]{position:relative;margin:12px 0;color:transparent;caret-color:var(--ps-ink)}
+.rt-ed>div[data-b="d"]::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;
+  background:var(--ps-line)}
 </style>
 </helmet>
 
@@ -3187,6 +3234,20 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <sc-if value="{{ canAddSlide }}" hint-placeholder-val="{{ false }}">
     <button onClick="{{ addSlide }}" class="p-dash">{{ addSlideLabel }}</button>
   </sc-if>
+  <!-- THE CAROUSEL'S LAYOUT PRESETS, for the active page. A tile is a skeleton of where
+       that layout puts its copy; the active page's layout is the filled one. -->
+  <sc-if value="{{ csOn }}" hint-placeholder-val="{{ false }}">
+    <div class="p-cap" style="margin-top:14px">Layout preset <s>active page</s></div>
+    <div class="p-opts p-opts-cs">
+      <sc-for list="{{ csTiles }}" as="ct" hint-placeholder-count="5">
+        <button onClick="{{ ct.set }}" class="p-opt" data-on="{{ ct.on }}" title="{{ ct.tip }}">
+          <span class="p-mini"><sc-for list="{{ ct.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span>
+          <span>{{ ct.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div class="p-hint" style="margin-top:6px">Any page can take any layout; the copy you have typed is carried across.</div>
+  </sc-if>
 </aside>
 
 <div class="p-stagecol">
@@ -3278,6 +3339,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <!-- THE AWARD CARD, bottom to top: bg-lum (luminosity) / the numeral / the text
                and the mark / fg-lum. Ordered by z-index, not by document order — see the
                engine's award branch for why that is safe here. -->
+          <!-- THE CAROUSEL PAGES — one element per op off `csBox`: the glass card, rules and
+               pills, tinted icon masks (the check and the SWIPE chevron included), every text run. -->
+          <sc-if value="{{ sl.isCs }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ sl.ft.csCardOn }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.ft.csCardStyle }}"></div></sc-if>
+            <sc-for list="{{ sl.ft.csRects }}" as="cr" hint-placeholder-count="0"><div style="{{ cr }}"></div></sc-for>
+            <sc-for list="{{ sl.ft.csIcons }}" as="ci" hint-placeholder-count="0"><div style="{{ ci }}"></div></sc-for>
+            <sc-for list="{{ sl.ft.csTexts }}" as="ct" hint-placeholder-count="0"><div style="{{ ct.style }}">{{ ct.t }}</div></sc-for>
+          </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.ft.awBgStyle }}"></div>
             <div style="{{ sl.ft.awRankStyle }}"></div>
@@ -3426,6 +3495,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <!-- THE AWARD CARD, bottom to top: bg-lum (luminosity) / the numeral / the text
                and the mark / fg-lum. Ordered by z-index, not by document order — see the
                engine's award branch for why that is safe here. -->
+          <!-- THE CAROUSEL PAGES — one element per op off `csBox`: the glass card, rules and
+               pills, tinted icon masks (the check and the SWIPE chevron included), every text run. -->
+          <sc-if value="{{ sl.isCs }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ sl.st.csCardOn }}" hint-placeholder-val="{{ false }}"><div style="{{ sl.st.csCardStyle }}"></div></sc-if>
+            <sc-for list="{{ sl.st.csRects }}" as="cr" hint-placeholder-count="0"><div style="{{ cr }}"></div></sc-for>
+            <sc-for list="{{ sl.st.csIcons }}" as="ci" hint-placeholder-count="0"><div style="{{ ci }}"></div></sc-for>
+            <sc-for list="{{ sl.st.csTexts }}" as="ct" hint-placeholder-count="0"><div style="{{ ct.style }}">{{ ct.t }}</div></sc-for>
+          </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.st.awBgStyle }}"></div>
             <div style="{{ sl.st.awRankStyle }}"></div>
@@ -3568,6 +3645,17 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
                   <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
                 </sc-if>
+                <!-- THE RICH BODY. The host is deliberately EMPTY here: its rows are built by
+                     `rtSync` and React, which renders no children for it, never touches them.
+                     `data-rtv` is the value the render wants; the editor compares it against
+                     what it last read or wrote and rebuilds only when the project moved. -->
+                <sc-if value="{{ a.row.isRich }}" hint-placeholder-val="{{ false }}">
+                  <div class="rt">
+                    <div class="rt-bar"><sc-for list="{{ a.row.rtOps }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="rt-b" data-t="{{ o.t }}" title="{{ o.title }}">{{ o.label }}</button></sc-for></div>
+                    <div class="rt-ed" data-rt="{{ a.row.rtKey }}" data-rtv="{{ a.row.val }}"></div>
+                  </div>
+                  <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
+                </sc-if>
                 <span class="gd-hint">{{ a.row.hint }}</span>
               </sc-if>
 
@@ -3640,6 +3728,38 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               <sc-if value="{{ a.isGlass }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-segs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <s class="gd-hint">{{ a.glassHint }}</s>
+              </sc-if>
+
+              <!-- THE CAROUSEL PAGE'S LAYOUT — the same five presets the left rail offers. -->
+              <sc-if value="{{ a.isPreset }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-segs"><sc-for list="{{ a.presetOpts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <span class="gd-hint">Switching keeps the copy you have typed wherever the new layout has a place for it.</span>
+              </sc-if>
+
+              <!-- THE STATS PAGE'S ROWS: how many, then per item an icon, a number and a label.
+                   The icon comes from a drop or from Material Symbols through the picker. -->
+              <sc-if value="{{ a.isStats }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-bigstep"><button onClick="{{ a.statDec }}" class="gd-stepb" data-can="{{ a.statCanDec }}">‹</button><span>{{ a.statN }} stats</span><button onClick="{{ a.statInc }}" class="gd-stepb" data-can="{{ a.statCanInc }}">›</button></div>
+                <span class="gd-hint">Two to six, in two columns, centred, growing upward from the bottom of the page.</span>
+                <sc-for list="{{ a.statRows }}" as="r" hint-placeholder-count="4">
+                  <div class="gd-qrow gd-statrow">
+                    <div class="gd-drop gd-drop-sq" data-done="{{ r.done }}">
+                      <image-slot id="{{ r.slot }}" fit="contain" shape="rounded" radius="10" placeholder="Icon" style="width:100%;aspect-ratio:1/1"></image-slot>
+                    </div>
+                    <div class="gd-qrow-t">
+                      <input value="{{ r.stat }}" onChange="{{ r.setStat }}" class="gd-big" placeholder="Number — e.g. 260M">
+                      <input value="{{ r.label }}" onChange="{{ r.setLabel }}" class="gd-big" placeholder="Label — e.g. Passengers">
+                      <button onClick="{{ r.togglePick }}" class="gd-link" data-on="{{ r.pickOn }}">{{ r.pickLabel }}</button>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ a.iconOpen }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">{{ a.iconFor }}</b>
+                  <input value="{{ a.iconQuery }}" onChange="{{ a.onIconQuery }}" onKeyDown="{{ a.onIconEnter }}" class="gd-big" placeholder="Search Material Symbols, or type an exact name">
+                  <div class="p-icons"><sc-for list="{{ a.iconResults }}" as="ic" hint-placeholder-count="12"><button onClick="{{ ic.apply }}" title="{{ ic.name }}" class="p-ic"><img data-src="{{ ic.url }}" alt="{{ ic.name }}"></button></sc-for></div>
+                  <sc-if value="{{ a.iconNoHits }}" hint-placeholder-val="{{ false }}"><span class="gd-hint">No match in the bundled list — press Enter to try it as an exact name from fonts.google.com/icons.</span></sc-if>
+                  <button onClick="{{ a.clearIcon }}" class="gd-link">Clear this icon</button>
+                </sc-if>
               </sc-if>
 
               <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
@@ -4388,7 +4508,7 @@ class OrganicStudio extends StudioBase {
   // ranking card with both layers silently missing. Two call sites reading one function is
   // what stops the next bundled asset being forgotten by one of them.
   static bundledReady() {
-    return Promise.all([OrganicStudio.texReady(), OrganicStudio.ordReady(), OrganicStudio.awReady(), OrganicStudio.revReady()]);
+    return Promise.all([OrganicStudio.texReady(), OrganicStudio.ordReady(), OrganicStudio.awReady(), OrganicStudio.revReady(), OrganicStudio.csCheckReady()]);
   }
   static TEXBG = 'data:image/jpeg;base64,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';
   // buildOps is SYNCHRONOUS and has to cover-fit this, so it needs a decoded element with
@@ -4595,6 +4715,10 @@ class OrganicStudio extends StudioBase {
   // Weekly starts with ONE property; further pages are added from the run or the rail.
   static tplSlides(t) {
     const S = OrganicStudio.slide;
+    // THE CAROUSEL OPENS ON ALL FIVE LAYOUTS, one page each, so the set is visible and a page
+    // that is not wanted is deleted rather than discovered. Every page can be switched to
+    // any other layout; `csSeed` carries the seeds the segmented controls need.
+    if (t === 'carousel') return OrganicStudio.CS_KINDS.map(k => S(k, OrganicStudio.csSeed(k)));
     if (t === 'listed') return [S('listed', { status: '', ptype: '', conj: 'in', building: '', price: '', listno: '' })];
     if (t === 'agents') {
       // No `eyebrow`: the rebuilt cover draws none, so seeding one wrote a value into every
@@ -4645,8 +4769,257 @@ class OrganicStudio extends StudioBase {
     review:  { reviewer: 'Amelia Hart', quote: 'From the first viewing to the handover the process was calm, precise and completely transparent. Every question was answered the same day, and the paperwork was ready before I had to ask for it.', agentName: 'Sara Nasser', agentRole: 'Senior Consultant' },
     tacover: { period: 'Monthly', mon: 'August', yr: '2026', team: 'Primary Sales' },
     tagent:  { name: 'Sara Nasser', role: 'Senior Consultant', blurb: 'Closed nine villas on the Palm this quarter and still answers her phone on a Sunday.' },
-    award:   { title: 'Highest Lead Generation', sub: 'For rental properties in the spring in July 2026', rank: '1st' }
+    award:   { title: 'Highest Lead Generation', sub: 'For rental properties in the spring in July 2026', rank: '1st' },
+    // the designer's own airport carousel, page by page
+    cfront:  { headline: 'An Airport Moves People.', sub: 'This One Could Move Dubai\u2019s Property Market.\nAED 128B is shaping Dubai\u2019s next growth zone.', pos: 'Bottom' },
+    cstats:  { eyeOn: 'Show', eyebrow: 'By the Numbers', title: 'You See an Airport.', n: 4, items: [{ stat: '260M', label: 'Passengers' }, { stat: '12M', label: 'Tonnes of cargo' }, { stat: '5', label: 'Runways' }, { stat: '400+', label: 'Aircraft stands' }] },
+    cbul:    { eyeOn: 'Show', eyebrow: 'What Follows', headline: 'Investors\nSee What\nComes\nNext.', bullets: '132,000 potential jobs\nMore businesses\nMore residents\nMore property demand', pos: 'Bottom' },
+    ctext:   { eyeOn: 'Show', eyebrow: 'Rent, Reworked', title: 'How It Works', body: 'A participating bank pays the landlord the full annual rent upfront.\n---\n! The tenant then repays the bank over time, interest free.\n* No recurring property tax\n* Freehold ownership', pos: 'Top', align: 'Left' },
+    ccta:    { small: 'Dubai\u2019s rental market is evolving.', big: 'Stay informed.', button: 'Visit the link in bio for details.' }
   };
+  // ══ THE CAROUSEL — five interchangeable page layouts, one template ═══════════════════
+  // Built from the UI-Kelvz Figma frames (node 32-30 / 32-118 / 32-146 / 32-186 / 32-204) plus
+  // the designer's own PDF of the same set, which carries the type as LIVE TEXT in Google
+  // Sans Flex Light / Regular / Medium — so every size below was read off a font, not a
+  // cap height. Positions come from the Figma frames, which are the later revision.
+  //
+  // A PAGE IS A SLIDE AND ITS PRESET IS ITS KIND. Every slide of this template carries one
+  // of the five kinds and can be switched to any other from the left rail or the guided
+  // form (`csConvert` carries the copy across). The pages are disconnected from each
+  // other: nothing on one page reads another page. `csBox` is the ONE geometry source,
+  // read by `buildOps` and by the preview, the rule every other template here follows.
+  static CS_KINDS = ['cfront', 'cstats', 'cbul', 'ctext', 'ccta'];
+  static CS_NAMES = { cfront: 'Front page', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', ccta: 'Call to action' };
+  static isCs(kind) { return OrganicStudio.CS_KINDS.indexOf(kind) >= 0; }
+  static CS = {
+    // THE GRID. The drawings set their left column at 105 and their right-hand marks
+    // (SWIPE, the bullet column) 94 in from the right edge — both INSIDE the 80 margin, so
+    // the organic rule about content escaping the grid is not in play. Kept as drawn.
+    pad: 105, padR: 94,
+    // Vertical anchors, measured on the 1440 feed whose top margin is 90. A top-anchored
+    // block starts `topIn` down; the story adds its own (pT - 90) so its platform UI stays
+    // clear. A bottom-anchored block ends `botIn` above the floor (1440 - 1221).
+    topIn: 158, topBase: 90, botIn: 219, frontTopGap: 100,
+    // FRONT PAGE — headline Regular 66.5 in a ONE-em box, 31 to the support block, support
+    // lines Regular 32 at a 49.8 pitch (the PDF's own Td advance).
+    // `subMax` is DECLARED AND UNREAD since the supporting lines became a rich body — the
+    // height budget replaced the line cap. Kept rather than deleted, the standing rule.
+    headPx: 66.5, headLead: 1.1, headMax: 3, headSubGap: 31, subPx: 32, subLead: 49.8, subMax: 3,
+    // TITLES — Regular 68 in an 85 box (the stats title, the bullet headline, the text title
+    // and the CTA's big line all read 68 in Figma's typography panel); stacked lines at 70.
+    titlePx: 68, titleBox: 85, h2Pitch: 70,
+    // TEXT PAGE — one 704 column (188..892 on the feed), 29 between title and body, body
+    // Regular 32 at the drawn 40.7 pitch, four lines at most.
+    // `bodyMax` likewise: a callout plus a rule plus a list cannot live inside four lines,
+    // so the cap is the room between the page's own anchors and what overruns is reported.
+    textColW: 704, titleBodyGap: 29, bodyPx: 32, bodyLead: 40.7, bodyMax: 4,
+    // STATS — two columns 402 apart on the canvas axis (the frame's own centres were 323 and
+    // 725, whose midpoint is 16 off centre — drawing slop, centred here), rows 331 apart,
+    // the grid's floor 208.4 above the canvas floor so it grows UPWARD as items are added.
+    // An icon's INK is 80 tall; a Material glyph draws ~0.83 of its box, so the box is 96.
+    // Stat Light 66.5, label Light 28 in tracked caps at .14em.
+    statTitleIn: 101, colPitch: 402, rowPitch: 331, iconBox: 96, iconInk: 80,
+    statTop: 113.6, statPx: 66.5, statBox: 85, labGap: 11, labPx: 28, labBox: 35, labTrack: .14,
+    gridBotIn: 208.4, statMin: 2, statMax: 6, statDefault: 4,
+    // BULLETS — a 472 column against the right inset, 89.5 per row with a .5px white line at
+    // 40% above every row and one closing the list; Material `check_circle` in brass at
+    // 33.77, the copy Regular 32 beside it. The headline is Regular 68 at the left column
+    // and wraps to the room the bullet column leaves.
+    bulColW: 472, bulPitch: 89.5, bulIconIn: 32.3, bulIconTop: 23.3, bulIcon: 33.77,
+    bulTextIn: 89.4, bulTextTop: 18.5, bulPx: 32, bulBotIn: 210, bulMax: 6, bulHeadGap: 30,
+    // SWIPE › — Light 28 at .14em, 26 to a 13.44-wide chevron, the pair ending 94 from the
+    // right edge with its box top 106.6 above the floor. Shown while there is a next page.
+    swipePx: 28, swipeTrack: .14, swipeGap: 26, swipeChevW: 13.44, swipeChevH: 22, swipeBox: 35, swipeBotIn: 106.6,
+    // THE CTA CARD — hugs its copy with 70 of padding all round: a 78x4 brass rule, 50.5 to
+    // the Light 32 lead line, 20 to the Regular 68 headline, 39 to a 108-tall outlined pill
+    // whose label is Regular 32 with 42.5 each side, 139 to the wordmark. For the drawn copy
+    // that sums to 660.4, the drawn card height. Never wider than the canvas less two 105s.
+    ctaPad: 70, ctaRuleW: 78, ctaRuleH: 4, ctaRuleGap: 50.5, ctaSmallPx: 32, ctaSmallBox: 40,
+    ctaSmallBigGap: 20, ctaBigPillGap: 39, ctaPillH: 108, ctaPillPadX: 42.5, ctaPillPx: 32,
+    ctaPillWmGap: 139, ctaWmBox: 34.94, ctaWmBase: 27.5, ctaR: 28, ctaMaxW: 870, ctaMinContent: 501,
+    // THE SCRIM. Navy, transparent at the canvas's vertical centre and solid at the edge the
+    // copy sits on. When the copy climbs past the centre the scrim starts `scrimPad` above
+    // it instead, so the copy always has that much wash behind it — "a padding of 250 that
+    // depends on where the layout starts, and the gradient starts at the centre".
+    scrimPad: 250,
+    // THE OVERLINE EYEBROW — the three INSIDE pages only. The front page already carries the
+    // wordmark above its headline and the CTA card opens on its own brass rule, so neither
+    // takes one. Brass tracked caps at the page's own small-caps size (the stat label's 28
+    // at .14em), sitting at the TOP OF THE BLOCK so the copy under it follows: a blank one
+    // is worth no height at all, which is what keeps every page written before this still.
+    eyePx: 28, eyeTrack: .14, eyeBox: 35, eyeGap: 20,
+    // THE RICH BODY. One line is one block and consecutive lines of one kind are ONE block
+    // on the canvas — three callout lines are one panel, three bullets one list. No drawing
+    // carries these, so every number is derived from the body's own 32 / 40.7: a block
+    // boundary takes a little more air than an interline and a divider more again.
+    rtGap: 24, rtDivGap: 30, rtDivH: 1,
+    // a quote is Light 300 behind a 3px brass rule; a callout is the house glass panel with
+    // the same rule standing inside its padding, which is what the reference draws
+    rtQuoteIn: 34, rtQuoteRule: 3,
+    rtCalloutPad: 28, rtCalloutR: 20, rtCalloutBar: 4, rtCalloutBarGap: 22,
+    // the list's tick is a PLAIN check in brass — the filled `check_circle` is reserved to
+    // the Bullets preset, so the two never read as the same control
+    rtBulIn: 48, rtBulK: 1.08, rtBulBox: 26
+  };
+  static csN(f) { const n = parseInt(f && f.n, 10); const C = OrganicStudio.CS; return Math.max(C.statMin, Math.min(C.statMax, isNaN(n) ? C.statDefault : n)); }
+  static csItems(f) {
+    const n = OrganicStudio.csN(f), items = Array.isArray(f.items) ? f.items : [];
+    while (items.length < n) items.push({ stat: '', label: '' });
+    return items.map(it => (it && typeof it === 'object') ? it : { stat: '', label: '' });
+  }
+  // ── THE RICH BODY IS A STRING WITH LINE MARKERS, not an array of block objects, and the
+  // blast radius is why. Every reader of these fields already takes a string — `csConvert`
+  // carries copy between layouts as one, the guided form writes one, a session file holds
+  // one and an old plain body is already valid (all paragraphs, no migration). The editor
+  // writes the markers itself, so nobody has to type them.
+  // The toolbar, and the whole vocabulary: FIVE BLOCK TYPES and no inline formatting.
+  // Bold would be expressible (the face carries 500) and italic would not — the bundled
+  // Google Sans Flex is upright-only and the one italic in the folder is the Source Serif
+  // the brand retired — so a half-set was worse than none.
+  static RT_OPS = [['p', 'Normal text', 'Plain body copy'],
+                   ['q', 'Quote', 'A quotation behind a brass rule'],
+                   ['d', 'Divider', 'A hairline across the column'],
+                   ['c', 'Callout', 'A glass panel with a brass rule'],
+                   ['b', 'Bulleted list', 'A brass check against each line']];
+  static CS_BT = { '>': 'q', '!': 'c', '*': 'b' };
+  static CS_BP = { q: '> ', c: '! ', b: '* ' };
+  static csBlocks(text) {
+    return String(text == null ? '' : text).split(/\r?\n/).map(l => {
+      if (/^---\s*$/.test(l)) return { t: 'd', s: '' };
+      const m = /^([>!*])[ \t]?/.exec(l);
+      return m ? { t: OrganicStudio.CS_BT[m[1]], s: l.slice(m[0].length) } : { t: 'p', s: l };
+    });
+  }
+  static csLine(t, s) { return t === 'd' ? '---' : (OrganicStudio.CS_BP[t] || '') + s; }
+  // the copy with every marker taken off — what a NON-rich field is given when a page is
+  // converted, so a quote does not arrive in the Bullets list as a literal "> "
+  static csPlain(text) {
+    return OrganicStudio.csBlocks(text).filter(b => b.t !== 'd').map(b => b.s).join('\n');
+  }
+  static csRich(kind) { return kind === 'cfront' || kind === 'ctext'; }
+  static csEyeKind(kind) { return kind === 'cstats' || kind === 'cbul' || kind === 'ctext'; }
+
+  // What a fresh page of each kind carries. `pos` / `align` ARE seeded, the documented
+  // exception for a segmented control (it is always displaying an answer); the count too.
+  // `eyeOn` is seeded for the same reason and opens on Show, so the overline is THERE on
+  // every inside page and is hidden rather than discovered — but its text is not seeded and
+  // is not required, so a blank one simply draws nothing and blocks no export.
+  static csSeed(kind) {
+    if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom' };
+    if (kind === 'cstats') return { eyeOn: 'Show', eyebrow: '', title: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
+    if (kind === 'cbul') return { eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
+    if (kind === 'ctext') return { eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
+    if (kind === 'ccta') return { small: '', big: '', button: '' };
+    return {};
+  }
+  static csNorm(sl) {
+    sl.f = Object.assign(OrganicStudio.csSeed(sl.kind), sl.f || {});
+    if (sl.kind === 'cstats') { sl.f.n = OrganicStudio.csN(sl.f); sl.f.items = OrganicStudio.csItems(sl.f); }
+    return sl;
+  }
+  // Switch a page's layout and CARRY ITS COPY: whatever was typed stays on the slide, and
+  // the new layout's primary and secondary lines are filled from the old layout's own when
+  // they are still empty — so Front page -> Text keeps the headline as the title.
+  static csConvert(sl, kind) {
+    const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', ccta: 'big' };
+    const sec = { cfront: 'sub', cbul: 'bullets', ctext: 'body', ccta: 'small' };
+    const o = sl.f || {}, f = Object.assign(OrganicStudio.csSeed(kind), o);
+    const p = prim[sl.kind], q = sec[sl.kind];
+    if (p && prim[kind] && prim[kind] !== p && !String(f[prim[kind]] || '').trim()) f[prim[kind]] = o[p] || '';
+    // the SECONDARY carries the markers only into a field that can draw them; the Bullets
+    // list and the CTA's lead line are plain, so they are handed the copy with them taken off
+    if (q && sec[kind] && sec[kind] !== q && !String(f[sec[kind]] || '').trim())
+      f[sec[kind]] = OrganicStudio.csRich(kind) ? (o[q] || '') : OrganicStudio.csPlain(o[q] || '');
+    const out = Object.assign({}, sl, { kind, f });
+    return OrganicStudio.csNorm(out);
+  }
+  // Material Symbols Rounded `check_circle` (fill 1, weight 300), bundled for the same reason
+  // every other template asset is: the studio runs off the disk. Drawn through the `image`
+  // op with `tintFlat`, so the tick shows the photograph through it exactly as the glyph does.
+  // The SWIPE chevron, 13.44 x 22 of ink inside a 15.44 x 24 box so its 2px stroke is not
+  // clipped — drawn through the same `image` + `tintFlat` path as the check, which is what
+  // lets the preview mirror it as a mask instead of an SVG whose `points` the browser would
+  // try to parse before DC has interpolated them (the documented `<img src>` trap).
+  static CS_CHEV = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNS40NCAyNCIgd2lkdGg9IjE1LjQ0IiBoZWlnaHQ9IjI0Ij48cG9seWxpbmUgcG9pbnRzPSIxLDEgMTQuNDQsMTIgMSwyMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvc3ZnPg==';
+  static CS_CHECK = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Im00MjMuMjMtMzk0LjE1LTkyLjkyLTkyLjkzcS04LjMxLTguMy0yMC44OS04LjUtMTIuNTctLjE5LTIxLjI3IDguNS04LjY5IDguNy04LjY5IDIxLjA4IDAgMTIuMzggOC42OSAyMS4wOGwxMDkuNzcgMTA5Ljc3cTEwLjg1IDEwLjg0IDI1LjMxIDEwLjg0IDE0LjQ2IDAgMjUuMzEtMTAuODRsMjIyLjU0LTIyMi41NHE4LjMtOC4zMSA4LjUtMjAuODkuMTktMTIuNTctOC41LTIxLjI3LTguNy04LjY5LTIxLjA4LTguNjktMTIuMzggMC0yMS4wOCA4LjY5bC0yMDUuNjkgMjA1LjdaTTQ4MC4wNy0xMDBxLTc4Ljg0IDAtMTQ4LjIxLTI5LjkydC0xMjAuNjgtODEuMjFxLTUxLjMxLTUxLjI5LTgxLjI1LTEyMC42M1ExMDAtNDAxLjEgMTAwLTQ3OS45M3EwLTc4Ljg0IDI5LjkyLTE0OC4yMXQ4MS4yMS0xMjAuNjhxNTEuMjktNTEuMzEgMTIwLjYzLTgxLjI1UTQwMS4xLTg2MCA0NzkuOTMtODYwcTc4Ljg0IDAgMTQ4LjIxIDI5LjkydDEyMC42OCA4MS4yMXE1MS4zMSA1MS4yOSA4MS4yNSAxMjAuNjNRODYwLTU1OC45IDg2MC00ODAuMDdxMCA3OC44NC0yOS45MiAxNDguMjF0LTgxLjIxIDEyMC42OHEtNTEuMjkgNTEuMzEtMTIwLjYzIDgxLjI1UTU1OC45LTEwMCA0ODAuMDctMTAwWiIvPjwvc3ZnPg==';
+  // The rich list's marker: a PLAIN check, brass, no disc. The filled `check_circle` above
+  // is reserved to the Bullets preset by request, so a list inside a body and a whole page
+  // of bullets never read as the same control. Same path the app's own section tick draws.
+  static CS_TICK = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Ik0zODItMjQwIDE1NC00NjhsNTctNTcgMTcxIDE3MSAzNjctMzY3IDU3IDU3LTQyNCA0MjRaIi8+PC9zdmc+';
+  static CS_GLYPHS = { chev: 'CS_CHEV', check: 'CS_CHECK', tick: 'CS_TICK' };
+  static csGlyphAsset(name) {
+    OrganicStudio._csg = OrganicStudio._csg || {};
+    if (!OrganicStudio._csg[name]) { const u = OrganicStudio[OrganicStudio.CS_GLYPHS[name] || 'CS_CHECK']; const im = new Image(); OrganicStudio._csg[name] = { img: im, u }; im.src = u; }
+    return OrganicStudio._csg[name];
+  }
+  static csCheckAsset() { return OrganicStudio.csGlyphAsset('check'); }
+  static csCheckReady() {
+    return Promise.all(['check', 'chev', 'tick'].map(name => {
+      const t = OrganicStudio.csGlyphAsset(name);
+      if (t.img.complete) return Promise.resolve(t);
+      return new Promise(res => { const done = () => res(t); t.img.addEventListener('load', done, { once: true }); t.img.addEventListener('error', done, { once: true }); });
+    }));
+  }
+  // ── Material Symbols for the stats icons — the index and the fetch, ported from Campaign.
+  // Google's icon-name catalogue sends no CORS header, so search runs against this bundled
+  // list and the free-text field covers everything else on fonts.google.com/icons.
+  static ICON_WGHT = 200;
+  static ICON_OPSZ = 24;
+  static iconName(q) { return String(q == null ? '' : q).trim().toLowerCase().replace(/[\s-]+/g, '_').replace(/[^a-z0-9_]/g, ''); }
+  static iconUrl(name) {
+    return 'https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/' +
+      encodeURIComponent(OrganicStudio.iconName(name)) +
+      '/wght' + OrganicStudio.ICON_WGHT + '/' + OrganicStudio.ICON_OPSZ + 'px.svg';
+  }
+  static ICONS = [
+    'ac_unit', 'accessible', 'account_balance', 'account_balance_wallet', 'add_task', 'air',
+    'alternate_email', 'analytics', 'anchor', 'apartment', 'approval', 'architecture', 'article',
+    'aspect_ratio', 'assignment', 'assured_workload', 'attach_money', 'attractions', 'auto_awesome',
+    'bakery_dining', 'balance', 'balcony', 'bar_chart', 'bathroom', 'bathtub', 'beach_access', 'bed',
+    'bedroom_parent', 'bolt', 'bookmark', 'brunch_dining', 'build', 'bungalow', 'business',
+    'business_center', 'cabin', 'calendar_month', 'call', 'campaign', 'cancel', 'card_giftcard',
+    'card_travel', 'celebration', 'chair', 'chat', 'check_circle', 'checklist', 'child_care',
+    'cleaning_services', 'coffee', 'collections', 'construction', 'contact_support', 'corporate_fare',
+    'cottage', 'countertops', 'credit_card', 'crop_free', 'currency_exchange', 'dark_mode',
+    'date_range', 'deck', 'description', 'design_services', 'desktop_windows', 'devices', 'diamond',
+    'dining', 'directions', 'directions_boat', 'directions_car', 'diversity_3', 'domain',
+    'domain_verification', 'done_all', 'door_front', 'eco', 'elderly', 'electrical_services',
+    'elevator', 'emergency', 'emoji_events', 'energy_savings_leaf', 'engineering', 'equalizer', 'error',
+    'escalator', 'ev_station', 'event', 'explore', 'fact_check', 'favorite', 'filter_alt',
+    'find_in_page', 'fireplace', 'fitness_center', 'flag', 'flight', 'flight_takeoff', 'folder_open',
+    'forest', 'forum', 'foundation', 'garage', 'gavel', 'gite', 'golf_course', 'gpp_good', 'grade',
+    'grass', 'group', 'groups', 'handshake', 'handyman', 'headset_mic', 'health_and_safety',
+    'heat_pump', 'help_outline', 'history', 'holiday_village', 'home', 'home_work', 'hot_tub', 'house',
+    'house_siding', 'how_to_reg', 'image', 'info', 'insights', 'inventory_2', 'kayaking', 'key',
+    'king_bed', 'kitchen', 'landscape', 'language', 'laptop', 'leaderboard', 'light_mode', 'lightbulb',
+    'living', 'local_atm', 'local_bar', 'local_cafe', 'local_hospital', 'local_library', 'local_offer',
+    'local_parking', 'local_pharmacy', 'local_shipping', 'location_city', 'lock', 'lock_open',
+    'loyalty', 'luggage', 'mail', 'manage_search', 'map', 'maps_home_work', 'medical_services',
+    'meeting_room', 'military_tech', 'monetization_on', 'museum', 'my_location', 'nature_people',
+    'navigation', 'near_me', 'notifications', 'open_in_full', 'other_houses', 'panorama', 'park',
+    'payment', 'payments', 'pending_actions', 'people', 'percent', 'person', 'pets', 'phone_in_talk',
+    'photo_camera', 'pie_chart', 'pin_drop', 'place', 'plumbing', 'policy', 'pool', 'price_change',
+    'privacy_tip', 'public', 'push_pin', 'query_stats', 'real_estate_agent', 'receipt_long',
+    'recommend', 'redeem', 'request_quote', 'restaurant', 'roofing', 'route', 'router', 'rule_folder',
+    'sailing', 'savings', 'schedule', 'school', 'search', 'security', 'self_improvement', 'sell',
+    'send', 'sensor_door', 'shield', 'shopping_bag', 'shopping_cart', 'show_chart', 'shower',
+    'single_bed', 'smart_toy', 'smartphone', 'sms', 'solar_power', 'sort', 'spa', 'sports_soccer',
+    'sports_tennis', 'square_foot', 'stairs', 'star', 'star_half', 'store', 'storefront', 'straighten',
+    'stroller', 'subway', 'support_agent', 'surfing', 'table_restaurant', 'task_alt', 'theaters',
+    'thermostat', 'thumb_up', 'timer', 'tips_and_updates', 'today', 'toll', 'topic', 'train', 'tram',
+    'translate', 'travel_explore', 'trending_flat', 'trending_up', 'tune', 'tv', 'update', 'verified',
+    'verified_user', 'view_in_ar', 'villa', 'visibility', 'vpn_key', 'warehouse', 'warning',
+    'water_drop', 'wb_sunny', 'weekend', 'wheelchair_pickup', 'wifi', 'window', 'wine_bar', 'work',
+    'workspace_premium', 'yard', 'zoom_out_map'
+  ];
+  static iconSearch(q, cap) {
+    const t = OrganicStudio.iconName(q);
+    const all = OrganicStudio.ICONS;
+    if (!t) return all.slice(0, cap);
+    const exact = [], pre = [], mid = [];
+    all.forEach(n => { if (n === t) exact.push(n); else if (n.indexOf(t) === 0) pre.push(n); else if (n.indexOf(t) > 0) mid.push(n); });
+    return exact.concat(pre, mid).slice(0, cap);
+  }
   static TPL_SCALE = .22;    // 1080 -> 238px, ample for a card and cheap to render
   // ══ THE PAPER KINDS' GROUND FOLLOWS THE THEME — IN THE PREVIEW, AND ONLY THERE ══════
   // `ART.paper` is white, so a faithful render of the Top agents carousel is a WHITE tile,
@@ -4793,9 +5166,9 @@ class OrganicStudio extends StudioBase {
   // `gdAddPage`'s guard and the rail's `addSlide` each carried their own literal 6 or 10,
   // so raising this constant alone would have left `canAddSlide` — the only reader that
   // read it — offering a button that `addSlide` silently refused. All four read it now.
-  static TPLGROW = { weekly: 15, review: 10 };
+  static TPLGROW = { weekly: 15, review: 10, carousel: 10 };
   // The kind a template's repeated page is, which is what maps a cap onto a slide kind.
-  static GROWKIND = { weekly: 'prop', review: 'review' };
+  static GROWKIND = { weekly: 'prop', review: 'review', carousel: 'ctext' };   // a new carousel page opens as Text
   static growMax(tpl) { return OrganicStudio.TPLGROW[tpl] || 0; }
   static tplIsCarousel(t) {
     return (OrganicStudio.tplSlides(t) || []).length > 1 || !!OrganicStudio.TPLGROW[t];
@@ -4828,12 +5201,14 @@ class OrganicStudio extends StudioBase {
       const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
       await Promise.all(['300 41px "Google Sans Flex"', '400 140px "Google Sans Flex"',
         '400 98px "Google Sans Flex"', '300 27px "Google Sans Flex"', '400 55px "Google Sans Flex"',
-        '500 24px "Google Sans Flex"', '300 46px "Google Sans Flex"', '300 34px "Google Sans Flex"'].map(safe));
+        '500 24px "Google Sans Flex"', '300 46px "Google Sans Flex"', '300 34px "Google Sans Flex"',
+        '400 68px "Google Sans Flex"', '400 66.5px "Google Sans Flex"', '300 66.5px "Google Sans Flex"',
+        '300 28px "Google Sans Flex"', '400 32px "Google Sans Flex"', '300 32px "Google Sans Flex"'].map(safe));
       try { await document.fonts.ready; } catch (e) {}
       await OrganicStudio.bundledReady();
       const qr = await OrganicStudio.qrDemoReady();
       const out = {};
-      ['listed', 'weekly', 'agents', 'review', 'award'].forEach(tpl => {
+      ['listed', 'weekly', 'agents', 'review', 'award', 'carousel'].forEach(tpl => {
         const st = this.tplDemoState(tpl);
         // Every QR key `buildOps` can read — project, cover and per-slide — so no card is
         // left with a blank quiet zone. There is no photo, portrait or cut-out to supply:
@@ -4991,6 +5366,7 @@ class OrganicStudio extends StudioBase {
       // the older build carries `fg: true` and keeps it; only a slide with no answer at
       // all starts off.
       if (sl.kind === 'listed' && sl.fg == null) sl.fg = false;
+      if (OrganicStudio.isCs(sl.kind)) OrganicStudio.csNorm(sl);
       if (sl.kind === 'review' && sl.f.agentName == null) {
         sl.f.agentName = (p.agent && p.agent.name) || '';
         sl.f.agentRole = (p.agent && p.agent.role) || '';
@@ -5126,6 +5502,11 @@ class OrganicStudio extends StudioBase {
         }).join('|');
         if (this._scSig !== undefined && this._scSig !== sig) this._filledStamp = String(Date.now());
         this._scSig = sig;
+        // the stats icons' own bytes, for the preview's masks — a re-render when one lands
+        const urls = {};
+        Object.keys(sc).forEach(k => { const v = norm(sc[k]); if (v && v.u && /^smp-ic-/.test(k)) urls[k] = v.u; });
+        const usig = Object.keys(urls).sort().map(k => k + ':' + urls[k].length).join('|');
+        if (this._slotUrlSig !== usig) { this._slotUrls = urls; this._slotUrlSig = usig; this.forceUpdate(); }
         const n = (this.state.slides || []).length;
         this._assetView.bgDims = this._assetView.bgDims || {};
         // one-time migration: legacy index-keyed slots → slide-id keys (index
@@ -5377,6 +5758,7 @@ class OrganicStudio extends StudioBase {
         } else if (strip && strip._shift) { strip._shift = 0; strip.style.transform = 'none'; }
       } catch (e) {}
       try { StudioBase.promoteImgs(); StudioBase.autoGrow(); } catch (e) {}
+      try { this.rtSync(); } catch (e) {}
       try { window.providentCutout && window.providentCutout.probe(); } catch (e) {}
       this._rafId = requestAnimationFrame(tick);
     };
@@ -6435,6 +6817,513 @@ class OrganicStudio extends StudioBase {
     const k = Math.max(w / iw, h / ih), dw = iw * k, dh = ih * k;
     ops.push({ op: 'image', img, url: u, x: x + (w - dw) / 2, y: y + (h - dh) / 2, w: dw, h: dh, clip: { x, y, w, h, r: r || 0 } });
   }
+  // ══ ONE GEOMETRY SOURCE for the five carousel pages ═════════════════════════════════
+  // Read by `buildOps` and by the preview, so the two cannot place a run differently. Every
+  // text carries its own absolute baseline; every box its own rect. Baselines come from the
+  // face's own ascent (`fontAsc`), so an Arabic face lands its lines where CSS would too.
+  // ══ THE RICH BODY EDITOR ═══════════════════════════════════════════════════════════
+  // A block editor, one line to a block, drawn the way the canvas draws it — which is what
+  // "show both on the canvas and body the rendered final look" asked for. It is an
+  // UNCONTROLLED contenteditable: the vdom gives the host no children, so React never
+  // reconciles the rows we put there and the caret survives every state write. `data-rtv`
+  // (what the render wants) against `_rtv` (what this editor last read or wrote) is the
+  // only sync, and they differ exactly when the project moved underneath it — a new page,
+  // an undo, a session load. That is the one time the rows are rebuilt.
+  static rtRow(b) {
+    const d = document.createElement('div');
+    d.setAttribute('data-b', b.t);
+    if (b.t !== 'd' && b.s) d.textContent = b.s;
+    if (!d.firstChild) d.appendChild(document.createElement('br'));   // or the row collapses
+    return d;
+  }
+  static rtFill(ed, text) {
+    ed.innerHTML = '';
+    OrganicStudio.csBlocks(text).forEach(b => ed.appendChild(OrganicStudio.rtRow(b)));
+    if (!ed.firstChild) ed.appendChild(OrganicStudio.rtRow({ t: 'p', s: '' }));
+  }
+  static rtRead(ed) {
+    const out = [];
+    for (let n = ed.firstChild; n; n = n.nextSibling) {
+      if (n.nodeType !== 1) { const t = (n.nodeValue || '').trim(); if (t) out.push(OrganicStudio.csLine('p', t)); continue; }
+      const t = (n.getAttribute && n.getAttribute('data-b')) || 'p';
+      out.push(OrganicStudio.csLine(t, t === 'd' ? '' : String(n.textContent || '').replace(/[\r\n]+/g, ' ')));
+    }
+    return out.join('\n');
+  }
+  static rtRowOf(ed, node) {
+    let n = node;
+    while (n && n.parentNode !== ed) n = n.parentNode;
+    return (n && n.nodeType === 1 && n.hasAttribute && n.hasAttribute('data-b')) ? n : null;
+  }
+  // A browser left something at the TOP level that is not one of our rows. Wrap that node
+  // and nothing else — rewriting a well-formed row's own contents would take the caret with
+  // it, and a nested span serialises through `textContent` perfectly well as it is.
+  static rtNorm(ed) {
+    let n = ed.firstChild;
+    while (n) {
+      const next = n.nextSibling;
+      if (!(n.nodeType === 1 && n.tagName === 'DIV' && n.hasAttribute('data-b')))
+        ed.replaceChild(OrganicStudio.rtRow({ t: 'p', s: (n.nodeType === 3 ? n.nodeValue : n.textContent) || '' }), n);
+      n = next;
+    }
+    if (!ed.firstChild) ed.appendChild(OrganicStudio.rtRow({ t: 'p', s: '' }));
+  }
+  rtSync() {
+    const eds = document.querySelectorAll('.rt-ed');
+    for (let i = 0; i < eds.length; i++) {
+      const ed = eds[i];
+      if (!ed._rtB) { ed._rtB = 1; this.rtBind(ed); }
+      const want = ed.getAttribute('data-rtv') || '';
+      if (ed._rtv === want && ed.firstChild) continue;
+      ed._rtv = want;
+      OrganicStudio.rtFill(ed, want);
+      this.rtMark(ed);
+    }
+  }
+  rtBind(ed) {
+    // set HERE rather than in the markup, so nothing depends on how the renderer treats a
+    // compound attribute name — the trap that once turned a viewBox into sc-camel-view-box
+    ed.setAttribute('contenteditable', 'true');
+    ed.setAttribute('spellcheck', 'true');
+    const mark = () => this.rtMark(ed);
+    ed.addEventListener('input', () => { OrganicStudio.rtNorm(ed); this.rtWrite(ed); mark(); });
+    ed.addEventListener('keydown', e => this.rtKeyDown(ed, e));
+    ed.addEventListener('keyup', mark);
+    ed.addEventListener('mouseup', mark);
+    ed.addEventListener('focus', mark);
+    ed.addEventListener('paste', e => {
+      // plain text only, split on its own breaks — a pasted paragraph becomes a paragraph
+      // per line rather than a document's worth of markup this editor cannot draw
+      e.preventDefault();
+      const cb = e.clipboardData || window.clipboardData;
+      const parts = String((cb && cb.getData('text/plain')) || '').replace(/\r\n?/g, '\n').split('\n');
+      try { document.execCommand('insertText', false, parts[0]); } catch (er) {}
+      for (let i = 1; i < parts.length; i++) {
+        this.rtSplit(ed, 'p');
+        try { document.execCommand('insertText', false, parts[i]); } catch (er) {}
+      }
+      OrganicStudio.rtNorm(ed); this.rtWrite(ed); mark();
+    });
+  }
+  rtWrite(ed) {
+    const m = /^(\d+):(\w+)$/.exec(ed.getAttribute('data-rt') || '');
+    if (!m) return;
+    const si = +m[1], k = m[2], val = OrganicStudio.rtRead(ed);
+    // BOTH sides are set before the render lands, so the sync cannot rebuild under the caret
+    ed._rtv = val;
+    ed.setAttribute('data-rtv', val);
+    this.upd(x => { const sl = x.slides[si]; if (sl && sl.f) sl.f[k] = val; return x; });
+  }
+  // The selection is STASHED rather than read live, because pressing a toolbar button moves
+  // focus out of the editor first and a live read would find nothing to retype.
+  rtMark(ed) {
+    const kids = Array.prototype.slice.call(ed.children);
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount && ed.contains(sel.anchorNode)) {
+      let i = kids.indexOf(OrganicStudio.rtRowOf(ed, sel.anchorNode));
+      let j = kids.indexOf(OrganicStudio.rtRowOf(ed, sel.focusNode));
+      if (i < 0) i = 0;
+      if (j < 0) j = i;
+      ed._rtSel = i <= j ? [i, j] : [j, i];
+    }
+    const bar = ed.parentNode && ed.parentNode.querySelector('.rt-bar');
+    if (!bar) return;
+    const s = ed._rtSel, seen = {};
+    let n = 0;
+    if (s) for (let k = s[0]; k <= s[1] && k < kids.length; k++) {
+      const t = kids[k].getAttribute('data-b') || 'p';
+      if (!seen[t]) { seen[t] = 1; n++; }
+    }
+    // set imperatively and NOT interpolated, so React has no prop here to overwrite it with
+    Array.prototype.forEach.call(bar.children, b => {
+      const t = b.getAttribute('data-t');
+      if (t && n === 1 && seen[t]) b.setAttribute('data-on', '1'); else b.removeAttribute('data-on');
+    });
+  }
+  // The toolbar retypes every row the selection TOUCHES, which is what "it should apply only
+  // when it's on its own line break" means: a block IS a line, so half a line cannot be one.
+  // Pressing the type a row already carries clears it back to normal text.
+  rtApply(key, t) {
+    const ed = document.querySelector('.rt-ed[data-rt="' + key + '"]');
+    if (!ed || !ed.children.length) return;
+    const kids = Array.prototype.slice.call(ed.children);
+    const s = ed._rtSel || [kids.length - 1, kids.length - 1];
+    const i = Math.max(0, Math.min(kids.length - 1, s[0]));
+    const j = Math.max(i, Math.min(kids.length - 1, s[1]));
+    for (let k = i; k <= j; k++) {
+      const d = kids[k], cur = d.getAttribute('data-b') || 'p', nt = (cur === t) ? 'p' : t;
+      d.setAttribute('data-b', nt);
+      if (nt === 'd' || cur === 'd') { d.textContent = ''; d.appendChild(document.createElement('br')); }
+    }
+    ed.focus();
+    this.rtWrite(ed);
+    this.rtMark(ed);
+  }
+  rtKeyDown(ed, e) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      const sel = window.getSelection();
+      const row = sel && OrganicStudio.rtRowOf(ed, sel.anchorNode);
+      const cur = row ? (row.getAttribute('data-b') || 'p') : 'p';
+      // Enter on an EMPTY list, quote or callout row leaves the block rather than adding
+      // another one to it — the way every block editor behaves, and the way out of a list
+      if (row && cur !== 'p' && cur !== 'd' && !String(row.textContent || '').trim()) row.setAttribute('data-b', 'p');
+      else this.rtSplit(ed, cur === 'd' ? 'p' : cur);
+      OrganicStudio.rtNorm(ed); this.rtWrite(ed); this.rtMark(ed);
+      return;
+    }
+    if (e.key === 'Backspace') {
+      const sel = window.getSelection();
+      if (!sel || !sel.isCollapsed || sel.anchorOffset !== 0) return;
+      const row = OrganicStudio.rtRowOf(ed, sel.anchorNode);
+      if (!row) return;
+      const t = row.getAttribute('data-b') || 'p';
+      if (t === 'p') return;
+      let n = sel.anchorNode;
+      while (n && n.parentNode !== row) n = n.parentNode;
+      if (n && n !== row.firstChild) return;
+      // at the head of a block, backspace clears its TYPE before it deletes any copy
+      e.preventDefault();
+      row.setAttribute('data-b', 'p');
+      if (t === 'd') { row.textContent = ''; row.appendChild(document.createElement('br')); }
+      this.rtWrite(ed); this.rtMark(ed);
+    }
+  }
+  rtSplit(ed, type) {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return null;
+    const r0 = sel.getRangeAt(0);
+    if (!r0.collapsed) r0.deleteContents();
+    // read the caret off the RANGE, not off the selection — deleteContents moves the latter
+    const anchor = r0.startContainer, off = r0.startOffset;
+    const row = OrganicStudio.rtRowOf(ed, anchor) || ed.lastChild;
+    if (!row) return null;
+    const tail = document.createRange();
+    tail.selectNodeContents(row);
+    try { tail.setStart(anchor, off); } catch (er) {}
+    const txt = tail.toString();
+    tail.deleteContents();
+    if (!row.firstChild) row.appendChild(document.createElement('br'));
+    const d = OrganicStudio.rtRow({ t: type, s: txt });
+    ed.insertBefore(d, row.nextSibling);
+    const r = document.createRange();
+    if (d.firstChild && d.firstChild.nodeType === 3) r.setStart(d.firstChild, 0); else r.setStart(d, 0);
+    r.collapse(true);
+    sel.removeAllRanges(); sel.addRange(r);
+    return d;
+  }
+
+  csBox(state, si, tk) {
+    const C = OrganicStudio.CS, A = OrganicStudio.ART, FA = StudioBase.fontAsc();
+    const slides = state.slides || [], sl = slides[si], f = sl.f || {}, kind = sl.kind;
+    const W = tk.W, H = tk.H, pT = tk.pad[0];
+    const asc = px => px * FA.a, box = px => px * (FA.a + FA.d);
+    const meas = (t, px, w, ls) => this.meas(t, px, w, false, ls || 0);
+    // manual breaks first, then each segment wraps to the column; capped
+    const lines = (text, px, w, maxW, max) => {
+      const out = [];
+      String(text || '').split(/\r?\n/).forEach(seg => { if (!seg.trim()) return; this.wrapPlain(seg, px, w, 0, maxW).forEach(l => out.push(l)); });
+      return (max && out.length > max) ? out.slice(0, max) : out;
+    };
+    const topY = C.topIn + (pT - C.topBase);
+    const last = si === slides.length - 1;
+    const B = { kind, W, H, texts: [], rects: [], icons: [], card: null, scrim: null, anchor: null, near: null, far: null, over: 0 };
+    const T = (t, x, y, px, w, fill, ls) => B.texts.push({ t, x, y, px, w, fill, ls: ls || 0 });
+    // a centred run is placed by its INK — `meas` reserves a trailing tracking unit
+    const TC = (t, y, px, w, fill, ls, cx) => { const ink = meas(t, px, w, ls) - (ls || 0); T(t, (cx == null ? W / 2 : cx) - ink / 2, y, px, w, fill, ls); };
+    const far = y => { B.far = Math.max(B.far == null ? 0 : B.far, y); };
+    // ── THE OVERLINE EYEBROW ───────────────────────────────────────────────────────────
+    // Brass tracked caps at the TOP OF THE BLOCK, so the copy under it follows rather than
+    // the block growing into the page's own furniture. A blank one is worth no height at
+    // all, which is what leaves every page written before this exactly where it was.
+    const eyeTxt = () => (OrganicStudio.csEyeKind(kind) && f.eyeOn !== 'Hide') ? String(f.eyebrow || '').trim().toUpperCase() : '';
+    const eyeH = eyeTxt() ? C.eyeBox + C.eyeGap : 0;
+    const eyePut = (x, y, cx) => {
+      const t = eyeTxt(); if (!t) return;
+      const ls = C.eyeTrack * C.eyePx, b = y + asc(C.eyePx);
+      if (cx == null) T(t, x, b, C.eyePx, 500, A.brass, ls); else TC(t, b, C.eyePx, 500, A.brass, ls, cx);
+    };
+    // ── THE RICH BODY ──────────────────────────────────────────────────────────────────
+    // Laid out at y = 0 and translated once the block's top is known, which is what lets
+    // the caller anchor a block whose height it cannot know until it has been measured.
+    // Paragraphs follow the page's own alignment; a quote, a callout, a list and a rule are
+    // STRUCTURAL and always read from the left, whatever the page is set to.
+    const glass = OrganicStudio.glassOf(state);
+    const put = (R, top) => {
+      R.texts.forEach(t => B.texts.push(Object.assign({}, t, { y: t.y + top })));
+      R.rects.forEach(r => B.rects.push(Object.assign({}, r, { y: r.y + top })));
+      R.icons.forEach(ic => B.icons.push(Object.assign({}, ic, { y: ic.y + top })));
+    };
+    const rtLay = (raw, colX, colW, budget, center, PX, LEAD) => {
+      const R = { texts: [], rects: [], icons: [], h: 0, over: 0 };
+      const rT = (t, x, y, px, w, fill) => R.texts.push({ t, x, y, px, w, fill, ls: 0 });
+      const rTC = (t, y, px, w, fill, cx) => rT(t, cx - meas(t, px, w, 0) / 2, y, px, w, fill);
+      const wrapTo = (t, w) => this.wrapPlain(t, PX, 400, 0, w);
+      // one line is one block; consecutive lines of one kind are ONE block on the canvas
+      const gs = [];
+      OrganicStudio.csBlocks(raw).forEach(b => {
+        if (b.t === 'd') { gs.push({ t: 'd', ls: [], n: 1 }); return; }
+        if (!String(b.s).trim()) return;
+        const g = gs[gs.length - 1];
+        if (g && g.t === b.t) { g.ls.push(b.s); g.n++; } else gs.push({ t: b.t, ls: [b.s], n: 1 });
+      });
+      const rest = i => gs.slice(i).reduce((a, q) => a + q.n, 0);
+      let y = 0, placed = false;
+      for (let gi = 0; gi < gs.length; gi++) {
+        const g = gs[gi];
+        const gap = !placed ? 0 : ((g.t === 'd' || gs[gi - 1].t === 'd') ? C.rtDivGap : C.rtGap);
+        if (g.t === 'd') {
+          if (y + gap + C.rtDivH > budget) { R.over += rest(gi); break; }
+          y += gap;
+          R.rects.push({ x: colX, y, w: colW, h: C.rtDivH, fill: A.ruleQ });
+          y += C.rtDivH; placed = true; continue;
+        }
+        if (g.t === 'q' || g.t === 'c') {
+          const inW = g.t === 'q' ? colW - C.rtQuoteIn
+                                 : colW - 2 * C.rtCalloutPad - C.rtCalloutBar - C.rtCalloutBarGap;
+          const ln = []; g.ls.forEach(s => wrapTo(s, inW).forEach(l => ln.push(l)));
+          if (!ln.length) continue;
+          const copyH = box(PX) + (ln.length - 1) * LEAD;
+          const h = g.t === 'q' ? copyH : copyH + 2 * C.rtCalloutPad;
+          if (y + gap + h > budget) { R.over += rest(gi); break; }
+          y += gap;
+          if (g.t === 'q') {
+            R.rects.push({ x: colX, y, w: C.rtQuoteRule, h: copyH, r: C.rtQuoteRule / 2, fill: A.brass });
+            ln.forEach((t, i) => rT(t, colX + C.rtQuoteIn, y + asc(PX) + i * LEAD, PX, 300, A.ink));
+          } else {
+            // the house glass — the same fill choice, blur and hairline every panel in this
+            // studio carries — with the reference's brass rule standing inside its padding.
+            // Flush at the panel's edge it would poke out of the corner radius.
+            R.rects.push({ x: colX, y, w: colW, h, r: C.rtCalloutR, fill: glass, stroke: A.hairEdge, sw: 1, blur: OrganicStudio.TA.panelBlur });
+            R.rects.push({ x: colX + C.rtCalloutPad, y: y + C.rtCalloutPad, w: C.rtCalloutBar, h: copyH, r: C.rtCalloutBar / 2, fill: A.brass });
+            const tx = colX + C.rtCalloutPad + C.rtCalloutBar + C.rtCalloutBarGap;
+            ln.forEach((t, i) => rT(t, tx, y + C.rtCalloutPad + asc(PX) + i * LEAD, PX, 400, A.ink));
+          }
+          y += h; placed = true; continue;
+        }
+        // A paragraph run and a list lay out per SOURCE LINE, so a page that overruns its
+        // column truncates where the user typed a break and the count it reports is exact.
+        const LD = g.t === 'b' ? LEAD * C.rtBulK : LEAD, inW = g.t === 'b' ? colW - C.rtBulIn : colW;
+        const per = g.ls.map(s => { const L = wrapTo(s, inW); return L.length ? L : ['']; });
+        let drawn = 0, ok = 0;
+        for (let k = 0; k < per.length; k++) {
+          if (y + gap + box(PX) + (drawn + per[k].length - 1) * LD > budget) break;
+          drawn += per[k].length; ok++;
+        }
+        if (!ok) { R.over += rest(gi); break; }
+        y += gap;
+        let li = 0;
+        for (let k = 0; k < ok; k++) per[k].forEach((t, i) => {
+          const ly = y + li * LD, by = ly + asc(PX);
+          if (g.t === 'b') {
+            if (!i) R.icons.push({ glyph: 'tick', x: colX, y: ly + (asc(PX) - C.rtBulBox) / 2, w: C.rtBulBox, h: C.rtBulBox, fill: A.brass });
+            rT(t, colX + C.rtBulIn, by, PX, 400, A.ink);
+          } else if (center) rTC(t, by, PX, 400, A.ink, colX + colW / 2);
+          else rT(t, colX, by, PX, 400, A.ink);
+          li++;
+        });
+        y += box(PX) + (drawn - 1) * LD; placed = true;
+        if (ok < per.length) { R.over += (g.n - ok) + rest(gi + 1); break; }
+      }
+      R.h = y;
+      return R;
+    };
+    // SWIPE › — on every page that has a next one, never on the last
+    if (!last) {
+      const px = C.swipePx, ls = C.swipeTrack * px, top = H - C.swipeBotIn, base = top + asc(px);
+      const chR = W - C.padR, chL = chR - C.swipeChevW, cy = top + C.swipeBox / 2;
+      const ink = meas('SWIPE', px, 300, ls) - ls;
+      T('SWIPE', chL - C.swipeGap - ink, base, px, 300, A.warm, ls);
+      B.icons.push({ glyph: 'chev', x: chL - 1, y: cy - C.swipeChevH / 2 - 1, w: C.swipeChevW + 2, h: C.swipeChevH + 2, fill: A.ink });
+      far(top + C.swipeBox);
+    }
+    if (kind === 'cfront') {
+      // the wordmark, exactly where drawLogo puts it, at the drawing's own column
+      T('provident.', C.pad, pT + tk.logo * .8, tk.logo, 300, A.ink, tk.logo * .04);
+      const fcW = W - C.pad - C.padR;
+      const hl = lines(f.headline, C.headPx, 400, fcW, C.headMax);
+      const headH = hl.length ? C.headPx + (hl.length - 1) * C.headPx * C.headLead : 0;
+      // The supporting lines are a RICH BODY. Its cap is the room between the page's own
+      // top anchor and its floor rather than a line count, so a quote or a callout can
+      // stand here and anything past the column is reported instead of drawn off the page.
+      const fBand = Math.max(0, (H - C.botIn) - (topY + C.frontTopGap));
+      const R = rtLay(f.sub, C.pad, fcW, Math.max(0, fBand - headH - C.headSubGap), false, C.subPx, C.subLead);
+      const gap = (hl.length && R.h) ? C.headSubGap : 0;
+      const h = headH + gap + R.h;
+      const topAligned = f.pos === 'Top';
+      const top = topAligned ? topY + C.frontTopGap : H - C.botIn - h;
+      // the headline's box is ONE em tall (Figma's line-height 1.0): its baseline is the
+      // half-leading of a box shorter than the content area, plus the ascent
+      const hb = (C.headPx - box(C.headPx)) / 2 + asc(C.headPx);
+      hl.forEach((t, i) => T(t, C.pad, top + hb + i * C.headPx * C.headLead, C.headPx, 400, A.ink));
+      put(R, top + headH + gap);
+      B.over = R.over;
+      B.near = top; far(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'cstats') {
+      const n = OrganicStudio.csN(f), items = OrganicStudio.csItems(f), rows = Math.ceil(n / 2);
+      const title = String(f.title || '').trim();
+      const tTop = C.statTitleIn + (pT - C.topBase);
+      eyePut(null, tTop, W / 2);
+      if (title) TC(title, tTop + eyeH + asc(C.titlePx), C.titlePx, 400, A.ink, 0);
+      const rowH = C.statTop + C.statBox + C.labGap + C.labBox;
+      const gridBot = H - C.gridBotIn, gridTop = gridBot - rowH - (rows - 1) * C.rowPitch;
+      for (let i = 0; i < n; i++) {
+        const r = Math.floor(i / 2), c = i % 2, alone = (r === rows - 1) && (n % 2 === 1);
+        const cx = alone ? W / 2 : W / 2 + (c ? 1 : -1) * C.colPitch / 2;
+        const iy = gridTop + r * C.rowPitch;
+        B.icons.push({ i, x: cx - C.iconBox / 2, y: iy - (C.iconBox - C.iconInk) / 2, w: C.iconBox, h: C.iconBox, slot: 'smp-ic-' + sl.id + '-' + i, fill: A.ink });
+        const it = items[i] || {};
+        if (String(it.stat || '').trim()) TC(String(it.stat).trim(), iy + C.statTop + asc(C.statPx), C.statPx, 300, A.ink, 0, cx);
+        if (String(it.label || '').trim()) TC(String(it.label).trim().toUpperCase(), iy + C.statTop + C.statBox + C.labGap + asc(C.labPx), C.labPx, 300, A.ink, C.labTrack * C.labPx, cx);
+      }
+      B.near = gridTop; far(gridBot); B.anchor = 'bottom';
+    } else if (kind === 'cbul') {
+      const bl = String(f.bullets || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).slice(0, C.bulMax);
+      const n = bl.length, colX = W - C.padR - C.bulColW, blockH = n * C.bulPitch;
+      const topAligned = f.pos === 'Top';
+      // the overline takes the top of the block; the list keeps the drawing's own bottom
+      // anchor, so a page carrying no overline does not move a pixel
+      const cTop = topAligned ? topY + eyeH : H - C.bulBotIn - blockH;
+      const top = cTop - eyeH;
+      eyePut(C.pad, top, null);
+      if (n) for (let k = 0; k <= n; k++) B.rects.push({ x: colX, y: cTop + k * C.bulPitch, w: C.bulColW, h: 1, fill: A.hair });
+      bl.forEach((t, i) => {
+        const ry = cTop + i * C.bulPitch;
+        B.icons.push({ glyph: 'check', x: colX + C.bulIconIn, y: ry + C.bulIconTop, w: C.bulIcon, h: C.bulIcon, fill: A.brass });
+        const line = this.wrapPlain(t, C.bulPx, 400, 0, C.bulColW - C.bulTextIn, 1)[0] || '';
+        T(line, colX + C.bulTextIn, ry + C.bulTextTop + asc(C.bulPx), C.bulPx, 400, A.warm);
+      });
+      const hl = lines(f.headline, C.titlePx, 400, colX - C.bulHeadGap - C.pad, 6);
+      hl.forEach((t, i) => T(t, C.pad, cTop + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
+      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
+      B.near = top; far(cTop + Math.max(blockH, headH)); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'ctext') {
+      const center = f.align !== 'Left';
+      const colX = center ? (W - C.textColW) / 2 : C.pad, colW = C.textColW, cx = colX + colW / 2;
+      const tl = lines(f.title, C.titlePx, 400, colW, 3);
+      const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
+      // the band between the page's own two anchors is what the body may spend, less what
+      // the overline and the title have already taken — the height budget that replaced the
+      // four-line cap, since a callout plus a rule plus a list cannot live inside four lines
+      const band = Math.max(0, (H - C.botIn) - topY);
+      const R = rtLay(f.body, colX, colW, Math.max(0, band - eyeH - titleH - (titleH ? C.titleBodyGap : 0)), center, C.bodyPx, C.bodyLead);
+      const gap = (titleH && R.h) ? C.titleBodyGap : 0, h = eyeH + titleH + gap + R.h;
+      const bottomAligned = f.pos === 'Bottom';
+      const top = bottomAligned ? H - C.botIn - h : topY;
+      eyePut(colX, top, center ? cx : null);
+      tl.forEach((t, i) => { const y = top + eyeH + asc(C.titlePx) + i * C.h2Pitch; center ? TC(t, y, C.titlePx, 400, A.ink, 0, cx) : T(t, colX, y, C.titlePx, 400, A.ink); });
+      put(R, top + eyeH + titleH + gap);
+      B.over = R.over;
+      B.near = top; far(top + h); B.anchor = bottomAligned ? 'bottom' : 'top';
+    } else if (kind === 'ccta') {
+      const maxContent = C.ctaMaxW - 2 * C.ctaPad;
+      const small = String(f.small || '').trim(), label = String(f.button || '').trim();
+      const bl = lines(f.big, C.titlePx, 400, maxContent, 3);
+      const wSmall = small ? meas(small, C.ctaSmallPx, 300) : 0;
+      const wBig = bl.reduce((a, t) => Math.max(a, meas(t, C.titlePx, 400)), 0);
+      const pillW = label ? meas(label, C.ctaPillPx, 400) + 2 * C.ctaPillPadX : 0;
+      const logoLS = tk.logo * .04, wLogo = meas('provident.', tk.logo, 300, logoLS) - logoLS;
+      // the card HUGS: as wide as its widest line plus the padding, never wider than the canvas
+      // less two columns, and never narrower than the drawn pill
+      const cw = Math.min(C.ctaMaxW, Math.max(wSmall, wBig, pillW, wLogo, C.ctaMinContent) + 2 * C.ctaPad);
+      const bigH = bl.length ? C.titleBox + (bl.length - 1) * C.h2Pitch : 0;
+      const ch = C.ctaPad + C.ctaRuleH + C.ctaRuleGap + (small ? C.ctaSmallBox : 0) + ((small && bl.length) ? C.ctaSmallBigGap : 0)
+        + bigH + (label ? C.ctaBigPillGap + C.ctaPillH : 0) + C.ctaPillWmGap + C.ctaWmBox + C.ctaPad;
+      const cx0 = (W - cw) / 2, cy0 = (H - ch) / 2;
+      B.card = { x: cx0, y: cy0, w: cw, h: ch, r: C.ctaR };
+      let y = cy0 + C.ctaPad;
+      B.rects.push({ x: W / 2 - C.ctaRuleW / 2, y, w: C.ctaRuleW, h: C.ctaRuleH, fill: A.brass });
+      y += C.ctaRuleH + C.ctaRuleGap;
+      if (small) { TC(small, y + asc(C.ctaSmallPx), C.ctaSmallPx, 300, A.warm, 0); y += C.ctaSmallBox; }
+      if (small && bl.length) y += C.ctaSmallBigGap;
+      bl.forEach((t, i) => TC(t, y + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0));
+      y += bigH;
+      if (label) {
+        y += C.ctaBigPillGap;
+        B.rects.push({ x: W / 2 - pillW / 2, y, w: pillW, h: C.ctaPillH, r: C.ctaPillH / 2, stroke: A.ink, sw: 1 });
+        TC(label, y + C.ctaPillH / 2 + C.ctaPillPx * .36, C.ctaPillPx, 400, A.warm, 0);
+        y += C.ctaPillH;
+      }
+      y += C.ctaPillWmGap;
+      TC('provident.', y + C.ctaWmBase, tk.logo, 300, A.warm, logoLS);
+      B.near = cy0; far(cy0 + ch); B.anchor = null;   // no scrim: the card is its own surface
+    }
+    // THE SCRIM: transparent at the vertical centre, solid at the anchored edge — unless the
+    // copy climbs past the centre, in which case the ramp starts `scrimPad` before the copy.
+    if (B.anchor === 'bottom') B.scrim = { y0: Math.min(H / 2, (B.near == null ? H : B.near) - C.scrimPad) };
+    else if (B.anchor === 'top') B.scrim = { y0: Math.max(H / 2, (B.far == null ? 0 : B.far) + C.scrimPad) };
+    return B;
+  }
+  // The stats icons take Material Symbols through the slot's own `_ingest`, never by writing
+  // the sidecar directly — image-slot keeps an in-memory copy of the whole store and a later
+  // save would clobber anything written behind its back. Same route as Campaign's picker.
+  iconSlotEl(si, i) {
+    const sl = (this.state.slides || [])[si];
+    return sl ? document.querySelector('image-slot[id="smp-ic-' + sl.id + '-' + i + '"]') : null;
+  }
+  async applyIcon(si, i, rawName) {
+    const name = OrganicStudio.iconName(rawName), what = 'Stat ' + (i + 1);
+    if (!name) { this.setState({ exportStatus: 'Type an icon name first.' }); return; }
+    const slot = this.iconSlotEl(si, i);
+    if (!slot || !slot._ingest) { this.setState({ exportStatus: what + ' is not on screen — its row has to be visible to take an icon.' }); return; }
+    this.setState({ exportStatus: 'Fetching "' + name + '"…' });
+    try {
+      const r = await fetch(OrganicStudio.iconUrl(name));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const txt = await r.text();
+      if (!/<svg[\s>]/i.test(txt)) throw new Error('not an SVG');
+      await slot._ingest(new File([txt], name + '.svg', { type: 'image/svg+xml' }));
+      this.markDirty();
+      this.setState({ exportStatus: '"' + name + '" set on ' + what.toLowerCase() + ' · weight ' + OrganicStudio.ICON_WGHT + ', grade 0, ' + OrganicStudio.ICON_OPSZ + 'px' });
+    } catch (e) {
+      this.setState({ exportStatus: 'Could not load "' + name + '" (' + (e && e.message || e) + '). Check the name on fonts.google.com/icons — it must match exactly.' });
+    }
+  }
+  clearIcon(si, i) {
+    const slot = this.iconSlotEl(si, i);
+    if (slot && slot.clearSlot) { slot.clearSlot(); this.markDirty(); this.setState({ exportStatus: 'Cleared the icon on stat ' + (i + 1) + '.' }); }
+    else this.setState({ exportStatus: 'Stat ' + (i + 1) + ' is not on screen.' });
+  }
+  // Switch a page's layout. Any slide of the carousel can be any of the five.
+  setPreset(si, kind) {
+    if (!OrganicStudio.isCs(kind)) return;
+    this.upd(x => { const sl = x.slides[si]; if (!sl || sl.kind === kind) return x; x.slides[si] = OrganicStudio.csConvert(sl, kind); return x; });
+  }
+  csPresetOpts(si) {
+    const sl = (this.state.slides || [])[si];
+    return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], on: (sl && sl.kind === k) ? '1' : undefined, set: () => this.setPreset(si, k) }));
+  }
+  // The stats page's own rows: a count stepper, then per item an icon drop with the Material
+  // picker, the number and the label. Picker state is throwaway UI and lives on the INSTANCE.
+  csStatsView(si, filled) {
+    const s = this.state, sl = s.slides[si], f = sl.f || {}, C = OrganicStudio.CS;
+    const n = OrganicStudio.csN(f), items = OrganicStudio.csItems(f), pick = this._csIcon || {};
+    const setN = d => this.upd(x => { const t = x.slides[si]; t.f.n = Math.max(C.statMin, Math.min(C.statMax, OrganicStudio.csN(t.f) + d)); t.f.items = OrganicStudio.csItems(t.f); return x; });
+    const open = pick.si === si;
+    const pi = Math.min(n - 1, pick.i || 0);
+    return {
+      statN: n, statDec: () => setN(-1), statInc: () => setN(1),
+      statCanDec: n > C.statMin ? '1' : '0', statCanInc: n < C.statMax ? '1' : '0',
+      statRows: items.slice(0, n).map((it, i) => {
+        const slot = 'smp-ic-' + sl.id + '-' + i;
+        const write = (k, val) => this.upd(x => { const t = x.slides[si]; t.f.items = OrganicStudio.csItems(t.f); t.f.items[i][k] = val; return x; });
+        const isOpen = open && pi === i;
+        return { key: 'st' + i, no: String(i + 1), slot, done: filled[slot] ? '1' : undefined,
+          stat: String(it.stat || ''), setStat: e => write('stat', e.target.value),
+          label: String(it.label || ''), setLabel: e => write('label', e.target.value),
+          pickOn: isOpen ? '1' : undefined, pickLabel: isOpen ? 'Close icon search' : 'Find an icon',
+          togglePick: () => { this._csIcon = isOpen ? null : { si, i }; this.forceUpdate(); } };
+      }),
+      iconOpen: open ? '1' : undefined,
+      iconFor: 'Material Symbol for stat ' + (pi + 1),
+      iconQuery: this._iconQuery || '',
+      onIconQuery: e => { this._iconQuery = e.target.value; this.forceUpdate(); },
+      onIconEnter: e => { if (e.key === 'Enter') { e.preventDefault(); this.applyIcon(si, pi, this._iconQuery || ''); } },
+      iconResults: OrganicStudio.iconSearch(this._iconQuery || '', 40).map(name => ({ name, url: OrganicStudio.iconUrl(name), apply: () => this.applyIcon(si, pi, name) })),
+      iconNoHits: !!((this._iconQuery || '').trim() && !OrganicStudio.iconSearch(this._iconQuery, 1).length),
+      clearIcon: () => this.clearIcon(si, pi)
+    };
+  }
   buildOps(state, si, sizeKey, assets) {
     // Publish the active face BEFORE anything measures or draws — meas(), both
     // renderers and the preview all read the same global, so they cannot disagree.
@@ -6926,6 +7815,37 @@ class OrganicStudio extends StudioBase {
       }
       // ── LAYER 5.
       awCover(OrganicStudio.awAsset('fg'));
+    } else if (OrganicStudio.isCs(kind)) {
+      // ══ THE CAROUSEL PAGES — everything off `csBox`, in paint order: scrim, glass card,
+      // rules and pills, icons, text, the SWIPE chevron. The photo is already down.
+      const B = this.csBox(state, si, tk), D = OrganicStudio.deepA;
+      if (B.scrim) {
+        const t = Math.max(0, Math.min(1, B.scrim.y0 / H));
+        ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H,
+          stops: B.anchor === 'bottom' ? [[0, D(0)], [t, D(0)], [1, D(1)]] : [[0, D(1)], [t, D(0)], [1, D(0)]] });
+      }
+      if (B.card) {
+        // the house glass: the same blur, fill choice and hairline edge every panel carries
+        ops.push({ op: 'blur', x: B.card.x, y: B.card.y, w: B.card.w, h: B.card.h, r: B.card.r, amount: OrganicStudio.TA.panelBlur });
+        ops.push({ op: 'rrect', x: B.card.x, y: B.card.y, w: B.card.w, h: B.card.h, r: B.card.r, fill: OrganicStudio.glassOf(state), stroke: A.hairEdge, sw: 1 });
+      }
+      B.rects.forEach(r => {
+        // a rect can be GLASS now — the rich body's callout panel. `backdrop-filter` has no
+        // canvas equivalent, so the blur op goes first with the same box, exactly as the
+        // CTA card's does; the rects are emitted in order, so its own brass rule follows it.
+        if (r.blur) ops.push({ op: 'blur', x: r.x, y: r.y, w: r.w, h: r.h, r: r.r || 0, amount: r.blur });
+        if (r.r) ops.push({ op: 'rrect', x: r.x, y: r.y, w: r.w, h: r.h, r: r.r, fill: r.fill || null, stroke: r.stroke || null, sw: r.sw || 1 });
+        else ops.push({ op: 'rect', x: r.x, y: r.y, w: r.w, h: r.h, fill: r.fill });
+      });
+      B.icons.forEach(ic => {
+        const a = ic.glyph ? OrganicStudio.csGlyphAsset(ic.glyph) : assets['ic' + si + '_' + ic.i];
+        if (!a || !a.img || !(a.img.naturalWidth > 0)) return;
+        // contain-fit by the file's own aspect, so a non-square upload is never stretched
+        const iw = a.img.naturalWidth, ih = a.img.naturalHeight, k = Math.min(ic.w / iw, ic.h / ih);
+        const dw = iw * k, dh = ih * k;
+        ops.push({ op: 'image', img: a.img, url: a.u, x: ic.x + (ic.w - dw) / 2, y: ic.y + (ic.h - dh) / 2, w: dw, h: dh, tintFlat: ic.fill });
+      });
+      B.texts.forEach(t => ops.push({ op: 'text', x: t.x, y: t.y, px: t.px, weight: t.w, fill: t.fill, text: t.t, ls: t.ls }));
     } else if (kind === 'cover' || kind === 'cta') {
       // ══ THE WEEKLY COVER AND CLOSING SLIDE, from Cover.svg and CTA.svg ═══════════════
       //   1 the photograph, full bleed   2 the wash   3 wordmark, CENTRED at the top
@@ -7458,6 +8378,16 @@ class OrganicStudio extends StudioBase {
           rvv.head = StudioBase.headBox(rvv.img, rvv.u);
         }
       }
+      // the stats page's icons, one slot per item, contain-fitted by the op from the file's own size
+      if (sl.kind === 'cstats') {
+        const nI = OrganicStudio.csN(sl.f || {});
+        for (let i = 0; i < nI; i++) {
+          const key = 'ic' + si + '_' + i, sid = 'smp-ic-' + sl.id + '-' + i;
+          const ic = norm(sidecar[sid]);
+          if (ic && ic.u) { const img = await loadImg(ic.u); if (img) assets[key] = { img, u: ic.u }; }
+          await domFill(key, sid, null);
+        }
+      }
       await domFill('bg' + si, 'smp-bg-' + bgSid, sizeKey || 'ft');
       await domFill('fg' + si, 'smp-fg-' + sl.id, sizeKey || 'ft');
     }
@@ -7480,10 +8410,11 @@ class OrganicStudio extends StudioBase {
     await domFill('agent2', 'smp-agent-2', null);
     return assets;
   }
-  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award' };
+  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', ccta: 'CTA' };
   sLabel(si) {
     const sl = this.state.slides[si];
     if (!sl) return 'Slide ' + (si + 1);
+    if (this.state.tpl === 'carousel') return 'Page ' + String(si + 1).padStart(2, '0');
     if (sl.kind === 'listed') return sl.f.status || 'Listing';
     if (sl.kind === 'prop') {
       const props = this.state.slides.filter(s => s.kind === 'prop');
@@ -7503,6 +8434,11 @@ class OrganicStudio extends StudioBase {
       const f0 = (s.slides[0] && s.slides[0].f) || {};
       return custom || `${OrganicStudio.awRank(f0)}_${f0.title || 'Award'}`;
     }
+    if (s.tpl === 'carousel') {
+      const fr = s.slides.find(z => z.kind === 'cfront') || s.slides[0], h = String((fr && fr.f && (fr.f.headline || fr.f.title || fr.f.big)) || '').trim();
+      // the first four words of the front page's headline, with any trailing punctuation off
+      return custom || `${h ? h.split(/\s+/).slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : 'Carousel'}_Carousel`;
+    }
     if (s.tpl === 'listed') return custom || `Just ${(s.slides[0] && /sold/i.test(s.slides[0].f.status || '')) ? 'Sold' : 'Listed'}_${s.agent.name || 'Agent'}`;
     if (s.tpl === 'review') { const a0 = s.slides[0] && s.slides[0].f.agentName; return custom || `${a0 || s.agent.name || 'Agent'}_Google Reviews`; }
     if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(c0) || 'Period'}_Top Agents_${c0.team || 'Team'}`; }
@@ -7510,6 +8446,7 @@ class OrganicStudio extends StudioBase {
   }
   fileNameFor(si) {
     const s = this.state, base = this.baseName();
+    if (s.tpl === 'carousel') return `${base}_page${si + 1}`;   // the requested form, no space
     if (s.tpl === 'weekly' || s.tpl === 'agents') return `${base}_${String(si + 1).padStart(2, '0')}_${this.sLabel(si)}`;
     if (s.tpl === 'review') {
       const revs = s.slides.filter(x => x.kind === 'review');
@@ -7563,7 +8500,12 @@ class OrganicStudio extends StudioBase {
     tagent:  ['Name', 'Role', 'Blurb'],
     // No 'Headline' tier: the award's headline is template-written, so that heading would
     // name a group with no fields under it — the fix `tacover` already carries.
-    award:   ['Award', 'Occasion', 'Place']
+    award:   ['Award', 'Occasion', 'Place'],
+    cfront:  ['Headline', 'Supporting lines', 'Layout'],
+    cstats:  ['Title'],
+    cbul:    ['Headline', 'Bullet points', 'Layout'],
+    ctext:   ['Title', 'Body', 'Layout'],
+    ccta:    ['Copy', 'Button']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
   static FIELDS = {
@@ -7615,7 +8557,29 @@ class OrganicStudio extends StudioBase {
             ['rank', 3, 'Place', 'seg:1st|2nd|3rd|4th|5th', '']],
     tagent:[['name', 1, 'Agent name', 'req', ''],
             ['role', 2, 'Role and area', 'req', 'e.g. Consultant · Dubai Marina'],
-            ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral']]
+            ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral']],
+    // THE CAROUSEL'S FIVE PAGE LAYOUTS. `pos` / `align` are seeded, the segmented-control
+    // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
+    cfront:[['headline', 1, 'Headline', 'req area', 'One or two lines \u2014 Enter for a new one'],
+            ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Where the copy sits; the wash follows it']],
+    cstats:[['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
+            ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
+            ['title', 1, 'Title', '', 'Optional \u2014 centred at the top of the page']],
+    cbul:  [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the headline'],
+            ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
+            ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
+            ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
+            ['pos', 3, 'Layout', 'seg:Bottom|Top', '']],
+    ctext: [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
+            ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
+            ['title', 1, 'Title', 'req', ''],
+            ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['pos', 3, 'Layout', 'seg:Top|Bottom', ''],
+            ['align', 3, 'Text', 'seg:Center|Left', '']],
+    ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
+            ['big', 1, 'Headline', 'req', 'e.g. Stay informed.'],
+            ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.']]
   };
   static tierName(kind, t) {
     const names = OrganicStudio.TIERNAMES[kind] || OrganicStudio.TIERS;
@@ -7625,6 +8589,10 @@ class OrganicStudio extends StudioBase {
   // ones drop out — the run then asks for a quarter only when the period IS Quarterly,
   // which is what the rail has always done.
   static fieldShown(kind, k, f) {
+    // The overline's text exists only while it is shown — the toggle IS the hide, and a
+    // field for something the page does not draw is exactly the dead control the audit
+    // went looking for. Its copy survives being hidden; nothing is thrown away.
+    if (k === 'eyebrow') return (f && f.eyeOn) !== 'Hide';
     if (kind === 'listed') {
       // Sale/Rent is a fact about a card that says LISTED — a sold property is neither —
       // and the rent period only exists once Rent is picked. Same derivation the card's
@@ -7662,7 +8630,12 @@ class OrganicStudio extends StudioBase {
     review: [['__stars', 'sm', 30], ['quote', 'md', 94], ['reviewer', 'xs', 52], ['agentName', 'sm', 46]],
     tacover:[['__head1', 'xl', 52], ['__head2', 'xl', 61], ['__period', 'xs', 30]],
     tagent: [['__rank', 'xl', 20], ['name', 'lg', 66], ['role', 'sm', 72], ['blurb', 'xs', 94]],
-    award:  [['__head', 'xl', 74], ['title', 'lg', 56], ['sub', 'xs', 82]]
+    award:  [['__head', 'xl', 74], ['title', 'lg', 56], ['sub', 'xs', 82]],
+    cfront: [['headline', 'xl', 80], ['sub', 'sm', 70]],
+    cstats: [['title', 'lg', 60], ['__stats', 'md', 80]],
+    cbul:   [['headline', 'xl', 40], ['bullets', 'sm', 50]],
+    ctext:  [['title', 'lg', 50], ['body', 'sm', 70]],
+    ccta:   [['big', 'lg', 60], ['button', 'pill', 50]]
   };
   // What each page is for, in the user's terms. Shown as the page title and as the
   // helper line under the preview.
@@ -7674,7 +8647,12 @@ class OrganicStudio extends StudioBase {
     review: ['Client review', 'The words in the client\u2019s own voice, and who said them.'],
     tacover:['Cover', 'The period and the team this ranking covers.'],
     tagent: ['Agent', 'Who they are, what they cover, and a short blurb.'],
-    award:  ['Award', 'What was won, what it was for, and which place.']
+    award:  ['Award', 'What was won, what it was for, and which place.'],
+    cfront: ['Front page', 'The opening page \u2014 wordmark, headline and supporting lines over the photo.'],
+    cstats: ['Stats', 'A title and two to six icon-and-number facts.'],
+    cbul:   ['Bullets', 'A headline beside a column of check points.'],
+    ctext:  ['Text', 'A title and a short paragraph.'],
+    ccta:   ['Call to action', 'The closing card \u2014 a lead line, the ask, a button and the wordmark.']
   };
   // Layers the template owns. There are deliberately no inputs for these — the grid,
   // the wash and the wordmark are brand rules, not choices — so the preview marks
@@ -7697,7 +8675,12 @@ class OrganicStudio extends StudioBase {
     tacover: ['The \u201CTop Agents of the \u2026\u201D headline', 'The word \u201CTeam\u201D after the team name'],
     // The whole headline, and it is the only thing this template writes for you.
     award:   ['The \u201CCongratulations\u201D headline'],
-    prop: [], review: [], tagent: []
+    prop: [], review: [], tagent: [],
+    cfront: ['The wordmark', 'SWIPE \u203A \u2014 shown while there is a next page'],
+    cstats: ['SWIPE \u203A \u2014 shown while there is a next page'],
+    cbul:   ['SWIPE \u203A \u2014 shown while there is a next page'],
+    ctext:  ['SWIPE \u203A \u2014 shown while there is a next page'],
+    ccta:   ['The wordmark on the card']
   };
   static lockedFor(kind) {
     return OrganicStudio.LOCKED.concat(OrganicStudio.FIXEDTEXT[kind] || []);
@@ -7727,10 +8710,10 @@ class OrganicStudio extends StudioBase {
   // that list. Two functions deriving the pair separately is how they would come to
   // disagree.
   static GDSEC = {
-    pages: 'Pages in this post', words: 'Words', agent: 'Agent', pictures: 'Pictures',
+    pages: 'Pages in this post', layout: 'Layout', words: 'Words', agent: 'Agent', pictures: 'Pictures',
     listing: 'QR code & listing number', look: 'Look', save: 'Save'
   };
-  static GDSECORDER = ['pages', 'words', 'agent', 'pictures', 'listing', 'look', 'save'];
+  static GDSECORDER = ['pages', 'layout', 'words', 'agent', 'pictures', 'listing', 'look', 'save'];
   gdPlan() {
     const s = this.state, slides = s.slides || [], raw = [];
     const pageKind = this.gdPageKind();
@@ -7739,6 +8722,8 @@ class OrganicStudio extends StudioBase {
       // PAGES — how many, asked once and on the FIRST page. Adding a page appends a step
       // after the current one, so nothing the user has already walked renumbers.
       if (pageKind && si === 0) raw.push({ si, sec: 'pages', kind: 'pages' });
+      // LAYOUT — a carousel page picks its preset first, because it decides what is asked next
+      if (OrganicStudio.isCs(sl.kind)) raw.push({ si, sec: 'layout', kind: 'preset' });
       // WORDS — every line of copy, in the hierarchy order the rail uses. A review card's
       // agent name and role go to its Agent section beside the headshot; a ranking card is
       // ABOUT its agent, so there the name and role ARE the words.
@@ -7747,6 +8732,8 @@ class OrganicStudio extends StudioBase {
                     && !(sl.kind === 'review' && OrganicStudio.isAgentField(sl.kind, f.k)))
           .forEach(f => raw.push({ si, sec: 'words', kind: 'field', k: f.k, group: OrganicStudio.tierName(sl.kind, t) }));
       });
+      // STATS — the count and the rows, one custom ask after the title
+      if (sl.kind === 'cstats') raw.push({ si, sec: 'words', kind: 'stats', group: 'Stats' });
       // AGENT — who is on the card. Project-level on a listed card (`s.agent`), so it is
       // asked on that card's one page; per-slide on a review.
       if (s.tpl === 'listed' && sl.kind === 'listed') {
@@ -7908,7 +8895,9 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'dest') return 'Where should the files be saved?';
     if (ask.kind === 'export') return 'Ready to export';
     if (ask.kind === 'pages') return this.gdPageKind() === 'review'
-      ? 'How many reviews in this post?' : 'How many properties in this post?';
+      ? 'How many reviews in this post?' : (this.state.tpl === 'carousel' ? 'How many pages in this carousel?' : 'How many properties in this post?');
+    if (ask.kind === 'preset') return 'Which layout is this page?';
+    if (ask.kind === 'stats') return 'The stats';
     if (ask.kind === 'proj') return ask.label || '';
     if (ask.kind === 'portrait') return ask.label || 'Agent photo';
     if (ask.kind === 'px') return 'Parallax layer';
@@ -7944,6 +8933,10 @@ class OrganicStudio extends StudioBase {
     v.isStory = ask.kind === 'story';
     v.isGlass = ask.kind === 'glass';
     v.isName = ask.kind === 'name';
+    v.isPreset = ask.kind === 'preset';
+    v.isStats = ask.kind === 'stats';
+    if (v.isPreset && sl) v.presetOpts = this.csPresetOpts(ask.si);
+    if (v.isStats && sl) Object.assign(v, this.csStatsView(ask.si, filled));
     if (v.isPx && sl) {
       v.pxOn = sl.fg ? '1' : undefined;
       v.pxOpts = ['Off', 'On'].map((lab, k) => ({ label: lab, on: (!!sl.fg === (k === 1)) ? '1' : undefined,
@@ -8027,7 +9020,7 @@ class OrganicStudio extends StudioBase {
       v.setProj = e => this.gdProjSet(ask.pk, e.target.value);
     }
     if (v.isPages) {
-      v.pageWord = this.gdPageKind() === 'review' ? 'review' : 'property';
+      v.pageWord = this.gdPageKind() === 'review' ? 'review' : (s.tpl === 'carousel' ? 'page' : 'property');
       v.pageRows = this.gdPageRows().map(r => ({
         name: this.sLabel(r.si), n: r.n,
         canDel: this.gdPageRows().length > 1 && r.n > 1 ? '1' : undefined,
@@ -8142,6 +9135,8 @@ class OrganicStudio extends StudioBase {
   gdPageRows() {
     const kind = this.gdPageKind();
     if (!kind) return [];
+    // on a carousel EVERY slide is a page, whatever its layout
+    if (this.state.tpl === 'carousel') return (this.state.slides || []).map((sl, si) => ({ si, id: sl.id, n: si + 1 }));
     const out = [];
     (this.state.slides || []).forEach((sl, si) => {
       if (sl.kind !== kind) return;
@@ -8153,6 +9148,13 @@ class OrganicStudio extends StudioBase {
     const kind = this.gdPageKind();
     if (!kind || this.gdPageRows().length >= this.gdPageMax()) return;
     this.upd(x => {
+      if (x.tpl === 'carousel') {
+        // a new page opens as Text and goes before a closing CTA, never after it
+        const np = OrganicStudio.slide('ctext', OrganicStudio.csSeed('ctext'));
+        const at = (x.slides.length && x.slides[x.slides.length - 1].kind === 'ccta') ? x.slides.length - 1 : x.slides.length;
+        x.slides.splice(at, 0, np);
+        return x;
+      }
       const ns = kind === 'review'
         ? OrganicStudio.slide('review', { reviewer: '', quote: '', agentName: '', agentRole: '' })
         : OrganicStudio.slide('prop', { usp: '', ptype: '', building: '', city: '', beds: '0', baths: '0', area: '', price: '', listno: '' });
@@ -8178,7 +9180,9 @@ class OrganicStudio extends StudioBase {
   // raised for the page on screen, so naming the page would say where you already are.
   gdAskTitle(ask) {
     if (!ask) return '';
-    if (ask.kind === 'pages') return this.gdPageKind() === 'review' ? 'How many reviews' : 'How many properties';
+    if (ask.kind === 'pages') return this.gdPageKind() === 'review' ? 'How many reviews' : (this.state.tpl === 'carousel' ? 'How many pages' : 'How many properties');
+    if (ask.kind === 'preset') return 'Layout preset';
+    if (ask.kind === 'stats') return 'Stats';
     if (ask.kind === 'proj' || ask.kind === 'portrait') return ask.label || '';
     if (ask.kind === 'scrim') return 'Wash strength';
     if (ask.kind === 'shade') return 'Photo darkening';
@@ -8249,7 +9253,12 @@ class OrganicStudio extends StudioBase {
     // Refinement is a judgement, never a requirement. Export reports the whole gate.
     if (ask.kind === 'scrim' || ask.kind === 'shade' || ask.kind === 'imgo' || ask.kind === 'glass') return '';
     if (ask.kind === 'pages') return '';
-    if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name') return '';
+    if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name' || ask.kind === 'preset') return '';
+    if (ask.kind === 'stats') {
+      const st = (this.state.slides || [])[ask.si], sf = (st && st.f) || {};
+      const items = OrganicStudio.csItems(sf).slice(0, OrganicStudio.csN(sf));
+      return items.every(it => String(it.stat || '').trim() && String(it.label || '').trim()) ? '' : 'Every stat needs a number and a label.';
+    }
     // A portrait is asked for but not gated: a listed card still reads without one, and
     // blocking the run on it would strand anyone who does not have the headshot to hand.
     if (ask.kind === 'portrait') return '';
@@ -8306,7 +9315,7 @@ class OrganicStudio extends StudioBase {
   // the moment the page opens; a section of requirements is done when they are all met.
   gdAskGated(ask) {
     if (!ask) return false;
-    if (ask.kind === 'photo' || ask.kind === 'qr' || ask.kind === 'export') return true;
+    if (ask.kind === 'photo' || ask.kind === 'qr' || ask.kind === 'export' || ask.kind === 'stats') return true;
     if (ask.kind === 'proj') return !!ask.req;
     if (ask.kind === 'dest') return this.folderSupported();
     if (ask.kind !== 'field') return false;
@@ -8493,6 +9502,7 @@ class OrganicStudio extends StudioBase {
       put('smp-fg-' + sl.id, 'cutout-' + n);
       put('smp-qr-' + sl.id, 'qr-' + n);
       put('smp-agent-r' + sl.id, 'agent-' + n);
+      if (sl.kind === 'cstats') for (let i = 0; i < OrganicStudio.csN(sl.f || {}); i++) put('smp-ic-' + sl.id + '-' + i, 'icon-' + n + '-' + (i + 1));
     });
     put('smp-alogo', 'logo-award');
     put('smp-qr', 'qr');
@@ -8678,7 +9688,7 @@ class OrganicStudio extends StudioBase {
       : Math.round(Math.min(Math.max(this.props.displayWidth ?? 440, 380), 640));
     const PXT = OrganicStudio.PXT;
     const N = a => `rgba(0,0,0,${a})`;
-    const TPLNAMES = { listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', award: 'Congratulations award' };
+    const TPLNAMES = { listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', award: 'Congratulations award', carousel: 'Carousel' };
 
     const mkCanvas = (si, sizeKey) => {
       const sl = s.slides[si], f = sl.f, kind = sl.kind;
@@ -8728,6 +9738,8 @@ class OrganicStudio extends StudioBase {
         revNameStyle: { display: 'none' }, revRoleStyle: { display: 'none' },
         revAgentOn: false, revAgentStyle: { display: 'none' },
         revDragStyle: { display: 'none' }, revDragDown: () => {},
+        // The carousel pages' layers, declared for EVERY kind for the same reason.
+        csCardOn: false, csCardStyle: { display: 'none' }, csRects: [], csIcons: [], csTexts: [],
         // Declared for EVERY kind: a render key only some kinds set falls back to the
         // browser default, which is how an unstyled layer gets onto a canvas.
         lPhotoOn: false, lPhotoStyle: { display: 'none' }, lPanOn: undefined,
@@ -9091,6 +10103,41 @@ class OrganicStudio extends StudioBase {
           lineHeight: cq(LH(tk.eyebrow)), color: kind === 'cta' ? A.deep : A.warm, whiteSpace: 'nowrap' };
         K.qrStyle = Object.assign(qrBase(KW.qr, KW.qrR, KW.qrRing),
           { left: cq((tk.W - KW.qr) / 2), top: cq(tk.H - pB - KW.qr - KW.qrDrop) });
+      } else if (OrganicStudio.isCs(kind)) {
+        // ══ THE CAROUSEL PAGES' PREVIEW — one element per op, placed absolutely off the
+        // same `csBox` the ops read. Text is the single-line idiom (`top: baseline - px`
+        // with a `baseLH` line-height); icons are MASKS with a background colour, which is
+        // what `tintFlat` does on canvas; the chevron is one polyline in an overlay SVG.
+        const B = this.csBox(s, si, tk), A = OrganicStudio.ART, D = OrganicStudio.deepA;
+        const abs = (x, y) => ({ position: 'absolute', left: cq(x), top: cq(y) });
+        const LH = px => StudioBase.baseLH(px);
+        K.logoStyle = Object.assign({}, K.logoStyle, { display: 'none' });   // drawn from B.texts
+        K.scrimStyle = Object.assign({}, K.scrimStyle, { background: B.scrim
+          ? (B.anchor === 'bottom'
+            ? 'linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)'
+            : 'linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)')
+          : 'none' });
+        K.csCardOn = !!B.card;
+        if (B.card) K.csCardStyle = Object.assign(abs(B.card.x, B.card.y), { width: cq(B.card.w), height: cq(B.card.h),
+          borderRadius: cq(B.card.r), background: OrganicStudio.glassOf(s), border: '1px solid ' + A.hairEdge, boxSizing: 'border-box',
+          backdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)', WebkitBackdropFilter: 'blur(' + OrganicStudio.TA.panelBlur + 'px)',
+          zIndex: 1, pointerEvents: 'none' });
+        K.csRects = B.rects.map(r => Object.assign(abs(r.x, r.y), { width: cq(r.w), height: cq(r.h), zIndex: 2, pointerEvents: 'none',
+          borderRadius: r.r ? cq(r.r) : '0', background: r.fill || 'transparent', boxSizing: 'border-box',
+          border: r.stroke ? '1px solid ' + r.stroke : 'none' },
+          // the callout's glass. A plain px length, never cq() — the box is laid out at true
+          // canvas units and shrunk with zoom, so 14px here IS the op's own amount.
+          r.blur ? { backdropFilter: 'blur(' + r.blur + 'px)', WebkitBackdropFilter: 'blur(' + r.blur + 'px)' } : {}));
+        const urls = this._slotUrls || {};
+        K.csIcons = B.icons.map(ic => {
+          const u = ic.glyph ? OrganicStudio.csGlyphAsset(ic.glyph).u : urls[ic.slot];
+          if (!u) return null;
+          return Object.assign(abs(ic.x, ic.y), { width: cq(ic.w), height: cq(ic.h), zIndex: 2, pointerEvents: 'none', backgroundColor: ic.fill,
+            maskImage: 'url("' + u + '")', WebkitMaskImage: 'url("' + u + '")', maskSize: 'contain', WebkitMaskSize: 'contain',
+            maskPosition: 'center', WebkitMaskPosition: 'center', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' });
+        }).filter(Boolean);
+        K.csTexts = B.texts.map(t => ({ t: t.t, style: Object.assign(abs(t.x, t.y - t.px), { fontSize: cq(t.px), lineHeight: cq(LH(t.px)),
+          fontWeight: t.w, color: t.fill, letterSpacing: t.ls ? (t.ls / t.px) + 'em' : 'normal', whiteSpace: 'nowrap', zIndex: 3, pointerEvents: 'none' }) }));
       } else if (kind === 'award') {
         // ══ THE AWARD CARD'S PREVIEW ═══════════════════════════════════════════════════
         // The stack is mirrored with Z-INDEX, never by moving DOM — the same reason the
@@ -9577,8 +10624,15 @@ class OrganicStudio extends StudioBase {
 
     const propCount = s.slides.filter(x => x.kind === 'prop').length;
     const revCount = s.slides.filter(x => x.kind === 'review').length;
-    const canRemove = si => (s.tpl === 'weekly' && s.slides[si].kind === 'prop' && propCount > 1) || (s.tpl === 'review' && revCount > 1);
+    const canRemove = si => (s.tpl === 'weekly' && s.slides[si].kind === 'prop' && propCount > 1) || (s.tpl === 'review' && revCount > 1)
+      || (s.tpl === 'carousel' && s.slides.length > 1);
     const mkRemove = si => () => this.upd(x => {
+      if (x.tpl === 'carousel') {
+        if (x.slides.length <= 1) return x;
+        x.slides.splice(si, 1);
+        x.activeSi = Math.max(0, Math.min(x.activeSi, x.slides.length - 1));
+        return x;
+      }
       const k = x.slides[si].kind;
       if (k === 'prop' && x.slides.filter(z => z.kind === 'prop').length <= 1) return x;
       if (k === 'review' && x.slides.filter(z => z.kind === 'review').length <= 1) return x;
@@ -9626,6 +10680,7 @@ class OrganicStudio extends StudioBase {
         isWkTop: sl.kind === 'cover' || sl.kind === 'cta',
         isTaCover: sl.kind === 'tacover', isTaAgent: sl.kind === 'tagent',
         isAward: sl.kind === 'award',
+        isCs: OrganicStudio.isCs(sl.kind),
         // The cover's two headline lines and its footer bar, each derived exactly as the ops
         // derive them so the preview cannot word them differently. `taBarR` matches the
         // ranking card's own `taTop2` phrasing off the same field.
@@ -9866,7 +10921,7 @@ class OrganicStudio extends StudioBase {
 
     const slideNav = s.slides.map((sl, si) => ({
       label: this.sLabel(si),
-      hint: sl.kind === 'tacover' ? 'period + team' : sl.kind === 'tagent' ? 'portrait + blurb' : sl.kind === 'cover' ? 'headline + eyebrow' : sl.kind === 'cta' ? 'closing · shares cover photo' : sl.kind === 'review' ? 'testimonial card' : sl.kind === 'prop' ? 'photo + QR' : 'announcement',
+      hint: OrganicStudio.isCs(sl.kind) ? OrganicStudio.CS_NAMES[sl.kind].toLowerCase() + ' layout' : sl.kind === 'tacover' ? 'period + team' : sl.kind === 'tagent' ? 'portrait + blurb' : sl.kind === 'cover' ? 'headline + eyebrow' : sl.kind === 'cta' ? 'closing · shares cover photo' : sl.kind === 'review' ? 'testimonial card' : sl.kind === 'prop' ? 'photo + QR' : 'announcement',
       on: s.activeSi === si ? '1' : undefined,
       // Token, not '#fff': on a light rail the slide's own name was white on white.
       nameStyle: { fontWeight: s.activeSi === si ? 500 : 400, fontSize: '13px', color: 'var(--ps-ink)' },
@@ -9979,11 +11034,21 @@ class OrganicStudio extends StudioBase {
           // same rule as seg: — last flag, values may contain spaces
           const selIn = f.flags.indexOf('sel:') >= 0 ? f.flags.slice(f.flags.indexOf('sel:') + 4).split('|') : null;
           const isStep = f.flags.indexOf('step') >= 0;
+          const isRich = f.flags.indexOf('rich') >= 0;
           const words = f.flags.indexOf('w40') >= 0 ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
           // the rail's own read-outs on the two long fields: words against the blurb's cap,
           // and lines against the review card's 14
           let counter = words ? words + ' / ' + OrganicStudio.TA_BLURB_MAX + ' words' : '';
           let over = words > OrganicStudio.TA_BLURB_MAX;
+          if (isRich) {
+            // the height budget's own read-out: what fits, and what the column has refused
+            const nb = OrganicStudio.csBlocks(raw).filter(b => b.t === 'd' || String(b.s).trim()).length;
+            let ov = 0;
+            try { ov = this.csBox(this.state, si, OrganicStudio.PXT.ft).over || 0; } catch (e) {}
+            counter = ov ? ov + (ov === 1 ? ' block does' : ' blocks do') + ' not fit on this page \u2014 trim the body'
+                         : nb + (nb === 1 ? ' block' : ' blocks');
+            over = ov > 0;
+          }
           if (slide.kind === 'review' && f.k === 'quote') {
             const rb = this.revBox(OrganicStudio.PXT.ft, slide.f);
             const wq = raw.trim() ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -10003,9 +11068,14 @@ class OrganicStudio extends StudioBase {
             q: f.t, hint: f.hint, val: raw,
             reqMark: req ? 'Required' : 'Optional',
             reqOn: req ? '1' : undefined, badOn: bad ? '1' : undefined,
-            isSeg: !!seg, isSel: !!opts, isStep,
-            isArea: !seg && !opts && !isStep && f.flags.indexOf('area') >= 0,
-            isInput: !seg && !opts && !isStep && f.flags.indexOf('area') < 0,
+            isSeg: !!seg, isSel: !!opts, isStep, isRich,
+            isArea: !seg && !opts && !isStep && !isRich && f.flags.indexOf('area') >= 0,
+            isInput: !seg && !opts && !isStep && !isRich && f.flags.indexOf('area') < 0,
+            // the editor is addressed by this key alone, so the toolbar's handler needs no
+            // closure over the element and survives every re-render
+            rtKey: si + ':' + f.k,
+            rtOps: OrganicStudio.RT_OPS.map(o => ({ t: o[0], label: o[1], title: o[2],
+              set: () => this.rtApply(si + ':' + f.k, o[0]) })),
             counter, counterOn: counter ? '1' : undefined, overOn: over ? '1' : undefined,
             segs: (seg || []).map(o => ({ label: o, on: raw === o ? '1' : undefined, set: () => write(o) })),
             opts: (opts || []).map(v => ({ v })),
@@ -10173,7 +11243,9 @@ class OrganicStudio extends StudioBase {
         { id: 'review', name: 'Google reviews', slidesDesc: 'Up to 10 slides',
           desc: 'Client testimonials on navy — stars, quote, agent. Add up to 10 review slides; the card auto-sizes to the text.' },
         { id: 'award', name: 'Congratulations award', slidesDesc: '1 slide',
-          desc: 'A win, on bronze under gold glitter \u2014 the award, the occasion, a 1st\u20135th numeral and your partner\u2019s mark. The card here is a skeleton; the post itself is photographic.' }
+          desc: 'A win, on bronze under gold glitter \u2014 the award, the occasion, a 1st\u20135th numeral and your partner\u2019s mark. The card here is a skeleton; the post itself is photographic.' },
+        { id: 'carousel', name: 'Carousel', slidesDesc: 'Up to 10 pages',
+          desc: 'Five page layouts to mix over full-bleed photos \u2014 a front page, stats with Material icons, check-point bullets, a text page and a closing call to action. Pick a layout per page; SWIPE \u203A shows while there is a next one.' }
       ].map(tp => Object.assign({ name: tp.name, desc: tp.desc, slidesDesc: tp.slidesDesc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       continueSession: () => this.upd(x => { x.screen = 'editor'; return x; }),
@@ -10206,7 +11278,7 @@ class OrganicStudio extends StudioBase {
       // bottom of every card — trimming the very margins these templates are built on.
       // Campaign's card is 1:1 for exactly this reason: it matches its square canvas.
       cardMini: { aspectRatio: '3/4' },
-      tplCount: 5,
+      tplCount: 6,
       recentCount: recents.length,
       // ONE row per template, and everything visual on it comes off the real render — see
       // `tplRenderAll`. `frames` drives the same hover reel the recents use, so a carousel
@@ -10216,7 +11288,8 @@ class OrganicStudio extends StudioBase {
         { id: 'weekly', name: 'Weekly listings', desc: 'Cover, one slide per property with its own QR, closing CTA' },
         { id: 'agents', name: 'Top agents', desc: 'Cover plus five portraits with a ranking numeral' },
         { id: 'review', name: 'Google reviews', desc: 'Stars, quote and agent on a navy card, up to ten slides' },
-        { id: 'award', name: 'Congratulations award', desc: 'Gold 1st–5th numeral, the award and the occasion, partner mark' }
+        { id: 'award', name: 'Congratulations award', desc: 'Gold 1st–5th numeral, the award and the occasion, partner mark' },
+        { id: 'carousel', name: 'Carousel', desc: 'Five page layouts to mix — front, stats, bullets, text and a call to action' }
       ].map(tp => Object.assign({ name: tp.name, desc: tp.desc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       splashLoadOn: true,
@@ -10248,9 +11321,37 @@ class OrganicStudio extends StudioBase {
       tplLabel: TPLNAMES[s.tpl] || s.tpl,
       slideNav,
       canAddSlide: (s.tpl === 'weekly' && propCount < OrganicStudio.TPLGROW.weekly)
-        || (s.tpl === 'review' && revCount < OrganicStudio.TPLGROW.review),
-      addSlideLabel: s.tpl === 'review' ? '+ Add review slide' : '+ Add property slide',
+        || (s.tpl === 'review' && revCount < OrganicStudio.TPLGROW.review)
+        || (s.tpl === 'carousel' && s.slides.length < OrganicStudio.TPLGROW.carousel),
+      addSlideLabel: s.tpl === 'review' ? '+ Add review slide' : (s.tpl === 'carousel' ? '+ Add page' : '+ Add property slide'),
+      // THE LEFT RAIL CARRIES THE FIVE LAYOUT PRESETS on the carousel template, for the active
+      // page. Each tile is a skeleton of where that layout puts its copy.
+      csOn: s.tpl === 'carousel',
+      csTiles: (() => {
+        if (s.tpl !== 'carousel') return [];
+        const asl0 = s.slides[Math.min(s.activeSi || 0, s.slides.length - 1)];
+        const bar = (l, t, w, h, dim) => `position:absolute;left:${l}%;top:${t}%;width:${w}%;height:${h}%;border-radius:999px;${dim ? 'opacity:.45' : ''}`;
+        const MARKS = {
+          cfront: [bar(8, 12, 26, 7), bar(8, 56, 66, 11), bar(8, 74, 50, 5), bar(8, 84, 44, 5)],
+          cstats: [bar(26, 10, 48, 8), bar(16, 38, 30, 16, true), bar(54, 38, 30, 16, true), bar(16, 64, 30, 16, true), bar(54, 64, 30, 16, true)],
+          cbul:   [bar(8, 40, 30, 9), bar(8, 55, 30, 9), bar(48, 40, 44, 5), bar(48, 54, 44, 5), bar(48, 68, 44, 5)],
+          ctext:  [bar(26, 12, 48, 8), bar(16, 32, 68, 5), bar(16, 42, 68, 5), bar(16, 52, 68, 5)],
+          ccta:   [bar(20, 20, 60, 60, true), bar(36, 38, 28, 4), bar(31, 48, 38, 8), bar(33, 62, 34, 9)]
+        };
+        return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], marks: MARKS[k],
+          on: (asl0 && asl0.kind === k) ? '1' : undefined,
+          tip: 'Switch the active page to the ' + OrganicStudio.CS_NAMES[k] + ' layout. Your copy is carried across.',
+          set: () => this.setPreset(s.slides.indexOf(asl0), k) }));
+      })(),
       addSlide: () => this.upd(x => {
+        if (x.tpl === 'carousel') {
+          if (x.slides.length >= OrganicStudio.growMax('carousel')) return x;
+          const np = OrganicStudio.slide('ctext', OrganicStudio.csSeed('ctext'));
+          const at = (x.slides[x.slides.length - 1] || {}).kind === 'ccta' ? x.slides.length - 1 : x.slides.length;
+          x.slides.splice(at, 0, np);
+          x.activeSi = at;
+          return x;
+        }
         if (x.tpl === 'review') {
           if (x.slides.filter(z => z.kind === 'review').length >= OrganicStudio.growMax('review')) return x;
           x.slides.push(OrganicStudio.slide('review', { reviewer: 'Client name · Provident client', quote: '', agentName: '', agentRole: '' }));
@@ -10721,11 +11822,13 @@ class Component extends DCLogic {
     try { this.eng.componentDidMount(); } catch (e) { console.warn(e); }
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
+    this._rtTick();
     this._tplTick();
   }
   componentDidUpdate() {
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
+    this._rtTick();
     // keep the step-by-step run's card renders current; the sync is key-guarded
     const a2 = this.active();
     if (a2 && a2.state && (a2.state.screen === 'guide' || a2.state.screen === 'editor')) {
@@ -10736,6 +11839,12 @@ class Component extends DCLogic {
       if (a2.state.screen === 'guide' && a2.gdSync) a2.gdSync();
     }
     this._tplTick(a2);
+  }
+  // The rich body editor fills its own rows, and it is driven from HERE as well as from the
+  // engine's rAF tick — rAF does not fire while the browser pane is not compositing, which
+  // would leave the field empty, and this is the same belt-and-braces promoteImgs has.
+  _rtTick() {
+    try { const a = this.active(); if (a && a.rtSync) a.rtSync(); } catch (e) {}
   }
   // The splash's template cards are REAL renders of each template's own slides, the same
   // way the guided run's cards are — a hand-drawn skeleton is a second layout to maintain

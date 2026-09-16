@@ -9381,6 +9381,320 @@ cleared afterwards.
 - **Organic's orange period**, above.
 - **`wkSpecBox` should warm the weights it measures with**, above.
 
+# ORGANIC HAS A CAROUSEL TEMPLATE: FIVE PAGE LAYOUTS, INTERCHANGEABLE PER PAGE
+
+A sixth Organic template, `carousel`, built from five UI-Kelvz Figma frames (nodes 32-30,
+32-118, 32-146, 32-186 and 32-204 of `Joicww9NlGGHW96kAm4f47`) and the designer's own PDF
+of the same set. Its pages are DISCONNECTED: every slide carries one of five kinds and can
+be switched to any other; nothing on one page reads another. Up to 10 pages.
+
+**Existing templates: 24 op groups, 499 ops, 0 differing** against the pre-change copy
+served alongside. The interpolation sweep gained exactly two root refs (`csOn`, `csTiles`),
+both declared; 24 unresolved on both sides, none new; 215 render keys, no duplicate.
+
+## A PAGE IS A SLIDE AND ITS PRESET IS ITS KIND
+
+`cfront` · `cstats` · `cbul` · `ctext` · `ccta`. Using the slide's KIND is what makes
+everything else free — `FIELDS`, `TIERNAMES`, `PAGE`, `SKEL`, `FIXEDTEXT`, the guided plan,
+the export names and the rail all key on it already. `OrganicStudio.csConvert(sl, kind)`
+switches a page and CARRIES THE COPY: whatever was typed stays on the slide, and the new
+layout's primary and secondary lines fill from the old one's when empty (Text → Bullets
+keeps the title as the headline and the body as the points). Measured: a round trip
+Text → Bullets → Text keeps title, body and position.
+
+**Where the presets live:** the LEFT RAIL gets a `Layout preset` group of five skeleton tiles
+for the active page (`csOn` / `csTiles`), and the guided form gets a `layout` section — new,
+inserted after `pages` in `GDSECORDER` — with the same five as pills. Both call `setPreset`.
+
+**The template opens on all five layouts, one page each**, so the set is visible and an
+unwanted page is deleted rather than discovered. `Add page` opens as Text and lands before a
+closing CTA; any page can be removed while one remains; `TPLGROW.carousel` is 10.
+
+## THE MEASUREMENTS, AND WHERE EACH CAME FROM
+
+The Figma frames are SVG imports — outlined type, no typography panel on most — but the PDF
+carries the same set as LIVE text in Google Sans Flex Light / Regular / Medium, and a glyph's
+id there is its ASCII code minus 27, so every string decoded with its size and position.
+The frames are a LATER revision (the text moved up and `SWIPE ›` was added), so positions come
+from Figma and sizes from the PDF, cross-checked where Figma had live text (stats, bullets,
+CTA). `OrganicStudio.CS` holds all of it; the ones worth knowing:
+
+| | value | source |
+|---|---|---|
+| columns | 105 left, 94 right inset | both inside the 80 grid margin — kept as drawn |
+| front headline | Regular 66.5 in a one-em box, 31 to the support block | PDF + Figma group H 196.05 |
+| support lines | Regular 32 at a 49.8 pitch | PDF Td advance |
+| section titles | Regular 68 in an 85 box, stacked at 70 | Figma live text, 4 frames agree |
+| stats | Light 66.5; label Light 28 at .14em caps; icon ink 80; rows 331, columns 402 | Figma live text + icon vector boxes |
+| bullets | 472 column, 89.5 pitch, `check_circle` 33.77 in brass, text Regular 32 | Figma live text + repeat-grid cell |
+| text page | 704 column, title + 29 + body Regular 32 at 40.7 | Figma group 704 × 236 |
+| SWIPE › | Light 28 at .14em, 26 to a 13.44 chevron, right edge 94 in, box top 106.6 up | Figma group 133.44 × 35, gap 26 |
+| CTA card | 70 padding; rule 78 × 4 brass; +50.5; Light 32; +20; Regular 68; +39; pill 108 with 42.5 side pads, Regular 32; +139; wordmark | Figma; sums to the drawn 660.43 exactly |
+
+**THE STATS GRID IS CENTRED ON THE CANVAS, not on the frame's own columns.** The frame's two
+column centres are 323 and 725, whose midpoint is 524 — 16 off centre, drawing slop. The
+pitch (402) is kept and the pair is centred on 540 (339 / 741), which is also what "always
+centre horizontally" asked for. An odd count puts the last item alone at 540; the grid
+grows UPWARD from a floor 208.4 above the canvas edge. Measured: 5 items → 339 / 741 / 540.
+
+**THE SCRIM RULE, resolved against three frames that disagree.** The frames' scrim rects start
+at 720, 582 and 540 respectively — each sized by eye — and every one is `#1A2942` at 0% →
+100% across its height. The instruction was "a padding of 250 that depends on where the
+layout starts, and the gradient starts at the centre". So: transparent at the canvas's
+vertical centre, solid at the edge the copy sits on — and when the copy climbs past the
+centre, the ramp starts 250 above it instead (`min(H/2, near - 250)`; mirrored for a top
+layout). On the front page that reproduces the drawn 720; on stats it starts at 407 where
+the frame drew 582, i.e. the rule is slightly more generous than the frame. The CTA has
+none: the card is its own surface. Emitted as ONE `grad` op and mirrored by the preview's
+`scrimStyle`; `scrimBands` has no branch for these kinds, so the Wash slider disappears.
+
+## ONE GEOMETRY SOURCE, `csBox`, AND THE PREVIEW IS ONE ELEMENT PER OP
+
+`csBox(state, si, tk)` returns texts (each with its own baseline), rects, icons and the card;
+`buildOps` emits them and the preview places them absolutely — `top: baseline - px` with a
+`baseLH` line-height, the single-line idiom every recent card here uses. Baselines come off
+`fontAsc()`, so an Arabic face lands its lines where CSS would too. **Measured, all five
+pages × both canvases: every text run matched its op, worst delta 2.07 canvas px** — under one
+device pixel at the editor's zoom.
+
+**The story follows for free.** Top-anchored blocks add `(pT - 90)`, bottom-anchored ones hang
+off `H`; nothing else knows the size.
+
+## THE ICONS ARE `image` OPS WITH `tintFlat`, INCLUDING THE TWO BUNDLED GLYPHS
+
+The stats icons are user uploads (or Material Symbols through the ported picker — `ICONS`,
+`iconUrl`, `iconSearch`, `applyIcon`, `clearIcon`, fed through the slot's own `_ingest`, never
+the sidecar), contain-fitted by the file's own aspect and tinted `ART.ink`. The brass
+`check_circle` (Material Rounded, fill 1, weight 300) and the **SWIPE chevron** are bundled
+base64 SVGs drawn through the same path.
+
+**THE CHEVRON WAS A `<polyline points="{{ … }}">` FIRST, AND THAT IS THE `<img src>` TRAP IN
+SVG CLOTHING.** The browser parses the attribute before DC interpolates it and logs
+"Expected number" four times per load — parse-time noise that buries real errors. It is a
+15.44 × 24 glyph (13.44 × 22 of ink, padded for its 2px stroke) tinted white, so the preview
+mirrors it as a mask like every other icon and there is no SVG in the markup at all.
+
+The preview reads the icons' bytes from `_slotUrls`, built in `_refreshAV` off the same
+sidecar read, and re-renders when one lands. Verified end to end on the IndexedDB shim:
+`flight_takeoff` applied through the picker → stored → `_slotUrls` → an image op at
+(971.8, 1338.9) → a mask div at (971.5, 1338.8).
+
+## AN INSERTION BUG WORTH RECORDING, because the test that caught it looked like a real drift
+
+The story canvas's markup block landed INSIDE the feed canvas: the second anchor search began
+`len(anchor) + 200` after the first hit, which was inside the ~1000-char block just inserted,
+so it found the feed's anchor again. Every text node rendered twice — once at feed positions,
+once 110 lower — and the preview-vs-op probe reported a constant 479 px "drift" that was the
+story's SWIPE. **When a probe matches twice as many nodes as ops, the markup is duplicated;
+read the node list before believing the number.** Fixed by cutting the `sl.st.` block out and
+inserting it after the SECOND anchor computed on the post-insertion text.
+
+## Verification
+
+- Ops for the existing five templates: 24 groups, 499 ops, 0 differing.
+- Preview vs ops, five pages × feed and story: 60 runs matched, worst 2.07 canvas px.
+- SWIPE on pages 1–4, not on 5; after adding pages it moves to the new second-last.
+- Add to 10, `canAddSlide` false at the cap, new pages before the CTA; remove any page.
+- Stats 2–6 with the stepper clamped at both ends; the gate names an empty stat or label.
+- Export with the story hidden: `<headline>_Carousel_page1_3x4.jpg` …; the derived base drops
+  trailing punctuation.
+- Sheet: 1 closing style tag, 298/298 comments, `sc-if` +9/+9 and `sc-for` +11/+11 on the
+  documented baselines, 1090 CSS rules parse (the small `.p-opts-cs` block appended).
+- The test icon slot was cleared, the test origin's `localStorage` cleared, the `_PRE` removed.
+
+## Left as decisions, not applied
+
+- **The landing page's Organic card does not yet show the carousel.** Its strip is a static
+  snapshot per template (`preview/organic-*.webp`) plus markup; a sixth thumb is the
+  documented recapture route plus one row.
+- **A Material icon's family is Outlined at weight 200**, Campaign's own setting. The
+  designer's frame used Outlined glyphs at what reads as a light weight, so it matches; the
+  check is Rounded because the design draws the rounded filled disc.
+- **The CTA card's default fill is the house white glass** via Panel colour; the drawing is a
+  flat navy. The user asked for the option, so it is not fixed to navy.
+
+# THE CAROUSEL TAKES AN OVERLINE AND A RICH BODY: FIVE BLOCK TYPES, ONE LINE TO A BLOCK
+
+Two requests on the carousel template, with three reference screenshots: a brass overline on
+each page with a show/hide, and a Notion-like body field carrying **Quote, Divider, Callout
+and Bulleted list**, applied by highlighting and pressing a button, "only when it's on its own
+line break".
+
+**Op census over all six templates x every slide x both canvases: 34 groups, 28 byte-identical,
+and the only 6 that differ are the three INSIDE carousel pages** — the ones whose demo copy
+gained an overline and blocks. And the stronger proof, because it isolates the code from the
+demo: **the new engine driven with the PRE build's own field values reproduces the carousel
+exactly — 10 groups, 10 byte-identical.** So neither the overline nor the block layout moves a
+page that does not use them, and a plain body through the new layout is the old plain layout.
+
+## THE OVERLINE IS THE THREE INSIDE PAGES ONLY
+
+By instruction — "just the inside, no need for CTA and front". The front page already carries
+the wordmark above its headline and the CTA card opens on its own brass rule, so a second
+brass mark in the same band would be noise. Verified: the eyebrow op exists on `cstats`,
+`cbul` and `ctext` and is **null on `cfront` and `ccta`**.
+
+**One look, dynamic content** — the user's own words. `CS.eyePx/eyeTrack/eyeBox/eyeGap` are one
+set for all three; the text is per page. Brass **#B0905C** (`ART.brass`) in tracked caps at
+28/500/.14em — the page's own small-caps size, the same as its stat labels and its SWIPE line.
+Measured on the render: the brightest pixel in the run is **exactly rgb(176,144,92)**.
+
+**IT TAKES THE TOP OF THE BLOCK, so a blank one is worth no height at all.** That is what
+leaves every page written before this exactly where it was: the title moves down by
+`eyeBox + eyeGap` (55) only once copy is typed, and hiding it puts the title back —
+measured 222 -> 167 on the stats page.
+
+**`eyeOn` opens on Show and the text is OPTIONAL.** The rule here is that anything asked for is
+required, so an always-asked overline would block export on every page; the toggle is what
+makes it a decision instead. `fieldShown` drops the text row when it is hidden, and the copy
+survives being hidden — verified, "Rent, Reworked" still stored with the row gone.
+
+**This is the fourth exemption to "no gold in canvas output at all"**, after the ranking
+badge, the award line and the agent designation. The user named the hex; brass was already in
+this template for the Bullets check.
+
+## A STRING WITH LINE MARKERS, NOT AN ARRAY OF BLOCKS
+
+The blast radius is the whole argument. Every reader of these fields already takes a string —
+`csConvert` carries copy between layouts as one, the guided form writes one, a session file
+holds one, and **an old plain body is already valid** (all paragraphs, no migration). An array
+of block objects would have meant touching all of them.
+
+```
+> quote    ! callout    * bullet    ---  rule    (no prefix) paragraph
+```
+
+`csBlocks` / `csLine` / `csPlain` are the parser, the writer and the marker-stripper. The
+editor writes the markers itself, so nobody has to type them.
+
+**`csConvert` STRIPS THEM INTO A FIELD THAT CANNOT DRAW THEM.** Text -> Bullets would otherwise
+put a literal `> ` in the Bullets list. `csRich(kind)` is the test — `cfront` and `ctext` are
+rich; the Bullets list and the CTA's lead line take `csPlain`. Verified both ways.
+
+## ONE LINE IS ONE BLOCK, AND CONSECUTIVE LINES OF ONE KIND ARE ONE BLOCK ON THE CANVAS
+
+Which is also exactly what "it should apply only when it's on its own line break" means: a
+block IS a line, so half a line cannot be one. Three callout lines are one panel; three
+bullets one list. Verified: retyping two adjacent rows as quotes produced **one** 121.7-tall
+brass rule over all three wrapped lines, not two rules.
+
+`rtLay` lays the blocks out at y = 0 and the caller translates them once the block's top is
+known — which is what lets a bottom-anchored page anchor a body whose height it cannot know
+until it has been measured. It takes the px and lead as arguments, because the front page's
+supporting lines are 32/49.8 and the text page's body 32/40.7; the list's own lead is a RATIO
+(`rtBulK` 1.08) so it follows.
+
+**Paragraphs follow the page's alignment; a quote, a callout, a list and a rule are STRUCTURAL
+and always read from the left**, whatever Center/Left is set to. A centred list with its ticks
+pushed off the copy is not a list.
+
+### What each block is
+
+| | |
+|---|---|
+| quote | a 3px brass rule at the column's left, copy indented 34 at **Light 300** — the weight is what separates it from body Regular |
+| callout | the **house glass**: `glassOf(state)` over a `blur` op at `TA.panelBlur` with the `hairEdge` stroke, and the reference's brass rule standing INSIDE its 28 padding |
+| bullets | a **plain brass check**, no disc — `check_circle` is reserved to the Bullets preset by request, so a list inside a body and a whole page of bullets never read as one control |
+| divider | a 1px `ruleQ` hairline across the column, with its own wider gap |
+
+**THE CALLOUT'S BAR IS INSET, NOT FLUSH.** The reference draws it flush at a square panel's
+edge; every panel in this studio is rounded, and a 4px bar against a 20px radius pokes out of
+the curve. It stands inside the padding instead, which reads as the same mark and needs no clip.
+
+**A RECT CAN BE GLASS NOW**, in both surfaces: `blur` on a `B.rects` entry pushes a `blur` op
+before the `rrect` in the ops and sets `backdropFilter` in the preview. The rects are emitted
+in order, so the panel's own brass rule follows it. Verified in the export —
+`feGaussianBlur stdDeviation="14"` inside a `userSpaceOnUse` region grown by 3 sigma.
+
+## THE HEIGHT BUDGET REPLACED THE LINE CAP, and it truncates where the user typed a break
+
+A callout plus a rule plus a list cannot live inside four lines. The cap is the room between
+the page's own two anchors, less what the overline and the title have taken.
+
+**A paragraph run and a list lay out per SOURCE LINE; a quote, a callout and a rule are
+all-or-nothing.** That is what makes the reported count exact rather than an estimate — 30
+long lines into a 704 column drew 20 wrapped lines and reported **20 blocks do not fit**, and
+a 22-line callout that could not fit was dropped whole with **24** reported (22 + 2 bullets).
+`B.over` is read by the field's own counter, which turns amber.
+
+`CS.subMax` and `CS.bodyMax` are declared and unread now, annotated rather than deleted.
+
+## THE FIELD DRAWS THE BLOCKS THE WAY THE CANVAS DOES
+
+"Show both on the canvas and body the rendered final look." So the field is a small block
+editor, not a textarea with visible markers: the quote behind its brass rule, the callout on a
+panel, the list against its check, the rule across the column.
+
+**IT IS AN UNCONTROLLED `contenteditable`, and that is the whole reason it is safe in DC.** The
+vdom gives the host NO children, so React never reconciles the rows we put there and the caret
+survives every state write. `data-rtv` (the value the render wants) against `_rtv` (what the
+editor last read or wrote) is the only sync, and they differ exactly when the project moved
+underneath it — a new page, an undo, a session load. Verified in both directions: typing does
+not rebuild, and an external `upd` does.
+
+- **`contenteditable` is set imperatively**, not in the markup, so nothing depends on how the
+  renderer treats a compound attribute name.
+- **`data-on` on the toolbar is set imperatively and is NOT interpolated**, so React has no
+  prop there to overwrite it with.
+- **The selection is STASHED (`_rtSel`), never read live**, because pressing a toolbar button
+  moves focus out of the editor first and a live read would find nothing to retype.
+- **Enter continues the block and leaves an empty one** (an empty bullet becomes a paragraph);
+  **Backspace at the head of a block clears its TYPE before it deletes any copy**; paste is
+  plain text split into paragraphs. All verified with real key events.
+- **Only top-level strays are normalised.** Rewriting a well-formed row's contents would take
+  the caret with it, and a nested span serialises through `textContent` perfectly well.
+
+**NO INLINE FORMATTING, by instruction and by the font.** Bold would be expressible (the face
+carries 500) and **italic would not** — the bundled Google Sans Flex is upright-only and the
+one italic in the folder is the Source Serif the brand retired. A half-set is worse than none.
+
+## TWO DEFECTS THIS PASS PRODUCED, BOTH MINE, BOTH FOUND BY MEASURING
+
+- **The editor's callout panel was `rgba(255,255,255,.06)` — 1.01:1 in light mode.** The
+  fill-inverts-ink-does-not family, for the seventh time in this project. It is `--ps-fill-h`
+  over `--ps-line` now, a token step that goes the right way in both themes.
+- **THE EDITOR FILLED FROM THE rAF TICK ALONE, so it rendered EMPTY whenever the pane was not
+  compositing.** Found because a probe hung awaiting a frame — the documented hidden-pane trap
+  catching a real dependency rather than only the probe. `rtSync` is driven from the shell's
+  `componentDidMount`/`componentDidUpdate` as well now, which is the belt-and-braces
+  `promoteImgs` has had all along and for exactly this reason. Verified filling with rAF dead.
+
+**A PROBE TRAP THAT COST TWO ROUNDS AND WAS NOT THE CODE:** the automation's `key` action sends
+`Return` with an **empty `e.key`**, and `BackSpace` is not the DOM's name either. Both read as
+"the handler never fires". With `Enter` and `Backspace` spelled the DOM's way, both work
+first time. Check what the event actually carries before concluding a handler is broken.
+
+## Verification
+
+- **34 op groups, 28 identical; 10/10 identical when the new engine is driven with the old
+  build's own values.** Interpolation sweep 173 refs and 18 unresolved on both sides, none
+  newly unresolved. 215 render keys, no duplicates.
+- **Preview against ops, one coordinate space: all 9 runs matched, worst 0.42 canvas px** —
+  the integer rounding of `offsetTop`. The divider, the glass panel (`blur(14px)`,
+  `rgba(255,255,255,.22)`, r 20), its brass bar and both ticks match their ops box for box.
+- **The render**: the overline's and the ticks' brightest pixel is exactly `#B0905C`; the
+  callout's bar exactly `#B0905C`. SVG export valid — 1 filter, 9 rects, 9 texts, 3 images.
+- **Sheet**: one closing style tag, comments 300/300, brace depth 0, **authored CSS blocks
+  1071 -> 1087 and PARSED 1063 -> 1079 — +16 both sides**, so nothing was swallowed. (Check
+  the authored count against the parsed one; the 8-rule gap is Chrome dropping `-moz-` blocks
+  and it is the baseline.) `sc-if` +2/+2, `sc-for` +1/+1.
+- Contrast, reloaded into each theme, transitions finished: editor copy **14.2-18.1:1**,
+  toolbar 8.4-8.6, the brass marks 2.4-4.7 against the field. Export names unchanged.
+- **One artwork-emitter line in the whole 40-hunk diff**, the new `blur` push.
+
+## Left as decisions, not applied
+
+- **The callout holds ordinary body lines.** The reference shows a big figure inside one
+  ("AED 2.5 million"); that would be a sixth block type and nothing asked for it.
+- **The Stats page has no body line to enrich**, and the Bullets page's list is the preset's
+  own — so "all page except CTA" reaches the front page's supporting lines and the text page's
+  body, which are the two prose fields the carousel has.
+- **The stats page's title and its overline sit above the wash's start**, as that title
+  already did: the scrim is anchored to the grid, and moving `near` to the title would cover
+  the whole page. Pre-existing, inherited by the overline.
+- **The brass marks in the FIELD are quiet on a light ground** (2.4-2.6:1). Raising them would
+  make the field disagree with the canvas, which is the one thing this editor exists not to do.
+
 # ARABIC NEEDS HALF AN EM MORE PER LINE, AND A CENTRED PILL HAD FLUSH-LEFT COPY
 
 Two reports on `Provident Campaign Studio.dc.html`, with screenshots: an Arabic headline
