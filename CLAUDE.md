@@ -9682,6 +9682,37 @@ first time. Check what the event actually carries before concluding a handler is
   toolbar 8.4-8.6, the brass marks 2.4-4.7 against the field. Export names unchanged.
 - **One artwork-emitter line in the whole 40-hunk diff**, the new `blur` push.
 
+## THE INSIDE PAGES CAN CARRY THE WORDMARK — Hide / Top / Bottom
+
+They carried none: only the front page and the CTA card drew one. `logoPos` is one segmented
+control on the three inside kinds, **off by default**, so it is something you add and no page
+written before it moves — **34 op groups, 34 byte-identical, 649 ops.**
+
+**Two positions, and each is an EXISTING line rather than a new one.**
+
+| | where | why |
+|---|---|---|
+| **Top** | x `pad`, baseline `pT + tk.logo * .8` | byte-for-byte the front page's own, so a carousel carrying it on every page reads as one set. Measured 122.8 on the feed and 240 on the story, from the same expression. |
+| **Bottom** | x `pad`, baseline `H - swipeBotIn + asc(swipePx)` | SWIPE's OWN baseline, so the mark and the cue make one line rather than two. Measured 1360.6 / 1840.6 — identical to SWIPE's on both canvases. |
+
+Left-aligned in both, which is the brand's rule for the wordmark and needs no second control.
+
+**A TOP-ANCHORED BLOCK MOVES DOWN FOR IT, to `frontTopGap`.** The inside pages start their
+top-anchored copy at `topY` (158), and the wordmark's descender reaches ~135 — 23px is not a
+gap. `frontTopGap` (100) is already the name for "below the mark" on the front page, so a
+top-anchored inside page with a top wordmark starts where the front page's top-aligned
+headline does. Measured on the text page: its title baseline goes **279 -> 379** with the
+wordmark at Top, and stays at 279 at Bottom or Hidden. The stats title (259) and any
+bottom-anchored block already clear it and do not move.
+
+**A mislabel from the pass before this went with it.** `TIERNAMES.cstats` was `['Title']`, so
+the blurb's tier fell through to the generic table and the group read **"Supporting line"**.
+It is `['Title', 'Blurb', 'Layout']` now — verified against the pre-change build, which shows
+the wrong label.
+
+No CSS and no markup changed, so contrast and the sheet are untouched by construction (sc-if
+and sc-for counts identical, 9 hunks, 26 added).
+
 ## A WIDER HEADING, AN OPTIONAL STATS BLURB, AND A FLOATING GRAPHIC
 
 Three requests in one pass, all on the carousel. **34 op groups across all six templates,

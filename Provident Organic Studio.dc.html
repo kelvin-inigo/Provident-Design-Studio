@@ -4968,9 +4968,9 @@ class OrganicStudio extends StudioBase {
   // is not required, so a blank one simply draws nothing and blocks no export.
   static csSeed(kind) {
     if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom' };
-    if (kind === 'cstats') return { eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
-    if (kind === 'cbul') return { eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
-    if (kind === 'ctext') return { eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
+    if (kind === 'cstats') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
+    if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
+    if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
     if (kind === 'ccta') return { small: '', big: '', button: '' };
     return {};
   }
@@ -7213,6 +7213,19 @@ class OrganicStudio extends StudioBase {
       B.icons.push({ glyph: 'chev', x: chL - 1, y: cy - C.swipeChevH / 2 - 1, w: C.swipeChevW + 2, h: C.swipeChevH + 2, fill: A.ink });
       far(top + C.swipeBox);
     }
+    // ── THE WORDMARK ON AN INSIDE PAGE. Off by default, so it is something you add. At the
+    // TOP it takes the front page's own column and baseline, so a carousel carrying it on
+    // every page reads as one set; at the BOTTOM it sits on SWIPE's own baseline, so the
+    // mark and the cue make one line. Never on the front page or the CTA card, which draw
+    // their own. Left-aligned, which is the brand's rule for it.
+    const logoPos = OrganicStudio.csEyeKind(kind) ? (f.logoPos || 'Hide') : 'Hide';
+    const logoTop = logoPos === 'Top';
+    if (logoPos !== 'Hide')
+      T('provident.', C.pad, logoTop ? pT + tk.logo * .8 : H - C.swipeBotIn + asc(C.swipePx),
+        tk.logo, 300, A.ink, tk.logo * .04);
+    // A TOP-ANCHORED BLOCK MOVES DOWN FOR IT, to the front page's own clearance — 23px under
+    // a wordmark is not a gap, and `frontTopGap` is already the name for "below the mark".
+    const topY2 = logoTop ? topY + C.frontTopGap : topY;
     if (kind === 'cfront') {
       // the wordmark, exactly where drawLogo puts it, at the drawing's own column
       T('provident.', C.pad, pT + tk.logo * .8, tk.logo, 300, A.ink, tk.logo * .04);
@@ -7276,7 +7289,7 @@ class OrganicStudio extends StudioBase {
       const topAligned = f.pos === 'Top';
       // the overline takes the top of the block; the list keeps the drawing's own bottom
       // anchor, so a page carrying no overline does not move a pixel
-      const cTop = topAligned ? topY + eyeH : H - C.bulBotIn - blockH;
+      const cTop = topAligned ? topY2 + eyeH : H - C.bulBotIn - blockH;
       const top = cTop - eyeH;
       eyePut(C.pad, top, null);
       if (n) for (let k = 0; k <= n; k++) B.rects.push({ x: colX, y: cTop + k * C.bulPitch, w: C.bulColW, h: 1, fill: A.hair });
@@ -7300,11 +7313,11 @@ class OrganicStudio extends StudioBase {
       // the band between the page's own two anchors is what the body may spend, less what
       // the overline and the title have already taken — the height budget that replaced the
       // four-line cap, since a callout plus a rule plus a list cannot live inside four lines
-      const band = Math.max(0, (H - C.botIn) - topY);
+      const band = Math.max(0, (H - C.botIn) - topY2);
       const R = rtLay(f.body, colX, colW, Math.max(0, band - eyeH - titleH - (titleH ? C.titleBodyGap : 0)), center, C.bodyPx, C.bodyLead);
       const gap = (titleH && R.h) ? C.titleBodyGap : 0, h = eyeH + titleH + gap + R.h;
       const bottomAligned = f.pos === 'Bottom';
-      const top = bottomAligned ? H - C.botIn - h : topY;
+      const top = bottomAligned ? H - C.botIn - h : topY2;
       eyePut(colX, top, center ? cx : null);
       tl.forEach((t, i) => { const y = top + eyeH + asc(C.titlePx) + i * C.h2Pitch; center ? TC(t, y, C.titlePx, 400, A.ink, 0, cx) : T(t, colX, y, C.titlePx, 400, A.ink); });
       put(R, top + eyeH + titleH + gap);
@@ -8621,7 +8634,7 @@ class OrganicStudio extends StudioBase {
     // name a group with no fields under it — the fix `tacover` already carries.
     award:   ['Award', 'Occasion', 'Place'],
     cfront:  ['Headline', 'Supporting lines', 'Layout'],
-    cstats:  ['Title'],
+    cstats:  ['Title', 'Blurb', 'Layout'],
     cbul:    ['Headline', 'Bullet points', 'Layout'],
     ctext:   ['Title', 'Body', 'Layout'],
     ccta:    ['Copy', 'Button']
@@ -8686,18 +8699,21 @@ class OrganicStudio extends StudioBase {
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
             ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line'],
             ['bodyOn', 2, 'Blurb under the title', 'seg:Hide|Show', 'A short paragraph between the title and the grid'],
-            ['body', 2, 'Blurb', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list']],
+            ['body', 2, 'Blurb', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     cbul:  [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the headline'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
             ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
-            ['pos', 3, 'Layout', 'seg:Bottom|Top', '']],
+            ['pos', 3, 'Layout', 'seg:Bottom|Top', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     ctext: [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
             ['title', 1, 'Title', 'req area', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg:Top|Bottom', ''],
-            ['align', 3, 'Text', 'seg:Center|Left', '']],
+            ['align', 3, 'Text', 'seg:Center|Left', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.']]
