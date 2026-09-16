@@ -4893,6 +4893,8 @@ class OrganicStudio extends StudioBase {
     // it instead, so the copy always has that much wash behind it — "a padding of 250 that
     // depends on where the layout starts, and the gradient starts at the centre".
     scrimPad: 250,
+    // the organic rule's own breathing room past the copy, before the fade beyond it
+    scrimHold: 20,
     // THE OVERLINE EYEBROW — the three INSIDE pages only. The front page already carries the
     // wordmark above its headline and the CTA card opens on its own brass rule, so neither
     // takes one. Brass tracked caps at the page's own small-caps size (the stat label's 28
@@ -7272,6 +7274,12 @@ class OrganicStudio extends StudioBase {
                         Math.max(0, gridTop - C.titleGridGap - bTop), true, C.bodyPx, C.bodyLead);
         put(R, bTop);
         B.over = R.over;
+        // THE BLURB NEEDS ITS OWN WASH, and the page's cannot give it one: the scrim here is
+        // anchored to the GRID, which is at the bottom, so everything above its ramp sits on
+        // bare photograph. A blurb is body copy at 32px, which is exactly the run that cannot
+        // survive that. Recorded here and turned into a band below; an EMPTY blurb records
+        // nothing, so the toggle alone never adds a wash.
+        if (R.h > 0) B.topFar = bTop + R.h;
       }
       for (let i = 0; i < n; i++) {
         const r = Math.floor(i / 2), c = i % 2, alone = (r === rows - 1) && (n % 2 === 1);
@@ -7360,6 +7368,17 @@ class OrganicStudio extends StudioBase {
     // copy climbs past the centre, in which case the ramp starts `scrimPad` before the copy.
     if (B.anchor === 'bottom') B.scrim = { y0: Math.min(H / 2, (B.near == null ? H : B.near) - C.scrimPad) };
     else if (B.anchor === 'top') B.scrim = { y0: Math.max(H / 2, (B.far == null ? 0 : B.far) + C.scrimPad) };
+    // A SECOND BAND for a top block the page's own scrim does not reach — the stats blurb.
+    // The template's own rule read from the other side: solid at the edge the copy sits on,
+    // transparent `scrimPad` past it. It is its OWN gradient rather than extra stops on the
+    // first, so the two simply overlap where a copy-dense page needs both; navy over navy is
+    // navy, and CSS multi-backgrounds composite exactly as two stacked canvas grads do.
+    // HOLDS ACROSS THE COPY, THEN FADES. A ramp that starts fading at the top gives the LAST
+    // line of the blurb the least wash, which is exactly backwards — measured 2.42:1 on the
+    // tail over a white photograph against 5.89 on the title. This is the organic rule's own
+    // shape instead: cover the text area plus its breathing room, then fade out beyond it.
+    if (B.topFar != null) B.scrimTop = { y1: Math.min(H, B.topFar + C.scrimHold),
+                                         y2: Math.min(H, B.topFar + C.scrimHold + C.scrimPad) };
     // ── THE FLOATING GRAPHIC, computed last because it is DRAWN last: it floats over the
     // page's own copy, which is the whole point of placing it by hand. The box comes from
     // the stored aspect so this function and buildOps agree with no asset in hand; both
@@ -7939,6 +7958,10 @@ class OrganicStudio extends StudioBase {
         const t = Math.max(0, Math.min(1, B.scrim.y0 / H));
         ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H,
           stops: B.anchor === 'bottom' ? [[0, D(0)], [t, D(0)], [1, D(1)]] : [[0, D(1)], [t, D(0)], [1, D(0)]] });
+      }
+      if (B.scrimTop) {
+        const a1 = Math.max(0, Math.min(1, B.scrimTop.y1 / H)), a2 = Math.max(a1, Math.min(1, B.scrimTop.y2 / H));
+        ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: [[0, D(1)], [a1, D(1)], [a2, D(0)], [1, D(0)]] });
       }
       if (B.card) {
         // the house glass: the same blur, fill choice and hairline edge every panel carries
@@ -10279,11 +10302,14 @@ class OrganicStudio extends StudioBase {
         const abs = (x, y) => ({ position: 'absolute', left: cq(x), top: cq(y) });
         const LH = px => StudioBase.baseLH(px);
         K.logoStyle = Object.assign({}, K.logoStyle, { display: 'none' });   // drawn from B.texts
-        K.scrimStyle = Object.assign({}, K.scrimStyle, { background: B.scrim
-          ? (B.anchor === 'bottom'
-            ? 'linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)'
-            : 'linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)')
-          : 'none' });
+        // the blurb's band is a SECOND background on the same div, listed first because the
+        // first layer paints on top — which is the order the two grad ops are pushed in
+        const csGrads = [];
+        if (B.scrimTop) csGrads.push('linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(1) + ' ' + (B.scrimTop.y1 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' ' + (B.scrimTop.y2 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)');
+        if (B.scrim) csGrads.push(B.anchor === 'bottom'
+          ? 'linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)'
+          : 'linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)');
+        K.scrimStyle = Object.assign({}, K.scrimStyle, { background: csGrads.length ? csGrads.join(', ') : 'none' });
         K.csCardOn = !!B.card;
         if (B.card) K.csCardStyle = Object.assign(abs(B.card.x, B.card.y), { width: cq(B.card.w), height: cq(B.card.h),
           borderRadius: cq(B.card.r), background: OrganicStudio.glassOf(s), border: '1px solid ' + A.hairEdge, boxSizing: 'border-box',

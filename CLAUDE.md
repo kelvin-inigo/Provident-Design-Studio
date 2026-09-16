@@ -9682,6 +9682,42 @@ first time. Check what the event actually carries before concluding a handler is
   toolbar 8.4-8.6, the brass marks 2.4-4.7 against the field. Export names unchanged.
 - **One artwork-emitter line in the whole 40-hunk diff**, the new `blur` push.
 
+## THE STATS BLURB GETS ITS OWN BAND, and the first shape of it was backwards
+
+The stats page's scrim is anchored to its GRID, which is at the bottom — so everything above
+that ramp sits on bare photograph. The title survived it; a 32px blurb does not. Measured over
+a pure-white photograph, every run in that top block read **1.00:1** before this.
+
+`B.scrimTop` is a SECOND `grad` op rather than extra stops on the first, so the two simply
+overlap where a copy-dense page needs both — navy over navy is navy, and CSS multi-backgrounds
+composite exactly as two stacked canvas grads do (the preview is one div with two layers, the
+first listed painting on top, which is the order the ops are pushed in). Emitted only when the
+blurb actually draws something, so the toggle alone never adds a wash.
+
+**THE FIRST SHAPE FADED FROM THE TOP, which gives the LAST line of the blurb the least wash —
+exactly backwards.** Measured over white: title 5.89, blurb line 1 3.73, line 2 2.87, **line 3
+2.42**. It holds across the copy now and fades beyond it, which is the organic rule's own shape
+(`scrimHold` 20 of breathing room, then `scrimPad` 250 of fade):
+
+| run, over a PURE WHITE photograph | before | first shape | shipped |
+|---|---|---|---|
+| eyebrow (brass) | 1.00 | 2.84 | **4.85** |
+| title | 1.00 | 5.89 | **14.59** |
+| blurb lines 1-3 | 1.00 | 3.73 / 2.87 / 2.42 | **14.59** |
+
+**And the page still breathes** — it is a band, not a wash. Down the right edge over that same
+white photo the red channel reads 77 / 146 / **189** / 167 / 145 at y 500-900, so there is a
+real clear window around y 700 between the two bands. "Scrims cover only the text areas, never
+the whole photo" still holds.
+
+**A PATCH TRAP WORTH THE LINE IT COSTS: I matched `scrimPad: 250` as a PREFIX of a line that
+ends in a comma**, so the comma was carried to the end of my inserted comment and the next
+property had no separator — `SyntaxError: Unexpected identifier 'eyePx'`, and the whole logic
+class failed to evaluate, so the shell mounted with no engine. The console names it exactly;
+**read the console first when the engine is missing.** Match the whole line, comma included.
+
+**34 op groups, 34 byte-identical, 649 ops** — the demo has the blurb hidden, so nothing moves.
+
 ## THE INSIDE PAGES CAN CARRY THE WORDMARK — Hide / Top / Bottom
 
 They carried none: only the front page and the CTA card drew one. `logoPos` is one segmented
