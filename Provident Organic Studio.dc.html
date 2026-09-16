@@ -3346,6 +3346,16 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             <sc-for list="{{ sl.ft.csRects }}" as="cr" hint-placeholder-count="0"><div style="{{ cr }}"></div></sc-for>
             <sc-for list="{{ sl.ft.csIcons }}" as="ci" hint-placeholder-count="0"><div style="{{ ci }}"></div></sc-for>
             <sc-for list="{{ sl.ft.csTexts }}" as="ct" hint-placeholder-count="0"><div style="{{ ct.style }}">{{ ct.t }}</div></sc-for>
+            <!-- THE FLOATING GRAPHIC, last so it sits over the page's own copy. The slot is
+                 mounted here too, under the same id as the form's, so a file can be dropped
+                 straight onto the canvas; the mask beside it is what shows when it is tinted. -->
+            <sc-if value="{{ sl.ft.csGfxOn }}" hint-placeholder-val="{{ false }}">
+              <div onPointerDown="{{ sl.ft.csGfxDown }}" data-gfx="1" style="{{ sl.ft.csGfxStyle }}">
+                <image-slot id="{{ sl.ft.csGfxSlot }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="{{ sl.ft.csGfxSlotStyle }}"></image-slot>
+                <i style="{{ sl.ft.csGfxMaskStyle }}"></i>
+                <sc-for list="{{ sl.ft.csGfxHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ sl.ft.csGfxGrip }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for>
+              </div>
+            </sc-if>
           </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.ft.awBgStyle }}"></div>
@@ -3502,6 +3512,16 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             <sc-for list="{{ sl.st.csRects }}" as="cr" hint-placeholder-count="0"><div style="{{ cr }}"></div></sc-for>
             <sc-for list="{{ sl.st.csIcons }}" as="ci" hint-placeholder-count="0"><div style="{{ ci }}"></div></sc-for>
             <sc-for list="{{ sl.st.csTexts }}" as="ct" hint-placeholder-count="0"><div style="{{ ct.style }}">{{ ct.t }}</div></sc-for>
+            <!-- THE FLOATING GRAPHIC, last so it sits over the page's own copy. The slot is
+                 mounted here too, under the same id as the form's, so a file can be dropped
+                 straight onto the canvas; the mask beside it is what shows when it is tinted. -->
+            <sc-if value="{{ sl.st.csGfxOn }}" hint-placeholder-val="{{ false }}">
+              <div onPointerDown="{{ sl.st.csGfxDown }}" data-gfx="1" style="{{ sl.st.csGfxStyle }}">
+                <image-slot id="{{ sl.st.csGfxSlot }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="{{ sl.st.csGfxSlotStyle }}"></image-slot>
+                <i style="{{ sl.st.csGfxMaskStyle }}"></i>
+                <sc-for list="{{ sl.st.csGfxHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ sl.st.csGfxGrip }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for>
+              </div>
+            </sc-if>
           </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.st.awBgStyle }}"></div>
@@ -3708,6 +3728,27 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 </sc-if>
                 <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}"><span class="gd-hint">Choose a layer above to size it. The five portraits come from the rank pages.</span></sc-if>
                 <button onClick="{{ a.grpReset }}" class="gd-link">Reset positions</button>
+              </sc-if>
+
+              <!-- THE CAROUSEL PAGE'S FLOATING GRAPHIC. The upload is here; the placement is
+                   on the canvas \u2014 drag to move, a corner to scale. -->
+              <sc-if value="{{ a.isGfx }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-qrow">
+                  <div class="gd-drop gd-drop-ph" data-done="{{ a.gfxDone }}">
+                    <image-slot id="{{ a.gfxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                  </div>
+                  <div class="gd-qrow-t">
+                    <s>{{ a.gfxLabel }}</s>
+                    <s>It floats over the page&#8217;s copy. Drag it on the canvas to move it; a corner scales it.</s>
+                  </div>
+                </div>
+                <sc-if value="{{ a.gfxHas }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ a.gfxPct }}</s></b>
+                  <div class="gd-slide"><input type="range" min="6" max="140" step="1" value="{{ a.gfxVal }}" onChange="{{ a.gfxSet }}" class="gd-range"></div>
+                  <div class="gd-segs"><sc-for list="{{ a.gfxTintOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                  <span class="gd-hint">{{ a.gfxTintHint }}</span>
+                  <button onClick="{{ a.gfxReset }}" class="gd-link">Reset position and size</button>
+                </sc-if>
               </sc-if>
 
               <!-- THE AWARD'S PARTNER MARK and its tint, from the rail's All-slides group. -->
@@ -4821,6 +4862,15 @@ class OrganicStudio extends StudioBase {
     statTitleIn: 101, colPitch: 402, rowPitch: 331, iconBox: 96, iconInk: 80,
     statTop: 113.6, statPx: 66.5, statBox: 85, labGap: 11, labPx: 28, labBox: 35, labTrack: .14,
     titleGridGap: 30,                       // the air a stacked title must leave above the grid
+    // THE HEADING COLUMN. The three pages whose heading has nothing beside it — the front
+    // page, the stats page and the text page — all wrap to the page's own grid column. The
+    // text page's title used to take the BODY's 704 measure, which is right for 32px copy
+    // and much too narrow for 68px; the body keeps it.
+    headColW: 881,                          // = W - pad - padR on both canvases
+    // THE FLOATING GRAPHIC — an uploaded SVG/PNG placed by hand, Campaign's own feature.
+    // `s` is a fraction of the canvas WIDTH so one value serves the feed and the story, and
+    // `x`/`y` are the centre as fractions of the canvas, for the same reason.
+    gfxS: .34, gfxMin: .06, gfxMax: 1.4,
     gridBotIn: 208.4, statMin: 2, statMax: 6, statDefault: 4,
     // BULLETS — a 472 column against the right inset, 89.5 per row with a .5px white line at
     // 40% above every row and one closing the list; Material `check_circle` in brass at
@@ -4897,7 +4947,18 @@ class OrganicStudio extends StudioBase {
   static csPlain(text) {
     return OrganicStudio.csBlocks(text).filter(b => b.t !== 'd').map(b => b.s).join('\n');
   }
-  static csRich(kind) { return kind === 'cfront' || kind === 'ctext'; }
+  static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats'; }
+  // The floating graphic's record, normalised once so csBox (which has no asset to hand)
+  // and buildOps (which does) read one shape. `a` is the art's aspect, written by the same
+  // drag that writes the scale — the rule Campaign's `gaspect` already follows.
+  static csGfx(f) {
+    const g = (f && f.gfx && typeof f.gfx === 'object') ? f.gfx : {};
+    const C = OrganicStudio.CS, num = (v, d) => (typeof v === 'number' && isFinite(v)) ? v : d;
+    return { x: num(g.x, .5), y: num(g.y, .5),
+             s: Math.max(C.gfxMin, Math.min(C.gfxMax, num(g.s, C.gfxS))),
+             a: (typeof g.a === 'number' && g.a > 0) ? g.a : 1,
+             tint: g.tint !== false };
+  }
   static csEyeKind(kind) { return kind === 'cstats' || kind === 'cbul' || kind === 'ctext'; }
 
   // What a fresh page of each kind carries. `pos` / `align` ARE seeded, the documented
@@ -4907,7 +4968,7 @@ class OrganicStudio extends StudioBase {
   // is not required, so a blank one simply draws nothing and blocks no export.
   static csSeed(kind) {
     if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom' };
-    if (kind === 'cstats') return { eyeOn: 'Show', eyebrow: '', title: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
+    if (kind === 'cstats') return { eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
     if (kind === 'cbul') return { eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
     if (kind === 'ctext') return { eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
     if (kind === 'ccta') return { small: '', big: '', button: '' };
@@ -4916,6 +4977,7 @@ class OrganicStudio extends StudioBase {
   static csNorm(sl) {
     sl.f = Object.assign(OrganicStudio.csSeed(sl.kind), sl.f || {});
     if (sl.kind === 'cstats') { sl.f.n = OrganicStudio.csN(sl.f); sl.f.items = OrganicStudio.csItems(sl.f); }
+    sl.f.gfx = OrganicStudio.csGfx(sl.f);        // every page may float a graphic
     return sl;
   }
   // Switch a page's layout and CARRY ITS COPY: whatever was typed stays on the slide, and
@@ -4923,7 +4985,7 @@ class OrganicStudio extends StudioBase {
   // they are still empty — so Front page -> Text keeps the headline as the title.
   static csConvert(sl, kind) {
     const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', ccta: 'big' };
-    const sec = { cfront: 'sub', cbul: 'bullets', ctext: 'body', ccta: 'small' };
+    const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', ccta: 'small' };
     const o = sl.f || {}, f = Object.assign(OrganicStudio.csSeed(kind), o);
     const p = prim[sl.kind], q = sec[sl.kind];
     if (p && prim[kind] && prim[kind] !== p && !String(f[prim[kind]] || '').trim()) f[prim[kind]] = o[p] || '';
@@ -5505,9 +5567,22 @@ class OrganicStudio extends StudioBase {
         this._scSig = sig;
         // the stats icons' own bytes, for the preview's masks — a re-render when one lands
         const urls = {};
-        Object.keys(sc).forEach(k => { const v = norm(sc[k]); if (v && v.u && /^smp-ic-/.test(k)) urls[k] = v.u; });
+        Object.keys(sc).forEach(k => { const v = norm(sc[k]); if (v && v.u && /^smp-(ic|cg)-/.test(k)) urls[k] = v.u; });
         const usig = Object.keys(urls).sort().map(k => k + ':' + urls[k].length).join('|');
         if (this._slotUrlSig !== usig) { this._slotUrls = urls; this._slotUrlSig = usig; this.forceUpdate(); }
+        // THE FLOATING GRAPHIC'S ASPECT, measured once per URL. `csGfx`'s stored value is
+        // written by a scale drag, so without this a freshly dropped 3:1 mark would sit in a
+        // SQUARE box until it was touched — the drawn art is contain-fitted either way, so
+        // this only ever corrects the box the handles and the hit area sit on.
+        this._gfxAsp = this._gfxAsp || {};
+        Object.keys(urls).forEach(k => {
+          if (!/^smp-cg-/.test(k) || (this._gfxAsp[k] && this._gfxAsp[k].u === urls[k])) return;
+          const u = urls[k], im = new Image();
+          this._gfxAsp[k] = { u, a: 0 };
+          im.onload = () => { if (im.naturalWidth > 0) { this._gfxAsp[k] = { u, a: im.naturalHeight / im.naturalWidth }; this.forceUpdate(); } };
+          im.onerror = () => {};
+          im.src = u;
+        });
         const n = (this.state.slides || []).length;
         this._assetView.bgDims = this._assetView.bgDims || {};
         // one-time migration: legacy index-keyed slots → slide-id keys (index
@@ -7172,8 +7247,19 @@ class OrganicStudio extends StudioBase {
       // dropping the title outright would be worse than letting it touch.
       const tRoom = gridTop - C.titleGridGap - (tTop + eyeH);
       const tFit = Math.max(1, Math.min(3, Math.floor((tRoom - C.titleBox) / C.h2Pitch) + 1));
-      const tl = lines(f.title, C.titlePx, 400, W - C.pad - C.padR, tFit);
+      const tl = lines(f.title, C.titlePx, 400, C.headColW, tFit);
       tl.forEach((t, i) => TC(t, tTop + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0));
+      // THE OPTIONAL BLURB, the same rich body the text page carries — set in the body's own
+      // 704 measure rather than the heading's column, and budgeted by the room the grid
+      // leaves, so it reports what will not fit instead of drawing into the stats.
+      if (f.bodyOn === 'Show') {
+        const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
+        const bTop = tTop + eyeH + titleH + (titleH ? C.titleBodyGap : 0);
+        const R = rtLay(f.body, (W - C.textColW) / 2, C.textColW,
+                        Math.max(0, gridTop - C.titleGridGap - bTop), true, C.bodyPx, C.bodyLead);
+        put(R, bTop);
+        B.over = R.over;
+      }
       for (let i = 0; i < n; i++) {
         const r = Math.floor(i / 2), c = i % 2, alone = (r === rows - 1) && (n % 2 === 1);
         const cx = alone ? W / 2 : W / 2 + (c ? 1 : -1) * C.colPitch / 2;
@@ -7207,7 +7293,9 @@ class OrganicStudio extends StudioBase {
     } else if (kind === 'ctext') {
       const center = f.align !== 'Left';
       const colX = center ? (W - C.textColW) / 2 : C.pad, colW = C.textColW, cx = colX + colW / 2;
-      const tl = lines(f.title, C.titlePx, 400, colW, 3);
+      // THE HEADING TAKES THE PAGE'S OWN COLUMN, not the body's. 704 is a measure for 32px
+      // copy and far too tight for a 68px title; the body below it keeps 704.
+      const tl = lines(f.title, C.titlePx, 400, C.headColW, 3);
       const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
       // the band between the page's own two anchors is what the body may spend, less what
       // the overline and the title have already taken — the height budget that replaced the
@@ -7259,6 +7347,14 @@ class OrganicStudio extends StudioBase {
     // copy climbs past the centre, in which case the ramp starts `scrimPad` before the copy.
     if (B.anchor === 'bottom') B.scrim = { y0: Math.min(H / 2, (B.near == null ? H : B.near) - C.scrimPad) };
     else if (B.anchor === 'top') B.scrim = { y0: Math.max(H / 2, (B.far == null ? 0 : B.far) + C.scrimPad) };
+    // ── THE FLOATING GRAPHIC, computed last because it is DRAWN last: it floats over the
+    // page's own copy, which is the whole point of placing it by hand. The box comes from
+    // the stored aspect so this function and buildOps agree with no asset in hand; both
+    // surfaces then contain-fit into it, so a stale aspect letterboxes rather than stretches.
+    const G = OrganicStudio.csGfx(f);
+    const gMeas = ((this._gfxAsp || {})['smp-cg-' + sl.id] || {}).a;
+    const gw = G.s * W, gh = gw * ((gMeas > 0) ? gMeas : G.a);
+    B.gfx = { x: G.x * W - gw / 2, y: G.y * H - gh / 2, w: gw, h: gh, tint: G.tint };
     return B;
   }
   // The stats icons take Material Symbols through the slot's own `_ingest`, never by writing
@@ -7853,6 +7949,20 @@ class OrganicStudio extends StudioBase {
         ops.push({ op: 'image', img: a.img, url: a.u, x: ic.x + (ic.w - dw) / 2, y: ic.y + (ic.h - dh) / 2, w: dw, h: dh, tintFlat: ic.fill });
       });
       B.texts.forEach(t => ops.push({ op: 'text', x: t.x, y: t.y, px: t.px, weight: t.w, fill: t.fill, text: t.t, ls: t.ls }));
+      // THE FLOATING GRAPHIC IS LAST, so it sits over the page's own copy — which is what
+      // placing something by hand is for. Contain-fitted by the file's own aspect, so a
+      // stale stored aspect letterboxes it inside its box rather than stretching it.
+      const gA = assets['cg' + si];
+      if (B.gfx && gA && gA.img && gA.img.naturalWidth > 0) {
+        const giw = gA.img.naturalWidth, gih = gA.img.naturalHeight;
+        const gk = Math.min(B.gfx.w / giw, B.gfx.h / gih), gdw = giw * gk, gdh = gih * gk;
+        const gop = { op: 'image', img: gA.img, url: gA.u,
+          x: B.gfx.x + (B.gfx.w - gdw) / 2, y: B.gfx.y + (B.gfx.h - gdh) / 2, w: gdw, h: gdh };
+        // tinted by DEFAULT, for the reason Campaign's graphic is: a brand-kit SVG is
+        // routinely navy, and navy on these pages is very nearly invisible
+        if (B.gfx.tint) gop.tintFlat = A.ink;
+        ops.push(gop);
+      }
     } else if (kind === 'cover' || kind === 'cta') {
       // ══ THE WEEKLY COVER AND CLOSING SLIDE, from Cover.svg and CTA.svg ═══════════════
       //   1 the photograph, full bleed   2 the wash   3 wordmark, CENTRED at the top
@@ -8368,6 +8478,8 @@ class OrganicStudio extends StudioBase {
       if (v && v.u) { const img = await loadImg(v.u); if (img) assets['bg' + si] = { img, u: v.u, s: v.s, x: v.x, y: v.y }; }
       const fgv = norm(sidecar['smp-fg-' + sl.id]);
       if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + si] = { img, u: fgv.u }; }
+      const cgv = norm(sidecar['smp-cg-' + sl.id]);          // the carousel page's floating graphic
+      if (cgv && cgv.u) { const img = await loadImg(cgv.u); if (img) assets['cg' + si] = { img, u: cgv.u }; }
       if (sl.kind === 'prop') {
         const pq = norm(sidecar['smp-qr-' + sl.id]);
         if (pq && pq.u) { const img = await loadImg(pq.u); if (img) assets['qr' + si] = { img, u: pq.u }; }
@@ -8572,7 +8684,9 @@ class OrganicStudio extends StudioBase {
             ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Where the copy sits; the wash follows it']],
     cstats:[['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
-            ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line']],
+            ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line'],
+            ['bodyOn', 2, 'Blurb under the title', 'seg:Hide|Show', 'A short paragraph between the title and the grid'],
+            ['body', 2, 'Blurb', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list']],
     cbul:  [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the headline'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
             ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
@@ -8600,6 +8714,9 @@ class OrganicStudio extends StudioBase {
     // field for something the page does not draw is exactly the dead control the audit
     // went looking for. Its copy survives being hidden; nothing is thrown away.
     if (k === 'eyebrow') return (f && f.eyeOn) !== 'Hide';
+    // the stats page's blurb is an ADDITION you opt into, so it opens Hidden and the rich
+    // editor — a heavy control — only appears once it is wanted
+    if (kind === 'cstats' && k === 'body') return (f && f.bodyOn) === 'Show';
     if (kind === 'listed') {
       // Sale/Rent is a fact about a card that says LISTED — a sold property is neither —
       // and the rent period only exists once Rent is picked. Same derivation the card's
@@ -8764,6 +8881,7 @@ class OrganicStudio extends StudioBase {
       if (sl.kind === 'listed') raw.push({ si, sec: 'pictures', kind: 'px' });
       if (sl.kind === 'tacover') raw.push({ si, sec: 'pictures', kind: 'grp' });
       if (sl.kind === 'award') raw.push({ si, sec: 'pictures', kind: 'alogo' });
+      if (OrganicStudio.isCs(sl.kind)) raw.push({ si, sec: 'pictures', kind: 'gfx' });
       // QR & LISTING — the code and the reference it pairs with, last on the page.
       const qr = this.gdQrFor(si);
       if (qr) raw.push({ si, sec: 'listing', kind: 'qr', qrId: qr });
@@ -8910,6 +9028,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'px') return 'Parallax layer';
     if (ask.kind === 'grp') return 'Group photo layer';
     if (ask.kind === 'alogo') return 'Partner mark';
+    if (ask.kind === 'gfx') return 'Floating graphic';
     if (ask.kind === 'story') return 'Story 9:16';
     if (ask.kind === 'name') return 'File name';
     if (!sl) return '';
@@ -8937,6 +9056,7 @@ class OrganicStudio extends StudioBase {
     v.isPx = ask.kind === 'px';
     v.isGrp = ask.kind === 'grp';
     v.isAlogo = ask.kind === 'alogo';
+    v.isGfx = ask.kind === 'gfx';
     v.isStory = ask.kind === 'story';
     v.isGlass = ask.kind === 'glass';
     v.isName = ask.kind === 'name';
@@ -8954,6 +9074,26 @@ class OrganicStudio extends StudioBase {
     }
     if (v.isGrp && sl) {
       v.grpReset = () => this.upd(x => { const c = x.slides[ask.si]; if (c && c.f) delete c.f.grp; return x; });
+    }
+    if (v.isGfx && sl) {
+      // Campaign's floating graphic, per carousel PAGE. The upload lives here; the canvas is
+      // where it is placed, because a thing you position by hand is positioned by hand.
+      const G = OrganicStudio.csGfx(sl.f), C0 = OrganicStudio.CS, id = 'smp-cg-' + sl.id;
+      const write = d => this.upd(x => { const t = x.slides[ask.si];
+        if (t) t.f.gfx = Object.assign(OrganicStudio.csGfx(t.f), d); return x; });
+      v.gfxSlot = id;
+      v.gfxDone = filled[id] ? '1' : undefined;
+      v.gfxHas = filled[id] ? '1' : undefined;
+      v.gfxLabel = filled[id] ? 'Graphic added \u2014 click to replace' : 'Drop an SVG or PNG, or click to choose';
+      v.gfxPct = Math.round(G.s * 100) + '% of the page';
+      v.gfxVal = String(Math.round(G.s * 100));
+      v.gfxSet = e => write({ s: Math.max(C0.gfxMin, Math.min(C0.gfxMax, (parseInt(e.target.value, 10) || 34) / 100)) });
+      v.gfxTintOpts = [[true, 'Match canvas'], [false, 'Original']].map(o => ({ label: o[1],
+        on: (G.tint === o[0]) ? '1' : undefined, set: () => write({ tint: o[0] }) }));
+      v.gfxTintHint = G.tint
+        ? 'Recoloured to the canvas ink \u2014 a brand-kit SVG is usually navy, which all but disappears on these pages.'
+        : 'Drawn in the file\u2019s own colours.';
+      v.gfxReset = () => this.upd(x => { const t = x.slides[ask.si]; if (t && t.f) delete t.f.gfx; return x; });
     }
     if (v.isAlogo) {
       v.alogoDone = filled['smp-alogo'] ? '1' : undefined;
@@ -9202,6 +9342,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'px') return 'Parallax layer';
     if (ask.kind === 'grp') return 'Group photo layer';
     if (ask.kind === 'alogo') return 'Partner mark';
+    if (ask.kind === 'gfx') return 'Floating graphic';
     if (ask.kind === 'story') return 'Story 9:16';
     if (ask.kind === 'name') return 'File name';
     const sl = (this.state.slides || [])[ask.si];
@@ -9510,6 +9651,7 @@ class OrganicStudio extends StudioBase {
       put('smp-qr-' + sl.id, 'qr-' + n);
       put('smp-agent-r' + sl.id, 'agent-' + n);
       if (sl.kind === 'cstats') for (let i = 0; i < OrganicStudio.csN(sl.f || {}); i++) put('smp-ic-' + sl.id + '-' + i, 'icon-' + n + '-' + (i + 1));
+      if (OrganicStudio.isCs(sl.kind)) put('smp-cg-' + sl.id, 'graphic-' + n);
     });
     put('smp-alogo', 'logo-award');
     put('smp-qr', 'qr');
@@ -9747,6 +9889,8 @@ class OrganicStudio extends StudioBase {
         revDragStyle: { display: 'none' }, revDragDown: () => {},
         // The carousel pages' layers, declared for EVERY kind for the same reason.
         csCardOn: false, csCardStyle: { display: 'none' }, csRects: [], csIcons: [], csTexts: [],
+        csGfxOn: false, csGfxSlot: '', csGfxStyle: { display: 'none' }, csGfxSlotStyle: {},
+        csGfxMaskStyle: { display: 'none' }, csGfxHandles: [], csGfxDown: () => {},
         // Declared for EVERY kind: a render key only some kinds set falls back to the
         // browser default, which is how an unstyled layer gets onto a canvas.
         lPhotoOn: false, lPhotoStyle: { display: 'none' }, lPanOn: undefined,
@@ -10145,6 +10289,81 @@ class OrganicStudio extends StudioBase {
         }).filter(Boolean);
         K.csTexts = B.texts.map(t => ({ t: t.t, style: Object.assign(abs(t.x, t.y - t.px), { fontSize: cq(t.px), lineHeight: cq(LH(t.px)),
           fontWeight: t.w, color: t.fill, letterSpacing: t.ls ? (t.ls / t.px) + 'em' : 'normal', whiteSpace: 'nowrap', zIndex: 3, pointerEvents: 'none' }) }));
+        // ── THE FLOATING GRAPHIC ────────────────────────────────────────────────────────
+        // A child of the frame, whose padding box IS the canvas, so canvas coordinates land —
+        // the same reason csRects and csTexts are. `pointerEvents: 'auto'` is set EXPLICITLY
+        // because `frameStyle` is pointer-events:none and that INHERITS: the reason the
+        // ranking cover's five figures once shipped un-draggable while their arithmetic
+        // checked out. z 11 clears the image-slot's own z-index 10, the listed pan's lesson.
+        const GB = B.gfx, gId = 'smp-cg-' + sl.id, gUrl = urls[gId], CS0 = OrganicStudio.CS;
+        K.csGfxSlot = gId;
+        K.csGfxOn = !!gUrl;
+        if (gUrl && GB) {
+          K.csGfxStyle = Object.assign(abs(GB.x, GB.y), { width: cq(GB.w), height: cq(GB.h),
+            zIndex: 11, pointerEvents: 'auto', cursor: 'move' });
+          // tinted: the slot stays mounted as the drop target and the MASK is what you see,
+          // which is what `tintFlat` does on canvas
+          K.csGfxSlotStyle = { position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: GB.tint ? 0 : 1 };
+          K.csGfxMaskStyle = GB.tint
+            ? { position: 'absolute', inset: 0, pointerEvents: 'none', backgroundColor: A.ink,
+                maskImage: 'url("' + gUrl + '")', WebkitMaskImage: 'url("' + gUrl + '")',
+                maskSize: 'contain', WebkitMaskSize: 'contain', maskPosition: 'center',
+                WebkitMaskPosition: 'center', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' }
+            : { display: 'none' };
+          K.csGfxHandles = (si === s.activeSi) ? ['nw', 'ne', 'sw', 'se'].map(dirK => ({
+            dir: dirK[1],
+            style: { position: 'absolute', width: uz(11), height: uz(11), zIndex: 12,
+              background: 'var(--ps-accent-h)', border: uz(2) + ' solid #fff', borderRadius: uz(2),
+              cursor: (dirK === 'nw' || dirK === 'se' ? 'nwse' : 'nesw') + '-resize', pointerEvents: 'auto',
+              left: dirK[1] === 'w' ? uz(-6) : undefined, right: dirK[1] === 'e' ? uz(-6) : undefined,
+              top: dirK[0] === 'n' ? uz(-6) : undefined, bottom: dirK[0] === 's' ? uz(-6) : undefined }
+          })) : [];
+          // ONE undo entry per gesture: the move writes through raw setState and the release
+          // commits — `_undoStack` is 5 deep, so a per-frame push would erase real history.
+          const gGesture = (e, scale) => {
+            e.stopPropagation(); e.preventDefault();
+            const wrap = (e.currentTarget.closest && e.currentTarget.closest('[data-gfx]')) || e.currentTarget;
+            const box = wrap.parentElement;                    // the frame; its padding box is the canvas
+            const rr = (box || wrap).getBoundingClientRect();
+            const cw = Math.max(1, rr.width), ch = Math.max(1, rr.height);
+            const sx = e.clientX, sy = e.clientY, g0 = OrganicStudio.csGfx(sl.f);
+            // the art's TRUE aspect, written with the scale so csBox and buildOps agree
+            const slotEl = wrap.querySelector('image-slot');
+            const im = slotEl && slotEl.shadowRoot && slotEl.shadowRoot.querySelector('.frame img');
+            const asp = (im && im.naturalWidth) ? (im.naturalHeight / im.naturalWidth) : g0.a;
+            const sign = scale ? (e.currentTarget.getAttribute('data-gdir') === 'w' ? -1 : 1) : 0;
+            const pre = JSON.parse(JSON.stringify(this.state));
+            const cl = v2 => Math.max(0, Math.min(1, v2));
+            const mv = ev => {
+              const d = scale
+                // CENTRE-anchored, so the width changes by TWICE the pointer delta for the
+                // dragged edge to track it — the group figures' own lesson
+                ? { s: +Math.max(CS0.gfxMin, Math.min(CS0.gfxMax, g0.s + 2 * (ev.clientX - sx) * sign / cw)).toFixed(4),
+                    a: +asp.toFixed(4) }
+                : { x: +cl(g0.x + (ev.clientX - sx) / cw).toFixed(4),
+                    y: +cl(g0.y + (ev.clientY - sy) / ch).toFixed(4) };
+              this.setState(st => {
+                const nn = JSON.parse(JSON.stringify(st)), t = nn.slides[si];
+                if (!t) return st;
+                t.f.gfx = Object.assign(OrganicStudio.csGfx(t.f), d);
+                return nn;
+              });
+            };
+            const up = () => {
+              document.removeEventListener('pointermove', mv);
+              document.removeEventListener('pointerup', up);
+              this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
+              this._redoStack = [];
+              this.markDirty();
+              try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(this.state)); } catch (e2) {}
+              this.forceUpdate();
+            };
+            document.addEventListener('pointermove', mv);
+            document.addEventListener('pointerup', up);
+          };
+          K.csGfxDown = e => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-gdir')) return; gGesture(e, false); };
+          K.csGfxGrip = e => gGesture(e, true);
+        }
       } else if (kind === 'award') {
         // ══ THE AWARD CARD'S PREVIEW ═══════════════════════════════════════════════════
         // The stack is mirrored with Z-INDEX, never by moving DOM — the same reason the

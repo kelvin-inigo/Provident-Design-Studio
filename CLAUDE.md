@@ -9682,6 +9682,74 @@ first time. Check what the event actually carries before concluding a handler is
   toolbar 8.4-8.6, the brass marks 2.4-4.7 against the field. Export names unchanged.
 - **One artwork-emitter line in the whole 40-hunk diff**, the new `blur` push.
 
+## A WIDER HEADING, AN OPTIONAL STATS BLURB, AND A FLOATING GRAPHIC
+
+Three requests in one pass, all on the carousel. **34 op groups across all six templates,
+34 byte-identical, 649 ops** — nothing existing moves: a short title does not notice a wider
+column, the blurb opens Hidden, and the graphic draws nothing without a file.
+
+### THE HEADING TAKES THE PAGE'S COLUMN, NOT THE BODY'S
+
+`CS.headColW` (881 = W - pad - padR on both canvases) is the one name for it, and the Text
+page's title was the single heading with unused room: it took the BODY's 704, which is a
+measure for 32px copy and far too tight at 68. Measured on one real title, 3 lines at 704
+becomes **2 at 881**. The body keeps 704.
+
+**The other four are left, and each for a reason rather than an oversight.** The front page
+and the stats page already fill that column. The Bullets headline's 379 is what the bullet
+column beside it leaves — widening it means narrowing the list. The CTA headline's 730 is the
+hugging card's own cap, which is the grid (`W - 2 x pad`). Taking width off the bullet list is
+one constant if that is the page that felt cramped.
+
+### THE STATS PAGE TAKES AN OPTIONAL BLURB, the same rich body
+
+`bodyOn` opens **Hidden**, because the rich editor is a heavy control and this is an addition
+you opt into; turning it on reveals the field. Set in the body's own **704** measure rather
+than the heading's column, between the title and the grid, and **budgeted by the room the grid
+leaves** — the grid is bottom-anchored and climbs as stats are added, so the blurb reports what
+will not fit instead of drawing into it. Verified: 11 text ops with it off, 14 with it on, the
+last line at 409 clearing a grid top of 648, paragraphs centred and the list's ticks left.
+
+`cstats` joined `csRich` and `csConvert`'s `sec` map, so the blurb carries to and from the
+other pages' prose fields with its markers intact.
+
+### THE FLOATING GRAPHIC IS CAMPAIGN'S, PER PAGE
+
+An uploaded SVG/PNG placed by hand. `f.gfx = {x, y, s, a, tint}`: **x/y are the centre and s
+the width, both as fractions of the CANVAS**, so one value serves the feed and the story — the
+reason the ranking cover's group figures store fractions. It is **drawn LAST**, over the page's
+own copy, which is what placing something by hand is for (verified: the op is index 18 of 19).
+
+- **Upload in the form, place on the canvas.** The slot is mounted in both under one id, so a
+  file can also be dropped straight onto the canvas.
+- **Tinted by default** to `ART.ink`, for Campaign's own measured reason — a brand-kit SVG is
+  routinely navy and navy on these pages is nearly invisible. The canvas draws `tintFlat`; the
+  preview paints a **mask** with the slot at `opacity: 0` behind it, so the slot stays the drop
+  target. Untinted, the op carries **no `tintFlat` key at all** and the slot's opacity is put
+  back — the documented trap where an empty tint still matches `[data-icon-tint]`.
+- **`pointerEvents: 'auto'` is set EXPLICITLY.** It lives inside `frameStyle`, which is
+  `pointer-events: none` and INHERITS — the reason the ranking cover's five figures once
+  shipped un-draggable while their arithmetic checked out. z 11 clears the image-slot's own 10,
+  the listed pan layer's lesson; the handles are 12.
+- **The corner drag doubles the pointer delta.** The box is centre-anchored, so the width has
+  to change by twice the delta for the dragged edge to track the pointer — the group figures'
+  lesson, and the one place this departs from Campaign's own `gDrag`.
+- **The aspect is measured in `_refreshAV`, not only written by a drag.** Campaign's `gaspect`
+  is written by the scale gesture alone, so a freshly dropped 3:1 mark would sit in a SQUARE
+  box until it was touched. The measurement only ever corrects the box the handles and the hit
+  area sit on — both surfaces contain-fit, so the drawn art is identical either way.
+- One undo entry per gesture, committed on release; `_undoStack` is 5 deep.
+
+**Verified with REAL pointer drags**, not synthetic events: a move took x/y from .5/.5 to
+**0.7727 / 0.6023 against a predicted 0.7727 / 0.6023**, and a corner took s **0.34 -> 0.6127
+against a predicted 0.6127** with the centre held, the true aspect written and the art then
+filling its box exactly. Two gestures, two undo entries. Preview against op: **0.4 canvas px**.
+The file exports as `graphic-NN`.
+
+**Contrast is unchanged**: the same 3 flags in dark as the pre-change build, element for
+element and ratio for ratio — the disabled Redo (1.4.3-exempt) plus a pre-existing `✕` at 4.40
+and a numeral at 2.72, neither of them this pass's.
+
 ## EVERY CAROUSEL HEADLINE TAKES AN AUTHORED BREAK
 
 Asked for after the fact. Three of the five were single-line `<input>`s — `cstats`'s title,
