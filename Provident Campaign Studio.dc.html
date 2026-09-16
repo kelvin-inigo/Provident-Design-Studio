@@ -4611,11 +4611,17 @@ class CampaignStudio extends StudioBase {
     if (line) out.push(line);
     return out;
   }
-  // First line keeps the 1.2 it always had, so no existing single-line design moves;
-  // every line after it advances by the preview's own leading.
+  // WHAT THE FIRST LINE RESERVES, and it is the one place the height model and the
+  // preview's own line box disagree. A flowed text node is n * lead tall; this reserves
+  // 1.2 for the first line and the lead for the rest, so in Latin it under-reserves by
+  // .1em — 3 canvas px, small enough to live with and what keeps every saved Latin ad
+  // exactly where it is. In Arabic the lead is half an em larger and the same shortcut
+  // is .64em out, which is 20 canvas px of drift between the editor's stack and the
+  // export's. So Arabic reserves what the box actually is.
+  static eyeFirst() { return CampaignStudio.isArabic() ? CampaignStudio.leadOf(CampaignStudio.EYE_LEAD) : 1.2; }
   eyebrowH(m, v, tk, innerW) {
     const n = this.eyebrowLines(m, tk, this.eyebrowWidth(m, v, tk, innerW)).length;
-    return tk.eyebrow * 1.2 + tk.eyebrow * CampaignStudio.EYE_LEAD * (n - 1);
+    return tk.eyebrow * (CampaignStudio.eyeFirst() + CampaignStudio.leadOf(CampaignStudio.EYE_LEAD) * (n - 1));
   }
   wrapText(m, px, maxW) {
     const out = [];
@@ -4637,6 +4643,9 @@ class CampaignStudio extends StudioBase {
   static LISTV = { check: 'check', dot: 'dot', ring: 'ring' };
   // Baseline-to-baseline step, shared by the export and the preview's lineHeight.
   static LEAD = { hook: 1.25, body: 1.4, list: 1.75 };
+  static HERO_LEAD = 1.08;        // named so the three op sites and the preview read ONE value
+  static STEP_LEAD = 1.32;        // a process step's label, wrapped under its plate
+  static GLASS_H = 2.3;           // a one-line glass pill's height, in em of its own px
   // Caps for the components lifted from the dwtc landing page. Each is what the
   // page itself shows, and low enough that a block cannot push an ad past the
   // ~40% copy ceiling the brand rules set.
@@ -5165,7 +5174,22 @@ class CampaignStudio extends StudioBase {
     // Light on the headers. The brand rules put the hero and the price figure at
     // Regular, but Readex carries noticeably more weight than Google Sans Flex at the
     // same value, so Regular reads as a slab in Arabic.
-    header: 300
+    header: 300,
+    // ARABIC INK IS HALF AN EM TALLER THAN LATIN'S, AND THAT IS THE WHOLE BUG.
+    // Measured at 100px on the running face, worst case over a set of real strings:
+    // Readex Pro sets Arabic at ascent 100 + descent 47.3 = 147.3 of INK, against
+    // Google Sans Flex's Latin 72.7 + 21.0 = 93.7. The ascent is the tall stem with a
+    // hamza (أ, لج), the descent the deep bowls (ج, ي) — a line carrying both is
+    // ordinary, not a corner case. So every Latin lead in this file is BELOW the
+    // height of a single Arabic line: the hero advances 1.08 where the ink needs
+    // 1.473, and consecutive lines overlap by a third of an em.
+    //
+    // This is ADDED to each role's Latin lead rather than replacing it with one
+    // Arabic value, which is what keeps the design's own rhythm: a display headline
+    // stays tighter than body copy, and every role keeps exactly the air it has in
+    // Latin — the same gap in em, which is what the eye reads as the space between
+    // lines. 147.3 - 93.7 = 53.6, rounded up.
+    leadAdd: .54
   };
   // ── Arabic reading order for LISTS ─────────────────────────────────────────
   // Arabic here is a TYPEFACE switch, not a page-layout flip — margins, alignment
@@ -5274,6 +5298,25 @@ class CampaignStudio extends StudioBase {
   static trackOf(px) { return CampaignStudio.isArabic() ? CampaignStudio.AR.track : px * .16; }
   // The header weight: Regular in Latin, Light in Arabic.
   static headW(latin) { return CampaignStudio.isArabic() ? CampaignStudio.AR.header : latin; }
+  // The line advance for a role, in em of its own size. Read it EVERYWHERE a line
+  // advances — the op, the height `modPx` reserves and the preview's line-height —
+  // or a block reserves one height and draws another.
+  static leadOf(latin) { return CampaignStudio.isArabic() ? latin + CampaignStudio.AR.leadAdd : latin; }
+  // Where a CSS line box puts its FIRST baseline: half-leading plus the ascent, i.e.
+  // (lead + a - d) / 2. The preview is flowed text, so that is where its first line
+  // lands and the op has to agree. Verified against Chrome on both faces at six
+  // leads: within 0.5px per 100px, which is the browser rounding the half-leading.
+  //
+  // `fallback` is the Latin-tuned constant each role has always used, and it is
+  // returned verbatim so no saved Latin ad moves by even a fraction of a pixel. It is
+  // within 0.6% of the formula at the Latin leads and is 28% out at the Arabic ones —
+  // a fixed factor cannot survive the lead changing, which is exactly what this pass
+  // does. So Arabic takes the real thing.
+  static baseAt(lead, fallback) {
+    if (!CampaignStudio.isArabic()) return fallback;
+    const f = StudioBase.fontAsc();
+    return (lead + f.a - f.d) / 2;
+  }
   static tkFor(sizeKey, v) {
     const b = CampaignStudio.PXT[sizeKey];
     const k = CampaignStudio.scaleOf(v, sizeKey);
@@ -5508,16 +5551,16 @@ class CampaignStudio extends StudioBase {
     if (m.type === 'eyebrow') return this.eyebrowH(m, v, tk, innerW) + (mv === 'frame' || mv === 'fill' ? tk.eyebrow * 1.3 : 0);
     if (m.type === 'hero') {
       const hpx = mv === 'jumbo' ? tk.hero * 1.55 : tk.hero;
-      return this.heroLines(m, v, tk, innerW).length * hpx * 1.08;
+      return this.heroLines(m, v, tk, innerW).length * hpx * CampaignStudio.leadOf(CampaignStudio.HERO_LEAD);
     }
     if (m.type === 'hook') {
-      const glass = mv === 'glass', step = tk.hook * CampaignStudio.LEAD.hook;
+      const glass = mv === 'glass', step = tk.hook * CampaignStudio.leadOf(CampaignStudio.LEAD.hook);
       const n = this.wrapText(m, tk.hook, glass ? innerW - tk.hook * CampaignStudio.GLASS_PAD : innerW).length;
       return glass ? tk.hook * 2.4 + (n - 1) * step : step * n;
     }
-    if (m.type === 'body') return tk.body * CampaignStudio.LEAD.body * this.wrapText(m, tk.body, innerW).length;
+    if (m.type === 'body') return tk.body * CampaignStudio.leadOf(CampaignStudio.LEAD.body) * this.wrapText(m, tk.body, innerW).length;
     if (m.type === 'list') {
-      const step = tk.body * CampaignStudio.LEAD.list;
+      const step = tk.body * CampaignStudio.leadOf(CampaignStudio.LEAD.list);
       // `rule` drops the bullet column and separates rows with a hairline instead,
       // so the text runs full width and the row height is unchanged.
       const ind = mv === 'rule' ? 0 : tk.body * CampaignStudio.LIST_INDENT;
@@ -5719,16 +5762,16 @@ class CampaignStudio extends StudioBase {
       };
       if (m.type === 'eyebrow') {
         const ls = CampaignStudio.trackOf(tk.eyebrow);
-        const lead = tk.eyebrow * CampaignStudio.EYE_LEAD;
+        const eLead = CampaignStudio.leadOf(CampaignStudio.EYE_LEAD), lead = tk.eyebrow * eLead;
         const lines = this.eyebrowLines(m, tk, this.eyebrowWidth(m, v, tk, iw));
         const wOf = t => this.meas(t, tk.eyebrow, 500, false, ls);
         const widest = lines.reduce((a, t) => Math.max(a, wOf(t)), 0);
-        const textH = tk.eyebrow * 1.2 + lead * (lines.length - 1);
+        const textH = tk.eyebrow * CampaignStudio.eyeFirst() + lead * (lines.length - 1);
         // every line placed from the block's own left edge, centred per line when the
         // canvas is centred — the same rule the rest of the engine follows
         const put = (x0, blockW, fill, y0) => lines.forEach((t, i) => {
           const lx = center ? x0 + (blockW - wOf(t)) / 2 : x0;
-          ops.push({ op: 'text', x: lx, y: y0 + tk.eyebrow + lead * i, px: tk.eyebrow, weight: 500, fill, text: t, ls });
+          ops.push({ op: 'text', x: lx, y: y0 + tk.eyebrow * CampaignStudio.baseAt(eLead, 1) + lead * i, px: tk.eyebrow, weight: 500, fill, text: t, ls });
         });
         if (mv === 'frame' || mv === 'fill') {
           const solid = mv === 'fill';
@@ -5755,10 +5798,11 @@ class CampaignStudio extends StudioBase {
         }
       } else if (m.type === 'hero') {
         const hpx = mv === 'jumbo' ? tk.hero * 1.55 : tk.hero;
+        const hLead = CampaignStudio.leadOf(CampaignStudio.HERO_LEAD);
         const lines = this.heroLines(m, v, tk, iw);
         // `fade` ramps the headline out downward — one gradient across the whole
         // block in canvas coordinates, so it does not restart on each line.
-        const fade = mv === 'fade' ? { y0: y, y1: y + lines.length * hpx * 1.08,
+        const fade = mv === 'fade' ? { y0: y, y1: y + lines.length * hpx * hLead,
           stops: [[0, CampaignStudio.rgbaOf(pal.ink, 1)], [1, CampaignStudio.rgbaOf(pal.ink, CampaignStudio.FADE_MIN)]] } : null;
         // A line is ONE op, not one per word. Placing each word at an advancing x is
         // the same pixels for Latin but reverses the sentence in Arabic, where the
@@ -5766,7 +5810,7 @@ class CampaignStudio extends StudioBase {
         // line and got it right, so the export was the half that disagreed. Every
         // other component here already joins its parts before drawing.
         lines.forEach((ln, i) => {
-          const yy = y + (i + .82) * hpx * 1.08;
+          const yy = y + hpx * (i * hLead + CampaignStudio.baseAt(hLead, .82 * CampaignStudio.HERO_LEAD));
           const r = ln.parts[0] && ln.parts[0].r;
           if (!r) return;
           const t = ln.parts.map(p => p.t).join(' ');
@@ -5778,27 +5822,37 @@ class CampaignStudio extends StudioBase {
         const glass = m.type === 'hook' && mv === 'glass';
         const avail = glass ? iw - px * CampaignStudio.GLASS_PAD : iw;
         const lines = this.wrapText(m, px, avail);
-        const step = px * CampaignStudio.LEAD[m.type === 'hook' ? 'hook' : 'body'];
+        const bLead = CampaignStudio.leadOf(CampaignStudio.LEAD[m.type === 'hook' ? 'hook' : 'body']);
+        const step = px * bLead, base0 = px * CampaignStudio.baseAt(bLead, 1);
         if (glass) {
           const tw = lines.reduce((a, l) => Math.max(a, this.meas(l, px, 300, false, 0)), 0);
           // never wider than the content column, so the pill stays on the margin
-          const bw = Math.min(iw, tw + px * CampaignStudio.GLASS_PAD), bh = px * 2.3 + (lines.length - 1) * step;
+          const bw = Math.min(iw, tw + px * CampaignStudio.GLASS_PAD), bh = px * CampaignStudio.GLASS_H + (lines.length - 1) * step;
           const bx = center ? cctr(bw) : px0;
           // Blur the backdrop first, then lay the translucent panel over it —
           // this is what reproduces the preview's backdrop-filter in an export.
           ops.push({ op: 'blur', x: bx, y, w: bw, h: bh, r: 27, amount: 14 });
           ops.push({ op: 'rrect', x: bx, y, w: bw, h: bh, r: 27, fill: pal.glassFill, stroke: pal.glassStroke, sw: 2 });
-          lines.forEach((l, i) => ops.push({ op: 'text', x: bx + px * 1.1, y: y + px * 1.15 + px * .36 + i * step, px, weight: 300, fill: pal.inkSoft, text: l }));
+          // THE PANEL WAS CENTRED AND ITS LINES WERE NOT. Every line was drawn at the
+          // pill's own left inset, so on a centred design the widest line filled the
+          // pill and every shorter one sat flush left inside it — while the preview
+          // centred them, because the content stack sets text-align:center and a
+          // flowed text node inherits it. Same defect the glass PRICE block carried
+          // and the same fix: a centred box centres the copy inside it too.
+          lines.forEach((l, i) => {
+            const lw = this.meas(l, px, 300, false, 0);
+            ops.push({ op: 'text', x: center ? bx + (bw - lw) / 2 : bx + px * 1.1, y: y + px * 1.15 + px * .36 + i * step, px, weight: 300, fill: pal.inkSoft, text: l });
+          });
         } else if (m.type === 'body' && mv === 'note') {
           lines.forEach((l, i) => {
             const tw = this.meas(l, px, 300, false, 0);
-            ops.push({ op: 'text', x: px0 + iw - tw, y: y + px + i * step, px, weight: 300, fill: pal.inkSoft, text: l });
+            ops.push({ op: 'text', x: px0 + iw - tw, y: y + base0 + i * step, px, weight: 300, fill: pal.inkSoft, text: l });
           });
         } else {
-          lines.forEach((l, i) => T(l, px, 300, pal.inkSoft, y + px + i * step));
+          lines.forEach((l, i) => T(l, px, 300, pal.inkSoft, y + base0 + i * step));
         }
       } else if (m.type === 'list') {
-        const px = tk.body, step = px * CampaignStudio.LEAD.list;
+        const px = tk.body, lLead = CampaignStudio.leadOf(CampaignStudio.LEAD.list), step = px * lLead, lBase = px * CampaignStudio.baseAt(lLead, 1);
         // `rule` is the dwtc page's benefit list: no bullet, a hairline between rows.
         const ruleV = mv === 'rule';
         const ind = ruleV ? 0 : px * CampaignStudio.LIST_INDENT;
@@ -5823,7 +5877,7 @@ class CampaignStudio extends StudioBase {
               else ops.push({ op: 'poly', pts: [[cxb - bs * .42, cyb + bs * .04], [cxb - bs * .1, cyb + bs * .34], [cxb + bs * .46, cyb - bs * .34]], stroke: pal.ruleGold, sw: Math.max(1.5, px * .12) });
             }
             const lwT = rtlL ? this.meas(line, px, 300, false, 0) : 0;
-            ops.push({ op: 'text', x: rtlL ? px0 + iw - ind - lwT : px0 + ind, y: yy + px + (ruleV ? px * .3 : 0), px, weight: 300, fill: pal.inkSoft, text: line });
+            ops.push({ op: 'text', x: rtlL ? px0 + iw - ind - lwT : px0 + ind, y: yy + lBase + (ruleV ? px * .3 : 0), px, weight: 300, fill: pal.inkSoft, text: line });
             li++;
           });
         });
@@ -5900,7 +5954,7 @@ class CampaignStudio extends StudioBase {
               .forEach((ln, li) => {
                 const lw = this.meas(ln, B.labPx, 400, false, 0);
                 // centred under the plate, or flush left with it
-                ops.push({ op: 'text', x: px0 + ci * B.colW + (B.centre ? (B.colW - lw) / 2 : 0), y: y + B.d + B.gap + (li + 1) * B.labPx * 1.32 - B.labPx * .28, px: B.labPx, weight: 400, fill: pal.ink, text: ln });
+                ops.push({ op: 'text', x: px0 + ci * B.colW + (B.centre ? (B.colW - lw) / 2 : 0), y: y + B.d + B.gap + (li + 1) * B.labPx * CampaignStudio.leadOf(CampaignStudio.STEP_LEAD) - B.labPx * .28, px: B.labPx, weight: 400, fill: pal.ink, text: ln });
               });
           });
         }
@@ -6219,7 +6273,7 @@ class CampaignStudio extends StudioBase {
     const gap = d * .3;
     return { items, n, list: false, colW, d, labPx, labW, maxLines, gap, centre: !!center,
       badge: d * .3, icon: d * .42,
-      h: d + gap + maxLines * labPx * 1.32 };
+      h: d + gap + maxLines * labPx * CampaignStudio.leadOf(CampaignStudio.STEP_LEAD) };
   }
   // The hero benefit strip: short labels on one line, hairline-separated, wrapping
   // to a second line rather than running past the margin. Same shape chipRows
@@ -6987,7 +7041,11 @@ class CampaignStudio extends StudioBase {
         };
         if (m.type === 'eyebrow') {
           const boxed = mv === 'frame' || mv === 'fill';
+          // The lead is STATED rather than inherited. It used to fall through to
+          // canvasStyle's 1.3, which is EYE_LEAD by coincidence — a coincidence that
+          // stops holding the moment the lead depends on the face.
           view.tStyle = { fontWeight: 500, fontSize: cq(tk.eyebrow), letterSpacing: cq(CampaignStudio.trackOf(tk.eyebrow)), textTransform: 'uppercase',
+            lineHeight: CampaignStudio.leadOf(CampaignStudio.EYE_LEAD),
             color: mv === 'fill' ? pal.eyeInk : (mv === 'frame' ? pal.ink : pal.inkMute) };
           if (boxed) { view.tStyle.padding = '1.3cqw 3cqw'; view.tStyle.display = 'inline-block'; }
           // The stroke mirrors the op's `stroke`, the ground mirrors its `fill` — the
@@ -7002,8 +7060,8 @@ class CampaignStudio extends StudioBase {
           }
         } else if (m.type === 'hero') {
           view.tStyle = mv === 'jumbo'
-            ? { fontWeight: 300, fontSize: cq(tk.hero * 1.55), lineHeight: 1.08, letterSpacing: '-0.01em', color: pal.ink, whiteSpace: 'pre-line' }
-            : { fontWeight: CampaignStudio.headW(400), fontSize: cq(tk.hero), lineHeight: 1.08, color: pal.ink, whiteSpace: 'pre-line' };
+            ? { fontWeight: 300, fontSize: cq(tk.hero * 1.55), lineHeight: CampaignStudio.leadOf(CampaignStudio.HERO_LEAD), letterSpacing: '-0.01em', color: pal.ink, whiteSpace: 'pre-line' }
+            : { fontWeight: CampaignStudio.headW(400), fontSize: cq(tk.hero), lineHeight: CampaignStudio.leadOf(CampaignStudio.HERO_LEAD), color: pal.ink, whiteSpace: 'pre-line' };
           if (mv === 'fade') {
             // background-clip:text is how a browser paints a gradient through
             // glyphs; the export does the same with a gradient fill on the text op.
@@ -7017,12 +7075,22 @@ class CampaignStudio extends StudioBase {
           if (i >= 0) { view.pre = t.slice(0, i); view.serif = w; view.post = t.slice(i + w.length); }
           else { view.pre = t; view.serif = ''; view.post = ''; }
         } else if (m.type === 'hook') {
-          view.tStyle = { fontWeight: 300, fontSize: cq(tk.hook), color: pal.inkSoft, lineHeight: CampaignStudio.LEAD.hook, whiteSpace: 'pre-line' };
+          view.tStyle = { fontWeight: 300, fontSize: cq(tk.hook), color: pal.inkSoft, lineHeight: CampaignStudio.leadOf(CampaignStudio.LEAD.hook), whiteSpace: 'pre-line' };
           view.tStyle.maxWidth = '100%';
           view.tStyle.boxSizing = 'border-box';
-          if (mv === 'glass') { view.tStyle.background = pal.glassFill; view.tStyle.border = '1px solid ' + pal.glassStroke; view.tStyle.backdropFilter = view.tStyle.WebkitBackdropFilter = 'blur(14px)'; view.tStyle.borderRadius = '2.5cqw'; view.tStyle.padding = '1.6cqw 2.8cqw'; view.tStyle.display = 'inline-block'; }
+          if (mv === 'glass') {
+            view.tStyle.background = pal.glassFill; view.tStyle.border = '1px solid ' + pal.glassStroke;
+            view.tStyle.backdropFilter = view.tStyle.WebkitBackdropFilter = 'blur(14px)';
+            view.tStyle.borderRadius = '2.5cqw'; view.tStyle.display = 'inline-block';
+            // THE PILL'S PADDING IS THE OP'S OWN. The panel is GLASS_H tall for one line
+            // and GLASS_PAD wide around the copy, so deriving both from those constants
+            // is what makes the two surfaces draw the same pill. They were 1.6cqw and
+            // 2.8cqw — hand-tuned against a Latin lead, and about 6 and 9 canvas px out
+            // even there; with an Arabic lead the vertical one is 13 out.
+            view.tStyle.padding = cq(tk.hook * (CampaignStudio.GLASS_H - CampaignStudio.leadOf(CampaignStudio.LEAD.hook)) / 2) + ' ' + cq(tk.hook * CampaignStudio.GLASS_PAD / 2);
+          }
         } else if (m.type === 'body') {
-          view.tStyle = { fontWeight: 300, fontSize: cq(tk.body), color: pal.inkSoft, lineHeight: CampaignStudio.LEAD.body, whiteSpace: 'pre-line', textAlign: isNote ? 'right' : 'inherit' };
+          view.tStyle = { fontWeight: 300, fontSize: cq(tk.body), color: pal.inkSoft, lineHeight: CampaignStudio.leadOf(CampaignStudio.LEAD.body), whiteSpace: 'pre-line', textAlign: isNote ? 'right' : 'inherit' };
         } else if (m.type === 'tags' && !CampaignStudio.isStrip(mv) && mv !== 'icon') {
           // row-reverse on a WRAPPING flex reverses within each line, which is exactly
           // what the ops do — the lines keep the same membership, they just fill from
@@ -7101,7 +7169,7 @@ class CampaignStudio extends StudioBase {
               connStyle: di < B.n - 1 ? { position: 'absolute', left: cq(B.centre ? B.colW / 2 : B.d / 2), width: cq(B.colW), top: cq(B.d / 2), height: '2px', backgroundImage: `repeating-linear-gradient(to right, ${pal.boxBd} 0 ${cq(Math.max(2, B.d * .035))}, transparent ${cq(Math.max(2, B.d * .035))} ${cq(Math.max(2, B.d * .035) * 2.6)})` } : { display: 'none' },
               hasFig: false, fig: '', figStyle: {},
               hasLab: true, lab: (i + 1) + '. ' + t,
-              labStyle: { fontWeight: 400, fontSize: cq(B.labPx), lineHeight: 1.32, color: pal.ink, textAlign: center ? 'center' : 'left', marginTop: cq(B.gap), display: 'block', maxWidth: cq(B.labW) },
+              labStyle: { fontWeight: 400, fontSize: cq(B.labPx), lineHeight: CampaignStudio.leadOf(CampaignStudio.STEP_LEAD), color: pal.ink, textAlign: center ? 'center' : 'left', marginTop: cq(B.gap), display: 'block', maxWidth: cq(B.labW) },
               wrapStyle: { position: 'relative', width: cq(B.colW), flex: 'none', display: 'flex', flexDirection: 'column', alignItems: center ? 'center' : 'flex-start' }
               };
             });
@@ -7251,11 +7319,15 @@ class CampaignStudio extends StudioBase {
             document.addEventListener('pointerup', upFn);
           };
         } else if (m.type === 'list') {
-          view.ladStyle = { display: 'flex', flexDirection: 'column', gap: cq(tk.body * (CampaignStudio.LEAD.list - 1)), width: '100%' };
+          // ONE advance for every line, which is what the op does: a row's own wrapped
+          // lines and the step to the next bullet are the same number. The preview had
+          // the row at LEAD.body with a LEAD.list - 1 gap between rows, so its pitch was
+          // 2.15em against the export's 1.75 — visible the moment a list had two items.
+          view.ladStyle = { display: 'flex', flexDirection: 'column', gap: 0, width: '100%' };
           // flex:1 fills the column, so the copy needs telling which end to hug — the
           // op right-aligns it to meet the bullet, and without this the preview would
           // leave it hanging at the far side of an otherwise identical row.
-          view.valStyle = { fontWeight: 300, fontSize: cq(tk.body), lineHeight: CampaignStudio.LEAD.body, color: pal.inkSoft, flex: 1, minWidth: 0, textAlign: CampaignStudio.listRtl() ? 'right' : 'left' };
+          view.valStyle = { fontWeight: 300, fontSize: cq(tk.body), lineHeight: CampaignStudio.leadOf(CampaignStudio.LEAD.list), color: pal.inkSoft, flex: 1, minWidth: 0, textAlign: CampaignStudio.listRtl() ? 'right' : 'left' };
         } else if (m.type === 'divider') {
           const dv = CampaignStudio.DIVV[mv] || [1, 1];
           view.tStyle = { height: dv[0] + 'px', background: pal.ink, opacity: dv[1], width: '100%' };

@@ -9381,6 +9381,119 @@ cleared afterwards.
 - **Organic's orange period**, above.
 - **`wkSpecBox` should warm the weights it measures with**, above.
 
+# ARABIC NEEDS HALF AN EM MORE PER LINE, AND A CENTRED PILL HAD FLUSH-LEFT COPY
+
+Two reports on `Provident Campaign Studio.dc.html`, with screenshots: an Arabic headline
+whose two lines collided, and a glass hook whose panel was centred while the copy inside it
+was not. They are unrelated defects and both are fixed.
+
+**Latin is byte-identical: 16 groups (4 templates x left/centre x 1:1 and 9:16), 225 ops,
+0 differing** against the pre-change build served alongside.
+
+## THE MEASUREMENT THAT SETTLES THE LEADING
+
+Taken at 100px on the running faces, worst case over a set of real strings:
+
+| | ink ascent | ink descent | INK HEIGHT |
+|---|---|---|---|
+| Google Sans Flex, Latin | 72.7 | 21.0 | **93.7** |
+| Readex Pro, Latin | 77.1 | 23.0 | 100.1 |
+| **Readex Pro, ARABIC** | **100.0** | **47.3** | **147.3** |
+
+**So every Latin lead in this file is below the height of a single Arabic line.** The hero
+advances `1.08` where the ink needs `1.473`; the hook 1.25, the eyebrow 1.3, the body 1.4,
+the step label 1.32. The ascent is a tall stem carrying a hamza (أ, لج) and the descent a
+deep bowl (ج, ي) — a line with both is ordinary, not a corner case.
+
+Measured on the reported headline before the fix, the ink GAP between its two lines:
+**-31.3 canvas px on the 1:1 and -37.9 on the 9:16.** Negative is overlap. The hook was at
++1.0, one pixel from touching. After: the worst gap anywhere in that project is **+14.6**.
+
+**`AR.leadAdd` is .54 — 147.3 - 93.7, rounded up — and it is ADDED to each role's Latin
+lead rather than replacing every lead with one Arabic number.** That keeps the design's own
+rhythm (a display headline stays tighter than body copy) and gives every role exactly the
+air it has in Latin, the same gap in em, which is what the eye reads as the space between
+lines. `CampaignStudio.leadOf(latin)` is the one reader: hero 1.08 -> 1.62, eyebrow 1.3 ->
+1.84, hook 1.25 -> 1.79, body 1.4 -> 1.94, list 1.75 -> 2.29, step label 1.32 -> 1.86.
+
+**The cost is real and is the honest consequence of a taller script**: an Arabic body block
+is ~38% taller than the same lines in Latin, so a dense Arabic ad reaches the 40% copy
+ceiling sooner. The copy-coverage chip reports it automatically.
+
+## A FIXED FIRST-BASELINE FACTOR CANNOT SURVIVE THE LEAD CHANGING
+
+The hero placed its first line at `.82 * lead` and the hook, body, eyebrow and list at
+`1.0 * px`. Those are Latin-tuned approximations of what a CSS line box actually does, which
+is where the PREVIEW puts its first line: half-leading plus the ascent, **`(lead + a - d) / 2`**.
+
+Verified against Chrome with a zero-height inline-block probe, both faces, six leads: the
+formula lands within **0.5px per 100px**, which is the browser rounding the half-leading. The
+old factor is right only where it was tuned — at lead 1.08 it is 88.56 against 88.0, and at
+1.94 it is **159 against 131, 28% out**. Raising the leads without this would have opened an
+8.6 canvas px gap between the editor and the export on the hero alone.
+
+`CampaignStudio.baseAt(lead, fallback)` returns the **fallback verbatim in Latin**, so no
+saved Latin ad moves by a fraction of a pixel, and the formula in Arabic. Keeping a value
+that is 0.6% off in Latin is deliberate: correcting it would churn every saved ad for a
+third of a pixel.
+
+## THREE HEIGHT MODELS ASSUMED A LATIN LEAD, and raising the lead exposed all three
+
+Each reserves space in `modPx` or its own geometry helper, and each was silently within a
+few pixels of the preview in Latin and 13-20 canvas px out in Arabic:
+
+- **`eyebrowH` gives the FIRST line 1.2** where a flowed text node is `n * lead` tall. In
+  Latin that under-reserves by .1em (3 canvas px, and it is what keeps saved ads still); in
+  Arabic the same shortcut is .64em, **20 canvas px** of drift down the whole stack.
+  `eyeFirst()` returns 1.2 in Latin and the lead in Arabic, and the ops' own `textH` reads it.
+- **The glass pill's preview padding was `1.6cqw 2.8cqw`**, hand-tuned against a Latin lead
+  and about 6 and 9 canvas px out even there. It is derived from the op's own constants now —
+  `GLASS_H` (2.3) and `GLASS_PAD` — so the two surfaces draw the same pill at any lead.
+- **The bullet list's preview pitch was 2.15em against the export's 1.75.** The op advances
+  EVERY line by `LEAD.list`, a row's own wrapped lines included; the preview had the row at
+  `LEAD.body` with a `LEAD.list - 1` gap between rows. Pre-existing, visible the moment a
+  list had two items, and it had to be settled because the gap expression reads `LEAD.list`.
+  One advance now: `gap: 0`, row line-height `leadOf(LEAD.list)`. Measured after — op step 49
+  against a preview 48.9 in Latin, 64.1 against 64.0 in Arabic.
+
+`modPx` reserving `tk.hook * 2.4` for a glass pill the panel draws at `2.3` is left alone: a
+hair of slack under the panel, pre-existing, and unifying them would move Latin.
+
+## THE CENTRED PILL — the fifth instance of one defect, and it hit LATIN too
+
+The glass hook drew every line at `bx + px * 1.1`, the pill's own left inset. So the widest
+line filled the pill and every shorter one sat flush left inside it, while the preview
+centred them — a flowed text node inherits the content stack's `text-align: center`.
+
+**Measured on the pre-change build, the second line's left edge against its op: 296.8 canvas
+px out in Latin and 333.8 in Arabic. Both are 0 now.** The report framed it as an Arabic
+problem; it was not, and the screenshots happened to be Arabic.
+
+This is the same defect the glass PRICE block carried, and that one's fix comment already
+names the class. The sweep that should have caught the hook then was never run, so it was run
+now: **every component type x every style variant x both faces, centred — 66 combinations,
+0 mismatches.** Every line the preview centres, the ops centre. The list and the tag strip
+correctly centre neither (a bullet list has one left edge; chips sit side by side) and both
+surfaces agree on that, including the RTL reversal.
+
+## Verification
+
+- **Latin op census: 16 groups, 225 ops, 0 differing.** The Latin fallbacks make this true by
+  construction and it was measured anyway.
+- **Preview against ops, one coordinate space, both faces, left and centred**: worst baseline
+  delta **3.11 canvas px** in Arabic (the hero, down from 7.14) and 6.24 in Latin (unchanged,
+  pre-existing). The wordmark's own 7-8 px is the documented `logoBase` gap and is untouched.
+  Step labels match to 0.06 (58.6 op against 58.657 preview).
+- **A Range's client rects are INLINE boxes, not line boxes.** A probe that added the
+  half-leading to a rect top double-counted it and reported a 9-19 px drift that did not
+  exist. The baseline of an inline rect is `rect.top + ascent * px`. That artefact cost a
+  round and read exactly like a real regression.
+- Sheet integrity unchanged against the backup: one closing style tag, comments 321/321,
+  `sc-if` 148/147, `sc-for` 47, 977 CSS rules (this pass authored none). Interpolation sweep
+  318 refs and 62 unresolved on both sides, **none newly unresolved**; 304 render keys, no
+  duplicates.
+- The test origin's `localStorage` was cleared and the `_PRE` copy removed from the folder.
+
 # THE WORDMARK IS THE SUPPLIED LOCKUP, AND ONE ASSET SERVES BOTH THEMES
 
 `provident.` plus a `DESIGN STUDIO` badge, from two supplied files —
