@@ -9682,6 +9682,49 @@ first time. Check what the event actually carries before concluding a handler is
   toolbar 8.4-8.6, the brass marks 2.4-4.7 against the field. Export names unchanged.
 - **One artwork-emitter line in the whole 40-hunk diff**, the new `blur` push.
 
+## THE CLOSING CARD CARRIES A PERMIT NUMBER
+
+The advertisement's own compliance line, at the foot of the `ccta` page. Optional — a blank
+draws nothing, so **34 op groups, 34 byte-identical, 649 ops** and no saved post changes.
+
+**It sits on the page's EXISTING bottom line** — SWIPE's own baseline (1360.6 on the feed,
+1840.6 on the story, from the same expression) — so the foot of the page carries one line
+rather than two. Centred on the canvas, under the centred card. Eyebrow type role at the
+page's own small-caps size: **28 / 500 / .14em, uppercased.**
+
+**In `warm`, NOT brass, and that is a decision.** A legal notice should not read as a second
+brand accent, and "gold is minimised in canvas output at all" has already taken four
+exemptions. One token if it should match the overline.
+
+### THE CTA HAD NO SCRIM AT ALL, so the line needed its own ground
+
+`B.anchor` is `null` on this kind — the card is its own glass surface and the rest of the page
+is bare photograph. A run down there measured **1.06:1 over a white photograph**. `B.scrimBot`
+is the mirror of the blurb's band (solid at the bottom edge, fading upward), and it is
+**sized to this one line rather than the template's 250 wash**: 20 of hold plus `permitFade`
+160 keeps the whole band BELOW the card — measured, the band starts at 1153.4 against a card
+bottom of 1050.2 on the feed, and 1633.4 against 1290.2 on the story. **13.75:1 after.**
+
+### IT CLEARS SWIPE, AND THE FIRST ATTEMPT DID NOT
+
+A CTA page is normally last, so SWIPE is hidden — but a page added after it brings SWIPE back,
+and SWIPE holds the right end of that same line. The permit is centred, so SWIPE's left edge
+bounds the HALF width. Stepped down to fit, never solved, per this font's optical-size axis.
+
+**The floor stopped the step-down before it fit.** A 52-character permit (DLD plus RERA plus
+ORN is a real one) shrank to the floor and still overlapped SWIPE by **9px**. So the floor is
+the BRAND's own type floor (`permitMin` .85 → 23.8) and past it the line **wraps**, up to two
+lines stacking upward off the bottom line — two small lines read, one 15px line does not. The
+band's top follows the topmost line.
+
+Measured, all four cases: short/last one line 342-738; short/not-last the same, clearing
+SWIPE at 853.4; **long/not-last 23.5px on two lines, 787.9 and 674.5, both clearing**;
+long/last one 26px line at 110.8-969.2, inside the margins. Preview against op: **dX 0.00,
+dY 0.41 canvas px**, weight 500, `rgb(250,248,244)`, tracking 3.916px.
+
+`TIERNAMES.ccta` gained a third name (`Reference`) so the field does not fall through to the
+generic table, the same fix `cstats` needed.
+
 ## THE STATS BLURB GETS ITS OWN BAND, and the first shape of it was backwards
 
 The stats page's scrim is anchored to its GRID, which is at the bottom — so everything above

@@ -4888,6 +4888,13 @@ class OrganicStudio extends StudioBase {
     ctaPad: 70, ctaRuleW: 78, ctaRuleH: 4, ctaRuleGap: 50.5, ctaSmallPx: 32, ctaSmallBox: 40,
     ctaSmallBigGap: 20, ctaBigPillGap: 39, ctaPillH: 108, ctaPillPadX: 42.5, ctaPillPx: 32,
     ctaPillWmGap: 139, ctaWmBox: 34.94, ctaWmBase: 27.5, ctaR: 28, ctaMaxW: 870, ctaMinContent: 501,
+    // THE PERMIT NUMBER at the foot of the closing card — the advertisement's own compliance
+    // line, on the page's existing bottom line (SWIPE's). Its band is SHORTER than the
+    // template's own 250 wash: this is one small run, and 20 of hold plus 160 of fade keeps
+    // the whole band below the card rather than washing up behind it.
+    // the floor is the BRAND's own type floor (.85 x 28 = 23.8), not an arbitrary one: past
+    // it a legal notice stops being readable, so a long permit WRAPS rather than shrinking
+    permitFade: 160, permitMin: .85, permitMax: 2, permitLead: 1.35,
     // THE SCRIM. Navy, transparent at the canvas's vertical centre and solid at the edge the
     // copy sits on. When the copy climbs past the centre the scrim starts `scrimPad` above
     // it instead, so the copy always has that much wash behind it — "a padding of 250 that
@@ -4973,7 +4980,7 @@ class OrganicStudio extends StudioBase {
     if (kind === 'cstats') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
     if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
     if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
-    if (kind === 'ccta') return { small: '', big: '', button: '' };
+    if (kind === 'ccta') return { small: '', big: '', button: '', permit: '' };
     return {};
   }
   static csNorm(sl) {
@@ -7207,11 +7214,13 @@ class OrganicStudio extends StudioBase {
       return R;
     };
     // SWIPE › — on every page that has a next one, never on the last
+    let swipeX = null;
     if (!last) {
       const px = C.swipePx, ls = C.swipeTrack * px, top = H - C.swipeBotIn, base = top + asc(px);
       const chR = W - C.padR, chL = chR - C.swipeChevW, cy = top + C.swipeBox / 2;
       const ink = meas('SWIPE', px, 300, ls) - ls;
-      T('SWIPE', chL - C.swipeGap - ink, base, px, 300, A.warm, ls);
+      swipeX = chL - C.swipeGap - ink;
+      T('SWIPE', swipeX, base, px, 300, A.warm, ls);
       B.icons.push({ glyph: 'chev', x: chL - 1, y: cy - C.swipeChevH / 2 - 1, w: C.swipeChevW + 2, h: C.swipeChevH + 2, fill: A.ink });
       far(top + C.swipeBox);
     }
@@ -7363,6 +7372,34 @@ class OrganicStudio extends StudioBase {
       y += C.ctaPillWmGap;
       TC('provident.', y + C.ctaWmBase, tk.logo, 300, A.warm, logoLS);
       B.near = cy0; far(cy0 + ch); B.anchor = null;   // no scrim: the card is its own surface
+      // ── THE PERMIT NUMBER. Tracked caps at the eyebrow's own size and tracking, on the
+      // page's existing bottom line — SWIPE's baseline — so the foot of the page carries one
+      // line rather than two. Centred under the card. In `warm` rather than brass: a legal
+      // notice should not read as a second brand accent, and "gold is minimised in canvas
+      // output" has taken four exemptions already. One token if it should match the overline.
+      const permit = String(f.permit || '').trim().toUpperCase();
+      if (permit) {
+        const pTop = H - C.swipeBotIn;
+        // it has to clear SWIPE when this page is not the last one. Centred on the canvas,
+        // so SWIPE's own left edge bounds the HALF width — a symmetric constraint.
+        const room = swipeX == null ? W - 2 * C.pad : Math.min(W - 2 * C.pad, 2 * (swipeX - C.swipeGap / 2 - W / 2));
+        // stepped, never solved: this font's width per em is not constant with px. And it
+        // stops at the brand's own floor and WRAPS instead — a 52-character permit (DLD plus
+        // RERA plus ORN is a real one) otherwise kept shrinking and still overlapped SWIPE by
+        // 9px at the floor. Two small lines read; one 15px line does not.
+        let px = C.swipePx, ls = C.swipeTrack * px;
+        while (meas(permit, px, 500, ls) - ls > room && px > C.swipePx * C.permitMin) { px -= .5; ls = C.swipeTrack * px; }
+        const pl = this.wrapPlain(permit, px, 500, ls, room, C.permitMax);
+        // the LAST line keeps the page's bottom line; the rest stack upward off it
+        const pUp = (pl.length - 1) * px * C.permitLead;
+        pl.forEach((t, i) => TC(t, pTop + asc(px) - pUp + i * px * C.permitLead, px, 500, A.warm, ls));
+        // THE CARD IS ITS OWN SURFACE AND THE REST OF THIS PAGE HAS NO WASH AT ALL, so a run
+        // down here would sit on bare photograph — the stats blurb's problem, one page over.
+        // A footer band, sized to this one line and kept clear of the card.
+        B.scrimBot = { y1: Math.max(0, pTop - pUp - C.scrimHold),
+                       y2: Math.max(0, pTop - pUp - C.scrimHold - C.permitFade) };
+        far(pTop + C.swipeBox);
+      }
     }
     // THE SCRIM: transparent at the vertical centre, solid at the anchored edge — unless the
     // copy climbs past the centre, in which case the ramp starts `scrimPad` before the copy.
@@ -7962,6 +7999,10 @@ class OrganicStudio extends StudioBase {
       if (B.scrimTop) {
         const a1 = Math.max(0, Math.min(1, B.scrimTop.y1 / H)), a2 = Math.max(a1, Math.min(1, B.scrimTop.y2 / H));
         ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: [[0, D(1)], [a1, D(1)], [a2, D(0)], [1, D(0)]] });
+      }
+      if (B.scrimBot) {
+        const b1 = Math.max(0, Math.min(1, B.scrimBot.y1 / H)), b2 = Math.max(0, Math.min(b1, B.scrimBot.y2 / H));
+        ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: [[0, D(0)], [b2, D(0)], [b1, D(1)], [1, D(1)]] });
       }
       if (B.card) {
         // the house glass: the same blur, fill choice and hairline edge every panel carries
@@ -8660,7 +8701,7 @@ class OrganicStudio extends StudioBase {
     cstats:  ['Title', 'Blurb', 'Layout'],
     cbul:    ['Headline', 'Bullet points', 'Layout'],
     ctext:   ['Title', 'Body', 'Layout'],
-    ccta:    ['Copy', 'Button']
+    ccta:    ['Copy', 'Button', 'Reference']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
   static FIELDS = {
@@ -8739,7 +8780,8 @@ class OrganicStudio extends StudioBase {
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line'],
-            ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.']]
+            ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
+            ['permit', 3, 'Permit number', '', 'Set in small caps at the foot of the page \u2014 leave it blank to omit']]
   };
   static tierName(kind, t) {
     const names = OrganicStudio.TIERNAMES[kind] || OrganicStudio.TIERS;
@@ -10306,6 +10348,7 @@ class OrganicStudio extends StudioBase {
         // first layer paints on top — which is the order the two grad ops are pushed in
         const csGrads = [];
         if (B.scrimTop) csGrads.push('linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(1) + ' ' + (B.scrimTop.y1 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' ' + (B.scrimTop.y2 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)');
+        if (B.scrimBot) csGrads.push('linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrimBot.y2 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' ' + (B.scrimBot.y1 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)');
         if (B.scrim) csGrads.push(B.anchor === 'bottom'
           ? 'linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)'
           : 'linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)');
