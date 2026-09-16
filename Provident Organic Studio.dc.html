@@ -4820,6 +4820,7 @@ class OrganicStudio extends StudioBase {
     // Stat Light 66.5, label Light 28 in tracked caps at .14em.
     statTitleIn: 101, colPitch: 402, rowPitch: 331, iconBox: 96, iconInk: 80,
     statTop: 113.6, statPx: 66.5, statBox: 85, labGap: 11, labPx: 28, labBox: 35, labTrack: .14,
+    titleGridGap: 30,                       // the air a stacked title must leave above the grid
     gridBotIn: 208.4, statMin: 2, statMax: 6, statDefault: 4,
     // BULLETS — a 472 column against the right inset, 89.5 per row with a .5px white line at
     // 40% above every row and one closing the list; Material `check_circle` in brass at
@@ -7161,12 +7162,18 @@ class OrganicStudio extends StudioBase {
       B.near = top; far(top + h); B.anchor = topAligned ? 'top' : 'bottom';
     } else if (kind === 'cstats') {
       const n = OrganicStudio.csN(f), items = OrganicStudio.csItems(f), rows = Math.ceil(n / 2);
-      const title = String(f.title || '').trim();
-      const tTop = C.statTitleIn + (pT - C.topBase);
-      eyePut(null, tTop, W / 2);
-      if (title) TC(title, tTop + eyeH + asc(C.titlePx), C.titlePx, 400, A.ink, 0);
       const rowH = C.statTop + C.statBox + C.labGap + C.labBox;
       const gridBot = H - C.gridBotIn, gridTop = gridBot - rowH - (rows - 1) * C.rowPitch;
+      const tTop = C.statTitleIn + (pT - C.topBase);
+      eyePut(null, tTop, W / 2);
+      // THE TITLE STACKS, and its line count is CLAMPED BY THE ROOM ABOVE THE GRID rather
+      // than by a flat cap: the grid is bottom-anchored and climbs as stats are added, so at
+      // six a one-line title already sits on its top edge. At least one line always draws —
+      // dropping the title outright would be worse than letting it touch.
+      const tRoom = gridTop - C.titleGridGap - (tTop + eyeH);
+      const tFit = Math.max(1, Math.min(3, Math.floor((tRoom - C.titleBox) / C.h2Pitch) + 1));
+      const tl = lines(f.title, C.titlePx, 400, W - C.pad - C.padR, tFit);
+      tl.forEach((t, i) => TC(t, tTop + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0));
       for (let i = 0; i < n; i++) {
         const r = Math.floor(i / 2), c = i % 2, alone = (r === rows - 1) && (n % 2 === 1);
         const cx = alone ? W / 2 : W / 2 + (c ? 1 : -1) * C.colPitch / 2;
@@ -8565,7 +8572,7 @@ class OrganicStudio extends StudioBase {
             ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Where the copy sits; the wash follows it']],
     cstats:[['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
-            ['title', 1, 'Title', '', 'Optional \u2014 centred at the top of the page']],
+            ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line']],
     cbul:  [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the headline'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
             ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
@@ -8573,12 +8580,12 @@ class OrganicStudio extends StudioBase {
             ['pos', 3, 'Layout', 'seg:Bottom|Top', '']],
     ctext: [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
-            ['title', 1, 'Title', 'req', ''],
+            ['title', 1, 'Title', 'req area', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg:Top|Bottom', ''],
             ['align', 3, 'Text', 'seg:Center|Left', '']],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
-            ['big', 1, 'Headline', 'req', 'e.g. Stay informed.'],
+            ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.']]
   };
   static tierName(kind, t) {

@@ -9682,6 +9682,36 @@ first time. Check what the event actually carries before concluding a handler is
   toolbar 8.4-8.6, the brass marks 2.4-4.7 against the field. Export names unchanged.
 - **One artwork-emitter line in the whole 40-hunk diff**, the new `blur` push.
 
+## EVERY CAROUSEL HEADLINE TAKES AN AUTHORED BREAK
+
+Asked for after the fact. Three of the five were single-line `<input>`s — `cstats`'s title,
+`ctext`'s title and the CTA card's headline — while the front page's and the Bullets page's
+were already textareas. All five are textareas now, each hinted "Enter for a new line".
+
+**ONLY THE STATS TITLE NEEDED THE CANVAS CHANGING.** `lines()` splits on breaks BEFORE it
+wraps, so the text page's title and the CTA's headline honoured a break the moment the field
+could carry one. The stats title was the odd one out: a single unwrapped `TC`, so it could
+neither break NOR wrap and a long one ran off both edges. It stacks at `h2Pitch` now and
+wraps to the page's own column.
+
+**ITS LINE COUNT IS CLAMPED BY THE ROOM ABOVE THE GRID, not by a flat cap**, because the grid
+is bottom-anchored and climbs as stats are added — at six, a ONE-line title already sits on
+its top edge, which is pre-existing. Measured with a four-line title: 3 lines at two stats
+(grid 979), 3 at four (grid 648), **1 at six (grid 317)**, every case clearing.
+`Math.max(1, ...)` always draws one line: dropping the title outright is worse than letting it
+touch. `CS.titleGridGap` (30) is the air it must leave.
+
+**The CTA card grows by exactly one `h2Pitch` per extra line and re-centres** — verified
+660.4 -> 730.4 with its y moving half that, which is the card hugging its copy as designed.
+
+**Op census: 34 groups, 34 byte-identical, 649 ops.** Nothing existing moves — the demo
+titles are short single lines and `lines()` reproduces the old single-op output for them
+exactly. Preview against ops on a two-line stats title: worst **0.47 canvas px**.
+
+**Left alone:** the CTA card's *Lead line* stays one line. It is the supporting line rather
+than the headline, and its height enters the card's sum as a single `ctaSmallBox`, so making
+it stack is a change to that sum rather than a field flag.
+
 ## Left as decisions, not applied
 
 - **The callout holds ordinary body lines.** The reference shows a big figure inside one
