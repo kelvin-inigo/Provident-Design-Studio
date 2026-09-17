@@ -3035,6 +3035,17 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
 .gd-qrow .gd-slotacts-v .p-ghost{height:36px;justify-content:center;font-size:13px;padding:0 14px}
 .gd-qrow .gd-slotacts-v .gd-rm{color:var(--ps-ink)}
 .gd-qrow-t.gd-qcap{margin-top:10px;gap:6px}
+
+/* ══ §31 THE LAYOUT CHOICE IS AN OPTION TILE ═════════════════════════════════════════════
+   Campaign's own control, by request: a big icon over its name, for a choice whose subject is
+   a PLACE rather than a word. `.p-opts` / `.p-opt` / `.p-mini` / `.p-opt-l` were already
+   declared here — the sheet is mirrored — and were reaching only the left rail's layout
+   presets, so this needs the form's own sizing and nothing else. */
+.gd-sec-g .p-opts,.gd-ask .p-opts{width:100%}
+.gd[data-mode="editor"] .gd-ask .p-mini{height:46px}
+.gd[data-mode="editor"] .gd-ask .p-mini-i svg{width:22px;height:22px}
+.gd-ask .p-opt-l{font:500 11.5px/1.2 var(--ps-font);text-align:center}
+.gd-ask .p-opt[data-on] .p-opt-l{color:var(--ps-ink)}
 </style>
 </helmet>
 
@@ -3330,7 +3341,12 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
        right holds only the page's own copy and pictures. -->
   <sc-if value="{{ csLogoOn }}" hint-placeholder-val="{{ false }}">
     <div class="p-cap" style="margin-top:14px">Wordmark <s>active page</s></div>
-    <div class="p-tabs"><sc-for list="{{ csLogoOpts }}" as="lo" hint-placeholder-count="3"><button onClick="{{ lo.set }}" data-on="{{ lo.on }}">{{ lo.label }}</button></sc-for></div>
+    <div class="p-opts"><sc-for list="{{ csLogoOpts }}" as="lo" hint-placeholder-count="3">
+      <button onClick="{{ lo.set }}" data-on="{{ lo.on }}" class="p-opt">
+        <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="{{ lo.icon }}"/></svg></span>
+        <span class="p-opt-l">{{ lo.label }}</span>
+      </button>
+    </sc-for></div>
     <div class="p-hint" style="margin-top:6px">Top puts it where the front page has it; Bottom sets it on SWIPE’s own line.</div>
   </sc-if>
 </aside>
@@ -3787,6 +3803,16 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <sc-if value="{{ a.fieldCtlOn }}" hint-placeholder-val="{{ true }}">
                 <sc-if value="{{ a.row.isSeg }}" hint-placeholder-val="{{ false }}">
                   <div class="p-tabs gd-tabs"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                </sc-if>
+                <!-- THE OPTION TILES, Campaign's own control: a big icon over its name, for a
+                     choice whose subject is a PLACE. Same markup as that studio's Alignment. -->
+                <sc-if value="{{ a.row.isOpt }}" hint-placeholder-val="{{ false }}">
+                  <div class="p-opts"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2">
+                    <button onClick="{{ o.set }}" data-on="{{ o.on }}" class="p-opt">
+                      <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="{{ o.icon }}"/></svg></span>
+                      <span class="p-opt-l">{{ o.label }}</span>
+                    </button>
+                  </sc-for></div>
                 </sc-if>
                 <sc-if value="{{ a.row.isSel }}" hint-placeholder-val="{{ false }}">
                   <select value="{{ a.row.val }}" onChange="{{ a.row.setSel }}" class="gd-big gd-bigsel">
@@ -5177,6 +5203,26 @@ class OrganicStudio extends StudioBase {
   static csPlain(text) {
     return OrganicStudio.csBlocks(text).filter(b => b.t !== 'd').map(b => b.s).join('\n');
   }
+  // WHERE THE PAGE'S COPY SITS, resolved once. The tiles in the form read this and so does
+  // every branch of `csBox`, so a control can never light a tile the artwork does not draw —
+  // and a page saved before its layout field existed still shows the position it renders at.
+  // The values ARE the `seg:` options in `FIELDS`; the default is the branch `csBox` falls to.
+  static CS_POSDEF = { cfront: 'Bottom', cstats: 'Bottom', cbul: 'Bottom', ctext: 'Top', ccta: 'Centre' };
+  static csPos(kind, f) {
+    const v = f && f.pos;
+    return v || OrganicStudio.CS_POSDEF[kind] || 'Bottom';
+  }
+  // Material Symbols ROUNDED at wght300 — the family Campaign's own Alignment tiles use and
+  // the one every other icon in both studios is baked from, so these read as their siblings.
+  // (The links supplied with the request were the Outlined cut of the same three names; the
+  // glyphs genuinely differ — Outlined draws square bar ends — and one Outlined tile beside a
+  // rail of Rounded ones is the inconsistency the icon pass warns about. Three strings here.)
+  static CS_HIDEICON = 'M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z';
+  static CS_POSICON = {
+    Top: 'M308.65-124.81q-14.8-14.81-14.8-35.58v-488.07q0-20.77 14.8-35.58 14.81-14.8 35.58-14.8 20.77 0 35.58 14.8 14.8 14.81 14.8 35.58v488.07q0 20.77-14.8 35.58Q365-110 344.23-110q-20.77 0-35.58-14.81Zm271.54-240q-14.8-14.81-14.8-35.58v-248.07q0-20.77 14.8-35.58 14.81-14.8 35.58-14.8 20.77 0 35.58 14.8 14.8 14.81 14.8 35.58v248.07q0 20.77-14.8 35.58Q636.54-350 615.77-350q-20.77 0-35.58-14.81ZM130-790.38q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.39q8.61-8.61 21.38-8.61h700q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H130Z',
+    Centre: 'M306.73-154.81q-14.81-14.81-14.81-35.58V-450H130q-12.77 0-21.38-8.62Q100-467.23 100-480t8.62-21.38Q117.23-510 130-510h161.92v-259.61q0-20.77 14.81-35.58Q321.54-820 342.31-820q20.77 0 35.57 14.81 14.81 14.81 14.81 35.58V-510h174.62v-139.61q0-20.77 14.81-35.58Q596.92-700 617.69-700t35.58 14.81q14.81 14.81 14.81 35.58V-510H830q12.77 0 21.38 8.62Q860-492.77 860-480t-8.62 21.38Q842.77-450 830-450H668.08v139.61q0 20.77-14.81 35.58Q638.46-260 617.69-260q-20.77 0-35.57-14.81-14.81-14.81-14.81-35.58V-450H392.69v259.61q0 20.77-14.81 35.58Q363.08-140 342.31-140t-35.58-14.81Z',
+    Bottom: 'M130-110q-12.77 0-21.38-8.62Q100-127.23 100-140t8.62-21.39Q117.23-170 130-170h700q12.77 0 21.38 8.61Q860-152.77 860-140q0 12.77-8.62 21.38Q842.77-110 830-110H130Zm178.65-166.35q-14.8-14.81-14.8-35.57V-800q0-20.77 14.8-35.57 14.81-14.81 35.58-14.81 20.77 0 35.58 14.81 14.8 14.8 14.8 35.57v488.08q0 20.76-14.8 35.57-14.81 14.81-35.58 14.81-20.77 0-35.58-14.81Zm271.54 0q-14.8-14.81-14.8-35.57V-560q0-20.77 14.8-35.57 14.81-14.81 35.58-14.81 20.77 0 35.58 14.81 14.8 14.8 14.8 35.57v248.08q0 20.76-14.8 35.57-14.81 14.81-35.58 14.81-20.77 0-35.58-14.81Z'
+  };
   static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats'; }
   // The floating graphic's record, normalised once so csBox (which has no asset to hand)
   // and buildOps (which does) read one shape. `a` is the art's aspect, written by the same
@@ -7562,7 +7608,7 @@ class OrganicStudio extends StudioBase {
       const R = rtLay(f.sub, C.pad, fcW, Math.max(0, fBand - headH - C.headSubGap), false, C.subPx, C.subLead);
       const gap = (hl.length && R.h) ? C.headSubGap : 0;
       const h = headH + gap + R.h;
-      const topAligned = f.pos === 'Top';
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
       const top = topAligned ? topY + C.frontTopGap : H - C.botIn - h;
       // the headline's box is ONE em tall (Figma's line-height 1.0): its baseline is the
       // half-leading of a box shorter than the content area, plus the ascent
@@ -7575,7 +7621,7 @@ class OrganicStudio extends StudioBase {
       const n = OrganicStudio.csN(f), items = OrganicStudio.csItems(f), rows = Math.ceil(n / 2);
       const rowH = C.statTop + C.statBox + C.labGap + C.labBox;
       const tTop = C.statTitleIn + (pT - C.topBase);
-      const topAligned = f.pos === 'Top';
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
       eyePut(null, tTop, W / 2);
       // TWO LAYOUTS, by request. BOTTOM is the drawing's: the grid stands on the page's floor
       // and the title's line count is CLAMPED BY THE ROOM ABOVE IT rather than by a flat cap —
@@ -7625,7 +7671,7 @@ class OrganicStudio extends StudioBase {
     } else if (kind === 'cbul') {
       const bl = String(f.bullets || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).slice(0, C.bulMax);
       const n = bl.length, colX = W - C.padR - C.bulColW, blockH = n * C.bulPitch;
-      const topAligned = f.pos === 'Top';
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
       // the overline takes the top of the block; the list keeps the drawing's own bottom
       // anchor, so a page carrying no overline does not move a pixel
       const cTop = topAligned ? topY2 + eyeH : H - C.bulBotIn - blockH;
@@ -7657,7 +7703,7 @@ class OrganicStudio extends StudioBase {
       const band = Math.max(0, (H - C.botIn) - topY2);
       const R = rtLay(f.body, colX, colW, Math.max(0, band - eyeH - titleH - (titleH ? C.titleBodyGap : 0)), center, C.bodyPx, C.bodyLead);
       const gap = (titleH && R.h) ? C.titleBodyGap : 0, h = eyeH + titleH + gap + R.h;
-      const bottomAligned = f.pos === 'Bottom';
+      const bottomAligned = OrganicStudio.csPos(kind, f) === 'Bottom';
       const top = bottomAligned ? H - C.botIn - h : topY2;
       eyePut(colX, top, center ? cx : null);
       tl.forEach((t, i) => { const y = top + eyeH + asc(C.titlePx) + i * C.h2Pitch; center ? TC(t, y, C.titlePx, 400, A.ink, 0, cx) : T(t, colX, y, C.titlePx, 400, A.ink); });
@@ -7681,7 +7727,8 @@ class OrganicStudio extends StudioBase {
       // WHERE THE CARD SITS — centred, the drawing's own, or on the page's top line or its
       // floor: the same two anchors every other page hangs its copy from, so a carousel that
       // runs its copy high can run its closing card high as well.
-      const cx0 = (W - cw) / 2, cy0 = f.pos === 'Top' ? topY : (f.pos === 'Bottom' ? H - C.botIn - ch : (H - ch) / 2);
+      const cPos = OrganicStudio.csPos(kind, f);
+      const cx0 = (W - cw) / 2, cy0 = cPos === 'Top' ? topY : (cPos === 'Bottom' ? H - C.botIn - ch : (H - ch) / 2);
       B.card = { x: cx0, y: cy0, w: cw, h: ch, r: C.ctaR };
       let y = cy0 + C.ctaPad;
       B.rects.push({ x: W / 2 - C.ctaRuleW / 2, y, w: C.ctaRuleW, h: C.ctaRuleH, fill: A.brass });
@@ -9085,28 +9132,28 @@ class OrganicStudio extends StudioBase {
     // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
     cfront:[['headline', 1, 'Headline', 'req area', 'One or two lines \u2014 Enter for a new one'],
             ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
-            ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Where the copy sits; the wash follows it']],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it']],
     // NO Show | Hide ROWS: a show/hide field is a SWITCH on the row it gates — see `TOGGLES`.
     cstats:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line'],
             ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
-            ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     cbul:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
-            ['pos', 3, 'Layout', 'seg:Bottom|Top', ''],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     ctext: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['title', 1, 'Title', 'req area', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
-            ['pos', 3, 'Layout', 'seg:Top|Bottom', ''],
+            ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
             ['align', 3, 'Text', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
-            ['pos', 3, 'Layout', 'seg:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
+            ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
             ['permit', 3, 'Permit number', '', 'Set in small caps at the foot of the page \u2014 leave it blank to omit']]
   };
   static tierName(kind, t) {
@@ -11697,7 +11744,14 @@ class OrganicStudio extends StudioBase {
           // after the marker — it is always the last flag. Splitting on the first space
           // here offered a single option labelled "Just". The rail's parser was fixed for
           // this and this copy was not, which is the hazard of two parsers for one syntax.
-          const seg = f.flags.indexOf('seg:') >= 0 ? f.flags.slice(f.flags.indexOf('seg:') + 4).split('|') : null;
+          // `seg:` is the pill pair; `seg-opt:` is the same answer drawn as Campaign's option
+          // TILES — a big icon over its name — for a choice whose subject is a PLACE rather
+          // than a word. Both take everything after the marker, since the values carry spaces
+          // and it is always the last flag.
+          const segAt = f.flags.indexOf('seg-opt:');
+          const seg = segAt >= 0 ? f.flags.slice(segAt + 8).split('|')
+            : (f.flags.indexOf('seg:') >= 0 ? f.flags.slice(f.flags.indexOf('seg:') + 4).split('|') : null);
+          const segOpt = segAt >= 0;
           const selAt = /sel@(\w+)/.exec(f.flags);
           // same rule as seg: — last flag, values may contain spaces
           const selIn = f.flags.indexOf('sel:') >= 0 ? f.flags.slice(f.flags.indexOf('sel:') + 4).split('|') : null;
@@ -11736,7 +11790,7 @@ class OrganicStudio extends StudioBase {
             q: f.t, hint: f.hint, val: raw,
             reqMark: req ? 'Required' : 'Optional',
             reqOn: req ? '1' : undefined, badOn: bad ? '1' : undefined,
-            isSeg: !!seg, isSel: !!opts, isStep, isRich,
+            isSeg: !!seg && !segOpt, isOpt: segOpt, isSel: !!opts, isStep, isRich,
             isArea: !seg && !opts && !isStep && !isRich && f.flags.indexOf('area') >= 0,
             isInput: !seg && !opts && !isStep && !isRich && f.flags.indexOf('area') < 0,
             // the editor is addressed by this key alone, so the toolbar's handler needs no
@@ -11745,7 +11799,11 @@ class OrganicStudio extends StudioBase {
             rtOps: OrganicStudio.RT_OPS.map(o => ({ t: o[0], label: o[1], title: o[2],
               set: () => this.rtApply(si + ':' + f.k, o[0]) })),
             counter, counterOn: counter ? '1' : undefined, overOn: over ? '1' : undefined,
-            segs: (seg || []).map(o => ({ label: o, on: raw === o ? '1' : undefined, set: () => write(o) })),
+            // a tile lights from the SAME resolver the artwork reads, so an unset page still
+            // shows the position it renders at
+            segs: (seg || []).map(o => ({ label: o,
+              on: (segOpt ? OrganicStudio.csPos(sl.kind, sl.f) : raw) === o ? '1' : undefined,
+              icon: OrganicStudio.CS_POSICON[o] || '', set: () => write(o) })),
             opts: (opts || []).map(v => ({ v })),
             // the rail's dropdowns can add a new entry to the list; keep that here
             setSel: e => {
@@ -12007,6 +12065,7 @@ class OrganicStudio extends StudioBase {
       csOn: s.tpl === 'carousel',
       csLogoOn: (s.tpl === 'carousel' && OrganicStudio.csEyeKind(asl.kind)) ? '1' : undefined,
       csLogoOpts: ['Hide', 'Top', 'Bottom'].map(o => ({ label: o, on: ((asl.f && asl.f.logoPos) || 'Hide') === o ? '1' : undefined,
+        icon: o === 'Hide' ? OrganicStudio.CS_HIDEICON : OrganicStudio.CS_POSICON[o],
         set: () => this.upd(x => { const t = x.slides[asi]; if (t) { t.f = t.f || {}; t.f.logoPos = o; } return x; }) })),
       csTiles: (() => {
         if (s.tpl !== 'carousel') return [];

@@ -12334,3 +12334,43 @@ the builder's in all 10, and the preview's div carrying exactly ONE `linear-grad
 same stops. Sheet integrity unchanged (one closing style tag, brace balance at baseline, no CSS
 and no markup authored by this pass — 4 hunks, and the only `ops.push` line in the diff is the
 three grad pushes collapsing into one).
+
+## THE LAYOUT CHOICE IS AN OPTION TILE, and ONE resolver answers where a page sits
+
+By request, with Campaign's Alignment control attached as the reference: the carousel's
+**Layout** field is that control now — a big icon over its name — instead of a pill pair. All
+five layouts (`seg-opt:` in `FIELDS`), plus the left rail's **Wordmark** row, which is the same
+kind of question: a PLACE, not a word.
+
+**`seg-opt:` is a new flag, not a new control.** It parses exactly as `seg:` does and produces
+the same `segs`; only the markup branch differs (`isOpt` → `.p-opts` of `.p-opt` tiles).
+`.p-opts` / `.p-opt` / `.p-mini` / `.p-mini-i` / `.p-opt-l` were **already declared in this
+sheet** — it is mirrored from Campaign's — and were reaching only the left rail's layout
+presets, so this needed the form's own sizing (a 46px tile in the 322px rail, the kit's 62px in
+the run) and nothing else.
+
+**MATERIAL SYMBOLS ROUNDED AT wght300, WHICH IS NOT THE CUT THE REQUEST LINKED.** The three
+names are the request's — `align_vertical_top` / `align_vertical_center` /
+`align_vertical_bottom` — and the links supplied were the **Outlined** family. The glyphs
+genuinely differ (Outlined draws square bar ends; fetched and compared, 110 vs 566 bytes of
+path), and Campaign's own Alignment tiles were checked to be **Rounded** — its
+`align_horizontal_left` path is byte-identical to the Rounded cut. One Outlined tile in a rail
+of Rounded ones is the inconsistency the icon pass warns about, so these are Rounded. Three
+strings in `CS_POSICON` if that should be reversed.
+
+**`OrganicStudio.csPos(kind, f)` IS THE FINDING, and it is why this was not just markup.** A
+tile has to light for a page whose `pos` has never been set, and the default differed per kind
+and lived in five separate `f.pos === 'Top'` tests inside `csBox` — including one where the
+default is the MIDDLE option (`ccta` falls to Centre). A table read only by the form would be a
+second place for that to drift. One resolver is read by the form AND by all five branches, so a
+tile can never light a position the artwork does not draw.
+
+**74 groups, 74 byte-identical.** Not just the six templates: the carousel was additionally
+driven through every position on every page **and with `pos` deleted**, which is the case
+`csPos`'s defaults exist to reproduce — 40 extra groups, all identical.
+
+Verified: two tiles on the four two-way layouts and **three on the CTA with Centre lit**;
+clicking Top moves the canvas anchor and makes one undo entry; undo restores; the guided run
+carries the same tiles (one markup). Contrast both themes, transitions and animations finished:
+**1 flag each, the pre-existing `✕` at 4.40 / 4.21**, and **0 elevation shadows**. Sheet
+integrity at baseline; `sc-if` +1/+1 and `sc-for` +1/+1 for the one new branch.
