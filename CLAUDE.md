@@ -12271,3 +12271,66 @@ regex over the block shape; Replace / Reframe / Remove are 36px `.p-ghost` pills
 column beside a 150px thumb (104px wide in the 322px rail, wider in the run), the caption and
 hint follow as `.gd-qrow-t.gd-qcap`. Empty, the row is the thumb alone with the captions under
 it. Matches the supplied mock.
+
+## THE CAROUSEL'S WASH IS ONE GRADIENT, ONE CONSTRUCTION, ONE FADE
+
+Reported as "why is the scrim on top so different than the rest, and the universal controls
+don't work the same way on it — fade is not affecting it", with a stats page (Bottom layout,
+blurb shown) attached. Both halves were real and had the same cause.
+
+**MEASURED BEFORE TOUCHING IT, which is what named the bug.** On that page the two washes were
+built differently:
+
+| | shape |
+|---|---|
+| the blurb's band | **solid 0-441**, then a **250** ramp to clear at 691 |
+| the page's own wash | **no hold at all** — a **720** linear ramp from the centre to the floor |
+
+So the top third was FULLY OPAQUE navy — the photograph did not show through it at all — while
+the bottom was a graded wash that did. That is the visible difference, and the slab's leading
+edge at 441 is the hard line in the screenshot. And the bands were **hand-written stop lists in
+`buildOps`** that never called `csScrimStops`: they took the colour and the opacity (both come
+through `SC.col`) and could not take the fade, which is exactly what was reported.
+
+**A BAND IS A CLEAR POINT NOW, and that is the whole model.** `B.scrimTopY` / `B.scrimBotY`
+replace `B.scrim` / `B.scrimTop` / `B.scrimBot`: a band is solid at its own canvas edge and
+clear at that y, and `csScrimStops(B, H, SC)` builds **one** stop list from the two. The
+hold-then-fade shape is gone — the blurb's band and the permit's are the same material as the
+page's own wash because they are the same construction.
+
+**ONE GRADIENT, not one per band, for a second reason.** Two grads of the same colour
+COMPOSITE where they meet — navy at 60% over navy at 60% is 84% — so a copy-dense page could
+double-darken a strip between them. Two bands that would meet butt at the midpoint instead,
+which is Campaign's own rule for the same situation.
+
+**Nothing existing moved: 34 groups, 34 byte-identical** against the pre-change copy served
+alongside. The single-band forms are emitted byte-for-byte as before (the `s > 0` / `s < 1`
+guards are there for exactly that), and neither the blurb nor the permit is in any demo state —
+so the census proves the shared path and the new shape had to be measured on a built state.
+
+**THE TRADE, STATED PLAINLY.** Letting the photograph through where it was opaque is a
+legibility cost on the copy that was sitting on that opacity. White copy over a **pure white**
+photograph, at the default fade 100:
+
+| run | before | after | at fade 60 | at fade 40 |
+|---|---|---|---|---|
+| overline | 14.59 | **7.91** | 14.59 | 14.59 |
+| blurb, last line | 14.59 | **2.20** | 4.33 | 11.87 |
+| the permit, on the CTA page | 14.59 | **5.69** | — | — |
+
+Over a mid-grey photograph the same blurb line reads **6.25**. The 2.20 is the honest floor and
+it is the same alpha (0.37) the stats grid's own top row has always sat at under the page wash —
+the template's own shape, now applied consistently at both ends rather than only at the bottom.
+**The fade slider is the lever and it reaches every band now**, which is the other half of what
+was asked: lower fade holds the wash solid over the copy on BOTH ends and still reads as one
+material (measured stops at 60: `0@1 .186@1 .466@0 .5@0 .8@1 1@1`).
+
+**Left as a decision:** the default fade stays 100. Changing `csScrimOf`'s fallback would move
+every page of every saved carousel, and "a missing record IS the original wash" is what keeps
+the census clean — so the default is a product call, not a defect.
+
+**Verified:** one grad per page on all 5 layouts x both canvases, the ops' stops identical to
+the builder's in all 10, and the preview's div carrying exactly ONE `linear-gradient` with the
+same stops. Sheet integrity unchanged (one closing style tag, brace balance at baseline, no CSS
+and no markup authored by this pass — 4 hunks, and the only `ops.push` line in the diff is the
+three grad pushes collapsing into one).
