@@ -12118,3 +12118,127 @@ the remap costs at most two sidecar writes.
 - **A legacy first-build carousel migrates with its ids kept**, so two of its pages that
   carried the same graphic still share that file until one of them re-uploads. `normState`
   runs without the store, so it cannot copy slots; a one-off `forkPage` on load would.
+
+# THE CAROUSEL TOOK ITS FEEDBACK: SIX CANVAS ITEMS, SEVEN CHROME ITEMS, ONE PASS
+
+Answers to a user-assessed feedback list on the carousel template, plus a set of All-controls
+chrome changes. **Op census over all six templates x every slide x both canvases against the
+pre-change copy served alongside: 34 groups, 32 byte-identical**, and the two that differ are
+the demo TEXT page on both canvases — its body column and its wash, both requested (see
+below). Backups: `scratchpad/pre/O17-pre.html`, `C-O17-pre.html`, `image-slot-O17-pre.js`.
+
+## The canvas
+
+**THE TOP-LAYOUT WASH WAS WASHING THE WHOLE PAGE, and the census is what said so.** `far()` in
+`csBox` counts everything on the page — SWIPE, a bottom wordmark, the permit — so a top layout's
+`far + 250` on any page with a next page was ~1618, clamped to 1: the PRE's text page emitted
+`[[0,1],[1,0],[1,0]]`, a ramp from the top edge to the BOTTOM edge. That was the "overlayed
+too much". `B.blkFar` is the copy block's own far end, set by each branch, and only that feeds
+the scrim; the top wash now ends at the block + `scrimPad` (0.641 of H on the demo text page)
+and is no longer forced to the centre either. The bottom rule ("starts at the centre") is the
+frames' own and is unchanged.
+
+**Campaign's three scrim controls, on the project (`state.csScrim = {op, fade, hex}`).**
+`csScrimOf(state)` resolves a missing record to the pages' original wash — navy, 100, a ramp
+over the whole box — byte for byte, which is why 32/34 holds. Fade is Campaign's rule, measured
+INSIDE the box: 100 is the three-stop form the pages always emitted; less holds the wash solid
+over the copy and ramps the far part (`csScrimStops`). Colour is the user's hex, as Campaign's
+`scrimHex` is — a value typed into a control, not a literal at a call site; `CS_SCRIMS` are
+the six dark swatches. The preview mirrors the same stops through `csScrimCss`, verified stop
+for stop (60% · fade 40% → hold from 0.70 to 1). The band grads (`scrimTop`, `scrimBot`) take
+the colour and opacity, not the fade — they carry their own hold.
+
+**Body copy takes the heading's column (881).** `textColW` 704 is retired (declared, unread):
+the text page's body and the stats blurb wrap to `headColW`, centred on the canvas axis or at
+the 105 inset, so title and body share one right edge. The front page's support lines already
+did. The Bullets list stays 472 and its headline keeps what the list leaves.
+
+**Two position presets.** Stats: `Bottom | Top` — Top stacks the grid under the title block,
+growing downward, and the blurb's budget is then what the grid leaves above the floor; the
+title's line clamp only applies on Bottom. CTA: `Top | Centre | Bottom`, the card on the page's
+own top line or its floor; on Bottom the permit band's fade shortens to start under the card
+(measured 1241 against a card bottom of 1221). Both default to the drawing (Bottom / Centre),
+so an undefined `pos` on a saved page renders as before.
+
+**The permit is 23.8 / Light 300** — one minor-third step under the page's 28px caps, the
+brand's own floor, where every other caps run here is 500. There is no step-down loop any more
+because the size IS the floor; a long one wraps to two lines as before. `permitMin` is declared
+and unread.
+
+**Drag to reorder, on the two templates whose order is the user's.** A carousel's inside pages
+(the front page and the closing card hold their ends) and Top agents' five ranks (the order IS
+the ranking — `taRank` reads position, photos are keyed by slide id so they follow). Weekly and
+the reviews keep their fixed order. `canMoveSlide` / `moveSlide`; one undo entry; `_gdVisited`
+is reset because it is by index.
+
+**POINTER EVENTS, NOT HTML5 DRAG-AND-DROP, and that is a verification decision.** The first
+cut used native DnD and the pane's automation cannot start one — the rail rows measured
+byte-correct with synthetic `DragEvent`s and did nothing under a real `left_click_drag`. This
+project ships a gesture only once a real pointer has moved it, so it is `pointerdown / move /
+up` delegated once at the document (`dragBind`, called from the shell's mount/update hooks
+beside `_rtTick`): a press that does not travel 5px is a click and is left alone (verified —
+a row still activates), one that does is a drag with `data-drop` ringing the row under the
+pointer, and the release swallows its own click. **A thumb's `<img>` starts the browser's own
+image drag and cancels the pointer stream** — measured: one `pointermove`, then nothing — so
+`[data-dragsi] img{pointer-events:none}`. Verified with REAL drags: rail Page 03 → above Page
+02; strip Page 04 → second; the fixed pages refuse; one undo entry each.
+
+## The chrome (All controls only — the guided window is unchanged, by instruction)
+
+- **The rail holds the PAGE.** In editor mode the builder drops Look (the dock's), Layout and
+  the wordmark row (the left rail's), Pages and Save. Each control in one place.
+- **Every helper line is a tooltip** — `.gd-tipi`, an `i` beside the label carrying the same
+  words (`v.tip`, from the field's hint or a per-kind `TIPS` table); the run keeps them printed.
+- **The left rail gained Wordmark `Hide | Top | Bottom`** for a carousel's inside pages, beside
+  the layout tiles (`csLogoOn` / `csLogoOpts`).
+- **THE DOCK is Campaign's** — one `Post look` pill (Material `tune`) at the stage's foot, a
+  rising `.p-dock-b` with the post-wide controls: the carousel's Scrim group (Opacity | Fade
+  tabs, one slider, swatches, hex), Wash strength, Photo darkening, Photo strength, Panel
+  colour. `shDock` on the shell. Organic has ONE right rail, so the offset is
+  `--ps-railr + 28px`, restated over the mirrored Campaign rule that counted two.
+- **The canvas bar is Campaign's 44px toolbar** — name, count pill, `Show story`, a new
+  `This page` (Material `edit_note`) that scrolls-and-flashes the rail above 1200px and opens
+  the sheet below, and a dot-and-word status chip.
+- **Campaign's button language on the form**: every `.gd-segs` pair is a `.p-tabs` track (8
+  sites, `data-on` on the award tint and the group pills instead of inline styles), Back/Next,
+  Save all, the destination and the PDF are `.p-ghost` / `.p-btn`, Add page is `.p-dash`. One
+  markup, so the run inherits it — agreed.
+- **THE ON STATE'S INK FOLLOWS THE FILL — eighth instance.** Organic's `.p-tabs button[data-on]`
+  and `.p-dock-t[data-on]` had no reader in this document until today and still put
+  `--ps-primary-i` on `--ps-accent`: **1.36:1 in light**. Campaign's later block had settled
+  both; mirrored. A class the library defines and a document never renders is a defect waiting
+  for its first consumer.
+
+## Images can be removed, and Replace never worked
+
+**`image-slot`'s Replace dispatched `image-slot:pick` and NOTHING IN THIS PROJECT LISTENS FOR
+IT** — it was written for a host with an Unsplash modal. Verified by grep across all five
+files. The event is cancelable now and, unclaimed, the slot opens its own picker (verified: the
+stubbed input click fired). Edit was fine all along; the strip is opacity-0 until hover, which
+is why it read as missing — it shows on `:focus-within` too now.
+
+**Remove** is the third button on that strip (`clearSlot()`), and both studios offer it as a
+visible control: Organic's form rows carry Replace / Reframe / Remove under a filled drop
+(`slotActs(id)`, preferring the CANVAS copy of a slot for a reframe), Campaign's seven drop rows
+carry a `Remove` link under the caption. **A static `ImageSlot.clearSlot(id)` reaches mounted
+elements FIRST** — a store-only clear leaves a just-ingested `_local` on screen (measured:
+Remove pressed, thumb still filled) — and falls back to the store write for an id nothing
+shows (the hidden 9:16's). Campaign reaches it through `customElements.get`, as its other
+static calls do; the class is not a global.
+
+## Verification
+
+- Ops: 34 / 32 identical, both diffs the requested text-page changes. Preview against ops in
+  one coordinate space: text page 0.42, stats Top 0.42, CTA Bottom 0.48 canvas px, the card box
+  exact.
+- Contrast, both themes reloaded into, transitions AND animations finished (the dock's
+  `p-rise` animation parked at frame 0 read every dock label as 1.00:1 until it was), ancestor
+  opacity composited, editor with the dock open + the guide screen: **dark 1, light 1 — the
+  pre-existing `✕` at 4.40 / 4.21**; guide 0 / 0; **0 elevation shadows**.
+- Sheets: one closing style tag each, comments balanced, brace balance identical to the
+  baselines, Organic `sc-if` +20/+20 and `sc-for` +3/+3, Campaign `sc-if` +7/+7.
+- Campaign boots at 311 render keys; the seven Remove keys are functions.
+
+**Left as decisions:** the dock closes only from its pill (no outside-click), the carousel's
+other pages did not gain per-element positioning beyond the two presets, and the `✕` remove
+glyph's 4.2–4.4 is untouched as before.

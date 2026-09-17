@@ -2959,6 +2959,66 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 .rt-ed>div[data-b="d"]{position:relative;margin:12px 0;color:transparent;caret-color:var(--ps-ink)}
 .rt-ed>div[data-b="d"]::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;
   background:var(--ps-line)}
+
+/* ══ §28 REORDER BY DRAG ══════════════════════════════════════════════════════════════
+   A movable row carries a grip and grabs; the row under a drag takes a link-coloured ring
+   as the drop target. The fixed pages (a carousel's front and closing card, the ranking
+   cover) carry neither and do not react. */
+.p-nav[data-dragsi],.gd-ptile[data-dragsi]{cursor:grab;touch-action:none;user-select:none}
+/* a thumb's IMAGE would start the browser's own image drag and cancel the pointer stream —
+   measured: one pointermove, then pointercancel — so it takes no pointer at all */
+[data-dragsi] img{pointer-events:none;-webkit-user-drag:none;user-select:none}
+body[data-dragging],body[data-dragging] *{cursor:grabbing !important}
+body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
+.p-nav .p-grip{width:14px;height:14px;flex:none;fill:var(--ps-dim);margin-left:-4px}
+.p-nav[data-drop]{box-shadow:inset 0 0 0 2px var(--ps-link)}
+.gd-ptile[data-drop] .gd-pthumb{box-shadow:0 0 0 2px var(--ps-link)}
+
+/* ══ §29 ALL CONTROLS, CONCISE ═══════════════════════════════════════════════════════════
+   The rail holds the PAGE; the post-wide Look is the dock over the canvas (Campaign's); the
+   preset and the wordmark are the left rail's. Helper lines are tooltips in the rail and
+   stay printed in the run. The form's pairs are .p-tabs tracks and its actions ghosts —
+   Campaign's language on both homes, since they are one markup. */
+.gd[data-mode="editor"] .gd-hint{display:none}
+.gd[data-mode="guide"] .gd-tipi{display:none}
+.gd-tipi:not([data-has]){display:none}
+.gd-ask-h{align-items:center;gap:6px}
+.gd-tipi{flex:none;font-style:normal}
+.gd-sec-g .p-tabs,.gd-ask .p-tabs{width:100%}
+.p-tabs button[data-dim]{color:var(--ps-dim);cursor:default}
+.gd-slotacts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
+.gd-slotacts .p-ghost.p-sm{height:27px;padding:0 11px;font-size:11.5px}
+.gd-rm{color:var(--ps-bad)}
+.gd-navb[data-off]{opacity:.32;pointer-events:none}
+.gd-nav .p-btn,.gd-nav .p-ghost{height:36px}
+/* the dock clears Organic's ONE right rail — Campaign's rule counted two */
+.p-dock{padding-right:calc(var(--ps-railr) + 28px)}
+@media (max-width:1200px){ .p-dock{padding-right:28px} }
+.p-dock-t{display:inline-flex;align-items:center;gap:7px}
+.p-dock-t svg{width:15px;height:15px;fill:currentColor;flex:none}
+.p-dock-b{max-height:calc(100vh - 196px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.p-dock-b input[type=range]{width:100%}
+/* Campaign's section head, for the dock's own */
+.p-shd{display:flex;align-items:flex-start;gap:10px;font:600 13px/1.2 var(--ps-font);color:var(--ps-ink);letter-spacing:0;text-transform:none}
+.p-shd-t{flex:1;min-width:0;display:flex;align-items:center;column-gap:6px;row-gap:3px;flex-wrap:wrap;padding-top:3px}
+.p-shd-t > .tip{flex:none}
+/* the canvas bar is Campaign's 44px toolbar: name, count pill, actions, a status chip */
+.p-cvbar{align-items:center;gap:10px;min-height:44px;padding-top:0;padding-bottom:0;border-top:1px solid var(--ps-hair)}
+.p-cvbar b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);max-width:40%}
+.p-cvbar > s{font:500 11px/1 var(--ps-font);color:var(--ps-ink-2);padding:4px 8px;border-radius:var(--ps-pill);background:var(--ps-fill)}
+.p-cvbar .p-ghost.p-sm{height:29px;display:inline-flex;align-items:center;gap:6px}
+.p-cvbar .p-ghost svg{width:14px;height:14px;fill:currentColor;flex:none}
+.p-cvbar i{display:inline-flex;align-items:center;gap:7px;font:400 12px/1.2 var(--ps-font);color:var(--ps-ink-2);text-align:right}
+.p-cvbar i em{width:7px;height:7px;border-radius:50%;background:var(--ps-dim);flex:none}
+.p-cvbar i[data-ok]{color:var(--ps-dim)}
+.p-cvbar i[data-ok] em{background:var(--ps-good)}
+.gd-in-zone[data-flash]{box-shadow:inset 0 0 0 2px var(--ps-link)}
+/* THE ON STATE'S INK FOLLOWS THE FILL — the eighth instance of this defect in the project,
+   and the first in Organic's own two rules for it: `.p-tabs` and the dock pill had no reader
+   in this document until today, so they still put `--ps-primary-i` (white) on `--ps-accent`,
+   which is the pale tint in light — 1.36:1. Campaign's later block settled both; mirrored. */
+.p-tabs button[data-on],.p-tabs button[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.p-dock-t[data-on]{background:var(--ps-accent);color:var(--ps-accent-i);border-color:var(--ps-focus);box-shadow:none}
 </style>
 </helmet>
 
@@ -3223,7 +3283,8 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <div class="p-foot p-foot-t">Layouts are locked to the brand grid. Populate the fields on the right; drop photos straight onto the canvases.</div>
   <div class="p-cap" style="margin-top:5px">Slides <s>click to edit</s></div>
   <sc-for list="{{ slideNav }}" as="n" hint-placeholder-count="3">
-    <div class="p-nav" data-on="{{ n.on }}">
+    <div class="p-nav" data-on="{{ n.on }}" data-dragsi="{{ n.dragSi }}" data-drop="{{ n.dropOn }}">
+      <sc-if value="{{ n.gripOn }}" hint-placeholder-val="{{ false }}"><svg class="p-grip" viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-175.39q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Z"/></svg></sc-if>
       <button onClick="{{ n.activate }}" class="p-nav-b">
         <span style="{{ n.nameStyle }}">{{ n.label }}</span>
         <span class="p-hint">{{ n.hint }}</span>
@@ -3234,6 +3295,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <sc-if value="{{ canAddSlide }}" hint-placeholder-val="{{ false }}">
     <button onClick="{{ addSlide }}" class="p-dash">{{ addSlideLabel }}</button>
   </sc-if>
+  <sc-if value="{{ dragHintOn }}" hint-placeholder-val="{{ false }}"><div class="p-hint" style="margin-top:6px">{{ dragHint }}</div></sc-if>
   <!-- THE CAROUSEL'S LAYOUT PRESETS, for the active page. A tile is a skeleton of where
        that layout puts its copy; the active page's layout is the filled one. -->
   <sc-if value="{{ csOn }}" hint-placeholder-val="{{ false }}">
@@ -3247,6 +3309,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </sc-for>
     </div>
     <div class="p-hint" style="margin-top:6px">Any page can take any layout; the copy you have typed is carried across.</div>
+  </sc-if>
+  <!-- THE WORDMARK on an inside page — beside the layout it belongs with, so the rail on the
+       right holds only the page's own copy and pictures. -->
+  <sc-if value="{{ csLogoOn }}" hint-placeholder-val="{{ false }}">
+    <div class="p-cap" style="margin-top:14px">Wordmark <s>active page</s></div>
+    <div class="p-tabs"><sc-for list="{{ csLogoOpts }}" as="lo" hint-placeholder-count="3"><button onClick="{{ lo.set }}" data-on="{{ lo.on }}">{{ lo.label }}</button></sc-for></div>
+    <div class="p-hint" style="margin-top:6px">Top puts it where the front page has it; Bottom sets it on SWIPE’s own line.</div>
   </sc-if>
 </aside>
 
@@ -3594,7 +3663,62 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><b>{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ toggleStory }}" class="p-btn-q" data-on="{{ storyOnFlag }}" title="The story is always built and always exported — this only shows or hides its canvas">{{ storyBtnLabel }}</button><i>{{ exportStatus }}</i></div>
+  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ toggleStory }}" class="p-ghost p-sm" data-on="{{ storyOnFlag }}" title="Show or hide the 9:16 canvas — hidden, only the 3:4 feed exports">{{ storyBtnLabel }}</button><button onClick="{{ shPageOpen }}" class="p-ghost p-sm" title="The active page’s own copy and pictures, in the rail on the right"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-400q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-460 210-460h220q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q442.75-400 430-400H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-620 210-620h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-560 590-560H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-720 590-720H210Zm314.62 503.84v-54.46q0-7.06 2.61-13.68 2.62-6.62 8.23-12.24l206.31-205.31q7.46-7.46 16.11-10.5 8.65-3.03 17.3-3.03 9.43 0 18.25 3.53 8.82 3.54 16.03 10.62l37 37.38q6.46 7.47 10 16.16Q860-439 860-430.31t-3.23 17.69q-3.23 9-10.31 16.46L641.15-190.85q-5.61 5.62-12.23 8.23-6.63 2.62-13.69 2.62h-54.46q-15.37 0-25.76-10.4-10.39-10.39-10.39-25.76Zm287.69-214.15-37-37.38 37 37.38Zm-240 202.62h38l129.84-130.47-18.38-19-18.62-18.76-130.84 130.23v38Zm149.46-149.47-18.62-18.76 37 37.76-18.38-19Z"/></svg>This page</button><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
+</div>
+
+<!-- THE DOCK — Campaign's own: what is POST-WIDE floats over the canvas behind one pill, so
+     the rail on the right holds only the active page. Below 1200px both are sheets. -->
+<div class="p-dock">
+  <div class="p-dock-in">
+    <sc-if value="{{ shDockOn }}" hint-placeholder-val="{{ false }}">
+      <div class="p-dock-b">
+        <div class="p-cap p-shd"><span class="p-shd-t">Post look <span class="tip p-info" data-tip="These settings reach every page of the post. The page’s own copy and pictures are in the rail on the right — This page, under the canvas, takes you there.">i</span></span></div>
+        <sc-if value="{{ csScrimOn }}" hint-placeholder-val="{{ false }}">
+          <div class="p-grp-w">
+            <span class="p-lab">Scrim <s>{{ csScrimSummary }}</s> <span class="tip p-info" data-tip="{{ csScrimTip }}">i</span></span>
+            <div class="p-tabs">
+              <button onClick="{{ csScrimTabOpacity }}" data-on="{{ csScrimTabOpacityOn }}">Opacity</button>
+              <button onClick="{{ csScrimTabFade }}" data-on="{{ csScrimTabFadeOn }}">Fade</button>
+            </div>
+            <input type="range" min="0" max="100" step="5" value="{{ csScrimTabVal }}" onChange="{{ onCsScrimTab }}" aria-label="{{ csScrimTabName }}">
+            <span class="p-lab p-lab-2">Colour <s>{{ csScrimHexVal }}</s></span>
+            <div class="p-swrow">
+              <sc-for list="{{ csScrimSwatches }}" as="sw" hint-placeholder-count="6"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" title="{{ sw.label }}"></button></sc-for>
+            </div>
+            <div class="p-hexwrap">
+              <span class="p-chip" style="{{ csScrimChipStyle }}"></span>
+              <input value="{{ csScrimHexVal }}" onChange="{{ onCsScrimHex }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="#1A2942">
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ scrimAllowed }}" hint-placeholder-val="{{ false }}">
+          <div class="p-grp-w">
+            <span class="p-lab">Wash strength <s>{{ scrimH }}%</s> <span class="tip p-info" data-tip="The dark wash behind the words, so they stay readable over the photo. Lower it until the photo comes through; raise it if the text is fighting the image.">i</span></span>
+            <input type="range" min="0" max="100" step="5" value="{{ scrimH }}" onChange="{{ onScrimH }}" aria-label="Wash strength">
+          </div>
+        </sc-if>
+        <sc-if value="{{ shadeAllowed }}" hint-placeholder-val="{{ false }}">
+          <div class="p-grp-w">
+            <span class="p-lab">Photo darkening <s>{{ shadeVal }}%</s> <span class="tip p-info" data-tip="A black scrim at the top and the bottom of the photo — behind the status, and under the panel — leaving the middle clear. 0 leaves the photograph untouched.">i</span></span>
+            <input type="range" min="0" max="100" step="5" value="{{ shadeVal }}" onChange="{{ onShade }}" aria-label="Photo darkening">
+          </div>
+        </sc-if>
+        <sc-if value="{{ imgOAllowed }}" hint-placeholder-val="{{ false }}">
+          <div class="p-grp-w">
+            <span class="p-lab">Photo strength <s>{{ imgOVal }}%</s> <span class="tip p-info" data-tip="How much of the photo shows through. Pull it down for a quieter, more typographic card.">i</span></span>
+            <input type="range" min="10" max="100" step="5" value="{{ imgOVal }}" onChange="{{ onImgO }}" aria-label="Photo strength">
+          </div>
+        </sc-if>
+        <div class="p-grp-w">
+          <span class="p-lab">Panel colour <span class="tip p-info" data-tip="{{ glassTip }}">i</span></span>
+          <div class="p-tabs"><sc-for list="{{ glassOpts }}" as="go" hint-placeholder-count="2"><button onClick="{{ go.set }}" data-on="{{ go.on }}">{{ go.label }}</button></sc-for></div>
+        </div>
+      </div>
+    </sc-if>
+    <div class="p-dock-r">
+      <button onClick="{{ shDockToggle }}" class="p-dock-t" data-on="{{ shDockOn }}" title="The post-wide look: wash, photo, panels"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-138.63Q450-147.25 450-160v-160q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-332.75 510-320v50h290q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-210 800-210H510v50q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM160-210q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-270 160-270h160q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q332.75-210 320-210H160Zm138.62-168.63Q290-387.25 290-400v-50H160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-510 160-510h130v-50q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q350-572.75 350-560v160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM480-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q467.25-510 480-510h320q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-450 800-450H480Zm138.62-168.63Q610-627.25 610-640v-160q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q670-812.75 670-800v50h130q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-690 800-690H670v50q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM160-690q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-750 160-750h320q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q492.75-690 480-690H160Z"/></svg>Post look</button>
+    </div>
+  </div>
 </div>
 
 <!-- THE FORM HAS TWO HOMES. On the guided screen it is the fixed overlay under the top
@@ -3640,11 +3764,12 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             <div class="gd-ask" data-k="{{ a.key }}" data-half="{{ a.half }}">
               <div class="gd-ask-h">
                 <b class="gd-askq">{{ a.label }}</b>
+                <i class="tip p-info gd-tipi" data-tip="{{ a.tip }}" data-has="{{ a.tipOn }}">i</i>
               </div>
 
               <sc-if value="{{ a.isField }}" hint-placeholder-val="{{ true }}">
                 <sc-if value="{{ a.row.isSeg }}" hint-placeholder-val="{{ false }}">
-                  <div class="gd-segs"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                  <div class="p-tabs gd-tabs"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 </sc-if>
                 <sc-if value="{{ a.row.isSel }}" hint-placeholder-val="{{ false }}">
                   <select value="{{ a.row.val }}" onChange="{{ a.row.setSel }}" class="gd-big gd-bigsel">
@@ -3689,6 +3814,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <div class="gd-qrow-t">
                     <s>{{ a.photoLabel }}</s>
                     <s>{{ a.photoHint }}</s>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
                     <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.phResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.phReset }}" class="gd-link">Reset photo scale &amp; position</button></sc-if>
                   </div>
@@ -3697,7 +3823,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
               <!-- THE PARALLAX LAYER: a toggle, off by default, and the drop only once it is on. -->
               <sc-if value="{{ a.isPx }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <div class="p-tabs gd-tabs"><sc-for list="{{ a.pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <sc-if value="{{ a.pxOn }}" hint-placeholder-val="{{ false }}">
                   <div class="gd-qrow">
                     <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
@@ -3706,6 +3832,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                     <div class="gd-qrow-t">
                       <s>{{ a.pxLabel }}</s>
                       <s>A PNG cut-out of the picture’s own foreground — the building, the car — so it passes in front of the status. It locks to the background’s position and zoom.</s>
+                      <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
                     </div>
                   </div>
                 </sc-if>
@@ -3716,14 +3843,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                    on the card. The keys are the rail's (`grpPills`…), valid because this page IS
                    the active slide. -->
               <sc-if value="{{ a.isGrp }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ grpPills }}" as="gp" hint-placeholder-count="5"><button onClick="{{ gp.set }}" class="gd-seg" style="{{ gp.style }}">{{ gp.label }}</button></sc-for></div>
+                <div class="p-tabs gd-tabs"><sc-for list="{{ grpPills }}" as="gp" hint-placeholder-count="5"><button onClick="{{ gp.set }}" data-on="{{ gp.on }}" data-dim="{{ gp.dim }}">{{ gp.label }}</button></sc-for></div>
                 <span class="gd-hint">{{ grpHint }}</span>
                 <sc-if value="{{ grpSelOn }}" hint-placeholder-val="{{ false }}">
                   <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ grpScalePct }}</s></b>
                   <div class="gd-slide"><input type="range" min="12" max="160" step="1" value="{{ grpScaleVal }}" onChange="{{ onGrpScale }}" class="gd-range"></div>
-                  <div class="gd-segs">
-                    <button onClick="{{ grpPin }}" class="gd-seg">Stand on bottom</button>
-                    <button onClick="{{ grpPinAll }}" class="gd-seg">Stand all</button>
+                  <div class="gd-slotacts">
+                    <button onClick="{{ grpPin }}" class="p-ghost p-sm">Stand on bottom</button>
+                    <button onClick="{{ grpPinAll }}" class="p-ghost p-sm">Stand all</button>
                   </div>
                 </sc-if>
                 <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}"><span class="gd-hint">Choose a layer above to size it. The five portraits come from the rank pages.</span></sc-if>
@@ -3740,12 +3867,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <div class="gd-qrow-t">
                     <s>{{ a.gfxLabel }}</s>
                     <s>It floats over the page&#8217;s copy. Drag it on the canvas to move it; a corner scales it.</s>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
                   </div>
                 </div>
                 <sc-if value="{{ a.gfxHas }}" hint-placeholder-val="{{ false }}">
                   <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ a.gfxPct }}</s></b>
                   <div class="gd-slide"><input type="range" min="6" max="140" step="1" value="{{ a.gfxVal }}" onChange="{{ a.gfxSet }}" class="gd-range"></div>
-                  <div class="gd-segs"><sc-for list="{{ a.gfxTintOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                  <div class="p-tabs gd-tabs"><sc-for list="{{ a.gfxTintOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                   <span class="gd-hint">{{ a.gfxTintHint }}</span>
                   <button onClick="{{ a.gfxReset }}" class="gd-link">Reset position and size</button>
                 </sc-if>
@@ -3760,20 +3888,21 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <div class="gd-qrow-t">
                     <s>{{ a.alogoLabel }}</s>
                     <s>Fitted to its box by its own ink, so a padded file still lines up.</s>
-                    <div class="gd-segs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" class="gd-seg" style="{{ ao.style }}">{{ ao.label }}</button></sc-for></div>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                    <div class="p-tabs gd-tabs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" data-on="{{ ao.on }}">{{ ao.label }}</button></sc-for></div>
                     <s>A brand-kit SVG is usually navy, which all but disappears on this ground — Match canvas recolours it.</s>
                   </div>
                 </div>
               </sc-if>
 
               <sc-if value="{{ a.isGlass }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <div class="p-tabs gd-tabs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <s class="gd-hint">{{ a.glassHint }}</s>
               </sc-if>
 
               <!-- THE CAROUSEL PAGE'S LAYOUT — the same five presets the left rail offers. -->
               <sc-if value="{{ a.isPreset }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.presetOpts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <div class="p-tabs gd-tabs"><sc-for list="{{ a.presetOpts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <span class="gd-hint">Switching keeps the copy you have typed wherever the new layout has a place for it.</span>
               </sc-if>
 
@@ -3781,7 +3910,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                    The icon comes from a drop or from Material Symbols through the picker. -->
               <sc-if value="{{ a.isStats }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-bigstep"><button onClick="{{ a.statDec }}" class="gd-stepb" data-can="{{ a.statCanDec }}">‹</button><span>{{ a.statN }} stats</span><button onClick="{{ a.statInc }}" class="gd-stepb" data-can="{{ a.statCanInc }}">›</button></div>
-                <span class="gd-hint">Two to six, in two columns, centred, growing upward from the bottom of the page.</span>
+                <span class="gd-hint">Two to six, in two columns, centred. Bottom stands the grid on the page’s floor; Top stacks it under the title.</span>
                 <sc-for list="{{ a.statRows }}" as="r" hint-placeholder-count="4">
                   <div class="gd-qrow gd-statrow">
                     <div class="gd-drop gd-drop-sq" data-done="{{ r.done }}">
@@ -3804,7 +3933,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
               </sc-if>
 
               <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
-                <div class="gd-segs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" class="gd-seg" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <div class="p-tabs gd-tabs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <span class="gd-hint">{{ a.storyHint }}</span>
               </sc-if>
 
@@ -3827,6 +3956,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <div class="gd-qrow-t">
                     <s>{{ a.qrLabel }}</s>
                     <sc-if value="{{ a.qrLink }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.openQrLink }}" class="gd-link">Visit QR code link ↗</button></sc-if>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
                   </div>
                 </div>
               </sc-if>
@@ -3842,7 +3972,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                     </div>
                   </sc-for>
                 </div>
-                <button onClick="{{ a.addPage }}" class="gd-addpage" data-can="{{ a.canAddPage }}">{{ a.addPageLabel }}</button>
+                <button onClick="{{ a.addPage }}" class="p-dash gd-addpage" data-can="{{ a.canAddPage }}">{{ a.addPageLabel }}</button>
                 <span class="gd-hint">The first {{ a.pageWord }} is always part of the post. Add more now and you will be asked for each one in turn.</span>
               </sc-if>
 
@@ -3859,6 +3989,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                   <div class="gd-qrow-t">
                     <s>{{ a.portraitLabel }}</s>
                     <s>The face is found and framed for you, so any crop works. Drag her on the card to move her.</s>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
                     <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.raResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.raReset }}" class="gd-link">Reset photo position</button></sc-if>
                   </div>
@@ -3896,7 +4027,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                       <b>{{ a.destName }}</b>
                       <s>Everything this post exports goes straight in here — the images, the story sizes and the session file.</s>
                     </div>
-                    <button onClick="{{ a.destPick }}" class="gd-destb">{{ a.destLabel }}</button>
+                    <button onClick="{{ a.destPick }}" class="p-btn">{{ a.destLabel }}</button>
                   </div>
                 </sc-if>
                 <sc-if value="{{ a.destUnsupported }}" hint-placeholder-val="{{ false }}">
@@ -3922,9 +4053,9 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                     <s>{{ a.storyNote }}</s>
                   </div>
                   <div class="gd-exprow">
-                    <button onClick="{{ a.expZip }}" class="gd-expb gd-expb-p">Save all</button>
+                    <button onClick="{{ a.expZip }}" class="p-btn">Save all</button>
                     <sc-if value="{{ a.expPdfOn }}" hint-placeholder-val="{{ false }}">
-                      <button onClick="{{ a.expPdf }}" class="gd-expb">Download as PDF</button>
+                      <button onClick="{{ a.expPdf }}" class="p-ghost">Download as PDF</button>
                     </sc-if>
                   </div>
                 </sc-if>
@@ -3960,9 +4091,9 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </div>
 
       <div class="gd-nav">
-        <button onClick="{{ gdBack }}" class="gd-btn" data-off="{{ gdBackOff }}">Back</button>
+        <button onClick="{{ gdBack }}" class="p-ghost gd-navb" data-off="{{ gdBackOff }}">Back</button>
         <span class="p-spring"></span>
-        <button onClick="{{ gdNext }}" class="gd-btn gd-btn-p" data-ready="{{ gdNextReady }}">{{ gdNextLabel }}</button>
+        <button onClick="{{ gdNext }}" class="p-btn gd-navb" data-ready="{{ gdNextReady }}">{{ gdNextLabel }}</button>
       </div>
     </div>
 
@@ -3980,7 +4111,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </div>
       <div class="gd-pstrip">
         <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="3">
-          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-warn="{{ c.warn }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}">
+          <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-warn="{{ c.warn }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}" data-dragsi="{{ c.dragSi }}" data-drop="{{ c.dropOn }}">
             <span class="gd-pthumb">
               <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-pt-img" data-src="{{ c.src }}" alt=""></sc-if>
               <sc-if value="{{ c.isFinish }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></sc-if>
@@ -4154,6 +4285,41 @@ class OrganicStudio extends StudioBase {
     const n = parseInt(OrganicStudio.ART.deep.slice(1), 16);
     return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
   }
+  // ── THE CAROUSEL'S SCRIM CONTROLS — Campaign's own three: opacity, fade and colour, on the
+  // project (`state.csScrim`), read by every carousel page. A project that carries no value
+  // resolves to the pages' original wash — navy, full strength, a ramp over the whole box —
+  // byte for byte, so nothing saved before this moves. The colour is the USER's hex, exactly
+  // as Campaign's `scrimHex` is: a value typed into a control, not a literal at a call site.
+  static csScrimOf(state) {
+    const c = (state && state.csScrim) || {};
+    const a = Math.max(0, Math.min(1, (c.op == null ? 100 : +c.op) / 100));
+    const fade = Math.max(0, Math.min(1, (c.fade == null ? 100 : +c.fade) / 100));
+    const hex = (typeof c.hex === 'string' && /^#[0-9a-f]{6}$/i.test(c.hex)) ? c.hex.toUpperCase() : OrganicStudio.ART.deep;
+    const n = parseInt(hex.slice(1), 16);
+    const col = k => 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + (k * a) + ')';
+    return { op: Math.round(a * 100), fadePct: Math.round(fade * 100), a, fade, hex, col };
+  }
+  // The page wash's stops. `t` is the box's INNER edge as a fraction of H — where the ramp
+  // reaches zero. Fade is measured INSIDE the box, Campaign's rule: 100 spans the whole box
+  // with the ramp (the three-stop form these pages have always emitted), less HOLDS the wash
+  // solid over the copy and ramps only the far part of the box.
+  static csScrimStops(anchor, t, SC) {
+    const D = SC.col, F = SC.fade;
+    if (anchor === 'bottom') {
+      if (F >= 1) return [[0, D(0)], [t, D(0)], [1, D(1)]];
+      const s = Math.min(1, t + (1 - t) * F);
+      return [[0, D(0)], [t, D(0)], [s, D(1)], [1, D(1)]];
+    }
+    if (F >= 1) return [[0, D(1)], [t, D(0)], [1, D(0)]];
+    const s = Math.max(0, t * (1 - F));
+    return [[0, D(1)], [s, D(1)], [t, D(0)], [1, D(0)]];
+  }
+  static csScrimCss(stops) {
+    return 'linear-gradient(to bottom, ' + stops.map(p => p[1] + ' ' + (p[0] * 100).toFixed(2) + '%').join(', ') + ')';
+  }
+  // The swatches the colour row offers — all dark, since every carousel page is white copy
+  // on a wash; the hex field takes anything else.
+  static CS_SCRIMS = [['Brand navy', '#1A2942'], ['Deep navy', '#0F1B2D'], ['Slate', '#2F4960'], ['Charcoal', '#2B2B2B'], ['Warm black', '#1A1614'], ['Black', '#000000']];
   // The wash's starting strength, keyed by the kind of the slide a project OPENS on —
   // `scrimH` itself is project level. It used to be stamped onto every slide by
   // `static slide()` and read back off slide 0 alone, so six of the seven copies were dead
@@ -4853,6 +5019,9 @@ class OrganicStudio extends StudioBase {
     // Regular 32 at the drawn 40.7 pitch, four lines at most.
     // `bodyMax` likewise: a callout plus a rule plus a list cannot live inside four lines,
     // so the cap is the room between the page's own anchors and what overruns is reported.
+    // `textColW` is RETIRED, by request: body copy takes the heading's own column (`headColW`)
+    // so title and body share one right edge and a line no longer breaks well short of the
+    // inset. Declared and unread, per the standing rule.
     textColW: 704, titleBodyGap: 29, bodyPx: 32, bodyLead: 40.7, bodyMax: 4,
     // STATS — two columns 402 apart on the canvas axis (the frame's own centres were 323 and
     // 725, whose midpoint is 16 off centre — drawing slop, centred here), rows 331 apart,
@@ -4892,9 +5061,12 @@ class OrganicStudio extends StudioBase {
     // line, on the page's existing bottom line (SWIPE's). Its band is SHORTER than the
     // template's own 250 wash: this is one small run, and 20 of hold plus 160 of fade keeps
     // the whole band below the card rather than washing up behind it.
-    // the floor is the BRAND's own type floor (.85 x 28 = 23.8), not an arbitrary one: past
-    // it a legal notice stops being readable, so a long permit WRAPS rather than shrinking
-    permitFade: 160, permitMin: .85, permitMax: 2, permitLead: 1.35,
+    // SET AT THE BRAND'S TYPE FLOOR — 2.2cqw, 23.8 at 1080 — one minor-third step under the
+    // page's 28px small caps, and LIGHT 300 where every other caps run here is 500: a permit
+    // has to exist and does not need to be noticed. There is no step-down any more, because
+    // the size already IS the floor; a long one WRAPS instead, up to two lines stacking upward.
+    // `permitMin` is DECLARED AND UNREAD since then — the standing rule keeps it.
+    permitPx: 23.8, permitW: 300, permitFade: 160, permitMin: .85, permitMax: 2, permitLead: 1.35,
     // THE SCRIM. Navy, transparent at the canvas's vertical centre and solid at the edge the
     // copy sits on. When the copy climbs past the centre the scrim starts `scrimPad` above
     // it instead, so the copy always has that much wash behind it — "a padding of 250 that
@@ -4977,10 +5149,10 @@ class OrganicStudio extends StudioBase {
   // is not required, so a blank one simply draws nothing and blocks no export.
   static csSeed(kind) {
     if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom' };
-    if (kind === 'cstats') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
+    if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
     if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
     if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
-    if (kind === 'ccta') return { small: '', big: '', button: '', permit: '' };
+    if (kind === 'ccta') return { small: '', big: '', button: '', permit: '', pos: 'Centre' };
     return {};
   }
   static csNorm(sl) {
@@ -4992,6 +5164,89 @@ class OrganicStudio extends StudioBase {
   // Switch a page's layout and CARRY ITS COPY: whatever was typed stays on the slide, and
   // the new layout's primary and secondary lines are filled from the old layout's own when
   // they are still empty — so Front page -> Text keeps the headline as the title.
+  // The slot's actions, reached from the form's own buttons. The CANVAS copy of a slot is
+  // preferred for a reframe — that is where the crop means something — and every copy shares
+  // the store, so replace and remove land the same wherever they are pressed.
+  slotActs(id) {
+    const el = () => { const all = [...document.querySelectorAll('image-slot')].filter(s => s.id === id);
+      return all.find(s => s.closest('.p-plate')) || all[0] || null; };
+    return {
+      slotReplace: () => { const s = el(); if (s && s._input) s._input.click(); },
+      slotEdit: () => { const s = el(); if (!s) return; if (s.hasAttribute('data-reframe')) s._exitReframe(true); else s._enterReframe(); },
+      slotRemove: () => { const s = el(); if (s && s.clearSlot) s.clearSlot(); }
+    };
+  }
+  // ── REORDER BY DRAG, on the two templates whose order is the USER'S: a carousel's inside
+  // pages — the front page and the closing card hold their ends — and the ranking cards,
+  // whose order IS their rank: `taRank` reads position, so a card dropped third is 3rd and
+  // its portrait and blurb go with it (photos are keyed by slide id, so they follow). Weekly
+  // and the reviews keep their fixed order.
+  canMoveSlide(si, state) {
+    const s = state || this.state, sl = (s.slides || [])[si];
+    if (!sl) return false;
+    if (s.tpl === 'carousel') return si > 0 && si < s.slides.length - 1;
+    if (s.tpl === 'agents') return sl.kind === 'tagent';
+    return false;
+  }
+  moveSlide(from, to) {
+    this.upd(x => {
+      if (from === to || !this.canMoveSlide(from, x) || !this.canMoveSlide(to, x)) return x;
+      const moved = x.slides.splice(from, 1)[0];
+      x.slides.splice(to, 0, moved);
+      x.activeSi = to;
+      return x;
+    });
+    this._gdVisited = null;          // the run's per-step memory is by index; it is stale now
+  }
+  // POINTER EVENTS, NOT HTML5 DRAG-AND-DROP, and that is a verification decision: the pane's
+  // automation cannot start a native drag, and this project ships a gesture only once a REAL
+  // pointer has moved it — the canvas drags all went that way. Delegated ONCE at the document,
+  // so React re-rendering the rows never stacks or loses a listener; a row opts in with
+  // `data-dragsi` (its slide index). A press that does not travel 5px is a click and is left
+  // alone, so the row's own Activate and Remove keep working; a press that does becomes a
+  // drag, the row under the pointer takes the ring, and release drops.
+  dragBind() {
+    if (this._dragBound) return;
+    this._dragBound = true;
+    const rowOf = t => t && t.closest && t.closest('[data-dragsi]');
+    const under = (x, y) => { for (const el of document.elementsFromPoint(x, y)) { const r = rowOf(el); if (r) return +r.getAttribute('data-dragsi'); } return null; };
+    let press = null;   // { si, x, y, live }
+    document.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const r = rowOf(e.target); if (!r) return;
+      const si = +r.getAttribute('data-dragsi');
+      if (!this.canMoveSlide(si)) return;
+      press = { si, x: e.clientX, y: e.clientY, live: false, id: e.pointerId, row: r };
+    }, true);
+    document.addEventListener('pointermove', e => {
+      if (!press) return;
+      if (!press.live) {
+        if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 5) return;
+        press.live = true; this._dragSi = press.si;
+        try { press.row.setPointerCapture(press.id); } catch (err) {}
+        document.body.setAttribute('data-dragging', '1');
+      }
+      e.preventDefault();
+      const si = under(e.clientX, e.clientY);
+      const over = (si != null && this.canMoveSlide(si)) ? si : null;
+      if (this._dragOver !== over) { this._dragOver = over; this.forceUpdate(); }
+    }, true);
+    const end = e => {
+      if (!press) return;
+      const p = press; press = null;
+      if (!p.live) return;
+      try { p.row.releasePointerCapture(p.id); } catch (err) {}
+      document.body.removeAttribute('data-dragging');
+      const to = e.type === 'pointerup' ? under(e.clientX, e.clientY) : null;
+      const from = this._dragSi; this._dragSi = null; this._dragOver = null;
+      // the release is not a click on whatever it landed on
+      this._dragSwallow = true; setTimeout(() => { this._dragSwallow = false; }, 0);
+      if (to != null && to !== from && this.canMoveSlide(to)) this.moveSlide(from, to); else this.forceUpdate();
+    };
+    document.addEventListener('pointerup', end, true);
+    document.addEventListener('pointercancel', end, true);
+    document.addEventListener('click', e => { if (this._dragSwallow) { e.stopPropagation(); e.preventDefault(); } }, true);
+  }
   static csConvert(sl, kind) {
     const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', ccta: 'big' };
     const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', ccta: 'small' };
@@ -5400,6 +5655,10 @@ class OrganicStudio extends StudioBase {
       // NOT delete it: it changes the artwork, so it belongs in the undo stack, the render
       // key and the saved project.
       glassFill: 'white',
+      // THE CAROUSEL'S WASH — Campaign's three scrim controls on the project. These are the
+      // pages' original values (navy, full, a ramp over the whole box), and `csScrimOf` reads
+      // a missing record the same way, so a project saved before the control opens unchanged.
+      csScrim: { op: 100, fade: 100, hex: null },
       // the listed card's black scrim, 0-100 — see `shadeAlpha`, which also answers for a
       // saved project that carries no value
       shade: 35,
@@ -7117,6 +7376,10 @@ class OrganicStudio extends StudioBase {
     // a centred run is placed by its INK — `meas` reserves a trailing tracking unit
     const TC = (t, y, px, w, fill, ls, cx) => { const ink = meas(t, px, w, ls) - (ls || 0); T(t, (cx == null ? W / 2 : cx) - ink / 2, y, px, w, fill, ls); };
     const far = y => { B.far = Math.max(B.far == null ? 0 : B.far, y); };
+    // the COPY BLOCK's own far end — `far()` also counts SWIPE, a bottom wordmark and the
+    // permit, which sit at the foot of every page, so a top layout's wash read from `B.far`
+    // ran to the bottom edge whenever there was a next page. That was the "too much".
+    const blk = y => { B.blkFar = y; };
     // ── THE OVERLINE EYEBROW ───────────────────────────────────────────────────────────
     // Brass tracked caps at the TOP OF THE BLOCK, so the copy under it follows rather than
     // the block growing into the page's own furniture. A blank one is worth no height at
@@ -7258,38 +7521,46 @@ class OrganicStudio extends StudioBase {
       hl.forEach((t, i) => T(t, C.pad, top + hb + i * C.headPx * C.headLead, C.headPx, 400, A.ink));
       put(R, top + headH + gap);
       B.over = R.over;
-      B.near = top; far(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
     } else if (kind === 'cstats') {
       const n = OrganicStudio.csN(f), items = OrganicStudio.csItems(f), rows = Math.ceil(n / 2);
       const rowH = C.statTop + C.statBox + C.labGap + C.labBox;
-      const gridBot = H - C.gridBotIn, gridTop = gridBot - rowH - (rows - 1) * C.rowPitch;
       const tTop = C.statTitleIn + (pT - C.topBase);
+      const topAligned = f.pos === 'Top';
       eyePut(null, tTop, W / 2);
-      // THE TITLE STACKS, and its line count is CLAMPED BY THE ROOM ABOVE THE GRID rather
-      // than by a flat cap: the grid is bottom-anchored and climbs as stats are added, so at
-      // six a one-line title already sits on its top edge. At least one line always draws —
-      // dropping the title outright would be worse than letting it touch.
-      const tRoom = gridTop - C.titleGridGap - (tTop + eyeH);
+      // TWO LAYOUTS, by request. BOTTOM is the drawing's: the grid stands on the page's floor
+      // and the title's line count is CLAMPED BY THE ROOM ABOVE IT rather than by a flat cap —
+      // the grid climbs as stats are added, so at six a one-line title already sits on its
+      // top edge. At least one line always draws; dropping the title outright would be worse
+      // than letting it touch. TOP stacks the grid straight under the title block instead,
+      // growing DOWNWARD, and the blurb's budget is then what the grid leaves above the floor.
+      const gridBotB = H - C.gridBotIn, gridTopB = gridBotB - rowH - (rows - 1) * C.rowPitch;
+      const tRoom = topAligned ? Infinity : gridTopB - C.titleGridGap - (tTop + eyeH);
       const tFit = Math.max(1, Math.min(3, Math.floor((tRoom - C.titleBox) / C.h2Pitch) + 1));
       const tl = lines(f.title, C.titlePx, 400, C.headColW, tFit);
       tl.forEach((t, i) => TC(t, tTop + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0));
-      // THE OPTIONAL BLURB, the same rich body the text page carries — set in the body's own
-      // 704 measure rather than the heading's column, and budgeted by the room the grid
-      // leaves, so it reports what will not fit instead of drawing into the stats.
+      const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
+      let blockBot = tTop + eyeH + titleH;
+      // THE OPTIONAL BLURB, the same rich body the text page carries — in the heading's own
+      // column now, so title and body share one right edge, and budgeted by the room the grid
+      // leaves so it reports what will not fit instead of drawing into the stats.
       if (f.bodyOn === 'Show') {
-        const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
-        const bTop = tTop + eyeH + titleH + (titleH ? C.titleBodyGap : 0);
-        const R = rtLay(f.body, (W - C.textColW) / 2, C.textColW,
-                        Math.max(0, gridTop - C.titleGridGap - bTop), true, C.bodyPx, C.bodyLead);
+        const bTop = blockBot + (titleH ? C.titleBodyGap : 0);
+        const budget = topAligned ? (gridBotB - (rowH + (rows - 1) * C.rowPitch) - C.titleGridGap - bTop)
+                                  : (gridTopB - C.titleGridGap - bTop);
+        const R = rtLay(f.body, (W - C.headColW) / 2, C.headColW, Math.max(0, budget), true, C.bodyPx, C.bodyLead);
         put(R, bTop);
         B.over = R.over;
-        // THE BLURB NEEDS ITS OWN WASH, and the page's cannot give it one: the scrim here is
-        // anchored to the GRID, which is at the bottom, so everything above its ramp sits on
-        // bare photograph. A blurb is body copy at 32px, which is exactly the run that cannot
-        // survive that. Recorded here and turned into a band below; an EMPTY blurb records
-        // nothing, so the toggle alone never adds a wash.
-        if (R.h > 0) B.topFar = bTop + R.h;
+        // ON THE BOTTOM LAYOUT THE BLURB NEEDS ITS OWN WASH, and the page's cannot give it one:
+        // the scrim there is anchored to the GRID, at the bottom, so everything above its ramp
+        // sits on bare photograph — and a blurb is body copy at 32px, exactly the run that
+        // cannot survive that. Recorded here and turned into a band below; an EMPTY blurb
+        // records nothing, so the toggle alone never adds a wash. On the TOP layout the
+        // page's own wash already covers the whole block, so no second band is needed.
+        if (R.h > 0) { blockBot = bTop + R.h; if (!topAligned) B.topFar = blockBot; }
       }
+      const gridTop = topAligned ? blockBot + C.titleGridGap : gridTopB;
+      const gridBot = topAligned ? gridTop + rowH + (rows - 1) * C.rowPitch : gridBotB;
       for (let i = 0; i < n; i++) {
         const r = Math.floor(i / 2), c = i % 2, alone = (r === rows - 1) && (n % 2 === 1);
         const cx = alone ? W / 2 : W / 2 + (c ? 1 : -1) * C.colPitch / 2;
@@ -7299,7 +7570,9 @@ class OrganicStudio extends StudioBase {
         if (String(it.stat || '').trim()) TC(String(it.stat).trim(), iy + C.statTop + asc(C.statPx), C.statPx, 300, A.ink, 0, cx);
         if (String(it.label || '').trim()) TC(String(it.label).trim().toUpperCase(), iy + C.statTop + C.statBox + C.labGap + asc(C.labPx), C.labPx, 300, A.ink, C.labTrack * C.labPx, cx);
       }
-      B.near = gridTop; far(gridBot); B.anchor = 'bottom';
+      blk(gridBot);
+      if (topAligned) { B.near = tTop; far(gridBot); B.anchor = 'top'; }
+      else { B.near = gridTop; far(gridBot); B.anchor = 'bottom'; }
     } else if (kind === 'cbul') {
       const bl = String(f.bullets || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).slice(0, C.bulMax);
       const n = bl.length, colX = W - C.padR - C.bulColW, blockH = n * C.bulPitch;
@@ -7319,12 +7592,14 @@ class OrganicStudio extends StudioBase {
       const hl = lines(f.headline, C.titlePx, 400, colX - C.bulHeadGap - C.pad, 6);
       hl.forEach((t, i) => T(t, C.pad, cTop + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
       const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
-      B.near = top; far(cTop + Math.max(blockH, headH)); B.anchor = topAligned ? 'top' : 'bottom';
+      B.near = top; far(cTop + Math.max(blockH, headH)); blk(cTop + Math.max(blockH, headH)); B.anchor = topAligned ? 'top' : 'bottom';
     } else if (kind === 'ctext') {
       const center = f.align !== 'Left';
-      const colX = center ? (W - C.textColW) / 2 : C.pad, colW = C.textColW, cx = colX + colW / 2;
-      // THE HEADING TAKES THE PAGE'S OWN COLUMN, not the body's. 704 is a measure for 32px
-      // copy and far too tight for a 68px title; the body below it keeps 704.
+      // THE BODY TAKES THE HEADING'S COLUMN TOO, by request. At the frame's own 704 a body
+      // line broke well short of the right inset and the break read as awkward beside a title
+      // running to 881; both wrap to the page's grid column now — 105 to 94 in from the edges,
+      // or centred on the canvas axis — so title and body share one right edge.
+      const colW = C.headColW, colX = center ? (W - colW) / 2 : C.pad, cx = colX + colW / 2;
       const tl = lines(f.title, C.titlePx, 400, C.headColW, 3);
       const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
       // the band between the page's own two anchors is what the body may spend, less what
@@ -7339,7 +7614,7 @@ class OrganicStudio extends StudioBase {
       tl.forEach((t, i) => { const y = top + eyeH + asc(C.titlePx) + i * C.h2Pitch; center ? TC(t, y, C.titlePx, 400, A.ink, 0, cx) : T(t, colX, y, C.titlePx, 400, A.ink); });
       put(R, top + eyeH + titleH + gap);
       B.over = R.over;
-      B.near = top; far(top + h); B.anchor = bottomAligned ? 'bottom' : 'top';
+      B.near = top; far(top + h); blk(top + h); B.anchor = bottomAligned ? 'bottom' : 'top';
     } else if (kind === 'ccta') {
       const maxContent = C.ctaMaxW - 2 * C.ctaPad;
       const small = String(f.small || '').trim(), label = String(f.button || '').trim();
@@ -7354,7 +7629,10 @@ class OrganicStudio extends StudioBase {
       const bigH = bl.length ? C.titleBox + (bl.length - 1) * C.h2Pitch : 0;
       const ch = C.ctaPad + C.ctaRuleH + C.ctaRuleGap + (small ? C.ctaSmallBox : 0) + ((small && bl.length) ? C.ctaSmallBigGap : 0)
         + bigH + (label ? C.ctaBigPillGap + C.ctaPillH : 0) + C.ctaPillWmGap + C.ctaWmBox + C.ctaPad;
-      const cx0 = (W - cw) / 2, cy0 = (H - ch) / 2;
+      // WHERE THE CARD SITS — centred, the drawing's own, or on the page's top line or its
+      // floor: the same two anchors every other page hangs its copy from, so a carousel that
+      // runs its copy high can run its closing card high as well.
+      const cx0 = (W - cw) / 2, cy0 = f.pos === 'Top' ? topY : (f.pos === 'Bottom' ? H - C.botIn - ch : (H - ch) / 2);
       B.card = { x: cx0, y: cy0, w: cw, h: ch, r: C.ctaR };
       let y = cy0 + C.ctaPad;
       B.rects.push({ x: W / 2 - C.ctaRuleW / 2, y, w: C.ctaRuleW, h: C.ctaRuleH, fill: A.brass });
@@ -7371,9 +7649,9 @@ class OrganicStudio extends StudioBase {
       }
       y += C.ctaPillWmGap;
       TC('provident.', y + C.ctaWmBase, tk.logo, 300, A.warm, logoLS);
-      B.near = cy0; far(cy0 + ch); B.anchor = null;   // no scrim: the card is its own surface
-      // ── THE PERMIT NUMBER. Tracked caps at the eyebrow's own size and tracking, on the
-      // page's existing bottom line — SWIPE's baseline — so the foot of the page carries one
+      B.near = cy0; far(cy0 + ch); blk(cy0 + ch); B.anchor = null;   // no scrim: the card is its own surface
+      // ── THE PERMIT NUMBER. Tracked caps one type-scale step UNDER the page's small caps,
+      // in Light, on the page's existing bottom line — SWIPE's baseline — so the foot of the page carries one
       // line rather than two. Centred under the card. In `warm` rather than brass: a legal
       // notice should not read as a second brand accent, and "gold is minimised in canvas
       // output" has taken four exemptions already. One token if it should match the overline.
@@ -7383,28 +7661,34 @@ class OrganicStudio extends StudioBase {
         // it has to clear SWIPE when this page is not the last one. Centred on the canvas,
         // so SWIPE's own left edge bounds the HALF width — a symmetric constraint.
         const room = swipeX == null ? W - 2 * C.pad : Math.min(W - 2 * C.pad, 2 * (swipeX - C.swipeGap / 2 - W / 2));
-        // stepped, never solved: this font's width per em is not constant with px. And it
-        // stops at the brand's own floor and WRAPS instead — a 52-character permit (DLD plus
-        // RERA plus ORN is a real one) otherwise kept shrinking and still overlapped SWIPE by
-        // 9px at the floor. Two small lines read; one 15px line does not.
-        let px = C.swipePx, ls = C.swipeTrack * px;
-        while (meas(permit, px, 500, ls) - ls > room && px > C.swipePx * C.permitMin) { px -= .5; ls = C.swipeTrack * px; }
-        const pl = this.wrapPlain(permit, px, 500, ls, room, C.permitMax);
+        // The size IS the brand's floor, so there is nothing to step down to: a long permit
+        // (DLD plus RERA plus ORN is a real 52 characters) WRAPS, up to two lines stacking
+        // upward. Two small lines read; one 15px line does not.
+        const px = C.permitPx, ls = C.swipeTrack * px, pw = C.permitW;
+        const pl = this.wrapPlain(permit, px, pw, ls, room, C.permitMax);
         // the LAST line keeps the page's bottom line; the rest stack upward off it
         const pUp = (pl.length - 1) * px * C.permitLead;
-        pl.forEach((t, i) => TC(t, pTop + asc(px) - pUp + i * px * C.permitLead, px, 500, A.warm, ls));
+        pl.forEach((t, i) => TC(t, pTop + asc(px) - pUp + i * px * C.permitLead, px, pw, A.warm, ls));
         // THE CARD IS ITS OWN SURFACE AND THE REST OF THIS PAGE HAS NO WASH AT ALL, so a run
         // down here would sit on bare photograph — the stats blurb's problem, one page over.
         // A footer band, sized to this one line and kept clear of the card.
-        B.scrimBot = { y1: Math.max(0, pTop - pUp - C.scrimHold),
-                       y2: Math.max(0, pTop - pUp - C.scrimHold - C.permitFade) };
+        // — and kept clear of the card: on the Bottom layout the card stands 219 off the floor,
+        // inside the band's own fade, so the fade shortens to start under the card instead.
+        const by1 = Math.max(0, pTop - pUp - C.scrimHold);
+        B.scrimBot = { y1: by1, y2: Math.min(by1, Math.max(Math.max(0, pTop - pUp - C.scrimHold - C.permitFade), cy0 + ch + C.scrimHold)) };
         far(pTop + C.swipeBox);
       }
     }
-    // THE SCRIM: transparent at the vertical centre, solid at the anchored edge — unless the
-    // copy climbs past the centre, in which case the ramp starts `scrimPad` before the copy.
+    // THE SCRIM. A BOTTOM layout: transparent at the vertical centre, solid at the floor —
+    // unless the copy climbs past the centre, in which case the ramp starts `scrimPad` above
+    // it ("a padding of 250 that depends on where the layout starts, and the gradient starts
+    // at the centre" — the frames' own rule). A TOP layout is NOT its mirror any more: forcing
+    // its wash down to the centre darkened half the picture under a short block, which was
+    // reported as too much. It runs from the top edge to the copy plus `scrimPad` and stops
+    // there, wherever that lands — past the centre for a tall block, well short of it for a
+    // headline and two lines.
     if (B.anchor === 'bottom') B.scrim = { y0: Math.min(H / 2, (B.near == null ? H : B.near) - C.scrimPad) };
-    else if (B.anchor === 'top') B.scrim = { y0: Math.max(H / 2, (B.far == null ? 0 : B.far) + C.scrimPad) };
+    else if (B.anchor === 'top') B.scrim = { y0: Math.min(H, (B.blkFar == null ? 0 : B.blkFar) + C.scrimPad) };
     // A SECOND BAND for a top block the page's own scrim does not reach — the stats blurb.
     // The template's own rule read from the other side: solid at the edge the copy sits on,
     // transparent `scrimPad` past it. It is its OWN gradient rather than extra stops on the
@@ -7990,11 +8274,10 @@ class OrganicStudio extends StudioBase {
     } else if (OrganicStudio.isCs(kind)) {
       // ══ THE CAROUSEL PAGES — everything off `csBox`, in paint order: scrim, glass card,
       // rules and pills, icons, text, the SWIPE chevron. The photo is already down.
-      const B = this.csBox(state, si, tk), D = OrganicStudio.deepA;
+      const B = this.csBox(state, si, tk), SC = OrganicStudio.csScrimOf(state), D = SC.col;
       if (B.scrim) {
         const t = Math.max(0, Math.min(1, B.scrim.y0 / H));
-        ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H,
-          stops: B.anchor === 'bottom' ? [[0, D(0)], [t, D(0)], [1, D(1)]] : [[0, D(1)], [t, D(0)], [1, D(0)]] });
+        ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: OrganicStudio.csScrimStops(B.anchor, t, SC) });
       }
       if (B.scrimTop) {
         const a1 = Math.max(0, Math.min(1, B.scrimTop.y1 / H)), a2 = Math.max(a1, Math.min(1, B.scrimTop.y2 / H));
@@ -8701,7 +8984,7 @@ class OrganicStudio extends StudioBase {
     cstats:  ['Title', 'Blurb', 'Layout'],
     cbul:    ['Headline', 'Bullet points', 'Layout'],
     ctext:   ['Title', 'Body', 'Layout'],
-    ccta:    ['Copy', 'Button', 'Reference']
+    ccta:   ['Copy', 'Button', 'Layout & reference']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
   static FIELDS = {
@@ -8764,6 +9047,7 @@ class OrganicStudio extends StudioBase {
             ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line'],
             ['bodyOn', 2, 'Blurb under the title', 'seg:Hide|Show', 'A short paragraph between the title and the grid'],
             ['body', 2, 'Blurb', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
     cbul:  [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the headline'],
             ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
@@ -8781,6 +9065,7 @@ class OrganicStudio extends StudioBase {
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
+            ['pos', 3, 'Layout', 'seg:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
             ['permit', 3, 'Permit number', '', 'Set in small caps at the foot of the page \u2014 leave it blank to omit']]
   };
   static tierName(kind, t) {
@@ -9320,6 +9605,30 @@ class OrganicStudio extends StudioBase {
         : (stOn ? 'Both sizes are included.' : 'Feed only — the story canvas is hidden.'))
         + ((s.slides || []).length > 1 ? ' The PDF is the feed pages only.' : '');
     }
+    // THE HINT, ONCE, FOR BOTH HOMES. The run prints it under the control; All controls hides
+    // every helper line and offers the same words from the `i` beside the label instead.
+    const TIPS = {
+      px: 'Optional, off by default. A PNG cut-out of the picture\u2019s own foreground \u2014 the building, the car \u2014 so it passes in front of the status. It locks to the background\u2019s position and zoom.',
+      gfx: 'It floats over the page\u2019s copy. Drag it on the canvas to move it; a corner scales it. Match canvas recolours a navy brand-kit SVG to the page\u2019s ink.',
+      alogo: 'Fitted to its box by its own ink, so a padded file still lines up. A brand-kit SVG is usually navy, which all but disappears on this ground \u2014 Match canvas recolours it.',
+      grp: 'Choose a figure here, then drag it on the card. A corner grows it upward from its feet; Stand on bottom puts its feet on the floor.',
+      scrim: 'The dark wash sits behind the words so they stay readable over the photo. Lower it until the photo comes through, raise it if the text is fighting the image.',
+      shade: 'A black scrim at the top and the bottom of the photo \u2014 behind the status, and under the panel \u2014 leaving the middle clear. 0 leaves the photograph untouched.',
+      imgo: 'How much of the photo shows through. Pull it down for a quieter, more typographic card.',
+      stats: 'Two to six, in two columns, centred. Bottom stands the grid on the page\u2019s floor; Top stacks it under the title.',
+      preset: 'Switching keeps the copy you have typed wherever the new layout has a place for it.',
+      name: 'Optional \u2014 a custom name overrides the convention.',
+      portrait: 'The face is found and framed for you, so any crop works. Drag her on the card to move her.',
+      pages: 'The first page is always part of the post. Add more and each is asked for in turn.'
+    };
+    const tip = v.isField ? ((v.row && v.row.hint) || '') : (v.isGlass ? (v.glassHint || '') : v.isStory ? (v.storyHint || '')
+      : v.isPhoto ? (v.photoHint || '') : v.isProj ? (v.projHint || '') : (TIPS[ask.kind] || ''));
+    v.tip = tip; v.tipOn = tip ? '1' : undefined;
+    // THE SLOT'S OWN THREE ACTIONS AS VISIBLE BUTTONS under a filled drop — the slot's hover
+    // strip is easy to miss, and its Replace dispatched an event nothing here handled.
+    const sid = v.photoSlot || v.pxSlot || v.gfxSlot || v.portraitSlot || v.qrSlot || (v.isAlogo ? 'smp-alogo' : null);
+    if (sid) Object.assign(v, this.slotActs(sid), { slotActsOn: (filled && filled[sid]) ? '1' : undefined,
+      slotReframeOn: (v.isPhoto || v.isPortrait) ? '1' : undefined });
     return v;
   }
   gdSeedSelect() {
@@ -10340,7 +10649,7 @@ class OrganicStudio extends StudioBase {
         // same `csBox` the ops read. Text is the single-line idiom (`top: baseline - px`
         // with a `baseLH` line-height); icons are MASKS with a background colour, which is
         // what `tintFlat` does on canvas; the chevron is one polyline in an overlay SVG.
-        const B = this.csBox(s, si, tk), A = OrganicStudio.ART, D = OrganicStudio.deepA;
+        const B = this.csBox(s, si, tk), A = OrganicStudio.ART, SC = OrganicStudio.csScrimOf(s), D = SC.col;
         const abs = (x, y) => ({ position: 'absolute', left: cq(x), top: cq(y) });
         const LH = px => StudioBase.baseLH(px);
         K.logoStyle = Object.assign({}, K.logoStyle, { display: 'none' });   // drawn from B.texts
@@ -10349,9 +10658,7 @@ class OrganicStudio extends StudioBase {
         const csGrads = [];
         if (B.scrimTop) csGrads.push('linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(1) + ' ' + (B.scrimTop.y1 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' ' + (B.scrimTop.y2 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)');
         if (B.scrimBot) csGrads.push('linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrimBot.y2 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' ' + (B.scrimBot.y1 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)');
-        if (B.scrim) csGrads.push(B.anchor === 'bottom'
-          ? 'linear-gradient(to bottom, ' + D(0) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(1) + ' 100%)'
-          : 'linear-gradient(to bottom, ' + D(1) + ' 0%, ' + D(0) + ' ' + (B.scrim.y0 / tk.H * 100).toFixed(2) + '%, ' + D(0) + ' 100%)');
+        if (B.scrim) csGrads.push(OrganicStudio.csScrimCss(OrganicStudio.csScrimStops(B.anchor, Math.max(0, Math.min(1, B.scrim.y0 / tk.H)), SC)));
         K.scrimStyle = Object.assign({}, K.scrimStyle, { background: csGrads.length ? csGrads.join(', ') : 'none' });
         K.csCardOn = !!B.card;
         if (B.card) K.csCardStyle = Object.assign(abs(B.card.x, B.card.y), { width: cq(B.card.w), height: cq(B.card.h),
@@ -11237,6 +11544,10 @@ class OrganicStudio extends StudioBase {
       // Token, not '#fff': on a light rail the slide's own name was white on white.
       nameStyle: { fontWeight: s.activeSi === si ? 500 : 400, fontSize: '13px', color: 'var(--ps-ink)' },
       activate: () => this.upd(x => { x.activeSi = si; return x; }),
+      // drag to reorder — see `canMoveSlide`; the drop target is the row under the pointer
+      dragSi: this.canMoveSlide(si) ? String(si) : undefined,
+      gripOn: this.canMoveSlide(si) ? '1' : undefined,
+      dropOn: (this._dragSi != null && this._dragOver === si && this._dragSi !== si) ? '1' : undefined,
       remove: mkRemove(si),
       // #B3261E is the LIGHT-mode error red; on the dark rail it read as a muddy smudge,
       // and it could not follow the theme at all. --ps-bad is the themed pair.
@@ -11429,10 +11740,13 @@ class OrganicStudio extends StudioBase {
         // a refused Next belongs to the run; the rail never refuses anything
         const blocked = !editor && !!(this._gdBlock && this._gdBlock.length);
         OrganicStudio.GDSECORDER.forEach(sec => {
-          // in the rail: this slide's own sections, every Look ask, and neither Pages (the
-          // slides list is the left rail) nor Save (the Share panel)
+          // IN THE RAIL: this slide's own sections and nothing that lives elsewhere — Look is
+          // the dock over the canvas, the layout preset and the wordmark are the left rail's,
+          // Pages is the slides list and Save is the Share panel. Each control in ONE place,
+          // by request: the duplicates were what made the rail read as more of the same.
           const here = asks.map((q, i) => ({ q, i })).filter(o => o.q.sec === sec && (editor
-            ? (sec === 'look' ? true : (sec !== 'pages' && sec !== 'save' && o.q.step === idx))
+            ? (sec !== 'pages' && sec !== 'save' && sec !== 'look' && sec !== 'layout' && o.q.step === idx
+               && !(o.q.kind === 'field' && o.q.k === 'logoPos'))
             : o.q.step === idx));
           if (!here.length) return;
           const rows = here.map(o => this.gdRowView(o.q, o.i, slides[o.q.si], f => rowFor(f, o.q.si), filled, () => focusAsk(o.i)));
@@ -11519,8 +11833,12 @@ class OrganicStudio extends StudioBase {
             // a page you have been on and left with something missing carries a warning
             const warn = st2.k === 'page' && seen && i !== idx && g > 0;
             const c = st2.k === 'page' ? cardFor(st2.si, slides[st2.si]) : { src: '', hasShot: false, noShot: false, rows: [] };
+            const mv = st2.k === 'page' && this.canMoveSlide(st2.si);
             return Object.assign(c, { t: st2.t, isFinish: st2.k === 'finish' ? '1' : undefined,
-              on: i === idx ? '1' : undefined, done: done ? '1' : undefined, warn: warn ? '1' : undefined, go: () => goStep(i) });
+              on: i === idx ? '1' : undefined, done: done ? '1' : undefined, warn: warn ? '1' : undefined, go: () => goStep(i),
+              // the strip reorders too — the same drag, the same rule
+              dragSi: mv ? String(st2.si) : undefined,
+              dropOn: (mv && this._dragSi != null && this._dragOver === st2.si && this._dragSi !== st2.si) ? '1' : undefined });
           }),
           gdNote: isFinish
             ? 'What you see is exactly what exports. The 9:16 story is built from the same answers'
@@ -11631,6 +11949,9 @@ class OrganicStudio extends StudioBase {
       redoOff: (this._redoStack || []).length ? undefined : '1',
       tplLabel: TPLNAMES[s.tpl] || s.tpl,
       slideNav,
+      dragHintOn: (s.tpl === 'carousel' || s.tpl === 'agents') ? '1' : undefined,
+      dragHint: s.tpl === 'agents' ? 'Drag a rank to reorder \u2014 the order is the ranking. The cover stays first.'
+                                    : 'Drag an inside page to reorder. The front page and the closing card stay put.',
       canAddSlide: (s.tpl === 'weekly' && propCount < OrganicStudio.TPLGROW.weekly)
         || (s.tpl === 'review' && revCount < OrganicStudio.TPLGROW.review)
         || (s.tpl === 'carousel' && s.slides.length < OrganicStudio.TPLGROW.carousel),
@@ -11638,6 +11959,9 @@ class OrganicStudio extends StudioBase {
       // THE LEFT RAIL CARRIES THE FIVE LAYOUT PRESETS on the carousel template, for the active
       // page. Each tile is a skeleton of where that layout puts its copy.
       csOn: s.tpl === 'carousel',
+      csLogoOn: (s.tpl === 'carousel' && OrganicStudio.csEyeKind(asl.kind)) ? '1' : undefined,
+      csLogoOpts: ['Hide', 'Top', 'Bottom'].map(o => ({ label: o, on: ((asl.f && asl.f.logoPos) || 'Hide') === o ? '1' : undefined,
+        set: () => this.upd(x => { const t = x.slides[asi]; if (t) { t.f = t.f || {}; t.f.logoPos = o; } return x; }) })),
       csTiles: (() => {
         if (s.tpl !== 'carousel') return [];
         const asl0 = s.slides[Math.min(s.activeSi || 0, s.slides.length - 1)];
@@ -11737,6 +12061,46 @@ class OrganicStudio extends StudioBase {
       scrimLabel: asl.kind === 'review' ? 'Overlay darkness — all slides' : 'Scrim strength — all slides',
       scrimAllowed: this.scrimUsed(s),
       imgOAllowed: this.imgOUsed(s),
+      // ── THE DOCK's own keys. Campaign's floating panel over the canvas, holding what is
+      // post-wide: the wash, the listed card's black scrim, the photo strength, the panel
+      // colour and, on the carousel, Campaign's three scrim controls. The right rail keeps
+      // only the page.
+      shadeAllowed: this.shadeUsed(s),
+      shadeVal: s.shade == null ? 35 : s.shade,
+      onShade: e => { const v = +e.target.value; this.upd(x => { x.shade = v; return x; }); },
+      glassOpts: [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1],
+        on: ((s.glassFill === 'navy' ? 'navy' : 'white') === o[0]) ? '1' : undefined,
+        set: () => this.upd(x => { x.glassFill = o[0]; return x; }) })),
+      glassTip: 'White at 22% over the blur reads on a dark photograph; Navy at 65% reads on a bright one. Every panel in the post takes the same material.',
+      csScrimOn: s.tpl === 'carousel' ? '1' : undefined,
+      ...(() => {
+        const SC = OrganicStudio.csScrimOf(s), tabF = this._csScrimTab === 'f';
+        const write = d => this.upd(x => { x.csScrim = Object.assign({ op: 100, fade: 100, hex: null }, x.csScrim, d); return x; });
+        return {
+          csScrimSummary: SC.op + '% \u00b7 fade ' + SC.fadePct + '%',
+          csScrimTip: 'The wash anchors to the copy: solid at the edge the copy sits on, clear past it. '
+            + (tabF ? (SC.fadePct >= 98 ? 'Fade: the ramp spans the whole wash.' : 'Fade: the wash holds solid over the copy and ramps only its far part.')
+                    : 'Opacity sets how strong the wash is at the copy edge.'),
+          csScrimTabName: tabF ? 'Fade' : 'Opacity',
+          csScrimTabOpacity: () => { this._csScrimTab = 'o'; this.forceUpdate(); },
+          csScrimTabFade: () => { this._csScrimTab = 'f'; this.forceUpdate(); },
+          csScrimTabOpacityOn: tabF ? undefined : '1',
+          csScrimTabFadeOn: tabF ? '1' : undefined,
+          csScrimTabVal: tabF ? SC.fadePct : SC.op,
+          onCsScrimTab: e => { const val = +e.target.value; write(tabF ? { fade: val } : { op: val }); },
+          csScrimHexVal: SC.hex,
+          csScrimChipStyle: { background: SC.hex },
+          onCsScrimHex: e => {
+            const raw = String(e.target.value || '').trim().replace(/^#/, '');
+            if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw)) return;
+            write({ hex: '#' + (raw.length === 3 ? raw.split('').map(c => c + c).join('') : raw).toUpperCase() });
+          },
+          csScrimSwatches: OrganicStudio.CS_SCRIMS.map(sw => ({ label: sw[0], set: () => write({ hex: sw[1] }),
+            style: { background: sw[1], border: '1px solid transparent', boxShadow: SC.hex.toLowerCase() === sw[1].toLowerCase() ? '0 0 0 2px var(--ps-link)' : 'none' } }))
+        };
+      })(),
+      cvOkOn: (!s.exportStatus || s.exportStatus === 'Ready.') ? '1' : undefined,
+      cvStatus: (!s.exportStatus || s.exportStatus === 'Ready.') ? 'Ready' : s.exportStatus,
       scrimH: s.scrimH || 75,
       onScrimH: e => { const val = +e.target.value; this.upd(x => { x.scrimH = val; return x; }); },
       // ── THE COVER'S LAYER CONTROL, in the rail rather than on the canvas ───────────
@@ -11773,11 +12137,11 @@ class OrganicStudio extends StudioBase {
           // list of three where the stack has five reads as a bug. It says which ones are
           // still waiting instead.
           grpPills: order.map(r => (byRank[r]
-            ? { label: r, style: btn(sel === r), set: () => { this._grpSel = r; this.forceUpdate(); } }
+            ? { label: r, on: sel === r ? '1' : undefined, style: btn(sel === r), set: () => { this._grpSel = r; this.forceUpdate(); } }
             // QUIET, NOT FADED: `opacity:.38` composited to 1.94:1 in light mode on these five
             // labels. Quietness expressed as opacity does not survive a theme flip; the quiet
             // tier lives in the token, which reads 4.9-5.0:1 on this fill in both themes.
-            : { label: r, style: Object.assign({}, btn(false), { color: 'var(--ps-dim)', cursor: 'default' }), set: () => this.forceUpdate() })),
+            : { label: r, dim: '1', style: Object.assign({}, btn(false), { color: 'var(--ps-dim)', cursor: 'default' }), set: () => this.forceUpdate() })),
           grpSelOn: !!selG,
           grpNoneOn: !selG,
           grpSelLabel: sel || '',
@@ -11902,7 +12266,7 @@ class OrganicStudio extends StudioBase {
       awTintOpts: [
         { label: 'Match canvas', on: ((s.alogo || {}).tint) !== false, k: true },
         { label: 'Original', on: ((s.alogo || {}).tint) === false, k: false }
-      ].map(o => ({ label: o.label, style: btn(o.on),
+      ].map(o => ({ label: o.label, on: o.on ? '1' : undefined, style: btn(o.on),
         set: () => this.upd(x => { x.alogo = Object.assign({}, x.alogo, { tint: o.k }); return x; }) })),
 
       isWeekly: s.tpl === 'weekly',
@@ -12134,12 +12498,14 @@ class Component extends DCLogic {
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
     this._rtTick();
+    this._dragTick();
     this._tplTick();
   }
   componentDidUpdate() {
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
     this._rtTick();
+    this._dragTick();
     // keep the step-by-step run's card renders current; the sync is key-guarded
     const a2 = this.active();
     if (a2 && a2.state && (a2.state.screen === 'guide' || a2.state.screen === 'editor')) {
@@ -12154,6 +12520,7 @@ class Component extends DCLogic {
   // The rich body editor fills its own rows, and it is driven from HERE as well as from the
   // engine's rAF tick — rAF does not fire while the browser pane is not compositing, which
   // would leave the field empty, and this is the same belt-and-braces promoteImgs has.
+  _dragTick() { try { const a = this.active(); if (a && a.dragBind) a.dragBind(); } catch (e) {} }
   _rtTick() {
     try { const a = this.active(); if (a && a.rtSync) a.rtSync(); } catch (e) {}
   }
@@ -12207,6 +12574,16 @@ class Component extends DCLogic {
       shPanelPalette: () => this.setState({ shPanel: this.state.shPanel === 'palette' ? null : 'palette' }),
       shPanelLayout: () => this.setState({ shPanel: this.state.shPanel === 'layout' ? null : 'layout' }),
       shPanelClose: () => this.setState({ shPanel: null }),
+      // the dock over the canvas — Campaign's; one pill, one rising panel
+      shDockOn: this.state.shDock ? '1' : undefined,
+      shDockToggle: () => this.setState({ shDock: !this.state.shDock }),
+      // the canvas bar's way to the page's own rail: the sheet below 1200px, a scroll-and-flash above
+      shPageOpen: () => {
+        if (window.innerWidth <= 1200) { this.setState({ shPanel: 'layout' }); return; }
+        const z = document.querySelector('.gd-in-zone'); if (!z) return;
+        z.scrollIntoView({ block: 'nearest' }); z.setAttribute('data-flash', '1');
+        setTimeout(() => z.removeAttribute('data-flash'), 900);
+      },
       shThemeIsDark: Component.theme() === 'dark' ? true : undefined,
       shThemeIsLight: Component.theme() === 'light' ? true : undefined,
       shThemeTitle: Component.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',

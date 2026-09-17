@@ -392,7 +392,7 @@
     // right-aligns against the computed left edge); inset:auto clears the
     // base rule's top/right so the inline left/top position it alone.
     '.ctl:popover-open{position:fixed;inset:auto;transform:translateX(-100%)}' +
-    ':host([data-filled][data-editable]:hover) .ctl,:host([data-reframe]) .ctl' +
+    ':host([data-filled][data-editable]:hover) .ctl,:host([data-filled][data-editable]:focus-within) .ctl,:host([data-reframe]) .ctl' +
     '  {opacity:1;pointer-events:auto}' +
     '.ctl button{appearance:none;border:0;border-radius:6px;padding:5px 10px;cursor:pointer;' +
     '  background:rgba(0,0,0,.65);color:#fff;font:11px/1 system-ui,-apple-system,sans-serif;' +
@@ -592,6 +592,18 @@
       setSlot(toId, Object.assign({}, v));
       return true;
     }
+    // Empty a slot by id, mounted or not — the store's own write, so every bound element
+    // follows. The element's clearSlot() is the same thing with its own view reset first.
+    static clearSlot(id) {
+      if (!id) return false;
+      // A MOUNTED element has to reset its own view: one that has just ingested a file shows
+      // it from `_local` until the encode lands, and a store-only clear leaves that on screen
+      // (measured: Remove pressed, the store empty, the thumb still filled). Its clearSlot()
+      // writes the store too, so the unmounted fallback is only for an id nothing shows.
+      const els = [...document.querySelectorAll('image-slot')].filter(e => e.id === id);
+      if (els.length) { els.forEach(e => e.clearSlot()); return true; }
+      setSlot(id, null); return true;
+    }
     static moveSlot(fromId, toId) {
       if (!loaded || !toId) return false;
       const v = fromId ? getSlot(fromId) : null;
@@ -637,7 +649,8 @@
         // — without it, Replace/Edit clicks in Edit mode are swallowed by
         // element selection and the controls look dead.
         '<div class="ctl" popover="manual" data-dc-edit-transparent><button data-act="replace" title="Replace image">Replace</button>' +
-        '  <button data-act="edit" title="Reframe image">Edit</button></div>' +
+        '  <button data-act="edit" title="Reframe image">Edit</button>' +
+        '  <button data-act="remove" title="Remove image">Remove</button></div>' +
         // Reframe controls: shown only in reframe mode, promoted above .spill
         // (later popovers stack higher) so clicks reach it, and pinned to the
         // frame's bottom edge by _applyView in viewport px.
@@ -754,8 +767,21 @@
         if (!this.hasAttribute('data-editable')) return;
         if (act === 'replace') {
           this._exitReframe(true);
-          // Host-owned picker (Unsplash modal; it also offers local import).
-          this.dispatchEvent(new CustomEvent('image-slot:pick', {
+          // Host-owned picker (Unsplash modal; it also offers local import) — a host that
+          // takes it calls preventDefault. NOTHING IN THIS PROJECT DOES: the event was
+          // written for a host that never shipped here, so Replace dispatched into the void
+          // and did nothing at all. Unclaimed, the slot opens its own file picker.
+          const ev = new CustomEvent('image-slot:pick', {
+            bubbles: true, composed: true, cancelable: true, detail: { id: this.id || null }
+          });
+          this.dispatchEvent(ev);
+          if (!ev.defaultPrevented) this._input.click();
+        }
+        if (act === 'remove') {
+          // through clearSlot, so the store, the sidecar and every element bound to this id
+          // empty together; the studios read the store on their own tick
+          this.clearSlot();
+          this.dispatchEvent(new CustomEvent('image-slot:clear', {
             bubbles: true, composed: true, detail: { id: this.id || null }
           }));
         }
