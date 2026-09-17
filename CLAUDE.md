@@ -12242,3 +12242,32 @@ static calls do; the class is not a global.
 **Left as decisions:** the dock closes only from its pill (no outside-click), the carousel's
 other pages did not gain per-element positioning beyond the two presets, and the `✕` remove
 glyph's 4.2–4.4 is untouched as before.
+
+## A SHOW/HIDE FIELD IS A SWITCH ON THE ROW IT GATES, and a drop's actions stack beside it
+
+Two follow-ups on the form, one markup for both homes (so the run takes them too — unavoidable
+and stated). **No artwork line moved**: the whole-file diff against `scratchpad/pre/O18-pre.html`
+is 31 hunks and the only marker hit is the removed `fieldShown` gate — a form line, not an op.
+
+**`OrganicStudio.TOGGLES` is the table, keyed by the HOST field.** The Overline's `Show | Hide`
+row and the stats blurb's `Hide | Show` row are gone from `FIELDS`; the `eyebrow` and `body`
+rows carry a `.gd-switch` in their header instead (`v.togOn/togIsOn/togSet`), and the parallax
+ask carries the same switch where its `Off | On` pair was. A switch OFF keeps the row's header
+and hides the control under it (`v.fieldCtlOn`); the copy survives. `defOn` says what a missing
+value means — the overline was always drawn when unset and the blurb never, which is exactly
+how `csBox` already read `eyeOn` / `bodyOn`, so nothing on the canvas changed. `fieldShown` no
+longer drops either row: the row IS where the switch lives. Verified: switching the Overline
+off removes its op (1 → 0) and its input; switching the Blurb on reveals the rich editor and
+writes `bodyOn: 'Show'`; the parallax switch writes `fg` and reveals its drop.
+
+**The switch is `.gd-switch`, form-scoped, not a kit class** — 36 x 20, `--ps-fill-dis` track
+off and `--ps-primary` on, a white knob with a 0-offset ring rather than a drop shadow, so the
+no-elevation rule holds. Naming it `.p-*` without a library rule would have been the
+"class the library defines and a studio lacks" gap in reverse.
+
+**A drop row is the thumb with its actions STACKED beside it and the captions under the pair.**
+All six drop kinds (`photo`, `px`, `gfx`, `alogo`, `portrait`, `qr`) were restructured by one
+regex over the block shape; Replace / Reframe / Remove are 36px `.p-ghost` pills filling the
+column beside a 150px thumb (104px wide in the 322px rail, wider in the run), the caption and
+hint follow as `.gd-qrow-t.gd-qcap`. Empty, the row is the thumb alone with the captions under
+it. Matches the supplied mock.

@@ -3019,6 +3019,22 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
    which is the pale tint in light — 1.36:1. Campaign's later block settled both; mirrored. */
 .p-tabs button[data-on],.p-tabs button[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
 .p-dock-t[data-on]{background:var(--ps-accent);color:var(--ps-accent-i);border-color:var(--ps-focus);box-shadow:none}
+
+/* ══ §30 A SWITCH, AND THE DROP ROW ══════════════════════════════════════════════════════
+   A show/hide field carries a switch on its row instead of a Show | Hide pair of its own;
+   off, the row keeps its header and hides the control. A drop is the thumb with its actions
+   stacked beside it and the captions beneath the pair. */
+.gd-switch{position:relative;flex:none;width:36px;height:20px;margin-left:auto;border:0;padding:0;border-radius:var(--ps-pill);
+  background:var(--ps-fill-dis);cursor:pointer;transition:background var(--ps-motion) var(--ps-ease)}
+.gd-switch i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 1px var(--ps-line);transition:left var(--ps-motion) var(--ps-ease)}
+.gd-switch[data-on]{background:var(--ps-primary)}
+.gd-switch[data-on] i{left:18px;box-shadow:none}
+.gd-switch:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.gd-qrow .gd-slotacts-v{flex:1;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:0}
+.gd-qrow .gd-slotacts-v .p-ghost{height:36px;justify-content:center;font-size:13px;padding:0 14px}
+.gd-qrow .gd-slotacts-v .gd-rm{color:var(--ps-ink)}
+.gd-qrow-t.gd-qcap{margin-top:10px;gap:6px}
 </style>
 </helmet>
 
@@ -3765,9 +3781,10 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <div class="gd-ask-h">
                 <b class="gd-askq">{{ a.label }}</b>
                 <i class="tip p-info gd-tipi" data-tip="{{ a.tip }}" data-has="{{ a.tipOn }}">i</i>
+                <sc-if value="{{ a.togOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.togSet }}" class="gd-switch" role="switch" aria-checked="{{ a.togAria }}" data-on="{{ a.togIsOn }}" title="{{ a.togTitle }}"><i></i></button></sc-if>
               </div>
 
-              <sc-if value="{{ a.isField }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ a.fieldCtlOn }}" hint-placeholder-val="{{ true }}">
                 <sc-if value="{{ a.row.isSeg }}" hint-placeholder-val="{{ false }}">
                   <div class="p-tabs gd-tabs"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 </sc-if>
@@ -3811,30 +3828,31 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
                     <image-slot id="{{ a.photoSlot }}" data-cutout="{{ a.photoCut }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <div class="gd-qrow-t">
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                </div>
+                <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.photoLabel }}</s>
                     <s>{{ a.photoHint }}</s>
-                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                    
                     <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.phResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.phReset }}" class="gd-link">Reset photo scale &amp; position</button></sc-if>
                   </div>
-                </div>
               </sc-if>
 
               <!-- THE PARALLAX LAYER: a toggle, off by default, and the drop only once it is on. -->
               <sc-if value="{{ a.isPx }}" hint-placeholder-val="{{ false }}">
-                <div class="p-tabs gd-tabs"><sc-for list="{{ a.pxOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <sc-if value="{{ a.pxOn }}" hint-placeholder-val="{{ false }}">
                   <div class="gd-qrow">
                     <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
                       <image-slot id="{{ a.pxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                     </div>
-                    <div class="gd-qrow-t">
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                </div>
+                <div class="gd-qrow-t gd-qcap">
                       <s>{{ a.pxLabel }}</s>
                       <s>A PNG cut-out of the picture’s own foreground — the building, the car — so it passes in front of the status. It locks to the background’s position and zoom.</s>
-                      <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                      
                     </div>
-                  </div>
                 </sc-if>
                 <span class="gd-hint">Optional. Off by default; turn it on when the picture has a foreground worth lifting.</span>
               </sc-if>
@@ -3864,12 +3882,13 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.gfxDone }}">
                     <image-slot id="{{ a.gfxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <div class="gd-qrow-t">
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                </div>
+                <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.gfxLabel }}</s>
                     <s>It floats over the page&#8217;s copy. Drag it on the canvas to move it; a corner scales it.</s>
-                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                    
                   </div>
-                </div>
                 <sc-if value="{{ a.gfxHas }}" hint-placeholder-val="{{ false }}">
                   <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ a.gfxPct }}</s></b>
                   <div class="gd-slide"><input type="range" min="6" max="140" step="1" value="{{ a.gfxVal }}" onChange="{{ a.gfxSet }}" class="gd-range"></div>
@@ -3885,14 +3904,15 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.alogoDone }}">
                     <image-slot id="smp-alogo" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <div class="gd-qrow-t">
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                </div>
+                <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.alogoLabel }}</s>
                     <s>Fitted to its box by its own ink, so a padded file still lines up.</s>
-                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                    
                     <div class="p-tabs gd-tabs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" data-on="{{ ao.on }}">{{ ao.label }}</button></sc-for></div>
                     <s>A brand-kit SVG is usually navy, which all but disappears on this ground — Match canvas recolours it.</s>
                   </div>
-                </div>
               </sc-if>
 
               <sc-if value="{{ a.isGlass }}" hint-placeholder-val="{{ false }}">
@@ -3953,12 +3973,13 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-sq" data-done="{{ a.qrDone }}">
                     <image-slot id="{{ a.qrSlot }}" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
                   </div>
-                  <div class="gd-qrow-t">
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                </div>
+                <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.qrLabel }}</s>
                     <sc-if value="{{ a.qrLink }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.openQrLink }}" class="gd-link">Visit QR code link ↗</button></sc-if>
-                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                    
                   </div>
-                </div>
               </sc-if>
 
               <sc-if value="{{ a.isPages }}" hint-placeholder-val="{{ false }}">
@@ -3986,14 +4007,15 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
                     <image-slot id="{{ a.portraitSlot }}" data-cutout="1" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <div class="gd-qrow-t">
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                </div>
+                <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.portraitLabel }}</s>
                     <s>The face is found and framed for you, so any crop works. Drag her on the card to move her.</s>
-                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts"><button onClick="{{ a.slotReplace }}" class="p-ghost p-sm">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost p-sm">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="gd-link gd-rm">Remove</button></div></sc-if>
+                    
                     <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.raResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.raReset }}" class="gd-link">Reset photo position</button></sc-if>
                   </div>
-                </div>
               </sc-if>
 
               <sc-if value="{{ a.isScrim }}" hint-placeholder-val="{{ false }}">
@@ -8967,6 +8989,15 @@ class OrganicStudio extends StudioBase {
     if (B.cardY <= top) return [[0, H]];
     return [[0, top], [B.cardY, H]];
   }
+  // A SHOW/HIDE FIELD IS A SWITCH ON THE ROW IT GATES, by request, and one table names them
+  // so every home draws the same control: keyed by the HOST field, it says which slide field
+  // the switch writes, what ON and OFF are stored as, and what a missing value means (the
+  // overline was always shown when unset, the blurb always hidden — `csBox` reads both that
+  // way and does not change). `kinds` narrows a host that is a plain field elsewhere.
+  static TOGGLES = {
+    eyebrow: { key: 'eyeOn', on: 'Show', off: 'Hide', defOn: true, onTitle: 'Show the overline', offTitle: 'Hide the overline' },
+    body:    { key: 'bodyOn', on: 'Show', off: 'Hide', defOn: false, kinds: ['cstats'], onTitle: 'Show a blurb under the title', offTitle: 'Hide the blurb' }
+  };
   static TIERNAMES = {
     prop:    ['Headline', 'Property details'],
     listed:  ['Headline', 'Price'],
@@ -9042,21 +9073,18 @@ class OrganicStudio extends StudioBase {
     cfront:[['headline', 1, 'Headline', 'req area', 'One or two lines \u2014 Enter for a new one'],
             ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Where the copy sits; the wash follows it']],
-    cstats:[['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
-            ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
+    // NO Show | Hide ROWS: a show/hide field is a SWITCH on the row it gates — see `TOGGLES`.
+    cstats:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line'],
-            ['bodyOn', 2, 'Blurb under the title', 'seg:Hide|Show', 'A short paragraph between the title and the grid'],
-            ['body', 2, 'Blurb', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
-    cbul:  [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the headline'],
-            ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
+    cbul:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
             ['pos', 3, 'Layout', 'seg:Bottom|Top', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
-    ctext: [['eyeOn', 1, 'Overline', 'seg:Show|Hide', 'A brass line in tracked caps above the title'],
-            ['eyebrow', 1, 'Overline text', '', 'e.g. Why It Matters'],
+    ctext: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['title', 1, 'Title', 'req area', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg:Top|Bottom', ''],
@@ -9076,13 +9104,9 @@ class OrganicStudio extends StudioBase {
   // ones drop out — the run then asks for a quarter only when the period IS Quarterly,
   // which is what the rail has always done.
   static fieldShown(kind, k, f) {
-    // The overline's text exists only while it is shown — the toggle IS the hide, and a
-    // field for something the page does not draw is exactly the dead control the audit
-    // went looking for. Its copy survives being hidden; nothing is thrown away.
-    if (k === 'eyebrow') return (f && f.eyeOn) !== 'Hide';
-    // the stats page's blurb is an ADDITION you opt into, so it opens Hidden and the rich
-    // editor — a heavy control — only appears once it is wanted
-    if (kind === 'cstats' && k === 'body') return (f && f.bodyOn) === 'Show';
+    // The overline's text and the stats blurb carry their own SWITCH on their row now
+    // (`TOGGLES`), so the row is always listed and the control under it is what the switch
+    // shows or hides. Their copy survives being hidden; nothing is thrown away.
     if (kind === 'listed') {
       // Sale/Rent is a fact about a card that says LISTED — a sold property is neither —
       // and the rent period only exists once Rent is picked. Same derivation the card's
@@ -9432,6 +9456,10 @@ class OrganicStudio extends StudioBase {
     if (v.isStats && sl) Object.assign(v, this.csStatsView(ask.si, filled));
     if (v.isPx && sl) {
       v.pxOn = sl.fg ? '1' : undefined;
+      // the same switch, on this row's header — the Off | On pair is gone
+      v.togOn = '1'; v.togIsOn = sl.fg ? '1' : undefined; v.togAria = sl.fg ? 'true' : 'false';
+      v.togTitle = sl.fg ? 'Turn the parallax layer off' : 'Turn the parallax layer on';
+      v.togSet = () => this.upd(x => { const t = x.slides[ask.si]; if (t) t.fg = !t.fg; return x; });
       v.pxOpts = ['Off', 'On'].map((lab, k) => ({ label: lab, on: (!!sl.fg === (k === 1)) ? '1' : undefined,
         set: () => this.upd(x => { x.slides[ask.si].fg = (k === 1); return x; }) }));
       v.pxSlot = 'smp-fg-' + sl.id;
@@ -9490,6 +9518,13 @@ class OrganicStudio extends StudioBase {
     if (v.isField && sl) {
       const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
       v.row = f ? rowFor(f) : null;
+      const tg = f && OrganicStudio.TOGGLES[f.k];
+      if (tg && (!tg.kinds || tg.kinds.indexOf(sl.kind) >= 0)) {
+        const val = (sl.f || {})[tg.key], on = val == null ? tg.defOn : val === tg.on;
+        v.togOn = '1'; v.togIsOn = on ? '1' : undefined; v.togAria = on ? 'true' : 'false';
+        v.togTitle = on ? tg.offTitle : tg.onTitle;
+        v.togSet = () => this.upd(x => { const t = x.slides[ask.si]; if (t) { t.f = t.f || {}; t.f[tg.key] = on ? tg.off : tg.on; } return x; });
+      }
       // A number is short, so two of them share a row — Bed | Bath, Area | Price. Only
       // a PAIR is halved (see the section builder): a lone half field reads as unfinished.
       v.wantHalf = !!(f && (f.flags.indexOf('step') >= 0 || f.flags.indexOf('num') >= 0 || f.flags.indexOf('sel') >= 0));
@@ -9624,6 +9659,8 @@ class OrganicStudio extends StudioBase {
     const tip = v.isField ? ((v.row && v.row.hint) || '') : (v.isGlass ? (v.glassHint || '') : v.isStory ? (v.storyHint || '')
       : v.isPhoto ? (v.photoHint || '') : v.isProj ? (v.projHint || '') : (TIPS[ask.kind] || ''));
     v.tip = tip; v.tipOn = tip ? '1' : undefined;
+    // a switched-off field keeps its header and switch and hides the control under them
+    v.fieldCtlOn = (v.isField && (!v.togOn || v.togIsOn)) ? '1' : undefined;
     // THE SLOT'S OWN THREE ACTIONS AS VISIBLE BUTTONS under a filled drop — the slot's hover
     // strip is easy to miss, and its Replace dispatched an event nothing here handled.
     const sid = v.photoSlot || v.pxSlot || v.gfxSlot || v.portraitSlot || v.qrSlot || (v.isAlogo ? 'smp-alogo' : null);
