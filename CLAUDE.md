@@ -12374,3 +12374,200 @@ clicking Top moves the canvas anchor and makes one undo entry; undo restores; th
 carries the same tiles (one markup). Contrast both themes, transitions and animations finished:
 **1 flag each, the pre-existing `✕` at 4.40 / 4.21**, and **0 elevation shadows**. Sheet
 integrity at baseline; `sc-if` +1/+1 and `sc-for` +1/+1 for the one new branch.
+
+# CAMPAIGN TAKES FOUR SUPPLIED SHAPES: AN ICON ROW, PER-LINE HERO INK, BRASS CAPS, A JUMBO CHIP
+
+Four attachments, one pass, all on `Provident Campaign Studio.dc.html`. **Op census over 4
+templates x 2 palettes x 3 canvases: 24 groups, 336 ops, 24 byte-identical, 0 threw** against
+the pre-change copy served alongside — so every existing ad is unmoved, and the four
+additions are things you opt into. The templates cover `eyebrow`, `hero`, `spec` and `tags`,
+i.e. all four components this pass touches, so that census is the real test rather than a
+census of components nobody changed.
+
+## ONE BRASS TOKEN, AND IT IS THE FIFTH EXEMPTION
+
+`PAL.brass` `#B0905C` in **both** palettes — one value, because it is a brand colour that has
+to read on either ground rather than an ink that flips. Three of the four requests name it.
+This is the fifth deliberate exemption to "no gold in canvas output at all", after Organic's
+ranking badge, award line, agent designation and carousel overline.
+
+**MEASURED, not asserted: 6.99:1 on the dark canvas, 4.85:1 on the brand-navy scrim, 3.00:1
+on the light one.** So it is exactly at 1.4.3's large-text floor over white.
+
+**THE ONE COMBINATION THAT DOES NOT CLEAR: the 16:9 eyebrow is 22px at weight 500**, which is
+under the 24px large-text line, so brass caps on the LIGHT 16:9 canvas sit at 3.00 against a
+4.5 bar. The 1:1 and 9:16 eyebrows (24 / 28px) and the hero (85px) are large text and clear
+it. Flagged rather than silently refused: it was asked for by name, the light palette is a
+per-variant choice, and the eyebrow in practice sits on a scrimmed photograph rather than on
+the bare ground.
+
+## 1 — SPEC DATA GAINS AN `icons` VARIANT, AND IT NEEDED NO MARKUP OF ITS OWN
+
+`[icon][figure over label]` per cell, spread across the column — the supplied row of
+`1-3BR / RESIDENCES`, `AED 2.95M / PRICE STARTING FROM`, `50/50% / PAYMENT PLAN`.
+
+**THE PREVIEW ALREADY DREW THIS SHAPE.** The `isRows` block is `[connector][icon][fig][lab]`
+per row and serves process steps and the icon chips, so the icon row joins it rather than
+growing a fourth spec markup block. The one thing it needed was a wrapper so the pair can
+STACK beside the icon — and that wrapper is **`display: contents` on every existing row**,
+which removes it from layout entirely, so steps and icon chips are render-neutral by
+construction rather than by inspection.
+
+**`pairStyle` is defaulted AFTER the chain's terminating else**, not at the four separate
+prow builders — a render key only some kinds set renders as the browser default, and a key
+added between the last `else if` and its `else` re-binds that else to the new test.
+
+**THE ICON ROW OVERRIDES BOTH OF `pair()`'S READINGS, and both overrides are the design.**
+`pair` gained an explicit figure-first flag and an explicit centring flag, each defaulting to
+what it always was:
+
+- **Figure first, always** — `figTop` is not consulted. An icon beside a tracked-caps label
+  with the figure under it reads as three unrelated things; the icon and the figure are the
+  horizontal reading.
+- **The pair never centres in its column** — the icon is the block's left edge and the BLOCK
+  is what centres. Measured on the supplied copy: figure and label share one x, exactly as the
+  attachment draws them.
+
+`icoD` is `figPx * 1.15` and `icoGap` `figPx * .5`, so the mark tracks the figure at every
+canvas size and every Scaling setting — **verified: `icoD / figPx` is identical on the feed
+and the story**, one set of ratios and the 9:16 follows for free.
+
+**No hairlines.** Every other spec layout rules between its columns; here the icon is what
+separates one cell from the next, so a rule would be a second divider doing the same job.
+`hug` still means what it means everywhere else — measured 413.9 of a 920 column on short
+cells, and clamping to the full column when the data is wider, which is the documented right
+answer for an overflowing panel.
+
+**The icon slots are the ones that already existed** — `adstudio-ic-<modId>-<i>`, `ICON_MAX`
+6 against `SPEC_MAX` 6, so they line up exactly. `loadAssets`, `assetFiles`, the picker's
+gate, its step count and `applyIcon`'s message all gained `spec`; the picker calls a column a
+column.
+
+**A PREVIEW BOX HAS TO RESERVE WHAT THE OP RESERVES.** The pair first shipped with the figure
+at `lineHeight: 1.12` and the label on the inherited lead, which made the preview's pair box
+**9 canvas px shorter** than `B.pairH` — and since the row centres the pair against the icon
+on its own height, the whole block sat ~14px high in the editor and correct in every export.
+Both runs carry 1.3 explicitly now. After: **dX <= 0.5, dY a uniform -6.93** on all six runs,
+where the spec `row` variant beside it measures **-16.1 and -26.2** in the same build. A
+several-px block offset is this stack's pre-existing character; the icon row is the more
+faithful of the two.
+
+## 2 — THE HERO TAKES A COLOUR PER AUTHORED LINE
+
+`m.lineHex`, indexed by the segment the user typed — **never by the drawn line**. Wrapping
+depends on the column, so a colour keyed to the wrapped line would jump between the 1:1 and
+the 9:16 and move again under Scaling. `heroLines` stamps the ink onto each segment before
+`wrapRuns`, so it carries into every line that segment wraps to, and the ops branch needed no
+change at all: it already read `r.fill` off the run.
+
+**THE PREVIEW'S `pre` / `<em>serif</em>` / `post` IS RETIRED, and it was carrying a live
+defect.** That split is a survivor of the removed serif emphasis, and `serifStyle` forces
+weight 400 — so under **Jumbo**, whose base is Light 300, the marked word rendered bolder in
+the editor than in any export, where `heroLines` emits one run at 300. It is one span per
+authored line now, which is also what carries the colour. Measured after: hero lines at
+**dX 0.00** with the ink matching the op exactly.
+
+**A blank interior line is a non-breaking space**, because an empty block box collapses to
+nothing while the op still advances a full line for it.
+
+**`fade` still wins**, and the rail's tip says so: that variant paints one gradient across
+the whole block in canvas coordinates, which is what the op does too.
+
+## 3 — `brass` IS A PLAIN EYEBROW IN A DIFFERENT INK
+
+The supplied design is tracked caps in brass with no rule and no box, so a fifth box
+treatment would be inventing one. `modPx` therefore reserves exactly what `plain` does, and
+the ops and the preview each took one ternary.
+
+## 4 — JUMBO IS A MODULE FIELD AND ONE SCALAR, NOT A SEVENTH VARIANT
+
+The supplied design is a jumbo **accent** pill, so a variant would have made the two mutually
+exclusive. `m.jumbo` composes with mist / gold / icon / rule / dot / plain.
+
+**`CampaignStudio.tagK(m, tk)` is `tk.hook / tk.eyebrow`, which is 1.458 / 1.464 / 1.455 on
+the three canvases** — so the jumbo step is the same relative size everywhere rather than
+three different sizes — and **k is exactly 1 when it is off, which is what makes every
+derived expression byte-identical to the literal it replaced.** Text, row height, both
+paddings, the icon box, the icon's trailing gap, the inter-chip gap and the row gap all read
+it, in `chipRows`, `stripRows`, `modPx`, both op branches and all three preview branches. So
+the chip grows as one object instead of a bigger label rattling in the old pill.
+
+Measured: pill `228.0 x 46.0` -> `330.6 x 67.1`, text 24 -> 35, preview padding
+`9.72px 28.08px` -> `14.18px 40.95px` — every ratio 1.458. The gold stroke is retained,
+because the treatment is a different axis.
+
+**AND THE CHIP'S RADIUS WAS WRONG, IN EVERY BUILD SINCE IT WAS WRITTEN.** `chipStyle` carried
+`borderRadius: '6px'` against an op of `r: rh / 2` — a full capsule — so the editor drew a
+soft rect where every export drew a pill. It is `999px`, which is this file's own rule: a
+preview mirroring an op with `r = h/2` is 999px. The documented pill sweep missed it because
+it swept *buttons*, and this is a canvas preview style.
+
+**The chip text's residual drift is pre-existing and proportional.** Measured in one build on
+distinct copy: regular `dX 3.0 / 13.5`, jumbo `dX 2.2 / 13.9` — jumbo is no worse, which is
+what one scalar should do. It comes from the preview's cqw padding and flex gap against the
+op's `28` and `16`, and it predates this pass.
+
+## THE ICON TINT IS RESOLVED, NOT HARDCODED
+
+`CampaignStudio.icoInk(m, dflt)` reads `m.icoHex` and falls back to the ink each call site
+always had, so adding it is inert. It reaches all three icon sites — process steps, icon
+chips and the new spec row — and the control is one swatch row plus a hex field, the shape
+the scrim's colour control already has.
+
+**`m.icoHex`, `m.jumbo` and `m.lineHex` are MODULE fields**, so they are linked across design
+variants exactly as `big` / `hug` / `figTop` are. They describe how the content is presented,
+not how one variant looks.
+
+**`CampaignStudio.inkSwatches(pal)` is four palette ROLES rather than six fixed hexes** —
+Canvas ink, Brass, Soft, Mute — so each reads on its own canvas and flips with light/dark,
+and the hex field covers everything else. The first entry is the CLEAR entry: "follow the
+canvas" is a state, not a colour, and **an empty hex field clears it** rather than being
+ignored, or a colour once set could only be swapped and never undone.
+
+**The hero's control is a LINE PICKER plus one swatch row**, not a swatch row per line — the
+same shape the icon picker uses, and `_heroLine` lives on the instance with `forceUpdate`
+because throwaway UI has no business in the saved project or the undo stack.
+
+## A DUPLICATE RENDER KEY, CAUGHT BY THE MECHANICAL CHECK
+
+I added `selIsHero` next to `selIsGraphic` without grepping for it first — it was already
+declared 35 lines below, and **a later key in the same object literal silently wins**. Same
+value either way, so nothing broke; it is the check that found it, not the render. Run the
+top-level-key scan after any `renderVals` edit, and compare its output to the PRE build's
+rather than to zero — this file's own false positives (`eyebrow`, `hero`, `hook`, … from the
+`VOPT` table at the same indentation, plus `fgOn` and `campaign`) are identical in both.
+
+## Verification
+
+- **Ops: 24 groups, 336 ops, 24 byte-identical, 0 threw.** The new paths exercised
+  separately: the icon row on both canvases, hugging and edge to edge, left and centred, with
+  and without uploaded marks and with a brass tint; brass eyebrow against plain; jumbo against
+  regular pills; per-line hero ink both ways.
+- **Preview against ops, one coordinate space, scoped to ONE zoomed canvas box** — the probe
+  first matched both canvases and reported 2700px of "drift" that was the 9:16 plate, which is
+  the documented twice-as-many-nodes trap.
+- **Every control driven end to end through the rail**: hero line 1 to Brass and back to
+  canvas ink (line 2 untouched), the spec icon tint to `#B0905C`, the chip-size tiles setting
+  `jumbo` and both chip rows going 46 -> 67.1 tall.
+- **Contrast, both themes reloaded into, transitions AND animations finished, ancestor opacity
+  composited: dark 0, light 2 — and identical to the PRE build element for element and ratio
+  for ratio.** Both light flags are the DISABLED Undo/Redo pair at 3.14, 1.4.3-exempt.
+  **0 elevation shadows** in either theme in either build.
+- **Sheet and markup**: one closing style tag, comments 322/322, brace and paren depth 0,
+  `sc-if` +1/+1 and `sc-for` +6/+6 — balanced, on the documented one-off baseline.
+- **Interpolation sweep against the PRE copy: 13 unresolved before and after, none newly
+  unresolved**; 17 new refs, all declared once.
+- **SVG export valid** with the new ops — 13 texts, the brass runs present.
+- The test origin's `localStorage` was cleared, the `_PRE` copy removed from the project
+  folder and the server stopped. `studio-base.js`, `image-slot.js`, `runtime.js`,
+  `ui-design-system/`, Organic and the image tool are **untouched**.
+
+## Left as decisions, not applied
+
+- **The icon row draws no dividers and is never boxed.** `boxed` / `boxrow` are the panel
+  treatments and they carry hairlines; giving the icon row a panel is one flag if it is wanted.
+- **The price block's small label is 19.2px in the preview and 24px in the op** — `view.labStyle`
+  falls through to the base `tk.eyebrow * .8` while the op draws `tk.eyebrow`. Pre-existing,
+  present in the PRE build, and outside this pass's scope.
+- **`m.serif`, `view.serifStyle` and the `pre` / `post` keys survive** with no reader, by the
+  standing rule about deleting render keys that look unused.

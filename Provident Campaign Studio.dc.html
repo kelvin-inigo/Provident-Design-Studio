@@ -3596,13 +3596,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
-                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.pre }}<em style="{{ m.serifStyle }}">{{ m.serif }}</em>{{ m.post }}</div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
                 <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
@@ -3634,13 +3634,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
-                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.pre }}<em style="{{ m.serifStyle }}">{{ m.serif }}</em>{{ m.post }}</div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
                 <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
@@ -3673,13 +3673,13 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
-                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.pre }}<em style="{{ m.serifStyle }}">{{ m.serif }}</em>{{ m.post }}</div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
                 <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
                 <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
@@ -3757,6 +3757,30 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <label class="p-fld">Chips (comma-separated) — linked
             <textarea value="{{ selChips }}" onChange="{{ onSelChips }}" rows="2" class="p-in"></textarea>
           </label>
+          <span class="p-fld">Chip size <span class="tip" data-tip="Jumbo scales the whole chip as one object — text, height, both paddings, the icon box and the gaps — by one scalar, so it grows without the label rattling in the old pill. It composes with every treatment, so a jumbo accent pill is still an accent pill." style="{{ infoStyle }}">i</span></span>
+          <div class="p-opts">
+            <button onClick="{{ tagSizeReg }}" data-on="{{ tagRegOn }}" class="p-opt">
+              <span class="p-mini"><i style="left:16%;top:42%;width:28%;height:16%;border-radius:999px"></i><i class="dim" style="left:50%;top:42%;width:24%;height:16%;border-radius:999px"></i></span>
+              <span class="p-opt-l">Regular</span>
+            </button>
+            <button onClick="{{ tagSizeJumbo }}" data-on="{{ tagJumboOn }}" class="p-opt">
+              <span class="p-mini"><i style="left:12%;top:34%;width:40%;height:32%;border-radius:999px"></i><i class="dim" style="left:58%;top:34%;width:32%;height:32%;border-radius:999px"></i></span>
+              <span class="p-opt-l">Jumbo</span>
+            </button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ selIsHero }}" hint-placeholder-val="{{ false }}">
+          <span class="p-lab p-lab-2">Line colour <s>{{ heroHexLabel }}</s> <span class="tip" data-tip="{{ heroLineTip }}" style="{{ infoStyle }}">i</span></span>
+          <div class="p-row" style="flex-wrap:wrap">
+            <sc-for list="{{ heroLinePicks }}" as="hp" hint-placeholder-count="2"><button onClick="{{ hp.pick }}" style="{{ hp.style }}" title="{{ hp.title }}">{{ hp.label }}</button></sc-for>
+          </div>
+          <div class="p-swrow">
+            <sc-for list="{{ heroSwatches }}" as="sw" hint-placeholder-count="4"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" title="{{ sw.label }}"></button></sc-for>
+          </div>
+          <div class="p-hexwrap">
+            <span class="p-chip" style="{{ heroChipStyle }}"></span>
+            <input value="{{ heroHexVal }}" onChange="{{ onHeroHex }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="Canvas ink">
+          </div>
         </sc-if>
         <sc-if value="{{ selIsSpec }}" hint-placeholder-val="{{ false }}">
           <label class="p-fld">Columns — label | value per line — linked
@@ -3774,6 +3798,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           </div>
           <sc-if value="{{ iconNoHits }}" hint-placeholder-val="{{ false }}"><span class="p-hint">No match in the bundled list — press Enter to try it as an exact name from fonts.google.com/icons.</span></sc-if>
           <button onClick="{{ clearIcon }}" class="p-ghost p-sm">{{ iconClearLabel }}</button>
+          <span class="p-lab p-lab-2">Icon colour <s>{{ icoHexLabel }}</s> <span class="tip" data-tip="The ink every uploaded icon on this component is tinted to — the art keeps its own alpha, so a stroked mark stays stroked. Linked across design variants, like the other content settings. Leave it on Canvas ink and it follows the light/dark canvas." style="{{ infoStyle }}">i</span></span>
+          <div class="p-swrow">
+            <sc-for list="{{ icoSwatches }}" as="sw" hint-placeholder-count="4"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" title="{{ sw.label }}"></button></sc-for>
+          </div>
+          <div class="p-hexwrap">
+            <span class="p-chip" style="{{ icoChipStyle }}"></span>
+            <input value="{{ icoHexVal }}" onChange="{{ onIcoHex }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="Canvas ink">
+          </div>
         </sc-if>
         <sc-if value="{{ selIsGraphic }}" hint-placeholder-val="{{ false }}">
           <div class="p-grp">
@@ -4544,6 +4576,13 @@ class CampaignStudio extends StudioBase {
     light: [['Cream', '#ECE7DF'], ['Paper', '#FAF8F4'], ['White', '#FFFFFF'], ['Mist', '#E9E4DB'], ['Stone', '#D4CFC4'], ['Sand', '#DCD5C7']]
   };
   static scrimsFor(v) { return CampaignStudio.SCRIMS[(v && v.bg === 'light') ? 'light' : 'dark']; }
+  // Ink swatches for the two colour controls that pick an INK rather than a ground.
+  // Four palette ROLES rather than six fixed hexes, so each one reads on its own
+  // canvas and flips with light/dark; the hex field covers everything else. The third
+  // element marks the CLEAR entry — "follow the canvas" is a state, not a colour.
+  static inkSwatches(pal) {
+    return [['Canvas ink', pal.ink, true], ['Brass', pal.brass], ['Soft', pal.inkSoft], ['Mute', pal.inkMute]];
+  }
   // Scaling. Content only -- tkFor below lists what moves and what holds.
   // Light mode is a real brand variant, not an inverted filter. Serif emphasis
   // stays Gold in both (binding rule); the ACCENT used for rules, bullets and
@@ -4553,6 +4592,19 @@ class CampaignStudio extends StudioBase {
     dark: {
       base: '#000000', ink: '#fff', inkSoft: '#ECE7DF', inkMute: '#D4CFC4',
       accent: '#fff', ruleGold: '#ECE7DF',
+      // BRASS is a deliberate, requested exemption to "no gold in canvas output at
+      // all" — the eyebrow's brass variant, an icon tint and a hero line colour ask
+      // for it by name. ONE value in both palettes, because it is a brand colour that
+      // has to read on either ground rather than an ink that flips. MEASURED: 6.99:1 on
+      // the dark canvas, 4.85:1 on the brand-navy scrim, and 3.00:1 on the light one --
+      // i.e. exactly at 1.4.3's large-text floor over white, which the hero (85px) and
+      // the 1:1 / 9:16 eyebrow (24 / 28px) clear as large text.
+      // THE ONE COMBINATION THAT DOES NOT: the 16:9 eyebrow is 22px at weight 500, which
+      // is under the 24px large-text line, so brass caps on the LIGHT 16:9 canvas sit at
+      // 3.00 against a 4.5 bar. Flagged rather than silently refused -- it was asked for
+      // by name, the light palette is a per-variant choice, and in practice the eyebrow
+      // sits on a scrimmed photograph rather than on the bare ground.
+      brass: '#B0905C',
       rule: 'rgba(236,231,223,.55)', ruleSoft: 'rgba(236,231,223,.45)', ruleFaint: 'rgba(236,231,223,.3)',
       // The two chip treatments differ by WEIGHT, not colour: `gold` is simply the
       // stronger stroke. It used to be the chrome blue, which put a UI accent on the
@@ -4567,6 +4619,7 @@ class CampaignStudio extends StudioBase {
     light: {
       base: '#FFFFFF', ink: '#1A2942', inkSoft: '#2F4960', inkMute: '#6B7280',
       accent: '#1A2942', ruleGold: '#2F4960',
+      brass: '#B0905C',
       rule: 'rgba(26,41,66,.45)', ruleSoft: 'rgba(26,41,66,.3)', ruleFaint: 'rgba(26,41,66,.2)',
       chip: 'rgba(26,41,66,.35)', chipGold: 'rgba(26,41,66,.6)',
       glassFill: 'rgba(26,41,66,.05)', glassStroke: 'rgba(26,41,66,.15)',
@@ -4669,6 +4722,24 @@ class CampaignStudio extends StudioBase {
   // `innerW` is the full content column. Pass `meas` and an `innerW` to have the panel
   // HUG its content instead — two columns of data in an edge-to-edge panel reads as a
   // mistake, which is exactly what it looked like.
+  // The ink an uploaded icon is tinted to. `m.icoHex` is a MODULE field, so it is
+  // linked across design variants exactly as `big` / `hug` / `figTop` are — it
+  // describes how the data is presented, not how one variant looks. Absent, each
+  // caller keeps the ink it always had, which is what makes adding this inert.
+  static icoInk(m, dflt) { return (m && m.icoHex) || dflt; }
+  // The hero's ink, per AUTHORED line — the segment the user typed, never the wrapped
+  // line. Wrapping depends on the column, so keying the colour off the drawn line
+  // would make it jump between the 1:1 and the 9:16 and move again under Scaling.
+  static heroInk(m, i, pal) { return (m && m.lineHex && m.lineHex[i]) || pal.ink; }
+  // ONE scalar for the whole tag-chip family. `jumbo` is a module FIELD rather than a
+  // seventh variant because it has to compose with mist / gold / icon — the supplied
+  // design is a jumbo GOLD pill, and a variant would have made the two exclusive.
+  // k is tk.hook / tk.eyebrow, which is 1.458 / 1.464 / 1.455 on the three canvases,
+  // so the jumbo step is the same relative size everywhere rather than three sizes.
+  // Off, k is exactly 1 and every derived value is byte-identical to what it was.
+  static tagK(m, tk) { return (m && m.jumbo) ? tk.hook / tk.eyebrow : 1; }
+  static tagPad(k) { return k === 1 ? '.9cqw 2.6cqw' : (.9 * k).toFixed(3) + 'cqw ' + (2.6 * k).toFixed(3) + 'cqw'; }
+  static tagGap(k) { return k === 1 ? '1.5cqw' : (1.5 * k).toFixed(3) + 'cqw'; }
   static specBox(m, tk, mv, meas, innerW) {
     const cells = (m.cols || []).slice(0, CampaignStudio.SPEC_MAX);
     const n = Math.max(1, cells.length);
@@ -4677,6 +4748,11 @@ class CampaignStudio extends StudioBase {
     const labPx = tk.eyebrow * .8;
     const stacked = mv === 'ladder' || mv === 'boxed';   // one pair per row
     const boxed = mv === 'boxed' || mv === 'boxrow';     // wrapped in a hairline panel
+    // ICON ROW: an uploadable mark beside a figure-over-label pair, the groups spread
+    // across the column. It is NOT boxed and draws no hairlines — the icon is what
+    // separates one cell from the next, so a rule between them reads as a second
+    // divider doing the same job.
+    const icons = mv === 'icons';
     const pad = boxed ? CampaignStudio.BOX_PAD : 0;
     // A large figure needs real air under it before its tracked-caps label, and a
     // panel needs more room top and bottom than a bare ladder does.
@@ -4685,9 +4761,16 @@ class CampaignStudio extends StudioBase {
     // zoom and the pair reads as one word. Scale the gap off the label instead.
     const g2 = big ? labPx * .85 : labPx * .62;
     const rowH = padV * 2 + labPx * 1.3 + g2 + figPx * 1.3;
-    const h = stacked
-      ? n * rowH + pad * 2
-      : tk.eyebrow * 1.2 + 8 + figPx * 1.2 + pad * 2;
+    // The icon's square and the air between it and the pair, both off the figure so
+    // the mark tracks the figure at every canvas size and every Scaling setting.
+    const icoD = icons ? figPx * 1.15 : 0;
+    const icoGap = icons ? figPx * .5 : 0;
+    const pairH = figPx * 1.3 + g2 + labPx * 1.3;
+    const h = icons
+      ? Math.max(icoD, pairH)
+      : (stacked
+        ? n * rowH + pad * 2
+        : tk.eyebrow * 1.2 + 8 + figPx * 1.2 + pad * 2);
     const colGap = 28;
     // Width. Edge to edge unless the module asks to hug, and hugging still cannot
     // exceed the column. Measured from the widest run in each pair, so the panel is
@@ -4695,7 +4778,7 @@ class CampaignStudio extends StudioBase {
     let w = innerW || 0;
     let colWs = null;
     if (m.hug && meas && innerW) {
-      const wid = c => Math.max(
+      const wid = c => (icons ? icoD + icoGap : 0) + Math.max(
         meas(String(c.l || '').toUpperCase(), labPx, 500, false, CampaignStudio.trackOf(labPx)),
         meas(String(c.v || ''), figPx, 300, false, 0));
       const each = cells.map(wid);
@@ -4720,6 +4803,7 @@ class CampaignStudio extends StudioBase {
       }
     }
     return { cells, n, big, figPx, labPx, stacked, boxed, pad, padV, g2, rowH, h, w,
+      icons, icoD, icoGap, pairH,
       hug: !!m.hug,
       // Per-cell column widths for a hugging row, or null when the columns are equal.
       colWs,
@@ -5579,8 +5663,9 @@ class CampaignStudio extends StudioBase {
     if (m.type === 'tags') {
       // Tag chips now covers the pill rows AND the divided benefit strip the dwtc
       // hero uses — same authored list, different treatment.
-      if (CampaignStudio.isStrip(mv)) return this.stripRows(m, tk, innerW).length * (tk.hook * .86 * 1.9);
-      return this.chipRows(m, tk, innerW, mv === 'icon').length * (tk.eyebrow + 22 + 12) - 12;
+      const kT = CampaignStudio.tagK(m, tk);
+      if (CampaignStudio.isStrip(mv)) return this.stripRows(m, tk, innerW).length * (tk.hook * .86 * kT * 1.9);
+      return this.chipRows(m, tk, innerW, mv === 'icon').length * ((tk.eyebrow + 22 + 12) * kT) - 12 * kT;
     }
     if (m.type === 'spec') return CampaignStudio.specBox(m, tk, mv).h;
     if (m.type === 'price') {
@@ -5801,7 +5886,10 @@ class CampaignStudio extends StudioBase {
           put(x0 + fl, widest, pal.inkMute, y);
           if (center) ops.push({ op: 'rect', x: x0 + fl + widest + 24, y: midY, w: ruleW, h: 2, fill: pal.ruleGold });
         } else {
-          put(px0, iw, pal.inkMute, y);
+          // `brass` is `plain` in a different ink — the design supplies tracked caps in
+          // brass with no rule and no box, so a fifth box treatment would be inventing
+          // one. modPx therefore reserves exactly what plain does.
+          put(px0, iw, mv === 'brass' ? pal.brass : pal.inkMute, y);
         }
       } else if (m.type === 'hero') {
         const hpx = mv === 'jumbo' ? tk.hero * 1.55 : tk.hero;
@@ -5947,7 +6035,7 @@ class CampaignStudio extends StudioBase {
                 const iwn = a.img.naturalWidth || 1, ihn = a.img.naturalHeight || 1;
                 const k = Math.min(B.icon / iwn, B.icon / ihn);
                 // tintFlat: brand-kit icons are navy, invisible on a navy canvas
-                ops.push({ op: 'image', img: a.img, url: a.u, x: cx + (B.d - iwn * k) / 2, y: y + (B.d - ihn * k) / 2, w: iwn * k, h: ihn * k, tintFlat: pal.ink });
+                ops.push({ op: 'image', img: a.img, url: a.u, x: cx + (B.d - iwn * k) / 2, y: y + (B.d - ihn * k) / 2, w: iwn * k, h: ihn * k, tintFlat: CampaignStudio.icoInk(m, pal.ink) });
               }
               const bd = B.badge, bx2 = cx + B.d - bd * .82, by2 = y + bd * .04;
               ops.push({ op: 'rrect', x: bx2, y: by2, w: bd, h: bd, r: bd / 2, fill: pal.scrim, stroke: pal.glassStroke, sw: 1 });
@@ -5968,7 +6056,7 @@ class CampaignStudio extends StudioBase {
       } else if (m.type === 'tags') {
         if (CampaignStudio.isStrip(mv)) {
           // The dwtc hero's benefit bar: labels divided by hairlines, no pill.
-          const px = tk.hook * .86, sep = px * CampaignStudio.STRIP_SEP, lineH = px * 1.9;
+          const px = tk.hook * .86 * CampaignStudio.tagK(m, tk), sep = px * CampaignStudio.STRIP_SEP, lineH = px * 1.9;
           this.stripRows(m, tk, iw).forEach((row, ri) => {
             const totalW = row.reduce((a, c) => a + c.w, 0) + Math.max(0, row.length - 1) * sep;
             let x = center ? cctr(totalW) : px0;
@@ -5991,13 +6079,19 @@ class CampaignStudio extends StudioBase {
         } else {
           const icon = mv === 'icon', gold = mv === 'gold';
           const rows = this.chipRows(m, tk, iw, icon);
-          const icoW = tk.eyebrow * 1.9;   // the chip's icon box — NOT the cluster width
+          // JUMBO is one scalar through every number this block derives, so the chip
+          // grows as one object — text, height, both paddings, the icon box and both
+          // gaps — rather than a bigger label rattling in the old pill. At k = 1 every
+          // expression below is the literal it replaced.
+          const kT = CampaignStudio.tagK(m, tk);
+          const cPx = tk.eyebrow * kT;
+          const icoW = tk.eyebrow * 1.9 * kT;   // the chip's icon box — NOT the cluster width
           let ci2 = 0;
           rows.forEach((row, ri) => {
-            const rh = tk.eyebrow + 22;
-            const totalW = row.reduce((a, c) => a + c.w, 0) + (row.length - 1) * 16;
+            const rh = tk.eyebrow * kT + 22 * kT;
+            const totalW = row.reduce((a, c) => a + c.w, 0) + (row.length - 1) * 16 * kT;
             let x = center ? cctr(totalW) : px0;
-            const yy = y + ri * (rh + 12);
+            const yy = y + ri * (rh + 12 * kT);
             // The chip's icon is keyed by its position in the WHOLE list, so the
             // global index is captured before reversing — a plain running counter
             // would hand every chip its neighbour's icon under RTL.
@@ -6005,18 +6099,18 @@ class CampaignStudio extends StudioBase {
             if (CampaignStudio.listRtl()) seqC.reverse();
             seqC.forEach(({ c, gi }) => {
               ops.push({ op: 'rrect', x, y: yy, w: c.w, h: rh, r: rh / 2, stroke: gold ? pal.chipGold : pal.chip, sw: 2 });
-              let tx = x + 28;
+              let tx = x + 28 * kT;
               if (icon) {
                 const a = assets['ic' + m.id + '_' + gi];
-                const box = tk.eyebrow * 1.15;
+                const box = tk.eyebrow * 1.15 * kT;
                 if (a && a.img) {
                   const k = Math.min(box / (a.img.naturalWidth || 1), box / (a.img.naturalHeight || 1));
-                  ops.push({ op: 'image', img: a.img, url: a.u, x: tx, y: yy + (rh - (a.img.naturalHeight || 1) * k) / 2, w: (a.img.naturalWidth || 1) * k, h: (a.img.naturalHeight || 1) * k, tintFlat: gold ? pal.ruleGold : pal.inkSoft });
+                  ops.push({ op: 'image', img: a.img, url: a.u, x: tx, y: yy + (rh - (a.img.naturalHeight || 1) * k) / 2, w: (a.img.naturalWidth || 1) * k, h: (a.img.naturalHeight || 1) * k, tintFlat: CampaignStudio.icoInk(m, gold ? pal.ruleGold : pal.inkSoft) });
                 }
-                tx += icoW - 14;
+                tx += icoW - 14 * kT;
               }
-              ops.push({ op: 'text', x: tx, y: yy + rh / 2 + tk.eyebrow * .36, px: tk.eyebrow, weight: 300, fill: gold ? pal.ruleGold : pal.inkSoft, text: c.t });
-              x += c.w + 16;
+              ops.push({ op: 'text', x: tx, y: yy + rh / 2 + cPx * .36, px: cPx, weight: 300, fill: gold ? pal.ruleGold : pal.inkSoft, text: c.t });
+              x += c.w + 16 * kT;
             });
             ci2 += row.length;
           });
@@ -6035,22 +6129,59 @@ class CampaignStudio extends StudioBase {
         // sets text-align:center and every column is a flex:1 1 0 box, so the copy
         // centres per column. These ops always drew from the column's left edge, so a
         // centred boxrow previewed centred and exported flush left.
-        const pair = (c, cx, cy, cw) => {
+        const pair = (c, cx, cy, cw, ftIn, ctrIn) => {
           const lab = (c.l || '').toUpperCase();
-          const first = B.figTop
+          // `ft` is the reading order and `ctr` whether each run centres in its column.
+          // Both fall back to what they always were; the ICON ROW overrides both — its
+          // figure has to lead (an icon beside a tracked-caps label with the figure
+          // under it reads as three unrelated things) and its pair stays flush with the
+          // icon, because the icon is the block's left edge and the BLOCK is what
+          // centres in the column.
+          const ft = ftIn === undefined ? B.figTop : ftIn;
+          const ctr = ctrIn === undefined ? center : ctrIn;
+          const first = ft
             ? { t: c.v || '', px: B.figPx, w: 300, fill: pal.ink, ls: 0 }
             : { t: lab, px: B.labPx, w: 500, fill: pal.inkMute, ls };
-          const second = B.figTop
+          const second = ft
             ? { t: lab, px: B.labPx, w: 500, fill: pal.inkMute, ls }
             : { t: c.v || '', px: B.figPx, w: 300, fill: pal.ink, ls: 0 };
           const put = (r, yy) => {
-            const x = center ? cx + (cw - this.meas(r.t, r.px, r.w, false, r.ls)) / 2 : cx;
+            const x = ctr ? cx + (cw - this.meas(r.t, r.px, r.w, false, r.ls)) / 2 : cx;
             ops.push({ op: 'text', x, y: yy, px: r.px, weight: r.w, fill: r.fill, text: r.t, ls: r.ls });
           };
           put(first, cy + first.px);
           put(second, cy + first.px * 1.3 + B.g2 + second.px);
         };
-        if (B.stacked) {
+        if (B.icons) {
+          // Cells across the column: [icon][figure over label]. Equal columns edge to
+          // edge, each cell's own width when hugging — the same two readings every
+          // other spec variant has, so `hug` means the same thing here.
+          const nI = Math.max(1, B.cells.length);
+          const cw0 = B.w / nI;
+          const runW = c => Math.max(
+            this.meas(String(c.v || ''), B.figPx, 300, false, 0),
+            this.meas(String(c.l || '').toUpperCase(), B.labPx, 500, false, ls));
+          let cx = bxS;
+          B.cells.forEach((_, di) => {
+            const si = CampaignStudio.seqAt(di, nI);
+            const c = B.cells[si];
+            const cw = B.colWs ? B.colWs[si] : cw0;
+            const pw = runW(c);
+            // The icon and the pair are ONE block, centred as a block in its column and
+            // centred vertically against the pair — so a tall mark and a two-line pair
+            // still read as one group rather than two stacked things.
+            const gx = center ? cx + Math.max(0, (cw - (B.icoD + B.icoGap + pw)) / 2) : cx;
+            const a = assets['ic' + m.id + '_' + si];
+            if (a && a.img) {
+              const k = Math.min(B.icoD / (a.img.naturalWidth || 1), B.icoD / (a.img.naturalHeight || 1));
+              const dw = (a.img.naturalWidth || 1) * k, dh = (a.img.naturalHeight || 1) * k;
+              ops.push({ op: 'image', img: a.img, url: a.u, x: gx + (B.icoD - dw) / 2, y: y + (B.h - dh) / 2,
+                w: dw, h: dh, tintFlat: CampaignStudio.icoInk(m, pal.ink) });
+            }
+            pair(c, gx + B.icoD + B.icoGap, y + (B.h - B.pairH) / 2, pw, true, false);
+            cx += cw + (B.colWs ? B.colGap * 2 : 0);
+          });
+        } else if (B.stacked) {
           let yy = y + B.pad;
           B.cells.forEach((c, i) => {
             if (i > 0) ops.push({ op: 'rect', x: bxS + B.pad, y: yy, w: B.w - B.pad * 2, h: 1, fill: B.boxed ? pal.boxBd : pal.ruleFaint });
@@ -6240,18 +6371,21 @@ class CampaignStudio extends StudioBase {
     // value that lands mid-word made wrapRuns treat the halves as two words, which
     // put a space inside the word when the line is rejoined for drawing.
     let out = [];
-    CampaignStudio.lines(m.text).forEach(seg => {
-      out = out.concat(this.wrapRuns([Object.assign({}, sans, { text: seg })], maxW));
+    CampaignStudio.lines(m.text).forEach((seg, li) => {
+      // Each authored segment carries its own ink into every line it wraps to, so a
+      // two-word colour change survives the column narrowing.
+      out = out.concat(this.wrapRuns([Object.assign({}, sans, { text: seg, fill: CampaignStudio.heroInk(m, li, pal) })], maxW));
     });
     return out;
   }
   chipRows(m, tk, maxW, withIcon) {
     const rows = []; let row = [], w = 0;
-    const extra = withIcon ? tk.eyebrow * 1.9 : 0;   // leading icon box + its gap
+    const k = CampaignStudio.tagK(m, tk);
+    const extra = withIcon ? tk.eyebrow * 1.9 * k : 0;   // leading icon box + its gap
     (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).forEach(t => {
-      const cw = this.meas(t, tk.eyebrow, 300, false, 0) + 56 + extra;
-      if (row.length && w + 16 + cw > maxW) { rows.push(row); row = []; w = 0; }
-      row.push({ t, w: cw }); w += (row.length > 1 ? 16 : 0) + cw;
+      const cw = this.meas(t, tk.eyebrow * k, 300, false, 0) + 56 * k + extra;
+      if (row.length && w + 16 * k + cw > maxW) { rows.push(row); row = []; w = 0; }
+      row.push({ t, w: cw }); w += (row.length > 1 ? 16 * k : 0) + cw;
     });
     if (row.length) rows.push(row);
     return rows;
@@ -6287,7 +6421,7 @@ class CampaignStudio extends StudioBase {
   // returns so modPx and buildOps can share the measurement.
   static STRIP_SEP = 1.5;   // gap between labels, in em of the strip's own px
   stripRows(m, tk, maxW) {
-    const px = tk.hook * .86, sep = px * CampaignStudio.STRIP_SEP;
+    const px = tk.hook * .86 * CampaignStudio.tagK(m, tk), sep = px * CampaignStudio.STRIP_SEP;
     const rows = []; let row = [], w = 0;
     (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).forEach(t => {
       const cw = this.meas(t, px, 300, false, 0);
@@ -6601,8 +6735,8 @@ class CampaignStudio extends StudioBase {
         const g = norm(sidecar['adstudio-mod-' + m.id]);
         if (g && g.u) { const img = await loadImg(g.u); if (img) assets['mod' + m.id] = { img, u: g.u }; }
       }
-      // Steps and icon chips each carry their own uploadable SVG.
-      if (m.type === 'steps' || m.type === 'tags') {
+      // Steps, icon chips and the spec icon row each carry their own uploadable SVG.
+      if (m.type === 'steps' || m.type === 'tags' || m.type === 'spec') {
         for (let i = 0; i < CampaignStudio.ICON_MAX; i++) {
           const ic = norm(sidecar['adstudio-ic-' + m.id + '-' + i]);
           if (ic && ic.u) { const img = await loadImg(ic.u); if (img) assets['ic' + m.id + '_' + i] = { img, u: ic.u }; }
@@ -6625,7 +6759,8 @@ class CampaignStudio extends StudioBase {
   async applyIcon(modId, rawName) {
     const name = CampaignStudio.iconName(rawName);
     const i = (this._iconStep || 0) + 1;
-    const what = (CampaignStudio.modulesFor(this.state, this.state.activeVi).find(m => m.id === modId) || {}).type === 'tags' ? 'Chip ' : 'Step ';
+    const ty = (CampaignStudio.modulesFor(this.state, this.state.activeVi).find(m => m.id === modId) || {}).type;
+    const what = ty === 'tags' ? 'Chip ' : (ty === 'spec' ? 'Column ' : 'Step ');
     if (!name) { this.setState({ exportStatus: 'Type an icon name first.' }); return; }
     const slot = this.iconSlotEl(modId);
     if (!slot || !slot._ingest) {
@@ -6717,7 +6852,7 @@ class CampaignStudio extends StudioBase {
     put('adstudio-colog', 'logo-partner');
     CampaignStudio.allMods(this.state).forEach(m => {
       if (m.type === 'graphic') put('adstudio-mod-' + m.id, 'graphic-' + CampaignStudio.slug(m.text || m.id));
-      if (m.type === 'steps' || m.type === 'tags') {
+      if (m.type === 'steps' || m.type === 'tags' || m.type === 'spec') {
         for (let i = 0; i < CampaignStudio.ICON_MAX; i++) put('adstudio-ic-' + m.id + '-' + i, 'icon-' + CampaignStudio.slug(m.id) + '-' + (i + 1));
       }
     });
@@ -6902,13 +7037,13 @@ class CampaignStudio extends StudioBase {
     // The ACTIVE page's copy: the rail's selected component reads its text from here.
     const list = CampaignStudio.modulesFor(s, s.activeVi);
     const VOPT = {
-      eyebrow: [['plain', 'Plain'], ['rule', 'Rule-flanked'], ['frame', 'Framed'], ['fill', 'Filled']],
+      eyebrow: [['plain', 'Plain'], ['brass', 'Brass caps'], ['rule', 'Rule-flanked'], ['frame', 'Framed'], ['fill', 'Filled']],
       hero: [['plain', 'Regular'], ['jumbo', 'Jumbo · Light'], ['fade', 'Fade out']],
       hook: [['plain', 'Plain'], ['glass', 'Glass card']],
       steps: [['icon', 'Icon plates'], ['num', 'Plates, no icon'], ['list', 'Compact list']],
       body: [['plain', 'Plain'], ['note', 'Corner note']],
       tags: [['mist', 'Mist pill'], ['gold', 'Accent pill'], ['icon', 'Icon pill'], ['rule', 'Rule-divided'], ['dot', 'Dot-divided'], ['plain', 'Plain row']],
-      spec: [['row', 'Row'], ['ladder', 'Ladder'], ['boxed', 'Boxed ladder'], ['boxrow', 'Boxed row']],
+      spec: [['row', 'Row'], ['icons', 'Icon row'], ['ladder', 'Ladder'], ['boxed', 'Boxed ladder'], ['boxrow', 'Boxed row']],
       list: [['check', 'Check'], ['dot', 'Dot'], ['ring', 'Ring'], ['rule', 'Rule-divided']],
       price: [['plain', 'Plain'], ['line', 'One line'], ['glass', 'Glass bar']],
       cta: [['pill', 'White pill'], ['outline', 'Outline'], ['rect', 'Soft rect']],
@@ -6958,13 +7093,16 @@ class CampaignStudio extends StudioBase {
           isText: m.type === 'hook' || m.type === 'body',
           // Spec Data renders through one pair engine; `isSpecCols` lays the pairs
           // out as columns, `isSpecLadder` stacks them.
-          isSpec: m.type === 'spec' && mv !== 'ladder' && mv !== 'boxed',
+          isSpec: m.type === 'spec' && mv !== 'ladder' && mv !== 'boxed' && mv !== 'icons',
           isSpecLadder: m.type === 'spec' && (mv === 'ladder' || mv === 'boxed'),
           // steps, and the tag-chip strip/icon variants, all draw as rows of
           // [badge][figure][label], so one markup block serves them all.
-          isRows: m.type === 'steps' || (m.type === 'tags' && (CampaignStudio.isStrip(mv) || mv === 'icon')),
+          // The spec ICON ROW is [icon][figure over label] per cell, which is exactly the
+          // shape this block already draws — so it needed no markup of its own beyond the
+          // pair wrapper above.
+          isRows: m.type === 'steps' || (m.type === 'tags' && (CampaignStudio.isStrip(mv) || mv === 'icon')) || (m.type === 'spec' && mv === 'icons'),
           isTags: m.type === 'tags' && !CampaignStudio.isStrip(mv) && mv !== 'icon',
-          prows: [],
+          prows: [], hlines: [],
           isCta: m.type === 'cta', isPrice: m.type === 'price', isDiv: m.type === 'divider', isSpacerMod: m.type === 'spacer', isGraphic: m.type === 'graphic', slotId: 'adstudio-mod-' + m.id,
           isList: m.type === 'list',
           rows: m.type !== 'list' ? [] : CampaignStudio.listLines(m.text).map((line, ri) => {
@@ -7041,7 +7179,10 @@ class CampaignStudio extends StudioBase {
           // thing that themes a JS style object — an inline style beats any rule.
           handleStyle: { position: 'absolute', left: '-4.6cqw', top: '50%', transform: 'translateY(-50%)', background: 'var(--ps-primary)', color: 'var(--ps-primary-i)', borderRadius: '0.8cqw', padding: '0.6cqw 0.9cqw', fontSize: '1.9cqw', lineHeight: 1, pointerEvents: 'none', opacity: seld ? 1 : undefined },
           serifStyle: { fontStyle: 'normal', fontWeight: 400, color: pal.ink },
-          chipStyle: { border: '1px solid ' + (mv === 'gold' ? pal.chipGold : pal.chip), color: mv === 'gold' ? pal.ruleGold : pal.inkSoft, fontWeight: 300, fontSize: cq(tk.eyebrow), padding: '.9cqw 2.6cqw', borderRadius: '6px', whiteSpace: 'nowrap' },
+          // borderRadius was 6px against an op of `r: rh / 2` — a full capsule — so the
+          // editor drew a soft rect where every export drew a pill. This is the case the
+          // radius rule already names: a preview mirroring an op with r = h/2 is 999px.
+          chipStyle: { border: '1px solid ' + (mv === 'gold' ? pal.chipGold : pal.chip), color: mv === 'gold' ? pal.ruleGold : pal.inkSoft, fontWeight: 300, fontSize: cq(tk.eyebrow * CampaignStudio.tagK(m, tk)), padding: CampaignStudio.tagPad(CampaignStudio.tagK(m, tk)), borderRadius: '999px', whiteSpace: 'nowrap' },
           labStyle: { fontWeight: 500, fontSize: cq(tk.eyebrow * .8), letterSpacing: cq(CampaignStudio.trackOf(tk.eyebrow * .8)), textTransform: 'uppercase', color: pal.inkMute },
           valStyle: { fontWeight: 300, fontSize: cq(tk.hook), color: pal.ink },
           rowStyle: {}, ruleStyle: {}, ladStyle: {}, priceBoxStyle: {}, rowsStyle: {}
@@ -7053,7 +7194,7 @@ class CampaignStudio extends StudioBase {
           // stops holding the moment the lead depends on the face.
           view.tStyle = { fontWeight: 500, fontSize: cq(tk.eyebrow), letterSpacing: cq(CampaignStudio.trackOf(tk.eyebrow)), textTransform: 'uppercase',
             lineHeight: CampaignStudio.leadOf(CampaignStudio.EYE_LEAD),
-            color: mv === 'fill' ? pal.eyeInk : (mv === 'frame' ? pal.ink : pal.inkMute) };
+            color: mv === 'fill' ? pal.eyeInk : (mv === 'frame' ? pal.ink : (mv === 'brass' ? pal.brass : pal.inkMute)) };
           if (boxed) { view.tStyle.padding = '1.3cqw 3cqw'; view.tStyle.display = 'inline-block'; }
           // The stroke mirrors the op's `stroke`, the ground mirrors its `fill` — the
           // two variants share one box, so they share one style branch.
@@ -7077,6 +7218,17 @@ class CampaignStudio extends StudioBase {
             view.tStyle.WebkitTextFillColor = 'transparent';
             view.tStyle.color = 'transparent';
           }
+          // ONE SPAN PER AUTHORED LINE. It was `pre`/`<em>serif</em>`/`post`, a survivor
+          // of the retired serif emphasis — and under JUMBO that `<em>` forced weight 400
+          // inside a 300 headline while the op drew one run at 300, so the marked word
+          // rendered bolder in the editor than in any export. Per-line spans retire the
+          // split and are what carries a per-line colour.
+          // A blank interior line is a non-breaking space, because an empty block box
+          // collapses to nothing while the op still advances a full line for it.
+          view.hlines = CampaignStudio.lines(m.text).map((t2, li) => ({
+            t: t2 === '' ? '\u00A0' : t2,
+            style: { display: 'block', color: CampaignStudio.heroInk(m, li, pal) }
+          }));
           const t = m.text || '', w = mv === 'sans' ? '' : (m.serif || '');
           const i = w ? t.indexOf(w) : -1;
           if (i >= 0) { view.pre = t.slice(0, i); view.serif = w; view.post = t.slice(i + w.length); }
@@ -7103,13 +7255,43 @@ class CampaignStudio extends StudioBase {
           // what the ops do — the lines keep the same membership, they just fill from
           // the right. flex-start would then pack the block to the right edge and move
           // a left-aligned cluster, so the free space has to move to flex-end instead.
-          view.rowStyle = { display: 'flex', gap: '1.5cqw', flexWrap: 'wrap',
+          view.rowStyle = { display: 'flex', gap: CampaignStudio.tagGap(CampaignStudio.tagK(m, tk)), flexWrap: 'wrap',
             flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
             justifyContent: center ? 'center' : (CampaignStudio.listRtl() ? 'flex-end' : 'flex-start') };
         } else if (m.type === 'spec') {
           // same content width buildOps uses, so a hugging panel measures identically
           const specInnerW = gW;
           const B = CampaignStudio.specBox(m, tk, mv, this.meas.bind(this), specInnerW);
+          if (B.icons) {
+            // Equal columns, or each cell's own width when hugging — the same two
+            // readings the op lays out, read from the same B.
+            view.rowsStyle = { display: 'flex', flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
+              width: cq(B.w), marginLeft: center ? 'auto' : '0', marginRight: center ? 'auto' : '0' };
+            view.prows = B.cells.map((c, i) => ({
+              hasBadge: false, badgeAlone: false, badge: '', badgeStyle: {}, connStyle: { display: 'none' },
+              hasIcon: true, iconId: 'adstudio-ic-' + m.id + '-' + i,
+              iconTint: CampaignStudio.icoInk(m, pal.ink),
+              iconWrapStyle: { position: 'relative', width: cq(B.icoD), height: cq(B.icoD), flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+              iconStyle: { width: '100%', height: '100%', pointerEvents: 'auto' },
+              iconPaintStyle: { position: 'absolute', inset: 0, display: 'none', pointerEvents: 'none', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskPosition: 'center', WebkitMaskSize: 'contain', maskSize: 'contain' },
+              // Figure over label, ALWAYS — the op forces the same reading order, and
+              // the pair stays flush with the icon while the BLOCK centres in its column.
+              pairStyle: { display: 'flex', flexDirection: 'column', gap: cq(B.g2), minWidth: 0 },
+              hasFig: true, fig: c.v || '',
+              // BOTH runs carry 1.3 explicitly, because B.pairH reserves figPx * 1.3 +
+              // g2 + labPx * 1.3 and the row centres the pair against the icon on its own
+              // height. Leaving the figure at 1.12 and the label on the inherited lead made
+              // the preview's pair box 9 canvas px shorter than the op's, so the whole
+              // block sat ~14px high in the editor and correct in every export.
+              figStyle: { fontWeight: 300, fontSize: cq(B.figPx), lineHeight: 1.3, color: pal.ink, whiteSpace: 'nowrap' },
+              hasLab: true, lab: (c.l || '').toUpperCase(),
+              labStyle: { fontWeight: 500, fontSize: cq(B.labPx), lineHeight: 1.3, letterSpacing: cq(CampaignStudio.trackOf(B.labPx)), textTransform: 'uppercase', color: pal.inkMute, whiteSpace: 'nowrap' },
+              wrapStyle: { display: 'flex', alignItems: 'center', gap: cq(B.icoGap), boxSizing: 'border-box',
+                width: B.colWs ? cq(B.colWs[i] + (i > 0 ? B.colGap * 2 : 0)) : 'calc(100% / ' + Math.max(1, B.n) + ')',
+                paddingLeft: (B.colWs && i > 0) ? cq(B.colGap * 2) : '0',
+                justifyContent: center ? 'center' : 'flex-start' }
+            }));
+          }
           // NOWRAP, because a spec run is a single text op and cannot wrap. Left to
           // flow, CSS broke a label onto a second line that the export drew on one.
           view.valStyle = { fontWeight: 300, fontSize: cq(B.figPx), color: pal.ink, lineHeight: 1.12, whiteSpace: 'nowrap' };
@@ -7167,7 +7349,7 @@ class CampaignStudio extends StudioBase {
                 ? { position: 'relative', width: cq(B.d), height: cq(B.d), flex: 'none', borderRadius: '50%', background: pal.glassFill, border: '2px solid ' + pal.glassStroke, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 300, fontSize: cq(B.d * .38), color: pal.ink, boxSizing: 'border-box' }
                 : { position: 'absolute', right: 0, top: 0, width: cq(B.badge), height: cq(B.badge), borderRadius: '50%', background: pal.scrim, border: '1px solid ' + pal.glassStroke, color: pal.warm, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 500, fontSize: cq(B.badge * .56), boxSizing: 'border-box' },
               hasIcon: mv !== 'num', iconId: 'adstudio-ic-' + m.id + '-' + i,
-              iconTint: pal.ink,
+              iconTint: CampaignStudio.icoInk(m, pal.ink),
               // Mirror plate: translucent fill + hairline ring over a blurred backdrop,
               // matching the blur op the export pushes under the same circle.
               iconWrapStyle: { position: 'relative', width: cq(B.d), height: cq(B.d), flex: 'none', borderRadius: '50%', background: pal.glassFill, border: '2px solid ' + pal.glassStroke, backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' },
@@ -7183,24 +7365,24 @@ class CampaignStudio extends StudioBase {
           }
         } else if (m.type === 'tags' && (CampaignStudio.isStrip(mv) || mv === 'icon')) {
           if (mv === 'icon') {
-            const rh = tk.eyebrow + 22;
-            view.rowsStyle = { display: 'flex', gap: '1.5cqw', flexWrap: 'wrap',
+            const kT = CampaignStudio.tagK(m, tk);
+            view.rowsStyle = { display: 'flex', gap: CampaignStudio.tagGap(kT), flexWrap: 'wrap',
               flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
               justifyContent: center ? 'center' : (CampaignStudio.listRtl() ? 'flex-end' : 'flex-start') };
             view.prows = (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).map((t, i) => ({
               hasBadge: false, badgeAlone: false, badge: '', badgeStyle: {},
               hasIcon: true, iconId: 'adstudio-ic-' + m.id + '-' + i,
-              iconTint: pal.inkSoft,
-              iconWrapStyle: { position: 'relative', width: cq(tk.eyebrow * 1.15), height: cq(tk.eyebrow * 1.15), flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+              iconTint: CampaignStudio.icoInk(m, pal.inkSoft),
+              iconWrapStyle: { position: 'relative', width: cq(tk.eyebrow * 1.15 * kT), height: cq(tk.eyebrow * 1.15 * kT), flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' },
               iconStyle: { width: '100%', height: '100%', pointerEvents: 'auto' },
               iconPaintStyle: { position: 'absolute', inset: 0, display: 'none', pointerEvents: 'none', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskPosition: 'center', WebkitMaskSize: 'contain', maskSize: 'contain' },
               connStyle: { display: 'none' },
               hasFig: false, fig: '', figStyle: {},
-              hasLab: true, lab: t, labStyle: { fontWeight: 300, fontSize: cq(tk.eyebrow), color: pal.inkSoft, whiteSpace: 'nowrap' },
-              wrapStyle: { display: 'inline-flex', alignItems: 'center', gap: cq(tk.eyebrow * .6), border: '1px solid ' + pal.chip, borderRadius: '999px', padding: '.9cqw 2.6cqw', boxSizing: 'border-box' }
+              hasLab: true, lab: t, labStyle: { fontWeight: 300, fontSize: cq(tk.eyebrow * kT), color: pal.inkSoft, whiteSpace: 'nowrap' },
+              wrapStyle: { display: 'inline-flex', alignItems: 'center', gap: cq(tk.eyebrow * .6 * kT), border: '1px solid ' + pal.chip, borderRadius: '999px', padding: CampaignStudio.tagPad(kT), boxSizing: 'border-box' }
             }));
           } else {
-            const px = tk.hook * .86;
+            const px = tk.hook * .86 * CampaignStudio.tagK(m, tk);
             view.rowsStyle = { display: 'flex', flexWrap: 'wrap',
               flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
               justifyContent: center ? 'center' : (CampaignStudio.listRtl() ? 'flex-end' : 'flex-start'),
@@ -7374,6 +7556,10 @@ class CampaignStudio extends StudioBase {
             document.addEventListener('pointerup', upFn);
           };
         }
+        // AFTER the terminating else, never inside it — an if/else chain has no syntax
+        // to protect itself, and a key added between the last `else if` and its `else`
+        // re-binds that else to the new test.
+        if (view.prows && view.prows.length) view.prows.forEach(r => { if (!r.pairStyle) r.pairStyle = { display: 'contents' }; });
         return view;
       };
       const ordered = CampaignStudio.orderedFor(eff, plist);
@@ -7402,7 +7588,7 @@ class CampaignStudio extends StudioBase {
       const clusterPx = (ms, w) => ms.reduce((a, m, i) =>
         a + this.modPx(m, v, tk, w, gov) + (i ? gapPx(m) : 0), 0);
       const coverPct = Math.round((clusterPx(topM, colW0) + clusterPx(botM, railG.w)) / tk.H * 100);
-      const spacer = { isSpacer: true, ruleEndStyle: { display: 'none' }, isEyebrow: false, isEyebrowRule: false, isHero: false, isText: false, isTags: false, isSpec: false, isSpecLadder: false, isCta: false, isPrice: false, isDiv: false, isSpacerMod: false, isGraphic: false, isRows: false, isList: false, prows: [], rows: [], chips: [], cols: [], select: () => {}, wrapStyle: { flex: 1, alignSelf: 'stretch', pointerEvents: 'none' }, handleStyle: { display: 'none' } };
+      const spacer = { isSpacer: true, ruleEndStyle: { display: 'none' }, hlines: [], isEyebrow: false, isEyebrowRule: false, isHero: false, isText: false, isTags: false, isSpec: false, isSpecLadder: false, isCta: false, isPrice: false, isDiv: false, isSpacerMod: false, isGraphic: false, isRows: false, isList: false, prows: [], rows: [], chips: [], cols: [], select: () => {}, wrapStyle: { flex: 1, alignSelf: 'stretch', pointerEvents: 'none' }, handleStyle: { display: 'none' } };
       let fgStyle = { display: 'none' }, fgTintStyle = { display: 'none' };
       const fgA = this._assetView && this._assetView.fg[vi];
       if (fgA && fgA.w) {
@@ -7979,23 +8165,87 @@ class CampaignStudio extends StudioBase {
       selGapResetStyle: Object.assign({}, btn(false), { flex: 'none', padding: '6px 10px' }),
       selIsPrice: !!selM && selM.type === 'price',
       selIsGraphic: !!selM && selM.type === 'graphic',
+      // ── Chip size ────────────────────────────────────────────────────────────
+      // A module FIELD, not a seventh variant: the supplied design is a jumbo ACCENT
+      // pill, and a variant would have made the two mutually exclusive.
+      tagSizeReg: () => editContent(m => { m.jumbo = false; }),
+      tagSizeJumbo: () => editContent(m => { m.jumbo = true; }),
+      tagRegOn: selM && !selM.jumbo ? '1' : undefined,
+      tagJumboOn: selM && selM.jumbo ? '1' : undefined,
+      // ── Icon colour ──────────────────────────────────────────────────────────
+      icoHexVal: (selM && selM.icoHex) || '',
+      icoHexLabel: (selM && selM.icoHex) || 'Canvas ink',
+      icoChipStyle: { background: (selM && selM.icoHex) || CampaignStudio.palOf(av).ink },
+      // An empty field CLEARS it back to the canvas ink rather than being ignored —
+      // otherwise a colour, once set, could only be swapped and never undone.
+      onIcoHex: e => {
+        const raw = String(e.target.value || '').trim().replace(/^#/, '');
+        if (!raw) { editContent(m => { delete m.icoHex; }); return; }
+        if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw)) return;
+        const hex = '#' + (raw.length === 3 ? raw.split('').map(c => c + c).join('') : raw).toUpperCase();
+        editContent(m => { m.icoHex = hex; });
+      },
+      icoSwatches: CampaignStudio.inkSwatches(CampaignStudio.palOf(av)).map(sw => ({
+        label: sw[0], hex: sw[1],
+        set: () => editContent(m => { if (sw[2]) delete m.icoHex; else m.icoHex = sw[1]; }),
+        style: { background: sw[1], border: '1px solid transparent',
+          boxShadow: (((selM && selM.icoHex) || '') === (sw[2] ? '' : sw[1])) ? '0 0 0 2px var(--ps-blue-lt)' : 'none' }
+      })),
+      // ── Hero line colour ─────────────────────────────────────────────────────
+      // One picker plus one swatch row, targeting the picked AUTHORED line — the same
+      // shape the icon picker uses, rather than a swatch row per line. `_heroLine` is
+      // throwaway UI and lives on the instance, not in the project or the undo stack.
+      heroLineTip: (selM && (av.mvar[selM.id] === 'fade'))
+        ? 'The Fade variant paints its own ramp across the whole block, so a per-line colour does not show under it — the export does the same.'
+        : 'Colour per line you typed, not per line it wraps to: wrapping depends on the column, so a colour keyed to the drawn line would move between the 1:1 and the 9:16.',
+      heroLinePicks: (() => {
+        if (!selM || selM.type !== 'hero') return [];
+        return CampaignStudio.lines(selM.text).map((t, i) => ({
+          label: String(i + 1), title: t || '(blank line)',
+          style: btn((this._heroLine || 0) === i),
+          pick: () => { this._heroLine = i; this.forceUpdate(); }
+        }));
+      })(),
+      heroHexVal: (selM && selM.lineHex && selM.lineHex[this._heroLine || 0]) || '',
+      heroHexLabel: 'line ' + ((this._heroLine || 0) + 1) + ' · ' + ((selM && selM.lineHex && selM.lineHex[this._heroLine || 0]) || 'canvas ink'),
+      heroChipStyle: { background: (selM && selM.lineHex && selM.lineHex[this._heroLine || 0]) || CampaignStudio.palOf(av).ink },
+      onHeroHex: e => {
+        const i = this._heroLine || 0;
+        const raw = String(e.target.value || '').trim().replace(/^#/, '');
+        if (!raw) { editContent(m => { if (m.lineHex) m.lineHex[i] = ''; }); return; }
+        if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw)) return;
+        const hex = '#' + (raw.length === 3 ? raw.split('').map(c => c + c).join('') : raw).toUpperCase();
+        editContent(m => { m.lineHex = (m.lineHex || []).slice(); m.lineHex[i] = hex; });
+      },
+      heroSwatches: CampaignStudio.inkSwatches(CampaignStudio.palOf(av)).map(sw => ({
+        label: sw[0], hex: sw[1],
+        set: () => editContent(m => {
+          const i = this._heroLine || 0;
+          m.lineHex = (m.lineHex || []).slice();
+          m.lineHex[i] = sw[2] ? '' : sw[1];
+        }),
+        style: { background: sw[1], border: '1px solid transparent',
+          boxShadow: (((selM && selM.lineHex && selM.lineHex[this._heroLine || 0]) || '') === (sw[2] ? '' : sw[1])) ? '0 0 0 2px var(--ps-blue-lt)' : 'none' }
+      })),
       // The icon picker serves every component that carries icon slots: process
       // steps, and Tag chips in its icon-pill treatment.
-      selIconsOn: !!selM && (selM.type === 'steps' || (selM.type === 'tags' && selVarCur === 'icon')),
-      iconTitle: selM && selM.type === 'tags' ? 'Chip icon' : 'Step icon',
-      iconClearLabel: selM && selM.type === 'tags' ? "Clear this chip's icon" : "Clear this step's icon",
+      selIconsOn: !!selM && (selM.type === 'steps' || (selM.type === 'tags' && selVarCur === 'icon') || (selM.type === 'spec' && selVarCur === 'icons')),
+      iconTitle: selM && selM.type === 'tags' ? 'Chip icon' : (selM && selM.type === 'spec' ? 'Column icon' : 'Step icon'),
+      iconClearLabel: selM && selM.type === 'tags' ? "Clear this chip's icon" : (selM && selM.type === 'spec' ? "Clear this column's icon" : "Clear this step's icon"),
       selText: selM ? (selM.text || '') : '', selSub: selM ? (selM.sub || '') : '',
       selChips: selM && selM.chips ? selM.chips.join(', ') : '',
       selCols: selM && selM.cols ? selM.cols.map(c => c.l + ' | ' + c.v).join('\n') : '',
       // Which step the picker targets, and the query. Instance fields + forceUpdate:
       // this is throwaway UI state and has no business in the project or in undo.
       iconStep: this._iconStep || 0,
-      iconStepLabel: (selM && selM.type === 'tags' ? 'chip ' : 'step ') + ((this._iconStep || 0) + 1),
+      iconStepLabel: (selM && selM.type === 'tags' ? 'chip ' : (selM && selM.type === 'spec' ? 'column ' : 'step ')) + ((this._iconStep || 0) + 1),
       iconSteps: (() => {
         if (!selM) return [];
         const n = selM.type === 'tags'
           ? (selM.chips || []).slice(0, CampaignStudio.CHIP_MAX).length
-          : CampaignStudio.capLines(selM.text, CampaignStudio.STEP_MAX).length;
+          : (selM.type === 'spec'
+            ? (selM.cols || []).slice(0, CampaignStudio.SPEC_MAX).length
+            : CampaignStudio.capLines(selM.text, CampaignStudio.STEP_MAX).length);
         return Array.from({ length: Math.max(1, n) }, (_, i) => ({
           label: String(i + 1),
           style: btn((this._iconStep || 0) === i),
