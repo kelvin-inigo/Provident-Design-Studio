@@ -4011,6 +4011,13 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <sc-if value="{{ a.isStats }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-bigstep"><button onClick="{{ a.statDec }}" class="gd-stepb" data-can="{{ a.statCanDec }}">‹</button><span>{{ a.statN }} stats</span><button onClick="{{ a.statInc }}" class="gd-stepb" data-can="{{ a.statCanInc }}">›</button></div>
                 <span class="gd-hint">Two to six, in two columns, centred. Bottom stands the grid on the page’s floor; Top stacks it under the title.</span>
+                <!-- THE ICONS' COLOUR, offered once there is an icon to colour — a control
+                     for a picture nobody has uploaded yet is a control with nothing to do. -->
+                <sc-if value="{{ a.icoTintOn }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">Icon colour</b>
+                  <div class="p-tabs gd-tabs"><sc-for list="{{ a.icoTintOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                  <span class="gd-hint">{{ a.icoTintHint }}</span>
+                </sc-if>
                 <sc-for list="{{ a.statRows }}" as="r" hint-placeholder-count="4">
                   <div class="gd-qrow gd-statrow">
                     <div class="gd-drop gd-drop-sq" data-done="{{ r.done }}">
@@ -5366,7 +5373,7 @@ class OrganicStudio extends StudioBase {
   // fresh page drew one arrangement while neither half of its control was lit, which is a
   // control disagreeing with the canvas beside it. `pos` keeps its own resolver because its
   // default is per KIND; the rest are one value each.
-  static CS_SEGDEF = { bulLayout: 'Side by side', align: 'Center', logoPos: 'Hide' };
+  static CS_SEGDEF = { bulLayout: 'Side by side', align: 'Center', logoPos: 'Hide', icoTint: 'Match canvas' };
   static csSegVal(kind, f, key) {
     if (key === 'pos') return OrganicStudio.csPos(kind, f);
     const v = f && f[key];
@@ -5413,7 +5420,7 @@ class OrganicStudio extends StudioBase {
   // is not required, so a blank one simply draws nothing and blocks no export.
   static csSeed(kind) {
     if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom', permitOn: 'Hide', scrimMode: 'Follow all pages' };
-    if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }], scrimMode: 'Follow all pages' };
+    if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }], icoTint: 'Match canvas', scrimMode: 'Follow all pages' };
     if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom', bulLayout: 'Side by side', scrimMode: 'Follow all pages' };
     if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center', scrimMode: 'Follow all pages' };
     if (kind === 'ccta') return { small: '', big: '', button: '', permitOn: 'Hide', pos: 'Centre' };
@@ -8053,7 +8060,13 @@ class OrganicStudio extends StudioBase {
         const r = Math.floor(i / 2), c = i % 2, alone = (r === rows - 1) && (n % 2 === 1);
         const cx = alone ? W / 2 : W / 2 + (c ? 1 : -1) * C.colPitch / 2;
         const iy = gridTop + r * C.rowPitch;
-        B.icons.push({ i, x: cx - C.iconBox / 2, y: iy - (C.iconBox - C.iconInk) / 2, w: C.iconBox, h: C.iconBox, slot: 'smp-ic-' + sl.id + '-' + i, fill: A.ink });
+        // TINTED TO THE CANVAS INK BY DEFAULT, because a Material glyph and most brand-kit
+        // SVGs arrive navy or black and all but disappear on these pages. `Original` is for
+        // an upload whose OWN colours are the point — a flag, a partner's mark, a photo-like
+        // PNG — and it is a PAGE-level choice: a row mixing tinted and untinted icons reads
+        // as an accident rather than as a decision.
+        B.icons.push({ i, x: cx - C.iconBox / 2, y: iy - (C.iconBox - C.iconInk) / 2, w: C.iconBox, h: C.iconBox,
+                       slot: 'smp-ic-' + sl.id + '-' + i, fill: A.ink, tint: f.icoTint !== 'Original' });
         const it = items[i] || {};
         if (String(it.stat || '').trim()) TC(String(it.stat).trim(), iy + C.statTop + asc(C.statPx), C.statPx, 300, A.ink, 0, cx);
         if (String(it.label || '').trim()) TC(String(it.label).trim().toUpperCase(), iy + C.statTop + C.statBox + C.labGap + asc(C.labPx), C.labPx, 300, A.ink, C.labTrack * C.labPx, cx);
@@ -8265,9 +8278,21 @@ class OrganicStudio extends StudioBase {
     const setN = d => this.upd(x => { const t = x.slides[si]; t.f.n = Math.max(C.statMin, Math.min(C.statMax, OrganicStudio.csN(t.f) + d)); t.f.items = OrganicStudio.csItems(t.f); return x; });
     const open = pick.si === si;
     const pi = Math.min(n - 1, pick.i || 0);
+    // THE ICONS' COLOUR SITS WITH THE ICONS, not in a tier of its own further up the form.
+    // It governs every icon on the page at once — a row mixing recoloured and original marks
+    // reads as an accident — so it is one control at the head of the rows it changes.
+    const tinted = (f.icoTint || 'Match canvas') !== 'Original';
+    const anyIcon = items.slice(0, n).some((it, i) => filled['smp-ic-' + sl.id + '-' + i]);
     return {
       statN: n, statDec: () => setN(-1), statInc: () => setN(1),
       statCanDec: n > C.statMin ? '1' : '0', statCanInc: n < C.statMax ? '1' : '0',
+      icoTintOn: anyIcon ? '1' : undefined,
+      icoTintOpts: [['Match canvas', true], ['Original', false]].map(o => ({ label: o[0],
+        on: (tinted === o[1]) ? '1' : undefined,
+        set: () => this.upd(x => { const t = x.slides[si]; if (t) { t.f = t.f || {}; t.f.icoTint = o[0]; } return x; }) })),
+      icoTintHint: tinted
+        ? 'Every icon is recoloured to the page’s ink — a brand-kit SVG is usually navy, which all but disappears here.'
+        : 'Every icon keeps the uploaded file’s own colours — for a logo, a flag or a picture whose colour is the point.',
       statRows: items.slice(0, n).map((it, i) => {
         const slot = 'smp-ic-' + sl.id + '-' + i;
         const write = (k, val) => this.upd(x => { const t = x.slides[si]; t.f.items = OrganicStudio.csItems(t.f); t.f.items[i][k] = val; return x; });
@@ -8804,7 +8829,12 @@ class OrganicStudio extends StudioBase {
         // contain-fit by the file's own aspect, so a non-square upload is never stretched
         const iw = a.img.naturalWidth, ih = a.img.naturalHeight, k = Math.min(ic.w / iw, ic.h / ih);
         const dw = iw * k, dh = ih * k;
-        ops.push({ op: 'image', img: a.img, url: a.u, x: ic.x + (ic.w - dw) / 2, y: ic.y + (ic.h - dh) / 2, w: dw, h: dh, tintFlat: ic.fill });
+        const iop = { op: 'image', img: a.img, url: a.u, x: ic.x + (ic.w - dw) / 2, y: ic.y + (ic.h - dh) / 2, w: dw, h: dh };
+        // NO `tintFlat` KEY AT ALL when the file keeps its own colours — an empty or null
+        // tint is the trap the graphic's own control records, where `[data-icon-tint]` still
+        // matched and the art was painted white. The key is absent or it is a colour.
+        if (ic.tint !== false) iop.tintFlat = ic.fill;
+        ops.push(iop);
       });
       B.texts.forEach(t => ops.push({ op: 'text', x: t.x, y: t.y, px: t.px, weight: t.w, fill: t.fill, text: t.t, ls: t.ls }));
       // THE FLOATING GRAPHIC IS LAST, so it sits over the page's own copy — which is what
@@ -11261,7 +11291,17 @@ class OrganicStudio extends StudioBase {
         K.csIcons = B.icons.map(ic => {
           const u = ic.glyph ? OrganicStudio.csGlyphAsset(ic.glyph).u : urls[ic.slot];
           if (!u) return null;
-          return Object.assign(abs(ic.x, ic.y), { width: cq(ic.w), height: cq(ic.h), zIndex: 2, pointerEvents: 'none', backgroundColor: ic.fill,
+          const box = Object.assign(abs(ic.x, ic.y), { width: cq(ic.w), height: cq(ic.h), zIndex: 2, pointerEvents: 'none' });
+          // A MASK WHEN IT IS TINTED, A BACKGROUND-IMAGE WHEN IT IS NOT, and that is the same
+          // pairing the award's partner mark and the floating graphic already carry:
+          // `mask-image` takes the art's own ALPHA and the background-colour supplies the ink,
+          // which is exactly what `tintFlat` does on canvas — while a background-image paints
+          // the file's own colours, which is what `Original` means. Both contain-fit in the
+          // same box, so the two surfaces frame the upload identically either way.
+          if (ic.tint === false) return Object.assign(box, {
+            backgroundImage: 'url("' + u + '")', backgroundSize: 'contain',
+            backgroundPosition: 'center', backgroundRepeat: 'no-repeat' });
+          return Object.assign(box, { backgroundColor: ic.fill,
             maskImage: 'url("' + u + '")', WebkitMaskImage: 'url("' + u + '")', maskSize: 'contain', WebkitMaskSize: 'contain',
             maskPosition: 'center', WebkitMaskPosition: 'center', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' });
         }).filter(Boolean);

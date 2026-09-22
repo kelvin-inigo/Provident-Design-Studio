@@ -12793,3 +12793,38 @@ highlight leaves it intact, and Enter inside one keeps the brass on both halves.
 
 **34 op groups, 34 byte-identical** against the committed build — no demo copy carries a
 marker, so a body that does not use the feature is unchanged op for op.
+
+## THE STATS ICONS CAN KEEP THEIR OWN COLOURS
+
+Asked for as "show original png on the uploaded media on the stats". The stat icons were
+always flattened to the page's ink, which is right for a Material glyph or a navy brand-kit
+SVG and wrong for anything whose colour IS the content — a flag, a partner's mark, a photo.
+
+`f.icoTint` is **Match canvas** (the default, and the old behaviour exactly) or **Original**,
+and it is Campaign's own graphic-tint control in this studio's third instance of it, after
+the floating graphic and the award's partner mark.
+
+**IT IS A PAGE-LEVEL CHOICE, NOT PER ICON.** Two to six icons stand in one grid, and a row
+mixing recoloured and original marks reads as an accident rather than as a decision.
+
+**AND THE CONTROL SITS WITH THE ICONS**, inside the stats block at the head of the rows it
+governs, rather than as a field in a tier further up the form — the placement lesson the whole
+refinement pass turned on. It appears only once there is an icon to colour: a control for a
+picture nobody has uploaded yet has nothing to do.
+
+Three surfaces, and each needs the pairing this file already records twice:
+
+| | canvas | preview | SVG |
+|---|---|---|---|
+| Match canvas | `tintFlat` on the image op | a **MASK** with a background-colour | image + mask + tinted rect |
+| Original | **no `tintFlat` key at all** | a **background-image** | the image alone |
+
+**NO KEY, NOT AN EMPTY ONE.** An empty or null tint is the documented trap from the graphic's
+own control, where `[data-icon-tint]` still matched and the art was painted white. `mask-image`
+takes the art's ALPHA and the background-colour supplies the ink — which is exactly what
+`tintFlat` does on canvas — while a background-image paints the file's own colours. Both
+contain-fit in the same box, so the icon's rect is **identical either way**: measured, the op's
+box is the same to the pixel and only the tint key differs.
+
+**34 op groups, 34 byte-identical** against the committed build — the default is the old
+behaviour, so no saved post moves.
