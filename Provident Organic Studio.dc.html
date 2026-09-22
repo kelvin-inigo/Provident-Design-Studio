@@ -2940,6 +2940,14 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   transition:background var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
 .rt-b:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
 .rt-b[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+/* THE BRASS HIGHLIGHT'S BUTTON. It carries the ink it SETS — the one control in the form
+   whose colour is a statement about the canvas rather than about the chrome, so the mark
+   beside the label says what pressing it does before you have pressed it once. */
+.hi-bar{margin-bottom:-2px}
+.hi-b{display:inline-flex;align-items:center;gap:6px}
+.hi-b svg{width:15px;height:15px;flex:none;fill:#B0905C}
+.hi-b[data-on]{background:#B0905C;color:#1A2942}
+.hi-b[data-on] svg{fill:#1A2942}
 .rt-ed{min-height:118px;max-height:340px;overflow-y:auto;padding:12px 14px;border-radius:16px;
   background:var(--ps-fill);color:var(--ps-ink);font-size:14px;line-height:1.55;font-weight:400;
   outline:none;word-break:break-word}
@@ -3832,11 +3840,25 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                     <button onClick="{{ a.row.inc }}" class="gd-stepb">›</button>
                   </div>
                 </sc-if>
+                <!-- THE BRASS HIGHLIGHT, a toolbar over the field rather than a syntax to
+                     type. It sits where the rich body's own toolbar sits, so the two read
+                     as one idea: select, then press. -->
+                <sc-if value="{{ a.row.hiOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="rt-bar hi-bar">
+                    <!-- THE GLYPH IS BAKED IN, NOT INTERPOLATED. The browser parses a `d`
+                         attribute before DC ever interpolates it, so `d="{{ … }}"` logs a
+                         path-parse error on every load — the trap the SWIPE chevron already
+                         records. This icon never varies, so there is nothing to interpolate. -->
+                    <button onClick="{{ a.row.hiSet }}" class="rt-b hi-b" data-on="{{ a.row.hiIsOn }}" title="Select a word, then press this to set it in brass. Press again to take it off.">
+                      <svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M136.16 0q-15.47 0-25.81-10.35Q100-20.69 100-36.15v-76.93q0-15.46 10.35-25.8 10.34-10.35 25.81-10.35h687.68q15.47 0 25.81 10.35Q860-128.54 860-113.08v76.93q0 15.46-10.35 25.8Q839.31 0 823.84 0H136.16Zm146.53-280q-17.23 0-27.07-14.31-9.85-14.3-3.77-30.53l186-474.39q3.46-9.38 11.61-15.08 8.16-5.69 17.93-5.69h25.22q10.39 0 18.24 5.69 7.84 5.7 11.3 15.08l186.23 473.85q6.08 16.61-3.96 31Q694.38-280 677.15-280q-10.53 0-19.46-5.88-8.92-5.89-12.77-16.43l-45.53-122.46H360.31l-46.77 123.46q-3.85 10.16-12.08 15.73-8.23 5.58-18.77 5.58Zm98.69-204h195.7L482-736h-4.77l-95.85 252Z"/></svg>Brass highlight
+                    </button>
+                  </div>
+                </sc-if>
                 <sc-if value="{{ a.row.isInput }}" hint-placeholder-val="{{ true }}">
-                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" class="gd-big" placeholder="Type your answer here…">
+                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" class="gd-big" placeholder="Type your answer here…">
                 </sc-if>
                 <sc-if value="{{ a.row.isArea }}" hint-placeholder-val="{{ false }}">
-                  <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
+                  <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
                   <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
                 </sc-if>
                 <!-- THE RICH BODY. The host is deliberately EMPTY here: its rows are built by
@@ -3849,6 +3871,24 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                     <div class="rt-ed" data-rt="{{ a.row.rtKey }}" data-rtv="{{ a.row.val }}"></div>
                   </div>
                   <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
+                </sc-if>
+                <!-- THE PER-PAGE SCRIM — the SHARED control's own shape and classes, so the
+                     two read as one control in two places. Two labelled sliders rather than
+                     the dock's tab pair: in a form there is room to show both values at once,
+                     and a value behind a tab is a value you have to go looking for. -->
+                <sc-if value="{{ a.row.isScrim }}" hint-placeholder-val="{{ false }}">
+                  <span class="p-lab p-lab-2">Strength <s>{{ a.scrimOpLab }}</s></span>
+                  <input type="range" min="0" max="100" step="5" value="{{ a.scrimOpVal }}" onChange="{{ a.scrimOpSet }}" aria-label="Scrim strength">
+                  <span class="p-lab p-lab-2">Fade <s>{{ a.scrimFadeLab }}</s></span>
+                  <input type="range" min="0" max="100" step="5" value="{{ a.scrimFadeVal }}" onChange="{{ a.scrimFadeSet }}" aria-label="Scrim fade">
+                  <span class="p-lab p-lab-2">Colour <s>{{ a.scrimHexVal }}</s></span>
+                  <div class="p-swrow"><sc-for list="{{ a.scrimSwatches }}" as="sw" hint-placeholder-count="6"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" data-on="{{ sw.on }}" title="{{ sw.label }}"></button></sc-for></div>
+                  <div class="p-hexwrap"><span class="p-chip" style="{{ a.scrimChipStyle }}"></span><input value="{{ a.scrimHexVal }}" onChange="{{ a.scrimHexSet }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="#1A2942"></div>
+                </sc-if>
+                <!-- THE PERMIT — one project value, shown on the pages whose switch is on. -->
+                <sc-if value="{{ a.row.isPermit }}" hint-placeholder-val="{{ false }}">
+                  <input value="{{ a.permitVal }}" onChange="{{ a.permitSet }}" class="gd-big" placeholder="e.g. DLD 12345 · ORN 6789">
+                  <span class="gd-hint">{{ a.permitNote }}</span>
                 </sc-if>
                 <span class="gd-hint">{{ a.row.hint }}</span>
               </sc-if>
@@ -3919,7 +3959,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.gfxLabel }}</s>
                     <s>It floats over the page&#8217;s copy. Drag it on the canvas to move it; a corner scales it.</s>
-                    
+                    <s>While you drag, the centre and the four margins show as guides &#8212; it snaps to whichever one it is nearest.</s>
                   </div>
                 <sc-if value="{{ a.gfxHas }}" hint-placeholder-val="{{ false }}">
                   <b class="gd-askq gd-sub">Size <s class="gd-subv">{{ a.gfxPct }}</s></b>
@@ -5127,7 +5167,9 @@ class OrganicStudio extends StudioBase {
     // THE FLOATING GRAPHIC — an uploaded SVG/PNG placed by hand, Campaign's own feature.
     // `s` is a fraction of the canvas WIDTH so one value serves the feed and the story, and
     // `x`/`y` are the centre as fractions of the canvas, for the same reason.
-    gfxS: .34, gfxMin: .06, gfxMax: 1.4,
+    // `gfxSnap` is in CANVAS px, so the window is the same size at any preview zoom — see
+    // the drag handler for why 6 was too tight to land in and 14 is not.
+    gfxS: .34, gfxMin: .06, gfxMax: 1.4, gfxSnap: 14,
     gridBotIn: 208.4, statMin: 2, statMax: 6, statDefault: 4,
     // BULLETS — a 472 column against the right inset, 89.5 per row with a .5px white line at
     // 40% above every row and one closing the list; Material `check_circle` in brass at
@@ -5262,6 +5304,17 @@ class OrganicStudio extends StudioBase {
     const v = f && f.pos;
     return v || OrganicStudio.CS_POSDEF[kind] || 'Bottom';
   }
+  // EVERY segmented field on a carousel page resolves the same way `pos` does — to the
+  // value the ARTWORK falls back to when the field has never been touched. Without this a
+  // fresh page drew one arrangement while neither half of its control was lit, which is a
+  // control disagreeing with the canvas beside it. `pos` keeps its own resolver because its
+  // default is per KIND; the rest are one value each.
+  static CS_SEGDEF = { bulLayout: 'Side by side', align: 'Center', logoPos: 'Hide' };
+  static csSegVal(kind, f, key) {
+    if (key === 'pos') return OrganicStudio.csPos(kind, f);
+    const v = f && f[key];
+    return (v == null || v === '') ? (OrganicStudio.CS_SEGDEF[key] || '') : v;
+  }
   // Material Symbols ROUNDED at wght300 — the family Campaign's own Alignment tiles use and
   // the one every other icon in both studios is baked from, so these read as their siblings.
   // (The links supplied with the request were the Outlined cut of the same three names; the
@@ -5271,8 +5324,17 @@ class OrganicStudio extends StudioBase {
   static CS_POSICON = {
     Top: 'M308.65-124.81q-14.8-14.81-14.8-35.58v-488.07q0-20.77 14.8-35.58 14.81-14.8 35.58-14.8 20.77 0 35.58 14.8 14.8 14.81 14.8 35.58v488.07q0 20.77-14.8 35.58Q365-110 344.23-110q-20.77 0-35.58-14.81Zm271.54-240q-14.8-14.81-14.8-35.58v-248.07q0-20.77 14.8-35.58 14.81-14.8 35.58-14.8 20.77 0 35.58 14.8 14.8 14.81 14.8 35.58v248.07q0 20.77-14.8 35.58Q636.54-350 615.77-350q-20.77 0-35.58-14.81ZM130-790.38q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.39q8.61-8.61 21.38-8.61h700q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H130Z',
     Centre: 'M306.73-154.81q-14.81-14.81-14.81-35.58V-450H130q-12.77 0-21.38-8.62Q100-467.23 100-480t8.62-21.38Q117.23-510 130-510h161.92v-259.61q0-20.77 14.81-35.58Q321.54-820 342.31-820q20.77 0 35.57 14.81 14.81 14.81 14.81 35.58V-510h174.62v-139.61q0-20.77 14.81-35.58Q596.92-700 617.69-700t35.58 14.81q14.81 14.81 14.81 35.58V-510H830q12.77 0 21.38 8.62Q860-492.77 860-480t-8.62 21.38Q842.77-450 830-450H668.08v139.61q0 20.77-14.81 35.58Q638.46-260 617.69-260q-20.77 0-35.57-14.81-14.81-14.81-14.81-35.58V-450H392.69v259.61q0 20.77-14.81 35.58Q363.08-140 342.31-140t-35.58-14.81Z',
-    Bottom: 'M130-110q-12.77 0-21.38-8.62Q100-127.23 100-140t8.62-21.39Q117.23-170 130-170h700q12.77 0 21.38 8.61Q860-152.77 860-140q0 12.77-8.62 21.38Q842.77-110 830-110H130Zm178.65-166.35q-14.8-14.81-14.8-35.57V-800q0-20.77 14.8-35.57 14.81-14.81 35.58-14.81 20.77 0 35.58 14.81 14.8 14.8 14.8 35.57v488.08q0 20.76-14.8 35.57-14.81 14.81-35.58 14.81-20.77 0-35.58-14.81Zm271.54 0q-14.8-14.81-14.8-35.57V-560q0-20.77 14.8-35.57 14.81-14.81 35.58-14.81 20.77 0 35.58 14.81 14.8 14.8 14.8 35.57v248.08q0 20.76-14.8 35.57-14.81 14.81-35.58 14.81-20.77 0-35.58-14.81Z'
+    Bottom: 'M130-110q-12.77 0-21.38-8.62Q100-127.23 100-140t8.62-21.39Q117.23-170 130-170h700q12.77 0 21.38 8.61Q860-152.77 860-140q0 12.77-8.62 21.38Q842.77-110 830-110H130Zm178.65-166.35q-14.8-14.81-14.8-35.57V-800q0-20.77 14.8-35.57 14.81-14.81 35.58-14.81 20.77 0 35.58 14.81 14.8 14.8 14.8 35.57v488.08q0 20.76-14.8 35.57-14.81 14.81-35.58 14.81-20.77 0-35.58-14.81Zm271.54 0q-14.8-14.81-14.8-35.57V-560q0-20.77 14.8-35.57 14.81-14.81 35.58-14.81 20.77 0 35.58 14.81 14.8 14.8 14.8 35.57v248.08q0 20.76-14.8 35.57-14.81 14.81-35.58 14.81-20.77 0-35.58-14.81Z',
+    // THE BULLETS ARRANGEMENT, keyed by the same option LABEL every `seg-opt:` tile is —
+    // this map is not the position control's alone. `vertical_split` splits a page left and
+    // right, which IS the headline-beside-the-list arrangement; `horizontal_split` splits it
+    // top and bottom, which is the stacked one. Both Rounded at wght300, the studio's family.
+    'Side by side': 'M170-373.08q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h240q12.75 0 21.38 8.63 8.62 8.63 8.62 21.39 0 12.75-8.62 21.37-8.63 8.61-21.38 8.61H170ZM170-220q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q157.25-280 170-280h240q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q422.75-220 410-220H170Zm0-306.92q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h240q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H170ZM170-680q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q157.25-740 170-740h240q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q422.75-680 410-680H170Zm442.31 460q-29.83 0-51.07-21.24Q540-262.48 540-292.31v-375.38q0-29.83 21.24-51.07Q582.48-740 612.31-740h135.38q29.83 0 51.07 21.24Q820-697.52 820-667.69v375.38q0 29.83-21.24 51.07Q777.52-220 747.69-220H612.31Zm0-60h135.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H612.31q-5.39 0-8.85 3.46t-3.46 8.85v375.38q0 5.39 3.46 8.85t8.85 3.46ZM680-480Z',
+    Stacked: 'M176.16-220q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-167.69q0-15.36 10.4-25.76Q160.79-460 176.16-460h607.68q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v167.69q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4H176.16ZM170-540q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q157.25-600 170-600h620q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q802.75-540 790-540H170Zm0-140q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q157.25-740 170-740h620q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q802.75-680 790-680H170Z'
   };
+  // The brass-highlight button's glyph is `format_color_text` at the same weight, and it is
+  // written STRAIGHT INTO THE MARKUP rather than kept here: a `d` attribute is parsed before
+  // DC interpolates it, so a constant path in a render key only buys a console error.
   static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats'; }
   // The floating graphic's record, normalised once so csBox (which has no asset to hand)
   // and buildOps (which does) read one shape. `a` is the art's aspect, written by the same
@@ -5293,11 +5355,11 @@ class OrganicStudio extends StudioBase {
   // every inside page and is hidden rather than discovered — but its text is not seeded and
   // is not required, so a blank one simply draws nothing and blocks no export.
   static csSeed(kind) {
-    if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom', permit: '', scrimMode: 'Follow all pages' };
+    if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom', permitOn: 'Hide', scrimMode: 'Follow all pages' };
     if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }], scrimMode: 'Follow all pages' };
     if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom', bulLayout: 'Side by side', scrimMode: 'Follow all pages' };
     if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center', scrimMode: 'Follow all pages' };
-    if (kind === 'ccta') return { small: '', big: '', button: '', permit: '', pos: 'Centre' };
+    if (kind === 'ccta') return { small: '', big: '', button: '', permitOn: 'Hide', pos: 'Centre' };
     return {};
   }
   static csNorm(sl) {
@@ -5353,6 +5415,17 @@ class OrganicStudio extends StudioBase {
   dragBind() {
     if (this._dragBound) return;
     this._dragBound = true;
+    // ── THE BRASS BUTTON'S LIT STATE follows the caret, so it reads as a toggle: put the
+    // cursor in a highlighted word and the button is already on, which is what says pressing
+    // it again takes the highlight off. Delegated once, and it re-renders only when the
+    // answer CHANGES — `selectionchange` fires on every caret move and a forceUpdate per
+    // keystroke would re-render the whole form for nothing.
+    document.addEventListener('selectionchange', () => {
+      const el = document.activeElement;
+      const key = el && el.getAttribute && el.getAttribute('data-hi');
+      const now = key ? (key + '|' + (this.hiActive(key) ? 1 : 0)) : '';
+      if (now !== this._hiMark) { this._hiMark = now; this.forceUpdate(); }
+    });
     const rowOf = t => t && t.closest && t.closest('[data-dragsi]');
     const under = (x, y) => { for (const el of document.elementsFromPoint(x, y)) { const r = rowOf(el); if (r) return +r.getAttribute('data-dragsi'); } return null; };
     let press = null;   // { si, x, y, live }
@@ -5842,6 +5915,16 @@ class OrganicStudio extends StudioBase {
       // the older build carries `fg: true` and keeps it; only a slide with no answer at
       // all starts off.
       if (sl.kind === 'listed' && sl.fg == null) sl.fg = false;
+      // THE PERMIT MOVED TO THE PROJECT. A page written while it was a per-slide field keeps
+      // its own number here — the first one found becomes the project's, and every page that
+      // carried one has its switch turned on, so a saved carousel prints exactly what it
+      // printed before. The slide's own value is left in place rather than deleted: it costs
+      // nothing, and `permitFor` still prefers it, which is what makes the migration safe to
+      // run against a state it has already run against.
+      if (OrganicStudio.isCs(sl.kind) && String(sl.f.permit || '').trim()) {
+        if (!String(p.permit || '').trim()) p.permit = String(sl.f.permit).trim();
+        if (sl.f.permitOn == null) sl.f.permitOn = 'Show';
+      }
       if (OrganicStudio.isCs(sl.kind)) OrganicStudio.csNorm(sl);
       if (sl.kind === 'review' && sl.f.agentName == null) {
         sl.f.agentName = (p.agent && p.agent.name) || '';
@@ -7448,6 +7531,61 @@ class OrganicStudio extends StudioBase {
     this.rtWrite(ed);
     this.rtMark(ed);
   }
+  // ── THE BRASS HIGHLIGHT IS A BUTTON, NOT A SYNTAX ──────────────────────────────────────
+  // The field still STORES the `**word**` marker — that is what `csHiWords` parses, what a
+  // session file holds and what survives `csConvert` — but nobody has to type one. Select a
+  // word and press the button; press it again inside a highlighted word and the markers come
+  // off. Addressed by the same `si:key` string `rtApply` uses, so the handler needs no
+  // closure over an element and survives every re-render.
+  hiApply(key) {
+    const el = document.querySelector('[data-hi="' + key + '"]');
+    if (!el) return;
+    const v = String(el.value == null ? '' : el.value);
+    let a = el.selectionStart, b = el.selectionEnd;
+    if (a == null) { a = 0; b = v.length; }
+    // NO SELECTION TAKES THE WORD UNDER THE CARET, which is what makes one click on a word
+    // enough — selecting exactly a word with a mouse is the fiddly part of this gesture.
+    if (a === b) {
+      while (a > 0 && !/\s/.test(v[a - 1])) a--;
+      while (b < v.length && !/\s/.test(v[b])) b++;
+    }
+    if (a === b) return;
+    // already inside a highlight? take it OFF rather than nesting a second pair inside it
+    const re = /\*\*([^*]+)\*\*/g;
+    let m, hit = null;
+    while ((m = re.exec(v))) { if (m.index < b && m.index + m[0].length > a) { hit = m; break; } }
+    let out, ca, cb;
+    if (hit) {
+      out = v.slice(0, hit.index) + hit[1] + v.slice(hit.index + hit[0].length);
+      ca = hit.index; cb = hit.index + hit[1].length;
+    } else {
+      // trim the whitespace a loose selection swept up, so the markers hug the word
+      let s0 = a, e0 = b;
+      while (s0 < e0 && /\s/.test(v[s0])) s0++;
+      while (e0 > s0 && /\s/.test(v[e0 - 1])) e0--;
+      if (s0 === e0) return;
+      out = v.slice(0, s0) + '**' + v.slice(s0, e0) + '**' + v.slice(e0);
+      ca = s0 + 2; cb = e0 + 2;
+    }
+    const cut = key.indexOf(':'), si = +key.slice(0, cut), k = key.slice(cut + 1);
+    this.upd(x => { const t = x.slides[si]; if (t) { t.f = t.f || {}; t.f[k] = out; } return x; });
+    // put the caret back on the same word, so a second press toggles what you just marked
+    setTimeout(() => {
+      const el2 = document.querySelector('[data-hi="' + key + '"]');
+      if (el2) { el2.focus(); try { el2.setSelectionRange(ca, cb); } catch (e2) {} }
+    }, 0);
+  }
+  // Is the caret (or selection) inside a highlight right now? The button lights from this,
+  // so it reads as a toggle rather than as a one-way action.
+  hiActive(key) {
+    const el = document.querySelector('[data-hi="' + key + '"]');
+    if (!el || el.selectionStart == null) return false;
+    const v = String(el.value || ''), a = el.selectionStart, b = el.selectionEnd;
+    const re = /\*\*([^*]+)\*\*/g;
+    let m;
+    while ((m = re.exec(v))) if (m.index <= b && m.index + m[0].length >= a) return true;
+    return false;
+  }
   rtKeyDown(ed, e) {
     if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
       e.preventDefault();
@@ -7543,6 +7681,17 @@ class OrganicStudio extends StudioBase {
         T(r.t, sx, y, px, w, r.brass ? A.brass : fill, ls);
         sx += rw;
       });
+    };
+    // ── THE PERMIT IS ONE PROJECT VALUE, SHOWN PER PAGE. It was a per-slide field, so the
+    // same compliance line had to be typed on every page that prints it and two pages of one
+    // post could carry different numbers. `state.permit` is the number; the page's switch
+    // says whether it prints. A page saved before this carried its own `f.permit` and is
+    // migrated in `normState`, so nothing typed is lost — and that legacy value still wins
+    // here if the migration has not run against this particular state.
+    const permitFor = pf => {
+      const own = String((pf && pf.permit) || '').trim();
+      const shown = (pf && pf.permitOn) ? pf.permitOn === 'Show' : !!own;
+      return shown ? (own || String(state.permit || '').trim()).toUpperCase() : '';
     };
     const far = y => { B.far = Math.max(B.far == null ? 0 : B.far, y); };
     // the COPY BLOCK's own far end — `far()` also counts SWIPE, a bottom wordmark and the
@@ -7691,13 +7840,13 @@ class OrganicStudio extends StudioBase {
       put(R, top + headH + gap);
       B.over = R.over;
       B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
-      // ── THE PERMIT NUMBER, ON THE FRONT PAGE TOO — the same field and treatment as the
+      // ── THE PERMIT NUMBER, ON THE FRONT PAGE TOO — the same value and treatment as the
       // closing card's, on the page's existing SWIPE baseline, centred across the full
       // canvas (there is no card to centre on here). A Bottom-anchored page already has its
       // own wash reaching the floor, but a Top-anchored one does not, so this needs its OWN
       // band — `B.botFar` composes with the generic scrim assignment below rather than
       // overwriting whatever the main content already asked for.
-      const permit = String(f.permit || '').trim().toUpperCase();
+      const permit = permitFor(f);
       if (permit) {
         const pTop = H - C.swipeBotIn;
         const room = swipeX == null ? W - 2 * C.pad : Math.min(W - 2 * C.pad, 2 * (swipeX - C.swipeGap / 2 - W / 2));
@@ -7859,7 +8008,7 @@ class OrganicStudio extends StudioBase {
       // line rather than two. Centred under the card. In `warm` rather than brass: a legal
       // notice should not read as a second brand accent, and "gold is minimised in canvas
       // output" has taken four exemptions already. One token if it should match the overline.
-      const permit = String(f.permit || '').trim().toUpperCase();
+      const permit = permitFor(f);
       if (permit) {
         const pTop = H - C.swipeBotIn;
         // it has to clear SWIPE when this page is not the last one. Centred on the canvas,
@@ -9172,7 +9321,13 @@ class OrganicStudio extends StudioBase {
   // way and does not change). `kinds` narrows a host that is a plain field elsewhere.
   static TOGGLES = {
     eyebrow: { key: 'eyeOn', on: 'Show', off: 'Hide', defOn: true, onTitle: 'Show the overline', offTitle: 'Hide the overline' },
-    body:    { key: 'bodyOn', on: 'Show', off: 'Hide', defOn: false, kinds: ['cstats'], onTitle: 'Show a blurb under the title', offTitle: 'Hide the blurb' }
+    body:    { key: 'bodyOn', on: 'Show', off: 'Hide', defOn: false, kinds: ['cstats'], onTitle: 'Show a blurb under the title', offTitle: 'Hide the blurb' },
+    // the host field IS the key here: the switch is the whole answer, and the control it
+    // reveals writes to other fields (the scrim's three values, the project's permit)
+    scrimMode: { key: 'scrimMode', on: 'Custom for this page', off: 'Follow all pages', defOn: false,
+                 onTitle: 'Give this page its own scrim', offTitle: 'Follow the shared scrim' },
+    permitOn:  { key: 'permitOn', on: 'Show', off: 'Hide', defOn: false,
+                 onTitle: 'Show the permit number on this page', offTitle: 'Hide the permit number on this page' }
   };
   static TIERNAMES = {
     prop:    ['Headline', 'Property details'],
@@ -9187,27 +9342,39 @@ class OrganicStudio extends StudioBase {
     // No 'Headline' tier: the award's headline is template-written, so that heading would
     // name a group with no fields under it — the fix `tacover` already carries.
     award:   ['Award', 'Occasion', 'Place'],
-    cfront:  ['Headline', 'Supporting lines', 'Layout'],
-    cstats:  ['Title', 'Blurb', 'Layout'],
-    cbul:    ['Headline', 'Bullet points', 'Layout'],
-    ctext:   ['Title', 'Body', 'Layout'],
-    ccta:   ['Copy', 'Button', 'Layout & reference']
+    // A carousel page's fourth tier is what the page does BESIDES carrying its copy — the
+    // wash it sits on and the compliance line at its foot. Those two were in the Layout tier
+    // next to the position tiles, which read as though they were layout choices.
+    cfront:  ['Headline', 'Supporting lines', 'Layout', 'Scrim & permit'],
+    cstats:  ['Title', 'Blurb', 'Layout', 'Page scrim'],
+    cbul:    ['Headline', 'Bullet points', 'Layout', 'Page scrim'],
+    ctext:   ['Title', 'Body', 'Layout', 'Page scrim'],
+    ccta:   ['Copy', 'Button', 'Layout', 'Permit']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
-  // THE PER-PAGE SCRIM OVERRIDE — one row shared by the four carousel kinds that carry a
-  // wash (`ccta` has none: the card is its own surface). A FUNCTION rather than a literal
-  // array, so the four call sites inside `FIELDS` below cannot end up sharing one array BY
-  // REFERENCE. Declared ahead of `FIELDS`, which calls it while ITS OWN initializer runs.
+  // THE PER-PAGE SCRIM OVERRIDE and THE PERMIT, both as ONE row carrying a SWITCH — the
+  // pattern `TOGGLES` already sets for the overline and the stats blurb, so a page-level
+  // option reads the same way wherever it appears. Off, the row is a single line and the
+  // page follows the shared control; on, the row opens into the real thing.
+  //
+  // FUNCTIONS rather than literal arrays, so the call sites inside `FIELDS` cannot end up
+  // sharing one array BY REFERENCE. Declared ahead of `FIELDS`, which calls them while its
+  // own initializer runs.
+  //
+  // The scrim's own values live on the slide (`scrimOp` / `scrimFadeF` / `scrimHex`) and its
+  // control is drawn by the `scrim` flag, NOT by three typed number fields — typing "40"
+  // into a box to set an opacity is the thing this pass was asked to fix.
   static csScrimField() {
-    return ['scrimMode', 3, 'Page scrim', 'seg:Follow all pages|Custom for this page',
-      'Follow all pages reads the shared scrim set in Post look. Custom lets this one page use its own opacity, fade and colour'];
+    return ['scrimMode', 4, 'Page scrim', 'scrim',
+      'Off, this page takes the shared scrim from Post look. On, it takes its own strength, fade and colour.'];
   }
-  // The three rows `scrimMode` reveals, gated in `fieldShown` on `Custom for this page`.
-  static CS_SCRIM_ROWS = [
-    ['scrimOp', 3, 'Scrim opacity', 'num', '0–100, how strong the wash is on this page'],
-    ['scrimFadeF', 3, 'Scrim fade', 'num', '0–100 — lower holds the wash solid over the copy and ramps only the far part'],
-    ['scrimHex', 3, 'Scrim colour', '', 'A hex colour, e.g. #1A2942']
-  ];
+  // THE PERMIT IS ONE PROJECT VALUE SHOWN PER PAGE. It used to be a plain text field on each
+  // page that could carry one, so the same compliance line had to be typed twice and the two
+  // could disagree. The switch says WHERE it shows; the field under it is the project's own.
+  static csPermitField() {
+    return ['permitOn', 4, 'Permit number', 'permit',
+      'The advertisement’s permit, set in small caps on the page’s bottom line. Typed once for the whole carousel; the switch says which pages show it.'];
+  }
   static FIELDS = {
     // Nothing on the weekly cover or its closing slide is a question: the eyebrow, the
     // headline and the button label are all set by the template. Both kinds are used only
@@ -9260,37 +9427,37 @@ class OrganicStudio extends StudioBase {
             ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral']],
     // THE CAROUSEL'S FIVE PAGE LAYOUTS. `pos` / `align` are seeded, the segmented-control
     // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
-    cfront:[['headline', 1, 'Headline', 'req area', 'One or two lines \u2014 Enter for a new one. Wrap a word in ** ** for a brass highlight'],
+    cfront:[['headline', 1, 'Headline', 'req area hi', 'One or two lines \u2014 Enter for a new one'],
             ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it'],
-            ['permit', 3, 'Permit number', '', 'Set in small caps on the page\u2019s bottom line \u2014 leave it blank to omit'],
-            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
+            OrganicStudio.csPermitField(),
+            OrganicStudio.csScrimField()],
     // NO Show | Hide ROWS: a show/hide field is a SWITCH on the row it gates — see `TOGGLES`.
     cstats:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
-            ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line. Wrap a word in ** ** for a brass highlight'],
+            ['title', 1, 'Title', 'area hi', 'Optional \u2014 centred at the top. Enter for a new line'],
             ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
-            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
+            OrganicStudio.csScrimField()],
     cbul:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
-            ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one. Wrap a word in ** ** for a brass highlight'],
+            ['headline', 1, 'Headline', 'req area hi', 'Short lines read best \u2014 Enter for a new one'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
+            ['bulLayout', 3, 'Bullets', 'seg-opt:Side by side|Stacked', 'Side by side is the drawing\u2019s own \u2014 the headline beside the list. Stacked puts it above a full-width list'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
-            ['bulLayout', 3, 'Bullets layout', 'seg:Side by side|Stacked', 'Side by side is the drawing\u2019s own \u2014 headline beside the list. Stacked puts the headline above a full-width list'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
-            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
+            OrganicStudio.csScrimField()],
     ctext: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
-            ['title', 1, 'Title', 'req area', 'Enter for a new line. Wrap a word in ** ** for a brass highlight'],
+            ['title', 1, 'Title', 'req area hi', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
             ['align', 3, 'Text', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
-            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
+            OrganicStudio.csScrimField()],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
-            ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line. Wrap a word in ** ** for a brass highlight'],
+            ['big', 1, 'Headline', 'req area hi', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
-            ['permit', 3, 'Permit number', '', 'Set in small caps at the foot of the page \u2014 leave it blank to omit']]
+            OrganicStudio.csPermitField()]
   };
   static tierName(kind, t) {
     const names = OrganicStudio.TIERNAMES[kind] || OrganicStudio.TIERS;
@@ -9312,9 +9479,6 @@ class OrganicStudio extends StudioBase {
       if (k === 'per') return d.deal === 'Rent';
       return true;
     }
-    // The scrim override's three value rows are only a question once the page has actually
-    // opted out of the shared control — the row above them (`scrimMode`) is what asks.
-    if (k === 'scrimOp' || k === 'scrimFadeF' || k === 'scrimHex') return (f && f.scrimMode) === 'Custom for this page';
     if (kind !== 'tacover') return true;
     const p = (f && f.period) || 'Monthly';
     if (k === 'mon') return p === 'Monthly';
@@ -9723,6 +9887,43 @@ class OrganicStudio extends StudioBase {
         v.togOn = '1'; v.togIsOn = on ? '1' : undefined; v.togAria = on ? 'true' : 'false';
         v.togTitle = on ? tg.offTitle : tg.onTitle;
         v.togSet = () => this.upd(x => { const t = x.slides[ask.si]; if (t) { t.f = t.f || {}; t.f[tg.key] = on ? tg.off : tg.on; } return x; });
+      }
+      // ── THE PER-PAGE SCRIM'S OWN CONTROL, the shared one's shape rather than three typed
+      // numbers: a strength slider, a fade slider, the six dark swatches and a hex field.
+      // It writes the page's own `scrimOp` / `scrimFadeF` / `scrimHex`, which `csScrimOf`
+      // reads once the switch has put the page on `Custom for this page`.
+      if (v.row && v.row.isScrim) {
+        const pf = sl.f || {};
+        const setF = d => this.upd(x => { const t = x.slides[ask.si]; if (t) { t.f = t.f || {}; Object.assign(t.f, d); } return x; });
+        const SCp = OrganicStudio.csScrimOf(this.state, pf);
+        v.scrimOpVal = String(SCp.op);
+        v.scrimOpLab = SCp.op + '%';
+        v.scrimOpSet = e => setF({ scrimOp: Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0)) });
+        v.scrimFadeVal = String(SCp.fadePct);
+        v.scrimFadeLab = SCp.fadePct + '%';
+        v.scrimFadeSet = e => setF({ scrimFadeF: Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0)) });
+        v.scrimHexVal = SCp.hex;
+        v.scrimChipStyle = { background: SCp.hex };
+        v.scrimHexSet = e => {
+          const raw = String(e.target.value || '').trim();
+          if (/^#?[0-9a-f]{6}$/i.test(raw)) setF({ scrimHex: (raw[0] === '#' ? raw : '#' + raw).toUpperCase() });
+          else this.forceUpdate();
+        };
+        v.scrimSwatches = OrganicStudio.CS_SCRIMS.map(sw => ({ label: sw[0],
+          on: SCp.hex.toUpperCase() === sw[1].toUpperCase() ? '1' : undefined,
+          set: () => setF({ scrimHex: sw[1] }),
+          style: { background: sw[1] } }));
+        v.scrimNote = SCp.op + '% · fade ' + SCp.fadePct + '% · ' + SCp.hex;
+      }
+      // ── THE PERMIT. ONE value for the whole carousel, on the project, with the switch
+      // above saying whether THIS page prints it — so the same compliance line is typed once
+      // and cannot come to differ between two pages of one post.
+      if (v.row && v.row.isPermit) {
+        v.permitVal = s.permit || '';
+        v.permitSet = e => { const val = e.target.value; this.upd(x => { x.permit = val; return x; }); };
+        v.permitNote = (s.permit || '').trim()
+          ? 'Shown on every page whose switch is on.'
+          : 'Type it once here — it is the same on every page that shows it.';
       }
       // A number is short, so two of them share a row — Bed | Bath, Area | Price. Only
       // a PAIR is halved (see the section builder): a lone half field reads as unfinished.
@@ -10946,17 +11147,23 @@ class OrganicStudio extends StudioBase {
           // canvas centre in both axes, and the two grid margins. They are positioned in
           // CANVAS coordinates like csRects/csTexts, never relative to the graphic's own
           // box, so a centre line is genuinely at the canvas centre whatever GB happens to be.
+          // EVERY GUIDE IS DRAWN WHILE THE DRAG IS LIVE, the hit one bright and the rest
+          // faint. Showing only the line that fired meant nothing on screen said the graphic
+          // snapped to anything at all until it happened to snap — so the first drag taught
+          // the user nothing. Faint lines are the affordance; the bright one is the state.
           const CG = this._gfxGuide;
-          const gLine = (vert, at) => ({ position: 'absolute', zIndex: 13, pointerEvents: 'none',
-            background: 'var(--ps-primary)',
+          const gLine = (vert, at, hit) => ({ position: 'absolute', zIndex: 13, pointerEvents: 'none',
+            background: hit ? 'var(--ps-link)' : 'var(--ps-hair)',
             left: vert ? cq(at) : 0, top: vert ? 0 : cq(at),
-            width: vert ? uz(1) : '100%', height: vert ? '100%' : uz(1) });
-          K.csGfxGuides = CG ? [
-            CG.vc && { style: gLine(true, tk.W / 2) },
-            CG.hc && { style: gLine(false, tk.H / 2) },
-            CG.left && { style: gLine(true, CS0.pad) },
-            CG.right && { style: gLine(true, tk.W - CS0.padR) }
-          ].filter(Boolean) : [];
+            width: vert ? uz(hit ? 1.5 : 1) : '100%', height: vert ? '100%' : uz(hit ? 1.5 : 1) });
+          K.csGfxGuides = (CG && CG.on) ? [
+            { style: gLine(true, tk.W / 2, CG.vc) },
+            { style: gLine(false, tk.H / 2, CG.hc) },
+            { style: gLine(true, CS0.pad, CG.left) },
+            { style: gLine(true, tk.W - CS0.padR, CG.right) },
+            { style: gLine(false, CS0.topIn + (tk.pad[0] - CS0.topBase), CG.top) },
+            { style: gLine(false, tk.H - CS0.botIn, CG.bottom) }
+          ] : [];
           // ONE undo entry per gesture: the move writes through raw setState and the release
           // commits — `_undoStack` is 5 deep, so a per-frame push would erase real history.
           const gGesture = (e, scale) => {
@@ -10984,18 +11191,28 @@ class OrganicStudio extends StudioBase {
               } else {
                 let nx = cl(g0.x + (ev.clientX - sx) / cw), ny = cl(g0.y + (ev.clientY - sy) / ch);
                 // ── SNAP GUIDES, for a hand-placed graphic. The box's centre against the
-                // canvas centre, and its EDGE against the grid margins, checked in CANVAS
-                // units (a flat 6px of a 1080/1920 canvas) so the threshold does not shrink
-                // or grow with the preview's own zoom. On a hit, the drag snaps to the exact
-                // fraction and a guide line marks which one fired.
-                const gw = GB.w / tk.W;
-                const guide = {};
-                if (Math.abs(nx - .5) * tk.W < 6) { nx = .5; guide.vc = true; }
-                if (Math.abs(ny - .5) * tk.H < 6) { ny = .5; guide.hc = true; }
+                // canvas centre, and its EDGES against the four grid margins, checked in
+                // CANVAS units so the threshold does not shrink or grow with the preview's
+                // own zoom. On a hit the drag snaps to the exact fraction and that line
+                // lights; the others stay faint, which is what teaches they are there.
+                //
+                // SNAP IS 14 CANVAS px, NOT 6. At the editor's ~2.45x shrink a 6px window is
+                // 2.4 SCREEN px of travel — narrow enough that the snap almost never fired
+                // and the feature read as missing. 14 is ~6 screen px, which is the window a
+                // pointer can actually land in, and still far too small to catch a drag that
+                // was aimed somewhere else.
+                const SNAP = CS0.gfxSnap;
+                const gw = GB.w / tk.W, gh = GB.h / tk.H;
+                const topY = (CS0.topIn + (tk.pad[0] - CS0.topBase)) / tk.H, botY = (tk.H - CS0.botIn) / tk.H;
                 const leftPad = CS0.pad / tk.W, rightPad = (tk.W - CS0.padR) / tk.W;
-                if (Math.abs((nx - gw / 2) - leftPad) * tk.W < 6) { nx = leftPad + gw / 2; guide.left = true; }
-                if (Math.abs((nx + gw / 2) - rightPad) * tk.W < 6) { nx = rightPad - gw / 2; guide.right = true; }
-                this._gfxGuide = Object.keys(guide).length ? guide : null;
+                const guide = { on: true };
+                if (Math.abs(nx - .5) * tk.W < SNAP) { nx = .5; guide.vc = true; }
+                if (Math.abs(ny - .5) * tk.H < SNAP) { ny = .5; guide.hc = true; }
+                if (Math.abs((nx - gw / 2) - leftPad) * tk.W < SNAP) { nx = leftPad + gw / 2; guide.left = true; }
+                if (Math.abs((nx + gw / 2) - rightPad) * tk.W < SNAP) { nx = rightPad - gw / 2; guide.right = true; }
+                if (Math.abs((ny - gh / 2) - topY) * tk.H < SNAP) { ny = topY + gh / 2; guide.top = true; }
+                if (Math.abs((ny + gh / 2) - botY) * tk.H < SNAP) { ny = botY - gh / 2; guide.bottom = true; }
+                this._gfxGuide = guide;
                 d = { x: +nx.toFixed(4), y: +ny.toFixed(4) };
               }
               this.setState(st => {
@@ -11929,6 +12146,17 @@ class OrganicStudio extends StudioBase {
           const selIn = f.flags.indexOf('sel:') >= 0 ? f.flags.slice(f.flags.indexOf('sel:') + 4).split('|') : null;
           const isStep = f.flags.indexOf('step') >= 0;
           const isRich = f.flags.indexOf('rich') >= 0;
+          // two rows draw a CONTROL of their own rather than a field: the per-page scrim
+          // (sliders and swatches) and the permit (one project value). Both sit behind the
+          // row's switch, so `fieldCtlOn` is what shows or hides them.
+          //
+          // MATCHED AS WHOLE WORDS, not as substrings. `seg:Hide|Top|Bottom` carries the
+          // letters of a flag name inside its VALUES, and `indexOf` cannot tell the two
+          // apart — the same class of bug as the flag parser that split `seg:` on a space.
+          const flag = n => new RegExp('(^|\\s)' + n + '(\\s|$)').test(f.flags);
+          const isScrim = flag('scrim');
+          const isPermit = flag('permit');
+          const isHi = flag('hi');
           const words = f.flags.indexOf('w40') >= 0 ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
           // the rail's own read-outs on the two long fields: words against the blurb's cap,
           // and lines against the review card's 14
@@ -11963,18 +12191,27 @@ class OrganicStudio extends StudioBase {
             reqMark: req ? 'Required' : 'Optional',
             reqOn: req ? '1' : undefined, badOn: bad ? '1' : undefined,
             isSeg: !!seg && !segOpt, isOpt: segOpt, isSel: !!opts, isStep, isRich,
-            isArea: !seg && !opts && !isStep && !isRich && f.flags.indexOf('area') >= 0,
-            isInput: !seg && !opts && !isStep && !isRich && f.flags.indexOf('area') < 0,
+            isScrim, isPermit,
+            isArea: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && f.flags.indexOf('area') >= 0,
+            isInput: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && f.flags.indexOf('area') < 0,
             // the editor is addressed by this key alone, so the toolbar's handler needs no
             // closure over the element and survives every re-render
             rtKey: si + ':' + f.k,
             rtOps: OrganicStudio.RT_OPS.map(o => ({ t: o[0], label: o[1], title: o[2],
               set: () => this.rtApply(si + ':' + f.k, o[0]) })),
             counter, counterOn: counter ? '1' : undefined, overOn: over ? '1' : undefined,
-            // a tile lights from the SAME resolver the artwork reads, so an unset page still
-            // shows the position it renders at
+            // THE BRASS HIGHLIGHT'S BUTTON, on the fields flagged `hi`. Same `si:key`
+            // addressing as the rich editor's toolbar.
+            hiOn: isHi ? '1' : undefined,
+            hiKey: si + ':' + f.k,
+            hiIsOn: (isHi && this.hiActive(si + ':' + f.k)) ? '1' : undefined,
+            hiSet: () => this.hiApply(si + ':' + f.k),
+            // A TILE OR A PILL LIGHTS FROM THE SAME RESOLVER THE ARTWORK READS, so an unset
+            // page still shows the arrangement it renders at rather than lighting neither
+            // half. It reads the ROW's own slide, never the active one — in the guided run
+            // they are different pages, and `pos` was the only field this ever resolved.
             segs: (seg || []).map(o => ({ label: o,
-              on: (segOpt ? OrganicStudio.csPos(sl.kind, sl.f) : raw) === o ? '1' : undefined,
+              on: (OrganicStudio.isCs(slide.kind) ? OrganicStudio.csSegVal(slide.kind, slide.f, f.k) : raw) === o ? '1' : undefined,
               icon: OrganicStudio.CS_POSICON[o] || '', set: () => write(o) })),
             opts: (opts || []).map(v => ({ v })),
             // the rail's dropdowns can add a new entry to the list; keep that here

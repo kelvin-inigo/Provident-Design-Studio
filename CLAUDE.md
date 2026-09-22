@@ -12571,3 +12571,167 @@ rather than to zero — this file's own false positives (`eyebrow`, `hero`, `hoo
   present in the PRE build, and outside this pass's scope.
 - **`m.serif`, `view.serifStyle` and the `pre` / `post` keys survive** with no reader, by the
   standing rule about deleting render keys that look unused.
+
+# THE CAROUSEL'S FIVE REQUESTED FEATURES, AND THE PASS THAT MADE THEM INTUITIVE
+
+Five things were asked for on the carousel template and then reported back as "included but
+not intuitive". Both passes are recorded together, because the second is the useful one: the
+first shipped the CAPABILITY and the second shipped the CONTROL, and in four of the five the
+capability was never the hard part.
+
+**Chrome only, and proved: op signatures over all six templates x every slide x both
+canvases, against the committed build served alongside — 34 groups, 34 BYTE-IDENTICAL.** The
+artwork the features draw was settled in the first pass; the refinement moved no pixel of it.
+
+## 1 — BRASS WORD HIGHLIGHTS: the marker stayed, the typing went
+
+`**word**` inside a headline sets that word in `ART.brass`. It is a WORD marker, not a line
+one — Campaign's `m.lineHex` is per authored line and cannot pick a word out of a sentence.
+
+**IT HAS TO SURVIVE WRAPPING, which is what makes it more than a find-and-replace.**
+`csHiWords` strips the markers into a per-word `brass` flag, `csHiWrapSeg` greedy-wraps those
+words (mirroring `wrapPlain`'s own algorithm) and `csHiRuns` merges consecutive words of one
+colour into ONE run, each run after the first carrying a LEADING SPACE so its measured width
+already includes the gap to its neighbour. **A line with no marker in it is therefore still
+exactly one text op** — measured, and that is what makes the feature free for every page that
+does not use it.
+
+**THE REFINEMENT IS THAT NOBODY TYPES THE MARKER.** A `**` syntax is a convention a
+non-designer will never discover, and the hint that explained it was the fourth sentence of a
+field's help text. There is a **Brass highlight** button over the field now, the rich body's
+own toolbar shape one row up:
+
+- **No selection takes the word under the caret**, which is the whole point — selecting
+  exactly a word with a mouse is the fiddly part of the gesture.
+- **Pressing it inside a highlight takes the highlight OFF**, so it is a toggle rather than a
+  one-way action, and the button LIGHTS while the caret is inside one. That lit state follows
+  the caret through a delegated `selectionchange` listener which re-renders only when the
+  answer CHANGES — `selectionchange` fires on every caret move and a forceUpdate per keystroke
+  would re-render the form for nothing.
+- Addressed by the same `si:key` string `rtApply` uses (`data-hi` on the field), so the
+  handler needs no closure over an element and survives every re-render.
+
+The field still STORES the marker — that is what `csHiWords` parses, what a session file
+holds, what `csConvert` carries between layouts and what the export reads. Only the typing
+went. `baseName()` strips it so a filename never carries a `**`.
+
+## 2 — A PER-PAGE SCRIM, AND IT IS THE SHARED CONTROL'S OWN SHAPE
+
+`csScrimOf(state, f)` takes the slide's fields now: `f.scrimMode === 'Custom for this page'`
+puts a page on its own `scrimOp` / `scrimFadeF` / `scrimHex`, and everything else — a page
+left on Follow, and the dock's own call, which passes no `f` at all — resolves to the project
+value exactly as before.
+
+**THE FIRST CUT WAS A SEGMENTED PAIR AND THREE TYPED NUMBER FIELDS, and typing `40` into a
+box to set an opacity is precisely what "not intuitive" meant.** It is a SWITCH on the row
+(the `TOGGLES` pattern the overline and the stats blurb already use) which opens into the
+dock's own control: a Strength slider, a Fade slider, the six dark swatches and the hex field,
+in the dock's own classes so the two read as one control in two places.
+
+**Two labelled sliders rather than the dock's Opacity/Fade TAB PAIR.** The dock uses tabs
+because a rail is narrow; a form has room to show both values at once, and a value behind a
+tab is a value you have to go looking for.
+
+## 3 — THE PERMIT IS ONE PROJECT VALUE, SHOWN PER PAGE
+
+It was a per-slide text field, so the front page and the closing card each had their own and
+the same compliance line had to be typed twice — two fields that can disagree about a legal
+number. `state.permit` is the number; each page that can print one carries a **switch**.
+
+**`normState` MIGRATES, so nothing typed is lost**: the first per-slide `f.permit` found
+becomes the project's and every page that carried one has its switch turned on, which
+reproduces exactly what a saved carousel printed before. The slide's own value is left in
+place rather than deleted and `permitFor` still prefers it — which is what makes the
+migration safe to run against a state it has already run against.
+
+**On the FRONT PAGE it needed its own scrim band.** A Bottom-anchored page's wash already
+reaches the floor; a Top-anchored one does not, so `B.botFar` composes with the generic scrim
+assignment through `Math.min` — the mirror of how `B.topFar` composes through `Math.max` for
+the stats blurb. A smaller `scrimBotY` covers MORE of the floor, so whichever requirement
+needs coverage to start higher up wins.
+
+## 4 — GUIDES FOR THE FLOATING GRAPHIC: draw them BEFORE they fire
+
+Dragging the uploaded PNG/SVG snaps to the canvas centre and the four grid margins.
+
+**TWO THINGS MADE THE FIRST CUT READ AS MISSING, and both are the general lesson.**
+
+- **The snap window was 6 CANVAS px, which at the editor's ~2.45x shrink is 2.4 SCREEN px of
+  travel.** A pointer cannot reliably land in that, so the snap almost never fired. It is
+  `CS.gfxSnap` = **14**, about 6 screen px — a window you can actually hit, and still far too
+  small to catch a drag aimed somewhere else.
+- **Only the line that HIT was drawn**, so until the graphic happened to snap, nothing on
+  screen said it snapped to anything at all. Every guide is drawn while the drag is live now —
+  the six lines faint in `--ps-hair`, the hit one bright in `--ps-link` and half a pixel
+  thicker. **The faint lines are the affordance; the bright one is the state.** Measured
+  mid-drag: 6 drawn / 0 bright away from everything, 6 drawn / 2 bright at the centre, 0 drawn
+  after release.
+
+The guides are positioned in CANVAS coordinates as a SIBLING of the graphic, never a child of
+it — a child would be relative to the box being dragged, so a "canvas centre" line would
+follow the thing it is supposed to measure.
+
+## 5 — THE BULLETS ARRANGEMENT IS A LAYOUT TILE
+
+`f.bulLayout` — **Side by side** (the drawing's own: headline at the grid's left column, the
+list in its own 472 column against the right inset) or **Stacked** (the headline above a
+full-width list). One geometry path serves both: only `colX`, `colW`, the headline's measure
+and the two anchors differ, and the non-stacked expressions reduce to the originals exactly,
+which is what keeps every saved page still.
+
+**It is drawn as OPTION TILES, not a pill pair** — the request's own words were "maybe have
+it as a layout feature inside the bullet preset", and this system already draws a choice whose
+subject is an ARRANGEMENT as a big icon over its name. `vertical_split` splits a page left and
+right, which IS side-by-side; `horizontal_split` splits it top and bottom. Both Rounded at
+wght300, the studio's family. `CS_POSICON` is keyed by option LABEL and is not the position
+control's alone.
+
+## A LIVE BUG THE TILES EXPOSED: every `seg-opt:` tile lit from `csPos`
+
+`rowFor` computed a tile's ON state as `OrganicStudio.csPos(sl.kind, sl.f) === o` — hardcoded
+to the POSITION resolver, and reading `sl`, the ACTIVE slide, rather than the row's own. So a
+second `seg-opt:` field would have lit the wrong tile, and in the guided run (where the row's
+page is not the active one) even the position control was reading the wrong slide.
+
+`csSegVal(kind, f, key)` is the generic resolver now — `pos` keeps its own per-KIND default,
+everything else takes one value from `CS_SEGDEF` — and it is read for `seg:` pills as well.
+**That also closes a defect this file had recorded and deliberately left**: a segmented
+control with no answer yet lit neither half while the canvas drew a default. Scoped to
+carousel kinds, so no other template's control changes.
+
+## A FLAG PARSER THAT MATCHED SUBSTRINGS
+
+`f.flags.indexOf('hi')` would have matched the `Hi` in `seg:Hide|Top|Bottom` if either had
+been the same case — the flag vocabulary and the flag VALUES live in one string, and
+`indexOf` cannot tell them apart. Flags are matched as whole words now
+(`(^|\s)name(\s|$)`), which is the same class of bug as the parser that once split `seg:` on
+a space and offered a single option labelled "Just".
+
+## AND THE `d="{{ … }}"` TRAP, AGAIN
+
+The brass button's glyph shipped as an interpolated render key and added a third
+`<path> attribute d: Expected moveto path command` to every page load. **The browser parses
+the attribute before DC interpolates it** — the trap the SWIPE chevron already records, in
+SVG clothing. The glyph never varies, so it is written straight into the markup and the
+render key is gone. Back to the file's documented baseline of two (`{{ lo.icon }}`,
+`{{ o.icon }}`), which are pre-existing.
+
+## Verification
+
+- **Ops: 34 groups, 34 byte-identical** against the committed build, all six templates, both
+  canvases, through `tplSlides` + `TPLDEMO` + `normState`.
+- **Every control driven for real, not synthetically**: a real click on the Brass button
+  wrapped the selection (`An **Airport** Moves People.`), a second click unwrapped it, a caret
+  with no selection wrapped the word under it; the permit typed once printed on the two pages
+  whose switch was on and on neither other; the scrim slider and a swatch moved page 1 to 40%
+  Slate while page 2 still read the shared 100% navy and the shared control itself was
+  untouched; the Stacked tile re-laid the bullets page; a drag snapped to the centre from 9.8
+  canvas px away.
+- **The legacy permit migration** exercised on a hand-built pre-change state: lifted to the
+  project, switch set to Show, and the card still prints it.
+- **Contrast, light mode, transitions and animations finished**: the brass button's label
+  8.57:1, the hex field 16.96, the scrim labels 19.69 — the new controls clear AA in both
+  themes. The button carries the ink it SETS (`#B0905C`), which is the one control in the form
+  whose colour is a statement about the canvas rather than about the chrome.
+- The test origin's `localStorage` and IndexedDB were cleared, the `_PRE` copy removed from
+  the project folder and the server stopped.
