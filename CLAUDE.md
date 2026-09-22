@@ -12735,3 +12735,61 @@ render key is gone. Back to the file's documented baseline of two (`{{ lo.icon }
   whose colour is a statement about the canvas rather than about the chrome.
 - The test origin's `localStorage` and IndexedDB were cleared, the `_PRE` copy removed from
   the project folder and the server stopped.
+
+## THE HIGHLIGHT ATE ITS OWN SPACES, AND THE BODY TAKES IT NOW
+
+Reported as "it removes the space on the text on the canvas, but on the text box there's
+space". Two defects, one model error, plus the feature the same message asked for.
+
+**A RUN CARRIED A LEADING SPACE, AND ONLY ONE OF THE THREE SURFACES KEPT IT.** `csHiRuns`
+emitted `"An"`, `" Airport"`, `" Moves People."` and placed each at a cumulative x, so the
+gap around a highlighted word WAS the run's own leading space. Canvas `fillText` draws one;
+**HTML collapses a leading space in the preview's div, and SVG `<text>` collapses it too**
+unless `xml:space` says otherwise. So the export was right and the editor was wrong — which
+is exactly the half the user looks at.
+
+Each run carries the plain **PREFIX** before it now, never whitespace of its own, and is
+placed at `start + meas(prefix)` — an ABSOLUTE x that all three surfaces compute identically,
+with no edge whitespace left for anything to collapse. Measured: every run lands at delta
+**0** from where that substring sits in the plain line, and a highlighted line's total ink is
+**byte-identical** to the same line unhighlighted — which is what makes centring, wrapping and
+the CTA card's hug-width correct rather than nearly correct.
+
+**AND THE WORD MODEL WAS WRONG ABOUT PUNCTUATION, which the fix surfaced.** `Stay
+**informed**.` splits at the marker, so the full stop became a word of its own and the
+re-join wrote `informed .`. A word now records whether a SPACE precedes it (`sp`), which is
+the one fact word-splitting was throwing away:
+
+- `csHiPlain` re-joins with the separator the source actually had;
+- a token with `sp` false **can never start a line** — a stop after a highlighted word is part
+  of that word as far as a reader is concerned;
+- a run glued to the one before it gets no separator in its prefix.
+
+Verified across five shapes — mid-sentence, word-then-stop, first word, last word, two words —
+worst delta 0 and total ink equal to the plain line in every one.
+
+## THE BODY TAKES THE HIGHLIGHT TOO, and it shows the brass rather than the marker
+
+`rtLay` wraps by word with the flag carried on the word, exactly as a headline does, and
+`hiPut` places the runs — so a highlight survives the wrap in a **paragraph, a quote, a
+callout and a list item** alike. One placer serves both the page's own texts and a body block;
+they differ only in which list they push into.
+
+**THE EDITOR SHOWS A REAL `<b data-hi>`, NOT A `**`.** This editor's whole premise is that it
+draws the body the way the canvas draws it — a quote behind its rule, a callout on its panel —
+so a literal marker in a row would be the one place it showed its own storage format instead.
+Three things had to move together, and the third is the one that is easy to miss:
+
+- `rtRow` builds the row from `csHiSegs`, styled span for a brass segment;
+- **`rtRead` serialises through `rtText`, not `textContent`** — `textContent` returns the words
+  and drops the very thing the span was carrying, which would have eaten every highlight on
+  the next keystroke;
+- **`rtSplit` serialises the tail the same way**, or pressing Enter inside a highlighted phrase
+  would hand the new row its words without their markers.
+
+Verified with real clicks and real typing: the round trip is byte-identical to what is stored,
+one click on **Brass** marks the selection, a second inside it unmarks, typing next to a
+highlight leaves it intact, and Enter inside one keeps the brass on both halves.
+
+**34 op groups, 34 byte-identical** against the committed build — no demo copy carries a
+marker, so a body that does not use the feature is unchanged op for op.

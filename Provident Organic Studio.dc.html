@@ -2948,6 +2948,9 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 .hi-b svg{width:15px;height:15px;flex:none;fill:#B0905C}
 .hi-b[data-on]{background:#B0905C;color:#1A2942}
 .hi-b[data-on] svg{fill:#1A2942}
+/* A highlight INSIDE the body editor is the real thing, not a marker: the row draws it in
+   the ink the canvas will draw it in, which is the premise this editor already runs on. */
+.rt-ed [data-hi]{color:#B0905C;font-weight:inherit}
 .rt-ed{min-height:118px;max-height:340px;overflow-y:auto;padding:12px 14px;border-radius:16px;
   background:var(--ps-fill);color:var(--ps-ink);font-size:14px;line-height:1.55;font-weight:400;
   outline:none;word-break:break-word}
@@ -3867,7 +3870,12 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                      what it last read or wrote and rebuilds only when the project moved. -->
                 <sc-if value="{{ a.row.isRich }}" hint-placeholder-val="{{ false }}">
                   <div class="rt">
-                    <div class="rt-bar"><sc-for list="{{ a.row.rtOps }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="rt-b" data-t="{{ o.t }}" title="{{ o.title }}">{{ o.label }}</button></sc-for></div>
+                    <div class="rt-bar"><sc-for list="{{ a.row.rtOps }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="rt-b" data-t="{{ o.t }}" title="{{ o.title }}">{{ o.label }}</button></sc-for>
+                      <!-- the block buttons retype a LINE; this one marks WORDS, so it sits
+                           apart from them at the end of the same bar -->
+                      <button onClick="{{ a.row.rtHiSet }}" class="rt-b hi-b" data-on="{{ a.row.rtHiOn }}" title="Select a word, then press this to set it in brass. Press again to take it off.">
+                        <svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M136.16 0q-15.47 0-25.81-10.35Q100-20.69 100-36.15v-76.93q0-15.46 10.35-25.8 10.34-10.35 25.81-10.35h687.68q15.47 0 25.81 10.35Q860-128.54 860-113.08v76.93q0 15.46-10.35 25.8Q839.31 0 823.84 0H136.16Zm146.53-280q-17.23 0-27.07-14.31-9.85-14.3-3.77-30.53l186-474.39q3.46-9.38 11.61-15.08 8.16-5.69 17.93-5.69h25.22q10.39 0 18.24 5.69 7.84 5.7 11.3 15.08l186.23 473.85q6.08 16.61-3.96 31Q694.38-280 677.15-280q-10.53 0-19.46-5.88-8.92-5.89-12.77-16.43l-45.53-122.46H360.31l-46.77 123.46q-3.85 10.16-12.08 15.73-8.23 5.58-18.77 5.58Zm98.69-204h195.7L482-736h-4.77l-95.85 252Z"/></svg>Brass
+                      </button></div>
                     <div class="rt-ed" data-rt="{{ a.row.rtKey }}" data-rtv="{{ a.row.val }}"></div>
                   </div>
                   <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
@@ -5263,37 +5271,86 @@ class OrganicStudio extends StudioBase {
   // `m.lineHex` in Campaign is per authored line, which cannot pick out one word inside a
   // sentence), so it has to survive wrapping — the marker is stripped before the wrap ever
   // measures a word and carried on the word itself, never on the line.
-  static csHiWords(text) {
-    const out = [], s = String(text == null ? '' : text);
+  // The text split at the markers into SEGMENTS, every character preserved — the form the
+  // editor needs, where a row shows the real text with its brass part styled rather than
+  // re-joined out of words. `csHiWords` is this one word-split, so the two cannot disagree
+  // about what is highlighted.
+  static csHiSegs(text) {
+    const s = String(text == null ? '' : text), out = [];
     const re = /\*\*([^*]+)\*\*/g;
     let m, last = 0;
-    const push = (str, brass) => str.split(/\s+/).filter(Boolean).forEach(w => out.push({ w, brass }));
-    while ((m = re.exec(s))) { push(s.slice(last, m.index), false); push(m[1], true); last = m.index + m[0].length; }
-    push(s.slice(last), false);
+    while ((m = re.exec(s))) {
+      if (m.index > last) out.push({ t: s.slice(last, m.index), brass: false });
+      out.push({ t: m[1], brass: true });
+      last = m.index + m[0].length;
+    }
+    if (last < s.length) out.push({ t: s.slice(last), brass: false });
     return out;
   }
+  // The words, each carrying whether a SPACE precedes it. That flag is the whole difference
+  // between `Stay **informed**.` reading as written and reading as "informed ." — the marker
+  // ends between the word and its full stop, so splitting on whitespace alone makes the stop
+  // a word of its own and the re-join puts a space in front of it. A token with `sp` false is
+  // glued to the one before it: it takes no space, and it can never start a line.
+  static csHiWords(text) {
+    const out = [];
+    let sp = false;
+    OrganicStudio.csHiSegs(text).forEach(sg => {
+      sg.t.split(/\s+/).forEach((p, i) => {
+        if (i > 0) sp = true;            // whitespace separated this part from the last
+        if (!p) return;                  // '' is that whitespace at a segment's own edge
+        out.push({ w: p, brass: sg.brass, sp: out.length > 0 && sp });
+        sp = false;
+      });
+    });
+    return out;
+  }
+  // A line's words back to their plain text, each separator the one the source had.
+  static csHiPlain(lineWords) {
+    return lineWords.map((o, i) => ((i && o.sp) ? ' ' : '') + o.w).join('');
+  }
+  // Does this string carry a highlight at all? Read by the editor, which only has to build a
+  // styled row for a line that actually has one.
+  static csHasHi(text) { return /\*\*[^*]+\*\*/.test(String(text == null ? '' : text)); }
   // Greedy word-wrap, mirroring `wrapPlain`'s own algorithm, but keeping the brass flag with
   // each word rather than collapsing to a plain string — the measurement function is handed
   // in so this stays a pure static (no font metrics live here).
   static csHiWrapSeg(words, measFn, maxW) {
     const out = [];
-    words.forEach(({ w, brass }) => {
+    words.forEach(o => {
       const cur = out[out.length - 1];
-      const test = cur ? cur.map(o => o.w).join(' ') + ' ' + w : w;
-      if (cur && measFn(test) <= maxW) cur.push({ w, brass }); else out.push([{ w, brass }]);
+      // A GLUED TOKEN CAN NEVER START A LINE — a full stop after a highlighted word is part
+      // of that word as far as a reader is concerned, so it goes wherever the word went.
+      if (cur && (!o.sp || measFn(OrganicStudio.csHiPlain(cur.concat([o]))) <= maxW)) cur.push(o);
+      else out.push([o]);
     });
     return out;
   }
-  // Consecutive words of one colour become ONE run (a leading space on every run but the
-  // first, so the run's own measured width already includes the gap to its neighbour) —
-  // fewer text ops, and the boundary between runs never loses the space that separates them.
+  // Consecutive words of one colour become ONE run, so a line with no highlight in it still
+  // costs exactly one text op.
+  //
+  // EACH RUN CARRIES THE PLAIN PREFIX BEFORE IT, NEVER A LEADING SPACE OF ITS OWN, and that
+  // is a bug fix rather than a style. A run written as " Airport" measures and draws with its
+  // space on CANVAS — and HTML collapses a leading space in the preview's div, while SVG
+  // `<text>` collapses it too unless `xml:space` says otherwise. Three surfaces, two answers:
+  // the gap around a highlighted word survived the export and vanished in the editor. With
+  // the space in the PREFIX instead, every run is placed at an absolute x that all three
+  // agree on, and no run has whitespace at either edge for anything to collapse.
   static csHiRuns(lineWords) {
     const runs = [];
-    lineWords.forEach(({ w, brass }) => {
+    lineWords.forEach(o => {
       const last = runs[runs.length - 1];
-      if (last && last.brass === brass) last.words.push(w); else runs.push({ brass, words: [w] });
+      if (last && last.brass === o.brass) last.words.push(o); else runs.push({ brass: o.brass, words: [o] });
     });
-    return runs.map((r, i) => ({ brass: r.brass, t: (i ? ' ' : '') + r.words.join(' ') }));
+    const acc = [];
+    return runs.map(r => {
+      // the prefix INCLUDING the separator that leads into this run, so its measured width
+      // IS the run's x offset — and a run glued to the one before it gets no separator
+      let pre = OrganicStudio.csHiPlain(acc);
+      if (acc.length && r.words[0].sp) pre += ' ';
+      r.words.forEach(o => acc.push(o));
+      return { brass: r.brass, t: OrganicStudio.csHiPlain(r.words), pre };
+    });
   }
   // WHERE THE PAGE'S COPY SITS, resolved once. The tiles in the form read this and so does
   // every branch of `csBox`, so a control can never light a tile the artwork does not draw —
@@ -5422,8 +5479,10 @@ class OrganicStudio extends StudioBase {
     // keystroke would re-render the whole form for nothing.
     document.addEventListener('selectionchange', () => {
       const el = document.activeElement;
-      const key = el && el.getAttribute && el.getAttribute('data-hi');
-      const now = key ? (key + '|' + (this.hiActive(key) ? 1 : 0)) : '';
+      if (!el || !el.getAttribute) { if (this._hiMark) { this._hiMark = ''; this.forceUpdate(); } return; }
+      const fld = el.getAttribute('data-hi'), rt = el.getAttribute('data-rt');
+      const now = fld ? (fld + '|' + (this.hiActive(fld) ? 1 : 0))
+                : (rt ? (rt + '|rt|' + (this.rtHiActive(rt) ? 1 : 0)) : '');
       if (now !== this._hiMark) { this._hiMark = now; this.forceUpdate(); }
     });
     const rowOf = t => t && t.closest && t.closest('[data-dragsi]');
@@ -7401,12 +7460,37 @@ class OrganicStudio extends StudioBase {
   // (what the render wants) against `_rtv` (what this editor last read or wrote) is the
   // only sync, and they differ exactly when the project moved underneath it — a new page,
   // an undo, a session load. That is the one time the rows are rebuilt.
+  // A ROW SHOWS THE BRASS, NOT THE MARKER. This editor's whole premise is that it draws the
+  // body the way the canvas draws it — a quote behind its rule, a callout on its panel — so a
+  // literal `**` in a row would be the one place it showed its own storage format instead.
   static rtRow(b) {
     const d = document.createElement('div');
     d.setAttribute('data-b', b.t);
-    if (b.t !== 'd' && b.s) d.textContent = b.s;
+    if (b.t !== 'd' && b.s) {
+      if (OrganicStudio.csHasHi(b.s)) OrganicStudio.csHiSegs(b.s).forEach(sg => {
+        if (!sg.t) return;
+        if (!sg.brass) { d.appendChild(document.createTextNode(sg.t)); return; }
+        const e = document.createElement('b');
+        e.setAttribute('data-hi', '1');
+        e.textContent = sg.t;
+        d.appendChild(e);
+      });
+      else d.textContent = b.s;
+    }
     if (!d.firstChild) d.appendChild(document.createElement('br'));   // or the row collapses
     return d;
+  }
+  // Serialise a row's children back to the stored string, markers and all. `textContent`
+  // cannot do this — it returns the words and drops exactly the thing the span was carrying.
+  static rtText(node) {
+    let out = '';
+    for (let n = node.firstChild; n; n = n.nextSibling) {
+      if (n.nodeType === 3) { out += n.nodeValue || ''; continue; }
+      if (n.nodeType !== 1 || n.tagName === 'BR') continue;
+      const t = OrganicStudio.rtText(n);
+      out += (n.hasAttribute('data-hi') && t.trim()) ? '**' + t + '**' : t;
+    }
+    return out;
   }
   static rtFill(ed, text) {
     ed.innerHTML = '';
@@ -7418,7 +7502,7 @@ class OrganicStudio extends StudioBase {
     for (let n = ed.firstChild; n; n = n.nextSibling) {
       if (n.nodeType !== 1) { const t = (n.nodeValue || '').trim(); if (t) out.push(OrganicStudio.csLine('p', t)); continue; }
       const t = (n.getAttribute && n.getAttribute('data-b')) || 'p';
-      out.push(OrganicStudio.csLine(t, t === 'd' ? '' : String(n.textContent || '').replace(/[\r\n]+/g, ' ')));
+      out.push(OrganicStudio.csLine(t, t === 'd' ? '' : OrganicStudio.rtText(n).replace(/[\r\n]+/g, ' ')));
     }
     return out.join('\n');
   }
@@ -7429,7 +7513,7 @@ class OrganicStudio extends StudioBase {
   }
   // A browser left something at the TOP level that is not one of our rows. Wrap that node
   // and nothing else — rewriting a well-formed row's own contents would take the caret with
-  // it, and a nested span serialises through `textContent` perfectly well as it is.
+  // it, and a nested span serialises through `rtText` perfectly well as it is.
   static rtNorm(ed) {
     let n = ed.firstChild;
     while (n) {
@@ -7575,6 +7659,67 @@ class OrganicStudio extends StudioBase {
       if (el2) { el2.focus(); try { el2.setSelectionRange(ca, cb); } catch (e2) {} }
     }, 0);
   }
+  // ── THE SAME BUTTON, IN THE RICH BODY. The body is a contenteditable rather than a
+  // textarea, so the highlight is a real `<b data-hi>` in the row and the markers only exist
+  // in what `rtText` writes back — but the gesture is identical: select and press, or press
+  // with the caret in a word, and press again inside one to take it off.
+  rtHi(key) {
+    const ed = document.querySelector('.rt-ed[data-rt="' + key + '"]');
+    if (!ed) return;
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !ed.contains(sel.anchorNode)) { ed.focus(); return; }
+    // ONE ROW ONLY. A selection spanning two rows would have `extractContents` pull the row
+    // divs themselves out, which is not a highlight — it is a rebuilt document.
+    const row = OrganicStudio.rtRowOf(ed, sel.anchorNode);
+    if (!row || row !== OrganicStudio.rtRowOf(ed, sel.focusNode)) { ed.focus(); return; }
+    const host = OrganicStudio.rtHiOf(ed, sel.anchorNode);
+    if (host) {
+      // unwrap the whole highlight, however much of it the selection covers
+      const p = host.parentNode;
+      while (host.firstChild) p.insertBefore(host.firstChild, host);
+      p.removeChild(host);
+      if (p.normalize) p.normalize();
+    } else {
+      let range = sel.getRangeAt(0);
+      if (range.collapsed) {
+        const n = range.startContainer;
+        if (n.nodeType !== 3) { ed.focus(); return; }
+        const v = n.nodeValue || '';
+        let a = range.startOffset, b = a;
+        while (a > 0 && !/\s/.test(v[a - 1])) a--;
+        while (b < v.length && !/\s/.test(v[b])) b++;
+        if (a === b) { ed.focus(); return; }
+        range = document.createRange();
+        range.setStart(n, a); range.setEnd(n, b);
+      }
+      if (!String(range.toString()).trim()) { ed.focus(); return; }
+      const e = document.createElement('b');
+      e.setAttribute('data-hi', '1');
+      e.appendChild(range.extractContents());
+      range.insertNode(e);
+      const r2 = document.createRange();
+      r2.selectNodeContents(e);
+      sel.removeAllRanges(); sel.addRange(r2);
+    }
+    ed.focus();
+    OrganicStudio.rtNorm(ed);
+    this.rtWrite(ed);
+    this.rtMark(ed);
+  }
+  static rtHiOf(ed, node) {
+    let n = node;
+    while (n && n !== ed) {
+      if (n.nodeType === 1 && n.hasAttribute && n.hasAttribute('data-hi')) return n;
+      n = n.parentNode;
+    }
+    return null;
+  }
+  rtHiActive(key) {
+    const ed = document.querySelector('.rt-ed[data-rt="' + key + '"]');
+    const sel = window.getSelection();
+    if (!ed || !sel || !sel.rangeCount || !ed.contains(sel.anchorNode)) return false;
+    return !!OrganicStudio.rtHiOf(ed, sel.anchorNode);
+  }
   // Is the caret (or selection) inside a highlight right now? The button lights from this,
   // so it reads as a toggle rather than as a one-way action.
   hiActive(key) {
@@ -7628,7 +7773,11 @@ class OrganicStudio extends StudioBase {
     const tail = document.createRange();
     tail.selectNodeContents(row);
     try { tail.setStart(anchor, off); } catch (er) {}
-    const txt = tail.toString();
+    // SERIALISED, not `toString()` — a caret split inside a highlighted word has to carry the
+    // markers onto the new row, and `toString` returns the words without them.
+    const bin = document.createElement('div');
+    bin.appendChild(tail.cloneContents());
+    const txt = OrganicStudio.rtText(bin);
     tail.deleteContents();
     if (!row.firstChild) row.appendChild(document.createElement('br'));
     const d = OrganicStudio.rtRow({ t: type, s: txt });
@@ -7670,18 +7819,16 @@ class OrganicStudio extends StudioBase {
       });
       return (max && out.length > max) ? out.slice(0, max) : out;
     };
-    const drawHi = (lineWords, x, y, px, w, fill, ls, cx) => {
-      let sx = x;
-      if (cx != null) {
-        const plain = lineWords.map(o => o.w).join(' ');
-        sx = cx - (meas(plain, px, w, ls) - (ls || 0)) / 2;
-      }
-      OrganicStudio.csHiRuns(lineWords).forEach(r => {
-        const rw = meas(r.t, px, w, ls);
-        T(r.t, sx, y, px, w, r.brass ? A.brass : fill, ls);
-        sx += rw;
-      });
+    // ONE placer for both the headline fields and the rich body, differing only in which
+    // list it pushes into — `push` is `T` for the page's own texts and `rT` for a body block
+    // laid out at y = 0 and translated later.
+    const hiPut = (push, lineWords, x, y, px, w, fill, ls, cx) => {
+      const plain = OrganicStudio.csHiPlain(lineWords);
+      const sx = (cx == null) ? x : cx - (meas(plain, px, w, ls) - (ls || 0)) / 2;
+      OrganicStudio.csHiRuns(lineWords).forEach(r =>
+        push(r.t, sx + (r.pre ? meas(r.pre, px, w, ls) : 0), y, px, w, r.brass ? A.brass : fill, ls));
     };
+    const drawHi = (lineWords, x, y, px, w, fill, ls, cx) => hiPut(T, lineWords, x, y, px, w, fill, ls, cx);
     // ── THE PERMIT IS ONE PROJECT VALUE, SHOWN PER PAGE. It was a per-slide field, so the
     // same compliance line had to be typed on every page that prints it and two pages of one
     // post could carry different numbers. `state.permit` is the number; the page's switch
@@ -7723,8 +7870,14 @@ class OrganicStudio extends StudioBase {
     const rtLay = (raw, colX, colW, budget, center, PX, LEAD) => {
       const R = { texts: [], rects: [], icons: [], h: 0, over: 0 };
       const rT = (t, x, y, px, w, fill) => R.texts.push({ t, x, y, px, w, fill, ls: 0 });
-      const rTC = (t, y, px, w, fill, cx) => rT(t, cx - meas(t, px, w, 0) / 2, y, px, w, fill);
-      const wrapTo = (t, w) => this.wrapPlain(t, PX, 400, 0, w);
+      // THE BODY TAKES THE BRASS HIGHLIGHT TOO, by request. It wraps by WORD with the flag
+      // carried on the word, exactly as a headline does, so a highlight survives the wrap;
+      // `hiPut` then places one run per colour. A line with no marker is still one op.
+      const wrapTo = (t, w) => OrganicStudio.csHiWrapSeg(OrganicStudio.csHiWords(t),
+        s => meas(s, PX, 400, 0), w);
+      // `lw` is a line's words; `fill` is the ink a NON-highlighted word takes here
+      const rL = (lw, x, y, fill, weight) => hiPut(rT, lw, x, y, PX, weight || 400, fill, 0, null);
+      const rLC = (lw, y, fill, cx) => hiPut(rT, lw, 0, y, PX, 400, fill, 0, cx);
       // one line is one block; consecutive lines of one kind are ONE block on the canvas
       const gs = [];
       OrganicStudio.csBlocks(raw).forEach(b => {
@@ -7755,7 +7908,7 @@ class OrganicStudio extends StudioBase {
           y += gap;
           if (g.t === 'q') {
             R.rects.push({ x: colX, y, w: C.rtQuoteRule, h: copyH, r: C.rtQuoteRule / 2, fill: A.brass });
-            ln.forEach((t, i) => rT(t, colX + C.rtQuoteIn, y + asc(PX) + i * LEAD, PX, 300, A.ink));
+            ln.forEach((lw, i) => rL(lw, colX + C.rtQuoteIn, y + asc(PX) + i * LEAD, A.ink, 300));
           } else {
             // the house glass — the same fill choice, blur and hairline every panel in this
             // studio carries — with the reference's brass rule standing inside its padding.
@@ -7763,14 +7916,14 @@ class OrganicStudio extends StudioBase {
             R.rects.push({ x: colX, y, w: colW, h, r: C.rtCalloutR, fill: glass, stroke: A.hairEdge, sw: 1, blur: OrganicStudio.TA.panelBlur });
             R.rects.push({ x: colX + C.rtCalloutPad, y: y + C.rtCalloutPad, w: C.rtCalloutBar, h: copyH, r: C.rtCalloutBar / 2, fill: A.brass });
             const tx = colX + C.rtCalloutPad + C.rtCalloutBar + C.rtCalloutBarGap;
-            ln.forEach((t, i) => rT(t, tx, y + C.rtCalloutPad + asc(PX) + i * LEAD, PX, 400, A.ink));
+            ln.forEach((lw, i) => rL(lw, tx, y + C.rtCalloutPad + asc(PX) + i * LEAD, A.ink));
           }
           y += h; placed = true; continue;
         }
         // A paragraph run and a list lay out per SOURCE LINE, so a page that overruns its
         // column truncates where the user typed a break and the count it reports is exact.
         const LD = g.t === 'b' ? LEAD * C.rtBulK : LEAD, inW = g.t === 'b' ? colW - C.rtBulIn : colW;
-        const per = g.ls.map(s => { const L = wrapTo(s, inW); return L.length ? L : ['']; });
+        const per = g.ls.map(s => { const L = wrapTo(s, inW); return L.length ? L : [[]]; });
         let drawn = 0, ok = 0;
         for (let k = 0; k < per.length; k++) {
           if (y + gap + box(PX) + (drawn + per[k].length - 1) * LD > budget) break;
@@ -7779,13 +7932,13 @@ class OrganicStudio extends StudioBase {
         if (!ok) { R.over += rest(gi); break; }
         y += gap;
         let li = 0;
-        for (let k = 0; k < ok; k++) per[k].forEach((t, i) => {
+        for (let k = 0; k < ok; k++) per[k].forEach((lw, i) => {
           const ly = y + li * LD, by = ly + asc(PX);
           if (g.t === 'b') {
             if (!i) R.icons.push({ glyph: 'tick', x: colX, y: ly + (asc(PX) - C.rtBulBox) / 2, w: C.rtBulBox, h: C.rtBulBox, fill: A.brass });
-            rT(t, colX + C.rtBulIn, by, PX, 400, A.ink);
-          } else if (center) rTC(t, by, PX, 400, A.ink, colX + colW / 2);
-          else rT(t, colX, by, PX, 400, A.ink);
+            rL(lw, colX + C.rtBulIn, by, A.ink);
+          } else if (center) rLC(lw, by, A.ink, colX + colW / 2);
+          else rL(lw, colX, by, A.ink);
           li++;
         });
         y += box(PX) + (drawn - 1) * LD; placed = true;
@@ -7972,7 +8125,7 @@ class OrganicStudio extends StudioBase {
       const small = String(f.small || '').trim(), label = String(f.button || '').trim();
       const bl = hiLines(f.big, C.titlePx, 400, maxContent, 3);
       const wSmall = small ? meas(small, C.ctaSmallPx, 300) : 0;
-      const wBig = bl.reduce((a, lw) => Math.max(a, meas(lw.map(o => o.w).join(' '), C.titlePx, 400)), 0);
+      const wBig = bl.reduce((a, lw) => Math.max(a, meas(OrganicStudio.csHiPlain(lw), C.titlePx, 400)), 0);
       const pillW = label ? meas(label, C.ctaPillPx, 400) + 2 * C.ctaPillPadX : 0;
       const logoLS = tk.logo * .04, wLogo = meas('provident.', tk.logo, 300, logoLS) - logoLS;
       // the card HUGS: as wide as its widest line plus the padding, never wider than the canvas
@@ -9428,14 +9581,14 @@ class OrganicStudio extends StudioBase {
     // THE CAROUSEL'S FIVE PAGE LAYOUTS. `pos` / `align` are seeded, the segmented-control
     // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
     cfront:[['headline', 1, 'Headline', 'req area hi', 'One or two lines \u2014 Enter for a new one'],
-            ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it'],
             OrganicStudio.csPermitField(),
             OrganicStudio.csScrimField()],
     // NO Show | Hide ROWS: a show/hide field is a SWITCH on the row it gates — see `TOGGLES`.
     cstats:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['title', 1, 'Title', 'area hi', 'Optional \u2014 centred at the top. Enter for a new line'],
-            ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField()],
@@ -9448,7 +9601,7 @@ class OrganicStudio extends StudioBase {
             OrganicStudio.csScrimField()],
     ctext: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
             ['title', 1, 'Title', 'req area hi', 'Enter for a new line'],
-            ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
+            ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
             ['align', 3, 'Text', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
@@ -12199,6 +12352,9 @@ class OrganicStudio extends StudioBase {
             rtKey: si + ':' + f.k,
             rtOps: OrganicStudio.RT_OPS.map(o => ({ t: o[0], label: o[1], title: o[2],
               set: () => this.rtApply(si + ':' + f.k, o[0]) })),
+            // the body's own brass button — the block types retype a LINE, this marks WORDS
+            rtHiSet: () => this.rtHi(si + ':' + f.k),
+            rtHiOn: (isRich && this.rtHiActive(si + ':' + f.k)) ? '1' : undefined,
             counter, counterOn: counter ? '1' : undefined, overOn: over ? '1' : undefined,
             // THE BRASS HIGHLIGHT'S BUTTON, on the fields flagged `hi`. Same `si:key`
             // addressing as the rich editor's toolbar.
