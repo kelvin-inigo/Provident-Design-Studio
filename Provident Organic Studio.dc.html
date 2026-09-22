@@ -3456,6 +3456,9 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <i style="{{ sl.ft.csGfxMaskStyle }}"></i>
                 <sc-for list="{{ sl.ft.csGfxHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ sl.ft.csGfxGrip }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for>
               </div>
+              <!-- SNAP GUIDES for the drag — canvas centre and grid margins — placed in
+                   canvas coordinates as a sibling of the graphic, not a child of it. -->
+              <sc-for list="{{ sl.ft.csGfxGuides }}" as="gl" hint-placeholder-count="0"><div style="{{ gl.style }}"></div></sc-for>
             </sc-if>
           </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
@@ -3622,6 +3625,9 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <i style="{{ sl.st.csGfxMaskStyle }}"></i>
                 <sc-for list="{{ sl.st.csGfxHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ sl.st.csGfxGrip }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for>
               </div>
+              <!-- SNAP GUIDES for the drag — canvas centre and grid margins — placed in
+                   canvas coordinates as a sibling of the graphic, not a child of it. -->
+              <sc-for list="{{ sl.st.csGfxGuides }}" as="gl" hint-placeholder-count="0"><div style="{{ gl.style }}"></div></sc-for>
             </sc-if>
           </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
@@ -4338,8 +4344,15 @@ class OrganicStudio extends StudioBase {
   // resolves to the pages' original wash — navy, full strength, a ramp over the whole box —
   // byte for byte, so nothing saved before this moves. The colour is the USER's hex, exactly
   // as Campaign's `scrimHex` is: a value typed into a control, not a literal at a call site.
-  static csScrimOf(state) {
-    const c = (state && state.csScrim) || {};
+  //
+  // A PAGE CAN TAKE ITS OWN, SEPARATE FROM THE SHARED ONE — `f.scrimMode === 'Custom for
+  // this page'` switches a slide off the project default and onto its own `scrimOp` /
+  // `scrimFadeF` / `scrimHex`. Passing no `f` (the dock's own control, which sets the
+  // shared default) or a page left on `Follow all pages` both resolve to the same project
+  // value as before, so nothing that does not opt in ever moves.
+  static csScrimOf(state, f) {
+    const custom = f && f.scrimMode === 'Custom for this page';
+    const c = custom ? { op: f.scrimOp, fade: f.scrimFadeF, hex: f.scrimHex } : ((state && state.csScrim) || {});
     const a = Math.max(0, Math.min(1, (c.op == null ? 100 : +c.op) / 100));
     const fade = Math.max(0, Math.min(1, (c.fade == null ? 100 : +c.fade) / 100));
     const hex = (typeof c.hex === 'string' && /^#[0-9a-f]{6}$/i.test(c.hex)) ? c.hex.toUpperCase() : OrganicStudio.ART.deep;
@@ -5203,6 +5216,43 @@ class OrganicStudio extends StudioBase {
   static csPlain(text) {
     return OrganicStudio.csBlocks(text).filter(b => b.t !== 'd').map(b => b.s).join('\n');
   }
+  // ── BRASS WORD HIGHLIGHTS — `**word**` inside a headline marks the enclosed word(s)
+  // A.brass instead of the run's own ink. It is a WORD marker, not a line one (the hero's
+  // `m.lineHex` in Campaign is per authored line, which cannot pick out one word inside a
+  // sentence), so it has to survive wrapping — the marker is stripped before the wrap ever
+  // measures a word and carried on the word itself, never on the line.
+  static csHiWords(text) {
+    const out = [], s = String(text == null ? '' : text);
+    const re = /\*\*([^*]+)\*\*/g;
+    let m, last = 0;
+    const push = (str, brass) => str.split(/\s+/).filter(Boolean).forEach(w => out.push({ w, brass }));
+    while ((m = re.exec(s))) { push(s.slice(last, m.index), false); push(m[1], true); last = m.index + m[0].length; }
+    push(s.slice(last), false);
+    return out;
+  }
+  // Greedy word-wrap, mirroring `wrapPlain`'s own algorithm, but keeping the brass flag with
+  // each word rather than collapsing to a plain string — the measurement function is handed
+  // in so this stays a pure static (no font metrics live here).
+  static csHiWrapSeg(words, measFn, maxW) {
+    const out = [];
+    words.forEach(({ w, brass }) => {
+      const cur = out[out.length - 1];
+      const test = cur ? cur.map(o => o.w).join(' ') + ' ' + w : w;
+      if (cur && measFn(test) <= maxW) cur.push({ w, brass }); else out.push([{ w, brass }]);
+    });
+    return out;
+  }
+  // Consecutive words of one colour become ONE run (a leading space on every run but the
+  // first, so the run's own measured width already includes the gap to its neighbour) —
+  // fewer text ops, and the boundary between runs never loses the space that separates them.
+  static csHiRuns(lineWords) {
+    const runs = [];
+    lineWords.forEach(({ w, brass }) => {
+      const last = runs[runs.length - 1];
+      if (last && last.brass === brass) last.words.push(w); else runs.push({ brass, words: [w] });
+    });
+    return runs.map((r, i) => ({ brass: r.brass, t: (i ? ' ' : '') + r.words.join(' ') }));
+  }
   // WHERE THE PAGE'S COPY SITS, resolved once. The tiles in the form read this and so does
   // every branch of `csBox`, so a control can never light a tile the artwork does not draw —
   // and a page saved before its layout field existed still shows the position it renders at.
@@ -5243,10 +5293,10 @@ class OrganicStudio extends StudioBase {
   // every inside page and is hidden rather than discovered — but its text is not seeded and
   // is not required, so a blank one simply draws nothing and blocks no export.
   static csSeed(kind) {
-    if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom' };
-    if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }] };
-    if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom' };
-    if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center' };
+    if (kind === 'cfront') return { headline: '', sub: '', pos: 'Bottom', permit: '', scrimMode: 'Follow all pages' };
+    if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }], scrimMode: 'Follow all pages' };
+    if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom', bulLayout: 'Side by side', scrimMode: 'Follow all pages' };
+    if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center', scrimMode: 'Follow all pages' };
     if (kind === 'ccta') return { small: '', big: '', button: '', permit: '', pos: 'Centre' };
     return {};
   }
@@ -7470,6 +7520,30 @@ class OrganicStudio extends StudioBase {
     const T = (t, x, y, px, w, fill, ls) => B.texts.push({ t, x, y, px, w, fill, ls: ls || 0 });
     // a centred run is placed by its INK — `meas` reserves a trailing tracking unit
     const TC = (t, y, px, w, fill, ls, cx) => { const ink = meas(t, px, w, ls) - (ls || 0); T(t, (cx == null ? W / 2 : cx) - ink / 2, y, px, w, fill, ls); };
+    // ── BRASS WORD HIGHLIGHTS — a marker-aware sibling of `lines()`/`T`/`TC`, for the
+    // five headline-ish fields that take a `**word**` marker. `hiLines` wraps by WORD
+    // (never breaking a run mid-marker) and `drawHi` draws the wrapped line as one text op
+    // per colour run, so a plain line with no marker in it still costs exactly one op.
+    const hiLines = (text, px, w, maxW, max) => {
+      const out = [];
+      String(text || '').split(/\r?\n/).forEach(seg => {
+        if (!seg.trim()) return;
+        OrganicStudio.csHiWrapSeg(OrganicStudio.csHiWords(seg), t => meas(t, px, w, 0), maxW).forEach(l => out.push(l));
+      });
+      return (max && out.length > max) ? out.slice(0, max) : out;
+    };
+    const drawHi = (lineWords, x, y, px, w, fill, ls, cx) => {
+      let sx = x;
+      if (cx != null) {
+        const plain = lineWords.map(o => o.w).join(' ');
+        sx = cx - (meas(plain, px, w, ls) - (ls || 0)) / 2;
+      }
+      OrganicStudio.csHiRuns(lineWords).forEach(r => {
+        const rw = meas(r.t, px, w, ls);
+        T(r.t, sx, y, px, w, r.brass ? A.brass : fill, ls);
+        sx += rw;
+      });
+    };
     const far = y => { B.far = Math.max(B.far == null ? 0 : B.far, y); };
     // the COPY BLOCK's own far end — `far()` also counts SWIPE, a bottom wordmark and the
     // permit, which sit at the foot of every page, so a top layout's wash read from `B.far`
@@ -7599,7 +7673,7 @@ class OrganicStudio extends StudioBase {
       // the wordmark, exactly where drawLogo puts it, at the drawing's own column
       T('provident.', C.pad, pT + tk.logo * .8, tk.logo, 300, A.ink, tk.logo * .04);
       const fcW = W - C.pad - C.padR;
-      const hl = lines(f.headline, C.headPx, 400, fcW, C.headMax);
+      const hl = hiLines(f.headline, C.headPx, 400, fcW, C.headMax);
       const headH = hl.length ? C.headPx + (hl.length - 1) * C.headPx * C.headLead : 0;
       // The supporting lines are a RICH BODY. Its cap is the room between the page's own
       // top anchor and its floor rather than a line count, so a quote or a callout can
@@ -7613,10 +7687,27 @@ class OrganicStudio extends StudioBase {
       // the headline's box is ONE em tall (Figma's line-height 1.0): its baseline is the
       // half-leading of a box shorter than the content area, plus the ascent
       const hb = (C.headPx - box(C.headPx)) / 2 + asc(C.headPx);
-      hl.forEach((t, i) => T(t, C.pad, top + hb + i * C.headPx * C.headLead, C.headPx, 400, A.ink));
+      hl.forEach((lw, i) => drawHi(lw, C.pad, top + hb + i * C.headPx * C.headLead, C.headPx, 400, A.ink));
       put(R, top + headH + gap);
       B.over = R.over;
       B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+      // ── THE PERMIT NUMBER, ON THE FRONT PAGE TOO — the same field and treatment as the
+      // closing card's, on the page's existing SWIPE baseline, centred across the full
+      // canvas (there is no card to centre on here). A Bottom-anchored page already has its
+      // own wash reaching the floor, but a Top-anchored one does not, so this needs its OWN
+      // band — `B.botFar` composes with the generic scrim assignment below rather than
+      // overwriting whatever the main content already asked for.
+      const permit = String(f.permit || '').trim().toUpperCase();
+      if (permit) {
+        const pTop = H - C.swipeBotIn;
+        const room = swipeX == null ? W - 2 * C.pad : Math.min(W - 2 * C.pad, 2 * (swipeX - C.swipeGap / 2 - W / 2));
+        const ppx = C.permitPx, pls = C.swipeTrack * ppx, ppw = C.permitW;
+        const pl = this.wrapPlain(permit, ppx, ppw, pls, room, C.permitMax);
+        const pUp = (pl.length - 1) * ppx * C.permitLead;
+        pl.forEach((t, i) => TC(t, pTop + asc(ppx) - pUp + i * ppx * C.permitLead, ppx, ppw, A.warm, pls));
+        B.botFar = Math.max(0, pTop - pUp - C.scrimHold);
+        far(pTop + C.swipeBox);
+      }
     } else if (kind === 'cstats') {
       const n = OrganicStudio.csN(f), items = OrganicStudio.csItems(f), rows = Math.ceil(n / 2);
       const rowH = C.statTop + C.statBox + C.labGap + C.labBox;
@@ -7632,8 +7723,8 @@ class OrganicStudio extends StudioBase {
       const gridBotB = H - C.gridBotIn, gridTopB = gridBotB - rowH - (rows - 1) * C.rowPitch;
       const tRoom = topAligned ? Infinity : gridTopB - C.titleGridGap - (tTop + eyeH);
       const tFit = Math.max(1, Math.min(3, Math.floor((tRoom - C.titleBox) / C.h2Pitch) + 1));
-      const tl = lines(f.title, C.titlePx, 400, C.headColW, tFit);
-      tl.forEach((t, i) => TC(t, tTop + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0));
+      const tl = hiLines(f.title, C.titlePx, 400, C.headColW, tFit);
+      tl.forEach((lw, i) => drawHi(lw, null, tTop + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0, W / 2));
       const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
       let blockBot = tTop + eyeH + titleH;
       // THE OPTIONAL BLURB, the same rich body the text page carries — in the heading's own
@@ -7670,24 +7761,41 @@ class OrganicStudio extends StudioBase {
       else { B.near = gridTop; far(gridBot); B.anchor = 'bottom'; }
     } else if (kind === 'cbul') {
       const bl = String(f.bullets || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).slice(0, C.bulMax);
-      const n = bl.length, colX = W - C.padR - C.bulColW, blockH = n * C.bulPitch;
+      const n = bl.length, blockH = n * C.bulPitch;
       const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
-      // the overline takes the top of the block; the list keeps the drawing's own bottom
-      // anchor, so a page carrying no overline does not move a pixel
-      const cTop = topAligned ? topY2 + eyeH : H - C.bulBotIn - blockH;
-      const top = cTop - eyeH;
+      // TWO ARRANGEMENTS, by request. SIDE BY SIDE is the drawing's own: the headline at
+      // the grid's left column, the list in its own 472 column against the right inset —
+      // a HORIZONTAL stack of the two. STACKED puts the headline above a full-width list
+      // instead — a VERTICAL stack — for a headline too short to need the room the list
+      // column would otherwise leave beside it.
+      const stacked = f.bulLayout === 'Stacked';
+      const colX = stacked ? C.pad : (W - C.padR - C.bulColW);
+      const colW = stacked ? C.headColW : C.bulColW;
+      const headW = stacked ? C.headColW : (colX - C.bulHeadGap - C.pad);
+      const hl = hiLines(f.headline, C.titlePx, 400, headW, 6);
+      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
+      let cTop, top;
+      if (stacked) {
+        const gap = headH ? C.bulHeadGap : 0;
+        top = topAligned ? topY2 : H - C.bulBotIn - blockH - gap - headH - eyeH;
+        cTop = top + eyeH + headH + gap;
+      } else {
+        // the overline takes the top of the block; the list keeps the drawing's own bottom
+        // anchor, so a page carrying no overline does not move a pixel
+        cTop = topAligned ? topY2 + eyeH : H - C.bulBotIn - blockH;
+        top = cTop - eyeH;
+      }
       eyePut(C.pad, top, null);
-      if (n) for (let k = 0; k <= n; k++) B.rects.push({ x: colX, y: cTop + k * C.bulPitch, w: C.bulColW, h: 1, fill: A.hair });
+      hl.forEach((lw, i) => drawHi(lw, C.pad, top + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
+      if (n) for (let k = 0; k <= n; k++) B.rects.push({ x: colX, y: cTop + k * C.bulPitch, w: colW, h: 1, fill: A.hair });
       bl.forEach((t, i) => {
         const ry = cTop + i * C.bulPitch;
         B.icons.push({ glyph: 'check', x: colX + C.bulIconIn, y: ry + C.bulIconTop, w: C.bulIcon, h: C.bulIcon, fill: A.brass });
-        const line = this.wrapPlain(t, C.bulPx, 400, 0, C.bulColW - C.bulTextIn, 1)[0] || '';
+        const line = this.wrapPlain(t, C.bulPx, 400, 0, colW - C.bulTextIn, 1)[0] || '';
         T(line, colX + C.bulTextIn, ry + C.bulTextTop + asc(C.bulPx), C.bulPx, 400, A.warm);
       });
-      const hl = lines(f.headline, C.titlePx, 400, colX - C.bulHeadGap - C.pad, 6);
-      hl.forEach((t, i) => T(t, C.pad, cTop + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
-      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
-      B.near = top; far(cTop + Math.max(blockH, headH)); blk(cTop + Math.max(blockH, headH)); B.anchor = topAligned ? 'top' : 'bottom';
+      const bot = stacked ? cTop + blockH : cTop + Math.max(blockH, headH);
+      B.near = top; far(bot); blk(bot); B.anchor = topAligned ? 'top' : 'bottom';
     } else if (kind === 'ctext') {
       const center = f.align !== 'Left';
       // THE BODY TAKES THE HEADING'S COLUMN TOO, by request. At the frame's own 704 a body
@@ -7695,7 +7803,7 @@ class OrganicStudio extends StudioBase {
       // running to 881; both wrap to the page's grid column now — 105 to 94 in from the edges,
       // or centred on the canvas axis — so title and body share one right edge.
       const colW = C.headColW, colX = center ? (W - colW) / 2 : C.pad, cx = colX + colW / 2;
-      const tl = lines(f.title, C.titlePx, 400, C.headColW, 3);
+      const tl = hiLines(f.title, C.titlePx, 400, C.headColW, 3);
       const titleH = tl.length ? C.titleBox + (tl.length - 1) * C.h2Pitch : 0;
       // the band between the page's own two anchors is what the body may spend, less what
       // the overline and the title have already taken — the height budget that replaced the
@@ -7706,16 +7814,16 @@ class OrganicStudio extends StudioBase {
       const bottomAligned = OrganicStudio.csPos(kind, f) === 'Bottom';
       const top = bottomAligned ? H - C.botIn - h : topY2;
       eyePut(colX, top, center ? cx : null);
-      tl.forEach((t, i) => { const y = top + eyeH + asc(C.titlePx) + i * C.h2Pitch; center ? TC(t, y, C.titlePx, 400, A.ink, 0, cx) : T(t, colX, y, C.titlePx, 400, A.ink); });
+      tl.forEach((lw, i) => { const y = top + eyeH + asc(C.titlePx) + i * C.h2Pitch; drawHi(lw, colX, y, C.titlePx, 400, A.ink, 0, center ? cx : null); });
       put(R, top + eyeH + titleH + gap);
       B.over = R.over;
       B.near = top; far(top + h); blk(top + h); B.anchor = bottomAligned ? 'bottom' : 'top';
     } else if (kind === 'ccta') {
       const maxContent = C.ctaMaxW - 2 * C.ctaPad;
       const small = String(f.small || '').trim(), label = String(f.button || '').trim();
-      const bl = lines(f.big, C.titlePx, 400, maxContent, 3);
+      const bl = hiLines(f.big, C.titlePx, 400, maxContent, 3);
       const wSmall = small ? meas(small, C.ctaSmallPx, 300) : 0;
-      const wBig = bl.reduce((a, t) => Math.max(a, meas(t, C.titlePx, 400)), 0);
+      const wBig = bl.reduce((a, lw) => Math.max(a, meas(lw.map(o => o.w).join(' '), C.titlePx, 400)), 0);
       const pillW = label ? meas(label, C.ctaPillPx, 400) + 2 * C.ctaPillPadX : 0;
       const logoLS = tk.logo * .04, wLogo = meas('provident.', tk.logo, 300, logoLS) - logoLS;
       // the card HUGS: as wide as its widest line plus the padding, never wider than the canvas
@@ -7735,7 +7843,7 @@ class OrganicStudio extends StudioBase {
       y += C.ctaRuleH + C.ctaRuleGap;
       if (small) { TC(small, y + asc(C.ctaSmallPx), C.ctaSmallPx, 300, A.warm, 0); y += C.ctaSmallBox; }
       if (small && bl.length) y += C.ctaSmallBigGap;
-      bl.forEach((t, i) => TC(t, y + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0));
+      bl.forEach((lw, i) => drawHi(lw, null, y + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink, 0, W / 2));
       y += bigH;
       if (label) {
         y += C.ctaBigPillGap;
@@ -7792,6 +7900,12 @@ class OrganicStudio extends StudioBase {
     // and its own hold-then-fade shape are BOTH gone — it is a clear point like every other
     // band now, so it takes the fade and reads as the same material.
     if (B.topFar != null) B.scrimTopY = Math.max(B.scrimTopY == null ? 0 : B.scrimTopY, Math.min(H, B.topFar + C.scrimPad));
+    // A BOTTOM BAND for a block the page's own wash does not reach the other way round — the
+    // front page's permit under a TOP layout, whose wash covers only the top of the page.
+    // `Math.min` is the mirror of `topFar`'s `Math.max`: a SMALLER `scrimBotY` covers MORE of
+    // the floor, so whichever requirement (the content's own, or the permit's) needs coverage
+    // to start higher up wins.
+    if (B.botFar != null) B.scrimBotY = Math.min(B.scrimBotY == null ? H : B.scrimBotY, B.botFar);
     // ── THE FLOATING GRAPHIC, computed last because it is DRAWN last: it floats over the
     // page's own copy, which is the whole point of placing it by hand. The box comes from
     // the stored aspect so this function and buildOps agree with no asset in hand; both
@@ -8366,7 +8480,7 @@ class OrganicStudio extends StudioBase {
     } else if (OrganicStudio.isCs(kind)) {
       // ══ THE CAROUSEL PAGES — everything off `csBox`, in paint order: scrim, glass card,
       // rules and pills, icons, text, the SWIPE chevron. The photo is already down.
-      const B = this.csBox(state, si, tk), SC = OrganicStudio.csScrimOf(state), D = SC.col;
+      const B = this.csBox(state, si, tk), SC = OrganicStudio.csScrimOf(state, f), D = SC.col;
       const csStops = OrganicStudio.csScrimStops(B, H, SC);
       if (csStops) ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: csStops });
       if (B.card) {
@@ -8996,7 +9110,9 @@ class OrganicStudio extends StudioBase {
       return custom || `${OrganicStudio.awRank(f0)}_${f0.title || 'Award'}`;
     }
     if (s.tpl === 'carousel') {
-      const fr = s.slides.find(z => z.kind === 'cfront') || s.slides[0], h = String((fr && fr.f && (fr.f.headline || fr.f.title || fr.f.big)) || '').trim();
+      const fr = s.slides.find(z => z.kind === 'cfront') || s.slides[0];
+      // strip any `**brass**` marker before it reaches a filename — this is prose, not artwork
+      const h = String((fr && fr.f && (fr.f.headline || fr.f.title || fr.f.big)) || '').replace(/\*\*([^*]+)\*\*/g, '$1').trim();
       // the first four words of the front page's headline, with any trailing punctuation off
       return custom || `${h ? h.split(/\s+/).slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : 'Carousel'}_Carousel`;
     }
@@ -9078,6 +9194,20 @@ class OrganicStudio extends StudioBase {
     ccta:   ['Copy', 'Button', 'Layout & reference']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
+  // THE PER-PAGE SCRIM OVERRIDE — one row shared by the four carousel kinds that carry a
+  // wash (`ccta` has none: the card is its own surface). A FUNCTION rather than a literal
+  // array, so the four call sites inside `FIELDS` below cannot end up sharing one array BY
+  // REFERENCE. Declared ahead of `FIELDS`, which calls it while ITS OWN initializer runs.
+  static csScrimField() {
+    return ['scrimMode', 3, 'Page scrim', 'seg:Follow all pages|Custom for this page',
+      'Follow all pages reads the shared scrim set in Post look. Custom lets this one page use its own opacity, fade and colour'];
+  }
+  // The three rows `scrimMode` reveals, gated in `fieldShown` on `Custom for this page`.
+  static CS_SCRIM_ROWS = [
+    ['scrimOp', 3, 'Scrim opacity', 'num', '0–100, how strong the wash is on this page'],
+    ['scrimFadeF', 3, 'Scrim fade', 'num', '0–100 — lower holds the wash solid over the copy and ramps only the far part'],
+    ['scrimHex', 3, 'Scrim colour', '', 'A hex colour, e.g. #1A2942']
+  ];
   static FIELDS = {
     // Nothing on the weekly cover or its closing slide is a question: the eyebrow, the
     // headline and the button label are all set by the template. Both kinds are used only
@@ -9130,28 +9260,34 @@ class OrganicStudio extends StudioBase {
             ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral']],
     // THE CAROUSEL'S FIVE PAGE LAYOUTS. `pos` / `align` are seeded, the segmented-control
     // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
-    cfront:[['headline', 1, 'Headline', 'req area', 'One or two lines \u2014 Enter for a new one'],
+    cfront:[['headline', 1, 'Headline', 'req area', 'One or two lines \u2014 Enter for a new one. Wrap a word in ** ** for a brass highlight'],
             ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
-            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it']],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it'],
+            ['permit', 3, 'Permit number', '', 'Set in small caps on the page\u2019s bottom line \u2014 leave it blank to omit'],
+            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
     // NO Show | Hide ROWS: a show/hide field is a SWITCH on the row it gates — see `TOGGLES`.
     cstats:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
-            ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line'],
+            ['title', 1, 'Title', 'area', 'Optional \u2014 centred at the top. Enter for a new line. Wrap a word in ** ** for a brass highlight'],
             ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
-            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
     cbul:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
-            ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one'],
+            ['headline', 1, 'Headline', 'req area', 'Short lines read best \u2014 Enter for a new one. Wrap a word in ** ** for a brass highlight'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
-            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
+            ['bulLayout', 3, 'Bullets layout', 'seg:Side by side|Stacked', 'Side by side is the drawing\u2019s own \u2014 headline beside the list. Stacked puts the headline above a full-width list'],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
     ctext: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
-            ['title', 1, 'Title', 'req area', 'Enter for a new line'],
+            ['title', 1, 'Title', 'req area', 'Enter for a new line. Wrap a word in ** ** for a brass highlight'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
             ['align', 3, 'Text', 'seg:Center|Left', ''],
-            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line']],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField()].concat(OrganicStudio.CS_SCRIM_ROWS),
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
-            ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line'],
+            ['big', 1, 'Headline', 'req area', 'e.g. Stay informed. \u2014 Enter for a new line. Wrap a word in ** ** for a brass highlight'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
             ['permit', 3, 'Permit number', '', 'Set in small caps at the foot of the page \u2014 leave it blank to omit']]
@@ -9176,6 +9312,9 @@ class OrganicStudio extends StudioBase {
       if (k === 'per') return d.deal === 'Rent';
       return true;
     }
+    // The scrim override's three value rows are only a question once the page has actually
+    // opted out of the shared control — the row above them (`scrimMode`) is what asks.
+    if (k === 'scrimOp' || k === 'scrimFadeF' || k === 'scrimHex') return (f && f.scrimMode) === 'Custom for this page';
     if (kind !== 'tacover') return true;
     const p = (f && f.period) || 'Monthly';
     if (k === 'mon') return p === 'Monthly';
@@ -10746,7 +10885,7 @@ class OrganicStudio extends StudioBase {
         // same `csBox` the ops read. Text is the single-line idiom (`top: baseline - px`
         // with a `baseLH` line-height); icons are MASKS with a background colour, which is
         // what `tintFlat` does on canvas; the chevron is one polyline in an overlay SVG.
-        const B = this.csBox(s, si, tk), A = OrganicStudio.ART, SC = OrganicStudio.csScrimOf(s), D = SC.col;
+        const B = this.csBox(s, si, tk), A = OrganicStudio.ART, SC = OrganicStudio.csScrimOf(s, sl.f), D = SC.col;
         const abs = (x, y) => ({ position: 'absolute', left: cq(x), top: cq(y) });
         const LH = px => StudioBase.baseLH(px);
         K.logoStyle = Object.assign({}, K.logoStyle, { display: 'none' });   // drawn from B.texts
@@ -10803,6 +10942,21 @@ class OrganicStudio extends StudioBase {
               left: dirK[1] === 'w' ? uz(-6) : undefined, right: dirK[1] === 'e' ? uz(-6) : undefined,
               top: dirK[0] === 'n' ? uz(-6) : undefined, bottom: dirK[0] === 's' ? uz(-6) : undefined }
           })) : [];
+          // ── SNAP GUIDES, shown only while a move gesture is actually hitting one — the
+          // canvas centre in both axes, and the two grid margins. They are positioned in
+          // CANVAS coordinates like csRects/csTexts, never relative to the graphic's own
+          // box, so a centre line is genuinely at the canvas centre whatever GB happens to be.
+          const CG = this._gfxGuide;
+          const gLine = (vert, at) => ({ position: 'absolute', zIndex: 13, pointerEvents: 'none',
+            background: 'var(--ps-primary)',
+            left: vert ? cq(at) : 0, top: vert ? 0 : cq(at),
+            width: vert ? uz(1) : '100%', height: vert ? '100%' : uz(1) });
+          K.csGfxGuides = CG ? [
+            CG.vc && { style: gLine(true, tk.W / 2) },
+            CG.hc && { style: gLine(false, tk.H / 2) },
+            CG.left && { style: gLine(true, CS0.pad) },
+            CG.right && { style: gLine(true, tk.W - CS0.padR) }
+          ].filter(Boolean) : [];
           // ONE undo entry per gesture: the move writes through raw setState and the release
           // commits — `_undoStack` is 5 deep, so a per-frame push would erase real history.
           const gGesture = (e, scale) => {
@@ -10820,13 +10974,30 @@ class OrganicStudio extends StudioBase {
             const pre = JSON.parse(JSON.stringify(this.state));
             const cl = v2 => Math.max(0, Math.min(1, v2));
             const mv = ev => {
-              const d = scale
+              let d;
+              if (scale) {
                 // CENTRE-anchored, so the width changes by TWICE the pointer delta for the
                 // dragged edge to track it — the group figures' own lesson
-                ? { s: +Math.max(CS0.gfxMin, Math.min(CS0.gfxMax, g0.s + 2 * (ev.clientX - sx) * sign / cw)).toFixed(4),
-                    a: +asp.toFixed(4) }
-                : { x: +cl(g0.x + (ev.clientX - sx) / cw).toFixed(4),
-                    y: +cl(g0.y + (ev.clientY - sy) / ch).toFixed(4) };
+                d = { s: +Math.max(CS0.gfxMin, Math.min(CS0.gfxMax, g0.s + 2 * (ev.clientX - sx) * sign / cw)).toFixed(4),
+                      a: +asp.toFixed(4) };
+                this._gfxGuide = null;
+              } else {
+                let nx = cl(g0.x + (ev.clientX - sx) / cw), ny = cl(g0.y + (ev.clientY - sy) / ch);
+                // ── SNAP GUIDES, for a hand-placed graphic. The box's centre against the
+                // canvas centre, and its EDGE against the grid margins, checked in CANVAS
+                // units (a flat 6px of a 1080/1920 canvas) so the threshold does not shrink
+                // or grow with the preview's own zoom. On a hit, the drag snaps to the exact
+                // fraction and a guide line marks which one fired.
+                const gw = GB.w / tk.W;
+                const guide = {};
+                if (Math.abs(nx - .5) * tk.W < 6) { nx = .5; guide.vc = true; }
+                if (Math.abs(ny - .5) * tk.H < 6) { ny = .5; guide.hc = true; }
+                const leftPad = CS0.pad / tk.W, rightPad = (tk.W - CS0.padR) / tk.W;
+                if (Math.abs((nx - gw / 2) - leftPad) * tk.W < 6) { nx = leftPad + gw / 2; guide.left = true; }
+                if (Math.abs((nx + gw / 2) - rightPad) * tk.W < 6) { nx = rightPad - gw / 2; guide.right = true; }
+                this._gfxGuide = Object.keys(guide).length ? guide : null;
+                d = { x: +nx.toFixed(4), y: +ny.toFixed(4) };
+              }
               this.setState(st => {
                 const nn = JSON.parse(JSON.stringify(st)), t = nn.slides[si];
                 if (!t) return st;
@@ -10837,6 +11008,7 @@ class OrganicStudio extends StudioBase {
             const up = () => {
               document.removeEventListener('pointermove', mv);
               document.removeEventListener('pointerup', up);
+              this._gfxGuide = null;
               this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
               this._redoStack = [];
               this.markDirty();
