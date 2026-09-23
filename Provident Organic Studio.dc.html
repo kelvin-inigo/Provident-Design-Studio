@@ -732,6 +732,8 @@ textarea.p-in{resize:vertical}
 .p-mini-i{display:flex;align-items:center;justify-content:center;color:var(--ps-ink-2);height:56px}
 .p-opt[data-on] .p-mini-i{color:var(--ps-accent-i)}
 .p-mini-i svg{width:26px;height:26px;fill:currentColor;display:block}
+.p-mini-m{width:26px;height:26px;display:block;background-color:currentColor;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
 /* logo placement: a 2x2 hit grid laid over one miniature */
 /* Skeleton, like .p-mini — the wordmark-placement grid is a diagram too, so it drops
    its gradient and follows the chrome. */
@@ -3054,9 +3056,55 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
    presets, so this needs the form's own sizing and nothing else. */
 .gd-sec-g .p-opts,.gd-ask .p-opts{width:100%}
 .gd[data-mode="editor"] .gd-ask .p-mini{height:46px}
-.gd[data-mode="editor"] .gd-ask .p-mini-i svg{width:22px;height:22px}
+.gd[data-mode="editor"] .gd-ask .p-mini-i svg,.gd[data-mode="editor"] .gd-ask .p-mini-m{width:22px;height:22px}
 .gd-ask .p-opt-l{font:500 11.5px/1.2 var(--ps-font);text-align:center}
 .gd-ask .p-opt[data-on] .p-opt-l{color:var(--ps-ink)}
+
+/* ── ONE FIELD PER POINT ─────────────────────────────────────────────────────────────
+   The Marketing USP was ONE field with its points separated by a bar. It is a list of
+   fields now, one per point, with the copy view's own remove and add — the bar is only
+   how the answer is stored. The remove control is a quiet circle, red on hover. */
+.gd-pts{display:flex;flex-direction:column;gap:8px}
+.gd-pt{display:flex;align-items:center;gap:8px}
+.gd-pt > .gd-big{flex:1 1 0;min-width:0;width:auto}
+.gd-pt-x{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;
+  background:transparent;color:var(--ps-dim);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.gd-pt-x:hover{background:var(--ps-bad-q);color:var(--ps-bad)}
+.gd-pt-x svg{width:18px;height:18px;fill:currentColor}
+.gd-pt-f{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px}
+.gd-pt-add{height:34px;padding:0 14px;border:1px dashed var(--ps-line);border-radius:var(--ps-pill);
+  background:transparent;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.gd-pt-add:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.gd-pt-f .gd-count2{margin-left:auto}
+
+/* ── THE TOP BAR'S RIGHT CLUSTER, mirrored from Campaign — the top bar is the same markup in
+   both documents, and this one still carried two font-arrow pills for Undo / Redo and a text
+   ▾ for Share. One history capsule with the Material glyphs, and a caret that turns. */
+.p-tgrp-h > .p-ghost{padding:0 14px}
+.p-tgrp > .p-ghost:disabled{opacity:.45;cursor:default;background:transparent}
+.p-chev{width:14px;height:14px;margin-left:-3px;transition:transform var(--ps-motion) var(--ps-ease)}
+.p-ghost[data-on] .p-chev{transform:rotate(180deg)}
+/* AND THE BAR'S BUTTON ROLE. Measured against Campaign, same markup: every ghost in this
+   top bar computed 12px/500 at +.12px where Campaign's compute the kit's button role,
+   14px/600 at +.16px, and Share stood 37 tall beside 36-tall neighbours because nothing gave
+   it a height. Scoped to the bar — the guided form sizes its own buttons. */
+.p-top .p-ghost{font-size:14px;font-weight:600;letter-spacing:.16px}
+.p-top > .p-ghost,.p-top .p-share > .p-ghost{height:36px;box-sizing:border-box}
+
+/* ── THE TOP BAR HAS TO FIT ITS VIEWPORT. At 1440 wide Campaign's bar measured 1524 — Share
+   sat 84px off the right edge, reachable only by scrolling a bar nobody knows scrolls; it
+   arrived with the Design | Copy switch. Three moves, in this order of cost:
+   Undo and Redo are ICONS (the glyphs are the universal ones, and both carry a title and an
+   aria-label), the gaps drop 14 -> 10, and below 1400 the delivery trio keeps its icons and
+   drops its words — each cell names itself in its title. The trio's glyphs are 15px fixed
+   (.p-bic), so font-size:0 removes only the words. Below ~1150 the bar still scrolls, as
+   recorded, rather than dropping a control. */
+.p-top{gap:10px}
+.p-tgrp-h > .p-ghost{width:40px;padding:0;justify-content:center;gap:0}
+@media (max-width:1399px){
+  .p-top .p-tgrp:not(.p-tgrp-h) > .p-ghost{font-size:0;gap:0;padding:0 11px;letter-spacing:0}
+}
 </style>
 </helmet>
 
@@ -3235,9 +3283,9 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
   <div class="p-tgrp">
   <button onClick="{{ openSplash }}" class="p-ghost p-ico-t" title="Projects"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-177.23v-285.54L200-607.54v278.62q0 3.07 1.54 5.77 1.54 2.69 4.61 4.61L450-177.23Zm60 0 243.85-141.31q3.07-1.92 4.61-4.61 1.54-2.7 1.54-5.77v-278.62L510-462.77v285.54Zm-30-337.23 247-142.77-240.85-139.31q-3.07-1.92-6.15-1.92-3.08 0-6.15 1.92L233-657.23l247 142.77ZM176.16-265.85q-17.08-9.84-26.62-26.3-9.54-16.47-9.54-36.16v-303.38q0-19.69 9.54-36.16 9.54-16.46 26.62-26.3l267.69-154.08q17.07-9.85 36.15-9.85t36.15 9.85l267.69 154.08q17.08 9.84 26.62 26.3 9.54 16.47 9.54 36.16v303.38q0 19.69-9.54 36.16-9.54 16.46-26.62 26.3L516.15-111.77q-17.07 9.85-36.15 9.85t-36.15-9.85L176.16-265.85ZM480-480Z"/></svg>Projects</button>
   <sc-if value="{{ folderOn }}" hint-placeholder-val="{{ true }}">
-    <button onClick="{{ chooseFolder }}" class="p-ghost p-ico-t"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ rootFolderLabel }}</button>
+    <button onClick="{{ chooseFolder }}" class="p-ghost p-ico-t" title="{{ rootFolderLabel }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ rootFolderLabel }}</button>
   </sc-if>
-  <button onClick="{{ saveSession }}" class="p-ghost p-ico-t" data-on="{{ dirtyOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></svg>{{ saveLabel }}</button>
+  <button onClick="{{ saveSession }}" class="p-ghost p-ico-t" data-on="{{ dirtyOn }}" title="{{ saveLabel }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></svg>{{ saveLabel }}</button>
   </div>
   <!-- GUIDED IS THE MAIN WINDOW; the full editor is the other half of this one switch.
        Rendered only while one of the two workspaces is on screen. -->
@@ -3249,10 +3297,15 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
   </sc-if>
   <div class="p-spring"></div>
   <button onClick="{{ shThemeToggle }}" class="p-ghost p-ico-t p-ico-o" title="{{ shThemeTitle }}" aria-label="{{ shThemeTitle }}"><sc-if value="{{ shThemeIsDark }}" hint-placeholder-val="{{ true }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-760.16q-8.62-8.63-8.62-21.38v-87.69q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.69q0 12.75-8.63 21.38-8.63 8.62-21.38 8.62-12.76 0-21.37-8.62Zm213.23 88.31q-8.31-8.3-8.12-20.57.19-12.27 8.5-21.58l61-62.38q9.03-9.31 21.44-9.31 12.41 0 21.8 9.39 8.61 8.61 8.61 20.99 0 12.39-8.7 21.08L714-671.85q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7ZM781.54-450q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h87.69q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62h-87.69ZM458.62-69.4Q450-78.02 450-90.77v-87.31q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.31q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM246.39-671.85l-62.77-61.38q-9.31-8.99-9.31-21.73 0-12.73 9.31-21.42 8.69-8.31 21.33-8.31 12.64 0 20.82 8.31l62.77 62.77q8.31 8.18 8.31 20.82t-8.23 20.94q-8.98 8.31-20.95 8.31-11.98 0-21.28-8.31Zm487.23 488.23L672.23-246q-8.31-9.31-8.5-21.58-.19-12.27 8.04-20.57 8.23-8.31 20.58-8.31 12.34 0 21.65 8.69l62.38 61.39q8.93 8.3 8.62 20.88-.31 12.58-8.73 21.88-9.19 9.31-21.83 9.31-12.65 0-20.82-9.31ZM90.77-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q78.02-510 90.77-510h87.69q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H90.77ZM184-183.62q-8.31-8.69-8.5-21.27-.19-12.57 8.12-20.88l62-62q8.69-8.69 20.77-8.69 12.07 0 21.38 8.61 9.31 9.39 9.31 21.66t-9.31 21.57l-61 61q-9.31 9.31-21.95 9.31-12.64 0-20.82-9.31Zm140.23-140.52Q260-388.28 260-479.91q0-91.63 64.14-155.86Q388.28-700 479.91-700q91.63 0 155.86 64.14Q700-571.72 700-480.09q0 91.63-64.14 155.86Q571.72-260 480.09-260q-91.63 0-155.86-64.14ZM593-367q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47ZM480-480Z"/></svg></sc-if><sc-if value="{{ shThemeIsLight }}" hint-placeholder-val="{{ false }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></sc-if></button>
-  <button onClick="{{ undo }}" class="p-btn-q" disabled="{{ undoOff }}">↺ Undo</button>
-  <button onClick="{{ redo }}" class="p-btn-q" disabled="{{ redoOff }}">↻ Redo</button>
+  <!-- Undo and Redo are one history group in the delivery trio's own capsule, with the
+       Material undo/redo glyphs in place of two font arrows — the bar's icons are all
+       Material Rounded at wght300 and these were the last two that were not. -->
+  <div class="p-tgrp p-tgrp-h">
+    <button onClick="{{ undo }}" class="p-ghost p-ico-t" disabled="{{ undoOff }}" title="Undo" aria-label="Undo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M318.08-220q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h257.07q62.62 0 107.77-41.35 45.16-41.34 45.16-102.11 0-60.77-45.16-101.93-45.15-41.15-107.77-41.15H294.31l90.23 90.23q8.69 8.7 8.69 21.08 0 12.38-8.69 21.08-8.69 8.69-21.27 8.5-12.58-.2-20.88-8.5L205.31-571.23q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l137.08-137.07q8.69-8.69 21.07-8.69 12.39 0 21.08 8.69 8.69 8.69 8.5 21.27-.19 12.57-8.5 20.88l-90.23 90.23h280.84q87.77 0 150.35 58.58t62.58 144.5q0 85.92-62.58 144.69T575.15-220H318.08Z"/></svg></button>
+    <button onClick="{{ redo }}" class="p-ghost p-ico-t" disabled="{{ redoOff }}" title="Redo" aria-label="Redo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M665.69-566.54H384.85q-62.62 0-107.77 41.15-45.16 41.16-45.16 101.93 0 60.77 45.16 102.11Q322.23-280 384.85-280h257.07q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62H384.85q-87.77 0-150.35-58.77t-62.58-144.69q0-85.92 62.58-144.5t150.35-58.58h280.84l-90.23-90.23q-8.31-8.31-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69l137.08 137.07q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L617.61-434.15q-8.3 8.3-20.88 8.5-12.58.19-21.27-8.5-8.69-8.7-8.5-21.08.19-12.38 8.5-20.69l90.23-90.62Z"/></svg></button>
+  </div>
   <div class="p-share">
-    <button onClick="{{ shToggleShare }}" class="p-ghost p-ico-t" data-on="{{ shShareOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM338.08-207.23 231.15-100.31q-8.92 8.92-21.07 8.81-12.16-.12-21.08-9.42-8.31-8.93-8.42-21.08-.12-12.15 8.81-21.08L296.31-250h-74.62q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h140.23q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v140.23q0 12.75-8.63 21.38-8.63 8.62-21.39 8.62-12.75 0-21.37-8.62-8.61-8.63-8.61-21.38v-73.61ZM188.62-406.32q-8.62-8.62-8.62-21.37v-360q0-29.83 21.24-51.07Q222.48-860 252.31-860H570l210 210v477.69q0 29.83-21.24 51.07Q737.52-100 707.69-100H515.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h191.92q5.39 0 8.85-3.46t3.46-8.85V-620H575.99q-15.3 0-25.64-10.35Q540-640.7 540-656v-144H252.31q-5.39 0-8.85 3.46t-3.46 8.85v360q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Z"/></svg>Share ▾</button>
+    <button onClick="{{ shToggleShare }}" class="p-ghost p-ico-t" data-on="{{ shShareOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM338.08-207.23 231.15-100.31q-8.92 8.92-21.07 8.81-12.16-.12-21.08-9.42-8.31-8.93-8.42-21.08-.12-12.15 8.81-21.08L296.31-250h-74.62q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h140.23q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v140.23q0 12.75-8.63 21.38-8.63 8.62-21.39 8.62-12.75 0-21.37-8.62-8.61-8.63-8.61-21.38v-73.61ZM188.62-406.32q-8.62-8.62-8.62-21.37v-360q0-29.83 21.24-51.07Q222.48-860 252.31-860H570l210 210v477.69q0 29.83-21.24 51.07Q737.52-100 707.69-100H515.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h191.92q5.39 0 8.85-3.46t3.46-8.85V-620H575.99q-15.3 0-25.64-10.35Q540-640.7 540-656v-144H252.31q-5.39 0-8.85 3.46t-3.46 8.85v360q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Z"/></svg>Share<svg class="mk-g p-bic p-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button>
     <sc-if value="{{ shShareOn }}" hint-placeholder-val="{{ false }}">
       <div class="p-share-m">
   <div class="p-rule"></div>
@@ -3354,7 +3407,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
     <div class="p-cap" style="margin-top:14px">Wordmark <s>active page</s></div>
     <div class="p-opts"><sc-for list="{{ csLogoOpts }}" as="lo" hint-placeholder-count="3">
       <button onClick="{{ lo.set }}" data-on="{{ lo.on }}" class="p-opt">
-        <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="{{ lo.icon }}"/></svg></span>
+        <span class="p-mini p-mini-i"><em class="p-mini-m" style="{{ lo.iconStyle }}" aria-hidden="true"></em></span>
         <span class="p-opt-l">{{ lo.label }}</span>
       </button>
     </sc-for></div>
@@ -3826,7 +3879,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <sc-if value="{{ a.row.isOpt }}" hint-placeholder-val="{{ false }}">
                   <div class="p-opts"><sc-for list="{{ a.row.segs }}" as="o" hint-placeholder-count="2">
                     <button onClick="{{ o.set }}" data-on="{{ o.on }}" class="p-opt">
-                      <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="{{ o.icon }}"/></svg></span>
+                      <span class="p-mini p-mini-i"><em class="p-mini-m" style="{{ o.iconStyle }}" aria-hidden="true"></em></span>
                       <span class="p-opt-l">{{ o.label }}</span>
                     </button>
                   </sc-for></div>
@@ -3859,6 +3912,22 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 </sc-if>
                 <sc-if value="{{ a.row.isInput }}" hint-placeholder-val="{{ true }}">
                   <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" class="gd-big" placeholder="Type your answer here…">
+                </sc-if>
+                <!-- ONE FIELD PER POINT. It was a single field with the points separated by a
+                     bar, which nobody could discover and which ate a space on every edit. -->
+                <sc-if value="{{ a.row.isPts }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-pts" data-pts="{{ a.row.ptsKey }}">
+                    <sc-for list="{{ a.row.pts }}" as="pt" hint-placeholder-count="2">
+                      <div class="gd-pt">
+                        <input value="{{ pt.val }}" onChange="{{ pt.set }}" onBlur="{{ pt.tidy }}" class="gd-big" placeholder="A short point" aria-label="{{ pt.aria }}">
+                        <button onClick="{{ pt.del }}" class="gd-pt-x" title="Remove this point" aria-label="Remove this point"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+                      </div>
+                    </sc-for>
+                    <div class="gd-pt-f">
+                      <sc-if value="{{ a.row.ptsAddOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ a.row.ptsAdd }}" class="gd-pt-add">+ Add a point</button></sc-if>
+                      <span class="gd-count2">{{ a.row.ptsCount }}</span>
+                    </div>
+                  </div>
                 </sc-if>
                 <sc-if value="{{ a.row.isArea }}" hint-placeholder-val="{{ false }}">
                   <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
@@ -5385,6 +5454,21 @@ class OrganicStudio extends StudioBase {
   // glyphs genuinely differ — Outlined draws square bar ends — and one Outlined tile beside a
   // rail of Rounded ones is the inconsistency the icon pass warns about. Three strings here.)
   static CS_HIDEICON = 'M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z';
+  // A TILE'S GLYPH IS A MASK, NOT AN INTERPOLATED PATH. A path whose `d` was a DC value logged a
+  // path-parse error on every load: the browser reads the attribute before DC fills it in —
+  // the trap the SWIPE chevron and the brass button record. The glyph varies per tile, so it
+  // cannot be baked in either; it travels as a base64 SVG in a style OBJECT (base64 leaves no
+  // camel-cased attribute name for DC to mangle, and an object is never split on `;`), with
+  // currentColor as the fill, so a tile's ON ink still reaches it.
+  static maskIcon(d) {
+    if (!d) return { display: 'none' };
+    const M = OrganicStudio._maskCache || (OrganicStudio._maskCache = {});
+    if (!M[d]) {
+      const u = 'url("data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="960" height="960"><path transform="translate(0 960)" d="' + d + '"/></svg>') + '")';
+      M[d] = { WebkitMaskImage: u, maskImage: u };
+    }
+    return M[d];
+  }
   static CS_POSICON = {
     Top: 'M308.65-124.81q-14.8-14.81-14.8-35.58v-488.07q0-20.77 14.8-35.58 14.81-14.8 35.58-14.8 20.77 0 35.58 14.8 14.8 14.81 14.8 35.58v488.07q0 20.77-14.8 35.58Q365-110 344.23-110q-20.77 0-35.58-14.81Zm271.54-240q-14.8-14.81-14.8-35.58v-248.07q0-20.77 14.8-35.58 14.81-14.8 35.58-14.8 20.77 0 35.58 14.8 14.8 14.81 14.8 35.58v248.07q0 20.77-14.8 35.58Q636.54-350 615.77-350q-20.77 0-35.58-14.81ZM130-790.38q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.39q8.61-8.61 21.38-8.61h700q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H130Z',
     Centre: 'M306.73-154.81q-14.81-14.81-14.81-35.58V-450H130q-12.77 0-21.38-8.62Q100-467.23 100-480t8.62-21.38Q117.23-510 130-510h161.92v-259.61q0-20.77 14.81-35.58Q321.54-820 342.31-820q20.77 0 35.57 14.81 14.81 14.81 14.81 35.58V-510h174.62v-139.61q0-20.77 14.81-35.58Q596.92-700 617.69-700t35.58 14.81q14.81 14.81 14.81 35.58V-510H830q12.77 0 21.38 8.62Q860-492.77 860-480t-8.62 21.38Q842.77-450 830-450H668.08v139.61q0 20.77-14.81 35.58Q638.46-260 617.69-260q-20.77 0-35.57-14.81-14.81-14.81-14.81-35.58V-450H392.69v259.61q0 20.77-14.81 35.58Q363.08-140 342.31-140t-35.58-14.81Z',
@@ -6071,7 +6155,7 @@ class OrganicStudio extends StudioBase {
   // gdStep and gdAsk are the run's POSITION. They were not stripped, so every Next pushed
   // an undo entry (the stack is 5 deep) and re-keyed the guided card cache, re-rendering
   // every slide on each move. Where you are standing is not a change to the post.
-  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.gdStep; delete c.gdAsk; return JSON.stringify(c); }
+  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.pid; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.gdStep; delete c.gdAsk; return JSON.stringify(c); }
   upd(fn) {
     this.markDirty();
     this.setState(prev => {
@@ -6085,7 +6169,11 @@ class OrganicStudio extends StudioBase {
     });
   }
   restore(st) {
-    const n = Object.assign({}, st, { screen: 'editor' });
+    // Undo stays in the workspace it was pressed in — it used to force 'editor', so an
+    // Undo on the guided screen threw the user out to All controls. An entry taken before
+    // the first save carries no project identity, so today's is kept.
+    const cur = this.state || {};
+    const n = Object.assign({}, st, { screen: cur.screen === 'guide' ? 'guide' : 'editor', pid: cur.pid || st.pid });
     try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(n)); } catch (e) {}
     this.setState(n);
   }
@@ -7013,6 +7101,31 @@ class OrganicStudio extends StudioBase {
   // to offers" — and each point is one chip, in tracked caps. A USP with no bar is one chip.
   propUsps(f) {
     return String(f.usp || '').split('|').map(t => t.trim().replace(/\s+/g, ' ')).filter(Boolean).map(t => t.toUpperCase());
+  }
+  // A POINTS FIELD IS EDITED AS ONE INPUT PER POINT, and STORED as the same bar-joined
+  // string `propUsps` has always read — so the canvas, a saved project and a session file
+  // are all unchanged, and nobody has to know the bar exists. The parts are kept EXACTLY
+  // as typed, trailing space included: trimming them on the way back into the input is
+  // the controlled-input bug that ate the space before every second word. Only a leading
+  // space is dropped, which is what an old "a | b" string carries after the bar.
+  static PTS_MAX = 6;
+  // A STRING WITH " | " IN IT WAS WRITTEN BY HAND, before this field existed: ptsJoin never
+  // puts a space on both sides of a bar, because a point never starts with one. So that
+  // shape is read fully trimmed — or every old point shows up in its field with a trailing
+  // space — and everything else keeps its trailing space, which is what is being typed.
+  static ptsOf(raw) {
+    const s = String(raw == null ? '' : raw);
+    if (s === '') return [];
+    const legacy = s.indexOf(' | ') >= 0;
+    return s.split('|').map(t => legacy ? t.trim() : t.replace(/^\s+/, ''));
+  }
+  // ONE EMPTY POINT IS A SPACE, not an empty string: '' is "no points at all", so a first
+  // point added and not yet typed into would otherwise vanish the moment it was added.
+  // The canvas trims it away and the gate still asks for it, so it can never ship.
+  static ptsJoin(parts) {
+    if (!parts.length) return '';
+    const j = parts.map(t => String(t).replace(/\|/g, ' ')).join('|');
+    return j === '' ? ' ' : j;
   }
   propTitleWrapped(f, tk, bw) {
     const t = this.propTitle(f);
@@ -9570,14 +9683,14 @@ class OrganicStudio extends StudioBase {
     // status says Just listed (`fieldShown`): a sold property is neither for sale nor for
     // rent, and the period only exists once Rent is picked. `seg:` stays the LAST flag.
     listed:[['status', 1, 'Status', 'seg:Just listed|Just sold', ''],
-            ['usp', 1, 'Marketing USP', 'req', 'Separate points with | \u2014 e.g. Fully Fitted | Full-Floor | Canal Views. Each becomes a chip at the top of the panel'],
+            ['usp', 1, 'Marketing USP', 'req pts', 'One point per field \u2014 e.g. Fully Fitted, Full-Floor, Canal Views. Each becomes a chip at the top of the panel'],
             ['ptype', 1, 'Property type', 'req sel@ptypes', ''],
             ['deal', 1, 'For sale or rent', 'seg:Sale|Rent', 'Reads \u201CApartment for Rent in \u2026\u201D on the card'],
             ['per', 1, 'Rent period', 'seg:Year|Month', 'The price shows /year or /month'],
             ['building', 1, 'Location', 'req', 'e.g. Building 12, Bay Square \u2014 Title Case; a word typed in CAPITALS stays in capitals'],
             ['price', 2, 'Price in AED', 'req num', 'Numbers only \u2014 shown as AED 12 Million'],
             ['listno', 3, 'Listing number', 'req digits img', 'Numbers only']],
-    prop:  [['usp', 1, 'Marketing USP', '', 'Separate points with | \u2014 e.g. Marina view | Vacant | Open to offers. Each becomes a chip above the title'],
+    prop:  [['usp', 1, 'Marketing USP', 'pts', 'One point per field \u2014 e.g. Marina view, Vacant, Open to offers. Each becomes a chip above the title'],
             ['ptype', 1, 'Property type', 'req sel@ptypes', ''],
             ['building', 1, 'Community / building', 'req', 'Title Case — a word typed in CAPITALS stays in capitals'],
             ['city', 1, 'City', 'req sel@city', ''],
@@ -10406,6 +10519,16 @@ class OrganicStudio extends StudioBase {
   }
   gdAskIndex() { return Math.max(0, Math.min(this.guideAsks().length - 1, this.state.gdAsk || 0)); }
   // What this one ask is short of — an empty string when it is satisfied.
+  // A new point lands EMPTY with the cursor in it — the canvas already ignores an empty
+  // point, so nothing has to be typed over and no placeholder can ship as copy.
+  ptsFocusLast(key) {
+    setTimeout(() => {
+      const box = [...document.querySelectorAll('.gd-pts')].find(b => b.getAttribute('data-pts') === key);
+      const ins = box ? box.querySelectorAll('input') : [];
+      const el = ins.length ? ins[ins.length - 1] : null;
+      if (el) { el.focus(); try { el.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+    }, 60);
+  }
   gdAskIssue(ask) {
     if (!ask) return '';
     // Refinement is a judgement, never a requirement. Export reports the whole gate.
@@ -10436,7 +10559,9 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'qr') return filled[ask.qrId] ? '' : 'The QR code is needed here.';
     const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
     if (!f) return '';
-    const v = String(sl.f[ask.k] == null ? '' : sl.f[ask.k]).trim();
+    const v = /(^|\s)pts(\s|$)/.test(f.flags)
+      ? OrganicStudio.ptsOf(sl.f[ask.k]).map(t => t.trim()).filter(Boolean).join('|')
+      : String(sl.f[ask.k] == null ? '' : sl.f[ask.k]).trim();
     if (!v) return 'This one is required.';
     if (f.flags.indexOf('len11') >= 0 && v.replace(/\D/g, '').length !== 11) return 'That needs to be exactly 11 digits.';
     return '';
@@ -10682,16 +10807,18 @@ class OrganicStudio extends StudioBase {
   }
   async saveSessionFile() {
     const name = this.projName();
+    await this.ensurePid();                       // the file carries the project's identity
     if (this.folderSupported()) {
       const h = await this.folderOpen(true);
       if (h) {
         const ok = await this.writeProject(await this.projectFiles(name));
-        if (ok) { this.markSaved(); this.setState({ exportStatus: 'Saved "' + name + '" into "' + this.folderName() + '" · session + Assets' }); }
+        if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Saved "' + name + '" into "' + this.folderName() + '" · session + Assets' }); }
         return;
       }
     }
     const files = await this.projectFiles(name);
     this.markSaved();
+    this.recordSaved();
     this.download(new Blob([files[0].data], { type: 'application/json' }), name + '.smpstudio.json');
     this.setState({ exportStatus: 'Saved ' + name + '.smpstudio.json — pick a source folder to keep Assets alongside it.' });
   }
@@ -10780,7 +10907,8 @@ class OrganicStudio extends StudioBase {
     this._thumbing = false;
     this.forceUpdate();
   }
-  async snapshotCurrent() {
+  // The card a SAVE writes — `recordSaved` in studio-base.js is the only caller.
+  async recentEntry() {
     let sidecar = {};
     try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sidecar = await r.json(); } catch (e) {}
     const own = {};
@@ -10797,10 +10925,7 @@ class OrganicStudio extends StudioBase {
         thumbs.push(c.toDataURL('image/webp', 0.72));
       }
     } catch (e) {}
-    const entry = { name: this.baseName() || 'Untitled', ts: Date.now(), state: st, images: own, thumbs };
-    let rec = this.readRecents().filter(r => r.name !== entry.name);
-    rec.unshift(entry); rec = rec.slice(0, StudioBase.RECENT_MAX);
-    await this.writeRecents(rec);
+    return { name: this.baseName() || 'Untitled', ts: Date.now(), state: st, images: own, thumbs };
   }
   async applyProject(state, images) {
     try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(state)); localStorage.setItem('smp-resume', '1'); } catch (e) {}
@@ -10814,8 +10939,9 @@ class OrganicStudio extends StudioBase {
     this.reloadNow();
   }
   async pickTpl(t) {
-    await this.snapshotCurrent();
+    if (!this.confirmDiscard()) return;
     const d = OrganicStudio.defaults();
+    d.pid = StudioBase.newPid();
     // A new post starts in the step-by-step run, not in the full editor.
     d.screen = 'guide';
     d.gdStep = 0;
@@ -10825,10 +10951,10 @@ class OrganicStudio extends StudioBase {
     await this.applyProject(d, {});
   }
   async openRecent(i) {
-    const r = this.readRecents()[i];
+    const r = this.savedRecents()[i];
     if (!r) return;
-    await this.snapshotCurrent();
-    await this.applyProject(r.state, r.images || {});
+    if (!this.confirmDiscard()) return;
+    await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), r.images || {});
   }
 
   // ---------- views ----------
@@ -12229,7 +12355,7 @@ class OrganicStudio extends StudioBase {
       removeStyle: { display: canRemove(si) ? 'block' : 'none', background: 'transparent', border: 'none', color: 'var(--ps-bad)', fontSize: '12px', cursor: 'pointer', flex: 'none' }
     }));
 
-    const recents = this.readRecents();
+    const recents = this.savedRecents();
     return {
       // ── the step-by-step run ────────────────────────────────────────────────
       onGuide: s.screen === 'guide',
@@ -12321,7 +12447,8 @@ class OrganicStudio extends StudioBase {
           const slide = slides[si];
           const raw = slide.f[f.k] == null ? '' : String(slide.f[f.k]);
           const req = f.flags.indexOf('req') >= 0;
-          const bad = req && (!raw.trim() || (f.flags.indexOf('len11') >= 0 && raw.replace(/\D/g, '').length !== 11));
+          const bad = req && (!(new RegExp('(^|\\s)pts(\\s|$)').test(f.flags) ? raw.trim() : OrganicStudio.ptsOf(raw).some(t => t.trim()))
+            || (f.flags.indexOf('len11') >= 0 && raw.replace(/\D/g, '').length !== 11));
           // `seg:` values CONTAIN spaces ("Just listed|Just sold"), so take everything
           // after the marker — it is always the last flag. Splitting on the first space
           // here offered a single option labelled "Just". The rail's parser was fixed for
@@ -12349,6 +12476,7 @@ class OrganicStudio extends StudioBase {
           const flag = n => new RegExp('(^|\\s)' + n + '(\\s|$)').test(f.flags);
           const isScrim = flag('scrim');
           const isPermit = flag('permit');
+          const isPts = flag('pts');
           const isHi = flag('hi');
           const words = f.flags.indexOf('w40') >= 0 ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
           // the rail's own read-outs on the two long fields: words against the blurb's cap,
@@ -12385,8 +12513,20 @@ class OrganicStudio extends StudioBase {
             reqOn: req ? '1' : undefined, badOn: bad ? '1' : undefined,
             isSeg: !!seg && !segOpt, isOpt: segOpt, isSel: !!opts, isStep, isRich,
             isScrim, isPermit,
-            isArea: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && f.flags.indexOf('area') >= 0,
-            isInput: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && f.flags.indexOf('area') < 0,
+            isArea: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPts && f.flags.indexOf('area') >= 0,
+            isInput: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPts && f.flags.indexOf('area') < 0,
+            // ONE INPUT PER POINT, the copy view's own list control — see `ptsOf`
+            isPts,
+            ptsKey: si + ':' + f.k,
+            pts: isPts ? OrganicStudio.ptsOf(raw).map((t, pi, all) => ({ val: t, aria: f.t + ', point ' + (pi + 1),
+              set: e => { const a = OrganicStudio.ptsOf(this.state.slides[si].f[f.k]); a[pi] = e.target.value; write(OrganicStudio.ptsJoin(a)); },
+              // leaving a point tidies it: the space kept while typing goes, once
+              tidy: () => { const a = OrganicStudio.ptsOf(this.state.slides[si].f[f.k]); const b = a.map(t => t.trim());
+                if (a.some((t, ti) => t !== b[ti])) write(OrganicStudio.ptsJoin(b)); },
+              del: () => { const a = OrganicStudio.ptsOf(this.state.slides[si].f[f.k]); a.splice(pi, 1); write(OrganicStudio.ptsJoin(a)); } })) : [],
+            ptsAddOn: isPts && OrganicStudio.ptsOf(raw).length < OrganicStudio.PTS_MAX,
+            ptsAdd: () => { const a = OrganicStudio.ptsOf(this.state.slides[si].f[f.k]); a.push(''); write(OrganicStudio.ptsJoin(a)); this.ptsFocusLast(si + ':' + f.k); },
+            ptsCount: isPts ? (OrganicStudio.ptsOf(raw).filter(t => t.trim()).length + ' of ' + OrganicStudio.PTS_MAX + ' points') : '',
             // the editor is addressed by this key alone, so the toolbar's handler needs no
             // closure over the element and survives every re-render
             rtKey: si + ':' + f.k,
@@ -12408,7 +12548,7 @@ class OrganicStudio extends StudioBase {
             // they are different pages, and `pos` was the only field this ever resolved.
             segs: (seg || []).map(o => ({ label: o,
               on: (OrganicStudio.isCs(slide.kind) ? OrganicStudio.csSegVal(slide.kind, slide.f, f.k) : raw) === o ? '1' : undefined,
-              icon: OrganicStudio.CS_POSICON[o] || '', set: () => write(o) })),
+              icon: OrganicStudio.CS_POSICON[o] || '', iconStyle: OrganicStudio.maskIcon(OrganicStudio.CS_POSICON[o]), set: () => write(o) })),
             opts: (opts || []).map(v => ({ v })),
             // the rail's dropdowns can add a new entry to the list; keep that here
             setSel: e => {
@@ -12587,7 +12727,9 @@ class OrganicStudio extends StudioBase {
       ].map(tp => Object.assign({ name: tp.name, desc: tp.desc, slidesDesc: tp.slidesDesc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       continueSession: () => this.upd(x => { x.screen = 'editor'; return x; }),
-      openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); },
+      // Leaving without saving is ANSWERED here, once: the working copy stays behind as
+      // Continue last, and picking something else from the splash does not ask again.
+      openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved(); },
       recentsView: recents.map((r, i) => {
         const th = r.thumbs || [], n = (r.state && r.state.slides || []).length;
         return {
@@ -12600,7 +12742,7 @@ class OrganicStudio extends StudioBase {
           frames: th.map(u => ({ shot: { backgroundImage: `url("${u}")` } })),
           reelStyle: StudioBase.reelTiming(th.length || 1),
           name: r.name,
-          meta: new Date(r.ts).toLocaleDateString() + ' · ' + (TPLNAMES[(r.state && r.state.tpl) || 'weekly']),
+          meta: 'Saved ' + new Date(r.ts).toLocaleDateString() + ' · ' + (TPLNAMES[(r.state && r.state.tpl) || 'weekly']),
           load: () => this.openRecent(i)
         };
       }),
@@ -12671,6 +12813,7 @@ class OrganicStudio extends StudioBase {
       csLogoOn: (s.tpl === 'carousel' && OrganicStudio.csEyeKind(asl.kind)) ? '1' : undefined,
       csLogoOpts: ['Hide', 'Top', 'Bottom'].map(o => ({ label: o, on: ((asl.f && asl.f.logoPos) || 'Hide') === o ? '1' : undefined,
         icon: o === 'Hide' ? OrganicStudio.CS_HIDEICON : OrganicStudio.CS_POSICON[o],
+        iconStyle: OrganicStudio.maskIcon(o === 'Hide' ? OrganicStudio.CS_HIDEICON : OrganicStudio.CS_POSICON[o]),
         set: () => this.upd(x => { const t = x.slides[asi]; if (t) { t.f = t.f || {}; t.f.logoPos = o; } return x; }) })),
       csTiles: (() => {
         if (s.tpl !== 'carousel') return [];

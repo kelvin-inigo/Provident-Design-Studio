@@ -341,6 +341,58 @@ class StudioBase {
   }
   static RECENT_MAX = 10;
   readRecents() { return this._recents || []; }
+  // RECENTS ARE SAVED PROJECTS, AND NOTHING ELSE. They used to be written when you LEFT a
+  // project for another one — picking a template, starting a new one, opening a recent —
+  // so a project that was only ever opened sat on the splash beside the ones that had
+  // been saved, and a project that WAS saved did not appear until something else was
+  // opened. An entry is written by a save now (`recordSaved`) and by opening a session
+  // file, which is a save someone already made. Entries written by the old rule carry
+  // no `saved` flag and are hidden, not deleted: nothing can tell a saved one apart
+  // among them, and the session files themselves are still in their folders.
+  savedRecents() { return this.readRecents().filter(r => r && r.saved); }
+  // A project's identity across saves, renames and sessions — so saving again replaces
+  // its card instead of adding a second one, and two projects that happen to share a
+  // name ("Untitled") are two cards. It rides in the state and in the session file.
+  static newPid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  ensurePid() {
+    if (this.state.pid) return Promise.resolve(this.state.pid);
+    const pid = StudioBase.newPid();
+    return new Promise(res => this.setState({ pid }, () => {
+      const sp = StudioBase.SESSIONS[this.sessionApp()];
+      try { if (sp) localStorage.setItem(sp.key, JSON.stringify(this.state)); } catch (e) {}
+      res(pid);
+    }));
+  }
+  // One-shot: a session file opened in this browser is recorded as a saved project on
+  // the load that follows it. The loader cannot do it itself — it ends in a reload, and
+  // the thumbnail has to be rendered by the engine the file is opened into.
+  recSavedKey(sp) { sp = sp || StudioBase.SESSIONS[this.sessionApp()]; return sp ? sp.key + ':recsave' : ''; }
+  // A canvas never pulls a webfont, so a thumbnail rendered before the face has landed
+  // is drawn in the fallback and cached that way.
+  async warmFaces() {
+    const fam = window.providentFontFam || 'Google Sans Flex';
+    const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+    try { await Promise.all(['300 41px', '400 59px', '300 92px', '500 24px', '400 50px', '300 34px', '400 30px'].map(w => safe(w + ' "' + fam + '"'))); } catch (e) {}
+    try { await document.fonts.ready; } catch (e) {}
+  }
+  // Write the CURRENT project into recents as a saved one — first in the list, replacing
+  // its own earlier card — and refresh the splash's copy of the list at once, so going
+  // to Projects straight after a save shows it without a reload.
+  async recordSaved() {
+    if (!this.recentEntry) return;
+    const pid = await this.ensurePid();
+    await this.warmFaces();
+    let entry;
+    try { entry = await this.recentEntry(); } catch (e) { console.warn('[provident] recent entry failed', e); return; }
+    if (!entry) return;
+    entry.saved = true; entry.pid = pid; entry.ts = Date.now();
+    if (entry.state) entry.state.pid = pid;
+    const rec = this.readRecents();
+    const next = [entry].concat(rec.filter(r => r && r.saved && r.pid !== pid)).slice(0, StudioBase.RECENT_MAX)
+      .concat(rec.filter(r => r && !r.saved));
+    await this.writeRecents(next);
+    this.forceUpdate();
+  }
   async loadRecents() {
     let rec = null;
     const rt = window.providentRuntime;
@@ -352,6 +404,10 @@ class StudioBase {
     }
     this._recents = rec || [];
     this.forceUpdate();
+    const k = this.recSavedKey();
+    let pend = false;
+    try { pend = !!k && localStorage.getItem(k) === '1'; if (pend) localStorage.removeItem(k); } catch (e) {}
+    if (pend) this.recordSaved();
   }
   async writeRecents(rec) {
     this._recents = rec;
@@ -815,6 +871,7 @@ class StudioBase {
       try {
         localStorage.setItem(spec.key, JSON.stringify(Object.assign(d.state, { exportStatus: '' })));
         localStorage.setItem(spec.resume, '1');
+        localStorage.setItem(this.recSavedKey(spec), '1');
       } catch (e) {
         fail('"' + label + '" could not be opened — the browser refused to store it (' + (e && e.name || e) + '). Free some space and try again.');
         return;
@@ -918,9 +975,11 @@ class StudioBase {
     const f = this.folderApi();
     const h = await this.folderOpen(false);
     if (h) {
+      await this.ensurePid();
       const all = files.concat(await this.projectFiles(name));
       const ok = await this.writeProject(all);
-      if (ok) this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '" · session + Assets refreshed' });
+      // it rewrote the session file beside the renders, so it IS a save
+      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '" · session + Assets refreshed' }); }
       return ok;
     }
     const blob = this.zip(files);

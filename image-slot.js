@@ -573,16 +573,6 @@
       return null;
     }
 
-    /** Move the stored photo (bytes AND crop) from one id to another, clearing
-     *  the source. `toId` is cleared when `fromId` is empty or holds nothing.
-     *
-     *  Exists for hosts that key slots by POSITION — Campaign's variants are
-     *  `adstudio-bg-<index>`, so removing a middle variant shifts every later
-     *  one down a slot and its photo has to follow it, or each survivor shows
-     *  its neighbour's picture. Goes through setSlot so the in-memory store,
-     *  the sidecar write and every bound element stay in step; a host writing
-     *  the sidecar directly would be undone by the next save. Returns false
-     *  before hydration (nothing can be moved safely until load() has run). */
     // Copy one slot's record onto another id, leaving the source in place — a carousel
     // page forked from another page takes its own copy of every graphic and icon file.
     static copySlot(fromId, toId) {
@@ -604,6 +594,16 @@
       if (els.length) { els.forEach(e => e.clearSlot()); return true; }
       setSlot(id, null); return true;
     }
+    /** Move the stored photo (bytes AND crop) from one id to another, clearing
+     *  the source. `toId` is cleared when `fromId` is empty or holds nothing.
+     *
+     *  Exists for hosts that key slots by POSITION — Campaign's variants are
+     *  `adstudio-bg-<index>`, so removing a middle variant shifts every later
+     *  one down a slot and its photo has to follow it, or each survivor shows
+     *  its neighbour's picture. Goes through setSlot so the in-memory store,
+     *  the sidecar write and every bound element stay in step; a host writing
+     *  the sidecar directly would be undone by the next save. Returns false
+     *  before hydration (nothing can be moved safely until load() has run). */
     static moveSlot(fromId, toId) {
       if (!loaded || !toId) return false;
       const v = fromId ? getSlot(fromId) : null;

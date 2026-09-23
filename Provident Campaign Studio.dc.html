@@ -3058,10 +3058,194 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 /* a drop's Remove, under its caption — the quiet red text link, as the hidden list's Delete is */
 .p-drop-t .p-rm{align-self:flex-start;color:var(--ps-bad);background:transparent;border:0;padding:0;font:500 11.5px/1.2 var(--ps-font);cursor:pointer;text-decoration:none}
 .p-drop-t .p-rm:hover{text-decoration:underline}
+
+/* ── 27. THE COPYWRITER'S WORKSPACE ──────────────────────────────────────────────────
+   A form over the real export: the words in reading order on the left, the ad as it
+   will ship on the right. Tokens only, rings not shadows, the guided form's 44px fields
+   on a 16px radius. It sits OVER the editor (fixed under the 55px bar), so switching
+   back to Design loses nothing and nothing in the editor had to learn about it. */
+.p-seg-mode button{min-width:0}
+.p-shell[data-screen="copy"] .p-panelbar,.p-shell[data-screen="copy"] .p-veil{display:none}
+.cw{position:fixed;top:56px;left:0;right:0;bottom:0;z-index:65;display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(360px,46%);background:var(--ps-app);color:var(--ps-ink)}
+.cw-form{overflow-y:auto;min-width:0}
+.cw-in{max-width:660px;margin:0 auto;padding:28px 32px 72px}
+.cw-head{display:flex;flex-direction:column;gap:12px;padding-bottom:8px}
+.cw-kick{font:600 12px/1.2 var(--ps-font);color:var(--ps-dim)}
+.cw input.cw-name{height:auto;padding:4px 0;border:0;border-radius:0;background:transparent;
+  font:400 26px/1.25 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.cw input.cw-name:hover,.cw input.cw-name:focus{background:transparent}
+.cw-steps{display:flex;flex-wrap:wrap;gap:6px}
+.cw-step{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 13px 0 6px;border-radius:var(--ps-pill);
+  background:var(--ps-fill);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font)}
+.cw-step i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 11px/1 var(--ps-font);
+  font-style:normal;background:var(--ps-card);color:var(--ps-ink-2)}
+.cw-step[data-state="done"]{color:var(--ps-ink)}
+/* a SOLID status fill with the opposite ground as ink — a wash composited over the pill
+   measured 3.94:1; --ps-app is near-black in dark and white in light, the inverse of --ps-good */
+.cw-step[data-state="done"] i{background:var(--ps-good);color:var(--ps-app)}
+.cw-step[data-state="cur"]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.cw-step[data-state="cur"] i{background:var(--ps-primary);color:var(--ps-primary-i)}
+.cw-note{margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cw-acts{display:flex;flex-wrap:wrap;gap:8px}
+.cw-since{font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.cw-since[data-on]{color:var(--ps-ink)}
+.cw-msg{font:500 12.5px/1.45 var(--ps-font);color:var(--ps-good)}
+.cw-page{margin-top:18px;padding:6px 20px 10px;border-radius:16px;background:var(--ps-card);
+  box-shadow:0 0 0 1px var(--ps-hair)}
+.cw-page[data-on]{box-shadow:0 0 0 2px var(--ps-link)}
+.cw-page-h{display:flex;align-items:baseline;gap:10px;padding:14px 0 6px}
+.cw-page-h b{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-page-h s{text-decoration:none;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cw-f{display:flex;flex-direction:column;gap:7px;padding:14px 0;border-top:1px solid var(--ps-hair)}
+.cw-page-h + .cw-f,.cw-page > .cw-f:first-child{border-top:0}
+.cw-lab{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font:600 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-hid{text-decoration:none;font:500 11px/1 var(--ps-font);padding:4px 8px;border-radius:var(--ps-pill);
+  background:var(--ps-fill);color:var(--ps-ink-2)}
+.cw .p-in{height:44px;padding:10px 14px;font:400 15px/1.4 var(--ps-font);border-radius:16px}
+.cw textarea.p-in{height:auto;min-height:92px;line-height:1.5;resize:vertical}
+.cw-hint{font:400 12px/1.45 var(--ps-font);color:var(--ps-dim)}
+.cw-count{align-self:flex-end;font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.cw-count[data-over]{color:var(--ps-bad)}
+.cw-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cw-sub{display:flex;flex-direction:column;gap:6px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.cw-sub s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.cw-item{display:flex;align-items:center;gap:8px}
+.cw-item .p-in{flex:1 1 0;min-width:0}
+.cw-x{flex:none;width:36px;height:36px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;
+  background:var(--ps-fill);color:var(--ps-ink-2);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.cw-x:hover{background:var(--ps-bad-q);color:var(--ps-bad)}
+.cw-x svg{width:18px;height:18px;fill:currentColor}
+.cw-add{align-self:flex-start;height:36px;padding:0 14px;border:1px dashed var(--ps-line);border-radius:var(--ps-pill);
+  background:transparent;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.cw-add:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.cw-empty{margin:4px 0 12px;font:400 13px/1.5 var(--ps-font);color:var(--ps-dim)}
+.cw-hist .cw-sub{padding:4px 0 12px}
+.cw-h{padding:14px 0;border-top:1px solid var(--ps-hair)}
+.cw-h-t{display:flex;align-items:center;gap:10px}
+.cw-h-t em{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ps-link)}
+.cw-h[data-state="final"] .cw-h-t em{background:var(--ps-good)}
+.cw-h-t b{font:600 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-h-t s{flex:1 1 auto;min-width:0;text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cw-c{display:flex;flex-direction:column;gap:3px;margin:10px 0 0 18px;font:400 13px/1.45 var(--ps-font)}
+.cw-c span{font:500 11.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.cw-c del{color:var(--ps-dim);white-space:pre-line}
+.cw-c ins{text-decoration:none;color:var(--ps-ink);white-space:pre-line}
+.cw-more{display:block;margin:8px 0 0 18px;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cw-pv{min-width:0;overflow-y:auto;padding:28px;background:var(--ps-stage);border-left:1px solid var(--ps-hair)}
+.cw-pv-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.cw-pv-h b{font:600 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-pv-h s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cw-shots{display:flex;justify-content:center}
+/* ONE square, as large as the column allows and never taller than the screen leaves room
+   for — so the whole ad is on screen beside the words without scrolling the preview */
+.cw-shot{width:min(100%,calc(100vh - 250px));aspect-ratio:1/1;min-width:0;border-radius:12px;background-color:var(--ps-card);
+  background-size:cover;background-position:center;box-shadow:0 0 0 1px var(--ps-hair)}
+.cw-pvt{margin:0 0 14px;flex-wrap:wrap;max-width:100%}
+.cw-lab-r{display:flex;align-items:center;gap:8px}
+.cw-lab-r .cw-lab{flex:1 1 auto;min-width:0}
+.cw-del{width:32px;height:32px;background:transparent;color:var(--ps-dim)}
+.cw-del svg{width:18px;height:18px}
+.cw-f[data-flash]{animation:cwFlash 1.2s var(--ps-ease)}
+@keyframes cwFlash{0%,35%{background:var(--ps-accent-q)}100%{background:transparent}}
+.cw-addp{display:flex;flex-direction:column;gap:10px;padding:16px 0 10px;border-top:1px solid var(--ps-hair)}
+.cw-addp-h{display:flex;flex-direction:column;gap:3px;font:600 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-addp-h s{text-decoration:none;font:400 12px/1.45 var(--ps-font);color:var(--ps-dim)}
+.cw-addg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.cw-addg-l{flex:0 0 58px;font:500 12px/1 var(--ps-font);color:var(--ps-ink-2)}
+.cw-addg .cw-add{align-self:auto}
+.cw-addm{margin:10px 0 6px}
+.cw-undo{margin-left:10px;padding:0;border:0;background:none;color:var(--ps-link);font:600 12.5px/1 var(--ps-font);
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){.cw-f[data-flash]{animation:none}}
+.cw-pv-n{margin:16px 0 0;font:400 12px/1.5 var(--ps-font);color:var(--ps-dim)}
+.p-cvcopy{flex:none;display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border:0;
+  border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-cvcopy::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ps-dim)}
+.p-cvcopy:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.p-cvcopy[data-state="design"]::before{background:var(--ps-link)}
+.p-cvcopy[data-state="final"]::before{background:var(--ps-good)}
+@media (max-width:900px){
+  .cw{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .cw-pv{order:-1;border-left:0;border-bottom:1px solid var(--ps-hair);padding:16px;max-height:38vh}
+  .cw-shot{width:min(100%,calc(38vh - 90px))}
+  .cw-in{padding:20px 16px 56px}
+  .cw-pair{grid-template-columns:1fr}
+}
+
+/* ── 28. ONE FIELD PER ITEM, IN THE RAIL ─────────────────────────────────────────────
+   Tag chips were a comma list and spec columns a "label | value" line each. They are the
+   copy view's own list control now: one field per chip, a label-and-figure pair per
+   column, a quiet remove beside each and a dashed add under the list. The row the icon
+   picker is pointed at carries the link ring. */
+.p-items{display:flex;flex-direction:column;gap:8px}
+.p-item{display:flex;align-items:center;gap:6px}
+.p-item > .p-in,.p-item-f2{flex:1 1 0;min-width:0}
+.p-item-f2{display:flex;flex-direction:column;gap:6px}
+.p-item-2{padding:8px 2px 8px 6px;border-radius:var(--ps-r);box-shadow:0 0 0 1px var(--ps-hair)}
+.p-item-n{flex:none;width:16px;text-align:center;font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.p-item-x{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;
+  background:transparent;color:var(--ps-dim);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.p-item-x:hover{background:var(--ps-bad-q);color:var(--ps-bad)}
+.p-item-x svg{width:18px;height:18px;fill:currentColor}
+.p-item[data-on] > .p-in,.p-item-2[data-on]{box-shadow:0 0 0 1px var(--ps-link)}
+.p-item-f{display:flex;align-items:center;gap:10px;min-height:34px}
+.p-item-f .p-hint{margin-left:auto}
+.p-item-add{height:34px;padding:0 14px;border:1px dashed var(--ps-line);border-radius:var(--ps-pill);
+  background:transparent;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.p-item-add:hover{background:var(--ps-fill);color:var(--ps-ink)}
+
+/* the copy view's drag reorder — a grip before each label, a line where the drop lands */
+.cw-grip{flex:none;width:24px;height:32px;margin-left:-6px;padding:0;border:0;border-radius:8px;display:grid;place-items:center;
+  background:transparent;color:var(--ps-dim);cursor:grab;touch-action:none;
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.cw-grip:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.cw-grip svg{width:18px;height:18px;fill:currentColor}
+.cw-f{position:relative}
+.cw-f[data-drag]{opacity:.45}
+.cw-f[data-drop]::before{content:"";position:absolute;left:-8px;right:-8px;height:2px;border-radius:2px;background:var(--ps-link);pointer-events:none}
+.cw-f[data-drop="before"]::before{top:-1px}
+.cw-f[data-drop="after"]::before{bottom:-1px}
+html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none}
+
+/* ── 29. ONE LABEL SHAPE ACROSS THE COMPONENT RAIL ────────────────────────────────────
+   Six field labels were written "Style variant — per design variant" as one line of text
+   inside a column-flex .p-fld, so the interpolated scope became its own flex item: a
+   dangling em dash on one line and the scope under it. Every field label is the .p-lab row
+   now — name left, the quiet scope pushed right — which is the shape "Space above" and
+   every Layout-rail label already had. Inside a .p-fld the quiet-span rule would otherwise
+   take the whole row, so the row is restated at the label's own weight. */
+.p-rail .p-fld > .p-lab,.p-dock-b .p-fld > .p-lab{font:500 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.p-rail .p-fld > .p-lab > s,.p-dock-b .p-fld > .p-lab > s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+/* A hex code belongs in caps; the words that stand in for one do not. "Canvas ink" as a
+   placeholder read CANVAS INK, the one all-caps run left in the chrome. */
+.p-hexin::placeholder{text-transform:none}
+/* The open dock is the thing being worked in, so it sits over the floating component
+   control (z 40) — which otherwise drew its Top / Bottom / Hide / Delete pill straight
+   across the dock's QR row. The panel only exists while open, hence :has. */
+.p-dock:has(.p-dock-b){z-index:45}
+
+/* ── THE TOP BAR HAS TO FIT ITS VIEWPORT. At 1440 wide Campaign's bar measured 1524 — Share
+   sat 84px off the right edge, reachable only by scrolling a bar nobody knows scrolls; it
+   arrived with the Design | Copy switch. Three moves, in this order of cost:
+   Undo and Redo are ICONS (the glyphs are the universal ones, and both carry a title and an
+   aria-label), the gaps drop 14 -> 10, and below 1400 the delivery trio keeps its icons and
+   drops its words — each cell names itself in its title. The trio's glyphs are 15px fixed
+   (.p-bic), so font-size:0 removes only the words. Below ~1150 the bar still scrolls, as
+   recorded, rather than dropping a control. */
+.p-top{gap:10px}
+.p-tgrp-h > .p-ghost{width:40px;padding:0;justify-content:center;gap:0}
+@media (max-width:1399px){
+  .p-top .p-tgrp:not(.p-tgrp-h) > .p-ghost{font-size:0;gap:0;padding:0 11px;letter-spacing:0}
+}
 </style>
 </helmet>
 
-<div class="p-shell" data-panel="{{ shPanel }}">
+<div class="p-shell" data-panel="{{ shPanel }}" data-screen="{{ cwScreen }}">
 
 <!-- ══ PROJECT SPLASH — shared by both studios ══════════════════════════ -->
 <sc-if value="{{ onSplash }}" hint-placeholder-val="{{ false }}">
@@ -3196,18 +3380,26 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   <div class="p-tgrp">
   <button onClick="{{ openSplash }}" class="p-ghost p-ico-t" title="Projects"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-177.23v-285.54L200-607.54v278.62q0 3.07 1.54 5.77 1.54 2.69 4.61 4.61L450-177.23Zm60 0 243.85-141.31q3.07-1.92 4.61-4.61 1.54-2.7 1.54-5.77v-278.62L510-462.77v285.54Zm-30-337.23 247-142.77-240.85-139.31q-3.07-1.92-6.15-1.92-3.08 0-6.15 1.92L233-657.23l247 142.77ZM176.16-265.85q-17.08-9.84-26.62-26.3-9.54-16.47-9.54-36.16v-303.38q0-19.69 9.54-36.16 9.54-16.46 26.62-26.3l267.69-154.08q17.07-9.85 36.15-9.85t36.15 9.85l267.69 154.08q17.08 9.84 26.62 26.3 9.54 16.47 9.54 36.16v303.38q0 19.69-9.54 36.16-9.54 16.46-26.62 26.3L516.15-111.77q-17.07 9.85-36.15 9.85t-36.15-9.85L176.16-265.85ZM480-480Z"/></svg>Projects</button>
   <sc-if value="{{ folderOn }}" hint-placeholder-val="{{ true }}">
-    <button onClick="{{ chooseFolder }}" class="p-ghost p-ico-t"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ rootFolderLabel }}</button>
+    <button onClick="{{ chooseFolder }}" class="p-ghost p-ico-t" title="{{ rootFolderLabel }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ rootFolderLabel }}</button>
   </sc-if>
-  <button onClick="{{ saveSession }}" class="p-ghost p-ico-t" data-on="{{ dirtyOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></svg>{{ saveLabel }}</button>
+  <button onClick="{{ saveSession }}" class="p-ghost p-ico-t" data-on="{{ dirtyOn }}" title="{{ saveLabel }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></svg>{{ saveLabel }}</button>
   </div>
+  <!-- WHICH WORKSPACE. The same project either way: Design is the full studio, Copy is the
+       words alone. Remembered per computer, so a copywriter's machine reopens on Copy. -->
+  <sc-if value="{{ cwModeOn }}" hint-placeholder-val="{{ true }}">
+    <div class="p-seg p-seg-mode" role="group" aria-label="Workspace">
+      <button onClick="{{ cwModeDesign }}" data-on="{{ cwModeDesignOn }}" title="The full design workspace">Design</button>
+      <button onClick="{{ cwModeCopy }}" data-on="{{ cwModeCopyOn }}" title="Just the words, in reading order — for copywriters">Copy</button>
+    </div>
+  </sc-if>
   <div class="p-spring"></div>
   <button onClick="{{ shThemeToggle }}" class="p-ghost p-ico-t p-ico-o" title="{{ shThemeTitle }}" aria-label="{{ shThemeTitle }}"><sc-if value="{{ shThemeIsDark }}" hint-placeholder-val="{{ true }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-760.16q-8.62-8.63-8.62-21.38v-87.69q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.69q0 12.75-8.63 21.38-8.63 8.62-21.38 8.62-12.76 0-21.37-8.62Zm213.23 88.31q-8.31-8.3-8.12-20.57.19-12.27 8.5-21.58l61-62.38q9.03-9.31 21.44-9.31 12.41 0 21.8 9.39 8.61 8.61 8.61 20.99 0 12.39-8.7 21.08L714-671.85q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7ZM781.54-450q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h87.69q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62h-87.69ZM458.62-69.4Q450-78.02 450-90.77v-87.31q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.31q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM246.39-671.85l-62.77-61.38q-9.31-8.99-9.31-21.73 0-12.73 9.31-21.42 8.69-8.31 21.33-8.31 12.64 0 20.82 8.31l62.77 62.77q8.31 8.18 8.31 20.82t-8.23 20.94q-8.98 8.31-20.95 8.31-11.98 0-21.28-8.31Zm487.23 488.23L672.23-246q-8.31-9.31-8.5-21.58-.19-12.27 8.04-20.57 8.23-8.31 20.58-8.31 12.34 0 21.65 8.69l62.38 61.39q8.93 8.3 8.62 20.88-.31 12.58-8.73 21.88-9.19 9.31-21.83 9.31-12.65 0-20.82-9.31ZM90.77-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q78.02-510 90.77-510h87.69q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H90.77ZM184-183.62q-8.31-8.69-8.5-21.27-.19-12.57 8.12-20.88l62-62q8.69-8.69 20.77-8.69 12.07 0 21.38 8.61 9.31 9.39 9.31 21.66t-9.31 21.57l-61 61q-9.31 9.31-21.95 9.31-12.64 0-20.82-9.31Zm140.23-140.52Q260-388.28 260-479.91q0-91.63 64.14-155.86Q388.28-700 479.91-700q91.63 0 155.86 64.14Q700-571.72 700-480.09q0 91.63-64.14 155.86Q571.72-260 480.09-260q-91.63 0-155.86-64.14ZM593-367q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47ZM480-480Z"/></svg></sc-if><sc-if value="{{ shThemeIsLight }}" hint-placeholder-val="{{ false }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></sc-if></button>
   <!-- Undo and Redo are one history group in the delivery trio's own capsule, with the
        Material undo/redo glyphs in place of two font arrows — the bar's icons are all
        Material Rounded at wght300 and these were the last two that were not. -->
   <div class="p-tgrp p-tgrp-h">
-    <button onClick="{{ undo }}" class="p-ghost p-ico-t" disabled="{{ undoOff }}" title="Undo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M318.08-220q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h257.07q62.62 0 107.77-41.35 45.16-41.34 45.16-102.11 0-60.77-45.16-101.93-45.15-41.15-107.77-41.15H294.31l90.23 90.23q8.69 8.7 8.69 21.08 0 12.38-8.69 21.08-8.69 8.69-21.27 8.5-12.58-.2-20.88-8.5L205.31-571.23q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l137.08-137.07q8.69-8.69 21.07-8.69 12.39 0 21.08 8.69 8.69 8.69 8.5 21.27-.19 12.57-8.5 20.88l-90.23 90.23h280.84q87.77 0 150.35 58.58t62.58 144.5q0 85.92-62.58 144.69T575.15-220H318.08Z"/></svg>Undo</button>
-    <button onClick="{{ redo }}" class="p-ghost p-ico-t" disabled="{{ redoOff }}" title="Redo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M665.69-566.54H384.85q-62.62 0-107.77 41.15-45.16 41.16-45.16 101.93 0 60.77 45.16 102.11Q322.23-280 384.85-280h257.07q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62H384.85q-87.77 0-150.35-58.77t-62.58-144.69q0-85.92 62.58-144.5t150.35-58.58h280.84l-90.23-90.23q-8.31-8.31-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69l137.08 137.07q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L617.61-434.15q-8.3 8.3-20.88 8.5-12.58.19-21.27-8.5-8.69-8.7-8.5-21.08.19-12.38 8.5-20.69l90.23-90.62Z"/></svg>Redo</button>
+    <button onClick="{{ undo }}" class="p-ghost p-ico-t" disabled="{{ undoOff }}" title="Undo" aria-label="Undo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M318.08-220q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h257.07q62.62 0 107.77-41.35 45.16-41.34 45.16-102.11 0-60.77-45.16-101.93-45.15-41.15-107.77-41.15H294.31l90.23 90.23q8.69 8.7 8.69 21.08 0 12.38-8.69 21.08-8.69 8.69-21.27 8.5-12.58-.2-20.88-8.5L205.31-571.23q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l137.08-137.07q8.69-8.69 21.07-8.69 12.39 0 21.08 8.69 8.69 8.69 8.5 21.27-.19 12.57-8.5 20.88l-90.23 90.23h280.84q87.77 0 150.35 58.58t62.58 144.5q0 85.92-62.58 144.69T575.15-220H318.08Z"/></svg></button>
+    <button onClick="{{ redo }}" class="p-ghost p-ico-t" disabled="{{ redoOff }}" title="Redo" aria-label="Redo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M665.69-566.54H384.85q-62.62 0-107.77 41.15-45.16 41.16-45.16 101.93 0 60.77 45.16 102.11Q322.23-280 384.85-280h257.07q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62H384.85q-87.77 0-150.35-58.77t-62.58-144.69q0-85.92 62.58-144.5t150.35-58.58h280.84l-90.23-90.23q-8.31-8.31-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69l137.08 137.07q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L617.61-434.15q-8.3 8.3-20.88 8.5-12.58.19-21.27-8.5-8.69-8.7-8.5-21.08.19-12.38 8.5-20.69l90.23-90.62Z"/></svg></button>
   </div>
     <!-- The Design system sheet is parked, not removed: specPages/specDownload and the
          viewer overlay all still work, so bringing the button back is uncommenting it. -->
@@ -3250,6 +3442,147 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 
 
 <div class="p-body">
+<!-- THE COPYWRITER'S WORKSPACE. A projection of the campaign: the same component list the
+     canvas renders, reduced to its words in reading order, beside the real export. It sits
+     over the editor rather than replacing it, so switching back loses nothing. -->
+<sc-if value="{{ cwOn }}" hint-placeholder-val="{{ false }}">
+<div class="cw">
+  <div class="cw-form">
+    <div class="cw-in">
+      <div class="cw-head">
+        <span class="cw-kick">Copy</span>
+        <input value="{{ cwName }}" onChange="{{ onCwName }}" placeholder="Campaign name" class="p-in cw-name" aria-label="Campaign name">
+        <div class="cw-steps" aria-label="Where the copy is">
+          <sc-for list="{{ cwSteps }}" as="st" hint-placeholder-count="3">
+            <span class="cw-step" data-state="{{ st.state }}"><i>{{ st.n }}</i>{{ st.label }}</span>
+          </sc-for>
+        </div>
+        <p class="cw-note">{{ cwNote }}</p>
+        <div class="cw-acts">
+          <sc-if value="{{ cwActOn }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ cwAct }}" class="p-btn" title="{{ cwActTip }}">{{ cwActLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ cwBackOn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ cwBack }}" class="p-ghost">{{ cwBackLabel }}</button>
+          </sc-if>
+          <button onClick="{{ cwDl }}" class="p-ghost" title="{{ cwDlTip }}">Download .docx</button>
+        </div>
+        <span class="cw-since" data-on="{{ cwSinceOn }}">{{ cwSince }}</span>
+        <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
+          <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
+        </sc-if>
+      </div>
+      <sc-for list="{{ cwPages }}" as="pg" hint-placeholder-count="1">
+        <section class="cw-page" data-on="{{ pg.onPageOn }}" data-cwpg="{{ pg.vi }}" onPointerDown="{{ pg.pick }}">
+          <sc-if value="{{ cwMulti }}" hint-placeholder-val="{{ false }}">
+            <div class="cw-page-h"><b>{{ pg.label }}</b><s>{{ pg.meta }}</s></div>
+          </sc-if>
+          <sc-if value="{{ pg.emptyOn }}" hint-placeholder-val="{{ false }}">
+            <p class="cw-empty">No words on this page yet. Add a heading, a body line or anything else below.</p>
+          </sc-if>
+          <sc-for list="{{ pg.fields }}" as="f" hint-placeholder-count="3">
+            <div class="cw-f" data-cwf="{{ f.key }}" data-cl="{{ f.cl }}">
+              <div class="cw-lab-r">
+                <sc-if value="{{ f.moveOn }}" hint-placeholder-val="{{ true }}"><button onPointerDown="{{ f.grab }}" onKeyDown="{{ f.keyMove }}" class="cw-grip" title="{{ f.moveTip }}" aria-label="{{ f.moveTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-175.39q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Z"/></svg></button></sc-if>
+                <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
+                <button onClick="{{ f.del }}" class="cw-x cw-del" title="{{ f.delTip }}" aria-label="{{ f.delTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg></button>
+              </div>
+              <sc-if value="{{ f.isLine }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}">
+              </sc-if>
+              <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ true }}">
+                <textarea value="{{ f.val }}" onChange="{{ f.onText }}" rows="{{ f.rows }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}"></textarea>
+                <span class="cw-count" data-over="{{ f.overOn }}">{{ f.count }}</span>
+              </sc-if>
+              <sc-if value="{{ f.isPrice }}" hint-placeholder-val="{{ false }}">
+                <div class="cw-pair">
+                  <label class="cw-sub">Small label<input value="{{ f.sub }}" onChange="{{ f.onSub }}" class="p-in" placeholder="e.g. Starting from"></label>
+                  <label class="cw-sub">Figure<input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" placeholder="e.g. AED 2.6M"></label>
+                </div>
+              </sc-if>
+              <sc-if value="{{ f.isChips }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2">
+                  <div class="cw-item">
+                    <input value="{{ c.val }}" onChange="{{ c.onInput }}" onBlur="{{ c.tidy }}" class="p-in" aria-label="Point">
+                    <button onClick="{{ c.del }}" class="cw-x" title="Remove this point" aria-label="Remove this point"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ f.chipAddOn }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ f.chipAdd }}" class="cw-add">+ Add a point</button>
+                </sc-if>
+              </sc-if>
+              <sc-if value="{{ f.isCols }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ f.cols }}" as="c" hint-placeholder-count="2">
+                  <div class="cw-item">
+                    <input value="{{ c.l }}" onChange="{{ c.onL }}" onBlur="{{ c.tidyL }}" class="p-in" placeholder="Label">
+                    <input value="{{ c.v }}" onChange="{{ c.onV }}" onBlur="{{ c.tidyV }}" class="p-in" placeholder="Figure">
+                    <button onClick="{{ c.del }}" class="cw-x" title="Remove this row" aria-label="Remove this row"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ f.colAddOn }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ f.colAdd }}" class="cw-add">+ Add a row</button>
+                </sc-if>
+              </sc-if>
+              <span class="cw-hint">{{ f.hint }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ pg.addOn }}" hint-placeholder-val="{{ true }}">
+            <div class="cw-addp">
+              <span class="cw-addp-h">Add to this page<s>Each one arrives in its basic look — the designer styles and places it.</s></span>
+              <sc-for list="{{ pg.addGroups }}" as="g" hint-placeholder-count="3">
+                <div class="cw-addg"><span class="cw-addg-l">{{ g.group }}</span>
+                  <sc-for list="{{ g.items }}" as="a" hint-placeholder-count="4">
+                    <button onClick="{{ a.add }}" class="cw-add" title="{{ a.tip }}">+ {{ a.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ pg.addMoreOn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ pg.addMore }}" class="cw-add cw-addm">+ Add to this page</button>
+          </sc-if>
+        </section>
+      </sc-for>
+      <section class="cw-page cw-hist">
+        <div class="cw-page-h"><b>History</b><s>Every hand-off keeps a snapshot of the words</s></div>
+        <label class="cw-sub">Your name <s>shown on the snapshots you make on this computer</s>
+          <input value="{{ cwAuthor }}" onChange="{{ onCwAuthor }}" class="p-in" placeholder="e.g. Sara">
+        </label>
+        <sc-if value="{{ cwHistEmptyOn }}" hint-placeholder-val="{{ true }}">
+          <p class="cw-empty">No hand-offs yet. Sending the copy to design saves the first snapshot.</p>
+        </sc-if>
+        <sc-for list="{{ cwHist }}" as="h" hint-placeholder-count="0">
+          <div class="cw-h" data-state="{{ h.state }}">
+            <div class="cw-h-t"><em></em><b>{{ h.title }}</b><s>{{ h.meta }}</s><button onClick="{{ h.download }}" class="p-ghost p-sm" title="Download this snapshot as a Word document">.docx</button></div>
+            <sc-for list="{{ h.changes }}" as="c" hint-placeholder-count="0">
+              <div class="cw-c">
+                <span>{{ c.where }} · {{ c.kind }}</span>
+                <sc-if value="{{ c.wasOn }}" hint-placeholder-val="{{ false }}"><del>{{ c.was }}</del></sc-if>
+                <sc-if value="{{ c.nowOn }}" hint-placeholder-val="{{ false }}"><ins>{{ c.now }}</ins></sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ h.moreOn }}" hint-placeholder-val="{{ false }}"><span class="cw-more">{{ h.more }}</span></sc-if>
+          </div>
+        </sc-for>
+      </section>
+    </div>
+  </div>
+  <aside class="cw-pv">
+    <div class="cw-pv-h"><b>Preview</b><s>{{ cwPvLabel }}</s></div>
+    <sc-if value="{{ cwPvTabsOn }}" hint-placeholder-val="{{ false }}">
+      <div class="p-tabs cw-pvt">
+        <sc-for list="{{ cwPvTabs }}" as="t" hint-placeholder-count="2">
+          <button onClick="{{ t.pick }}" data-on="{{ t.on }}" title="{{ t.tip }}">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+    <div class="cw-shots">
+      <div class="cw-shot" style="{{ cwShotSqStyle }}" data-ready="{{ cwPvReadyOn }}"></div>
+    </div>
+    <p class="cw-pv-n">The words render in the design exactly as they will export. Layout, photos and styling stay with the designer — switch to Design to see them.</p>
+  </aside>
+</div>
+</sc-if>
 <!-- Below 1200px the rails become sheets; this bar is the only way to reach them,
      so it is rendered always and shown by the breakpoint rather than by state. -->
 <div class="p-veil" onClick="{{ shPanelClose }}"></div>
@@ -3697,7 +4030,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
+  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -3706,19 +4039,19 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <div class="p-cap p-shd" data-state="{{ secCompState }}"><span class="p-shd-t">This component <s>{{ selContext }}</s></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secCompNote }}</span></div>
     <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
       <div class="p-grp" style="gap:11px">
-        <div class="p-lab">{{ selTypeLabel }}</div>
-        <label class="p-fld">Style variant — per design variant
+        <div class="p-lab">{{ selTypeLabel }} <span class="tip" data-tip="Order, cluster, hide and delete are on the floating control over the selected component." style="{{ infoStyle }}">i</span></div>
+        <label class="p-fld"><span class="p-lab">Style variant <s>{{ styleScope }}</s></span>
           <select value="{{ selVarCur }}" onChange="{{ onSelVar }}" class="p-in">
             <sc-for list="{{ selVarOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.key }}">{{ o.label }}</option></sc-for>
           </select>
         </label>
         <sc-if value="{{ selIsSpec }}" hint-placeholder-val="{{ false }}">
-          <span class="p-fld">Figures — {{ textScope }}</span>
-          <div class="p-row">
-            <button onClick="{{ toggleFigTop }}" class="p-ghost p-sm" data-on="{{ figTopSetOn }}">{{ figTopLabel }}</button>
-            <button onClick="{{ toggleBig }}" class="p-ghost p-sm" data-on="{{ bigSetOn }}">{{ bigLabel }}</button>
-          </div>
-          <span class="p-fld">Panel width <span class="tip" data-tip="Edge to edge fills the content column. Hug content sizes the panel to the data and then aligns it with the design — two columns in a full-width panel reads as a mistake." style="{{ infoStyle }}">i</span></span>
+          <span class="p-lab">Figures <s>{{ textScope }}</s></span>
+          <span class="p-lab p-lab-2">Reading order</span>
+          <div class="p-tabs"><button onClick="{{ figTopOff }}" data-on="{{ figLabFirstOn }}">Label first</button><button onClick="{{ figTopOn }}" data-on="{{ figTopSetOn }}">Figure first</button></div>
+          <span class="p-lab p-lab-2">Figure size</span>
+          <div class="p-tabs"><button onClick="{{ bigOff }}" data-on="{{ bigOffOn }}">Regular</button><button onClick="{{ bigOn }}" data-on="{{ bigSetOn }}">Large</button></div>
+          <span class="p-lab">Panel width <span class="tip" data-tip="Edge to edge fills the content column. Hug content sizes the panel to the data and then aligns it with the design — two columns in a full-width panel reads as a mistake." style="{{ infoStyle }}">i</span></span>
           <div class="p-opts">
             <button onClick="{{ specWideSet }}" data-on="{{ specWideOn }}" class="p-opt">
               <span class="p-mini"><i style="left:8%;top:38%;width:84%;height:24%;border-radius:2px"></i></span>
@@ -3736,28 +4069,37 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           <button onClick="{{ selGapReset }}" style="{{ selGapResetStyle }}" title="Back to the cluster's own spacing">↺</button>
         </div>
         <span class="p-hint">{{ selGapHint }}</span>
-        <span class="p-hint">Order, cluster, hide and delete are on the floating control over the selected component.</span>
         <sc-if value="{{ selIsPrice }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Small label — linked
-            <input value="{{ selSub }}" onChange="{{ onSelSub }}" class="p-in">
+          <label class="p-fld"><span class="p-lab">Small label <s>{{ textScope }}</s></span>
+            <input value="{{ selSub }}" onChange="{{ onSelSub }}" class="p-in" placeholder="e.g. Starting from">
           </label>
         </sc-if>
         <sc-if value="{{ selTextSingle }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Text — {{ textScope }}
+          <label class="p-fld"><span class="p-lab">Text <s>{{ textScope }}</s></span>
             <input value="{{ selText }}" onChange="{{ onSelText }}" class="p-in">
           </label>
         </sc-if>
         <sc-if value="{{ selTextMulti }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Text — {{ textScope }} <span>· Enter for a new {{ selLineWord }}, up to {{ selLineMax }}</span>
+          <label class="p-fld"><span class="p-lab">Text <s>{{ textScope }}</s></span>
             <textarea value="{{ selText }}" onChange="{{ onSelText }}" rows="2" class="p-in"></textarea>
             <span class="p-hint">{{ selLineInfo }}</span>
           </label>
         </sc-if>
         <sc-if value="{{ selIsTags }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Chips (comma-separated) — linked
-            <textarea value="{{ selChips }}" onChange="{{ onSelChips }}" rows="2" class="p-in"></textarea>
-          </label>
-          <span class="p-fld">Chip size <span class="tip" data-tip="Jumbo scales the whole chip as one object — text, height, both paddings, the icon box and the gaps — by one scalar, so it grows without the label rattling in the old pill. It composes with every treatment, so a jumbo accent pill is still an accent pill." style="{{ infoStyle }}">i</span></span>
+          <span class="p-lab">Chips <s>{{ textScope }}</s></span>
+          <div class="p-items" data-items="chips">
+            <sc-for list="{{ selChipRows }}" as="c" hint-placeholder-count="2">
+              <div class="p-item" data-on="{{ c.iconOn }}">
+                <input value="{{ c.val }}" onChange="{{ c.onInput }}" onFocus="{{ c.focus }}" onBlur="{{ c.tidy }}" class="p-in" placeholder="A short point" aria-label="{{ c.aria }}">
+                <button onClick="{{ c.del }}" class="p-item-x" title="Remove this chip" aria-label="Remove this chip"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+              </div>
+            </sc-for>
+          </div>
+          <div class="p-item-f">
+            <sc-if value="{{ selChipAddOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ selChipAdd }}" class="p-item-add">+ Add a chip</button></sc-if>
+            <span class="p-hint">{{ selChipCount }}</span>
+          </div>
+          <span class="p-lab">Chip size <span class="tip" data-tip="Jumbo scales the whole chip as one object — text, height, both paddings, the icon box and the gaps — by one scalar, so it grows without the label rattling in the old pill. It composes with every treatment, so a jumbo accent pill is still an accent pill." style="{{ infoStyle }}">i</span></span>
           <div class="p-opts">
             <button onClick="{{ tagSizeReg }}" data-on="{{ tagRegOn }}" class="p-opt">
               <span class="p-mini"><i style="left:16%;top:42%;width:28%;height:16%;border-radius:999px"></i><i class="dim" style="left:50%;top:42%;width:24%;height:16%;border-radius:999px"></i></span>
@@ -3783,9 +4125,23 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
           </div>
         </sc-if>
         <sc-if value="{{ selIsSpec }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld">Columns — label | value per line — linked
-            <textarea value="{{ selCols }}" onChange="{{ onSelCols }}" rows="3" class="p-in"></textarea>
-          </label>
+          <span class="p-lab">Columns <s>{{ textScope }}</s></span>
+          <div class="p-items" data-items="cols">
+            <sc-for list="{{ selColRows }}" as="c" hint-placeholder-count="2">
+              <div class="p-item p-item-2" data-on="{{ c.iconOn }}">
+                <span class="p-item-n">{{ c.n }}</span>
+                <div class="p-item-f2">
+                  <input value="{{ c.l }}" onChange="{{ c.onL }}" onFocus="{{ c.focus }}" onBlur="{{ c.tidyL }}" class="p-in" placeholder="Label" aria-label="Label">
+                  <input value="{{ c.v }}" onChange="{{ c.onV }}" onFocus="{{ c.focus }}" onBlur="{{ c.tidyV }}" class="p-in" placeholder="Figure" aria-label="Figure">
+                </div>
+                <button onClick="{{ c.del }}" class="p-item-x" title="Remove this column" aria-label="Remove this column"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+              </div>
+            </sc-for>
+          </div>
+          <div class="p-item-f">
+            <sc-if value="{{ selColAddOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ selColAdd }}" class="p-item-add">+ Add a column</button></sc-if>
+            <span class="p-hint">{{ selColCount }}</span>
+          </div>
         </sc-if>
         <sc-if value="{{ selIconsOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">{{ iconTitle }} <s>{{ iconStepLabel }}</s> <span class="tip" data-tip="Material Symbols at the brand's settings — weight 200, grade 0, optical size 24 — fetched as flat SVG and recoloured to the canvas ink, so one icon reads on both light and dark. Search matches a bundled index; typing a name that only exists on fonts.google.com/icons still works — the search field takes an exact name too." style="{{ infoStyle }}">i</span></span>
@@ -3812,7 +4168,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
             <span class="p-lab">Graphic file <span class="tip" data-tip="SVG, PNG, JPEG or WebP. An SVG is kept as vector and travels into Assets/ untouched; bitmaps are capped at export-grade resolution. Re-uploading overwrites the same file in Assets/." style="{{ infoStyle }}">i</span></span>
             <div class="p-droprow">
               <div class="p-drop" data-done="{{ gDoneOn }}"><image-slot id="{{ selGraphicSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot></div>
-              <div class="p-drop-t"><s>{{ gDropLabel }}</s><s>An SVG stays vector and travels into Assets/ untouched; bitmaps are capped at export-grade. Re-uploading overwrites the same file.</s><sc-if value="{{ gDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+              <div class="p-drop-t"><s>{{ gDropLabel }}</s><sc-if value="{{ gDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
             </div>
             <span class="p-cap">Placement<s>where it sits</s></span>
             <div class="p-opts">
@@ -3845,7 +4201,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
       </div>
     </sc-if>
     <sc-if value="{{ noSel }}" hint-placeholder-val="{{ true }}">
-      <div class="p-empty">Click a design component on any canvas to edit it here. Text is linked across variants; style variants and position are per design variant.</div>
+      <div class="p-empty">{{ noSelNote }}</div>
     </sc-if>
   </div>
 
@@ -3860,30 +4216,30 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
         <span class="p-lab">Photo <span class="tip" data-tip="{{ bgStatus }} Double-click the photo on the canvas to reframe it — drag to move, scroll to zoom, or use the zoom slider and anchor buttons in the overlay. Drop keeps export-grade resolution." style="{{ infoStyle }}">i</span></span>
         <div class="p-droprow">
           <div class="p-drop" data-done="{{ bgDoneOn }}"><sc-for list="{{ activeBgSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop a picture" style="{{ bgSlotStyle }}"></image-slot></sc-for></div>
-          <div class="p-drop-t"><s>{{ bgDropLabel }}</s><s>Full bleed on every canvas. Double-click it on the canvas to reframe — drag to move, scroll to zoom.</s><sc-if value="{{ bgDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+          <div class="p-drop-t"><s>{{ bgDropLabel }}</s><sc-if value="{{ bgDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
         </div>
         <sc-if value="{{ bgSepStOn }}" hint-placeholder-val="{{ false }}">
-          <span class="p-lab">9:16 own photo</span>
+          <span class="p-lab">9:16 own photo <span class="tip" data-tip="Used by the 9:16 story instead of the shared picture." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ bgStDoneOn }}"><sc-for list="{{ activeBgStSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 9:16 picture" style="{{ bgSlotStStyle }}"></image-slot></sc-for></div>
-            <div class="p-drop-t"><s>{{ bgStDropLabel }}</s><s>Used by the 9:16 story instead of the shared picture.</s><sc-if value="{{ bgStDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgStRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ bgStDropLabel }}</s><sc-if value="{{ bgStDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgStRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
         <sc-if value="{{ bgSepLsOn }}" hint-placeholder-val="{{ false }}">
-          <span class="p-lab">16:9 own photo</span>
+          <span class="p-lab">16:9 own photo <span class="tip" data-tip="Used by the 16:9 canvas instead of the shared picture." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ bgLsDoneOn }}"><sc-for list="{{ activeBgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 16:9 picture" style="{{ bgSlotLsStyle }}"></image-slot></sc-for></div>
-            <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><s>Used by the 16:9 canvas instead of the shared picture.</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
       </div>
       <div class="p-grp">
         <span class="p-lab">Overlap image <span class="tip" data-tip="Drop a cutout PNG — it sits over the hero headline only, so the eyebrow, hook, body, tags, spec, price, CTA, wordmark and QR all stay on top of it. It automatically matches the background photo's position and zoom, so reframing the background carries the cutout with it. Pair with the Jumbo hero for the parallax look." style="{{ infoStyle }}">i</span></span>
-        <button onClick="{{ fgToggle }}" class="p-ghost p-sm" data-on="{{ fgShownOn }}">{{ fgToggleLabel }}</button>
+        <div class="p-tabs"><button onClick="{{ fgSetOff }}" data-on="{{ fgOffOn }}">Off</button><button onClick="{{ fgSetOn }}" data-on="{{ fgShownOn }}">On this {{ fgScopeWord }}</button></div>
         <sc-if value="{{ fgOn }}" hint-placeholder-val="{{ false }}">
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ fgDoneOn }}"><image-slot id="{{ activeFgId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop the cut-out" style="{{ bgSlotStyle }}"></image-slot></div>
-            <div class="p-drop-t"><s>{{ fgDropLabel }}</s><s>A PNG cut-out of the photo’s own foreground. It sits over the hero headline only and follows the photo’s position and zoom.</s><sc-if value="{{ fgDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ fgDropLabel }}</s><sc-if value="{{ fgDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
       </div>
@@ -3908,7 +4264,7 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
     <div class="p-cap p-shd"><span class="p-shd-t">Layout <s>{{ activeName }}</s></span></div>
 
     <div class="p-grp-w">
-      <span class="p-lab">Background <span class="tip" data-tip="Dark is the navy/black system: white copy, gold accents. Light flips the canvas to white with navy copy and orange accents — orange is a light-background colour in the brand rules, gold is its navy counterpart. Serif emphasis stays gold in both. Switching resets the scrim colour to that mode's default." style="{{ infoStyle }}">i</span></span>
+      <span class="p-lab">Background <span class="tip" data-tip="Dark is white copy on a dark canvas; Light flips the canvas to white with navy copy. Rules, bullets and chips stay neutral in both — cream on dark, slate on light — because the canvas carries no gold and no second typeface. Switching resets the scrim colour to that mode's default." style="{{ infoStyle }}">i</span></span>
       <div class="p-opts">
         <button onClick="{{ bgDark }}" data-on="{{ bgDarkOn }}" class="p-opt">
           <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></span>
@@ -4061,6 +4417,12 @@ class CampaignStudio extends StudioBase {
       // makes those same variants PAGES — up to 10, each with its own copy — and lets the
       // 9:16 be dropped. See `modulesFor` / `modList` for how a page's own list is read and written.
       adMode: 'single', storyOn: true,
+      // THE COPY WORKFLOW. `copyStatus` is where the words are — Draft (the copywriter is
+      // writing), With design (the designer is building), Final (approved). Entering With
+      // design or Final saves a SNAPSHOT of every line into `copyLog`, which is the
+      // changelog: it rides in the saved project and the session file, and it is never
+      // undone — see `restore`. Both are stripped from `strip()` for the same reason.
+      copyStatus: 'draft', copyLog: [],
       qr: { show: true, corner: 'right' },
       // Co-branding is a fact about the campaign, not about one variant, so it lives
       // at project level beside the QR and one upload serves every variant and size.
@@ -4180,6 +4542,11 @@ class CampaignStudio extends StudioBase {
     });
     p.variants.forEach(v => { delete v.cur; ['story', 'wideOv'].forEach(k => { if (v[k]) delete v[k].cur; }); });
     if (typeof p.activeVi !== 'number' || p.activeVi < 0 || p.activeVi >= p.variants.length) p.activeVi = 0;
+    // The copy workflow. A project written before it has neither key: it opens as a Draft
+    // with an empty history, which is exactly what it was.
+    if (CampaignStudio.COPY_STATES.indexOf(p.copyStatus) < 0) p.copyStatus = 'draft';
+    if (!Array.isArray(p.copyLog)) p.copyLog = [];
+    p.copyLog = p.copyLog.filter(e => e && typeof e === 'object' && Array.isArray(e.pages)).slice(-CampaignStudio.COPY_LOG_MAX);
     return p;
   }
   static load() {
@@ -4209,7 +4576,9 @@ class CampaignStudio extends StudioBase {
         console.warn('[provident] campaign migration failed', e);
         warn = 'This campaign was saved by an older version and some settings could not be upgraded — check the Layout panel.';
       }
-      return Object.assign(d, p, { exportStatus: warn, sel: null, screen: resume ? 'editor' : 'splash' });
+      // Resuming lands in whichever WORKSPACE this browser last used — a copywriter's
+      // machine reopens on the copy view, a designer's on the canvas.
+      return Object.assign(d, p, { exportStatus: warn, sel: null, screen: resume ? CampaignStudio.workScreen() : 'splash' });
     }
     try {
       const old = localStorage.getItem('provident-ad-studio');
@@ -4228,10 +4597,15 @@ class CampaignStudio extends StudioBase {
     if (warn) d.exportStatus = warn;
     return d;
   }
-  static strip(o) { const c = Object.assign({}, o); delete c.sel; delete c.screen; delete c.exportStatus; delete c.activeVi; delete c.exportMenuOpen; delete c.exportKind;
+  static strip(o) { const c = Object.assign({}, o); delete c.sel; delete c.screen; delete c.pid; delete c.exportStatus; delete c.activeVi; delete c.exportMenuOpen; delete c.exportKind;
     // Which sizes are on screen is not a change to the artwork — the same call Organic's
     // storyOn makes. `adMode` is NOT stripped: it changes which copy renders.
-    delete c.storyOn; return JSON.stringify(c); }
+    delete c.storyOn;
+    // The copy workflow's status and its history are not a change to the artwork either,
+    // and the history must never be UNDONE — a snapshot is a record of what was sent, and
+    // an undo that took it back would erase the changelog it exists to keep.
+    delete c.copyStatus; delete c.copyLog;
+    return JSON.stringify(c); }
   persist() { try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(this.state)); } catch (e) {} }
   upd(fn) {
     const prev = JSON.parse(JSON.stringify(this.state));
@@ -4246,7 +4620,17 @@ class CampaignStudio extends StudioBase {
     });
   }
   restore(st) {
-    const n = Object.assign({}, st, { screen: 'editor' });
+    // Undo stays in the workspace it was pressed in, and it never rewinds the copy
+    // workflow: the status and the snapshot history are carried over from NOW, because
+    // `strip()` leaves them out of every undo entry's comparison on purpose.
+    const cur = this.state || {};
+    const n = Object.assign({}, st, {
+      screen: cur.screen === 'copy' ? 'copy' : 'editor',
+      copyStatus: cur.copyStatus || st.copyStatus || 'draft',
+      copyLog: Array.isArray(cur.copyLog) ? cur.copyLog : (st.copyLog || []),
+      // an undo entry taken before the first save carries no identity; keep today's
+      pid: cur.pid || st.pid,
+    });
     try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
     this.setState(n);
   }
@@ -4274,7 +4658,11 @@ class CampaignStudio extends StudioBase {
         const raw = localStorage.getItem('provident-ad-studio-v2');
         if (!raw) return;
         const p = JSON.parse(raw);
-        if (p && p.variants && p.modules && CampaignStudio.strip(p) !== CampaignStudio.strip(this.state)) {
+        // The copy signature rides beside strip(): a status moved in another window (a
+        // copywriter marking it Final while the designer's tab is open) has to reach this
+        // one, and strip() deliberately ignores it.
+        const sig = o => (o.copyStatus || '') + '|' + ((o.copyLog || []).length);
+        if (p && p.variants && p.modules && (CampaignStudio.strip(p) !== CampaignStudio.strip(this.state) || sig(p) !== sig(this.state))) {
           this.setState(Object.assign({}, p, { screen: this.state.screen, sel: null, exportStatus: this.state.exportStatus }));
         }
       } catch (e) {}
@@ -4440,7 +4828,7 @@ class CampaignStudio extends StudioBase {
   // the component set, layout preset and logo placement that family was drawn with;
   // the copy is the kit's own so a new campaign opens on something real.
   static TPL = [
-    { id: 'f', name: 'New launch', desc: 'Eyebrow, hero with serif word, hook and tag chips', preset: 'bottom', logo: 'top',
+    { id: 'f', name: 'New launch', desc: 'Eyebrow, hero, hook and tag chips', preset: 'bottom', logo: 'top',
       mods: [['eyebrow', { text: 'New launch · Business Bay' }], ['hero', { text: 'Waterfront living, measured returns', serif: 'measured' }], ['hook', { text: '1–3 BR residences from AED 1.9M' }], ['tags', { chips: ['0% property tax', '10% rental yield'] }], ['cta', { text: 'Register your interest' }]] },
     { id: 'd', name: 'Event', desc: 'Event hero with date, time and venue as a spec row', preset: 'split', logo: 'top',
       mods: [['hero', { text: 'Premium projects, prime locations under one roof', serif: 'prime' }], ['hook', { text: 'Join us on the 4th & 5th of July' }], ['spec', { cols: [{ l: 'Time', v: '10:00 – 17:00' }, { l: 'Venue', v: 'Dubai World Trade Centre' }] }], ['cta', { text: 'Reserve your place' }]] },
@@ -4740,8 +5128,33 @@ class CampaignStudio extends StudioBase {
   static tagK(m, tk) { return (m && m.jumbo) ? tk.hook / tk.eyebrow : 1; }
   static tagPad(k) { return k === 1 ? '.9cqw 2.6cqw' : (.9 * k).toFixed(3) + 'cqw ' + (2.6 * k).toFixed(3) + 'cqw'; }
   static tagGap(k) { return k === 1 ? '1.5cqw' : (1.5 * k).toFixed(3) + 'cqw'; }
+  // THE CANVAS'S READ OF A LIST FIELD. The rail and the copy view give every chip and
+  // every column its own field and store what is typed verbatim — so a word can end in a
+  // space while the next is being typed, and a row can be emptied before it is deleted.
+  // Trimming on every keystroke is what used to eat spaces; trimming HERE, once, is what
+  // keeps them out of the artwork. An emptied row is skipped but keeps its position `gi`,
+  // because the uploaded icons are keyed by the row's place in the WHOLE list.
+  // Leaving a list field tidies it — the space kept while typing goes, once. Returns the
+  // cleaned list, or null when nothing moved, so a blur never costs an undo entry.
+  static tidyChip(list, i) {
+    const a = (list || []).slice(); if (a[i] == null) return null;
+    const t = String(a[i]).trim(); if (t === a[i]) return null; a[i] = t; return a;
+  }
+  static tidyCol(list, i, k) {
+    const a = (list || []).slice(); const c = a[i]; if (!c) return null;
+    const t = String(c[k] || '').trim(); if (t === (c[k] || '')) return null; a[i] = Object.assign({}, c, { [k]: t }); return a;
+  }
+  static chipsOf(m) {
+    return (m.chips || []).slice(0, CampaignStudio.CHIP_MAX)
+      .map((t, gi) => ({ t: String(t == null ? '' : t).trim(), gi })).filter(c => c.t);
+  }
+  static colsOf(m) {
+    return (m.cols || []).slice(0, CampaignStudio.SPEC_MAX)
+      .map((c, gi) => ({ l: String((c && c.l) || '').trim(), v: String((c && c.v) || '').trim(), gi }))
+      .filter(c => c.l || c.v);
+  }
   static specBox(m, tk, mv, meas, innerW) {
-    const cells = (m.cols || []).slice(0, CampaignStudio.SPEC_MAX);
+    const cells = CampaignStudio.colsOf(m);
     const n = Math.max(1, cells.length);
     const big = !!m.big;
     const figPx = big ? tk.stat : tk.hook;
@@ -5626,6 +6039,15 @@ class CampaignStudio extends StudioBase {
     if (car) CampaignStudio.clearModArt([id]);
     return true;
   }
+  // A CHIP'S OR A COLUMN'S ICON IS STORED BY POSITION (`adstudio-ic-<id>-<i>`), so removing
+  // row `at` has to move every later icon down one — or each of them would be drawn beside
+  // the row that used to follow it. The same bug the photo slots had on page removal.
+  static shiftIcons(id, at) {
+    const IS = customElements.get('image-slot');
+    if (!IS || !IS.moveSlot) return;
+    for (let j = at; j < CampaignStudio.ICON_MAX - 1; j++) IS.moveSlot('adstudio-ic-' + id + '-' + (j + 1), 'adstudio-ic-' + id + '-' + j);
+    IS.moveSlot(null, 'adstudio-ic-' + id + '-' + (CampaignStudio.ICON_MAX - 1));
+  }
   static clearModArt(ids) {
     const IS = customElements.get('image-slot');
     if (!IS || !IS.moveSlot) return;
@@ -6086,7 +6508,6 @@ class CampaignStudio extends StudioBase {
           const kT = CampaignStudio.tagK(m, tk);
           const cPx = tk.eyebrow * kT;
           const icoW = tk.eyebrow * 1.9 * kT;   // the chip's icon box — NOT the cluster width
-          let ci2 = 0;
           rows.forEach((row, ri) => {
             const rh = tk.eyebrow * kT + 22 * kT;
             const totalW = row.reduce((a, c) => a + c.w, 0) + (row.length - 1) * 16 * kT;
@@ -6095,7 +6516,7 @@ class CampaignStudio extends StudioBase {
             // The chip's icon is keyed by its position in the WHOLE list, so the
             // global index is captured before reversing — a plain running counter
             // would hand every chip its neighbour's icon under RTL.
-            const seqC = row.map((c, k) => ({ c, gi: ci2 + k }));
+            const seqC = row.map(c => ({ c, gi: c.gi }));
             if (CampaignStudio.listRtl()) seqC.reverse();
             seqC.forEach(({ c, gi }) => {
               ops.push({ op: 'rrect', x, y: yy, w: c.w, h: rh, r: rh / 2, stroke: gold ? pal.chipGold : pal.chip, sw: 2 });
@@ -6112,7 +6533,6 @@ class CampaignStudio extends StudioBase {
               ops.push({ op: 'text', x: tx, y: yy + rh / 2 + cPx * .36, px: cPx, weight: 300, fill: gold ? pal.ruleGold : pal.inkSoft, text: c.t });
               x += c.w + 16 * kT;
             });
-            ci2 += row.length;
           });
         }
       } else if (m.type === 'spec') {
@@ -6171,7 +6591,7 @@ class CampaignStudio extends StudioBase {
             // centred vertically against the pair — so a tall mark and a two-line pair
             // still read as one group rather than two stacked things.
             const gx = center ? cx + Math.max(0, (cw - (B.icoD + B.icoGap + pw)) / 2) : cx;
-            const a = assets['ic' + m.id + '_' + si];
+            const a = assets['ic' + m.id + '_' + c.gi];
             if (a && a.img) {
               const k = Math.min(B.icoD / (a.img.naturalWidth || 1), B.icoD / (a.img.naturalHeight || 1));
               const dw = (a.img.naturalWidth || 1) * k, dh = (a.img.naturalHeight || 1) * k;
@@ -6302,7 +6722,13 @@ class CampaignStudio extends StudioBase {
     // the bottom cluster measures AND draws to the rail guard — a height measured at one
     // width and drawn at another puts the whole stack off its own baseline
     const botH = bot.reduce((a, m, i) => a + modH(m, guard) + (i ? gapB(m) : 0), 0);
-    let y2 = (logoBottom ? H - pB - tk.logo * 1.2 - CLEAR : H - pB) - botH;
+    // WHEN THE COPY IS TALLER THAN THE CANVAS, the bottom cluster may not start above the
+    // point where the top cluster ends. That is exactly what the editor's flex column does
+    // (its spacer shrinks to zero and the bottom cluster follows the top one, running down
+    // into the logo's clear space), and it is the better of the two failures: stacking
+    // upward from the logo instead put the bottom cluster's copy ON TOP of the headline.
+    // A design that fits never reaches the clamp, so nothing that fits moves.
+    let y2 = Math.max(y, (logoBottom ? H - pB - tk.logo * 1.2 - CLEAR : H - pB) - botH);
     bot.forEach((m, i) => { if (i) y2 += gapB(m); draw(m, y2, guard); y2 += modH(m, guard); });
     // Floating graphics go last, so they sit over the clusters — that is what makes
     // them free to be placed anywhere without the stack deciding for them.
@@ -6382,10 +6808,10 @@ class CampaignStudio extends StudioBase {
     const rows = []; let row = [], w = 0;
     const k = CampaignStudio.tagK(m, tk);
     const extra = withIcon ? tk.eyebrow * 1.9 * k : 0;   // leading icon box + its gap
-    (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).forEach(t => {
+    CampaignStudio.chipsOf(m).forEach(({ t, gi }) => {
       const cw = this.meas(t, tk.eyebrow * k, 300, false, 0) + 56 * k + extra;
       if (row.length && w + 16 * k + cw > maxW) { rows.push(row); row = []; w = 0; }
-      row.push({ t, w: cw }); w += (row.length > 1 ? 16 * k : 0) + cw;
+      row.push({ t, w: cw, gi }); w += (row.length > 1 ? 16 * k : 0) + cw;
     });
     if (row.length) rows.push(row);
     return rows;
@@ -6423,7 +6849,7 @@ class CampaignStudio extends StudioBase {
   stripRows(m, tk, maxW) {
     const px = tk.hook * .86 * CampaignStudio.tagK(m, tk), sep = px * CampaignStudio.STRIP_SEP;
     const rows = []; let row = [], w = 0;
-    (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).forEach(t => {
+    CampaignStudio.chipsOf(m).forEach(({ t }) => {
       const cw = this.meas(t, px, 300, false, 0);
       if (row.length && w + sep + cw > maxW) { rows.push(row); row = []; w = 0; }
       row.push({ t, w: cw }); w += (row.length > 1 ? sep : 0) + cw;
@@ -6872,16 +7298,18 @@ class CampaignStudio extends StudioBase {
   }
   async saveSessionFile() {
     const name = this.projName();
+    await this.ensurePid();                       // the file carries the project's identity
     if (this.folderSupported()) {
       const h = await this.folderOpen(true);      // first save asks for the folder
       if (h) {
         const ok = await this.writeProject(await this.projectFiles(name));
-        if (ok) { this.markSaved(); this.setState({ exportStatus: 'Saved "' + name + '" into "' + this.folderName() + '" · session + Assets' }); }
+        if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Saved "' + name + '" into "' + this.folderName() + '" · session + Assets' }); }
         return;
       }
     }
     const files = await this.projectFiles(name);
     this.markSaved();
+    this.recordSaved();
     this.download(new Blob([files[0].data], { type: 'application/json' }), name + '.adstudio.json');
     this.setState({ exportStatus: 'Saved ' + name + '.adstudio.json — pick a source folder to keep Assets alongside it.' });
   }
@@ -6960,7 +7388,647 @@ class CampaignStudio extends StudioBase {
       cta: txt('cta') || 'Learn more'
     };
   }
-  async snapshotCurrent() {
+  // ---------- the copywriter's workspace ----------
+  // A PROJECTION of the campaign, not a second studio. It reads and writes the very
+  // component list the canvas renders — `modulesFor` / `writeMod` — so a word typed here
+  // is the word on the canvas, with no import step and nothing to merge. It shows only
+  // what a copywriter owns (the words, in reading order), hides everything a designer
+  // owns (layout, style variants, photos, spacing), and adds the one thing neither
+  // workspace had: WHERE the copy is, and a record of every hand-off.
+  static COPY_STATES = ['draft', 'design', 'final'];
+  static COPY_LABEL = { draft: 'Draft', design: 'With design', final: 'Final' };
+  static COPY_LOG_MAX = 50;
+  // Every component that carries words. Divider, spacer and graphic carry none.
+  static COPY_TYPES = ['eyebrow', 'hero', 'hook', 'body', 'price', 'tags', 'spec', 'list', 'steps', 'cta'];
+  // PLAIN NAMES, because this view is for copywriters: "Eyebrow", "Spec data" and "Tag chips"
+  // are the designer's words for a thing a writer calls a small label, key facts and tags.
+  static COPY_NAME = { eyebrow: 'Small label', hero: 'Heading', hook: 'Hook line', body: 'Body', price: 'Price', tags: 'Tags', spec: 'Key facts', list: 'Bullets', steps: 'Steps', cta: 'Button' };
+  // The names the first build of this view used. A snapshot keeps the label it was taken
+  // under, and the diff is keyed by label — so an old snapshot is read through this, or a
+  // renamed field would be logged as one removed and one added.
+  static COPY_NAME_WAS = { 'Eyebrow': 'Small label', 'Headline': 'Heading', 'Body line': 'Body', 'Tag chips': 'Tags', 'Spec data': 'Key facts', 'Bullet points': 'Bullets', 'Process steps': 'Steps' };
+  static copyRelabel(l) {
+    const m = /^(.*?)( \d+)?$/.exec(String(l || '')), w = m && CampaignStudio.COPY_NAME_WAS[m[1]];
+    return w ? w + (m[2] || '') : l;
+  }
+  // WHAT A WRITER CAN ADD, grouped the way they think about it. Always the component's
+  // BASIC form — no style variant is set, so it takes the first one, and every look stays
+  // the designer's call. Divider, spacer and graphic carry no words and are not offered.
+  static COPY_ADD = [
+    { group: 'Text', types: ['hero', 'hook', 'body', 'eyebrow'] },
+    { group: 'Lists', types: ['list', 'spec', 'tags', 'steps'] },
+    { group: 'Action', types: ['cta', 'price'] },
+  ];
+  static COPY_WHAT = {
+    hero: 'The biggest line on the ad', hook: 'A short line that sells it, under the heading',
+    body: 'A sentence or two of supporting copy', eyebrow: 'A small line above the heading, set in capitals',
+    list: 'Points with a tick beside each', spec: 'Label-and-figure rows, e.g. Bedrooms / 1-3BR',
+    tags: 'Short points, each in its own pill', steps: 'A numbered how-it-works line',
+    cta: 'What the button says', price: 'A small label over a figure',
+  };
+  // A new component starts EMPTY, so a sample sentence can never ship as copy. The four that
+  // DRAW A BOX with no words in it — a button's pill, a step's plate, a chip, a fact row —
+  // start with one obvious placeholder instead (measured: an empty CTA emits its rrect, an
+  // empty step its plate and numeral). That placeholder lands SELECTED, so the first
+  // keystroke replaces it.
+  static COPY_BLANK = {
+    eyebrow: { text: '' }, hero: { text: '' }, hook: { text: '' }, body: { text: '' }, list: { text: '' },
+    steps: { text: 'First step' }, cta: { text: 'Button label' }, price: { sub: '', text: '' },
+    tags: { chips: ['New point'] }, spec: { cols: [{ l: 'Label', v: 'Value' }] },
+  };
+  static COPY_PH = {
+    eyebrow: 'e.g. New launch · Dubai Hills', hero: 'Write the heading', hook: 'e.g. From AED 1.2M · handover 2028',
+    body: 'Write the supporting copy', list: 'One point per line', steps: 'One step per line', cta: 'e.g. Register your interest',
+  };
+  static COPY_HINT = {
+    eyebrow: 'The small line above the headline. Set in capitals on the canvas.',
+    hero: 'Enter for a new line, up to 4. Keep it short — it is the largest thing on the ad.',
+    hook: 'Enter for a new line, up to 4.',
+    body: 'Enter for a new line, up to 4.',
+    price: 'The small label sits above the figure, e.g. Starting from / AED 2.6M.',
+    tags: 'Each chip is one short point.',
+    spec: 'Each row is a label and its figure, e.g. Bedrooms / 1-3BR.',
+    list: 'One bullet per line, up to 8.',
+    steps: 'One step per line, up to 6. They are numbered for you.',
+    cta: 'The button label — two or three words.',
+  };
+  // Which workspace THIS BROWSER opens on. Per machine rather than per project, because
+  // it is a fact about who is sitting there: the copywriter's laptop reopens on the copy
+  // view, the designer's on the canvas, and the project they pass between them is one file.
+  static workScreen() { try { return localStorage.getItem('adstudio-workspace') === 'copy' ? 'copy' : 'editor'; } catch (e) { return 'editor'; } }
+  static setWorkScreen(sc) { try { localStorage.setItem('adstudio-workspace', sc === 'copy' ? 'copy' : 'design'); } catch (e) {} }
+  static copyAuthor() { try { return localStorage.getItem('adstudio-author') || ''; } catch (e) { return ''; } }
+  // The pages the copy is arranged in: every page of a carousel, or the one ad — whose
+  // words are shared by all its design variants, so it is ONE page however many there are.
+  static copyPages(s) {
+    if (CampaignStudio.isCarousel(s)) return (s.variants || []).map((v, vi) => ({ vi, label: 'Page ' + (vi + 1) }));
+    return [{ vi: 0, label: 'Ad copy' }];
+  }
+  // A page's words in READING order: the top cluster, then the bottom one, each in the
+  // variant's own order — the order they sit on the canvas, not the order they were added.
+  static copyMods(s, vi) {
+    const v = s.variants[vi] || s.variants[0];
+    const list = CampaignStudio.orderedFor(v, CampaignStudio.modulesFor(s, vi))
+      .filter(m => CampaignStudio.COPY_TYPES.indexOf(m.type) >= 0);
+    const top = m => ((v && v.clusters && v.clusters[m.id]) || 'bottom') === 'top';
+    return list.filter(top).concat(list.filter(m => !top(m)));
+  }
+  // MOVE A LINE IN THE READING ORDER — `id` before or after `tid` — on every record that
+  // lays the page out: each design variant of a single ad (the words are shared, so the
+  // order a writer sets has to hold in every design) or the one page of a carousel, plus
+  // any detached size that keeps its own clusters. The moved component TAKES ITS NEW
+  // NEIGHBOUR'S CLUSTER, so a line dragged above the headline goes to the top with it, and
+  // each variant keeps its own layout decisions around it. `ord` is rewritten as that
+  // variant's reading order, which is what `orderedFor` sorts by; dividers, spacers and
+  // graphics keep their place relative to everything else.
+  static copyMove(x, vi, id, tid, after) {
+    if (!id || !tid || id === tid) return;
+    const list = CampaignStudio.modList(x, vi);
+    const vs = CampaignStudio.isCarousel(x) ? [x.variants[vi] || x.variants[0]] : (x.variants || []);
+    vs.forEach(v => [v, v.story, v.wideOv].forEach(t => {
+      if (!t || (t !== v && !t.clusters)) return;   // a linked size reads the variant's own
+      t.clusters = t.clusters || {};
+      const cOf = m => t.clusters[m] || 'bottom';
+      const full = CampaignStudio.orderedFor(t, list).map(m => m.id);
+      const read = full.filter(m => cOf(m) === 'top').concat(full.filter(m => cOf(m) !== 'top'));
+      const from = read.indexOf(id);
+      if (from < 0 || read.indexOf(tid) < 0) return;
+      read.splice(from, 1);
+      read.splice(read.indexOf(tid) + (after ? 1 : 0), 0, id);
+      t.clusters[id] = cOf(tid);
+      t.ord = read;
+    }));
+  }
+  // "Headline", or "Headline 2" when a page carries two — so a changelog line is never
+  // ambiguous about which one moved.
+  static copyLabels(mods) {
+    const n = {}, seen = {}, out = {};
+    mods.forEach(m => { n[m.type] = (n[m.type] || 0) + 1; });
+    mods.forEach(m => { seen[m.type] = (seen[m.type] || 0) + 1; out[m.id] = CampaignStudio.COPY_NAME[m.type] + (n[m.type] > 1 ? ' ' + seen[m.type] : ''); });
+    return out;
+  }
+  // Hidden on the canvas? On a carousel that is the page's own flag; on a single ad the
+  // words are shared, so "hidden" means hidden on EVERY variant and "some" says so.
+  static copyHidden(s, vi, id) {
+    const hid = v => !!(v && v.hidden && v.hidden[id]);
+    if (CampaignStudio.isCarousel(s)) return hid(s.variants[vi]) ? 'all' : '';
+    const vs = s.variants || [], k = vs.filter(hid).length;
+    return !k ? '' : (k === vs.length ? 'all' : 'some');
+  }
+  // THE SNAPSHOT — what the words were at a hand-off. Plain data, so it survives in the
+  // saved project and the session file and can be read back by anything.
+  static copySnap(s, status, by) {
+    const pages = CampaignStudio.copyPages(s).map(pg => {
+      const mods = CampaignStudio.copyMods(s, pg.vi), lab = CampaignStudio.copyLabels(mods);
+      return {
+        label: pg.label,
+        fields: mods.map(m => {
+          const f = { id: m.id, type: m.type, label: lab[m.id] };
+          if (m.type === 'tags') f.chips = (m.chips || []).map(c => String(c || '').trim()).filter(Boolean);
+          else if (m.type === 'spec') f.cols = (m.cols || []).map(c => ({ l: String((c && c.l) || '').trim(), v: String((c && c.v) || '').trim() })).filter(c => c.l || c.v);
+          else { f.text = String(m.text || ''); if (m.type === 'price') f.sub = String(m.sub || ''); }
+          return f;
+        }),
+      };
+    });
+    return { at: Date.now(), status, by: by || '', name: s.campaign || '', mode: s.adMode || 'single', pages };
+  }
+  static copyValue(f) {
+    if (f.type === 'tags') return (f.chips || []).join(' · ');
+    if (f.type === 'spec') return (f.cols || []).map(c => (c.l || '') + (c.l && c.v ? ': ' : '') + (c.v || '')).join('\n');
+    if (f.type === 'price') return [f.sub, f.text].map(t => String(t || '').trim()).filter(Boolean).join('\n');
+    return String(f.text || '').replace(/\s+$/, '');
+  }
+  static copyFlat(e) {
+    const out = {};
+    ((e && e.pages) || []).forEach((pg, pi) => (pg.fields || []).forEach(f => {
+      // Keyed by page position and the field's NAME, never its component id: going to a
+      // carousel, or adding a page from another, gives every component a fresh id, and an id
+      // key would log a copy nobody touched as all of it removed and re-added.
+      const l = CampaignStudio.copyRelabel(f.label);
+      out[pi + ':' + l] = { page: pg.label, label: l, value: CampaignStudio.copyValue(f) };
+    }));
+    return out;
+  }
+  // What moved between two snapshots, line for line. Keyed by page and field name, so a
+  // headline that was rewritten reads as CHANGED rather than as one removed and one added.
+  static copyDiff(prev, cur) {
+    if (!prev) return [];
+    const a = CampaignStudio.copyFlat(prev), b = CampaignStudio.copyFlat(cur), out = [];
+    Object.keys(b).forEach(k => {
+      if (!(k in a)) { if (b[k].value) out.push({ kind: 'added', page: b[k].page, label: b[k].label, was: '', now: b[k].value }); }
+      else if (a[k].value !== b[k].value) out.push({ kind: 'changed', page: b[k].page, label: b[k].label, was: a[k].value, now: b[k].value });
+    });
+    Object.keys(a).forEach(k => { if (!(k in b) && a[k].value) out.push({ kind: 'removed', page: a[k].page, label: a[k].label, was: a[k].value, now: '' }); });
+    return out;
+  }
+  static xmlEsc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ''); }
+  static copyStamp(ts) {
+    const d = new Date(ts), p = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  copyDocName(e) {
+    const nm = (e.name || this.state.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
+    return nm + '_Copy_' + CampaignStudio.COPY_LABEL[e.status].replace(/\s+/g, '') + '_' + CampaignStudio.copyStamp(e.at).replace(/[: ]/g, '-') + '.docx';
+  }
+  // A PLAIN DOCUMENT, not a live Google Doc: a minimal .docx built with the same stored
+  // zip every export uses. It opens in Word, Pages and Google Docs, and it is an archive —
+  // what the words were at that moment — which is the one thing a shared live doc is not.
+  copyDocx(e, prev) {
+    const X = CampaignStudio.xmlEsc, rtl = t => StudioBase.dirOf(t) === 'rtl';
+    const run = (t, o) => {
+      o = o || {};
+      const pr = (o.b ? '<w:b/>' : '') + (o.strike ? '<w:strike/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '')
+        + (o.sz ? '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>' : '') + (o.rtl ? '<w:rtl/>' : '');
+      return String(t).split('\n').map((ln, i) => (i ? '<w:r><w:br/></w:r>' : '')
+        + '<w:r>' + (pr ? '<w:rPr>' + pr + '</w:rPr>' : '') + '<w:t xml:space="preserve">' + X(ln) + '</w:t></w:r>').join('');
+    };
+    const para = (runs, o) => {
+      o = o || {};
+      return '<w:p><w:pPr>' + (o.bidi ? '<w:bidi/>' : '') + '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after == null ? 120 : o.after) + '"/></w:pPr>' + runs + '</w:p>';
+    };
+    const txt = (t, o) => para(run(t, Object.assign({ rtl: rtl(t) }, o)), { bidi: rtl(t), after: (o && o.after) });
+    const INK = '1A2942', DIM = '5E6874', BRASS = '8A6E45';
+    let body = '';
+    body += para(run('provident.', { sz: 20, color: DIM }), { after: 60 });
+    body += para(run(e.name || 'Untitled campaign', { b: true, sz: 36, color: INK }), { after: 60 });
+    body += para(run('Copy — ' + CampaignStudio.COPY_LABEL[e.status] + ' · ' + CampaignStudio.copyStamp(e.at) + (e.by ? ' · ' + e.by : ''), { sz: 20, color: DIM }), { after: 240 });
+    (e.pages || []).forEach(pg => {
+      if ((e.pages || []).length > 1) body += para(run(pg.label, { b: true, sz: 26, color: INK }), { before: 240, after: 120 });
+      if (!(pg.fields || []).length) body += txt('No words on this page.', { color: DIM, sz: 20 });
+      (pg.fields || []).forEach(f => {
+        body += para(run(f.label, { b: true, sz: 18, color: BRASS }), { before: 120, after: 40 });
+        const v = CampaignStudio.copyValue(f);
+        body += v ? txt(v, { sz: 24, color: INK }) : txt('(empty)', { sz: 20, color: DIM });
+      });
+    });
+    if (prev) {
+      const d = CampaignStudio.copyDiff(prev, e);
+      body += para(run('Changes since ' + CampaignStudio.COPY_LABEL[prev.status] + ' · ' + CampaignStudio.copyStamp(prev.at), { b: true, sz: 26, color: INK }), { before: 360, after: 120 });
+      if (!d.length) body += txt('No words changed.', { sz: 20, color: DIM });
+      d.forEach(c => {
+        const where = ((e.pages || []).length > 1 ? c.page + ' · ' : '') + c.label + ' — ' + c.kind;
+        body += para(run(where, { b: true, sz: 18, color: BRASS }), { before: 120, after: 40 });
+        if (c.was) body += txt(c.was, { sz: 22, color: DIM, strike: true, after: 40 });
+        if (c.now) body += txt(c.now, { sz: 22, color: INK });
+      });
+    }
+    const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main', H = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const doc = H + '<w:document xmlns:w="' + W + '"><w:body>' + body
+      + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    const styles = H + '<w:styles xmlns:w="' + W + '"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:eastAsia="Arial" w:cs="Arial"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="en-GB" w:bidi="ar-AE"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults></w:styles>';
+    const types = H + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>';
+    const R = 'http://schemas.openxmlformats.org/package/2006/relationships';
+    const rels = H + '<Relationships xmlns="' + R + '"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+    const drels = H + '<Relationships xmlns="' + R + '"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+    const enc = new TextEncoder();
+    const zip = this.zip([
+      { name: '[Content_Types].xml', data: enc.encode(types) },
+      { name: '_rels/.rels', data: enc.encode(rels) },
+      { name: 'word/document.xml', data: enc.encode(doc) },
+      { name: 'word/_rels/document.xml.rels', data: enc.encode(drels) },
+      { name: 'word/styles.xml', data: enc.encode(styles) },
+    ]);
+    return new Blob([zip], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  }
+  // A confirmation, not a status: it says what just happened and then gets out of the way.
+  cwNotice(msg, undoable) {
+    this._cwMsg = msg; this._cwUndo = !!undoable; this.forceUpdate();
+    clearTimeout(this._cwMsgT);
+    // a notice carrying Undo stays up long enough to reach for it
+    this._cwMsgT = setTimeout(() => { this._cwMsg = ''; this._cwUndo = false; this.forceUpdate(); }, undoable ? 15000 : 7000);
+  }
+  // A WRITER ADDS AND REMOVES COMPONENTS HERE, in the basic form only. The new one goes on
+  // the end of the page's list, which is the end of the bottom cluster — so it is also the
+  // last field in the form, and the form's order stays the canvas's reading order. Where it
+  // should really sit is the designer's call, and the notice says so.
+  cwAddMod(vi, type) {
+    const C = CampaignStudio, id = C.freshId(), car = C.isCarousel(this.state);
+    this.upd(x => {
+      C.modList(x, vi).push(Object.assign({ id, type }, JSON.parse(JSON.stringify(C.COPY_BLANK[type]))));
+      if (car) x.activeVi = vi;
+      x.sel = null;
+      return x;
+    });
+    this.cwNotice(C.COPY_NAME[type] + ' added at the end of ' + (car ? 'page ' + (vi + 1) : 'the ad') + ' — the designer places it.');
+    this.cwFocusField(id);
+  }
+  // Removed through the ONE delete, so the variants' bookkeeping and a carousel page's art
+  // go with it. The notice carries Undo, because this is the one irreversible-looking thing
+  // a writer can do here.
+  cwDropMod(vi, id, label) {
+    this.upd(x => { CampaignStudio.dropMod(x, vi, id); return x; });
+    this.cwNotice(label + ' removed.', true);
+  }
+  cwUndo() { this._cwMsg = ''; this._cwUndo = false; clearTimeout(this._cwMsgT); this.undo(); }
+  // DRAG A LINE UP OR DOWN by its grip. Pointer events, never native drag-and-drop — the
+  // same decision the Organic slide reorder records: a press that does not travel is a
+  // click, the row under the pointer shows a line where the drop will land, Escape
+  // cancels, and the form scrolls when the pointer nears its edge. One undo entry per move.
+  cwGrab(e, vi, id) {
+    if (e.button != null && e.button !== 0) return;
+    const grip = e.currentTarget, field = grip && grip.closest('.cw-f'), page = grip && grip.closest('.cw-page');
+    const form = grip && grip.closest('.cw-form');
+    if (!field || !page) return;
+    e.preventDefault();
+    const y0 = e.clientY;
+    const fields = () => [...page.querySelectorAll('.cw-f[data-cwf]')];
+    let tgt = null, after = false, live = false, cancelled = false;
+    const clear = () => fields().forEach(f => f.removeAttribute('data-drop'));
+    const onMove = ev => {
+      if (!live && Math.abs(ev.clientY - y0) < 4) return;
+      if (!live) { live = true; field.setAttribute('data-drag', '1'); document.documentElement.setAttribute('data-cwdrag', '1'); }
+      if (form) {
+        const r = form.getBoundingClientRect();
+        if (ev.clientY < r.top + 56) form.scrollTop -= 14; else if (ev.clientY > r.bottom - 56) form.scrollTop += 14;
+      }
+      clear(); tgt = null;
+      // THE LINE UNDER THE POINTER decides, by which half of it the pointer is in — not "the
+      // first line whose middle is below the pointer". The two agree on the order and differ
+      // on the CLUSTER: in the lower half of the headline the old rule answered "before the
+      // tags", so a line dropped under the headline left the top of the ad for the bottom.
+      // Between two lines, the nearer one answers.
+      const fs = fields();
+      let bd = Infinity;
+      for (const f of fs) {
+        const r = f.getBoundingClientRect();
+        const d = ev.clientY < r.top ? r.top - ev.clientY : (ev.clientY > r.bottom ? ev.clientY - r.bottom : 0);
+        if (d < bd) { bd = d; tgt = f; after = ev.clientY > r.top + r.height / 2; }
+        if (!d) break;
+      }
+      const i = fs.indexOf(field), j = fs.indexOf(tgt);
+      // Dropping where it already sits is not a move: on itself, or next to a neighbour IN
+      // ITS OWN PART of the ad. Next to a neighbour across the boundary it is — the order
+      // holds and the line changes part.
+      const same = tgt && tgt.getAttribute('data-cl') === field.getAttribute('data-cl');
+      if (tgt === field || (same && ((!after && j === i + 1) || (after && j === i - 1)))) { tgt = null; return; }
+      if (tgt) tgt.setAttribute('data-drop', after ? 'after' : 'before');
+    };
+    const done = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', done);
+      window.removeEventListener('pointercancel', done);
+      window.removeEventListener('keydown', onKey, true);
+      clear(); field.removeAttribute('data-drag'); document.documentElement.removeAttribute('data-cwdrag');
+      if (live && tgt && !cancelled) this.cwMoveTo(vi, id, tgt.getAttribute('data-cwf'), after);
+    };
+    const onKey = ev => { if (ev.key === 'Escape') { cancelled = true; ev.preventDefault(); done(); } };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', done);
+    window.addEventListener('pointercancel', done);
+    window.addEventListener('keydown', onKey, true);
+  }
+  cwMoveTo(vi, id, tid, after) {
+    if (!tid || tid === id) return;
+    const C = CampaignStudio;
+    // the moved line takes its new neighbour's part, so both are known BEFORE the write
+    const cls = (((this.state.variants[vi] || this.state.variants[0]) || {}).clusters) || {};
+    const was = cls[id] === 'top' ? 'top' : 'bottom', now = cls[tid] === 'top' ? 'top' : 'bottom';
+    this.upd(x => { C.copyMove(x, vi, id, tid, after); return x; });
+    this.cwNotice(now !== was
+      ? 'Moved into the ' + now + ' part of the ad. The designer\'s layout keeps the new order.'
+      : 'Moved. The designer\'s layout keeps the new order.');
+    setTimeout(() => {
+      const f = document.querySelector('.cw-f[data-cwf="' + id + '"]');
+      if (!f) return;
+      f.setAttribute('data-flash', '1');
+      setTimeout(() => f.removeAttribute('data-flash'), 1400);
+    }, 60);
+  }
+  // The keyboard's half of the same move: the grip takes focus, and the arrow keys move the
+  // line one place — the focus stays on the grip so a second press keeps going.
+  cwKeyMove(e, vi, id) {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const ids = CampaignStudio.copyMods(this.state, vi).map(m => m.id), k = ids.indexOf(id);
+    const up = e.key === 'ArrowUp', tid = ids[k + (up ? -1 : 1)];
+    if (k < 0 || !tid) return;
+    // At the boundary between the top and the bottom of the ad, one press CROSSES it and
+    // keeps the order — the same step a drag onto the neighbour's near half takes — rather
+    // than jumping past the first line on the other side.
+    const cls = (((this.state.variants[vi] || this.state.variants[0]) || {}).clusters) || {};
+    const cross = (cls[id] === 'top') !== (cls[tid] === 'top');
+    this.cwMoveTo(vi, id, tid, cross ? up : !up);
+    setTimeout(() => { const g = document.querySelector('.cw-f[data-cwf="' + id + '"] .cw-grip'); if (g) g.focus(); }, 80);
+  }
+  // Scroll a new field into view, put the cursor in it and flash the row, so the eye lands
+  // on it. `data-flash` is set imperatively: React owns no such prop, so nothing clobbers it.
+  cwFocusField(id) {
+    setTimeout(() => {
+      const f = document.querySelector('.cw-f[data-cwf="' + id + '"]');
+      if (!f) return;
+      try { f.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+      const el = f.querySelector('input, textarea');
+      if (el) { el.focus({ preventScroll: true }); if (el.select) el.select(); }
+      f.setAttribute('data-flash', '1');
+      setTimeout(() => f.removeAttribute('data-flash'), 1400);
+    }, 60);
+  }
+  // A new point or row lands already SELECTED, so the placeholder words are replaced by
+  // the first keystroke rather than having to be cleared by hand.
+  // A new chip or column lands SELECTED, so its placeholder words are replaced by the
+  // first keystroke — the copy view's convention, in the rail.
+  railFocusLast(kind) {
+    setTimeout(() => {
+      const box = document.querySelector('.p-rail-c .p-items[data-items="' + kind + '"]');
+      const rows = box ? box.querySelectorAll('.p-item') : [];
+      const el = rows.length ? rows[rows.length - 1].querySelector('input') : null;
+      if (el) { el.focus(); el.select(); try { el.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+    }, 60);
+  }
+  cwFocusLast(id) {
+    setTimeout(() => {
+      const f = document.querySelector('.cw-f[data-cwf="' + id + '"]');
+      const ins = f ? f.querySelectorAll('.cw-item input') : [];
+      const el = ins.length ? ins[ins.length - (f.querySelector('.cw-item input + input') ? 2 : 1)] : null;
+      if (el) { el.focus(); el.select(); }
+    }, 60);
+  }
+  async cwDownload(e, prev) {
+    const blob = this.copyDocx(e, prev), name = this.copyDocName(e);
+    const how = await this.saveAs(blob, name, 'Word document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.docx');
+    this.cwNotice(how === 'cancelled' ? 'Nothing was saved.' : (how === 'saved' ? 'Saved ' + name + '.' : 'Downloaded ' + name + '.'));
+  }
+  // The ARCHIVE. Every hand-off writes its document into Copy/ in the source folder when
+  // one is set, so the folder a project lives in also holds what its words were at each
+  // step — no download, no prompt. Without a folder the history below still offers it.
+  async cwArchive(e, prev) {
+    const f = this.folderApi();
+    if (!f || !f.handle) return false;
+    try { await f.write('Copy/' + this.copyDocName(e), this.copyDocx(e, prev)); return true; }
+    catch (err) { console.warn('[provident] copy archive write failed', err); return false; }
+  }
+  // Move the copy to `to`. A FORWARD move — a hand-off — records a snapshot; going back
+  // (reopening, or pulling a draft back from design) records nothing, because nothing was
+  // handed over.
+  async setCopyStatus(to) {
+    const S = CampaignStudio.COPY_STATES, from = this.state.copyStatus || 'draft';
+    if (S.indexOf(to) < 0 || to === from) return;
+    const fwd = S.indexOf(to) > S.indexOf(from);
+    const log = this.state.copyLog || [];
+    const prev = log.length ? log[log.length - 1] : null;
+    const snap = fwd ? CampaignStudio.copySnap(this.state, to, CampaignStudio.copyAuthor()) : null;
+    this.upd(x => {
+      x.copyStatus = to;
+      if (snap) x.copyLog = (x.copyLog || []).concat([snap]).slice(-CampaignStudio.COPY_LOG_MAX);
+      return x;
+    });
+    if (!snap) { this.cwNotice('Moved back to ' + CampaignStudio.COPY_LABEL[to] + '.'); return; }
+    const saved = await this.cwArchive(snap, prev);
+    this.cwNotice((to === 'design' ? 'Sent to design' : 'Marked final') + ' · snapshot saved'
+      + (saved ? ' · Copy/' + this.copyDocName(snap) + ' written to the source folder' : ' · download it from the history below'));
+  }
+  // The preview is the REAL export — buildOps into renderOpsToCanvas — so the copywriter
+  // sees the words in the design they will ship in, including every line break.
+  // ONE square, drawn at the size it is SHOWN — the preview box's own width times the pixel
+  // ratio, in .05 steps so a resize does not re-render per pixel, between .5 and 1 (1080 px,
+  // the export's own size). The story is not previewed here: a writer checks the words, and
+  // the square is where they fit tightest.
+  cwScale() {
+    const el = document.querySelector('.cw-shot'), w = el ? el.clientWidth : 0;
+    const css = w > 40 ? w : 560, dpr = Math.min(2, window.devicePixelRatio || 1);
+    return Math.max(.5, Math.min(1, Math.round(css * dpr / 1080 * 20) / 20));
+  }
+  cwKey() { const s = this.state; return CampaignStudio.strip(s) + '|' + (s.activeVi || 0) + '|' + this.cwScale() + '|' + StudioBase.fontKey(s) + '|' + JSON.stringify(this._filled || {}); }
+  cwSync() {
+    if (this.state.screen !== 'copy') return;
+    const k = this.cwKey();
+    if (k === this._cwKey || this._cwBusy) { if (this._cwBusy) this._cwAgain = true; return; }
+    clearTimeout(this._cwT);
+    // A short settle, so typing re-renders once a pause arrives rather than once a key.
+    this._cwT = setTimeout(async () => {
+      this._cwBusy = true; this._cwAgain = false;
+      const key = this.cwKey();
+      try {
+        const st = this.state, vi = Math.max(0, Math.min(st.activeVi || 0, st.variants.length - 1));
+        // THE FACE HAS TO BE LOADED BEFORE A CANVAS DRAWS WITH IT — a canvas never pulls a
+        // webfont, so a cold render lands in the fallback face and the square reads wider
+        // than the design window beside it. Every weight the ad draws, then fonts.ready.
+        const fam = StudioBase.applyFont(st).fam;
+        const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+        await Promise.all(['300 41px', '400 59px', '300 92px', '500 24px', '400 50px', '300 34px', '400 30px']
+          .map(w => safe(w + ' "' + fam + '"')).concat([StudioBase.ensureFont(StudioBase.fontKey(st))]));
+        try { await document.fonts.ready; } catch (e) {}
+        const assets = await this.loadAssets(st);
+        const out = { vi };
+        out.sq = this.renderOpsToCanvas(this.buildOps(st, vi, 'sq', assets), this.cwScale()).toDataURL('image/webp', .9);
+        this._cwShots = out; this._cwKey = key;
+      } catch (err) { console.warn('[provident] copy preview failed', err); this._cwKey = key; }
+      this._cwBusy = false;
+      this.forceUpdate();
+      if (this._cwAgain) this.cwSync();
+    }, this._cwShots ? 220 : 0);
+  }
+  copyVals() {
+    const s = this.state, C = CampaignStudio, L = C.COPY_LABEL;
+    const status = C.COPY_STATES.indexOf(s.copyStatus) >= 0 ? s.copyStatus : 'draft';
+    const on = s.screen === 'copy';
+    const log = s.copyLog || [];
+    const last = log.length ? log[log.length - 1] : null;
+    const go = sc => () => { C.setWorkScreen(sc); if (s.screen !== sc) this.upd(x => { x.screen = sc; x.sel = null; return x; }); };
+    const base = {
+      cwModeOn: s.screen === 'editor' || on,
+      cwModeDesignOn: s.screen === 'editor' ? '1' : undefined,
+      cwModeCopyOn: on ? '1' : undefined,
+      cwModeDesign: go('editor'), cwModeCopy: go('copy'),
+      cwScreen: s.screen,
+      cwBarLabel: 'Copy · ' + L[status],
+      cwBarState: status,
+      cwOpen: go('copy'),
+      cwOn: on,
+    };
+    if (!on) return base;
+    const carousel = C.isCarousel(s), vi = Math.max(0, Math.min(s.activeVi || 0, s.variants.length - 1));
+    const write = (pvi, id, fn) => this.upd(x => { C.writeMod(x, pvi, id, fn); return x; });
+    const pages = C.copyPages(s).map(pg => {
+      const mods = C.copyMods(s, pg.vi), lab = C.copyLabels(mods);
+      const w = (id, fn) => write(pg.vi, id, fn);
+      // Clicking into a PAGE of a carousel shows that page. On a single ad the form is one
+      // page whatever the variants are, so it must not touch which variant is previewed —
+      // it used to force the Master on every click, which is how the copy view came to show
+      // a different design from the one open in the design window.
+      const pick = () => { if (carousel && (this.state.activeVi || 0) !== pg.vi) this.upd(x => { x.activeVi = pg.vi; x.sel = null; return x; }); };
+      const here = !carousel || pg.vi === vi;
+      return {
+        label: pg.label,
+        vi: String(pg.vi),
+        pick,
+        onPageOn: carousel && pg.vi === vi ? '1' : undefined,
+        meta: mods.length ? (mods.length + ' line' + (mods.length === 1 ? '' : 's') + ' of copy') : 'No words on this page yet',
+        emptyOn: !mods.length,
+        // the palette opens on the page being worked on; the others offer one button that
+        // makes them that page, so a ten-page carousel is not ten palettes
+        addOn: here,
+        addMoreOn: !here,
+        addMore: pick,
+        addGroups: C.COPY_ADD.map(g => ({
+          group: g.group,
+          items: g.types.map(t => ({ label: C.COPY_NAME[t], tip: C.COPY_WHAT[t], add: () => this.cwAddMod(pg.vi, t) })),
+        })),
+        fields: mods.map(m => {
+          const hid = C.copyHidden(s, pg.vi, m.id);
+          const multi = ['hero', 'hook', 'body', 'list', 'steps'].indexOf(m.type) >= 0;
+          const cap = m.type === 'list' ? C.LIST_MAX : (m.type === 'steps' ? C.STEP_MAX : C.LINE_MAX);
+          const used = multi ? String(m.text || '').split('\n').filter((t, i, a) => t.trim() || i < a.length - 1).length : 0;
+          return {
+            key: m.id,
+            label: lab[m.id],
+            hint: C.COPY_HINT[m.type] || '',
+            hidOn: !!hid,
+            hidText: hid === 'all' ? 'Hidden on the canvas by design' : 'Hidden on some variants',
+            isLine: ['eyebrow', 'cta'].indexOf(m.type) >= 0,
+            isArea: multi,
+            isPrice: m.type === 'price',
+            isChips: m.type === 'tags',
+            isCols: m.type === 'spec',
+            ph: C.COPY_PH[m.type] || '',
+            // the grip: only where there is somewhere to move to
+            moveOn: mods.length > 1,
+            // which part of the ad the line sits in, read by the drag so a drop across the
+            // top/bottom boundary is a real move even when the order does not change
+            cl: ((((s.variants[pg.vi] || s.variants[0]) || {}).clusters || {})[m.id] || 'bottom') === 'top' ? 'top' : 'bottom',
+            grab: e => this.cwGrab(e, pg.vi, m.id),
+            keyMove: e => this.cwKeyMove(e, pg.vi, m.id),
+            moveTip: 'Drag to move ' + lab[m.id] + ' — or focus here and use the arrow keys',
+            del: () => this.cwDropMod(pg.vi, m.id, lab[m.id]),
+            delTip: 'Remove ' + lab[m.id] + (carousel ? ' from this page' : ' from the ad'),
+            val: String(m.text || ''),
+            sub: String(m.sub || ''),
+            rows: Math.max(2, Math.min(cap, used || 2)),
+            count: multi ? Math.min(used, cap) + ' of ' + cap + ' ' + (m.type === 'list' ? 'bullets' : (m.type === 'steps' ? 'steps' : 'lines')) : '',
+            overOn: multi && used > cap ? '1' : undefined,
+            onText: e => w(m.id, mm => { mm.text = e.target.value; }),
+            onSub: e => w(m.id, mm => { mm.sub = e.target.value; }),
+            chips: (m.chips || []).map((c, ci) => ({
+              val: String(c || ''), n: ci + 1,
+              onInput: e => w(m.id, mm => { mm.chips = (mm.chips || []).slice(); mm.chips[ci] = e.target.value; }),
+              tidy: () => { if (C.tidyChip(m.chips, ci)) w(m.id, mm => { mm.chips = C.tidyChip(mm.chips, ci) || mm.chips; }); },
+              del: () => { w(m.id, mm => { mm.chips = (mm.chips || []).filter((q, qi) => qi !== ci); }); C.shiftIcons(m.id, ci); },
+            })),
+            chipAddOn: (m.chips || []).length < C.CHIP_MAX,
+            chipAdd: () => { w(m.id, mm => { mm.chips = (mm.chips || []).concat(['New point']); }); this.cwFocusLast(m.id); },
+            cols: (m.cols || []).map((c, ci) => ({
+              l: String((c && c.l) || ''), v: String((c && c.v) || ''),
+              onL: e => w(m.id, mm => { mm.cols = (mm.cols || []).map((q, qi) => qi === ci ? Object.assign({}, q, { l: e.target.value }) : q); }),
+              onV: e => w(m.id, mm => { mm.cols = (mm.cols || []).map((q, qi) => qi === ci ? Object.assign({}, q, { v: e.target.value }) : q); }),
+              tidyL: () => { if (C.tidyCol(m.cols, ci, 'l')) w(m.id, mm => { mm.cols = C.tidyCol(mm.cols, ci, 'l') || mm.cols; }); },
+              tidyV: () => { if (C.tidyCol(m.cols, ci, 'v')) w(m.id, mm => { mm.cols = C.tidyCol(mm.cols, ci, 'v') || mm.cols; }); },
+              del: () => { w(m.id, mm => { mm.cols = (mm.cols || []).filter((q, qi) => qi !== ci); }); C.shiftIcons(m.id, ci); },
+            })),
+            colAddOn: (m.cols || []).length < C.SPEC_MAX,
+            colAdd: () => { w(m.id, mm => { mm.cols = (mm.cols || []).concat([{ l: 'Label', v: 'Value' }]); }); this.cwFocusLast(m.id); },
+          };
+        }),
+      };
+    });
+    const cur = C.copySnap(s, status);
+    const diff = last ? C.copyDiff(last, cur) : [];
+    const steps = C.COPY_STATES.map((k, i) => ({
+      label: L[k], n: i + 1,
+      state: k === status ? 'cur' : (C.COPY_STATES.indexOf(k) < C.COPY_STATES.indexOf(status) ? 'done' : 'todo'),
+    }));
+    const act = status === 'draft' ? { label: 'Send to design', to: 'design', tip: 'Saves a snapshot of every line and hands the copy to the designer.' }
+      : status === 'design' ? { label: 'Mark as final', to: 'final', tip: 'Saves a snapshot of the approved copy.' }
+      : null;
+    const back = status === 'design' ? { label: 'Back to draft', to: 'draft' } : (status === 'final' ? { label: 'Reopen for edits', to: 'design' } : null);
+    const note = status === 'draft' ? 'You are drafting. When the words are ready, send them to design — a snapshot of every line is kept.'
+      : status === 'design' ? 'The designer is building with these words. Proofread here, then mark it final.'
+      : 'Approved. Any edit from here shows as a change against the final snapshot.';
+    const since = last ? (diff.length ? diff.length + ' change' + (diff.length === 1 ? '' : 's') + ' since ' + L[last.status] + ' · ' + C.copyStamp(last.at) : 'No changes since ' + L[last.status] + ' · ' + C.copyStamp(last.at)) : 'No snapshot yet';
+    const hist = log.map((e, i) => {
+      const prev = i ? log[i - 1] : null;
+      const d = prev ? C.copyDiff(prev, e) : [];
+      return {
+        title: (e.status === 'design' ? 'Sent to design' : 'Marked final'),
+        meta: C.copyStamp(e.at) + (e.by ? ' · ' + e.by : '') + (prev ? ' · ' + d.length + ' change' + (d.length === 1 ? '' : 's') : ' · first snapshot'),
+        state: e.status,
+        changes: d.slice(0, 6).map(c => ({ where: (pages.length > 1 ? c.page + ' · ' : '') + c.label, kind: c.kind, was: c.was, now: c.now, wasOn: !!c.was, nowOn: !!c.now })),
+        moreOn: d.length > 6, more: '+ ' + (d.length - 6) + ' more in the document',
+        download: () => this.cwDownload(e, prev),
+      };
+    }).reverse();
+    const shots = this._cwShots || {};
+    const shotStyle = u => u ? { backgroundImage: 'url(' + u + ')' } : {};
+    // WHICH DESIGN THE PREVIEW SHOWS. On a single ad the words are shared, but each variant
+    // lays them out differently — so the writer can check them in every one. On a carousel
+    // a page is picked here or by clicking into it, and the form scrolls to follow.
+    const pvTabs = carousel
+      ? s.variants.map((vv, i) => ({ label: String(i + 1), tip: 'Page ' + (i + 1), on: i === vi ? '1' : undefined,
+          pick: () => { if (i !== (this.state.activeVi || 0)) this.upd(x => { x.activeVi = i; x.sel = null; return x; });
+            setTimeout(() => { const el = document.querySelector('.cw-page[data-cwpg="' + i + '"]'); if (el) try { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {} }, 40); } }))
+      : s.variants.map((vv, i) => ({ label: vv.name || (i ? 'Variant ' + (i + 1) : 'Master'), tip: 'Preview the words in ' + (vv.name || (i ? 'Variant ' + (i + 1) : 'the Master')), on: i === vi ? '1' : undefined,
+          pick: () => { if (i !== (this.state.activeVi || 0)) this.upd(x => { x.activeVi = i; x.sel = null; return x; }); } }));
+    return Object.assign(base, {
+      cwName: s.campaign || '',
+      onCwName: e => this.upd(x => { x.campaign = e.target.value; return x; }),
+      cwSteps: steps,
+      cwActOn: !!act, cwAct: act ? () => this.setCopyStatus(act.to) : () => {}, cwActLabel: act ? act.label : '', cwActTip: act ? act.tip : '',
+      cwBackOn: !!back, cwBack: back ? () => this.setCopyStatus(back.to) : () => {}, cwBackLabel: back ? back.label : '',
+      cwNote: note,
+      cwSince: since,
+      cwSinceOn: last && diff.length ? '1' : undefined,
+      cwMsg: this._cwMsg || '',
+      cwMsgOn: !!this._cwMsg,
+      cwDl: () => this.cwDownload(C.copySnap(this.state, this.state.copyStatus || 'draft', C.copyAuthor()), last),
+      cwDlTip: last ? 'The words as they are now, with every change since the last snapshot listed at the end.' : 'The words as they are now, as a Word document — it opens in Google Docs too.',
+      cwAuthor: C.copyAuthor(),
+      onCwAuthor: e => { try { localStorage.setItem('adstudio-author', e.target.value); } catch (err) {} this.forceUpdate(); },
+      cwPages: pages,
+      cwMulti: carousel,
+      cwHist: hist,
+      cwHistOn: hist.length > 0,
+      cwHistEmptyOn: !hist.length,
+      cwPvLabel: carousel ? 'Page ' + (vi + 1) + ' of ' + s.variants.length : (s.variants.length > 1 ? 'The words are shared by every variant' : 'The ad as it will export'),
+      cwPvTabs: pvTabs,
+      cwPvTabsOn: pvTabs.length > 1,
+      cwShotSqStyle: shotStyle(shots.vi === vi ? shots.sq : ''),
+      cwPvReadyOn: shots.vi === vi && shots.sq ? '1' : undefined,
+      cwUndoOn: !!this._cwUndo,
+      cwUndo: () => this.cwUndo(),
+    });
+  }
+  // The card a SAVE writes — `recordSaved` in studio-base.js is the only caller.
+  async recentEntry() {
     let sidecar = {};
     try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sidecar = await r.json(); } catch (e) {}
     const own = {};
@@ -6975,10 +8043,7 @@ class CampaignStudio extends StudioBase {
         thumbs.push(this.renderOpsToCanvas(this.buildOps(st, vi, 'sq', assets), .22).toDataURL('image/webp', .72));
       }
     } catch (e) {}
-    const entry = { name: st.campaign || 'Untitled', ts: Date.now(), thumbs, state: st, images: own };
-    let rec = this.readRecents().filter(r => r.name !== entry.name);
-    rec.unshift(entry); rec = rec.slice(0, StudioBase.RECENT_MAX);
-    await this.writeRecents(rec);
+    return { name: st.campaign || 'Untitled', ts: Date.now(), thumbs, state: st, images: own };
   }
   async applyProject(state, images) {
     try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(state)); localStorage.setItem('adstudio-resume', '1'); } catch (e) {}
@@ -6997,15 +8062,17 @@ class CampaignStudio extends StudioBase {
     // project you get is the design the card showed you.
     const d = CampaignStudio.tplState(id);
     if (!d) return;
-    await this.snapshotCurrent();
+    if (!this.confirmDiscard()) return;
     d.screen = 'editor';
     d.campaign = '';
+    d.pid = StudioBase.newPid();
     await this.applyProject(d, {});
   }
   async newProject() {
-    await this.snapshotCurrent();
+    if (!this.confirmDiscard()) return;
     const d = CampaignStudio.defaults();
     d.screen = 'editor';
+    d.pid = StudioBase.newPid();
     d.modules = [
       { id: 'm1', type: 'eyebrow', text: 'New launch · Dubai' },
       { id: 'm2', type: 'hero', text: 'Your headline here', serif: 'headline' }
@@ -7013,10 +8080,10 @@ class CampaignStudio extends StudioBase {
     await this.applyProject(d, {});
   }
   async openRecent(i) {
-    const r = this.readRecents()[i];
+    const r = this.savedRecents()[i];
     if (!r) return;
-    await this.snapshotCurrent();
-    await this.applyProject(r.state, r.images || {});
+    if (!this.confirmDiscard()) return;
+    await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), r.images || {});
   }
 
   // ---------- views ----------
@@ -7110,8 +8177,12 @@ class CampaignStudio extends StudioBase {
             return {
               t: line,
               rowStyle: ruleV
-                ? { display: 'flex', width: '100%', padding: cq(tk.body * .42) + ' 0 0', borderTop: ri > 0 ? '1px solid ' + pal.boxBd : 'none' }
-                : { display: 'flex', flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: cq(tk.body * .75), width: '100%' },
+                // the op's row is the plain step with a hairline ON its top edge and the text
+                // .3em lower — padding and a layout-taking border ran each row ~12 px tall
+                ? { display: 'flex', width: '100%', boxShadow: ri > 0 ? 'inset 0 ' + (tk.W / width).toFixed(2) + 'px 0 0 ' + pal.boxBd : 'none' }
+                // the bullet (.82em) plus this gap IS the op's indent, LIST_INDENT em — at
+                // .75 the copy sat .33em (9 canvas px) left of where the export draws it
+                : { display: 'flex', flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: cq(tk.body * (CampaignStudio.LIST_INDENT - .82)), width: '100%' },
               // A check is two borders on a rotated box; dot and ring are circles.
               // Same shapes the export draws, so nothing depends on an icon font.
               bulletStyle: ruleV
@@ -7127,8 +8198,8 @@ class CampaignStudio extends StudioBase {
           // through the shared `text` key and the label span is dropped above.
           text: (m.type === 'price' && mv === 'line') ? CampaignStudio.priceLine(m) : (m.text || ''),
           sub: (m.type === 'price' && mv === 'line') ? '' : (m.sub || '').toUpperCase(),
-          chips: (m.chips || []).map(t => ({ t })),
-          cols: (m.cols || []).slice(0, CampaignStudio.SPEC_MAX).map((c, i) => ({
+          chips: CampaignStudio.chipsOf(m).map(({ t }) => ({ t })),
+          cols: CampaignStudio.colsOf(m).map((c, i) => ({
             l: (c.l || '').toUpperCase(), v: c.v || '',
             // `figTop` is column-reverse rather than a reordered pair, so the markup
             // stays one shape for both readings. The gap reads from specBox, so the
@@ -7182,7 +8253,14 @@ class CampaignStudio extends StudioBase {
           // borderRadius was 6px against an op of `r: rh / 2` — a full capsule — so the
           // editor drew a soft rect where every export drew a pill. This is the case the
           // radius rule already names: a preview mirroring an op with r = h/2 is 999px.
-          chipStyle: { border: '1px solid ' + (mv === 'gold' ? pal.chipGold : pal.chip), color: mv === 'gold' ? pal.ruleGold : pal.inkSoft, fontWeight: 300, fontSize: cq(tk.eyebrow * CampaignStudio.tagK(m, tk)), padding: CampaignStudio.tagPad(CampaignStudio.tagK(m, tk)), borderRadius: '999px', whiteSpace: 'nowrap' },
+          // THE OP'S OWN PILL, number for number: rh = eyebrow + 22 tall, 28 of side
+          // padding, the label's baseline at rh/2 + .36px. The preview's padding was
+          // '.9cqw 2.6cqw' on a 1.3 line box with a 1px BORDER that takes layout, so its
+          // pill ran ~10 canvas px taller than the op's and pushed every component below a
+          // tag row down — the design window and the export disagreed by that much. The
+          // ring is a box-shadow now (no layout, one screen pixel at any zoom), and a
+          // one-em line box centred in rh puts the baseline at rh/2 + .34px, the op's .36.
+          chipStyle: (() => { const kC = CampaignStudio.tagK(m, tk); return { display: 'inline-flex', alignItems: 'center', boxSizing: 'border-box', height: cq((tk.eyebrow + 22) * kC), padding: '0 ' + cq(28 * kC), lineHeight: 1, border: 'none', boxShadow: 'inset 0 0 0 ' + (tk.W / width).toFixed(2) + 'px ' + (mv === 'gold' ? pal.chipGold : pal.chip), color: mv === 'gold' ? pal.ruleGold : pal.inkSoft, fontWeight: 300, fontSize: cq(tk.eyebrow * kC), borderRadius: '999px', whiteSpace: 'nowrap' }; })(),
           labStyle: { fontWeight: 500, fontSize: cq(tk.eyebrow * .8), letterSpacing: cq(CampaignStudio.trackOf(tk.eyebrow * .8)), textTransform: 'uppercase', color: pal.inkMute },
           valStyle: { fontWeight: 300, fontSize: cq(tk.hook), color: pal.ink },
           rowStyle: {}, ruleStyle: {}, ladStyle: {}, priceBoxStyle: {}, rowsStyle: {}
@@ -7255,7 +8333,9 @@ class CampaignStudio extends StudioBase {
           // what the ops do — the lines keep the same membership, they just fill from
           // the right. flex-start would then pack the block to the right edge and move
           // a left-aligned cluster, so the free space has to move to flex-end instead.
-          view.rowStyle = { display: 'flex', gap: CampaignStudio.tagGap(CampaignStudio.tagK(m, tk)), flexWrap: 'wrap',
+          // 16 between chips and 12 between rows — chipRows' and modPx's own numbers,
+          // where tagGap gave 16.2 both ways and a two-row block drifted 4 more.
+          view.rowStyle = { display: 'flex', columnGap: cq(16 * CampaignStudio.tagK(m, tk)), rowGap: cq(12 * CampaignStudio.tagK(m, tk)), flexWrap: 'wrap',
             flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
             justifyContent: center ? 'center' : (CampaignStudio.listRtl() ? 'flex-end' : 'flex-start') };
         } else if (m.type === 'spec') {
@@ -7269,7 +8349,7 @@ class CampaignStudio extends StudioBase {
               width: cq(B.w), marginLeft: center ? 'auto' : '0', marginRight: center ? 'auto' : '0' };
             view.prows = B.cells.map((c, i) => ({
               hasBadge: false, badgeAlone: false, badge: '', badgeStyle: {}, connStyle: { display: 'none' },
-              hasIcon: true, iconId: 'adstudio-ic-' + m.id + '-' + i,
+              hasIcon: true, iconId: 'adstudio-ic-' + m.id + '-' + c.gi,
               iconTint: CampaignStudio.icoInk(m, pal.ink),
               iconWrapStyle: { position: 'relative', width: cq(B.icoD), height: cq(B.icoD), flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' },
               iconStyle: { width: '100%', height: '100%', pointerEvents: 'auto' },
@@ -7311,14 +8391,29 @@ class CampaignStudio extends StudioBase {
           }
         } else if (m.type === 'cta') {
           const outline = mv === 'outline', rectV = mv === 'rect';
-          view.tStyle = { display: 'inline-block', background: outline ? 'transparent' : (rectV ? pal.warm : pal.ctaFill), color: outline ? pal.ink : pal.ctaInk, border: outline ? '1px solid ' + pal.ctaOutline : 'none', fontWeight: rectV ? 500 : 300, fontSize: cq(tk.ctaF), padding: `${cq(tk.ctaPV)} ${cq(tk.ctaPV * 2.6)}`, borderRadius: rectV ? cq(8) : '999px' };
+          // The op's button: bh = ctaF + 2 ctaPV, the label 1.6 ctaF in. On the inherited
+          // 1.3 line box the preview button ran .3 ctaF (8 canvas px) taller and shoved
+          // everything under it down; at line-height 1 the baseline lands at
+          // ctaPV + .84 ctaF against the op's ctaPV + .86. The outline is a box-shadow so
+          // it takes no layout, the same fix the chips need.
+          view.tStyle = { display: 'inline-block', background: outline ? 'transparent' : (rectV ? pal.warm : pal.ctaFill), color: outline ? pal.ink : pal.ctaInk, border: 'none', boxShadow: outline ? 'inset 0 0 0 ' + (tk.W / width).toFixed(2) + 'px ' + pal.ctaOutline : 'none', fontWeight: rectV ? 500 : 300, fontSize: cq(tk.ctaF), lineHeight: 1, padding: `${cq(tk.ctaPV)} ${cq(tk.ctaF * 1.6)}`, borderRadius: rectV ? cq(8) : '999px' };
         } else if (m.type === 'price') {
-          const oneLine = mv === 'line';
+          // THE OP'S OWN BOX, number for number. The label is tk.eyebrow on a 1.2 line and
+          // the figure tk.headline on 1.15, 8 apart (none in the glass panel, which pads 22
+          // by 30 instead) — and the op sets each baseline 1.0em below its line's top where
+          // a CSS line box sets it at (lh + a - d) / 2, so each run paints that difference
+          // lower. The preview had the label at eyebrow * .8 (the SPEC label's size), both
+          // runs on the inherited 1.3, a .6cqw gap and a glass border that took layout:
+          // 12-16 canvas px out on the figure, and a price block taller than the export's.
+          const oneLine = mv === 'line', glassP = mv === 'glass';
           const ppx = oneLine ? CampaignStudio.priceLinePx(tk) : tk.headline;
-          view.valStyle = { fontWeight: CampaignStudio.headW(400), fontSize: cq(ppx), color: pal.ink };
-          view.priceBoxStyle = { display: 'flex', flexDirection: 'column', gap: '0.6cqw' };
+          const fAp = StudioBase.fontAsc();
+          const lift = (px, lh) => cq(px * (1 - ((lh - fAp.a - fAp.d) / 2 + fAp.a)));
+          view.valStyle = { fontWeight: CampaignStudio.headW(400), fontSize: cq(ppx), color: pal.ink, lineHeight: 1.15, position: 'relative', top: lift(ppx, 1.15) };
+          view.labStyle = Object.assign({}, view.labStyle, { fontSize: cq(tk.eyebrow), letterSpacing: cq(CampaignStudio.trackOf(tk.eyebrow)), lineHeight: 1.2, position: 'relative', top: lift(tk.eyebrow, 1.2) });
+          view.priceBoxStyle = { display: 'flex', flexDirection: 'column', gap: glassP ? 0 : cq(8) };
           if (oneLine) view.labStyle = { display: 'none' };
-          if (mv === 'glass') { view.priceBoxStyle.background = pal.glassFill; view.priceBoxStyle.border = '1px solid rgba(255,255,255,.22)'; view.priceBoxStyle.backdropFilter = view.priceBoxStyle.WebkitBackdropFilter = 'blur(14px)'; view.priceBoxStyle.borderRadius = '2.5cqw'; view.priceBoxStyle.padding = '2cqw 2.8cqw'; }
+          if (glassP) { view.priceBoxStyle.background = pal.glassFill; view.priceBoxStyle.boxShadow = 'inset 0 0 0 ' + (tk.W / width).toFixed(2) + 'px ' + pal.glassStroke; view.priceBoxStyle.backdropFilter = view.priceBoxStyle.WebkitBackdropFilter = 'blur(14px)'; view.priceBoxStyle.borderRadius = cq(27); view.priceBoxStyle.padding = cq(22) + ' ' + cq(30); }
         } else if (m.type === 'steps') {
           // Same geometry function the export reads, so the two cannot drift.
           const B = this.stepBox(m, tk, gW, mv, center);
@@ -7366,12 +8461,12 @@ class CampaignStudio extends StudioBase {
         } else if (m.type === 'tags' && (CampaignStudio.isStrip(mv) || mv === 'icon')) {
           if (mv === 'icon') {
             const kT = CampaignStudio.tagK(m, tk);
-            view.rowsStyle = { display: 'flex', gap: CampaignStudio.tagGap(kT), flexWrap: 'wrap',
+            view.rowsStyle = { display: 'flex', columnGap: cq(16 * kT), rowGap: cq(12 * kT), flexWrap: 'wrap',
               flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
               justifyContent: center ? 'center' : (CampaignStudio.listRtl() ? 'flex-end' : 'flex-start') };
-            view.prows = (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).map((t, i) => ({
+            view.prows = CampaignStudio.chipsOf(m).map(({ t, gi }) => ({
               hasBadge: false, badgeAlone: false, badge: '', badgeStyle: {},
-              hasIcon: true, iconId: 'adstudio-ic-' + m.id + '-' + i,
+              hasIcon: true, iconId: 'adstudio-ic-' + m.id + '-' + gi,
               iconTint: CampaignStudio.icoInk(m, pal.inkSoft),
               iconWrapStyle: { position: 'relative', width: cq(tk.eyebrow * 1.15 * kT), height: cq(tk.eyebrow * 1.15 * kT), flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' },
               iconStyle: { width: '100%', height: '100%', pointerEvents: 'auto' },
@@ -7379,7 +8474,9 @@ class CampaignStudio extends StudioBase {
               connStyle: { display: 'none' },
               hasFig: false, fig: '', figStyle: {},
               hasLab: true, lab: t, labStyle: { fontWeight: 300, fontSize: cq(tk.eyebrow * kT), color: pal.inkSoft, whiteSpace: 'nowrap' },
-              wrapStyle: { display: 'inline-flex', alignItems: 'center', gap: cq(tk.eyebrow * .6 * kT), border: '1px solid ' + pal.chip, borderRadius: '999px', padding: CampaignStudio.tagPad(kT), boxSizing: 'border-box' }
+              // The op: 28 in, a 1.15em icon box, the label at 1.9em - 14 from the icon's
+              // left, and 42 after it (chipRows reserves 56 + 1.9em around the label).
+              wrapStyle: { display: 'inline-flex', alignItems: 'center', gap: cq(Math.max(0, tk.eyebrow * .75 - 14) * kT), border: 'none', boxShadow: 'inset 0 0 0 ' + (tk.W / width).toFixed(2) + 'px ' + pal.chip, borderRadius: '999px', height: cq((tk.eyebrow + 22) * kT), lineHeight: 1, padding: '0 ' + cq(42 * kT) + ' 0 ' + cq(28 * kT), boxSizing: 'border-box' }
             }));
           } else {
             const px = tk.hook * .86 * CampaignStudio.tagK(m, tk);
@@ -7387,7 +8484,7 @@ class CampaignStudio extends StudioBase {
               flexDirection: CampaignStudio.listRtl() ? 'row-reverse' : 'row',
               justifyContent: center ? 'center' : (CampaignStudio.listRtl() ? 'flex-end' : 'flex-start'),
               alignItems: 'center', width: '100%' };
-            view.prows = (m.chips || []).slice(0, CampaignStudio.CHIP_MAX).map((t, i) => ({
+            view.prows = CampaignStudio.chipsOf(m).map(({ t }, i) => ({
               hasBadge: false, badgeAlone: false, badge: '', badgeStyle: {},
               hasIcon: false, iconId: '', connStyle: { display: 'none' },
               hasFig: false, fig: '', figStyle: {},
@@ -7512,11 +8609,17 @@ class CampaignStudio extends StudioBase {
           // lines and the step to the next bullet are the same number. The preview had
           // the row at LEAD.body with a LEAD.list - 1 gap between rows, so its pitch was
           // 2.15em against the export's 1.75 — visible the moment a list had two items.
-          view.ladStyle = { display: 'flex', flexDirection: 'column', gap: 0, width: '100%' };
+          // The op puts the FIRST baseline at px * baseAt(lead, 1) — 1.0em in Latin, kept so
+          // no saved ad moves — while a CSS line box puts it at (lead + a - d) / 2. The list
+          // paints that difference higher (a relative offset, so the reserved height and
+          // everything below it are untouched). In Arabic baseAt is the formula and this is 0.
+          const lLd = CampaignStudio.leadOf(CampaignStudio.LEAD.list), fAl = StudioBase.fontAsc();
+          view.ladStyle = { display: 'flex', flexDirection: 'column', gap: 0, width: '100%', position: 'relative', top: cq(tk.body * (CampaignStudio.baseAt(lLd, 1) - (lLd + fAl.a - fAl.d) / 2)) };
           // flex:1 fills the column, so the copy needs telling which end to hug — the
           // op right-aligns it to meet the bullet, and without this the preview would
           // leave it hanging at the far side of an otherwise identical row.
           view.valStyle = { fontWeight: 300, fontSize: cq(tk.body), lineHeight: CampaignStudio.leadOf(CampaignStudio.LEAD.list), color: pal.inkSoft, flex: 1, minWidth: 0, textAlign: CampaignStudio.listRtl() ? 'right' : 'left' };
+          if (mv === 'rule') Object.assign(view.valStyle, { position: 'relative', top: cq(tk.body * .3) });
         } else if (m.type === 'divider') {
           const dv = CampaignStudio.DIVV[mv] || [1, 1];
           view.tStyle = { height: dv[0] + 'px', background: pal.ink, opacity: dv[1], width: '100%' };
@@ -7578,9 +8681,17 @@ class CampaignStudio extends StudioBase {
       // width: `alignSelf:stretch` items would otherwise fill the frame and sit left.
       const railG = CampaignStudio.railBox(tk, center, colW0, tk.pad[3]);
       const top = stamp(topM), bot = stamp(botM, railG);
-      if (railG.w < colW0) bot.forEach(it => {
+      // AUTO MARGINS CANCEL STRETCH: a flex item with auto margins shrinks to its content,
+      // so a centred list, spec panel, step grid or divider collapsed to the width of its
+      // own text and centred — a bullet list on a centred 9:16 drew 255 canvas px right of
+      // the op, which keeps its one left edge at the guard's. Those items take the guard's
+      // width back explicitly; everything else still shrinks and centres as before.
+      const STRETCH = { divider: 1, spec: 1, spacer: 1, steps: 1, list: 1 };
+      if (railG.w < colW0) bot.forEach((it, bi) => {
+        const bm = botM[bi];
         it.wrapStyle = Object.assign({}, it.wrapStyle, { maxWidth: cq(railG.w),
-          marginLeft: center ? 'auto' : undefined, marginRight: center ? 'auto' : undefined });
+          marginLeft: center ? 'auto' : undefined, marginRight: center ? 'auto' : undefined,
+          width: (center && bm && STRETCH[bm.type]) ? cq(railG.w) : it.wrapStyle.width });
       });
       // The share of the canvas the copy occupies — the brand rule's "modules and copy
       // cover at most ~40%". Measured from the SAME per-component gaps and modPx the
@@ -7919,16 +9030,21 @@ class CampaignStudio extends StudioBase {
         del: () => this.upd(x => { CampaignStudio.dropMod(x, x.activeVi, id); return x; })
       };
     }).filter(Boolean);
-    const recents = this.readRecents();
+    const recents = this.savedRecents();
     return {
+      ...this.copyVals(),
       paletteCats, variantViews,
       onSplash: s.screen === 'splash',
       newProject: () => this.newProject(),
-      continueSession: () => this.upd(x => { x.screen = 'editor'; return x; }),
-      openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); },
+      continueSession: () => this.upd(x => { x.screen = CampaignStudio.workScreen(); return x; }),
+      // Leaving without saving is ANSWERED here, once: the working copy stays behind as
+      // Continue last, and picking something else from the splash does not ask again.
+      openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved(); },
       recentsView: recents.map((r, i) => ({
         name: r.name,
-        meta: new Date(r.ts).toLocaleDateString() + ' · ' + ((r.state && r.state.variants || []).length) + ' variant(s)',
+        meta: 'Saved ' + new Date(r.ts).toLocaleDateString() + ' · ' + (CampaignStudio.isCarousel(r.state || {})
+          ? ((r.state.variants || []).length + ' page' + ((r.state.variants || []).length === 1 ? '' : 's'))
+          : ((r.state && r.state.variants || []).length + ' variant' + ((r.state && r.state.variants || []).length === 1 ? '' : 's'))),
         load: () => this.openRecent(i),
         hasThumbs: !!(r.thumbs && r.thumbs.length),
         badge: ((r.state && r.state.variants || []).length) + 'V',
@@ -7982,6 +9098,11 @@ class CampaignStudio extends StudioBase {
         ? 'Everything here applies to every page at once. Up to ten pages share one set of design components and one QR code; each page carries its own copy and photo. Export writes a zip of Name_pageN_Size.png or .svg for every page in every size, or a single PDF. Session files carry the design and its photos, so they reopen anywhere.'
         : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a zip of Name_Variant_Size.png or .svg for every variant in every size, or a single PDF. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
       textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
+      // a style variant is per DESIGN variant on a single ad, and a carousel's page IS one
+      styleScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'per design variant',
+      noSelNote: CampaignStudio.isCarousel(s)
+        ? 'Click a design component on any canvas to edit it here. Each page keeps its own components, copy and layout.'
+        : 'Click a design component on any canvas to edit it here. Text is linked across variants; style variants and position are per design variant.',
       railFoot: CampaignStudio.isCarousel(s)
         ? 'Design components are shared across pages; each page has its own copy, position, style and visibility. An edit on one page never changes another.'
         : 'Design components are shared across variants; position, style and visibility are per variant. Copy edits apply everywhere.',
@@ -7996,6 +9117,12 @@ class CampaignStudio extends StudioBase {
       fgToggle: () => setAv(vv => { vv.fg = !vv.fg; }),
       fgToggleLabel: av.fg ? 'Shown on this variant' : 'Off',
       fgShownOn: av.fg ? '1' : undefined,
+      // The toggle is an Off | On pair, the dock's own shape — a single button labelled
+      // with its state read as a setting you had to decode. fgToggle stays for any reader.
+      fgSetOn: () => setAv(vv => { vv.fg = true; }),
+      fgSetOff: () => setAv(vv => { vv.fg = false; }),
+      fgOffOn: av.fg ? undefined : '1',
+      fgScopeWord: CampaignStudio.isCarousel(s) ? 'page' : 'variant',
       fgToggleStyle: btn(!!av.fg),
       hiddenList, noHidden: hiddenList.length === 0, hasHidden: hiddenList.length > 0,
       // THE TINT CARRIES THE MEANING; THE INK CARRIES THE GLYPH. Accent ink on the accent
@@ -8029,8 +9156,8 @@ class CampaignStudio extends StudioBase {
           const t = selM.type;
           if (['tags', 'spec', 'divider', 'spacer', 'graphic'].indexOf(t) < 0 && !String(selM.text || '').trim()) need++;
           if (t === 'price' && !String(selM.sub || '').trim()) need++;
-          if (t === 'tags' && !(selM.chips && selM.chips.length)) need++;
-          if (t === 'spec' && !(selM.cols && selM.cols.length)) need++;
+          if (t === 'tags' && !CampaignStudio.chipsOf(selM).length) need++;
+          if (t === 'spec' && !CampaignStudio.colsOf(selM).length) need++;
           if (t === 'graphic' && !filled['adstudio-mod-' + selM.id]) need++;
         }
         const bgOk = !!filled['adstudio-bg-' + vi];
@@ -8102,6 +9229,14 @@ class CampaignStudio extends StudioBase {
       figTopSetOn: selM && selM.figTop ? '1' : undefined,
       bigLabel: selM && selM.big ? 'Large figure ✓' : 'Large figure',
       bigSetOn: selM && selM.big ? '1' : undefined,
+      // Two booleans read as two PAIRS, the dock's shape: a button labelled "Figure on top ✓"
+      // wrapped to two lines at rail width and made the state something to decode.
+      figTopOn: () => editContent(m => { m.figTop = true; }),
+      figTopOff: () => editContent(m => { m.figTop = false; }),
+      figLabFirstOn: selM && selM.figTop ? undefined : '1',
+      bigOn: () => editContent(m => { m.big = true; }),
+      bigOff: () => editContent(m => { m.big = false; }),
+      bigOffOn: selM && selM.big ? undefined : '1',
       figTopStyle: btn(!!(selM && selM.figTop)),
       bigStyle: btn(!!(selM && selM.big)),
       selHasText: !!selM && ['tags', 'spec', 'divider', 'spacer', 'graphic'].indexOf(selM.type) < 0,
@@ -8114,7 +9249,9 @@ class CampaignStudio extends StudioBase {
         const cap = isList ? CampaignStudio.LIST_MAX : (isSteps ? CampaignStudio.STEP_MAX : CampaignStudio.LINE_MAX);
         const word = isList ? 'bullet' : (isSteps ? 'step' : 'line');
         const n = (isList ? CampaignStudio.listLines(selM.text) : (isSteps ? CampaignStudio.capLines(selM.text, cap) : CampaignStudio.lines(selM.text))).length;
-        return n + ' ' + word + (n === 1 ? '' : 's') + (n >= cap ? ' — at the cap; further breaks are ignored.' : '');
+        // The count and the rule it counts against, in one line: the label used to carry
+        // "Enter for a new line, up to 4" and the hint "2 lines", two halves of one fact.
+        return n + ' of ' + cap + ' ' + word + 's' + (n >= cap ? ' — at the cap; further breaks are ignored.' : ' · Enter for a new ' + word + '.');
       })() : '',
       undo: () => this.undo(),
       redo: () => this.redo(),
@@ -8235,6 +9372,42 @@ class CampaignStudio extends StudioBase {
       selText: selM ? (selM.text || '') : '', selSub: selM ? (selM.sub || '') : '',
       selChips: selM && selM.chips ? selM.chips.join(', ') : '',
       selCols: selM && selM.cols ? selM.cols.map(c => c.l + ' | ' + c.v).join('\n') : '',
+      // ONE FIELD PER CHIP AND PER COLUMN — the copy view's own list control. They were a
+      // comma list and a "label | value" line each, and both TRIMMED on every keystroke,
+      // so the space before a second word vanished as it was typed, Enter could not start a
+      // new column row, and a chip could never carry a comma ("AED 1,200,000"). The values
+      // are written exactly as typed now. Focusing a row points the icon picker at it.
+      ...(() => {
+        const isT = !!selM && selM.type === 'tags', isS = !!selM && selM.type === 'spec';
+        const iconsOn = (isT && selVarCur === 'icon') || (isS && selVarCur === 'icons');
+        const at = this._iconStep || 0;
+        const pick = i => () => { if (iconsOn && this._iconStep !== i) { this._iconStep = i; this.forceUpdate(); } };
+        const chips = isT ? (selM.chips || []) : [], cols = isS ? (selM.cols || []) : [];
+        return {
+          selChipRows: chips.map((c, i) => ({
+            val: String(c == null ? '' : c), aria: 'Chip ' + (i + 1), n: String(i + 1),
+            iconOn: iconsOn && at === i ? '1' : undefined, focus: pick(i),
+            onInput: e => editContent(m => { m.chips = (m.chips || []).slice(); m.chips[i] = e.target.value; }),
+            tidy: () => { if (CampaignStudio.tidyChip(selM.chips, i)) editContent(m => { m.chips = CampaignStudio.tidyChip(m.chips, i) || m.chips; }); },
+            del: () => { editContent(m => { m.chips = (m.chips || []).filter((q, qi) => qi !== i); }); CampaignStudio.shiftIcons(selM.id, i); if (at >= i && at > 0) this._iconStep = at - 1; },
+          })),
+          selChipAddOn: isT && chips.length < CampaignStudio.CHIP_MAX,
+          selChipAdd: () => { editContent(m => { m.chips = (m.chips || []).concat(['New point']); }); this.railFocusLast('chips'); },
+          selChipCount: chips.length + ' of ' + CampaignStudio.CHIP_MAX + ' chips',
+          selColRows: cols.map((c, i) => ({
+            l: String((c && c.l) || ''), v: String((c && c.v) || ''), n: String(i + 1),
+            iconOn: iconsOn && at === i ? '1' : undefined, focus: pick(i),
+            onL: e => editContent(m => { m.cols = (m.cols || []).map((q, qi) => qi === i ? Object.assign({}, q, { l: e.target.value }) : q); }),
+            onV: e => editContent(m => { m.cols = (m.cols || []).map((q, qi) => qi === i ? Object.assign({}, q, { v: e.target.value }) : q); }),
+            tidyL: () => { if (CampaignStudio.tidyCol(selM.cols, i, 'l')) editContent(m => { m.cols = CampaignStudio.tidyCol(m.cols, i, 'l') || m.cols; }); },
+            tidyV: () => { if (CampaignStudio.tidyCol(selM.cols, i, 'v')) editContent(m => { m.cols = CampaignStudio.tidyCol(m.cols, i, 'v') || m.cols; }); },
+            del: () => { editContent(m => { m.cols = (m.cols || []).filter((q, qi) => qi !== i); }); CampaignStudio.shiftIcons(selM.id, i); if (at >= i && at > 0) this._iconStep = at - 1; },
+          })),
+          selColAddOn: isS && cols.length < CampaignStudio.SPEC_MAX,
+          selColAdd: () => { editContent(m => { m.cols = (m.cols || []).concat([{ l: 'Label', v: 'Value' }]); }); this.railFocusLast('cols'); },
+          selColCount: cols.length + ' of ' + CampaignStudio.SPEC_MAX + ' columns',
+        };
+      })(),
       // Which step the picker targets, and the query. Instance fields + forceUpdate:
       // this is throwaway UI state and has no business in the project or in undo.
       iconStep: this._iconStep || 0,
@@ -8704,6 +9877,7 @@ class Component extends DCLogic {
     // studio and mounted the other whenever state.studio changed.
     try { this.eng.componentDidMount(); } catch (e) { console.warn(e); }
     this._tplTick();
+    this._cwTick();
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
   }
@@ -8713,7 +9887,11 @@ class Component extends DCLogic {
     // mockSync returns early unless the design actually changed, so this cannot loop.
     if (this.state.mockOpen) { const a = this.active(); if (a && a.mockSync) a.mockSync(); }
     this._tplTick();
+    this._cwTick();
   }
+  // The copy view's preview is the real export, re-rendered off a key — so, like the
+  // placement preview, calling it on every update is a no-op unless the words moved.
+  _cwTick() { const e = this.active(); if (e && e.state && e.state.screen === 'copy' && e.cwSync) e.cwSync(); }
   // The splash's template cards are REAL renders. Key-guarded inside `tplRenderAll`, so
   // calling it on every update — and once at mount, because the splash is the opening
   // screen and may never see an update before the user looks at a card — is a no-op after

@@ -4662,6 +4662,10 @@ keys were deleted, not left dead.
 
 ## Recents live in IndexedDB
 
+> **RECENTS ARE SAVED PROJECTS NOW, and only those.** An entry is written by a save or by
+> opening a session file, never by leaving a project, and a save shows on the splash at once.
+> See *RECENTS ARE WHAT WAS SAVED* at the end of this file. The storage below is unchanged.
+
 `StudioBase.loadRecents/writeRecents/readRecents` back the recents list with
 IndexedDB under `recents:<studio>`, migrating whatever localStorage still holds on
 first run. They were in localStorage, whose ~5MB cap one project's embedded images
@@ -10939,6 +10943,8 @@ the panel is open (`.p-ghost[data-on] .p-chev`).
   `ui-design-system/` are untouched. **Organic's top bar and canvas bar still carry the old
   Undo/Redo arrows and the baseline-aligned bar** — the top bar is the same markup in both
   documents, so this is a visible divergence until the same two edits land there.
+  **CLOSED** — Organic's Undo / Redo are in the history capsule, its Share takes the turning
+  caret and its bar the button role; see *BUGS THE PASS FOUND* at the end of this file.
 
 # THE PROJECT BROWSER'S SIDEBAR, AND THE TOP BAR OFF ORGANIC'S SPLASH
 
@@ -12828,3 +12834,394 @@ box is the same to the pixel and only the tint key differs.
 
 **34 op groups, 34 byte-identical** against the committed build — the default is the old
 behaviour, so no saved post moves.
+
+# CAMPAIGN HAS A COPY WORKSPACE, AND THE CHANGELOG IS ITS SNAPSHOTS
+
+`Provident Campaign Studio.dc.html` gains a **Design | Copy** switch in the top bar. Copy is
+for copywriters: the campaign's words alone, in reading order, beside the real export — no
+layout, style variants, photos or spacing. It came out of a discussion rather than a spec,
+and the decisions that shaped it are the useful part:
+
+- **Not a separate studio, no comments, no accounts, no live Google Docs sync.** The
+  copywriters' real practice is to hand over verbal changes during proofreading, so a comment
+  system would go unused. What was actually missing was a **changelog and an archive**.
+- **Google Docs is only the initial stage**, so the answer is a `.docx` a person downloads
+  (it opens in Docs), not an integration.
+
+**Op census over 4 templates x 2 palettes x 3 canvases: 24 groups, 336 ops, all 24
+byte-identical** against the pre-change copy served alongside. No artwork line moved.
+
+## IT IS A PROJECTION, NOT A SECOND EDITOR
+
+The copy view reads `modulesFor` and writes `writeMod` — the same list the canvas renders — so
+a word typed there is the word on the canvas, with no import and nothing to merge. It is an
+overlay over the editor (`.cw`, fixed under the 55px bar, z 65), so switching back to Design
+loses nothing and nothing in the editor had to learn about it.
+
+- **Reading order is the canvas's**: top cluster, then bottom, each in the variant's own
+  `ord` (`copyMods`). Divider, spacer and graphic carry no words and are skipped.
+- **Fields are per type**: an input for the eyebrow and the button; a textarea with a line
+  counter for headline / hook / body / list / steps (their own caps, `LINE_MAX` / `LIST_MAX` /
+  `STEP_MAX`); two inputs for the price (small label + figure); **one input per chip and per
+  spec row**, with add and remove — the rail's comma and `label | value` syntax is a
+  convention a copywriter should not have to learn. A new point lands already SELECTED
+  (`cwFocusLast`), so its placeholder is replaced by the first keystroke.
+- **A single ad is ONE page of copy** however many design variants it has, because the words
+  are shared by every variant. A carousel is one section per page; clicking into a page makes
+  it the active one, so the preview follows (`onPointerDown` on the section).
+- **Hidden components are shown, and say so** ("Hidden on the canvas by design" / "on some
+  variants") — the copy still exists and may be turned back on.
+- **The preview is the real export**: `buildOps` -> `renderOpsToCanvas` at .5 for 1:1 and
+  (when shown) 9:16, keyed on `strip(state) + activeVi + storyOn + _filled` and settled 220ms
+  after typing stops. `_cwTick` in the shell's mount and update hooks drives it, like the
+  placement preview; `cwSync` re-runs if the key moved while a render was in flight.
+
+## STATUS AND SNAPSHOTS
+
+`state.copyStatus` is **Draft -> With design -> Final**. A FORWARD move (Send to design, Mark
+as final) appends a snapshot to `state.copyLog` — plain data, `{at, status, by, name, mode,
+pages: [{label, fields}]}`, capped at 50. Going back (Back to draft, Reopen for edits) records
+nothing, because nothing was handed over. Verified: final -> design writes no snapshot and no
+file; design -> final writes one of each.
+
+**Both keys are stripped from `strip()`, and `restore()` carries them over from NOW.** A status
+change is not a design change and must not push undo, and the history must never be UNDONE —
+a snapshot is a record of what was sent, and an undo that took it back would erase the
+changelog. Verified: undo and redo move the copy and leave status and log where they were.
+`_syncLS` compares a copy signature beside `strip()`, so a status moved in another window
+still arrives.
+
+**THE DIFF IS KEYED BY PAGE POSITION AND FIELD NAME, NEVER BY COMPONENT ID, and the first cut
+got this wrong.** Going to a carousel — or adding a page from another — gives every component
+a fresh id (`forkPage`), so an id-keyed diff logged an untouched ad as 20 changes: all of it
+removed and re-added. Keyed by name ("Headline", "Headline 2" when a page has two) the same
+switch reads as exactly the 10 lines the two new pages brought.
+
+**"N changes since <status> · <time>"** under the actions is read off that diff against the
+last snapshot, so a designer opening a Final campaign can see the words moved after approval.
+
+## THE ARCHIVE IS A .docx, AND THE SOURCE FOLDER GETS ONE PER HAND-OFF
+
+`copyDocx(entry, prev)` builds a minimal WordprocessingML package with the same stored `zip()`
+every export uses — content types, rels, `document.xml`, a `styles.xml` whose docDefaults set
+Arial 11 — so it opens in Word, Pages and Google Docs. It carries every page and field and,
+given a previous snapshot, a "Changes since" section with the old text struck through. Arabic
+lines get `w:bidi` / `w:rtl` off `StudioBase.dirOf`. Verified by parsing every part, by
+Apple's own OOXML reader (`textutil`), and by rendering it (Quick Look).
+
+- **With a source folder set, every hand-off writes `Copy/<name>_Copy_<Status>_<stamp>.docx`
+  into it** through `providentFolder.write` — no prompt, no download. That is the archive: the
+  folder a project lives in also holds what its words were at each step.
+- **Without one**, each snapshot in the History list offers its own `.docx`, and **Download
+  .docx** gives the words as they are now at any status — the initial-draft handover.
+- **"Your name"** in History is per computer (`adstudio-author`) and stamps the snapshots made
+  there. There are no accounts; this is attribution, not authentication.
+
+## WHICH WORKSPACE OPENS IS PER COMPUTER
+
+`adstudio-workspace` in localStorage, written by the switch. Resume (`load()` and Continue
+last) lands on `workScreen()`, so a copywriter's machine reopens on Copy and a designer's on
+the canvas — while the project they pass between them is one file. The session `.json`
+carries `copyStatus` and `copyLog` because it carries the whole state.
+
+The canvas bar carries a **Copy · <status>** chip (grey dot draft, link-blue with design, green
+final) that opens the copy view — the designer's view of where the words are.
+
+## Verification
+
+- Sheet: one closing style tag, comments balanced (321/321), brace depth 0; markup `sc-if`
+  +20/+20 and `sc-for` +7/+7 on the documented one-off baseline.
+- Interpolation sweep against the pre-change copy: 13 unresolved before and after, **none newly
+  unresolved**; 38 new refs, all `cw*` and all declared.
+- Real pointer and keyboard throughout: typing and Enter reach the export preview; Send to
+  design / Mark as final / Reopen / Back to draft; add a point, type over it; carousel page
+  switching with focus surviving the re-render; per-page writes leave the other pages and the
+  single ad's list untouched.
+- **Contrast, both themes reloaded into, animations finished, ancestor opacity composited,
+  over the copy view, the top bar and the canvas bar: dark 0, light 2 — the disabled
+  Undo/Redo pair**, 1.4.3-exempt. **0 elevation shadows.** One failure was caught and fixed on
+  the way: the green "done" step numerals were `--ps-good` on its wash at 3.94:1 in dark; they
+  are a solid `--ps-good` disc with `--ps-app` ink now.
+- 390px: preview stacks above the form, no horizontal scroll.
+- `studio-base.js`, `runtime.js`, `image-slot.js`, Organic, the image tool and
+  `ui-design-system/` are untouched. The test origin's storage was cleared and the `_PRE`
+  copy removed.
+
+## Left as decisions, not applied
+
+- **No per-line comments.** Deliberate, from the workflow discussion; the snapshot diff is the
+  record, and verbal changes land as edits between two snapshots.
+- **Past snapshots are listed, not browsable as a restorable state.** Restoring old copy is a
+  copy-paste from the downloaded document; a "restore this snapshot" button is one `writeMod`
+  per field if it is wanted.
+- **The copy view is Campaign-only.** Organic's guided run already plays this role for its
+  locked templates.
+- **Status is advisory.** Nothing stops a designer editing words while the copy is Final; the
+  "N changes since Final" line is what makes it visible.
+
+# THE COPY VIEW TAKES COMPONENTS, AND THE TWO PREVIEWS WERE MADE TO AGREE
+
+Feedback on the pass above, from the copywriter's side: templates leave a writer no room ("what
+if they need a hook line but it's not available"), the copy view should show one big square
+and no story, and — the one that was a defect — **"the preview on the design window should be
+similar to the copy window, because I saw one project and they look different in each view."**
+
+## THE MISMATCH WAS FOUR THINGS, AND ONE OF THEM WAS IN THE EXPORT
+
+Measured with a probe that reads every DOM text node's line box in canvas units and compares
+it with its op's baseline, across 4 variant sets x left/centre x 1:1 and 9:16.
+
+- **THE OVERFLOW RAN IN OPPOSITE DIRECTIONS.** When the copy is taller than the canvas the DOM
+  column overflows DOWN into the logo's clear space, while `buildOps` anchored the bottom
+  cluster to the floor and let it climb UP into the headline — up to **95 canvas units** apart
+  on the project that was reported. The bottom cluster's start is clamped to where the top one
+  ends (`y2 = Math.max(y, …)`), so the export now overflows the way the editor does. **Only an
+  overflowing design moves**: op census, 4 templates x 2 palettes x 3 canvases against the
+  pre-pass build served alongside, **24 groups, 336 ops, 24 byte-identical, 0 threw.**
+- **A centred bottom cluster on 9:16 un-stretched its lists.** The Reels guard centres the
+  cluster with auto margins, and an item with auto margins SHRINKS to its content — so a
+  bullet list, a spec panel, a step grid or a divider collapsed to its own text and sat
+  **255 canvas px** right of the op, which keeps one left edge at the guard's. Those types take
+  the guard's width back explicitly (`STRETCH`); everything else still shrinks and centres.
+- **The hairline bullet list ran ~12 px tall per row** — padding plus a layout-taking 1px
+  border, where the op draws the plain step with the rule ON the row's top edge and the text
+  .3em lower. It is an inset `box-shadow` ring at one device pixel and a relative offset now.
+- **Preview-only drifts** in chips, icon chips, the CTA, the price block and the list, all
+  the same two causes this file already records: a border inside the zoom floors at one device
+  pixel and takes layout space (every stroke is an inset ring now), and a CSS line box puts the
+  baseline at `(lh - a - d)/2 + a` where the op puts it at `1.0 x px` (a relative `top` makes
+  up the difference).
+
+Worst delta across all 16 combinations after: **7.8 canvas units**, most of it the documented
+wordmark gap. It was 255.
+
+**AND THE COPY VIEW HAD ITS OWN CAUSE, which is the one the report most likely was.** A click
+anywhere in its form ran `pg.pick`, which on a single ad set `activeVi = 0` — so looking at
+Variant 2 in Design and switching to Copy showed the MASTER, a different design. The pick is
+carousel-only now; a single ad's form is one page and never touches which variant is shown.
+
+**The copy preview also awaits the face before it draws.** A canvas never pulls a webfont, so
+a cold render landed in the fallback face and set wider than the design window beside it.
+`cwSync` loads every weight the ad draws, `ensureFont` for Arabic, then `document.fonts.ready`,
+and the font key is part of `cwKey`.
+
+## ONE SQUARE, AS BIG AS THE COLUMN
+
+No 9:16 in the copy view — a writer checks the words, and the square is where they fit
+tightest. The column is 46% (`minmax(360px,46%)`) and the square is
+`min(100%, calc(100vh - 250px))`, so the whole ad is on screen beside the form: **605 px at
+1440 x 900**. It renders at the size it is SHOWN — the box's width times the pixel ratio, .05
+steps, clamped .5–1 (`cwScale`, in `cwKey`) — where it was a flat .5, which on a retina
+display was a 2x upscale.
+
+**A picker above it chooses the design.** On a single ad it is the variants (Master /
+Variant 2 / …) — the words are shared, but each variant lays them out differently, so a writer
+can check them in every one. On a carousel it is the page numbers, and a pick scrolls the form
+to that page (`data-cwpg`).
+
+## A WRITER ADDS AND REMOVES COMPONENTS, IN PLAIN NAMES AND THE BASIC LOOK
+
+`COPY_NAME` is the writer's vocabulary now: **Small label, Heading, Hook line, Body, Bullets,
+Key facts, Tags, Steps, Button, Price** — "Eyebrow", "Spec data" and "Tag chips" are the
+designer's words. Every page ends in an **Add to this page** palette grouped **Text / Lists /
+Action** (`COPY_ADD`), each button carrying a one-line tooltip of what it is (`COPY_WHAT`).
+
+- **No style variant is ever set**, so a new component takes its type's first one — the look
+  stays the designer's call, and the palette says so.
+- **It goes on the END of the page's list**, which is the end of the bottom cluster — so it is
+  also the last field in the form, and the form's order stays the canvas's reading order. The
+  notice says the designer places it.
+- **It starts EMPTY** (`COPY_BLANK`), so a sample sentence can never ship as copy — except the
+  four that draw a box with no words in it, measured: an empty CTA emits its pill, an empty step
+  its plate and numeral, a chip and a fact row their boxes. Those start with an obvious
+  placeholder (`Button label`, `First step`, `New point`, `Label / Value`) that lands SELECTED,
+  the convention `chipAdd` already had. The field scrolls into view, takes the cursor and
+  flashes.
+- **Remove** is a trash icon on every field, through the one `dropMod`, and its notice carries
+  **Undo** for 15 seconds — a 7-second notice cleared before the Undo could be reached, which is
+  how the first real-click test "failed".
+- **On a carousel the palette opens on the page being worked on**; every other page offers one
+  `+ Add to this page` that makes it that page, so ten pages are not ten palettes.
+
+**The rename is read through `COPY_NAME_WAS` in the diff.** The changelog is keyed by field
+label, so a snapshot taken under the old names would otherwise log every renamed field as one
+removed and one added. `copyRelabel` maps the old base name and keeps a trailing number.
+
+## Verification
+
+- **Real pointer and keyboard**: a click in the form leaves Variant 2 in the preview; `+ Hook
+  line` adds an empty hook with no `mvar` and no cluster, focused, and typing reaches the ops;
+  the trash removes it and Undo restores Tags with its chips in place; on a carousel, page 2's
+  `+ Add to this page` makes it the page, `+ Bullets` lands on page 2 alone, and page 1 and the
+  single ad's list are untouched.
+- Sheet: one closing style tag, comments 323/323, brace depth 0; markup `sc-if` +3/+3 and
+  `sc-for` +3/+3 on the documented one-off baseline. Interpolation sweep: 13 unresolved before
+  and after, **none newly unresolved**; `cwShotStStyle` / `cwStOn` gone with the story shot.
+- **Contrast, both themes reloaded into, animations finished, ancestor opacity composited, over
+  the copy view with the palette and an Undo notice on screen: 0 failures in 102 text elements
+  in either theme**; the top bar adds only the disabled Undo/Redo in light. **0 elevation
+  shadows.** 390 px: no horizontal overflow, the square 231 px.
+- The test origin's storage was cleared, the `_PRE` copy removed and the server stopped.
+  `studio-base.js`, Organic, the image tool and `ui-design-system/` are untouched.
+
+## Left as decisions, not applied
+
+- **No overflow warning in the copy view.** A writer adding four components will overflow the
+  canvas; the big preview shows it at once, and the design window's coverage chip counts it.
+  A copy-view readout needs the coverage maths lifted out of `mkCanvas` rather than copied, or
+  it is a second geometry path.
+- **A writer cannot choose WHERE a new component goes.** Placement is the designer's; the form
+  follows the canvas order, so moving a line up in the form would mean moving it on the canvas.
+- **Templates that learn from recent use** were discussed and not built. See the reply that
+  accompanies this pass: a frequency ranking over ten recents is weak and self-reinforcing;
+  "save as a starting point" and "reuse a recent layout with the copy cleared" are the stronger
+  shape, with frequency as a sort order on top.
+
+# LIST FIELDS ARE ONE FIELD PER ITEM, RECENTS ARE WHAT WAS SAVED, AND THE COPY VIEW DRAGS
+
+One request, five parts: drag to reorder in the copy view; every list typed with a separator
+(`|` or `,`) becomes one field per item in Design; an overall Design-view refinement with an
+inconsistency check; recents that show only saved projects and update the moment one is
+saved; and a push. **Op census against the pre-pass build served alongside: Campaign 60
+groups (4 templates x 2 palettes x 3 canvases, plus a list-heavy state through six chip and
+spec treatments), 948 ops, 60 byte-identical; Organic 42 groups (six templates x every slide
+x both canvases, plus weekly and listed with a messy `|` USP), 773 ops, 42 byte-identical.**
+
+## RECENTS ARE WHAT WAS SAVED
+
+They were written when you LEFT a project — picking a template, starting a new one, opening a
+recent — so a project that was only ever opened sat on the splash beside the saved ones, and
+one that WAS saved did not appear until something else was opened. People were opening a
+"recent" that had never been saved and taking it for their saved work.
+
+- **`StudioBase.recordSaved()` is the one writer**, called by Save session (both paths), by an
+  export into the source folder (it rewrites the session file beside the renders, so it IS a
+  save), and — one-shot, on the load that follows — by opening a session file, which is a
+  save somebody already made. `loadSessionFile` cannot do it itself: it ends in a reload, and
+  the thumbnail has to be drawn by the engine the file opens into. `recSavedKey()` is the flag.
+- **It calls `forceUpdate()`**, so Projects straight after a save shows the card with no reload.
+- **`state.pid` is the project's identity** across saves, renames and sessions — saving again
+  replaces its card rather than adding a second, and two projects both called "Untitled" are
+  two cards. Minted by `ensurePid()` on the first save, by `pickTpl` / `newProject`, and kept
+  by `openRecent`. `strip()` deletes it (it is not a design change) and `restore()` carries it
+  from NOW, or an undo would hand the project a stale identity.
+- **Old entries carry no `saved` flag and are HIDDEN, not deleted.** Nothing can tell a saved
+  one apart among them, and the session files are still in their folders. `savedRecents()` is
+  the splash's reader; the list still writes unsaved entries back untouched.
+- **`warmFaces()` before the thumbnail**, because a canvas never pulls a webfont and a card
+  drawn before the face lands is cached in the fallback.
+- **Leaving for Projects asks once, then marks the work saved**, so picking another project
+  from the splash does not ask a second time. New / open / pick all go through `confirmDiscard`.
+
+## ONE FIELD PER ITEM, AND THE CANVAS TRIMS
+
+Campaign's tag chips were a comma list and its spec columns a `label | value` line each, both
+**trimmed on every keystroke** — which ate the space before every second word, made Enter
+unable to start a new column, and meant a chip could never contain a comma ("AED 1,200,000").
+Organic's Marketing USP was one field with the points separated by a bar nobody could find.
+All three are the copy view's own list control now: a field per chip, a label-and-figure pair
+per column, a field per point, a quiet remove beside each and a dashed add under the list.
+
+- **Stored verbatim, trimmed where it is READ.** `CampaignStudio.chipsOf(m)` / `colsOf(m)` are
+  the canvas's one read of a list: trimmed, empties dropped, **each item keeping its position
+  `gi`**, because uploaded icons are keyed by the row's place in the WHOLE list. `chipRows`,
+  `stripRows`, `specBox`, both preview branches and the rail's fill-in count all read them.
+  The census is identical because the old parser guaranteed there was nothing to trim.
+- **Leaving a field tidies it** — `tidyChip` / `tidyCol` (and Organic's `pt.tidy`) trim on
+  blur and return null when nothing moved, so a blur never costs an undo entry.
+- **Deleting a row moves the icons after it up** (`shiftIcons`, `ImageSlot.moveSlot` down the
+  list, the last slot cleared). Verified with three coloured icons: delete the middle chip and
+  the third icon follows its chip into slot 2, the store holds two.
+- **Focusing a row retargets the icon picker** (`onFocus` works in DC; so does `onBlur`), and
+  the targeted row carries the link ring.
+- **Organic stores the bar-joined string it always read**, so `propUsps`, the canvas, a saved
+  project and a session file are unchanged. `ptsOf` reads a string containing ` | ` (space,
+  bar, space) FULLY TRIMMED — `ptsJoin` never writes that shape, so it can only be text typed
+  by hand before the field existed — and everything else keeps its trailing space, which is
+  what is being typed. A single empty point is stored as `' '`, because `''` means no points.
+- Newline-separated fields (bullets, steps, the hero's lines) were left as textareas: Enter
+  is not a separator anybody has to discover, and the copy view writes them the same way.
+
+## THE COPY VIEW DRAGS, AND THE DROP IS DECIDED BY THE LINE UNDER THE POINTER
+
+A grip before each label (`drag_indicator`), pointer events never native DnD, a 4px travel
+threshold so a press is still a click, a link-coloured line where the drop lands, the form
+scrolling near its edges, Escape to cancel, one undo entry per move. **The keyboard is the
+same move**: the grip takes focus and the arrow keys step it.
+
+`CampaignStudio.copyMove(x, vi, id, tid, after)` rewrites every record that lays the page out
+— each design variant of a single ad (the words are shared, so a writer's order holds in every
+design) or the one carousel page, plus any detached size keeping its own clusters. **The moved
+line takes its new neighbour's CLUSTER**, so a line dragged above the headline goes to the top
+with it, and each variant keeps its own layout around it.
+
+**THE FIRST CUT PICKED THE WRONG CLUSTER, and a real drag is what showed it.** The target was
+"the first line whose middle is below the pointer", so in the lower half of the headline it
+answered *before the tags* — same order, other cluster — and a Small label dropped under the
+headline left the top of the ad for the bottom. The line UNDER the pointer decides now, by
+which half the pointer is in; between two lines the nearer one answers. Each field carries
+`data-cl`, so a drop beside a neighbour in its OWN part is a no-op while a drop beside one
+across the boundary is a real move with the order held. **The keyboard crosses the boundary
+in one press** rather than jumping past the first line on the other side. The notice says
+when a line changed part ("Moved into the top part of the ad").
+
+## DESIGN VIEW, TIDIED
+
+- **Every rail field label is the `.p-lab` row** — name left, scope right. Six were written
+  "Style variant — per design variant" inside a column-flex `.p-fld`, so the interpolated scope
+  became its own flex item: a dangling em dash and the scope on a line under it. `.p-rail
+  .p-fld > .p-lab` restates the row, since the quiet-span rule would otherwise take it.
+- **The scope follows the mode**: "this page only" on a carousel for both text and style
+  (`styleScope`), and the empty rail's note says each page keeps its own components.
+- **Two booleans became two pairs**: the spec's *Reading order* (Label first | Figure first)
+  and *Figure size* (Regular | Large) — the old `Figure on top ✓` button wrapped to two lines
+  at rail width. The Overlap image is Off | On this variant.
+- **Help prose moved into tooltips** where a tooltip already said it: the floating-control line
+  under Space above, and the second caption under every drop — which had left the caption
+  column 85px wide and wrapping a word to a line.
+- **The multi-line hint is one line**: `2 of 4 lines · Enter for a new line.`
+- **The hex field's placeholder is not uppercased** — it read CANVAS INK, the last all-caps run
+  in the chrome.
+- **The open dock sits over the floating component control** (`.p-dock:has(.p-dock-b)` z 45):
+  the control's Top / Bottom / Hide / Delete pill was drawn straight across the dock's QR row.
+- **Two stale descriptions**: the New launch template promised a "serif word", and the
+  Background tooltip promised gold and orange accents and gold serif emphasis. The canvas
+  carries none of the three.
+
+## BUGS THE PASS FOUND
+
+- **Campaign's top bar was 1524px wide in a 1440 viewport** — Share 84px off the right edge,
+  reachable only by scrolling a bar nobody knows scrolls. It arrived with the Design | Copy
+  switch. Undo / Redo are icon cells now (title + aria-label), the bar's gap is 10, and below
+  1400 the delivery trio keeps its icons and drops its words (`font-size:0` — `.p-bic` is 15px
+  fixed, so only the words go; each cell names itself in its `title`). Measured: 1440 fits
+  exactly with Share at 1424, 1280 fits with the trio at 37-38px a cell. Mirrored to Organic.
+- **Organic's top-bar buttons computed 12px/500** beside Campaign's 14px/600, on the same
+  markup, and Share stood 37 tall. Scoped to `.p-top`; its Undo / Redo moved into Campaign's
+  history capsule and its `▾` became the turning Material caret. The guided form's own button
+  sizes were left alone.
+- **Organic's option tiles logged two path-parse errors on every load** — `<path d="{{ … }}">`,
+  the recorded trap, on the carousel's layout tiles and the Wordmark row. A tile's glyph varies,
+  so it cannot be baked in; `OrganicStudio.maskIcon(d)` returns a base64 SVG as a mask in a
+  style OBJECT with `currentColor` as the fill, so the ON ink still reaches it. The console is
+  down to the rembg probe's refused connection and Chrome's no-gesture beforeunload notice.
+- **Undo on Organic's guided screen jumped to All controls**: `restore()` forced `'editor'`.
+- **`image-slot.js`'s `moveSlot` doc comment sat above `copySlot`**; moved to its function.
+
+## Verification
+
+- Op census as above: **60/60 and 42/42 byte-identical.**
+- **Contrast, both themes reloaded into, animations and transitions finished, ancestor opacity
+  composited**: Campaign editor with the dock open and the rail scrolled through four
+  positions, the copy view scrolled through three, the splash; Organic's editor, guided run
+  and splash — **0 failures and 0 elevation shadows in every one** (disabled controls excluded,
+  1.4.3).
+- Real pointer and keyboard for every new control: typing spaces and commas into a chip, a
+  `|` in a spec figure, add (the new row focused and its placeholder replaced), delete with the
+  icon shift, focus retargeting the picker, blur trimming; drag within a cluster, across it
+  up, the keyboard crossing it down and stepping on; undo; Organic's points typed and tidied.
+- A rail scan over all 13 component types selected in turn: no horizontal overflow, no
+  element past the rail's edge, no wrapped button, no raw `{{`.
+- Sheets: one closing style tag each, comments balanced, brace depth 0; `sc-if` / `sc-for`
+  on their documented one-off baselines; 0 `d=` / `src=` interpolations; interpolation sweep
+  **none newly unresolved** in either document.
