@@ -3338,6 +3338,11 @@ landing also invalidates), and the shell's `componentDidUpdate` calls it only wh
 `OrganicStudio.SKEL` survives as the **pre-render skeleton only** — the pulsing bars shown
 before the first render lands, so the screen never opens on a blank rectangle.
 
+> **SUPERSEDED IN PART: the card is sized off the height AND capped by its column now** —
+> `min(58vh,600px,100cqw * 4/3)`, with the preview column as the query container, because a
+> height-only card on a 768 tablet was 445px wide in a 368px column and sat on the form. The
+> phone card is smaller again. See *ORGANIC WORKS ON A PHONE AND A TABLET* at the end of this file.
+
 **Sizing is off viewport HEIGHT, never width.** `min(76vh,700px)` for the single card,
 `min(70vh,640px)` for the active carousel card. Width-based sizing overflowed the moment a
 step carried more than three questions, which is what made the first carousel pass unusable.
@@ -4810,6 +4815,14 @@ PNG/JPEG are the faithful outputs.
 
 ### Type metrics: the preview box is laid out at CANVAS UNITS, not screen pixels
 
+> **SUPERSEDED IN ONE PART: the box is shrunk with a `transform` now, in every engine, not with
+> `zoom`** (`StudioBase.scaleBox`). Laying the box out at canvas units is unchanged and still the
+> point. What changed is the shrink, because `zoom` turned out to set text at its ON-SCREEN size —
+> in WebKit for every run and in Chrome for some — and "both keep the used font-size at canvas
+> units" below was measured in a case Chrome happens to get right. See *THE PREVIEW IS SHRUNK WITH
+> A TRANSFORM* at the end of this file. The bullets about `uz()`, `offsetWidth` in canvas units and
+> `getBoundingClientRect` in CSS px all still hold under the transform.
+
 Google Sans Flex is a variable font with an **optical-size axis**, so the same nominal
 size is not the same width: measured per em on one string it runs 10.32 at 24px, 9.50 at
 37px, 8.94 at 92px, 8.54 at 200px — a 21% swing. Plain `sans-serif` is flat, which is why
@@ -5244,6 +5257,10 @@ nothing to doubt once the transition was gone.
 
 **Nothing is dropped from the top bar on a phone** — it scrolls (`overflow-x:auto`), so every
 control stays reachable rather than being hidden behind a breakpoint.
+**REVERSED IN ORGANIC:** a bar that scrolls hides its controls as surely as dropping them —
+Share sat 700px off a phone. Organic's bar is two rows on a phone and drops only the studio
+switcher (still the project browser's first rows). See *ORGANIC WORKS ON A PHONE AND A
+TABLET*. Campaign's editor bar still scrolls.
 
 **Testing note:** viewport emulation does not reliably dispatch a `resize` event, so the
 band-change re-render looks broken under emulation until you `dispatchEvent(new Event(
@@ -13225,3 +13242,469 @@ when a line changed part ("Moved into the top part of the ad").
 - Sheets: one closing style tag each, comments balanced, brace depth 0; `sc-if` / `sc-for`
   on their documented one-off baselines; 0 `d=` / `src=` interpolations; interpolation sweep
   **none newly unresolved** in either document.
+
+# A SEVENTH ORGANIC TEMPLATE: THE REEL THUMBNAIL, 9:16 ONLY
+
+Built from nine supplied drawings, `iPhone 14 Pro – 1..9.svg` (1080 x 1920) and their PNGs.
+Template id and slide kind are both **`rcover`**, one slide, shown as **Reel thumbnail** /
+**Reel cover**. Every constant is in `OrganicStudio.RCV`; `rcvBox` is the one geometry source,
+read by `buildOps`, the preview, the form's fit note and the layout tiles.
+
+**Existing templates: 34 op groups, 647 ops, 34 byte-identical** against the pre-change copy
+served alongside (six templates x every slide x both canvases). **Campaign: 24 groups, 336
+ops, SVG output byte-identical and canvas pixels identical**, which is the proof its renderer
+edit is inert.
+
+## ONE CANVAS, AND `sl.ft` IS "THE PLATE'S FIRST CANVAS"
+
+A Reel cover is 9:16, so the template has no feed, no story toggle and no `_3x4` file. The
+plate's first slot renders `mkCanvas(si, 'st')` for this kind (`sl.ft` is the first canvas on
+the plate, which on every other kind is the 3:4 feed), `storyVisible` is false for it, and
+`OrganicStudio.mainSize(state)` answers 'st' wherever "the" render is taken — the guided card,
+the recents thumbnail, the photo's DOM fallback. Export writes one file,
+`<first four headline words>_Reel Thumbnail_9x16.png`; the PDF is that one page.
+
+## SEVEN NAMED LAYOUTS, AND POP-OUT IS THE ONLY PARALLAX
+
+| layout | from drawing | text | washes (drawn strength) | photo |
+|---|---|---|---|---|
+| Masthead | 7 | centred, top | top .5 | .9 |
+| **Pop-out** | 5, 9 | centred, top, **cut-out in front of the headline** | top .5 | .9 |
+| Editorial | 8 | left, top | top .5 | .9 |
+| Caption | 3 | left, bottom | top .5 + bottom .5 | .9 |
+| Punchline | 1 | centred, bottom | bottom .674 | 1 |
+| Centre stage | 4 | wordmark + headline + tags as one centred block | none | .8 |
+| Big number | 2 | headline top, giant figure at the foot | none | 1 |
+
+**Editorial follows drawing 8 (top band only), not drawing 6 (both bands)** — the two
+disagree and three of the four top layouts with chips draw no bottom band. `photo` is the
+photograph's opacity over the navy ground (`groundFor('rcover')` is `ART.deep`), read through
+`OrganicStudio.photoAlpha(state, sl)`, which returns `imgAlpha` unchanged for every other kind.
+
+## THE TYPE SCALE IS THE MINOR THIRD, AND THE DRAWINGS ALREADY STAND ON IT
+
+Small 116.67 · **Medium 140** · **Large 168** · Jumbo 201.6 — the drawings' 140 and 168 are one
+step apart exactly. It scales the **whole text block** — headline, figure, tags and the gaps
+between them — and never the **wordmark (41px Light on 370)** or the **ADM/CN chips**, by
+instruction.
+
+**ONE LEAD FOR EVERY SIZE, 158/168.** The drawings set 140 on a 128 pitch and 168 on a 158
+one — looser at the larger size, which is backwards and is drawing slop. A scale has to scale
+everything; the Large drawings' ratio also keeps a descender clear of the next line's caps.
+Medium therefore sets 3.7px looser per line than drawings 1, 2, 3 and 6.
+
+**THE FIRST BASELINE IS `370 + 1.143 x px`** — 192 at 168, exact on drawings 4, 5, 7 and 8.
+Drawings 2, 6 and 9 were drawn 25–58px lower; one rule beats three.
+
+**IT STEPS, IT NEVER SHRINKS.** The size asked for is tried, then each smaller step, until the
+block sits inside the 4:5 box with every word on the 894 column; the tile stays lit on the
+size ASKED for and the note says what it was set at. Six lines is the cap; past it the note
+says it does not fit even at Small. Swept: 7 layouts x 4 sizes x chips on/off x 1–3 lines,
+**168 cases, every run inside the box**; stress cases (one long word, eight lines, a 14-digit
+figure, six tags) all stay inside it too.
+
+## THE 4:5 BOX IS THE BRIEF
+
+1080 x 1350 centred — y **285 to 1635** — is what the profile grid and the feed show of a Reel
+cover. A toggle shows it (dimmed bands, dashed edges, a label in the band) on the canvas and
+on the guided card; it is the canvas bar's button on this template (the story toggle's slot),
+a switch in the guided Layout section and in the left rail. `state.rcvGuide`, default on,
+**stripped** — a view setting, never an undo entry. The export is never marked.
+
+## THE WASHES ARE THE DRAWINGS' OWN, AND THEY ARE TILTED
+
+Each is an SVG `objectBoundingBox` gradient on its own rect, so its isolines are perpendicular
+in the rect's unit square — not on the canvas. Solved exactly (`rcvBandVec`): `t = a·x + b·y
++ c` with `a = gx/(w|g|²)`, `b = gy/(h|g|²)`, and a canvas gradient with `D = (a,b)/(a²+b²)`,
+`P0 = −c·D`. The left side is ~100px darker. A full-canvas op reproduces the clipped rects
+exactly (each band is already clear before its rect's edge).
+
+**`grad` gained an optional `vec: [x0,y0,x1,y1]` in all four renderers** — Organic emits it,
+Campaign handles it and emits none, per the parity contract. The preview re-projects each stop
+onto CSS's own centred gradient line (`rcvBandCss`). Canvas against SVG: **worst 1/255**.
+Wash strength reaches them (`scrimH` 50 = as drawn); `scrimUsed` reads the layout's bands.
+
+## POP-OUT'S REMOVE BACKGROUND IS ENGINE-DRIVEN, NOT A `data-cutout` SLOT
+
+`rcvCut` reads the page's own stored photo, sends it to `window.providentCutout`, encodes the
+PNG and stores it in `smp-fg-<id>` through **`ImageSlot.putUrl`** — a new additive static in
+`image-slot.js`. A `data-cutout` slot keeps the ORIGINAL on failure, right for an agent photo
+and wrong here: a whole opaque photo in the parallax layer covers the headline. On any
+failure nothing is stored and the row says why. rembg keeps the photo's size, so the cut-out
+and the photo share one crop through `photoPlace`. Real test: **10.4s**, the robot standing in
+front of "Big Plans" exactly as drawing 5 has it.
+
+**THE CUT-OUT GOES STALE WHEN THE PHOTO CHANGES UNDER IT.** `f.fgSrc` / `f.fgOut` fingerprint
+the photo it cut and what it produced; if the cut-out is still the one it produced and the
+photo is not the one it cut, it is not drawn (`rcvCutStale`, read by the op and by
+`rcvFgShown`) and the row asks for it again. A cut-out dropped in by hand is the user's.
+Layer order: photo → washes → headline → cut-out → chips and wordmark; **the wordmark goes over
+the cut-out** where drawings 5 and 9 have it under, so a subject can never cover the logo.
+
+**A replaced photo now re-reads the store twice (300ms and 1.5s)** — measured on a 1.7MB JPEG,
+the preview kept the old photo's record while the export read the new one. Preview only.
+
+## THE LAYOUT TILES ARE REAL RENDERS
+
+`rcvSync` / `rcvRenderTiles`: the cover's own photo and words in each layout, through
+`buildOps`, key-guarded and settled 220ms after the last change, shown as 4:5 tiles — a cover
+fit over a 9:16 render is exactly the safe area. An empty headline shows each layout in its
+own drawing's words (`RCV_DEMO`); a Big number or Centre stage tile borrows a figure or tags
+so it still shows what it is for. The run asks **Layout (tiles, text size, guide) · Words ·
+Pictures (photo; Parallax on Pop-out) · ADM & CN**, then Finish (wash, photo strength, name,
+folder, export — no glass, no story). In the editor the Layout section lives in the left rail.
+
+## FIELDS AND TWO NEW FLAGS
+
+`head` (req, area) · `fig` (Big number only) · `tags` (Centre stage only, one field per tag) ·
+`adm` / `cn` (digits). **`opt`** is the one exemption from "every asked field is required" —
+a blank chip or tag draws nothing, so blank is an answer; only this template's three carry
+it. **`chip`** sends a field to the new `permit` section, "ADM & CN". "CN: 6323926" takes the
+space the ADM chip has; the drawing's "CN:6323926" is the one place its two chips disagree.
+
+## MEASURED AGAINST THE DRAWINGS
+
+All nine rebuilt with each drawing's own photo and crop and set beside its PNG: positions,
+washes, chips, tags and figure match. Centre stage: every tag within 0.4px, the wordmark on
+740.4 against 741. Preview against ops: every run within 0.31 canvas px.
+
+**THE ONE VISIBLE DIFFERENCE IS HEADLINE WIDTH, AND IT IS THE RECORDED TOOL QUIRK.** The PNGs
+render the headline **untracked**: "Tiny Visitor." at 168px is 744 wide in the PNG, our
+untracked advance is 752.7, and at the SVG's own −0.046em it is 652. The weekly and listed
+headlines record the same export behaviour and kept the authored tracking; so does this.
+`RCV.headTrack` is the one constant if the PNGs' looser look is wanted.
+
+## Also in this pass
+
+- **`.p-ghost[data-on]` ink follows the fill in Organic** — the canvas bar's toggle measured
+  1.36:1 in light (white on Tint 16), live on the story toggle whenever it was on.
+- Contrast, both themes, editor and both guided pages, rails scrolled end to end: **0
+  failures** apart from the documented disabled Back; **0 elevation shadows**.
+- Sheet: one closing style tag, comments 317/317, depth 0, `sc-if` +13/+13 on the one-off
+  baseline, `sc-for` +6/+6, 0 `d=`/`src=` interpolations; interpolation sweep 231 refs, **none
+  unresolved** (211 before).
+
+## Left as decisions
+
+- ~~**The guided run overflows a phone**~~ — **FIXED**: on a phone it is one column and one
+  scroller now. See *ORGANIC WORKS ON A PHONE AND A TABLET*.
+- **The removal service was left running**: another open studio (the user's own Chrome) found
+  it during the test and used it. Stop it with `lsof -ti tcp:7311 -sTCP:LISTEN | xargs kill`.
+- A three-photo stack for Centre stage was not built — drawing 4 is one composited image.
+
+# ORGANIC WORKS ON A PHONE AND A TABLET
+
+By request: "refine the tablet and mobile viewport, prioritise the mobile — it needs to be
+usable on mobile". Scoped to `Provident Organic Studio.dc.html`, plus the three shared
+pieces a phone needs (below). Everything is in **section 28 at the end of Organic's sheet** —
+breakpoint rules only — and a handful of JS hunks, each commented "phone", "tablet" or "touch".
+
+## What was broken, measured before anything changed (375 x 812 and 768 x 1024)
+
+- **The guided run did not stack.** A 400px form column beside a card sized off the viewport's
+  HEIGHT alone: on a phone the form ran 25px off-screen with the card over it; on a 768 tablet
+  the 445px-wide card sat on top of the form in a 368px column.
+- **The top bar needs ~1095px.** It scrolled sideways, so Share was 700px off a phone and off
+  every tablet.
+- **The project browser kept its 248px sidebar** and left the card grid 127px.
+- **The template picker centred its 1120px panel**, so its top-left edge was off the screen and
+  unreachable. **That was a desktop bug too**: at 1440 x 900 the "Pick a template" heading sat
+  140px above the window.
+- **The panel bar (Template / Slide, z 70) painted over the browser and the picker** (z 60).
+- **In the editor the canvas bar sat UNDER the panel bar** — the ≤1200 rule gave it 58px of
+  bottom padding and a later block (Campaign's 44px toolbar mirror) set it back to 0.
+- **Every canvas gesture let a finger's drag become a page scroll half way through**, and none
+  of them ended on `pointercancel` — so a touch the browser took back left the move listener on
+  the document, and the next touch anywhere kept moving the photo.
+- **`100vh` on a phone is the viewport with the toolbar HIDDEN**, so the foot of the app sat
+  under Safari's toolbar.
+
+## The phone guided run is ONE column and ONE scroller
+
+`.gd-in-zone` is `display:contents` on a phone, so the head, the post and the form fall into
+one order inside `.gd-body`, which is the only scroller: **the page's name → its card and the
+page strip → the questions → what is missing → Back / Next, sticky at the foot**. A new page
+opens at ITS top, card first (`goStep` resets `.gd-body` as well as `.gd-askwrap`), and a
+refused Next scrolls the "not finished" list into view (it is the foot of the scroller now, not
+a panel beside the button; `scroll-margin-bottom` keeps it clear of the sticky nav).
+
+- **The card is sized to be SEEN, not to fill:** `min(38vh,340px, 100cqw*4/3)` (9:16:
+  `min(46vh,400px, 100cqw*16/9)`), so on arrival the first section's head still shows above
+  Back / Next — the page reads as a form to fill in. `gdScale()` mirrors it (phone branch).
+- **The preview column is the query container** (`container-type:inline-size`), which is what
+  caps the card by width at every size — `100cqw` is the column's CONTENT box, measured.
+- **The page strip scrolls sideways**, centred while it fits by AUTO MARGINS on the first and
+  last tile (not `justify-content`, which would push an overflowing strip's first page off the
+  left). The active tile is centred by hand (`scrollLeft`, from `getBoundingClientRect`) —
+  never `scrollIntoView`, which would also move the page the strip sits on.
+- **The step disc sits in its header** (the editor rail's treatment) — 38px back for fields.
+- **The template's helper line is hidden** — the page's own purpose line is already under its
+  name, and the note repeats on every page at the height of a field.
+- **Every field is 16px on a phone** — iOS zooms into any field set smaller, and does not zoom
+  back. **One-line fields carry `enterkeyhint="next"`**, which is what the document-level
+  Enter handler does with them. A lowercase attribute passes through DC like `spellcheck`.
+
+## The top bar
+
+| width | what changes |
+|---|---|
+| ≤ 1100 | the studio switcher leaves — it is still the project browser's first two rows |
+| ≤ 880 | Share keeps its icon (`title` / `aria-label` "Share and export" name it) |
+| ≤ 760 | **two rows**: wordmark · Projects / folder / Save · Share, then Guided \| All controls across the width · theme · Undo / Redo |
+
+**The two rows are CSS only**: `flex-wrap` + `order`, and the empty `.p-vr` rule element comes
+back as a `flex:0 0 100%` line break. **The break forms its own zero-height flex line**, so it
+adds a second `row-gap` — 8px gave rows 16px apart, measured; 4px gives 8. `--ps-toph` (56 /
+92) is the bar's height, read by `.gd`, the page sheet, the Template sheet (which started at
+`top:0`, under the bar) and Share, which is a full-width sheet under the bar on a phone.
+
+## The editor
+
+- **The canvas width fits the STAGE** (`renderVals`' `dispW`). A phone stacks the canvases one
+  under the next (`.p-stage` is a column there), so its width is the only bound: `vw - 32`. A
+  tablet keeps them in a row beside the Template rail, bounded by `vw - 328` — **the rail is
+  272 on screen (240 + 16px padding each side), measured; assuming 240 clipped the canvas** —
+  and by `(vh - 300) × .75`. The old rule was `vw - 64` below 900 (640px in a 528px stage) and
+  a flat 440 above it (taller than a 1024 x 768 stage). Above 1200px it is untouched.
+- **`OrganicStudio.stableVh(vw)`** is the tallest height seen at this width, so a keyboard or a
+  collapsing toolbar cannot shrink the canvas under it; a rotation starts it again.
+- The stage column makes the panel bar's 62px of room; the dock rises to `bottom:119px`
+  (62 + 45 canvas bar + 12). **The canvas bar keeps what only it has**: below 1200px "This page"
+  goes (it is the panel bar's Slide), below 900px the template-and-count pill goes (it repeats
+  the plates' badges), and the status keeps its word and gives up length.
+- **On a coarse pointer a canvas gesture layer takes the pointer only on the ACTIVE slide**
+  (`OrganicStudio.coarse()`, `touchLive` in `mkCanvas`): a tap elsewhere activates that slide
+  through the canvas's own onClick, and a swipe scrolls. All four layers (listed pan, carousel
+  graphic, cover figures, review agent) carry `touch-action:none`, grips via `[data-gdir]`, and
+  all four end on `pointercancel` exactly as on `pointerup`. A mouse keeps every slide live.
+
+## Touch
+
+- **REORDER IS A LONG PRESS on a finger** (`dragBind`, `LONG_PRESS` 380ms): a touch that
+  travels 8px first is a scroll and is let go; one that holds lifts its row (`data-lift`) and
+  its `touchmove`s are cancelled from then on, so the browser never takes the gesture back. The
+  rows are `touch-action:manipulation` on a coarse pointer (they were `none`, which made the
+  Template sheet's slide list and the page strip impossible to scroll with a finger). A mouse
+  keeps the 5px rule. **Verified with synthetic touch pointer events dispatched at the
+  hit-tested element** — a quick swipe no drag; hold → lift → drop moved Page 02 to third with
+  one undo entry. **Not verified on a real finger**: the pane's clicks arrive as mouse events.
+- **A touch screen has nothing to drop.** `image-slot.js` reads `(pointer: coarse)` once:
+  the empty state says "Add a picture / Tap to choose" (a leading "Drop" becomes "Add"), and
+  Organic's row captions and photo hint say "tap" (`OrganicStudio.tapWord` / `tapCap`, and the
+  hint names Reframe rather than double-click). A mouse sees the old words exactly.
+- **Open Session without a folder picker opens the SESSION FILE** (`StudioBase.pickSessionFile`,
+  `.json`/`application/json` — a phone's picker maps `accept` to a type and the studios' double
+  extensions are not one). It said "This browser cannot open folders", so a project saved on a
+  computer could not be opened on a phone at all — nor in Safari or Firefox on a desktop. Both
+  studios, since the loader is shared. On a phone the sidebar's "Open folder…" chip hides; the
+  header's Open Session is the same button.
+
+## The project browser and the picker on a phone
+
+The sidebar becomes a header: the two studios side by side, then All / Templates / Recent /
+Continue last as chips; the page scrolls as one and the cards go two up. The carousel chip and
+the recents badge shrink with the 165px card so the chip clears the wordmark. The picker is
+one template to a row, render beside description. **Campaign got the project-browser rules
+only** (mirrored, same markup) — its editor and its top bar at phone width are not refined.
+
+## Verification
+
+- **Artwork: 41 op groups, 705 ops, 41 byte-identical** — seven templates × every slide × both
+  canvases (the reel through its seven layouts), against the pre-change copy served alongside.
+- **The desktop does not move.** At 1440 x 900, against the pre-change copy: `renderVals()`
+  identical on both workspaces; computed geometry (box, font size, colour, background, display)
+  **0 differences over 383 + 472 elements**; the splash 1 difference (the new class name). The
+  picker moved down 180px, which is the fix. Campaign: **0 differences over 510 editor
+  elements**, the splash the same one class name.
+- **Contrast, both themes, reloaded into, animations finished, ancestor opacity composited**,
+  splash, picker, guided pages, Finish, both sheets and the dock at 375: the only flag anywhere
+  is the pre-existing slide-remove `✕` (4.40 dark / 4.21 light), already recorded.
+- Sheets: one closing style tag each, comments balanced, brace depth 0; **parsed rules +21 in
+  Organic and +3 in Campaign, exactly the authored counts**; `sc-if` / `sc-for` unchanged.
+- Measured at 375 x 812, 768 x 1024, 1024 x 768 and 844 x 390: no horizontal overflow anywhere,
+  the top bar exactly its viewport's width, the editor canvas inside its stage.
+
+## Left as decisions, not applied
+
+- **Campaign's editor and top bar on a phone.** Its four-column workspace has its own sheets
+  and the same canvas-bar-under-panel-bar defect; nothing there was touched.
+- **No `interactive-widget=resizes-content`.** With the default a phone's keyboard covers
+  Back / Next while typing, as iOS always does; the Enter key moves field to field. Opting in
+  would lift the bar above the keyboard on Android only, at ~64px of an already small window.
+- **A landscape phone keeps the two-column tablet layout**, with the page's purpose line and
+  the helper line hidden below 520px of height. Usable, cramped.
+- **Stale template copy seen on the way**: the Just listed card reads "Serif status headline,
+  glass price pill, agents and QR" — the serif and the second agent are both gone.
+
+# AN iPHONE APP SHELL EXISTS — ON THE MAC IT WAS BUILT ON, NOT IN THIS REPOSITORY
+
+A native iOS shell that runs `Provident Organic Studio.dc.html` in a `WKWebView` was built as an
+experiment, in `ios/`. **By decision (2026-09-24) it stays local**: `ios/` is listed in that Mac's
+`.git/info/exclude`, so it cannot be committed by accident, and its build notes, verification record
+and Simulator traps live beside it in `ios/NOTES.md` and `ios/README.md`. It copies the studio in
+from the repository root at every build, so the repository is still the one copy of the studio.
+Where the code's comments mention `ios/`, they mean that local folder.
+
+What the shell changed in the studio IS in the repository:
+
+- **Three hooks in the shared files, each inert in a browser.** `StudioBase.nativeShell()` in
+  `studio-base.js` (`deliver` / `download` / `saveAs` hand files to a native share sheet when one
+  is present — individual files, never a zip, so Save to Photos works), `W.providentCutout =
+  W.providentNativeCutout || cutout` in `runtime.js` (placed before the storage stand-in's early
+  returns, the rule this file already records), and `OrganicStudio.cutOffNote(kind)`, which words
+  the agent rows when background removal is unavailable. In a browser there is no native shell and
+  `providentNativeCutout` is undefined, so none of them does anything.
+- **The canvas preview is shrunk with a transform, in every engine** — the next section.
+- **A run of touch-screen fixes** — the section after it.
+
+# THE PREVIEW IS SHRUNK WITH A TRANSFORM, IN EVERY ENGINE — `zoom` set text at its on-screen size
+
+Found by running the studio in the iPhone shell's WebKit, and it is the most important thing that
+work changed in the studios. The editor's canvas preview is laid out at canvas units (1080 wide)
+and shrunk to its plate; `canvasStyle` did the shrink with `zoom`.
+**`StudioBase.scaleBox(z, W, H)` does it with a transform now, in BOTH studios and every engine**
+— `transform: scale(z)` from `0 0`, plus negative right/bottom margins that collapse the layout
+box to the on-screen size, which is what `zoom` did on its own.
+
+**Zoom was wrong in all three engines, three different ways**, all measured run by run against
+what the export draws (`measureText + len × ls`), at a plate's scale of .33–.41:
+
+| engine | under `zoom` | under `transform` |
+|---|---|---|
+| WebKit ≤ 26 (Safari, the app before macOS / iOS 27) | a zoomed box's rect read UN-zoomed; a cqw font size zoomed twice (10cqw at zoom .5 painted 25px, not 50); text 3–25% wide | exact |
+| WebKit 27 | the rect is fixed and the TEXT is not: 93 of 98 runs >2% wide — 98px headlines +6%, 16px tracked caps **+81%**, because text is set at its on-screen size (the optical-size axis widens it) and the 9px minimum font size inflates anything that lands under it | **98 of 98 within 0.21%** (Organic), 83 of 83 within 1.6% (Campaign) |
+| Chrome 152 | exact, EXCEPT eight Light 27px runs — the listed card's title line and all seven review-quote lines — **10–12% wide** | **98 of 98 within 0.21%** |
+
+**The Chrome case is worth its own paragraph, because it hid for months.** Those runs are set at
+optical size **11** — their on-screen size, 27 × .407 — where the export sets them at 27: forcing
+`font-variation-settings:'opsz' 27` gives 316.1, the export's width exactly, and `'opsz' 11`
+reproduces the preview's 351.9. Every other run in the same canvas keeps its own optical size. A
+copy of the canvas outside the plate measured right; the one plate-scoped rule
+(`.p-plate *{unicode-bidi:plaintext}`) matched, and switching it off changed nothing. Best guess:
+Chrome shares one font instance between a zoomed 27px Light run (computed size 11.0px) and the
+chrome's own 11px Light text. **It was not chased further, because the transform removes the whole
+class** — no text is ever set at a size other than its canvas size.
+
+**Proved nothing moved in Chrome except that fix.** A/B, `zoom` against `transform`, in one viewport:
+
+- **Organic**, seven templates with and without the story: every plate, canvas, bar and positioned
+  layer within **0.6 screen px**, the stage's scroll extents identical — except the listed card and
+  the review, by **16.7 and 14.8 px**, which is exactly those 27px runs losing their extra width.
+- **Campaign**, four templates × both palettes: within **0.2px**, no text run more than 1px, stage
+  extents identical.
+- Phone (375) and tablet (768): no page overflow, canvases inside their stage. The photo Reframe
+  overlay opens aligned to its frame (the spill centred on it to 0.5px; `_zoomFactor()` reads 1, so
+  image-slot applies no correction — it only ever undid `zoom`). A REAL pointer drag on the listed
+  card's photo moved `phx` 0 → −0.339, with the op and the painted preview identical
+  (−1105.7, 0, 2560 × 1440), and the pan layer the element under the pointer at 5 of 5 points.
+
+**What the transform changes, and it is all benign:** the canvas becomes a stacking context and a
+containing block, so its own z-indexed layers are confined to it (they used to escape and were held
+only by `overflow:hidden` — see *The card went WHITE*); `offsetWidth` inside stays in canvas units
+and `getBoundingClientRect` reports the on-screen rect, exactly as under Chrome's zoom, so no
+gesture changed. `cq()` in Organic writes px rather than cqw — it had to under WebKit's old zoom, and
+px cannot depend on how the box is scaled; Campaign's cqw literals are exact under a transform.
+
+**TWO DETECTORS WERE SHIPPED FIRST AND BOTH WERE WRONG, which is the lesson.** The first
+(`legacyZoom()`) recognised WebKit by its rect behaviour; macOS 27 fixed the rect and kept the text
+bug, so the detector said "fine" and the app's preview came back 81% wide. The second
+(`zoomTextOk()`) measured one zoomed run's width; it was right about WebKit and passed Chrome while
+two of Chrome's templates were 11% out. **A check that tests one property of a faulty mechanism
+passes the day the fault moves to another property. Do not detect — do not use `zoom`.**
+
+**The measurement is the width probe, and it needs no screenshot:** for each template × slide (or
+size), put the demo state in the editor, then for every text op compare the DOM run's Range width
+divided by the on-screen scale against `measureText(text) + len × ls`, and its left edge against the
+op's x. It runs unchanged in Chrome (the pane, via `javascript_tool`) and in WebKit (the local shell's
+`catalyst-check.sh`, see `ios/NOTES.md`). A run the DOM breaks into words (an op per word)
+does not match and is skipped; about half the runs match, which is plenty.
+
+**Two survivors the probe shows in BOTH engines, so they are preview offsets, not engine faults:**
+the ranking card's place-badge label sits **4.4–5.4 canvas px** left of its op on all five ranks,
+and Campaign's 16:9 labels measure **~1.5%** wide (22px and 32px runs) — identical under `zoom`, so
+they predate this. Neither was touched.
+
+# WHAT A TOUCH SCREEN FOUND, when the studio ran in the iOS Simulator
+
+The shell was run in the iOS Simulator (iPhone 18 Pro, iOS 27, 402 x 874 pt) through every flow a
+mouse never exercises. **It found one defect that had been live in both studios since the first
+commit, and a run of smaller ones that only a touch screen shows.** Everything below is chrome,
+storage or copy: no `ops.push`, renderer, geometry source or `ART` / `PAL` line was edited for any
+of it.
+
+## THE FILE PICKER NEVER OPENED FROM A SLOT, anywhere, since the first commit
+
+`image-slot.js` found its file input with `root.querySelector('input')` — the FIRST input in the
+shadow root, which is the reframe overlay's zoom slider (`.rfc-z`, declared above it). So every
+click-to-browse, "Tap to choose" and Replace called `.click()` on a range slider, and the change
+listener sat on the slider too, blanking its value on every release. It is
+`querySelector('input[type=file]')` now. **Invisible on a desktop, where photos arrive by drag and
+drop; fatal on a phone, where the picker is the only way in.** Found by an in-app probe that
+wrapped `HTMLInputElement.prototype.click` and logged `click() on input type=range`.
+
+## The rest of what a finger found, and what changed
+
+| found | fix |
+|---|---|
+| the active slide's empty canvas photo ignored a tap (the shared rule makes an EMPTY canvas slot `pointer-events:none`) | on a coarse pointer the ACTIVE slide's slot takes the tap (`bgSlotStyle`); other slides stay tap-to-activate |
+| numbers-only fields opened the letter keyboard | `inputmode` follows the filter: `decimal` for `num`, `numeric` for `digits` / `len11` |
+| `.p-tabs` ran 8px past its column in the form | `box-sizing:border-box` — its own padding sat outside the 100% |
+| the splash counted "Templates 6" with seven | `tplCount` is derived from `TPLNAMES` |
+| every export row said "Zip · …" in the app, which hands separate files to the share sheet (and in a browser with a source folder, which writes flat) | `StudioBase.deliverWord()` reads `deliver`'s own three branches: **Into the folder / Separate files / Zip**, both studios |
+| Save without a folder marked the project saved before the share sheet answered, then told a phone to "pick a source folder" | `StudioBase.saveSessionCopy()`: recorded in Recent first (on a phone that IS the save), the sheet awaited, and the status says whether a file was written; the folder advice only where there is a folder picker |
+| "Photo added — tap to replace": a tap or click on a FILLED slot replaces nothing | Organic's captions are "Picture added" etc. (the visible Replace beside each drop is the control); Campaign's say "hover / tap it for Replace", the strip that exists |
+| **Reframe on an agent photo saved a crop no render reads** — `agentPlace` frames her on her face and reads no slot crop — and the same for the QR, the parallax cut-out, the floating graphic, the partner mark and the stats icons | a new `data-noreframe` on those slots: `_reframes()` answers false, the strip hides Edit, double-click does nothing; Organic offers Reframe on PHOTOS only |
+| the reframe bar pinned INSIDE a 150px form thumbnail and covered the picture being framed | a frame shorter than ~2.2x the bar gets it below (else above), clamped to the viewport; a canvas-sized photo keeps it inside as before |
+| "scroll to zoom" on a phone, which has no wheel and no pinch here | the hint is "drag to move" on a coarse pointer; the Zoom slider is the zoom |
+| Reframe from the guided run opened on the editor's canvas mounted UNDER the run | `slotActs` takes the canvas copy only in the editor; below 1200px the Slide sheet steps aside first |
+| the listed agent's hint said "Drag her on the card" — only the review's portrait drags | per kind, and neutral: "Drag the portrait on the card to move it" on the review only |
+| "Drop agent PNG" beside "the background is removed for you" | "Drop agent photo" (touch: "Add agent photo"); both cut-out notes say "add" on touch |
+| the Template sheet said "fields on the right", "drop photos", "click to edit", "Drag a rank" | `tplFoot` / `slidesHint` / `dragHint` follow the pointer and the layout: "in the Slide panel", "tap an empty photo on the card", "tap to edit", "Hold a rank, then drag it" |
+| stale copy: the Just listed card ("serif status headline… agents"), Pick a template's listed and agents entries, Campaign's carousel rail foot and dock tip ("share one set of design components") | rewritten to what the templates draw |
+
+## A SMALL PHOTO KEPT ITS GPS, and the fix keeps the pass-through byte-exact
+
+`providentEncodeFile` passes a small, lean original through untouched (long side <= 3840, <= 2.5MB)
+— and with it its EXIF. The iOS picker says **"Location Included"** by default and its Large size
+lands under the cap, so where a headshot was taken travelled into the photo store, every session
+file, `Assets/` and the recents. Renders never carried it (they are drawn through a canvas); the
+stored copy did. `providentStripMeta` (runtime.js) now cleans the pass-through:
+
+- **JPEG** is WALKED, not searched (a segment payload may hold FF D9): APP1 (EXIF, XMP), APP13
+  (IPTC) and COM go; APP0, the ICC profile in APP2 and APP14 stay; the entropy data is copied
+  whole; and the file ends at the main image's EOI, which drops an iPhone's MPF secondary images
+  (the HDR gain map) and any metadata of theirs — the canvas never reads them.
+- **PNG** loses `tEXt` / `zTXt` / `iTXt`.
+- **A rotation is the one thing that cannot just be dropped** — the browser applies EXIF
+  orientation, so stripping it would turn the photo. An orientation other than 1 (or a PNG
+  `eXIf`) returns null and the file is RE-ENCODED, which bakes the rotation in.
+- **By magic bytes, never by MIME**: a Finder drag can arrive with an empty type, and a PNG
+  misread would be re-encoded opaque. WebP and AVIF pass through as before unless they carry
+  `EXIF` / `Exif` / `xmpmeta`, and are re-encoded when they do.
+
+Measured in Chrome AND in the app's WebKit on generated files: GPS, XMP, IPTC and comments gone,
+**the output byte-identical to the same JPEG saved without metadata** (3,167 bytes each), pixels
+identical in every kept file, ICC kept, progressive fine, the trailing image dropped (6,506 ->
+3,167), the rotated file out at 64 x 96 with no original metadata. **WebKit's own canvas JPEG writes
+a 78-byte EXIF of its own** — colour space and pixel dimensions, nothing else — so an `Exif` marker
+in a re-encoded file is not a leak; check for the original's fields.
+
+## Verified with real touches
+
+The picker into the QR and agent slots; Reframe (the zoom slider dragged 100 -> 286%, the photo
+dragged, Done committing the crop to the card); **long-press reorder with a real touch path** (the
+probe logged the lift, the drop target and Agent B moving second -> fourth — the check the
+phone-and-tablet section could not make with the Browser pane's mouse events); the unsaved-work
+`confirm()`; recents across relaunches; the keyboard's Next. The shell's own checks — the share
+sheet, Save to Photos, the launch screen — are in `ios/NOTES.md`.
+
+## Flagged, not changed
+
+- **The default WHITE glass makes the Top agents cover's period invisible** — white copy on white
+  .22 glass over the paper ground, about 1.0–1.3:1 ("SEPTEMBER 2026" in the cover bar, and the
+  ranks' panel copy where no portrait stands behind it). The one-glass pass made white the
+  default everywhere by request; Panel colour -> navy fixes it per post. A per-template default
+  (navy on the paper kinds) moves every saved agents post, so it is a decision.
+- **A small WebP or AVIF with no metadata still passes through**, and one WITH metadata is now
+  re-encoded; an AVIF with transparency and metadata would lose its alpha there (the encoder's
+  alpha test reads the MIME type). Rare enough to leave.

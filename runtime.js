@@ -136,6 +136,126 @@
     return out;
   };
 
+  // A PASSED-THROUGH ORIGINAL KEEPS NO METADATA. The pass-through below keeps a small file's
+  // bytes exactly — and it used to keep its EXIF with them, GPS included. The iOS photo picker
+  // hands a photo over with "Location Included" by default, and its Large size lands under the
+  // cap, so where a headshot was taken travelled into the photo store, every session file, the
+  // Assets folder and the recents. (A render is drawn through a canvas and never carried it.)
+  //
+  // Only the segments that carry metadata go; every byte of the picture stays, so this is still
+  // the byte-exact copy the pass-through exists for. JPEG loses APP1 (EXIF, XMP), APP13 (IPTC)
+  // and COM, and keeps APP0, the ICC profile in APP2 and APP14, which the decoder needs. PNG
+  // loses its text chunks. A file whose metadata changes how it DRAWS — an EXIF rotation, which
+  // the browser applies — returns null and is re-encoded instead, which bakes the rotation in.
+  // So does anything malformed and any other format. Returns a Blob, or null.
+  function u8cat(parts) {
+    var n = 0, i, o;
+    for (i = 0; i < parts.length; i++) n += parts[i].length;
+    var out = new Uint8Array(n);
+    for (i = 0, o = 0; i < parts.length; i++) { out.set(parts[i], o); o += parts[i].length; }
+    return out;
+  }
+  function exifOrientation(seg) {           // seg: a whole APP1 segment, marker included
+    var t = 10;                              // FF E1, length, "Exif\0\0", then the TIFF header
+    if (seg.length < t + 8 || seg[4] !== 0x45 || seg[5] !== 0x78 || seg[6] !== 0x69 || seg[7] !== 0x66) return 0;
+    var le = seg[t] === 0x49;
+    var u16 = function (p) { return le ? seg[p] | (seg[p + 1] << 8) : (seg[p] << 8) | seg[p + 1]; };
+    var u32 = function (p) { return le ? (seg[p] | (seg[p + 1] << 8) | (seg[p + 2] << 16)) + seg[p + 3] * 16777216
+                                       : ((seg[p + 1] << 16) | (seg[p + 2] << 8) | seg[p + 3]) + seg[p] * 16777216; };
+    var ifd = t + u32(t + 4);
+    if (ifd + 2 > seg.length) return 0;
+    for (var k = 0, n = u16(ifd); k < n; k++) {
+      var e = ifd + 2 + k * 12;
+      if (e + 12 > seg.length) return 0;
+      if (u16(e) === 0x0112) return u16(e + 8);
+    }
+    return 0;
+  }
+  // Entropy-coded bytes run until a real marker: FF followed by anything but 00 (stuffing),
+  // FF (fill) or D0–D7 (restarts). A segment's own payload may hold FF D9, so the file is
+  // WALKED, never searched.
+  function scanEnd(u8, p) {
+    for (var n = u8.length; p + 1 < n; p++) {
+      if (u8[p] !== 0xFF) continue;
+      var b = u8[p + 1];
+      if (b !== 0x00 && b !== 0xFF && !(b >= 0xD0 && b <= 0xD7)) return p;
+    }
+    return -1;
+  }
+  // The main image ends at its EOI and nothing after it is kept: an iPhone JPEG can carry
+  // SECONDARY images there (an HDR gain map, by MPF) with metadata of their own, and the
+  // canvas, which is all the studio draws with, never reads them.
+  function jpegClean(u8) {
+    if (u8[0] !== 0xFF || u8[1] !== 0xD8) return null;
+    var out = [u8.subarray(0, 2)], i = 2, n = u8.length, scanned = false;
+    while (i + 2 <= n) {
+      if (u8[i] !== 0xFF) return null;
+      var m = u8[i + 1];
+      if (m === 0xFF) { i++; continue; }                          // fill byte
+      if (m === 0xD9) {                                            // EOI: the end of the picture
+        if (!scanned) return null;
+        out.push(u8.subarray(i, i + 2));
+        return u8cat(out);
+      }
+      if (m === 0x01 || (m >= 0xD0 && m <= 0xD7)) { out.push(u8.subarray(i, i + 2)); i += 2; continue; }
+      if (i + 4 > n) return null;
+      var len = (u8[i + 2] << 8) | u8[i + 3];
+      if (len < 2 || i + 2 + len > n) return null;
+      var seg = u8.subarray(i, i + 2 + len);
+      i += 2 + len;
+      if (m === 0xDA) {                                            // a scan: header, then its data
+        var e = scanEnd(u8, i);
+        if (e < 0) return null;
+        out.push(seg, u8.subarray(i, e));
+        i = e; scanned = true;
+        continue;
+      }
+      if (m === 0xE1) { if (exifOrientation(seg) > 1) return null; }  // dropped, unless it rotates
+      else if (m !== 0xED && m !== 0xFE) out.push(seg);                // APP13, COM: dropped
+    }
+    return null;                                                     // no EOI: malformed
+  }
+  function pngClean(u8) {
+    var sig = [137, 80, 78, 71, 13, 10, 26, 10];
+    for (var k = 0; k < 8; k++) if (u8[k] !== sig[k]) return null;
+    var out = [u8.subarray(0, 8)], i = 8, n = u8.length;
+    while (i + 12 <= n) {
+      var len = u8[i] * 16777216 + ((u8[i + 1] << 16) | (u8[i + 2] << 8) | u8[i + 3]);
+      var type = String.fromCharCode(u8[i + 4], u8[i + 5], u8[i + 6], u8[i + 7]);
+      var end = i + 12 + len;
+      if (end > n) return null;
+      if (type === 'eXIf') return null;                              // it can rotate too
+      if (type !== 'tEXt' && type !== 'zTXt' && type !== 'iTXt') out.push(u8.subarray(i, end));
+      i = end;
+      if (type === 'IEND') return u8cat(out);
+    }
+    return null;
+  }
+  function hasBytes(u8, s) {
+    var c0 = s.charCodeAt(0), n = u8.length - s.length;
+    for (var i = 0; i <= n; i++) {
+      if (u8[i] !== c0) continue;
+      for (var k = 1; k < s.length && u8[i + k] === s.charCodeAt(k); k++);
+      if (k === s.length) return true;
+    }
+    return false;
+  }
+  W.providentStripMeta = async function (file) {
+    var u8 = new Uint8Array(await file.arrayBuffer());
+    // By MAGIC, never by MIME: a file dragged out of Finder often arrives with an empty type,
+    // and a PNG misread as "not a PNG" would be re-encoded opaque and lose its transparency.
+    var jpg = u8[0] === 0xFF && u8[1] === 0xD8;
+    var png = u8[0] === 0x89 && u8[1] === 0x50 && u8[2] === 0x4E && u8[3] === 0x47;
+    if (jpg || png) {
+      var out = jpg ? jpegClean(u8) : pngClean(u8);
+      return out ? new Blob([out], { type: jpg ? 'image/jpeg' : 'image/png' }) : null;
+    }
+    // WebP and AVIF are not cleaned in place: they pass through as they always did while they
+    // carry no EXIF or XMP (WebP's `EXIF` chunk, AVIF's `Exif` item, XMP's packet), and are
+    // re-encoded when they do. A false positive only costs a re-encode.
+    return (hasBytes(u8, 'EXIF') || hasBytes(u8, 'Exif') || hasBytes(u8, 'xmpmeta')) ? null : file;
+  };
+
   // file -> export-grade data URL. Downscales only when the source exceeds the
   // cap; never upscales, never re-encodes something already small enough.
   W.providentEncodeFile = async function (file) {
@@ -150,12 +270,17 @@
       // Small originals that are already lean pass through untouched — the
       // bytes on the canvas are then literally the bytes the user handed us.
       if (long <= CAP_LONG && file.size <= BUDGET) {
-        return await new Promise(function (res, rej) {
-          var rd = new FileReader();
-          rd.onload = function () { res(rd.result); };
-          rd.onerror = function () { rej(rd.error); };
-          rd.readAsDataURL(file);
-        });
+        var clean = await W.providentStripMeta(file);
+        if (clean) {
+          return await new Promise(function (res, rej) {
+            var rd = new FileReader();
+            rd.onload = function () { res(rd.result); };
+            rd.onerror = function () { rej(rd.error); };
+            rd.readAsDataURL(clean);
+          });
+        }
+        // null: metadata that changes how the file DRAWS, or a format this cannot clean —
+        // re-encoded below, which bakes the rotation in and carries no metadata at all
       }
       var k = Math.min(1, CAP_LONG / long);
       var cv = document.createElement('canvas');
@@ -445,7 +570,10 @@
     } catch (e) {}
   }
 
-  W.providentCutout = cutout;
+  // A NATIVE SHELL BRINGS ITS OWN. The iOS app (ios/) injects `providentNativeCutout` before
+  // this file runs — the same contract (state, probe, run), with Apple's Vision subject lifting
+  // underneath instead of a loopback service a phone does not have. A browser never has one.
+  W.providentCutout = W.providentNativeCutout || cutout;
 
   // ── 5. Storage stand-in ───────────────────────────────────────────────────
   // Inside Design Cursor the real thing already exists — leave it alone.

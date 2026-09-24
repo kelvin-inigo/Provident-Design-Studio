@@ -156,6 +156,14 @@
   // svg+xml included: the graphic slot's placeholder promises "Drop SVG / PNG",
   // but without it here the picker filtered SVGs out and drops were rejected.
   const ACCEPT = ['image/png', 'image/jpeg', 'image/webp', 'image/avif', 'image/svg+xml'];
+  // A TOUCH SCREEN HAS NOTHING TO DROP. On a phone or a tablet the empty state says what a
+  // finger does — "Add a picture / Tap to choose" — instead of "Drop … or browse files". The
+  // host's own caption keeps its words; only a leading "Drop" becomes "Add". Read once: the
+  // primary pointer does not change under a page.
+  const TOUCH = (() => {
+    try { return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
+    catch (e) { return false; }
+  })();
 
   // ── Shared sidecar store ────────────────────────────────────────────────
   // One fetch + immediate write-on-change for every <image-slot> on the
@@ -398,6 +406,7 @@
     '  background:rgba(0,0,0,.65);color:#fff;font:11px/1 system-ui,-apple-system,sans-serif;' +
     '  backdrop-filter:blur(6px)}' +
     '.ctl button:hover{background:rgba(0,0,0,.8)}' +
+    ':host([data-noreframe]) .ctl [data-act="edit"]{display:none}' +
     '.rfc{display:none;position:absolute;left:8px;right:8px;bottom:8px;margin:0;padding:8px 10px;' +
     '  border:0;border-radius:10px;background:rgba(16,22,34,.92);color:#fff;' +
     '  font:11px/1.3 system-ui,-apple-system,sans-serif;flex-direction:column;gap:7px;' +
@@ -582,6 +591,16 @@
       setSlot(toId, Object.assign({}, v));
       return true;
     }
+    // Put an ALREADY-ENCODED picture on a slot by id, mounted or not — the store's own write,
+    // so every bound element follows and the sidecar is saved. For a host that made the bytes
+    // itself: Organic's reel thumbnail writes the cut-out its Remove background button
+    // produced. A drop still goes through the element's own _ingest. Returns false before
+    // hydration, like the other store statics.
+    static putUrl(id, url) {
+      if (!loaded || !id || !url) return false;
+      setSlot(id, { u: url, s: 1, x: 0, y: 0 });
+      return true;
+    }
     // Empty a slot by id, mounted or not — the store's own write, so every bound element
     // follows. The element's clearSlot() is the same thing with its own view reset first.
     static clearSlot(id) {
@@ -628,7 +647,7 @@
         '  <img part="image" alt="" draggable="false" style="display:none">' +
         '  <div class="empty" part="empty">' + icon +
         '    <div class="cap"></div>' +
-        '    <div class="sub">or <u>browse files</u></div></div>' +
+        (TOUCH ? '    <div class="sub">Tap to choose</div></div>' : '    <div class="sub">or <u>browse files</u></div></div>') +
         '  <div class="attr-error" part="attribution-error">' + warnIcon +
         '    <div class="cap">This photo needs attribution</div></div>' +
         '  <div class="loading" part="loading"><span class="loadmsg" part="loading-message"></span></div>' +
@@ -671,7 +690,7 @@
         '    <button data-rf="a-br" title="Anchor bottom right">\u2198</button></div>' +
         '  <div class="rfc-r"><button data-rf="reset">Reset</button>' +
         '    <button data-rf="done" class="rfc-done">Done</button>' +
-        '    <span class="rfc-h">drag to move \u00b7 scroll to zoom</span></div>' +
+        '    <span class="rfc-h">' + (TOUCH ? 'drag to move' : 'drag to move \u00b7 scroll to zoom') + '</span></div>' +
         '</div>' +
         '<input type="file" accept="' + ACCEPT.join(',') + '" hidden>';
       this._frame = root.querySelector('.frame');
@@ -731,7 +750,14 @@
       this._credit.addEventListener('dblclick', (e) => e.stopPropagation());
       this._ghost = root.querySelector('.ghost');
       this._err = null;
-      this._input = root.querySelector('input');
+      // THE FILE INPUT, BY TYPE. A bare 'input' returned the FIRST input in the shadow root,
+      // which is the reframe overlay's zoom slider (.rfc-z) above it in the markup — so every
+      // click-to-browse, "Tap to choose" and Replace clicked a range slider and no picker ever
+      // opened, and the change listener below sat on the slider, blanking its value on each
+      // release. Invisible on a desktop, where photos arrive by drag-and-drop; fatal on a phone,
+      // where the picker is the only way in. Found in the iOS Simulator; present since the
+      // first commit.
+      this._input = root.querySelector('input[type=file]');
       this._depth = 0;
       this._gen = 0;
       // Encode-in-flight marker (the owning _ingest generation): while set,
@@ -1211,8 +1237,12 @@
     // Reframing (pan/resize) is available on any filled slot — the user can
     // always reposition/scale. `fit` only sets the initial baseline (see
     // _geom): contain starts fully-visible, cover starts frame-filling.
+    // `data-noreframe`: the HOST says this slot's crop is never read. A studio that fits an
+    // image by its own geometry — an agent framed on her face, a QR in its quiet zone, a mark
+    // fitted by its ink — would otherwise offer Edit and double-click reframe on a crop no
+    // render uses: a control that saves a value and changes nothing.
     _reframes() {
-      return this.hasAttribute('data-filled');
+      return this.hasAttribute('data-filled') && !this.hasAttribute('data-noreframe');
     }
 
     // The single release discipline for the replacement-in-flight mask
@@ -1345,10 +1375,23 @@
           // Narrow slots (the 58px QR tile, an avatar circle) can't host the bar
           // inside their own width — give it a floor and centre it on the frame.
           const w = Math.max(228, Math.min(360, r2.width - 16));
+          const vw = document.documentElement.clientWidth || window.innerWidth;
+          const vh = window.innerHeight;
           this._rfc.style.width = w + 'px';
-          this._rfc.style.left = Math.round(r2.left + r2.width / 2 - w / 2) + 'px';
-          this._rfc.style.top = Math.round(r2.bottom - 8) + 'px';
-          this._rfc.style.transform = 'translateY(-100%)';
+          this._rfc.style.left = Math.round(Math.max(8, Math.min(vw - w - 8, r2.left + r2.width / 2 - w / 2))) + 'px';
+          // A FRAME TOO SMALL TO HOLD THE BAR GETS IT OUTSIDE — below, or above when there is
+          // no room below. Pinned inside the bottom edge, which is right for a canvas-sized
+          // photo, the bar covered a 150px form thumbnail entirely, so the picture being
+          // framed could not be seen (found in the iOS Simulator). Clamped to the viewport
+          // either way, so a thumb at a screen edge does not push the bar off it.
+          const bh = this._rfc.offsetHeight || 0;
+          let top = r2.bottom - 8, lift = true;
+          if (bh > r2.height * 0.45) {
+            if (r2.bottom + 8 + bh <= vh - 8) { top = r2.bottom + 8; lift = false; }
+            else if (r2.top - 8 - bh >= 8) top = r2.top - 8;
+          }
+          this._rfc.style.top = Math.round(top) + 'px';
+          this._rfc.style.transform = lift ? 'translateY(-100%)' : 'none';
         }
       }
       if (!g) {
@@ -1443,7 +1486,8 @@
           f: stored && (stored.f === 'cover' || stored.f === 'contain') ? stored.f : null,
         };
       }
-      this._cap.textContent = this.getAttribute('placeholder') || 'Drop an image';
+      const cap = this.getAttribute('placeholder') || 'Drop an image';
+      this._cap.textContent = TOUCH ? cap.replace(/^Drop\b/, 'Add') : cap;
       // Toggle via style.display — the [hidden] attribute alone loses to
       // the display:flex / display:block rules in the stylesheet above.
       // An Unsplash src with no credit attribute must NOT render — showing

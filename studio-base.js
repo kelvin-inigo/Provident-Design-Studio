@@ -426,9 +426,32 @@ class StudioBase {
   // Open Session picks the FOLDER, not the file: a file handle gives no access to
   // its parent, so this is the only way to adopt the project folder at the same time
   // as loading the session. Falls back to a file input where there is no picker.
+  // A session file chosen on its own, for a browser with no folder picker. `.json` and its
+  // MIME type rather than the studios' double extensions: a phone's picker maps `accept` to a
+  // file type, and `.smpstudio.json` is not one it knows.
+  pickSessionFile() {
+    if (typeof document === 'undefined') return;
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.json,application/json';
+    inp.style.display = 'none';
+    inp.addEventListener('change', () => {
+      const file = inp.files && inp.files[0];
+      inp.remove();
+      if (file) this.loadSessionFile(file);
+    });
+    document.body.appendChild(inp);
+    inp.click();
+  }
   async openSessionFolder() {
     const f = this.folderApi();
-    if (!f || !f.supported) { this.setState({ exportStatus: 'This browser cannot open folders. Chrome or Edge can open a project folder directly.' }); return; }
+    // NO DIRECTORY PICKER — a phone, a tablet, Safari, Firefox — used to be a dead end: "This
+    // browser cannot open folders", so a project saved on one computer could not be opened on
+    // a phone at all. It falls back to choosing the session FILE, which is exactly what Save
+    // session hands over on those browsers. Only adopting the folder is lost, and that half
+    // does not exist without the API. Synchronous up to the picker, so the click that got
+    // here still counts as the user's gesture.
+    if (!f || !f.supported) { this.pickSessionFile(); return; }
     let h = null;
     // A dismissed picker is not a failure and says nothing; anything else has to be
     // reported, or the button looks dead.
@@ -537,6 +560,32 @@ class StudioBase {
   }
   // The line-height that puts a run's baseline `px` below its box top.
   static baseLH(px) { const f = StudioBase.fontAsc(); return px * (2 - f.a + f.d); }
+
+  // ── Shrinking the canvas preview to its plate: a TRANSFORM, in every engine ─────
+  // The preview box is laid out at the CANVAS's own size (1080 wide), so every run is set at
+  // the pixel size buildOps measures, and is then shrunk to its plate. It used to be shrunk
+  // with `zoom`, and zoom sets text at its ON-SCREEN size — which this font cannot survive,
+  // because its optical-size axis makes a glyph wider the smaller it is set. Measured against
+  // the export, run by run, at a plate's scale of ~.33-.41:
+  //
+  //   WebKit to 26 (Safari, the iOS app)  a zoomed rect reads UN-zoomed, a cqw font zooms twice
+  //   WebKit 27                           98px headlines 6% wide, 16px tracked caps 81% wide —
+  //                                       the 9px minimum font size inflates anything under it
+  //   Chrome 152                          exact, EXCEPT Light 27px runs (the listed title, the
+  //                                       review quote): 10-12% wide, set at opsz 11 — the
+  //                                       on-screen size — where every other run keeps its own
+  //
+  // A transform lays the text out at canvas size and only paints it smaller: 98 of 98 runs
+  // within 0.3% in WebKit 27 and in Chrome alike. The negative margins collapse the layout box
+  // to the on-screen size, which is what `zoom` did on its own — the A/B in Chrome moved no
+  // plate, canvas, bar or scroll extent by more than 0.6px. offsetWidth stays in canvas units
+  // and getBoundingClientRect reports the on-screen rect, exactly as under Chrome's zoom, so no
+  // gesture changes; the canvas also becomes a stacking context, which confines its own
+  // z-indexed layers to it.
+  static scaleBox(z, W, H) {
+    return { transform: 'scale(' + z + ')', transformOrigin: '0 0',
+      marginRight: ((z - 1) * W).toFixed(2) + 'px', marginBottom: ((z - 1) * H).toFixed(2) + 'px' };
+  }
 
   // ── Co-brand lockup: `provident.` | partner mark ───────────────────────────────
   // Every measurement is a multiple of tk.logo, which is what "proportional to the
@@ -970,6 +1019,48 @@ class StudioBase {
     }
     return true;
   }
+  // ── A NATIVE SHELL TAKES FILES ITSELF. The iOS app (ios/) runs the studio in a WKWebView,
+  // where a download link does nothing useful and there is no folder picker: it injects
+  // `window.providentNative.share(files)`, which hands the files to the system share sheet —
+  // Save to Photos, Save to Files, AirDrop — and resolves { done, activity }. A browser has no
+  // such object, so each writer below behaves exactly as it always has there.
+  static nativeShell() {
+    try {
+      const n = typeof window !== 'undefined' && window.providentNative;
+      return n && typeof n.share === 'function' ? n : null;
+    } catch (e) { return null; }
+  }
+  // THE SESSION FILE WITHOUT A FOLDER, for both studios. The project is recorded in Recent
+  // first — on a phone that IS the save, kept on the device, and the file is a copy — then
+  // the file goes where this platform puts files: the share sheet in the iOS app, AWAITED so
+  // the status can say whether a copy was actually written (a dismissed sheet writes none),
+  // and a download everywhere else. "Pick a source folder" is advice only where there is a
+  // folder picker to pick one with; the app said it to a phone.
+  async saveSessionCopy(name, ext, data) {
+    this.markSaved();
+    this.recordSaved();
+    const blob = new Blob([data], { type: 'application/json' });
+    if (StudioBase.nativeShell()) {
+      const how = await this.saveAs(blob, name + ext, 'Session file', 'application/json', '.json');
+      this.setState({ exportStatus: how === 'saved'
+        ? 'Saved "' + name + '" to Recent, and the session file where you sent it.'
+        : 'Saved "' + name + '" to Recent on this device \u2014 no session file was written.' });
+      return;
+    }
+    this.download(blob, name + ext);
+    this.setState({ exportStatus: 'Saved ' + name + ext + (this.folderSupported() ? ' \u2014 pick a source folder to keep Assets alongside it.' : '.') });
+  }
+  // THE FIRST WORD OF AN EXPORT ROW, read off the same three branches `deliver` takes, so the
+  // row cannot promise a zip the export does not write: a source folder gets the files flat,
+  // the iOS app hands them to the share sheet one at a time (Save Image needs separate
+  // images, and a zip is a file nobody on a phone can open), and only a plain browser gets a
+  // zip. Every row said "Zip" in all three — found in the iOS Simulator.
+  deliverWord() {
+    const f = this.folderApi();
+    if (f && f.supported && (f.handle || f.pending)) return 'Into the folder';
+    if (StudioBase.nativeShell()) return 'Separate files';
+    return 'Zip';
+  }
   // Renders go to the folder root when there is one, otherwise a zip download.
   async deliver(files, name) {
     const f = this.folderApi();
@@ -982,6 +1073,17 @@ class StudioBase {
       if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '" · session + Assets refreshed' }); }
       return ok;
     }
+    // In the iOS app: one file per render, NOT a zip — a phone saves images to Photos, and a
+    // zip is a file nobody on a phone can open
+    const nat = StudioBase.nativeShell();
+    if (nat) {
+      let r = null;
+      try { r = await nat.share(files, { title: name }); }
+      catch (e) { this.setState({ exportStatus: 'Could not hand the files over — ' + ((e && e.message) || e) + '.' }); return false; }
+      if (!r || !r.done) { this.setState({ exportStatus: 'Export cancelled — nothing was saved.' }); return false; }
+      this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + (r.activity ? ' · ' + r.activity : '') });
+      return true;
+    }
     const blob = this.zip(files);
     // No project folder set, so ask where this should go rather than silently dropping it
     // in Downloads. A cancelled dialog leaves the project untouched and says so.
@@ -992,6 +1094,12 @@ class StudioBase {
     return true;
   }
   download(blob, name) {
+    const nat = StudioBase.nativeShell();
+    if (nat) {
+      nat.share([{ name, data: blob, type: blob.type }], { title: name })
+        .catch(e => this.setState({ exportStatus: 'Could not hand "' + name + '" over — ' + ((e && e.message) || e) + '.' }));
+      return;
+    }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = name;
     document.body.appendChild(a); a.click();
@@ -1004,6 +1112,16 @@ class StudioBase {
   // behaviour everything had before. A cancelled dialog is NOT an error: it returns false
   // so the caller can say "cancelled" rather than reporting a failed export.
   async saveAs(blob, name, desc, mime, ext) {
+    const nat = StudioBase.nativeShell();
+    if (nat) {
+      try {
+        const r = await nat.share([{ name, data: blob, type: mime || blob.type }], { title: name });
+        return r && r.done ? 'saved' : 'cancelled';
+      } catch (e) {
+        this.setState({ exportStatus: 'Could not hand "' + name + '" over — ' + ((e && e.message) || e) + '.' });
+        return 'cancelled';
+      }
+    }
     if (!window.showSaveFilePicker) { this.download(blob, name); return 'downloaded'; }
     let handle;
     try {

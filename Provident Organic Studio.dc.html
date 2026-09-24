@@ -2997,7 +2997,9 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
 .gd-tipi:not([data-has]){display:none}
 .gd-ask-h{align-items:center;gap:6px}
 .gd-tipi{flex:none;font-style:normal}
-.gd-sec-g .p-tabs,.gd-ask .p-tabs{width:100%}
+/* border-box, or the track's own 4px of padding sat OUTSIDE the 100% and it ran 8px past the
+   column's edge at every width — seen in the iOS Simulator beside a full-width text field */
+.gd-sec-g .p-tabs,.gd-ask .p-tabs{width:100%;box-sizing:border-box}
 .p-tabs button[data-dim]{color:var(--ps-dim);cursor:default}
 .gd-slotacts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px}
 .gd-slotacts .p-ghost.p-sm{height:27px;padding:0 11px;font-size:11.5px}
@@ -3105,6 +3107,261 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
 @media (max-width:1399px){
   .p-top .p-tgrp:not(.p-tgrp-h) > .p-ghost{font-size:0;gap:0;padding:0 11px;letter-spacing:0}
 }
+
+/* ── THE REEL THUMBNAIL. A layout tile is a REAL render of the cover in that layout, shown in
+   a 4:5 box with a cover fit — which, over a 9:16 render, is exactly the 4:5 safe area
+   (y 285–1635), so every tile shows what the grid and the feed will. The selected tile is a
+   ring in the mark token: the tile is a picture, so it cannot take a fill. */
+.rcv-lays{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.p-rail-l .rcv-lays{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:6px}
+.rcv-lay{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0;margin:0;padding:0;
+  background:none;border:0;cursor:pointer;text-align:left;font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rcv-lay-i{display:block;width:100%;aspect-ratio:4/5;border-radius:var(--ps-r-sm);
+  background-color:var(--ps-fill);background-size:cover;background-position:center;background-repeat:no-repeat;
+  box-shadow:0 0 0 1px var(--ps-hair);transition:box-shadow var(--ps-motion) var(--ps-ease)}
+.rcv-lay:hover .rcv-lay-i{box-shadow:0 0 0 1px var(--ps-line)}
+.rcv-lay[data-on]{color:var(--ps-ink)}
+.rcv-lay[data-on] .rcv-lay-i{box-shadow:0 0 0 2px var(--ps-link)}
+.rcv-lay:focus-visible{outline:none}
+.rcv-lay:focus-visible .rcv-lay-i{box-shadow:0 0 0 2px var(--ps-ink)}
+.rcv-lay-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-rail-l .rcv-lay{font-size:11px;gap:4px}
+.p-rail-l .rcv-lay-n{white-space:normal;line-height:1.2}
+/* THE ON STATE'S INK FOLLOWS THE FILL, for a ghost outside the top bar. `.p-ghost[data-on]`
+   filled with the resting tint and kept a literal white ink — 1.36:1 in light, measured on the
+   canvas bar's 4:5 guide toggle, and live on the story toggle whenever it was on. Campaign
+   settled this selector the same way; the top bar's own primary rule is more specific. */
+.p-ghost[data-on]{color:var(--ps-accent-i)}
+/* the text size: four specimen tiles, each "Aa" one step of the minor third larger */
+.rcv-sizes .p-mini-g b{line-height:1}
+.p-rail-l .rcv-sizes{margin-top:6px}
+.rcv-guiderow{display:flex;align-items:center;gap:10px;margin-top:14px}
+.rcv-guiderow .p-lab{margin:0}
+/* a fit the size had to give up, and a cut-out that no longer matches its photo */
+.gd-hint[data-warn],.p-rail-l .p-hint[data-warn],.rcv-cutnote[data-warn]{color:var(--ps-warn)}
+.rcv-cut{width:100%;margin-top:8px;white-space:nowrap}
+.rcv-cut[data-busy]{cursor:progress}
+.rcv-cut:disabled{opacity:.45;cursor:default}
+/* the guided card and its strip thumb at the reel thumbnail's own 9:16 */
+.gd-card-1[data-a="916"]{aspect-ratio:9/16}
+.gd-pthumb[data-a="916"]{width:41px}
+/* the 4:5 guide over the guided card: the canvas's own two dimmed bands and dashed edges, in
+   percentages of the card (285 / 1920 = 14.84375%) */
+.gd-card .gd-g45{position:absolute;left:0;right:0;height:14.84375%;background:rgba(8,10,14,.52);pointer-events:none;z-index:2}
+.gd-card .gd-g45-t{top:0;border-bottom:1px dashed rgba(255,255,255,.92)}
+.gd-card .gd-g45-b{bottom:0;border-top:1px dashed rgba(255,255,255,.92)}
+.gd-card .gd-g45-l{position:absolute;left:8px;bottom:calc(85.15625% + 6px);padding:2px 8px;border-radius:999px;
+  background:rgba(8,10,14,.74);color:#fff;font:600 10.5px/1.4 var(--ps-font);text-decoration:none;pointer-events:none;z-index:2}
+/* ══ 28. PHONES AND TABLETS — THE STUDIO HAS TO BE USABLE ON A PHONE ════════════════════
+   By request: "refine the tablet and mobile viewport, prioritise the mobile — it needs to be
+   usable on mobile". Measured before touching anything, at 375 x 812 and 768 x 1024:
+     · the guided run did not stack — a 400px form column beside a card sized off the
+       viewport's HEIGHT, so on a tablet the card sat on top of the form and on a phone the
+       form ran 25px off the screen with the card over it;
+     · the top bar needs about 1095px and scrolled sideways, Share 700px off a phone;
+     · the project browser kept its 248px sidebar and left the cards 127px;
+     · the template picker centred its 1120px panel, so its top and left edge were off the
+       screen and unreachable (the same below 1168px on a laptop);
+     · the panel bar (Template / Slide) painted over the browser and the picker;
+     · in the editor the canvas bar sat UNDER the panel bar, and every gesture layer let a
+       finger's drag turn into a page scroll half way through.
+   Declared last, like every block above it; everything in it is a breakpoint rule, so the
+   desktop does not move. Reverting is deleting this block and the JS hunks marked "phone" /
+   "tablet" / "touch" in their comments. */
+:root{--ps-toph:56px}
+/* 100vh on a phone is the viewport with the browser's toolbar HIDDEN, so the foot of the app
+   sat under it; the dynamic unit follows the toolbar */
+.p-shell{height:100vh;height:100dvh}
+.gd{top:var(--ps-toph)}
+/* the panel bar is the EDITOR's way to its sheets; the browser and the picker are overlays at
+   z 60 and it is z 70, so below 1200px it painted Template / Slide over both */
+.p-shell:has(> .p-over) .p-panelbar{display:none}
+/* AN OVERLAY THAT OVERFLOWS MUST NOT CENTRE ITS CONTENT OFF THE EDGE. Flex centring pushes an
+   oversized child out past the top-left corner, where no scroll can reach it; auto margins
+   centre while there is room and collapse to 0 when there is not. */
+.p-over-wide{width:min(1120px,100%)}
+.p-over:not(.p-over-split){align-items:flex-start;justify-content:flex-start}
+.p-over:not(.p-over-split) > .p-over-in{margin:auto;max-width:100%}
+.p-modal-in{max-width:calc(100vw - 32px);box-sizing:border-box}
+/* THE GUIDED CARD FITS ITS COLUMN AS WELL AS THE HEIGHT. It was sized off the viewport's
+   height alone, so a 58vh card on a 1024-tall tablet was 445px wide in a 368px column. The
+   preview column is the query container, so 100cqw is the room it actually has. */
+.gd-pv-zone{container-type:inline-size}
+.gd-card-1{height:min(58vh,600px,calc(100cqw * 4 / 3))}
+.gd-card-1[data-a="916"]{height:min(58vh,600px,calc(100cqw * 16 / 9))}
+/* a canvas grip belongs to the drag, never to a scroll */
+[data-gdir]{touch-action:none}
+/* THE ROW A FINGER IS DRAGGING lifts, so a long press says it has taken hold */
+[data-lift]{opacity:.55;transform:scale(.96);transition:transform var(--ps-motion) var(--ps-ease),opacity var(--ps-motion) var(--ps-ease)}
+@media (pointer:coarse){
+  /* a reorderable row scrolls its list first; the drag is a LONG PRESS (see dragBind) */
+  .p-nav[data-dragsi],.gd-ptile[data-dragsi]{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none}
+}
+
+/* ── THE TOP BAR, TABLET. The studio switcher is the first thing to go below 1100px: it is
+   still the project browser's first two rows, one tap away under Projects. Below 880px Share
+   keeps its icon and gives up its word (the button names itself in its title). ── */
+@media (max-width:1100px){
+  .p-top > .p-seg:not(.p-seg-mode){display:none}
+}
+@media (max-width:880px){
+  .p-top .p-share > .p-ghost{font-size:0;gap:0;width:40px;padding:0;justify-content:center;letter-spacing:0}
+  .p-top .p-share > .p-ghost .p-chev{display:none}
+}
+@media (max-width:1100px) and (min-width:761px){
+  .p-tplgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* ── THE EDITOR BELOW 1200px. The panel bar is fixed at the foot, so the stage column makes
+   its room: the canvas bar's own 58px of bottom padding was undone by a later block. The dock
+   rises above both (62 panel bar + 45 canvas bar + 12). The page's sheet starts under the
+   top bar at whatever height the bar is. ── */
+@media (max-width:1200px){
+  .p-stagecol{padding-bottom:62px;box-sizing:border-box}
+  .p-dock{bottom:119px}
+  .gd[data-mode="editor"] .gd-in-zone{top:var(--ps-toph)}
+  /* below 1200px "This page" opens the same sheet as the panel bar's Slide, one row down */
+  .p-cvbar > button.p-ghost.p-sm:last-of-type{display:none}
+  .p-cvbar .p-ghost.p-sm{white-space:nowrap;flex:none}
+}
+@media (max-width:900px){
+  /* the template-and-count pill repeats the plates' own badges; the stage is too narrow to carry both */
+  .p-cvbar > s{display:none}
+  .p-cvbar > b{flex:1 1 auto;min-width:0;max-width:none}
+  /* the status keeps its word and gives up length, never the other way round */
+  .p-cvbar > i{flex:0 0 auto;min-width:0;max-width:46%;overflow:hidden;display:block;
+    white-space:nowrap;text-overflow:ellipsis}
+  .p-cvbar > i em{display:inline-block;margin-right:7px;vertical-align:middle}
+}
+
+/* ── SHORT SCREENS — a phone on its side. The page's own head and the helper line give way,
+   so the fields keep the height. ── */
+@media (max-height:520px) and (min-width:761px){
+  .gd[data-mode="guide"] .gd-head{padding-top:10px;padding-bottom:8px;gap:2px}
+  .gd[data-mode="guide"] .gd-head s:not(.gd-kick){display:none}
+  .gd[data-mode="guide"] .gd-help{display:none}
+  .gd[data-mode="guide"] .gd-nav{padding-top:8px;padding-bottom:8px}
+  .gd[data-mode="guide"] .gd-pv-zone{padding-top:10px;padding-bottom:10px;gap:10px}
+}
+
+/* ══ PHONES ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width:760px){
+  /* THE TOP BAR IS TWO ROWS. The project row — the wordmark, Projects / folder / Save and
+     Share — over the workspace row — Guided | All controls across the width, the theme and
+     Undo / Redo. One row needs ~430px of the 355 a phone has, and a bar that scrolls hides its
+     own controls as surely as dropping them. The empty rule element is the line break. */
+  :root{--ps-toph:92px}
+  .p-top{box-sizing:border-box;height:var(--ps-toph);flex-wrap:wrap;align-content:center;
+    column-gap:8px;row-gap:4px;padding:0 10px;overflow:visible}
+  .p-top > .p-wm{order:1}
+  .p-top > .p-spring{order:2}
+  .p-top > .p-tgrp:not(.p-tgrp-h){order:3}
+  .p-top > .p-share{order:4}
+  .p-top > .p-vr{display:block;order:5;flex:0 0 100%;width:auto;height:0;margin:0;background:none}
+  .p-top > .p-seg-mode{order:6;display:flex;flex:1 1 auto;min-width:0}
+  .p-top > .p-seg-mode button{flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
+  .p-top > .p-ico-o{order:7}
+  .p-top > .p-tgrp-h{order:8}
+  /* Share is a sheet under the bar, not a 330px dropdown off the right edge */
+  .p-top .p-share-m{position:fixed;top:calc(var(--ps-toph) + 6px);left:8px;right:8px;width:auto;
+    max-height:calc(100dvh - var(--ps-toph) - 20px)}
+
+  /* A PHONE'S KEYBOARD ZOOMS INTO ANY FIELD SET UNDER 16px (iOS), and does not zoom back */
+  .p-shell .gd .gd-big,.p-shell .gd .rt-ed,
+  .p-shell input.p-in,.p-shell select.p-in,.p-shell textarea.p-in{font-size:16px}
+
+  /* ── THE GUIDED RUN IS ONE COLUMN AND ONE SCROLLER. The form column's box is dissolved, so
+     its head, the post and its fields fall into a single order: the page's name, its card
+     and the page strip, then the questions, then what is missing, and Back / Next held at
+     the foot. A new page opens at its top, card first — see goStep. ── */
+  .gd[data-mode="guide"] .gd-body{flex-direction:column;overflow-x:hidden;overflow-y:auto;
+    overscroll-behavior:contain;background:var(--ps-sb);scroll-padding:12px 0 88px}
+  .gd[data-mode="guide"] .gd-in-zone{display:contents}
+  .gd[data-mode="guide"] .gd-head{order:1;flex:none;padding:16px 16px 12px;background:var(--ps-sb)}
+  .gd[data-mode="guide"] .gd-head b{font-size:20px}
+  .gd[data-mode="guide"] .gd-pv-zone{order:2;flex:none;min-height:auto;padding:16px 12px 14px;gap:12px}
+  .gd[data-mode="guide"] .gd-stage{flex:none}
+  .gd[data-mode="guide"] .gd-askwrap{order:3;flex:none;min-height:auto;overflow:visible;
+    padding:20px 16px 28px;gap:26px}
+  .gd[data-mode="guide"] .gd-ask-tail{order:4;padding:0 16px 16px;scroll-margin-bottom:88px}
+  .gd[data-mode="guide"] .gd-nav{order:5;position:sticky;bottom:0;z-index:3;margin-top:auto;gap:10px;
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+  .gd[data-mode="guide"] .gd-nav .p-spring{display:none}
+  .gd[data-mode="guide"] .gd-nav .gd-navb{height:44px;padding:0 20px}
+  .gd[data-mode="guide"] .gd-nav .gd-navb.p-btn{flex:1}
+  /* the card is sized to be SEEN, not to fill the screen: at 38vh the first section's head
+     still shows above Back / Next on arrival, so the page reads as a form to fill in */
+  .gd-card-1{height:min(38vh,340px,calc(100cqw * 4 / 3))}
+  .gd-card-1[data-a="916"]{height:min(46vh,400px,calc(100cqw * 16 / 9))}
+  /* the page strip scrolls sideways, centred while it fits — auto margins, not justify, so
+     an overflowing strip still starts at its first page */
+  .gd-pstrip{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;width:100%;
+    box-sizing:border-box;padding:4px 6px 6px;scrollbar-width:none;overscroll-behavior-x:contain}
+  .gd-pstrip::-webkit-scrollbar{display:none}
+  .gd-pstrip > .gd-ptile{flex:none}
+  .gd-pstrip > .gd-ptile:first-child{margin-left:auto}
+  .gd-pstrip > .gd-ptile:last-child{margin-right:auto}
+  /* the page's own purpose line is already under its name; the template's note repeats on
+     every page, and on a phone it is the height of the first field */
+  .gd[data-mode="guide"] .gd-help{display:none}
+  .gd-pthumb{width:46px;height:61px}
+  .gd-pthumb[data-a="916"]{width:35px}
+  .gd-ptile s{max-width:76px}
+  /* the steps: the disc sits in its header, as in the editor's rail — 38px back for fields */
+  .gd[data-mode="guide"] .gd-sec{padding-left:0;gap:14px}
+  .gd[data-mode="guide"] .gd-sec::before{display:none}
+  .gd[data-mode="guide"] .gd-sec-n{position:static;width:24px;height:24px}
+  .gd[data-mode="guide"] .gd-sec-h{gap:9px}
+  .gd[data-mode="guide"] .gd-sec-g{gap:16px 10px}
+  /* a finger's targets */
+  .gd-stepb{width:40px;height:40px}
+  .gd-pt-x{width:40px;height:40px}
+  .p-tabs button{min-height:38px}
+  .gd-switch::after{content:'';position:absolute;inset:-12px -10px}
+  /* the reel's layout tiles, three to a row so a name has room */
+  .rcv-lays{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+  /* ── THE EDITOR. One canvas under the next at the screen's width (the width is written by
+     renderVals), the page's sheet and the Template sheet under the two-row bar, the canvas
+     bar scrolling sideways rather than wrapping, and the dock a full-width sheet. ── */
+  .p-rail-l{top:var(--ps-toph)}
+  .p-stage{flex-direction:column;align-items:center;overflow-x:hidden;overflow-y:auto;padding:16px 16px 24px;gap:26px}
+  .p-cvbar{padding-left:16px;padding-right:16px;gap:8px}
+  .p-dock{padding:0 12px}
+  .p-dock-in{width:100%;max-width:none}
+  .p-dock-b{max-height:calc(100dvh - var(--ps-toph) - 190px)}
+
+  /* ── THE PROJECT BROWSER. The sidebar is a header: the two studios side by side, then the
+     library and session rows as chips. The page scrolls as one, and the cards go two up. ── */
+  .p-over-split{overflow-x:hidden;overflow-y:auto}
+  .p-br{display:block;height:auto;min-height:100%}
+  .p-br-sb{flex-direction:row;flex-wrap:wrap;align-items:center;gap:8px;padding:14px 16px;
+    border-right:0;border-bottom:1px solid var(--ps-hair)}
+  .p-br-sb > .p-ws{flex:1 1 calc(50% - 4px);min-width:0;margin:0}
+  .p-br-sb > .p-sec-l{display:none}
+  .p-br-sb > .p-nav2{flex:none;width:auto;height:34px;padding:0 9px 0 8px;gap:6px;font-size:13px;background:var(--ps-fill)}
+  .p-br-sb > .p-nav2 s{padding:2px 6px;margin-left:2px}
+  .p-br-sb > .p-nav2[data-on]{background:var(--ps-accent)}
+  /* "Open folder…" is the header's Open Session under another name — one of them is enough */
+  .p-br-sb > .p-nav2-open{display:none}
+  /* the carousel chip and the recents badge shrink with the card, so the chip clears the
+     wordmark it sits beside at 165px as it does at 238 */
+  .p-c-car,.p-c-b{font-size:9.5px;letter-spacing:0;padding:2px 6px;top:7px}
+  .p-c-car{left:7px}
+  .p-c-b{right:7px}
+  .p-br-mn{overflow:visible;padding:18px 16px calc(28px + env(safe-area-inset-bottom,0px))}
+  .p-br-h{flex-wrap:wrap;row-gap:10px}
+  .p-grid2{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px}
+
+  /* ── THE TEMPLATE PICKER: one template to a row, its render beside its description ── */
+  .p-over:not(.p-over-split){padding:20px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+  .p-over-in{gap:14px}
+  .p-h2{font-size:24px}
+  .p-tplgrid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .p-tpl{display:grid;grid-template-columns:92px minmax(0,1fr);column-gap:14px;row-gap:4px;
+    align-items:start;align-content:start;padding:12px}
+  .p-tpl > .p-tpl-c{grid-row:1 / span 3}
+}
 </style>
 </helmet>
 
@@ -3131,7 +3388,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
       <button onClick="{{ shViewTpl }}" data-on="{{ shViewTplOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60H450v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM510-200h237.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-480H510v280Zm0-340h250v-207.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H510v220Z"/></svg></i>Templates<s>{{ tplCount }}</s></button>
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
       <div class="p-sec-l">Session</div>
-      <button onClick="{{ openSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></i>Open folder…</button>
+      <button onClick="{{ openSession }}" class="p-nav2 p-nav2-open"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></i>Open folder…</button>
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i>Continue last</button>
       </sc-if>
@@ -3305,7 +3562,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
     <button onClick="{{ redo }}" class="p-ghost p-ico-t" disabled="{{ redoOff }}" title="Redo" aria-label="Redo"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M665.69-566.54H384.85q-62.62 0-107.77 41.15-45.16 41.16-45.16 101.93 0 60.77 45.16 102.11Q322.23-280 384.85-280h257.07q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62H384.85q-87.77 0-150.35-58.77t-62.58-144.69q0-85.92 62.58-144.5t150.35-58.58h280.84l-90.23-90.23q-8.31-8.31-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69l137.08 137.07q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L617.61-434.15q-8.3 8.3-20.88 8.5-12.58.19-21.27-8.5-8.69-8.7-8.5-21.08.19-12.38 8.5-20.69l90.23-90.62Z"/></svg></button>
   </div>
   <div class="p-share">
-    <button onClick="{{ shToggleShare }}" class="p-ghost p-ico-t" data-on="{{ shShareOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM338.08-207.23 231.15-100.31q-8.92 8.92-21.07 8.81-12.16-.12-21.08-9.42-8.31-8.93-8.42-21.08-.12-12.15 8.81-21.08L296.31-250h-74.62q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h140.23q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v140.23q0 12.75-8.63 21.38-8.63 8.62-21.39 8.62-12.75 0-21.37-8.62-8.61-8.63-8.61-21.38v-73.61ZM188.62-406.32q-8.62-8.62-8.62-21.37v-360q0-29.83 21.24-51.07Q222.48-860 252.31-860H570l210 210v477.69q0 29.83-21.24 51.07Q737.52-100 707.69-100H515.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h191.92q5.39 0 8.85-3.46t3.46-8.85V-620H575.99q-15.3 0-25.64-10.35Q540-640.7 540-656v-144H252.31q-5.39 0-8.85 3.46t-3.46 8.85v360q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Z"/></svg>Share<svg class="mk-g p-bic p-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button>
+    <button onClick="{{ shToggleShare }}" class="p-ghost p-ico-t" data-on="{{ shShareOn }}" title="Share and export" aria-label="Share and export"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM338.08-207.23 231.15-100.31q-8.92 8.92-21.07 8.81-12.16-.12-21.08-9.42-8.31-8.93-8.42-21.08-.12-12.15 8.81-21.08L296.31-250h-74.62q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h140.23q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v140.23q0 12.75-8.63 21.38-8.63 8.62-21.39 8.62-12.75 0-21.37-8.62-8.61-8.63-8.61-21.38v-73.61ZM188.62-406.32q-8.62-8.62-8.62-21.37v-360q0-29.83 21.24-51.07Q222.48-860 252.31-860H570l210 210v477.69q0 29.83-21.24 51.07Q737.52-100 707.69-100H515.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h191.92q5.39 0 8.85-3.46t3.46-8.85V-620H575.99q-15.3 0-25.64-10.35Q540-640.7 540-656v-144H252.31q-5.39 0-8.85 3.46t-3.46 8.85v360q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Z"/></svg>Share<svg class="mk-g p-bic p-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button>
     <sc-if value="{{ shShareOn }}" hint-placeholder-val="{{ false }}">
       <div class="p-share-m">
   <div class="p-rule"></div>
@@ -3371,8 +3628,8 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
 
 <aside class="p-rail p-rail-l" data-open="{{ shPanelOnPalette }}">
   <div class="p-cap">Template <s>{{ tplLabel }}</s></div>
-  <div class="p-foot p-foot-t">Layouts are locked to the brand grid. Populate the fields on the right; drop photos straight onto the canvases.</div>
-  <div class="p-cap" style="margin-top:5px">Slides <s>click to edit</s></div>
+  <div class="p-foot p-foot-t">{{ tplFoot }}</div>
+  <div class="p-cap" style="margin-top:5px">Slides <s>{{ slidesHint }}</s></div>
   <sc-for list="{{ slideNav }}" as="n" hint-placeholder-count="3">
     <div class="p-nav" data-on="{{ n.on }}" data-dragsi="{{ n.dragSi }}" data-drop="{{ n.dropOn }}">
       <sc-if value="{{ n.gripOn }}" hint-placeholder-val="{{ false }}"><svg class="p-grip" viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-175.39q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Z"/></svg></sc-if>
@@ -3412,6 +3669,28 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
       </button>
     </sc-for></div>
     <div class="p-hint" style="margin-top:6px">Top puts it where the front page has it; Bottom sets it on SWIPE’s own line.</div>
+  </sc-if>
+  <!-- THE REEL THUMBNAIL'S LAYOUT, TEXT SIZE AND 4:5 GUIDE — the same tiles the guided run's
+       Layout section shows. Each layout tile is a real render of this cover in that layout. -->
+  <sc-if value="{{ rcvOn }}" hint-placeholder-val="{{ false }}">
+    <div class="p-cap" style="margin-top:14px">Layout <s>pick the one the photo suits</s></div>
+    <div class="rcv-lays"><sc-for list="{{ rcvLayTiles }}" as="lt" hint-placeholder-count="7">
+      <button onClick="{{ lt.set }}" class="rcv-lay" data-on="{{ lt.on }}" title="{{ lt.tip }}">
+        <span class="rcv-lay-i" style="{{ lt.shot }}"></span>
+        <span class="rcv-lay-n">{{ lt.name }}</span>
+      </button>
+    </sc-for></div>
+    <div class="p-hint" style="margin-top:6px">{{ rcvLayHint }}</div>
+    <div class="p-cap" style="margin-top:14px">Text size <s>minor third</s></div>
+    <div class="p-opts rcv-sizes"><sc-for list="{{ rcvSizeTiles }}" as="zt" hint-placeholder-count="4">
+      <button onClick="{{ zt.set }}" class="p-opt" data-on="{{ zt.on }}" title="{{ zt.tip }}">
+        <span class="p-mini p-mini-g"><b style="{{ zt.glyph }}">Aa</b></span>
+        <span class="p-opt-l">{{ zt.name }}</span>
+      </button>
+    </sc-for></div>
+    <div class="p-hint" data-warn="{{ rcvFitWarn }}" style="margin-top:6px">{{ rcvSizeHint }}</div>
+    <div class="rcv-guiderow"><span class="p-lab">4:5 guide</span><button onClick="{{ rcvGuideRailSet }}" class="gd-switch" role="switch" data-on="{{ rcvGuideRailOn }}" title="Show or hide the 4:5 box the grid and the feed crop a Reel cover to"><i></i></button></div>
+    <div class="p-hint" style="margin-top:6px">The export is never marked — the guide is only on screen.</div>
   </sc-if>
 </aside>
 
@@ -3516,7 +3795,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                  straight onto the canvas; the mask beside it is what shows when it is tinted. -->
             <sc-if value="{{ sl.ft.csGfxOn }}" hint-placeholder-val="{{ false }}">
               <div onPointerDown="{{ sl.ft.csGfxDown }}" data-gfx="1" style="{{ sl.ft.csGfxStyle }}">
-                <image-slot id="{{ sl.ft.csGfxSlot }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="{{ sl.ft.csGfxSlotStyle }}"></image-slot>
+                <image-slot id="{{ sl.ft.csGfxSlot }}" data-noreframe="1" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="{{ sl.ft.csGfxSlotStyle }}"></image-slot>
                 <i style="{{ sl.ft.csGfxMaskStyle }}"></i>
                 <sc-for list="{{ sl.ft.csGfxHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ sl.ft.csGfxGrip }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for>
               </div>
@@ -3524,6 +3803,12 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                    canvas coordinates as a sibling of the graphic, not a child of it. -->
               <sc-for list="{{ sl.ft.csGfxGuides }}" as="gl" hint-placeholder-count="0"><div style="{{ gl.style }}"></div></sc-for>
             </sc-if>
+          </sc-if>
+          <!-- THE REEL THUMBNAIL — one element per op off `rcvBox`: chip and tag outlines, then
+               every text run. Its only canvas is this one, the plate's first slot. -->
+          <sc-if value="{{ sl.isRcv }}" hint-placeholder-val="{{ false }}">
+            <sc-for list="{{ sl.ft.rcvRects }}" as="rvr" hint-placeholder-count="0"><div style="{{ rvr }}"></div></sc-for>
+            <sc-for list="{{ sl.ft.rcvTexts }}" as="rvt" hint-placeholder-count="0"><div style="{{ rvt.style }}">{{ rvt.t }}</div></sc-for>
           </sc-if>
           <sc-if value="{{ sl.isAward }}" hint-placeholder-val="{{ false }}">
             <div style="{{ sl.ft.awBgStyle }}"></div>
@@ -3588,10 +3873,15 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
             <div style="{{ sl.ft.revRoleStyle }}">{{ sl.rAgentRole }}</div>
           </sc-if>
         </div>
-        <sc-if value="{{ sl.qrOn }}" hint-placeholder-val="{{ false }}"><div class="qrbox" style="{{ sl.ft.qrStyle }}"><image-slot id="{{ sl.qrId }}" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+        <sc-if value="{{ sl.qrOn }}" hint-placeholder-val="{{ false }}"><div class="qrbox" style="{{ sl.ft.qrStyle }}"><image-slot id="{{ sl.qrId }}" data-noreframe="1" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
         <sc-for list="{{ sl.ft.wkListnoLines }}" as="ll" hint-placeholder-count="0"><div style="{{ ll.style }}">{{ ll.t }}</div></sc-for>
+        <!-- THE 4:5 GUIDE, over everything: what the grid and the feed show of a Reel cover. -->
+        <sc-if value="{{ sl.ft.rcvGuideOn }}" hint-placeholder-val="{{ false }}">
+          <div style="{{ sl.ft.rcvGuideTop }}"></div><div style="{{ sl.ft.rcvGuideBot }}"></div>
+          <div style="{{ sl.ft.rcvGuideBox }}"><span style="{{ sl.ft.rcvGuideLab }}">{{ sl.ft.rcvGuideText }}</span></div>
+        </sc-if>
       </div>
-      <span class="p-meta">1080 × 1440 · feed 3:4</span>
+      <span class="p-meta">{{ sl.ftMeta }}</span>
       <sc-if value="{{ storyVisible }}" hint-placeholder-val="{{ false }}">
 
       <div onClick="{{ sl.activate }}" style="{{ sl.st.canvasStyle }}">
@@ -3685,7 +3975,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                  straight onto the canvas; the mask beside it is what shows when it is tinted. -->
             <sc-if value="{{ sl.st.csGfxOn }}" hint-placeholder-val="{{ false }}">
               <div onPointerDown="{{ sl.st.csGfxDown }}" data-gfx="1" style="{{ sl.st.csGfxStyle }}">
-                <image-slot id="{{ sl.st.csGfxSlot }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="{{ sl.st.csGfxSlotStyle }}"></image-slot>
+                <image-slot id="{{ sl.st.csGfxSlot }}" data-noreframe="1" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="{{ sl.st.csGfxSlotStyle }}"></image-slot>
                 <i style="{{ sl.st.csGfxMaskStyle }}"></i>
                 <sc-for list="{{ sl.st.csGfxHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ sl.st.csGfxGrip }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for>
               </div>
@@ -3757,7 +4047,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
             <div style="{{ sl.st.revRoleStyle }}">{{ sl.rAgentRole }}</div>
           </sc-if>
         </div>
-        <sc-if value="{{ sl.qrOn }}" hint-placeholder-val="{{ false }}"><div class="qrbox" style="{{ sl.st.qrStyle }}"><image-slot id="{{ sl.qrId }}" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+        <sc-if value="{{ sl.qrOn }}" hint-placeholder-val="{{ false }}"><div class="qrbox" style="{{ sl.st.qrStyle }}"><image-slot id="{{ sl.qrId }}" data-noreframe="1" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
         <sc-for list="{{ sl.st.wkListnoLines }}" as="ll" hint-placeholder-count="0"><div style="{{ ll.style }}">{{ ll.t }}</div></sc-for>
       </div>
       <span class="p-meta">1080 × 1920 · story</span>
@@ -3765,7 +4055,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ toggleStory }}" class="p-ghost p-sm" data-on="{{ storyOnFlag }}" title="Show or hide the 9:16 canvas — hidden, only the 3:4 feed exports">{{ storyBtnLabel }}</button><button onClick="{{ shPageOpen }}" class="p-ghost p-sm" title="The active page’s own copy and pictures, in the rail on the right"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-400q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-460 210-460h220q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q442.75-400 430-400H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-620 210-620h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-560 590-560H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-720 590-720H210Zm314.62 503.84v-54.46q0-7.06 2.61-13.68 2.62-6.62 8.23-12.24l206.31-205.31q7.46-7.46 16.11-10.5 8.65-3.03 17.3-3.03 9.43 0 18.25 3.53 8.82 3.54 16.03 10.62l37 37.38q6.46 7.47 10 16.16Q860-439 860-430.31t-3.23 17.69q-3.23 9-10.31 16.46L641.15-190.85q-5.61 5.62-12.23 8.23-6.63 2.62-13.69 2.62h-54.46q-15.37 0-25.76-10.4-10.39-10.39-10.39-25.76Zm287.69-214.15-37-37.38 37 37.38Zm-240 202.62h38l129.84-130.47-18.38-19-18.62-18.76-130.84 130.23v38Zm149.46-149.47-18.62-18.76 37 37.76-18.38-19Z"/></svg>This page</button><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
+  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><sc-if value="{{ storyBtnOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ toggleStory }}" class="p-ghost p-sm" data-on="{{ storyOnFlag }}" title="Show or hide the 9:16 canvas — hidden, only the 3:4 feed exports">{{ storyBtnLabel }}</button></sc-if><sc-if value="{{ rcvGuideBtnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ toggleRcvGuide }}" class="p-ghost p-sm" data-on="{{ rcvGuideFlag }}" title="Show or hide the 4:5 box a feed and the profile grid crop a Reel cover to. The export is never marked.">4:5 guide</button></sc-if><button onClick="{{ shPageOpen }}" class="p-ghost p-sm" title="The active page’s own copy and pictures, in the rail on the right"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-400q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-460 210-460h220q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q442.75-400 430-400H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-620 210-620h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-560 590-560H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-720 590-720H210Zm314.62 503.84v-54.46q0-7.06 2.61-13.68 2.62-6.62 8.23-12.24l206.31-205.31q7.46-7.46 16.11-10.5 8.65-3.03 17.3-3.03 9.43 0 18.25 3.53 8.82 3.54 16.03 10.62l37 37.38q6.46 7.47 10 16.16Q860-439 860-430.31t-3.23 17.69q-3.23 9-10.31 16.46L641.15-190.85q-5.61 5.62-12.23 8.23-6.63 2.62-13.69 2.62h-54.46q-15.37 0-25.76-10.4-10.39-10.39-10.39-25.76Zm287.69-214.15-37-37.38 37 37.38Zm-240 202.62h38l129.84-130.47-18.38-19-18.62-18.76-130.84 130.23v38Zm149.46-149.47-18.62-18.76 37 37.76-18.38-19Z"/></svg>This page</button><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
 </div>
 
 <!-- THE DOCK — Campaign's own: what is POST-WIDE floats over the canvas behind one pill, so
@@ -3811,10 +4101,12 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
             <input type="range" min="10" max="100" step="5" value="{{ imgOVal }}" onChange="{{ onImgO }}" aria-label="Photo strength">
           </div>
         </sc-if>
+        <sc-if value="{{ glassAllowed }}" hint-placeholder-val="{{ true }}">
         <div class="p-grp-w">
           <span class="p-lab">Panel colour <span class="tip p-info" data-tip="{{ glassTip }}">i</span></span>
           <div class="p-tabs"><sc-for list="{{ glassOpts }}" as="go" hint-placeholder-count="2"><button onClick="{{ go.set }}" data-on="{{ go.on }}">{{ go.label }}</button></sc-for></div>
         </div>
+        </sc-if>
       </div>
     </sc-if>
     <div class="p-dock-r">
@@ -3911,7 +4203,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   </div>
                 </sc-if>
                 <sc-if value="{{ a.row.isInput }}" hint-placeholder-val="{{ true }}">
-                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" class="gd-big" placeholder="Type your answer here…">
+                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" class="gd-big" enterkeyhint="next" inputmode="{{ a.row.inputMode }}" placeholder="Type your answer here…">
                 </sc-if>
                 <!-- ONE FIELD PER POINT. It was a single field with the points separated by a
                      bar, which nobody could discover and which ate a space on every edit. -->
@@ -3993,7 +4285,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <sc-if value="{{ a.pxOn }}" hint-placeholder-val="{{ false }}">
                   <div class="gd-qrow">
                     <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
-                      <image-slot id="{{ a.pxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                      <image-slot id="{{ a.pxSlot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                     </div>
                   <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
@@ -4029,7 +4321,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <sc-if value="{{ a.isGfx }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.gfxDone }}">
-                    <image-slot id="{{ a.gfxSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    <image-slot id="{{ a.gfxSlot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
                   <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
@@ -4051,7 +4343,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <sc-if value="{{ a.isAlogo }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.alogoDone }}">
-                    <image-slot id="smp-alogo" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    <image-slot id="smp-alogo" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
                   <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
@@ -4075,6 +4367,48 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <span class="gd-hint">Switching keeps the copy you have typed wherever the new layout has a place for it.</span>
               </sc-if>
 
+              <!-- THE REEL THUMBNAIL'S LAYOUT. Every tile is a REAL render of this cover in that
+                   layout — the photo and the words included — cropped to the 4:5 box, so the
+                   layout is chosen by looking at the photo in it. -->
+              <sc-if value="{{ a.isRlay }}" hint-placeholder-val="{{ false }}">
+                <div class="rcv-lays"><sc-for list="{{ rcvLayTiles }}" as="lt" hint-placeholder-count="7">
+                  <button onClick="{{ lt.set }}" class="rcv-lay" data-on="{{ lt.on }}" title="{{ lt.tip }}">
+                    <span class="rcv-lay-i" style="{{ lt.shot }}"></span>
+                    <span class="rcv-lay-n">{{ lt.name }}</span>
+                  </button>
+                </sc-for></div>
+                <span class="gd-hint">{{ rcvLayHint }}</span>
+              </sc-if>
+              <!-- THE TEXT SIZE — four steps of the minor third, each tile a specimen of its step -->
+              <sc-if value="{{ a.isRsize }}" hint-placeholder-val="{{ false }}">
+                <div class="p-opts rcv-sizes"><sc-for list="{{ rcvSizeTiles }}" as="zt" hint-placeholder-count="4">
+                  <button onClick="{{ zt.set }}" class="p-opt" data-on="{{ zt.on }}" title="{{ zt.tip }}">
+                    <span class="p-mini p-mini-g"><b style="{{ zt.glyph }}">Aa</b></span>
+                    <span class="p-opt-l">{{ zt.name }}</span>
+                  </button>
+                </sc-for></div>
+                <span class="gd-hint" data-warn="{{ rcvFitWarn }}">{{ rcvSizeHint }}</span>
+              </sc-if>
+              <sc-if value="{{ a.isRguide }}" hint-placeholder-val="{{ false }}">
+                <span class="gd-hint">{{ rcvGuideHint }}</span>
+              </sc-if>
+              <!-- POP-OUT'S PARALLAX: a switch, then the cut-out and the button that makes it -->
+              <sc-if value="{{ a.isRpx }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ a.rpxOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="gd-qrow">
+                    <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
+                      <image-slot id="{{ a.pxSlot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Cut-out" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    </div>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  </div>
+                  <!-- the row's primary action, full width under the drop: the rail's side column is
+                       104px, and the label must not wrap inside a pill -->
+                  <button onClick="{{ a.rcvCutGo }}" class="p-btn rcv-cut" data-busy="{{ a.rcvCutBusy }}" disabled="{{ a.rcvCutOff }}">{{ a.rcvCutLabel }}</button>
+                  <div class="gd-qrow-t gd-qcap"><s class="rcv-cutnote" data-warn="{{ a.rcvCutWarn }}">{{ a.rcvCutNote }}</s></div>
+                </sc-if>
+                <span class="gd-hint">Off, the photo sits flat behind the headline. On, the subject stands in front of it.</span>
+              </sc-if>
+
               <!-- THE STATS PAGE'S ROWS: how many, then per item an icon, a number and a label.
                    The icon comes from a drop or from Material Symbols through the picker. -->
               <sc-if value="{{ a.isStats }}" hint-placeholder-val="{{ false }}">
@@ -4090,7 +4424,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                 <sc-for list="{{ a.statRows }}" as="r" hint-placeholder-count="4">
                   <div class="gd-qrow gd-statrow">
                     <div class="gd-drop gd-drop-sq" data-done="{{ r.done }}">
-                      <image-slot id="{{ r.slot }}" fit="contain" shape="rounded" radius="10" placeholder="Icon" style="width:100%;aspect-ratio:1/1"></image-slot>
+                      <image-slot id="{{ r.slot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Icon" style="width:100%;aspect-ratio:1/1"></image-slot>
                     </div>
                     <div class="gd-qrow-t">
                       <input value="{{ r.stat }}" onChange="{{ r.setStat }}" class="gd-big" placeholder="Number — e.g. 260M">
@@ -4127,7 +4461,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <sc-if value="{{ a.isQr }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-sq" data-done="{{ a.qrDone }}">
-                    <image-slot id="{{ a.qrSlot }}" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
+                    <image-slot id="{{ a.qrSlot }}" data-noreframe="1" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
                   </div>
                   <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
@@ -4154,20 +4488,20 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               </sc-if>
 
               <sc-if value="{{ a.isProj }}" hint-placeholder-val="{{ false }}">
-                <input value="{{ a.projVal }}" onChange="{{ a.setProj }}" class="gd-big" placeholder="Type your answer here…">
+                <input value="{{ a.projVal }}" onChange="{{ a.setProj }}" class="gd-big" enterkeyhint="next" placeholder="Type your answer here…">
                 <span class="gd-hint">{{ a.projHint }}</span>
               </sc-if>
 
               <sc-if value="{{ a.isPortrait }}" hint-placeholder-val="{{ false }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
-                    <image-slot id="{{ a.portraitSlot }}" data-cutout="1" fit="contain" shape="rounded" radius="10" placeholder="Drop agent PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
+                    <image-slot id="{{ a.portraitSlot }}" data-cutout="1" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop agent photo" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
                   <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.portraitLabel }}</s>
-                    <s>The face is found and framed for you, so any crop works. Drag her on the card to move her.</s>
+                    <s>{{ a.portraitHint }}</s>
                     
                     <sc-if value="{{ a.cutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ a.cutNote }}</s></sc-if>
                     <sc-if value="{{ a.raResetOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.raReset }}" class="gd-link">Reset photo position</button></sc-if>
@@ -4203,7 +4537,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-dest" data-set="{{ a.destSetOn }}">
                     <div class="gd-dest-t">
                       <b>{{ a.destName }}</b>
-                      <s>Everything this post exports goes straight in here — the images, the story sizes and the session file.</s>
+                      <s>{{ a.destWhat }}</s>
                     </div>
                     <button onClick="{{ a.destPick }}" class="p-btn">{{ a.destLabel }}</button>
                   </div>
@@ -4280,8 +4614,10 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
          the numbered type-stepper, the ask chevrons and the slide bar are gone. -->
     <div class="gd-pv-zone">
       <div class="gd-stage">
-        <div class="gd-card gd-card-1">
+        <div class="gd-card gd-card-1" data-a="{{ gdCardAsp }}">
           <sc-if value="{{ gdCard.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ gdCard.src }}" alt="preview"></sc-if>
+          <!-- the reel thumbnail's 4:5 guide, over the card as it is over the canvas -->
+          <sc-if value="{{ gdGuideOn }}" hint-placeholder-val="{{ false }}"><i class="gd-g45 gd-g45-t"></i><i class="gd-g45 gd-g45-b"></i><s class="gd-g45-l">4:5</s></sc-if>
           <sc-if value="{{ gdCard.noShot }}" hint-placeholder-val="{{ true }}">
             <div class="gd-lines"><sc-for list="{{ gdCard.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
           </sc-if>
@@ -4290,7 +4626,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
       <div class="gd-pstrip">
         <sc-for list="{{ gdStrip }}" as="c" hint-placeholder-count="3">
           <button onClick="{{ c.go }}" class="gd-ptile" data-on="{{ c.on }}" data-done="{{ c.done }}" data-warn="{{ c.warn }}" data-fin="{{ c.isFinish }}" title="{{ c.t }}" data-dragsi="{{ c.dragSi }}" data-drop="{{ c.dropOn }}">
-            <span class="gd-pthumb">
+            <span class="gd-pthumb" data-a="{{ gdCardAsp }}">
               <sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-pt-img" data-src="{{ c.src }}" alt=""></sc-if>
               <sc-if value="{{ c.isFinish }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></sc-if>
             </span>
@@ -4617,7 +4953,7 @@ class OrganicStudio extends StudioBase {
   // `tacover`, `tagent` and `award` are inert here — those three kinds take no wash at all
   // (`scrimUsed` is what actually gates the control) — but the table is more useful as a
   // complete list of the kinds than as a list of the ones that happen to read it.
-  static SCRIMD = { listed: 75, cover: 80, prop: 85, cta: 75, review: 70, tacover: 80, tagent: 85, award: 80 };
+  static SCRIMD = { listed: 75, cover: 80, prop: 85, cta: 75, review: 70, tacover: 80, tagent: 85, award: 80, rcover: 50 };
   // ══ ONE GLASS, EVERY TEMPLATE, AND THE POST PICKS ITS COLOUR ═══════════════════════
   // By request, with a container SVG: white at .22 over a 14px backdrop blur inside a 1px
   // rgba(255,255,255,.33) stroke at r28. That is now the material of all five glass panels —
@@ -5100,6 +5436,8 @@ class OrganicStudio extends StudioBase {
     // frame before it decodes — but it is also what the template CARD shows once the preview
     // strips the images, which is why it is the drawing's own navy rather than black.
     if (kind === 'review') return A.deep;
+    // the reel thumbnail's photo sits over the drawings' own navy (#1A2942), at .8–1 opacity
+    if (kind === 'rcover') return A.deep;
     return OrganicStudio.isPaper(kind) ? A.paper : A.base;
   }
   // The award's logo container: an uploaded SVG fitted to the box by its INK, the feature
@@ -5152,6 +5490,10 @@ class OrganicStudio extends StudioBase {
     // screen — the same reason `gdSeedSelect` commits a dropdown's shown value and the same
     // reason `tacover` seeds `period`. Nothing else here is pre-filled.
     if (t === 'award') return [S('award', { title: '', sub: '', rank: OrganicStudio.AW_RANKS[0] })];
+    // ONE cover. `lay` IS seeded, the segmented-control exception again: the layout picker is
+    // a row of tiles that is always showing an answer, so the card has to agree with the lit
+    // one. The text size needs no seed — unset, it resolves to the layout's own (`rcvSizeAsked`).
+    if (t === 'rcover') return [S('rcover', { lay: 'masthead', head: '', fig: '', tags: '', adm: '', cn: '' })];
     return [
       S('cover', { eyebrow: 'Weekly listings', headline: 'New Listings Available this Week' }),
       S('prop', { usp: '', ptype: '', building: '', city: '', beds: '0', baths: '0', area: '', price: '', listno: '' }),
@@ -5195,6 +5537,148 @@ class OrganicStudio extends StudioBase {
     cbul:    { eyeOn: 'Show', eyebrow: 'What Follows', headline: 'Investors\nSee What\nComes\nNext.', bullets: '132,000 potential jobs\nMore businesses\nMore residents\nMore property demand', pos: 'Bottom' },
     ctext:   { eyeOn: 'Show', eyebrow: 'Rent, Reworked', title: 'How It Works', body: 'A participating bank pays the landlord the full annual rent upfront.\n---\n! The tenant then repays the bank over time, interest free.\n* No recurring property tax\n* Freehold ownership', pos: 'Top', align: 'Left' },
     ccta:    { small: 'Dubai\u2019s rental market is evolving.', big: 'Stay informed.', button: 'Visit the link in bio for details.' }
+  };
+  // ══ THE REEL THUMBNAIL — a 9:16 cover, seven layouts, one type scale ════════════════
+  // From nine supplied drawings, `iPhone 14 Pro – 1..9.svg` (1080 x 1920) and their PNGs.
+  // Every number below was read off those files. The template exists at ONE size: a Reel
+  // cover is 9:16, so it has no feed canvas, no story toggle and no `_3x4` file.
+  //
+  // THE 4:5 BOX IS THE BRIEF. A Reel's cover is shown cropped to 4:5 in the profile grid
+  // and the feed, so everything that has to read sits inside 1080 x 1350 centred on the
+  // canvas — y 285 to 1635. All nine drawings already keep their copy inside it, and every
+  // layout here is built so it cannot leave it: a headline that would is stepped down a size
+  // (`rcvBox`), and the canvas can show the box as a guide (`state.rcvGuide`).
+  static RCV = {
+    safeTop: 285, safeBot: 1635,            // (1920 - 1080 x 5/4) / 2 — the 4:5 box
+    padX: 93,                               // the text column's inset, both sides (every drawing)
+    // THE WORDMARK AND THE ADM/CN CHIPS ARE FIXED, by instruction: the size scale is the
+    // text's, and these two keep the drawings' own numbers at every size.
+    logoPx: 41, logoTrack: .04, logoBase: 370,
+    headTrack: -.046,
+    // ONE LEAD FOR EVERY SIZE. The drawings set 140px on a 128 pitch and 168px on a 158 one
+    // — .914 and .940, looser at the larger size, which is backwards from how display type
+    // is set and is drawing slop rather than a system. A scale has to scale everything, so
+    // the lead is one ratio; it is the Large drawings' (4, 5, 7, 8, 9), which also leaves
+    // a descender clear of the next line's caps at every size.
+    headLead: 158 / 168,
+    // the wordmark's baseline to the headline's first baseline, in headline px — 192 at 168
+    // on drawings 4, 5, 7 and 8 exactly
+    headGap: 192 / 168,
+    headMax: 6,
+    botBase: 1510,                          // a bottom layout's last baseline with no chips (drawing 1)
+    chipTop: 1554, chipH: 48, chipR: 12, chipPad: 14, chipGap: 18, chipRowGap: 12,
+    chipPx: 16, chipTrack: .1, chipBase: 29,
+    chipLead: 79,                           // chip top -> the last baseline above it (drawing 3)
+    figK: 348 / 140, figBase: 1519,         // Big number: the figure in headline px, its baseline (drawing 2)
+    // Centre stage's tags, all in the TAG's own px, which is a sixth of the headline's —
+    // so they scale with the text as the drawing's 28px tags do beside its 168px headline
+    tagK: 28 / 168, tagH: 63 / 28, tagR: 12 / 28, tagPad: 14 / 28, tagGap: 20 / 28,
+    tagBase: 41 / 28, tagTrack: .1, tagRowGap: 14 / 28,
+    tagDrop: 66 / 168,                      // the headline's last baseline -> the tag row's top
+    inkA: .727, inkD: .21,                  // this face's ink ascent / descent per px, measured
+    clear: 40                               // the least air between two blocks when fitting
+  };
+  // THE TYPE SCALE IS THE BRAND'S MINOR THIRD, 1.200, and the drawings already stand on it:
+  // their 140 and 168 are one step apart exactly. Small and Jumbo are the steps either side.
+  static RCV_SIZES = { Small: 140 / 1.2, Medium: 140, Large: 168, Jumbo: 168 * 1.2 };
+  static RCV_SIZE_ORDER = ['Small', 'Medium', 'Large', 'Jumbo'];
+  // THE SEVEN LAYOUTS, named, each from the drawings it was read off. `bands` are the
+  // drawings' own washes and their strength; `photo` is the photograph's opacity over the
+  // navy ground, which differs per drawing and is part of how each one reads.
+  //
+  // Pop-out is the ONE layout with a parallax cut-out — drawings 5 and 9, where the subject
+  // stands in front of the headline — by instruction.
+  static RCV_LAYS = [
+    { id: 'masthead', name: 'Masthead', from: '7', al: 'center', v: 'top', size: 'Large', photo: .9, bands: [['top', .5]],
+      tip: 'The headline centred under the wordmark. For a photo whose subject sits low.' },
+    { id: 'popout', name: 'Pop-out', from: '5 and 9', al: 'center', v: 'top', size: 'Large', photo: .9, bands: [['top', .5]], px: true,
+      tip: 'The subject stands in front of the headline. Turn Parallax on and press Remove background.' },
+    { id: 'editorial', name: 'Editorial', from: '8', al: 'left', v: 'top', size: 'Large', photo: .9, bands: [['top', .5]],
+      tip: 'The headline top-left, like a magazine cover. For a photo with room at the top.' },
+    { id: 'caption', name: 'Caption', from: '3', al: 'left', v: 'bottom', size: 'Medium', photo: .9, bands: [['top', .5], ['bot', .5]],
+      tip: 'The headline bottom-left, over the lower third. For a photo whose subject sits high.' },
+    { id: 'punchline', name: 'Punchline', from: '1', al: 'center', v: 'bottom', size: 'Medium', photo: 1, bands: [['bot', .674]],
+      tip: 'The headline centred low, over a deeper wash. For a busy photo.' },
+    { id: 'centre', name: 'Centre stage', from: '4', al: 'center', v: 'middle', size: 'Large', photo: .8, bands: [], tags: true,
+      tip: 'The wordmark, the headline and a row of tags as one block in the middle.' },
+    { id: 'number', name: 'Big number', from: '2', al: 'center', v: 'top', size: 'Medium', photo: 1, bands: [], fig: true,
+      tip: 'A headline at the top and one giant figure at the foot — 100%, 3x, AED 2M.' }
+  ];
+  // THE CANVAS A TEMPLATE IS SEEN AT. Every template is a 3:4 feed first, with its 9:16
+  // story alongside; the reel thumbnail is ONLY a 9:16, so wherever "the" render is taken —
+  // the guided card, the recents thumbnail, the photo's DOM fallback — it takes 'st'.
+  static mainSize(st) { return st && st.tpl === 'rcover' ? 'st' : 'ft'; }
+  static rcvLay(f) {
+    const id = f && f.lay;
+    return OrganicStudio.RCV_LAYS.find(L => L.id === id) || OrganicStudio.RCV_LAYS[0];
+  }
+  // The size a page ASKS for: its own choice, or the layout's default while it has none.
+  static rcvSizeAsked(f) {
+    const L = OrganicStudio.rcvLay(f), o = OrganicStudio.RCV_SIZE_ORDER;
+    return o.indexOf(f && f.tsize) >= 0 ? f.tsize : L.size;
+  }
+  // ── THE DRAWINGS' WASHES, and they are TILTED. Each is an SVG `objectBoundingBox`
+  // gradient on its own rect, so its vector is in the rect's unit square and its isolines
+  // are perpendicular IN THAT SQUARE — which, on a 1080-wide rect only 797 tall, is not
+  // perpendicular on the canvas. Solved exactly rather than approximated:
+  //   t(x, y) = a·x + b·y + c,  a = gx / (w·|g|²),  b = gy / (h·|g|²)
+  // and a canvas gradient reproduces it with D = (a, b) / (a² + b²) and P0 = −c·D. The
+  // left side is the darker one, ~100px of drop across the width, on both bands.
+  //
+  // A FULL-CANVAS op reproduces the drawings' clipped rects exactly: the top band is already
+  // clear (t > 1) before its rect's bottom edge at every x, and the bottom band before its
+  // rect's top edge, so nothing outside the rect was ever drawn.
+  static RCV_BANDS = {
+    top: { box: [0, 0, 1080, 797], p: [.184, .257, .262, .859] },
+    bot: { box: [0, 1000, 1080, 920], p: [.184, .743, .262, .141] }
+  };
+  static rcvBandVec(name) {
+    const B = OrganicStudio.RCV_BANDS[name];
+    const [bx, by, bw, bh] = B.box, [u0, v0, u1, v1] = B.p;
+    const gx = u1 - u0, gy = v1 - v0, g2 = gx * gx + gy * gy;
+    const a = gx / (bw * g2), b = gy / (bh * g2);
+    const c = -((bx / bw + u0) * gx + (by / bh + v0) * gy) / g2;
+    const n2 = a * a + b * b, dx = a / n2, dy = b / n2;
+    const x0 = -c * dx, y0 = -c * dy;
+    return [+x0.toFixed(3), +y0.toFixed(3), +(x0 + dx).toFixed(3), +(y0 + dy).toFixed(3)];
+  }
+  // The same line as a CSS gradient, for the preview. CSS takes an ANGLE and puts its stops
+  // along a line through the box's centre whose length depends on that angle, so each stop
+  // is re-projected onto that line — the canvas and the preview then agree stop for stop.
+  static rcvBandCss(vec, stops, W, H) {
+    const dx = vec[2] - vec[0], dy = vec[3] - vec[1], len = Math.hypot(dx, dy) || 1;
+    const nx = dx / len, ny = dy / len;
+    const L = Math.abs(W * nx) + Math.abs(H * ny) || 1;
+    const sx = W / 2 - nx * L / 2, sy = H / 2 - ny * L / 2;
+    const deg = Math.atan2(nx, -ny) * 180 / Math.PI;
+    return 'linear-gradient(' + deg.toFixed(3) + 'deg, ' + stops.map(st => {
+      const px2 = vec[0] + st[0] * dx, py2 = vec[1] + st[0] * dy;
+      return st[1] + ' ' + (((px2 - sx) * nx + (py2 - sy) * ny) / L * 100).toFixed(3) + '%';
+    }).join(', ') + ')';
+  }
+  // A fingerprint of a stored picture — its length plus a tail, never the whole data URL,
+  // the same signature the sidecar read uses.
+  static rcvFp(u) { u = String(u || ''); return u ? u.length + ':' + u.slice(-48) : ''; }
+  // THE CUT-OUT GOES STALE WHEN THE PHOTO CHANGES UNDER IT. Remove background records which
+  // photo it cut (`fgSrc`) and what it produced (`fgOut`); if the cut-out is still the one
+  // it produced but the photo is no longer the one it cut, the layer would lift a subject
+  // that is not in the picture any more — so it is not drawn, and the row asks for it again.
+  // A cut-out the user dropped in by hand is theirs, whatever the photo is.
+  static rcvCutStale(f, bgU, fgU) {
+    f = f || {};
+    if (!f.fgSrc || !f.fgOut || !fgU) return false;
+    return OrganicStudio.rcvFp(fgU) === f.fgOut && OrganicStudio.rcvFp(bgU) !== f.fgSrc;
+  }
+  // Demo copy for the template card and for a layout tile while the page is still empty —
+  // each layout wearing its own drawing's words. It never reaches a project.
+  static RCV_DEMO = {
+    masthead:  { head: 'A home with\nmore Space', adm: '20260000966116', cn: '6323926' },
+    popout:    { head: 'Tiny Visitor.\nBig Plans', adm: '20260000966116', cn: '6323926' },
+    editorial: { head: 'Luxury,\nUpgraded', adm: '20260000966116', cn: '6323926' },
+    caption:   { head: 'Think you\ncan’t own in\nSaadiyat?', adm: '20260000966116', cn: '6323926' },
+    punchline: { head: 'The office\nhas opinions' },
+    centre:    { head: 'Dubai,\nThree Ways', tags: 'Land|Sky|Sea' },
+    number:    { head: 'Confidence\nLevel', fig: '100%' }
   };
   // ══ THE CAROUSEL — five interchangeable page layouts, one template ═══════════════════
   // Built from the UI-Kelvz Figma frames (node 32-30 / 32-118 / 32-146 / 32-186 / 32-204) plus
@@ -5523,11 +6007,24 @@ class OrganicStudio extends StudioBase {
   // preferred for a reframe — that is where the crop means something — and every copy shares
   // the store, so replace and remove land the same wherever they are pressed.
   slotActs(id) {
+    // THE CANVAS COPY ONLY WHERE THE CANVAS IS ON SCREEN. On the guided screen the editor's
+    // plates are still mounted, UNDER the run, and a reframe opened on one floated its overlay
+    // over the run at a canvas nobody could see — the form's own copy is the one on screen
+    // there. Found in the iOS Simulator; true of a desktop browser too.
+    const onCanvas = () => this.state.screen === 'editor';
     const el = () => { const all = [...document.querySelectorAll('image-slot')].filter(s => s.id === id);
-      return all.find(s => s.closest('.p-plate')) || all[0] || null; };
+      return (onCanvas() && all.find(s => s.closest('.p-plate'))) || all.find(s => !s.closest('.p-plate')) || all[0] || null; };
     return {
       slotReplace: () => { const s = el(); if (s && s._input) s._input.click(); },
-      slotEdit: () => { const s = el(); if (!s) return; if (s.hasAttribute('data-reframe')) s._exitReframe(true); else s._enterReframe(); },
+      slotEdit: () => {
+        const s = el(); if (!s) return;
+        if (s.hasAttribute('data-reframe')) { s._exitReframe(true); return; }
+        // Below 1200px this form is a SHEET over the canvas, and the overlay would draw over
+        // the sheet's own text. Reframing is done on the picture, so the sheet steps aside.
+        const H = this.host;
+        if (onCanvas() && s.closest('.p-plate') && window.innerWidth <= 1200 && H && H.state && H.state.shPanel) H.setState({ shPanel: null });
+        s._enterReframe();
+      },
       slotRemove: () => { const s = el(); if (s && s.clearSlot) s.clearSlot(); }
     };
   }
@@ -5578,32 +6075,61 @@ class OrganicStudio extends StudioBase {
     });
     const rowOf = t => t && t.closest && t.closest('[data-dragsi]');
     const under = (x, y) => { for (const el of document.elementsFromPoint(x, y)) { const r = rowOf(el); if (r) return +r.getAttribute('data-dragsi'); } return null; };
-    let press = null;   // { si, x, y, live }
+    let press = null;   // { si, x, y, live, touch, timer }
+    // A FINGER HAS TO HOLD BEFORE IT DRAGS. On a touch screen a row's first job is to scroll
+    // the strip or the list it sits in, so the rows let the browser pan (touch-action
+    // manipulation on a coarse pointer) and a touch that travels before LONG_PRESS is a scroll
+    // and is let go. One that holds still becomes the drag, lifts its row, and from then on its
+    // touchmoves are cancelled so the browser never takes the gesture back. A mouse keeps the
+    // 5px rule. Verified with synthetic TOUCH pointer events dispatched at the hit-tested
+    // element (a swipe let go, a hold lifted and dropped); not yet on a real finger.
+    const LONG_PRESS = 380;
+    const goLive = p => {
+      p.live = true; this._dragSi = p.si;
+      try { p.row.setPointerCapture(p.id); } catch (err) {}
+      document.body.setAttribute('data-dragging', '1');
+      try { p.row.setAttribute('data-lift', '1'); } catch (err) {}
+    };
     document.addEventListener('pointerdown', e => {
       if (e.button !== 0) return;
       const r = rowOf(e.target); if (!r) return;
       const si = +r.getAttribute('data-dragsi');
       if (!this.canMoveSlide(si)) return;
-      press = { si, x: e.clientX, y: e.clientY, live: false, id: e.pointerId, row: r };
+      press = { si, x: e.clientX, y: e.clientY, live: false, id: e.pointerId, row: r, touch: e.pointerType !== 'mouse' };
+      if (press.touch) {
+        const p = press;
+        p.timer = setTimeout(() => {
+          if (press !== p) return;
+          goLive(p);
+          try { if (navigator.vibrate) navigator.vibrate(10); } catch (err) {}
+          this.forceUpdate();
+        }, LONG_PRESS);
+      }
     }, true);
     document.addEventListener('pointermove', e => {
-      if (!press) return;
+      if (!press || e.pointerId !== press.id) return;
       if (!press.live) {
-        if (Math.hypot(e.clientX - press.x, e.clientY - press.y) < 5) return;
-        press.live = true; this._dragSi = press.si;
-        try { press.row.setPointerCapture(press.id); } catch (err) {}
-        document.body.setAttribute('data-dragging', '1');
+        const d = Math.hypot(e.clientX - press.x, e.clientY - press.y);
+        if (press.touch) { if (d > 8) { clearTimeout(press.timer); press = null; } return; }
+        if (d < 5) return;
+        goLive(press);
       }
       e.preventDefault();
       const si = under(e.clientX, e.clientY);
       const over = (si != null && this.canMoveSlide(si)) ? si : null;
       if (this._dragOver !== over) { this._dragOver = over; this.forceUpdate(); }
     }, true);
+    // once a finger's drag is live its moves are the drag's, not a scroll's; and a long press
+    // is not a request for the context menu
+    document.addEventListener('touchmove', e => { if (press && press.live && press.touch && e.cancelable) e.preventDefault(); }, { passive: false, capture: true });
+    document.addEventListener('contextmenu', e => { if (press && press.touch) e.preventDefault(); }, true);
     const end = e => {
-      if (!press) return;
+      if (!press || (e.pointerId != null && e.pointerId !== press.id)) return;
       const p = press; press = null;
+      clearTimeout(p.timer);
       if (!p.live) return;
       try { p.row.releasePointerCapture(p.id); } catch (err) {}
+      try { p.row.removeAttribute('data-lift'); } catch (err) {}
       document.body.removeAttribute('data-dragging');
       const to = e.type === 'pointerup' ? under(e.clientX, e.clientY) : null;
       const from = this._dragSi; this._dragSi = null; this._dragOver = null;
@@ -5903,7 +6429,7 @@ class OrganicStudio extends StudioBase {
       await OrganicStudio.bundledReady();
       const qr = await OrganicStudio.qrDemoReady();
       const out = {};
-      ['listed', 'weekly', 'agents', 'review', 'award', 'carousel'].forEach(tpl => {
+      ['listed', 'weekly', 'agents', 'review', 'award', 'carousel', 'rcover'].forEach(tpl => {
         const st = this.tplDemoState(tpl);
         // Every QR key `buildOps` can read — project, cover and per-slide — so no card is
         // left with a blank quiet zone. There is no photo, portrait or cut-out to supply:
@@ -5914,7 +6440,19 @@ class OrganicStudio extends StudioBase {
           for (let i = 0; i < st.slides.length; i++) A['qr' + i] = qr;
         }
         const shots = [];
-        for (let i = 0; i < st.slides.length; i++) {
+        // THE REEL THUMBNAIL'S CARD REELS THROUGH ITS SEVEN LAYOUTS, each in its own drawing's
+        // words — one cover, seven ways, which is the thing the template offers. It renders at
+        // its only size, 9:16; the card's 3:4 tile cover-crops it to the middle, which keeps the
+        // whole 4:5 safe area in view.
+        if (tpl === 'rcover') OrganicStudio.RCV_LAYS.forEach(L => {
+          try {
+            st.slides[0].f = Object.assign({ lay: L.id }, OrganicStudio.RCV_DEMO[L.id]);
+            const built = this.buildOps(st, 0, 'st', A);
+            OrganicStudio.tplGroundSwap(built, 'rcover', dark);
+            shots.push(this.renderOpsToCanvas(built, OrganicStudio.TPL_SCALE).toDataURL('image/webp', 0.8));
+          } catch (e) {}
+        });
+        else for (let i = 0; i < st.slides.length; i++) {
           try {
             const built = this.buildOps(st, i, 'ft', A);
             // Called on EVERY render, not only the dark ones: the paper kinds need only the
@@ -5985,6 +6523,303 @@ class OrganicStudio extends StudioBase {
       logoDrawY: lb ? logoY - lb.oy : logoY,
       rw, rh, rx: (W - rw) / 2, ry: H - pB - W * R.rankLift - rh
     };
+  }
+  // ══ ONE GEOMETRY SOURCE for the reel thumbnail, read by `buildOps`, the preview, the
+  // form's fit note and the layout tiles — the rule every template here holds. Every run
+  // carries its own ABSOLUTE baseline and a `layer`: 'head' paints under the Pop-out
+  // layout's cut-out, 'top' over it, so the logo and the chips always stay legible.
+  rcvBox(state, si, tk) {
+    const sl = (state.slides || [])[si] || {}, f = sl.f || {};
+    const R = OrganicStudio.RCV, A = OrganicStudio.ART;
+    const W = tk.W, H = tk.H, L = OrganicStudio.rcvLay(f);
+    const colX = R.padX, colW = W - 2 * R.padX, center = L.al === 'center';
+    const texts = [], rects = [];
+    // ── THE CHIPS — the ADM permit and the CN licence, each only when it has a number, and
+    // never scaled. "CN: 6323926" takes the space the ADM chip has; the drawing's "CN:6323926"
+    // is the one place its own two chips disagree. The LAST row sits on the drawings' line;
+    // a second, which only a number wider than the whole column could need, stacks up.
+    const chipLab = [];
+    const adm = String(f.adm || '').replace(/\D/g, ''), cn = String(f.cn || '').replace(/\D/g, '');
+    if (adm) chipLab.push('ADM: ' + adm);
+    if (cn) chipLab.push('CN: ' + cn);
+    const cls = R.chipPx * R.chipTrack;
+    const crows = [];
+    chipLab.forEach(t => {
+      const w = Math.min(colW, this.meas(t, R.chipPx, 500, false, cls) - cls + 2 * R.chipPad);
+      const last = crows[crows.length - 1];
+      if (last && last.w + R.chipGap + w <= colW) { last.items.push({ t, w }); last.w += R.chipGap + w; }
+      else crows.push({ items: [{ t, w }], w });
+    });
+    const chipsTop = crows.length ? R.chipTop - (crows.length - 1) * (R.chipH + R.chipRowGap) : null;
+    crows.forEach((row, ri) => {
+      const y = chipsTop + ri * (R.chipH + R.chipRowGap);
+      let x = center ? (W - row.w) / 2 : colX;
+      row.items.forEach(c => {
+        rects.push({ x, y, w: c.w, h: R.chipH, r: R.chipR, stroke: A.ink, sw: 1, layer: 'top' });
+        texts.push({ t: c.t, x: x + R.chipPad, y: y + R.chipBase, px: R.chipPx, w: 500, fill: A.warm, ls: cls, layer: 'top' });
+        x += c.w + R.chipGap;
+      });
+    });
+    // ── THE TEXT, FITTED AS ONE BLOCK: the size asked for, stepped DOWN the scale until the
+    // headline — with its figure or its tags — sits inside the 4:5 box and every word fits
+    // the column. Stepping rather than shrinking keeps the type on the minor third.
+    const raw = String(f.head || '').split('\n').map(t => t.trim()).filter(Boolean);
+    const tagsIn = L.tags ? OrganicStudio.ptsOf(f.tags).map(t => t.trim()).filter(Boolean).slice(0, OrganicStudio.PTS_MAX) : [];
+    const figT = L.fig ? String(f.fig || '').trim() : '';
+    const order = OrganicStudio.RCV_SIZE_ORDER, asked = OrganicStudio.rcvSizeAsked(f);
+    let k = order.indexOf(asked), P = null;
+    for (; k >= 0; k--) {
+      P = this.rcvPlan(L, raw, tagsIn, figT, OrganicStudio.RCV_SIZES[order[k]], chipsTop, W, H, colX, colW, center);
+      if (P.fits) break;
+    }
+    const used = order[Math.max(0, k)];
+    // THE WASHES ARE THE DRAWINGS' OWN, each at its drawn strength times Wash strength
+    // (`scrimH`, 50 = as drawn), so the one slider the rail already has reaches them.
+    const ws = (state.scrimH == null ? 50 : state.scrimH) / 50;
+    const bands = L.bands.map(b => ({ vec: OrganicStudio.rcvBandVec(b[0]), a: Math.max(0, Math.min(1, b[1] * ws)) }));
+    return {
+      L, W, H, colX, colW, center, chipsTop, asked, used, fits: P.fits, lines: P.lines,
+      texts: P.texts.concat(texts), rects: P.rects.concat(rects), bands,
+      logoY: P.logoY
+    };
+  }
+  // One size's attempt at the text block. Pure: it measures and places, and says whether
+  // the result keeps inside the 4:5 box.
+  rcvPlan(L, raw, tags, figT, px, chipsTop, W, H, colX, colW, center) {
+    const R = OrganicStudio.RCV, A = OrganicStudio.ART, FA = StudioBase.fontAsc();
+    const lead = px * R.headLead, ls = px * R.headTrack;
+    const ink = (t, p, w, l) => this.meas(t, p, w, false, l) - l;
+    const texts = [], rects = [];
+    let fits = true;
+    // EVERY WORD MUST FIT THE COLUMN, or the wrap would break one mid-word — which reads as
+    // a typo, not as a line break
+    raw.forEach(t => t.split(/\s+/).forEach(wd => { if (wd && ink(wd, px, 400, ls) > colW) fits = false; }));
+    // wrapPlain measures with the run's own tracking, and this run's tracking is NEGATIVE,
+    // so its test (`meas > maxW`) is handed the column plus that tracking: the ink is the
+    // advance minus the one trailing unit the op never draws
+    const lines = [];
+    raw.forEach(t => this.wrapPlain(t, px, 400, ls, colW + ls, 0).forEach(z => lines.push(z)));
+    if (lines.length > R.headMax) { fits = false; lines.length = R.headMax; }
+    const n = lines.length;
+    let logoY = R.logoBase, ys = [];
+    const floorY = chipsTop != null ? chipsTop - R.clear : R.safeBot - R.clear;
+    if (L.v === 'middle') {
+      // ── CENTRE STAGE: the wordmark, the headline and the tags are ONE block, centred on
+      // the canvas. The block runs from the wordmark's ascent box to the tags' bottom, which
+      // is what puts the Large drawing's wordmark on its own 741 to half a pixel.
+      const tp = px * R.tagK, tls = tp * R.tagTrack, th = tp * R.tagH, tpad = tp * R.tagPad;
+      const tgap = tp * R.tagGap, trg = tp * R.tagRowGap;
+      const rows = [];
+      tags.forEach(t0 => {
+        const t = t0.toUpperCase(), w = Math.min(colW, ink(t, tp, 500, tls) + 2 * tpad), last = rows[rows.length - 1];
+        if (last && last.w + tgap + w <= colW) { last.items.push({ t, w }); last.w += tgap + w; }
+        else rows.push({ items: [{ t, w }], w });
+      });
+      const tagsH = rows.length ? rows.length * th + (rows.length - 1) * trg : 0;
+      const asc = R.logoPx * FA.a;
+      const headH = n ? R.headGap * px + (n - 1) * lead : 0;
+      const tailH = rows.length ? (n ? R.tagDrop * px : R.logoPx) + tagsH : (n ? R.inkD * px : R.logoPx * .3);
+      const blockH = asc + headH + tailH;
+      const lim = chipsTop != null ? chipsTop - R.clear : R.safeBot;
+      let top = H / 2 - blockH / 2;
+      if (top + blockH > lim) top = lim - blockH;
+      if (top < R.safeTop) top = R.safeTop;
+      if (blockH > lim - R.safeTop) fits = false;
+      logoY = top + asc;
+      const b1 = logoY + R.headGap * px;
+      ys = lines.map((_, i) => b1 + i * lead);
+      const tagTop = (n ? ys[n - 1] + R.tagDrop * px : logoY + R.logoPx);
+      rows.forEach((row, ri) => {
+        const y = tagTop + ri * (th + trg);
+        let x = (W - row.w) / 2;
+        row.items.forEach(c => {
+          rects.push({ x, y, w: c.w, h: th, r: tp * R.tagR, stroke: A.ink, sw: 1, layer: 'head' });
+          texts.push({ t: c.t, x: x + tpad, y: y + tp * R.tagBase, px: tp, w: 500, fill: A.warm, ls: tls, layer: 'head' });
+          x += c.w + tgap;
+        });
+      });
+    } else if (L.v === 'bottom') {
+      // ── A BOTTOM LAYOUT grows UPWARD from a fixed last baseline: the drawings' 1510, or
+      // the chips' top less 79 when they show — so a longer headline climbs, it never slides
+      // into the chips.
+      const bl = chipsTop != null ? chipsTop - R.chipLead : R.botBase;
+      ys = lines.map((_, i) => bl - (n - 1 - i) * lead);
+      const ceil = R.logoBase + R.logoPx * R.inkD + R.clear;
+      if (n && ys[0] - R.inkA * px < ceil) fits = false;
+    } else {
+      // ── A TOP LAYOUT hangs off the wordmark's baseline and grows downward.
+      const b1 = R.logoBase + R.headGap * px;
+      ys = lines.map((_, i) => b1 + i * lead);
+      let fl = floorY;
+      if (figT) {
+        // BIG NUMBER: the figure at the headline's own scale times the drawing's 348/140,
+        // stepped down only when it would run past the column — a "100%" never needs to, an
+        // "AED 12,500,000" does. It stands on the drawings' 1519, or clears the chips.
+        let fp = px * R.figK;
+        const fw = p => ink(figT, p, 400, p * R.headTrack);
+        while (fp > px * .5 && fw(fp) > colW) fp -= 2;
+        if (fw(fp) > colW) fits = false;
+        const fy = chipsTop != null ? chipsTop - R.chipLead : R.figBase;
+        texts.push({ t: figT, x: center ? (W - fw(fp)) / 2 : colX, y: fy, px: fp, w: 400, fill: A.ink,
+          ls: fp * R.headTrack, layer: 'head' });
+        fl = fy - R.inkA * fp - R.clear;
+      }
+      if (n && ys[n - 1] + R.inkD * px > fl) fits = false;
+    }
+    lines.forEach((t, i) => texts.push({ t, x: center ? (W - ink(t, px, 400, ls)) / 2 : colX, y: ys[i],
+      px, w: 400, fill: A.ink, ls, layer: 'head' }));
+    // THE WORDMARK, fixed: 41px Light on the drawings' baseline, centred or on the column.
+    // Centred on its ADVANCE, exactly as `drawLogo` centres it on every other template, so
+    // one wordmark sits in one place across the studio.
+    const lls = R.logoPx * R.logoTrack;
+    texts.push({ t: 'provident.', x: center ? (W - this.meas('provident.', R.logoPx, 300, false, lls)) / 2 : colX,
+      y: logoY, px: R.logoPx, w: 300, fill: A.ink, ls: lls, layer: 'top' });
+    return { fits, lines: n, texts, rects, logoY, px };
+  }
+  // Is the Pop-out cut-out drawn in this slide's PREVIEW? The op's own tests — the layout,
+  // a photo under it and a cut-out that still matches it — off what the rAF tick measured.
+  rcvFgShown(si) {
+    const sl = (this.state.slides || [])[si];
+    if (!sl || sl.kind !== 'rcover') return true;
+    if (!OrganicStudio.rcvLay(sl.f).px) return false;
+    const av = this._assetView || {};
+    const bgD = av.bgDims && av.bgDims[this.bgIndexFor(this.state, si)], fgD = av.fg && av.fg[si];
+    return !!(bgD && bgD.u) && !OrganicStudio.rcvCutStale(sl.f, bgD.u, fgD && fgD.u);
+  }
+  // ══ REMOVE BACKGROUND, ON A BUTTON — Pop-out's cut-out is lifted out of the page's OWN
+  // photo by the local service (`window.providentCutout`, tools/rembg), then stored in the
+  // parallax slot. The engine runs the cut-out itself rather than dropping the photo into a
+  // `data-cutout` slot, because that slot's failure path keeps the ORIGINAL — the right
+  // answer for an agent photo and the wrong one here, where a whole opaque photo in the
+  // parallax layer would cover the headline outright. On any failure nothing is stored.
+  //
+  // rembg keeps the photo's own size, so the cut-out is the same box as the photo and
+  // `photoPlace` lays the two on one crop by construction — the listed card's parallax rule.
+  async rcvCut(si) {
+    const sl = (this.state.slides || [])[si];
+    if (!sl || sl.kind !== 'rcover' || this._rcvCutting) return;
+    const say = t => { this._rcvCutMsg = t ? { id: sl.id, t } : null; this.forceUpdate(); };
+    const api = window.providentCutout;
+    let sc = {};
+    try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sc = await r.json(); } catch (e) {}
+    const v = sc['smp-bg-' + sl.id], bgU = v && (typeof v === 'string' ? v : v.u);
+    if (!bgU) { say('Add the photo first \u2014 the cut-out is lifted out of it.'); return; }
+    if (!api || !(await api.probe(true))) {
+      say(OrganicStudio.cutOffNote('press'));
+      return;
+    }
+    this._rcvCutting = sl.id; say('');
+    try {
+      const blob = await (await fetch(bgU)).blob();
+      const ext = /png/.test(blob.type) ? 'png' : /webp/.test(blob.type) ? 'webp' : 'jpg';
+      const png = await api.run(new File([blob], 'reel-photo.' + ext, { type: blob.type || 'image/jpeg' }));
+      const url = window.providentEncodeFile ? await window.providentEncodeFile(png)
+        : await new Promise((res, rej) => { const rd = new FileReader(); rd.onload = () => res(rd.result); rd.onerror = () => rej(rd.error); rd.readAsDataURL(png); });
+      const IS = customElements.get('image-slot');
+      if (!(IS && IS.putUrl && IS.putUrl('smp-fg-' + sl.id, url))) throw new Error('The cut-out could not be stored \u2014 try again.');
+      // the parallax goes ON with it, and the pair is fingerprinted so a later change of
+      // photo is caught (`rcvCutStale`)
+      this.upd(x => { const t = (x.slides || []).find(z => z.id === sl.id);
+        if (t) { t.fg = true; t.f = t.f || {}; t.f.fgSrc = OrganicStudio.rcvFp(bgU); t.f.fgOut = OrganicStudio.rcvFp(url); } return x; });
+      this._rcvCutting = null; say('');
+    } catch (e) {
+      this._rcvCutting = null;
+      say(e && e.message === 'OFFLINE'
+        ? 'The background-removal service stopped part-way \u2014 start tools/rembg/serve.sh again, then press Remove background.'
+        : ((e && e.message) || 'Background removal failed.'));
+    }
+    // the store writes the sidecar asynchronously and a cut-out PNG can be large, so the
+    // canvas re-reads it twice rather than once
+    setTimeout(this._refreshAV, 400); setTimeout(this._refreshAV, 1600);
+  }
+  // ══ THE LAYOUT TILES ARE REAL RENDERS — this cover's own photo and words in each of the
+  // seven layouts, so the layout is chosen by looking at the photo in it, which is what
+  // "depending on the photo they upload" asks for. Rendered through the export's own
+  // `buildOps`, key-guarded, and settled 220ms after the last change so typing a headline
+  // does not render seven covers per keystroke.
+  //
+  // A PAGE WITH NO HEADLINE YET SHOWS EACH LAYOUT IN ITS OWN DRAWING'S WORDS (`RCV_DEMO`), so
+  // a fresh cover's tiles are not seven blank photos; once there is a headline, a Big number
+  // tile without a figure borrows "100%" and a Centre stage tile without tags borrows the
+  // drawing's three, so each tile still shows what its layout is for. Nothing is written back.
+  rcvTileKey() {
+    const s = this.state, si = (s.slides || []).findIndex(z => z.kind === 'rcover');
+    if (si < 0) return '';
+    return 'r1|' + (window.providentFontFam || '') + '|' + (this._filledStamp || '') + '|' + (this._scSig || '').length
+      + '|' + JSON.stringify(s.slides[si]) + '|' + s.scrimH + '|' + s.imgO;
+  }
+  rcvSync() {
+    const key = this.rcvTileKey();
+    if (!key || this._rcvKey === key || this._rcvWant === key) return;
+    this._rcvWant = key;
+    clearTimeout(this._rcvT);
+    this._rcvT = setTimeout(() => this.rcvRenderTiles(), this._rcvShots ? 220 : 0);
+  }
+  async rcvRenderTiles() {
+    if (this._rcvBusy) { this._rcvAgain = true; return; }
+    this._rcvBusy = true;
+    const key = this.rcvTileKey();
+    try {
+      const s = this.state, si = (s.slides || []).findIndex(z => z.kind === 'rcover');
+      if (si >= 0) {
+        const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+        await Promise.all(['300 41px', '400 116px', '400 140px', '400 168px', '400 201px', '500 16px', '500 28px']
+          .map(f => safe(f + ' "Google Sans Flex"')));
+        const assets = await this.loadAssets(s, 'st');
+        const out = {};
+        OrganicStudio.RCV_LAYS.forEach(L => {
+          try {
+            const st = JSON.parse(JSON.stringify(s)), f0 = st.slides[si].f, demo = OrganicStudio.RCV_DEMO[L.id] || {};
+            if (!String(f0.head || '').trim()) Object.assign(f0, demo);
+            else {
+              if (L.fig && !String(f0.fig || '').trim()) f0.fig = demo.fig;
+              if (L.tags && !OrganicStudio.ptsOf(f0.tags).some(t => t.trim())) f0.tags = demo.tags;
+            }
+            f0.lay = L.id;
+            out[L.id] = this.renderOpsToCanvas(this.buildOps(st, si, 'st', assets), OrganicStudio.TPL_SCALE)
+              .toDataURL('image/webp', 0.8);
+          } catch (e) {}
+        });
+        this._rcvShots = out;
+      }
+      this._rcvKey = key;
+    } catch (e) { console.warn('[provident] layout tiles', e); this._rcvKey = key; }
+    this._rcvBusy = false; this._rcvWant = null;
+    this.forceUpdate();
+    if (this._rcvAgain) { this._rcvAgain = false; this.rcvSync(); }
+  }
+  // The parallax row's own view: its button and the one sentence under it.
+  rcvCutView(si, filled) {
+    const sl = (this.state.slides || [])[si] || {}, f = sl.f || {};
+    const api = window.providentCutout, st = api ? api.state : 'off';
+    const busy = this._rcvCutting === sl.id;
+    const hasPhoto = !!(filled || {})['smp-bg-' + sl.id], hasCut = !!(filled || {})['smp-fg-' + sl.id];
+    const av = this._assetView || {}, bgD = av.bgDims && av.bgDims[si], fgD = av.fg && av.fg[si];
+    const stale = hasCut && OrganicStudio.rcvCutStale(f, bgD && bgD.u, fgD && fgD.u);
+    const msg = (this._rcvCutMsg && this._rcvCutMsg.id === sl.id) ? this._rcvCutMsg.t : '';
+    let note;
+    if (busy) note = 'Removing the background\u2026 this takes 10\u201320 seconds.';
+    else if (msg) note = msg;
+    else if (!hasPhoto) note = 'Add the photo first \u2014 the cut-out is lifted out of it.';
+    else if (stale) note = 'The photo changed after the background was removed \u2014 press Remove background again.';
+    else if (hasCut) note = 'The subject stands in front of the headline, locked to the photo\u2019s crop.';
+    else if (st === 'off') note = OrganicStudio.cutOffNote('press');
+    else note = 'Remove background lifts the subject out of the photo, so it stands in front of the headline.';
+    return {
+      rcvCutLabel: busy ? 'Removing the background\u2026' : ((hasCut && !stale) ? 'Redo the cut-out' : 'Remove background'),
+      rcvCutBusy: busy ? '1' : undefined,
+      rcvCutOff: !hasPhoto || busy,
+      rcvCutGo: () => this.rcvCut(si),
+      rcvCutNote: note,
+      rcvCutWarn: (stale || !!msg || (st === 'off' && !hasCut)) ? '1' : undefined
+    };
+  }
+  // The form's one sentence about the fit, read off the same box the canvas draws.
+  rcvFitNote(B) {
+    if (!B) return '';
+    if (!B.fits) return 'This does not fit the 4:5 box even at Small — shorten the headline or take a line out.';
+    if (B.used !== B.asked) return B.asked + ' does not fit this headline inside the 4:5 box, so it is set at ' + B.used + '.';
+    return '';
   }
   // ONE VIEW OF A TEMPLATE'S RENDER, read by BOTH miniature surfaces — the splash's cards
   // and the "Pick a template" screen. Two hand-written copies is exactly how those two came
@@ -6065,6 +6900,10 @@ class OrganicStudio extends StudioBase {
       // the older build carries `fg: true` and keeps it; only a slide with no answer at
       // all starts off.
       if (sl.kind === 'listed' && sl.fg == null) sl.fg = false;
+      if (sl.kind === 'rcover') {
+        if (sl.fg == null) sl.fg = false;
+        if (!OrganicStudio.RCV_LAYS.some(L => L.id === sl.f.lay)) sl.f.lay = 'masthead';
+      }
       // THE PERMIT MOVED TO THE PROJECT. A page written while it was a per-slide field keeps
       // its own number here — the first one found becomes the project's, and every page that
       // carried one has its switch turned on, so a saved carousel prints exactly what it
@@ -6155,7 +6994,7 @@ class OrganicStudio extends StudioBase {
   // gdStep and gdAsk are the run's POSITION. They were not stripped, so every Next pushed
   // an undo entry (the stack is 5 deep) and re-keyed the guided card cache, re-rendering
   // every slide on each move. Where you are standing is not a change to the post.
-  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.pid; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.gdStep; delete c.gdAsk; return JSON.stringify(c); }
+  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.pid; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.rcvGuide; delete c.gdStep; delete c.gdAsk; return JSON.stringify(c); }
   upd(fn) {
     this.markDirty();
     this.setState(prev => {
@@ -6263,7 +7102,7 @@ class OrganicStudio extends StudioBase {
           // The fix is the rule this file applies everywhere else — one source, both
           // surfaces — so the preview takes the same fallback in the same order.
           if (!(b && b.u)) {
-            const dv = this.domSlotView('smp-bg-' + sid, 'ft');
+            const dv = this.domSlotView('smp-bg-' + sid, OrganicStudio.mainSize(this.state));
             if (dv) b = { u: dv.src, pct: dv.pct };
           }
           this._assetView.crops[i] = b ? (b.pct ? { pct: b.pct }
@@ -6439,7 +7278,14 @@ class OrganicStudio extends StudioBase {
           if (changed && this._avStamp !== this._filledStamp) {
             this._avStamp = this._filledStamp;
             setTimeout(this._refreshAV, 300);
-          } else if (swapped) setTimeout(this._refreshAV, 300);
+          } else if (swapped) {
+            // AND ONCE MORE, LATER: the store writes the sidecar asynchronously, and a replaced
+            // photo of a megabyte or two can still be mid-write at 300ms — measured on a 1.7MB
+            // JPEG, the preview kept the OLD photo's record while the export read the new one.
+            // A second read after the write has settled is what the preview needed. Preview
+            // only: the export reads the sidecar fresh on every run.
+            setTimeout(this._refreshAV, 300); setTimeout(this._refreshAV, 1500);
+          }
         }
         // ── A LIVE-FOLLOW HACK WAS HERE AND IT IS DELETED. ────────────────────────────
         // It walked every `[data-fgv]` layer and copied the image-slot's INTERNAL <img>
@@ -7267,7 +8113,11 @@ class OrganicStudio extends StudioBase {
   // and this reads `scrimBands` alone, which is the only thing the slider actually drives.
   scrimUsed(state) {
     const tk = OrganicStudio.PXT.ft;
-    return (state.slides || []).some(sl => this.scrimBands(sl, tk).length > 0);
+    // the reel thumbnail's washes are its LAYOUT's, not `scrimBands`' — the slider reaches
+    // them (`rcvBox`), so it is offered exactly when the chosen layout has one
+    return (state.slides || []).some(sl => sl.kind === 'rcover'
+      ? OrganicStudio.rcvLay(sl.f).bands.length > 0
+      : this.scrimBands(sl, tk).length > 0);
   }
   scrimBands(sl, tk) {
     const f = sl.f, [pT, pR, pB, pL] = tk.pad, H = tk.H, innerW = tk.W - pL - pR;
@@ -8470,7 +9320,7 @@ class OrganicStudio extends StudioBase {
     if (bg && bg.img && OrganicStudio.photoUsed(kind)) {
       const p = this.photoPlace(sl, tk, bg.img, bg);
       bgPush({ op: 'image', img: bg.img, url: bg.u, x: p.x, y: p.y, w: p.w, h: p.h,
-        clip: p.clip, isBg: true, alpha: OrganicStudio.imgAlpha(state) });
+        clip: p.clip, isBg: true, alpha: OrganicStudio.photoAlpha(state, sl) });
     }
     // ── THE REVIEW'S GROUND IS A BUNDLED PLATE, and it is pushed here because it is the
     // ground: after the base rect, under the wash and under everything the branch draws.
@@ -8917,6 +9767,29 @@ class OrganicStudio extends StudioBase {
       }
       // ── LAYER 5.
       awCover(OrganicStudio.awAsset('fg'));
+    } else if (kind === 'rcover') {
+      // ══ THE REEL THUMBNAIL — everything off `rcvBox`, in the drawings' paint order:
+      //   1 the photo (already down, at its layout's opacity)   2 the drawings' tilted washes
+      //   3 the headline, its figure or its tags   4 the Pop-out cut-out   5 wordmark and chips
+      // The wordmark goes OVER the cut-out where drawings 5 and 9 have it under: in both the
+      // subject stops short of it, and a logo a subject can cover is a logo that can vanish.
+      const B = this.rcvBox(state, si, tk);
+      B.bands.forEach(b => ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, vec: b.vec,
+        stops: [[0, N(b.a.toFixed(3))], [1, N(0)]] }));
+      const put = layer => {
+        B.rects.filter(r => r.layer === layer).forEach(r => ops.push({ op: 'rrect', x: r.x, y: r.y, w: r.w, h: r.h, r: r.r, stroke: r.stroke, sw: r.sw }));
+        B.texts.filter(t => t.layer === layer).forEach(t => ops.push({ op: 'text', x: t.x, y: t.y, px: t.px, weight: t.w, fill: t.fill, text: t.t, ls: t.ls }));
+      };
+      put('head');
+      // POP-OUT ONLY, by instruction — drawings 5 and 9. A cut-out left in the slot by an
+      // earlier Pop-out stays there when the layout changes, so switching back restores it,
+      // and one that no longer matches the photo is not drawn (`rcvCutStale`).
+      const fg = assets['fg' + si];
+      if (B.L.px && sl.fg && bg && bg.img && fg && fg.img && !OrganicStudio.rcvCutStale(f, bg.u, fg.u)) {
+        const p = this.photoPlace(sl, tk, fg.img, bg);
+        ops.push({ op: 'image', img: fg.img, url: fg.u, x: p.x, y: p.y, w: p.w, h: p.h, clip: p.clip });
+      }
+      put('top');
     } else if (OrganicStudio.isCs(kind)) {
       // ══ THE CAROUSEL PAGES — everything off `csBox`, in paint order: scrim, glass card,
       // rules and pills, icons, text, the SWIPE chevron. The photo is already down.
@@ -9233,7 +10106,11 @@ class OrganicStudio extends StudioBase {
         ctx.stroke();
         ctx.lineCap = 'butt'; ctx.lineJoin = 'miter';
       } else if (o.op === 'grad') {
-        const g = ctx.createLinearGradient(0, o.y, 0, o.y + o.h);
+        // `vec` is an optional gradient LINE in canvas coordinates, [x0, y0, x1, y1] — the
+        // reel thumbnail's washes are the drawings' own tilted ramps. Absent, this is the
+        // vertical ramp every other emitter has always drawn, so nothing else can move.
+        const g = o.vec ? ctx.createLinearGradient(o.vec[0], o.vec[1], o.vec[2], o.vec[3])
+                        : ctx.createLinearGradient(0, o.y, 0, o.y + o.h);
         o.stops.forEach(s => g.addColorStop(Math.min(1, Math.max(0, s[0])), s[1]));
         ctx.fillStyle = g; ctx.fillRect(o.x, o.y, o.w, o.h);
       } else if (o.op === 'image') {
@@ -9376,7 +10253,7 @@ class OrganicStudio extends StudioBase {
         gi++;
         // Parse the actual colour rather than assuming navy, so this can't drift
         // from the canvas if the scrim colour ever becomes editable here too.
-        defs += `<linearGradient id="g${gi}" x1="0" y1="${o.y}" x2="0" y2="${o.y + o.h}" gradientUnits="userSpaceOnUse">` + o.stops.map(s => { const mm = String(s[1]).match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/); return `<stop offset="${Math.min(1, Math.max(0, s[0]))}" stop-color="${mm ? 'rgb(' + mm[1] + ',' + mm[2] + ',' + mm[3] + ')' : s[1]}" stop-opacity="${mm ? mm[4] : 1}"/>`; }).join('') + '</linearGradient>';
+        defs += `<linearGradient id="g${gi}" x1="${o.vec ? o.vec[0] : 0}" y1="${o.vec ? o.vec[1] : o.y}" x2="${o.vec ? o.vec[2] : 0}" y2="${o.vec ? o.vec[3] : o.y + o.h}" gradientUnits="userSpaceOnUse">` + o.stops.map(s => { const mm = String(s[1]).match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/); return `<stop offset="${Math.min(1, Math.max(0, s[0]))}" stop-color="${mm ? 'rgb(' + mm[1] + ',' + mm[2] + ',' + mm[3] + ')' : s[1]}" stop-opacity="${mm ? mm[4] : 1}"/>`; }).join('') + '</linearGradient>';
         body += `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="url(#g${gi})"/>`;
       } else if (o.op === 'image') {
         ci++;
@@ -9530,7 +10407,7 @@ class OrganicStudio extends StudioBase {
     await domFill('agent2', 'smp-agent-2', null);
     return assets;
   }
-  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', ccta: 'CTA' };
+  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', ccta: 'CTA', rcover: 'Reel cover' };
   sLabel(si) {
     const sl = this.state.slides[si];
     if (!sl) return 'Slide ' + (si + 1);
@@ -9561,6 +10438,11 @@ class OrganicStudio extends StudioBase {
       // the first four words of the front page's headline, with any trailing punctuation off
       return custom || `${h ? h.split(/\s+/).slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : 'Carousel'}_Carousel`;
     }
+    if (s.tpl === 'rcover') {
+      const h = String((s.slides[0] && s.slides[0].f && s.slides[0].f.head) || '').replace(/\s+/g, ' ').trim();
+      // the headline's first four words with any trailing punctuation off, as the carousel does
+      return custom || `${h ? h.split(' ').slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : 'Reel'}_Reel Thumbnail`;
+    }
     if (s.tpl === 'listed') return custom || `Just ${(s.slides[0] && /sold/i.test(s.slides[0].f.status || '')) ? 'Sold' : 'Listed'}_${s.agent.name || 'Agent'}`;
     if (s.tpl === 'review') { const a0 = s.slides[0] && s.slides[0].f.agentName; return custom || `${a0 || s.agent.name || 'Agent'}_Google Reviews`; }
     if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(c0) || 'Period'}_Top Agents_${c0.team || 'Team'}`; }
@@ -9569,6 +10451,7 @@ class OrganicStudio extends StudioBase {
   fileNameFor(si) {
     const s = this.state, base = this.baseName();
     if (s.tpl === 'carousel') return `${base}_page${si + 1}`;   // the requested form, no space
+    if (s.tpl === 'rcover') return base;                         // ONE cover, so no page number
     if (s.tpl === 'weekly' || s.tpl === 'agents') return `${base}_${String(si + 1).padStart(2, '0')}_${this.sLabel(si)}`;
     if (s.tpl === 'review') {
       const revs = s.slides.filter(x => x.kind === 'review');
@@ -9592,6 +10475,54 @@ class OrganicStudio extends StudioBase {
   // Photo strength, 10-100, over the canvas ground. Organic had no equivalent of
   // Campaign's bgO, and the guided run asks for one.
   static imgAlpha(st) { const v = st && st.imgO; return (v == null ? 100 : Math.max(10, Math.min(100, v))) / 100; }
+  // The photograph's opacity on ONE slide: Photo strength, times the reel thumbnail's own
+  // per-layout value (drawing 4 lays its photo over the navy ground at .8, drawing 1 at 1).
+  // Every other kind gets `imgAlpha` back unchanged — the same number, not a product with 1.
+  // The tallest window height seen at the current width. A phone's keyboard or a browser's
+  // collapsing toolbar changes the height alone, and neither should resize the canvas; a
+  // rotation changes the width, which starts the memory again.
+  static stableVh(vw) {
+    const h = ((typeof window !== 'undefined' && window.innerHeight) || 0) || 900;
+    const m = OrganicStudio._vhSeen;
+    if (!m || m.w !== vw) { OrganicStudio._vhSeen = { w: vw, h }; return h; }
+    if (h > m.h) m.h = h;
+    return m.h;
+  }
+  // A TOUCH SCREEN'S canvas gestures belong to the slide being edited. With a finger the same
+  // press that drags a photo also scrolls the page, so on a coarse pointer a gesture layer
+  // takes the pointer only on the ACTIVE slide — a tap anywhere else activates that slide
+  // (the canvas's own onClick) and a swipe scrolls. A mouse keeps every slide live.
+  static coarse() {
+    try { return !!(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
+    catch (e) { return false; }
+  }
+  // WHY background removal is off, in the words of the place it runs. On a computer it is the
+  // local rembg service; in the iOS app (its provider says `url: 'native'`) it is Vision, and
+  // the app's probe RUNS Vision once and hands back the reason when it cannot — the iOS
+  // Simulator, which has no Neural Engine, is the case that found it. Telling a phone to
+  // "start tools/rembg/serve.sh" is a sentence nobody holding one can act on.
+  static cutOffNote(kind) {
+    const api = typeof window !== 'undefined' && window.providentCutout;
+    if (api && api.url === 'native') {
+      const why = (api.info && api.info.note) || 'Background removal is not available on this device.';
+      return kind === 'drop' ? (OrganicStudio.coarse() ? 'Add' : 'Drop') + ' a cut-out PNG — ' + why.charAt(0).toLowerCase() + why.slice(1) : why;
+    }
+    return kind === 'drop'
+      ? 'Drop a cut-out PNG, or start tools/rembg/serve.sh and one will be made for you.'
+      : 'Background removal is off on this computer \u2014 start tools/rembg/serve.sh, then press Remove background.';
+  }
+  // The pointer's own verb for a row's caption, and a drop caption turned into what a
+  // finger does: "Drop a picture, or click to choose" reads "Tap to choose a picture".
+  static tapWord() { return OrganicStudio.coarse() ? 'tap' : 'click'; }
+  static tapCap(t) {
+    if (!OrganicStudio.coarse()) return t;
+    const m = /^Drop (.+?)(?:, or click to choose)?$/.exec(t);
+    return m ? 'Tap to choose ' + m[1] : t;
+  }
+  static photoAlpha(st, sl) {
+    const a = OrganicStudio.imgAlpha(st);
+    return (sl && sl.kind === 'rcover') ? +(a * OrganicStudio.rcvLay(sl.f).photo).toFixed(4) : a;
+  }
   // THE BLACK SCRIM between the listed card's photograph and its glass panel, 0-100, by
   // request — a flat black fill over the whole canvas, drawn after the photo and the
   // parallax cut-out and before the panel. 35 when a project carries no value, so it reaches
@@ -9645,7 +10576,8 @@ class OrganicStudio extends StudioBase {
     cstats:  ['Title', 'Blurb', 'Layout', 'Page scrim'],
     cbul:    ['Headline', 'Bullet points', 'Layout', 'Page scrim'],
     ctext:   ['Title', 'Body', 'Layout', 'Page scrim'],
-    ccta:   ['Copy', 'Button', 'Layout', 'Permit']
+    ccta:   ['Copy', 'Button', 'Layout', 'Permit'],
+    rcover: ['Headline', 'Big number', 'Tags', 'ADM & CN']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
   // THE PER-PAGE SCRIM OVERRIDE and THE PERMIT, both as ONE row carrying a SWITCH — the
@@ -9753,7 +10685,17 @@ class OrganicStudio extends StudioBase {
             ['big', 1, 'Headline', 'req area hi', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
-            OrganicStudio.csPermitField()]
+            OrganicStudio.csPermitField()],
+    // THE REEL THUMBNAIL. The layout and the text size are NOT fields — they are chosen
+    // from rendered tiles (the Layout section in the run, the left rail in the editor), and
+    // both are stored on the slide as `lay` and `tsize`. The figure is asked only on Big
+    // number and the tags only on Centre stage (`fieldShown`). ADM and CN are the drawings'
+    // two chips: each is optional, a blank one hides its chip, and neither scales.
+    rcover:[['head', 1, 'Headline', 'req area', 'Short lines read best \u2014 press Enter for a new one. It is fitted inside the 4:5 box for you'],
+            ['fig', 2, 'Big number', 'req', 'e.g. 100% or 3x \u2014 set huge at the foot of the cover'],
+            ['tags', 3, 'Tags', 'pts opt', 'One short word per field \u2014 e.g. Land, Sky, Sea. Set as outlined caps under the headline'],
+            ['adm', 4, 'ADM number', 'digits chip opt', 'Numbers only \u2014 leave it blank to hide the ADM chip'],
+            ['cn', 4, 'CN number', 'digits chip opt', 'Numbers only \u2014 leave it blank to hide the CN chip']]
   };
   static tierName(kind, t) {
     const names = OrganicStudio.TIERNAMES[kind] || OrganicStudio.TIERS;
@@ -9773,6 +10715,14 @@ class OrganicStudio extends StudioBase {
       const d = OrganicStudio.listedDeal(f);
       if (k === 'deal') return d.listed;
       if (k === 'per') return d.deal === 'Rent';
+      return true;
+    }
+    // the figure belongs to Big number and the tags to Centre stage; the copy survives a
+    // switch to a layout that does not draw it, so switching back restores it
+    if (kind === 'rcover') {
+      const L = OrganicStudio.rcvLay(f);
+      if (k === 'fig') return !!L.fig;
+      if (k === 'tags') return !!L.tags;
       return true;
     }
     if (kind !== 'tacover') return true;
@@ -9808,7 +10758,8 @@ class OrganicStudio extends StudioBase {
     cstats: [['title', 'lg', 60], ['__stats', 'md', 80]],
     cbul:   [['headline', 'xl', 40], ['bullets', 'sm', 50]],
     ctext:  [['title', 'lg', 50], ['body', 'sm', 70]],
-    ccta:   [['big', 'lg', 60], ['button', 'pill', 50]]
+    ccta:   [['big', 'lg', 60], ['button', 'pill', 50]],
+    rcover: [['head', 'xl', 72], ['adm', 'xs', 40]]
   };
   // What each page is for, in the user's terms. Shown as the page title and as the
   // helper line under the preview.
@@ -9825,7 +10776,8 @@ class OrganicStudio extends StudioBase {
     cstats: ['Stats', 'A title and two to six icon-and-number facts.'],
     cbul:   ['Bullets', 'A headline beside a column of check points.'],
     ctext:  ['Text', 'A title and a short paragraph.'],
-    ccta:   ['Call to action', 'The closing card \u2014 a lead line, the ask, a button and the wordmark.']
+    ccta:   ['Call to action', 'The closing card \u2014 a lead line, the ask, a button and the wordmark.'],
+    rcover: ['Reel thumbnail', 'The cover a Reel shows in the grid and the feed. Pick the layout that suits the photo, then the words.']
   };
   // Layers the template owns. There are deliberately no inputs for these — the grid,
   // the wash and the wordmark are brand rules, not choices — so the preview marks
@@ -9853,7 +10805,8 @@ class OrganicStudio extends StudioBase {
     cstats: ['SWIPE \u203A \u2014 shown while there is a next page'],
     cbul:   ['SWIPE \u203A \u2014 shown while there is a next page'],
     ctext:  ['SWIPE \u203A \u2014 shown while there is a next page'],
-    ccta:   ['The wordmark on the card']
+    ccta:   ['The wordmark on the card'],
+    rcover: ['The wordmark']
   };
   static lockedFor(kind) {
     return OrganicStudio.LOCKED.concat(OrganicStudio.FIXEDTEXT[kind] || []);
@@ -9884,9 +10837,9 @@ class OrganicStudio extends StudioBase {
   // disagree.
   static GDSEC = {
     pages: 'Pages in this post', layout: 'Layout', words: 'Words', agent: 'Agent', pictures: 'Pictures',
-    listing: 'QR code & listing number', look: 'Look', save: 'Save'
+    listing: 'QR code & listing number', permit: 'ADM & CN', look: 'Look', save: 'Save'
   };
-  static GDSECORDER = ['pages', 'layout', 'words', 'agent', 'pictures', 'listing', 'look', 'save'];
+  static GDSECORDER = ['pages', 'layout', 'words', 'agent', 'pictures', 'listing', 'permit', 'look', 'save'];
   gdPlan() {
     const s = this.state, slides = s.slides || [], raw = [];
     const pageKind = this.gdPageKind();
@@ -9897,11 +10850,15 @@ class OrganicStudio extends StudioBase {
       if (pageKind && si === 0) raw.push({ si, sec: 'pages', kind: 'pages' });
       // LAYOUT — a carousel page picks its preset first, because it decides what is asked next
       if (OrganicStudio.isCs(sl.kind)) raw.push({ si, sec: 'layout', kind: 'preset' });
+      // …and so does the reel thumbnail: its layout, from tiles that are real renders of the
+      // photo, then the text size and the 4:5 guide — the layout decides what is asked next
+      // (a figure on Big number, tags on Centre stage, a parallax on Pop-out)
+      if (sl.kind === 'rcover') ['rlay', 'rsize', 'rguide'].forEach(k => raw.push({ si, sec: 'layout', kind: k }));
       // WORDS — every line of copy, in the hierarchy order the rail uses. A review card's
       // agent name and role go to its Agent section beside the headshot; a ranking card is
       // ABOUT its agent, so there the name and role ARE the words.
       [1, 2, 3, 4].forEach(t => {
-        fs.filter(f => f.tier === t && f.flags.indexOf('img') < 0
+        fs.filter(f => f.tier === t && f.flags.indexOf('img') < 0 && !/(^|\s)chip(\s|$)/.test(f.flags)
                     && !(sl.kind === 'review' && OrganicStudio.isAgentField(sl.kind, f.k)))
           .forEach(f => raw.push({ si, sec: 'words', kind: 'field', k: f.k, group: OrganicStudio.tierName(sl.kind, t) }));
       });
@@ -9931,10 +10888,14 @@ class OrganicStudio extends StudioBase {
       if (sl.kind === 'tacover') raw.push({ si, sec: 'pictures', kind: 'grp' });
       if (sl.kind === 'award') raw.push({ si, sec: 'pictures', kind: 'alogo' });
       if (OrganicStudio.isCs(sl.kind)) raw.push({ si, sec: 'pictures', kind: 'gfx' });
+      // the reel thumbnail's parallax — Pop-out only, by instruction (drawings 5 and 9)
+      if (sl.kind === 'rcover' && OrganicStudio.rcvLay(sl.f).px) raw.push({ si, sec: 'pictures', kind: 'rpx' });
       // QR & LISTING — the code and the reference it pairs with, last on the page.
       const qr = this.gdQrFor(si);
       if (qr) raw.push({ si, sec: 'listing', kind: 'qr', qrId: qr });
       fs.filter(f => f.flags.indexOf('img') >= 0).forEach(f => raw.push({ si, sec: 'listing', kind: 'field', k: f.k }));
+      // the compliance chips — the reel thumbnail's ADM permit and CN licence — last on the page
+      fs.filter(f => /(^|\s)chip(\s|$)/.test(f.flags)).forEach(f => raw.push({ si, sec: 'permit', kind: 'field', k: f.k }));
     });
     // FINISH — post-level, once. Both look settings are gated on the render actually
     // reading them (`scrimUsed`, `imgOUsed`), because the run is a projection of the rail.
@@ -9947,8 +10908,12 @@ class OrganicStudio extends StudioBase {
     // draws a glass panel (the listed footer, the weekly spec box, the ranking blurb panel,
     // the ranking cover's bar, the review card), so a predicate here would be one that is
     // always true — the noise the dead-feature audit's own rule warns about.
-    fin.push({ sec: 'look', kind: 'glass' });
-    fin.push({ sec: 'look', kind: 'story' });
+    // …except the reel thumbnail, which has no panel and no second size: its one canvas IS
+    // the 9:16, so there is no story to offer either
+    if (s.tpl !== 'rcover') {
+      fin.push({ sec: 'look', kind: 'glass' });
+      fin.push({ sec: 'look', kind: 'story' });
+    }
     fin.push({ sec: 'save', kind: 'name' }, { sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
     // the steps: every slide that asked for something, in slide order, then Finish
     const pageSis = [];
@@ -9981,7 +10946,14 @@ class OrganicStudio extends StudioBase {
   // `innerHeight` is 0 while the browser pane is not laid out, which falls to 900.
   gdScale() {
     const vh = ((typeof window !== 'undefined' && window.innerHeight) || 0) || 900;
-    const cardW = Math.min(vh * .58, 600) * .75;   // mirrors .gd-card-1's min(58vh,600px)
+    const vw = ((typeof window !== 'undefined' && window.innerWidth) || 0) || 1400;
+    // mirrors .gd-card-1's height, at the card's own aspect — 9:16 on the reel thumbnail
+    // (`data-a`), 3:4 everywhere else: min(58vh,600px) on a desktop and a tablet, and on a
+    // phone min(38vh,340px) — min(46vh,400px) for the reel — never wider than the screen
+    const reel = !!(this.state && this.state.tpl === 'rcover');
+    const phone = vw <= 760;
+    const cardH = phone ? Math.min(vh * (reel ? .46 : .38), reel ? 400 : 340) : Math.min(vh * .58, 600);
+    const cardW = Math.min(cardH * (reel ? .5625 : .75), phone ? vw - 24 : Infinity);
     const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
     return Math.max(.4, Math.min(.9, (cardW * dpr) / OrganicStudio.PXT.ft.W));
   }
@@ -10014,15 +10986,15 @@ class OrganicStudio extends StudioBase {
       + '|' + (cov && cov !== sl ? JSON.stringify(cov) : '');
   }
   async gdRenderAll() {
-    const st = this.state;
-    const assets = await this.loadAssets(st, 'ft');
+    const st = this.state, mk = OrganicStudio.mainSize(st);
+    const assets = await this.loadAssets(st, mk);
     const n = (st.slides || []).length;
     const out = Object.assign({}, this._gdShots || {});
     const keys = Object.assign({}, this._gdShotKeys || {});
     for (let i = 0; i < n; i++) {
       const k = this.gdSlideKey(i);
       if (keys[i] === k && out[i]) continue;      // this card cannot have changed
-      const built = this.buildOps(st, i, 'ft', assets);
+      const built = this.buildOps(st, i, mk, assets);
       out[i] = this.renderOpsToCanvas(built, this.gdScale()).toDataURL('image/webp', 0.88);
       keys[i] = k;
     }
@@ -10071,6 +11043,10 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'pages') return this.gdPageKind() === 'review'
       ? 'How many reviews in this post?' : (this.state.tpl === 'carousel' ? 'How many pages in this carousel?' : 'How many properties in this post?');
     if (ask.kind === 'preset') return 'Which layout is this page?';
+    if (ask.kind === 'rlay') return 'Which layout suits the photo?';
+    if (ask.kind === 'rsize') return 'How big should the text be?';
+    if (ask.kind === 'rguide') return 'Show the 4:5 guide';
+    if (ask.kind === 'rpx') return 'Parallax';
     if (ask.kind === 'stats') return 'The stats';
     if (ask.kind === 'proj') return ask.label || '';
     if (ask.kind === 'portrait') return ask.label || 'Agent photo';
@@ -10111,6 +11087,28 @@ class OrganicStudio extends StudioBase {
     v.isName = ask.kind === 'name';
     v.isPreset = ask.kind === 'preset';
     v.isStats = ask.kind === 'stats';
+    // the reel thumbnail's four: the layout and size tiles read root keys (`rcvLayTiles`,
+    // `rcvSizeTiles`) — the template has one slide, and the left rail shows the same tiles
+    v.isRlay = ask.kind === 'rlay';
+    v.isRsize = ask.kind === 'rsize';
+    v.isRguide = ask.kind === 'rguide';
+    v.isRpx = ask.kind === 'rpx';
+    if (v.isRguide) {
+      const on = s.rcvGuide !== false;
+      v.togOn = '1'; v.togIsOn = on ? '1' : undefined; v.togAria = on ? 'true' : 'false';
+      v.togTitle = on ? 'Hide the 4:5 guide' : 'Show the 4:5 guide';
+      v.togSet = () => this.upd(x => { x.rcvGuide = x.rcvGuide === false; return x; });
+    }
+    if (v.isRpx && sl) {
+      const on = !!sl.fg;
+      v.togOn = '1'; v.togIsOn = on ? '1' : undefined; v.togAria = on ? 'true' : 'false';
+      v.togTitle = on ? 'Turn the parallax off' : 'Turn the parallax on';
+      v.togSet = () => this.upd(x => { const t = x.slides[ask.si]; if (t) t.fg = !t.fg; return x; });
+      v.rpxOn = on ? '1' : undefined;
+      v.pxSlot = 'smp-fg-' + sl.id;
+      v.pxDone = filled[v.pxSlot] ? '1' : undefined;
+      Object.assign(v, this.rcvCutView(ask.si, filled));
+    }
     if (v.isPreset && sl) v.presetOpts = this.csPresetOpts(ask.si);
     if (v.isStats && sl) Object.assign(v, this.csStatsView(ask.si, filled));
     if (v.isPx && sl) {
@@ -10123,7 +11121,7 @@ class OrganicStudio extends StudioBase {
         set: () => this.upd(x => { x.slides[ask.si].fg = (k === 1); return x; }) }));
       v.pxSlot = 'smp-fg-' + sl.id;
       v.pxDone = filled[v.pxSlot] ? '1' : undefined;
-      v.pxLabel = filled[v.pxSlot] ? 'Cut-out added — click to replace' : 'Drop the foreground PNG, or click to choose';
+      v.pxLabel = filled[v.pxSlot] ? 'Cut-out added' : OrganicStudio.tapCap('Drop the foreground PNG, or click to choose');
     }
     if (v.isGrp && sl) {
       v.grpReset = () => this.upd(x => { const c = x.slides[ask.si]; if (c && c.f) delete c.f.grp; return x; });
@@ -10137,7 +11135,7 @@ class OrganicStudio extends StudioBase {
       v.gfxSlot = id;
       v.gfxDone = filled[id] ? '1' : undefined;
       v.gfxHas = filled[id] ? '1' : undefined;
-      v.gfxLabel = filled[id] ? 'Graphic added \u2014 click to replace' : 'Drop an SVG or PNG, or click to choose';
+      v.gfxLabel = filled[id] ? 'Graphic added' : OrganicStudio.tapCap('Drop an SVG or PNG, or click to choose');
       v.gfxPct = Math.round(G.s * 100) + '% of the page';
       v.gfxVal = String(Math.round(G.s * 100));
       v.gfxSet = e => write({ s: Math.max(C0.gfxMin, Math.min(C0.gfxMax, (parseInt(e.target.value, 10) || 34) / 100)) });
@@ -10150,7 +11148,7 @@ class OrganicStudio extends StudioBase {
     }
     if (v.isAlogo) {
       v.alogoDone = filled['smp-alogo'] ? '1' : undefined;
-      v.alogoLabel = filled['smp-alogo'] ? 'Mark added — click to replace' : 'Drop the partner’s SVG or PNG, or click to choose';
+      v.alogoLabel = filled['smp-alogo'] ? 'Mark added' : OrganicStudio.tapCap('Drop the partner’s SVG or PNG, or click to choose');
     }
     if (v.isGlass) {
       // The two fills the request names, and they do not share an alpha — see `glassOf`.
@@ -10230,7 +11228,10 @@ class OrganicStudio extends StudioBase {
       const id = 'smp-bg-' + this.bgSidFor(sl);
       v.photoSlot = id;
       v.photoDone = filled[id] ? '1' : undefined;
-      v.photoLabel = filled[id] ? 'Picture added — click to replace' : 'Drop a picture, or click to choose';
+      // "added" and nothing more: a tap or a click on a FILLED slot replaces nothing (only its
+      // empty state opens the picker, and a double-click reframes), so "— tap to replace" promised
+      // a gesture that never existed. The Replace button beside every filled drop is the control.
+      v.photoLabel = filled[id] ? 'Picture added' : OrganicStudio.tapCap('Drop a picture, or click to choose');
       v.photoHint = this.bgStatusFor(ask.si);
       v.photoCut = sl.kind === 'tagent' ? '1' : undefined;
       v.cutNote = this.cutoutNote(!!v.photoCut);
@@ -10242,14 +11243,19 @@ class OrganicStudio extends StudioBase {
     if (v.isQr) {
       v.qrSlot = ask.qrId || 'smp-none';
       v.qrDone = filled[v.qrSlot] ? '1' : undefined;
-      v.qrLabel = filled[v.qrSlot] ? 'QR added — click to replace' : 'Drop the QR code';
+      v.qrLabel = filled[v.qrSlot] ? 'QR added' : OrganicStudio.tapCap('Drop the QR code');
       v.qrLink = (this._qrLinks && this._qrLinks[v.qrSlot]) ? '1' : undefined;
       v.openQrLink = () => { const u = (this._qrLinks || {})[v.qrSlot]; if (u) window.open(u, '_blank', 'noopener'); };
     }
     if (v.isPortrait) {
       v.portraitSlot = ask.slot || 'smp-none';
       v.portraitDone = filled[v.portraitSlot] ? '1' : undefined;
-      v.portraitLabel = filled[v.portraitSlot] ? 'Photo added — click to replace' : 'Drop a headshot, or click to choose';
+      v.portraitLabel = filled[v.portraitSlot] ? 'Photo added' : OrganicStudio.tapCap('Drop a headshot, or click to choose');
+      // ONLY THE REVIEW CARD'S PORTRAIT DRAGS (`revAgentPlace`). The same sentence under the
+      // listed card's agent promised a gesture that card has never had.
+      const pk = ((this.state.slides || [])[ask.si] || {}).kind;
+      v.portraitHint = 'The face is found and framed for you, so any crop works.' +
+        (pk === 'review' ? ' Drag the portrait on the card to move it.' : '');
       v.cutNote = this.cutoutNote(true);
       v.cutNoteOn = v.cutNote ? '1' : undefined;
       // Offered only once she has actually been moved. A reset that resets nothing is the
@@ -10296,6 +11302,9 @@ class OrganicStudio extends StudioBase {
       v.destName = this.folderName() || 'No folder chosen yet';
       v.destSetOn = this.folderName() ? '1' : undefined;
       v.destLabel = this.folderName() ? 'Change folder' : 'Choose a folder…';
+      v.destWhat = s.tpl === 'rcover'
+        ? 'Everything this cover exports goes straight in here — the 9:16 image and the session file.'
+        : 'Everything this post exports goes straight in here — the images, the story sizes and the session file.';
       v.destPick = async () => {
         const f = this.folderApi();
         if (!f || !f.supported) return;
@@ -10349,11 +11358,14 @@ class OrganicStudio extends StudioBase {
       stats: 'Two to six, in two columns, centred. Bottom stands the grid on the page\u2019s floor; Top stacks it under the title.',
       preset: 'Switching keeps the copy you have typed wherever the new layout has a place for it.',
       name: 'Optional \u2014 a custom name overrides the convention.',
-      portrait: 'The face is found and framed for you, so any crop works. Drag her on the card to move her.',
-      pages: 'The first page is always part of the post. Add more and each is asked for in turn.'
+      pages: 'The first page is always part of the post. Add more and each is asked for in turn.',
+      rlay: 'Each tile is your own photo and words in that layout \u2014 pick the one the photo suits.',
+      rsize: 'The whole text block, one step of the brand\u2019s minor third at a time. The wordmark and the ADM and CN chips stay as they are.',
+      rguide: 'A Reel cover is cropped to 4:5 in the profile grid and the feed. Everything that has to read sits inside the box.',
+      rpx: 'Pop-out only. The subject is lifted out of the photo and stands in front of the headline, locked to the photo\u2019s crop.'
     };
     const tip = v.isField ? ((v.row && v.row.hint) || '') : (v.isGlass ? (v.glassHint || '') : v.isStory ? (v.storyHint || '')
-      : v.isPhoto ? (v.photoHint || '') : v.isProj ? (v.projHint || '') : (TIPS[ask.kind] || ''));
+      : v.isPhoto ? (v.photoHint || '') : v.isProj ? (v.projHint || '') : v.isPortrait ? (v.portraitHint || '') : (TIPS[ask.kind] || ''));
     v.tip = tip; v.tipOn = tip ? '1' : undefined;
     // a switched-off field keeps its header and switch and hides the control under them
     v.fieldCtlOn = (v.isField && (!v.togOn || v.togIsOn)) ? '1' : undefined;
@@ -10361,7 +11373,9 @@ class OrganicStudio extends StudioBase {
     // strip is easy to miss, and its Replace dispatched an event nothing here handled.
     const sid = v.photoSlot || v.pxSlot || v.gfxSlot || v.portraitSlot || v.qrSlot || (v.isAlogo ? 'smp-alogo' : null);
     if (sid) Object.assign(v, this.slotActs(sid), { slotActsOn: (filled && filled[sid]) ? '1' : undefined,
-      slotReframeOn: (v.isPhoto || v.isPortrait) ? '1' : undefined });
+      // ONLY A PHOTO'S CROP IS DRAWN. The agent is framed on her face by `agentPlace`, which
+      // reads no slot crop, so Reframe on a portrait saved a value and changed nothing.
+      slotReframeOn: v.isPhoto ? '1' : undefined });
     return v;
   }
   gdSeedSelect() {
@@ -10452,6 +11466,10 @@ class OrganicStudio extends StudioBase {
     if (!ask) return '';
     if (ask.kind === 'pages') return this.gdPageKind() === 'review' ? 'How many reviews' : (this.state.tpl === 'carousel' ? 'How many pages' : 'How many properties');
     if (ask.kind === 'preset') return 'Layout preset';
+    if (ask.kind === 'rlay') return 'Layout';
+    if (ask.kind === 'rsize') return 'Text size';
+    if (ask.kind === 'rguide') return '4:5 guide';
+    if (ask.kind === 'rpx') return 'Parallax';
     if (ask.kind === 'stats') return 'Stats';
     if (ask.kind === 'proj' || ask.kind === 'portrait') return ask.label || '';
     if (ask.kind === 'scrim') return 'Wash strength';
@@ -10535,6 +11553,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'scrim' || ask.kind === 'shade' || ask.kind === 'imgo' || ask.kind === 'glass') return '';
     if (ask.kind === 'pages') return '';
     if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name' || ask.kind === 'preset') return '';
+    if (ask.kind === 'rlay' || ask.kind === 'rsize' || ask.kind === 'rguide' || ask.kind === 'rpx') return '';
     if (ask.kind === 'stats') {
       const st = (this.state.slides || [])[ask.si], sf = (st && st.f) || {};
       const items = OrganicStudio.csItems(sf).slice(0, OrganicStudio.csN(sf));
@@ -10562,6 +11581,10 @@ class OrganicStudio extends StudioBase {
     const v = /(^|\s)pts(\s|$)/.test(f.flags)
       ? OrganicStudio.ptsOf(sl.f[ask.k]).map(t => t.trim()).filter(Boolean).join('|')
       : String(sl.f[ask.k] == null ? '' : sl.f[ask.k]).trim();
+    // `opt` is the one exemption from "every asked field is required": the reel thumbnail's
+    // ADM and CN chips and its tags each draw nothing when blank, so a blank one is an
+    // answer rather than a gap. No other field carries the flag.
+    if (!v && /(^|\s)opt(\s|$)/.test(f.flags)) return '';
     if (!v) return 'This one is required.';
     if (f.flags.indexOf('len11') >= 0 && v.replace(/\D/g, '').length !== 11) return 'That needs to be exactly 11 digits.';
     return '';
@@ -10589,9 +11612,17 @@ class OrganicStudio extends StudioBase {
     const d = this._assetView && this._assetView.bgDims && this._assetView.bgDims[bi];
     const linked = shared ? 'Linked — the closing slide uses the cover photo. ' : '';
     if (sl.kind === 'tagent' && !d) return 'Required — this agent’s studio portrait. It stands in front of the ranking numeral, so it is drawn as a cut-out.';
+    // the reel thumbnail has one canvas and no pan layer: the photo is reframed on it
+    if (sl.kind === 'rcover') {
+      if (d && Math.max(d.w, d.h) < 2160) return '⚠ Stored at ' + d.w + '×' + d.h + ' — under the 2160px export target, so it will be upscaled. Re-drop the original file.';
+      return (d ? 'Stored at ' + d.w + '×' + d.h + ' — export-grade. ' : 'Kept at full resolution for export. ')
+        + (OrganicStudio.coarse() ? 'Once it is in, Reframe crops and zooms it; a Pop-out cut-out follows the crop.' : 'Double-click the photo on the canvas to reframe and zoom it; a Pop-out cut-out follows the crop.');
+    }
     if (d && Math.max(d.w, d.h) < 2160) return linked + '⚠ Stored at ' + d.w + '×' + d.h + ' — under the 2160px export target, so it will be upscaled. Re-drop the original file.';
-    if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story. On the card, drag the photo to move it and double-click it to reframe and zoom.';
-    return linked || 'Kept at full resolution for export; feed and story share it. On the card, drag the photo to move it and double-click it to reframe and zoom.';
+    // on a touch screen the gesture sentence names the button beside the picture instead
+    const how = OrganicStudio.coarse() ? ' Once it is in, Reframe crops and zooms it.' : ' On the card, drag the photo to move it and double-click it to reframe and zoom.';
+    if (d) return linked + 'Stored at ' + d.w + '×' + d.h + ' — export-grade, shared by feed and story.' + how;
+    return linked || 'Kept at full resolution for export; feed and story share it.' + how;
   }
   // Whether this ask can ever block Next at all — the requirement kinds. A section made
   // only of judgements (Look) or optional uploads is "done" once it has been passed, not
@@ -10618,8 +11649,8 @@ class OrganicStudio extends StudioBase {
   cutoutNote(isCut) {
     const api = window.providentCutout;
     if (!isCut || !api) return '';
-    if (api.state === 'on') return 'The background is removed for you when you drop a photo here.';
-    if (api.state === 'off') return 'Drop a cut-out PNG, or start tools/rembg/serve.sh and one will be made for you.';
+    if (api.state === 'on') return 'The background is removed for you when you ' + (OrganicStudio.coarse() ? 'add' : 'drop') + ' a photo here.';
+    if (api.state === 'off') return OrganicStudio.cutOffNote('drop');
     return '';
   }
   gdQrFor(si) {
@@ -10703,14 +11734,17 @@ class OrganicStudio extends StudioBase {
       // THE EXPORT DESCRIPTIONS READ THE SAME FLAG. A silent halving of the output would be
       // far worse than the old behaviour, so every format row says "feed only" or
       // "feed + story" before the button is pressed, and the status line says what shipped.
-      const withStory = !!state.storyOn;
-      const sizes = withStory ? ['ft', 'st'] : ['ft'];
+      // THE REEL THUMBNAIL EXPORTS ITS ONE SIZE, 9:16, whatever the story toggle says — it has
+      // no feed canvas at all. Every other template is unchanged: feed first, story if shown.
+      const reel = state.tpl === 'rcover';
+      const withStory = !!state.storyOn && !reel;
+      const sizes = reel ? ['st'] : withStory ? ['ft', 'st'] : ['ft'];
       // Only load what will be drawn: `loadAssets` decodes every photo, QR and portrait in
       // the project, so loading the story's copy when nothing reads it doubled the decode
       // cost of every export for no output.
-      const assetsBy = { ft: await this.loadAssets(state, 'ft') };
-      if (withStory) assetsBy.st = await this.loadAssets(state, 'st');
-      const assets = assetsBy.ft;
+      const assetsBy = {};
+      for (const k of sizes) assetsBy[k] = await this.loadAssets(state, k);
+      const assets = assetsBy[sizes[0]];
       // guard: a slot can display an image the sidecar failed to persist —
       // never export a blank where the canvas shows a photo
       const unsaved = [];
@@ -10734,7 +11768,7 @@ class OrganicStudio extends StudioBase {
       if (kind === 'pdf') {
         const pages = [];
         for (let si = 0; si < state.slides.length; si++) {
-          const built = this.buildOps(state, si, 'ft', assetsBy.ft);
+          const built = this.buildOps(state, si, sizes[0], assetsBy[sizes[0]]);
           const c = this.renderOpsToCanvas(built, 2);
           const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.95));
           pages.push({ w: built.W, h: built.H, pw: c.width, ph: c.height, data: new Uint8Array(await blob.arrayBuffer()) });
@@ -10762,7 +11796,7 @@ class OrganicStudio extends StudioBase {
       const okd = await this.deliver(files, zipName);
       // `deliver` reports the file count; only this caller knows WHICH sizes those are, and
       // a count alone cannot tell "story off" from "half the slides failed".
-      if (okd !== false && !withStory) this.setState(st2 => ({
+      if (okd !== false && !withStory && !reel) this.setState(st2 => ({
         exportStatus: (st2.exportStatus || '') + ' · feed only — the story canvas is hidden' }));
     } catch (err) {
       console.warn(err);
@@ -10817,10 +11851,7 @@ class OrganicStudio extends StudioBase {
       }
     }
     const files = await this.projectFiles(name);
-    this.markSaved();
-    this.recordSaved();
-    this.download(new Blob([files[0].data], { type: 'application/json' }), name + '.smpstudio.json');
-    this.setState({ exportStatus: 'Saved ' + name + '.smpstudio.json — pick a source folder to keep Assets alongside it.' });
+    return this.saveSessionCopy(name, '.smpstudio.json', files[0].data);
   }
   legacyRecentsKey() { return 'smp-recents'; }
   sessionExt() { return '.smpstudio.json'; }
@@ -10899,7 +11930,7 @@ class OrganicStudio extends StudioBase {
       await put('agent', 'smp-agent', true); await put('agent2', 'smp-agent-2', true);
       const thumbs = [];
       for (let i = 0; i < Math.min(OrganicStudio.RECENT_THUMBS, st.slides.length); i++) {
-        try { thumbs.push(this.renderOpsToCanvas(this.buildOps(st, i, 'ft', assets), 0.2).toDataURL('image/webp', 0.72)); } catch (e) {}
+        try { thumbs.push(this.renderOpsToCanvas(this.buildOps(st, i, OrganicStudio.mainSize(st), assets), 0.2).toDataURL('image/webp', 0.72)); } catch (e) {}
       }
       r.thumbs = thumbs;
     }
@@ -10919,9 +11950,10 @@ class OrganicStudio extends StudioBase {
     // is what the hover reel can step through, so it is the cap here too.
     let thumbs = [];
     try {
-      const assets = await this.loadAssets(this.state, 'ft');
+      const mk = OrganicStudio.mainSize(this.state);
+      const assets = await this.loadAssets(this.state, mk);
       for (let i = 0; i < Math.min(OrganicStudio.RECENT_THUMBS, this.state.slides.length); i++) {
-        const c = this.renderOpsToCanvas(this.buildOps(this.state, i, 'ft', assets), 0.2);
+        const c = this.renderOpsToCanvas(this.buildOps(this.state, i, mk, assets), 0.2);
         thumbs.push(c.toDataURL('image/webp', 0.72));
       }
     } catch (e) {}
@@ -10963,20 +11995,40 @@ class OrganicStudio extends StudioBase {
     // read the published face, so it has to be set before the values are built.
     StudioBase.applyFont(this.state);
     const s = this.state;
-    const cq = px => (px / 10.8).toFixed(2) + 'cqw';
+    // CANVAS UNITS ARE WRITTEN IN PX, NOT cqw. The canvas box is laid out at exactly tk.W
+    // (1080), so 1cqw is 10.8px and `cq(n)` is n px — but while the box was shrunk with
+    // `zoom`, WebKit up to 26 resolved a cqw FONT SIZE against the ZOOMED width and zoomed it
+    // again, so every run painted at zoom² (measured: 10cqw in a 1000px box at zoom .5 painted
+    // 25px, not 50). The box is shrunk with a transform now, under which cqw is exact too;
+    // plain px stays because it cannot depend on how the box is scaled.
+    const cq = px => (+px).toFixed(2) + 'px';
     // The canvas is fitted to the viewport when there is not room for the desktop
     // floor. Clamping to 380 regardless is what overflowed a 375px screen — the media
     // queries cannot help, because this width is written inline by the renderer.
     const vwNow = (typeof window !== 'undefined' && window.innerWidth) || 1400;
-    const dispW = vwNow < 900
-      ? Math.round(Math.max(200, Math.min(vwNow - 64, 640)))
-      : Math.round(Math.min(Math.max(this.props.displayWidth ?? 440, 380), 640));
+    // FOLDED LAYOUTS FIT THE STAGE, not only the window's width. A phone stacks the canvases
+    // one under the next, so its width is the only bound (16px each side). A tablet keeps
+    // them in a row beside the Template rail — 240 plus its 16px padding each side, 272 on
+    // screen, measured — and the stage's own 28px each side, so the canvas is also bounded by the
+    // height the stage has left: the top bar, the canvas bar and the panel bar (56 + 45 + 62),
+    // the stage's own padding (56), the plate's header and caption (68) and the row's own
+    // horizontal scrollbar (13). The old rule was
+    // `vw - 64` below 900 — 640px on a 768 tablet, in a 528px stage — and a flat 440 above
+    // it, which is taller than a 1024 x 768 stage. The height is the tallest seen at this
+    // width, so a keyboard that shrinks the window cannot shrink the canvas under it.
+    const vhSeen = OrganicStudio.stableVh(vwNow);
+    const dispW = vwNow <= 760
+      ? Math.round(Math.max(200, Math.min(vwNow - 32, 640)))
+      : vwNow <= 1200
+        ? Math.round(Math.max(260, Math.min(640, vwNow - 328, (vhSeen - 300) * .75)))
+        : Math.round(Math.min(Math.max(this.props.displayWidth ?? 440, 380), 640));
     const PXT = OrganicStudio.PXT;
     const N = a => `rgba(0,0,0,${a})`;
-    const TPLNAMES = { listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', award: 'Congratulations award', carousel: 'Carousel' };
+    const TPLNAMES = { listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', award: 'Congratulations award', carousel: 'Carousel', rcover: 'Reel thumbnail' };
 
     const mkCanvas = (si, sizeKey) => {
       const sl = s.slides[si], f = sl.f, kind = sl.kind;
+      const touchLive = !OrganicStudio.coarse() || si === s.activeSi;
       const tk = PXT[sizeKey];
       const [pT, pR, pB, pL] = tk.pad;
       const innerW = tk.W - pL - pR;
@@ -10992,19 +12044,21 @@ class OrganicStudio extends StudioBase {
           [RS.scrimFull, D(1)], [1, D(1)]].map(p => p[1] + ' ' + (p[0] * 100).toFixed(2) + '%').join(', ') + ')';
       }
       else scrim = this.scrimBands(sl, tk).map(b => 'linear-gradient(to bottom, ' + this.bandStops(b[0], b[1], a, H).map(p => `${N(p[1].toFixed(3))} ${(p[0] * 100).toFixed(2)}%`).join(', ') + ')').join(', ');
-      const width = sizeKey === 'ft' ? dispW : Math.round(dispW * .58);
-      // The preview box is laid out at TRUE canvas units and shrunk with `zoom`, never
+      // the reel thumbnail's 9:16 is the plate's ONLY canvas, so it takes the feed's height
+      // rather than the story's shrunken slot beside a feed
+      const width = kind === 'rcover' ? Math.round(dispW * .75) : sizeKey === 'ft' ? dispW : Math.round(dispW * .58);
+      // The preview box is laid out at TRUE canvas units and shrunk to its plate, never
       // sized to the on-screen width. Google Sans Flex carries an optical-size axis, so
       // its glyphs are ~6% wider per em at 37px than at 92px: a preview whose container
       // was 440px wide shaped every run at the on-screen size while the canvas renderer
       // shaped it at 1080, and the two drifted apart — same nominal size, different
-      // widths, different wrap points. `zoom` keeps the used font-size at canvas units
-      // (unlike a plain width, and like `transform: scale`) while still collapsing the
-      // layout box to `width`, so no wrapper div is needed. Every cqw inside now
-      // resolves against tk.W, which is exactly what buildOps measures against.
+      // widths, different wrap points. The shrink is a TRANSFORM in every engine
+      // (StudioBase.scaleBox): `zoom`, which this used, still set text at its on-screen size
+      // in WebKit and, for some runs, in Chrome — measured, and recorded there.
       const z = width / tk.W, uz = n => +(n / z).toFixed(2) + 'px';
+      const zBox = StudioBase.scaleBox(z, tk.W, tk.H);
       const K = {
-        canvasStyle: { width: tk.W + 'px', height: tk.H + 'px', zoom: z, containerType: 'inline-size', position: 'relative', overflow: 'hidden', flex: 'none', background: OrganicStudio.groundFor(kind), boxShadow: 'none', fontFamily: window.providentFont || "'Google Sans Flex',sans-serif", lineHeight: 1.3, cursor: 'pointer', outline: uz(2) + (s.activeSi === si ? ' solid var(--ps-focus)' : ' solid transparent'), outlineOffset: uz(4) },
+        canvasStyle: Object.assign({ width: tk.W + 'px', height: tk.H + 'px', containerType: 'inline-size', position: 'relative', overflow: 'hidden', flex: 'none', background: OrganicStudio.groundFor(kind), boxShadow: 'none', fontFamily: window.providentFont || "'Google Sans Flex',sans-serif", lineHeight: 1.3, cursor: 'pointer', outline: uz(2) + (s.activeSi === si ? ' solid var(--ps-focus)' : ' solid transparent'), outlineOffset: uz(4) }, zBox),
         // The ground texture is a layer of its own and it is OFF for every slide kind but the
         // ranking card — a render key that only some kinds set renders as the browser
         // default, so it is declared here and overridden there rather than left undefined.
@@ -11027,6 +12081,9 @@ class OrganicStudio extends StudioBase {
         csCardOn: false, csCardStyle: { display: 'none' }, csRects: [], csIcons: [], csTexts: [],
         csGfxOn: false, csGfxSlot: '', csGfxStyle: { display: 'none' }, csGfxSlotStyle: {},
         csGfxMaskStyle: { display: 'none' }, csGfxHandles: [], csGfxDown: () => {},
+        // The reel thumbnail's runs and its 4:5 guide, declared for EVERY kind likewise.
+        rcvTexts: [], rcvRects: [], rcvGuideOn: false, rcvGuideTop: { display: 'none' },
+        rcvGuideBot: { display: 'none' }, rcvGuideBox: { display: 'none' }, rcvGuideLab: { display: 'none' }, rcvGuideText: '',
         // Declared for EVERY kind: a render key only some kinds set falls back to the
         // browser default, which is how an unstyled layer gets onto a canvas.
         lPhotoOn: false, lPhotoStyle: { display: 'none' }, lPanOn: undefined,
@@ -11036,7 +12093,17 @@ class OrganicStudio extends StudioBase {
         // above it is what you see, so the slot drops to opacity 0 and keeps only its two
         // jobs — the drop target and the reframe host. Its placeholder therefore still shows
         // while the card is empty, which is the whole reason not to hide it outright.
-        bgSlotStyle: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
+        //
+        // ON A TOUCH SCREEN THE ACTIVE SLIDE'S EMPTY SLOT TAKES THE TAP. The shared rule
+        // `.canvasbg>image-slot:not([data-filled]){pointer-events:none}` is a click-through,
+        // so a click on an empty canvas reaches the canvas's own onClick and the photo is
+        // added from the form — but on a touch screen the slot's placeholder says "Tap to
+        // choose", and a tap did nothing. Found in the iOS Simulator. A phone has no hover and
+        // no selection to protect, and `touchLive` already gates every gesture layer to the
+        // active slide, so a tap on ANOTHER slide still activates it first. The mouse keeps
+        // the rule exactly as it was.
+        bgSlotStyle: Object.assign({ position: 'absolute', inset: 0, width: '100%', height: '100%' },
+          OrganicStudio.coarse() && touchLive ? { pointerEvents: 'auto' } : {}),
         // The cover's five floating figures, plus its one hit layer and the selected
         // figure's handles. Declared here for the same reason `taTexStyle` is: an `sc-for`
         // over an undefined key is not a no-op, and neither is a style key nothing set.
@@ -11051,7 +12118,7 @@ class OrganicStudio extends StudioBase {
         bgWrapStyle: (() => {
           const PW = OrganicStudio.photoWin(sl.kind, tk);
           return { position: 'absolute', left: cq(PW.x), top: cq(PW.y), width: cq(PW.w), height: cq(PW.h),
-                   overflow: 'hidden', opacity: OrganicStudio.imgAlpha(s) };
+                   overflow: 'hidden', opacity: OrganicStudio.photoAlpha(s, sl) };
         })(),
         scrimStyle: { position: 'absolute', inset: 0, background: scrim, pointerEvents: 'none' },
         guideStyle: { position: 'absolute', top: cq(pT), right: cq(pR), bottom: cq(pB), left: cq(pL), border: uz(1) + ' dashed var(--ps-focus)', pointerEvents: 'none' },
@@ -11180,6 +12247,10 @@ class OrganicStudio extends StudioBase {
           backgroundImage: `url("${fgA.u}")`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' };
       }
       K.fgStyle = fgStyle;
+      // THE POP-OUT CUT-OUT STANDS BETWEEN THE HEADLINE AND THE WORDMARK — z 4 between the
+      // headline's 3 and the wordmark and chips' 5. Its wrapper is z-auto, so it is not a
+      // stacking context and this competes in the canvas's own, which `isolation` confines.
+      if (kind === 'rcover' && fgStyle.display !== 'none') K.fgStyle = Object.assign({}, fgStyle, { zIndex: 4 });
       const qrBase = (qs, r, ring) => {
         r = r == null ? 8 : r; ring = ring == null ? 1 : ring;
         const o = { position: 'absolute', width: cq(qs), height: cq(qs), boxSizing: 'border-box',
@@ -11303,8 +12374,8 @@ class OrganicStudio extends StudioBase {
         // time in this file that a gesture layer has been un-hittable while its arithmetic
         // checked out — the ranking cover's figures were the first — and both times the
         // tell was `elementFromPoint`, not the handler.
-        K.lPanStyle = { position: 'absolute', inset: 0, zIndex: 11, cursor: 'move',
-          pointerEvents: K.lPhotoOn ? 'auto' : 'none' };
+        K.lPanStyle = { position: 'absolute', inset: 0, zIndex: 11, cursor: 'move', touchAction: 'none',
+          pointerEvents: K.lPhotoOn && touchLive ? 'auto' : 'none' };
         K.lPanDbl = e => {
           const box = e.currentTarget.parentElement;
           const slot = box && box.querySelector('image-slot');
@@ -11345,7 +12416,7 @@ class OrganicStudio extends StudioBase {
           };
           const up = () => {
             document.removeEventListener('pointermove', mv);
-            document.removeEventListener('pointerup', up);
+            document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
             this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
             this._redoStack = [];
             this.markDirty();
@@ -11353,7 +12424,7 @@ class OrganicStudio extends StudioBase {
             this.forceUpdate();
           };
           document.addEventListener('pointermove', mv);
-          document.addEventListener('pointerup', up);
+          document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
         };
         K.lPanDown = phStart;
       } else if (kind === 'cover' || kind === 'cta') {
@@ -11390,6 +12461,45 @@ class OrganicStudio extends StudioBase {
           lineHeight: cq(LH(tk.eyebrow)), color: kind === 'cta' ? A.deep : A.warm, whiteSpace: 'nowrap' };
         K.qrStyle = Object.assign(qrBase(KW.qr, KW.qrR, KW.qrRing),
           { left: cq((tk.W - KW.qr) / 2), top: cq(tk.H - pB - KW.qr - KW.qrDrop) });
+      } else if (kind === 'rcover') {
+        // ══ THE REEL THUMBNAIL'S PREVIEW — one element per op, placed absolutely off the
+        // same `rcvBox` the ops read, with the single-line idiom (`top: baseline - px` on a
+        // `baseLH` line-height). The layers are Z-INDEXED rather than reordered in the DOM —
+        // headline 3, the Pop-out cut-out 4, wordmark and chips 5 — which is the ranking
+        // card's own method and leaves every other kind's document order untouched.
+        const B = this.rcvBox(s, si, tk), LHr = px => StudioBase.baseLH(px);
+        const abs = (x, y) => ({ position: 'absolute', left: cq(x), top: cq(y) });
+        K.logoStyle = Object.assign({}, K.logoStyle, { display: 'none' });   // drawn from B.texts
+        // the drawings' washes: the op's own tilted line, re-projected as a CSS angle
+        const bandCss = B.bands.map(b => OrganicStudio.rcvBandCss(b.vec, [[0, N(b.a.toFixed(3))], [1, N(0)]], tk.W, tk.H));
+        K.scrimStyle = Object.assign({}, K.scrimStyle, { background: bandCss.length ? bandCss.join(', ') : 'none' });
+        const zOf = layer => layer === 'top' ? 5 : 3;
+        K.rcvRects = B.rects.map(r => Object.assign(abs(r.x, r.y), { width: cq(r.w), height: cq(r.h),
+          borderRadius: cq(r.r), border: '1px solid ' + r.stroke, boxSizing: 'border-box',
+          zIndex: zOf(r.layer), pointerEvents: 'none' }));
+        K.rcvTexts = B.texts.map(t => ({ t: t.t, style: Object.assign(abs(t.x, t.y - t.px), { fontSize: cq(t.px),
+          lineHeight: cq(LHr(t.px)), fontWeight: t.w, color: t.fill, letterSpacing: t.ls ? (t.ls / t.px) + 'em' : 'normal',
+          whiteSpace: 'nowrap', zIndex: zOf(t.layer), pointerEvents: 'none' }) }));
+        K.canvasStyle = Object.assign({}, K.canvasStyle, { isolation: 'isolate' });
+        // ── THE 4:5 GUIDE — what a feed and the profile grid show of the cover. The two
+        // bands outside it are dimmed and its edges dashed. A PINNED dark and a pinned white,
+        // not theme tokens: this sits over ARTWORK whose colour nobody knows, so it has to
+        // read on a white photo and a black one alike — the rule the grips follow.
+        const RG = OrganicStudio.RCV;
+        K.rcvGuideOn = s.rcvGuide !== false;
+        const dim = 'rgba(8,10,14,.52)', dash = uz(1) + ' dashed rgba(255,255,255,.92)';
+        K.rcvGuideTop = { position: 'absolute', left: 0, top: 0, width: '100%', height: cq(RG.safeTop),
+          background: dim, pointerEvents: 'none', zIndex: 8 };
+        K.rcvGuideBot = { position: 'absolute', left: 0, top: cq(RG.safeBot), width: '100%', height: cq(tk.H - RG.safeBot),
+          background: dim, pointerEvents: 'none', zIndex: 8 };
+        K.rcvGuideBox = { position: 'absolute', left: 0, top: cq(RG.safeTop), width: '100%', height: cq(RG.safeBot - RG.safeTop),
+          boxSizing: 'border-box', borderTop: dash, borderBottom: dash, pointerEvents: 'none', zIndex: 8 };
+        // THE LABEL SITS IN THE DIMMED BAND, just above the top line — never inside the box,
+        // where the centred wordmark lives and a label would cover it
+        K.rcvGuideLab = { position: 'absolute', left: uz(8), bottom: '100%', marginBottom: uz(6), padding: uz(2) + ' ' + uz(8), borderRadius: uz(999),
+          background: 'rgba(8,10,14,.74)', color: '#fff', fontSize: uz(10.5), fontWeight: 600, lineHeight: 1.4,
+          letterSpacing: 'normal', whiteSpace: 'nowrap' };
+        K.rcvGuideText = '4:5 \u00b7 what the grid and feed show';
       } else if (OrganicStudio.isCs(kind)) {
         // ══ THE CAROUSEL PAGES' PREVIEW — one element per op, placed absolutely off the
         // same `csBox` the ops read. Text is the single-line idiom (`top: baseline - px`
@@ -11444,7 +12554,7 @@ class OrganicStudio extends StudioBase {
         K.csGfxOn = !!gUrl;
         if (gUrl && GB) {
           K.csGfxStyle = Object.assign(abs(GB.x, GB.y), { width: cq(GB.w), height: cq(GB.h),
-            zIndex: 11, pointerEvents: 'auto', cursor: 'move' });
+            zIndex: 11, pointerEvents: touchLive ? 'auto' : 'none', cursor: 'move', touchAction: 'none' });
           // tinted: the slot stays mounted as the drop target and the MASK is what you see,
           // which is what `tintFlat` does on canvas
           K.csGfxSlotStyle = { position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: GB.tint ? 0 : 1 };
@@ -11543,7 +12653,7 @@ class OrganicStudio extends StudioBase {
             };
             const up = () => {
               document.removeEventListener('pointermove', mv);
-              document.removeEventListener('pointerup', up);
+              document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
               this._gfxGuide = null;
               this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
               this._redoStack = [];
@@ -11552,7 +12662,7 @@ class OrganicStudio extends StudioBase {
               this.forceUpdate();
             };
             document.addEventListener('pointermove', mv);
-            document.addEventListener('pointerup', up);
+            document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
           };
           K.csGfxDown = e => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-gdir')) return; gGesture(e, false); };
           K.csGfxGrip = e => gGesture(e, true);
@@ -11736,7 +12846,7 @@ class OrganicStudio extends StudioBase {
           };
           const up = () => {
             document.removeEventListener('pointermove', mv);
-            document.removeEventListener('pointerup', up);
+            document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
             this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
             this._redoStack = [];
             this.markDirty();
@@ -11744,7 +12854,7 @@ class OrganicStudio extends StudioBase {
             this.forceUpdate();
           };
           document.addEventListener('pointermove', mv);
-          document.addEventListener('pointerup', up);
+          document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
           this.forceUpdate();
         };
 
@@ -11756,7 +12866,8 @@ class OrganicStudio extends StudioBase {
           return { fx: (ev.clientX - rr.left) / Math.max(1, rr.width) * tk.W,
                    fy: (ev.clientY - rr.top) / Math.max(1, rr.height) * tk.H };
         };
-        K.grpHitStyle = { position: 'absolute', inset: 0, zIndex: 8, pointerEvents: gLayers.length ? 'auto' : 'none' };
+        K.grpHitStyle = { position: 'absolute', inset: 0, zIndex: 8, touchAction: 'none',
+          pointerEvents: gLayers.length && touchLive ? 'auto' : 'none' };
         K.grpHitDown = e => {
           const c = toCanvas(e.currentTarget, e);
           const g = this.grpHitAt(gLayers, c.fx, c.fy);
@@ -11984,7 +13095,7 @@ class OrganicStudio extends StudioBase {
         K.revDragStyle = { position: 'absolute', left: cq(Bx.agentLeft), top: cq(Bx.agentTop),
           width: cq(Bx.agentW), height: cq(Bx.agentH), zIndex: 11,
           cursor: K.revAgentOn ? 'move' : 'default',
-          pointerEvents: K.revAgentOn ? 'auto' : 'none' };
+          touchAction: 'none', pointerEvents: K.revAgentOn && touchLive ? 'auto' : 'none' };
         K.revDragDown = e => {
           if (!K.revAgentOn) return;
           e.stopPropagation(); e.preventDefault();
@@ -12013,7 +13124,7 @@ class OrganicStudio extends StudioBase {
           };
           const up = () => {
             document.removeEventListener('pointermove', mv);
-            document.removeEventListener('pointerup', up);
+            document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
             this._undoStack = (this._undoStack || []).concat([pre]).slice(-5);
             this._redoStack = [];
             this.markDirty();
@@ -12021,7 +13132,7 @@ class OrganicStudio extends StudioBase {
             this.forceUpdate();
           };
           document.addEventListener('pointermove', mv);
-          document.addEventListener('pointerup', up);
+          document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
         };
         // No background upload on this kind, so the photo window is not drawn at all —
         // leaving a drop target nothing paints is worse than having none.
@@ -12070,6 +13181,11 @@ class OrganicStudio extends StudioBase {
       const hd = th ? th.text : (f.headline || ''), sw = th ? th.serif : (f.serif || '');
       const hi = sw ? hd.indexOf(sw) : -1;
       const lh = sl.kind === 'listed' ? this.listedHead(f, 920) : null;
+      // THE REEL THUMBNAIL HAS ONE CANVAS, its 9:16, and it takes the plate's FIRST slot —
+      // `sl.ft` is "the first canvas on the plate", which on every other kind is the 3:4
+      // feed. The story slot is never rendered for it (`storyVisible`), so it is built once.
+      const rcv = sl.kind === 'rcover';
+      const main = mkCanvas(si, rcv ? 'st' : 'ft');
       return {
         isFirst,
         // Title case and a pill, matching Campaign's plate — see the note there. The
@@ -12088,7 +13204,9 @@ class OrganicStudio extends StudioBase {
         // texture and the numeral — so it is the one photo kind that has to arrive as a
         // cut-out. Every other kind's background is a photograph and must be left whole.
         bgCut: sl.kind === 'tagent' ? '1' : undefined,
-        fgOn: !!sl.fg && !!(this._assetView && this._assetView.fg[si]),
+        // the reel thumbnail's cut-out draws on Pop-out alone, and not once the photo under
+        // it has changed (`rcvFgShown`) — the op's own two tests, so the two cannot differ
+        fgOn: !!sl.fg && !!(this._assetView && this._assetView.fg[si]) && (!rcv || this.rcvFgShown(si)),
         fgVi: ((sl.kind === 'cta' && s.tpl === 'weekly') ? (s.slides[coverIdx] || sl).id : sl.id),
         qrOn: (sl.kind === 'listed' && s.qr.show) || sl.kind === 'prop' || sl.kind === 'cover' || sl.kind === 'cta',
         qrId: sl.kind === 'prop' ? 'smp-qr-' + sl.id : (sl.kind === 'cover' || sl.kind === 'cta') ? 'smp-qr-cover' : 'smp-qr',
@@ -12100,6 +13218,7 @@ class OrganicStudio extends StudioBase {
         isTaCover: sl.kind === 'tacover', isTaAgent: sl.kind === 'tagent',
         isAward: sl.kind === 'award',
         isCs: OrganicStudio.isCs(sl.kind),
+        isRcv: rcv,
         // The cover's two headline lines and its footer bar, each derived exactly as the ops
         // derive them so the preview cannot word them differently. `taBarR` matches the
         // ranking card's own `taTop2` phrasing off the same field.
@@ -12123,10 +13242,10 @@ class OrganicStudio extends StudioBase {
           // item takes its indent out of the SHARED free space, so every CONTENT box ends
           // up equal instead and the dividers land unevenly. Campaign's spec row documents
           // that same trap. border-box keeps the indent inside the column.
-          colStyle: { display: 'flex', flexDirection: 'column', gap: '0.6cqw', boxSizing: 'border-box',
+          colStyle: { display: 'flex', flexDirection: 'column', gap: '6.48px', boxSizing: 'border-box',
             flex: 'none', width: (100 / Math.max(1, this.propSpecCols(f).length)) + '%',
             borderLeftWidth: i > 0 ? '0.5px' : '0', borderLeftStyle: i > 0 ? 'solid' : 'none',
-            borderLeftColor: OrganicStudio.ART.ruleM, paddingLeft: i > 0 ? '2.6cqw' : '0',
+            borderLeftColor: OrganicStudio.ART.ruleM, paddingLeft: i > 0 ? '28.08px' : '0',
             minWidth: 0, whiteSpace: 'nowrap' }
         })) : [],
         eyebrow: f.eyebrow || '',
@@ -12144,8 +13263,9 @@ class OrganicStudio extends StudioBase {
         listnoOn: !!f.listno && sl.kind === 'prop',
         rAgentName: this.toTitle(f.agentName || ''),
         rAgentRole: String(f.agentRole || '').toUpperCase(),
-        ft: mkCanvas(si, 'ft'),
-        st: mkCanvas(si, 'st')
+        ft: main,
+        st: rcv ? main : mkCanvas(si, 'st'),
+        ftMeta: rcv ? '1080 \u00d7 1920 \u00b7 Reel cover 9:16' : '1080 \u00d7 1440 \u00b7 feed 3:4'
       };
     });
 
@@ -12340,7 +13460,8 @@ class OrganicStudio extends StudioBase {
 
     const slideNav = s.slides.map((sl, si) => ({
       label: this.sLabel(si),
-      hint: OrganicStudio.isCs(sl.kind) ? OrganicStudio.CS_NAMES[sl.kind].toLowerCase() + ' layout' : sl.kind === 'tacover' ? 'period + team' : sl.kind === 'tagent' ? 'portrait + blurb' : sl.kind === 'cover' ? 'headline + eyebrow' : sl.kind === 'cta' ? 'closing · shares cover photo' : sl.kind === 'review' ? 'testimonial card' : sl.kind === 'prop' ? 'photo + QR' : 'announcement',
+      hint: OrganicStudio.isCs(sl.kind) ? OrganicStudio.CS_NAMES[sl.kind].toLowerCase() + ' layout'
+        : sl.kind === 'rcover' ? OrganicStudio.rcvLay(sl.f).name + ' \u00b7 9:16' : sl.kind === 'tacover' ? 'period + team' : sl.kind === 'tagent' ? 'portrait + blurb' : sl.kind === 'cover' ? 'headline + eyebrow' : sl.kind === 'cta' ? 'closing · shares cover photo' : sl.kind === 'review' ? 'testimonial card' : sl.kind === 'prop' ? 'photo + QR' : 'announcement',
       on: s.activeSi === si ? '1' : undefined,
       // Token, not '#fff': on a light rail the slide's own name was white on white.
       nameStyle: { fontWeight: s.activeSi === si ? 500 : 400, fontSize: '13px', color: 'var(--ps-ink)' },
@@ -12398,7 +13519,18 @@ class OrganicStudio extends StudioBase {
           // the form is ONE scroller across pages, so a new page would open wherever the
           // last one was left; after the render lands, start it at its top (setTimeout,
           // not rAF — rAF never fires while the pane is hidden)
-          setTimeout(() => { const w = document.querySelector('.gd-askwrap'); if (w) w.scrollTop = 0; }, 0);
+          setTimeout(() => {
+            const w = document.querySelector('.gd-askwrap'); if (w) w.scrollTop = 0;
+            // on a phone the whole screen is ONE scroller and the page strip scrolls sideways;
+            // the strip is scrolled by hand, never with scrollIntoView, which would also move
+            // the page the strip sits on
+            const b = document.querySelector('.gd[data-mode="guide"] .gd-body'); if (b) b.scrollTop = 0;
+            const st = document.querySelector('.gd-pstrip'), on = st && st.querySelector('.gd-ptile[data-on]');
+            if (st && on && st.scrollWidth > st.clientWidth) {
+              const a = st.getBoundingClientRect(), t = on.getBoundingClientRect();
+              st.scrollLeft += (t.left + t.width / 2) - (a.left + a.width / 2);
+            }
+          }, 0);
           return x;
         });
         // A blocked-list row points at a field that is ON SCREEN — the list is only ever
@@ -12421,7 +13553,11 @@ class OrganicStudio extends StudioBase {
         const advance = () => {
           const mine = asks.map((q, i) => ({ q, i })).filter(o => o.q.step === idx);
           const gaps = mine.filter(o => this.gdAskIssue(o.q)).map(o => ({ i: o.i, t: this.gdAskTitle(o.q) }));
-          if (gaps.length) { this._gdBlock = gaps; this.forceUpdate(); return; }
+          if (gaps.length) {
+            this._gdBlock = gaps; this.forceUpdate();
+            setTimeout(() => { const t = document.querySelector('.gd-ask-tail[data-on]'); if (t) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 0);
+            return;
+          }
           this._gdBlock = null;
           // Finish's Done goes back to Projects: the run is the main window now, so there
           // is no other workspace to hand over to. All controls is one click in the top bar.
@@ -12515,6 +13651,12 @@ class OrganicStudio extends StudioBase {
             isScrim, isPermit,
             isArea: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPts && f.flags.indexOf('area') >= 0,
             isInput: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPts && f.flags.indexOf('area') < 0,
+            // THE PHONE'S KEYBOARD FOLLOWS THE FILTER. A numbers-only field opened the full
+            // letter keyboard on iOS — found in the Simulator — so every price, area, listing
+            // number and ADM / CN needed a switch to 123 first. `num` keeps a decimal point,
+            // so it is the decimal pad; `digits` / `len11` are whole numbers. `set` below is
+            // still the rule: inputmode only picks the keyboard, and a paste is filtered anyway.
+            inputMode: flag('num') ? 'decimal' : (flag('digits') || flag('len11')) ? 'numeric' : 'text',
             // ONE INPUT PER POINT, the copy view's own list control — see `ptsOf`
             isPts,
             ptsKey: si + ':' + f.k,
@@ -12673,6 +13815,9 @@ class OrganicStudio extends StudioBase {
           // in the editor the rail's slide can have NO page step (the weekly closing slide),
           // so the card — hidden there anyway — is keyed on the active slide, not the step
           gdCard: sl ? cardFor(editor ? asi : step.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
+          // the reel thumbnail's card is a 9:16, and it carries the 4:5 guide the canvas does
+          gdCardAsp: s.tpl === 'rcover' ? '916' : undefined,
+          gdGuideOn: (s.tpl === 'rcover' && s.rcvGuide !== false) ? '1' : undefined,
           // the page strip under the card: every page as a labelled thumb, then Finish.
           // Done is only ever a page BEHIND you that is clear — Finish is never ticked.
           gdStrip: steps.map((st2, i) => {
@@ -12690,8 +13835,10 @@ class OrganicStudio extends StudioBase {
               dropOn: (mv && this._dragSi != null && this._dragOver === st2.si && this._dragSi !== st2.si) ? '1' : undefined });
           }),
           gdNote: isFinish
-            ? 'What you see is exactly what exports. The 9:16 story is built from the same answers'
-              + (s.storyOn ? ' and is included.' : ', and ships once its canvas is shown under the stage.')
+            ? (s.tpl === 'rcover'
+              ? 'What you see is exactly what exports \u2014 one 9:16 cover. The 4:5 guide is only on screen.'
+              : 'What you see is exactly what exports. The 9:16 story is built from the same answers'
+                + (s.storyOn ? ' and is included.' : ', and ships once its canvas is shown under the stage.'))
             : 'The grid, margins, wordmark and wash are the template’s. You fill in only what changes from post to post.',
           gdFinish: () => this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }),
           gdSkip: () => this.upd(x => { x.screen = 'editor'; x.guided = false; return x; }),
@@ -12713,17 +13860,19 @@ class OrganicStudio extends StudioBase {
       // splash's cards, so both surfaces show what `buildOps` actually produces.
       pickViews: [
         { id: 'listed', name: 'Just listed / Just sold', slidesDesc: '1 slide',
-          desc: 'Announcement — serif status headline, spelled-out price in a glass pill, "(type) in (community)" hook line, up to two agents + QR. Parallax cutout sits over the headline only.' },
+          desc: 'Announcement — the status over the photo, then a glass panel: the points as chips, "(type) for Sale or Rent in (location)", the price, the agent cut-out and the QR. An optional parallax layer passes in front of the status.' },
         { id: 'weekly', name: 'Weekly listings', slidesDesc: 'Cover + properties + CTA',
           desc: 'Carousel — cover headline, one photo slide per property with its own QR + listing number, closing CTA that shares the cover photo.' },
         { id: 'agents', name: 'Top agents', slidesDesc: 'Cover + 5 agents',
-          desc: 'Carousel — cover with the period and team, then five full-bleed agent portraits with a ranking numeral and a short blurb. Monthly, quarterly or yearly.' },
+          desc: 'Carousel — a cover with the period and team, then five agent cut-outs on a white ground, each over its ranking numeral with a short blurb. Monthly, quarterly or yearly.' },
         { id: 'review', name: 'Google reviews', slidesDesc: 'Up to 10 slides',
           desc: 'Client testimonials on navy — stars, quote, agent. Add up to 10 review slides; the card auto-sizes to the text.' },
         { id: 'award', name: 'Congratulations award', slidesDesc: '1 slide',
           desc: 'A win, on bronze under gold glitter \u2014 the award, the occasion, a 1st\u20135th numeral and your partner\u2019s mark. The card here is a skeleton; the post itself is photographic.' },
         { id: 'carousel', name: 'Carousel', slidesDesc: 'Up to 10 pages',
-          desc: 'Five page layouts to mix over full-bleed photos \u2014 a front page, stats with Material icons, check-point bullets, a text page and a closing call to action. Pick a layout per page; SWIPE \u203A shows while there is a next one.' }
+          desc: 'Five page layouts to mix over full-bleed photos \u2014 a front page, stats with Material icons, check-point bullets, a text page and a closing call to action. Pick a layout per page; SWIPE \u203A shows while there is a next one.' },
+        { id: 'rcover', name: 'Reel thumbnail', slidesDesc: '1 cover \u00b7 9:16',
+          desc: 'The cover a Reel shows in the grid and the feed \u2014 seven layouts to suit the photo, a Small-to-Jumbo type scale, a 4:5 guide, and Pop-out, which lifts the subject in front of the headline.' }
       ].map(tp => Object.assign({ name: tp.name, desc: tp.desc, slidesDesc: tp.slidesDesc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       continueSession: () => this.upd(x => { x.screen = 'editor'; return x; }),
@@ -12758,18 +13907,22 @@ class OrganicStudio extends StudioBase {
       // bottom of every card — trimming the very margins these templates are built on.
       // Campaign's card is 1:1 for exactly this reason: it matches its square canvas.
       cardMini: { aspectRatio: '3/4' },
-      tplCount: 6,
+      // DERIVED, never typed: it read a literal 6 after the Reel thumbnail made it seven, so the
+      // splash's Templates chip miscounted its own grid. TPLNAMES is the one table of template
+      // ids — `projMeta` below reads it too — and Campaign counts `CampaignStudio.TPL` the same way.
+      tplCount: Object.keys(TPLNAMES).length,
       recentCount: recents.length,
       // ONE row per template, and everything visual on it comes off the real render — see
       // `tplRenderAll`. `frames` drives the same hover reel the recents use, so a carousel
       // steps through its slides and a single-slide template stays static.
       tplCards: [
-        { id: 'listed', name: 'Just listed / sold', desc: 'Serif status headline, glass price pill, agents and QR' },
+        { id: 'listed', name: 'Just listed / sold', desc: 'Status headline, then a glass panel with the price, agent and QR' },
         { id: 'weekly', name: 'Weekly listings', desc: 'Cover, one slide per property with its own QR, closing CTA' },
         { id: 'agents', name: 'Top agents', desc: 'Cover plus five portraits with a ranking numeral' },
         { id: 'review', name: 'Google reviews', desc: 'Stars, quote and agent on a navy card, up to ten slides' },
         { id: 'award', name: 'Congratulations award', desc: 'Gold 1st–5th numeral, the award and the occasion, partner mark' },
-        { id: 'carousel', name: 'Carousel', desc: 'Five page layouts to mix — front, stats, bullets, text and a call to action' }
+        { id: 'carousel', name: 'Carousel', desc: 'Five page layouts to mix — front, stats, bullets, text and a call to action' },
+        { id: 'rcover', name: 'Reel thumbnail', desc: 'A 9:16 Reel cover — seven layouts, a Small-to-Jumbo scale, a 4:5 guide and a Pop-out parallax' }
       ].map(tp => Object.assign({ name: tp.name, desc: tp.desc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
       splashLoadOn: true,
@@ -12780,10 +13933,10 @@ class OrganicStudio extends StudioBase {
       // output can never be quietly halved by a toggle three controls away. `exportPdfDesc`
       // was additionally just WRONG: it promised "feed then story" while the PDF branch has
       // always hardcoded 'ft' and its own status line says "feed pages".
-      exportJpgDesc: 'Zip · q94, smallest — ' + (s.storyOn ? 'feed + story per slide' : 'feed only, story hidden'),
-      exportPngDesc: 'Zip · lossless — ' + (s.storyOn ? 'feed + story per slide' : 'feed only, story hidden'),
-      exportSvgDesc: 'Zip · vector text, embedded photos — ' + (s.storyOn ? 'feed + story' : 'feed only'),
-      exportPdfDesc: 'One file · all slides, feed pages only',
+      exportJpgDesc: this.deliverWord() + ' · q94, smallest — ' + (s.tpl === 'rcover' ? 'the 9:16 cover' : s.storyOn ? 'feed + story per slide' : 'feed only, story hidden'),
+      exportPngDesc: this.deliverWord() + ' · lossless — ' + (s.tpl === 'rcover' ? 'the 9:16 cover' : s.storyOn ? 'feed + story per slide' : 'feed only, story hidden'),
+      exportSvgDesc: this.deliverWord() + ' · vector text, embedded photos — ' + (s.tpl === 'rcover' ? 'the 9:16 cover' : s.storyOn ? 'feed + story' : 'feed only'),
+      exportPdfDesc: s.tpl === 'rcover' ? 'One file · the 9:16 cover as a page' : 'One file · all slides, feed pages only',
       undo: () => this.undo(),
       redo: () => this.redo(),
       // Almost-circle corners, like every other button in the top bar. It has to be set
@@ -12801,12 +13954,53 @@ class OrganicStudio extends StudioBase {
       tplLabel: TPLNAMES[s.tpl] || s.tpl,
       slideNav,
       dragHintOn: (s.tpl === 'carousel' || s.tpl === 'agents') ? '1' : undefined,
-      dragHint: s.tpl === 'agents' ? 'Drag a rank to reorder \u2014 the order is the ranking. The cover stays first.'
-                                    : 'Drag an inside page to reorder. The front page and the closing card stay put.',
+      // THE RAIL'S OWN WORDS FOLLOW THE POINTER AND THE LAYOUT. On a phone a reorder is a long
+      // press, nothing is dropped, and below 1200px the fields are in the Slide panel rather than
+      // "on the right" — found in the iOS Simulator, where all three read as desktop copy.
+      dragHint: (OrganicStudio.coarse() ? 'Hold ' : 'Drag ') + (s.tpl === 'agents'
+        ? (OrganicStudio.coarse() ? 'a rank, then drag it to reorder' : 'a rank to reorder') + ' \u2014 the order is the ranking. The cover stays first.'
+        : (OrganicStudio.coarse() ? 'an inside page, then drag it to reorder' : 'an inside page to reorder') + '. The front page and the closing card stay put.'),
+      tplFoot: 'Layouts are locked to the brand grid. Fill in the fields ' +
+        (typeof window !== 'undefined' && window.innerWidth <= 1200 ? 'in the Slide panel' : 'on the right') + '; ' +
+        (OrganicStudio.coarse() ? 'tap an empty photo on the card to add one.' : 'drop photos straight onto the canvases.'),
+      slidesHint: OrganicStudio.tapWord() + ' to edit',
       canAddSlide: (s.tpl === 'weekly' && propCount < OrganicStudio.TPLGROW.weekly)
         || (s.tpl === 'review' && revCount < OrganicStudio.TPLGROW.review)
         || (s.tpl === 'carousel' && s.slides.length < OrganicStudio.TPLGROW.carousel),
       addSlideLabel: s.tpl === 'review' ? '+ Add review slide' : (s.tpl === 'carousel' ? '+ Add page' : '+ Add property slide'),
+      // ── THE REEL THUMBNAIL'S PICKERS, read by the guided run's Layout section AND by the left
+      // rail in the editor — one set of keys, because the template has exactly one slide. The
+      // layout tiles are real renders (`rcvSync`); the size tiles light the size ASKED for and
+      // the note says when the fit had to set it a step smaller.
+      ...(() => {
+        const rsi = (s.slides || []).findIndex(z => z.kind === 'rcover');
+        if (rsi < 0) return { rcvOn: false, rcvLayTiles: [], rcvLayHint: '', rcvSizeTiles: [], rcvSizeHint: '',
+          rcvFitWarn: undefined, rcvGuideHint: '', rcvGuideRailOn: undefined, rcvGuideRailSet: () => {} };
+        const rf = s.slides[rsi].f || {}, L = OrganicStudio.rcvLay(rf), shots = this._rcvShots || {};
+        let B = null;
+        try { B = this.rcvBox(s, rsi, OrganicStudio.PXT.st); } catch (e) {}
+        const note = this.rcvFitNote(B), asked = B ? B.asked : OrganicStudio.rcvSizeAsked(rf);
+        const setF = d => this.upd(x => { const t = x.slides[rsi]; if (t) { t.f = t.f || {}; Object.assign(t.f, d); } return x; });
+        return {
+          rcvOn: true,
+          rcvLayTiles: OrganicStudio.RCV_LAYS.map(Lx => ({ name: Lx.name, tip: Lx.name + ' \u2014 ' + Lx.tip,
+            on: L.id === Lx.id ? '1' : undefined, set: () => setF({ lay: Lx.id }),
+            // a data URI lives in a style OBJECT, never a `;`-separated string, which would
+            // cut it at `;base64,`
+            shot: shots[Lx.id] ? { backgroundImage: 'url("' + shots[Lx.id] + '")' } : {} })),
+          rcvLayHint: L.name + ' \u2014 ' + L.tip,
+          rcvSizeTiles: OrganicStudio.RCV_SIZE_ORDER.map((n, i) => ({ name: n,
+            tip: n + ' \u2014 a ' + Math.round(OrganicStudio.RCV_SIZES[n]) + 'px headline' + (n === L.size ? ', this layout\u2019s own' : ''),
+            on: asked === n ? '1' : undefined, set: () => setF({ tsize: n }),
+            // each tile is a specimen of its own step: 14px times 1.2 per step
+            glyph: { fontSize: (14 * Math.pow(1.2, i)).toFixed(1) + 'px' } })),
+          rcvSizeHint: note || 'The whole text block, one step of the brand\u2019s minor third at a time. The wordmark and the ADM and CN chips stay as they are.',
+          rcvFitWarn: note ? '1' : undefined,
+          rcvGuideHint: 'A Reel cover is cropped to 4:5 in the profile grid and the feed \u2014 keep what has to read inside the dashed box. The export is never marked.',
+          rcvGuideRailOn: s.rcvGuide !== false ? '1' : undefined,
+          rcvGuideRailSet: () => this.upd(x => { x.rcvGuide = x.rcvGuide === false; return x; })
+        };
+      })(),
       // THE LEFT RAIL CARRIES THE FIVE LAYOUT PRESETS on the carousel template, for the active
       // page. Each tile is a skeleton of where that layout puts its copy.
       csOn: s.tpl === 'carousel',
@@ -12897,8 +14091,15 @@ class OrganicStudio extends StudioBase {
       // output. `storyOn` is CHROME, not design — `strip()` deletes it, so toggling it does
       // not churn the undo stack or the re-render key, exactly as `exportKind` does. It
       // still rides in the saved project, so the choice survives a reload.
-      storyVisible: !!s.storyOn,
+      // the reel thumbnail's one canvas already IS its 9:16, so it never shows a second
+      storyVisible: !!s.storyOn && s.tpl !== 'rcover',
       storyOnFlag: s.storyOn ? '1' : undefined,
+      // the canvas bar's own toggle, swapped per template: the story on every other one, the
+      // 4:5 guide on the reel thumbnail (which has no story to show)
+      storyBtnOn: s.tpl !== 'rcover',
+      rcvGuideBtnOn: s.tpl === 'rcover' ? '1' : undefined,
+      rcvGuideFlag: s.rcvGuide !== false ? '1' : undefined,
+      toggleRcvGuide: () => this.upd(x => { x.rcvGuide = x.rcvGuide === false; return x; }),
       storyBtnLabel: s.storyOn ? 'Hide story 9:16' : 'Show story 9:16',
       toggleStory: () => this.upd(x => { x.storyOn = !x.storyOn; return x; }),
       imgOVal: s.imgO == null ? 100 : s.imgO,
@@ -12919,6 +14120,8 @@ class OrganicStudio extends StudioBase {
       // colour and, on the carousel, Campaign's three scrim controls. The right rail keeps
       // only the page.
       shadeAllowed: this.shadeUsed(s),
+      // every template draws a glass panel EXCEPT the reel thumbnail, which has none
+      glassAllowed: s.tpl !== 'rcover',
       shadeVal: s.shade == null ? 35 : s.shade,
       onShade: e => { const v = +e.target.value; this.upd(x => { x.shade = v; return x; }); },
       glassOpts: [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1],
@@ -13133,7 +14336,9 @@ class OrganicStudio extends StudioBase {
       onCustomName: e => { const v = e.target.value; this.upd(x => { x.customName = v; return x; }); },
       // It showed the bare stem, which is not a name the export ever writes — every file
       // carries its size suffix.
-      filePreview: 'e.g. ' + this.fileNameFor(asi) + '_3x4.png'
+      // the reel thumbnail writes ONE file, its 9:16
+      filePreview: s.tpl === 'rcover' ? 'e.g. ' + this.fileNameFor(asi) + '_9x16.png'
+        : 'e.g. ' + this.fileNameFor(asi) + '_3x4.png'
         + (s.storyOn ? ' · ' + this.fileNameFor(asi) + '_9x16.png' : ''),
       ...this.expPickVals(true),
       ...this.splashNoteVals(),
@@ -13353,6 +14558,7 @@ class Component extends DCLogic {
     this._rtTick();
     this._dragTick();
     this._tplTick();
+    this._rcvTick();
   }
   componentDidUpdate() {
     StudioBase.promoteImgs();
@@ -13369,6 +14575,14 @@ class Component extends DCLogic {
       if (a2.state.screen === 'guide' && a2.gdSync) a2.gdSync();
     }
     this._tplTick(a2);
+    this._rcvTick(a2);
+  }
+  // The reel thumbnail's layout tiles are real renders, kept current from here — the sync is
+  // key-guarded and debounced, so calling it on every update is a no-op between changes.
+  _rcvTick(a) {
+    const e = a || this.active();
+    if (!e || !e.rcvSync || !e.state || e.state.tpl !== 'rcover') return;
+    if (e.state.screen === 'guide' || e.state.screen === 'editor') e.rcvSync();
   }
   // The rich body editor fills its own rows, and it is driven from HERE as well as from the
   // engine's rAF tick — rAF does not fire while the browser pane is not compositing, which
