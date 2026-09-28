@@ -4052,6 +4052,75 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
       </div>
       <span class="p-meta">1920 × 1080 · wide — text column left, image window right · <span style="{{ v.ls.coverStyle }}" class="tip" data-tip="{{ v.ls.coverTip }}">{{ v.ls.coverLabel }}</span></span>
       </sc-if>
+      <div class="p-plate-f">
+        <span class="p-meta">Banner 2:1 {{ v.banState }}</span>
+        <button onClick="{{ v.toggleBanner }}" style="{{ v.wideBtnStyle }}">{{ v.banBtnLabel }}</button>
+        <sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleBanOv }}" style="{{ v.wideBtnStyle }}">{{ v.banOvLabel }}</button><button onClick="{{ v.toggleBgBn }}" style="{{ v.wideBtnStyle }}">{{ v.bgBnLabel }}</button></sc-if>
+      </div>
+      <sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.bn.cwPx }}" style="{{ v.bn.canvasStyle }}">
+        <div class="canvasbg" style="{{ v.bn.bgWrapStyle }}"><sc-for list="{{ v.bgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for the banner" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
+        <div style="{{ v.bn.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.bn.guideStyle }}"></div></sc-if>
+        <div style="{{ v.bn.frameStyle }}">
+          <div style="{{ v.bn.logoStyle }}"><span>provident.</span><sc-if value="{{ v.bn.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.bn.coRuleStyle }}"></span><span style="{{ v.bn.coInkStyle }}" data-icon-tint="{{ v.bn.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.bn.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.bn.coPaintStyle }}"></i></span></sc-if></div>
+          <div style="{{ v.bn.stackStyle }}">
+            <sc-for list="{{ v.bn.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bn.fgStyle }}"><div style="{{ v.bn.fgTintStyle }}"></div></div></div></sc-if>
+      </div>
+      <span class="p-meta">1880 × 940 · Eventbrite banner, exported at exactly this size · <span style="{{ v.bn.coverStyle }}" class="tip" data-tip="{{ v.bn.coverTip }}">{{ v.bn.coverLabel }}</span></span>
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.bs.cwPx }}" style="{{ v.bs.canvasStyle }}">
+        <div class="canvasbg" style="{{ v.bs.bgWrapStyle }}"><sc-for list="{{ v.bgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for the banner" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
+        <div style="{{ v.bs.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.bs.guideStyle }}"></div></sc-if>
+        <div style="{{ v.bs.frameStyle }}">
+          <div style="{{ v.bs.logoStyle }}"><span>provident.</span><sc-if value="{{ v.bs.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.bs.coRuleStyle }}"></span><span style="{{ v.bs.coInkStyle }}" data-icon-tint="{{ v.bs.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.bs.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.bs.coPaintStyle }}"></i></span></sc-if></div>
+          <div style="{{ v.bs.stackStyle }}">
+            <sc-for list="{{ v.bs.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ m.chipStyle }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bs.fgStyle }}"><div style="{{ v.bs.fgTintStyle }}"></div></div></div></sc-if>
+      </div>
+      <span class="p-meta">758 × 380 · the same banner at the email size — scales on its own · <span style="{{ v.bs.coverStyle }}" class="tip" data-tip="{{ v.bs.coverTip }}">{{ v.bs.coverLabel }}</span></span>
+      </sc-if>
     </div>
   </sc-for>
 </main>
@@ -4257,6 +4326,13 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
             <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
+        <sc-if value="{{ bgSepBnOn }}" hint-placeholder-val="{{ false }}">
+          <span class="p-lab">Banner own photo <span class="tip" data-tip="Used by both banner sizes instead of the shared picture — one photo, cover-fitted edge to edge on the 1880 × 940 and the 758 × 380 alike." style="{{ infoStyle }}">i</span></span>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ bgBnDoneOn }}"><sc-for list="{{ activeBgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the banner picture" style="{{ bgSlotBnStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop-t"><s>{{ bgBnDropLabel }}</s><sc-if value="{{ bgBnDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgBnRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+          </div>
+        </sc-if>
       </div>
       <div class="p-grp">
         <span class="p-lab">Overlap image <span class="tip" data-tip="Drop a cutout PNG — it sits over the hero headline only, so the eyebrow, hook, body, tags, spec, price, CTA, wordmark and QR all stay on top of it. It automatically matches the background photo's position and zoom, so reframing the background carries the cutout with it. Pair with the Jumbo hero for the parallax look." style="{{ infoStyle }}">i</span></span>
@@ -4333,7 +4409,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
     </div>
 
     <div class="p-grp">
-      <span class="p-lab">Scaling <span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins and the 16:9 text column stay fixed, so the brand grid holds. Each size scales on its own, and the background photo is untouched." style="{{ infoStyle }}">i</span></span>
+      <span class="p-lab">Scaling <span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins and the 16:9 and banner text columns stay fixed, so the brand grid holds. Each size scales on its own — the two banners too, by file width — and the background photo is untouched." style="{{ infoStyle }}">i</span></span>
       <sc-for list="{{ scaleRows }}" as="sc" hint-placeholder-count="2">
         <div class="p-scale">
           <span class="p-scale-n">{{ sc.label }}</span>
@@ -4465,7 +4541,7 @@ class CampaignStudio extends StudioBase {
   // The slot class is not a global — it is reached through the registry, as every other
   // static call here is (`IS.copySlot` / `IS.moveSlot`).
   static slotClear(id) { const IS = customElements.get('image-slot'); if (IS && IS.clearSlot) IS.clearSlot(id); }
-  static newVariant(name) { return { name, clusters: {}, mvar: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100 }, bg: 'dark', logoAlign: 'left', story: null, mods: null }; }
+  static newVariant(name) { return { name, clusters: {}, mvar: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100, bn: 100, bs: 100 }, bg: 'dark', logoAlign: 'left', story: null, mods: null }; }
   // `Object.assign(defaults, saved)` is SHALLOW, so a saved `variants` array
   // replaces the defaults outright and every per-variant key added since that
   // session was written stays missing. Most render paths guard with `== null`,
@@ -4501,6 +4577,8 @@ class CampaignStudio extends StudioBase {
       v.scaleBy = { sq: s, st: s, ls: s };
     }
     if (v.story === undefined) v.story = null;
+    // the banner's detached layout — ONE record for both banner sizes
+    if (v.banOv === undefined) v.banOv = null;
     return v;
   }
   // `stats` was the same label/value block as `spec`, and `strip` the same authored
@@ -4526,7 +4604,7 @@ class CampaignStudio extends StudioBase {
         if (!v || !v.mvar) return;
         const old = v.mvar[m.id];
         if (old != null) v.mvar[m.id] = mg.mvar[old] || (mg.type === 'spec' ? 'ladder' : 'mist');
-        ['story', 'wideOv'].forEach(k => { if (v[k] && v[k].mvar && v[k].mvar[m.id] != null) v[k].mvar[m.id] = mg.mvar[v[k].mvar[m.id]] || (mg.type === 'spec' ? 'ladder' : 'mist'); });
+        CampaignStudio.OVK.forEach(k => { if (v[k] && v[k].mvar && v[k].mvar[m.id] != null) v[k].mvar[m.id] = mg.mvar[v[k].mvar[m.id]] || (mg.type === 'spec' ? 'ladder' : 'mist'); });
       });
       if (was === 'rating') { m.cols = (m.cols || []).map(c => ({ l: c.l || '', v: c.v || '' })); }
     });
@@ -4565,7 +4643,7 @@ class CampaignStudio extends StudioBase {
       }
       delete v.pageOv;
     });
-    p.variants.forEach(v => { delete v.cur; ['story', 'wideOv'].forEach(k => { if (v[k]) delete v[k].cur; }); });
+    p.variants.forEach(v => { delete v.cur; CampaignStudio.OVK.forEach(k => { if (v[k]) delete v[k].cur; }); });
     if (typeof p.activeVi !== 'number' || p.activeVi < 0 || p.activeVi >= p.variants.length) p.activeVi = 0;
     // The copy workflow. A project written before it has neither key: it opens as a Draft
     // with an empty history, which is exactly what it was.
@@ -4824,6 +4902,24 @@ class CampaignStudio extends StudioBase {
   }
 
   // ---------- export engine ----------
+  // THE EVENTBRITE BANNER, 2:1 — two files and ONE design. Eventbrite serves the event
+  // image at exactly 1880 wide into a 940 × 470 box on a desktop and 375 × 188 on a phone
+  // (measured on the live page: 2:1, uncropped, nothing overlaid), so `bn` is that file,
+  // and `bs` is the 758 × 380 email banner.
+  //
+  // `bs` IS LAID OUT AT `bn`'S OWN WIDTH, 1880, AT ITS OWN ASPECT — 1880 × 942.48 — and
+  // exported at 758 / 1880, which lands on exactly 758 × 380 in floating point (checked).
+  // Laying it out at 758 would NOT be the same design: the margins, the wordmark's 80px
+  // clear space and every chip and panel padding are canvas-pixel literals, so at 40% of
+  // the width all of them would come out 2.5x too large beside the type. At 1880 they are
+  // exactly `bn`'s, every line wraps at the same word, and the whole difference is 2.48
+  // canvas px of extra height in the image window.
+  //
+  // The type is the 1:1's own steps: the 24px brand floor holds, and Eventbrite shows the
+  // 1880 file at half size on a desktop, which is about where a 1:1 sits in a feed.
+  // `out` is the file's pixel size. `noQr` because a banner is clicked, not scanned — and
+  // it keeps the project's QR on the Meta sizes, where hiding it would otherwise hide it.
+  static BANNER_TK = { pad: [80, 120, 80, 120], col: 800, gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52, noQr: true };
   static PXT = {
     sq: { W: 1080, H: 1080, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
     // 9:16 margins are the Reels SAFE AREA, retraced off live Facebook ads — see the note
@@ -4846,8 +4942,18 @@ class CampaignStudio extends StudioBase {
     // stands at 260 — the mock draws no top header at all, and the ads it replaced had a
     // ☰ Reels header striking through the wordmark. An omission is not evidence of absence.
     st: { W: 1080, H: 1920, pad: [260, 100, 460, 100], railR: 170, gapS: 30, hero: 103, headline: 71, hook: 41, body: 28, eyebrow: 28, logo: 50, ctaF: 35, ctaPV: 20, qr: 104, stat: 59, stepD: 60 },
-    ls: { W: 1920, H: 1080, pad: [80, 120, 80, 120], col: 780, gapS: 22, hero: 76, headline: 54, hook: 32, body: 26, eyebrow: 22, logo: 38, ctaF: 26, ctaPV: 16, qr: 86, stat: 46, stepD: 48 }
+    ls: { W: 1920, H: 1080, pad: [80, 120, 80, 120], col: 780, gapS: 22, hero: 76, headline: 54, hook: 32, body: 26, eyebrow: 22, logo: 38, ctaF: 26, ctaPV: 16, qr: 86, stat: 46, stepD: 48 },
+    bn: Object.assign({ W: 1880, H: 940, out: [1880, 940] }, CampaignStudio.BANNER_TK),
+    bs: Object.assign({ W: 1880, H: 1880 * 380 / 758, out: [758, 380] }, CampaignStudio.BANNER_TK)
   };
+  // The file a size exports as: its own pixel size when the size declares one (the two
+  // banners), otherwise the 2x every Meta size has always shipped at.
+  static exportScale(sizeKey) { const t = CampaignStudio.PXT[sizeKey]; return (t && t.out) ? t.out[0] / t.W : 2; }
+  static SUFFIX = { sq: '1x1', st: '9x16', ls: '16x9', bn: '1880x940', bs: '758x380' };
+  static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '16:9', bn: 'Banner 1880', bs: 'Banner 758' };
+  // The size whose OWN PHOTO a canvas reads. Both banners are one design, so the 758 reads
+  // the 1880's — one upload, one crop, cover-fitted edge to edge on each.
+  static photoSize(sizeKey) { return sizeKey === 'bs' ? 'bn' : sizeKey; }
   static DIVV = { line: [1, 1], line2: [2, 1], line4: [4, 1], soft: [1, .4], soft2: [2, .4] };
   // Starting points lifted from figma-kit/templates (family-a … family-i). Each is
   // the component set, layout preset and logo placement that family was drawn with;
@@ -5454,7 +5560,7 @@ class CampaignStudio extends StudioBase {
     page(a => {
       header(a, 'Grid & geometry', 'Canvas, margins and rhythm', 4);
       let y = M + 66;
-      const names = { sq: '1:1 square', st: '9:16 story / reel', ls: '16:9 wide' };
+      const names = { sq: '1:1 square', st: '9:16 story / reel', ls: '16:9 wide', bn: 'Banner 2:1', bs: 'Banner 2:1, email' };
       const keys = Object.keys(CampaignStudio.PXT), gap = 26;
       // fitted to the band, never to a fixed height: three canvases are 3.34
       // aspect-widths together and at a fixed height they run past the margin
@@ -5479,13 +5585,14 @@ class CampaignStudio extends StudioBase {
       L.sub('Margins — top / right / bottom / left, in canvas pixels');
       keys.forEach(k => {
         const t = CampaignStudio.PXT[k];
-        L.row(names[k] + '   ' + t.W + ' × ' + t.H, t.pad.join(' / '));
+        // a banner states its FILE's size; the 758 one is laid out at 1880 (BANNER_TK)
+        L.row(names[k] + '   ' + (t.out ? t.out.join(' × ') : t.W + ' × ' + t.H), t.pad.join(' / ') + (t.out && t.out[0] !== t.W ? ' at 1880' : ''));
       });
       L.note('The dashed box is the live area. Nothing is placed outside it.', 7.2);
       R.sub('Vertical rhythm');
       R.row('Wordmark clear space', '80 px, every canvas');
       R.row('Base gap', keys.map(k => k + ' ' + CampaignStudio.PXT[k].gapS).join('   '));
-      R.row('QR box', keys.map(k => k + ' ' + CampaignStudio.PXT[k].qr).join('   '));
+      R.row('QR box', keys.map(k => k + ' ' + (CampaignStudio.PXT[k].noQr ? '—' : CampaignStudio.PXT[k].qr)).join('   '));
       R.row('Wordmark size', keys.map(k => k + ' ' + CampaignStudio.PXT[k].logo).join('   '));
       R.note('Margins are FIXED. Scaling (' + keys.map(k => k + ' ' + CampaignStudio.scaleRange(k).join('–') + '%').join(', ') +
         ') moves type, component boxes, spacing, the wordmark and the QR — never the canvas, the margins or the 16:9 text column.', 7.2);
@@ -5672,7 +5779,10 @@ class CampaignStudio extends StudioBase {
   // The range is PER SIZE. A 9:16 carries the same copy down a much narrower column
   // between a 174px top margin and a 360px bottom one, so it needs to come down a long
   // way — to half — far more than it ever needs to go up.
-  static SCALE_RANGE = { sq: [80, 130], st: [50, 100], ls: [80, 130] };
+  // The 758 banner goes higher than the rest: an email shows it at 1:1, where 100% of the
+  // 1880 design sets the smallest caps near 10px, so its type is the one that needs to come
+  // UP. Each banner scales on its own, like every size.
+  static SCALE_RANGE = { sq: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150] };
   static scaleRange(sizeKey) {
     return CampaignStudio.SCALE_RANGE[sizeKey] || [CampaignStudio.SCALE_MIN, CampaignStudio.SCALE_MAX];
   }
@@ -5984,7 +6094,7 @@ class CampaignStudio extends StudioBase {
   static maxVars(s) { return CampaignStudio.isCarousel(s) ? 10 : 3; }
   // The 9:16 can only be dropped on a carousel; a single ad always ships every size.
   static storyShown(s) { return !CampaignStudio.isCarousel(s) || s.storyOn !== false; }
-  static sizesFor(s, v) { const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); return out; }
+  static sizesFor(s, v) { const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out; }
   // The list a render of page/variant `vi` reads. Never mutate what this returns.
   static modulesFor(s, vi) {
     if (!CampaignStudio.isCarousel(s)) return s.modules || [];
@@ -6019,7 +6129,7 @@ class CampaignStudio extends StudioBase {
     const keepOld = !!(opt && opt.keepOld), map = {};
     v.mods = (srcMods || []).map(m => { const c = JSON.parse(JSON.stringify(m)); c.id = CampaignStudio.freshId(); map[m.id] = c.id; return c; });
     const olds = Object.keys(map);
-    [v, v.story, v.wideOv].forEach(o => {
+    CampaignStudio.recsOf(v).forEach(o => {
       if (!o) return;
       ['clusters', 'mvar', 'hidden', 'gapB', 'gfloat', 'gpos'].forEach(k => {
         if (!o[k]) return;
@@ -6054,7 +6164,7 @@ class CampaignStudio extends StudioBase {
     const car = CampaignStudio.isCarousel(x);
     x.variants.forEach((vv, k) => {
       if (car && k !== (x.variants.indexOf(x.variants[vi] || x.variants[0]))) return;
-      [vv, vv.story, vv.wideOv].forEach(o => {
+      CampaignStudio.recsOf(vv).forEach(o => {
         if (!o) return;
         ['clusters', 'mvar', 'hidden', 'gapB', 'gfloat', 'gpos'].forEach(kk => { if (o[kk]) delete o[kk][id]; });
         if (Array.isArray(o.ord)) o.ord = o.ord.filter(z => z !== id);
@@ -6078,7 +6188,20 @@ class CampaignStudio extends StudioBase {
     if (!IS || !IS.moveSlot) return;
     ids.forEach(id => { IS.moveSlot(null, 'adstudio-mod-' + id); for (let i = 0; i < CampaignStudio.ICON_MAX; i++) IS.moveSlot(null, 'adstudio-ic-' + id + '-' + i); });
   }
-  static sizeOv(v, size) { return (size === 'st' && v.story) ? v.story : ((size === 'ls' && v.wideOv) ? v.wideOv : null); }
+  // The detached layout record a size reads, or null while it mirrors the variant. The
+  // two banners share ONE record, `banOv` — they are one design at two file sizes.
+  static sizeOv(v, size) {
+    if (size === 'st') return v.story || null;
+    if (size === 'ls') return v.wideOv || null;
+    if (size === 'bn' || size === 'bs') return v.banOv || null;
+    return null;
+  }
+  // Every DETACHED size record a variant can carry. Anything that walks a variant's layout
+  // records walks this list — forkPage, dropMod, copyMove, the layout presets, the merge
+  // and the load — so a new size cannot be missed by one of them. They were six copies of
+  // a literal `[v, v.story, v.wideOv]`, which is exactly how a new size gets missed.
+  static OVK = ['story', 'wideOv', 'banOv'];
+  static recsOf(v) { return v ? [v].concat(CampaignStudio.OVK.map(k => v[k])) : []; }
   modPx(m, v, tk, innerW, ov) {
     const mv = v.mvar[m.id];
     if (m.type === 'divider') return (CampaignStudio.DIVV[mv] || [1, 1])[0];
@@ -6240,7 +6363,8 @@ class CampaignStudio extends StudioBase {
     const guard = CampaignStudio.railBox(tk, center, innerW, pL);
     const ops = [];
     ops.push({ op: 'rect', x: 0, y: 0, w: W, h: H, fill: pal.base });
-    const bg = (sizeKey !== 'sq' && v.bgSep && v.bgSep[sizeKey] && assets['bg' + vi + '_' + sizeKey]) || assets['bg' + vi];
+    const psz = CampaignStudio.photoSize(sizeKey);
+    const bg = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) || assets['bg' + vi];
     if (bg && bg.img) {
       const iw = bg.img.naturalWidth, ih = bg.img.naturalHeight;
       const base = Math.max(W / iw, H / ih), k = base * (bg.s || 1);
@@ -6797,14 +6921,19 @@ class CampaignStudio extends StudioBase {
     // QR — clean white square, no stroke; uploaded code fills the box. It sits on the
     // bottom margin, which is inside the Reels action rail's own band, so a right-corner
     // QR is pulled in past it — the same railR the bottom cluster respects.
-    if (state.qr.show) {
+    // A banner draws none: it is clicked, not scanned (see BANNER_TK).
+    if (state.qr.show && !tk.noQr) {
       const qs = tk.qr;
       const qx = state.qr.corner === 'left' ? pL : W - Math.max(pR, tk.railR || 0) - qs;
       const qy = H - pB - qs;
       ops.push({ op: 'rect', x: qx, y: qy, w: qs, h: qs, fill: '#FFFFFF' });
       if (assets.qr && assets.qr.img) ops.push({ op: 'image', img: assets.qr.img, url: assets.qr.u, x: qx, y: qy, w: qs, h: qs, clip: { x: qx, y: qy, w: qs, h: qs, r: 0 } });
     }
-    return { W, H, ops };
+    // `out` rides along only on a size that declares a file size, so every other size
+    // returns exactly the shape it always has.
+    const built = { W, H, ops };
+    if (tk.out) built.out = tk.out;
+    return built;
   }
   heroLines(m, v, tk, maxW) {
     const mv = v.mvar[m.id];
@@ -7167,7 +7296,10 @@ class CampaignStudio extends StudioBase {
         body += `<text x="${dir === 'rtl' ? o.x + tw : o.x}" y="${o.y}" font-family="${fam}" font-size="${o.px}" font-weight="${o.weight}" fill="${fill}"${o.ls ? ` letter-spacing="${o.ls}"` : ''}${bidi}>${esc(o.text)}</text>`;
       }
     });
-    return `<svg width="${built.W}" height="${built.H}" viewBox="0 0 ${built.W} ${built.H}" xmlns="http://www.w3.org/2000/svg">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
+    // A size with a file size of its own (the 758 banner is laid out at 1880) states that
+    // size; the viewBox stays in canvas units, and the two share one aspect exactly.
+    const svgW = built.out ? built.out[0] : built.W, svgH = built.out ? built.out[1] : built.H;
+    return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${built.W} ${built.H}" xmlns="http://www.w3.org/2000/svg">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
   }
   async loadAssets(state) {
     let sidecar = {};
@@ -7180,7 +7312,8 @@ class CampaignStudio extends StudioBase {
       if (v && v.u) { const img = await loadImg(v.u); if (img) assets['bg' + vi] = { img, u: v.u, s: v.s, x: v.x, y: v.y }; }
       const fgv = norm(sidecar['adstudio-fg-' + vi]);
       if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + vi] = { img, u: fgv.u, s: fgv.s, x: fgv.x, y: fgv.y }; }
-      for (const sz of ['st', 'ls']) {
+      // `bn` is the banner's own photo — one slot for both banner sizes (photoSize)
+      for (const sz of ['st', 'ls', 'bn']) {
         const b2 = norm(sidecar['adstudio-bg-' + vi + '-' + sz]);
         if (b2 && b2.u) { const img = await loadImg(b2.u); if (img) assets['bg' + vi + '_' + sz] = { img, u: b2.u, s: b2.s, x: b2.x, y: b2.y }; }
       }
@@ -7255,11 +7388,14 @@ class CampaignStudio extends StudioBase {
       const assets = await this.loadAssets(state);
       if (kind === 'pdf') {
         const pages = [];
-        for (const sizeKey of ['sq', 'st', 'ls']) {
+        for (const sizeKey of Object.keys(CampaignStudio.PXT)) {
           for (let vi = 0; vi < state.variants.length; vi++) {
             if (!CampaignStudio.sizesFor(state, state.variants[vi]).includes(sizeKey)) continue;
             const built = this.buildOps(state, vi, sizeKey, assets);
-            const cv = this.renderOpsToCanvas(built, 2);
+            // twice the FILE's size: 2x for a Meta size, 3760 wide for the 1880 banner and
+            // 1516 for the 758 one — never twice a canvas the file is not
+            const pdfK = CampaignStudio.PXT[sizeKey].out ? 2 * CampaignStudio.exportScale(sizeKey) : 2;
+            const cv = this.renderOpsToCanvas(built, pdfK);
             const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.95));
             pages.push({ w: built.W, h: built.H, pw: cv.width, ph: cv.height, data: new Uint8Array(await blob.arrayBuffer()) });
           }
@@ -7273,9 +7409,11 @@ class CampaignStudio extends StudioBase {
       for (let vi = 0; vi < state.variants.length; vi++) {
         for (const sizeKey of CampaignStudio.sizesFor(state, state.variants[vi])) {
           const built = this.buildOps(state, vi, sizeKey, assets);
-          const suffix = sizeKey === 'sq' ? '1x1' : (sizeKey === 'st' ? '9x16' : '16x9');
+          const suffix = CampaignStudio.SUFFIX[sizeKey] || sizeKey;
           if (kind === 'png' || kind === 'jpg') {
-            const r = await this.rasterFile(built, kind);
+            // at the FILE's own size — 2x for the Meta sizes, exactly 1880 x 940 and
+            // 758 x 380 for the banners
+            const r = await this.rasterFile(built, kind, CampaignStudio.exportScale(sizeKey));
             files.push({ name: `${name}_${this.fileLabel(vi)}_${suffix}.${r.ext}`, data: r.data });
           } else {
             files.push({ name: `${name}_${this.fileLabel(vi)}_${suffix}.svg`, data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
@@ -7301,6 +7439,7 @@ class CampaignStudio extends StudioBase {
       put('adstudio-bg-' + vi, 'background-' + lab(vi));
       put('adstudio-bg-' + vi + '-st', 'background-' + lab(vi) + '-9x16');
       put('adstudio-bg-' + vi + '-ls', 'background-' + lab(vi) + '-16x9');
+      put('adstudio-bg-' + vi + '-bn', 'background-' + lab(vi) + '-banner');
       put('adstudio-fg-' + vi, 'cutout-' + lab(vi));
     });
     put('adstudio-qr', 'qr');
@@ -7342,7 +7481,9 @@ class CampaignStudio extends StudioBase {
   async downloadGuides() {
     try { await Promise.all(['300 30px "Google Sans Flex"', '500 26px "Google Sans Flex"'].map(f => document.fonts.load(f))); } catch (e) {}
     const files = [];
-    for (const [sizeKey, suffix, title] of [['sq', '1x1', 'Square feed'], ['st', '9x16', 'Story / reel'], ['ls', '16x9', 'Wide']]) {
+    // The banner's guide is its 1880 canvas: the 758 file is the same layout at its own
+    // aspect (BANNER_TK), so one grid serves both, and the title says so.
+    for (const [sizeKey, suffix, title] of [['sq', '1x1', 'Square feed'], ['st', '9x16', 'Story / reel'], ['ls', '16x9', 'Wide'], ['bn', 'banner-2x1', 'Eventbrite banner (758 × 380 is this layout)']]) {
       const gv = this.state.variants[this.state.activeVi] || this.state.variants[0];
       const tk = CampaignStudio.tkFor(sizeKey, gv), W = tk.W, H = tk.H;
       const [pT, pR, pB, pL] = tk.pad.map(Math.round);
@@ -7365,7 +7506,7 @@ class CampaignStudio extends StudioBase {
         T('platform UI zone — keep copy clear', pL, 130, 30, 500);
         T('platform UI zone — keep copy clear', pL, H - 180, 30, 500);
       }
-      if (sizeKey === 'ls') {
+      if (tk.col) {
         x.fillStyle = 'rgba(255,255,255,.10)';
         x.fillRect(pL, pT, tk.col, H - pT - pB);
         T('text column · ' + tk.col + 'px (left-aligned layouts)', pL + 24, pT + 54, 30, 500);
@@ -7373,8 +7514,10 @@ class CampaignStudio extends StudioBase {
       }
       T('logo zone · wordmark ' + tk.logo + 'px · 80px clear space below', pL + 24, pT + (sizeKey === 'ls' ? 104 : 104), 26, 300, '#ECE7DF');
       const qs = tk.qr;
-      x.strokeStyle = '#fff'; x.lineWidth = 2; x.strokeRect(W - pR - qs, H - pB - qs, qs, qs);
-      T('QR ' + qs + '×' + qs, W - pR - qs, H - pB - qs - 16, 24, 500);
+      if (!tk.noQr) {
+        x.strokeStyle = '#fff'; x.lineWidth = 2; x.strokeRect(W - pR - qs, H - pB - qs, qs, qs);
+        T('QR ' + qs + '×' + qs, W - pR - qs, H - pB - qs - 16, 24, 500);
+      }
       T(title + ' · ' + W + '×' + H + ' · scrim follows text cluster · type scale: minor third from 24px floor', pL, H - 24, 24, 300, '#D4CFC4');
       const blob = await new Promise(res => c.toBlob(res, 'image/png'));
       files.push({ name: 'Guide_' + suffix + '.png', data: new Uint8Array(await blob.arrayBuffer()) });
@@ -7511,7 +7654,7 @@ class CampaignStudio extends StudioBase {
     if (!id || !tid || id === tid) return;
     const list = CampaignStudio.modList(x, vi);
     const vs = CampaignStudio.isCarousel(x) ? [x.variants[vi] || x.variants[0]] : (x.variants || []);
-    vs.forEach(v => [v, v.story, v.wideOv].forEach(t => {
+    vs.forEach(v => CampaignStudio.recsOf(v).forEach(t => {
       if (!t || (t !== v && !t.clusters)) return;   // a linked size reads the variant's own
       t.clusters = t.clusters || {};
       const cOf = m => t.clusters[m] || 'bottom';
@@ -8169,7 +8312,9 @@ class CampaignStudio extends StudioBase {
       const sc = this.scrimStops(v, tk, plist.filter(m => !hid[m.id] && !isFl(m)), clusterOf, gov);
       const scrim = `linear-gradient(${sc.horiz ? 'to right' : 'to bottom'}, ${sc.stops.map(st2 => `rgba(${sc.base},${+st2[1].toFixed(3)}) ${(st2[0] * 100).toFixed(1)}%`).join(', ')})`;
       const [pT, pR, pB, pL] = tk.pad;
-      const width = sizeKey === 'sq' ? dispW : (sizeKey === 'ls' ? Math.round(dispW * 1.18) : Math.round(dispW * .58));
+      // The 1880 banner is shown as wide as the 16:9; the 758 one smaller, so the pair reads
+      // as one design at two file sizes rather than as the same canvas twice.
+      const width = sizeKey === 'sq' ? dispW : ((sizeKey === 'ls' || sizeKey === 'bn') ? Math.round(dispW * 1.18) : (sizeKey === 'bs' ? Math.round(dispW * .76) : Math.round(dispW * .58)));
       const mk = (m, g) => {
         // `g` is the module's cluster box, so a bottom-cluster spec panel, step grid or
         // graphic is built at the SAME width the ops build it at — the rail guard.
@@ -8382,7 +8527,11 @@ class CampaignStudio extends StudioBase {
               iconPaintStyle: { position: 'absolute', inset: 0, display: 'none', pointerEvents: 'none', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskPosition: 'center', WebkitMaskSize: 'contain', maskSize: 'contain' },
               // Figure over label, ALWAYS — the op forces the same reading order, and
               // the pair stays flush with the icon while the BLOCK centres in its column.
-              pairStyle: { display: 'flex', flexDirection: 'column', gap: cq(B.g2), minWidth: 0 },
+              // FLUSH MEANS LEFT, in the pair too: the op draws both runs at the pair's own
+              // x (`ctr` false), and on a CENTRED design the column flex stretched each run
+              // to the pair's width while the stack's text-align:center centred the shorter
+              // one inside it — measured 75-115 canvas px off on 1:1, 9:16 and the banner.
+              pairStyle: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: cq(B.g2), minWidth: 0 },
               hasFig: true, fig: c.v || '',
               // BOTH runs carry 1.3 explicitly, because B.pairH reserves figPx * 1.3 +
               // g2 + labPx * 1.3 and the row centres the pair against the icon on its own
@@ -8850,7 +8999,7 @@ class CampaignStudio extends StudioBase {
         // picture and the last one's is orphaned. Pre-existing; with 10 pages it is common.
         const n = s.variants.length, IS = customElements.get('image-slot');
         if (IS && IS.moveSlot) {
-          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-fg-' + k];
+          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-bg-' + k + '-bn', 'adstudio-fg-' + k];
           for (let k = vi; k < n - 1; k++) ids(k).forEach((to, j) => IS.moveSlot(ids(k + 1)[j], to));
           ids(n - 1).forEach(id => IS.moveSlot(null, id));
         }
@@ -8883,6 +9032,21 @@ class CampaignStudio extends StudioBase {
       wideBtnLabel: v.wide ? 'Hide 16:9' : 'Show 16:9',
       wideBtnStyle: { background: 'transparent', color: 'var(--ps-link)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '3px 12px', fontWeight: 500, fontSize: '11px', cursor: 'pointer' },
       ls: mkCanvas(vi, 'ls'),
+      // THE EVENTBRITE BANNER — per variant, opt-in, the 16:9's own three controls. Both
+      // banner canvases read ONE layout record (`banOv`) and ONE photo (`bgSep.bn`), and
+      // each scales on its own. Built only while shown: two canvases per variant is real
+      // work, and a hidden plate's sc-if never reads them.
+      banOn: !!v.banner,
+      banState: v.banner ? (v.banOv ? '· detached from 1:1' : '· mirrors 1:1') : '',
+      toggleBanner: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.banner = !vv.banner; if (!vv.banner && x.sel && x.sel.vi === vi && (x.sel.size === 'bn' || x.sel.size === 'bs')) x.sel = null; return x; }); },
+      banBtnLabel: v.banner ? 'Hide banner' : 'Show banner',
+      toggleBanOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.banOv = vv.banOv ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)), mvar: {} }; return x; }); },
+      banOvLabel: v.banOv ? 'Re-link layout' : 'Edit layout separately',
+      toggleBgBn: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.bn = !vv.bgSep.bn; return x; }); },
+      bgBnLabel: (v.bgSep && v.bgSep.bn) ? 'Own photo ✓' : 'Own photo',
+      bgBnSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.bn) ? '-bn' : ''), key: 'bn' + vi + !!(v.bgSep && v.bgSep.bn) }],
+      bn: v.banner ? mkCanvas(vi, 'bn') : null,
+      bs: v.banner ? mkCanvas(vi, 'bs') : null,
       storyBtnStyle: { background: 'transparent', color: 'var(--ps-link)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '3px 12px', fontWeight: 500, fontSize: '11px', cursor: 'pointer' },
       bgId: 'adstudio-bg-' + vi,
       fgId: 'adstudio-fg-' + vi,
@@ -8962,6 +9126,9 @@ class CampaignStudio extends StudioBase {
 
     const sel = s.sel;
     const selM = sel ? list.find(m => m.id === sel.id) || null : null;
+    // The raster rows say "2×"; a banner ships at its own file size, and the row says so.
+    const anyBanner = (s.variants || []).some(vv => vv && vv.banner);
+    const banWord = anyBanner ? ' · banners at their own size' : '';
     const av = s.variants[s.activeVi] || s.variants[0];
     // The record the SELECTED canvas reads: that variant, or its detached size override.
     // Placement controls read and write this, so a variant — and a detached 9:16 — can
@@ -9019,7 +9186,7 @@ class CampaignStudio extends StudioBase {
     // moved only the 1:1 once a size had been unlinked.
     const preset = fn => () => this.upd(x => {
       const vv = x.variants[x.activeVi] || x.variants[0];
-      [vv, vv.story, vv.wideOv].forEach(o => {
+      CampaignStudio.recsOf(vv).forEach(o => {
         if (!o || !o.clusters) return;
         CampaignStudio.modulesFor(x, x.activeVi).forEach(m => { o.clusters[m.id] = fn(m); });
       });
@@ -9133,10 +9300,10 @@ class CampaignStudio extends StudioBase {
       railFoot: CampaignStudio.isCarousel(s)
         ? 'Each page has its own design components, copy, position, style and visibility. An edit on one page never changes another.'
         : 'Design components are shared across variants; position, style and visibility are per variant. Copy edits apply everywhere.',
-      exportJpgDesc: this.deliverWord() + ' · q94, smallest — what Meta ingests' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
-      exportPngDesc: this.deliverWord() + ' · lossless, large files' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
+      exportJpgDesc: this.deliverWord() + ' · q94, smallest — what Meta ingests' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
+      exportPngDesc: this.deliverWord() + ' · lossless, large files' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
       exportSvgDesc: this.deliverWord() + ' · vector text, embedded photos' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
-      exportPdfDesc: CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 16:9' : 'One file · 1:1, then 16:9 — 9:16 hidden',
+      exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 16:9' : 'One file · 1:1, then 16:9 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
       ...this.expPickVals(true),
       ...this.splashNoteVals(),
       fgOn: !!av.fg,
@@ -9196,6 +9363,7 @@ class CampaignStudio extends StudioBase {
           bgDoneOn: on('adstudio-bg-' + vi), bgDropLabel: lab('adstudio-bg-' + vi, 'Picture', 'a picture'),
           bgStDoneOn: on('adstudio-bg-' + vi + '-st'), bgStDropLabel: lab('adstudio-bg-' + vi + '-st', 'Picture', 'the 9:16 picture'),
           bgLsDoneOn: on('adstudio-bg-' + vi + '-ls'), bgLsDropLabel: lab('adstudio-bg-' + vi + '-ls', 'Picture', 'the 16:9 picture'),
+          bgBnDoneOn: on('adstudio-bg-' + vi + '-bn'), bgBnDropLabel: lab('adstudio-bg-' + vi + '-bn', 'Picture', 'the banner picture'),
           fgDoneOn: on('adstudio-fg-' + vi), fgDropLabel: lab('adstudio-fg-' + vi, 'Cut-out', 'the cut-out PNG'),
           gDoneOn: selM ? on('adstudio-mod-' + selM.id) : undefined,
           gDropLabel: selM ? lab('adstudio-mod-' + selM.id, 'Graphic', 'an SVG or PNG') : '',
@@ -9206,6 +9374,7 @@ class CampaignStudio extends StudioBase {
           qrRemove: () => CampaignStudio.slotClear('adstudio-qr'), coRemove: () => CampaignStudio.slotClear('adstudio-colog'),
           bgRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi), bgStRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-st'),
           bgLsRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-ls'), fgRemove: () => CampaignStudio.slotClear('adstudio-fg-' + vi),
+          bgBnRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-bn'),
           gRemove: () => { if (selM) CampaignStudio.slotClear('adstudio-mod-' + selM.id); },
           qrDropLabel: lab('adstudio-qr', 'QR code', 'the QR code'), coDropLabel: lab('adstudio-colog', 'Partner mark', 'the partner mark'),
           secCompState: (selM && !need) ? 'done' : undefined,
@@ -9229,13 +9398,16 @@ class CampaignStudio extends StudioBase {
       bgSlotStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotStStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotLsStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSlotBnStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSepStOn: CampaignStudio.storyShown(s) && !!(av.bgSep && av.bgSep.st),
       bgSepLsOn: !!(av.bgSep && av.bgSep.ls),
+      bgSepBnOn: !!av.banner && !!(av.bgSep && av.bgSep.bn),
       activeBgStSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-st' }],
       activeBgLsSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-ls' }],
+      activeBgBnSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-bn' }],
       hasSel: !!selM, noSel: !selM,
       selTypeLabel: selM ? labels[selM.type][0] : '',
-      selContext: sel ? this.vLabel(sel.vi) + ' · ' + (sel.size === 'st' ? '9:16' : (sel.size === 'ls' ? '16:9' : '1:1')) : '',
+      selContext: sel ? this.vLabel(sel.vi) + ' · ' + (CampaignStudio.SIZE_LAB[sel.size || 'sq'] || '1:1') : '',
       downloadGuides: () => this.downloadGuides(),
       // TWO CONCERNS, TWO KEYS. This one parks the *Download layout guides* button; the
       // dashed margin OVERLAY is `guidesOn` above, which reads Design Cursor's `showGuides`
@@ -9502,8 +9674,10 @@ class CampaignStudio extends StudioBase {
       bgLightOn: av.bg === 'light' ? '1' : undefined,
       scaleMin: CampaignStudio.SCALE_MIN,
       scaleMax: CampaignStudio.SCALE_MAX,
-      scaleRows: [['sq', '1:1'], ['st', '9:16'], ['ls', '16:9']]
-        .filter(sz => sz[0] !== 'ls' || av.wide)
+      // The two banners scale on their own, and are named by their file width — both are
+      // 2:1, so a ratio would not tell them apart.
+      scaleRows: [['sq', '1:1'], ['st', '9:16'], ['ls', '16:9'], ['bn', '1880'], ['bs', '758']]
+        .filter(sz => (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner))
         .map(sz => {
           const key = sz[0], val = Math.round(CampaignStudio.scaleOf(av, key) * 100);
           // per-slider bounds: the range differs by size, so it cannot be one shared

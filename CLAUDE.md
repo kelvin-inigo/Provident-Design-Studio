@@ -1,3 +1,7 @@
+> **Acronyms, by request (2026-09-28):** **CAS** is the Campaign Ads Studio
+> (`Provident Campaign Studio.dc.html`) and **OPS** is the Organic Post Studio
+> (`Provident Organic Studio.dc.html`). Older sections spell the names out.
+
 # Web Image Studio — a separate tool in this folder
 
 `web-image-studio.html` is a standalone single-file app (no DC, no build) that prepares
@@ -13708,3 +13712,116 @@ sheet, Save to Photos, the launch screen — are in `ios/NOTES.md`.
 - **A small WebP or AVIF with no metadata still passes through**, and one WITH metadata is now
   re-encoded; an AVIF with transparency and metadata would lose its alpha there (the encoder's
   alpha test reads the MIME type). Rare enough to leave.
+
+
+# CAS HAS A 2:1 EVENTBRITE BANNER — TWO FILES, ONE DESIGN
+
+By request (2026-09-28), with a supplied reference banner (`Nakheel Dubai Property Event`,
+1880 × 940) and the event page it runs on. A per-variant **Banner 2:1** row sits under the
+16:9 on every plate — **Show banner**, **Edit layout separately**, **Own photo**, the 16:9's
+own three controls — and shows two canvases: **1880 × 940** and **758 × 380**.
+
+**What Eventbrite does with the image, measured on the live page:** it serves the file at
+`w=1880` into a **940 × 470** box on a desktop and **375 × 188** on a phone — 2:1, uncropped,
+`object-fit: cover` onto the same aspect, and nothing overlaid on it (`elementFromPoint` at
+seven points all returned the image). So there is no crop and no platform safe area to
+reserve — only the brand margins. The phone figure is the one to know: the whole banner is
+shown at a fifth of its size there, so only the headline really reads on a phone.
+
+## THE 758 FILE IS THE 1880 DESIGN, LAID OUT AT 1880 AND EXPORTED AT 758 / 1880
+
+`PXT.bn` is 1880 × 940. `PXT.bs` is **1880 × 942.48** — the 1880's own width at the 758's own
+aspect — with `out: [758, 380]`, exported at `758 / 1880`. Checked in floating point: that
+lands on **exactly** 758 × 380 (and `2 × (758 / 1880)` on exactly 1516 × 760 for the PDF).
+
+**Laying the 758 out at 758 would NOT have been the same design**, which is the whole reason
+for the virtual canvas. The margins, the wordmark's 80px clear space and every chip and panel
+padding are canvas-pixel LITERALS in this engine, so at 40% of the width all of them come out
+2.5x too large beside the type. At 1880 they are exactly the 1880's, every line wraps at the
+same word, and the entire difference is 2.48 canvas px of extra height in the image window.
+
+- **One token set, `BANNER_TK`**, read by both (a static field ahead of `PXT`, so the two
+  cannot drift): the 1:1's type steps (hero 85 · headline 59 · hook 35 · body 28 · eyebrow 24 ·
+  logo 41), margins `[80, 120, 80, 120]` like the 16:9, and a **`col` of 800** — a
+  left-aligned banner puts its copy in a left column with a sideways wash, exactly as the 16:9
+  does. The 1:1's steps because the 24px brand floor holds and Eventbrite shows the file at
+  half size on a desktop, which is about where a 1:1 sits in a feed.
+- **ONE layout record, `v.banOv`, for both sizes** (`sizeOv` returns it for `bn` and `bs`),
+  and **ONE photo**, `adstudio-bg-<vi>-bn`, read by both through `photoSize()` — cover-fitted
+  on each canvas, so the picture runs edge to edge on each file. Both canvases mount the same
+  slot, so a reframe on either moves both.
+- **Each banner scales on its own** (`scaleBy.bn` / `scaleBy.bs`), and the rail names the
+  rows by file width — **1880** and **758** — because a ratio cannot tell two 2:1s apart. The
+  758's range goes to **150%**: at 100% of the 1880 design its smallest caps are about 7px,
+  so on an email shown at 1:1 it is the one whose type needs to come up. Verified with a real
+  drag: `scaleBy.bs` 100 -> 132, the 758's hero 85 -> 112.2, the 1880 untouched, the margins
+  and `W` held.
+- **No QR on a banner (`noQr`)**. A banner is clicked, not scanned, and the reference carries
+  none. It is per SIZE, not the project's Visible/Hidden, because hiding the project's QR
+  would take it off the Meta sizes too. Both the op (`!tk.noQr`) and the markup (the banner
+  canvases have no `qrbox`) honour it. One token if a banner ever needs one.
+- **Exports are the file's own pixel size** — `exportScale()` is `out[0] / W` for a size that
+  declares `out` and 2 for everything else, so the Meta sizes still ship at 2x. Names use the
+  size, not a ratio: `<name>_<variant>_1880x940.jpg` and `…_758x380.jpg`. The SVG states the
+  file size in `width`/`height` and keeps canvas units in the `viewBox` (`built.out`, which
+  only a size with `out` carries, so every other build returns exactly its old shape). The PDF
+  takes both banners after the 16:9, rasterised at twice the FILE's size. `Assets/` gains
+  `background-<variant>-banner`, and removing a variant shifts the `-bn` slot with the rest.
+- The layout-guides download has a banner sheet (the 1880 grid, which is the 758's too), and
+  the parked design-system sheet lists both with their file sizes.
+
+## `recsOf(v)` — ONE LIST OF A VARIANT'S LAYOUT RECORDS
+
+`[v, v.story, v.wideOv]` was written out in **six** places (forkPage, dropMod, copyMove, the
+layout presets, the MERGED fold, the load) — exactly how a new size gets missed by one of
+them. `CampaignStudio.OVK` (`['story', 'wideOv', 'banOv']`) and `recsOf(v)` are the list now,
+and all six read it.
+
+## A PRE-EXISTING PREVIEW BUG THE BANNER'S CENTRED LAYOUT EXPOSED
+
+**On a CENTRED design, the spec icon row's labels were centred under their figures in the
+editor while every export drew them flush left** — 75-115 canvas px apart, on the 1:1 and the
+9:16 as well as the banner. The icon-row pass measured a left-aligned design. The op draws
+both runs at the pair's own x (`ctr` false: figure and label share one left edge, the design
+intent); in the preview the pair was a column flex, which stretched each run to the pair's
+width, and the stack's `text-align: center` then centred the shorter one inside it.
+`pairStyle` carries `alignItems: flex-start; textAlign: left` now. Measured after, on all
+three: every run within **1.64 canvas px** on x and 0.2 on y.
+
+## Verification
+
+- **Op census against the pre-change build served alongside: 48 groups — 4 templates × dark
+  and light × left and centre × 1:1, 9:16 and 16:9 — 668 ops, 48 byte-identical, 0 threw.**
+- **Exports through the real `doExport`**, delivery redirected to a local sink: 1880 × 940 and
+  758 × 380 in PNG and JPEG, the 1:1 still 2160 × 2160, the SVG `width="758" height="380"
+  viewBox="0 0 1880 942.48…"`. A reference-like banner (centred hero, the icon row with
+  Material glyphs, the co-brand lockup bottom centre, a photo) renders on both with the
+  picture edge to edge.
+- **Preview against ops on both banner canvases**: the wordmark, the icon row's figures and
+  labels within 1.6 canvas px. The hero reads ~1.07% wide in the preview — identical on the
+  1:1, 9:16 and banner, i.e. the Campaign residual the transform section already records
+  ("83 of 83 within 1.6%"), not a banner effect.
+- Detach, own photo (both canvases switch to the `-bn` slot and the rail's row appears), the
+  selection label (`Master · Banner 758`) and Hide (it drops a banner selection, and both
+  sizes leave `sizesFor`) all driven through the plate's own handlers. Hidden, `v.bn` / `v.bs`
+  are `null` and nothing reads them — the plate's `sc-if` never renders its children.
+- Sheet unchanged (one closing style tag, comments 331/331, CSS depth 0 — no CSS authored);
+  markup `sc-if` / `sc-for` on the documented one-off baseline; no interpolated `d=` / `src=`;
+  every new render key declared.
+- **A trap re-confirmed while measuring:** with the co-brand partner on, the wordmark read
+  **98 px** off its op after a reload and 0.04 once the pane composited — the partner's ink is
+  measured in the rAF tick, which does not run while the pane is hidden. Screenshot first.
+
+## Left as decisions, not applied
+
+- **The 758 file's type.** At 100% it is the 1880 design at 40%: headline ~34px, the icon
+  row's labels ~7px. Its own Scaling (to 150%) is the lever; a default above 100% would make
+  the two files different designs by default.
+- **Eventbrite's phone view** shows the 1880 file at 375 px wide, where only the headline
+  reads. Nothing in the studio can fix that; fewer, bigger words can.
+- **The placement preview has no Eventbrite mock** — it is Meta's feed, reels and story.
+- **The Campaign phone editor** puts the 1880 banner at 1.18 × the 1:1's width, which runs
+  past a phone's stage exactly as the 16:9 already does (recorded as unrefined).
+- **The shared-photo reframe** is one crop on `adstudio-bg-<vi>` for every size that shares
+  it — pre-existing for the 9:16 and 16:9, and the banner inherits it. "Own photo" is the
+  way to frame a banner differently.
