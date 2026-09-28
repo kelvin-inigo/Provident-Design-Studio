@@ -13761,8 +13761,8 @@ same word, and the entire difference is 2.48 canvas px of extra height in the im
   would take it off the Meta sizes too. Both the op (`!tk.noQr`) and the markup (the banner
   canvases have no `qrbox`) honour it. One token if a banner ever needs one.
 - **Exports are the file's own pixel size** — `exportScale()` is `out[0] / W` for a size that
-  declares `out` and 2 for everything else, so the Meta sizes still ship at 2x. Names use the
-  size, not a ratio: `<name>_<variant>_1880x940.jpg` and `…_758x380.jpg`. The SVG states the
+  declares `out` and 2 for everything else, so the Meta sizes still ship at 2x. **The names
+  and folders are SUPERSEDED** — see *CAS EXPORTS INTO A FOLDER PER VARIANT*. The SVG states the
   file size in `width`/`height` and keeps canvas units in the `viewBox` (`built.out`, which
   only a size with `out` carries, so every other build returns exactly its old shape). The PDF
   takes both banners after the 16:9, rasterised at twice the FILE's size. `Assets/` gains
@@ -13825,3 +13825,68 @@ three: every run within **1.64 canvas px** on x and 0.2 on y.
 - **The shared-photo reframe** is one crop on `adstudio-bg-<vi>` for every size that shares
   it — pre-existing for the 9:16 and 16:9, and the banner inherits it. "Own photo" is the
   way to frame a banner differently.
+
+
+# CAS EXPORTS INTO A FOLDER PER VARIANT, AND EVERY EXPORT OVERWRITES THE LAST
+
+By request (2026-09-28). A file is named for its JOB rather than its ratio, and the export is
+organised into folders:
+
+```
+<Source folder>/
+  Variant A/                                        ← the Master; B and C for more variants
+    <name>_Variant A_feed.jpg                       ← 1:1
+    <name>_Variant A_Story.jpg                      ← 9:16
+    <name>_Variant A_16x9.jpg                       ← only while that variant shows its 16:9
+    Eventbrite Banners/
+      <name>_Variant A_EventBrite_Banner_wide.jpg   ← 1880 × 940
+      <name>_Variant A_EventBrite_Banner_Small.jpg  ← 758 × 380
+  <name>.adstudio.json   Assets/                    ← unchanged, at the root
+```
+
+- **The four names are spelled exactly as asked** — `feed`, `Story`, `EventBrite_Banner_wide`,
+  `EventBrite_Banner_Small` — in `CampaignStudio.EXPORT_NAME`, which replaced the `SUFFIX` ratio
+  table. **The 16:9 was not named** and keeps `16x9`, loose beside the feed and the Story.
+- **The Master exports as Variant A**, Variant 2 as B, Variant 3 as C (`exportDir`). The plates
+  still say Master / Variant 2 — "Master" means something in the editor (the layout the others
+  copy and the 1:1 the other sizes mirror), so the letters are an export-side name only.
+- **The variant is in the FILE name as well as the folder**, so a file dragged out of its folder
+  into Ads Manager still says which design it is.
+- **A carousel exports into ONE `Carousel` folder** (`<name>_page1_feed.jpg` …, banners in
+  `Carousel/Eventbrite Banners/`), not a folder per page — the request described variants, and
+  a carousel's pages are uploaded together. `exportDir` is the one line to change.
+- **Every export overwrites the last without asking** (`deliver(files, name, { overwrite: true })`).
+  It never DELETES: a file the export no longer writes — a variant since removed, a banner since
+  hidden, the flat `_Master_1x1` files from before this change — is left in the folder.
+- **Without a source folder the zip carries the same paths**, so it unpacks into the same layout.
+  In the iOS app's share sheet the files go by their own names (a share sheet takes files, not a
+  tree), which already say which variant and size each one is.
+- **The PDF is unchanged** — one file, saved where you choose.
+- The Share panel carries one line under the format picker saying where the files go
+  (`exportLayoutNote`), and the dock's tooltip says the same.
+
+## The shared-code change, and why OPS cannot move
+
+`studio-base.js` gained two OPTIONAL arguments and nothing else: `writeProject(files, opt)` skips
+the "Replace N files?" confirm — and the `exists` probe per file that fed it — when
+`opt.overwrite`, and `deliver(files, name, opt)` passes it through. OPS calls both without an
+`opt`, so its prompt is exactly what it was. The status line now names the folders the renders
+went into (`— Variant A, Variant B`), read off the paths; a flat export has none, so OPS's
+message is also unchanged. The folder API already created every level of a nested path
+(`dirFor` walks the whole path), so no change to `runtime.js` was needed.
+
+## Verification
+
+- The real `doExport`, with delivery redirected, for a two-variant project with the Master's
+  banner on: **the zip** holds `Variant A/…_feed.jpg`, `_Story.jpg`,
+  `Variant A/Eventbrite Banners/…_wide.jpg`, `…_Small.jpg`, `Variant B/…_feed.jpg`, `_Story.jpg`;
+  **a stand-in folder in which every file already existed** received all six renders plus the
+  session and Assets with **zero confirms**; and **`writeProject` called without `opt`** — OPS's
+  call shape — **still asked**.
+- The class evaluated in JavaScriptCore prints the paths for all five sizes and both modes.
+- Both files parse; `SUFFIX` has no reader left.
+
+**Found and flagged, not changed:** at a **1024px** window the CAS top bar is **1145px** wide, so
+Share sits off the right edge and its panel opens past the window. Pre-existing — this change
+touches nothing in the bar — and it is the same class of defect *Top bar must fit* records at
+1440 and 1280.

@@ -984,13 +984,17 @@ class StudioBase {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28) || 'item';
   }
   static urlOf(v) { return v ? (typeof v === 'string' ? v : v.u) : null; }
-  // Write a set of files into the project folder. Names may contain one folder
-  // segment ("Assets/qr.png"). Always reports what it is about to replace.
-  async writeProject(files) {
+  // Write a set of files into the project folder. A name may carry folders — "Assets/qr.png",
+  // or CAS's "Variant A/Eventbrite Banners/…" — and the folder API creates each level. It
+  // reports what it is about to replace, unless the caller asks it to overwrite: CAS's
+  // export does, by request, because it replaces the same files every time. OPS passes
+  // nothing and keeps the prompt exactly as it was.
+  async writeProject(files, opt) {
     const f = this.folderApi();
     if (!f || !f.handle) return false;
+    const overwrite = !!(opt && opt.overwrite);
     const clash = [];
-    for (const fl of files) { if (await f.exists(fl.name)) clash.push(fl.name); }
+    if (!overwrite) for (const fl of files) { if (await f.exists(fl.name)) clash.push(fl.name); }
     if (clash.length && f.askBeforeOverwrite) {
       const shown = clash.slice(0, 12).join('\n');
       const more = clash.length > 12 ? '\n… and ' + (clash.length - 12) + ' more' : '';
@@ -1061,16 +1065,23 @@ class StudioBase {
     if (StudioBase.nativeShell()) return 'Separate files';
     return 'Zip';
   }
-  // Renders go to the folder root when there is one, otherwise a zip download.
-  async deliver(files, name) {
+  // Renders go into the folder when there is one, otherwise a zip download. A render's name
+  // may carry folders (CAS's per-variant organisation); the zip keeps them as paths, so it
+  // unpacks into the same layout the source folder gets. `opt.overwrite` skips the replace
+  // prompt (writeProject).
+  async deliver(files, name, opt) {
     const f = this.folderApi();
     const h = await this.folderOpen(false);
+    // the folders the renders went into, for the status line — none for a flat export,
+    // so OPS's message is unchanged
+    const dirs = [...new Set(files.map(fl => String(fl.name).split('/')).filter(p => p.length > 1).map(p => p[0]))];
+    const inDirs = dirs.length ? ' — ' + dirs.join(', ') : '';
     if (h) {
       await this.ensurePid();
       const all = files.concat(await this.projectFiles(name));
-      const ok = await this.writeProject(all);
+      const ok = await this.writeProject(all, opt);
       // it rewrote the session file beside the renders, so it IS a save
-      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '" · session + Assets refreshed' }); }
+      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '"' + inDirs + ' · session + Assets refreshed' }); }
       return ok;
     }
     // In the iOS app: one file per render, NOT a zip — a phone saves images to Photos, and a
@@ -1078,7 +1089,10 @@ class StudioBase {
     const nat = StudioBase.nativeShell();
     if (nat) {
       let r = null;
-      try { r = await nat.share(files, { title: name }); }
+      // the share sheet takes FILES, not a folder tree — hand over each one by its own name,
+      // which already says which variant and which size it is
+      const flat = files.map(fl => String(fl.name).indexOf('/') < 0 ? fl : Object.assign({}, fl, { name: String(fl.name).split('/').pop() }));
+      try { r = await nat.share(flat, { title: name }); }
       catch (e) { this.setState({ exportStatus: 'Could not hand the files over — ' + ((e && e.message) || e) + '.' }); return false; }
       if (!r || !r.done) { this.setState({ exportStatus: 'Export cancelled — nothing was saved.' }); return false; }
       this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + (r.activity ? ' · ' + r.activity : '') });
@@ -1089,7 +1103,7 @@ class StudioBase {
     // in Downloads. A cancelled dialog leaves the project untouched and says so.
     const how = await this.saveAs(blob, name + '.zip', 'Zip archive', 'application/zip', '.zip');
     if (how === 'cancelled') { this.setState({ exportStatus: 'Export cancelled — nothing was saved.' }); return false; }
-    this.setState({ exportStatus: 'Exported ' + files.length + ' files → ' + name + '.zip · ' +
+    this.setState({ exportStatus: 'Exported ' + files.length + ' files → ' + name + '.zip' + inDirs + ' · ' +
       this.constructor.sizeLabel(blob.size) + (how === 'saved' ? ' · saved where you chose' : '') });
     return true;
   }

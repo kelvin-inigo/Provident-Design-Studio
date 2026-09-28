@@ -3448,6 +3448,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
       </sc-if>
     </div>
   </div>
+  <div class="p-hint">{{ exportLayoutNote }}</div>
   <!-- Layout guides are kept for a later release; the export path still works,
        only the BUTTON is out of the way — which is why this gate is `guidesBtnOn` and not
        `guidesOn`. The two were one key, so parking the button also killed the dashed
@@ -4949,7 +4950,14 @@ class CampaignStudio extends StudioBase {
   // The file a size exports as: its own pixel size when the size declares one (the two
   // banners), otherwise the 2x every Meta size has always shipped at.
   static exportScale(sizeKey) { const t = CampaignStudio.PXT[sizeKey]; return (t && t.out) ? t.out[0] / t.W : 2; }
-  static SUFFIX = { sq: '1x1', st: '9x16', ls: '16x9', bn: '1880x940', bs: '758x380' };
+  // THE EXPORT'S ORGANISATION, by request (2026-09-28). A file is named for its JOB, not its
+  // ratio — the 1:1 is the `feed`, the 9:16 the `Story`, the banners `EventBrite_Banner_wide`
+  // (1880 x 940) and `EventBrite_Banner_Small` (758 x 380), spelled as asked — and lands in a
+  // folder per variant, the banners in their own folder inside it (`exportPath`). The 16:9
+  // was not named in the request and keeps its ratio, loose beside the feed and the Story.
+  static EXPORT_NAME = { sq: 'feed', st: 'Story', ls: '16x9', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
+  static BANNER_DIR = 'Eventbrite Banners';
+  static isBanner(sizeKey) { return sizeKey === 'bn' || sizeKey === 'bs'; }
   static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '16:9', bn: 'Banner 1880', bs: 'Banner 758' };
   // The size whose OWN PHOTO a canvas reads. Both banners are one design, so the 758 reads
   // the 1880's — one upload, one crop, cover-fitted edge to edge on each.
@@ -7378,6 +7386,16 @@ class CampaignStudio extends StudioBase {
   // The export's own token: `page1`, not `Page 1` — a filename wants no space, and
   // `_page1` was the requested form. A single ad keeps `Master` / `Variant 2`.
   fileLabel(vi) { return CampaignStudio.isCarousel(this.state) ? 'page' + (vi + 1) : this.vLabel(vi); }
+  // The folder a variant's files go in: `Variant A`, `B`, `C` on a single ad — the Master is
+  // A — and ONE `Carousel` folder for a carousel, whose pages belong together rather than a
+  // folder each. The variant is in the FILE name too, so a file dragged out of its folder
+  // into Ads Manager still says which design it is.
+  exportDir(vi) { return CampaignStudio.isCarousel(this.state) ? 'Carousel' : 'Variant ' + String.fromCharCode(65 + vi); }
+  exportPath(name, vi, sizeKey, ext) {
+    const dir = this.exportDir(vi), who = CampaignStudio.isCarousel(this.state) ? this.fileLabel(vi) : dir;
+    return dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
+      name + '_' + who + '_' + (CampaignStudio.EXPORT_NAME[sizeKey] || sizeKey) + '.' + ext;
+  }
   async doExport(kind) {
     const state = this.state;
     const name = (state.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
@@ -7409,18 +7427,20 @@ class CampaignStudio extends StudioBase {
       for (let vi = 0; vi < state.variants.length; vi++) {
         for (const sizeKey of CampaignStudio.sizesFor(state, state.variants[vi])) {
           const built = this.buildOps(state, vi, sizeKey, assets);
-          const suffix = CampaignStudio.SUFFIX[sizeKey] || sizeKey;
           if (kind === 'png' || kind === 'jpg') {
             // at the FILE's own size — 2x for the Meta sizes, exactly 1880 x 940 and
             // 758 x 380 for the banners
             const r = await this.rasterFile(built, kind, CampaignStudio.exportScale(sizeKey));
-            files.push({ name: `${name}_${this.fileLabel(vi)}_${suffix}.${r.ext}`, data: r.data });
+            files.push({ name: this.exportPath(name, vi, sizeKey, r.ext), data: r.data });
           } else {
-            files.push({ name: `${name}_${this.fileLabel(vi)}_${suffix}.svg`, data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
+            files.push({ name: this.exportPath(name, vi, sizeKey, 'svg'), data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
           }
         }
       }
-      await this.deliver(files, name);
+      // EVERY EXPORT OVERWRITES THE LAST, by request — no "Replace N files?" prompt. A file
+      // this export does not write (a variant since removed, a banner since hidden) is left
+      // alone: an export never deletes anything in the folder.
+      await this.deliver(files, name, { overwrite: true });
     } catch (err) {
       console.warn(err);
       this.setState({ exportStatus: 'Export failed: ' + (err && err.message || err) });
@@ -9289,8 +9309,8 @@ class CampaignStudio extends StudioBase {
       qrOneCode: 'One code for every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + ' and every size. PNG or SVG, on a white quiet zone.',
       allVarsBtn: CampaignStudio.isCarousel(s) ? 'All Pages Option' : 'All Variants Option',
       allVarsTip: CampaignStudio.isCarousel(s)
-        ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes Name_pageN_Size.png or .svg for every page in every size, or a single PDF. Session files carry the design and its photos, so they reopen anywhere.'
-        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes Name_Variant_Size.png or .svg for every variant in every size, or a single PDF. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
+        ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed and _Story for every page, the banners in Eventbrite Banners inside it — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
+        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each with Name_Variant A_feed and _Story and the banners in Eventbrite Banners — or a single PDF. Each export overwrites the last. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
       textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
       // a style variant is per DESIGN variant on a single ad, and a carousel's page IS one
       styleScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'per design variant',
@@ -9303,6 +9323,10 @@ class CampaignStudio extends StudioBase {
       exportJpgDesc: this.deliverWord() + ' · q94, smallest — what Meta ingests' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
       exportPngDesc: this.deliverWord() + ' · lossless, large files' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
       exportSvgDesc: this.deliverWord() + ' · vector text, embedded photos' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
+      // where the files go — the same folders exportPath writes, in the Share panel's words
+      exportLayoutNote: CampaignStudio.isCarousel(s)
+        ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s feed and Story, with the banners in Eventbrite Banners inside it. Each export overwrites the last.'
+        : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with the feed and Story in it and the banners in Eventbrite Banners inside it. Each export overwrites the last.',
       exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 16:9' : 'One file · 1:1, then 16:9 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
       ...this.expPickVals(true),
       ...this.splashNoteVals(),
