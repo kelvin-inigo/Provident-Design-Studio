@@ -17,8 +17,8 @@ better host:
     nothing but the standard library, which halves the install.
   * It binds 0.0.0.0 by default. This is a personal tool that accepts arbitrary
     images and runs a network on them; it has no business on the LAN.
-  * It opens a browser window on startup, and it loads models lazily — so the
-    first upload pays a 60s model load with no way to warm it.
+  * It opens a browser window on startup, and once a model is loaded it keeps it
+    for the life of the process. This one hands the memory back (see below).
 
 Everything that actually removes a background is rembg's, called through its
 public API (`new_session`, `remove`).
@@ -63,16 +63,50 @@ in only because "why is a Mac tool not using the Neural Engine" is otherwise a
 question every future reader has to re-derive. It may be worth a try with
 `--model isnet-general-use`; it was not tested there.
 
+HOW IT RUNS: A LOGIN ITEM THAT IS EMPTY UNTIL AN UPLOAD ARRIVES
+---------------------------------------------------------------
+`install.sh` registers this as a per-user LaunchAgent (`ae.provident.cutout`), so
+it starts at login and launchd restarts it whenever it exits. Nobody has to run
+anything. It gets `--launchd`, which changes three things:
+
+  * NOTHING LOADS AT START. The models load on the first cut-out that needs
+    them, which costs about 3s on top of the ~12s inference. /health answers at
+    once and says ok, so the studio offers the feature from the moment you log in.
+  * IT EXITS `--idle-exit` MINUTES (default 10) AFTER THE LAST CUT-OUT, and
+    launchd starts a fresh, empty process straight away. That is the whole point.
+    Measured while it works: 1.6GB with the models loaded, 3.5-6.6GB once ONNX
+    Runtime has run a few 1024x1024 inferences, and nothing short of the process
+    ending hands that back. Empty, it is about 25MB.
+  * IF THE PORT IS TAKEN (serve.sh running in a terminal) it waits for the port
+    instead of exiting, so launchd is not restarting it every ten seconds.
+
+It runs from ~/Library/Application Support/Provident/cutout, not from this
+folder: macOS refuses a login item read access to ~/Documents ("Operation not
+permitted", measured), and granting it would be a trip to Privacy & Security on
+every Mac. `serve.sh` runs this folder's own copy in a terminal, for testing a
+change; `install.sh` copies it into place.
+
+THERE IS NO WARM-UP INFERENCE, and that is measured too. The old start-up ran one
+64x64 inference so the first upload would be fast, and it did the opposite: the
+first real cut-out after it took 20.2s against 12-13s for every later one, while a
+process that had run nothing took 13.0s on its first. The likeliest reason is that
+the warm-up sized ONNX Runtime's memory arena for a tiny image and the first real
+one paid to regrow it; that part is inference, the timings are not.
+
 Endpoints, all CORS-open to `*` because the studio's origin is `null` when the
 document is opened from the disk:
 
-  GET  /health   cheap liveness + what the service is configured to do
+  GET  /health   cheap liveness + what the service is configured to do. `ok` is
+                 whether an upload would work — before the first load that is
+                 checked on disk (the packages and the weights) without loading
   POST /cutout   raw image bytes in, `image/png` with alpha out
 """
 
 from __future__ import annotations
 
 import argparse
+import errno
+import importlib.util
 import io
 import json
 import os
@@ -102,16 +136,32 @@ MIN_COVERAGE = 0.005
 # channel somebody made by hand, so it is passed straight through.
 PRECUT_TRANSPARENT = 0.02
 
+# A load that FAILED is reported for this long, and then the next upload tries
+# again. Without the expiry /health would say "off" for good and the studio would
+# never send the upload that could find the problem gone.
+RETRY_AFTER_S = 60
+
 STATE = {
     "model": "bria-rmbg",
     "refine": "vitmatte",
     "provider": "cpu",
-    "ready": False,
-    "error": None,
+    "launchd": False,
+    "idle_exit": 0,       # minutes; 0 = keep the models for the life of the process
+    "ready": False,       # the models are loaded
+    "error": None,        # why the last load failed, if it did
+    "error_at": 0.0,
 }
 
-_lock = threading.Lock()
+_lock = threading.Lock()        # one inference at a time
+_load_lock = threading.Lock()   # one load at a time; an upload arriving mid-load waits
+_busy_lock = threading.Lock()
+_busy = 0                       # cut-out requests in progress
+_last_use = time.time()
 _session = None
+
+
+class NotReady(Exception):
+    """The models cannot be loaded. The message is for a person."""
 
 
 def log(msg: str) -> None:
@@ -133,44 +183,115 @@ def _providers(name: str):
     raise ValueError(f"unknown provider {name!r}")
 
 
-def warm() -> None:
-    """Build both sessions and run one inference, before the port opens.
+def _rembg_home() -> str:
+    # rembg's own resolution (`BaseSession.rembg_home`), repeated here so the
+    # weights can be checked WITHOUT importing rembg: the import alone is a few
+    # hundred MB, and not paying it until an upload arrives is what --launchd is for.
+    if os.getenv("U2NET_HOME"):
+        return os.path.expanduser(os.getenv("U2NET_HOME"))
+    xdg = os.getenv("XDG_DATA_HOME")
+    default = os.path.join(xdg, "rembg") if xdg else os.path.join("~", ".rembg")
+    return os.path.expanduser(os.getenv("REMBG_HOME", default))
 
-    Loading a 977MB model takes tens of seconds, and ViTMatte's session is built
-    lazily on first use. Doing that inside the first upload is the difference
-    between a feature that feels broken and one that feels instant.
-    """
-    global _session
-    from PIL import Image
-    from rembg import new_session, remove
-    import onnxruntime as ort
-    import rembg.matting as matting
 
-    provs = _providers(STATE["provider"])
+def _legacy_home() -> str:
+    return os.path.expanduser(os.getenv(
+        "U2NET_HOME", os.path.join(os.getenv("XDG_DATA_HOME", "~"), ".u2net")))
 
-    t = time.time()
-    _session = new_session(STATE["model"], providers=provs)
-    log(f"{STATE['model']} loaded in {time.time() - t:.1f}s "
-        f"on {_session.inner_session.get_providers()[0]}")
 
-    if STATE["refine"] == "vitmatte":
-        # `rembg.matting._get_session` hardcodes CPU/CUDA and has no provider
-        # argument, so the only way to give ViTMatte the same provider as the
-        # segmenter is to seed the cache it reads. `_sessions` is the library's
-        # own dict; if it ever goes away this raises at startup rather than
-        # silently running somewhere else.
-        variant = matting.DEFAULT_VARIANT
-        t = time.time()
-        matting._sessions[variant] = ort.InferenceSession(
-            matting._ViTMatteFiles.download_models(variant=variant),
-            providers=provs,
-        )
-        log(f"vitmatte {variant} loaded in {time.time() - t:.1f}s")
+def _has_weights(name: str) -> bool:
+    for d, pick in ((os.path.join(_rembg_home(), "models", name), lambda f: True),
+                    (_legacy_home(), lambda f: f.startswith(name))):
+        try:
+            if any(f.endswith(".onnx") and pick(f) for f in os.listdir(d)):
+                return True
+        except OSError:
+            pass
+    return False
 
-    t = time.time()
-    remove(Image.new("RGB", (64, 64), (128, 128, 128)), session=_session,
-           **_refine_kwargs())
-    log(f"warm-up inference {time.time() - t:.1f}s")
+
+def preflight():
+    """Why an upload would fail, checked on disk without loading anything — or None."""
+    for mod in ("rembg", "onnxruntime", "PIL"):
+        if importlib.util.find_spec(mod) is None:
+            return f"{mod} is not installed in this Python \u2014 run tools/rembg/install.sh."
+    need = [STATE["model"]] + (["vitmatte"] if STATE["refine"] == "vitmatte" else [])
+    missing = [n for n in need if not _has_weights(n)]
+    if missing:
+        # Loading would start a 1GB download inside somebody's upload. Refuse
+        # instead, and say what fixes it.
+        return ("The model weights are not downloaded (" + ", ".join(missing)
+                + ") \u2014 run tools/rembg/install.sh.")
+    return None
+
+
+def _fail(msg: str):
+    STATE.update(error=msg, error_at=time.time())
+    raise NotReady(msg)
+
+
+def load() -> None:
+    """Build both sessions, once. Every cut-out calls this and all but the first
+    return at once; one that arrives while a load is running waits for it."""
+    global _session, _last_use
+    if STATE["ready"]:
+        return
+    with _load_lock:
+        if STATE["ready"]:
+            return
+        why = preflight()
+        if why:
+            _fail(why)
+        try:
+            from rembg import new_session
+            import onnxruntime as ort
+            import rembg.matting as matting
+
+            provs = _providers(STATE["provider"])
+            t = time.time()
+            _session = new_session(STATE["model"], providers=provs)
+            log(f"{STATE['model']} loaded in {time.time() - t:.1f}s "
+                f"on {_session.inner_session.get_providers()[0]}")
+
+            if STATE["refine"] == "vitmatte":
+                # `rembg.matting._get_session` hardcodes CPU/CUDA and has no provider
+                # argument, so the only way to give ViTMatte the same provider as the
+                # segmenter is to seed the cache it reads. `_sessions` is the library's
+                # own dict; if it ever goes away this raises here rather than
+                # silently running somewhere else.
+                variant = matting.DEFAULT_VARIANT
+                t = time.time()
+                matting._sessions[variant] = ort.InferenceSession(
+                    matting._ViTMatteFiles.download_models(variant=variant),
+                    providers=provs,
+                )
+                log(f"vitmatte {variant} loaded in {time.time() - t:.1f}s")
+        except Exception as e:
+            log("FAILED to load:\n" + traceback.format_exc())
+            _fail(f"The background-removal model could not be loaded: {e}")
+        STATE.update(ready=True, error=None)
+        _last_use = time.time()
+
+
+def health() -> dict:
+    err = None
+    if not STATE["ready"]:
+        if STATE["error"] and time.time() - STATE["error_at"] < RETRY_AFTER_S:
+            err = STATE["error"]
+        else:
+            err = preflight()
+    return {
+        "service": "provident-cutout",
+        "ok": err is None,
+        "loaded": bool(STATE["ready"]),
+        "loading": _load_lock.locked() and not STATE["ready"],
+        "launchd": STATE["launchd"],
+        "idle_exit_min": STATE["idle_exit"],
+        "model": STATE["model"],
+        "refine": STATE["refine"],
+        "provider": STATE["provider"],
+        "error": err,
+    }
 
 
 def _refine_kwargs():
@@ -201,6 +322,8 @@ def cutout(raw: bytes):
         if clear / float(alpha.width * alpha.height) > PRECUT_TRANSPARENT:
             return raw, "already-cutout"
 
+    # Only now, so a pre-cut PNG never costs a model load.
+    load()
     with _lock:
         out = remove(src.convert("RGB"), session=_session, **_refine_kwargs())
 
@@ -255,25 +378,27 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.split("?")[0] in ("/health", "/"):
-            self._json(200, {
-                "service": "provident-cutout",
-                "ok": bool(STATE["ready"]),
-                "model": STATE["model"],
-                "refine": STATE["refine"],
-                "provider": STATE["provider"],
-                "error": STATE["error"],
-            })
+            self._json(200, health())
         else:
             self._json(404, {"error": "not found"})
 
     def do_POST(self):
+        global _busy, _last_use
         if self.path.split("?")[0] != "/cutout":
             self._json(404, {"error": "not found"})
             return
-        if not STATE["ready"]:
-            self._json(503, {"error": STATE["error"] or "still loading the model"})
-            return
+        # Counted from here, so the idle exit can never end a process that is
+        # still reading somebody's upload.
+        with _busy_lock:
+            _busy += 1
+        try:
+            self._cutout()
+        finally:
+            with _busy_lock:
+                _busy -= 1
+                _last_use = time.time()
 
+    def _cutout(self):
         try:
             n = int(self.headers.get("Content-Length") or 0)
         except ValueError:
@@ -289,6 +414,9 @@ class Handler(BaseHTTPRequestHandler):
         t = time.time()
         try:
             png, note = cutout(raw)
+        except NotReady as e:
+            self._json(503, {"error": str(e)})
+            return
         except ValueError as e:
             self._json(422, {"error": str(e)})
             return
@@ -307,6 +435,58 @@ class Handler(BaseHTTPRequestHandler):
         })
 
 
+def watch_idle(srv, minutes: int) -> None:
+    """Exit once the models have sat unused for `minutes`, so their memory goes back.
+
+    Only meaningful under launchd: KeepAlive starts a fresh, empty process at once.
+    The listening socket closes FIRST, so no new upload can start in this process,
+    and anything already accepted is let finish.
+    """
+    while True:
+        time.sleep(10)
+        if not STATE["ready"]:
+            continue
+        with _busy_lock:
+            idle = not _busy and time.time() - _last_use >= minutes * 60
+        if not idle:
+            continue
+        log(f"no cut-out for {minutes} min \u2014 exiting so the model's memory goes back "
+            f"(launchd starts a fresh, empty process)")
+        srv.shutdown()
+        srv.server_close()
+        time.sleep(0.5)             # a request accepted just before the close registers
+        deadline = time.time() + 300
+        while time.time() < deadline:
+            with _busy_lock:
+                if not _busy:
+                    break
+            time.sleep(0.2)
+        os._exit(0)
+
+
+def bind(port: int, wait: bool):
+    """The loopback listener. Run by hand, a taken port is an error to report;
+    under launchd it is serve.sh in a terminal, so wait for it rather than exit
+    and have launchd restart this every ten seconds."""
+    warned = False
+    while True:
+        try:
+            # Loopback only, on purpose: see the module docstring.
+            return ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        except OSError as e:
+            if e.errno != errno.EADDRINUSE:
+                raise
+            if not wait:
+                log(f"port {port} is already in use \u2014 the service is probably running "
+                    f"by itself already (install.sh makes it a login item). Check: "
+                    f"curl http://127.0.0.1:{port}/health")
+                sys.exit(1)
+            if not warned:
+                log(f"port {port} is in use (serve.sh in a terminal?) \u2014 waiting for it")
+                warned = True
+            time.sleep(5)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--port", type=int, default=int(os.getenv("CUTOUT_PORT", "7311")))
@@ -318,23 +498,44 @@ def main():
     ap.add_argument("--provider", default=os.getenv("CUTOUT_PROVIDER", "cpu"),
                     choices=["cpu", "coreml"],
                     help="ONNX Runtime execution provider (default: cpu)")
+    ap.add_argument("--launchd", action="store_true",
+                    help="run as the login item: load nothing until the first cut-out, "
+                         "exit --idle-exit minutes after the last one, wait for a taken port")
+    ap.add_argument("--idle-exit", type=int, default=int(os.getenv("CUTOUT_IDLE_EXIT", "10")),
+                    metavar="MIN",
+                    help="with --launchd: minutes after the last cut-out to exit (default 10; 0 never)")
     args = ap.parse_args()
 
-    STATE.update(model=args.model, refine=args.refine, provider=args.provider)
+    STATE.update(model=args.model, refine=args.refine, provider=args.provider,
+                 launchd=args.launchd, idle_exit=args.idle_exit if args.launchd else 0)
 
-    log(f"model={args.model} refine={args.refine} provider={args.provider}")
-    log("loading models (first run downloads about 1.1GB into ~/.rembg)...")
-    try:
-        warm()
-        STATE["ready"] = True
-    except Exception as e:
-        STATE["error"] = str(e)
-        log("FAILED to load:\n" + traceback.format_exc())
-        log("the service will answer /health but refuse uploads")
+    log(f"model={args.model} refine={args.refine} provider={args.provider}"
+        + (f" launchd idle-exit={STATE['idle_exit']}min" if args.launchd else ""))
 
-    # Loopback only, on purpose: see the module docstring.
-    srv = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
-    log(f"ready on http://127.0.0.1:{args.port}  (ctrl-c to stop)")
+    srv = bind(args.port, wait=args.launchd)
+
+    if args.launchd:
+        why = preflight()
+        log("waiting for the first cut-out before loading the models"
+            + (f" \u2014 but: {why}" if why else ""))
+        if STATE["idle_exit"] > 0:
+            threading.Thread(target=watch_idle, args=(srv, STATE["idle_exit"]),
+                             daemon=True).start()
+    else:
+        # Run by hand: load now, so a broken install shows up in this terminal
+        # rather than in the first upload. The port is already open; an upload
+        # that arrives mid-load waits for it.
+        def _load_now():
+            log("loading models (first run downloads about 1.1GB into ~/.rembg)...")
+            try:
+                load()
+                log("models ready")
+            except NotReady as e:
+                log(f"the service will answer /health but refuse uploads: {e}")
+        threading.Thread(target=_load_now, daemon=True).start()
+
+    log(f"ready on http://127.0.0.1:{args.port}"
+        + ("" if args.launchd else "  (ctrl-c to stop)"))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

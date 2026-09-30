@@ -1319,11 +1319,13 @@ input[type=range]:focus-visible,.p-ic:focus-visible{
 
 .p-opt[data-on] .p-mini{box-shadow:none}
 .p-tri-f{box-shadow:none}
-.p-tabs button[data-on]{box-shadow:none}
+.p-tabs button[data-on],.p-tabs button[data-on]:hover{box-shadow:none}
 .p-seg button[data-on],.p-top .p-seg button[data-on]{box-shadow:none;border-color:transparent}
 .p-ghost[data-on],.p-top .p-ghost[data-on],.p-top .p-ghost[data-on]:hover,
 .p-share .p-ghost[data-on],.p-tgrp > .p-ghost[data-on]{box-shadow:none;border-color:transparent}
-.p-btn,.p-btn:hover,.p-gold{box-shadow:none}
+/* the HOVER forms too: `.p-btn:hover:not(:disabled)` is (0,3,0) and outranked the plain
+   `.p-btn:hover` above, so hovering Export put the ring back — the same survivor CAS had */
+.p-btn,.p-btn:hover,.p-btn:hover:not(:disabled),.p-br-new:hover,.p-cta:hover,.p-gold{box-shadow:none}
 .p-prev,.p-prev[data-on],.p-prev:hover{box-shadow:none;border-color:transparent}
 .p-ws[data-on],.p-ws[data-on]:hover{border-color:transparent;box-shadow:none}
 /* the splash's Library rows fill with --ps-fill-on, which RESOLVES to --ps-accent — the

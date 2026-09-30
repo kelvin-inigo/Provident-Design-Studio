@@ -1,6 +1,9 @@
 > **Acronyms, by request (2026-09-28):** **CAS** is the Campaign Ads Studio
 > (`Provident Campaign Studio.dc.html`) and **OPS** is the Organic Post Studio
 > (`Provident Organic Studio.dc.html`). Older sections spell the names out.
+>
+> **`CAS-OPS-GUIDE.md` is the user-facing guide** (written for Claude Cowork to reference). When a
+> change alters a label, a button, a flow or an export name a user sees, update the guide too.
 
 # Web Image Studio — a separate tool in this folder
 
@@ -5995,6 +5998,10 @@ Bottom, bars stepped apart for Roomy, a square in the corner for the QR side. Ru
   fill. Reach for a miniature when the option changes *where something sits*.
 
 ### Blocks lifted from the dwtc.provident.ae landing page
+
+> **The variant sets below were redrawn (2026-09-30)** — Jumbo is the headline's XL size, the spec
+> panels are Glass row / Glass ladder, and the tag treatments are six named shapes. See *CAS'S
+> DESIGN COMPONENTS WERE REDRAWN* at the end of this file.
 
 That page runs the same type system as the studio — Google Sans Flex 300 body / 400
 headings / 500 tracked caps — so only its *structures* were new.
@@ -12404,6 +12411,11 @@ integrity at baseline; `sc-if` +1/+1 and `sc-for` +1/+1 for the one new branch.
 
 # CAMPAIGN TAKES FOUR SUPPLIED SHAPES: AN ICON ROW, PER-LINE HERO INK, BRASS CAPS, A JUMBO CHIP
 
+> **SUPERSEDED IN PART (2026-09-30):** the brass eyebrow is no longer a variant — it is the
+> eyebrow's **Ink**, a module field (`m.inkHex`) — and the jumbo chip is the tags' **XL** size.
+> Saved projects migrate (`RETIRED`). The icon row, per-line hero ink and the brass token stand.
+> See *CAS'S DESIGN COMPONENTS WERE REDRAWN* at the end of this file.
+
 Four attachments, one pass, all on `Provident Campaign Studio.dc.html`. **Op census over 4
 templates x 2 palettes x 3 canvases: 24 groups, 336 ops, 24 byte-identical, 0 threw** against
 the pre-change copy served alongside — so every existing ad is unmoved, and the four
@@ -13890,3 +13902,191 @@ message is also unchanged. The folder API already created every level of a neste
 Share sits off the right edge and its panel opens past the window. Pre-existing — this change
 touches nothing in the bar — and it is the same class of defect *Top bar must fit* records at
 1440 and 1280.
+
+# CAS'S DESIGN COMPONENTS WERE REDRAWN: A MINOR-THIRD LADDER, S / M / L / XL, AND STYLE TILES
+
+By request (2026-09-30): "some of them appear clunky in design, while others have variants that
+look too similar… give me actual variants I can use with distinctive design features… test the
+controls… keep the minor third (1.200)… give every design component S/M/L/XL." All of it is in
+`Provident Campaign Studio.dc.html`; **OPS has no size system** — the request named CAS.
+
+## ONE TYPE LADDER, AND EVERYTHING STANDS ON IT
+
+`CampaignStudio.TYPE = [24, 28, 35, 41, 50, 59, 71, 85, 103, 123, 148, 177, 212]` — the minor third
+from the 24px floor, in canvas px — and `typeAt(px, d)` steps whole rungs. Every run of type a
+component draws is a rung. Two consequences a saved project will SEE:
+
+- **The 16:9 takes the 1:1's steps** (and a `col` of 800): its wordmark went 38 -> 41 and its eyebrow
+  22 -> 24, which also retires the recorded brass-caps AA failure on the light 16:9.
+- **No label under the floor.** Spec labels were `eyebrow * .8` (19.2 on the 1:1, 22.4 on the 9:16);
+  they are the eyebrow rung (24 / 28) now, and a three-column row on the 9:16 WRAPS its labels
+  ("STARTING / PRICE") with a row height that reserves the second line.
+- **Scaling is stepped.** The slider walks whole rungs inside each size's SCALE_RANGE (83 / 100 /
+  120% on the 1:1; 58 / 69 / 83 / 100 on the 9:16). A saved off-rung value reads as the NEAREST
+  rung in log space, so a saved 110% opens at 120%.
+
+## S / M / L / XL — per design variant, one scalar through the whole component
+
+`v.msize[id]` (`SIZES`, `SIZE_D` s -1 / m 0 / l 1 / xl 2), stored on the record the SELECTED
+canvas reads, exactly like `mvar` — so a detached 9:16 can run an L headline while its 1:1 keeps
+M; `withOv` merges a detached record's `mvar` and `msize` over the variant's.
+
+- **`tkMod(tk, v, m)` is applied at exactly three entry points — `modPx`, `drawMod`, the preview's
+  `mk` — and never below them**, or a size applies twice. M hands back the canvas's own `tk`
+  object untouched, which is what keeps every M component byte-identical.
+- Type moves by `typeAt(tk[key], d)`; everything that is NOT type — paddings, radii, rules, gaps,
+  plates — scales by `tk.k = 1.2^d` (`kOf(tk)`), so the component grows as one object.
+- **`eyeG` / `bodyG` are the geometry bases WITHOUT the floor**: an S eyebrow keeps its 24px type on
+  the 1:1 but its frame still tightens.
+- XL headlines are Light 300 (Jumbo's reason: past two rungs Regular reads as a slab).
+- The three exceptions: the **graphic**'s size is a MODULE field (`m.gsize`, `GH` s 90 / m 150 /
+  l 240 / xl 360) beside its corner-drag scale, and picking a size clears the drag everywhere
+  (`gscale` / `gaspect`, module and detached records); the **spacer** is `m.h x K`; the **divider**'s
+  size is its weight (`DIVW`: S a hairline at 45%, M the hairline, L 2px, XL 4px).
+
+## THE VARIANT SETS — a variant earns its place by a SHAPE its neighbours lack
+
+`CampaignStudio.VOPT` (a static now, read by the rail, the tiles and the copy view) and
+`VDESC` (each style's one line of purpose, the tile's tooltip):
+
+| component | styles |
+|---|---|
+| eyebrow | Plain caps · Rule-led · Framed · Filled · Status dot · Underlined |
+| hero | Regular · Two-tone · Fade out · Glass card · Underscored |
+| hook | Plain · Glass card · Bars · Quote |
+| body | Plain · Corner note · Ruled · Boxed |
+| list | Checks · Dots · Dashes · Ruled rows · Two columns |
+| tags | Outline pill · Filled pill · Glass pill · Icon pill · Divided strip · Dotted strip |
+| spec | Row · Ladder · Icon row · Glass row · Glass ladder |
+| steps | Icon plates · Numbered plates · Timeline · Compact list |
+| price | Plain · One line · Glass bar |
+| cta | Filled pill · Outline pill · Soft rect · Pill + arrow · Text link |
+| divider | Full rule · Short bar · Dotted · Fading · Ornament |
+
+**A variant that differed from its neighbour only in COLOUR, STROKE WEIGHT or SIZE was retired**,
+and `RETIRED` / `migrateStyles` (run from `normModList`) maps each onto the variant that kept its
+shape plus the size or ink that carried the difference — on every layout record, detached ones
+included. Verified on a hand-built legacy state:
+
+| was | opens as |
+|---|---|
+| eyebrow `brass` | `plain` + `m.inkHex` #B0905C (the eyebrow's Ink is a MODULE field now) |
+| hero `jumbo` | `plain` at XL |
+| tags `gold` / `plain` · `m.jumbo` | `mist` / `rule` · XL on every record that had not chosen a size |
+| list `ring` | `dot` |
+| divider `line2` / `line4` / `soft` / `soft2` | `line` at L / XL / S / S |
+| graphic `s` / `m` / `l` (per-variant heights) | `plain` + `m.gsize` |
+
+**The mixed case it cannot keep:** Ink is a module field, so brass on the Master and plain on
+Variant 2 comes out brass on both.
+
+Visual fixes found by rendering every variant on sheets:
+
+- **The hook's quote mark is sized by its INK.** A curly quote's ink is ~.19em tall, so at four rungs
+  up it drew smaller than a capital of the line under it. It is eight rungs up now (148 on a 35
+  hook) and placed by `quoteInk()` — the glyph's measured ascent, bottom and left bearing, cached per
+  face once the fonts have loaded — so its ink starts on the column edge and sits a quarter-em above
+  the copy.
+- **Bars** are 1.3em tall with .16em between them (both through `leadOf`, so an Arabic line's taller
+  ink still sits inside its bar), the baseline centred the way a CSS line box centres it.
+- **Two-tone** (`split`) takes the muted ink on every line after the first (`splitInk`) — weight alone
+  (400 against 300) was too quiet to read as a choice beside Regular. A picked line colour wins.
+- **Short bar** is three hairlines thick, **Fading** holds full strength across its middle third (a
+  1px ramp peaking at one point averaged to half a hairline), and **Ornament**'s dot is 10px with 1.8
+  dots of air either side.
+- **Step labels carry no number** under Icon and Numbered plates — the plate already printed it.
+
+## THE RAIL: style TILES, a SIZE row, an eyebrow INK
+
+- **Style tiles are real renders** (`vtKey` / `vtSync` / `vtRender`, driven from the shell like the
+  copy preview): the selected component, its own copy and size, in every one of its variants, by the
+  export's `buildOps`, over the variant's own photo. ONE crop window — the union of the variants'
+  ink, padded, widened to 2:1 — so the tiles compare at one scale. Dividers render at XL in their
+  tiles (at M a hairline is a quarter of a tile pixel), and an EMPTY icon slot shows a generic mark
+  in the tile only. The selected tile is a RING, for the colour swatch's reason. Hidden for the
+  single-style spacer and graphic.
+- **Size** is a four-up `.p-tabs` row; its tip is per type. **Ink** (eyebrow) is the icon colour's
+  shape — swatches plus hex — and its clear swatch paints the label's OWN default ink.
+- The tags' Regular / Jumbo pair is gone (the keys remain, unread).
+
+## THE EDITOR NOW MATCHES THE EXPORT TO ~2 CANVAS PX — and the biggest cause was chrome typography
+
+A probe over every component x style x S/M/L/XL x left/centre x 1:1 and 9:16 (text runs against
+their ops, and each component's box against what `modPx` reserves):
+
+| | before | after |
+|---|---|---|
+| eyebrow | 3.1-5.3 (the ".1em first line"), and a wrap mismatch at L/XL on the 9:16 | **1.3** |
+| hero | 3.4-6 centred, **14** on an XL glass card | **1.0** |
+| hook / body | 2.2-2.7, glass hook .1em short | **1.9 / 0.9** |
+| tags | a whole ROW (267px) on a centred 9:16 | **1.7** |
+| list · spec · steps · price · cta | — | 1.4 · 1.5 · 2.3 · 1.0 · 1.9 |
+
+Every component's box within **0.3** of its reservation (the divider's larger box is its
+layout-neutral hit padding).
+
+- **THE CANVAS PREVIEW INHERITED `font-feature-settings: "ss01","cv01"` from the shell** — the
+  Prov Toys re-skin's chrome typography. The editor drew the stylistic-alternate letterforms and
+  set every line **0.9-1.1% wider** than the export, which a canvas cannot give those features at
+  all. That WAS the "~1% DOM width" residual this file records for Campaign ("83 of 83 within
+  1.6%") and not for Organic, which never set the features. `canvasStyle` resets
+  `fontFeatureSettings`, `fontVariantNumeric` and `letterSpacing` at the canvas root. **The
+  artwork takes no chrome typography.**
+- **The eyebrow previews from the export's own lines** (pre-broken, `white-space: pre`) and gives the
+  first line's surplus back as a negative margin, so the ".1em first line" residual is gone from
+  the preview without moving a saved export.
+- **The glass hook reserves `GLASS_RES` (2.4) where it draws 2.3** — kept, named, and the preview pill
+  carries the same slack below it; both glass cards take the op's own width, and are column flexes
+  so a single word too wide for the card overflows EVENLY as the op centres it.
+- **Hook and body lines are lifted** by `base0 - (lead + a - d)/2` — the price block's fix.
+- **Chip rows, icon chips and strips take the op's rows** (`FLEX_BREAK`: a full-width zero-height
+  item between rows, the row gap moved onto later rows' top margin, a hair of slack). The demo copy
+  filled a 9:16 row to within 0.1% — 740.7 against 740 in the op, 740.06 against 740.02 in CSS —
+  and the two surfaces broke it differently. **A preview must be told where lines end; it must not
+  re-wrap.**
+- **Two hover survivors of the no-stroke pass**: `.p-tabs button[data-on]:hover` (0,3,1) and
+  `.p-btn:hover:not(:disabled)` (0,3,0) outrank the plain `box-shadow:none` forms, so hovering a
+  selected tab or a primary put the ring back. Fixed in CAS and in `web-image-studio.html`; the kit
+  and OPS were already clean. Found by sweeping PARSED rules for a `[data-on]`/`:hover` state with
+  a shadow, not by reading selectors.
+
+**Probe notes:** a pre-broken text node returns a ZERO-WIDTH client rect for each newline (filter
+`width > .5` or every later line pairs with the wrong rect); a component wrap is the one whose
+`.modhandle` is not `display:none` (the flex spacer has one too); and a knife-edge wrap is a
+content fact, so test with copy that fills its column.
+
+## Verification
+
+- **Template census against HEAD: 24 groups, all 24 differ, and every difference is one of the
+  above** — the 16:9 on the ladder, spec labels to the floor (and the stacks below them), the spec
+  row's column rules .5px at .55 -> 1px at .45 (`ruleSoft`, the ladder's own), and the Outline pill
+  taking the stronger `chipGold` stroke (the retired `gold` pill's). 336 -> 340 ops: the wrapped
+  9:16 labels.
+- Real clicks on tiles, the size row and the ink swatches; a detached 9:16's tiles and size read
+  and write ITS record; carousel labels read "this page only"; the graphic's drag shows no size and
+  a pick clears it; an XL spacer is 1.44x.
+- **Rail contrast, both themes reloaded into, animations finished, ancestor opacity composited: 0
+  failures** with the tiles, size row and ink on screen. Console: only Chrome's own beforeunload
+  notice.
+- One closing style tag, comments 334/334, brace depth 0, `sc-if` / `sc-for` +2/+2 on the documented
+  baseline, no interpolated `d=` / `src=`; every new render key resolves.
+
+## Left as decisions
+
+- An XL eyebrow on the 9:16 can widow its last word ("NOW SELLING · BUSINESS / BAY"); the listed
+  card's widow rule is the model if it matters.
+- On the LIGHT palette an Outline pill or Text link over a dark photograph is faint — that palette
+  assumes a light photograph.
+- A REPLACED icon keeps its old tile until something else re-keys it (the key reads fill flags).
+
+# BACKGROUND REMOVAL RUNS AS A LOGIN ITEM
+
+`tools/rembg/install.sh` (run once per Mac) installs the service into
+`~/Library/Application Support/Provident/cutout` — **not the repo: macOS refuses a login item read
+access to ~/Documents** — and registers `~/Library/LaunchAgents/ae.provident.cutout.plist`
+(RunAtLoad, KeepAlive, ProcessType Interactive). Under `--launchd` the server loads the model on
+the first photo, **exits ten minutes after the last cut-out to hand its memory back** (KeepAlive
+starts a fresh, empty process at once), and waits for the port if a hand-started `serve.sh` holds
+it. `env.sh` is the one place the paths live; `uninstall.sh` removes all of it. Idle, it measured
+~2MB resident. **Still open:** the studio's own "start tools/rembg/serve.sh" messages predate the
+login item, and the ONNX memory-arena measurement was not finished.
