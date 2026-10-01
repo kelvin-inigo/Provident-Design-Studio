@@ -856,7 +856,7 @@ bar, so adding a Campaign template still needs no new markup. Campaign therefore
 `.p-c-p i` mark rules and the canvas-dark `.p-c-p` pin its white bars depend on; Organic has
 deleted both.
 
-`CampaignStudio.TPL` holds four starting points lifted from `figma-kit/templates` —
+`CampaignStudio.TPL` holds four starting points lifted from the original `figma-kit/templates` (deleted 2026-10-01) —
 **New launch, Event, Payment plan, Spec ladder** (ids `f`, `d`, `g`, `h`) — each carrying a
 component set, layout preset and logo placement, with the kit's own copy. Five more
 (Investment, Market move, Location-led, Editorial, Discovery) were removed on request;
@@ -8505,10 +8505,9 @@ cross-studio hand-over navigates to the other by bare filename.
 
 ## Reference files
 
-- `reference/Provident Ad Design System.dc.html` — the ad design system
-- `reference/Variables Explorer.dc.html` — brand variables
-- `reference/Template Overview.dc.html` — organic template overview
-- `figma-kit/` — SVG module + template kit and `provident-variables.tokens.json`
+`reference/`, `figma-kit/`, `uploads/`, `Provident_Digital_Media_Templates.pdf` and the stale
+`Provident Campaign Studio/` copy were DELETED on 2026-10-01 as no longer relevant to CAS or
+OPS — nothing loaded them. They remain in git history before that commit.
 
 # THE KIT IS THE SOURCE OF TRUTH AGAIN, AND IT HAS THREE CONSUMERS
 
