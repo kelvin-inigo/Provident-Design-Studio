@@ -3292,6 +3292,20 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
 .p-vt:focus-visible .p-vt-i{outline:2px solid var(--ps-ink);outline-offset:2px}
 /* the size row is four short labels, so it never needs the tabs' wide side padding */
 .p-tabs-sz button{padding-left:4px;padding-right:4px}
+/* ── 31. A COMPONENT RECREATED FROM A SCREENSHOT ─────────────────────────────────────────
+   The palette's Custom group (library entries plus a one-line pointer to the /cas-component
+   skill) and the rail's part toggle. Chrome only, tokens only. */
+.p-cust-h{margin:2px 2px 0;font-size:12px;line-height:1.45;color:var(--ps-dim)}
+.p-cust-h code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--ps-ink-2)}
+.p-cust-w{margin-top:4px}
+.p-cust-r{display:flex;align-items:stretch;gap:4px}
+.p-cust-r > .p-tile{flex:1;min-width:0}
+.p-cust-s{font-weight:300;font-size:11px;color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:100%}
+.p-cust-x{flex:0 0 28px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:var(--ps-dim);cursor:pointer;padding:0}
+.p-cust-x:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-cust-x svg{width:15px;height:15px;fill:currentColor}
+.p-cust-t{margin-left:auto;border:0;background:transparent;color:var(--ps-link);font:500 12px/1 inherit;font-family:inherit;padding:2px 0;cursor:pointer}
+.p-cust-t:hover{text-decoration:underline}
 </style>
 </helmet>
 
@@ -3956,6 +3970,20 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
       </sc-for>
     </div>
   </sc-for>
+  <div class="p-grp-w p-cust-w">
+    <div class="p-cap p-grp-h">Custom</div>
+    <sc-for list="{{ custPal }}" as="p" hint-placeholder-count="0">
+      <div class="p-cust-r">
+        <button onClick="{{ p.add }}" class="p-tile" title="{{ p.addTip }}">
+          <span class="p-tile-n"><b>{{ p.label }}</b><s>{{ p.desc }}</s></span>
+          <span class="p-tile-p"><span class="p-cust-s">{{ p.sampleText }}</span></span>
+          <span class="p-tile-a" aria-hidden="true"><svg class="p-g" viewBox="0 -960 960 960"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span>
+        </button>
+        <sc-if value="{{ p.delOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.del }}" class="p-cust-x" title="Remove from the palette" aria-label="Remove from the palette"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if>
+      </div>
+    </sc-for>
+    <p class="p-cust-h">Run <code>/cas-component</code> in Claude Code with a screenshot, then press ⌘V here.</p>
+  </div>
   <div class="p-foot">{{ railFoot }}</div>
 </aside>
 
@@ -3992,6 +4020,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
                 <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
                 <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
               </div>
             </sc-for>
           </div>
@@ -4030,6 +4059,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
                 <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
                 <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
               </div>
             </sc-for>
           </div>
@@ -4069,6 +4099,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
                 <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
                 <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
               </div>
             </sc-for>
           </div>
@@ -4108,6 +4139,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
                 <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
                 <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
               </div>
             </sc-for>
           </div>
@@ -4139,6 +4171,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
                 <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
                 <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
                 <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
               </div>
             </sc-for>
           </div>
@@ -4206,6 +4239,24 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
           <label class="p-fld"><span class="p-lab">Small label <s>{{ textScope }}</s></span>
             <input value="{{ selSub }}" onChange="{{ onSelSub }}" class="p-in" placeholder="e.g. Starting from">
           </label>
+        </sc-if>
+        <sc-if value="{{ selIsCust }}" hint-placeholder-val="{{ false }}">
+          <span class="p-hint">{{ selCustNote }}</span>
+          <sc-if value="{{ selCustTemp }}" hint-placeholder-val="{{ false }}"><button onClick="{{ custSaveLib }}" class="p-ghost p-sm" title="Keep it in Custom for every project on this computer">Save to library</button></sc-if>
+          <span class="p-lab">Align <s>this component</s></span>
+          <div class="p-tabs"><button onClick="{{ custAlAuto }}" data-on="{{ custAlAutoOn }}">Follow ad</button><button onClick="{{ custAlLeft }}" data-on="{{ custAlLeftOn }}">Left</button><button onClick="{{ custAlCenter }}" data-on="{{ custAlCenterOn }}">Centre</button></div>
+          <sc-for list="{{ selCustFields }}" as="cf" hint-placeholder-count="2">
+            <div class="p-fld"><span class="p-lab">{{ cf.label }} <button onClick="{{ cf.toggle }}" class="p-cust-t" title="Show or hide this part"><sc-if value="{{ cf.onOn }}" hint-placeholder-val="{{ true }}">Hide</sc-if><sc-if value="{{ cf.offOn }}" hint-placeholder-val="{{ false }}">Show</sc-if></button></span>
+              <sc-if value="{{ cf.onOn }}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{ cf.isLine }}" hint-placeholder-val="{{ true }}"><input value="{{ cf.val }}" onChange="{{ cf.onInput }}" class="p-in" aria-label="{{ cf.label }}"></sc-if>
+                <sc-if value="{{ cf.isArea }}" hint-placeholder-val="{{ false }}"><textarea value="{{ cf.val }}" onChange="{{ cf.onInput }}" rows="2" class="p-in" aria-label="{{ cf.label }}"></textarea></sc-if>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ selCustIcoOn }}" hint-placeholder-val="{{ false }}">
+            <span class="p-lab">Icon colours</span>
+            <div class="p-tabs"><button onClick="{{ custIcoTint }}" data-on="{{ custIcoTintOn }}">Match canvas</button><button onClick="{{ custIcoOrig }}" data-on="{{ custIcoOrigOn }}">Original</button></div>
+          </sc-if>
         </sc-if>
         <sc-if value="{{ selTextSingle }}" hint-placeholder-val="{{ false }}">
           <label class="p-fld"><span class="p-lab">Text <s>{{ textScope }}</s></span>
@@ -4689,6 +4740,172 @@ class CampaignStudio extends StudioBase {
     cta: { pill: 'A solid pill', outline: 'An outlined pill', rect: 'A solid, softly rounded rectangle', arrow: 'A pill that ends in an arrow disc', link: 'Underlined text with an arrow' },
     divider: { line: 'A rule across the column', short: 'A short bar, an accent', dots: 'A row of dots', fade: 'A rule that fades out at both ends', ornament: 'A rule broken by a dot at its centre' }
   };
+  // ══ A COMPONENT RECREATED FROM A SCREENSHOT — `type: 'cust'` ══════════════════════════
+  // The /cas-component skill (.claude/skills/cas-component) has Claude Code read a screenshot
+  // into a SPEC, which arrives here by paste (custPasteBind): a small layout tree of stacks, text, icons, dots
+  // and rules, plus the fields that carry its words and two to four style variants. The
+  // spec travels ON the module (`m.spec`), so a session file carries it, a forked page
+  // clones it and every render — modPx, drawMod, the preview, the style tiles — has it
+  // without reaching for the library. The library (`adstudio-custom-lib`) is only the
+  // palette's list of what can be added.
+  //
+  // Everything that decides how it LOOKS stays the studio's, not the model's:
+  //   type   a text node names a ROLE (eyebrow / body / hook / headline / hero / stat / cta),
+  //          and its size is that role's token — the minor-third ladder, stepped by S/M/L/XL
+  //          through tkMod exactly as every other component is. The weight follows the brand
+  //          rule: tracked caps are 500, hero / headline / stat are Regular, the rest Light.
+  //   colour a node names a ROLE (ink, soft, mute, brass; glass, solid, label, tint), read off
+  //          PAL, so it flips with the light / dark canvas and no hex from the model ever
+  //          reaches an op.
+  //   space  every gap, pad, radius and size is in units of the body step (bodyG), so the
+  //          component grows as one object with its size, like the others.
+  static CUST_ROLE = {
+    // [token, lead, weight]
+    eyebrow: ['eyebrow', 1.3, 500], body: ['body', 1.4, 300], hook: ['hook', 1.25, 300],
+    headline: ['headline', 1.1, 400], hero: ['hero', 1.08, 400], stat: ['stat', 1.15, 400], cta: ['ctaF', 1.2, 300]
+  };
+  static CUST_INK = ['auto', 'ink', 'soft', 'mute', 'brass'];
+  static CUST_FILL = ['glass', 'solid', 'label', 'brass', 'tint'];
+  static CUST_STROKE = ['rule', 'chip', 'strong', 'brass'];
+  static CUST_MAXF = 8;        // fields per component
+  static CUST_MAXN = 60;       // nodes per variant tree
+  static CUST_LIB = 'adstudio-custom-lib';
+  // THE ONE GATE a spec passes through, whoever wrote it — the service, a session file, a
+  // library entry. Unknown node types are dropped, every number is clamped, every role is
+  // whitelisted and every text node must name a field that exists. Returns null when
+  // nothing usable is left, so a bad answer is refused rather than half-drawn.
+  static custSan(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const C = CampaignStudio;
+    const str = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
+    const num = (v, lo, hi, d) => { v = +v; return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d; };
+    const one = (v, list, d) => list.indexOf(v) >= 0 ? v : d;
+    const fields = [], keys = new Set();
+    (Array.isArray(raw.fields) ? raw.fields : []).forEach(f => {
+      if (fields.length >= C.CUST_MAXF || !f) return;
+      let k = str(f.key, 24).toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/^[^a-z]+/, '');
+      if (!k || keys.has(k)) return;
+      keys.add(k);
+      fields.push({ key: k, label: str(f.label, 40) || k, kind: f.kind === 'area' ? 'area' : 'line', sample: String(f.sample == null ? '' : f.sample).replace(/\r/g, '').slice(0, 300) });
+    });
+    if (!fields.length) return null;
+    let count = 0;
+    const node = (n, depth) => {
+      if (!n || typeof n !== 'object' || depth > 7 || count >= C.CUST_MAXN) return null;
+      count++;
+      const ink = one(n.ink, C.CUST_INK, 'auto');
+      if (n.t === 'text') {
+        if (!keys.has(n.field)) return null;
+        return { t: 'text', field: n.field, role: C.CUST_ROLE[n.role] ? n.role : 'body', caps: !!n.caps || n.role === 'eyebrow', ink, lines: Math.round(num(n.lines, 1, 6, 3)) };
+      }
+      if (n.t === 'icon') return { t: 'icon', slot: Math.round(num(n.slot, 0, C.ICON_MAX - 1, 0)), size: num(n.size, .5, 5, 1.4), ink };
+      if (n.t === 'dot') return { t: 'dot', size: num(n.size, .15, 2, .4), ink };
+      if (n.t === 'rule') return { t: 'rule', len: n.len === 'fill' ? 'fill' : num(n.len, .5, 30, 3), weight: num(n.weight, 1, 4, 1), ink };
+      if (n.t === 'vrule') return { t: 'vrule', weight: num(n.weight, 1, 4, 1), ink };
+      if (n.t === 'stack') {
+        const kids = (Array.isArray(n.kids) ? n.kids : []).map(k => node(k, depth + 1)).filter(Boolean);
+        const pad = Array.isArray(n.pad) ? [0, 1, 2, 3].map(i => num(n.pad[i], 0, 8, 0)) : [0, 0, 0, 0].map(() => num(n.pad, 0, 8, 0));
+        return {
+          t: 'stack', dir: n.dir === 'row' ? 'row' : 'col', gap: num(n.gap, 0, 8, 0), pad,
+          align: one(n.align, ['auto', 'start', 'center', 'end'], 'auto'),
+          justify: one(n.justify, ['start', 'center', 'end', 'between'], 'start'),
+          hug: !!n.hug, fill: one(n.fill, C.CUST_FILL, null), stroke: one(n.stroke, C.CUST_STROKE, null),
+          r: n.r === 'pill' ? 'pill' : num(n.r, 0, 4, 0), kids
+        };
+      }
+      return null;
+    };
+    const variants = [], vkeys = new Set();
+    (Array.isArray(raw.variants) ? raw.variants : []).forEach((v, i) => {
+      if (variants.length >= 4 || !v) return;
+      count = 0;
+      const root = node(v.root, 0);
+      if (!root) return;
+      let k = str(v.key, 20).toLowerCase().replace(/[^a-z0-9]/g, '') || ('v' + (i + 1));
+      while (vkeys.has(k)) k += 'x';
+      vkeys.add(k);
+      variants.push({ key: k, label: str(v.label, 24) || ('Style ' + (i + 1)), desc: str(v.desc, 90), root });
+    });
+    if (!variants.length) return null;
+    // `name` or `name:fill` — a solid glyph is the right read for a rating star or a status
+    // mark, and the studio's own weight-200 outline all but vanishes at badge size
+    const hints = (Array.isArray(raw.iconHints) ? raw.iconHints : []).slice(0, C.ICON_MAX).map(h => {
+      const p = String(h == null ? '' : h).split(':'), n = C.iconName(p[0]);
+      return n ? n + (/^fill/i.test(p[1] || '') ? ':fill' : '') : '';
+    });
+    const id = /^c[a-z0-9]{4,24}$/.test(raw.id || '') ? raw.id : 'c' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+    return { v: 1, id, name: str(raw.name, 40) || 'Custom component', desc: str(raw.desc, 90), fields, variants, iconHints: hints };
+  }
+  // The icon slots a spec draws in, across every variant: the rail's picker steps and the
+  // asset loader both read it.
+  static custSlots(spec) {
+    const out = new Set();
+    const walk = n => { if (!n) return; if (n.t === 'icon') out.add(n.slot); (n.kids || []).forEach(walk); };
+    ((spec && spec.variants) || []).forEach(v => walk(v.root));
+    return [...out].sort((a, b) => a - b);
+  }
+  // A new module from a spec: its own copy of the spec, and the screenshot's words as the
+  // starting copy — a component recreated from a picture should arrive looking like it.
+  static custMod(spec) {
+    const f = {};
+    spec.fields.forEach(x => { f[x.key] = x.sample || ''; });
+    return { type: 'cust', spec: JSON.parse(JSON.stringify(spec)), f };
+  }
+  static custLibRead() {
+    try { const a = JSON.parse(localStorage.getItem(CampaignStudio.CUST_LIB) || '[]'); return Array.isArray(a) ? a.map(CampaignStudio.custSan).filter(Boolean) : []; }
+    catch (e) { return []; }
+  }
+  static custLibWrite(list) {
+    try { localStorage.setItem(CampaignStudio.CUST_LIB, JSON.stringify(list)); return true; } catch (e) { return false; }
+  }
+  // The palette's list: this computer's library, plus any spec a project carries that the
+  // library has not seen — so a session opened on another computer offers its components.
+  static custPalette(state) {
+    const lib = CampaignStudio.custLibRead(), seen = new Set(lib.map(x => x.id)), extra = [];
+    CampaignStudio.allMods(state).forEach(m => {
+      if (m.type === 'cust' && m.spec && !seen.has(m.spec.id)) { seen.add(m.spec.id); const c = CampaignStudio.custSan(m.spec); if (c) extra.push(Object.assign(c, { fromProject: true })); }
+    });
+    return lib.concat(extra);
+  }
+  // The variant list a component offers: a recreated one carries its own, every other type
+  // reads the static table. Every reader of VOPT for a MODULE goes through this.
+  static voptOf(m) {
+    if (m && m.type === 'cust') return ((m.spec && m.spec.variants) || []).map(v => [v.key, v.label]);
+    return CampaignStudio.VOPT[m && m.type] || [];
+  }
+  static vdescOf(m, key) {
+    if (m && m.type === 'cust') { const v = ((m.spec && m.spec.variants) || []).find(x => x.key === key); return (v && v.desc) || ''; }
+    return ((CampaignStudio.VDESC[m && m.type] || {})[key]) || '';
+  }
+  // A hint's glyph at the brand's settings; `:fill` takes the FILL 1 cut of the same symbol.
+  static custIconUrl(hint) {
+    const p = String(hint || '').split(':'), C = CampaignStudio;
+    return 'https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined/' + encodeURIComponent(C.iconName(p[0])) +
+      '/wght' + C.ICON_WGHT + (p[1] === 'fill' ? 'fill1' : '') + '/' + C.ICON_OPSZ + 'px.svg';
+  }
+  // Greedy word wrap with the run's own measure; manual breaks first; the last line is
+  // ellipsised when the copy needs more than `maxL` lines.
+  static custWrap(text, maxW, maxL, wOf) {
+    const out = [];
+    String(text).split('\n').forEach(seg => {
+      const words = seg.split(/\s+/).filter(Boolean);
+      if (!words.length) { out.push(''); return; }
+      let cur = '';
+      words.forEach(w => {
+        const t = cur ? cur + ' ' + w : w;
+        if (!cur || wOf(t) <= maxW) cur = t; else { out.push(cur); cur = w; }
+      });
+      out.push(cur);
+    });
+    while (out.length && out[out.length - 1] === '') out.pop();
+    if (out.length > maxL) {
+      out.length = maxL;
+      let last = out[maxL - 1];
+      while (last && wOf(last + '…') > maxW) last = last.replace(/\s*\S+$/, '');
+      out[maxL - 1] = (last || out[maxL - 1]) + '…';
+    }
+    return out;
+  }
   // ══ THE STYLE TILES ARE REAL RENDERS ══════════════════════════════════════════════════
   // The rail's style picker shows the selected component, with its own copy and its own
   // size, drawn in every one of its variants by the SAME buildOps the export runs, over the
@@ -6642,6 +6859,142 @@ class CampaignStudio extends StudioBase {
   // a literal `[v, v.story, v.wideOv]`, which is exactly how a new size gets missed.
   static OVK = ['story', 'wideOv', 'banOv'];
   static recsOf(v) { return v ? [v].concat(CampaignStudio.OVK.map(k => v[k])) : []; }
+  // THE ONE LAYOUT of a recreated component: its box height and a flat list of elements in
+  // component coordinates (x from the column's left edge, y from the component's top). The
+  // ops (drawMod), the reserved height (modPx), the preview (mk) and the style tiles all read
+  // it, so the editor cannot draw a different component from the export — the preview is one
+  // absolutely placed element per element here, the way the carousel pages are.
+  //   element  { k: 'text', x, y (baseline), px, weight, fill, text, ls }
+  //            { k: 'box',  x, y, w, h, r, fill, stroke, sw, blur }
+  //            { k: 'icon', x, y, w, h, slot, ink }
+  // `tk` is already the component's own size (tkMod applied by the caller).
+  custLayout(m, mv, tk, iw, pal, center) {
+    const C = CampaignStudio, sp = m && m.spec;
+    if (!sp || !sp.variants || !sp.variants.length) return { h: 0, els: [] };
+    const vr = sp.variants.find(x => x.key === mv) || sp.variants[0];
+    // the component's own alignment, when it has one, over the ad's
+    if (m.align === 'left') center = false; else if (m.align === 'center') center = true;
+    const u = tk.bodyG || tk.body, K = C.kOf(tk), fa = StudioBase.fontAsc();
+    const hair = Math.max(1, K), f = m.f || {}, els = [];
+    const inkOf = (role, onFill) => {
+      if (role === 'soft') return pal.inkSoft;
+      if (role === 'mute') return pal.inkMute;
+      if (role === 'brass') return pal.brass;
+      if (role === 'ink') return pal.ink;
+      // auto: the ink that reads on the nearest filled ancestor
+      if (onFill === 'solid') return pal.ctaInk;
+      if (onFill === 'label' || onFill === 'brass') return pal.eyeInk;
+      return pal.ink;
+    };
+    const fillOf = r => r === 'glass' || r === 'tint' ? pal.glassFill : r === 'solid' ? pal.ctaFill : r === 'label' ? pal.eyeFill : r === 'brass' ? pal.brass : null;
+    const strokeOf = r => r === 'rule' ? pal.rule : r === 'chip' ? pal.chip : r === 'strong' ? pal.chipGold : r === 'brass' ? pal.brass : null;
+    // Each node measures itself against the width it may take and returns
+    //   { w, h, fixed (keeps its own width), grow (takes the leftover), draw(x, y, aw, al, ah) }
+    // or null when it has nothing to draw — an empty item takes no space, gaps included.
+    const M = (n, maxW, onFill) => {
+      if (n.t === 'text') {
+        const R = C.CUST_ROLE[n.role] || C.CUST_ROLE.body, px = tk[R[0]];
+        const caps = !!n.caps, weight = caps ? 500 : C.headW(R[2]), ls = caps ? C.trackOf(px) : 0;
+        const lead = C.leadOf(R[1]);
+        if (m.off && m.off[n.field]) return null;   // a part switched off in the rail takes no space
+        let raw = String(f[n.field] == null ? '' : f[n.field]);
+        if (caps) raw = raw.toUpperCase();
+        if (!raw.trim()) return null;
+        const wOf = t => Math.max(0, this.meas(t, px, weight, false, ls) - ls);
+        const lines = C.custWrap(raw, Math.max(px, maxW), n.lines || 3, wOf);
+        const fill = inkOf(n.ink, onFill), base = px * (lead + fa.a - fa.d) / 2;
+        return {
+          w: Math.min(maxW, lines.reduce((a, t) => Math.max(a, wOf(t)), 0)), h: lines.length * px * lead,
+          draw: (x, y, aw, al) => lines.forEach((t, i) => {
+            const lw = wOf(t), lx = al === 'center' ? x + (aw - lw) / 2 : (al === 'end' ? x + aw - lw : x);
+            els.push({ k: 'text', x: lx, y: y + base + i * px * lead, px, weight, fill, text: t, ls });
+          })
+        };
+      }
+      if (n.t === 'icon') {
+        const s = n.size * u, ink = inkOf(n.ink, onFill);
+        return { w: s, h: s, fixed: true, draw: (x, y) => els.push({ k: 'icon', x, y, w: s, h: s, slot: n.slot, ink }) };
+      }
+      if (n.t === 'dot') {
+        const d = n.size * u, fill = inkOf(n.ink, onFill);
+        return { w: d, h: d, fixed: true, draw: (x, y) => els.push({ k: 'box', x, y, w: d, h: d, r: d / 2, fill }) };
+      }
+      if (n.t === 'rule') {
+        const t = hair * n.weight, fill = n.ink === 'auto' ? pal.rule : inkOf(n.ink, onFill);
+        const grow = n.len === 'fill';
+        return { w: grow ? 0 : Math.min(maxW, n.len * u), h: t, fixed: !grow, grow,
+          draw: (x, y, aw, al, ah) => els.push({ k: 'box', x, y: y + ((ah || t) - t) / 2, w: grow ? aw : Math.min(aw, n.len * u), h: t, r: 0, fill }) };
+      }
+      if (n.t === 'vrule') {
+        const t = hair * n.weight, fill = n.ink === 'auto' ? pal.rule : inkOf(n.ink, onFill);
+        return { w: t, h: 0, fixed: true, draw: (x, y, aw, al, ah) => els.push({ k: 'box', x, y, w: t, h: ah || 0, r: 0, fill }) };
+      }
+      // a stack: a column or a row of nodes, optionally on its own surface
+      const p = n.pad.map(v => v * u), gap = n.gap * u, padX = p[1] + p[3], padY = p[0] + p[2];
+      const inner = Math.max(0, maxW - padX), kidFill = n.fill || onFill;
+      const surf = !!(n.fill || n.stroke);
+      const box = (x, y, w, h) => {
+        if (!surf) return;
+        const r = n.r === 'pill' ? h / 2 : Math.min(h / 2, n.r * u);
+        els.push({ k: 'box', x, y, w, h, r, fill: fillOf(n.fill), stroke: strokeOf(n.stroke) || (n.fill === 'glass' ? pal.glassStroke : null), sw: hair, blur: n.fill === 'glass' });
+      };
+      if (n.dir === 'col') {
+        const ks = n.kids.map(k => M(k, inner, kidFill)).filter(Boolean);
+        if (!ks.length && !surf) return null;
+        const cw = ks.reduce((a, k) => Math.max(a, k.grow ? 0 : k.w), 0);
+        const w = n.hug ? Math.min(maxW, cw + padX) : maxW;
+        const h = ks.reduce((a, k) => a + k.h, 0) + gap * Math.max(0, ks.length - 1) + padY;
+        return { w, h, fixed: n.hug, draw: (x, y, aw, al) => {
+          box(x, y, aw, h);
+          const a2 = n.align === 'auto' ? (al || 'start') : n.align, iw2 = aw - padX;
+          let yy = y + p[0];
+          ks.forEach(k => {
+            const kw = k.fixed ? Math.min(iw2, k.w) : iw2;
+            const kx = x + p[3] + (a2 === 'center' ? (iw2 - kw) / 2 : (a2 === 'end' ? iw2 - kw : 0));
+            k.draw(kx, yy, kw, a2, k.h);
+            yy += k.h + gap;
+          });
+        } };
+      }
+      // row: fixed items first, then the flexible ones share what is left, then anything
+      // that grows takes the leftover
+      const slots = n.kids.map(k => ({ n: k, g: null }));
+      slots.forEach(s => { if (['icon', 'dot', 'vrule'].indexOf(s.n.t) >= 0 || (s.n.t === 'rule' && s.n.len !== 'fill')) s.g = M(s.n, inner, kidFill); });
+      const flex = slots.filter(s => s.n.t === 'text' || s.n.t === 'stack');
+      let live = slots.filter(s => s.g || flex.indexOf(s) >= 0 || (s.n.t === 'rule' && s.n.len === 'fill'));
+      const fixedW = slots.reduce((a, s) => a + (s.g ? s.g.w : 0), 0);
+      const gaps0 = gap * Math.max(0, live.length - 1);
+      const share = flex.length ? Math.max(0, (inner - fixedW - gaps0) / flex.length) : 0;
+      flex.forEach(s => { s.g = M(s.n, share, kidFill); });
+      slots.forEach(s => { if (s.n.t === 'rule' && s.n.len === 'fill') s.g = M(s.n, inner, kidFill); });
+      const ks = slots.map(s => s.g).filter(Boolean);
+      if (!ks.length && !surf) return null;
+      const gaps = gap * Math.max(0, ks.length - 1);
+      const used = ks.reduce((a, k) => a + (k.grow ? 0 : k.w), 0) + gaps;
+      const nGrow = ks.filter(k => k.grow).length;
+      const ih = ks.reduce((a, k) => Math.max(a, k.h), 0), h = ih + padY;
+      const w = n.hug && !nGrow ? Math.min(maxW, used + padX) : maxW;
+      return { w, h, fixed: n.hug && !nGrow, draw: (x, y, aw) => {
+        box(x, y, aw, h);
+        const iw2 = aw - padX, left = Math.max(0, iw2 - used), growW = nGrow ? left / nGrow : 0;
+        const j = nGrow ? 'start' : n.justify;
+        let xx = x + p[3] + (j === 'center' ? left / 2 : (j === 'end' ? left : 0));
+        const between = j === 'between' && ks.length > 1 ? left / (ks.length - 1) : 0;
+        const cf = n.align === 'start' ? 0 : (n.align === 'end' ? 1 : .5);
+        ks.forEach(k => {
+          const kw = k.grow ? growW : k.w;
+          const ky = y + p[0] + (ih - k.h) * (k.h ? cf : 0);
+          k.draw(xx, ky, kw, 'start', k.h || ih);
+          xx += kw + gap + between;
+        });
+      } };
+    };
+    const root = M(vr.root, iw, null);
+    if (!root) return { h: 0, els };
+    const rw = root.fixed ? root.w : iw;
+    root.draw(root.fixed && center ? (iw - rw) / 2 : 0, 0, rw, center ? 'center' : 'start', root.h);
+    return { h: root.h, els };
+  }
   modPx(m, v, tk, innerW, ov) {
     // This component's own size — S / M / L / XL — applied once, here, at the entry point.
     tk = CampaignStudio.tkMod(tk, v, m);
@@ -6650,6 +7003,7 @@ class CampaignStudio extends StudioBase {
     // the spacer's own height times its size: the drag sets M, and L / XL / S step it
     if (m.type === 'spacer') return (m.h || 60) * CampaignStudio.kOf(tk);
     if (m.type === 'graphic') return CampaignStudio.graphicH(ov, m, tk, innerW, mv, null);
+    if (m.type === 'cust') return this.custLayout(m, mv, tk, innerW, CampaignStudio.palOf(v), v.align === 'center').h;
     // `fill` is the framed box with a solid ground instead of a stroke, so it
     // reserves exactly what `frame` does.
     if (m.type === 'eyebrow') {
@@ -7421,6 +7775,22 @@ class CampaignStudio extends StudioBase {
           ops.push({ op: 'rrect', x: bx, y, w: bw, h: bh, r: rectV ? 8 * K : bh / 2, fill: outline ? null : pal.ctaFill, stroke: outline ? pal.ctaOutline : null, sw: 2 * K });
           ops.push({ op: 'text', x: bx + CB.padL, y: baseY, px: tk.ctaF, weight: lw, fill: outline ? pal.ink : pal.ctaInk, text: m.text || '' });
         }
+      } else if (m.type === 'cust') {
+        // A recreated component draws exactly what custLayout lays out — see there.
+        this.custLayout(m, mv, tk, iw, pal, center).els.forEach(e => {
+          const ex = px0 + e.x, ey = y + e.y;
+          if (e.k === 'text') ops.push({ op: 'text', x: ex, y: ey, px: e.px, weight: e.weight, fill: e.fill, text: e.text, ls: e.ls });
+          else if (e.k === 'box') {
+            if (e.blur) ops.push({ op: 'blur', x: ex, y: ey, w: e.w, h: e.h, r: e.r, amount: 14 });
+            ops.push({ op: 'rrect', x: ex, y: ey, w: e.w, h: e.h, r: e.r, fill: e.fill || null, stroke: e.stroke || null, sw: e.sw });
+          } else if (e.k === 'icon') {
+            const a = assets['ic' + m.id + '_' + e.slot];
+            if (!a || !a.img) return;
+            const aw = a.img.naturalWidth || 1, ah = a.img.naturalHeight || 1, k = Math.min(e.w / aw, e.h / ah);
+            ops.push({ op: 'image', img: a.img, url: a.u, x: ex + (e.w - aw * k) / 2, y: ey + (e.h - ah * k) / 2, w: aw * k, h: ah * k,
+              tintFlat: m.icoOrig ? undefined : CampaignStudio.icoInk(m, e.ink) });
+          }
+        });
       } else if (m.type === 'graphic') {
         const a = assets['mod' + m.id];
         const gh = CampaignStudio.graphicH(gov, m, tk, iw, mv, a);
@@ -7968,7 +8338,7 @@ class CampaignStudio extends StudioBase {
         if (g && g.u) { const img = await loadImg(g.u); if (img) assets['mod' + m.id] = { img, u: g.u }; }
       }
       // Steps, icon chips and the spec icon row each carry their own uploadable SVG.
-      if (m.type === 'steps' || m.type === 'tags' || m.type === 'spec') {
+      if (m.type === 'steps' || m.type === 'tags' || m.type === 'spec' || m.type === 'cust') {
         for (let i = 0; i < CampaignStudio.ICON_MAX; i++) {
           const ic = norm(sidecar['adstudio-ic-' + m.id + '-' + i]);
           if (ic && ic.u) { const img = await loadImg(ic.u); if (img) assets['ic' + m.id + '_' + i] = { img, u: ic.u }; }
@@ -7992,7 +8362,7 @@ class CampaignStudio extends StudioBase {
     const name = CampaignStudio.iconName(rawName);
     const i = (this._iconStep || 0) + 1;
     const ty = (CampaignStudio.modulesFor(this.state, this.state.activeVi).find(m => m.id === modId) || {}).type;
-    const what = ty === 'tags' ? 'Chip ' : (ty === 'spec' ? 'Column ' : 'Step ');
+    const what = ty === 'cust' ? 'Icon ' : ty === 'tags' ? 'Chip ' : (ty === 'spec' ? 'Column ' : 'Step ');
     if (!name) { this.setState({ exportStatus: 'Type an icon name first.' }); return; }
     const slot = this.iconSlotEl(modId);
     if (!slot || !slot._ingest) {
@@ -8692,7 +9062,7 @@ class CampaignStudio extends StudioBase {
     if (!sel || s.screen !== 'editor') return '';
     const vi = sel.vi != null ? sel.vi : s.activeVi, v = s.variants[vi];
     const m = v && C.modulesFor(s, vi).find(z => z.id === sel.id);
-    if (!m || (C.VOPT[m.type] || []).length < 2) return '';
+    if (!m || C.voptOf(m).length < 2) return '';
     const size = sel.size || 'sq', eff = C.sizeOv(v, size) || v;
     const f = this._filled || {}, slot = k => (f[k] ? '1' : '0');
     const pics = [slot('adstudio-bg-' + vi), slot('adstudio-bg-' + vi + '-' + C.photoSize(size))]
@@ -8726,7 +9096,7 @@ class CampaignStudio extends StudioBase {
     const vi = sel.vi != null ? sel.vi : s.activeVi, size = sel.size || 'sq';
     const m0 = C.modulesFor(s, vi).find(z => z.id === sel.id);
     if (!m0) return null;
-    const id = m0.id, opts = C.VOPT[m0.type] || [];
+    const id = m0.id, opts = C.voptOf(m0);
     // a canvas never pulls a webfont — every weight the component can draw, then fonts.ready
     const fam = StudioBase.applyFont(s).fam;
     const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
@@ -8743,7 +9113,7 @@ class CampaignStudio extends StudioBase {
     await pic('adstudio-bg-' + vi, 'bg0');
     for (const sz of ['st', 'ls', 'bn']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
     if (m0.type === 'graphic') await pic('adstudio-mod-' + id, 'mod' + id);
-    if (m0.type === 'steps' || m0.type === 'tags' || m0.type === 'spec') {
+    if (m0.type === 'steps' || m0.type === 'tags' || m0.type === 'spec' || m0.type === 'cust') {
       const glyph = await C.vtGlyph();
       for (let i = 0; i < C.ICON_MAX; i++) {
         await pic('adstudio-ic-' + id + '-' + i, 'ic' + id + '_' + i);
@@ -8768,7 +9138,14 @@ class CampaignStudio extends StudioBase {
     });
     // ONE WINDOW FOR EVERY TILE: the union of the component's ink across its variants,
     // padded, widened to the tile's 2:1 and kept on the canvas.
-    const W = builds[0].built.W, H = builds[0].built.H, meas = this.meas.bind(this);
+    const urls = this.vtCrop(builds, VT);
+    return { id, vi, urls };
+  }
+  // ONE WINDOW FOR A SET OF RENDERS: the union of their ink, padded, widened to the tile's
+  // aspect and kept on the canvas, so the tiles compare at one scale. Read by the rail's
+  // style tiles and by the import window's previews.
+  vtCrop(builds, VT) {
+    const C = CampaignStudio, W = builds[0].built.W, H = builds[0].built.H, meas = this.meas.bind(this);
     let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
     builds.forEach(b => b.built.ops.forEach(o => {
       if (o.text === 'provident.') return;
@@ -8792,7 +9169,85 @@ class CampaignStudio extends StudioBase {
       c.getContext('2d').drawImage(full, wx * k, wy * k, VT.w, VT.h, 0, 0, VT.w, VT.h);
       urls[b.key] = c.toDataURL('image/webp', .86);
     });
-    return { id, vi, urls };
+    return urls;
+  }
+  // ══ A COMPONENT ARRIVES BY PASTE — from the /cas-component skill ══════════════════════
+  // Claude reads the screenshot in a Claude Code session (the skill in .claude/skills/
+  // cas-component), writes the spec, checks it and puts it on the clipboard wrapped as
+  // {"provident": "cas-component", "spec": {...}}. ⌘V anywhere in the editor adds it to the
+  // canvas — temporarily, this project only — and the rail offers Save to library. No service,
+  // no key, nothing in this file reaches a network for it except the icon glyphs.
+  // Capture phase, so a focused field never receives the JSON; anything that is not our
+  // marker passes through untouched.
+  custPasteBind() {
+    if (this._custPaste) return;
+    this._custPaste = e => {
+      const s = this.state;
+      if (!s || s.screen !== 'editor') return;
+      const txt = (e.clipboardData && e.clipboardData.getData('text/plain')) || '';
+      if (txt.indexOf('cas-component') < 0) return;
+      let raw = null;
+      try { raw = JSON.parse(txt.trim()); } catch (err) { return; }
+      if (!raw || raw.provident !== 'cas-component') return;
+      e.preventDefault(); e.stopPropagation();
+      const spec = CampaignStudio.custSan(raw.spec || raw);
+      if (!spec) { this.setState({ exportStatus: 'That component could not be read — run /cas-component again and paste the new one.' }); return; }
+      this.custAdd(spec);
+      this.setState({ exportStatus: '"' + spec.name + '" added to this canvas only — select it and press Save to library to keep it for other projects.' });
+    };
+    document.addEventListener('paste', this._custPaste, true);
+  }
+  // The icons a spec suggests, fetched from Material Symbols at the brand's settings. Cached
+  // per name; a name that does not resolve is simply left empty.
+  async custIconImgs(spec) {
+    const C = CampaignStudio, out = {};
+    this._impIco = this._impIco || {};
+    for (const slot of C.custSlots(spec)) {
+      const name = (spec.iconHints || [])[slot];
+      if (!name) continue;
+      if (!this._impIco[name]) this._impIco[name] = fetch(C.custIconUrl(name)).then(r => r.ok ? r.text() : null).then(txt => {
+        if (!txt || !/<svg[\s>]/i.test(txt)) return null;
+        const u = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(txt)));
+        return new Promise(res => { const im = new Image(); im.onload = () => res({ img: im, u }); im.onerror = () => res(null); im.src = u; });
+      }).catch(() => null);
+      const a = await this._impIco[name];
+      if (a) out[slot] = a;
+    }
+    return out;
+  }
+  // Keep a spec in this computer's library (replacing an older copy of the same one).
+  custKeep(spec) {
+    const C = CampaignStudio, clean = C.custSan(spec);
+    if (!clean) return false;
+    return C.custLibWrite(C.custLibRead().filter(x => x.id !== clean.id).concat([clean]));
+  }
+  // Put a spec on the active page/variant and select it; its suggested icons go straight
+  // into its slots through the store's own write, so they land whether or not the slot is
+  // on screen.
+  custAdd(spec) {
+    const C = CampaignStudio;
+    let nid = null;
+    this.upd(x => {
+      nid = C.freshId();
+      C.modList(x, x.activeVi).push(Object.assign({ id: nid }, C.custMod(spec)));
+      x.sel = { vi: x.activeVi, size: 'sq', id: nid };
+      return x;
+    });
+    this.custIconsInto(nid, spec);
+    return nid;
+  }
+  async custIconsInto(modId, spec) {
+    const IS = customElements.get('image-slot');
+    if (!modId || !IS || !IS.putUrl) return;
+    const ic = await this.custIconImgs(spec);
+    Object.keys(ic).forEach(slot => IS.putUrl('adstudio-ic-' + modId + '-' + slot, ic[slot].u));
+    if (Object.keys(ic).length) this.markDirty();
+  }
+  custForget(spec) {
+    const C = CampaignStudio;
+    if (!window.confirm('Remove "' + spec.name + '" from the component palette?\n\nProjects that already use it keep it — the design travels with them.')) return;
+    C.custLibWrite(C.custLibRead().filter(x => x.id !== spec.id));
+    this.forceUpdate();
   }
   copyVals() {
     const s = this.state, C = CampaignStudio, L = C.COPY_LABEL;
@@ -9041,6 +9496,10 @@ class CampaignStudio extends StudioBase {
     const VOPT = CampaignStudio.VOPT;
     const labels = { eyebrow: ['Eyebrow', 'tracked caps'], hero: ['Hero headline', 'the big line'], hook: ['Hook line', 'one-glance'], body: ['Body line', 'support'], tags: ['Tag chips', 'pills / strips'], spec: ['Spec data', 'labels + figures'], list: ['Bullet list', 'checks / dots / rows'], cta: ['CTA button', 'one per ad'], price: ['Price block', 'label + figure'], divider: ['Divider', 'rule / bar / dots'], spacer: ['Spacer', 'draggable height'], graphic: ['Graphic', 'SVG / PNG upload'],
       steps: ['Process steps', 'auto-numbered'] };
+    // A recreated component is named by its own spec; every other type by the table above.
+    // Anything that names a MODULE reads labOf, or a custom one throws on labels[m.type][0].
+    const labOf = m => (m && m.type === 'cust') ? [(m.spec && m.spec.name) || 'Custom component', 'from a screenshot'] : (labels[m && m.type] || [String(m && m.type), '']);
+    const textOf = m => (m && m.type === 'cust') ? String(((m.spec && m.spec.fields) || []).map(fd => (m.f || {})[fd.key]).find(t => t && String(t).trim()) || '') : m.text;
 
     const mkCanvas = (vi, sizeKey) => {
       let v = s.variants[vi];
@@ -9449,6 +9908,23 @@ class CampaignStudio extends StudioBase {
               borderRadius: cq(18 * KP), padding: cq(B.pad) + ' ' + cq(B.pad * 2), boxSizing: 'border-box' };
             Object.assign(mv === 'boxed' ? view.ladStyle : view.rowStyle, box);
           }
+        } else if (m.type === 'cust') {
+          // One absolutely placed element per element of custLayout, in canvas units — the
+          // editor draws the list the export draws.
+          const L = this.custLayout(m, mv, tk, gW, pal, center);
+          view.isCust = true;
+          view.tStyle = { position: 'relative', width: cq(gW), height: cq(L.h) };
+          view.custEls = L.els.map(e => {
+            const at = { position: 'absolute', left: cq(e.x), top: cq(e.k === 'text' ? e.y - e.px : e.y) };
+            if (e.k === 'text') return { t: e.text, style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre' }) };
+            if (e.k === 'icon') return { t: '', isIcon: '1', slot: 'adstudio-ic-' + m.id + '-' + e.slot,
+              tint: m.icoOrig ? undefined : CampaignStudio.icoInk(m, e.ink), style: Object.assign(at, { width: cq(e.w), height: cq(e.h) }) };
+            // a stroke is a ring half in, half out — a canvas stroke is centred on the edge, and
+            // a border would take layout space inside the zoomed box
+            const ring = e.stroke ? '0 0 0 ' + cq(e.sw / 2) + ' ' + e.stroke + ', inset 0 0 0 ' + cq(e.sw / 2) + ' ' + e.stroke : 'none';
+            return { t: '', style: Object.assign(at, { width: cq(e.w), height: cq(e.h), borderRadius: cq(e.r), background: e.fill || 'transparent', boxShadow: ring,
+              backdropFilter: e.blur ? 'blur(14px)' : 'none', WebkitBackdropFilter: e.blur ? 'blur(14px)' : 'none' }) };
+          });
         } else if (m.type === 'cta') {
           const outline = mv === 'outline', rectV = mv === 'rect';
           // The op's button: bh = ctaF + 2 ctaPV, the label 1.6 ctaF in. On the inherited
@@ -9861,7 +10337,7 @@ class CampaignStudio extends StudioBase {
       // own text and centred — a bullet list on a centred 9:16 drew 255 canvas px right of
       // the op, which keeps its one left edge at the guard's. Those items take the guard's
       // width back explicitly; everything else still shrinks and centres as before.
-      const STRETCH = { divider: 1, spec: 1, spacer: 1, steps: 1, list: 1 };
+      const STRETCH = { divider: 1, spec: 1, spacer: 1, steps: 1, list: 1, cust: 1 };
       if (railG.w < colW0) bot.forEach((it, bi) => {
         const bm = botM[bi];
         // A CORNER NOTE ends at the GUARD's right edge, which is where the op right-aligns it
@@ -10181,7 +10657,7 @@ class CampaignStudio extends StudioBase {
     const selVarCur = selM ? (() => {
       const vv0 = s.variants[sel.vi] || s.variants[0];
       const o0 = CampaignStudio.sizeOv(vv0, sel.size);
-      return ((o0 && o0.mvar && o0.mvar[selM.id] !== undefined) ? o0.mvar[selM.id] : vv0.mvar[selM.id]) || (VOPT[selM.type] || [['']])[0][0];
+      return ((o0 && o0.mvar && o0.mvar[selM.id] !== undefined) ? o0.mvar[selM.id] : vv0.mvar[selM.id]) || (CampaignStudio.voptOf(selM)[0] || [''])[0];
     })() : '';
     const setSelVar = key => this.upd(x => {
       const vv = x.variants[sel.vi] || x.variants[0];
@@ -10193,10 +10669,10 @@ class CampaignStudio extends StudioBase {
     // purpose. Tiles for another component are never shown — until the new renders arrive
     // a tile is its own ground, which reads as loading rather than as the wrong picture.
     const vtUrls = (selM && this._vtShots && this._vtShots.id === selM.id && this._vtShots.urls) || {};
-    const selVarOpts = selM ? (VOPT[selM.type] || []).map(([key, label]) => ({ key, label,
+    const selVarOpts = selM ? CampaignStudio.voptOf(selM).map(([key, label]) => ({ key, label,
       sel: selVarCur === key ? 'selected' : undefined,
       on: selVarCur === key ? '1' : undefined,
-      title: label + ' — ' + (((CampaignStudio.VDESC[selM.type] || {})[key]) || label),
+      title: label + ' — ' + (CampaignStudio.vdescOf(selM, key) || label),
       set: () => setSelVar(key),
       shotStyle: vtUrls[key] ? { backgroundImage: 'url("' + vtUrls[key] + '")' } : {} })) : [];
     // ── S / M / L / XL ──────────────────────────────────────────────────────────────────
@@ -10260,11 +10736,11 @@ class CampaignStudio extends StudioBase {
       const m = list.find(mm => mm.id === id);
       if (!m) return null;
       return {
-        name: labels[m.type][0] + (m.text ? ' · ' + m.text.slice(0, 18) : ''),
+        name: labOf(m)[0] + (textOf(m) ? ' · ' + textOf(m).slice(0, 18) : ''),
         // the list row prints the KIND in ink and the copy quiet, truncating the copy with an
         // ellipsis rather than slicing it; the full string rides in the row's title
-        kind: labels[m.type][0], snip: m.text ? String(m.text).replace(/\s+/g, ' ') : '',
-        full: labels[m.type][0] + (m.text ? ' · ' + String(m.text).replace(/\s+/g, ' ') : ''),
+        kind: labOf(m)[0], snip: textOf(m) ? String(textOf(m)).replace(/\s+/g, ' ') : '',
+        full: labOf(m)[0] + (textOf(m) ? ' · ' + String(textOf(m)).replace(/\s+/g, ' ') : ''),
         show: () => this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; if (vv.hidden) delete vv.hidden[id]; return x; }),
         // Delete drops the component — from every variant on a single ad, from this page
         // alone on a carousel — and clears the bookkeeping behind it.
@@ -10275,6 +10751,18 @@ class CampaignStudio extends StudioBase {
     return {
       ...this.copyVals(),
       paletteCats, variantViews,
+      // THE CUSTOM GROUP — this computer's library plus anything the project carries. A
+      // palette card cannot hold a second button (a button in a button), so Remove sits
+      // beside it in the row.
+      custPal: CampaignStudio.custPalette(s).map(sp => ({
+        label: sp.name, desc: sp.variants.length + ' style' + (sp.variants.length > 1 ? 's' : '') + (sp.fromProject ? ' · in this project' : ''),
+        sampleText: (sp.fields[0] && sp.fields[0].sample) || sp.name,
+        add: () => this.custAdd(sp),
+        addTip: 'Add "' + sp.name + '" to the canvas' + (sp.desc ? ' — ' + sp.desc : ''),
+        delOn: sp.fromProject ? undefined : '1',
+        del: () => this.custForget(sp)
+      })),
+      custPalOn: CampaignStudio.custPalette(s).length > 0,
       onSplash: s.screen === 'splash',
       newProject: () => this.newProject(),
       continueSession: () => this.upd(x => { x.screen = CampaignStudio.workScreen(); return x; }),
@@ -10402,7 +10890,8 @@ class CampaignStudio extends StudioBase {
         let need = 0;
         if (selM) {
           const t = selM.type;
-          if (['tags', 'spec', 'divider', 'spacer', 'graphic'].indexOf(t) < 0 && !String(selM.text || '').trim()) need++;
+          if (['cust', 'tags', 'spec', 'divider', 'spacer', 'graphic'].indexOf(t) < 0 && !String(selM.text || '').trim()) need++;
+          if (t === 'cust') need += ((selM.spec && selM.spec.fields) || []).filter(x => !String((selM.f || {})[x.key] || '').trim()).length;
           if (t === 'price' && !String(selM.sub || '').trim()) need++;
           if (t === 'tags' && !CampaignStudio.chipsOf(selM).length) need++;
           if (t === 'spec' && !CampaignStudio.colsOf(selM).length) need++;
@@ -10457,7 +10946,7 @@ class CampaignStudio extends StudioBase {
       activeBgLsSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-ls' }],
       activeBgBnSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-bn' }],
       hasSel: !!selM, noSel: !selM,
-      selTypeLabel: selM ? labels[selM.type][0] : '',
+      selTypeLabel: selM ? labOf(selM)[0] : '',
       selContext: sel ? this.vLabel(sel.vi) + ' · ' + (CampaignStudio.SIZE_LAB[sel.size || 'sq'] || '1:1') : '',
       downloadGuides: () => this.downloadGuides(),
       // TWO CONCERNS, TWO KEYS. This one parks the *Download layout guides* button; the
@@ -10468,7 +10957,7 @@ class CampaignStudio extends StudioBase {
       guidesBtnOn: false,
       selVarOpts, selVarCur,
       onSelVar: e => setSelVar(e.target.value),
-      selVarMany: !!selM && (VOPT[selM.type] || []).length > 1,
+      selVarMany: !!selM && CampaignStudio.voptOf(selM).length > 1,
       selSizeOpts: selM ? CampaignStudio.SIZES.map(([k, lab]) => ({ label: lab, on: selSizeCur === k ? '1' : undefined,
         title: ({ s: 'Small — one step down the type scale', m: 'Medium — as designed', l: 'Large — one step up', xl: 'Extra large — two steps up' })[k],
         set: () => setSize(k) })) : [],
@@ -10523,7 +11012,7 @@ class CampaignStudio extends StudioBase {
       bigStyle: btn(!!(selM && selM.big)),
       selHasText: !!selM && ['tags', 'spec', 'divider', 'spacer', 'graphic'].indexOf(selM.type) < 0,
       selTextMulti: !!selM && ['hero', 'hook', 'body', 'list', 'steps'].indexOf(selM.type) >= 0,
-      selTextSingle: !!selM && ['tags', 'spec', 'divider', 'spacer', 'graphic', 'hero', 'hook', 'body', 'list', 'steps'].indexOf(selM.type) < 0,
+      selTextSingle: !!selM && ['cust', 'tags', 'spec', 'divider', 'spacer', 'graphic', 'hero', 'hook', 'body', 'list', 'steps'].indexOf(selM.type) < 0,
       selLineMax: selM ? (selM.type === 'list' ? CampaignStudio.LIST_MAX : (selM.type === 'steps' ? CampaignStudio.STEP_MAX : CampaignStudio.LINE_MAX)) : CampaignStudio.LINE_MAX,
       selLineWord: selM ? (selM.type === 'list' ? 'bullet' : (selM.type === 'steps' ? 'step' : 'line')) : 'line',
       selLineInfo: selM ? (() => {
@@ -10550,6 +11039,30 @@ class CampaignStudio extends StudioBase {
       undoOff: (this._undoStack || []).length ? undefined : '1',
       redoOff: (this._redoStack || []).length ? undefined : '1',
       selIsHero: !!selM && selM.type === 'hero',
+      // A RECREATED component's words are its own fields, named by the model after what each
+      // one says on the screenshot. Linked across design variants, like every other text.
+      selIsCust: !!selM && selM.type === 'cust',
+      selCustNote: selM && selM.type === 'cust' ? 'Recreated from a screenshot' + (selM.spec && selM.spec.desc ? ' — ' + selM.spec.desc : '') : '',
+      selCustFields: selM && selM.type === 'cust' ? ((selM.spec && selM.spec.fields) || []).map(fd => ({
+        label: fd.label, val: (selM.f || {})[fd.key] || '',
+        offOn: selM.off && selM.off[fd.key] ? true : false, onOn: !(selM.off && selM.off[fd.key]),
+        toggle: () => editContent(mm => { mm.off = Object.assign({}, mm.off); if (mm.off[fd.key]) delete mm.off[fd.key]; else mm.off[fd.key] = true; }),
+        isArea: fd.kind === 'area' ? true : false, isLine: fd.kind === 'area' ? false : true,
+        onInput: e => { const val = e.target.value; editContent(mm => { mm.f = Object.assign({}, mm.f, { [fd.key]: val }); }); }
+      })) : [],
+      selCustIcoOn: !!selM && selM.type === 'cust' && CampaignStudio.custSlots(selM.spec).length > 0,
+      custAlAutoOn: selM && selM.type === 'cust' && !selM.align ? '1' : undefined,
+      custAlLeftOn: selM && selM.type === 'cust' && selM.align === 'left' ? '1' : undefined,
+      custAlCenterOn: selM && selM.type === 'cust' && selM.align === 'center' ? '1' : undefined,
+      custAlAuto: () => editContent(mm => { delete mm.align; }),
+      custAlLeft: () => editContent(mm => { mm.align = 'left'; }),
+      custAlCenter: () => editContent(mm => { mm.align = 'center'; }),
+      selCustTemp: !!selM && selM.type === 'cust' && !CampaignStudio.custLibRead().some(x => selM.spec && x.id === selM.spec.id),
+      custSaveLib: () => { if (selM && selM.spec && this.custKeep(selM.spec)) this.setState({ exportStatus: '"' + selM.spec.name + '" saved to Custom in the component palette.' }); },
+      custIcoTintOn: selM && selM.type === 'cust' && !selM.icoOrig ? '1' : undefined,
+      custIcoOrigOn: selM && selM.type === 'cust' && selM.icoOrig ? '1' : undefined,
+      custIcoTint: () => editContent(mm => { delete mm.icoOrig; }),
+      custIcoOrig: () => editContent(mm => { mm.icoOrig = true; }),
       selIsTags: !!selM && selM.type === 'tags',
       selIsSpec: !!selM && selM.type === 'spec',
       // --- Space above the selected component. Per variant, written through
@@ -10648,8 +11161,8 @@ class CampaignStudio extends StudioBase {
       })),
       // The icon picker serves every component that carries icon slots: process
       // steps, and Tag chips in its icon-pill treatment.
-      selIconsOn: !!selM && (selM.type === 'steps' || (selM.type === 'tags' && selVarCur === 'icon') || (selM.type === 'spec' && selVarCur === 'icons')),
-      iconTitle: selM && selM.type === 'tags' ? 'Chip icon' : (selM && selM.type === 'spec' ? 'Column icon' : 'Step icon'),
+      selIconsOn: !!selM && ((selM.type === 'cust' && CampaignStudio.custSlots(selM.spec).length > 0) || selM.type === 'steps' || (selM.type === 'tags' && selVarCur === 'icon') || (selM.type === 'spec' && selVarCur === 'icons')),
+      iconTitle: selM && selM.type === 'cust' ? 'Icon' : selM && selM.type === 'tags' ? 'Chip icon' : (selM && selM.type === 'spec' ? 'Column icon' : 'Step icon'),
       iconClearLabel: selM && selM.type === 'tags' ? "Clear this chip's icon" : (selM && selM.type === 'spec' ? "Clear this column's icon" : "Clear this step's icon"),
       selText: selM ? (selM.text || '') : '', selSub: selM ? (selM.sub || '') : '',
       selChips: selM && selM.chips ? selM.chips.join(', ') : '',
@@ -10693,9 +11206,10 @@ class CampaignStudio extends StudioBase {
       // Which step the picker targets, and the query. Instance fields + forceUpdate:
       // this is throwaway UI state and has no business in the project or in undo.
       iconStep: this._iconStep || 0,
-      iconStepLabel: (selM && selM.type === 'tags' ? 'chip ' : (selM && selM.type === 'spec' ? 'column ' : 'step ')) + ((this._iconStep || 0) + 1),
+      iconStepLabel: (selM && selM.type === 'cust' ? 'icon ' : selM && selM.type === 'tags' ? 'chip ' : (selM && selM.type === 'spec' ? 'column ' : 'step ')) + ((this._iconStep || 0) + 1),
       iconSteps: (() => {
         if (!selM) return [];
+        if (selM.type === 'cust') return CampaignStudio.custSlots(selM.spec).map((slot, i) => ({ label: String(i + 1), style: btn((this._iconStep || 0) === slot), pick: () => { this._iconStep = slot; this.forceUpdate(); } }));
         const n = selM.type === 'tags'
           ? (selM.chips || []).slice(0, CampaignStudio.CHIP_MAX).length
           : (selM.type === 'spec'
@@ -11178,7 +11692,7 @@ class Component extends DCLogic {
   }
   // The rail's style tiles are real renders of the selected component, re-rendered off a
   // key — a no-op on every update that did not move the component, its canvas or its copy.
-  _vtTick() { const e = this.active(); if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
+  _vtTick() { const e = this.active(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
   // The copy view's preview is the real export, re-rendered off a key — so, like the
   // placement preview, calling it on every update is a no-op unless the words moved.
   _cwTick() { const e = this.active(); if (e && e.state && e.state.screen === 'copy' && e.cwSync) e.cwSync(); }

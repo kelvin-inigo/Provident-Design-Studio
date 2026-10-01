@@ -14090,3 +14090,59 @@ starts a fresh, empty process at once), and waits for the port if a hand-started
 it. `env.sh` is the one place the paths live; `uninstall.sh` removes all of it. Idle, it measured
 ~2MB resident. **Still open:** the studio's own "start tools/rembg/serve.sh" messages predate the
 login item, and the ONNX memory-arena measurement was not finished.
+
+# CAS RECREATES A COMPONENT FROM A SCREENSHOT — `type: 'cust'`, via the /cas-component skill
+
+By request (2026-09-30, reshaped 2026-10-01): drop a screenshot and get back a new design
+component built to the brand, with its own text fields, icons, layout controls and style
+variants. It can be added to the canvas temporarily or saved to the library.
+
+**THE READER IS CLAUDE CODE, NOT A SERVICE.** A first build had an in-studio window plus a
+loopback service calling the Anthropic API with a key from the environment. The user chose
+instead to use their existing Claude Code session, so the window, its button and
+`tools/importer/` are DELETED. What is left:
+
+| piece | where |
+|---|---|
+| the skill | `.claude/skills/cas-component/` — `SKILL.md` (the grammar, brand rules, a worked example), `scripts/catalog.py` (prints VOPT + VDESC read live off the CAS file, so the model builds from the existing components), `scripts/check.py` (the strict twin of `custSan`: REPORTS what the studio would silently drop, then saves `custom-components/<slug>.json` — git-ignored, it carries campaign copy — and `pbcopy`s it) |
+| the intake | `custPasteBind()`, bound from the shell's `_vtTick`: a CAPTURE-phase document paste listener. Text that parses as `{"provident":"cas-component","spec":…}` while the editor is on screen becomes a component; anything else passes through untouched, and a focused field never receives the JSON |
+| the gate | `CampaignStudio.custSan` — the ONE gate for any spec (paste, session file, library) |
+| the layout | `custLayout(m, mv, tk, iw, pal, center)` → `{h, els}`, read by modPx, drawMod, the preview (`mk`) and the style tiles |
+| the library | `localStorage['adstudio-custom-lib']`; `custPalette(state)` adds any spec a project carries. The palette's Custom group lists it, with a one-line pointer to the skill |
+
+**⌘V adds TEMPORARILY** — this project only, not the library. The rail's **Save to library**
+keeps it. `custKeep` replaces by spec `id`, so re-pasting an edited spec with the same id updates
+the library entry rather than duplicating it.
+
+**THE SPEC TRAVELS ON THE MODULE (`m.spec`)**, not by reference to the library — so a session
+file carries it, a forked carousel page clones it, and `modPx` (never handed the state) has it.
+
+**The spec is structure and ROLES, never pixels or colours.** A text node names a role (eyebrow /
+body / cta / hook / stat / headline / hero) — its size is that role's token, so it sits on the
+minor-third ladder and S / M / L / XL steps it through `tkMod`; its weight follows the brand rule
+(caps 500, headline / hero / stat Regular, the rest Light). Colours are PAL roles. All space is
+in units of `bodyG`. Grammar: `stack` (col/row, gap, pad, align, justify, hug, fill
+glass/solid/label/brass/tint, stroke rule/chip/strong/brass, radius or pill), `text`, `icon`
+(slot 0–5), `dot`, `rule`, `vrule`.
+
+**Controls on a selected one:** style tiles (real renders), Size, **Align** (`m.align`), one field
+per part with **Hide / Show** (`m.off[key]` — a hidden part takes no space), Icon colours
+(`m.icoOrig`) and the icon picker per slot. Icon hints are Material Symbols names; `name:fill`
+takes the FILL-1 cut (`custIconUrl`) — the weight-200 outline all but vanishes at badge size.
+Hints land in the slots through `ImageSlot.putUrl`, mounted or not.
+
+**Every per-type table had to learn the new type** — the trap for the next one. `labels[m.type][0]`
+crashed renderVals; it is `labOf(m)` / `textOf(m)`. `VOPT` / `VDESC` readers go through
+`voptOf(m)` / `vdescOf(m)`. The copy view's `COPY_TYPES` does NOT include it — a known gap.
+
+## Verification
+
+- `check.py` refuses a bad spec (bad field key, unknown node, a field no variant draws) and
+  passes the worked example; `catalog.py` prints all eleven components' styles off the live file.
+- The paste with the checker's exact output: added, selected, library untouched; a focused text
+  field stays unchanged; a plain-text paste is not eaten. The Browser pane's automated ⌘V does
+  NOT reach the system clipboard, so the paste was driven as a ClipboardEvent carrying the file.
+- From the first build, still true: preview against ops within 0.15 canvas px across 3 styles ×
+  S/M/L/XL × left/centre × 1:1 and 9:16 (four XL cases read 3.8–5.2 because the WHOLE overflowing
+  bottom cluster moves together, headline included); SVG export valid; contrast 0 failures in
+  both themes; existing templates unchanged by construction.

@@ -146,6 +146,26 @@ What's on the screen, from left to right:
 - **Preview** (top bar) shows the ad inside an Instagram or Facebook feed, reel or story mock-up.
   **Platform UI** and **Safe margins** switch on the app's own buttons and the safe area.
 
+**Recreate a component from a screenshot** (with Claude Code):
+1. In Claude Code, drop a screenshot of **one** element (a rating badge, a price card, a countdown
+   strip) and type **`/cas-component`**. Cropping to the element gives the best result.
+2. Claude rebuilds it in the brand's own type, colours and spacing, using the same treatments as
+   the existing components (glass card, outline pill, divided strip and so on). It comes back
+   with three or four styles, one text field per piece of text, and matching icons. Claude tells
+   you what each style is and copies the component to your clipboard.
+3. Open CAS's editor and press **⌘V**. The component lands on the canvas, selected, for **this
+   project only**.
+4. Select it to edit it like any other component:
+   - **Style** tiles and **Size** S / M / L / XL.
+   - **Align:** Follow ad, Left or Centre.
+   - One text field per part, each with **Hide** / **Show**.
+   - **Icon colours**, and the icon picker for each icon slot.
+   - **Save to library**, to keep it under **Custom** for every project on this computer.
+
+   A saved project carries its custom components with it, so another computer can open it.
+
+No API key or service is needed: Claude Code reads the screenshot.
+
 ## 4. CAS: variants, carousels and sizes
 
 - **Add Variant** (the pill at the foot of the canvases) copies the variant you're on. You can
@@ -346,4 +366,5 @@ You don't need to set these; the layouts already follow them.
 | The top bar is cut off and **Share** is missing | Make the window wider. CAS's top bar needs about 1150 px. |
 | Old files are still in the export folder | Exports overwrite but never delete. Remove old files by hand. |
 | A project isn't in **Recent** | Only saved projects are listed. Press **Save**. |
+| ⌘V does nothing after `/cas-component` | Make sure CAS is showing the **editor** (not the project browser or Copy), then press ⌘V again. Claude also saved it in `custom-components/` — open that file and copy its contents if the clipboard was overwritten. |
 | An export went into the wrong design folder | CAS's Master is **Variant A**, Variant 2 is **B**, Variant 3 is **C**. |
