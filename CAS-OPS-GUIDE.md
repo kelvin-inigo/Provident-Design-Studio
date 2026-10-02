@@ -293,7 +293,7 @@ bottom.
 | **Top agents** | a cover plus 5 ranking cards | Portraits are cut-outs. Drag the ranks in the slide list to reorder them. The cover's group photo uses the five portraits: pick one with the rank pills, size it, then **Stand on bottom** or **Stand all**. |
 | **Google reviews** | up to 10 review cards | Quote, reviewer, and the agent's name, role and photo. Drag the portrait on the card to move it. |
 | **Congratulations award** | one award card | The partner's mark can follow the card's colour (**Match canvas**) or keep its own (**Original**). |
-| **Carousel** | up to 10 pages | Each page has a layout: Front page, Stats, Bullets, Text or Call to action. **Brass highlight** colours a word in a headline. Switches control the overline and the permit number. You can drop a floating graphic and drag it. Drag the inside pages to reorder them. |
+| **Carousel** | up to 10 pages | Each page has a layout: Front page, Stats, Bullets, Text or Call to action. **Brass highlight** colours a word in a headline. Switches control the overline and the permit number. The overline can be **Brass** or **White**, per page. **Page photo** gives one page its own photo strength. **Logo** in Post look swaps the wordmark for the **Provident Vacation Homes** lockup on every page. You can drop a floating graphic and drag it. Drag the inside pages to reorder them. |
 | **Reel thumbnail** | one 9:16 Reel cover | 7 layouts: Masthead, Pop-out, Editorial, Caption, Punchline, Centre stage and Big number. **Text size** runs Small to Jumbo and steps down on its own to fit. **4:5 guide** shows what the profile grid shows. On Pop-out, **Remove background** puts the subject in front of the headline. |
 
 ## 10. OPS: All controls
@@ -306,6 +306,7 @@ This is the full editor.
   - Wash strength, photo strength and panel colour.
   - Photo darkening, on the listing card.
   - The wash, on a carousel.
+  - The logo (Provident or Vacation Homes), on a carousel.
 - **The bar under the canvases:**
   - **Show story 9:16** adds the story canvas. It's also what decides whether stories are exported.
   - **This page** jumps to the page's form.

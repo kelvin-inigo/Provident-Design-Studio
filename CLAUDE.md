@@ -14215,3 +14215,26 @@ for hosts — OPS's `slotPsLabel`, CAS's `coPsLabel` / `gPsLabel`). `psAvail(url
 the year is on the folder, not the bundle, which is why the first search found nothing. Only an
 SVG save is read back; `.ai` is not. Verified: an SVG ingested, linked, Illustrator opened, an
 800-wide SVG saved under the stem came back into the slot as `image/svg+xml`.
+
+# THE OPS CAROUSEL TAKES A SECOND LOGO, A WHITE OVERLINE AND A PER-PAGE PHOTO STRENGTH
+
+By request (2026-10-02), with `PVH.svg` (the Provident Vacation Homes lockup) attached.
+
+- **Logo** is post-wide, `state.csLogo` (`'provident'` default, `'pvh'`), in the Post look dock
+  and the guided Finish (`cslogo` ask, carousel only). It reaches every wordmark the carousel
+  draws — front page, closing card, inside pages' Top/Bottom — through ONE helper, `wm()` in
+  `csBox`. The lockup is a bundled glyph (`CS_PVH`, every fill white, base64) drawn as a tinted
+  `image` op like the SWIPE chevron, so it takes the page's ink: the orange period goes white,
+  because orange never sits on a dark canvas. Sized so its "provident." line equals the text
+  wordmark's ink width and sits on the same baseline; on the bottom line it is lifted by its
+  second line; the closing card grows by the lockup's height.
+- **Overline colour**, `f.eyeCol` (`Brass` default | `White`), a per-page field shown only while
+  the overline is.
+- **Page photo**, `f.photoMode` switch + `f.photoO` slider (10-100), the per-page scrim's shape.
+  `photoAlpha` returns it for a carousel page on `Custom for this page`, so the op and the
+  preview read one number.
+
+Defaults reproduce the old pages by construction (the text path calls `T`/`TC` with the old
+arguments). Verified in the editor: geometry on both canvases, the dock switch both ways, the
+per-page slider dimming only its page (.4 against the shared .8), the Finish ask, no console
+errors; `sc-if` +3/+3, `sc-for` +2/+2.

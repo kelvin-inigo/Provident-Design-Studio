@@ -4101,6 +4101,12 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
             <input type="range" min="10" max="100" step="5" value="{{ imgOVal }}" onChange="{{ onImgO }}" aria-label="Photo strength">
           </div>
         </sc-if>
+        <sc-if value="{{ csBrandOn }}" hint-placeholder-val="{{ false }}">
+        <div class="p-grp-w">
+          <span class="p-lab">Logo <span class="tip p-info" data-tip="The mark on every page of the carousel — the front page, the closing card and any inside page that shows it.">i</span></span>
+          <div class="p-tabs"><sc-for list="{{ csBrandOpts }}" as="bo" hint-placeholder-count="2"><button onClick="{{ bo.set }}" data-on="{{ bo.on }}">{{ bo.label }}</button></sc-for></div>
+        </div>
+        </sc-if>
         <sc-if value="{{ glassAllowed }}" hint-placeholder-val="{{ true }}">
         <div class="p-grp-w">
           <span class="p-lab">Panel colour <span class="tip p-info" data-tip="{{ glassTip }}">i</span></span>
@@ -4254,6 +4260,11 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="p-swrow"><sc-for list="{{ a.scrimSwatches }}" as="sw" hint-placeholder-count="6"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" data-on="{{ sw.on }}" title="{{ sw.label }}"></button></sc-for></div>
                   <div class="p-hexwrap"><span class="p-chip" style="{{ a.scrimChipStyle }}"></span><input value="{{ a.scrimHexVal }}" onChange="{{ a.scrimHexSet }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="#1A2942"></div>
                 </sc-if>
+                <!-- THE PAGE'S OWN PHOTO STRENGTH, under its switch -->
+                <sc-if value="{{ a.row.isPhotoO }}" hint-placeholder-val="{{ false }}">
+                  <span class="p-lab p-lab-2">Strength <s>{{ a.photoOLab }}</s></span>
+                  <input type="range" min="10" max="100" step="5" value="{{ a.photoOVal }}" onChange="{{ a.photoOSet }}" aria-label="Photo strength on this page">
+                </sc-if>
                 <!-- THE PERMIT — one project value, shown on the pages whose switch is on. -->
                 <sc-if value="{{ a.row.isPermit }}" hint-placeholder-val="{{ false }}">
                   <input value="{{ a.permitVal }}" onChange="{{ a.permitSet }}" class="gd-big" placeholder="e.g. DLD 12345 · ORN 6789">
@@ -4359,6 +4370,11 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
               <sc-if value="{{ a.isGlass }}" hint-placeholder-val="{{ false }}">
                 <div class="p-tabs gd-tabs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <s class="gd-hint">{{ a.glassHint }}</s>
+              </sc-if>
+
+              <sc-if value="{{ a.isCsLogo }}" hint-placeholder-val="{{ false }}">
+                <div class="p-tabs gd-tabs"><sc-for list="{{ a.csBrandOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <s class="gd-hint">The mark on every page — the front page, the closing card and any inside page that shows it.</s>
               </sc-if>
 
               <!-- THE CAROUSEL PAGE'S LAYOUT — the same five presets the left rail offers. -->
@@ -5926,7 +5942,7 @@ class OrganicStudio extends StudioBase {
   // fresh page drew one arrangement while neither half of its control was lit, which is a
   // control disagreeing with the canvas beside it. `pos` keeps its own resolver because its
   // default is per KIND; the rest are one value each.
-  static CS_SEGDEF = { bulLayout: 'Side by side', align: 'Center', logoPos: 'Hide', icoTint: 'Match canvas' };
+  static CS_SEGDEF = { bulLayout: 'Side by side', align: 'Center', logoPos: 'Hide', icoTint: 'Match canvas', eyeCol: 'Brass' };
   static csSegVal(kind, f, key) {
     if (key === 'pos') return OrganicStudio.csPos(kind, f);
     const v = f && f[key];
@@ -6170,7 +6186,14 @@ class OrganicStudio extends StudioBase {
   // is reserved to the Bullets preset by request, so a list inside a body and a whole page
   // of bullets never read as the same control. Same path the app's own section tick draws.
   static CS_TICK = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgLTk2MCA5NjAgOTYwIiB3aWR0aD0iMjQiPjxwYXRoIGQ9Ik0zODItMjQwIDE1NC00NjhsNTctNTcgMTcxIDE3MSAzNjctMzY3IDU3IDU3LTQyNCA0MjRaIi8+PC9zdmc+';
-  static CS_GLYPHS = { chev: 'CS_CHEV', check: 'CS_CHECK', tick: 'CS_TICK' };
+  // THE PROVIDENT VACATION HOMES LOCKUP, from the supplied PVH.svg, as ONE ink: every fill is
+  // white and the art is tinted at the op (`tintFlat`), exactly as the SWIPE chevron is — so
+  // it takes the page's own ink, the brand-orange period included, because orange never sits
+  // on a dark canvas. Base64 so no camel-cased attribute can be mangled. 602 x 224, the
+  // "provident." line's baseline at y 93 and its descender at 118.
+  static CS_PVH = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAyIiBoZWlnaHQ9IjIyNCIgdmlld0JveD0iMCAwIDYwMiAyMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+IDxnPiA8cGF0aCBkPSJNNTU0Ljk0MSA4LjA0OTE5SDU0Ni4yMzdWMjQuODkwOEg1MzUuNzM4VjMyLjgwODVINTQ2LjIzN1Y3Ni4zMzQyQzU0Ni4yMzcgODMuMTU4MyA1NDcuNjggODcuODM5MSA1NTAuNTY3IDkwLjQ2MzNDNTUzLjQ1NCA5My4wMDA4IDU1Ni45MSA5NC4zMTI5IDU2MC45NzggOTQuMzEyOUM1NjIuMjAzIDk0LjMxMjkgNTYzLjQyOCA5NC4yMjUzIDU2NC42OTYgOTQuMDA3MkM1NjUuOTY1IDkzLjgzMiA1NjcuMTkgOTMuNTY5MiA1NjguNDE1IDkzLjE3NkM1NjkuNjgzIDkyLjc4MTggNTcwLjI5NiA5Mi42MDc1IDU3MC4yOTYgOTIuNjA3NVY4NC4zMzk1QzU3MC4yOTYgODQuMzM5NSA1NjkuNjgzIDg0LjUxNDQgNTY4LjQxNSA4NC45MDgxQzU2Ny4xOSA4NS4zMDE4IDU2Ni4xNCA4NS41NjQzIDU2NS4yNjUgODUuNzM5M0M1NjQuMzkgODUuODcwMSA1NjMuMzg0IDg1LjkxMzkgNTYyLjI5MSA4NS45MTM5QzU1OS45NzIgODUuOTEzOSA1NTguMTc4IDg1LjIxNDMgNTU2Ljg2NiA4My44MTQ2QzU1NS41OTcgODIuNDE0NyA1NTQuOTg1IDc5Ljg3NzUgNTU0Ljk4NSA3Ni4xNTkyVjMyLjg1MjNINTcwLjk1MlYyNC45MzQ2SDU1NC45ODVWOC4wNDkxOUg1NTQuOTQxWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNNDk4LjM4MSAyMy43NTI3QzQ5NC4wMDcgMjMuNzUyNyA0ODkuODk0IDI0Ljg5IDQ4Ni4xMzIgMjcuMTIxQzQ4Mi40MTQgMjkuMzk1NyA0NzkuNTI3IDMyLjE5NTQgNDc3LjQ3IDM1LjU2MzdWMjQuODlINDY4Ljg5N1Y5My4xMzE4SDQ3Ny42MDJWNTMuODkyNkM0NzcuNjAyIDQ3LjU5MzQgNDc5LjQzOSA0Mi41MTkxIDQ4My4xNTggMzguNjI1OEM0ODYuODc2IDM0LjY4ODkgNDkxLjMzOCAzMi43MjA0IDQ5Ni40OTkgMzIuNzIwNEM1MDIuMTQzIDMyLjcyMDQgNTA2LjI1NSAzNC40NzAxIDUwOC43NDggMzcuOTI1OUM1MTEuMjg1IDQxLjM4MTggNTEyLjUxIDQ1Ljg4NzQgNTEyLjUxIDUxLjM5OTJWOTMuMTc0N0g1MjEuMjE1VjQ5Ljc4MDZDNTIxLjIxNSA0Mi4xMjU0IDUxOS4yMDMgMzUuODY5OSA1MTUuMTc5IDMxLjA1OEM1MTEuMTk4IDI2LjIwMjQgNTA1LjU5OCAyMy43NTI3IDQ5OC4zMzcgMjMuNzUyN0g0OTguMzgxWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNNDIwLjY5MSAyMy43NTMyQzQxMS44MSAyMy43NTMyIDQwNC4xMTIgMjcuMDc3NyAzOTcuNzI1IDMzLjc3MDZDMzkxLjI5NCA0MC40MTk4IDM4OC4xMDEgNDguODE4OCAzODguMTAxIDU5LjAxMTJDMzg4LjEwMSA2OS4yMDM3IDM5MS4yOTQgNzcuNjkwMSAzOTcuNzI1IDg0LjM4M0M0MDQuMTU1IDkxLjAzMTkgNDExLjg5NyA5NC4zMTMgNDIwLjk1MiA5NC4zMTNDNDI1LjgwOCA5NC4zMTMgNDI5Ljk2NSA5My42MTMyIDQzMy41MDggOTIuMjEzNUM0MzcuMDUxIDkwLjc3IDQ0MC4xNTYgODguNzEzNCA0NDIuOTEzIDg1Ljk1NzhDNDQ1LjYyNSA4My4yMDE5IDQ0OC4wNzUgNzkuNDM5OSA0NTAuMzA1IDc0LjcxNTRMNDQyLjU2MyA3MC45OTcyQzQ0MC41MDcgNzQuNjI3OSA0MzguNDUgNzcuNDI3NiA0MzYuNDgyIDc5LjM5NjFDNDM0LjUxNCA4MS4zMjA4IDQzMi4yODMgODIuNzY0NCA0MjkuNzg5IDgzLjgxNDNDNDI3LjI1MiA4NC44MjA0IDQyNC4zMjEgODUuMzAxNiA0MjAuOTk2IDg1LjMwMTZDNDE0Ljc4NSA4NS4zMDE2IDQwOS4yMjkgODIuODUxOSA0MDQuMjg2IDc3Ljk1MjZDMzk5Ljg2OCA3My40OTA2IDM5Ny40NjIgNjcuOTM1IDM5Ni45ODEgNjEuMjQyMUg0NTEuNTc0VjU1LjkwNTNDNDUxLjU3NCA0Ni42MzE1IDQ0OC43MzEgMzguOTMyNSA0NDMuMDQzIDMyLjg5NThDNDM3LjQwMSAyNi43NzE2IDQyOS45NjQgMjMuNzA5NSA0MjAuNzM0IDIzLjcwOTVMNDIwLjY5MSAyMy43NTMyWk0zOTcuNDYyIDUyLjg4N0MzOTguNDI0IDQ4LjAzMTQgNDAwLjUyNCA0My43ODgyIDQwMy44OTMgNDAuMjAxMUM0MDguNjE3IDM1LjEyNjggNDE0LjIxNiAzMi41ODk2IDQyMC43MzQgMzIuNTg5NkM0MjcuMjUyIDMyLjU4OTYgNDMyLjE5NSAzNC41MTQ0IDQzNi4xNzYgMzguMzYzOEM0NDAuMTU2IDQyLjIxMzQgNDQyLjIxMiA0Ny4wNjkgNDQyLjM4NyA1Mi44ODdIMzk3LjUwNkgzOTcuNDYyWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNMzYyLjE1OSAzNi4wNDU0QzM2MC4xMDMgMzIuNTQ1OCAzNTcuMDg0IDI5LjcwMjQgMzUzLjAxNyAyNy41MTUyQzM0OC4yOTIgMjUuMDIxOCAzNDMuMTMgMjMuNzUzMiAzMzcuNTMxIDIzLjc1MzJDMzI4LjgyNiAyMy43NTMyIDMyMS4zODkgMjcuMDc3OCAzMTUuMjIxIDMzLjY4MzJDMzA5LjA1NCA0MC4yODg2IDMwNS45NDggNDguNjg3NiAzMDUuOTQ4IDU4Ljk2NzVDMzA1Ljk0OCA2OS4yNDc0IDMwOS4wMSA3Ny40Mjc2IDMxNS4wOSA4NC4yMDhDMzIxLjIxNSA5MC45NDQzIDMyOC41NjMgOTQuMjY5MiAzMzcuMTM4IDk0LjI2OTJDMzQyLjkxMSA5NC4yNjkyIDM0OC4xNjEgOTMuMDAwOSAzNTIuOTI5IDkwLjUwNzJDMzU3LjA4NCA4OC4yNzYzIDM2MC4xNDYgODUuMzAxNiAzNjIuMjQ3IDgxLjcxNDZWOTMuMDg4NUgzNzAuODY0VjBIMzYyLjE1OVYzNi4wNDU0Wk0zNTYuMDc5IDc3Ljg2NTFDMzUxLjcwNCA4Mi45Mzk0IDM0NS45NzQgODUuNDc2NiAzMzguOTMxIDg1LjQ3NjZDMzMxLjg4OCA4NS40NzY2IDMyNi4yNDUgODMuMDcwNyAzMjEuNjk1IDc4LjMwMjVDMzE3LjE0NiA3My41MzQ0IDMxNC44NzEgNjcuMTA0IDMxNC44NzEgNTguOTY3NUMzMTQuODcxIDUwLjgzMSAzMTcuMTQ2IDQ0LjUzMTggMzIxLjY1MiAzOS43MkMzMjYuMTU3IDM0LjkwOCAzMzEuOTMxIDMyLjUwMjEgMzM4Ljk3NCAzMi41MDIxQzM0Ni4wMTcgMzIuNTAyMSAzNTEuMzk4IDM0Ljk1MTggMzU1LjkwNCAzOS44OTQ5QzM2MC40MDkgNDQuNzk0MyAzNjIuNjg0IDUxLjEzNzMgMzYyLjY4NCA1OC45Njc1QzM2Mi42ODQgNjYuNzk3OCAzNjAuNDk3IDcyLjcwMzIgMzU2LjA3OSA3Ny44MjEzVjc3Ljg2NTFaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik0yODcuMzU3IDI0Ljg5MTRIMjc4LjY1M1Y5My4xMzI5SDI4Ny4zNTdWMjQuODkxNFoiIGZpbGw9IiNmZmYiLz4gPHBhdGggZD0iTTI4Mi45NCAzLjU4NjkxQzI4MS4yNzcgMy41ODY5MSAyNzkuODM0IDQuMTk5MzMgMjc4LjYwOSA1LjM4MDQzQzI3Ny4zODQgNi41NjE1MyAyNzYuODE1IDguMDA1MSAyNzYuODE1IDkuNzExMTRDMjc2LjgxNSAxMS40MTcyIDI3Ny40MjggMTIuOTQ4MiAyNzguNjA5IDE0LjEyOTNDMjc5Ljc5IDE1LjMxMDQgMjgxLjIzMyAxNS45MjI4IDI4Mi45NCAxNS45MjI4QzI4NC42NDYgMTUuOTIyOCAyODYuMTc3IDE1LjMxMDQgMjg3LjM1OCAxNC4xMjkzQzI4OC41MzkgMTIuOTQ4MiAyODkuMTUyIDExLjQ2MDkgMjg5LjE1MiA5LjcxMTE0QzI4OS4xNTIgNy45NjEzNSAyODguNTM5IDYuNjA1MjggMjg3LjM1OCA1LjM4MDQzQzI4Ni4xNzcgNC4xNTU1OSAyODQuNjkgMy41ODY5MSAyODIuOTQgMy41ODY5MVoiIGZpbGw9IiNmZmYiLz4gPHBhdGggZD0iTTIzMy4xNTggNzkuMTM0NUwyMzIuOTg0IDc5LjUyODJMMjMyLjgwOCA3OS4xMzQ1TDIxMi41NTUgMjQuODkxNEgyMDMuMzI1TDIyOS4xMzQgOTMuMTMyOUgyMzYuMzA4TDI2Mi4yMDQgMjQuODkxNEgyNTMuNUwyMzMuMTU4IDc5LjEzNDVaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik0xNTcuNDM2IDIzLjc1MjdDMTQ4LjA3NSAyMy43NTI3IDE0MC4yNDQgMjcuMjUyMiAxMzMuOTQ1IDM0LjIwNzZDMTI3LjY0NiA0MS4xNjMgMTI0LjQ5NiA0OS4zODY5IDEyNC40OTYgNTguOTY3QzEyNC40OTYgNjguNTQ3IDEyNy42NDYgNzYuOTQ1OSAxMzMuOTQ1IDgzLjg1NzVDMTQwLjI0NCA5MC44MTMzIDE0OC4wNzUgOTQuMjY4NyAxNTcuNDM2IDk0LjI2ODdDMTY2Ljc5OCA5NC4yNjg3IDE3NC41ODQgOTAuODEzMyAxODAuOTI3IDgzLjg1NzVDMTg3LjMxNCA3Ni45MDIyIDE5MC41MDYgNjguNjM0NSAxOTAuNTA2IDU4Ljk2N0MxOTAuNTA2IDQ5LjI5OTQgMTg3LjMxNCA0MS4xMTkzIDE4MC45MjcgMzQuMjA3NkMxNzQuNTg0IDI3LjIwODUgMTY2Ljc1NCAyMy43NTI3IDE1Ny40MzYgMjMuNzUyN1pNMTc0LjM2NSA3Ny42NDU5QzE2OS41OTcgODIuNjMyNyAxNjMuOTU0IDg1LjEyNjEgMTU3LjQzNiA4NS4xMjYxQzE1MC45MTggODUuMTI2MSAxNDUuMjc1IDgyLjYzMjcgMTQwLjU1MSA3Ny42NDU5QzEzNS44MjYgNzIuNjE1MiAxMzMuNDY0IDY2LjQwMzYgMTMzLjQ2NCA1OC45NjdDMTMzLjQ2NCA1MS41MzA0IDEzNS44MjYgNDUuMzYyNCAxNDAuNTUxIDQwLjQxOTNDMTQ1LjI3NSAzNS40MzI1IDE1MC44NzQgMzIuOTM5MSAxNTcuNDM2IDMyLjkzOTFDMTYzLjk5NyAzMi45MzkxIDE2OS42NDEgMzUuNDMyNSAxNzQuMzY1IDQwLjQxOTNDMTc5LjEzMyA0NS4zNjI0IDE4MS40OTUgNTEuNTMwNCAxODEuNDk1IDU4Ljk2N0MxODEuNDk1IDY2LjQwMzYgMTc5LjEzMyA3Mi42MTUyIDE3NC4zNjUgNzcuNjQ1OVoiIGZpbGw9IiNmZmYiLz4gPHBhdGggZD0iTTExMS4xOTggMjMuODg0QzExMC4zMjMgMjMuNzk2NSAxMDkuNjY3IDIzLjc1MjcgMTA5LjE4NiAyMy43NTI3QzEwNS43NzQgMjMuNzUyNyAxMDIuNDQ5IDI0LjcxNTEgOTkuMTY4OSAyNi42ODM2Qzk1LjkzMTUgMjguNjA4NCA5My4wODg0IDMxLjYyNjcgOTAuNjgyMyAzNS43Mzg3VjI0LjkzMzhIODIuMDY0NVY5My4xNzQ3SDkwLjc2OTlWNTQuOTQyNUM5MC43Njk5IDQ4LjAzMDkgOTIuNjA2NyA0Mi42NTAzIDk2LjIzNzIgMzguNzU3Qzk5LjkxMjUgMzQuODIwMSAxMDQuMTU1IDMyLjg1MTYgMTA4Ljk2OCAzMi44NTE2QzEwOS40NDggMzIuODUxNiAxMTAuMTkyIDMyLjg1MTYgMTExLjI0MiAzMi45ODI4QzExMi4yNDggMzMuMDcwMyAxMTMuMTIzIDMzLjIwMTUgMTEzLjgyMyAzMy4zNzY1QzExNC41NjYgMzMuNTA3NyAxMTQuOTE3IDMzLjU1MTUgMTE0LjkxNyAzMy41NTE1VjI0LjQ1MjZDMTE0LjkxNyAyNC40NTI2IDExNC41MjIgMjQuNDA4OSAxMTMuNjkxIDI0LjI3NzdDMTEyLjg2MSAyNC4xMDI3IDExMi4wMyAyNC4wMTUyIDExMS4xMTEgMjMuOTcxNUwxMTEuMTk4IDIzLjg4NFoiIGZpbGw9IiNmZmYiLz4gPHBhdGggZD0iTTMzLjcyNyAyMy43NTI3QzI3Ljk1MjYgMjMuNzUyNyAyMi44MzQ2IDI0LjkzMzggMTguMjg1MiAyNy4zMzk3QzEzLjgyMzIgMjkuNzQ1NyAxMC41ODYyIDMyLjY3NjYgOC41NzM5MSAzNi4xNzYxVjI0LjkzMzhIMFYxMTguMDIySDguNzA1MThWODIuMTA3OEMxMC43NjEyIDg1LjU2MzYgMTMuNzc5NSA4OC40MDcyIDE3Ljg0NzcgOTAuNTk0M0MyMi41NzIxIDkzLjA4OCAyNy42OTAyIDk0LjM1NjMgMzMuMjg5NSA5NC4zNTYzQzQyLjAzODQgOTQuMzU2MyA0OS40NzQ5IDkxLjA3NTIgNTUuNjQyOSA4NC40N0M2MS44MTA4IDc3LjgyMDggNjQuOTE2NyA2OS4zNzgxIDY0LjkxNjcgNTkuMDU0NEM2NC45MTY3IDQ4LjczMDggNjEuODU0NiA0MC42ODE4IDU1LjczMDQgMzMuOTQ1MUM0OS42NDk5IDI3LjE2NDggNDIuMzAwOSAyMy43OTY1IDMzLjcyNyAyMy43OTY1VjIzLjc1MjdaTTQ5LjIxMjUgNzguMzAyQzQ0LjcwNjggODMuMTEzOSAzOC45MzI1IDg1LjUxOTggMzEuODg5NyA4NS41MTk4QzI0Ljg0NjggODUuNTE5OCAxOS40NjYzIDgzLjA3MDEgMTQuOTYwNiA3OC4xNzA4QzEwLjQ5ODcgNzMuMjI3NyA4LjI2NzcgNjYuODQxIDguMjY3NyA1OC45NjY5QzguMjY3NyA1MS4wOTMgMTAuNDU1IDQ1LjIzMTIgMTQuODczMSA0MC4xNTY5QzE5LjI5MTMgMzUuMDgyNSAyNC45MzQzIDMyLjU0NTQgMzEuOTMzNCAzMi41NDU0QzM4LjkzMjUgMzIuNTQ1NCA0NC42MTkzIDM0Ljk1MTMgNDkuMTY4NyAzOS43MTk0QzUzLjc2MTkgNDQuNDg3NiA1Ni4wMzY2IDUwLjkxOCA1Ni4wMzY2IDU4Ljk2NjlDNTYuMDM2NiA2Ny4wMTYgNTMuNzYxOSA3My40OTAxIDQ5LjIxMjUgNzguMzAyWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNNTkyLjE2OCA5NC41NzQ4QzU5NS44MTcgOTQuNTc0OCA1OTguNzc0IDkxLjYxNzUgNTk4Ljc3NCA4Ny45Njk3QzU5OC43NzQgODQuMzIxOCA1OTUuODE3IDgxLjM2NDQgNTkyLjE2OCA4MS4zNjQ0QzU4OC41MjEgODEuMzY0NCA1ODUuNTYzIDg0LjMyMTggNTg1LjU2MyA4Ny45Njk3QzU4NS41NjMgOTEuNjE3NSA1ODguNTIxIDk0LjU3NDggNTkyLjE2OCA5NC41NzQ4WiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNMTYuMjI0NSAyMDMuMDQ3TDAuNjQzNTU1IDE1OS43OEg3Ljg1NDU5TDE4LjAyNzMgMTg5LjI2OEwxOS41MDgxIDE5My43MTFIMTkuNzAxM0wyMS4xODIyIDE4OS4zMzJMMzEuNTQ4IDE1OS43MTZIMzguNjMwM0wyMi41OTg2IDIwMi45ODJIMTYuMjI0NVYyMDMuMDQ3WiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNNDAuNzU0NCAyMDMuMDQ1TDU3LjMwMTIgMTU5Ljc3OEg2NC4xMjU5TDgwLjQ3OTUgMjAzLjA0NUg3My4yNjg1TDYyLjQ1MTkgMTcyLjc4NEw2MC43Nzc5IDE2Ny41MDVINjAuNTg0N0w1OC45MTA4IDE3Mi43ODRMNDcuOTY1NCAyMDMuMDQ1SDQwLjg4MzJINDAuNzU0NFpNNDguMTU4NiAxOTIuMjkyTDUwLjE1NDUgMTg2Ljc1NUg2OS45ODQ5TDcyLjA0NTIgMTkyLjI5Mkg0OC4wOTQySDQ4LjE1ODZaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik0xMTAuMzU0IDIwNC4wMUMxMDMuOTE1IDIwNC4wMSA5OC41NzE0IDIwMS44MjEgOTQuMjU4MSAxOTcuNTA3Qzg5Ljk0NCAxOTMuMTkzIDg3LjgxOTYgMTg3Ljc4NSA4Ny44MTk2IDE4MS4yODJDODcuODE5NiAxNzQuNzggODkuOTQ0IDE2OS4zNzEgOTQuMjU4MSAxNjUuMTIyQzk4LjU3MTQgMTYwLjg3MiAxMDMuOTE1IDE1OC43NDggMTEwLjI4OSAxNTguNzQ4QzExMi4zNSAxNTguNzQ4IDExNC4zNDYgMTU5LjAwNSAxMTYuMjc3IDE1OS41ODVDMTE4LjIwOSAxNjAuMTY0IDExOS45NDcgMTYwLjkzNyAxMjEuNTU3IDE2MS45MDNDMTIzLjE2NiAxNjIuODY4IDEyNC43NzYgMTY0LjM0OSAxMjYuNTE0IDE2Ni4yMTZMMTIxLjk0MyAxNzAuNTk0QzEyMC40NjIgMTY4Ljk4NCAxMTkuMTc0IDE2Ny44OSAxMTguMTQ1IDE2Ny4yNDZDMTE3LjExNCAxNjYuNjAyIDExNS45NTUgMTY2LjA4NyAxMTQuNjAzIDE2NS43MDFDMTEzLjMxNSAxNjUuMzE1IDExMS44MzUgMTY1LjE4NiAxMTAuMjg5IDE2NS4xODZDMTA1Ljc4MyAxNjUuMTg2IDEwMi4wNDggMTY2LjY2NyA5OS4wMjIyIDE2OS42MjhDOTUuOTk2MSAxNzIuNTkgOTQuNDUxMyAxNzYuNTE4IDk0LjQ1MTMgMTgxLjM0NkM5NC40NTEzIDE4Ni4xNzUgOTUuOTMxNyAxOTAuMTAyIDk4Ljk1NzggMTkzLjEyOEMxMDEuOTg0IDE5Ni4xNTQgMTA1Ljc4MyAxOTcuNyAxMTAuMjg5IDE5Ny43QzExMS44OTkgMTk3LjcgMTEzLjQ0NCAxOTcuNDQzIDExNC44NjEgMTk2Ljk5MkMxMTYuMjc3IDE5Ni41NDEgMTE3LjYyOSAxOTUuODk3IDExOC45MTcgMTk1LjA2QzEyMC4yMDUgMTk0LjIyMyAxMjEuNDkzIDE5My4wNjQgMTIyLjg0NCAxOTEuNTE5TDEyNy41NDUgMTk2LjAyNkMxMjUuNjEzIDE5OC4xNTEgMTIzLjgxIDE5OS43NiAxMjIuMTM2IDIwMC43OTFDMTIwLjQ2MiAyMDEuODIxIDExOC41OTUgMjAyLjU5MyAxMTYuNjYzIDIwMy4xNzNDMTE0LjczMiAyMDMuNzUyIDExMi42MDggMjA0LjAxIDExMC4zNTQgMjA0LjAxWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNMTM1LjU5MyAyMDMuMDQ1TDE1Mi4xNCAxNTkuNzc4SDE1OC45NjVMMTc1LjMxOSAyMDMuMDQ1SDE2OC4xMDdMMTU3LjI5MSAxNzIuNzg0TDE1NS42MTYgMTY3LjUwNUgxNTUuNDIzTDE1My43NSAxNzIuNzg0TDE0Mi44MDQgMjAzLjA0NUgxMzUuNzIySDEzNS41OTNaTTE0Mi45MzMgMTkyLjI5MkwxNDQuOTI5IDE4Ni43NTVIMTY0Ljc1OUwxNjYuODE5IDE5Mi4yOTJIMTQyLjg2OEgxNDIuOTMzWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNMTc4Ljc5NSAxNjYuMDIzVjE1OS43NzhIMjA5LjMxM1YxNjYuMDIzSDE3OC43OTVaTTE5MC43NzEgMjAzLjA0NVYxNjIuOTk3SDE5Ny40MDJWMjAzLjA0NUgxOTAuNzcxWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNMjIxLjU0NiAyMDMuMDQ1VjE1OS43NzhIMjI4LjE3OFYyMDMuMDQ1SDIyMS41NDZaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik0yNjMuNzgyIDIwNC4wMTFDMjU3LjUzNiAyMDQuMDExIDI1Mi4yNTcgMjAxLjg4NiAyNDcuOTQ0IDE5Ny41NzJDMjQzLjYzIDE5My4yNTggMjQxLjUwNSAxODcuODUgMjQxLjUwNSAxODEuMzQ3QzI0MS41MDUgMTc0Ljg0NSAyNDMuNjk0IDE2OS40MzYgMjQ4LjAwOCAxNjUuMTg3QzI1Mi4zMjIgMTYwLjkzNyAyNTcuNjAxIDE1OC44MTMgMjYzLjg0NiAxNTguODEzQzI3MC4wOTIgMTU4LjgxMyAyNzUuMzA2IDE2MC45MzcgMjc5LjYyMSAxNjUuMTg3QzI4My45MzUgMTY5LjQzNiAyODYuMTI0IDE3NC44NDUgMjg2LjEyNCAxODEuNDExQzI4Ni4xMjQgMTg3Ljk3OSAyODMuOTk5IDE5My4yNTggMjc5LjY4NSAxOTcuNjM3QzI3NS4zNzEgMjAxLjk1MSAyNzAuMDkyIDIwNC4xMzkgMjYzLjg0NiAyMDQuMTM5TDI2My43ODIgMjA0LjAxMVpNMjYzLjc4MiAxOTcuNzAxQzI2OC4yMjUgMTk3LjcwMSAyNzEuOTU5IDE5Ni4xNTUgMjc0LjkyMSAxOTMuMDY2QzI3Ny44ODMgMTg5Ljk3NSAyNzkuMzYzIDE4Ni4wNDcgMjc5LjM2MyAxODEuMzQ3QzI3OS4zNjMgMTc2LjY0NyAyNzcuODgzIDE3Mi43MiAyNzQuODU3IDE2OS42OTNDMjcxLjgzIDE2Ni42NjcgMjY4LjE2IDE2NS4xMjMgMjYzLjc4MiAxNjUuMTIzQzI1OS40MDQgMTY1LjEyMyAyNTUuNjcgMTY2LjY2NyAyNTIuNjQ0IDE2OS42OTNDMjQ5LjYxOCAxNzIuNzIgMjQ4LjEzNiAxNzYuNTgzIDI0OC4xMzYgMTgxLjM0N0MyNDguMTM2IDE4Ni4xMTIgMjQ5LjYxOCAxODkuOTc1IDI1Mi42NDQgMTkzLjA2NkMyNTUuNjA1IDE5Ni4xNTUgMjU5LjM0IDE5Ny43MDEgMjYzLjc4MiAxOTcuNzAxWiIgZmlsbD0iI2ZmZiIvPiA8cGF0aCBkPSJNMjk5LjI1OSAyMDMuMDQ1VjE1OS43NzhIMzA2LjY2M0wzMjYuODE1IDE5MS43MTNIMzI3LjAwOEwzMjYuNzUxIDE4My43MjlWMTU5Ljg0MkgzMzMuMjU0VjIwMy4xMDlIMzI2Ljg3OUwzMDUuNjk3IDE2OS43NThIMzA1LjUwNEwzMDUuNzYxIDE3Ny43NDFWMjAzLjEwOUgyOTkuMjU5VjIwMy4wNDVaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik0zNjguNDA3IDIwMy4wNDVWMTU5Ljc3OEgzNzQuOTc0VjIwMy4wNDVIMzY4LjQwN1pNMzcyLjI3IDE4NC4wNTFWMTc3LjgwNkgzOTguMjgxVjE4NC4wNTFIMzcyLjI3Wk0zOTUuNTEzIDIwMy4wNDVWMTU5Ljc3OEg0MDIuMTQ0VjIwMy4wNDVIMzk1LjUxM1oiIGZpbGw9IiNmZmYiLz4gPHBhdGggZD0iTTQzNy42ODYgMjA0LjAxMUM0MzEuNDQgMjA0LjAxMSA0MjYuMTYgMjAxLjg4NiA0MjEuODQ3IDE5Ny41NzJDNDE3LjUzMyAxOTMuMjU4IDQxNS40MDggMTg3Ljg1IDQxNS40MDggMTgxLjM0N0M0MTUuNDA4IDE3NC44NDUgNDE3LjU5NyAxNjkuNDM2IDQyMS45MTEgMTY1LjE4N0M0MjYuMjI0IDE2MC45MzcgNDMxLjUwNSAxNTguODEzIDQzNy43NDkgMTU4LjgxM0M0NDMuOTk0IDE1OC44MTMgNDQ5LjIxIDE2MC45MzcgNDUzLjUyMyAxNjUuMTg3QzQ1Ny44MzggMTY5LjQzNiA0NjAuMDI2IDE3NC44NDUgNDYwLjAyNiAxODEuNDExQzQ2MC4wMjYgMTg3Ljk3OSA0NTcuOTAyIDE5My4yNTggNDUzLjU4OCAxOTcuNjM3QzQ0OS4yNzUgMjAxLjk1MSA0NDMuOTk0IDIwNC4xMzkgNDM3Ljc0OSAyMDQuMTM5TDQzNy42ODYgMjA0LjAxMVpNNDM3LjY4NiAxOTcuNzAxQzQ0Mi4xMjggMTk3LjcwMSA0NDUuODYyIDE5Ni4xNTUgNDQ4LjgyNCAxOTMuMDY2QzQ1MS43ODUgMTg5Ljk3NSA0NTMuMjY2IDE4Ni4wNDcgNDUzLjI2NiAxODEuMzQ3QzQ1My4yNjYgMTc2LjY0NyA0NTEuNzg1IDE3Mi43MiA0NDguNzU5IDE2OS42OTNDNDQ1LjczMyAxNjYuNjY3IDQ0Mi4wNjMgMTY1LjEyMyA0MzcuNjg2IDE2NS4xMjNDNDMzLjMwNyAxNjUuMTIzIDQyOS41NzIgMTY2LjY2NyA0MjYuNTQ2IDE2OS42OTNDNDIzLjUyIDE3Mi43MiA0MjIuMDQgMTc2LjU4MyA0MjIuMDQgMTgxLjM0N0M0MjIuMDQgMTg2LjExMiA0MjMuNTIgMTg5Ljk3NSA0MjYuNTQ2IDE5My4wNjZDNDI5LjUwOCAxOTYuMTU1IDQzMy4yNDMgMTk3LjcwMSA0MzcuNjg2IDE5Ny43MDFaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik00NzMuMjI1IDIwMy4wNDVWMTU5Ljc3OEg0ODIuMDQ1TDQ5NS40MzcgMTkzLjc3M0g0OTUuNjNMNTA4Ljk1OCAxNTkuNzc4SDUxNy43NzhWMjAzLjA0NUg1MTEuMzRWMTc3LjY3N0w1MTEuNTMzIDE2OS44ODdINTExLjM0TDQ5OC4wNzYgMjAzLjA0NUg0OTIuNzk3TDQ3OS41MzQgMTY5Ljg4N0g0NzkuMzQxTDQ3OS41MzQgMTc3LjY3N1YyMDMuMDQ1SDQ3My4wOTZINDczLjIyNVoiIGZpbGw9IiNmZmYiLz4gPHBhdGggZD0iTTUzMy4yOTYgMjAzLjA0NVYxNTkuNzc4SDU1OC40MDVWMTY2LjAyM0g1MzkuNzk4VjE5Ni44NjRINTU4Ljc5MlYyMDMuMTA5SDUzMy4yOTZWMjAzLjA0NVpNNTM2LjgzNiAxODQuMzczVjE3OC41MTRINTU3LjUwNFYxODQuMzczSDUzNi44MzZaIiBmaWxsPSIjZmZmIi8+IDxwYXRoIGQ9Ik01ODYuMDI2IDIwNC4wMUM1ODMuNDUgMjA0LjAxIDU4MS4xOTcgMjAzLjYyMyA1NzkuMjAxIDIwMi43ODZDNTc3LjIwNSAyMDEuOTQ5IDU3NS41OTUgMjAwLjc5MSA1NzQuMzA4IDE5OS4zNzRDNTczLjAyIDE5Ny44OTMgNTcxLjczMyAxOTUuNTc2IDU3MC40NDUgMTkyLjM1Nkw1NzYuNDMyIDE4OS45MDlDNTc3LjQ2MyAxOTIuMzU2IDU3OC4zNjQgMTk0LjA5NCA1NzkuMjAxIDE5NS4wNkM1ODAuMDM4IDE5Ni4wMjYgNTgxLjA2OCAxOTYuNzk4IDU4Mi4yOTEgMTk3LjM3OEM1ODMuNTE1IDE5Ny44OTMgNTg0Ljg2NiAxOTguMTUxIDU4Ni4zNDggMTk4LjE1MUM1ODguNzMgMTk4LjE1MSA1OTAuNjYxIDE5Ny41MDcgNTkyLjIwNyAxOTYuMjgzQzU5My42ODcgMTk0Ljk5NiA1OTQuNDYgMTkzLjM4NiA1OTQuNDYgMTkxLjMyNkM1OTQuNDYgMTg5LjY1MiA1OTMuNzUxIDE4OC4yMzYgNTkyLjQgMTg3LjAxMkM1OTEuMDQ3IDE4NS43ODkgNTg4LjQ3MiAxODQuNTY1IDU4NC42MDkgMTgzLjI3OEM1NzkuOTA5IDE4MS43MzMgNTc2LjY5IDE3OS45MyA1NzQuODIzIDE3Ny45MzRDNTcyLjk1NSAxNzUuOTM4IDU3Mi4wNTUgMTczLjQ5MiA1NzIuMDU1IDE3MC41M0M1NzIuMDU1IDE2Ny4yNDYgNTczLjM0MiAxNjQuNDc4IDU3NS45ODEgMTYyLjE2QzU3OC41NTcgMTU5LjkwNiA1ODEuOTA1IDE1OC43NDggNTg2LjAyNiAxNTguNzQ4QzU4OC4yMTUgMTU4Ljc0OCA1OTAuMTQ3IDE1OS4wNyA1OTEuODg1IDE1OS43MTRDNTkzLjYyMyAxNjAuMzU3IDU5NS4xMDQgMTYxLjI1OSA1OTYuMzI4IDE2Mi40ODJDNTk3LjU1IDE2My42NDEgNTk4LjcxIDE2NS40NDQgNTk5Ljg2OCAxNjcuNjk3TDU5NC4wMDkgMTcwLjE0NEM1OTMuMzY2IDE2OC43MjggNTkyLjY1OCAxNjcuNjk3IDU5MS44ODUgMTY2LjkyNEM1OTEuMTEyIDE2Ni4xNTEgNTkwLjI3NSAxNjUuNjM3IDU4OS4yNDUgMTY1LjE4NkM1ODguMjE1IDE2NC44IDU4Ny4xMjEgMTY0LjYwNyA1ODUuODMzIDE2NC42MDdDNTgzLjcwOCAxNjQuNjA3IDU4Mi4wMzQgMTY1LjEyMiA1ODAuNjgyIDE2Ni4xNTFDNTc5LjMzIDE2Ny4xODIgNTc4LjY4NiAxNjguNTM0IDU3OC42ODYgMTcwLjIwOEM1NzguNjg2IDE3MS42MjUgNTc5LjI2NSAxNzIuODQ4IDU4MC4zNiAxNzMuOTQyQzU4MS40NTQgMTc1LjAzNiA1ODQuMjg4IDE3Ni4zMjQgNTg4Ljc5NCAxNzcuODA1QzU5Mi45MTUgMTc5LjE1NyA1OTYuMDA2IDE4MC45NiA1OTguMDY2IDE4My4xNDlDNjAwLjA2MSAxODUuMzM4IDYwMS4wOTIgMTg4LjA0MiA2MDEuMDkyIDE5MS4xMzNDNjAxLjA5MiAxOTUuMTI1IDU5OS42NzUgMTk4LjIxNSA1OTYuOTA2IDIwMC41MzNDNTk0LjA3NCAyMDIuODUxIDU5MC41MzIgMjA0LjAxIDU4Ni4xNTUgMjA0LjAxSDU4Ni4wMjZaIiBmaWxsPSIjZmZmIi8+IDwvZz4gPC9zdmc+';
+  static CS_PVH_BOX = { w: 602, h: 224, base: 93, desc: 118, inkW: 599 };
+  static CS_GLYPHS = { chev: 'CS_CHEV', check: 'CS_CHECK', tick: 'CS_TICK', pvh: 'CS_PVH' };
   static csGlyphAsset(name) {
     OrganicStudio._csg = OrganicStudio._csg || {};
     if (!OrganicStudio._csg[name]) { const u = OrganicStudio[OrganicStudio.CS_GLYPHS[name] || 'CS_CHECK']; const im = new Image(); OrganicStudio._csg[name] = { img: im, u }; im.src = u; }
@@ -6178,7 +6201,7 @@ class OrganicStudio extends StudioBase {
   }
   static csCheckAsset() { return OrganicStudio.csGlyphAsset('check'); }
   static csCheckReady() {
-    return Promise.all(['check', 'chev', 'tick'].map(name => {
+    return Promise.all(['check', 'chev', 'tick', 'pvh'].map(name => {
       const t = OrganicStudio.csGlyphAsset(name);
       if (t.img.complete) return Promise.resolve(t);
       return new Promise(res => { const done = () => res(t); t.img.addEventListener('load', done, { once: true }); t.img.addEventListener('error', done, { once: true }); });
@@ -8765,6 +8788,12 @@ class OrganicStudio extends StudioBase {
     return d;
   }
 
+  // the carousel's two marks, read by the dock and the guided run's Finish
+  csBrandOpts() {
+    const cur = (this.state && this.state.csLogo) === 'pvh' ? 'pvh' : 'provident';
+    return [['provident', 'Provident'], ['pvh', 'Vacation Homes']].map(o => ({ label: o[1], on: cur === o[0] ? '1' : undefined,
+      set: () => this.upd(x => { x.csLogo = o[0]; return x; }) }));
+  }
   csBox(state, si, tk) {
     const C = OrganicStudio.CS, A = OrganicStudio.ART, FA = StudioBase.fontAsc();
     const slides = state.slides || [], sl = slides[si], f = sl.f || {}, kind = sl.kind;
@@ -8805,6 +8834,19 @@ class OrganicStudio extends StudioBase {
         push(r.t, sx + (r.pre ? meas(r.pre, px, w, ls) : 0), y, px, w, r.brass ? A.brass : fill, ls));
     };
     const drawHi = (lineWords, x, y, px, w, fill, ls, cx) => hiPut(T, lineWords, x, y, px, w, fill, ls, cx);
+    // ── THE WORDMARK, or the Provident Vacation Homes lockup (`state.csLogo`, post-wide).
+    // The lockup is sized so its "provident." line is EXACTLY the text wordmark's ink width,
+    // and placed so that line sits on the wordmark's own baseline — the two read as one mark
+    // at one size, with "VACATION HOMES" hanging under it. `up` lifts it by its second line
+    // so a wordmark on the page's bottom line does not run off the foot.
+    const wmLS = tk.logo * .04, wmInk = meas('provident.', tk.logo, 300, wmLS) - wmLS;
+    const pvh = state.csLogo === 'pvh', PB = OrganicStudio.CS_PVH_BOX, pk = wmInk / PB.inkW;
+    const wmH = pk * PB.h;
+    const wm = (x, base, fill, cx, up) => {
+      if (!pvh) { if (cx == null) T('provident.', x, base, tk.logo, 300, fill, wmLS); else TC('provident.', base, tk.logo, 300, fill, wmLS, cx); return; }
+      const b = up ? base - (PB.h - PB.desc) * pk : base;
+      B.icons.push({ glyph: 'pvh', x: cx == null ? x : cx - wmInk / 2, y: b - PB.base * pk, w: PB.w * pk, h: wmH, fill });
+    };
     // ── THE PERMIT IS ONE PROJECT VALUE, SHOWN PER PAGE. It was a per-slide field, so the
     // same compliance line had to be typed on every page that prints it and two pages of one
     // post could carry different numbers. `state.permit` is the number; the page's switch
@@ -8830,7 +8872,8 @@ class OrganicStudio extends StudioBase {
     const eyePut = (x, y, cx) => {
       const t = eyeTxt(); if (!t) return;
       const ls = C.eyeTrack * C.eyePx, b = y + asc(C.eyePx);
-      if (cx == null) T(t, x, b, C.eyePx, 500, A.brass, ls); else TC(t, b, C.eyePx, 500, A.brass, ls, cx);
+      const ink = f.eyeCol === 'White' ? A.ink : A.brass;   // the overline's own colour, per page
+      if (cx == null) T(t, x, b, C.eyePx, 500, ink, ls); else TC(t, b, C.eyePx, 500, ink, ls, cx);
     };
     // ── THE RICH BODY ──────────────────────────────────────────────────────────────────
     // Laid out at y = 0 and translated once the block's top is known, which is what lets
@@ -8942,14 +8985,13 @@ class OrganicStudio extends StudioBase {
     const logoPos = OrganicStudio.csEyeKind(kind) ? (f.logoPos || 'Hide') : 'Hide';
     const logoTop = logoPos === 'Top';
     if (logoPos !== 'Hide')
-      T('provident.', C.pad, logoTop ? pT + tk.logo * .8 : H - C.swipeBotIn + asc(C.swipePx),
-        tk.logo, 300, A.ink, tk.logo * .04);
+      wm(C.pad, logoTop ? pT + tk.logo * .8 : H - C.swipeBotIn + asc(C.swipePx), A.ink, null, !logoTop);
     // A TOP-ANCHORED BLOCK MOVES DOWN FOR IT, to the front page's own clearance — 23px under
     // a wordmark is not a gap, and `frontTopGap` is already the name for "below the mark".
     const topY2 = logoTop ? topY + C.frontTopGap : topY;
     if (kind === 'cfront') {
       // the wordmark, exactly where drawLogo puts it, at the drawing's own column
-      T('provident.', C.pad, pT + tk.logo * .8, tk.logo, 300, A.ink, tk.logo * .04);
+      wm(C.pad, pT + tk.logo * .8, A.ink);
       const fcW = W - C.pad - C.padR;
       const hl = hiLines(f.headline, C.headPx, 400, fcW, C.headMax);
       const headH = hl.length ? C.headPx + (hl.length - 1) * C.headPx * C.headLead : 0;
@@ -9115,7 +9157,7 @@ class OrganicStudio extends StudioBase {
       const cw = Math.min(C.ctaMaxW, Math.max(wSmall, wBig, pillW, wLogo, C.ctaMinContent) + 2 * C.ctaPad);
       const bigH = bl.length ? C.titleBox + (bl.length - 1) * C.h2Pitch : 0;
       const ch = C.ctaPad + C.ctaRuleH + C.ctaRuleGap + (small ? C.ctaSmallBox : 0) + ((small && bl.length) ? C.ctaSmallBigGap : 0)
-        + bigH + (label ? C.ctaBigPillGap + C.ctaPillH : 0) + C.ctaPillWmGap + C.ctaWmBox + C.ctaPad;
+        + bigH + (label ? C.ctaBigPillGap + C.ctaPillH : 0) + C.ctaPillWmGap + (pvh ? wmH : C.ctaWmBox) + C.ctaPad;
       // WHERE THE CARD SITS — centred, the drawing's own, or on the page's top line or its
       // floor: the same two anchors every other page hangs its copy from, so a carousel that
       // runs its copy high can run its closing card high as well.
@@ -9136,7 +9178,7 @@ class OrganicStudio extends StudioBase {
         y += C.ctaPillH;
       }
       y += C.ctaPillWmGap;
-      TC('provident.', y + C.ctaWmBase, tk.logo, 300, A.warm, logoLS);
+      wm(null, pvh ? y + PB.base * pk : y + C.ctaWmBase, A.warm, W / 2);
       B.near = cy0; far(cy0 + ch); blk(cy0 + ch); B.anchor = null;   // no scrim: the card is its own surface
       // ── THE PERMIT NUMBER. Tracked caps one type-scale step UNDER the page's small caps,
       // in Light, on the page's existing bottom line — SWIPE's baseline — so the foot of the page carries one
@@ -10526,6 +10568,11 @@ class OrganicStudio extends StudioBase {
     return m ? 'Tap to choose ' + m[1] : t;
   }
   static photoAlpha(st, sl) {
+    // a carousel page switched onto its own strength takes it instead of the shared one
+    if (sl && sl.f && sl.f.photoMode === 'Custom for this page' && /^c(front|stats|bul|text|cta)$/.test(sl.kind)) {
+      const v = sl.f.photoO == null ? 100 : sl.f.photoO;
+      return Math.max(10, Math.min(100, v)) / 100;
+    }
     const a = OrganicStudio.imgAlpha(st);
     return (sl && sl.kind === 'rcover') ? +(a * OrganicStudio.rcvLay(sl.f).photo).toFixed(4) : a;
   }
@@ -10559,6 +10606,8 @@ class OrganicStudio extends StudioBase {
     // reveals writes to other fields (the scrim's three values, the project's permit)
     scrimMode: { key: 'scrimMode', on: 'Custom for this page', off: 'Follow all pages', defOn: false,
                  onTitle: 'Give this page its own scrim', offTitle: 'Follow the shared scrim' },
+    photoMode: { key: 'photoMode', on: 'Custom for this page', off: 'Follow all pages', defOn: false,
+                 onTitle: 'Give this page its own photo strength', offTitle: 'Follow the shared photo strength' },
     permitOn:  { key: 'permitOn', on: 'Show', off: 'Hide', defOn: false,
                  onTitle: 'Show the permit number on this page', offTitle: 'Hide the permit number on this page' }
   };
@@ -10598,6 +10647,12 @@ class OrganicStudio extends StudioBase {
   // The scrim's own values live on the slide (`scrimOp` / `scrimFadeF` / `scrimHex`) and its
   // control is drawn by the `scrim` flag, NOT by three typed number fields — typing "40"
   // into a box to set an opacity is the thing this pass was asked to fix.
+  // THE PAGE'S OWN PHOTO STRENGTH — the scrim's shape again: a switch on the row, and a
+  // slider under it once the page is off the shared value. `photoAlpha` reads it.
+  static csPhotoField() {
+    return ['photoMode', 4, 'Page photo', 'pphoto',
+      'Off, this page takes the shared Photo strength from Post look. On, it takes its own.'];
+  }
   static csScrimField() {
     return ['scrimMode', 4, 'Page scrim', 'scrim',
       'Off, this page takes the shared scrim from Post look. On, it takes its own strength, fade and colour.'];
@@ -10665,33 +10720,36 @@ class OrganicStudio extends StudioBase {
             ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it'],
             OrganicStudio.csPermitField(),
-            OrganicStudio.csScrimField()],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     // NO Show | Hide ROWS: a show/hide field is a SWITCH on the row it gates — see `TOGGLES`.
     cstats:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
             ['title', 1, 'Title', 'area hi', 'Optional \u2014 centred at the top. Enter for a new line'],
             ['body', 2, 'Blurb', 'rich', 'A short paragraph between the title and the grid, off until the switch turns it on. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Bottom stands the grid on the page\u2019s floor; Top stacks it straight under the title'],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
-            OrganicStudio.csScrimField()],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     cbul:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
             ['headline', 1, 'Headline', 'req area hi', 'Short lines read best \u2014 Enter for a new one'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
             ['bulLayout', 3, 'Bullets', 'seg-opt:Side by side|Stacked', 'Side by side is the drawing\u2019s own \u2014 the headline beside the list. Stacked puts it above a full-width list'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
-            OrganicStudio.csScrimField()],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     ctext: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. Why It Matters. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
             ['title', 1, 'Title', 'req area hi', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
             ['align', 3, 'Text', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
-            OrganicStudio.csScrimField()],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area hi', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
-            OrganicStudio.csPermitField()],
+            OrganicStudio.csPermitField(), OrganicStudio.csPhotoField()],
     // THE REEL THUMBNAIL. The layout and the text size are NOT fields — they are chosen
     // from rendered tiles (the Layout section in the run, the left rail in the editor), and
     // both are stored on the slide as `lay` and `tsize`. The figure is asked only on Big
@@ -10731,6 +10789,8 @@ class OrganicStudio extends StudioBase {
       if (k === 'tags') return !!L.tags;
       return true;
     }
+    // the overline's colour is a question only while the overline is shown
+    if (k === 'eyeCol') return !(f && f.eyeOn === 'Hide');
     if (kind !== 'tacover') return true;
     const p = (f && f.period) || 'Monthly';
     if (k === 'mon') return p === 'Monthly';
@@ -10918,6 +10978,7 @@ class OrganicStudio extends StudioBase {
     // the 9:16, so there is no story to offer either
     if (s.tpl !== 'rcover') {
       fin.push({ sec: 'look', kind: 'glass' });
+      if (s.tpl === 'carousel') fin.push({ sec: 'look', kind: 'cslogo' });
       fin.push({ sec: 'look', kind: 'story' });
     }
     fin.push({ sec: 'save', kind: 'name' }, { sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
@@ -11090,6 +11151,7 @@ class OrganicStudio extends StudioBase {
     v.isGfx = ask.kind === 'gfx';
     v.isStory = ask.kind === 'story';
     v.isGlass = ask.kind === 'glass';
+    v.isCsLogo = ask.kind === 'cslogo';
     v.isName = ask.kind === 'name';
     v.isPreset = ask.kind === 'preset';
     v.isStats = ask.kind === 'stats';
@@ -11165,6 +11227,7 @@ class OrganicStudio extends StudioBase {
         ? 'Brand navy at 65%, over the same blur. Reads on a bright photograph where the white does not.'
         : 'White at 22%, over the same blur. Made for a dark photograph — on a bright one the copy on it will not read.';
     }
+    if (v.isCsLogo) v.csBrandOpts = this.csBrandOpts();
     if (v.isStory) {
       v.storyOpts = ['Feed only', 'Feed + story'].map((lab, k) => ({ label: lab, on: (!!s.storyOn === (k === 1)) ? '1' : undefined,
         set: () => this.upd(x => { x.storyOn = (k === 1); return x; }) }));
@@ -11192,6 +11255,12 @@ class OrganicStudio extends StudioBase {
       // numbers: a strength slider, a fade slider, the six dark swatches and a hex field.
       // It writes the page's own `scrimOp` / `scrimFadeF` / `scrimHex`, which `csScrimOf`
       // reads once the switch has put the page on `Custom for this page`.
+      if (v.row && v.row.isPhotoO) {
+        const pv = (sl.f && sl.f.photoO != null) ? sl.f.photoO : OrganicStudio.imgAlpha(this.state) * 100;
+        v.photoOVal = String(Math.round(pv));
+        v.photoOLab = Math.round(pv) + '%';
+        v.photoOSet = e => this.upd(x => { const t = x.slides[ask.si]; if (t) { t.f = t.f || {}; t.f.photoO = Math.max(10, Math.min(100, parseInt(e.target.value, 10) || 10)); } return x; });
+      }
       if (v.row && v.row.isScrim) {
         const pf = sl.f || {};
         const setF = d => this.upd(x => { const t = x.slides[ask.si]; if (t) { t.f = t.f || {}; Object.assign(t.f, d); } return x; });
@@ -11494,6 +11563,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'shade') return 'Photo darkening';
     if (ask.kind === 'imgo') return 'Photo strength';
     if (ask.kind === 'glass') return 'Panel colour';
+    if (ask.kind === 'cslogo') return 'Logo';
     if (ask.kind === 'dest') return 'Where to save';
     if (ask.kind === 'export') return 'Export';
     if (ask.kind === 'photo') return 'Background picture';
@@ -11568,7 +11638,7 @@ class OrganicStudio extends StudioBase {
   gdAskIssue(ask) {
     if (!ask) return '';
     // Refinement is a judgement, never a requirement. Export reports the whole gate.
-    if (ask.kind === 'scrim' || ask.kind === 'shade' || ask.kind === 'imgo' || ask.kind === 'glass') return '';
+    if (ask.kind === 'scrim' || ask.kind === 'shade' || ask.kind === 'imgo' || ask.kind === 'glass' || ask.kind === 'cslogo') return '';
     if (ask.kind === 'pages') return '';
     if (ask.kind === 'px' || ask.kind === 'grp' || ask.kind === 'alogo' || ask.kind === 'story' || ask.kind === 'name' || ask.kind === 'preset') return '';
     if (ask.kind === 'rlay' || ask.kind === 'rsize' || ask.kind === 'rguide' || ask.kind === 'rpx') return '';
@@ -13630,6 +13700,7 @@ class OrganicStudio extends StudioBase {
           const flag = n => new RegExp('(^|\\s)' + n + '(\\s|$)').test(f.flags);
           const isScrim = flag('scrim');
           const isPermit = flag('permit');
+          const isPhotoO = flag('pphoto');
           const isPts = flag('pts');
           const isHi = flag('hi');
           const words = f.flags.indexOf('w40') >= 0 ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
@@ -13666,9 +13737,9 @@ class OrganicStudio extends StudioBase {
             reqMark: req ? 'Required' : 'Optional',
             reqOn: req ? '1' : undefined, badOn: bad ? '1' : undefined,
             isSeg: !!seg && !segOpt, isOpt: segOpt, isSel: !!opts, isStep, isRich,
-            isScrim, isPermit,
-            isArea: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPts && f.flags.indexOf('area') >= 0,
-            isInput: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPts && f.flags.indexOf('area') < 0,
+            isScrim, isPermit, isPhotoO,
+            isArea: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPhotoO && !isPts && f.flags.indexOf('area') >= 0,
+            isInput: !seg && !opts && !isStep && !isRich && !isScrim && !isPermit && !isPhotoO && !isPts && f.flags.indexOf('area') < 0,
             // THE PHONE'S KEYBOARD FOLLOWS THE FILTER. A numbers-only field opened the full
             // letter keyboard on iOS — found in the Simulator — so every price, area, listing
             // number and ADM / CN needed a switch to 123 first. `num` keeps a decimal point,
@@ -14140,6 +14211,8 @@ class OrganicStudio extends StudioBase {
       shadeAllowed: this.shadeUsed(s),
       // every template draws a glass panel EXCEPT the reel thumbnail, which has none
       glassAllowed: s.tpl !== 'rcover',
+      csBrandOn: s.tpl === 'carousel' ? '1' : undefined,
+      csBrandOpts: this.csBrandOpts(),
       shadeVal: s.shade == null ? 35 : s.shade,
       onShade: e => { const v = +e.target.value; this.upd(x => { x.shade = v; return x; }); },
       glassOpts: [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1],
