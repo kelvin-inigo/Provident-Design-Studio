@@ -14230,6 +14230,8 @@ PROVIDENT." — which replaced a first `PVH.svg` lockup the same day.
   wordmark's ascender line (`wmCap`); on the bottom line its foot stands on the baseline; the
   closing card grows by the mark's height. A top mark pushes the centred stats title block
   down to clear it (the text wordmark never reached it).
+- **The bundled SVG carries `width`/`height`.** With a viewBox alone it decoded at 300 x 150 and
+  the EXPORT drew a cropped "PVI" (the preview's CSS mask hid it). Any bundled glyph needs both.
 - **Overline colour**, `f.eyeCol` (`Brass` default | `White`), a per-page field shown only while
   the overline is.
 - **Page photo**, `f.photoMode` switch + `f.photoO` slider (10-100), the per-page scrim's shape.
