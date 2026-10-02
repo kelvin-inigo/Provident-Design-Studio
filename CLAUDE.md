@@ -14218,16 +14218,18 @@ SVG save is read back; `.ai` is not. Verified: an SVG ingested, linked, Illustra
 
 # THE OPS CAROUSEL TAKES A SECOND LOGO, A WHITE OVERLINE AND A PER-PAGE PHOTO STRENGTH
 
-By request (2026-10-02), with `PVH.svg` (the Provident Vacation Homes lockup) attached.
+By request (2026-10-02). The mark is `Asset 1.svg` — the PVH monogram over "VACATION HOMES BY
+PROVIDENT." — which replaced a first `PVH.svg` lockup the same day.
 
 - **Logo** is post-wide, `state.csLogo` (`'provident'` default, `'pvh'`), in the Post look dock
   and the guided Finish (`cslogo` ask, carousel only). It reaches every wordmark the carousel
   draws — front page, closing card, inside pages' Top/Bottom — through ONE helper, `wm()` in
   `csBox`. The lockup is a bundled glyph (`CS_PVH`, every fill white, base64) drawn as a tinted
   `image` op like the SWIPE chevron, so it takes the page's ink: the orange period goes white,
-  because orange never sits on a dark canvas. Sized so its "provident." line equals the text
-  wordmark's ink width and sits on the same baseline; on the bottom line it is lifted by its
-  second line; the closing card grows by the lockup's height.
+  because orange never sits on a dark canvas. 1.5x the text wordmark's ink width (at 1x its small line was ~7px), its top on the
+  wordmark's ascender line (`wmCap`); on the bottom line its foot stands on the baseline; the
+  closing card grows by the mark's height. A top mark pushes the centred stats title block
+  down to clear it (the text wordmark never reached it).
 - **Overline colour**, `f.eyeCol` (`Brass` default | `White`), a per-page field shown only while
   the overline is.
 - **Page photo**, `f.photoMode` switch + `f.photoO` slider (10-100), the per-page scrim's shape.
