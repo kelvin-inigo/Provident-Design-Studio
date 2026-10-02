@@ -14226,7 +14226,7 @@ PROVIDENT." — which replaced a first `PVH.svg` lockup the same day.
   draws — front page, closing card, inside pages' Top/Bottom — through ONE helper, `wm()` in
   `csBox`. The lockup is a bundled glyph (`CS_PVH`, every fill white, base64) drawn as a tinted
   `image` op like the SWIPE chevron, so it takes the page's ink: the orange period goes white,
-  because orange never sits on a dark canvas. 1.5x the text wordmark's ink width (at 1x its small line was ~7px), its top on the
+  because orange never sits on a dark canvas. as wide as the text wordmark's ink (1.5x was tried and read as too big; at 1x its small line is ~7px), its top on the
   wordmark's ascender line (`wmCap`); on the bottom line its foot stands on the baseline; the
   closing card grows by the mark's height. A top mark pushes the centred stats title block
   down to clear it (the text wordmark never reached it).

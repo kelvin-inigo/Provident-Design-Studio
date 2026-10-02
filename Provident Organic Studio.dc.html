@@ -8835,12 +8835,12 @@ class OrganicStudio extends StudioBase {
     };
     const drawHi = (lineWords, x, y, px, w, fill, ls, cx) => hiPut(T, lineWords, x, y, px, w, fill, ls, cx);
     // ── THE WORDMARK, or the Provident Vacation Homes mark (`state.csLogo`, post-wide).
-    // The mark is 1.5x the text wordmark's ink width and its TOP sits where the wordmark's
+    // The mark is as wide as the text wordmark's ink and its TOP sits where the wordmark's
     // ascenders do, so it hangs from the same line; `up` stands its foot on the baseline
     // instead, so a mark on the page's bottom line does not run off the foot.
     const wmLS = tk.logo * .04, wmInk = meas('provident.', tk.logo, 300, wmLS) - wmLS;
-    // 1.5x the wordmark's width, so the small "VACATION HOMES BY PROVIDENT." line still reads
-    const pvh = state.csLogo === 'pvh', PB = OrganicStudio.CS_PVH_BOX, pk = wmInk * 1.5 / PB.w;
+    // the SAME width as the text wordmark's ink, by request (1.5x read as too big)
+    const pvh = state.csLogo === 'pvh', PB = OrganicStudio.CS_PVH_BOX, pk = wmInk / PB.w;
     const wmH = pk * PB.h, wmCap = tk.logo * .74;
     const wm = (x, base, fill, cx, up) => {
       if (!pvh) { if (cx == null) T('provident.', x, base, tk.logo, 300, fill, wmLS); else TC('provident.', base, tk.logo, 300, fill, wmLS, cx); return; }
