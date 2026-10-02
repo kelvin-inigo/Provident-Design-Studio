@@ -407,6 +407,21 @@
     '  backdrop-filter:blur(6px)}' +
     '.ctl button:hover{background:rgba(0,0,0,.8)}' +
     ':host([data-noreframe]) .ctl [data-act="edit"]{display:none}' +
+    // Edit in Photoshop: only while a way to get the file back exists (the helper,
+    // or a writable source folder) — see the PS session block above the class.
+    '.ctl [data-act="ps"]{display:none}' +
+    ':host([data-psok]) .ctl [data-act="ps"]{display:inline-block}' +
+    // While a Photoshop edit is linked: a quiet line along the frame's foot.
+    '.psb{position:absolute;left:6px;right:6px;bottom:6px;display:none;align-items:center;gap:6px;' +
+    '  padding:4px 4px 4px 8px;border-radius:7px;background:rgba(0,0,0,.72);color:#fff;' +
+    '  font:10.5px/1.25 system-ui,-apple-system,sans-serif;z-index:3;backdrop-filter:blur(6px);' +
+    '  -webkit-backdrop-filter:blur(6px)}' +
+    '.psb span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+    '.psb button{appearance:none;border:0;border-radius:5px;padding:3px 7px;cursor:pointer;flex:none;' +
+    '  background:rgba(255,255,255,.16);color:#fff;font:inherit}' +
+    '.psb button:hover{background:rgba(255,255,255,.28)}' +
+    ':host([data-ps]) .psb{display:flex}' +
+    ':host-context([data-om-exporting]) .psb{display:none !important}' +
     '.rfc{display:none;position:absolute;left:8px;right:8px;bottom:8px;margin:0;padding:8px 10px;' +
     '  border:0;border-radius:10px;background:rgba(16,22,34,.92);color:#fff;' +
     '  font:11px/1.3 system-ui,-apple-system,sans-serif;flex-direction:column;gap:7px;' +
@@ -530,6 +545,136 @@
     '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/>' +
     '<path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
 
+  // ── Edit in Photoshop ──────────────────────────────────────────────────
+  // A web page cannot launch Photoshop, so the round trip has two transports:
+  //   helper  tools/photoshop/ on loopback (window.providentPhotoshop): it writes
+  //           the file, opens it in Photoshop and serves back whatever is saved
+  //           under that name — a PSD converted to PNG on the way. Any browser.
+  //   folder  no helper, but a writable source folder (Chrome/Edge): the picture is
+  //           written to <folder>/Photoshop/<name>.<ext> for the user to open, and
+  //           the folder is watched for a PNG/JPEG/WebP saved under that name.
+  // A session lives for the page, per slot id. Each save comes back through the
+  // element's own _ingest, so the encode, the cut-out pass-through, the crop reset
+  // (an extended picture has a new size) and the store write are the drop's own.
+  // Replacing or removing the picture by hand ends the session. Never persisted:
+  // a link to a file on this Mac means nothing in a session file or another tab.
+  const PS = new Map();
+  // An SVG goes to ILLUSTRATOR and comes back as SVG — Photoshop would rasterise it, and a
+  // partner mark or a graphic has to stay vector the whole way. Same session, same watch.
+  const PS_EXT = /\.(png|jpe?g|webp|svg)$/i;
+  const isSvgUrl = (u) => /^data:image\/svg/i.test(u || '');
+  const PS_MAX_AGE = 6 * 3600 * 1000;
+  let psTimer = 0;
+  function psFolder() {
+    const f = window.providentFolder;
+    return f && f.supported && f.handle ? f : null;
+  }
+  // Which app this picture opens in, and whether a round trip to it is possible right now.
+  function psAppFor(u) { return isSvgUrl(u) ? 'Illustrator' : 'Photoshop'; }
+  function psAvail(u) {
+    const h = window.providentPhotoshop;
+    if (h && h.state === 'on') {
+      const i = h.info || {};
+      if (isSvgUrl(u) ? i.illustrator : i.photoshop) return true;
+    }
+    return !!psFolder();
+  }
+  function psStem(id) { return String(id).replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 120); }
+  function psExtOf(type) { return /svg/.test(type) ? 'svg' : /png/.test(type) ? 'png' : /webp/.test(type) ? 'webp' : 'jpg'; }
+  function psNotify() { subs.forEach((fn) => fn()); }
+  // A session starting, ending or landing a save: tell the host too, so its own buttons
+  // ("Photoshop · linked") follow. The slot's own listener below only re-renders slots,
+  // so this cannot loop.
+  function psChanged() {
+    psNotify();
+    try { document.dispatchEvent(new CustomEvent('provident-photoshop', { detail: { session: true } })); } catch (e) {}
+  }
+  function psStop(id) {
+    if (!id || !PS.has(id)) return;
+    PS.delete(id);
+    if (!PS.size && psTimer) { clearInterval(psTimer); psTimer = 0; }
+    psChanged();
+  }
+  async function psStart(id, dataUrl) {
+    const stem = psStem(id);
+    const h = window.providentPhotoshop;
+    // ALREADY LINKED: bring the file back up, never rewrite it — a PSD with an hour of
+    // layers on it would be replaced by the flat picture in the studio.
+    const cur = PS.get(id);
+    if (cur) {
+      if (cur.mode === 'helper' && h && await h.reopen(stem)) return;
+      if (cur.mode === 'folder') return;
+    }
+    const blob = await (await fetch(dataUrl)).blob();
+    if (h && (h.state === 'on' || await h.probe(true))) {
+      const r = await h.edit(stem, blob);
+      PS.set(id, { id, stem, app: psAppFor(dataUrl), mode: 'helper', base: r.mtime || 0, t0: Date.now(),
+        msg: 'Open in ' + (r.photoshop || psAppFor(dataUrl)) + ' — save there to update' });
+    } else {
+      const f = psFolder();
+      if (!f) throw new Error(psAppFor(dataUrl) + ' editing needs the helper (tools/photoshop/install.sh) or a source folder.');
+      const name = stem + '.' + psExtOf(blob.type);
+      await f.write('Photoshop/' + name, blob);
+      const dir = await f.dirFor('Photoshop/' + name, false);
+      const fh = await dir.getFileHandle(name);
+      const file = await fh.getFile();
+      PS.set(id, { id, stem, app: psAppFor(dataUrl), mode: 'folder', dir, base: file.lastModified, t0: Date.now(),
+        msg: 'Saved to ' + f.name + '/Photoshop/' + name + ' — open it in ' + psAppFor(dataUrl) + '; saves update here' });
+    }
+    if (!psTimer) psTimer = setInterval(psPoll, 1500);
+    psChanged();
+  }
+  // The newest save under the session's name: {mtime, get() -> File} or null.
+  async function psNewest(ses) {
+    if (ses.mode === 'helper') {
+      const h = window.providentPhotoshop;
+      const mt = await h.stat(ses.stem);
+      return mt ? { mtime: mt, get: () => h.file(ses.stem) } : null;
+    }
+    let best = null;
+    for await (const [n, fh] of ses.dir.entries()) {
+      if (fh.kind !== 'file' || !PS_EXT.test(n) || n.replace(PS_EXT, '') !== ses.stem) continue;
+      const file = await fh.getFile();
+      if (!best || file.lastModified > best.mtime) best = { mtime: file.lastModified, get: async () => file };
+    }
+    return best;
+  }
+  let psBusy = false;
+  async function psPoll() {
+    if (psBusy) return;
+    psBusy = true;
+    try {
+      for (const ses of [...PS.values()]) {
+        if (Date.now() - ses.t0 > PS_MAX_AGE) { psStop(ses.id); continue; }
+        let n = null;
+        try { n = await psNewest(ses); } catch (e) { n = null; }
+        if (!n || n.mtime <= ses.base) continue;
+        let file;
+        try { file = await n.get(); } catch (e) {
+          ses.base = n.mtime;
+          ses.msg = (e && e.message) || 'Could not read the saved file.';
+          psNotify(); continue;
+        }
+        if (!PS.has(ses.id)) continue;           // unlinked while reading
+        ses.base = n.mtime;
+        const el = [...document.querySelectorAll('image-slot')].find(e => e.id === ses.id);
+        if (el) await el._ingest(file);
+        else setSlot(ses.id, { u: await toDataUrl(file, MAX_DIM), s: 1, x: 0, y: 0 });
+        ses.msg = 'Updated from ' + (ses.app || 'Photoshop') + ' at ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' — still linked';
+        psChanged();
+      }
+    } finally { psBusy = false; }
+  }
+  // A background tab's timers are throttled; look the moment the studio is back.
+  window.addEventListener('focus', () => {
+    if (PS.size) psPoll();
+    const h = window.providentPhotoshop;
+    if (h && h.state !== 'on') h.probe();
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && PS.size) psPoll(); });
+  // The helper coming up or going down changes whether the button is offered.
+  document.addEventListener('provident-photoshop', psNotify);
+
   class ImageSlot extends HTMLElement {
     static get observedAttributes() {
       return ['shape', 'radius', 'mask', 'fit', 'placeholder', 'src', 'id', 'credit', 'credit-href'];
@@ -601,6 +746,25 @@
       setSlot(id, { u: url, s: 1, x: 0, y: 0 });
       return true;
     }
+    // Edit in Photoshop, by id — for a host's own button beside a slot (Organic's form
+    // rows). Needs a MOUNTED element with that id, since a saved edit comes back through
+    // the element's own _ingest. psReady() is what a host gates its button on.
+    static photoshop(id) {
+      const el = [...document.querySelectorAll('image-slot')].find(e => e.id === id);
+      if (!el) return false;
+      el.editInPhotoshop();
+      return true;
+    }
+    static psReady(id) {
+      const v = loaded && id ? getSlot(id) : null;
+      return !!(v && v.u && psAvail(v.u));
+    }
+    static psLinked(id) { return PS.has(id); }
+    // 'Illustrator' for an SVG, 'Photoshop' for anything else — what a host's button says.
+    static psApp(id) {
+      const v = loaded && id ? getSlot(id) : null;
+      return psAppFor(v && v.u);
+    }
     // Empty a slot by id, mounted or not — the store's own write, so every bound element
     // follows. The element's clearSlot() is the same thing with its own view reset first.
     static clearSlot(id) {
@@ -652,6 +816,7 @@
         '    <div class="cap">This photo needs attribution</div></div>' +
         '  <div class="loading" part="loading"><span class="loadmsg" part="loading-message"></span></div>' +
         '  <div class="ring" part="ring"></div>' +
+        '  <div class="psb" part="photoshop"><span></span><button data-act="ps-stop" title="Stop watching for Photoshop saves">Unlink</button></div>' +
         '</div>' +
         // Outside .frame, like .spill/.ctl — the frame's overflow:hidden +
         // border-radius/clip-path would cut the credit off on circle/pill/mask.
@@ -669,6 +834,7 @@
         // element selection and the controls look dead.
         '<div class="ctl" popover="manual" data-dc-edit-transparent><button data-act="replace" title="Replace image">Replace</button>' +
         '  <button data-act="edit" title="Reframe image">Edit</button>' +
+        '  <button data-act="ps" title="Open in Photoshop — when you save there, it updates here">Photoshop</button>' +
         '  <button data-act="remove" title="Remove image">Remove</button></div>' +
         // Reframe controls: shown only in reframe mode, promoted above .spill
         // (later popovers stack higher) so clicks reach it, and pinned to the
@@ -803,6 +969,8 @@
           this.dispatchEvent(ev);
           if (!ev.defaultPrevented) this._input.click();
         }
+        if (act === 'ps') { this.editInPhotoshop(); return; }
+        if (act === 'ps-stop') { psStop(this.id); return; }
         if (act === 'remove') {
           // through clearSlot, so the store, the sidecar and every element bound to this id
           // empty together; the studios read the store on their own tick
@@ -819,7 +987,7 @@
       });
       this._input.addEventListener('change', () => {
         const f = this._input.files && this._input.files[0];
-        if (f) this._ingest(f);
+        if (f) { psStop(this.id); this._ingest(f); }
         this._input.value = '';
       });
       // naturalWidth/Height aren't known until load — re-apply so the cover
@@ -1106,7 +1274,7 @@
         this._depth = 0;
         this.removeAttribute('data-over');
         const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (f) this._ingest(f);
+        if (f) { psStop(this.id); this._ingest(f); }
       }
     }
 
@@ -1203,6 +1371,19 @@
       }
     }
 
+    async editInPhotoshop() {
+      if (!this.id || !this.hasAttribute('data-editable')) return;
+      const v = getSlot(this.id);
+      if (!v || !v.u) return;
+      this._exitReframe(true);
+      try {
+        await psStart(this.id, v.u);
+      } catch (e) {
+        this._setError((e && e.message) || 'Could not open ' + psAppFor(v.u) + '.');
+      }
+      this._render();
+    }
+
     _setMsg(text) {
       const n = this.shadowRoot && this.shadowRoot.querySelector('.loadmsg');
       if (n) n.textContent = text || '';
@@ -1212,6 +1393,7 @@
     // sidecar write and every other element bound to the same id all stay in step;
     // writing the sidecar from outside would be undone by the next save.
     clearSlot() {
+      psStop(this.id);
       this._gen++;                 // strand any encode still in flight
       this._swapGen = 0;
       this.removeAttribute('data-swapping');
@@ -1467,6 +1649,23 @@
       const editable = !!(window.omelette && window.omelette.writeFile);
       this.toggleAttribute('data-editable', editable);
       this._sub.style.display = editable ? '' : 'none';
+      // Photoshop (Illustrator for an SVG): offered on a filled slot while a round trip is possible.
+      const psSt = this.id ? getSlot(this.id) : null;
+      this.toggleAttribute('data-psok', !!(this.id && psSt && psSt.u && psAvail(psSt.u)));
+      if (psSt && psSt.u) {
+        const pb = this.shadowRoot.querySelector('.ctl [data-act="ps"]');
+        const app = psAppFor(psSt.u);
+        if (pb && pb.textContent !== app) {
+          pb.textContent = app;
+          pb.title = 'Open in ' + app + ' — when you save there, it updates here';
+        }
+      }
+      const psSes = this.id ? PS.get(this.id) : null;
+      this.toggleAttribute('data-ps', !!psSes);
+      if (psSes) {
+        const sp = this.shadowRoot.querySelector('.psb span');
+        if (sp && sp.textContent !== psSes.msg) { sp.textContent = psSes.msg; sp.title = psSes.msg; }
+      }
 
       // Content. The sidecar is also writable by the agent's write_file
       // tool, so its value isn't guaranteed canvas-originated — only accept

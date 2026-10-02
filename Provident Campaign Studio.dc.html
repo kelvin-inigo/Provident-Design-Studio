@@ -3061,6 +3061,8 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 /* a drop's Remove, under its caption — the quiet red text link, as the hidden list's Delete is */
 .p-drop-t .p-rm{align-self:flex-start;color:var(--ps-bad);background:transparent;border:0;padding:0;font:500 11.5px/1.2 var(--ps-font);cursor:pointer;text-decoration:none}
 .p-drop-t .p-rm:hover{text-decoration:underline}
+.p-drop-t .p-ps{align-self:flex-start;color:var(--ps-link);background:transparent;border:0;padding:0;font:500 11.5px/1.2 var(--ps-font);cursor:pointer;text-decoration:none}
+.p-drop-t .p-ps:hover{text-decoration:underline}
 
 /* ── 27. THE COPYWRITER'S WORKSPACE ──────────────────────────────────────────────────
    A form over the real export: the words in reading order on the left, the ad as it
@@ -3926,7 +3928,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
     <sc-if value="{{ coOnFlag }}" hint-placeholder-val="{{ false }}">
       <div class="p-droprow">
         <div class="p-drop" data-done="{{ coDoneOn }}"><image-slot id="adstudio-colog" fit="contain" shape="rounded" radius="8" placeholder="Partner SVG" style="{{ coSlotStyle }}"></image-slot></div>
-        <div class="p-drop-t"><s>{{ coDropLabel }}</s><s>SVG or PNG. Its own padding is measured off, so the mark sits against the divider whatever the file's canvas.</s><sc-if value="{{ coDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ coRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+        <div class="p-drop-t"><s>{{ coDropLabel }}</s><s>SVG or PNG. Its own padding is measured off, so the mark sits against the divider whatever the file's canvas.</s><sc-if value="{{ coDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ coPs }}" class="p-link p-ps" title="{{ coPsTip }}">{{ coPsLabel }}</button></sc-if><button onClick="{{ coRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
       </div>
       <span class="p-lab">Size <s>{{ coScale }}% of the wordmark</s></span>
       <input type="range" min="60" max="160" step="2" value="{{ coScale }}" onChange="{{ onCoScale }}">
@@ -4341,7 +4343,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
             <span class="p-lab">Graphic file <span class="tip" data-tip="SVG, PNG, JPEG or WebP. An SVG is kept as vector and travels into Assets/ untouched; bitmaps are capped at export-grade resolution. Re-uploading overwrites the same file in Assets/." style="{{ infoStyle }}">i</span></span>
             <div class="p-droprow">
               <div class="p-drop" data-done="{{ gDoneOn }}"><image-slot id="{{ selGraphicSlot }}" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot></div>
-              <div class="p-drop-t"><s>{{ gDropLabel }}</s><sc-if value="{{ gDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+              <div class="p-drop-t"><s>{{ gDropLabel }}</s><sc-if value="{{ gDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gPs }}" class="p-link p-ps" title="{{ gPsTip }}">{{ gPsLabel }}</button></sc-if><button onClick="{{ gRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
             </div>
             <span class="p-cap">Placement<s>where it sits</s></span>
             <div class="p-opts">
@@ -4389,27 +4391,27 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
         <span class="p-lab">Photo <span class="tip" data-tip="{{ bgStatus }} Double-click the photo on the canvas to reframe it — drag to move, scroll to zoom, or use the zoom slider and anchor buttons in the overlay. Drop keeps export-grade resolution." style="{{ infoStyle }}">i</span></span>
         <div class="p-droprow">
           <div class="p-drop" data-done="{{ bgDoneOn }}"><sc-for list="{{ activeBgSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop a picture" style="{{ bgSlotStyle }}"></image-slot></sc-for></div>
-          <div class="p-drop-t"><s>{{ bgDropLabel }}</s><sc-if value="{{ bgDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+          <div class="p-drop-t"><s>{{ bgDropLabel }}</s><sc-if value="{{ bgDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
         </div>
         <sc-if value="{{ bgSepStOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">9:16 own photo <span class="tip" data-tip="Used by the 9:16 story instead of the shared picture." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ bgStDoneOn }}"><sc-for list="{{ activeBgStSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 9:16 picture" style="{{ bgSlotStStyle }}"></image-slot></sc-for></div>
-            <div class="p-drop-t"><s>{{ bgStDropLabel }}</s><sc-if value="{{ bgStDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgStRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ bgStDropLabel }}</s><sc-if value="{{ bgStDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgStPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgStRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
         <sc-if value="{{ bgSepLsOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">16:9 own photo <span class="tip" data-tip="Used by the 16:9 canvas instead of the shared picture." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ bgLsDoneOn }}"><sc-for list="{{ activeBgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 16:9 picture" style="{{ bgSlotLsStyle }}"></image-slot></sc-for></div>
-            <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
         <sc-if value="{{ bgSepBnOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">Banner own photo <span class="tip" data-tip="Used by both banner sizes instead of the shared picture — one photo, cover-fitted edge to edge on the 1880 × 940 and the 758 × 380 alike." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ bgBnDoneOn }}"><sc-for list="{{ activeBgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the banner picture" style="{{ bgSlotBnStyle }}"></image-slot></sc-for></div>
-            <div class="p-drop-t"><s>{{ bgBnDropLabel }}</s><sc-if value="{{ bgBnDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgBnRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ bgBnDropLabel }}</s><sc-if value="{{ bgBnDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgBnPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgBnRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
       </div>
@@ -4419,7 +4421,7 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
         <sc-if value="{{ fgOn }}" hint-placeholder-val="{{ false }}">
           <div class="p-droprow">
             <div class="p-drop" data-done="{{ fgDoneOn }}"><image-slot id="{{ activeFgId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop the cut-out" style="{{ bgSlotStyle }}"></image-slot></div>
-            <div class="p-drop-t"><s>{{ fgDropLabel }}</s><sc-if value="{{ fgDoneOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+            <div class="p-drop-t"><s>{{ fgDropLabel }}</s><sc-if value="{{ fgDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fgPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ fgRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
       </div>
@@ -4620,6 +4622,19 @@ class CampaignStudio extends StudioBase {
   // The slot class is not a global — it is reached through the registry, as every other
   // static call here is (`IS.copySlot` / `IS.moveSlot`).
   static slotClear(id) { const IS = customElements.get('image-slot'); if (IS && IS.clearSlot) IS.clearSlot(id); }
+  static slotPs(id) { const IS = customElements.get('image-slot'); if (IS && IS.photoshop) IS.photoshop(id); }
+  // Offered while a round trip is possible: the helper is up, or a source folder is writable.
+  static psApp(id) { const IS = customElements.get('image-slot'); return (IS && IS.psApp) ? IS.psApp(id) : 'Photoshop'; }
+  static psLabel(id) { return 'Edit in ' + CampaignStudio.psApp(id); }
+  static psTip(id) {
+    return CampaignStudio.psApp(id) === 'Illustrator'
+      ? 'Opens this SVG in Illustrator. Save it there as SVG with the same name and it updates here.'
+      : 'Opens this picture in Photoshop. Save it there and it updates here.';
+  }
+  static psOn() {
+    const h = window.providentPhotoshop, f = window.providentFolder;
+    return !!((h && h.state === 'on') || (f && f.supported && f.handle));
+  }
   static newVariant(name) { return { name, clusters: {}, mvar: {}, msize: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100, bn: 100, bs: 100 }, bg: 'dark', logoAlign: 'left', story: null, mods: null }; }
   // `Object.assign(defaults, saved)` is SHALLOW, so a saved `variants` array
   // replaces the defaults outright and every per-variant key added since that
@@ -5112,6 +5127,9 @@ class CampaignStudio extends StudioBase {
   }
 
   componentDidMount() {
+    // Edit in Photoshop is offered only while its helper (or a source folder) is there.
+    this._psTick = () => this.forceUpdate();
+    document.addEventListener('provident-photoshop', this._psTick);
     try {
       ['100 85px', '300 35px', '500 24px'].forEach(f => document.fonts.load(f + ' "Google Sans Flex"').catch(() => {}));
     } catch (e) {}
@@ -5256,6 +5274,7 @@ class CampaignStudio extends StudioBase {
     this._rafId = requestAnimationFrame(tick);
   }
   componentWillUnmount() {
+    if (this._psTick) document.removeEventListener('provident-photoshop', this._psTick);
     if (this._reframeEnd) document.removeEventListener('image-slot:reframe', this._reframeEnd, true);
     if (this._dropRefresh) document.removeEventListener('drop', this._dropRefresh, true);
     if (this._rafId) cancelAnimationFrame(this._rafId);
@@ -10916,6 +10935,19 @@ class CampaignStudio extends StudioBase {
           bgLsRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-ls'), fgRemove: () => CampaignStudio.slotClear('adstudio-fg-' + vi),
           bgBnRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-bn'),
           gRemove: () => { if (selM) CampaignStudio.slotClear('adstudio-mod-' + selM.id); },
+          // EDIT IN PHOTOSHOP — image-slot owns the round trip; a save comes back on its own.
+          psOn: CampaignStudio.psOn() ? '1' : undefined,
+          bgPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi),
+          bgStPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-st'),
+          bgLsPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-ls'),
+          bgBnPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-bn'),
+          fgPs: () => CampaignStudio.slotPs('adstudio-fg-' + vi),
+          coPs: () => CampaignStudio.slotPs('adstudio-colog'),
+          gPs: () => { if (selM) CampaignStudio.slotPs('adstudio-mod-' + selM.id); },
+          // the partner mark and the graphic are routinely SVG, which opens in Illustrator
+          coPsLabel: CampaignStudio.psLabel('adstudio-colog'), coPsTip: CampaignStudio.psTip('adstudio-colog'),
+          gPsLabel: selM ? CampaignStudio.psLabel('adstudio-mod-' + selM.id) : 'Edit in Photoshop',
+          gPsTip: selM ? CampaignStudio.psTip('adstudio-mod-' + selM.id) : '',
           qrDropLabel: lab('adstudio-qr', 'QR code', 'the QR code'), coDropLabel: lab('adstudio-colog', 'Partner mark', 'the partner mark'),
           secCompState: (selM && !need) ? 'done' : undefined,
           secCompNote: !selM ? 'Pick a component' : (need ? (need === 1 ? '1 to fill in' : need + ' to fill in') : 'Done'),

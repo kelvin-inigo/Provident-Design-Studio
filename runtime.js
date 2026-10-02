@@ -575,6 +575,82 @@
   // underneath instead of a loopback service a phone does not have. A browser never has one.
   W.providentCutout = W.providentNativeCutout || cutout;
 
+  // ── 4b. Edit in Photoshop, through a local helper ─────────────────────────
+  //
+  // A web page cannot launch a desktop app. tools/photoshop/ is a loopback
+  // helper that writes the picture where Photoshop can save over it, opens it
+  // there, and hands the saved file back — a PSD converted to PNG on the way.
+  // image-slot.js owns the round trip (the button, the watch, the store write);
+  // this is only the transport. Like the cut-out it is a CAPABILITY: with the
+  // helper off, image-slot falls back to the source folder, or offers nothing.
+  var PS_URL = 'http://127.0.0.1:7312';
+  try {
+    var psOver = W.localStorage && W.localStorage.getItem('provident-photoshop-url');
+    if (psOver) PS_URL = String(psOver).replace(/\/+$/, '');
+  } catch (e) {}
+  var psAt = 0, psPending = null;
+  var photoshop = {
+    state: 'unknown',
+    info: null,
+    probe: function (force) {
+      var now = Date.now();
+      if (!force && psPending && now - psAt < CUT_TTL) return psPending;
+      psAt = now;
+      var to = withTimeout(2500);
+      psPending = fetch(PS_URL + '/health', { signal: to.signal, cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          to.done(); photoshop.info = j;
+          psState(j && j.ok ? 'on' : 'off');
+          return photoshop.state === 'on';
+        })
+        .catch(function () { to.done(); psState('off'); return false; });
+      return psPending;
+    },
+    // blob -> {mtime}. Throws Error(message) a person can act on.
+    edit: function (stem, blob) {
+      return fetch(PS_URL + '/edit?name=' + encodeURIComponent(stem), {
+        method: 'POST', body: blob, cache: 'no-store'
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          if (!r.ok) throw new Error(j.error || ('Photoshop helper failed (' + r.status + ').'));
+          return j;
+        });
+      }, function () { psState('off'); throw new Error('The Photoshop helper is not running.'); });
+    },
+    // Reopen what is already there, untouched. -> true when it was opened.
+    reopen: function (stem) {
+      return fetch(PS_URL + '/open?name=' + encodeURIComponent(stem), { method: 'POST', cache: 'no-store' })
+        .then(function (r) { return r.ok; }, function () { return false; });
+    },
+    // -> mtime (seconds) of the newest save, or 0.
+    stat: function (stem) {
+      return fetch(PS_URL + '/stat?name=' + encodeURIComponent(stem), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { return j && j.mtime || 0; }, function () { return 0; });
+    },
+    // -> File of the newest save (PNG/JPEG/WebP; a PSD arrives as PNG).
+    file: function (stem) {
+      return fetch(PS_URL + '/file?name=' + encodeURIComponent(stem), { cache: 'no-store' })
+        .then(function (r) {
+          if (r.ok) return r.blob().then(function (b) {
+            var ext = /svg/.test(b.type) ? 'svg' : /png/.test(b.type) ? 'png' : /webp/.test(b.type) ? 'webp' : 'jpg';
+            return new File([b], stem + '.' + ext, { type: b.type });
+          });
+          return r.json().catch(function () { return {}; }).then(function (j) {
+            throw new Error(j.error || 'Could not read the saved file.');
+          });
+        });
+    }
+  };
+  function psState(s) {
+    if (photoshop.state === s) return;
+    photoshop.state = s;
+    try { document.dispatchEvent(new CustomEvent('provident-photoshop', { detail: { state: s } })); } catch (e) {}
+  }
+  W.providentPhotoshop = photoshop;
+  photoshop.probe();
+
   // ── 5. Storage stand-in ───────────────────────────────────────────────────
   // Inside Design Cursor the real thing already exists — leave it alone.
   if (W.omelette && W.omelette.writeFile) {

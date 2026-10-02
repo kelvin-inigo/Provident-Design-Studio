@@ -29,6 +29,7 @@ How to use the two Provident design studios in this folder.
 12. [Photos](#12-photos)
 13. [Rules the studios keep for you](#13-rules-the-studios-keep-for-you)
 14. [Troubleshooting](#14-troubleshooting)
+15. [For Claude: the studio tools](#15-for-claude-the-studio-tools)
 
 ---
 
@@ -338,6 +339,24 @@ This is the full editor.
 
   The drop box tells you whether the service is on. Without it, upload a PNG that's already cut
   out.
+- **Edit in Photoshop (extend, retouch, Generative Expand):** once a picture is in, press
+  **Edit in Photoshop** (OPS: under the picture; CAS: under the drop box, or **Photoshop** when you
+  hover the photo on the canvas). Photoshop opens the picture. Edit it, then **save** (⌘S). Any
+  format works, PSD included, as long as you keep the same name. The studio picks up each save
+  within a couple of seconds, and the picture's framing resets to fit its new size.
+  - The photo shows *Open in Photoshop — save there to update* while it is linked. **Unlink**
+    stops watching. Replacing or removing the photo also unlinks it.
+  - Pressing the button again while linked just brings the same file back up. It never
+    overwrites the file you're working on.
+  - Set it up once per Mac with `./tools/photoshop/install.sh`. After that it starts by itself at
+    every login.
+  - Without it, in Chrome or Edge with a **Source folder** set, the button still works: it saves
+    the picture to `<Source folder>/Photoshop/` for you to open in Photoshop yourself. Save it
+    back as PNG or JPEG under the same name (not PSD), and it updates the same way.
+  - **An SVG opens in Illustrator instead** (the button reads **Edit in Illustrator**), so a
+    partner mark or graphic stays vector. Save it there as SVG with the same name (⌘S, then OK
+    on the SVG options). Saving as `.ai` does not come back.
+  - Not available in the iPhone app.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.
 
@@ -363,8 +382,30 @@ You don't need to set these; the layouts already follow them.
 | The type looks like a different font | Open the file in Chrome, from this folder, with `fonts/` and `_ds/` next to it. |
 | A photo is missing after opening a session file | A session file only carries the photos that were saved with it. Drop the photo again. |
 | An agent photo keeps its background | Background removal is set up once per computer with `./tools/rembg/install.sh`, and then starts by itself at every login. If it's off, run `./tools/rembg/serve.sh`, or upload a PNG that's already cut out. |
+| No **Edit in Photoshop** button | Set it up once with `./tools/photoshop/install.sh`, or set a **Source folder** in Chrome or Edge. The button appears within 15 seconds; no reload needed. |
+| Saved in Photoshop but nothing changed | Keep the same file name (⌘S, or Save a Copy with the same name). Without the helper, save as PNG or JPEG, not PSD. |
 | The top bar is cut off and **Share** is missing | Make the window wider. CAS's top bar needs about 1150 px. |
 | Old files are still in the export folder | Exports overwrite but never delete. Remove old files by hand. |
 | A project isn't in **Recent** | Only saved projects are listed. Press **Save**. |
 | ⌘V does nothing after `/cas-component` | Make sure CAS is showing the **editor** (not the project browser or Copy), then press ⌘V again. Claude also saved it in `custom-components/` — open that file and copy its contents if the clipboard was overwritten. |
 | An export went into the wrong design folder | CAS's Master is **Variant A**, Variant 2 is **B**, Variant 3 is **C**. |
+
+## 15. For Claude: the studio tools
+
+When the **provident-studio** connector is available, Claude can make CAS and OPS work itself
+instead of explaining the clicks. It runs the real studio in the background, so the result is
+exactly what the studio would export.
+
+1. `studio_catalog` (studio `cas` or `ops`) — the templates and every field they ask for.
+2. `studio_new_project` — start from a template; or `studio_read_project` on an existing
+   `.adstudio.json` / `.smpstudio.json`.
+3. `studio_edit` to fill fields, `studio_set_image` for photos, QR codes and logos (agent photos
+   are cut out automatically when background removal is running).
+4. `studio_preview` — look at it before exporting.
+5. `studio_export` — PNG, JPG, SVG or PDF, with the studio's own file names and folders.
+
+Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
+or name. Every required field must be filled; the export says what is missing. The project is a
+normal session file, so the user can open it with **Open Session** to fine-tune by hand. Setup:
+`sh tools/studio-mcp/install.sh`, then restart Claude (see `tools/studio-mcp/README.md`).
+

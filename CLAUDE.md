@@ -14145,3 +14145,73 @@ crashed renderVals; it is `labOf(m)` / `textOf(m)`. `VOPT` / `VDESC` readers go 
   S/M/L/XL × left/centre × 1:1 and 9:16 (four XL cases read 3.8–5.2 because the WHOLE overflowing
   bottom cluster moves together, headline included); SVG export valid; contrast 0 failures in
   both themes; existing templates unchanged by construction.
+
+# CAS AND OPS ARE AN MCP SERVER — `tools/studio-mcp/`
+
+By request (2026-10-01): "an MCP or API of CAS and OPS, for me to use on Cowork". Seven tools —
+`studio_catalog`, `studio_new_project`, `studio_read_project`, `studio_edit`, `studio_set_image`,
+`studio_preview` (returns images), `studio_export`. Registered in
+`~/Library/Application Support/Claude/claude_desktop_config.json` as `provident-studio` by
+`install.sh` (backup beside it; `--remove` undoes it). Details in its README.
+
+- **A project is a session file**, so the tools and the studio share one format both ways.
+- **The studio does the work**: the server serves the repo on a loopback port and opens the real
+  `.dc.html` in a private headless Chrome (throwaway profile — it can never touch the user's own
+  photo store or recents), then drives the engine through `page.js`: `applyProject` (with
+  `reloadNow` stubbed and the server reloading), `normState`, `buildOps`/`renderOpsToCanvas`,
+  `doExport` with `deliver`/`saveAs` overridden to hand the files back. **No artwork is
+  reimplemented**, so template changes reach it for free.
+- **Edits go through `E.upd`** (OPS slides via `OrganicStudio.slide`/`csConvert`, CAS components
+  via `modList`/`dropMod`, CAS Add Variant and the carousel switch via the rail's own
+  `renderVals()` actions). Images go through `providentEncodeFile` and `ImageSlot.putUrl`, and the
+  cut-out service where the slot is an agent's.
+- **Stdlib only** (Python 3.9; no Node, no pip): `chrome.py` carries its own WebSocket client.
+- **Coupling to watch:** `page.js` names `applyProject`, `exportBlockers`, `sLabel`, `bgSidFor`,
+  `photoUsed`, `modList`, `dropMod`, `freshId`, `modulesFor`, `sizesFor`, `csConvert`, `tplState`,
+  `tplSlides`, `COPY_BLANK`, and the slot-id scheme (`smp-bg-<id>`, `adstudio-bg-<vi>` …). Rename any
+  of those and the same rename is owed there.
+
+Verified through the real paths: OPS listed (fields, QR, background, agent cut out in 13s, JPG
+export `Just Listed_Jane Doe-01_3x4.jpg`), weekly add-slide, carousel layout switch and remove;
+CAS Event (edit, size, add component, add variant, banner on, PNG export into `Variant A/…`,
+banners exactly 1880x940 and 758x380); and the stdio protocol (initialize, tools/list, a text
+result, an image result, an error result).
+
+# EDIT IN PHOTOSHOP — a round trip owned by image-slot, with an optional helper
+
+By request (2026-10-01): extend or retouch a picture in Photoshop and have the save come back into
+CAS / OPS by itself. A web page cannot launch Photoshop (no URL scheme opens a file), so there are
+two transports, both in `image-slot.js`'s PS session block above the class:
+
+| | needs | how the save comes back |
+|---|---|---|
+| **helper** | `tools/photoshop/` on 127.0.0.1:7312 (`install.sh`, a login item) | writes `Edits/<slot id>.<ext>`, runs `open -a` on the newest installed Photoshop, serves the newest save back. **A PSD/TIFF/HEIC is converted with `sips`**, so Photoshop's own ⌘S-as-PSD still works |
+| **folder** | Chrome/Edge with a writable source folder | writes `<folder>/Photoshop/<slot id>.<ext>`; the user opens it; the folder handle is watched for a PNG/JPEG/WebP under that name |
+
+- **Every save goes through the element's own `_ingest`**, so encode, the agent cut-out
+  pass-through (an already-transparent PNG is left alone), the crop reset (an extended picture has
+  a new size) and the store write are the drop's own. No second ingest path.
+- **Pressing the button while linked REOPENS, never rewrites** (`/open`): a rewrite would replace
+  an hour of PSD layers with the flat picture. Verified: a PSD in place, a second press, the PSD kept.
+- A session is per slot id and per page, never saved. A manual Replace, a drop, Remove, or the
+  badge's **Unlink** ends it; so does 6 hours.
+- `window.providentPhotoshop` (runtime.js §4b) is transport only, like `providentCutout`, and is a
+  CAPABILITY: with neither transport there is no button. `provident-photoshop` events re-render
+  the slots and both studios' rails (helper up/down, a session starting, ending or landing a save).
+- Buttons: the slot's own hover strip (`data-act="ps"`, `data-psok` gates it, SVGs excluded),
+  OPS's form rows (`slotPs` / `slotPsOn`, not on a QR), CAS's photo, cut-out, graphic and
+  partner-mark rows (`psOn`, `<x>Ps`, `CampaignStudio.slotPs`).
+
+**Verified in Chrome against the real helper and the real Photoshop 2026** in both studios:
+the button opened Photoshop; a 1400x600 PSD saved over an 800x600 JPEG came back as WebP in OPS;
+a 1600x900 PNG came back in CAS; Unlink and the reopen path. **The folder transport was NOT
+exercised end to end** — `showDirectoryPicker` needs a real user gesture the pane cannot give.
+No artwork line moved. The helper was installed on this Mac as a login item on 2026-10-02 (`ae.provident.photoshop`).
+
+**AN SVG GOES TO ILLUSTRATOR, and comes back as SVG.** `app_for(ext)` in the helper picks
+Illustrator for `.svg`; the slot labels its button and badge by `psAppFor(url)` (`ImageSlot.psApp(id)`
+for hosts — OPS's `slotPsLabel`, CAS's `coPsLabel` / `gPsLabel`). `psAvail(url)` asks the helper's
+`/health` for THAT app. Illustrator's bundle is `Adobe Illustrator 2026/Adobe Illustrator.app` —
+the year is on the folder, not the bundle, which is why the first search found nothing. Only an
+SVG save is read back; `.ai` is not. Verified: an SVG ingested, linked, Illustrator opened, an
+800-wide SVG saved under the stem came back into the slot as `image/svg+xml`.

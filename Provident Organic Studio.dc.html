@@ -4269,7 +4269,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.photoDone }}">
                     <image-slot id="{{ a.photoSlot }}" data-cutout="{{ a.photoCut }}" shape="rounded" radius="10" placeholder="Drop a picture" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.photoLabel }}</s>
@@ -4287,7 +4287,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                     <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
                       <image-slot id="{{ a.pxSlot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop foreground PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                     </div>
-                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                       <s>{{ a.pxLabel }}</s>
@@ -4323,7 +4323,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.gfxDone }}">
                     <image-slot id="{{ a.gfxSlot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop SVG / PNG" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.gfxLabel }}</s>
@@ -4345,7 +4345,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.alogoDone }}">
                     <image-slot id="smp-alogo" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop the mark" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.alogoLabel }}</s>
@@ -4399,7 +4399,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                     <div class="gd-drop gd-drop-ph" data-done="{{ a.pxDone }}">
                       <image-slot id="{{ a.pxSlot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Cut-out" style="width:100%;aspect-ratio:4/3"></image-slot>
                     </div>
-                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                    <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                   </div>
                   <!-- the row's primary action, full width under the drop: the rail's side column is
                        104px, and the label must not wrap inside a pill -->
@@ -4463,7 +4463,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-sq" data-done="{{ a.qrDone }}">
                     <image-slot id="{{ a.qrSlot }}" data-noreframe="1" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
                   </div>
-                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.qrLabel }}</s>
@@ -4497,7 +4497,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
                   <div class="gd-drop gd-drop-ph" data-done="{{ a.portraitDone }}">
                     <image-slot id="{{ a.portraitSlot }}" data-cutout="1" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Drop agent photo" style="width:100%;aspect-ratio:4/3"></image-slot>
                   </div>
-                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
+                  <sc-if value="{{ a.slotActsOn }}" hint-placeholder-val="{{ false }}"><div class="gd-slotacts gd-slotacts-v"><button onClick="{{ a.slotReplace }}" class="p-ghost">Replace</button><sc-if value="{{ a.slotReframeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotEdit }}" class="p-ghost">Reframe</button></sc-if><sc-if value="{{ a.slotPsOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.slotPs }}" class="p-ghost" title="{{ a.slotPsTip }}">{{ a.slotPsLabel }}</button></sc-if><button onClick="{{ a.slotRemove }}" class="p-ghost gd-rm">Remove</button></div></sc-if>
                 </div>
                 <div class="gd-qrow-t gd-qcap">
                     <s>{{ a.portraitLabel }}</s>
@@ -6025,7 +6025,10 @@ class OrganicStudio extends StudioBase {
         if (onCanvas() && s.closest('.p-plate') && window.innerWidth <= 1200 && H && H.state && H.state.shPanel) H.setState({ shPanel: null });
         s._enterReframe();
       },
-      slotRemove: () => { const s = el(); if (s && s.clearSlot) s.clearSlot(); }
+      slotRemove: () => { const s = el(); if (s && s.clearSlot) s.clearSlot(); },
+      // EDIT IN PHOTOSHOP: image-slot owns the round trip (tools/photoshop/ or the source
+      // folder); a save there comes back into this slot by itself.
+      slotPs: () => { const s = el(); if (s && s.editInPhotoshop) s.editInPhotoshop(); }
     };
   }
   // ── REORDER BY DRAG, on the two templates whose order is the USER'S: a carousel's inside
@@ -7222,6 +7225,8 @@ class OrganicStudio extends StudioBase {
     // on a CHANGE, and the poll below is TTL-cached to one request per 15s.
     this._cutTick = () => this.forceUpdate();
     document.addEventListener('provident-cutout', this._cutTick);
+    // Edit in Photoshop is offered only while its helper (or a source folder) is there.
+    document.addEventListener('provident-photoshop', this._cutTick);
     try { window.providentCutout && window.providentCutout.probe(); } catch (e) {}
     let lastFillScan = 0;
     const tick = () => {
@@ -7340,6 +7345,7 @@ class OrganicStudio extends StudioBase {
     if (this._reframeEnd) document.removeEventListener('image-slot:reframe', this._reframeEnd, true);
     if (this._dropRefresh) document.removeEventListener('drop', this._dropRefresh, true);
     if (this._cutTick) document.removeEventListener('provident-cutout', this._cutTick);
+    if (this._cutTick) document.removeEventListener('provident-photoshop', this._cutTick);
     if (this._rafId) cancelAnimationFrame(this._rafId);
   }
 
@@ -11376,6 +11382,18 @@ class OrganicStudio extends StudioBase {
       // ONLY A PHOTO'S CROP IS DRAWN. The agent is framed on her face by `agentPlace`, which
       // reads no slot crop, so Reframe on a portrait saved a value and changed nothing.
       slotReframeOn: v.isPhoto ? '1' : undefined });
+    // Photoshop: on a filled picture while the helper or a source folder can bring the save
+    // back. Not on a QR — a code is generated, not retouched.
+    if (sid && !v.qrSlot) {
+      const IS = customElements.get('image-slot');
+      const linked = !!(IS && IS.psLinked && IS.psLinked(sid));
+      Object.assign(v, { slotPsOn: (filled && filled[sid] && IS && IS.psReady && IS.psReady(sid)) ? '1' : undefined,
+        // an SVG opens in ILLUSTRATOR and comes back vector; anything else in Photoshop
+        slotPsLabel: (linked ? 'In ' : 'Edit in ') + ((IS && IS.psApp) ? IS.psApp(sid) : 'Photoshop'),
+        slotPsTip: ((IS && IS.psApp && IS.psApp(sid) === 'Illustrator')
+          ? 'Opens this SVG in Illustrator. Save it there as SVG with the same name and it updates here.'
+          : 'Opens this picture in Photoshop. Save it there (any format, same name) and it updates here.') });
+    }
     return v;
   }
   gdSeedSelect() {
