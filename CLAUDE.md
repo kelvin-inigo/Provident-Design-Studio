@@ -14232,6 +14232,15 @@ PROVIDENT." — which replaced a first `PVH.svg` lockup the same day.
   down to clear it (the text wordmark never reached it).
 - **The bundled SVG carries `width`/`height`.** With a viewBox alone it decoded at 300 x 150 and
   the EXPORT drew a cropped "PVI" (the preview's CSS mask hid it). Any bundled glyph needs both.
+- **FOUR MARKS NOW, ON THE REEL COVER TOO, IN A DROPDOWN (2026-10-06).** `CS_MARKS` / `CS_LOGOS` /
+  `csMark(state)` are the table: `pvh` (Vacation Homes), `pb` (Property Boutique, `Prov-PB-Secondary.svg`)
+  and `prism` (`prism.svg`) beside the text wordmark. Each bundled SVG is cropped to its INK box
+  (the source files carry wide empty margins), every fill white, width/height set. Every mark is as
+  wide as the text wordmark's ink. `state.csLogo` reaches the `rcover` template as well: `rcvPlan`
+  draws the mark in place of the wordmark and moves the headline block down by however much taller
+  than the wordmark's box it is (`mkX`), so the gap under the logo is the wordmark's own; the
+  carousel's top-anchored blocks take the same clearance (`wmClear`). The Logo control is a
+  `<select>` in the Post look dock and the guided Finish (`csBrandVal` / `csBrandSet`).
 - **Overline colour**, `f.eyeCol` (`Brass` default | `White`), a per-page field shown only while
   the overline is.
 - **Page photo**, `f.photoMode` switch + `f.photoO` slider (10-100), the per-page scrim's shape.
