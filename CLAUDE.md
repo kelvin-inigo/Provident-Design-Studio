@@ -14234,7 +14234,7 @@ PROVIDENT." — which replaced a first `PVH.svg` lockup the same day.
   the EXPORT drew a cropped "PVI" (the preview's CSS mask hid it). Any bundled glyph needs both.
 - **FOUR MARKS NOW, ON THE REEL COVER TOO, IN A DROPDOWN (2026-10-06).** `CS_MARKS` / `CS_LOGOS` /
   `csMark(state)` are the table: `pvh` (Vacation Homes), `pb` (Property Boutique, `Prov-PB-Secondary.svg`)
-  and `prism` (`prism.svg`) beside the text wordmark. Each bundled SVG is cropped to its INK box
+  `ps` (Property Solutions, `property solutions.svg`) and `prism` (`prism.svg`) beside the text wordmark. Each bundled SVG is cropped to its INK box
   (the source files carry wide empty margins), every fill white, width/height set. Every mark is as
   wide as the text wordmark's ink. `state.csLogo` reaches the `rcover` template as well: `rcvPlan`
   draws the mark in place of the wordmark and moves the headline block down by however much taller
