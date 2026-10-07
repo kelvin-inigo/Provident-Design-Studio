@@ -892,6 +892,7 @@ textarea.p-in{resize:vertical}
 .p-c-shots span{flex:1;background-size:cover;background-position:center}
 .p-c-n{font-weight:400;font-size:13px;line-height:1.3}
 .p-c-m{font-weight:300;font-size:12px;color:var(--ps-dim)}
+.p-c-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .p-empty2{color:var(--ps-dim);font-weight:300;font-size:13px;padding:8px 0}
 .p-splash{display:grid;grid-template-columns:300px 1fr;gap:44px;width:100%;max-width:1320px;margin:0 auto;padding:52px 40px;align-items:start;color:#fff}
 .p-splash-l{display:flex;flex-direction:column;gap:14px;position:sticky;top:52px}
@@ -3700,6 +3701,7 @@ select.p-in{padding-right:34px}
               </span>
               <span class="p-c-n">{{ r.name }}</span>
               <span class="p-c-m">{{ r.meta }}</span>
+              <span class="p-c-tags"><span class="p-tag">{{ r.logoTag }}</span></span>
             </button>
           </sc-for>
         </div>
@@ -14428,6 +14430,8 @@ class OrganicStudio extends StudioBase {
           frames: th.map(u => ({ shot: { backgroundImage: `url("${u}")` } })),
           reelStyle: StudioBase.reelTiming(th.length || 1),
           name: r.name,
+          // the brand mark the post carries (`state.csLogo`; a template with no choice is Provident)
+          logoTag: ({ provident: 'Provident', pvh: 'PVH', pb: 'PB', ps: 'PS', prism: 'Prism' })[(r.state && OrganicStudio.CS_MARKS[r.state.csLogo]) ? r.state.csLogo : 'provident'],
           meta: 'Saved ' + new Date(r.ts).toLocaleDateString() + ' · ' + (TPLNAMES[(r.state && r.state.tpl) || 'weekly']),
           load: () => this.openRecent(i)
         };
