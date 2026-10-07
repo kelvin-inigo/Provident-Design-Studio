@@ -15,6 +15,8 @@
      must load before that block; after runtime.js is enough, since nothing in it
      touches a window.provident* helper at class-definition time. -->
 <script src="./studio-base.js"></script>
+<!-- The support desk client: tickets, notifications, the kanban drag. Its own file, like StudioBase. -->
+<script src="./support-desk.js"></script>
 </head>
 <body>
 <x-dc>
@@ -3362,6 +3364,253 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
     align-items:start;align-content:start;padding:12px}
   .p-tpl > .p-tpl-c{grid-row:1 / span 3}
 }
+/* ══ 29 · SUPPORT DESK ═══════════════════════════════════════════════════════
+   The kanban of requests. Tokens only, no shadow, a ring is the boundary. Logic is in
+   support-desk.js; this is the chrome. Revert = delete this block. */
+.sp{position:fixed;inset:0;z-index:62;background:var(--ps-app);color:var(--ps-ink);display:flex;flex-direction:column;overflow:hidden;font-size:14px}
+.sp-top{flex:none;height:56px;box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid var(--ps-hair)}
+.sp-ttl{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.sp-t{font-weight:600;font-size:16px}
+.sp-sub{font-size:12px;color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-sp{flex:1 1 auto}
+.sp-top .p-ghost,.sp-top .p-btn{height:36px;box-sizing:border-box}
+.sp-new-b{display:inline-flex;align-items:center;gap:6px}
+.sp svg.mk-g{width:18px;height:18px;fill:currentColor;flex:none}
+.sp [data-busy]{opacity:.6;pointer-events:none}
+.sp-err,.sp-ferr{margin:12px 20px 0;padding:10px 13px;border-radius:var(--ps-r-sm);background:var(--ps-bad-q);color:var(--ps-ink);font-size:13px;line-height:1.5;border:1px solid var(--ps-bad)}
+.sp-ferr{margin:0}
+.sp-body{flex:1 1 auto;overflow:auto;padding:20px}
+.sp-empty,.sp-note{color:var(--ps-ink-2);font-size:13px;line-height:1.55}
+.sp-empty{padding:4px 2px 16px}
+.sp-board{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px;align-items:start}
+.sp-col{background:var(--ps-fill);border-radius:var(--ps-r-md,16px);padding:10px;min-height:140px;box-sizing:border-box;transition:box-shadow var(--ps-motion) var(--ps-ease)}
+.sp-col[data-drop]{box-shadow:0 0 0 2px var(--ps-link) inset}
+.sp-col-h{display:flex;align-items:center;gap:8px;padding:4px 6px 10px;font-size:13px}
+.sp-col-h b{font-weight:600}
+.sp-col-h span{margin-left:auto;font-size:12px;color:var(--ps-ink-2);background:var(--ps-card);border-radius:999px;padding:1px 9px}
+.sp-col-h i{width:9px;height:9px;border-radius:50%;background:var(--ps-dim);flex:none}
+.sp-col[data-tone=wip] .sp-col-h i{background:var(--ps-link)}
+.sp-col[data-tone=ask] .sp-col-h i{background:var(--ps-warn)}
+.sp-col[data-tone=done] .sp-col-h i{background:var(--ps-good)}
+.sp-col-b{display:flex;flex-direction:column;gap:8px;min-height:40px}
+.sp-card{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;box-sizing:border-box;padding:12px 13px;border-radius:12px;background:var(--ps-card);color:var(--ps-ink);border:0;box-shadow:0 0 0 1px var(--ps-hair);cursor:pointer;font:inherit}
+.sp-card:hover{box-shadow:0 0 0 1px var(--ps-line)}
+.sp-card[data-on]{box-shadow:0 0 0 2px var(--ps-link)}
+.sp-card[data-supdrag]{cursor:grab}
+.sp-card[data-lift]{opacity:.35}
+.sp-card[data-ghost]{box-shadow:0 0 0 2px var(--ps-link);cursor:grabbing}
+.sp-card-t{font-weight:600;font-size:13.5px;line-height:1.35;overflow-wrap:anywhere}
+.sp-card-m{display:flex;gap:8px;font-size:12px;color:var(--ps-ink-2)}
+.sp-card-m span:first-child{font-variant-numeric:tabular-nums}
+.sp-card-f{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ps-ink-2);flex-wrap:wrap}
+.sp-cm{display:inline-flex;align-items:center;gap:3px}
+.sp-cm svg.mk-g{width:14px;height:14px}
+.sp-who{color:var(--ps-ink-2)}
+.sp-when{color:var(--ps-ink-2)}
+.sp-dot{position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:var(--ps-link)}
+.sp-chip{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:500;background:var(--ps-fill-h);color:var(--ps-ink)}
+.sp-chip-bad{background:var(--ps-bad-q);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-bad) inset}
+.sp-chip[data-tone=wip]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.sp-chip[data-tone=ask]{background:var(--ps-warn-q);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-warn) inset}
+.sp-chip[data-tone=done]{background:var(--ps-good-q);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-good) inset}
+.sp-link{background:none;border:0;padding:0;font:inherit;font-size:12.5px;color:var(--ps-link);cursor:pointer;text-decoration:underline;text-underline-offset:2px;display:inline-flex;align-items:center;gap:5px}
+.sp-foot{margin-top:18px}
+.sp-conn{max-width:520px;margin:24px auto;display:flex;flex-direction:column;gap:14px}
+.sp-h2{font-weight:600;font-size:20px}
+.sp-p{margin:0;color:var(--ps-ink-2);font-size:13.5px;line-height:1.55}
+.sp-p code{font-size:12.5px}
+.sp-adm{display:flex;flex-direction:column;gap:12px;font-size:13px}
+.sp-adm summary{cursor:pointer;color:var(--ps-link);text-decoration:underline;text-underline-offset:2px;margin-bottom:12px}
+.sp-adm[open] summary{margin-bottom:0}
+.sp-f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;min-width:0}
+.sp-f > span i{font-weight:400;color:var(--ps-dim);font-style:normal}
+.sp .p-in{width:100%;box-sizing:border-box;height:42px;font-size:14px}
+.sp textarea.p-in{height:auto;line-height:1.5;padding:10px 12px;resize:vertical;font-family:inherit}
+.sp-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sp-row{display:flex;gap:10px;justify-content:flex-end}
+.sp-bellw{position:relative}
+.sp-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:999px;box-sizing:border-box;padding:0 5px;background:var(--ps-primary);color:var(--ps-primary-i);font-size:11px;font-weight:600;line-height:18px;text-align:center}
+.sp-bell{position:absolute;top:44px;right:0;width:340px;max-width:calc(100vw - 32px);background:var(--ps-card);border-radius:14px;box-shadow:0 0 0 1px var(--ps-line);padding:6px;z-index:5;max-height:70vh;overflow:auto}
+.sp-bell-h{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;font-size:13px}
+.sp-bell-e{padding:10px;color:var(--ps-ink-2);font-size:13px;line-height:1.5}
+.sp-bell-i{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;border:0;background:transparent;color:var(--ps-ink);padding:9px 10px;border-radius:10px;cursor:pointer;font:inherit}
+.sp-bell-i:hover{background:var(--ps-fill)}
+.sp-bell-t{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.sp-bell-l{font-size:12.5px;color:var(--ps-ink-2);overflow-wrap:anywhere}
+.sp-bell-w{font-size:11.5px;color:var(--ps-dim)}
+.sp-bell-n{display:block;width:100%;margin-top:4px;padding:9px 10px;border:0;background:transparent;color:var(--ps-link);text-align:left;cursor:pointer;font:inherit;font-size:12.5px;text-decoration:underline;text-underline-offset:2px}
+.sp-d{position:absolute;top:56px;right:0;bottom:0;width:min(460px,100vw);background:var(--ps-card);box-shadow:-1px 0 0 var(--ps-hair);display:flex;flex-direction:column;z-index:4}
+.sp-d-h{flex:none;display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--ps-hair)}
+.sp-d-id{font-weight:600;font-variant-numeric:tabular-nums;color:var(--ps-ink-2)}
+.sp-d-b{flex:1 1 auto;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.sp-d-t{margin:0;font-size:18px;line-height:1.3;font-weight:600;overflow-wrap:anywhere}
+.sp-d-m{font-size:12.5px;color:var(--ps-ink-2)}
+.sp-d-chips{display:flex;gap:6px;flex-wrap:wrap}
+.sp-d-p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:14px}
+.sp-d-l{max-width:100%;overflow-wrap:anywhere}
+.sp-d-ctl{padding-top:4px}
+.sp-tl-h{margin-top:6px;font-weight:600;font-size:13px;border-top:1px solid var(--ps-hair);padding-top:14px}
+.sp-tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.sp-m{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;background:var(--ps-fill);max-width:92%;align-self:flex-start}
+.sp-m[data-staff]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.sp-m[data-mine]{align-self:flex-end}
+.sp-m[data-system]{background:transparent;padding:2px 4px;max-width:100%;color:var(--ps-ink-2);font-size:12.5px}
+.sp-m-h{display:flex;gap:8px;align-items:baseline;font-size:12px}
+.sp-m-h b{font-weight:600}
+.sp-m-h span{opacity:1;color:inherit;font-size:11.5px}
+.sp-m[data-system] .sp-m-h{display:none}
+.sp-m-b{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font-size:13.5px}
+.sp-d-c{flex:none;padding:12px 16px 16px;border-top:1px solid var(--ps-hair);display:flex;flex-direction:column;gap:8px;align-items:stretch}
+.sp-d-c .p-btn{align-self:flex-end;display:inline-flex;align-items:center;gap:6px}
+.sp-veil{position:absolute;inset:0;background:rgba(10,11,13,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:6;overflow:auto}
+.sp-modal{width:min(540px,100%);max-height:100%;overflow:auto;background:var(--ps-card);border-radius:16px;box-shadow:0 0 0 1px var(--ps-line);padding:0 0 16px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box}
+.sp-modal > :not(.sp-d-h){margin-left:16px;margin-right:16px}
+.sp-m-t{font-size:16px}
+@media (max-width:1100px){.sp-board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .sp-top{padding:0 12px;gap:6px;flex-wrap:wrap;height:auto;min-height:56px;padding-block:8px}
+  .sp-sub{display:none}
+  .sp-new-b span{display:none}
+  .sp-body{padding:14px 12px 24px}
+  .sp-board{grid-template-columns:minmax(0,1fr)}
+  .sp-d{top:0;width:100vw;z-index:8}
+  .sp-pair{grid-template-columns:1fr}
+  .sp .p-in,.sp textarea.p-in{font-size:16px}
+}
+
+/* ═══ 23. REFINEMENT — ONE CONTROL SCALE, ONE TYPE SCALE ═══════════════════════
+   Mirrored from ui-design-system/provident-ui.css section 23 (2026-10-07).
+
+   WHAT THE CENSUS FOUND. Measured off this page's own specimens: labelled
+   buttons came in FIVE heights (24 / 29 / 31 / 35 / 36 / 37) with five
+   horizontal paddings (11 / 13 / 14 / 16 / 18 / 19) and three type treatments
+   (14/600, 12/500, 12/400) — every one of them "a button", none of them the
+   same button. The round icon toggle was 35x36, not square. Three classes
+   (.p-tile, .p-ic, .p-range) set no font-family on a <button>, so they rendered
+   in the UA's 13.333px system face. And Light 300 survived in six small-text
+   roles after the system had retired it for the chrome.
+
+   THE SCALE. Three control heights, each with its own padding and type, and
+   nothing in between:
+
+     --ps-h     36   pad 16   14 / 600 / +.16px   every labelled action
+     --ps-h-sm  28   pad 12   13 / 600 / +.1px    a control inside a rail group
+     --ps-h-xs  24   pad 10   12 / 500            links, badges, tags — metadata
+
+   Padding is horizontal only. The block axis is the HEIGHT, with line-height 1
+   and align-items:center doing the centring, so a label can never make a
+   control taller than its row and two controls in a row always share an edge.
+
+   TYPE. Five chrome sizes — 16 body, 14 control/field, 13 label and caption,
+   12 hint and meta, 11 micro (counts, the info glyph) — at 400 / 500 / 600.
+   No 300, no 11.5, no 10.
+
+   RADIUS. Unchanged in principle and now true everywhere: a CONTROL is a pill,
+   a FIELD or a small tile is --ps-r-sm (8), a SURFACE (card, panel, popover,
+   drop zone, option tile) is --ps-r (16). .p-tile's 10px was the one off-scale
+   value and it lands on 8.
+
+   MOTION. One transition list for every interactive class, so a hover never
+   snaps on one control and eases on the next.
+
+   Reverting is deleting this block. */
+:root{
+  --ps-h:36px;  --ps-h-sm:28px;  --ps-h-xs:24px;
+  --ps-px:16px; --ps-px-sm:12px; --ps-px-xs:10px;
+  --ps-tr:background-color var(--ps-motion) var(--ps-ease),
+          border-color var(--ps-motion) var(--ps-ease),
+          color var(--ps-motion) var(--ps-ease),
+          box-shadow var(--ps-motion) var(--ps-ease),
+          opacity var(--ps-motion) var(--ps-ease);
+}
+
+/* every button-shaped class: one box model, the inherited face, one transition */
+.p-ghost,.p-btn,.p-prev,.p-danger,.p-btn-q,.p-dock-t,.p-link,.p-badge,.p-ic,
+.p-tile,.p-tabs button,.p-seg button,.p-step button,.p-choice,.p-dash{
+  font-family:inherit; box-sizing:border-box; transition:var(--ps-tr);
+}
+
+/* the default control — 36 */
+.p-ghost,.p-btn,.p-prev,.p-danger,.p-btn-q,.p-dock-t{
+  height:var(--ps-h); padding:0 var(--ps-px); line-height:1;
+  font-size:14px; font-weight:600; letter-spacing:.16px; gap:6px;
+}
+/* the quiet button is the ghost's register at rest, not its own size */
+.p-btn-q{color:var(--ps-ink-2)}
+.p-btn-q:hover:not(:disabled){background:var(--ps-fill-h); color:var(--ps-ink)}
+
+/* small — 28 */
+.p-ghost.p-sm,.p-btn.p-sm,.p-danger.p-sm,.p-btn-q.p-sm{
+  height:var(--ps-h-sm); padding:0 var(--ps-px-sm);
+  font-size:13px; letter-spacing:.1px;
+}
+
+/* extra-small — 24: metadata, never a primary action */
+.p-link,.p-badge{
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  height:var(--ps-h-xs); padding:0 var(--ps-px-xs); line-height:1;
+  font-size:12px; font-weight:500; letter-spacing:0;
+}
+
+/* icon-only controls are SQUARE at the height of the row they sit in */
+.p-ico-o,.p-ic{width:var(--ps-h); height:var(--ps-h); padding:0; aspect-ratio:auto}
+.p-ic .p-g,.p-ico-o .p-g{width:18px; height:18px}
+
+/* the segmented pair: one 36 track, 30 halves, at every site */
+.p-tabs{height:var(--ps-h); padding:3px; gap:2px; box-sizing:border-box;
+  align-items:stretch}
+.p-tabs button{height:auto; padding:0 var(--ps-px-sm); line-height:1;
+  font-size:13px; font-weight:500}
+.p-tabs button:hover:not([data-on]){color:var(--ps-ink)}
+.p-seg button{line-height:1}
+
+/* fields: 36, 8, and the text indented the same 12 the small control pads by */
+.p-in{height:var(--ps-h); padding:0 var(--ps-px-sm); border-radius:var(--ps-r-sm);
+  font-size:14px; line-height:1.2}
+textarea.p-in{height:auto; padding:10px var(--ps-px-sm); line-height:1.5}
+select.p-in{padding-right:34px}
+.p-step button{width:var(--ps-h-sm); height:var(--ps-h-sm)}
+
+/* tiles and drop zones */
+.p-tile{border-radius:var(--ps-r-sm); font-size:13px}
+.p-tile-n b{font-weight:500}
+.p-tile-n s{font-weight:400; font-size:12px}
+.p-tile-c{font-size:11px}
+.p-dash{font-size:13px; font-weight:500}
+
+/* the small-text roles, off Light and onto the five sizes */
+.p-hint{font-size:12px; font-weight:400; line-height:1.45}
+.p-fld{font-size:12px; font-weight:400}
+.p-choice s{font-size:12px; font-weight:400}
+.p-bad{font-size:12px}
+.p-tag{display:inline-flex; align-items:center; height:var(--ps-h-xs);
+  padding:0 var(--ps-px-xs); box-sizing:border-box;
+  font-size:12px; font-weight:500; line-height:1}
+.p-info{font-size:11px}
+.p-note{font-size:13px; font-weight:400; line-height:1.5}
+.p-mini-l,.p-opt{font-size:12px}
+
+/* a disabled control is the same flat slab whichever control it is */
+.p-ghost:disabled,.p-danger:disabled{
+  background:var(--ps-fill-dis); color:var(--ps-dim); border-color:transparent;
+  cursor:default
+}
+
+/* PRESS. A 1px settle on every button-shaped control — the one motion that says
+   "that registered" without a colour change, and too small to read as bounce. */
+.p-ghost:active:not(:disabled),.p-btn:active:not(:disabled),.p-prev:active,
+.p-danger:active:not(:disabled),.p-btn-q:active:not(:disabled),
+.p-dock-t:active,.p-ic:active,.p-link:active,.p-badge:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){
+  .p-ghost,.p-btn,.p-prev,.p-danger,.p-btn-q,.p-dock-t,.p-link,.p-badge,.p-ic,
+  .p-tile,.p-tabs button,.p-seg button{transition:none}
+  .p-ghost:active,.p-btn:active,.p-prev:active,.p-danger:active,.p-btn-q:active,
+  .p-dock-t:active,.p-ic:active,.p-link:active,.p-badge:active{transform:none}
+}
+/* two stragglers the first measurement of this block caught */
+.p-ic{font-size:14px}
+.p-tgrp > .p-ghost{padding:0 var(--ps-px)}
+
 </style>
 </helmet>
 
@@ -3392,6 +3641,7 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i>Continue last</button>
       </sc-if>
+      <button onClick="{{ supOpenFn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M485.39-140q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h262.3q5 0 8.66-3.08 3.65-3.07 3.65-8.07v-279.77q0-114.7-82.08-193.12-82.07-78.42-197.92-78.42t-197.92 78.42Q200-605.62 200-490.92v205.53q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61-28.77 0-49.38-20.03Q100-295.46 100-324.23v-77.69q0-19.46 11.08-35.66 11.08-16.19 28.92-26.03l1.85-51.08q4.92-65.31 33.92-121t74.38-96.96q45.39-41.27 104.77-64.31Q414.31-820 480-820t124.77 23.04q59.08 23.04 104.77 64t74.38 96.65q28.69 55.7 34.23 121l1.85 50.08q17.46 8.23 28.73 23.54Q860-426.38 860-407.54v89.31q0 18.84-11.27 34.15-11.27 15.31-28.73 23.54v49.39q0 29.53-21.19 50.34Q777.61-140 747.69-140h-262.3ZM342.65-419.19q-10.34-9.96-10.34-24.66 0-14.69 10.34-24.84 10.35-10.16 25.04-10.16 14.7 0 25.04 10.16 10.35 10.15 10.35 24.84 0 14.7-10.35 24.66-10.34 9.96-25.04 9.96-14.69 0-25.04-9.96Zm224.62 0q-10.35-9.96-10.35-24.66 0-14.69 10.35-24.84 10.34-10.16 25.04-10.16 14.69 0 25.04 10.16 10.34 10.15 10.34 24.84 0 14.7-10.34 24.66-10.35 9.96-25.04 9.96-14.7 0-25.04-9.96ZM254.85-472q-6.23-97.92 60.92-167.58 67.15-69.65 166.23-69.65 83.23 0 146.88 51.5 63.66 51.5 77.27 133.34-85.23-1-157.5-44.76-72.27-43.77-110.96-120-15.23 74.61-63.84 131.92-48.62 57.31-119 85.23Z"/></svg></i><span>Support</span><sc-if value="{{ supBadgeOn }}" hint-placeholder-val="{{ false }}"><s>{{ supBadge }}</s></sc-if></button>
     </div>
 
     <div class="p-br-mn">
@@ -3458,6 +3708,163 @@ body[data-dragging] .p-nav-b,body[data-dragging] .gd-ptile{pointer-events:auto}
     </div>
 
   </div>
+</div>
+</sc-if>
+
+<!-- ══ SUPPORT DESK — a kanban of requests to the design team ═══════════════
+     Backed by tools/support/Code.gs; all state and logic live in support-desk.js. This is
+     markup only. Opened from the splash sidebar; the splash sits underneath, so closing
+     returns to it. -->
+<sc-if value="{{ supOn }}" hint-placeholder-val="{{ false }}">
+<div class="sp">
+  <div class="sp-top">
+    <button onClick="{{ supCloseFn }}" class="p-ghost p-ico-t p-ico-o" title="Back to projects" aria-label="Back to projects"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m294.92-450 206.77 206.77q8.92 8.92 8.81 20.88-.12 11.96-9.42 21.27-9.31 8.69-21.08 9-11.77.31-21.08-9L205.31-454.69q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l253.61-253.61q8.31-8.31 20.58-8.5 12.27-.19 21.58 8.5 9.3 9.31 9.3 21.38 0 12.08-9.3 21.39L294.92-510H750q12.77 0 21.38 8.62Q780-492.77 780-480t-8.62 21.38Q762.77-450 750-450H294.92Z"/></svg></button>
+    <div class="sp-ttl"><span class="sp-t">Support</span><span class="sp-sub">{{ supWho }}</span></div>
+    <span class="sp-sp"></span>
+    <sc-if value="{{ supConnected }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ supStaff }}" hint-placeholder-val="{{ false }}">
+        <div class="p-tabs" role="group" aria-label="Which requests">
+          <button onClick="{{ supSetAll }}" data-on="{{ supScopeAll }}">Everything</button>
+          <button onClick="{{ supSetMine }}" data-on="{{ supScopeMine }}">Mine</button>
+        </div>
+      </sc-if>
+      <button onClick="{{ supRefreshFn }}" class="p-ghost p-ico-t p-ico-o" title="Refresh" aria-label="Refresh" data-busy="{{ supBusy }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-750q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v178.46q0 15.37-10.39 25.76-10.4 10.39-25.76 10.39H563.85q-12.75 0-21.38-8.62-8.62-8.63-8.62-21.39 0-12.75 8.62-21.37 8.63-8.61 21.38-8.61h128q-31.62-57.93-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q69.73 0 127.67-36.62 57.94-36.61 87.79-97.69 5.69-10.92 16.73-15.27 11.04-4.34 22.5-.5 12.23 3.85 17.12 16 4.88 12.16-.81 23.08-37.16 77.69-109.7 124.34Q570.3-180 481.54-180Z"/></svg></button>
+      <div class="sp-bellw">
+        <button onClick="{{ supBellFn }}" class="p-ghost p-ico-t p-ico-o" title="Updates on your requests" aria-label="Updates on your requests" data-on="{{ supBellOn }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-204.62q-12.75 0-21.37-8.62-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h42.31v-298.47q0-80.69 49.81-142.69 49.8-62 127.88-79.31V-810q0-20.83 14.57-35.42Q459.14-860 479.95-860q20.82 0 35.43 14.58Q530-830.83 530-810v24.92q78.08 17.31 127.88 79.31 49.81 62 49.81 142.69v298.47H750q12.75 0 21.37 8.62 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H210Zm270-293.07Zm-.07 405.38q-29.85 0-51.04-21.24-21.2-21.24-21.2-51.07h144.62q0 29.93-21.26 51.12-21.26 21.19-51.12 21.19Zm-167.62-172.3h335.38v-298.47q0-69.46-49.11-118.57-49.12-49.12-118.58-49.12-69.46 0-118.58 49.12-49.11 49.11-49.11 118.57v298.47Z"/></svg><sc-if value="{{ supBadgeOn }}" hint-placeholder-val="{{ false }}"><b class="sp-badge">{{ supBadge }}</b></sc-if></button>
+        <sc-if value="{{ supBellOn }}" hint-placeholder-val="{{ false }}">
+          <div class="sp-bell">
+            <div class="sp-bell-h"><b>Updates</b><button onClick="{{ supMarkAllFn }}" class="sp-link">Mark all read</button></div>
+            <sc-if value="{{ supBellEmpty }}" hint-placeholder-val="{{ true }}"><div class="sp-bell-e">Nothing new. You will see a request here when its status changes or someone comments.</div></sc-if>
+            <sc-for list="{{ supBellList }}" as="u" hint-placeholder-count="2">
+              <button onClick="{{ u.go }}" class="sp-bell-i"><span class="sp-bell-t">{{ u.id }} · {{ u.title }}</span><span class="sp-bell-l">{{ u.line }}</span><span class="sp-bell-w">{{ u.when }}</span></button>
+            </sc-for>
+            <sc-if value="{{ supNotifAsk }}" hint-placeholder-val="{{ false }}"><button onClick="{{ supNotifFn }}" class="sp-bell-n">Also show desktop notifications</button></sc-if>
+          </div>
+        </sc-if>
+      </div>
+      <button onClick="{{ supNewFn }}" class="p-btn sp-new-b"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg><span>New request</span></button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ supErrOn }}" hint-placeholder-val="{{ false }}"><div class="sp-err" role="alert">{{ supErr }}</div></sc-if>
+
+  <div class="sp-body">
+    <sc-if value="{{ supNeedConnect }}" hint-placeholder-val="{{ false }}">
+      <div class="sp-conn">
+        <div class="sp-h2">Who are you?</div>
+        <sc-if value="{{ supHasSetup }}" hint-placeholder-val="{{ true }}"><p class="sp-p">So the design team knows who to reply to, and your tickets are yours. Once per computer.</p></sc-if>
+        <sc-if value="{{ supNoSetup }}" hint-placeholder-val="{{ false }}">
+          <p class="sp-p">This computer is not set up yet. Open the <b>setup link</b> the design team sent you — it connects everything in one step.</p>
+          <details class="sp-adm"><summary>I am the admin — enter the details by hand</summary>
+            <label class="sp-f"><span>Web app URL</span><input id="sup-f-url" class="p-in" placeholder="https://script.google.com/macros/s/…/exec" spellcheck="false" autocomplete="off"></label>
+            <label class="sp-f"><span>Team key</span><input id="sup-f-key" type="password" class="p-in" autocomplete="off"></label>
+          </details>
+        </sc-if>
+        <div class="sp-pair">
+          <label class="sp-f"><span>Your name</span><input id="sup-f-name" data-sup-v="{{ supCfgName }}" class="p-in" autocomplete="name"></label>
+          <label class="sp-f"><span>Work email</span><input id="sup-f-email" data-sup-v="{{ supCfgEmail }}" type="email" class="p-in" autocomplete="email" inputmode="email"></label>
+        </div>
+        <sc-if value="{{ supFormErrOn }}" hint-placeholder-val="{{ false }}"><div class="sp-ferr" role="alert">{{ supFormErr }}</div></sc-if>
+        <div class="sp-row"><button onClick="{{ supConnectFn }}" class="p-btn" data-busy="{{ supBusy }}">Continue</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ supConnected }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ supNoTickets }}" hint-placeholder-val="{{ false }}"><div class="sp-empty">{{ supEmptyNote }}</div></sc-if>
+      <div class="sp-board">
+        <sc-for list="{{ supCols }}" as="col" hint-placeholder-count="4">
+          <section class="sp-col" data-supcol="{{ col.name }}" data-tone="{{ col.tone }}">
+            <header class="sp-col-h" title="{{ col.hint }}"><i></i><b>{{ col.name }}</b><span>{{ col.count }}</span></header>
+            <div class="sp-col-b">
+              <sc-for list="{{ col.cards }}" as="c" hint-placeholder-count="2">
+                <button onClick="{{ c.open }}" class="sp-card" data-supcard="{{ c.id }}" data-supdrag="{{ c.drag }}" data-on="{{ c.on }}">
+                  <span class="sp-card-t">{{ c.title }}</span>
+                  <span class="sp-card-m"><span>{{ c.id }}</span><span>{{ c.cat }}</span></span>
+                  <span class="sp-card-f">
+                    <sc-if value="{{ c.prioOn }}" hint-placeholder-val="{{ false }}"><span class="sp-chip sp-chip-bad">{{ c.prio }}</span></sc-if>
+                    <sc-if value="{{ c.whoOn }}" hint-placeholder-val="{{ false }}"><span class="sp-who">{{ c.who }}</span></sc-if>
+                    <sc-if value="{{ c.assigneeOn }}" hint-placeholder-val="{{ false }}"><span class="sp-who">→ {{ c.assignee }}</span></sc-if>
+                    <span class="sp-sp"></span>
+                    <sc-if value="{{ c.hasComments }}" hint-placeholder-val="{{ false }}"><span class="sp-cm"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m241.54-260-80.08 80.07q-17.07 17.08-39.27 7.74Q100-181.54 100-205.85v-581.84Q100-818 121-839q21-21 51.31-21h615.38Q818-860 839-839q21 21 21 51.31v455.38Q860-302 839-281q-21 21-51.31 21H241.54ZM216-320h571.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v523.08L216-320Zm-56 0v-480 480Z"/></svg>{{ c.comments }}</span></sc-if>
+                    <span class="sp-when">{{ c.when }}</span>
+                  </span>
+                  <sc-if value="{{ c.unseen }}" hint-placeholder-val="{{ false }}"><span class="sp-dot" title="Updated since you last looked"></span></sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
+      </div>
+      <div class="sp-foot"><button onClick="{{ supDisconnectFn }}" class="sp-link">Sign out on this computer</button></div>
+    </sc-if>
+  </div>
+
+  <!-- the ticket: description, the people, the status, and the conversation -->
+  <sc-if value="{{ supDetailOn }}" hint-placeholder-val="{{ false }}">
+  <aside class="sp-d" aria-label="Request">
+    <div class="sp-d-h">
+      <span class="sp-d-id">{{ supD.id }}</span>
+      <span class="sp-chip" data-tone="{{ supD.tone }}">{{ supD.status }}</span>
+      <sc-if value="{{ supD.prioOn }}" hint-placeholder-val="{{ false }}"><span class="sp-chip sp-chip-bad">{{ supD.prio }}</span></sc-if>
+      <span class="sp-sp"></span>
+      <button onClick="{{ supDetailClose }}" class="p-ghost p-ico-t p-ico-o" title="Close" aria-label="Close"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+    </div>
+    <div class="sp-d-b">
+      <h2 class="sp-d-t">{{ supD.title }}</h2>
+      <div class="sp-d-m">{{ supD.by }} · {{ supD.byEmail }} · {{ supD.created }}</div>
+      <div class="sp-d-chips"><span class="sp-chip">{{ supD.cat }}</span><sc-if value="{{ supD.studioOn }}" hint-placeholder-val="{{ false }}"><span class="sp-chip">{{ supD.studio }}</span></sc-if></div>
+      <p class="sp-d-p">{{ supD.desc }}</p>
+      <sc-if value="{{ supD.linkOn }}" hint-placeholder-val="{{ false }}"><a class="sp-link sp-d-l" href="{{ supD.link }}" target="_blank" rel="noopener noreferrer"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg><span>{{ supD.link }}</span></a></sc-if>
+
+      <sc-if value="{{ supStaff }}" hint-placeholder-val="{{ false }}">
+        <div class="sp-pair sp-d-ctl">
+          <label class="sp-f"><span>Status</span>
+            <select value="{{ supStatusVal }}" onChange="{{ supStatusFn }}" class="p-in"><sc-for list="{{ supStatusOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select></label>
+          <label class="sp-f"><span>Assigned to</span>
+            <select value="{{ supAssignVal }}" onChange="{{ supAssignFn }}" class="p-in"><sc-for list="{{ supAssignOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.label }}</option></sc-for></select></label>
+        </div>
+      </sc-if>
+      <sc-if value="{{ supCanClose }}" hint-placeholder-val="{{ false }}"><div class="sp-row"><button onClick="{{ supCloseTicket }}" class="p-ghost">This is sorted — close it</button></div></sc-if>
+      <sc-if value="{{ supCanReopen }}" hint-placeholder-val="{{ false }}"><div class="sp-row"><button onClick="{{ supReopenTicket }}" class="p-ghost">Not sorted — reopen it</button></div></sc-if>
+
+      <div class="sp-tl-h">Conversation</div>
+      <sc-if value="{{ supDetailLoading }}" hint-placeholder-val="{{ false }}"><div class="sp-note">Loading…</div></sc-if>
+      <sc-if value="{{ supNoTimeline }}" hint-placeholder-val="{{ false }}"><div class="sp-note">No comments yet. Add one below — the other side is emailed.</div></sc-if>
+      <ol class="sp-tl">
+        <sc-for list="{{ supTimeline }}" as="m" hint-placeholder-count="2">
+          <li class="sp-m" data-system="{{ m.system }}" data-staff="{{ m.staff }}" data-mine="{{ m.mine }}">
+            <span class="sp-m-h"><b>{{ m.who }}</b><span>{{ m.when }}</span></span>
+            <span class="sp-m-b">{{ m.body }}</span>
+          </li>
+        </sc-for>
+      </ol>
+    </div>
+    <div class="sp-d-c">
+      <textarea id="sup-cmt" class="p-in sp-cmt" rows="3" placeholder="Write a comment…" maxlength="4000"></textarea>
+      <button onClick="{{ supSendFn }}" class="p-btn"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m748.92-446.46-558.3 235.38q-18.08 7.23-34.35-3.11Q140-224.54 140-244.23v-471.54q0-19.69 16.27-30.04 16.27-10.34 34.35-3.11l558.3 235.38q22.31 9.85 22.31 33.54 0 23.69-22.31 33.54ZM200-280l474-200-474-200v147.69L416.92-480 200-427.69V-280Zm0 0v-400 400Z"/></svg><span>Send</span></button>
+    </div>
+  </aside>
+  </sc-if>
+
+  <!-- the form: what you need, how urgent, where -->
+  <sc-if value="{{ supNewOn }}" hint-placeholder-val="{{ false }}">
+  <div class="sp-veil">
+    <div class="sp-modal" role="dialog" aria-label="New request">
+      <div class="sp-d-h"><b class="sp-m-t">New request</b><span class="sp-sp"></span><button onClick="{{ supNewClose }}" class="p-ghost p-ico-t p-ico-o" title="Cancel" aria-label="Cancel"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></div>
+      <label class="sp-f"><span>Title</span><input id="sup-n-title" class="p-in" maxlength="140" placeholder="A few words — e.g. Reel cover crops my headline" autocomplete="off"></label>
+      <div class="sp-pair">
+        <label class="sp-f"><span>What is it about</span><select id="sup-n-cat" class="p-in"><sc-for list="{{ supCats }}" as="o" hint-placeholder-count="5"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select></label>
+        <label class="sp-f"><span>Which studio</span><select id="sup-n-studio" class="p-in"><sc-for list="{{ supStudios }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select></label>
+      </div>
+      <label class="sp-f"><span>How urgent</span><select id="sup-n-prio" class="p-in" data-sup-v="Normal"><sc-for list="{{ supPrios }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.v }}</option></sc-for></select></label>
+      <label class="sp-f"><span>What do you need</span><textarea id="sup-n-desc" class="p-in sp-cmt" rows="5" maxlength="4000" placeholder="What you were doing, what you expected, and what happened. For a new layout, say where it will be used."></textarea></label>
+      <label class="sp-f"><span>Link <i>(optional)</i></span><input id="sup-n-link" class="p-in" placeholder="A screenshot, a Drive folder, a reference" autocomplete="off"></label>
+      <sc-if value="{{ supFormErrOn }}" hint-placeholder-val="{{ false }}"><div class="sp-ferr" role="alert">{{ supFormErr }}</div></sc-if>
+      <div class="sp-row"><button onClick="{{ supNewClose }}" class="p-ghost">Cancel</button><button onClick="{{ supSubmitFn }}" class="p-btn" data-busy="{{ supBusy }}">Send request</button></div>
+      <p class="sp-note">You will get an email, and a note in the bell, whenever this changes or someone comments.</p>
+    </div>
+  </div>
+  </sc-if>
 </div>
 </sc-if>
 
@@ -14513,6 +14920,8 @@ class Component extends DCLogic {
     // not the localStorage key — OrganicStudio.load() owns that — so it stays exactly as
     // it was and no saved project moves.
     this.eng = new OrganicStudio(this, 'organic');
+    // the support desk: tickets and notifications. Throwaway UI + a cache, never project state.
+    this.sup = new SupportDesk(() => this.forceUpdate());
   }
 
   // The studio this document is, and the one it links to. An entry carrying `file` IS
@@ -14692,10 +15101,12 @@ class Component extends DCLogic {
     this._dragTick();
     this._tplTick();
     this._rcvTick();
+    this.sup.start();
   }
   componentDidUpdate() {
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
+    this.sup.fill();
     this._rtTick();
     this._dragTick();
     // keep the step-by-step run's card renders current; the sync is key-guarded
@@ -14754,6 +15165,7 @@ class Component extends DCLogic {
       document.removeEventListener('keydown', this._popKey, true);
       document.removeEventListener('pointerdown', this._popOut, true);
     }
+    try { this.sup.stop(); } catch (e) {}
     try { this.eng.componentWillUnmount(); } catch (e) { console.warn(e); }
   }
 
@@ -14761,7 +15173,7 @@ class Component extends DCLogic {
     const view = this.state.splashView || 'all';
     const eng = this.active();
     const sub = eng.renderVals();
-    return Object.assign({}, sub, {
+    return Object.assign({}, sub, this.sup.vals(), {
       // --- Theme. Written to <html data-theme> rather than held in React state
       // alone, because every chrome colour — including the inline style objects,
       // which beat any stylesheet rule — reads a `var(--ps-*)` token. Flipping the

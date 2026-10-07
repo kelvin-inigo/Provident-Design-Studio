@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Support desk — make the setup link</title>
+<style>
+  body{font:16px/1.5 system-ui,sans-serif;max-width:560px;margin:40px auto;padding:0 20px;color:#0A0B0D}
+  h1{font-size:22px;margin:0 0 4px} p{color:#5B616E;margin:0 0 20px}
+  label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+  input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #bbb;border-radius:8px;font:inherit}
+  button{margin-top:18px;padding:11px 22px;border:0;border-radius:999px;background:#1A2942;color:#fff;font:inherit;font-weight:600;cursor:pointer}
+  #out{margin-top:22px;word-break:break-all;padding:12px;background:#EEF0F3;border-radius:8px;display:none;font-size:13px}
+  small{display:block;margin-top:8px;color:#5B616E}
+</style></head><body>
+<h1>Make the setup link</h1>
+<p>Run this on your own computer. Nothing is sent anywhere. Send the link to your team; opening it sets up the support desk for them in one step. Treat the link like the key itself.</p>
+<label for="u">Web app URL (ends in /exec)</label><input id="u" placeholder="https://script.google.com/macros/s/…/exec" spellcheck="false">
+<label for="k">Team key</label><input id="k" type="password" autocomplete="off">
+<label for="a">Where OPS is opened from</label><input id="a" placeholder="https://… or file:///…/Provident%20Organic%20Studio.dc.html" spellcheck="false">
+<small>The address you type into the browser to open OPS. Paste it exactly as it appears.</small>
+<button id="go">Make the link</button>
+<div id="out"></div>
+<script>
+document.getElementById('go').onclick=function(){
+  var u=document.getElementById('u').value.trim(),k=document.getElementById('k').value,a=document.getElementById('a').value.trim().split('#')[0];
+  var o=document.getElementById('out'); o.style.display='block';
+  if(!/^https:\/\/script\.google\.com\//.test(u)||!k||!a){o.textContent='Fill in all three. The URL must start with https://script.google.com/';return;}
+  var b=btoa(unescape(encodeURIComponent(JSON.stringify({u:u,k:k})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  o.textContent=a+'#supportsetup='+b;
+};
+</script></body></html>

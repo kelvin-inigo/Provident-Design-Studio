@@ -3308,6 +3308,140 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
 .p-cust-x svg{width:15px;height:15px;fill:currentColor}
 .p-cust-t{margin-left:auto;border:0;background:transparent;color:var(--ps-link);font:500 12px/1 inherit;font-family:inherit;padding:2px 0;cursor:pointer}
 .p-cust-t:hover{text-decoration:underline}
+
+/* ═══ 23. REFINEMENT — ONE CONTROL SCALE, ONE TYPE SCALE ═══════════════════════
+   Mirrored from ui-design-system/provident-ui.css section 23 (2026-10-07).
+
+   WHAT THE CENSUS FOUND. Measured off this page's own specimens: labelled
+   buttons came in FIVE heights (24 / 29 / 31 / 35 / 36 / 37) with five
+   horizontal paddings (11 / 13 / 14 / 16 / 18 / 19) and three type treatments
+   (14/600, 12/500, 12/400) — every one of them "a button", none of them the
+   same button. The round icon toggle was 35x36, not square. Three classes
+   (.p-tile, .p-ic, .p-range) set no font-family on a <button>, so they rendered
+   in the UA's 13.333px system face. And Light 300 survived in six small-text
+   roles after the system had retired it for the chrome.
+
+   THE SCALE. Three control heights, each with its own padding and type, and
+   nothing in between:
+
+     --ps-h     36   pad 16   14 / 600 / +.16px   every labelled action
+     --ps-h-sm  28   pad 12   13 / 600 / +.1px    a control inside a rail group
+     --ps-h-xs  24   pad 10   12 / 500            links, badges, tags — metadata
+
+   Padding is horizontal only. The block axis is the HEIGHT, with line-height 1
+   and align-items:center doing the centring, so a label can never make a
+   control taller than its row and two controls in a row always share an edge.
+
+   TYPE. Five chrome sizes — 16 body, 14 control/field, 13 label and caption,
+   12 hint and meta, 11 micro (counts, the info glyph) — at 400 / 500 / 600.
+   No 300, no 11.5, no 10.
+
+   RADIUS. Unchanged in principle and now true everywhere: a CONTROL is a pill,
+   a FIELD or a small tile is --ps-r-sm (8), a SURFACE (card, panel, popover,
+   drop zone, option tile) is --ps-r (16). .p-tile's 10px was the one off-scale
+   value and it lands on 8.
+
+   MOTION. One transition list for every interactive class, so a hover never
+   snaps on one control and eases on the next.
+
+   Reverting is deleting this block. */
+:root{
+  --ps-h:36px;  --ps-h-sm:28px;  --ps-h-xs:24px;
+  --ps-px:16px; --ps-px-sm:12px; --ps-px-xs:10px;
+  --ps-tr:background-color var(--ps-motion) var(--ps-ease),
+          border-color var(--ps-motion) var(--ps-ease),
+          color var(--ps-motion) var(--ps-ease),
+          box-shadow var(--ps-motion) var(--ps-ease),
+          opacity var(--ps-motion) var(--ps-ease);
+}
+
+/* every button-shaped class: one box model, the inherited face, one transition */
+.p-ghost,.p-btn,.p-prev,.p-danger,.p-btn-q,.p-dock-t,.p-link,.p-badge,.p-ic,
+.p-tile,.p-tabs button,.p-seg button,.p-step button,.p-choice,.p-dash{
+  font-family:inherit; box-sizing:border-box; transition:var(--ps-tr);
+}
+
+/* the default control — 36 */
+.p-ghost,.p-btn,.p-prev,.p-danger,.p-btn-q,.p-dock-t{
+  height:var(--ps-h); padding:0 var(--ps-px); line-height:1;
+  font-size:14px; font-weight:600; letter-spacing:.16px; gap:6px;
+}
+/* the quiet button is the ghost's register at rest, not its own size */
+.p-btn-q{color:var(--ps-ink-2)}
+.p-btn-q:hover:not(:disabled){background:var(--ps-fill-h); color:var(--ps-ink)}
+
+/* small — 28 */
+.p-ghost.p-sm,.p-btn.p-sm,.p-danger.p-sm,.p-btn-q.p-sm{
+  height:var(--ps-h-sm); padding:0 var(--ps-px-sm);
+  font-size:13px; letter-spacing:.1px;
+}
+
+/* extra-small — 24: metadata, never a primary action */
+.p-link,.p-badge{
+  display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  height:var(--ps-h-xs); padding:0 var(--ps-px-xs); line-height:1;
+  font-size:12px; font-weight:500; letter-spacing:0;
+}
+
+/* icon-only controls are SQUARE at the height of the row they sit in */
+.p-ico-o,.p-ic{width:var(--ps-h); height:var(--ps-h); padding:0; aspect-ratio:auto}
+.p-ic .p-g,.p-ico-o .p-g{width:18px; height:18px}
+
+/* the segmented pair: one 36 track, 30 halves, at every site */
+.p-tabs{height:var(--ps-h); padding:3px; gap:2px; box-sizing:border-box;
+  align-items:stretch}
+.p-tabs button{height:auto; padding:0 var(--ps-px-sm); line-height:1;
+  font-size:13px; font-weight:500}
+.p-tabs button:hover:not([data-on]){color:var(--ps-ink)}
+.p-seg button{line-height:1}
+
+/* fields: 36, 8, and the text indented the same 12 the small control pads by */
+.p-in{height:var(--ps-h); padding:0 var(--ps-px-sm); border-radius:var(--ps-r-sm);
+  font-size:14px; line-height:1.2}
+textarea.p-in{height:auto; padding:10px var(--ps-px-sm); line-height:1.5}
+select.p-in{padding-right:34px}
+.p-step button{width:var(--ps-h-sm); height:var(--ps-h-sm)}
+
+/* tiles and drop zones */
+.p-tile{border-radius:var(--ps-r-sm); font-size:13px}
+.p-tile-n b{font-weight:500}
+.p-tile-n s{font-weight:400; font-size:12px}
+.p-tile-c{font-size:11px}
+.p-dash{font-size:13px; font-weight:500}
+
+/* the small-text roles, off Light and onto the five sizes */
+.p-hint{font-size:12px; font-weight:400; line-height:1.45}
+.p-fld{font-size:12px; font-weight:400}
+.p-choice s{font-size:12px; font-weight:400}
+.p-bad{font-size:12px}
+.p-tag{display:inline-flex; align-items:center; height:var(--ps-h-xs);
+  padding:0 var(--ps-px-xs); box-sizing:border-box;
+  font-size:12px; font-weight:500; line-height:1}
+.p-info{font-size:11px}
+.p-note{font-size:13px; font-weight:400; line-height:1.5}
+.p-mini-l,.p-opt{font-size:12px}
+
+/* a disabled control is the same flat slab whichever control it is */
+.p-ghost:disabled,.p-danger:disabled{
+  background:var(--ps-fill-dis); color:var(--ps-dim); border-color:transparent;
+  cursor:default
+}
+
+/* PRESS. A 1px settle on every button-shaped control — the one motion that says
+   "that registered" without a colour change, and too small to read as bounce. */
+.p-ghost:active:not(:disabled),.p-btn:active:not(:disabled),.p-prev:active,
+.p-danger:active:not(:disabled),.p-btn-q:active:not(:disabled),
+.p-dock-t:active,.p-ic:active,.p-link:active,.p-badge:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){
+  .p-ghost,.p-btn,.p-prev,.p-danger,.p-btn-q,.p-dock-t,.p-link,.p-badge,.p-ic,
+  .p-tile,.p-tabs button,.p-seg button{transition:none}
+  .p-ghost:active,.p-btn:active,.p-prev:active,.p-danger:active,.p-btn-q:active,
+  .p-dock-t:active,.p-ic:active,.p-link:active,.p-badge:active{transform:none}
+}
+/* two stragglers the first measurement of this block caught */
+.p-ic{font-size:14px}
+.p-tgrp > .p-ghost{padding:0 var(--ps-px)}
+
 </style>
 </helmet>
 

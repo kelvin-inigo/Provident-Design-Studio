@@ -361,6 +361,19 @@ This is the full editor.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.
 
+## 12b. Support requests (OPS)
+
+**Support** in the project browser's sidebar (under Session) is a board for asking the design team for something — a bug, a new template, a change to a post, a question.
+
+- **First time on a computer:** open the **setup link** the design team sent you, then type your name and work email. That is all; the link does the rest.
+- **New request:** a title, what it is about, which studio, how urgent, and what you need. A link to a screenshot or reference is optional.
+- **The board** has four columns: **New → In progress → Needs your input → Done**. You see only your own requests; the design team sees everyone's and drags a card to move it, or uses the Status menu inside the request.
+- **Comments:** open a request and write under it. The other side gets an email. If the team asks you something (**Needs your input**) and you reply, it goes back to **In progress**.
+- **Hearing back:** you get an **email** when the status changes or someone comments, and a **bell** in OPS counts requests that changed since you last opened them (allow desktop notifications to be told while OPS is open). The email's button opens the request.
+- **Closing:** when it is sorted, press **close it** inside the request; **reopen it** brings it back.
+
+Setup of the sheet and the email is in `tools/support/README.md`.
+
 ## 13. Rules the studios keep for you
 
 - **Type:** one font, Google Sans Flex. Headlines are Regular and body copy is Light. Small labels

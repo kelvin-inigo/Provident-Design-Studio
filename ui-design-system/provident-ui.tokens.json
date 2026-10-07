@@ -1,8 +1,8 @@
 {
   "$name": "Provident UI — chrome design system",
   "$description": "Tokens for the TOOL's own interface: studios, splash, guided run, and any webapp built on this system. This is NOT the brand/canvas system — exported artwork reads CampaignStudio.PAL / OrganicStudio.ART and never these values. See _ds/ for the brand web components.",
-  "$version": "3.0.0",
-  "$updated": "2026-09-10",
+  "$version": "3.1.0-proposed",
+  "$updated": "2026-10-01",
   "$source": "Structure from nexu-io/open-design, design-systems/coinbase (design-tokens.json, value for value - not its DESIGN.md prose, which names roles without giving every number). Colour is PROVIDENT NAVY #1A2942 and a tint ramp that is the navy's own. Type is unchanged: Google Sans Flex. Every value here is read back off the running studio as a COMPUTED value, never grepped from a stylesheet - these files end in override blocks, so what a rule appears to say and what a control computes are routinely different. Two supplied Figma frames (UI-Kelvz: the Header, 1990x55, and the Layout rail Container, 320x1170) were read in Dev Mode on 2026-09-10 and CONFIRMED this token set rather than changing it: every colour in both is already a token here. See the rules for the short list of component values they did move.",
   "theme": {
     "$note": "data-theme on <html>. LIGHT is the default now - the bare :root carries DARK, so the attribute is what a light app sets, and all three consumers plus the reference page default to light. Set it BEFORE first paint from a blocking script in <head>, or getComputedStyle returns a mixed pre/post-flip picture that reads exactly like a theming bug.",
@@ -172,7 +172,7 @@
     }
   },
   "radius": {
-    "$rule": "THE PILL IS THE SIGNATURE: the supplied rule is \"don't use sharp corners on CTAs - 56px minimum\", and at a 36px control height a 56px radius IS a full pill. Checked before applying that every --ps-r-ctl reader is a labelled control, so nothing that should stay a rectangle became a capsule. A FIELD IS NOT A CTA and keeps --radius-sm.",
+    "$rule": "THE PILL IS THE SIGNATURE: the supplied rule is \"don't use sharp corners on CTAs - 56px minimum\", and at a 36px control height a 56px radius IS a full pill. Checked before applying that every --ps-r-ctl reader is a labelled control, so nothing that should stay a rectangle became a capsule. A FIELD IS NOT A CTA and keeps --radius-sm. REFINED 2026-10-01: a CONTROL is a pill, a FIELD or small tile is --ps-r-sm (8), a SURFACE is --ps-r (16). .p-tile 10px -> 8.",
     "--ps-r-sm": "8px",
     "--ps-r": "16px",
     "--ps-r-lg": "16px",
@@ -202,20 +202,28 @@
     "--ps-railc": "281px",
     "--ps-railr": "332px",
     "topBar": "55px",
-    "button": "35px",
-    "buttonSm": "29px - a control INSIDE a rail group, never the top bar",
+    "button": "36px - padding 0 16, 14/600/+.16px. EVERY labelled action: ghost, primary, preview, danger, quiet, dock pill",
+    "buttonSm": "28px - padding 0 12, 13/600/+.1px. A control INSIDE a rail group, never the top bar",
     "field": "36px",
     "tile": "62px",
-    "dockPill": "50px",
+    "dockPill": "36px",
     "sliderTrack": "4px",
     "sliderThumb": "14px",
-    "iconOnly": "35x36px - the one label-less button in the bar",
+    "iconOnly": "36x36px - square, at the height of the row it sits in",
     "$note": "--ps-qr, --ps-railc and --ps-railr are custom properties; the rest are measured component values. topBar, topBarControl, segTrack and buttonGroup were measured off the supplied Header frame.",
     "topBarControl": "36px - EVERY control in the top bar, one height",
     "topBarIcon": "15px em / 10.6px ink - the 14px label's own cap height",
     "segTrack": "36px with a 3px gutter, so the button is 30",
-    "buttonGroup": "36px - the outlined delivery capsule, cells at 0 18px",
-    "railContent": "288px in the Layout rail, 229px in the palette rail - the CONTENT column each frame specifies, which is what --ps-railr and the palette rail's 272 are derived from"
+    "buttonGroup": "36px - the outlined delivery capsule, cells at 0 16px",
+    "railContent": "288px in the Layout rail, 229px in the palette rail - the CONTENT column each frame specifies, which is what --ps-railr and the palette rail's 272 are derived from",
+    "buttonXs": "24px - padding 0 10, 12/500. Links, badges, tags: metadata, never a primary action",
+    "--ps-h": "36px",
+    "--ps-h-sm": "28px",
+    "--ps-h-xs": "24px",
+    "--ps-px": "16px",
+    "--ps-px-sm": "12px",
+    "--ps-px-xs": "10px",
+    "$scale": "Three control heights and nothing in between. Padding is horizontal only; the block axis is the height with line-height 1, so two controls in a row always share an edge. Proposed 2026-10-01 in the kit; not yet mirrored into CAS, OPS or the image tool."
   },
   "icon": {
     "$rule": "An icon is authored SVG on the Material Symbols Rounded wght300 grid — the chrome's weight, and the only build Google publishes at it. Never a unicode character: those are a different family per platform, carry no consistent stroke, and are announced by a screen reader.",
@@ -263,9 +271,9 @@
       "role": "the quiet value beside a label, pushed right, tabular figures"
     },
     "hint": {
-      "size": "11px",
-      "weight": 300,
-      "lineHeight": 1.5,
+      "size": "12px",
+      "weight": 400,
+      "lineHeight": 1.45,
       "role": "guidance under a control"
     },
     "button": {
@@ -293,7 +301,8 @@
       "lineHeight": 1.33,
       "role": "the supplied system's FEATURE TITLE. Its display sizes (80/64/52/36/32 at 1.00 leading) are NOT in this library: that is a hero page and the studios are dense four-column workspaces, where a 36px section heading breaks the layout outright."
     },
-    "$weights": "600 is a button or a caption, 400 is everything else, 300 is GONE. Verified before committing to it that the embedded Google Sans Flex renders seven distinct weights from 100 to 900, so 600 does not silently clamp to 500 - measure the axis, never trust the @font-face descriptor."
+    "$weights": "600 is a button or a caption, 400 is everything else, 300 is GONE. Verified before committing to it that the embedded Google Sans Flex renders seven distinct weights from 100 to 900, so 600 does not silently clamp to 500 - measure the axis, never trust the @font-face descriptor.",
+    "$scale": "Five chrome sizes - 16 body, 14 control and field, 13 label and caption, 12 hint and meta, 11 micro (counts, the info glyph) - at 400 / 500 / 600. No 300, no 11.5, no 10 in the chrome."
   },
   "motion": {
     "$rule": "150ms on cubic-bezier(0.2,0,0,1). TWO tokens, and the split is load-bearing.",
@@ -351,7 +360,9 @@
     "THE WORDMARK IS A LOCKUP, NOT TEXT, and it is chrome only. .p-wm holds an inline SVG; exported artwork keeps the plain provident. text op, because the campaign rules bind the canvas to the main wordmark with no sub-brand lockups.",
     "A LOGO FILE NAMED FOR ITS OWN COLOUR INVERTS AGAINST A THEME NAMED FOR ITS GROUND. prov-DS-dark is the navy-ink art and belongs to the LIGHT theme. Map a supplied asset by what reads on the ground, never by the filename.",
     "viewBox IS SAFE IN INLINE SVG MARKUP and unsafe only inside a CSS string. Design Cursor camel-cases attribute names in a CSS data URI - which is what turned viewBox into sc-camel-view-box - but 40+ inline icons in Campaign carry viewBox and render correctly. Verified again for .p-wm-a: the attribute survives intact.",
-    "THE LANDING PAGE LINKS THE LIBRARY RATHER THAN MIRRORING IT. The studios mirror because they carry ~500 colour literals in JS style objects and are opened off the disk; index.html at the repo root has neither problem, so it is a fourth live consumer and cannot drift. The kit's @font-face resolves ../_ds/ against the STYLESHEET, so linking it from the root also supplies the real Google Sans Flex."
+    "THE LANDING PAGE LINKS THE LIBRARY RATHER THAN MIRRORING IT. The studios mirror because they carry ~500 colour literals in JS style objects and are opened off the disk; index.html at the repo root has neither problem, so it is a fourth live consumer and cannot drift. The kit's @font-face resolves ../_ds/ against the STYLESHEET, so linking it from the root also supplies the real Google Sans Flex.",
+    "ONE CONTROL SCALE: 36 / 28 / 24, each with its own padding and type role. A new button-shaped class takes one of the three, never a height of its own.",
+    "NO LIGHT 300 IN THE CHROME. The small-text roles are 12/400; 300 survives only in canvas artwork, which this library never touches."
   ],
   "a11y": {
     "$rule": "4.5:1 for text, 3:1 for a non-text indicator (WCAG AA). This REPLACES the 2.4:1 bar this project previously audited against.",

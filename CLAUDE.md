@@ -14251,3 +14251,35 @@ Defaults reproduce the old pages by construction (the text path calls `T`/`TC` w
 arguments). Verified in the editor: geometry on both canvases, the dock switch both ways, the
 per-page slider dimming only its page (.4 against the shared .8), the Finish ask, no console
 errors; `sc-if` +3/+3, `sc-for` +2/+2.
+
+# OPS HAS A SUPPORT DESK: A KANBAN OVER A GOOGLE SHEET
+
+By request (2026-10-07): a support-ticket menu in OPS where a requester files a request, sees
+its status on a kanban, comments under it and is told when it changes. Chosen with the user:
+**Google Sheet + Apps Script** for storage, **email AND in-app** notifications.
+
+- **Backend is `tools/support/Code.gs`** (container-bound to a Sheet; setup in its README). It
+  is the API and the mailer. Untested against real Apps Script from this machine — the UI was
+  verified against a Python stand-in with the same JSON contract.
+- **All client logic is `support-desk.js`** (`SupportDesk`, loaded by `<script src>` like
+  StudioBase). The OPS document carries only markup, one CSS block (section 29, `.sp-*`) and
+  the keys `Component.renderVals` merges in from `this.sup.vals()`. **It holds no project
+  state**: instance fields plus a cache, never `upd()`, so a ticket never touches undo, recents
+  or a session file.
+- **Config is per computer in `localStorage`** (`provident-support`: URL, team key, name,
+  email), never in the repo. The team key and self-asserted email are NOT real authentication —
+  a web app set to "Anyone" is the only thing a browser can call cross-origin. README says so.
+- **Staff = the `STAFF` script property.** Staff see everything and can drag; a requester sees
+  only their own and may only close or reopen. Enforced server-side by the claimed email.
+- **Notifications**: the server mails on create/status/comment (never to the actor); the client
+  polls every 60s while the page is visible, compares each ticket's `lastAt`/`lastBy` with a
+  `provident-support-seen` map (baselined on first connect so a new user gets no history), and
+  badges the sidebar entry and the bell. Desktop notifications only once permission is granted.
+- **Inputs are UNCONTROLLED** (read from the DOM by id at submit, prefilled by `fill()` from
+  `data-sup-v`) so the minute poll can never clobber a half-written request.
+- **The kanban drag is pointer events**, mouse and pen only — not native DnD, and a touch
+  screen uses the Status menu. Keep it that way for the same reason as slide reorder.
+- The support overlay is z 62 over the splash (z 60) and is opened from the splash sidebar
+  only; the top bar is already hidden there.
+- A testing trap: the Connect form accepts `http://localhost`/`127.0.0.1` URLs so a stand-in
+  server works; production URLs must be `https://script.google.com/…`.
