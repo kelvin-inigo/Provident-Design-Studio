@@ -3499,7 +3499,12 @@ select.p-in{padding-right:34px}
 .as-bar .p-ghost{display:inline-flex;flex-direction:row;align-items:center;gap:6px}
 .as-bar .mk-g{width:15px;height:15px;flex:none}
 .as-stage{--as-h:clamp(200px,min(34vh,calc((100vw - 220px) / 4.6875)),380px);
-  flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;gap:20px;padding:24px}
+  flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:32px;padding:24px}
+.as-proj{display:flex;flex-direction:column;gap:12px;min-width:0}
+.as-proj-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.as-proj-h b{font:600 16px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-proj-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-row{display:flex;align-items:flex-start;gap:20px;overflow-x:auto;padding-bottom:4px}
 .as-col{flex:none;width:calc(var(--as-h) * 1.5625 + 44px);box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:var(--ps-r);
   background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);max-width:100%}
 .as-col-h{display:flex;flex-direction:column;gap:3px;padding-bottom:12px;border-bottom:1px solid var(--ps-hair)}
@@ -3536,7 +3541,8 @@ select.p-in{padding-right:34px}
 .as-big b{font:500 13px/1.3 var(--ps-font);color:#fff}
 .as-big s{font:400 12px/1.3 var(--ps-font);color:#A8B0BA;text-decoration:none}
 @media (max-width:760px){
-  .as-stage{flex-direction:column;align-items:stretch;padding:14px;gap:14px}
+  .as-stage{padding:14px;gap:24px}
+  .as-row{flex-direction:column;align-items:stretch;gap:14px}
   .as-bar{flex-wrap:wrap;padding:10px 14px}
   .as-ttl{flex:1 0 100%}
   .as-bar .p-spring{display:none}
@@ -4009,31 +4015,28 @@ select.p-in{padding-right:34px}
       </div>
       <div class="as-stage">
         <sc-if value="{{ asNoteOn }}" hint-placeholder-val="{{ false }}"><div class="as-empty"><b>{{ asNoteHead }}</b><p>{{ asNote }}</p></div></sc-if>
-        <sc-for list="{{ asCols }}" as="c" hint-placeholder-count="2">
-          <section class="as-col">
-            <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
-            <div class="as-pair">
-              <figure class="as-t as-t-sq">
-                <sc-if value="{{ c.feedOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.feedOpen }}" class="as-img" title="{{ c.feedName }}"><img data-src="{{ c.feedUrl }}" alt="{{ c.feedName }}"></button></sc-if>
-                <sc-if value="{{ c.feedMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No feed image</div></sc-if>
-                <figcaption><b>{{ c.feedLabel }}</b><s>{{ c.feedMeta }}</s></figcaption>
-              </figure>
-              <figure class="as-t as-t-st">
-                <sc-if value="{{ c.storyOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.storyOpen }}" class="as-img" title="{{ c.storyName }}"><img data-src="{{ c.storyUrl }}" alt="{{ c.storyName }}"></button></sc-if>
-                <sc-if value="{{ c.storyMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No story image</div></sc-if>
-                <figcaption><b>{{ c.storyLabel }}</b><s>{{ c.storyMeta }}</s></figcaption>
-              </figure>
-            </div>
-            <sc-if value="{{ c.moreOn }}" hint-placeholder-val="{{ false }}">
-              <div class="as-more">
-                <sc-for list="{{ c.more }}" as="t" hint-placeholder-count="0">
-                  <figure class="as-t as-t-x">
-                    <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button>
-                    <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
+        <sc-for list="{{ asProjects }}" as="p" hint-placeholder-count="1">
+          <section class="as-proj">
+            <header class="as-proj-h"><b>{{ p.title }}</b><s>{{ p.sub }}</s></header>
+            <div class="as-row">
+              <sc-for list="{{ p.cols }}" as="c" hint-placeholder-count="2">
+              <section class="as-col">
+                <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
+                <div class="as-pair">
+                  <figure class="as-t as-t-sq">
+                    <sc-if value="{{ c.feedOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.feedOpen }}" class="as-img" title="{{ c.feedName }}"><img data-src="{{ c.feedUrl }}" alt="{{ c.feedName }}"></button></sc-if>
+                    <sc-if value="{{ c.feedMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No feed image</div></sc-if>
+                    <figcaption><b>{{ c.feedLabel }}</b><s>{{ c.feedMeta }}</s></figcaption>
                   </figure>
-                </sc-for>
-              </div>
-            </sc-if>
+                  <figure class="as-t as-t-st">
+                    <sc-if value="{{ c.storyOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.storyOpen }}" class="as-img" title="{{ c.storyName }}"><img data-src="{{ c.storyUrl }}" alt="{{ c.storyName }}"></button></sc-if>
+                    <sc-if value="{{ c.storyMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No story image</div></sc-if>
+                    <figcaption><b>{{ c.storyLabel }}</b><s>{{ c.storyMeta }}</s></figcaption>
+                  </figure>
+                </div>
+              </section>
+              </sc-for>
+            </div>
           </section>
         </sc-for>
       </div>
@@ -12482,24 +12485,14 @@ class Component extends DCLogic {
   // so the beforeunload handler stands down for a move the user asked for; assigning
   // location.href here would raise Chrome's "Changes you made may not be saved" over
   // a button the user had just pressed.
-  // ── Ad sets — what is actually in the source folder ────────────────────────
-  // Reads the files the export wrote rather than re-rendering, so the window shows what
-  // will be uploaded. A column is a top-level folder (Variant A / B / C), or one PAGE of
-  // the Carousel folder; inside it the newest file of each job fills its slot and any
-  // older duplicate (a renamed project, a re-export under another name) drops to the
-  // extras row, so the Feed | Story pair is always the latest. Object URLs are revoked on
-  // every rescan and on close. Nothing here is project state — instance fields only.
-  static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload)$|^\./i;
-  static AS_KIND = [
-    [/_logo_1x1$/i, 'logo', 'Logo 1:1'],
-    [/(_feed|_square_1x1|_1x1)$/i, 'feed', 'Feed 1:1'],
-    [/(_story|_vertical_9x16|_9x16)$/i, 'story', 'Story 9:16'],
-    [/_16x9$/i, 'ls', 'Landscape 16:9'],
-    [/_landscape_1\.91x1$/i, 'yl', 'Landscape 1.91:1'],
-    [/_portrait_4x5$/i, 'yp', 'Portrait 4:5'],
-    [/eventbrite_banner_wide$/i, 'bn', 'Eventbrite banner · wide'],
-    [/eventbrite_banner_small$/i, 'bs', 'Eventbrite banner · small']
-  ];
+  // ── Ad sets — the exported Feed and Story per variant, per project ─────────────
+  // A PROJECT is a folder holding a saved .adstudio.json (the source folder itself, or
+  // any folder under it, three levels down). Inside a project only "Variant A/B/…"
+  // folders count, and inside each only "<name>_Variant X_feed" and "_Story" images —
+  // banners, 16:9, carousels and stray files are ignored, and a variant folder holding
+  // neither is left out. The newest file wins a slot. Reads files, never re-renders.
+  // Object URLs are revoked on every rescan and on close. Instance fields only.
+  static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload|logo|eventbrite banners)$|^\./i;
   async asOpen() {
     this.setState({ adSetsOpen: true });
     const f = window.providentFolder;
@@ -12520,81 +12513,83 @@ class Component extends DCLogic {
     const f = window.providentFolder, root = f && f.handle;
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
     this._asBig = null;
-    this._as = { busy: !!root, has: !!root, cols: [], root: root ? root.name : '', files: 0, err: '' };
+    this._as = { busy: !!root, has: !!root, projects: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
     this.forceUpdate();
     if (!root) return;
-    const urls = [], groups = new Map();
+    const urls = [];
     try {
-      const walk = async (dir, path, depth) => {
+      // 1 — find the project folders
+      const found = [];
+      const find = async (dir, path, depth) => {
+        const subs = []; let json = null;
         for await (const [name, h] of dir.entries()) {
-          if (h.kind === 'directory') {
-            if (depth < 2 && !Component.AS_SKIP.test(name)) await walk(h, path ? path + '/' + name : name, depth + 1);
-            continue;
+          if (h.kind === 'directory') { if (!Component.AS_SKIP.test(name) && !/^variant [a-z]$/i.test(name)) subs.push([name, h]); }
+          else if (/\.adstudio\.json$/i.test(name)) {
+            const fl = await h.getFile();
+            if (!json || fl.lastModified > json.lastModified) json = fl;
           }
-          if (!/\.(jpe?g|png|webp)$/i.test(name)) continue;
-          const stem = name.replace(/\.[^.]+$/, '');
-          const kd = Component.AS_KIND.find(k => k[0].test(stem));
-          const top = path.split('/')[0] || '';
-          const pm = /_page(\d+)_/i.exec(stem);
-          const page = pm ? +pm[1] : 0;
-          const key = top + '\u0000' + page;
-          if (!groups.has(key)) groups.set(key, { top, page, files: [] });
-          const file = await h.getFile();
-          groups.get(key).files.push({ name, path: (path ? path + '/' : '') + name, file,
-            kind: kd ? kd[1] : 'other', label: kd ? kd[2] : name });
         }
+        if (json) found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, '') });
+        else if (depth < 3) for (const [n, h] of subs) await find(h, path ? path + '/' + n : n, depth + 1);
       };
-      await walk(root, '', 0);
+      await find(root, '', 0);
       if (seq !== this._asSeq) return;
       const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
       const when = t => { try { return new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
-      const tile = async e => {
-        const url = URL.createObjectURL(e.file); urls.push(url);
+      const tile = async (file, path, label) => {
+        const url = URL.createObjectURL(file); urls.push(url);
         let dim = '';
-        try { const b = await createImageBitmap(e.file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
-        const meta = [dim, mb(e.file.size)].filter(Boolean).join(' · ');
-        const t = { url, name: e.path, label: e.label, meta };
+        try { const b = await createImageBitmap(file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
+        const t = { url, name: path, label, meta: [dim, mb(file.size)].filter(Boolean).join(' · ') };
         t.open = () => { this._asBig = t; this.forceUpdate(); };
         return t;
       };
-      const ORDER = ['feed', 'story', 'yl', 'yp', 'ls', 'bn', 'bs', 'logo'];
-      const list = [...groups.values()].sort((a, b) => {
-        const ra = a.top ? (/^logo$/i.test(a.top) ? 2 : 0) : 3, rb = b.top ? (/^logo$/i.test(b.top) ? 2 : 0) : 3;
-        return ra - rb || a.top.localeCompare(b.top, undefined, { numeric: true }) || a.page - b.page;
-      });
-      const cols = [];
-      let total = 0;
-      for (const g of list) {
-        g.files.sort((a, b) => b.file.lastModified - a.file.lastModified);
-        const slot = {}, extra = [];
-        g.files.forEach(e => { if (e.kind !== 'other' && !slot[e.kind]) slot[e.kind] = e; else extra.push(e); });
-        total += g.files.length;
-        const feed = slot.feed ? await tile(slot.feed) : null, story = slot.story ? await tile(slot.story) : null;
-        const more = [];
-        for (const k of ORDER.slice(2)) if (slot[k]) more.push(await tile(slot[k]));
-        for (const e of extra) { const t = await tile(e); t.label = 'Older · ' + e.label; more.push(t); }
-        if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
-        const newest = g.files[0] ? g.files[0].file.lastModified : 0;
-        const title = (g.top || 'Folder root') + (g.page ? ' · Page ' + g.page : '');
-        const n = g.files.length;
-        cols.push({
-          title, sub: n + (n === 1 ? ' image' : ' images') + (newest ? ' · exported ' + when(newest) : ''),
-          feedOn: feed ? '1' : undefined, feedMissOn: feed ? undefined : '1',
-          feedUrl: feed ? feed.url : '', feedName: feed ? feed.name : '', feedOpen: feed ? feed.open : () => {},
-          feedLabel: feed ? feed.label : 'Feed 1:1', feedMeta: feed ? feed.meta : 'Not exported',
-          storyOn: story ? '1' : undefined, storyMissOn: story ? undefined : '1',
-          storyUrl: story ? story.url : '', storyName: story ? story.name : '', storyOpen: story ? story.open : () => {},
-          storyLabel: story ? story.label : 'Story 9:16', storyMeta: story ? story.meta : 'Not exported',
-          moreOn: more.length ? '1' : undefined, more
-        });
+      // 2 — in each, the Variant folders and their feed / story
+      const projects = [];
+      let files = 0, sets = 0;
+      for (const p of found) {
+        const vdirs = [];
+        for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h]);
+        vdirs.sort((a, b) => a[0].localeCompare(b[0]));
+        const cols = [];
+        for (const [vname, vh] of vdirs) {
+          const letter = vname.slice(-1);
+          const re = new RegExp('_variant ' + letter + '_(feed|story)\\.(png|jpe?g|webp)$', 'i');
+          const slot = {};
+          for await (const [name, h] of vh.entries()) {
+            if (h.kind !== 'file') continue;
+            const m = re.exec(name);
+            if (!m) continue;
+            const kind = m[1].toLowerCase(), fl = await h.getFile();
+            if (!slot[kind] || fl.lastModified > slot[kind].file.lastModified) slot[kind] = { file: fl, name };
+          }
+          if (!slot.feed && !slot.story) continue;
+          const base = (p.path ? p.path + '/' : '') + vname + '/';
+          const feed = slot.feed ? await tile(slot.feed.file, base + slot.feed.name, 'Feed 1:1') : null;
+          const story = slot.story ? await tile(slot.story.file, base + slot.story.name, 'Story 9:16') : null;
+          if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
+          const newest = Math.max(slot.feed ? slot.feed.file.lastModified : 0, slot.story ? slot.story.file.lastModified : 0);
+          files += (feed ? 1 : 0) + (story ? 1 : 0); sets++;
+          cols.push({
+            title: vname, sub: newest ? 'Exported ' + when(newest) : '',
+            feedOn: feed ? '1' : undefined, feedMissOn: feed ? undefined : '1',
+            feedUrl: feed ? feed.url : '', feedName: feed ? feed.name : '', feedOpen: feed ? feed.open : () => {},
+            feedLabel: 'Feed 1:1', feedMeta: feed ? feed.meta : 'Not exported',
+            storyOn: story ? '1' : undefined, storyMissOn: story ? undefined : '1',
+            storyUrl: story ? story.url : '', storyName: story ? story.name : '', storyOpen: story ? story.open : () => {},
+            storyLabel: 'Story 9:16', storyMeta: story ? story.meta : 'Not exported'
+          });
+        }
+        if (cols.length) projects.push({ title: p.name, sub: (p.path || root.name || 'Source folder') + ' · ' + cols.length + (cols.length === 1 ? ' variant' : ' variants'), cols });
       }
+      projects.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
       this.asFree();
       this._asUrls = urls;
-      this._as = { busy: false, has: true, cols, root: root.name, files: total, err: '' };
+      this._as = { busy: false, has: true, projects, root: root.name, files, sets, err: '' };
     } catch (e) {
       urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (er) {} });
       if (seq !== this._asSeq) return;
-      this._as = { busy: false, has: true, cols: [], root: root.name, files: 0,
+      this._as = { busy: false, has: true, projects: [], root: root.name, files: 0, sets: 0,
         err: 'Could not read "' + root.name + '" — ' + (e && e.message ? e.message : 'the folder may have moved') + '. Choose it again.' };
     }
     this.forceUpdate();
@@ -12608,7 +12603,7 @@ class Component extends DCLogic {
     else if (!root) { head = 'No source folder yet'; note = 'Choose the folder this project exports into. Every export writes Variant A, Variant B and so on there, and this window shows them side by side.'; }
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
-    else if (!a.cols.length) { head = 'Nothing exported yet'; note = 'Export JPEG or PNG from Share and the files land in "' + root + '" as Variant A, Variant B …, one folder per variant.'; }
+    else if (!a.projects.length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed or _Story image. Save the project and export JPEG or PNG from Share.'; }
     const big = this._asBig;
     return {
       asOn: open ? '1' : undefined,
@@ -12619,10 +12614,10 @@ class Component extends DCLogic {
       asHasRoot: open && root ? '1' : undefined,
       asPickOn: open && supported ? '1' : undefined,
       asPickLabel: root ? 'Change folder' : 'Choose source folder',
-      asSub: root ? (proj ? proj + ' · ' : '') + 'Source folder: ' + root + (a.files ? ' · ' + a.cols.length + (a.cols.length === 1 ? ' set · ' : ' sets · ') + a.files + ' images' : '') : (proj || 'Exported ads, one column per variant'),
+      asSub: root ? (proj ? proj + ' · ' : '') + 'Source folder: ' + root + (a.sets ? ' · ' + a.projects.length + (a.projects.length === 1 ? ' project · ' : ' projects · ') + a.sets + (a.sets === 1 ? ' variant' : ' variants') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head ? '1' : undefined,
       asNoteHead: head, asNote: note,
-      asCols: open && !head ? a.cols : [],
+      asProjects: open && !head ? a.projects : [],
       asBigOn: big ? '1' : undefined,
       asBigUrl: big ? big.url : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
       asBigClose: () => { this._asBig = null; this.forceUpdate(); }

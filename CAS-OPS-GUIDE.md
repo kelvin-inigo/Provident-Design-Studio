@@ -365,18 +365,18 @@ names it; export JPEG instead. Text over Google's limits is named there too.
 
 ### See everything you exported: Ad sets
 
-Press **Ad sets** in the bar under the canvas. It opens a window that reads the Source folder
-and shows **one column per variant folder** (Variant A, Variant B …, or one column per page of a
-Carousel), each with the **Feed** and **Story** images side by side and every other size (16:9,
-Eventbrite banners, YouTube's landscape and portrait, the logo) in a row underneath.
+Press **Ad sets** in the bar under the canvas. It reads the Source folder and finds every **saved
+project** in it: any folder holding a `.adstudio.json`, including folders a few levels down. You
+can therefore point it at one project's folder or at a folder full of projects.
 
-- It shows the files **as they are in the folder**, so export first, then look. **Refresh** reads
-  the folder again.
-- Under each image: its pixel size and file size. Click an image to see it large; **Esc** closes
-  it, and **Esc** again closes the window.
-- A size the variant has not exported yet shows as a dashed **No story image** box.
-- If an older file with a different name sits in the same folder (the campaign was renamed), the
-  newest file takes the Feed or Story spot and the older one is listed underneath as **Older**.
+- Each project is a row. Every **Variant A**, **Variant B** … folder inside it is a column, with
+  its **Feed** and **Story** images side by side.
+- Only files named `<name>_Variant A_feed` and `<name>_Variant A_Story` (PNG, JPEG or WebP) are
+  shown. Banners, 16:9, carousels and anything else are left out.
+- A variant folder with neither image is skipped, and so is a folder with no saved project. If a
+  variant has only one of the two, the other shows as a dashed box.
+- It shows the files as they are on disk, so export first, then press **Refresh**. Click an image
+  to see it large. **Esc** closes it, and **Esc** again closes the window.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
 
 ---
