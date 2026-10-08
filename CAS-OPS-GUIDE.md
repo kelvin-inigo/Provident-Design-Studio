@@ -225,7 +225,9 @@ Every CAS project is for **one platform**: **Meta ads** or **YouTube Demand Gen*
   **YouTube Demand Gen**. The design is kept. A carousel becomes a single ad (its pages are kept
   if you switch back), because Demand Gen takes an asset pool, not swipe pages.
 
-On YouTube, every variant carries the four ratios Google mixes into its asset pool, always:
+On YouTube, **each variant starts with the Landscape 1.91:1 only**. The other three ratios Google
+mixes into its asset pool sit under it as rows with a **Show** button: **Show 1:1**, **Show 4:5**
+and **Show 9:16**. A shown one has a **Hide** button, and only shown canvases are exported:
 
 | canvas on the plate | exported at |
 |---|---|
@@ -234,8 +236,10 @@ On YouTube, every variant carries the four ratios Google mixes into its asset po
 | **Portrait 4:5** | 960 × 1200 |
 | **Vertical 9:16 · Shorts** | 1080 × 1920 |
 
+- With the 1:1 hidden, the 1.91:1 **is** the master layout; once the 1:1 is shown, the 1.91:1
+  mirrors it until you press **Edit layout separately**.
 - **Landscape** and **Portrait** each have **Edit layout separately** and **Own photo**, like the
-  16:9 on a Meta project. **Scaling** has a row for each of the four.
+  16:9 on a Meta project. **Scaling** has a row for each canvas that is shown.
 - The 9:16 keeps the same safe margins as a Meta story: Shorts puts its own buttons in the same
   places.
 - **Business logo** (in **All Variants Option**): the provident. wordmark on a 1200 × 1200 square.
@@ -352,10 +356,10 @@ SVG or PDF), at the exact sizes in the table in section 5b:
 ```
 Source folder/
   Variant A/
-    <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200
-    <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628
-    <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200
-    <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920
+    <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628, always
+    <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200, if shown
+    <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200, if shown
+    <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920, if shown
   Logo/<name>_Logo_1x1.png                 ← 1200 × 1200
   <name>_Demand Gen text.txt               ← business name, headlines, descriptions
 ```
@@ -372,7 +376,9 @@ can therefore point it at one project's folder or at a folder full of projects.
 - Each project is a row. Every **Variant A**, **Variant B** … folder inside it is a column, with
   its **Feed** and **Story** images side by side.
 - Only files named `<name>_Variant A_feed` and `<name>_Variant A_Story` (PNG, JPEG or WebP) are
-  shown. Banners, 16:9, carousels and anything else are left out.
+  shown, plus a **YouTube Demand Gen** variant's four: `_Square_1x1` and `_Vertical_9x16` side by
+  side, with `_Landscape_1.91x1` and `_Portrait_4x5` under them. Banners, 16:9, carousels, the
+  YouTube logo and anything else are left out.
 - A variant folder with neither image is skipped, and so is a folder with no saved project. If a
   variant has only one of the two, the other shows as a dashed box.
 - It shows the files as they are on disk, so export first, then press **Refresh**. Click an image

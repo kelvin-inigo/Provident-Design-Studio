@@ -3510,7 +3510,17 @@ select.p-in{padding-right:34px}
 .as-col-h{display:flex;flex-direction:column;gap:3px;padding-bottom:12px;border-bottom:1px solid var(--ps-hair)}
 .as-col-h b{font:600 14px/1.25 var(--ps-font);color:var(--ps-ink)}
 .as-col-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.as-pair{display:flex;gap:12px;align-items:flex-start}
+.as-pair{--as-r:var(--as-h);display:flex;gap:12px;align-items:flex-start}
+/* YouTube's second row (1.91:1 + 4:5) is sized so it spans exactly the first row's width */
+.as-pair[data-row="sub"]{--as-r:calc(var(--as-h) * .5766)}
+.as-col{gap:14px}
+.as-t[data-shape="sq"]{--as-w:var(--as-r)}
+.as-t[data-shape="st"]{--as-w:calc(var(--as-r) * 9 / 16)}
+.as-t[data-shape="yl"]{--as-w:calc(var(--as-r) * 1.911)}
+.as-t[data-shape="yp"]{--as-w:calc(var(--as-r) * .8)}
+.as-t[data-shape] .as-img img{height:var(--as-r);width:var(--as-w);max-width:none}
+.as-t[data-shape] .as-miss{height:var(--as-r);width:var(--as-w)}
+.as-t[data-shape] figcaption{max-width:var(--as-w)}
 .as-t{flex:none;margin:0;display:flex;flex-direction:column;gap:7px;min-width:0}
 .as-more .as-t{flex:initial}
 .as-t figcaption{display:flex;flex-direction:column;gap:2px}
@@ -4022,18 +4032,17 @@ select.p-in{padding-right:34px}
               <sc-for list="{{ p.cols }}" as="c" hint-placeholder-count="2">
               <section class="as-col">
                 <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
-                <div class="as-pair">
-                  <figure class="as-t as-t-sq">
-                    <sc-if value="{{ c.feedOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.feedOpen }}" class="as-img" title="{{ c.feedName }}"><img data-src="{{ c.feedUrl }}" alt="{{ c.feedName }}"></button></sc-if>
-                    <sc-if value="{{ c.feedMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No feed image</div></sc-if>
-                    <figcaption><b>{{ c.feedLabel }}</b><s>{{ c.feedMeta }}</s></figcaption>
-                  </figure>
-                  <figure class="as-t as-t-st">
-                    <sc-if value="{{ c.storyOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.storyOpen }}" class="as-img" title="{{ c.storyName }}"><img data-src="{{ c.storyUrl }}" alt="{{ c.storyName }}"></button></sc-if>
-                    <sc-if value="{{ c.storyMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No story image</div></sc-if>
-                    <figcaption><b>{{ c.storyLabel }}</b><s>{{ c.storyMeta }}</s></figcaption>
-                  </figure>
-                </div>
+                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="1">
+                  <div class="as-pair" data-row="{{ r.kind }}">
+                    <sc-for list="{{ r.tiles }}" as="t" hint-placeholder-count="2">
+                      <figure class="as-t" data-shape="{{ t.shape }}">
+                        <sc-if value="{{ t.on }}" hint-placeholder-val="{{ true }}"><button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button></sc-if>
+                        <sc-if value="{{ t.missOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">{{ t.miss }}</div></sc-if>
+                        <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
+                      </figure>
+                    </sc-for>
+                  </div>
+                </sc-for>
               </section>
               </sc-for>
             </div>
@@ -4405,39 +4414,6 @@ select.p-in{padding-right:34px}
         <button onClick="{{ v.activate }}" style="{{ v.activateStyle }}">{{ v.activateLabel }}</button>
         <button onClick="{{ v.remove }}" style="{{ v.removeStyle }}">Remove</button>
       </div>
-      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.sq.cwPx }}" style="{{ v.sq.canvasStyle }}">
-        <div class="canvasbg" style="{{ v.sq.bgWrapStyle }}"><image-slot id="{{ v.bgId }}" shape="rect" placeholder="Upload background in the right panel" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></div>
-        <div style="{{ v.sq.scrimStyle }}"></div>
-        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.guideStyle }}"></div></sc-if>
-        <div style="{{ v.sq.frameStyle }}">
-          <div style="{{ v.sq.logoStyle }}"><span>provident.</span><sc-if value="{{ v.sq.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.sq.coRuleStyle }}"></span><span style="{{ v.sq.coInkStyle }}" data-icon-tint="{{ v.sq.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.sq.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.sq.coPaintStyle }}"></i></span></sc-if></div>
-          <div style="{{ v.sq.stackStyle }}">
-            <sc-for list="{{ v.sq.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
-                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
-                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
-                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
-                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
-                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ c.style }}">{{ c.t }}</span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
-                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
-                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
-                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
-                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
-              </div>
-            </sc-for>
-          </div>
-        </div>
-        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.sq.fgStyle }}"><div style="{{ v.sq.fgTintStyle }}"></div></div></div></sc-if>
-        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
-      </div>
-      <span class="p-meta">{{ v.sqMeta }} · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
       <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}">
       <div class="p-plate-f">
         <span class="p-meta">Landscape 1.91:1 {{ v.ylState }}</span>
@@ -4477,9 +4453,52 @@ select.p-in{padding-right:34px}
       </div>
       <span class="p-meta">1200 × 628 · YouTube landscape — text column left, image window right · <span style="{{ v.yl.coverStyle }}" class="tip" data-tip="{{ v.yl.coverTip }}">{{ v.yl.coverLabel }}</span></span>
       <div class="p-plate-f">
-        <span class="p-meta">Portrait 4:5 {{ v.ypState }}</span>
-        <button onClick="{{ v.toggleYpOv }}" style="{{ v.wideBtnStyle }}">{{ v.ypOvLabel }}</button><button onClick="{{ v.toggleBgYp }}" style="{{ v.wideBtnStyle }}">{{ v.bgYpLabel }}</button>
+        <span class="p-meta">Square 1:1 {{ v.sqState }}</span>
+        <button onClick="{{ v.toggleYtSq }}" style="{{ v.wideBtnStyle }}">{{ v.ytSqBtn }}</button>
       </div>
+      </sc-if>
+      <sc-if value="{{ v.sqOn }}" hint-placeholder-val="{{ true }}">
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.sq.cwPx }}" style="{{ v.sq.canvasStyle }}">
+        <div class="canvasbg" style="{{ v.sq.bgWrapStyle }}"><image-slot id="{{ v.bgId }}" shape="rect" placeholder="Upload background in the right panel" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></div>
+        <div style="{{ v.sq.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.guideStyle }}"></div></sc-if>
+        <div style="{{ v.sq.frameStyle }}">
+          <div style="{{ v.sq.logoStyle }}"><span>provident.</span><sc-if value="{{ v.sq.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.sq.coRuleStyle }}"></span><span style="{{ v.sq.coInkStyle }}" data-icon-tint="{{ v.sq.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.sq.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.sq.coPaintStyle }}"></i></span></sc-if></div>
+          <div style="{{ v.sq.stackStyle }}">
+            <sc-for list="{{ v.sq.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ c.style }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.sq.fgStyle }}"><div style="{{ v.sq.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+      </div>
+      <span class="p-meta">{{ v.sqMeta }} · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
+      </sc-if>
+      <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}">
+      <div class="p-plate-f">
+        <span class="p-meta">Portrait 4:5 {{ v.ypState }}</span>
+        <button onClick="{{ v.toggleYtYp }}" style="{{ v.wideBtnStyle }}">{{ v.ytYpBtn }}</button>
+        <sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleYpOv }}" style="{{ v.wideBtnStyle }}">{{ v.ypOvLabel }}</button><button onClick="{{ v.toggleBgYp }}" style="{{ v.wideBtnStyle }}">{{ v.bgYpLabel }}</button></sc-if>
+      </div>
+      <sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.yp.cwPx }}" style="{{ v.yp.canvasStyle }}">
         <div class="canvasbg" style="{{ v.yp.bgWrapStyle }}"><sc-for list="{{ v.bgYpSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 4:5" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.yp.scrimStyle }}"></div>
@@ -4514,9 +4533,17 @@ select.p-in{padding-right:34px}
       </div>
       <span class="p-meta">960 × 1200 · YouTube portrait · <span style="{{ v.yp.coverStyle }}" class="tip" data-tip="{{ v.yp.coverTip }}">{{ v.yp.coverLabel }}</span></span>
       </sc-if>
+      </sc-if>
+      <sc-if value="{{ v.stHidYt }}" hint-placeholder-val="{{ false }}">
+      <div class="p-plate-f">
+        <span class="p-meta">{{ v.stHead }}</span>
+        <button onClick="{{ v.toggleYtSt }}" style="{{ v.wideBtnStyle }}">{{ v.ytStBtn }}</button>
+      </div>
+      </sc-if>
       <sc-if value="{{ v.stOn }}" hint-placeholder-val="{{ true }}">
       <div class="p-plate-f">
         <span class="p-meta">{{ v.stHead }} {{ v.storyState }}</span>
+        <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleYtSt }}" style="{{ v.wideBtnStyle }}">{{ v.ytStBtn }}</button></sc-if>
         <button onClick="{{ v.toggleStory }}" style="{{ v.storyBtnStyle }}">{{ v.storyBtnLabel }}</button>
         <button onClick="{{ v.toggleBgSt }}" style="{{ v.storyBtnStyle }}">{{ v.bgStLabel }}</button>
       </div>
@@ -7467,7 +7494,9 @@ class CampaignStudio extends StudioBase {
   // The 9:16 can only be dropped on a carousel; a single ad always ships every size.
   static storyShown(s) { return !CampaignStudio.isCarousel(s) || s.storyOn !== false; }
   static sizesFor(s, v) {
-    if (CampaignStudio.isYT(s)) return ['sq', 'yl', 'yp', 'st'];
+    // ON YOUTUBE THE 1.91:1 IS THE ONLY CANVAS BY DEFAULT, by request; the 1:1, 4:5 and 9:16
+    // are opt-in per variant (`v.ytShow`), and a hidden one neither renders nor exports.
+    if (CampaignStudio.isYT(s)) { const sh = (v && v.ytShow) || {}; return ['yl'].concat(['sq', 'yp', 'st'].filter(k => sh[k])); }
     const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out;
   }
   // The list a render of page/variant `vi` reads. Never mutate what this returns.
@@ -11292,7 +11321,12 @@ class CampaignStudio extends StudioBase {
     // follow the same very-round language as the top bar and the plate furniture.
     const darkBtn = { background: 'var(--ps-fill-h)', color: 'var(--ps-ink)', border: '1px solid transparent', borderRadius: 'var(--ps-pill)', padding: '7px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer', textAlign: 'center' };
 
-    const variantViews = s.variants.map((v, vi) => ({
+    const variantViews = s.variants.map((v, vi) => {
+      // which of the 1:1, 4:5 and 9:16 this variant shows on YouTube; a hide drops a
+      // selection that lived on that canvas, or the floating control pins to nothing
+      const ytSh = (v && v.ytShow) || {};
+      const ytTog = k => e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ytShow = Object.assign({}, vv.ytShow); vv.ytShow[k] = !vv.ytShow[k]; if (!vv.ytShow[k] && x.sel && x.sel.vi === vi && (x.sel.size || 'sq') === k) x.sel = null; return x; }); };
+      return ({
       // the plate repeats per variant, so the project line is gated to the first one —
       // the name and the running status belong to the project, not to each variant
       isFirst: vi === 0 ? '1' : undefined,
@@ -11339,7 +11373,15 @@ class CampaignStudio extends StudioBase {
       storyBtnLabel: v.story ? 'Re-link layout' : 'Edit layout separately',
       wideState: v.wide ? (v.wideOv ? '· detached' : '· mirrors 1:1') : '',
       // the 9:16 plate is gated on this; a single ad always shows it
-      stOn: CampaignStudio.storyShown(s),
+      stOn: CampaignStudio.isYT(s) ? !!ytSh.st : CampaignStudio.storyShown(s),
+      stHidYt: CampaignStudio.isYT(s) && !ytSh.st,
+      sqOn: !CampaignStudio.isYT(s) || !!ytSh.sq,
+      ypShow: !!ytSh.yp,
+      sqState: ytSh.sq ? (v.ylOv ? '· master layout' : '· master layout, the 1.91:1 mirrors it') : '',
+      ytSqBtn: ytSh.sq ? 'Hide 1:1' : 'Show 1:1',
+      ytYpBtn: ytSh.yp ? 'Hide 4:5' : 'Show 4:5',
+      ytStBtn: ytSh.st ? 'Hide 9:16' : 'Show 9:16',
+      toggleYtSq: ytTog('sq'), toggleYtYp: ytTog('yp'), toggleYtSt: ytTog('st'),
       wideOn: !!v.wide,
       toggleWide: e => { e.stopPropagation(); this.upd(x => { x.variants[vi].wide = !x.variants[vi].wide; return x; }); },
       wideBtnLabel: v.wide ? 'Hide 16:9' : 'Show 16:9',
@@ -11375,8 +11417,9 @@ class CampaignStudio extends StudioBase {
       stHead: CampaignStudio.isYT(s) ? 'Vertical 9:16 · Shorts' : '9:16 story',
       stMeta: CampaignStudio.isYT(s) ? '1080 × 1920 · YouTube Shorts' : '1080 × 1920 · story',
       // the YouTube landscape and portrait: always shown, the 16:9's own two controls
-      ylState: v.ylOv ? '· detached' : '· mirrors 1:1',
-      ypState: v.ypOv ? '· detached' : '· mirrors 1:1',
+      // with the 1:1 hidden the 1.91:1 IS the master layout — it edits the variant's own record
+      ylState: v.ylOv ? '· detached' : (ytSh.sq ? '· mirrors 1:1' : '· master layout'),
+      ypState: !ytSh.yp ? '' : (v.ypOv ? '· detached' : '· mirrors ' + (ytSh.sq ? '1:1' : '1.91:1')),
       toggleYlOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ylOv = vv.ylOv ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)), mvar: {} }; return x; }); },
       toggleYpOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ypOv = vv.ypOv ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)), mvar: {} }; return x; }); },
       ylOvLabel: v.ylOv ? 'Re-link layout' : 'Edit layout separately',
@@ -11389,8 +11432,8 @@ class CampaignStudio extends StudioBase {
       bgYpSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.yp) ? '-yp' : ''), key: 'yp' + vi + !!(v.bgSep && v.bgSep.yp) }],
       // built only on a YouTube project — two canvases per variant is real work
       yl: CampaignStudio.isYT(s) ? mkCanvas(vi, 'yl') : null,
-      yp: CampaignStudio.isYT(s) ? mkCanvas(vi, 'yp') : null
-    }));
+      yp: (CampaignStudio.isYT(s) && ytSh.yp) ? mkCanvas(vi, 'yp') : null
+    }); });
 
     const addDefaults = {
       eyebrow: { text: 'Exclusive launch' }, hero: { text: 'Own the skyline view', serif: 'skyline' },
@@ -11675,7 +11718,7 @@ class CampaignStudio extends StudioBase {
       // a YouTube project is a single ad; a carousel's pages keep their lists for the round trip
       platYt: () => this.upd(x => { if (x.platform === 'ytdg') return x; x.platform = 'ytdg'; x.adMode = 'single'; x.storyOn = true; x.yt = CampaignStudio.ytOf(x); if (x.sel && ['ls', 'bn', 'bs'].indexOf(x.sel.size) >= 0) x.sel = null; return x; }),
       platHint: yt
-        ? 'Every variant carries 1.91:1, 1:1, 4:5 and 9:16 at Google\u2019s sizes, plus a 1:1 logo and the text assets. JPEG or PNG, 5 MB each.'
+        ? 'Each variant starts with the 1.91:1; Show 1:1, 4:5 or 9:16 on its plate to add more. All at Google\u2019s sizes, plus a 1:1 logo and the text assets. JPEG or PNG, 5 MB each.'
         : '1:1 feed and 9:16 story at 2x, with an opt-in 16:9 and Eventbrite banners on each variant.',
       ytLogoStyle: ytLogo,
       ytLogoNavyOn: ytY.logoBg === 'navy' ? '1' : undefined,
@@ -11864,12 +11907,12 @@ class CampaignStudio extends StudioBase {
       bgSlotBnStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotYlStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotYpStyle: { width: '100%', aspectRatio: '4 / 3' },
-      bgSepStOn: CampaignStudio.storyShown(s) && !!(av.bgSep && av.bgSep.st),
+      bgSepStOn: (CampaignStudio.isYT(s) ? !!(av.ytShow && av.ytShow.st) : CampaignStudio.storyShown(s)) && !!(av.bgSep && av.bgSep.st),
       // a canvas the platform does not carry offers no own-photo row, whatever bgSep holds
       bgSepLsOn: !CampaignStudio.isYT(s) && !!av.wide && !!(av.bgSep && av.bgSep.ls),
       bgSepBnOn: !CampaignStudio.isYT(s) && !!av.banner && !!(av.bgSep && av.bgSep.bn),
       bgSepYlOn: CampaignStudio.isYT(s) && !!(av.bgSep && av.bgSep.yl),
-      bgSepYpOn: CampaignStudio.isYT(s) && !!(av.bgSep && av.bgSep.yp),
+      bgSepYpOn: CampaignStudio.isYT(s) && !!(av.ytShow && av.ytShow.yp) && !!(av.bgSep && av.bgSep.yp),
       activeBgYlSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-yl' }],
       activeBgYpSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-yp' }],
       activeBgStSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-st' }],
@@ -12200,7 +12243,7 @@ class CampaignStudio extends StudioBase {
       scaleMax: CampaignStudio.SCALE_MAX,
       // The two banners scale on their own, and are named by their file width — both are
       // 2:1, so a ratio would not tell them apart.
-      scaleRows: (CampaignStudio.isYT(s) ? [['sq', '1:1'], ['yl', '1.91:1'], ['yp', '4:5'], ['st', '9:16']]
+      scaleRows: (CampaignStudio.isYT(s) ? [['yl', '1.91:1'], ['sq', '1:1'], ['yp', '4:5'], ['st', '9:16']].filter(sz => sz[0] === 'yl' || (av.ytShow && av.ytShow[sz[0]]))
         : [['sq', '1:1'], ['st', '9:16'], ['ls', '16:9'], ['bn', '1880'], ['bs', '758']]
           .filter(sz => (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
         .map(sz => {
@@ -12546,7 +12589,7 @@ class Component extends DCLogic {
       };
       // 2 — in each, the Variant folders and their feed / story
       const projects = [];
-      let files = 0, sets = 0;
+      let files = 0, sets_ = 0;
       for (const p of found) {
         const vdirs = [];
         for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h]);
@@ -12554,7 +12597,8 @@ class Component extends DCLogic {
         const cols = [];
         for (const [vname, vh] of vdirs) {
           const letter = vname.slice(-1);
-          const re = new RegExp('_variant ' + letter + '_(feed|story)\\.(png|jpe?g|webp)$', 'i');
+          // Meta: _feed / _Story. YouTube Demand Gen: Google's ratio names (CampaignStudio.YT_NAME).
+          const re = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
           const slot = {};
           for await (const [name, h] of vh.entries()) {
             if (h.kind !== 'file') continue;
@@ -12563,29 +12607,35 @@ class Component extends DCLogic {
             const kind = m[1].toLowerCase(), fl = await h.getFile();
             if (!slot[kind] || fl.lastModified > slot[kind].file.lastModified) slot[kind] = { file: fl, name };
           }
-          if (!slot.feed && !slot.story) continue;
           const base = (p.path ? p.path + '/' : '') + vname + '/';
-          const feed = slot.feed ? await tile(slot.feed.file, base + slot.feed.name, 'Feed 1:1') : null;
-          const story = slot.story ? await tile(slot.story.file, base + slot.story.name, 'Story 9:16') : null;
+          const mkTile = async (kind, shape, label, miss) => {
+            const e = slot[kind];
+            const t = e ? await tile(e.file, base + e.name, label) : null;
+            if (t) files++;
+            return { shape, label, on: t ? '1' : undefined, missOn: t ? undefined : '1', miss,
+              url: t ? t.url : '', name: t ? t.name : '', meta: t ? t.meta : 'Not exported', open: t ? t.open : () => {},
+              at: e ? e.file.lastModified : 0 };
+          };
+          const sets = [];
+          if (slot.feed || slot.story) sets.push({ yt: false, rows: [{ kind: 'main', tiles: [
+            await mkTile('feed', 'sq', 'Feed 1:1', 'No feed image'), await mkTile('story', 'st', 'Story 9:16', 'No story image')] }] });
+          if (slot.square_1x1 || slot.vertical_9x16 || slot['landscape_1.91x1'] || slot.portrait_4x5) sets.push({ yt: true, rows: [
+            { kind: 'main', tiles: [await mkTile('square_1x1', 'sq', 'Square 1:1', 'No square image'), await mkTile('vertical_9x16', 'st', 'Vertical 9:16', 'No vertical image')] },
+            { kind: 'sub', tiles: [await mkTile('landscape_1.91x1', 'yl', 'Landscape 1.91:1', 'No landscape image'), await mkTile('portrait_4x5', 'yp', 'Portrait 4:5', 'No portrait image')] }] });
           if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
-          const newest = Math.max(slot.feed ? slot.feed.file.lastModified : 0, slot.story ? slot.story.file.lastModified : 0);
-          files += (feed ? 1 : 0) + (story ? 1 : 0); sets++;
-          cols.push({
-            title: vname, sub: newest ? 'Exported ' + when(newest) : '',
-            feedOn: feed ? '1' : undefined, feedMissOn: feed ? undefined : '1',
-            feedUrl: feed ? feed.url : '', feedName: feed ? feed.name : '', feedOpen: feed ? feed.open : () => {},
-            feedLabel: 'Feed 1:1', feedMeta: feed ? feed.meta : 'Not exported',
-            storyOn: story ? '1' : undefined, storyMissOn: story ? undefined : '1',
-            storyUrl: story ? story.url : '', storyName: story ? story.name : '', storyOpen: story ? story.open : () => {},
-            storyLabel: 'Story 9:16', storyMeta: story ? story.meta : 'Not exported'
-          });
+          for (const st of sets) {
+            const newest = Math.max(...st.rows.flatMap(r => r.tiles.map(t => t.at)));
+            sets_++;
+            cols.push({ title: vname + (st.yt ? ' · YouTube Demand Gen' : sets.length > 1 ? ' · Meta' : ''),
+              sub: newest ? 'Exported ' + when(newest) : '', rows: st.rows });
+          }
         }
         if (cols.length) projects.push({ title: p.name, sub: (p.path || root.name || 'Source folder') + ' · ' + cols.length + (cols.length === 1 ? ' variant' : ' variants'), cols });
       }
       projects.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
       this.asFree();
       this._asUrls = urls;
-      this._as = { busy: false, has: true, projects, root: root.name, files, sets, err: '' };
+      this._as = { busy: false, has: true, projects, root: root.name, files, sets: sets_, err: '' };
     } catch (e) {
       urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (er) {} });
       if (seq !== this._asSeq) return;
@@ -12603,7 +12653,7 @@ class Component extends DCLogic {
     else if (!root) { head = 'No source folder yet'; note = 'Choose the folder this project exports into. Every export writes Variant A, Variant B and so on there, and this window shows them side by side.'; }
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
-    else if (!a.projects.length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed or _Story image. Save the project and export JPEG or PNG from Share.'; }
+    else if (!a.projects.length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
     const big = this._asBig;
     return {
       asOn: open ? '1' : undefined,

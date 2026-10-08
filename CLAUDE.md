@@ -14355,6 +14355,19 @@ dark/light × left/centre × sq, st, ls, bn, bs — **80 groups, 1,092 ops, 0 di
   appended with a setState UPDATER after `deliver`, because a plain read of `this.state` there is
   stale and would overwrite deliver's own message with "Rendering…".
 
+## The 1.91:1 is the only canvas by default — the rest are opt-in
+
+By request (2026-10-08, after the first pass): on YouTube each variant starts with the Landscape
+1.91:1 alone, placed FIRST on the plate; Square 1:1, Portrait 4:5 and Vertical 9:16 are rows with a
+**Show** button (`v.ytShow = {sq, yp, st}`, missing = hidden). `sizesFor` on YouTube is
+`['yl'] + shown`, so a hidden canvas neither renders nor exports, and the scaling rows, own-photo
+rows and the 4:5's canvas build follow the same flags. Hiding drops a selection on that canvas.
+**With the 1:1 hidden the 1.91:1 is the master layout** — not detached, it edits the variant's own
+record, which is what the 1:1 would show — and its row says so; the 4:5 and 9:16 then read
+"mirrors 1.91:1". The 1:1 canvas is still built (hidden) because other code assumes `v.sq`. Meta
+plates are untouched (`sqOn` true, `stHidYt` false), verified by exporting both platforms.
+The table above still states each ratio's export size; "always on" is superseded.
+
 ## The compliance check — `ytCheck(s)` is the one verdict
 
 By request ("have indicators where it checks if it complies to the copy limits"). `ytField(t, max,
@@ -14451,6 +14464,12 @@ folder, classified by suffix") did not organise properly. **Ad sets** in the can
 - **Inside a project only `Variant [A-Z]` folders count, and inside each only
   `_Variant X_feed` / `_Variant X_Story` (.png/.jpg/.webp), with X matching the folder's letter.**
   Newest file wins. A variant folder with neither is skipped; a project with no variant is skipped.
+  **YouTube Demand Gen names count too** (`_Square_1x1`, `_Vertical_9x16`, `_Landscape_1.91x1`,
+  `_Portrait_4x5`): such a variant is its own column, Square | Vertical over a `data-row="sub"` row
+  of Landscape | Portrait sized at `.5766 x --as-h` so it spans the same width. A folder holding
+  both name sets gets two columns (`· Meta`, `· YouTube Demand Gen`). Tiles are `c.rows[].tiles[]`
+  with `data-shape` sq / st / yl / yp. **Never put an apostrophe in a single-quoted note string** —
+  `YouTube's` in one killed the whole logic class at boot.
   Banners, 16:9, Carousel, YouTube sizes and stray files are deliberately NOT shown. **If the
   export names in `EXPORT_NAME` / `exportDir` change, the regex in `asScan` is the second place.**
 - Markup: `asProjects` → `p.cols`; each project a row (`.as-row`, scrolls sideways), each column
