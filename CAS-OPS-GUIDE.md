@@ -21,6 +21,7 @@ How to use the two Provident design studios in this folder.
 4. [CAS: variants, carousels and sizes](#4-cas-variants-carousels-and-sizes)
 5. [CAS: the Eventbrite banner](#5-cas-the-eventbrite-banner)
    - [CAS: YouTube Demand Gen](#5b-cas-youtube-demand-gen)
+   - [CAS: Meta ad text and uploading to Meta](#5c-cas-meta-ad-text-and-uploading-to-meta)
 6. [CAS: the Copy workspace](#6-cas-the-copy-workspace)
 7. [CAS: export](#7-cas-export)
 8. [OPS: make a post](#8-ops-make-a-post)
@@ -240,7 +241,7 @@ On YouTube, every variant carries the four ratios Google mixes into its asset po
 - **Business logo** (in **All Variants Option**): the provident. wordmark on a 1200 × 1200 square.
   Pick its **Ground**: **Navy**, **White** or **Black**. Google crops logos to a circle in some
   places, so the mark sits well inside one.
-- **Text assets:** press **Write headlines and descriptions** (or open **Copy**). The **YouTube
+- **Text assets:** press **Write headlines and descriptions** (or open the **Publish** tab). The **YouTube
   Demand Gen text** box has the **Business name** (max 25 characters), 5 **Headlines** (max 40) and
   5 **Descriptions** (max 90). Google shows any headline with any image, so each one has to make
   sense on its own.
@@ -259,11 +260,41 @@ On YouTube, every variant carries the four ratios Google mixes into its asset po
 Google discourages a lot of text, logos and button shapes on Demand Gen images. Keep the copy on
 the images light and let the headlines and descriptions do the talking.
 
+## 5c. CAS: Meta ad text and uploading to Meta
+
+**Optional.** Only needed if the ads will be sent to Meta through the Meta Ads tool
+(`tools/meta-ads`). If you upload by hand in Ads Manager, skip this — nothing else changes.
+
+- On a **Meta ads** project, the **Publish** tab (top bar: **Copy | Design | Publish**) holds the text Meta shows
+  around the image: up to 5 **Primary texts** (Meta shows the first 125 characters, then *See
+  more*; 500 at most), 5 **Headlines** (max 40), 5 **Descriptions** (max 30, optional), the
+  **Button** (Learn more, Contact us, Sign up…) and the **Destination link** (must start with
+  `https://`). No two may be the same.
+- Each field counts as you type; the badge reads **Ready for Meta** or **N to fix**. The same
+  check is in **All Variants Option → Meta ad text**, and once any text is written the bar under
+  the canvases shows **Meta text · ready** or **Meta text · N to fix** — click it to open the fields.
+- Only the boxes in use show, plus one empty one per group; type into it and the next appears.
+- When you **export JPEG or PNG**, CAS adds `<name>_Meta upload.json` beside the images (only once
+  some Meta text exists). The status line names anything still not ready.
+
+**Sending it to Meta** (a person with Meta access does this, from a terminal):
+
+1. Once per Mac: `bash tools/meta-ads/install.sh`, then put the token, ad account, Page and ad set
+   into `tools/meta-ads/kit/.env` (never in a chat or a file in the repo).
+2. `python3 tools/meta-ads/cas-to-meta.py "<your Source folder>"` — checks the text and every image
+   and writes `Meta upload/` in the folder: a plan and one command file per variant. **It uploads
+   nothing.**
+3. After the ad is approved, run the command it prints. The creative and the ad are created
+   **paused**; switch them on in Ads Manager after a last look.
+
+The same tool also gives read-only performance reports — see `tools/meta-ads/README.md`.
+
 ## 6. CAS: the Copy workspace
 
 This is for copywriters: the ad's words on their own, next to a live preview.
 
-1. Press **Copy** in the top bar (**Design** takes you back).
+1. Press **Copy** in the top bar — the switch reads **Copy | Design | Publish**. **Design** takes you
+   back; **Publish** holds the platform's own text (Meta ad text, or the YouTube text assets).
    - The big preview is the real export.
    - The picker above it chooses which variant (or page) you're looking at.
 2. Fill in the fields.
@@ -304,6 +335,7 @@ Source folder/
       <name>_Variant A_EventBrite_Banner_wide.jpg    ← 1880 × 940
       <name>_Variant A_EventBrite_Banner_Small.jpg   ← 758 × 380
   <name>.adstudio.json   Assets/    ← the session and uploads, refreshed on every export
+  <name>_Meta upload.json            ← only once Meta ad text is written (section 5c)
 ```
 
 - **Every export overwrites the last one without asking.** It never deletes anything, so files an
@@ -495,6 +527,11 @@ exactly what the studio would export.
 
 For a YouTube Demand Gen ad: `studio_edit` with `{op:'set_platform', platform:'youtube'}`, then
 `{op:'youtube_text', business, headlines:[…], descriptions:[…]}`. Export JPG or PNG.
+
+For a Meta ad that will be uploaded with `tools/meta-ads`: `studio_edit` with
+`{op:'meta_text', bodies:[…], headlines:[…], descriptions:[…], cta:'LEARN_MORE', link:'https://…'}`,
+export JPG or PNG, then run `tools/meta-ads/cas-to-meta.py` on the folder. Never upload or ask for a
+Meta token — a person runs the final command after approval.
 
 Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
 or name. Every required field must be filled; the export says what is missing. The project is a

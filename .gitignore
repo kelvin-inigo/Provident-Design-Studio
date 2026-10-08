@@ -21,3 +21,14 @@ scratchpad/
 
 # Components made by the /cas-component skill. They carry campaign copy, so they stay on this computer.
 custom-components/
+
+# Meta Ads kit (tools/meta-ads). Credentials, the account config and every report or dry-run
+# artifact stay on this computer — the repo is public.
+tools/meta-ads/kit/.env
+tools/meta-ads/kit/.env.*
+!tools/meta-ads/kit/.env.example
+tools/meta-ads/kit/ad-config.json
+tools/meta-ads/kit/local/
+tools/meta-ads/kit/workspace/
+tools/meta-ads/kit/output/
+tools/meta-ads/kit/memory/

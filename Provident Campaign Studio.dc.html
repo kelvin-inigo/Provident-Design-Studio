@@ -3239,12 +3239,13 @@ html[data-cwdrag],html[data-cwdrag] *{cursor:grabbing!important;user-select:none
    arrived with the Design | Copy switch. Three moves, in this order of cost:
    Undo and Redo are ICONS (the glyphs are the universal ones, and both carry a title and an
    aria-label), the gaps drop 14 -> 10, and below 1400 the delivery trio keeps its icons and
-   drops its words — each cell names itself in its title. The trio's glyphs are 15px fixed
+   drops its words — each cell names itself in its title. The breakpoint went 1400 -> 1520
+   when the switch became Copy | Design | Publish: with words the bar measured 1472 at 1440. The trio's glyphs are 15px fixed
    (.p-bic), so font-size:0 removes only the words. Below ~1150 the bar still scrolls, as
    recorded, rather than dropping a control. */
 .p-top{gap:10px}
 .p-tgrp-h > .p-ghost{width:40px;padding:0;justify-content:center;gap:0}
-@media (max-width:1399px){
+@media (max-width:1519px){
   .p-top .p-tgrp:not(.p-tgrp-h) > .p-ghost{font-size:0;gap:0;padding:0 11px;letter-spacing:0}
 }
 /* ══ PHONES — THE PROJECT BROWSER, mirrored from Organic's section 28 ═══════════════════
@@ -3632,12 +3633,14 @@ select.p-in{padding-right:34px}
   </sc-if>
   <button onClick="{{ saveSession }}" class="p-ghost p-ico-t" data-on="{{ dirtyOn }}" title="{{ saveLabel }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h429.3q14.47 0 27.81 5.62 13.35 5.61 23.19 15.46l106.31 106.31q9.85 9.84 15.46 23.19 5.62 13.34 5.62 27.81v429.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-646 646-760H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85V-646ZM550.77-298.46Q580-327.69 580-369.23q0-41.54-29.23-70.77-29.23-29.23-70.77-29.23-41.54 0-70.77 29.23Q380-410.77 380-369.23q0 41.54 29.23 70.77 29.23 29.23 70.77 29.23 41.54 0 70.77-29.23ZM291.54-564.62h256.15q15.46 0 25.81-10.34 10.34-10.35 10.34-25.81v-67.69q0-15.46-10.34-25.81-10.35-10.34-25.81-10.34H291.54q-15.46 0-25.81 10.34-10.34 10.35-10.34 25.81v67.69q0 15.46 10.34 25.81 10.35 10.34 25.81 10.34ZM200-646v446-560 114Z"/></svg>{{ saveLabel }}</button>
   </div>
-  <!-- WHICH WORKSPACE. The same project either way: Design is the full studio, Copy is the
-       words alone. Remembered per computer, so a copywriter's machine reopens on Copy. -->
+  <!-- WHICH WORKSPACE. The same project in all three: Copy is the words on the ads, Design is
+       the full studio, Publish is what ships BESIDE the images for the project's platform —
+       Meta ad text, or the YouTube text assets. Remembered per computer. -->
   <sc-if value="{{ cwModeOn }}" hint-placeholder-val="{{ true }}">
     <div class="p-seg p-seg-mode" role="group" aria-label="Workspace">
-      <button onClick="{{ cwModeDesign }}" data-on="{{ cwModeDesignOn }}" title="The full design workspace">Design</button>
       <button onClick="{{ cwModeCopy }}" data-on="{{ cwModeCopyOn }}" title="Just the words, in reading order — for copywriters">Copy</button>
+      <button onClick="{{ cwModeDesign }}" data-on="{{ cwModeDesignOn }}" title="The full design workspace">Design</button>
+      <button onClick="{{ cwModePub }}" data-on="{{ cwModePubOn }}" title="{{ cwModePubTip }}">Publish</button>
     </div>
   </sc-if>
   <div class="p-spring"></div>
@@ -3698,6 +3701,14 @@ select.p-in{padding-right:34px}
 <div class="cw">
   <div class="cw-form">
     <div class="cw-in">
+      <sc-if value="{{ cwPubOn }}" hint-placeholder-val="{{ false }}">
+      <div class="cw-head">
+        <span class="cw-kick">Publish · {{ cwPubPlat }}</span>
+        <input value="{{ cwName }}" onChange="{{ onCwName }}" placeholder="Campaign name" class="p-in cw-name" aria-label="Campaign name">
+        <p class="cw-note">{{ cwPubNote }}</p>
+      </div>
+      </sc-if>
+      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
       <div class="cw-head">
         <span class="cw-kick">Copy</span>
         <input value="{{ cwName }}" onChange="{{ onCwName }}" placeholder="Campaign name" class="p-in cw-name" aria-label="Campaign name">
@@ -3721,6 +3732,7 @@ select.p-in{padding-right:34px}
           <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
         </sc-if>
       </div>
+      </sc-if>
       <sc-if value="{{ cwYtOn }}" hint-placeholder-val="{{ false }}">
         <section class="cw-page cw-yt">
           <div class="cw-page-h"><b>YouTube Demand Gen text</b><span class="yt-badge" data-state="{{ cwYtBadgeState }}">{{ cwYtBadge }}</span></div>
@@ -3747,6 +3759,7 @@ select.p-in{padding-right:34px}
           <span class="cw-hint">Up to 5 headlines of 40 characters and 5 descriptions of 90, none repeated. Google shows any of them with any image, so each one has to stand on its own. They export as Name_Demand Gen text.txt beside the images.</span>
         </section>
       </sc-if>
+      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
       <sc-for list="{{ cwPages }}" as="pg" hint-placeholder-count="1">
         <section class="cw-page" data-on="{{ pg.onPageOn }}" data-cwpg="{{ pg.vi }}" onPointerDown="{{ pg.pick }}">
           <sc-if value="{{ cwMulti }}" hint-placeholder-val="{{ false }}">
@@ -3818,6 +3831,39 @@ select.p-in{padding-right:34px}
           </sc-if>
         </section>
       </sc-for>
+      </sc-if>
+      <sc-if value="{{ cwMtOn }}" hint-placeholder-val="{{ false }}">
+        <section class="cw-page cw-yt cw-mt">
+          <div class="cw-page-h"><b>Meta ad text</b><span class="yt-badge" data-state="{{ cwMtBadgeState }}">{{ cwMtBadge }}</span></div>
+          <ul class="yt-checks" aria-label="Meta's text limits">
+            <sc-for list="{{ cwMtChecks }}" as="ck" hint-placeholder-count="5"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
+          </ul>
+          <sc-for list="{{ cwMtRows }}" as="y" hint-placeholder-count="5">
+            <div class="cw-f">
+              <sc-if value="{{ y.headOn }}" hint-placeholder-val="{{ false }}"><div class="cw-lab-r"><span class="cw-lab">{{ y.group }}</span><span class="yt-gnote" data-state="{{ y.groupState }}">{{ y.groupNote }}</span></div></sc-if>
+              <sc-if value="{{ y.isLine }}" hint-placeholder-val="{{ true }}">
+                <input value="{{ y.val }}" onChange="{{ y.on }}" class="p-in" aria-label="{{ y.label }}" placeholder="{{ y.ph }}" data-state="{{ y.state }}">
+              </sc-if>
+              <sc-if value="{{ y.isArea }}" hint-placeholder-val="{{ false }}">
+                <textarea value="{{ y.val }}" onChange="{{ y.on }}" rows="3" class="p-in" aria-label="{{ y.label }}" placeholder="{{ y.ph }}" data-state="{{ y.state }}"></textarea>
+              </sc-if>
+              <div class="yt-lim" data-state="{{ y.state }}"><span class="yt-bar"><i style="{{ y.meter }}"></i></span><span class="yt-cnt">{{ y.count }}</span></div>
+            </div>
+          </sc-for>
+          <div class="cw-f">
+            <div class="cw-lab-r"><span class="cw-lab">Button</span></div>
+            <select value="{{ cwMtCta }}" onChange="{{ cwMtOnCta }}" class="p-in" aria-label="Call to action button">
+              <sc-for list="{{ cwMtCtas }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
+            </select>
+          </div>
+          <div class="cw-f">
+            <div class="cw-lab-r"><span class="cw-lab">Destination link</span></div>
+            <input value="{{ cwMtLink }}" onChange="{{ cwMtOnLink }}" class="p-in" type="url" inputmode="url" aria-label="Destination link" placeholder="https://www.providentestate.com/…" data-state="{{ cwMtLinkState }}">
+          </div>
+          <span class="cw-hint">Optional — only needed to upload through tools/meta-ads. Primary text is cut at 125 characters behind See more; headlines 40, descriptions 30; none repeated. Meta mixes them with the variant's feed and story, so each has to stand on its own. They export as Name_Meta upload.json beside the images.</span>
+        </section>
+      </sc-if>
+      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
       <section class="cw-page cw-hist">
         <div class="cw-page-h"><b>History</b><s>Every hand-off keeps a snapshot of the words</s></div>
         <label class="cw-sub">Your name <s>shown on the snapshots you make on this computer</s>
@@ -3840,6 +3886,7 @@ select.p-in{padding-right:34px}
           </div>
         </sc-for>
       </section>
+      </sc-if>
     </div>
   </div>
   <aside class="cw-pv">
@@ -4109,6 +4156,14 @@ select.p-in{padding-right:34px}
   </div>
   </sc-if>
   <sc-if value="{{ platMetaFlag }}" hint-placeholder-val="{{ true }}">
+  <div class="p-grp">
+    <span class="p-lab">Meta ad text <span class="yt-badge" data-state="{{ mtBadgeState }}">{{ mtBadge }}</span></span>
+    <ul class="yt-checks yt-checks-s" aria-label="Meta's text limits">
+      <sc-for list="{{ mtChecks }}" as="ck" hint-placeholder-count="0"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
+    </ul>
+    <span class="p-hint">{{ mtHint }}</span>
+    <button onClick="{{ ytEditText }}" class="p-ghost p-sm">Write Meta ad text</button>
+  </div>
   <div class="p-grp">
     <span class="p-lab">Format <span class="tip tip-dark" data-tip="A single ad is one design in up to three A/B variants that share their copy. A carousel is up to ten pages that swipe, each with its own copy and photo — exported as _page1, _page2, … Switching keeps everything you have made." style="{{ infoStyleDark }}">i</span></span>
     <div class="p-tabs"><button onClick="{{ modeSingle }}" data-on="{{ modeSingleOn }}">Single ad</button><button onClick="{{ modeCarousel }}" data-on="{{ modeCarouselOn }}">Carousel</button></div>
@@ -4497,7 +4552,7 @@ select.p-in{padding-right:34px}
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><sc-if value="{{ ytBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ ytBarState }}" title="Does the YouTube text fit Google's limits — open it">{{ ytBarLabel }}</button></sc-if><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
+  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><sc-if value="{{ ytBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ ytBarState }}" title="Does the YouTube text fit Google's limits — open it">{{ ytBarLabel }}</button></sc-if><sc-if value="{{ mtBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ mtBarState }}" title="Does the Meta ad text fit Meta's limits — open it">{{ mtBarLabel }}</button></sc-if><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -5342,6 +5397,7 @@ class CampaignStudio extends StudioBase {
     // a YouTube project is a single ad — Demand Gen takes an asset pool, not swipe pages
     if (p.platform === 'ytdg') p.adMode = 'single';
     if (p.platform === 'ytdg' || p.yt) p.yt = CampaignStudio.ytOf(p);
+    if (p.mt) p.mt = CampaignStudio.mtOf(p);
     if (p.storyOn !== false) p.storyOn = true;
     p.variants.forEach(v => {
       if (Array.isArray(v.mods)) v.mods = CampaignStudio.normModList(v.mods, [v]);
@@ -5439,7 +5495,7 @@ class CampaignStudio extends StudioBase {
     // `strip()` leaves them out of every undo entry's comparison on purpose.
     const cur = this.state || {};
     const n = Object.assign({}, st, {
-      screen: cur.screen === 'copy' ? 'copy' : 'editor',
+      screen: cur.screen === 'copy' || cur.screen === 'publish' ? cur.screen : 'editor',
       copyStatus: cur.copyStatus || st.copyStatus || 'draft',
       copyLog: Array.isArray(cur.copyLog) ? cur.copyLog : (st.copyLog || []),
       // an undo entry taken before the first save carries no identity; keep today's
@@ -5744,6 +5800,86 @@ class CampaignStudio extends StudioBase {
     const bad = rows.filter(r => r.state === 'bad').length;
     return { biz, heads: H.fields, descs: D.fields, rows, bad, ok: !bad, problems,
       badge: bad ? bad + ' to fix' : 'Ready for Google' };
+  }
+  // META AD TEXT — what tools/meta-ads uploads beside the images. Optional: a project that
+  // leaves it empty exports exactly as before, and the export writes `<name>_Meta upload.json`
+  // only once something is written. Limits are Meta's own: primary text is cut at 125
+  // characters behind "See more" and refused past 500 by the kit's validator; headlines 40,
+  // descriptions 30; up to five of each (a dynamic creative tests the combinations). The CTA
+  // list is the official Ads CLI's own `--call-to-action` choices.
+  static MT_LIM = { body: 125, bodyMax: 500, head: 40, desc: 30, n: 5 };
+  static MT_CTA = [['LEARN_MORE', 'Learn more'], ['CONTACT_US', 'Contact us'], ['SIGN_UP', 'Sign up'], ['GET_QUOTE', 'Get quote'],
+    ['BOOK_TRAVEL', 'Book now'], ['APPLY_NOW', 'Apply now'], ['GET_OFFER', 'Get offer'], ['SUBSCRIBE', 'Subscribe'], ['DOWNLOAD', 'Download'],
+    ['WATCH_MORE', 'Watch more'], ['OPEN_LINK', 'Open link'], ['SHOP_NOW', 'Shop now'], ['BUY_NOW', 'Buy now'], ['NO_BUTTON', 'No button']];
+  static mtOf(s) {
+    const m = (s && s.mt) || {};
+    const five = a => { const o = Array.isArray(a) ? a.slice(0, 5).map(t => String(t == null ? '' : t)) : []; while (o.length < 5) o.push(''); return o; };
+    const cta = CampaignStudio.MT_CTA.some(c => c[0] === m.cta) ? m.cta : 'LEARN_MORE';
+    return { bodies: five(m.bodies), heads: five(m.heads), descs: five(m.descs), cta, link: typeof m.link === 'string' ? m.link : '' };
+  }
+  static mtUsed(s) {
+    const m = CampaignStudio.mtOf(s);
+    return !!(m.link.trim() || m.bodies.concat(m.heads, m.descs).some(t => t.trim()));
+  }
+  // ONE verdict, read by the copy view, the dock, the canvas bar's chip, the export's status
+  // line and the manifest's own `checks` — the same shape ytCheck has, for the same reason.
+  static mtCheck(s) {
+    const C = CampaignStudio, m = C.mtOf(s), L = C.MT_LIM, problems = [];
+    const field = (t, max, dupOf, soft) => {
+      const n = String(t || '').trim().length;
+      if (!n) return { n, state: 'empty', label: soft ? '0 · up to ' + max + ' shown' : '0 / ' + max, pct: 0 };
+      if (soft) {
+        if (n > L.bodyMax) return { n, state: 'over', label: n + ' · over ' + L.bodyMax, pct: 100 };
+        if (dupOf) return { n, state: 'dup', label: 'Same as ' + dupOf, pct: Math.min(100, n / max * 100) };
+        return { n, state: 'ok', label: n + (n > max ? ' · first ' + max + ' shown, then See more' : ' / ' + max + ' shown'), pct: Math.min(100, n / max * 100) };
+      }
+      return C.ytField(t, max, dupOf);
+    };
+    const list = (arr, max, word, need, soft) => {
+      const seen = {};
+      const fields = arr.map((t, i) => {
+        const k = String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        const dup = k && seen[k] ? word.toLowerCase() + ' ' + seen[k] : '';
+        if (k && !seen[k]) seen[k] = i + 1;
+        return field(t, max, dup, soft);
+      });
+      const filled = fields.filter(f => f.state !== 'empty').length;
+      const over = fields.filter(f => f.state === 'over').length, dups = fields.filter(f => f.state === 'dup').length;
+      fields.forEach((f, i) => {
+        if (f.state === 'over') problems.push(word + ' ' + (i + 1) + ' is ' + f.n + ' / ' + (soft ? L.bodyMax : max));
+        if (f.state === 'dup') problems.push(word + ' ' + (i + 1) + ' repeats ' + f.label.replace('Same as ', ''));
+      });
+      if (need && !filled) problems.push('No ' + word.toLowerCase() + ' yet');
+      const bad = (need && !filled) || over || dups;
+      const note = !filled ? (need ? 'Meta needs at least one' : 'optional')
+        : ((over || dups) ? [over ? over + ' too long' : '', dups ? dups + ' repeated' : ''].filter(Boolean).join(' · ')
+          : (soft ? 'all under ' + L.bodyMax : 'all within ' + max + ' characters'));
+      return { fields, row: { label: word + 's', state: bad ? 'bad' : 'ok', note: filled + ' of 5 · ' + note } };
+    };
+    const B = list(m.bodies, L.body, 'Primary text', true, true), H = list(m.heads, L.head, 'Headline', true), D = list(m.descs, L.desc, 'Description', false);
+    B.row.label = 'Primary text';
+    const url = m.link.trim(), urlOk = /^https:\/\/[^\s/]+\.[^\s]+$/i.test(url);
+    if (!url) problems.push('No destination link');
+    else if (!urlOk) problems.push('The destination link must start with https://');
+    const lrow = { label: 'Destination', state: urlOk ? 'ok' : 'bad', note: !url ? 'missing' : (urlOk ? url.replace(/^https:\/\//i, '').slice(0, 34) : 'must start with https://') };
+    const ctaLab = (C.MT_CTA.find(c => c[0] === m.cta) || [m.cta, m.cta])[1];
+    const rows = [B.row, H.row, D.row, lrow, { label: 'Button', state: 'ok', note: ctaLab }];
+    const bad = rows.filter(r => r.state === 'bad').length;
+    return { bodies: B.fields, heads: H.fields, descs: D.fields, urlOk, rows, bad, ok: !bad, problems, ctaLab,
+      badge: bad ? bad + ' to fix' : 'Ready for Meta' };
+  }
+  // The upload manifest the bridge in tools/meta-ads reads: the ad text, and every image the
+  // export just wrote, per variant (or ONE carousel ad whose cards are the pages' feeds).
+  // Image paths are relative to the export root, so the manifest travels with the folder.
+  mtManifest(s, name, imgs) {
+    const C = CampaignStudio, m = C.mtOf(s), ck = C.mtCheck(s), car = C.isCarousel(s);
+    const keep = a => a.map(t => t.trim()).filter(Boolean);
+    const ads = car
+      ? [{ name: name + ' – Carousel', folder: 'Carousel', format: 'carousel', images: [].concat(...imgs.map(x => x || [])) }]
+      : imgs.map((list, vi) => ({ name: name + ' – ' + this.exportDir(vi), folder: this.exportDir(vi), format: 'single', images: list || [] }));
+    return { provident: 'cas-meta-upload', version: 1, campaign: name, exported_at: new Date().toISOString(),
+      link: m.link.trim(), cta: m.cta, copy: { bodies: keep(m.bodies), titles: keep(m.heads), descriptions: keep(m.descs) },
+      ads, checks: { ok: ck.ok, problems: ck.problems } };
   }
   // The business logo: the wordmark on a square, inside the circle Google crops a logo to
   // in some placements — 62% of the width, so the ink clears the inscribed circle with room.
@@ -8909,7 +9045,7 @@ class CampaignStudio extends StudioBase {
         this.setState({ exportStatus: `Exported ${pages.length} pages → ${name}.pdf` });
         return;
       }
-      const files = [], yt = CampaignStudio.isYT(state), big = [];
+      const files = [], yt = CampaignStudio.isYT(state), big = [], mtImgs = [];
       for (let vi = 0; vi < state.variants.length; vi++) {
         for (const sizeKey of CampaignStudio.sizesFor(state, state.variants[vi])) {
           const built = this.buildOps(state, vi, sizeKey, assets);
@@ -8920,6 +9056,9 @@ class CampaignStudio extends StudioBase {
             const fn = this.exportPath(name, vi, sizeKey, r.ext);
             if (yt && r.data.length > CampaignStudio.YT_LIM.mb * 1048576) big.push(fn.split('/').pop());
             files.push({ name: fn, data: r.data });
+            const k = CampaignStudio.exportScale(sizeKey, state);
+            (mtImgs[vi] = mtImgs[vi] || []).push({ file: fn, size: sizeKey, placement: CampaignStudio.EXPORT_NAME[sizeKey] || sizeKey,
+              w: Math.round(built.W * k), h: Math.round(built.H * k), bytes: r.data.length });
           } else {
             files.push({ name: this.exportPath(name, vi, sizeKey, 'svg'), data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
           }
@@ -8935,7 +9074,14 @@ class CampaignStudio extends StudioBase {
         files.push({ name: 'Logo/' + name + '_Logo_1x1.png', data: lg.data });
         files.push({ name: name + '_Demand Gen text.txt', data: new TextEncoder().encode(this.ytText(state)) });
       }
+      // META: the upload manifest tools/meta-ads reads, once any ad text has been written.
+      const mtOn = !yt && (kind === 'png' || kind === 'jpg') && CampaignStudio.mtUsed(state);
+      if (mtOn) files.push({ name: name + '_Meta upload.json', data: new TextEncoder().encode(JSON.stringify(this.mtManifest(state, name, mtImgs), null, 2) + '\n') });
       await this.deliver(files, name, { overwrite: true });
+      if (mtOn) {
+        const iss = CampaignStudio.mtCheck(state).problems;
+        if (iss.length) this.setState(p => ({ exportStatus: (p.exportStatus || '') + ' · Meta text not ready: ' + iss.join(', ') + '.' }));
+      }
       if (yt) {
         const iss = CampaignStudio.ytIssues(state);
         const warn = (big.length ? ' · Over 5 MB, which Google refuses: ' + big.join(', ') + ' — export JPEG instead.' : '') +
@@ -9148,8 +9294,8 @@ class CampaignStudio extends StudioBase {
   // Which workspace THIS BROWSER opens on. Per machine rather than per project, because
   // it is a fact about who is sitting there: the copywriter's laptop reopens on the copy
   // view, the designer's on the canvas, and the project they pass between them is one file.
-  static workScreen() { try { return localStorage.getItem('adstudio-workspace') === 'copy' ? 'copy' : 'editor'; } catch (e) { return 'editor'; } }
-  static setWorkScreen(sc) { try { localStorage.setItem('adstudio-workspace', sc === 'copy' ? 'copy' : 'design'); } catch (e) {} }
+  static workScreen() { try { const w = localStorage.getItem('adstudio-workspace'); return w === 'copy' || w === 'publish' ? w : 'editor'; } catch (e) { return 'editor'; } }
+  static setWorkScreen(sc) { try { localStorage.setItem('adstudio-workspace', sc === 'copy' || sc === 'publish' ? sc : 'design'); } catch (e) {} }
   static copyAuthor() { try { return localStorage.getItem('adstudio-author') || ''; } catch (e) { return ''; } }
   // The pages the copy is arranged in: every page of a carousel, or the one ad — whose
   // words are shared by all its design variants, so it is ONE page however many there are.
@@ -9524,7 +9670,7 @@ class CampaignStudio extends StudioBase {
   }
   cwKey() { const s = this.state; return CampaignStudio.strip(s) + '|' + (s.activeVi || 0) + '|' + this.cwScale() + '|' + StudioBase.fontKey(s) + '|' + JSON.stringify(this._filled || {}); }
   cwSync() {
-    if (this.state.screen !== 'copy') return;
+    if (this.state.screen !== 'copy' && this.state.screen !== 'publish') return;
     const k = this.cwKey();
     if (k === this._cwKey || this._cwBusy) { if (this._cwBusy) this._cwAgain = true; return; }
     clearTimeout(this._cwT);
@@ -9751,15 +9897,16 @@ class CampaignStudio extends StudioBase {
   // field with its own count against Google's limit, which turns amber past it.
   cwYtVals() {
     const s = this.state, C = CampaignStudio, L = C.YT_LIM;
-    if (!C.isYT(s)) return { cwYtOn: false, cwYtRows: [] };
+    if (!C.isYT(s) || s.screen !== 'publish') return { cwYtOn: false, cwYtRows: [] };
     const y = C.ytOf(s), ck = C.ytCheck(s);
     const setY = fn => this.upd(x => { x.yt = C.ytOf(x); fn(x.yt); return x; });
     const meter = f => ({ width: f.pct.toFixed(1) + '%' });
     const rows = [];
-    y.heads.forEach((t, i) => { const f = ck.heads[i]; rows.push({ headOn: i === 0, group: 'Headlines', groupNote: ck.rows[1].note, groupState: ck.rows[1].state, isLine: true, isArea: false, label: 'Headline ' + (i + 1),
+    const shown = arr => { let last = -1; arr.forEach((t, i) => { if (String(t).trim()) last = i; }); return Math.min(arr.length, last + 2); };
+    y.heads.slice(0, shown(y.heads)).forEach((t, i) => { const f = ck.heads[i]; rows.push({ headOn: i === 0, group: 'Headlines', groupNote: ck.rows[1].note, groupState: ck.rows[1].state, isLine: true, isArea: false, label: 'Headline ' + (i + 1),
       ph: i === 0 ? 'e.g. Waterfront homes in Dubai Marina' : 'Headline ' + (i + 1), val: t, count: f.label, state: f.state, meter: meter(f),
       on: e => { const v = e.target.value; setY(o => { o.heads[i] = v; }); } }); });
-    y.descs.forEach((t, i) => { const f = ck.descs[i]; rows.push({ headOn: i === 0, group: 'Descriptions', groupNote: ck.rows[2].note, groupState: ck.rows[2].state, isLine: false, isArea: true, label: 'Description ' + (i + 1),
+    y.descs.slice(0, shown(y.descs)).forEach((t, i) => { const f = ck.descs[i]; rows.push({ headOn: i === 0, group: 'Descriptions', groupNote: ck.rows[2].note, groupState: ck.rows[2].state, isLine: false, isArea: true, label: 'Description ' + (i + 1),
       ph: i === 0 ? 'e.g. Ready to move in, with a 50/50 payment plan. Book a viewing with Provident.' : 'Description ' + (i + 1), val: t, count: f.label, state: f.state, meter: meter(f),
       on: e => { const v = e.target.value; setY(o => { o.descs[i] = v; }); } }); });
     return {
@@ -9769,24 +9916,60 @@ class CampaignStudio extends StudioBase {
       cwYtOnBiz: e => { const v = e.target.value; setY(o => { o.biz = v; }); }
     };
   }
+  // The Meta ad text in the copy view — five primary texts, five headlines, five descriptions,
+  // the button and the link — each with its own count, read off mtCheck.
+  cwMtVals() {
+    const s = this.state, C = CampaignStudio, L = C.MT_LIM;
+    if (C.isYT(s) || s.screen !== 'publish') return { cwMtOn: false, cwMtRows: [] };
+    const m = C.mtOf(s), ck = C.mtCheck(s);
+    const setM = fn => this.upd(x => { x.mt = C.mtOf(x); fn(x.mt); return x; });
+    const meter = f => ({ width: f.pct.toFixed(1) + '%' });
+    const rows = [];
+    // Only the fields in use plus ONE empty one per group: fifteen empty boxes was a long
+    // scroll for text most ads fill one or two of. Typing into the empty one shows the next.
+    const shown = arr => { let last = -1; arr.forEach((t, i) => { if (String(t).trim()) last = i; }); return Math.min(arr.length, last + 2); };
+    const grp = (arr, fields, row, word, area, ph0, key) => arr.slice(0, shown(arr)).forEach((t, i) => { const f = fields[i];
+      rows.push({ headOn: i === 0, group: row.label, groupNote: row.note, groupState: row.state, isLine: !area, isArea: area, label: word + ' ' + (i + 1),
+        ph: i === 0 ? ph0 : word + ' ' + (i + 1), val: t, count: f.label, state: f.state, meter: meter(f),
+        on: e => { const v = e.target.value; setM(o => { o[key][i] = v; }); } }); });
+    grp(m.bodies, ck.bodies, ck.rows[0], 'Primary text', true, 'e.g. Waterfront homes in Dubai Marina, ready to move in. 50/50 payment plan — book a private viewing.', 'bodies');
+    grp(m.heads, ck.heads, ck.rows[1], 'Headline', false, 'e.g. Marina homes from AED 2.6M', 'heads');
+    grp(m.descs, ck.descs, ck.rows[2], 'Description', false, 'e.g. Ready to move in', 'descs');
+    return {
+      cwMtOn: true, cwMtRows: rows,
+      cwMtBadge: ck.badge, cwMtBadgeState: ck.ok ? 'ok' : 'bad', cwMtChecks: ck.rows,
+      cwMtLink: m.link, cwMtLinkState: !m.link.trim() ? 'empty' : (ck.urlOk ? 'ok' : 'over'),
+      cwMtOnLink: e => { const v = e.target.value; setM(o => { o.link = v; }); },
+      cwMtCtas: C.MT_CTA.map(c => ({ v: c[0], t: c[1] })),
+      cwMtCta: m.cta,
+      cwMtOnCta: e => { const v = e.target.value; setM(o => { o.cta = v; }); }
+    };
+  }
   copyVals() {
     const s = this.state, C = CampaignStudio, L = C.COPY_LABEL;
     const status = C.COPY_STATES.indexOf(s.copyStatus) >= 0 ? s.copyStatus : 'draft';
-    const on = s.screen === 'copy';
+    const on = s.screen === 'copy' || s.screen === 'publish', pub = s.screen === 'publish';
     const log = s.copyLog || [];
     const last = log.length ? log[log.length - 1] : null;
     const go = sc => () => { C.setWorkScreen(sc); if (s.screen !== sc) this.upd(x => { x.screen = sc; x.sel = null; return x; }); };
     const base = {
       cwModeOn: s.screen === 'editor' || on,
       cwModeDesignOn: s.screen === 'editor' ? '1' : undefined,
-      cwModeCopyOn: on ? '1' : undefined,
-      cwModeDesign: go('editor'), cwModeCopy: go('copy'),
+      cwModeCopyOn: on && !pub ? '1' : undefined,
+      cwModePubOn: pub ? '1' : undefined,
+      cwModeDesign: go('editor'), cwModeCopy: go('copy'), cwModePub: go('publish'),
+      cwModePubTip: C.isYT(s) ? 'The YouTube text assets that ship beside the images' : 'The Meta ad text that ships beside the images, for tools/meta-ads',
+      cwCopyOn: on && !pub, cwPubOn: pub,
+      cwPubPlat: C.isYT(s) ? 'YouTube Demand Gen' : 'Meta ads',
+      cwPubNote: C.isYT(s)
+        ? 'What Google shows around the images. It exports as Name_Demand Gen text.txt beside them.'
+        : 'What Meta shows around the image — primary text above it, headline and button below. Optional: only needed to upload through tools/meta-ads; it exports as Name_Meta upload.json.',
       cwScreen: s.screen,
       cwBarLabel: 'Copy · ' + L[status],
       cwBarState: status,
       cwOpen: go('copy'),
       cwOn: on,
-      cwYtOn: false, cwYtRows: [],
+      cwYtOn: false, cwYtRows: [], cwMtOn: false, cwMtRows: [],
     };
     if (!on) return base;
     const carousel = C.isCarousel(s), vi = Math.max(0, Math.min(s.activeVi || 0, s.variants.length - 1));
@@ -9927,6 +10110,7 @@ class CampaignStudio extends StudioBase {
       cwPages: pages,
       cwMulti: carousel,
       ...this.cwYtVals(),
+      ...this.cwMtVals(),
       cwHist: hist,
       cwHistOn: hist.length > 0,
       cwHistEmptyOn: !hist.length,
@@ -11382,12 +11566,18 @@ class CampaignStudio extends StudioBase {
       ytLogoNavy: () => ytSet(o => { o.logoBg = 'navy'; }),
       ytLogoWhite: () => ytSet(o => { o.logoBg = 'white'; }),
       ytLogoBlack: () => ytSet(o => { o.logoBg = 'black'; }),
-      ytTextHint: ytCk.ok ? 'Written in the Copy workspace, exported as a text file beside the images.'
+      ytTextHint: ytCk.ok ? 'Written in the Publish tab, exported as a text file beside the images.'
         : ytCk.problems.join(' · ') + '.',
       ytBadge: ytCk.badge, ytBadgeState: ytCk.ok ? 'ok' : 'bad', ytChecks: ytCk.rows,
       // the canvas bar's chip: the same verdict, one click from the fields
       ytBarOn: yt, ytBarLabel: 'Google text · ' + (ytCk.ok ? 'ready' : ytCk.bad + ' to fix'), ytBarState: ytCk.ok ? 'ok' : 'bad',
-      ytEditText: () => { CampaignStudio.setWorkScreen('copy'); this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }); },
+      ytEditText: () => { CampaignStudio.setWorkScreen('publish'); this.upd(x => { x.screen = 'publish'; x.sel = null; return x; }); },
+      // ── Meta ad text, for tools/meta-ads — the same verdict in the dock and the canvas bar ──
+      ...(() => { const mck = CampaignStudio.mtCheck(s), used = !yt && CampaignStudio.mtUsed(s);
+        return { mtBadge: used ? mck.badge : 'Optional', mtBadgeState: !used ? 'ok' : (mck.ok ? 'ok' : 'bad'), mtChecks: used ? mck.rows : [],
+          mtHint: !used ? 'Only needed to upload through tools/meta-ads. Exported as Name_Meta upload.json beside the images.'
+            : (mck.ok ? 'Exported as Name_Meta upload.json beside the images — tools/meta-ads/cas-to-meta.py validates it and prepares a PAUSED upload.' : mck.problems.join(' · ') + '.'),
+          mtBarOn: used, mtBarLabel: 'Meta text · ' + (mck.ok ? 'ready' : mck.bad + ' to fix'), mtBarState: mck.ok ? 'ok' : 'bad' }; })(),
       // JPEG and PNG ship at the FILE's size on YouTube, so the format names drop the 2x
       exportJpgName: yt ? 'JPEG' : 'JPEG 2×',
       exportPngName: yt ? 'PNG' : 'PNG 2×',
@@ -12318,7 +12508,7 @@ class Component extends DCLogic {
   _vtTick() { const e = this.active(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
   // The copy view's preview is the real export, re-rendered off a key — so, like the
   // placement preview, calling it on every update is a no-op unless the words moved.
-  _cwTick() { const e = this.active(); if (e && e.state && e.state.screen === 'copy' && e.cwSync) e.cwSync(); }
+  _cwTick() { const e = this.active(); if (e && e.state && (e.state.screen === 'copy' || e.state.screen === 'publish') && e.cwSync) e.cwSync(); }
   // The splash's template cards are REAL renders. Key-guarded inside `tplRenderAll`, so
   // calling it on every update — and once at mount, because the splash is the opening
   // screen and may never see an update before the user looks at a card — is a no-op after

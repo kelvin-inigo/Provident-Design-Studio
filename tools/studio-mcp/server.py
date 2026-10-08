@@ -384,7 +384,8 @@ TOOLS = [
             "{op:'remove_component', id, variant?} · {op:'variant', variant, fields:{align:'left'|'center', bg:'dark'|'light', "
             "logoPos:'top'|'bottom', wide:true, banner:true}} · {op:'add_variant'} · {op:'set_mode', mode:'single'|'carousel'} · "
             "{op:'set_platform', platform:'meta'|'youtube'} (YouTube Demand Gen: every variant carries 1.91:1, 1:1, 4:5 and 9:16 at Google's sizes, plus a 1:1 logo and text) · "
-            "{op:'youtube_text', business?, headlines?:[up to 5, max 40 chars], descriptions?:[up to 5, max 90 chars]}.\n"
+            "{op:'youtube_text', business?, headlines?:[up to 5, max 40 chars], descriptions?:[up to 5, max 90 chars]} · "
+            "{op:'meta_text', bodies?:[up to 5 primary texts, 125 shown, max 500], headlines?:[up to 5, max 40], descriptions?:[up to 5, max 30], cta?:'LEARN_MORE'|'CONTACT_US'|'SIGN_UP'|'GET_QUOTE'|…, link?:'https://…'} — the text tools/meta-ads uploads; exports as Name_Meta upload.json.\n"
             "Both: {op:'set', path:'dotted.path', value} for anything else on the project state (e.g. 'agent.name', "
             "'campaign', 'glassFill', 'storyOn', 'customName'); value null deletes."
         ),

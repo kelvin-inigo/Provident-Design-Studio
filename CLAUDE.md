@@ -14390,3 +14390,50 @@ section, dock and canvas bar clears 4.5 in both themes.
   area, and would flag every template.
 - **Demand Gen carousels (2–10 cards) are not built** — the request specified image ads.
 - No YouTube placement mock; the copy snapshots/.docx omit the text assets.
+
+# THE META ADS KIT IS VENDORED AND WIRED TO CAS — `tools/meta-ads/`
+
+By request (2026-10-08): "install TheMattBerman/meta-ads-kit, somehow integrate it to CAS".
+Details in `tools/meta-ads/README.md`; Claude's playbook is `.claude/skills/meta-ads/`.
+
+- **`kit/` is the repo vendored at `dffa0da`** (MIT), unmodified. Its `.env`, `ad-config.json`,
+  `local/`, `workspace/` are git-ignored — the repo is public, so a token must never land here.
+  `install.sh` installs Meta's official Ads CLI (`uv tool install --python 3.12 meta-ads` →
+  `~/.local/bin/meta`, 1.2.0) and creates the two config files in **mock mode**. No token was set.
+- **The seam is CAS's export.** `state.mt = {bodies[5], heads[5], descs[5], cta, link}`
+  (`mtOf`, `MT_LIM`, `MT_CTA` = the CLI's own `--call-to-action` list). `mtCheck(s)` is the one
+  verdict (primary text: 125 shown, refused past 500; headline 40; description 30; no repeats;
+  https link) read by the Publish tab's **Meta ad text** section (Meta platform
+  only), the dock's group, the canvas bar's chip (only once text exists) and the export status.
+  **Optional**: `mtUsed(s)` false means nothing new is shown on the bar and no file is written.
+- **Export** (JPEG/PNG, Meta platform, `mtUsed`) adds `<name>_Meta upload.json` at the root:
+  the text plus every image just written per variant (`file`, `size`, `w`, `h`, `bytes`; one
+  `Carousel` ad on a carousel). Image paths are relative, so the manifest travels with the folder.
+- **`cas-to-meta.py` (stdlib, 3.9) never uploads.** It validates text and images (header-parsed
+  dims, JPEG/PNG, ≥600px, ≤30 MB, Meta ratio; Eventbrite banners skipped) and writes
+  `Meta upload/plan.json` plus a `<Variant>.commands.sh` of exact `meta ads creative create` /
+  `ad create` calls, all `--status PAUSED`, that **refuse to run without `META_KIT_MODE=
+  live-approved` and `META_KIT_APPROVAL_ID`** (the kit's own convention). It also records the
+  kit's dry-run artifact, run with `cwd=kit` — from the repo root it wrote a stray `local/`.
+  Several images/texts = a Dynamic Creative (needs a `--dynamic-creative` ad set); carousels are
+  validated, not scripted.
+- **MCP:** `studio_edit` op `meta_text`; `studio_read_project` reports `meta_text`. **Fixed on the
+  way:** `set_platform` and `youtube_text` were not in the batched loop's skip list, so they fell
+  through to "Unknown CAS edit" after running.
+- Verified: real typing into the fields, the button select, export through `doExport` to disk
+  (feed 2160², Story 2160×3840 + manifest), the bridge Ready/Not-ready paths, the guard blocking,
+  an empty project writing no manifest, YouTube hiding all of it. `sc-if` 335/334 (documented
+  one-off). Artwork untouched — no op line changed.
+
+## CAS's workspaces are Copy | Design | Publish (2026-10-08)
+
+By request — the Meta ad text made the Copy view "a long scroll down". `screen` takes a third
+value, **`'publish'`**, which reuses the copy overlay (`.cw`, same preview column) but shows only
+the platform's text: **Meta ad text** on a Meta project, the **YouTube Demand Gen text** on a
+YouTube one (it moved out of Copy too, for the same reason). Copy keeps the words, the hand-off
+and History. `cwCopyOn` / `cwPubOn` gate the markup; `cwYtVals` / `cwMtVals` return off unless
+the screen is `'publish'`; `cwSync`, `_cwTick`, `workScreen` / `setWorkScreen` (`adstudio-workspace`
+may now read `publish`) and `restore()` all accept it. Every "Write … text" button and both
+canvas-bar chips (`ytEditText`) open Publish. The text groups show only fields in use plus ONE
+empty one (2,380px -> 1,182px with one headline). The third tab cost 32px at 1440, so the delivery
+trio's label-dropping breakpoint went 1400 -> **1520**; measured fitting at 1280, 1440 and 1600.
