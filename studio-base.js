@@ -751,8 +751,10 @@ class StudioBase {
   // and two copies of a list like this drift.
   static EXPKINDS = ['jpg', 'png', 'svg', 'pdf'];
   static EXPNAMES = { jpg: 'JPEG 2×', png: 'PNG 2×', svg: 'SVG', pdf: 'PDF' };
-  expPickVals(pdfOn) {
-    const K = StudioBase.EXPKINDS, avail = K.filter(k => k !== 'pdf' || pdfOn);
+  // `noSvg` drops the SVG row too — Campaign's YouTube Demand Gen takes JPEG or PNG only.
+  // Organic never passes it, so its picker is unchanged.
+  expPickVals(pdfOn, noSvg) {
+    const K = StudioBase.EXPKINDS, avail = K.filter(k => (k !== 'pdf' || pdfOn) && (k !== 'svg' || !noSvg));
     // PDF is the one row that can disappear, so a stored 'pdf' has to fall back
     // rather than leave the button pointing at a format with no row.
     let sel = this.state.exportKind || 'jpg';

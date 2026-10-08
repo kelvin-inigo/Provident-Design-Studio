@@ -382,7 +382,9 @@ TOOLS = [
             "CAS edits: {op:'component', id, variant?, fields?:{text|sub|chips|cols}, style?, size?:'s'|'m'|'l'|'xl', "
             "cluster?:'top'|'bottom', hidden?} · {op:'add_component', type, variant?, fields?, style?, size?, cluster?, after?} · "
             "{op:'remove_component', id, variant?} · {op:'variant', variant, fields:{align:'left'|'center', bg:'dark'|'light', "
-            "logoPos:'top'|'bottom', wide:true, banner:true}} · {op:'add_variant'} · {op:'set_mode', mode:'single'|'carousel'}.\n"
+            "logoPos:'top'|'bottom', wide:true, banner:true}} · {op:'add_variant'} · {op:'set_mode', mode:'single'|'carousel'} · "
+            "{op:'set_platform', platform:'meta'|'youtube'} (YouTube Demand Gen: every variant carries 1.91:1, 1:1, 4:5 and 9:16 at Google's sizes, plus a 1:1 logo and text) · "
+            "{op:'youtube_text', business?, headlines?:[up to 5, max 40 chars], descriptions?:[up to 5, max 90 chars]}.\n"
             "Both: {op:'set', path:'dotted.path', value} for anything else on the project state (e.g. 'agent.name', "
             "'campaign', 'glassFill', 'storyOn', 'customName'); value null deletes."
         ),

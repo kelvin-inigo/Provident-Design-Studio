@@ -14304,3 +14304,89 @@ and verified on two tabs: without it tab A ended with B's copy and photo; with i
 - `?ws=shared` is the opt-out to the old single shared project; `reloadNow(url)` carries the id
   across the CAS↔OPS hand-over. **Old projects that were unsaved before this landed sit under the
   un-prefixed key and are reachable with `?ws=shared`.**
+
+# CAS IS FOR ONE PLATFORM PER PROJECT: META ADS OR YOUTUBE DEMAND GEN
+
+By request (2026-10-08): "create on CAS new templates for YouTube Demand Gen … separate META ADS from
+YT DEMAND GEN". `state.platform` is `'meta'` (default, and every saved project) or `'ytdg'`;
+`CampaignStudio.isYT(s)` is the one test. The design, components, copy and variants are the same
+machinery — the platform decides which canvases a variant carries, what each file exports at, and
+what ships beside them.
+
+**Meta is byte-identical.** Op census against the pre-change build served alongside: 4 templates ×
+dark/light × left/centre × sq, st, ls, bn, bs — **80 groups, 1,092 ops, 0 differing.**
+
+## The four Google ratios are always on
+
+`sizesFor` on a YouTube project is `['sq', 'yl', 'yp', 'st']`, every variant, no toggles:
+
+| key | canvas | laid out at | exported at |
+|---|---|---|---|
+| `sq` | 1:1 square (master) | 1080 × 1080 | **1200 × 1200** (`YT_OUT`) |
+| `yl` | Landscape 1.91:1 | 1920 × 1004.8, the 16:9's tokens and 800 column | **1200 × 628** (`out`, scale .625) |
+| `yp` | Portrait 4:5 | 1080 × 1350, the 1:1's tokens | **960 × 1200** (`out`) |
+| `st` | Vertical 9:16 · Shorts | 1080 × 1920, the Reels safe area | **1080 × 1920** (`YT_OUT`) |
+
+- `exportScale(sizeKey, s)` takes the state now: `YT_OUT` overrides the 1:1 and 9:16 on YouTube
+  only; `yl`/`yp` carry their own `out`. Measured through the real `doExport`: every file at exactly
+  its size, JPEGs 0.06–0.14 MB, PNGs 0.2–0.4 MB on the template.
+- **The 9:16 keeps the Reels margins** — Shorts carries the same header, rail and account stack.
+- `yl` and `yp` each have a detached record (`v.ylOv` / `v.ypOv`, in `OVK` and `sizeOv`) and an own
+  photo (`bgSep.yl` / `bgSep.yp`, slot `adstudio-bg-<vi>-yl|yp`) — the 16:9's two controls. The slot
+  ids are in `loadAssets`, the style tiles' `pic` loop, `assetFiles` and `remove`'s shift list.
+- The 16:9, the banners, the carousel Format group, the SVG/PDF export rows and the Meta placement
+  Preview button are hidden on YouTube (`v.metaOn`, `platMetaFlag`, `exportSvgRowOn`,
+  `exportPdfOn`, `mkBtnOn`). `expPickVals(pdfOn, noSvg)` in `studio-base.js` gained the second
+  argument; OPS never passes it.
+- **A YouTube project is a single ad** (`normState`, `platYt`): Demand Gen takes an asset pool, not
+  swipe pages. Switching keeps the carousel's pages for the round trip, as `modeSingle` does.
+
+## What ships beside the images
+
+- **`Logo/<name>_Logo_1x1.png`** — `ytLogoBuild(s)`: the wordmark at 62% of 1200 on a Navy / White /
+  Black ground (`yt.logoBg`, `YT_LOGO_BG`), centred on its INK via `measureText`'s bounding box, so it
+  clears the circle Google crops a logo to.
+- **`<name>_Demand Gen text.txt`** — `ytText(s)`: business name, headlines, descriptions, flagged
+  inline where over the limit.
+- `state.yt = {biz, heads[5], descs[5], logoBg}`, normalised by `ytOf` (business name defaults to
+  "Provident Real Estate", 21 characters). `YT_LIM` holds 40 / 90 / 25 / 5 / 5 MB; `ytIssues` is
+  the one list of over-limit text, read by the copy view's counters, the dock and the export status.
+- **The 5 MB check** names any file over it in the status line; the over-limit text too. Both are
+  appended with a setState UPDATER after `deliver`, because a plain read of `this.state` there is
+  stale and would overwrite deliver's own message with "Rendering…".
+
+## The compliance check — `ytCheck(s)` is the one verdict
+
+By request ("have indicators where it checks if it complies to the copy limits"). `ytField(t, max,
+dupOf)` classes a field as empty / ok / over / dup, and `ytCheck` builds three rows — Business name
+(present, ≤25), Headlines and Descriptions (at least one, each within its limit, NO REPEATS,
+compared trimmed and case-insensitively, since Google refuses duplicate assets) — plus a `badge`
+("Ready for Google" / "N to fix") and `problems`. `ytIssues` is now just `ytCheck(s).problems`, so
+every indicator reads one function: each field's meter and count (`.yt-lim`, red on over or dup,
+with an inset red ring on the field), the checklist and badge in the copy view and the dock
+(`.yt-checks`, `.yt-badge`), the canvas bar's **Google text · ready / N to fix** chip (opens the
+copy view), and the export status line. Status inks sit on their own `--ps-good-q` / `--ps-bad-q`
+washes: measured composited, 4.51–4.52:1 in dark, ~4.7–4.9 in light; every text run in the copy
+section, dock and canvas bar clears 4.5 in both themes.
+
+## Where it is edited
+
+- **Dock:** Platform (Meta ads | YouTube Demand Gen) first; on YouTube, Business logo with a live
+  CSS preview and its Ground, and a Text assets summary with **Write headlines and descriptions**,
+  which opens the Copy workspace.
+- **Copy workspace:** a **YouTube Demand Gen text** section above the pages (`cwYtVals`), one field
+  per asset with a count that turns red past the limit. Snapshots and the `.docx` do NOT include it
+  yet.
+- **Splash:** the templates are two rows, **Meta ads** and **YouTube Demand Gen** — the same four
+  designs; `pickTpl(id, 'ytdg')` / `tplState(id, platform)`. The YouTube cards render the `yl`
+  canvas at a 1.91:1 card aspect (`cardMiniYt`). Recents' meta line leads with the platform.
+- **MCP:** `studio_edit` ops `set_platform` and `youtube_text`; `studio_read_project` reports
+  `platform` and `youtube_text`.
+
+## Left as decisions
+
+- **Google discourages heavy text, logos and button shapes on Demand Gen images.** The copy-coverage
+  chip still warns at Meta's 40%; it was not tightened because it measures band height, not text
+  area, and would flag every template.
+- **Demand Gen carousels (2–10 cards) are not built** — the request specified image ads.
+- No YouTube placement mock; the copy snapshots/.docx omit the text assets.

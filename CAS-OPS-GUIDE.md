@@ -4,7 +4,7 @@ How to use the two Provident design studios in this folder.
 
 | | file | for |
 |---|---|---|
-| **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 9:16, 16:9) and Eventbrite banners |
+| **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 9:16, 16:9), Eventbrite banners, and YouTube Demand Gen image ads |
 | **OPS** — Organic Post Studio | `Provident Organic Studio.dc.html` | organic feed and story posts, built from locked templates |
 
 > **For Claude in Cowork:** answer "how do I…" questions about CAS and OPS from this file, and
@@ -20,6 +20,7 @@ How to use the two Provident design studios in this folder.
 3. [CAS: build an ad](#3-cas-build-an-ad)
 4. [CAS: variants, carousels and sizes](#4-cas-variants-carousels-and-sizes)
 5. [CAS: the Eventbrite banner](#5-cas-the-eventbrite-banner)
+   - [CAS: YouTube Demand Gen](#5b-cas-youtube-demand-gen)
 6. [CAS: the Copy workspace](#6-cas-the-copy-workspace)
 7. [CAS: export](#7-cas-export)
 8. [OPS: make a post](#8-ops-make-a-post)
@@ -209,6 +210,55 @@ No API key or service is needed: Claude Code reads the screenshot.
 Eventbrite shows the 1880 file at 940 px wide on a desktop and 375 px wide on a phone. On a phone
 only the headline really reads, so keep the words few and big.
 
+The banner, the 16:9 and the placement **Preview** are Meta-side only. A YouTube project doesn't
+show them.
+
+## 5b. CAS: YouTube Demand Gen
+
+Every CAS project is for **one platform**: **Meta ads** or **YouTube Demand Gen**.
+
+- **Start one:** on the project browser, the templates come in two rows, **Meta ads** and
+  **YouTube Demand Gen**. They're the same four designs; pick from the YouTube row and the project
+  is a YouTube one. The YouTube cards show the wide 1.91:1 version.
+- **Switch an existing project:** **All Variants Option** → **Platform** → **Meta ads** or
+  **YouTube Demand Gen**. The design is kept. A carousel becomes a single ad (its pages are kept
+  if you switch back), because Demand Gen takes an asset pool, not swipe pages.
+
+On YouTube, every variant carries the four ratios Google mixes into its asset pool, always:
+
+| canvas on the plate | exported at |
+|---|---|
+| **1:1** square (the master) | 1200 × 1200 |
+| **Landscape 1.91:1** | 1200 × 628 |
+| **Portrait 4:5** | 960 × 1200 |
+| **Vertical 9:16 · Shorts** | 1080 × 1920 |
+
+- **Landscape** and **Portrait** each have **Edit layout separately** and **Own photo**, like the
+  16:9 on a Meta project. **Scaling** has a row for each of the four.
+- The 9:16 keeps the same safe margins as a Meta story: Shorts puts its own buttons in the same
+  places.
+- **Business logo** (in **All Variants Option**): the provident. wordmark on a 1200 × 1200 square.
+  Pick its **Ground**: **Navy**, **White** or **Black**. Google crops logos to a circle in some
+  places, so the mark sits well inside one.
+- **Text assets:** press **Write headlines and descriptions** (or open **Copy**). The **YouTube
+  Demand Gen text** box has the **Business name** (max 25 characters), 5 **Headlines** (max 40) and
+  5 **Descriptions** (max 90). Google shows any headline with any image, so each one has to make
+  sense on its own.
+- **The compliance check** tells you whether the text is ready for Google, in four places:
+  - **Each field** has a bar showing how much of its limit is used and a count (`32 / 40`). It
+    turns red when the text is over (`47 / 40 · 7 over`) or repeats an earlier one
+    (`Same as headline 1`). Google refuses both.
+  - **The checklist** at the top of the box ticks or crosses three rules: a **Business name**
+    within 25, at least one **Headline**, each within 40 with no repeats, and at least one
+    **Description**, each within 90 with no repeats. The badge beside the title reads
+    **Ready for Google** or **N to fix**.
+  - **All Variants Option → Text assets** shows the same badge and checklist.
+  - **The bar under the canvases** shows **Google text · ready** or **Google text · N to fix**.
+    Click it to open the fields.
+
+Google discourages a lot of text, logos and button shapes on Demand Gen images. Keep the copy on
+the images light and let the headlines and descriptions do the talking.
+
 ## 6. CAS: the Copy workspace
 
 This is for copywriters: the ad's words on their own, next to a live preview.
@@ -263,6 +313,23 @@ Source folder/
   so on, and its banners in `Carousel/Eventbrite Banners/`.
 - **Without a Source folder**, you get a zip with the same folders inside.
 - **PDF** is one file with every size, saved wherever you choose.
+
+**On a YouTube Demand Gen project** the formats are **JPEG** and **PNG** only (Google takes no
+SVG or PDF), at the exact sizes in the table in section 5b:
+
+```
+Source folder/
+  Variant A/
+    <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200
+    <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628
+    <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200
+    <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920
+  Logo/<name>_Logo_1x1.png                 ← 1200 × 1200
+  <name>_Demand Gen text.txt               ← business name, headlines, descriptions
+```
+
+Google refuses any file over 5 MB. JPEG is always well under. If a PNG goes over, the status line
+names it; export JPEG instead. Text over Google's limits is named there too.
 
 ---
 
@@ -425,6 +492,9 @@ exactly what the studio would export.
    are cut out automatically when background removal is running).
 4. `studio_preview` — look at it before exporting.
 5. `studio_export` — PNG, JPG, SVG or PDF, with the studio's own file names and folders.
+
+For a YouTube Demand Gen ad: `studio_edit` with `{op:'set_platform', platform:'youtube'}`, then
+`{op:'youtube_text', business, headlines:[…], descriptions:[…]}`. Export JPG or PNG.
 
 Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
 or name. Every required field must be filled; the export says what is missing. The project is a

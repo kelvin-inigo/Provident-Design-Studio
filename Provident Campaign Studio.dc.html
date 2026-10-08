@@ -3442,6 +3442,40 @@ select.p-in{padding-right:34px}
 .p-ic{font-size:14px}
 .p-tgrp > .p-ghost{padding:0 var(--ps-px)}
 
+/* ══ 30. YouTube Demand Gen — the logo tile and the compliance indicators ══ */
+.p-hint[data-over]{color:var(--ps-bad)}
+.cw-yt textarea.p-in{resize:vertical}
+/* the verdict: a status ink on its own wash, never on the page */
+.yt-badge{display:inline-flex;align-items:center;gap:5px;margin-left:auto;padding:3px 10px;border-radius:var(--ps-pill);
+  font:600 11.5px/1.3 var(--ps-font);white-space:nowrap;background:var(--ps-bad-q);color:var(--ps-bad)}
+.yt-badge[data-state="ok"]{background:var(--ps-good-q);color:var(--ps-good)}
+.yt-badge::before{content:"!";font-weight:700}
+.yt-badge[data-state="ok"]::before{content:"\2713"}
+.p-lab .yt-badge{margin-left:auto}
+.cw-yt .cw-page-h{display:flex;align-items:center;gap:10px}
+/* the checklist: one row per Google rule, a tick or a cross, the reason beside it */
+.yt-checks{list-style:none;margin:2px 0 6px;padding:0;display:flex;flex-direction:column;gap:6px}
+.yt-checks li{display:flex;align-items:baseline;gap:8px;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.yt-checks li::before{content:"\2715";flex:none;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;
+  justify-content:center;font:700 10px/1 var(--ps-font);background:var(--ps-bad-q);color:var(--ps-bad);align-self:center}
+.yt-checks li[data-state="ok"]::before{content:"\2713";background:var(--ps-good-q);color:var(--ps-good)}
+.yt-checks li b{font-weight:600;flex:none}
+.yt-checks li s{text-decoration:none;color:var(--ps-ink-2);margin-left:auto;text-align:right}
+.yt-checks li[data-state="bad"] s{color:var(--ps-bad)}
+.yt-checks-s li{font-size:12px}
+/* each field: a meter of how much of the limit is used, and its count */
+.yt-lim{display:flex;align-items:center;gap:10px}
+.yt-bar{flex:1;height:4px;border-radius:999px;background:var(--ps-line);overflow:hidden}
+.yt-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-good)}
+.yt-lim[data-state="over"] .yt-bar i,.yt-lim[data-state="dup"] .yt-bar i{background:var(--ps-bad)}
+.yt-cnt{flex:none;font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.yt-lim[data-state="ok"] .yt-cnt{color:var(--ps-ink-2)}
+.yt-lim[data-state="over"] .yt-cnt,.yt-lim[data-state="dup"] .yt-cnt{color:var(--ps-bad);font-weight:600}
+.cw-yt .p-in[data-state="over"],.cw-yt .p-in[data-state="dup"]{box-shadow:inset 0 0 0 1.5px var(--ps-bad)}
+.yt-gnote{margin-left:auto;font:500 11.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.yt-gnote[data-state="bad"]{color:var(--ps-bad)}
+.p-cvcopy[data-state="ok"]::before{background:var(--ps-good)}
+.p-cvcopy[data-state="bad"]::before{background:var(--ps-bad)}
 </style>
 </helmet>
 
@@ -3491,7 +3525,7 @@ select.p-in{padding-right:34px}
       </sc-if>
 
       <sc-if value="{{ shShowTpl }}" hint-placeholder-val="{{ true }}">
-        <div class="p-sec-l" style="padding-left:0">Pre loaded templates</div>
+        <div class="p-sec-l" style="padding-left:0">Meta ads</div>
         <div class="p-grid2" style="margin-bottom:26px">
           <sc-for list="{{ tplCards }}" as="tc" hint-placeholder-count="4">
             <button onClick="{{ tc.pick }}" class="p-c">
@@ -3499,6 +3533,20 @@ select.p-in{padding-right:34px}
                    No hover reel: a Campaign template is one design across three canvases,
                    not a carousel — see `tplCardView`. -->
               <span class="p-c-p" style="{{ cardMini }}">
+                <sc-if value="{{ tc.ready }}" hint-placeholder-val="{{ true }}">
+                  <span class="p-c-shot" style="{{ tc.master }}"></span>
+                </sc-if>
+              </span>
+              <span class="p-c-n">{{ tc.name }}</span>
+              <span class="p-c-m">{{ tc.desc }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div class="p-sec-l" style="padding-left:0">YouTube Demand Gen</div>
+        <div class="p-grid2" style="margin-bottom:26px">
+          <sc-for list="{{ ytTplCards }}" as="tc" hint-placeholder-count="4">
+            <button onClick="{{ tc.pick }}" class="p-c">
+              <span class="p-c-p" style="{{ cardMiniYt }}">
                 <sc-if value="{{ tc.ready }}" hint-placeholder-val="{{ true }}">
                   <span class="p-c-shot" style="{{ tc.master }}"></span>
                 </sc-if>
@@ -3603,7 +3651,7 @@ select.p-in{padding-right:34px}
   </div>
     <!-- The Design system sheet is parked, not removed: specPages/specDownload and the
          viewer overlay all still work, so bringing the button back is uncommenting it. -->
-    <button onClick="{{ mkToggle }}" class="p-ico-t p-prev" data-on="{{ mkOpen }}" title="Preview in Meta placements"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140q-29.92 0-51.12-21.19Q140-182.39 140-212.31v-535.38q0-29.92 21.19-51.12Q182.39-820 212.31-820h535.38q29.92 0 51.12 21.19Q820-777.61 820-747.69v535.38q0 29.92-21.19 51.12Q777.61-140 747.69-140H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85V-680H200v467.69q0 5.39 3.46 8.85t8.85 3.46Zm135.81-138.92q-58.35-38.93-86.2-101.08 27.85-62.15 86.2-101.08Q406.46-580 480-580q73.54 0 131.88 38.92 58.35 38.93 86.2 101.08-27.85 62.15-86.2 101.08Q553.54-300 480-300q-73.54 0-131.88-38.92Zm227.15-33.16q43.5-24.38 70.65-67.92-27.15-43.54-70.65-67.92-43.5-24.39-95.27-24.39-51.77 0-95.27 24.39-43.5 24.38-70.65 67.92 27.15 43.54 70.65 67.92 43.5 24.39 95.27 24.39 51.77 0 95.27-24.39ZM480-440Zm37.11 37.11q15.2-15.19 15.2-37.11t-15.2-37.11q-15.19-15.2-37.11-15.2t-37.11 15.2q-15.2 15.19-15.2 37.11t15.2 37.11q15.19 15.2 37.11 15.2t37.11-15.2Z"/></svg>Preview</button>
+    <sc-if value="{{ mkBtnOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ mkToggle }}" class="p-ico-t p-prev" data-on="{{ mkOpen }}" title="Preview in Meta placements"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140q-29.92 0-51.12-21.19Q140-182.39 140-212.31v-535.38q0-29.92 21.19-51.12Q182.39-820 212.31-820h535.38q29.92 0 51.12 21.19Q820-777.61 820-747.69v535.38q0 29.92-21.19 51.12Q777.61-140 747.69-140H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85V-680H200v467.69q0 5.39 3.46 8.85t8.85 3.46Zm135.81-138.92q-58.35-38.93-86.2-101.08 27.85-62.15 86.2-101.08Q406.46-580 480-580q73.54 0 131.88 38.92 58.35 38.93 86.2 101.08-27.85 62.15-86.2 101.08Q553.54-300 480-300q-73.54 0-131.88-38.92Zm227.15-33.16q43.5-24.38 70.65-67.92-27.15-43.54-70.65-67.92-43.5-24.39-95.27-24.39-51.77 0-95.27 24.39-43.5 24.38-70.65 67.92 27.15 43.54 70.65 67.92 43.5 24.39 95.27 24.39 51.77 0 95.27-24.39ZM480-440Zm37.11 37.11q15.2-15.19 15.2-37.11t-15.2-37.11q-15.19-15.2-37.11-15.2t-37.11 15.2q-15.2 15.19-15.2 37.11t15.2 37.11q15.19 15.2 37.11 15.2t37.11-15.2Z"/></svg>Preview</button></sc-if>
   <div class="p-share">
     <button onClick="{{ shToggleShare }}" class="p-ghost p-ico-t" data-on="{{ shShareOn }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM338.08-207.23 231.15-100.31q-8.92 8.92-21.07 8.81-12.16-.12-21.08-9.42-8.31-8.93-8.42-21.08-.12-12.15 8.81-21.08L296.31-250h-74.62q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h140.23q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v140.23q0 12.75-8.63 21.38-8.63 8.62-21.39 8.62-12.75 0-21.37-8.62-8.61-8.63-8.61-21.38v-73.61ZM188.62-406.32q-8.62-8.62-8.62-21.37v-360q0-29.83 21.24-51.07Q222.48-860 252.31-860H570l210 210v477.69q0 29.83-21.24 51.07Q737.52-100 707.69-100H515.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h191.92q5.39 0 8.85-3.46t3.46-8.85V-620H575.99q-15.3 0-25.64-10.35Q540-640.7 540-656v-144H252.31q-5.39 0-8.85 3.46t-3.46 8.85v360q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Z"/></svg>Share<svg class="mk-g p-bic p-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button>
     <sc-if value="{{ shShareOn }}" hint-placeholder-val="{{ false }}">
@@ -3615,9 +3663,9 @@ select.p-in{padding-right:34px}
   <div class="p-exp">
     <button onClick="{{ runExport }}" style="{{ exportMainBtnStyle }}">{{ exportMainLabel }}</button>
     <div class="p-exp-m">
-      <button onClick="{{ pickJpg }}" data-on="{{ exportJpgOn }}" style="{{ exportJpgStyle }}"><span style="font-weight:400;font-size:13px">JPEG 2×</span><span class="p-hint">{{ exportJpgDesc }}</span></button>
-      <button onClick="{{ pickPng }}" data-on="{{ exportPngOn }}" style="{{ exportPngStyle }}"><span style="font-weight:400;font-size:13px">PNG 2×</span><span class="p-hint">{{ exportPngDesc }}</span></button>
-      <button onClick="{{ pickSvg }}" data-on="{{ exportSvgOn }}" style="{{ exportSvgStyle }}"><span style="font-weight:400;font-size:13px">SVG</span><span class="p-hint">{{ exportSvgDesc }}</span></button>
+      <button onClick="{{ pickJpg }}" data-on="{{ exportJpgOn }}" style="{{ exportJpgStyle }}"><span style="font-weight:400;font-size:13px">{{ exportJpgName }}</span><span class="p-hint">{{ exportJpgDesc }}</span></button>
+      <button onClick="{{ pickPng }}" data-on="{{ exportPngOn }}" style="{{ exportPngStyle }}"><span style="font-weight:400;font-size:13px">{{ exportPngName }}</span><span class="p-hint">{{ exportPngDesc }}</span></button>
+      <sc-if value="{{ exportSvgRowOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pickSvg }}" data-on="{{ exportSvgOn }}" style="{{ exportSvgStyle }}"><span style="font-weight:400;font-size:13px">SVG</span><span class="p-hint">{{ exportSvgDesc }}</span></button></sc-if>
       <sc-if value="{{ exportPdfOn }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ pickPdf }}" data-on="{{ exportPdfSelOn }}" style="{{ exportPdfStyle }}"><span style="font-weight:400;font-size:13px">PDF</span><span class="p-hint">{{ exportPdfDesc }}</span></button>
       </sc-if>
@@ -3673,6 +3721,32 @@ select.p-in{padding-right:34px}
           <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
         </sc-if>
       </div>
+      <sc-if value="{{ cwYtOn }}" hint-placeholder-val="{{ false }}">
+        <section class="cw-page cw-yt">
+          <div class="cw-page-h"><b>YouTube Demand Gen text</b><span class="yt-badge" data-state="{{ cwYtBadgeState }}">{{ cwYtBadge }}</span></div>
+          <ul class="yt-checks" aria-label="Google's text limits">
+            <sc-for list="{{ cwYtChecks }}" as="ck" hint-placeholder-count="3"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
+          </ul>
+          <div class="cw-f">
+            <div class="cw-lab-r"><span class="cw-lab">Business name</span></div>
+            <input value="{{ cwYtBiz }}" onChange="{{ cwYtOnBiz }}" class="p-in" aria-label="Business name" placeholder="e.g. Provident Real Estate" data-state="{{ cwYtBizState }}">
+            <div class="yt-lim" data-state="{{ cwYtBizState }}"><span class="yt-bar"><i style="{{ cwYtBizMeter }}"></i></span><span class="yt-cnt">{{ cwYtBizCount }}</span></div>
+          </div>
+          <sc-for list="{{ cwYtRows }}" as="y" hint-placeholder-count="5">
+            <div class="cw-f">
+              <sc-if value="{{ y.headOn }}" hint-placeholder-val="{{ false }}"><div class="cw-lab-r"><span class="cw-lab">{{ y.group }}</span><span class="yt-gnote" data-state="{{ y.groupState }}">{{ y.groupNote }}</span></div></sc-if>
+              <sc-if value="{{ y.isLine }}" hint-placeholder-val="{{ true }}">
+                <input value="{{ y.val }}" onChange="{{ y.on }}" class="p-in" aria-label="{{ y.label }}" placeholder="{{ y.ph }}" data-state="{{ y.state }}">
+              </sc-if>
+              <sc-if value="{{ y.isArea }}" hint-placeholder-val="{{ false }}">
+                <textarea value="{{ y.val }}" onChange="{{ y.on }}" rows="2" class="p-in" aria-label="{{ y.label }}" placeholder="{{ y.ph }}" data-state="{{ y.state }}"></textarea>
+              </sc-if>
+              <div class="yt-lim" data-state="{{ y.state }}"><span class="yt-bar"><i style="{{ y.meter }}"></i></span><span class="yt-cnt">{{ y.count }}</span></div>
+            </div>
+          </sc-for>
+          <span class="cw-hint">Up to 5 headlines of 40 characters and 5 descriptions of 90, none repeated. Google shows any of them with any image, so each one has to stand on its own. They export as Name_Demand Gen text.txt beside the images.</span>
+        </section>
+      </sc-if>
       <sc-for list="{{ cwPages }}" as="pg" hint-placeholder-count="1">
         <section class="cw-page" data-on="{{ pg.onPageOn }}" data-cwpg="{{ pg.vi }}" onPointerDown="{{ pg.pick }}">
           <sc-if value="{{ cwMulti }}" hint-placeholder-val="{{ false }}">
@@ -4011,6 +4085,31 @@ select.p-in{padding-right:34px}
         <div class="p-dock-b">
   <div class="p-cap p-shd" data-state="{{ secVarsState }}"><span class="p-shd-t">{{ allVarsTitle }} <span class="tip tip-dark" data-tip="{{ allVarsTip }}" style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secVarsNote }}</span></div>
   <div class="p-grp">
+    <span class="p-lab">Platform <span class="tip tip-dark" data-tip="Which platform this project is for. Meta ads: 1:1 feed and 9:16 story at 2x, with an opt-in 16:9 and Eventbrite banners. YouTube Demand Gen: every variant carries the four ratios Google mixes into its asset pool — 1.91:1 landscape, 1:1 square, 4:5 portrait and 9:16 for Shorts — exported at Google's recommended sizes in JPEG or PNG, with a 1:1 business logo and the headline and description text. Switching keeps the design." style="{{ infoStyleDark }}">i</span></span>
+    <div class="p-tabs"><button onClick="{{ platMeta }}" data-on="{{ platMetaOn }}">Meta ads</button><button onClick="{{ platYt }}" data-on="{{ platYtOn }}">YouTube Demand Gen</button></div>
+    <span class="p-hint">{{ platHint }}</span>
+  </div>
+  <sc-if value="{{ platYtFlag }}" hint-placeholder-val="{{ false }}">
+  <div class="p-grp">
+    <span class="p-lab">Business logo <s>1200 × 1200</s></span>
+    <div class="p-droprow">
+      <div class="p-drop p-drop-sq" data-done="1"><span class="p-ytlogo" style="{{ ytLogoStyle }}">provident.</span></div>
+      <div class="p-drop-t"><s>The wordmark on a square, exported as Logo_1x1.png.</s><s>Google crops a logo to a circle in some placements, so the mark sits well inside one.</s></div>
+    </div>
+    <span class="p-lab">Ground</span>
+    <div class="p-tabs"><button onClick="{{ ytLogoNavy }}" data-on="{{ ytLogoNavyOn }}">Navy</button><button onClick="{{ ytLogoWhite }}" data-on="{{ ytLogoWhiteOn }}">White</button><button onClick="{{ ytLogoBlack }}" data-on="{{ ytLogoBlackOn }}">Black</button></div>
+  </div>
+  <div class="p-grp">
+    <span class="p-lab">Text assets <span class="yt-badge" data-state="{{ ytBadgeState }}">{{ ytBadge }}</span></span>
+    <ul class="yt-checks yt-checks-s" aria-label="Google's text limits">
+      <sc-for list="{{ ytChecks }}" as="ck" hint-placeholder-count="3"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
+    </ul>
+    <span class="p-hint">{{ ytTextHint }}</span>
+    <button onClick="{{ ytEditText }}" class="p-ghost p-sm">Write headlines and descriptions</button>
+  </div>
+  </sc-if>
+  <sc-if value="{{ platMetaFlag }}" hint-placeholder-val="{{ true }}">
+  <div class="p-grp">
     <span class="p-lab">Format <span class="tip tip-dark" data-tip="A single ad is one design in up to three A/B variants that share their copy. A carousel is up to ten pages that swipe, each with its own copy and photo — exported as _page1, _page2, … Switching keeps everything you have made." style="{{ infoStyleDark }}">i</span></span>
     <div class="p-tabs"><button onClick="{{ modeSingle }}" data-on="{{ modeSingleOn }}">Single ad</button><button onClick="{{ modeCarousel }}" data-on="{{ modeCarouselOn }}">Carousel</button></div>
     <span class="p-hint">{{ modeHint }}</span>
@@ -4020,6 +4119,7 @@ select.p-in{padding-right:34px}
       <span class="p-hint">{{ storyHint }}</span>
     </sc-if>
   </div>
+  </sc-if>
   <div class="p-grp">
     <span class="p-lab">QR code</span>
     <div class="p-tabs"><button onClick="{{ qrSetShow }}" data-on="{{ qrVisibleOn }}">Visible</button><button onClick="{{ qrSetHide }}" data-on="{{ qrHiddenOn }}">Hidden</button></div>
@@ -4164,10 +4264,86 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.sq.fgStyle }}"><div style="{{ v.sq.fgTintStyle }}"></div></div></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
-      <span class="p-meta">1080 × 1080 · master layout · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
+      <span class="p-meta">{{ v.sqMeta }} · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
+      <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}">
+      <div class="p-plate-f">
+        <span class="p-meta">Landscape 1.91:1 {{ v.ylState }}</span>
+        <button onClick="{{ v.toggleYlOv }}" style="{{ v.wideBtnStyle }}">{{ v.ylOvLabel }}</button><button onClick="{{ v.toggleBgYl }}" style="{{ v.wideBtnStyle }}">{{ v.bgYlLabel }}</button>
+      </div>
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.yl.cwPx }}" style="{{ v.yl.canvasStyle }}">
+        <div class="canvasbg" style="{{ v.yl.bgWrapStyle }}"><sc-for list="{{ v.bgYlSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 1.91:1" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
+        <div style="{{ v.yl.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.yl.guideStyle }}"></div></sc-if>
+        <div style="{{ v.yl.frameStyle }}">
+          <div style="{{ v.yl.logoStyle }}"><span>provident.</span><sc-if value="{{ v.yl.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.yl.coRuleStyle }}"></span><span style="{{ v.yl.coInkStyle }}" data-icon-tint="{{ v.yl.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.yl.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.yl.coPaintStyle }}"></i></span></sc-if></div>
+          <div style="{{ v.yl.stackStyle }}">
+            <sc-for list="{{ v.yl.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ c.style }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.yl.fgStyle }}"><div style="{{ v.yl.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.yl.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+      </div>
+      <span class="p-meta">1200 × 628 · YouTube landscape — text column left, image window right · <span style="{{ v.yl.coverStyle }}" class="tip" data-tip="{{ v.yl.coverTip }}">{{ v.yl.coverLabel }}</span></span>
+      <div class="p-plate-f">
+        <span class="p-meta">Portrait 4:5 {{ v.ypState }}</span>
+        <button onClick="{{ v.toggleYpOv }}" style="{{ v.wideBtnStyle }}">{{ v.ypOvLabel }}</button><button onClick="{{ v.toggleBgYp }}" style="{{ v.wideBtnStyle }}">{{ v.bgYpLabel }}</button>
+      </div>
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.yp.cwPx }}" style="{{ v.yp.canvasStyle }}">
+        <div class="canvasbg" style="{{ v.yp.bgWrapStyle }}"><sc-for list="{{ v.bgYpSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 4:5" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
+        <div style="{{ v.yp.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.yp.guideStyle }}"></div></sc-if>
+        <div style="{{ v.yp.frameStyle }}">
+          <div style="{{ v.yp.logoStyle }}"><span>provident.</span><sc-if value="{{ v.yp.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.yp.coRuleStyle }}"></span><span style="{{ v.yp.coInkStyle }}" data-icon-tint="{{ v.yp.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.yp.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.yp.coPaintStyle }}"></i></span></sc-if></div>
+          <div style="{{ v.yp.stackStyle }}">
+            <sc-for list="{{ v.yp.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ c.style }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.yp.fgStyle }}"><div style="{{ v.yp.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.yp.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+      </div>
+      <span class="p-meta">960 × 1200 · YouTube portrait · <span style="{{ v.yp.coverStyle }}" class="tip" data-tip="{{ v.yp.coverTip }}">{{ v.yp.coverLabel }}</span></span>
+      </sc-if>
       <sc-if value="{{ v.stOn }}" hint-placeholder-val="{{ true }}">
       <div class="p-plate-f">
-        <span class="p-meta">9:16 story {{ v.storyState }}</span>
+        <span class="p-meta">{{ v.stHead }} {{ v.storyState }}</span>
         <button onClick="{{ v.toggleStory }}" style="{{ v.storyBtnStyle }}">{{ v.storyBtnLabel }}</button>
         <button onClick="{{ v.toggleBgSt }}" style="{{ v.storyBtnStyle }}">{{ v.bgStLabel }}</button>
       </div>
@@ -4203,8 +4379,9 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.st.fgStyle }}"><div style="{{ v.st.fgTintStyle }}"></div></div></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.st.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
-      <span class="p-meta">1080 × 1920 · story · <span style="{{ v.st.coverStyle }}" class="tip" data-tip="{{ v.st.coverTip }}">{{ v.st.coverLabel }}</span></span>
+      <span class="p-meta">{{ v.stMeta }} · <span style="{{ v.st.coverStyle }}" class="tip" data-tip="{{ v.st.coverTip }}">{{ v.st.coverLabel }}</span></span>
       </sc-if>
+      <sc-if value="{{ v.metaOn }}" hint-placeholder-val="{{ true }}">
       <div class="p-plate-f">
         <span class="p-meta">16:9 wide {{ v.wideState }}</span>
         <button onClick="{{ v.toggleWide }}" style="{{ v.wideBtnStyle }}">{{ v.wideBtnLabel }}</button>
@@ -4316,10 +4493,11 @@ select.p-in{padding-right:34px}
       </div>
       <span class="p-meta">758 × 380 · the same banner at the email size — scales on its own · <span style="{{ v.bs.coverStyle }}" class="tip" data-tip="{{ v.bs.coverTip }}">{{ v.bs.coverLabel }}</span></span>
       </sc-if>
+      </sc-if>
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
+  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><sc-if value="{{ ytBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ ytBarState }}" title="Does the YouTube text fit Google's limits — open it">{{ ytBarLabel }}</button></sc-if><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -4541,6 +4719,20 @@ select.p-in{padding-right:34px}
             <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
+        <sc-if value="{{ bgSepYlOn }}" hint-placeholder-val="{{ false }}">
+          <span class="p-lab">1.91:1 own photo <span class="tip" data-tip="Used by the YouTube 1.91:1 landscape instead of the shared picture." style="{{ infoStyle }}">i</span></span>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ bgYlDoneOn }}"><sc-for list="{{ activeBgYlSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 1.91:1 picture" style="{{ bgSlotYlStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop-t"><s>{{ bgYlDropLabel }}</s><sc-if value="{{ bgYlDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgYlPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgYlRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ bgSepYpOn }}" hint-placeholder-val="{{ false }}">
+          <span class="p-lab">4:5 own photo <span class="tip" data-tip="Used by the YouTube 4:5 portrait instead of the shared picture." style="{{ infoStyle }}">i</span></span>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ bgYpDoneOn }}"><sc-for list="{{ activeBgYpSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 4:5 picture" style="{{ bgSlotYpStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop-t"><s>{{ bgYpDropLabel }}</s><sc-if value="{{ bgYpDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgYpPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgYpRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+          </div>
+        </sc-if>
         <sc-if value="{{ bgSepBnOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">Banner own photo <span class="tip" data-tip="Used by both banner sizes instead of the shared picture — one photo, cover-fitted edge to edge on the 1880 × 940 and the 758 × 380 alike." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
@@ -4733,6 +4925,8 @@ class CampaignStudio extends StudioBase {
       // makes those same variants PAGES — up to 10, each with its own copy — and lets the
       // 9:16 be dropped. See `modulesFor` / `modList` for how a page's own list is read and written.
       adMode: 'single', storyOn: true,
+      // `meta` or `ytdg` — which platform the project is made for; see isYT
+      platform: 'meta',
       // THE COPY WORKFLOW. `copyStatus` is where the words are — Draft (the copywriter is
       // writing), With design (the designer is building), Final (approved). Entering With
       // design or Final saves a SNAPSHOT of every line into `copyLog`, which is the
@@ -4809,6 +5003,9 @@ class CampaignStudio extends StudioBase {
     if (v.story === undefined) v.story = null;
     // the banner's detached layout — ONE record for both banner sizes
     if (v.banOv === undefined) v.banOv = null;
+    // the YouTube landscape's and portrait's own detached layouts
+    if (v.ylOv === undefined) v.ylOv = null;
+    if (v.ypOv === undefined) v.ypOv = null;
     return v;
   }
   // `stats` was the same label/value block as `spec`, and `strip` the same authored
@@ -5141,6 +5338,10 @@ class CampaignStudio extends StudioBase {
     if (!p.variants.length) p.variants = [CampaignStudio.newVariant('Master')];
     p.modules = CampaignStudio.normModList(p.modules, p.variants);
     if (p.adMode !== 'carousel') p.adMode = 'single';
+    if (p.platform !== 'ytdg') p.platform = 'meta';
+    // a YouTube project is a single ad — Demand Gen takes an asset pool, not swipe pages
+    if (p.platform === 'ytdg') p.adMode = 'single';
+    if (p.platform === 'ytdg' || p.yt) p.yt = CampaignStudio.ytOf(p);
     if (p.storyOn !== false) p.storyOn = true;
     p.variants.forEach(v => {
       if (Array.isArray(v.mods)) v.mods = CampaignStudio.normModList(v.mods, [v]);
@@ -5461,11 +5662,112 @@ class CampaignStudio extends StudioBase {
     // the banner's too (BANNER_TK), the other wide canvas — and the banner's 800 column.
     ls: { W: 1920, H: 1080, pad: [80, 120, 80, 120], col: 800, gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
     bn: Object.assign({ W: 1880, H: 940, out: [1880, 940] }, CampaignStudio.BANNER_TK),
-    bs: Object.assign({ W: 1880, H: 1880 * 380 / 758, out: [758, 380] }, CampaignStudio.BANNER_TK)
+    bs: Object.assign({ W: 1880, H: 1880 * 380 / 758, out: [758, 380] }, CampaignStudio.BANNER_TK),
+    // YOUTUBE DEMAND GEN's two canvases Meta does not have. Each is laid out at the width of
+    // the Meta canvas it is nearest to and exported at the file size Google recommends — the
+    // banner's `out` mechanism. The 1.91:1 is the 16:9's own tokens and 800 column at 1920
+    // wide (1920 x 1004.8, exported at .625 = exactly 1200 x 628); the 4:5 is the 1:1's own
+    // tokens at 1080 wide (1080 x 1350, exported at 960 / 1080 = 960 x 1200).
+    yl: { W: 1920, H: 1920 * 628 / 1200, out: [1200, 628], pad: [80, 120, 80, 120], col: 800, gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
+    yp: { W: 1080, H: 1350, out: [960, 1200], pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 }
   };
+  // ── PLATFORM: Meta ads or YouTube Demand Gen ─────────────────────────────────────────
+  // ONE project is for ONE platform, by request ("separate META ADS from YT DEMAND GEN").
+  // The design, components, copy and variants are the same machinery; what the platform
+  // decides is which canvases a variant carries, the size each file exports at and what
+  // else ships with them. Meta: 1:1 feed, 9:16 story, opt-in 16:9 and Eventbrite banners,
+  // all at 2x. Demand Gen uploads an ASSET POOL that Google mixes per placement, so every
+  // variant carries all four ratios at Google's recommended size, always:
+  //   Landscape 1.91:1  1200 x 628     Square 1:1    1200 x 1200
+  //   Portrait  4:5     960 x 1200     Vertical 9:16 1080 x 1920 (Shorts)
+  // plus a 1:1 business LOGO (1200 x 1200) and the TEXT assets — up to 5 headlines of 40
+  // characters, 5 descriptions of 90 and a business name of 25. JPG or PNG only, 5 MB each.
+  // The 9:16 keeps the Reels safe area: Shorts carries the same header, rail and account
+  // stack, so the same margins clear it.
+  static isYT(s) { return !!s && s.platform === 'ytdg'; }
+  static YT_OUT = { sq: [1200, 1200], st: [1080, 1920] };
+  static YT_NAME = { sq: 'Square_1x1', yl: 'Landscape_1.91x1', yp: 'Portrait_4x5', st: 'Vertical_9x16' };
+  static YT_LIM = { head: 40, desc: 90, biz: 25, n: 5, mb: 5 };
+  static YT_LOGO_BG = { navy: ['#1A2942', '#FFFFFF'], white: ['#FFFFFF', '#1A2942'], black: ['#000000', '#FFFFFF'] };
+  static ytOf(s) {
+    const y = (s && s.yt) || {};
+    const five = a => { const o = Array.isArray(a) ? a.slice(0, 5).map(t => String(t == null ? '' : t)) : []; while (o.length < 5) o.push(''); return o; };
+    return { biz: typeof y.biz === 'string' ? y.biz : 'Provident Real Estate', heads: five(y.heads), descs: five(y.descs), logoBg: CampaignStudio.YT_LOGO_BG[y.logoBg] ? y.logoBg : 'navy' };
+  }
+  // Every text asset over Google's limit, in words — read by the copy view's counters, the
+  // dock's summary and the export's status line, so the three cannot disagree.
+  static ytIssues(s) { return CampaignStudio.ytCheck(s).problems; }
+  // THE COMPLIANCE CHECK, by request ("indicators where it checks if it complies to the copy
+  // limits"). One function decides, and every indicator reads it: each field's meter and
+  // status, the checklist and badge in the copy view and the dock, the canvas bar's chip and
+  // the export's status line — so no two can disagree about whether the text is ready.
+  //   field  empty · ok (within the limit) · over (past it) · dup (the same words as an
+  //          earlier one — Google refuses duplicate headlines and descriptions)
+  //   rows   Business name (present, 25) · Headlines (at least 1, each 40, no repeats) ·
+  //          Descriptions (at least 1, each 90, no repeats)
+  static ytField(t, max, dupOf) {
+    const n = String(t || '').trim().length;
+    if (!n) return { n, state: 'empty', label: '0 / ' + max, pct: 0 };
+    const pct = Math.min(100, n / max * 100);
+    if (n > max) return { n, state: 'over', label: n + ' / ' + max + ' · ' + (n - max) + ' over', pct: 100 };
+    if (dupOf) return { n, state: 'dup', label: 'Same as ' + dupOf, pct };
+    return { n, state: 'ok', label: n + ' / ' + max + (max - n <= 3 ? ' · ' + (max - n) + ' left' : ''), pct };
+  }
+  static ytCheck(s) {
+    const C = CampaignStudio, y = C.ytOf(s), L = C.YT_LIM, problems = [];
+    const list = (arr, max, word) => {
+      const seen = {};
+      const fields = arr.map((t, i) => {
+        const k = String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        const dup = k && seen[k] ? word.toLowerCase() + ' ' + seen[k] : '';
+        if (k && !seen[k]) seen[k] = i + 1;
+        return C.ytField(t, max, dup);
+      });
+      const filled = fields.filter(f => f.state !== 'empty').length;
+      const over = fields.filter(f => f.state === 'over').length, dups = fields.filter(f => f.state === 'dup').length;
+      fields.forEach((f, i) => {
+        if (f.state === 'over') problems.push(word + ' ' + (i + 1) + ' is ' + f.n + ' / ' + max);
+        if (f.state === 'dup') problems.push(word + ' ' + (i + 1) + ' repeats ' + f.label.replace('Same as ', ''));
+      });
+      if (!filled) problems.push('No ' + word.toLowerCase() + ' yet');
+      const bad = !filled || over || dups;
+      const note = !filled ? 'Google needs at least one'
+        : ((over || dups) ? [over ? over + ' over ' + max + ' characters' : '', dups ? dups + ' repeated' : ''].filter(Boolean).join(' · ') : 'all within ' + max + ' characters');
+      return { fields, row: { label: word + 's', state: bad ? 'bad' : 'ok', note: filled + ' of 5 · ' + note } };
+    };
+    const bn = y.biz.trim().length;
+    const biz = C.ytField(y.biz, L.biz, '');
+    if (!bn) problems.push('No business name');
+    else if (bn > L.biz) problems.push('Business name is ' + bn + ' / ' + L.biz);
+    const H = list(y.heads, L.head, 'Headline'), D = list(y.descs, L.desc, 'Description');
+    const rows = [{ label: 'Business name', state: biz.state === 'ok' ? 'ok' : 'bad', note: !bn ? 'missing' : (bn > L.biz ? biz.label : bn + ' / ' + L.biz) }, H.row, D.row];
+    const bad = rows.filter(r => r.state === 'bad').length;
+    return { biz, heads: H.fields, descs: D.fields, rows, bad, ok: !bad, problems,
+      badge: bad ? bad + ' to fix' : 'Ready for Google' };
+  }
+  // The business logo: the wordmark on a square, inside the circle Google crops a logo to
+  // in some placements — 62% of the width, so the ink clears the inscribed circle with room.
+  ytLogoBuild(s) {
+    const y = CampaignStudio.ytOf(s), W = 1200;
+    const [bg, ink] = CampaignStudio.YT_LOGO_BG[y.logoBg];
+    const w0 = this.meas('provident.', 100, 300, false, 100 * .04) - 100 * .04;
+    const px = 100 * (W * .62) / Math.max(1, w0), lsp = px * .04, tw = this.meas('provident.', px, 300, false, lsp) - lsp;
+    // centred on its INK, not its line box: the d's ascender and the p's descender
+    let ia = px * .72, id = px * .2;
+    try { const g = document.createElement('canvas').getContext('2d'); g.font = '300 ' + px + 'px ' + (window.providentFont || 'sans-serif'); const mt = g.measureText('provident.'); if (mt.actualBoundingBoxAscent) { ia = mt.actualBoundingBoxAscent; id = mt.actualBoundingBoxDescent; } } catch (e) {}
+    return { W, H: W, ops: [
+      { op: 'rect', x: 0, y: 0, w: W, h: W, fill: bg },
+      { op: 'text', x: (W - tw) / 2, y: W / 2 + (ia - id) / 2, px, weight: 300, fill: ink, text: 'provident.', ls: lsp }
+    ] };
+  }
   // The file a size exports as: its own pixel size when the size declares one (the two
   // banners), otherwise the 2x every Meta size has always shipped at.
-  static exportScale(sizeKey) { const t = CampaignStudio.PXT[sizeKey]; return (t && t.out) ? t.out[0] / t.W : 2; }
+  static exportScale(sizeKey, s) {
+    const t = CampaignStudio.PXT[sizeKey];
+    // on YouTube the 1:1 and the 9:16 ship at Google's sizes, 1200 x 1200 and 1080 x 1920
+    if (CampaignStudio.isYT(s) && CampaignStudio.YT_OUT[sizeKey]) return CampaignStudio.YT_OUT[sizeKey][0] / t.W;
+    return (t && t.out) ? t.out[0] / t.W : 2;
+  }
   // THE EXPORT'S ORGANISATION, by request (2026-09-28). A file is named for its JOB, not its
   // ratio — the 1:1 is the `feed`, the 9:16 the `Story`, the banners `EventBrite_Banner_wide`
   // (1880 x 940) and `EventBrite_Banner_Small` (758 x 380), spelled as asked — and lands in a
@@ -5474,7 +5776,7 @@ class CampaignStudio extends StudioBase {
   static EXPORT_NAME = { sq: 'feed', st: 'Story', ls: '16x9', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
   static BANNER_DIR = 'Eventbrite Banners';
   static isBanner(sizeKey) { return sizeKey === 'bn' || sizeKey === 'bs'; }
-  static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '16:9', bn: 'Banner 1880', bs: 'Banner 758' };
+  static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '16:9', bn: 'Banner 1880', bs: 'Banner 758', yl: '1.91:1', yp: '4:5' };
   // The size whose OWN PHOTO a canvas reads. Both banners are one design, so the 758 reads
   // the 1880's — one upload, one crop, cover-fitted edge to edge on each.
   static photoSize(sizeKey) { return sizeKey === 'bs' ? 'bn' : sizeKey; }
@@ -5533,10 +5835,11 @@ class CampaignStudio extends StudioBase {
   // ONE STATE BUILDER, read by `pickTpl` AND the splash card, so the card cannot depict a
   // template that picking it would not build. It was inline in `pickTpl`; a second copy for
   // the preview is exactly how the skeleton came to disagree with the artwork.
-  static tplState(id) {
+  static tplState(id, platform) {
     const tpl = CampaignStudio.TPL.find(x => x.id === id);
     if (!tpl) return null;
     const d = CampaignStudio.defaults();
+    if (platform === 'ytdg') { d.platform = 'ytdg'; d.yt = CampaignStudio.ytOf(d); }
     d.modules = tpl.mods.map((md, i) => Object.assign({ id: 'm' + (i + 1), type: md[0] }, JSON.parse(JSON.stringify(md[1]))));
     const v = d.variants[0];
     d.modules.forEach(m => { v.clusters[m.id] = (tpl.preset === 'top') ? 'top' : ((tpl.preset === 'split' && ['eyebrow', 'hero', 'hook'].indexOf(m.type) >= 0) ? 'top' : 'bottom'); });
@@ -5591,7 +5894,7 @@ class CampaignStudio extends StudioBase {
     // NO THEME IN THE KEY, unlike Organic's. `newVariant` sets bg:'dark', so every template
     // renders on the DARK canvas palette and all four cards are dark in both chrome themes.
     // There is no paper kind here, so there is nothing for a ground swap to do.
-    const key = 'v1|' + (window.providentFontFam || '');
+    const key = 'v2|' + (window.providentFontFam || '');
     if (this._tplKey === key) return;
     this._tplBusy = true;
     try {
@@ -5612,6 +5915,11 @@ class CampaignStudio extends StudioBase {
           // simply draws the canvas ground.
           const built = this.buildOps(st, 0, 'sq', qr ? { qr } : {});
           out[tp.id] = [this.renderOpsToCanvas(built, CampaignStudio.TPL_SCALE)
+            .toDataURL('image/webp', 0.8)];
+          // the YouTube card shows the template's 1.91:1 landscape — the ratio that tells the
+          // two platforms apart at a glance, and the one Demand Gen leads with
+          const sty = CampaignStudio.tplState(tp.id, 'ytdg');
+          out[tp.id + ':yt'] = [this.renderOpsToCanvas(this.buildOps(sty, 0, 'yl', qr ? { qr } : {}), CampaignStudio.TPL_SCALE * 1080 / 1920 * 1.4)
             .toDataURL('image/webp', 0.8)];
         } catch (e) {}
       });
@@ -6506,7 +6814,7 @@ class CampaignStudio extends StudioBase {
   // The 758 banner goes higher than the rest: an email shows it at 1:1, where 100% of the
   // 1880 design sets the smallest caps near 10px, so its type is the one that needs to come
   // UP. Each banner scales on its own, like every size.
-  static SCALE_RANGE = { sq: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150] };
+  static SCALE_RANGE = { sq: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150], yl: [80, 130], yp: [80, 130] };
   static scaleRange(sizeKey) {
     return CampaignStudio.SCALE_RANGE[sizeKey] || [CampaignStudio.SCALE_MIN, CampaignStudio.SCALE_MAX];
   }
@@ -6904,7 +7212,10 @@ class CampaignStudio extends StudioBase {
   static maxVars(s) { return CampaignStudio.isCarousel(s) ? 10 : 3; }
   // The 9:16 can only be dropped on a carousel; a single ad always ships every size.
   static storyShown(s) { return !CampaignStudio.isCarousel(s) || s.storyOn !== false; }
-  static sizesFor(s, v) { const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out; }
+  static sizesFor(s, v) {
+    if (CampaignStudio.isYT(s)) return ['sq', 'yl', 'yp', 'st'];
+    const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out;
+  }
   // The list a render of page/variant `vi` reads. Never mutate what this returns.
   static modulesFor(s, vi) {
     if (!CampaignStudio.isCarousel(s)) return s.modules || [];
@@ -7004,13 +7315,15 @@ class CampaignStudio extends StudioBase {
     if (size === 'st') return v.story || null;
     if (size === 'ls') return v.wideOv || null;
     if (size === 'bn' || size === 'bs') return v.banOv || null;
+    if (size === 'yl') return v.ylOv || null;
+    if (size === 'yp') return v.ypOv || null;
     return null;
   }
   // Every DETACHED size record a variant can carry. Anything that walks a variant's layout
   // records walks this list — forkPage, dropMod, copyMove, the layout presets, the merge
   // and the load — so a new size cannot be missed by one of them. They were six copies of
   // a literal `[v, v.story, v.wideOv]`, which is exactly how a new size gets missed.
-  static OVK = ['story', 'wideOv', 'banOv'];
+  static OVK = ['story', 'wideOv', 'banOv', 'ylOv', 'ypOv'];
   static recsOf(v) { return v ? [v].concat(CampaignStudio.OVK.map(k => v[k])) : []; }
   // THE ONE LAYOUT of a recreated component: its box height and a flat list of elements in
   // component coordinates (x from the column's left edge, y from the component's top). The
@@ -8480,7 +8793,7 @@ class CampaignStudio extends StudioBase {
       const fgv = norm(sidecar['adstudio-fg-' + vi]);
       if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + vi] = { img, u: fgv.u, s: fgv.s, x: fgv.x, y: fgv.y }; }
       // `bn` is the banner's own photo — one slot for both banner sizes (photoSize)
-      for (const sz of ['st', 'ls', 'bn']) {
+      for (const sz of ['st', 'ls', 'bn', 'yl', 'yp']) {
         const b2 = norm(sidecar['adstudio-bg-' + vi + '-' + sz]);
         if (b2 && b2.u) { const img = await loadImg(b2.u); if (img) assets['bg' + vi + '_' + sz] = { img, u: b2.u, s: b2.s, x: b2.x, y: b2.y }; }
       }
@@ -8549,11 +8862,25 @@ class CampaignStudio extends StudioBase {
   // A — and ONE `Carousel` folder for a carousel, whose pages belong together rather than a
   // folder each. The variant is in the FILE name too, so a file dragged out of its folder
   // into Ads Manager still says which design it is.
+  // The Demand Gen text assets as a plain file, one line per asset, ready to paste.
+  ytText(s) {
+    const y = CampaignStudio.ytOf(s), L = CampaignStudio.YT_LIM;
+    const line = (lab, t, max) => lab + ': ' + t.trim() + (t.trim().length > max ? '   [' + t.trim().length + ' / ' + max + ' — over Google\u2019s limit]' : '');
+    const out = ['YouTube Demand Gen — text assets', (s.campaign || '').trim(), '',
+      line('Business name (max ' + L.biz + ')', y.biz, L.biz), '', 'Headlines (max ' + L.head + ' characters each)'];
+    y.heads.forEach((t, i) => { if (t.trim()) out.push(line('  ' + (i + 1), t, L.head)); });
+    out.push('', 'Descriptions (max ' + L.desc + ' characters each)');
+    y.descs.forEach((t, i) => { if (t.trim()) out.push(line('  ' + (i + 1), t, L.desc)); });
+    out.push('', 'Images: Landscape 1.91:1 1200 x 628 · Square 1:1 1200 x 1200 · Portrait 4:5 960 x 1200 · Vertical 9:16 1080 x 1920 · Logo 1:1 1200 x 1200');
+    return out.join('\n') + '\n';
+  }
   exportDir(vi) { return CampaignStudio.isCarousel(this.state) ? 'Carousel' : 'Variant ' + String.fromCharCode(65 + vi); }
   exportPath(name, vi, sizeKey, ext) {
     const dir = this.exportDir(vi), who = CampaignStudio.isCarousel(this.state) ? this.fileLabel(vi) : dir;
+    // a YouTube file is named for its RATIO, the way Google's asset library lists it
+    const job = (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_NAME : CampaignStudio.EXPORT_NAME)[sizeKey] || sizeKey;
     return dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
-      name + '_' + who + '_' + (CampaignStudio.EXPORT_NAME[sizeKey] || sizeKey) + '.' + ext;
+      name + '_' + who + '_' + job + '.' + ext;
   }
   async doExport(kind) {
     const state = this.state;
@@ -8582,15 +8909,17 @@ class CampaignStudio extends StudioBase {
         this.setState({ exportStatus: `Exported ${pages.length} pages → ${name}.pdf` });
         return;
       }
-      const files = [];
+      const files = [], yt = CampaignStudio.isYT(state), big = [];
       for (let vi = 0; vi < state.variants.length; vi++) {
         for (const sizeKey of CampaignStudio.sizesFor(state, state.variants[vi])) {
           const built = this.buildOps(state, vi, sizeKey, assets);
           if (kind === 'png' || kind === 'jpg') {
             // at the FILE's own size — 2x for the Meta sizes, exactly 1880 x 940 and
             // 758 x 380 for the banners
-            const r = await this.rasterFile(built, kind, CampaignStudio.exportScale(sizeKey));
-            files.push({ name: this.exportPath(name, vi, sizeKey, r.ext), data: r.data });
+            const r = await this.rasterFile(built, kind, CampaignStudio.exportScale(sizeKey, state));
+            const fn = this.exportPath(name, vi, sizeKey, r.ext);
+            if (yt && r.data.length > CampaignStudio.YT_LIM.mb * 1048576) big.push(fn.split('/').pop());
+            files.push({ name: fn, data: r.data });
           } else {
             files.push({ name: this.exportPath(name, vi, sizeKey, 'svg'), data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
           }
@@ -8599,7 +8928,21 @@ class CampaignStudio extends StudioBase {
       // EVERY EXPORT OVERWRITES THE LAST, by request — no "Replace N files?" prompt. A file
       // this export does not write (a variant since removed, a banner since hidden) is left
       // alone: an export never deletes anything in the folder.
+      // YOUTUBE DEMAND GEN ships two more things beside the images: the 1:1 business logo,
+      // and the text assets as a plain file to paste into Google Ads.
+      if (yt && (kind === 'png' || kind === 'jpg')) {
+        const lg = await this.rasterFile(this.ytLogoBuild(state), 'png', 1);
+        files.push({ name: 'Logo/' + name + '_Logo_1x1.png', data: lg.data });
+        files.push({ name: name + '_Demand Gen text.txt', data: new TextEncoder().encode(this.ytText(state)) });
+      }
       await this.deliver(files, name, { overwrite: true });
+      if (yt) {
+        const iss = CampaignStudio.ytIssues(state);
+        const warn = (big.length ? ' · Over 5 MB, which Google refuses: ' + big.join(', ') + ' — export JPEG instead.' : '') +
+          (iss.length ? ' · Google text not ready: ' + iss.join(', ') + '.' : '');
+        // an UPDATER, so it lands after deliver's own status rather than over a stale read
+        if (warn) this.setState(p => ({ exportStatus: (p.exportStatus || '') + warn }));
+      }
     } catch (err) {
       console.warn(err);
       this.setState({ exportStatus: 'Export failed: ' + (err && err.message || err) });
@@ -8619,6 +8962,8 @@ class CampaignStudio extends StudioBase {
       put('adstudio-bg-' + vi + '-st', 'background-' + lab(vi) + '-9x16');
       put('adstudio-bg-' + vi + '-ls', 'background-' + lab(vi) + '-16x9');
       put('adstudio-bg-' + vi + '-bn', 'background-' + lab(vi) + '-banner');
+      put('adstudio-bg-' + vi + '-yl', 'background-' + lab(vi) + '-1.91x1');
+      put('adstudio-bg-' + vi + '-yp', 'background-' + lab(vi) + '-4x5');
       put('adstudio-fg-' + vi, 'cutout-' + lab(vi));
     });
     put('adstudio-qr', 'qr');
@@ -9264,7 +9609,7 @@ class CampaignStudio extends StudioBase {
     const A = {};
     const pic = async (slotId, key) => { const b = norm(sc[slotId]); if (b && b.u) { const im = await this._vtImg(b.u); if (im) A[key] = { img: im, u: b.u, s: b.s, x: b.x, y: b.y }; } };
     await pic('adstudio-bg-' + vi, 'bg0');
-    for (const sz of ['st', 'ls', 'bn']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
+    for (const sz of ['st', 'ls', 'bn', 'yl', 'yp']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
     if (m0.type === 'graphic') await pic('adstudio-mod-' + id, 'mod' + id);
     if (m0.type === 'steps' || m0.type === 'tags' || m0.type === 'spec' || m0.type === 'cust') {
       const glyph = await C.vtGlyph();
@@ -9402,6 +9747,28 @@ class CampaignStudio extends StudioBase {
     C.custLibWrite(C.custLibRead().filter(x => x.id !== spec.id));
     this.forceUpdate();
   }
+  // The Demand Gen text assets in the copy view: a business name and five of each, every
+  // field with its own count against Google's limit, which turns amber past it.
+  cwYtVals() {
+    const s = this.state, C = CampaignStudio, L = C.YT_LIM;
+    if (!C.isYT(s)) return { cwYtOn: false, cwYtRows: [] };
+    const y = C.ytOf(s), ck = C.ytCheck(s);
+    const setY = fn => this.upd(x => { x.yt = C.ytOf(x); fn(x.yt); return x; });
+    const meter = f => ({ width: f.pct.toFixed(1) + '%' });
+    const rows = [];
+    y.heads.forEach((t, i) => { const f = ck.heads[i]; rows.push({ headOn: i === 0, group: 'Headlines', groupNote: ck.rows[1].note, groupState: ck.rows[1].state, isLine: true, isArea: false, label: 'Headline ' + (i + 1),
+      ph: i === 0 ? 'e.g. Waterfront homes in Dubai Marina' : 'Headline ' + (i + 1), val: t, count: f.label, state: f.state, meter: meter(f),
+      on: e => { const v = e.target.value; setY(o => { o.heads[i] = v; }); } }); });
+    y.descs.forEach((t, i) => { const f = ck.descs[i]; rows.push({ headOn: i === 0, group: 'Descriptions', groupNote: ck.rows[2].note, groupState: ck.rows[2].state, isLine: false, isArea: true, label: 'Description ' + (i + 1),
+      ph: i === 0 ? 'e.g. Ready to move in, with a 50/50 payment plan. Book a viewing with Provident.' : 'Description ' + (i + 1), val: t, count: f.label, state: f.state, meter: meter(f),
+      on: e => { const v = e.target.value; setY(o => { o.descs[i] = v; }); } }); });
+    return {
+      cwYtOn: true, cwYtRows: rows,
+      cwYtBadge: ck.badge, cwYtBadgeState: ck.ok ? 'ok' : 'bad', cwYtChecks: ck.rows,
+      cwYtBiz: y.biz, cwYtBizCount: ck.biz.label, cwYtBizState: ck.biz.state, cwYtBizMeter: meter(ck.biz),
+      cwYtOnBiz: e => { const v = e.target.value; setY(o => { o.biz = v; }); }
+    };
+  }
   copyVals() {
     const s = this.state, C = CampaignStudio, L = C.COPY_LABEL;
     const status = C.COPY_STATES.indexOf(s.copyStatus) >= 0 ? s.copyStatus : 'draft';
@@ -9419,6 +9786,7 @@ class CampaignStudio extends StudioBase {
       cwBarState: status,
       cwOpen: go('copy'),
       cwOn: on,
+      cwYtOn: false, cwYtRows: [],
     };
     if (!on) return base;
     const carousel = C.isCarousel(s), vi = Math.max(0, Math.min(s.activeVi || 0, s.variants.length - 1));
@@ -9558,6 +9926,7 @@ class CampaignStudio extends StudioBase {
       onCwAuthor: e => { try { localStorage.setItem('adstudio-author', e.target.value); } catch (err) {} this.forceUpdate(); },
       cwPages: pages,
       cwMulti: carousel,
+      ...this.cwYtVals(),
       cwHist: hist,
       cwHistOn: hist.length > 0,
       cwHistEmptyOn: !hist.length,
@@ -9600,10 +9969,10 @@ class CampaignStudio extends StudioBase {
     this.reloadNow();
   }
   // Seed a campaign from one of the kit families.
-  async pickTpl(id) {
+  async pickTpl(id, platform) {
     // The state comes from `tplState`, the same builder the splash card renders, so the
     // project you get is the design the card showed you.
-    const d = CampaignStudio.tplState(id);
+    const d = CampaignStudio.tplState(id, platform);
     if (!d) return;
     if (!this.confirmDiscard()) return;
     d.screen = 'editor';
@@ -9678,7 +10047,9 @@ class CampaignStudio extends StudioBase {
       const [pT, pR, pB, pL] = tk.pad;
       // The 1880 banner is shown as wide as the 16:9; the 758 one smaller, so the pair reads
       // as one design at two file sizes rather than as the same canvas twice.
-      const width = sizeKey === 'sq' ? dispW : ((sizeKey === 'ls' || sizeKey === 'bn') ? Math.round(dispW * 1.18) : (sizeKey === 'bs' ? Math.round(dispW * .76) : Math.round(dispW * .58)));
+      // The YouTube 1.91:1 sits as wide as the 16:9, and the 4:5 a little narrower than the
+      // 1:1 so the two read at one height.
+      const width = sizeKey === 'sq' ? dispW : ((sizeKey === 'ls' || sizeKey === 'bn' || sizeKey === 'yl') ? Math.round(dispW * 1.18) : (sizeKey === 'yp' ? Math.round(dispW * .8) : (sizeKey === 'bs' ? Math.round(dispW * .76) : Math.round(dispW * .58))));
       // The canvas's own tokens, named apart so mk can shadow `tk` with the component's.
       const tkC = tk;
       const mk = (m, g) => {
@@ -10639,7 +11010,7 @@ class CampaignStudio extends StudioBase {
         // picture and the last one's is orphaned. Pre-existing; with 10 pages it is common.
         const n = s.variants.length, IS = customElements.get('image-slot');
         if (IS && IS.moveSlot) {
-          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-bg-' + k + '-bn', 'adstudio-fg-' + k];
+          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-bg-' + k + '-bn', 'adstudio-bg-' + k + '-yl', 'adstudio-bg-' + k + '-yp', 'adstudio-fg-' + k];
           for (let k = vi; k < n - 1; k++) ids(k).forEach((to, j) => IS.moveSlot(ids(k + 1)[j], to));
           ids(n - 1).forEach(id => IS.moveSlot(null, id));
         }
@@ -10694,7 +11065,29 @@ class CampaignStudio extends StudioBase {
       fgVi: String(vi),
       selectVariant: e => { e.stopPropagation(); this.upd(x => { x.activeVi = vi; x.sel = null; return x; }); },
       sq: mkCanvas(vi, 'sq'),
-      st: mkCanvas(vi, 'st')
+      st: mkCanvas(vi, 'st'),
+      // ── THE PLATFORM decides which canvases a plate carries (see isYT) ──
+      ytOn: CampaignStudio.isYT(s),
+      metaOn: !CampaignStudio.isYT(s),
+      sqMeta: CampaignStudio.isYT(s) ? '1200 × 1200 · square · master layout' : '1080 × 1080 · master layout',
+      stHead: CampaignStudio.isYT(s) ? 'Vertical 9:16 · Shorts' : '9:16 story',
+      stMeta: CampaignStudio.isYT(s) ? '1080 × 1920 · YouTube Shorts' : '1080 × 1920 · story',
+      // the YouTube landscape and portrait: always shown, the 16:9's own two controls
+      ylState: v.ylOv ? '· detached' : '· mirrors 1:1',
+      ypState: v.ypOv ? '· detached' : '· mirrors 1:1',
+      toggleYlOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ylOv = vv.ylOv ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)), mvar: {} }; return x; }); },
+      toggleYpOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ypOv = vv.ypOv ? null : { clusters: JSON.parse(JSON.stringify(vv.clusters)), mvar: {} }; return x; }); },
+      ylOvLabel: v.ylOv ? 'Re-link layout' : 'Edit layout separately',
+      ypOvLabel: v.ypOv ? 'Re-link layout' : 'Edit layout separately',
+      toggleBgYl: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.yl = !vv.bgSep.yl; return x; }); },
+      toggleBgYp: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.yp = !vv.bgSep.yp; return x; }); },
+      bgYlLabel: (v.bgSep && v.bgSep.yl) ? 'Own photo ✓' : 'Own photo',
+      bgYpLabel: (v.bgSep && v.bgSep.yp) ? 'Own photo ✓' : 'Own photo',
+      bgYlSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.yl) ? '-yl' : ''), key: 'yl' + vi + !!(v.bgSep && v.bgSep.yl) }],
+      bgYpSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.yp) ? '-yp' : ''), key: 'yp' + vi + !!(v.bgSep && v.bgSep.yp) }],
+      // built only on a YouTube project — two canvases per variant is real work
+      yl: CampaignStudio.isYT(s) ? mkCanvas(vi, 'yl') : null,
+      yp: CampaignStudio.isYT(s) ? mkCanvas(vi, 'yp') : null
     }));
 
     const addDefaults = {
@@ -10769,6 +11162,16 @@ class CampaignStudio extends StudioBase {
     // The raster rows say "2×"; a banner ships at its own file size, and the row says so.
     const anyBanner = (s.variants || []).some(vv => vv && vv.banner);
     const banWord = anyBanner ? ' · banners at their own size' : '';
+    const yt = CampaignStudio.isYT(s), ytY = CampaignStudio.ytOf(s), ytCk = CampaignStudio.ytCheck(s);
+    const ytLogo = (() => {
+      // the dock's preview is the export's own arithmetic at the 90px tile: 62% wide
+      const [bgc, ink] = CampaignStudio.YT_LOGO_BG[ytY.logoBg];
+      const w0 = this.meas('provident.', 100, 300, false, 4) - 4, px = 100 * (90 * .62) / Math.max(1, w0);
+      return { width: '100%', aspectRatio: '1 / 1', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bgc, color: ink,
+        fontFamily: window.providentFont, fontWeight: 300, fontSize: px.toFixed(2) + 'px', letterSpacing: '.04em', lineHeight: 1,
+        borderRadius: '10px', boxShadow: 'inset 0 0 0 1px var(--ps-hair)', whiteSpace: 'nowrap' };
+    })();
+    const ytSet = fn => this.upd(x => { x.yt = CampaignStudio.ytOf(x); fn(x.yt); return x; });
     const av = s.variants[s.activeVi] || s.variants[0];
     // The record the SELECTED canvas reads: that variant, or its detached size override.
     // Placement controls read and write this, so a variant — and a detached 9:16 — can
@@ -10925,7 +11328,7 @@ class CampaignStudio extends StudioBase {
       openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved(); },
       recentsView: recents.map((r, i) => ({
         name: r.name,
-        meta: 'Saved ' + new Date(r.ts).toLocaleDateString() + ' · ' + (CampaignStudio.isCarousel(r.state || {})
+        meta: (CampaignStudio.isYT(r.state) ? 'YouTube Demand Gen · ' : 'Meta ads · ') + 'Saved ' + new Date(r.ts).toLocaleDateString() + ' · ' + (CampaignStudio.isCarousel(r.state || {})
           ? ((r.state.variants || []).length + ' page' + ((r.state.variants || []).length === 1 ? '' : 's'))
           : ((r.state && r.state.variants || []).length + ' variant' + ((r.state && r.state.variants || []).length === 1 ? '' : 's'))),
         load: () => this.openRecent(i),
@@ -10941,19 +11344,54 @@ class CampaignStudio extends StudioBase {
       })),
       noRecents: recents.length === 0,
       splashTitle: 'Campaign Ad Studio',
-      splashSub: 'Paid Meta ads — 1:1, 9:16 and 16:9, assembled from design components on the 2026 brand system.',
+      splashSub: 'Paid Meta ads and YouTube Demand Gen, assembled from design components on the 2026 brand system.',
       newLabel: '+ New campaign',
       canContinue: true,
       openSession: () => this.openSessionFolder(),
       cardMini: { aspectRatio: '1/1' },   // campaign cards are square, like the 1:1 canvas
-      tplCount: CampaignStudio.TPL.length,
+      tplCount: CampaignStudio.TPL.length * 2,
       recentCount: recents.length,
       tplCards: CampaignStudio.TPL.map(tp => Object.assign({ name: tp.name, desc: tp.desc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
+      // THE SAME FOUR DESIGNS, made for YouTube Demand Gen: picking one starts a project on
+      // that platform, so the two never share a project — see isYT.
+      ytTplCards: CampaignStudio.TPL.map(tp => Object.assign({ name: tp.name, desc: '1.91:1 · 1:1 · 4:5 · 9:16, logo and text',
+        pick: () => this.pickTpl(tp.id, 'ytdg') }, this.tplCardView(tp.id + ':yt'))),
+      cardMiniYt: { aspectRatio: '1.91 / 1' },
       splashLoadOn: true,
       projLabel: (s.campaign || '').trim() || 'Untitled campaign',
       projMeta: s.variants.length + (CampaignStudio.isCarousel(s) ? (s.variants.length === 1 ? ' page' : ' pages') : (s.variants.length === 1 ? ' variant' : ' variants')),
-      exportPdfOn: true,
+      exportPdfOn: !yt,
+      // ── Platform: Meta ads or YouTube Demand Gen (see isYT) ──
+      platMetaOn: yt ? undefined : '1',
+      platYtOn: yt ? '1' : undefined,
+      platMetaFlag: !yt,
+      platYtFlag: yt,
+      // the placement preview is Meta's feed, reels and story — nothing to show for YouTube
+      mkBtnOn: !yt,
+      platMeta: () => this.upd(x => { if (x.platform !== 'ytdg') return x; x.platform = 'meta'; if (x.sel && (x.sel.size === 'yl' || x.sel.size === 'yp')) x.sel = null; return x; }),
+      // a YouTube project is a single ad; a carousel's pages keep their lists for the round trip
+      platYt: () => this.upd(x => { if (x.platform === 'ytdg') return x; x.platform = 'ytdg'; x.adMode = 'single'; x.storyOn = true; x.yt = CampaignStudio.ytOf(x); if (x.sel && ['ls', 'bn', 'bs'].indexOf(x.sel.size) >= 0) x.sel = null; return x; }),
+      platHint: yt
+        ? 'Every variant carries 1.91:1, 1:1, 4:5 and 9:16 at Google\u2019s sizes, plus a 1:1 logo and the text assets. JPEG or PNG, 5 MB each.'
+        : '1:1 feed and 9:16 story at 2x, with an opt-in 16:9 and Eventbrite banners on each variant.',
+      ytLogoStyle: ytLogo,
+      ytLogoNavyOn: ytY.logoBg === 'navy' ? '1' : undefined,
+      ytLogoWhiteOn: ytY.logoBg === 'white' ? '1' : undefined,
+      ytLogoBlackOn: ytY.logoBg === 'black' ? '1' : undefined,
+      ytLogoNavy: () => ytSet(o => { o.logoBg = 'navy'; }),
+      ytLogoWhite: () => ytSet(o => { o.logoBg = 'white'; }),
+      ytLogoBlack: () => ytSet(o => { o.logoBg = 'black'; }),
+      ytTextHint: ytCk.ok ? 'Written in the Copy workspace, exported as a text file beside the images.'
+        : ytCk.problems.join(' · ') + '.',
+      ytBadge: ytCk.badge, ytBadgeState: ytCk.ok ? 'ok' : 'bad', ytChecks: ytCk.rows,
+      // the canvas bar's chip: the same verdict, one click from the fields
+      ytBarOn: yt, ytBarLabel: 'Google text · ' + (ytCk.ok ? 'ready' : ytCk.bad + ' to fix'), ytBarState: ytCk.ok ? 'ok' : 'bad',
+      ytEditText: () => { CampaignStudio.setWorkScreen('copy'); this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }); },
+      // JPEG and PNG ship at the FILE's size on YouTube, so the format names drop the 2x
+      exportJpgName: yt ? 'JPEG' : 'JPEG 2×',
+      exportPngName: yt ? 'PNG' : 'PNG 2×',
+      exportSvgRowOn: !yt,
       // ── Format: single ad or carousel, and the carousel's story toggle ──
       modeSingleOn: CampaignStudio.isCarousel(s) ? undefined : '1',
       modeCarouselOn: CampaignStudio.isCarousel(s) ? '1' : undefined,
@@ -10977,7 +11415,9 @@ class CampaignStudio extends StudioBase {
       allVarsTitle: CampaignStudio.isCarousel(s) ? 'All pages' : 'All variants',
       qrOneCode: 'One code for every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + ' and every size. PNG or SVG, on a white quiet zone.',
       allVarsBtn: CampaignStudio.isCarousel(s) ? 'All Pages Option' : 'All Variants Option',
-      allVarsTip: CampaignStudio.isCarousel(s)
+      allVarsTip: yt
+        ? 'Everything here applies to every variant at once. Up to three variants share one set of design components; each is a set of four images for the YouTube Demand Gen asset pool. Export writes a folder per variant — Variant A, B and C, each with the 1.91:1, 1:1, 4:5 and 9:16 — plus the 1:1 business logo and the text assets. Each export overwrites the last.'
+        : CampaignStudio.isCarousel(s)
         ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed and _Story for every page, the banners in Eventbrite Banners inside it — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
         : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each with Name_Variant A_feed and _Story and the banners in Eventbrite Banners — or a single PDF. Each export overwrites the last. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
       textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
@@ -10989,15 +11429,19 @@ class CampaignStudio extends StudioBase {
       railFoot: CampaignStudio.isCarousel(s)
         ? 'Each page has its own design components, copy, position, style and visibility. An edit on one page never changes another.'
         : 'Design components are shared across variants; position, style and visibility are per variant. Copy edits apply everywhere.',
-      exportJpgDesc: this.deliverWord() + ' · q94, smallest — what Meta ingests' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
-      exportPngDesc: this.deliverWord() + ' · lossless, large files' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
+      exportJpgDesc: yt ? this.deliverWord() + ' · q94 at Google\u2019s sizes, well under 5 MB'
+        : this.deliverWord() + ' · q94, smallest — what Meta ingests' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
+      exportPngDesc: yt ? this.deliverWord() + ' · lossless — a photo-heavy 9:16 can pass Google\u2019s 5 MB'
+        : this.deliverWord() + ' · lossless, large files' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16') + banWord,
       exportSvgDesc: this.deliverWord() + ' · vector text, embedded photos' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
       // where the files go — the same folders exportPath writes, in the Share panel's words
-      exportLayoutNote: CampaignStudio.isCarousel(s)
+      exportLayoutNote: yt
+        ? 'JPEG and PNG go into a folder per variant — Variant A, then B and C — each with the Landscape 1.91:1, Square 1:1, Portrait 4:5 and Vertical 9:16 at Google\u2019s sizes. The 1:1 logo goes in Logo and the text assets beside them. Each export overwrites the last.'
+        : CampaignStudio.isCarousel(s)
         ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s feed and Story, with the banners in Eventbrite Banners inside it. Each export overwrites the last.'
         : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with the feed and Story in it and the banners in Eventbrite Banners inside it. Each export overwrites the last.',
       exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 16:9' : 'One file · 1:1, then 16:9 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
-      ...this.expPickVals(true),
+      ...this.expPickVals(!yt, yt),
       ...this.splashNoteVals(),
       fgOn: !!av.fg,
       activeFgId: 'adstudio-fg-' + s.activeVi,
@@ -11058,6 +11502,10 @@ class CampaignStudio extends StudioBase {
           bgStDoneOn: on('adstudio-bg-' + vi + '-st'), bgStDropLabel: lab('adstudio-bg-' + vi + '-st', 'Picture', 'the 9:16 picture'),
           bgLsDoneOn: on('adstudio-bg-' + vi + '-ls'), bgLsDropLabel: lab('adstudio-bg-' + vi + '-ls', 'Picture', 'the 16:9 picture'),
           bgBnDoneOn: on('adstudio-bg-' + vi + '-bn'), bgBnDropLabel: lab('adstudio-bg-' + vi + '-bn', 'Picture', 'the banner picture'),
+          bgYlDoneOn: on('adstudio-bg-' + vi + '-yl'), bgYlDropLabel: lab('adstudio-bg-' + vi + '-yl', 'Picture', 'the 1.91:1 picture'),
+          bgYpDoneOn: on('adstudio-bg-' + vi + '-yp'), bgYpDropLabel: lab('adstudio-bg-' + vi + '-yp', 'Picture', 'the 4:5 picture'),
+          bgYlRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-yl'), bgYpRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-yp'),
+          bgYlPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-yl'), bgYpPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-yp'),
           fgDoneOn: on('adstudio-fg-' + vi), fgDropLabel: lab('adstudio-fg-' + vi, 'Cut-out', 'the cut-out PNG'),
           gDoneOn: selM ? on('adstudio-mod-' + selM.id) : undefined,
           gDropLabel: selM ? lab('adstudio-mod-' + selM.id, 'Graphic', 'an SVG or PNG') : '',
@@ -11106,9 +11554,16 @@ class CampaignStudio extends StudioBase {
       bgSlotStStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotLsStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotBnStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSlotYlStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSlotYpStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSepStOn: CampaignStudio.storyShown(s) && !!(av.bgSep && av.bgSep.st),
-      bgSepLsOn: !!(av.bgSep && av.bgSep.ls),
-      bgSepBnOn: !!av.banner && !!(av.bgSep && av.bgSep.bn),
+      // a canvas the platform does not carry offers no own-photo row, whatever bgSep holds
+      bgSepLsOn: !CampaignStudio.isYT(s) && !!av.wide && !!(av.bgSep && av.bgSep.ls),
+      bgSepBnOn: !CampaignStudio.isYT(s) && !!av.banner && !!(av.bgSep && av.bgSep.bn),
+      bgSepYlOn: CampaignStudio.isYT(s) && !!(av.bgSep && av.bgSep.yl),
+      bgSepYpOn: CampaignStudio.isYT(s) && !!(av.bgSep && av.bgSep.yp),
+      activeBgYlSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-yl' }],
+      activeBgYpSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-yp' }],
       activeBgStSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-st' }],
       activeBgLsSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-ls' }],
       activeBgBnSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-bn' }],
@@ -11437,8 +11892,9 @@ class CampaignStudio extends StudioBase {
       scaleMax: CampaignStudio.SCALE_MAX,
       // The two banners scale on their own, and are named by their file width — both are
       // 2:1, so a ratio would not tell them apart.
-      scaleRows: [['sq', '1:1'], ['st', '9:16'], ['ls', '16:9'], ['bn', '1880'], ['bs', '758']]
-        .filter(sz => (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner))
+      scaleRows: (CampaignStudio.isYT(s) ? [['sq', '1:1'], ['yl', '1.91:1'], ['yp', '4:5'], ['st', '9:16']]
+        : [['sq', '1:1'], ['st', '9:16'], ['ls', '16:9'], ['bn', '1880'], ['bs', '758']]
+          .filter(sz => (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
         .map(sz => {
           const key = sz[0], val = Math.round(CampaignStudio.scaleOf(av, key) * 100);
           // The slider walks whole rungs of the minor third, so its value is the STEP and the
@@ -11707,7 +12163,7 @@ class Component extends DCLogic {
   // the splash's switcher row, so the shape beside a studio's name cannot drift from what
   // that studio actually makes. `initial` is gone with the letter chip it fed.
   static STUDIOS = [
-    { key: 'campaign', tab: 'Campaign ads', desc: 'Paid Meta ads', ratio: 1 },
+    { key: 'campaign', tab: 'Campaign ads', desc: 'Meta and YouTube ads', ratio: 1 },
     { key: 'organic', tab: 'Organic posts', desc: 'Feed and story posts', ratio: .75, file: 'Provident Organic Studio.dc.html' }
   ];
   static load() {

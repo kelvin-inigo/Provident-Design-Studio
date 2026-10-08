@@ -209,6 +209,8 @@
       };
       return {
         studio: 'cas', campaign: s.campaign || '', mode: C.isCarousel(s) ? 'carousel' : 'single',
+        platform: C.isYT && C.isYT(s) ? 'youtube' : 'meta',
+        youtube_text: C.isYT && C.isYT(s) ? C.ytOf(s) : undefined,
         story_shown: C.storyShown ? C.storyShown(s) : true,
         variants: s.variants.map((v, vi) => {
           const mods = C.modulesFor(s, vi);
@@ -271,6 +273,9 @@
       if (!cas) break;
       const rv = E.renderVals();
       if (op.op === 'set_mode') { (op.mode === 'carousel' ? rv.modeCarousel : rv.modeSingle)(); await ps.sleep(120); log.push('mode → ' + op.mode); }
+      // the platform switch: YouTube Demand Gen forces a single ad and carries the four Google ratios
+      if (op.op === 'set_platform') { (op.platform === 'youtube' ? rv.platYt : rv.platMeta)(); await ps.sleep(120); log.push('platform → ' + op.platform); }
+      if (op.op === 'youtube_text') { E.upd(x => { x.yt = C.ytOf(x); if (typeof op.business === 'string') x.yt.biz = op.business; if (Array.isArray(op.headlines)) op.headlines.slice(0, 5).forEach((t, i) => { x.yt.heads[i] = String(t); }); if (Array.isArray(op.descriptions)) op.descriptions.slice(0, 5).forEach((t, i) => { x.yt.descs[i] = String(t); }); return x; }); await ps.sleep(80); log.push('YouTube text set' + (C.ytIssues(E.state).length ? ' — over limit: ' + C.ytIssues(E.state).join(', ') : '')); }
       if (op.op === 'add_variant') { rv.addVariant(); await ps.sleep(250); log.push('added ' + (C.isCarousel(E.state) ? 'a page' : 'a variant')); }
     }
     let err = null;
