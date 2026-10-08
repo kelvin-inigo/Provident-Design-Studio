@@ -3498,13 +3498,13 @@ select.p-in{padding-right:34px}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .as-bar .p-ghost{display:inline-flex;flex-direction:row;align-items:center;gap:6px}
 .as-bar .mk-g{width:15px;height:15px;flex:none}
-.as-stage{--as-h:clamp(200px,min(34vh,calc((100vw - 220px) / 4.6875)),380px);
+.as-stage{--as-h:clamp(120px,min(18vh,calc((100vw - 220px) / 4.6875)),220px);
   flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:32px;padding:24px}
 .as-proj{display:flex;flex-direction:column;gap:12px;min-width:0}
 .as-proj-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .as-proj-h b{font:600 16px/1.25 var(--ps-font);color:var(--ps-ink)}
 .as-proj-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.as-row{display:flex;align-items:flex-start;gap:20px;overflow-x:auto;padding-bottom:4px}
+.as-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px}
 .as-col{flex:none;width:calc(var(--as-h) * 1.5625 + 44px);box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:var(--ps-r);
   background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);max-width:100%}
 .as-col-h{display:flex;flex-direction:column;gap:3px;padding-bottom:12px;border-bottom:1px solid var(--ps-hair)}
@@ -3550,6 +3550,26 @@ select.p-in{padding-right:34px}
 .as-big p{margin:0;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
 .as-big b{font:500 13px/1.3 var(--ps-font);color:#fff}
 .as-big s{font:400 12px/1.3 var(--ps-font);color:#A8B0BA;text-decoration:none}
+/* The grouping, in order of importance: Main folder › Audience › Variant › Platform › Type,
+   then a quiet line of dimension and size. Each level steps down in size and weight. */
+.as-stage{gap:40px}
+.as-main{display:flex;flex-direction:column;gap:22px;min-width:0}
+.as-main-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--ps-line)}
+.as-main-h b{font:600 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.as-main-h s{font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-aud{display:flex;flex-direction:column;gap:12px;min-width:0}
+.as-aud-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.as-aud-h b{font:600 17px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-aud-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-col{gap:16px}
+.as-col-h{padding-bottom:10px}
+.as-col-h b{font:600 14.5px/1.25 var(--ps-font)}
+.as-plat{display:flex;flex-direction:column;gap:10px}
+.as-plat + .as-plat{padding-top:16px;border-top:1px solid var(--ps-hair)}
+.as-plat-l{align-self:flex-start;padding:4px 10px;border-radius:var(--ps-pill);background:var(--ps-fill);
+  font:600 12px/1.2 var(--ps-font);color:var(--ps-ink)}
+.as-t figcaption b{font:500 12.5px/1.25 var(--ps-font);color:var(--ps-ink-2)}
+.as-t figcaption s{font:400 10.5px/1.3 var(--ps-font)}
 @media (max-width:760px){
   .as-stage{padding:14px;gap:24px}
   .as-row{flex-direction:column;align-items:stretch;gap:14px}
@@ -4026,27 +4046,36 @@ select.p-in{padding-right:34px}
       </div>
       <div class="as-stage">
         <sc-if value="{{ asNoteOn }}" hint-placeholder-val="{{ false }}"><div class="as-empty"><b>{{ asNoteHead }}</b><p>{{ asNote }}</p></div></sc-if>
-        <sc-for list="{{ asProjects }}" as="p" hint-placeholder-count="1">
-          <section class="as-proj">
-            <header class="as-proj-h"><b>{{ p.title }}</b><s>{{ p.sub }}</s></header>
-            <div class="as-row">
-              <sc-for list="{{ p.cols }}" as="c" hint-placeholder-count="2">
-              <section class="as-col">
-                <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
-                <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="1">
-                  <div class="as-pair" data-row="{{ r.kind }}">
-                    <sc-for list="{{ r.tiles }}" as="t" hint-placeholder-count="2">
-                      <figure class="as-t" data-shape="{{ t.shape }}">
-                        <sc-if value="{{ t.on }}" hint-placeholder-val="{{ true }}"><button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button></sc-if>
-                        <sc-if value="{{ t.missOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">{{ t.miss }}</div></sc-if>
-                        <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
-                      </figure>
-                    </sc-for>
-                  </div>
-                </sc-for>
+        <sc-for list="{{ asMains }}" as="mn" hint-placeholder-count="1">
+          <section class="as-main">
+            <header class="as-main-h"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></header>
+            <sc-for list="{{ mn.auds }}" as="au" hint-placeholder-count="1">
+              <section class="as-aud">
+                <header class="as-aud-h"><b>{{ au.title }}</b><s>{{ au.sub }}</s></header>
+                <div class="as-row">
+                  <sc-for list="{{ au.cols }}" as="c" hint-placeholder-count="2">
+                    <section class="as-col">
+                      <header class="as-col-h"><b>{{ c.title }}</b></header>
+                      <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
+                        <div class="as-plat">
+                          <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
+                          <sc-for list="{{ pl.rows }}" as="r" hint-placeholder-count="1">
+                            <div class="as-pair" data-row="{{ r.kind }}">
+                              <sc-for list="{{ r.tiles }}" as="t" hint-placeholder-count="2">
+                                <figure class="as-t" data-shape="{{ t.shape }}">
+                                  <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button>
+                                  <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
+                                </figure>
+                              </sc-for>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-for>
+                    </section>
+                  </sc-for>
+                </div>
               </section>
-              </sc-for>
-            </div>
+            </sc-for>
           </section>
         </sc-for>
       </div>
@@ -5888,6 +5917,10 @@ class CampaignStudio extends StudioBase {
   // stack, so the same margins clear it.
   static isYT(s) { return !!s && s.platform === 'ytdg'; }
   static YT_OUT = { sq: [1200, 1200], st: [1080, 1920] };
+  // A YouTube export goes in its OWN folder in the source folder, by request — `YT Demand Gen/`,
+  // with the Variant folders, the logo and the text file inside it — so it never mixes with a
+  // Meta export of the same project. The session file and Assets/ stay at the root.
+  static YT_DIR = 'YT Demand Gen';
   static YT_NAME = { sq: 'Square_1x1', yl: 'Landscape_1.91x1', yp: 'Portrait_4x5', st: 'Vertical_9x16' };
   static YT_LIM = { head: 40, desc: 90, biz: 25, n: 5, mb: 5 };
   static YT_LOGO_BG = { navy: ['#1A2942', '#FFFFFF'], white: ['#FFFFFF', '#1A2942'], black: ['#000000', '#FFFFFF'] };
@@ -9163,7 +9196,7 @@ class CampaignStudio extends StudioBase {
     const dir = this.exportDir(vi), who = CampaignStudio.isCarousel(this.state) ? this.fileLabel(vi) : dir;
     // a YouTube file is named for its RATIO, the way Google's asset library lists it
     const job = (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_NAME : CampaignStudio.EXPORT_NAME)[sizeKey] || sizeKey;
-    return dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
+    return (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_DIR + '/' : '') + dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
       name + '_' + who + '_' + job + '.' + ext;
   }
   async doExport(kind) {
@@ -9219,8 +9252,8 @@ class CampaignStudio extends StudioBase {
       // and the text assets as a plain file to paste into Google Ads.
       if (yt && (kind === 'png' || kind === 'jpg')) {
         const lg = await this.rasterFile(this.ytLogoBuild(state), 'png', 1);
-        files.push({ name: 'Logo/' + name + '_Logo_1x1.png', data: lg.data });
-        files.push({ name: name + '_Demand Gen text.txt', data: new TextEncoder().encode(this.ytText(state)) });
+        files.push({ name: CampaignStudio.YT_DIR + '/Logo/' + name + '_Logo_1x1.png', data: lg.data });
+        files.push({ name: CampaignStudio.YT_DIR + '/' + name + '_Demand Gen text.txt', data: new TextEncoder().encode(this.ytText(state)) });
       }
       // META: the upload manifest tools/meta-ads reads, once any ad text has been written.
       const mtOn = !yt && (kind === 'png' || kind === 'jpg') && CampaignStudio.mtUsed(state);
@@ -11788,7 +11821,7 @@ class CampaignStudio extends StudioBase {
       exportSvgDesc: this.deliverWord() + ' · vector text, embedded photos' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
       // where the files go — the same folders exportPath writes, in the Share panel's words
       exportLayoutNote: yt
-        ? 'JPEG and PNG go into a folder per variant — Variant A, then B and C — each with the Landscape 1.91:1, Square 1:1, Portrait 4:5 and Vertical 9:16 at Google\u2019s sizes. The 1:1 logo goes in Logo and the text assets beside them. Each export overwrites the last.'
+        ? 'JPEG and PNG go into a YT Demand Gen folder in the source folder — a folder per variant inside it (Variant A, then B and C) with the Landscape 1.91:1 and any 1:1, 4:5 or 9:16 you show, at Google\u2019s sizes, plus Logo and the text assets. Each export overwrites the last.'
         : CampaignStudio.isCarousel(s)
         ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s feed and Story, with the banners in Eventbrite Banners inside it. Each export overwrites the last.'
         : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with the feed and Story in it and the banners in Eventbrite Banners inside it. Each export overwrites the last.',
@@ -12529,14 +12562,14 @@ class Component extends DCLogic {
   // so the beforeunload handler stands down for a move the user asked for; assigning
   // location.href here would raise Chrome's "Changes you made may not be saved" over
   // a button the user had just pressed.
-  // ── Ad sets — the exported Feed and Story per variant, per project ─────────────
+  // ── Ad sets — Main folder › Audience › Variant › Platform › Type ─────────────────
   // A PROJECT is a folder holding a saved .adstudio.json (the source folder itself, or
   // any folder under it, three levels down). Inside a project only "Variant A/B/…"
   // folders count, and inside each only "<name>_Variant X_feed" and "_Story" images —
   // banners, 16:9, carousels and stray files are ignored, and a variant folder holding
   // neither is left out. The newest file wins a slot. Reads files, never re-renders.
   // Object URLs are revoked on every rescan and on close. Instance fields only.
-  static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload|logo|eventbrite banners)$|^\./i;
+  static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload|logo|eventbrite banners|yt demand gen)$|^\./i;
   async asOpen() {
     this.setState({ adSetsOpen: true });
     const f = window.providentFolder;
@@ -12557,12 +12590,12 @@ class Component extends DCLogic {
     const f = window.providentFolder, root = f && f.handle;
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
     this._asBig = null;
-    this._as = { busy: !!root, has: !!root, projects: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
+    this._as = { busy: !!root, has: !!root, mains: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
     this.forceUpdate();
     if (!root) return;
     const urls = [];
     try {
-      // 1 — find the project folders
+      // 1 — the project folders (a saved .adstudio.json)
       const found = [];
       const find = async (dir, path, depth) => {
         const subs = []; let json = null;
@@ -12578,69 +12611,89 @@ class Component extends DCLogic {
       };
       await find(root, '', 0);
       if (seq !== this._asSeq) return;
-      const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
-      const when = t => { try { return new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
-      const tile = async (file, path, label) => {
-        const url = URL.createObjectURL(file); urls.push(url);
-        let dim = '';
-        try { const b = await createImageBitmap(file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
-        const t = { url, name: path, label, meta: [dim, mb(file.size)].filter(Boolean).join(' · ') };
-        t.open = () => { this._asBig = t; this.forceUpdate(); };
-        return t;
+      // 2 — Main folder › Audience › Variant › Platform › Type. Main is the first folder under
+      // the source folder and Audience the next (Local › Family); a project at the source folder
+      // itself, or one level down, takes its own campaign name as the audience. Projects that land
+      // on the same Main/Audience merge, so a Meta and a YouTube export sit under ONE Variant A.
+      const KIND = {
+        feed: ['meta', 'sq', 'main', 'Feed'], story: ['meta', 'st', 'main', 'Story'],
+        square_1x1: ['yt', 'sq', 'main', 'Square 1:1'], vertical_9x16: ['yt', 'st', 'main', 'Vertical 9:16'],
+        'landscape_1.91x1': ['yt', 'yl', 'sub', 'Landscape 1.91:1'], portrait_4x5: ['yt', 'yp', 'sub', 'Portrait 4:5']
       };
-      // 2 — in each, the Variant folders and their feed / story
-      const projects = [];
-      let files = 0, sets_ = 0;
+      const tree = new Map();   // main → aud → letter → kind → {file, path}
+      const at = (m, k, mk) => { if (!m.has(k)) m.set(k, mk()); return m.get(k); };
       for (const p of found) {
+        const segs = p.path ? p.path.split('/') : [];
+        const main = segs[0] || root.name || 'Source folder';
+        const aud = segs.length >= 2 ? segs.slice(1).join(' / ') : p.name;
         const vdirs = [];
-        for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h]);
-        vdirs.sort((a, b) => a[0].localeCompare(b[0]));
-        const cols = [];
-        for (const [vname, vh] of vdirs) {
-          const letter = vname.slice(-1);
-          // Meta: _feed / _Story. YouTube Demand Gen: Google's ratio names (CampaignStudio.YT_NAME).
+        for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, '']);
+        // a YouTube Demand Gen export keeps its Variant folders inside `YT Demand Gen/`
+        let ytd = null;
+        try { ytd = await p.dir.getDirectoryHandle(CampaignStudio.YT_DIR); } catch (e) {}
+        if (ytd) for await (const [name, h] of ytd.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, CampaignStudio.YT_DIR + '/']);
+        for (const [vname, vh, vpre] of vdirs) {
+          const letter = vname.slice(-1).toUpperCase();
           const re = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
-          const slot = {};
           for await (const [name, h] of vh.entries()) {
             if (h.kind !== 'file') continue;
             const m = re.exec(name);
             if (!m) continue;
             const kind = m[1].toLowerCase(), fl = await h.getFile();
-            if (!slot[kind] || fl.lastModified > slot[kind].file.lastModified) slot[kind] = { file: fl, name };
-          }
-          const base = (p.path ? p.path + '/' : '') + vname + '/';
-          const mkTile = async (kind, shape, label, miss) => {
-            const e = slot[kind];
-            const t = e ? await tile(e.file, base + e.name, label) : null;
-            if (t) files++;
-            return { shape, label, on: t ? '1' : undefined, missOn: t ? undefined : '1', miss,
-              url: t ? t.url : '', name: t ? t.name : '', meta: t ? t.meta : 'Not exported', open: t ? t.open : () => {},
-              at: e ? e.file.lastModified : 0 };
-          };
-          const sets = [];
-          if (slot.feed || slot.story) sets.push({ yt: false, rows: [{ kind: 'main', tiles: [
-            await mkTile('feed', 'sq', 'Feed 1:1', 'No feed image'), await mkTile('story', 'st', 'Story 9:16', 'No story image')] }] });
-          if (slot.square_1x1 || slot.vertical_9x16 || slot['landscape_1.91x1'] || slot.portrait_4x5) sets.push({ yt: true, rows: [
-            { kind: 'main', tiles: [await mkTile('square_1x1', 'sq', 'Square 1:1', 'No square image'), await mkTile('vertical_9x16', 'st', 'Vertical 9:16', 'No vertical image')] },
-            { kind: 'sub', tiles: [await mkTile('landscape_1.91x1', 'yl', 'Landscape 1.91:1', 'No landscape image'), await mkTile('portrait_4x5', 'yp', 'Portrait 4:5', 'No portrait image')] }] });
-          if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
-          for (const st of sets) {
-            const newest = Math.max(...st.rows.flatMap(r => r.tiles.map(t => t.at)));
-            sets_++;
-            cols.push({ title: vname + (st.yt ? ' · YouTube Demand Gen' : sets.length > 1 ? ' · Meta' : ''),
-              sub: newest ? 'Exported ' + when(newest) : '', rows: st.rows });
+            const slots = at(at(at(tree, main, () => new Map()), aud, () => new Map()), letter, () => ({}));
+            if (!slots[kind] || fl.lastModified > slots[kind].file.lastModified)
+              slots[kind] = { file: fl, path: (p.path ? p.path + '/' : '') + vpre + vname + '/' + name };
           }
         }
-        if (cols.length) projects.push({ title: p.name, sub: (p.path || root.name || 'Source folder') + ' · ' + cols.length + (cols.length === 1 ? ' variant' : ' variants'), cols });
       }
-      projects.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+      const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+      const tile = async (e, shape, label) => {
+        const url = URL.createObjectURL(e.file); urls.push(url);
+        let dim = '';
+        try { const b = await createImageBitmap(e.file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
+        const t = { url, name: e.path, label, shape, meta: [dim, mb(e.file.size)].filter(Boolean).join(' · ') };
+        t.open = () => { this._asBig = t; this.forceUpdate(); };
+        return t;
+      };
+      const nat = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+      const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+      const mains = [];
+      let files = 0, sets = 0;
+      // Local first, then International, then International EUR — the order the sets are made in
+      const rank = k => { const i = ['local', 'international', 'international eur'].indexOf(k.toLowerCase()); return i < 0 ? 9 : i; };
+      for (const main of [...tree.keys()].sort((a, b) => rank(a) - rank(b) || nat(a, b))) {
+        const auds = [];
+        let mVars = 0;
+        for (const aud of [...tree.get(main).keys()].sort(nat)) {
+          const cols = [];
+          for (const letter of [...tree.get(main).get(aud).keys()].sort()) {
+            const slots = tree.get(main).get(aud).get(letter), plats = [];
+            for (const [key, label] of [['meta', 'Meta'], ['yt', 'YouTube Demand Gen']]) {
+              const rows = [];
+              for (const row of ['main', 'sub']) {
+                const tiles = [];
+                for (const k in KIND) {
+                  const d = KIND[k];
+                  if (d[0] === key && d[2] === row && slots[k]) { tiles.push(await tile(slots[k], d[1], d[3])); files++; }
+                }
+                if (tiles.length) rows.push({ kind: row, tiles });
+              }
+              if (rows.length) plats.push({ key, label, rows });
+            }
+            if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
+            if (plats.length) { cols.push({ title: 'Variant ' + letter, plats }); sets++; }
+          }
+          if (cols.length) { auds.push({ title: aud, sub: plural(cols.length, 'variant'), cols }); mVars += cols.length; }
+        }
+        if (auds.length) mains.push({ title: main, sub: plural(auds.length, 'audience') + ' · ' + plural(mVars, 'variant'), auds });
+      }
       this.asFree();
       this._asUrls = urls;
-      this._as = { busy: false, has: true, projects, root: root.name, files, sets: sets_, err: '' };
+      this._as = { busy: false, has: true, mains, root: root.name, files, sets, err: '' };
     } catch (e) {
       urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (er) {} });
       if (seq !== this._asSeq) return;
-      this._as = { busy: false, has: true, projects: [], root: root.name, files: 0, sets: 0,
+      this._as = { busy: false, has: true, mains: [], root: root.name, files: 0, sets: 0,
         err: 'Could not read "' + root.name + '" — ' + (e && e.message ? e.message : 'the folder may have moved') + '. Choose it again.' };
     }
     this.forceUpdate();
@@ -12655,7 +12708,7 @@ class Component extends DCLogic {
     else if (!root) { head = 'No source folder yet'; note = 'Choose the folder this project exports into. Every export writes Variant A, Variant B and so on there, and this window shows them side by side.'; }
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
-    else if (!a.projects.length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
+    else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
     const big = this._asBig;
     return {
       asOn: open ? '1' : undefined,
@@ -12666,10 +12719,10 @@ class Component extends DCLogic {
       asHasRoot: open && root ? '1' : undefined,
       asPickOn: open && supported ? '1' : undefined,
       asPickLabel: root ? 'Change folder' : 'Choose source folder',
-      asSub: root ? (proj ? proj + ' · ' : '') + 'Source folder: ' + root + (a.sets ? ' · ' + a.projects.length + (a.projects.length === 1 ? ' project · ' : ' projects · ') + a.sets + (a.sets === 1 ? ' variant' : ' variants') : '') : (proj || 'Exported ads, one column per variant'),
+      asSub: root ? (proj ? proj + ' · ' : '') + 'Source folder: ' + root + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head ? '1' : undefined,
       asNoteHead: head, asNote: note,
-      asProjects: open && !head ? a.projects : [],
+      asMains: open && !head ? a.mains : [],
       asBigOn: big ? '1' : undefined,
       asBigUrl: big ? big.url : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
       asBigClose: () => { this._asBig = null; this.forceUpdate(); }

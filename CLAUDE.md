@@ -14368,6 +14368,18 @@ record, which is what the 1:1 would show — and its row says so; the 4:5 and 9:
 plates are untouched (`sqOn` true, `stHidYt` false), verified by exporting both platforms.
 The table above still states each ratio's export size; "always on" is superseded.
 
+## YouTube exports go in `YT Demand Gen/` inside the source folder
+
+By request: `CampaignStudio.YT_DIR` prefixes every YouTube render (`exportPath`), the logo
+(`YT Demand Gen/Logo/…`) and the text file, so a project exported for both platforms keeps
+`Variant A/` (Meta) and `YT Demand Gen/Variant A/` apart. The session `.json` and `Assets/` stay
+at the root — that is what makes the folder a project for Open Session and Ad sets. **Ad sets
+looks one folder down** for Variant folders inside `YT Demand Gen/` (its base path carries the
+prefix) and `AS_SKIP` keeps the scan from treating that folder as a project. Verified with a real
+export into an OPFS folder standing in for the source folder: both trees written, and Ad sets
+showed "Variant A" (Feed, Story) and "Variant A · YouTube Demand Gen" (Square, Landscape) for one
+project.
+
 ## The compliance check — `ytCheck(s)` is the one verdict
 
 By request ("have indicators where it checks if it complies to the copy limits"). `ytField(t, max,
@@ -14451,36 +14463,40 @@ canvas-bar chips (`ytEditText`) open Publish. The text groups show only fields i
 empty one (2,380px -> 1,182px with one headline). The third tab cost 32px at 1440, so the delivery
 trio's label-dropping breakpoint went 1400 -> **1520**; measured fitting at 1280, 1440 and 1600.
 
-# CAS HAS AN AD SETS WINDOW — SAVED PROJECTS, VARIANT FOLDERS, FEED AND STORY ONLY
+# CAS HAS AN AD SETS WINDOW — MAIN FOLDER › AUDIENCE › VARIANT › PLATFORM › TYPE
 
-By request (2026-10-08), then narrowed the same day because the first cut ("every image in the
-folder, classified by suffix") did not organise properly. **Ad sets** in the HOME PAGE sidebar
-(Library, under Recent — moved off the canvas bar by request) opens `.as-ov` (z 200, over the
-splash's z 60). On the home page the subtitle drops the open project's name. All SHELL code — `Component.asOpen / asScan / asVals`, instance fields `_as` /
-`_asBig` / `_asUrls`, one state flag `adSetsOpen` — so nothing touches project state or undo.
+By request (2026-10-08), reshaped three times the same day; this is what ships. **Ad sets** in the
+HOME PAGE sidebar (Library, under Recent) opens `.as-ov` (z 200, over the splash's z 60). All
+SHELL code — `Component.asOpen / asScan / asVals`, instance fields `_as` / `_asBig` / `_asUrls`,
+one state flag `adSetsOpen` — so nothing touches project state, undo or the engine.
 
-- **A project is a folder holding a `.adstudio.json`** — the source folder itself or any folder up
-  to three levels under it (`AS_SKIP` folders and `Variant X` folders are not searched). A folder
-  without one is ignored, so pointing it at a parent of many projects works.
-- **Inside a project only `Variant [A-Z]` folders count, and inside each only
-  `_Variant X_feed` / `_Variant X_Story` (.png/.jpg/.webp), with X matching the folder's letter.**
-  Newest file wins. A variant folder with neither is skipped; a project with no variant is skipped.
-  **YouTube Demand Gen names count too** (`_Square_1x1`, `_Vertical_9x16`, `_Landscape_1.91x1`,
-  `_Portrait_4x5`): such a variant is its own column, Square | Vertical over a `data-row="sub"` row
-  of Landscape | Portrait sized at `.5766 x --as-h` so it spans the same width. A folder holding
-  both name sets gets two columns (`· Meta`, `· YouTube Demand Gen`). Tiles are `c.rows[].tiles[]`
-  with `data-shape` sq / st / yl / yp. **Never put an apostrophe in a single-quoted note string** —
-  `YouTube's` in one killed the whole logic class at boot.
-  Banners, 16:9, Carousel, YouTube sizes and stray files are deliberately NOT shown. **If the
-  export names in `EXPORT_NAME` / `exportDir` change, the regex in `asScan` is the second place.**
-- Markup: `asProjects` → `p.cols`; each project a row (`.as-row`, scrolls sideways), each column
-  Feed | Story at one height (`--as-h` on `.as-stage`, three columns fit at 1440). Below 760px the
-  columns stack.
+- **A project is a folder holding a `.adstudio.json`**, the source folder or up to three levels
+  under it (`AS_SKIP` folders, `Variant X` and `YT Demand Gen` are not searched). It reads FILES,
+  never re-renders.
+- **The grouping is the user's stated order of importance:** Main folder = the first folder under
+  the source folder (Local / International / International EUR — the meta-ad-design-copy Drive
+  layout; `rank()` puts those three first in that order), Audience = the folder(s) under it
+  (Family / Investor), or the campaign name when the project sits at depth 0 or 1. **Projects
+  that land on the same Main/Audience MERGE**, so a Meta export and a YouTube export of the same
+  audience share one Variant A card, each under its platform pill.
+- **Only `_Variant X_feed|story|square_1x1|vertical_9x16|landscape_1.91x1|portrait_4x5`**, letter
+  matching the folder, from `Variant X/` and `YT Demand Gen/Variant X/` (`CampaignStudio.YT_DIR`).
+  Newest file per kind wins. **A size not exported is not shown** — no dashed placeholders — and
+  an empty row, platform, variant, audience or main folder is dropped. If export names change,
+  the regex and `KIND` table in `asScan` are the second place they live.
+- Type sizes step down with importance: main 24/600, audience 17/600, variant 14.5/600, platform
+  a 12/600 pill, type 12.5/500 in ink-2, then dimension · size at 10.5 in dim.
+- Thumbnails are deliberately small for an overview: `--as-h` clamp(120px, 18vh, 220px) on
+  `.as-stage`; Square|Vertical at `--as-h`, Landscape|Portrait at `.5766 × --as-h` so both rows
+  are one width; variant cards wrap. Below 760px they stack.
 - Opening is a click, so it calls `folder.ensure()` first. Object URLs are revoked on rescan,
   close and unmount. Esc closes the enlarged image, then the window.
-- **Testing trap:** the pane cannot open `showDirectoryPicker`; drive it by setting
-  `providentFolder.handle` to the origin-private file system (`navigator.storage.getDirectory()`).
-  That root's `name` is `''`, which is why `_as.has` — not the name — says a folder is set.
+- **Never put an apostrophe in a single-quoted note string** — `YouTube's` in one killed the whole
+  logic class at boot.
+- **Testing trap:** the pane cannot open `showDirectoryPicker`; set `providentFolder.handle` to the
+  origin-private file system (`navigator.storage.getDirectory()`). Its `name` is `''`, which is
+  why `_as.has` — not the name — says a folder is set.
 
-Verified on a stand-in tree: two projects (one nested two deep), a 16:9 / banner / Assets /
-Carousel / no-json folder / wrong-letter file all ignored, a variant with only a 16:9 skipped.
+Verified on a stand-in tree: Local › Family (Meta A + B, YouTube A with Square and Landscape only),
+Local › Investor (Meta A), International › Family (YouTube Landscape only) — Local first, the two
+platforms merged under Variant A, missing YouTube sizes absent, no placeholders.

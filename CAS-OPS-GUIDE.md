@@ -351,36 +351,50 @@ Source folder/
 - **PDF** is one file with every size, saved wherever you choose.
 
 **On a YouTube Demand Gen project** the formats are **JPEG** and **PNG** only (Google takes no
-SVG or PDF), at the exact sizes in the table in section 5b:
+SVG or PDF), at the exact sizes in the table in section 5b. Everything goes into its own
+**YT Demand Gen** folder inside the Source folder, so it never mixes with a Meta export of the same
+project:
 
 ```
 Source folder/
-  Variant A/
-    <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628, always
-    <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200, if shown
-    <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200, if shown
-    <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920, if shown
-  Logo/<name>_Logo_1x1.png                 ← 1200 × 1200
-  <name>_Demand Gen text.txt               ← business name, headlines, descriptions
+  YT Demand Gen/
+    Variant A/
+      <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628, always
+      <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200, if shown
+      <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200, if shown
+      <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920, if shown
+    Logo/<name>_Logo_1x1.png                 ← 1200 × 1200
+    <name>_Demand Gen text.txt               ← business name, headlines, descriptions
+  <name>.adstudio.json   Assets/             ← the session and uploads, as for Meta
 ```
+
+**Ad sets** finds these too, and shows them under the same Variant card as the Meta images,
+labelled **YouTube Demand Gen**.
 
 Google refuses any file over 5 MB. JPEG is always well under. If a PNG goes over, the status line
 names it; export JPEG instead. Text over Google's limits is named there too.
 
 ### See everything you exported: Ad sets
 
-On CAS's home page, press **Ad sets** in the sidebar, under **Recent**. It reads the Source folder and finds every **saved
-project** in it: any folder holding a `.adstudio.json`, including folders a few levels down. You
-can therefore point it at one project's folder or at a folder full of projects.
+On CAS's home page, press **Ad sets** in the sidebar, under **Recent**. It reads the Source folder
+and lays out every exported ad set, grouped from the top down:
 
-- Each project is a row. Every **Variant A**, **Variant B** … folder inside it is a column, with
-  its **Feed** and **Story** images side by side.
-- Only files named `<name>_Variant A_feed` and `<name>_Variant A_Story` (PNG, JPEG or WebP) are
-  shown, plus a **YouTube Demand Gen** variant's four: `_Square_1x1` and `_Vertical_9x16` side by
-  side, with `_Landscape_1.91x1` and `_Portrait_4x5` under them. Banners, 16:9, carousels, the
-  YouTube logo and anything else are left out.
-- A variant folder with neither image is skipped, and so is a folder with no saved project. If a
-  variant has only one of the two, the other shows as a dashed box.
+1. **Main folder**, e.g. Local, International, International EUR (Local comes first).
+2. **Audience**, e.g. Family, Investor.
+3. **Variant**: Variant A, Variant B … Each variant is one card.
+4. **Platform**: **Meta** and **YouTube Demand Gen** sit together in the same variant card.
+5. **Type**: Feed and Story for Meta. For YouTube: Square, Vertical, Landscape and Portrait.
+
+A small line under each image gives its pixel size and file size.
+
+- It looks for **saved projects**: folders holding a `.adstudio.json`. Point it at the campaign
+  folder that holds Local / International, or at a single project folder. A project directly in
+  the Source folder uses its campaign name as the audience.
+- Only `<name>_Variant A_feed`, `_Story`, and the YouTube `_Square_1x1`, `_Vertical_9x16`,
+  `_Landscape_1.91x1` and `_Portrait_4x5` files are shown. YouTube's are found in the project's
+  **YT Demand Gen** folder. Banners, 16:9, carousels, logos and anything else are left out.
+- **A size that was not exported is simply not shown.** A variant or audience with nothing to
+  show is left out.
 - It shows the files as they are on disk, so export first, then press **Refresh**. Click an image
   to see it large. **Esc** closes it, and **Esc** again closes the window.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
