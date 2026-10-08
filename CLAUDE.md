@@ -14454,8 +14454,9 @@ trio's label-dropping breakpoint went 1400 -> **1520**; measured fitting at 1280
 # CAS HAS AN AD SETS WINDOW — SAVED PROJECTS, VARIANT FOLDERS, FEED AND STORY ONLY
 
 By request (2026-10-08), then narrowed the same day because the first cut ("every image in the
-folder, classified by suffix") did not organise properly. **Ad sets** in the canvas bar opens
-`.as-ov` (z 200). All SHELL code — `Component.asOpen / asScan / asVals`, instance fields `_as` /
+folder, classified by suffix") did not organise properly. **Ad sets** in the HOME PAGE sidebar
+(Library, under Recent — moved off the canvas bar by request) opens `.as-ov` (z 200, over the
+splash's z 60). On the home page the subtitle drops the open project's name. All SHELL code — `Component.asOpen / asScan / asVals`, instance fields `_as` /
 `_asBig` / `_asUrls`, one state flag `adSetsOpen` — so nothing touches project state or undo.
 
 - **A project is a folder holding a `.adstudio.json`** — the source folder itself or any folder up

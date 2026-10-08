@@ -369,7 +369,7 @@ names it; export JPEG instead. Text over Google's limits is named there too.
 
 ### See everything you exported: Ad sets
 
-Press **Ad sets** in the bar under the canvas. It reads the Source folder and finds every **saved
+On CAS's home page, press **Ad sets** in the sidebar, under **Recent**. It reads the Source folder and finds every **saved
 project** in it: any folder holding a `.adstudio.json`, including folders a few levels down. You
 can therefore point it at one project's folder or at a folder full of projects.
 
