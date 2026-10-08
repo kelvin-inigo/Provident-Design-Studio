@@ -10918,7 +10918,8 @@ class CampaignStudio extends StudioBase {
       custPalOn: CampaignStudio.custPalette(s).length > 0,
       onSplash: s.screen === 'splash',
       newProject: () => this.newProject(),
-      continueSession: () => this.upd(x => { x.screen = CampaignStudio.workScreen(); return x; }),
+      // a fresh workspace (a new tab) has no project of its own: continue the newest saved one
+      continueSession: () => (window.providentWorkspaceFresh && this.savedRecents()[0]) ? this.openRecent(0) : this.upd(x => { x.screen = CampaignStudio.workScreen(); return x; }),
       // Leaving without saving is ANSWERED here, once: the working copy stays behind as
       // Continue last, and picking something else from the splash does not ask again.
       openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved(); },

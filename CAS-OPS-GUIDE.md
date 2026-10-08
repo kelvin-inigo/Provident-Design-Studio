@@ -44,14 +44,14 @@ How to use the two Provident design studios in this folder.
 - To switch studios, use **Campaign ads** / **Organic posts** in the top bar or in the project
   browser's sidebar.
 - The sun/moon button switches between light and dark. Both studios share the setting.
-- **Several tabs at once (Claude Cowork, or two jobs side by side): give each tab its own
-  workspace.** Tabs of one studio normally share a single project and photo store, and each tab
-  re-reads it whenever another one saves, so the last tab to write overwrites the rest. Add
-  `?ws=<any-name>` to the address, for example
-  `Provident Campaign Studio.dc.html?ws=job-17`. That tab then has its own project, photos,
-  recents and source folder that no other tab can see or change. `?ws=auto` makes up a fresh name
-  and keeps it in the address bar. Open each Cowork job with a different `ws`, and reload keeps it.
-  A tab without `ws` behaves as before.
+- **Every tab is its own workspace.** When you open a studio, a `?ws=…` tag appears at the
+  end of the address. That tab has its own project and photos, so several tabs (or several Claude
+  Cowork sessions) can work at once without changing each other. Reloading keeps the tab's
+  workspace; a new tab gets a new one. **Saved projects are shared**: every tab's Projects screen
+  lists all of them, and in a new tab **Continue last** opens the newest saved project. The source
+  folder you picked last is the starting folder in a new tab. Unsaved work belongs to its tab, so
+  save before closing a tab. To work on one project in two windows at once, open both with
+  `?ws=shared`.
 
 ## 2. Projects: new, open, save
 

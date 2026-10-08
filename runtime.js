@@ -36,30 +36,58 @@
   // and wrong for several automated sessions (Claude Cowork) each driving its own tab:
   // the last tab to write wins, and every other tab is rewritten under its session.
   //
-  // `?ws=<id>` makes a tab a private workspace: its own project, resume flag, recents,
-  // copy log, photo store and source folder, invisible to every other tab and to the
-  // plain URL. `?ws=auto` mints a fresh id and writes it into the address bar, so a
-  // reload keeps it. No `ws` = nothing here runs and behaviour is exactly as before.
+  // EVERY TAB IS ITS OWN WORKSPACE BY DEFAULT, so an automated session cannot forget to
+  // ask for one. A tab's id comes from `?ws=<id>` if the URL carries one, else from this
+  // tab's sessionStorage, else it is minted; it is kept in sessionStorage (so a reload or
+  // a navigation back to the bare URL in the SAME tab keeps it) and written into the
+  // address bar. A new tab gets a new id. sessionStorage is per tab, which is the point.
+  //
+  // A workspace has its own project, resume flag, copy log and photo store. Recents, the
+  // source folder and the per-computer preferences stay shared (see section 3 and OWN).
+  // `?ws=shared` opts a tab back into the one shared project, the old behaviour, for a
+  // person who wants two windows on the same campaign.
   var WS = (function () {
     try {
+      var SK = 'provident-ws';
       var m = /[?&]ws=([^&#]*)/.exec(W.location.search);
-      if (!m) return '';
-      var id = decodeURIComponent(m[1]).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
-      if (id === 'auto') {
-        id = 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        var u = new URL(W.location.href);
-        u.searchParams.set('ws', id);
-        W.history.replaceState(null, '', u.toString());
+      var id = m ? decodeURIComponent(m[1]).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) : '';
+      if (id === 'shared') { try { W.sessionStorage.setItem(SK, 'shared'); } catch (e) {} return ''; }
+      if (!id || id === 'auto') {
+        var kept = '';
+        try { kept = W.sessionStorage.getItem(SK) || ''; } catch (e) {}
+        if (kept === 'shared' && !m) return '';
+        id = (id !== 'auto' && kept && kept !== 'shared') ? kept
+          : 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       }
+      try { W.sessionStorage.setItem(SK, id); } catch (e) {}
+      var u = new URL(W.location.href);
+      if (u.searchParams.get('ws') !== id) { u.searchParams.set('ws', id); W.history.replaceState(W.history.state, '', u.toString()); }
       return id;
     } catch (e) { return ''; }
   })();
   W.providentWorkspace = WS;
+  // A workspace with no project of its own yet. "Continue last" opens the newest saved
+  // project instead of a blank default there; StudioBase.markDirty clears it on the
+  // first edit, so it never takes precedence over work done in this tab.
+  W.providentWorkspaceFresh = false;
+  if (WS) {
+    try {
+      var hasOwn = false, pre = 'ws:' + WS + ':';
+      for (var i = 0; i < W.localStorage.length; i++) {
+        var key = Storage.prototype.key.call(W.localStorage, i);
+        if (key === pre + 'provident-ad-studio-v2' || key === pre + 'provident-smp-studio-v2') { hasOwn = true; break; }
+      }
+      W.providentWorkspaceFresh = !hasOwn;
+    } catch (e) {}
+  }
   if (WS) {
     // Studio keys only: the theme, the Photoshop helper's address and similar are
     // per-computer preferences and stay shared.
+    // Per-computer preferences and lists are excluded: the Design | Copy choice, the
+    // copywriter's name, the custom-component library and the legacy recents.
     var OWN = /^(provident-ad-studio|provident-smp-studio|adstudio-|smp-)/;
-    var nk = function (k) { return OWN.test(k) ? 'ws:' + WS + ':' + k : k; };
+    var PREF = /^(adstudio-(workspace|author|custom-lib|recents)|smp-recents)$/;
+    var nk = function (k) { return OWN.test(k) && !PREF.test(k) ? 'ws:' + WS + ':' + k : k; };
     try {
       var SP = Storage.prototype, g = SP.getItem, s = SP.setItem, r = SP.removeItem;
       SP.getItem = function (k) { return g.call(this, this === W.localStorage ? nk(String(k)) : k); };
@@ -356,14 +384,20 @@
   // ── 3. IndexedDB helpers ──────────────────────────────────────────────────
   // Defined before the storage shim's early returns so the project-folder module
   // below is available in every mode, Design Cursor included.
-  // A workspace gets its own database, which is what separates its photos, recents and
-  // folder handle without touching a single key.
-  var DB = 'provident-design-studio' + (WS ? '~' + WS : ''), STORE = 'files', VER = 1;
-  var dbP = null;
-  function db() {
-    if (!dbP) {
-      dbP = new Promise(function (res, rej) {
-        var q = W.indexedDB.open(DB, VER);
+  // A workspace gets its own database for its PHOTOS (the image-slot sidecar) and
+  // anything else per-project. Two things stay in the shared database, because a fresh
+  // tab with neither would be a regression for a person using the studio by hand:
+  //   - the RECENTS list ('recents:*'), so every tab's splash shows every saved project;
+  //   - the SOURCE FOLDER ('project-dir'): a workspace reads its own first and falls back
+  //     to the shared one, and picking a folder writes both, so a new tab starts on the
+  //     last folder used while a running tab keeps its own whatever another tab picks.
+  var BASE = 'provident-design-studio', DB = BASE + (WS ? '~' + WS : ''), STORE = 'files', VER = 1;
+  var dbs = {};
+  function db(name) {
+    name = name || DB;
+    if (!dbs[name]) {
+      dbs[name] = new Promise(function (res, rej) {
+        var q = W.indexedDB.open(name, VER);
         q.onupgradeneeded = function () {
           if (!q.result.objectStoreNames.contains(STORE)) q.result.createObjectStore(STORE);
         };
@@ -371,11 +405,12 @@
         q.onerror = function () { rej(q.error); };
       });
     }
-    return dbP;
+    return dbs[name];
   }
-  function idbGet(key) {
+  function shared(key) { return WS && /^recents:/.test(String(key)); }
+  function rawGet(name, key) {
     if (!caps.idb) return Promise.resolve(undefined);
-    return db().then(function (d) {
+    return db(name).then(function (d) {
       return new Promise(function (res) {
         var r = d.transaction(STORE).objectStore(STORE).get(key);
         r.onsuccess = function () { res(r.result); };
@@ -383,9 +418,9 @@
       });
     }).catch(function () { return undefined; });
   }
-  function idbSet(key, val) {
+  function rawSet(name, key, val) {
     if (!caps.idb) return Promise.reject(new Error('no indexeddb'));
-    return db().then(function (d) {
+    return db(name).then(function (d) {
       return new Promise(function (res, rej) {
         var tr = d.transaction(STORE, 'readwrite');
         tr.objectStore(STORE).put(val, key);
@@ -397,9 +432,21 @@
       });
     });
   }
+  function idbGet(key) {
+    if (shared(key)) return rawGet(BASE, key);
+    return rawGet(DB, key).then(function (v) {
+      return (v == null && WS && key === FKEY) ? rawGet(BASE, key) : v;
+    });
+  }
+  function idbSet(key, val) {
+    if (shared(key)) return rawSet(BASE, key, val);
+    var p = rawSet(DB, key, val);
+    if (WS && key === FKEY) rawSet(BASE, key, val).catch(function () {});
+    return p;
+  }
   function idbDel(key) {
     if (!caps.idb) return Promise.resolve(false);
-    return db().then(function (d) {
+    return db(shared(key) ? BASE : DB).then(function (d) {
       return new Promise(function (res) {
         var tr = d.transaction(STORE, 'readwrite');
         tr.objectStore(STORE)['delete'](key);

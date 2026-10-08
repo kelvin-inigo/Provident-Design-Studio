@@ -387,7 +387,11 @@ class StudioBase {
     if (!entry) return;
     entry.saved = true; entry.pid = pid; entry.ts = Date.now();
     if (entry.state) entry.state.pid = pid;
-    const rec = this.readRecents();
+    // Re-read before writing: every tab shares one list, and another tab may have saved
+    // since this one loaded it — writing the cached copy would drop that tab's card.
+    let rec = this.readRecents();
+    const rt = window.providentRuntime;
+    if (rt && rt.get) { try { const raw = await rt.get(this.recentsKey()); if (raw) rec = JSON.parse(raw) || rec; } catch (e) {} }
     const next = [entry].concat(rec.filter(r => r && r.saved && r.pid !== pid)).slice(0, StudioBase.RECENT_MAX)
       .concat(rec.filter(r => r && !r.saved));
     await this.writeRecents(next);
@@ -872,7 +876,7 @@ class StudioBase {
     if (url) location.href = url;
     else location.reload();
   }
-  markDirty() { this._dirty = true; }
+  markDirty() { this._dirty = true; window.providentWorkspaceFresh = false; }
   markSaved() { this._dirty = false; }
   // One line for the native prompt and the in-app confirms, so they can't diverge.
   unsavedMsg() { return 'This project has unsaved changes. Save it before leaving?'; }

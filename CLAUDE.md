@@ -14283,3 +14283,24 @@ its status on a kanban, comments under it and is told when it changes. Chosen wi
   only; the top bar is already hidden there.
 - A testing trap: the Connect form accepts `http://localhost`/`127.0.0.1` URLs so a stand-in
   server works; production URLs must be `https://script.google.com/…`.
+
+# EVERY TAB IS ITS OWN WORKSPACE (`?ws=`), BECAUSE PARALLEL COWORK SESSIONS OVERWROTE EACH OTHER
+
+By request (2026-10-08). Tabs of one studio shared one `localStorage` project and one photo
+store, and `_syncLS` re-pulls the project on every `storage`/`focus` event — so the last tab to
+write rewrote every other tab, and Cowork stopped with "something else is switching the studio
+page". Section 0 of `runtime.js` gives every tab a workspace id: `?ws=<id>` if present, else this
+tab's `sessionStorage['provident-ws']`, else minted, and written into the address bar. Reproduced
+and verified on two tabs: without it tab A ended with B's copy and photo; with it each kept its own.
+
+- **Per workspace:** the studio keys in localStorage (prefixed `ws:<id>:`; `OWN` minus the `PREF`
+  list) and its own IndexedDB `provident-design-studio~<id>` — the photo sidecar lives there.
+- **Shared:** `recents:*` (routed to the base DB; `recordSaved` re-reads the list before writing
+  so two tabs saving at once keep both cards), the Design|Copy choice, the copywriter's name, the
+  custom-component library, the theme. The source folder (`project-dir`) reads own-then-shared and
+  is written to both.
+- **`providentWorkspaceFresh`**: a tab with no project of its own; Continue last opens the newest
+  saved project there, and `markDirty` clears the flag.
+- `?ws=shared` is the opt-out to the old single shared project; `reloadNow(url)` carries the id
+  across the CAS↔OPS hand-over. **Old projects that were unsaved before this landed sit under the
+  un-prefixed key and are reachable with `?ws=shared`.**

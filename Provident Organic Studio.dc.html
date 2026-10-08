@@ -14414,7 +14414,8 @@ class OrganicStudio extends StudioBase {
           desc: 'The cover a Reel shows in the grid and the feed \u2014 seven layouts to suit the photo, a Small-to-Jumbo type scale, a 4:5 guide, and Pop-out, which lifts the subject in front of the headline.' }
       ].map(tp => Object.assign({ name: tp.name, desc: tp.desc, slidesDesc: tp.slidesDesc,
         pick: () => this.pickTpl(tp.id) }, this.tplCardView(tp.id))),
-      continueSession: () => this.upd(x => { x.screen = 'editor'; return x; }),
+      // a fresh workspace (a new tab) has no project of its own: continue the newest saved one
+      continueSession: () => (window.providentWorkspaceFresh && this.savedRecents()[0]) ? this.openRecent(0) : this.upd(x => { x.screen = 'editor'; return x; }),
       // Leaving without saving is ANSWERED here, once: the working copy stays behind as
       // Continue last, and picking something else from the splash does not ask again.
       openSplash: () => { if (!this.confirmDiscard()) return; this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved(); },
