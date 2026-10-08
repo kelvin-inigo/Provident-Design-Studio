@@ -867,6 +867,8 @@ class StudioBase {
   reloadNow(url) {
     StudioBase.reloading = true;
     this.markSaved();
+    // A hand-over to the other studio stays in the same private workspace.
+    if (url && window.providentWorkspace) url += (url.indexOf('?') < 0 ? '?' : '&') + 'ws=' + encodeURIComponent(window.providentWorkspace);
     if (url) location.href = url;
     else location.reload();
   }

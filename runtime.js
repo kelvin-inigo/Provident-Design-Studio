@@ -29,6 +29,45 @@
 
   var W = window;
 
+  // ── 0. Workspace — one tab, one private project ───────────────────────────
+  // Every tab of a studio on this origin shares ONE project key in localStorage, ONE
+  // photo store in IndexedDB, and re-pulls the project from that key on every `storage`
+  // and `focus` event. That is right for one person with an editor and a preview open,
+  // and wrong for several automated sessions (Claude Cowork) each driving its own tab:
+  // the last tab to write wins, and every other tab is rewritten under its session.
+  //
+  // `?ws=<id>` makes a tab a private workspace: its own project, resume flag, recents,
+  // copy log, photo store and source folder, invisible to every other tab and to the
+  // plain URL. `?ws=auto` mints a fresh id and writes it into the address bar, so a
+  // reload keeps it. No `ws` = nothing here runs and behaviour is exactly as before.
+  var WS = (function () {
+    try {
+      var m = /[?&]ws=([^&#]*)/.exec(W.location.search);
+      if (!m) return '';
+      var id = decodeURIComponent(m[1]).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
+      if (id === 'auto') {
+        id = 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        var u = new URL(W.location.href);
+        u.searchParams.set('ws', id);
+        W.history.replaceState(null, '', u.toString());
+      }
+      return id;
+    } catch (e) { return ''; }
+  })();
+  W.providentWorkspace = WS;
+  if (WS) {
+    // Studio keys only: the theme, the Photoshop helper's address and similar are
+    // per-computer preferences and stay shared.
+    var OWN = /^(provident-ad-studio|provident-smp-studio|adstudio-|smp-)/;
+    var nk = function (k) { return OWN.test(k) ? 'ws:' + WS + ':' + k : k; };
+    try {
+      var SP = Storage.prototype, g = SP.getItem, s = SP.setItem, r = SP.removeItem;
+      SP.getItem = function (k) { return g.call(this, this === W.localStorage ? nk(String(k)) : k); };
+      SP.setItem = function (k, v) { return s.call(this, this === W.localStorage ? nk(String(k)) : k, v); };
+      SP.removeItem = function (k) { return r.call(this, this === W.localStorage ? nk(String(k)) : k); };
+    } catch (e) {}
+  }
+
   // ── 1. Capabilities ───────────────────────────────────────────────────────
   var probe = document.createElement('canvas');
   probe.width = probe.height = 1;
@@ -317,7 +356,9 @@
   // ── 3. IndexedDB helpers ──────────────────────────────────────────────────
   // Defined before the storage shim's early returns so the project-folder module
   // below is available in every mode, Design Cursor included.
-  var DB = 'provident-design-studio', STORE = 'files', VER = 1;
+  // A workspace gets its own database, which is what separates its photos, recents and
+  // folder handle without touching a single key.
+  var DB = 'provident-design-studio' + (WS ? '~' + WS : ''), STORE = 'files', VER = 1;
   var dbP = null;
   function db() {
     if (!dbP) {
