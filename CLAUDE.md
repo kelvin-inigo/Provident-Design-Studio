@@ -14486,9 +14486,11 @@ one state flag `adSetsOpen` — so nothing touches project state, undo or the en
   the regex and `KIND` table in `asScan` are the second place they live.
 - Type sizes step down with importance: main 24/600, audience 17/600, variant 14.5/600, platform
   a 12/600 pill, type 12.5/500 in ink-2, then dimension · size at 10.5 in dim.
-- Thumbnails are deliberately small for an overview: `--as-h` clamp(120px, 18vh, 220px) on
-  `.as-stage`; Square|Vertical at `--as-h`, Landscape|Portrait at `.5766 × --as-h` so both rows
-  are one width; variant cards wrap. Below 760px they stack.
+- **Horizontal, by request:** a main folder is one strip — audiences side by side (`.as-auds`,
+  a rule between them), variant cards side by side, Meta and YouTube side by side inside a card
+  (`.as-plats`); the strip scrolls sideways. `--as-h` clamp(180px, 30vh, 340px) on `.as-stage`;
+  Square|Vertical at `--as-h`, Landscape|Portrait at `.5766 × --as-h` so both rows are one width.
+  Below 760px everything stacks.
 - Opening is a click, so it calls `folder.ensure()` first. Object URLs are revoked on rescan,
   close and unmount. Esc closes the enlarged image, then the window.
 - **Never put an apostrophe in a single-quoted note string** — `YouTube's` in one killed the whole

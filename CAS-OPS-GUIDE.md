@@ -385,7 +385,9 @@ and lays out every exported ad set, grouped from the top down:
 4. **Platform**: **Meta** and **YouTube Demand Gen** sit together in the same variant card.
 5. **Type**: Feed and Story for Meta. For YouTube: Square, Vertical, Landscape and Portrait.
 
-A small line under each image gives its pixel size and file size.
+Each main folder is one row, read left to right: its audiences side by side, the variants side
+by side within an audience, and Meta beside YouTube within a variant. Scroll sideways when a row is
+wider than the window. A small line under each image gives its pixel size and file size.
 
 - It looks for **saved projects**: folders holding a `.adstudio.json`. Point it at the campaign
   folder that holds Local / International, or at a single project folder. A project directly in

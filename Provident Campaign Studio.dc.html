@@ -3498,7 +3498,7 @@ select.p-in{padding-right:34px}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .as-bar .p-ghost{display:inline-flex;flex-direction:row;align-items:center;gap:6px}
 .as-bar .mk-g{width:15px;height:15px;flex:none}
-.as-stage{--as-h:clamp(120px,min(18vh,calc((100vw - 220px) / 4.6875)),220px);
+.as-stage{--as-h:clamp(180px,30vh,340px);
   flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:32px;padding:24px}
 .as-proj{display:flex;flex-direction:column;gap:12px;min-width:0}
 .as-proj-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -3570,8 +3570,22 @@ select.p-in{padding-right:34px}
   font:600 12px/1.2 var(--ps-font);color:var(--ps-ink)}
 .as-t figcaption b{font:500 12.5px/1.25 var(--ps-font);color:var(--ps-ink-2)}
 .as-t figcaption s{font:400 10.5px/1.3 var(--ps-font)}
+/* Horizontal: audiences side by side under their main folder, variant cards side by side in an
+   audience, Meta and YouTube side by side in a card. One main folder is one horizontal strip,
+   scrolling sideways when it is wider than the window. */
+.as-auds{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:6px}
+.as-aud{flex:none}
+.as-aud + .as-aud{margin-left:28px;padding-left:28px;border-left:1px solid var(--ps-line)}
+.as-row{flex-wrap:nowrap}
+.as-col{width:auto}
+.as-plats{display:flex;align-items:flex-start;gap:18px}
+.as-plat + .as-plat{padding-top:0;border-top:0;padding-left:18px;border-left:1px solid var(--ps-hair)}
 @media (max-width:760px){
-  .as-stage{padding:14px;gap:24px}
+  .as-stage{padding:14px;gap:24px;--as-h:min(30vh,calc((100vw - 74px) / 1.5625))}
+  .as-auds{flex-direction:column;gap:20px}
+  .as-aud + .as-aud{margin-left:0;padding-left:0;border-left:0}
+  .as-row,.as-plats{flex-direction:column}
+  .as-plat + .as-plat{padding-left:0;border-left:0;padding-top:14px;border-top:1px solid var(--ps-hair)}
   .as-row{flex-direction:column;align-items:stretch;gap:14px}
   .as-bar{flex-wrap:wrap;padding:10px 14px}
   .as-ttl{flex:1 0 100%}
@@ -4049,6 +4063,7 @@ select.p-in{padding-right:34px}
         <sc-for list="{{ asMains }}" as="mn" hint-placeholder-count="1">
           <section class="as-main">
             <header class="as-main-h"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></header>
+            <div class="as-auds">
             <sc-for list="{{ mn.auds }}" as="au" hint-placeholder-count="1">
               <section class="as-aud">
                 <header class="as-aud-h"><b>{{ au.title }}</b><s>{{ au.sub }}</s></header>
@@ -4056,6 +4071,7 @@ select.p-in{padding-right:34px}
                   <sc-for list="{{ au.cols }}" as="c" hint-placeholder-count="2">
                     <section class="as-col">
                       <header class="as-col-h"><b>{{ c.title }}</b></header>
+                      <div class="as-plats">
                       <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
                         <div class="as-plat">
                           <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
@@ -4071,11 +4087,13 @@ select.p-in{padding-right:34px}
                           </sc-for>
                         </div>
                       </sc-for>
+                      </div>
                     </section>
                   </sc-for>
                 </div>
               </section>
             </sc-for>
+            </div>
           </section>
         </sc-for>
       </div>
