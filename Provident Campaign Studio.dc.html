@@ -3477,6 +3477,74 @@ select.p-in{padding-right:34px}
 .yt-gnote[data-state="bad"]{color:var(--ps-bad)}
 .p-cvcopy[data-state="ok"]::before{background:var(--ps-good)}
 .p-cvcopy[data-state="bad"]::before{background:var(--ps-bad)}
+
+/* ── 30. Ad sets — the source folder, one column per variant ───────────────────
+   Reads what the export actually wrote (Variant A/B/C, Carousel pages, Eventbrite
+   Banners/), never a re-render, so it shows what will be uploaded. Feed and Story sit
+   side by side at ONE height so the pair reads as one ad; every other size is a smaller
+   row under it. Columns wrap rather than scroll sideways. */
+.p-cvsets{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;
+  border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-cvsets:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.p-cvsets .mk-g{width:14px;height:14px}
+.as-ov{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;background:var(--ps-stage);
+  animation:pSelIn .18s ease-out both}
+.as-bar{flex:none;display:flex;align-items:center;gap:8px;min-height:55px;padding:9px 16px;
+  background:var(--ps-app);border-bottom:1px solid var(--ps-hair)}
+.as-ttl{display:flex;flex-direction:column;gap:3px;min-width:0}
+.as-ttl b{font:600 15px/1.2 var(--ps-font);color:var(--ps-ink)}
+.as-ttl s{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-bar .p-ghost{display:inline-flex;flex-direction:row;align-items:center;gap:6px}
+.as-bar .mk-g{width:15px;height:15px;flex:none}
+.as-stage{--as-h:clamp(200px,min(34vh,calc((100vw - 220px) / 4.6875)),380px);
+  flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;gap:20px;padding:24px}
+.as-col{flex:none;width:calc(var(--as-h) * 1.5625 + 44px);box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:var(--ps-r);
+  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);max-width:100%}
+.as-col-h{display:flex;flex-direction:column;gap:3px;padding-bottom:12px;border-bottom:1px solid var(--ps-hair)}
+.as-col-h b{font:600 14px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-col-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-pair{display:flex;gap:12px;align-items:flex-start}
+.as-t{flex:none;margin:0;display:flex;flex-direction:column;gap:7px;min-width:0}
+.as-more .as-t{flex:initial}
+.as-t figcaption{display:flex;flex-direction:column;gap:2px}
+.as-t figcaption b{font:500 12.5px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-t figcaption s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;
+  font-variant-numeric:tabular-nums}
+.as-img{display:block;padding:0;border:0;border-radius:var(--ps-r-sm);overflow:hidden;cursor:zoom-in;
+  background:var(--ps-stage);box-shadow:0 0 0 1px var(--ps-hair)}
+.as-img:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.as-img img{display:block;height:var(--as-h);width:auto;max-width:100%;object-fit:contain}
+.as-t-sq .as-img img{width:var(--as-h);max-width:none}
+.as-t-st .as-img img{width:calc(var(--as-h) * 9 / 16);max-width:none}
+.as-miss{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:var(--as-h);border-radius:var(--ps-r-sm);
+  border:1px dashed var(--ps-line);color:var(--ps-dim);font:400 12px/1.3 var(--ps-font);text-align:center;padding:0 10px}
+.as-t-sq .as-miss{width:var(--as-h)}
+.as-t-st .as-miss{width:calc(var(--as-h) * 9 / 16)}
+.as-more{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid var(--ps-hair)}
+.as-t-x .as-img{display:flex;justify-content:center}
+.as-t-x .as-img img{width:100%;height:auto;max-height:calc(var(--as-h) * .6);object-fit:contain}
+.as-empty{max-width:520px;margin:40px auto;flex:1;padding:22px 24px;border-radius:var(--ps-r);background:var(--ps-app);
+  box-shadow:0 0 0 1px var(--ps-hair)}
+.as-empty b{display:block;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink);margin-bottom:6px}
+.as-empty p{margin:0;font:400 13.5px/1.55 var(--ps-font);color:var(--ps-ink-2)}
+.as-big{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:24px;background:rgba(6,9,15,.92);cursor:zoom-out}
+.as-big img{max-width:100%;max-height:calc(100% - 60px);object-fit:contain;border-radius:var(--ps-r-sm)}
+.as-big p{margin:0;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.as-big b{font:500 13px/1.3 var(--ps-font);color:#fff}
+.as-big s{font:400 12px/1.3 var(--ps-font);color:#A8B0BA;text-decoration:none}
+@media (max-width:760px){
+  .as-stage{flex-direction:column;align-items:stretch;padding:14px;gap:14px}
+  .as-bar{flex-wrap:wrap;padding:10px 14px}
+  .as-ttl{flex:1 0 100%}
+  .as-bar .p-spring{display:none}
+  .as-col{padding:12px}
+  .as-stage{--as-h:min(34vh,calc((100vw - 74px) / 1.5625))}
+  .as-col{width:100%}
+}
+@media (prefers-reduced-motion:reduce){.as-ov{animation:none}}
 </style>
 </helmet>
 
@@ -3928,6 +3996,53 @@ select.p-in{padding-right:34px}
           <img class="sp-pg" data-src="{{ sp.u }}" alt="">
         </sc-for>
       </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ asOn }}" hint-placeholder-val="{{ false }}">
+    <div class="as-ov" role="dialog" aria-label="Ad sets">
+      <div class="as-bar">
+        <div class="as-ttl"><b>Ad sets</b><s>{{ asSub }}</s></div>
+        <span class="p-spring"></span>
+        <sc-if value="{{ asHasRoot }}" hint-placeholder-val="{{ true }}"><button onClick="{{ asRefresh }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-133 0-226.5-93.5T160-480q0-133 93.5-226.5T480-800q85 0 149 34.5T740-671v-99q0-13 8.5-21.5T770-800q13 0 21.5 8.5T800-770v194q0 13-8.5 21.5T770-546H576q-13 0-21.5-8.5T546-576q0-13 8.5-21.5T576-606h138q-38-60-97-97t-137-37q-109 0-184.5 75.5T220-480q0 109 75.5 184.5T480-220q77 0 140-39.5t94-106.5q5-11 16.5-17.5T754-386q15 2 22.5 14t2.5 26q-38 87-118.5 136.5T480-160Z"/></svg>Refresh</button></sc-if>
+        <sc-if value="{{ asPickOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPick }}" class="p-ghost">{{ asPickLabel }}</button></sc-if>
+        <button onClick="{{ asClose }}" class="p-ghost">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
+      </div>
+      <div class="as-stage">
+        <sc-if value="{{ asNoteOn }}" hint-placeholder-val="{{ false }}"><div class="as-empty"><b>{{ asNoteHead }}</b><p>{{ asNote }}</p></div></sc-if>
+        <sc-for list="{{ asCols }}" as="c" hint-placeholder-count="2">
+          <section class="as-col">
+            <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
+            <div class="as-pair">
+              <figure class="as-t as-t-sq">
+                <sc-if value="{{ c.feedOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.feedOpen }}" class="as-img" title="{{ c.feedName }}"><img data-src="{{ c.feedUrl }}" alt="{{ c.feedName }}"></button></sc-if>
+                <sc-if value="{{ c.feedMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No feed image</div></sc-if>
+                <figcaption><b>{{ c.feedLabel }}</b><s>{{ c.feedMeta }}</s></figcaption>
+              </figure>
+              <figure class="as-t as-t-st">
+                <sc-if value="{{ c.storyOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ c.storyOpen }}" class="as-img" title="{{ c.storyName }}"><img data-src="{{ c.storyUrl }}" alt="{{ c.storyName }}"></button></sc-if>
+                <sc-if value="{{ c.storyMissOn }}" hint-placeholder-val="{{ false }}"><div class="as-miss">No story image</div></sc-if>
+                <figcaption><b>{{ c.storyLabel }}</b><s>{{ c.storyMeta }}</s></figcaption>
+              </figure>
+            </div>
+            <sc-if value="{{ c.moreOn }}" hint-placeholder-val="{{ false }}">
+              <div class="as-more">
+                <sc-for list="{{ c.more }}" as="t" hint-placeholder-count="0">
+                  <figure class="as-t as-t-x">
+                    <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button>
+                    <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
+                  </figure>
+                </sc-for>
+              </div>
+            </sc-if>
+          </section>
+        </sc-for>
+      </div>
+      <sc-if value="{{ asBigOn }}" hint-placeholder-val="{{ false }}">
+        <div class="as-big" onClick="{{ asBigClose }}">
+          <img data-src="{{ asBigUrl }}" alt="{{ asBigName }}">
+          <p><b>{{ asBigName }}</b><s>{{ asBigMeta }}</s></p>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
   <sc-if value="{{ mkOpen }}" hint-placeholder-val="{{ false }}">
@@ -4552,7 +4667,7 @@ select.p-in{padding-right:34px}
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><sc-if value="{{ ytBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ ytBarState }}" title="Does the YouTube text fit Google's limits — open it">{{ ytBarLabel }}</button></sc-if><sc-if value="{{ mtBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ mtBarState }}" title="Does the Meta ad text fit Meta's limits — open it">{{ mtBarLabel }}</button></sc-if><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
+  <div class="p-cvbar"><b title="{{ projLabel }}">{{ projLabel }}</b><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><sc-if value="{{ ytBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ ytBarState }}" title="Does the YouTube text fit Google's limits — open it">{{ ytBarLabel }}</button></sc-if><sc-if value="{{ mtBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ ytEditText }}" class="p-cvcopy" data-state="{{ mtBarState }}" title="Does the Meta ad text fit Meta's limits — open it">{{ mtBarLabel }}</button></sc-if><button onClick="{{ asOpen }}" class="p-cvsets" title="See every exported ad set in the source folder, one column per variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-520q-24.54 0-42.27-17.73Q140-555.46 140-580v-180q0-24.54 17.73-42.27Q175.46-820 200-820h180q24.54 0 42.27 17.73Q440-784.54 440-760v180q0 24.54-17.73 42.27Q404.54-520 380-520H200Zm0 380q-24.54 0-42.27-17.73Q140-175.46 140-200v-180q0-24.54 17.73-42.27Q175.46-440 200-440h180q24.54 0 42.27 17.73Q440-404.54 440-380v180q0 24.54-17.73 42.27Q404.54-140 380-140H200Zm380-380q-24.54 0-42.27-17.73Q520-555.46 520-580v-180q0-24.54 17.73-42.27Q555.46-820 580-820h180q24.54 0 42.27 17.73Q820-784.54 820-760v180q0 24.54-17.73 42.27Q784.54-520 760-520H580Zm0 380q-24.54 0-42.27-17.73Q520-175.46 520-200v-180q0-24.54 17.73-42.27Q555.46-440 580-440h180q24.54 0 42.27 17.73Q820-404.54 820-380v180q0 24.54-17.73 42.27Q784.54-140 760-140H580ZM200-580h180v-180H200v180Zm380 0h180v-180H580v180Zm0 380h180v-180H580v180Zm-380 0h180v-180H200v180Zm380-380Zm0 200Zm-200 0Zm0-200Z"/></svg>Ad sets</button><i data-ok="{{ cvOkOn }}"><em></em>{{ cvStatus }}</i></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -12367,6 +12482,152 @@ class Component extends DCLogic {
   // so the beforeunload handler stands down for a move the user asked for; assigning
   // location.href here would raise Chrome's "Changes you made may not be saved" over
   // a button the user had just pressed.
+  // ── Ad sets — what is actually in the source folder ────────────────────────
+  // Reads the files the export wrote rather than re-rendering, so the window shows what
+  // will be uploaded. A column is a top-level folder (Variant A / B / C), or one PAGE of
+  // the Carousel folder; inside it the newest file of each job fills its slot and any
+  // older duplicate (a renamed project, a re-export under another name) drops to the
+  // extras row, so the Feed | Story pair is always the latest. Object URLs are revoked on
+  // every rescan and on close. Nothing here is project state — instance fields only.
+  static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload)$|^\./i;
+  static AS_KIND = [
+    [/_logo_1x1$/i, 'logo', 'Logo 1:1'],
+    [/(_feed|_square_1x1|_1x1)$/i, 'feed', 'Feed 1:1'],
+    [/(_story|_vertical_9x16|_9x16)$/i, 'story', 'Story 9:16'],
+    [/_16x9$/i, 'ls', 'Landscape 16:9'],
+    [/_landscape_1\.91x1$/i, 'yl', 'Landscape 1.91:1'],
+    [/_portrait_4x5$/i, 'yp', 'Portrait 4:5'],
+    [/eventbrite_banner_wide$/i, 'bn', 'Eventbrite banner · wide'],
+    [/eventbrite_banner_small$/i, 'bs', 'Eventbrite banner · small']
+  ];
+  async asOpen() {
+    this.setState({ adSetsOpen: true });
+    const f = window.providentFolder;
+    // Opening is a click, so a remembered folder whose permission lapsed can be revived
+    // here without a second prompt — the same path Save takes.
+    if (f && !f.handle && f.ensure) { try { await f.ensure(); } catch (e) {} }
+    this.asScan();
+  }
+  asClose() { this._asBig = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
+  asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
+  async asPick() {
+    const f = window.providentFolder;
+    if (!f || !f.supported) return;
+    try { if (f.handle || !(await f.ensure())) await f.pick(); } catch (e) { return; }
+    this.asScan();
+  }
+  async asScan() {
+    const f = window.providentFolder, root = f && f.handle;
+    const seq = (this._asSeq = (this._asSeq || 0) + 1);
+    this._asBig = null;
+    this._as = { busy: !!root, has: !!root, cols: [], root: root ? root.name : '', files: 0, err: '' };
+    this.forceUpdate();
+    if (!root) return;
+    const urls = [], groups = new Map();
+    try {
+      const walk = async (dir, path, depth) => {
+        for await (const [name, h] of dir.entries()) {
+          if (h.kind === 'directory') {
+            if (depth < 2 && !Component.AS_SKIP.test(name)) await walk(h, path ? path + '/' + name : name, depth + 1);
+            continue;
+          }
+          if (!/\.(jpe?g|png|webp)$/i.test(name)) continue;
+          const stem = name.replace(/\.[^.]+$/, '');
+          const kd = Component.AS_KIND.find(k => k[0].test(stem));
+          const top = path.split('/')[0] || '';
+          const pm = /_page(\d+)_/i.exec(stem);
+          const page = pm ? +pm[1] : 0;
+          const key = top + '\u0000' + page;
+          if (!groups.has(key)) groups.set(key, { top, page, files: [] });
+          const file = await h.getFile();
+          groups.get(key).files.push({ name, path: (path ? path + '/' : '') + name, file,
+            kind: kd ? kd[1] : 'other', label: kd ? kd[2] : name });
+        }
+      };
+      await walk(root, '', 0);
+      if (seq !== this._asSeq) return;
+      const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+      const when = t => { try { return new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+      const tile = async e => {
+        const url = URL.createObjectURL(e.file); urls.push(url);
+        let dim = '';
+        try { const b = await createImageBitmap(e.file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
+        const meta = [dim, mb(e.file.size)].filter(Boolean).join(' · ');
+        const t = { url, name: e.path, label: e.label, meta };
+        t.open = () => { this._asBig = t; this.forceUpdate(); };
+        return t;
+      };
+      const ORDER = ['feed', 'story', 'yl', 'yp', 'ls', 'bn', 'bs', 'logo'];
+      const list = [...groups.values()].sort((a, b) => {
+        const ra = a.top ? (/^logo$/i.test(a.top) ? 2 : 0) : 3, rb = b.top ? (/^logo$/i.test(b.top) ? 2 : 0) : 3;
+        return ra - rb || a.top.localeCompare(b.top, undefined, { numeric: true }) || a.page - b.page;
+      });
+      const cols = [];
+      let total = 0;
+      for (const g of list) {
+        g.files.sort((a, b) => b.file.lastModified - a.file.lastModified);
+        const slot = {}, extra = [];
+        g.files.forEach(e => { if (e.kind !== 'other' && !slot[e.kind]) slot[e.kind] = e; else extra.push(e); });
+        total += g.files.length;
+        const feed = slot.feed ? await tile(slot.feed) : null, story = slot.story ? await tile(slot.story) : null;
+        const more = [];
+        for (const k of ORDER.slice(2)) if (slot[k]) more.push(await tile(slot[k]));
+        for (const e of extra) { const t = await tile(e); t.label = 'Older · ' + e.label; more.push(t); }
+        if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
+        const newest = g.files[0] ? g.files[0].file.lastModified : 0;
+        const title = (g.top || 'Folder root') + (g.page ? ' · Page ' + g.page : '');
+        const n = g.files.length;
+        cols.push({
+          title, sub: n + (n === 1 ? ' image' : ' images') + (newest ? ' · exported ' + when(newest) : ''),
+          feedOn: feed ? '1' : undefined, feedMissOn: feed ? undefined : '1',
+          feedUrl: feed ? feed.url : '', feedName: feed ? feed.name : '', feedOpen: feed ? feed.open : () => {},
+          feedLabel: feed ? feed.label : 'Feed 1:1', feedMeta: feed ? feed.meta : 'Not exported',
+          storyOn: story ? '1' : undefined, storyMissOn: story ? undefined : '1',
+          storyUrl: story ? story.url : '', storyName: story ? story.name : '', storyOpen: story ? story.open : () => {},
+          storyLabel: story ? story.label : 'Story 9:16', storyMeta: story ? story.meta : 'Not exported',
+          moreOn: more.length ? '1' : undefined, more
+        });
+      }
+      this.asFree();
+      this._asUrls = urls;
+      this._as = { busy: false, has: true, cols, root: root.name, files: total, err: '' };
+    } catch (e) {
+      urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (er) {} });
+      if (seq !== this._asSeq) return;
+      this._as = { busy: false, has: true, cols: [], root: root.name, files: 0,
+        err: 'Could not read "' + root.name + '" — ' + (e && e.message ? e.message : 'the folder may have moved') + '. Choose it again.' };
+    }
+    this.forceUpdate();
+  }
+  asVals() {
+    const open = !!this.state.adSetsOpen, f = window.providentFolder, a = this._as || {};
+    const supported = !!(f && f.supported), root = a.has ? (a.root || 'the source folder') : '';
+    const proj = ((this.eng.state && this.eng.state.campaign) || '').trim();
+    let head = '', note = '';
+    if (!supported) { head = 'This browser cannot read folders'; note = 'Ad sets reads the source folder, which needs Chrome or Edge. Exports here download as a zip instead.'; }
+    else if (!root) { head = 'No source folder yet'; note = 'Choose the folder this project exports into. Every export writes Variant A, Variant B and so on there, and this window shows them side by side.'; }
+    else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
+    else if (a.err) { head = 'The folder could not be read'; note = a.err; }
+    else if (!a.cols.length) { head = 'Nothing exported yet'; note = 'Export JPEG or PNG from Share and the files land in "' + root + '" as Variant A, Variant B …, one folder per variant.'; }
+    const big = this._asBig;
+    return {
+      asOn: open ? '1' : undefined,
+      asOpen: () => this.asOpen(),
+      asClose: () => this.asClose(),
+      asRefresh: () => this.asScan(),
+      asPick: () => this.asPick(),
+      asHasRoot: open && root ? '1' : undefined,
+      asPickOn: open && supported ? '1' : undefined,
+      asPickLabel: root ? 'Change folder' : 'Choose source folder',
+      asSub: root ? (proj ? proj + ' · ' : '') + 'Source folder: ' + root + (a.files ? ' · ' + a.cols.length + (a.cols.length === 1 ? ' set · ' : ' sets · ') + a.files + ' images' : '') : (proj || 'Exported ads, one column per variant'),
+      asNoteOn: open && head ? '1' : undefined,
+      asNoteHead: head, asNote: note,
+      asCols: open && !head ? a.cols : [],
+      asBigOn: big ? '1' : undefined,
+      asBigUrl: big ? big.url : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
+      asBigClose: () => { this._asBig = null; this.forceUpdate(); }
+    };
+  }
   goOther(file) {
     if (!file) return;
     const cur = this.active();
@@ -12473,7 +12734,13 @@ class Component extends DCLogic {
     this._closePops = () => {
       if (this.state.shareOpen || this.state.allVarsOpen) this.setState({ shareOpen: false, allVarsOpen: false });
     };
-    this._popKey = e => { if (e.key === 'Escape') this._closePops(); };
+    this._popKey = e => {
+      if (e.key !== 'Escape') return;
+      // Ad sets: the enlarged image first, then the window itself.
+      if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
+      if (this.state.adSetsOpen) { this.asClose(); return; }
+      this._closePops();
+    };
     this._popOut = e => {
       if (!this.state.shareOpen && !this.state.allVarsOpen) return;
       const t2 = e.target;
@@ -12533,6 +12800,7 @@ class Component extends DCLogic {
       document.removeEventListener('keydown', this._popKey, true);
       document.removeEventListener('pointerdown', this._popOut, true);
     }
+    this.asFree();
     try { this.eng.componentWillUnmount(); } catch (e) { console.warn(e); }
   }
 
@@ -12540,7 +12808,7 @@ class Component extends DCLogic {
     const view = this.state.splashView || 'all';
     const eng = this.active();
     const sub = eng.renderVals();
-    return Object.assign({}, sub, {
+    return Object.assign({}, sub, this.asVals(), {
       // --- Theme. Written to <html data-theme> rather than held in React state
       // alone, because every chrome colour — including the inline style objects,
       // which beat any stylesheet rule — reads a `var(--ps-*)` token. Flipping the

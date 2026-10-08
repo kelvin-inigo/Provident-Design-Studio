@@ -14437,3 +14437,33 @@ may now read `publish`) and `restore()` all accept it. Every "Write … text" bu
 canvas-bar chips (`ytEditText`) open Publish. The text groups show only fields in use plus ONE
 empty one (2,380px -> 1,182px with one headline). The third tab cost 32px at 1440, so the delivery
 trio's label-dropping breakpoint went 1400 -> **1520**; measured fitting at 1280, 1440 and 1600.
+
+# CAS HAS AN AD SETS WINDOW — THE SOURCE FOLDER, ONE COLUMN PER VARIANT
+
+By request (2026-10-08): "a window that shows all the ad sets created for a project". **Ad sets**
+in the canvas bar opens `.as-ov` (z 200, same slot as the placement preview). It is all SHELL
+code — `Component.asOpen / asScan / asVals`, instance fields `_as` / `_asBig` / `_asUrls`, one
+state flag `adSetsOpen` — so nothing touches project state, undo or the engine.
+
+- **It reads the FILES, never a re-render**, so it shows what will be uploaded. `asScan` walks
+  `providentFolder.handle` two levels deep (skipping `Assets`, `Copy`, `Edits`, `Photoshop`,
+  `Meta upload`, dot-folders), keeps jpg/png/webp, and groups by top-level folder plus
+  `_pageN_` (so a Carousel is one column per page). `AS_KIND` classifies by filename suffix —
+  CAS's `EXPORT_NAME` and `YT_NAME` jobs plus the old flat `_1x1` / `_9x16`. **If an export name
+  changes, `AS_KIND` is the second place it lives.**
+- **Newest file per job wins its slot**; any older duplicate (a renamed campaign) drops to the
+  extras row labelled "Older". Feed | Story is the pair; everything else is the row under it.
+- Opening is a click, so it calls `folder.ensure()` first to revive a remembered folder.
+- **Object URLs** are revoked on every rescan, on close and on unmount. Esc closes the
+  enlarged image first, then the window (`_popKey`).
+- Columns are one width (`calc(var(--as-h) * 1.5625 + 44px)`, `--as-h` on `.as-stage` sized so
+  three fit at 1440) and the slot boxes are fixed to 1:1 and 9:16 with `object-fit: contain`, so
+  a wrong-shaped file cannot break the alignment. Below 760px the columns stack.
+- **Testing trap:** the pane cannot open `showDirectoryPicker`, so it was driven by setting
+  `providentFolder.handle` to the origin-private file system (`navigator.storage.getDirectory()`)
+  filled with test exports. That root's `name` is `''`, which is why `_as.has` — not the name —
+  says whether a folder is set.
+
+Verified: 3 variants + banners + a missing story + a 3-page carousel (pages in numeric order), the
+no-folder state, the lightbox, Esc twice, both themes, 1440 (three columns, no scroll) and 375
+(stacked, no overflow). `sc-if` / `sc-for` balanced; one closing style tag.

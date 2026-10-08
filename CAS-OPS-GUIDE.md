@@ -363,6 +363,22 @@ Source folder/
 Google refuses any file over 5 MB. JPEG is always well under. If a PNG goes over, the status line
 names it; export JPEG instead. Text over Google's limits is named there too.
 
+### See everything you exported: Ad sets
+
+Press **Ad sets** in the bar under the canvas. It opens a window that reads the Source folder
+and shows **one column per variant folder** (Variant A, Variant B …, or one column per page of a
+Carousel), each with the **Feed** and **Story** images side by side and every other size (16:9,
+Eventbrite banners, YouTube's landscape and portrait, the logo) in a row underneath.
+
+- It shows the files **as they are in the folder**, so export first, then look. **Refresh** reads
+  the folder again.
+- Under each image: its pixel size and file size. Click an image to see it large; **Esc** closes
+  it, and **Esc** again closes the window.
+- A size the variant has not exported yet shows as a dashed **No story image** box.
+- If an older file with a different name sits in the same folder (the campaign was renamed), the
+  newest file takes the Feed or Story spot and the older one is listed underneath as **Older**.
+- With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
+
 ---
 
 ## 8. OPS: make a post
