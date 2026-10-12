@@ -3553,6 +3553,122 @@ select.p-in{padding-right:34px}
   box-shadow:0 0 0 1px var(--ps-hair)}
 .as-empty b{display:block;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink);margin-bottom:6px}
 .as-empty p{margin:0;font:400 13.5px/1.55 var(--ps-font);color:var(--ps-ink-2)}
+/* THE AD CARD (2026-10-12) — laid out like Meta's Ad Library: what the ad is (status, ID,
+   start date, placements, checks) above a rule, then a mock-up of the ad as it runs. The
+   mock-up is ARTWORK-LIKE chrome and stays light in both themes, as the platforms draw it;
+   so its ink is pinned. */
+.as-col{padding:0;background:none;box-shadow:none}
+.as-col-h{padding-bottom:8px}
+.as-ad{flex:none;box-sizing:border-box;width:340px;display:flex;flex-direction:column;gap:12px;padding:14px;
+  border-radius:var(--ps-r);background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair)}
+.as-ad-top{display:flex;flex-direction:column;gap:5px;padding-bottom:12px;border-bottom:1px solid var(--ps-hair)}
+.as-ad-st{display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.as-ad-st i{width:9px;height:9px;border-radius:50%;background:var(--ps-dim);flex:none}
+.as-ad-st[data-state="on"] i{background:var(--ps-good)}
+.as-ad-st[data-state="wait"] i{background:var(--ps-warn)}
+.as-ad-st[data-state="bad"] i{background:var(--ps-bad)}
+.as-ad-st b{font:600 13px/1.2 var(--ps-font);color:var(--ps-ink)}
+.as-ad-st .as-plat-l{margin-left:auto;padding:3px 9px 3px 7px;font-size:11px}
+.as-ad-id{margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.as-ad-id span{color:var(--ps-ink)}
+.as-ad-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.as-chip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:var(--ps-pill);
+  background:var(--ps-bad-q);color:var(--ps-bad);font:600 11px/1 var(--ps-font)}
+.as-chip[data-ok]{background:var(--ps-good-q);color:var(--ps-good)}
+.as-chip[data-v="winner"]{background:var(--ps-good-q);color:var(--ps-good)}
+.as-chip[data-v="running"],.as-chip[data-v="sample"]{background:var(--ps-fill);color:var(--ps-ink-2)}
+.as-chip[data-v="fatigued"]{background:var(--ps-fill);color:var(--ps-ink)}
+.as-ad-see{margin-top:8px;height:36px;border:0;border-radius:var(--ps-r-sm);background:var(--ps-fill);color:var(--ps-ink);
+  font:600 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}
+.as-ad-see:hover{background:var(--ps-fill-h)}
+.as-ad-see:focus-visible,.as-mock-img:focus-visible,.as-fmts button:focus-visible,.as-file:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.as-mock{display:flex;flex-direction:column;border-radius:var(--ps-r-sm);overflow:hidden;background:#fff;color:#1C1E21;
+  box-shadow:0 0 0 1px rgba(0,0,0,.1)}
+.as-av{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;
+  background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.12);font:300 7px/1 var(--ps-font);color:#1A2942;letter-spacing:.02em}
+.as-mock-who{display:flex;align-items:center;gap:9px;padding:12px 12px 8px}
+.as-mock-who p,.as-mock-yt p,.as-mock-foot p{margin:0;min-width:0;display:flex;flex-direction:column;gap:2px}
+.as-mock-who b{font:600 13.5px/1.25 var(--ps-font);color:#1C1E21}
+.as-mock-who s{font:400 11.5px/1.2 var(--ps-font);color:#65676B;text-decoration:none}
+.as-mock-body{margin:0 12px 10px;padding:0;font:400 13px/1.45 var(--ps-font);color:#1C1E21;white-space:pre-line;
+  display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.as-mock-body[data-full]{-webkit-line-clamp:unset;display:block}
+.as-mock-body[data-none],.as-mock-yt b[data-none]{color:#65676B;font-style:normal}
+.as-mock-img{--ar:1/1;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:var(--ar);max-height:360px;
+  padding:0;border:0;background:#F0F2F5;cursor:zoom-in}
+.as-mock-img[data-shape="st"]{--ar:9/16}
+.as-mock-img[data-shape="yl"]{--ar:1.91/1}
+.as-mock-img[data-shape="yp"]{--ar:4/5}
+.as-mock-img img{display:block;max-width:100%;max-height:100%;object-fit:contain}
+.as-mock-foot{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F0F2F5}
+.as-mock-foot p{flex:1}
+.as-mock-foot s,.as-mock-yt s{font:400 11.5px/1.3 var(--ps-font);color:#65676B;text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-mock-foot b{font:600 13.5px/1.3 var(--ps-font);color:#1C1E21;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-mock-cta{flex:none;display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:6px;
+  background:#E4E6EB;color:#1C1E21;font:600 13px/1 var(--ps-font)}
+.as-mock-yt{display:flex;align-items:flex-start;gap:10px;padding:12px}
+.as-mock-yt p{flex:1}
+.as-mock-yt b{font:600 13.5px/1.3 var(--ps-font);color:#0F0F0F}
+.as-mock-yt .as-mock-cta{align-self:center;border-radius:999px;background:#065FD4;color:#fff}
+.as-fmts{display:flex;flex-wrap:wrap;gap:6px}
+.as-fmts:empty{display:none}
+.as-fmts button{height:26px;padding:0 10px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);
+  font:500 12px/1 var(--ps-font);cursor:pointer}
+.as-fmts button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.as-lims{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--ps-hair)}
+.as-lims > b{font:600 12.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-lims p{margin:0;display:flex;align-items:baseline;gap:7px;font:400 12px/1.4 var(--ps-font)}
+.as-lims p i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ps-good);transform:translateY(-1px)}
+.as-lims p[data-bad] i{background:var(--ps-bad)}
+.as-lims p span{color:var(--ps-ink);font-weight:500}
+.as-lims p s{margin-left:auto;text-align:right;color:var(--ps-ink-2);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-lims p[data-bad] s{color:var(--ps-bad)}
+/* See ad details */
+.as-det{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(6,9,15,.55)}
+.as-det-in{display:flex;flex-direction:column;width:min(1080px,100%);max-height:100%;border-radius:var(--ps-r);
+  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);overflow:hidden}
+.as-det-h{flex:none;display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--ps-hair)}
+.as-det-h b{font:600 15px/1.2 var(--ps-font);color:var(--ps-ink)}
+.as-det-h s{min-width:0;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-det-h .p-ghost{display:inline-flex;align-items:center;gap:6px}
+.as-det-h .mk-g{width:15px;height:15px}
+.as-det-b{flex:1;min-height:0;display:grid;grid-template-columns:380px minmax(0,1fr);overflow:auto}
+.as-det-l{padding:20px;background:var(--ps-stage);border-right:1px solid var(--ps-hair)}
+.as-ad-big{width:100%;padding:0;background:none;box-shadow:none}
+.as-ad-big .as-mock-img{max-height:none}
+.as-det-r{display:flex;flex-direction:column;min-width:0}
+.as-det-s{display:flex;flex-direction:column;gap:8px;padding:18px 22px;border-bottom:1px solid var(--ps-hair)}
+.as-det-s:last-child{border-bottom:0}
+.as-det-s h3{margin:0 0 2px;display:flex;align-items:center;gap:10px;font:600 14.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-det-s h3 > :last-child{margin-left:auto}
+.as-det-sub{margin:0;font:400 12px/1.45 var(--ps-font);color:var(--ps-dim)}
+.as-det-note{margin:0;padding:12px 14px;border-radius:var(--ps-r-sm);background:var(--ps-fill);
+  font:400 13px/1.55 var(--ps-font);color:var(--ps-ink-2);white-space:pre-wrap}
+.as-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.as-stats div{display:flex;flex-direction:column;gap:4px;padding:11px 12px;border-radius:var(--ps-r-sm);background:var(--ps-fill)}
+.as-stats s{font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
+.as-stats b{font:600 18px/1.2 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.as-verdict{margin:0;padding:9px 12px;border-radius:var(--ps-r-sm);background:var(--ps-fill);font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.as-verdict[data-v="winner"]{background:var(--ps-good-q);color:var(--ps-good)}
+.as-verdict[data-v="bleeder"]{background:var(--ps-bad-q);color:var(--ps-bad)}
+.as-trend{display:flex;flex-direction:column;gap:6px}
+.as-trend > s{font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
+.as-bars{display:flex;align-items:flex-end;gap:6px;height:64px;padding:6px;border-radius:var(--ps-r-sm);background:var(--ps-fill)}
+.as-bars i{flex:1;max-width:36px;border-radius:3px 3px 0 0;background:var(--ps-link)}
+.as-line{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-top:1px solid var(--ps-hair)}
+.as-line p{flex:1;min-width:0;margin:0;display:flex;flex-direction:column;gap:2px}
+.as-line s{font:500 11.5px/1.3 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
+.as-line span{font:400 13px/1.45 var(--ps-font);color:var(--ps-ink);white-space:pre-line;overflow-wrap:anywhere}
+.as-line em{flex:none;max-width:40%;text-align:right;font:500 11.5px/1.3 var(--ps-font);font-style:normal;color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.as-line[data-bad] em{color:var(--ps-bad)}
+.as-file{display:flex;align-items:center;gap:10px;padding:6px;border:0;border-radius:var(--ps-r-sm);background:none;text-align:left;cursor:zoom-in}
+.as-file:hover{background:var(--ps-fill)}
+.as-file img{width:44px;height:44px;object-fit:contain;border-radius:6px;background:var(--ps-stage)}
+.as-file b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-file s{margin-left:auto;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
 /* the enlarged image — a pinned dark viewer, so its ink is pinned too */
 .as-big{position:absolute;inset:0;z-index:3;display:grid;grid-template-columns:56px minmax(0,1fr) 56px;
   grid-template-rows:auto minmax(0,1fr) auto;gap:12px;padding:16px 20px 20px;background:rgba(6,9,15,.94)}
@@ -3588,6 +3704,13 @@ select.p-in{padding-right:34px}
   .as-ttl{flex:1 0 100%}
   .as-bar .p-spring{display:none}
   .as-big{grid-template-columns:44px minmax(0,1fr) 44px;padding:12px;gap:8px}
+  .as-aud{width:100%}
+  .as-ad{width:100%;min-width:0}
+  .as-mock-foot p,.as-mock-yt p{flex:1 1 0}
+  .as-det{padding:0}
+  .as-det-in{max-height:none;height:100%;border-radius:0}
+  .as-det-b{grid-template-columns:1fr}
+  .as-det-l{border-right:0;border-bottom:1px solid var(--ps-hair)}
   .as-big-nav{width:38px;height:38px}
 }
 @media (prefers-reduced-motion:reduce){.as-ov{animation:none}.as-img img{transition:none}.as-img:hover img{transform:none}}
@@ -4074,19 +4197,40 @@ select.p-in{padding-right:34px}
                       <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
                       <div class="as-plats">
                       <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
-                        <div class="as-plat">
-                          <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
-                          <sc-for list="{{ pl.rows }}" as="r" hint-placeholder-count="1">
-                            <div class="as-pair" data-row="{{ r.kind }}">
-                              <sc-for list="{{ r.tiles }}" as="t" hint-placeholder-count="2">
-                                <figure class="as-t" data-shape="{{ t.shape }}">
-                                  <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button>
-                                  <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
-                                </figure>
-                              </sc-for>
+                        <article class="as-ad" data-p="{{ pl.key }}">
+                          <div class="as-ad-top">
+                            <div class="as-ad-st" data-state="{{ pl.state }}"><i></i><b>{{ pl.status }}</b><span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span></div>
+                            <p class="as-ad-id">{{ pl.idLine }}</p>
+                            <sc-if value="{{ pl.sinceOn }}" hint-placeholder-val="{{ false }}"><p class="as-ad-id">{{ pl.since }}</p></sc-if>
+                            <p class="as-ad-id">Placements <span>{{ pl.places }}</span></p>
+                            <div class="as-ad-chips">
+                              <span class="as-chip" data-ok="{{ pl.badgeOk }}">{{ pl.badge }}</span>
+                              <sc-if value="{{ pl.verdictOn }}" hint-placeholder-val="{{ false }}"><span class="as-chip" data-v="{{ pl.vKey }}">{{ pl.verdict }}</span></sc-if>
+                              <sc-if value="{{ pl.sample }}" hint-placeholder-val="{{ false }}"><span class="as-chip" data-v="sample">Sample data</span></sc-if>
                             </div>
-                          </sc-for>
-                        </div>
+                            <button onClick="{{ pl.see }}" class="as-ad-see">See ad details</button>
+                          </div>
+                          <div class="as-mock">
+                            <sc-if value="{{ pl.isMeta }}" hint-placeholder-val="{{ true }}">
+                              <div class="as-mock-who"><span class="as-av" aria-hidden="true">provident.</span><p><b>{{ pl.page }}</b><s>Sponsored</s></p></div>
+                              <sc-if value="{{ pl.bodyOn }}" hint-placeholder-val="{{ true }}"><p class="as-mock-body">{{ pl.body }}</p></sc-if>
+                              <sc-if value="{{ pl.bodyNone }}" hint-placeholder-val="{{ false }}"><p class="as-mock-body" data-none="1">No primary text yet — write it in Publish › Meta ad text.</p></sc-if>
+                            </sc-if>
+                            <button onClick="{{ pl.open }}" class="as-mock-img" data-shape="{{ pl.shape }}" title="View full size"><img data-src="{{ pl.img }}" alt="{{ pl.label }}"></button>
+                            <sc-if value="{{ pl.isMeta }}" hint-placeholder-val="{{ true }}">
+                              <div class="as-mock-foot"><p><s>{{ pl.domain }}</s><b>{{ pl.head }}</b><s>{{ pl.desc }}</s></p><sc-if value="{{ pl.ctaOn }}" hint-placeholder-val="{{ true }}"><span class="as-mock-cta">{{ pl.cta }}</span></sc-if></div>
+                            </sc-if>
+                            <sc-if value="{{ pl.isYt }}" hint-placeholder-val="{{ false }}">
+                              <div class="as-mock-yt"><span class="as-av" aria-hidden="true">provident.</span><p><sc-if value="{{ pl.headOn }}" hint-placeholder-val="{{ true }}"><b>{{ pl.head }}</b></sc-if><sc-if value="{{ pl.headNone }}" hint-placeholder-val="{{ false }}"><b data-none="1">No headline yet</b></sc-if><s>Sponsored · {{ pl.page }}</s><s>{{ pl.desc }}</s></p><span class="as-mock-cta">{{ pl.cta }}</span></div>
+                            </sc-if>
+                          </div>
+                          <div class="as-fmts"><sc-for list="{{ pl.fmts }}" as="fm" hint-placeholder-count="0"><button onClick="{{ fm.set }}" data-on="{{ fm.on }}">{{ fm.label }}</button></sc-for></div>
+                          <sc-if value="{{ pl.isYt }}" hint-placeholder-val="{{ false }}">
+                            <div class="as-lims"><b>Accompanying copy limits</b>
+                              <sc-for list="{{ pl.limits }}" as="lm" hint-placeholder-count="3"><p data-bad="{{ lm.bad }}"><i></i><span>{{ lm.label }}</span><s>{{ lm.note }}</s></p></sc-for>
+                            </div>
+                          </sc-if>
+                        </article>
                       </sc-for>
                       </div>
                     </section>
@@ -4098,6 +4242,61 @@ select.p-in{padding-right:34px}
           </section>
         </sc-for>
       </div>
+      <sc-if value="{{ asDetOn }}" hint-placeholder-val="{{ false }}">
+        <div class="as-det" onClick="{{ asDetClose }}">
+          <div class="as-det-in" role="dialog" aria-label="Ad details" onClick="{{ asDetStop }}">
+            <header class="as-det-h"><b>Ad details</b><s>{{ asDetTitle }}</s><span class="p-spring"></span><button onClick="{{ asDetClose }}" class="p-ghost" title="Close (Esc)">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button></header>
+            <div class="as-det-b">
+              <div class="as-det-l">
+                <article class="as-ad as-ad-big" data-p="{{ asDet.key }}">
+                  <div class="as-mock">
+                    <sc-if value="{{ asDet.isMeta }}" hint-placeholder-val="{{ true }}">
+                      <div class="as-mock-who"><span class="as-av" aria-hidden="true">provident.</span><p><b>{{ asDet.page }}</b><s>Sponsored</s></p></div>
+                      <sc-if value="{{ asDet.bodyOn }}" hint-placeholder-val="{{ true }}"><p class="as-mock-body" data-full="1">{{ asDet.body }}</p></sc-if>
+                    </sc-if>
+                    <button onClick="{{ asDet.open }}" class="as-mock-img" data-shape="{{ asDet.shape }}" title="View full size"><img data-src="{{ asDet.img }}" alt="{{ asDet.label }}"></button>
+                    <sc-if value="{{ asDet.isMeta }}" hint-placeholder-val="{{ true }}">
+                      <div class="as-mock-foot"><p><s>{{ asDet.domain }}</s><b>{{ asDet.head }}</b><s>{{ asDet.desc }}</s></p><sc-if value="{{ asDet.ctaOn }}" hint-placeholder-val="{{ true }}"><span class="as-mock-cta">{{ asDet.cta }}</span></sc-if></div>
+                    </sc-if>
+                    <sc-if value="{{ asDet.isYt }}" hint-placeholder-val="{{ false }}">
+                      <div class="as-mock-yt"><span class="as-av" aria-hidden="true">provident.</span><p><b>{{ asDet.head }}</b><s>Sponsored · {{ asDet.page }}</s><s>{{ asDet.desc }}</s></p><span class="as-mock-cta">{{ asDet.cta }}</span></div>
+                    </sc-if>
+                  </div>
+                  <div class="as-fmts"><sc-for list="{{ asDet.fmts }}" as="fm" hint-placeholder-count="0"><button onClick="{{ fm.set }}" data-on="{{ fm.on }}">{{ fm.label }}</button></sc-for></div>
+                </article>
+              </div>
+              <div class="as-det-r">
+                <section class="as-det-s">
+                  <h3>{{ asDet.status }}<span class="as-plat-l" data-p="{{ asDet.key }}">{{ asDet.label }}</span></h3>
+                  <p class="as-ad-id">{{ asDet.idLine }}</p>
+                  <sc-if value="{{ asDet.sinceOn }}" hint-placeholder-val="{{ false }}"><p class="as-ad-id">{{ asDet.since }}</p></sc-if>
+                  <p class="as-ad-id">Placements <span>{{ asDet.places }}</span></p>
+                </section>
+                <section class="as-det-s">
+                  <h3>Analytics</h3>
+                  <sc-if value="{{ asDetStatsOn }}" hint-placeholder-val="{{ false }}">
+                    <p class="as-det-sub">{{ asDetRange }}</p>
+                    <div class="as-stats"><sc-for list="{{ asDetStats }}" as="sx" hint-placeholder-count="7"><div><s>{{ sx.k }}</s><b>{{ sx.v }}</b></div></sc-for></div>
+                    <sc-if value="{{ asDetVerdictOn }}" hint-placeholder-val="{{ false }}"><p class="as-verdict" data-v="{{ asDetVKey }}">{{ asDetVerdict }}</p></sc-if>
+                    <sc-if value="{{ asDetBarsOn }}" hint-placeholder-val="{{ false }}"><div class="as-trend"><s>CTR, day by day</s><div class="as-bars"><sc-for list="{{ asDetBars }}" as="br" hint-placeholder-count="5"><i style="{{ br.style }}" title="{{ br.tip }}"></i></sc-for></div></div></sc-if>
+                    <p class="as-det-sub">{{ asDetBench }}</p>
+                  </sc-if>
+                  <sc-if value="{{ asDetNoteOn }}" hint-placeholder-val="{{ false }}"><p class="as-det-note">{{ asDetNote }}</p></sc-if>
+                </section>
+                <section class="as-det-s">
+                  <h3>{{ asDetLinesHead }}<span class="as-chip" data-ok="{{ asDet.badgeOk }}">{{ asDet.badge }}</span></h3>
+                  <p class="as-det-sub">{{ asDetLimHint }}</p>
+                  <sc-for list="{{ asDetLines }}" as="ln" hint-placeholder-count="3"><div class="as-line" data-bad="{{ ln.bad }}"><p><s>{{ ln.k }}</s><span>{{ ln.t }}</span></p><em>{{ ln.note }}</em></div></sc-for>
+                </section>
+                <section class="as-det-s">
+                  <h3>Files</h3>
+                  <sc-for list="{{ asDetFiles }}" as="fl" hint-placeholder-count="2"><button onClick="{{ fl.open }}" class="as-file"><img data-src="{{ fl.url }}" alt=""><b>{{ fl.label }}</b><s>{{ fl.meta }}</s></button></sc-for>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{ asBigOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-big" role="dialog" aria-label="{{ asBigName }}">
           <div class="as-big-top">
@@ -12609,7 +12808,7 @@ class Component extends DCLogic {
     if (f && !f.handle && f.ensure) { try { await f.ensure(); } catch (e) {} }
     this.asScan();
   }
-  asClose() { this._asBig = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
+  asClose() { this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
   asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
   async asPick() {
     const f = window.providentFolder;
@@ -12620,7 +12819,7 @@ class Component extends DCLogic {
   async asScan() {
     const f = window.providentFolder, root = f && f.handle;
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
-    this._asBig = null; this._asList = [];
+    this._asBig = null; this._asDet = null; this._asList = [];
     this._as = { busy: !!root, has: !!root, mains: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
     this.forceUpdate();
     if (!root) return;
@@ -12629,15 +12828,25 @@ class Component extends DCLogic {
       // 1 — the project folders (a saved .adstudio.json)
       const found = [];
       const find = async (dir, path, depth) => {
-        const subs = []; let json = null;
+        const subs = []; let json = null, ins = null;
         for await (const [name, h] of dir.entries()) {
           if (h.kind === 'directory') { if (!Component.AS_SKIP.test(name) && !/^variant [a-z]$/i.test(name)) subs.push([name, h]); }
           else if (/\.adstudio\.json$/i.test(name)) {
             const fl = await h.getFile();
             if (!json || fl.lastModified > json.lastModified) json = fl;
+          } else if (/_meta insights\.json$/i.test(name)) {
+            const fl = await h.getFile();
+            if (!ins || fl.lastModified > ins.lastModified) ins = fl;
           }
         }
-        if (json) found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, '') });
+        if (json) {
+          // the saved project carries the ad text (Publish) the card's mock-up shows; the
+          // insights file is what tools/meta-ads/meta-insights.py wrote from Meta
+          let state = {}, insights = null;
+          try { const d = JSON.parse(await json.text()); state = (d && d.state) || {}; } catch (e) {}
+          try { if (ins) { const d = JSON.parse(await ins.text()); if (d && d.provident === 'cas-meta-insights') insights = d; } } catch (e) {}
+          found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, ''), state, insights });
+        }
         else if (depth < 3) for (const [n, h] of subs) await find(h, path ? path + '/' + n : n, depth + 1);
       };
       await find(root, '', 0);
@@ -12672,6 +12881,8 @@ class Component extends DCLogic {
             if (!m) continue;
             const kind = m[1].toLowerCase(), fl = await h.getFile();
             const slots = at(at(at(tree, main, () => new Map()), aud, () => new Map()), letter, () => ({}));
+            const pk = '_' + KIND[kind][0];
+            if (!slots[pk] || p.state.platform === (pk === '_yt' ? 'ytdg' : 'meta')) slots[pk] = p;
             if (!slots[kind] || fl.lastModified > slots[kind].file.lastModified)
               slots[kind] = { file: fl, path: (p.path ? p.path + '/' : '') + vpre + vname + '/' + name };
           }
@@ -12702,20 +12913,17 @@ class Component extends DCLogic {
           for (const letter of [...tree.get(main).get(aud).keys()].sort()) {
             const slots = tree.get(main).get(aud).get(letter), plats = [];
             for (const [key, label] of [['meta', 'Meta'], ['yt', 'YouTube Demand Gen']]) {
-              const rows = [];
-              for (const row of ['main', 'sub']) {
-                const tiles = [];
-                for (const k in KIND) {
-                  const d = KIND[k];
-                  if (d[0] === key && d[2] === row && slots[k]) { tiles.push(await tile(slots[k], d[1], d[3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
-                }
-                if (tiles.length) rows.push({ kind: row, tiles });
+              const tiles = [];
+              // the card shows the format the platform leads with first
+              const order = key === 'yt' ? ['landscape_1.91x1', 'square_1x1', 'portrait_4x5', 'vertical_9x16'] : ['feed', 'story'];
+              for (const k of order) {
+                if (slots[k]) { tiles.push(await tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
               }
-              if (rows.length) plats.push({ key, label, rows });
+              if (tiles.length) plats.push(this.asCard(key, label, slots['_' + key], letter, tiles, [main, aud, 'Variant ' + letter].join(' › ')));
             }
             if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
             if (plats.length) {
-              const n = plats.reduce((a2, pl) => a2 + pl.rows.reduce((b2, r) => b2 + r.tiles.length, 0), 0);
+              const n = plats.reduce((a2, pl) => a2 + pl.tiles.length, 0);
               cols.push({ title: 'Variant ' + letter, sub: plural(n, 'image'), plats }); sets++;
             }
           }
@@ -12734,6 +12942,113 @@ class Component extends DCLogic {
         err: 'Could not read "' + root.name + '" — ' + (e && e.message ? e.message : 'the folder may have moved') + '. Choose it again.' };
     }
     this.forceUpdate();
+  }
+  // ONE AD CARD per variant per platform, laid out like Meta's Ad Library: status, ID, start
+  // date and placements on top, "See ad details", then a mock-up of the ad as it runs — the
+  // project's own Publish text around the exported image. A Meta card's analytics come from
+  // `<name>_Meta insights.json` (tools/meta-ads/meta-insights.py, matched by the ad's name
+  // `<name> – Variant X`); a YouTube card carries Google's copy limits instead. Tabs switch
+  // the format the mock-up shows; the card object is mutated and re-rendered.
+  asCard(key, label, p, letter, tiles, ctx) {
+    const C = CampaignStudio, st = (p && p.state) || {}, card = { key, label, tiles, ctx, letter };
+    const dt = v => { if (!v) return ''; const d = new Date(v); return isNaN(d) ? String(v) : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); };
+    const host = u => { try { return new URL(u).hostname.replace(/^www\./, '').toUpperCase(); } catch (e) { return ''; } };
+    const first = a => (a || []).map(t => String(t || '').trim()).find(Boolean) || '';
+    card.pick = t => {
+      card.cur = t; card.img = t.url; card.shape = t.shape; card.open = t.open;
+      card.fmts = tiles.length > 1 ? tiles.map(x => ({ label: x.label.replace(/ \d.*$/, ''), on: x === t ? '1' : undefined, set: () => { card.pick(x); this.forceUpdate(); } })) : [];
+    };
+    card.pick(tiles[0]);
+    card.see = () => { this._asDet = card; this.forceUpdate(); };
+    card.isMeta = key === 'meta' ? '1' : undefined;
+    card.isYt = key === 'yt' ? '1' : undefined;
+    if (key === 'meta') {
+      const m = C.mtOf(st), ck = C.mtCheck(st), used = C.mtUsed(st);
+      const ins = p && p.insights, ad = ins && (ins.ads || []).find(a => (a.folder || '').toLowerCase() === ('variant ' + letter).toLowerCase());
+      const S = { ACTIVE: ['on', 'Active'], PAUSED: ['off', 'Paused'], CAMPAIGN_PAUSED: ['off', 'Campaign paused'], ADSET_PAUSED: ['off', 'Ad set paused'],
+        PENDING_REVIEW: ['wait', 'In review'], IN_PROCESS: ['wait', 'Processing'], DISAPPROVED: ['bad', 'Rejected'], WITH_ISSUES: ['bad', 'With issues'],
+        ARCHIVED: ['off', 'Archived'], DELETED: ['off', 'Deleted'], NOT_UPLOADED: ['none', 'Not on Meta yet'] };
+      const sv = ad ? (S[ad.status] || ['off', String(ad.status || 'Unknown').toLowerCase().replace(/_/g, ' ')]) : ['none', used ? (ck.ok ? 'Ready to upload' : 'Not on Meta yet') : 'Not on Meta yet'];
+      card.state = sv[0]; card.status = sv[1];
+      card.idLine = ad && ad.ad_id ? 'Ad ID: ' + ad.ad_id : (ins ? 'No Meta ad named “' + (p.name || '') + ' – Variant ' + letter + '”' : 'No insights yet — tools/meta-ads/meta-insights.py');
+      card.since = ad && ad.created ? 'Started running on ' + dt(ad.created) : ''; card.sinceOn = card.since ? '1' : undefined;
+      card.places = 'Facebook · Instagram';
+      card.sample = ins && ins.mode === 'sample' ? '1' : undefined;
+      card.verdict = ad && ad.verdict ? ad.verdict.label : ''; card.vKey = ad && ad.verdict ? ad.verdict.key : undefined; card.verdictOn = card.verdict ? '1' : undefined;
+      card.page = 'Provident Real Estate';
+      card.body = first(m.bodies); card.bodyOn = card.body ? '1' : undefined;
+      card.bodyNone = card.body ? undefined : '1';
+      card.domain = host(m.link) || 'PROVIDENTESTATE.COM';
+      card.head = first(m.heads) || (p && (st.campaign || p.name)) || '';
+      card.desc = first(m.descs);
+      card.cta = ck.ctaLab === 'No button' ? '' : ck.ctaLab; card.ctaOn = card.cta ? '1' : undefined;
+      card.badge = used ? ck.badge : 'No ad text'; card.badgeOk = used && ck.ok ? '1' : undefined;
+      card.ad = ad; card.ins = ins; card.check = ck; card.copy = m;
+    } else {
+      const y = C.ytOf(st), ck = C.ytCheck(st);
+      card.state = 'none'; card.status = 'Google Ads';
+      card.idLine = 'Demand Gen · image ads'; card.since = ''; card.places = 'YouTube · Discover · Gmail';
+      card.page = y.biz || 'Provident Real Estate';
+      card.head = first(y.heads); card.headOn = card.head ? '1' : undefined; card.headNone = card.head ? undefined : '1';
+      card.desc = first(y.descs);
+      card.cta = 'Learn more'; card.ctaOn = '1';
+      card.limits = ck.rows.map(r => ({ label: r.label, note: r.note, bad: r.state === 'bad' ? '1' : undefined }));
+      card.badge = ck.badge; card.badgeOk = ck.ok ? '1' : undefined;
+      card.check = ck; card.copy = y;
+    }
+    return card;
+  }
+  // "See ad details": the mock-up large, every format, the analytics, and every line of text
+  // against its platform's limit.
+  asDetVals() {
+    const c = this._asDet;
+    if (!c) return { asDetOn: undefined, asDet: {} };
+    const C = CampaignStudio, ad = c.ad, ins = c.ins;
+    const n = v => (v == null || v === '' || isNaN(+v)) ? null : +v;
+    const int = v => n(v) == null ? '—' : Math.round(n(v)).toLocaleString('en-US');
+    const cur = (ins && ins.currency) || '';
+    const money = v => n(v) == null ? '—' : cur + ' ' + n(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const RANGE = { last_7d: 'last 7 days', last_14d: 'last 14 days', last_30d: 'last 30 days', last_90d: 'last 90 days', this_month: 'this month', last_month: 'last month' };
+    const stats = ad && n(ad.impressions) != null ? [
+      ['Impressions', int(ad.impressions)], ['Reach', int(ad.reach)], ['Frequency', n(ad.frequency) == null ? '—' : n(ad.frequency).toFixed(2)],
+      ['Clicks', int(ad.clicks)], ['CTR', n(ad.ctr) == null ? '—' : n(ad.ctr).toFixed(2) + '%'], ['CPC', money(ad.cpc)], ['Amount spent', money(ad.spend)]
+    ].map(([k, v]) => ({ k, v })) : [];
+    const daily = ad && ad.daily && ad.daily.length > 1 ? ad.daily : [];
+    // scaled across the week's own range, so a CTR sliding from 2.0 to 1.8 reads as a slide
+    const cv = daily.map(d => n(d.ctr) || 0), top = Math.max(...cv, 0.01), lo = Math.min(...cv) * .8, span = Math.max(top - lo, 0.01);
+    const bars = daily.map(d => ({ style: { height: (20 + 80 * ((n(d.ctr) || 0) - lo) / span) + '%' }, tip: (d.date || '') + ' · CTR ' + (n(d.ctr) == null ? '—' : n(d.ctr).toFixed(2) + '%') }));
+    const lines = [];
+    const add = (word, arr, fields, max) => arr.forEach((t, i) => { if (String(t || '').trim()) lines.push({ k: word + (arr.filter(x => String(x || '').trim()).length > 1 ? ' ' + (i + 1) : ''), t: String(t).trim(), note: fields[i].label, bad: (fields[i].state === 'over' || fields[i].state === 'dup') ? '1' : undefined }); });
+    if (c.key === 'meta') {
+      add('Primary text', c.copy.bodies, c.check.bodies); add('Headline', c.copy.heads, c.check.heads); add('Description', c.copy.descs, c.check.descs);
+      if (c.copy.link.trim()) lines.push({ k: 'Destination', t: c.copy.link.trim(), note: c.check.urlOk ? 'https' : 'must start with https://', bad: c.check.urlOk ? undefined : '1' });
+      lines.push({ k: 'Button', t: c.check.ctaLab, note: '' });
+    } else {
+      lines.push({ k: 'Business name', t: c.copy.biz, note: c.check.biz.label, bad: c.check.biz.state === 'ok' ? undefined : '1' });
+      add('Headline', c.copy.heads, c.check.heads); add('Description', c.copy.descs, c.check.descs);
+    }
+    const anaNote = c.key === 'yt'
+      ? 'YouTube Demand Gen results live in Google Ads — the Ads kit reads Meta only. The copy limits below are what Google checks before the ad can run.'
+      : (!ins ? 'No analytics yet. Upload with tools/meta-ads (cas-to-meta.py), then run  python3 tools/meta-ads/meta-insights.py "<source folder>"  and press Refresh.'
+        : (!ad || ad.status === 'NOT_UPLOADED' ? 'Meta has no ad named “' + (ins.campaign || '') + ' – Variant ' + c.letter + '”. Upload it with cas-to-meta.py, then fetch insights again.'
+          : (ad.error ? 'Meta answered: ' + ad.error : '')));
+    return {
+      asDetOn: '1', asDet: c,
+      asDetTitle: c.ctx + ' · ' + c.label,
+      asDetStats: stats, asDetStatsOn: stats.length ? '1' : undefined,
+      asDetRange: ins ? (ins.mode === 'sample' ? 'Sample data from the Ads kit (mock mode) · ' : '') + (RANGE[ins.range] || ins.range || '') + ' · fetched ' + new Date(ins.fetched_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
+      asDetVerdict: ad && ad.verdict ? ad.verdict.label + ' — ' + ad.verdict.why : '', asDetVKey: ad && ad.verdict ? ad.verdict.key : undefined,
+      asDetVerdictOn: ad && ad.verdict ? '1' : undefined,
+      asDetBars: bars, asDetBarsOn: bars.length ? '1' : undefined,
+      asDetBench: ins && ins.benchmarks ? 'Kit benchmarks: CTR ≥ ' + ins.benchmarks.min_ctr + '% · frequency ≤ ' + ins.benchmarks.max_frequency + ' · CPC ≤ ' + cur + ' ' + ins.benchmarks.max_cpc : '',
+      asDetNote: anaNote, asDetNoteOn: anaNote ? '1' : undefined,
+      asDetLimitsOn: c.key === 'yt' ? '1' : undefined,
+      asDetLines: lines, asDetLinesHead: c.key === 'yt' ? 'Accompanying copy' : 'Ad text',
+      asDetLimHint: c.key === 'yt' ? 'Headlines 40 · descriptions 90 · business name 25 · up to 5 of each, none repeated' : 'Primary text 125 shown (500 max) · headlines 40 · descriptions 30 · up to 5 of each',
+      asDetFiles: c.tiles.map(t => ({ label: t.label, meta: t.meta, open: t.open, url: t.url })),
+      asDetClose: () => { this._asDet = null; this.forceUpdate(); },
+      asDetStop: e => { if (e) e.stopPropagation(); }
+    };
   }
   asVals() {
     const open = !!this.state.adSetsOpen, f = window.providentFolder, a = this._as || {};
@@ -12768,7 +13083,8 @@ class Component extends DCLogic {
       asBigPrev: () => step(-1), asBigNext: () => step(1),
       asBigPrevOff: bi > 0 ? undefined : true, asBigNextOff: bi >= 0 && bi < list.length - 1 ? undefined : true,
       asBigStop: e => { if (e) e.stopPropagation(); },
-      asBigClose: () => { this._asBig = null; this.forceUpdate(); }
+      asBigClose: () => { this._asBig = null; this.forceUpdate(); },
+      ...this.asDetVals()
     };
   }
   goOther(file) {
@@ -12886,6 +13202,7 @@ class Component extends DCLogic {
       if (e.key !== 'Escape') return;
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
+      if (this._asDet) { this._asDet = null; this.forceUpdate(); return; }
       if (this.state.adSetsOpen) { this.asClose(); return; }
       this._closePops();
     };
