@@ -409,19 +409,10 @@ wider than the window. A small line under each image gives its pixel size and fi
   to see it large: the top line says where it sits (Local › Family › Variant A › Meta · Feed), and
   the arrows or **←** / **→** step through every image in the window in order. **Esc** closes it,
   and **Esc** again closes the window.
-- **Each variant is shown as an ad card, the way Meta's Ad Library shows ads**: its status, ad ID,
-  start date and placements on top, then a mock-up of the ad — the page name, the primary text,
-  the image, and the headline, link and button underneath — using the text from **Publish**.
-  Buttons under the mock-up switch between the formats (Feed / Story, or Landscape / Square …).
-- **See ad details** opens the mock-up large with the ad's **analytics** (impressions, reach,
-  frequency, clicks, CTR, CPC, amount spent, a day-by-day CTR trend and the Ads kit's verdict:
-  Winning, Bleeding, Fatigued or Running), every line of ad text against its limit, and the files.
-  Analytics come from Meta through the Ads kit: run
-  `python3 tools/meta-ads/meta-insights.py "<source folder>"` and press **Refresh**. Until the kit
-  has a token it writes **Sample data**, labelled as such.
-- **YouTube Demand Gen cards show the accompanying copy limits** right on the card — business name
-  (25), headlines (40) and descriptions (90), with what is over or repeated in red. Their results
-  live in Google Ads, so they carry no analytics here.
+- **See details** under each platform's images opens them beside the same text check the
+  **Publish** tab shows: *Meta ad text* (primary text, headlines, descriptions, destination,
+  button) for Meta, *YouTube Demand Gen text* (business name, headlines, descriptions) for YouTube.
+  The button carries the same badge — *Ready for Meta* / *Ready for Google*, or how many to fix.
 - Each variant card shows how many images it holds, and the main folder's heading stays in view
   while you scroll down through it.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.

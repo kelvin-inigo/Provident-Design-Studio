@@ -72,18 +72,6 @@ Notes:
   `child_attachments` spec); use the kit's `ad-upload` skill for it.
 - The Studio MCP server takes the same text: `studio_edit` op `meta_text`.
 
-## Analytics in CAS's Ad sets window
-
-```bash
-python3 tools/meta-ads/meta-insights.py "<source folder>"
-```
-
-Read-only. For every `<name>_Meta upload.json` under the folder it finds the Meta ads named
-`<name> – Variant X`, pulls the last 30 days (spend, impressions, reach, frequency, clicks, CTR,
-CPC) plus a 7-day daily CTR, applies the kit's winner / bleeder / fatigue rules from
-`kit/ad-config.json`, and writes `<name>_Meta insights.json` beside the manifest. In CAS: Ad sets →
-Refresh → **See ad details**. In mock mode it writes the kit's sample data, labelled Sample data.
-
 ## Updating the kit
 
 ```bash

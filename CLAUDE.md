@@ -14507,18 +14507,12 @@ pinned dark viewer with a breadcrumb (`t.ctx`), an `n of N` counter, Close, and 
 buttons plus ←/→ (`_asList` is every tile in scan order). Contrast over the overlay: 0 failures in
 both themes; no overflow at 390.
 
-**AD CARDS (2026-10-12, by request, modelled on Meta's Ad Library):** each Variant × platform is
-an `.as-ad` card built by `Component.asCard` — status / ID / start / placements / chips, "See ad
-details", then a light mock-up (pinned ink, like the platform draws it) from the project's own
-`.adstudio.json` state: `mtOf` for Meta (page, primary text clamped 5 lines, image, domain +
-headline + description + CTA), `ytOf` for YouTube (image, headline, business, CTA) plus
-`ytCheck` rows as **Accompanying copy limits** on the card. Format tabs mutate the card object.
-**Analytics:** `tools/meta-ads/meta-insights.py` (read-only, `meta ads ad list` + `meta ads
-insights get --ad-id`) writes `<name>_Meta insights.json` beside each `_Meta upload.json`, matched
-by ad NAME `<name> – Variant X` (cas-to-meta.py's naming) and carrying the kit's verdict from
-ad-config thresholds; in mock mode it writes the kit fixture as `mode: sample`. The scan reads it
-and `asDetVals` renders the details overlay (`.as-det`, z 2, under the lightbox; Esc closes it
-before the window). Contrast 0 failures both themes; fits 390.
+**SEE DETAILS (2026-10-12):** under each platform's images, `Component.asCard` adds a **See
+details** button carrying `mtCheck` / `ytCheck`'s badge; it opens `.as-det` (z 2, under the
+lightbox; Esc closes it first) with the image, format buttons and the Publish tab's own check list
+(`.yt-checks`), read from the saved `.adstudio.json`. An Ad-Library-style mock-up with Meta
+analytics was built first and REJECTED the same day ("not to that extent") — the images are plain
+exports with no link to a live ad, so neither the mock-up nor `meta-insights.py` exists.
 
 Verified on a stand-in tree: Local › Family (Meta A + B, YouTube A with Square and Landscape only),
 Local › Investor (Meta A), International › Family (YouTube Landscape only) — Local first, the two
