@@ -14502,3 +14502,29 @@ one state flag `adSetsOpen` — so nothing touches project state, undo or the en
 Verified on a stand-in tree: Local › Family (Meta A + B, YouTube A with Square and Landscape only),
 Local › Investor (Meta A), International › Family (YouTube Landscape only) — Local first, the two
 platforms merged under Variant A, missing YouTube sizes absent, no placeholders.
+
+# THE META PLATE'S 16:9 IS THE YT DEMAND GEN 1.91:1, AND THE SIZE ROWS ARE ICON BUTTONS
+
+By request (2026-10-12), four changes to `Provident Campaign Studio.dc.html`:
+
+- **`PXT.ls` is a 1.91:1 now** — 1920 × 1004.8, `out: [1200, 628]` — labelled **YT Demand Gen**
+  on the plate. The key stayed `ls`, so every Meta record (`wide`, `wideOv`, `bgSep.ls`,
+  `scaleBy.ls`, slot `adstudio-bg-<vi>-ls`) carries over and nothing migrates. `exportPath`
+  sends it to `YT Demand Gen/Variant X/<name>_Variant X_Landscape_1.91x1` — the YouTube name and
+  folder, so Ad sets finds it under YouTube — and it is left out of the `_Meta upload.json`
+  manifest. A saved 16:9 re-lays at the new height; nothing else moves (no buildOps line edited).
+- **Neither 1.91:1 (`ls`, `yl`) has a `col` any more.** The 800 text column crammed the copy into
+  the left of a 1920 canvas; it flows across the full width now, and the scrim is the 1:1's
+  vertical bands rather than a sideways wash. The banners keep their column (`BANNER_TK`).
+- **The splash's YouTube Demand Gen templates row is deleted**; the one row is "Pre loaded
+  templates" again. A YouTube project is made by switching Platform in All Variants Option.
+  `ytTplCards` / `cardMiniYt` are still computed and unread.
+- **Every size row is `.p-szh`** (section 31 of the sheet): name, ratio chip, and icon buttons
+  `.p-szb` — link (`link` / `link_off`), picture (`image`), eye (`visibility` /
+  `visibility_off`), Material Rounded wght300 inline SVG. Two glyphs per toggle button, swapped
+  by `[data-on]` in CSS, because a `d="{{ }}"` cannot be interpolated. The eye never fills when
+  on; a hidden row carries `data-off` and dims. Every sentence that sat beside or under a canvas
+  is the button's `title` now (`*LinkTip`, `*Tip`, built in one spread inside `variantViews`);
+  captions are just the pixel size and the copy chip. The old `*Label` / `wideBtnStyle` keys
+  are unread. Verified: export at 1200 × 628 into `YT Demand Gen/`, each button toggles its
+  record, 0 contrast failures in both themes, top bar fits at 1440.

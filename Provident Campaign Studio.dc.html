@@ -3595,6 +3595,25 @@ select.p-in{padding-right:34px}
   .as-col{width:100%}
 }
 @media (prefers-reduced-motion:reduce){.as-ov{animation:none}}
+
+/* ══ 31. THE SIZE ROWS (2026-10-12) ═══════════════════════════════════════════════
+   One line per canvas: its name, a quiet ratio chip, and icon buttons at the right —
+   link (keeps its own layout), photo (its own picture), eye (shown / hidden). The
+   sentences that used to sit beside and under each canvas are the buttons' tooltips. */
+.p-szh{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:6px}
+.p-szh > b{font-weight:600;font-size:13px;color:var(--ps-ink)}
+.p-szh > i{font-style:normal;font-weight:500;font-size:11.5px;color:var(--ps-ink-2);background:var(--ps-fill);padding:2px 9px;border-radius:var(--ps-pill);font-variant-numeric:tabular-nums}
+.p-szh[data-off] > b,.p-szh[data-off] > i{color:var(--ps-dim)}
+.p-szx{margin-left:auto;display:flex;align-items:center;gap:2px}
+.p-szb{width:32px;height:32px;padding:0;border:1px solid transparent;border-radius:var(--ps-pill);background:transparent;color:var(--ps-ink-2);display:grid;place-items:center;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.p-szb:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-szb[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.p-szb-eye[data-on]{background:transparent;color:var(--ps-ink-2)}
+.p-szb-eye[data-on]:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-szb svg{width:18px;height:18px;fill:currentColor;display:block}
+.p-szb .i-on{display:none}
+.p-szb[data-on] .i-on{display:block}
+.p-szb[data-on] .i-off{display:none}
 </style>
 </helmet>
 
@@ -3645,7 +3664,7 @@ select.p-in{padding-right:34px}
       </sc-if>
 
       <sc-if value="{{ shShowTpl }}" hint-placeholder-val="{{ true }}">
-        <div class="p-sec-l" style="padding-left:0">Meta ads</div>
+        <div class="p-sec-l" style="padding-left:0">Pre loaded templates</div>
         <div class="p-grid2" style="margin-bottom:26px">
           <sc-for list="{{ tplCards }}" as="tc" hint-placeholder-count="4">
             <button onClick="{{ tc.pick }}" class="p-c">
@@ -3653,20 +3672,6 @@ select.p-in{padding-right:34px}
                    No hover reel: a Campaign template is one design across three canvases,
                    not a carousel — see `tplCardView`. -->
               <span class="p-c-p" style="{{ cardMini }}">
-                <sc-if value="{{ tc.ready }}" hint-placeholder-val="{{ true }}">
-                  <span class="p-c-shot" style="{{ tc.master }}"></span>
-                </sc-if>
-              </span>
-              <span class="p-c-n">{{ tc.name }}</span>
-              <span class="p-c-m">{{ tc.desc }}</span>
-            </button>
-          </sc-for>
-        </div>
-        <div class="p-sec-l" style="padding-left:0">YouTube Demand Gen</div>
-        <div class="p-grid2" style="margin-bottom:26px">
-          <sc-for list="{{ ytTplCards }}" as="tc" hint-placeholder-count="4">
-            <button onClick="{{ tc.pick }}" class="p-c">
-              <span class="p-c-p" style="{{ cardMiniYt }}">
                 <sc-if value="{{ tc.ready }}" hint-placeholder-val="{{ true }}">
                   <span class="p-c-shot" style="{{ tc.master }}"></span>
                 </sc-if>
@@ -4307,7 +4312,7 @@ select.p-in{padding-right:34px}
         <div class="p-dock-b">
   <div class="p-cap p-shd" data-state="{{ secVarsState }}"><span class="p-shd-t">{{ allVarsTitle }} <span class="tip tip-dark" data-tip="{{ allVarsTip }}" style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secVarsNote }}</span></div>
   <div class="p-grp">
-    <span class="p-lab">Platform <span class="tip tip-dark" data-tip="Which platform this project is for. Meta ads: 1:1 feed and 9:16 story at 2x, with an opt-in 16:9 and Eventbrite banners. YouTube Demand Gen: every variant carries the four ratios Google mixes into its asset pool — 1.91:1 landscape, 1:1 square, 4:5 portrait and 9:16 for Shorts — exported at Google's recommended sizes in JPEG or PNG, with a 1:1 business logo and the headline and description text. Switching keeps the design." style="{{ infoStyleDark }}">i</span></span>
+    <span class="p-lab">Platform <span class="tip tip-dark" data-tip="Which platform this project is for. Meta ads: 1:1 feed and 9:16 story at 2x, with an opt-in YT Demand Gen 1.91:1 and Eventbrite banners. YouTube Demand Gen: every variant carries the four ratios Google mixes into its asset pool — 1.91:1 landscape, 1:1 square, 4:5 portrait and 9:16 for Shorts — exported at Google's recommended sizes in JPEG or PNG, with a 1:1 business logo and the headline and description text. Switching keeps the design." style="{{ infoStyleDark }}">i</span></span>
     <div class="p-tabs"><button onClick="{{ platMeta }}" data-on="{{ platMetaOn }}">Meta ads</button><button onClick="{{ platYt }}" data-on="{{ platYtOn }}">YouTube Demand Gen</button></div>
     <span class="p-hint">{{ platHint }}</span>
   </div>
@@ -4463,10 +4468,7 @@ select.p-in{padding-right:34px}
         <button onClick="{{ v.remove }}" style="{{ v.removeStyle }}">Remove</button>
       </div>
       <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-plate-f">
-        <span class="p-meta">Landscape 1.91:1 {{ v.ylState }}</span>
-        <button onClick="{{ v.toggleYlOv }}" style="{{ v.wideBtnStyle }}">{{ v.ylOvLabel }}</button><button onClick="{{ v.toggleBgYl }}" style="{{ v.wideBtnStyle }}">{{ v.bgYlLabel }}</button>
-      </div>
+      <div class="p-szh"><b>Landscape</b><i>1.91:1</i><span class="p-szx"><button class="p-szb" data-on="{{ v.ylOvOn }}" onClick="{{ v.toggleYlOv }}" title="{{ v.ylLinkTip }}" aria-label="{{ v.ylLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><button class="p-szb" data-on="{{ v.bgYlOn }}" onClick="{{ v.toggleBgYl }}" title="{{ v.bgYlTip }}" aria-label="{{ v.bgYlTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></span></div>
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.yl.cwPx }}" style="{{ v.yl.canvasStyle }}">
         <div class="canvasbg" style="{{ v.yl.bgWrapStyle }}"><sc-for list="{{ v.bgYlSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 1.91:1" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.yl.scrimStyle }}"></div>
@@ -4499,11 +4501,8 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.yl.fgStyle }}"><div style="{{ v.yl.fgTintStyle }}"></div></div></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.yl.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
-      <span class="p-meta">1200 × 628 · YouTube landscape — text column left, image window right · <span style="{{ v.yl.coverStyle }}" class="tip" data-tip="{{ v.yl.coverTip }}">{{ v.yl.coverLabel }}</span></span>
-      <div class="p-plate-f">
-        <span class="p-meta">Square 1:1 {{ v.sqState }}</span>
-        <button onClick="{{ v.toggleYtSq }}" style="{{ v.wideBtnStyle }}">{{ v.ytSqBtn }}</button>
-      </div>
+      <span class="p-meta">1200 × 628 · <span style="{{ v.yl.coverStyle }}" class="tip" data-tip="{{ v.yl.coverTip }}">{{ v.yl.coverLabel }}</span></span>
+      <div class="p-szh" data-off="{{ v.ytSqOff }}"><b>Square</b><i>1:1</i><span class="p-szx"><button class="p-szb p-szb-eye" data-on="{{ v.ytSqOn }}" onClick="{{ v.toggleYtSq }}" title="{{ v.ytSqTip }}" aria-label="{{ v.ytSqTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       </sc-if>
       <sc-if value="{{ v.sqOn }}" hint-placeholder-val="{{ true }}">
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.sq.cwPx }}" style="{{ v.sq.canvasStyle }}">
@@ -4541,11 +4540,7 @@ select.p-in{padding-right:34px}
       <span class="p-meta">{{ v.sqMeta }} · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
       </sc-if>
       <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-plate-f">
-        <span class="p-meta">Portrait 4:5 {{ v.ypState }}</span>
-        <button onClick="{{ v.toggleYtYp }}" style="{{ v.wideBtnStyle }}">{{ v.ytYpBtn }}</button>
-        <sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleYpOv }}" style="{{ v.wideBtnStyle }}">{{ v.ypOvLabel }}</button><button onClick="{{ v.toggleBgYp }}" style="{{ v.wideBtnStyle }}">{{ v.bgYpLabel }}</button></sc-if>
-      </div>
+      <div class="p-szh" data-off="{{ v.ytYpOff }}"><b>Portrait</b><i>4:5</i><span class="p-szx"><sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.ypOvOn }}" onClick="{{ v.toggleYpOv }}" title="{{ v.ypLinkTip }}" aria-label="{{ v.ypLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><button class="p-szb" data-on="{{ v.bgYpOn }}" onClick="{{ v.toggleBgYp }}" title="{{ v.bgYpTip }}" aria-label="{{ v.bgYpTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.ytYpOn }}" onClick="{{ v.toggleYtYp }}" title="{{ v.ytYpTip }}" aria-label="{{ v.ytYpTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.yp.cwPx }}" style="{{ v.yp.canvasStyle }}">
         <div class="canvasbg" style="{{ v.yp.bgWrapStyle }}"><sc-for list="{{ v.bgYpSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 4:5" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
@@ -4579,22 +4574,14 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.yp.fgStyle }}"><div style="{{ v.yp.fgTintStyle }}"></div></div></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.yp.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
-      <span class="p-meta">960 × 1200 · YouTube portrait · <span style="{{ v.yp.coverStyle }}" class="tip" data-tip="{{ v.yp.coverTip }}">{{ v.yp.coverLabel }}</span></span>
+      <span class="p-meta">960 × 1200 · <span style="{{ v.yp.coverStyle }}" class="tip" data-tip="{{ v.yp.coverTip }}">{{ v.yp.coverLabel }}</span></span>
       </sc-if>
       </sc-if>
       <sc-if value="{{ v.stHidYt }}" hint-placeholder-val="{{ false }}">
-      <div class="p-plate-f">
-        <span class="p-meta">{{ v.stHead }}</span>
-        <button onClick="{{ v.toggleYtSt }}" style="{{ v.wideBtnStyle }}">{{ v.ytStBtn }}</button>
-      </div>
+      <div class="p-szh" data-off="{{ v.ytStOff }}"><b>{{ v.stHead }}</b><i>9:16</i><span class="p-szx"><button class="p-szb p-szb-eye" data-on="{{ v.ytStOn }}" onClick="{{ v.toggleYtSt }}" title="{{ v.ytStTip }}" aria-label="{{ v.ytStTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       </sc-if>
       <sc-if value="{{ v.stOn }}" hint-placeholder-val="{{ true }}">
-      <div class="p-plate-f">
-        <span class="p-meta">{{ v.stHead }} {{ v.storyState }}</span>
-        <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleYtSt }}" style="{{ v.wideBtnStyle }}">{{ v.ytStBtn }}</button></sc-if>
-        <button onClick="{{ v.toggleStory }}" style="{{ v.storyBtnStyle }}">{{ v.storyBtnLabel }}</button>
-        <button onClick="{{ v.toggleBgSt }}" style="{{ v.storyBtnStyle }}">{{ v.bgStLabel }}</button>
-      </div>
+      <div class="p-szh"><b>{{ v.stHead }}</b><i>9:16</i><span class="p-szx"><button class="p-szb" data-on="{{ v.stOvOn }}" onClick="{{ v.toggleStory }}" title="{{ v.stLinkTip }}" aria-label="{{ v.stLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><button class="p-szb" data-on="{{ v.bgStOn }}" onClick="{{ v.toggleBgSt }}" title="{{ v.bgStTip }}" aria-label="{{ v.bgStTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button><sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-eye" data-on="{{ v.ytStOn }}" onClick="{{ v.toggleYtSt }}" title="{{ v.ytStTip }}" aria-label="{{ v.ytStTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></sc-if></span></div>
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.st.cwPx }}" style="{{ v.st.canvasStyle }}">
         <div class="canvasbg" style="{{ v.st.bgWrapStyle }}"><sc-for list="{{ v.bgStSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 9:16" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.st.scrimStyle }}"></div>
@@ -4630,14 +4617,10 @@ select.p-in{padding-right:34px}
       <span class="p-meta">{{ v.stMeta }} · <span style="{{ v.st.coverStyle }}" class="tip" data-tip="{{ v.st.coverTip }}">{{ v.st.coverLabel }}</span></span>
       </sc-if>
       <sc-if value="{{ v.metaOn }}" hint-placeholder-val="{{ true }}">
-      <div class="p-plate-f">
-        <span class="p-meta">16:9 wide {{ v.wideState }}</span>
-        <button onClick="{{ v.toggleWide }}" style="{{ v.wideBtnStyle }}">{{ v.wideBtnLabel }}</button>
-        <sc-if value="{{ v.wideOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleWideOv }}" style="{{ v.wideBtnStyle }}">{{ v.wideOvLabel }}</button><button onClick="{{ v.toggleBgLs }}" style="{{ v.wideBtnStyle }}">{{ v.bgLsLabel }}</button></sc-if>
-      </div>
+      <div class="p-szh" data-off="{{ v.wideOff }}"><b>YT Demand Gen</b><i>1.91:1</i><span class="p-szx"><sc-if value="{{ v.wideOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.lsOvOn }}" onClick="{{ v.toggleWideOv }}" title="{{ v.lsLinkTip }}" aria-label="{{ v.lsLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><button class="p-szb" data-on="{{ v.bgLsOn }}" onClick="{{ v.toggleBgLs }}" title="{{ v.bgLsTip }}" aria-label="{{ v.bgLsTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.wideShowOn }}" onClick="{{ v.toggleWide }}" title="{{ v.wideTip }}" aria-label="{{ v.wideTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.wideOn }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.ls.cwPx }}" style="{{ v.ls.canvasStyle }}">
-        <div class="canvasbg" style="{{ v.ls.bgWrapStyle }}"><sc-for list="{{ v.bgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 16:9" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
+        <div class="canvasbg" style="{{ v.ls.bgWrapStyle }}"><sc-for list="{{ v.bgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 1.91:1" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.ls.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.ls.guideStyle }}"></div></sc-if>
         <div style="{{ v.ls.frameStyle }}">
@@ -4668,13 +4651,9 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.ls.fgStyle }}"><div style="{{ v.ls.fgTintStyle }}"></div></div></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.ls.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
       </div>
-      <span class="p-meta">1920 × 1080 · wide — text column left, image window right · <span style="{{ v.ls.coverStyle }}" class="tip" data-tip="{{ v.ls.coverTip }}">{{ v.ls.coverLabel }}</span></span>
+      <span class="p-meta">1200 × 628 · <span style="{{ v.ls.coverStyle }}" class="tip" data-tip="{{ v.ls.coverTip }}">{{ v.ls.coverLabel }}</span></span>
       </sc-if>
-      <div class="p-plate-f">
-        <span class="p-meta">Banner 2:1 {{ v.banState }}</span>
-        <button onClick="{{ v.toggleBanner }}" style="{{ v.wideBtnStyle }}">{{ v.banBtnLabel }}</button>
-        <sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ v.toggleBanOv }}" style="{{ v.wideBtnStyle }}">{{ v.banOvLabel }}</button><button onClick="{{ v.toggleBgBn }}" style="{{ v.wideBtnStyle }}">{{ v.bgBnLabel }}</button></sc-if>
-      </div>
+      <div class="p-szh" data-off="{{ v.banOff }}"><b>Eventbrite banner</b><i>2:1</i><span class="p-szx"><sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.banOvOn }}" onClick="{{ v.toggleBanOv }}" title="{{ v.banLinkTip }}" aria-label="{{ v.banLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><button class="p-szb" data-on="{{ v.bgBnOn }}" onClick="{{ v.toggleBgBn }}" title="{{ v.bgBnTip }}" aria-label="{{ v.bgBnTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.banShowOn }}" onClick="{{ v.toggleBanner }}" title="{{ v.banTip }}" aria-label="{{ v.banTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.bn.cwPx }}" style="{{ v.bn.canvasStyle }}">
         <div class="canvasbg" style="{{ v.bn.bgWrapStyle }}"><sc-for list="{{ v.bgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for the banner" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
@@ -4707,7 +4686,7 @@ select.p-in{padding-right:34px}
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bn.fgStyle }}"><div style="{{ v.bn.fgTintStyle }}"></div></div></div></sc-if>
       </div>
-      <span class="p-meta">1880 × 940 · Eventbrite banner, exported at exactly this size · <span style="{{ v.bn.coverStyle }}" class="tip" data-tip="{{ v.bn.coverTip }}">{{ v.bn.coverLabel }}</span></span>
+      <span class="p-meta">1880 × 940 · <span style="{{ v.bn.coverStyle }}" class="tip" data-tip="{{ v.bn.coverTip }}">{{ v.bn.coverLabel }}</span></span>
       <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.bs.cwPx }}" style="{{ v.bs.canvasStyle }}">
         <div class="canvasbg" style="{{ v.bs.bgWrapStyle }}"><sc-for list="{{ v.bgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for the banner" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.bs.scrimStyle }}"></div>
@@ -4739,7 +4718,7 @@ select.p-in{padding-right:34px}
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bs.fgStyle }}"><div style="{{ v.bs.fgTintStyle }}"></div></div></div></sc-if>
       </div>
-      <span class="p-meta">758 × 380 · the same banner at the email size — scales on its own · <span style="{{ v.bs.coverStyle }}" class="tip" data-tip="{{ v.bs.coverTip }}">{{ v.bs.coverLabel }}</span></span>
+      <span class="p-meta">758 × 380 · email size · <span style="{{ v.bs.coverStyle }}" class="tip" data-tip="{{ v.bs.coverTip }}">{{ v.bs.coverLabel }}</span></span>
       </sc-if>
       </sc-if>
     </div>
@@ -4961,9 +4940,9 @@ select.p-in{padding-right:34px}
           </div>
         </sc-if>
         <sc-if value="{{ bgSepLsOn }}" hint-placeholder-val="{{ false }}">
-          <span class="p-lab">16:9 own photo <span class="tip" data-tip="Used by the 16:9 canvas instead of the shared picture." style="{{ infoStyle }}">i</span></span>
+          <span class="p-lab">1.91:1 own photo <span class="tip" data-tip="Used by the YT Demand Gen 1.91:1 instead of the shared picture." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
-            <div class="p-drop" data-done="{{ bgLsDoneOn }}"><sc-for list="{{ activeBgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 16:9 picture" style="{{ bgSlotLsStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop" data-done="{{ bgLsDoneOn }}"><sc-for list="{{ activeBgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 1.91:1 picture" style="{{ bgSlotLsStyle }}"></image-slot></sc-for></div>
             <div class="p-drop-t"><s>{{ bgLsDropLabel }}</s><sc-if value="{{ bgLsDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgLsPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgLsRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
@@ -5064,7 +5043,7 @@ select.p-in{padding-right:34px}
     </div>
 
     <div class="p-grp">
-      <span class="p-lab">Scaling <span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins and the 16:9 and banner text columns stay fixed, so the brand grid holds. Each size scales on its own — the two banners too, by file width — and the background photo is untouched." style="{{ infoStyle }}">i</span></span>
+      <span class="p-lab">Scaling <span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins and the banner text column stay fixed, so the brand grid holds. Each size scales on its own — the two banners too, by file width — and the background photo is untouched." style="{{ infoStyle }}">i</span></span>
       <sc-for list="{{ scaleRows }}" as="sc" hint-placeholder-count="2">
         <div class="p-scale">
           <span class="p-scale-n">{{ sc.label }}</span>
@@ -5909,7 +5888,12 @@ class CampaignStudio extends StudioBase {
     // The 16:9 was about 0.9x the 1:1 in every role, so each size sat between two rungs of the
     // ladder and the eyebrow, 22px, was under the 24px floor. It takes the 1:1's own steps now —
     // the banner's too (BANNER_TK), the other wide canvas — and the banner's 800 column.
-    ls: { W: 1920, H: 1080, pad: [80, 120, 80, 120], col: 800, gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
+    // THE META PLATE'S WIDE CANVAS IS THE YOUTUBE DEMAND GEN 1.91:1 (2026-10-12, by request):
+    // it was a 1920 x 1080 16:9. Same key, so every Meta record (`wide`, `wideOv`, `bgSep.ls`,
+    // `scaleBy.ls`) carries over; it exports at Google's 1200 x 628 into `YT Demand Gen/`
+    // (`exportPath`). Neither 1.91:1 has a text column any more — the copy flows across the
+    // full width rather than cramming into an 800 column on the left.
+    ls: { W: 1920, H: 1920 * 628 / 1200, out: [1200, 628], pad: [80, 120, 80, 120], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
     bn: Object.assign({ W: 1880, H: 940, out: [1880, 940] }, CampaignStudio.BANNER_TK),
     bs: Object.assign({ W: 1880, H: 1880 * 380 / 758, out: [758, 380] }, CampaignStudio.BANNER_TK),
     // YOUTUBE DEMAND GEN's two canvases Meta does not have. Each is laid out at the width of
@@ -5917,7 +5901,7 @@ class CampaignStudio extends StudioBase {
     // banner's `out` mechanism. The 1.91:1 is the 16:9's own tokens and 800 column at 1920
     // wide (1920 x 1004.8, exported at .625 = exactly 1200 x 628); the 4:5 is the 1:1's own
     // tokens at 1080 wide (1080 x 1350, exported at 960 / 1080 = 960 x 1200).
-    yl: { W: 1920, H: 1920 * 628 / 1200, out: [1200, 628], pad: [80, 120, 80, 120], col: 800, gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
+    yl: { W: 1920, H: 1920 * 628 / 1200, out: [1200, 628], pad: [80, 120, 80, 120], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
     yp: { W: 1080, H: 1350, out: [960, 1200], pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 }
   };
   // ── PLATFORM: Meta ads or YouTube Demand Gen ─────────────────────────────────────────
@@ -6106,10 +6090,10 @@ class CampaignStudio extends StudioBase {
   // (1880 x 940) and `EventBrite_Banner_Small` (758 x 380), spelled as asked — and lands in a
   // folder per variant, the banners in their own folder inside it (`exportPath`). The 16:9
   // was not named in the request and keeps its ratio, loose beside the feed and the Story.
-  static EXPORT_NAME = { sq: 'feed', st: 'Story', ls: '16x9', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
+  static EXPORT_NAME = { sq: 'feed', st: 'Story', ls: 'Landscape_1.91x1', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
   static BANNER_DIR = 'Eventbrite Banners';
   static isBanner(sizeKey) { return sizeKey === 'bn' || sizeKey === 'bs'; }
-  static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '16:9', bn: 'Banner 1880', bs: 'Banner 758', yl: '1.91:1', yp: '4:5' };
+  static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '1.91:1', bn: 'Banner 1880', bs: 'Banner 758', yl: '1.91:1', yp: '4:5' };
   // The size whose OWN PHOTO a canvas reads. Both banners are one design, so the 758 reads
   // the 1880's — one upload, one crop, cover-fitted edge to edge on each.
   static photoSize(sizeKey) { return sizeKey === 'bs' ? 'bn' : sizeKey; }
@@ -6890,7 +6874,7 @@ class CampaignStudio extends StudioBase {
     page(a => {
       header(a, 'Grid & geometry', 'Canvas, margins and rhythm', 4);
       let y = M + 66;
-      const names = { sq: '1:1 square', st: '9:16 story / reel', ls: '16:9 wide', bn: 'Banner 2:1', bs: 'Banner 2:1, email' };
+      const names = { sq: '1:1 square', st: '9:16 story / reel', ls: '1.91:1 YT Demand Gen', bn: 'Banner 2:1', bs: 'Banner 2:1, email' };
       const keys = Object.keys(CampaignStudio.PXT), gap = 26;
       // fitted to the band, never to a fixed height: three canvases are 3.34
       // aspect-widths together and at a fixed height they run past the margin
@@ -9213,8 +9197,10 @@ class CampaignStudio extends StudioBase {
   exportPath(name, vi, sizeKey, ext) {
     const dir = this.exportDir(vi), who = CampaignStudio.isCarousel(this.state) ? this.fileLabel(vi) : dir;
     // a YouTube file is named for its RATIO, the way Google's asset library lists it
-    const job = (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_NAME : CampaignStudio.EXPORT_NAME)[sizeKey] || sizeKey;
-    return (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_DIR + '/' : '') + dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
+    // and the Meta plate's 1.91:1 (`ls`) is a YouTube Demand Gen file too, so it goes beside them
+    const ytFile = CampaignStudio.isYT(this.state) || sizeKey === 'ls';
+    const job = (sizeKey === 'ls' ? CampaignStudio.YT_NAME.yl : (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_NAME : CampaignStudio.EXPORT_NAME)[sizeKey]) || sizeKey;
+    return (ytFile ? CampaignStudio.YT_DIR + '/' : '') + dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
       name + '_' + who + '_' + job + '.' + ext;
   }
   async doExport(kind) {
@@ -9256,7 +9242,7 @@ class CampaignStudio extends StudioBase {
             if (yt && r.data.length > CampaignStudio.YT_LIM.mb * 1048576) big.push(fn.split('/').pop());
             files.push({ name: fn, data: r.data });
             const k = CampaignStudio.exportScale(sizeKey, state);
-            (mtImgs[vi] = mtImgs[vi] || []).push({ file: fn, size: sizeKey, placement: CampaignStudio.EXPORT_NAME[sizeKey] || sizeKey,
+            if (sizeKey !== 'ls') (mtImgs[vi] = mtImgs[vi] || []).push({ file: fn, size: sizeKey, placement: CampaignStudio.EXPORT_NAME[sizeKey] || sizeKey,
               w: Math.round(built.W * k), h: Math.round(built.H * k), bytes: r.data.length });
           } else {
             files.push({ name: this.exportPath(name, vi, sizeKey, 'svg'), data: new TextEncoder().encode(this.renderOpsToSvg(built)) });
@@ -9305,7 +9291,7 @@ class CampaignStudio extends StudioBase {
     (this.state.variants || []).forEach((v, vi) => {
       put('adstudio-bg-' + vi, 'background-' + lab(vi));
       put('adstudio-bg-' + vi + '-st', 'background-' + lab(vi) + '-9x16');
-      put('adstudio-bg-' + vi + '-ls', 'background-' + lab(vi) + '-16x9');
+      put('adstudio-bg-' + vi + '-ls', 'background-' + lab(vi) + '-ytdg-1.91x1');
       put('adstudio-bg-' + vi + '-bn', 'background-' + lab(vi) + '-banner');
       put('adstudio-bg-' + vi + '-yl', 'background-' + lab(vi) + '-1.91x1');
       put('adstudio-bg-' + vi + '-yp', 'background-' + lab(vi) + '-4x5');
@@ -9352,7 +9338,7 @@ class CampaignStudio extends StudioBase {
     const files = [];
     // The banner's guide is its 1880 canvas: the 758 file is the same layout at its own
     // aspect (BANNER_TK), so one grid serves both, and the title says so.
-    for (const [sizeKey, suffix, title] of [['sq', '1x1', 'Square feed'], ['st', '9x16', 'Story / reel'], ['ls', '16x9', 'Wide'], ['bn', 'banner-2x1', 'Eventbrite banner (758 × 380 is this layout)']]) {
+    for (const [sizeKey, suffix, title] of [['sq', '1x1', 'Square feed'], ['st', '9x16', 'Story / reel'], ['ls', '1.91x1', 'YT Demand Gen 1.91:1'], ['bn', 'banner-2x1', 'Eventbrite banner (758 × 380 is this layout)']]) {
       const gv = this.state.variants[this.state.activeVi] || this.state.variants[0];
       const tk = CampaignStudio.tkFor(sizeKey, gv), W = tk.W, H = tk.H;
       const [pT, pR, pB, pL] = tk.pad.map(Math.round);
@@ -11438,6 +11424,28 @@ class CampaignStudio extends StudioBase {
       toggleWide: e => { e.stopPropagation(); this.upd(x => { x.variants[vi].wide = !x.variants[vi].wide; return x; }); },
       wideBtnLabel: v.wide ? 'Hide 16:9' : 'Show 16:9',
       wideBtnStyle: { background: 'transparent', color: 'var(--ps-link)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '3px 12px', fontWeight: 500, fontSize: '11px', cursor: 'pointer' },
+      // ── THE SIZE ROWS' ICON BUTTONS (2026-10-12): link = this canvas keeps its own layout,
+      // photo = its own picture, eye = shown. Every flag is '1' / undefined, never a boolean,
+      // and every sentence that used to sit beside the canvas is the button's tooltip now.
+      ...(() => {
+        const bs = v.bgSep || {}, sqName = CampaignStudio.isYT(s) && !ytSh.sq ? 'the 1.91:1' : 'the 1:1';
+        const link = (ov, nm, master) => master ? 'Master layout — the other canvases mirror it' : ov ? nm + ' keeps its own layout — click to mirror ' + sqName + ' again' : nm + ' mirrors ' + sqName + ' — click to edit its layout separately';
+        const photo = (own, nm) => own ? nm + ' uses its own photo — click to share the main one' : nm + ' shares the main photo — click to give it its own';
+        const eye = (on, nm) => on ? 'Hide ' + nm + ' — it is not exported while hidden' : 'Show ' + nm + ' — it is exported while shown';
+        const f = x => x ? '1' : undefined;
+        return {
+          ylOvOn: f(v.ylOv), bgYlOn: f(bs.yl), ylLinkTip: link(v.ylOv, 'The 1.91:1', !ytSh.sq && !v.ylOv), bgYlTip: photo(bs.yl, 'The 1.91:1'),
+          ypOvOn: f(v.ypOv), bgYpOn: f(bs.yp), ypLinkTip: link(v.ypOv, 'The 4:5'), bgYpTip: photo(bs.yp, 'The 4:5'),
+          stOvOn: f(v.story), bgStOn: f(bs.st), stLinkTip: link(v.story, 'The 9:16'), bgStTip: photo(bs.st, 'The 9:16'),
+          lsOvOn: f(v.wideOv), bgLsOn: f(bs.ls), lsLinkTip: link(v.wideOv, 'The 1.91:1'), bgLsTip: photo(bs.ls, 'The 1.91:1'),
+          banOvOn: f(v.banOv), bgBnOn: f(bs.bn), banLinkTip: link(v.banOv, 'The banner'), bgBnTip: photo(bs.bn, 'The banner'),
+          ytSqOn: f(ytSh.sq), ytSqOff: f(!ytSh.sq), ytSqTip: eye(ytSh.sq, 'the 1:1'),
+          ytYpOn: f(ytSh.yp), ytYpOff: f(!ytSh.yp), ytYpTip: eye(ytSh.yp, 'the 4:5'),
+          ytStOn: f(ytSh.st), ytStOff: f(!ytSh.st), ytStTip: eye(ytSh.st, 'the 9:16'),
+          wideShowOn: f(v.wide), wideOff: f(!v.wide), wideTip: eye(v.wide, 'the YT Demand Gen 1.91:1 (1200 × 628)'),
+          banShowOn: f(v.banner), banOff: f(!v.banner), banTip: eye(v.banner, 'the Eventbrite banners (1880 × 940 and 758 × 380)')
+        };
+      })(),
       ls: mkCanvas(vi, 'ls'),
       // THE EVENTBRITE BANNER — per variant, opt-in, the 16:9's own three controls. Both
       // banner canvases read ONE layout record (`banOv`) and ONE photo (`bgSep.bn`), and
@@ -11465,9 +11473,9 @@ class CampaignStudio extends StudioBase {
       // ── THE PLATFORM decides which canvases a plate carries (see isYT) ──
       ytOn: CampaignStudio.isYT(s),
       metaOn: !CampaignStudio.isYT(s),
-      sqMeta: CampaignStudio.isYT(s) ? '1200 × 1200 · square · master layout' : '1080 × 1080 · master layout',
-      stHead: CampaignStudio.isYT(s) ? 'Vertical 9:16 · Shorts' : '9:16 story',
-      stMeta: CampaignStudio.isYT(s) ? '1080 × 1920 · YouTube Shorts' : '1080 × 1920 · story',
+      sqMeta: CampaignStudio.isYT(s) ? '1200 × 1200' : '1080 × 1080',
+      stHead: CampaignStudio.isYT(s) ? 'Shorts' : 'Story',
+      stMeta: '1080 × 1920',
       // the YouTube landscape and portrait: always shown, the 16:9's own two controls
       // with the 1:1 hidden the 1.91:1 IS the master layout — it edits the variant's own record
       ylState: v.ylOv ? '· detached' : (ytSh.sq ? '· mirrors 1:1' : '· master layout'),
@@ -11771,7 +11779,7 @@ class CampaignStudio extends StudioBase {
       platYt: () => this.upd(x => { if (x.platform === 'ytdg') return x; x.platform = 'ytdg'; x.adMode = 'single'; x.storyOn = true; x.yt = CampaignStudio.ytOf(x); if (x.sel && ['ls', 'bn', 'bs'].indexOf(x.sel.size) >= 0) x.sel = null; return x; }),
       platHint: yt
         ? 'Each variant starts with the 1.91:1; Show 1:1, 4:5 or 9:16 on its plate to add more. All at Google\u2019s sizes, plus a 1:1 logo and the text assets. JPEG or PNG, 5 MB each.'
-        : '1:1 feed and 9:16 story at 2x, with an opt-in 16:9 and Eventbrite banners on each variant.',
+        : '1:1 feed and 9:16 story at 2x, with an opt-in YT Demand Gen 1.91:1 and Eventbrite banners on each variant.',
       ytLogoStyle: ytLogo,
       ytLogoNavyOn: ytY.logoBg === 'navy' ? '1' : undefined,
       ytLogoWhiteOn: ytY.logoBg === 'white' ? '1' : undefined,
@@ -11822,7 +11830,7 @@ class CampaignStudio extends StudioBase {
         ? 'Everything here applies to every variant at once. Up to three variants share one set of design components; each is a set of four images for the YouTube Demand Gen asset pool. Export writes a folder per variant — Variant A, B and C, each with the 1.91:1, 1:1, 4:5 and 9:16 — plus the 1:1 business logo and the text assets. Each export overwrites the last.'
         : CampaignStudio.isCarousel(s)
         ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed and _Story for every page, the banners in Eventbrite Banners inside it — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
-        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each with Name_Variant A_feed and _Story and the banners in Eventbrite Banners — or a single PDF. Each export overwrites the last. Layout guides download three PNG overlays — 1:1, 9:16 and 16:9 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
+        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each with Name_Variant A_feed and _Story and the banners in Eventbrite Banners — or a single PDF. Each export overwrites the last. Layout guides download PNG overlays — 1:1, 9:16 and 1.91:1 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
       textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
       // a style variant is per DESIGN variant on a single ad, and a carousel's page IS one
       styleScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'per design variant',
@@ -11842,8 +11850,8 @@ class CampaignStudio extends StudioBase {
         ? 'JPEG and PNG go into a YT Demand Gen folder in the source folder — a folder per variant inside it (Variant A, then B and C) with the Landscape 1.91:1 and any 1:1, 4:5 or 9:16 you show, at Google\u2019s sizes, plus Logo and the text assets. Each export overwrites the last.'
         : CampaignStudio.isCarousel(s)
         ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s feed and Story, with the banners in Eventbrite Banners inside it. Each export overwrites the last.'
-        : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with the feed and Story in it and the banners in Eventbrite Banners inside it. Each export overwrites the last.',
-      exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 16:9' : 'One file · 1:1, then 16:9 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
+        : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with the feed and Story in it and the banners in Eventbrite Banners inside it; a YT Demand Gen 1.91:1 goes into YT Demand Gen, Variant A and so on. Each export overwrites the last.',
+      exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 1.91:1' : 'One file · 1:1, then 1.91:1 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
       ...this.expPickVals(!yt, yt),
       ...this.splashNoteVals(),
       fgOn: !!av.fg,
@@ -11903,7 +11911,7 @@ class CampaignStudio extends StudioBase {
         return {
           bgDoneOn: on('adstudio-bg-' + vi), bgDropLabel: lab('adstudio-bg-' + vi, 'Picture', 'a picture'),
           bgStDoneOn: on('adstudio-bg-' + vi + '-st'), bgStDropLabel: lab('adstudio-bg-' + vi + '-st', 'Picture', 'the 9:16 picture'),
-          bgLsDoneOn: on('adstudio-bg-' + vi + '-ls'), bgLsDropLabel: lab('adstudio-bg-' + vi + '-ls', 'Picture', 'the 16:9 picture'),
+          bgLsDoneOn: on('adstudio-bg-' + vi + '-ls'), bgLsDropLabel: lab('adstudio-bg-' + vi + '-ls', 'Picture', 'the 1.91:1 picture'),
           bgBnDoneOn: on('adstudio-bg-' + vi + '-bn'), bgBnDropLabel: lab('adstudio-bg-' + vi + '-bn', 'Picture', 'the banner picture'),
           bgYlDoneOn: on('adstudio-bg-' + vi + '-yl'), bgYlDropLabel: lab('adstudio-bg-' + vi + '-yl', 'Picture', 'the 1.91:1 picture'),
           bgYpDoneOn: on('adstudio-bg-' + vi + '-yp'), bgYpDropLabel: lab('adstudio-bg-' + vi + '-yp', 'Picture', 'the 4:5 picture'),
@@ -12296,7 +12304,7 @@ class CampaignStudio extends StudioBase {
       // The two banners scale on their own, and are named by their file width — both are
       // 2:1, so a ratio would not tell them apart.
       scaleRows: (CampaignStudio.isYT(s) ? [['yl', '1.91:1'], ['sq', '1:1'], ['yp', '4:5'], ['st', '9:16']].filter(sz => sz[0] === 'yl' || (av.ytShow && av.ytShow[sz[0]]))
-        : [['sq', '1:1'], ['st', '9:16'], ['ls', '16:9'], ['bn', '1880'], ['bs', '758']]
+        : [['sq', '1:1'], ['st', '9:16'], ['ls', '1.91:1'], ['bn', '1880'], ['bs', '758']]
           .filter(sz => (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
         .map(sz => {
           const key = sz[0], val = Math.round(CampaignStudio.scaleOf(av, key) * 100);

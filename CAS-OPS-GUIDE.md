@@ -4,7 +4,7 @@ How to use the two Provident design studios in this folder.
 
 | | file | for |
 |---|---|---|
-| **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 9:16, 16:9), Eventbrite banners, and YouTube Demand Gen image ads |
+| **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 9:16), a YT Demand Gen 1.91:1, Eventbrite banners, and YouTube Demand Gen image ads |
 | **OPS** — Organic Post Studio | `Provident Organic Studio.dc.html` | organic feed and story posts, built from locked templates |
 
 > **For Claude in Cowork:** answer "how do I…" questions about CAS and OPS from this file, and
@@ -185,9 +185,16 @@ No API key or service is needed: Claude Code reads the screenshot.
   - Layout, style, visibility and photo are set per variant.
 - **Edit** / **Editing** on a plate chooses which variant the side panels edit. **Remove** deletes
   that variant; the Master can't be removed.
-- **9:16:** it mirrors the 1:1 until you press **Edit layout separately**. **Own photo** gives it
-  a different picture.
-- **16:9:** press **Show 16:9** on the plate. It has the same two buttons.
+- **Each canvas row** is its name, its ratio, and icon buttons on the right (hover one to see
+  what it does):
+  - **Link** — the canvas mirrors the 1:1. Press it to edit that canvas's layout separately;
+    press it again to mirror the 1:1 again.
+  - **Picture** — give that canvas its own photo instead of sharing the main one.
+  - **Eye** — show or hide the canvas. A hidden canvas is not exported.
+- **9:16:** it mirrors the 1:1 until you press its link button.
+- **YT Demand Gen 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape for
+  YouTube Demand Gen, and its words run the full width of the canvas. It exports into the
+  **YT Demand Gen** folder (section 7).
 - **All Variants Option** (the pill next to **Add Variant**) holds the settings for the whole
   project:
   - **Format:** **Single ad** or **Carousel**. A carousel has up to 10 pages, and each page has
@@ -200,9 +207,9 @@ No API key or service is needed: Claude Code reads the screenshot.
 
 ## 5. CAS: the Eventbrite banner
 
-1. On a plate, find the **Banner 2:1** row and press **Show banner**. Two canvases appear:
+1. On a plate, find the **Eventbrite banner** row and press its eye button. Two canvases appear:
    **1880 × 940** and **758 × 380**. They're one design, and the photo fills each one edge to edge.
-2. **Edit layout separately** unlinks the banner from the 1:1. **Own photo** gives it its own
+2. The link button unlinks the banner from the 1:1. The picture button gives it its own
    picture, which both banner sizes share.
 3. In **Scaling**, the rows **1880** and **758** size the two banners separately. Raise the **758**
    (it goes up to 150%) when its words are too small for an email.
@@ -211,23 +218,23 @@ No API key or service is needed: Claude Code reads the screenshot.
 Eventbrite shows the 1880 file at 940 px wide on a desktop and 375 px wide on a phone. On a phone
 only the headline really reads, so keep the words few and big.
 
-The banner, the 16:9 and the placement **Preview** are Meta-side only. A YouTube project doesn't
+The banner, the YT Demand Gen 1.91:1 row and the placement **Preview** are Meta-side only. A YouTube project doesn't
 show them.
 
 ## 5b. CAS: YouTube Demand Gen
 
 Every CAS project is for **one platform**: **Meta ads** or **YouTube Demand Gen**.
 
-- **Start one:** on the project browser, the templates come in two rows, **Meta ads** and
-  **YouTube Demand Gen**. They're the same four designs; pick from the YouTube row and the project
-  is a YouTube one. The YouTube cards show the wide 1.91:1 version.
+- **Start one:** pick any template on the project browser, then **All Variants Option** →
+  **Platform** → **YouTube Demand Gen**. (A Meta project can also carry just the 1.91:1 — its
+  **YT Demand Gen** row, section 4.)
 - **Switch an existing project:** **All Variants Option** → **Platform** → **Meta ads** or
   **YouTube Demand Gen**. The design is kept. A carousel becomes a single ad (its pages are kept
   if you switch back), because Demand Gen takes an asset pool, not swipe pages.
 
 On YouTube, **each variant starts with the Landscape 1.91:1 only**. The other three ratios Google
-mixes into its asset pool sit under it as rows with a **Show** button: **Show 1:1**, **Show 4:5**
-and **Show 9:16**. A shown one has a **Hide** button, and only shown canvases are exported:
+mixes into its asset pool sit under it as rows; press a row's eye button to show
+it. Only shown canvases are exported:
 
 | canvas on the plate | exported at |
 |---|---|
@@ -237,9 +244,8 @@ and **Show 9:16**. A shown one has a **Hide** button, and only shown canvases ar
 | **Vertical 9:16 · Shorts** | 1080 × 1920 |
 
 - With the 1:1 hidden, the 1.91:1 **is** the master layout; once the 1:1 is shown, the 1.91:1
-  mirrors it until you press **Edit layout separately**.
-- **Landscape** and **Portrait** each have **Edit layout separately** and **Own photo**, like the
-  16:9 on a Meta project. **Scaling** has a row for each canvas that is shown.
+  mirrors it until you press its link button.
+- **Landscape** and **Portrait** each have the link and picture buttons. **Scaling** has a row for each canvas that is shown.
 - The 9:16 keeps the same safe margins as a Meta story: Shorts puts its own buttons in the same
   places.
 - **Business logo** (in **All Variants Option**): the provident. wordmark on a 1200 × 1200 square.
@@ -334,10 +340,10 @@ Source folder/
   Variant A/                        ← the Master; Variant B and C for more variants
     <name>_Variant A_feed.jpg       ← 1:1
     <name>_Variant A_Story.jpg      ← 9:16
-    <name>_Variant A_16x9.jpg       ← only if that variant shows its 16:9
     Eventbrite Banners/
       <name>_Variant A_EventBrite_Banner_wide.jpg    ← 1880 × 940
       <name>_Variant A_EventBrite_Banner_Small.jpg   ← 758 × 380
+  YT Demand Gen/Variant A/<name>_Variant A_Landscape_1.91x1.jpg   ← 1200 × 628, only if shown
   <name>.adstudio.json   Assets/    ← the session and uploads, refreshed on every export
   <name>_Meta upload.json            ← only once Meta ad text is written (section 5c)
 ```
@@ -394,7 +400,7 @@ wider than the window. A small line under each image gives its pixel size and fi
   the Source folder uses its campaign name as the audience.
 - Only `<name>_Variant A_feed`, `_Story`, and the YouTube `_Square_1x1`, `_Vertical_9x16`,
   `_Landscape_1.91x1` and `_Portrait_4x5` files are shown. YouTube's are found in the project's
-  **YT Demand Gen** folder. Banners, 16:9, carousels, logos and anything else are left out.
+  **YT Demand Gen** folder. Banners, carousels, logos and anything else are left out.
 - **A size that was not exported is simply not shown.** A variant or audience with nothing to
   show is left out.
 - It shows the files as they are on disk, so export first, then press **Refresh**. Click an image
