@@ -14499,6 +14499,14 @@ one state flag `adSetsOpen` — so nothing touches project state, undo or the en
   origin-private file system (`navigator.storage.getDirectory()`). Its `name` is `''`, which is
   why `_as.has` — not the name — says a folder is set.
 
+**Refined 2026-10-12:** section 30's CSS is ONE block now (three passes of overrides had left
+rules for retired markup — `.as-proj`, `.as-more`, `.as-miss`, `.as-t-x` — all gone). The main
+folder's heading is sticky; the strip snaps to an audience; a tile lifts a 2px `--ps-link` ring on
+hover; each variant card states its image count; the platform pill carries a dot. The lightbox is a
+pinned dark viewer with a breadcrumb (`t.ctx`), an `n of N` counter, Close, and Previous / Next
+buttons plus ←/→ (`_asList` is every tile in scan order). Contrast over the overlay: 0 failures in
+both themes; no overflow at 390.
+
 Verified on a stand-in tree: Local › Family (Meta A + B, YouTube A with Square and Landscape only),
 Local › Investor (Meta A), International › Family (YouTube Landscape only) — Local first, the two
 platforms merged under Variant A, missing YouTube sizes absent, no placeholders.

@@ -406,7 +406,11 @@ wider than the window. A small line under each image gives its pixel size and fi
 - **A size that was not exported is simply not shown.** A variant or audience with nothing to
   show is left out.
 - It shows the files as they are on disk, so export first, then press **Refresh**. Click an image
-  to see it large. **Esc** closes it, and **Esc** again closes the window.
+  to see it large: the top line says where it sits (Local › Family › Variant A › Meta · Feed), and
+  the arrows or **←** / **→** step through every image in the window in order. **Esc** closes it,
+  and **Esc** again closes the window.
+- Each variant card shows how many images it holds, and the main folder's heading stays in view
+  while you scroll down through it.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
 
 ---

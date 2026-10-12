@@ -3478,11 +3478,12 @@ select.p-in{padding-right:34px}
 .p-cvcopy[data-state="ok"]::before{background:var(--ps-good)}
 .p-cvcopy[data-state="bad"]::before{background:var(--ps-bad)}
 
-/* ── 30. Ad sets — the source folder, one column per variant ───────────────────
-   Reads what the export actually wrote (Variant A/B/C, Carousel pages, Eventbrite
-   Banners/), never a re-render, so it shows what will be uploaded. Feed and Story sit
-   side by side at ONE height so the pair reads as one ad; every other size is a smaller
-   row under it. Columns wrap rather than scroll sideways. */
+/* ── 30. Ad sets — the source folder, read back as the sets it holds ───────────
+   Reads what the export actually wrote, never a re-render. Grouped in order of importance:
+   Main folder › Audience › Variant › Platform › Type, then a quiet line of dimension and
+   size. One main folder is one horizontal strip; audiences, variant cards and the two
+   platforms sit side by side and the strip scrolls sideways. Rewritten as one block
+   (2026-10-12) — three passes of overrides had left dead rules for retired markup. */
 .p-cvsets{flex:none;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;
   border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font);cursor:pointer;
   transition:background-color var(--ps-motion) var(--ps-ease)}
@@ -3498,103 +3499,98 @@ select.p-in{padding-right:34px}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .as-bar .p-ghost{display:inline-flex;flex-direction:row;align-items:center;gap:6px}
 .as-bar .mk-g{width:15px;height:15px;flex:none}
-.as-stage{--as-h:clamp(180px,30vh,340px);
-  flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:32px;padding:24px}
-.as-proj{display:flex;flex-direction:column;gap:12px;min-width:0}
-.as-proj-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.as-proj-h b{font:600 16px/1.25 var(--ps-font);color:var(--ps-ink)}
-.as-proj-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.as-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px}
-.as-col{flex:none;width:calc(var(--as-h) * 1.5625 + 44px);box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:var(--ps-r);
-  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);max-width:100%}
-.as-col-h{display:flex;flex-direction:column;gap:3px;padding-bottom:12px;border-bottom:1px solid var(--ps-hair)}
-.as-col-h b{font:600 14px/1.25 var(--ps-font);color:var(--ps-ink)}
-.as-col-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-stage{--as-h:clamp(180px,30vh,340px);flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;
+  gap:40px;padding:0 24px 32px}
+/* main folder — the heading stays in view while its strip scrolls under it */
+.as-main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.as-main-h{position:sticky;top:0;z-index:2;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  margin:0 -24px;padding:20px 24px 12px;background:var(--ps-stage);border-bottom:1px solid var(--ps-line)}
+.as-main-h b{font:600 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.as-main-h s{font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+/* audiences side by side, the strip scrolling sideways and snapping to an audience */
+.as-auds{display:flex;align-items:flex-start;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity;
+  scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.as-aud{flex:none;display:flex;flex-direction:column;gap:12px;min-width:0;scroll-snap-align:start}
+.as-aud + .as-aud{margin-left:28px;padding-left:28px;border-left:1px solid var(--ps-line)}
+.as-aud-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.as-aud-h b{font:600 17px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-aud-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+/* a variant is a card; its platforms sit side by side inside it */
+.as-row{display:flex;align-items:flex-start;gap:16px}
+.as-col{flex:none;box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:var(--ps-r);
+  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair)}
+.as-col-h{display:flex;align-items:baseline;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--ps-hair)}
+.as-col-h b{font:600 14.5px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-col-h s{margin-left:auto;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-plats{display:flex;align-items:flex-start;gap:18px}
+.as-plat{display:flex;flex-direction:column;gap:10px}
+.as-plat + .as-plat{padding-left:18px;border-left:1px solid var(--ps-hair)}
+.as-plat-l{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 8px;
+  border-radius:var(--ps-pill);background:var(--ps-fill);font:600 12px/1.2 var(--ps-font);color:var(--ps-ink)}
+.as-plat-l::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ps-link)}
+.as-plat-l[data-p="yt"]::before{background:var(--ps-ink-2)}
+/* the tiles — the Feed/Story (or Square/Vertical) row at one height; YouTube's second row
+   (1.91:1 + 4:5) sized so it spans exactly the first row's width */
 .as-pair{--as-r:var(--as-h);display:flex;gap:12px;align-items:flex-start}
-/* YouTube's second row (1.91:1 + 4:5) is sized so it spans exactly the first row's width */
 .as-pair[data-row="sub"]{--as-r:calc(var(--as-h) * .5766)}
-.as-col{gap:14px}
+.as-t{flex:none;margin:0;display:flex;flex-direction:column;gap:7px;min-width:0}
 .as-t[data-shape="sq"]{--as-w:var(--as-r)}
 .as-t[data-shape="st"]{--as-w:calc(var(--as-r) * 9 / 16)}
 .as-t[data-shape="yl"]{--as-w:calc(var(--as-r) * 1.911)}
 .as-t[data-shape="yp"]{--as-w:calc(var(--as-r) * .8)}
-.as-t[data-shape] .as-img img{height:var(--as-r);width:var(--as-w);max-width:none}
-.as-t[data-shape] .as-miss{height:var(--as-r);width:var(--as-w)}
-.as-t[data-shape] figcaption{max-width:var(--as-w)}
-.as-t{flex:none;margin:0;display:flex;flex-direction:column;gap:7px;min-width:0}
-.as-more .as-t{flex:initial}
-.as-t figcaption{display:flex;flex-direction:column;gap:2px}
-.as-t figcaption b{font:500 12.5px/1.25 var(--ps-font);color:var(--ps-ink)}
-.as-t figcaption s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;
-  font-variant-numeric:tabular-nums}
 .as-img{display:block;padding:0;border:0;border-radius:var(--ps-r-sm);overflow:hidden;cursor:zoom-in;
-  background:var(--ps-stage);box-shadow:0 0 0 1px var(--ps-hair)}
+  background:var(--ps-stage);box-shadow:0 0 0 1px var(--ps-hair);
+  transition:box-shadow var(--ps-motion) var(--ps-ease)}
+.as-img:hover{box-shadow:0 0 0 2px var(--ps-link)}
 .as-img:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
-.as-img img{display:block;height:var(--as-h);width:auto;max-width:100%;object-fit:contain}
-.as-t-sq .as-img img{width:var(--as-h);max-width:none}
-.as-t-st .as-img img{width:calc(var(--as-h) * 9 / 16);max-width:none}
-.as-miss{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:var(--as-h);border-radius:var(--ps-r-sm);
-  border:1px dashed var(--ps-line);color:var(--ps-dim);font:400 12px/1.3 var(--ps-font);text-align:center;padding:0 10px}
-.as-t-sq .as-miss{width:var(--as-h)}
-.as-t-st .as-miss{width:calc(var(--as-h) * 9 / 16)}
-.as-more{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid var(--ps-hair)}
-.as-t-x .as-img{display:flex;justify-content:center}
-.as-t-x .as-img img{width:100%;height:auto;max-height:calc(var(--as-h) * .6);object-fit:contain}
-.as-empty{max-width:520px;margin:40px auto;flex:1;padding:22px 24px;border-radius:var(--ps-r);background:var(--ps-app);
+.as-img img{display:block;height:var(--as-r);width:var(--as-w);max-width:none;object-fit:contain;
+  transition:transform var(--ps-motion) var(--ps-ease)}
+.as-img:hover img{transform:scale(1.015)}
+.as-t figcaption{display:flex;flex-direction:column;gap:2px;max-width:var(--as-w)}
+.as-t figcaption b{font:500 12.5px/1.25 var(--ps-font);color:var(--ps-ink-2)}
+.as-t figcaption s{font:400 10.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-empty{max-width:520px;margin:40px auto;padding:22px 24px;border-radius:var(--ps-r);background:var(--ps-app);
   box-shadow:0 0 0 1px var(--ps-hair)}
 .as-empty b{display:block;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink);margin-bottom:6px}
 .as-empty p{margin:0;font:400 13.5px/1.55 var(--ps-font);color:var(--ps-ink-2)}
-.as-big{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:12px;padding:24px;background:rgba(6,9,15,.92);cursor:zoom-out}
-.as-big img{max-width:100%;max-height:calc(100% - 60px);object-fit:contain;border-radius:var(--ps-r-sm)}
-.as-big p{margin:0;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
-.as-big b{font:500 13px/1.3 var(--ps-font);color:#fff}
-.as-big s{font:400 12px/1.3 var(--ps-font);color:#A8B0BA;text-decoration:none}
-/* The grouping, in order of importance: Main folder › Audience › Variant › Platform › Type,
-   then a quiet line of dimension and size. Each level steps down in size and weight. */
-.as-stage{gap:40px}
-.as-main{display:flex;flex-direction:column;gap:22px;min-width:0}
-.as-main-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--ps-line)}
-.as-main-h b{font:600 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
-.as-main-h s{font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.as-aud{display:flex;flex-direction:column;gap:12px;min-width:0}
-.as-aud-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.as-aud-h b{font:600 17px/1.25 var(--ps-font);color:var(--ps-ink)}
-.as-aud-h s{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.as-col{gap:16px}
-.as-col-h{padding-bottom:10px}
-.as-col-h b{font:600 14.5px/1.25 var(--ps-font)}
-.as-plat{display:flex;flex-direction:column;gap:10px}
-.as-plat + .as-plat{padding-top:16px;border-top:1px solid var(--ps-hair)}
-.as-plat-l{align-self:flex-start;padding:4px 10px;border-radius:var(--ps-pill);background:var(--ps-fill);
-  font:600 12px/1.2 var(--ps-font);color:var(--ps-ink)}
-.as-t figcaption b{font:500 12.5px/1.25 var(--ps-font);color:var(--ps-ink-2)}
-.as-t figcaption s{font:400 10.5px/1.3 var(--ps-font)}
-/* Horizontal: audiences side by side under their main folder, variant cards side by side in an
-   audience, Meta and YouTube side by side in a card. One main folder is one horizontal strip,
-   scrolling sideways when it is wider than the window. */
-.as-auds{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:6px}
-.as-aud{flex:none}
-.as-aud + .as-aud{margin-left:28px;padding-left:28px;border-left:1px solid var(--ps-line)}
-.as-row{flex-wrap:nowrap}
-.as-col{width:auto}
-.as-plats{display:flex;align-items:flex-start;gap:18px}
-.as-plat + .as-plat{padding-top:0;border-top:0;padding-left:18px;border-left:1px solid var(--ps-hair)}
+/* the enlarged image — a pinned dark viewer, so its ink is pinned too */
+.as-big{position:absolute;inset:0;z-index:3;display:grid;grid-template-columns:56px minmax(0,1fr) 56px;
+  grid-template-rows:auto minmax(0,1fr) auto;gap:12px;padding:16px 20px 20px;background:rgba(6,9,15,.94)}
+.as-big-top{grid-column:1 / -1;display:flex;align-items:center;gap:12px;min-height:36px}
+.as-big-top p{flex:1;min-width:0;margin:0;display:flex;flex-direction:column;gap:3px}
+.as-big-top b{font:500 13px/1.3 var(--ps-font);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-big-top s{font:400 12px/1.3 var(--ps-font);color:#A8B0BA;text-decoration:none;font-variant-numeric:tabular-nums}
+.as-big-img{grid-column:2;grid-row:2;display:flex;align-items:center;justify-content:center;min-height:0;cursor:zoom-out}
+.as-big-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--ps-r-sm);cursor:default}
+.as-big-nav{grid-row:2;align-self:center;justify-self:center;display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.as-big-nav:hover{background:rgba(255,255,255,.2)}
+.as-big-nav:disabled{opacity:.3;cursor:default;background:rgba(255,255,255,.1)}
+.as-big-nav:focus-visible,.as-big-x:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.as-big-nav[data-d="prev"]{grid-column:1}
+.as-big-nav[data-d="next"]{grid-column:3}
+.as-big-nav .mk-g,.as-big-x .mk-g{width:22px;height:22px;fill:currentColor}
+.as-big-x{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:0;border-radius:var(--ps-pill);
+  background:rgba(255,255,255,.1);color:#fff;font:600 13px/1 var(--ps-font);cursor:pointer}
+.as-big-x:hover{background:rgba(255,255,255,.2)}
+.as-big-x .mk-g{width:16px;height:16px}
+.as-big-n{flex:none;font:500 12px/1 var(--ps-font);color:#A8B0BA;font-variant-numeric:tabular-nums}
 @media (max-width:760px){
-  .as-stage{padding:14px;gap:24px;--as-h:min(30vh,calc((100vw - 74px) / 1.5625))}
-  .as-auds{flex-direction:column;gap:20px}
+  .as-stage{padding:0 14px 20px;gap:24px;--as-h:min(34vh,calc((100vw - 74px) / 1.5625))}
+  .as-main-h{margin:0 -14px;padding:14px 14px 10px}
+  .as-auds{flex-direction:column;gap:20px;overflow-x:visible}
   .as-aud + .as-aud{margin-left:0;padding-left:0;border-left:0}
-  .as-row,.as-plats{flex-direction:column}
+  .as-row,.as-plats{flex-direction:column;align-items:stretch;gap:14px}
   .as-plat + .as-plat{padding-left:0;border-left:0;padding-top:14px;border-top:1px solid var(--ps-hair)}
-  .as-row{flex-direction:column;align-items:stretch;gap:14px}
+  .as-col{padding:12px;width:100%}
   .as-bar{flex-wrap:wrap;padding:10px 14px}
   .as-ttl{flex:1 0 100%}
   .as-bar .p-spring{display:none}
-  .as-col{padding:12px}
-  .as-stage{--as-h:min(34vh,calc((100vw - 74px) / 1.5625))}
-  .as-col{width:100%}
+  .as-big{grid-template-columns:44px minmax(0,1fr) 44px;padding:12px;gap:8px}
+  .as-big-nav{width:38px;height:38px}
 }
-@media (prefers-reduced-motion:reduce){.as-ov{animation:none}}
+@media (prefers-reduced-motion:reduce){.as-ov{animation:none}.as-img img{transition:none}.as-img:hover img{transform:none}}
 
 /* ══ 31. THE SIZE ROWS (2026-10-12) ═══════════════════════════════════════════════
    One line per canvas: its name, a quiet ratio chip, and icon buttons at the right —
@@ -4060,7 +4056,7 @@ select.p-in{padding-right:34px}
         <div class="as-ttl"><b>Ad sets</b><s>{{ asSub }}</s></div>
         <span class="p-spring"></span>
         <sc-if value="{{ asHasRoot }}" hint-placeholder-val="{{ true }}"><button onClick="{{ asRefresh }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-133 0-226.5-93.5T160-480q0-133 93.5-226.5T480-800q85 0 149 34.5T740-671v-99q0-13 8.5-21.5T770-800q13 0 21.5 8.5T800-770v194q0 13-8.5 21.5T770-546H576q-13 0-21.5-8.5T546-576q0-13 8.5-21.5T576-606h138q-38-60-97-97t-137-37q-109 0-184.5 75.5T220-480q0 109 75.5 184.5T480-220q77 0 140-39.5t94-106.5q5-11 16.5-17.5T754-386q15 2 22.5 14t2.5 26q-38 87-118.5 136.5T480-160Z"/></svg>Refresh</button></sc-if>
-        <sc-if value="{{ asPickOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPick }}" class="p-ghost">{{ asPickLabel }}</button></sc-if>
+        <sc-if value="{{ asPickOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPick }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ asPickLabel }}</button></sc-if>
         <button onClick="{{ asClose }}" class="p-ghost">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
       </div>
       <div class="as-stage">
@@ -4075,7 +4071,7 @@ select.p-in{padding-right:34px}
                 <div class="as-row">
                   <sc-for list="{{ au.cols }}" as="c" hint-placeholder-count="2">
                     <section class="as-col">
-                      <header class="as-col-h"><b>{{ c.title }}</b></header>
+                      <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
                       <div class="as-plats">
                       <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
                         <div class="as-plat">
@@ -4103,9 +4099,15 @@ select.p-in{padding-right:34px}
         </sc-for>
       </div>
       <sc-if value="{{ asBigOn }}" hint-placeholder-val="{{ false }}">
-        <div class="as-big" onClick="{{ asBigClose }}">
-          <img data-src="{{ asBigUrl }}" alt="{{ asBigName }}">
-          <p><b>{{ asBigName }}</b><s>{{ asBigMeta }}</s></p>
+        <div class="as-big" role="dialog" aria-label="{{ asBigName }}">
+          <div class="as-big-top">
+            <p><b>{{ asBigCtx }}</b><s>{{ asBigMeta }}</s></p>
+            <span class="as-big-n">{{ asBigPos }}</span>
+            <button onClick="{{ asBigClose }}" class="as-big-x" title="Close (Esc)">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
+          </div>
+          <button onClick="{{ asBigPrev }}" disabled="{{ asBigPrevOff }}" class="as-big-nav" data-d="prev" title="Previous (←)" aria-label="Previous image"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m418.15-480 162.93 162.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L359.15-454.69q-5.61-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.31-6.23 7.92-11.85l179.77-179.77q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L418.15-480Z"/></svg></button>
+          <div class="as-big-img" onClick="{{ asBigClose }}"><img data-src="{{ asBigUrl }}" alt="{{ asBigName }}" onClick="{{ asBigStop }}"></div>
+          <button onClick="{{ asBigNext }}" disabled="{{ asBigNextOff }}" class="as-big-nav" data-d="next" title="Next (→)" aria-label="Next image"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M517.85-480 354.92-642.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69l179.77 179.77q5.61 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.31 6.23-7.92 11.85L397.08-274.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L517.85-480Z"/></svg></button>
         </div>
       </sc-if>
     </div>
@@ -12618,7 +12620,7 @@ class Component extends DCLogic {
   async asScan() {
     const f = window.providentFolder, root = f && f.handle;
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
-    this._asBig = null;
+    this._asBig = null; this._asList = [];
     this._as = { busy: !!root, has: !!root, mains: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
     this.forceUpdate();
     if (!root) return;
@@ -12676,12 +12678,14 @@ class Component extends DCLogic {
         }
       }
       const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
-      const tile = async (e, shape, label) => {
+      const list = [];
+      const tile = async (e, shape, label, ctx) => {
         const url = URL.createObjectURL(e.file); urls.push(url);
         let dim = '';
         try { const b = await createImageBitmap(e.file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
-        const t = { url, name: e.path, label, shape, meta: [dim, mb(e.file.size)].filter(Boolean).join(' · ') };
+        const t = { url, name: e.path, label, shape, ctx: ctx + ' · ' + label, meta: [dim, mb(e.file.size)].filter(Boolean).join(' · ') };
         t.open = () => { this._asBig = t; this.forceUpdate(); };
+        list.push(t);
         return t;
       };
       const nat = (a, b) => a.localeCompare(b, undefined, { numeric: true });
@@ -12703,14 +12707,17 @@ class Component extends DCLogic {
                 const tiles = [];
                 for (const k in KIND) {
                   const d = KIND[k];
-                  if (d[0] === key && d[2] === row && slots[k]) { tiles.push(await tile(slots[k], d[1], d[3])); files++; }
+                  if (d[0] === key && d[2] === row && slots[k]) { tiles.push(await tile(slots[k], d[1], d[3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
                 }
                 if (tiles.length) rows.push({ kind: row, tiles });
               }
               if (rows.length) plats.push({ key, label, rows });
             }
             if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
-            if (plats.length) { cols.push({ title: 'Variant ' + letter, plats }); sets++; }
+            if (plats.length) {
+              const n = plats.reduce((a2, pl) => a2 + pl.rows.reduce((b2, r) => b2 + r.tiles.length, 0), 0);
+              cols.push({ title: 'Variant ' + letter, sub: plural(n, 'image'), plats }); sets++;
+            }
           }
           if (cols.length) { auds.push({ title: aud, sub: plural(cols.length, 'variant'), cols }); mVars += cols.length; }
         }
@@ -12718,6 +12725,7 @@ class Component extends DCLogic {
       }
       this.asFree();
       this._asUrls = urls;
+      this._asList = list;
       this._as = { busy: false, has: true, mains, root: root.name, files, sets, err: '' };
     } catch (e) {
       urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (er) {} });
@@ -12729,7 +12737,7 @@ class Component extends DCLogic {
   }
   asVals() {
     const open = !!this.state.adSetsOpen, f = window.providentFolder, a = this._as || {};
-    const supported = !!(f && f.supported), root = a.has ? (a.root || 'the source folder') : '';
+    const supported = !!(f && f.supported), root = a.has ? (a.root || 'the source folder') : '', rootName = a.root ? '“' + a.root + '”' : 'the source folder';
     const es = this.eng.state || {};
     const proj = es.screen === 'splash' ? '' : (es.campaign || '').trim();
     let head = '', note = '';
@@ -12738,7 +12746,8 @@ class Component extends DCLogic {
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
     else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
-    const big = this._asBig;
+    const big = this._asBig, list = this._asList || [], bi = big ? list.indexOf(big) : -1;
+    const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     return {
       asOn: open ? '1' : undefined,
       asOpen: () => this.asOpen(),
@@ -12748,12 +12757,17 @@ class Component extends DCLogic {
       asHasRoot: open && root ? '1' : undefined,
       asPickOn: open && supported ? '1' : undefined,
       asPickLabel: root ? 'Change folder' : 'Choose source folder',
-      asSub: root ? (proj ? proj + ' · ' : '') + 'Source folder: ' + root + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') : '') : (proj || 'Exported ads, one column per variant'),
+      asSub: root ? (proj ? proj + ' · ' : '') + 'Reading ' + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head ? '1' : undefined,
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
       asBigOn: big ? '1' : undefined,
       asBigUrl: big ? big.url : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
+      asBigCtx: big ? big.ctx : '',
+      asBigPos: big && list.length > 1 ? (bi + 1) + ' of ' + list.length : '',
+      asBigPrev: () => step(-1), asBigNext: () => step(1),
+      asBigPrevOff: bi > 0 ? undefined : true, asBigNextOff: bi >= 0 && bi < list.length - 1 ? undefined : true,
+      asBigStop: e => { if (e) e.stopPropagation(); },
       asBigClose: () => { this._asBig = null; this.forceUpdate(); }
     };
   }
@@ -12864,6 +12878,11 @@ class Component extends DCLogic {
       if (this.state.shareOpen || this.state.allVarsOpen) this.setState({ shareOpen: false, allVarsOpen: false });
     };
     this._popKey = e => {
+      if (this._asBig && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        const list = this._asList || [], t = list[list.indexOf(this._asBig) + (e.key === 'ArrowLeft' ? -1 : 1)];
+        if (t) { this._asBig = t; this.forceUpdate(); }
+        e.preventDefault(); return;
+      }
       if (e.key !== 'Escape') return;
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
