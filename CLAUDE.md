@@ -14528,3 +14528,8 @@ By request (2026-10-12), four changes to `Provident Campaign Studio.dc.html`:
   captions are just the pixel size and the copy chip. The old `*Label` / `wideBtnStyle` keys
   are unread. Verified: export at 1200 × 628 into `YT Demand Gen/`, each button toggles its
   record, 0 contrast failures in both themes, top bar fits at 1440.
+
+**THE EVENTBRITE BANNERS TOOK THE SAME LAYOUT (2026-10-12, by request):** `BANNER_TK` lost its
+`col: 800`, so both banners (`bn`, `bs`) flow their copy across the full width with the 1:1's
+vertical scrim bands, exactly as the YT Demand Gen 1.91:1 does. Their tokens are otherwise the
+1.91:1's. A saved banner re-lays its copy; no ops line was edited.

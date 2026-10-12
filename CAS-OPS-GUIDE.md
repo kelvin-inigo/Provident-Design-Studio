@@ -214,6 +214,8 @@ No API key or service is needed: Claude Code reads the screenshot.
 3. In **Scaling**, the rows **1880** and **758** size the two banners separately. Raise the **758**
    (it goes up to 150%) when its words are too small for an email.
 4. Banners never carry a QR code. They're clicked, not scanned.
+5. The banner is laid out like the YT Demand Gen 1.91:1: the copy runs across the full width,
+   not squeezed into a column on the left, and the darkening sits behind the top and bottom copy.
 
 Eventbrite shows the 1880 file at 940 px wide on a desktop and 375 px wide on a phone. On a phone
 only the headline really reads, so keep the words few and big.

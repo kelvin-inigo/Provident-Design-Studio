@@ -5862,7 +5862,10 @@ class CampaignStudio extends StudioBase {
   // 1880 file at half size on a desktop, which is about where a 1:1 sits in a feed.
   // `out` is the file's pixel size. `noQr` because a banner is clicked, not scanned — and
   // it keeps the project's QR on the Meta sizes, where hiding it would otherwise hide it.
-  static BANNER_TK = { pad: [80, 120, 80, 120], col: 800, gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52, noQr: true };
+  // NO TEXT COLUMN (2026-10-12, by request): the banners take the YT Demand Gen 1.91:1's
+  // layout — copy flows across the full width with the 1:1's vertical scrim bands, instead
+  // of an 800 column on the left with a sideways wash.
+  static BANNER_TK = { pad: [80, 120, 80, 120], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52, noQr: true };
   static PXT = {
     sq: { W: 1080, H: 1080, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
     // 9:16 margins are the Reels SAFE AREA, retraced off live Facebook ads — see the note
@@ -5887,7 +5890,7 @@ class CampaignStudio extends StudioBase {
     st: { W: 1080, H: 1920, pad: [260, 100, 460, 100], railR: 170, gapS: 30, hero: 103, headline: 71, hook: 41, body: 28, eyebrow: 28, logo: 50, ctaF: 35, ctaPV: 20, qr: 104, stat: 59, stepD: 60 },
     // The 16:9 was about 0.9x the 1:1 in every role, so each size sat between two rungs of the
     // ladder and the eyebrow, 22px, was under the 24px floor. It takes the 1:1's own steps now —
-    // the banner's too (BANNER_TK), the other wide canvas — and the banner's 800 column.
+    // the banner's too (BANNER_TK), the other wide canvas.
     // THE META PLATE'S WIDE CANVAS IS THE YOUTUBE DEMAND GEN 1.91:1 (2026-10-12, by request):
     // it was a 1920 x 1080 16:9. Same key, so every Meta record (`wide`, `wideOv`, `bgSep.ls`,
     // `scaleBy.ls`) carries over; it exports at Google's 1200 x 628 into `YT Demand Gen/`
@@ -5898,7 +5901,7 @@ class CampaignStudio extends StudioBase {
     bs: Object.assign({ W: 1880, H: 1880 * 380 / 758, out: [758, 380] }, CampaignStudio.BANNER_TK),
     // YOUTUBE DEMAND GEN's two canvases Meta does not have. Each is laid out at the width of
     // the Meta canvas it is nearest to and exported at the file size Google recommends — the
-    // banner's `out` mechanism. The 1.91:1 is the 16:9's own tokens and 800 column at 1920
+    // banner's `out` mechanism. The 1.91:1 is the 16:9's own tokens, no text column, at 1920
     // wide (1920 x 1004.8, exported at .625 = exactly 1200 x 628); the 4:5 is the 1:1's own
     // tokens at 1080 wide (1080 x 1350, exported at 960 / 1080 = 960 x 1200).
     yl: { W: 1920, H: 1920 * 628 / 1200, out: [1200, 628], pad: [80, 120, 80, 120], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
