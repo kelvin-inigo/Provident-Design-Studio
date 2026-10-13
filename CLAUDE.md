@@ -14514,6 +14514,21 @@ lightbox; Esc closes it first) with the image, format buttons and the Publish ta
 analytics was built first and REJECTED the same day ("not to that extent") — the images are plain
 exports with no link to a live ad, so neither the mock-up nor `meta-insights.py` exists.
 
+**VIEW ANY FOLDER (2026-10-13):** the home page (under "View ad sets") and the Ad sets window
+(bar button "Drop or link a folder") carry one `.as-src` panel. You can drop a folder anywhere on
+`.p-br` or `.as-ov`, or paste a Google Drive folder link. `this._asSrc = {kind, handle, name}`
+overrides the source folder for `asScan` only; `asUseSource` goes back, and the source folder is
+never changed. Both sources are stand-ins for a directory handle: `entries()`,
+`getDirectoryHandle()`, and a file's `getFile()` plus `modified`. `Component.entryDir`
+(webkitGetAsEntry fallback) and `Component.driveDir` (Drive API v3, `?alt=media`). The scan now
+picks the newest json by date before downloading and downloads only the tiles it shows. **The
+Drive API key is per computer** (`localStorage['provident-drive-key']`, never in the repo), and
+the folder must be shared as "Anyone with the link". `asDrop` reads `getAsFileSystemHandle()`
+synchronously inside the event. `asDragOver` reacts only to `types` containing `Files`. Verified:
+an OPFS tree dropped through `asDrop`, Drive with a mocked fetch (7 list calls, 2 downloads, key
+saved, bad-key error shown), 0 contrast failures in both themes, and it fits at 390.
+**Not exercised against the real Drive API or a real OS drag** (the pane cannot start either).
+
 Verified on a stand-in tree: Local › Family (Meta A + B, YouTube A with Square and Landscape only),
 Local › Investor (Meta A), International › Family (YouTube Landscape only) — Local first, the two
 platforms merged under Variant A, missing YouTube sizes absent, no placeholders.
@@ -14548,3 +14563,25 @@ By request (2026-10-12), four changes to `Provident Campaign Studio.dc.html`:
 `col: 800`, so both banners (`bn`, `bs`) flow their copy across the full width with the 1:1's
 vertical scrim bands, exactly as the YT Demand Gen 1.91:1 does. Their tokens are otherwise the
 1.91:1's. A saved banner re-lays its copy; no ops line was edited.
+
+# THE PLACEMENT PREVIEW SHOWS THE REAL APPS' LAYOUTS (2026-10-12)
+
+By request ("use actual UI of Instagram/Facebook, feed/reel/story… make it accurate"). The
+wireframe chrome in CAS's Preview overlay was rebuilt to the live iOS apps in dark mode —
+Instagram's 2025 nav (+ / wordmark / heart; Home · Reels · Messages · Search · Profile), counts
+beside the actions, the CTA row under the media; Facebook's wordmark and round actions, labelled
+tab bar, link card, reactions, Like / Comment / Share; both apps' story headers, CTA and Send
+message bar; Facebook Reels with its own header, counted rail and bottom-anchored CTA (Instagram
+Reels keeps the supplied mock's vectors and adds counts and Follow).
+
+- **The bug that read as "broken": `.mk-screen` inked its chrome with `--ps-accent-i`, which is
+  the NAVY in light mode** — navy on black — and the overlay bar's title was `#fff` on a white
+  bar. The screen is a pinned surface and now takes pinned ink only; the bar follows the theme.
+- **Icons are drawn in the file (24-unit `.mk-i` SVGs), no Meta logo art**; app names are text in
+  the system face (`-apple-system`), which is what the apps' UI uses. `.mk-g` stays: it is the
+  icon primitive the rest of the app uses.
+- **`mockCopy` prints the project's Meta ad text** (primary text, headline, description, CTA,
+  link domain from `mtOf`) where it is written, the creative's words otherwise; handle
+  `providentestate`, page "Provident Real Estate".
+- New render keys `mkPlatKey` / `mkViewKey` / `mkStoryName`. The 1.91:1 label in
+  `mkPlaceLabel`. Artwork untouched — no ops line edited; the export path is unchanged.
