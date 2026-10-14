@@ -14630,3 +14630,43 @@ its sheet. Each control takes the shape of its question instead of every decisio
 
 Verified in the pane with real clicks and synthetic ones: every card and switch flips state and its
 `aria-checked`; contrast over the open dock 0 failures in both themes. No artwork line changed.
+
+**The Platform cards were REMOVED from the dock the same day, by request ("dont need anymore").**
+The group's markup is gone; `platMeta` / `platYt` / `platHint` / `platMetaAria` / `platYtAria` are
+still computed and unread. **With the splash's YouTube row already deleted, the app has no control
+that makes a YouTube Demand Gen project** — only a saved YouTube session or the MCP's `set_platform`.
+Everything a YouTube project shows is unchanged.
+
+**The placement preview's phone has Light | Dark (2026-10-14).** A pair in the preview bar sets
+`state.mockMode` on the SHELL (default `'dark'`) -> `data-mode` on `.mk-screen`. Section 33 of the
+sheet re-inks only `[data-view="feed"]` for both apps' light themes; Reels and Stories stay dark,
+because both apps keep them dark. Chrome only — the creative is the same render.
+
+# THE RIGHT RAILS WERE TIDIED: FOLDING SECTIONS, COMPACT SEGMENTS, A STYLE STRIP (2026-10-14)
+
+By request ("improve the UI and UX of this side bar, new types of buttons and interactions, hide
+clutter"), CAS's component rail and Layout rail, section 34 of the sheet. Chrome only — the
+whole-file diff carries no artwork line.
+
+- **Folding sections are native `<details data-acc>`, UNCONTROLLED.** React never sets `open`, so a
+  re-render cannot snap one shut. `Component.accBind()` (called first thing in `_vtTick`, i.e. on
+  every shell mount and update) restores each one ONCE (`_accInit`) from `localStorage['adstudio-acc']`
+  — per computer — and a capture-phase `toggle` listener (toggle does not bubble) writes it back.
+  `data-def="1"` opens by default (Background image). Folding: Scaling (`scaleSummary` — "All 100%"
+  / "Adjusted"), Vertical spacing (`gapName`), Scrim (a swatch + `scrimSummary`), Background image
+  (`bgSummary`), Hidden components (`hiddenSummary`). A closed section shows its value; an open
+  one hides it, since the controls say it.
+- **Background and Alignment are `.p-opts-seg`** — the same `.p-opt` markup restyled to one 44px
+  track with the icon beside the name. Logo and Layout preset are `.p-opts-sm` (42px tiles).
+- **Style previews are `.p-vts-strip`**, one sideways snapped row of 116px tiles; `accBind` scrolls
+  the chosen tile into view when the selection changes (`_accOn` on the strip).
+- **Colour pickers are `.p-colr`**: swatches and the hex field in one row (eyebrow ink, hero line,
+  icon colour, scrim); the duplicate chip beside the hex is hidden.
+- **The hero's line picker only shows with 2+ lines** (`heroLineMany`), as `.p-tabs` "Line 1 / Line 2".
+- **`.p-rst`** replaces the ↺ text resets (Scaling rows, Space above) and is `visibility:hidden` at the
+  default (`sc.defOn`, `selGapDefOn`). `resetStyle` / `selGapResetStyle` are still computed, unread.
+- The Space-above hint became the start of its tip; an empty drop's first caption ("Drop a picture,
+  or click to choose") is hidden in the rails because the placeholder already says it.
+
+Verified: contrast over both rails with every section open, transitions finished — 0 failures in
+light (80 runs) and dark (84). Real clicks open and close sections.

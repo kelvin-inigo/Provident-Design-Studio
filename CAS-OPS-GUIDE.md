@@ -151,11 +151,18 @@ What's on the screen, from left to right:
   | **Vertical spacing** | Tight, Medium or Roomy |
   | **Scrim** | the wash behind the copy: Opacity, Fade and Colour |
 
+  **Scaling**, **Vertical spacing** and **Scrim** fold away. Closed, each one still shows its
+  current setting; click its title to open it. **Background image** and **Hidden components**
+  in the middle rail fold the same way, and the app remembers which ones you leave open.
+  The style previews scroll sideways. A reset button only appears once a value has been moved.
+
 **Checking it:**
 - **Copy %:** each canvas shows how much of the ad the copy covers. Above 40% it turns amber,
   because the image should always outweigh the words.
 - **Preview** (top bar) shows the ad inside an Instagram or Facebook feed, reel or story mock-up.
   **Platform UI** and **Safe margins** switch on the app's own buttons and the safe area.
+  **Light** or **Dark** sets the phone's appearance for the feed. Reels and Stories are always
+  dark, as they are in both apps.
 
 **Recreate a component from a screenshot** (with Claude Code):
 1. In Claude Code, drop a screenshot of **one** element (a rating badge, a price card, a countdown
@@ -197,8 +204,7 @@ No API key or service is needed: Claude Code reads the screenshot.
   **YT Demand Gen** folder (section 7).
 - **All variants** (the pill next to **Add Variant**, which shows how many variants you have
   out of the most allowed) holds the settings for the whole project:
-  - **Platform** and **Format** are cards: pick **Meta ads** or **YouTube Demand Gen**, and
-    **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
+  - **Format** is a pair of cards: **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
     and each page has its own components, words and photo.
   - **Write Meta ad text** (or **Write headlines and descriptions** on YouTube) opens the
     **Publish** tab.
@@ -230,12 +236,11 @@ show them.
 
 Every CAS project is for **one platform**: **Meta ads** or **YouTube Demand Gen**.
 
-- **Start one:** pick any template on the project browser, then **All Variants Option** →
-  **Platform** → **YouTube Demand Gen**. (A Meta project can also carry just the 1.91:1 — its
-  **YT Demand Gen** row, section 4.)
-- **Switch an existing project:** **All Variants Option** → **Platform** → **Meta ads** or
-  **YouTube Demand Gen**. The design is kept. A carousel becomes a single ad (its pages are kept
-  if you switch back), because Demand Gen takes an asset pool, not swipe pages.
+- **There is no Platform switch in the app any more.** A new project is a Meta project. A Meta
+  project can still carry the 1.91:1 through its **YT Demand Gen** row (section 4).
+- A **YouTube Demand Gen** project opens as one if it was saved as one, or Claude can switch a
+  project with the studio tools (`studio_edit` → `set_platform`). A carousel becomes a single ad
+  (its pages are kept if you switch back), because Demand Gen takes an asset pool, not swipe pages.
 
 On YouTube, **each variant starts with the Landscape 1.91:1 only**. The other three ratios Google
 mixes into its asset pool sit under it as rows; press a row's eye button to show
