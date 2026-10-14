@@ -14514,6 +14514,8 @@ lightbox; Esc closes it first) with the image, format buttons and the Publish ta
 analytics was built first and REJECTED the same day ("not to that extent") — the images are plain
 exports with no link to a live ad, so neither the mock-up nor `meta-insights.py` exists.
 
+**THE GOOGLE DRIVE LINK WAS REMOVED (2026-10-14), by request** — `driveDir`, `driveId`, `asDriveGo`, the API-key field and its CSS are gone; the panel is the drop zone alone. What follows about Drive is history.
+
 **VIEW ANY FOLDER (2026-10-13):** the home page (under "View ad sets") and the Ad sets window
 (bar button "Drop or link a folder") carry one `.as-src` panel. You can drop a folder anywhere on
 `.p-br` or `.as-ov`, or paste a Google Drive folder link. `this._asSrc = {kind, handle, name}`

@@ -417,21 +417,16 @@ wider than the window. A small line under each image gives its pixel size and fi
   while you scroll down through it.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
 
-#### View any folder: drop it, or paste a Google Drive link
+#### View any folder: drop it
 
 You do not have to change your Source folder to look at someone else's exports. On CAS's home
-page, under **View ad sets**, and in the Ad sets window (press **Drop or link a folder**):
+page, under **View ad sets**, and in the Ad sets window (press **Drop a folder**):
 
 - **Drop a folder** anywhere on the page. Use the project folder (the one holding the
   `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
   **click** the drop area to choose a folder instead.
-- **Paste a Google Drive folder link** and press **View** (or Enter). The folder must be shared
-  as **Anyone with the link**. The first time on each computer, the studio asks for a **Google
-  Drive API key**. It is kept in that browser only and never written to a file. To get one, open
-  Google Cloud Console, enable the *Google Drive API*, create an *API key*, and restrict it to
-  that API. **Change API key** under the link replaces it.
-- The window shows the folder exactly as it shows the Source folder. Only the images on screen
-  are downloaded from Drive. Nothing is written to Drive or to the dropped folder.
+- The window shows the folder exactly as it shows the Source folder. Nothing is written to the
+  dropped folder.
 - The bar says which folder you are viewing. **Use source folder** goes back to your own, and
   your Source folder is never changed by viewing another one.
 

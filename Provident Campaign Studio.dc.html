@@ -3548,10 +3548,10 @@ select.p-in{padding-right:34px}
   box-shadow:0 0 0 1px var(--ps-hair)}
 .as-empty b{display:block;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink);margin-bottom:6px}
 .as-empty p{margin:0;font:400 13.5px/1.55 var(--ps-font);color:var(--ps-ink-2)}
-/* VIEW ANOTHER FOLDER (2026-10-13) — drop a folder or paste a Google Drive link, on home and
+/* VIEW ANOTHER FOLDER (2026-10-13) — drop a folder (the Drive link was removed 2026-10-14), on home and
    in the Ad sets window. One panel, mounted in both. While a folder is dragged over either
    surface the whole surface is the target and the drop zone lights. */
-.as-src{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.15fr);gap:16px;align-items:stretch;
+.as-src{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:stretch;
   padding:16px;border-radius:var(--ps-r);background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair)}
 .as-ov > .as-stage > .as-src{max-width:880px;width:100%;box-sizing:border-box;margin:24px auto 0}
 .as-src-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:132px;padding:16px;
@@ -3566,18 +3566,6 @@ select.p-in{padding-right:34px}
 .as-ov[data-drag]::after,.p-br[data-drag]::after{content:'';position:absolute;inset:6px;border-radius:var(--ps-r);
   box-shadow:inset 0 0 0 2px var(--ps-link);pointer-events:none;z-index:5}
 .p-br{position:relative}
-.as-src-or{display:flex;align-items:center;justify-content:center}
-.as-src-or span{font:500 12px/1 var(--ps-font);color:var(--ps-dim)}
-.as-src-drive{display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0}
-.as-src-t{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
-.as-src-row{display:flex;gap:8px}
-.as-src-row .p-in{flex:1;min-width:0}
-.as-src-row .p-btn{flex:none}
-.as-src-drive > .p-in{width:100%;box-sizing:border-box}
-.as-src-hint{font:400 12px/1.45 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
-.as-src-link{padding:0;border:0;background:none;color:var(--ps-link);font:500 12px/1.45 var(--ps-font);text-decoration:underline;
-  text-underline-offset:2px;cursor:pointer}
-.as-src-link:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px;border-radius:2px}
 .as-src-err{grid-column:1 / -1;margin:0;padding:10px 12px;border-radius:var(--ps-r-sm);background:var(--ps-bad-q);color:var(--ps-bad);
   font:500 12.5px/1.45 var(--ps-font)}
 .as-home{margin-bottom:26px}
@@ -3590,7 +3578,6 @@ select.p-in{padding-right:34px}
 .as-viewing{max-width:320px;padding:6px 12px;border-radius:var(--ps-pill);background:var(--ps-fill);font:500 12px/1.3 var(--ps-font);
   color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:760px){
-  .as-src{grid-template-columns:1fr;gap:12px}
   .as-src-drop{min-height:96px}
   .as-viewing{display:none}
 }
@@ -3742,13 +3729,6 @@ select.p-in{padding-right:34px}
         <div class="as-home">
         <div class="as-src">
           <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
-          <div class="as-src-or"><span>or</span></div>
-          <div class="as-src-drive">
-            <b class="as-src-t">Paste a Google Drive folder link</b>
-            <div class="as-src-row"><input class="p-in" data-as="url" type="url" placeholder="https://drive.google.com/drive/folders/…" onKeyDown="{{ asDriveKey }}" aria-label="Google Drive folder link"><button onClick="{{ asDriveGo }}" class="p-btn">View</button></div>
-            <sc-if value="{{ asKeyOn }}" hint-placeholder-val="{{ true }}"><input class="p-in" data-as="key" type="password" autocomplete="off" placeholder="Google Drive API key" onKeyDown="{{ asDriveKey }}" aria-label="Google Drive API key"><s class="as-src-hint">Once per computer — kept in this browser, never in a file. The folder has to be shared as “Anyone with the link”.</s></sc-if>
-            <sc-if value="{{ asKeySavedOn }}" hint-placeholder-val="{{ false }}"><s class="as-src-hint">The folder has to be shared as “Anyone with the link”. <button onClick="{{ asKeyEdit }}" class="as-src-link">Change API key</button></s></sc-if>
-          </div>
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
         </div>
         </div>
@@ -4158,13 +4138,6 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ asSrcPanelOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-src">
           <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
-          <div class="as-src-or"><span>or</span></div>
-          <div class="as-src-drive">
-            <b class="as-src-t">Paste a Google Drive folder link</b>
-            <div class="as-src-row"><input class="p-in" data-as="url" type="url" placeholder="https://drive.google.com/drive/folders/…" onKeyDown="{{ asDriveKey }}" aria-label="Google Drive folder link"><button onClick="{{ asDriveGo }}" class="p-btn">View</button></div>
-            <sc-if value="{{ asKeyOn }}" hint-placeholder-val="{{ true }}"><input class="p-in" data-as="key" type="password" autocomplete="off" placeholder="Google Drive API key" onKeyDown="{{ asDriveKey }}" aria-label="Google Drive API key"><s class="as-src-hint">Once per computer — kept in this browser, never in a file. The folder has to be shared as “Anyone with the link”.</s></sc-if>
-            <sc-if value="{{ asKeySavedOn }}" hint-placeholder-val="{{ false }}"><s class="as-src-hint">The folder has to be shared as “Anyone with the link”. <button onClick="{{ asKeyEdit }}" class="as-src-link">Change API key</button></s></sc-if>
-          </div>
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
         </div>
         </sc-if>
@@ -12667,7 +12640,7 @@ class Component extends DCLogic {
     this.asScan();
   }
   async asScan() {
-    // a folder dropped on home or a Google Drive link VIEWS that folder; it never replaces the
+    // a folder dropped on home VIEWS that folder; it never replaces the
     // source folder the studio exports into (Use source folder goes back to it)
     const f = window.providentFolder, src = this._asSrc, root = src ? src.handle : (f && f.handle);
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
@@ -12693,7 +12666,7 @@ class Component extends DCLogic {
           else if (/\.adstudio\.json$/i.test(name)) jsons.push(h);
         }
         if (jsons.length) {
-          // a Drive file states its date without being downloaded; only the newest one is read
+          // only the newest one is read
           const lms = await Promise.all(jsons.map(lmOf));
           let bi = 0; lms.forEach((lm, i) => { if (lm > lms[bi]) bi = i; });
           const json = await jsons[bi].getFile();
@@ -12751,7 +12724,7 @@ class Component extends DCLogic {
       });
       const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
       const list = [];
-      // a tile needs its File (a download, on Drive) and the size from its header: all at once,
+      // a tile needs its File and the size from its header: all at once,
       // six at a time, before anything is laid out
       const want = [];
       for (const m of tree.values()) for (const a of m.values()) for (const slots of a.values())
@@ -12810,7 +12783,7 @@ class Component extends DCLogic {
       if (seq !== this._asSeq) return;
       this._as = { busy: false, has: true, mains: [], root: root.name, files: 0, sets: 0,
         err: 'Could not read "' + root.name + '" — ' + (e && e.message ? String(e.message).replace(/\.\s*$/, '') : 'the folder may have moved') + '.'
-          + (src && src.kind === 'drive' ? ' Check that the folder is shared as "Anyone with the link" and the API key is right.' : ' Choose it again.') };
+          + ' Choose it again.' };
     }
     this.forceUpdate();
   }
@@ -12886,12 +12859,11 @@ class Component extends DCLogic {
   // same text check the Publish tab shows (Meta ad text, or YouTube Demand Gen text), read
   // from the saved project. Nothing here claims a link to a live ad; it is the image as exported.
   // ---------- viewing a folder that is not the source folder ----------
-  // From home or the Ad sets window: DROP a folder, or PASTE a Google Drive folder link. Both
-  // become a stand-in for a FileSystemDirectoryHandle — the four things asScan touches
+  // From home or the Ad sets window: DROP a folder (or click to choose one). It becomes a
+  // stand-in for a FileSystemDirectoryHandle — the four things asScan touches
   // (kind, name, entries(), getDirectoryHandle(), and a file's getFile()) — so the scan has
   // one code path whatever the folder is. A file may carry `modified` so the scan can pick
   // the newest without downloading it.
-  static AS_DRIVE_KEY = 'provident-drive-key';
   static asNotFound() { const e = new Error('Not found'); e.name = 'NotFoundError'; return e; }
   // A dropped folder in a browser without getAsFileSystemHandle (Safari, Firefox): the older
   // FileSystemEntry API, read once and cached.
@@ -12907,47 +12879,6 @@ class Component extends DCLogic {
     return { kind: 'directory', name: ent.name,
       async *entries() { for (const e of await read()) yield [e.name, node(e)]; },
       async getDirectoryHandle(n) { const e = (await read()).find(x => x.isDirectory && x.name === n); if (!e) throw Component.asNotFound(); return node(e); } };
-  }
-  // A Google Drive folder, read through the Drive API with the viewer's own API key (kept in
-  // this computer's localStorage, never in the repository). Works on a folder shared as
-  // "Anyone with the link"; nothing is written to Drive.
-  static driveDir(id, name, key) {
-    const api = 'https://www.googleapis.com/drive/v3/files', FOLDER = 'application/vnd.google-apps.folder';
-    let kids = null;
-    const fail = async r => { let m = 'Drive answered ' + r.status; try { const d = await r.json(); if (d && d.error && d.error.message) m = d.error.message; } catch (e) {} throw new Error(m); };
-    const list = () => kids || (kids = (async () => {
-      const out = []; let tok = '';
-      do {
-        const q = encodeURIComponent("'" + id + "' in parents and trashed=false");
-        const r = await fetch(api + '?q=' + q + '&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,shortcutDetails)&pageSize=1000'
-          + '&supportsAllDrives=true&includeItemsFromAllDrives=true&key=' + encodeURIComponent(key) + (tok ? '&pageToken=' + tok : ''));
-        if (!r.ok) await fail(r);
-        const d = await r.json();
-        out.push(...(d.files || [])); tok = d.nextPageToken || '';
-      } while (tok);
-      return out;
-    })());
-    const node = f => {
-      const sc = f.shortcutDetails;                       // a shortcut to a folder is a folder
-      if (f.mimeType === FOLDER || (sc && sc.targetMimeType === FOLDER)) return Component.driveDir(sc ? sc.targetId : f.id, f.name, key);
-      const fid = sc ? sc.targetId : f.id, lm = Date.parse(f.modifiedTime) || 0;
-      return { kind: 'file', name: f.name, modified: lm, getFile: async () => {
-        const r = await fetch(api + '/' + fid + '?alt=media&supportsAllDrives=true&key=' + encodeURIComponent(key));
-        if (!r.ok) await fail(r);
-        const b = await r.blob();
-        return new File([b], f.name, { type: b.type || f.mimeType || '', lastModified: lm });
-      } };
-    };
-    return { kind: 'directory', name, drive: true,
-      async *entries() { for (const f of await list()) yield [f.name, node(f)]; },
-      async getDirectoryHandle(n) { const f = (await list()).find(x => x.name === n && (x.mimeType === FOLDER || (x.shortcutDetails && x.shortcutDetails.targetMimeType === FOLDER))); if (!f) throw Component.asNotFound(); return node(f); } };
-  }
-  // The folder id from any shape of Drive folder link, or a bare id.
-  static driveId(t) {
-    t = String(t || '').trim();
-    const m = /\/folders\/([\w-]{10,})/.exec(t) || /[?&]id=([\w-]{10,})/.exec(t);
-    if (m) return m[1];
-    return /^[\w-]{20,}$/.test(t) ? t : '';
   }
   asView(src) {
     this._asSrc = src; this._asErr = ''; this._asDrag = false; this._asPanel = false;
@@ -13017,35 +12948,15 @@ class Component extends DCLogic {
     if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return;
     if (this._asDrag) { this._asDrag = false; this.forceUpdate(); }
   }
-  asDriveGo(e) {
-    const box = e && e.currentTarget && e.currentTarget.closest('.as-src');
-    const urlIn = box && box.querySelector('[data-as="url"]'), keyIn = box && box.querySelector('[data-as="key"]');
-    const id = Component.driveId(urlIn && urlIn.value);
-    let key = '';
-    try { key = (keyIn && keyIn.value.trim()) || localStorage.getItem(Component.AS_DRIVE_KEY) || ''; } catch (er) {}
-    if (!id) { this._asErr = 'That is not a Google Drive folder link. Open the folder in Drive and copy the address — it contains /folders/…'; this.forceUpdate(); return; }
-    if (!key) { this._asErr = 'Add a Google Drive API key once on this computer (below the link), then press View.'; this._asKeyOpen = true; this.forceUpdate(); return; }
-    try { if (keyIn && keyIn.value.trim()) localStorage.setItem(Component.AS_DRIVE_KEY, key); } catch (er) {}
-    this._asKeyOpen = false;
-    this.asView({ kind: 'drive', handle: Component.driveDir(id, 'Google Drive folder', key), name: 'Google Drive folder', link: urlIn.value.trim() });
-  }
-  asDriveKey(e) { if (e.key === 'Enter') { e.preventDefault(); this.asDriveGo(e); } }
   asSrcVals() {
-    let saved = '';
-    try { saved = localStorage.getItem(Component.AS_DRIVE_KEY) || ''; } catch (e) {}
-    const keyOn = !saved || this._asKeyOpen;
     return {
       asDragOn: this._asDrag ? '1' : undefined,
       asDrop: e => this.asDrop(e), asDragOver: e => this.asDragOver(e), asDragLeave: e => this.asDragLeave(e),
-      asDriveGo: e => this.asDriveGo(e), asDriveKey: e => this.asDriveKey(e),
       asBrowse: e => this.asBrowse(e), asDirPicked: e => this.asDirPicked(e),
-      asKeyOn: keyOn ? '1' : undefined,
-      asKeySavedOn: saved && !keyOn ? '1' : undefined,
-      asKeyEdit: () => { this._asKeyOpen = true; this.forceUpdate(); },
       asSrcErr: this._asErr || '', asSrcErrOn: this._asErr ? '1' : undefined,
       asUseSource: () => this.asUseSource(),
       asViewingOn: this._asSrc ? '1' : undefined,
-      asViewing: this._asSrc ? (this._asSrc.kind === 'drive' ? 'Viewing a Google Drive folder' : 'Viewing the dropped folder “' + this._asSrc.name + '”') : ''
+      asViewing: this._asSrc ? 'Viewing the dropped folder “' + this._asSrc.name + '”' : ''
     };
   }
   asCard(key, label, p, letter, tiles, ctx) {
@@ -13087,12 +12998,12 @@ class Component extends DCLogic {
     const es = this.eng.state || {};
     const proj = es.screen === 'splash' ? '' : (es.campaign || '').trim();
     let head = '', note = '';
-    if (!supported && !viewing) { head = 'Drop a folder or paste a Drive link'; note = 'This browser cannot open the source folder, but it can show a folder you drop here or a Google Drive folder you link to.'; }
-    else if (!root) { head = 'Choose what to view'; note = 'Use the source folder this project exports into, drop any folder of exported ad sets here, or paste a Google Drive folder link.'; }
+    if (!supported && !viewing) { head = 'Drop a folder'; note = 'This browser cannot open the source folder, but it can show a folder you drop here.'; }
+    else if (!root) { head = 'Choose what to view'; note = 'Use the source folder this project exports into, or drop any folder of exported ad sets here.'; }
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
     else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
-    // with nothing to show, the drop / Drive panel IS the screen: no toggle, and no separate
+    // with nothing to show, the drop panel IS the screen: no toggle, and no separate
     // note repeating what the panel already says
     const forced = !root || !!a.err || (!a.busy && !(a.mains || []).length);
     const big = this._asBig, list = this._asList || [], bi = big ? list.indexOf(big) : -1;
@@ -13108,11 +13019,11 @@ class Component extends DCLogic {
       asPickLabel: viewing ? 'Use source folder' : (root ? 'Change folder' : 'Choose source folder'),
       asSub: root ? (proj ? proj + ' · ' : '') + 'Reading ' + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head && root ? '1' : undefined,
-      // the drop / Drive panel sits in the empty state, and stays reachable from the bar
+      // the drop panel sits in the empty state, and stays reachable from the bar
       asSrcPanelOn: open && (forced || this._asPanel) ? '1' : undefined,
       asPanelBtnOn: open && !forced ? '1' : undefined,
       asPanelToggle: () => { this._asPanel = !this._asPanel; this.forceUpdate(); },
-      asPanelLabel: this._asPanel ? 'Hide' : 'Drop or link a folder',
+      asPanelLabel: this._asPanel ? 'Hide' : 'Drop a folder',
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
       asBigOn: big ? '1' : undefined,
