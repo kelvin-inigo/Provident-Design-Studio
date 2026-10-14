@@ -89,9 +89,12 @@ What's on the screen, from left to right:
 - **Layout**, on the right.
 
 **Adding and editing:**
-- **Add a component:** click a card in **Design Components**. The cards are Eyebrow, Hero
-  headline, Hook line, Body line, Tag chips, Spec data, Price block, Bullet list, Process steps,
-  CTA button, Graphic, Divider and Spacer.
+- **Add a component:** click a card (or its **+**) in **Design Components**. The cards are in four
+  groups: **Text** (Eyebrow, Hero headline, Hook line, Body line), **Data** (Price block, Spec data,
+  Tag chips, Bullet list, Process steps), **Action & media** (CTA button, Graphic) and **Structure**
+  (Divider, Spacer). Click a group's heading to fold it; a folded group lists what it holds, and
+  the computer remembers which groups you folded. A card already on the canvas shows **N in use**;
+  hover a card for what it is.
 - **Edit its words:** click the component on the canvas, then type in **This component**.
   - Headline, hook and body take line breaks (Enter), up to 4 lines.
   - Tag chips and spec rows have one field per item. Use **+** to add one and × to remove one.

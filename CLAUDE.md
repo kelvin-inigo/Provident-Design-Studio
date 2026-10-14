@@ -14670,3 +14670,26 @@ whole-file diff carries no artwork line.
 
 Verified: contrast over both rails with every section open, transitions finished — 0 failures in
 light (80 runs) and dark (84). Real clicks open and close sections.
+
+# THE PALETTE RAIL FOLDS INTO FOUR GROUPS (2026-10-14)
+
+By request ("refine this as well"), CAS's left Design Components rail, section 35 of the sheet.
+Chrome only — no artwork line changed.
+
+- **Four groups, not eight**: Text (eyebrow, hero, hook, body) · Data (price, spec, tags, list,
+  steps) · Action & media (cta, graphic) · Structure (divider, spacer). Five of the eight held one
+  card, so the rail was mostly outlines around single items.
+- **Each group is a `<details class="p-grp-w p-pal-g" data-acc="pal-<name>" data-def="1">`**,
+  so `accBind` folds and remembers it like the right rails. A closed group's summary lists its
+  cards (`cat.names`); an open one hides that line.
+- **The descriptor left the card** — it truncated beside the name ("checks / dots / ro…"). It is
+  the start of the card's tooltip (`addTip`). The name row carries a **`.p-tile-k` "N in use"**
+  chip when that component is on the active variant/page, and the **+** is visible at rest (a
+  `--ps-line` ring) and fills navy on hover or focus.
+- **`.p-tile-k` needs `.p-tile-n .p-tile-k`**: `.p-tile-n s` (0,1,1) out-ranked the bare class
+  and inked the chip `--ps-dim`, 4.36:1 in dark. Do NOT put `data-on` on a palette tile: the
+  no-stroke pass fills `.p-tile[data-on]` with the accent.
+
+Verified: real clicks add (the Body card gained "1 in use"), a group folds and its key lands in
+`adstudio-acc`; contrast over the rail 0 failures in both themes, no horizontal overflow.
+

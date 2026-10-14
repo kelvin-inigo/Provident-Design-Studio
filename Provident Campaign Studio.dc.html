@@ -3871,6 +3871,43 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 /* an empty drop already says "Drop a picture" — its caption repeating it is clutter */
 .p-rail .p-drop:not([data-done]) + .p-drop-t > s:first-child{display:none}
 @media (prefers-reduced-motion:reduce){.p-acc-c{transition:none}}
+
+/* ===============================================================================
+   35.  THE PALETTE RAIL, TIDIED
+   ===============================================================================
+   Four groups instead of eight (five held a single card), each a native <details>
+   remembered per computer by accBind, open by default. A closed group lists what it
+   holds in its summary. The descriptor that truncated beside every name ("checks /
+   dots / ro…") lives in the card's tooltip now; the card is its name, its specimen
+   and a + that is visible at rest. A card already on the canvas says so. */
+.p-rail-l .p-pal-g{display:block}
+.p-rail-l .p-pal-g > summary{list-style:none; cursor:pointer; user-select:none; min-height:22px}
+.p-rail-l .p-pal-g > summary::-webkit-details-marker{display:none}
+.p-rail-l .p-pal-g > summary:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px; border-radius:6px}
+.p-rail-l .p-pal-g > summary .p-pal-t{flex:none; font-size:12px; font-weight:600; color:var(--ps-ink-2)}
+.p-rail-l .p-pal-g > summary:hover .p-pal-t,.p-rail-l .p-pal-g > summary:hover .p-acc-c{color:var(--ps-ink)}
+.p-pal-v{flex:1 1 auto; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+  font-style:normal; text-decoration:none; font-size:11px; font-weight:400; color:var(--ps-dim)}
+.p-rail-l .p-pal-g[open] > summary .p-pal-v{visibility:hidden}
+.p-rail-l .p-pal-g .p-grp-c{margin-left:0}
+.p-rail-l .p-pal-g .p-acc-c{flex:none; width:16px; height:16px; color:var(--ps-dim);
+  transition:transform var(--ps-motion) var(--ps-ease)}
+.p-rail-l .p-pal-g:not([open]) > summary .p-acc-c{transform:rotate(-90deg)}
+.p-rail-l .p-pal-g[open] > summary{margin-bottom:8px}
+.p-rail-l .p-pal-g > .p-tile + .p-tile{margin-top:6px}
+.p-rail-l .p-pal-g:not([open]){padding-block:9px}
+/* the card: name row with a visible +, then the specimen */
+.p-rail-l .p-pal-g .p-tile{position:relative; padding:8px 10px; gap:6px}
+.p-rail-l .p-pal-g .p-tile-n{padding-right:24px; align-items:center; gap:8px; justify-content:flex-start}
+.p-rail-l .p-pal-g .p-tile-n b{font-size:13px; font-weight:500; color:var(--ps-ink)}
+.p-tile-n .p-tile-k{font-style:normal; text-decoration:none; font-size:10.5px; font-weight:500;
+  color:var(--ps-ink); background:var(--ps-fill-h); border-radius:var(--ps-pill); padding:1px 7px; white-space:nowrap}
+.p-rail-l .p-pal-g .p-tile-a{opacity:1; top:7px; right:7px; width:20px; height:20px;
+  color:var(--ps-dim); box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-rail-l .p-pal-g .p-tile:hover .p-tile-a,.p-rail-l .p-pal-g .p-tile:focus-visible .p-tile-a{
+  color:var(--ps-primary-i); background:var(--ps-primary); box-shadow:none}
+.p-rail-l .p-pal-g .p-tile:active{transform:scale(.985)}
+@media (prefers-reduced-motion:reduce){.p-rail-l .p-pal-g .p-acc-c{transition:none}.p-rail-l .p-pal-g .p-tile:active{transform:none}}
 </style>
 </helmet>
 
@@ -4632,17 +4669,17 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 
 <aside class="p-rail p-rail-l" data-open="{{ shPanelOnPalette }}">
   <div class="p-cap p-pal-h">Design Components</div>
-  <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="5">
-    <div class="p-grp-w">
-      <div class="p-cap p-grp-h">{{ cat.name }}<sc-if value="{{ cat.countOn }}" hint-placeholder-val="{{ false }}"><span class="p-grp-c">{{ cat.count }}</span></sc-if></div>
+  <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="4">
+    <details class="p-grp-w p-pal-g" data-acc="{{ cat.acc }}" data-def="1">
+      <summary class="p-cap p-grp-h"><span class="p-pal-t">{{ cat.name }}</span><s class="p-pal-v">{{ cat.names }}</s><sc-if value="{{ cat.countOn }}" hint-placeholder-val="{{ false }}"><span class="p-grp-c" title="{{ cat.countTip }}">{{ cat.count }}</span></sc-if><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
       <sc-for list="{{ cat.items }}" as="p" hint-placeholder-count="2">
         <button onClick="{{ p.add }}" class="p-tile" title="{{ p.addTip }}">
-          <span class="p-tile-n"><b>{{ p.label }}</b><s>{{ p.desc }}</s></span>
+          <span class="p-tile-n"><b>{{ p.label }}</b><sc-if value="{{ p.countOn }}" hint-placeholder-val="{{ false }}"><s class="p-tile-k">{{ p.count }} in use</s></sc-if></span>
           <span class="p-tile-p"><span style="{{ p.sampleStyle }}">{{ p.sampleText }}</span></span>
           <span class="p-tile-a" aria-hidden="true"><svg class="p-g" viewBox="0 -960 960 960"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span>
         </button>
       </sc-for>
-    </div>
+    </details>
   </sc-for>
   <div class="p-grp-w p-cust-w">
     <div class="p-cap p-grp-h">Custom</div>
@@ -11763,7 +11800,7 @@ class CampaignStudio extends StudioBase {
       return { label: labels[type][0], desc: labels[type][1], add: mkAdd(type),
                sampleText: samples[type][0], sampleStyle: samples[type][1],
                count: n, countOn: n ? '1' : undefined,
-               addTip: n ? 'Add another — ' + n + ' already on this variant' : 'Add to the canvas' };
+               addTip: labels[type][0] + ' — ' + labels[type][1] + '. ' + (n ? 'Click to add another; ' + n + ' already on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + '.' : 'Click to add it to the canvas.') };
     };
     // THE COUNT IS PER GROUP NOW, not per card. It aggregates its members' own counts,
     // so the badge answers "how many of this GROUP are on the variant" — which is the
@@ -11772,20 +11809,23 @@ class CampaignStudio extends StudioBase {
     const cat = (name, types) => {
       const items = types.map(item);
       const n = items.reduce((t, it) => t + it.count, 0);
-      return { name, items, count: n, countOn: n ? '1' : undefined };
+      // `acc` keys the group's fold state in adstudio-acc; `names` is what a CLOSED group
+      // says it holds, so folding it hides the cards and not the knowledge of them.
+      return { name, items, count: n, countOn: n ? '1' : undefined, acc: 'pal-' + name.toLowerCase().replace(/[^a-z]+/g, '-'),
+               names: items.map(it => it.label).join(' · '),
+               countTip: n + ' of this group on the ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') };
     };
     // The ordinals and the right-hand descriptors are GONE. They were doing two jobs the
     // rail no longer needs: the number implied a required order (the clusters decide
     // order, not the palette), and the descriptor repeated what the cards below it show.
+    // FOUR GROUPS, NOT EIGHT. Five of the eight held one card each, so the rail was mostly
+    // outlines around single items. Grouped by what a writer reaches for: words, facts,
+    // the action and the picture, then layout furniture. Each folds (accBind).
     const paletteCats = [
-      cat('Lead-in',   ['eyebrow']),
-      cat('Headline',  ['hero']),
-      cat('Support',   ['hook', 'body']),
-      cat('Data',      ['tags', 'spec', 'price', 'list']),
-      cat('Process',   ['steps']),
-      cat('Actions',   ['cta']),
-      cat('Media',     ['graphic']),
-      cat('Structure', ['divider', 'spacer'])
+      cat('Text',            ['eyebrow', 'hero', 'hook', 'body']),
+      cat('Data',            ['price', 'spec', 'tags', 'list', 'steps']),
+      cat('Action & media',  ['cta', 'graphic']),
+      cat('Structure',       ['divider', 'spacer'])
     ];
 
     const sel = s.sel;
