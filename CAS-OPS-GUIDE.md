@@ -195,15 +195,18 @@ No API key or service is needed: Claude Code reads the screenshot.
 - **YT Demand Gen 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape for
   YouTube Demand Gen, and its words run the full width of the canvas. It exports into the
   **YT Demand Gen** folder (section 7).
-- **All Variants Option** (the pill next to **Add Variant**) holds the settings for the whole
-  project:
-  - **Format:** **Single ad** or **Carousel**. A carousel has up to 10 pages, and each page has
-    its own components, words and photo.
-  - **Story 9:16:** **Shown** or **Hidden**. This one only appears on a carousel.
-  - **QR code:** **Visible** or **Hidden**, and the **Corner** it sits in.
+- **All variants** (the pill next to **Add Variant**, which shows how many variants you have
+  out of the most allowed) holds the settings for the whole project:
+  - **Platform** and **Format** are cards: pick **Meta ads** or **YouTube Demand Gen**, and
+    **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
+    and each page has its own components, words and photo.
+  - **Write Meta ad text** (or **Write headlines and descriptions** on YouTube) opens the
+    **Publish** tab.
+  - **Story 9:16**, **QR code** and **Collaboration logo** are switches. The line under each
+    one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
+    on, pick the **Corner** it sits in.
   - **Typeface:** **English** or **Arabic**.
-  - **Collaboration logo:** **Off** or **On**. It puts a partner's mark beside the wordmark, with
-    settings for size and colour.
+  - With the collaboration logo on, add the partner's mark and set its size and colour.
 
 ## 5. CAS: the Eventbrite banner
 

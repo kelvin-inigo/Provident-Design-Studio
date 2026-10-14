@@ -14604,3 +14604,29 @@ Reels keeps the supplied mock's vectors and adds counts and Follow).
   `providentestate`, page "Provident Real Estate".
 - New render keys `mkPlatKey` / `mkViewKey` / `mkStoryName`. The 1.91:1 label in
   `mkPlaceLabel`. Artwork untouched — no ops line edited; the export path is unchanged.
+
+# THE ALL-VARIANTS DOCK HAS THREE NEW CONTROL TYPES (2026-10-14)
+
+By request ("improve the UI and UX of this, introduce new type of buttons"), CAS only, section 32 of
+its sheet. Each control takes the shape of its question instead of every decision being a pill pair:
+
+- **Choice cards `.p-rc`** (in a `.p-rcs` grid, `role="radio"`) for Platform and Format — an icon of
+  the canvases it produces, a name, one fact, a tick on the chosen one. Selected is the
+  `--ps-accent` fill with NO stroke; unselected is a `--ps-line` inset ring.
+- **Switch rows `.p-tgl`** (`role="switch"`, `aria-checked` a `'true'`/`'false'` string) for QR code,
+  Story 9:16 and Collaboration logo. The whole row is the button and the line under the name is the
+  live state. The collaboration logo is `.p-tgl-d` — a div with a standalone `button.p-tgl-s`,
+  because its title carries the `i` tip and a tip inside a toggle button would toggle on click.
+  New `storyToggle`; `qrToggle` / `coToggle` were already there.
+- **Action rows `.p-arow`** for the two buttons that open the Publish tab.
+- The YouTube logo's Ground tabs carry colour dots (`.p-dotc`); Add Variant carries a +, and the
+  count `1/3` (`varCount`, dimmed at the cap via `data-max`); the options pill is "All variants" /
+  "All pages" with a tune icon and a caret that turns while open (`allVarsAria` lives in the SHELL —
+  `allVarsOpen` is shell state).
+- **The tick, the switch's ON track and the action icon are MARKS, so they take `--ps-link`.** Navy
+  on the dark card is 1.25:1; measured after: switch 5.91:1 and tick 4.54:1 in dark.
+- The Platform and Format hints were trimmed to what the cards do not say, and the Format hint's
+  stale export names (`Name_Master_1x1`) now name the Variant / Carousel folders.
+
+Verified in the pane with real clicks and synthetic ones: every card and switch flips state and its
+`aria-checked`; contrast over the open dock 0 failures in both themes. No artwork line changed.

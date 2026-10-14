@@ -3675,6 +3675,80 @@ select.p-in{padding-right:34px}
 .p-szb .i-on{display:none}
 .p-szb[data-on] .i-on{display:block}
 .p-szb[data-on] .i-off{display:none}
+
+/* ── 32 · THE DOCK'S THREE NEW CONTROL TYPES (2026-10-14). The All-variants dock was a column
+   of identical pill pairs — five decisions that each read as "pick one of two words". Each
+   control now takes the shape of its question:
+   · CHOICE CARDS (.p-rc) for a decision that changes what the project IS — Platform and
+     Format. Icon (the canvas shapes it produces) + name + one fact, a tick on the chosen one.
+   · SWITCH ROWS (.p-tgl) for an on/off — QR code, Story 9:16, Collaboration logo. The whole
+     row is the button; the line under the name is the live state. role="switch".
+   · ACTION ROWS (.p-arow) for a button that takes you somewhere — the text editors in the
+     Publish tab. Leading icon, label, where it goes, trailing chevron.
+   The selected card is a FILL with no stroke (the no-stroke-on-a-solid rule); its tick and
+   its ink carry the state. The tick, the switch's ON track and the action icon are MARKS, so
+   they take --ps-link, never the navy fill — navy has no boundary on the dark ground. */
+.p-rcs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.p-rc{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
+  padding:12px 12px 11px;border:none;border-radius:16px;background:transparent;color:var(--ps-ink);cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--ps-line);font:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
+.p-rc:hover{background:var(--ps-fill)}
+.p-rc b{font:600 13px/1.25 var(--ps-font);color:inherit}
+.p-rc s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-rc-i{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--ps-fill);color:var(--ps-ink-2);margin-bottom:5px}
+.p-rc-g{width:20px;height:20px;display:block}
+.p-rc-k{position:absolute;top:10px;right:10px;width:18px;height:18px;padding:2px;border-radius:50%;
+  fill:var(--ps-app);background:var(--ps-link);opacity:0;transform:scale(.6);
+  transition:opacity var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease)}
+.p-rc[data-on],.p-rc[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.p-rc[data-on] s{color:var(--ps-accent-i);opacity:.8}
+.p-rc[data-on] .p-rc-i{background:var(--ps-card);color:var(--ps-ink)}
+.p-rc[data-on] .p-rc-k{opacity:1;transform:none}
+.p-rc:focus-visible,.p-tgl:focus-visible,.p-arow:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+
+.p-tgl{display:flex;align-items:center;gap:14px;width:100%;padding:2px 0;border:none;background:transparent;
+  color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit;border-radius:12px}
+.p-tgl-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.p-tgl-t b{font:500 13px/1.35 var(--ps-font)}
+.p-tgl-t s{font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-tgl-s{flex:none;position:relative;width:40px;height:24px;border-radius:var(--ps-pill);background:var(--ps-fill-dis);
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-tgl-s::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:transform var(--ps-motion) var(--ps-ease)}
+.p-tgl:hover .p-tgl-s{background:var(--ps-line)}
+.p-tgl[data-on] .p-tgl-s{background:var(--ps-link)}
+.p-tgl[data-on] .p-tgl-s::after{transform:translateX(16px)}
+.p-tgl-d{cursor:default}
+button.p-tgl-s{border:none;padding:0;cursor:pointer}
+button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.p-tgl-d .p-tgl-s:hover{background:var(--ps-line)}
+.p-tgl-s[data-on],.p-tgl-d .p-tgl-s[data-on]:hover{background:var(--ps-link)}
+.p-tgl-s[data-on]::after{transform:translateX(16px)}
+
+.p-arow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px 10px 10px;border:none;border-radius:16px;
+  background:var(--ps-fill);color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-arow:hover{background:var(--ps-fill-h)}
+.p-arow-i{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--ps-link);color:var(--ps-app)}
+.p-arow-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.p-arow-t b{font:600 13px/1.3 var(--ps-font)}
+.p-arow-t s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-arow-c{flex:none;width:18px;height:18px;color:var(--ps-dim);transition:transform var(--ps-motion) var(--ps-ease)}
+.p-arow:hover .p-arow-c{transform:translateX(2px);color:var(--ps-ink)}
+
+/* the ground swatches ride inside their tab */
+.p-dotc{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:0 0 0 1px var(--ps-line)}
+
+/* the two dock pills: an icon each, the variant count, a caret that turns while open */
+.p-dock-t.p-dock-add,.p-dock-t.p-dock-opt{display:inline-flex;align-items:center;gap:8px}
+.p-dock-g{width:17px;height:17px;flex:none;display:block}
+.p-dock-t .p-dock-n{font:500 11px/1 var(--ps-font);color:var(--ps-ink-2);text-decoration:none;opacity:1;
+  padding:3px 6px;border-radius:var(--ps-pill);background:var(--ps-fill);font-variant-numeric:tabular-nums}
+.p-dock-t.p-dock-add[data-max]{opacity:.45;cursor:default}
+.p-dock-cv{width:15px;height:15px;transition:transform var(--ps-motion) var(--ps-ease)}
+.p-dock-t.p-dock-opt[data-on] .p-dock-cv{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){.p-rc,.p-rc-k,.p-tgl-s,.p-tgl-s::after,.p-arow-c,.p-dock-cv{transition:none}}
 </style>
 </helmet>
 
@@ -4327,7 +4401,10 @@ select.p-in{padding-right:34px}
   <div class="p-cap p-shd" data-state="{{ secVarsState }}"><span class="p-shd-t">{{ allVarsTitle }} <span class="tip tip-dark" data-tip="{{ allVarsTip }}" style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secVarsNote }}</span></div>
   <div class="p-grp">
     <span class="p-lab">Platform <span class="tip tip-dark" data-tip="Which platform this project is for. Meta ads: 1:1 feed and 9:16 story at 2x, with an opt-in YT Demand Gen 1.91:1 and Eventbrite banners. YouTube Demand Gen: every variant carries the four ratios Google mixes into its asset pool — 1.91:1 landscape, 1:1 square, 4:5 portrait and 9:16 for Shorts — exported at Google's recommended sizes in JPEG or PNG, with a 1:1 business logo and the headline and description text. Switching keeps the design." style="{{ infoStyleDark }}">i</span></span>
-    <div class="p-tabs"><button onClick="{{ platMeta }}" data-on="{{ platMetaOn }}">Meta ads</button><button onClick="{{ platYt }}" data-on="{{ platYtOn }}">YouTube Demand Gen</button></div>
+    <div class="p-rcs" role="radiogroup" aria-label="Platform">
+      <button onClick="{{ platMeta }}" data-on="{{ platMetaOn }}" class="p-rc" role="radio" aria-checked="{{ platMetaAria }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="10" rx="1.6"/><rect x="15.5" y="4" width="5.5" height="16" rx="1.4"/></svg></span><b>Meta ads</b><s>1:1 feed · 9:16 story</s></button>
+      <button onClick="{{ platYt }}" data-on="{{ platYtOn }}" class="p-rc" role="radio" aria-checked="{{ platYtAria }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="m10.2 9.4 4.4 2.6-4.4 2.6Z" fill="currentColor"/></svg></span><b>YouTube Demand Gen</b><s>Google asset pool</s></button>
+    </div>
     <span class="p-hint">{{ platHint }}</span>
   </div>
   <sc-if value="{{ platYtFlag }}" hint-placeholder-val="{{ false }}">
@@ -4338,7 +4415,7 @@ select.p-in{padding-right:34px}
       <div class="p-drop-t"><s>The wordmark on a square, exported as Logo_1x1.png.</s><s>Google crops a logo to a circle in some placements, so the mark sits well inside one.</s></div>
     </div>
     <span class="p-lab">Ground</span>
-    <div class="p-tabs"><button onClick="{{ ytLogoNavy }}" data-on="{{ ytLogoNavyOn }}">Navy</button><button onClick="{{ ytLogoWhite }}" data-on="{{ ytLogoWhiteOn }}">White</button><button onClick="{{ ytLogoBlack }}" data-on="{{ ytLogoBlackOn }}">Black</button></div>
+    <div class="p-tabs"><button onClick="{{ ytLogoNavy }}" data-on="{{ ytLogoNavyOn }}"><i class="p-dotc" style="background:#1A2942"></i>Navy</button><button onClick="{{ ytLogoWhite }}" data-on="{{ ytLogoWhiteOn }}"><i class="p-dotc" style="background:#FFFFFF"></i>White</button><button onClick="{{ ytLogoBlack }}" data-on="{{ ytLogoBlackOn }}"><i class="p-dotc" style="background:#0A0B0D"></i>Black</button></div>
   </div>
   <div class="p-grp">
     <span class="p-lab">Text assets <span class="yt-badge" data-state="{{ ytBadgeState }}">{{ ytBadge }}</span></span>
@@ -4346,7 +4423,7 @@ select.p-in{padding-right:34px}
       <sc-for list="{{ ytChecks }}" as="ck" hint-placeholder-count="3"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
     </ul>
     <span class="p-hint">{{ ytTextHint }}</span>
-    <button onClick="{{ ytEditText }}" class="p-ghost p-sm">Write headlines and descriptions</button>
+    <button onClick="{{ ytEditText }}" class="p-arow"><span class="p-arow-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4.2L19 9.2a2.1 2.1 0 0 0-3-3L5.2 17 4 20Z"/><path d="m14.5 7.7 3 3"/></svg></span><span class="p-arow-t"><b>Write headlines and descriptions</b><s>Opens the Publish tab</s></span><svg class="p-arow-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
   </div>
   </sc-if>
   <sc-if value="{{ platMetaFlag }}" hint-placeholder-val="{{ true }}">
@@ -4356,23 +4433,22 @@ select.p-in{padding-right:34px}
       <sc-for list="{{ mtChecks }}" as="ck" hint-placeholder-count="0"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
     </ul>
     <span class="p-hint">{{ mtHint }}</span>
-    <button onClick="{{ ytEditText }}" class="p-ghost p-sm">Write Meta ad text</button>
+    <button onClick="{{ ytEditText }}" class="p-arow"><span class="p-arow-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4.2L19 9.2a2.1 2.1 0 0 0-3-3L5.2 17 4 20Z"/><path d="m14.5 7.7 3 3"/></svg></span><span class="p-arow-t"><b>Write Meta ad text</b><s>Opens the Publish tab</s></span><svg class="p-arow-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
   </div>
   <div class="p-grp">
     <span class="p-lab">Format <span class="tip tip-dark" data-tip="A single ad is one design in up to three A/B variants that share their copy. A carousel is up to ten pages that swipe, each with its own copy and photo — exported as _page1, _page2, … Switching keeps everything you have made." style="{{ infoStyleDark }}">i</span></span>
-    <div class="p-tabs"><button onClick="{{ modeSingle }}" data-on="{{ modeSingleOn }}">Single ad</button><button onClick="{{ modeCarousel }}" data-on="{{ modeCarouselOn }}">Carousel</button></div>
+    <div class="p-rcs" role="radiogroup" aria-label="Format">
+      <button onClick="{{ modeSingle }}" data-on="{{ modeSingleOn }}" class="p-rc" role="radio" aria-checked="{{ modeSingleAria }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></span><b>Single ad</b><s>Up to 3 A/B variants</s></button>
+      <button onClick="{{ modeCarousel }}" data-on="{{ modeCarouselOn }}" class="p-rc" role="radio" aria-checked="{{ modeCarouselAria }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="12" height="12" rx="1.8"/><path d="M17.5 7.5v9M21 9v6"/></svg></span><b>Carousel</b><s>Up to 10 swipe pages</s></button>
+    </div>
     <span class="p-hint">{{ modeHint }}</span>
     <sc-if value="{{ modeCarouselFlag }}" hint-placeholder-val="{{ false }}">
-      <span class="p-lab">Story 9:16</span>
-      <div class="p-tabs"><button onClick="{{ storyShow }}" data-on="{{ storyShownOn }}">Shown</button><button onClick="{{ storyHide }}" data-on="{{ storyHiddenOn }}">Hidden</button></div>
-      <span class="p-hint">{{ storyHint }}</span>
+      <button onClick="{{ storyToggle }}" class="p-tgl" role="switch" aria-checked="{{ storyAria }}" data-on="{{ storyShownOn }}"><span class="p-tgl-t"><b>Story 9:16</b><s>{{ storyHint }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
     </sc-if>
   </div>
   </sc-if>
   <div class="p-grp">
-    <span class="p-lab">QR code</span>
-    <div class="p-tabs"><button onClick="{{ qrSetShow }}" data-on="{{ qrVisibleOn }}">Visible</button><button onClick="{{ qrSetHide }}" data-on="{{ qrHiddenOn }}">Hidden</button></div>
-    <span class="p-hint">{{ qrHint }}</span>
+    <button onClick="{{ qrToggle }}" class="p-tgl" role="switch" aria-checked="{{ qrAria }}" data-on="{{ qrVisibleOn }}"><span class="p-tgl-t"><b>QR code</b><s>{{ qrHint }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
     <sc-if value="{{ qrShowFlag }}" hint-placeholder-val="{{ true }}">
     <div class="p-droprow">
       <div class="p-drop p-drop-sq" data-done="{{ qrDoneOn }}"><image-slot id="adstudio-qr" shape="rounded" radius="8" placeholder="QR" style="{{ qrSlotStyle }}"></image-slot></div>
@@ -4405,9 +4481,7 @@ select.p-in{padding-right:34px}
     </div>
   </div>
   <div class="p-grp">
-    <span class="p-lab">Collaboration logo <span class="tip tip-dark" data-tip="Locks a partner mark up beside the wordmark, divided by a hairline: provident. | partner. Upload an SVG or PNG — its own padding is measured off and ignored, so it lines up against the divider whatever the file's canvas is, and it is scaled from the wordmark's own size, so it stays in proportion on every canvas and at every Scaling setting." style="{{ infoStyleDark }}">i</span></span>
-    <div class="p-tabs"><button onClick="{{ coSetOff }}" data-on="{{ coOffOn }}">Off</button><button onClick="{{ coSetOn }}" data-on="{{ coBrandOn }}">On</button></div>
-    <span class="p-hint">{{ coHint }}</span>
+    <div class="p-tgl p-tgl-d"><span class="p-tgl-t"><span class="p-lab">Collaboration logo <span class="tip tip-dark" data-tip="Locks a partner mark up beside the wordmark, divided by a hairline: provident. | partner. Upload an SVG or PNG — its own padding is measured off and ignored, so it lines up against the divider whatever the file's canvas is, and it is scaled from the wordmark's own size, so it stays in proportion on every canvas and at every Scaling setting." style="{{ infoStyleDark }}">i</span></span><s>{{ coHint }}</s></span><button onClick="{{ coToggle }}" class="p-tgl-s" role="switch" aria-checked="{{ coAria }}" data-on="{{ coBrandOn }}" aria-label="Collaboration logo"></button></div>
     <sc-if value="{{ coOnFlag }}" hint-placeholder-val="{{ false }}">
       <div class="p-droprow">
         <div class="p-drop" data-done="{{ coDoneOn }}"><image-slot id="adstudio-colog" fit="contain" shape="rounded" radius="8" placeholder="Partner SVG" style="{{ coSlotStyle }}"></image-slot></div>
@@ -4431,8 +4505,8 @@ select.p-in{padding-right:34px}
         </div>
       </sc-if>
       <div class="p-dock-r">
-        <button onClick="{{ addVariant }}" class="p-dock-t" title="{{ addVariantLabel }}">{{ addVariantText }}</button>
-        <button onClick="{{ toggleAllVars }}" class="p-dock-t" data-on="{{ allVarsOn }}">{{ allVarsBtn }}</button>
+        <button onClick="{{ addVariant }}" class="p-dock-t p-dock-add" title="{{ addVariantLabel }}" data-max="{{ addVarMaxOn }}"><svg class="p-dock-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>{{ addVariantText }}<s class="p-dock-n">{{ varCount }}</s></button>
+        <button onClick="{{ toggleAllVars }}" class="p-dock-t p-dock-opt" data-on="{{ allVarsOn }}" aria-expanded="{{ allVarsAria }}"><svg class="p-dock-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>{{ allVarsBtn }}<svg class="p-dock-g p-dock-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
       </div>
     </div>
   </div>
@@ -11797,6 +11871,7 @@ class CampaignStudio extends StudioBase {
       platMetaOn: yt ? undefined : '1',
       platYtOn: yt ? '1' : undefined,
       platMetaFlag: !yt,
+      platMetaAria: yt ? 'false' : 'true', platYtAria: yt ? 'true' : 'false',
       platYtFlag: yt,
       // the placement preview is Meta's feed, reels and story — nothing to show for YouTube
       mkBtnOn: !yt,
@@ -11804,8 +11879,8 @@ class CampaignStudio extends StudioBase {
       // a YouTube project is a single ad; a carousel's pages keep their lists for the round trip
       platYt: () => this.upd(x => { if (x.platform === 'ytdg') return x; x.platform = 'ytdg'; x.adMode = 'single'; x.storyOn = true; x.yt = CampaignStudio.ytOf(x); if (x.sel && ['ls', 'bn', 'bs'].indexOf(x.sel.size) >= 0) x.sel = null; return x; }),
       platHint: yt
-        ? 'Each variant starts with the 1.91:1; Show 1:1, 4:5 or 9:16 on its plate to add more. All at Google\u2019s sizes, plus a 1:1 logo and the text assets. JPEG or PNG, 5 MB each.'
-        : '1:1 feed and 9:16 story at 2x, with an opt-in YT Demand Gen 1.91:1 and Eventbrite banners on each variant.',
+        ? 'Each variant starts with the 1.91:1 — show 1:1, 4:5 or 9:16 on its plate. Plus a 1:1 logo and the text assets.'
+        : 'Exported at 2x. Each variant can add a YT Demand Gen 1.91:1 and Eventbrite banners.',
       ytLogoStyle: ytLogo,
       ytLogoNavyOn: ytY.logoBg === 'navy' ? '1' : undefined,
       ytLogoWhiteOn: ytY.logoBg === 'white' ? '1' : undefined,
@@ -11833,6 +11908,9 @@ class CampaignStudio extends StudioBase {
       modeSingleOn: CampaignStudio.isCarousel(s) ? undefined : '1',
       modeCarouselOn: CampaignStudio.isCarousel(s) ? '1' : undefined,
       modeCarouselFlag: CampaignStudio.isCarousel(s),
+      modeSingleAria: CampaignStudio.isCarousel(s) ? 'false' : 'true', modeCarouselAria: CampaignStudio.isCarousel(s) ? 'true' : 'false',
+      storyAria: CampaignStudio.storyShown(s) ? 'true' : 'false',
+      storyToggle: () => this.upd(x => { x.storyOn = !CampaignStudio.storyShown(x); if (!x.storyOn && x.sel && x.sel.size === 'st') x.sel = null; return x; }),
       // Back to single leaves `modules` as the ad had it and keeps each page's own list.
       modeSingle: () => this.upd(x => { if (x.adMode === 'single') return x; x.adMode = 'single'; x.storyOn = true; x.sel = null; return x; }),
       // Going carousel forks every variant that has no list of its own off the single ad —
@@ -11840,8 +11918,8 @@ class CampaignStudio extends StudioBase {
       // nothing from then on. A page that already has a list (a round trip) keeps it.
       modeCarousel: () => this.upd(x => { if (x.adMode === 'carousel') return x; x.adMode = 'carousel'; x.variants.forEach((v, i) => { if (!Array.isArray(v.mods)) CampaignStudio.forkPage(x, i, x.modules || [], { keepOld: true }); }); x.sel = null; return x; }),
       modeHint: CampaignStudio.isCarousel(s)
-        ? 'Up to 10 pages, each with its own copy and photo. Exports Name_page1_1x1, Name_page2_1x1, … The pages are the variants you already have.'
-        : 'One ad, up to 3 A/B variants sharing the same copy. Exports Name_Master_1x1, Name_Variant 2_1x1, …',
+        ? 'Each page keeps its own copy and photo. Exports into one Carousel folder — Name_page1_feed, Name_page2_feed, …'
+        : 'The variants share one set of copy. Exports a folder per variant — Variant A, B, C.',
       storyShownOn: CampaignStudio.storyShown(s) ? '1' : undefined,
       storyHiddenOn: CampaignStudio.storyShown(s) ? undefined : '1',
       storyShow: () => this.upd(x => { x.storyOn = true; return x; }),
@@ -11851,7 +11929,7 @@ class CampaignStudio extends StudioBase {
       storyHint: CampaignStudio.storyShown(s) ? 'Every page also renders and exports at 1080 × 1920.' : 'Feed sizes only — nothing renders or exports at 9:16.',
       allVarsTitle: CampaignStudio.isCarousel(s) ? 'All pages' : 'All variants',
       qrOneCode: 'One code for every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + ' and every size. PNG or SVG, on a white quiet zone.',
-      allVarsBtn: CampaignStudio.isCarousel(s) ? 'All Pages Option' : 'All Variants Option',
+      allVarsBtn: CampaignStudio.isCarousel(s) ? 'All pages' : 'All variants',
       allVarsTip: yt
         ? 'Everything here applies to every variant at once. Up to three variants share one set of design components; each is a set of four images for the YouTube Demand Gen asset pool. Export writes a folder per variant — Variant A, B and C, each with the 1.91:1, 1:1, 4:5 and 9:16 — plus the 1:1 business logo and the text assets. Each export overwrites the last.'
         : CampaignStudio.isCarousel(s)
@@ -12466,6 +12544,9 @@ class CampaignStudio extends StudioBase {
         { background: 'var(--ps-card)', color: 'var(--ps-ink)', border: '1px solid var(--ps-line)', padding: '9px 18px', fontWeight: 400 },
         s.variants.length >= CampaignStudio.maxVars(s) ? { opacity: .45, cursor: 'default' } : {}),
       qrToggle: () => this.upd(x => { x.qr.show = !x.qr.show; return x; }),
+      qrAria: s.qr.show ? 'true' : 'false', coAria: (s.colog && s.colog.on) ? 'true' : 'false',
+      addVarMaxOn: s.variants.length >= CampaignStudio.maxVars(s) ? '1' : undefined,
+      varCount: s.variants.length + '/' + CampaignStudio.maxVars(s),
       // the dock says the state as a PAIR now — Visible | Hidden, Off | On — so each half
       // needs its own setter and its own flag; the toggle keys above stay for any other reader
       qrSetShow: () => this.upd(x => { x.qr.show = true; return x; }),
@@ -13258,6 +13339,7 @@ class Component extends DCLogic {
         set: t.file ? (() => this.goOther(t.file)) : (() => {})
       })),
       allVarsOn: this.state.allVarsOpen ? '1' : undefined,
+      allVarsAria: this.state.allVarsOpen ? 'true' : 'false',
       toggleAllVars: () => this.setState({ allVarsOpen: !this.state.allVarsOpen }),
       // ── design-system sheet ────────────────────────────────────────────────
       specOpen: this.state.specOpen ? '1' : undefined,
