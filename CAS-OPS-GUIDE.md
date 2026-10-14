@@ -423,7 +423,8 @@ You do not have to change your Source folder to look at someone else's exports. 
 page, under **View ad sets**, and in the Ad sets window (press **Drop or link a folder**):
 
 - **Drop a folder** anywhere on the page. Use the project folder (the one holding the
-  `.adstudio.json` and its Variant folders), or a folder above several projects.
+  `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
+  **click** the drop area to choose a folder instead.
 - **Paste a Google Drive folder link** and press **View** (or Enter). The folder must be shared
   as **Anyone with the link**. The first time on each computer, the studio asks for a **Google
   Drive API key**. It is kept in that browser only and never written to a file. To get one, open

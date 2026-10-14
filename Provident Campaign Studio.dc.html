@@ -3581,6 +3581,12 @@ select.p-in{padding-right:34px}
 .as-src-err{grid-column:1 / -1;margin:0;padding:10px 12px;border-radius:var(--ps-r-sm);background:var(--ps-bad-q);color:var(--ps-bad);
   font:500 12.5px/1.45 var(--ps-font)}
 .as-home{margin-bottom:26px}
+.as-src-drop{font:inherit;color:inherit;width:100%;cursor:pointer;-webkit-appearance:none;appearance:none}
+.as-src-dir{display:none}
+.as-src-drop:hover{border-color:var(--ps-link);background:var(--ps-fill-h)}
+.as-src-drop:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.as-ov > .as-stage > .as-empty{max-width:880px;width:100%;box-sizing:border-box;margin:24px auto 0}
+.as-ov > .as-stage > .as-empty + .as-src{margin-top:-24px}
 .as-viewing{max-width:320px;padding:6px 12px;border-radius:var(--ps-pill);background:var(--ps-fill);font:500 12px/1.3 var(--ps-font);
   color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:760px){
@@ -3735,7 +3741,7 @@ select.p-in{padding-right:34px}
         <div class="p-sec-l" style="padding-left:0">View ad sets</div>
         <div class="as-home">
         <div class="as-src">
-          <div class="as-src-drop"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>The folder with the saved project and its Variant folders, or a folder above several of them.</s></div>
+          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
           <div class="as-src-or"><span>or</span></div>
           <div class="as-src-drive">
             <b class="as-src-t">Paste a Google Drive folder link</b>
@@ -4142,7 +4148,7 @@ select.p-in{padding-right:34px}
         <div class="as-ttl"><b>Ad sets</b><s>{{ asSub }}</s></div>
         <span class="p-spring"></span>
         <sc-if value="{{ asViewingOn }}" hint-placeholder-val="{{ false }}"><span class="as-viewing">{{ asViewing }}</span></sc-if>
-        <button onClick="{{ asPanelToggle }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg>{{ asPanelLabel }}</button>
+        <sc-if value="{{ asPanelBtnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPanelToggle }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg>{{ asPanelLabel }}</button></sc-if>
         <sc-if value="{{ asHasRoot }}" hint-placeholder-val="{{ true }}"><button onClick="{{ asRefresh }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-133 0-226.5-93.5T160-480q0-133 93.5-226.5T480-800q85 0 149 34.5T740-671v-99q0-13 8.5-21.5T770-800q13 0 21.5 8.5T800-770v194q0 13-8.5 21.5T770-546H576q-13 0-21.5-8.5T546-576q0-13 8.5-21.5T576-606h138q-38-60-97-97t-137-37q-109 0-184.5 75.5T220-480q0 109 75.5 184.5T480-220q77 0 140-39.5t94-106.5q5-11 16.5-17.5T754-386q15 2 22.5 14t2.5 26q-38 87-118.5 136.5T480-160Z"/></svg>Refresh</button></sc-if>
         <sc-if value="{{ asPickOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPick }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ asPickLabel }}</button></sc-if>
         <button onClick="{{ asClose }}" class="p-ghost">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
@@ -4151,7 +4157,7 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ asNoteOn }}" hint-placeholder-val="{{ false }}"><div class="as-empty"><b>{{ asNoteHead }}</b><p>{{ asNote }}</p></div></sc-if>
         <sc-if value="{{ asSrcPanelOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-src">
-          <div class="as-src-drop"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>The folder with the saved project and its Variant folders, or a folder above several of them.</s></div>
+          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
           <div class="as-src-or"><span>or</span></div>
           <div class="as-src-drive">
             <b class="as-src-t">Paste a Google Drive folder link</b>
@@ -4181,7 +4187,7 @@ select.p-in{padding-right:34px}
                             <div class="as-pair" data-row="{{ r.kind }}">
                               <sc-for list="{{ r.tiles }}" as="t" hint-placeholder-count="2">
                                 <figure class="as-t" data-shape="{{ t.shape }}">
-                                  <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.url }}" alt="{{ t.name }}"></button>
+                                  <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"></button>
                                   <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
                                 </figure>
                               </sc-for>
@@ -12671,30 +12677,35 @@ class Component extends DCLogic {
     if (!root) return;
     const kindOf = src ? src.kind : 'source';
     const urls = [];
+    // SPEED: the walk runs folders in parallel, a size is read from the image's header (never by
+    // decoding it), the saved project is parsed only as far as its state (the photos it embeds
+    // are skipped), and each tile shows a small thumbnail made in the background — 60 full-size
+    // exports decoded for a strip of tiles was ~2 GB of pixels. The full file is only for the
+    // enlarged view and See details.
+    const lmOf = async h => h.modified != null ? h.modified : (await h.getFile()).lastModified;
     try {
       // 1 — the project folders (a saved .adstudio.json)
       const found = [];
       const find = async (dir, path, depth) => {
-        const subs = []; let best = null, json = null;
+        const subs = [], jsons = [];
         for await (const [name, h] of dir.entries()) {
           if (h.kind === 'directory') { if (!Component.AS_SKIP.test(name) && !/^variant [a-z]$/i.test(name)) subs.push([name, h]); }
-          else if (/\.adstudio\.json$/i.test(name)) {
-            // a Drive file states its date without being downloaded; only the newest one is read
-            const lm = h.modified != null ? h.modified : (await h.getFile()).lastModified;
-            if (!best || lm > best.lm) best = { h, lm };
-          }
+          else if (/\.adstudio\.json$/i.test(name)) jsons.push(h);
         }
-        if (best) json = await best.h.getFile();
-        if (json) {
+        if (jsons.length) {
+          // a Drive file states its date without being downloaded; only the newest one is read
+          const lms = await Promise.all(jsons.map(lmOf));
+          let bi = 0; lms.forEach((lm, i) => { if (lm > lms[bi]) bi = i; });
+          const json = await jsons[bi].getFile();
           // the saved project carries the Publish text that See details checks
-          let state = {};
-          try { const d = JSON.parse(await json.text()); state = (d && d.state) || {}; } catch (e) {}
+          const state = await Component.asState(json);
           found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, ''), state });
         }
-        else if (depth < 3) for (const [n, h] of subs) await find(h, path ? path + '/' + n : n, depth + 1);
+        else if (depth < 3) await Promise.all(subs.map(([n, h]) => find(h, path ? path + '/' + n : n, depth + 1)));
       };
       await find(root, '', 0);
       if (seq !== this._asSeq) return;
+      found.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);   // the walk ran in parallel
       // 2 — Main folder › Audience › Variant › Platform › Type. Main is the first folder under
       // the source folder and Audience the next (Local › Family); a project at the source folder
       // itself, or one level down, takes its own campaign name as the audience. Projects that land
@@ -12706,40 +12717,53 @@ class Component extends DCLogic {
       };
       const tree = new Map();   // main → aud → letter → kind → {file, path}
       const at = (m, k, mk) => { if (!m.has(k)) m.set(k, mk()); return m.get(k); };
-      for (const p of found) {
-        const segs = p.path ? p.path.split('/') : [];
-        const main = segs[0] || root.name || 'Source folder';
-        const aud = segs.length >= 2 ? segs.slice(1).join(' / ') : p.name;
+      // read every project's Variant folders at once, then fill the tree in path order, so which
+      // project wins a shared slot does not depend on which folder answered first
+      const perProj = await Promise.all(found.map(async p => {
         const vdirs = [];
         for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, '']);
         // a YouTube Demand Gen export keeps its Variant folders inside `YT Demand Gen/`
         let ytd = null;
         try { ytd = await p.dir.getDirectoryHandle(CampaignStudio.YT_DIR); } catch (e) {}
         if (ytd) for await (const [name, h] of ytd.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, CampaignStudio.YT_DIR + '/']);
-        for (const [vname, vh, vpre] of vdirs) {
-          const letter = vname.slice(-1).toUpperCase();
+        return Promise.all(vdirs.map(async ([vname, vh, vpre]) => {
+          const letter = vname.slice(-1).toUpperCase(), hits = [];
           const re = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
           for await (const [name, h] of vh.entries()) {
             if (h.kind !== 'file') continue;
             const m = re.exec(name);
-            if (!m) continue;
-            const kind = m[1].toLowerCase(), lm = h.modified != null ? h.modified : (await h.getFile()).lastModified;
-            const slots = at(at(at(tree, main, () => new Map()), aud, () => new Map()), letter, () => ({}));
-            const pk = '_' + KIND[kind][0];
-            if (!slots[pk] || p.state.platform === (pk === '_yt' ? 'ytdg' : 'meta')) slots[pk] = p;
-            if (!slots[kind] || lm > slots[kind].lm)
-              slots[kind] = { h, lm, path: (p.path ? p.path + '/' : '') + vpre + vname + '/' + name };
+            if (m) hits.push({ kind: m[1].toLowerCase(), h, path: (p.path ? p.path + '/' : '') + vpre + vname + '/' + name });
           }
+          await Promise.all(hits.map(async x => { x.lm = await lmOf(x.h); }));
+          return { letter, hits };
+        }));
+      }));
+      found.forEach((p, i) => {
+        const segs = p.path ? p.path.split('/') : [];
+        const main = segs[0] || root.name || 'Source folder';
+        const aud = segs.length >= 2 ? segs.slice(1).join(' / ') : p.name;
+        for (const { letter, hits } of perProj[i]) for (const x of hits) {
+          const slots = at(at(at(tree, main, () => new Map()), aud, () => new Map()), letter, () => ({}));
+          const pk = '_' + KIND[x.kind][0];
+          if (!slots[pk] || p.state.platform === (pk === '_yt' ? 'ytdg' : 'meta')) slots[pk] = p;
+          if (!slots[x.kind] || x.lm > slots[x.kind].lm) slots[x.kind] = { h: x.h, lm: x.lm, path: x.path };
         }
-      }
+      });
       const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
       const list = [];
-      const tile = async (e, shape, label, ctx) => {
+      // a tile needs its File (a download, on Drive) and the size from its header: all at once,
+      // six at a time, before anything is laid out
+      const want = [];
+      for (const m of tree.values()) for (const a of m.values()) for (const slots of a.values())
+        for (const k of Object.keys(KIND)) if (slots[k]) want.push(slots[k]);
+      await Component.asPool(want, 6, async e => {
         if (!e.file) e.file = await e.h.getFile();
+        e.dim = await Component.asDims(e.file);
+      });
+      if (seq !== this._asSeq) return;
+      const tile = (e, shape, label, ctx) => {
         const url = URL.createObjectURL(e.file); urls.push(url);
-        let dim = '';
-        try { const b = await createImageBitmap(e.file); dim = b.width + ' × ' + b.height; b.close && b.close(); } catch (er) {}
-        const t = { url, name: e.path, label, shape, ctx: ctx + ' · ' + label, meta: [dim, mb(e.file.size)].filter(Boolean).join(' · ') };
+        const t = { url, thumb: '', file: e.file, name: e.path, label, shape, ctx: ctx + ' · ' + label, meta: [e.dim, mb(e.file.size)].filter(Boolean).join(' · ') };
         t.open = () => { this._asBig = t; this.forceUpdate(); };
         list.push(t);
         return t;
@@ -12761,11 +12785,10 @@ class Component extends DCLogic {
               const tiles = [];
               const order = key === 'yt' ? ['square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5'] : ['feed', 'story'];
               for (const k of order) {
-                if (slots[k]) { tiles.push(await tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
+                if (slots[k]) { tiles.push(tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
               }
               if (tiles.length) plats.push(this.asCard(key, label, slots['_' + key], letter, tiles, [main, aud, 'Variant ' + letter].join(' › ')));
             }
-            if (seq !== this._asSeq) { urls.forEach(u => URL.revokeObjectURL(u)); return; }
             if (plats.length) {
               const n = plats.reduce((a2, pl) => a2 + pl.tiles.length, 0);
               cols.push({ title: 'Variant ' + letter, sub: plural(n, 'image'), plats }); sets++;
@@ -12779,6 +12802,9 @@ class Component extends DCLogic {
       this._asUrls = urls;
       this._asList = list;
       this._as = { busy: false, has: true, mains, root: root.name, files, sets, err: '', kind: kindOf };
+      this.forceUpdate();
+      this.asThumbs(list, seq);
+      return;
     } catch (e) {
       urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (er) {} });
       if (seq !== this._asSeq) return;
@@ -12787,6 +12813,74 @@ class Component extends DCLogic {
           + (src && src.kind === 'drive' ? ' Check that the folder is shared as "Anyone with the link" and the API key is right.' : ' Choose it again.') };
     }
     this.forceUpdate();
+  }
+  // Run `fn` over `items`, `n` at a time.
+  static async asPool(items, n, fn) {
+    let i = 0;
+    await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const it = items[i++]; await fn(it); } }));
+  }
+  // An image's pixel size from its header — PNG, JPEG or WebP — without decoding it.
+  static async asDims(file) {
+    try {
+      const b = new Uint8Array(await file.slice(0, 65536).arrayBuffer()), n = b.length;
+      const u16 = i => (b[i] << 8) | b[i + 1], u32 = i => ((b[i] << 24) >>> 0) + (b[i + 1] << 16) + (b[i + 2] << 8) + b[i + 3];
+      const le16 = i => b[i] | (b[i + 1] << 8), le24 = i => b[i] | (b[i + 1] << 8) | (b[i + 2] << 16);
+      const out = (w, h) => w > 0 && h > 0 ? w + ' × ' + h : '';
+      if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return out(u32(16), u32(20));
+      if (b[0] === 0xFF && b[1] === 0xD8) {
+        let i = 2;
+        while (i + 9 < n) {
+          if (b[i] !== 0xFF) { i++; continue; }
+          const m = b[i + 1];
+          if (m === 0xFF) { i++; continue; }
+          if (m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)) { i += 2; continue; }
+          if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) return out(u16(i + 7), u16(i + 5));
+          i += 2 + u16(i + 2);
+        }
+        return '';
+      }
+      if (String.fromCharCode(b[0], b[1], b[2], b[3]) === 'RIFF' && String.fromCharCode(b[8], b[9], b[10], b[11]) === 'WEBP') {
+        const c = String.fromCharCode(b[12], b[13], b[14], b[15]);
+        if (c === 'VP8X') return out(le24(24) + 1, le24(27) + 1);
+        if (c === 'VP8L') { const v = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24); return out((v & 0x3FFF) + 1, ((v >> 14) & 0x3FFF) + 1); }
+        if (c === 'VP8 ') return out(le16(26) & 0x3FFF, le16(28) & 0x3FFF);
+      }
+    } catch (e) {}
+    return '';
+  }
+  // The `state` of a saved .adstudio.json, read without parsing the photos embedded after it:
+  // the file is written {app, v, state, images}, so the state ends where "images" begins. Reads
+  // a growing prefix; anything unexpected falls back to parsing the whole file.
+  static async asState(file) {
+    try {
+      for (let n = 262144; ; n *= 4) {
+        const full = n >= file.size, text = await file.slice(0, full ? file.size : n).text();
+        if (full) { const d = JSON.parse(text); return (d && d.state) || {}; }
+        for (let i = text.indexOf(',"images":'); i > 0; i = text.indexOf(',"images":', i + 1)) {
+          try { const d = JSON.parse(text.slice(0, i) + '}'); if (d && d.state) return d.state; } catch (e) {}
+        }
+      }
+    } catch (e) {}
+    return {};
+  }
+  // Small thumbnails for the tiles, made in the background four at a time (decoding happens off
+  // the main thread) and shown in batches; a newer scan stops it.
+  async asThumbs(list, seq) {
+    let pend = false;
+    const show = () => { if (!pend) { pend = true; setTimeout(() => { pend = false; if (seq === this._asSeq) this.forceUpdate(); }, 120); } };
+    await Component.asPool(list.slice(), 4, async t => {
+      if (seq !== this._asSeq || t.thumb) return;
+      try {
+        const bmp = await createImageBitmap(t.file, { resizeHeight: 640, resizeQuality: 'medium' });
+        if (seq !== this._asSeq) { bmp.close && bmp.close(); return; }
+        const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+        c.getContext('2d').drawImage(bmp, 0, 0); bmp.close && bmp.close();
+        const blob = await new Promise(r => c.toBlob(r, 'image/webp', .82));
+        if (!blob || seq !== this._asSeq) return;
+        t.thumb = URL.createObjectURL(blob); (this._asUrls || []).push(t.thumb);
+      } catch (e) { t.thumb = t.url; }
+      show();
+    });
   }
   // A platform block in a variant card: its exported images, plain, and "See details" — the
   // same text check the Publish tab shows (Meta ad text, or YouTube Demand Gen text), read
@@ -12875,6 +12969,42 @@ class Component extends DCLogic {
     if (viaHandle) Promise.all(viaHandle).then(hs => done(hs.find(h => h && h.kind === 'directory'))).catch(() => done(null));
     else { const ent = viaEntry.find(x => x.isDirectory); done(ent ? Component.entryDir(ent) : null); }
   }
+  // Clicking the drop zone: the folder picker where there is one (read only, never adopted as the
+  // source folder), else the browser's own folder upload, rebuilt into a folder tree.
+  async asBrowse(e) {
+    if (window.showDirectoryPicker) {
+      try { const h = await window.showDirectoryPicker({ mode: 'read', id: 'provident-adsets' }); this.asView({ kind: 'local', handle: h, name: h.name }); }
+      catch (er) { if (er && er.name !== 'AbortError') { this._asErr = 'Could not open that folder: ' + (er.message || er); this.setState({ adSetsOpen: true }); this.forceUpdate(); } }
+      return;
+    }
+    const box = e && e.currentTarget && e.currentTarget.closest('.as-src');
+    const inp = box && box.querySelector('[data-as="dir"]');
+    if (inp) { inp.value = ''; inp.click(); }
+  }
+  asDirPicked(e) {
+    const files = [...((e && e.target && e.target.files) || [])];
+    if (!files.length) return;
+    const dir = Component.filesDir(files);
+    this.asView({ kind: 'local', handle: dir, name: dir.name });
+  }
+  // a folder upload (webkitRelativePath) as the same directory stand-in the scan reads
+  static filesDir(files) {
+    const mk = name => ({ name, dirs: new Map(), files: new Map() });
+    const top = mk((files[0].webkitRelativePath || files[0].name).split('/')[0]);
+    for (const f of files) {
+      const parts = (f.webkitRelativePath || f.name).split('/').slice(1);
+      let d = top;
+      for (let i = 0; i < parts.length - 1; i++) { if (!d.dirs.has(parts[i])) d.dirs.set(parts[i], mk(parts[i])); d = d.dirs.get(parts[i]); }
+      if (parts.length) d.files.set(parts[parts.length - 1], f);
+    }
+    const wrap = d => ({ kind: 'directory', name: d.name,
+      async *entries() {
+        for (const [n, c] of d.dirs) yield [n, wrap(c)];
+        for (const [n, f] of d.files) yield [n, { kind: 'file', name: n, modified: f.lastModified, getFile: async () => f }];
+      },
+      async getDirectoryHandle(n) { const c = d.dirs.get(n); if (!c) throw Component.asNotFound(); return wrap(c); } });
+    return wrap(top);
+  }
   asDragOver(e) {
     const types = [...((e.dataTransfer && e.dataTransfer.types) || [])];
     if (types.indexOf('Files') < 0) return;           // text or a link being dragged is not ours
@@ -12908,6 +13038,7 @@ class Component extends DCLogic {
       asDragOn: this._asDrag ? '1' : undefined,
       asDrop: e => this.asDrop(e), asDragOver: e => this.asDragOver(e), asDragLeave: e => this.asDragLeave(e),
       asDriveGo: e => this.asDriveGo(e), asDriveKey: e => this.asDriveKey(e),
+      asBrowse: e => this.asBrowse(e), asDirPicked: e => this.asDirPicked(e),
       asKeyOn: keyOn ? '1' : undefined,
       asKeySavedOn: saved && !keyOn ? '1' : undefined,
       asKeyEdit: () => { this._asKeyOpen = true; this.forceUpdate(); },
@@ -12961,6 +13092,9 @@ class Component extends DCLogic {
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
     else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
+    // with nothing to show, the drop / Drive panel IS the screen: no toggle, and no separate
+    // note repeating what the panel already says
+    const forced = !root || !!a.err || (!a.busy && !(a.mains || []).length);
     const big = this._asBig, list = this._asList || [], bi = big ? list.indexOf(big) : -1;
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     return {
@@ -12973,9 +13107,10 @@ class Component extends DCLogic {
       asPickOn: open && supported ? '1' : undefined,
       asPickLabel: viewing ? 'Use source folder' : (root ? 'Change folder' : 'Choose source folder'),
       asSub: root ? (proj ? proj + ' · ' : '') + 'Reading ' + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
-      asNoteOn: open && head ? '1' : undefined,
+      asNoteOn: open && head && root ? '1' : undefined,
       // the drop / Drive panel sits in the empty state, and stays reachable from the bar
-      asSrcPanelOn: open && (!root || a.err || (!a.busy && !(a.mains || []).length) || this._asPanel) ? '1' : undefined,
+      asSrcPanelOn: open && (forced || this._asPanel) ? '1' : undefined,
+      asPanelBtnOn: open && !forced ? '1' : undefined,
       asPanelToggle: () => { this._asPanel = !this._asPanel; this.forceUpdate(); },
       asPanelLabel: this._asPanel ? 'Hide' : 'Drop or link a folder',
       asNoteHead: head, asNote: note,

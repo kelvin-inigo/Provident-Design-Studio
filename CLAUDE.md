@@ -14527,7 +14527,24 @@ the folder must be shared as "Anyone with the link". `asDrop` reads `getAsFileSy
 synchronously inside the event. `asDragOver` reacts only to `types` containing `Files`. Verified:
 an OPFS tree dropped through `asDrop`, Drive with a mocked fetch (7 list calls, 2 downloads, key
 saved, bad-key error shown), 0 contrast failures in both themes, and it fits at 390.
-**Not exercised against the real Drive API or a real OS drag** (the pane cannot start either).
+**Not exercised against the real Drive API or a real OS drag** (the pane cannot start either). Fix pass the same day: the drop zone is a
+button (`asBrowse`: `showDirectoryPicker({mode:'read'})`, else a `webkitdirectory` input rebuilt by
+`Component.filesDir`; the input is hidden by CSS because DC drops the boolean `hidden`); with
+nothing to show, the panel IS the screen — no bar toggle (`asPanelBtnOn`) and no duplicate note
+when no folder is set; the note and panel share the 880 column.
+
+**SPEED (2026-10-14), after "it takes longer to load than usual":** the scan was one file at a
+time, decoded every full-size export with `createImageBitmap` just to print its size, parsed each
+whole `.adstudio.json` (photos included) for its state, and showed the full-size PNGs as tiles —
+60 tiles was ~2 GB of decoded pixels. Now: the walk and each project's Variant folders run in
+parallel (`found` sorted by path afterwards so a shared slot is still decided in path order);
+`Component.asDims` reads PNG / JPEG / WebP size from the header; `Component.asState` parses only
+the prefix up to `,"images":` (the file is written `{app, v, state, images}`, falls back to a
+full parse); Files are read six at a time (`asPool`); tiles show `t.thumb`, a 640px-tall WebP
+made in the background four at a time (`asThumbs`), while `t.url` (the full file) stays for the
+enlarged view and See details. Measured on 60 exports (2160² and 2160×3840 PNGs) in headless
+Chrome: **1,160 ms -> 50 ms to a laid-out window**, thumbnails done ~1.2 s later. Splash and editor
+load were measured too and had not regressed (~0.35 s to the template cards in a fresh profile).
 
 Verified on a stand-in tree: Local › Family (Meta A + B, YouTube A with Square and Landscape only),
 Local › Investor (Meta A), International › Family (YouTube Landscape only) — Local first, the two
