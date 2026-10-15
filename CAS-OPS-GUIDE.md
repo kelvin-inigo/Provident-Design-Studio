@@ -204,7 +204,7 @@ No API key or service is needed: Claude Code reads the screenshot.
 - **9:16:** it mirrors the 1:1 until you press its link button.
 - **YT Demand Gen 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape for
   YouTube Demand Gen, and its words run the full width of the canvas. It exports into the
-  **YT Demand Gen** folder (section 7).
+  variant's folder with the other images (section 7).
 - **All variants** (the pill next to **Add Variant**, which shows how many variants you have
   out of the most allowed) holds the settings for the whole project:
   - **Format** is a pair of cards: **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
@@ -353,10 +353,9 @@ Source folder/
   Variant A/                        ← the Master; Variant B and C for more variants
     <name>_Variant A_feed.jpg       ← 1:1
     <name>_Variant A_Story.jpg      ← 9:16
-    Eventbrite Banners/
-      <name>_Variant A_EventBrite_Banner_wide.jpg    ← 1880 × 940
-      <name>_Variant A_EventBrite_Banner_Small.jpg   ← 758 × 380
-  YT Demand Gen/Variant A/<name>_Variant A_Landscape_1.91x1.jpg   ← 1200 × 628, only if shown
+    <name>_Variant A_Landscape_1.91x1.jpg        ← 1200 × 628, only if shown
+    <name>_Variant A_EventBrite_Banner_wide.jpg  ← 1880 × 940
+    <name>_Variant A_EventBrite_Banner_Small.jpg ← 758 × 380
   <name>.adstudio.json   Assets/    ← the session and uploads, refreshed on every export
   <name>_Meta upload.json            ← only once Meta ad text is written (section 5c)
 ```
@@ -364,27 +363,27 @@ Source folder/
 - **Every export overwrites the last one without asking.** It never deletes anything, so files an
   export no longer writes (a removed variant, a hidden banner, old names) stay until you delete
   them yourself.
+- **There are no folders inside a variant's folder.** Every image of that variant sits side by
+  side; the file name says which one it is.
 - A **carousel** exports into one `Carousel/` folder, with files named `<name>_page1_feed.jpg` and
-  so on, and its banners in `Carousel/Eventbrite Banners/`.
+  so on, banners included.
 - **Without a Source folder**, you get a zip with the same folders inside.
 - **PDF** is one file with every size, saved wherever you choose.
 
 **On a YouTube Demand Gen project** the formats are **JPEG** and **PNG** only (Google takes no
-SVG or PDF), at the exact sizes in the table in section 5b. Everything goes into its own
-**YT Demand Gen** folder inside the Source folder, so it never mixes with a Meta export of the same
-project:
+SVG or PDF), at the exact sizes in the table in section 5b. The images go into the same Variant
+folders, named by ratio:
 
 ```
 Source folder/
-  YT Demand Gen/
-    Variant A/
-      <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628, always
-      <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200, if shown
-      <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200, if shown
-      <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920, if shown
-    Logo/<name>_Logo_1x1.png                 ← 1200 × 1200
-    <name>_Demand Gen text.txt               ← business name, headlines, descriptions
-  <name>.adstudio.json   Assets/             ← the session and uploads, as for Meta
+  Variant A/
+    <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628, always
+    <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200, if shown
+    <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200, if shown
+    <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920, if shown
+  <name>_Logo_1x1.png                      ← 1200 × 1200
+  <name>_Demand Gen text.txt               ← business name, headlines, descriptions
+  <name>.adstudio.json   Assets/           ← the session and uploads, as for Meta
 ```
 
 **Ad sets** finds these too, and shows them under the same Variant card as the Meta images,
@@ -412,8 +411,8 @@ wider than the window. A small line under each image gives its pixel size and fi
   folder that holds Local / International, or at a single project folder. A project directly in
   the Source folder uses its campaign name as the audience.
 - Only `<name>_Variant A_feed`, `_Story`, and the YouTube `_Square_1x1`, `_Vertical_9x16`,
-  `_Landscape_1.91x1` and `_Portrait_4x5` files are shown. YouTube's are found in the project's
-  **YT Demand Gen** folder. Banners, carousels, logos and anything else are left out.
+  `_Landscape_1.91x1` and `_Portrait_4x5` files are shown, from the Variant folders (and from a
+  **YT Demand Gen** folder left by an older export). Banners, carousels, logos and anything else are left out.
 - **A size that was not exported is simply not shown.** A variant or audience with nothing to
   show is left out.
 - It shows the files as they are on disk, so export first, then press **Refresh**. Click an image

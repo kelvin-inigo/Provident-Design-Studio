@@ -14723,3 +14723,15 @@ only flag is the pre-existing `✕` at 4.40 / 4.21 (hidden ones read 1.00 by des
 persists across reloads; guided screen unchanged with a fold stored; reel rail folds work;
 no horizontal overflow; `sc-if` counts unchanged, `<details>` balanced.
 
+
+# CAS EXPORTS FLAT INTO EACH VARIANT FOLDER (2026-10-15, by request)
+
+"Remove the foldering, so have the image exported on the variant folder." `exportPath` is now
+`<Variant X | Carousel>/<name>_<who>_<job>.<ext>` for every size — no `Eventbrite Banners/`
+subfolder and no `YT Demand Gen/` prefix, for the Meta plate's 1.91:1 and for a YouTube project
+alike. The YouTube logo and text file sit at the root (`<name>_Logo_1x1.png`,
+`<name>_Demand Gen text.txt`) beside the session file. File names are unchanged, so each still
+says which job it is. `YT_DIR` / `BANNER_DIR` stay declared: Ad sets still reads a `YT Demand Gen/`
+folder an older export left behind. This supersedes the folder trees in *CAS EXPORTS INTO A
+FOLDER PER VARIANT* and *YouTube exports go in `YT Demand Gen/`*. Verified through the real
+`doExport` for Meta (feed, Story, 1.91:1, both banners, two variants) and YouTube.

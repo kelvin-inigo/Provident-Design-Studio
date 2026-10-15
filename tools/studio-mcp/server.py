@@ -423,7 +423,7 @@ TOOLS = [
         "name": "studio_export",
         "description": (
             "Export final files with the studio's own export: png, jpg, svg or pdf, the studio's own file names and "
-            "folders (CAS: Variant A/B/C folders with feed, Story and Eventbrite Banners; OPS: one file per slide, "
+            "folders (CAS: Variant A/B/C folders holding every image of that variant, no subfolders; OPS: one file per slide, "
             "_3x4 and, if the story is shown, _9x16). Files go beside the session file unless out_dir is given; "
             "include_assets also writes the studio's session copy and Assets/ folder. Refuses with the list of what is missing when a required field or QR is empty."
         ),

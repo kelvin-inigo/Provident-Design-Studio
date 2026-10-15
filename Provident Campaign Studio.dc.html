@@ -9454,8 +9454,11 @@ class CampaignStudio extends StudioBase {
     // and the Meta plate's 1.91:1 (`ls`) is a YouTube Demand Gen file too, so it goes beside them
     const ytFile = CampaignStudio.isYT(this.state) || sizeKey === 'ls';
     const job = (sizeKey === 'ls' ? CampaignStudio.YT_NAME.yl : (CampaignStudio.isYT(this.state) ? CampaignStudio.YT_NAME : CampaignStudio.EXPORT_NAME)[sizeKey]) || sizeKey;
-    return (ytFile ? CampaignStudio.YT_DIR + '/' : '') + dir + '/' + (CampaignStudio.isBanner(sizeKey) ? CampaignStudio.BANNER_DIR + '/' : '') +
-      name + '_' + who + '_' + job + '.' + ext;
+    // NO SUBFOLDERS (2026-10-15, by request): every image goes straight into its Variant (or
+    // Carousel) folder — the banners and the YouTube files included. The file name already says
+    // which job each one is. `ytFile` is kept for the naming above.
+    void ytFile;
+    return dir + '/' + name + '_' + who + '_' + job + '.' + ext;
   }
   async doExport(kind) {
     const state = this.state;
@@ -9510,8 +9513,8 @@ class CampaignStudio extends StudioBase {
       // and the text assets as a plain file to paste into Google Ads.
       if (yt && (kind === 'png' || kind === 'jpg')) {
         const lg = await this.rasterFile(this.ytLogoBuild(state), 'png', 1);
-        files.push({ name: CampaignStudio.YT_DIR + '/Logo/' + name + '_Logo_1x1.png', data: lg.data });
-        files.push({ name: CampaignStudio.YT_DIR + '/' + name + '_Demand Gen text.txt', data: new TextEncoder().encode(this.ytText(state)) });
+        files.push({ name: name + '_Logo_1x1.png', data: lg.data });
+        files.push({ name: name + '_Demand Gen text.txt', data: new TextEncoder().encode(this.ytText(state)) });
       }
       // META: the upload manifest tools/meta-ads reads, once any ad text has been written.
       const mtOn = !yt && (kind === 'png' || kind === 'jpg') && CampaignStudio.mtUsed(state);
@@ -12099,8 +12102,8 @@ class CampaignStudio extends StudioBase {
       allVarsTip: yt
         ? 'Everything here applies to every variant at once. Up to three variants share one set of design components; each is a set of four images for the YouTube Demand Gen asset pool. Export writes a folder per variant — Variant A, B and C, each with the 1.91:1, 1:1, 4:5 and 9:16 — plus the 1:1 business logo and the text assets. Each export overwrites the last.'
         : CampaignStudio.isCarousel(s)
-        ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed and _Story for every page, the banners in Eventbrite Banners inside it — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
-        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each with Name_Variant A_feed and _Story and the banners in Eventbrite Banners — or a single PDF. Each export overwrites the last. Layout guides download PNG overlays — 1:1, 9:16 and 1.91:1 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
+        ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed, _Story and the banners for every page, all in that one folder — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
+        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each holding all of that variant\u2019s images (feed, Story, 1.91:1, banners) with no folders inside — or a single PDF. Each export overwrites the last. Layout guides download PNG overlays — 1:1, 9:16 and 1.91:1 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
       textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
       // a style variant is per DESIGN variant on a single ad, and a carousel's page IS one
       styleScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'per design variant',
@@ -12119,8 +12122,8 @@ class CampaignStudio extends StudioBase {
       exportLayoutNote: yt
         ? 'JPEG and PNG go into a YT Demand Gen folder in the source folder — a folder per variant inside it (Variant A, then B and C) with the Landscape 1.91:1 and any 1:1, 4:5 or 9:16 you show, at Google\u2019s sizes, plus Logo and the text assets. Each export overwrites the last.'
         : CampaignStudio.isCarousel(s)
-        ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s feed and Story, with the banners in Eventbrite Banners inside it. Each export overwrites the last.'
-        : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with the feed and Story in it and the banners in Eventbrite Banners inside it; a YT Demand Gen 1.91:1 goes into YT Demand Gen, Variant A and so on. Each export overwrites the last.',
+        ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s images, banners included, with no folders inside. Each export overwrites the last.'
+        : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with every image of that variant in it, the 1.91:1 and the banners included; no folders inside. Each export overwrites the last.',
       exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 1.91:1' : 'One file · 1:1, then 1.91:1 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
       ...this.expPickVals(!yt, yt),
       ...this.splashNoteVals(),
