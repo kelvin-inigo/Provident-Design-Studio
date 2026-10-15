@@ -14658,8 +14658,9 @@ whole-file diff carries no artwork line.
   one hides it, since the controls say it.
 - **Background and Alignment are `.p-opts-seg`** — the same `.p-opt` markup restyled to one 44px
   track with the icon beside the name. Logo and Layout preset are `.p-opts-sm` (42px tiles).
-- **Style previews are `.p-vts-strip`**, one sideways snapped row of 116px tiles; `accBind` scrolls
-  the chosen tile into view when the selection changes (`_accOn` on the strip).
+- **Style previews are back in the two-up `.p-vts` grid (2026-10-15, by request)** — every
+  style in one view, no sideways scroll. The `.p-vts-strip` CSS and `accBind`'s scroll-into-view
+  are left matching nothing.
 - **Colour pickers are `.p-colr`**: swatches and the hex field in one row (eyebrow ink, hero line,
   icon colour, scrim); the duplicate chip beside the hex is hidden.
 - **The hero's line picker only shows with 2+ lines** (`heroLineMany`), as `.p-tabs` "Line 1 / Line 2".
@@ -14802,3 +14803,29 @@ sections (section 37 of CAS's sheet, `.as-an*`). Chrome and shell only — no ar
 tall (landscape and banners `clamp(180px,28vh,320px)`), the form column 460, the preview column no
 longer sticky (a tall preview pinned under the bar hid its own bottom), and `aePreview` renders at
 `min(1, 1100 / long side)` so the larger shots stay sharp on a retina screen.
+
+# AD SETS OPENS A GOOGLE DRIVE FOLDER LINK, READ AND WRITE (2026-10-15)
+
+By request ("build option 2 and write the admin setup"). The Drive box sits under the drop zone
+in both `.as-src` panels (section 38). Admin steps: **`docs/google-drive-setup.md`**.
+
+- **Sign-in is Google Identity Services, token model** (`accounts.google.com/gsi/client`, loaded
+  only when the box renders, so the click's popup is not blocked). No secret, no server. Scope is
+  full `drive` — a folder opened by LINK has to be listed and its files overwritten, which
+  `drive.file` cannot do — on an **Internal** app, so only providentestate.com accounts sign in
+  and no Google review applies.
+- **The client ID**: `Component.DRIVE_CLIENT_ID` (empty until the admin sends one — it is a
+  public value, safe to commit) or `localStorage['provident-drive-client']` pasted per computer.
+  The token lives in memory only (`Component._gdTok`, 1h); it is never stored.
+- **`Component.gdDir(id, name)` is a directory stand-in**, the shape `asScan` already reads, plus
+  a file `createWritable()` that PATCHes a new revision of THAT file (`upload/drive/v3/files/<id>
+  ?uploadType=media`) — same id, same share link. Listings are cached 3s so Refresh sees new
+  modified times; shortcuts to folders are followed; shared drives supported.
+- **Edit text needed no new path**: `aeCan` reads the root's `queryPermission` (token valid →
+  granted) and `aeAllow` calls `requestPermission` (→ sign-in popup, from the click). A 401 or an
+  expired token throws `gdAuth`, which sets `ae.can = 'ask'` and shows *Sign in with Google*.
+- Verified with Drive's REST API stood in by a fetch mock: the link opened, the tree listed (all
+  calls carried the bearer token), the json and the feed JPEG downloaded, an Edit text change
+  PATCHed the json (photos kept) and the JPEG; an expired token showed the sign-in panel; no
+  client ID showed the paste field; the real GIS library loaded. **The real Google sign-in and
+  the real Drive API were not exercised** — no client ID exists yet.

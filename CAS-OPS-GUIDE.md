@@ -157,7 +157,7 @@ What's on the screen, from left to right:
   **Scaling**, **Vertical spacing** and **Scrim** fold away. Closed, each one still shows its
   current setting; click its title to open it. **Background image** and **Hidden components**
   in the middle rail fold the same way, and the app remembers which ones you leave open.
-  The style previews scroll sideways. A reset button only appears once a value has been moved.
+  The style previews show every style at once, two to a row. A reset button only appears once a value has been moved.
 
 **Checking it:**
 - **Copy %:** each canvas shows how much of the ad the copy covers. Above 40% it turns amber,
@@ -470,6 +470,21 @@ page, under **View ad sets**, and in the Ad sets window (press **Drop a folder**
   dropped folder unless you change its words in **Edit text** and press **Allow editing**.
 - The bar says which folder you are viewing. **Use source folder** goes back to your own, and
   your Source folder is never changed by viewing another one.
+
+#### Open a Google Drive folder link
+
+Under the drop area there is a **Google Drive** box. It works in any browser, with no Drive app
+installed.
+
+- **First time on a computer:** paste the OAuth client ID your admin gave you and press
+  **Save**. The admin's steps are in `docs/google-drive-setup.md`.
+- **Paste the folder's link** (the address of the folder in Drive, containing `/folders/`) and
+  press **Open**. Sign in with your Provident Google account; allow pop-ups if the browser asks.
+- The folder opens like a local one. In **Edit text**, saving writes the project file and the
+  re-exported images back into that Drive folder, so its files and share links stay the same.
+- You can only open and change what your account can already open and change in Drive. A
+  sign-in lasts an hour; after that, Edit text shows **Sign in with Google** and keeps your
+  edits until you do. **Sign out** is in the Google Drive box.
 
 ---
 

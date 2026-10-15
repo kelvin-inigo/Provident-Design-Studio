@@ -4049,6 +4049,18 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-an-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--ps-pill);background:var(--ps-link)}
 .as-an-bar[data-over] i{background:var(--ps-warn)}
 .as-an-bar u{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:2px;background:var(--ps-ink)}
+
+/* ── 38. AD SETS: GOOGLE DRIVE (sign in with Google, read and write a Drive folder) ────── */
+.as-gd{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--ps-r);background:var(--ps-fill)}
+.as-gd-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.as-gd-h .mk-g{width:18px;height:18px;fill:var(--ps-ink-2)}
+.as-gd-h b{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-gd-h s{flex:1 1 200px;min-width:0;font:400 12px/1.45 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
+.as-gd-out{border:0;background:none;padding:2px 4px;font:500 12px/1 var(--ps-font);color:var(--ps-link);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.as-src-row{display:flex;gap:8px}
+.as-src-row .p-in{flex:1;min-width:0}
+.as-src-row .p-btn,.as-src-row .p-ghost{flex:none}
+.as-gd .p-in{background-color:var(--ps-app);box-shadow:inset 0 0 0 1px var(--ps-line)}
 </style>
 </helmet>
 
@@ -4103,6 +4115,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <div class="as-home">
         <div class="as-src">
           <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
+          <div class="as-gd">
+            <div class="as-gd-h"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z"/></svg><b>Google Drive</b><s>{{ asGdNote }}</s><sc-if value="{{ asGdInOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asGdOut }}" class="as-gd-out">Sign out</button></sc-if></div>
+            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive folder link" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-btn">Open</button></div></sc-if>
+            <sc-if value="{{ asGdCfgOn }}" hint-placeholder-val="{{ false }}"><div class="as-src-row"><input class="p-in" data-as="gdc" type="text" spellcheck="false" placeholder="OAuth client ID — …apps.googleusercontent.com" aria-label="Google OAuth client ID"><button onClick="{{ asGdSaveId }}" class="p-ghost">Save</button></div></sc-if>
+          </div>
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
         </div>
         </div>
@@ -4518,6 +4535,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <sc-if value="{{ asSrcPanelOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-src">
           <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
+          <div class="as-gd">
+            <div class="as-gd-h"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z"/></svg><b>Google Drive</b><s>{{ asGdNote }}</s><sc-if value="{{ asGdInOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asGdOut }}" class="as-gd-out">Sign out</button></sc-if></div>
+            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive folder link" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-btn">Open</button></div></sc-if>
+            <sc-if value="{{ asGdCfgOn }}" hint-placeholder-val="{{ false }}"><div class="as-src-row"><input class="p-in" data-as="gdc" type="text" spellcheck="false" placeholder="OAuth client ID — …apps.googleusercontent.com" aria-label="Google OAuth client ID"><button onClick="{{ asGdSaveId }}" class="p-ghost">Save</button></div></sc-if>
+          </div>
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
         </div>
         </sc-if>
@@ -4571,7 +4593,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                   <div class="p-tabs ae-tabs"><sc-for list="{{ aeTabs }}" as="tb" hint-placeholder-count="2"><button onClick="{{ tb.pick }}" data-on="{{ tb.on }}">{{ tb.label }}</button></sc-for></div>
                 </sc-if>
                 <sc-if value="{{ aePermOn }}" hint-placeholder-val="{{ false }}">
-                  <div class="ae-perm"><p><b>Allow editing this folder</b><s>Your changes are written into the project file and its images, so the browser needs permission to change files here.</s></p><button onClick="{{ aeAllow }}" class="p-btn">Allow editing</button></div>
+                  <div class="ae-perm"><p><b>{{ aePermHead }}</b><s>{{ aePermNote }}</s></p><button onClick="{{ aeAllow }}" class="p-btn">{{ aePermBtn }}</button></div>
                 </sc-if>
                 <sc-if value="{{ aeRoOn }}" hint-placeholder-val="{{ false }}">
                   <div class="ae-perm"><p><b>This folder is read-only here</b><s>This browser could only read the dropped folder. Open it with the folder picker (Drop a folder → click to choose) or set it as the source folder to edit.</s></p></div>
@@ -5213,7 +5235,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <div class="p-lab">{{ selTypeLabel }} <span class="tip" data-tip="Order, cluster, hide and delete are on the floating control over the selected component." style="{{ infoStyle }}">i</span></div>
         <sc-if value="{{ selVarMany }}" hint-placeholder-val="{{ true }}">
           <span class="p-lab">Style <s>{{ styleScope }}</s></span>
-          <div class="p-vts p-vts-strip">
+          <div class="p-vts">
             <sc-for list="{{ selVarOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.set }}" data-on="{{ o.on }}" class="p-vt" title="{{ o.title }}"><span class="p-vt-i" style="{{ o.shotStyle }}"></span><span class="p-vt-l">{{ o.label }}</span></button></sc-for>
           </div>
         </sc-if>
@@ -13404,6 +13426,167 @@ class Component extends DCLogic {
       async *entries() { for (const e of await read()) yield [e.name, node(e)]; },
       async getDirectoryHandle(n) { const e = (await read()).find(x => x.isDirectory && x.name === n); if (!e) throw Component.asNotFound(); return node(e); } };
   }
+  // ══ GOOGLE DRIVE, READ AND WRITE (2026-10-15) ═════════════════════════════════════════
+  // A Drive folder link opened after "Sign in with Google" (Google Identity Services, the
+  // token model — no secret, no server). The OAuth CLIENT ID is public by design; it comes
+  // from DRIVE_CLIENT_ID below or, until that is filled in, from this computer's
+  // localStorage. Scope is full Drive because a folder picked by link has to be listed and
+  // its files overwritten; the admin makes the app INTERNAL, so only Provident accounts can
+  // sign in and Google's app review does not apply. docs/google-drive-setup.md has the steps.
+  static DRIVE_CLIENT_ID = '';
+  static GD_SCOPE = 'https://www.googleapis.com/auth/drive';
+  static gdClientId() {
+    let v = ''; try { v = localStorage.getItem('provident-drive-client') || ''; } catch (e) {}
+    return Component.DRIVE_CLIENT_ID || v;
+  }
+  static gdLoad() {
+    if (Component._gdLib) return Component._gdLib;
+    return (Component._gdLib = new Promise((res, rej) => {
+      if (window.google && google.accounts && google.accounts.oauth2) return res();
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+      s.onload = () => res(); s.onerror = () => { Component._gdLib = null; rej(new Error('Google sign-in could not load — check the connection.')); };
+      document.head.appendChild(s);
+    }));
+  }
+  static gdValid() { const t = Component._gdTok; return !!(t && t.exp > Date.now() + 60000); }
+  // Must be called from a click: Google opens its sign-in popup. A returning user who has
+  // already agreed gets a token without a prompt.
+  static async gdSignIn() {
+    if (Component.gdValid()) return Component._gdTok.at;
+    const id = Component.gdClientId();
+    if (!id) throw new Error('Google Drive is not set up on this computer yet — paste the OAuth client ID your admin gave you.');
+    await Component.gdLoad();
+    return new Promise((res, rej) => {
+      const tc = google.accounts.oauth2.initTokenClient({
+        client_id: id, scope: Component.GD_SCOPE, prompt: Component._gdTok ? '' : 'select_account',
+        callback: r => {
+          if (!r || r.error || !r.access_token) return rej(new Error(r && r.error === 'access_denied' ? 'Google sign-in was cancelled.' : 'Google sign-in failed' + (r && r.error ? ' (' + r.error + ')' : '') + '.'));
+          Component._gdTok = { at: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3600) * 1000 };
+          res(r.access_token);
+        },
+        error_callback: e => rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' : 'Google sign-in could not open — allow pop-ups for this site.'))
+      });
+      tc.requestAccessToken();
+    });
+  }
+  static gdSignOut() {
+    const t = Component._gdTok; Component._gdTok = null;
+    try { if (t && window.google && google.accounts) google.accounts.oauth2.revoke(t.at, () => {}); } catch (e) {}
+  }
+  static async gdFetch(url, opt) {
+    if (!Component.gdValid()) { const e = new Error('Your Google sign-in has expired — sign in again to keep saving.'); e.gdAuth = true; throw e; }
+    opt = Object.assign({}, opt || {}); opt.headers = Object.assign({ Authorization: 'Bearer ' + Component._gdTok.at }, opt.headers || {});
+    const r = await fetch(url, opt);
+    if (r.status === 401) { Component._gdTok = null; const e = new Error('Your Google sign-in has expired — sign in again to keep saving.'); e.gdAuth = true; throw e; }
+    if (!r.ok) {
+      let m = 'Google Drive answered ' + r.status;
+      try { const d = await r.json(); if (d && d.error && d.error.message) m = d.error.message; } catch (e) {}
+      if (r.status === 404) m = 'Drive cannot find that folder, or your account has no access to it.';
+      throw new Error(m);
+    }
+    return r;
+  }
+  static GD_MIME = { json: 'application/json', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', svg: 'image/svg+xml', pdf: 'application/pdf', txt: 'text/plain' };
+  // A Drive folder as the same directory stand-in the scan reads (kind, name, entries(),
+  // getDirectoryHandle(), a file's getFile() and `modified`), plus what Edit text writes
+  // through: a file's createWritable() uploads a new revision of THAT file, so its id and
+  // its share link never change. The listing is held for 3s, so Refresh and the rescan
+  // after a save see Drive's new modified times.
+  static gdDir(id, name) {
+    const api = 'https://www.googleapis.com/drive/v3/files', up = 'https://www.googleapis.com/upload/drive/v3/files';
+    const FOLDER = 'application/vnd.google-apps.folder';
+    let kids = null, at = 0;
+    const list = () => {
+      if (kids && Date.now() - at < 3000) return kids;
+      at = Date.now();
+      return (kids = (async () => {
+        const out = []; let tok = '';
+        do {
+          const q = encodeURIComponent("'" + id + "' in parents and trashed=false");
+          const r = await Component.gdFetch(api + '?q=' + q + '&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,shortcutDetails)&pageSize=1000'
+            + '&supportsAllDrives=true&includeItemsFromAllDrives=true' + (tok ? '&pageToken=' + tok : ''));
+          const d = await r.json();
+          out.push(...(d.files || [])); tok = d.nextPageToken || '';
+        } while (tok);
+        return out;
+      })().catch(e => { kids = null; throw e; }));
+    };
+    const isDir = f => f.mimeType === FOLDER || (f.shortcutDetails && f.shortcutDetails.targetMimeType === FOLDER);
+    const node = f => {
+      const sc = f.shortcutDetails;
+      if (isDir(f)) return Component.gdDir(sc ? sc.targetId : f.id, f.name);
+      const fid = sc ? sc.targetId : f.id, lm = Date.parse(f.modifiedTime) || 0;
+      return { kind: 'file', name: f.name, modified: lm, drive: true,
+        getFile: async () => {
+          const r = await Component.gdFetch(api + '/' + fid + '?alt=media&supportsAllDrives=true');
+          const b = await r.blob();
+          return new File([b], f.name, { type: b.type || f.mimeType || '', lastModified: lm });
+        },
+        createWritable: async () => {
+          const parts = [];
+          return {
+            write: async d => { parts.push(d && d.data !== undefined ? d.data : d); },
+            close: async () => {
+              const ext = (f.name.split('.').pop() || '').toLowerCase();
+              const type = Component.GD_MIME[ext] || f.mimeType || 'application/octet-stream';
+              await Component.gdFetch(up + '/' + fid + '?uploadType=media&supportsAllDrives=true',
+                { method: 'PATCH', headers: { 'Content-Type': type }, body: new Blob(parts, { type }) });
+              kids = null;
+            }
+          };
+        } };
+    };
+    return { kind: 'directory', name, drive: true,
+      queryPermission: async () => Component.gdValid() ? 'granted' : 'prompt',
+      requestPermission: async () => { try { await Component.gdSignIn(); return 'granted'; } catch (e) { return 'denied'; } },
+      async *entries() { for (const f of await list()) yield [f.name, node(f)]; },
+      async getDirectoryHandle(n) { const f = (await list()).find(x => x.name === n && isDir(x)); if (!f) throw Component.asNotFound(); return node(f); } };
+  }
+  // The folder id from any shape of Drive folder link, or a bare id.
+  static gdId(t) {
+    t = String(t || '').trim();
+    const m = /\/folders\/([\w-]{10,})/.exec(t) || /[?&]id=([\w-]{10,})/.exec(t);
+    if (m) return m[1];
+    return /^[\w-]{20,}$/.test(t) ? t : '';
+  }
+  async asGdGo(e) {
+    const box = e && e.currentTarget && e.currentTarget.closest('.as-src');
+    const inp = box && box.querySelector('[data-as="gd"]');
+    const id = Component.gdId(inp && inp.value);
+    const say = m => { this._asErr = m; this.setState({ adSetsOpen: true }); this.forceUpdate(); };
+    if (!id) return say('That is not a Google Drive folder link. Open the folder in Drive and copy the address from the browser — it contains /folders/.');
+    try {
+      await Component.gdSignIn();          // first: the popup needs the click's activation
+      const r = await Component.gdFetch('https://www.googleapis.com/drive/v3/files/' + id + '?fields=id,name,mimeType,shortcutDetails&supportsAllDrives=true');
+      const f = await r.json();
+      const fid = f.shortcutDetails && f.shortcutDetails.targetId ? f.shortcutDetails.targetId : f.id;
+      if (f.mimeType !== 'application/vnd.google-apps.folder' && !(f.shortcutDetails && f.shortcutDetails.targetMimeType === 'application/vnd.google-apps.folder'))
+        return say('That link is a file, not a folder. Link the folder that holds the saved project.');
+      try { localStorage.setItem('provident-drive-last', id); } catch (er) {}
+      this.asView({ kind: 'drive', handle: Component.gdDir(fid, f.name), name: f.name });
+    } catch (er) { say(er.message || String(er)); }
+  }
+  asGdKey(e) { if (e.key === 'Enter') { e.preventDefault(); this.asGdGo(e); } }
+  asGdSaveId(e) {
+    const box = e && e.currentTarget && e.currentTarget.closest('.as-src');
+    const v = String(((box && box.querySelector('[data-as="gdc"]')) || {}).value || '').trim();
+    if (!/\.apps\.googleusercontent\.com$/.test(v)) { this._asErr = 'That does not look like an OAuth client ID — it ends in .apps.googleusercontent.com.'; this.forceUpdate(); return; }
+    try { localStorage.setItem('provident-drive-client', v); } catch (er) {}
+    this._asErr = ''; Component.gdLoad().catch(() => {}); this.forceUpdate();
+  }
+  gdVals() {
+    const id = Component.gdClientId(), inOn = Component.gdValid();
+    if (id) Component.gdLoad().catch(() => {});      // warm it, so the click's popup is not blocked
+    return {
+      asGdReadyOn: id ? '1' : undefined, asGdCfgOn: id ? undefined : '1', asGdInOn: inOn ? '1' : undefined,
+      asGdNote: !id ? 'Not set up on this computer yet — paste the OAuth client ID from your admin.'
+        : inOn ? 'Signed in. Paste a folder link to view and edit it in place.'
+        : 'Paste a folder link — you will be asked to sign in with your Provident Google account.',
+      asGdGo: e => this.asGdGo(e), asGdKey: e => this.asGdKey(e), asGdSaveId: e => this.asGdSaveId(e),
+      asGdOut: () => { Component.gdSignOut(); if (this._asSrc && this._asSrc.kind === 'drive') this.asUseSource(); else this.forceUpdate(); }
+    };
+  }
   asView(src) {
     this._asSrc = src; this._asErr = ''; this._asDrag = false; this._asPanel = false;
     this.setState({ adSetsOpen: true });
@@ -13480,7 +13663,8 @@ class Component extends DCLogic {
       asSrcErr: this._asErr || '', asSrcErrOn: this._asErr ? '1' : undefined,
       asUseSource: () => this.asUseSource(),
       asViewingOn: this._asSrc ? '1' : undefined,
-      asViewing: this._asSrc ? 'Viewing the dropped folder “' + this._asSrc.name + '”' : ''
+      asViewing: this._asSrc ? (this._asSrc.kind === 'drive' ? 'Viewing the Google Drive folder “' : 'Viewing the dropped folder “') + this._asSrc.name + '”' : '',
+      ...this.gdVals()
     };
   }
   // ── Ad sets · EDIT TEXT (2026-10-15) ───────────────────────────────────────────────
@@ -13645,7 +13829,8 @@ class Component extends DCLogic {
         + (!ae.photos && p.outs.length ? ' · images not re-exported (the file carries no photos)' : '') + ' · ' + t;
     } catch (e) {
       ae.dirty = true; ae.state = 'bad';
-      ae.status = 'Could not save — ' + (e && e.message ? String(e.message).replace(/\.\s*$/, '') : e) + '. Your edits are kept here; try again.';
+      if (e && e.gdAuth) ae.can = 'ask';     // Google sign-in lapsed: offer it again
+      ae.status = e && e.gdAuth ? 'Not saved — your Google sign-in has expired. Sign in again; your edits are kept here.' : 'Could not save — ' + (e && e.message ? String(e.message).replace(/\.\s*$/, '') : e) + '. Your edits are kept here; try again.';
     } finally {
       StudioBase.applyFont(this.eng.state);
       ae.saving = false;
@@ -13665,6 +13850,9 @@ class Component extends DCLogic {
     Object.assign(base, {
       aeState: ae.state, aeStatus: ae.status,
       aePermOn: ae.can === 'ask', aeAllow: () => this.aeAllow(),
+      ...(this._asSrc && this._asSrc.kind === 'drive'
+        ? { aePermHead: 'Sign in to Google to save', aePermNote: 'Your changes are written into the project file and its images in Drive, under your Google account. A sign-in lasts an hour.', aePermBtn: 'Sign in with Google' }
+        : { aePermHead: 'Allow editing this folder', aePermNote: 'Your changes are written into the project file and its images, so the browser needs permission to change files here.', aePermBtn: 'Allow editing' }),
       aeRoOn: ae.can === 'no',
       aeNoteOn: !!ae.st && (!ae.photos || (this.eng.state && this.eng.state.pid && ae.st.pid === this.eng.state.pid)),
       aeNote: !ae.st ? '' : (!ae.photos ? 'This project file carries no photos, so its images are not re-exported — only the words are saved. Save it from the studio once to include them.'
