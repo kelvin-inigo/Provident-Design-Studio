@@ -5571,7 +5571,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     </div>
 
     <div class="p-grp-w">
-      <span class="p-lab">Logo <s>never right</s> <span class="tip" data-tip="Pick the corner the wordmark sits in. Right is deliberately not offered — the brand rules place the wordmark left or centre only." style="{{ infoStyle }}">i</span></span>
+      <span class="p-lab">Logo <s>{{ logoScope }}</s> <span class="tip" data-tip="Pick the corner the wordmark sits in. Right is deliberately not offered — the brand rules place the wordmark left or centre only." style="{{ infoStyle }}">i</span></span>
       <div class="p-opts p-opts-2 p-opts-sm">
         <sc-for list="{{ logoSpots }}" as="sp" hint-placeholder-count="4">
           <button onClick="{{ sp.set }}" data-on="{{ sp.on }}" class="p-opt" title="{{ sp.label }}">
@@ -8059,10 +8059,13 @@ class CampaignStudio extends StudioBase {
     return r;
   }
   static withOv(v, eff) {
-    if (eff === v || !eff || !(eff.mvar || eff.msize || eff.align)) return v;
+    if (eff === v || !eff || !(eff.mvar || eff.msize || eff.align || eff.logoPos || eff.logoAlign)) return v;
     const o = Object.assign({}, v, { mvar: Object.assign({}, v.mvar, eff.mvar), msize: Object.assign({}, v.msize, eff.msize) });
     // A detached size may choose its own alignment; absent, it follows the variant's.
     if (eff.align === 'left' || eff.align === 'center') o.align = eff.align;
+    // ...and its own wordmark corner; unset, it follows the variant's
+    if (eff.logoPos === 'top' || eff.logoPos === 'bottom') o.logoPos = eff.logoPos;
+    if (eff.logoAlign === 'left' || eff.logoAlign === 'center') o.logoAlign = eff.logoAlign;
     return o;
   }
   // One tracked-caps unit. Every eyebrow, small label and spec label reads this, so
@@ -13089,6 +13092,7 @@ class CampaignStudio extends StudioBase {
       alignLeftOn: (selEff !== selV ? (selEff.align || selV.align) : av.align) !== 'center' ? '1' : undefined,
       alignCenterOn: (selEff !== selV ? (selEff.align || selV.align) : av.align) === 'center' ? '1' : undefined,
       alignScope: selEff !== selV ? 'this size only' : '',
+      logoScope: selEff !== selV ? 'this size only · never right' : 'never right',
       scrimH: av.scrimH == null ? 65 : av.scrimH,
       bgDark: () => setAv(vv => { vv.bg = 'dark'; vv.scrimHex = null; }),
       bgLight: () => setAv(vv => { vv.bg = 'light'; vv.scrimHex = null; }),
@@ -13184,7 +13188,9 @@ class CampaignStudio extends StudioBase {
       // own geometry (LOGO_BAR + LOGO_GAP) so the pair cannot drift apart.
       logoSpots: [['top', 'left'], ['top', 'center'], ['bottom', 'left'], ['bottom', 'center']].map(sp => {
         const pos = sp[0], al = sp[1];
-        const on = (av.logoPos || 'top') === pos && (av.logoAlign || 'left') === al;
+        // the SELECTED canvas's record when that size is edited separately, the variant otherwise
+        const lr = selEff !== selV ? CampaignStudio.withOv(selV, selEff) : av;
+        const on = (lr.logoPos || 'top') === pos && (lr.logoAlign || 'left') === al;
         const BAR = 38, GAP = 4, DOT = 5;                       // % of the tile's width
         const x = al === 'center' ? (100 - (BAR + GAP + DOT)) / 2 : 14;
         const band = pos === 'top' ? { top: '28%' } : { bottom: '28%' };
@@ -13192,7 +13198,7 @@ class CampaignStudio extends StudioBase {
           label: 'Logo ' + pos + ' ' + al,
           tile: (pos === 'top' ? 'Top' : 'Bottom') + ' ' + (al === 'center' ? 'Center' : 'Left'),
           on: on ? '1' : undefined,
-          set: () => setAv(vv => { vv.logoPos = pos; vv.logoAlign = al; }),
+          set: () => (selEff !== selV ? setSelTarget(t => { t.logoPos = pos; t.logoAlign = al; }) : setAv(vv => { vv.logoPos = pos; vv.logoAlign = al; })),
           barStyle: Object.assign({ left: x + '%', width: BAR + '%', height: '6px' }, band),
           dotStyle: Object.assign({ left: (x + BAR + GAP) + '%', width: '6px', height: '6px' }, band)
         };

@@ -203,6 +203,8 @@ No API key or service is needed: Claude Code reads the screenshot.
   - **Alignment** — appears once a canvas is edited separately. It shows that canvas's alignment;
     press it to switch between left and centre. The rail's **Alignment** does the same while that
     canvas is selected (it reads *this size only*).
+  - **Logo** — the same: while a separated canvas is selected, the Layout rail's **Logo** tiles
+    set the wordmark's corner for that canvas only. It starts where the variant's wordmark is.
   - **Picture** — give that canvas its own photo instead of sharing the main one.
   - **Eye** — show or hide the canvas. A hidden canvas is not exported.
 - **Portrait 3:4:** shown under the 1:1 on every Meta variant. It mirrors the 1:1 until you

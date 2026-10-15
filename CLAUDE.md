@@ -14922,3 +14922,9 @@ Arabic — preview against export worst **0.58 canvas px**, no overlaps, no copy
 except a three-row spec ladder plus headline on the 940-tall banners, which Arabic's taller
 type pushes past the bottom (Latin fits); the coverage chip flags it. The SVG export carries
 the flip. **Not exercised with a real pointer**: the mirrored graphic drag.
+
+**The wordmark's corner goes the same way (2026-10-15, by request):** `withOv` also overlays
+`eff.logoPos` / `eff.logoAlign`, and the rail's Logo tiles read and write the selected canvas's
+record while that size is detached (`logoScope` reads *this size only · never right*). Verified:
+Bottom Center on a detached 9:16 moved its wordmark only; the 1:1 stayed top left; re-linking
+restores the variant's.
