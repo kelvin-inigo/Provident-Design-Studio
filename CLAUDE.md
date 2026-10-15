@@ -14928,3 +14928,12 @@ the flip. **Not exercised with a real pointer**: the mirrored graphic drag.
 record while that size is detached (`logoScope` reads *this size only · never right*). Verified:
 Bottom Center on a detached 9:16 moved its wordmark only; the 1:1 stayed top left; re-linking
 restores the variant's.
+
+**A CLICK ON A CANVAS PICKS THE SIZE THE LAYOUT RAIL EDITS (2026-10-15, fix).** The logo control
+above was reported as not working: it only reached a separated size while a COMPONENT on that
+canvas was selected, and clicking the canvas cleared the selection. Each canvas now has its own
+`select` (mkCanvas), which sets `state.focusSz`; `selSz` is `sel.size` when a component is
+selected and `focusSz` otherwise, read by `selEff` and `setSelTarget`. `focusSz` is stripped
+(not a design change). Only the focused canvas carries the ring, and the Layout head reads
+*Master · 9:16 (own layout)*. Verified with real clicks: click the 9:16, Bottom Center -> its
+wordmark moved (preview and ops), the 1:1 and the variant stayed top left.
