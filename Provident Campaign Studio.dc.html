@@ -4021,6 +4021,34 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   .ae-perm{flex-direction:column;align-items:stretch}
 }
 @media (prefers-reduced-motion:reduce){.ae-stat .ae-dot,.ae-shot[data-wait] > span{animation:none}}
+
+/* ── 37. AD SETS DETAILS: THE AD ANALYSIS (angle, audience, USP, copy ratio) ─────────── */
+.as-det-r{gap:0;padding:6px 22px 18px}
+.as-an{padding:14px 0;border-bottom:1px solid var(--ps-hair)}
+.as-an:last-child{border-bottom:0}
+.as-an h3{margin:0 0 8px;font:600 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.as-an-big{margin:0;font:600 17px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-an-why{margin:4px 0 0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.as-an-why[data-over]{color:var(--ps-warn)}
+.as-an-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.as-an-tl{font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);margin-right:2px}
+.as-an-tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:var(--ps-pill);background:var(--ps-fill);
+  font:500 12px/1 var(--ps-font);color:var(--ps-ink)}
+.as-an-dl{margin:0;display:flex;flex-direction:column;gap:6px}
+.as-an-dl div{display:flex;gap:12px;align-items:baseline}
+.as-an-dl dt{flex:none;width:96px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.as-an-dl dd{margin:0;min-width:0;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.as-an-usp{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.as-an-usp li{display:flex;align-items:baseline;gap:10px;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.as-an-usp li b{font-weight:500;min-width:0}
+.as-an-usp li s{margin-left:auto;flex:none;text-decoration:none;font:400 11.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.as-an-ratio{display:flex;align-items:baseline;gap:6px}
+.as-an-ratio b{font:600 22px/1.1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.as-an-ratio s{text-decoration:none;font:400 12.5px/1 var(--ps-font);color:var(--ps-dim)}
+.as-an-bar{position:relative;height:10px;margin:10px 0 2px;border-radius:var(--ps-pill);background:var(--ps-fill-h);overflow:visible}
+.as-an-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--ps-pill);background:var(--ps-link)}
+.as-an-bar[data-over] i{background:var(--ps-warn)}
+.as-an-bar u{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:2px;background:var(--ps-ink)}
 </style>
 </helmet>
 
@@ -4521,7 +4549,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                       <div class="as-plat">
                         <div class="as-plat-top">
                           <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
-                          <button onClick="{{ pl.see }}" class="as-ad-see">Ad text<span class="yt-badge" data-state="{{ pl.badgeState }}">{{ pl.badge }}</span></button>
+                          <button onClick="{{ pl.see }}" class="as-ad-see" title="Marketing angle, audience, USP and how much of the image the copy covers">Details</button>
                         </div>
                         <div class="as-tiles">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
@@ -4614,9 +4642,27 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                 <div class="as-fmts"><sc-for list="{{ asDet.fmts }}" as="fm" hint-placeholder-count="0"><button onClick="{{ fm.set }}" data-on="{{ fm.on }}">{{ fm.label }}</button></sc-for></div>
               </div>
               <div class="as-det-r">
-                <div class="cw-page-h"><b>{{ asDet.title }}</b><span class="yt-badge" data-state="{{ asDet.badgeState }}">{{ asDet.badge }}</span></div>
-                <ul class="yt-checks"><sc-for list="{{ asDet.checks }}" as="ck" hint-placeholder-count="3"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for></ul>
-                <p class="as-det-sub">{{ asDetHint }}</p>
+                <section class="as-an">
+                  <h3>Marketing angle</h3>
+                  <p class="as-an-big">{{ asAn.angle }}</p>
+                  <p class="as-an-why">{{ asAn.angleWhy }}</p>
+                  <sc-if value="{{ asAn.alsoOn }}" hint-placeholder-val="{{ false }}"><div class="as-an-tags"><span class="as-an-tl">Also</span><sc-for list="{{ asAn.also }}" as="a" hint-placeholder-count="2"><span class="as-an-tag" title="{{ a.why }}">{{ a.name }}</span></sc-for></div></sc-if>
+                </section>
+                <section class="as-an">
+                  <h3>Audience</h3>
+                  <dl class="as-an-dl"><sc-for list="{{ asAn.aud }}" as="r" hint-placeholder-count="3"><div><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div></sc-for></dl>
+                </section>
+                <section class="as-an">
+                  <h3>USP</h3>
+                  <sc-if value="{{ asAn.uspOn }}" hint-placeholder-val="{{ true }}"><ul class="as-an-usp"><sc-for list="{{ asAn.usp }}" as="u" hint-placeholder-count="4"><li><b>{{ u.t }}</b><s>{{ u.src }}</s></li></sc-for></ul></sc-if>
+                  <sc-if value="{{ asAn.uspNone }}" hint-placeholder-val="{{ false }}"><p class="as-an-why">No selling points in the copy yet — no tags, key facts, bullets or price.</p></sc-if>
+                </section>
+                <section class="as-an">
+                  <h3>Copy ratio to image</h3>
+                  <div class="as-an-ratio"><b>{{ asAn.copyPct }}</b><s>copy</s><span class="p-spring"></span><b>{{ asAn.imgPct }}</b><s>image</s></div>
+                  <div class="as-an-bar" data-over="{{ asAn.overOn }}"><i style="{{ asAn.barStyle }}"></i><u style="{{ asAn.markStyle }}"></u></div>
+                  <p class="as-an-why" data-over="{{ asAn.overOn }}">{{ asAn.ratioNote }}</p>
+                </section>
               </div>
             </div>
           </div>
@@ -13682,7 +13728,7 @@ class Component extends DCLogic {
       if (t.length) rows.push({ kind, tiles: t });
     }
     const ck = yt ? C.ytCheck(st) : C.mtCheck(st);
-    const card = { key, label, tiles, rows, ctx, letter, yt,
+    const card = { key, label, tiles, rows, ctx, letter, yt, proj: p,
       title: yt ? 'YouTube Demand Gen text' : 'Meta ad text',
       badge: ck.badge, badgeState: ck.ok ? 'ok' : 'bad',
       checks: ck.rows.map(r => ({ label: r.label, note: r.note, state: r.state })),
@@ -13696,14 +13742,138 @@ class Component extends DCLogic {
     card.see = () => { this._asDet = card; this.forceUpdate(); };
     return card;
   }
+  // ══ THE AD ANALYSIS in Ad sets › Details (2026-10-15) ═══════════════════════════════════
+  // Read off the saved project's own words — no service, no model. The angle is the theme
+  // the copy leans on hardest — each component counts once per theme, the headline three
+  // times over and the hook twice, so four distance facts cannot outvote the headline — the
+  // audience is the folder it sits in plus what the copy speaks to, the USP is every
+  // selling point the ad states, and the copy ratio is measured off the SAME ops the
+  // export draws.
+  static AN_ANGLES = [
+    ['Investment and returns', /\b(roi|yields?|returns?|rental (income|yield)|capital (growth|appreciation)|appreciation|invest(or|ors|ment|ing)?|income|profit)\b/gi],
+    ['Payment plan and entry price', /\b(payment plans?|instal+ments?|post[- ]handover|down ?payment|starting (from|at)|from (aed|usd|eur|gbp)|\d{2}\s?\/\s?\d{2}|easy pay|pay \d+%|\d+% (down|now|on booking))\b/gi],
+    ['Golden Visa and residency', /\b(golden visa|residency|resident visa|visa eligible)\b/gi],
+    ['Location and connectivity', /\b(\d+\s?(mins?|minutes)|airport|downtown|metro|minutes? (from|to)|heart of|close to|steps from|connected|access to|waterfront location|prime location|located)\b/gi],
+    ['Launch and urgency', /\b(launch(ing|ed)?|eois?|now (selling|accepting|open|available)|limited|last (units|few|chance)|register|book (now|today)|exclusive|first look|pre[- ]launch|sold out|hurry|only \d+)\b/gi],
+    ['Lifestyle and luxury', /\b(living|lifestyle|luxur(y|ious)|beach(front)?|views?|amenities|wellness|resort|family|families|home|homes|villas?|penthouses?|spa|serene|green)\b/gi],
+    ['Workspace and business', /\b(offices?|business(es)?|commercial|retail|workspaces?|grade a|headquarters|hq|enterprise|companies)\b/gi],
+  ];
+  static adRead(st, vi, ctx) {
+    const C = CampaignStudio;
+    vi = Math.max(0, Math.min(vi, ((st.variants || []).length || 1) - 1));
+    const v = (st.variants || [])[vi] || {};
+    const hid = id => !!(v.hidden && v.hidden[id]);
+    const mods = C.orderedFor(v, C.modulesFor(st, vi)).filter(m => !hid(m.id));
+    const parts = [], usp = [], seen = {};
+    const add = (t, w, type) => { t = String(t || '').replace(/\*\*/g, '').trim(); if (t) parts.push({ t, w, type }); };
+    const pushU = (t, src) => { t = String(t || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); const k = t.toLowerCase(); if (t && !seen[k]) { seen[k] = 1; usp.push({ t, src }); } };
+    const lines = m => String(m.text || '').split('\n').map(x => x.trim()).filter(Boolean);
+    mods.forEach(m => {
+      if (m.type === 'hero') add(m.text, 3, 'hero');
+      else if (m.type === 'hook') { add(m.text, 2, 'hook'); lines(m).forEach(t => pushU(t, 'Hook line')); }
+      else if (m.type === 'eyebrow') add(m.text, 1.5, 'eyebrow');
+      else if (m.type === 'cta') add(m.text, 1.5, 'cta');
+      else if (m.type === 'body') add(m.text, 1, 'body');
+      else if (m.type === 'price') { const t = C.priceLine ? C.priceLine(m) : [m.sub, m.text].filter(Boolean).join(' '); add(t, 1.5, 'price'); pushU(t, 'Price'); }
+      else if (m.type === 'tags') C.chipsOf(m).forEach(c => { add(c.t, 1.5, 'tags'); pushU(c.t, 'Tag'); });
+      else if (m.type === 'spec') C.colsOf(m).forEach(c => { add(c.l + ' ' + c.v, 1.2, 'spec'); pushU([c.v, c.l].filter(Boolean).join(' · '), 'Key fact'); });
+      else if (m.type === 'list') lines(m).forEach(t => { add(t, 1.2, 'list'); pushU(t, 'Bullet'); });
+      else if (m.type === 'steps') lines(m).forEach(t => add(t, 1, 'steps'));
+      else if (m.type === 'cust' && m.f) Object.keys(m.f).forEach(k => add(m.f[k], 1, 'cust'));
+    });
+    // a location eyebrow ("CITY OF ARABIA, DUBAI") is where the ad is, which is a fact the
+    // reader is sold on as much as a tag is
+    mods.filter(m => m.type === 'eyebrow').forEach(m => pushU(m.text, 'Location'));
+    const scored = Component.AN_ANGLES.map(([name, re]) => {
+      let score = 0; const hits = [];
+      parts.forEach(p => { const m = p.t.match(re); if (m) { score += p.w; m.forEach(h => { const k = h.toLowerCase(); if (hits.indexOf(k) < 0) hits.push(k); }); } });
+      return { name, score, hits };
+    }).filter(a => a.score > 0).sort((a, b) => b.score - a.score);
+    const quote = a => 'From the copy: ' + a.hits.slice(0, 4).map(h => '\u201c' + h + '\u201d').join(', ') + '.';
+    const top = scored[0];
+    // AUDIENCE: the folder says who the set was made for; the copy says who it speaks to
+    const segs = String(ctx || '').split(' \u203a ');
+    const market = segs[0] || '', folder = segs[1] || '';
+    const all = parts.map(p => p.t).join(' ');
+    const cur = (all.match(/\b(AED|USD|EUR|GBP|INR|SAR|CNY|RUB)\b/i) || [])[1];
+    const speaks = [];
+    const has = n => scored.some(a => a.name === n);
+    if (has('Investment and returns') || /invest/i.test(folder)) speaks.push('investors');
+    if (has('Workspace and business')) speaks.push('business owners');
+    if (has('Golden Visa and residency')) speaks.push('residency seekers');
+    if (has('Lifestyle and luxury')) speaks.push(/famil/i.test(all) ? 'families' : 'end users');
+    if (has('Payment plan and entry price') && speaks.indexOf('investors') < 0) speaks.push('first-time buyers');
+    const aud = [];
+    if (market) aud.push({ k: 'Market', v: market });
+    if (folder) aud.push({ k: 'Segment', v: folder });
+    if (cur) aud.push({ k: 'Currency', v: cur.toUpperCase() });
+    aud.push({ k: 'Copy speaks to', v: speaks.length ? speaks.join(', ').replace(/^./, c => c.toUpperCase()) : 'Nobody in particular — no audience cues in the copy' });
+    if (st.adMode === 'carousel') aud.push({ k: 'Format', v: 'Carousel' });
+    return {
+      angle: top ? top.name : 'No clear angle',
+      angleWhy: top ? quote(top) : 'The copy carries none of the usual cues — price, payment plan, location, returns, residency, launch or lifestyle.',
+      also: scored.slice(1, 5).map(a => ({ name: a.name, why: quote(a) })),
+      aud, usp: usp.slice(0, 10)
+    };
+  }
+  // The share of the canvas the copy covers, off the export's own ops: every text run and
+  // every panel, chip, button and rule, as a union on an 8px grid. The photo, the scrim,
+  // the ground and any picture (logo art, QR, icons) are the image's side.
+  copyRatio(st, vi, sk) {
+    const built = this.eng.buildOps(st, vi, sk, {});
+    const W = built.W, H = built.H, g = 8, cw = Math.ceil(W / g), ch = Math.ceil(H / g);
+    const cells = new Uint8Array(cw * ch);
+    const meas = (t, px, w, serif, ls) => this.eng.meas(t, px, w, serif, ls);
+    built.ops.forEach(o => {
+      if (o.op === 'image' || o.op === 'grad' || o.op === 'blur') return;
+      if ((o.op === 'rect' || o.op === 'rrect') && o.w * o.h > W * H * .6) return;
+      const b = CampaignStudio.opBox(o, meas); if (!b) return;
+      const x0 = Math.max(0, Math.floor(b[0] / g)), x1 = Math.min(cw, Math.ceil(b[2] / g));
+      const y0 = Math.max(0, Math.floor(b[1] / g)), y1 = Math.min(ch, Math.ceil(b[3] / g));
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) cells[y * cw + x] = 1;
+    });
+    let n = 0; for (let i = 0; i < cells.length; i++) n += cells[i];
+    return Math.round(n / cells.length * 100);
+  }
+  async asAnalyse(c) {
+    if (!c || !c.proj) return;
+    const sk = c.shape, key = sk;
+    c.an = c.an || {};
+    if (c.an[key] != null) return;
+    c.an[key] = 'busy';
+    try {
+      if (!c.st) {
+        let raw = c.proj.state;
+        if (!raw && c.proj.jsonH) raw = (JSON.parse(await (await c.proj.jsonH.getFile()).text()) || {}).state;
+        c.st = CampaignStudio.normState(JSON.parse(JSON.stringify(raw || {})));
+      }
+      await this.aeFonts(c.st);
+      c.an[key] = this.copyRatio(c.st, c.letter.charCodeAt(0) - 65, CampaignStudio.PXT[sk] ? sk : 'sq');
+    } catch (e) { console.warn('[provident] ad analysis', e); c.an[key] = 'fail'; }
+    finally { StudioBase.applyFont(this.eng.state); this.forceUpdate(); }
+  }
   asDetVals() {
     const c = this._asDet;
-    if (!c) return { asDetOn: undefined, asDet: {} };
+    if (!c) return { asDetOn: undefined, asDet: {}, asAn: {} };
+    if (!c.read) { try { c.read = Component.adRead(c.proj ? (c.st || CampaignStudio.normState(JSON.parse(JSON.stringify(c.proj.state || {})))) : {}, c.letter.charCodeAt(0) - 65, c.ctx); } catch (e) { c.read = { angle: 'Could not read this project', angleWhy: '', also: [], aud: [], usp: [] }; } }
+    const r = c.read, pct = c.an && c.an[c.shape];
+    if (pct == null) this.asAnalyse(c);
+    const ok = typeof pct === 'number', MAX = CampaignStudio.COVER_MAX, over = ok && pct > MAX;
+    const asAn = {
+      angle: r.angle, angleWhy: r.angleWhy, also: r.also, alsoOn: r.also.length ? '1' : undefined,
+      aud: r.aud, usp: r.usp, uspOn: r.usp.length ? '1' : undefined, uspNone: r.usp.length ? undefined : '1',
+      copyPct: ok ? pct + '%' : '…', imgPct: ok ? (100 - pct) + '%' : '…',
+      overOn: over ? '1' : undefined,
+      barStyle: { width: (ok ? pct : 0) + '%' }, markStyle: { left: MAX + '%' },
+      ratioNote: !ok ? (pct === 'fail' ? 'Could not measure this one.' : 'Measuring…')
+        : (c.meta ? c.meta.split(' \u00b7 ')[0] + ': ' : '') + (over
+          ? 'over the ' + MAX + '% guide — the copy is starting to outweigh the picture.'
+          : 'within the ' + MAX + '% guide, so the picture still leads.') + ' Measured on the text, panels and buttons the export draws.'
+    };
     return {
-      asDetOn: '1', asDet: c,
-      asDetTitle: c.ctx + ' · ' + c.label,
-      asDetHint: c.yt ? 'Up to 5 headlines of 40 characters and 5 descriptions of 90, none repeated, and a business name of 25. Write them in Publish.'
-        : 'Primary text is cut at 125 characters behind See more; headlines 40, descriptions 30; none repeated. Write them in Publish.',
+      asDetOn: '1', asDet: c, asAn,
+      asDetTitle: c.ctx + ' \u00b7 ' + c.label,
+      asDetHint: '',
       asDetClose: () => { this._asDet = null; this.forceUpdate(); },
       asDetStop: e => { if (e) e.stopPropagation(); }
     };

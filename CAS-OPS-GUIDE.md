@@ -442,10 +442,19 @@ Press **Edit text** to work on the words of the audience on screen, without open
   to see it large: the top line says where it sits (Local › Family › Variant A › Meta · Feed), and
   the arrows or **←** / **→** step through every image in the window in order. **Esc** closes it,
   and **Esc** again closes the window.
-- **Ad text** beside each platform's label opens its images beside the same text check the
-  **Publish** tab shows: *Meta ad text* (primary text, headlines, descriptions, destination,
-  button) for Meta, *YouTube Demand Gen text* (business name, headlines, descriptions) for YouTube.
-  The button carries the same badge — *Ready for Meta* / *Ready for Google*, or how many to fix.
+- **Details** beside each platform's label opens its images beside an analysis of the ad, read
+  from its saved project:
+  - **Marketing angle** — the theme the copy leans on hardest (Workspace and business, Payment
+    plan and entry price, Location and connectivity, Golden Visa and residency, Investment and
+    returns, Launch and urgency, Lifestyle and luxury), with the words that show it and any
+    other angles it also uses. The headline counts most, then the hook.
+  - **Audience** — the market and segment from the folders, the currency, and who the copy
+    speaks to (investors, business owners, residency seekers, families…).
+  - **USP** — every selling point the ad states: its tags, key facts, bullets, hook, price
+    and location label.
+  - **Copy ratio to image** — how much of the picture the text, panels and buttons cover, for
+    the format you are looking at, against the brand's 40% guide.
+  The analysis reads the words only; it does not change anything.
 - Each variant row shows how many images it holds.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
 

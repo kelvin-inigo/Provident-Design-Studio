@@ -14773,3 +14773,27 @@ shell — no `ops.push` / renderer line moved.
   refreshed; no console errors; no overflow at 390; 0 contrast failures in both themes.
 - **Not done:** the Publish text (Meta / YouTube) is not editable here; `_Meta upload.json`'s byte
   sizes are not refreshed; recents keep their own older copy.
+
+# AD SETS › DETAILS IS AN AD ANALYSIS, NOT THE META TEXT CHECK (2026-10-15)
+
+By request ("forget about the meta ads repo … Marketing angle, Audience, USP, Copy ratio to
+image"). The per-platform button is **Details** (no badge); the panel's right column is four
+sections (section 37 of CAS's sheet, `.as-an*`). Chrome and shell only — no artwork line moved.
+
+- **`Component.adRead(st, vi, ctx)`** reads the saved state's own words (no service, no model):
+  the visible modules of that variant in reading order. `AN_ANGLES` is seven keyword families;
+  **each component scores an angle ONCE** (hero 3, hook 2, eyebrow/cta/price/tags 1.5, spec/list
+  1.2, else 1) — scoring per match let four distance facts outvote an office headline. The
+  quote shows the matched words. Audience = market and segment from the folder path (`ctx`),
+  currency from the copy, "copy speaks to" from the angles (+ investors when the folder says
+  so). USP = tags, key facts ("20 mins · Downtown"), bullets, hook lines, the price line and
+  the eyebrow as Location, de-duplicated.
+- **Copy ratio** = `copyRatio(st, vi, sk)`: the export's own `buildOps`, every op except image /
+  grad / blur and full-canvas rects, boxed through `CampaignStudio.opBox` and unioned on an 8px
+  grid, per format (Feed / Story…). Measured against `COVER_MAX` (40), a marker on the bar.
+  It is AREA, not the editor chip's band height, so the two numbers differ.
+- The card carries its project (`card.proj`); the state is normalised once per card and the
+  ratio is cached per shape (`card.an`). `applyFont` is restored after measuring.
+- Verified on an OPFS stand-in of the reported ad: angle Workspace and business (also location,
+  payment plan, Golden Visa, launch), USD investor audience, 8 USPs, Feed 31% / Story 24%; no
+  console errors. `card.checks` / `mtCheck` are still computed and now unread here.
