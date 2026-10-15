@@ -3979,7 +3979,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .ae-perm s{font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
 .ae-perm .p-btn{flex:none}
 .ae-note{margin:0;padding:10px 14px;border-radius:var(--ps-r-sm);background:var(--ps-fill);font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
-.ae-b{display:grid;grid-template-columns:minmax(300px,540px) minmax(0,1fr);gap:32px;align-items:start}
+.ae-b{display:grid;grid-template-columns:minmax(300px,460px) minmax(0,1fr);gap:32px;align-items:start}
 .ae-form{display:flex;flex-direction:column;gap:12px;min-width:0}
 .ae-page{margin-top:0}
 .ae-meta{margin:0 0 6px;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-dim)}
@@ -3988,11 +3988,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .ae .cw-item + .cw-item{margin-top:6px}
 .ae-foot{display:flex;align-items:center;gap:12px;min-height:36px}
 .ae-foot s{flex:1;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.ae-prev{position:sticky;top:96px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.ae-prev{display:flex;flex-direction:column;gap:28px;min-width:0}
 .ae-var{display:flex;flex-direction:column;gap:10px}
-.ae-shots{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
-.ae-shot{--ae-h:210px;margin:0;display:flex;flex-direction:column;gap:6px}
-.ae-shot[data-shape="ls"],.ae-shot[data-shape="yl"],.ae-shot[data-shape="bn"],.ae-shot[data-shape="bs"]{--ae-h:120px}
+.ae-shots{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px}
+.ae-shot{--ae-h:clamp(260px,46vh,520px);margin:0;display:flex;flex-direction:column;gap:6px}
+.ae-shot[data-shape="ls"],.ae-shot[data-shape="yl"],.ae-shot[data-shape="bn"],.ae-shot[data-shape="bs"]{--ae-h:clamp(180px,28vh,320px)}
 .ae-shot > span{display:block;height:var(--ae-h);border-radius:var(--ps-r-sm);overflow:hidden;background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair)}
 .ae-shot[data-shape="sq"] > span{aspect-ratio:1}
 .ae-shot[data-shape="st"] > span{aspect-ratio:9/16}
@@ -13582,7 +13582,7 @@ class Component extends DCLogic {
         const out = {};
         for (const x of this.aeShots(ae)) {
           const built = this.eng.buildOps(ae.st, x.vi, x.sk, ae.assets);
-          const k = Math.min(.6, 560 / Math.max(built.W, built.H));
+          const k = Math.min(1, 1100 / Math.max(built.W, built.H));
           out[x.key] = this.eng.renderOpsToCanvas(built, k).toDataURL('image/webp', .86);
         }
         ae.prev = out;

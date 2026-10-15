@@ -14797,3 +14797,8 @@ sections (section 37 of CAS's sheet, `.as-an*`). Chrome and shell only — no ar
 - Verified on an OPFS stand-in of the reported ad: angle Workspace and business (also location,
   payment plan, Golden Visa, launch), USD investor audience, 8 USPs, Feed 31% / Story 24%; no
   console errors. `card.checks` / `mtCheck` are still computed and now unread here.
+
+**Edit text previews are larger (2026-10-15, by request):** `.ae-shot` is `clamp(260px,46vh,520px)`
+tall (landscape and banners `clamp(180px,28vh,320px)`), the form column 460, the preview column no
+longer sticky (a tall preview pinned under the bar hid its own bottom), and `aePreview` renders at
+`min(1, 1100 / long side)` so the larger shots stay sharp on a retina screen.
