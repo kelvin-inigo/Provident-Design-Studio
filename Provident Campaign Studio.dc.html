@@ -13535,7 +13535,7 @@ class Component extends DCLogic {
   // localStorage. Scope is full Drive because a folder picked by link has to be listed and
   // its files overwritten; the admin makes the app INTERNAL, so only Provident accounts can
   // sign in and Google's app review does not apply. docs/google-drive-setup.md has the steps.
-  static DRIVE_CLIENT_ID = '';
+  static DRIVE_CLIENT_ID = '210522580023-ajcrfmscqohgbdq36t6ph4mrhnk9u5s3.apps.googleusercontent.com';
   static GD_SCOPE = 'https://www.googleapis.com/auth/drive';
   static gdClientId() {
     let v = ''; try { v = localStorage.getItem('provident-drive-client') || ''; } catch (e) {}
