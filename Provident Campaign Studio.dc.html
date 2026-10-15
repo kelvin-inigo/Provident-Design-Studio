@@ -7816,6 +7816,12 @@ class CampaignStudio extends StudioBase {
         o.x = mx(o.x, w);
       } else if (o.op === 'poly') {
         o.pts = o.pts.map(p => [W - p[0], p[1]]);
+      } else if (o.op === 'image' && o.inkW != null && !o.flipX) {
+        // A PADDED mark (the co-brand partner) is drawn as its whole file with its ink
+        // somewhere inside. Unflipped, reflecting the FILE box puts the ink on the far side
+        // of its own box — on top of the wordmark. Reflect the INK box and keep the file's
+        // own offset from it.
+        o.x = mx(o.x + o.inkX, o.inkW) - o.inkX;
       } else if (o.x != null && o.w != null) {
         o.x = mx(o.x, o.w);
         if (o.clip) o.clip = Object.assign({}, o.clip, { x: mx(o.clip.x, o.clip.w) });
@@ -8687,7 +8693,7 @@ class CampaignStudio extends StudioBase {
       ops.push({ op: 'rect', x: x0 + logoW + CB.gap, y: cy - CB.rh / 2, w: CB.rw, h: CB.rh, fill: pal.rule });
       const px0 = x0 + logoW + CB.gap + CB.rw + CB.gap;
       ops.push({ op: 'image', img: coA.img, url: coA.u,
-        x: px0 - CB.ox, y: cy - CB.th / 2 - CB.oy, w: CB.dw, h: CB.dh,
+        x: px0 - CB.ox, y: cy - CB.th / 2 - CB.oy, w: CB.dw, h: CB.dh, inkX: CB.ox, inkW: CB.tw,
         tintFlat: (state.colog.tint !== false) ? pal.ink : undefined });
     } else {
       ops.push({ op: 'text', x: logoX, y: logoBaseY, px: tk.logo, weight: 300, fill: pal.ink, text: 'provident.', ls: logoLS });
@@ -12042,7 +12048,10 @@ class CampaignStudio extends StudioBase {
           // copy of the slot. coBox() falls back to a square until the measurement lands,
           // one frame later.
           const coOn = !!co.on;
-          const base = { fontWeight: 300, fontSize: cq(tk.logo), letterSpacing: '.04em', color: pal.ink, alignSelf: v.logoAlign === 'center' ? 'center' : 'flex-start', flex: 'none', position: 'relative', zIndex: 2 };
+          // textAlign is EXPLICIT so the mirror can swap it: left unset, `unicode-bidi:
+          // plaintext` resolves "start" from the text itself, and Latin "provident." stayed on
+          // the LEFT of an Arabic lockup box — on top of the partner mark.
+          const base = { textAlign: 'left', fontWeight: 300, fontSize: cq(tk.logo), letterSpacing: '.04em', color: pal.ink, alignSelf: v.logoAlign === 'center' ? 'center' : 'flex-start', flex: 'none', position: 'relative', zIndex: 2 };
           const bot = v.logoPos === 'bottom';
           Object.assign(base, bot ? { marginTop: cq(80), order: 2 } : { marginBottom: cq(80) });
           if (!coOn) return { logoStyle: base, coOn: false };
@@ -12087,7 +12096,9 @@ class CampaignStudio extends StudioBase {
       // ARABIC: the same tree, mirrored — see CampaignStudio.mirrored(). The canvas box
       // itself is not mirrored (it sits in the plate); everything drawn inside it is.
       if (mir) {
-        const keep = { canvasStyle: cvOut.canvasStyle };
+        // The partner mark's file sits at an offset INSIDE its ink box, and the file is not
+        // reflected — so that offset stays as it is; only the ink box itself moves.
+        const keep = { canvasStyle: cvOut.canvasStyle, coImgStyle: cvOut.coImgStyle, coPaintStyle: cvOut.coPaintStyle };
         CampaignStudio.mirView(cvOut);
         Object.assign(cvOut, keep);
         cvOut.frameStyle = Object.assign({}, cvOut.frameStyle, { direction: 'rtl' });

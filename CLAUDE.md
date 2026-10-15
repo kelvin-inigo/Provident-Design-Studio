@@ -14893,6 +14893,12 @@ wrapper and cut-out get `scaleX(-1)`.
   `marginLeft` of `railG.x0 - pL`.
 - **Canvas gestures run backwards in the mirrored frame**: the floating graphic's move and
   corner scale multiply the pointer delta by `mirS`.
+- **The co-brand partner mark is reflected by its INK box, not its file box** (`inkX` / `inkW`
+  on the op; `coImgStyle` / `coPaintStyle` are kept out of `mirView`). A padded brand sheet is
+  drawn as its whole file, and reflecting that box unflipped put the ink on top of
+  "provident." in both surfaces. The lockup's `textAlign: 'left'` is explicit for the same
+  reason any mirrored run needs one: unset, `unicode-bidi: plaintext` resolves "start" from
+  the text, so Latin "provident." stayed left in an Arabic lockup box.
 - **The wordmark moves right with the copy** — "never right" is an LTR rule; leaving it left
   would put it under the mirrored QR. The co-brand lockup reads partner | provident.
 - **`arGap(up, lo)`** (.26 of the upper run + .27 of the lower, zero in Latin) is the air two
