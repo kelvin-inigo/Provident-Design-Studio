@@ -221,7 +221,11 @@ No API key or service is needed: Claude Code reads the screenshot.
   - **Story 9:16**, **QR code** and **Collaboration logo** are switches. The line under each
     one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
     on, pick the **Corner** it sits in.
-  - **Typeface:** **English** or **Arabic**.
+  - **Typeface:** **English** or **Arabic**. Arabic mirrors the whole ad for right-to-left
+    reading: a left-aligned design becomes right-aligned, the photo flips, the logo moves to
+    the right and the QR code moves to the other corner (the code itself is not flipped, so it
+    still scans). Lists, steps and tags read from the right. A centred design stays centred.
+    Your alignment setting doesn't change, so switching back to English restores the layout.
   - With the collaboration logo on, add the partner's mark and set its size and colour.
 
 ## 5. CAS: the Eventbrite banner

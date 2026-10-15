@@ -6262,6 +6262,10 @@ LTR. Applied in all four renderers per the parity contract, and mirrored in the 
 
 #### Lists read RIGHT TO LEFT in Arabic — `listRtl()` and `seqAt()`
 
+> **SUPERSEDED (2026-10-15): `listRtl()` returns false.** Arabic mirrors the WHOLE layout now,
+> and a list reads right to left because the page does. See *ARABIC MIRRORS THE WHOLE AD* at the
+> end of this file. The six components' branches below are dormant, not deleted.
+
 **This is a narrow, deliberate exception to "Arabic is a typeface switch, not a layout
 flip."** Margins, alignment, the cluster stack and the canvas grid are still untouched. What
 changed, by request: anything laid out as an **ordered sequence** reverses, because a list
@@ -14856,3 +14860,53 @@ existing Meta projects gain the file on their next export. It has the 16:9's thr
 alignment button), sits under the 1:1 at `dispW * .75`, and is skipped on YouTube. Ad sets
 reads `portrait_3x4` as a Meta main tile; `cas-to-meta.py` accepts 3:4. Verified: sizes
 `sq, pt, st`, the export writes three files, detach / own photo / hide all work.
+
+# ARABIC MIRRORS THE WHOLE AD (2026-10-15)
+
+By request: in Arabic a left-aligned CAS design reads from the RIGHT, the photograph flips,
+the QR moves to the other corner without its pixels flipping, and RTL order holds everywhere.
+`CampaignStudio.mirrored()` is `isArabic()`; a centred design stays centred but still mirrors
+(photo, QR, list order) — one rule for every Arabic ad. `v.align` is never changed, so
+switching back to English restores the layout.
+
+**The layout is computed in the Latin frame and then reflected, so editor and export cannot
+disagree.** The export: `buildOps` ends in `mirrorOps(built)` — every op's box reflected about
+the canvas centre (a text op by its `meas()` width, trailing tracking unit included, which is
+the box a DOM run takes); horizontal grads and `vec` reversed; only the background photo
+(`isBg`) and the overlap cut-out (`isFg`) take `flipX`, which both renderers draw (canvas:
+a reflect about the op's own box inside the clip; SVG: `matrix(-1 0 0 1 2x+w 0)` on the image,
+its clip moved to a wrapping `<g>`, because a clip-path on a transformed element is read in
+the transformed space). The editor: `mkCanvas`'s output goes through `mirView` —
+`direction: rtl` on the frame (mirrors flex order, flex-start/end and unset text-align by
+inheritance) plus `mirStyle` on every `*Style` / `style` object, swapping each PHYSICAL
+property (left/right, margin/padding/border sides, 4-value shorthands, text-align, an inset
+shadow's x, `to left/right`, a translate's x). The canvas box itself is excluded; the photo
+wrapper and cut-out get `scaleX(-1)`.
+
+- **`listRtl()` is false** — reversing a list as well as mirroring the page would undo it.
+- **An unset side must not overwrite the swapped one**: `mirStyle` drops null values, because
+  `{marginLeft: x, marginRight: undefined}` swapped in key order lost x. That cost the 9:16
+  its rail clearance until caught.
+- **The Reels rail stays on the RIGHT of the screen**, so in the Latin pre-image `railBox`
+  reserves it on the LEFT, the QR's corner is chosen in the pre-image with the rail clearance
+  on the side that will be right, and the preview gives a left-aligned bottom item a
+  `marginLeft` of `railG.x0 - pL`.
+- **Canvas gestures run backwards in the mirrored frame**: the floating graphic's move and
+  corner scale multiply the pointer delta by `mirS`.
+- **The wordmark moves right with the copy** — "never right" is an LTR rule; leaving it left
+  would put it under the mirrored QR. The co-brand lockup reads partner | provident.
+- **`arGap(up, lo)`** (.26 of the upper run + .27 of the lower, zero in Latin) is the air two
+  runs stacked by a fixed baseline step need in Arabic. The price block's label touched its
+  figure; ops, modPx and the preview's flex gap all add it.
+- **A spec figure wider than its column steps down the TYPE ladder** (all figures together,
+  floor at the label's rung, first column without the indent). This one moves Latin: the
+  Event template's 9:16 "Dubai World Trade Centre" spilled 86px into the Reels rail and now
+  sets at 28px. Op census against the pre-change build: 96 groups (4 templates x dark/light x
+  left/centre x six sizes), 92 byte-identical, the 4 that differ are exactly that.
+
+Verified with a probe that matches every DOM text run to its op (left or right edge) and
+checks ink overlaps: every component type x every style x left/centre x all six Meta sizes in
+Arabic — preview against export worst **0.58 canvas px**, no overlaps, no copy off the canvas
+except a three-row spec ladder plus headline on the 940-tall banners, which Arabic's taller
+type pushes past the bottom (Latin fits); the coverage chip flags it. The SVG export carries
+the flip. **Not exercised with a real pointer**: the mirrored graphic drag.

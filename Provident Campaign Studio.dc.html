@@ -7148,7 +7148,7 @@ class CampaignStudio extends StudioBase {
     const n = Math.max(1, cells.length);
     const big = !!m.big;
     const K = CampaignStudio.kOf(tk);
-    const figPx = big ? tk.stat : tk.hook;
+    let figPx = big ? tk.stat : tk.hook;
     // THE LABEL IS THE FLOOR RUNG, 24px. It was `eyebrow * .8` — 19px, under the brand's
     // floor and off the ladder, which is exactly why the labels read as specks at feed size.
     const labPx = tk.eyebrow;
@@ -7166,6 +7166,20 @@ class CampaignStudio extends StudioBase {
     // 5px between a tracked-caps label and its value is barely a pixel at preview
     // zoom and the pair reads as one word. Scale the gap off the label instead.
     const g2 = big ? labPx * .85 : labPx * .62;
+    // A FIGURE WIDER THAN ITS COLUMN STEPS DOWN THE LADDER, all figures together so they
+    // keep one baseline, no lower than the label's own rung. A figure is one run and never
+    // wraps, so it used to run out of its column — "Dubai World Trade Centre" on the 9:16
+    // spilled 86px into the Reels rail, and an Arabic (mirrored) layout put it off the
+    // canvas edge. Equal columns only, exactly where the label wraps; a hugging row is as
+    // wide as its data already and a ladder has the panel's whole width.
+    if (!stacked && meas && innerW && !(m.hug && !icons)) {
+      const nn = Math.max(1, cells.length), padF = boxed ? CampaignStudio.BOX_PAD * K : 0;
+      // the first column has no indent; every later one gives colGap to its hairline
+      const colW = (innerW - padF * 4) / nn;
+      const over = px => cells.some((c, i) => meas(String(c.v || ''), px, 300, false, 0) + (icons ? px * 1.65 : 0) > colW - (i ? 28 * K : 0));
+      let steps = 12;
+      while (steps-- > 0 && figPx > labPx && over(figPx)) figPx = Math.max(labPx, CampaignStudio.typeAt(figPx, -1));
+    }
     const rowH = padV * 2 + labPx * 1.3 + g2 + figPx * 1.3;
     // The icon's square and the air between it and the pair, both off the figure so
     // the mark tracks the figure at every canvas size and every Scaling setting.
@@ -7770,7 +7784,97 @@ class CampaignStudio extends StudioBase {
   // list, both process-step variants, tag chips, the tag strip, and spec
   // row/boxrow columns. Spec ladder/boxed stack vertically, so they have no order
   // to reverse and are deliberately left alone.
-  static listRtl() { return CampaignStudio.isArabic(); }
+  // SUPERSEDED (2026-10-15): AN ARABIC AD IS THE WHOLE LAYOUT MIRRORED, so a list reads
+  // right to left because the page does, not because each list reverses itself. The
+  // layout is computed exactly as the Latin one is, with every sequence in its LTR
+  // order, and then mirrored as a whole — `mirrorOps` for every render, `mirView` for
+  // the editor. Reversing here as well would undo the mirror on exactly these six
+  // components, so this is false and the branches that read it are dormant.
+  static listRtl() { return false; }
+  // ── Arabic is a MIRRORED layout ────────────────────────────────────────────
+  // By request: in Arabic a left-aligned design reads from the RIGHT, the photograph
+  // flips so its subject stays opposite the copy, the QR changes corner (its pixels
+  // never flip — a mirrored code does not scan), lists, steps, chips and the co-brand
+  // lockup read right to left, and the wordmark moves to the right edge with them. A
+  // centred design stays centred; the photo and the QR still mirror, so every Arabic
+  // ad is one rule rather than two. The Latin layout is computed first and the whole
+  // result mirrored, which is what keeps preview and export identical: the export
+  // mirrors every op (`mirrorOps`), the editor lays the same tree out with
+  // `direction: rtl` and every physical left/right swapped (`mirView`).
+  static mirrored() { return CampaignStudio.isArabic(); }
+  // Mirror a finished op list about the canvas's vertical centre line. A text op is a
+  // box `meas()` wide — the same box a DOM run takes, trailing tracking unit included —
+  // so its mirror lands where the editor's right-aligned run does. Only a PHOTOGRAPH
+  // flips its pixels (`flipX`): the background and the overlap cut-out, which is the
+  // photo's own foreground. A QR, an icon, a graphic and a partner mark move but are
+  // never reflected.
+  mirrorOps(built) {
+    const W = built.W, mx = (x, w) => W - x - (w || 0);
+    built.ops.forEach(o => {
+      if (o.op === 'text') {
+        const w = this.meas(o.text, o.px, o.weight, o.serif, o.ls || 0);
+        o.x = mx(o.x, w);
+      } else if (o.op === 'poly') {
+        o.pts = o.pts.map(p => [W - p[0], p[1]]);
+      } else if (o.x != null && o.w != null) {
+        o.x = mx(o.x, o.w);
+        if (o.clip) o.clip = Object.assign({}, o.clip, { x: mx(o.clip.x, o.clip.w) });
+        if (o.op === 'grad') {
+          if (o.vec) o.vec = [W - o.vec[0], o.vec[1], W - o.vec[2], o.vec[3]];
+          else if (o.horiz) o.stops = o.stops.map(st => [1 - st[0], st[1]]).reverse();
+        }
+        if (o.op === 'image' && (o.isBg || o.isFg)) o.flipX = !o.flipX;
+        if (o.tint && o.tint.horiz) o.tint = Object.assign({}, o.tint, { stops: o.tint.stops.map(st => [1 - st[0], st[1]]).reverse() });
+      }
+    });
+    return built;
+  }
+  // THE EDITOR'S HALF OF THE MIRROR. The preview tree is built exactly as for Latin and
+  // then every style object in it is mirrored: `direction: rtl` on the frame mirrors
+  // flex order, flex-start/flex-end and an unset text-align by inheritance, and this
+  // swaps every PHYSICAL property — left/right, the margin/padding/border sides, a
+  // four-value shorthand's second and fourth, text-align, an inset shadow's x, a
+  // gradient's `to left/right`, a translate's x — so a box lands where its op lands.
+  // A new object is returned, never the old one mutated: a style object can be shared.
+  static mirStyle(st) {
+    if (!st || typeof st !== 'object') return st;
+    const o = {}, sw = { left: 'right', right: 'left' };
+    const side = k => k.replace(/Left|Right/, m => m === 'Left' ? 'Right' : 'Left');
+    const four = v => { const p = String(v).trim().split(/\s+/); return p.length === 4 ? [p[0], p[3], p[2], p[1]].join(' ') : v; };
+    const kw = v => String(v).replace(/\b(left|right)\b/g, m => sw[m]);
+    const negX = v => String(v).replace(/(translate(?:X)?\()\s*(-?[\d.]+)/g, (m0, a, n) => a + (+n === 0 ? n : (n[0] === '-' ? n.slice(1) : '-' + n)));
+    const shadow = v => String(v).split(/,(?![^(]*\))/).map(part => part.replace(/^(\s*inset\s+)(-?[\d.]+)/, (m0, a, n) => a + (+n === 0 ? n : (n[0] === '-' ? n.slice(1) : '-' + n)))).join(',');
+    Object.keys(st).forEach(k => {
+      let v = st[k];
+      // an unset side must not overwrite the other side's swapped value — key order is arbitrary
+      if (v == null) return;
+      if (typeof v === 'function') { o[k] = v; return; }
+      if (k === 'left' || k === 'right') { o[sw[k]] = v; return; }
+      if (/^(margin|padding|border)(Left|Right)/.test(k) || /^border(Top|Bottom)(Left|Right)Radius$/.test(k)) { o[side(k)] = v; return; }
+      if (k === 'textAlign') v = sw[v] || v;
+      else if ((k === 'padding' || k === 'margin' || k === 'inset') && typeof v === 'string') v = four(v);
+      else if (k === 'borderRadius' && typeof v === 'string') { const p = v.trim().split(/\s+/); if (p.length === 4) v = [p[1], p[0], p[3], p[2]].join(' '); }
+      else if (k === 'boxShadow' && typeof v === 'string') v = shadow(v);
+      else if ((k === 'background' || k === 'backgroundImage') && typeof v === 'string') v = v.replace(/to (left|right)/g, (m0, d) => 'to ' + sw[d]);
+      else if (/^(backgroundPosition|WebkitMaskPosition|maskPosition|transformOrigin)$/.test(k)) v = kw(v);
+      else if (k === 'transform' && typeof v === 'string') v = negX(v);
+      o[k] = v;
+    });
+    return o;
+  }
+  static mirView(o, seen) {
+    seen = seen || new WeakSet();
+    if (!o || typeof o !== 'object' || seen.has(o)) return o;
+    seen.add(o);
+    if (Array.isArray(o)) { o.forEach(x => CampaignStudio.mirView(x, seen)); return o; }
+    Object.keys(o).forEach(k => {
+      const v = o[k];
+      if (!v || typeof v !== 'object') return;
+      if ((k === 'style' || /Style$/.test(k)) && !Array.isArray(v)) o[k] = CampaignStudio.mirStyle(v);
+      else if (k !== 'm' && k !== 'spec') CampaignStudio.mirView(v, seen);
+    });
+    return o;
+  }
   // Content index <-> display column, and it is its OWN INVERSE — which is what lets
   // one helper serve both halves: buildOps walks content and draws at seqAt(i),
   // the preview walks display columns and pulls seqAt(di). Use it on both sides of
@@ -7960,6 +8064,12 @@ class CampaignStudio extends StudioBase {
   // The line advance for a role, in em of its own size. Read it EVERYWHERE a line
   // advances — the op, the height `modPx` reserves and the preview's line-height —
   // or a block reserves one height and draws another.
+  // THE EXTRA AIR TWO STACKED RUNS NEED IN ARABIC — the upper run's deeper descent plus
+  // the lower run's taller ascent, from the same measurement leadAdd is (.27 + .26 = .53,
+  // ascent 100 against 72.7, descent 47.3 against 21.0). For a pair placed by a fixed
+  // baseline step rather than by a line lead — the price block's label over its figure,
+  // which in Arabic touched. Zero in Latin, so no Latin ad moves.
+  static arGap(upPx, loPx) { return CampaignStudio.isArabic() ? upPx * .26 + loPx * .27 : 0; }
   static leadOf(latin) { return CampaignStudio.isArabic() ? latin + CampaignStudio.AR.leadAdd : latin; }
   // Where a CSS line box puts its FIRST baseline: half-leading plus the ascent, i.e.
   // (lead + a - d) / 2. The preview is flowed text, so that is where its first line
@@ -8413,7 +8523,7 @@ class CampaignStudio extends StudioBase {
     if (m.type === 'price') {
       if (mv === 'line') return CampaignStudio.priceLinePx(tk) * 1.15;
       const KP = CampaignStudio.kOf(tk);
-      return (mv === 'glass' ? tk.eyebrow * 1.2 + tk.headline * 1.15 + 44 * KP : tk.eyebrow * 1.2 + 8 * KP + tk.headline * 1.15);
+      return (mv === 'glass' ? tk.eyebrow * 1.2 + tk.headline * 1.15 + 44 * KP : tk.eyebrow * 1.2 + 8 * KP + tk.headline * 1.15) + CampaignStudio.arGap(tk.eyebrow, tk.headline);
     }
     if (m.type === 'cta') return tk.ctaF + 2 * tk.ctaPV;
     return tk.body;
@@ -8428,8 +8538,11 @@ class CampaignStudio extends StudioBase {
   static railBox(tk, center, innerW, pL) {
     const r = tk.railR;
     if (!r) return { x0: pL, w: innerW };
-    return center ? { x0: r, w: Math.min(innerW, tk.W - r * 2) }
-                  : { x0: pL, w: Math.min(innerW, tk.W - r - pL) };
+    if (center) return { x0: r, w: Math.min(innerW, tk.W - r * 2) };
+    // MIRRORED, the layout is computed in the Latin frame and then reflected — so the
+    // rail, which stays on the RIGHT of the screen, is reserved on the LEFT here.
+    if (CampaignStudio.mirrored()) { const x0 = Math.max(pL, r); return { x0, w: Math.min(innerW, tk.W - tk.pad[1] - x0) }; }
+    return { x0: pL, w: Math.min(innerW, tk.W - r - pL) };
   }
   scrimStops(v, tk, list, clusterOf, ov) {
     const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H;
@@ -9101,7 +9214,8 @@ class CampaignStudio extends StudioBase {
           // one out, so a glass panel was also measured narrower than it rendered.
           const w2 = this.meas(pTxt, tk.headline, CampaignStudio.headW(400), false, 0);
           const KP = CampaignStudio.kOf(tk);
-          const bw = Math.max(w1, w2) + 60 * KP, bh = tk.eyebrow * 1.2 + tk.headline * 1.15 + 44 * KP;
+          const arG = CampaignStudio.arGap(tk.eyebrow, tk.headline);
+          const bw = Math.max(w1, w2) + 60 * KP, bh = tk.eyebrow * 1.2 + tk.headline * 1.15 + 44 * KP + arG;
           const bx = center ? cctr(bw) : px0;
           // Blur the backdrop first, then lay the translucent panel over it —
           // this is what reproduces the preview's backdrop-filter in an export.
@@ -9114,10 +9228,10 @@ class CampaignStudio extends StudioBase {
           const pxLab = center ? bx + (bw - w1) / 2 : bx + 30 * KP;
           const pxFig = center ? bx + (bw - w2) / 2 : bx + 30 * KP;
           ops.push({ op: 'text', x: pxLab, y: y + 22 * KP + tk.eyebrow, px: tk.eyebrow, weight: 500, fill: pal.inkMute, text: (m.sub || '').toUpperCase(), ls });
-          ops.push({ op: 'text', x: pxFig, y: y + 22 * KP + tk.eyebrow * 1.2 + tk.headline, px: tk.headline, weight: CampaignStudio.headW(400), fill: pal.ink, text: pTxt });
+          ops.push({ op: 'text', x: pxFig, y: y + 22 * KP + tk.eyebrow * 1.2 + arG + tk.headline, px: tk.headline, weight: CampaignStudio.headW(400), fill: pal.ink, text: pTxt });
         } else {
           T(m.sub || '', tk.eyebrow, 500, pal.inkMute, y + tk.eyebrow, { ls, upper: true });
-          T(pTxt, tk.headline, CampaignStudio.headW(400), pal.ink, y + tk.eyebrow * 1.2 + 8 * CampaignStudio.kOf(tk) + tk.headline);
+          T(pTxt, tk.headline, CampaignStudio.headW(400), pal.ink, y + tk.eyebrow * 1.2 + 8 * CampaignStudio.kOf(tk) + CampaignStudio.arGap(tk.eyebrow, tk.headline) + tk.headline);
         }
       } else if (m.type === 'cta') {
         const outline = mv === 'outline';
@@ -9253,7 +9367,7 @@ class CampaignStudio extends StudioBase {
       // `tint` darkens the cutout with the SAME scrim gradient, in canvas space, so
       // the subject sits at the scrim's brightness instead of punching a bright hole
       // through it and stranding the copy on an unscrimmed patch.
-      const fgOp = { op: 'image', img: fg.img, url: fg.u, x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh, clip: { x: 0, y: 0, w: W, h: H }, tint: { stops: sc.botStops.map(st2 => [st2[0], `rgba(${sc.base},${+st2[1].toFixed(3)})`]), horiz: sc.horiz } };
+      const fgOp = { op: 'image', img: fg.img, url: fg.u, x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh, clip: { x: 0, y: 0, w: W, h: H }, isFg: true, tint: { stops: sc.botStops.map(st2 => [st2[0], `rgba(${sc.base},${+st2[1].toFixed(3)})`]), horiz: sc.horiz } };
       // Restack: hero under the cutout, every other piece of content over it, so
       // the headline is the only thing the cutout can obscure.
       const heroIdx = new Set();
@@ -9271,7 +9385,11 @@ class CampaignStudio extends StudioBase {
     // A banner draws none: it is clicked, not scanned (see BANNER_TK).
     if (state.qr.show && !tk.noQr) {
       const qs = tk.qr;
-      const qx = state.qr.corner === 'left' ? pL : W - Math.max(pR, tk.railR || 0) - qs;
+      // Mirrored, the corner is chosen in the Latin frame (the mirror moves it) and the
+      // Reels rail's clearance goes on the side that will be the RIGHT after it.
+      const qx = CampaignStudio.mirrored()
+        ? (state.qr.corner === 'left' ? Math.max(pR, tk.railR || 0) : W - pL - qs)
+        : (state.qr.corner === 'left' ? pL : W - Math.max(pR, tk.railR || 0) - qs);
       const qy = H - pB - qs;
       ops.push({ op: 'rect', x: qx, y: qy, w: qs, h: qs, fill: '#FFFFFF' });
       if (assets.qr && assets.qr.img) ops.push({ op: 'image', img: assets.qr.img, url: assets.qr.u, x: qx, y: qy, w: qs, h: qs, clip: { x: qx, y: qy, w: qs, h: qs, r: 0 } });
@@ -9280,7 +9398,8 @@ class CampaignStudio extends StudioBase {
     // returns exactly the shape it always has.
     const built = { W, H, ops };
     if (tk.out) built.out = tk.out;
-    return built;
+    // Arabic is the whole layout mirrored — see mirrored().
+    return CampaignStudio.mirrored() ? this.mirrorOps(built) : built;
   }
   heroLines(m, v, tk, maxW) {
     const mv = v.mvar[m.id];
@@ -9555,13 +9674,19 @@ class CampaignStudio extends StudioBase {
           ox.imageSmoothingEnabled = true;
           try { ox.imageSmoothingQuality = 'high'; } catch (e) {}
           ox.scale(scale, scale);
+          if (o.flipX) { ox.save(); ox.translate(2 * o.x + o.w, 0); ox.scale(-1, 1); }
           ox.drawImage(o.img, o.x, o.y, o.w, o.h);
+          if (o.flipX) ox.restore();
           ox.globalCompositeOperation = 'source-atop';
           const tg = o.tint.horiz ? ox.createLinearGradient(0, 0, built.W, 0) : ox.createLinearGradient(0, 0, 0, built.H);
           o.tint.stops.forEach(s => tg.addColorStop(Math.min(1, Math.max(0, s[0])), s[1]));
           ox.fillStyle = tg;
           ox.fillRect(0, 0, built.W, built.H);
           ctx.drawImage(off, 0, 0, built.W, built.H);
+        } else if (o.flipX) {
+          // A mirrored PHOTO (Arabic): reflected about its own box, inside the clip.
+          ctx.translate(2 * o.x + o.w, 0); ctx.scale(-1, 1);
+          ctx.drawImage(o.img, o.x, o.y, o.w, o.h);
         } else {
           ctx.drawImage(o.img, o.x, o.y, o.w, o.h);
         }
@@ -9654,12 +9779,16 @@ class CampaignStudio extends StudioBase {
           // that already read them.
           const nm = o.layerId || (o.isBg ? 'bgphoto' : o.isTex ? 'bgtex' : o.isOrd ? 'bgord' : '');
           if (nm && bdIds.indexOf(nm) < 0) bdIds.push(nm);
-          body += `<image${nm ? ` id="${nm}"` : ''} href="${o.url}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" preserveAspectRatio="none"${o.alpha != null ? ` opacity="${o.alpha}"` : ''}${o.blend ? ` style="mix-blend-mode:${o.blend}"` : ''}${o.clip ? ` clip-path="url(#c${ci})"` : ''}/>`;
+          // A flipped photo carries its transform on the image and its clip on a group:
+          // a clip-path on a transformed element is read in the TRANSFORMED space.
+          const fxT = o.flipX ? ` transform="matrix(-1 0 0 1 ${2 * o.x + o.w} 0)"` : '';
+          const im = `<image${nm ? ` id="${nm}"` : ''} href="${o.url}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" preserveAspectRatio="none"${fxT}${o.alpha != null ? ` opacity="${o.alpha}"` : ''}${o.blend ? ` style="mix-blend-mode:${o.blend}"` : ''}${(o.clip && !fxT) ? ` clip-path="url(#c${ci})"` : ''}/>`;
+          body += (o.clip && fxT) ? `<g clip-path="url(#c${ci})">${im}</g>` : im;
         }
         if (o.tint) {
           gi++;
           const tw2 = o.tint.horiz;
-          defs += `<mask id="tm${gi}" maskUnits="userSpaceOnUse" style="mask-type:alpha"><image href="${o.url}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" preserveAspectRatio="none"/></mask>`;
+          defs += `<mask id="tm${gi}" maskUnits="userSpaceOnUse" style="mask-type:alpha"><image href="${o.url}" x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" preserveAspectRatio="none"${o.flipX ? ` transform="matrix(-1 0 0 1 ${2 * o.x + o.w} 0)"` : ''}/></mask>`;
           defs += `<linearGradient id="tg${gi}" x1="${tw2 ? 0 : 0}" y1="0" x2="${tw2 ? built.W : 0}" y2="${tw2 ? 0 : built.H}" gradientUnits="userSpaceOnUse">` + o.tint.stops.map(s => { const mm = String(s[1]).match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/); return `<stop offset="${Math.min(1, Math.max(0, s[0]))}" stop-color="${mm ? 'rgb(' + mm[1] + ',' + mm[2] + ',' + mm[3] + ')' : s[1]}" stop-opacity="${mm ? mm[4] : 1}"/>`; }).join('') + '</linearGradient>';
           body += `<rect x="0" y="0" width="${built.W}" height="${built.H}" fill="url(#tg${gi})" mask="url(#tm${gi})"${o.clip ? ` clip-path="url(#c${ci})"` : ''}/>`;
         }
@@ -11013,6 +11142,9 @@ class CampaignStudio extends StudioBase {
       const hid = v.hidden || {};
       const clusterOf = id => eff.clusters[id] || 'bottom';
       const center = v.align === 'center';
+      // Arabic mirrors the whole canvas (CampaignStudio.mirrored); a pointer delta on it
+      // runs the other way in the Latin frame the layout is stored in.
+      const mir = CampaignStudio.mirrored(), mirS = mir ? -1 : 1;
       const gapPx = m => CampaignStudio.gapBefore(v, m, tk);
       const colW0 = (tk.col && !center) ? tk.col : tk.W - tk.pad[3] - tk.pad[1];
       const isFl = m => CampaignStudio.isFloatG(eff, m);
@@ -11470,7 +11602,7 @@ class CampaignStudio extends StudioBase {
           // every literal times the size's K, as the op has them; an overflowing figure
           // overflows EVENLY on a centred design, as the op centres it
           const KPr = CampaignStudio.kOf(tk);
-          view.priceBoxStyle = { display: 'flex', flexDirection: 'column', gap: glassP ? 0 : cq(8 * KPr), alignItems: center ? 'center' : 'flex-start' };
+          view.priceBoxStyle = { display: 'flex', flexDirection: 'column', gap: cq((glassP ? 0 : 8 * KPr) + CampaignStudio.arGap(tk.eyebrow, tk.headline)), alignItems: center ? 'center' : 'flex-start' };
           if (oneLine) view.labStyle = { display: 'none' };
           if (glassP) { view.priceBoxStyle.background = pal.glassFill; view.priceBoxStyle.boxShadow = '0 0 0 ' + cq(KPr) + ' ' + pal.glassStroke + ', inset 0 0 0 ' + cq(KPr) + ' ' + pal.glassStroke; view.priceBoxStyle.backdropFilter = view.priceBoxStyle.WebkitBackdropFilter = 'blur(14px)'; view.priceBoxStyle.borderRadius = cq(27 * KPr); view.priceBoxStyle.padding = cq(22 * KPr) + ' ' + cq(30 * KPr); }
         } else if (m.type === 'steps') {
@@ -11649,7 +11781,7 @@ class CampaignStudio extends StudioBase {
             const p0 = CampaignStudio.floatPos(eff, m);
             const cl = n2 => Math.max(0, Math.min(1, n2));
             const mvFn = ev => {
-              const fx = cl(p0.fx + (ev.clientX - startX) / cw);
+              const fx = cl(p0.fx + (ev.clientX - startX) * mirS / cw);
               const fy = cl(p0.fy + (ev.clientY - startY) / ch);
               this.setState(st => {
                 const n = JSON.parse(JSON.stringify(st));
@@ -11690,7 +11822,7 @@ class CampaignStudio extends StudioBase {
             const start = startG != null ? startG : (node ? node.offsetWidth / Math.max(1, iW) : 1);
             const mvFn = ev => {
               const g = Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX,
-                start + (ev.clientX - startX) * dirSign / innerPx));
+                start + (ev.clientX - startX) * dirSign * mirS / innerPx));
               this.setState(st => {
                 const n = JSON.parse(JSON.stringify(st));
                 // An UNLINKED size keeps its own scale; a linked one writes the module's,
@@ -11843,7 +11975,8 @@ class CampaignStudio extends StudioBase {
         // 9:16, and the auto margins centred it outright on a centred design.
         const noteM = !!bm && bm.type === 'body' && v.mvar[bm.id] === 'note';
         it.wrapStyle = Object.assign({}, it.wrapStyle, { maxWidth: cq(railG.w),
-          marginLeft: (center && !noteM) ? 'auto' : undefined,
+          // mirrored, a left-aligned item starts past the rail reserved on this side
+          marginLeft: (center && !noteM) ? 'auto' : ((mir && !center && !noteM) ? cq(railG.x0 - tk.pad[3]) : undefined),
           marginRight: noteM ? cq((tk.W - tk.pad[1]) - (railG.x0 + railG.w)) : (center ? 'auto' : undefined),
           width: (center && bm && STRETCH[bm.type]) ? cq(railG.w) : it.wrapStyle.width });
       });
@@ -11882,7 +12015,7 @@ class CampaignStudio extends StudioBase {
       // than at canvas sizes, so any box that set its text at the on-screen size — sized to
       // the plate, or zoomed — drifted from buildOps' own metrics.
       const z = width / tk.W, uz = n => +(n / z).toFixed(2) + 'px';
-      return {
+      const cvOut = {
         fgStyle, fgTintStyle,
         bgWrapStyle: { position: 'absolute', inset: 0, opacity: (v.bgO == null ? 100 : v.bgO) / 100 },
         // THE ARTWORK TAKES NO CHROME TYPOGRAPHY. The shell sets font-feature-settings
@@ -11949,8 +12082,20 @@ class CampaignStudio extends StudioBase {
         items: [...top, spacer, ...bot, ...floatMods],
         cwPx: width,
         // a right-corner QR clears the Reels action rail, exactly as the op places it
-        qrStyle: { position: 'absolute', bottom: cq(pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(s.qr.corner === 'left' ? pL : Math.max(pR, tk.railR || 0)), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#FFFFFF', pointerEvents: 'none', overflow: 'hidden', zIndex: 2 }
+        qrStyle: { position: 'absolute', bottom: cq(pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(s.qr.corner === 'left' ? (mir ? Math.max(pR, tk.railR || 0) : pL) : (mir ? pL : Math.max(pR, tk.railR || 0))), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#FFFFFF', pointerEvents: 'none', overflow: 'hidden', zIndex: 2 }
       };
+      // ARABIC: the same tree, mirrored — see CampaignStudio.mirrored(). The canvas box
+      // itself is not mirrored (it sits in the plate); everything drawn inside it is.
+      if (mir) {
+        const keep = { canvasStyle: cvOut.canvasStyle };
+        CampaignStudio.mirView(cvOut);
+        Object.assign(cvOut, keep);
+        cvOut.frameStyle = Object.assign({}, cvOut.frameStyle, { direction: 'rtl' });
+        // the photograph and its cut-out are reflected, as the ops' flipX reflects them
+        cvOut.bgWrapStyle = Object.assign({}, cvOut.bgWrapStyle, { transform: 'scaleX(-1)' });
+        if (cvOut.fgStyle && cvOut.fgStyle.display !== 'none') cvOut.fgStyle = Object.assign({}, cvOut.fgStyle, { transform: (cvOut.fgStyle.transform || '') + ' scaleX(-1)' });
+      }
+      return cvOut;
     };
 
     // Pill corners at SOURCE. btn() is the generic segmented-row button, spread into
