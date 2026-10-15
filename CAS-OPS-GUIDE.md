@@ -198,7 +198,11 @@ No API key or service is needed: Claude Code reads the screenshot.
 - **Each canvas row** is its name, its ratio, and icon buttons on the right (hover one to see
   what it does):
   - **Link** — the canvas mirrors the 1:1. Press it to edit that canvas's layout separately;
-    press it again to mirror the 1:1 again.
+    press it again to mirror the 1:1 again. Unlinking keeps the layout exactly as it was, so
+    nothing moves until you change it.
+  - **Alignment** — appears once a canvas is edited separately. It shows that canvas's alignment;
+    press it to switch between left and centre. The rail's **Alignment** does the same while that
+    canvas is selected (it reads *this size only*).
   - **Picture** — give that canvas its own photo instead of sharing the main one.
   - **Eye** — show or hide the canvas. A hidden canvas is not exported.
 - **9:16:** it mirrors the 1:1 until you press its link button.

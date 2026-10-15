@@ -14829,3 +14829,19 @@ in both `.as-src` panels (section 38). Admin steps: **`docs/google-drive-setup.m
   PATCHed the json (photos kept) and the JPEG; an expired token showed the sign-in panel; no
   client ID showed the paste field; the real GIS library loaded. **The real Google sign-in and
   the real Drive API were not exercised** — no client ID exists yet.
+
+# A DETACHED SIZE KEEPS ITS LAYOUT AND CHOOSES ITS OWN ALIGNMENT (2026-10-15)
+
+By request. Pressing a size row's link button ("Edit separately") made the layout jump: the new
+record copied the clusters alone, so a variant's own `ord` and any floating graphic (`gfloat` /
+`gpos`) were lost. `CampaignStudio.detachRec(vv)` builds the record for all five toggles
+(story / wideOv / banOv / ylOv / ypOv) and copies clusters, ord, gfloat and gpos. Verified: the
+9:16's ops identical before and after detaching a project with a reversed `ord`.
+
+- **`withOv` overlays `eff.align`** when a detached record sets one; unset, the size follows the
+  variant. Every renderer path (buildOps, mkCanvas, scrimStops) reads the merged `v`.
+- **The size row gains an align button** (`.p-szb-al`, section 36) only while detached
+  (`<k>AlOn` / `<k>AlCtr` / `<k>AlTip` / `<k>AlFlip`); it shows the alignment and never fills.
+- **The rail's Alignment writes the selected canvas's record** when that size is detached
+  (`setSelTarget`) and says *this size only* (`alignScope`). The style tiles' key reads
+  `eff.align`. Verified: flipping the 9:16 changes its ops and leaves the 1:1's identical.
