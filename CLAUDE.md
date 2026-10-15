@@ -14863,6 +14863,12 @@ reads `portrait_3x4` as a Meta main tile; `cas-to-meta.py` accepts 3:4. Verified
 
 # ARABIC MIRRORS THE WHOLE AD (2026-10-15)
 
+> **THE PHOTO IS NOT FLIPPED ANY MORE, by request the same day** — a reflected photo shows any
+> sign or logo in it backwards. `mirrorOps` skips `isBg` / `isFg` ops entirely and `mkCanvas`
+> keeps `bgWrapStyle` / `fgStyle` / `fgTintStyle` out of `mirView`, so the photo and its cut-out
+> stay exactly where the Latin layout puts them. The renderers' `flipX` support is kept and
+> emitted by nothing. Everything below about the photo flipping is history.
+
 By request: in Arabic a left-aligned CAS design reads from the RIGHT, the photograph flips,
 the QR moves to the other corner without its pixels flipping, and RTL order holds everywhere.
 `CampaignStudio.mirrored()` is `isArabic()`; a centred design stays centred but still mirrors

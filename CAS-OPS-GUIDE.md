@@ -222,8 +222,8 @@ No API key or service is needed: Claude Code reads the screenshot.
     one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
     on, pick the **Corner** it sits in.
   - **Typeface:** **English** or **Arabic**. Arabic mirrors the whole ad for right-to-left
-    reading: a left-aligned design becomes right-aligned, the photo flips, the logo moves to
-    the right and the QR code moves to the other corner (the code itself is not flipped, so it
+    reading: a left-aligned design becomes right-aligned, the logo moves to
+    the right (the photo is left as it is, so any sign or logo in it still reads correctly) and the QR code moves to the other corner (the code itself is not flipped, so it
     still scans). Lists, steps and tags read from the right. A centred design stays centred.
     Your alignment setting doesn't change, so switching back to English restores the layout.
   - With the collaboration logo on, add the partner's mark and set its size and colour.

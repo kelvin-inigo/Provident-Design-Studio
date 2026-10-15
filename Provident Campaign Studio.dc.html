@@ -7793,10 +7793,11 @@ class CampaignStudio extends StudioBase {
   static listRtl() { return false; }
   // ── Arabic is a MIRRORED layout ────────────────────────────────────────────
   // By request: in Arabic a left-aligned design reads from the RIGHT, the photograph
-  // flips so its subject stays opposite the copy, the QR changes corner (its pixels
+  // stays exactly as it is (a flipped photo shows signs and logos backwards — it was
+  // tried and removed), the QR changes corner (its pixels
   // never flip — a mirrored code does not scan), lists, steps, chips and the co-brand
   // lockup read right to left, and the wordmark moves to the right edge with them. A
-  // centred design stays centred; the photo and the QR still mirror, so every Arabic
+  // centred design stays centred; the QR and the list order still mirror, so every Arabic
   // ad is one rule rather than two. The Latin layout is computed first and the whole
   // result mirrored, which is what keeps preview and export identical: the export
   // mirrors every op (`mirrorOps`), the editor lays the same tree out with
@@ -7804,13 +7805,16 @@ class CampaignStudio extends StudioBase {
   static mirrored() { return CampaignStudio.isArabic(); }
   // Mirror a finished op list about the canvas's vertical centre line. A text op is a
   // box `meas()` wide — the same box a DOM run takes, trailing tracking unit included —
-  // so its mirror lands where the editor's right-aligned run does. Only a PHOTOGRAPH
-  // flips its pixels (`flipX`): the background and the overlap cut-out, which is the
-  // photo's own foreground. A QR, an icon, a graphic and a partner mark move but are
-  // never reflected.
+  // so its mirror lands where the editor's right-aligned run does. NOTHING's pixels are
+  // reflected: a QR, an icon, a graphic and a partner mark move, and the photo and its
+  // cut-out do not even move. The renderers' `flipX` support is kept, emitted by nothing.
   mirrorOps(built) {
     const W = built.W, mx = (x, w) => W - x - (w || 0);
     built.ops.forEach(o => {
+      // THE PHOTOGRAPH IS NOT MIRRORED, by request (2026-10-15): a reflected photo shows
+      // any sign or logo in it backwards. The background and its overlap cut-out stay
+      // exactly where the Latin layout puts them; everything drawn over them mirrors.
+      if (o.isBg || o.isFg) return;
       if (o.op === 'text') {
         const w = this.meas(o.text, o.px, o.weight, o.serif, o.ls || 0);
         o.x = mx(o.x, w);
@@ -7829,7 +7833,6 @@ class CampaignStudio extends StudioBase {
           if (o.vec) o.vec = [W - o.vec[0], o.vec[1], W - o.vec[2], o.vec[3]];
           else if (o.horiz) o.stops = o.stops.map(st => [1 - st[0], st[1]]).reverse();
         }
-        if (o.op === 'image' && (o.isBg || o.isFg)) o.flipX = !o.flipX;
         if (o.tint && o.tint.horiz) o.tint = Object.assign({}, o.tint, { stops: o.tint.stops.map(st => [1 - st[0], st[1]]).reverse() });
       }
     });
@@ -12098,13 +12101,10 @@ class CampaignStudio extends StudioBase {
       if (mir) {
         // The partner mark's file sits at an offset INSIDE its ink box, and the file is not
         // reflected — so that offset stays as it is; only the ink box itself moves.
-        const keep = { canvasStyle: cvOut.canvasStyle, coImgStyle: cvOut.coImgStyle, coPaintStyle: cvOut.coPaintStyle };
+        const keep = { canvasStyle: cvOut.canvasStyle, bgWrapStyle: cvOut.bgWrapStyle, fgStyle: cvOut.fgStyle, fgTintStyle: cvOut.fgTintStyle, coImgStyle: cvOut.coImgStyle, coPaintStyle: cvOut.coPaintStyle };
         CampaignStudio.mirView(cvOut);
         Object.assign(cvOut, keep);
         cvOut.frameStyle = Object.assign({}, cvOut.frameStyle, { direction: 'rtl' });
-        // the photograph and its cut-out are reflected, as the ops' flipX reflects them
-        cvOut.bgWrapStyle = Object.assign({}, cvOut.bgWrapStyle, { transform: 'scaleX(-1)' });
-        if (cvOut.fgStyle && cvOut.fgStyle.display !== 'none') cvOut.fgStyle = Object.assign({}, cvOut.fgStyle, { transform: (cvOut.fgStyle.transform || '') + ' scaleX(-1)' });
       }
       return cvOut;
     };
