@@ -14693,3 +14693,33 @@ Chrome only — no artwork line changed.
 Verified: real clicks add (the Body card gained "1 in use"), a group folds and its key lands in
 `adstudio-acc`; contrast over the rail 0 failures in both themes, no horizontal overflow.
 
+# OPS'S RAILS TAKE THE SAME TIDY (2026-10-15)
+
+By request ("now do the same for OPS rails"), section 30 of `Provident Organic Studio.dc.html`'s
+sheet. Chrome only — the whole-file diff carries no `ops.push` / `buildOps(` / renderer line.
+
+- **Left rail**: the Template and Slides captions carry their prose as an `i` tip (`tplFoot`,
+  new `slidesTip` = the old click-to-edit line plus the drag hint) instead of two paragraphs;
+  `slideCount` sits beside Slides. A row's `✕` is `opacity:0` until the row is hovered, focused
+  or active (always shown under `hover:none`). The carousel's **Layout** and **Wordmark** and the
+  reel's **Layout** and **Text size** are `<details class="p-acc p-acc-ops" data-acc>` groups,
+  open by default, their summaries naming the choice (`csTileName`, `csLogoName`, `rcvLayName`,
+  `rcvSizeName` — the size reads `Large → Medium` when the fit stepped down). Layout tiles are
+  three to a row at 44px; Wordmark is a compact `.p-opts-seg` track, names only in this rail.
+  The reel's size hint shows only when it is a fit warning.
+- **`accBind` is OPS's own copy of CAS's** (key `ops-acc`), called from the shell's mount and
+  update hooks.
+- **Right rail (the form, editor mode only)**: a section folds from its head or `.gd-sec-f`
+  (`aria-expanded`), controlled — `sec.foldOn` → `data-fold`, `gdFoldSet()` read once from
+  `ops-rail-fold`, by section KIND, so a fold follows you page to page. The guided run never
+  folds (the button is `display:none` there and `flip` returns early). The seg-opt tiles
+  (Layout, Bullets arrangement) are a compact segment in the rail. An empty drop's first
+  caption is hidden and the how-to is clamped to two lines until hovered.
+- **Colour rows (`.p-colr`)**: the scrim's swatches and hex share a row, in the dock and the
+  page's own scrim.
+
+Verified: contrast over both rails and the open dock, both themes, animations finished — the
+only flag is the pre-existing `✕` at 4.40 / 4.21 (hidden ones read 1.00 by design); fold
+persists across reloads; guided screen unchanged with a fold stored; reel rail folds work;
+no horizontal overflow; `sc-if` counts unchanged, `<details>` balanced.
+

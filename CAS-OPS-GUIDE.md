@@ -485,8 +485,14 @@ bottom.
 
 This is the full editor.
 - **Left rail:** the **Template** and the list of slides. Click a slide to edit it; add pages
-  where the template allows.
-- **Right rail:** the same form as the guided run, for the page you're on.
+  where the template allows. Hover the **i** beside Template or Slides for how they work. A
+  slide's **✕** shows when you point at the slide (or on the slide you are editing).
+  - On a carousel, **Layout** (the page's layout) and **Wordmark** (Hide / Top / Bottom) fold:
+    click the heading to fold one, and a folded one shows its current choice. On a Reel
+    thumbnail, **Layout** and **Text size** fold the same way. The computer remembers what you folded.
+- **Right rail:** the same form as the guided run, for the page you're on. Each section
+  (Words, Pictures, …) folds from its heading or the arrow at its right, and stays folded as
+  you move between pages. The guided run itself never folds.
 - **Post look** (the pill at the foot of the canvases): settings for the whole post.
   - Wash strength, photo strength and panel colour.
   - Photo darkening, on the listing card.
