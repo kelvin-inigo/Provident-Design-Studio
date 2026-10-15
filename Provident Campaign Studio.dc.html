@@ -4066,6 +4066,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    the current alignment and flips it; it never fills, like the eye, because it is a value. */
 .p-szb-al[data-on]{background:transparent;color:var(--ps-ink-2)}
 .p-szb-al[data-on]:hover{background:var(--ps-fill);color:var(--ps-ink)}
+
+/* 37 · Meta's Portrait 3:4 (2026-10-15) — Ad sets tile and Edit text preview shapes. */
+.as-t[data-shape="pt"]{--as-w:calc(var(--as-r) * .75)}
+.ae-shot[data-shape="pt"] > span{aspect-ratio:3/4}
 </style>
 </helmet>
 
@@ -5043,6 +5047,44 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </div>
       <span class="p-meta">{{ v.sqMeta }} · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
       </sc-if>
+      <sc-if value="{{ v.metaOn }}" hint-placeholder-val="{{ true }}">
+      <div class="p-szh" data-off="{{ v.ptOff }}"><b>Portrait</b><i>3:4</i><span class="p-szx"><sc-if value="{{ v.ptShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.ptOvOn }}" onClick="{{ v.togglePtOv }}" title="{{ v.ptLinkTip }}" aria-label="{{ v.ptLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.ptAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.ptAlCtr }}" onClick="{{ v.ptAlFlip }}" title="{{ v.ptAlTip }}" aria-label="{{ v.ptAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgPtOn }}" onClick="{{ v.toggleBgPt }}" title="{{ v.bgPtTip }}" aria-label="{{ v.bgPtTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.ptShowOn }}" onClick="{{ v.togglePtShow }}" title="{{ v.ptEyeTip }}" aria-label="{{ v.ptEyeTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
+      <sc-if value="{{ v.ptShow }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ v.selectVariant }}" data-cwpx="{{ v.pt.cwPx }}" style="{{ v.pt.canvasStyle }}">
+        <div class="canvasbg" style="{{ v.pt.bgWrapStyle }}"><sc-for list="{{ v.bgPtSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 3:4" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
+        <div style="{{ v.pt.scrimStyle }}"></div>
+        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.pt.guideStyle }}"></div></sc-if>
+        <div style="{{ v.pt.frameStyle }}">
+          <div style="{{ v.pt.logoStyle }}"><span>provident.</span><sc-if value="{{ v.pt.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.pt.coRuleStyle }}"></span><span style="{{ v.pt.coInkStyle }}" data-icon-tint="{{ v.pt.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.pt.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.pt.coPaintStyle }}"></i></span></sc-if></div>
+          <div style="{{ v.pt.stackStyle }}">
+            <sc-for list="{{ v.pt.items }}" as="m" hint-placeholder-count="5">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
+                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
+                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ c.style }}">{{ c.t }}</span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
+                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
+                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
+                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
+                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
+                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.pt.fgStyle }}"><div style="{{ v.pt.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.pt.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+      </div>
+      <span class="p-meta">1080 × 1440 · <span style="{{ v.pt.coverStyle }}" class="tip" data-tip="{{ v.pt.coverTip }}">{{ v.pt.coverLabel }}</span></span>
+      </sc-if>
+      </sc-if>
       <sc-if value="{{ v.ytOn }}" hint-placeholder-val="{{ false }}">
       <div class="p-szh" data-off="{{ v.ytYpOff }}"><b>Portrait</b><i>4:5</i><span class="p-szx"><sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.ypOvOn }}" onClick="{{ v.toggleYpOv }}" title="{{ v.ypLinkTip }}" aria-label="{{ v.ypLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.ypAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.ypAlCtr }}" onClick="{{ v.ypAlFlip }}" title="{{ v.ypAlTip }}" aria-label="{{ v.ypAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgYpOn }}" onClick="{{ v.toggleBgYp }}" title="{{ v.bgYpTip }}" aria-label="{{ v.bgYpTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.ytYpOn }}" onClick="{{ v.toggleYtYp }}" title="{{ v.ytYpTip }}" aria-label="{{ v.ytYpTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.ypShow }}" hint-placeholder-val="{{ false }}">
@@ -5464,6 +5506,13 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <div class="p-drop-t"><s>{{ bgYpDropLabel }}</s><sc-if value="{{ bgYpDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgYpPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgYpRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
           </div>
         </sc-if>
+        <sc-if value="{{ bgSepPtOn }}" hint-placeholder-val="{{ false }}">
+          <span class="p-lab">3:4 own photo <span class="tip" data-tip="Used by the Meta 3:4 portrait instead of the shared picture." style="{{ infoStyle }}">i</span></span>
+          <div class="p-droprow">
+            <div class="p-drop" data-done="{{ bgPtDoneOn }}"><sc-for list="{{ activeBgPtSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 3:4 picture" style="{{ bgSlotPtStyle }}"></image-slot></sc-for></div>
+            <div class="p-drop-t"><s>{{ bgPtDropLabel }}</s><sc-if value="{{ bgPtDoneOn }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgPtPs }}" class="p-link p-ps" title="Opens this picture in Photoshop. Save it there and it updates here.">Edit in Photoshop</button></sc-if><button onClick="{{ bgPtRemove }}" class="p-link p-rm">Remove</button></sc-if></div>
+          </div>
+        </sc-if>
         <sc-if value="{{ bgSepBnOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">Banner own photo <span class="tip" data-tip="Used by both banner sizes instead of the shared picture — one photo, cover-fitted edge to edge on the 1880 × 940 and the 758 × 380 alike." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow">
@@ -5748,6 +5797,7 @@ class CampaignStudio extends StudioBase {
     // the YouTube landscape's and portrait's own detached layouts
     if (v.ylOv === undefined) v.ylOv = null;
     if (v.ypOv === undefined) v.ypOv = null;
+    if (v.ptOv === undefined) v.ptOv = null;
     return v;
   }
   // `stats` was the same label/value block as `spec`, and `strip` the same authored
@@ -6420,6 +6470,9 @@ class CampaignStudio extends StudioBase {
     // wide (1920 x 1004.8, exported at .625 = exactly 1200 x 628); the 4:5 is the 1:1's own
     // tokens at 1080 wide (1080 x 1350, exported at 960 / 1080 = 960 x 1200).
     yl: { W: 1920, H: 1920 * 628 / 1200, out: [1200, 628], pad: [80, 120, 80, 120], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
+    // META'S PORTRAIT 3:4 (2026-10-15, by request) — the 1:1's own tokens at 1080 x 1440,
+    // exported at 2x like every Meta size. Shown by default on a Meta plate (`v.ptHide`).
+    pt: { W: 1080, H: 1440, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
     yp: { W: 1080, H: 1350, out: [960, 1200], pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 }
   };
   // ── PLATFORM: Meta ads or YouTube Demand Gen ─────────────────────────────────────────
@@ -6608,10 +6661,10 @@ class CampaignStudio extends StudioBase {
   // (1880 x 940) and `EventBrite_Banner_Small` (758 x 380), spelled as asked — and lands in a
   // folder per variant, the banners in their own folder inside it (`exportPath`). The 16:9
   // was not named in the request and keeps its ratio, loose beside the feed and the Story.
-  static EXPORT_NAME = { sq: 'feed', st: 'Story', ls: 'Landscape_1.91x1', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
+  static EXPORT_NAME = { sq: 'feed', pt: 'Portrait_3x4', st: 'Story', ls: 'Landscape_1.91x1', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
   static BANNER_DIR = 'Eventbrite Banners';
   static isBanner(sizeKey) { return sizeKey === 'bn' || sizeKey === 'bs'; }
-  static SIZE_LAB = { sq: '1:1', st: '9:16', ls: '1.91:1', bn: 'Banner 1880', bs: 'Banner 758', yl: '1.91:1', yp: '4:5' };
+  static SIZE_LAB = { sq: '1:1', pt: '3:4', st: '9:16', ls: '1.91:1', bn: 'Banner 1880', bs: 'Banner 758', yl: '1.91:1', yp: '4:5' };
   // The size whose OWN PHOTO a canvas reads. Both banners are one design, so the 758 reads
   // the 1880's — one upload, one crop, cover-fitted edge to edge on each.
   static photoSize(sizeKey) { return sizeKey === 'bs' ? 'bn' : sizeKey; }
@@ -7649,7 +7702,7 @@ class CampaignStudio extends StudioBase {
   // The 758 banner goes higher than the rest: an email shows it at 1:1, where 100% of the
   // 1880 design sets the smallest caps near 10px, so its type is the one that needs to come
   // UP. Each banner scales on its own, like every size.
-  static SCALE_RANGE = { sq: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150], yl: [80, 130], yp: [80, 130] };
+  static SCALE_RANGE = { sq: [80, 130], pt: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150], yl: [80, 130], yp: [80, 130] };
   static scaleRange(sizeKey) {
     return CampaignStudio.SCALE_RANGE[sizeKey] || [CampaignStudio.SCALE_MIN, CampaignStudio.SCALE_MAX];
   }
@@ -8069,7 +8122,7 @@ class CampaignStudio extends StudioBase {
     // ON YOUTUBE THE 1.91:1 IS THE ONLY CANVAS BY DEFAULT, by request; the 1:1, 4:5 and 9:16
     // are opt-in per variant (`v.ytShow`), and a hidden one neither renders nor exports.
     if (CampaignStudio.isYT(s)) { const sh = (v && v.ytShow) || {}; return ['yl'].concat(['sq', 'yp', 'st'].filter(k => sh[k])); }
-    const out = ['sq']; if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out;
+    const out = ['sq']; if (!(v && v.ptHide)) out.push('pt'); if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out;
   }
   // The list a render of page/variant `vi` reads. Never mutate what this returns.
   static modulesFor(s, vi) {
@@ -8172,13 +8225,14 @@ class CampaignStudio extends StudioBase {
     if (size === 'bn' || size === 'bs') return v.banOv || null;
     if (size === 'yl') return v.ylOv || null;
     if (size === 'yp') return v.ypOv || null;
+    if (size === 'pt') return v.ptOv || null;
     return null;
   }
   // Every DETACHED size record a variant can carry. Anything that walks a variant's layout
   // records walks this list — forkPage, dropMod, copyMove, the layout presets, the merge
   // and the load — so a new size cannot be missed by one of them. They were six copies of
   // a literal `[v, v.story, v.wideOv]`, which is exactly how a new size gets missed.
-  static OVK = ['story', 'wideOv', 'banOv', 'ylOv', 'ypOv'];
+  static OVK = ['story', 'wideOv', 'banOv', 'ylOv', 'ypOv', 'ptOv'];
   static recsOf(v) { return v ? [v].concat(CampaignStudio.OVK.map(k => v[k])) : []; }
   // THE ONE LAYOUT of a recreated component: its box height and a flat list of elements in
   // component coordinates (x from the column's left edge, y from the component's top). The
@@ -9650,7 +9704,7 @@ class CampaignStudio extends StudioBase {
       const fgv = norm(sidecar['adstudio-fg-' + vi]);
       if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + vi] = { img, u: fgv.u, s: fgv.s, x: fgv.x, y: fgv.y }; }
       // `bn` is the banner's own photo — one slot for both banner sizes (photoSize)
-      for (const sz of ['st', 'ls', 'bn', 'yl', 'yp']) {
+      for (const sz of ['st', 'ls', 'bn', 'yl', 'yp', 'pt']) {
         const b2 = norm(sidecar['adstudio-bg-' + vi + '-' + sz]);
         if (b2 && b2.u) { const img = await loadImg(b2.u); if (img) assets['bg' + vi + '_' + sz] = { img, u: b2.u, s: b2.s, x: b2.x, y: b2.y }; }
       }
@@ -9836,6 +9890,7 @@ class CampaignStudio extends StudioBase {
       put('adstudio-bg-' + vi + '-bn', 'background-' + lab(vi) + '-banner');
       put('adstudio-bg-' + vi + '-yl', 'background-' + lab(vi) + '-1.91x1');
       put('adstudio-bg-' + vi + '-yp', 'background-' + lab(vi) + '-4x5');
+      put('adstudio-bg-' + vi + '-pt', 'background-' + lab(vi) + '-3x4');
       put('adstudio-fg-' + vi, 'cutout-' + lab(vi));
     });
     put('adstudio-qr', 'qr');
@@ -10490,7 +10545,7 @@ class CampaignStudio extends StudioBase {
     const A = {};
     const pic = async (slotId, key) => { const b = norm(sc[slotId]); if (b && b.u) { const im = await this._vtImg(b.u); if (im) A[key] = { img: im, u: b.u, s: b.s, x: b.x, y: b.y }; } };
     await pic('adstudio-bg-' + vi, 'bg0');
-    for (const sz of ['st', 'ls', 'bn', 'yl', 'yp']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
+    for (const sz of ['st', 'ls', 'bn', 'yl', 'yp', 'pt']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
     if (m0.type === 'graphic') await pic('adstudio-mod-' + id, 'mod' + id);
     if (m0.type === 'steps' || m0.type === 'tags' || m0.type === 'spec' || m0.type === 'cust') {
       const glyph = await C.vtGlyph();
@@ -10968,7 +11023,7 @@ class CampaignStudio extends StudioBase {
       // as one design at two file sizes rather than as the same canvas twice.
       // The YouTube 1.91:1 sits as wide as the 16:9, and the 4:5 a little narrower than the
       // 1:1 so the two read at one height.
-      const width = sizeKey === 'sq' ? dispW : ((sizeKey === 'ls' || sizeKey === 'bn' || sizeKey === 'yl') ? Math.round(dispW * 1.18) : (sizeKey === 'yp' ? Math.round(dispW * .8) : (sizeKey === 'bs' ? Math.round(dispW * .76) : Math.round(dispW * .58))));
+      const width = sizeKey === 'sq' ? dispW : ((sizeKey === 'ls' || sizeKey === 'bn' || sizeKey === 'yl') ? Math.round(dispW * 1.18) : (sizeKey === 'yp' ? Math.round(dispW * .8) : sizeKey === 'pt' ? Math.round(dispW * .75) : (sizeKey === 'bs' ? Math.round(dispW * .76) : Math.round(dispW * .58))));
       // The canvas's own tokens, named apart so mk can shadow `tk` with the component's.
       const tkC = tk;
       const mk = (m, g) => {
@@ -11934,7 +11989,7 @@ class CampaignStudio extends StudioBase {
         // picture and the last one's is orphaned. Pre-existing; with 10 pages it is common.
         const n = s.variants.length, IS = customElements.get('image-slot');
         if (IS && IS.moveSlot) {
-          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-bg-' + k + '-bn', 'adstudio-bg-' + k + '-yl', 'adstudio-bg-' + k + '-yp', 'adstudio-fg-' + k];
+          const ids = k => ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-bg-' + k + '-bn', 'adstudio-bg-' + k + '-yl', 'adstudio-bg-' + k + '-yp', 'adstudio-bg-' + k + '-pt', 'adstudio-fg-' + k];
           for (let k = vi; k < n - 1; k++) ids(k).forEach((to, j) => IS.moveSlot(ids(k + 1)[j], to));
           ids(n - 1).forEach(id => IS.moveSlot(null, id));
         }
@@ -11986,10 +12041,12 @@ class CampaignStudio extends StudioBase {
         return {
           ylOvOn: f(v.ylOv), bgYlOn: f(bs.yl), ylLinkTip: link(v.ylOv, 'The 1.91:1', !ytSh.sq && !v.ylOv), bgYlTip: photo(bs.yl, 'The 1.91:1'),
           ypOvOn: f(v.ypOv), bgYpOn: f(bs.yp), ypLinkTip: link(v.ypOv, 'The 4:5'), bgYpTip: photo(bs.yp, 'The 4:5'),
+          ptOvOn: f(v.ptOv), bgPtOn: f(bs.pt), ptLinkTip: link(v.ptOv, 'The 3:4'), bgPtTip: photo(bs.pt, 'The 3:4'),
+          ptShowOn: f(!v.ptHide), ptOff: f(v.ptHide), ptEyeTip: eye(!v.ptHide, 'the 3:4 portrait'),
           stOvOn: f(v.story), bgStOn: f(bs.st), stLinkTip: link(v.story, 'The 9:16'), bgStTip: photo(bs.st, 'The 9:16'),
           lsOvOn: f(v.wideOv), bgLsOn: f(bs.ls), lsLinkTip: link(v.wideOv, 'The 1.91:1'), bgLsTip: photo(bs.ls, 'The 1.91:1'),
           // A DETACHED size picks its own alignment from its row; while linked there is no button.
-          ...(() => { const al = {}; [['yl', 'ylOv'], ['yp', 'ypOv'], ['st', 'story'], ['ls', 'wideOv'], ['bn', 'banOv']].forEach(([k, rk]) => {
+          ...(() => { const al = {}; [['yl', 'ylOv'], ['yp', 'ypOv'], ['pt', 'ptOv'], ['st', 'story'], ['ls', 'wideOv'], ['bn', 'banOv']].forEach(([k, rk]) => {
             const r = v[rk], ctr = ((r && r.align) || v.align) === 'center';
             al[k + 'AlOn'] = r ? '1' : undefined;
             al[k + 'AlCtr'] = ctr ? '1' : undefined;
@@ -12050,7 +12107,14 @@ class CampaignStudio extends StudioBase {
       bgYpSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.yp) ? '-yp' : ''), key: 'yp' + vi + !!(v.bgSep && v.bgSep.yp) }],
       // built only on a YouTube project — two canvases per variant is real work
       yl: CampaignStudio.isYT(s) ? mkCanvas(vi, 'yl') : null,
-      yp: (CampaignStudio.isYT(s) && ytSh.yp) ? mkCanvas(vi, 'yp') : null
+      yp: (CampaignStudio.isYT(s) && ytSh.yp) ? mkCanvas(vi, 'yp') : null,
+      // META'S PORTRAIT 3:4 — shown by default; the eye hides it (and it is then not exported)
+      ptShow: !CampaignStudio.isYT(s) && !v.ptHide,
+      togglePtShow: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ptHide = !vv.ptHide; if (vv.ptHide && x.sel && x.sel.vi === vi && x.sel.size === 'pt') x.sel = null; return x; }); },
+      togglePtOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ptOv = vv.ptOv ? null : CampaignStudio.detachRec(vv); return x; }); },
+      toggleBgPt: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.pt = !vv.bgSep.pt; return x; }); },
+      bgPtSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.pt) ? '-pt' : ''), key: 'pt' + vi + !!(v.bgSep && v.bgSep.pt) }],
+      pt: (!CampaignStudio.isYT(s) && !v.ptHide) ? mkCanvas(vi, 'pt') : null
     }); });
 
     const addDefaults = {
@@ -12338,7 +12402,7 @@ class CampaignStudio extends StudioBase {
       mkBtnOn: !yt,
       platMeta: () => this.upd(x => { if (x.platform !== 'ytdg') return x; x.platform = 'meta'; if (x.sel && (x.sel.size === 'yl' || x.sel.size === 'yp')) x.sel = null; return x; }),
       // a YouTube project is a single ad; a carousel's pages keep their lists for the round trip
-      platYt: () => this.upd(x => { if (x.platform === 'ytdg') return x; x.platform = 'ytdg'; x.adMode = 'single'; x.storyOn = true; x.yt = CampaignStudio.ytOf(x); if (x.sel && ['ls', 'bn', 'bs'].indexOf(x.sel.size) >= 0) x.sel = null; return x; }),
+      platYt: () => this.upd(x => { if (x.platform === 'ytdg') return x; x.platform = 'ytdg'; x.adMode = 'single'; x.storyOn = true; x.yt = CampaignStudio.ytOf(x); if (x.sel && ['ls', 'bn', 'bs', 'pt'].indexOf(x.sel.size) >= 0) x.sel = null; return x; }),
       platHint: yt
         ? 'Each variant starts with the 1.91:1 — show 1:1, 4:5 or 9:16 on its plate. Plus a 1:1 logo and the text assets.'
         : 'Exported at 2x. Each variant can add a YT Demand Gen 1.91:1 and Eventbrite banners.',
@@ -12480,6 +12544,8 @@ class CampaignStudio extends StudioBase {
           bgLsDoneOn: on('adstudio-bg-' + vi + '-ls'), bgLsDropLabel: lab('adstudio-bg-' + vi + '-ls', 'Picture', 'the 1.91:1 picture'),
           bgBnDoneOn: on('adstudio-bg-' + vi + '-bn'), bgBnDropLabel: lab('adstudio-bg-' + vi + '-bn', 'Picture', 'the banner picture'),
           bgYlDoneOn: on('adstudio-bg-' + vi + '-yl'), bgYlDropLabel: lab('adstudio-bg-' + vi + '-yl', 'Picture', 'the 1.91:1 picture'),
+          bgPtDoneOn: on('adstudio-bg-' + vi + '-pt'), bgPtDropLabel: lab('adstudio-bg-' + vi + '-pt', 'Picture', 'the 3:4 picture'),
+          bgPtRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-pt'), bgPtPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-pt'),
           bgYpDoneOn: on('adstudio-bg-' + vi + '-yp'), bgYpDropLabel: lab('adstudio-bg-' + vi + '-yp', 'Picture', 'the 4:5 picture'),
           bgYlRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-yl'), bgYpRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-yp'),
           bgYlPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-yl'), bgYpPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-yp'),
@@ -12533,6 +12599,9 @@ class CampaignStudio extends StudioBase {
       bgSlotBnStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotYlStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSlotYpStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSlotPtStyle: { width: '100%', aspectRatio: '4 / 3' },
+      bgSepPtOn: !CampaignStudio.isYT(s) && !av.ptHide && !!(av.bgSep && av.bgSep.pt),
+      activeBgPtSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-pt' }],
       bgSepStOn: (CampaignStudio.isYT(s) ? !!(av.ytShow && av.ytShow.st) : CampaignStudio.storyShown(s)) && !!(av.bgSep && av.bgSep.st),
       // a canvas the platform does not carry offers no own-photo row, whatever bgSep holds
       bgSepLsOn: !CampaignStudio.isYT(s) && !!av.wide && !!(av.bgSep && av.bgSep.ls),
@@ -12874,8 +12943,8 @@ class CampaignStudio extends StudioBase {
       // The two banners scale on their own, and are named by their file width — both are
       // 2:1, so a ratio would not tell them apart.
       scaleRows: (CampaignStudio.isYT(s) ? [['yl', '1.91:1'], ['sq', '1:1'], ['yp', '4:5'], ['st', '9:16']].filter(sz => sz[0] === 'yl' || (av.ytShow && av.ytShow[sz[0]]))
-        : [['sq', '1:1'], ['st', '9:16'], ['ls', '1.91:1'], ['bn', '1880'], ['bs', '758']]
-          .filter(sz => (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
+        : [['sq', '1:1'], ['pt', '3:4'], ['st', '9:16'], ['ls', '1.91:1'], ['bn', '1880'], ['bs', '758']]
+          .filter(sz => (sz[0] !== 'pt' || !av.ptHide) && (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
         .map(sz => {
           const key = sz[0], val = Math.round(CampaignStudio.scaleOf(av, key) * 100);
           // The slider walks whole rungs of the minor third, so its value is the STEP and the
@@ -13240,7 +13309,7 @@ class Component extends DCLogic {
       // itself, or one level down, takes its own campaign name as the audience. Projects that land
       // on the same Main/Audience merge, so a Meta and a YouTube export sit under ONE Variant A.
       const KIND = {
-        feed: ['meta', 'sq', 'main', 'Feed'], story: ['meta', 'st', 'main', 'Story'],
+        feed: ['meta', 'sq', 'main', 'Feed'], portrait_3x4: ['meta', 'pt', 'main', 'Portrait 3:4'], story: ['meta', 'st', 'main', 'Story'],
         square_1x1: ['yt', 'sq', 'main', 'Square 1:1'], vertical_9x16: ['yt', 'st', 'main', 'Vertical 9:16'],
         'landscape_1.91x1': ['yt', 'yl', 'sub', 'Landscape 1.91:1'], portrait_4x5: ['yt', 'yp', 'sub', 'Portrait 4:5']
       };
@@ -13257,10 +13326,10 @@ class Component extends DCLogic {
         if (ytd) for await (const [name, h] of ytd.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, CampaignStudio.YT_DIR + '/']);
         return Promise.all(vdirs.map(async ([vname, vh, vpre]) => {
           const letter = vname.slice(-1).toUpperCase(), hits = [], outs = [];
-          const re = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
+          const re = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
           // every file an export of this variant wrote — the banners too — so editing the
           // text re-exports exactly what is already in the folder, and nothing else
-          const reOut = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5|eventbrite_banner_wide|eventbrite_banner_small)\\.(png|jpe?g)$', 'i');
+          const reOut = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5|eventbrite_banner_wide|eventbrite_banner_small)\\.(png|jpe?g)$', 'i');
           for await (const [name, h] of vh.entries()) {
             if (h.kind !== 'file') continue;
             const m = re.exec(name);
@@ -13324,7 +13393,7 @@ class Component extends DCLogic {
             const slots = tree.get(main).get(aud).get(letter), plats = [];
             for (const [key, label] of [['meta', 'Meta'], ['yt', 'YouTube Demand Gen']]) {
               const tiles = [];
-              const order = key === 'yt' ? ['square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5'] : ['feed', 'story'];
+              const order = key === 'yt' ? ['square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5'] : ['feed', 'portrait_3x4', 'story'];
               for (const k of order) {
                 if (slots[k]) { tiles.push(tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
               }
@@ -13707,8 +13776,8 @@ class Component extends DCLogic {
   // rasterFile the Share export runs, fed the photos the json carries, never the open
   // project's store. So the folder ends exactly as a fresh export would leave it, and a
   // file the project never exported is never created. Instance fields only (`_ae`).
-  static AE_JOB = { feed: 'sq', story: 'st', square_1x1: 'sq', vertical_9x16: 'st', portrait_4x5: 'yp', eventbrite_banner_wide: 'bn', eventbrite_banner_small: 'bs' };
-  static AE_LAB = { feed: 'Feed', story: 'Story', square_1x1: 'Square 1:1', vertical_9x16: 'Vertical 9:16', 'landscape_1.91x1': 'Landscape 1.91:1',
+  static AE_JOB = { feed: 'sq', portrait_3x4: 'pt', story: 'st', square_1x1: 'sq', vertical_9x16: 'st', portrait_4x5: 'yp', eventbrite_banner_wide: 'bn', eventbrite_banner_small: 'bs' };
+  static AE_LAB = { feed: 'Feed', portrait_3x4: 'Portrait 3:4', story: 'Story', square_1x1: 'Square 1:1', vertical_9x16: 'Vertical 9:16', 'landscape_1.91x1': 'Landscape 1.91:1',
     portrait_4x5: 'Portrait 4:5', eventbrite_banner_wide: 'Eventbrite 1880', eventbrite_banner_small: 'Eventbrite 758' };
   static aeSize(job, st) { return job === 'landscape_1.91x1' ? (CampaignStudio.isYT(st) ? 'yl' : 'ls') : Component.AE_JOB[job]; }
   static async aeWrite(h, data) { const w = await h.createWritable(); await w.write(data); await w.close(); }
@@ -13781,7 +13850,7 @@ class Component extends DCLogic {
   // The files to re-render, in reading order: by variant, then Feed, Story, the YouTube
   // ratios, the banners. A project that has exported nothing yet previews its feed.
   aeShots(ae) {
-    const order = ['feed', 'story', 'square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5', 'eventbrite_banner_wide', 'eventbrite_banner_small'];
+    const order = ['feed', 'portrait_3x4', 'story', 'square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5', 'eventbrite_banner_wide', 'eventbrite_banner_small'];
     const outs = ae.p.outs.slice().sort((a, b) => a.letter < b.letter ? -1 : a.letter > b.letter ? 1 : order.indexOf(a.job) - order.indexOf(b.job));
     const list = outs.map(o => ({ key: o.letter + o.job, letter: o.letter, vi: o.letter.charCodeAt(0) - 65, sk: Component.aeSize(o.job, ae.st), label: Component.AE_LAB[o.job] || o.job, o }));
     if (!list.length) ae.st.variants.forEach((v, vi) => list.push({ key: vi + 'sq', letter: String.fromCharCode(65 + vi), vi, sk: 'sq', label: 'Feed' }));

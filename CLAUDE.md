@@ -14845,3 +14845,14 @@ record copied the clusters alone, so a variant's own `ord` and any floating grap
 - **The rail's Alignment writes the selected canvas's record** when that size is detached
   (`setSelTarget`) and says *this size only* (`alignScope`). The style tiles' key reads
   `eff.align`. Verified: flipping the 9:16 changes its ops and leaves the 1:1's identical.
+
+# META HAS A PORTRAIT 3:4 (2026-10-15)
+
+By request: a new Meta size, key **`pt`**, 1080 × 1440 with the 1:1's own tokens, exported at
+2x (2160 × 2880) as `<name>_<Variant>_Portrait_3x4` into the variant's folder. **Shown by
+default on every Meta plate** — `v.ptHide` (missing = shown) is what the row's eye toggles, so
+existing Meta projects gain the file on their next export. It has the 16:9's three controls
+(`ptOv` in `OVK` / `sizeOv`, `bgSep.pt` with slot `adstudio-bg-<vi>-pt`, its own Scaling row and
+alignment button), sits under the 1:1 at `dispW * .75`, and is skipped on YouTube. Ad sets
+reads `portrait_3x4` as a Meta main tile; `cas-to-meta.py` accepts 3:4. Verified: sizes
+`sq, pt, st`, the export writes three files, detach / own photo / hide all work.

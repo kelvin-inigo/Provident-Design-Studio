@@ -205,6 +205,9 @@ No API key or service is needed: Claude Code reads the screenshot.
     canvas is selected (it reads *this size only*).
   - **Picture** — give that canvas its own photo instead of sharing the main one.
   - **Eye** — show or hide the canvas. A hidden canvas is not exported.
+- **Portrait 3:4:** shown under the 1:1 on every Meta variant. It mirrors the 1:1 until you
+  press its link button, and the eye hides it (a hidden 3:4 is not exported). It exports as
+  `<name>_Variant A_Portrait_3x4.jpg` at 2160 × 2880.
 - **9:16:** it mirrors the 1:1 until you press its link button.
 - **YT Demand Gen 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape for
   YouTube Demand Gen, and its words run the full width of the canvas. It exports into the

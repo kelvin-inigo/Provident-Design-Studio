@@ -42,8 +42,8 @@ LIM = {"body": 125, "body_max": 500, "head": 40, "desc": 30, "n": 5, "mb": 30}
 CTAS = {"APPLY_NOW", "BOOK_TRAVEL", "BUY_NOW", "CONTACT_US", "DOWNLOAD", "GET_OFFER", "GET_QUOTE",
         "LEARN_MORE", "NO_BUTTON", "OPEN_LINK", "SHOP_NOW", "SIGN_UP", "SUBSCRIBE", "WATCH_MORE"}
 # Meta placements CAS produces. Eventbrite banners (bn, bs) are not Meta assets and are skipped.
-META_SIZES = {"sq": "feed 1:1", "st": "story / reels 9:16", "ls": "16:9"}
-RATIOS = {"1:1": 1.0, "4:5": 0.8, "9:16": 9 / 16, "16:9": 16 / 9, "1.91:1": 1.91}
+META_SIZES = {"sq": "feed 1:1", "pt": "feed portrait 3:4", "st": "story / reels 9:16", "ls": "16:9"}
+RATIOS = {"1:1": 1.0, "3:4": 0.75, "4:5": 0.8, "9:16": 9 / 16, "16:9": 16 / 9, "1.91:1": 1.91}
 
 
 def env_file_value(key):
