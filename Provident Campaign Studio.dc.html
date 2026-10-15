@@ -3908,6 +3908,119 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   color:var(--ps-primary-i); background:var(--ps-primary); box-shadow:none}
 .p-rail-l .p-pal-g .p-tile:active{transform:scale(.985)}
 @media (prefers-reduced-motion:reduce){.p-rail-l .p-pal-g .p-acc-c{transition:none}.p-rail-l .p-pal-g .p-tile:active{transform:none}}
+/* ══ 36. AD SETS: ONE AUDIENCE AT A TIME, AND AN EDIT TEXT LAYER (2026-10-15) ══════
+   The window was a nest of sideways strips (main › audience › variant › platform), all
+   on screen at once. It is a list of audiences on the left and ONE audience on the
+   right now, its variants as rows. "Edit text" is the top-level switch in the bar: the
+   same audience's words beside a live render of every image it exported; each change is
+   saved into the project's .adstudio.json and those images are written again. */
+.as-mode{margin-left:14px}
+.as-mode button{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 14px;font:600 13px/1 var(--ps-font)}
+.as-mode button .mk-g{width:16px;height:16px;fill:currentColor}
+.as-mode button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.as-stage:has(> .as-body){padding:0;gap:0;overflow:hidden}
+.as-stage:has(> .as-body) > .as-src{flex:none;margin:16px auto}
+.as-body{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr)}
+/* the list of audiences */
+.as-nav{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:20px;padding:18px 12px 24px;
+  background:var(--ps-app);border-right:1px solid var(--ps-hair);scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.as-nav-g{display:flex;flex-direction:column;gap:2px}
+.as-nav-m{display:flex;flex-direction:column;gap:2px;padding:0 10px 8px}
+.as-nav-m b{font:600 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.as-nav-m s{font:400 11px/1.35 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-nav-a{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:9px 12px;
+  border:0;border-radius:var(--ps-r-sm);background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.as-nav-a:hover{background:var(--ps-fill)}
+.as-nav-a:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
+.as-nav-a b{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink);padding-right:14px}
+.as-nav-a s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-nav-a[data-on]{background:var(--ps-accent)}
+.as-nav-a[data-on] b{color:var(--ps-accent-i)}
+.as-nav-a[data-on] s{color:var(--ps-ink-2)}
+.as-nav-a[data-bad]::after{content:'';position:absolute;top:14px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--ps-bad)}
+/* the audience on screen */
+.as-pane{--as-h:clamp(170px,28vh,320px);min-height:0;min-width:0;overflow:auto;padding:0 28px 40px;
+  scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.as-pane-h{position:sticky;top:0;z-index:3;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;
+  margin:0 -28px;padding:18px 28px 14px;background:var(--ps-stage);border-bottom:1px solid var(--ps-hair)}
+.as-crumb{display:flex;flex-direction:column;gap:3px;min-width:0;margin-right:auto}
+.as-crumb s{font:500 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.as-crumb b{font:600 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.as-crumb i{font:400 12px/1.4 var(--ps-font);font-style:normal;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.as-vrow{display:flex;flex-direction:column;gap:14px;padding:22px 0 24px;border-bottom:1px solid var(--ps-hair)}
+.as-vrow:last-child{border-bottom:0}
+.as-vrow-h{display:flex;align-items:baseline;gap:10px}
+.as-vrow-h b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-vrow-h s{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-vrow-b{display:flex;flex-wrap:wrap;align-items:flex-start;gap:20px 32px}
+.as-vrow-b .as-plat{gap:12px}
+.as-vrow-b .as-plat + .as-plat{padding-left:32px}
+.as-plat-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.as-tiles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px}
+.as-tiles .as-t{--as-r:var(--as-h)}
+.as-tiles .as-t[data-shape="yl"],.as-tiles .as-t[data-shape="yp"]{--as-r:calc(var(--as-h) * .5766)}
+.as-plat-top .as-ad-see{height:30px;font-size:12.5px;gap:8px}
+/* EDIT TEXT */
+.ae-stat{display:inline-flex;align-items:center;gap:8px;max-width:min(560px,100%);padding:7px 12px;border-radius:var(--ps-pill);
+  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);font:500 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.ae-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
+.ae-stat[data-state="ok"] .ae-dot{background:var(--ps-good)}
+.ae-stat[data-state="busy"] .ae-dot,.ae-stat[data-state="pending"] .ae-dot{background:var(--ps-link);animation:aePulse 1s ease-in-out infinite alternate}
+.ae-stat[data-state="warn"] .ae-dot{background:var(--ps-warn)}
+.ae-stat[data-state="bad"]{background:var(--ps-bad-q);box-shadow:none;color:var(--ps-bad)}
+.ae-stat[data-state="bad"] .ae-dot{background:var(--ps-bad)}
+@keyframes aePulse{from{opacity:.35}to{opacity:1}}
+.ae{display:flex;flex-direction:column;gap:14px;padding-top:20px}
+.ae-tabs{align-self:flex-start}
+.ae-perm{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:var(--ps-r);background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-line)}
+.ae-perm p{flex:1;min-width:0;margin:0;display:flex;flex-direction:column;gap:3px}
+.ae-perm b{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.ae-perm s{font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
+.ae-perm .p-btn{flex:none}
+.ae-note{margin:0;padding:10px 14px;border-radius:var(--ps-r-sm);background:var(--ps-fill);font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.ae-b{display:grid;grid-template-columns:minmax(300px,540px) minmax(0,1fr);gap:32px;align-items:start}
+.ae-form{display:flex;flex-direction:column;gap:12px;min-width:0}
+.ae-page{margin-top:0}
+.ae-meta{margin:0 0 6px;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-dim)}
+.ae .p-in{height:44px;padding:10px 14px;font:400 15px/1.4 var(--ps-font);border-radius:var(--ps-r-field)}
+.ae textarea.p-in{height:auto;min-height:72px;resize:vertical}
+.ae .cw-item + .cw-item{margin-top:6px}
+.ae-foot{display:flex;align-items:center;gap:12px;min-height:36px}
+.ae-foot s{flex:1;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.ae-prev{position:sticky;top:96px;display:flex;flex-direction:column;gap:22px;min-width:0}
+.ae-var{display:flex;flex-direction:column;gap:10px}
+.ae-shots{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
+.ae-shot{--ae-h:210px;margin:0;display:flex;flex-direction:column;gap:6px}
+.ae-shot[data-shape="ls"],.ae-shot[data-shape="yl"],.ae-shot[data-shape="bn"],.ae-shot[data-shape="bs"]{--ae-h:120px}
+.ae-shot > span{display:block;height:var(--ae-h);border-radius:var(--ps-r-sm);overflow:hidden;background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair)}
+.ae-shot[data-shape="sq"] > span{aspect-ratio:1}
+.ae-shot[data-shape="st"] > span{aspect-ratio:9/16}
+.ae-shot[data-shape="yp"] > span{aspect-ratio:4/5}
+.ae-shot[data-shape="ls"] > span,.ae-shot[data-shape="yl"] > span{aspect-ratio:1.911}
+.ae-shot[data-shape="bn"] > span,.ae-shot[data-shape="bs"] > span{aspect-ratio:2}
+.ae-shot img{display:block;width:100%;height:100%;object-fit:contain}
+.ae-shot[data-wait] > span{animation:aePulse .9s ease-in-out infinite alternate}
+.ae-shot[data-wait] img{visibility:hidden}
+.ae-shot figcaption{font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+@media (max-width:1100px){.ae-b{grid-template-columns:minmax(0,1fr)}.ae-prev{position:static}}
+@media (max-width:760px){
+  .as-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .as-nav{flex-direction:row;gap:14px;overflow-x:auto;overflow-y:hidden;padding:10px 14px;border-right:0;border-bottom:1px solid var(--ps-hair)}
+  .as-nav-g{flex-direction:row;align-items:center;gap:4px;flex:none}
+  .as-nav-m{padding:0 6px}
+  .as-nav-m s{display:none}
+  .as-nav-a{width:auto;white-space:nowrap}
+  .as-nav-a s{display:none}
+  .as-pane{padding:0 14px 24px}
+  .as-pane-h{margin:0 -14px;padding:12px 14px 10px}
+  .as-crumb b{font-size:19px}
+  .as-mode{margin-left:0;order:3}
+  .as-vrow-b .as-plat + .as-plat{padding-left:0}
+  .ae-shot{--ae-h:160px}
+  .ae-perm{flex-direction:column;align-items:stretch}
+}
+@media (prefers-reduced-motion:reduce){.ae-stat .ae-dot,.ae-shot[data-wait] > span{animation:none}}
 </style>
 </helmet>
 
@@ -4359,6 +4472,12 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     <div class="as-ov" role="dialog" aria-label="Ad sets" onDragOver="{{ asDragOver }}" onDragLeave="{{ asDragLeave }}" onDrop="{{ asDrop }}" data-drag="{{ asDragOn }}">
       <div class="as-bar">
         <div class="as-ttl"><b>Ad sets</b><s>{{ asSub }}</s></div>
+        <sc-if value="{{ asBodyOn }}" hint-placeholder-val="{{ true }}">
+          <div class="p-seg as-mode" role="group" aria-label="What to work on">
+            <button onClick="{{ asSetImg }}" data-on="{{ asModeImgOn }}" title="The exported images, one variant per row"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM270-290h423.07L561.54-465.38 449.23-319.23l-80-102.31L270-290Zm-70 90v-560 560Z"/></svg>Images</button>
+            <button onClick="{{ asSetTxt }}" data-on="{{ asModeTxtOn }}" title="Change the words — saved into the project file, and its images re-exported"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-25.79-25.67 50.46 50.46-24.67-24.79Z"/></svg>Edit text</button>
+          </div>
+        </sc-if>
         <span class="p-spring"></span>
         <sc-if value="{{ asViewingOn }}" hint-placeholder-val="{{ false }}"><span class="as-viewing">{{ asViewing }}</span></sc-if>
         <sc-if value="{{ asPanelBtnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPanelToggle }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg>{{ asPanelLabel }}</button></sc-if>
@@ -4374,43 +4493,115 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
         </div>
         </sc-if>
-        <sc-for list="{{ asMains }}" as="mn" hint-placeholder-count="1">
-          <section class="as-main">
-            <header class="as-main-h"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></header>
-            <div class="as-auds">
-            <sc-for list="{{ mn.auds }}" as="au" hint-placeholder-count="1">
-              <section class="as-aud">
-                <header class="as-aud-h"><b>{{ au.title }}</b><s>{{ au.sub }}</s></header>
-                <div class="as-row">
-                  <sc-for list="{{ au.cols }}" as="c" hint-placeholder-count="2">
-                    <section class="as-col">
-                      <header class="as-col-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
-                      <div class="as-plats">
-                      <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
-                        <div class="as-plat">
-                          <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
-                          <sc-for list="{{ pl.rows }}" as="r" hint-placeholder-count="1">
-                            <div class="as-pair" data-row="{{ r.kind }}">
-                              <sc-for list="{{ r.tiles }}" as="t" hint-placeholder-count="2">
-                                <figure class="as-t" data-shape="{{ t.shape }}">
-                                  <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"></button>
-                                  <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
-                                </figure>
-                              </sc-for>
-                            </div>
-                          </sc-for>
-                          <button onClick="{{ pl.see }}" class="as-ad-see">See details<span class="yt-badge" data-state="{{ pl.badgeState }}">{{ pl.badge }}</span></button>
-                        </div>
-                      </sc-for>
-                      </div>
-                    </section>
-                  </sc-for>
-                </div>
-              </section>
+        <sc-if value="{{ asBodyOn }}" hint-placeholder-val="{{ true }}">
+        <div class="as-body">
+          <nav class="as-nav" aria-label="Audiences">
+            <sc-for list="{{ asNav }}" as="mn" hint-placeholder-count="2">
+              <div class="as-nav-g">
+                <span class="as-nav-m"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></span>
+                <sc-for list="{{ mn.auds }}" as="au" hint-placeholder-count="2">
+                  <button onClick="{{ au.pick }}" class="as-nav-a" data-on="{{ au.on }}" data-bad="{{ au.bad }}" title="{{ au.tip }}" aria-current="{{ au.cur }}"><b>{{ au.title }}</b><s>{{ au.sub }}</s></button>
+                </sc-for>
+              </div>
             </sc-for>
-            </div>
-          </section>
-        </sc-for>
+          </nav>
+          <div class="as-pane">
+            <header class="as-pane-h">
+              <div class="as-crumb"><s>{{ asSel.main }}</s><b>{{ asSel.title }}</b><i>{{ asSel.sub }}</i></div>
+              <sc-if value="{{ aeOn }}" hint-placeholder-val="{{ false }}">
+                <div class="ae-stat" data-state="{{ aeState }}" role="status" aria-live="polite"><span class="ae-dot"></span>{{ aeStatus }}</div>
+              </sc-if>
+            </header>
+            <sc-if value="{{ asImgOn }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ asSel.cols }}" as="c" hint-placeholder-count="2">
+                <section class="as-vrow">
+                  <header class="as-vrow-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
+                  <div class="as-vrow-b">
+                    <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
+                      <div class="as-plat">
+                        <div class="as-plat-top">
+                          <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
+                          <button onClick="{{ pl.see }}" class="as-ad-see">Ad text<span class="yt-badge" data-state="{{ pl.badgeState }}">{{ pl.badge }}</span></button>
+                        </div>
+                        <div class="as-tiles">
+                          <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
+                            <figure class="as-t" data-shape="{{ t.shape }}">
+                              <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"></button>
+                              <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
+                            </figure>
+                          </sc-for>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </section>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ aeOn }}" hint-placeholder-val="{{ false }}">
+              <div class="ae">
+                <sc-if value="{{ aeTabsOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="p-tabs ae-tabs"><sc-for list="{{ aeTabs }}" as="tb" hint-placeholder-count="2"><button onClick="{{ tb.pick }}" data-on="{{ tb.on }}">{{ tb.label }}</button></sc-for></div>
+                </sc-if>
+                <sc-if value="{{ aePermOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="ae-perm"><p><b>Allow editing this folder</b><s>Your changes are written into the project file and its images, so the browser needs permission to change files here.</s></p><button onClick="{{ aeAllow }}" class="p-btn">Allow editing</button></div>
+                </sc-if>
+                <sc-if value="{{ aeRoOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="ae-perm"><p><b>This folder is read-only here</b><s>This browser could only read the dropped folder. Open it with the folder picker (Drop a folder → click to choose) or set it as the source folder to edit.</s></p></div>
+                </sc-if>
+                <sc-if value="{{ aeNoteOn }}" hint-placeholder-val="{{ false }}"><p class="ae-note">{{ aeNote }}</p></sc-if>
+                <sc-if value="{{ aeReady }}" hint-placeholder-val="{{ false }}">
+                <div class="ae-b">
+                  <div class="ae-form">
+                    <sc-for list="{{ aePages }}" as="pg" hint-placeholder-count="1">
+                      <section class="cw-page ae-page">
+                        <div class="cw-page-h"><b>{{ pg.label }}</b></div>
+                        <sc-if value="{{ pg.meta }}" hint-placeholder-val="{{ false }}"><p class="ae-meta">{{ pg.meta }}</p></sc-if>
+                        <sc-if value="{{ pg.emptyOn }}" hint-placeholder-val="{{ false }}"><p class="cw-empty">No words in this ad. Add them in the studio's Copy view.</p></sc-if>
+                        <sc-for list="{{ pg.fields }}" as="f" hint-placeholder-count="3">
+                          <div class="cw-f">
+                            <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
+                            <sc-if value="{{ f.isLine }}" hint-placeholder-val="{{ false }}"><input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}"></sc-if>
+                            <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ true }}">
+                              <textarea value="{{ f.val }}" onChange="{{ f.onText }}" rows="{{ f.rows }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}"></textarea>
+                              <span class="cw-count" data-over="{{ f.overOn }}">{{ f.count }}</span>
+                            </sc-if>
+                            <sc-if value="{{ f.isPrice }}" hint-placeholder-val="{{ false }}">
+                              <div class="cw-pair">
+                                <label class="cw-sub">Small label<input value="{{ f.sub }}" onChange="{{ f.onSub }}" class="p-in" placeholder="e.g. Starting from"></label>
+                                <label class="cw-sub">Figure<input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" placeholder="e.g. AED 2.6M"></label>
+                              </div>
+                            </sc-if>
+                            <sc-if value="{{ f.isChips }}" hint-placeholder-val="{{ false }}">
+                              <sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2"><div class="cw-item"><input value="{{ c.val }}" onChange="{{ c.onInput }}" onBlur="{{ c.tidy }}" class="p-in" aria-label="Point"></div></sc-for>
+                            </sc-if>
+                            <sc-if value="{{ f.isCols }}" hint-placeholder-val="{{ false }}">
+                              <sc-for list="{{ f.cols }}" as="c" hint-placeholder-count="2"><div class="cw-item"><input value="{{ c.l }}" onChange="{{ c.onL }}" onBlur="{{ c.tidyL }}" class="p-in" placeholder="Label"><input value="{{ c.v }}" onChange="{{ c.onV }}" onBlur="{{ c.tidyV }}" class="p-in" placeholder="Figure"></div></sc-for>
+                            </sc-if>
+                          </div>
+                        </sc-for>
+                      </section>
+                    </sc-for>
+                    <div class="ae-foot"><s>{{ aeOut }}</s><sc-if value="{{ aeSaveOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ aeSaveNow }}" class="p-ghost">Save now</button></sc-if></div>
+                  </div>
+                  <aside class="ae-prev" aria-label="Preview">
+                    <sc-for list="{{ aeVars }}" as="g" hint-placeholder-count="2">
+                      <section class="ae-var">
+                        <header class="as-vrow-h"><b>{{ g.title }}</b><s>{{ g.sub }}</s></header>
+                        <div class="ae-shots">
+                          <sc-for list="{{ g.shots }}" as="sh" hint-placeholder-count="2">
+                            <figure class="ae-shot" data-shape="{{ sh.shape }}" data-wait="{{ sh.wait }}"><span><img data-src="{{ sh.url }}" alt="{{ sh.label }}"></span><figcaption>{{ sh.label }}</figcaption></figure>
+                          </sc-for>
+                        </div>
+                      </section>
+                    </sc-for>
+                  </aside>
+                </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        </sc-if>
       </div>
       <sc-if value="{{ asDetOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-det" onClick="{{ asDetClose }}">
@@ -9354,9 +9545,11 @@ class CampaignStudio extends StudioBase {
     const svgW = built.out ? built.out[0] : built.W, svgH = built.out ? built.out[1] : built.H;
     return `<svg width="${svgW}" height="${svgH}" viewBox="0 0 ${built.W} ${built.H}" xmlns="http://www.w3.org/2000/svg">${defs ? `<defs>${defs}</defs>` : ''}${body}</svg>`;
   }
-  async loadAssets(state) {
-    let sidecar = {};
-    try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sidecar = await r.json(); } catch (e) {}
+  // `own` — a photo map to read instead of the shared store: the `images` a saved
+  // .adstudio.json carries, so Ad sets can render a project that is not the open one.
+  async loadAssets(state, own) {
+    let sidecar = own || {};
+    if (!own) { try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sidecar = await r.json(); } catch (e) {} }
     const norm = v => !v ? null : (typeof v === 'string' ? { u: v, s: 1, x: 0, y: 0 } : v);
     const loadImg = u => new Promise(res => { if (!u) return res(null); const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = u; });
     const assets = {};
@@ -12880,6 +13073,7 @@ class Component extends DCLogic {
   // Object URLs are revoked on every rescan and on close. Instance fields only.
   static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload|logo|eventbrite banners|yt demand gen)$|^\./i;
   async asOpen() {
+    if (!this._asMode) { try { this._asMode = localStorage.getItem('adstudio-as-mode') === 'text' ? 'text' : 'images'; } catch (e) { this._asMode = 'images'; } }
     this.setState({ adSetsOpen: true });
     const f = window.providentFolder;
     // Opening is a click, so a remembered folder whose permission lapsed can be revived
@@ -12887,7 +13081,8 @@ class Component extends DCLogic {
     if (f && !f.handle && f.ensure) { try { await f.ensure(); } catch (e) {} }
     this.asScan();
   }
-  asClose() { this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
+  // a pending edit is saved before the window goes (aeSave holds its own reference)
+  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
   asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
   async asPick() {
     if (this._asSrc) { this.asUseSource(); return; }
@@ -12897,6 +13092,8 @@ class Component extends DCLogic {
     this.asScan();
   }
   async asScan() {
+    // an edit in flight is saved first: the rescan reopens its project from the file
+    if (this._ae && this._ae.dirty) await this.aeFlush();
     // a folder dropped on home VIEWS that folder; it never replaces the
     // source folder the studio exports into (Use source folder goes back to it)
     const f = window.providentFolder, src = this._asSrc, root = src ? src.handle : (f && f.handle);
@@ -12929,7 +13126,8 @@ class Component extends DCLogic {
           const json = await jsons[bi].getFile();
           // the saved project carries the Publish text that See details checks
           const state = await Component.asState(json);
-          found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, ''), state });
+          // the json's handle is kept: the Edit text layer writes the project back into it
+          found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, ''), state, jsonH: jsons[bi], fname: json.name });
         }
         else if (depth < 3) await Promise.all(subs.map(([n, h]) => find(h, path ? path + '/' + n : n, depth + 1)));
       };
@@ -12957,21 +13155,33 @@ class Component extends DCLogic {
         try { ytd = await p.dir.getDirectoryHandle(CampaignStudio.YT_DIR); } catch (e) {}
         if (ytd) for await (const [name, h] of ytd.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, CampaignStudio.YT_DIR + '/']);
         return Promise.all(vdirs.map(async ([vname, vh, vpre]) => {
-          const letter = vname.slice(-1).toUpperCase(), hits = [];
+          const letter = vname.slice(-1).toUpperCase(), hits = [], outs = [];
           const re = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
+          // every file an export of this variant wrote — the banners too — so editing the
+          // text re-exports exactly what is already in the folder, and nothing else
+          const reOut = new RegExp('_variant ' + letter + '_(feed|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5|eventbrite_banner_wide|eventbrite_banner_small)\\.(png|jpe?g)$', 'i');
           for await (const [name, h] of vh.entries()) {
             if (h.kind !== 'file') continue;
             const m = re.exec(name);
             if (m) hits.push({ kind: m[1].toLowerCase(), h, path: (p.path ? p.path + '/' : '') + vpre + vname + '/' + name });
+            const o = reOut.exec(name);
+            if (o) outs.push({ letter, job: o[1].toLowerCase(), ext: o[2].toLowerCase(), h, name: vpre + vname + '/' + name });
           }
-          await Promise.all(hits.map(async x => { x.lm = await lmOf(x.h); }));
-          return { letter, hits };
+          await Promise.all(hits.concat(outs).map(async x => { x.lm = await lmOf(x.h); }));
+          return { letter, hits, outs };
         }));
       }));
+      const projOf = new Map();   // main + aud → the projects behind it (usually one)
       found.forEach((p, i) => {
         const segs = p.path ? p.path.split('/') : [];
         const main = segs[0] || root.name || 'Source folder';
         const aud = segs.length >= 2 ? segs.slice(1).join(' / ') : p.name;
+        // newest file per variant and job: the one an edit re-exports over
+        const best = {};
+        for (const { outs } of perProj[i]) for (const o of outs) { const k = o.letter + o.job; if (!best[k] || o.lm > best[k].lm) best[k] = o; }
+        p.outs = Object.values(best);
+        p.main = main; p.aud = aud;
+        at(projOf, main + '\u0001' + aud, () => []).push(p);
         for (const { letter, hits } of perProj[i]) for (const x of hits) {
           const slots = at(at(at(tree, main, () => new Map()), aud, () => new Map()), letter, () => ({}));
           const pk = '_' + KIND[x.kind][0];
@@ -13024,7 +13234,13 @@ class Component extends DCLogic {
               cols.push({ title: 'Variant ' + letter, sub: plural(n, 'image'), plats }); sets++;
             }
           }
-          if (cols.length) { auds.push({ title: aud, sub: plural(cols.length, 'variant'), cols }); mVars += cols.length; }
+          if (cols.length) {
+            const key = main + '\u0001' + aud, nImg = cols.reduce((a2, c) => a2 + c.plats.reduce((b2, pl) => b2 + pl.tiles.length, 0), 0);
+            const bad = cols.some(c => c.plats.some(pl => pl.need));
+            auds.push({ key, main, title: aud, sub: plural(cols.length, 'variant'), navSub: plural(cols.length, 'variant') + ' · ' + plural(nImg, 'image'),
+              cols, projs: projOf.get(key) || [], bad });
+            mVars += cols.length;
+          }
         }
         if (auds.length) mains.push({ title: main, sub: plural(auds.length, 'audience') + ' · ' + plural(mVars, 'variant'), auds });
       }
@@ -13032,6 +13248,11 @@ class Component extends DCLogic {
       this._asUrls = urls;
       this._asList = list;
       this._as = { busy: false, has: true, mains, root: root.name, files, sets, err: '', kind: kindOf };
+      // keep the audience that was open, else open the first
+      const allAuds = [].concat(...mains.map(m => m.auds));
+      if (!allAuds.some(a2 => a2.key === this._asSel)) this._asSel = allAuds.length ? allAuds[0].key : null;
+      this._asStale = false;
+      if (this._asMode === 'text') this.aeSync();
       this.forceUpdate();
       this.asThumbs(list, seq);
       return;
@@ -13216,6 +13437,243 @@ class Component extends DCLogic {
       asViewing: this._asSrc ? 'Viewing the dropped folder “' + this._asSrc.name + '”' : ''
     };
   }
+  // ── Ad sets · EDIT TEXT (2026-10-15) ───────────────────────────────────────────────
+  // A top-level layer over the audience on screen that holds only its WORDS. Every edit is
+  // written back into that project's own .adstudio.json, and every image the project has
+  // already exported is rendered again and written over its file — the same buildOps and
+  // rasterFile the Share export runs, fed the photos the json carries, never the open
+  // project's store. So the folder ends exactly as a fresh export would leave it, and a
+  // file the project never exported is never created. Instance fields only (`_ae`).
+  static AE_JOB = { feed: 'sq', story: 'st', square_1x1: 'sq', vertical_9x16: 'st', portrait_4x5: 'yp', eventbrite_banner_wide: 'bn', eventbrite_banner_small: 'bs' };
+  static AE_LAB = { feed: 'Feed', story: 'Story', square_1x1: 'Square 1:1', vertical_9x16: 'Vertical 9:16', 'landscape_1.91x1': 'Landscape 1.91:1',
+    portrait_4x5: 'Portrait 4:5', eventbrite_banner_wide: 'Eventbrite 1880', eventbrite_banner_small: 'Eventbrite 758' };
+  static aeSize(job, st) { return job === 'landscape_1.91x1' ? (CampaignStudio.isYT(st) ? 'yl' : 'ls') : Component.AE_JOB[job]; }
+  static async aeWrite(h, data) { const w = await h.createWritable(); await w.write(data); await w.close(); }
+  asSelAud() { const a = this._as || {}; for (const m of a.mains || []) for (const au of m.auds) if (au.key === this._asSel) return au; return null; }
+  asSetMode(mode) {
+    if (mode === (this._asMode || 'images')) return;
+    this._asMode = mode;
+    try { localStorage.setItem('adstudio-as-mode', mode); } catch (e) {}
+    if (mode === 'text') this.aeSync();
+    else this.aeFlush().then(() => { if (this._asStale && this.state.adSetsOpen) this.asScan(); });
+    this.forceUpdate();
+  }
+  asPickAud(key) {
+    if (key === this._asSel) return;
+    this.aeFlush();
+    this._asSel = key;
+    if (this._asMode === 'text') this.aeSync();
+    this.forceUpdate();
+    const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
+  }
+  // Can this folder be written? A dropped or picked folder is read-only until asked; a
+  // folder the browser could only read file by file (Safari, Firefox) can never be.
+  asRoot() { const f = window.providentFolder; return this._asSrc ? this._asSrc.handle : (f && f.handle); }
+  async aeCan(p) {
+    if (!p.jsonH || typeof p.jsonH.createWritable !== 'function') return 'no';
+    const root = this.asRoot();
+    if (root && root.queryPermission) { try { return (await root.queryPermission({ mode: 'readwrite' })) === 'granted' ? 'yes' : 'ask'; } catch (e) { return 'ask'; } }
+    return 'yes';
+  }
+  async aeAllow() {
+    const ae = this._ae, root = this.asRoot();
+    if (!ae || !root || !root.requestPermission) return;
+    try { ae.can = (await root.requestPermission({ mode: 'readwrite' })) === 'granted' ? 'yes' : 'ask'; } catch (e) { ae.can = 'ask'; }
+    if (ae.can === 'yes' && ae.dirty) this.aeSave(); else this.forceUpdate();
+  }
+  async aeSync() {
+    const au = this.asSelAud(), projs = au ? au.projs : [];
+    const p = projs.find(x => x.path === this._aePath) || projs[0];
+    if (!p) { this._ae = null; this.forceUpdate(); return; }
+    if (this._ae && this._ae.p === p) return;
+    this._aePath = p.path;
+    const ae = this._ae = { p, st: null, doc: null, assets: null, prev: {}, loading: true, can: 'unknown', state: 'busy', status: 'Opening ' + p.fname + '…' };
+    this.forceUpdate();
+    try {
+      const doc = JSON.parse(await (await p.jsonH.getFile()).text());
+      if (!doc || !doc.state) throw new Error('it holds no project');
+      const st = CampaignStudio.normState(JSON.parse(JSON.stringify(doc.state)));
+      const images = doc.images || {};
+      if (this._ae !== ae) return;
+      ae.doc = doc; ae.st = st;
+      // a project saved without its photos would re-export without them: words only, then
+      ae.photos = Object.keys(images).some(k => /^adstudio-bg-/.test(k) && images[k]);
+      ae.assets = await this.eng.loadAssets(st, images);
+      ae.can = await this.aeCan(p);
+      ae.loading = false; ae.state = 'ok';
+      ae.status = 'Up to date with ' + p.fname;
+    } catch (e) {
+      ae.loading = false; ae.state = 'bad';
+      ae.status = 'Could not open ' + p.fname + ' — ' + (e && e.message ? e.message : e) + '.';
+    }
+    this.forceUpdate();
+    if (ae.st) this.aePreview();
+  }
+  // A canvas never pulls a webfont, and the face is published per project (Arabic).
+  async aeFonts(st) {
+    StudioBase.applyFont(st);
+    try { await StudioBase.ensureFont(StudioBase.fontKey(st)); } catch (e) {}
+    await this.eng.warmFaces();
+  }
+  // The files to re-render, in reading order: by variant, then Feed, Story, the YouTube
+  // ratios, the banners. A project that has exported nothing yet previews its feed.
+  aeShots(ae) {
+    const order = ['feed', 'story', 'square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5', 'eventbrite_banner_wide', 'eventbrite_banner_small'];
+    const outs = ae.p.outs.slice().sort((a, b) => a.letter < b.letter ? -1 : a.letter > b.letter ? 1 : order.indexOf(a.job) - order.indexOf(b.job));
+    const list = outs.map(o => ({ key: o.letter + o.job, letter: o.letter, vi: o.letter.charCodeAt(0) - 65, sk: Component.aeSize(o.job, ae.st), label: Component.AE_LAB[o.job] || o.job, o }));
+    if (!list.length) ae.st.variants.forEach((v, vi) => list.push({ key: vi + 'sq', letter: String.fromCharCode(65 + vi), vi, sk: 'sq', label: 'Feed' }));
+    return list.filter(x => x.vi < ae.st.variants.length && CampaignStudio.PXT[x.sk]);
+  }
+  aePreview() {
+    const ae = this._ae;
+    if (!ae || !ae.st) return;
+    clearTimeout(ae.prevT);
+    if (ae.prevBusy) { ae.prevAgain = true; return; }
+    ae.prevBusy = true;
+    (async () => {
+      try {
+        await this.aeFonts(ae.st);
+        const out = {};
+        for (const x of this.aeShots(ae)) {
+          const built = this.eng.buildOps(ae.st, x.vi, x.sk, ae.assets);
+          const k = Math.min(.6, 560 / Math.max(built.W, built.H));
+          out[x.key] = this.eng.renderOpsToCanvas(built, k).toDataURL('image/webp', .86);
+        }
+        ae.prev = out;
+      } catch (e) { console.warn('[provident] ad sets preview', e); }
+      finally {
+        StudioBase.applyFont(this.eng.state);
+        ae.prevBusy = false;
+        if (ae.prevAgain) { ae.prevAgain = false; this.aePreview(); }
+        this.forceUpdate();
+      }
+    })();
+  }
+  aeTouched() {
+    const ae = this._ae; if (!ae) return;
+    ae.dirty = true; ae.state = 'pending'; ae.status = 'Editing…';
+    clearTimeout(ae.prevT); clearTimeout(ae.saveT);
+    ae.prevT = setTimeout(() => this.aePreview(), 300);
+    ae.saveT = setTimeout(() => this.aeSave(), 1500);
+    this.forceUpdate();
+  }
+  aeFlush() {
+    const ae = this._ae;
+    if (!ae || !ae.dirty) return Promise.resolve();
+    clearTimeout(ae.saveT);
+    return this.aeSave();
+  }
+  async aeSave() {
+    const ae = this._ae;
+    if (!ae || !ae.dirty || !ae.st) return;
+    clearTimeout(ae.saveT);
+    if (ae.can !== 'yes') {
+      ae.state = 'warn';
+      ae.status = ae.can === 'no' ? 'Not saved — this folder was opened read-only.' : 'Not saved yet — allow editing this folder.';
+      this.forceUpdate(); return;
+    }
+    if (ae.saving) { ae.again = true; return; }
+    ae.saving = true; ae.dirty = false; ae.state = 'busy'; ae.status = 'Saving…';
+    this.forceUpdate();
+    const p = ae.p, st = ae.st;
+    let n = 0;
+    try {
+      const doc = Object.assign({}, ae.doc, { state: JSON.parse(JSON.stringify(st)) });
+      await Component.aeWrite(p.jsonH, new TextEncoder().encode(JSON.stringify(doc)));
+      ae.doc = doc;
+      if (ae.photos && p.outs.length) {
+        ae.status = 'Saved · exporting the images…'; this.forceUpdate();
+        await this.aeFonts(st);
+        for (const x of this.aeShots(ae)) {
+          if (!x.o) continue;
+          const built = this.eng.buildOps(st, x.vi, x.sk, ae.assets);
+          const r = await this.eng.rasterFile(built, x.o.ext === 'png' ? 'png' : 'jpg', CampaignStudio.exportScale(x.sk, st));
+          await Component.aeWrite(x.o.h, r.data);
+          n++;
+        }
+      }
+      this._asStale = true;
+      const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      ae.state = 'ok';
+      ae.status = 'Saved to ' + p.fname + (n ? ' · ' + n + (n === 1 ? ' image' : ' images') + ' re-exported' : '')
+        + (!ae.photos && p.outs.length ? ' · images not re-exported (the file carries no photos)' : '') + ' · ' + t;
+    } catch (e) {
+      ae.dirty = true; ae.state = 'bad';
+      ae.status = 'Could not save — ' + (e && e.message ? String(e.message).replace(/\.\s*$/, '') : e) + '. Your edits are kept here; try again.';
+    } finally {
+      StudioBase.applyFont(this.eng.state);
+      ae.saving = false;
+      if (ae.again) { ae.again = false; if (ae.dirty) this.aeSave(); }
+      this.forceUpdate();
+    }
+  }
+  aeVals() {
+    const ae = this._ae, C = CampaignStudio, au = this.asSelAud(), on = (this._asMode === 'text') && !!au;
+    const base = { aeOn: on, aeReady: false, aePages: [], aeVars: [], aeTabs: [], aeTabsOn: false };
+    if (!on) return base;
+    const projs = au.projs || [];
+    base.aeTabsOn = projs.length > 1;
+    base.aeTabs = projs.map(pp => ({ label: pp.fname.replace(/\.adstudio\.json$/i, ''), on: ae && ae.p === pp ? '1' : undefined,
+      pick: () => { this.aeFlush(); this._aePath = pp.path; this.aeSync(); } }));
+    if (!ae) return Object.assign(base, { aeState: 'busy', aeStatus: 'Opening…' });
+    Object.assign(base, {
+      aeState: ae.state, aeStatus: ae.status,
+      aePermOn: ae.can === 'ask', aeAllow: () => this.aeAllow(),
+      aeRoOn: ae.can === 'no',
+      aeNoteOn: !!ae.st && (!ae.photos || (this.eng.state && this.eng.state.pid && ae.st.pid === this.eng.state.pid)),
+      aeNote: !ae.st ? '' : (!ae.photos ? 'This project file carries no photos, so its images are not re-exported — only the words are saved. Save it from the studio once to include them.'
+        : 'This project is also open in the studio. Its open copy does not see these edits — reopen it from the folder (Open Session) to continue there.'),
+    });
+    if (!ae.st) return base;
+    const st = ae.st, carousel = C.isCarousel(st);
+    const w = (vi, id, fn) => { C.writeMod(st, vi, id, fn); this.aeTouched(); };
+    base.aeReady = true;
+    base.aePages = C.copyPages(st).map(pg => {
+      const mods = C.copyMods(st, pg.vi), lab = C.copyLabels(mods);
+      return {
+        label: carousel ? pg.label : 'Words on every variant',
+        meta: carousel ? '' : (st.variants.length > 1 ? 'A single ad shares its words, so a change here updates Variant A to ' + String.fromCharCode(64 + st.variants.length) + '.' : ''),
+        emptyOn: !mods.length,
+        fields: mods.map(m => {
+          const multi = ['hero', 'hook', 'body', 'list', 'steps'].indexOf(m.type) >= 0;
+          const cap = m.type === 'list' ? C.LIST_MAX : (m.type === 'steps' ? C.STEP_MAX : C.LINE_MAX);
+          const used = multi ? String(m.text || '').split('\n').filter((t, i, a) => t.trim() || i < a.length - 1).length : 0;
+          const hid = C.copyHidden(st, pg.vi, m.id);
+          return {
+            key: m.id, label: lab[m.id], hint: C.COPY_HINT[m.type] || '', ph: C.COPY_PH[m.type] || '',
+            hidOn: !!hid, hidText: hid === 'all' ? 'Hidden on the canvas' : 'Hidden on some variants',
+            isLine: ['eyebrow', 'cta'].indexOf(m.type) >= 0, isArea: multi, isPrice: m.type === 'price', isChips: m.type === 'tags', isCols: m.type === 'spec',
+            val: String(m.text || ''), sub: String(m.sub || ''),
+            rows: Math.max(2, Math.min(cap, used || 2)),
+            count: multi ? Math.min(used, cap) + ' of ' + cap + ' ' + (m.type === 'list' ? 'bullets' : (m.type === 'steps' ? 'steps' : 'lines')) : '',
+            overOn: multi && used > cap ? '1' : undefined,
+            onText: e => w(pg.vi, m.id, mm => { mm.text = e.target.value; }),
+            onSub: e => w(pg.vi, m.id, mm => { mm.sub = e.target.value; }),
+            chips: (m.chips || []).map((c, ci) => ({ val: String(c || ''),
+              onInput: e => w(pg.vi, m.id, mm => { mm.chips = (mm.chips || []).slice(); mm.chips[ci] = e.target.value; }),
+              tidy: () => { if (C.tidyChip(m.chips, ci)) w(pg.vi, m.id, mm => { mm.chips = C.tidyChip(mm.chips, ci) || mm.chips; }); } })),
+            cols: (m.cols || []).map((c, ci) => ({ l: String((c && c.l) || ''), v: String((c && c.v) || ''),
+              onL: e => w(pg.vi, m.id, mm => { mm.cols = (mm.cols || []).map((q, qi) => qi === ci ? Object.assign({}, q, { l: e.target.value }) : q); }),
+              onV: e => w(pg.vi, m.id, mm => { mm.cols = (mm.cols || []).map((q, qi) => qi === ci ? Object.assign({}, q, { v: e.target.value }) : q); }),
+              tidyL: () => { if (C.tidyCol(m.cols, ci, 'l')) w(pg.vi, m.id, mm => { mm.cols = C.tidyCol(mm.cols, ci, 'l') || mm.cols; }); },
+              tidyV: () => { if (C.tidyCol(m.cols, ci, 'v')) w(pg.vi, m.id, mm => { mm.cols = C.tidyCol(mm.cols, ci, 'v') || mm.cols; }); } })),
+          };
+        }),
+      };
+    });
+    const vars = [];
+    this.aeShots(ae).forEach(x => {
+      let g = vars.find(v => v.letter === x.letter);
+      if (!g) { g = { letter: x.letter, title: carousel ? 'Page ' + (x.vi + 1) : 'Variant ' + x.letter, shots: [] }; vars.push(g); }
+      g.shots.push({ label: x.label, url: ae.prev[x.key] || '', shape: x.sk, wait: ae.prev[x.key] ? undefined : '1' });
+    });
+    vars.forEach(g => { g.sub = g.shots.length + (g.shots.length === 1 ? ' image' : ' images'); });
+    base.aeVars = vars;
+    base.aeOut = ae.p.outs.length ? ae.p.outs.length + (ae.p.outs.length === 1 ? ' image updates' : ' images update') + ' on every change' : 'No exported images yet';
+    base.aeSaveNow = () => { if (ae.dirty) this.aeFlush(); };
+    base.aeSaveOn = !!ae.dirty && ae.can === 'yes';
+    return base;
+  }
   asCard(key, label, p, letter, tiles, ctx) {
     const C = CampaignStudio, st = (p && p.state) || {}, yt = key === 'yt';
     const rows = [];
@@ -13227,7 +13685,9 @@ class Component extends DCLogic {
     const card = { key, label, tiles, rows, ctx, letter, yt,
       title: yt ? 'YouTube Demand Gen text' : 'Meta ad text',
       badge: ck.badge, badgeState: ck.ok ? 'ok' : 'bad',
-      checks: ck.rows.map(r => ({ label: r.label, note: r.note, state: r.state })) };
+      checks: ck.rows.map(r => ({ label: r.label, note: r.note, state: r.state })),
+      // Meta ad text is optional: it only needs attention once some has been written
+      need: !ck.ok && (yt || C.mtUsed(st)) };
     card.pick = t => {
       card.img = t.url; card.shape = t.shape; card.open = t.open; card.meta = t.label + ' · ' + t.meta;
       card.fmts = tiles.length > 1 ? tiles.map(x => ({ label: x.label, on: x === t ? '1' : undefined, set: () => { card.pick(x); this.forceUpdate(); } })) : [];
@@ -13264,6 +13724,11 @@ class Component extends DCLogic {
     // note repeating what the panel already says
     const forced = !root || !!a.err || (!a.busy && !(a.mains || []).length);
     const big = this._asBig, list = this._asList || [], bi = big ? list.indexOf(big) : -1;
+    // ONE audience on screen at a time, picked from the list on the left
+    const mode = this._asMode === 'text' ? 'text' : 'images', sel = open && !head ? this.asSelAud() : null;
+    const nav = open && !head ? (a.mains || []).map(m => ({ title: m.title, sub: m.sub,
+      auds: m.auds.map(au => ({ title: au.title, sub: au.navSub, on: au.key === this._asSel ? '1' : undefined, cur: au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
+        tip: au.bad ? 'Its Meta or YouTube ad text needs attention — see details' : au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     return {
       asOn: open ? '1' : undefined,
@@ -13283,6 +13748,12 @@ class Component extends DCLogic {
       asPanelLabel: this._asPanel ? 'Hide' : 'Drop a folder',
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
+      asNav: nav, asBodyOn: !!sel,
+      asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
+      asImgOn: !!sel && mode === 'images',
+      asModeImgOn: mode === 'images' ? '1' : undefined, asModeTxtOn: mode === 'text' ? '1' : undefined,
+      asSetImg: () => this.asSetMode('images'), asSetTxt: () => this.asSetMode('text'),
+      ...this.aeVals(),
       asBigOn: big ? '1' : undefined,
       asBigUrl: big ? big.url : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
       asBigCtx: big ? big.ctx : '',

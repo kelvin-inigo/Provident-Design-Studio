@@ -395,17 +395,40 @@ names it; export JPEG instead. Text over Google's limits is named there too.
 ### See everything you exported: Ad sets
 
 On CAS's home page, press **Ad sets** in the sidebar, under **Recent**. It reads the Source folder
-and lays out every exported ad set, grouped from the top down:
+and finds every exported ad set.
 
-1. **Main folder**, e.g. Local, International, International EUR (Local comes first).
-2. **Audience**, e.g. Family, Investor.
-3. **Variant**: Variant A, Variant B … Each variant is one card.
-4. **Platform**: **Meta** and **YouTube Demand Gen** sit together in the same variant card.
-5. **Type**: Feed and Story for Meta. For YouTube: Square, Vertical, Landscape and Portrait.
+- **The list on the left** is every audience, grouped under its main folder (Local, International,
+  International EUR — Local comes first). Each one says how many variants and images it holds. A
+  red dot means its Meta or YouTube ad text needs attention.
+- **Click an audience** to show it on the right: its name and main folder at the top, then one row
+  per variant (Variant A, Variant B …). In each row, **Meta** (Feed, Story) and **YouTube Demand
+  Gen** (Square, Vertical, Landscape, Portrait) sit side by side. A small line under each image
+  gives its pixel size and file size.
+- **Images | Edit text** at the top of the window switches what you work on. The window remembers
+  which one you used last.
 
-Each main folder is one row, read left to right: its audiences side by side, the variants side
-by side within an audience, and Meta beside YouTube within a variant. Scroll sideways when a row is
-wider than the window. A small line under each image gives its pixel size and file size.
+#### Change the words: Edit text
+
+Press **Edit text** to work on the words of the audience on screen, without opening the studio:
+
+- The left column holds the ad's words: Small label, Heading, Hook line, Tags, Button and so on.
+  A single ad shares its words, so a change updates every variant.
+- The right column shows every image that audience exported, rendered fresh as you type.
+- **About a second after you stop typing, the change is saved** into the project's own
+  `.adstudio.json`, and **every image it had already exported is exported again over its file**
+  (same name, same JPEG or PNG, same size), banners included. Nothing new is added to the folder.
+- The pill at the top says where it is: *Editing…*, *Saving…*, then *Saved to Family.adstudio.json ·
+  4 images re-exported · 13:20*. **Save now** saves at once. Switching audience, going back to
+  **Images** or closing the window also saves first, and **Images** then shows the new files.
+- **Allow editing**: a folder you dropped or picked is read-only until you allow it. Press the
+  button once; the browser asks permission to change files there. Your Source folder needs nothing.
+- If the project file carries no photos, only the words are saved and the images are left alone —
+  re-exporting would drop the photos. Save the project from the studio once to include them.
+- If that project is also open in the studio, the open copy does not see these edits. Reopen it
+  from the folder (Open Session) to continue there.
+- To add or remove a line, move it or change its look, use the studio's Copy and Design views.
+
+#### What it shows
 
 - It looks for **saved projects**: folders holding a `.adstudio.json`. Point it at the campaign
   folder that holds Local / International, or at a single project folder. A project directly in
@@ -419,12 +442,11 @@ wider than the window. A small line under each image gives its pixel size and fi
   to see it large: the top line says where it sits (Local › Family › Variant A › Meta · Feed), and
   the arrows or **←** / **→** step through every image in the window in order. **Esc** closes it,
   and **Esc** again closes the window.
-- **See details** under each platform's images opens them beside the same text check the
+- **Ad text** beside each platform's label opens its images beside the same text check the
   **Publish** tab shows: *Meta ad text* (primary text, headlines, descriptions, destination,
   button) for Meta, *YouTube Demand Gen text* (business name, headlines, descriptions) for YouTube.
   The button carries the same badge — *Ready for Meta* / *Ready for Google*, or how many to fix.
-- Each variant card shows how many images it holds, and the main folder's heading stays in view
-  while you scroll down through it.
+- Each variant row shows how many images it holds.
 - With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
 
 #### View any folder: drop it
@@ -436,7 +458,7 @@ page, under **View ad sets**, and in the Ad sets window (press **Drop a folder**
   `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
   **click** the drop area to choose a folder instead.
 - The window shows the folder exactly as it shows the Source folder. Nothing is written to the
-  dropped folder.
+  dropped folder unless you change its words in **Edit text** and press **Allow editing**.
 - The bar says which folder you are viewing. **Use source folder** goes back to your own, and
   your Source folder is never changed by viewing another one.
 

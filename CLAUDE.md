@@ -14735,3 +14735,41 @@ says which job it is. `YT_DIR` / `BANNER_DIR` stay declared: Ad sets still reads
 folder an older export left behind. This supersedes the folder trees in *CAS EXPORTS INTO A
 FOLDER PER VARIANT* and *YouTube exports go in `YT Demand Gen/`*. Verified through the real
 `doExport` for Meta (feed, Story, 1.91:1, both banners, two variants) and YouTube.
+
+# AD SETS IS ONE AUDIENCE AT A TIME, WITH AN EDIT TEXT LAYER THAT WRITES BACK (2026-10-15)
+
+By request ("the layout looks confusing … integrate the copy section … any text I change
+auto-saves to the .json connected to those jpgs and auto-exports the new images … a top
+level layer to focus on text change"). CAS only, section 36 of the sheet; chrome plus the
+shell — no `ops.push` / renderer line moved.
+
+- **Layout:** the nested sideways strips are gone. `.as-body` is a list of audiences on the
+  left (`asNav`, grouped by main folder; `_asSel` is the selected `main\u0001aud` key, kept
+  across rescans) and ONE audience on the right (`asSel`), its variants as rows (`.as-vrow`),
+  Meta and YouTube side by side in a row. "See details" became an **Ad text** button beside the
+  platform label. The nav's red dot (`au.bad`) is `card.need` — Meta text only counts once
+  `mtUsed`, since it is optional.
+- **`Images | Edit text`** (`.as-mode`, `_asMode`, remembered in `adstudio-as-mode`) is the
+  top-level switch. Edit text (`aeVals` / `_ae`) shows the selected project's copy fields (the
+  Copy view's `.cw-f` markup, text only — no add/remove/move of components) beside fresh renders
+  of every image it exported.
+- **Write-back:** `asScan` keeps each project's json handle (`jsonH`, `fname`) and `p.outs` — the
+  newest file per variant and job, banners included (`reOut`). An edit goes through
+  `C.writeMod(ae.st, …)`; 1.5s later `aeSave` writes `{...doc, state}` into the json (its
+  `images` untouched) and re-renders each out with `buildOps` + `rasterFile` at
+  `exportScale(sk, st)`, writing over the SAME handle in its own format. `Component.aeSize` maps
+  a job back to a size (`landscape_1.91x1` is `yl` on a YouTube project, `ls` on Meta).
+- **`loadAssets(state, own)`** takes an optional photo map — the json's `images` — so a project
+  that is not open renders with its own photos, never the store's. `buildOps` reads only the
+  state it is handed (checked); `applyFont` is restored to the open project after every render.
+- **Guards:** a json with no `adstudio-bg-*` photo saves words only (re-exporting would drop the
+  photos); a stand-in folder (Safari/Firefox entries, folder upload) is read-only (`aeCan` 'no');
+  a dropped or picked real handle asks once (`aeAllow` → `requestPermission` readwrite); every
+  exit (switch audience, back to Images, Refresh, Close) flushes a pending save first; after a
+  save `_asStale` makes Images rescan. If the edited project is the one open in the studio
+  (same `pid`), a note says the open copy will not see it.
+- Verified on an OPFS stand-in folder with a two-variant project: typed into Heading with the
+  keyboard → json updated with photos kept, 4 JPEGs re-written showing the new headline, Images
+  refreshed; no console errors; no overflow at 390; 0 contrast failures in both themes.
+- **Not done:** the Publish text (Meta / YouTube) is not editable here; `_Meta upload.json`'s byte
+  sizes are not refreshed; recents keep their own older copy.
