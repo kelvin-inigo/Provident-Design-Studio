@@ -14965,3 +14965,11 @@ closes it; the rAF tick sets `data-flip` to open it upward when the stage lacks 
 Verified with real clicks; every text run in the bar and menu ≥ 4.5:1 in both themes. A probe
 note: after a conversion the control MOVES (the component's height changed) — re-measure before
 a real click, or you click the canvas and select a different component.
+
+**EVERY MATERIAL SYMBOL IS SEARCHABLE (2026-10-16, by request).** `ICONS_ALL` in both
+`CampaignStudio` and `OrganicStudio` is all 3,929 Material Symbols Outlined names from
+`fonts.google.com/metadata/icons` (curl reads it; a browser cannot — no CORS), popularity order,
+one space-joined string (~52KB per document). `ICONS` stays the curated set shown before anything
+is typed and leads each tier of `iconSearch` (exact, prefix, substring). Names only — tags would be
+1.1MB. 40 random names checked to resolve at wght200. To refresh: re-fetch the metadata, filter
+out icons whose `unsupported_families` holds "Material Symbols Outlined", sort by popularity.
