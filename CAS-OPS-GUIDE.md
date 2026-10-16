@@ -130,7 +130,13 @@ What's on the screen, from left to right:
 - **Move it:** select it, then use the small bar that appears on the canvas.
   - **↑ / ↓** reorder it.
   - **Top / Bottom** send it to the top or the bottom of the ad.
-  - **✕ Delete** removes it.
+  - **Hide / Show** hides it on this variant; **Delete** removes it.
+- **Turn it into another component:** the first button on that bar names the component (e.g.
+  **Hero headline ▾**). Press it and pick another kind (Text, Lists or Action): a headline can
+  become a body line, a bullet list, tags, key facts, a price, a button and so on. The words come
+  across line by line, and it keeps its place and visibility. Its style and size start fresh
+  (the new kind's first style, size M). Undo turns it back. Dividers, spacers and graphics carry
+  no words, so they have no Turn into.
 - **Hide it on one variant:** **This component** → **Hide in Master** (or in the variant you're
   on). Hidden components are listed under **Hidden components**, where you can show or delete
   them.

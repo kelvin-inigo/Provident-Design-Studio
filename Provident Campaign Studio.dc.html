@@ -4109,6 +4109,43 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-src-drop:hover::before,.as-src-drop:focus-visible::before,[data-drag] .as-src-drop::before{animation-duration:1.8s;opacity:1}
 .as-src-drop:hover,[data-drag] .as-src-drop{box-shadow:inset 0 0 0 1px var(--ps-link)}
 @media (prefers-reduced-motion:reduce){.as-src-drop::before{animation:none;opacity:0}}
+/* 40 · the floating component control, refreshed (2026-10-16): Material Rounded icons with
+   their words, the kit's pill, card surface and ring; and a TURN INTO menu, Notion's, that
+   swaps the selected component's kind and keeps its words (`turnInto`). */
+.p-selctl{gap:2px;padding:4px;border-radius:var(--ps-pill);background:var(--ps-card);border:0;
+  box-shadow:0 0 0 1px var(--ps-line),0 6px 18px rgba(0,0,0,.18)}
+.p-selctl button{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:0;border-radius:var(--ps-pill);
+  background:transparent;color:var(--ps-ink);font:500 13px/1 var(--ps-font);box-shadow:none}
+.p-selctl button:hover{background:var(--ps-fill);border-color:transparent}
+.p-selctl button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.p-selctl button[data-danger]{color:var(--ps-bad)}
+.p-selctl button[data-danger]:hover{background:var(--ps-bad-q)}
+.p-selctl button .mk-g{width:18px;height:18px;fill:currentColor;flex:none}
+.p-selctl button[aria-label="Move up"],.p-selctl button[aria-label="Move down"]{width:32px;padding:0;justify-content:center}
+.p-selctl i{height:18px;background:var(--ps-line);margin:0 2px}
+.p-selctl button .sc-onv{display:none}
+.p-selctl button[data-hid] .sc-onv{display:block}
+.p-selctl button[data-hid] .sc-off{display:none}
+.p-selctl .sc-chev{width:16px;height:16px;transition:transform var(--ps-motion) var(--ps-ease)}
+.p-selctl .sc-turn[data-on] .sc-chev{transform:rotate(180deg)}
+.sc-menu{position:absolute;left:0;top:calc(100% + 6px);width:300px;max-height:min(420px,60vh);overflow:auto;padding:6px;
+  border-radius:var(--ps-r);background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line),0 10px 28px rgba(0,0,0,.22);
+  animation:pSelIn .14s ease-out both;z-index:2;scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.p-selctl[data-flip] .sc-menu{top:auto;bottom:calc(100% + 6px)}
+.sc-menu-h{padding:6px 8px 4px;font:600 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.sc-menu-g{padding:10px 8px 4px;font:500 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.p-selctl .sc-item{display:flex;width:100%;height:auto;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--ps-r-sm);text-align:left}
+.p-selctl .sc-item[data-on]{background:var(--ps-fill);color:var(--ps-ink)}
+.sc-spec{flex:none;display:grid;place-items:center;width:64px;height:36px;overflow:hidden;border-radius:var(--ps-r-sm);
+  background:var(--ps-app);box-shadow:inset 0 0 0 1px var(--ps-hair);white-space:nowrap;font-family:var(--ps-font);line-height:1.1}
+.sc-spec > span{max-width:60px;overflow:hidden}
+.sc-it{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sc-it b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.sc-it s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-selctl .sc-item .sc-tick{display:none;color:var(--ps-link);fill:var(--ps-link)}
+.p-selctl .sc-item[data-on] .sc-tick{display:block}
+.sc-menu-f{margin-top:6px;padding:8px 8px 4px;border-top:1px solid var(--ps-hair);font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
+@media (max-width:760px){.p-selctl button span{display:none}.p-selctl .sc-turn span{display:inline}.sc-menu{width:min(300px,86vw)}}
 </style>
 </helmet>
 
@@ -4851,14 +4888,27 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   </sc-if>
   <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
     <div class="p-selctl" data-selctl="1">
-      <button onClick="{{ selUp }}" title="Move up">↑</button>
-      <button onClick="{{ selDown }}" title="Move down">↓</button>
+      <sc-if value="{{ turnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ turnToggle }}" class="sc-turn" data-on="{{ turnOpenOn }}" aria-haspopup="menu" aria-expanded="{{ turnAria }}" title="Turn this component into another kind, keeping its words"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m214.92-336.54 92.31 92.31q8.31 8.31 8.5 20.58.19 12.26-8.5 21.57-9.31 9.31-21.38 9.31-12.08 0-21.39-9.31L125.31-341.23q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l139.77-139.77q8.92-8.92 20.88-8.8 11.96.11 21.27 9.42 8.69 9.31 9 21.08.31 11.77-9 21.07l-92.31 92.31h261.23q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.39q-8.62 8.61-21.39 8.61H214.92Zm530.16-227.31H483.85q-12.77 0-21.39-8.61-8.61-8.62-8.61-21.39 0-12.76 8.61-21.38 8.62-8.61 21.39-8.61h261.23l-92.31-92.31q-8.31-8.31-8.5-20.58-.19-12.27 8.5-21.58 9.31-9.3 21.38-9.3 12.08 0 21.39 9.3l139.15 139.16q5.62 5.61 7.92 11.84 2.31 6.23 2.31 13.46 0 7.24-2.31 13.47-2.3 6.23-7.92 11.84L694.92-428.77q-8.92 8.92-20.88 8.81-11.96-.12-21.27-9.42-8.69-9.31-9-21.08-.31-11.77 9-21.08l92.31-92.31Z"/></svg><span>{{ turnName }}</span><svg class="mk-g sc-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button><i></i></sc-if>
+      <button onClick="{{ selUp }}" title="Move up" aria-label="Move up"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-665.08 243.23-458.31q-8.92 8.92-20.88 8.81-11.96-.12-21.27-9.42-8.69-9.31-9-21.08-.31-11.77 9-21.08l253.61-253.61q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l253.61 253.61q8.31 8.31 8.5 20.58.19 12.27-8.5 21.58-9.31 9.3-21.38 9.3-12.08 0-21.39-9.3L510-665.08V-210q0 12.77-8.62 21.38Q492.77-180 480-180t-21.38-8.62Q450-197.23 450-210v-455.08Z"/></svg></button>
+      <button onClick="{{ selDown }}" title="Move down" aria-label="Move down"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-294.92V-750q0-12.77 8.62-21.38Q467.23-780 480-780t21.38 8.62Q510-762.77 510-750v455.08l206.77-206.77q8.92-8.92 20.88-8.81 11.96.12 21.27 9.42 8.69 9.31 9 21.08.31 11.77-9 21.08L505.31-205.31q-5.62 5.62-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31q-6.23-2.3-11.85-7.92L201.08-458.92q-8.31-8.31-8.5-20.58-.19-12.27 8.5-21.58 9.31-9.3 21.38-9.3 12.08 0 21.39 9.3L450-294.92Z"/></svg></button>
       <i></i>
-      <button onClick="{{ selToTop }}" data-on="{{ selTopOn }}">Top</button>
-      <button onClick="{{ selToBottom }}" data-on="{{ selBottomOn }}">Bottom</button>
+      <button onClick="{{ selToTop }}" data-on="{{ selTopOn }}" title="Move into the top part of the ad"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-760q-12.77 0-21.38-8.62Q180-777.23 180-790t8.62-21.38Q197.23-820 210-820h540q12.77 0 21.38 8.62Q780-802.77 780-790t-8.62 21.38Q762.77-760 750-760H210Zm248.62 611.38Q450-157.23 450-170v-381.85l-92.92 92.93q-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69-8.69-8.7-8.5-21.27.2-12.58 8.5-20.89l139.77-139.77q5.62-5.61 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.31 11.85 7.92l139.77 139.77q8.69 8.7 8.69 21.08 0 12.38-8.69 21.08-8.7 8.69-21.27 8.5-12.58-.2-20.89-8.5L510-551.85V-170q0 12.77-8.62 21.38Q492.77-140 480-140t-21.38-8.62Z"/></svg><span>Top</span></button>
+      <button onClick="{{ selToBottom }}" data-on="{{ selBottomOn }}" title="Move into the bottom part of the ad"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-140q-12.77 0-21.38-8.62Q180-157.23 180-170t8.62-21.38Q197.23-200 210-200h540q12.77 0 21.38 8.62Q780-182.77 780-170t-8.62 21.38Q762.77-140 750-140H210Zm256.54-171.23q-6.23-2.31-11.85-7.92L314.92-458.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L450-408.15V-790q0-12.77 8.62-21.38Q467.23-820 480-820t21.38 8.62Q510-802.77 510-790v381.85l92.92-92.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-319.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg><span>Bottom</span></button>
       <i></i>
-      <button onClick="{{ selHideToggle }}">{{ selHideShort }}</button>
-      <button onClick="{{ selDelete }}" data-danger="1">✕ Delete</button>
+      <button onClick="{{ selHideToggle }}" data-hid="{{ selHidOn }}" title="{{ selHideLabel }}"><svg class="mk-g sc-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="mk-g sc-onv" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg><span>{{ selHideShort }}</span></button>
+      <button onClick="{{ selDelete }}" data-danger="1" title="Delete this component" aria-label="Delete"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg><span>Delete</span></button>
+      <sc-if value="{{ turnOpen }}" hint-placeholder-val="{{ false }}">
+      <div class="sc-menu" role="menu" aria-label="Turn into">
+        <div class="sc-menu-h">Turn into</div>
+        <sc-for list="{{ turnGroups }}" as="tg" hint-placeholder-count="3">
+          <div class="sc-menu-g">{{ tg.group }}</div>
+          <sc-for list="{{ tg.items }}" as="ti" hint-placeholder-count="3">
+            <button onClick="{{ ti.pick }}" class="sc-item" role="menuitemradio" aria-checked="{{ ti.aria }}" data-on="{{ ti.on }}"><span class="sc-spec"><span style="{{ ti.sampleStyle }}">{{ ti.sampleText }}</span></span><span class="sc-it"><b>{{ ti.label }}</b><s>{{ ti.desc }}</s></span><svg class="mk-g sc-tick" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg></button>
+          </sc-for>
+        </sc-for>
+        <div class="sc-menu-f">Keeps the words and the position. The look starts from the new kind's first style.</div>
+      </div>
+      </sc-if>
     </div>
   </sc-if>
   <div class="p-dock">
@@ -6389,6 +6439,9 @@ class CampaignStudio extends StudioBase {
             ctl.style.left = Math.round(left) + 'px';
             ctl.style.top = Math.round(top) + 'px';
             if (!ctl.hasAttribute('data-show')) ctl.setAttribute('data-show', '1');
+            // the Turn into menu opens upward when the stage has no room for it below
+            const roomBelow = hr.height - (top + ch);
+            if (roomBelow < 420 && top > roomBelow) ctl.setAttribute('data-flip', '1'); else ctl.removeAttribute('data-flip');
           } else ctl.removeAttribute('data-show');
         }
       } catch (e) {}
@@ -10245,6 +10298,29 @@ class CampaignStudio extends StudioBase {
     steps: { text: 'First step' }, cta: { text: 'Button label' }, price: { sub: '', text: '' },
     tags: { chips: ['New point'] }, spec: { cols: [{ l: 'Label', v: 'Value' }] },
   };
+  // TURN INTO — the selected component becomes another kind with the same id, so its cluster,
+  // order, visibility and spacing on every record stay; its words carry over line by line.
+  // The style variant and size are cleared on every record (they belong to the old kind).
+  static turnLines(m) {
+    if (m.type === 'price') return [m.sub, m.text].map(t => String(t || '').trim()).filter(Boolean);
+    if (m.type === 'tags') return (m.chips || []).map(t => String(t || '').trim()).filter(Boolean);
+    if (m.type === 'spec') return (m.cols || []).map(c => [c.l, c.v].map(t => String(t || '').trim()).filter(Boolean).join(' ')).filter(Boolean);
+    return String(m.text || '').split('\n').map(t => t.trim()).filter(Boolean);
+  }
+  static turnInto(x, vi, id, t) {
+    const list = CampaignStudio.modList(x, vi), i = list.findIndex(m => m.id === id);
+    if (i < 0) return;
+    const m = list[i], L = CampaignStudio.turnLines(m), n = { id, type: t };
+    if (t === 'eyebrow' || t === 'cta') n.text = L.join(' · ');
+    else if (t === 'price') { n.sub = L.length > 1 ? L.slice(0, -1).join(' ') : ''; n.text = L.length ? L[L.length - 1] : ''; }
+    else if (t === 'tags') n.chips = L.slice();
+    else if (t === 'spec') n.cols = m.type === 'price' ? [{ l: m.sub || '', v: m.text || '' }] : L.map(l => { const k = l.search(/[:|]/); return k > 0 ? { l: l.slice(0, k).trim(), v: l.slice(k + 1).trim() } : { l: '', v: l }; });
+    else n.text = L.slice(0, t === 'list' ? CampaignStudio.LIST_MAX : t === 'steps' ? CampaignStudio.STEP_MAX : CampaignStudio.LINE_MAX).join('\n');
+    const empty = !(n.text || (n.chips && n.chips.length) || (n.cols && n.cols.length) || n.sub);
+    if (empty) Object.assign(n, JSON.parse(JSON.stringify(CampaignStudio.COPY_BLANK[t] || {})));
+    list[i] = n;
+    (x.variants || []).forEach(v => CampaignStudio.recsOf(v).forEach(r => { if (r && r.mvar) delete r.mvar[id]; if (r && r.msize) delete r.msize[id]; }));
+  }
   static COPY_PH = {
     eyebrow: 'e.g. New launch · Dubai Hills', hero: 'Write the heading', hook: 'e.g. From AED 1.2M · handover 2028',
     body: 'Write the supporting copy', list: 'One point per line', steps: 'One step per line', cta: 'e.g. Register your interest',
@@ -13122,6 +13198,42 @@ class CampaignStudio extends StudioBase {
       selHideLabel: sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id] ? 'Hidden in ' + this.vLabel(sel.vi) + ' — show' : 'Hide in ' + this.vLabel(sel ? sel.vi : 0),
       selHideStyle: btn(!!(sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id])),
       bgStatus: 'Photos are stored at up to 3840px — 2× every canvas, so exports never upscale.',
+      // TURN INTO (2026-10-16) — Notion's "turn into": swap the selected component's kind and
+      // keep its words, id and place. `_turnOpen` is instance state: throwaway UI.
+      ...(() => {
+        const W = CampaignStudio.COPY_TYPES, can = !!(selM && W.indexOf(selM.type) >= 0);
+        // a short specimen per kind — the palette's samples are sentences and clip in a 64px tile
+        const TS = {
+          eyebrow: ['NEW LAUNCH', { fontWeight: 500, fontSize: '8px', letterSpacing: '.14em', color: 'var(--ps-ink-2)' }],
+          hero: ['Aa', { fontWeight: 400, fontSize: '20px' }], hook: ['Aa', { fontSize: '14px' }],
+          body: ['Aa', { fontSize: '11px', color: 'var(--ps-ink-2)' }],
+          list: ['✓ ——\n✓ ——', { fontSize: '9px', whiteSpace: 'pre', lineHeight: 1.35, color: 'var(--ps-ink-2)' }],
+          spec: ['1-3BR', { fontSize: '13px' }], steps: ['① ② ③', { fontSize: '11px' }],
+          tags: ['Tag', { fontSize: '10px', padding: '1px 8px', borderRadius: 'var(--ps-pill)', boxShadow: 'inset 0 0 0 1px var(--ps-line)' }],
+          cta: ['Button', { fontSize: '9px', fontWeight: 500, padding: '3px 9px', borderRadius: 'var(--ps-pill)', background: 'var(--ps-ink)', color: 'var(--ps-app)' }],
+          price: ['AED 2.6M', { fontSize: '11px', fontWeight: 400 }],
+        };
+        const open = can && this._turnOpen === (sel && sel.id);
+        const pick = t => () => { this._turnOpen = null; if (!sel || !selM || t === selM.type) { this.forceUpdate(); return; }
+          this.upd(x => { CampaignStudio.turnInto(x, sel.vi != null ? sel.vi : x.activeVi, sel.id, t); return x; }); };
+        return {
+          turnOn: can, turnOpen: open, turnOpenOn: open ? '1' : undefined, turnAria: open ? 'true' : 'false',
+          turnName: can ? labels[selM.type][0] : '',
+          turnToggle: e => { if (e) e.stopPropagation(); this._turnOpen = open ? null : sel.id; this.forceUpdate();
+            if (!open && !this._turnBound) {
+              // one listener pair for the life of the engine: a press outside the menu or its
+              // button, or Escape, closes it.
+              this._turnBound = true;
+              const shut = () => { if (this._turnOpen) { this._turnOpen = null; this.forceUpdate(); } };
+              document.addEventListener('pointerdown', ev => { const t = ev.target; if (t && t.closest && (t.closest('.sc-menu') || t.closest('.sc-turn'))) return; shut(); }, true);
+              document.addEventListener('keydown', ev => { if (ev.key === 'Escape') shut(); });
+            } },
+          turnGroups: !open ? [] : CampaignStudio.COPY_ADD.map(g => ({ group: g.group, items: g.types.map(t => ({
+            label: labels[t][0], desc: labels[t][1], sampleText: TS[t][0], sampleStyle: Object.assign({ color: 'var(--ps-ink)', fontWeight: 300, fontSize: '12px' }, TS[t][1]),
+            on: t === selM.type ? '1' : undefined, aria: t === selM.type ? 'true' : 'false', pick: pick(t) })) }))
+        };
+      })(),
+      selHidOn: sel && ((s.variants[sel.vi] || s.variants[0]).hidden || {})[sel.id] ? '1' : undefined,
       selDelete: () => this.upd(x => { if (!sel) return x; CampaignStudio.dropMod(x, sel.vi != null ? sel.vi : x.activeVi, sel.id); x.sel = null; return x; }),
       layoutBottom: preset(() => 'bottom'),
       layoutTop: preset(() => 'top'),

@@ -14951,3 +14951,17 @@ Chrome only. Verified both themes (all panel text ≥ 8.4:1 dark), no overflow a
 its angle a registered `@property --as-hl` animated round in 5s, 1.8s on hover / focus / drag.
 Hidden under `prefers-reduced-motion`. Replaces the dashed outline in both copies of the panel.
 To verify in the pane, set the animation's `currentTime` — the pane's timeline is frozen.
+
+**THE FLOATING COMPONENT CONTROL WAS REFRESHED, AND IT HAS NOTION'S "TURN INTO" (section 40,
+2026-10-16, by request).** `.p-selctl` is a card-surface pill with Material Rounded icons beside
+their words (move up / down are icon-only), the resting tint for Top/Bottom, a red Delete, and a
+first button naming the component (`turnName`) that opens `.sc-menu`: the `COPY_ADD` groups, each
+row a short specimen (`TS` in renderVals) + name + descriptor, a tick on the current kind.
+`CampaignStudio.turnInto(x, vi, id, type)` keeps the id (so clusters, order, hidden, gapB stay),
+carries the words line by line (`turnLines`; price sub/figure, chips, spec rows), falls back to
+`COPY_BLANK` when nothing carries, and deletes `mvar[id]` / `msize[id]` on every record. Word
+types only (`COPY_TYPES`). `_turnOpen` is instance state; one document pointerdown/Escape pair
+closes it; the rAF tick sets `data-flip` to open it upward when the stage lacks room below.
+Verified with real clicks; every text run in the bar and menu ≥ 4.5:1 in both themes. A probe
+note: after a conversion the control MOVES (the component's height changed) — re-measure before
+a real click, or you click the canvas and select a different component.
