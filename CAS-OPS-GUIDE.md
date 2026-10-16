@@ -475,11 +475,15 @@ Press **Edit text** to work on the words of the audience on screen, without open
 #### View any folder: drop it
 
 You do not have to change your Source folder to look at someone else's exports. On CAS's home
-page, under **View ad sets**, and in the Ad sets window (press **Drop a folder**):
+page, in the **Ad sets viewer** panel, and in the Ad sets window (press **Drop a folder**):
+
+- The viewer is for **looking at finished exports**, not for opening a project to design. To
+  keep designing, use **Open Session** at the top of the page. **Open viewer** in the panel
+  opens the Ad sets window on your Source folder.
 
 - **Drop a folder** anywhere on the page. Use the project folder (the one holding the
   `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
-  **click** the drop area to choose a folder instead.
+  **click** the drop area (*Drop an exported campaign folder to view its ads*) to choose one.
 - The window shows the folder exactly as it shows the Source folder. Nothing is written to the
   dropped folder unless you change its words in **Edit text** and press **Allow editing**.
 - The bar says which folder you are viewing. **Use source folder** goes back to your own, and
@@ -493,7 +497,7 @@ installed.
 - **First time on a computer:** paste the OAuth client ID your admin gave you and press
   **Save**. The admin's steps are in `docs/google-drive-setup.md`.
 - **Paste the folder's link** (the address of the folder in Drive, containing `/folders/`) and
-  press **Open**. Sign in with your Provident Google account; allow pop-ups if the browser asks.
+  press **View ads**. Sign in with your Provident Google account; allow pop-ups if the browser asks.
 - The folder opens like a local one. In **Edit text**, saving writes the project file and the
   re-exported images back into that Drive folder, so its files and share links stay the same.
 - You can only open and change what your account can already open and change in Drive. A

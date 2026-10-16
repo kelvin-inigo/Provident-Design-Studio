@@ -14937,3 +14937,17 @@ selected and `focusSz` otherwise, read by `selEff` and `setSelTarget`. `focusSz`
 (not a design change). Only the focused canvas carries the ring, and the Layout head reads
 *Master · 9:16 (own layout)*. Verified with real clicks: click the 9:16, Bottom Center -> its
 wordmark moved (preview and ops), the 1:1 and the variant stayed top left.
+
+**THE HOME PAGE'S AD SETS PANEL READS AS A VIEWER (2026-10-16, by request — people mistook it for
+Open Session).** Section 38 of CAS's sheet: `.as-home` is a titled card (grid icon, **Ad sets viewer**,
+a line saying it is for finished exports and that Open Session is for designing, an *Exported ads*
+tag, an **Open viewer** button = `asOpen`). The drop zone (both copies) shows three skeleton ad
+shapes (`.as-src-pv`) instead of an upload arrow and reads *Drop an exported campaign folder to view
+its ads*; the Drive button is a ghost **View ads**, no longer a navy **Open**. Open Session carries a
+title saying it opens a project to keep designing. Not called "view only": Edit text writes back.
+Chrome only. Verified both themes (all panel text ≥ 8.4:1 dark), no overflow at 390.
+**The drop zone's border is an animated hairline (section 39, 2026-10-16, by request):** a 1px
+`--ps-line` ring plus a `::before` conic gradient (`--ps-link` into `--ps-ink`) masked to a 1px ring,
+its angle a registered `@property --as-hl` animated round in 5s, 1.8s on hover / focus / drag.
+Hidden under `prefers-reduced-motion`. Replaces the dashed outline in both copies of the panel.
+To verify in the pane, set the animation's `currentTime` — the pane's timeline is frozen.

@@ -4070,6 +4070,45 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 /* 37 · Meta's Portrait 3:4 (2026-10-15) — Ad sets tile and Edit text preview shapes. */
 .as-t[data-shape="pt"]{--as-w:calc(var(--as-r) * .75)}
 .ae-shot[data-shape="pt"] > span{aspect-ratio:3/4}
+/* 38 · the home page's Ad sets panel reads as a VIEWER, not as Open Session (2026-10-16). A titled
+   card with its own icon and an "Exported ads" tag, a drop zone that shows a gallery of ad
+   shapes instead of an upload arrow, and wording that says it lays exports out rather than
+   opening a project. */
+.as-home{padding:18px;border-radius:var(--ps-r);background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-hair)}
+.as-home > .as-src{padding:0;background:none;box-shadow:none}
+.as-home-h{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.as-home-ic{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:var(--ps-r-sm);background:var(--ps-accent)}
+.as-home-ic .mk-g{width:22px;height:22px;fill:var(--ps-accent-i)}
+.as-home-t{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.as-home-t b{font:600 16px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-home-t s{font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);text-decoration:none}
+.as-home-t em{font-style:normal;font-weight:600;color:var(--ps-ink)}
+.as-home-tag{flex:none;padding:4px 10px;border-radius:var(--ps-pill);background:var(--ps-fill);font:500 11.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.as-home-go{flex:none}
+.as-src-pv{display:flex;align-items:flex-end;gap:6px;height:40px;margin-bottom:4px}
+.as-src-pv i{display:block;border-radius:4px;background:var(--ps-skel)}
+.as-src-pv .sq{width:34px;height:34px}
+.as-src-pv .st{width:22px;height:40px}
+.as-src-pv .ls{width:56px;height:29px}
+.as-src-drop:hover .as-src-pv i{background:var(--ps-link)}
+[data-drag] .as-src-pv i{background:var(--ps-accent-i)}
+.as-src-drop s{max-width:420px}
+@media (max-width:760px){ .as-home{padding:14px} .as-home-tag{display:none} .as-home-go{width:100%} }
+/* 39 · the drop zone's border is an ANIMATED HAIRLINE (2026-10-16, by request): a 1px line with a
+   light that travels round it, in place of the dashed outline. A conic gradient masked to a 1px
+   ring; its angle is a registered property so it can animate. Faster and brighter on hover or
+   while a folder is dragged over; still under reduced motion. */
+@property --as-hl{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes asHairline{to{--as-hl:360deg}}
+.as-src-drop{position:relative;isolation:isolate;border:0;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.as-src-drop::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:conic-gradient(from var(--as-hl),transparent 0deg,transparent 250deg,var(--ps-link) 320deg,var(--ps-ink) 345deg,transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  animation:asHairline 5s linear infinite;opacity:.85}
+.as-src-drop:hover::before,.as-src-drop:focus-visible::before,[data-drag] .as-src-drop::before{animation-duration:1.8s;opacity:1}
+.as-src-drop:hover,[data-drag] .as-src-drop{box-shadow:inset 0 0 0 1px var(--ps-link)}
+@media (prefers-reduced-motion:reduce){.as-src-drop::before{animation:none;opacity:0}}
 </style>
 </helmet>
 
@@ -4111,7 +4150,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
              it. Same button, same class list, same two glyphs as the top bar's: one control
              in two places, not two controls. -->
         <button onClick="{{ shThemeToggle }}" class="p-ghost p-ico-t p-ico-o" title="{{ shThemeTitle }}" aria-label="{{ shThemeTitle }}"><sc-if value="{{ shThemeIsDark }}" hint-placeholder-val="{{ true }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-760.16q-8.62-8.63-8.62-21.38v-87.69q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.69q0 12.75-8.63 21.38-8.63 8.62-21.38 8.62-12.76 0-21.37-8.62Zm213.23 88.31q-8.31-8.3-8.12-20.57.19-12.27 8.5-21.58l61-62.38q9.03-9.31 21.44-9.31 12.41 0 21.8 9.39 8.61 8.61 8.61 20.99 0 12.39-8.7 21.08L714-671.85q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7ZM781.54-450q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h87.69q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62h-87.69ZM458.62-69.4Q450-78.02 450-90.77v-87.31q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.31q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM246.39-671.85l-62.77-61.38q-9.31-8.99-9.31-21.73 0-12.73 9.31-21.42 8.69-8.31 21.33-8.31 12.64 0 20.82 8.31l62.77 62.77q8.31 8.18 8.31 20.82t-8.23 20.94q-8.98 8.31-20.95 8.31-11.98 0-21.28-8.31Zm487.23 488.23L672.23-246q-8.31-9.31-8.5-21.58-.19-12.27 8.04-20.57 8.23-8.31 20.58-8.31 12.34 0 21.65 8.69l62.38 61.39q8.93 8.3 8.62 20.88-.31 12.58-8.73 21.88-9.19 9.31-21.83 9.31-12.65 0-20.82-9.31ZM90.77-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q78.02-510 90.77-510h87.69q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H90.77ZM184-183.62q-8.31-8.69-8.5-21.27-.19-12.57 8.12-20.88l62-62q8.69-8.69 20.77-8.69 12.07 0 21.38 8.61 9.31 9.39 9.31 21.66t-9.31 21.57l-61 61q-9.31 9.31-21.95 9.31-12.64 0-20.82-9.31Zm140.23-140.52Q260-388.28 260-479.91q0-91.63 64.14-155.86Q388.28-700 479.91-700q91.63 0 155.86 64.14Q700-571.72 700-480.09q0 91.63-64.14 155.86Q571.72-260 480.09-260q-91.63 0-155.86-64.14ZM593-367q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47ZM480-480Z"/></svg></sc-if><sc-if value="{{ shThemeIsLight }}" hint-placeholder-val="{{ false }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></sc-if></button>
-        <button onClick="{{ openSession }}" class="p-br-alt">Open Session</button>
+        <button onClick="{{ openSession }}" class="p-br-alt" title="Open a saved project (.adstudio.json) to keep designing it">Open Session</button>
         <button onClick="{{ newProject }}" class="p-br-new">{{ newLabel }}</button>
       </div>
 
@@ -4120,13 +4159,13 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </sc-if>
 
       <sc-if value="{{ shShowTpl }}" hint-placeholder-val="{{ true }}">
-        <div class="p-sec-l" style="padding-left:0">View ad sets</div>
         <div class="as-home">
+        <div class="as-home-h"><span class="as-home-ic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-520q-24.54 0-42.27-17.73Q140-555.46 140-580v-180q0-24.54 17.73-42.27Q175.46-820 200-820h180q24.54 0 42.27 17.73Q440-784.54 440-760v180q0 24.54-17.73 42.27Q404.54-520 380-520H200Zm0 380q-24.54 0-42.27-17.73Q140-175.46 140-200v-180q0-24.54 17.73-42.27Q175.46-440 200-440h180q24.54 0 42.27 17.73Q440-404.54 440-380v180q0 24.54-17.73 42.27Q404.54-140 380-140H200Zm380-380q-24.54 0-42.27-17.73Q520-555.46 520-580v-180q0-24.54 17.73-42.27Q555.46-820 580-820h180q24.54 0 42.27 17.73Q820-784.54 820-760v180q0 24.54-17.73 42.27Q784.54-520 760-520H580Zm0 380q-24.54 0-42.27-17.73Q520-175.46 520-200v-180q0-24.54 17.73-42.27Q555.46-440 580-440h180q24.54 0 42.27 17.73Q820-404.54 820-380v180q0 24.54-17.73 42.27Q784.54-140 760-140H580ZM200-580h180v-180H200v180Zm380 0h180v-180H580v180Zm0 380h180v-180H580v180Zm-380 0h180v-180H200v180Zm380-380Zm0 200Zm-200 0Zm0-200Z"/></svg></span><div class="as-home-t"><b>Ad sets viewer</b><s>Look through finished exports by audience, variant and platform, and check or fix their copy. To keep designing a project, use <em>Open Session</em> instead.</s></div><span class="as-home-tag">Exported ads</span><button onClick="{{ asOpen }}" class="p-ghost as-home-go">Open viewer</button></div>
         <div class="as-src">
-          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
+          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}" aria-label="Choose an exported campaign folder to view its ad sets"><span class="as-src-pv" aria-hidden="true"><i class="sq"></i><i class="st"></i><i class="ls"></i></span><b>Drop an exported campaign folder to view its ads</b><s>or click to choose one. Every variant, size and platform it holds is laid out side by side — it does not open in the editor.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
           <div class="as-gd">
             <div class="as-gd-h"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z"/></svg><b>Google Drive</b><s>{{ asGdNote }}</s><sc-if value="{{ asGdInOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asGdOut }}" class="as-gd-out">Sign out</button></sc-if></div>
-            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive folder link" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-btn">Open</button></div></sc-if>
+            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive link to an exported campaign folder" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-ghost">View ads</button></div></sc-if>
             <sc-if value="{{ asGdCfgOn }}" hint-placeholder-val="{{ false }}"><div class="as-src-row"><input class="p-in" data-as="gdc" type="text" spellcheck="false" placeholder="OAuth client ID — …apps.googleusercontent.com" aria-label="Google OAuth client ID"><button onClick="{{ asGdSaveId }}" class="p-ghost">Save</button></div></sc-if>
           </div>
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
@@ -4543,10 +4582,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <sc-if value="{{ asNoteOn }}" hint-placeholder-val="{{ false }}"><div class="as-empty"><b>{{ asNoteHead }}</b><p>{{ asNote }}</p></div></sc-if>
         <sc-if value="{{ asSrcPanelOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-src">
-          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg><b>Drop a folder here</b><s>or click to choose one — the project folder, or a folder above several projects.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
+          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}" aria-label="Choose an exported campaign folder to view its ad sets"><span class="as-src-pv" aria-hidden="true"><i class="sq"></i><i class="st"></i><i class="ls"></i></span><b>Drop an exported campaign folder to view its ads</b><s>or click to choose one. Every variant, size and platform it holds is laid out side by side — it does not open in the editor.</s></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
           <div class="as-gd">
             <div class="as-gd-h"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z"/></svg><b>Google Drive</b><s>{{ asGdNote }}</s><sc-if value="{{ asGdInOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asGdOut }}" class="as-gd-out">Sign out</button></sc-if></div>
-            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive folder link" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-btn">Open</button></div></sc-if>
+            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive link to an exported campaign folder" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-ghost">View ads</button></div></sc-if>
             <sc-if value="{{ asGdCfgOn }}" hint-placeholder-val="{{ false }}"><div class="as-src-row"><input class="p-in" data-as="gdc" type="text" spellcheck="false" placeholder="OAuth client ID — …apps.googleusercontent.com" aria-label="Google OAuth client ID"><button onClick="{{ asGdSaveId }}" class="p-ghost">Save</button></div></sc-if>
           </div>
           <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
