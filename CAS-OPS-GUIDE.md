@@ -628,7 +628,7 @@ This is the full editor.
 
 ## 12b. Support requests (OPS)
 
-**Support** in the project browser's sidebar (under Session) is a board for asking the design team for something — a bug, a new template, a change to a post, a question.
+**Support** in the project browser's sidebar (in its own **Help** group; it opens in its own window) is a board for asking the design team for something — a bug, a new template, a change to a post, a question.
 
 - **First time on a computer:** open the **setup link** the design team sent you, then type your name and work email. That is all; the link does the rest.
 - **New request:** a title, what it is about, which studio, how urgent, and what you need. A link to a screenshot or reference is optional.

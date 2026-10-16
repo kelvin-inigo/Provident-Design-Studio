@@ -15156,3 +15156,18 @@ it opens a window; the viewer panel takes the same icon. **CAS's Templates count
 splash shows 4** — `TPL.length * 2` dated from the deleted YouTube row; it is `TPL.length`. On a
 phone the title takes its own row. Chrome only; contrast over the sidebar and header 0 failures in
 both themes in both studios.
+
+**OPS's Support row takes Ad sets' treatment (2026-10-16, by request — "apply the same sidebar
+refinements to OPS").** Everything else in section 44 already landed in OPS in the same pass;
+Support was the one row still out of step — it opens a window, like CAS's Ad sets, but sat inside
+Session. It has its own **Help** group, a title, and the `arrow_outward` mark (`.p-nav2-go`, after
+the unread badge when there is one). Chrome only.
+
+**THE STUDIO SWITCHER ROWS WERE REFINED (section 45, both studios, 2026-10-16 — "still looks
+raw").** The chip was a flat block (white when active, grey when not). It is a miniature CANVAS
+now — still the studio's own ratio, 36px tall (`shape` width `36 * ratio`), a quiet tile with a
+hairline edge carrying a wordmark bar and two headline bars (three `<i>` in `.p-ws-sh`). The studio
+you are in lights the chip in the row's own ink (`--ps-accent-i`, bars `--ps-accent`); the other
+studio's row shows an `arrow_outward` (`.p-ws-go`) on hover, because choosing it opens another
+page, and its chip edge goes `--ps-link`. A "Studio" label heads the pair (`.p-sec-l0`). On a phone
+the label and arrow are hidden and the chip keeps its ratio. Chrome only.

@@ -3781,7 +3781,36 @@ select.p-in{padding-right:34px}
 .p-nav2-go{margin-left:auto;display:inline-flex;color:var(--ps-dim);opacity:.9}
 .p-nav2-go svg{width:14px;height:14px;fill:currentColor}
 .p-nav2:hover .p-nav2-go{color:var(--ps-ink)}
+/* Support (OPS) is Ad sets' counterpart: it opens a window, so it sits in its own Help group
+   and carries the same mark; with an unread badge the mark follows the badge */
+.p-nav2 s + .p-nav2-go{margin-left:8px}
 @media (max-width:760px){.p-br-t{flex:1 0 100%}.p-br-t small{white-space:normal}.p-nav2-t small{display:none}.p-br-sb > .p-nav2 .p-nav2-go{display:none}}
+
+/* 45. THE STUDIO SWITCHER, REFINED (2026-10-16, by request — "still looks raw"). The chip was a
+   flat block; it is a miniature CANVAS now, still at the studio's own ratio (36px tall), with a
+   wordmark bar and two headline bars, so the two rows read as "the thing each studio makes".
+   Resting: a quiet tile with a hairline edge. The studio you are in: the chip lights in the row's
+   own ink. The other studio carries an arrow on hover, because choosing it opens another page.
+   One label ("Studio") heads the pair like every other sidebar group. */
+.p-sec-l0{padding-top:4px}
+.p-ws{gap:12px;padding:8px 12px 8px 8px;min-height:56px;position:relative}
+.p-ws-a{width:40px;height:40px;border-radius:10px;background:transparent}
+.p-ws-sh{position:relative;height:36px;border-radius:6px;background:var(--ps-card);
+  box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden}
+.p-ws-sh i{position:absolute;left:16%;height:9%;border-radius:9999px;background:var(--ps-dim)}
+.p-ws-sh i:nth-child(1){top:14%;width:34%;opacity:.9}
+.p-ws-sh i:nth-child(2){top:58%;width:66%;height:10%;background:var(--ps-ink-2)}
+.p-ws-sh i:nth-child(3){top:74%;width:46%;height:10%;background:var(--ps-ink-2)}
+.p-ws:hover .p-ws-sh{box-shadow:inset 0 0 0 1px var(--ps-link)}
+.p-ws[data-on] .p-ws-sh,.p-ws[data-on]:hover .p-ws-sh{background:var(--ps-accent-i);box-shadow:none}
+.p-ws[data-on] .p-ws-sh i{background:var(--ps-accent);opacity:1}
+.p-ws-go{display:inline-flex;flex:none;color:var(--ps-dim);opacity:0;transition:opacity var(--ps-motion,.15s) var(--ps-ease,ease)}
+.p-ws-go svg{width:15px;height:15px;fill:currentColor}
+.p-ws:hover .p-ws-go,.p-ws:focus-visible .p-ws-go{opacity:1}
+.p-ws[data-on] .p-ws-go{display:none}
+@media (hover:none){.p-ws-go{opacity:1}}
+@media (max-width:760px){.p-sec-l0{display:none}.p-ws{min-height:0;padding:6px 10px 6px 6px}.p-ws-go{display:none}}
+@media (prefers-reduced-motion:reduce){.p-ws-go{transition:none}}
 </style>
 </helmet>
 
@@ -3793,13 +3822,15 @@ select.p-in{padding-right:34px}
   <div class="p-br">
 
     <div class="p-br-sb">
+      <div class="p-sec-l p-sec-l0">Studio</div>
       <sc-for list="{{ shTabs }}" as="tb" hint-placeholder-count="2">
         <button onClick="{{ tb.set }}" class="p-ws" data-on="{{ tb.on }}" title="{{ tb.title }}">
-          <span class="p-ws-a"><span class="p-ws-sh" style="{{ tb.shape }}"></span></span>
+          <span class="p-ws-a"><span class="p-ws-sh" style="{{ tb.shape }}"><i></i><i></i><i></i></span></span>
           <span class="p-ws-t">
             <span class="p-ws-n">{{ tb.label }}</span>
             <span class="p-ws-s">{{ tb.desc }}</span>
           </span>
+          <b class="p-ws-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b>
         </button>
       </sc-for>
 
@@ -3811,7 +3842,8 @@ select.p-in{padding-right:34px}
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i><span class="p-nav2-t"><span>Continue last</span><small>{{ continueName }}</small></span></button>
       </sc-if>
-      <button onClick="{{ supOpenFn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M485.39-140q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h262.3q5 0 8.66-3.08 3.65-3.07 3.65-8.07v-279.77q0-114.7-82.08-193.12-82.07-78.42-197.92-78.42t-197.92 78.42Q200-605.62 200-490.92v205.53q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61-28.77 0-49.38-20.03Q100-295.46 100-324.23v-77.69q0-19.46 11.08-35.66 11.08-16.19 28.92-26.03l1.85-51.08q4.92-65.31 33.92-121t74.38-96.96q45.39-41.27 104.77-64.31Q414.31-820 480-820t124.77 23.04q59.08 23.04 104.77 64t74.38 96.65q28.69 55.7 34.23 121l1.85 50.08q17.46 8.23 28.73 23.54Q860-426.38 860-407.54v89.31q0 18.84-11.27 34.15-11.27 15.31-28.73 23.54v49.39q0 29.53-21.19 50.34Q777.61-140 747.69-140h-262.3ZM342.65-419.19q-10.34-9.96-10.34-24.66 0-14.69 10.34-24.84 10.35-10.16 25.04-10.16 14.7 0 25.04 10.16 10.35 10.15 10.35 24.84 0 14.7-10.35 24.66-10.34 9.96-25.04 9.96-14.69 0-25.04-9.96Zm224.62 0q-10.35-9.96-10.35-24.66 0-14.69 10.35-24.84 10.34-10.16 25.04-10.16 14.69 0 25.04 10.16 10.34 10.15 10.34 24.84 0 14.7-10.34 24.66-10.35 9.96-25.04 9.96-14.7 0-25.04-9.96ZM254.85-472q-6.23-97.92 60.92-167.58 67.15-69.65 166.23-69.65 83.23 0 146.88 51.5 63.66 51.5 77.27 133.34-85.23-1-157.5-44.76-72.27-43.77-110.96-120-15.23 74.61-63.84 131.92-48.62 57.31-119 85.23Z"/></svg></i><span>Support</span><sc-if value="{{ supBadgeOn }}" hint-placeholder-val="{{ false }}"><s>{{ supBadge }}</s></sc-if></button>
+      <div class="p-sec-l">Help</div>
+      <button onClick="{{ supOpenFn }}" class="p-nav2" title="Opens the support desk: file a request, follow its status and reply to it"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M485.39-140q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h262.3q5 0 8.66-3.08 3.65-3.07 3.65-8.07v-279.77q0-114.7-82.08-193.12-82.07-78.42-197.92-78.42t-197.92 78.42Q200-605.62 200-490.92v205.53q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61-28.77 0-49.38-20.03Q100-295.46 100-324.23v-77.69q0-19.46 11.08-35.66 11.08-16.19 28.92-26.03l1.85-51.08q4.92-65.31 33.92-121t74.38-96.96q45.39-41.27 104.77-64.31Q414.31-820 480-820t124.77 23.04q59.08 23.04 104.77 64t74.38 96.65q28.69 55.7 34.23 121l1.85 50.08q17.46 8.23 28.73 23.54Q860-426.38 860-407.54v89.31q0 18.84-11.27 34.15-11.27 15.31-28.73 23.54v49.39q0 29.53-21.19 50.34Q777.61-140 747.69-140h-262.3ZM342.65-419.19q-10.34-9.96-10.34-24.66 0-14.69 10.34-24.84 10.35-10.16 25.04-10.16 14.7 0 25.04 10.16 10.35 10.15 10.35 24.84 0 14.7-10.35 24.66-10.34 9.96-25.04 9.96-14.69 0-25.04-9.96Zm224.62 0q-10.35-9.96-10.35-24.66 0-14.69 10.35-24.84 10.34-10.16 25.04-10.16 14.69 0 25.04 10.16 10.34 10.15 10.34 24.84 0 14.7-10.34 24.66-10.35 9.96-25.04 9.96-14.7 0-25.04-9.96ZM254.85-472q-6.23-97.92 60.92-167.58 67.15-69.65 166.23-69.65 83.23 0 146.88 51.5 63.66 51.5 77.27 133.34-85.23-1-157.5-44.76-72.27-43.77-110.96-120-15.23 74.61-63.84 131.92-48.62 57.31-119 85.23Z"/></svg></i><span>Support</span><sc-if value="{{ supBadgeOn }}" hint-placeholder-val="{{ false }}"><s>{{ supBadge }}</s></sc-if><b class="p-nav2-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b></button>
     </div>
 
     <div class="p-br-mn">
@@ -16148,7 +16180,7 @@ class Component extends DCLogic {
         // 26px of height at the studio's own aspect, so a square and a 3:4 portrait read as
         // two different canvases at a glance. Both centre in a fixed 30px box, so the two
         // labels stay aligned. `mark` (the grey dot) is gone: the fill is the state now.
-        shape: { width: (26 * (t.ratio || 1)).toFixed(2) + 'px' },
+        shape: { width: (36 * (t.ratio || 1)).toFixed(2) + 'px' },
         on: t.key === Component.STUDIO ? '1' : undefined,
         set: t.file ? (() => this.goOther(t.file)) : (() => {})
       })),

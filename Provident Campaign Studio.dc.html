@@ -4194,6 +4194,32 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-nav2-go svg{width:14px;height:14px;fill:currentColor}
 .p-nav2:hover .p-nav2-go{color:var(--ps-ink)}
 @media (max-width:760px){.p-br-t{flex:1 0 100%}.p-br-t small{white-space:normal}.p-nav2-t small{display:none}.p-br-sb > .p-nav2 .p-nav2-go{display:none}}
+
+/* 45. THE STUDIO SWITCHER, REFINED (2026-10-16, by request — "still looks raw"). The chip was a
+   flat block; it is a miniature CANVAS now, still at the studio's own ratio (36px tall), with a
+   wordmark bar and two headline bars, so the two rows read as "the thing each studio makes".
+   Resting: a quiet tile with a hairline edge. The studio you are in: the chip lights in the row's
+   own ink. The other studio carries an arrow on hover, because choosing it opens another page.
+   One label ("Studio") heads the pair like every other sidebar group. */
+.p-sec-l0{padding-top:4px}
+.p-ws{gap:12px;padding:8px 12px 8px 8px;min-height:56px;position:relative}
+.p-ws-a{width:40px;height:40px;border-radius:10px;background:transparent}
+.p-ws-sh{position:relative;height:36px;border-radius:6px;background:var(--ps-card);
+  box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden}
+.p-ws-sh i{position:absolute;left:16%;height:9%;border-radius:9999px;background:var(--ps-dim)}
+.p-ws-sh i:nth-child(1){top:14%;width:34%;opacity:.9}
+.p-ws-sh i:nth-child(2){top:58%;width:66%;height:10%;background:var(--ps-ink-2)}
+.p-ws-sh i:nth-child(3){top:74%;width:46%;height:10%;background:var(--ps-ink-2)}
+.p-ws:hover .p-ws-sh{box-shadow:inset 0 0 0 1px var(--ps-link)}
+.p-ws[data-on] .p-ws-sh,.p-ws[data-on]:hover .p-ws-sh{background:var(--ps-accent-i);box-shadow:none}
+.p-ws[data-on] .p-ws-sh i{background:var(--ps-accent);opacity:1}
+.p-ws-go{display:inline-flex;flex:none;color:var(--ps-dim);opacity:0;transition:opacity var(--ps-motion,.15s) var(--ps-ease,ease)}
+.p-ws-go svg{width:15px;height:15px;fill:currentColor}
+.p-ws:hover .p-ws-go,.p-ws:focus-visible .p-ws-go{opacity:1}
+.p-ws[data-on] .p-ws-go{display:none}
+@media (hover:none){.p-ws-go{opacity:1}}
+@media (max-width:760px){.p-sec-l0{display:none}.p-ws{min-height:0;padding:6px 10px 6px 6px}.p-ws-go{display:none}}
+@media (prefers-reduced-motion:reduce){.p-ws-go{transition:none}}
 </style>
 </helmet>
 
@@ -4205,13 +4231,15 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   <div class="p-br" onDragOver="{{ asDragOver }}" onDragLeave="{{ asDragLeave }}" onDrop="{{ asDrop }}" data-drag="{{ asDragOn }}">
 
     <div class="p-br-sb">
+      <div class="p-sec-l p-sec-l0">Studio</div>
       <sc-for list="{{ shTabs }}" as="tb" hint-placeholder-count="2">
         <button onClick="{{ tb.set }}" class="p-ws" data-on="{{ tb.on }}" title="{{ tb.title }}">
-          <span class="p-ws-a"><span class="p-ws-sh" style="{{ tb.shape }}"></span></span>
+          <span class="p-ws-a"><span class="p-ws-sh" style="{{ tb.shape }}"><i></i><i></i><i></i></span></span>
           <span class="p-ws-t">
             <span class="p-ws-n">{{ tb.label }}</span>
             <span class="p-ws-s">{{ tb.desc }}</span>
           </span>
+          <b class="p-ws-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b>
         </button>
       </sc-for>
 
@@ -14860,7 +14888,7 @@ class Component extends DCLogic {
         // 26px of height at the studio's own aspect, so a square and a 3:4 portrait read as
         // two different canvases at a glance. Both centre in a fixed 30px box, so the two
         // labels stay aligned. `mark` (the grey dot) is gone: the fill is the state now.
-        shape: { width: (26 * (t.ratio || 1)).toFixed(2) + 'px' },
+        shape: { width: (36 * (t.ratio || 1)).toFixed(2) + 'px' },
         on: t.key === Component.STUDIO ? '1' : undefined,
         set: t.file ? (() => this.goOther(t.file)) : (() => {})
       })),
