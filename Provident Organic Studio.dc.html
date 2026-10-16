@@ -5996,7 +5996,7 @@ class OrganicStudio extends StudioBase {
     // THE CAROUSEL OPENS ON ALL FIVE LAYOUTS, one page each, so the set is visible and a page
     // that is not wanted is deleted rather than discovered. Every page can be switched to
     // any other layout; `csSeed` carries the seeds the segmented controls need.
-    if (t === 'carousel') return OrganicStudio.CS_KINDS.map(k => S(k, OrganicStudio.csSeed(k)));
+    if (t === 'carousel') return OrganicStudio.CS_OPEN.map(k => S(k, OrganicStudio.csSeed(k)));
     if (t === 'listed') return [S('listed', { status: '', ptype: '', conj: 'in', building: '', price: '', listno: '' })];
     if (t === 'agents') {
       // No `eyebrow`: the rebuilt cover draws none, so seeding one wrote a value into every
@@ -6212,8 +6212,14 @@ class OrganicStudio extends StudioBase {
   // form (`csConvert` carries the copy across). The pages are disconnected from each
   // other: nothing on one page reads another page. `csBox` is the ONE geometry source,
   // read by `buildOps` and by the preview, the rule every other template here follows.
-  static CS_KINDS = ['cfront', 'cstats', 'cbul', 'ctext', 'ccta'];
-  static CS_NAMES = { cfront: 'Front page', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', ccta: 'Call to action' };
+  // EIGHT LAYOUTS NOW (2026-10-16, by request: "add more layout options"). Quote, Big
+  // number and Steps are inside pages like Stats, Bullets and Text — they take the overline,
+  // the inside-page wordmark, SWIPE and the per-page scrim and photo. The template still
+  // OPENS on the original five (`CS_OPEN`), so a fresh carousel, its template card and every
+  // saved post are unchanged; the three new ones are a tile away on any page.
+  static CS_KINDS = ['cfront', 'cstats', 'cbul', 'ctext', 'cquote', 'cnum', 'csteps', 'ccta'];
+  static CS_OPEN = ['cfront', 'cstats', 'cbul', 'ctext', 'ccta'];
+  static CS_NAMES = { cfront: 'Front page', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', cquote: 'Quote', cnum: 'Big number', csteps: 'Steps', ccta: 'Call to action' };
   static isCs(kind) { return OrganicStudio.CS_KINDS.indexOf(kind) >= 0; }
   static CS = {
     // THE GRID. The drawings set their left column at 105 and their right-hand marks
@@ -6310,7 +6316,21 @@ class OrganicStudio extends StudioBase {
     rtCalloutPad: 28, rtCalloutR: 20, rtCalloutBar: 4, rtCalloutBarGap: 22,
     // the list's tick is a PLAIN check in brass — the filled `check_circle` is reserved to
     // the Bullets preset, so the two never read as the same control
-    rtBulIn: 48, rtBulK: 1.08, rtBulBox: 26
+    rtBulIn: 48, rtBulK: 1.08, rtBulBox: 26,
+    // QUOTE — a brass opening mark (Light 300px, an ornament sized for its INK, which for a
+    // curly quote is only ~.18em tall — about 53px here; placed by that measured INK so its top is the
+    // block's top and its left edge the column's), the words Light 50 at a 1.24 lead, then
+    // the name Regular 32 and the role in the page's own small caps (28 Light at .14em).
+    qMarkPx: 300, qMarkGap: 26, qPx: 50, qLead: 1.24, qMax: 6, qWhoGap: 40, qRoleGap: 10,
+    // BIG NUMBER — the figure Light on the minor-third ladder, stepped DOWN a rung at a time
+    // until it fits the heading column (never solved — this face's width per em moves with
+    // its optical size). Its box is the figure's CAP height, so the gap under it is real air
+    // rather than a descender nobody draws. Then a Regular 41 headline and the rich body.
+    numSteps: [177, 148, 123, 103, 85, 71], numCap: .72, numLabGap: 34, numLabPx: 41, numLabLead: 1.2,
+    // STEPS — numbered rows under a headline, the Bullets page's hairline rhythm: a 1px line
+    // above every row and one closing the list. The numeral is brass Light 41 on the first
+    // line's baseline; the step Regular 32 in warm, two lines at most.
+    stepMax: 5, stepTextIn: 96, stepPadT: 26, stepPadB: 26, stepNumPx: 41, stepHeadGap: 36
   };
   static csN(f) { const n = parseInt(f && f.n, 10); const C = OrganicStudio.CS; return Math.max(C.statMin, Math.min(C.statMax, isNaN(n) ? C.statDefault : n)); }
   static csItems(f) {
@@ -6437,7 +6457,7 @@ class OrganicStudio extends StudioBase {
   // every branch of `csBox`, so a control can never light a tile the artwork does not draw —
   // and a page saved before its layout field existed still shows the position it renders at.
   // The values ARE the `seg:` options in `FIELDS`; the default is the branch `csBox` falls to.
-  static CS_POSDEF = { cfront: 'Bottom', cstats: 'Bottom', cbul: 'Bottom', ctext: 'Top', ccta: 'Centre' };
+  static CS_POSDEF = { cfront: 'Bottom', cstats: 'Bottom', cbul: 'Bottom', ctext: 'Top', cquote: 'Bottom', cnum: 'Bottom', csteps: 'Bottom', ccta: 'Centre' };
   static csPos(kind, f) {
     const v = f && f.pos;
     return v || OrganicStudio.CS_POSDEF[kind] || 'Bottom';
@@ -6488,7 +6508,7 @@ class OrganicStudio extends StudioBase {
   // The brass-highlight button's glyph is `format_color_text` at the same weight, and it is
   // written STRAIGHT INTO THE MARKUP rather than kept here: a `d` attribute is parsed before
   // DC interpolates it, so a constant path in a render key only buys a console error.
-  static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats'; }
+  static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats' || kind === 'cnum'; }
   // The floating graphic's record, normalised once so csBox (which has no asset to hand)
   // and buildOps (which does) read one shape. `a` is the art's aspect, written by the same
   // drag that writes the scale — the rule Campaign's `gaspect` already follows.
@@ -6500,7 +6520,7 @@ class OrganicStudio extends StudioBase {
              a: (typeof g.a === 'number' && g.a > 0) ? g.a : 1,
              tint: g.tint !== false };
   }
-  static csEyeKind(kind) { return kind === 'cstats' || kind === 'cbul' || kind === 'ctext'; }
+  static csEyeKind(kind) { return kind === 'cstats' || kind === 'cbul' || kind === 'ctext' || kind === 'cquote' || kind === 'cnum' || kind === 'csteps'; }
 
   // What a fresh page of each kind carries. `pos` / `align` ARE seeded, the documented
   // exception for a segmented control (it is always displaying an answer); the count too.
@@ -6512,6 +6532,9 @@ class OrganicStudio extends StudioBase {
     if (kind === 'cstats') return { logoPos: 'Hide', pos: 'Bottom', eyeOn: 'Show', eyebrow: '', title: '', bodyOn: 'Hide', body: '', n: OrganicStudio.CS.statDefault, items: [{ stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }, { stat: '', label: '' }], icoTint: 'Match canvas', scrimMode: 'Follow all pages' };
     if (kind === 'cbul') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', headline: '', bullets: '', pos: 'Bottom', bulLayout: 'Side by side', scrimMode: 'Follow all pages' };
     if (kind === 'ctext') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', pos: 'Top', align: 'Center', scrimMode: 'Follow all pages' };
+    if (kind === 'cquote') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', quote: '', author: '', role: '', pos: 'Bottom', align: 'Left', scrimMode: 'Follow all pages' };
+    if (kind === 'cnum') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', fig: '', label: '', body: '', pos: 'Bottom', align: 'Left', scrimMode: 'Follow all pages' };
+    if (kind === 'csteps') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', steps: '', pos: 'Bottom', scrimMode: 'Follow all pages' };
     if (kind === 'ccta') return { small: '', big: '', button: '', permitOn: 'Hide', pos: 'Centre' };
     return {};
   }
@@ -6519,6 +6542,10 @@ class OrganicStudio extends StudioBase {
     sl.f = Object.assign(OrganicStudio.csSeed(sl.kind), sl.f || {});
     if (sl.kind === 'cstats') { sl.f.n = OrganicStudio.csN(sl.f); sl.f.items = OrganicStudio.csItems(sl.f); }
     sl.f.gfx = OrganicStudio.csGfx(sl.f);        // every page may float a graphic
+    // Two segmented controls that were never seeded, so every inside page reported them as
+    // "to fill in" while the canvas drew their default. Seeding the default changes no pixel.
+    if (OrganicStudio.csEyeKind(sl.kind) && !sl.f.eyeCol) sl.f.eyeCol = 'Brass';
+    if (!sl.f.photoMode) sl.f.photoMode = 'Follow all pages';
     return sl;
   }
   // Switch a page's layout and CARRY ITS COPY: whatever was typed stays on the slide, and
@@ -6666,8 +6693,10 @@ class OrganicStudio extends StudioBase {
     document.addEventListener('click', e => { if (this._dragSwallow) { e.stopPropagation(); e.preventDefault(); } }, true);
   }
   static csConvert(sl, kind) {
-    const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', ccta: 'big' };
-    const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', ccta: 'small' };
+    // The Big number's PRIMARY is its headline, not the figure: a front page's headline is
+    // a sentence and would land in a field set at 177px. The Quote has no secondary.
+    const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', cquote: 'quote', cnum: 'label', csteps: 'title', ccta: 'big' };
+    const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', cnum: 'body', csteps: 'steps', ccta: 'small' };
     const o = sl.f || {}, f = Object.assign(OrganicStudio.csSeed(kind), o);
     const p = prim[sl.kind], q = sec[sl.kind];
     if (p && prim[kind] && prim[kind] !== p && !String(f[prim[kind]] || '').trim()) f[prim[kind]] = o[p] || '';
@@ -9760,6 +9789,95 @@ class OrganicStudio extends StudioBase {
         B.scrimBotY = Math.min(by1, Math.max(Math.max(0, pTop - pUp - C.scrimHold - C.permitFade), cy0 + ch + C.scrimHold));
         far(pTop + C.swipeBox);
       }
+    } else if (kind === 'cquote') {
+      // ── QUOTE. One block: the overline, a brass opening mark, the words, then who said it.
+      // The mark is placed by its measured INK, never its em box — a curly quote's ink is a
+      // small mark high in a tall box, so placing the box would float it far above the words.
+      const center = OrganicStudio.csSegVal(kind, f, 'align') === 'Center';
+      const colW = C.headColW, colX = center ? (W - colW) / 2 : C.pad, cx = colX + colW / 2;
+      const Q = C.qMarkPx, qi = this.csGlyphInk('“', Q, 300), qH = qi.a + qi.d;
+      const ql = hiLines(f.quote, C.qPx, 300, colW, C.qMax);
+      const quoteH = ql.length ? box(C.qPx) + (ql.length - 1) * C.qPx * C.qLead : 0;
+      const who = String(f.author || '').trim();
+      const roleLS = C.labTrack * C.labPx;
+      const role = String(f.role || '').trim() ? (this.wrapPlain(String(f.role).trim().toUpperCase(), C.labPx, 300, roleLS, colW, 1)[0] || '') : '';
+      const whoH = (who ? box(C.bodyPx) : 0) + (role ? (who ? C.qRoleGap : 0) + C.labBox : 0);
+      const h = eyeH + qH + C.qMarkGap + quoteH + (whoH ? C.qWhoGap + whoH : 0);
+      const pos = OrganicStudio.csPos(kind, f);
+      const top = pos === 'Top' ? topY2 : (pos === 'Centre' ? (H - h) / 2 : H - C.botIn - h);
+      eyePut(colX, top, center ? cx : null);
+      let y = top + eyeH;
+      // ink spans [x - left, x + right]: put its left edge on the column, or its centre on cx
+      T('“', center ? cx - (qi.r - qi.l) / 2 : colX + qi.l, y + qi.a, Q, 300, A.brass, 0);
+      y += qH + C.qMarkGap;
+      ql.forEach((lw, i) => drawHi(lw, colX, y + asc(C.qPx) + i * C.qPx * C.qLead, C.qPx, 300, A.ink, 0, center ? cx : null));
+      y += quoteH;
+      if (whoH) {
+        y += C.qWhoGap;
+        if (who) {
+          if (center) TC(who, y + asc(C.bodyPx), C.bodyPx, 400, A.ink, 0, cx); else T(who, colX, y + asc(C.bodyPx), C.bodyPx, 400, A.ink);
+          y += box(C.bodyPx) + (role ? C.qRoleGap : 0);
+        }
+        if (role) {
+          if (center) TC(role, y + asc(C.labPx), C.labPx, 300, A.warm, roleLS, cx); else T(role, colX, y + asc(C.labPx), C.labPx, 300, A.warm, roleLS);
+        }
+      }
+      B.near = top; far(top + h); blk(top + h); B.anchor = pos === 'Top' ? 'top' : 'bottom';
+    } else if (kind === 'cnum') {
+      // ── BIG NUMBER. The figure, its headline, then an optional rich body, as one block.
+      const center = OrganicStudio.csSegVal(kind, f, 'align') === 'Center';
+      const colW = C.headColW, colX = center ? (W - colW) / 2 : C.pad, cx = colX + colW / 2;
+      const fig = String(f.fig || '').trim();
+      // STEPPED, never solved: the largest rung whose width fits the column
+      let fpx = C.numSteps[0];
+      if (fig) for (const px of C.numSteps) { fpx = px; if (meas(fig, px, 300) <= colW) break; }
+      const figH = fig ? fpx * C.numCap : 0;
+      const ll = hiLines(f.label, C.numLabPx, 400, colW, 3);
+      const labH = ll.length ? box(C.numLabPx) + (ll.length - 1) * C.numLabPx * C.numLabLead : 0;
+      const used = eyeH + figH + (labH ? (figH ? C.numLabGap : 0) + labH : 0);
+      const band = Math.max(0, (H - C.botIn) - topY2);
+      const R = rtLay(f.body, colX, colW, Math.max(0, band - used - C.titleBodyGap), center, C.bodyPx, C.bodyLead);
+      const gap = (used > eyeH && R.h) ? C.titleBodyGap : 0, h = used + gap + R.h;
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
+      const top = topAligned ? topY2 : H - C.botIn - h;
+      eyePut(colX, top, center ? cx : null);
+      let y = top + eyeH;
+      // the figure's baseline is the foot of its cap box
+      if (fig) { if (center) TC(fig, y + figH, fpx, 300, A.ink, 0, cx); else T(fig, colX, y + figH, fpx, 300, A.ink); y += figH; }
+      if (labH) {
+        if (figH) y += C.numLabGap;
+        ll.forEach((lw, i) => drawHi(lw, colX, y + asc(C.numLabPx) + i * C.numLabPx * C.numLabLead, C.numLabPx, 400, A.ink, 0, center ? cx : null));
+        y += labH;
+      }
+      put(R, y + gap);
+      B.over = R.over;
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'csteps') {
+      // ── STEPS. A headline over numbered rows, the Bullets page's hairline rhythm. The
+      // number is DERIVED from the row's place, so reordering the lines renumbers them.
+      const st = String(f.steps || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).slice(0, C.stepMax);
+      const colW = C.headColW, colX = C.pad, tW = colW - C.stepTextIn;
+      const hl = hiLines(f.title, C.titlePx, 400, colW, 3);
+      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
+      const rows = st.map(t => this.wrapPlain(t, C.bodyPx, 400, 0, tW, 2));
+      const rowH = rows.map(L => C.stepPadT + box(C.bodyPx) + (Math.max(1, L.length) - 1) * C.bodyLead + C.stepPadB);
+      const listH = rowH.reduce((a, b) => a + b, 0);
+      const gap = (headH && st.length) ? C.stepHeadGap : 0;
+      const h = eyeH + headH + gap + listH;
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
+      const top = topAligned ? topY2 : H - C.bulBotIn - h;
+      eyePut(colX, top, null);
+      hl.forEach((lw, i) => drawHi(lw, colX, top + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
+      let y = top + eyeH + headH + gap;
+      rows.forEach((L, i) => {
+        B.rects.push({ x: colX, y, w: colW, h: 1, fill: A.hair });
+        const b0 = y + C.stepPadT + asc(C.bodyPx);
+        T(String(i + 1).padStart(2, '0'), colX, b0, C.stepNumPx, 300, A.brass);
+        L.forEach((t, k) => T(t, colX + C.stepTextIn, b0 + k * C.bodyLead, C.bodyPx, 400, A.warm));
+        y += rowH[i];
+      });
+      if (rows.length) B.rects.push({ x: colX, y, w: colW, h: 1, fill: A.hair });
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
     }
     // THE SCRIM. A BOTTOM layout: transparent at the vertical centre, solid at the floor —
     // unless the copy climbs past the centre, in which case the ramp starts `scrimPad` above
@@ -9793,6 +9911,25 @@ class OrganicStudio extends StudioBase {
     const gw = G.s * W, gh = gw * ((gMeas > 0) ? gMeas : G.a);
     B.gfx = { x: G.x * W - gw / 2, y: G.y * H - gh / 2, w: gw, h: gh, tint: G.tint };
     return B;
+  }
+  // A GLYPH'S INK BOX at a size and weight, off the running face — read by the Quote page's
+  // opening mark. Cached per face only once the fonts have settled, so a box measured in the
+  // fallback before the face lands is never kept. {a, d} are the ink above and below the
+  // baseline (d negative when the ink sits wholly above it); {l, r} its reach either side of
+  // the origin, so the ink spans [x - l, x + r].
+  csGlyphInk(ch, px, w) {
+    const M = OrganicStudio._gInk || (OrganicStudio._gInk = {});
+    const key = (window.providentFontFam || '') + '|' + ch + '|' + px + '|' + w;
+    if (M[key]) return M[key];
+    let r = { a: px * .72, d: -px * .42, l: 0, r: px * .3 };
+    try {
+      const c = document.createElement('canvas').getContext('2d');
+      c.font = w + ' ' + px + 'px ' + (window.providentFont || 'sans-serif');
+      const m = c.measureText(ch);
+      if (m.actualBoundingBoxAscent != null) r = { a: m.actualBoundingBoxAscent, d: m.actualBoundingBoxDescent, l: m.actualBoundingBoxLeft, r: m.actualBoundingBoxRight };
+    } catch (e) {}
+    if (!document.fonts || document.fonts.status === 'loaded') M[key] = r;
+    return r;
   }
   // The stats icons take Material Symbols through the slot's own `_ingest`, never by writing
   // the sidecar directly — image-slot keeps an in-memory copy of the whole store and a later
@@ -11012,7 +11149,7 @@ class OrganicStudio extends StudioBase {
     await domFill('agent2', 'smp-agent-2', null);
     return assets;
   }
-  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', ccta: 'CTA', rcover: 'Reel cover' };
+  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', cquote: 'Quote', cnum: 'Number', csteps: 'Steps', ccta: 'CTA', rcover: 'Reel cover' };
   sLabel(si) {
     const sl = this.state.slides[si];
     if (!sl) return 'Slide ' + (si + 1);
@@ -11188,6 +11325,9 @@ class OrganicStudio extends StudioBase {
     cstats:  ['Title', 'Blurb', 'Layout', 'Page scrim'],
     cbul:    ['Headline', 'Bullet points', 'Layout', 'Page scrim'],
     ctext:   ['Title', 'Body', 'Layout', 'Page scrim'],
+    cquote:  ['Quote', 'Who said it', 'Layout', 'Page scrim'],
+    cnum:    ['The number', 'Supporting copy', 'Layout', 'Page scrim'],
+    csteps:  ['Headline', 'Steps', 'Layout', 'Page scrim'],
     ccta:   ['Copy', 'Button', 'Layout', 'Permit'],
     rcover: ['Headline', 'Big number', 'Tags', 'ADM & CN']
   };
@@ -11302,6 +11442,31 @@ class OrganicStudio extends StudioBase {
             ['align', 3, 'Text', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    cquote:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the quote \u2014 e.g. Why It Matters. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['quote', 1, 'Quote', 'req area hi', 'The words themselves \u2014 the page draws the quotation mark. Enter for a new line'],
+            ['author', 2, 'Name', '', 'Who said it \u2014 optional'],
+            ['role', 2, 'Role or company', '', 'e.g. Investor, Dubai Hills \u2014 set in small caps under the name'],
+            ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the quote sits; the wash follows it'],
+            ['align', 3, 'Text', 'seg:Center|Left', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    cnum:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the number \u2014 e.g. Why It Matters. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['fig', 1, 'Big number', 'req', 'e.g. AED 128B or 260M \u2014 set huge, and stepped down to fit if it is long'],
+            ['label', 1, 'Headline', 'area hi', 'The line under the number \u2014 e.g. Going into Dubai South. Enter for a new line'],
+            ['body', 2, 'Supporting copy', 'rich', 'Optional. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the number sits; the wash follows it'],
+            ['align', 3, 'Text', 'seg:Center|Left', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    csteps:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['title', 1, 'Headline', 'req area hi', 'e.g. How It Works \u2014 Enter for a new line'],
+            ['steps', 2, 'Steps', 'req area', 'One per line, up to five \u2014 numbered for you, in order'],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area hi', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
@@ -11381,6 +11546,9 @@ class OrganicStudio extends StudioBase {
     cstats: [['title', 'lg', 60], ['__stats', 'md', 80]],
     cbul:   [['headline', 'xl', 40], ['bullets', 'sm', 50]],
     ctext:  [['title', 'lg', 50], ['body', 'sm', 70]],
+    cquote: [['quote', 'lg', 70], ['author', 'xs', 40]],
+    cnum:   [['fig', 'xl', 50], ['label', 'md', 60]],
+    csteps: [['title', 'lg', 50], ['steps', 'sm', 70]],
     ccta:   [['big', 'lg', 60], ['button', 'pill', 50]],
     rcover: [['head', 'xl', 72], ['adm', 'xs', 40]]
   };
@@ -11399,6 +11567,9 @@ class OrganicStudio extends StudioBase {
     cstats: ['Stats', 'A title and two to six icon-and-number facts.'],
     cbul:   ['Bullets', 'A headline beside a column of check points.'],
     ctext:  ['Text', 'A title and a short paragraph.'],
+    cquote: ['Quote', 'A quotation in large type, and who said it.'],
+    cnum:   ['Big number', 'One figure set huge, with a headline and a line or two under it.'],
+    csteps: ['Steps', 'A headline over up to five numbered steps.'],
     ccta:   ['Call to action', 'The closing card \u2014 a lead line, the ask, a button and the wordmark.'],
     rcover: ['Reel thumbnail', 'The cover a Reel shows in the grid and the feed. Pick the layout that suits the photo, then the words.']
   };
@@ -11428,6 +11599,9 @@ class OrganicStudio extends StudioBase {
     cstats: ['SWIPE \u203A \u2014 shown while there is a next page'],
     cbul:   ['SWIPE \u203A \u2014 shown while there is a next page'],
     ctext:  ['SWIPE \u203A \u2014 shown while there is a next page'],
+    cquote: ['The quotation mark', 'SWIPE \u203A \u2014 shown while there is a next page'],
+    cnum:   ['SWIPE \u203A \u2014 shown while there is a next page'],
+    csteps: ['The step numbers', 'SWIPE \u203A \u2014 shown while there is a next page'],
     ccta:   ['The wordmark on the card'],
     rcover: ['The wordmark']
   };
@@ -14697,6 +14871,9 @@ class OrganicStudio extends StudioBase {
           cstats: [bar(26, 10, 48, 8), bar(16, 38, 30, 16, true), bar(54, 38, 30, 16, true), bar(16, 64, 30, 16, true), bar(54, 64, 30, 16, true)],
           cbul:   [bar(8, 40, 30, 9), bar(8, 55, 30, 9), bar(48, 40, 44, 5), bar(48, 54, 44, 5), bar(48, 68, 44, 5)],
           ctext:  [bar(26, 12, 48, 8), bar(16, 32, 68, 5), bar(16, 42, 68, 5), bar(16, 52, 68, 5)],
+          cquote: [bar(8, 36, 12, 10), bar(8, 54, 78, 6), bar(8, 64, 66, 6), bar(8, 80, 30, 4, true)],
+          cnum:   [bar(8, 38, 58, 20), bar(8, 64, 50, 6), bar(8, 76, 64, 4, true), bar(8, 84, 52, 4, true)],
+          csteps: [bar(8, 22, 46, 8), bar(8, 44, 8, 5), bar(22, 44, 62, 5), bar(8, 58, 8, 5), bar(22, 58, 62, 5), bar(8, 72, 8, 5), bar(22, 72, 62, 5)],
           ccta:   [bar(20, 20, 60, 60, true), bar(36, 38, 28, 4), bar(31, 48, 38, 8), bar(33, 62, 34, 9)]
         };
         return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], marks: MARKS[k],

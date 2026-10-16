@@ -14996,3 +14996,31 @@ shifted `translateX(5%)` and its empty frame taken back with margins written off
 margin would resolve against the drop zone's width. Measured: ink centre on the drop zone's to 0.00px,
 18px above it against 16 below the text. To update: re-fetch `https://unpkg.com/@lucasmarkes/hairline@<ver>/dist/index.js` and wrap
 it the same way.
+
+# THE OPS CAROUSEL HAS EIGHT PAGE LAYOUTS: QUOTE, BIG NUMBER AND STEPS (2026-10-16)
+
+By request ("add more layout options on OPS carousel"). Three new slide kinds, all INSIDE pages
+(`csEyeKind`: overline, inside-page wordmark, SWIPE, per-page scrim and photo), each one more
+branch in `csBox`, so the preview and the export read one geometry by construction:
+
+| kind | layout | fields | positions |
+|---|---|---|---|
+| `cquote` Quote | brass opening mark (Light 300px, placed by its measured INK via `csGlyphInk`), the words Light 50 / 1.24, name Regular 32, role in 28 Light caps | quote (req, hi), author, role | Top / Centre / Bottom, Center / Left |
+| `cnum` Big number | the figure Light, STEPPED down `numSteps` (177 → 71) until it fits 881; its box is the cap height (`numCap` .72); a Regular 41 headline; the rich body | fig (req), label (hi), body (rich) | Bottom / Top, Center / Left |
+| `csteps` Steps | headline, then numbered rows on the Bullets page's hairline rhythm — brass Light 41 numeral (`01`, derived from position), step Regular 32 warm, two lines each, five rows | title (req, hi), steps (req, one per line) | Bottom / Top |
+
+- **`CS_OPEN` is what a new carousel opens on** — the original five — so `tplSlides`, the
+  template card and every saved post are unchanged; `CS_KINDS` (eight, tile order) is what the
+  left rail's Layout tiles and the guided Layout section offer. Every per-kind table gained the
+  three: `CS_NAMES`, `CS_POSDEF`, `csSeed`, `csConvert` (`cnum`'s primary is its HEADLINE, not
+  the figure; `cquote` has no secondary), `csRich` (`cnum`), `KLAB`, `TIERNAMES`, `FIELDS`,
+  `SKEL`, `PAGE`, `FIXEDTEXT`, the rail tile skeletons, and the MCP's layout list.
+- **Fixed on the way: `csNorm` seeds `eyeCol` (Brass) and `photoMode` (Follow all pages).**
+  Neither was seeded, so EVERY inside page's Words section said "1 to fill in" while the canvas
+  drew the default. Seeding the default moves no pixel.
+- Verified: op census, seven templates × every slide × both canvases against the pre-change
+  copy, **36 / 36 byte-identical** (warm — a cold-font load reported 8 spurious diffs on weekly
+  and agents, the documented `wkSpecBox` / unwarmed-weight trap); preview against ops on all
+  three new pages, both alignments, **worst 0.49 canvas px**; real clicks on the tiles carried
+  the copy (Text → Quote put the title in the quote) and made one undo entry each; typed steps
+  numbered themselves; the gate asks for the big number and the steps.
