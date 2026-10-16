@@ -15090,3 +15090,18 @@ first load again showed the 8 documented weekly/agents diffs); the post rebuilt 
 and rendered; preview against ops on all six, **worst 0.50 canvas px** (match by position — the
 table repeats "from AED " on every row); SVG export parses on all six; a real click on › added a
 fifth payment, the gate named it, typing filled it and the bar re-split 39 / 195 / 156 / 390 / 78.
+
+**Tested end to end and tweaked the same day (2026-10-16)**, from a fresh carousel through the
+guided run and All controls, with real clicks and typing:
+
+- **The guided "Which layout is this page?" was a pill track** that held five; twelve ran off
+  the form's right edge with a sideways scrollbar. It is the left rail's skeleton tiles now,
+  three to a row (`.gd-opts-cs`), and both read ONE `csTileMarks()`.
+- **A page's list (stats, facts, rows, icons, payments) is asked straight after its copy** —
+  before tier 3, the layout settings. It came after Page scrim and Page photo.
+- **Switching layouts takes the NEW layout's `pos`, `align` and `bulLayout`** (`csConvert`).
+  Carrying them made a Stats page's Bottom open a Key figure at the bottom, unlike its drawing.
+  Everything typed still carries.
+- The left rail's tile names wrap to two lines rather than ellipsising ("Payment plan").
+- No artwork line changed; the icon picker on the Icon grid set an icon that reached both the
+  preview mask and the export's tinted image op.

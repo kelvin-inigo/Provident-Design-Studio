@@ -3687,6 +3687,12 @@ select.p-in{padding-right:34px}
 .p-rail-l .p-opts-cs{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 6px}
 .p-rail-l .p-opts-cs .p-mini{height:44px}
 .p-rail-l .p-opts-cs .p-opt > span:last-child{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* twelve layouts carry longer names (Payment plan, Call to action): two lines, never cut */
+.p-rail-l .p-opts-cs .p-opt > span:last-child{white-space:normal;overflow:visible;line-height:1.2;overflow-wrap:anywhere}
+/* the guided run's layout picker — the rail's tiles, three to a row */
+.gd-opts-cs{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px}
+.gd-opts-cs .p-mini{height:52px}
+.gd-opts-cs .p-opt > span:last-child{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* three names in a 240 rail: the segment drops its icons there, the names are the answer */
 .p-rail-l .p-opts-seg .p-mini{display:none}
 /* an EMPTY drop already says "Drop a picture" — its caption repeating it is clutter; and the
@@ -4940,9 +4946,15 @@ select.p-in{padding-right:34px}
                 <span class="gd-hint">{{ a.csBrandHint }}</span>
               </sc-if>
 
-              <!-- THE CAROUSEL PAGE'S LAYOUT — the same five presets the left rail offers. -->
+              <!-- THE CAROUSEL PAGE'S LAYOUT — the same tiles the left rail offers. It was a pill
+                   track, which held five; twelve ran off the form's right edge. -->
               <sc-if value="{{ a.isPreset }}" hint-placeholder-val="{{ false }}">
-                <div class="p-tabs gd-tabs"><sc-for list="{{ a.presetOpts }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <div class="p-opts p-opts-cs gd-opts-cs"><sc-for list="{{ a.presetOpts }}" as="o" hint-placeholder-count="12">
+                  <button onClick="{{ o.set }}" class="p-opt" data-on="{{ o.on }}" title="{{ o.tip }}">
+                    <span class="p-mini"><sc-for list="{{ o.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span>
+                    <span>{{ o.label }}</span>
+                  </button>
+                </sc-for></div>
                 <span class="gd-hint">Switching keeps the copy you have typed wherever the new layout has a place for it.</span>
               </sc-if>
 
@@ -6840,7 +6852,11 @@ class OrganicStudio extends StudioBase {
     // a sentence and would land in a field set at 177px. The Quote has no secondary.
     const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', cquote: 'quote', cnum: 'label', csteps: 'title', cfig: 'figCap', ctable: 'title', cicons: 'title', cplan: 'title', ccta: 'big' };
     const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', cnum: 'body', csteps: 'steps', ctable: 'note', cicons: 'body', cplan: 'note', ccta: 'small' };
-    const o = sl.f || {}, f = Object.assign(OrganicStudio.csSeed(kind), o);
+    const seed = OrganicStudio.csSeed(kind), o = sl.f || {}, f = Object.assign({}, seed, o);
+    // WHERE THE COPY SITS IS THE LAYOUT'S, NOT THE COPY'S — a Stats page's Bottom used to carry
+    // into a Key figure, whose drawing is a Top layout, so the switch looked like the wrong page.
+    // The new layout's own position, alignment and arrangement win; everything typed is kept.
+    ['pos', 'align', 'bulLayout'].forEach(k => { if (k in seed) f[k] = seed[k]; else delete f[k]; });
     const p = prim[sl.kind], q = sec[sl.kind];
     if (p && prim[kind] && prim[kind] !== p && !String(f[prim[kind]] || '').trim()) f[prim[kind]] = o[p] || '';
     // the SECONDARY carries the markers only into a field that can draw them; the Bullets
@@ -10285,9 +10301,30 @@ class OrganicStudio extends StudioBase {
     if (!OrganicStudio.isCs(kind)) return;
     this.upd(x => { const sl = x.slides[si]; if (!sl || sl.kind === kind) return x; x.slides[si] = OrganicStudio.csConvert(sl, kind); return x; });
   }
+  // THE LAYOUT TILES' SKELETONS — one per carousel kind, read by the left rail's tiles AND the
+  // guided run's layout picker, so the two cannot depict a layout differently.
+  static csTileMarks() {
+    const bar = (l, t, w, h, dim) => `position:absolute;left:${l}%;top:${t}%;width:${w}%;height:${h}%;border-radius:999px;${dim ? 'opacity:.45' : ''}`;
+    return {
+      cfront: [bar(8, 12, 26, 7), bar(8, 56, 66, 11), bar(8, 74, 50, 5), bar(8, 84, 44, 5)],
+      cstats: [bar(26, 10, 48, 8), bar(16, 38, 30, 16, true), bar(54, 38, 30, 16, true), bar(16, 64, 30, 16, true), bar(54, 64, 30, 16, true)],
+      cbul:   [bar(8, 40, 30, 9), bar(8, 55, 30, 9), bar(48, 40, 44, 5), bar(48, 54, 44, 5), bar(48, 68, 44, 5)],
+      ctext:  [bar(26, 12, 48, 8), bar(16, 32, 68, 5), bar(16, 42, 68, 5), bar(16, 52, 68, 5)],
+      cquote: [bar(8, 36, 12, 10), bar(8, 54, 78, 6), bar(8, 64, 66, 6), bar(8, 80, 30, 4, true)],
+      cnum:   [bar(8, 38, 58, 20), bar(8, 64, 50, 6), bar(8, 76, 64, 4, true), bar(8, 84, 52, 4, true)],
+      cfig:   [bar(8, 14, 30, 14), bar(44, 16, 40, 4), bar(44, 23, 30, 4, true), bar(8, 40, 84, 3), bar(12, 52, 16, 5), bar(42, 52, 16, 5), bar(72, 52, 16, 5)],
+      ctable: [bar(8, 36, 50, 8), bar(8, 54, 84, 4, true), bar(8, 63, 84, 4, true), bar(8, 72, 84, 4, true), bar(8, 81, 84, 4, true)],
+      cicons: [bar(8, 12, 60, 8), bar(14, 34, 12, 10, true), bar(44, 34, 12, 10, true), bar(74, 34, 12, 10, true), bar(14, 56, 12, 10, true), bar(44, 56, 12, 10, true), bar(74, 56, 12, 10, true)],
+      cplan:  [bar(8, 12, 40, 7), bar(8, 22, 52, 7), bar(8, 42, 8, 6), bar(18, 42, 22, 6, true), bar(42, 42, 18, 6), bar(62, 42, 30, 6)],
+      csteps: [bar(8, 22, 46, 8), bar(8, 44, 8, 5), bar(22, 44, 62, 5), bar(8, 58, 8, 5), bar(22, 58, 62, 5), bar(8, 72, 8, 5), bar(22, 72, 62, 5)],
+      ccta:   [bar(20, 20, 60, 60, true), bar(36, 38, 28, 4), bar(31, 48, 38, 8), bar(33, 62, 34, 9)]
+    };
+  }
   csPresetOpts(si) {
     const sl = (this.state.slides || [])[si];
-    return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], on: (sl && sl.kind === k) ? '1' : undefined, set: () => this.setPreset(si, k) }));
+    const MARKS = OrganicStudio.csTileMarks();
+    return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], marks: MARKS[k], on: (sl && sl.kind === k) ? '1' : undefined,
+      tip: OrganicStudio.PAGE[k] ? OrganicStudio.PAGE[k][1] : '', set: () => this.setPreset(si, k) }));
   }
   // The stats page's own rows: a count stepper, then per item an icon drop with the Material
   // picker, the number and the label. Picker state is throwaway UI and lives on the INSTANCE.
@@ -12065,13 +12102,17 @@ class OrganicStudio extends StudioBase {
       // agent name and role go to its Agent section beside the headshot; a ranking card is
       // ABOUT its agent, so there the name and role ARE the words.
       [1, 2, 3, 4].forEach(t => {
+        // THE PAGE'S OWN LIST (stats, facts, rows, icons, payments) goes straight after its copy —
+        // tiers 1 and 2 — and BEFORE tier 3, the layout settings. After all four tiers it sat
+        // under Page scrim and Page photo, far from the number or title it belongs to.
+        if (t === 3) {
+          if (sl.kind === 'cstats') raw.push({ si, sec: 'words', kind: 'stats', group: 'Stats' });
+          if (OrganicStudio.CS_ROWS[sl.kind]) raw.push({ si, sec: 'words', kind: 'rows', group: OrganicStudio.CS_ROWS[sl.kind].group });
+        }
         fs.filter(f => f.tier === t && f.flags.indexOf('img') < 0 && !/(^|\s)chip(\s|$)/.test(f.flags)
                     && !(sl.kind === 'review' && OrganicStudio.isAgentField(sl.kind, f.k)))
           .forEach(f => raw.push({ si, sec: 'words', kind: 'field', k: f.k, group: OrganicStudio.tierName(sl.kind, t) }));
       });
-      // STATS — the count and the rows, one custom ask after the title
-      if (sl.kind === 'cstats') raw.push({ si, sec: 'words', kind: 'stats', group: 'Stats' });
-      if (OrganicStudio.CS_ROWS[sl.kind]) raw.push({ si, sec: 'words', kind: 'rows', group: OrganicStudio.CS_ROWS[sl.kind].group });
       // AGENT — who is on the card. Project-level on a listed card (`s.agent`), so it is
       // asked on that card's one page; per-slide on a review.
       if (s.tpl === 'listed' && sl.kind === 'listed') {
@@ -15289,21 +15330,7 @@ class OrganicStudio extends StudioBase {
       csTiles: (() => {
         if (s.tpl !== 'carousel') return [];
         const asl0 = s.slides[Math.min(s.activeSi || 0, s.slides.length - 1)];
-        const bar = (l, t, w, h, dim) => `position:absolute;left:${l}%;top:${t}%;width:${w}%;height:${h}%;border-radius:999px;${dim ? 'opacity:.45' : ''}`;
-        const MARKS = {
-          cfront: [bar(8, 12, 26, 7), bar(8, 56, 66, 11), bar(8, 74, 50, 5), bar(8, 84, 44, 5)],
-          cstats: [bar(26, 10, 48, 8), bar(16, 38, 30, 16, true), bar(54, 38, 30, 16, true), bar(16, 64, 30, 16, true), bar(54, 64, 30, 16, true)],
-          cbul:   [bar(8, 40, 30, 9), bar(8, 55, 30, 9), bar(48, 40, 44, 5), bar(48, 54, 44, 5), bar(48, 68, 44, 5)],
-          ctext:  [bar(26, 12, 48, 8), bar(16, 32, 68, 5), bar(16, 42, 68, 5), bar(16, 52, 68, 5)],
-          cquote: [bar(8, 36, 12, 10), bar(8, 54, 78, 6), bar(8, 64, 66, 6), bar(8, 80, 30, 4, true)],
-          cnum:   [bar(8, 38, 58, 20), bar(8, 64, 50, 6), bar(8, 76, 64, 4, true), bar(8, 84, 52, 4, true)],
-          cfig:   [bar(8, 14, 30, 14), bar(44, 16, 40, 4), bar(44, 23, 30, 4, true), bar(8, 40, 84, 3), bar(12, 52, 16, 5), bar(42, 52, 16, 5), bar(72, 52, 16, 5)],
-          ctable: [bar(8, 36, 50, 8), bar(8, 54, 84, 4, true), bar(8, 63, 84, 4, true), bar(8, 72, 84, 4, true), bar(8, 81, 84, 4, true)],
-          cicons: [bar(8, 12, 60, 8), bar(14, 34, 12, 10, true), bar(44, 34, 12, 10, true), bar(74, 34, 12, 10, true), bar(14, 56, 12, 10, true), bar(44, 56, 12, 10, true), bar(74, 56, 12, 10, true)],
-          cplan:  [bar(8, 12, 40, 7), bar(8, 22, 52, 7), bar(8, 42, 8, 6), bar(18, 42, 22, 6, true), bar(42, 42, 18, 6), bar(62, 42, 30, 6)],
-          csteps: [bar(8, 22, 46, 8), bar(8, 44, 8, 5), bar(22, 44, 62, 5), bar(8, 58, 8, 5), bar(22, 58, 62, 5), bar(8, 72, 8, 5), bar(22, 72, 62, 5)],
-          ccta:   [bar(20, 20, 60, 60, true), bar(36, 38, 28, 4), bar(31, 48, 38, 8), bar(33, 62, 34, 9)]
-        };
+        const MARKS = OrganicStudio.csTileMarks();
         return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], marks: MARKS[k],
           on: (asl0 && asl0.kind === k) ? '1' : undefined,
           tip: 'Switch the active page to the ' + OrganicStudio.CS_NAMES[k] + ' layout. Your copy is carried across.',
