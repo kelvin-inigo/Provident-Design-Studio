@@ -15105,3 +15105,23 @@ guided run and All controls, with real clicks and typing:
 - The left rail's tile names wrap to two lines rather than ellipsising ("Payment plan").
 - No artwork line changed; the icon picker on the Icon grid set an icon that reached both the
   preview mask and the export's tinted image op.
+
+# A THIRTEENTH CAROUSEL LAYOUT: CARDS (2026-10-16)
+
+From a supplied reference ("The Financial Hook" — two stat cards under a title, a yield badge).
+`ccards`: a title over one to four stacked cards, each the house glass (`glassOf`, `hairEdge`,
+`TA.panelBlur`, r 20) with the callout's brass rule standing inside its padding, a Regular 41
+heading, an optional brass caps TAG on the heading's last line (dropped under it when the two
+will not share one) and Light 32 text, three lines. An optional outlined BADGE pill sits top
+right, centred on the wordmark's line. Its cards are a `CS_ROWS` entry (`h` heading, `t` tag,
+`b` text), so the form's count stepper, the "Card N" rows and the gate came for free.
+
+**Three departures from the reference, all brand rules:** its green and orange accents are brass
+(orange never on a dark canvas, green is not in the palette); its headings are bold and these are
+Regular; its cards are dark navy and these follow Panel colour (white glass by default — Navy
+in Post look gives the reference's look).
+
+Verified: 40 / 40 op groups byte-identical against the pre-change copy (with both sides warm — the
+one diff on a cold load was `wkSpecBox`'s documented 761.7 / 753.8 first-measure); preview against
+ops 0.45 canvas px; a real click on the tile converted a Bullets page, carried its headline and
+opened at Top.

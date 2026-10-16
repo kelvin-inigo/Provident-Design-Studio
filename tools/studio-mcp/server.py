@@ -378,7 +378,7 @@ TOOLS = [
             "normalisation, exactly like typing in its controls.\n"
             "OPS edits: {op:'fields', slide:<index>, fields:{key:value}} (keys from the summary; a 'points' field takes "
             "an array or a ' | '-joined string) · {op:'add_slide', kind?, at?, fields?} · {op:'remove_slide', slide} · "
-            "{op:'move_slide', slide, to} · {op:'layout', slide, kind} (carousel pages: cfront, cfig, cstats, cbul, ctable, cicons, cplan, ctext, cquote, cnum, csteps, ccta).\n"
+            "{op:'move_slide', slide, to} · {op:'layout', slide, kind} (carousel pages: cfront, cfig, cstats, cbul, ctable, ccards, cicons, cplan, ctext, cquote, cnum, csteps, ccta).\n"
             "CAS edits: {op:'component', id, variant?, fields?:{text|sub|chips|cols}, style?, size?:'s'|'m'|'l'|'xl', "
             "cluster?:'top'|'bottom', hidden?} · {op:'add_component', type, variant?, fields?, style?, size?, cluster?, after?} · "
             "{op:'remove_component', id, variant?} · {op:'variant', variant, fields:{align:'left'|'center', bg:'dark'|'light', "
