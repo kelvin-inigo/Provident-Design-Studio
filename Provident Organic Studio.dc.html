@@ -3695,6 +3695,59 @@ select.p-in{padding-right:34px}
 .gd[data-mode="editor"] .gd-qcap > s:nth-child(2){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .gd[data-mode="editor"] .gd-qcap:hover > s:nth-child(2),.gd[data-mode="editor"] .gd-qcap:focus-within > s:nth-child(2){-webkit-line-clamp:unset}
 @media (prefers-reduced-motion:reduce){.p-acc-c,.gd-sec-fc,.p-rail-l .p-nav .p-nav-x{transition:none}}
+
+/* 31. CAS PARITY (2026-10-16, by request: "all the UX and UI applied from CAS, on OPS too").
+   Mirrored from CAS's sheet so the two studios read as one system:
+   · the SIZE ROW over the story canvas (CAS 31): name, ratio chip, an eye that hides it;
+   · the dock's SWITCH ROW and COLOUR DOTS (CAS 32), and the Post look pill's turning caret;
+   · the editor rail's section heads carry NO NUMBER (CAS 25) — the state lives in the pill,
+     with a tick when the section is done. The guided run keeps its numbered steps: there they
+     are the route, not decoration;
+   · an empty drop takes CAS's animated hairline (CAS 39), on hover only — a rail of drops all
+     moving at rest would be noise. */
+.p-szh{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:6px}
+.p-szh > b{font-weight:600;font-size:13px;color:var(--ps-ink)}
+.p-szh > i{font-style:normal;font-weight:500;font-size:11.5px;color:var(--ps-ink-2);background:var(--ps-fill);padding:2px 9px;border-radius:var(--ps-pill);font-variant-numeric:tabular-nums}
+.p-szh[data-off] > b,.p-szh[data-off] > i{color:var(--ps-dim)}
+.p-szx{margin-left:auto;display:flex;align-items:center;gap:2px}
+.p-szb{width:32px;height:32px;padding:0;border:1px solid transparent;border-radius:var(--ps-pill);background:transparent;color:var(--ps-ink-2);display:grid;place-items:center;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.p-szb:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-szb[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.p-szb-eye[data-on]{background:transparent;color:var(--ps-ink-2)}
+.p-szb-eye[data-on]:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-szb svg{width:18px;height:18px;fill:currentColor;display:block}
+.p-szb .i-on{display:none}
+.p-szb[data-on] .i-on{display:block}
+.p-szb[data-on] .i-off{display:none}
+.p-szh{margin:10px 0 4px}
+.p-tgl{display:flex;align-items:center;gap:14px;width:100%;padding:2px 0;border:none;background:transparent;
+  color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit;border-radius:12px}
+.p-tgl-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.p-tgl-t b{font:500 13px/1.35 var(--ps-font)}
+.p-tgl-t s{font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-tgl-s{flex:none;position:relative;width:40px;height:24px;border-radius:var(--ps-pill);background:var(--ps-fill-dis);
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-tgl-s::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:transform var(--ps-motion) var(--ps-ease)}
+.p-tgl:hover .p-tgl-s{background:var(--ps-line)}
+.p-tgl[data-on] .p-tgl-s{background:var(--ps-link)}
+.p-tgl[data-on] .p-tgl-s::after{transform:translateX(16px)}
+.p-tgl:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.p-dotc{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:0 0 0 1px var(--ps-line);flex:none}
+.p-dock-t .p-dock-cv{width:15px;height:15px;fill:none;transition:transform var(--ps-motion) var(--ps-ease)}
+.p-dock-t.p-dock-opt[data-on] .p-dock-cv{transform:rotate(180deg)}
+.gd[data-mode="editor"] .gd-sec-n{display:none}
+.gd[data-mode="editor"] .gd-sec-s{display:inline-flex;align-items:center;gap:4px;padding:5px 9px}
+.gd-sec-tk{display:none;width:12px;height:12px;fill:currentColor;flex:none;margin-left:-2px}
+.gd[data-mode="editor"] .gd-sec[data-state="done"] .gd-sec-tk{display:block}
+@property --od-hl{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes odHairline{to{--od-hl:360deg}}
+.gd-drop:not([data-done])::after{content:'';position:absolute;inset:-1.5px;border-radius:inherit;padding:1px;pointer-events:none;
+  background:conic-gradient(from var(--od-hl),transparent 0 62%,var(--ps-link) 80%,var(--ps-ink) 88%,transparent 96%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity var(--ps-motion) var(--ps-ease)}
+.gd-drop:not([data-done]):hover::after,.gd-drop:not([data-done]):focus-within::after{opacity:1;animation:odHairline 1.8s linear infinite}
+@media (prefers-reduced-motion:reduce){.gd-drop::after{animation:none!important}.p-tgl-s,.p-tgl-s::after,.p-dock-cv{transition:none}}
 </style>
 </helmet>
 
@@ -4385,7 +4438,7 @@ select.p-in{padding-right:34px}
       </div>
       <span class="p-meta">{{ sl.ftMeta }}</span>
       <sc-if value="{{ storyVisible }}" hint-placeholder-val="{{ false }}">
-
+      <div class="p-szh"><b>Story</b><i>9:16</i><span class="p-szx"><button class="p-szb p-szb-eye" data-on="1" onClick="{{ toggleStory }}" title="Hide the 9:16 story on every page — hidden, only the 3:4 feed exports" aria-label="Hide the 9:16 story"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <div onClick="{{ sl.activate }}" style="{{ sl.st.canvasStyle }}">
         <!-- The photo's WINDOW. The image-slot stays the drop target and the
              double-click reframe host; when a photo exists the PAINT layer above it is
@@ -4567,6 +4620,11 @@ select.p-in{padding-right:34px}
     <sc-if value="{{ shDockOn }}" hint-placeholder-val="{{ false }}">
       <div class="p-dock-b">
         <div class="p-cap p-shd"><span class="p-shd-t">Post look <span class="tip p-info" data-tip="These settings reach every page of the post. The page’s own copy and pictures are in the rail on the right — This page, under the canvas, takes you there.">i</span></span></div>
+        <sc-if value="{{ storyBtnOn }}" hint-placeholder-val="{{ true }}">
+          <div class="p-grp-w">
+            <button onClick="{{ toggleStory }}" class="p-tgl" role="switch" aria-checked="{{ storyAria }}" data-on="{{ storyOnFlag }}"><span class="p-tgl-t"><b>Story 9:16</b><s>{{ storyHint }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
+          </div>
+        </sc-if>
         <sc-if value="{{ csScrimOn }}" hint-placeholder-val="{{ false }}">
           <div class="p-grp-w">
             <span class="p-lab">Scrim <s>{{ csScrimSummary }}</s> <span class="tip p-info" data-tip="{{ csScrimTip }}">i</span></span>
@@ -4614,13 +4672,13 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ glassAllowed }}" hint-placeholder-val="{{ true }}">
         <div class="p-grp-w">
           <span class="p-lab">Panel colour <span class="tip p-info" data-tip="{{ glassTip }}">i</span></span>
-          <div class="p-tabs"><sc-for list="{{ glassOpts }}" as="go" hint-placeholder-count="2"><button onClick="{{ go.set }}" data-on="{{ go.on }}">{{ go.label }}</button></sc-for></div>
+          <div class="p-tabs"><sc-for list="{{ glassOpts }}" as="go" hint-placeholder-count="2"><button onClick="{{ go.set }}" data-on="{{ go.on }}"><i class="p-dotc" style="{{ go.dot }}"></i>{{ go.label }}</button></sc-for></div>
         </div>
         </sc-if>
       </div>
     </sc-if>
     <div class="p-dock-r">
-      <button onClick="{{ shDockToggle }}" class="p-dock-t" data-on="{{ shDockOn }}" title="The post-wide look: wash, photo, panels"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-138.63Q450-147.25 450-160v-160q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-332.75 510-320v50h290q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-210 800-210H510v50q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM160-210q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-270 160-270h160q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q332.75-210 320-210H160Zm138.62-168.63Q290-387.25 290-400v-50H160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-510 160-510h130v-50q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q350-572.75 350-560v160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM480-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q467.25-510 480-510h320q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-450 800-450H480Zm138.62-168.63Q610-627.25 610-640v-160q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q670-812.75 670-800v50h130q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-690 800-690H670v50q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM160-690q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-750 160-750h320q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q492.75-690 480-690H160Z"/></svg>Post look</button>
+      <button onClick="{{ shDockToggle }}" class="p-dock-t p-dock-opt" data-on="{{ shDockOn }}" aria-expanded="{{ shDockAria }}" title="The post-wide look: wash, photo, panels, story"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-138.63Q450-147.25 450-160v-160q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-332.75 510-320v50h290q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-210 800-210H510v50q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM160-210q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-270 160-270h160q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q332.75-210 320-210H160Zm138.62-168.63Q290-387.25 290-400v-50H160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-510 160-510h130v-50q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q350-572.75 350-560v160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM480-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q467.25-510 480-510h320q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-450 800-450H480Zm138.62-168.63Q610-627.25 610-640v-160q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q670-812.75 670-800v50h130q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q812.75-690 800-690H670v50q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM160-690q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q147.25-750 160-750h320q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q492.75-690 480-690H160Z"/></svg>Post look<svg class="p-dock-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
     </div>
   </div>
 </div>
@@ -4657,7 +4715,7 @@ select.p-in{padding-right:34px}
           <h3 class="gd-sec-h" onClick="{{ sec.fold }}">
             <i class="gd-sec-n"><b>{{ sec.no }}</b><svg class="gd-sec-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><svg class="gd-sec-wn" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-400v-240h80v240h-80Zm40 160q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Z"/></svg></i>
             <span class="gd-sec-t">{{ sec.title }}</span>
-            <span class="gd-sec-s">{{ sec.note }}</span>
+            <span class="gd-sec-s"><svg class="gd-sec-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ sec.note }}</span>
             <button class="gd-sec-f" onClick="{{ sec.foldBtn }}" aria-expanded="{{ sec.foldAria }}" aria-label="{{ sec.foldLabel }}" title="{{ sec.foldLabel }}"><svg class="gd-sec-fc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
           </h3>
           <div class="gd-sec-g">
@@ -4873,7 +4931,7 @@ select.p-in{padding-right:34px}
               </sc-if>
 
               <sc-if value="{{ a.isGlass }}" hint-placeholder-val="{{ false }}">
-                <div class="p-tabs gd-tabs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                <div class="p-tabs gd-tabs"><sc-for list="{{ a.glassOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}"><i class="p-dotc" style="{{ o.dot }}"></i>{{ o.label }}</button></sc-for></div>
                 <span class="gd-hint">{{ a.glassHint }}</span>
               </sc-if>
 
@@ -11952,7 +12010,7 @@ class OrganicStudio extends StudioBase {
     }
     if (v.isGlass) {
       // The two fills the request names, and they do not share an alpha — see `glassOf`.
-      v.glassOpts = [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1],
+      v.glassOpts = [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1], dot: { background: o[0] === 'navy' ? '#1A2942' : '#FFFFFF' },
         on: ((s.glassFill === 'navy' ? 'navy' : 'white') === o[0]) ? '1' : undefined,
         set: () => this.upd(x => { x.glassFill = o[0]; return x; }) }));
       v.glassHint = s.glassFill === 'navy'
@@ -14950,6 +15008,8 @@ class OrganicStudio extends StudioBase {
       // the reel thumbnail's one canvas already IS its 9:16, so it never shows a second
       storyVisible: !!s.storyOn && s.tpl !== 'rcover',
       storyOnFlag: s.storyOn ? '1' : undefined,
+      storyAria: s.storyOn ? 'true' : 'false',
+      storyHint: s.storyOn ? 'Every page exports a 9:16 beside its 3:4 feed' : 'Off — only the 3:4 feed exports',
       // the canvas bar's own toggle, swapped per template: the story on every other one, the
       // 4:5 guide on the reel thumbnail (which has no story to show)
       storyBtnOn: s.tpl !== 'rcover',
@@ -14983,7 +15043,7 @@ class OrganicStudio extends StudioBase {
       csBrandTip: s.tpl === 'rcover' ? 'The mark at the top of the cover, in place of the provident. wordmark.' : 'The mark on every page of the carousel — the front page, the closing card and any inside page that shows it.',
       shadeVal: s.shade == null ? 35 : s.shade,
       onShade: e => { const v = +e.target.value; this.upd(x => { x.shade = v; return x; }); },
-      glassOpts: [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1],
+      glassOpts: [['white', 'White'], ['navy', 'Navy']].map(o => ({ label: o[1], dot: { background: o[0] === 'navy' ? '#1A2942' : '#FFFFFF' },
         on: ((s.glassFill === 'navy' ? 'navy' : 'white') === o[0]) ? '1' : undefined,
         set: () => this.upd(x => { x.glassFill = o[0]; return x; }) })),
       glassTip: 'White at 22% over the blur reads on a dark photograph; Navy at 65% reads on a bright one. Every panel in the post takes the same material.',
@@ -15531,6 +15591,7 @@ class Component extends DCLogic {
       shPanelClose: () => this.setState({ shPanel: null }),
       // the dock over the canvas — Campaign's; one pill, one rising panel
       shDockOn: this.state.shDock ? '1' : undefined,
+      shDockAria: this.state.shDock ? 'true' : 'false',
       shDockToggle: () => this.setState({ shDock: !this.state.shDock }),
       // the canvas bar's way to the page's own rail: the sheet below 1200px, a scroll-and-flash above
       shPageOpen: () => {

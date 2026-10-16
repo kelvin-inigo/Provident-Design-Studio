@@ -15024,3 +15024,34 @@ branch in `csBox`, so the preview and the export read one geometry by constructi
   three new pages, both alignments, **worst 0.49 canvas px**; real clicks on the tiles carried
   the copy (Text → Quote put the title in the quote) and made one undo entry each; typed steps
   numbered themselves; the gate asks for the big number and the steps.
+
+# OPS TAKES CAS'S CHROME: SIZE ROW, SWITCH ROWS, COLOUR DOTS, NUMBER-FREE RAIL HEADS (2026-10-16)
+
+By request ("all the UX and UI applied from CAS, apply on OPS as well and refine them"). Section 31
+of OPS's sheet, mirrored from CAS's 25 / 31 / 32 / 39. Chrome only — the whole-file diff carries
+no `ops.push` / `buildOps(` / renderer / `ART` / `drawLogo` line.
+
+- **Story size row** (`.p-szh`): "Story 9:16" above each plate's story canvas while it shows, with
+  CAS's eye button (`toggleStory`; project-level, so it hides the story on every page). Shown only
+  while the story is on — a hidden-story row under every page of a 17-slide weekly is clutter.
+- **Post look dock**: a **Story 9:16 switch row** first (`.p-tgl`, `storyAria` / `storyHint`; the
+  canvas bar's button stays), Panel colour pairs carry **colour dots** (`go.dot`, also in the
+  guided Finish), and the pill has CAS's **turning caret** + `aria-expanded` (`shDockAria`).
+- **The editor rail's section heads lose the numbered disc** (CAS's "number is not necessary");
+  the state rides in the pill, with a tick when done (`.gd-sec-tk`). **The guided run keeps its
+  numbered steps** — there they are the route.
+- **An empty drop takes CAS's animated hairline on hover / focus only** (`--od-hl`, `odHairline`);
+  a rail of drops all moving at rest would be noise. Off under reduced motion.
+- Not ported, because OPS has nothing to attach them to: Ad sets (and its Hairline figure), the
+  Copy / Publish workspaces, Turn into and the floating component control, the palette rail,
+  the placement preview.
+
+Verified: real click on the switch (storyOn false, rows gone, aria-checked false), the eye hides
+the story, the dock caret turns; contrast 0 failures over the dock, form rail, story row and
+canvas bar in both themes; console only Chrome's beforeunload notice; braces and comments balanced.
+
+**The Ad sets drop zone reads across (section 42, 2026-10-16, by request):** the Hairline figure
+sits LEFT of the title and subtitle (`.as-src-tx`, left-aligned) instead of stacked over centred
+text, in both copies. Its frame's empty margins are cancelled with negative margins written off
+`--hlw`, so the ink is vertically centred on the text (measured 0.05px) with a 28px gap; under
+640px it stacks again. Shell CSS and one wrapper span — no artwork line.

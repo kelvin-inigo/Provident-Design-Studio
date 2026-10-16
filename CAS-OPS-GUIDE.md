@@ -566,12 +566,14 @@ This is the full editor.
   (Words, Pictures, …) folds from its heading or the arrow at its right, and stays folded as
   you move between pages. The guided run itself never folds.
 - **Post look** (the pill at the foot of the canvases): settings for the whole post.
-  - Wash strength, photo strength and panel colour.
+  - **Story 9:16**, a switch: on, every page also exports a 9:16 story.
+  - Wash strength, photo strength and panel colour (White or Navy, each shown with its colour).
   - Photo darkening, on the listing card.
   - The wash, on a carousel.
   - The logo (Provident, Vacation Homes, Property Boutique, Property Solutions or Prism), on a carousel or a Reel thumbnail.
 - **The bar under the canvases:**
   - **Show story 9:16** adds the story canvas. It's also what decides whether stories are exported.
+    While the story shows, each page carries a **Story 9:16** row above it; its eye button hides it.
   - **This page** jumps to the page's form.
 - **On the canvas**, some templates let you drag things: the listing photo, a review's portrait,
   a carousel graphic, and the Top agents cover figures.
