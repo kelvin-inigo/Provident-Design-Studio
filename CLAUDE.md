@@ -15055,3 +15055,38 @@ sits LEFT of the title and subtitle (`.as-src-tx`, left-aligned) instead of stac
 text, in both copies. Its frame's empty margins are cancelled with negative margins written off
 `--hlw`, so the ink is vertically centred on the text (measured 0.05px) with a 28px gap; under
 640px it stacks again. Shell CSS and one wrapper span — no artwork line.
+
+# FOUR MORE CAROUSEL LAYOUTS, LIFTED FROM THE YAS RIVA RESERVE POST (2026-10-16)
+
+By request ("grab content layouts from this post" — Provident's own instagram.com/p/DeUajDxFcE3,
+six slides). The carousel has TWELVE layouts now. Four were new shapes:
+
+| kind | page | what it draws |
+|---|---|---|
+| `cfig` Key figure | 2 | the figure (stepped down `numSteps` until the caption keeps ~38% of the column) beside a caps tag over a caption, a two-part split bar (`barA`/`barB`, warm then brass, proportional), a row of facts |
+| `ctable` Price table | 3 | a title over hairline rows — type left, detail at 44%, price right-aligned — and a footnote. Cells take `**brass**` |
+| `cicons` Icon grid | 4 | a title over three-across icons (the stats page's `smp-ic-<id>-<i>` slots and Material picker), caps labels, a short last row centred, a rich note |
+| `cplan` Payment plan | 5 | a title over a bar split in proportion to the shares (last part brass), % over and stage under each part (a label never overlaps the one before it), caps notes |
+
+Slides 1 and 6 were the Front page and Call to action with extra lines, so they took OPTIONAL
+fields instead of new kinds: Front page `kicker` (caps above the headline) and `meta` (a short
+hairline then one Light 28 line, `**brass**` allowed); Call to action `meta` (caps under the
+button) and `url` (under the wordmark). Blank, each is worth no height — the census proves it.
+
+**`CS_ROWS` is the one spec for the four list-shaped pages** — min / max / default count, the
+noun, the form group, an `icon` flag and the columns (`[key, placeholder, required]`). Rows live
+on `f.rows` with the count on `f.rn` (`csRowN`, `csRowItems`, normalised in `csNorm`). It is read
+by `csBox`, the form's `rows` ask (`csRowsView`: a ‹ › count stepper, a "Payment 3" heading per
+row, one field per column, an icon drop plus the picker on the icon grid), the gate (`gdAskIssue`
+— every required column, and a share above 0 on a payment plan), the asset loader and Assets/.
+A fifth list-shaped layout is one entry there plus a `csBox` branch.
+
+**What the post does that these do not:** its price-table page fades the photo to a WHITE ground
+with navy ink. These pages are all on the navy scrim with white ink; a light page would mean an
+ink flip through every `csBox` branch and the scrim, so it was left out.
+
+Verified: op census against the pre-change copy, both warm, **36 / 36 byte-identical** (a cold
+first load again showed the 8 documented weekly/agents diffs); the post rebuilt page for page
+and rendered; preview against ops on all six, **worst 0.50 canvas px** (match by position — the
+table repeats "from AED " on every row); SVG export parses on all six; a real click on › added a
+fifth payment, the gate named it, typing filled it and the bar re-split 39 / 195 / 156 / 390 / 78.

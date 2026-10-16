@@ -5021,6 +5021,39 @@ select.p-in{padding-right:34px}
                 </sc-if>
               </sc-if>
 
+              <!-- THE ROW LISTS (Key figure facts, Price table rows, Icon grid icons, Payment plan
+                   shares): how many, then one field per column, and on the icon grid an icon drop. -->
+              <sc-if value="{{ a.isRows }}" hint-placeholder-val="{{ false }}">
+                <div class="gd-bigstep"><button onClick="{{ a.rwDec }}" class="gd-stepb" data-can="{{ a.rwCanDec }}">‹</button><span>{{ a.rwN }}</span><button onClick="{{ a.rwInc }}" class="gd-stepb" data-can="{{ a.rwCanInc }}">›</button></div>
+                <span class="gd-hint">{{ a.rwHint }}</span>
+                <sc-if value="{{ a.icoTintOn }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">Icon colour</b>
+                  <div class="p-tabs gd-tabs"><sc-for list="{{ a.icoTintOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
+                  <span class="gd-hint">{{ a.icoTintHint }}</span>
+                </sc-if>
+                <sc-for list="{{ a.rwRows }}" as="r" hint-placeholder-count="3">
+                  <div class="gd-qrow gd-statrow">
+                    <sc-if value="{{ r.iconOn }}" hint-placeholder-val="{{ false }}">
+                      <div class="gd-drop gd-drop-sq" data-done="{{ r.done }}">
+                        <image-slot id="{{ r.slot }}" data-noreframe="1" fit="contain" shape="rounded" radius="10" placeholder="Icon" style="width:100%;aspect-ratio:1/1"></image-slot>
+                      </div>
+                    </sc-if>
+                    <div class="gd-qrow-t">
+                      <b class="gd-askq gd-sub">{{ r.title }}</b>
+                      <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="2"><input value="{{ c.v }}" onChange="{{ c.set }}" class="gd-big" placeholder="{{ c.ph }}"></sc-for>
+                      <sc-if value="{{ r.iconOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.togglePick }}" class="gd-link" data-on="{{ r.pickOn }}">{{ r.pickLabel }}</button></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ a.iconOpen }}" hint-placeholder-val="{{ false }}">
+                  <b class="gd-askq gd-sub">{{ a.iconFor }}</b>
+                  <input value="{{ a.iconQuery }}" onChange="{{ a.onIconQuery }}" onKeyDown="{{ a.onIconEnter }}" class="gd-big" placeholder="Search Material Symbols, or type an exact name">
+                  <div class="p-icons"><sc-for list="{{ a.iconResults }}" as="ic" hint-placeholder-count="12"><button onClick="{{ ic.apply }}" title="{{ ic.name }}" class="p-ic"><img data-src="{{ ic.url }}" alt="{{ ic.name }}"></button></sc-for></div>
+                  <sc-if value="{{ a.iconNoHits }}" hint-placeholder-val="{{ false }}"><span class="gd-hint">No icon has that in its name — try another word, or press Enter to try it as an exact name from fonts.google.com/icons.</span></sc-if>
+                  <button onClick="{{ a.clearIcon }}" class="gd-link">Clear this icon</button>
+                </sc-if>
+              </sc-if>
+
               <sc-if value="{{ a.isStory }}" hint-placeholder-val="{{ false }}">
                 <div class="p-tabs gd-tabs"><sc-for list="{{ a.storyOpts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}">{{ o.label }}</button></sc-for></div>
                 <span class="gd-hint">{{ a.storyHint }}</span>
@@ -6275,9 +6308,12 @@ class OrganicStudio extends StudioBase {
   // the inside-page wordmark, SWIPE and the per-page scrim and photo. The template still
   // OPENS on the original five (`CS_OPEN`), so a fresh carousel, its template card and every
   // saved post are unchanged; the three new ones are a tile away on any page.
-  static CS_KINDS = ['cfront', 'cstats', 'cbul', 'ctext', 'cquote', 'cnum', 'csteps', 'ccta'];
+  // AND FOUR MORE THE SAME DAY, lifted from Provident's own Yas Riva Reserve carousel
+  // (instagram.com/p/DeUajDxFcE3): Key figure, Price table, Icon grid and Payment plan. The
+  // three that list things (facts, rows, icons, payments) share ONE row control — `CS_ROWS`.
+  static CS_KINDS = ['cfront', 'cfig', 'cstats', 'cbul', 'ctable', 'cicons', 'cplan', 'ctext', 'cquote', 'cnum', 'csteps', 'ccta'];
   static CS_OPEN = ['cfront', 'cstats', 'cbul', 'ctext', 'ccta'];
-  static CS_NAMES = { cfront: 'Front page', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', cquote: 'Quote', cnum: 'Big number', csteps: 'Steps', ccta: 'Call to action' };
+  static CS_NAMES = { cfront: 'Front page', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', cquote: 'Quote', cnum: 'Big number', csteps: 'Steps', cfig: 'Key figure', ctable: 'Price table', cicons: 'Icon grid', cplan: 'Payment plan', ccta: 'Call to action' };
   static isCs(kind) { return OrganicStudio.CS_KINDS.indexOf(kind) >= 0; }
   static CS = {
     // THE GRID. The drawings set their left column at 105 and their right-hand marks
@@ -6388,8 +6424,51 @@ class OrganicStudio extends StudioBase {
     // STEPS — numbered rows under a headline, the Bullets page's hairline rhythm: a 1px line
     // above every row and one closing the list. The numeral is brass Light 41 on the first
     // line's baseline; the step Regular 32 in warm, two lines at most.
-    stepMax: 5, stepTextIn: 96, stepPadT: 26, stepPadB: 26, stepNumPx: 41, stepHeadGap: 36
+    stepMax: 5, stepTextIn: 96, stepPadT: 26, stepPadB: 26, stepNumPx: 41, stepHeadGap: 36,
+    // THE SMALL CAPS AT THE BRAND'S FLOOR — 24 Light at .14em, every label on the four Yas
+    // Riva layouts (the post sets them smaller; 24 is the floor, so they stop here).
+    capPx: 24, capBox: 30,
+    // FRONT PAGE extras, both optional and both worth no height when blank: a KICKER in small
+    // caps above the headline (developer · location) and a META line under a short hairline
+    // (292 villas · 4–6 bedrooms · from **AED 7.9M**).
+    fMetaPx: 28, fMetaGap: 34, fMetaRuleW: 300, fMetaRuleGap: 26,
+    // KEY FIGURE — the figure beside its caption, a two-part split bar, a row of facts
+    figCapGap: 44, figTagGap: 10, figBarGap: 56, splitLabGap: 14, splitH: 14, splitGapX: 6,
+    figFactsGap: 64, factSteps: [41, 35, 28], factValBox: 50, factLabGap: 12,
+    // PRICE TABLE — hairline rows, type left, detail at 44% of the column, price right
+    tabPitch: 78, tabHeadGap: 40, tabMidAt: .44, tabMidPx: 28, tabNoteGap: 28,
+    // ICON GRID — three columns, an icon over its caps label; an incomplete last row centres
+    icoBox: 64, icoPitch: 150, icoLabGap: 18, icoGridGap: 56, icoBodyGap: 50,
+    // PAYMENT PLAN — a bar split in proportion to the shares, % over and the stage under
+    planPctPx: 32, planPctBox: 40, planPctGap: 12, planH: 26, planLabGap: 14, planGapX: 6,
+    planGridGap: 56, planNoteGap: 50, planNoteLead: 38,
+    // CALL TO ACTION extras: a small-caps META line under the button, a URL under the wordmark
+    ctaMetaGap: 36, ctaUrlGap: 12
   };
+  // THE ROW LISTS — the facts under a Key figure, a Price table's rows, an Icon grid's icons and
+  // a Payment plan's shares. ONE spec per kind, read by `csBox`, the form's row control, the
+  // gate, the asset loader and the export's Assets/ — so a fifth list is one entry here.
+  // Every column marked `true` is required on a row that is drawn.
+  static CS_ROWS = {
+    cfig:   { min: 2, max: 4, def: 3, what: 'fact', group: 'Facts', hint: 'Two to four, spread across the page under the bar.',
+              cols: [['v', 'Figure \u2014 e.g. 4\u20136', true], ['l', 'Label \u2014 e.g. Bedrooms', true]] },
+    ctable: { min: 2, max: 6, def: 4, what: 'row', group: 'Rows', hint: 'Two to six. Wrap a word in the price as **7.9M** to set it in brass.',
+              cols: [['a', 'Type \u2014 e.g. 4 Bedroom', true], ['b', 'Detail \u2014 e.g. avg. 437 sqm', false], ['c', 'Price \u2014 e.g. from AED **7.9M**', true]] },
+    cicons: { min: 3, max: 9, def: 6, what: 'icon', group: 'Icons', icon: true, hint: 'Three to nine, three to a row. Each takes an uploaded icon or a Material Symbol.',
+              cols: [['l', 'Label \u2014 e.g. Clubhouse', true]] },
+    cplan:  { min: 2, max: 5, def: 4, what: 'payment', group: 'Payments', hint: 'Two to five. The bar is split in proportion to the shares; the last one is brass.',
+              cols: [['v', 'Share in % \u2014 e.g. 25', true], ['l', 'When \u2014 e.g. On handover', true]] }
+  };
+  static csRowN(kind, f) { const R = OrganicStudio.CS_ROWS[kind]; if (!R) return 0; const n = parseInt(f && f.rn, 10); return Math.max(R.min, Math.min(R.max, isNaN(n) ? R.def : n)); }
+  static csRowItems(kind, f) {
+    const n = OrganicStudio.csRowN(kind, f), rows = Array.isArray(f && f.rows) ? f.rows.slice() : [];
+    while (rows.length < n) rows.push({});
+    return rows.map(r => (r && typeof r === 'object') ? r : {});
+  }
+  // a row is drawn once anything is typed in it — the icon grid draws every row, since its
+  // icon is part of the row and a slot is keyed by the row's place
+  static csRowUsed(r) { return Object.keys(r || {}).some(k => String(r[k] || '').trim()); }
+  static csNumOf(v) { const n = parseFloat(String(v == null ? '' : v).replace(/[^\d.]/g, '')); return isFinite(n) ? n : 0; }
   static csN(f) { const n = parseInt(f && f.n, 10); const C = OrganicStudio.CS; return Math.max(C.statMin, Math.min(C.statMax, isNaN(n) ? C.statDefault : n)); }
   static csItems(f) {
     const n = OrganicStudio.csN(f), items = Array.isArray(f.items) ? f.items : [];
@@ -6515,7 +6594,7 @@ class OrganicStudio extends StudioBase {
   // every branch of `csBox`, so a control can never light a tile the artwork does not draw —
   // and a page saved before its layout field existed still shows the position it renders at.
   // The values ARE the `seg:` options in `FIELDS`; the default is the branch `csBox` falls to.
-  static CS_POSDEF = { cfront: 'Bottom', cstats: 'Bottom', cbul: 'Bottom', ctext: 'Top', cquote: 'Bottom', cnum: 'Bottom', csteps: 'Bottom', ccta: 'Centre' };
+  static CS_POSDEF = { cfront: 'Bottom', cstats: 'Bottom', cbul: 'Bottom', ctext: 'Top', cquote: 'Bottom', cnum: 'Bottom', csteps: 'Bottom', cfig: 'Top', ctable: 'Bottom', cicons: 'Top', cplan: 'Top', ccta: 'Centre' };
   static csPos(kind, f) {
     const v = f && f.pos;
     return v || OrganicStudio.CS_POSDEF[kind] || 'Bottom';
@@ -6566,7 +6645,7 @@ class OrganicStudio extends StudioBase {
   // The brass-highlight button's glyph is `format_color_text` at the same weight, and it is
   // written STRAIGHT INTO THE MARKUP rather than kept here: a `d` attribute is parsed before
   // DC interpolates it, so a constant path in a render key only buys a console error.
-  static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats' || kind === 'cnum'; }
+  static csRich(kind) { return kind === 'cfront' || kind === 'ctext' || kind === 'cstats' || kind === 'cnum' || kind === 'cicons'; }
   // The floating graphic's record, normalised once so csBox (which has no asset to hand)
   // and buildOps (which does) read one shape. `a` is the art's aspect, written by the same
   // drag that writes the scale — the rule Campaign's `gaspect` already follows.
@@ -6578,7 +6657,8 @@ class OrganicStudio extends StudioBase {
              a: (typeof g.a === 'number' && g.a > 0) ? g.a : 1,
              tint: g.tint !== false };
   }
-  static csEyeKind(kind) { return kind === 'cstats' || kind === 'cbul' || kind === 'ctext' || kind === 'cquote' || kind === 'cnum' || kind === 'csteps'; }
+  static csEyeKind(kind) { return kind === 'cstats' || kind === 'cbul' || kind === 'ctext' || kind === 'cquote' || kind === 'cnum' || kind === 'csteps'
+      || kind === 'cfig' || kind === 'ctable' || kind === 'cicons' || kind === 'cplan'; }
 
   // What a fresh page of each kind carries. `pos` / `align` ARE seeded, the documented
   // exception for a segmented control (it is always displaying an answer); the count too.
@@ -6593,12 +6673,17 @@ class OrganicStudio extends StudioBase {
     if (kind === 'cquote') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', quote: '', author: '', role: '', pos: 'Bottom', align: 'Left', scrimMode: 'Follow all pages' };
     if (kind === 'cnum') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', fig: '', label: '', body: '', pos: 'Bottom', align: 'Left', scrimMode: 'Follow all pages' };
     if (kind === 'csteps') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', steps: '', pos: 'Bottom', scrimMode: 'Follow all pages' };
+    if (kind === 'cfig') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', fig: '', figTag: '', figCap: '', barA: '', barALab: '', barB: '', barBLab: '', rn: 3, rows: [], pos: 'Top', scrimMode: 'Follow all pages' };
+    if (kind === 'ctable') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', note: '', rn: 4, rows: [], pos: 'Bottom', scrimMode: 'Follow all pages' };
+    if (kind === 'cicons') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', body: '', rn: 6, rows: [], icoTint: 'Match canvas', pos: 'Top', scrimMode: 'Follow all pages' };
+    if (kind === 'cplan') return { logoPos: 'Hide', eyeOn: 'Show', eyebrow: '', title: '', note: '', rn: 4, rows: [], pos: 'Top', scrimMode: 'Follow all pages' };
     if (kind === 'ccta') return { small: '', big: '', button: '', permitOn: 'Hide', pos: 'Centre' };
     return {};
   }
   static csNorm(sl) {
     sl.f = Object.assign(OrganicStudio.csSeed(sl.kind), sl.f || {});
     if (sl.kind === 'cstats') { sl.f.n = OrganicStudio.csN(sl.f); sl.f.items = OrganicStudio.csItems(sl.f); }
+    if (OrganicStudio.CS_ROWS[sl.kind]) { sl.f.rn = OrganicStudio.csRowN(sl.kind, sl.f); sl.f.rows = OrganicStudio.csRowItems(sl.kind, sl.f); }
     sl.f.gfx = OrganicStudio.csGfx(sl.f);        // every page may float a graphic
     // Two segmented controls that were never seeded, so every inside page reported them as
     // "to fill in" while the canvas drew their default. Seeding the default changes no pixel.
@@ -6753,8 +6838,8 @@ class OrganicStudio extends StudioBase {
   static csConvert(sl, kind) {
     // The Big number's PRIMARY is its headline, not the figure: a front page's headline is
     // a sentence and would land in a field set at 177px. The Quote has no secondary.
-    const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', cquote: 'quote', cnum: 'label', csteps: 'title', ccta: 'big' };
-    const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', cnum: 'body', csteps: 'steps', ccta: 'small' };
+    const prim = { cfront: 'headline', cstats: 'title', cbul: 'headline', ctext: 'title', cquote: 'quote', cnum: 'label', csteps: 'title', cfig: 'figCap', ctable: 'title', cicons: 'title', cplan: 'title', ccta: 'big' };
+    const sec = { cfront: 'sub', cstats: 'body', cbul: 'bullets', ctext: 'body', cnum: 'body', csteps: 'steps', ctable: 'note', cicons: 'body', cplan: 'note', ccta: 'small' };
     const o = sl.f || {}, f = Object.assign(OrganicStudio.csSeed(kind), o);
     const p = prim[sl.kind], q = sec[sl.kind];
     if (p && prim[kind] && prim[kind] !== p && !String(f[prim[kind]] || '').trim()) f[prim[kind]] = o[p] || '';
@@ -9634,17 +9719,27 @@ class OrganicStudio extends StudioBase {
       // The supporting lines are a RICH BODY. Its cap is the room between the page's own
       // top anchor and its floor rather than a line count, so a quote or a callout can
       // stand here and anything past the column is reported instead of drawn off the page.
+      // the KICKER and the META line are both optional and worth no height when blank
+      const kick = String(f.kicker || '').trim().toUpperCase(), kickH = kick ? C.eyeBox + C.eyeGap : 0;
+      const ml = hiLines(f.meta, C.fMetaPx, 300, fcW, 1);
+      const metaH = ml.length ? C.fMetaGap + 1 + C.fMetaRuleGap + box(C.fMetaPx) : 0;
       const fBand = Math.max(0, (H - C.botIn) - (topY + C.frontTopGap + wmClear));
-      const R = rtLay(f.sub, C.pad, fcW, Math.max(0, fBand - headH - C.headSubGap), false, C.subPx, C.subLead);
+      const R = rtLay(f.sub, C.pad, fcW, Math.max(0, fBand - kickH - metaH - headH - C.headSubGap), false, C.subPx, C.subLead);
       const gap = (hl.length && R.h) ? C.headSubGap : 0;
-      const h = headH + gap + R.h;
+      const h = kickH + headH + gap + R.h + metaH;
       const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
       const top = topAligned ? topY + C.frontTopGap + wmClear : H - C.botIn - h;
       // the headline's box is ONE em tall (Figma's line-height 1.0): its baseline is the
       // half-leading of a box shorter than the content area, plus the ascent
       const hb = (C.headPx - box(C.headPx)) / 2 + asc(C.headPx);
-      hl.forEach((lw, i) => drawHi(lw, C.pad, top + hb + i * C.headPx * C.headLead, C.headPx, 400, A.ink));
-      put(R, top + headH + gap);
+      if (kick) T(kick, C.pad, top + asc(C.eyePx), C.eyePx, 500, A.warm, C.eyeTrack * C.eyePx);
+      hl.forEach((lw, i) => drawHi(lw, C.pad, top + kickH + hb + i * C.headPx * C.headLead, C.headPx, 400, A.ink));
+      put(R, top + kickH + headH + gap);
+      if (ml.length) {
+        const my = top + kickH + headH + gap + R.h + C.fMetaGap;
+        B.rects.push({ x: C.pad, y: my, w: Math.min(C.fMetaRuleW, fcW), h: 1, fill: A.ruleQ });
+        drawHi(ml[0], C.pad, my + 1 + C.fMetaRuleGap + asc(C.fMetaPx), C.fMetaPx, 300, A.warm);
+      }
       B.over = R.over;
       B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
       // ── THE PERMIT NUMBER, ON THE FRONT PAGE TOO — the same value and treatment as the
@@ -9793,10 +9888,14 @@ class OrganicStudio extends StudioBase {
       const logoLS = tk.logo * .04, wLogo = meas('provident.', tk.logo, 300, logoLS) - logoLS;
       // the card HUGS: as wide as its widest line plus the padding, never wider than the canvas
       // less two columns, and never narrower than the drawn pill
-      const cw = Math.min(C.ctaMaxW, Math.max(wSmall, wBig, pillW, wLogo, C.ctaMinContent) + 2 * C.ctaPad);
+      const capLS = C.labTrack * C.capPx;
+      const cMeta = String(f.meta || '').trim().toUpperCase(), cUrl = String(f.url || '').trim();
+      const wMeta = cMeta ? meas(cMeta, C.capPx, 300, capLS) - capLS : 0, wUrl = cUrl ? meas(cUrl, C.capPx, 300) : 0;
+      const cw = Math.min(C.ctaMaxW, Math.max(wSmall, wBig, pillW, wLogo, wMeta, wUrl, C.ctaMinContent) + 2 * C.ctaPad);
       const bigH = bl.length ? C.titleBox + (bl.length - 1) * C.h2Pitch : 0;
       const ch = C.ctaPad + C.ctaRuleH + C.ctaRuleGap + (small ? C.ctaSmallBox : 0) + ((small && bl.length) ? C.ctaSmallBigGap : 0)
-        + bigH + (label ? C.ctaBigPillGap + C.ctaPillH : 0) + C.ctaPillWmGap + (pvh ? wmH : C.ctaWmBox) + C.ctaPad;
+        + bigH + (label ? C.ctaBigPillGap + C.ctaPillH : 0) + (cMeta ? C.ctaMetaGap + C.capBox : 0)
+        + C.ctaPillWmGap + (pvh ? wmH : C.ctaWmBox) + (cUrl ? C.ctaUrlGap + C.capBox : 0) + C.ctaPad;
       // WHERE THE CARD SITS — centred, the drawing's own, or on the page's top line or its
       // floor: the same two anchors every other page hangs its copy from, so a carousel that
       // runs its copy high can run its closing card high as well.
@@ -9816,8 +9915,10 @@ class OrganicStudio extends StudioBase {
         TC(label, y + C.ctaPillH / 2 + C.ctaPillPx * .36, C.ctaPillPx, 400, A.warm, 0);
         y += C.ctaPillH;
       }
+      if (cMeta) { y += C.ctaMetaGap; TC(cMeta, y + asc(C.capPx), C.capPx, 300, A.warm, capLS); y += C.capBox; }
       y += C.ctaPillWmGap;
       wm(null, pvh ? y + wmCap : y + C.ctaWmBase, A.warm, W / 2);
+      if (cUrl) TC(cUrl, y + (pvh ? wmH : C.ctaWmBox) + C.ctaUrlGap + asc(C.capPx), C.capPx, 300, A.mute, 0);
       B.near = cy0; far(cy0 + ch); blk(cy0 + ch); B.anchor = null;   // no scrim: the card is its own surface
       // ── THE PERMIT NUMBER. Tracked caps one type-scale step UNDER the page's small caps,
       // in Light, on the page's existing bottom line — SWIPE's baseline — so the foot of the page carries one
@@ -9936,6 +10037,165 @@ class OrganicStudio extends StudioBase {
       });
       if (rows.length) B.rects.push({ x: colX, y, w: colW, h: 1, fill: A.hair });
       B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'cfig') {
+      // ── KEY FIGURE. The number beside its caption, then a two-part split bar, then a row of
+      // facts — the Yas Riva post's "292 total villas" page. Every part is optional but the number.
+      const colW = C.headColW, colX = C.pad, capLS = C.labTrack * C.capPx;
+      const facts = OrganicStudio.csRowItems(kind, f).filter(OrganicStudio.csRowUsed);
+      const fig = String(f.fig || '').trim(), tag = String(f.figTag || '').trim().toUpperCase();
+      // the figure is stepped down until it leaves the caption at least ~38% of the column
+      let fpx = C.numSteps[0];
+      if (fig) for (const px of C.numSteps) { fpx = px; if (meas(fig, px, 300) <= colW * .62) break; }
+      const figW = fig ? meas(fig, fpx, 300) : 0, figH = fig ? fpx * C.numCap : 0;
+      const capX = colX + (fig ? figW + C.figCapGap : 0), capW = colX + colW - capX;
+      const cl = hiLines(f.figCap, C.bodyPx, 400, capW, 3);
+      const capH = (tag ? C.capBox + (cl.length ? C.figTagGap : 0) : 0) + (cl.length ? box(C.bodyPx) + (cl.length - 1) * C.bodyLead : 0);
+      const headH = Math.max(figH, capH);
+      const aV = OrganicStudio.csNumOf(f.barA), bV = OrganicStudio.csNumOf(f.barB), hasBar = aV > 0 && bV > 0;
+      const barH = hasBar ? C.capBox + C.splitLabGap + C.splitH : 0;
+      const factsH = facts.length ? C.factValBox + C.factLabGap + C.capBox : 0;
+      const h = eyeH + headH + (hasBar ? C.figBarGap + barH : 0) + (factsH ? C.figFactsGap + factsH : 0);
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
+      const top = topAligned ? topY2 : H - C.botIn - h;
+      eyePut(colX, top, null);
+      let y = top + eyeH;
+      if (fig) T(fig, colX, y + (headH - figH) / 2 + figH, fpx, 300, A.ink);
+      let cy = y + (headH - capH) / 2;
+      if (tag) { T(tag, capX, cy + asc(C.capPx), C.capPx, 300, A.warm, capLS); cy += C.capBox + (cl.length ? C.figTagGap : 0); }
+      cl.forEach((lw, i) => drawHi(lw, capX, cy + asc(C.bodyPx) + i * C.bodyLead, C.bodyPx, 400, A.ink));
+      y += headH;
+      if (hasBar) {
+        y += C.figBarGap;
+        const ta = [String(f.barA).trim(), String(f.barALab || '').trim()].filter(Boolean).join(' ').toUpperCase();
+        const tb = [String(f.barB).trim(), String(f.barBLab || '').trim()].filter(Boolean).join(' ').toUpperCase();
+        T(ta, colX, y + asc(C.capPx), C.capPx, 300, A.warm, capLS);
+        T(tb, colX + colW - (meas(tb, C.capPx, 300, capLS) - capLS), y + asc(C.capPx), C.capPx, 300, A.brass, capLS);
+        y += C.capBox + C.splitLabGap;
+        const wA = (colW - C.splitGapX) * aV / (aV + bV);
+        B.rects.push({ x: colX, y, w: wA, h: C.splitH, fill: A.warm });
+        B.rects.push({ x: colX + wA + C.splitGapX, y, w: colW - C.splitGapX - wA, h: C.splitH, fill: A.brass });
+        y += C.splitH;
+      }
+      if (factsH) {
+        y += C.figFactsGap;
+        const cw = colW / facts.length;
+        facts.forEach((it, i) => {
+          const cx = colX + cw * (i + .5), v = String(it.v || '').trim(), l = String(it.l || '').trim().toUpperCase();
+          let vpx = C.factSteps[0];
+          if (v) for (const px of C.factSteps) { vpx = px; if (meas(v, px, 300) <= cw - 16) break; }
+          if (v) TC(v, y + asc(vpx), vpx, 300, A.ink, 0, cx);
+          const ll = l ? (this.wrapPlain(l, C.capPx, 300, capLS, cw - 12, 1)[0] || '') : '';
+          if (ll) TC(ll, y + C.factValBox + C.factLabGap + asc(C.capPx), C.capPx, 300, A.warm, capLS, cx);
+        });
+        y += factsH;
+      }
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'ctable') {
+      // ── PRICE TABLE. A title over hairline rows — type, detail, price — and a footnote. A
+      // cell takes the **brass** marker, so "from AED **7.9M**" sets the figure in brass.
+      const colW = C.headColW, colX = C.pad;
+      const rows = OrganicStudio.csRowItems(kind, f).filter(OrganicStudio.csRowUsed);
+      const hl = hiLines(f.title, C.titlePx, 400, colW, 3);
+      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
+      const note = String(f.note || '').trim(), nl = note ? this.wrapPlain(note, C.capPx, 300, 0, colW, 2) : [];
+      const gap = (headH && rows.length) ? C.tabHeadGap : 0;
+      const noteH = nl.length ? C.tabNoteGap + box(C.capPx) + (nl.length - 1) * C.capPx * C.permitLead : 0;
+      const h = eyeH + headH + gap + rows.length * C.tabPitch + noteH;
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
+      const top = topAligned ? topY2 : H - C.bulBotIn - h;
+      eyePut(colX, top, null);
+      hl.forEach((lw, i) => drawHi(lw, colX, top + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
+      let y = top + eyeH + headH + gap;
+      const bx = colX + colW * C.tabMidAt, R0 = colX + colW;
+      rows.forEach(r => {
+        B.rects.push({ x: colX, y, w: colW, h: 1, fill: A.hair });
+        const b = y + (C.tabPitch - box(C.bodyPx)) / 2 + asc(C.bodyPx);
+        const cL = hiLines(r.c, C.bodyPx, 300, colW * .4, 1)[0];
+        const cW = cL ? meas(OrganicStudio.csHiPlain(cL), C.bodyPx, 300) : 0;
+        if (cL) drawHi(cL, R0 - cW, b, C.bodyPx, 300, A.ink);
+        const aL = hiLines(r.a, C.bodyPx, 400, bx - colX - 24, 1)[0];
+        if (aL) drawHi(aL, colX, b, C.bodyPx, 400, A.ink);
+        const bL = hiLines(r.b, C.tabMidPx, 300, Math.max(0, R0 - cW - 24 - bx), 1)[0];
+        if (bL) drawHi(bL, bx, b, C.tabMidPx, 300, A.warm);
+        y += C.tabPitch;
+      });
+      if (rows.length) B.rects.push({ x: colX, y, w: colW, h: 1, fill: A.hair });
+      if (nl.length) { y += C.tabNoteGap; nl.forEach((t, i) => T(t, colX, y + asc(C.capPx) + i * C.capPx * C.permitLead, C.capPx, 300, A.warm)); }
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'cicons') {
+      // ── ICON GRID. A title over three-across icons, each over its caps label, then a note.
+      // Every row is drawn (its icon slot is keyed by its place), and a short last row centres.
+      const colW = C.headColW, colX = C.pad, capLS = C.labTrack * C.capPx;
+      const n = OrganicStudio.csRowN(kind, f), rows = OrganicStudio.csRowItems(kind, f).slice(0, n);
+      const hl = hiLines(f.title, C.titlePx, 400, colW, 3);
+      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
+      const nR = Math.ceil(n / 3), cw = colW / 3;
+      const gridH = n ? (nR - 1) * C.icoPitch + C.icoBox + C.icoLabGap + C.capBox : 0;
+      const gap = (headH && n) ? C.icoGridGap : 0;
+      const band = Math.max(0, (H - C.botIn) - topY2);
+      const R = rtLay(f.body, colX, colW, Math.max(0, band - eyeH - headH - gap - gridH - C.icoBodyGap), false, C.bodyPx, C.bodyLead);
+      const bGap = R.h ? C.icoBodyGap : 0, h = eyeH + headH + gap + gridH + bGap + R.h;
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
+      const top = topAligned ? topY2 : H - C.botIn - h;
+      eyePut(colX, top, null);
+      hl.forEach((lw, i) => drawHi(lw, colX, top + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
+      const gy = top + eyeH + headH + gap;
+      rows.forEach((it, i) => {
+        const r = Math.floor(i / 3), c = i % 3, inRow = Math.min(3, n - r * 3);
+        const cx = colX + cw * (c + .5) + (3 - inRow) * cw / 2, iy = gy + r * C.icoPitch;
+        B.icons.push({ i, x: cx - C.icoBox / 2, y: iy, w: C.icoBox, h: C.icoBox, slot: 'smp-ic-' + sl.id + '-' + i, fill: A.ink, tint: f.icoTint !== 'Original' });
+        const l = String(it.l || '').trim().toUpperCase();
+        const ll = l ? (this.wrapPlain(l, C.capPx, 300, capLS, cw - 16, 1)[0] || '') : '';
+        if (ll) TC(ll, iy + C.icoBox + C.icoLabGap + asc(C.capPx), C.capPx, 300, A.warm, capLS, cx);
+      });
+      put(R, gy + gridH + bGap);
+      B.over = R.over;
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
+    } else if (kind === 'cplan') {
+      // ── PAYMENT PLAN. A title over a bar split in proportion to the shares — the % over each
+      // part, the stage under it, the last part in brass — then the terms in small caps.
+      const colW = C.headColW, colX = C.pad, capLS = C.labTrack * C.capPx;
+      const parts = OrganicStudio.csRowItems(kind, f).filter(r => OrganicStudio.csNumOf(r.v) > 0);
+      const hl = hiLines(f.title, C.titlePx, 400, colW, 3);
+      const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
+      const notes = String(f.note || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).slice(0, 4)
+        .map(t => this.wrapPlain(t.toUpperCase(), C.capPx, 300, capLS, colW, 1)[0] || '');
+      const barH = parts.length ? C.planPctBox + C.planPctGap + C.planH + C.planLabGap + C.capBox : 0;
+      const gap = (headH && parts.length) ? C.planGridGap : 0;
+      const noteH = notes.length ? C.planNoteGap + C.capBox + (notes.length - 1) * C.planNoteLead : 0;
+      const h = eyeH + headH + gap + barH + noteH;
+      const topAligned = OrganicStudio.csPos(kind, f) === 'Top';
+      const top = topAligned ? topY2 : H - C.botIn - h;
+      eyePut(colX, top, null);
+      hl.forEach((lw, i) => drawHi(lw, colX, top + eyeH + asc(C.titlePx) + i * C.h2Pitch, C.titlePx, 400, A.ink));
+      let y = top + eyeH + headH + gap;
+      if (parts.length) {
+        const tot = parts.reduce((a, r) => a + OrganicStudio.csNumOf(r.v), 0);
+        const avail = colW - (parts.length - 1) * C.planGapX, by = y + C.planPctBox + C.planPctGap;
+        // a label never runs into the one before it: it starts at its part, or after the
+        // previous label, whichever is further right — and never past the column's end
+        let sx = colX, pEnd = -1e9, lEnd = -1e9;
+        parts.forEach((r, i) => {
+          const w = avail * OrganicStudio.csNumOf(r.v) / tot, lastP = i === parts.length - 1;
+          B.rects.push({ x: sx, y: by, w, h: C.planH, fill: lastP ? A.brass : (i % 2 ? A.ruleM : A.warm) });
+          const raw = String(r.v).trim(), pct = /%$/.test(raw) ? raw : raw + '%';
+          const pw = meas(pct, C.planPctPx, 300);
+          const px0 = Math.min(Math.max(sx, pEnd + 18), colX + colW - pw);
+          T(pct, px0, y + asc(C.planPctPx), C.planPctPx, 300, lastP ? A.brass : A.ink);
+          pEnd = px0 + pw;
+          const l = String(r.l || '').trim().toUpperCase();
+          if (l) {
+            const lt = this.wrapPlain(l, C.capPx, 300, capLS, Math.max(60, colW / parts.length), 1)[0] || '';
+            const lw = meas(lt, C.capPx, 300, capLS) - capLS, lx = Math.min(Math.max(sx, lEnd + 18), colX + colW - lw);
+            T(lt, lx, by + C.planH + C.planLabGap + asc(C.capPx), C.capPx, 300, A.warm, capLS);
+            lEnd = lx + lw;
+          }
+          sx += w + C.planGapX;
+        });
+        y += barH;
+      }
+      if (notes.length) { y += C.planNoteGap; notes.forEach((t, i) => T(t, colX, y + asc(C.capPx) + i * C.planNoteLead, C.capPx, 300, A.warm, capLS)); }
+      B.near = top; far(top + h); blk(top + h); B.anchor = topAligned ? 'top' : 'bottom';
     }
     // THE SCRIM. A BOTTOM layout: transparent at the vertical centre, solid at the floor —
     // unless the copy climbs past the centre, in which case the ramp starts `scrimPad` above
@@ -9997,7 +10257,8 @@ class OrganicStudio extends StudioBase {
     return sl ? document.querySelector('image-slot[id="smp-ic-' + sl.id + '-' + i + '"]') : null;
   }
   async applyIcon(si, i, rawName) {
-    const name = OrganicStudio.iconName(rawName), what = 'Stat ' + (i + 1);
+    const sk = ((this.state.slides || [])[si] || {}).kind;
+    const name = OrganicStudio.iconName(rawName), what = (OrganicStudio.CS_ROWS[sk] ? 'Icon ' : 'Stat ') + (i + 1);
     if (!name) { this.setState({ exportStatus: 'Type an icon name first.' }); return; }
     const slot = this.iconSlotEl(si, i);
     if (!slot || !slot._ingest) { this.setState({ exportStatus: what + ' is not on screen — its row has to be visible to take an icon.' }); return; }
@@ -10068,6 +10329,44 @@ class OrganicStudio extends StudioBase {
       onIconEnter: e => { if (e.key === 'Enter') { e.preventDefault(); this.applyIcon(si, pi, this._iconQuery || ''); } },
       iconResults: OrganicStudio.iconSearch(this._iconQuery || '', 40).map(name => ({ name, url: OrganicStudio.iconUrl(name), apply: () => this.applyIcon(si, pi, name) })),
       iconNoHits: !!((this._iconQuery || '').trim() && !OrganicStudio.iconSearch(this._iconQuery, 1).length),
+      clearIcon: () => this.clearIcon(si, pi)
+    };
+  }
+  // THE ROW LISTS' CONTROL — the stats control generalised over `CS_ROWS`: a count stepper,
+  // then per row one field per column, and on the icon grid an icon drop plus the Material
+  // picker. Shares `_csIcon` with the stats page; only one page's rows are on screen at once.
+  csRowsView(si, filled) {
+    const s = this.state, sl = s.slides[si], f = sl.f || {}, R = OrganicStudio.CS_ROWS[sl.kind];
+    const n = OrganicStudio.csRowN(sl.kind, f), items = OrganicStudio.csRowItems(sl.kind, f).slice(0, n), pick = this._csIcon || {};
+    const setN = d => this.upd(x => { const t = x.slides[si]; t.f.rn = Math.max(R.min, Math.min(R.max, OrganicStudio.csRowN(t.kind, t.f) + d)); t.f.rows = OrganicStudio.csRowItems(t.kind, t.f); return x; });
+    const open = !!R.icon && pick.si === si, pi = Math.min(n - 1, pick.i || 0);
+    const tinted = (f.icoTint || 'Match canvas') !== 'Original';
+    const anyIcon = !!R.icon && items.some((it, i) => filled['smp-ic-' + sl.id + '-' + i]);
+    return {
+      rwN: n + ' ' + R.what + (n === 1 ? '' : 's'), rwHint: R.hint,
+      rwDec: () => setN(-1), rwInc: () => setN(1),
+      rwCanDec: n > R.min ? '1' : '0', rwCanInc: n < R.max ? '1' : '0',
+      icoTintOn: anyIcon ? '1' : undefined,
+      icoTintOpts: [['Match canvas', true], ['Original', false]].map(o => ({ label: o[0], on: (tinted === o[1]) ? '1' : undefined,
+        set: () => this.upd(x => { const t = x.slides[si]; if (t) { t.f = t.f || {}; t.f.icoTint = o[0]; } return x; }) })),
+      icoTintHint: tinted
+        ? 'Every icon is recoloured to the page\u2019s ink \u2014 a brand-kit SVG is usually navy, which all but disappears here.'
+        : 'Every icon keeps the uploaded file\u2019s own colours.',
+      rwRows: items.map((it, i) => {
+        const slot = 'smp-ic-' + sl.id + '-' + i, isOpen = open && pi === i;
+        const write = (k, val) => this.upd(x => { const t = x.slides[si]; t.f.rows = OrganicStudio.csRowItems(t.kind, t.f); t.f.rows[i] = Object.assign({}, t.f.rows[i], { [k]: val }); return x; });
+        return { key: 'rw' + i, no: String(i + 1), title: R.what.charAt(0).toUpperCase() + R.what.slice(1) + ' ' + (i + 1), slot, iconOn: R.icon ? '1' : undefined, done: filled[slot] ? '1' : undefined,
+          cells: R.cols.map(c => ({ key: c[0], v: String(it[c[0]] || ''), ph: c[1], set: e => write(c[0], e.target.value) })),
+          pickOn: isOpen ? '1' : undefined, pickLabel: isOpen ? 'Close icon search' : 'Find an icon',
+          togglePick: () => { this._csIcon = isOpen ? null : { si, i }; this.forceUpdate(); } };
+      }),
+      iconOpen: open ? '1' : undefined,
+      iconFor: 'Material Symbol for icon ' + (pi + 1),
+      iconQuery: this._iconQuery || '',
+      onIconQuery: e => { this._iconQuery = e.target.value; this.forceUpdate(); },
+      onIconEnter: e => { if (e.key === 'Enter') { e.preventDefault(); this.applyIcon(si, pi, this._iconQuery || ''); } },
+      iconResults: open ? OrganicStudio.iconSearch(this._iconQuery || '', 40).map(name => ({ name, url: OrganicStudio.iconUrl(name), apply: () => this.applyIcon(si, pi, name) })) : [],
+      iconNoHits: !!(open && (this._iconQuery || '').trim() && !OrganicStudio.iconSearch(this._iconQuery, 1).length),
       clearIcon: () => this.clearIcon(si, pi)
     };
   }
@@ -11176,8 +11475,8 @@ class OrganicStudio extends StudioBase {
         }
       }
       // the stats page's icons, one slot per item, contain-fitted by the op from the file's own size
-      if (sl.kind === 'cstats') {
-        const nI = OrganicStudio.csN(sl.f || {});
+      if (sl.kind === 'cstats' || (OrganicStudio.CS_ROWS[sl.kind] && OrganicStudio.CS_ROWS[sl.kind].icon)) {
+        const nI = sl.kind === 'cstats' ? OrganicStudio.csN(sl.f || {}) : OrganicStudio.csRowN(sl.kind, sl.f || {});
         for (let i = 0; i < nI; i++) {
           const key = 'ic' + si + '_' + i, sid = 'smp-ic-' + sl.id + '-' + i;
           const ic = norm(sidecar[sid]);
@@ -11207,7 +11506,7 @@ class OrganicStudio extends StudioBase {
     await domFill('agent2', 'smp-agent-2', null);
     return assets;
   }
-  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', cquote: 'Quote', cnum: 'Number', csteps: 'Steps', ccta: 'CTA', rcover: 'Reel cover' };
+  static KLAB = { listed: 'Listing', cover: 'Cover', prop: 'Property', cta: 'CTA', review: 'Review', tacover: 'Cover', tagent: 'Agent', award: 'Award', cfront: 'Front', cstats: 'Stats', cbul: 'Bullets', ctext: 'Text', cquote: 'Quote', cnum: 'Number', csteps: 'Steps', cfig: 'Figure', ctable: 'Table', cicons: 'Icons', cplan: 'Plan', ccta: 'CTA', rcover: 'Reel cover' };
   sLabel(si) {
     const sl = this.state.slides[si];
     if (!sl) return 'Slide ' + (si + 1);
@@ -11386,6 +11685,10 @@ class OrganicStudio extends StudioBase {
     cquote:  ['Quote', 'Who said it', 'Layout', 'Page scrim'],
     cnum:    ['The number', 'Supporting copy', 'Layout', 'Page scrim'],
     csteps:  ['Headline', 'Steps', 'Layout', 'Page scrim'],
+    cfig:    ['The number', 'Split bar', 'Layout', 'Page scrim'],
+    ctable:  ['Title', 'Footnote', 'Layout', 'Page scrim'],
+    cicons:  ['Title', 'Note', 'Layout', 'Page scrim'],
+    cplan:   ['Title', 'Notes', 'Layout', 'Page scrim'],
     ccta:   ['Copy', 'Button', 'Layout', 'Permit'],
     rcover: ['Headline', 'Big number', 'Tags', 'ADM & CN']
   };
@@ -11471,8 +11774,10 @@ class OrganicStudio extends StudioBase {
             ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral']],
     // THE CAROUSEL'S FIVE PAGE LAYOUTS. `pos` / `align` are seeded, the segmented-control
     // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
-    cfront:[['headline', 1, 'Headline', 'req area hi', 'One or two lines \u2014 Enter for a new one'],
+    cfront:[['kicker', 1, 'Kicker', '', 'Optional \u2014 small caps above the headline, e.g. Aldar \u00B7 Yas Island, Abu Dhabi'],
+            ['headline', 1, 'Headline', 'req area hi', 'One or two lines \u2014 Enter for a new one'],
             ['sub', 2, 'Supporting lines', 'rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
+            ['meta', 2, 'Key facts line', 'hi', 'Optional \u2014 one line under a short rule, e.g. 292 villas \u00B7 4\u20136 bedrooms \u00B7 from **AED 7.9M**'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the copy sits; the wash follows it'],
             OrganicStudio.csPermitField(),
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
@@ -11525,9 +11830,44 @@ class OrganicStudio extends StudioBase {
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    cfig:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the number \u2014 e.g. The Community. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['fig', 1, 'Big number', 'req', 'e.g. 292 \u2014 set huge, with its caption beside it'],
+            ['figTag', 1, 'Number label', '', 'Small caps over the caption \u2014 e.g. Total villas'],
+            ['figCap', 1, 'Caption', 'area hi', 'e.g. One private address on Yas Island. Enter for a new line'],
+            ['barA', 2, 'First part', 'num', 'Optional. Two numbers draw a split bar \u2014 e.g. 247'],
+            ['barALab', 2, 'First part label', '', 'e.g. Inland'],
+            ['barB', 2, 'Second part', 'num', 'e.g. 45 \u2014 drawn in brass'],
+            ['barBLab', 2, 'Second part label', '', 'e.g. Waterfront'],
+            ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', 'Where the block sits; the wash follows it'],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    ctable:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. The Community. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['title', 1, 'Title', 'req area hi', 'e.g. Pick your footprint. \u2014 Enter for a new line'],
+            ['note', 2, 'Footnote', '', 'Optional \u2014 e.g. Only 45 homes sit on the canal.'],
+            ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    cicons:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. The Community. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['title', 1, 'Title', 'req area hi', 'e.g. **30+** ways to spend a Saturday. \u2014 Enter for a new line'],
+            ['body', 2, 'Note', 'rich', 'Optional \u2014 a line under the grid. Every line is a block; select a word and press Brass to set it in brass'],
+            ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
+    cplan: [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the title \u2014 e.g. The Community. The switch shows or hides it'],
+            ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
+            ['title', 1, 'Title', 'req area hi', 'e.g. **5%** today. 50% at handover. \u2014 Enter for a new line'],
+            ['note', 2, 'Notes', 'area', 'Optional \u2014 one per line, set in small caps under the bar. e.g. No mortgage pre-approval required'],
+            ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
+            ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
+            OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     ccta:  [['small', 1, 'Lead line', 'req', 'e.g. Dubai\u2019s rental market is evolving.'],
             ['big', 1, 'Headline', 'req area hi', 'e.g. Stay informed. \u2014 Enter for a new line'],
             ['button', 2, 'Button label', 'req', 'e.g. Visit the link in bio for details.'],
+            ['meta', 2, 'Key facts line', '', 'Optional \u2014 small caps under the button, e.g. From AED 7.9M \u00B7 Q3 2030 \u00B7 Yas Island'],
+            ['url', 2, 'Web address', '', 'Optional \u2014 under the wordmark, e.g. providentestate.com'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the card sits \u2014 on the page\u2019s top line, centred, or on its floor'],
             OrganicStudio.csPermitField(), OrganicStudio.csPhotoField()],
     // THE REEL THUMBNAIL. The layout and the text size are NOT fields — they are chosen
@@ -11607,6 +11947,10 @@ class OrganicStudio extends StudioBase {
     cquote: [['quote', 'lg', 70], ['author', 'xs', 40]],
     cnum:   [['fig', 'xl', 50], ['label', 'md', 60]],
     csteps: [['title', 'lg', 50], ['steps', 'sm', 70]],
+    cfig:   [['fig', 'xl', 30], ['figCap', 'md', 50]],
+    ctable: [['title', 'lg', 50], ['note', 'xs', 70]],
+    cicons: [['title', 'lg', 60], ['body', 'xs', 50]],
+    cplan:  [['title', 'lg', 60], ['note', 'xs', 60]],
     ccta:   [['big', 'lg', 60], ['button', 'pill', 50]],
     rcover: [['head', 'xl', 72], ['adm', 'xs', 40]]
   };
@@ -11628,6 +11972,10 @@ class OrganicStudio extends StudioBase {
     cquote: ['Quote', 'A quotation in large type, and who said it.'],
     cnum:   ['Big number', 'One figure set huge, with a headline and a line or two under it.'],
     csteps: ['Steps', 'A headline over up to five numbered steps.'],
+    cfig:   ['Key figure', 'One big number beside its caption, a split bar and a row of facts.'],
+    ctable: ['Price table', 'A title over rows of type, detail and price.'],
+    cicons: ['Icon grid', 'A title over three-across icons with labels \u2014 amenities, features.'],
+    cplan:  ['Payment plan', 'A title over a bar split by the payment shares.'],
     ccta:   ['Call to action', 'The closing card \u2014 a lead line, the ask, a button and the wordmark.'],
     rcover: ['Reel thumbnail', 'The cover a Reel shows in the grid and the feed. Pick the layout that suits the photo, then the words.']
   };
@@ -11660,6 +12008,10 @@ class OrganicStudio extends StudioBase {
     cquote: ['The quotation mark', 'SWIPE \u203A \u2014 shown while there is a next page'],
     cnum:   ['SWIPE \u203A \u2014 shown while there is a next page'],
     csteps: ['The step numbers', 'SWIPE \u203A \u2014 shown while there is a next page'],
+    cfig:   ['SWIPE \u203A \u2014 shown while there is a next page'],
+    ctable: ['SWIPE \u203A \u2014 shown while there is a next page'],
+    cicons: ['SWIPE \u203A \u2014 shown while there is a next page'],
+    cplan:  ['The % after each share', 'SWIPE \u203A \u2014 shown while there is a next page'],
     ccta:   ['The wordmark on the card'],
     rcover: ['The wordmark']
   };
@@ -11719,6 +12071,7 @@ class OrganicStudio extends StudioBase {
       });
       // STATS — the count and the rows, one custom ask after the title
       if (sl.kind === 'cstats') raw.push({ si, sec: 'words', kind: 'stats', group: 'Stats' });
+      if (OrganicStudio.CS_ROWS[sl.kind]) raw.push({ si, sec: 'words', kind: 'rows', group: OrganicStudio.CS_ROWS[sl.kind].group });
       // AGENT — who is on the card. Project-level on a listed card (`s.agent`), so it is
       // asked on that card's one page; per-slide on a review.
       if (s.tpl === 'listed' && sl.kind === 'listed') {
@@ -11905,6 +12258,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'rguide') return 'Show the 4:5 guide';
     if (ask.kind === 'rpx') return 'Parallax';
     if (ask.kind === 'stats') return 'The stats';
+    if (ask.kind === 'rows') return ask.group || 'Rows';
     if (ask.kind === 'proj') return ask.label || '';
     if (ask.kind === 'portrait') return ask.label || 'Agent photo';
     if (ask.kind === 'px') return 'Parallax layer';
@@ -11945,6 +12299,7 @@ class OrganicStudio extends StudioBase {
     v.isName = ask.kind === 'name';
     v.isPreset = ask.kind === 'preset';
     v.isStats = ask.kind === 'stats';
+    v.isRows = ask.kind === 'rows';
     // the reel thumbnail's four: the layout and size tiles read root keys (`rcvLayTiles`,
     // `rcvSizeTiles`) — the template has one slide, and the left rail shows the same tiles
     v.isRlay = ask.kind === 'rlay';
@@ -11969,6 +12324,7 @@ class OrganicStudio extends StudioBase {
     }
     if (v.isPreset && sl) v.presetOpts = this.csPresetOpts(ask.si);
     if (v.isStats && sl) Object.assign(v, this.csStatsView(ask.si, filled));
+    if (v.isRows && sl) Object.assign(v, this.csRowsView(ask.si, filled));
     if (v.isPx && sl) {
       v.pxOn = sl.fg ? '1' : undefined;
       // the same switch, on this row's header — the Off | On pair is gone
@@ -12348,6 +12704,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind === 'rguide') return '4:5 guide';
     if (ask.kind === 'rpx') return 'Parallax';
     if (ask.kind === 'stats') return 'Stats';
+    if (ask.kind === 'rows') return ask.group || 'Rows';
     if (ask.kind === 'proj' || ask.kind === 'portrait') return ask.label || '';
     if (ask.kind === 'scrim') return 'Wash strength';
     if (ask.kind === 'shade') return 'Photo darkening';
@@ -12437,6 +12794,14 @@ class OrganicStudio extends StudioBase {
       const items = OrganicStudio.csItems(sf).slice(0, OrganicStudio.csN(sf));
       return items.every(it => String(it.stat || '').trim() && String(it.label || '').trim()) ? '' : 'Every stat needs a number and a label.';
     }
+    if (ask.kind === 'rows') {
+      const st = (this.state.slides || [])[ask.si], sf = (st && st.f) || {}, R = OrganicStudio.CS_ROWS[st && st.kind];
+      if (!R) return '';
+      const items = OrganicStudio.csRowItems(st.kind, sf).slice(0, OrganicStudio.csRowN(st.kind, sf));
+      const ok = items.every(it => R.cols.every(c => !c[2] || String(it[c[0]] || '').trim()))
+        && (st.kind !== 'cplan' || items.every(it => OrganicStudio.csNumOf(it.v) > 0));
+      return ok ? '' : 'Every ' + R.what + ' needs ' + (st.kind === 'cplan' ? 'a share above 0 and a stage.' : R.cols.filter(c => c[2]).length > 1 ? 'all of its marked parts.' : 'a label.');
+    }
     // A portrait is asked for but not gated: a listed card still reads without one, and
     // blocking the run on it would strand anyone who does not have the headshot to hand.
     if (ask.kind === 'portrait') return '';
@@ -12512,7 +12877,7 @@ class OrganicStudio extends StudioBase {
   // the moment the page opens; a section of requirements is done when they are all met.
   gdAskGated(ask) {
     if (!ask) return false;
-    if (ask.kind === 'photo' || ask.kind === 'qr' || ask.kind === 'export' || ask.kind === 'stats') return true;
+    if (ask.kind === 'photo' || ask.kind === 'qr' || ask.kind === 'export' || ask.kind === 'stats' || ask.kind === 'rows') return true;
     if (ask.kind === 'proj') return !!ask.req;
     if (ask.kind === 'dest') return this.folderSupported();
     if (ask.kind !== 'field') return false;
@@ -12703,6 +13068,7 @@ class OrganicStudio extends StudioBase {
       put('smp-qr-' + sl.id, 'qr-' + n);
       put('smp-agent-r' + sl.id, 'agent-' + n);
       if (sl.kind === 'cstats') for (let i = 0; i < OrganicStudio.csN(sl.f || {}); i++) put('smp-ic-' + sl.id + '-' + i, 'icon-' + n + '-' + (i + 1));
+      if (OrganicStudio.CS_ROWS[sl.kind] && OrganicStudio.CS_ROWS[sl.kind].icon) for (let i = 0; i < OrganicStudio.csRowN(sl.kind, sl.f || {}); i++) put('smp-ic-' + sl.id + '-' + i, 'icon-' + n + '-' + (i + 1));
       if (OrganicStudio.isCs(sl.kind)) put('smp-cg-' + sl.id, 'graphic-' + n);
     });
     put('smp-alogo', 'logo-award');
@@ -14931,6 +15297,10 @@ class OrganicStudio extends StudioBase {
           ctext:  [bar(26, 12, 48, 8), bar(16, 32, 68, 5), bar(16, 42, 68, 5), bar(16, 52, 68, 5)],
           cquote: [bar(8, 36, 12, 10), bar(8, 54, 78, 6), bar(8, 64, 66, 6), bar(8, 80, 30, 4, true)],
           cnum:   [bar(8, 38, 58, 20), bar(8, 64, 50, 6), bar(8, 76, 64, 4, true), bar(8, 84, 52, 4, true)],
+          cfig:   [bar(8, 14, 30, 14), bar(44, 16, 40, 4), bar(44, 23, 30, 4, true), bar(8, 40, 84, 3), bar(12, 52, 16, 5), bar(42, 52, 16, 5), bar(72, 52, 16, 5)],
+          ctable: [bar(8, 36, 50, 8), bar(8, 54, 84, 4, true), bar(8, 63, 84, 4, true), bar(8, 72, 84, 4, true), bar(8, 81, 84, 4, true)],
+          cicons: [bar(8, 12, 60, 8), bar(14, 34, 12, 10, true), bar(44, 34, 12, 10, true), bar(74, 34, 12, 10, true), bar(14, 56, 12, 10, true), bar(44, 56, 12, 10, true), bar(74, 56, 12, 10, true)],
+          cplan:  [bar(8, 12, 40, 7), bar(8, 22, 52, 7), bar(8, 42, 8, 6), bar(18, 42, 22, 6, true), bar(42, 42, 18, 6), bar(62, 42, 30, 6)],
           csteps: [bar(8, 22, 46, 8), bar(8, 44, 8, 5), bar(22, 44, 62, 5), bar(8, 58, 8, 5), bar(22, 58, 62, 5), bar(8, 72, 8, 5), bar(22, 72, 62, 5)],
           ccta:   [bar(20, 20, 60, 60, true), bar(36, 38, 28, 4), bar(31, 48, 38, 8), bar(33, 62, 34, 9)]
         };
