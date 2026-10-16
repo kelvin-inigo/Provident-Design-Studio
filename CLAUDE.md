@@ -14970,6 +14970,13 @@ a real click, or you click the canvas and select a different component.
 `CampaignStudio` and `OrganicStudio` is all 3,929 Material Symbols Outlined names from
 `fonts.google.com/metadata/icons` (curl reads it; a browser cannot — no CORS), popularity order,
 one space-joined string (~52KB per document). `ICONS` stays the curated set shown before anything
-is typed and leads each tier of `iconSearch` (exact, prefix, substring). Names only — tags would be
-1.1MB. 40 random names checked to resolve at wght200. To refresh: re-fetch the metadata, filter
+is typed and leads each tier of `iconSearch` (exact, prefix, substring).
+
+**KEYWORDS TOO: `icon-tags.js` (shared, loaded in both `<head>`s after `studio-base.js`).** Google's
+own tags as an inverted index — 6,659 words, positions into `ICONS_ALL`, base36 delta-encoded,
+**270KB** (a plain dump is 1.1MB). A word already in the icon's own name is left out. After the
+three name tiers `iconSearch` appends `providentIconTags.find(q)`: every query word must match a
+tag, an exact tag first, then tags it starts ("hous" finds house), popularity order kept. Decoded
+on first search (~30ms), then under 1ms a keystroke. **The positions index ICONS_ALL, so the
+three must be regenerated together** — same filter, same order. 40 random names checked to resolve at wght200. To refresh: re-fetch the metadata, filter
 out icons whose `unsupported_families` holds "Material Symbols Outlined", sort by popularity.

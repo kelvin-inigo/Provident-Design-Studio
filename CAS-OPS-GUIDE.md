@@ -142,8 +142,9 @@ What's on the screen, from left to right:
   them.
 - **Icons** (Process steps, Icon pills and the spec Icon row): type a Material Symbols name in the
   icon picker, e.g. `calendar_month`, `schedule` or `location_on`, and press Enter.
-  The search covers every Material Symbol (3,929 icons) by name: type part of a name, e.g. `pool`,
-  `rocket` or `stadium`, and pick from the results. The same search is in OPS's stats icons.
+  The search covers every Material Symbol (3,929 icons) by name and by keyword: type part of a
+  name, e.g. `pool` or `stadium`, or a plain word for what you want, e.g. `beach`, `swim` or
+  `city building`, and pick from the results. Name matches come first, keyword matches after. The same search is in OPS's stats icons.
 
 **Photo and look:**
 - **Background photo:** use **Background image** → **Photo**.

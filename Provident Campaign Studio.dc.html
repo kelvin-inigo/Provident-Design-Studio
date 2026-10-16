@@ -15,6 +15,7 @@
      must load before that block; after runtime.js is enough, since nothing in it
      touches a window.provident* helper at class-definition time. -->
 <script src="./studio-base.js"></script>
+<script src="./icon-tags.js"></script>
 </head>
 <body>
 <x-dc>
@@ -7796,7 +7797,13 @@ class CampaignStudio extends StudioBase {
       else if (n.indexOf(t) === 0) pre.push(n);
       else if (n.indexOf(t) > 0) mid.push(n);
     });
-    return exact.concat(pre, mid).slice(0, cap);
+    // then by keyword: Google's own tags ("house" finds `home`), names not already listed
+    const out = exact.concat(pre, mid), have = new Set(out), tg = window.providentIconTags;
+    if (out.length < cap && tg) tg.find(q).forEach(i => {
+      const n = CampaignStudio.ICONS_ALL[i];
+      if (n && !have.has(n)) { have.add(n); out.push(n); }
+    });
+    return out.slice(0, cap);
   }
   // One line per row, blanks dropped, run capped — the single parser every
   // row-based component reads, so the panel's counter, modPx and the export
