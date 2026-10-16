@@ -60,16 +60,16 @@ How to use the two Provident design studios in this folder.
 Each studio opens on its **project browser**.
 
 - **Start something new:**
-  - In CAS, press **+ New campaign**, or click a template card: New launch, Event, Payment plan
+  - In CAS, press **New campaign**, or click a template card: New launch, Event, Payment plan
     or Spec ladder.
-  - In OPS, click a template card, or press **+ New post** to get **Pick a template**.
-- **Continue last** reopens the project you were working on.
+  - In OPS, click a template card, or press **New post** to get **Pick a template**.
+- **Continue last** reopens the project you were working on; the line under it names that project.
 - **Save** (top bar) writes the project into your **Source folder**:
   - the session file (`<name>.adstudio.json` for CAS, `.smpstudio.json` for OPS);
   - an `Assets/` folder with a copy of every upload.
 
   The first time, it asks you to pick the folder. After that it saves in place.
-- **Open Session**: pick the project's folder, and the newest session file in it opens. A session
+- **Open session**: pick the project's folder, and the newest session file in it opens. A session
   file from the other studio opens in that studio.
 - **Source folder** (top bar) picks or changes the folder that saves and exports go into.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
@@ -417,7 +417,7 @@ names it; export JPEG instead. Text over Google's limits is named there too.
 
 ### See everything you exported: Ad sets
 
-On CAS's home page, press **Ad sets** in the sidebar, under **Recent**. It reads the Source folder
+On CAS's home page, press **Ad sets** in the sidebar, in the **Review** group. It opens in its own window. It reads the Source folder
 and finds every exported ad set.
 
 - **The list on the left** is every audience, grouped under its main folder (Local, International,
@@ -448,7 +448,7 @@ Press **Edit text** to work on the words of the audience on screen, without open
 - If the project file carries no photos, only the words are saved and the images are left alone —
   re-exporting would drop the photos. Save the project from the studio once to include them.
 - If that project is also open in the studio, the open copy does not see these edits. Reopen it
-  from the folder (Open Session) to continue there.
+  from the folder (Open session) to continue there.
 - To add or remove a line, move it or change its look, use the studio's Copy and Design views.
 
 #### What it shows
@@ -487,7 +487,7 @@ You do not have to change your Source folder to look at someone else's exports. 
 page, in the **Ad sets viewer** panel, and in the Ad sets window (press **Drop a folder**):
 
 - The viewer is for **looking at finished exports**, not for opening a project to design. To
-  keep designing, use **Open Session** at the top of the page. **Open viewer** in the panel
+  keep designing, use **Open session** at the top of the page. **Open viewer** in the panel
   opens the Ad sets window on your Source folder.
 
 - **Drop a folder** anywhere on the page. Use the project folder (the one holding the
@@ -693,6 +693,6 @@ Meta token — a person runs the final command after approval.
 
 Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
 or name. Every required field must be filled; the export says what is missing. The project is a
-normal session file, so the user can open it with **Open Session** to fine-tune by hand. Setup:
+normal session file, so the user can open it with **Open session** to fine-tune by hand. Setup:
 `sh tools/studio-mcp/install.sh`, then restart Claude (see `tools/studio-mcp/README.md`).
 

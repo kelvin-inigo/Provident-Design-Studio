@@ -15143,3 +15143,16 @@ rail hides as a tooltip), **Show more** and **Show all**. Grid images are `loadi
 all does not fetch 3,948 SVGs at once. **Also in this pass, both studios:** the picker's glyphs are
 white (`filter:brightness(0) invert(1)`), invisible on the light theme's pale tiles — light mode
 now paints them in ink (`:root[data-theme="light"] .p-ic img`; CAS section 43). Chrome only.
+
+**THE PROJECT BROWSER WAS TIDIED (section 44, both studios, 2026-10-16, by request — "improve UX
+and UI" on the splash sidebar and header).** The header title carries a line saying what the view
+holds (`shViewSub`, in the shell, off the engine's `tplCount` / `recentCount`); Open session and
+New carry their icons (`newLabel` lost its "+"); All has a count (`allCount`); Continue last names
+the project it opens (`continueName` — the newest saved project on a fresh tab, "A new, blank
+project" when there is none, else this tab's project). The sidebar's **Open folder…** row is
+DELETED — it was the header's Open session under another name. In CAS, **Ad sets** sits in its own
+**Review** group with `photo_library` (it shared All's grid icon) and an `arrow_outward` mark saying
+it opens a window; the viewer panel takes the same icon. **CAS's Templates count said 8 while the
+splash shows 4** — `TPL.length * 2` dated from the deleted YouTube row; it is `TPL.length`. On a
+phone the title takes its own row. Chrome only; contrast over the sidebar and header 0 failures in
+both themes in both studios.
