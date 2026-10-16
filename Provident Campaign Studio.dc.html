@@ -4152,12 +4152,17 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 /* 41. THE DROP ZONE'S FIGURE IS HAIRLINE'S "EXPLODED" — an app window in four layers that opens as
    the pointer crosses it (vendor/hairline, MIT). It replaces the three skeleton ad shapes. Its plate
    is the drop zone's own fill so a plate never shows as a box; the lines take the chrome's inks. */
-.as-src-hl{display:block;width:220px;margin:-18px 0 -6px;pointer-events:auto;
+.as-src-hl{display:block;width:220px;
+  /* the figure draws off-centre in its own 400x320 frame — ink x 70..290, y 147..285 — so it is
+     pulled right by the 20-unit offset (5% of its own width) and the empty top and bottom of the
+     frame are taken back by margin. A percent MARGIN resolves against the drop zone's width, so
+     the margins are written off --hlw, the figure's own width. */
+  --hlw:220px;width:var(--hlw);margin:calc(var(--hlw) * -.42) 0 calc(var(--hlw) * -.07);transform:translateX(5%);pointer-events:auto;
   --hairline-plate:var(--ps-fill);--hairline-hi:var(--ps-ink);--hairline-edge:var(--ps-ink-2);
   --hairline-mid:var(--ps-ink-2);--hairline-lo:var(--ps-dim);--hairline-stroke:1}
 .as-src-drop:hover .as-src-hl{--hairline-plate:var(--ps-fill-h);--hairline-hi:var(--ps-link)}
 [data-drag] .as-src-hl{--hairline-plate:var(--ps-accent);--hairline-hi:var(--ps-accent-i);--hairline-edge:var(--ps-accent-i)}
-@media (max-width:760px){.as-src-hl{width:160px;margin:-12px 0 -4px}}
+@media (max-width:760px){.as-src-hl{--hlw:160px}}
 </style>
 </helmet>
 

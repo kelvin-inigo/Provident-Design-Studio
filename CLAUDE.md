@@ -14991,5 +14991,8 @@ both drop-zone copies (it replaced the three skeleton shapes); `Component.hlBind
 left the page. Never put children in that span — React would reconcile what the figure drew. The
 figure's six `--hairline-*` properties are mapped to chrome tokens; the plate is the drop zone's
 own fill (`--ps-fill`, `--ps-fill-h` on hover, `--ps-accent` while dragging). 220px wide, 160 on a
-phone. To update: re-fetch `https://unpkg.com/@lucasmarkes/hairline@<ver>/dist/index.js` and wrap
+phone. **The figure draws off-centre in its own 400x320 frame** (ink x 70..290, y 147..285), so it is
+shifted `translateX(5%)` and its empty frame taken back with margins written off `--hlw` — a percent
+margin would resolve against the drop zone's width. Measured: ink centre on the drop zone's to 0.00px,
+18px above it against 16 below the text. To update: re-fetch `https://unpkg.com/@lucasmarkes/hairline@<ver>/dist/index.js` and wrap
 it the same way.
