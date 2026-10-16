@@ -15125,3 +15125,10 @@ Verified: 40 / 40 op groups byte-identical against the pre-change copy (with bot
 one diff on a cold load was `wkSpecBox`'s documented 761.7 / 753.8 first-measure); preview against
 ops 0.45 canvas px; a real click on the tile converted a Bullets page, carried its headline and
 opened at Top.
+
+**Icon grid labels take two lines (2026-10-16, by request).** The label is a textarea now (a
+`CS_ROWS` column's fourth entry `'area'` makes its cell one, so any list can opt in): Enter breaks
+it where the user wants, a long one wraps to the column, and both are capped at `icoLabMax` (2).
+Every row of the grid opens by one `capBox` only when some label actually uses the second line,
+so a grid of one-line labels is unchanged. Verified with a real Enter in the field: "Clubhouse /
+& Gym", both lines centred, rows 150 → 180 apart, preview against ops 0.44 canvas px.

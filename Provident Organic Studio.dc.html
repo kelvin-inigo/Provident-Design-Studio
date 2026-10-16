@@ -5052,7 +5052,7 @@ select.p-in{padding-right:34px}
                     </sc-if>
                     <div class="gd-qrow-t">
                       <b class="gd-askq gd-sub">{{ r.title }}</b>
-                      <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="2"><input value="{{ c.v }}" onChange="{{ c.set }}" class="gd-big" placeholder="{{ c.ph }}"></sc-for>
+                      <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="2"><sc-if value="{{ c.line }}" hint-placeholder-val="{{ true }}"><input value="{{ c.v }}" onChange="{{ c.set }}" class="gd-big" placeholder="{{ c.ph }}"></sc-if><sc-if value="{{ c.area }}" hint-placeholder-val="{{ false }}"><textarea value="{{ c.v }}" onChange="{{ c.set }}" class="gd-big gd-bigta" rows="2" placeholder="{{ c.ph }}"></textarea></sc-if></sc-for>
                       <sc-if value="{{ r.iconOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.togglePick }}" class="gd-link" data-on="{{ r.pickOn }}">{{ r.pickLabel }}</button></sc-if>
                     </div>
                   </div>
@@ -6450,7 +6450,7 @@ class OrganicStudio extends StudioBase {
     // PRICE TABLE — hairline rows, type left, detail at 44% of the column, price right
     tabPitch: 78, tabHeadGap: 40, tabMidAt: .44, tabMidPx: 28, tabNoteGap: 28,
     // ICON GRID — three columns, an icon over its caps label; an incomplete last row centres
-    icoBox: 64, icoPitch: 150, icoLabGap: 18, icoGridGap: 56, icoBodyGap: 50,
+    icoBox: 64, icoPitch: 150, icoLabGap: 18, icoGridGap: 56, icoBodyGap: 50, icoLabMax: 2,
     // PAYMENT PLAN — a bar split in proportion to the shares, % over and the stage under
     planPctPx: 32, planPctBox: 40, planPctGap: 12, planH: 26, planLabGap: 14, planGapX: 6,
     planGridGap: 56, planNoteGap: 50, planNoteLead: 38,
@@ -6474,8 +6474,8 @@ class OrganicStudio extends StudioBase {
               cols: [['v', 'Figure \u2014 e.g. 4\u20136', true], ['l', 'Label \u2014 e.g. Bedrooms', true]] },
     ctable: { min: 2, max: 6, def: 4, what: 'row', group: 'Rows', hint: 'Two to six. Wrap a word in the price as **7.9M** to set it in brass.',
               cols: [['a', 'Type \u2014 e.g. 4 Bedroom', true], ['b', 'Detail \u2014 e.g. avg. 437 sqm', false], ['c', 'Price \u2014 e.g. from AED **7.9M**', true]] },
-    cicons: { min: 3, max: 9, def: 6, what: 'icon', group: 'Icons', icon: true, hint: 'Three to nine, three to a row. Each takes an uploaded icon or a Material Symbol.',
-              cols: [['l', 'Label \u2014 e.g. Clubhouse', true]] },
+    cicons: { min: 3, max: 9, def: 6, what: 'icon', group: 'Icons', icon: true, hint: 'Three to nine, three to a row. Each takes an uploaded icon or a Material Symbol; a label can run to two lines.',
+              cols: [['l', 'Label \u2014 e.g. Clubhouse. Enter for a second line', true, 'area']] },
     ccards: { min: 1, max: 4, def: 2, what: 'card', group: 'Cards', hint: 'One to four, stacked under the title. The tag is optional and sits on the heading\u2019s line in brass.',
               cols: [['h', 'Heading \u2014 e.g. 7.5% \u2013 9.8% Net Yields', true], ['t', 'Tag \u2014 e.g. +200 bps vs residential', false], ['b', 'Text \u2014 e.g. Prime offices beat typical residential returns.', true]] },
     cplan:  { min: 2, max: 5, def: 4, what: 'payment', group: 'Payments', hint: 'Two to five. The bar is split in proportion to the shares; the last one is brass.',
@@ -10157,7 +10157,17 @@ class OrganicStudio extends StudioBase {
       const hl = hiLines(f.title, C.titlePx, 400, colW, 3);
       const headH = hl.length ? C.titleBox + (hl.length - 1) * C.h2Pitch : 0;
       const nR = Math.ceil(n / 3), cw = colW / 3;
-      const gridH = n ? (nR - 1) * C.icoPitch + C.icoBox + C.icoLabGap + C.capBox : 0;
+      // A LABEL TAKES TWO LINES — Enter breaks it where the user wants, and a long one wraps —
+      // and the grid's rows open up by one line only when some label actually uses the second.
+      const labLines = rows.map(it => {
+        const out = [];
+        String(it.l || '').split(/\r?\n/).map(t => t.trim()).filter(Boolean).forEach(seg =>
+          this.wrapPlain(seg.toUpperCase(), C.capPx, 300, capLS, cw - 16).forEach(l => out.push(l)));
+        return out.slice(0, C.icoLabMax);
+      });
+      const labN = Math.max(1, ...labLines.map(l => l.length));
+      const pitch = C.icoPitch + (labN - 1) * C.capBox;
+      const gridH = n ? (nR - 1) * pitch + C.icoBox + C.icoLabGap + labN * C.capBox : 0;
       const gap = (headH && n) ? C.icoGridGap : 0;
       const band = Math.max(0, (H - C.botIn) - topY2);
       const R = rtLay(f.body, colX, colW, Math.max(0, band - eyeH - headH - gap - gridH - C.icoBodyGap), false, C.bodyPx, C.bodyLead);
@@ -10169,11 +10179,9 @@ class OrganicStudio extends StudioBase {
       const gy = top + eyeH + headH + gap;
       rows.forEach((it, i) => {
         const r = Math.floor(i / 3), c = i % 3, inRow = Math.min(3, n - r * 3);
-        const cx = colX + cw * (c + .5) + (3 - inRow) * cw / 2, iy = gy + r * C.icoPitch;
+        const cx = colX + cw * (c + .5) + (3 - inRow) * cw / 2, iy = gy + r * pitch;
         B.icons.push({ i, x: cx - C.icoBox / 2, y: iy, w: C.icoBox, h: C.icoBox, slot: 'smp-ic-' + sl.id + '-' + i, fill: A.ink, tint: f.icoTint !== 'Original' });
-        const l = String(it.l || '').trim().toUpperCase();
-        const ll = l ? (this.wrapPlain(l, C.capPx, 300, capLS, cw - 16, 1)[0] || '') : '';
-        if (ll) TC(ll, iy + C.icoBox + C.icoLabGap + asc(C.capPx), C.capPx, 300, A.warm, capLS, cx);
+        labLines[i].forEach((ll, k) => TC(ll, iy + C.icoBox + C.icoLabGap + asc(C.capPx) + k * C.capBox, C.capPx, 300, A.warm, capLS, cx));
       });
       put(R, gy + gridH + bGap);
       B.over = R.over;
@@ -10455,7 +10463,8 @@ class OrganicStudio extends StudioBase {
         const slot = 'smp-ic-' + sl.id + '-' + i, isOpen = open && pi === i;
         const write = (k, val) => this.upd(x => { const t = x.slides[si]; t.f.rows = OrganicStudio.csRowItems(t.kind, t.f); t.f.rows[i] = Object.assign({}, t.f.rows[i], { [k]: val }); return x; });
         return { key: 'rw' + i, no: String(i + 1), title: R.what.charAt(0).toUpperCase() + R.what.slice(1) + ' ' + (i + 1), slot, iconOn: R.icon ? '1' : undefined, done: filled[slot] ? '1' : undefined,
-          cells: R.cols.map(c => ({ key: c[0], v: String(it[c[0]] || ''), ph: c[1], set: e => write(c[0], e.target.value) })),
+          cells: R.cols.map(c => ({ key: c[0], v: String(it[c[0]] || ''), ph: c[1], area: c[3] === 'area' ? '1' : undefined,
+            line: c[3] === 'area' ? undefined : '1', set: e => write(c[0], e.target.value) })),
           pickOn: isOpen ? '1' : undefined, pickLabel: isOpen ? 'Close icon search' : 'Find an icon',
           togglePick: () => { this._csIcon = isOpen ? null : { si, i }; this.forceUpdate(); } };
       }),
