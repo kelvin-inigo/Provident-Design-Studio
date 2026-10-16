@@ -14980,3 +14980,16 @@ tag, an exact tag first, then tags it starts ("hous" finds house), popularity or
 on first search (~30ms), then under 1ms a keystroke. **The positions index ICONS_ALL, so the
 three must be regenerated together** — same filter, same order. 40 random names checked to resolve at wght200. To refresh: re-fetch the metadata, filter
 out icons whose `unsupported_families` holds "Material Symbols Outlined", sort by popularity.
+
+**THE AD SETS DROP ZONE CARRIES HAIRLINE'S "EXPLODED" FIGURE (section 41, 2026-10-16, by request).**
+`vendor/hairline/hairline.js` is `@lucasmarkes/hairline` 0.5.1's `dist/index.js` (MIT, no
+dependencies, LICENSE beside it) wrapped as a CLASSIC script — an ES module is refused over
+file:// — with its export list turned into `window.providentHairline`. CAS loads it in `<head>`
+after `icon-tags.js`. The markup gives an EMPTY `<span class="as-src-hl" data-hl="exploded">` in
+both drop-zone copies (it replaced the three skeleton shapes); `Component.hlBind()`, first in
+`_vtTick`, mounts each new span with `{play:true, intensity:.6}` and destroys a figure whose span
+left the page. Never put children in that span — React would reconcile what the figure drew. The
+figure's six `--hairline-*` properties are mapped to chrome tokens; the plate is the drop zone's
+own fill (`--ps-fill`, `--ps-fill-h` on hover, `--ps-accent` while dragging). 220px wide, 160 on a
+phone. To update: re-fetch `https://unpkg.com/@lucasmarkes/hairline@<ver>/dist/index.js` and wrap
+it the same way.
