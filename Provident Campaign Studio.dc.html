@@ -4172,6 +4172,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-src-drop .as-src-hl{flex:none;transform:none;margin:calc(var(--hlw) * -.417) calc(var(--hlw) * -.274) calc(var(--hlw) * -.073) calc(var(--hlw) * -.124)}
 @media (max-width:640px){.as-src-drop{flex-direction:column;gap:6px;text-align:center}.as-src-tx{align-items:center}
   .as-src-drop .as-src-hl{transform:translateX(5%);margin:calc(var(--hlw) * -.42) 0 calc(var(--hlw) * -.07)}}
+
+/* 43. The icon picker's glyphs are painted white for a dark rail; on the light theme's pale tiles
+   white is invisible, so they take the ink there. */
+:root[data-theme="light"] .p-ic img{filter:brightness(0);opacity:.8}
 </style>
 </helmet>
 

@@ -15132,3 +15132,14 @@ it where the user wants, a long one wraps to the column, and both are capped at 
 Every row of the grid opens by one `capBox` only when some label actually uses the second line,
 so a grid of one-line labels is unchanged. Verified with a real Enter in the field: "Clubhouse /
 & Gym", both lines centred, rows 150 → 180 apart, preview against ops 0.44 canvas px.
+
+**OPS'S ICON PICKER BROWSES EVERY SYMBOL (section 43, 2026-10-16, by request — "I need to see the
+Google icons in OPS, all of them").** With nothing typed, `iconSearch` returns the curated `ICONS`
+then the whole of `ICONS_ALL` (3,948 after de-duplication — the curated set carries ~19 names the
+popularity list does not); it showed 12 curated before. `iconPick(q)` pages it 160 at a time
+(`_iconCap`, instance state, reset when the query changes) and `iconPickVals` gives both pickers
+(stats and the row lists) the grid, a count line (`.p-ic-n` — NOT `.gd-hint`, which the editor
+rail hides as a tooltip), **Show more** and **Show all**. Grid images are `loading="lazy"`, so Show
+all does not fetch 3,948 SVGs at once. **Also in this pass, both studios:** the picker's glyphs are
+white (`filter:brightness(0) invert(1)`), invisible on the light theme's pale tiles — light mode
+now paints them in ink (`:root[data-theme="light"] .p-ic img`; CAS section 43). Chrome only.
