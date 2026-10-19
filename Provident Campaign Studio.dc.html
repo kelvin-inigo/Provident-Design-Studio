@@ -660,6 +660,7 @@ textarea.p-in{resize:vertical}
 /* live scrim preview strip */
 .p-scale{display:grid;grid-template-columns:34px 1fr 34px 22px;align-items:center;gap:7px}
 .p-scale-n{font-weight:500;font-size:10px;letter-spacing:.08em;color:var(--ps-mute)}
+.p-scale-pf{max-width:280px;margin:-2px 0 8px}
 .p-scale-v{font-weight:300;font-size:11px;color:var(--ps-mute);text-align:right;font-variant-numeric:tabular-nums}
 .p-hexin{flex:1;min-width:0;font-variant-numeric:tabular-nums;text-transform:uppercase}
 .p-sec-c .p-rule{background:var(--ps-line)}
@@ -4273,38 +4274,69 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sx-fmts .p-rc-i{border-radius:6px}
 .sx-dest{border-radius:10px}
 /* ══ 48 · COMPONENT USAGE (2026-10-19) ════════════════════════════════════════════════════
-   The home page's audit view: each design component and each of its styles, counted across
-   the saved projects in Recent. A component row is its name, a bar of the share of projects
-   using it and "N of M"; under it, one row per style with its share of that component's
-   placements. "Not used" rows are dimmed by INK, never by opacity, so they still read. */
-.cu{max-width:880px;padding-bottom:40px}
-.cu-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:4px 0 8px}
-.cu-sum{flex:1 1 320px;margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
-.cu-f{flex:none}
-.cu-g{margin-top:8px}
-.cu-gh{padding-left:0}
-.cu-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border-radius:var(--ps-r);padding:14px 16px;margin-bottom:8px}
-.cu-rh{display:grid;grid-template-columns:minmax(120px,200px) 1fr auto;align-items:center;gap:14px}
-.cu-n{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
-.cu-bar{display:block;height:8px;border-radius:var(--ps-pill);background:var(--ps-fill);overflow:hidden}
-.cu-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-link)}
-.cu-u{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;min-width:70px;text-align:right}
-.cu-m{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);margin-top:4px}
+   The home page's audit view. Three verdict tiles on top double as the filter; then, per
+   palette group, one card per component: a real render of it (the export's buildOps, on the
+   dark canvas — a picture of the ARTWORK, so it is pinned dark in both themes), its name and
+   verdict, the reason in one line, and the project count set large. Under it, one row per
+   style with its own render. Hierarchy is carried by size, weight and ink tier rather than by
+   more words; the verdict is the only colour. */
+.cu{max-width:960px;padding-bottom:40px}
+.cu-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 14px}
+.cu-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:baseline;text-align:left;
+  padding:14px 16px;border-radius:var(--ps-r);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border:0;cursor:pointer;
+  transition:background var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
+.cu .cu-tile > b{grid-row:1 / 3;font:600 34px/1 var(--ps-font);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cu .cu-tile > span{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu .cu-tile > s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cu-tile:hover{background:var(--ps-card-h)}
+.cu-tile[data-v="keep"] b{color:var(--ps-good)}
+.cu-tile[data-v="rework"] b{color:var(--ps-warn)}
+.cu-tile[data-v="del"] b{color:var(--ps-bad)}
+.cu-tile[data-on][data-v="keep"]{box-shadow:inset 0 0 0 2px var(--ps-good);background:var(--ps-good-q)}
+.cu-tile[data-on][data-v="rework"]{box-shadow:inset 0 0 0 2px var(--ps-warn);background:var(--ps-warn-q)}
+.cu-tile[data-on][data-v="del"]{box-shadow:inset 0 0 0 2px var(--ps-bad);background:var(--ps-bad-q)}
+.cu-warn{margin:-4px 0 12px;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cu-fl{display:flex;align-items:center;gap:10px;margin:0 0 6px;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.cu-fl-x{border:0;background:none;padding:0;font:600 13px/1.4 var(--ps-font);color:var(--ps-link);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.cu-g{margin-top:18px}
+.cu-gh{margin:0 0 10px;font:600 12px/1.2 var(--ps-font);color:var(--ps-dim);letter-spacing:0}
+.cu-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border-radius:var(--ps-r);padding:14px;margin-bottom:10px}
+.cu-rh{display:grid;grid-template-columns:200px 1fr auto;align-items:center;gap:18px}
+.cu-pv,.cu-spv{display:block;aspect-ratio:2/1;border-radius:10px;background:#10151B center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.cu-pv:not([data-ready]),.cu-spv:not([data-ready]){background-image:none}
+.cu-rt{min-width:0}
+.cu-rn{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cu-n{font:600 18px/1.25 var(--ps-font);color:var(--ps-ink);letter-spacing:-.01em}
+.cu-why{margin:4px 0 0;font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.cu-m{margin:4px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 .cu-m:empty{display:none}
-.cu-r[data-off] .cu-n,.cu-r[data-off] .cu-u{color:var(--ps-dim)}
-.cu-r[data-off] .cu-u{font-weight:600;color:var(--ps-bad)}
-.cu-ss{margin-top:10px;padding-top:10px;box-shadow:inset 0 1px 0 var(--ps-hair);display:grid;gap:6px}
-.cu-s{display:grid;grid-template-columns:minmax(120px,200px) 1fr auto;align-items:center;gap:14px}
-.cu-sn{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink);min-width:0}
-.cu-sn s{display:block;text-decoration:none;font-size:11.5px;color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cu-bar-s{height:6px}
-.cu-sc{font:400 12.5px/1.2 var(--ps-font);color:var(--ps-ink-2);min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
-.cu-s[data-off] .cu-sn{color:var(--ps-ink-2)}
-.cu-s[data-off] .cu-sc{color:var(--ps-bad);font-weight:500}
-.cu-note{margin:16px 0 0;font:400 12px/1.5 var(--ps-font);color:var(--ps-dim)}
-@media (max-width:640px){
-  .cu-rh,.cu-s{grid-template-columns:1fr auto}
-  .cu-rh .cu-bar,.cu-s .cu-bar{grid-column:1 / -1;order:3}
+.cu-stat{display:grid;justify-items:end;gap:2px;min-width:92px}
+.cu-stat b{font:600 30px/1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cu-stat s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cu-bar{display:block;width:92px;height:6px;margin-top:6px;border-radius:var(--ps-pill);background:var(--ps-fill);overflow:hidden}
+.cu-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-link)}
+.cu-vb{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--ps-pill);font:600 12px/1 var(--ps-font);white-space:nowrap}
+.cu-vb::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.cu-vb[data-v="keep"]{color:var(--ps-good);background:var(--ps-good-q)}
+.cu-vb[data-v="rework"]{color:var(--ps-warn);background:var(--ps-warn-q)}
+.cu-vb[data-v="del"]{color:var(--ps-bad);background:var(--ps-bad-q)}
+.cu-vb-s{height:22px;font-size:11.5px}
+.cu-ss{margin-top:14px;padding-top:12px;box-shadow:inset 0 1px 0 var(--ps-hair);display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.cu-s{display:grid;grid-template-columns:96px 1fr;grid-template-areas:"pv n" "pv c" "pv v";column-gap:12px;row-gap:3px;align-items:center;
+  padding:8px;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.cu-spv{grid-area:pv;width:96px}
+.cu-sn{grid-area:n;min-width:0}
+.cu-sn{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu-sc s{text-decoration:none;color:var(--ps-dim);margin-left:6px}
+.cu-sc s::before{content:"· "}
+.cu-sc{grid-area:c;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.cu-sc b{font-weight:600;color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.cu-s .cu-vb{grid-area:v;justify-self:start}
+.cu-note{margin:18px 0 0;font:400 12px/1.55 var(--ps-font);color:var(--ps-dim);max-width:72ch}
+@media (max-width:760px){
+  .cu-tiles{grid-template-columns:1fr}
+  .cu-rh{grid-template-columns:1fr auto}
+  .cu-pv{grid-column:1 / -1}
 }
 </style>
 </helmet>
@@ -4417,41 +4449,45 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <sc-if value="{{ shShowUse }}" hint-placeholder-val="{{ false }}">
         <div class="cu">
           <sc-if value="{{ useHasData }}" hint-placeholder-val="{{ true }}">
-            <div class="cu-top">
-              <p class="cu-sum">{{ useSummary }}</p>
-              <div class="p-tabs cu-f" role="group" aria-label="Show">
-                <button onClick="{{ useShowAll }}" data-on="{{ useAllOn }}">Everything</button>
-                <button onClick="{{ useShowUnused }}" data-on="{{ useUnusedOn }}">Not used</button>
-              </div>
+            <div class="cu-tiles" role="group" aria-label="Filter by verdict">
+              <sc-for list="{{ useTiles }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.set }}" class="cu-tile" data-v="{{ t.v }}" data-on="{{ t.on }}" aria-pressed="{{ t.aria }}"><b>{{ t.num }}</b><span>{{ t.lab }}</span><s>{{ t.sub }}</s></button>
+              </sc-for>
             </div>
+            <sc-if value="{{ useSmallOn }}" hint-placeholder-val="{{ false }}"><p class="cu-warn">{{ useSmall }}</p></sc-if>
+            <sc-if value="{{ useFiltOn }}" hint-placeholder-val="{{ false }}"><p class="cu-fl">{{ useFiltLabel }} <button onClick="{{ useShowAll }}" class="cu-fl-x">Show everything</button></p></sc-if>
             <sc-for list="{{ useGroups }}" as="g" hint-placeholder-count="2">
               <section class="cu-g">
-                <div class="p-sec-l cu-gh">{{ g.name }}</div>
+                <h3 class="cu-gh">{{ g.name }}</h3>
                 <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
-                  <div class="cu-r" data-off="{{ r.unusedOn }}">
+                  <article class="cu-r" data-v="{{ r.v }}">
                     <div class="cu-rh">
-                      <b class="cu-n">{{ r.name }}</b>
-                      <span class="cu-bar" title="{{ r.usedTip }}"><i style="{{ r.barStyle }}"></i></span>
-                      <span class="cu-u" title="{{ r.usedTip }}">{{ r.used }}</span>
+                      <span class="cu-pv" style="{{ r.shot }}" data-ready="{{ r.shotOn }}" aria-hidden="true"></span>
+                      <div class="cu-rt">
+                        <div class="cu-rn"><b class="cu-n">{{ r.name }}</b><span class="cu-vb" data-v="{{ r.v }}">{{ r.vLabel }}</span></div>
+                        <p class="cu-why">{{ r.why }}</p>
+                        <p class="cu-m">{{ r.meta }}</p>
+                      </div>
+                      <div class="cu-stat" title="{{ r.usedTip }}"><b>{{ r.num }}</b><s>{{ r.of }}</s><span class="cu-bar"><i style="{{ r.barStyle }}"></i></span></div>
                     </div>
-                    <div class="cu-m">{{ r.meta }}</div>
                     <sc-if value="{{ r.stylesOn }}" hint-placeholder-val="{{ true }}">
                       <div class="cu-ss">
                         <sc-for list="{{ r.styles }}" as="st" hint-placeholder-count="3">
-                          <div class="cu-s" data-off="{{ st.unusedOn }}" title="{{ st.tip }}">
-                            <span class="cu-sn">{{ st.name }}<s>{{ st.desc }}</s></span>
-                            <span class="cu-bar cu-bar-s"><i style="{{ st.barStyle }}"></i></span>
-                            <span class="cu-sc">{{ st.count }}</span>
+                          <div class="cu-s" data-v="{{ st.v }}" title="{{ st.tip }}">
+                            <span class="cu-spv" style="{{ st.shot }}" data-ready="{{ st.shotOn }}" aria-hidden="true"></span>
+                            <span class="cu-sn">{{ st.name }}</span>
+                            <span class="cu-sc"><b>{{ st.num }}</b> {{ st.unit }}<s>{{ st.why }}</s></span>
+                            <span class="cu-vb cu-vb-s" data-v="{{ st.v }}">{{ st.vLabel }}</span>
                           </div>
                         </sc-for>
                       </div>
                     </sc-if>
-                  </div>
+                  </article>
                 </sc-for>
               </section>
             </sc-for>
-            <sc-if value="{{ useNothing }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Every component and style is used in at least one of these projects.</div></sc-if>
-            <p class="cu-note">Counted from the saved projects in Recent (the studio keeps your 10 newest). A placement is one component on one variant or carousel page; hidden ones are counted apart. Hover a bar to see which projects use it.</p>
+            <sc-if value="{{ useNothing }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing carries that verdict.</div></sc-if>
+            <p class="cu-note">Counted from the saved projects in Recent (the studio keeps your 10 newest). A placement is one component on one variant or carousel page; hidden ones are counted apart. A component is worth keeping when a third of the projects use it, needs rework when only a few do or it keeps being hidden, and is worth deleting when none do. A style is judged by its share of its component's uses. Hover anything to see which projects use it.</p>
           </sc-if>
           <sc-if value="{{ useNoData }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing to count yet — usage is read from saved projects. Save a project and it appears here.</div></sc-if>
         </div>
@@ -5387,6 +5423,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <span class="p-meta">1080 × 1440 · <span style="{{ v.pt.coverStyle }}" class="tip" data-tip="{{ v.pt.coverTip }}">{{ v.pt.coverLabel }}</span></span>
       </sc-if>
       <div class="p-szh" data-off="{{ v.pfOff }}"><b>Portrait Fix</b><i>9:16</i><span class="p-szx"><sc-if value="{{ v.pfShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.pfOvOn }}" onClick="{{ v.togglePfOv }}" title="{{ v.pfLinkTip }}" aria-label="{{ v.pfLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.pfAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.pfAlCtr }}" onClick="{{ v.pfAlFlip }}" title="{{ v.pfAlTip }}" aria-label="{{ v.pfAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgPfOn }}" onClick="{{ v.toggleBgPf }}" title="{{ v.bgPfTip }}" aria-label="{{ v.bgPfTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.pfShowOn }}" onClick="{{ v.togglePfShow }}" title="{{ v.pfEyeTip }}" aria-label="{{ v.pfEyeTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
+      <sc-if value="{{ v.pfShow }}" hint-placeholder-val="{{ false }}"><div class="p-scale p-scale-pf"><span class="p-scale-n">Scale</span><input type="range" min="{{ v.pfScMin }}" max="{{ v.pfScMax }}" step="1" value="{{ v.pfScVal }}" onChange="{{ v.pfScSet }}" aria-label="Portrait Fix scaling"><span class="p-scale-v">{{ v.pfScPct }}</span><button onClick="{{ v.pfScReset }}" class="p-rst" data-off="{{ v.pfScDef }}" title="Reset to 100%" aria-label="Reset to 100%"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></button></div></sc-if>
       <sc-if value="{{ v.pfShow }}" hint-placeholder-val="{{ false }}">
       <div onClick="{{ v.pf.select }}" data-cwpx="{{ v.pf.cwPx }}" style="{{ v.pf.canvasStyle }}">
         <div class="canvasbg" style="{{ v.pf.bgWrapStyle }}"><sc-for list="{{ v.bgPfSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for Portrait Fix" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
@@ -12021,12 +12058,18 @@ class CampaignStudio extends StudioBase {
   // the project but not in the ad. Only each variant's own layout is read — a detached
   // size's own style is not counted separately. Memoised on the list, which is replaced
   // (never mutated) whenever it changes.
-  usageVals(labels, recents) {
-    const memo = this._useMemo;
-    if (memo && memo.r === recents && memo.f === !!this._useUnused) return memo.v;
-    const C = CampaignStudio, N = recents.length;
-    const T = {};
-    const blank = () => ({ projs: new Set(), n: 0, hid: 0, styles: {}, sizes: { s: 0, m: 0, l: 0, xl: 0 }, m: null });
+  //
+  // Every component and every style gets a VERDICT (useVerdict): Worth keeping, Needs rework
+  // or Consider deleting, with the reason in one line. It is a reading of the numbers, not a
+  // decision — the sample is at most RECENT_MAX projects.
+  static USE_V = {
+    keep: { label: 'Worth keeping', rank: 0 },
+    rework: { label: 'Needs rework', rank: 1 },
+    del: { label: 'Consider deleting', rank: 2 }
+  };
+  usageCount(recents) {
+    const C = CampaignStudio, T = {};
+    const blank = () => ({ projs: new Set(), n: 0, hid: 0, hidProjs: new Set(), styles: {}, sizes: { s: 0, m: 0, l: 0, xl: 0 }, m: null });
     recents.forEach((r, ri) => {
       let st;
       try { st = JSON.parse(JSON.stringify(r.state || {})); C.normState(st); } catch (e) { return; }
@@ -12036,7 +12079,7 @@ class CampaignStudio extends StudioBase {
           const key = m.type === 'cust' ? 'cust:' + ((m.spec && m.spec.name) || 'Custom component') : m.type;
           const t = T[key] || (T[key] = blank());
           t.m = t.m || m;
-          if (v.hidden && v.hidden[m.id]) { t.hid++; return; }
+          if (v.hidden && v.hidden[m.id]) { t.hid++; t.hidProjs.add(ri); return; }
           t.n++; t.projs.add(ri);
           const opts = C.voptOf(m);
           const sk = (v.mvar && v.mvar[m.id]) || (opts[0] && opts[0][0]) || 'plain';
@@ -12047,56 +12090,143 @@ class CampaignStudio extends StudioBase {
         });
       });
     });
+    return T;
+  }
+  // The verdict on a component: used widely, used rarely (or added and then hidden), or not
+  // at all. "Widely" is a third of the projects, and at least two of them.
+  static useVerdictType(t, N) {
+    const used = t.projs.size, of = ' of ' + N;
+    if (!used && !t.hid) return ['del', 'No saved project uses it.'];
+    if (!used) return ['rework', 'Added ' + t.hid + (t.hid === 1 ? ' time' : ' times') + ', then hidden every time.'];
+    if (t.hid > t.n) return ['rework', 'Hidden more often than shown — ' + t.hid + ' hidden, ' + t.n + ' shown.'];
+    if (used >= Math.max(2, N / 3)) return ['keep', 'In ' + used + of + ' projects.'];
+    return ['rework', 'Only in ' + used + of + ' projects.'];
+  }
+  // A style's verdict is its share of its component's placements.
+  static useVerdictStyle(so, t) {
+    if (!so.n) return ['del', 'Never picked'];
+    const share = so.n / Math.max(1, t.n);
+    if (so.projs.size >= 2 || share >= .25) return ['keep', Math.round(share * 100) + '% of its uses'];
+    return ['rework', 'Picked once, ' + Math.round(share * 100) + '% of its uses'];
+  }
+  // A PREVIEW of every component in every style, rendered by the export's own buildOps on
+  // the dark canvas with the palette's sample copy — the style tiles' method (vtCrop), one
+  // window per component so its styles compare at one scale. Rendered once per face, in the
+  // background, the first time the view is shown.
+  async useRender(defaults) {
+    const C = CampaignStudio, VT = C.VT;
+    const fam = StudioBase.applyFont(this.state).fam;
+    const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+    await Promise.all(['300 35px', '400 85px', '500 24px', '300 148px', '400 59px'].map(w => safe(w + ' "' + fam + '"')));
+    try { await document.fonts.ready; } catch (e) {}
+    const glyph = await C.vtGlyph();
+    const out = {};
+    const T = this._useT || {};
+    const types = ['eyebrow', 'hero', 'hook', 'body', 'price', 'spec', 'tags', 'list', 'steps', 'cta', 'graphic', 'divider']
+      .concat(Object.keys(T).filter(k => /^cust:/.test(k)));
+    for (const key of types) {
+      try {
+        const id = 'u1';
+        const mm = key.indexOf('cust:') === 0 ? JSON.parse(JSON.stringify(T[key].m)) : Object.assign({ type: key }, JSON.parse(JSON.stringify(defaults[key] || {})));
+        mm.id = id;
+        const opts = C.voptOf(mm);
+        const st = C.defaults();
+        const v0 = st.variants[0];
+        st.modules = [mm]; st.adMode = 'single';
+        st.qr = Object.assign({}, st.qr, { show: false });
+        st.colog = Object.assign({}, st.colog, { on: false });
+        v0.logoPos = 'top'; v0.clusters = { [id]: 'bottom' }; v0.hidden = {}; v0.ord = [id];
+        const A = {};
+        if (glyph) { A['mod' + id] = { img: glyph, u: 'vt-glyph' }; for (let i = 0; i < C.ICON_MAX; i++) A['ic' + id + '_' + i] = { img: glyph, u: 'vt-glyph' }; }
+        const builds = (opts.length ? opts : [['plain', '']]).map(([k]) => {
+          v0.mvar = { [id]: k };
+          v0.msize = mm.type === 'divider' ? { [id]: 'xl' } : {};
+          if (mm.type === 'graphic') mm.gsize = 's';
+          return { key: k, built: this.buildOps(st, 0, 'sq', A) };
+        });
+        out[key] = this.vtCrop(builds, VT);
+      } catch (e) { console.warn('[provident] usage preview failed', key, e); }
+      await new Promise(r => setTimeout(r, 0));
+    }
+    return out;
+  }
+  useSync(defaults) {
+    const k = StudioBase.fontKey(this.state) + '|' + Object.keys(this._useT || {}).filter(x => /^cust:/.test(x)).join(',');
+    if (this._usePvKey === k || this._usePvBusy) return;
+    this._usePvBusy = true;
+    this.useRender(defaults).then(pv => { this._usePv = pv; this._usePvKey = k; this._usePvBusy = false; this._useMemo = null; this.forceUpdate(); })
+      .catch(() => { this._usePvBusy = false; });
+  }
+  usageVals(labels, recents, defaults) {
+    const memo = this._useMemo, filt = this._useFilt || 'all';
+    if (memo && memo.r === recents && memo.f === filt && memo.pv === this._usePv) return memo.v;
+    const C = CampaignStudio, N = recents.length, V = C.USE_V;
+    const T = this._useT = this.usageCount(recents);
+    const pv = this._usePv || {};
     const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
     const who = set => [...set].map(i => recents[i].name || 'Untitled').join(', ');
     const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-    const bar = p => ({ width: Math.max(p, 0) + '%' });
-    let unusedTypes = 0, unusedStyles = 0;
-    const onlyUnused = !!this._useUnused;
+    const shot = u => u ? { backgroundImage: 'url("' + u + '")' } : {};
+    const tally = { keep: [0, 0], rework: [0, 0], del: [0, 0] };
+    const blank = { projs: new Set(), n: 0, hid: 0, hidProjs: new Set(), styles: {}, sizes: { s: 0, m: 0, l: 0, xl: 0 }, m: null };
     const row = (key, name) => {
-      const t = T[key] || blank();
+      const t = T[key] || blank;
       const m = t.m || { type: key };
       const opts = C.voptOf(m).slice();
       Object.keys(t.styles).forEach(k => { if (!opts.some(o => o[0] === k)) opts.push([k, k]); });
       const multi = opts.length > 1;
+      const [vk, why] = N ? C.useVerdictType(t, N) : ['keep', ''];
+      tally[vk][0]++;
+      const top = Object.keys(t.styles).sort((a, b) => t.styles[b].n - t.styles[a].n)[0] || (opts[0] && opts[0][0]);
       const styles = multi ? opts.map(([k, label]) => {
         const so = t.styles[k] || { n: 0, projs: new Set() };
-        if (!so.n) unusedStyles++;
-        return { name: label, desc: C.vdescOf(m, k), count: so.n ? plural(so.projs.size, 'project') : 'Not used',
-          share: t.n ? pct(so.n, t.n) + '%' : '', barStyle: bar(pct(so.n, t.n)),
-          unusedOn: so.n ? undefined : '1',
-          tip: so.n ? plural(so.n, 'placement') + ' in ' + who(so.projs) : 'No saved project uses ' + label + '.' };
+        const [sv, swhy] = C.useVerdictStyle(so, t);
+        tally[sv][1]++;
+        return { name: label, desc: C.vdescOf(m, k), num: so.projs.size ? String(so.projs.size) : '0',
+          unit: so.projs.size === 1 ? 'project' : 'projects',
+          barStyle: { width: pct(so.n, t.n) + '%' }, v: sv, vLabel: V[sv].label, why: swhy,
+          tip: label + (C.vdescOf(m, k) ? ' — ' + C.vdescOf(m, k) : '') + (so.n ? '. Used in ' + who(so.projs) : '. No saved project picks it.'),
+          shot: shot((pv[key] || {})[k]), shotOn: (pv[key] || {})[k] ? '1' : undefined };
       }) : [];
-      const used = t.projs.size;
-      if (!used) unusedTypes++;
       const sz = t.n ? C.SIZES.map(([k, l]) => t.sizes[k] ? l + ' ' + t.sizes[k] : '').filter(Boolean).join(' · ') : '';
-      return { name, used: used ? used + ' of ' + N : 'Not used', usedTip: used ? 'Used in ' + who(t.projs) : 'No saved project uses it',
-        barStyle: bar(pct(used, N)), unusedOn: used ? undefined : '1',
+      return { name, v: vk, vLabel: V[vk].label, why,
+        num: String(t.projs.size), of: 'of ' + plural(N, 'project'),
+        usedTip: t.projs.size ? 'Used in ' + who(t.projs) : 'No saved project uses it',
+        barStyle: { width: pct(t.projs.size, N) + '%' },
         meta: [t.n ? plural(t.n, 'placement') : '', t.hid ? t.hid + ' hidden' : '', sz ? 'Sizes ' + sz : ''].filter(Boolean).join(' · '),
-        styles: onlyUnused ? styles.filter(x => x.unusedOn) : styles, stylesOn: multi && styles.length > 0 && (!onlyUnused || styles.some(x => x.unusedOn)) };
+        shot: shot((pv[key] || {})[top]), shotOn: (pv[key] || {})[top] ? '1' : undefined,
+        styles, stylesOn: styles.length > 0 };
     };
-    const groups = [['Text', ['eyebrow', 'hero', 'hook', 'body']], ['Data', ['price', 'spec', 'tags', 'list', 'steps']],
+    let groups = [['Text', ['eyebrow', 'hero', 'hook', 'body']], ['Data', ['price', 'spec', 'tags', 'list', 'steps']],
       ['Action & media', ['cta', 'graphic']], ['Structure', ['divider', 'spacer']]]
       .map(([g, types]) => ({ name: g, rows: types.map(k => row(k, (labels[k] || [k])[0])) }));
     const cust = Object.keys(T).filter(k => /^cust:/.test(k)).sort();
     if (cust.length) groups.push({ name: 'Custom', rows: cust.map(k => row(k, k.slice(5))) });
-    groups.forEach(g => {
-      if (onlyUnused) g.rows = g.rows.filter(r => r.unusedOn || r.stylesOn);
-      g.on = g.rows.length > 0;
-    });
+    // the filter keeps a component when it OR any of its styles carries the verdict, and then
+    // shows only the styles that carry it
+    if (filt !== 'all') groups = groups.map(g => ({ name: g.name, rows: g.rows
+      .filter(r => r.v === filt || r.styles.some(x => x.v === filt))
+      .map(r => Object.assign({}, r, { styles: r.styles.filter(x => x.v === filt), stylesOn: r.styles.some(x => x.v === filt) })) }));
+    groups = groups.filter(g => g.rows.length);
+    const tile = k => ({ num: String(tally[k][0]), lab: V[k].label,
+      sub: (tally[k][0] === 1 ? 'component' : 'components') + (tally[k][1] ? ' · ' + plural(tally[k][1], 'style') : ''), v: k,
+      on: filt === k ? '1' : undefined, set: () => { this._useFilt = filt === k ? 'all' : k; this.forceUpdate(); },
+      aria: filt === k ? 'true' : 'false' });
+    if (N && !this._usePv) this.useSync(defaults);
     const v = {
-      useGroups: groups.filter(g => g.on),
+      useGroups: groups,
       useHasData: N > 0,
       useNoData: N === 0,
-      useNothing: N > 0 && groups.every(g => !g.on),
-      useSummary: N ? plural(unusedTypes, 'component') + ' and ' + plural(unusedStyles, 'style') + ' are not used in any of these projects.' : '',
-      useAllOn: onlyUnused ? undefined : '1',
-      useUnusedOn: onlyUnused ? '1' : undefined,
-      useShowAll: () => { this._useUnused = false; this.forceUpdate(); },
-      useShowUnused: () => { this._useUnused = true; this.forceUpdate(); },
+      useNothing: N > 0 && !groups.length,
+      useTiles: N ? ['keep', 'rework', 'del'].map(tile) : [],
+      useFiltOn: filt !== 'all' ? '1' : undefined,
+      useFiltLabel: filt !== 'all' ? 'Showing ' + V[filt].label.toLowerCase() + ' only' : '',
+      useShowAll: () => { this._useFilt = 'all'; this.forceUpdate(); },
+      useSmallOn: N && N < 5 ? '1' : undefined,
+      useSmall: 'Only ' + plural(N, 'saved project') + ' so far — read these as early signals.',
       useCount: N
     };
-    this._useMemo = { r: recents, f: onlyUnused, v };
+    this._useMemo = { r: recents, f: filt, pv: this._usePv, v };
     return v;
   }
 
@@ -13280,6 +13410,14 @@ class CampaignStudio extends StudioBase {
       // PORTRAIT FIX (2026-10-19, TEMPORARY, by request) — the 9:16 story with 260 more of top
       // clearance. Shown by default (`v.pfHide`); the 3:4 portrait is now off by default (`v.ptOn`).
       pfShow: !CampaignStudio.isYT(s) && !v.pfHide,
+      // Portrait Fix's own Scaling slider, on its row (the Layout rail's Scaling has it too).
+      ...(() => {
+        const steps = CampaignStudio.scaleSteps('pf'), cur = CampaignStudio.scaleStepOf(v, 'pf'), pct = Math.round(CampaignStudio.scaleOf(v, 'pf') * 100);
+        const put = val => this.upd(x => { const vv = x.variants[vi]; vv.scaleBy = vv.scaleBy || {}; vv.scaleBy.pf = val; return x; });
+        return { pfScVal: cur, pfScMin: steps[0], pfScMax: steps[steps.length - 1], pfScPct: pct + '%', pfScDef: pct === 100 ? '1' : undefined,
+          pfScSet: e => put(+(100 * Math.pow(1.2, Math.round(+e.target.value))).toFixed(2)),
+          pfScReset: e => { if (e && e.stopPropagation) e.stopPropagation(); put(100); } };
+      })(),
       togglePfShow: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.pfHide = !vv.pfHide; if (vv.pfHide && x.sel && x.sel.vi === vi && x.sel.size === 'pf') x.sel = null; return x; }); },
       togglePfOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.pfOv = vv.pfOv ? null : CampaignStudio.detachRec(vv); return x; }); },
       toggleBgPf: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.pf = !vv.bgSep.pf; return x; }); },
@@ -13507,7 +13645,7 @@ class CampaignStudio extends StudioBase {
     const recents = this.savedRecents();
     return {
       ...this.copyVals(),
-      ...this.usageVals(labels, recents),
+      ...this.usageVals(labels, recents, addDefaults),
       paletteCats, variantViews,
       // THE CUSTOM GROUP — this computer's library plus anything the project carries. A
       // palette card cannot hold a second button (a button in a button), so Remove sits

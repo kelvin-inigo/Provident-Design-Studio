@@ -15323,5 +15323,16 @@ By request: key **`pf`**, the 9:16 story's tokens with the top margin 520 (the s
 (`v.pfHide` is the eye); the **Portrait 3:4 is now OFF by default** (`v.ptOn`, missing = hidden —
 it was `v.ptHide`). It has the 3:4's controls (`pfOv` in `OVK` / `sizeOv`, `bgSep.pf` with slot
 `adstudio-bg-<vi>-pf`, a Scaling row, the align button, the rail's own-photo row) and Ad sets
-reads `portrait_fix`. The plate's 1.91:1 rows are named **Horizontal** (both the Meta `ls` and
+reads `portrait_fix`. Its row carries its own Scale slider (`pfSc*` in variantViews,
+`.p-scale-pf`), the same `scaleBy.pf` the Layout rail's Scaling row sets. The plate's 1.91:1 rows are named **Horizontal** (both the Meta `ls` and
 YouTube `yl`). To delete: grep `pf` / `Portrait Fix` / `portrait_fix` / `pfHide` / `pfOv`.
+
+**Previews and verdicts (same day, by request).** Each component and each style carries a real
+render (`useRender` / `useSync`): the export's `buildOps` on the dark canvas with the palette's
+sample copy (`addDefaults`, passed into `usageVals`), cropped by `vtCrop` with one window per
+component; rendered once per face in the background, pinned dark like the artwork it is. Verdicts
+are `useVerdictType` (keep: used in ≥ max(2, N/3) projects; rework: used fewer, or hidden more than
+shown, or only ever hidden; delete: unused) and `useVerdictStyle` (keep: ≥2 projects or ≥25% of
+the component's placements; rework: picked once; delete: never). Three verdict tiles are the filter
+(`_useFilt`). A trap hit here: DC wraps interpolated text in `span.sc-interp`, so `.cu-tile span`
+also styled the digit inside `<b>` — scope with `>`.

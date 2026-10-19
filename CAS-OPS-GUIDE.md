@@ -220,7 +220,8 @@ No API key or service is needed: Claude Code reads the screenshot.
 - **Portrait 3:4:** hidden by default — press the eye on its row to show it. It mirrors the 1:1
   until you press its link button. It exports as `<name>_Variant A_Portrait_3x4.jpg` at 2160 × 2880.
 - **Portrait Fix (temporary):** shown by default under the 3:4 row. It is the 9:16 Story with
-  260px more clearance at the top (520 in all). Same link, picture and eye buttons. It exports as
+  260px more clearance at the top (520 in all). Same link, picture and eye buttons, and a
+  **Scale** slider right under its row (58–100%, on its own — it does not move the Story). It exports as
   `<name>_Variant A_Portrait_Fix.jpg` at 2160 × 3840.
 - **9:16:** it mirrors the 1:1 until you press its link button.
 - **Horizontal 1.91:1** (the YT Demand Gen landscape): press the eye on its row to show it. It is a 1200 × 628 landscape for
@@ -523,14 +524,18 @@ On CAS's home page, press **Component usage** in the sidebar, in the **Review** 
 every design component, and every style of it, across the saved projects in **Recent** (the studio
 keeps your 10 newest saved projects, so that is the sample).
 
-- Each component shows how many of those projects use it ("2 of 4"), how many times it is placed
-  (one placement = one component on one variant or carousel page), how many are hidden, and which
-  sizes (S / M / L / XL) were picked.
-- Under it, each style shows how many projects use it. **Not used** is marked in red.
-- Hover a bar to see the names of the projects that use it.
-- Press **Not used** at the top to see only the components and styles nobody used.
+- Every component and every style has a **picture of it**, drawn the way the export draws it.
+- Each one carries a verdict and the reason for it:
+  - **Worth keeping** — a third or more of the projects use the component (at least two), or a
+    style is picked in two projects or for a quarter of its component's uses.
+  - **Needs rework** — used, but only rarely, or added and then hidden more often than shown.
+  - **Consider deleting** — no saved project uses it.
+- The three boxes at the top count each verdict. Press one to see only those; press it again,
+  or **Show everything**, to go back.
+- The big number is how many projects use the component. Hover anything to see which projects.
 
-Only saved projects count. A project you have opened but never saved is not in the numbers.
+Only saved projects count. A project you have opened but never saved is not in the numbers. With
+fewer than five saved projects the page says so — treat the verdicts as early signals.
 
 ## 8. OPS: make a post
 
