@@ -515,6 +515,21 @@ installed.
 
 ---
 
+### Audit the components: Component usage
+
+On CAS's home page, press **Component usage** in the sidebar, in the **Review** group. It counts
+every design component, and every style of it, across the saved projects in **Recent** (the studio
+keeps your 10 newest saved projects, so that is the sample).
+
+- Each component shows how many of those projects use it ("2 of 4"), how many times it is placed
+  (one placement = one component on one variant or carousel page), how many are hidden, and which
+  sizes (S / M / L / XL) were picked.
+- Under it, each style shows how many projects use it. **Not used** is marked in red.
+- Hover a bar to see the names of the projects that use it.
+- Press **Not used** at the top to see only the components and styles nobody used.
+
+Only saved projects count. A project you have opened but never saved is not in the numbers.
+
 ## 8. OPS: make a post
 
 Picking a template opens the **guided run**: one page of the post at a time, filled in top to

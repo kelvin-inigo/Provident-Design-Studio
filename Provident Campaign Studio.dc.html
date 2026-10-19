@@ -4272,6 +4272,40 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sx-fmts .p-rc{border-radius:10px}
 .sx-fmts .p-rc-i{border-radius:6px}
 .sx-dest{border-radius:10px}
+/* ══ 48 · COMPONENT USAGE (2026-10-19) ════════════════════════════════════════════════════
+   The home page's audit view: each design component and each of its styles, counted across
+   the saved projects in Recent. A component row is its name, a bar of the share of projects
+   using it and "N of M"; under it, one row per style with its share of that component's
+   placements. "Not used" rows are dimmed by INK, never by opacity, so they still read. */
+.cu{max-width:880px;padding-bottom:40px}
+.cu-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:4px 0 8px}
+.cu-sum{flex:1 1 320px;margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cu-f{flex:none}
+.cu-g{margin-top:8px}
+.cu-gh{padding-left:0}
+.cu-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border-radius:var(--ps-r);padding:14px 16px;margin-bottom:8px}
+.cu-rh{display:grid;grid-template-columns:minmax(120px,200px) 1fr auto;align-items:center;gap:14px}
+.cu-n{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu-bar{display:block;height:8px;border-radius:var(--ps-pill);background:var(--ps-fill);overflow:hidden}
+.cu-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-link)}
+.cu-u{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;min-width:70px;text-align:right}
+.cu-m{font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);margin-top:4px}
+.cu-m:empty{display:none}
+.cu-r[data-off] .cu-n,.cu-r[data-off] .cu-u{color:var(--ps-dim)}
+.cu-r[data-off] .cu-u{font-weight:600;color:var(--ps-bad)}
+.cu-ss{margin-top:10px;padding-top:10px;box-shadow:inset 0 1px 0 var(--ps-hair);display:grid;gap:6px}
+.cu-s{display:grid;grid-template-columns:minmax(120px,200px) 1fr auto;align-items:center;gap:14px}
+.cu-sn{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink);min-width:0}
+.cu-sn s{display:block;text-decoration:none;font-size:11.5px;color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cu-bar-s{height:6px}
+.cu-sc{font:400 12.5px/1.2 var(--ps-font);color:var(--ps-ink-2);min-width:70px;text-align:right;font-variant-numeric:tabular-nums}
+.cu-s[data-off] .cu-sn{color:var(--ps-ink-2)}
+.cu-s[data-off] .cu-sc{color:var(--ps-bad);font-weight:500}
+.cu-note{margin:16px 0 0;font:400 12px/1.5 var(--ps-font);color:var(--ps-dim)}
+@media (max-width:640px){
+  .cu-rh,.cu-s{grid-template-columns:1fr auto}
+  .cu-rh .cu-bar,.cu-s .cu-bar{grid-column:1 / -1;order:3}
+}
 </style>
 </helmet>
 
@@ -4301,6 +4335,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
       <div class="p-sec-l">Review</div>
       <button onClick="{{ asOpen }}" class="p-nav2" title="Opens the ad sets viewer: every exported ad in a campaign folder, laid out by audience and variant"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m517.69-447.69-48.31-60q-5.61-6.85-14.27-6.85-8.65 0-14.26 7.23l-55.08 72.23q-7.23 9.23-2.31 19.08 4.92 9.85 16.39 9.85h300.3q11.46 0 16.39-9.85 4.92-9.85-1.93-19.08l-87.38-115.46q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-80.62 102.85ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></i>Ad sets<b class="p-nav2-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b></button>
+      <button onClick="{{ shViewUse }}" data-on="{{ shViewUseOn }}" class="p-nav2" title="How often each design component and style is used across your saved projects"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M676.15-180q-15.36 0-25.76-10.4Q640-200.79 640-216.16V-380q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h67.69q15.37 0 25.76 10.39Q780-395.36 780-380v163.84q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4h-67.69Zm-230 0q-15.36 0-25.76-10.4Q410-200.79 410-216.16v-527.68q0-15.37 10.39-25.76 10.4-10.4 25.76-10.4h67.7q15.36 0 25.76 10.4Q550-759.21 550-743.84v527.68q0 15.37-10.39 25.76-10.4 10.4-25.76 10.4h-67.7Zm-229.99 0q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-331.35q0-15.64 10.4-25.99 10.39-10.34 25.76-10.34h67.69q15.36 0 25.76 10.39Q320-563.06 320-547.69v331.35q0 15.65-10.39 25.99Q299.21-180 283.85-180h-67.69Z"/></svg></i>Component usage</button>
       <div class="p-sec-l">Session</div>
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i><span class="p-nav2-t"><span>Continue last</span><small>{{ continueName }}</small></span></button>
@@ -4377,6 +4412,49 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </sc-for>
         </div>
         <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing yet — your projects appear here once you save one.</div></sc-if>
+      </sc-if>
+
+      <sc-if value="{{ shShowUse }}" hint-placeholder-val="{{ false }}">
+        <div class="cu">
+          <sc-if value="{{ useHasData }}" hint-placeholder-val="{{ true }}">
+            <div class="cu-top">
+              <p class="cu-sum">{{ useSummary }}</p>
+              <div class="p-tabs cu-f" role="group" aria-label="Show">
+                <button onClick="{{ useShowAll }}" data-on="{{ useAllOn }}">Everything</button>
+                <button onClick="{{ useShowUnused }}" data-on="{{ useUnusedOn }}">Not used</button>
+              </div>
+            </div>
+            <sc-for list="{{ useGroups }}" as="g" hint-placeholder-count="2">
+              <section class="cu-g">
+                <div class="p-sec-l cu-gh">{{ g.name }}</div>
+                <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+                  <div class="cu-r" data-off="{{ r.unusedOn }}">
+                    <div class="cu-rh">
+                      <b class="cu-n">{{ r.name }}</b>
+                      <span class="cu-bar" title="{{ r.usedTip }}"><i style="{{ r.barStyle }}"></i></span>
+                      <span class="cu-u" title="{{ r.usedTip }}">{{ r.used }}</span>
+                    </div>
+                    <div class="cu-m">{{ r.meta }}</div>
+                    <sc-if value="{{ r.stylesOn }}" hint-placeholder-val="{{ true }}">
+                      <div class="cu-ss">
+                        <sc-for list="{{ r.styles }}" as="st" hint-placeholder-count="3">
+                          <div class="cu-s" data-off="{{ st.unusedOn }}" title="{{ st.tip }}">
+                            <span class="cu-sn">{{ st.name }}<s>{{ st.desc }}</s></span>
+                            <span class="cu-bar cu-bar-s"><i style="{{ st.barStyle }}"></i></span>
+                            <span class="cu-sc">{{ st.count }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </section>
+            </sc-for>
+            <sc-if value="{{ useNothing }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Every component and style is used in at least one of these projects.</div></sc-if>
+            <p class="cu-note">Counted from the saved projects in Recent (the studio keeps your 10 newest). A placement is one component on one variant or carousel page; hidden ones are counted apart. Hover a bar to see which projects use it.</p>
+          </sc-if>
+          <sc-if value="{{ useNoData }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing to count yet — usage is read from saved projects. Save a project and it appears here.</div></sc-if>
+        </div>
       </sc-if>
     </div>
 
@@ -11887,6 +11965,93 @@ class CampaignStudio extends StudioBase {
     await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), r.images || {});
   }
 
+  // ══ COMPONENT USAGE — an audit of the design components across the saved projects ══════
+  // Read from the recents list, which IS the saved projects (recordSaved), each entry
+  // carrying its whole state. Each state goes through normState on a copy first, so a
+  // retired style is counted as the style it opens as today. A PLACEMENT is one component
+  // on one variant or carousel page; a hidden one is counted apart, because it is still in
+  // the project but not in the ad. Only each variant's own layout is read — a detached
+  // size's own style is not counted separately. Memoised on the list, which is replaced
+  // (never mutated) whenever it changes.
+  usageVals(labels, recents) {
+    const memo = this._useMemo;
+    if (memo && memo.r === recents && memo.f === !!this._useUnused) return memo.v;
+    const C = CampaignStudio, N = recents.length;
+    const T = {};
+    const blank = () => ({ projs: new Set(), n: 0, hid: 0, styles: {}, sizes: { s: 0, m: 0, l: 0, xl: 0 }, m: null });
+    recents.forEach((r, ri) => {
+      let st;
+      try { st = JSON.parse(JSON.stringify(r.state || {})); C.normState(st); } catch (e) { return; }
+      (st.variants || []).forEach((v, vi) => {
+        C.modulesFor(st, vi).forEach(m => {
+          if (!m || !m.type) return;
+          const key = m.type === 'cust' ? 'cust:' + ((m.spec && m.spec.name) || 'Custom component') : m.type;
+          const t = T[key] || (T[key] = blank());
+          t.m = t.m || m;
+          if (v.hidden && v.hidden[m.id]) { t.hid++; return; }
+          t.n++; t.projs.add(ri);
+          const opts = C.voptOf(m);
+          const sk = (v.mvar && v.mvar[m.id]) || (opts[0] && opts[0][0]) || 'plain';
+          const so = t.styles[sk] || (t.styles[sk] = { n: 0, projs: new Set() });
+          so.n++; so.projs.add(ri);
+          const z = (v.msize && v.msize[m.id]) || 'm';
+          if (t.sizes[z] != null) t.sizes[z]++;
+        });
+      });
+    });
+    const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+    const who = set => [...set].map(i => recents[i].name || 'Untitled').join(', ');
+    const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+    const bar = p => ({ width: Math.max(p, 0) + '%' });
+    let unusedTypes = 0, unusedStyles = 0;
+    const onlyUnused = !!this._useUnused;
+    const row = (key, name) => {
+      const t = T[key] || blank();
+      const m = t.m || { type: key };
+      const opts = C.voptOf(m).slice();
+      Object.keys(t.styles).forEach(k => { if (!opts.some(o => o[0] === k)) opts.push([k, k]); });
+      const multi = opts.length > 1;
+      const styles = multi ? opts.map(([k, label]) => {
+        const so = t.styles[k] || { n: 0, projs: new Set() };
+        if (!so.n) unusedStyles++;
+        return { name: label, desc: C.vdescOf(m, k), count: so.n ? plural(so.projs.size, 'project') : 'Not used',
+          share: t.n ? pct(so.n, t.n) + '%' : '', barStyle: bar(pct(so.n, t.n)),
+          unusedOn: so.n ? undefined : '1',
+          tip: so.n ? plural(so.n, 'placement') + ' in ' + who(so.projs) : 'No saved project uses ' + label + '.' };
+      }) : [];
+      const used = t.projs.size;
+      if (!used) unusedTypes++;
+      const sz = t.n ? C.SIZES.map(([k, l]) => t.sizes[k] ? l + ' ' + t.sizes[k] : '').filter(Boolean).join(' · ') : '';
+      return { name, used: used ? used + ' of ' + N : 'Not used', usedTip: used ? 'Used in ' + who(t.projs) : 'No saved project uses it',
+        barStyle: bar(pct(used, N)), unusedOn: used ? undefined : '1',
+        meta: [t.n ? plural(t.n, 'placement') : '', t.hid ? t.hid + ' hidden' : '', sz ? 'Sizes ' + sz : ''].filter(Boolean).join(' · '),
+        styles: onlyUnused ? styles.filter(x => x.unusedOn) : styles, stylesOn: multi && styles.length > 0 && (!onlyUnused || styles.some(x => x.unusedOn)) };
+    };
+    const groups = [['Text', ['eyebrow', 'hero', 'hook', 'body']], ['Data', ['price', 'spec', 'tags', 'list', 'steps']],
+      ['Action & media', ['cta', 'graphic']], ['Structure', ['divider', 'spacer']]]
+      .map(([g, types]) => ({ name: g, rows: types.map(k => row(k, (labels[k] || [k])[0])) }));
+    const cust = Object.keys(T).filter(k => /^cust:/.test(k)).sort();
+    if (cust.length) groups.push({ name: 'Custom', rows: cust.map(k => row(k, k.slice(5))) });
+    groups.forEach(g => {
+      if (onlyUnused) g.rows = g.rows.filter(r => r.unusedOn || r.stylesOn);
+      g.on = g.rows.length > 0;
+    });
+    const v = {
+      useGroups: groups.filter(g => g.on),
+      useHasData: N > 0,
+      useNoData: N === 0,
+      useNothing: N > 0 && groups.every(g => !g.on),
+      useSummary: N ? plural(unusedTypes, 'component') + ' and ' + plural(unusedStyles, 'style') + ' are not used in any of these projects.' : '',
+      useAllOn: onlyUnused ? undefined : '1',
+      useUnusedOn: onlyUnused ? '1' : undefined,
+      useShowAll: () => { this._useUnused = false; this.forceUpdate(); },
+      useShowUnused: () => { this._useUnused = true; this.forceUpdate(); },
+      useCount: N
+    };
+    this._useMemo = { r: recents, f: onlyUnused, v };
+    return v;
+  }
+
   // ---------- views ----------
   renderVals() {
     // Same reason as buildOps: the preview's canvasStyle and every meas() below
@@ -13284,6 +13449,7 @@ class CampaignStudio extends StudioBase {
     const recents = this.savedRecents();
     return {
       ...this.copyVals(),
+      ...this.usageVals(labels, recents),
       paletteCats, variantViews,
       // THE CUSTOM GROUP — this computer's library plus anything the project carries. A
       // palette card cannot hold a second button (a button in a button), so Remove sits
@@ -15580,13 +15746,17 @@ class Component extends DCLogic {
         const ratio = t ? (t.W === t.H ? '1:1' : (t.W > t.H ? '1.91:1' : (Math.abs(t.W / t.H - 0.75) < 0.02 ? '3:4' : '9:16'))) : '';
         return t ? ratio + ' · ' + t.W + '×' + t.H : '';
       })(),
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : 'All'),
+      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : 'All')),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
+      shViewSub: (n => view === 'use' ? (sub.useCount ? 'How often each component and style appears in your ' + n(sub.useCount, 'most recent saved project') : 'Nothing saved yet \u2014 usage is counted from saved projects')
+        : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
         : n(sub.tplCount, 'template') + ' \u00b7 ' + n(sub.recentCount, 'saved project'))((c, w) => (c || 0) + ' ' + w + (c === 1 ? '' : 's')),
-      shShowTpl: view !== 'rec',
-      shShowRec: view !== 'tpl',
+      shShowTpl: view === 'all' || view === 'tpl',
+      shShowRec: view === 'all' || view === 'rec',
+      shShowUse: view === 'use',
+      shViewUse: () => this.setState({ splashView: 'use' }),
+      shViewUseOn: view === 'use' ? '1' : undefined,
       shViewAll: () => this.setState({ splashView: 'all' }),
       shViewTpl: () => this.setState({ splashView: 'tpl' }),
       shViewRec: () => this.setState({ splashView: 'rec' }),

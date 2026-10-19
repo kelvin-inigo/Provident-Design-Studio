@@ -15299,3 +15299,19 @@ page has no build step, so the same figures come from the vendored file.
 miniature canvas the studios' sidebar uses (section 45 there) — the studio's ratio at 36 tall
 (36×36 CAS, 27×36 OPS), a wordmark bar and two headline bars, quiet at rest and lit navy with pale
 bars on the card's hover, the switcher's "current studio" look. `.lp-sh` mirrors `.p-ws-sh`.
+
+# CAS HAS A COMPONENT USAGE VIEW (2026-10-19)
+
+By request ("stats on how often the components, along with variants, were used, so I can audit
+them and remove the ones not needed — based on the recent projects"). A home-page view,
+`splashView: 'use'`, from a **Component usage** row in the sidebar's Review group (bar_chart, Rounded
+wght300). `CampaignStudio.usageVals(labels, recents)` reads `savedRecents()` — each entry carries its
+whole state — runs `normState` on a copy (so a retired style counts as what it opens as), and counts
+per type and per style (`voptOf`, default = the first option): projects using it, placements (one
+component on one variant / carousel page), hidden ones apart, and the S/M/L/XL spread. Custom
+components group under their spec name. Memoised on the recents array (replaced, never mutated).
+Only each variant's own `mvar` is read, not a detached size's. A filter (`_useUnused`, instance
+state) shows only what is not used. Section 48 of the sheet (`.cu-*`). The sample is capped at
+`RECENT_MAX` (10) — widening it means reading session files from folders, e.g. Ad sets' scan.
+Verified with four seeded saved projects (counts, hidden, XL, the filter), contrast 0 failures in
+both themes, no overflow at 375. Chrome only — no artwork line changed.
