@@ -15294,3 +15294,8 @@ page has no build step, so the same figures come from the vendored file.
 - The hover reel and filmstrip are gone; `preview/*.webp` stay as the template strip.
 - Verified: both figures mount; buttons level; contrast 0 failures in light and dark; no overflow at
   1280 or 375. Facts must be kept true when a studio gains a size, template or page cap.
+
+**The home page's studio marks are the switcher's chips (2026-10-19, by request)**: the same
+miniature canvas the studios' sidebar uses (section 45 there) — the studio's ratio at 36 tall
+(36×36 CAS, 27×36 OPS), a wordmark bar and two headline bars, quiet at rest and lit navy with pale
+bars on the card's hover, the switcher's "current studio" look. `.lp-sh` mirrors `.p-ws-sh`.
