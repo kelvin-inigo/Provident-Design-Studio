@@ -3877,6 +3877,13 @@ select.p-in{padding-right:34px}
 /* the missing-items alert in the panel: the red border and wash say "warning", the text is ink —
    red on its own wash over the panel measured 4.03:1 in dark */
 .p-share-m .p-alert{color:var(--ps-ink);font-size:12px;border-radius:12px;padding:10px 12px}
+/* Tighter corners in the Share panel (2026-10-19, by request: "why would you have them very
+   rounded?"). The 16px card radius made an 86px-tall format card read as a blob. The cards and the
+   Saves-to row take the palette card's 10px, the icon box 6px. The Export button stays a pill like
+   every labelled action in the top bar. */
+.sx-fmts .p-rc{border-radius:10px}
+.sx-fmts .p-rc-i{border-radius:6px}
+.sx-dest{border-radius:10px}
 </style>
 </helmet>
 

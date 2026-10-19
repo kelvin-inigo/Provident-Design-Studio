@@ -4265,6 +4265,13 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sx-gi{width:18px;height:18px;fill:currentColor}
 .sx-status{margin:-6px 0 0;font:400 12px/1.45 var(--ps-font);color:var(--ps-dim);text-align:center}
 @media (prefers-reduced-motion: reduce){.sx-go:active{transform:none}}
+/* Tighter corners in the Share panel (2026-10-19, by request: "why would you have them very
+   rounded?"). The 16px card radius made an 86px-tall format card read as a blob. The cards and the
+   Saves-to row take the palette card's 10px, the icon box 6px. The Export button stays a pill like
+   every labelled action in the top bar. */
+.sx-fmts .p-rc{border-radius:10px}
+.sx-fmts .p-rc-i{border-radius:6px}
+.sx-dest{border-radius:10px}
 </style>
 </helmet>
 

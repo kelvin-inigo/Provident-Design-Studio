@@ -15265,3 +15265,8 @@ the CAS block gates the SVG card on it. Fixed on the way: the alert's red text o
 measured **4.03:1** in dark; its text is ink now, the red border and wash still carry the warning.
 Verified: each card updates tick, destination and button; "Export 6 JPEGs" exported 6 files;
 contrast 0 failures in both themes; `expPickVals` and `studio-base.js` untouched.
+
+**The Share panel's corners were tightened the same day, by request ("why would you have them very
+rounded?")**: the format cards and the Saves-to row take the palette card's **10px**, the icon box
+6px, in both studios (scoped to `.sx-fmts` / `.sx-dest`, so the dock's own choice cards keep 16).
+The Export button stays a pill like every labelled action in the top bar.
