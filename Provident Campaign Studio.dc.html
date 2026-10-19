@@ -11013,17 +11013,63 @@ class CampaignStudio extends StudioBase {
   // embeds every source photo. Non-image files an export writes (CAS's YouTube text file, the
   // Meta upload manifest) are left out — the hub takes images.
   static EP_DEFAULT = 'http://192.168.50.30:8090/api/imports';
+  // COMPRESSION ON SEND (2026-10-19, after "HTTP 413 · Delivery is larger than 50 MB"). The hub
+  // takes up to 50 MB and 50 images. When the export plus the .json fit, the images go as
+  // exported, byte for byte. When they do not, every raster image is re-encoded as JPEG,
+  // stepping quality down, and only past the lowest quality is the pixel size reduced — so
+  // a delivery shrinks just as far as the limit makes it. SVGs pass through untouched. The
+  // local export is never affected: this runs on the copy that is sent.
+  static EP_MAX = 48 * 1048576;     // the hub's 50 MB, less room for the multipart framing
+  static EP_MAX_IMGS = 50;
+  async epFit(imgs, jsonBytes) {
+    const C = CampaignStudio, MB = n => C.sizeLabel(n);
+    if (imgs.length > C.EP_MAX_IMGS) return { error: 'The hub takes up to ' + C.EP_MAX_IMGS + ' images and this export has ' + imgs.length + ' \u2014 send fewer variants or slides.' };
+    const room = C.EP_MAX - jsonBytes;
+    if (room <= 0) return { error: 'The project .json alone is ' + MB(jsonBytes) + ', over the hub\u2019s 50 MB \u2014 remove unused photos and try again.' };
+    const sum = list => list.reduce((a, f) => a + f.data.byteLength, 0);
+    if (sum(imgs) <= room) return { imgs, note: '' };
+    const raster = f => !/\.svg$/i.test(f.name);
+    const bmps = [];
+    for (const f of imgs) bmps.push(raster(f) ? await createImageBitmap(new Blob([f.data])) : null);
+    const enc = async (bmp, q, k) => {
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
+      const g = cv.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);   // JPEG has no alpha
+      g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, cv.width, cv.height);
+      const b = await new Promise(res => cv.toBlob(res, 'image/jpeg', q));
+      return new Uint8Array(await b.arrayBuffer());
+    };
+    const steps = [[.9, 1], [.85, 1], [.8, 1], [.72, 1], [.72, .85], [.72, .7], [.68, .55], [.65, .45]];
+    let out = null, used = null;
+    try {
+      for (const [q, k] of steps) {
+        this.setState({ exportStatus: 'Compressing for the hub \u2014 JPEG ' + Math.round(q * 100) + '%' + (k < 1 ? ' at ' + Math.round(k * 100) + '% size' : '') + '\u2026' });
+        out = [];
+        for (let i = 0; i < imgs.length; i++) {
+          const f = imgs[i];
+          out.push(bmps[i] ? { name: f.name.replace(/\.[a-z0-9]+$/i, '') + '.jpg', data: await enc(bmps[i], q, k), type: 'image/jpeg' } : f);
+        }
+        used = [q, k];
+        if (sum(out) <= room) break;
+      }
+    } finally { bmps.forEach(b => b && b.close && b.close()); }
+    if (sum(out) > room) return { error: 'Even compressed, the images are ' + MB(sum(out)) + ' with the .json at ' + MB(jsonBytes) + ' \u2014 over the hub\u2019s 50 MB. Send fewer variants or slides.' };
+    return { imgs: out, note: 'compressed from ' + MB(sum(imgs)) + ' to JPEG ' + Math.round(used[0] * 100) + '%' + (used[1] < 1 ? ' at ' + Math.round(used[1] * 100) + '% size' : '') };
+  }
   async epPost(renders, name, kind) {
     const c = this.epCfg();
     await this.ensurePid();
     const proj = await this.projectFiles(name);
     const TYPE = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', svg: 'image/svg+xml' };
     const extOf = n => (String(n).split('.').pop() || '').toLowerCase();
-    const imgs = renders.filter(f => TYPE[extOf(f.name)]);
     const json = proj[0];
+    const fit = await this.epFit(renders.filter(f => TYPE[extOf(f.name)]), json.data.byteLength);
+    if (fit.error) { this.setState({ exportStatus: fit.error }); return false; }
+    const imgs = fit.imgs;
     const fd = new FormData();
     fd.append('content', new Blob([json.data], { type: 'application/json' }), json.name);
-    for (const f of imgs) fd.append('images', new Blob([f.data], { type: TYPE[extOf(f.name)] }), String(f.name).split('/').pop());
+    for (const f of imgs) fd.append('images', new Blob([f.data], { type: f.type || TYPE[extOf(f.name)] }), String(f.name).split('/').pop());
     const total = json.data.byteLength + imgs.reduce((a, f) => a + f.data.byteLength, 0);
     const host = (() => { try { return new URL(c.url).host; } catch (e) { return c.url; } })();
     this.setState({ exportStatus: 'Sending ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + CampaignStudio.sizeLabel(total) + ') to ' + host + '…' });
@@ -11048,7 +11094,7 @@ class CampaignStudio extends StudioBase {
       try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || ''; } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
       if (typeof msg !== 'string') msg = '';
       if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
-      this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + CampaignStudio.sizeLabel(total) + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
+      this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + CampaignStudio.sizeLabel(total) + (fit.note ? ', ' + fit.note : '') + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
       return true;
     } catch (e) {
       const mixed = location.protocol === 'https:' && /^http:/i.test(c.url);

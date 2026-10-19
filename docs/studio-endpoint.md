@@ -35,6 +35,15 @@ curl -X POST http://192.168.50.30:8090/api/imports \
   Non-image files an export writes (CAS's YouTube text file, the Meta upload manifest) are not
   sent. Assets/ is not sent either.
 
+## Size limit and compression
+
+The hub takes up to **50 MB and 50 images** per delivery. If the export plus the `.json` fit, the
+images go exactly as exported. If not, Send re-encodes every raster image as **JPEG**, stepping
+quality down (90 → 85 → 80 → 72%), and only after that reduces the pixel size (85 → 45%), until
+the delivery fits under ~48 MB. SVGs pass through. The status line says what it did, e.g.
+*compressed from 163.2 MB to JPEG 90%*. Your local export is never changed. If even the smallest
+step does not fit, or the `.json` alone is over the limit, Send says so and sends nothing.
+
 ## What the hub must do
 
 It is called from a browser page, so it has to answer the CORS preflight:

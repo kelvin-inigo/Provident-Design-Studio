@@ -541,7 +541,8 @@ fewer than five saved projects the page says so — treat the verdicts as early 
   exported image to the import hub. The first time, press it and paste your import token into
   the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
   A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
-  your local network the first time: press **Allow**. See `docs/studio-endpoint.md`.
+  your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
+  the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
 
 
 ## 8. OPS: make a post
@@ -619,7 +620,8 @@ This is the full editor.
   exported image to the import hub. The first time, press it and paste your import token into
   the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
   A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
-  your local network the first time: press **Allow**. See `docs/studio-endpoint.md`.
+  your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
+  the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
 
 ---
 

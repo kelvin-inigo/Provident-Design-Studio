@@ -15381,6 +15381,14 @@ LAN hub failed as mixed content ("did not reach it"); the hub itself answered an
 right (checked with curl). `epPost` now passes `targetAddressSpace: 'local'` (then `'private'`)
 for a LAN http URL, which makes Chrome's Local Network Access prompt instead of blocking, and the
 failure message on an https page says to press Allow / enable Local Network for Chrome on macOS.
-Not verifiable in the Claude Browser pane (it ignores the option and cannot reach the LAN:
-ERR_ADDRESS_UNREACHABLE, while curl from Terminal reaches the hub).
+**Confirmed by the user: Send reached the hub from the Vercel site after pressing Allow.** The
+Claude Browser pane cannot test this (it ignores the option and cannot reach the LAN).
+
+**Send compresses to fit the hub (2026-10-19, after "HTTP 413 · Delivery is larger than 50 MB").**
+`epFit(imgs, jsonBytes)` in both studios: under `EP_MAX` (48 MB, the hub's 50 less framing) the
+images go byte for byte; over it, every raster image is re-encoded to JPEG on a white ground,
+quality .9 → .85 → .8 → .72, then size .85 → .45, stopping at the first step that fits. SVGs
+untouched; > `EP_MAX_IMGS` (50) images or a .json over the limit refuses with a message. Runs on
+the sent copy only. Measured: a 3-variant CAS PNG export, 163.2 MB, sent as 30.3 MB of 90% JPEGs
+at full 2160x3840 and accepted; with the limit forced to 24 MB it stopped at 80%.
 
