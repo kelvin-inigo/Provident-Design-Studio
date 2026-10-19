@@ -50,9 +50,12 @@ and send `Access-Control-Allow-Origin` on the POST response too. Chrome may also
 `Access-Control-Request-Private-Network: true` when a page reaches a LAN address; answer it
 with `Access-Control-Allow-Private-Network: true`.
 
-**A page served over https (the Vercel site) cannot POST to an `http://` LAN address** —
-the browser blocks it as mixed content. Send works from a studio opened off this computer
-(file or localhost); for the hosted site the hub needs an https address.
+**From the website (https) to the hub (plain http):** browsers block this as mixed content.
+Send declares the request as local-network (`targetAddressSpace`, Chrome's Local Network
+Access), so **Chrome asks once to allow access to devices on your local network — press Allow**.
+On a Mac, Chrome also needs System Settings › Privacy & Security › Local Network turned on.
+Safari and Firefox cannot do this; use Chrome, open the studio from this Mac, or give the hub an
+https address.
 
 ## The response
 

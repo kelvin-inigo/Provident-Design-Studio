@@ -15376,3 +15376,11 @@ the token field. **The token is per computer and NEVER in the repo** (public). V
 a stand-in hub in both studios (201, 401 path); the real hub was not reachable from this Mac
 when tested. An https page (Vercel) cannot reach an http LAN hub — mixed content.
 
+**Send from the Vercel site (2026-10-19, "it didnt send").** The https site posting to the http
+LAN hub failed as mixed content ("did not reach it"); the hub itself answered and its CORS was
+right (checked with curl). `epPost` now passes `targetAddressSpace: 'local'` (then `'private'`)
+for a LAN http URL, which makes Chrome's Local Network Access prompt instead of blocking, and the
+failure message on an https page says to press Allow / enable Local Network for Chrome on macOS.
+Not verifiable in the Claude Browser pane (it ignores the option and cannot reach the LAN:
+ERR_ADDRESS_UNREACHABLE, while curl from Terminal reaches the hub).
+

@@ -13436,7 +13436,19 @@ class OrganicStudio extends StudioBase {
     if (c.key) headers.Authorization = 'Bearer ' + c.key;
     const ac = new AbortController(), to = setTimeout(() => ac.abort(), 180000);
     try {
-      const r = await fetch(c.url, { method: 'POST', body: fd, headers, signal: ac.signal, mode: 'cors', credentials: 'omit' });
+      // AN https PAGE (the Vercel site) POSTING TO AN http:// OFFICE ADDRESS is mixed content,
+      // which Chrome blocks outright — unless the request declares it is for the local network
+      // (`targetAddressSpace`, Chrome's Local Network Access), when Chrome asks the user once to
+      // allow it. The value was 'private' before Chrome renamed it 'local'; an unknown value
+      // throws a TypeError before anything is sent, so try each, then the plain request.
+      const opts = { method: 'POST', body: fd, headers, signal: ac.signal, mode: 'cors', credentials: 'omit' };
+      const lan = (() => { try { const x = new URL(c.url); return x.protocol === 'http:' && !/^(localhost|127\.|\[::1\])/.test(x.hostname); } catch (e) { return false; } })();
+      let r = null;
+      if (lan) for (const sp of ['local', 'private']) {
+        try { r = await fetch(c.url, Object.assign({}, opts, { targetAddressSpace: sp })); break; }
+        catch (e) { if (!(e instanceof TypeError) || /fetch|network|load/i.test(e.message || '')) throw e; }
+      }
+      if (!r) r = await fetch(c.url, opts);
       let msg = '';
       try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || ''; } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
       if (typeof msg !== 'string') msg = '';
@@ -13444,7 +13456,9 @@ class OrganicStudio extends StudioBase {
       this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
       return true;
     } catch (e) {
+      const mixed = location.protocol === 'https:' && /^http:/i.test(c.url);
       const why = e && e.name === 'AbortError' ? 'it took longer than 3 minutes'
+        : mixed ? 'the browser blocked it: this page is https and the hub is plain http. In Chrome, press Allow when it asks to access devices on your local network (check the address bar\u2019s site settings if you dismissed it), and on a Mac allow Chrome in System Settings \u203a Privacy & Security \u203a Local Network. Safari and Firefox cannot send from the website \u2014 open the studio from this Mac instead'
         : 'the request did not reach it — check you are on the office network, the hub is up, and it allows requests from this page (CORS)';
       this.setState({ exportStatus: 'Could not send to ' + host + ' — ' + why + '.' });
       return false;
