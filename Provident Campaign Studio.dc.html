@@ -4220,6 +4220,23 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 @media (hover:none){.p-ws-go{opacity:1}}
 @media (max-width:760px){.p-sec-l0{display:none}.p-ws{min-height:0;padding:6px 10px 6px 6px}.p-ws-go{display:none}}
 @media (prefers-reduced-motion:reduce){.p-ws-go{transition:none}}
+
+/* 46. THE HOME PAGE'S HEADER BUTTONS (2026-10-16, by request). Three jobs, three weights: the theme
+   toggle is a UTILITY — quiet, no fill until hovered, set apart by a hairline; Open session is
+   SECONDARY — an outline; New is the one PRIMARY. All three 36 tall on one pill radius, the two
+   labelled ones in the kit's button role (14/600, +.16px); a press sinks 1px; each carries a title. */
+.p-br-h > .p-ico-o{background:transparent;color:var(--ps-ink-2)}
+.p-br-h > .p-ico-o:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-br-sep{width:1px;height:20px;background:var(--ps-line);flex:none;margin:0 2px}
+.p-br-alt,.p-br-new{font:600 14px/1 var(--ps-font);letter-spacing:.16px;border-radius:var(--ps-pill,9999px);
+  transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease),box-shadow var(--ps-motion,.15s) var(--ps-ease,ease),transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.p-br-alt,.p-br-alt:hover{border-color:transparent}
+.p-br-alt{background:transparent;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-br-alt:hover{background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-br-new{padding:0 18px 0 14px}
+.p-br-alt:active,.p-br-new:active,.p-br-h > .p-ico-o:active{transform:translateY(1px)}
+@media (prefers-reduced-motion:reduce){.p-br-alt,.p-br-new{transition:none}.p-br-alt:active,.p-br-new:active,.p-br-h > .p-ico-o:active{transform:none}}
+@media (max-width:760px){.p-br-sep{display:none}}
 </style>
 </helmet>
 
@@ -4263,8 +4280,9 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
              it. Same button, same class list, same two glyphs as the top bar's: one control
              in two places, not two controls. -->
         <button onClick="{{ shThemeToggle }}" class="p-ghost p-ico-t p-ico-o" title="{{ shThemeTitle }}" aria-label="{{ shThemeTitle }}"><sc-if value="{{ shThemeIsDark }}" hint-placeholder-val="{{ true }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-760.16q-8.62-8.63-8.62-21.38v-87.69q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.69q0 12.75-8.63 21.38-8.63 8.62-21.38 8.62-12.76 0-21.37-8.62Zm213.23 88.31q-8.31-8.3-8.12-20.57.19-12.27 8.5-21.58l61-62.38q9.03-9.31 21.44-9.31 12.41 0 21.8 9.39 8.61 8.61 8.61 20.99 0 12.39-8.7 21.08L714-671.85q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7ZM781.54-450q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h87.69q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62h-87.69ZM458.62-69.4Q450-78.02 450-90.77v-87.31q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.31q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM246.39-671.85l-62.77-61.38q-9.31-8.99-9.31-21.73 0-12.73 9.31-21.42 8.69-8.31 21.33-8.31 12.64 0 20.82 8.31l62.77 62.77q8.31 8.18 8.31 20.82t-8.23 20.94q-8.98 8.31-20.95 8.31-11.98 0-21.28-8.31Zm487.23 488.23L672.23-246q-8.31-9.31-8.5-21.58-.19-12.27 8.04-20.57 8.23-8.31 20.58-8.31 12.34 0 21.65 8.69l62.38 61.39q8.93 8.3 8.62 20.88-.31 12.58-8.73 21.88-9.19 9.31-21.83 9.31-12.65 0-20.82-9.31ZM90.77-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q78.02-510 90.77-510h87.69q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H90.77ZM184-183.62q-8.31-8.69-8.5-21.27-.19-12.57 8.12-20.88l62-62q8.69-8.69 20.77-8.69 12.07 0 21.38 8.61 9.31 9.39 9.31 21.66t-9.31 21.57l-61 61q-9.31 9.31-21.95 9.31-12.64 0-20.82-9.31Zm140.23-140.52Q260-388.28 260-479.91q0-91.63 64.14-155.86Q388.28-700 479.91-700q91.63 0 155.86 64.14Q700-571.72 700-480.09q0 91.63-64.14 155.86Q571.72-260 480.09-260q-91.63 0-155.86-64.14ZM593-367q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47ZM480-480Z"/></svg></sc-if><sc-if value="{{ shThemeIsLight }}" hint-placeholder-val="{{ false }}"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></sc-if></button>
+        <span class="p-br-sep" aria-hidden="true"></span>
         <button onClick="{{ openSession }}" class="p-br-alt" title="Open a saved project (.adstudio.json) to keep designing it"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>Open session</button>
-        <button onClick="{{ newProject }}" class="p-br-new"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg>{{ newLabel }}</button>
+        <button onClick="{{ newProject }}" class="p-br-new" title="Start a new campaign on a blank canvas"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg>{{ newLabel }}</button>
       </div>
 
       <sc-if value="{{ splashNoteOn }}" hint-placeholder-val="{{ false }}">
@@ -7017,7 +7035,9 @@ class CampaignStudio extends StudioBase {
   // colour and gold is its navy counterpart.
   static PAL = {
     dark: {
-      base: '#000000', ink: '#fff', inkSoft: '#ECE7DF', inkMute: '#D4CFC4',
+      // THE FIGMA SPEC'S CREAM: every run of copy is #FAF8F4, and a chip's or button's ink on
+      // the cream ground is #0F1A2C (Design Components, CAS Templates). The wordmark follows.
+      base: '#000000', ink: '#FAF8F4', inkSoft: '#ECE7DF', inkMute: '#D4CFC4',
       accent: '#fff', ruleGold: '#ECE7DF',
       // BRASS is a deliberate, requested exemption to "no gold in canvas output at
       // all" — the eyebrow's brass variant, an icon tint and a hero line colour ask
@@ -7035,11 +7055,11 @@ class CampaignStudio extends StudioBase {
       // stronger stroke. It used to be the chrome blue, which put a UI accent on the
       // canvas — the one thing the palette exists to prevent.
       chip: 'rgba(236,231,223,.45)', chipGold: 'rgba(236,231,223,.75)',
-      glassFill: 'rgba(255,255,255,.10)', glassStroke: 'rgba(255,255,255,.22)',
-      ctaFill: '#fff', ctaInk: '#1A2942', ctaOutline: 'rgba(255,255,255,.7)',
+      glassFill: 'rgba(255,255,255,.14)', glassStroke: 'rgba(255,255,255,.33)',
+      ctaFill: '#FAF8F4', ctaInk: '#0F1A2C', ctaOutline: 'rgba(250,248,244,.9)',
       warm: '#F4F1EC', boxBd: 'rgba(250,248,244,.25)',
-      eyeFill: '#ECE7DF', eyeInk: '#1A2942',
-      div: '255,255,255', scrim: '#1A2942'
+      eyeFill: '#FAF8F4', eyeInk: '#0F1A2C',
+      div: '250,248,244', scrim: '#1A2942'
     },
     light: {
       base: '#FFFFFF', ink: '#1A2942', inkSoft: '#2F4960', inkMute: '#6B7280',
@@ -7082,7 +7102,7 @@ class CampaignStudio extends StudioBase {
   // be a brass rule or a brass frame. Absent, each variant keeps the ink it always had.
   static eyeInk(m, pal, mv) {
     if (m && m.inkHex) return m.inkHex;
-    return mv === 'frame' ? pal.ink : pal.inkMute;
+    return pal.ink;
   }
   // The geometry base that ignores the 24px floor (see tkMod) — the canvas's own eyebrow at M.
   static eyeG(tk) { return tk.eyeG || tk.eyebrow; }
@@ -7163,11 +7183,14 @@ class CampaignStudio extends StudioBase {
   // in em of the headline's own size, so every variant scales with S / M / L / XL for free.
   //   glass       the house material around the headline: .3em over and under, .42em aside
   //   underscore  a short bar 1.1em long, .045em thick, .18em under the last line box
+  // THE FIGMA SPEC: glass sets the headline a rung down (71 on a 78 line at M) on the house
+  // glass, padded 40 / 48 with its 1px edge inside; underscore is an 88 x 6 bar 28 under the
+  // last line box, all in em of the headline so S / M / L / XL follow.
   static heroBox(tk, mv) {
-    const hpx = tk.hero, glass = mv === 'glass';
-    return { hpx, lead: CampaignStudio.leadOf(CampaignStudio.HERO_LEAD),
-      padX: glass ? hpx * .42 : 0, padY: glass ? hpx * .3 : 0, r: hpx * .28,
-      barW: hpx * 1.1, barH: Math.max(2, hpx * .045), barGap: hpx * .18 };
+    const glass = mv === 'glass', hpx = glass ? CampaignStudio.typeAt(tk.hero, -1) : tk.hero, K = CampaignStudio.kOf(tk);
+    return { hpx, lead: CampaignStudio.leadOf(glass ? 78 / 71 : CampaignStudio.HERO_LEAD),
+      padX: glass ? hpx * 48 / 71 + K : 0, padY: glass ? hpx * 40 / 71 + K : 0, r: hpx * 28 / 71,
+      barW: hpx * 88 / 85, barH: hpx * 6 / 85, barGap: hpx * 28 / 85 };
   }
   // XL is Light 300, for the reason Jumbo was: past two rungs up, Regular reads as a slab and
   // the brand voice wants the big size carried by air, not weight. TWO-TONE (`split`) sets the
@@ -7282,7 +7305,7 @@ class CampaignStudio extends StudioBase {
   static chipLook(mv, pal) {
     if (mv === 'fill') return { fill: pal.eyeFill, stroke: null, ink: pal.eyeInk, glass: false };
     if (mv === 'glass') return { fill: pal.glassFill, stroke: pal.glassStroke, ink: pal.ink, glass: true };
-    return { fill: null, stroke: pal.chipGold, ink: pal.inkSoft, glass: false };
+    return { fill: null, stroke: CampaignStudio.rgbaOf(pal.ink, .7), ink: pal.ink, glass: false };
   }
   static tagPad(k) { return k === 1 ? '.9cqw 2.6cqw' : (.9 * k).toFixed(3) + 'cqw ' + (2.6 * k).toFixed(3) + 'cqw'; }
   static tagGap(k) { return k === 1 ? '1.5cqw' : (1.5 * k).toFixed(3) + 'cqw'; }
@@ -7757,7 +7780,7 @@ class CampaignStudio extends StudioBase {
   // 4.6cqw step, which `stat` already is (49.7px at 1080 against the headline's 59.4).
   // Reading the token rather than a literal keeps it on the scale at every canvas size
   // and every Scaling setting.
-  static priceLinePx(tk) { return tk.stat; }
+  static priceLinePx(tk) { return tk.headline; }
   // THE BUTTON'S GEOMETRY, one source for the export and the preview. Every variant keeps
   // the pill's height, so swapping one for another never moves what sits under it.
   //   pill · outline · rect   the label 1.6em in from each end (unchanged)
@@ -8298,7 +8321,7 @@ class CampaignStudio extends StudioBase {
   }
   // Bottom opacity of the `fade` headline: the ramp loses 90% of the ink by the
   // last baseline, which is the effect the dwtc hero uses over a photo.
-  static FADE_MIN = .1;
+  static FADE_MIN = .12;
   static rgbaOf(col, a) {
     const c = String(col || '#ffffff');
     if (/^rgba?\(/i.test(c)) {
@@ -8672,10 +8695,510 @@ class CampaignStudio extends StudioBase {
     root.draw(root.fixed && center ? (iw - rw) / 2 : 0, 0, rw, center ? 'center' : 'start', root.h);
     return { h: root.h, els };
   }
+  // ══ THE BUILT-IN COMPONENTS, DRAWN TO THE FIGMA SPEC ══════════════════════════════════
+  // "CAS Templates" › Design Components (figma.com/design/mKRZhwe2MvJDuMBjYas0D5, node 71:2)
+  // is the source of truth for every built-in component, to the pixel: each tile there is the
+  // component at M on the 1:1 canvas. modLayout lays one component out as a list of elements in
+  // its own box (x from the column's left edge, y from the component's top) and returns its
+  // height. ONE function serves modPx, the export (emitEls) and the editor (elsView), so the
+  // preview is the export's own geometry rather than a second layout kept in step by hand.
+  //
+  // Every number is the Figma pixel, carried in a unit that scales: `u` is a Figma pixel at
+  // this size (the eyebrow geometry base over 24), and type-led components measure in em of
+  // their own type. A Figma text box with automatic line height is 1.25em tall with the run
+  // centred in it — `autoH` / `bl` reproduce that box, and leadOf keeps Arabic's taller ink.
+  // Strokes are INSIDE the box and taken into its size, as the Figma frames are.
+  static LAYOUT_T = { eyebrow: 1, hero: 1, hook: 1, body: 1, list: 1, tags: 1, spec: 1, steps: 1, price: 1, cta: 1, divider: 1 };
+  // the Fade headline's per-line ink: 1, .5, .12 over three lines in the drawing
+  static fadeA(i, n) { return n < 2 ? 1 : 1 - (1 - CampaignStudio.FADE_MIN) * Math.pow(i / (n - 1), .815); }
+  modLayout(m, v, tk, iw, pal, center) {
+    const C = CampaignStudio, mv = v.mvar[m.id], K = C.kOf(tk), F = StudioBase.fontAsc();
+    const els = [];
+    const autoH = px => px * C.leadOf(1.25);
+    const bl = (px, lh) => (lh - px * (F.a + F.d)) / 2 + px * F.a;
+    const Wd = (t, px, w, ls) => this.meas(t, px, w, false, ls || 0);
+    const at = w => center ? (iw - w) / 2 : 0;
+    const T = (text, x, y, px, weight, fill, ls) => { els.push({ k: 'text', x, y, px, weight, fill, text, ls: ls || 0 }); };
+    const Bx = o => { els.push(Object.assign({ k: 'box', r: 0 }, o)); };
+    const A = (c, a) => C.rgbaOf(c, a);
+    const ink = pal.ink, mute = pal.inkMute;
+    const wrap = (t, px, w, maxW) => this.wrapRuns([{ px, weight: w, serif: false, text: t }], maxW).map(l => l.parts.map(p => p.t).join(' '));
+    // the arrow the button and the text link draw: 18 x 14, 2.5 stroke, round caps
+    const arrow = (x, y, s, col) => {
+      els.push({ k: 'poly', pts: [[x, y + 7 * s], [x + 18 * s, y + 7 * s]], stroke: col, sw: 2.5 * s });
+      els.push({ k: 'poly', pts: [[x + 11 * s, y], [x + 18 * s, y + 7 * s], [x + 11 * s, y + 14 * s]], stroke: col, sw: 2.5 * s });
+    };
+    let h = 0;
+    if (m.type === 'eyebrow') {
+      // 24 Medium, .16em, 30 tall. Framed and Filled pad 12 / 28; the rule is 56 x 2 with 20
+      // of air; the dot is 14 with 16 of air; the underline is 2 thick, 12 under the label.
+      const E = tk.eyebrow, g = C.eyeG(tk), ls = C.trackOf(E), lh = autoH(E), sw = K;
+      const pX = g * 28 / 24, pY = g * 12 / 24, rw = 56 * K, rg = 20 * K, dd = g * 14 / 24, dg = g * 16 / 24;
+      const boxed = mv === 'frame' || mv === 'fill';
+      const maxW = boxed ? iw - 2 * pX - (mv === 'frame' ? 2 * sw : 0)
+        : mv === 'rule' ? iw - (center ? 2 : 1) * (rw + rg)
+        : mv === 'dot' ? iw - dd - dg : iw;
+      const lines = this.eyebrowLines(m, tk, maxW);
+      const wOf = t => Wd(t, E, 500, ls);
+      const widest = lines.reduce((a, t) => Math.max(a, wOf(t)), 0);
+      const tH = lines.length * lh;
+      const ink0 = C.eyeInk(m, pal, mv);
+      const put = (x0, bw, y0, fill) => lines.forEach((t, i) => T(t, x0 + (center ? (bw - wOf(t)) / 2 : 0), y0 + i * lh + bl(E, lh), E, 500, fill, ls));
+      if (boxed) {
+        const s = mv === 'frame' ? sw : 0, bw = widest + 2 * pX + 2 * s, bh = tH + 2 * pY + 2 * s, x0 = at(bw);
+        Bx(mv === 'frame' ? { x: x0, y: 0, w: bw, h: bh, stroke: m.inkHex || A(ink, .7), sw }
+          : { x: x0, y: 0, w: bw, h: bh, fill: m.inkHex || pal.eyeFill });
+        put(x0 + s + pX, widest, s + pY, mv === 'fill' ? pal.eyeInk : ink0);
+        h = bh;
+      } else if (mv === 'rule') {
+        // flanked on both sides only when centred — left-aligned, a trailing rule dangles
+        const tot = widest + (center ? 2 : 1) * (rw + rg), x0 = at(tot), ry = (tH - 2 * K) / 2, rc = m.inkHex || mute;
+        Bx({ x: x0, y: ry, w: rw, h: 2 * K, fill: rc });
+        if (center) Bx({ x: x0 + rw + rg + widest + rg, y: ry, w: rw, h: 2 * K, fill: rc });
+        put(x0 + rw + rg, widest, 0, ink0);
+        h = tH;
+      } else if (mv === 'dot') {
+        const x0 = at(dd + dg + widest);
+        Bx({ x: x0, y: (lh - dd) / 2, w: dd, h: dd, r: dd / 2, fill: ink0 });
+        put(x0 + dd + dg, widest, 0, ink0);
+        h = tH;
+      } else if (mv === 'underline') {
+        const x0 = at(widest), gu = g * 12 / 24, t = 2 * K;
+        put(x0, widest, 0, ink0);
+        Bx({ x: x0, y: tH + gu, w: widest, h: t, fill: ink0 });
+        h = tH + gu + t;
+      } else {
+        put(0, iw, 0, ink0);
+        h = tH;
+      }
+    } else if (m.type === 'hero') {
+      // 85 Regular on a 92 line. Glass is a rung down (71 on 78) on the house glass, padded
+      // 40 / 48; Underscored puts an 88 x 6 bar 28 under the last line; Fade takes each line
+      // down to .12 of its ink.
+      const HB = C.heroBox(tk, mv), hpx = HB.hpx, lh = hpx * HB.lead, glass = mv === 'glass';
+      const lines = this.heroLines(m, v, tk, iw), n = lines.length;
+      const runs = lines.map((ln, i) => {
+        const r = ln.parts[0] && ln.parts[0].r;
+        if (!r) return null;
+        const t = ln.parts.map(p => p.t).join(' ');
+        const w = mv === 'split' ? C.heroW(v, m, mv, i) : r.weight;
+        let fill = C.splitInk(mv, i, r.fill, pal);
+        if (mv === 'fade') fill = A(fill, C.fadeA(i, n));
+        return { t, w, fill, px: r.px, tw: Wd(t, r.px, w) };
+      });
+      const widest = runs.reduce((a, o) => o ? Math.max(a, o.tw) : a, 0);
+      let x0 = 0, bw = iw, top = 0;
+      if (glass) {
+        bw = Math.min(iw, widest + 2 * HB.padX); x0 = at(bw); top = HB.padY;
+        Bx({ x: x0, y: 0, w: bw, h: n * lh + 2 * HB.padY, r: HB.r, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
+      }
+      runs.forEach((o, i) => {
+        if (!o) return;
+        const x = glass ? (center ? x0 + (bw - o.tw) / 2 : x0 + HB.padX) : (center ? at(o.tw) : 0);
+        T(o.t, x, top + i * lh + bl(o.px, lh), o.px, o.w, o.fill);
+      });
+      h = n * lh + 2 * top;
+      if (mv === 'underscore') {
+        Bx({ x: center ? at(HB.barW) : 0, y: h + HB.barGap, w: HB.barW, h: HB.barH, fill: ink });
+        h += HB.barGap + HB.barH;
+      }
+    } else if (m.type === 'hook' || m.type === 'body') {
+      // Hook 35 Light on 48, body 28 Light on 40, both in the canvas ink.
+      const hook = m.type === 'hook', px = hook ? tk.hook : tk.body, e = px / (hook ? 35 : 28);
+      const lh = px * C.leadOf(hook ? 48 / 35 : 40 / 28);
+      const lines0 = maxW => this.wrapText(m, px, maxW);
+      const flow = (lines, y0, xOf) => lines.forEach((l, i) => T(l, xOf(l), y0 + i * lh + bl(px, lh), px, 300, ink));
+      const xAt = l => center ? at(Wd(l, px, 300)) : 0;
+      if (hook && mv === 'glass') {
+        // the house glass, padded 28 / 44, hugging its widest line
+        const pX = 44 * e + K, pY = 28 * e + K, lines = lines0(iw - 2 * pX);
+        const widest = lines.reduce((a, l) => Math.max(a, Wd(l, px, 300)), 0);
+        const bw = Math.min(iw, widest + 2 * pX), x0 = at(bw), bh = lines.length * lh + 2 * pY;
+        Bx({ x: x0, y: 0, w: bw, h: bh, r: 28 * e, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
+        flow(lines, pY, l => center ? x0 + (bw - Wd(l, px, 300)) / 2 : x0 + pX);
+        h = bh;
+      } else if (hook && mv === 'bars') {
+        // every line on its own cream bar, padded 6 / 20, 6 between bars
+        const pX = 20 * e, pY = 6 * e, gap = 6 * e, lhA = autoH(px), bh = lhA + 2 * pY, lines = lines0(iw - 2 * pX);
+        lines.forEach((l, i) => {
+          const tw = Wd(l, px, 300), bw = tw + 2 * pX, x0 = at(bw), y0 = i * (bh + gap);
+          Bx({ x: x0, y: y0, w: bw, h: bh, fill: pal.eyeFill });
+          T(l, x0 + pX, y0 + pY + bl(px, lhA), px, 300, pal.eyeInk);
+        });
+        h = lines.length * bh + Math.max(0, lines.length - 1) * gap;
+      } else if (hook && mv === 'quote') {
+        // a 148 Light opening mark on a 120 line in the muted ink, the copy straight under it
+        const q = C.typeAt(px, 8), qlh = q * C.leadOf(120 / 148), qw = Wd('“', q, 300);
+        T('“', center ? at(qw) : 0, bl(q, qlh), q, 300, mute);
+        const lines = lines0(iw);
+        flow(lines, qlh, xAt);
+        h = qlh + lines.length * lh;
+      } else if (!hook && mv === 'ruled') {
+        // a 1px hairline across the column at .6 of the muted ink, 20 above the copy
+        const gap = 20 * e, lines = lines0(iw);
+        Bx({ x: 0, y: 0, w: iw, h: K, fill: A(mute, .6) });
+        flow(lines, K + gap, xAt);
+        h = K + gap + lines.length * lh;
+      } else if (!hook && mv === 'boxed') {
+        // a square hairline panel, padded 24 / 32, hugging the copy
+        const pX = 32 * e + K, pY = 24 * e + K, lines = lines0(iw - 2 * pX);
+        const widest = lines.reduce((a, l) => Math.max(a, Wd(l, px, 300)), 0);
+        const bw = Math.min(iw, widest + 2 * pX), x0 = at(bw), bh = lines.length * lh + 2 * pY;
+        Bx({ x: x0, y: 0, w: bw, h: bh, stroke: A(mute, .6), sw: K });
+        flow(lines, pY, l => center ? x0 + (bw - Wd(l, px, 300)) / 2 : x0 + pX);
+        h = bh;
+      } else if (!hook && mv === 'note') {
+        // a 15em column set to the right edge
+        const lines = lines0(Math.min(iw, px * 15));
+        flow(lines, 0, l => iw - Wd(l, px, 300));
+        h = lines.length * lh;
+      } else {
+        const lines = lines0(iw);
+        flow(lines, 0, xAt);
+        h = lines.length * lh;
+      }
+    } else if (m.type === 'list') {
+      // 32 Light on a 40 line, 20 between items. The check is 14 x 11 at 2.5, the dot 10, the
+      // dash 22 x 2, each 20 before the copy; Ruled rows are 16 over and under with a 1px rule
+      // under every row; Two columns is 28 Light, column by column, 48 between the columns.
+      const cols = mv === 'cols', px = cols ? tk.body : tk.body * 8 / 7, s = px / (cols ? 28 : 32);
+      const lh = autoH(px), gap = 20 * s, items = C.listLines(m.text);
+      const mark = cols ? 10 * s : mv === 'dot' ? 10 * s : mv === 'dash' ? 22 * s : 14 * s;
+      const ind = mv === 'rule' ? 0 : mark + (cols ? 16 : 20) * s;
+      const bullet = (x0, y0) => {
+        if (cols || mv === 'dot') { const d = 10 * s; Bx({ x: x0, y: y0 + (lh - d) / 2, w: d, h: d, r: d / 2, fill: ink }); }
+        else if (mv === 'dash') { const t = 2 * s; Bx({ x: x0, y: y0 + (lh - t) / 2, w: 22 * s, h: t, fill: ink }); }
+        else if (mv !== 'rule') {
+          const oy = y0 + (lh - 11 * s) / 2;
+          els.push({ k: 'poly', pts: [[x0, oy + 6 * s], [x0 + 5 * s, oy + 11 * s], [x0 + 14 * s, oy]], stroke: ink, sw: 2.5 * s });
+        }
+      };
+      // one column of items laid out at y = 0, its own width hugging its widest line
+      const block = (list, maxW) => {
+        let y = 0, w = 0;
+        const out = list.map(t => {
+          const ls2 = wrap(t, px, 300, maxW - ind), it = { ls2, y };
+          y += ls2.length * lh + gap;
+          ls2.forEach(l => { w = Math.max(w, ind + Wd(l, px, 300)); });
+          return it;
+        });
+        return { out, w, h: Math.max(0, y - gap) };
+      };
+      const draw = (b, x0) => b.out.forEach(it => {
+        bullet(x0, it.y);
+        it.ls2.forEach((l, li) => T(l, x0 + ind, it.y + li * lh + bl(px, lh), px, 300, ink));
+      });
+      if (cols) {
+        const half = Math.ceil(items.length / 2), cg = 48 * s;
+        const b1 = block(items.slice(0, half), (iw - cg) / 2), b2 = block(items.slice(half), (iw - cg) / 2);
+        const x0 = at(b1.w + (b2.out.length ? cg + b2.w : 0));
+        draw(b1, x0); draw(b2, x0 + b1.w + cg);
+        h = Math.max(b1.h, b2.h);
+      } else if (mv === 'rule') {
+        const pY = 16 * s;
+        let y = 0;
+        items.forEach(t => {
+          const ls2 = wrap(t, px, 300, iw);
+          ls2.forEach((l, li) => T(l, center ? at(Wd(l, px, 300)) : 0, y + pY + li * lh + bl(px, lh), px, 300, ink));
+          y += 2 * pY + ls2.length * lh;
+          Bx({ x: 0, y, w: iw, h: K, fill: A(mute, .5) });
+          y += K;
+        });
+        h = y;
+      } else {
+        const b = block(items, iw);
+        draw(b, at(b.w));
+        h = b.h;
+      }
+    } else if (m.type === 'tags') {
+      // 24 REGULAR. A pill is padded 12 / 28 (20 on the icon side), 16 between pills and rows;
+      // Outline is a 1px ring at .7 of the ink, Filled the cream chip, Glass the house glass.
+      // A strip is the labels 24 apart with a 1 x 28 rule or a 6 dot between them.
+      const E = tk.eyebrow, e = C.eyeG(tk) / 24, chips = C.chipsOf(m), lhE = autoH(E);
+      if (C.isStrip(mv)) {
+        const gap = 24 * e, mk = mv === 'dot' ? 6 * e : (mv === 'rule' ? K : 0), sep = mk ? gap * 2 + mk : gap, rg = 16 * e;
+        const rows = []; let row = [], w = 0;
+        chips.forEach(c => {
+          const cw = Wd(c.t, E, 400);
+          if (row.length && w + sep + cw > iw) { rows.push(row); row = []; w = 0; }
+          row.push({ t: c.t, w: cw }); w += (row.length > 1 ? sep : 0) + cw;
+        });
+        if (row.length) rows.push(row);
+        rows.forEach((r, ri) => {
+          let x = at(r.reduce((a, c) => a + c.w, 0) + (r.length - 1) * sep);
+          const y0 = ri * (lhE + rg);
+          r.forEach((c, i) => {
+            if (i) {
+              if (mv === 'dot') Bx({ x: x + gap, y: y0 + (lhE - mk) / 2, w: mk, h: mk, r: mk / 2, fill: mute });
+              else if (mv === 'rule') Bx({ x: x + gap, y: y0 + (lhE - 28 * e) / 2, w: mk, h: 28 * e, fill: A(mute, .7) });
+              x += sep;
+            }
+            T(c.t, x, y0 + bl(E, lhE), E, 400, ink);
+            x += c.w;
+          });
+        });
+        h = rows.length ? rows.length * lhE + (rows.length - 1) * rg : lhE;
+      } else {
+        const icon = mv === 'icon', look = C.chipLook(mv, pal), sw = look.stroke ? K : 0;
+        const pY = 12 * e, pR = 28 * e, pL = icon ? 20 * e : 28 * e, ic = 22 * e, ig = 12 * e, gap = 16 * e;
+        const ch = lhE + 2 * pY + 2 * sw;
+        const rows = []; let row = [], w = 0;
+        chips.forEach(c => {
+          const cw = 2 * sw + pL + (icon ? ic + ig : 0) + Wd(c.t, E, 400) + pR;
+          if (row.length && w + gap + cw > iw) { rows.push(row); row = []; w = 0; }
+          row.push(Object.assign({ w: cw }, c)); w += (row.length > 1 ? gap : 0) + cw;
+        });
+        if (row.length) rows.push(row);
+        rows.forEach((r, ri) => {
+          let x = at(r.reduce((a, c) => a + c.w, 0) + (r.length - 1) * gap);
+          const y0 = ri * (ch + gap);
+          r.forEach(c => {
+            Bx({ x, y: y0, w: c.w, h: ch, r: ch / 2, fill: look.fill || null, stroke: look.stroke || null, sw, blur: !!look.glass });
+            let tx = x + sw + pL;
+            if (icon) { els.push({ k: 'icon', x: tx, y: y0 + (ch - ic) / 2, w: ic, h: ic, slot: c.gi, ink: C.icoInk(m, look.ink) }); tx += ic + ig; }
+            T(c.t, tx, y0 + sw + pY + bl(E, lhE), E, 400, look.ink);
+            x += c.w + gap;
+          });
+        });
+        h = rows.length ? rows.length * ch + (rows.length - 1) * gap : ch;
+      }
+    } else if (m.type === 'spec') {
+      // Labels 24 Medium tracked in the muted ink (20 on the Icon row and Glass row), figures
+      // Light. Row: label over a 50 figure, 10 between, 64 between facts. Ladder: 88 rows, the
+      // figure (41) right-aligned, a 1px rule under each. Icon row: a 40 icon, 16, then a 35
+      // figure over its label, 28 between facts. Glass row: the house glass padded 36, 40
+      // between facts. Glass ladder: the ladder on the glass, padded 24 / 40.
+      const cells = C.colsOf(m), e = C.eyeG(tk) / 24, E = tk.eyebrow;
+      const up = s => String(s || '').toUpperCase();
+      const ladder = mv === 'ladder' || mv === 'boxed', icons = mv === 'icons', grow = mv === 'boxrow';
+      const labPx = (icons || grow) ? E * 20 / 24 : E, lsL = C.trackOf(labPx), labH = autoH(labPx);
+      let figPx = C.typeAt(icons ? tk.hook : (ladder || grow) ? C.typeAt(tk.hook, 1) : tk.stat, m.big ? 1 : 0);
+      if (ladder) {
+        const gl = mv === 'boxed', pX = gl ? 40 * e + K : 0, pY = gl ? 24 * e + K : 0, w = iw - 2 * pX, rp = 18 * e;
+        const fH = autoH(figPx), inner = Math.max(labH, fH), rowH = 2 * rp + inner + K;
+        const nR = Math.max(1, cells.length);
+        if (gl) Bx({ x: 0, y: 0, w: iw, h: nR * rowH + 2 * pY, r: 28 * e, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
+        cells.forEach((c, i) => {
+          const y0 = pY + i * rowH;
+          T(up(c.l), pX, y0 + rp + (inner - labH) / 2 + bl(labPx, labH), labPx, 500, mute, lsL);
+          T(c.v, pX + w - Wd(c.v, figPx, 300), y0 + rp + (inner - fH) / 2 + bl(figPx, fH), figPx, 300, ink);
+          Bx({ x: pX, y: y0 + rowH - K, w, h: K, fill: A(mute, .45) });
+        });
+        h = nR * rowH + 2 * pY;
+      } else {
+        const ft = icons ? true : !!m.figTop, pg = (icons ? 6 : 10) * e, icD = 40 * e, icG = 16 * e;
+        const fGap = (icons ? 28 : grow ? 40 : 64) * e, pad = grow ? 36 * e + K : 0, rg = 24 * e;
+        let cw = [];
+        const measure = () => {
+          cw = cells.map(c => Math.max(Wd(up(c.l), labPx, 500, lsL), Wd(c.v, figPx, 300)) + (icons ? icD + icG : 0));
+          return cw.reduce((a, b) => a + b, 0) + Math.max(0, cells.length - 1) * fGap + 2 * pad;
+        };
+        // a row too wide for its column steps its figures down the ladder together, no lower
+        // than the label's rung, and only then wraps onto a second row
+        while (measure() > iw && figPx > E) figPx = C.typeAt(figPx, -1);
+        const fH = autoH(figPx), pairH = labH + pg + fH;
+        const rows = []; let row = [], w = 0;
+        cells.forEach((c, i) => {
+          if (row.length && w + fGap + cw[i] > iw - 2 * pad) { rows.push(row); row = []; w = 0; }
+          row.push(i); w += (row.length > 1 ? fGap : 0) + cw[i];
+        });
+        if (row.length) rows.push(row);
+        const rowW = r => r.reduce((a, i) => a + cw[i], 0) + (r.length - 1) * fGap;
+        const maxRW = rows.reduce((a, r) => Math.max(a, rowW(r)), 0), nR = Math.max(1, rows.length);
+        const bw = maxRW + 2 * pad, bh = nR * pairH + (nR - 1) * rg + 2 * pad, bx = at(bw);
+        if (grow) Bx({ x: bx, y: 0, w: bw, h: bh, r: 28 * e, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
+        rows.forEach((r, ri) => {
+          let x = grow ? bx + pad + (center ? (maxRW - rowW(r)) / 2 : 0) : at(rowW(r));
+          const y0 = pad + ri * (pairH + rg);
+          r.forEach(i => {
+            const c = cells[i];
+            let x1 = x;
+            if (icons) { els.push({ k: 'icon', x, y: y0 + (pairH - icD) / 2, w: icD, h: icD, slot: c.gi, ink: C.icoInk(m, ink) }); x1 += icD + icG; }
+            const lab = { t: up(c.l), px: labPx, w: 500, f: mute, ls: lsL, h: labH };
+            const fig = { t: c.v, px: figPx, w: 300, f: ink, ls: 0, h: fH };
+            const a = ft ? fig : lab, b = ft ? lab : fig;
+            T(a.t, x1, y0 + bl(a.px, a.h), a.px, a.w, a.f, a.ls);
+            T(b.t, x1, y0 + a.h + pg + bl(b.px, b.h), b.px, b.w, b.f, b.ls);
+            x += cw[i] + fGap;
+          });
+        });
+        h = bh;
+      }
+    } else if (m.type === 'steps') {
+      // Plates: 140 glass circles, 36 apart, the label (24 Regular) 18 under each. Icon plates
+      // carry a 44 icon and a 40 cream badge off the top-right corner; Numbered plates a 50
+      // Light numeral. Timeline: equal columns, the number (24 Medium tracked, muted), 14, a 16
+      // node with a 2px rule to the next column, 14, the label (28 Regular). Compact list: a
+      // 44 ring at .8 with the numeral in it, 20, the label (28 Regular), 16 between rows.
+      const items = C.capLines(m.text, C.STEP_MAX), n = Math.max(1, items.length), e = C.eyeG(tk) / 24, E = tk.eyebrow, lhE = autoH(E);
+      if (mv === 'list') {
+        const d = 44 * e, gl = 20 * e, gap = 16 * e, lp = tk.body, lhL = autoH(lp);
+        const widest = items.reduce((a, t) => Math.max(a, Wd(t, lp, 400)), 0), x0 = at(d + gl + widest);
+        items.forEach((t, i) => {
+          const y0 = i * (d + gap), nt = String(i + 1);
+          Bx({ x: x0, y: y0, w: d, h: d, r: d / 2, stroke: A(ink, .8), sw: K });
+          T(nt, x0 + (d - Wd(nt, E, 500)) / 2, y0 + (d - lhE) / 2 + bl(E, lhE), E, 500, ink);
+          T(t, x0 + d + gl, y0 + (d - lhL) / 2 + bl(lp, lhL), lp, 400, ink);
+        });
+        h = n * d + (n - 1) * gap;
+      } else if (mv === 'timeline') {
+        const colW = iw / n, nd = 16 * e, g1 = 14 * e, lp = tk.body, lhL = autoH(lp), lsN = C.trackOf(E), rt = 2 * e;
+        let maxL = 1;
+        const wr = items.map(t => { const a = wrap(t, lp, 400, colW - 16 * e); maxL = Math.max(maxL, a.length); return a; });
+        items.forEach((t, i) => {
+          const x0 = i * colW, ty = lhE + g1;
+          T((i + 1 < 10 ? '0' : '') + (i + 1), x0, bl(E, lhE), E, 500, mute, lsN);
+          Bx({ x: x0, y: ty, w: nd, h: nd, r: nd / 2, fill: ink });
+          if (i < n - 1) Bx({ x: x0 + nd, y: ty + (nd - rt) / 2, w: colW - nd, h: rt, fill: A(mute, .6) });
+          wr[i].forEach((l, li) => T(l, x0, ty + nd + g1 + li * lhL + bl(lp, lhL), lp, 400, ink));
+        });
+        h = lhE + g1 + nd + g1 + maxL * lhL;
+      } else {
+        // the plates keep the drawing's 140 / 36 and only shrink, together, to fit the column
+        const k = Math.min(1, iw / (n * 140 * e + (n - 1) * 36 * e));
+        const d = 140 * e * k, gap = 36 * e * k, lg = 18 * e, x0 = at(n * d + (n - 1) * gap);
+        let maxL = 1;
+        const wr = items.map(t => { const a = wrap(t, E, 400, d + gap * .9); maxL = Math.max(maxL, a.length); return a; });
+        items.forEach((t, i) => {
+          const cx = x0 + i * (d + gap), nt = String(i + 1);
+          Bx({ x: cx, y: 0, w: d, h: d, r: d / 2, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
+          if (mv === 'num') {
+            const np = tk.stat, nlh = autoH(np);
+            T(nt, cx + (d - Wd(nt, np, 300)) / 2, (d - nlh) / 2 + bl(np, nlh), np, 300, ink);
+          } else {
+            const ic = 44 * e * k, bd = 40 * e * k, bx = cx + d - bd, by = -6 * e * k;
+            els.push({ k: 'icon', x: cx + (d - ic) / 2, y: (d - ic) / 2, w: ic, h: ic, slot: i, ink: C.icoInk(m, ink) });
+            Bx({ x: bx, y: by, w: bd, h: bd, r: bd / 2, fill: pal.eyeFill });
+            T(nt, bx + (bd - Wd(nt, E, 500)) / 2, by + (bd - lhE) / 2 + bl(E, lhE), E, 500, pal.eyeInk);
+          }
+          wr[i].forEach((l, li) => T(l, cx + (d - Wd(l, E, 400)) / 2, d + lg + li * lhE + bl(E, lhE), E, 400, ink));
+        });
+        h = d + lg + maxL * lhE;
+      }
+    } else if (m.type === 'price') {
+      // Plain: the label (24 Medium tracked, muted), 10, the figure at 85 Regular. One line: a
+      // single 59 Regular run. Glass bar: the house glass padded 28 / 48, the label, 8, a 71
+      // Regular figure.
+      const E = tk.eyebrow, e = C.eyeG(tk) / 24, ls = C.trackOf(E), lhE = autoH(E);
+      const sub = String(m.sub || '').toUpperCase(), pTxt = m.text || '', hw = C.headW(400);
+      if (mv === 'line') {
+        const px = C.priceLinePx(tk), lh = autoH(px), t = C.priceLine(m);
+        T(t, at(Wd(t, px, hw)), bl(px, lh), px, hw, ink);
+        h = lh;
+      } else {
+        const glass = mv === 'glass', fp = glass ? C.typeAt(tk.hero, -1) : tk.hero, fh = autoH(fp);
+        const g = (glass ? 8 : 10) * e + C.arGap(E, fp);
+        const w1 = Wd(sub, E, 500, ls), w2 = Wd(pTxt, fp, hw);
+        const pX = glass ? 48 * e + K : 0, pY = glass ? 28 * e + K : 0;
+        const bw = Math.max(w1, w2) + 2 * pX, bh = lhE + g + fh + 2 * pY, x0 = at(bw);
+        if (glass) Bx({ x: x0, y: 0, w: bw, h: bh, r: 28 * e, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
+        const cx = w => center ? x0 + (bw - w) / 2 : x0 + pX;
+        if (sub) T(sub, cx(w1), pY + bl(E, lhE), E, 500, mute, ls);
+        T(pTxt, cx(w2), pY + lhE + g + bl(fp, fh), fp, hw, ink);
+        h = bh;
+      }
+    } else if (m.type === 'cta') {
+      // 28 Medium. Filled pill padded 22 / 56 in cream with navy ink; Outline a 2px ring at .9
+      // of the ink; Soft rect the filled pill at a 10 radius; Pill + arrow padded 8 with 44 on
+      // the left and a 56 navy disc; Text link the label, 16, the arrow, and a 2px rule 10 under.
+      const f = tk.ctaF, c = f / 28, lhF = autoH(f), t = m.text || '', tw = Wd(t, f, 500);
+      if (mv === 'link') {
+        const gap = 16 * c, rw = tw + gap + 18 * c, x0 = at(rw);
+        T(t, x0, bl(f, lhF), f, 500, ink);
+        arrow(x0 + tw + gap, (lhF - 14 * c) / 2, c, ink);
+        Bx({ x: x0, y: lhF + 10 * c, w: rw, h: 2 * c, fill: ink });
+        h = lhF + 12 * c;
+      } else if (mv === 'arrow') {
+        const p = 8 * c, d = 56 * c, bh = d + 2 * p, bw = 44 * c + tw + 24 * c + d + p, x0 = at(bw), dx = x0 + bw - p - d;
+        Bx({ x: x0, y: 0, w: bw, h: bh, r: bh / 2, fill: pal.ctaFill });
+        T(t, x0 + 44 * c, (bh - lhF) / 2 + bl(f, lhF), f, 500, pal.ctaInk);
+        Bx({ x: dx, y: p, w: d, h: d, r: d / 2, fill: pal.ctaInk });
+        arrow(dx + (d - 18 * c) / 2, p + (d - 14 * c) / 2, c, pal.ctaFill);
+        h = bh;
+      } else {
+        const outline = mv === 'outline', sw = outline ? 2 * c : 0, pY = 22 * c, pX = 56 * c;
+        const bw = tw + 2 * pX + 2 * sw, bh = lhF + 2 * pY + 2 * sw, x0 = at(bw);
+        Bx(outline ? { x: x0, y: 0, w: bw, h: bh, r: bh / 2, stroke: A(ink, .9), sw }
+          : { x: x0, y: 0, w: bw, h: bh, r: mv === 'rect' ? 10 * c : bh / 2, fill: pal.ctaFill });
+        T(t, x0 + sw + pX, sw + pY + bl(f, lhF), f, 500, outline ? ink : pal.ctaInk);
+        h = bh;
+      }
+    } else if (m.type === 'divider') {
+      // Full rule 2px at .6; Short bar 96 x 5; Dotted 6 dots 20 apart at .8; Fading 2px, clear
+      // at both ends and solid at the middle; Ornament two 2px rules at .6, 20 either side of a
+      // 12 dot. S / L / XL scale all of it.
+      if (mv === 'short') { const w = 96 * K, t = 5 * K; Bx({ x: at(w), y: 0, w, h: t, fill: ink }); h = t; }
+      else if (mv === 'dots') {
+        const d = 6 * K, g = 20 * K, nD = Math.max(1, Math.floor((iw + g) / (d + g))), x0 = at(nD * d + (nD - 1) * g);
+        for (let i = 0; i < nD; i++) Bx({ x: x0 + i * (d + g), y: 0, w: d, h: d, r: d / 2, fill: A(ink, .8) });
+        h = d;
+      } else if (mv === 'fade') {
+        const t = 2 * K;
+        els.push({ k: 'grad', x: 0, y: 0, w: iw, h: t, stops: [[0, A(ink, 0)], [.5, A(ink, 1)], [1, A(ink, 0)]] });
+        h = t;
+      } else if (mv === 'ornament') {
+        const d = 12 * K, g = 20 * K, t = 2 * K, cx = iw / 2, side = Math.max(0, cx - d / 2 - g);
+        Bx({ x: 0, y: (d - t) / 2, w: side, h: t, fill: A(ink, .6) });
+        Bx({ x: iw - side, y: (d - t) / 2, w: side, h: t, fill: A(ink, .6) });
+        Bx({ x: cx - d / 2, y: 0, w: d, h: d, r: d / 2, fill: ink });
+        h = d;
+      } else { const t = 2 * K; Bx({ x: 0, y: 0, w: iw, h: t, fill: A(ink, .6) }); h = t; }
+    }
+    return { h, els };
+  }
+  // The export: modLayout's elements as ops, offset to the component's place on the canvas.
+  // A stroked box draws its stroke INSIDE its edge, as the Figma frames do.
+  emitEls(ops, els, ox, oy, m, assets) {
+    els.forEach(e => {
+      const x = ox + e.x, y = oy + e.y;
+      if (e.k === 'text') ops.push({ op: 'text', x, y, px: e.px, weight: e.weight, fill: e.fill, text: e.text, ls: e.ls });
+      else if (e.k === 'box') {
+        if (e.blur) ops.push({ op: 'blur', x, y, w: e.w, h: e.h, r: e.r || 0, amount: 14 });
+        const sw = e.stroke ? (e.sw || 1) : 0;
+        if (e.fill) ops.push(e.r ? { op: 'rrect', x, y, w: e.w, h: e.h, r: e.r, fill: e.fill } : { op: 'rect', x, y, w: e.w, h: e.h, fill: e.fill });
+        if (sw) ops.push({ op: 'rrect', x: x + sw / 2, y: y + sw / 2, w: e.w - sw, h: e.h - sw, r: Math.max(0, (e.r || 0) - sw / 2), fill: null, stroke: e.stroke, sw });
+      } else if (e.k === 'poly') ops.push({ op: 'poly', pts: e.pts.map(p => [ox + p[0], oy + p[1]]), stroke: e.stroke, sw: e.sw });
+      else if (e.k === 'grad') ops.push({ op: 'grad', x, y, w: e.w, h: e.h, horiz: true, stops: e.stops });
+      else if (e.k === 'icon') {
+        const a = assets && assets['ic' + m.id + '_' + e.slot];
+        if (!a || !a.img) return;
+        const aw = a.img.naturalWidth || 1, ah = a.img.naturalHeight || 1, k = Math.min(e.w / aw, e.h / ah);
+        ops.push({ op: 'image', img: a.img, url: a.u, x: x + (e.w - aw * k) / 2, y: y + (e.h - ah * k) / 2, w: aw * k, h: ah * k, tintFlat: e.ink });
+      }
+    });
+  }
+  // The editor: the same elements as absolutely placed nodes in the custom-component markup.
+  // A drawn line (the check, the arrow) is an SVG in a background, BASE64 so no attribute
+  // name reaches a style string (Design Cursor camel-cases `viewBox` inside CSS).
+  elsView(els, m, cq) {
+    const mir = CampaignStudio.mirrored();
+    return els.map(e => {
+      if (e.k === 'text') {
+        const at = { position: 'absolute', left: cq(e.x), top: cq(e.y - e.px) };
+        return { t: e.text, style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre' }) };
+      }
+      if (e.k === 'icon') return { t: '', isIcon: '1', slot: 'adstudio-ic-' + m.id + '-' + e.slot, tint: e.ink,
+        style: { position: 'absolute', left: cq(e.x), top: cq(e.y), width: cq(e.w), height: cq(e.h) } };
+      if (e.k === 'poly') {
+        const xs = e.pts.map(p => p[0]), ys = e.pts.map(p => p[1]), pad = e.sw;
+        const x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad, W = Math.max(...xs) - x0 + pad, H = Math.max(...ys) - y0 + pad;
+        const d = 'M' + e.pts.map(p => (p[0] - x0).toFixed(2) + ' ' + (p[1] - y0).toFixed(2)).join('L');
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W.toFixed(2) + '" height="' + H.toFixed(2) + '" viewBox="0 0 ' + W.toFixed(2) + ' ' + H.toFixed(2) + '"><path d="' + d + '" fill="none" stroke="' + e.stroke + '" stroke-width="' + e.sw + '" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        return { t: '', style: { position: 'absolute', left: cq(x0), top: cq(y0), width: cq(W), height: cq(H),
+          backgroundImage: 'url("data:image/svg+xml;base64,' + btoa(svg) + '")', backgroundSize: '100% 100%', transform: mir ? 'scaleX(-1)' : undefined } };
+      }
+      const at = { position: 'absolute', left: cq(e.x), top: cq(e.y), width: cq(e.w), height: cq(e.h) };
+      if (e.k === 'grad') return { t: '', style: Object.assign(at, { background: 'linear-gradient(to right, ' + e.stops.map(s => s[1] + ' ' + (s[0] * 100) + '%').join(', ') + ')' }) };
+      return { t: '', style: Object.assign(at, { borderRadius: cq(e.r || 0), background: e.fill || 'transparent',
+        boxShadow: e.stroke ? 'inset 0 0 0 ' + cq(e.sw || 1) + ' ' + e.stroke : 'none',
+        backdropFilter: e.blur ? 'blur(14px)' : 'none', WebkitBackdropFilter: e.blur ? 'blur(14px)' : 'none' }) };
+    });
+  }
   modPx(m, v, tk, innerW, ov) {
     // This component's own size — S / M / L / XL — applied once, here, at the entry point.
     tk = CampaignStudio.tkMod(tk, v, m);
     const mv = v.mvar[m.id];
+    if (CampaignStudio.LAYOUT_T[m.type]) return this.modLayout(m, v, tk, innerW, CampaignStudio.palOf(v), v.align === 'center').h;
     if (m.type === 'divider') return CampaignStudio.divGeo(v, m, mv).h;
     // the spacer's own height times its size: the drag sets M, and L / XL / S step it
     if (m.type === 'spacer') return (m.h || 60) * CampaignStudio.kOf(tk);
@@ -8896,6 +9419,8 @@ class CampaignStudio extends StudioBase {
       // from innerW/pL, or the two clusters would disagree about their own width.
       const iw = g ? g.w : innerW, px0 = g ? g.x0 : pL;
       const mv = v.mvar[m.id];
+      // the built-in components draw what modLayout lays out — the Figma spec, see there
+      if (CampaignStudio.LAYOUT_T[m.type]) { this.emitEls(ops, this.modLayout(m, v, tk, iw, pal, center).els, px0, y, m, assets); return; }
       const cxAnchor = center ? cctr(0) : pL;
       const T = (text, px, weight, fill, yy, o) => {
         o = o || {};
@@ -11517,7 +12042,16 @@ class CampaignStudio extends StudioBase {
           valStyle: { fontWeight: 300, fontSize: cq(tk.hook), color: pal.ink },
           rowStyle: {}, ruleStyle: {}, ladStyle: {}, priceBoxStyle: {}, rowsStyle: {}
         };
-        if (m.type === 'eyebrow') {
+        if (CampaignStudio.LAYOUT_T[m.type]) {
+          // The built-in components preview from modLayout — the export's own elements, in
+          // the custom-component markup — so the editor cannot draw a different component.
+          const L = this.modLayout(m, v, tk, gW, pal, center);
+          Object.assign(view, { isEyebrow: false, isEyebrowRule: false, isHero: false, isText: false, isSpec: false, isSpecLadder: false,
+            isRows: false, isTags: false, isCta: false, isPrice: false, isDiv: false, isList: false, isCust: true });
+          view.tStyle = { position: 'relative', width: cq(gW), height: cq(L.h) };
+          view.custEls = this.elsView(L.els, m, cq);
+          view.wrapStyle = Object.assign({}, view.wrapStyle, { alignSelf: 'stretch' });
+        } else if (m.type === 'eyebrow') {
           const boxed = mv === 'frame' || mv === 'fill';
           const K = CampaignStudio.kOf(tk), g = CampaignStudio.eyeG(tk), ink = CampaignStudio.eyeInk(m, pal, mv);
           const eLd = CampaignStudio.leadOf(CampaignStudio.EYE_LEAD);
@@ -12188,12 +12722,14 @@ class CampaignStudio extends StudioBase {
         // A CORNER NOTE ends at the GUARD's right edge, which is where the op right-aligns it
         // (px0 + iw). flex-end put it at the frame's edge instead — 70 canvas px right on the
         // 9:16, and the auto margins centred it outright on a centred design.
-        const noteM = !!bm && bm.type === 'body' && v.mvar[bm.id] === 'note';
+        // (the body is laid out by modLayout now, which right-aligns a note inside its own
+        // full-width box, so no component needs the old corner-note margins)
+        const noteM = false;
         it.wrapStyle = Object.assign({}, it.wrapStyle, { maxWidth: cq(railG.w),
           // mirrored, a left-aligned item starts past the rail reserved on this side
           marginLeft: (center && !noteM) ? 'auto' : ((mir && !center && !noteM) ? cq(railG.x0 - tk.pad[3]) : undefined),
           marginRight: noteM ? cq((tk.W - tk.pad[1]) - (railG.x0 + railG.w)) : (center ? 'auto' : undefined),
-          width: (center && bm && STRETCH[bm.type]) ? cq(railG.w) : it.wrapStyle.width });
+          width: (center && bm && (STRETCH[bm.type] || CampaignStudio.LAYOUT_T[bm.type])) ? cq(railG.w) : it.wrapStyle.width });
       });
       // The share of the canvas the copy occupies — the brand rule's "modules and copy
       // cover at most ~40%". Measured from the SAME per-component gaps and modPx the

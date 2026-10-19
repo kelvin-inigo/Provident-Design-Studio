@@ -15171,3 +15171,57 @@ you are in lights the chip in the row's own ink (`--ps-accent-i`, bars `--ps-acc
 studio's row shows an `arrow_outward` (`.p-ws-go`) on hover, because choosing it opens another
 page, and its chip edge goes `--ps-link`. A "Studio" label heads the pair (`.p-sec-l0`). On a phone
 the label and arrow are hidden and the chip keeps its ratio. Chrome only.
+
+**THE HOME PAGE'S HEADER BUTTONS HAVE THREE WEIGHTS (section 46, both studios, 2026-10-16, by
+request).** The theme toggle is a UTILITY — no fill until hovered, set apart by a hairline
+(`.p-br-sep`, hidden on a phone); **Open session** is SECONDARY — an outline (an inset
+`--ps-line` ring, no fill); **New campaign / New post** is the one PRIMARY. All three are 36 tall on
+the pill radius; the two labelled ones take the kit's button role (14/600, +.16px); a press sinks
+1px (off under reduced motion); each has a title saying what it does. Chrome only.
+
+# CAS'S BUILT-IN COMPONENTS ARE THE FIGMA "DESIGN COMPONENTS" PAGE, AND THE PREVIEW IS THE EXPORT'S OWN GEOMETRY
+
+By request (2026-10-19): "replicate these down to exact pixel in CAS" — the **CAS Templates ›
+Design Components** page (`figma.com/design/mKRZhwe2MvJDuMBjYas0D5`, node `71:2`), every tile at
+M on the 1:1 canvas. That page was drawn by Claude on 11 Oct as an approximation of CAS; it was
+checked against the original build scripts and had not been edited since, so it is now the spec
+CAS follows, not a picture of it.
+
+**One function, `modLayout(m, v, tk, iw, pal, center)` → `{h, els}`, lays out all eleven built-in
+types** (`LAYOUT_T`: eyebrow, hero, hook, body, list, tags, spec, steps, price, cta, divider) as
+elements in the component's own box. `modPx` returns its `h`; `drawMod` hands its elements to
+`emitEls` (the export); the editor hands them to `elsView` and renders them through the
+**custom-component markup that already existed** (`isCust` / `custEls`). So the preview cannot
+draw a different component from the export — measured: **1,049 text runs** over every style ×
+S / XL × left / centre × 1:1 and 9:16 on the light palette, worst **0.18 canvas px**; Arabic
+(mirrored) 236 runs, worst **0.47**. The old per-type preview branches and drawMod branches are
+still in the file and now unreachable; graphic, spacer and cust are unchanged.
+
+**The numbers are Figma's**, carried in units that scale: `u = eyeG/24` (a Figma pixel at this
+size), or em of the component's own type. A Figma auto-height text box is **1.25em** with the run
+centred in it (`autoH`, `bl`, through `leadOf` for Arabic). **Strokes are INSIDE the box and in its
+size**, as the Figma frames are; `emitEls` insets a stroked rrect by half its width.
+
+Decisions taken with the user (2026-10-19):
+- **Figma's sizes win over the type ladder in three places**: bullet text is 32 (`body × 8/7`),
+  the Icon row and Glass row labels are **20** (under the 24 floor). Price figure is the hero rung
+  (85), its glass bar 71; one-line price is the headline rung (59); chip and strip text is
+  **Regular 400** (was Light); buttons are Medium 500.
+- **The dark canvas takes Figma's colours**: ink `#FAF8F4` (the wordmark follows), chip / button
+  ink `#0F1A2C`, eyebrow fill and CTA fill `#FAF8F4`, glass white **.14 / .33** with a 1px edge.
+  Every eyebrow variant inks in the canvas ink now (`eyeInk`), not the muted ink.
+- Shape changes that follow the drawing: Two columns lists **column by column**; plates are a
+  fixed **140 with 36** between (shrinking together only to fit) with **no dotted connectors**;
+  Row facts hug with **no column rules**; the Fade headline is **per-line ink** (1 / .5 / .12),
+  not a gradient; the boxed body and framed/filled eyebrow are **square**; a corner note wraps at
+  15em.
+
+**Glyph widths still differ from Figma, and that is the font, not the layout.** Light and Medium
+runs match Figma to ~1%; Regular is ~8% narrower in Figma at 24px and ~3% wider at 85px, and the
+tracked caps run narrower there too — Figma draws Google Sans Flex at one fixed optical size where
+the browser follows the type size. Where a Figma tile's line breaks differ (glass hero / hook,
+bars) it is because the tile fixed its text box at a hand-picked width; CAS breaks at the column.
+
+**Found, not changed:** a top-cluster component sits **4.2 canvas px** lower in the editor than in
+the export (5.0 on the 9:16) — measured identical in the pre-change build, so it predates this; it
+is the wordmark's documented line-box gap carried into the first component.
