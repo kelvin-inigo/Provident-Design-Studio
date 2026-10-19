@@ -15341,7 +15341,7 @@ also styled the digit inside `<b>` — scope with `>`.
 
 By request ("an endpoint for sending the export version including the .json and image assets"):
 Share › **Send to an endpoint** (a folding `<details class="sx-ep">` under Export). OPS only;
-CAS and `studio-base.js` are untouched. The contract is `docs/ops-endpoint.md`.
+CAS and `studio-base.js` are untouched. The contract is `docs/studio-endpoint.md`.
 
 - **It reuses `doExport` whole.** `sendExport()` sets `this._ep` and calls `doExport`;
   OrganicStudio **overrides `deliver`** to call `epPost` while `_ep` is set and `super.deliver`
@@ -15357,4 +15357,22 @@ CAS and `studio-base.js` are untouched. The contract is `docs/ops-endpoint.md`.
 - Verified with a real click against a local stand-in receiver (CORS, Bearer key, 3 files
   reproducing the export layout, the 2160x2880 JPEG intact); unreachable host and an http URL
   both reported; plain Export still goes through `saveAs`. Not tested against a real server.
+
+**CAS takes the same Send (2026-10-19, by request "give me a send button under the share
+button").** CampaignStudio carries the identical `epCfg` / `epSet` / `epUrlOk` / `sendExport` /
+`deliver` override / `epPost` (key `provident-cas-endpoint`, manifest `studio: 'cas'` with
+`platform`, `mode`, `variants`; YouTube sends JPEG unless PNG is picked). In BOTH studios the
+**Send N … + project** button now sits always visible under Export, and the URL and key fold
+below it in `<details class="sx-ep">`; Send with no URL opens the fold and focuses the field. The
+contract moved to `docs/studio-endpoint.md`. Verified in CAS with real clicks: 3 PNGs at
+2160x2160 / 2160x3840 in `Variant A/`, the session json and 3 assets arrived (26 MB).
+
+**Send targets the IMPORT HUB now (2026-10-19, by request), in both studios.** `epPost` sends
+the hub's curl format: `content` = the session .json, `images` = every exported image (basename
+filenames; Assets/ and non-image files left out), `X-Source: Design system`, `Authorization:
+Bearer <token>`. No `manifest` part any more. `EP_DEFAULT` is `http://192.168.50.30:8090/api/imports`;
+`epUrlOk` allows http to localhost and private LAN ranges; Send with no token opens the fold on
+the token field. **The token is per computer and NEVER in the repo** (public). Verified against
+a stand-in hub in both studios (201, 401 path); the real hub was not reachable from this Mac
+when tested. An https page (Vercel) cannot reach an http LAN hub — mixed content.
 

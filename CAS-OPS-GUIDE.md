@@ -537,6 +537,12 @@ keeps your 10 newest saved projects, so that is the sample).
 Only saved projects count. A project you have opened but never saved is not in the numbers. With
 fewer than five saved projects the page says so — treat the verdicts as early signals.
 
+- **Send … + .json** (under the Export button in **Share**) sends the project `.json` and every
+  exported image to the import hub. The first time, press it and paste your import token into
+  the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
+  A PDF stays local, so Send sends JPEGs. See `docs/studio-endpoint.md`.
+
+
 ## 8. OPS: make a post
 
 Picking a template opens the **guided run**: one page of the post at a time, filled in top to
@@ -608,12 +614,10 @@ This is the full editor.
 - **PDF** holds the feed pages only. It's always in **Share**; on the guided **Finish** page,
   **Download as PDF** appears when the post has more than one page.
 - Unlike CAS, OPS asks before replacing files that are already there.
-- **Send to an endpoint** (under the Export button in **Share**): paste a URL once per computer,
-  and an optional key. **Send N JPEGs + project** sends the same files an export writes — the
-  renders, the session `.json` and `Assets/` — to that address in one upload. It uses the format
-  card you picked (a PDF stays local, so Send sends JPEGs). The URL must start with `https://`
-  (plain `http://` only for this computer). The receiving server is described in
-  `docs/ops-endpoint.md`.
+- **Send … + .json** (under the Export button in **Share**) sends the project `.json` and every
+  exported image to the import hub. The first time, press it and paste your import token into
+  the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
+  A PDF stays local, so Send sends JPEGs. See `docs/studio-endpoint.md`.
 
 ---
 
