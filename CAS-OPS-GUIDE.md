@@ -217,11 +217,13 @@ No API key or service is needed: Claude Code reads the screenshot.
     set the wordmark corner and alignment for that canvas only. It starts where the variant's is.
   - **Picture** — give that canvas its own photo instead of sharing the main one.
   - **Eye** — show or hide the canvas. A hidden canvas is not exported.
-- **Portrait 3:4:** shown under the 1:1 on every Meta variant. It mirrors the 1:1 until you
-  press its link button, and the eye hides it (a hidden 3:4 is not exported). It exports as
-  `<name>_Variant A_Portrait_3x4.jpg` at 2160 × 2880.
+- **Portrait 3:4:** hidden by default — press the eye on its row to show it. It mirrors the 1:1
+  until you press its link button. It exports as `<name>_Variant A_Portrait_3x4.jpg` at 2160 × 2880.
+- **Portrait Fix (temporary):** shown by default under the 3:4 row. It is the 9:16 Story with
+  260px more clearance at the top (520 in all). Same link, picture and eye buttons. It exports as
+  `<name>_Variant A_Portrait_Fix.jpg` at 2160 × 3840.
 - **9:16:** it mirrors the 1:1 until you press its link button.
-- **YT Demand Gen 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape for
+- **Horizontal 1.91:1** (the YT Demand Gen landscape): press the eye on its row to show it. It is a 1200 × 628 landscape for
   YouTube Demand Gen, and its words run the full width of the canvas. It exports into the
   variant's folder with the other images (section 7).
 - **All variants** (the pill next to **Add Variant**, which shows how many variants you have

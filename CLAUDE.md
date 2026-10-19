@@ -15315,3 +15315,13 @@ state) shows only what is not used. Section 48 of the sheet (`.cu-*`). The sampl
 `RECENT_MAX` (10) — widening it means reading session files from folders, e.g. Ad sets' scan.
 Verified with four seeded saved projects (counts, hidden, XL, the filter), contrast 0 failures in
 both themes, no overflow at 375. Chrome only — no artwork line changed.
+
+# PORTRAIT FIX — A TEMPORARY CAS SIZE (2026-10-19, to be deleted soon)
+
+By request: key **`pf`**, the 9:16 story's tokens with the top margin 520 (the story's 260 plus
+260 more), 1080 × 1920, exported at 2x as `<name>_<Variant>_Portrait_Fix`. Shown by default
+(`v.pfHide` is the eye); the **Portrait 3:4 is now OFF by default** (`v.ptOn`, missing = hidden —
+it was `v.ptHide`). It has the 3:4's controls (`pfOv` in `OVK` / `sizeOv`, `bgSep.pf` with slot
+`adstudio-bg-<vi>-pf`, a Scaling row, the align button, the rail's own-photo row) and Ad sets
+reads `portrait_fix`. The plate's 1.91:1 rows are named **Horizontal** (both the Meta `ls` and
+YouTube `yl`). To delete: grep `pf` / `Portrait Fix` / `portrait_fix` / `pfHide` / `pfOv`.
