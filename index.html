@@ -23,119 +23,76 @@
 <link rel="stylesheet" href="ui-design-system/provident-ui.css">
 
 <style>
-/* Everything below is layout for this one page. Every colour, radius, motion value and
-   type role is a kit token — there is no local palette to keep in step. */
-body{margin:0; min-height:100vh; display:flex; flex-direction:column}
-
-.lp{width:100%; max-width:1120px; margin:0 auto; padding:64px 24px 48px; flex:1}
-
-/* the masthead is the kit's own top bar, so the lockup sits exactly where it sits in the
-   studios and the toggle is the same control. */
+/* The home page (2026-10-19). Layout only: every colour, radius, motion value and type role is a
+   kit token. Each studio card LEADS with its Hairline figure (vendor/hairline, MIT) — Elevator for
+   Campaign ads, Turntable for Organic posts — on the studio's own stage ground, interactive under
+   the pointer. The card is not one big link any more: a stretched link over the figure would eat
+   the pointer the figure reacts to, so the title row and the Open button are the way in. */
+body{margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--ps-app)}
 .p-top{position:sticky; top:0; z-index:5}
 .lp-sp{flex:1}
+.lp{width:100%; max-width:1120px; margin:0 auto; padding:72px 24px 56px; flex:1; box-sizing:border-box}
 
-/* ── THE HERO TAKES THE DISPLAY STEP. Coinbase's scale runs 80 / 64 / 52 / 36 / 32 and
-   the kit records that its display sizes had "no element here to land on"; a landing
-   page is the one surface where one does. 52 on a wide viewport, 36 and 32 down the
-   steps — every value on the scale, none between. -------------------------------- */
-.lp-h{max-width:720px; margin:0 0 48px}
-.lp-h h1{font-size:52px; font-weight:600; letter-spacing:-.01em; line-height:1.08;
-  margin:14px 0 0; color:var(--ps-ink)}
-.lp-lede{font-size:17px; font-weight:400; line-height:1.55; color:var(--ps-ink-2);
-  margin:18px 0 0; max-width:560px}
+.lp-h{max-width:680px; margin:0 0 44px}
+.lp-kick{display:inline-flex; align-items:center; gap:8px; font:500 13px/1 var(--ps-font); color:var(--ps-ink-2)}
+.lp-kick::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--ps-brand)}
+.lp-h h1{font:600 52px/1.06 var(--ps-font); letter-spacing:-.015em; margin:16px 0 0; color:var(--ps-ink); text-wrap:balance}
+.lp-lede{font:400 17px/1.55 var(--ps-font); color:var(--ps-ink-2); margin:18px 0 0; max-width:560px}
 
-.lp-g{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.lp-g{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.lp-c{display:flex; flex-direction:column; background:var(--ps-card); border:1px solid var(--ps-hair);
+  border-radius:16px; overflow:hidden;
+  transition:border-color var(--ps-motion) var(--ps-ease);
+  animation:lpIn 220ms var(--ps-ease) backwards}
+.lp-c:nth-child(2){animation-delay:70ms}
+@keyframes lpIn{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
+.lp-c:hover{border-color:var(--ps-line)}
 
-/* The entrance is fill-mode BACKWARDS, never `both`/`forwards`: a forward fill keeps the
-   `to` keyframe's transform:none applied after the animation ends, and an animation beats
-   every normal declaration — so `both` would silently kill the hover lift below. */
-/* A CARD IS A RING, NEVER A DROP SHADOW — the elevation rule this system runs on.
-   Hover is a FILL change plus 2px of travel, inside the 3px the motion rule allows.
-   It is an <article> with a STRETCHED LINK (the title's own <a>, whose ::after fills
-   the card) rather than an <a> wrapping everything: the filmstrip inside it is a row of
-   real <button>s, and a button inside a link is invalid and would navigate on every
-   click. The buttons sit at z 1, above the stretched pseudo, so they stay clickable. */
-.lp-c{position:relative; display:flex; flex-direction:column; color:inherit;
-  background:var(--ps-card); border:1px solid var(--ps-hair);
-  border-radius:var(--ps-r); padding:14px 14px 20px;
-  transition:background-color var(--ps-motion) var(--ps-ease),
-             border-color var(--ps-motion) var(--ps-ease),
-             transform var(--ps-motion) var(--ps-ease);
-  animation:lpIn 200ms var(--ps-ease) backwards}
-.lp-c:nth-child(2){animation-delay:60ms}
-@keyframes lpIn{from{opacity:0; transform:translateY(3px)} to{opacity:1; transform:none}}
-.lp-c:hover{background:var(--ps-card-h); border-color:var(--ps-line); transform:translateY(-2px)}
-.lp-c:has(.lp-link:focus-visible){outline:2px solid var(--ps-ink); outline-offset:2px}
-.lp-link{color:inherit; text-decoration:none; outline:none}
-.lp-link::after{content:''; position:absolute; inset:0; border-radius:inherit}
+/* THE STAGE: the figure on the studio's stage ground. The figure draws in a 5:4 frame and is
+   scaled to the stage's height; its plate is the stage itself, so it never shows as a box. */
+.lp-stage{position:relative; height:280px; background:var(--ps-stage); border-bottom:1px solid var(--ps-hair);
+  display:flex; align-items:center; justify-content:center; overflow:hidden}
+.lp-fig{display:block; height:100%; aspect-ratio:5/4; max-width:100%;
+  --hairline-plate:var(--ps-fill); --hairline-hi:var(--ps-ink); --hairline-edge:var(--ps-ink-2);
+  --hairline-mid:var(--ps-ink-2); --hairline-lo:var(--ps-dim); --hairline-stroke:1}
+.lp-c:hover .lp-fig{--hairline-hi:var(--ps-link)}
+.lp-hint{position:absolute; left:16px; bottom:12px; font:500 11.5px/1 var(--ps-font); color:var(--ps-dim);
+  opacity:0; transform:translateY(2px); transition:opacity var(--ps-motion) var(--ps-ease), transform var(--ps-motion) var(--ps-ease)}
+.lp-stage:hover .lp-hint{opacity:1; transform:none}
 
-/* ── THE STAGE: the studio's own stage ground, the render CONTAINED on it ─────────
-   The two studios make different shapes — a square and a 3:4 — and the two cards have
-   to sit level, so the preview is a fixed 4:3 stage on `--ps-stage` and the render sits
-   inside it the way a canvas sits on the studio's stage. contain, never cover: a crop
-   would hide the layout, which is the one thing this preview exists to show. --------- */
-.lp-stage{position:relative; aspect-ratio:4/3; max-height:340px; overflow:hidden;
-  border-radius:calc(var(--ps-r) - 6px); background:var(--ps-stage);
-  border:1px solid var(--ps-hair)}
-/* THE REEL IS THE SPLASH'S OWN — the recents and template cards in both studios step
-   through their frames on hover with a .45s glide and a 3s hold, then stop on the last
-   one. The same three numbers drive this strip (see the script), and the same rule
-   stops it under prefers-reduced-motion. */
-.lp-reel{display:flex; height:100%; will-change:transform;
-  transition:transform .45s var(--ps-ease)}
-.lp-frame{flex:0 0 100%; margin:0; display:flex; align-items:center; justify-content:center;
-  padding:18px; box-sizing:border-box}
-/* height:auto on an <img> whose width/height ATTRIBUTES are set is what lets the box take
-   the file's own intrinsic ratio — a hand-written aspect-ratio could disagree with the
-   render, and the attributes cannot. max-height keeps the 237px capture at ~1.4x or under. */
-.lp-frame img{display:block; width:auto; height:100%; max-width:100%; max-height:100%;
-  object-fit:contain; border-radius:4px;
-  box-shadow:0 0 0 1px var(--ps-hair)}
-
-/* ── THE FILMSTRIP: one thumb per template, the current one ringed ─────────────────
-   The ring is `--ps-link`, the mark token, and 2px — the same ring the kit's selected
-   tile carried before its stroke came off, kept here because a 36px thumb over artwork
-   has no label to carry the state for it. */
-.lp-film{display:flex; align-items:center; gap:12px; margin:12px 2px 0; min-height:34px}
-.lp-film-r{display:flex; gap:6px; position:relative; z-index:1}
-.lp-film-b{appearance:none; border:0; padding:0; margin:0; cursor:pointer;
-  height:34px; width:calc(34px * var(--a)); border-radius:4px; overflow:hidden;
-  background:var(--ps-fill); opacity:.62;
-  transition:opacity var(--ps-motion) var(--ps-ease), box-shadow var(--ps-motion) var(--ps-ease)}
-.lp-film-b img{display:block; width:100%; height:100%; object-fit:cover}
-.lp-film-b:hover{opacity:1}
-.lp-film-b[aria-current="true"]{opacity:1; box-shadow:0 0 0 2px var(--ps-link)}
-.lp-film-b:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
-.lp-film-cap{font-size:12px; font-weight:500; color:var(--ps-dim);
-  font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-
-/* ── THE TITLE ROW: the studio's own canvas shape, then the name, then the arrow ────
-   The mark is the splash switcher's chip: 26px tall at the studio's own aspect, inside a
-   30px box so a square and a 3:4 still line their labels up. The mark IS the ratio, so
-   it cannot drift from the canvas it depicts. */
-.lp-c-t{display:flex; align-items:center; gap:12px; margin:18px 6px 0}
+.lp-c-in{display:flex; flex-direction:column; padding:20px 22px 22px; flex:1}
+.lp-c-t{display:flex; align-items:center; gap:12px}
 .lp-mark{width:30px; height:30px; flex:none; display:inline-flex; align-items:center; justify-content:center}
-.lp-mark i{display:block; height:26px; width:calc(26px * var(--a)); border-radius:4px;
-  background:var(--ps-fill); border:1px solid var(--ps-line); box-sizing:border-box}
-.lp-c:hover .lp-mark i{background:var(--ps-accent); border-color:transparent}
-.lp-c h2{flex:1; min-width:0; font-size:19px; font-weight:600; line-height:1.3; letter-spacing:-.01em;
-  margin:0; color:var(--ps-ink)}
-.lp-c-go{width:32px; height:32px; flex:none; border-radius:var(--ps-pill);
-  display:inline-flex; align-items:center; justify-content:center;
-  background:var(--ps-fill); color:var(--ps-ink-2);
-  transition:background-color var(--ps-motion) var(--ps-ease),
-             color var(--ps-motion) var(--ps-ease),
-             transform var(--ps-motion) var(--ps-ease)}
-.lp-c-go svg{width:17px; height:17px; fill:currentColor}
-.lp-c:hover .lp-c-go{background:var(--ps-primary); color:var(--ps-primary-i); transform:translateX(2px)}
+.lp-mark i{display:block; height:26px; width:calc(26px * var(--a)); border-radius:4px; background:var(--ps-fill);
+  border:1px solid var(--ps-line); box-sizing:border-box}
+.lp-c-n{min-width:0}
+.lp-c h2{font:600 20px/1.25 var(--ps-font); letter-spacing:-.01em; margin:0; color:var(--ps-ink)}
+.lp-c-d{font:500 13px/1.3 var(--ps-font); color:var(--ps-dim); margin:2px 0 0}
+.lp-c-b{font:400 14.5px/1.55 var(--ps-font); color:var(--ps-ink-2); margin:14px 0 0}
 
-.lp-c-d{font-size:13px; font-weight:600; color:var(--ps-dim); margin:4px 6px 0 48px}
-.lp-c-b{font-size:14px; font-weight:400; line-height:1.5; color:var(--ps-ink-2);
-  margin:12px 6px 0}
-/* the format facts are the kit's own informational pill, `.p-tag`, not a bespoke list */
-.lp-tags{display:flex; flex-wrap:wrap; gap:6px; margin:16px 6px 0}
+/* three facts as figures, not as a row of pills */
+.lp-facts{list-style:none; margin:18px 0 0; padding:0; display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+.lp-facts li{display:flex; flex-direction:column; gap:4px; padding:12px; border-radius:10px; background:var(--ps-fill)}
+.lp-facts b{font:600 22px/1 var(--ps-font); color:var(--ps-ink); font-variant-numeric:tabular-nums}
+.lp-facts span{font:400 12px/1.4 var(--ps-font); color:var(--ps-ink-2)}
 
-.lp-f{max-width:1120px; margin:0 auto; width:100%;
+/* the studio's own template renders, small, with their names as tooltips */
+.lp-tpl{display:flex; align-items:center; gap:12px; margin:18px 0 22px}
+.lp-tpl-l{font:500 12px/1 var(--ps-font); color:var(--ps-dim); flex:none}
+.lp-tpl-r{display:flex; gap:6px; min-width:0; overflow:hidden}
+.lp-tpl-r img{height:44px; width:auto; border-radius:4px; box-shadow:0 0 0 1px var(--ps-hair); display:block}
+
+.lp-go{margin-top:auto; display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px;
+  border-radius:var(--ps-pill); background:var(--ps-primary); color:var(--ps-primary-i); text-decoration:none;
+  font:600 14px/1 var(--ps-font); letter-spacing:.16px;
+  transition:background-color var(--ps-motion) var(--ps-ease), transform var(--ps-motion) var(--ps-ease)}
+.lp-go svg{width:17px; height:17px; fill:currentColor; transition:transform var(--ps-motion) var(--ps-ease)}
+.lp-go:hover{background:var(--ps-primary-h)}
+.lp-go:hover svg{transform:translateX(2px)}
+.lp-go:active{transform:translateY(1px)}
+.lp-go:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+
+.lp-f{max-width:1120px; margin:0 auto; width:100%; box-sizing:border-box;
   padding:22px 24px 34px; border-top:1px solid var(--ps-hair);
   display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px}
 .lp-f p{margin:0; font-size:12px; color:var(--ps-dim)}
@@ -143,20 +100,23 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column}
 .lp-f a:hover{text-decoration:underline}
 .lp-f a:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px; border-radius:3px}
 
-@media (max-width:900px){ .lp-h h1{font-size:36px; line-height:1.15} }
+@media (max-width:900px){ .lp-h h1{font-size:40px; line-height:1.1} }
 @media (max-width:640px){
-  .lp{padding:36px 18px 28px}
-  .lp-h{margin-bottom:32px}
+  .lp{padding:40px 16px 28px}
+  .lp-h{margin-bottom:28px}
   .lp-h h1{font-size:32px}
   .lp-lede{font-size:16px}
-  .lp-stage{max-height:280px}
+  .lp-g{grid-template-columns:1fr}
+  .lp-stage{height:220px}
+  .lp-c-in{padding:18px 16px 18px}
+  .lp-facts b{font-size:20px}
 }
 @media (prefers-reduced-motion:reduce){
-  .lp-c,.lp-c-go,.lp-film-b,.lp-reel{transition:none; animation:none}
-  .lp-c:hover{transform:none}
-  .lp-c:hover .lp-c-go{transform:none}
+  .lp-c,.lp-go,.lp-go svg,.lp-hint{transition:none; animation:none}
+  .lp-go:active{transform:none}
 }
 </style>
+<script src="vendor/hairline/hairline.js"></script>
 </head>
 <body class="p-shell">
 
@@ -202,85 +162,43 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column}
     <svg class="p-g" aria-hidden="true"><use id="themeicon" href="#i-dark-mode"/></svg>
   </button>
 </header>
-
 <main class="lp">
   <div class="lp-h">
-    <p class="p-cap">Choose a studio</p>
-    <h1>Two studios, one brand system.</h1>
-    <p class="lp-lede">Everything Provident publishes — paid and organic — built on one set
-      of tokens, one typeface and one grid. Pick where you are working; hover a card, or
-      tap a thumbnail, to see what it makes.</p>
+    <span class="lp-kick">Provident Design Studio</span>
+    <h1>Make on-brand ads and posts in minutes.</h1>
+    <p class="lp-lede">Two studios on one brand system — the same typeface, tokens and grid. Pick the one for what you are making.</p>
   </div>
-
   <div class="lp-g">
-    <article class="lp-c" data-studio="campaign" style="--a:1">
-      <div class="lp-stage" aria-hidden="true">
-        <div class="lp-reel" data-n="4">
-          <figure class="lp-frame"><img src="preview/campaign-f.webp" alt="New launch template" width="475" height="475" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/campaign-d.webp" alt="Event template" width="475" height="475" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/campaign-g.webp" alt="Payment plan template" width="475" height="475" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/campaign-h.webp" alt="Spec ladder template" width="475" height="475" loading="eager" decoding="async"></figure>
+    <article class="lp-c" data-studio="campaign">
+      <div class="lp-stage">
+        <span class="lp-fig" data-hl="elevator"></span>
+        <span class="lp-hint" aria-hidden="true">Move across it</span>
+      </div>
+      <div class="lp-c-in">
+        <div class="lp-c-t">
+          <span class="lp-mark" style="--a:1"><i></i></span>
+          <div class="lp-c-n"><h2>Campaign ads</h2><p class="lp-c-d">Paid Meta and YouTube ads</p></div>
         </div>
-      </div>
-      <div class="lp-film" role="group" aria-label="Campaign ads templates">
-        <div class="lp-film-r">
-          <button type="button" class="lp-film-b" data-i="0" aria-label="Show the New launch template" aria-current="true"><img src="preview/campaign-f.webp" alt="" width="475" height="475" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="1" aria-label="Show the Event template"><img src="preview/campaign-d.webp" alt="" width="475" height="475" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="2" aria-label="Show the Payment plan template"><img src="preview/campaign-g.webp" alt="" width="475" height="475" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="3" aria-label="Show the Spec ladder template"><img src="preview/campaign-h.webp" alt="" width="475" height="475" aria-hidden="true"></button>
-        </div>
-        <span class="lp-film-cap" aria-live="polite">New launch</span>
-      </div>
-      <div class="lp-c-t">
-        <span class="lp-mark"><i></i></span>
-        <h2><a class="lp-link" href="Provident Campaign Studio.dc.html">Campaign ads</a></h2>
-        <span class="lp-c-go" aria-hidden="true">
-          <svg viewBox="0 -960 960 960"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg>
-        </span>
-      </div>
-      <p class="lp-c-d">Paid Meta and YouTube ads</p>
-      <p class="lp-c-b">A free-form design-component palette. Build once, ship 1:1, 9:16 and 16:9 — with per-variant layout, scrim and scaling.</p>
-      <div class="lp-tags">
-          <span class="p-tag">4 templates</span>
-          <span class="p-tag">1:1 · 9:16 · 16:9</span>
-          <span class="p-tag">Meta placement preview</span>
-          <span class="p-tag">Arabic typeface</span>
+        <p class="lp-c-b">Build an ad from design components, then ship every size in one go — each variant keeps its own layout, scrim and scale.</p>
+        <ul class="lp-facts"><li><b>7</b><span>sizes, 1:1 to banner</span></li><li><b>3</b><span>A/B variants per ad</span></li><li><b>2</b><span>typefaces, EN and AR</span></li></ul>
+        <div class="lp-tpl"><span class="lp-tpl-l">Templates</span><div class="lp-tpl-r"><img src="preview/campaign-f.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="New launch"><img src="preview/campaign-d.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="Event"><img src="preview/campaign-g.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="Payment plan"><img src="preview/campaign-h.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="Spec ladder"></div></div>
+        <a class="lp-go" href="Provident%20Campaign%20Studio.dc.html">Open Campaign ads<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg></a>
       </div>
     </article>
-    <article class="lp-c" data-studio="organic" style="--a:.75">
-      <div class="lp-stage" aria-hidden="true">
-        <div class="lp-reel" data-n="5">
-          <figure class="lp-frame"><img src="preview/organic-listed.webp" alt="Just listed template" width="475" height="633" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/organic-weekly.webp" alt="Weekly listings template" width="475" height="633" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/organic-agents.webp" alt="Top agents template" width="475" height="633" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/organic-review.webp" alt="Google reviews template" width="475" height="633" loading="eager" decoding="async"></figure>
-          <figure class="lp-frame"><img src="preview/organic-award.webp" alt="Award template" width="475" height="633" loading="eager" decoding="async"></figure>
+    <article class="lp-c" data-studio="organic">
+      <div class="lp-stage">
+        <span class="lp-fig" data-hl="turntable"></span>
+        <span class="lp-hint" aria-hidden="true">Flick to spin it</span>
+      </div>
+      <div class="lp-c-in">
+        <div class="lp-c-t">
+          <span class="lp-mark" style="--a:0.75"><i></i></span>
+          <div class="lp-c-n"><h2>Organic posts</h2><p class="lp-c-d">Feed and story posts</p></div>
         </div>
-      </div>
-      <div class="lp-film" role="group" aria-label="Organic posts templates">
-        <div class="lp-film-r">
-          <button type="button" class="lp-film-b" data-i="0" aria-label="Show the Just listed template" aria-current="true"><img src="preview/organic-listed.webp" alt="" width="475" height="633" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="1" aria-label="Show the Weekly listings template"><img src="preview/organic-weekly.webp" alt="" width="475" height="633" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="2" aria-label="Show the Top agents template"><img src="preview/organic-agents.webp" alt="" width="475" height="633" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="3" aria-label="Show the Google reviews template"><img src="preview/organic-review.webp" alt="" width="475" height="633" aria-hidden="true"></button>
-          <button type="button" class="lp-film-b" data-i="4" aria-label="Show the Award template"><img src="preview/organic-award.webp" alt="" width="475" height="633" aria-hidden="true"></button>
-        </div>
-        <span class="lp-film-cap" aria-live="polite">Just listed</span>
-      </div>
-      <div class="lp-c-t">
-        <span class="lp-mark"><i></i></span>
-        <h2><a class="lp-link" href="Provident Organic Studio.dc.html">Organic posts</a></h2>
-        <span class="lp-c-go" aria-hidden="true">
-          <svg viewBox="0 -960 960 960"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg>
-        </span>
-      </div>
-      <p class="lp-c-d">Feed and story posts</p>
-      <p class="lp-c-b">Five locked templates with a guided, page-by-page run. The layout is template-owned; you supply the words and the photographs.</p>
-      <div class="lp-tags">
-          <span class="p-tag">5 templates</span>
-          <span class="p-tag">3:4 feed · 9:16 story</span>
-          <span class="p-tag">Guided setup</span>
-          <span class="p-tag">Weekly carousel to 15 pages</span>
+        <p class="lp-c-b">Pick a locked template and fill it in page by page. The layout is the template’s; you bring the words and the photographs.</p>
+        <ul class="lp-facts"><li><b>7</b><span>templates</span></li><li><b>15</b><span>pages in a carousel</span></li><li><b>2</b><span>sizes, feed and story</span></li></ul>
+        <div class="lp-tpl"><span class="lp-tpl-l">Templates</span><div class="lp-tpl-r"><img src="preview/organic-listed.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Just listed"><img src="preview/organic-weekly.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Weekly listings"><img src="preview/organic-agents.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Top agents"><img src="preview/organic-review.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Google reviews"><img src="preview/organic-award.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Award"></div></div>
+        <a class="lp-go" href="Provident%20Organic%20Studio.dc.html">Open Organic posts<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg></a>
       </div>
     </article>
   </div>
@@ -314,38 +232,13 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column}
   sync();
 })();
 
-/* THE REEL, on the splash's own three numbers: REEL_LEAD .35s before the first step,
-   REEL_DWELL 3s on each frame, and the .45s glide is the CSS transition above. It steps
-   on HOVER and stops on the last frame, exactly as the studios' cards do — a card you
-   are about to click should not keep moving — and a filmstrip thumb jumps straight to
-   its template and restarts the hold. Nothing runs at rest, so the page is still until
-   you reach for it. */
+/* THE FIGURES: Hairline's Elevator and Turntable, mounted once each. They play a short tour on
+   their own and then answer the pointer; reduced motion is honoured by the library itself. */
 (function(){
-  var LEAD = 350, DWELL = 3000;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.querySelectorAll('.lp-c').forEach(function(card){
-    var reel = card.querySelector('.lp-reel'), n = +reel.getAttribute('data-n') || 1;
-    var thumbs = card.querySelectorAll('.lp-film-b'), cap = card.querySelector('.lp-film-cap');
-    var frames = card.querySelectorAll('.lp-frame img');
-    var i = 0, timer = null, hovering = false;
-    function show(k){
-      i = Math.max(0, Math.min(n - 1, k));
-      reel.style.transform = 'translateX(' + (-i * 100) + '%)';
-      thumbs.forEach(function(b, j){ if (j === i) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
-      if (cap && frames[i]) cap.textContent = frames[i].getAttribute('alt').replace(/ template$/, '');
-    }
-    function stop(){ if (timer) { clearTimeout(timer); timer = null; } }
-    function schedule(ms){
-      stop();
-      if (reduce || !hovering || i >= n - 1) return;
-      timer = setTimeout(function(){ show(i + 1); schedule(DWELL); }, ms);
-    }
-    card.addEventListener('pointerenter', function(){ hovering = true; schedule(LEAD); });
-    card.addEventListener('pointerleave', function(){ hovering = false; stop(); });
-    thumbs.forEach(function(b){
-      b.addEventListener('click', function(e){ e.preventDefault(); show(+b.getAttribute('data-i')); schedule(DWELL); });
-    });
-    show(0);
+  var H = window.providentHairline; if (!H) return;
+  document.querySelectorAll('[data-hl]').forEach(function(el){
+    var make = H[el.getAttribute('data-hl')]; if (!make) return;
+    try { make(el, { play: true, intensity: .7 }); } catch (e) { console.warn('hairline', e); }
   });
 })();
 </script>

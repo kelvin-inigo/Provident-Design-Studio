@@ -15275,3 +15275,22 @@ The Export button stays a pill like every labelled action in the top bar.
 is repeated")** — the top bar's Source folder button already names and changes the folder. The
 panel is now Campaign name (plus OPS's File naming and alert), Format cards, one counted Export
 button and the result. `shDest*` and `exportLayoutNote` are still computed and unread.
+
+# THE HOME PAGE LEADS WITH HAIRLINE FIGURES (2026-10-19)
+
+`index.html` (deployed at provident-design-studio.vercel.app) was redesigned by request, with
+Hairline's **Elevator for Campaign ads** and **Turntable for Organic posts** (`vendor/hairline`, the
+classic-script build CAS already loads; `window.providentHairline.elevator / turntable`, mounted
+with `{play:true, intensity:.7}`). The request's snippets were `@lucasmarkes/hairline/react`; this
+page has no build step, so the same figures come from the vendored file.
+
+- Each card: the figure on the studio's `--ps-stage` ground (its plate is `--ps-fill`, its lines the
+  chrome inks, the highlight `--ps-link` on hover, a "Move across it" / "Flick to spin it" hint on
+  hover), then name, descriptor, one sentence, **three facts as figures** (CAS 7 sizes · 3 variants ·
+  2 typefaces; OPS 7 templates · 15 carousel pages · 2 sizes), the template renders small with their
+  names as tooltips, and **one Open button pinned to the card's foot** so the two line up.
+- **The card is no longer one stretched link**: a link over the figure would take the pointer the
+  figure reacts to. The Open button is the way in.
+- The hover reel and filmstrip are gone; `preview/*.webp` stay as the template strip.
+- Verified: both figures mount; buttons level; contrast 0 failures in light and dark; no overflow at
+  1280 or 375. Facts must be kept true when a studio gains a size, template or page cap.
