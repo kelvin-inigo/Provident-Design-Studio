@@ -608,6 +608,12 @@ This is the full editor.
 - **PDF** holds the feed pages only. It's always in **Share**; on the guided **Finish** page,
   **Download as PDF** appears when the post has more than one page.
 - Unlike CAS, OPS asks before replacing files that are already there.
+- **Send to an endpoint** (under the Export button in **Share**): paste a URL once per computer,
+  and an optional key. **Send N JPEGs + project** sends the same files an export writes — the
+  renders, the session `.json` and `Assets/` — to that address in one upload. It uses the format
+  card you picked (a PDF stays local, so Send sends JPEGs). The URL must start with `https://`
+  (plain `http://` only for this computer). The receiving server is described in
+  `docs/ops-endpoint.md`.
 
 ---
 

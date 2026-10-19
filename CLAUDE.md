@@ -15336,3 +15336,25 @@ shown, or only ever hidden; delete: unused) and `useVerdictStyle` (keep: ≥2 pr
 the component's placements; rework: picked once; delete: never). Three verdict tiles are the filter
 (`_useFilt`). A trap hit here: DC wraps interpolated text in `span.sc-interp`, so `.cu-tile span`
 also styled the digit inside `<b>` — scope with `>`.
+
+# OPS SENDS AN EXPORT TO AN ENDPOINT (2026-10-19)
+
+By request ("an endpoint for sending the export version including the .json and image assets"):
+Share › **Send to an endpoint** (a folding `<details class="sx-ep">` under Export). OPS only;
+CAS and `studio-base.js` are untouched. The contract is `docs/ops-endpoint.md`.
+
+- **It reuses `doExport` whole.** `sendExport()` sets `this._ep` and calls `doExport`;
+  OrganicStudio **overrides `deliver`** to call `epPost` while `_ep` is set and `super.deliver`
+  otherwise — so the gate, renders and names are the export's own, and the shared `deliver` is
+  unchanged. A PDF selection sends JPEGs (`epKind`).
+- **One multipart POST**: a `manifest` JSON part (name, pid, template, format, sizes, each
+  file's path / role render|session|asset / type / bytes), then one `files` part per file whose
+  filename is its bundle path — the renders plus `projectFiles()` (session json + `Assets/`).
+  `Authorization: Bearer <key>` when a key is set, `X-Provident-App: ops`, 3-minute timeout.
+- **Config is per computer** (`localStorage['provident-ops-endpoint']`, `epCfg` / `epSet`), never
+  the repo. `epUrlOk`: https anywhere, http only to localhost.
+- It does not mark the project saved or touch Recent: nothing was written locally.
+- Verified with a real click against a local stand-in receiver (CORS, Bearer key, 3 files
+  reproducing the export layout, the 2160x2880 JPEG intact); unreachable host and an http URL
+  both reported; plain Export still goes through `saveAs`. Not tested against a real server.
+
