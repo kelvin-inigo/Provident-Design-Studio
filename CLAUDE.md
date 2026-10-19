@@ -15270,3 +15270,8 @@ contrast 0 failures in both themes; `expPickVals` and `studio-base.js` untouched
 rounded?")**: the format cards and the Saves-to row take the palette card's **10px**, the icon box
 6px, in both studios (scoped to `.sx-fmts` / `.sx-dest`, so the dock's own choice cards keep 16).
 The Export button stays a pill like every labelled action in the top bar.
+
+**The Saves-to row is REMOVED from both Share panels (2026-10-19, by request: "remove this as it
+is repeated")** — the top bar's Source folder button already names and changes the folder. The
+panel is now Campaign name (plus OPS's File naming and alert), Format cards, one counted Export
+button and the result. `shDest*` and `exportLayoutNote` are still computed and unread.

@@ -369,8 +369,7 @@ machine reopens on Copy.
    - **PNG**: lossless, but large.
    - **SVG**: vector text.
    - **PDF**: one document.
-3. **Saves to** shows where the files go. It shows your Source folder, or **Downloads** (one zip) when none is set. Press **Choose folder** or **Change** to set one.
-4. Press the button at the bottom. It names what it will do, for example **Export 6 JPEGs**. The result shows under it. The files land like this:
+3. Press the button at the bottom. It names what it will do, for example **Export 6 JPEGs**. The result shows under it. The files land like this:
 
 ```
 Source folder/
@@ -581,7 +580,7 @@ This is the full editor.
 
 ## 11. OPS: export
 
-- Use **Save all** on **Finish**, or open **Share**: set the file name, pick a **Format** card, check **Saves to** (your Source folder, or **Downloads** as one zip), then press the button at the bottom. It names what it will do, for example **Export 6 JPEGs**.
+- Use **Save all** on **Finish**, or open **Share**: set the file name, pick a **Format** card, then press the button at the bottom. It names what it will do, for example **Export 6 JPEGs**.
 - The files go flat into the Source folder: `…_3x4` for the feed, plus `…_9x16` for the story
   when **Story 9:16** is on. The session file and `Assets/` go beside them.
 - **PDF** holds the feed pages only. It's always in **Share**; on the guided **Finish** page,
