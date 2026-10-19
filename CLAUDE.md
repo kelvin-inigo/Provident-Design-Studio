@@ -15255,3 +15255,13 @@ New keys (`shFmt*`, `shDest*`, `shExportLabel`, `shStatus*`) are computed in CAS
 `exportMainLabel` / `exportMainBtnStyle` / `exportLayoutNote`'s old paragraph slot are now unread.
 Verified: each card updates the tick, the destination line and the button; the button exported
 exactly the 3 files it named; contrast 0 failures in both themes.
+
+**OPS's Share panel took the same design (2026-10-19)**: the File naming group and the
+missing-items alert stay on top, then CAS's Format cards, Saves to row and one counted button —
+the block is CAS's markup verbatim, with OPS's own keys beside `expPickVals(true)` (`slides ×
+(feed, + story when shown; the reel cover is one)`, a flat folder, `exportLayoutNote` defined for
+the first time). `.p-rc` had no rule in OPS and arrives with it. `exportSvgRowOn` is set true —
+the CAS block gates the SVG card on it. Fixed on the way: the alert's red text on its own red wash
+measured **4.03:1** in dark; its text is ink now, the red border and wash still carry the warning.
+Verified: each card updates tick, destination and button; "Export 6 JPEGs" exported 6 files;
+contrast 0 failures in both themes; `expPickVals` and `studio-base.js` untouched.

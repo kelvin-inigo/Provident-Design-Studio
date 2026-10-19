@@ -3828,6 +3828,55 @@ select.p-in{padding-right:34px}
 .p-br-alt:active,.p-br-new:active,.p-br-h > .p-ico-o:active{transform:translateY(1px)}
 @media (prefers-reduced-motion:reduce){.p-br-alt,.p-br-new{transition:none}.p-br-alt:active,.p-br-new:active,.p-br-h > .p-ico-o:active{transform:none}}
 @media (max-width:760px){.p-br-sep{display:none}}
+
+/* ══ 32 · THE SHARE PANEL, MIRRORED FROM CAS (sections 32 and 47 there) ═════════════════
+   The choice card (.p-rc) arrives with it; it had no reader in this document before. */
+.p-rcs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.p-rc{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
+  padding:12px 12px 11px;border:none;border-radius:16px;background:transparent;color:var(--ps-ink);cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--ps-line);font:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
+.p-rc:hover{background:var(--ps-fill)}
+.p-rc b{font:600 13px/1.25 var(--ps-font);color:inherit}
+.p-rc s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-rc-i{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:var(--ps-fill);color:var(--ps-ink-2);margin-bottom:5px}
+.p-rc-g{width:20px;height:20px;display:block}
+.p-rc-k{position:absolute;top:10px;right:10px;width:18px;height:18px;padding:2px;border-radius:50%;
+  fill:var(--ps-app);background:var(--ps-link);opacity:0;transform:scale(.6);
+  transition:opacity var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease)}
+.p-rc[data-on],.p-rc[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.p-rc[data-on] s{color:var(--ps-accent-i);opacity:.8}
+.p-rc[data-on] .p-rc-i{background:var(--ps-card);color:var(--ps-ink)}
+.p-rc[data-on] .p-rc-k{opacity:1;transform:none}
+.p-rc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+
+.p-share-m{width:340px;max-width:calc(100vw - 32px);gap:16px;padding:18px}
+.sx-sec{display:flex;flex-direction:column;gap:8px}
+.sx-cap{font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.sx-fmts .p-rc{padding:10px 10px 9px;gap:2px}
+.sx-fmts .p-rc-i{width:28px;height:28px;margin-bottom:4px;border-radius:9px}
+.sx-g{fill:currentColor}
+.sx-dest{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;border-radius:14px;
+  background:var(--ps-fill);color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.sx-dest:hover{background:var(--ps-fill-h)}
+.sx-dest:focus-visible,.sx-go:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.sx-di{flex:none;width:20px;height:20px;fill:currentColor;color:var(--ps-ink-2)}
+.sx-dt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sx-dt b{font:500 13px/1.3 var(--ps-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sx-dt s{font:400 11.5px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.sx-chg{flex:none;font:600 12px/1 var(--ps-font);color:var(--ps-link)}
+.sx-go{width:100%;height:44px;border:none;border-radius:var(--ps-pill);background:var(--ps-primary);color:var(--ps-primary-i);
+  font:600 14px/1 var(--ps-font);letter-spacing:.16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease)}
+.sx-go:hover{background:var(--ps-primary-h)}
+.sx-go:active{transform:translateY(1px)}
+.sx-gi{width:18px;height:18px;fill:currentColor}
+.sx-status{margin:-6px 0 0;font:400 12px/1.45 var(--ps-font);color:var(--ps-dim);text-align:center}
+@media (prefers-reduced-motion: reduce){.sx-go:active{transform:none}}
+/* the missing-items alert in the panel: the red border and wash say "warning", the text is ink —
+   red on its own wash over the panel measured 4.03:1 in dark */
+.p-share-m .p-alert{color:var(--ps-ink);font-size:12px;border-radius:12px;padding:10px 12px}
 </style>
 </helmet>
 
@@ -4193,7 +4242,6 @@ select.p-in{padding-right:34px}
     <button onClick="{{ shToggleShare }}" class="p-ghost p-ico-t" data-on="{{ shShareOn }}" title="Share and export" aria-label="Share and export"><svg class="mk-g p-bic" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM338.08-207.23 231.15-100.31q-8.92 8.92-21.07 8.81-12.16-.12-21.08-9.42-8.31-8.93-8.42-21.08-.12-12.15 8.81-21.08L296.31-250h-74.62q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h140.23q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76v140.23q0 12.75-8.63 21.38-8.63 8.62-21.39 8.62-12.75 0-21.37-8.62-8.61-8.63-8.61-21.38v-73.61ZM188.62-406.32q-8.62-8.62-8.62-21.37v-360q0-29.83 21.24-51.07Q222.48-860 252.31-860H570l210 210v477.69q0 29.83-21.24 51.07Q737.52-100 707.69-100H515.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h191.92q5.39 0 8.85-3.46t3.46-8.85V-620H575.99q-15.3 0-25.64-10.35Q540-640.7 540-656v-144H252.31q-5.39 0-8.85 3.46t-3.46 8.85v360q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Z"/></svg>Share<svg class="mk-g p-bic p-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button>
     <sc-if value="{{ shShareOn }}" hint-placeholder-val="{{ false }}">
       <div class="p-share-m">
-  <div class="p-rule"></div>
   <div class="p-grp" style="gap:8px">
     <span class="p-lab">File naming</span>
     <sc-if value="{{ isWeekly }}" hint-placeholder-val="{{ false }}">
@@ -4220,17 +4268,23 @@ select.p-in{padding-right:34px}
   <sc-if value="{{ hasMissing }}" hint-placeholder-val="{{ false }}">
     <div class="p-alert">{{ missingText }}</div>
   </sc-if>
-  <div class="p-exp">
-    <button onClick="{{ runExport }}" style="{{ exportMainBtnStyle }}">{{ exportMainLabel }}</button>
-    <div class="p-exp-m">
-      <button onClick="{{ pickJpg }}" data-on="{{ exportJpgOn }}" style="{{ exportJpgStyle }}"><span style="font-weight:400;font-size:13px">JPEG 2×</span><span class="p-hint">{{ exportJpgDesc }}</span></button>
-      <button onClick="{{ pickPng }}" data-on="{{ exportPngOn }}" style="{{ exportPngStyle }}"><span style="font-weight:400;font-size:13px">PNG 2×</span><span class="p-hint">{{ exportPngDesc }}</span></button>
-      <button onClick="{{ pickSvg }}" data-on="{{ exportSvgOn }}" style="{{ exportSvgStyle }}"><span style="font-weight:400;font-size:13px">SVG</span><span class="p-hint">{{ exportSvgDesc }}</span></button>
-      <sc-if value="{{ exportPdfOn }}" hint-placeholder-val="{{ false }}">
-        <button onClick="{{ pickPdf }}" data-on="{{ exportPdfSelOn }}" style="{{ exportPdfStyle }}"><span style="font-weight:400;font-size:13px">PDF</span><span class="p-hint">{{ exportPdfDesc }}</span></button>
-      </sc-if>
+  <!-- Format cards, Saves to and one counted Export button — CAS's Share panel, mirrored
+       (2026-10-19). The File naming group and the missing-items alert stay above them. -->
+  <div class="sx-sec">
+    <span class="sx-cap">Format</span>
+    <div class="p-rcs sx-fmts" role="radiogroup" aria-label="Export format">
+      <button onClick="{{ pickJpg }}" data-on="{{ exportJpgOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtJpgAria }}" title="{{ exportJpgDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></span><b>JPEG</b><s>{{ shFmtJpgFact }}</s></button>
+      <button onClick="{{ pickPng }}" data-on="{{ exportPngOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtPngAria }}" title="{{ exportPngDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M590-366.15V-330q0 10.31 6.77 17.08 6.77 6.77 17.08 6.77 10.3 0 17.07-6.77t6.77-17.08v-36.15h28.46q17.39 0 29.46-12.08 12.08-12.08 12.08-29.46v-144.62q0-17.38-12.08-29.46-12.07-12.08-29.46-12.08H561.54q-17.39 0-29.46 12.08Q520-569.69 520-552.31v144.62q0 17.38 12.08 29.46 12.07 12.08 29.46 12.08H590Zm-290-80h92.31V-390q0 10.31 6.77 17.08 6.77 6.77 17.07 6.77 10.31 0 17.08-6.77Q440-379.69 440-390v-180q0-10.31-6.77-17.08-6.77-6.77-17.08-6.77-10.3 0-17.07 6.77T392.31-570v76.15H300V-570q0-10.31-6.77-17.08-6.77-6.77-17.08-6.77-10.3 0-17.07 6.77T252.31-570v180q0 10.31 6.77 17.08 6.77 6.77 17.07 6.77 10.31 0 17.08-6.77Q300-379.69 300-390v-56.15Zm273.85 32.3q-2.31 0-4.24-1.92-1.92-1.92-1.92-4.23v-120q0-2.31 1.92-4.23 1.93-1.92 4.24-1.92h80q2.3 0 4.23 1.92Q660-542.31 660-540v120q0 2.31-1.92 4.23-1.93 1.92-4.23 1.92h-80ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h615.38Q818-780 839-759q21 21 21 51.31v455.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM160-240v-480 480Z"/></svg></span><b>PNG</b><s>{{ shFmtPngFact }}</s></button>
+      <sc-if value="{{ exportSvgRowOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pickSvg }}" data-on="{{ exportSvgOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtSvgAria }}" title="{{ exportSvgDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.38-364.62Zm-187.69 260q-29.82 0-51.06-21.24-21.24-21.24-21.24-51.06V-210q0-12.75 8.62-21.38 8.63-8.62 21.39-8.62 12.75 0 21.37 8.62 8.61 8.63 8.61 21.38v33.08q0 5.38 3.47 8.84 3.46 3.46 8.84 3.46h375.39q5.38 0 8.84-3.46t3.46-8.84v-375.39q0-5.38-3.46-8.84-3.46-3.47-8.84-3.47H750q-12.75 0-21.38-8.62-8.62-8.63-8.62-21.39 0-12.75 8.62-21.37 8.63-8.61 21.38-8.61h33.08q29.82 0 51.06 21.24 21.24 21.24 21.24 51.06v375.39q0 29.82-21.24 51.06-21.24 21.24-51.06 21.24H407.69ZM180.35-411.04q-75.73-75.66-75.73-184.27 0-108.61 75.65-184.34 75.66-75.73 184.27-75.73 108.61 0 184.34 75.65 75.73 75.66 75.73 184.27 0 108.61-75.65 184.34-75.66 75.73-184.27 75.73-108.61 0-184.34-75.65Zm325.77-42.84q58.5-58.5 58.5-141.5t-58.5-141.5q-58.5-58.5-141.5-58.5t-141.5 58.5q-58.5 58.5-58.5 141.5t58.5 141.5q58.5 58.5 141.5 58.5t141.5-58.5Zm-141.5-141.5Z"/></svg></span><b>SVG</b><s>{{ shFmtSvgFact }}</s></button></sc-if>
+      <sc-if value="{{ exportPdfOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pickPdf }}" data-on="{{ exportPdfSelOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtPdfAria }}" title="{{ exportPdfDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M388.46-542.31h44.62q15.07 0 25.23-10.15 10.15-10.16 10.15-25.23v-44.62q0-15.07-10.15-25.23-10.16-10.15-25.23-10.15h-62.31q-7.23 0-12.46 5.23T353.08-640v160q0 7.23 5.23 12.46t12.46 5.23q7.23 0 12.46-5.23t5.23-12.46v-62.31Zm0-35.38v-44.62h44.62v44.62h-44.62Zm199.23 115.38q15.08 0 25.23-10.15 10.16-10.16 10.16-25.23v-124.62q0-15.07-10.16-25.23-10.15-10.15-25.23-10.15h-60.77q-7.23 0-12.46 5.23T509.23-640v160q0 7.23 5.23 12.46t12.46 5.23h60.77Zm-43.08-35.38v-124.62h43.08v124.62h-43.08Zm158.47-44.62h30q7.23 0 12.46-5.23t5.23-12.46q0-7.23-5.23-12.46t-12.46-5.23h-30v-44.62h30q7.23 0 12.46-5.23t5.23-12.46q0-7.23-5.23-12.46t-12.46-5.23h-47.7q-7.23 0-12.46 5.23T667.69-640v160q0 7.23 5.23 12.46t12.46 5.23q7.23 0 12.46-5.23 5.24-5.23 5.24-12.46v-62.31ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></span><b>PDF</b><s>{{ shFmtPdfFact }}</s></button></sc-if>
     </div>
   </div>
+  <div class="sx-sec">
+    <span class="sx-cap">Saves to</span>
+    <button onClick="{{ chooseFolder }}" class="sx-dest" title="{{ exportLayoutNote }}"><sc-if value="{{ shDestFolder }}" hint-placeholder-val="{{ true }}"><svg class="sx-di" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></sc-if><sc-if value="{{ shDestZip }}" hint-placeholder-val="{{ false }}"><svg class="sx-di" viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-539.85q-8.62 8.62-8.62 21.39v148l-52.92-52.92q-8.31-8.31-20.89-8.5-12.57-.2-21.27 8.5-8.69 8.69-8.69 21.07 0 12.39 8.69 21.08l99.77 99.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l99.77-99.77q8.3-8.31 8.5-20.89.19-12.57-8.5-21.26-8.7-8.7-21.08-8.7-12.38 0-21.08 8.7L510-370.46v-148q0-12.77-8.62-21.39-8.61-8.61-21.38-8.61t-21.38 8.61ZM200-643.85v431.54q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85v-431.54H200ZM215.39-140q-29.93 0-52.66-22.73Q140-185.46 140-215.39v-464.38q0-12.84 4.12-24.5 4.11-11.65 12.34-21.5l56.16-67.92q9.84-12.85 24.61-19.58Q252-820 268.46-820h422.31q16.46 0 31.42 6.73T747-793.69L803.54-725q8.23 9.85 12.34 21.69 4.12 11.85 4.12 24.7v463.22q0 29.93-22.73 52.66Q774.54-140 744.61-140H215.39Zm.23-563.84H744l-43.62-51.93q-1.92-1.92-4.42-3.08-2.5-1.15-5.19-1.15H268.85q-2.69 0-5.2 1.15-2.5 1.16-4.42 3.08l-43.61 51.93ZM480-421.92Z"/></svg></sc-if><span class="sx-dt"><b>{{ shDestName }}</b><s>{{ shDestSub }}</s></span><sc-if value="{{ shDestActOn }}" hint-placeholder-val="{{ true }}"><span class="sx-chg">{{ shDestAct }}</span></sc-if></button>
+  </div>
+  <button onClick="{{ runExport }}" class="sx-go"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-345.85q-6.23-2.3-11.85-7.92L330.31-478.15q-8.92-8.93-8.81-20.89.12-11.96 8.81-21.27 9.31-9.3 21.38-9.61 12.08-.31 21.39 9L450-444v-306q0-12.77 8.62-21.38Q467.23-780 480-780t21.38 8.62Q510-762.77 510-750v306l76.92-76.92q8.93-8.92 21.19-8.81 12.27.12 21.58 9.42 8.69 9.31 9 21.08.31 11.77-9 21.08L505.31-353.77q-5.62 5.62-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31ZM252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31Z"/></svg>{{ shExportLabel }}</button>
+  <sc-if value="{{ shStatusOn }}" hint-placeholder-val="{{ false }}"><p class="sx-status" role="status">{{ shStatus }}</p></sc-if>
       </div>
     </sc-if>
   </div>
@@ -15844,6 +15898,29 @@ class OrganicStudio extends StudioBase {
         : 'e.g. ' + this.fileNameFor(asi) + '_3x4.png'
         + (s.storyOn ? ' · ' + this.fileNameFor(asi) + '_9x16.png' : ''),
       ...this.expPickVals(true),
+      // THE SHARE PANEL'S KEYS, CAS's own: a short fact per format card, where the files go
+      // (OPS writes flat, one file per slide per size) and the button's counted sentence.
+      ...(() => {
+        const sel = s.exportKind || 'jpg';
+        const fa = this.folderApi(), inFolder = !!(fa && fa.supported && (fa.handle || fa.pending)), shell = StudioBase.nativeShell();
+        const reel = s.tpl === 'rcover', perSlide = reel ? 1 : (s.storyOn ? 2 : 1), nImg = s.slides.length * perSlide;
+        const plural = { jpg: 'JPEGs', png: 'PNGs', svg: 'SVGs' }, one = { jpg: 'JPEG', png: 'PNG', svg: 'SVG' };
+        const what = reel ? 'The 9:16 cover' : (s.storyOn ? 'Feed + story per slide' : 'Feed only');
+        return {
+          exportSvgRowOn: true,
+          shFmtJpgFact: 'Smallest \u00b7 for posting', shFmtPngFact: 'Lossless \u00b7 larger',
+          shFmtSvgFact: 'Vector text', shFmtPdfFact: reel ? 'One page' : 'Feed pages, one file',
+          shFmtJpgAria: sel === 'jpg' ? 'true' : 'false', shFmtPngAria: sel === 'png' ? 'true' : 'false',
+          shFmtSvgAria: sel === 'svg' ? 'true' : 'false', shFmtPdfAria: sel === 'pdf' ? 'true' : 'false',
+          shDestFolder: inFolder ? '1' : undefined, shDestZip: inFolder ? undefined : '1',
+          shDestName: inFolder ? (this.folderName() || 'Source folder') : (shell ? 'Share sheet' : 'Downloads'),
+          shDestSub: sel === 'pdf' ? 'One PDF, every slide in order' : (inFolder ? what + ' \u00b7 straight into the folder' : (shell ? 'Separate files \u00b7 ' + what.toLowerCase() : 'One zip \u00b7 ' + what.toLowerCase())),
+          shDestActOn: (fa && fa.supported) ? '1' : undefined, shDestAct: inFolder ? 'Change' : 'Choose folder',
+          exportLayoutNote: 'One file per slide' + (reel ? '' : (s.storyOn ? ', feed and story told apart by _3x4 and _9x16' : ', feed only while the story is hidden')) + ', no folders inside. The PDF is one file.',
+          shExportLabel: sel === 'pdf' ? 'Export PDF' : 'Export ' + nImg + ' ' + (nImg === 1 ? one[sel] : plural[sel]),
+          shStatus: s.exportStatus || '', shStatusOn: (s.exportStatus && s.exportStatus !== 'Ready.') ? '1' : undefined
+        };
+      })(),
       ...this.splashNoteVals(),
       exportStatus: s.exportStatus || 'Ready.',
       folderOn: this.folderSupported(),
