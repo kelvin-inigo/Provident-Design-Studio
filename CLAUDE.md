@@ -15225,3 +15225,10 @@ bars) it is because the tile fixed its text box at a hand-picked width; CAS brea
 **Found, not changed:** a top-cluster component sits **4.2 canvas px** lower in the editor than in
 the export (5.0 on the 9:16) — measured identical in the pre-change build, so it predates this; it
 is the wordmark's documented line-box gap carried into the first component.
+
+**The Quote hook was redrawn in Figma (node 71:88, 2026-10-19): the mark sits BESIDE the copy.**
+The 148 Light mark keeps its 120 line box in a 50-wide column, 30 before the copy, both from the
+top; the copy wraps at the column less that 80. The block is as tall as the copy, or the mark's
+47 box for a one-line quote, and a centred design centres the whole block. Measured against the
+tile: height 96 and copy x 80, both exact; the mark's ink top on the same pixel row; editor
+against export within 0.1 canvas px, left and centred, 1:1 and 9:16.

@@ -8827,12 +8827,17 @@ class CampaignStudio extends StudioBase {
         });
         h = lines.length * bh + Math.max(0, lines.length - 1) * gap;
       } else if (hook && mv === 'quote') {
-        // a 148 Light opening mark on a 120 line in the muted ink, the copy straight under it
-        const q = C.typeAt(px, 8), qlh = q * C.leadOf(120 / 148), qw = Wd('“', q, 300);
-        T('“', center ? at(qw) : 0, bl(q, qlh), q, 300, mute);
-        const lines = lines0(iw);
-        flow(lines, qlh, xAt);
-        h = qlh + lines.length * lh;
+        // a 148 Light opening mark on a 120 line in the muted ink, in its own 50-wide column
+        // BESIDE the copy, 30 before it, both from the top (Figma 71:88, redrawn 2026-10-19).
+        // The mark's box is 47 tall, so a one-line quote is still as tall as the mark. A centred
+        // design centres the whole block; the copy stays flush with the mark inside it.
+        const q = C.typeAt(px, 8), qlh = q * C.leadOf(120 / 148);
+        const colQ = q * 50 / 148, gapQ = 30 * e, ind = colQ + gapQ;
+        const lines = lines0(iw - ind);
+        const widest = lines.reduce((a, l) => Math.max(a, Wd(l, px, 300)), 0), x0 = at(ind + widest);
+        T('“', x0, bl(q, qlh), q, 300, mute);
+        flow(lines, 0, () => x0 + ind);
+        h = Math.max(q * 47 / 148, lines.length * lh);
       } else if (!hook && mv === 'ruled') {
         // a 1px hairline across the column at .6 of the muted ink, 20 above the copy
         const gap = 20 * e, lines = lines0(iw);
