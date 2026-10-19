@@ -15232,3 +15232,26 @@ top; the copy wraps at the column less that 80. The block is as tall as the copy
 47 box for a one-line quote, and a centred design centres the whole block. Measured against the
 tile: height 96 and copy x 80, both exact; the mark's ink top on the same pixel row; editor
 against export within 0.1 canvas px, left and centred, 1:1 and 9:16.
+
+# CAS'S SHARE PANEL READS TOP TO BOTTOM AS THE DECISION IS MADE (2026-10-19)
+
+By request ("update UI and UX of this", with a screenshot). It was a primary **Export** button
+above the format list it acted on, four rows each repeating "Into the folder ·" in a wrapping
+description, and a paragraph about folders. Now (section 47 of the sheet, markup in the Share
+block):
+
+- **Campaign name**, then **Format** as the dock's own choice cards (`.p-rcs` / `.p-rc`, a
+  Material Rounded glyph, a two-word fact, a tick on the chosen one, `role="radio"`). The long
+  descriptions (`exportJpgDesc` …) are the cards' tooltips now.
+- **Saves to**: one row naming the REAL destination — the source folder's name, or Downloads (one
+  zip), or the share sheet in the app — with how it is organised ("Variant A–C folders · replaces
+  the last export") and a Choose folder / Change action (`chooseFolder`). `exportLayoutNote` is
+  that row's tooltip.
+- **One primary at the bottom** that says what it will do, counted: `Export 6 JPEGs`, `Export PDF`
+  (`shExportLabel`, from `sizesFor` over every variant). The result (`exportStatus`) shows under it.
+
+New keys (`shFmt*`, `shDest*`, `shExportLabel`, `shStatus*`) are computed in CAS's renderVals beside
+`expPickVals`, which is shared with OPS and was NOT touched — OPS's Share panel is unchanged.
+`exportMainLabel` / `exportMainBtnStyle` / `exportLayoutNote`'s old paragraph slot are now unread.
+Verified: each card updates the tick, the destination line and the button; the button exported
+exactly the 3 files it named; contrast 0 failures in both themes.

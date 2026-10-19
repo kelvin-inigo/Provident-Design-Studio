@@ -363,13 +363,14 @@ machine reopens on Copy.
 
 ## 7. CAS: export
 
-1. Set a **Source folder** once, from the top bar.
-2. Open **Share**, check the **Campaign name**, and pick a format:
-   - **JPEG 2×**: the smallest files, and what Meta takes.
-   - **PNG 2×**: lossless, but large.
-   - **SVG**
-   - **PDF**
-3. Press **Export**. The files land like this:
+1. Open **Share** and check the **Campaign name**.
+2. Under **Format**, pick a card. All are exported at 2×:
+   - **JPEG**: the smallest files, and what Meta takes.
+   - **PNG**: lossless, but large.
+   - **SVG**: vector text.
+   - **PDF**: one document.
+3. **Saves to** shows where the files go. It shows your Source folder, or **Downloads** (one zip) when none is set. Press **Choose folder** or **Change** to set one.
+4. Press the button at the bottom. It names what it will do, for example **Export 6 JPEGs**. The result shows under it. The files land like this:
 
 ```
 Source folder/
