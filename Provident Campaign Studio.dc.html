@@ -4291,21 +4291,23 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sx-ep .p-in{width:100%;box-sizing:border-box}
 .sx-epw{margin:-4px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-bad)}
 .sx-epn{margin:0;font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
-/* ══ 48 · COMPONENT USAGE (2026-10-19) ════════════════════════════════════════════════════
+/* ══ 48 · COMPONENT USAGE (2026-10-19, spacing reworked 2026-10-20) ══════════════════════════
    The home page's audit view. Three verdict tiles on top double as the filter; then, per
    palette group, one card per component: a real render of it (the export's buildOps, on the
    dark canvas — a picture of the ARTWORK, so it is pinned dark in both themes), its name and
-   verdict, the reason in one line, and the project count set large. Under it, one row per
-   style with its own render. Hierarchy is carried by size, weight and ink tier rather than by
-   more words; the verdict is the only colour. */
-.cu{max-width:960px;padding-bottom:40px}
-.cu-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 14px}
-.cu-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:baseline;text-align:left;
-  padding:14px 16px;border-radius:var(--ps-r);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border:0;cursor:pointer;
+   verdict, the reason in one line, and the project count set large. Under it, a "Styles" label
+   and one row per style with its own render. Hierarchy is carried by size, weight and ink tier
+   rather than by more words; the verdict is the only colour.
+   SPACING is on one 8px rhythm and grows with the level it separates: 8 inside a row, 16
+   between rows, 24 inside a card, 20 between cards, 48 between groups. */
+.cu{max-width:1040px;padding:4px 0 64px}
+.cu-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:8px 0 32px}
+.cu-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:16px;row-gap:4px;align-items:baseline;text-align:left;
+  padding:20px 22px;border-radius:var(--ps-r);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border:0;cursor:pointer;
   transition:background var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
-.cu .cu-tile > b{grid-row:1 / 3;font:600 34px/1 var(--ps-font);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.cu .cu-tile > span{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
-.cu .cu-tile > s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cu .cu-tile > b{grid-row:1 / 3;align-self:center;font:600 40px/1 var(--ps-font);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cu .cu-tile > span{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu .cu-tile > s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
 .cu-tile:hover{background:var(--ps-card-h)}
 .cu-tile[data-v="keep"] b{color:var(--ps-good)}
 .cu-tile[data-v="rework"] b{color:var(--ps-warn)}
@@ -4313,48 +4315,57 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .cu-tile[data-on][data-v="keep"]{box-shadow:inset 0 0 0 2px var(--ps-good);background:var(--ps-good-q)}
 .cu-tile[data-on][data-v="rework"]{box-shadow:inset 0 0 0 2px var(--ps-warn);background:var(--ps-warn-q)}
 .cu-tile[data-on][data-v="del"]{box-shadow:inset 0 0 0 2px var(--ps-bad);background:var(--ps-bad-q)}
-.cu-warn{margin:-4px 0 12px;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
-.cu-fl{display:flex;align-items:center;gap:10px;margin:0 0 6px;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
-.cu-fl-x{border:0;background:none;padding:0;font:600 13px/1.4 var(--ps-font);color:var(--ps-link);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.cu-g{margin-top:18px}
-.cu-gh{margin:0 0 10px;font:600 12px/1.2 var(--ps-font);color:var(--ps-dim);letter-spacing:0}
-.cu-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border-radius:var(--ps-r);padding:14px;margin-bottom:10px}
-.cu-rh{display:grid;grid-template-columns:200px 1fr auto;align-items:center;gap:18px}
-.cu-pv,.cu-spv{display:block;aspect-ratio:2/1;border-radius:10px;background:#10151B center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.cu-warn{margin:-16px 0 32px;font:400 13px/1.55 var(--ps-font);color:var(--ps-ink-2)}
+.cu-fl{display:flex;align-items:center;gap:12px;margin:-16px 0 24px;font:500 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.cu-fl-x{border:0;background:none;padding:0;font:600 13.5px/1.4 var(--ps-font);color:var(--ps-link);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.cu-g + .cu-g{margin-top:48px}
+.cu-gh{margin:0 0 16px;font:600 13px/1.2 var(--ps-font);color:var(--ps-dim);letter-spacing:0}
+.cu-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border-radius:var(--ps-r);padding:24px;margin-bottom:20px}
+.cu-rh{display:grid;grid-template-columns:240px 1fr auto;align-items:center;gap:28px}
+.cu-pv,.cu-spv{display:block;aspect-ratio:2/1;border-radius:12px;background:#10151B center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
 .cu-pv:not([data-ready]),.cu-spv:not([data-ready]){background-image:none}
-.cu-rt{min-width:0}
-.cu-rn{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.cu-n{font:600 18px/1.25 var(--ps-font);color:var(--ps-ink);letter-spacing:-.01em}
-.cu-why{margin:4px 0 0;font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
-.cu-m{margin:4px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.cu-rt{min-width:0;display:grid;gap:8px}
+.cu-rn{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cu-n{font:600 20px/1.25 var(--ps-font);color:var(--ps-ink);letter-spacing:-.01em}
+.cu-why{margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cu-m{margin:0;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 .cu-m:empty{display:none}
-.cu-stat{display:grid;justify-items:end;gap:2px;min-width:92px}
-.cu-stat b{font:600 30px/1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.cu-stat s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
-.cu-bar{display:block;width:92px;height:6px;margin-top:6px;border-radius:var(--ps-pill);background:var(--ps-fill);overflow:hidden}
+.cu-stat{display:grid;justify-items:end;gap:4px;min-width:112px}
+.cu-stat b{font:600 36px/1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cu-stat s{text-decoration:none;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cu-bar{display:block;width:112px;height:6px;margin-top:8px;border-radius:var(--ps-pill);background:var(--ps-fill);overflow:hidden}
 .cu-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-link)}
-.cu-vb{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--ps-pill);font:600 12px/1 var(--ps-font);white-space:nowrap}
+.cu-vb{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:var(--ps-pill);font:600 12px/1 var(--ps-font);white-space:nowrap}
 .cu-vb::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .cu-vb[data-v="keep"]{color:var(--ps-good);background:var(--ps-good-q)}
 .cu-vb[data-v="rework"]{color:var(--ps-warn);background:var(--ps-warn-q)}
 .cu-vb[data-v="del"]{color:var(--ps-bad);background:var(--ps-bad-q)}
-.cu-vb-s{height:22px;font-size:11.5px}
-.cu-ss{margin-top:14px;padding-top:12px;box-shadow:inset 0 1px 0 var(--ps-hair);display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
-.cu-s{display:grid;grid-template-columns:96px 1fr;grid-template-areas:"pv n" "pv c" "pv v";column-gap:12px;row-gap:3px;align-items:center;
-  padding:8px;border-radius:10px;background:transparent;box-shadow:inset 0 0 0 1px var(--ps-hair)}
-.cu-spv{grid-area:pv;width:96px}
-.cu-sn{grid-area:n;min-width:0}
-.cu-sn{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
-.cu-sc s{text-decoration:none;color:var(--ps-dim);margin-left:6px}
-.cu-sc s::before{content:"· "}
-.cu-sc{grid-area:c;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.cu-vb-s{height:24px;font-size:11.5px}
+.cu-sh{margin-top:24px;padding-top:20px;box-shadow:inset 0 1px 0 var(--ps-hair);font:600 12.5px/1.2 var(--ps-font);color:var(--ps-dim)}
+.cu-sh span{margin-left:6px;font-weight:400;font-variant-numeric:tabular-nums}
+.cu-ss{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:12px}
+.cu-s{display:grid;grid-template-columns:140px 1fr auto;grid-template-areas:"pv n v" "pv c v";column-gap:18px;row-gap:4px;align-items:center;align-content:center;
+  padding:12px 16px 12px 12px;border-radius:12px;background:transparent;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.cu-spv{grid-area:pv;width:140px}
+.cu-sn{grid-area:n;min-width:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu-sc{grid-area:c;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.cu-sc s{display:block;margin-top:2px;text-decoration:none;color:var(--ps-dim)}
 .cu-sc b{font-weight:600;color:var(--ps-ink);font-variant-numeric:tabular-nums}
-.cu-s .cu-vb{grid-area:v;justify-self:start}
-.cu-note{margin:18px 0 0;font:400 12px/1.55 var(--ps-font);color:var(--ps-dim);max-width:72ch}
+.cu-s .cu-vb{grid-area:v;justify-self:end;align-self:center}
+.cu-note{margin:48px 0 0;padding-top:20px;box-shadow:inset 0 1px 0 var(--ps-hair);font:400 12.5px/1.6 var(--ps-font);color:var(--ps-dim);max-width:72ch}
+@media (max-width:1100px){
+  .cu-rh{grid-template-columns:200px 1fr auto;gap:20px}
+}
 @media (max-width:760px){
-  .cu-tiles{grid-template-columns:1fr}
-  .cu-rh{grid-template-columns:1fr auto}
+  .cu-tiles{grid-template-columns:1fr;gap:10px;margin-bottom:24px}
+  .cu-tile{padding:16px 18px}
+  .cu-r{padding:18px}
+  .cu-rh{grid-template-columns:1fr auto;gap:16px}
   .cu-pv{grid-column:1 / -1}
+  .cu-ss{grid-template-columns:1fr}
+  .cu-s{grid-template-columns:96px 1fr;grid-template-areas:"pv n" "pv c" "pv v";padding:12px}
+  .cu-spv{width:96px}
+  .cu-s .cu-vb{justify-self:start}
 }
 /* 49. THE ICON PICKER BROWSES EVERY SYMBOL (2026-10-20, OPS's section 43 mirrored): a count
    line, a taller auto-fill grid, and Show more / Show all under it. */
@@ -4494,6 +4505,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                       <div class="cu-stat" title="{{ r.usedTip }}"><b>{{ r.num }}</b><s>{{ r.of }}</s><span class="cu-bar"><i style="{{ r.barStyle }}"></i></span></div>
                     </div>
                     <sc-if value="{{ r.stylesOn }}" hint-placeholder-val="{{ true }}">
+                      <div class="cu-sh">Styles <span>{{ r.styleCount }}</span></div>
                       <div class="cu-ss">
                         <sc-for list="{{ r.styles }}" as="st" hint-placeholder-count="3">
                           <div class="cu-s" data-v="{{ st.v }}" title="{{ st.tip }}">
@@ -12393,7 +12405,7 @@ class CampaignStudio extends StudioBase {
         barStyle: { width: pct(t.projs.size, N) + '%' },
         meta: [t.n ? plural(t.n, 'placement') : '', t.hid ? t.hid + ' hidden' : '', sz ? 'Sizes ' + sz : ''].filter(Boolean).join(' · '),
         shot: shot((pv[key] || {})[top]), shotOn: (pv[key] || {})[top] ? '1' : undefined,
-        styles, stylesOn: styles.length > 0 };
+        styles, stylesOn: styles.length > 0, styleCount: String(styles.length) };
     };
     let groups = [['Text', ['eyebrow', 'hero', 'hook', 'body']], ['Data', ['price', 'spec', 'tags', 'list', 'steps']],
       ['Action & media', ['cta', 'graphic']], ['Structure', ['divider', 'spacer']]]
@@ -12404,7 +12416,7 @@ class CampaignStudio extends StudioBase {
     // shows only the styles that carry it
     if (filt !== 'all') groups = groups.map(g => ({ name: g.name, rows: g.rows
       .filter(r => r.v === filt || r.styles.some(x => x.v === filt))
-      .map(r => Object.assign({}, r, { styles: r.styles.filter(x => x.v === filt), stylesOn: r.styles.some(x => x.v === filt) })) }));
+      .map(r => { const ss = r.styles.filter(x => x.v === filt); return Object.assign({}, r, { styles: ss, stylesOn: ss.length > 0, styleCount: ss.length + ' of ' + r.styles.length }); }) }));
     groups = groups.filter(g => g.rows.length);
     const tile = k => ({ num: String(tally[k][0]), lab: V[k].label,
       sub: (tally[k][0] === 1 ? 'component' : 'components') + (tally[k][1] ? ' · ' + plural(tally[k][1], 'style') : ''), v: k,

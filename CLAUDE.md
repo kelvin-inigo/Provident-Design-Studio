@@ -15400,3 +15400,9 @@ curated `ICONS` then all of `ICONS_ALL` (3,948 after de-duplication; it returned
 rail shows the count line (`.p-ic-n`), a taller `.p-icons-all` grid with `loading="lazy"` images,
 and **Show more** / **Show all**. It was a flat 40 results before. Verified with a real click:
 Show more 320, Show all 3,948, "house" 155 matches, a tile applied to the step on every canvas.
+
+**Spacing reworked (2026-10-20, "cramped").** Section 48 is on one 8px rhythm that grows with the
+level it separates — 8 inside a row, 16 between rows, 24 inside a card, 20 between cards, 48
+between groups. Component preview 240 wide, name 20/600, count 36. Styles sit under a "Styles · N"
+label (`styleCount`) in two columns (minmax 400), each a 140px render, name, count over reason, and
+the verdict at the right; one column on a phone. Contrast 0 failures both themes; no overflow at 375.
