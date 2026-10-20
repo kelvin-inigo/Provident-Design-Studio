@@ -25,6 +25,23 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 class StudioBase {
+  // THE ICON PICKER'S KEYWORD INDEX, LOADED ON DEMAND (2026-10-20). icon-tags.js is 270 KB, so
+  // it is fetched the first time a search is typed rather than on every page load. Returns the
+  // index once it is here; until then null, and `done` is called (once per caller) when it lands.
+  static iconTags(done) {
+    if (window.providentIconTags) return window.providentIconTags;
+    const W = StudioBase;
+    if (done) (W._tagWait = W._tagWait || []).push(done);
+    if (!W._tagReq) {
+      W._tagReq = true;
+      const s = document.createElement('script');
+      s.src = './icon-tags.js';
+      s.onload = () => { const f = W._tagWait || []; W._tagWait = []; f.forEach(fn => { try { fn(); } catch (e) {} }); };
+      s.onerror = () => { W._tagReq = false; W._tagWait = []; };
+      document.head.appendChild(s);
+    }
+    return null;
+  }
   constructor(host, key) { this.host = host; this.key = key; }
 
   // ---------- DCLogic surface, backed by host.state[this.key] ----------

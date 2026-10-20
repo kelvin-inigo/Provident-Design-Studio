@@ -209,9 +209,6 @@
       };
       return {
         studio: 'cas', campaign: s.campaign || '', mode: C.isCarousel(s) ? 'carousel' : 'single',
-        platform: C.isYT && C.isYT(s) ? 'youtube' : 'meta',
-        youtube_text: C.isYT && C.isYT(s) ? C.ytOf(s) : undefined,
-        meta_text: C.mtOf && !(C.isYT && C.isYT(s)) ? Object.assign(C.mtOf(s), { checks: C.mtCheck(s).problems }) : undefined,
         story_shown: C.storyShown ? C.storyShown(s) : true,
         variants: s.variants.map((v, vi) => {
           const mods = C.modulesFor(s, vi);
@@ -274,10 +271,6 @@
       if (!cas) break;
       const rv = E.renderVals();
       if (op.op === 'set_mode') { (op.mode === 'carousel' ? rv.modeCarousel : rv.modeSingle)(); await ps.sleep(120); log.push('mode → ' + op.mode); }
-      // the platform switch: YouTube Demand Gen forces a single ad and carries the four Google ratios
-      if (op.op === 'set_platform') { (op.platform === 'youtube' ? rv.platYt : rv.platMeta)(); await ps.sleep(120); log.push('platform → ' + op.platform); }
-      if (op.op === 'youtube_text') { E.upd(x => { x.yt = C.ytOf(x); if (typeof op.business === 'string') x.yt.biz = op.business; if (Array.isArray(op.headlines)) op.headlines.slice(0, 5).forEach((t, i) => { x.yt.heads[i] = String(t); }); if (Array.isArray(op.descriptions)) op.descriptions.slice(0, 5).forEach((t, i) => { x.yt.descs[i] = String(t); }); return x; }); await ps.sleep(80); log.push('YouTube text set' + (C.ytIssues(E.state).length ? ' — over limit: ' + C.ytIssues(E.state).join(', ') : '')); }
-      if (op.op === 'meta_text') { E.upd(x => { x.mt = C.mtOf(x); ['bodies', 'headlines', 'descriptions'].forEach((k, j) => { const key = ['bodies', 'heads', 'descs'][j]; if (Array.isArray(op[k])) { x.mt[key] = ['', '', '', '', '']; op[k].slice(0, 5).forEach((t, i) => { x.mt[key][i] = String(t); }); } }); if (typeof op.link === 'string') x.mt.link = op.link; if (typeof op.cta === 'string') x.mt.cta = op.cta; x.mt = C.mtOf(x); return x; }); await ps.sleep(80); const pr = C.mtCheck(E.state).problems; log.push('Meta text set' + (pr.length ? ' — not ready: ' + pr.join(', ') : '')); }
       if (op.op === 'add_variant') { rv.addVariant(); await ps.sleep(250); log.push('added ' + (C.isCarousel(E.state) ? 'a page' : 'a variant')); }
     }
     let err = null;
@@ -288,7 +281,7 @@
           if (o === 'set') { setPath(x, op.path, op.value); log.push('set ' + op.path); continue; }
           if (cas) {
             const vi = op.variant == null ? (x.activeVi || 0) : op.variant;
-            if (o === 'set_mode' || o === 'add_variant' || o === 'set_platform' || o === 'youtube_text' || o === 'meta_text') continue;
+            if (o === 'set_mode' || o === 'add_variant') continue;
             if (o === 'component') {
               const m = C.modList(x, vi).find(z => z.id === op.id);
               if (!m) throw new Error('No component "' + op.id + '" on ' + (vi ? 'variant ' + (vi + 1) : 'the Master'));

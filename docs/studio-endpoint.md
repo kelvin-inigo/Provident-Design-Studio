@@ -32,8 +32,7 @@ curl -X POST http://192.168.50.30:8090/api/imports \
   CAS). It embeds every source photo, so it is usually the largest part.
 - `images` — one part per exported image, filename = the export's own file name (CAS's
   `Variant A/` folder is dropped from the filename; the name already says the variant).
-  Non-image files an export writes (CAS's YouTube text file, the Meta upload manifest) are not
-  sent. Assets/ is not sent either.
+  Assets/ is not sent.
 
 ## Size limit and compression
 

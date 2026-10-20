@@ -4,7 +4,7 @@ How to use the two Provident design studios in this folder.
 
 | | file | for |
 |---|---|---|
-| **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 9:16), a YT Demand Gen 1.91:1, Eventbrite banners, and YouTube Demand Gen image ads |
+| **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 3:4, 9:16, a horizontal 1.91:1) and Eventbrite banners |
 | **OPS** — Organic Post Studio | `Provident Organic Studio.dc.html` | organic feed and story posts, built from locked templates |
 
 > **For Claude in Cowork:** answer "how do I…" questions about CAS and OPS from this file, and
@@ -20,8 +20,6 @@ How to use the two Provident design studios in this folder.
 3. [CAS: build an ad](#3-cas-build-an-ad)
 4. [CAS: variants, carousels and sizes](#4-cas-variants-carousels-and-sizes)
 5. [CAS: the Eventbrite banner](#5-cas-the-eventbrite-banner)
-   - [CAS: YouTube Demand Gen](#5b-cas-youtube-demand-gen)
-   - [CAS: Meta ad text and uploading to Meta](#5c-cas-meta-ad-text-and-uploading-to-meta)
 6. [CAS: the Copy workspace](#6-cas-the-copy-workspace)
 7. [CAS: export](#7-cas-export)
 8. [OPS: make a post](#8-ops-make-a-post)
@@ -173,7 +171,8 @@ What's on the screen, from left to right:
   because the image should always outweigh the words.
 - **Preview** (top bar) shows the ad inside an Instagram or Facebook feed, reel or story mock-up.
   **Platform UI** and **Safe margins** switch on the app's own buttons and the safe area.
-  **Light** or **Dark** sets the phone's appearance for the feed. Reels and Stories are always
+  **Light** or **Dark** sets the phone's appearance for the feed. The mock-up's primary text,
+  headline and button are filled from the ad's own words. Reels and Stories are always
   dark, as they are in both apps.
 
 **Recreate a component from a screenshot** (with Claude Code):
@@ -224,15 +223,13 @@ No API key or service is needed: Claude Code reads the screenshot.
   **Scale** slider right under its row (58–100%, on its own — it does not move the Story). It exports as
   `<name>_Variant A_Portrait_Fix.jpg` at 2160 × 3840.
 - **9:16:** it mirrors the 1:1 until you press its link button.
-- **Horizontal 1.91:1** (the YT Demand Gen landscape): press the eye on its row to show it. It is a 1200 × 628 landscape for
-  YouTube Demand Gen, and its words run the full width of the canvas. It exports into the
-  variant's folder with the other images (section 7).
+- **Horizontal 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape, and
+  its words run the full width of the canvas. It exports into the variant's folder with the other
+  images (section 7).
 - **All variants** (the pill next to **Add Variant**, which shows how many variants you have
   out of the most allowed) holds the settings for the whole project:
   - **Format** is a pair of cards: **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
     and each page has its own components, words and photo.
-  - **Write Meta ad text** (or **Write headlines and descriptions** on YouTube) opens the
-    **Publish** tab.
   - **Story 9:16**, **QR code** and **Collaboration logo** are switches. The line under each
     one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
     on, pick the **Corner** it sits in.
@@ -252,98 +249,18 @@ No API key or service is needed: Claude Code reads the screenshot.
 3. In **Scaling**, the rows **1880** and **758** size the two banners separately. Raise the **758**
    (it goes up to 150%) when its words are too small for an email.
 4. Banners never carry a QR code. They're clicked, not scanned.
-5. The banner is laid out like the YT Demand Gen 1.91:1: the copy runs across the full width,
+5. The banner is laid out like the Horizontal 1.91:1: the copy runs across the full width,
    not squeezed into a column on the left, and the darkening sits behind the top and bottom copy.
 
 Eventbrite shows the 1880 file at 940 px wide on a desktop and 375 px wide on a phone. On a phone
 only the headline really reads, so keep the words few and big.
 
-The banner, the YT Demand Gen 1.91:1 row and the placement **Preview** are Meta-side only. A YouTube project doesn't
-show them.
-
-## 5b. CAS: YouTube Demand Gen
-
-Every CAS project is for **one platform**: **Meta ads** or **YouTube Demand Gen**.
-
-- **There is no Platform switch in the app any more.** A new project is a Meta project. A Meta
-  project can still carry the 1.91:1 through its **YT Demand Gen** row (section 4).
-- A **YouTube Demand Gen** project opens as one if it was saved as one, or Claude can switch a
-  project with the studio tools (`studio_edit` → `set_platform`). A carousel becomes a single ad
-  (its pages are kept if you switch back), because Demand Gen takes an asset pool, not swipe pages.
-
-On YouTube, **each variant starts with the Landscape 1.91:1 only**. The other three ratios Google
-mixes into its asset pool sit under it as rows; press a row's eye button to show
-it. Only shown canvases are exported:
-
-| canvas on the plate | exported at |
-|---|---|
-| **1:1** square (the master) | 1200 × 1200 |
-| **Landscape 1.91:1** | 1200 × 628 |
-| **Portrait 4:5** | 960 × 1200 |
-| **Vertical 9:16 · Shorts** | 1080 × 1920 |
-
-- With the 1:1 hidden, the 1.91:1 **is** the master layout; once the 1:1 is shown, the 1.91:1
-  mirrors it until you press its link button.
-- **Landscape** and **Portrait** each have the link and picture buttons. **Scaling** has a row for each canvas that is shown.
-- The 9:16 keeps the same safe margins as a Meta story: Shorts puts its own buttons in the same
-  places.
-- **Business logo** (in **All Variants Option**): the provident. wordmark on a 1200 × 1200 square.
-  Pick its **Ground**: **Navy**, **White** or **Black**. Google crops logos to a circle in some
-  places, so the mark sits well inside one.
-- **Text assets:** press **Write headlines and descriptions** (or open the **Publish** tab). The **YouTube
-  Demand Gen text** box has the **Business name** (max 25 characters), 5 **Headlines** (max 40) and
-  5 **Descriptions** (max 90). Google shows any headline with any image, so each one has to make
-  sense on its own.
-- **The compliance check** tells you whether the text is ready for Google, in four places:
-  - **Each field** has a bar showing how much of its limit is used and a count (`32 / 40`). It
-    turns red when the text is over (`47 / 40 · 7 over`) or repeats an earlier one
-    (`Same as headline 1`). Google refuses both.
-  - **The checklist** at the top of the box ticks or crosses three rules: a **Business name**
-    within 25, at least one **Headline**, each within 40 with no repeats, and at least one
-    **Description**, each within 90 with no repeats. The badge beside the title reads
-    **Ready for Google** or **N to fix**.
-  - **All Variants Option → Text assets** shows the same badge and checklist.
-  - **The bar under the canvases** shows **Google text · ready** or **Google text · N to fix**.
-    Click it to open the fields.
-
-Google discourages a lot of text, logos and button shapes on Demand Gen images. Keep the copy on
-the images light and let the headlines and descriptions do the talking.
-
-## 5c. CAS: Meta ad text and uploading to Meta
-
-**Optional.** Only needed if the ads will be sent to Meta through the Meta Ads tool
-(`tools/meta-ads`). If you upload by hand in Ads Manager, skip this — nothing else changes.
-
-- On a **Meta ads** project, the **Publish** tab (top bar: **Copy | Design | Publish**) holds the text Meta shows
-  around the image: up to 5 **Primary texts** (Meta shows the first 125 characters, then *See
-  more*; 500 at most), 5 **Headlines** (max 40), 5 **Descriptions** (max 30, optional), the
-  **Button** (Learn more, Contact us, Sign up…) and the **Destination link** (must start with
-  `https://`). No two may be the same.
-- Each field counts as you type; the badge reads **Ready for Meta** or **N to fix**. The same
-  check is in **All Variants Option → Meta ad text**, and once any text is written the bar under
-  the canvases shows **Meta text · ready** or **Meta text · N to fix** — click it to open the fields.
-- Only the boxes in use show, plus one empty one per group; type into it and the next appears.
-- When you **export JPEG or PNG**, CAS adds `<name>_Meta upload.json` beside the images (only once
-  some Meta text exists). The status line names anything still not ready.
-
-**Sending it to Meta** (a person with Meta access does this, from a terminal):
-
-1. Once per Mac: `bash tools/meta-ads/install.sh`, then put the token, ad account, Page and ad set
-   into `tools/meta-ads/kit/.env` (never in a chat or a file in the repo).
-2. `python3 tools/meta-ads/cas-to-meta.py "<your Source folder>"` — checks the text and every image
-   and writes `Meta upload/` in the folder: a plan and one command file per variant. **It uploads
-   nothing.**
-3. After the ad is approved, run the command it prints. The creative and the ad are created
-   **paused**; switch them on in Ads Manager after a last look.
-
-The same tool also gives read-only performance reports — see `tools/meta-ads/README.md`.
-
 ## 6. CAS: the Copy workspace
 
 This is for copywriters: the ad's words on their own, next to a live preview.
 
-1. Press **Copy** in the top bar — the switch reads **Copy | Design | Publish**. **Design** takes you
-   back; **Publish** holds the platform's own text (Meta ad text, or the YouTube text assets).
+1. Press **Copy** in the top bar — the switch reads **Copy | Design**. **Design** takes you
+   back.
    - The big preview is the real export.
    - The picker above it chooses which variant (or page) you're looking at.
 2. Fill in the fields.
@@ -383,7 +300,6 @@ Source folder/
     <name>_Variant A_EventBrite_Banner_wide.jpg  ← 1880 × 940
     <name>_Variant A_EventBrite_Banner_Small.jpg ← 758 × 380
   <name>.adstudio.json   Assets/    ← the session and uploads, refreshed on every export
-  <name>_Meta upload.json            ← only once Meta ad text is written (section 5c)
 ```
 
 - **Every export overwrites the last one without asking.** It never deletes anything, so files an
@@ -396,39 +312,16 @@ Source folder/
 - **Without a Source folder**, you get a zip with the same folders inside.
 - **PDF** is one file with every size, saved wherever you choose.
 
-**On a YouTube Demand Gen project** the formats are **JPEG** and **PNG** only (Google takes no
-SVG or PDF), at the exact sizes in the table in section 5b. The images go into the same Variant
-folders, named by ratio:
-
-```
-Source folder/
-  Variant A/
-    <name>_Variant A_Landscape_1.91x1.jpg  ← 1200 × 628, always
-    <name>_Variant A_Square_1x1.jpg        ← 1200 × 1200, if shown
-    <name>_Variant A_Portrait_4x5.jpg      ← 960 × 1200, if shown
-    <name>_Variant A_Vertical_9x16.jpg     ← 1080 × 1920, if shown
-  <name>_Logo_1x1.png                      ← 1200 × 1200
-  <name>_Demand Gen text.txt               ← business name, headlines, descriptions
-  <name>.adstudio.json   Assets/           ← the session and uploads, as for Meta
-```
-
-**Ad sets** finds these too, and shows them under the same Variant card as the Meta images,
-labelled **YouTube Demand Gen**.
-
-Google refuses any file over 5 MB. JPEG is always well under. If a PNG goes over, the status line
-names it; export JPEG instead. Text over Google's limits is named there too.
-
 ### See everything you exported: Ad sets
 
 On CAS's home page, press **Ad sets** in the sidebar, in the **Review** group. It opens in its own window. It reads the Source folder
 and finds every exported ad set.
 
 - **The list on the left** is every audience, grouped under its main folder (Local, International,
-  International EUR — Local comes first). Each one says how many variants and images it holds. A
-  red dot means its Meta or YouTube ad text needs attention.
+  International EUR — Local comes first). Each one says how many variants and images it holds.
 - **Click an audience** to show it on the right: its name and main folder at the top, then one row
-  per variant (Variant A, Variant B …). In each row, **Meta** (Feed, Story) and **YouTube Demand
-  Gen** (Square, Vertical, Landscape, Portrait) sit side by side. A small line under each image
+  per variant (Variant A, Variant B …). Each row shows its
+  **Meta** images: Feed, Portrait 3:4, Portrait Fix, Story and the Horizontal 1.91:1. A small line under each image
   gives its pixel size and file size.
 - **Images | Edit text** at the top of the window switches what you work on. The window remembers
   which one you used last.
@@ -459,16 +352,16 @@ Press **Edit text** to work on the words of the audience on screen, without open
 - It looks for **saved projects**: folders holding a `.adstudio.json`. Point it at the campaign
   folder that holds Local / International, or at a single project folder. A project directly in
   the Source folder uses its campaign name as the audience.
-- Only `<name>_Variant A_feed`, `_Story`, and the YouTube `_Square_1x1`, `_Vertical_9x16`,
-  `_Landscape_1.91x1` and `_Portrait_4x5` files are shown, from the Variant folders (and from a
-  **YT Demand Gen** folder left by an older export). Banners, carousels, logos and anything else are left out.
+- Only `<name>_Variant A_feed`, `_Portrait_3x4`, `_Portrait_Fix`, `_Story` and
+  `_Landscape_1.91x1` files are shown, from the Variant folders. Banners, carousels and anything
+  else are left out.
 - **A size that was not exported is simply not shown.** A variant or audience with nothing to
   show is left out.
 - It shows the files as they are on disk, so export first, then press **Refresh**. Click an image
   to see it large: the top line says where it sits (Local › Family › Variant A › Meta · Feed), and
   the arrows or **←** / **→** step through every image in the window in order. **Esc** closes it,
   and **Esc** again closes the window.
-- **Details** beside each platform's label opens its images beside an analysis of the ad, read
+- **Details** beside the **Meta** label opens its images beside an analysis of the ad, read
   from its saved project:
   - **Marketing angle** — the theme the copy leans on hardest (Workspace and business, Payment
     plan and entry price, Location and connectivity, Golden Visa and residency, Investment and
@@ -662,19 +555,6 @@ This is the full editor.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.
 
-## 12b. Support requests (OPS)
-
-**Support** in the project browser's sidebar (in its own **Help** group; it opens in its own window) is a board for asking the design team for something — a bug, a new template, a change to a post, a question.
-
-- **First time on a computer:** open the **setup link** the design team sent you, then type your name and work email. That is all; the link does the rest.
-- **New request:** a title, what it is about, which studio, how urgent, and what you need. A link to a screenshot or reference is optional.
-- **The board** has four columns: **New → In progress → Needs your input → Done**. You see only your own requests; the design team sees everyone's and drags a card to move it, or uses the Status menu inside the request.
-- **Comments:** open a request and write under it. The other side gets an email. If the team asks you something (**Needs your input**) and you reply, it goes back to **In progress**.
-- **Hearing back:** you get an **email** when the status changes or someone comments, and a **bell** in OPS counts requests that changed since you last opened them (allow desktop notifications to be told while OPS is open). The email's button opens the request.
-- **Closing:** when it is sorted, press **close it** inside the request; **reopen it** brings it back.
-
-Setup of the sheet and the email is in `tools/support/README.md`.
-
 ## 13. Rules the studios keep for you
 
 - **Type:** one font, Google Sans Flex. Headlines are Regular and body copy is Light. Small labels
@@ -718,14 +598,6 @@ exactly what the studio would export.
    are cut out automatically when background removal is running).
 4. `studio_preview` — look at it before exporting.
 5. `studio_export` — PNG, JPG, SVG or PDF, with the studio's own file names and folders.
-
-For a YouTube Demand Gen ad: `studio_edit` with `{op:'set_platform', platform:'youtube'}`, then
-`{op:'youtube_text', business, headlines:[…], descriptions:[…]}`. Export JPG or PNG.
-
-For a Meta ad that will be uploaded with `tools/meta-ads`: `studio_edit` with
-`{op:'meta_text', bodies:[…], headlines:[…], descriptions:[…], cta:'LEARN_MORE', link:'https://…'}`,
-export JPG or PNG, then run `tools/meta-ads/cas-to-meta.py` on the folder. Never upload or ask for a
-Meta token — a person runs the final command after approval.
 
 Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
 or name. Every required field must be filled; the export says what is missing. The project is a

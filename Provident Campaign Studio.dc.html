@@ -3582,6 +3582,39 @@ select.p-in{padding-right:34px}
   .as-src-drop{min-height:96px}
   .as-viewing{display:none}
 }
+/* See details (2026-10-12) — under a platform's images, a button carrying the text check;
+   it opens the image beside the same check the Publish tab shows. */
+.as-ad-see{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;height:34px;padding:0 6px 0 14px;border:0;
+  border-radius:var(--ps-pill);background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-line);color:var(--ps-ink);font:600 13px/1 var(--ps-font);cursor:pointer;
+  transition:box-shadow var(--ps-motion) var(--ps-ease)}
+/* on the card's own ground, so the badge's status ink measures as it does in Publish */
+.as-ad-see:hover{box-shadow:0 0 0 1px var(--ps-ink-2)}
+.as-ad-see .yt-badge{margin-left:0;font-size:11px}
+.as-ad-see:focus-visible,.as-det-img:focus-visible,.as-fmts button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.as-fmts{display:flex;flex-wrap:wrap;gap:6px}
+.as-fmts:empty{display:none}
+.as-fmts button{height:28px;padding:0 11px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);
+  font:500 12px/1 var(--ps-font);cursor:pointer}
+.as-fmts button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.as-det{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:rgba(6,9,15,.55)}
+.as-det-in{display:flex;flex-direction:column;width:min(980px,100%);max-height:100%;border-radius:var(--ps-r);
+  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);overflow:hidden}
+.as-det-h{flex:none;display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--ps-hair)}
+.as-det-h b{font:600 15px/1.2 var(--ps-font);color:var(--ps-ink)}
+.as-det-h s{min-width:0;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-det-h .p-ghost{display:inline-flex;align-items:center;gap:6px}
+.as-det-h .mk-g{width:15px;height:15px}
+.as-det-b{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);overflow:auto}
+.as-det-l{display:flex;flex-direction:column;gap:10px;padding:20px;background:var(--ps-stage);border-right:1px solid var(--ps-hair)}
+.as-det-img{display:flex;align-items:center;justify-content:center;height:min(56vh,520px);padding:0;border:0;
+  background:none;cursor:zoom-in}
+.as-det-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--ps-r-sm);box-shadow:0 0 0 1px var(--ps-hair)}
+.as-det-r{display:flex;flex-direction:column;gap:10px;padding:20px 22px;min-width:0}
+.as-det-r .cw-page-h{display:flex;align-items:center;gap:10px}
+.as-det-r .cw-page-h b{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-det-sub{margin:0;font:400 12px/1.5 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 /* the enlarged image — a pinned dark viewer, so its ink is pinned too */
 .as-big{position:absolute;inset:0;z-index:6;display:grid;grid-template-columns:56px minmax(0,1fr) 56px;
   grid-template-rows:auto minmax(0,1fr) auto;gap:12px;padding:16px 20px 20px;background:rgba(6,9,15,.94)}
@@ -3617,6 +3650,10 @@ select.p-in{padding-right:34px}
   .as-ttl{flex:1 0 100%}
   .as-bar .p-spring{display:none}
   .as-big{grid-template-columns:44px minmax(0,1fr) 44px;padding:12px;gap:8px}
+  .as-det{padding:0}
+  .as-det-in{max-height:none;height:100%;border-radius:0}
+  .as-det-b{grid-template-columns:1fr}
+  .as-det-l{border-right:0;border-bottom:1px solid var(--ps-hair)}
   .as-big-nav{width:38px;height:38px}
 }
 @media (prefers-reduced-motion:reduce){.as-ov{animation:none}.as-img img{transition:none}.as-img:hover img{transform:none}}
@@ -3924,6 +3961,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-tiles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px}
 .as-tiles .as-t{--as-r:var(--as-h)}
 .as-tiles .as-t[data-shape="ls"]{--as-r:calc(var(--as-h) * .5766)}
+.as-plat-top .as-ad-see{height:30px;font-size:12.5px;gap:8px}
 /* EDIT TEXT */
 .ae-stat{display:inline-flex;align-items:center;gap:8px;max-width:min(560px,100%);padding:7px 12px;border-radius:var(--ps-pill);
   background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);font:500 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
@@ -3985,6 +4023,33 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 }
 @media (prefers-reduced-motion:reduce){.ae-stat .ae-dot,.ae-shot[data-wait] > span{animation:none}}
 
+/* ── 37. AD SETS DETAILS: THE AD ANALYSIS (angle, audience, USP, copy ratio) ─────────── */
+.as-det-r{gap:0;padding:6px 22px 18px}
+.as-an{padding:14px 0;border-bottom:1px solid var(--ps-hair)}
+.as-an:last-child{border-bottom:0}
+.as-an h3{margin:0 0 8px;font:600 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.as-an-big{margin:0;font:600 17px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-an-why{margin:4px 0 0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.as-an-why[data-over]{color:var(--ps-warn)}
+.as-an-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.as-an-tl{font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);margin-right:2px}
+.as-an-tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:var(--ps-pill);background:var(--ps-fill);
+  font:500 12px/1 var(--ps-font);color:var(--ps-ink)}
+.as-an-dl{margin:0;display:flex;flex-direction:column;gap:6px}
+.as-an-dl div{display:flex;gap:12px;align-items:baseline}
+.as-an-dl dt{flex:none;width:96px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.as-an-dl dd{margin:0;min-width:0;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.as-an-usp{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.as-an-usp li{display:flex;align-items:baseline;gap:10px;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.as-an-usp li b{font-weight:500;min-width:0}
+.as-an-usp li s{margin-left:auto;flex:none;text-decoration:none;font:400 11.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.as-an-ratio{display:flex;align-items:baseline;gap:6px}
+.as-an-ratio b{font:600 22px/1.1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.as-an-ratio s{text-decoration:none;font:400 12.5px/1 var(--ps-font);color:var(--ps-dim)}
+.as-an-bar{position:relative;height:10px;margin:10px 0 2px;border-radius:var(--ps-pill);background:var(--ps-fill-h);overflow:visible}
+.as-an-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--ps-pill);background:var(--ps-link)}
+.as-an-bar[data-over] i{background:var(--ps-warn)}
+.as-an-bar u{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:2px;background:var(--ps-ink)}
 
 /* ── 38. AD SETS: GOOGLE DRIVE (sign in with Google, read and write a Drive folder) ────── */
 .as-gd{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--ps-r);background:var(--ps-fill)}
@@ -4568,7 +4633,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     <div class="p-seg p-seg-mode" role="group" aria-label="Workspace">
       <button onClick="{{ cwModeCopy }}" data-on="{{ cwModeCopyOn }}" title="Just the words, in reading order — for copywriters">Copy</button>
       <button onClick="{{ cwModeDesign }}" data-on="{{ cwModeDesignOn }}" title="The full design workspace">Design</button>
-      <button onClick="{{ cwModePub }}" data-on="{{ cwModePubOn }}" title="{{ cwModePubTip }}">Publish</button>
     </div>
   </sc-if>
   <div class="p-spring"></div>
@@ -4649,13 +4713,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 <div class="cw">
   <div class="cw-form">
     <div class="cw-in">
-      <sc-if value="{{ cwPubOn }}" hint-placeholder-val="{{ false }}">
-      <div class="cw-head">
-        <span class="cw-kick">Publish · {{ cwPubPlat }}</span>
-        <input value="{{ cwName }}" onChange="{{ onCwName }}" placeholder="Campaign name" class="p-in cw-name" aria-label="Campaign name">
-        <p class="cw-note">{{ cwPubNote }}</p>
-      </div>
-      </sc-if>
       <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
       <div class="cw-head">
         <span class="cw-kick">Copy</span>
@@ -4753,37 +4810,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </sc-if>
         </section>
       </sc-for>
-      </sc-if>
-      <sc-if value="{{ cwMtOn }}" hint-placeholder-val="{{ false }}">
-        <section class="cw-page cw-yt cw-mt">
-          <div class="cw-page-h"><b>Meta ad text</b><span class="yt-badge" data-state="{{ cwMtBadgeState }}">{{ cwMtBadge }}</span></div>
-          <ul class="yt-checks" aria-label="Meta's text limits">
-            <sc-for list="{{ cwMtChecks }}" as="ck" hint-placeholder-count="5"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
-          </ul>
-          <sc-for list="{{ cwMtRows }}" as="y" hint-placeholder-count="5">
-            <div class="cw-f">
-              <sc-if value="{{ y.headOn }}" hint-placeholder-val="{{ false }}"><div class="cw-lab-r"><span class="cw-lab">{{ y.group }}</span><span class="yt-gnote" data-state="{{ y.groupState }}">{{ y.groupNote }}</span></div></sc-if>
-              <sc-if value="{{ y.isLine }}" hint-placeholder-val="{{ true }}">
-                <input value="{{ y.val }}" onChange="{{ y.on }}" class="p-in" aria-label="{{ y.label }}" placeholder="{{ y.ph }}" data-state="{{ y.state }}">
-              </sc-if>
-              <sc-if value="{{ y.isArea }}" hint-placeholder-val="{{ false }}">
-                <textarea value="{{ y.val }}" onChange="{{ y.on }}" rows="3" class="p-in" aria-label="{{ y.label }}" placeholder="{{ y.ph }}" data-state="{{ y.state }}"></textarea>
-              </sc-if>
-              <div class="yt-lim" data-state="{{ y.state }}"><span class="yt-bar"><i style="{{ y.meter }}"></i></span><span class="yt-cnt">{{ y.count }}</span></div>
-            </div>
-          </sc-for>
-          <div class="cw-f">
-            <div class="cw-lab-r"><span class="cw-lab">Button</span></div>
-            <select value="{{ cwMtCta }}" onChange="{{ cwMtOnCta }}" class="p-in" aria-label="Call to action button">
-              <sc-for list="{{ cwMtCtas }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.t }}</option></sc-for>
-            </select>
-          </div>
-          <div class="cw-f">
-            <div class="cw-lab-r"><span class="cw-lab">Destination link</span></div>
-            <input value="{{ cwMtLink }}" onChange="{{ cwMtOnLink }}" class="p-in" type="url" inputmode="url" aria-label="Destination link" placeholder="https://www.providentestate.com/…" data-state="{{ cwMtLinkState }}">
-          </div>
-          <span class="cw-hint">Optional. Primary text is cut at 125 characters behind See more; headlines 40, descriptions 30; none repeated. Meta mixes them with the variant's feed and story, so each has to stand on its own. Saved with the project and sent with it by Send.</span>
-        </section>
       </sc-if>
       <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
       <section class="cw-page cw-hist">
@@ -4910,6 +4936,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                       <div class="as-plat">
                         <div class="as-plat-top">
                           <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
+                          <button onClick="{{ pl.see }}" class="as-ad-see" title="Marketing angle, audience, USP and how much of the image the copy covers">Details</button>
                         </div>
                         <div class="as-tiles">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
@@ -4991,6 +5018,43 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         </div>
         </sc-if>
       </div>
+      <sc-if value="{{ asDetOn }}" hint-placeholder-val="{{ false }}">
+        <div class="as-det" onClick="{{ asDetClose }}">
+          <div class="as-det-in" role="dialog" aria-label="Details" onClick="{{ asDetStop }}">
+            <header class="as-det-h"><b>Details</b><s>{{ asDetTitle }}</s><span class="p-spring"></span><button onClick="{{ asDetClose }}" class="p-ghost" title="Close (Esc)">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button></header>
+            <div class="as-det-b">
+              <div class="as-det-l">
+                <button onClick="{{ asDet.open }}" class="as-det-img" title="View full size"><img data-src="{{ asDet.img }}" alt="{{ asDet.meta }}"></button>
+                <p class="as-det-sub">{{ asDet.meta }}</p>
+                <div class="as-fmts"><sc-for list="{{ asDet.fmts }}" as="fm" hint-placeholder-count="0"><button onClick="{{ fm.set }}" data-on="{{ fm.on }}">{{ fm.label }}</button></sc-for></div>
+              </div>
+              <div class="as-det-r">
+                <section class="as-an">
+                  <h3>Marketing angle</h3>
+                  <p class="as-an-big">{{ asAn.angle }}</p>
+                  <p class="as-an-why">{{ asAn.angleWhy }}</p>
+                  <sc-if value="{{ asAn.alsoOn }}" hint-placeholder-val="{{ false }}"><div class="as-an-tags"><span class="as-an-tl">Also</span><sc-for list="{{ asAn.also }}" as="a" hint-placeholder-count="2"><span class="as-an-tag" title="{{ a.why }}">{{ a.name }}</span></sc-for></div></sc-if>
+                </section>
+                <section class="as-an">
+                  <h3>Audience</h3>
+                  <dl class="as-an-dl"><sc-for list="{{ asAn.aud }}" as="r" hint-placeholder-count="3"><div><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div></sc-for></dl>
+                </section>
+                <section class="as-an">
+                  <h3>USP</h3>
+                  <sc-if value="{{ asAn.uspOn }}" hint-placeholder-val="{{ true }}"><ul class="as-an-usp"><sc-for list="{{ asAn.usp }}" as="u" hint-placeholder-count="4"><li><b>{{ u.t }}</b><s>{{ u.src }}</s></li></sc-for></ul></sc-if>
+                  <sc-if value="{{ asAn.uspNone }}" hint-placeholder-val="{{ false }}"><p class="as-an-why">No selling points in the copy yet — no tags, key facts, bullets or price.</p></sc-if>
+                </section>
+                <section class="as-an">
+                  <h3>Copy ratio to image</h3>
+                  <div class="as-an-ratio"><b>{{ asAn.copyPct }}</b><s>copy</s><span class="p-spring"></span><b>{{ asAn.imgPct }}</b><s>image</s></div>
+                  <div class="as-an-bar" data-over="{{ asAn.overOn }}"><i style="{{ asAn.barStyle }}"></i><u style="{{ asAn.markStyle }}"></u></div>
+                  <p class="as-an-why" data-over="{{ asAn.overOn }}">{{ asAn.ratioNote }}</p>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{ asBigOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-big" role="dialog" aria-label="{{ asBigName }}">
           <div class="as-big-top">
@@ -5132,14 +5196,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <sc-if value="{{ allVarsOn }}" hint-placeholder-val="{{ false }}">
         <div class="p-dock-b">
   <div class="p-cap p-shd" data-state="{{ secVarsState }}"><span class="p-shd-t">{{ allVarsTitle }} <span class="tip tip-dark" data-tip="{{ allVarsTip }}" style="{{ infoStyleDark }}">i</span></span><span class="p-shd-s"><svg class="p-shd-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg>{{ secVarsNote }}</span></div>
-  <div class="p-grp">
-    <span class="p-lab">Meta ad text <span class="yt-badge" data-state="{{ mtBadgeState }}">{{ mtBadge }}</span></span>
-    <ul class="yt-checks yt-checks-s" aria-label="Meta's text limits">
-      <sc-for list="{{ mtChecks }}" as="ck" hint-placeholder-count="0"><li data-state="{{ ck.state }}"><b>{{ ck.label }}</b><s>{{ ck.note }}</s></li></sc-for>
-    </ul>
-    <span class="p-hint">{{ mtHint }}</span>
-    <button onClick="{{ pubOpen }}" class="p-arow"><span class="p-arow-i"><svg class="p-rc-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4.2L19 9.2a2.1 2.1 0 0 0-3-3L5.2 17 4 20Z"/><path d="m14.5 7.7 3 3"/></svg></span><span class="p-arow-t"><b>Write Meta ad text</b><s>Opens the Publish tab</s></span><svg class="p-arow-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
-  </div>
   <div class="p-grp">
     <span class="p-lab">Format <span class="tip tip-dark" data-tip="A single ad is one design in up to three A/B variants that share their copy. A carousel is up to ten pages that swipe, each with its own copy and photo — exported as _page1, _page2, … Switching keeps everything you have made." style="{{ infoStyleDark }}">i</span></span>
     <div class="p-rcs" role="radiogroup" aria-label="Format">
@@ -5507,7 +5563,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><sc-if value="{{ mtBarOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pubOpen }}" class="p-cvcopy" data-state="{{ mtBarState }}" title="Does the Meta ad text fit Meta's limits — open it">{{ mtBarLabel }}</button></sc-if><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
+  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -6364,7 +6420,7 @@ class CampaignStudio extends StudioBase {
     // and its YouTube-only records (text assets, the 1.91:1 and 4:5 layouts) are dropped.
     p.platform = 'meta'; delete p.yt;
     p.variants.forEach(v => { delete v.ylOv; delete v.ypOv; delete v.ytShow; if (v.bgSep) { delete v.bgSep.yl; delete v.bgSep.yp; } });
-    if (p.mt) p.mt = CampaignStudio.mtOf(p);
+    delete p.mt;   // the Meta ad text (Publish tab) was removed 2026-10-20
     if (p.storyOn !== false) p.storyOn = true;
     p.variants.forEach(v => {
       if (Array.isArray(v.mods)) v.mods = CampaignStudio.normModList(v.mods, [v]);
@@ -6462,7 +6518,7 @@ class CampaignStudio extends StudioBase {
     // `strip()` leaves them out of every undo entry's comparison on purpose.
     const cur = this.state || {};
     const n = Object.assign({}, st, {
-      screen: cur.screen === 'copy' || cur.screen === 'publish' ? cur.screen : 'editor',
+      screen: cur.screen === 'copy' ? cur.screen : 'editor',
       copyStatus: cur.copyStatus || st.copyStatus || 'draft',
       copyLog: Array.isArray(cur.copyLog) ? cur.copyLog : (st.copyLog || []),
       // an undo entry taken before the first save carries no identity; keep today's
@@ -6709,80 +6765,6 @@ class CampaignStudio extends StudioBase {
     // more clearance at the top (story 260 + 260 = 520). Every other token is the story's.
     pf: { W: 1080, H: 1920, pad: [520, 100, 460, 100], railR: 170, gapS: 30, hero: 103, headline: 71, hook: 41, body: 28, eyebrow: 28, logo: 50, ctaF: 35, ctaPV: 20, qr: 104, stat: 59, stepD: 60 }
   };
-  // One limited text field: empty · ok · over (past the limit) · dup (same words as an earlier one).
-  static limField(t, max, dupOf) {
-    const n = String(t || '').trim().length;
-    if (!n) return { n, state: 'empty', label: '0 / ' + max, pct: 0 };
-    const pct = Math.min(100, n / max * 100);
-    if (n > max) return { n, state: 'over', label: n + ' / ' + max + ' · ' + (n - max) + ' over', pct: 100 };
-    if (dupOf) return { n, state: 'dup', label: 'Same as ' + dupOf, pct };
-    return { n, state: 'ok', label: n + ' / ' + max + (max - n <= 3 ? ' · ' + (max - n) + ' left' : ''), pct };
-  }
-  // META AD TEXT — what Meta prints around the image. Optional, saved with the project (and sent
-  // with it by Send); the placement Preview and Ad sets read it. Limits are Meta's own: primary text is cut at 125
-  // characters behind "See more" and refused past 500 by the kit's validator; headlines 40,
-  // descriptions 30; up to five of each (a dynamic creative tests the combinations). The CTA
-  // list is the official Ads CLI's own `--call-to-action` choices.
-  static MT_LIM = { body: 125, bodyMax: 500, head: 40, desc: 30, n: 5 };
-  static MT_CTA = [['LEARN_MORE', 'Learn more'], ['CONTACT_US', 'Contact us'], ['SIGN_UP', 'Sign up'], ['GET_QUOTE', 'Get quote'],
-    ['BOOK_TRAVEL', 'Book now'], ['APPLY_NOW', 'Apply now'], ['GET_OFFER', 'Get offer'], ['SUBSCRIBE', 'Subscribe'], ['DOWNLOAD', 'Download'],
-    ['WATCH_MORE', 'Watch more'], ['OPEN_LINK', 'Open link'], ['SHOP_NOW', 'Shop now'], ['BUY_NOW', 'Buy now'], ['NO_BUTTON', 'No button']];
-  static mtOf(s) {
-    const m = (s && s.mt) || {};
-    const five = a => { const o = Array.isArray(a) ? a.slice(0, 5).map(t => String(t == null ? '' : t)) : []; while (o.length < 5) o.push(''); return o; };
-    const cta = CampaignStudio.MT_CTA.some(c => c[0] === m.cta) ? m.cta : 'LEARN_MORE';
-    return { bodies: five(m.bodies), heads: five(m.heads), descs: five(m.descs), cta, link: typeof m.link === 'string' ? m.link : '' };
-  }
-  static mtUsed(s) {
-    const m = CampaignStudio.mtOf(s);
-    return !!(m.link.trim() || m.bodies.concat(m.heads, m.descs).some(t => t.trim()));
-  }
-  // ONE verdict, read by the Publish tab, the dock, the canvas bar's chip and Ad sets.
-  static mtCheck(s) {
-    const C = CampaignStudio, m = C.mtOf(s), L = C.MT_LIM, problems = [];
-    const field = (t, max, dupOf, soft) => {
-      const n = String(t || '').trim().length;
-      if (!n) return { n, state: 'empty', label: soft ? '0 · up to ' + max + ' shown' : '0 / ' + max, pct: 0 };
-      if (soft) {
-        if (n > L.bodyMax) return { n, state: 'over', label: n + ' · over ' + L.bodyMax, pct: 100 };
-        if (dupOf) return { n, state: 'dup', label: 'Same as ' + dupOf, pct: Math.min(100, n / max * 100) };
-        return { n, state: 'ok', label: n + (n > max ? ' · first ' + max + ' shown, then See more' : ' / ' + max + ' shown'), pct: Math.min(100, n / max * 100) };
-      }
-      return C.limField(t, max, dupOf);
-    };
-    const list = (arr, max, word, need, soft) => {
-      const seen = {};
-      const fields = arr.map((t, i) => {
-        const k = String(t || '').trim().toLowerCase().replace(/\s+/g, ' ');
-        const dup = k && seen[k] ? word.toLowerCase() + ' ' + seen[k] : '';
-        if (k && !seen[k]) seen[k] = i + 1;
-        return field(t, max, dup, soft);
-      });
-      const filled = fields.filter(f => f.state !== 'empty').length;
-      const over = fields.filter(f => f.state === 'over').length, dups = fields.filter(f => f.state === 'dup').length;
-      fields.forEach((f, i) => {
-        if (f.state === 'over') problems.push(word + ' ' + (i + 1) + ' is ' + f.n + ' / ' + (soft ? L.bodyMax : max));
-        if (f.state === 'dup') problems.push(word + ' ' + (i + 1) + ' repeats ' + f.label.replace('Same as ', ''));
-      });
-      if (need && !filled) problems.push('No ' + word.toLowerCase() + ' yet');
-      const bad = (need && !filled) || over || dups;
-      const note = !filled ? (need ? 'Meta needs at least one' : 'optional')
-        : ((over || dups) ? [over ? over + ' too long' : '', dups ? dups + ' repeated' : ''].filter(Boolean).join(' · ')
-          : (soft ? 'all under ' + L.bodyMax : 'all within ' + max + ' characters'));
-      return { fields, row: { label: word + 's', state: bad ? 'bad' : 'ok', note: filled + ' of 5 · ' + note } };
-    };
-    const B = list(m.bodies, L.body, 'Primary text', true, true), H = list(m.heads, L.head, 'Headline', true), D = list(m.descs, L.desc, 'Description', false);
-    B.row.label = 'Primary text';
-    const url = m.link.trim(), urlOk = /^https:\/\/[^\s/]+\.[^\s]+$/i.test(url);
-    if (!url) problems.push('No destination link');
-    else if (!urlOk) problems.push('The destination link must start with https://');
-    const lrow = { label: 'Destination', state: urlOk ? 'ok' : 'bad', note: !url ? 'missing' : (urlOk ? url.replace(/^https:\/\//i, '').slice(0, 34) : 'must start with https://') };
-    const ctaLab = (C.MT_CTA.find(c => c[0] === m.cta) || [m.cta, m.cta])[1];
-    const rows = [B.row, H.row, D.row, lrow, { label: 'Button', state: 'ok', note: ctaLab }];
-    const bad = rows.filter(r => r.state === 'bad').length;
-    return { bodies: B.fields, heads: H.fields, descs: D.fields, urlOk, rows, bad, ok: !bad, problems, ctaLab,
-      badge: bad ? bad + ' to fix' : 'Ready for Meta' };
-  }
   // The file a size exports as: its own pixel size when the size declares one (the two
   // banners), otherwise the 2x every Meta size has always shipped at.
   static exportScale(sizeKey, s) {
@@ -10901,26 +10883,22 @@ class CampaignStudio extends StudioBase {
     }
     return out;
   }
-  // What the platform prints around the creative. The Meta ad text (Publish) wins where it
-  // is written — it IS what the platform prints — and the creative's own words fill in.
+  // What the platform prints around the creative, filled from the creative's own words.
   mockCopy() {
     const list = CampaignStudio.modulesFor(this.state, this.state.activeVi);
     const of = t => { const m = list.find(x => x.type === t); return m || null; };
     const txt = t => { const m = of(t); return m ? String(m.text || '').replace(/\n+/g, ' ').trim() : ''; };
     const price = of('price');
-    const mt = CampaignStudio.mtOf(this.state), first = a => (a.find(t => t.trim()) || '').trim();
-    const ctaOf = CampaignStudio.mtUsed(this.state) ? (CampaignStudio.MT_CTA.find(c => c[0] === mt.cta) || [0, ''])[1] : '';
-    let domain = 'providentestate.com';
-    try { if (mt.link.trim()) domain = new URL(mt.link.trim()).hostname.replace(/^www\./, ''); } catch (e) {}
+    const domain = 'providentestate.com';
     return {
       brand: 'provident.',
       handle: 'providentestate',
       page: 'Provident Real Estate',
       domain,
-      primary: first(mt.bodies) || txt('hook') || txt('body') || txt('eyebrow') || 'Your primary text sits here, above the creative.',
-      headline: first(mt.heads) || txt('hero') || this.state.campaign || 'Headline',
-      desc: first(mt.descs) || txt('body') || (price ? ((price.sub || '') + ' ' + (price.text || '')).trim() : '') || domain,
-      cta: (ctaOf && ctaOf !== 'No button' ? ctaOf : '') || txt('cta') || 'Learn more'
+      primary: txt('hook') || txt('body') || txt('eyebrow') || 'Your primary text sits here, above the creative.',
+      headline: txt('hero') || this.state.campaign || 'Headline',
+      desc: txt('body') || (price ? ((price.sub || '') + ' ' + (price.text || '')).trim() : '') || domain,
+      cta: txt('cta') || 'Learn more'
     };
   }
   // ---------- the copywriter's workspace ----------
@@ -11013,8 +10991,8 @@ class CampaignStudio extends StudioBase {
   // Which workspace THIS BROWSER opens on. Per machine rather than per project, because
   // it is a fact about who is sitting there: the copywriter's laptop reopens on the copy
   // view, the designer's on the canvas, and the project they pass between them is one file.
-  static workScreen() { try { const w = localStorage.getItem('adstudio-workspace'); return w === 'copy' || w === 'publish' ? w : 'editor'; } catch (e) { return 'editor'; } }
-  static setWorkScreen(sc) { try { localStorage.setItem('adstudio-workspace', sc === 'copy' || sc === 'publish' ? sc : 'design'); } catch (e) {} }
+  static workScreen() { try { const w = localStorage.getItem('adstudio-workspace'); return w === 'copy' ? w : 'editor'; } catch (e) { return 'editor'; } }
+  static setWorkScreen(sc) { try { localStorage.setItem('adstudio-workspace', sc === 'copy' ? sc : 'design'); } catch (e) {} }
   static copyAuthor() { try { return localStorage.getItem('adstudio-author') || ''; } catch (e) { return ''; } }
   // The pages the copy is arranged in: every page of a carousel, or the one ad — whose
   // words are shared by all its design variants, so it is ONE page however many there are.
@@ -11389,7 +11367,7 @@ class CampaignStudio extends StudioBase {
   }
   cwKey() { const s = this.state; return CampaignStudio.strip(s) + '|' + (s.activeVi || 0) + '|' + this.cwScale() + '|' + StudioBase.fontKey(s) + '|' + JSON.stringify(this._filled || {}); }
   cwSync() {
-    if (this.state.screen !== 'copy' && this.state.screen !== 'publish') return;
+    if (this.state.screen !== 'copy') return;
     const k = this.cwKey();
     if (k === this._cwKey || this._cwBusy) { if (this._cwBusy) this._cwAgain = true; return; }
     clearTimeout(this._cwT);
@@ -11612,39 +11590,10 @@ class CampaignStudio extends StudioBase {
     C.custLibWrite(C.custLibRead().filter(x => x.id !== spec.id));
     this.forceUpdate();
   }
-  // The Meta ad text in the copy view — five primary texts, five headlines, five descriptions,
-  // the button and the link — each with its own count, read off mtCheck.
-  cwMtVals() {
-    const s = this.state, C = CampaignStudio, L = C.MT_LIM;
-    if (s.screen !== 'publish') return { cwMtOn: false, cwMtRows: [] };
-    const m = C.mtOf(s), ck = C.mtCheck(s);
-    const setM = fn => this.upd(x => { x.mt = C.mtOf(x); fn(x.mt); return x; });
-    const meter = f => ({ width: f.pct.toFixed(1) + '%' });
-    const rows = [];
-    // Only the fields in use plus ONE empty one per group: fifteen empty boxes was a long
-    // scroll for text most ads fill one or two of. Typing into the empty one shows the next.
-    const shown = arr => { let last = -1; arr.forEach((t, i) => { if (String(t).trim()) last = i; }); return Math.min(arr.length, last + 2); };
-    const grp = (arr, fields, row, word, area, ph0, key) => arr.slice(0, shown(arr)).forEach((t, i) => { const f = fields[i];
-      rows.push({ headOn: i === 0, group: row.label, groupNote: row.note, groupState: row.state, isLine: !area, isArea: area, label: word + ' ' + (i + 1),
-        ph: i === 0 ? ph0 : word + ' ' + (i + 1), val: t, count: f.label, state: f.state, meter: meter(f),
-        on: e => { const v = e.target.value; setM(o => { o[key][i] = v; }); } }); });
-    grp(m.bodies, ck.bodies, ck.rows[0], 'Primary text', true, 'e.g. Waterfront homes in Dubai Marina, ready to move in. 50/50 payment plan — book a private viewing.', 'bodies');
-    grp(m.heads, ck.heads, ck.rows[1], 'Headline', false, 'e.g. Marina homes from AED 2.6M', 'heads');
-    grp(m.descs, ck.descs, ck.rows[2], 'Description', false, 'e.g. Ready to move in', 'descs');
-    return {
-      cwMtOn: true, cwMtRows: rows,
-      cwMtBadge: ck.badge, cwMtBadgeState: ck.ok ? 'ok' : 'bad', cwMtChecks: ck.rows,
-      cwMtLink: m.link, cwMtLinkState: !m.link.trim() ? 'empty' : (ck.urlOk ? 'ok' : 'over'),
-      cwMtOnLink: e => { const v = e.target.value; setM(o => { o.link = v; }); },
-      cwMtCtas: C.MT_CTA.map(c => ({ v: c[0], t: c[1] })),
-      cwMtCta: m.cta,
-      cwMtOnCta: e => { const v = e.target.value; setM(o => { o.cta = v; }); }
-    };
-  }
   copyVals() {
     const s = this.state, C = CampaignStudio, L = C.COPY_LABEL;
     const status = C.COPY_STATES.indexOf(s.copyStatus) >= 0 ? s.copyStatus : 'draft';
-    const on = s.screen === 'copy' || s.screen === 'publish', pub = s.screen === 'publish';
+    const on = s.screen === 'copy', pub = false;
     const log = s.copyLog || [];
     const last = log.length ? log[log.length - 1] : null;
     const go = sc => () => { C.setWorkScreen(sc); if (s.screen !== sc) this.upd(x => { x.screen = sc; x.sel = null; return x; }); };
@@ -11652,18 +11601,13 @@ class CampaignStudio extends StudioBase {
       cwModeOn: s.screen === 'editor' || on,
       cwModeDesignOn: s.screen === 'editor' ? '1' : undefined,
       cwModeCopyOn: on && !pub ? '1' : undefined,
-      cwModePubOn: pub ? '1' : undefined,
-      cwModeDesign: go('editor'), cwModeCopy: go('copy'), cwModePub: go('publish'),
-      cwModePubTip: 'The Meta ad text — what Meta prints around the image',
-      cwCopyOn: on && !pub, cwPubOn: pub,
-      cwPubPlat: 'Meta ads',
-      cwPubNote: 'What Meta shows around the image — primary text above it, headline and button below. Optional: it is saved with the project, sent with it, and shown in the placement Preview.',
+      cwModeDesign: go('editor'), cwModeCopy: go('copy'),
+      cwCopyOn: on,
       cwScreen: s.screen,
       cwBarLabel: 'Copy · ' + L[status],
       cwBarState: status,
       cwOpen: go('copy'),
       cwOn: on,
-      cwMtOn: false, cwMtRows: [],
     };
     if (!on) return base;
     const carousel = C.isCarousel(s), vi = Math.max(0, Math.min(s.activeVi || 0, s.variants.length - 1));
@@ -11803,7 +11747,6 @@ class CampaignStudio extends StudioBase {
       onCwAuthor: e => { try { localStorage.setItem('adstudio-author', e.target.value); } catch (err) {} this.forceUpdate(); },
       cwPages: pages,
       cwMulti: carousel,
-      ...this.cwMtVals(),
       cwHist: hist,
       cwHistOn: hist.length > 0,
       cwHistEmptyOn: !hist.length,
@@ -13478,13 +13421,6 @@ class CampaignStudio extends StudioBase {
       projMeta: s.variants.length + (CampaignStudio.isCarousel(s) ? (s.variants.length === 1 ? ' page' : ' pages') : (s.variants.length === 1 ? ' variant' : ' variants')),
       exportPdfOn: true,
       mkBtnOn: true,
-      pubOpen: () => { CampaignStudio.setWorkScreen('publish'); this.upd(x => { x.screen = 'publish'; x.sel = null; return x; }); },
-      // ── Meta ad text — the same verdict in the dock and the canvas bar ──
-      ...(() => { const mck = CampaignStudio.mtCheck(s), used = CampaignStudio.mtUsed(s);
-        return { mtBadge: used ? mck.badge : 'Optional', mtBadgeState: !used ? 'ok' : (mck.ok ? 'ok' : 'bad'), mtChecks: used ? mck.rows : [],
-          mtHint: !used ? 'Optional. Saved with the project and shown in the placement Preview.'
-            : (mck.ok ? 'Saved with the project, sent with it, and shown in the placement Preview.' : mck.problems.join(' · ') + '.'),
-          mtBarOn: used, mtBarLabel: 'Meta text · ' + (mck.ok ? 'ready' : mck.bad + ' to fix'), mtBarState: mck.ok ? 'ok' : 'bad' }; })(),
       exportJpgName: 'JPEG 2×',
       exportPngName: 'PNG 2×',
       exportSvgRowOn: true,
@@ -14390,7 +14326,7 @@ class Component extends DCLogic {
     this.asScan();
   }
   // a pending edit is saved before the window goes (aeSave holds its own reference)
-  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
+  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
   asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
   async asPick() {
     if (this._asSrc) { this.asUseSource(); return; }
@@ -14406,7 +14342,7 @@ class Component extends DCLogic {
     // source folder the studio exports into (Use source folder goes back to it)
     const f = window.providentFolder, src = this._asSrc, root = src ? src.handle : (f && f.handle);
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
-    this._asBig = null; this._asList = [];
+    this._asBig = null; this._asDet = null; this._asList = [];
     this._as = { busy: !!root, has: !!root, mains: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
     this.forceUpdate();
     if (!root) return;
@@ -14416,7 +14352,7 @@ class Component extends DCLogic {
     // decoding it), the saved project is parsed only as far as its state (the photos it embeds
     // are skipped), and each tile shows a small thumbnail made in the background — 60 full-size
     // exports decoded for a strip of tiles was ~2 GB of pixels. The full file is only for the
-    // enlarged view.
+    // enlarged view and See details.
     const lmOf = async h => h.modified != null ? h.modified : (await h.getFile()).lastModified;
     try {
       // 1 — the project folders (a saved .adstudio.json)
@@ -14432,7 +14368,7 @@ class Component extends DCLogic {
           const lms = await Promise.all(jsons.map(lmOf));
           let bi = 0; lms.forEach((lm, i) => { if (lm > lms[bi]) bi = i; });
           const json = await jsons[bi].getFile();
-          // the saved project carries the Meta ad text the audience list's red dot checks
+          // the saved project carries the Publish text that See details checks
           const state = await Component.asState(json);
           // the json's handle is kept: the Edit text layer writes the project back into it
           found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, ''), state, jsonH: jsons[bi], fname: json.name });
@@ -14636,6 +14572,9 @@ class Component extends DCLogic {
       show();
     });
   }
+  // A platform block in a variant card: its exported images, plain, and "See details" — the
+  // same text check the Publish tab shows (Meta ad text, or YouTube Demand Gen text), read
+  // from the saved project. Nothing here claims a link to a live ad; it is the image as exported.
   // ---------- viewing a folder that is not the source folder ----------
   // From home or the Ad sets window: DROP a folder (or click to choose one). It becomes a
   // stand-in for a FileSystemDirectoryHandle — the four things asScan touches
@@ -15147,14 +15086,150 @@ class Component extends DCLogic {
       const t = tiles.filter(x => (x.shape === 'ls' ? 'sub' : 'main') === kind);
       if (t.length) rows.push({ kind, tiles: t });
     }
-    const ck = C.mtCheck(st);
-    const card = { key, label, tiles, rows, ctx, letter, yt, proj: p,
-      title: 'Meta ad text',
-      badge: ck.badge, badgeState: ck.ok ? 'ok' : 'bad',
-      checks: ck.rows.map(r => ({ label: r.label, note: r.note, state: r.state })),
-      // Meta ad text is optional: it only needs attention once some has been written
-      need: !ck.ok && C.mtUsed(st) };
+    const card = { key, label, tiles, rows, ctx, letter, yt, proj: p, need: false };
+    card.pick = t => {
+      card.img = t.url; card.shape = t.shape; card.open = t.open; card.meta = t.label + ' · ' + t.meta;
+      card.fmts = tiles.length > 1 ? tiles.map(x => ({ label: x.label, on: x === t ? '1' : undefined, set: () => { card.pick(x); this.forceUpdate(); } })) : [];
+    };
+    card.pick(tiles[0]);
+    card.see = () => { this._asDet = card; this.forceUpdate(); };
     return card;
+  }
+  // ══ THE AD ANALYSIS in Ad sets › Details (2026-10-15) ═══════════════════════════════════
+  // Read off the saved project's own words — no service, no model. The angle is the theme
+  // the copy leans on hardest — each component counts once per theme, the headline three
+  // times over and the hook twice, so four distance facts cannot outvote the headline — the
+  // audience is the folder it sits in plus what the copy speaks to, the USP is every
+  // selling point the ad states, and the copy ratio is measured off the SAME ops the
+  // export draws.
+  static AN_ANGLES = [
+    ['Investment and returns', /\b(roi|yields?|returns?|rental (income|yield)|capital (growth|appreciation)|appreciation|invest(or|ors|ment|ing)?|income|profit)\b/gi],
+    ['Payment plan and entry price', /\b(payment plans?|instal+ments?|post[- ]handover|down ?payment|starting (from|at)|from (aed|usd|eur|gbp)|\d{2}\s?\/\s?\d{2}|easy pay|pay \d+%|\d+% (down|now|on booking))\b/gi],
+    ['Golden Visa and residency', /\b(golden visa|residency|resident visa|visa eligible)\b/gi],
+    ['Location and connectivity', /\b(\d+\s?(mins?|minutes)|airport|downtown|metro|minutes? (from|to)|heart of|close to|steps from|connected|access to|waterfront location|prime location|located)\b/gi],
+    ['Launch and urgency', /\b(launch(ing|ed)?|eois?|now (selling|accepting|open|available)|limited|last (units|few|chance)|register|book (now|today)|exclusive|first look|pre[- ]launch|sold out|hurry|only \d+)\b/gi],
+    ['Lifestyle and luxury', /\b(living|lifestyle|luxur(y|ious)|beach(front)?|views?|amenities|wellness|resort|family|families|home|homes|villas?|penthouses?|spa|serene|green)\b/gi],
+    ['Workspace and business', /\b(offices?|business(es)?|commercial|retail|workspaces?|grade a|headquarters|hq|enterprise|companies)\b/gi],
+  ];
+  static adRead(st, vi, ctx) {
+    const C = CampaignStudio;
+    vi = Math.max(0, Math.min(vi, ((st.variants || []).length || 1) - 1));
+    const v = (st.variants || [])[vi] || {};
+    const hid = id => !!(v.hidden && v.hidden[id]);
+    const mods = C.orderedFor(v, C.modulesFor(st, vi)).filter(m => !hid(m.id));
+    const parts = [], usp = [], seen = {};
+    const add = (t, w, type) => { t = String(t || '').replace(/\*\*/g, '').trim(); if (t) parts.push({ t, w, type }); };
+    const pushU = (t, src) => { t = String(t || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); const k = t.toLowerCase(); if (t && !seen[k]) { seen[k] = 1; usp.push({ t, src }); } };
+    const lines = m => String(m.text || '').split('\n').map(x => x.trim()).filter(Boolean);
+    mods.forEach(m => {
+      if (m.type === 'hero') add(m.text, 3, 'hero');
+      else if (m.type === 'hook') { add(m.text, 2, 'hook'); lines(m).forEach(t => pushU(t, 'Hook line')); }
+      else if (m.type === 'eyebrow') add(m.text, 1.5, 'eyebrow');
+      else if (m.type === 'cta') add(m.text, 1.5, 'cta');
+      else if (m.type === 'body') add(m.text, 1, 'body');
+      else if (m.type === 'price') { const t = C.priceLine ? C.priceLine(m) : [m.sub, m.text].filter(Boolean).join(' '); add(t, 1.5, 'price'); pushU(t, 'Price'); }
+      else if (m.type === 'tags') C.chipsOf(m).forEach(c => { add(c.t, 1.5, 'tags'); pushU(c.t, 'Tag'); });
+      else if (m.type === 'spec') C.colsOf(m).forEach(c => { add(c.l + ' ' + c.v, 1.2, 'spec'); pushU([c.v, c.l].filter(Boolean).join(' · '), 'Key fact'); });
+      else if (m.type === 'list') lines(m).forEach(t => { add(t, 1.2, 'list'); pushU(t, 'Bullet'); });
+      else if (m.type === 'steps') lines(m).forEach(t => add(t, 1, 'steps'));
+      else if (m.type === 'cust' && m.f) Object.keys(m.f).forEach(k => add(m.f[k], 1, 'cust'));
+    });
+    // a location eyebrow ("CITY OF ARABIA, DUBAI") is where the ad is, which is a fact the
+    // reader is sold on as much as a tag is
+    mods.filter(m => m.type === 'eyebrow').forEach(m => pushU(m.text, 'Location'));
+    const scored = Component.AN_ANGLES.map(([name, re]) => {
+      let score = 0; const hits = [];
+      parts.forEach(p => { const m = p.t.match(re); if (m) { score += p.w; m.forEach(h => { const k = h.toLowerCase(); if (hits.indexOf(k) < 0) hits.push(k); }); } });
+      return { name, score, hits };
+    }).filter(a => a.score > 0).sort((a, b) => b.score - a.score);
+    const quote = a => 'From the copy: ' + a.hits.slice(0, 4).map(h => '\u201c' + h + '\u201d').join(', ') + '.';
+    const top = scored[0];
+    // AUDIENCE: the folder says who the set was made for; the copy says who it speaks to
+    const segs = String(ctx || '').split(' \u203a ');
+    const market = segs[0] || '', folder = segs[1] || '';
+    const all = parts.map(p => p.t).join(' ');
+    const cur = (all.match(/\b(AED|USD|EUR|GBP|INR|SAR|CNY|RUB)\b/i) || [])[1];
+    const speaks = [];
+    const has = n => scored.some(a => a.name === n);
+    if (has('Investment and returns') || /invest/i.test(folder)) speaks.push('investors');
+    if (has('Workspace and business')) speaks.push('business owners');
+    if (has('Golden Visa and residency')) speaks.push('residency seekers');
+    if (has('Lifestyle and luxury')) speaks.push(/famil/i.test(all) ? 'families' : 'end users');
+    if (has('Payment plan and entry price') && speaks.indexOf('investors') < 0) speaks.push('first-time buyers');
+    const aud = [];
+    if (market) aud.push({ k: 'Market', v: market });
+    if (folder) aud.push({ k: 'Segment', v: folder });
+    if (cur) aud.push({ k: 'Currency', v: cur.toUpperCase() });
+    aud.push({ k: 'Copy speaks to', v: speaks.length ? speaks.join(', ').replace(/^./, c => c.toUpperCase()) : 'Nobody in particular — no audience cues in the copy' });
+    if (st.adMode === 'carousel') aud.push({ k: 'Format', v: 'Carousel' });
+    return {
+      angle: top ? top.name : 'No clear angle',
+      angleWhy: top ? quote(top) : 'The copy carries none of the usual cues — price, payment plan, location, returns, residency, launch or lifestyle.',
+      also: scored.slice(1, 5).map(a => ({ name: a.name, why: quote(a) })),
+      aud, usp: usp.slice(0, 10)
+    };
+  }
+  // The share of the canvas the copy covers, off the export's own ops: every text run and
+  // every panel, chip, button and rule, as a union on an 8px grid. The photo, the scrim,
+  // the ground and any picture (logo art, QR, icons) are the image's side.
+  copyRatio(st, vi, sk) {
+    const built = this.eng.buildOps(st, vi, sk, {});
+    const W = built.W, H = built.H, g = 8, cw = Math.ceil(W / g), ch = Math.ceil(H / g);
+    const cells = new Uint8Array(cw * ch);
+    const meas = (t, px, w, serif, ls) => this.eng.meas(t, px, w, serif, ls);
+    built.ops.forEach(o => {
+      if (o.op === 'image' || o.op === 'grad' || o.op === 'blur') return;
+      if ((o.op === 'rect' || o.op === 'rrect') && o.w * o.h > W * H * .6) return;
+      const b = CampaignStudio.opBox(o, meas); if (!b) return;
+      const x0 = Math.max(0, Math.floor(b[0] / g)), x1 = Math.min(cw, Math.ceil(b[2] / g));
+      const y0 = Math.max(0, Math.floor(b[1] / g)), y1 = Math.min(ch, Math.ceil(b[3] / g));
+      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) cells[y * cw + x] = 1;
+    });
+    let n = 0; for (let i = 0; i < cells.length; i++) n += cells[i];
+    return Math.round(n / cells.length * 100);
+  }
+  async asAnalyse(c) {
+    if (!c || !c.proj) return;
+    const sk = c.shape, key = sk;
+    c.an = c.an || {};
+    if (c.an[key] != null) return;
+    c.an[key] = 'busy';
+    try {
+      if (!c.st) {
+        let raw = c.proj.state;
+        if (!raw && c.proj.jsonH) raw = (JSON.parse(await (await c.proj.jsonH.getFile()).text()) || {}).state;
+        c.st = CampaignStudio.normState(JSON.parse(JSON.stringify(raw || {})));
+      }
+      await this.aeFonts(c.st);
+      c.an[key] = this.copyRatio(c.st, c.letter.charCodeAt(0) - 65, CampaignStudio.PXT[sk] ? sk : 'sq');
+    } catch (e) { console.warn('[provident] ad analysis', e); c.an[key] = 'fail'; }
+    finally { StudioBase.applyFont(this.eng.state); this.forceUpdate(); }
+  }
+  asDetVals() {
+    const c = this._asDet;
+    if (!c) return { asDetOn: undefined, asDet: {}, asAn: {} };
+    if (!c.read) { try { c.read = Component.adRead(c.proj ? (c.st || CampaignStudio.normState(JSON.parse(JSON.stringify(c.proj.state || {})))) : {}, c.letter.charCodeAt(0) - 65, c.ctx); } catch (e) { c.read = { angle: 'Could not read this project', angleWhy: '', also: [], aud: [], usp: [] }; } }
+    const r = c.read, pct = c.an && c.an[c.shape];
+    if (pct == null) this.asAnalyse(c);
+    const ok = typeof pct === 'number', MAX = CampaignStudio.COVER_MAX, over = ok && pct > MAX;
+    const asAn = {
+      angle: r.angle, angleWhy: r.angleWhy, also: r.also, alsoOn: r.also.length ? '1' : undefined,
+      aud: r.aud, usp: r.usp, uspOn: r.usp.length ? '1' : undefined, uspNone: r.usp.length ? undefined : '1',
+      copyPct: ok ? pct + '%' : '…', imgPct: ok ? (100 - pct) + '%' : '…',
+      overOn: over ? '1' : undefined,
+      barStyle: { width: (ok ? pct : 0) + '%' }, markStyle: { left: MAX + '%' },
+      ratioNote: !ok ? (pct === 'fail' ? 'Could not measure this one.' : 'Measuring…')
+        : (c.meta ? c.meta.split(' \u00b7 ')[0] + ': ' : '') + (over
+          ? 'over the ' + MAX + '% guide — the copy is starting to outweigh the picture.'
+          : 'within the ' + MAX + '% guide, so the picture still leads.') + ' Measured on the text, panels and buttons the export draws.'
+    };
+    return {
+      asDetOn: '1', asDet: c, asAn,
+      asDetTitle: c.ctx + ' \u00b7 ' + c.label,
+      asDetHint: '',
+      asDetClose: () => { this._asDet = null; this.forceUpdate(); },
+      asDetStop: e => { if (e) e.stopPropagation(); }
+    };
   }
   asVals() {
     const open = !!this.state.adSetsOpen, f = window.providentFolder, a = this._as || {};
@@ -15176,7 +15251,7 @@ class Component extends DCLogic {
     const mode = this._asMode === 'text' ? 'text' : 'images', sel = open && !head ? this.asSelAud() : null;
     const nav = open && !head ? (a.mains || []).map(m => ({ title: m.title, sub: m.sub,
       auds: m.auds.map(au => ({ title: au.title, sub: au.navSub, on: au.key === this._asSel ? '1' : undefined, cur: au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
-        tip: au.bad ? 'Its Meta or YouTube ad text needs attention — see details' : au.title, pick: () => this.asPickAud(au.key) })) })) : [];
+        tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     return {
       asOn: open ? '1' : undefined,
@@ -15210,6 +15285,7 @@ class Component extends DCLogic {
       asBigPrevOff: bi > 0 ? undefined : true, asBigNextOff: bi >= 0 && bi < list.length - 1 ? undefined : true,
       asBigStop: e => { if (e) e.stopPropagation(); },
       asBigClose: () => { this._asBig = null; this.forceUpdate(); },
+      ...this.asDetVals(),
       ...this.asSrcVals()
     };
   }
@@ -15328,6 +15404,7 @@ class Component extends DCLogic {
       if (e.key !== 'Escape') return;
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
+      if (this._asDet) { this._asDet = null; this.forceUpdate(); return; }
       if (this.state.adSetsOpen) { this.asClose(); return; }
       this._closePops();
     };
@@ -15405,7 +15482,7 @@ class Component extends DCLogic {
   _vtTick() { this.hlBind(); this.accBind(); const e = this.active(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
   // The copy view's preview is the real export, re-rendered off a key — so, like the
   // placement preview, calling it on every update is a no-op unless the words moved.
-  _cwTick() { const e = this.active(); if (e && e.state && (e.state.screen === 'copy' || e.state.screen === 'publish') && e.cwSync) e.cwSync(); }
+  _cwTick() { const e = this.active(); if (e && e.state && e.state.screen === 'copy' && e.cwSync) e.cwSync(); }
   // The splash's template cards are REAL renders. Key-guarded inside `tplRenderAll`, so
   // calling it on every update — and once at mount, because the splash is the opening
   // screen and may never see an update before the user looks at a card — is a no-op after
