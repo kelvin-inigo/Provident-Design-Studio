@@ -11446,8 +11446,11 @@ class CampaignStudio extends StudioBase {
   static BRIEF_Q_MAX = 16000;
   static BRIEF_SAMPLE = { provident: 'cas-copy', flags: ['…'], audiences: [{
     audience: 'Families', tag: 'EXCLUSIVE LAUNCH', project: 'Project by Developer', headline: '…', alts: ['…', '…'],
-    support: '…', proof: ['…', '…'], price: { label: 'From / Avg. price — as the source states', figure: 'AED …' },
+    price: { label: 'From', figure: 'AED …' },
     payment: [{ label: 'On booking', value: '…%' }, { label: 'Payment plan', value: '…' }], cta: 'ENQUIRE NOW' }] };
+  // THE AD CARRIES ONLY THE CRITICAL DETAILS. A first test filled support lines, amenity chips
+  // and long rows and the creative drowned in text. So the block asks for the short form and
+  // Fill takes six jobs: tag, heading, project, price, at most two payment rows, button.
   brRead() {
     if (!this._br) {
       let d = {};
@@ -11477,7 +11480,8 @@ class CampaignStudio extends StudioBase {
       'Campaign Studio source folder (where it saves and exports): ' + (this.folderName() || 'not chosen yet') + '.',
       b.drive.trim() ? 'Google Drive project folder: ' + b.drive.trim() : null,
       this.brAttachLine(), '',
-      'Reply as the skill says (Key Details, Flags, then each audience\'s stack and alternate headlines). Then END with one code block tagged cas-copy holding this JSON — the exact words of your stacks, "" where a stack has none, one entry per audience:',
+      'Reply as the skill says (Key Details, Flags, then each audience\'s stack and alternate headlines). Then END with one code block tagged cas-copy holding this JSON, one entry per audience.',
+      'The cas-copy block goes straight onto the ad, so put ONLY the critical details in it, as short as the facts allow: tag up to 3 words; headline up to 6 words on one line (alts the same); project = name + developer; price = a short label ("From", "Avg.") + the figure exactly as the source states; payment = at most 2 short rows (e.g. On booking / 20%, Payment plan / 3 years, or Handover / Q4 2028); CTA up to 3 words. No support line, amenities, travel times or sentences. "" where there is nothing:',
       '```cas-copy', JSON.stringify(CampaignStudio.BRIEF_SAMPLE), '```', '',
       'BRIEF:', b.brief.trim(),
     ].filter(l => l !== null).join('\n');
@@ -11558,13 +11562,6 @@ class CampaignStudio extends StudioBase {
     }
     return auds.length ? { src: 'stacks', flags, auds } : { src: 'none', flags, auds };
   }
-  brParsed() {
-    const b = this.brRead();
-    if (!this._brP || this._brP.key !== b.reply) this._brP = { key: b.reply, val: CampaignStudio.brParse(b.reply) };
-    return this._brP.val;
-  }
-  // What goes where, in the order the fields are filled: one component per job, the first
-  // of that kind already on the page reused (so a template keeps its layout), a new one
 
   // ---- WHERE IT SAVES, AND THE ATTACHED PICTURES. The pictures are image-slots under the
   // `adbrief-` prefix — NOT `adstudio-`, so a session file, Assets/ and Open Session never
@@ -11636,6 +11633,13 @@ class CampaignStudio extends StudioBase {
     if (!f) return;
     Promise.resolve().then(() => f.pick()).then(() => this.forceUpdate(), () => {});
   }
+  brParsed() {
+    const b = this.brRead();
+    if (!this._brP || this._brP.key !== b.reply) this._brP = { key: b.reply, val: CampaignStudio.brParse(b.reply) };
+    return this._brP.val;
+  }
+  // What goes where, in the order the fields are filled: one component per job, the first
+  // of that kind already on the page reused (so a template keeps its layout), a new one
   // added only when the page has none. Price figures, permits and payment splits are the
   // reply's words verbatim — the skill already checked them against the brief.
   static brWant(A, head) {
@@ -11643,10 +11647,8 @@ class CampaignStudio extends StudioBase {
       ['eyebrow', 'Small label', A.tag && { text: A.tag }],
       ['hero', 'Heading', head && { text: head }],
       ['hook', 'Hook line', A.project && { text: A.project }],
-      ['body', 'Body', A.support && { text: A.support }],
-      ['tags', 'Tags', A.proof.length && { chips: A.proof.slice() }],
       ['price', 'Price', (A.price.label || A.price.figure) && { sub: A.price.label, text: A.price.figure }],
-      ['spec', 'Key facts', A.pay.length && { cols: A.pay.map(p => ({ l: p.l, v: p.v })) }],
+      ['spec', 'Key facts', A.pay.length && { cols: A.pay.slice(0, 2).map(p => ({ l: p.l, v: p.v })) }],
       ['cta', 'Button', A.cta && { text: A.cta }],
     ].filter(w => w[2]);
   }
@@ -11680,6 +11682,7 @@ class CampaignStudio extends StudioBase {
       return x;
     });
     const nf = pre.out.filter(o => o.id).length, na = pre.out.length - nf, nr = pre.drop.length;
+    const pics = this.brPlacePics();
     this.cwNotice((car ? 'Page ' + (vi + 1) : 'The ad') + ' now carries the ' + A.name + ' copy — ' + nf + ' filled'
       + (na ? ', ' + na + ' added at the end (the designer places them)' : '') + (nr ? ', ' + nr + ' removed' : '')
       + (pics.length ? '; ' + pics.join(' and ') : '') + '.', true);
@@ -11688,7 +11691,6 @@ class CampaignStudio extends StudioBase {
   }
   brOpen(e) {
     const p = this.brPrompt();
-    const pics = this.brPlacePics();
     try { navigator.clipboard.writeText(p).catch(() => {}); } catch (err) {}
     // a custom-scheme link is not an unload, but stand the unsaved-work guard down for the
     // moment it takes, in case a browser treats it as one
@@ -11702,13 +11704,6 @@ class CampaignStudio extends StudioBase {
   }
   briefVals() {
     const C = CampaignStudio, b = this.brRead(), P = this.brParsed();
-    const prompt = b.brief.trim() ? this.brPrompt() : '';
-    const long = new Blob([prompt]).size > C.BRIEF_Q_MAX;
-    const q = prompt && !long ? encodeURIComponent(prompt) : '';
-    const A = P && (P.auds[b.aud] || P.auds[0]);
-    const heads = A ? A.heads : [];
-    const hi = Math.min(b.head, Math.max(0, heads.length - 1));
-    const want = A ? C.brWant(A, heads[hi] || '') : [];
     this.brWatch();
     const nVar = (this.state.variants || []).length, car = C.isCarousel(this.state);
     const vname = k => car ? 'Page ' + (k + 1) : (k ? 'Variant ' + (k + 1) : 'Master');
@@ -11722,18 +11717,18 @@ class CampaignStudio extends StudioBase {
       return rows;
     };
     const brPicNote = 'When you press Fill, the first ' + (nVar === 1 ? 'picture becomes the background' : nVar + ' pictures become the backgrounds of the ' + (car ? 'pages' : 'design variants') + ', in order') + ', and the logo becomes the partner mark beside provident. Any picture can also go on the ad as a graphic.';
+    const prompt = b.brief.trim() ? this.brPrompt() : '';
+    const long = new Blob([prompt]).size > C.BRIEF_Q_MAX;
+    const q = prompt && !long ? encodeURIComponent(prompt) : '';
+    const A = P && (P.auds[b.aud] || P.auds[0]);
+    const heads = A ? A.heads : [];
+    const hi = Math.min(b.head, Math.max(0, heads.length - 1));
+    const want = A ? C.brWant(A, heads[hi] || '') : [];
     const sent = this._brSent && Date.now() - this._brSent < 60000;
     const flags = P ? P.flags : [];
     const open = flags.filter((f, i) => !b.done[i]).length;
     return {
       brBrief: b.brief, onBrBrief: e => this.brSet('brief', e.target.value),
-      brNotes: b.notes, onBrNotes: e => this.brSet('notes', e.target.value),
-      brFamOn: b.fam ? '1' : undefined, brFam: () => this.brSet('fam', !b.fam),
-      brInvOn: b.inv ? '1' : undefined, brInv: () => this.brSet('inv', !b.inv),
-      brAskOn: !!prompt, brAskOff: !prompt,
-      brOpenUrl: 'claude://claude.ai/new?' + (q ? 'q=' + q + '&' : '') + 'surface=chat&source=provident-cas',
-      brWebUrl: 'https://claude.ai/new' + (q ? '?q=' + q : ''),
-      brOpen: e => this.brOpen(e), brCopy: () => this.brCopy(),
       brDrive: b.drive, onBrDrive: e => this.brSet('drive', e.target.value),
       brDriveBad: b.drive.trim() && !/drive\.google\.com|docs\.google\.com/.test(b.drive) ? '1' : undefined,
       brFolder: this.folderName() || 'Not chosen yet',
@@ -11745,6 +11740,13 @@ class CampaignStudio extends StudioBase {
       brLogoDrop: () => this.brDropPic('logo', 0),
       brPhotos: brPics('ph'),
       brPicNote: brPicNote,
+      brNotes: b.notes, onBrNotes: e => this.brSet('notes', e.target.value),
+      brFamOn: b.fam ? '1' : undefined, brFam: () => this.brSet('fam', !b.fam),
+      brInvOn: b.inv ? '1' : undefined, brInv: () => this.brSet('inv', !b.inv),
+      brAskOn: !!prompt, brAskOff: !prompt,
+      brOpenUrl: 'claude://claude.ai/new?' + (q ? 'q=' + q + '&' : '') + 'surface=chat&source=provident-cas',
+      brWebUrl: 'https://claude.ai/new' + (q ? '?q=' + q : ''),
+      brOpen: e => this.brOpen(e), brCopy: () => this.brCopy(),
       brCopyLabel: this._brCopied && Date.now() - this._brCopied < 4000 ? 'Copied' : 'Copy prompt',
       brAskNote: !prompt ? 'Paste the brief first.'
         : long ? 'The brief is too long to type into Claude for you — Claude opens on an empty chat and the prompt is on your clipboard: press ⌘V, then Return.'

@@ -283,9 +283,10 @@ This is for copywriters: the ad's words on their own, next to a live preview.
    - Paste Claude's whole reply into step 3. The card lists Claude's **Flags** as checkboxes,
      lets you pick **Families** or **Investors** and the main or an alternate heading, and shows
      which field each line goes into.
-   - **Fill this campaign** puts the words into the fields: small label, heading, hook line
-     (project), body, tags, price, key facts (payment) and button. It reuses the components
-     already on the page and adds any that are missing at the end. With **Remove components this
+   - **Fill this campaign** puts only the critical details on the ad: small label, heading,
+     hook line (project), price, up to two key-fact rows (payment) and button. Claude is asked to
+     keep each one short; support lines and amenities stay in its reply for you to read. It
+     reuses the components already on the page and adds any that are missing at the end. With **Remove components this
      copy doesn't use** on, template sample text is cleared. **Undo** reverses the whole fill.
    - Families and Investors are separate campaigns: fill one, then start a new campaign for the
      other. The brief and the reply stay in the card.

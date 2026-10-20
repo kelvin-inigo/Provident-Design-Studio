@@ -15539,3 +15539,9 @@ reload, 0 contrast failures over 66 text runs in both themes, no console errors.
 `BRIEF_PH_MAX` (10) pictures in `adbrief-ph-0..9`; on Fill the first N (N = variants or pages)
 become backgrounds and every picture offers **As graphic**. `BRIEF_IM_MAX` and the `adbrief-im-*`
 slots are gone.
+
+**Fill takes only the critical details (same day, after a test "pasted so many text").** `brWant`
+maps six jobs — tag, heading, project, price, at most 2 payment rows, button — and no longer fills
+the body (support line) or tags (proof). The prompt asks for the `cas-copy` block in that short
+form (word caps per field, no support line, amenities or travel times); `BRIEF_SAMPLE` dropped
+`support` and `proof`. The parser still reads them, so an older reply does not fail.
