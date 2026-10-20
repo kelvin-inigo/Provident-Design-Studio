@@ -7628,6 +7628,9 @@ class OrganicStudio extends StudioBase {
   // "opened" with somebody else's content and no warning. Give every slide an `f`
   // before anything reads through it.
   static normState(p) {
+    // The Content Hub post this project was opened from (see StudioBase.hubCardOf). Kept, and
+    // dropped only when it is not a card id, so a hand-edited value cannot send a bad header.
+    if (p.hubCardId != null && !StudioBase.hubCardOf(p)) delete p.hubCardId;
     p.slides = (p.slides || []).filter(sl => sl && typeof sl === 'object');
     p.slides.forEach(sl => { if (!sl.f || typeof sl.f !== 'object') sl.f = {}; });
     p.slides.forEach(sl => {
@@ -13264,6 +13267,10 @@ class OrganicStudio extends StudioBase {
     this.setState({ exportStatus: 'Sending ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + ') to ' + host + '…' });
     const headers = { 'X-Source': 'Design system' };
     if (c.key) headers.Authorization = 'Bearer ' + c.key;
+    // A project opened from a Content Hub design job carries that post's id (`hubCardId`), so the
+    // hub attaches these pages to the post and moves it to Ready to publish.
+    const hub = StudioBase.hubCardOf(this.state);
+    if (hub) headers['X-Card-Id'] = hub;
     const ac = new AbortController(), to = setTimeout(() => ac.abort(), 180000);
     try {
       // AN https PAGE (the Vercel site) POSTING TO AN http:// OFFICE ADDRESS is mixed content,
@@ -13280,7 +13287,7 @@ class OrganicStudio extends StudioBase {
       }
       if (!r) r = await fetch(c.url, opts);
       let msg = '';
-      try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || ''; } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
+      try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || (j.card_id ? 'attached to the hub post' : ''); } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
       if (typeof msg !== 'string') msg = '';
       if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
       this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + (fit.note ? ', ' + fit.note : '') + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });

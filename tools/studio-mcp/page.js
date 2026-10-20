@@ -56,6 +56,8 @@
     if (!E) throw new Error('The studio did not start.');
     E.reloadNow = () => {};
     try { StudioBase.reloading = true; } catch (e) {}
+    // A Content Hub draft keeps its post id beside `state`; keep it in the project.
+    if (session.state && session.state.hubCardId == null && StudioBase.hubCardOf(session)) session.state.hubCardId = StudioBase.hubCardOf(session);
     await E.applyProject(session.state, session.images || {});
     return true;
   };

@@ -33,6 +33,11 @@ curl -X POST http://192.168.50.30:8090/api/imports \
 - `images` — one part per exported image, filename = the export's own file name (CAS's
   `Variant A/` folder is dropped from the filename; the name already says the variant).
   Assets/ is not sent.
+- `X-Card-Id: <card id>` — only when the project came from a Content Hub design job
+  (`state.hubCardId`, which a hub draft's `.smpstudio.json` carries and Open Session keeps). The
+  hub then attaches the pages to that post and moves it to Ready to publish; its 201 answers with
+  `card_id` set, and the status line says "attached to the hub post". The design queue is
+  picked up by the `hub-design-queue` skill (`.claude/skills/hub-design-queue/`).
 
 ## Size limit and compression
 
@@ -51,7 +56,7 @@ It is called from a browser page, so it has to answer the CORS preflight:
 OPTIONS → 204
 Access-Control-Allow-Origin: <the studio's origin, or *>
 Access-Control-Allow-Methods: POST, OPTIONS
-Access-Control-Allow-Headers: Authorization, X-Source
+Access-Control-Allow-Headers: Authorization, X-Source, X-Card-Id
 ```
 
 and send `Access-Control-Allow-Origin` on the POST response too. Chrome may also send

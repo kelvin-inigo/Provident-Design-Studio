@@ -15535,6 +15535,43 @@ mounted slot's `data-filled` and uses `_filled` only for an unmounted id; a Muta
 Verified: upload through `_ingest`, Fill placing photo and logo, As graphic, remove-and-compact,
 reload, 0 contrast failures over 66 text runs in both themes, no console errors.
 
+# THE CONTENT HUB'S DESIGN QUEUE IS PICKED UP BY A SKILL, AND SEND ATTACHES TO THE POST (2026-10-20)
+
+The Content Hub (`http://192.168.50.30:8090`, its own project at
+`~/Documents/provident-content-hub`, contract in its `docs/design-studio-integration.md`) queues a
+social post for design when someone presses **Approve and send to design**. That button only
+queues; nothing designs the post until something claims it.
+
+- **`.claude/skills/hub-design-queue/`** is that something. `scripts/hub.py` (stdlib) does the
+  hub half — `jobs`, `claim` (POST `/claim`, `X-Source: Design Studio (Claude)`, writes
+  `~/Documents/Provident Studio/Hub <id> - <title>/<title>.smpstudio.json` with
+  `state.hubCardId`, downloads `brief.images[]` to `brief/`), `deliver` (multipart `content` +
+  `images` to `/api/imports` with `X-Card-Id`, and it refuses unless the 201 carries `card_id`),
+  `status`. SKILL.md has Claude fix the copy, place the brief photos, preview, export JPG and
+  deliver through the provident-studio MCP tools.
+- **The token is per computer**: `HUB_IMPORT_TOKEN`, else `~/.config/provident/hub-token`
+  (chmod 600). Never in the repo.
+- **`hub.py` remaps the hub's draft.** The hub's `design.py studio_draft` puts each middle slide's
+  whole text in `ctext.title` with an empty (required) body, and the last slide in `ccta.big`
+  beside a fixed "Link in bio" button. `pages()` splits a slide at its own break (colon, dash,
+  sentence) into title + body, moves a trailing "…: link in bio" into the CTA button, strips
+  emoji (the bundled face has none), and leaves what it cannot fill EMPTY for Claude — the CTA's
+  required lead line always is. The hub-side function lives on the hub's machine and was not
+  changed.
+- **Both studios' Send carries `X-Card-Id`** when the project has a hub id
+  (`StudioBase.hubCardOf(state)`, in `epPost`), and the status line says "attached to the hub
+  post" when the 201 carries `card_id`. `normState` keeps `hubCardId` (dropping only a value that
+  is not a card id). **What actually lost it** was the hub draft's id sitting at the TOP level beside
+  `state`, which Open Session (`loadSessionFile`) and the MCP's `ps.apply` throw away — both lift it
+  into the state now. It is stored as a string; the hub accepts either.
+
+Verified 2026-10-20: a [TEST] card re-queued, claimed with `hub.py`, laid out through the MCP
+server (three pages switched to Big number, the brief photo on page 1), exported as 5 JPGs and
+delivered — 201 with `card_id`, the card in `publish` with its five pages; OPS and CAS opened the
+hub's draft shape through Open Session, kept `hubCardId` across a reload, and Send went out with
+`X-Card-Id` (checked at a local stand-in, so the real token never went into a browser). The test
+card and its imports were deleted; the two real jobs in the queue were not touched.
+
 **Photos and images are ONE group now (same day, by request: "they are the same").** Up to
 `BRIEF_PH_MAX` (10) pictures in `adbrief-ph-0..9`; on Fill the first N (N = variants or pages)
 become backgrounds and every picture offers **As graphic**. `BRIEF_IM_MAX` and the `adbrief-im-*`

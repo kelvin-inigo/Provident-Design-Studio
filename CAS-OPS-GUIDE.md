@@ -463,6 +463,8 @@ fewer than five saved projects the page says so — treat the verdicts as early 
   A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
   your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
   the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
+  A project opened from a **Content Hub design job** remembers its post, so Send attaches the
+  pages to that post and moves it to **Ready to publish** ("attached to the hub post").
 
 
 ## 8. OPS: make a post
@@ -542,6 +544,12 @@ This is the full editor.
   A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
   your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
   the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
+  A project opened from a **Content Hub design job** remembers its post, so Send attaches the
+  pages to that post and moves it to **Ready to publish** ("attached to the hub post").
+- **The hub's design queue** (posts someone pressed *Approve and send to design* on): in Claude,
+  run **/hub-design-queue**. It lists the queue, claims the post you pick, lays it out as an OPS
+  carousel from the hub's copy and brief photos, shows you the pages, then exports and sends
+  them back to the post.
 
 ---
 

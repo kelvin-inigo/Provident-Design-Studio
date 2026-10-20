@@ -370,6 +370,13 @@ class StudioBase {
   // A project's identity across saves, renames and sessions — so saving again replaces
   // its card instead of adding a second one, and two projects that happen to share a
   // name ("Untitled") are two cards. It rides in the state and in the session file.
+  // The Content Hub post a project belongs to: `hubCardId` (or `card_id`) when it is a card id,
+  // as a string, else ''. Read by both studios' Send (the X-Card-Id header) and normState.
+  static hubCardOf(o) {
+    const v = o && (o.hubCardId != null ? o.hubCardId : o.card_id);
+    const t = v == null ? '' : String(v).trim();
+    return /^\d{1,20}$/.test(t) ? t : '';
+  }
   static newPid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   ensurePid() {
     if (this.state.pid) return Promise.resolve(this.state.pid);
@@ -918,6 +925,9 @@ class StudioBase {
         fail('"' + label + '" carries no project data, so there is nothing to open.');
         return;
       }
+      // The Content Hub's design-job draft carries its post id at the TOP level beside `state`;
+      // only `state` is kept from here on, so lift it in or Send could not attach the pages.
+      if (d.state.hubCardId == null && StudioBase.hubCardOf(d)) d.state.hubCardId = StudioBase.hubCardOf(d);
       const T = StudioBase.SESSIONS;
       const mine = T[this.sessionApp()];
       // Identify by the app tag, then fall back to the shape of the state
