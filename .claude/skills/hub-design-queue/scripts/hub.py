@@ -262,7 +262,7 @@ def c_status(args):
 
 def need_id(args):
     if not args or not re.fullmatch(r"\d{1,20}", args[0]):
-        die("Give the post's card id (a number), e.g. hub.py claim 179215212295253")
+        die("Give the post's card id (a number), e.g. hub.py %s 40" % (sys.argv[1] if len(sys.argv) > 1 else "claim"))
     return args[0]
 
 
