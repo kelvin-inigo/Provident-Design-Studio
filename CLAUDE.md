@@ -15452,3 +15452,20 @@ By request ("update the UI and UX of this"). Section 48 of the sheet.
   may need adding to it. `cvStatus` / `cvOkOn` are still computed and unread.
 Verified: five messages classified right; rename by real typing; dismiss; fits at 555 and 1035;
 contrast 6.2–19.7 light, 5.1–18.3 dark.
+
+**Also removed the same day, by request:** Ad sets › **Details** — the button, the panel, the ad
+analysis (`AN_ANGLES`, `adRead`, `copyRatio`, `asAnalyse`, `asDetVals`) and CSS section 37 plus the
+`.as-det` / `.as-ad-see` / `.as-fmts` rules. Ad sets is images, the lightbox and Edit text; the
+audience list's red dot still reads `mtCheck`. The untracked `.agents/` (a 7 Oct uxaudit report)
+and `creative-content-poster/` (a one-off poster) were deleted from the working folder.
+
+**OPS's canvas bar took the same design (2026-10-20)**, section 33 of its sheet, CAS's markup and
+keys verbatim except the name field binds **`customName`** (OPS's file-name override) with the
+naming convention (`projLabel`) as its placeholder — blank keeps the convention. OPS's bar holds two
+more buttons (Show story, This page), so they never wrap and under a 980px bar the slide-count pill
+and the status's "into …" go. Two fixes landed in BOTH studios on the way: the name input clipped
+itself by a few px (a percentage max-width inside a content-sized label — now `max-width:none`
+with the label clipping), and under a 480px bar a finished or idle status shows its icon alone
+(the words are its tooltip) so the name stays readable on a phone. Verified in OPS: four kinds,
+rename by real typing writes `customName`, no wrapping or overflow at 846 and 375, dark contrast
+0 failures.

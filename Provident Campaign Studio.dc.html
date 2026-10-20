@@ -3582,39 +3582,6 @@ select.p-in{padding-right:34px}
   .as-src-drop{min-height:96px}
   .as-viewing{display:none}
 }
-/* See details (2026-10-12) — under a platform's images, a button carrying the text check;
-   it opens the image beside the same check the Publish tab shows. */
-.as-ad-see{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;height:34px;padding:0 6px 0 14px;border:0;
-  border-radius:var(--ps-pill);background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-line);color:var(--ps-ink);font:600 13px/1 var(--ps-font);cursor:pointer;
-  transition:box-shadow var(--ps-motion) var(--ps-ease)}
-/* on the card's own ground, so the badge's status ink measures as it does in Publish */
-.as-ad-see:hover{box-shadow:0 0 0 1px var(--ps-ink-2)}
-.as-ad-see .yt-badge{margin-left:0;font-size:11px}
-.as-ad-see:focus-visible,.as-det-img:focus-visible,.as-fmts button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
-.as-fmts{display:flex;flex-wrap:wrap;gap:6px}
-.as-fmts:empty{display:none}
-.as-fmts button{height:28px;padding:0 11px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);
-  font:500 12px/1 var(--ps-font);cursor:pointer}
-.as-fmts button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
-.as-det{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:24px;
-  background:rgba(6,9,15,.55)}
-.as-det-in{display:flex;flex-direction:column;width:min(980px,100%);max-height:100%;border-radius:var(--ps-r);
-  background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);overflow:hidden}
-.as-det-h{flex:none;display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--ps-hair)}
-.as-det-h b{font:600 15px/1.2 var(--ps-font);color:var(--ps-ink)}
-.as-det-h s{min-width:0;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.as-det-h .p-ghost{display:inline-flex;align-items:center;gap:6px}
-.as-det-h .mk-g{width:15px;height:15px}
-.as-det-b{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);overflow:auto}
-.as-det-l{display:flex;flex-direction:column;gap:10px;padding:20px;background:var(--ps-stage);border-right:1px solid var(--ps-hair)}
-.as-det-img{display:flex;align-items:center;justify-content:center;height:min(56vh,520px);padding:0;border:0;
-  background:none;cursor:zoom-in}
-.as-det-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--ps-r-sm);box-shadow:0 0 0 1px var(--ps-hair)}
-.as-det-r{display:flex;flex-direction:column;gap:10px;padding:20px 22px;min-width:0}
-.as-det-r .cw-page-h{display:flex;align-items:center;gap:10px}
-.as-det-r .cw-page-h b{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
-.as-det-sub{margin:0;font:400 12px/1.5 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 /* the enlarged image — a pinned dark viewer, so its ink is pinned too */
 .as-big{position:absolute;inset:0;z-index:6;display:grid;grid-template-columns:56px minmax(0,1fr) 56px;
   grid-template-rows:auto minmax(0,1fr) auto;gap:12px;padding:16px 20px 20px;background:rgba(6,9,15,.94)}
@@ -3650,10 +3617,6 @@ select.p-in{padding-right:34px}
   .as-ttl{flex:1 0 100%}
   .as-bar .p-spring{display:none}
   .as-big{grid-template-columns:44px minmax(0,1fr) 44px;padding:12px;gap:8px}
-  .as-det{padding:0}
-  .as-det-in{max-height:none;height:100%;border-radius:0}
-  .as-det-b{grid-template-columns:1fr}
-  .as-det-l{border-right:0;border-bottom:1px solid var(--ps-hair)}
   .as-big-nav{width:38px;height:38px}
 }
 @media (prefers-reduced-motion:reduce){.as-ov{animation:none}.as-img img{transition:none}.as-img:hover img{transform:none}}
@@ -3961,7 +3924,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-tiles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px}
 .as-tiles .as-t{--as-r:var(--as-h)}
 .as-tiles .as-t[data-shape="ls"]{--as-r:calc(var(--as-h) * .5766)}
-.as-plat-top .as-ad-see{height:30px;font-size:12.5px;gap:8px}
 /* EDIT TEXT */
 .ae-stat{display:inline-flex;align-items:center;gap:8px;max-width:min(560px,100%);padding:7px 12px;border-radius:var(--ps-pill);
   background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);font:500 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
@@ -4023,33 +3985,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 }
 @media (prefers-reduced-motion:reduce){.ae-stat .ae-dot,.ae-shot[data-wait] > span{animation:none}}
 
-/* ── 37. AD SETS DETAILS: THE AD ANALYSIS (angle, audience, USP, copy ratio) ─────────── */
-.as-det-r{gap:0;padding:6px 22px 18px}
-.as-an{padding:14px 0;border-bottom:1px solid var(--ps-hair)}
-.as-an:last-child{border-bottom:0}
-.as-an h3{margin:0 0 8px;font:600 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
-.as-an-big{margin:0;font:600 17px/1.3 var(--ps-font);color:var(--ps-ink)}
-.as-an-why{margin:4px 0 0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
-.as-an-why[data-over]{color:var(--ps-warn)}
-.as-an-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
-.as-an-tl{font:500 11.5px/1 var(--ps-font);color:var(--ps-dim);margin-right:2px}
-.as-an-tag{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:var(--ps-pill);background:var(--ps-fill);
-  font:500 12px/1 var(--ps-font);color:var(--ps-ink)}
-.as-an-dl{margin:0;display:flex;flex-direction:column;gap:6px}
-.as-an-dl div{display:flex;gap:12px;align-items:baseline}
-.as-an-dl dt{flex:none;width:96px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
-.as-an-dl dd{margin:0;min-width:0;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
-.as-an-usp{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.as-an-usp li{display:flex;align-items:baseline;gap:10px;font:500 13px/1.4 var(--ps-font);color:var(--ps-ink)}
-.as-an-usp li b{font-weight:500;min-width:0}
-.as-an-usp li s{margin-left:auto;flex:none;text-decoration:none;font:400 11.5px/1.4 var(--ps-font);color:var(--ps-dim)}
-.as-an-ratio{display:flex;align-items:baseline;gap:6px}
-.as-an-ratio b{font:600 22px/1.1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums}
-.as-an-ratio s{text-decoration:none;font:400 12.5px/1 var(--ps-font);color:var(--ps-dim)}
-.as-an-bar{position:relative;height:10px;margin:10px 0 2px;border-radius:var(--ps-pill);background:var(--ps-fill-h);overflow:visible}
-.as-an-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:var(--ps-pill);background:var(--ps-link)}
-.as-an-bar[data-over] i{background:var(--ps-warn)}
-.as-an-bar u{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;border-radius:2px;background:var(--ps-ink)}
 
 /* ── 38. AD SETS: GOOGLE DRIVE (sign in with Google, read and write a Drive folder) ────── */
 .as-gd{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--ps-r);background:var(--ps-fill)}
@@ -4376,11 +4311,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    status is a kind with an icon: a green tick when something finished, a spinner while it runs, a
    red mark when it failed, a dot otherwise. The line is the first clause; the full sentence is the
    tooltip; a finished or failed message can be dismissed back to Ready. */
-.p-cvname{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:9ch;height:30px;padding:0 8px 0 6px;margin-left:-6px;
+.p-cvname{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:9ch;overflow:hidden;height:30px;padding:0 8px 0 6px;margin-left:-6px;
   border-radius:8px;cursor:text;transition:background-color var(--ps-motion) var(--ps-ease)}
 .p-cvname:hover{background:var(--ps-fill)}
 .p-cvname:focus-within{background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-line)}
-.p-cvname input{field-sizing:content;min-width:6ch;max-width:100%;border:0;background:transparent;padding:0;margin:0;
+.p-cvname input{field-sizing:content;min-width:6ch;max-width:none;flex:0 1 auto;width:auto;border:0;background:transparent;padding:0;margin:0;
   font:600 13px/1.2 var(--ps-font);color:var(--ps-ink);outline:none;text-overflow:ellipsis}
 .p-cvname input::placeholder{color:var(--ps-ink)}
 .p-cvname-g{width:15px;height:15px;flex:none;fill:currentColor;color:var(--ps-dim);order:2;opacity:0;transition:opacity var(--ps-motion) var(--ps-ease)}
@@ -4415,6 +4350,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-cvbar{container-type:inline-size}
 @container (max-width:760px){.p-cvst-b{display:none}}
 @container (max-width:640px){.p-cvbar > s{display:none}}
+/* on a phone-width bar, a finished or idle status is its icon alone (the words are its tooltip);
+   a running or failed one keeps its words, because those are the ones you need to read */
+@container (max-width:480px){.p-cvst[data-st="done"] .p-cvst-t,.p-cvst[data-st="ready"] .p-cvst-t{display:none}
+  .p-cvst[data-st="done"],.p-cvst[data-st="ready"]{padding-left:6px}}
 </style>
 </helmet>
 
@@ -4971,7 +4910,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                       <div class="as-plat">
                         <div class="as-plat-top">
                           <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
-                          <button onClick="{{ pl.see }}" class="as-ad-see" title="Marketing angle, audience, USP and how much of the image the copy covers">Details</button>
                         </div>
                         <div class="as-tiles">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
@@ -5053,43 +4991,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         </div>
         </sc-if>
       </div>
-      <sc-if value="{{ asDetOn }}" hint-placeholder-val="{{ false }}">
-        <div class="as-det" onClick="{{ asDetClose }}">
-          <div class="as-det-in" role="dialog" aria-label="Details" onClick="{{ asDetStop }}">
-            <header class="as-det-h"><b>Details</b><s>{{ asDetTitle }}</s><span class="p-spring"></span><button onClick="{{ asDetClose }}" class="p-ghost" title="Close (Esc)">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button></header>
-            <div class="as-det-b">
-              <div class="as-det-l">
-                <button onClick="{{ asDet.open }}" class="as-det-img" title="View full size"><img data-src="{{ asDet.img }}" alt="{{ asDet.meta }}"></button>
-                <p class="as-det-sub">{{ asDet.meta }}</p>
-                <div class="as-fmts"><sc-for list="{{ asDet.fmts }}" as="fm" hint-placeholder-count="0"><button onClick="{{ fm.set }}" data-on="{{ fm.on }}">{{ fm.label }}</button></sc-for></div>
-              </div>
-              <div class="as-det-r">
-                <section class="as-an">
-                  <h3>Marketing angle</h3>
-                  <p class="as-an-big">{{ asAn.angle }}</p>
-                  <p class="as-an-why">{{ asAn.angleWhy }}</p>
-                  <sc-if value="{{ asAn.alsoOn }}" hint-placeholder-val="{{ false }}"><div class="as-an-tags"><span class="as-an-tl">Also</span><sc-for list="{{ asAn.also }}" as="a" hint-placeholder-count="2"><span class="as-an-tag" title="{{ a.why }}">{{ a.name }}</span></sc-for></div></sc-if>
-                </section>
-                <section class="as-an">
-                  <h3>Audience</h3>
-                  <dl class="as-an-dl"><sc-for list="{{ asAn.aud }}" as="r" hint-placeholder-count="3"><div><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div></sc-for></dl>
-                </section>
-                <section class="as-an">
-                  <h3>USP</h3>
-                  <sc-if value="{{ asAn.uspOn }}" hint-placeholder-val="{{ true }}"><ul class="as-an-usp"><sc-for list="{{ asAn.usp }}" as="u" hint-placeholder-count="4"><li><b>{{ u.t }}</b><s>{{ u.src }}</s></li></sc-for></ul></sc-if>
-                  <sc-if value="{{ asAn.uspNone }}" hint-placeholder-val="{{ false }}"><p class="as-an-why">No selling points in the copy yet — no tags, key facts, bullets or price.</p></sc-if>
-                </section>
-                <section class="as-an">
-                  <h3>Copy ratio to image</h3>
-                  <div class="as-an-ratio"><b>{{ asAn.copyPct }}</b><s>copy</s><span class="p-spring"></span><b>{{ asAn.imgPct }}</b><s>image</s></div>
-                  <div class="as-an-bar" data-over="{{ asAn.overOn }}"><i style="{{ asAn.barStyle }}"></i><u style="{{ asAn.markStyle }}"></u></div>
-                  <p class="as-an-why" data-over="{{ asAn.overOn }}">{{ asAn.ratioNote }}</p>
-                </section>
-              </div>
-            </div>
-          </div>
-        </div>
-      </sc-if>
       <sc-if value="{{ asBigOn }}" hint-placeholder-val="{{ false }}">
         <div class="as-big" role="dialog" aria-label="{{ asBigName }}">
           <div class="as-big-top">
@@ -14489,7 +14390,7 @@ class Component extends DCLogic {
     this.asScan();
   }
   // a pending edit is saved before the window goes (aeSave holds its own reference)
-  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
+  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
   asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
   async asPick() {
     if (this._asSrc) { this.asUseSource(); return; }
@@ -14505,7 +14406,7 @@ class Component extends DCLogic {
     // source folder the studio exports into (Use source folder goes back to it)
     const f = window.providentFolder, src = this._asSrc, root = src ? src.handle : (f && f.handle);
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
-    this._asBig = null; this._asDet = null; this._asList = [];
+    this._asBig = null; this._asList = [];
     this._as = { busy: !!root, has: !!root, mains: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
     this.forceUpdate();
     if (!root) return;
@@ -14515,7 +14416,7 @@ class Component extends DCLogic {
     // decoding it), the saved project is parsed only as far as its state (the photos it embeds
     // are skipped), and each tile shows a small thumbnail made in the background — 60 full-size
     // exports decoded for a strip of tiles was ~2 GB of pixels. The full file is only for the
-    // enlarged view and See details.
+    // enlarged view.
     const lmOf = async h => h.modified != null ? h.modified : (await h.getFile()).lastModified;
     try {
       // 1 — the project folders (a saved .adstudio.json)
@@ -14531,7 +14432,7 @@ class Component extends DCLogic {
           const lms = await Promise.all(jsons.map(lmOf));
           let bi = 0; lms.forEach((lm, i) => { if (lm > lms[bi]) bi = i; });
           const json = await jsons[bi].getFile();
-          // the saved project carries the Publish text that See details checks
+          // the saved project carries the Meta ad text the audience list's red dot checks
           const state = await Component.asState(json);
           // the json's handle is kept: the Edit text layer writes the project back into it
           found.push({ dir, path, name: json.name.replace(/\.adstudio\.json$/i, ''), state, jsonH: jsons[bi], fname: json.name });
@@ -14735,9 +14636,6 @@ class Component extends DCLogic {
       show();
     });
   }
-  // A platform block in a variant card: its exported images, plain, and "See details" — the
-  // same text check the Publish tab shows (Meta ad text, or YouTube Demand Gen text), read
-  // from the saved project. Nothing here claims a link to a live ad; it is the image as exported.
   // ---------- viewing a folder that is not the source folder ----------
   // From home or the Ad sets window: DROP a folder (or click to choose one). It becomes a
   // stand-in for a FileSystemDirectoryHandle — the four things asScan touches
@@ -15256,149 +15154,7 @@ class Component extends DCLogic {
       checks: ck.rows.map(r => ({ label: r.label, note: r.note, state: r.state })),
       // Meta ad text is optional: it only needs attention once some has been written
       need: !ck.ok && C.mtUsed(st) };
-    card.pick = t => {
-      card.img = t.url; card.shape = t.shape; card.open = t.open; card.meta = t.label + ' · ' + t.meta;
-      card.fmts = tiles.length > 1 ? tiles.map(x => ({ label: x.label, on: x === t ? '1' : undefined, set: () => { card.pick(x); this.forceUpdate(); } })) : [];
-    };
-    card.pick(tiles[0]);
-    card.see = () => { this._asDet = card; this.forceUpdate(); };
     return card;
-  }
-  // ══ THE AD ANALYSIS in Ad sets › Details (2026-10-15) ═══════════════════════════════════
-  // Read off the saved project's own words — no service, no model. The angle is the theme
-  // the copy leans on hardest — each component counts once per theme, the headline three
-  // times over and the hook twice, so four distance facts cannot outvote the headline — the
-  // audience is the folder it sits in plus what the copy speaks to, the USP is every
-  // selling point the ad states, and the copy ratio is measured off the SAME ops the
-  // export draws.
-  static AN_ANGLES = [
-    ['Investment and returns', /\b(roi|yields?|returns?|rental (income|yield)|capital (growth|appreciation)|appreciation|invest(or|ors|ment|ing)?|income|profit)\b/gi],
-    ['Payment plan and entry price', /\b(payment plans?|instal+ments?|post[- ]handover|down ?payment|starting (from|at)|from (aed|usd|eur|gbp)|\d{2}\s?\/\s?\d{2}|easy pay|pay \d+%|\d+% (down|now|on booking))\b/gi],
-    ['Golden Visa and residency', /\b(golden visa|residency|resident visa|visa eligible)\b/gi],
-    ['Location and connectivity', /\b(\d+\s?(mins?|minutes)|airport|downtown|metro|minutes? (from|to)|heart of|close to|steps from|connected|access to|waterfront location|prime location|located)\b/gi],
-    ['Launch and urgency', /\b(launch(ing|ed)?|eois?|now (selling|accepting|open|available)|limited|last (units|few|chance)|register|book (now|today)|exclusive|first look|pre[- ]launch|sold out|hurry|only \d+)\b/gi],
-    ['Lifestyle and luxury', /\b(living|lifestyle|luxur(y|ious)|beach(front)?|views?|amenities|wellness|resort|family|families|home|homes|villas?|penthouses?|spa|serene|green)\b/gi],
-    ['Workspace and business', /\b(offices?|business(es)?|commercial|retail|workspaces?|grade a|headquarters|hq|enterprise|companies)\b/gi],
-  ];
-  static adRead(st, vi, ctx) {
-    const C = CampaignStudio;
-    vi = Math.max(0, Math.min(vi, ((st.variants || []).length || 1) - 1));
-    const v = (st.variants || [])[vi] || {};
-    const hid = id => !!(v.hidden && v.hidden[id]);
-    const mods = C.orderedFor(v, C.modulesFor(st, vi)).filter(m => !hid(m.id));
-    const parts = [], usp = [], seen = {};
-    const add = (t, w, type) => { t = String(t || '').replace(/\*\*/g, '').trim(); if (t) parts.push({ t, w, type }); };
-    const pushU = (t, src) => { t = String(t || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim(); const k = t.toLowerCase(); if (t && !seen[k]) { seen[k] = 1; usp.push({ t, src }); } };
-    const lines = m => String(m.text || '').split('\n').map(x => x.trim()).filter(Boolean);
-    mods.forEach(m => {
-      if (m.type === 'hero') add(m.text, 3, 'hero');
-      else if (m.type === 'hook') { add(m.text, 2, 'hook'); lines(m).forEach(t => pushU(t, 'Hook line')); }
-      else if (m.type === 'eyebrow') add(m.text, 1.5, 'eyebrow');
-      else if (m.type === 'cta') add(m.text, 1.5, 'cta');
-      else if (m.type === 'body') add(m.text, 1, 'body');
-      else if (m.type === 'price') { const t = C.priceLine ? C.priceLine(m) : [m.sub, m.text].filter(Boolean).join(' '); add(t, 1.5, 'price'); pushU(t, 'Price'); }
-      else if (m.type === 'tags') C.chipsOf(m).forEach(c => { add(c.t, 1.5, 'tags'); pushU(c.t, 'Tag'); });
-      else if (m.type === 'spec') C.colsOf(m).forEach(c => { add(c.l + ' ' + c.v, 1.2, 'spec'); pushU([c.v, c.l].filter(Boolean).join(' · '), 'Key fact'); });
-      else if (m.type === 'list') lines(m).forEach(t => { add(t, 1.2, 'list'); pushU(t, 'Bullet'); });
-      else if (m.type === 'steps') lines(m).forEach(t => add(t, 1, 'steps'));
-      else if (m.type === 'cust' && m.f) Object.keys(m.f).forEach(k => add(m.f[k], 1, 'cust'));
-    });
-    // a location eyebrow ("CITY OF ARABIA, DUBAI") is where the ad is, which is a fact the
-    // reader is sold on as much as a tag is
-    mods.filter(m => m.type === 'eyebrow').forEach(m => pushU(m.text, 'Location'));
-    const scored = Component.AN_ANGLES.map(([name, re]) => {
-      let score = 0; const hits = [];
-      parts.forEach(p => { const m = p.t.match(re); if (m) { score += p.w; m.forEach(h => { const k = h.toLowerCase(); if (hits.indexOf(k) < 0) hits.push(k); }); } });
-      return { name, score, hits };
-    }).filter(a => a.score > 0).sort((a, b) => b.score - a.score);
-    const quote = a => 'From the copy: ' + a.hits.slice(0, 4).map(h => '\u201c' + h + '\u201d').join(', ') + '.';
-    const top = scored[0];
-    // AUDIENCE: the folder says who the set was made for; the copy says who it speaks to
-    const segs = String(ctx || '').split(' \u203a ');
-    const market = segs[0] || '', folder = segs[1] || '';
-    const all = parts.map(p => p.t).join(' ');
-    const cur = (all.match(/\b(AED|USD|EUR|GBP|INR|SAR|CNY|RUB)\b/i) || [])[1];
-    const speaks = [];
-    const has = n => scored.some(a => a.name === n);
-    if (has('Investment and returns') || /invest/i.test(folder)) speaks.push('investors');
-    if (has('Workspace and business')) speaks.push('business owners');
-    if (has('Golden Visa and residency')) speaks.push('residency seekers');
-    if (has('Lifestyle and luxury')) speaks.push(/famil/i.test(all) ? 'families' : 'end users');
-    if (has('Payment plan and entry price') && speaks.indexOf('investors') < 0) speaks.push('first-time buyers');
-    const aud = [];
-    if (market) aud.push({ k: 'Market', v: market });
-    if (folder) aud.push({ k: 'Segment', v: folder });
-    if (cur) aud.push({ k: 'Currency', v: cur.toUpperCase() });
-    aud.push({ k: 'Copy speaks to', v: speaks.length ? speaks.join(', ').replace(/^./, c => c.toUpperCase()) : 'Nobody in particular — no audience cues in the copy' });
-    if (st.adMode === 'carousel') aud.push({ k: 'Format', v: 'Carousel' });
-    return {
-      angle: top ? top.name : 'No clear angle',
-      angleWhy: top ? quote(top) : 'The copy carries none of the usual cues — price, payment plan, location, returns, residency, launch or lifestyle.',
-      also: scored.slice(1, 5).map(a => ({ name: a.name, why: quote(a) })),
-      aud, usp: usp.slice(0, 10)
-    };
-  }
-  // The share of the canvas the copy covers, off the export's own ops: every text run and
-  // every panel, chip, button and rule, as a union on an 8px grid. The photo, the scrim,
-  // the ground and any picture (logo art, QR, icons) are the image's side.
-  copyRatio(st, vi, sk) {
-    const built = this.eng.buildOps(st, vi, sk, {});
-    const W = built.W, H = built.H, g = 8, cw = Math.ceil(W / g), ch = Math.ceil(H / g);
-    const cells = new Uint8Array(cw * ch);
-    const meas = (t, px, w, serif, ls) => this.eng.meas(t, px, w, serif, ls);
-    built.ops.forEach(o => {
-      if (o.op === 'image' || o.op === 'grad' || o.op === 'blur') return;
-      if ((o.op === 'rect' || o.op === 'rrect') && o.w * o.h > W * H * .6) return;
-      const b = CampaignStudio.opBox(o, meas); if (!b) return;
-      const x0 = Math.max(0, Math.floor(b[0] / g)), x1 = Math.min(cw, Math.ceil(b[2] / g));
-      const y0 = Math.max(0, Math.floor(b[1] / g)), y1 = Math.min(ch, Math.ceil(b[3] / g));
-      for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) cells[y * cw + x] = 1;
-    });
-    let n = 0; for (let i = 0; i < cells.length; i++) n += cells[i];
-    return Math.round(n / cells.length * 100);
-  }
-  async asAnalyse(c) {
-    if (!c || !c.proj) return;
-    const sk = c.shape, key = sk;
-    c.an = c.an || {};
-    if (c.an[key] != null) return;
-    c.an[key] = 'busy';
-    try {
-      if (!c.st) {
-        let raw = c.proj.state;
-        if (!raw && c.proj.jsonH) raw = (JSON.parse(await (await c.proj.jsonH.getFile()).text()) || {}).state;
-        c.st = CampaignStudio.normState(JSON.parse(JSON.stringify(raw || {})));
-      }
-      await this.aeFonts(c.st);
-      c.an[key] = this.copyRatio(c.st, c.letter.charCodeAt(0) - 65, CampaignStudio.PXT[sk] ? sk : 'sq');
-    } catch (e) { console.warn('[provident] ad analysis', e); c.an[key] = 'fail'; }
-    finally { StudioBase.applyFont(this.eng.state); this.forceUpdate(); }
-  }
-  asDetVals() {
-    const c = this._asDet;
-    if (!c) return { asDetOn: undefined, asDet: {}, asAn: {} };
-    if (!c.read) { try { c.read = Component.adRead(c.proj ? (c.st || CampaignStudio.normState(JSON.parse(JSON.stringify(c.proj.state || {})))) : {}, c.letter.charCodeAt(0) - 65, c.ctx); } catch (e) { c.read = { angle: 'Could not read this project', angleWhy: '', also: [], aud: [], usp: [] }; } }
-    const r = c.read, pct = c.an && c.an[c.shape];
-    if (pct == null) this.asAnalyse(c);
-    const ok = typeof pct === 'number', MAX = CampaignStudio.COVER_MAX, over = ok && pct > MAX;
-    const asAn = {
-      angle: r.angle, angleWhy: r.angleWhy, also: r.also, alsoOn: r.also.length ? '1' : undefined,
-      aud: r.aud, usp: r.usp, uspOn: r.usp.length ? '1' : undefined, uspNone: r.usp.length ? undefined : '1',
-      copyPct: ok ? pct + '%' : '…', imgPct: ok ? (100 - pct) + '%' : '…',
-      overOn: over ? '1' : undefined,
-      barStyle: { width: (ok ? pct : 0) + '%' }, markStyle: { left: MAX + '%' },
-      ratioNote: !ok ? (pct === 'fail' ? 'Could not measure this one.' : 'Measuring…')
-        : (c.meta ? c.meta.split(' \u00b7 ')[0] + ': ' : '') + (over
-          ? 'over the ' + MAX + '% guide — the copy is starting to outweigh the picture.'
-          : 'within the ' + MAX + '% guide, so the picture still leads.') + ' Measured on the text, panels and buttons the export draws.'
-    };
-    return {
-      asDetOn: '1', asDet: c, asAn,
-      asDetTitle: c.ctx + ' \u00b7 ' + c.label,
-      asDetHint: '',
-      asDetClose: () => { this._asDet = null; this.forceUpdate(); },
-      asDetStop: e => { if (e) e.stopPropagation(); }
-    };
   }
   asVals() {
     const open = !!this.state.adSetsOpen, f = window.providentFolder, a = this._as || {};
@@ -15454,7 +15210,6 @@ class Component extends DCLogic {
       asBigPrevOff: bi > 0 ? undefined : true, asBigNextOff: bi >= 0 && bi < list.length - 1 ? undefined : true,
       asBigStop: e => { if (e) e.stopPropagation(); },
       asBigClose: () => { this._asBig = null; this.forceUpdate(); },
-      ...this.asDetVals(),
       ...this.asSrcVals()
     };
   }
@@ -15573,7 +15328,6 @@ class Component extends DCLogic {
       if (e.key !== 'Escape') return;
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
-      if (this._asDet) { this._asDet = null; this.forceUpdate(); return; }
       if (this.state.adSetsOpen) { this.asClose(); return; }
       this._closePops();
     };
