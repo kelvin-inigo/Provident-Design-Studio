@@ -15406,3 +15406,49 @@ level it separates — 8 inside a row, 16 between rows, 24 inside a card, 20 bet
 between groups. Component preview 240 wide, name 20/600, count 36. Styles sit under a "Styles · N"
 label (`styleCount`) in two columns (minmax 400), each a 140px render, name, count over reason, and
 the verdict at the right; one column on a phone. Contrast 0 failures both themes; no overflow at 375.
+
+# REMOVED 2026-10-20: YouTube Demand Gen, the Meta Ads kit bridge, the OPS support desk
+
+By request, after an audit of the month's features. The sections above that describe these three
+are history; nothing in the code reads them any more.
+
+- **YouTube Demand Gen is gone from CAS.** `isYT`, `ytOf`, `ytCheck`, `YT_*`, the `yl` / `yp`
+  sizes, `ylOv` / `ypOv` / `ytShow`, the logo and `_Demand Gen text.txt` exports, the Publish YouTube
+  section, the dock group, the canvas-bar chip and the MCP ops `set_platform` / `youtube_text`.
+  `normState` turns a saved `ytdg` project into a Meta ad and drops its YouTube records. **Kept:**
+  the Meta plate's Horizontal 1.91:1 (`ls`, exported `_Landscape_1.91x1` in the Variant folder) —
+  Ad sets now lists it under Meta. `mtCheck` uses `limField` (was `ytField`). `AS_SKIP` still names
+  `yt demand gen`, so an old export folder is not mistaken for a project. The `.yt-*` CSS classes
+  are kept: the Meta ad text reuses them.
+- **The Meta Ads kit bridge is gone**: `tools/meta-ads/`, `.claude/skills/meta-ads/`, `mtManifest`
+  and the `_Meta upload.json` export. **Kept:** the Meta ad text in the Publish tab (`state.mt`,
+  `mtOf`, `mtCheck`) — saved with the project, sent by Send, shown in the placement Preview and Ad
+  sets. Meta's own CLI (`~/.local/bin/meta`) was installed outside the repo and was not removed.
+- **The OPS support desk is gone**: `support-desk.js`, `tools/support/`, CSS section 29, the overlay
+  markup, the sidebar Help group and the shell hooks.
+- **`icon-tags.js` is loaded on demand** by `StudioBase.iconTags(done)`, called from each studio's
+  `iconPick` when a search is typed (never from the static `iconSearch`, which has no instance to
+  re-render). The page no longer loads 270 KB at boot.
+- **Ad sets › Details and the lightbox sit above the sticky audience heading** (z 5 / 6; it is z 3).
+
+Verified: CAS op census, 4 templates x dark/light x left/centre x 7 sizes, **112 groups, 1,404
+ops, 0 differing** against the pre-change build; no newly unresolved interpolation (57 against
+65 before); both studios boot clean; a legacy YouTube project opens as Meta; export writes no
+manifest; the first icon search triggers the index load and the second returns keyword matches.
+
+# CAS'S CANVAS BAR: AN EDITABLE NAME AND A STATUS WITH A KIND (2026-10-20)
+
+By request ("update the UI and UX of this"). Section 48 of the sheet.
+- **The campaign name is edited in place** (`.p-cvname`, the same `onCampaign` the Share panel
+  uses; `field-sizing: content`, a pencil on hover, the derived `projLabel` as its placeholder).
+- **The status is a KIND** — `cvKind` ready / busy / done / bad / info, classified off the
+  `exportStatus` text — with a green tick, a spinner, a red mark or a dot, on a tinted pill.
+  The line is the first clause (`cvShortA` + `cvShortB`, split before " into / to / on "); the
+  whole sentence is the tooltip; a finished or failed message has a **Dismiss** back to Ready.
+- **The bar answers its own width** (`container-type: inline-size`, since it is the stage column,
+  not the window): under 760 the "into …" tail goes, under 640 the variant pill. The status never
+  shrinks; the name truncates first, because it can be opened and read in place.
+- The classifier is a regex over message text — a new status message that starts with a new verb
+  may need adding to it. `cvStatus` / `cvOkOn` are still computed and unread.
+Verified: five messages classified right; rename by real typing; dismiss; fits at 555 and 1035;
+contrast 6.2–19.7 light, 5.1–18.3 dark.
