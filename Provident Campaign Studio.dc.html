@@ -4497,6 +4497,28 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .cw-br-map span{font:500 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .cw-br-map b{font:400 13px/1.4 var(--ps-font);color:var(--ps-ink);white-space:pre-line;overflow-wrap:anywhere}
 .cw-br-prune{padding:4px 0}
+.cw-br-dest{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.cw-br-dic{flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--ps-fill);color:var(--ps-ink-2)}
+.cw-br-dic svg{width:18px;height:18px;fill:currentColor}
+.cw-br-dest[data-on] .cw-br-dic{background:var(--ps-accent);color:var(--ps-accent-i)}
+.cw-br-dt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cw-br-dt s{text-decoration:none;font:500 11px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.cw-br-dt b{font:600 13.5px/1.3 var(--ps-font);color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-br-grp{display:flex;flex-direction:column;gap:8px}
+.cw-br-gl{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;font:600 12.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-br-gl s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.cw-br-pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.cw-br-pic{display:flex;flex-direction:column;gap:6px;min-width:0}
+.cw-br-pic image-slot{display:block;width:100%;height:auto;aspect-ratio:4/3;border-radius:10px;background:var(--ps-fill);color:var(--ps-ink-2)}
+.cw-br-pic:not([data-filled]) image-slot{box-shadow:inset 0 0 0 1px var(--ps-line)}
+.cw-br-cap{font:500 11.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.cw-br-pa{display:flex;align-items:center;gap:4px}
+.cw-br-mini{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px 0 6px;border:0;border-radius:var(--ps-pill);
+  background:var(--ps-fill);color:var(--ps-ink);font:500 12px/1 var(--ps-font);cursor:pointer}
+.cw-br-mini svg{width:16px;height:16px;fill:currentColor}
+.cw-br-mini:hover{background:var(--ps-fill-h)}
+.cw-br-rm{width:28px;padding:0;justify-content:center;background:transparent;color:var(--ps-ink-2)}
+.cw-br-rm:hover{background:var(--ps-bad-q);color:var(--ps-bad)}
 @media (prefers-reduced-motion:reduce){.cw-br-chev{transition:none}}
 </style>
 </helmet>
@@ -4836,7 +4858,50 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             </label>
           </li>
           <li class="cw-br-step">
-            <div class="cw-br-h"><i>2</i><span><b>Ask Claude</b><s>Runs the meta-ad-design-copy skill in your own Claude</s></span></div>
+            <div class="cw-br-h"><i>2</i><span><b>Where it saves</b><s>The folder this campaign saves and exports into, and the project&#8217;s Drive folder</s></span></div>
+            <div class="cw-br-dest" data-on="{{ brFolderOn }}">
+              <span class="cw-br-dic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></span>
+              <span class="cw-br-dt"><s>Source folder</s><b>{{ brFolder }}</b></span>
+              <sc-if value="{{ brFolderCan }}" hint-placeholder-val="{{ true }}"><button onClick="{{ brFolderPick }}" class="p-ghost p-sm">{{ brFolderBtn }}</button></sc-if>
+            </div>
+            <label class="cw-sub">Google Drive folder <s>optional — the project folder with Local, International and International EUR inside</s>
+              <input value="{{ brDrive }}" onChange="{{ onBrDrive }}" class="p-in" placeholder="https://drive.google.com/drive/folders/…" inputmode="url" spellcheck="false">
+            </label>
+            <sc-if value="{{ brDriveBad }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">That doesn&#8217;t look like a Google Drive link.</p></sc-if>
+          </li>
+          <li class="cw-br-step">
+            <div class="cw-br-h"><i>3</i><span><b>Attach pictures</b><s>Optional — they go into the campaign when you press Fill</s></span></div>
+            <div class="cw-br-grp"><span class="cw-br-gl">Logo<s>The developer&#8217;s logo, SVG or PNG</s></span>
+              <div class="cw-br-pics">
+                <div class="cw-br-pic" data-filled="{{ brLogoOn }}">
+                  <image-slot id="adbrief-logo" fit="contain" shape="rounded" radius="10" placeholder="Logo" data-noreframe></image-slot>
+                  <sc-if value="{{ brLogoOn }}" hint-placeholder-val="{{ false }}">
+                    <span class="cw-br-cap">Partner mark</span>
+                    <span class="cw-br-pa"><button onClick="{{ brLogoDrop }}" class="cw-br-mini cw-br-rm" title="Remove the logo" aria-label="Remove the logo"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></span>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+            <div class="cw-br-grp"><span class="cw-br-gl">Photos &amp; images<s>Up to 10 — renders, lifestyle shots, plans</s></span>
+              <div class="cw-br-pics">
+                <sc-for list="{{ brPhotos }}" as="pc" hint-placeholder-count="1">
+                  <div class="cw-br-pic" data-filled="{{ pc.filled }}">
+                    <image-slot id="{{ pc.id }}" fit="cover" shape="rounded" radius="10" placeholder="Picture" data-noreframe></image-slot>
+                    <sc-if value="{{ pc.filled }}" hint-placeholder-val="{{ false }}">
+                      <span class="cw-br-cap">{{ pc.cap }}</span>
+                      <span class="cw-br-pa">
+                        <sc-if value="{{ pc.useOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pc.use }}" class="cw-br-mini" title="Add this image to the ad as a graphic component"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg>As graphic</button></sc-if>
+                        <button onClick="{{ pc.drop }}" class="cw-br-mini cw-br-rm" title="Remove this photo" aria-label="Remove this photo"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
+                      </span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <p class="cw-hint">{{ brPicNote }}</p>
+          </li>
+          <li class="cw-br-step">
+            <div class="cw-br-h"><i>4</i><span><b>Ask Claude</b><s>Runs the meta-ad-design-copy skill in your own Claude</s></span></div>
             <div class="cw-acts">
               <sc-if value="{{ brAskOn }}" hint-placeholder-val="{{ true }}"><a href="{{ brOpenUrl }}" onClick="{{ brOpen }}" class="p-btn cw-br-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg>Open in Claude</a></sc-if>
               <sc-if value="{{ brAskOff }}" hint-placeholder-val="{{ false }}"><button class="p-btn cw-br-go" disabled><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg>Open in Claude</button></sc-if>
@@ -4846,7 +4911,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <p class="cw-hint">{{ brAskNote }}</p>
           </li>
           <li class="cw-br-step">
-            <div class="cw-br-h"><i>3</i><span><b>Paste Claude&#8217;s reply</b><s>The whole reply — the fields fill from its copy</s></span></div>
+            <div class="cw-br-h"><i>5</i><span><b>Paste Claude&#8217;s reply</b><s>The whole reply — the fields fill from its copy</s></span></div>
             <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="4" class="p-in" placeholder="Paste Claude&#8217;s reply here" aria-label="Claude&#8217;s reply"></textarea>
             <sc-if value="{{ brErrOn }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">{{ brErr }}</p></sc-if>
             <sc-if value="{{ brReadOn }}" hint-placeholder-val="{{ false }}">
@@ -11387,7 +11452,7 @@ class CampaignStudio extends StudioBase {
     if (!this._br) {
       let d = {};
       try { d = JSON.parse(localStorage.getItem(CampaignStudio.BRIEF_KEY) || '{}') || {}; } catch (e) {}
-      this._br = { brief: d.brief || '', notes: d.notes || '', fam: d.fam !== false, inv: d.inv !== false,
+      this._br = { brief: d.brief || '', notes: d.notes || '', drive: d.drive || '', fam: d.fam !== false, inv: d.inv !== false,
         reply: d.reply || '', aud: d.aud | 0, head: 0, prune: d.prune !== false, done: {} };
     }
     return this._br;
@@ -11397,7 +11462,7 @@ class CampaignStudio extends StudioBase {
     b[k] = v;
     if (k === 'reply') { b.head = 0; b.done = {}; }
     if (k === 'aud') b.head = 0;
-    try { localStorage.setItem(CampaignStudio.BRIEF_KEY, JSON.stringify({ brief: b.brief, notes: b.notes, fam: b.fam, inv: b.inv, reply: b.reply, aud: b.aud, prune: b.prune })); } catch (e) {}
+    try { localStorage.setItem(CampaignStudio.BRIEF_KEY, JSON.stringify({ brief: b.brief, notes: b.notes, drive: b.drive, fam: b.fam, inv: b.inv, reply: b.reply, aud: b.aud, prune: b.prune })); } catch (e) {}
     this.forceUpdate();
   }
   brPrompt() {
@@ -11408,7 +11473,10 @@ class CampaignStudio extends StudioBase {
       'Stage 1 only: turn the brief below into on-design copy. Do not open or build anything in the Campaign Studio — I am working in it and will fill its fields from your reply.',
       'Today is ' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.',
       'Audiences: ' + (auds.length ? auds.join(' and ') : 'Families and Investors') + '.',
-      b.notes.trim() ? 'Notes: ' + b.notes.trim() : null, '',
+      b.notes.trim() ? 'Notes: ' + b.notes.trim() : null,
+      'Campaign Studio source folder (where it saves and exports): ' + (this.folderName() || 'not chosen yet') + '.',
+      b.drive.trim() ? 'Google Drive project folder: ' + b.drive.trim() : null,
+      this.brAttachLine(), '',
       'Reply as the skill says (Key Details, Flags, then each audience\'s stack and alternate headlines). Then END with one code block tagged cas-copy holding this JSON — the exact words of your stacks, "" where a stack has none, one entry per audience:',
       '```cas-copy', JSON.stringify(CampaignStudio.BRIEF_SAMPLE), '```', '',
       'BRIEF:', b.brief.trim(),
@@ -11497,6 +11565,77 @@ class CampaignStudio extends StudioBase {
   }
   // What goes where, in the order the fields are filled: one component per job, the first
   // of that kind already on the page reused (so a template keeps its layout), a new one
+
+  // ---- WHERE IT SAVES, AND THE ATTACHED PICTURES. The pictures are image-slots under the
+  // `adbrief-` prefix — NOT `adstudio-`, so a session file, Assets/ and Open Session never
+  // carry them; they live in this workspace's photo store beside the brief. Fill copies them
+  // onto the campaign's own slots: photos onto each variant's (or page's) background in order,
+  // the logo onto the co-brand partner mark. Other images stay in the card, each one a click
+  // from becoming a graphic component.
+  static BRIEF_PH_MAX = 10;
+  brHas(id) {
+    // the mounted slot is the truth; the fill map (refreshed on its own triggers) only for one
+    // that is not on screen
+    const el = document.getElementById(id);
+    return el ? el.hasAttribute('data-filled') : !!(this._filled && this._filled[id]);
+  }
+  brFilled(kind) {
+    const C = CampaignStudio, n = C.BRIEF_PH_MAX, out = [];
+    for (let i = 0; i < n; i++) if (this.brHas('adbrief-' + kind + '-' + i)) out.push(i);
+    return out;
+  }
+  // A picker fill fires no drop, so watch the slots' own data-filled flag.
+  brWatch() {
+    if (this._brObs || typeof MutationObserver === 'undefined') return;
+    this._brObs = new MutationObserver(ms => {
+      if (!ms.some(m => m.target && m.target.id && m.target.id.indexOf('adbrief-') === 0)) return;
+      clearTimeout(this._brObsT); this._brObsT = setTimeout(() => this.forceUpdate(), 60);
+    });
+    this._brObs.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-filled'] });
+  }
+  brAttachLine() {
+    const logo = this.brHas('adbrief-logo'), ph = this.brFilled('ph').length;
+    if (!logo && !ph) return null;
+    return 'Pictures attached in the Campaign Studio (I place them myself — do not flag them as missing): '
+      + [logo && 'the developer logo', ph && ph + ' photo' + (ph === 1 ? '' : 's') + ' and image' + (ph === 1 ? '' : 's')].filter(Boolean).join(', ') + '.';
+  }
+  // Remove one and close the gap, so the order stays the order they were added in.
+  brDropPic(kind, i) {
+    const IS = customElements.get('image-slot'), n = CampaignStudio.BRIEF_PH_MAX;
+    if (!IS) return;
+    if (kind === 'logo') { IS.clearSlot('adbrief-logo'); setTimeout(() => this.forceUpdate(), 80); return; }
+    IS.clearSlot('adbrief-' + kind + '-' + i);
+    for (let j = i + 1; j < n; j++) IS.moveSlot('adbrief-' + kind + '-' + j, 'adbrief-' + kind + '-' + (j - 1));
+    setTimeout(() => this.forceUpdate(), 80);
+  }
+  brUseImage(i) {
+    const C = CampaignStudio, IS = customElements.get('image-slot'), id = C.freshId();
+    const car = C.isCarousel(this.state), vi = car ? Math.max(0, Math.min(this.state.activeVi || 0, this.state.variants.length - 1)) : 0;
+    this.upd(x => { C.modList(x, vi).push({ id, type: 'graphic' }); x.sel = null; return x; });
+    if (IS) IS.copySlot('adbrief-ph-' + i, 'adstudio-mod-' + id);
+    this.cwNotice('Image added as a graphic at the end of ' + (car ? 'page ' + (vi + 1) : 'the ad') + ' — the designer places and sizes it.');
+  }
+  // Called from brFill, after the words: what the pictures did, for the notice.
+  brPlacePics() {
+    const IS = customElements.get('image-slot'), said = [];
+    if (!IS) return said;
+    const ph = this.brFilled('ph'), n = (this.state.variants || []).length;
+    ph.slice(0, n).forEach((i, k) => IS.copySlot('adbrief-ph-' + i, 'adstudio-bg-' + k));
+    const nb = Math.min(ph.length, n);
+    if (nb) said.push(nb + ' picture' + (nb === 1 ? '' : 's') + ' as background' + (nb === 1 ? '' : 's'));
+    if (this.brHas('adbrief-logo')) {
+      IS.copySlot('adbrief-logo', 'adstudio-colog');
+      this.upd(x => { x.colog = Object.assign({ on: false, scale: 100, tint: true }, x.colog || {}, { on: true }); return x; });
+      said.push('the logo as the partner mark');
+    }
+    if (said.length) setTimeout(() => { if (this._refreshAV) this._refreshAV(); }, 120);
+    return said;
+  }
+  brChooseFolder() {
+    const f = this.folderApi();
+    if (!f) return;
+    Promise.resolve().then(() => f.pick()).then(() => this.forceUpdate(), () => {});
+  }
   // added only when the page has none. Price figures, permits and payment splits are the
   // reply's words verbatim — the skill already checked them against the brief.
   static brWant(A, head) {
@@ -11542,12 +11681,14 @@ class CampaignStudio extends StudioBase {
     });
     const nf = pre.out.filter(o => o.id).length, na = pre.out.length - nf, nr = pre.drop.length;
     this.cwNotice((car ? 'Page ' + (vi + 1) : 'The ad') + ' now carries the ' + A.name + ' copy — ' + nf + ' filled'
-      + (na ? ', ' + na + ' added at the end (the designer places them)' : '') + (nr ? ', ' + nr + ' removed' : '') + '.', true);
+      + (na ? ', ' + na + ' added at the end (the designer places them)' : '') + (nr ? ', ' + nr + ' removed' : '')
+      + (pics.length ? '; ' + pics.join(' and ') : '') + '.', true);
     // the notice and the filled fields are above the panel — bring them into view
     setTimeout(() => { const el = document.querySelector('.cw-msg'); if (el) try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 60);
   }
   brOpen(e) {
     const p = this.brPrompt();
+    const pics = this.brPlacePics();
     try { navigator.clipboard.writeText(p).catch(() => {}); } catch (err) {}
     // a custom-scheme link is not an unload, but stand the unsaved-work guard down for the
     // moment it takes, in case a browser treats it as one
@@ -11568,6 +11709,19 @@ class CampaignStudio extends StudioBase {
     const heads = A ? A.heads : [];
     const hi = Math.min(b.head, Math.max(0, heads.length - 1));
     const want = A ? C.brWant(A, heads[hi] || '') : [];
+    this.brWatch();
+    const nVar = (this.state.variants || []).length, car = C.isCarousel(this.state);
+    const vname = k => car ? 'Page ' + (k + 1) : (k ? 'Variant ' + (k + 1) : 'Master');
+    // filled ones in order, then ONE empty slot to add the next, up to the cap
+    const brPics = kind => {
+      const full = this.brFilled(kind), max = C.BRIEF_PH_MAX;
+      const rows = full.map((i, k) => ({ id: 'adbrief-' + kind + '-' + i, filled: '1', last: undefined,
+        cap: k < nVar ? 'Background · ' + vname(k) : 'Not a background — use it as a graphic',
+        drop: () => this.brDropPic(kind, i), useOn: true, use: () => this.brUseImage(i) }));
+      if (full.length < max) rows.push({ id: 'adbrief-' + kind + '-' + full.length, filled: undefined, last: '1', cap: '', drop: () => {}, useOn: false, use: () => {} });
+      return rows;
+    };
+    const brPicNote = 'When you press Fill, the first ' + (nVar === 1 ? 'picture becomes the background' : nVar + ' pictures become the backgrounds of the ' + (car ? 'pages' : 'design variants') + ', in order') + ', and the logo becomes the partner mark beside provident. Any picture can also go on the ad as a graphic.';
     const sent = this._brSent && Date.now() - this._brSent < 60000;
     const flags = P ? P.flags : [];
     const open = flags.filter((f, i) => !b.done[i]).length;
@@ -11580,6 +11734,17 @@ class CampaignStudio extends StudioBase {
       brOpenUrl: 'claude://claude.ai/new?' + (q ? 'q=' + q + '&' : '') + 'surface=chat&source=provident-cas',
       brWebUrl: 'https://claude.ai/new' + (q ? '?q=' + q : ''),
       brOpen: e => this.brOpen(e), brCopy: () => this.brCopy(),
+      brDrive: b.drive, onBrDrive: e => this.brSet('drive', e.target.value),
+      brDriveBad: b.drive.trim() && !/drive\.google\.com|docs\.google\.com/.test(b.drive) ? '1' : undefined,
+      brFolder: this.folderName() || 'Not chosen yet',
+      brFolderOn: this.folderName() ? '1' : undefined,
+      brFolderCan: !!this.folderApi(),
+      brFolderBtn: this.folderName() ? 'Change' : 'Choose folder',
+      brFolderPick: () => this.brChooseFolder(),
+      brLogoOn: this.brHas('adbrief-logo') ? '1' : undefined,
+      brLogoDrop: () => this.brDropPic('logo', 0),
+      brPhotos: brPics('ph'),
+      brPicNote: brPicNote,
       brCopyLabel: this._brCopied && Date.now() - this._brCopied < 4000 ? 'Copied' : 'Copy prompt',
       brAskNote: !prompt ? 'Paste the brief first.'
         : long ? 'The brief is too long to type into Claude for you — Claude opens on an empty chat and the prompt is on your clipboard: press ⌘V, then Return.'

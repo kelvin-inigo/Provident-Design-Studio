@@ -268,6 +268,15 @@ This is for copywriters: the ad's words on their own, next to a live preview.
    the `meta-ad-design-copy` skill in your own Claude.
    - Paste the brief (script, fact sheet, EOI brief), tick the audiences, and add any notes
      (permit number, what to lead with).
+   - **Where it saves** shows the Source folder this campaign saves and exports into, with
+     **Choose folder** / **Change**, and takes the project's Google Drive folder link. Both go
+     into the prompt.
+   - **Attach pictures** (optional): a **Logo** and up to 10 **Photos & images**. On Fill, the
+     first pictures become the backgrounds of the design variants (or carousel pages) in order,
+     and the logo becomes the partner mark beside provident. (collaboration logo turned on). Any
+     picture can also go on the ad as a graphic with **As graphic** under it. The prompt tells Claude what is
+     attached so it doesn't flag the logo as missing. Attachments stay in the card, not in the
+     session file.
    - **Open in Claude** opens the Claude app with the prompt typed in; press Return there. The
      prompt is also copied, so if Claude opens empty, press ⌘V. **or use claude.ai** opens the
      website instead. A very long brief is not typed in for you; paste it from the clipboard.

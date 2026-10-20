@@ -15516,3 +15516,26 @@ Verified: both parse paths on a realistic reply, real clicks (flag, alternate he
 Undo), prune on the Investors set, brief and reply surviving a reload, 0 contrast failures in
 53 text runs in both themes, no overflow at 375. Markup +9/+9 `sc-if`, +4/+4 `sc-for`,
 +1/+1 `details`. No artwork line changed.
+
+**The card gained "Where it saves" and "Attach pictures" (2026-10-20, by request).** Steps are
+now Brief · Where it saves · Attach pictures · Ask Claude · Paste reply. The folder row shows
+`folderName()` with Choose/Change (`brChooseFolder` → the folder API's `pick()`), plus a Drive
+link field (`b.drive`); both go into `brPrompt`, as does `brAttachLine()` saying what is attached.
+Attachments are image-slots with the **`adbrief-` prefix** (`adbrief-logo`, `adbrief-ph-0..5`,
+`adbrief-im-0..5`) — deliberately not `adstudio-`, so session files, `Assets/` and Open Session
+never carry them; they live in the workspace's photo store beside the brief. `brFill` calls
+`brPlacePics`: photos `copySlot` onto `adstudio-bg-<k>` for each variant/page in order, the logo
+onto `adstudio-colog` with `colog.on = true`. Slot writes are NOT undone by Undo (they are store
+writes, like every photo drop). Images stay until **As graphic** (`brUseImage`: a new graphic
+component + `copySlot` to `adstudio-mod-<id>`). Remove closes the gap with `moveSlot`.
+Two traps hit: **a `class` attribute on `<image-slot>` does not survive** (style it through a
+wrapper selector), and **the fill map `_filled` goes stale between refreshes** — `brHas` reads the
+mounted slot's `data-filled` and uses `_filled` only for an unmounted id; a MutationObserver on
+`data-filled` (`brWatch`) re-renders when a picker fills a slot (that fires no drop).
+Verified: upload through `_ingest`, Fill placing photo and logo, As graphic, remove-and-compact,
+reload, 0 contrast failures over 66 text runs in both themes, no console errors.
+
+**Photos and images are ONE group now (same day, by request: "they are the same").** Up to
+`BRIEF_PH_MAX` (10) pictures in `adbrief-ph-0..9`; on Fill the first N (N = variants or pages)
+become backgrounds and every picture offers **As graphic**. `BRIEF_IM_MAX` and the `adbrief-im-*`
+slots are gone.
