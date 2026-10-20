@@ -4419,6 +4419,16 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    a running or failed one keeps its words, because those are the ones you need to read */
 @container (max-width:480px){.p-cvst[data-st="done"] .p-cvst-t,.p-cvst[data-st="ready"] .p-cvst-t{display:none}
   .p-cvst[data-st="done"],.p-cvst[data-st="ready"]{padding-left:6px}}
+
+/* 50. The placement preview is one screen per app: its feed, Reel and Story side by side,
+   each phone captioned with its placement and file size. One toggle picks the app. */
+.mk-row{display:flex;gap:clamp(16px,3vw,40px);align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:100%}
+.mk-fig{margin:0;display:flex;flex-direction:column;align-items:center;gap:10px;flex:none}
+.mk-fig figcaption{display:flex;align-items:baseline;gap:8px;font-size:13px;color:#F5F5F7}
+.mk-fig figcaption b{font-weight:600}
+.mk-fig figcaption s{text-decoration:none;font-size:12px;color:#AEB4BD;font-variant-numeric:tabular-nums}
+.mk-row .mk-phone{height:clamp(380px,calc(100vh - 210px),720px)}
+@media (max-width:760px){.mk-row .mk-phone{height:min(78vh,620px)}}
 </style>
 </helmet>
 
@@ -5073,30 +5083,26 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     <div class="mk-ov">
       <div class="mk-bar">
         <b>Placement preview</b>
+        <div class="p-seg mk-seg" role="radiogroup" aria-label="Platform"><sc-for list="{{ mkPlats }}" as="pl" hint-placeholder-count="2"><button onClick="{{ pl.set }}" data-on="{{ pl.on }}" role="radio" aria-checked="{{ pl.aria }}">{{ pl.label }}</button></sc-for></div>
         <s>{{ mkPlaceLabel }}</s>
-        <div class="p-seg mk-seg"><sc-for list="{{ mkPlats }}" as="pl" hint-placeholder-count="2"><button onClick="{{ pl.set }}" data-on="{{ pl.on }}">{{ pl.label }}</button></sc-for></div>
-        <div class="p-seg mk-seg"><sc-for list="{{ mkViews }}" as="vw" hint-placeholder-count="3"><button onClick="{{ vw.set }}" data-on="{{ vw.on }}">{{ vw.label }}</button></sc-for></div>
-        <div class="p-seg mk-seg" title="The phone's own appearance. Reels and Stories stay dark in both apps."><button onClick="{{ mkLight }}" data-on="{{ mkLightOn }}">Light</button><button onClick="{{ mkDark }}" data-on="{{ mkDarkOn }}">Dark</button></div>
-        <button onClick="{{ mkToggleChrome }}" class="p-ghost" data-on="{{ mkChromeOn }}">{{ mkChromeLabel }}</button>
-        <button onClick="{{ mkToggleSafe }}" class="p-ghost" data-on="{{ mkSafeOn }}">{{ mkSafeLabel }}</button>
         <span class="p-spring"></span>
         <button onClick="{{ mkClose }}" class="p-ghost">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
       </div>
       <div class="mk-stage">
-        <div class="mk-phone">
+        <div class="mk-row"><sc-for list="{{ mkPhones }}" as="ph" hint-placeholder-count="3"><figure class="mk-fig"><figcaption><b>{{ ph.label }}</b><s>{{ ph.size }}</s></figcaption><div class="mk-phone">
           <i class="mk-b mk-b1"></i><i class="mk-b mk-b2"></i><i class="mk-b mk-b3"></i><i class="mk-b mk-b4"></i>
-          <div class="mk-screen" data-mode="{{ mkModeKey }}" data-plat="{{ mkPlatKey }}" data-full="{{ mkFullBleedOn }}" data-view="{{ mkViewKey }}">
+          <div class="mk-screen" data-mode="{{ mkModeKey }}" data-plat="{{ mkPlatKey }}" data-full="{{ ph.full }}" data-view="{{ ph.view }}">
             <div class="mk-island"></div>
             <div class="mk-stat">
               <span class="mk-time">9:41</span>
               <i class="mk-sig"></i><i class="mk-wifi"></i><i class="mk-batt"></i>
             </div>
-            <sc-if value="{{ mkIsFeed }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ mkIsIg }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ ph.isFeed }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ mkIsIg }}" hint-placeholder-val="{{ true }}">
               <div class="mk-scroll mk-igf">
                 <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-ignav"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg><b class="mk-igwm">Instagram<svg class="mk-i mk-igwm-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.5l5 5 5-5"/></svg></b><span class="p-spring"></span><span class="mk-badge"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg><i class="mk-dot"></i></span></div></sc-if>
                 <div class="mk-post">
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-igph"><i class="mk-av mk-av-b"><b>p.</b></i><div class="mk-phn"><b>{{ mkCopy.handle }}</b><s>Sponsored</s></div><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></div></sc-if>
-                  <div class="mk-cw"><sc-if value="{{ mkHasShot }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ mkShotSrc }}" alt="creative"></sc-if><sc-if value="{{ mkNoShot }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if><div style="{{ mkSafeStyle }}"></div></div>
+                  <div class="mk-cw"><sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if></div>
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-igcta"><b>{{ mkCopy.cta }}</b><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg></div>
                     <div class="mk-igacts"><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg><em>1,284</em></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 16.6A9 9 0 1 0 17 20.1l4.2 1.1Z"/></svg><em>32</em></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2.8l3.2 3.2L17 9.2M20.2 6H8.6A4.6 4.6 0 0 0 4 10.6v1.2M7 21.2 3.8 18 7 14.8M3.8 18h11.6a4.6 4.6 0 0 0 4.6-4.6v-1.2"/></svg><em>9</em></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.6 2.6 10.2 13.6M21.6 2.6 14.7 21.4l-4.5-7.8-7.9-4.4Z"/></svg><em>18</em></span><span class="p-spring"></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.8 21 12 15.2 5.2 21V4.2A1.2 1.2 0 0 1 6.4 3h11.2a1.2 1.2 0 0 1 1.2 1.2Z"/></svg></span></div>
                     <div class="mk-igcap"><b>{{ mkCopy.handle }}</b> {{ mkCopy.primary }}</div>
@@ -5111,18 +5117,18 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                 <div class="mk-post mk-fbpost">
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-fbph"><i class="mk-av mk-av-b mk-av-fb"><b>p.</b></i><div class="mk-phn"><b>{{ mkCopy.page }}</b><s>Sponsored · <svg class="mk-i mk-glb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2M12 3.4c2.4 2.4 3.4 5.3 3.4 8.6s-1 6.2-3.4 8.6c-2.4-2.4-3.4-5.3-3.4-8.6s1-6.2 3.4-8.6Z"/></svg></s></div><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
                     <div class="mk-fbcopy">{{ mkCopy.primary }}</div></sc-if>
-                  <div class="mk-cw"><sc-if value="{{ mkHasShot }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ mkShotSrc }}" alt="creative"></sc-if><sc-if value="{{ mkNoShot }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if><div style="{{ mkSafeStyle }}"></div></div>
+                  <div class="mk-cw"><sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if></div>
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-fbcard"><div class="mk-fbt"><s>{{ mkCopy.domain }}</s><b>{{ mkCopy.headline }}</b><em>{{ mkCopy.desc }}</em></div><span class="mk-fbbtn">{{ mkCopy.cta }}</span></div>
                     <div class="mk-fbsum"><span class="mk-fbrx"><i class="mk-rx-l"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.2 10.6v9.6M7.2 10.6l3.7-7a2 2 0 0 1 3.1 2.3l-.9 3.6h5.4a2 2 0 0 1 2 2.4l-1.5 7a2 2 0 0 1-2 1.5H7.2M7.2 10.6H4.2a1 1 0 0 0-1 1v7.6a1 1 0 0 0 1 1h3"/></svg></i><i class="mk-rx-h"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg></i></span><em>1.2K</em><span class="p-spring"></span><em>48 comments · 12 shares</em></div>
                     <div class="mk-fbacts"><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.2 10.6v9.6M7.2 10.6l3.7-7a2 2 0 0 1 3.1 2.3l-.9 3.6h5.4a2 2 0 0 1 2 2.4l-1.5 7a2 2 0 0 1-2 1.5H7.2M7.2 10.6H4.2a1 1 0 0 0-1 1v7.6a1 1 0 0 0 1 1h3"/></svg> Like</span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4c-5 0-9 3.5-9 7.9 0 2.4 1.2 4.6 3.1 6l-.6 3.4 3.7-1.9c.9.2 1.8.3 2.8.3 5 0 9-3.5 9-7.8S17 3.4 12 3.4Z"/></svg> Comment</span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 4.6 21 11.4l-7.4 6.8v-3.9C8.4 14.3 5.3 16 3 19.4c.6-5.6 3.8-10 10.6-10.7Z"/></svg> Share</span></div></sc-if>
                 </div>
               </div>
               <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-tabbar mk-tab-fb"><span class="on"><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M3.5 10.3 12 3.3l8.5 7V20a1 1 0 0 1-1 1h-4.8v-6.2H9.3V21H4.5a1 1 0 0 1-1-1Z"/></svg><s>Home</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="4.6" width="18.4" height="14.8" rx="3"/><path d="M10 9v6l5-3Z"/></svg><s>Video</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.2" r="3.4"/><path d="M2.6 19.6c.6-3.4 3.2-5.4 6.4-5.4s5.8 2 6.4 5.4M15.6 4.9a3.4 3.4 0 0 1 0 6.6M17.4 14.4c2.2.6 3.6 2.4 4 5.2"/></svg><s>Friends</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 9.2 5 4.2h14l1.4 5a2.8 2.8 0 0 1-5.6.4 2.8 2.8 0 0 1-5.6 0 2.8 2.8 0 0 1-5.6-.4ZM5 11.6V20h14v-8.4M10 20v-4.8h4V20"/></svg><s>Marketplace</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.6V11a6 6 0 0 1 12 0v5.6l1.6 1.8H4.4ZM10 20.6a2.2 2.2 0 0 0 4 0"/></svg><s>Notifications</s><i class="mk-dot"></i></span><span><i class="mk-av2"></i><s>Menu</s></span></div><div class="mk-homebar"></div></sc-if></sc-if></sc-if>
-            <sc-if value="{{ mkIsReel }}" hint-placeholder-val="{{ false }}">
-              <div class="mk-vwrap" data-igr="{{ mkIgReelOn }}" data-fbr="{{ mkFbReelOn }}">
+            <sc-if value="{{ ph.isReel }}" hint-placeholder-val="{{ false }}">
+              <div class="mk-vwrap" data-igr="{{ ph.igr }}" data-fbr="{{ ph.fbr }}">
                 <div class="mk-media mk-media-f">
-                  <sc-if value="{{ mkHasShot }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ mkShotSrc }}" alt="creative"></sc-if><sc-if value="{{ mkNoShot }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
-                  <div style="{{ mkSafeWrapStyle }}"><div style="{{ mkSafeStyle }}"></div></div>
+                  <sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
+                  
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ mkIsIg }}" hint-placeholder-val="{{ true }}"><div class="mk-vtop"><b>Reels</b><svg class="mk-i mk-vtop-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.5l5 5 5-5"/></svg><span class="p-spring"></span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="6.4" width="18.4" height="13.6" rx="3.2"/><path d="M8.4 6.4l1.5-2.6h4.2l1.5 2.6"/><circle cx="12" cy="13.1" r="3.6"/></svg></div><div class="mk-igr">
                         <svg class="mk-igr-g mk-igr-heart" viewBox="962 1370.91 75 66.14" aria-hidden="true"><path d="M43.569,63.085c-3.851,3.5-8.109,4.254-11.78.911L7,41.425C.467,35.472-.878,26.672.476,18.637,1.933,9.991,7.337,3.659,14.523,1.325c8.444-2.743,16.308-.913,22.525,6.1,8.275-9.01,20.22-9.759,29.139-2.583A24.379,24.379,0,0,1,74.994,24.3c-.162,7.039-4.063,13.89-9.619,18.945ZM62.481,37.75A18.841,18.841,0,0,0,65.189,12.3c-3.862-5.024-9.709-6.944-16.068-5.568C44.3,7.772,40.4,12.227,37.237,18.452,33.3,11.678,28.925,6.524,22.631,6.261A15.564,15.564,0,0,0,6.936,16.353,19.731,19.731,0,0,0,12.22,38.237l24.968,22.33Z" transform="translate(962 1370.912)"/></svg>
                         <svg class="mk-igr-g mk-igr-cmt" viewBox="964.71 1496.58 69.72 69.83" aria-hidden="true"><path d="M73.644,425.14c.28,1.05.162,3.493-.708,3.826a10.965,10.965,0,0,1-4.462.267l-12.993-3.555c-15.773,8.265-33.635,3.646-44.045-9.588-10.667-13.561-9.3-33.827,2.895-45.762,12.366-12.1,30.834-13.866,44.958-3.852,13.785,9.773,19.031,29,10.607,44.58Zm-7.1-2.694-2.655-12.569c8.353-13.172,4.138-29.792-7.579-38.338a29.087,29.087,0,0,0-40.081,41.434c9.219,11.711,25.411,14.309,38.395,6.62Z" transform="translate(960.473 1136.608)"/></svg>
@@ -5148,11 +5154,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                     <i class="mk-igr-t5"></i><i class="mk-igr-t5d"></i>
                   </div></sc-if><sc-if value="{{ mkIsFb }}" hint-placeholder-val="{{ false }}"><div class="mk-tabbar mk-tab-fb mk-tab-fbdark"><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.3 12 3.3l8.5 7V20a1 1 0 0 1-1 1h-4.8v-6.2H9.3V21H4.5a1 1 0 0 1-1-1Z"/></svg><s>Home</s></span><span class="on"><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="2.8" y="4.6" width="18.4" height="14.8" rx="3"/><path d="M10 9v6l5-3Z" fill="#000" stroke="none"/></svg><s>Video</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8.2" r="3.4"/><path d="M2.6 19.6c.6-3.4 3.2-5.4 6.4-5.4s5.8 2 6.4 5.4M15.6 4.9a3.4 3.4 0 0 1 0 6.6M17.4 14.4c2.2.6 3.6 2.4 4 5.2"/></svg><s>Friends</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 9.2 5 4.2h14l1.4 5a2.8 2.8 0 0 1-5.6.4 2.8 2.8 0 0 1-5.6 0 2.8 2.8 0 0 1-5.6-.4ZM5 11.6V20h14v-8.4M10 20v-4.8h4V20"/></svg><s>Marketplace</s></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.6V11a6 6 0 0 1 12 0v5.6l1.6 1.8H4.4ZM10 20.6a2.2 2.2 0 0 0 4 0"/></svg><s>Notifications</s></span><span><i class="mk-av2"></i><s>Menu</s></span></div></sc-if><div class="mk-homebar"></div></sc-if>
               </div></sc-if>
-            <sc-if value="{{ mkIsStory }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ ph.isStory }}" hint-placeholder-val="{{ false }}">
               <div class="mk-vwrap mk-story">
                 <div class="mk-media mk-media-r">
-                  <sc-if value="{{ mkHasShot }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ mkShotSrc }}" alt="creative"></sc-if><sc-if value="{{ mkNoShot }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
-                  <div style="{{ mkSafeStyle }}"></div>
+                  <sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
+                  
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-prog"><i class="on"></i><i></i><i></i></div>
                     <div class="mk-stop"><i class="mk-av mk-av-b"><b>p.</b></i><div class="mk-phn"><b>{{ mkStoryName }}</b><s>Sponsored</s></div><span class="p-spring"></span><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
                     <sc-if value="{{ mkIsIg }}" hint-placeholder-val="{{ true }}"><div class="mk-scta-ig"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><b>{{ mkCopy.cta }}</b></div></sc-if>
@@ -5161,7 +5167,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                 <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ mkIsIg }}" hint-placeholder-val="{{ true }}"><div class="mk-sbot"><span class="mk-sfield">Send message</span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.6 2.6 10.2 13.6M21.6 2.6 14.7 21.4l-4.5-7.8-7.9-4.4Z"/></svg></div></sc-if><sc-if value="{{ mkIsFb }}" hint-placeholder-val="{{ false }}"><div class="mk-sbot"><span class="mk-sfield">Send message</span><i class="mk-rx-l mk-rx-big"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.2 10.6v9.6M7.2 10.6l3.7-7a2 2 0 0 1 3.1 2.3l-.9 3.6h5.4a2 2 0 0 1 2 2.4l-1.5 7a2 2 0 0 1-2 1.5H7.2M7.2 10.6H4.2a1 1 0 0 0-1 1v7.6a1 1 0 0 0 1 1h3"/></svg></i><i class="mk-rx-h mk-rx-big"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg></i></div></sc-if><div class="mk-homebar"></div></sc-if>
               </div></sc-if>
           </div>
-        </div>
+        </div></figure></sc-for></div>
         <div class="mk-note">{{ mkNote }}</div>
       </div>
     </div>
@@ -10900,18 +10906,17 @@ class CampaignStudio extends StudioBase {
   sessionExt() { return '.adstudio.json'; }
   sessionApp() { return 'provident-ad-studio'; }
   mockKey() { return CampaignStudio.strip(this.state) + '|' + (this.state.activeVi || 0); }
+  // Every size the preview shows, keyed by SIZE — the Facebook feed (1:1), the Instagram
+  // feed (Portrait 3:4) and the 9:16 every Reel and Story uses — so the toggle between the
+  // two apps needs no re-render.
   async mockRenderAll() {
     const st = this.state;
     const vi = Math.max(0, Math.min(st.activeVi || 0, (st.variants || []).length - 1));
     const assets = await this.loadAssets(st);
-    const plan = this.mockPlan(), out = {}, seen = {};
-    for (const kind of Object.keys(plan)) {
-      const sz = plan[kind];
-      // reel and story are the same 9:16 render — draw it once
-      if (seen[sz]) { out[kind] = seen[sz]; continue; }
+    const out = {};
+    for (const sz of ['sq', 'pt', 'st']) {
       const built = this.buildOps(st, vi, sz, assets);
-      const url = this.renderOpsToCanvas(built, this.mockScale()).toDataURL('image/webp', 0.9);
-      seen[sz] = url; out[kind] = url;
+      out[sz] = this.renderOpsToCanvas(built, this.mockScale()).toDataURL('image/webp', 0.9);
     }
     return out;
   }
@@ -14332,7 +14337,7 @@ class Component extends DCLogic {
   ];
   static load() {
     return { splashView: 'all', shareOpen: false, allVarsOpen: false,
-      mockOpen: false, mockPlat: 'ig', mockView: 'feed', mockChrome: true, mockSafe: false, mockMode: 'dark',
+      mockOpen: false, mockPlat: 'fb',
       campaign: CampaignStudio.load() };
   }
   active() { return this.eng; }
@@ -15603,66 +15608,37 @@ class Component extends DCLogic {
         if (open && eng && eng.mockSync) eng.mockSync();
       },
       mkClose: () => this.setState({ mockOpen: false }),
-      mkPlats: [['ig', 'Instagram'], ['fb', 'Facebook']].map(([k, label]) => ({
-        label, on: this.state.mockPlat === k ? '1' : undefined, set: () => this.setState({ mockPlat: k })
+      // ONE toggle, two apps, and every placement of that app side by side: its feed (the
+      // 1:1 on Facebook, the Portrait 3:4 on Instagram), its Reel and its Story — the last
+      // two are the same 9:16 render. The app chrome is always drawn, the phone is dark.
+      mkPlats: [['fb', 'Facebook'], ['ig', 'Instagram']].map(([k, label]) => ({
+        label, on: (this.state.mockPlat === 'fb') === (k === 'fb') ? '1' : undefined,
+        aria: (this.state.mockPlat === 'fb') === (k === 'fb') ? 'true' : 'false',
+        set: () => this.setState({ mockPlat: k })
       })),
-      mkViews: [['feed', 'Feed'], ['reel', 'Reels'], ['story', 'Story']].map(([k, label]) => ({
-        label, on: this.state.mockView === k ? '1' : undefined, set: () => this.setState({ mockView: k })
-      })),
-      mkChromeOn: this.state.mockChrome ? '1' : undefined,
-      mkChromeLabel: this.state.mockChrome ? 'Platform UI ✓' : 'Platform UI',
-      mkToggleChrome: () => this.setState({ mockChrome: !this.state.mockChrome }),
-      mkSafeOn: this.state.mockSafe ? '1' : undefined,
-      mkSafeLabel: this.state.mockSafe ? 'Safe margins ✓' : 'Safe margins',
-      mkToggleSafe: () => this.setState({ mockSafe: !this.state.mockSafe }),
-      mkIsFeed: this.state.mockView === 'feed',
-      mkIsReel: this.state.mockView === 'reel',
-      mkIsStory: this.state.mockView === 'story',
-      mkIsIg: this.state.mockPlat === 'ig',
+      mkChromeOn: '1',
+      mkIsIg: this.state.mockPlat !== 'fb',
       mkIsFb: this.state.mockPlat === 'fb',
-      mkAppName: this.state.mockPlat === 'ig' ? 'Instagram' : 'Facebook',
-      // the screen keys its two apps' grounds off these — plain strings, never a boolean
       mkPlatKey: this.state.mockPlat === 'fb' ? 'fb' : 'ig',
-      mkViewKey: this.state.mockView || 'feed',
-      // the phone's appearance — Light or Dark; only the FEED follows it, as in both apps
-      mkModeKey: this.state.mockMode === 'light' ? 'light' : 'dark',
-      mkLightOn: this.state.mockMode === 'light' ? '1' : undefined,
-      mkDarkOn: this.state.mockMode === 'light' ? undefined : '1',
-      mkLight: () => this.setState({ mockMode: 'light' }),
-      mkDark: () => this.setState({ mockMode: 'dark' }),
+      mkModeKey: 'dark',
       mkStoryName: (() => { const c = eng && eng.mockCopy ? eng.mockCopy() : {}; return this.state.mockPlat === 'fb' ? (c.page || '') : (c.handle || ''); })(),
-      mkShotSrc: (() => { const sh = eng && eng.mockShots ? eng.mockShots() : {}; return sh[this.state.mockView] || ''; })(),
-      mkHasShot: !!((eng && eng.mockShots ? eng.mockShots() : {})[this.state.mockView]),
-      mkNoShot: !((eng && eng.mockShots ? eng.mockShots() : {})[this.state.mockView]),
-      // The crop is the point of the preview, so say what it is. Retraced off live
-      // Facebook ads: a Reel runs edge to edge from the top of the display to the tab bar
-      // and is COVER-cropped, losing ~5.5% of its width at each side.
-      mkFullBleedOn: this.state.mockView === 'reel' ? '1' : undefined,
-      // '1' / undefined, never a boolean — data-fbr="false" would match [data-fbr]
-      mkFbReelOn: (this.state.mockView === 'reel' && this.state.mockPlat === 'fb') ? '1' : undefined,
-      mkIgReelOn: (this.state.mockView === 'reel' && this.state.mockPlat === 'ig') ? '1' : undefined,
-      mkNote: (() => {
-        const v = this.state.mockView;
-        const base = 'iPhone 17 Pro · 402 × 874 pt. The creative is the real export, rendered from the same ops — only smaller. The app chrome follows the live iOS apps in light or dark mode (Reels and Stories are always dark) — drawn here, with no Meta logo art — and prints this project’s Meta ad text where it is written.';
-        if (v === 'feed') return base + ' Feed shows the creative at full width, uncropped.';
-        if (v === 'reel') return base + ' A Reel is full-bleed: the creative runs from the top of the display to the tab bar and is cover-cropped, losing about 5.5% of its width at each side. The header, the action rail and the whole account/caption/button stack sit ON the creative, which is what the 9:16 margins reserve for. Turn on Safe margins to see it.';
-        return base + ' Full-screen placements are fit to width and letterboxed — the whole 9:16 frame is shown, 402 × 715 pt with black above and below, nothing cropped. The platform UI sits over the lower third, so copy on the bottom margin can still be covered; turn on Safe margins to see the reserved area.';
+      mkPhones: (() => {
+        const fb = this.state.mockPlat === 'fb';
+        const sh = eng && eng.mockShots ? eng.mockShots() : {};
+        const PX = eng ? eng.constructor.PXT : {};
+        const dim = k => { const t = PX[k]; if (!t) return ''; const o = t.out || [t.W * 2, t.H * 2]; return o[0] + ' \u00d7 ' + o[1]; };
+        return [['feed', 'Feed', fb ? 'sq' : 'pt', fb ? '1:1' : '3:4'], ['reel', 'Reels', 'st', '9:16'], ['story', 'Story', 'st', '9:16']].map(([v, label, k, r]) => ({
+          label, size: r + ' \u00b7 ' + dim(k), view: v,
+          isFeed: v === 'feed', isReel: v === 'reel', isStory: v === 'story',
+          src: sh[k] || '', has: !!sh[k], none: !sh[k],
+          full: v === 'reel' ? '1' : undefined,
+          fbr: (v === 'reel' && fb) ? '1' : undefined,
+          igr: (v === 'reel' && !fb) ? '1' : undefined
+        }));
       })(),
+      mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: eng && eng.mockCopy ? eng.mockCopy() : {},
-      mkSafeStyle: (this.state.mockSafe && eng && eng.mockSafeBox)
-        ? (eng.mockSafeBox(this.state.mockView) || { display: 'none' })
-        : { display: 'none' },
-      // only the reel is cover-cropped, so only the reel needs the creative's own box
-      mkSafeWrapStyle: (this.state.mockSafe && eng && eng.mockSafeWrap)
-        ? (eng.mockSafeWrap(this.state.mockView) || { display: 'none' })
-        : { display: 'none' },
-      mkPlaceLabel: (() => {
-        const v = this.state.mockView;
-        const plan = eng && eng.mockPlan ? eng.mockPlan() : {};
-        const t = eng && eng.constructor.PXT[plan[v]];
-        const ratio = t ? (t.W === t.H ? '1:1' : (t.W > t.H ? '1.91:1' : (Math.abs(t.W / t.H - 0.75) < 0.02 ? '3:4' : '9:16'))) : '';
-        return t ? ratio + ' · ' + t.W + '×' + t.H : '';
-      })(),
+      mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
       shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : 'All')),
       // the line under the title says what this view holds, so the counts read without the sidebar
       shViewSub: (n => view === 'use' ? (sub.useCount ? 'How often each component and style appears in your ' + n(sub.useCount, 'most recent saved project') : 'Nothing saved yet \u2014 usage is counted from saved projects')

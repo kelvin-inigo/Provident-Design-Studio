@@ -15464,3 +15464,16 @@ come from the creative's own words (`mockCopy`). The Ad sets audience red dot ha
 flag (`card.need` is always false). The workspace switch is **Copy | Design**. The `.yt-*` CSS is
 now unused. The untracked `.agents/` (a 7 Oct uxaudit report) and `creative-content-poster/` were
 deleted from the working folder.
+
+# CAS'S PLACEMENT PREVIEW IS ONE SCREEN PER APP (2026-10-20)
+
+By request: the Preview overlay's bar is **Placement preview · Facebook | Instagram · Close**
+and nothing else. The view tabs (Feed / Reels / Story), Light | Dark, **Platform UI** and
+**Safe margins** are gone. The stage is a row of three captioned phones (`mkPhones`, an
+`sc-for` over the old single phone's markup, its per-view keys renamed to `ph.*`):
+**Feed** — the 1:1 (`sq`) on Facebook, the **Portrait 3:4 (`pt`)** on Instagram — then
+**Reels** and **Story**, both the 9:16. The chrome is always drawn (`mkChromeOn` is `'1'`; its
+`sc-if` wrappers stay), the phone is always dark, the safe-margin overlays are deleted from the
+markup (`mockSafeBox` / `mockSafeWrap` in `studio-base.js` are unread). CAS's `mockRenderAll`
+renders `sq`, `pt` and `st` keyed by SIZE, so the toggle needs no re-render; the Portrait 3:4
+renders even while a variant hides it. Default app Facebook. Section 50 of the sheet.

@@ -169,11 +169,10 @@ What's on the screen, from left to right:
 **Checking it:**
 - **Copy %:** each canvas shows how much of the ad the copy covers. Above 40% it turns amber,
   because the image should always outweigh the words.
-- **Preview** (top bar) shows the ad inside an Instagram or Facebook feed, reel or story mock-up.
-  **Platform UI** and **Safe margins** switch on the app's own buttons and the safe area.
-  **Light** or **Dark** sets the phone's appearance for the feed. The mock-up's primary text,
-  headline and button are filled from the ad's own words. Reels and Stories are always
-  dark, as they are in both apps.
+- **Preview** (top bar) shows the ad on three phones at once — Feed, Reels and Story —
+  for one app at a time. The **Facebook | Instagram** toggle picks the app: the Facebook feed
+  shows the 1:1, the Instagram feed the Portrait 3:4, and Reels and Story both show the 9:16.
+  The mock-up's primary text, headline and button are filled from the ad's own words.
 
 **Recreate a component from a screenshot** (with Claude Code):
 1. In Claude Code, drop a screenshot of **one** element (a rating badge, a price card, a countdown
