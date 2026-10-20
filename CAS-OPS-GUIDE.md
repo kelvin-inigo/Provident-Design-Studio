@@ -107,7 +107,7 @@ What's on the screen, from left to right:
   | Body line | Plain, Corner note, Ruled, Boxed |
   | Bullet list | Checks, Dots, Dashes, Ruled rows, Two columns |
   | Tag chips | Outline pill, Filled pill, Glass pill, Icon pill, Divided strip, Dotted strip |
-  | Spec data | Row, Ladder, Icon row, Glass row, Glass ladder |
+  | Spec data | Row, Ladder, Icon row, Glass row, Glass ladder, Pills |
   | Process steps | Icon plates, Numbered plates, Timeline, Compact list |
   | Price block | Plain, One line, Glass bar |
   | CTA button | Filled pill, Outline pill, Soft rect, Pill + arrow, Text link |

@@ -5591,7 +5591,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             </div>
           </div>
         </sc-if>
-        <sc-if value="{{ selIsSpec }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ selSpecOpts }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">Figures <s>{{ textScope }}</s></span>
           <span class="p-lab p-lab-2">Reading order</span>
           <div class="p-tabs"><button onClick="{{ figTopOff }}" data-on="{{ figLabFirstOn }}">Label first</button><button onClick="{{ figTopOn }}" data-on="{{ figTopSetOn }}">Figure first</button></div>
@@ -6142,7 +6142,7 @@ class CampaignStudio extends StudioBase {
     steps: [['icon', 'Icon plates'], ['num', 'Numbered plates'], ['timeline', 'Timeline'], ['list', 'Compact list']],
     body: [['plain', 'Plain'], ['note', 'Corner note'], ['ruled', 'Ruled'], ['boxed', 'Boxed']],
     tags: [['mist', 'Outline pill'], ['fill', 'Filled pill'], ['glass', 'Glass pill'], ['icon', 'Icon pill'], ['rule', 'Divided strip'], ['dot', 'Dotted strip']],
-    spec: [['row', 'Row'], ['ladder', 'Ladder'], ['icons', 'Icon row'], ['boxrow', 'Glass row'], ['boxed', 'Glass ladder']],
+    spec: [['row', 'Row'], ['ladder', 'Ladder'], ['icons', 'Icon row'], ['boxrow', 'Glass row'], ['boxed', 'Glass ladder'], ['pills', 'Pills']],
     list: [['check', 'Checks'], ['dot', 'Dots'], ['dash', 'Dashes'], ['rule', 'Ruled rows'], ['cols', 'Two columns']],
     price: [['plain', 'Plain'], ['line', 'One line'], ['glass', 'Glass bar']],
     cta: [['pill', 'Filled pill'], ['outline', 'Outline pill'], ['rect', 'Soft rect'], ['arrow', 'Pill + arrow'], ['link', 'Text link']],
@@ -6158,7 +6158,7 @@ class CampaignStudio extends StudioBase {
     body: { plain: 'Light support copy', note: 'Set to the right edge, a corner note', ruled: 'A hairline above it — fine print set apart', boxed: 'In a hairline panel that hugs it' },
     list: { check: 'A check before every point', dot: 'A dot before every point', dash: 'A dash before every point', rule: 'No bullet, a hairline between the points', cols: 'The points in two columns' },
     tags: { mist: 'Outlined pills', fill: 'Solid pills', glass: 'Frosted glass pills', icon: 'Pills that lead with an icon', rule: 'One line, divided by hairlines', dot: 'One line, divided by dots' },
-    spec: { row: 'Label over figure, side by side', ladder: 'Stacked rows between hairlines', icons: 'An icon beside every figure', boxrow: 'Side by side on a glass panel', boxed: 'Stacked on a glass panel' },
+    spec: { row: 'Label over figure, side by side', ladder: 'Stacked rows between hairlines', icons: 'An icon beside every figure', boxrow: 'Side by side on a glass panel', boxed: 'Stacked on a glass panel', pills: 'The figure in a solid chip inside a pill, the label beside it' },
     steps: { icon: 'A plate with an icon and a number badge', num: 'A plate with the step number', timeline: 'Dots on a line, numbered above', list: 'A compact numbered list' },
     price: { plain: 'The label over the figure', line: 'One sentence: label and figure together', glass: 'The pair on a glass bar' },
     cta: { pill: 'A solid pill', outline: 'An outlined pill', rect: 'A solid, softly rounded rectangle', arrow: 'A pill that ends in an arrow disc', link: 'Underlined text with an arrow' },
@@ -8917,7 +8917,39 @@ class CampaignStudio extends StudioBase {
       const ladder = mv === 'ladder' || mv === 'boxed', icons = mv === 'icons', grow = mv === 'boxrow';
       const labPx = (icons || grow) ? E * 20 / 24 : E, lsL = C.trackOf(labPx), labH = autoH(labPx);
       let figPx = C.typeAt(icons ? tk.hook : (ladder || grow) ? C.typeAt(tk.hook, 1) : tk.stat, m.big ? 1 : 0);
-      if (ladder) {
+      if (mv === 'pills') {
+        // PILLS: a light pill (6 of padding, a hairline at .2) holding a solid chip with the
+        // figure (24 Regular, padded 8 / 16), then the label (28 Light) and 24 of air. The
+        // first chip is brass, the rest the pill's own dark ink; 16 between pills and rows.
+        // The pill is the eyebrow's Filled colours, so it inverts with the palette.
+        const lp = tk.body, lhL = autoH(lp), lhE = autoH(E), sw = K;
+        const p = 6 * e, cX = 16 * e, cY = 8 * e, lg = 14 * e, pR = 24 * e, gap = 16 * e;
+        const chH = lhE + 2 * cY, ph = chH + 2 * p + 2 * sw;
+        const pills = cells.map(c => {
+          const fw = Wd(c.v, E, 400), lw = c.l ? Wd(c.l, lp, 300) : 0;
+          return { c, fw, lw, w: 2 * sw + p + fw + 2 * cX + (c.l ? lg + lw + pR : p) };
+        });
+        const rows = []; let row = [], w = 0;
+        pills.forEach(q => {
+          if (row.length && w + gap + q.w > iw) { rows.push(row); row = []; w = 0; }
+          row.push(q); w += (row.length > 1 ? gap : 0) + q.w;
+        });
+        if (row.length) rows.push(row);
+        let n = 0;
+        rows.forEach((r, ri) => {
+          let x = at(r.reduce((a, q) => a + q.w, 0) + (r.length - 1) * gap);
+          const y0 = ri * (ph + gap);
+          r.forEach(q => {
+            Bx({ x, y: y0, w: q.w, h: ph, r: ph / 2, fill: pal.eyeFill, stroke: A(pal.eyeInk, .2), sw });
+            const cx = x + sw + p, cy = y0 + sw + p, cw = q.fw + 2 * cX;
+            Bx({ x: cx, y: cy, w: cw, h: chH, r: chH / 2, fill: n++ ? pal.eyeInk : pal.brass });
+            T(q.c.v, cx + cX, cy + cY + bl(E, lhE), E, 400, pal.eyeFill);
+            if (q.c.l) T(q.c.l, cx + cw + lg, y0 + (ph - lhL) / 2 + bl(lp, lhL), lp, 300, pal.eyeInk);
+            x += q.w + gap;
+          });
+        });
+        h = rows.length ? rows.length * ph + (rows.length - 1) * gap : ph;
+      } else if (ladder) {
         const gl = mv === 'boxed', pX = gl ? 40 * e + K : 0, pY = gl ? 24 * e + K : 0, w = iw - 2 * pX, rp = 18 * e;
         const fH = autoH(figPx), inner = Math.max(labH, fH), rowH = 2 * rp + inner + K;
         const nR = Math.max(1, cells.length);
@@ -13753,6 +13785,7 @@ class CampaignStudio extends StudioBase {
       custIcoOrig: () => editContent(mm => { mm.icoOrig = true; }),
       selIsTags: !!selM && selM.type === 'tags',
       selIsSpec: !!selM && selM.type === 'spec',
+      selSpecOpts: !!selM && selM.type === 'spec' && selVarCur !== 'pills',
       // --- Space above the selected component. Per variant, written through
       // setSelTarget's sibling `setAv` path? No: spacing lives on the VARIANT itself
       // (beside gapScale), so it writes the variant the selection belongs to.
