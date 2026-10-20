@@ -144,7 +144,7 @@ What's on the screen, from left to right:
   icon picker, e.g. `calendar_month`, `schedule` or `location_on`, and press Enter.
   The search covers every Material Symbol (3,929 icons) by name and by keyword: type part of a
   name, e.g. `pool` or `stadium`, or a plain word for what you want, e.g. `beach`, `swim` or
-  `city building`, and pick from the results. Name matches come first, keyword matches after. The same search is in OPS's stats icons. In OPS (the Stats and Icon grid pages), the picker with nothing typed shows **every** Material Symbol, 160 at a time: **Show more** adds the next 160, **Show all** lists them all, and the line above the grid says how many there are.
+  `city building`, and pick from the results. Name matches come first, keyword matches after. The same search is in OPS's stats icons. In both studios (CAS's icon picker, and OPS's Stats and Icon grid pages), the picker with nothing typed shows **every** Material Symbol, 160 at a time: **Show more** adds the next 160, **Show all** lists them all, and the line above the grid says how many there are.
 
 **Photo and look:**
 - **Background photo:** use **Background image** → **Photo**.

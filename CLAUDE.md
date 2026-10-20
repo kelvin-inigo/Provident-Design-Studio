@@ -15392,3 +15392,11 @@ untouched; > `EP_MAX_IMGS` (50) images or a .json over the limit refuses with a 
 the sent copy only. Measured: a 3-variant CAS PNG export, 163.2 MB, sent as 30.3 MB of 90% JPEGs
 at full 2160x3840 and accepted; with the limit forced to 24 MB it stopped at 80%.
 
+
+**CAS's icon picker browses every symbol too (section 49, 2026-10-20, by request — "add full icon
+library of google icons").** OPS's paging, ported: with nothing typed `iconSearch` returns the
+curated `ICONS` then all of `ICONS_ALL` (3,948 after de-duplication; it returned the 12 curated),
+`iconPick(q)` pages it 160 at a time (`_iconCap`, instance state, reset on a new query), and the
+rail shows the count line (`.p-ic-n`), a taller `.p-icons-all` grid with `loading="lazy"` images,
+and **Show more** / **Show all**. It was a flat 40 results before. Verified with a real click:
+Show more 320, Show all 3,948, "house" 155 matches, a tile applied to the step on every canvas.
