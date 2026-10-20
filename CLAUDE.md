@@ -15477,3 +15477,42 @@ and nothing else. The view tabs (Feed / Reels / Story), Light | Dark, **Platform
 markup (`mockSafeBox` / `mockSafeWrap` in `studio-base.js` are unread). CAS's `mockRenderAll`
 renders `sq`, `pt` and `st` keyed by SIZE, so the toggle needs no re-render; the Portrait 3:4
 renders even while a variant hides it. Default app Facebook. Section 50 of the sheet.
+
+**Light | Dark came back the same day, and the advertiser has a profile photo (2026-10-20).**
+`state.mockMode` (default dark) and the `mkLight` / `mkDark` pair sit after the size line in
+the bar; the screens' `data-mode` follows it, so only the feed changes. Every ADVERTISER avatar
+(`.mk-av-b` in the feed and Story headers, `.mk-igr-av` on the Instagram Reel) shows the
+supplied provident. wordmark on white — a 160px JPEG embedded as base64 in section 51 of the
+sheet, its `p.` text hidden. The viewer's own tab-bar avatar (`.mk-av2`) stays grey.
+
+# CAS'S COPY VIEW HAS A "BRIEF TO COPY, WITH CLAUDE" CARD (2026-10-20)
+
+By request: a GUI for the `meta-ad-design-copy` skill's Stage 1 inside CAS, invoking the user's
+own Claude. A page cannot run Claude, so the card (a `<details data-acc="cw-brief">` at the top
+of the Copy workspace, section 52 of the sheet) does three things:
+
+- **Brief**: textarea, Families / Investors chips, optional notes. Stored per WORKSPACE in
+  `localStorage['adstudio-brief']` (`brRead` / `brSet`), never in the project.
+- **Ask**: `brPrompt()` = `/meta-ad-design-copy` + "Stage 1 only, do not build in CAS" + today's
+  date + audiences + notes + a request to END with a ```` ```cas-copy ```` JSON block
+  (`BRIEF_SAMPLE`) + the brief. **Open in Claude** is an `<a href="claude://claude.ai/new?q=…">`
+  — the form the Claude app's own "Ask Claude" macOS service uses (found in its app.asar), which
+  caps its text at 16 KB; past `BRIEF_Q_MAX` the link opens an empty chat. The click also copies
+  the prompt and stands the beforeunload guard down for 1.5s. A secondary claude.ai link.
+  **The claude:// link was not exercised from here** (it would have driven the app this session
+  runs in); `brOpen` itself was.
+- **Reply**: `brParse` reads the `cas-copy` block (or a balanced `{…"cas-copy"…}` object), else
+  `brStacks` reads the skill's plain code-block stacks in its order (tag, project, headline,
+  support, proof `·`, price, payment, CTA; audience from the nearest preceding Families/Investors
+  heading; Flags from a "Flags" list). `brWant` maps: eyebrow=tag, hero=headline (main or an
+  alternate), hook=project, body=support, tags=proof, price=label/figure, spec=payment rows,
+  cta=CTA. `brFill` reuses the first component of each type on the page (single ad: the shared
+  list; carousel: the active page), appends missing ones, and with the prune switch drops every
+  other COPY_TYPES component through `dropMod`; one `upd`, so one Undo. Names an empty campaign
+  `<project> - <audience>`.
+
+If the skill's stack order changes, `brStacks` and `BRIEF_SAMPLE` are where to follow it.
+Verified: both parse paths on a realistic reply, real clicks (flag, alternate heading, Fill,
+Undo), prune on the Investors set, brief and reply surviving a reload, 0 contrast failures in
+53 text runs in both themes, no overflow at 375. Markup +9/+9 `sc-if`, +4/+4 `sc-for`,
++1/+1 `details`. No artwork line changed.

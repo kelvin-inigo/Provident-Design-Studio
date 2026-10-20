@@ -172,7 +172,9 @@ What's on the screen, from left to right:
 - **Preview** (top bar) shows the ad on three phones at once — Feed, Reels and Story —
   for one app at a time. The **Facebook | Instagram** toggle picks the app: the Facebook feed
   shows the 1:1, the Instagram feed the Portrait 3:4, and Reels and Story both show the 9:16.
-  The mock-up's primary text, headline and button are filled from the ad's own words.
+  **Light** or **Dark** sets the phone's appearance for the feed (Reels and Stories are always
+  dark, as in both apps). The advertiser's profile photo is the provident. wordmark, and the
+  mock-up's primary text, headline and button are filled from the ad's own words.
 
 **Recreate a component from a screenshot** (with Claude Code):
 1. In Claude Code, drop a screenshot of **one** element (a rating badge, a price card, a countdown
@@ -262,16 +264,32 @@ This is for copywriters: the ad's words on their own, next to a live preview.
    back.
    - The big preview is the real export.
    - The picker above it chooses which variant (or page) you're looking at.
-2. Fill in the fields.
+2. **Start from a brief (optional).** The **Brief to copy, with Claude** card at the top runs
+   the `meta-ad-design-copy` skill in your own Claude.
+   - Paste the brief (script, fact sheet, EOI brief), tick the audiences, and add any notes
+     (permit number, what to lead with).
+   - **Open in Claude** opens the Claude app with the prompt typed in; press Return there. The
+     prompt is also copied, so if Claude opens empty, press ⌘V. **or use claude.ai** opens the
+     website instead. A very long brief is not typed in for you; paste it from the clipboard.
+   - Paste Claude's whole reply into step 3. The card lists Claude's **Flags** as checkboxes,
+     lets you pick **Families** or **Investors** and the main or an alternate heading, and shows
+     which field each line goes into.
+   - **Fill this campaign** puts the words into the fields: small label, heading, hook line
+     (project), body, tags, price, key facts (payment) and button. It reuses the components
+     already on the page and adds any that are missing at the end. With **Remove components this
+     copy doesn't use** on, template sample text is cleared. **Undo** reverses the whole fill.
+   - Families and Investors are separate campaigns: fill one, then start a new campaign for the
+     other. The brief and the reply stay in the card.
+3. Fill in the fields.
    - **Add to this page** adds a component, grouped as Text, Lists or Action. It arrives in its
      basic look; the designer styles and places it.
    - The bin icon removes one, and the notice that appears offers **Undo**.
-3. **Reorder** a line by dragging its grip, or focus the grip and use the arrow keys.
-4. **Hand the copy off:**
+4. **Reorder** a line by dragging its grip, or focus the grip and use the arrow keys.
+5. **Hand the copy off:**
    - **Send to design** saves a snapshot and marks the copy "With design".
    - **Mark as final** saves another snapshot and marks it "Final".
    - **Reopen for edits** and **Back to draft** step back without saving a snapshot.
-5. **History** lists every snapshot, each with its own `.docx`.
+6. **History** lists every snapshot, each with its own `.docx`.
    - **Your name** labels the snapshots made on this computer.
    - **Download .docx** gives you the words as they are right now.
    - With a Source folder set, every hand-off also writes
