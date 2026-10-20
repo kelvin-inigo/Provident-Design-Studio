@@ -73,6 +73,11 @@ Each studio opens on its **project browser**.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count.
 - **Undo** / **Redo** (top bar) go back up to 5 steps.
+- **From the hub** (sidebar, under Library) lists what the Content Hub has received from **Send**,
+  newest first, with a few of the sent images on each card. Click one to open it as a project:
+  its words, layout and the photos it was sent with all come back. A delivery made in the other
+  studio opens there. The hub keeps its copy; nothing is deleted. It uses the **Endpoint URL** and
+  **Import token** from **Share › Import hub**; **Refresh** asks the hub again.
 - If there's unsaved work when you leave, the studio asks first.
 
 ---
@@ -617,6 +622,9 @@ You don't need to set these; the layouts already follow them.
 | The top bar is cut off and **Share** is missing | Make the window wider. CAS's top bar needs about 1150 px. |
 | Old files are still in the export folder | Exports overwrite but never delete. Remove old files by hand. |
 | A project isn't in **Recent** | Only saved projects are listed. Press **Save**. |
+| **From the hub** says it can't reach the hub | Be on the office network. On the website, press **Allow** when Chrome asks about devices on your local network (and allow Chrome under System Settings › Privacy & Security › Local Network on a Mac). Safari and Firefox can't read the hub from the website. |
+| **From the hub** says the token was refused | Set the **Import token** in **Share › Import hub**. |
+| A project from the hub has no photo | It was sent before a photo was added, or the photo was never in the studio (the sent pictures are the finished exports, which aren't put back). Drop the photo again. |
 | ⌘V does nothing after `/cas-component` | Make sure CAS is showing the **editor** (not the project browser or Copy), then press ⌘V again. Claude also saved it in `custom-components/` — open that file and copy its contents if the clipboard was overwritten. |
 | An export went into the wrong design folder | CAS's Master is **Variant A**, Variant 2 is **B**, Variant 3 is **C**. |
 

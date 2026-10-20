@@ -15582,3 +15582,36 @@ maps six jobs — tag, heading, project, price, at most 2 payment rows, button �
 the body (support line) or tags (proof). The prompt asks for the `cas-copy` block in that short
 form (word caps per field, no support line, amenities or travel times); `BRIEF_SAMPLE` dropped
 `support` and `proof`. The parser still reads them, so an older reply does not fail.
+
+# THE PROJECT BROWSER HAS A "FROM THE HUB" VIEW (2026-10-20)
+
+By request: see and reopen what the Content Hub received, from inside CAS and OPS. Sidebar row
+**From the hub** (Library, under Recent, Material Rounded `inbox`) in both studios →
+`splashView: 'hub'`. All logic is shared in `studio-base.js` (`hubCfg`, `hubFetch`, `hubLoad`,
+`hubThumbs`, `hubOpenItem`, `hubVals`); each shell merges `eng.hubVals(view === 'hub')` and calls
+`eng.hubLoad()` when the view is picked. Markup and CSS section 53 (`.hb-*`) are mirrored.
+
+- **The list is the Send endpoint** (`epCfg().url`, `…/api/imports`), GET with the Bearer token
+  when one is set — the own studio's, else the other studio's (`HUB_KEYS`). The hub's GETs do not
+  check the token today; a 401/403 is still handled. Same `targetAddressSpace` local/private dance
+  as `epPost`, so an https page can read the http LAN hub after Chrome's Allow.
+- Cards: title, `hubWhen(received_at)`, image count, source, and a tag from `hubKind` — a guess
+  from the render names (`_feed`/`_Story`/… → Campaign, `_3x4`/`_9x16` → Organic), because the list
+  carries no app tag. Up to `HUB_THUMBS` (3) renders per card, fetched four at a time and shrunk to
+  240px-tall WebP object URLs (`hubDrop` revokes them). Newest 40.
+- **Opening** fetches `/api/imports/<id>`, wraps `content` as a File and calls
+  `loadSessionFile(file, { clean: true })` — so the other studio's delivery hands over exactly like
+  a session file. `clean` is new: the delivery IS the whole project, so a delivery with no photos
+  also clears this studio's slots instead of opening over the last project's photos. A delivery
+  with no `content.state` is refused with a message. Read only — nothing deletes an import.
+- **What comes back:** the whole state and every photo that was in the store at Send (the json's
+  `images`), so OPS deliveries come back with their backgrounds, QRs and icons. **What does not:**
+  a photo never in the store (CAS's template deliveries carry `images: {}`), and `Assets/` (Send
+  never sends it). **The delivered images are NOT re-attached** — they are the finished renders,
+  copy baked in, possibly JPEG-compressed by `epFit`; as a background they would print the words
+  twice. They are only the thumbnails. Opening also records the project in Recent (the
+  session-file rule).
+- Verified against the real hub (4 deliveries, read only): list and thumbnails in both studios, a
+  CAS delivery opened in CAS, an OPS delivery opened from CAS's view handed over to OPS with its
+  photos and QRs, unreachable / 401 / non-list errors shown in the view, 0 contrast failures over
+  the view in both themes. The token was never put into the test browser.

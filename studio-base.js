@@ -910,7 +910,9 @@ class StudioBase {
     if (!this.isDirty()) return true;
     return window.confirm(this.unsavedMsg() + '\n\nOK leaves without saving. Cancel goes back so you can Save.');
   }
-  loadSessionFile(file) {
+  // `opt.clean`: the file IS the whole project, so a delivery that carried no photos also clears this
+  // studio's slots — otherwise it opened over whatever photos the store held from the last project.
+  loadSessionFile(file, opt) {
     const label = (file && file.name) || 'that file';
     const fail = msg => this.setState({ exportStatus: msg });
     const rd = new FileReader();
@@ -960,7 +962,7 @@ class StudioBase {
         fail('"' + label + '" could not be opened — the browser refused to store it (' + (e && e.name || e) + '). Free some space and try again.');
         return;
       }
-      if (n) {
+      if (n || (opt && opt.clean && window.omelette && window.omelette.writeFile)) {
         // Merge: clear only the target studio's slots so loading a session
         // cannot wipe the other studio's photos out of the shared store.
         let sidecar = {};
@@ -972,7 +974,7 @@ class StudioBase {
         catch (e) { stored = false; }
         // This used to be `.catch(() => {})`: a rejected write meant the project
         // reloaded with every photo missing and no hint as to why.
-        if (!stored) {
+        if (!stored && n) {
           try {
             localStorage.setItem(spec.notice, 'Opened "' + label + '" but its ' + n + ' photo' +
               (n === 1 ? '' : 's') + ' could not be stored — the browser is out of space. Clear some recent projects, then load it again.');
@@ -986,6 +988,178 @@ class StudioBase {
     };
     try { rd.readAsText(file); }
     catch (e) { fail('Could not read "' + label + '" — ' + (e && e.message || e)); }
+  }
+
+  // ---------- From the hub ----------
+  // The project browser's "From the hub" view: what the Content Hub has RECEIVED (every
+  // Share › Send lands at its /api/imports), read back and opened as a project. The hub keeps
+  // each delivery as the project's own session .json (`content`, photos embedded as they were in
+  // the store at send time) plus the RENDERED images Send attached. Opening goes through
+  // loadSessionFile, so a delivery for the other studio hands over exactly as a session file does.
+  // The rendered images are NOT put back into the project: they are finished exports with the
+  // copy baked in, not the photos a canvas draws. They are the card's thumbnails only.
+  // Read-only: nothing here ever deletes or changes an import.
+  static HUB_KEYS = ['provident-cas-endpoint', 'provident-ops-endpoint'];
+  static HUB_THUMBS = 3;
+  // The Send endpoint IS the list (…/api/imports). Own studio's URL and token first; with no
+  // token there, the other studio's (one hub, one token, two studios on one computer).
+  hubCfg() {
+    const own = (typeof this.epCfg === 'function' && this.epCfg()) || {};
+    let url = own.url || '', key = own.key || '';
+    if (!key) for (const k of StudioBase.HUB_KEYS) {
+      try { const c = JSON.parse(localStorage.getItem(k) || '{}') || {}; if (c.key && (!c.url || c.url === url)) { key = c.key; break; } } catch (e) {}
+    }
+    return { url: String(url).trim().replace(/\/+$/, ''), key };
+  }
+  static hubHost(u) { try { return new URL(u).host; } catch (e) { return u || 'the hub'; } }
+  // Same Local Network Access dance as Send (epPost): an https page reading an http:// office
+  // address is mixed content unless the request says it is for the local network.
+  async hubFetch(url, ms, cache) {
+    const c = this.hubCfg();
+    const headers = {};
+    if (c.key) headers.Authorization = 'Bearer ' + c.key;
+    const ac = new AbortController(), to = setTimeout(() => ac.abort(), ms || 30000);
+    const opts = { headers, signal: ac.signal, mode: 'cors', credentials: 'omit', cache: cache || 'no-store' };
+    try {
+      const lan = (() => { try { const x = new URL(url); return x.protocol === 'http:' && !/^(localhost|127\.|\[::1\])/.test(x.hostname); } catch (e) { return false; } })();
+      if (lan) for (const sp of ['local', 'private']) {
+        try { return await fetch(url, Object.assign({}, opts, { targetAddressSpace: sp })); }
+        catch (e) { if (!(e instanceof TypeError) || /fetch|network|load/i.test(e.message || '')) throw e; }
+      }
+      return await fetch(url, opts);
+    } finally { clearTimeout(to); }
+  }
+  hubWhy(e, url) {
+    const host = StudioBase.hubHost(url);
+    if (e && e.name === 'AbortError') return 'The hub at ' + host + ' took too long to answer. Try Refresh.';
+    if (location.protocol === 'https:' && /^http:/i.test(url)) return 'The browser blocked the hub at ' + host + ': this page is https and the hub is plain http. In Chrome, press Allow when it asks to access devices on your local network (the address bar’s site settings if you dismissed it), and on a Mac allow Chrome in System Settings › Privacy & Security › Local Network. Safari and Firefox cannot read the hub from the website — open the studio from this Mac instead.';
+    return 'Could not reach the hub at ' + host + ' — check you are on the office network and the hub is up.';
+  }
+  hubRefused(r, url) {
+    if (r.status === 401 || r.status === 403) return 'The hub at ' + StudioBase.hubHost(url) + ' refused the token — set the Import token in Share › Import hub.';
+    if (r.status === 404) return 'Nothing answers at ' + url + ' — the Endpoint URL in Share › Import hub should end in /api/imports.';
+    return 'The hub at ' + StudioBase.hubHost(url) + ' answered HTTP ' + r.status + '.';
+  }
+  // Which studio a delivery is for, from its file names alone (the list carries no app tag, and
+  // fetching every project just to label it would pull megabytes per card). A hint, nothing more.
+  static hubKind(it) {
+    const n = (it.assets || []).map(a => a.original_name || a.name).join('\n');
+    if (/_(feed|story|portrait_fix|portrait_3x4|landscape_1\.91x1|eventbrite_banner)/i.test(n)) return 'campaign';
+    if (/_(3x4|9x16)\./i.test(n)) return 'organic';
+    return '';
+  }
+  hubDrop() {
+    const h = this._hub;
+    if (h && h.urls) h.urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
+  }
+  async hubLoad() {
+    if (this._hub && this._hub.busy) return;
+    const c = this.hubCfg(), gen = (this._hubGen = (this._hubGen || 0) + 1);
+    const prev = this._hub || {};
+    this._hub = Object.assign({}, prev, { busy: true, msg: '' });
+    this.forceUpdate();
+    const done = o => { if (gen !== this._hubGen) return; this._hub = Object.assign({ busy: false, items: [], thumbs: {}, urls: [] }, o); this.forceUpdate(); };
+    const ok = this.constructor.epUrlOk ? this.constructor.epUrlOk(c.url) : /^https?:\/\//.test(c.url);
+    if (!ok) { this.hubDrop(); return done({ msg: 'The Endpoint URL in Share › Import hub is not usable (' + (c.url || 'empty') + ').' }); }
+    let r;
+    try { r = await this.hubFetch(c.url, 20000); }
+    catch (e) { this.hubDrop(); return done({ msg: this.hubWhy(e, c.url) }); }
+    if (!r.ok) { this.hubDrop(); return done({ msg: this.hubRefused(r, c.url) }); }
+    let list;
+    try { list = await r.json(); } catch (e) { list = null; }
+    if (!Array.isArray(list)) { this.hubDrop(); return done({ msg: StudioBase.hubHost(c.url) + ' answered, but not with a list of deliveries — is the Endpoint URL in Share › Import hub the hub’s /api/imports?' }); }
+    this.hubDrop();
+    done({ ok: true, base: c.url, items: list.filter(it => it && it.id).slice(0, 40), at: Date.now() });
+    this.hubThumbs(gen);
+  }
+  // Small WebP copies of the first few renders, four at a time: a full export is ~1-2 MB and
+  // 2160 px, and forty cards of those is a lot of decoded pixels for a 70px thumbnail.
+  async hubThumbs(gen) {
+    const h = this._hub;
+    if (!h || !h.ok) return;
+    const jobs = [];
+    h.items.forEach(it => (it.assets || []).slice(0, StudioBase.HUB_THUMBS).forEach(a => jobs.push([it.id, a.name])));
+    let i = 0, tick = 0;
+    const one = async () => {
+      while (i < jobs.length && gen === this._hubGen) {
+        const [id, name] = jobs[i++];
+        try {
+          const r = await this.hubFetch(h.base + '/' + encodeURIComponent(id) + '/assets/' + encodeURIComponent(name), 30000, 'default');
+          if (!r.ok) continue;
+          let blob = await r.blob();
+          try {
+            const bm = await createImageBitmap(blob, { resizeHeight: 240, resizeQuality: 'medium' });
+            const cv = document.createElement('canvas'); cv.width = bm.width; cv.height = bm.height;
+            cv.getContext('2d').drawImage(bm, 0, 0); bm.close && bm.close();
+            blob = await new Promise(res => cv.toBlob(b => res(b || blob), 'image/webp', .82));
+          } catch (e) {}
+          if (gen !== this._hubGen) return;
+          const u = URL.createObjectURL(blob);
+          h.urls.push(u); h.thumbs[id + '/' + name] = u;
+          if (++tick % 3 === 0 || i >= jobs.length) this.forceUpdate();
+        } catch (e) {}
+      }
+    };
+    await Promise.all([one(), one(), one(), one()]);
+    if (gen === this._hubGen) this.forceUpdate();
+  }
+  async hubOpenItem(it) {
+    const h = this._hub || {};
+    if (!h.base || !this.confirmDiscard()) return;
+    const title = (it.title || 'the delivery').trim();
+    const fail = msg => this.setState({ exportStatus: msg });
+    fail('Opening “' + title + '” from the hub…');
+    let doc;
+    try {
+      const r = await this.hubFetch(h.base + '/' + encodeURIComponent(it.id), 180000);
+      if (!r.ok) return fail(this.hubRefused(r, h.base));
+      doc = await r.json();
+    } catch (e) { return fail(this.hubWhy(e, h.base)); }
+    const content = doc && doc.content;
+    if (!content || typeof content !== 'object' || !content.state || typeof content.state !== 'object')
+      return fail('“' + title + '” was sent by ' + (it.source || 'another system') + ' and carries no studio project, so there is nothing to open. Its images are on the hub’s Received page.');
+    const fname = title.replace(/[\\/:*?"<>|]+/g, ' ').slice(0, 80) + '.json';
+    this.loadSessionFile(new File([JSON.stringify(content)], fname, { type: 'application/json' }), { clean: true });
+  }
+  static hubWhen(s) {
+    const d = new Date(String(s || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2'));
+    if (isNaN(d)) return '';
+    const t = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const day = new Date(); day.setHours(0, 0, 0, 0);
+    const diff = Math.round((day - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+    return diff === 0 ? 'Today ' + t : diff === 1 ? 'Yesterday ' + t : d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' ' + t;
+  }
+  hubVals(on) {
+    const h = this._hub || {};
+    const mine = this.sessionApp() === 'provident-ad-studio' ? 'campaign' : 'organic';
+    const NAME = { campaign: 'Campaign', organic: 'Organic' };
+    const items = (h.items || []).map(it => {
+      const kind = StudioBase.hubKind(it), n = (it.assets || []).length;
+      const th = (it.assets || []).slice(0, StudioBase.HUB_THUMBS).map(a => {
+        const u = h.thumbs && h.thumbs[it.id + '/' + a.name];
+        return { style: u ? { backgroundImage: 'url(' + u + ')' } : {}, wait: u ? undefined : '1' };
+      });
+      return {
+        title: (it.title || '').trim() || 'Untitled delivery',
+        meta: [StudioBase.hubWhen(it.received_at), n + ' image' + (n === 1 ? '' : 's'), it.source].filter(Boolean).join(' · '),
+        tag: kind ? (kind === mine ? NAME[kind] : 'Opens in ' + NAME[kind]) : 'Not a studio project?',
+        thumbs: th, thumbsOn: th.length ? true : undefined,
+        tip: 'Open this delivery as a project' + (kind && kind !== mine ? ' — it opens in the ' + NAME[kind] + ' studio' : ''),
+        open: () => this.hubOpenItem(it)
+      };
+    });
+    return {
+      hubOn: on ? true : undefined,
+      hubCount: h.ok ? String((h.items || []).length) : '',
+      hubCountOn: h.ok ? true : undefined,
+      hubItems: items,
+      hubBusy: h.busy ? true : undefined,
+      hubMsg: h.msg || '', hubMsgOn: h.msg ? true : undefined,
+      hubEmptyOn: h.ok && !h.busy && !items.length ? true : undefined,
+      hubHost: StudioBase.hubHost(this.hubCfg().url),
+      hubRefresh: () => this.hubLoad(),
+      hubRefreshLabel: h.busy ? 'Loading…' : 'Refresh'
+    };
   }
 
   // ---------- project folder ----------
