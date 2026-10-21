@@ -4655,6 +4655,19 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    caption's first line repeated both, so it goes until there is a picture to describe */
 .p-droprow:has(.p-drop:not([data-done])) + .p-drop-cap > s:first-child{display:none}
 .p-rail .p-droprow .p-drop:not(.p-drop-sq){width:116px;max-width:116px}
+/* ══ 56 · THE COPY VIEW TAKES THE SAME FIELDS AND UPLOAD ROWS (2026-10-21) ════════════════════
+   A brief picture is the upload control the rails use — a framed tile (dashed empty, green when
+   done) with the Upload / Replace, As graphic and Remove list under it — an empty word field
+   carries "To fill in", and an optional field says Optional as a tag rather than in its hint. */
+.p-ftag{flex:none;margin-left:6px;font:500 11px/1 var(--ps-font);padding:3px 7px;border-radius:var(--ps-pill);
+  background:var(--ps-warn-q, rgba(185,120,27,.16));color:var(--ps-ink);vertical-align:1px}
+.p-ftag.p-ftag-opt{background:var(--ps-fill);color:var(--ps-ink-2)}
+.cw-sub-t{display:flex;align-items:center;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.cw-br-pic image-slot{box-sizing:border-box;padding:4px;border-radius:12px;border:1.5px dashed var(--ps-line);background:var(--ps-fill)}
+.cw-br-pic:not([data-filled]) image-slot{box-shadow:none}
+.cw-br-pic[data-filled] image-slot{border-style:solid;border-color:var(--ps-good);background:var(--ps-good-q)}
+.cw-up{padding-top:0}
+.cw-br-pic:not([data-filled]) .up-done,.cw-br-pic[data-filled] .up-new,.cw-br-pic:not([data-filled]) .up-rep{display:none}
 </style>
 </helmet>
 
@@ -5007,7 +5020,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
               <button onClick="{{ brFam }}" data-on="{{ brFamOn }}" class="cw-br-chip" aria-label="Families"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Families</button>
               <button onClick="{{ brInv }}" data-on="{{ brInvOn }}" class="cw-br-chip" aria-label="Investors"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Investors</button>
             </div>
-            <label class="cw-sub">Notes for Claude <s>optional — permit number, what to lead with, what to leave out</s>
+            <label class="cw-sub"><span class="cw-sub-t">Notes for Claude <b class="p-ftag p-ftag-opt">Optional</b></span><s>Permit number, what to lead with, what to leave out</s>
               <input value="{{ brNotes }}" onChange="{{ onBrNotes }}" class="p-in" placeholder="e.g. Trakheesi 7123456 · lead with the beach">
             </label>
             <details class="cw-br-more">
@@ -5019,7 +5032,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
               <span class="cw-br-dt"><s>Source folder</s><b>{{ brFolder }}</b></span>
               <sc-if value="{{ brFolderCan }}" hint-placeholder-val="{{ true }}"><button onClick="{{ brFolderPick }}" class="p-ghost p-sm">{{ brFolderBtn }}</button></sc-if>
             </div>
-            <label class="cw-sub">Google Drive folder <s>optional — the project folder with Local, International and International EUR inside</s>
+            <label class="cw-sub"><span class="cw-sub-t">Google Drive folder <b class="p-ftag p-ftag-opt">Optional</b></span><s>The project folder with Local, International and International EUR inside</s>
               <input value="{{ brDrive }}" onChange="{{ onBrDrive }}" class="p-in" placeholder="https://drive.google.com/drive/folders/…" inputmode="url" spellcheck="false">
             </label>
             <sc-if value="{{ brDriveBad }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">That doesn&#8217;t look like a Google Drive link.</p></sc-if>
@@ -5028,10 +5041,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
               <div class="cw-br-pics">
                 <div class="cw-br-pic" data-filled="{{ brLogoOn }}">
                   <image-slot id="adbrief-logo" fit="contain" shape="rounded" radius="10" placeholder="Logo" data-noreframe></image-slot>
-                  <sc-if value="{{ brLogoOn }}" hint-placeholder-val="{{ false }}">
-                    <span class="cw-br-cap">Partner mark</span>
-                    <span class="cw-br-pa"><button onClick="{{ brLogoDrop }}" class="cw-br-mini cw-br-rm" title="Remove the logo" aria-label="Remove the logo"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></span>
-                  </sc-if>
+                  <sc-if value="{{ brLogoOn }}" hint-placeholder-val="{{ false }}"><span class="cw-br-cap">Partner mark</span></sc-if>
+                  <div class="up-acts cw-up"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button onClick="{{ brLogoDrop }}" class="up-a up-done up-rm" title="Remove the logo"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div>
                 </div>
               </div>
             </div>
@@ -5040,13 +5051,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                 <sc-for list="{{ brPhotos }}" as="pc" hint-placeholder-count="1">
                   <div class="cw-br-pic" data-filled="{{ pc.filled }}">
                     <image-slot id="{{ pc.id }}" fit="cover" shape="rounded" radius="10" placeholder="Picture" data-noreframe></image-slot>
-                    <sc-if value="{{ pc.filled }}" hint-placeholder-val="{{ false }}">
-                      <span class="cw-br-cap">{{ pc.cap }}</span>
-                      <span class="cw-br-pa">
-                        <sc-if value="{{ pc.useOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pc.use }}" class="cw-br-mini" title="Add this image to the ad as a graphic component"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg>As graphic</button></sc-if>
-                        <button onClick="{{ pc.drop }}" class="cw-br-mini cw-br-rm" title="Remove this photo" aria-label="Remove this photo"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
-                      </span>
-                    </sc-if>
+                    <sc-if value="{{ pc.filled }}" hint-placeholder-val="{{ false }}"><span class="cw-br-cap">{{ pc.cap }}</span></sc-if>
+                    <div class="up-acts cw-up"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><sc-if value="{{ pc.useOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pc.use }}" class="up-a up-done" title="Add this image to the ad as a graphic component"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h270q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62h-270q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85v-270q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v270Q820-182 799-161q-21 21-51.31 21H212.31Zm43.08-152.31h449.22L565-478.46 445-322.69l-85-108.08-104.61 138.46ZM680-680h-50q-12.77 0-21.38-8.62Q600-697.23 600-710t8.62-21.38Q617.23-740 630-740h50v-50q0-12.77 8.62-21.38Q697.23-820 710-820t21.38 8.62Q740-802.77 740-790v50h50q12.77 0 21.38 8.62Q820-722.77 820-710t-8.62 21.38Q802.77-680 790-680h-50v50q0 12.77-8.62 21.38Q722.77-600 710-600t-21.38-8.62Q680-617.23 680-630v-50Z"/></svg>As graphic</button></sc-if><button onClick="{{ pc.drop }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div>
                   </div>
                 </sc-for>
               </div>
@@ -5117,7 +5123,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <div class="cw-f" data-cwf="{{ f.key }}" data-cl="{{ f.cl }}">
               <div class="cw-lab-r">
                 <sc-if value="{{ f.moveOn }}" hint-placeholder-val="{{ true }}"><button onPointerDown="{{ f.grab }}" onKeyDown="{{ f.keyMove }}" class="cw-grip" title="{{ f.moveTip }}" aria-label="{{ f.moveTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-175.39q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Z"/></svg></button></sc-if>
-                <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
+                <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.needOn }}" hint-placeholder-val="{{ false }}"><b class="p-ftag">To fill in</b></sc-if><sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
                 <button onClick="{{ f.del }}" class="cw-x cw-del" title="{{ f.delTip }}" aria-label="{{ f.delTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg></button>
               </div>
               <sc-if value="{{ f.isLine }}" hint-placeholder-val="{{ false }}">
@@ -5367,7 +5373,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                         <sc-if value="{{ pg.emptyOn }}" hint-placeholder-val="{{ false }}"><p class="cw-empty">No words in this ad. Add them in the studio's Copy view.</p></sc-if>
                         <sc-for list="{{ pg.fields }}" as="f" hint-placeholder-count="3">
                           <div class="cw-f">
-                            <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
+                            <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.needOn }}" hint-placeholder-val="{{ false }}"><b class="p-ftag">To fill in</b></sc-if><sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
                             <sc-if value="{{ f.isLine }}" hint-placeholder-val="{{ false }}"><input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}"></sc-if>
                             <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ true }}">
                               <textarea value="{{ f.val }}" onChange="{{ f.onText }}" rows="{{ f.rows }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}"></textarea>
@@ -11985,7 +11991,7 @@ class CampaignStudio extends StudioBase {
         if (b.drive.trim()) bits.push('Drive link');
         if (this.brHas('adbrief-logo')) bits.push('logo');
         if (n) bits.push(n + ' picture' + (n === 1 ? '' : 's'));
-        return bits.length ? bits.join(' · ') : 'Optional — where it saves, and a logo and photos for the ad';
+        return bits.length ? bits.join(' · ') : 'Where it saves, and a logo and photos for the ad';
       })(),
     };
   }
@@ -12446,6 +12452,9 @@ class CampaignStudio extends StudioBase {
             isChips: m.type === 'tags',
             isCols: m.type === 'spec',
             ph: C.COPY_PH[m.type] || '',
+            // an empty line says so beside its name, the design rail's own tag
+            needOn: (m.type === 'tags' ? !C.chipsOf(m).length : m.type === 'spec' ? !C.colsOf(m).length
+              : !String(m.text || '').trim() || (m.type === 'price' && !String(m.sub || '').trim())) ? '1' : undefined,
             // the grip: only where there is somewhere to move to
             moveOn: mods.length > 1,
             // which part of the ad the line sits in, read by the drag so a drop across the
@@ -15900,6 +15909,8 @@ class Component extends DCLogic {
           const hid = C.copyHidden(st, pg.vi, m.id);
           return {
             key: m.id, label: lab[m.id], hint: C.COPY_HINT[m.type] || '', ph: C.COPY_PH[m.type] || '',
+            needOn: (m.type === 'tags' ? !C.chipsOf(m).length : m.type === 'spec' ? !C.colsOf(m).length
+              : !String(m.text || '').trim() || (m.type === 'price' && !String(m.sub || '').trim())) ? '1' : undefined,
             hidOn: !!hid, hidText: hid === 'all' ? 'Hidden on the canvas' : 'Hidden on some variants',
             isLine: ['eyebrow', 'cta'].indexOf(m.type) >= 0, isArea: multi, isPrice: m.type === 'price', isChips: m.type === 'tags', isCols: m.type === 'spec',
             val: String(m.text || ''), sub: String(m.sub || ''),
@@ -16200,7 +16211,7 @@ class Component extends DCLogic {
     document.addEventListener('click', e => {
       const b = e.target && e.target.closest && e.target.closest('[data-up]');
       if (!b) return;
-      const row = b.closest('.p-droprow'), own = row && row.querySelector('image-slot');
+      const row = b.closest('.p-droprow, .cw-br-pic'), own = row && row.querySelector('image-slot');
       if (!own) return;
       if (b.dataset.up === 'replace') { if (own._input) own._input.click(); return; }
       const all = [...document.querySelectorAll('image-slot')].filter(x => x.id === own.id);

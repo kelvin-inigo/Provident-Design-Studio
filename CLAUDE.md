@@ -15919,6 +15919,15 @@ Illustrator, Remove** (danger ink) on a filled one. Captions sit UNDER the row.
   longest label, Photoshop, needs 107. An empty CAS slot hides its caption's first line, which
   repeated the placeholder.
 
+**The Copy view took the same pass (2026-10-21)**, section 56 of CAS's sheet:
+- **Brief pictures are the upload control**: each tile is framed like `.p-drop` (dashed empty,
+  green when filled) with the `.up-acts` list under it — Upload / Replace (delegated: the
+  handler now accepts `.cw-br-pic` as a row), As graphic, Remove. The old pill and × are gone.
+- **An empty word field carries "To fill in"** (`needOn`, in the Copy view and in Ad sets ›
+  Edit text, which shares the markup); `.p-ftag` is a global rule now, not rail-scoped.
+- **"Optional" is a tag**, not a lowercase "optional —" in the hint: Notes for Claude, Google
+  Drive folder, and the folder/pictures fold's summary.
+
 # TOP AGENTS: A WEEKLY PERIOD, AND A ONE-SLIDE "TOP AGENT — SOLO" TEMPLATE (2026-10-21)
 
 By request: the Top agents carousel can be **Weekly** too, and a single rank card exists for an
