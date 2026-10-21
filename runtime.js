@@ -654,10 +654,7 @@
     } catch (e) {}
   }
 
-  // A NATIVE SHELL BRINGS ITS OWN. The iOS app (ios/) injects `providentNativeCutout` before
-  // this file runs — the same contract (state, probe, run), with Apple's Vision subject lifting
-  // underneath instead of a loopback service a phone does not have. A browser never has one.
-  W.providentCutout = W.providentNativeCutout || cutout;
+  W.providentCutout = cutout;
 
   // ── 4b. Edit in Photoshop, through a local helper ─────────────────────────
   //

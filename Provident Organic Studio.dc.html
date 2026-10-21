@@ -11768,17 +11768,8 @@ class OrganicStudio extends StudioBase {
     try { return !!(typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
     catch (e) { return false; }
   }
-  // WHY background removal is off, in the words of the place it runs. On a computer it is the
-  // local rembg service; in the iOS app (its provider says `url: 'native'`) it is Vision, and
-  // the app's probe RUNS Vision once and hands back the reason when it cannot — the iOS
-  // Simulator, which has no Neural Engine, is the case that found it. Telling a phone to
-  // "start tools/rembg/serve.sh" is a sentence nobody holding one can act on.
+  // WHY background removal is off, in the words of the place it runs. It is the local rembg service.
   static cutOffNote(kind) {
-    const api = typeof window !== 'undefined' && window.providentCutout;
-    if (api && api.url === 'native') {
-      const why = (api.info && api.info.note) || 'Background removal is not available on this device.';
-      return kind === 'drop' ? (OrganicStudio.coarse() ? 'Add' : 'Drop') + ' a cut-out PNG — ' + why.charAt(0).toLowerCase() + why.slice(1) : why;
-    }
     return kind === 'drop'
       ? 'Drop a cut-out PNG, or start tools/rembg/serve.sh and one will be made for you.'
       : 'Background removal is off on this computer \u2014 start tools/rembg/serve.sh, then press Remove background.';
@@ -15973,7 +15964,7 @@ class OrganicStudio extends StudioBase {
       // (OPS writes flat, one file per slide per size) and the button's counted sentence.
       ...(() => {
         const sel = s.exportKind || 'jpg';
-        const fa = this.folderApi(), inFolder = !!(fa && fa.supported && (fa.handle || fa.pending)), shell = StudioBase.nativeShell();
+        const fa = this.folderApi(), inFolder = !!(fa && fa.supported && (fa.handle || fa.pending));
         const reel = s.tpl === 'rcover', perSlide = reel ? 1 : (s.storyOn ? 2 : 1), nImg = s.slides.length * perSlide;
         const plural = { jpg: 'JPEGs', png: 'PNGs', svg: 'SVGs' }, one = { jpg: 'JPEG', png: 'PNG', svg: 'SVG' };
         const what = reel ? 'The 9:16 cover' : (s.storyOn ? 'Feed + story per slide' : 'Feed only');
@@ -15984,8 +15975,8 @@ class OrganicStudio extends StudioBase {
           shFmtJpgAria: sel === 'jpg' ? 'true' : 'false', shFmtPngAria: sel === 'png' ? 'true' : 'false',
           shFmtSvgAria: sel === 'svg' ? 'true' : 'false', shFmtPdfAria: sel === 'pdf' ? 'true' : 'false',
           shDestFolder: inFolder ? '1' : undefined, shDestZip: inFolder ? undefined : '1',
-          shDestName: inFolder ? (this.folderName() || 'Source folder') : (shell ? 'Share sheet' : 'Downloads'),
-          shDestSub: sel === 'pdf' ? 'One PDF, every slide in order' : (inFolder ? what + ' \u00b7 straight into the folder' : (shell ? 'Separate files \u00b7 ' + what.toLowerCase() : 'One zip \u00b7 ' + what.toLowerCase())),
+          shDestName: inFolder ? (this.folderName() || 'Source folder') : 'Downloads',
+          shDestSub: sel === 'pdf' ? 'One PDF, every slide in order' : (inFolder ? what + ' \u00b7 straight into the folder' : 'One zip \u00b7 ' + what.toLowerCase()),
           shDestActOn: (fa && fa.supported) ? '1' : undefined, shDestAct: inFolder ? 'Change' : 'Choose folder',
           exportLayoutNote: 'One file per slide' + (reel ? '' : (s.storyOn ? ', feed and story told apart by _3x4 and _9x16' : ', feed only while the story is hidden')) + ', no folders inside. The PDF is one file.',
           shExportLabel: sel === 'pdf' ? 'Export PDF' : 'Export ' + nImg + ' ' + (nImg === 1 ? one[sel] : plural[sel]),

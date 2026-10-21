@@ -14234,7 +14234,7 @@ class CampaignStudio extends StudioBase {
       // button's own sentence. The long descriptions stay as the cards' tooltips.
       ...(() => {
         const sel = (() => { return s.exportKind || 'jpg'; })();
-        const fa = this.folderApi(), inFolder = !!(fa && fa.supported && (fa.handle || fa.pending)), shell = StudioBase.nativeShell();
+        const fa = this.folderApi(), inFolder = !!(fa && fa.supported && (fa.handle || fa.pending));
         const nImg = s.variants.reduce((a, vv) => a + CampaignStudio.sizesFor(s, vv).length, 0);
         const nV = s.variants.length, car = CampaignStudio.isCarousel(s);
         const plural = { jpg: 'JPEGs', png: 'PNGs', svg: 'SVGs' };
@@ -14247,8 +14247,8 @@ class CampaignStudio extends StudioBase {
           shFmtJpgAria: sel === 'jpg' ? 'true' : 'false', shFmtPngAria: sel === 'png' ? 'true' : 'false',
           shFmtSvgAria: sel === 'svg' ? 'true' : 'false', shFmtPdfAria: sel === 'pdf' ? 'true' : 'false',
           shDestFolder: inFolder ? '1' : undefined, shDestZip: inFolder ? undefined : '1',
-          shDestName: inFolder ? (this.folderName() || 'Source folder') : (shell ? 'Share sheet' : 'Downloads'),
-          shDestSub: sel === 'pdf' ? 'One PDF, every page in order' : (inFolder ? where + extra + ' \u00b7 replaces the last export' : (shell ? 'Separate files' + extra : 'One zip \u00b7 ' + where + extra)),
+          shDestName: inFolder ? (this.folderName() || 'Source folder') : 'Downloads',
+          shDestSub: sel === 'pdf' ? 'One PDF, every page in order' : (inFolder ? where + extra + ' \u00b7 replaces the last export' : 'One zip \u00b7 ' + where + extra),
           shDestActOn: (fa && fa.supported) ? '1' : undefined, shDestAct: inFolder ? 'Change' : 'Choose folder',
           shExportLabel: sel === 'pdf' ? 'Export PDF' : 'Export ' + nImg + ' ' + (nImg === 1 ? one[sel] : plural[sel]),
           shStatus: s.exportStatus || '', shStatusOn: (s.exportStatus && s.exportStatus !== 'Ready.') ? '1' : undefined,

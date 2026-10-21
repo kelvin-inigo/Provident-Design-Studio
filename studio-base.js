@@ -1282,46 +1282,21 @@ class StudioBase {
     }
     return true;
   }
-  // ── A NATIVE SHELL TAKES FILES ITSELF. The iOS app (ios/) runs the studio in a WKWebView,
-  // where a download link does nothing useful and there is no folder picker: it injects
-  // `window.providentNative.share(files)`, which hands the files to the system share sheet —
-  // Save to Photos, Save to Files, AirDrop — and resolves { done, activity }. A browser has no
-  // such object, so each writer below behaves exactly as it always has there.
-  static nativeShell() {
-    try {
-      const n = typeof window !== 'undefined' && window.providentNative;
-      return n && typeof n.share === 'function' ? n : null;
-    } catch (e) { return null; }
-  }
   // THE SESSION FILE WITHOUT A FOLDER, for both studios. The project is recorded in Recent
-  // first — on a phone that IS the save, kept on the device, and the file is a copy — then
-  // the file goes where this platform puts files: the share sheet in the iOS app, AWAITED so
-  // the status can say whether a copy was actually written (a dismissed sheet writes none),
-  // and a download everywhere else. "Pick a source folder" is advice only where there is a
-  // folder picker to pick one with; the app said it to a phone.
+  // first — on a phone that IS the save, kept on the device, and the file is a copy, then a download. "Pick a source folder" is advice only where there is a folder picker.
   async saveSessionCopy(name, ext, data) {
     this.markSaved();
     this.recordSaved();
     const blob = new Blob([data], { type: 'application/json' });
-    if (StudioBase.nativeShell()) {
-      const how = await this.saveAs(blob, name + ext, 'Session file', 'application/json', '.json');
-      this.setState({ exportStatus: how === 'saved'
-        ? 'Saved "' + name + '" to Recent, and the session file where you sent it.'
-        : 'Saved "' + name + '" to Recent on this device \u2014 no session file was written.' });
-      return;
-    }
     this.download(blob, name + ext);
     this.setState({ exportStatus: 'Saved ' + name + ext + (this.folderSupported() ? ' \u2014 pick a source folder to keep Assets alongside it.' : '.') });
   }
   // THE FIRST WORD OF AN EXPORT ROW, read off the same three branches `deliver` takes, so the
   // row cannot promise a zip the export does not write: a source folder gets the files flat,
-  // the iOS app hands them to the share sheet one at a time (Save Image needs separate
-  // images, and a zip is a file nobody on a phone can open), and only a plain browser gets a
-  // zip. Every row said "Zip" in all three — found in the iOS Simulator.
+  // anything else gets a zip.
   deliverWord() {
     const f = this.folderApi();
     if (f && f.supported && (f.handle || f.pending)) return 'Into the folder';
-    if (StudioBase.nativeShell()) return 'Separate files';
     return 'Zip';
   }
   // Renders go into the folder when there is one, otherwise a zip download. A render's name
@@ -1343,20 +1318,6 @@ class StudioBase {
       if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '"' + inDirs + ' · session + Assets refreshed' }); }
       return ok;
     }
-    // In the iOS app: one file per render, NOT a zip — a phone saves images to Photos, and a
-    // zip is a file nobody on a phone can open
-    const nat = StudioBase.nativeShell();
-    if (nat) {
-      let r = null;
-      // the share sheet takes FILES, not a folder tree — hand over each one by its own name,
-      // which already says which variant and which size it is
-      const flat = files.map(fl => String(fl.name).indexOf('/') < 0 ? fl : Object.assign({}, fl, { name: String(fl.name).split('/').pop() }));
-      try { r = await nat.share(flat, { title: name }); }
-      catch (e) { this.setState({ exportStatus: 'Could not hand the files over — ' + ((e && e.message) || e) + '.' }); return false; }
-      if (!r || !r.done) { this.setState({ exportStatus: 'Export cancelled — nothing was saved.' }); return false; }
-      this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + (r.activity ? ' · ' + r.activity : '') });
-      return true;
-    }
     const blob = this.zip(files);
     // No project folder set, so ask where this should go rather than silently dropping it
     // in Downloads. A cancelled dialog leaves the project untouched and says so.
@@ -1367,12 +1328,6 @@ class StudioBase {
     return true;
   }
   download(blob, name) {
-    const nat = StudioBase.nativeShell();
-    if (nat) {
-      nat.share([{ name, data: blob, type: blob.type }], { title: name })
-        .catch(e => this.setState({ exportStatus: 'Could not hand "' + name + '" over — ' + ((e && e.message) || e) + '.' }));
-      return;
-    }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = name;
     document.body.appendChild(a); a.click();
@@ -1385,16 +1340,6 @@ class StudioBase {
   // behaviour everything had before. A cancelled dialog is NOT an error: it returns false
   // so the caller can say "cancelled" rather than reporting a failed export.
   async saveAs(blob, name, desc, mime, ext) {
-    const nat = StudioBase.nativeShell();
-    if (nat) {
-      try {
-        const r = await nat.share([{ name, data: blob, type: mime || blob.type }], { title: name });
-        return r && r.done ? 'saved' : 'cancelled';
-      } catch (e) {
-        this.setState({ exportStatus: 'Could not hand "' + name + '" over — ' + ((e && e.message) || e) + '.' });
-        return 'cancelled';
-      }
-    }
     if (!window.showSaveFilePicker) { this.download(blob, name); return 'downloaded'; }
     let handle;
     try {

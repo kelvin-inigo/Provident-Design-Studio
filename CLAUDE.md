@@ -13555,26 +13555,13 @@ only** (mirrored, same markup) — its editor and its top bar at phone width are
 - **Stale template copy seen on the way**: the Just listed card reads "Serif status headline,
   glass price pill, agents and QR" — the serif and the second agent are both gone.
 
-# AN iPHONE APP SHELL EXISTS — ON THE MAC IT WAS BUILT ON, NOT IN THIS REPOSITORY
+# THE iOS APP SHELL WAS DELETED (2026-10-21)
 
-A native iOS shell that runs `Provident Organic Studio.dc.html` in a `WKWebView` was built as an
-experiment, in `ios/`. **By decision (2026-09-24) it stays local**: `ios/` is listed in that Mac's
-`.git/info/exclude`, so it cannot be committed by accident, and its build notes, verification record
-and Simulator traps live beside it in `ios/NOTES.md` and `ios/README.md`. It copies the studio in
-from the repository root at every build, so the repository is still the one copy of the studio.
-Where the code's comments mention `ios/`, they mean that local folder.
-
-What the shell changed in the studio IS in the repository:
-
-- **Three hooks in the shared files, each inert in a browser.** `StudioBase.nativeShell()` in
-  `studio-base.js` (`deliver` / `download` / `saveAs` hand files to a native share sheet when one
-  is present — individual files, never a zip, so Save to Photos works), `W.providentCutout =
-  W.providentNativeCutout || cutout` in `runtime.js` (placed before the storage stand-in's early
-  returns, the rule this file already records), and `OrganicStudio.cutOffNote(kind)`, which words
-  the agent rows when background removal is unavailable. In a browser there is no native shell and
-  `providentNativeCutout` is undefined, so none of them does anything.
-- **The canvas preview is shrunk with a transform, in every engine** — the next section.
-- **A run of touch-screen fixes** — the section after it.
+By request. The local `ios/` folder is gone, and so are its hooks in the studios:
+`StudioBase.nativeShell()` and its share-sheet branches in `deliver`, `download`, `saveAs`,
+`saveSessionCopy` and `deliverWord`; `providentNativeCutout` in `runtime.js`; the Vision branch
+of `OrganicStudio.cutOffNote`; and the "Share sheet" destination in both Share panels. Do not
+rebuild it. What it FOUND stays: the transform preview and the touch fixes below.
 
 # THE PREVIEW IS SHRUNK WITH A TRANSFORM, IN EVERY ENGINE — `zoom` set text at its on-screen size
 
