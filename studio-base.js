@@ -898,6 +898,7 @@ class StudioBase {
   // has to stand the beforeunload guard down the same way, which is the whole reason
   // it goes through here instead of assigning location.href at the call site.
   static reloading = false;
+  static loadingSession = false;  // loadSessionFile: a project is being opened; the studios do not save over it
   reloadNow(url) {
     StudioBase.reloading = true;
     this.markSaved();
@@ -958,10 +959,16 @@ class StudioBase {
         fail('This view cannot store photos, so the session was not loaded. Open the studio over http:// rather than by double-clicking the file, then try again.');
         return;
       }
+      // The page keeps running while the photos are stored (seconds, for big ones), and a save of
+      // whatever is on screen in that time would overwrite the project being opened, so the reload
+      // came back on the old one. loadingSession stops the studios' own saves (upd, restore,
+      // persist) until the reload, and the project is written again just before it.
+      const savedState = JSON.stringify(Object.assign(d.state, { exportStatus: '' }));
       try {
-        localStorage.setItem(spec.key, JSON.stringify(Object.assign(d.state, { exportStatus: '' })));
+        localStorage.setItem(spec.key, savedState);
         localStorage.setItem(spec.resume, '1');
         localStorage.setItem(this.recSavedKey(spec), '1');
+        StudioBase.loadingSession = true;
       } catch (e) {
         fail('"' + label + '" could not be opened — the browser refused to store it (' + (e && e.name || e) + '). Free some space and try again.');
         return;
@@ -985,6 +992,7 @@ class StudioBase {
           } catch (e2) {}
         }
       }
+      try { localStorage.setItem(spec.key, savedState); localStorage.setItem(spec.resume, '1'); } catch (e) {}
       // A file for the other studio is a hand-over, not an error. Its keys are
       // written above; all that is left is to open the document that reads them.
       // Same-studio files reload in place, exactly as before.

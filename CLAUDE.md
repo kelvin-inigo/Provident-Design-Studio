@@ -15761,6 +15761,16 @@ project .json OPS sent, photos and all), or with no version / `?from=copy` a dra
   review, Request changes, the note in OPS's bar, Send v2, both versions on the post, zip download,
   Use this one, Approve, Attach an unfiled delivery as v3.
 
+## A PROJECT BEING OPENED IS NOT SAVED OVER (2026-10-21)
+
+Found on the hub's Open in OPS with four full-size photos: `loadSessionFile` writes the project to
+localStorage, then spends seconds writing the photos to the store, then reloads. In that window the
+template OPS opened on saved itself (`gdSeedSelect` -> `upd`), overwriting the project, so the reload
+came back on the template with the new photos orphaned. **`StudioBase.loadingSession`** is set once
+the project is written and stops the studios' own saves (`upd` and `restore` in both, Campaign's
+`persist`), and the loader writes the project again just before `reloadNow`. Any new localStorage
+save of the project state must check the flag too.
+
 # THE FIRST FORM OF "OPEN IN OPS": A #hubdraft= LINK (2026-10-21, superseded above)
 
 On the LOCAL Content Hub (`~/Documents/provident-content-hub`, never the office hub), a social card

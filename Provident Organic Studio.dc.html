@@ -7954,7 +7954,7 @@ class OrganicStudio extends StudioBase {
     this.markDirty();
     this.setState(prev => {
       const n = fn(JSON.parse(JSON.stringify(prev)));
-      try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(n)); } catch (e) {}
+      if (!StudioBase.loadingSession) try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(n)); } catch (e) {}
       if (OrganicStudio.strip(prev) !== OrganicStudio.strip(n)) {
         this._undoStack = (this._undoStack || []).concat([JSON.parse(JSON.stringify(prev))]).slice(-5);
         this._redoStack = [];
@@ -7968,7 +7968,7 @@ class OrganicStudio extends StudioBase {
     // the first save carries no project identity, so today's is kept.
     const cur = this.state || {};
     const n = Object.assign({}, st, { screen: cur.screen === 'guide' ? 'guide' : 'editor', pid: cur.pid || st.pid, hubPost: cur.hubPost || st.hubPost });
-    try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(n)); } catch (e) {}
+    if (!StudioBase.loadingSession) try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(n)); } catch (e) {}
     this.setState(n);
   }
   undo() {

@@ -6861,7 +6861,7 @@ class CampaignStudio extends StudioBase {
     // an undo that took it back would erase the changelog it exists to keep.
     delete c.copyStatus; delete c.copyLog;
     return JSON.stringify(c); }
-  persist() { try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(this.state)); } catch (e) {} }
+  persist() { if (StudioBase.loadingSession) return; try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(this.state)); } catch (e) {} }
   upd(fn) {
     const prev = JSON.parse(JSON.stringify(this.state));
     const n = fn(JSON.parse(JSON.stringify(this.state)));
@@ -6886,7 +6886,7 @@ class CampaignStudio extends StudioBase {
       // an undo entry taken before the first save carries no identity; keep today's
       pid: cur.pid || st.pid,
     });
-    try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
+    if (!StudioBase.loadingSession) try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
     this.setState(n);
   }
   undo() {
