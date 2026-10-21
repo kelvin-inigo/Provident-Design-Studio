@@ -3845,17 +3845,47 @@ select.p-in{padding-right:34px}
    Mirrored in both studios. The card is the recents card; only its picture differs — up to three
    of the delivery's renders side by side on the stage ground, each contain-fitted, since one
    delivery mixes 1:1, 3:4 and 9:16 files. */
-.hb-bar{display:flex;align-items:center;gap:16px;margin:0 0 18px}
-.hb-bar-t{flex:1;min-width:0;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
-.hb-bar-t b{font-weight:600;color:var(--ps-ink)}
-.hb-re{flex:none}
-.hb-p{display:flex;gap:6px;padding:10px;box-sizing:border-box;aspect-ratio:4/3;background:var(--ps-stage)}
-.hb-t{flex:1 1 0;min-width:0;background:center/contain no-repeat}
-.hb-t[data-wait]{background-color:var(--ps-fill);border-radius:4px;animation:hbWait 1.4s ease-in-out infinite alternate}
+/* Refreshed 2026-10-21: one status bar (a dot that says whether the hub answered, its address and
+   when it last did), the deliveries grouped by the day they came in, and a card whose renders sit
+   at one height and their own aspect (StudioBase.hubRow), the studio named on a chip over the
+   picture, "+N" for the renders not shown, and the action on hover. A title sent twice is marked
+   on the older card. */
+.hb-bar{display:flex;align-items:center;gap:14px;margin:0 0 30px;padding:8px 8px 8px 16px;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-hair);font-family:var(--ps-font)}
+.hb-st{display:inline-flex;align-items:center;gap:8px;min-width:0;flex:none;max-width:60%}
+.hb-st i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ps-dim)}
+.hb-st[data-st="ok"] i{background:var(--ps-good)}
+.hb-st[data-st="bad"] i{background:var(--ps-bad)}
+.hb-st[data-st="busy"] i{animation:hbWait .9s ease-in-out infinite alternate}
+.hb-st b{font-size:13px;font-weight:600;color:var(--ps-ink);white-space:nowrap}
+.hb-st s{text-decoration:none;font-size:12.5px;color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hb-bar-t{flex:1;min-width:0;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2);text-align:right}
+.hb-re{flex:none;display:inline-flex;align-items:center;gap:6px}
+.hb-re .mk-g{width:16px;height:16px;font-size:16px}
+.hb-g + .hb-g{margin-top:34px}
+.hb-gh{display:flex;align-items:baseline;gap:10px;margin:0 0 14px;font-family:var(--ps-font)}
+.hb-gh b{font-size:15px;font-weight:600;color:var(--ps-ink)}
+.hb-gh s{text-decoration:none;font-size:12.5px;color:var(--ps-dim)}
+.hb-p{position:relative;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;aspect-ratio:4/3;background:var(--ps-stage)}
+.hb-row{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%}
+.hb-t{flex:none;height:auto;max-height:100%;background:center/cover no-repeat;border-radius:6px;box-shadow:0 0 0 1px var(--ps-hair)}
+.hb-t[data-wait]{background-color:var(--ps-fill);animation:hbWait 1.4s ease-in-out infinite alternate}
 @keyframes hbWait{from{opacity:.5}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.hb-t[data-wait]{animation:none}}
+.hb-k,.hb-more{position:absolute;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;font:600 11px/1.3 var(--ps-font);background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-hair);pointer-events:none}
+.hb-k{top:10px;left:10px}
+.hb-k .mk-g{width:12px;height:12px;font-size:12px;display:none}
+.hb-c[data-other] .hb-k .mk-g{display:inline-block}
+.hb-c[data-kind="none"] .hb-k{color:var(--ps-ink-2);font-weight:500}
+.hb-more{bottom:10px;right:10px}
+.hb-go{position:absolute;left:50%;bottom:12px;transform:translate(-50%,4px);padding:7px 14px;border-radius:999px;font:600 12.5px/1 var(--ps-font);letter-spacing:.16px;background:var(--ps-primary);color:var(--ps-primary-i);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease)}
+.hb-c:hover .hb-go,.hb-c:focus-visible .hb-go{opacity:1;transform:translate(-50%,0)}
+.hb-c:hover .hb-more,.hb-c:focus-visible .hb-more{opacity:0}
+.hb-n{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;font-weight:500}
+.hb-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.hb-old{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:500;color:var(--ps-ink-2);background:var(--ps-fill)}
+@media (hover:none){.hb-go{opacity:1;transform:translate(-50%,0)}.hb-more{display:none}}
+@media (prefers-reduced-motion:reduce){.hb-t[data-wait],.hb-st i{animation:none}.hb-go{transition:none}}
+@media (max-width:760px){.hb-bar{flex-wrap:wrap;padding:10px 12px}.hb-bar-t{display:none}.hb-st{max-width:none;flex:1}}
 .p-c-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
-@media (max-width:760px){.hb-bar{flex-direction:column;align-items:stretch}}
 </style>
 </helmet>
 
@@ -3957,18 +3987,31 @@ select.p-in{padding-right:34px}
         <!-- FROM THE HUB. What the Content Hub received from Share › Send, read back from its
              /api/imports. A card opens the delivery's own session .json through loadSessionFile; the
              thumbnails are the renders Send attached, and they stay on the hub (StudioBase.hubVals). -->
-        <div class="hb-bar"><span class="hb-bar-t">Deliveries the Content Hub at <b>{{ hubHost }}</b> received from Share › Send, newest first. Opening one makes it a project here; the hub keeps its copy.</span><button onClick="{{ hubRefresh }}" class="p-br-alt hb-re">{{ hubRefreshLabel }}</button></div>
-        <sc-if value="{{ hubMsgOn }}" hint-placeholder-val="{{ false }}"><div class="p-br-note hb-err" role="alert">{{ hubMsg }}</div></sc-if>
-        <div class="p-grid2">
-          <sc-for list="{{ hubItems }}" as="hb" hint-placeholder-count="0">
-            <button onClick="{{ hb.open }}" class="p-c" title="{{ hb.tip }}">
-              <span class="p-c-p hb-p"><sc-for list="{{ hb.thumbs }}" as="t" hint-placeholder-count="3"><span class="hb-t" style="{{ t.style }}" data-wait="{{ t.wait }}"></span></sc-for></span>
-              <span class="p-c-n">{{ hb.title }}</span>
-              <span class="p-c-m">{{ hb.meta }}</span>
-              <span class="p-c-tags"><span class="p-tag">{{ hb.tag }}</span></span>
-            </button>
-          </sc-for>
+        <div class="hb-bar">
+          <span class="hb-st" data-st="{{ hubSt }}" role="status"><i aria-hidden="true"></i><b>{{ hubStLabel }}</b><s>{{ hubWhere }}</s></span>
+          <span class="hb-bar-t">Open a delivery to make it a project here. The hub keeps its copy.</span>
+          <button onClick="{{ hubRefresh }}" class="p-br-alt hb-re" title="Ask the hub again"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-750q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v178.46q0 15.37-10.39 25.76-10.4 10.39-25.76 10.39H563.85q-12.75 0-21.38-8.62-8.62-8.63-8.62-21.39 0-12.75 8.62-21.37 8.63-8.61 21.38-8.61h128q-31.62-57.930-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q69.73 0 127.67-36.62 57.94-36.61 87.79-97.69 5.69-10.92 16.73-15.27 11.04-4.34 22.5-.5 12.23 3.85 17.12 16 4.88 12.16-.81 23.08-37.16 77.69-109.7 124.34Q570.3-180 481.54-180Z"/></svg>{{ hubRefreshLabel }}</button>
         </div>
+        <sc-if value="{{ hubMsgOn }}" hint-placeholder-val="{{ false }}"><div class="p-br-note hb-err" role="alert">{{ hubMsg }}</div></sc-if>
+        <sc-for list="{{ hubGroups }}" as="g" hint-placeholder-count="0">
+          <section class="hb-g">
+            <h3 class="hb-gh"><b>{{ g.label }}</b><s>{{ g.count }}</s></h3>
+            <div class="p-grid2 hb-grid">
+              <sc-for list="{{ g.items }}" as="hb" hint-placeholder-count="0">
+                <button onClick="{{ hb.open }}" class="p-c hb-c" title="{{ hb.tip }}" data-kind="{{ hb.kind }}" data-other="{{ hb.other }}">
+                  <span class="p-c-p hb-p">
+                    <span class="hb-row"><sc-for list="{{ hb.thumbs }}" as="t" hint-placeholder-count="3"><span class="hb-t" style="{{ t.style }}" data-wait="{{ t.wait }}"></span></sc-for></span>
+                    <span class="hb-k">{{ hb.kindLabel }}<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></span>
+                    <sc-if value="{{ hb.moreOn }}" hint-placeholder-val="{{ false }}"><span class="hb-more">{{ hb.more }}</span></sc-if>
+                    <span class="hb-go">{{ hb.openLabel }}</span>
+                  </span>
+                  <span class="p-c-n hb-n">{{ hb.title }}</span>
+                  <span class="p-c-m hb-m">{{ hb.meta }}<sc-if value="{{ hb.olderOn }}" hint-placeholder-val="{{ false }}"><span class="hb-old">Older copy</span></sc-if></span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+        </sc-for>
         <sc-if value="{{ hubEmptyOn }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing received yet — Share › Send puts a project on the hub, and it shows here.</div></sc-if>
       </sc-if>
     </div>
@@ -16317,7 +16360,7 @@ class Component extends DCLogic {
       })),
       shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'hub' ? 'From the hub' : 'All')),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + ' received, newest first' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
+      shViewSub: (n => view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
         : n(sub.tplCount, 'template') + ' \u00b7 ' + n(sub.recentCount, 'saved project'))((c, w) => (c || 0) + ' ' + w + (c === 1 ? '' : 's')),

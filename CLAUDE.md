@@ -15616,6 +15616,18 @@ By request: see and reopen what the Content Hub received, from inside CAS and OP
   photos and QRs, unreachable / 401 / non-list errors shown in the view, 0 contrast failures over
   the view in both themes. The token was never put into the test browser.
 
+**The view was redesigned (2026-10-21, by request).** A status bar (dot + Connected / Not
+reachable / Checking, the host and "updated N min ago", one line of what opening does, Refresh)
+replaces the intro paragraph and the loose Refresh row. Deliveries are grouped by day
+(`hubDay`: Today / Yesterday / weekday and date) under `hubGroups`. A card's stage shows its
+renders at their own aspect, one row of one height (`hubRow`, aspects recorded in `hubThumbs`),
+a kind chip (Campaign / Organic / Not a project — with an arrow when it opens in the other
+studio), "+N" for renders beyond three, and an Open pill on hover or focus (always on touch)
+that names where it opens. The meta line drops a "Design system" source, and a title already
+seen in a newer delivery carries "Older copy". `shViewSub` reads "4 deliveries". Mirrored in
+both studios, section 53. Verified against the real hub: 0 contrast failures in both themes,
+no overflow at 375, no console errors; `sc-if` / `sc-for` +2/+2 and +1/+1.
+
 **Ad sets has Download all (2026-10-21, by request).** A `.as-dl` ghost button in the pane header
 (Images view only, `asDlOn`) labelled `Download all · N`. `Component.asDownload()` zips the selected
 audience's tiles — the `File`s the scan already holds, nothing re-rendered — as `Variant X/<file>`,

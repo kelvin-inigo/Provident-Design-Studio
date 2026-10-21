@@ -1093,6 +1093,7 @@ class StudioBase {
           let blob = await r.blob();
           try {
             const bm = await createImageBitmap(blob, { resizeHeight: 240, resizeQuality: 'medium' });
+            (h.ar = h.ar || {})[id + '/' + name] = bm.width / bm.height;
             const cv = document.createElement('canvas'); cv.width = bm.width; cv.height = bm.height;
             cv.getContext('2d').drawImage(bm, 0, 0); bm.close && bm.close();
             blob = await new Promise(res => cv.toBlob(b => res(b || blob), 'image/webp', .82));
@@ -1133,34 +1134,79 @@ class StudioBase {
     const diff = Math.round((day - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
     return diff === 0 ? 'Today ' + t : diff === 1 ? 'Yesterday ' + t : d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' ' + t;
   }
+  // The day a delivery came in, for the view's group headings.
+  static hubDay(s) {
+    const d = new Date(String(s || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2'));
+    if (isNaN(d)) return { key: 'x', label: 'Undated' };
+    const day = new Date(); day.setHours(0, 0, 0, 0);
+    const diff = Math.round((day - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+    return { key: d.toDateString(), label: diff === 0 ? 'Today' : diff === 1 ? 'Yesterday'
+      : d.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }), d };
+  }
+  // The renders sit side by side on the stage at ONE height, each at its own aspect, as large as
+  // the stage allows: a width share of a/S of the row, scaled down by f only when the row would
+  // run taller than the stage (R is the stage's inner height over width, a little under 4:3's).
+  static hubRow(ars) {
+    const R = .7, S = ars.reduce((t, a) => t + a, 0) || 1, f = Math.min(1, R * S);
+    const g = (ars.length - 1) * 8;
+    return ars.map(a => 'calc((100% - ' + g + 'px) * ' + (a / S * f).toFixed(4) + ')');
+  }
   hubVals(on) {
     const h = this._hub || {};
     const mine = this.sessionApp() === 'provident-ad-studio' ? 'campaign' : 'organic';
     const NAME = { campaign: 'Campaign', organic: 'Organic' };
+    const seen = new Set(), groups = [], byDay = {};
     const items = (h.items || []).map(it => {
       const kind = StudioBase.hubKind(it), n = (it.assets || []).length;
-      const th = (it.assets || []).slice(0, StudioBase.HUB_THUMBS).map(a => {
+      const shown = (it.assets || []).slice(0, StudioBase.HUB_THUMBS);
+      const ars = shown.map(a => (h.ar && h.ar[it.id + '/' + a.name]) || (kind === 'campaign' ? 1 : .75));
+      const ws = StudioBase.hubRow(ars);
+      const th = shown.map((a, k) => {
         const u = h.thumbs && h.thumbs[it.id + '/' + a.name];
-        return { style: u ? { backgroundImage: 'url(' + u + ')' } : {}, wait: u ? undefined : '1' };
+        const st = { width: ws[k], aspectRatio: String(ars[k]) };
+        if (u) st.backgroundImage = 'url(' + u + ')';
+        return { style: st, wait: u ? undefined : '1' };
       });
-      return {
-        title: (it.title || '').trim() || 'Untitled delivery',
-        meta: [StudioBase.hubWhen(it.received_at), n + ' image' + (n === 1 ? '' : 's'), it.source].filter(Boolean).join(' · '),
-        tag: kind ? (kind === mine ? NAME[kind] : 'Opens in ' + NAME[kind]) : 'Not a studio project?',
+      const title = (it.title || '').trim() || 'Untitled delivery';
+      // Newest first, so a title already seen means a NEWER send of the same post exists.
+      const tkey = title.toLowerCase(), older = seen.has(tkey); seen.add(tkey);
+      const other = kind && kind !== mine;
+      const d = StudioBase.hubDay(it.received_at);
+      const time = d.d ? d.d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const src = (it.source || '').trim();
+      const v = {
+        title,
+        meta: [time, n + ' image' + (n === 1 ? '' : 's'), src && !/^design (system|studio)/i.test(src) ? 'from ' + src : ''].filter(Boolean).join(' · '),
+        kindLabel: kind ? NAME[kind] : 'Not a project', kindOn: true,
+        kind: kind || 'none', other: other ? '1' : undefined,
+        moreOn: n > shown.length ? true : undefined, more: '+' + (n - shown.length),
+        olderOn: older ? true : undefined,
+        openLabel: !kind ? 'Try to open' : other ? 'Open in ' + NAME[kind] : 'Open',
         thumbs: th, thumbsOn: th.length ? true : undefined,
-        tip: 'Open this delivery as a project' + (kind && kind !== mine ? ' — it opens in the ' + NAME[kind] + ' studio' : ''),
+        tip: (older ? 'A newer send of this post is further up. ' : '') + 'Open this delivery as a project'
+          + (other ? ' — it opens in the ' + NAME[kind] + ' studio' : '') + '. The hub keeps its copy.',
         open: () => this.hubOpenItem(it)
       };
+      if (!byDay[d.key]) { byDay[d.key] = { label: d.label, items: [] }; groups.push(byDay[d.key]); }
+      byDay[d.key].items.push(v);
+      return v;
     });
+    groups.forEach(g => { g.count = g.items.length + (g.items.length === 1 ? ' delivery' : ' deliveries'); });
+    const ago = h.at ? Math.round((Date.now() - h.at) / 60000) : null;
+    const st = h.busy ? 'busy' : h.msg ? 'bad' : h.ok ? 'ok' : 'idle';
     return {
       hubOn: on ? true : undefined,
       hubCount: h.ok ? String((h.items || []).length) : '',
       hubCountOn: h.ok ? true : undefined,
-      hubItems: items,
+      hubItems: items, hubGroups: groups,
       hubBusy: h.busy ? true : undefined,
       hubMsg: h.msg || '', hubMsgOn: h.msg ? true : undefined,
       hubEmptyOn: h.ok && !h.busy && !items.length ? true : undefined,
       hubHost: StudioBase.hubHost(this.hubCfg().url),
+      hubWhere: StudioBase.hubHost(this.hubCfg().url) + (st === 'ok' && ago != null ? ' \u00b7 ' + (ago < 1 ? 'updated just now' : 'updated ' + ago + ' min ago') : ''),
+      hubSt: st,
+      hubStLabel: st === 'busy' ? 'Checking the hub' : st === 'bad' ? 'Not reachable' : st === 'ok' ? 'Connected' : 'Content Hub',
+      hubAgo: st === 'ok' && ago != null ? (ago < 1 ? 'updated just now' : 'updated ' + ago + ' min ago') : '',
       hubRefresh: () => this.hubLoad(),
       hubRefreshLabel: h.busy ? 'Loading…' : 'Refresh'
     };
