@@ -15735,8 +15735,11 @@ call or token on the OPS side. `StudioBase.hubHashOpen()` (called from OPS's she
 hash FIRST, because `loadSessionFile` ends in a reload, then opens it with `{clean:true}`; the draft
 carries `hubCardId`, so Send attaches back. The OPS address is per computer on the hub
 (`localStorage['hub-ops-url']`, the **OPS address** button), default the Vercel site — which needs a
-push before it has `hubHashOpen`. Copy only; the brief's images are not placed. Verified in the
-pane: six pages of copy, `hubCardId` set, the card marked In design.
+push before it has `hubHashOpen`. **The brief's pictures travel as URLs** (`doc.hubImages`, built by
+the hub page): `hubDraftOpen` fetches each through `hubFetch`, encodes it with
+`providentEncodeFile` and puts it in `doc.images['smp-bg-<slide id>']` on the photo pages in order,
+before `loadSessionFile`; a failed one is skipped, extra pictures are not placed. Verified: six pages
+of copy, `hubCardId` set, two brief pictures on pages 1 and 2, the card marked In design.
 
 # THE KIT CARRIES THE CONTROLS THE STUDIOS SHIP — section 24 (2026-10-21)
 

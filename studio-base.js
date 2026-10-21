@@ -1123,9 +1123,37 @@ class StudioBase {
     } catch (e) { this.setState({ exportStatus: 'The hub link did not carry a readable draft.' }); return false; }
     const st = doc && doc.state;
     if (!st || !Array.isArray(st.slides) || !st.slides.length) { this.setState({ exportStatus: 'The hub draft has no pages.' }); return false; }
+    this.hubDraftOpen(doc);
+    return true;
+  }
+  // The brief's pictures travel as URLs (`hubImages`) — a photo is far too big for a URL hash —
+  // and are fetched here, encoded as an upload would be, and placed as the backgrounds of the
+  // pages that take a photo, in order. A picture that fails is skipped (logged to the console);
+  // the copy still opens. More pictures than pages: the extra ones are not placed.
+  async hubDraftOpen(doc) {
+    const st = doc.state, urls = (Array.isArray(doc.hubImages) ? doc.hubImages : []).filter(u => typeof u === 'string');
+    delete doc.hubImages;
+    doc.images = (doc.images && typeof doc.images === 'object') ? doc.images : {};
+    let placed = 0;
+    if (urls.length) {
+      const C = this.constructor;
+      const pages = st.slides.filter(sl => sl && sl.id && (typeof C.photoUsed !== 'function' || C.photoUsed(sl.kind)));
+      const want = urls.slice(0, pages.length);
+      this.setState({ exportStatus: 'Loading ' + want.length + ' brief picture' + (want.length === 1 ? '' : 's') + ' from the hub…' });
+      const got = await Promise.all(want.map(async u => {
+        try {
+          const r = await this.hubFetch(u, 60000, 'default');
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          const blob = await r.blob();
+          const name = decodeURIComponent(u.split('/').pop() || 'brief');
+          return await window.providentEncodeFile(new File([blob], name, { type: blob.type }));
+        } catch (e) { console.warn('brief picture', u, e); return null; }
+      }));
+      got.forEach((d, i) => { if (d) { doc.images['smp-bg-' + pages[i].id] = d; placed++; } });
+    }
     const fname = String(st.customName || 'Hub post').replace(/[\\/:*?"<>|]+/g, ' ').slice(0, 80) + '.json';
     this.loadSessionFile(new File([JSON.stringify(doc)], fname, { type: 'application/json' }), { clean: true });
-    return true;
+    return placed;
   }
   async hubOpenItem(it) {
     const h = this._hub || {};
