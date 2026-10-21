@@ -15615,3 +15615,11 @@ By request: see and reopen what the Content Hub received, from inside CAS and OP
   CAS delivery opened in CAS, an OPS delivery opened from CAS's view handed over to OPS with its
   photos and QRs, unreachable / 401 / non-list errors shown in the view, 0 contrast failures over
   the view in both themes. The token was never put into the test browser.
+
+**Ad sets has Download all (2026-10-21, by request).** A `.as-dl` ghost button in the pane header
+(Images view only, `asDlOn`) labelled `Download all · N`. `Component.asDownload()` zips the selected
+audience's tiles — the `File`s the scan already holds, nothing re-rendered — as `Variant X/<file>`,
+names the zip `<main> - <audience>.zip`, and saves it through the engine's `saveAs` (the OS save
+dialog, else a download). `_asDl` (instance) drives Zipping… / Downloaded / Could not zip. Uncompressed
+(the shared `zip`), so a big PNG set makes a big file. Verified on an OPFS stand-in: 4 files in two
+variant folders, `Local - Family.zip`.

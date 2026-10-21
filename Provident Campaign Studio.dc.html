@@ -3949,6 +3949,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-crumb s{font:500 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
 .as-crumb b{font:600 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
 .as-crumb i{font:400 12px/1.4 var(--ps-font);font-style:normal;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.as-dl{gap:6px}.as-dl .mk-g{width:16px;height:16px;fill:currentColor}.as-dl[data-busy]{opacity:.6;pointer-events:none}
 .as-vrow{display:flex;flex-direction:column;gap:14px;padding:22px 0 24px;border-bottom:1px solid var(--ps-hair)}
 .as-vrow:last-child{border-bottom:0}
 .as-vrow-h{display:flex;align-items:baseline;gap:10px}
@@ -5168,6 +5169,9 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div class="as-pane">
             <header class="as-pane-h">
               <div class="as-crumb"><s>{{ asSel.main }}</s><b>{{ asSel.title }}</b><i>{{ asSel.sub }}</i></div>
+              <sc-if value="{{ asDlOn }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ asDownload }}" class="p-ghost as-dl" data-busy="{{ asDlBusy }}" title="Download every image of this audience as one zip, a folder per variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ asDlLabel }}</button>
+              </sc-if>
               <sc-if value="{{ aeOn }}" hint-placeholder-val="{{ false }}">
                 <div class="ae-stat" data-state="{{ aeState }}" role="status" aria-live="polite"><span class="ae-dot"></span>{{ aeStatus }}</div>
               </sc-if>
@@ -15490,6 +15494,26 @@ class Component extends DCLogic {
     this.forceUpdate();
     const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
   }
+  // Download all: every exported image of the audience on screen, one zip, a folder per
+  // variant. Reads the files the scan already holds; nothing is re-rendered.
+  async asDownload() {
+    const au = this.asSelAud(); if (!au || this._asDl === 'busy') return;
+    const items = [];
+    for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles)
+      if (t.file) items.push({ dir: c.title, file: t.file, name: String(t.name || t.file.name).split('/').pop() });
+    if (!items.length) return;
+    this._asDl = 'busy'; this.forceUpdate();
+    const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim();
+    try {
+      const files = [];
+      for (const it of items) files.push({ name: clean(it.dir) + '/' + clean(it.name), data: new Uint8Array(await it.file.arrayBuffer()) });
+      const zipName = [au.main, au.title].map(clean).filter(Boolean).join(' - ') || 'Ad set';
+      const how = await this.eng.saveAs(this.eng.zip(files), zipName + '.zip', 'Zip archive', 'application/zip', '.zip');
+      this._asDl = how === 'cancelled' ? '' : 'done';
+    } catch (e) { this._asDl = 'err'; }
+    this.forceUpdate();
+    if (this._asDl === 'done' || this._asDl === 'err') setTimeout(() => { if (this._asDl !== 'busy') { this._asDl = ''; this.forceUpdate(); } }, 3000);
+  }
   // Can this folder be written? A dropped or picked folder is read-only until asked; a
   // folder the browser could only read file by file (Safari, Firefox) can never be.
   asRoot() { const f = window.providentFolder; return this._asSrc ? this._asSrc.handle : (f && f.handle); }
@@ -15897,6 +15921,10 @@ class Component extends DCLogic {
       asNav: nav, asBodyOn: !!sel,
       asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
       asImgOn: !!sel && mode === 'images',
+      asDlOn: !!sel && mode === 'images' ? '1' : undefined,
+      asDownload: () => this.asDownload(),
+      asDlBusy: this._asDl === 'busy' ? '1' : undefined,
+      asDlLabel: this._asDl === 'busy' ? 'Zipping…' : this._asDl === 'done' ? 'Downloaded' : this._asDl === 'err' ? 'Could not zip' : 'Download all' + (sel ? ' · ' + sel.cols.reduce((n, c) => n + c.plats.reduce((m, pl) => m + pl.tiles.length, 0), 0) : ''),
       asModeImgOn: mode === 'images' ? '1' : undefined, asModeTxtOn: mode === 'text' ? '1' : undefined,
       asSetImg: () => this.asSetMode('images'), asSetTxt: () => this.asSetMode('text'),
       ...this.aeVals(),
