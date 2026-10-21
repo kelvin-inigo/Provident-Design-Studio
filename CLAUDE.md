@@ -15896,3 +15896,25 @@ picker is TWO to a row (tiles 109 x 72, gaps 16 / 12, 22 between groups), and ev
 draws inside `.p-mini-in` — an inset box at 16% / 14% that the marks' percentages resolve
 against, so no layout's bars touch its tile's edge. The guided run keeps three across in its
 wider column, with the same inset and 18 / 14 gaps.
+
+# THE UPLOAD ROW IS ONE CONTROL IN BOTH STUDIOS (2026-10-21)
+
+By request, with a screenshot of OPS's four stacked pills ("Edit in Photoshop" broken over two
+lines). The same CSS block is in both sheets (`.up-acts`, `.up-a`, `.up-rm`), and the markup
+is the same shape: thumbnail, then a quiet ACTION LIST beside it, icon and short word each, left
+aligned — **Upload** on an empty slot; **Replace, Reframe (photos only), Photoshop or
+Illustrator, Remove** (danger ink) on a filled one. Captions sit UNDER the row.
+
+- **Which actions show is read off the thumbnail's own `data-done`** with sibling selectors
+  (`.gd-drop` / `.p-drop` `~ .up-acts`), so no render key gates them. OPS's `slotActsOn` sc-ifs
+  are gone (7 rows); CAS's 10 drop rows were rebuilt by one regex.
+- **The Photoshop label is the app's name alone** (`slotPsLabel` in OPS, `psLabel` in CAS); the
+  full sentence is the tooltip.
+- **CAS's Upload / Replace and Reframe are delegated** (`[data-up]`, one click listener in the
+  shell's mount): the picker opens on the row's own slot, and Reframe prefers the CANVAS copy of
+  the same id. CAS had no Replace or Reframe in its rails before.
+- **CAS's fill map now follows a picked file**: a `MutationObserver` on `data-filled` refreshes
+  `_refreshAV`. The dialog path fired no drop, so the rows' done state stayed stale.
+- Widths measured: OPS rail thumb 136 (actions 119), CAS rail thumb 116 (actions 111) — the
+  longest label, Photoshop, needs 107. An empty CAS slot hides its caption's first line, which
+  repeated the placeholder.
