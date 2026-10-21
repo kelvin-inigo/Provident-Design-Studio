@@ -204,7 +204,11 @@ class StudioBase {
   }
 
   // ---------- shared text metrics ----------
-  mctx() { if (!this._m) this._m = document.createElement('canvas').getContext('2d'); return this._m; }
+  // textRendering: see renderOpsToCanvas — 'auto' measures hinted, wider widths at some sizes.
+  mctx() {
+    if (!this._m) { this._m = document.createElement('canvas').getContext('2d'); try { this._m.textRendering = 'optimizeLegibility'; } catch (e) {} }
+    return this._m;
+  }
   meas(text, px, weight, serif, ls) {
     const m = this.mctx();
     m.font = `${weight} ${px}px ${window.providentFont || '"Google Sans Flex", sans-serif'}`;

@@ -8989,7 +8989,9 @@ class CampaignStudio extends StudioBase {
         : mv === 'rule' ? iw - (center ? 2 : 1) * (rw + rg)
         : mv === 'dot' ? iw - dd - dg : iw;
       const lines = this.eyebrowLines(m, tk, maxW);
-      const wOf = t => Wd(t, E, 500, ls);
+      // the INK width: meas reserves a tracking unit after the last letter, which no glyph
+      // fills — left in, every box and centre carried it as extra space on the right
+      const wOf = t => Wd(t, E, 500, ls) - ls;
       const widest = lines.reduce((a, t) => Math.max(a, wOf(t)), 0);
       const tH = lines.length * lh;
       const ink0 = C.eyeInk(m, pal, mv);
@@ -10527,6 +10529,12 @@ class CampaignStudio extends StudioBase {
     const c = document.createElement('canvas');
     c.width = built.W * scale; c.height = built.H * scale;
     const ctx = c.getContext('2d');
+    // Chrome's canvas, left on textRendering 'auto', measures and draws this face HINTED at
+    // some whole-number sizes (23, 24, 25px…) — about 8% wider than the DOM sets the same
+    // run. The editor is the DOM, so the export drew boxes sized for text the editor did not
+    // show, and every chip and eyebrow box carried a gap on its right. Any explicit value
+    // turns the hinting off and the two agree at every size.
+    try { ctx.textRendering = 'optimizeLegibility'; } catch (e) {}
     // Matches the Organic renderer: photos are downscaled on the way into an
     // export, and the default smoothing shows it.
     ctx.imageSmoothingEnabled = true;

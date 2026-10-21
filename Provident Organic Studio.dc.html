@@ -11245,6 +11245,12 @@ class OrganicStudio extends StudioBase {
     const c = document.createElement('canvas');
     c.width = built.W * scale; c.height = built.H * scale;
     const ctx = c.getContext('2d');
+    // Chrome's canvas, left on textRendering 'auto', measures and draws this face HINTED at
+    // some whole-number sizes (23, 24, 25px…) — about 8% wider than the DOM sets the same
+    // run. The editor is the DOM, so the export drew boxes sized for text the editor did not
+    // show, and every chip and eyebrow box carried a gap on its right. Any explicit value
+    // turns the hinting off and the two agree at every size.
+    try { ctx.textRendering = 'optimizeLegibility'; } catch (e) {}
     ctx.imageSmoothingEnabled = true;
     try { ctx.imageSmoothingQuality = 'high'; } catch (e) {}
     ctx.scale(scale, scale);

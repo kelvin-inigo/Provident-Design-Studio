@@ -15687,3 +15687,41 @@ Verified in the pane: a fresh workspace's sidecar is `{}`; a workspace seeded th
 only its own upload after load; a workspace does not see a folder set in the shared DB;
 `pickTpl` in both studios clears the folder (handle and stored key); Ad sets with a folder set
 opens on the drop panel. No artwork line changed.
+
+# CHROME'S CANVAS MEASURES HINTED TEXT AT SOME SIZES — chips and eyebrows had a right-side gap (2026-10-21)
+
+Reported as "unintended spacing going on the right side" of CAS's tag chips and eyebrow. Root cause:
+a canvas 2D context left on `textRendering: 'auto'` measures and draws Google Sans Flex **hinted** at
+some whole-number px sizes. At 23, 24 and 25px it comes out about 8% wider than the DOM. At 24.01
+and at 28 it matches the DOM. Width per px for "Sea view":
+
+| px | auto | explicit textRendering |
+|---|---|---|
+| 22 | 3.933 | 3.93 |
+| 23 | 4.274 | 3.93 |
+| 24 | 4.248 | 3.928 |
+| 25 | 4.223 | 3.93 |
+| 28 | 3.918 | 3.92 |
+
+`meas()` sized every chip and eyebrow box from the wider canvas width. The editor draws the text in
+the DOM, at the narrower width, so every box carried the excess on its right: about 28px on the left
+against 33–37px on the right.
+
+**Fix:** any explicit `textRendering` turns the hinting off. It is `'optimizeLegibility'` in three places:
+
+- `StudioBase.mctx()`, the measuring context (shared, so OPS gets it too)
+- CAS's `renderOpsToCanvas`
+- OPS's `renderOpsToCanvas`
+
+**Separately, the eyebrow box no longer carries the trailing tracking unit.** `wOf` in `modLayout`
+subtracts the `ls` that `meas` reserves after the last letter.
+
+**Measured after:**
+- Editor: 28–29 canvas px on both sides of every chip and eyebrow.
+- Export: within 1.5px left to right, at 1x and 2x.
+- CAS: 4 templates × left/centre × 7 sizes. Only chip and centred-eyebrow positions moved, by
+  12–15px, as the boxes tighten. No line break and no text changed (0 of 56 groups).
+- OPS: 7 templates × every slide × feed/story. No line break or fitted size changed (0 of 36).
+
+**If you ever create a measuring or drawing canvas outside these three, set `textRendering` on it**,
+or it will disagree with both the editor and the export at those sizes.
