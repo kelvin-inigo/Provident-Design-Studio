@@ -15826,3 +15826,27 @@ sheet; one markup, so the guided run takes it too. No artwork line changed.
 - **A tier label never sits over a field of its own name** ("Headline" over Kicker and
   Headline); in the rail it is a divider. `.p-opts` is border-box, so the Layout track no
   longer runs 8px past the column.
+
+**The pass across all seven OPS templates (2026-10-21, "go over all template windows").**
+Chrome only — no artwork line changed. Found by loading each template's demo state in the
+editor (`tplDemoState`) and reading every page's rail:
+
+- **Picking a slide now brings its card into view** (`_pageTick`, shell `componentDidUpdate`,
+  keyed on tpl + activeSi): the stage scrolls the plate to centre only when it is off screen,
+  and the form opens at its top. It kept the last page's scroll and left the card off to the
+  right on a six-page weekly.
+- **A tier label needs two or more fields** and none of its own name ("Name / Agent name",
+  "Price / Price in AED" are gone); the first one in a section draws no divider. Tier names:
+  `Page options` (was Scrim & permit / Permit), `Overline and number` (was The number).
+- Labels: a ranking page's photo is **Agent portrait**; the carousel's `align` is **Text
+  alignment**, the Bullets arrangement **Arrangement**.
+- Placeholders: project fields "Type here…", numbers-only fields "Numbers only".
+- **No developer instructions in a designer's caption**: `cutOffNote` and the Pop-out failure
+  no longer say "start tools/rembg/serve.sh".
+- The award's partner-mark colour pair only shows once a mark is dropped; the group layer's
+  Reset positions is a ghost button; the empty page reads "The template writes the headline
+  and the button label."
+- A half-width field keeps its name on one line and drops its tag under it.
+
+Verified: contrast 0 failures over the rail in all seven templates in both themes; no overflow;
+real clicks on slides scroll the stage.

@@ -3943,6 +3943,12 @@ select.p-in{padding-right:34px}
 /* a tier label is a divider between groups of fields, not a field's name */
 .gd[data-mode="editor"] .gd-grp{margin:6px 0 -4px;padding-top:14px;border-top:1px solid var(--ps-hair);
   font:600 12px/1 var(--ps-font);color:var(--ps-ink-2)}
+/* a half-width field keeps its name on one line; its tag drops under it rather than
+   breaking "Price in AED" into three lines */
+.gd-ask[data-half] .gd-ask-h{flex-wrap:wrap;row-gap:4px}
+.gd-ask[data-half] .gd-askq{white-space:nowrap}
+/* the first group in a section opens under the section's own head, which is its rule */
+.gd[data-mode="editor"] .gd-sec-g > .gd-grp:first-child{margin-top:0;padding-top:0;border-top:0}
 </style>
 </helmet>
 
@@ -4981,7 +4987,7 @@ select.p-in{padding-right:34px}
                   </div>
                 </sc-if>
                 <sc-if value="{{ grpNoneOn }}" hint-placeholder-val="{{ true }}"><span class="gd-hint">Choose a layer above to size it. The five portraits come from the rank pages.</span></sc-if>
-                <button onClick="{{ a.grpReset }}" class="gd-link">Reset positions</button>
+                <button onClick="{{ a.grpReset }}" class="p-ghost p-sm gd-grpreset">Reset positions</button>
               </sc-if>
 
               <!-- THE CAROUSEL PAGE'S FLOATING GRAPHIC. The upload is here; the placement is
@@ -5019,8 +5025,11 @@ select.p-in{padding-right:34px}
                     <s>{{ a.alogoLabel }}</s>
                     <s>Fitted to its box by its own ink, so a padded file still lines up.</s>
                     
+                    <!-- a colour for a mark nobody has dropped is a control with nothing to do -->
+                    <sc-if value="{{ a.alogoDone }}" hint-placeholder-val="{{ false }}">
                     <div class="p-tabs gd-tabs"><sc-for list="{{ awTintOpts }}" as="ao" hint-placeholder-count="2"><button onClick="{{ ao.set }}" data-on="{{ ao.on }}">{{ ao.label }}</button></sc-for></div>
                     <s>A brand-kit SVG is usually navy, which all but disappears on this ground — Match canvas recolours it.</s>
+                    </sc-if>
                   </div>
               </sc-if>
 
@@ -5204,7 +5213,7 @@ select.p-in{padding-right:34px}
               </sc-if>
 
               <sc-if value="{{ a.isProj }}" hint-placeholder-val="{{ false }}">
-                <input value="{{ a.projVal }}" onChange="{{ a.setProj }}" class="gd-big" enterkeyhint="next" placeholder="Type your answer here…">
+                <input value="{{ a.projVal }}" onChange="{{ a.setProj }}" class="gd-big" enterkeyhint="next" placeholder="Type here…">
                 <span class="gd-hint">{{ a.projHint }}</span>
               </sc-if>
 
@@ -6604,6 +6613,7 @@ class OrganicStudio extends StudioBase {
     const m = /\be\.g\.\s*([^\u2014]+?)\s*(?:$|\u2014|\(|;)/.exec((f && f.hint) || '');
     const ex = m ? m[1].replace(/\*\*/g, '').replace(/[.,]$/, '').trim() : '';
     if (ex) return 'e.g. ' + ex;
+    if (/(^|\s)(digits|num|len11)(\s|$)/.test((f && f.flags) || '')) return 'Numbers only';
     return rich ? 'Write a line, then press Enter for the next' : 'Type here\u2026';
   }
   // WHETHER A FIELD MAY BE LEFT BLANK. A carousel page's own flags are the authority — its
@@ -7634,7 +7644,7 @@ class OrganicStudio extends StudioBase {
     } catch (e) {
       this._rcvCutting = null;
       say(e && e.message === 'OFFLINE'
-        ? 'The background-removal service stopped part-way \u2014 start tools/rembg/serve.sh again, then press Remove background.'
+        ? 'Background removal stopped part-way \u2014 press Remove background to try again, or drop a cut-out PNG.'
         : ((e && e.message) || 'Background removal failed.'));
     }
     // the store writes the sidecar asynchronously and a cut-out PNG can be large, so the
@@ -11850,8 +11860,8 @@ class OrganicStudio extends StudioBase {
   // WHY background removal is off, in the words of the place it runs. It is the local rembg service.
   static cutOffNote(kind) {
     return kind === 'drop'
-      ? 'Drop a cut-out PNG, or start tools/rembg/serve.sh and one will be made for you.'
-      : 'Background removal is off on this computer \u2014 start tools/rembg/serve.sh, then press Remove background.';
+      ? 'Automatic background removal is not running on this computer, so drop a PNG with the background already removed.'
+      : 'Automatic background removal is not running on this computer \u2014 drop a cut-out PNG in the Parallax slot instead.';
   }
   // The pointer's own verb for a row's caption, and a drop caption turned into what a
   // finger does: "Drop a picture, or click to choose" reads "Tap to choose a picture".
@@ -11921,19 +11931,19 @@ class OrganicStudio extends StudioBase {
     // A carousel page's fourth tier is what the page does BESIDES carrying its copy — the
     // wash it sits on and the compliance line at its foot. Those two were in the Layout tier
     // next to the position tiles, which read as though they were layout choices.
-    cfront:  ['Headline', 'Supporting lines', 'Layout', 'Scrim & permit'],
+    cfront:  ['Headline', 'Supporting lines', 'Layout', 'Page options'],
     cstats:  ['Title', 'Blurb', 'Layout', 'Page scrim'],
     cbul:    ['Headline', 'Bullet points', 'Layout', 'Page scrim'],
     ctext:   ['Title', 'Body', 'Layout', 'Page scrim'],
     cquote:  ['Quote', 'Who said it', 'Layout', 'Page scrim'],
-    cnum:    ['The number', 'Supporting copy', 'Layout', 'Page scrim'],
+    cnum:    ['Overline and number', 'Supporting copy', 'Layout', 'Page scrim'],
     csteps:  ['Headline', 'Steps', 'Layout', 'Page scrim'],
-    cfig:    ['The number', 'Split bar', 'Layout', 'Page scrim'],
+    cfig:    ['Overline and number', 'Split bar', 'Layout', 'Page scrim'],
     ctable:  ['Title', 'Footnote', 'Layout', 'Page scrim'],
     cicons:  ['Title', 'Note', 'Layout', 'Page scrim'],
     cplan:   ['Title', 'Notes', 'Layout', 'Page scrim'],
     ccards:  ['Title', 'Badge', 'Layout', 'Page scrim'],
-    ccta:   ['Copy', 'Button', 'Layout', 'Permit'],
+    ccta:   ['Copy', 'Button', 'Layout', 'Page options'],
     rcover: ['Headline', 'Big number', 'Tags', 'ADM & CN']
   };
   static TIERS = ['Headline', 'Supporting line', 'Details', 'Reference'];
@@ -12037,7 +12047,7 @@ class OrganicStudio extends StudioBase {
             ['eyeCol', 1, 'Overline colour', 'seg:Brass|White', 'Brass is the house accent; White sits quieter on a busy photograph'],
             ['headline', 1, 'Headline', 'req area hi', 'Short lines read best \u2014 Enter for a new one'],
             ['bullets', 2, 'Bullet points', 'req area', 'One per line, up to six'],
-            ['bulLayout', 3, 'Bullets', 'seg-opt:Side by side|Stacked', 'Side by side is the drawing\u2019s own \u2014 the headline beside the list. Stacked puts it above a full-width list'],
+            ['bulLayout', 3, 'Arrangement', 'seg-opt:Side by side|Stacked', 'Side by side is the drawing\u2019s own \u2014 the headline beside the list. Stacked puts it above a full-width list'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
@@ -12046,7 +12056,7 @@ class OrganicStudio extends StudioBase {
             ['title', 1, 'Title', 'req area hi', 'Enter for a new line'],
             ['body', 2, 'Body', 'req rich', 'Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Bottom', ''],
-            ['align', 3, 'Text', 'seg:Center|Left', ''],
+            ['align', 3, 'Text alignment', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     cquote:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the quote \u2014 e.g. Why It Matters. The switch shows or hides it'],
@@ -12055,7 +12065,7 @@ class OrganicStudio extends StudioBase {
             ['author', 2, 'Name', '', 'Who said it \u2014 optional'],
             ['role', 2, 'Role or company', '', 'e.g. Investor, Dubai Hills \u2014 set in small caps under the name'],
             ['pos', 3, 'Layout', 'seg-opt:Top|Centre|Bottom', 'Where the quote sits; the wash follows it'],
-            ['align', 3, 'Text', 'seg:Center|Left', ''],
+            ['align', 3, 'Text alignment', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     cnum:  [['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the number \u2014 e.g. Why It Matters. The switch shows or hides it'],
@@ -12064,7 +12074,7 @@ class OrganicStudio extends StudioBase {
             ['label', 1, 'Headline', 'area hi', 'The line under the number \u2014 e.g. Going into Dubai South. Enter for a new line'],
             ['body', 2, 'Supporting copy', 'rich', 'Optional. Every line is a block \u2014 select one and the buttons make it a quote, a rule, a callout or a list. Select a word and press Brass to set it in brass'],
             ['pos', 3, 'Layout', 'seg-opt:Bottom|Top', 'Where the number sits; the wash follows it'],
-            ['align', 3, 'Text', 'seg:Center|Left', ''],
+            ['align', 3, 'Text alignment', 'seg:Center|Left', ''],
             ['logoPos', 3, 'Wordmark', 'seg:Hide|Top|Bottom', 'Top puts it where the front page has it; Bottom sets it on SWIPE\u2019s own line'],
             OrganicStudio.csScrimField(), OrganicStudio.csPhotoField()],
     csteps:[['eyebrow', 1, 'Overline text', '', 'A brass line in tracked caps above the headline \u2014 e.g. Why It Matters. The switch shows or hides it'],
@@ -12499,7 +12509,7 @@ class OrganicStudio extends StudioBase {
   // render exactly one of these and page between them.
   gdAskLabelFor(ask, sl) {
     if (!ask) return '';
-    if (ask.kind === 'photo') return 'Background picture';
+    if (ask.kind === 'photo') return (sl && sl.kind === 'tagent') ? 'Agent portrait' : 'Background picture';
     if (ask.kind === 'qr') return 'QR code';
     if (ask.kind === 'scrim') return 'How strong should the wash behind the text be?';
     if (ask.kind === 'shade') return 'How much should the photo darken at the top and bottom?';
@@ -15442,8 +15452,9 @@ class OrganicStudio extends StudioBase {
             const inGroup = rows.filter(z => z.group === r.group);
             // and never over a tier that already has a field of its name ("Headline" over Kicker
             // and Headline read as if the Kicker were the headline)
-            const worth = (inGroup.length > 1 || (inGroup[0] && inGroup[0].label !== r.group))
-              && !inGroup.some(z => z.label === r.group);
+            // A one-field tier prints nothing either: "Name" over "Agent name" and "Price" over
+            // "Price in AED" said the same thing twice in a narrower rail.
+            const worth = inGroup.length > 1 && !inGroup.some(z => z.label === r.group);
             if (sec === 'words' && r.group && r.group !== lastGroup && worth) {
               items.push({ key: r.key + 'g', isGroup: true, isRow: false, group: r.group });
             }
@@ -15487,7 +15498,7 @@ class OrganicStudio extends StudioBase {
           gdModeAttr: editor ? 'editor' : 'guide',
           gdEmptyOn: (editor && sl && !pageOnly.length) ? '1' : undefined,
           gdEmptyTitle: 'Nothing to fill in on this page',
-          gdEmptyText: (fixed.length ? 'The template writes ' + fixed.map(t => t.charAt(0).toLowerCase() + t.slice(1)).join(', ') + '.' : 'The template writes this page.')
+          gdEmptyText: (fixed.length ? 'The template writes ' + ((l => l.length > 1 ? l.slice(0, -1).join(', ') + ' and ' + l[l.length - 1] : l[0])(fixed.map(t => 'the ' + t.charAt(0).toLowerCase() + t.slice(1)))) + '.' : 'The template writes this page.')
             + ((sl && sl.kind === 'cta') ? ' It shares the cover’s photo and QR code.' : ''),
           gdStepNo: idx + 1,
           gdTotal: steps.length,
@@ -16352,6 +16363,29 @@ class Component extends DCLogic {
     }
     this._tplTick(a2);
     this._rcvTick(a2);
+    this._pageTick(a2);
+  }
+  // PICKING A PAGE BRINGS IT INTO VIEW. Choosing a slide in the left rail changed the form but
+  // left its card wherever the stage was scrolled — on a six-page post, off to the right — and
+  // the form kept the last page's scroll, so a new page opened half way down. Keyed on the
+  // template and the active slide, so it runs once per pick and never fights a scroll.
+  _pageTick(a) {
+    const e = a || this.active();
+    if (!e || !e.state || e.state.screen !== 'editor' || typeof document === 'undefined') return;
+    const key = (e.state.tpl || '') + '|' + (e.state.activeSi || 0);
+    if (this._pageKey === key) return;
+    const first = this._pageKey == null;
+    this._pageKey = key;
+    if (first) return;
+    const wrap = document.querySelector('.gd[data-mode="editor"] .gd-askwrap');
+    if (wrap) wrap.scrollTop = 0;
+    const plate = document.querySelectorAll('.p-stage .p-plate')[e.state.activeSi || 0];
+    const stage = document.querySelector('.p-stage');
+    if (plate && stage) {
+      const p = plate.getBoundingClientRect(), r = stage.getBoundingClientRect();
+      if (p.left < r.left || p.right > r.right || p.top < r.top || p.bottom > r.bottom)
+        try { plate.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch (_) {}
+    }
   }
   // The reel thumbnail's layout tiles are real renders, kept current from here — the sync is
   // key-guarded and debounced, so calling it on every update is a no-op between changes.
