@@ -269,11 +269,14 @@ This is for copywriters: the ad's words on their own, next to a live preview.
    back.
    - The big preview is the real export.
    - The picker above it chooses which variant (or page) you're looking at.
-2. **Start from a brief (optional).** The **Brief to copy, with Claude** card at the top runs
-   the `meta-ad-design-copy` skill in your own Claude.
+   - The page reads top to bottom as one flow: the status (**Draft → With design → Final**),
+     an optional brief, **The words**, and a bar pinned to the bottom with the hand-off buttons.
+2. **Start from a brief (optional, Draft only).** The **Start from a brief** card at the top runs
+   the `meta-ad-design-copy` skill in your own Claude. It folds away once you have filled the
+   words, and is not shown once the copy is with design or final.
    - Paste the brief (script, fact sheet, EOI brief), tick the audiences, and add any notes
      (permit number, what to lead with).
-   - **Where it saves** shows the Source folder this campaign saves and exports into, with
+   - **Folder, Drive link and pictures** folds the extras away. **Where it saves** shows the Source folder this campaign saves and exports into, with
      **Choose folder** / **Change**, and takes the project's Google Drive folder link. Both go
      into the prompt.
    - **Attach pictures** (optional): a **Logo** and up to 10 **Photos & images**. On Fill, the
@@ -285,7 +288,7 @@ This is for copywriters: the ad's words on their own, next to a live preview.
    - **Open in Claude** opens the Claude app with the prompt typed in; press Return there. The
      prompt is also copied, so if Claude opens empty, press ⌘V. **or use claude.ai** opens the
      website instead. A very long brief is not typed in for you; paste it from the clipboard.
-   - Paste Claude's whole reply into step 3. The card lists Claude's **Flags** as checkboxes,
+   - Paste Claude's whole reply into **Claude's reply**. The card lists Claude's **Flags** as checkboxes,
      lets you pick **Families** or **Investors** and the main or an alternate heading, and shows
      which field each line goes into.
    - **Fill this campaign** puts only the critical details on the ad: small label, heading,
@@ -300,7 +303,8 @@ This is for copywriters: the ad's words on their own, next to a live preview.
      basic look; the designer styles and places it.
    - The bin icon removes one, and the notice that appears offers **Undo**.
 4. **Reorder** a line by dragging its grip, or focus the grip and use the arrow keys.
-5. **Hand the copy off:**
+5. **Hand the copy off** from the bar at the bottom of the form, which also says how many lines
+   changed since the last snapshot:
    - **Send to design** saves a snapshot and marks the copy "With design".
    - **Mark as final** saves another snapshot and marks it "Final".
    - **Reopen for edits** and **Back to draft** step back without saving a snapshot.

@@ -4542,6 +4542,35 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .cw-br-rm:hover{background:var(--ps-bad-q);color:var(--ps-bad)}
 @media (prefers-reduced-motion:reduce){.cw-br-chev{transition:none}}
 
+/* ── 54. THE COPY VIEW IS ONE FLOW ─────────────────────────────────────────────────────
+   Where the copy is (Draft, With design, Final) at the top; while drafting, an optional
+   brief Claude turns into words; the words themselves; and one hand-off bar pinned to the
+   foot of the column that sends them on. The brief card has no step numbers of its own —
+   one numbered track per screen. */
+.cw-in{padding-bottom:0}
+.cw-head{padding-bottom:4px}
+.cw-br-h{align-items:center}
+.cw-br-more{margin-top:2px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.cw-br-more > summary{display:flex;align-items:center;gap:10px;padding:11px 12px;list-style:none;cursor:pointer;border-radius:12px}
+.cw-br-more > summary::-webkit-details-marker{display:none}
+.cw-br-more > summary:hover{background:var(--ps-fill)}
+.cw-br-more > summary span{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cw-br-more > summary b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-br-more > summary s{text-decoration:none;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cw-br[open] .cw-br-more:not([open]) .cw-br-chev{transform:none}
+.cw-br-more[open] .cw-br-chev{transform:rotate(180deg)}
+.cw-br-mb{display:flex;flex-direction:column;gap:12px;padding:4px 12px 14px}
+.cw-br-gl2{margin-top:8px;padding-top:14px;border-top:1px solid var(--ps-hair)}
+.cw-words-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin:30px 0 0;padding:0 2px}
+.cw-words-h b{font:600 17px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-words-h s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.cw-words-h + .cw-page{margin-top:12px}
+.cw-bar{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px;
+  margin:28px -32px 0;padding:14px 32px;background:var(--ps-app);border-top:1px solid var(--ps-hair)}
+.cw-bar-t{flex:1 1 200px;min-width:0;display:flex;align-items:center}
+.cw-bar .cw-acts{flex:none;margin-left:auto}
+@media (max-width:900px){.cw-bar{margin:24px -16px 0;padding:12px 16px}}
+
 /* ── 53. FROM THE HUB (the project browser's view of the Content Hub's received deliveries) ──
    Mirrored in both studios. The card is the recents card; only its picture differs — up to three
    of the delivery's renders side by side on the stage ground, each contain-fitted, since one
@@ -4880,30 +4909,17 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </sc-for>
         </div>
         <p class="cw-note">{{ cwNote }}</p>
-        <div class="cw-acts">
-          <sc-if value="{{ cwActOn }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ cwAct }}" class="p-btn" title="{{ cwActTip }}">{{ cwActLabel }}</button>
-          </sc-if>
-          <sc-if value="{{ cwBackOn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ cwBack }}" class="p-ghost">{{ cwBackLabel }}</button>
-          </sc-if>
-          <button onClick="{{ cwDl }}" class="p-ghost" title="{{ cwDlTip }}">Download .docx</button>
-        </div>
-        <span class="cw-since" data-on="{{ cwSinceOn }}">{{ cwSince }}</span>
-        <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
-          <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
-        </sc-if>
       </div>
       </sc-if>
       <!-- BRIEF TO COPY, WITH CLAUDE: the /meta-ad-design-copy skill's first stage. The page
            cannot run Claude — it writes the prompt, opens the Claude app on it, and reads the
            reply back into the fields below. -->
-      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ brOn }}" hint-placeholder-val="{{ true }}">
       <details class="cw-page cw-br" data-acc="cw-brief" data-def="1">
-        <summary class="cw-br-s"><span class="cw-br-ic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg></span><span class="cw-br-t"><b>Brief to copy, with Claude</b><s>Turn a fact sheet, script or EOI brief into Families and Investors copy</s></span><em class="cw-br-st" data-on="{{ brSummOn }}">{{ brSumm }}</em><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
+        <summary class="cw-br-s"><span class="cw-br-ic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg></span><span class="cw-br-t"><b>Start from a brief</b><s>Claude drafts the words below from a fact sheet, script or EOI brief</s></span><em class="cw-br-st" data-on="{{ brSummOn }}">{{ brSumm }}</em><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
         <ol class="cw-br-steps">
           <li class="cw-br-step">
-            <div class="cw-br-h"><i>1</i><span><b>Paste the brief</b><s>Video script, developer fact sheet, WhatsApp or EOI brief</s></span></div>
+            <div class="cw-br-h"><span><b>The brief</b><s>Video script, developer fact sheet, WhatsApp or EOI brief</s></span></div>
             <textarea value="{{ brBrief }}" onChange="{{ onBrBrief }}" rows="6" class="p-in" placeholder="Paste the project text here" aria-label="Brief"></textarea>
             <div class="cw-br-row"><span class="cw-br-l">Audiences</span>
               <button onClick="{{ brFam }}" data-on="{{ brFamOn }}" class="cw-br-chip" aria-label="Families"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Families</button>
@@ -4912,9 +4928,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <label class="cw-sub">Notes for Claude <s>optional — permit number, what to lead with, what to leave out</s>
               <input value="{{ brNotes }}" onChange="{{ onBrNotes }}" class="p-in" placeholder="e.g. Trakheesi 7123456 · lead with the beach">
             </label>
-          </li>
-          <li class="cw-br-step">
-            <div class="cw-br-h"><i>2</i><span><b>Where it saves</b><s>The folder this campaign saves and exports into, and the project&#8217;s Drive folder</s></span></div>
+            <details class="cw-br-more">
+              <summary><span><b>Folder, Drive link and pictures</b><s>{{ brMoreSumm }}</s></span><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
+              <div class="cw-br-mb">
+                <span class="cw-br-gl">Where it saves<s>Claude names these in its reply, so the files land in the right place</s></span>
             <div class="cw-br-dest" data-on="{{ brFolderOn }}">
               <span class="cw-br-dic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></span>
               <span class="cw-br-dt"><s>Source folder</s><b>{{ brFolder }}</b></span>
@@ -4924,9 +4941,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
               <input value="{{ brDrive }}" onChange="{{ onBrDrive }}" class="p-in" placeholder="https://drive.google.com/drive/folders/…" inputmode="url" spellcheck="false">
             </label>
             <sc-if value="{{ brDriveBad }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">That doesn&#8217;t look like a Google Drive link.</p></sc-if>
-          </li>
-          <li class="cw-br-step">
-            <div class="cw-br-h"><i>3</i><span><b>Attach pictures</b><s>Optional — they go into the campaign when you press Fill</s></span></div>
+                <span class="cw-br-gl cw-br-gl2">Pictures for the ad<s>They go into the campaign when you press Fill</s></span>
             <div class="cw-br-grp"><span class="cw-br-gl">Logo<s>The developer&#8217;s logo, SVG or PNG</s></span>
               <div class="cw-br-pics">
                 <div class="cw-br-pic" data-filled="{{ brLogoOn }}">
@@ -4955,9 +4970,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
               </div>
             </div>
             <p class="cw-hint">{{ brPicNote }}</p>
+              </div>
+            </details>
           </li>
           <li class="cw-br-step">
-            <div class="cw-br-h"><i>4</i><span><b>Ask Claude</b><s>Runs the meta-ad-design-copy skill in your own Claude</s></span></div>
+            <div class="cw-br-h"><span><b>Ask Claude</b><s>Runs the meta-ad-design-copy skill in your own Claude</s></span></div>
             <div class="cw-acts">
               <sc-if value="{{ brAskOn }}" hint-placeholder-val="{{ true }}"><a href="{{ brOpenUrl }}" onClick="{{ brOpen }}" class="p-btn cw-br-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg>Open in Claude</a></sc-if>
               <sc-if value="{{ brAskOff }}" hint-placeholder-val="{{ false }}"><button class="p-btn cw-br-go" disabled><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg>Open in Claude</button></sc-if>
@@ -4967,7 +4984,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <p class="cw-hint">{{ brAskNote }}</p>
           </li>
           <li class="cw-br-step">
-            <div class="cw-br-h"><i>5</i><span><b>Paste Claude&#8217;s reply</b><s>The whole reply — the fields fill from its copy</s></span></div>
+            <div class="cw-br-h"><span><b>Claude&#8217;s reply</b><s>Paste the whole reply, check it, then fill the words below</s></span></div>
             <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="4" class="p-in" placeholder="Paste Claude&#8217;s reply here" aria-label="Claude&#8217;s reply"></textarea>
             <sc-if value="{{ brErrOn }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">{{ brErr }}</p></sc-if>
             <sc-if value="{{ brReadOn }}" hint-placeholder-val="{{ false }}">
@@ -5005,6 +5022,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </details>
       </sc-if>
       <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
+      <div class="cw-words-h"><b>The words</b><s>{{ cwWordsSub }}</s></div>
       <sc-for list="{{ cwPages }}" as="pg" hint-placeholder-count="1">
         <section class="cw-page" data-on="{{ pg.onPageOn }}" data-cwpg="{{ pg.vi }}" onPointerDown="{{ pg.pick }}">
           <sc-if value="{{ cwMulti }}" hint-placeholder-val="{{ false }}">
@@ -5100,6 +5118,25 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </div>
         </sc-for>
       </section>
+      <div class="cw-bar">
+        <div class="cw-bar-t">
+          <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
+            <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
+          </sc-if>
+          <sc-if value="{{ cwMsgOff }}" hint-placeholder-val="{{ true }}">
+            <span class="cw-since" data-on="{{ cwSinceOn }}">{{ cwSince }}</span>
+          </sc-if>
+        </div>
+        <div class="cw-acts">
+          <button onClick="{{ cwDl }}" class="p-ghost" title="{{ cwDlTip }}">Download .docx</button>
+          <sc-if value="{{ cwBackOn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ cwBack }}" class="p-ghost">{{ cwBackLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ cwActOn }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ cwAct }}" class="p-btn" title="{{ cwActTip }}">{{ cwActLabel }}</button>
+          </sc-if>
+        </div>
+      </div>
       </sc-if>
     </div>
   </div>
@@ -11527,16 +11564,16 @@ class CampaignStudio extends StudioBase {
       let d = {};
       try { d = JSON.parse(localStorage.getItem(CampaignStudio.BRIEF_KEY) || '{}') || {}; } catch (e) {}
       this._br = { brief: d.brief || '', notes: d.notes || '', drive: d.drive || '', fam: d.fam !== false, inv: d.inv !== false,
-        reply: d.reply || '', aud: d.aud | 0, head: 0, prune: d.prune !== false, done: {} };
+        reply: d.reply || '', aud: d.aud | 0, head: 0, prune: d.prune !== false, done: {}, filled: d.filled || '' };
     }
     return this._br;
   }
   brSet(k, v) {
     const b = this.brRead();
     b[k] = v;
-    if (k === 'reply') { b.head = 0; b.done = {}; }
+    if (k === 'reply') { b.head = 0; b.done = {}; b.filled = ''; }
     if (k === 'aud') b.head = 0;
-    try { localStorage.setItem(CampaignStudio.BRIEF_KEY, JSON.stringify({ brief: b.brief, notes: b.notes, drive: b.drive, fam: b.fam, inv: b.inv, reply: b.reply, aud: b.aud, prune: b.prune })); } catch (e) {}
+    try { localStorage.setItem(CampaignStudio.BRIEF_KEY, JSON.stringify({ brief: b.brief, notes: b.notes, drive: b.drive, fam: b.fam, inv: b.inv, reply: b.reply, aud: b.aud, prune: b.prune, filled: b.filled })); } catch (e) {}
     this.forceUpdate();
   }
   brPrompt() {
@@ -11757,8 +11794,13 @@ class CampaignStudio extends StudioBase {
     this.cwNotice((car ? 'Page ' + (vi + 1) : 'The ad') + ' now carries the ' + A.name + ' copy — ' + nf + ' filled'
       + (na ? ', ' + na + ' added at the end (the designer places them)' : '') + (nr ? ', ' + nr + ' removed' : '')
       + (pics.length ? '; ' + pics.join(' and ') : '') + '.', true);
-    // the notice and the filled fields are above the panel — bring them into view
-    setTimeout(() => { const el = document.querySelector('.cw-msg'); if (el) try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 60);
+    this.brSet('filled', A.name);
+    // the brief has done its job: fold it away and bring the filled words into view. The
+    // notice sits in the hand-off bar, which is always on screen.
+    setTimeout(() => {
+      const card = document.querySelector('.cw-br'); if (card) card.open = false;
+      const el = document.querySelector('.cw-words-h'); if (el) try { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
+    }, 60);
   }
   brOpen(e) {
     const p = this.brPrompt();
@@ -11843,8 +11885,16 @@ class CampaignStudio extends StudioBase {
       brPruneOn: b.prune ? '1' : undefined, brPruneAria: b.prune ? 'true' : 'false', brPrune: () => this.brSet('prune', !b.prune),
       brFill: () => this.brFill(),
       brFillLabel: A ? 'Fill ' + (C.isCarousel(this.state) ? 'this page' : 'this campaign') + ' with the ' + A.name + ' copy' : 'Fill',
-      brSumm: A ? P.auds.map(a => a.name).join(' · ') + ' ready' : (b.brief.trim() ? 'Brief written' : 'Start here'),
+      brSumm: b.filled && A ? 'Filled · ' + b.filled : A ? 'Reply ready' : (b.brief.trim() ? 'Brief written' : 'Optional'),
       brSummOn: A ? '1' : undefined,
+      brMoreSumm: (() => {
+        const n = brPics('ph').filter(p => p.filled).length, bits = [];
+        if (this.folderName()) bits.push('Saves to ' + this.folderName());
+        if (b.drive.trim()) bits.push('Drive link');
+        if (this.brHas('adbrief-logo')) bits.push('logo');
+        if (n) bits.push(n + ' picture' + (n === 1 ? '' : 's'));
+        return bits.length ? bits.join(' · ') : 'Optional — where it saves, and a logo and photos for the ad';
+      })(),
     };
   }
   // DRAG A LINE UP OR DOWN by its grip. Pointer events, never native drag-and-drop — the
@@ -12353,7 +12403,7 @@ class CampaignStudio extends StudioBase {
       : status === 'design' ? { label: 'Mark as final', to: 'final', tip: 'Saves a snapshot of the approved copy.' }
       : null;
     const back = status === 'design' ? { label: 'Back to draft', to: 'draft' } : (status === 'final' ? { label: 'Reopen for edits', to: 'design' } : null);
-    const note = status === 'draft' ? 'You are drafting. When the words are ready, send them to design — a snapshot of every line is kept.'
+    const note = status === 'draft' ? 'Write the words below, or start from a brief and let Claude draft them. When they are ready, send them to design — a snapshot of every line is kept.'
       : status === 'design' ? 'The designer is building with these words. Proofread here, then mark it final.'
       : 'Approved. Any edit from here shows as a change against the final snapshot.';
     const since = last ? (diff.length ? diff.length + ' change' + (diff.length === 1 ? '' : 's') + ' since ' + L[last.status] + ' · ' + C.copyStamp(last.at) : 'No changes since ' + L[last.status] + ' · ' + C.copyStamp(last.at)) : 'No snapshot yet';
@@ -12391,6 +12441,9 @@ class CampaignStudio extends StudioBase {
       cwSinceOn: last && diff.length ? '1' : undefined,
       cwMsg: this._cwMsg || '',
       cwMsgOn: !!this._cwMsg,
+      cwMsgOff: !this._cwMsg,
+      cwWordsSub: carousel ? 'One section per page, in reading order' : (s.variants.length > 1 ? 'Shared by every design variant, in reading order' : 'In the order they read on the ad'),
+      brOn: status === 'draft',
       cwDl: () => this.cwDownload(C.copySnap(this.state, this.state.copyStatus || 'draft', C.copyAuthor()), last),
       cwDlTip: last ? 'The words as they are now, with every change since the last snapshot listed at the end.' : 'The words as they are now, as a Word document — it opens in Google Docs too.',
       cwAuthor: C.copyAuthor(),

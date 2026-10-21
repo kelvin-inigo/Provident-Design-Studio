@@ -15646,3 +15646,15 @@ the same naming. The single-audience header shows `Download <audience> · N` bes
 (`asDlAud*`); the All audiences headings carry a smaller one (`c.dl`, `.as-dl-s`). `_asDlKey` says
 which button shows Zipping… / Downloaded (`asDlText`); one runs at a time. The one-row rules are
 scoped to `.as-ov .as-dl` so every download button gets them.
+
+# CAS'S COPY VIEW IS ONE FLOW (2026-10-21)
+
+By request ("they look like two flows forced with each other"): the copy status stepper and the
+brief card each had their own numbered steps. Now one track reads top to bottom — the head
+(kicker, name, the **one** numbered stepper Draft / With design / Final, the note), the
+**Start from a brief** card (`brOn`: Draft only; its steps carry no numbers; folder, Drive link
+and pictures fold into a nested `<details class="cw-br-more">` summarised by `brMoreSumm`),
+**The words** heading (`cwWordsSub`), the pages, History, and a sticky `.cw-bar` at the foot
+holding the since-line or the notice (`cwMsgOn` / `cwMsgOff`) and the hand-off buttons.
+`brFill` records `filled` in the brief store, closes the card and scrolls to the words; the
+card's pill then reads "Filled · <audience>". Section 54 of the sheet. Chrome only.
