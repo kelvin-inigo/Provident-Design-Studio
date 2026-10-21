@@ -6244,7 +6244,22 @@ class OrganicStudio extends StudioBase {
     const dw = tw / Math.max(1e-6, I.w), dh = th / Math.max(1e-6, I.h);
     return { tw, th, dw, dh, ox: dw * I.x, oy: dh * I.y };
   }
-  static periodWord(p) { return p === 'Yearly' ? 'year' : p === 'Quarterly' ? 'quarter' : 'month'; }
+  static periodWord(p) { return p === 'Yearly' ? 'year' : p === 'Quarterly' ? 'quarter' : p === 'Weekly' ? 'week' : 'month'; }
+  // Week 1 to Week 53 — an ISO year can carry a 53rd. Read by both copies of the list table.
+  static isoWeek(d) {
+    const t = d ? new Date(d) : new Date(); t.setHours(0, 0, 0, 0);
+    t.setDate(t.getDate() + 3 - (t.getDay() + 6) % 7);
+    const w1 = new Date(t.getFullYear(), 0, 4);
+    return 1 + Math.round(((t - w1) / 864e5 - 3 + (w1.getDay() + 6) % 7) / 7);
+  }
+  static WEEKS = Array.from({ length: 53 }, (_, i) => 'Week ' + (i + 1));
+  // THE SOLO RANK CARD carries its own period, team and place on the slide (`f.solo`), so it
+  // is the `tagent` card with no cover behind it. Every reader that used to look up the cover
+  // asks this instead: the cover's fields on the carousel, the card's own on a solo post.
+  static taSrc(state, f) {
+    const cov = (state.slides || []).find(z => z.kind === 'tacover');
+    return (cov && cov.f) || ((f && f.solo) ? f : {});
+  }
   static slide(kind, f) { return { id: 's' + Math.random().toString(36).slice(2, 8), kind, f, fg: false }; }
   // NOTHING the user is asked for is pre-filled. A seeded headline or price reads as
   // already-answered, so it gets skipped and ships as placeholder copy; a blank field is
@@ -6266,9 +6281,12 @@ class OrganicStudio extends StudioBase {
       // No `eyebrow`: the rebuilt cover draws none, so seeding one wrote a value into every
       // new project that nothing renders and nothing asks for. A project saved before the
       // rebuild keeps whatever it has — `normState` does not strip it.
-      return [S('tacover', { period: 'Monthly', mon: '', qtr: '', yr: '', team: '' })]
+      return [S('tacover', { period: 'Monthly', wk: '', mon: '', qtr: '', yr: '', team: '' })]
         .concat([0, 1, 2, 3, 4].map(() => S('tagent', { name: '', role: '', blurb: '' })));
     }
+    // ONE AGENT, FOR THEIR OWN CHANNEL: the carousel's rank card on its own. `period` and
+    // `place` are seeded — segmented controls always show an answer (the `tacover` reason).
+    if (t === 'agentsolo') return [S('tagent', { solo: true, period: 'Monthly', wk: '', mon: '', qtr: '', yr: '', team: '', place: '1st', name: '', role: '', blurb: '' })];
     if (t === 'review') return [S('review', { reviewer: '', quote: '', agentName: '', agentRole: '' })];
     // `rank` IS seeded, and that is the documented exception rather than a slip: a segmented
     // control is always displaying an answer, so the card has to agree with what is on
@@ -6314,7 +6332,7 @@ class OrganicStudio extends StudioBase {
     // Demo copy only: `tplSlides` seeds nothing, so this reaches no project and no export.
     review:  { reviewer: 'Amelia Hart', quote: 'From the first viewing to the handover the process was calm, precise and completely transparent. Every question was answered the same day, and the paperwork was ready before I had to ask for it.', agentName: 'Sara Nasser', agentRole: 'Senior Consultant' },
     tacover: { period: 'Monthly', mon: 'August', yr: '2026', team: 'Primary Sales' },
-    tagent:  { name: 'Sara Nasser', role: 'Senior Consultant', blurb: 'Closed nine villas on the Palm this quarter and still answers her phone on a Sunday.' },
+    tagent:  { mon: 'August', yr: '2026', team: 'Primary Sales', name: 'Sara Nasser', role: 'Senior Consultant', blurb: 'Closed nine villas on the Palm this quarter and still answers her phone on a Sunday.' },
     award:   { title: 'Highest Lead Generation', sub: 'For rental properties in the spring in July 2026', rank: '1st' },
     // the designer's own airport carousel, page by page
     cfront:  { headline: 'An Airport Moves People.', sub: 'This One Could Move Dubai\u2019s Property Market.\nAED 128B is shaping Dubai\u2019s next growth zone.', pos: 'Bottom' },
@@ -7400,7 +7418,7 @@ class OrganicStudio extends StudioBase {
       await OrganicStudio.bundledReady();
       const qr = await OrganicStudio.qrDemoReady();
       const out = {};
-      ['listed', 'weekly', 'agents', 'review', 'award', 'carousel', 'rcover'].forEach(tpl => {
+      ['listed', 'weekly', 'agents', 'agentsolo', 'review', 'award', 'carousel', 'rcover'].forEach(tpl => {
         const st = this.tplDemoState(tpl);
         // Every QR key `buildOps` can read — project, cover and per-slide — so no card is
         // left with a blank quiet zone. There is no photo, portrait or cut-out to supply:
@@ -9298,10 +9316,11 @@ class OrganicStudio extends StudioBase {
       return x;
     });
   }
-  taPeriodOf(state) { const c = state.slides.find(z => z.kind === 'tacover'); return (c && c.f.period) || 'Monthly'; }
+  taPeriodOf(state) { const c = state.slides.find(z => z.kind === 'tacover' || (z.f && z.f.solo)); return (c && c.f.period) || 'Monthly'; }
   taDate(f) {
     const y = f.yr || String(new Date().getFullYear());
     if (f.period === 'Yearly') return y;
+    if (f.period === 'Weekly') return (f.wk || 'Week 1') + ', ' + y;
     if (f.period === 'Quarterly') return (f.qtr || 'Q1') + ' ' + y;
     return (f.mon || 'January') + ' ' + y;
   }
@@ -9388,6 +9407,8 @@ class OrganicStudio extends StudioBase {
   taRank(si, st) {
     const s = st || this.state, sl = s.slides[si];
     if (!sl || sl.kind !== 'tagent') return '';
+    // a solo card's place is chosen, not counted — there is only the one card
+    if (sl.f && sl.f.solo) return String(Math.max(0, OrganicStudio.TA_ORD.indexOf(sl.f.place || '1st')) + 1).padStart(2, '0');
     return String(s.slides.filter(z => z.kind === 'tagent').indexOf(sl) + 1).padStart(2, '0');
   }
   bgIndexFor(state, si) {
@@ -11020,7 +11041,7 @@ class OrganicStudio extends StudioBase {
       }
     } else if (kind === 'tagent') {
       const T = OrganicStudio.TA;
-      const cov = state.slides.find(z => z.kind === 'tacover'), cf = (cov && cov.f) || {};
+      const cf = OrganicStudio.taSrc(state, f);
       // ── THE TOP ROW replaces the wordmark on this slide kind. The supplied design draws
       // no `provident.` here — the carousel's cover carries the brand — and puts the
       // ranking's own period and team in that band instead, which is information the card
@@ -11854,7 +11875,7 @@ class OrganicStudio extends StudioBase {
       const props = this.state.slides.filter(s => s.kind === 'prop');
       return 'Property ' + String(props.indexOf(sl) + 1).padStart(2, '0');
     }
-    if (sl.kind === 'tagent') return 'Rank ' + this.taRank(si);
+    if (sl.kind === 'tagent') return sl.f && sl.f.solo ? 'Top agent' : 'Rank ' + this.taRank(si);
     if (sl.kind === 'review') {
       const revs = this.state.slides.filter(s => s.kind === 'review');
       return revs.length > 1 ? 'Review ' + String(revs.indexOf(sl) + 1).padStart(2, '0') : 'Google review';
@@ -11882,13 +11903,14 @@ class OrganicStudio extends StudioBase {
     }
     if (s.tpl === 'listed') return custom || `Just ${(s.slides[0] && /sold/i.test(s.slides[0].f.status || '')) ? 'Sold' : 'Listed'}_${s.agent.name || 'Agent'}`;
     if (s.tpl === 'review') { const a0 = s.slides[0] && s.slides[0].f.agentName; return custom || `${a0 || s.agent.name || 'Agent'}_Google Reviews`; }
-    if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(c0) || 'Period'}_Top Agents_${c0.team || 'Team'}`; }
+    if (s.tpl === 'agentsolo') { const a0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(a0).replace(',', '')}_Top Agent_${a0.name || 'Agent'}`; }
+    if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(c0).replace(',', '') || 'Period'}_Top Agents_${c0.team || 'Team'}`; }
     return custom || `${(s.month || '').toUpperCase()}_${(s.week || 'Week 01').replace(/\s+/g, '')}_Weekly Listing`;
   }
   fileNameFor(si) {
     const s = this.state, base = this.baseName();
     if (s.tpl === 'carousel') return `${base}_page${si + 1}`;   // the requested form, no space
-    if (s.tpl === 'rcover') return base;                         // ONE cover, so no page number
+    if (s.tpl === 'rcover' || s.tpl === 'agentsolo') return base;   // ONE card, so no page number
     if (s.tpl === 'weekly' || s.tpl === 'agents') return `${base}_${String(si + 1).padStart(2, '0')}_${this.sLabel(si)}`;
     if (s.tpl === 'review') {
       const revs = s.slides.filter(x => x.kind === 'review');
@@ -12000,7 +12022,7 @@ class OrganicStudio extends StudioBase {
     // No 'Headline' tier: the ranking cover's headline is template-written, so that
     // heading named a group with no fields under it.
     tacover: ['Period', 'When', 'Team'],   // tier 2 is the month/quarter/year, tier 3 the team
-    tagent:  ['Name', 'Role', 'Blurb'],
+    tagent:  ['Name', 'Role', 'Blurb', 'Ranking'],
     // No 'Headline' tier: the award's headline is template-written, so that heading would
     // name a group with no fields under it — the fix `tacover` already carries.
     award:   ['Award', 'Occasion', 'Place'],
@@ -12088,7 +12110,8 @@ class OrganicStudio extends StudioBase {
             ['reviewer', 2, 'Who wrote it', 'req', 'e.g. Phillips · Provident client'],
             ['agentName', 3, 'Agent name', '', ''],
             ['agentRole', 3, 'Agent role', '', '']],
-    tacover:[['period', 1, 'Period', 'seg:Monthly|Quarterly|Yearly', ''],
+    tacover:[['period', 1, 'Period', 'seg:Weekly|Monthly|Quarterly|Yearly', ''],
+            ['wk', 2, 'Week', 'sel@weeks', ''],
             ['mon', 2, 'Month', 'sel@months', ''],
             ['qtr', 2, 'Quarter', 'sel:Q1|Q2|Q3|Q4', ''],
             ['yr', 2, 'Year', 'sel@years', ''],
@@ -12101,7 +12124,16 @@ class OrganicStudio extends StudioBase {
             ['rank', 3, 'Place', 'seg:1st|2nd|3rd|4th|5th', '']],
     tagent:[['name', 1, 'Agent name', 'req', ''],
             ['role', 2, 'Role and area', 'req', 'e.g. Consultant · Dubai Marina'],
-            ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral']],
+            ['blurb', 3, 'Short blurb', 'area w40', 'Up to 40 words, so it clears the ranking numeral'],
+            // the SOLO card's own ranking (`f.solo`) — on the carousel the cover answers these,
+            // so `fieldShown` drops them there
+            ['period', 4, 'Period', 'seg:Weekly|Monthly|Quarterly|Yearly', ''],
+            ['wk', 4, 'Week', 'sel@weeks', ''],
+            ['mon', 4, 'Month', 'sel@months', ''],
+            ['qtr', 4, 'Quarter', 'sel:Q1|Q2|Q3|Q4', ''],
+            ['yr', 4, 'Year', 'sel@years', ''],
+            ['team', 4, 'Team', 'sel@teams', ''],
+            ['place', 4, 'Place', 'seg:1st|2nd|3rd|4th|5th', '']],
     // THE CAROUSEL'S FIVE PAGE LAYOUTS. `pos` / `align` are seeded, the segmented-control
     // exception. The stats page's items are a custom `stats` ask (count + rows), not fields.
     cfront:[['kicker', 1, 'Kicker', '', 'Optional \u2014 small caps above the headline, e.g. Aldar \u00B7 Yas Island, Abu Dhabi'],
@@ -12248,8 +12280,12 @@ class OrganicStudio extends StudioBase {
     }
     // the overline's colour is a question only while the overline is shown
     if (k === 'eyeCol') return !(f && f.eyeOn === 'Hide');
-    if (kind !== 'tacover') return true;
+    if (kind === 'tagent') {
+      if (['period', 'wk', 'mon', 'qtr', 'yr', 'team', 'place'].indexOf(k) < 0) return true;
+      if (!(f && f.solo)) return false;
+    } else if (kind !== 'tacover') return true;
     const p = (f && f.period) || 'Monthly';
+    if (k === 'wk') return p === 'Weekly';
     if (k === 'mon') return p === 'Monthly';
     if (k === 'qtr') return p === 'Quarterly';
     return true;
@@ -12997,9 +13033,12 @@ class OrganicStudio extends StudioBase {
           teams: this.state.teams || ['Primary Sales', 'Secondary Sales'],
           city: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
           months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
+          weeks: OrganicStudio.WEEKS,
           years: [new Date().getFullYear() - 1, new Date().getFullYear(), new Date().getFullYear() + 1].map(String)
         };
-        first = (lists[key] || [])[0] || '';
+        // a week list starts on THIS week — Week 1 is wrong for fifty-one weeks of the year
+        first = key === 'weeks' ? OrganicStudio.WEEKS[OrganicStudio.isoWeek() - 1]
+          : key === 'years' ? String(new Date().getFullYear()) : ((lists[key] || [])[0] || '');
       } else first = f.flags.slice(inl + 4).split('|')[0] || '';
       if (first) writes.push([ask.si, ask.k, first]);
     });
@@ -13320,7 +13359,7 @@ class OrganicStudio extends StudioBase {
         if (!String(sl.f.listno || '').trim()) missing.push(lbl + ' listing number');
       });
     }
-    if (s.tpl === 'agents') s.slides.forEach((sl, i) => { if (sl.kind === 'tagent' && !filled['smp-bg-' + sl.id]) missing.push(this.sLabel(i) + ' portrait'); });
+    if (s.tpl === 'agents' || s.tpl === 'agentsolo') s.slides.forEach((sl, i) => { if (sl.kind === 'tagent' && !filled['smp-bg-' + sl.id]) missing.push(this.sLabel(i) + ' portrait'); });
     return missing;
   }
   async doExport(kind) {
@@ -13784,7 +13823,7 @@ class OrganicStudio extends StudioBase {
         : Math.round(Math.min(Math.max(this.props.displayWidth ?? 440, 380), 640));
     const PXT = OrganicStudio.PXT;
     const N = a => `rgba(0,0,0,${a})`;
-    const TPLNAMES = { listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', award: 'Congratulations award', carousel: 'Carousel', rcover: 'Reel thumbnail' };
+    const TPLNAMES = { listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', agentsolo: 'Top agent \u2014 solo', award: 'Congratulations award', carousel: 'Carousel', rcover: 'Reel thumbnail' };
 
     const mkCanvas = (si, sizeKey) => {
       const sl = s.slides[si], f = sl.f, kind = sl.kind;
@@ -14992,8 +15031,8 @@ class OrganicStudio extends StudioBase {
         taBarR: (sl.kind === 'tacover' && f.team) ? (f.team + ' Team') : '',
         blurb: f.blurb || '', taName: this.toTitle(f.name || ''), taRole: f.role || '', rankNum: this.taRank(si),
         taPlace: this.taPlace(si),
-        taTop1: ('Top agent - ' + this.taDate(((s.slides.find(z => z.kind === 'tacover') || {}).f) || {})),
-        taTop2: (() => { const cv = s.slides.find(z => z.kind === 'tacover'); const t = cv && cv.f && cv.f.team; return t ? t + ' Team' : ''; })(),
+        taTop1: ('Top agent - ' + this.taDate(OrganicStudio.taSrc(s, f))),
+        taTop2: (() => { const t = OrganicStudio.taSrc(s, f).team; return t ? t + ' Team' : ''; })(),
         statusPre: lh ? lh.pre : '', statusAccent: lh ? lh.accent : '',
         location: f.location || '', usp: f.usp || '',
         listedLine: sl.kind === 'listed' ? this.listedLine(f) : '',
@@ -15080,7 +15119,7 @@ class OrganicStudio extends StudioBase {
         if (!String(sl2.f.listno || '').trim()) missing.push(lbl + ' listing number');
       });
     }
-    if (s.tpl === 'agents') s.slides.forEach((sl2, i2) => { if (sl2.kind === 'tagent' && !filled['smp-bg-' + sl2.id]) missing.push(this.sLabel(i2) + ' portrait'); });
+    if (s.tpl === 'agents' || s.tpl === 'agentsolo') s.slides.forEach((sl2, i2) => { if (sl2.kind === 'tagent' && !filled['smp-bg-' + sl2.id]) missing.push(this.sLabel(i2) + ' portrait'); });
     const qrWrapBase = {};
     const qrWrapErr = { border: '2px solid var(--ps-bad)', borderRadius: '8px', padding: '2px', background: 'var(--ps-bad-q)' };
     const area = (label, key) => ({ isInput: false, isArea: true, isSeg: false, isNote: false, label, val: asl.f[key] || '', set: editF(key), opts: [] });
@@ -15123,7 +15162,7 @@ class OrganicStudio extends StudioBase {
       const teams = (s.teams || ['Primary Sales', 'Secondary Sales']).slice();
       if (asl.f.team && teams.indexOf(asl.f.team) < 0) teams.unshift(asl.f.team);
       slideFields = [
-        { isSeg: true, isInput: false, isArea: false, isNote: false, isSelect: false, isStep: false, label: 'Period', val: '', set: null, opts: ['Monthly', 'Quarterly', 'Yearly'].map(o => ({ label: o.replace('ly', ''), set: () => this.upd(x => { x.slides[asi].f.period = o; return x; }), style: btn((asl.f.period || 'Monthly') === o) })) },
+        { isSeg: true, isInput: false, isArea: false, isNote: false, isSelect: false, isStep: false, label: 'Period', val: '', set: null, opts: ['Weekly', 'Monthly', 'Quarterly', 'Yearly'].map(o => ({ label: o.replace('ly', ''), set: () => this.upd(x => { x.slides[asi].f.period = o; return x; }), style: btn((asl.f.period || 'Monthly') === o) })) },
         ...(asl.f.period === 'Monthly' || !asl.f.period ? [{ isSelect: true, isInput: false, isArea: false, isSeg: false, isNote: false, isStep: false, label: 'Month', val: asl.f.mon || 'January', opts: [], opts2: MONTHS.map(v => ({ v })), set: e => { const v = e.target.value; this.upd(x => { x.slides[asi].f.mon = v; return x; }); } }] : []),
         ...(asl.f.period === 'Quarterly' ? [{ isSelect: true, isInput: false, isArea: false, isSeg: false, isNote: false, isStep: false, label: 'Quarter', val: asl.f.qtr || 'Q1', opts: [], opts2: ['Q1', 'Q2', 'Q3', 'Q4'].map(v => ({ v })), set: e => { const v = e.target.value; this.upd(x => { x.slides[asi].f.qtr = v; return x; }); } }] : []),
         { isSelect: true, isInput: false, isArea: false, isSeg: false, isNote: false, isStep: false, label: 'Year', val: asl.f.yr || String(new Date().getFullYear()), opts: [], opts2: YEARS.map(v => ({ v })), set: e => { const v = e.target.value; this.upd(x => { x.slides[asi].f.yr = v; return x; }); } },
@@ -15341,6 +15380,7 @@ class OrganicStudio extends StudioBase {
           teams: (s.teams || ['Primary Sales', 'Secondary Sales']),
           city: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'],
           months: MONTHS,
+          weeks: OrganicStudio.WEEKS,
           years: [thisYear - 1, thisYear, thisYear + 1].map(String)
         };
         const ADDNEW = { ptypes: '+ Add new type…', teams: '+ Add new team…' };
@@ -15649,7 +15689,9 @@ class OrganicStudio extends StudioBase {
         { id: 'weekly', name: 'Weekly listings', slidesDesc: 'Cover + properties + CTA',
           desc: 'Carousel — cover headline, one photo slide per property with its own QR + listing number, closing CTA that shares the cover photo.' },
         { id: 'agents', name: 'Top agents', slidesDesc: 'Cover + 5 agents',
-          desc: 'Carousel — a cover with the period and team, then five agent cut-outs on a white ground, each over its ranking numeral with a short blurb. Monthly, quarterly or yearly.' },
+          desc: 'Carousel — a cover with the period and team, then five agent cut-outs on a white ground, each over its ranking numeral with a short blurb. Weekly, monthly, quarterly or yearly.' },
+        { id: 'agentsolo', name: 'Top agent \u2014 solo', slidesDesc: '1 slide',
+          desc: 'One agent\u2019s rank card for their own channel \u2014 the carousel\u2019s design on its own, with the period, team and place on the card. Weekly, monthly, quarterly or yearly.' },
         { id: 'review', name: 'Google reviews', slidesDesc: 'Up to 10 slides',
           desc: 'Client testimonials on navy — stars, quote, agent. Add up to 10 review slides; the card auto-sizes to the text.' },
         { id: 'award', name: 'Congratulations award', slidesDesc: '1 slide',
@@ -15709,6 +15751,7 @@ class OrganicStudio extends StudioBase {
         { id: 'listed', name: 'Just listed / sold', desc: 'Status headline, then a glass panel with the price, agent and QR' },
         { id: 'weekly', name: 'Weekly listings', desc: 'Cover, one slide per property with its own QR, closing CTA' },
         { id: 'agents', name: 'Top agents', desc: 'Cover plus five portraits with a ranking numeral' },
+        { id: 'agentsolo', name: 'Top agent \u2014 solo', desc: 'One agent\u2019s rank card for their own channel, weekly to yearly' },
         { id: 'review', name: 'Google reviews', desc: 'Stars, quote and agent on a navy card, up to ten slides' },
         { id: 'award', name: 'Congratulations award', desc: 'Gold 1st–5th numeral, the award and the occasion, partner mark' },
         { id: 'carousel', name: 'Carousel', desc: 'Five page layouts to mix — front, stats, bullets, text and a call to action' },

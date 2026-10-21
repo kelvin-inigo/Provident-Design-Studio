@@ -15918,3 +15918,22 @@ Illustrator, Remove** (danger ink) on a filled one. Captions sit UNDER the row.
 - Widths measured: OPS rail thumb 136 (actions 119), CAS rail thumb 116 (actions 111) — the
   longest label, Photoshop, needs 107. An empty CAS slot hides its caption's first line, which
   repeated the placeholder.
+
+# TOP AGENTS: A WEEKLY PERIOD, AND A ONE-SLIDE "TOP AGENT — SOLO" TEMPLATE (2026-10-21)
+
+By request: the Top agents carousel can be **Weekly** too, and a single rank card exists for an
+agent to post on their own channel, weekly to yearly. No existing post moves: both are new
+values or a new template, and the carousel's own reads are unchanged.
+
+- **Weekly**: the cover's Period is `Weekly | Monthly | Quarterly | Yearly`; Weekly asks for
+  `f.wk` from `OrganicStudio.WEEKS` (Week 1–53, the `weeks` list in both list tables).
+  `periodWord` gives "Top Agents of the Week"; `taDate` gives "Week 42, 2026". A week select is
+  seeded to THIS ISO week (`isoWeek()`), and any `years` select to this year, in `gdSeedSelect`.
+- **`agentsolo`** is one `tagent` slide with `f.solo = true` and its own `period`, `wk`, `mon`,
+  `qtr`, `yr`, `team`, `place` (1st–5th, seeded). It IS the rank card: paper ground, texture,
+  numeral art, glass panel, cut-out portrait — nothing was duplicated. `OrganicStudio.taSrc(state, f)`
+  is the one answer to "whose period and team does this card print" — the cover's on the
+  carousel, the card's own on a solo post — read by `buildOps` and the preview's top row.
+  `taRank` returns the chosen place for a solo card; `fieldShown` shows the seven solo fields
+  only when `f.solo` (tier 4, "Ranking"). Export: `<Week 42 2026>_Top Agent_<name>`, one file.
+- `TPLDEMO.tagent` gained `mon`/`yr`/`team` for the solo card; the carousel never reads them.

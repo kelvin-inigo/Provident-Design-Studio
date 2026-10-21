@@ -97,7 +97,7 @@
     if (name) d.customName = name;
     return { app: 'provident-smp-studio', v: 3, state: d, images: {} };
   };
-  ps.opsTemplates = () => ({ listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', award: 'Congratulations award', carousel: 'Carousel', rcover: 'Reel thumbnail' });
+  ps.opsTemplates = () => ({ listed: 'Just listed / sold', weekly: 'Weekly listings', review: 'Google reviews', agents: 'Top agents', agentsolo: 'Top agent — solo', award: 'Congratulations award', carousel: 'Carousel', rcover: 'Reel thumbnail' });
 
   // ── what a template asks for ──
   const parseOpts = flags => {

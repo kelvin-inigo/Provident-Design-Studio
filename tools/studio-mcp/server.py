@@ -341,7 +341,7 @@ TOOLS = [
             "Describe what a Provident studio can make. CAS (Campaign Ads Studio) makes paid Meta ads "
             "(1:1 feed, 9:16 story, optional 16:9 and 2:1 Eventbrite banners) from free-form design components. "
             "OPS (Organic Post Studio) makes organic feed (3:4) and story (9:16) posts from locked templates: "
-            "listed (just listed/sold), weekly (weekly listings), review (Google reviews), agents (top agents), "
+            "listed (just listed/sold), weekly (weekly listings), review (Google reviews), agents (top agents), agentsolo (one agent's rank card), "
             "award (congratulations), carousel, rcover (reel thumbnail). Returns templates, the fields each slide "
             "asks for (with required flags, options and formats) or the component types and styles. Call this first."
         ),
@@ -353,7 +353,7 @@ TOOLS = [
         "name": "studio_new_project",
         "description": (
             "Start a project from a template and save it as a session file (opens in the studio with Open Session). "
-            "OPS template ids: listed, weekly, review, agents, award, carousel, rcover. CAS: blank, or a template name "
+            "OPS template ids: listed, weekly, review, agents, agentsolo, award, carousel, rcover. CAS: blank, or a template name "
             "(New launch, Event, Payment plan, Spec ladder). Fields start empty — fill them with studio_edit. "
             "Returns the project summary: slides/components, every field and its current value, and the image slots."
         ),
