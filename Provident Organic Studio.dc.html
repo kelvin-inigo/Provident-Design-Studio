@@ -4564,6 +4564,8 @@ select.p-in{padding-right:34px}
             <div style="{{ sl.ft.taOrdStyle }}"></div>
             <div style="{{ sl.ft.taCardStyle }}">
               <div style="{{ sl.ft.blurbStyle }}">{{ sl.blurb }}</div>
+              <div style="{{ sl.ft.taSoloEyeStyle }}">{{ sl.taSoloEye }}</div>
+              <div style="{{ sl.ft.taSoloHeadStyle }}">{{ sl.taSoloHead }}</div>
               <div style="{{ sl.ft.taRuleStyle }}"></div>
               <div style="{{ sl.ft.taNameStyle }}">{{ sl.taName }}</div>
               <div style="{{ sl.ft.taRoleStyle }}">{{ sl.taRole }}</div>
@@ -4738,6 +4740,8 @@ select.p-in{padding-right:34px}
             <div style="{{ sl.st.taOrdStyle }}"></div>
             <div style="{{ sl.st.taCardStyle }}">
               <div style="{{ sl.st.blurbStyle }}">{{ sl.blurb }}</div>
+              <div style="{{ sl.st.taSoloEyeStyle }}">{{ sl.taSoloEye }}</div>
+              <div style="{{ sl.st.taSoloHeadStyle }}">{{ sl.taSoloHead }}</div>
               <div style="{{ sl.st.taRuleStyle }}"></div>
               <div style="{{ sl.st.taNameStyle }}">{{ sl.taName }}</div>
               <div style="{{ sl.st.taRoleStyle }}">{{ sl.taRole }}</div>
@@ -6138,6 +6142,11 @@ class OrganicStudio extends StudioBase {
     pad: 55,          // the panel's padding
     blurb: 29, blurbLead: 38, name: 35,
     firstBase: 28,    // the first blurb baseline, below the panel's content-box top
+    // THE SOLO CARD'S HEADING, in place of the blurb: a cream caps line (the period and
+    // the team; brass measured ~1.7:1 on the glass over the paper ground) over "Top Agent /
+    // of the Week" — the carousel cover's two authored lines — at the carousel's heading
+    // rung (66.5) in Regular 400, the brand's header weight.
+    headPx: 66.5, headLead: 1.08, headGap: 30,
     gRule: 48,        // last blurb baseline -> the rule
     gName: 74,        // the rule -> the name's baseline
     gRole: 46,        // the name's baseline -> the role's
@@ -6243,6 +6252,11 @@ class OrganicStudio extends StudioBase {
     if (tw > cap) { tw = cap; th = tw / (I.aspect || 1); }
     const dw = tw / Math.max(1e-6, I.w), dh = th / Math.max(1e-6, I.h);
     return { tw, th, dw, dh, ox: dw * I.x, oy: dh * I.y };
+  }
+  // a solo rank card has no blurb, so its page says what it does ask for
+  static pagePurpose(sl) {
+    if (sl && sl.kind === 'tagent' && sl.f && sl.f.solo) return 'Who they are, the period, the team and their place.';
+    return (OrganicStudio.PAGE[(sl || {}).kind] || ['', ''])[1];
   }
   static periodWord(p) { return p === 'Yearly' ? 'year' : p === 'Quarterly' ? 'quarter' : p === 'Weekly' ? 'week' : 'month'; }
   // Week 1 to Week 53 — an ISO year can carry a 53rd. Read by both copies of the list table.
@@ -7388,6 +7402,7 @@ class OrganicStudio extends StudioBase {
   tplDemoState(tpl) {
     const d = OrganicStudio.defaults();
     d.tpl = tpl;
+    if (tpl === 'agentsolo') d.glassFill = 'navy';
     d.slides = OrganicStudio.tplSlides(tpl).map(sl => {
       const demo = OrganicStudio.TPLDEMO[sl.kind] || {};
       return Object.assign({}, sl, { f: Object.assign({}, sl.f, demo) });
@@ -9352,13 +9367,26 @@ class OrganicStudio extends StudioBase {
     // Regular for headers (the name beside it is correctly 400), and a font-family string
     // in an export is far more likely to be a tool artefact than a decision. It is one
     // number if it was deliberate.
-    const bl = this.wrapRuns([{ text: f.blurb || '', px: bpx, weight: 300, fill: A.ink }], contentW);
+    // A SOLO CARD HAS NO BLURB: its heading takes the blurb's place, and the rest of the
+    // stack (rule, name, role, badge) hangs off the heading's last baseline exactly as it
+    // hangs off the blurb's.
+    const solo = !!(f && f.solo);
+    const bl = solo ? [] : this.wrapRuns([{ text: f.blurb || '', px: bpx, weight: 300, fill: A.ink }], contentW);
+    let hd = null;
+    if (solo) {
+      const hpx = T.headPx * pk, hlead = hpx * T.headLead, epx2 = rpx, w = OrganicStudio.periodWord(f.period);
+      const eye = (this.taDate(f) + (f.team ? ' \u00B7 ' + f.team + ' Team' : '')).toUpperCase();
+      const yE = pad + epx2 * .74, yH = yE + T.headGap * pk + hpx * .74;
+      hd = { eye, epx: epx2, els: epx2 * .14, yE, hpx, hlead, yH,
+             lines: ['Top Agent', 'of the ' + w.charAt(0).toUpperCase() + w.slice(1)] };
+    }
     // Every row is an offset from the PANEL'S OWN TOP EDGE, so the ops and the preview
     // place a run from one number instead of each accumulating its own stack — the same
     // reason listedBox gives every row an absolute y.
-    const yB0 = pad + T.firstBase * pk;
+    const yB0 = hd ? hd.yH + hd.hlead : pad + T.firstBase * pk;
     const blurbH = Math.max(0, bl.length - 1) * lead;
-    const yRule = yB0 + blurbH + T.gRule * pk;
+    // a 66px heading carries a deeper descender than a 29px blurb, so it takes a little more air
+    const yRule = yB0 + blurbH + T.gRule * pk + (hd ? hd.hpx * .12 : 0);
     const yName = yRule + T.gName * pk;
     const yRole = yName + T.gRole * pk;
     const h = yRole + T.gFloor * pk;
@@ -9367,7 +9395,7 @@ class OrganicStudio extends StudioBase {
     const badgeH = T.badgeH * pk, badgeMid = (yName + yRole) / 2;
     return { pad, contentW, pk, bpx, npx, rpx, lead, bl, yB0, blurbH, yRule, yName, yRole, h,
              badgeH, badgeMid, badgeTop: badgeMid - badgeH / 2, badgeR: T.badgeR * pk,
-             badgePadX: T.badgePadX * pk, v: this.taVariant(period, fill) };
+             badgePadX: T.badgePadX * pk, v: this.taVariant(period, fill), hd };
   }
   // '1st' … '5th', and its badge label. Derived from position like taRank, never authored.
   taOrd(si, st) { const r = this.taRank(si, st); return r ? (OrganicStudio.TA_ORD[+r - 1] || '') : ''; }
@@ -11056,9 +11084,12 @@ class OrganicStudio extends StudioBase {
       // anything needs.
       const epx = tk.eyebrow, els = epx * .1, eyeY = pT + epx * .67;
       const x0 = pL + T.topInset, x1 = W - pR - T.topInset;
-      const lt = ('Top agent - ' + this.taDate(cf)).toUpperCase();
-      const rt = cf.team ? (cf.team + ' Team').toUpperCase() : '';
-      ops.push({ op: 'text', x: x0, y: eyeY, px: epx, weight: 500, fill: A.deep, text: lt, ls: els });
+      // A SOLO CARD HAS NO COVER TO CARRY THE BRAND, so its top row is the wordmark, and the
+      // period and team move into the panel as its heading.
+      const lt = f.solo ? '' : ('Top agent - ' + this.taDate(cf)).toUpperCase();
+      const rt = (!f.solo && cf.team) ? (cf.team + ' Team').toUpperCase() : '';
+      if (f.solo) ops.push({ op: 'text', x: x0, y: pT + tk.logo * .8, px: tk.logo, weight: 300, fill: A.deep, text: 'provident.' });
+      else ops.push({ op: 'text', x: x0, y: eyeY, px: epx, weight: 500, fill: A.deep, text: lt, ls: els });
       if (rt) {
         // `meas` reserves one tracking unit per character INCLUDING the last, so the
         // advance carries a trailing unit that is never drawn — right-align from the INK.
@@ -11141,6 +11172,11 @@ class OrganicStudio extends StudioBase {
       // drawLines places line i at `y0 + (i + .82) * lh`, so y0 has to be backed off that
       // .82 for the FIRST baseline to land on yB0 rather than most of a line below it.
       this.drawLines(ops, c.bl, pL + c.pad, cy + c.yB0 - c.lead * .82, c.lead, false, W);
+      if (c.hd) {
+        const hd = c.hd;
+        ops.push({ op: 'text', x: pL + c.pad, y: cy + hd.yE, px: hd.epx, weight: 500, fill: A.warm, text: hd.eye, ls: hd.els });
+        hd.lines.forEach((t, i) => ops.push({ op: 'text', x: pL + c.pad, y: cy + hd.yH + i * hd.hlead, px: hd.hpx, weight: 400, fill: A.ink, text: t }));
+      }
       ops.push({ op: 'rect', x: pL + c.pad, y: cy + c.yRule, w: c.contentW, h: 1, fill: A.hair });
       ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yName, px: c.npx, weight: 300, fill: A.ink, text: this.toTitle(f.name || '') });
       ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yRole, px: c.rpx, weight: 500, fill: A.brass,
@@ -12281,6 +12317,7 @@ class OrganicStudio extends StudioBase {
     // the overline's colour is a question only while the overline is shown
     if (k === 'eyeCol') return !(f && f.eyeOn === 'Hide');
     if (kind === 'tagent') {
+      if (k === 'blurb') return !(f && f.solo);
       if (['period', 'wk', 'mon', 'qtr', 'yr', 'team', 'place'].indexOf(k) < 0) return true;
       if (!(f && f.solo)) return false;
     } else if (kind !== 'tacover') return true;
@@ -12508,7 +12545,7 @@ class OrganicStudio extends StudioBase {
     const pageSis = [];
     raw.forEach(a => { if (pageSis.indexOf(a.si) < 0) pageSis.push(a.si); });
     const steps = pageSis.map(si => ({ k: 'page', si, t: this.sLabel(si),
-      d: (OrganicStudio.PAGE[slides[si].kind] || ['', ''])[1] }));
+      d: OrganicStudio.pagePurpose(slides[si]) }));
     const lastSi = pageSis.length ? pageSis[pageSis.length - 1] : 0;
     steps.push({ k: 'finish', si: lastSi, t: 'Finish', d: 'Check how it reads, then choose where the files go.' });
     raw.forEach(a => { a.step = pageSis.indexOf(a.si); });
@@ -13779,6 +13816,10 @@ class OrganicStudio extends StudioBase {
     d.guided = false;      // the editor it hands over to is the original one
     d.tpl = t;
     d.slides = OrganicStudio.tplSlides(t);
+    // the solo card's heading sits on the panel over the white ground before any portrait is
+    // behind it, where white glass reads near 1:1 — so it opens on the navy glass (Post look
+    // still switches it)
+    if (t === 'agentsolo') d.glassFill = 'navy';
     await this.applyProject(d, {});
   }
   async openRecent(i) {
@@ -14759,6 +14800,13 @@ class OrganicStudio extends StudioBase {
           background: v.fill, border: uz(1) + ' solid ' + v.stroke, borderRadius: cq(v.radius),
           backdropFilter: `blur(${v.blur}px)`, WebkitBackdropFilter: `blur(${v.blur}px)`
         });
+        const hd = c.hd;
+        K.taSoloEyeStyle = hd ? Object.assign(abs(c.pad, hd.yE - hd.epx), { fontWeight: 500, fontSize: cq(hd.epx),
+          letterSpacing: '.14em', lineHeight: cq(LH(hd.epx)), color: A.warm, whiteSpace: 'nowrap' }) : { display: 'none' };
+        K.taSoloHeadStyle = hd ? Object.assign(abs(c.pad, hd.yH - bIn(hd.hpx, hd.hlead)), { fontWeight: 400,
+          fontSize: cq(hd.hpx), lineHeight: cq(hd.hlead), color: A.ink, whiteSpace: 'pre' }) : { display: 'none' };
+        if (f.solo) K.taTopLStyle = Object.assign(abs(x0, pT + tk.logo * .8 - tk.logo), { fontWeight: 300,
+          fontSize: cq(tk.logo), lineHeight: cq(LH(tk.logo)), color: A.deep, whiteSpace: 'nowrap', zIndex: 1 });
         K.blurbStyle = Object.assign(abs(c.pad, c.yB0 - bIn(c.bpx, c.lead)),
           { width: cq(c.contentW), fontWeight: 300, fontSize: cq(c.bpx),
             lineHeight: cq(c.lead), color: A.ink });
@@ -15029,10 +15077,13 @@ class OrganicStudio extends StudioBase {
         taHead1: th ? th.l1 : '', taHead2: th ? th.l2 : '',
         taBarL: sl.kind === 'tacover' ? this.taDate(f) : '',
         taBarR: (sl.kind === 'tacover' && f.team) ? (f.team + ' Team') : '',
-        blurb: f.blurb || '', taName: this.toTitle(f.name || ''), taRole: f.role || '', rankNum: this.taRank(si),
+        blurb: f.solo ? '' : (f.blurb || ''),
+        taSoloEye: f.solo ? (this.taDate(f) + (f.team ? ' \u00B7 ' + f.team + ' Team' : '')).toUpperCase() : '',
+        taSoloHead: f.solo ? ['Top Agent', 'of the ' + (w => w.charAt(0).toUpperCase() + w.slice(1))(OrganicStudio.periodWord(f.period))].join('\n') : '',
+        taName: this.toTitle(f.name || ''), taRole: f.role || '', rankNum: this.taRank(si),
         taPlace: this.taPlace(si),
-        taTop1: ('Top agent - ' + this.taDate(OrganicStudio.taSrc(s, f))),
-        taTop2: (() => { const t = OrganicStudio.taSrc(s, f).team; return t ? t + ' Team' : ''; })(),
+        taTop1: f.solo ? 'provident.' : ('Top agent - ' + this.taDate(OrganicStudio.taSrc(s, f))),
+        taTop2: f.solo ? '' : (() => { const t = OrganicStudio.taSrc(s, f).team; return t ? t + ' Team' : ''; })(),
         statusPre: lh ? lh.pre : '', statusAccent: lh ? lh.accent : '',
         location: f.location || '', usp: f.usp || '',
         listedLine: sl.kind === 'listed' ? this.listedLine(f) : '',
@@ -15265,7 +15316,7 @@ class OrganicStudio extends StudioBase {
     const slideNav = s.slides.map((sl, si) => ({
       label: this.sLabel(si),
       hint: OrganicStudio.isCs(sl.kind) ? OrganicStudio.CS_NAMES[sl.kind].toLowerCase() + ' layout'
-        : sl.kind === 'rcover' ? OrganicStudio.rcvLay(sl.f).name + ' \u00b7 9:16' : sl.kind === 'tacover' ? 'period + team' : sl.kind === 'tagent' ? 'portrait + blurb' : sl.kind === 'cover' ? 'headline + eyebrow' : sl.kind === 'cta' ? 'closing · shares cover photo' : sl.kind === 'review' ? 'testimonial card' : sl.kind === 'prop' ? 'photo + QR' : 'announcement',
+        : sl.kind === 'rcover' ? OrganicStudio.rcvLay(sl.f).name + ' \u00b7 9:16' : sl.kind === 'tacover' ? 'period + team' : sl.kind === 'tagent' ? (sl.f && sl.f.solo ? 'portrait + heading' : 'portrait + blurb') : sl.kind === 'cover' ? 'headline + eyebrow' : sl.kind === 'cta' ? 'closing · shares cover photo' : sl.kind === 'review' ? 'testimonial card' : sl.kind === 'prop' ? 'photo + QR' : 'announcement',
       on: s.activeSi === si ? '1' : undefined,
       // Token, not '#fff': on a light rail the slide's own name was white on white.
       nameStyle: { fontWeight: s.activeSi === si ? 500 : 400, fontSize: '13px', color: 'var(--ps-ink)' },
@@ -15620,7 +15671,7 @@ class OrganicStudio extends StudioBase {
           gdStepNo: idx + 1,
           gdTotal: steps.length,
           gdPageTitle: editor ? this.sLabel(asi) : (step ? step.t : ''),
-          gdPagePurpose: editor ? ((OrganicStudio.PAGE[(sl || {}).kind] || ['', ''])[1]) : (step ? step.d : ''),
+          gdPagePurpose: editor ? OrganicStudio.pagePurpose(sl) : (step ? step.d : ''),
           gdWhere: editor ? 'All controls' : (isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages)),
           gdIsFinish: isFinish,
           gdSecs: secs,

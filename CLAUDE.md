@@ -15946,3 +15946,11 @@ values or a new template, and the carousel's own reads are unchanged.
   `taRank` returns the chosen place for a solo card; `fieldShown` shows the seven solo fields
   only when `f.solo` (tier 4, "Ranking"). Export: `<Week 42 2026>_Top Agent_<name>`, one file.
 - `TPLDEMO.tagent` gained `mon`/`yr`/`team` for the solo card; the carousel never reads them.
+- **The solo card has no blurb (2026-10-21, by request)**: the panel opens on a cream caps line
+  (`taDate · <team> Team`) over a heading, "Top Agent / of the Week|Month|Quarter|Year", at
+  `TA.headPx` 66.5 Regular, and the rule, name, role and badge hang off its last baseline
+  (`taCard` returns `hd`). The top row is the `provident.` wordmark, since there is no cover to
+  carry the brand. Brass caps measured ~1.7:1 on the glass, so the period line is `ART.warm`.
+  A new solo post opens on the navy glass (`pickTpl` / `tplDemoState` set `glassFill`), because
+  white glass over the paper ground reads near 1:1 until a portrait stands behind it.
+  `pagePurpose(sl)` words the page for a solo card.
