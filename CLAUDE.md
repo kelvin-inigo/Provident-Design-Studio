@@ -15639,3 +15639,10 @@ col — cols are copied, not mutated). Edit text is hidden there (`asModeBarOn`;
 audiences, `asAllImgs` is the count), named after the folder, and **FLAT — no folders in the zip**,
 by request: a file name two audiences share gets `<main> <audience> ` prefixed, and any remaining
 clash a ` (2)`. Verified: 3 audiences, 8 files, 6 prefixed, 2 unique kept as is.
+
+**Each audience has its own Download (2026-10-21, by request).** `asDownload(key)` — `'*'` (or none)
+is the whole folder, an audience key is that audience (zip `<main> - <audience>.zip`), both flat with
+the same naming. The single-audience header shows `Download <audience> · N` beside Download all
+(`asDlAud*`); the All audiences headings carry a smaller one (`c.dl`, `.as-dl-s`). `_asDlKey` says
+which button shows Zipping… / Downloaded (`asDlText`); one runs at a time. The one-row rules are
+scoped to `.as-ov .as-dl` so every download button gets them.

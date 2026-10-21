@@ -3954,14 +3954,16 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-crumb s{font:500 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
 .as-crumb b{font:600 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
 .as-crumb i{font:400 12px/1.4 var(--ps-font);font-style:normal;color:var(--ps-dim);font-variant-numeric:tabular-nums}
-.as-pane-h .as-dl{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;
+.as-ov .as-dl{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 16px;
   font:600 14px/1 var(--ps-font);letter-spacing:.16px;white-space:nowrap;flex:0 0 auto;align-self:center}
-.as-pane-h .as-dl .mk-g{display:block;flex:0 0 16px;width:16px;height:16px;margin:0;fill:currentColor}
-.as-pane-h .as-dl[data-busy]{opacity:.6;pointer-events:none}
+.as-ov .as-dl .mk-g{display:block;flex:0 0 16px;width:16px;height:16px;margin:0;fill:currentColor}
+.as-ov .as-dl[data-busy]{opacity:.6;pointer-events:none}
 .as-nav .as-nav-all{width:100%;margin:0 0 14px;padding:10px 12px;border-bottom:1px solid var(--ps-hair);border-radius:10px}
 .as-nav .as-nav-all::before{display:none}
 .as-agrp{display:flex;align-items:baseline;gap:10px;margin:28px 0 0;padding-bottom:8px;border-bottom:1px solid var(--ps-line)}
 .as-agrp:first-child{margin-top:4px}
+.as-ov .as-agrp .as-dl-s{margin-left:auto;align-self:center;height:30px;padding:0 12px;font-size:13px}
+.as-ov .as-agrp .as-dl-s .mk-g{width:15px;height:15px;flex-basis:15px}
 .as-agrp b{font:600 18px/1.25 var(--ps-font);color:var(--ps-ink)}
 .as-agrp s{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
 .as-vrow{display:flex;flex-direction:column;gap:14px;padding:22px 0 24px;border-bottom:1px solid var(--ps-hair)}
@@ -5188,6 +5190,9 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div class="as-pane">
             <header class="as-pane-h">
               <div class="as-crumb"><s>{{ asSel.main }}</s><b>{{ asSel.title }}</b><i>{{ asSel.sub }}</i></div>
+              <sc-if value="{{ asDlAudOn }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ asDlAud }}" class="p-ghost as-dl" data-busy="{{ asDlBusy }}" title="Download every image of this audience as one zip"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ asDlAudLabel }}</button>
+              </sc-if>
               <sc-if value="{{ asDlOn }}" hint-placeholder-val="{{ true }}">
                 <button onClick="{{ asDownload }}" class="p-ghost as-dl" data-busy="{{ asDlBusy }}" title="Download every image in this folder as one zip, all files side by side"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ asDlLabel }}</button>
               </sc-if>
@@ -5197,7 +5202,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             </header>
             <sc-if value="{{ asImgOn }}" hint-placeholder-val="{{ true }}">
               <sc-for list="{{ asSel.cols }}" as="c" hint-placeholder-count="2">
-                <sc-if value="{{ c.headOn }}" hint-placeholder-val="{{ false }}"><h3 class="as-agrp"><b>{{ c.head }}</b><s>{{ c.headSub }}</s></h3></sc-if>
+                <sc-if value="{{ c.headOn }}" hint-placeholder-val="{{ false }}"><h3 class="as-agrp"><b>{{ c.head }}</b><s>{{ c.headSub }}</s><button onClick="{{ c.dl }}" class="p-ghost as-dl as-dl-s" data-busy="{{ asDlBusy }}" title="{{ c.dlTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ c.dlLabel }}</button></h3></sc-if>
                 <section class="as-vrow">
                   <header class="as-vrow-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
                   <div class="as-vrow-b">
@@ -15523,17 +15528,28 @@ class Component extends DCLogic {
     this.forceUpdate();
     const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
   }
+  asAudImgs(au) { let n = 0; for (const c of au.cols) for (const pl of c.plats) n += pl.tiles.length; return n; }
+  // the label a download button shows: its own progress while it is the one running
+  asDlText(key, idle) {
+    if (this._asDlKey !== key || !this._asDl) return idle;
+    return this._asDl === 'busy' ? 'Zipping…' : this._asDl === 'done' ? 'Downloaded' : this._asDl === 'err' ? 'Could not zip' : idle;
+  }
   asAllImgs() { let n = 0; for (const m of (this._as || {}).mains || []) for (const au of m.auds) for (const c of au.cols) for (const pl of c.plats) n += pl.tiles.length; return n; }
-  // Download all: every exported image in the folder being viewed, one flat zip. Reads the files the scan already holds;
-  // nothing is re-rendered.
-  async asDownload() {
+  // Download: every exported image in the folder being viewed (key '*'), or of ONE audience
+  // (its key), as one flat zip. Reads the files the scan already holds; nothing is re-rendered.
+  async asDownload(key) {
+    key = key || '*';
     const a = this._as || {}; if (this._asDl === 'busy') return;
     const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim();
-    const items = [];
-    for (const m of a.mains || []) for (const au of m.auds) for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles)
-      if (t.file) items.push({ dir: [au.main, au.title, c.title].map(clean).filter(Boolean).join('/'), file: t.file, name: String(t.name || t.file.name).split('/').pop() });
+    const items = []; let one = null;
+    for (const m of a.mains || []) for (const au of m.auds) {
+      if (key !== '*' && au.key !== key) continue;
+      one = au;
+      for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles)
+        if (t.file) items.push({ dir: [au.main, au.title, c.title].map(clean).filter(Boolean).join('/'), file: t.file, name: String(t.name || t.file.name).split('/').pop() });
+    }
     if (!items.length) return;
-    this._asDl = 'busy'; this.forceUpdate();
+    this._asDl = 'busy'; this._asDlKey = key; this.forceUpdate();
     try {
       // FLAT, by request: no folders inside the zip. Export names already carry the variant
       // and the size; a name two audiences share gets its main folder and audience added.
@@ -15547,7 +15563,7 @@ class Component extends DCLogic {
         used.add(k);
         files.push({ name: k, data: new Uint8Array(await it.file.arrayBuffer()) });
       }
-      const zipName = clean(a.root) || 'Ad sets';
+      const zipName = key === '*' ? (clean(a.root) || 'Ad sets') : ([one.main, one.title].map(clean).filter(Boolean).join(' - ') || 'Ad set');
       const how = await this.eng.saveAs(this.eng.zip(files), zipName + '.zip', 'Zip archive', 'application/zip', '.zip');
       this._asDl = how === 'cancelled' ? '' : 'done';
     } catch (e) { this._asDl = 'err'; }
@@ -15942,7 +15958,8 @@ class Component extends DCLogic {
       const cols = [], auds = [];
       for (const m of a.mains || []) for (const au of m.auds) {
         auds.push(au);
-        au.cols.forEach((c, i) => cols.push(Object.assign({}, c, i ? { headOn: undefined } : { headOn: '1', head: au.title, headSub: au.main + ' · ' + au.navSub })));
+        au.cols.forEach((c, i) => cols.push(Object.assign({}, c, i ? { headOn: undefined } : { headOn: '1', head: au.title, headSub: au.main + ' · ' + au.navSub,
+          dl: () => this.asDownload(au.key), dlLabel: this.asDlText(au.key, 'Download · ' + this.asAudImgs(au)), dlTip: 'Download every image of ' + au.main + ' › ' + au.title + ' as one zip' })));
       }
       const nV = cols.length;
       sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + this.asAllImgs() + ' images', projs: [], cols };
@@ -15977,7 +15994,11 @@ class Component extends DCLogic {
       asDlOn: !!sel && mode === 'images' ? '1' : undefined,
       asDownload: () => this.asDownload(),
       asDlBusy: this._asDl === 'busy' ? '1' : undefined,
-      asDlLabel: this._asDl === 'busy' ? 'Zipping…' : this._asDl === 'done' ? 'Downloaded' : this._asDl === 'err' ? 'Could not zip' : 'Download all · ' + this.asAllImgs(),
+      asDlLabel: this.asDlText('*', 'Download all · ' + this.asAllImgs()),
+      // the single audience on screen gets its own button beside Download all
+      asDlAudOn: !!sel && mode === 'images' && !all ? '1' : undefined,
+      asDlAud: () => sel && !all && this.asDownload(sel.key),
+      asDlAudLabel: sel && !all ? this.asDlText(sel.key, 'Download ' + sel.title + ' · ' + this.asAudImgs(sel)) : '',
       asModeImgOn: mode === 'images' ? '1' : undefined, asModeTxtOn: mode === 'text' ? '1' : undefined,
       asSetImg: () => this.asSetMode('images'), asSetTxt: () => this.asSetMode('text'),
       ...this.aeVals(),

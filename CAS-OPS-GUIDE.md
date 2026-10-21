@@ -357,6 +357,9 @@ and finds every exported ad set.
   gives its pixel size and file size.
 - **All audiences**, at the top of the list, shows every audience in the folder in one window,
   each under its own heading. (Edit text works one audience at a time, so it is hidden there.)
+- **Each audience has its own Download** — beside Download all when one audience is on screen
+  (*Download Family · 4*), and on each audience's heading in All audiences. It saves that
+  audience's images as one zip, named after its main folder and audience (`Local - Family.zip`).
 - **Download all**, at the top right, saves every image in the folder as one zip named after the
   folder. The files sit side by side with no folders inside; their names already say the variant
   and size, and where two audiences share a file name, the main folder and audience are added
