@@ -70,6 +70,9 @@ Each studio opens on its **project browser**.
 - **Open session**: pick the project's folder, and the newest session file in it opens. A session
   file from the other studio opens in that studio.
 - **Source folder** (top bar) picks or changes the folder that saves and exports go into.
+- **Every new project starts fresh.** A new campaign or post, a template, or a project opened from
+  Recent has no Source folder and no pictures from the one before. Pick its folder on the first
+  Save. A new browser tab is a fresh session too. **Open session** sets the folder it opens from.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count.
 - **Undo** / **Redo** (top bar) go back up to 5 steps.
@@ -350,8 +353,10 @@ Source folder/
 
 ### See everything you exported: Ad sets
 
-On CAS's home page, press **Ad sets** in the sidebar, in the **Review** group. It opens in its own window. It reads the Source folder
-and finds every exported ad set.
+On CAS's home page, press **Ad sets** in the sidebar, in the **Review** group. It opens in its own window, empty
+each time: drop a folder of exported ad sets on it, choose one, or paste a Google Drive link. It
+never loads the Source folder by itself.
+
 
 - **The list on the left** is every audience, grouped under its main folder (Local, International,
   International EUR — Local comes first). Each one says how many variants and images it holds.
@@ -420,24 +425,24 @@ Press **Edit text** to work on the words of the audience on screen, without open
     the format you are looking at, against the brand's 40% guide.
   The analysis reads the words only; it does not change anything.
 - Each variant row shows how many images it holds.
-- With no Source folder set, the window offers **Choose source folder**. It needs Chrome or Edge.
+- **Choose a folder** (top of the window) opens the folder picker. It needs Chrome or Edge.
 
 #### View any folder: drop it
 
-You do not have to change your Source folder to look at someone else's exports. On CAS's home
-page, in the **Ad sets viewer** panel, and in the Ad sets window (press **Drop a folder**):
+Ad sets never uses your Source folder. On CAS's home page, in the **Ad sets viewer** panel, and in
+the Ad sets window:
 
 - The viewer is for **looking at finished exports**, not for opening a project to design. To
   keep designing, use **Open session** at the top of the page. **Open viewer** in the panel
-  opens the Ad sets window on your Source folder.
+  opens the Ad sets window, empty, ready for a folder.
 
 - **Drop a folder** anywhere on the page. Use the project folder (the one holding the
   `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
   **click** the drop area (*Drop an exported campaign folder to view its ads*) to choose one.
-- The window shows the folder exactly as it shows the Source folder. Nothing is written to the
+- Nothing is written to the
   dropped folder unless you change its words in **Edit text** and press **Allow editing**.
-- The bar says which folder you are viewing. **Use source folder** goes back to your own, and
-  your Source folder is never changed by viewing another one.
+- The bar says which folder you are viewing. **Open another folder** switches to a different one.
+  Closing the window forgets it; your Source folder is never changed.
 
 #### Open a Google Drive folder link
 

@@ -13494,6 +13494,9 @@ class OrganicStudio extends StudioBase {
     return { name: this.baseName() || 'Untitled', ts: Date.now(), state: st, images: own, thumbs };
   }
   async applyProject(state, images) {
+    // A PROJECT OPENED HERE IS A FRESH SESSION: it takes no source folder from the project
+    // before it (a new campaign must not save into, or export over, another one's folder).
+    try { if (window.providentFolder) await window.providentFolder.forget(); } catch (e) {}
     try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(state)); localStorage.setItem('smp-resume', '1'); } catch (e) {}
     if (window.omelette && window.omelette.writeFile) {
       let sidecar = {};

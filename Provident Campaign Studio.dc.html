@@ -12482,11 +12482,15 @@ class CampaignStudio extends StudioBase {
     return { name: st.campaign || 'Untitled', ts: Date.now(), thumbs, state: st, images: own };
   }
   async applyProject(state, images) {
+    // A PROJECT OPENED HERE IS A FRESH SESSION: it takes no source folder from the project
+    // before it (a new campaign must not save into, or export over, another one's folder), and no brief or brief pictures.
+    try { if (window.providentFolder) await window.providentFolder.forget(); } catch (e) {}
+    try { localStorage.removeItem('adstudio-brief'); } catch (e) {}
     try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(state)); localStorage.setItem('adstudio-resume', '1'); } catch (e) {}
     if (window.omelette && window.omelette.writeFile) {
       let sidecar = {};
       try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sidecar = await r.json(); } catch (e) {}
-      Object.keys(sidecar).forEach(k => { if (/^adstudio-/.test(k)) delete sidecar[k]; });
+      Object.keys(sidecar).forEach(k => { if (/^ad(studio|brief)-/.test(k)) delete sidecar[k]; });
       Object.assign(sidecar, images || {});
       await Promise.resolve(window.omelette.writeFile('.image-slots.state.json', JSON.stringify(sidecar))).catch(() => {});
     }
@@ -15023,29 +15027,22 @@ class Component extends DCLogic {
   static AS_SKIP = /^(assets|copy|edits|photoshop|meta upload|logo|eventbrite banners|yt demand gen)$|^\./i;
   async asOpen() {
     if (!this._asMode) { try { this._asMode = localStorage.getItem('adstudio-as-mode') === 'text' ? 'text' : 'images'; } catch (e) { this._asMode = 'images'; } }
+    // EVERY OPENING IS A FRESH VIEW: Ad sets shows only a folder dropped, chosen or linked
+    // here, never the source folder (which belongs to whatever project was open last).
+    this._asSrc = null; this._asErr = ''; this._asPanel = false;
     this.setState({ adSetsOpen: true });
-    const f = window.providentFolder;
-    // Opening is a click, so a remembered folder whose permission lapsed can be revived
-    // here without a second prompt — the same path Save takes.
-    if (f && !f.handle && f.ensure) { try { await f.ensure(); } catch (e) {} }
     this.asScan();
   }
   // a pending edit is saved before the window goes (aeSave holds its own reference)
-  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this.setState({ adSetsOpen: false }); }
+  asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this._asSrc = null; this.setState({ adSetsOpen: false }); }
   asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
-  async asPick() {
-    if (this._asSrc) { this.asUseSource(); return; }
-    const f = window.providentFolder;
-    if (!f || !f.supported) return;
-    try { if (f.handle || !(await f.ensure())) await f.pick(); } catch (e) { return; }
-    this.asScan();
-  }
+  asPick(e) { return this.asBrowse(e); }
   async asScan() {
     // an edit in flight is saved first: the rescan reopens its project from the file
     if (this._ae && this._ae.dirty) await this.aeFlush();
     // a folder dropped on home VIEWS that folder; it never replaces the
     // source folder the studio exports into (Use source folder goes back to it)
-    const f = window.providentFolder, src = this._asSrc, root = src ? src.handle : (f && f.handle);
+    const src = this._asSrc, root = src ? src.handle : null;
     const seq = (this._asSeq = (this._asSeq || 0) + 1);
     this._asBig = null; this._asDet = null; this._asList = [];
     this._as = { busy: !!root, has: !!root, mains: [], root: root ? root.name : '', files: 0, sets: 0, err: '' };
@@ -15487,7 +15484,7 @@ class Component extends DCLogic {
   // source folder), else the browser's own folder upload, rebuilt into a folder tree.
   async asBrowse(e) {
     if (window.showDirectoryPicker) {
-      try { const h = await window.showDirectoryPicker({ mode: 'read', id: 'provident-adsets' }); this.asView({ kind: 'local', handle: h, name: h.name }); }
+      try { const h = await window.showDirectoryPicker({ mode: 'read', startIn: 'documents' }); this.asView({ kind: 'local', handle: h, name: h.name }); }
       catch (er) { if (er && er.name !== 'AbortError') { this._asErr = 'Could not open that folder: ' + (er.message || er); this.setState({ adSetsOpen: true }); this.forceUpdate(); } }
       return;
     }
@@ -15625,7 +15622,7 @@ class Component extends DCLogic {
   }
   // Can this folder be written? A dropped or picked folder is read-only until asked; a
   // folder the browser could only read file by file (Safari, Firefox) can never be.
-  asRoot() { const f = window.providentFolder; return this._asSrc ? this._asSrc.handle : (f && f.handle); }
+  asRoot() { return this._asSrc ? this._asSrc.handle : null; }
   async aeCan(p) {
     if (!p.jsonH || typeof p.jsonH.createWritable !== 'function') return 'no';
     const root = this.asRoot();
@@ -15994,8 +15991,8 @@ class Component extends DCLogic {
     const es = this.eng.state || {};
     const proj = es.screen === 'splash' ? '' : (es.campaign || '').trim();
     let head = '', note = '';
-    if (!supported && !viewing) { head = 'Drop a folder'; note = 'This browser cannot open the source folder, but it can show a folder you drop here.'; }
-    else if (!root) { head = 'Choose what to view'; note = 'Use the source folder this project exports into, or drop any folder of exported ad sets here.'; }
+    if (!supported && !viewing) { head = 'Drop a folder'; note = 'This browser has no folder picker, but it can show a folder you drop here.'; }
+    else if (!root) { head = 'Choose what to view'; note = 'Drop a folder of exported ad sets here, choose one, or paste a Google Drive link.'; }
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
     else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
@@ -16026,10 +16023,10 @@ class Component extends DCLogic {
       asOpen: () => this.asOpen(),
       asClose: () => this.asClose(),
       asRefresh: () => this.asScan(),
-      asPick: () => this.asPick(),
+      asPick: e => this.asPick(e),
       asHasRoot: open && root ? '1' : undefined,
       asPickOn: open && supported ? '1' : undefined,
-      asPickLabel: viewing ? 'Use source folder' : (root ? 'Change folder' : 'Choose source folder'),
+      asPickLabel: viewing ? 'Open another folder' : 'Choose a folder',
       asSub: root ? (proj ? proj + ' · ' : '') + 'Reading ' + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head && root ? '1' : undefined,
       // the drop panel sits in the empty state, and stays reachable from the bar

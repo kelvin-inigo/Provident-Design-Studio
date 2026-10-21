@@ -388,9 +388,9 @@
   // anything else per-project. Two things stay in the shared database, because a fresh
   // tab with neither would be a regression for a person using the studio by hand:
   //   - the RECENTS list ('recents:*'), so every tab's splash shows every saved project;
-  //   - the SOURCE FOLDER ('project-dir'): a workspace reads its own first and falls back
-  //     to the shared one, and picking a folder writes both, so a new tab starts on the
-  //     last folder used while a running tab keeps its own whatever another tab picks.
+  //   - (the SOURCE FOLDER used to fall back to the shared one here. It does not any more:
+  //     a fresh workspace starts with NO folder, so a new campaign can never write into,
+  //     or Open Session read from, the folder of some other project.)
   var BASE = 'provident-design-studio', DB = BASE + (WS ? '~' + WS : ''), STORE = 'files', VER = 1;
   var dbs = {};
   function db(name) {
@@ -434,15 +434,11 @@
   }
   function idbGet(key) {
     if (shared(key)) return rawGet(BASE, key);
-    return rawGet(DB, key).then(function (v) {
-      return (v == null && WS && key === FKEY) ? rawGet(BASE, key) : v;
-    });
+    return rawGet(DB, key);
   }
   function idbSet(key, val) {
     if (shared(key)) return rawSet(BASE, key, val);
-    var p = rawSet(DB, key, val);
-    if (WS && key === FKEY) rawSet(BASE, key, val).catch(function () {});
-    return p;
+    return rawSet(DB, key, val);
   }
   function idbDel(key) {
     if (!caps.idb) return Promise.resolve(false);
@@ -776,6 +772,7 @@
   }
 
   var realFetch = W.fetch ? W.fetch.bind(W) : null;
+  var SEEDKEY = 'seed-purged-v1';
   if (realFetch) {
     W.fetch = function (input, init) {
       var url = typeof input === 'string' ? input : (input && input.url) || '';
@@ -789,18 +786,30 @@
         });
       };
       if (mirror[key] != null) return Promise.resolve(served(mirror[key]));
+      // A STORE STARTS EMPTY. It used to seed from the .image-slots.state.json shipped beside
+      // the studio, which holds photos from the app's first version — so every fresh tab, and
+      // every new campaign whose slot ids matched (adstudio-bg-0 …), opened on an old picture.
+      // A store seeded that way earlier is cleaned ONCE: every slot whose bytes are exactly
+      // the shipped file's is dropped, and anything uploaded since is kept.
       return idbGet(key).then(function (stored) {
-        if (stored != null) { mirror[key] = stored; return served(stored); }
-        // Nothing stored yet: seed from the file shipped alongside the studio,
-        // so photos saved in Design Cursor still show up on first open here.
-        return realFetch(input, init).then(function (r) {
-          if (!r.ok) return served('{}');
-          return r.text().then(function (t) {
-            mirror[key] = t;
-            idbSet(key, t).catch(function () {});
-            return served(t);
-          });
-        }).catch(function () { return served('{}'); });
+        if (stored == null) { mirror[key] = '{}'; return served('{}'); }
+        return idbGet(SEEDKEY).then(function (done) {
+          if (done) { mirror[key] = stored; return served(stored); }
+          return realFetch(input, init).then(function (r) { return r.ok ? r.text() : ''; }, function () { return ''; })
+            .then(function (t) {
+              var out = stored;
+              try {
+                var seed = t ? JSON.parse(t) : {}, cur = JSON.parse(stored), hit = 0;
+                Object.keys(seed).forEach(function (k) {
+                  if (cur[k] != null && JSON.stringify(cur[k]) === JSON.stringify(seed[k])) { delete cur[k]; hit++; }
+                });
+                if (hit) { out = JSON.stringify(cur); idbSet(key, out).catch(function () {}); }
+              } catch (e) {}
+              idbSet(SEEDKEY, 1).catch(function () {});
+              mirror[key] = out;
+              return served(out);
+            });
+        });
       });
     };
   }

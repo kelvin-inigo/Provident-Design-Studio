@@ -15658,3 +15658,32 @@ and pictures fold into a nested `<details class="cw-br-more">` summarised by `br
 holding the since-line or the notice (`cwMsgOn` / `cwMsgOff`) and the hand-off buttons.
 `brFill` records `filled` in the brief store, closes the card and scrolls to the words; the
 card's pill then reads "Filled · <audience>". Section 54 of the sheet. Chrome only.
+
+# EVERY PROJECT AND EVERY TAB STARTS FRESH (2026-10-21)
+
+By request: a new campaign in CAS or OPS was opening on another project's Source folder and an
+old photo, and Ad sets opened on a folder nobody chose. Three leaks, three fixes:
+
+- **The photo store starts EMPTY** (`runtime.js` fetch shim). It used to SEED a new workspace from
+  the `.image-slots.state.json` shipped beside the studio — photos from the app's first version
+  keyed `adstudio-bg-0` / `-st` / `-ls` … and three `smp-bg-*`. So every fresh tab (and every MCP
+  headless project) showed a V1 picture as its background. A store seeded that way earlier is
+  cleaned ONCE per workspace (`seed-purged-v1` in its DB): every slot whose bytes equal the
+  shipped file's is dropped, everything uploaded since is kept. The file is still in the repo
+  and still Design Cursor's real sidecar; the browser no longer reads it.
+- **The Source folder is per workspace with NO shared fallback.** `project-dir` used to read
+  own-then-shared and be written to both, so a new tab started on the last folder used anywhere —
+  this supersedes that line in the workspace section. **`applyProject` in both studios forgets
+  the folder** (new campaign, template, new post, a recent, the MCP's project load), and CAS's
+  also drops the brief (`adstudio-brief`) and its `adbrief-*` pictures. Open Session still
+  adopts the folder it opens from — that is the one way a project gets a folder back.
+- **Ad sets never reads the Source folder.** `asScan` / `asRoot` read only `_asSrc` (dropped,
+  chosen, or a Drive link); `asOpen` and `asClose` clear it, so each opening is an empty viewer.
+  The bar button is **Choose a folder / Open another folder** (`asPick` → `asBrowse`), and the
+  picker starts in Documents rather than a remembered location. `asUseSource` remains for the
+  Drive sign-out path and now means "back to nothing".
+
+Verified in the pane: a fresh workspace's sidecar is `{}`; a workspace seeded the old way keeps
+only its own upload after load; a workspace does not see a folder set in the shared DB;
+`pickTpl` in both studios clears the folder (handle and stored key); Ad sets with a folder set
+opens on the drop panel. No artwork line changed.
