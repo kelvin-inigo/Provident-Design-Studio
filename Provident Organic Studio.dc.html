@@ -16208,6 +16208,7 @@ class Component extends DCLogic {
     // One engine, mounted once. This used to be syncEngine(), which unmounted one
     // studio and mounted the other whenever state.studio changed.
     try { this.eng.componentDidMount(); } catch (e) { console.warn(e); }
+    try { this.eng.hubHashOpen(); } catch (e) { console.warn(e); }  // the Content Hub's "Open in OPS"
     StudioBase.promoteImgs();
     StudioBase.autoGrow();
     this.accBind();

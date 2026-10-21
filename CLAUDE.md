@@ -15724,3 +15724,16 @@ subtracts the `ls` that `meas` reserves after the last letter.
 
 **If you ever create a measuring or drawing canvas outside these three, set `textRendering` on it**,
 or it will disagree with both the editor and the export at those sizes.
+
+# THE HUB'S "OPEN IN OPS" BUTTON OPENS A #hubdraft= LINK (2026-10-21)
+
+On the LOCAL Content Hub (`~/Documents/provident-content-hub`, never the office hub), a social card
+in the Design system column shows **Open in OPS ↗**. The hub builds the card's slide copy as an OPS
+session file (`GET /api/items/<id>/studio`, `design.studio_draft`, which now carries the
+hub-design-queue skill's split remap) and opens OPS at `#hubdraft=<base64url JSON>` — no network
+call or token on the OPS side. `StudioBase.hubHashOpen()` (called from OPS's shell mount) drops the
+hash FIRST, because `loadSessionFile` ends in a reload, then opens it with `{clean:true}`; the draft
+carries `hubCardId`, so Send attaches back. The OPS address is per computer on the hub
+(`localStorage['hub-ops-url']`, the **OPS address** button), default the Vercel site — which needs a
+push before it has `hubHashOpen`. Copy only; the brief's images are not placed. Verified in the
+pane: six pages of copy, `hubCardId` set, the card marked In design.

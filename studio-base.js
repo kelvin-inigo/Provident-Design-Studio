@@ -1108,6 +1108,25 @@ class StudioBase {
     await Promise.all([one(), one(), one(), one()]);
     if (gen === this._hubGen) this.forceUpdate();
   }
+  // The Content Hub's "Open in OPS" button opens the studio at #hubdraft=<base64url session JSON>
+  // (the card's slide copy, laid out by the hub's design.py). The hash is dropped BEFORE loading,
+  // because loadSessionFile ends in a reload and would otherwise open the draft again forever.
+  // The draft carries hubCardId, so Send attaches the finished pages back to that card.
+  hubHashOpen() {
+    const m = /^#hubdraft=([A-Za-z0-9_-]+)$/.exec(location.hash || '');
+    if (!m) return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    let doc;
+    try {
+      const b = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
+      doc = JSON.parse(new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0))));
+    } catch (e) { this.setState({ exportStatus: 'The hub link did not carry a readable draft.' }); return false; }
+    const st = doc && doc.state;
+    if (!st || !Array.isArray(st.slides) || !st.slides.length) { this.setState({ exportStatus: 'The hub draft has no pages.' }); return false; }
+    const fname = String(st.customName || 'Hub post').replace(/[\\/:*?"<>|]+/g, ' ').slice(0, 80) + '.json';
+    this.loadSessionFile(new File([JSON.stringify(doc)], fname, { type: 'application/json' }), { clean: true });
+    return true;
+  }
   async hubOpenItem(it) {
     const h = this._hub || {};
     if (!h.base || !this.confirmDiscard()) return;
