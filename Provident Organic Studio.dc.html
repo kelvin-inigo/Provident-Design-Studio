@@ -3949,6 +3949,18 @@ select.p-in{padding-right:34px}
 .gd-ask[data-half] .gd-askq{white-space:nowrap}
 /* the first group in a section opens under the section's own head, which is its rule */
 .gd[data-mode="editor"] .gd-sec-g > .gd-grp:first-child{margin-top:0;padding-top:0;border-top:0}
+/* ══ §34 THE CAROUSEL'S LAYOUT PICKER, GROUPED ═══════════════════════════════════════════════
+   Thirteen tiles in three groups — open and close, words, numbers — with a quiet heading each,
+   a hover on every tile and the description as the tooltip. Both homes (left rail, guided). */
+.p-csg{display:grid;gap:7px}
+.p-csg + .p-csg{margin-top:12px}
+.p-csg-h{font:500 11.5px/1 var(--ps-font);color:var(--ps-dim)}
+.p-opts-cs .p-opt .p-mini{transition:background var(--ps-motion) var(--ps-ease)}
+.p-opts-cs .p-opt:not([data-on]):hover .p-mini{background:var(--ps-fill-h)}
+.p-opts-cs .p-opt:not([data-on]):hover{color:var(--ps-ink)}
+.p-opts-cs .p-opt[data-on] > span:last-child{font-weight:600}
+.p-opts-cs .p-opt:focus-visible{outline:none}
+.p-opts-cs .p-opt:focus-visible .p-mini{outline:2px solid var(--ps-ink);outline-offset:2px}
 </style>
 </helmet>
 
@@ -4288,14 +4300,19 @@ select.p-in{padding-right:34px}
     <details class="p-acc p-acc-ops" data-acc="ops-layout" data-def="1">
     <summary><span class="p-lab">Layout <span class="tip p-info" data-tip="The active page's layout. Any page can take any layout; the copy you have typed is carried across.">i</span></span><s class="p-acc-v">{{ csTileName }}</s><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
     <div class="p-acc-b">
+    <!-- thirteen tiles in one grid read as one undifferentiated wall: they are grouped by
+         what the page DOES — open or close the post, tell, or show the numbers -->
+    <sc-for list="{{ csTileGroups }}" as="cg" hint-placeholder-count="3">
+    <div class="p-csg"><span class="p-csg-h">{{ cg.name }}</span>
     <div class="p-opts p-opts-cs">
-      <sc-for list="{{ csTiles }}" as="ct" hint-placeholder-count="5">
-        <button onClick="{{ ct.set }}" class="p-opt" data-on="{{ ct.on }}" title="{{ ct.tip }}">
+      <sc-for list="{{ cg.tiles }}" as="ct" hint-placeholder-count="3">
+        <button onClick="{{ ct.set }}" class="p-opt" data-on="{{ ct.on }}" title="{{ ct.tip }}" aria-label="{{ ct.aria }}">
           <span class="p-mini"><sc-for list="{{ ct.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span>
           <span>{{ ct.label }}</span>
         </button>
       </sc-for>
-    </div>
+    </div></div>
+    </sc-for>
     </div>
     </details>
   </sc-if>
@@ -5046,12 +5063,15 @@ select.p-in{padding-right:34px}
               <!-- THE CAROUSEL PAGE'S LAYOUT — the same tiles the left rail offers. It was a pill
                    track, which held five; twelve ran off the form's right edge. -->
               <sc-if value="{{ a.isPreset }}" hint-placeholder-val="{{ false }}">
-                <div class="p-opts p-opts-cs gd-opts-cs"><sc-for list="{{ a.presetOpts }}" as="o" hint-placeholder-count="12">
-                  <button onClick="{{ o.set }}" class="p-opt" data-on="{{ o.on }}" title="{{ o.tip }}">
+                <sc-for list="{{ a.presetGroups }}" as="pg" hint-placeholder-count="3">
+                <div class="p-csg"><span class="p-csg-h">{{ pg.name }}</span>
+                <div class="p-opts p-opts-cs gd-opts-cs"><sc-for list="{{ pg.tiles }}" as="o" hint-placeholder-count="3">
+                  <button onClick="{{ o.set }}" class="p-opt" data-on="{{ o.on }}" title="{{ o.tip }}" aria-label="{{ o.aria }}">
                     <span class="p-mini"><sc-for list="{{ o.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span>
                     <span>{{ o.label }}</span>
                   </button>
-                </sc-for></div>
+                </sc-for></div></div>
+                </sc-for>
                 <span class="gd-hint">Switching keeps the copy you have typed wherever the new layout has a place for it.</span>
               </sc-if>
 
@@ -10543,8 +10563,24 @@ class OrganicStudio extends StudioBase {
   csPresetOpts(si) {
     const sl = (this.state.slides || [])[si];
     const MARKS = OrganicStudio.csTileMarks();
-    return OrganicStudio.CS_KINDS.map(k => ({ k, label: OrganicStudio.CS_NAMES[k], marks: MARKS[k], on: (sl && sl.kind === k) ? '1' : undefined,
-      tip: OrganicStudio.PAGE[k] ? OrganicStudio.PAGE[k][1] : '', set: () => this.setPreset(si, k) }));
+    // the tooltip says what the layout PUTS ON the page, which a skeleton cannot
+    return OrganicStudio.CS_KINDS.map(k => {
+      const what = OrganicStudio.PAGE[k] ? OrganicStudio.PAGE[k][1] : '';
+      return { k, label: OrganicStudio.CS_NAMES[k], marks: MARKS[k], on: (sl && sl.kind === k) ? '1' : undefined,
+        tip: OrganicStudio.CS_NAMES[k] + ' \u2014 ' + what.charAt(0).toLowerCase() + what.slice(1),
+        aria: OrganicStudio.CS_NAMES[k] + ' layout' + ((sl && sl.kind === k) ? ', in use' : ''),
+        set: () => this.setPreset(si, k) };
+    });
+  }
+  // THE SAME TILES IN THREE GROUPS, for the left rail and the guided run alike — one builder,
+  // so the two pickers cannot order or describe a layout differently.
+  static CS_TILEGROUPS = [['Open and close', ['cfront', 'ccta']],
+                          ['Words', ['ctext', 'cquote', 'cbul', 'csteps', 'ccards', 'cicons']],
+                          ['Numbers', ['cnum', 'cfig', 'cstats', 'ctable', 'cplan']]];
+  csPresetGroups(si) {
+    const all = this.csPresetOpts(si);
+    return OrganicStudio.CS_TILEGROUPS.map(([name, ks]) => ({ name,
+      tiles: ks.map(k => all.find(o => o.k === k)).filter(Boolean) }));
   }
   // The stats page's own rows: a count stepper, then per item an icon drop with the Material
   // picker, the number and the label. Picker state is throwaway UI and lives on the INSTANCE.
@@ -12590,7 +12626,7 @@ class OrganicStudio extends StudioBase {
       v.pxDone = filled[v.pxSlot] ? '1' : undefined;
       Object.assign(v, this.rcvCutView(ask.si, filled));
     }
-    if (v.isPreset && sl) v.presetOpts = this.csPresetOpts(ask.si);
+    if (v.isPreset && sl) v.presetGroups = this.csPresetGroups(ask.si);
     if (v.isStats && sl) Object.assign(v, this.csStatsView(ask.si, filled));
     if (v.isRows && sl) Object.assign(v, this.csRowsView(ask.si, filled));
     if (v.isPx && sl) {
@@ -15731,6 +15767,8 @@ class OrganicStudio extends StudioBase {
         icon: o === 'Hide' ? OrganicStudio.CS_HIDEICON : OrganicStudio.CS_POSICON[o],
         iconStyle: OrganicStudio.maskIcon(o === 'Hide' ? OrganicStudio.CS_HIDEICON : OrganicStudio.CS_POSICON[o]),
         set: () => this.upd(x => { const t = x.slides[asi]; if (t) { t.f = t.f || {}; t.f.logoPos = o; } return x; }) })),
+      csTileGroups: (s.tpl === 'carousel' && s.slides.length)
+        ? this.csPresetGroups(Math.min(s.activeSi || 0, s.slides.length - 1)) : [],
       csTiles: (() => {
         if (s.tpl !== 'carousel') return [];
         const asl0 = s.slides[Math.min(s.activeSi || 0, s.slides.length - 1)];

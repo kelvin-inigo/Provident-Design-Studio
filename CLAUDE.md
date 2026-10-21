@@ -15850,3 +15850,34 @@ editor (`tplDemoState`) and reading every page's rail:
 
 Verified: contrast 0 failures over the rail in all seven templates in both themes; no overflow;
 real clicks on slides scroll the stage.
+
+**The same pass on CAS (2026-10-21).** Chrome only, section 55 of CAS's sheet plus the
+floating control's tick:
+
+- **The component rail's text field says what the head counts**: an empty text or price small
+  label carries a "To fill in" tag (`selTextNeedOn` / `selSubNeedOn`, `.p-ftag`), and the
+  field's placeholder is the copy view's own example (`selTextPh` from `COPY_PH`). A price's
+  text field is labelled **Figure**, a CTA's **Button label** (`selTextLab`).
+- **The scope reads "every variant"** (was "linked across all variants"), so a tag and its
+  scope share one line; carousels still read "this page only".
+- **Picking a component opens the component rail at its top** (`_selTick`, keyed on the
+  selection).
+- **The floating component control stays inside the stage.** It was clamped to `.p-body`,
+  which holds the rails, so with Turn into's name it was 585px wide in a 555px stage and hung
+  Delete over the component rail. It clamps to `.p-stagecol` now, and when its full width does
+  not fit it goes icons-only (`data-compact`, the phone rule's own; the full width is measured
+  while the words show so it cannot flip back every frame). The phone rule's `button span`
+  also hid the Turn into menu's rows — the new rule is scoped to the bar's own buttons.
+
+Not carried over from OPS, because CAS has no counterpart: the slide-picking scroll (a
+variant's plate is where you click), tier labels, and the rembg captions.
+
+**The carousel's layout picker is grouped (2026-10-21).** Section 34 of OPS's sheet. The 13
+tiles were one undifferentiated grid; `CS_TILEGROUPS` puts them in three — **Open and close**
+(Front page, Call to action), **Words** (Text, Quote, Bullets, Steps, Cards, Icon grid),
+**Numbers** (Big number, Key figure, Stats, Price table, Payment plan) — through ONE builder,
+`csPresetGroups(si)`, read by the left rail (`csTileGroups`) and the guided run
+(`presetGroups`). Each tile's tooltip is its `PAGE` description ("Stats — a title and two to
+six icon-and-number facts"); tiles take a hover fill, the chosen name is 600, and focus rings
+the skeleton. `csTiles` is still computed and now unread. A new carousel layout needs a place
+in `CS_TILEGROUPS` or it shows in neither picker.

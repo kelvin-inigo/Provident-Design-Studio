@@ -4168,6 +4168,9 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-selctl .sc-item[data-on] .sc-tick{display:block}
 .sc-menu-f{margin-top:6px;padding:8px 8px 4px;border-top:1px solid var(--ps-hair);font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
 @media (max-width:760px){.p-selctl button span{display:none}.p-selctl .sc-turn span{display:inline}.sc-menu{width:min(300px,86vw)}}
+/* only the bar's own buttons; the Turn into menu's rows are buttons too and keep their words */
+.p-selctl[data-compact] > button > span{display:none}
+.p-selctl[data-compact] > .sc-turn > span{display:inline}
 
 /* 41. THE DROP ZONE'S FIGURE IS HAIRLINE'S "EXPLODED" — an app window in four layers that opens as
    the pointer crosses it (vendor/hairline, MIT). It replaces the three skeleton ad shapes. Its plate
@@ -4616,6 +4619,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.hb-t[data-wait],.hb-st i{animation:none}.hb-go{transition:none}}
 @media (max-width:760px){.hb-bar{flex-wrap:wrap;padding:10px 12px}.hb-bar-t{display:none}.hb-st{max-width:none;flex:1}}
 .p-c-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+/* ══ 55 · A FIELD SAYS WHAT THE HEAD COUNTS (2026-10-21) ════════════════════════════════════
+   The component head's "N to fill in" now has its field: an empty text or small label carries
+   a quiet tag beside its name. OPS's page form carries the same idea as .gd-tag. */
+.p-lab .p-ftag{flex:none;margin-left:6px;font:500 11px/1 var(--ps-font);padding:3px 7px;border-radius:var(--ps-pill);
+  background:var(--ps-warn-q, rgba(185,120,27,.16));color:var(--ps-ink)}
 </style>
 </helmet>
 
@@ -5966,7 +5974,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <button onClick="{{ selGapReset }}" class="p-rst" data-off="{{ selGapDefOn }}" title="Back to the cluster's own spacing" aria-label="Reset space above"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></button>
         </div>
         <sc-if value="{{ selIsPrice }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld"><span class="p-lab">Small label <s>{{ textScope }}</s></span>
+          <label class="p-fld"><span class="p-lab">Small label <sc-if value="{{ selSubNeedOn }}" hint-placeholder-val="{{ false }}"><b class="p-ftag">To fill in</b></sc-if><s>{{ textScope }}</s></span>
             <input value="{{ selSub }}" onChange="{{ onSelSub }}" class="p-in" placeholder="e.g. Starting from">
           </label>
         </sc-if>
@@ -5989,13 +5997,13 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </sc-if>
         </sc-if>
         <sc-if value="{{ selTextSingle }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld"><span class="p-lab">Text <s>{{ textScope }}</s></span>
-            <input value="{{ selText }}" onChange="{{ onSelText }}" class="p-in">
+          <label class="p-fld"><span class="p-lab">{{ selTextLab }} <sc-if value="{{ selTextNeedOn }}" hint-placeholder-val="{{ false }}"><b class="p-ftag">To fill in</b></sc-if><s>{{ textScope }}</s></span>
+            <input value="{{ selText }}" onChange="{{ onSelText }}" class="p-in" placeholder="{{ selTextPh }}">
           </label>
         </sc-if>
         <sc-if value="{{ selTextMulti }}" hint-placeholder-val="{{ false }}">
-          <label class="p-fld"><span class="p-lab">Text <s>{{ textScope }}</s></span>
-            <textarea value="{{ selText }}" onChange="{{ onSelText }}" rows="2" class="p-in"></textarea>
+          <label class="p-fld"><span class="p-lab">Text <sc-if value="{{ selTextNeedOn }}" hint-placeholder-val="{{ false }}"><b class="p-ftag">To fill in</b></sc-if><s>{{ textScope }}</s></span>
+            <textarea value="{{ selText }}" onChange="{{ onSelText }}" rows="2" class="p-in" placeholder="{{ selTextPh }}"></textarea>
             <span class="p-hint">{{ selLineInfo }}</span>
           </label>
         </sc-if>
@@ -6981,11 +6989,23 @@ class CampaignStudio extends StudioBase {
           const target = document.querySelector('.modwrap[data-selmod="1"]');
           if (target && host) {
             const hr = host.getBoundingClientRect(), tr = target.getBoundingClientRect();
+            // A STAGE NARROWER THAN THE BAR takes it icons-only (the phone rule's own), so it
+            // never hangs over the rails. The full width is measured while it shows its words,
+            // or dropping them would make it fit and flip it back every frame.
+            const scol = document.querySelector('.p-stagecol');
+            const avail = scol ? scol.getBoundingClientRect().width - 4 : hr.width;
+            if (!ctl.hasAttribute('data-compact')) ctl._fullW = ctl.offsetWidth;
+            if ((ctl._fullW || 0) > avail) ctl.setAttribute('data-compact', '1'); else ctl.removeAttribute('data-compact');
             const cw2 = ctl.offsetWidth || 240, ch = ctl.offsetHeight || 26;
             let left = tr.left - hr.left;
             let top = tr.top - hr.top - ch - 7;
             if (top < 2) top = tr.bottom - hr.top + 7;          // no room above
-            left = Math.max(2, Math.min(left, hr.width - cw2 - 2));
+            // clamped to the STAGE, not to .p-body: the body also holds the rails, and a long
+            // component name (Turn into) pushed Delete out over the component rail
+            const sc = document.querySelector('.p-stagecol');
+            const sr = sc ? sc.getBoundingClientRect() : hr;
+            const lo = sr.left - hr.left + 2, hi = sr.right - hr.left - cw2 - 2;
+            left = Math.max(lo, Math.min(left, hi));
             top = Math.max(2, Math.min(top, hr.height - ch - 2));
             ctl.style.left = Math.round(left) + 'px';
             ctl.style.top = Math.round(top) + 'px';
@@ -14212,7 +14232,8 @@ class CampaignStudio extends StudioBase {
       allVarsTip: CampaignStudio.isCarousel(s)
         ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed, _Story and the banners for every page, all in that one folder — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
         : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each holding all of that variant\u2019s images (feed, Story, 1.91:1, banners) with no folders inside — or a single PDF. Each export overwrites the last. Layout guides download PNG overlays — 1:1, 9:16 and 1.91:1 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
-      textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants',
+      // short, so a field's "To fill in" tag and its scope share one line in the rail
+      textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'every variant',
       // a style variant is per DESIGN variant on a single ad, and a carousel's page IS one
       styleScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'per design variant',
       noSelNote: CampaignStudio.isCarousel(s)
@@ -14408,7 +14429,7 @@ class CampaignStudio extends StudioBase {
       selSizeOpts: selM ? CampaignStudio.SIZES.map(([k, lab]) => ({ label: lab, on: selSizeCur === k ? '1' : undefined,
         title: ({ s: 'Small — one step down the type scale', m: 'Medium — as designed', l: 'Large — one step up', xl: 'Extra large — two steps up' })[k],
         set: () => setSize(k) })) : [],
-      sizeScope: !selM ? '' : (selM.type === 'graphic' ? (CampaignStudio.isCarousel(s) ? 'this page only' : 'linked across all variants')
+      sizeScope: !selM ? '' : (selM.type === 'graphic' ? (CampaignStudio.isCarousel(s) ? 'this page only' : 'every variant')
         : (CampaignStudio.isCarousel(s) ? 'this page only' : 'per design variant')) + (selM.type === 'graphic' && selSizeCur === '' ? ' · dragged' : ''),
       sizeTip: (selM && SIZE_TIP[selM.type]) || 'Every run of type moves whole rungs of the minor-third scale (×1.2): S one down, L one up, XL two up — and its paddings, rules and plates move with it, so the component grows as one object. M is the component as designed, and type never goes under the 24px floor.',
       // ── Eyebrow ink ─────────────────────────────────────────────────────────────────
@@ -14615,6 +14636,13 @@ class CampaignStudio extends StudioBase {
       iconTitle: selM && selM.type === 'cust' ? 'Icon' : selM && selM.type === 'tags' ? 'Chip icon' : (selM && selM.type === 'spec' ? 'Column icon' : 'Step icon'),
       iconClearLabel: selM && selM.type === 'tags' ? "Clear this chip's icon" : (selM && selM.type === 'spec' ? "Clear this column's icon" : "Clear this step's icon"),
       selText: selM ? (selM.text || '') : '', selSub: selM ? (selM.sub || '') : '',
+      // THE FIELD SAYS WHAT THE HEAD COUNTS: an empty text the section's "N to fill in" is
+      // counting carries a tag, and the placeholder is the copy view's own example
+      selTextPh: selM ? (CampaignStudio.COPY_PH[selM.type] || (selM.type === 'price' ? 'e.g. AED 2.6M' : 'Type here\u2026')) : '',
+      // a price's text is its figure, beside its small label
+      selTextLab: (selM && selM.type === 'price') ? 'Figure' : (selM && selM.type === 'cta') ? 'Button label' : 'Text',
+      selTextNeedOn: (selM && !String(selM.text || '').trim()) ? '1' : undefined,
+      selSubNeedOn: (selM && selM.type === 'price' && !String(selM.sub || '').trim()) ? '1' : undefined,
       selChips: selM && selM.chips ? selM.chips.join(', ') : '',
       selCols: selM && selM.cols ? selM.cols.map(c => c.l + ' | ' + c.v).join('\n') : '',
       // ONE FIELD PER CHIP AND PER COLUMN — the copy view's own list control. They were a
@@ -16262,6 +16290,21 @@ class Component extends DCLogic {
     this._tplTick();
     this._cwTick();
     this._vtTick();
+    this._selTick();
+  }
+  // PICKING A COMPONENT OPENS ITS RAIL AT THE TOP. The component rail kept the last one's
+  // scroll, so choosing a new component on the canvas showed the bottom of a form whose head
+  // (its name, style tiles and text) was scrolled away. Keyed on the selection, once per pick.
+  _selTick() {
+    if (typeof document === 'undefined') return;
+    const a = this.active(), sel = a && a.state && a.state.sel;
+    const key = sel ? sel.id + '|' + (sel.vi || 0) : '';
+    if (this._selKey === key) return;
+    const first = this._selKey == null;
+    this._selKey = key;
+    if (first || !key) return;
+    const r = document.querySelector('.p-rail-c');
+    if (r) r.scrollTop = 0;
   }
   // The rail's style tiles are real renders of the selected component, re-rendered off a
   // key — a no-op on every update that did not move the component, its canvas or its copy.
