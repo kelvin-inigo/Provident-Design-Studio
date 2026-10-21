@@ -9,7 +9,10 @@ The Content Hub (`http://192.168.50.30:8090`, office network) puts a social post
 queue when someone presses **Approve and send to design**. That only queues it — this skill is
 what designs it. You claim the job, lay the copy out in OPS through the **provident-studio** MCP
 tools, check it, export it, and post the pages back with the post's card id. The hub then
-attaches them to the post and moves it to **Ready to publish**.
+attaches them to the post and moves it to **Ready to publish**. A hub with design versions (the
+local copy at `~/Documents/provident-content-hub` since 21 Oct) keeps every send as v1, v2… and
+stops the post at **To review** instead: `design: review`, status still `design`, until someone
+presses Approve on the post.
 
 Everything that talks to the hub goes through `scripts/hub.py` (Python 3 standard library):
 
@@ -67,10 +70,11 @@ python3 "$H" status <card_id>     # design: delivered · status: publish when it
 7. **Deliver** — `hub.py deliver <card_id> <session> <folder>`. It posts the session JSON as
    `content` plus every image in the folder as `images`, with `X-Card-Id`. It refuses unless the
    hub answers 201 **with** `card_id` set, then prints the post's state: expect
-   `design: delivered` and `status: publish`. Pass the export folder, not the project folder, if
+   `design: delivered` and `status: publish` (on a hub with versions: `design: review`, status
+   `design`). Pass the export folder, not the project folder, if
    the brief images sit in the same tree — `deliver` sends every image in the folders you name.
-8. **Tell the user** the card id, the title, how many pages went, and that it is in Ready to
-   publish. If anything was left empty or guessed, say which page.
+8. **Tell the user** the card id, the title, how many pages went, and where it now sits (Ready to
+   publish, or To review on a hub with versions). If anything was left empty or guessed, say which page.
 
 ## When it goes wrong
 

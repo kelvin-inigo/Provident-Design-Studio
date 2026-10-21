@@ -15725,7 +15725,43 @@ subtracts the `ls` that `meas` reserves after the last letter.
 **If you ever create a measuring or drawing canvas outside these three, set `textRendering` on it**,
 or it will disagree with both the editor and the export at those sizes.
 
-# THE HUB'S "OPEN IN OPS" BUTTON OPENS A #hubdraft= LINK (2026-10-21)
+# THE HUB POST IS THE DESIGN'S HOME: VERSIONS, REVIEW, CHANGE NOTES (2026-10-21)
+
+On the LOCAL Content Hub (`~/Documents/provident-content-hub`, never the office hub), a social post
+in the Design system column is where its design lives. **Open in OPS** opens OPS at
+`#hubopen=<base64url URL>`, the hub's `GET /api/items/<id>/studio`: the post's current version (the
+project .json OPS sent, photos and all), or with no version / `?from=copy` a draft from the copy plus
+`hubImages` (the brief's pictures as URLs). `?v=<n>` opens a given version. The answer carries `hub`
+(post, brief, change notes, `opened`, `next`), which `StudioBase.hubDraftOpen` keeps as
+**`state.hubPost`** and drops into `loadSessionFile` after placing the pictures. `#hubdraft=<JSON>`
+(the first form) still works. The hash is dropped before loading, because the loader reloads.
+
+- **OPS shows a Hub post bar** above the stage (`hp*` keys, section 32 of its sheet, `<details
+  data-acc="ops-hubpost">`): title, "Opened v2 · Send makes v3", the change requests, the brief and
+  a link back (`<hub>/#card=<id>`). Send is labelled **Send v3 to the hub post** and the reply's
+  `version` updates `hubPost`. `hubPost` is stripped from the undo signature and carried by
+  `restore()`, so Undo never rewinds it.
+- **Every Send is a version on the post, all kept** (`design.deliver`): `card.design.versions[]`
+  `{n, delivery_id, at, by, assets, copy_sig}`, `current`, and the card stops at `design.state =
+  "review"` with status still `design` (a send to an approved post moves it back). The board pill
+  reads **To review · v2**; **Approve** -> Ready to publish (`state: approved`), **Request changes**
+  -> a free-text note in `design.notes[]` and `state: changes` (a job again). Each version has Open
+  in OPS, **Download images + .json** (`/api/imports/<id>/zip`) and Use this one. A copy edit after
+  the version was made raises "The copy changed after v2…" (`copySig`, recorded as `open_sig` when
+  OPS is opened). A card delivered before versions reads its one delivery as v1
+  (`design.versions_of` / `versionsOf`).
+- **Received is Activity**: one line per delivery, "OPS sent v2 of <post>" with Open the post and
+  Download; a delivery with no post offers **Attach to a post** (`POST /api/imports/<id>/attach`),
+  which makes it the post's next version (numbered by attach order). The badge counts deliveries
+  since Activity was last opened on that computer (`hub-activity-seen`).
+- The OPS address is per computer on the hub (`localStorage['hub-ops-url']`, the quiet **OPS
+  address** link in the Design heading), default the Vercel site.
+- The office hub has none of this; the hub-design-queue skill still expects `design: delivered`
+  there. Verified end to end on the local hub with a throwaway token: open from copy, Send v1, To
+  review, Request changes, the note in OPS's bar, Send v2, both versions on the post, zip download,
+  Use this one, Approve, Attach an unfiled delivery as v3.
+
+# THE FIRST FORM OF "OPEN IN OPS": A #hubdraft= LINK (2026-10-21, superseded above)
 
 On the LOCAL Content Hub (`~/Documents/provident-content-hub`, never the office hub), a social card
 in the Design system column shows **Open in OPS ↗**. The hub builds the card's slide copy as an OPS

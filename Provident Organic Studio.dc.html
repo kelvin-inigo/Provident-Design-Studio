@@ -3886,6 +3886,27 @@ select.p-in{padding-right:34px}
 @media (prefers-reduced-motion:reduce){.hb-t[data-wait],.hb-st i{animation:none}.hb-go{transition:none}}
 @media (max-width:760px){.hb-bar{flex-wrap:wrap;padding:10px 12px}.hb-bar-t{display:none}.hb-st{max-width:none;flex:1}}
 .p-c-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+
+/* 32 · THE HUB POST BAR — the Content Hub post this project belongs to (StudioBase.hubDraftOpen) */
+.hp-bar{margin:10px 16px 0;border:1px solid var(--ps-line);border-radius:12px;background:var(--ps-card);color:var(--ps-ink);font-size:13px}
+.hp-bar>summary{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;list-style:none;min-width:0}
+.hp-bar>summary::-webkit-details-marker{display:none}
+.hp-k{font-size:11.5px;font-weight:600;color:var(--ps-ink-2);flex:none}
+.hp-t{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hp-v{color:var(--ps-ink-2);flex:none}
+.hp-n{flex:none;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--ps-warn-q, rgba(185,120,27,.16));color:var(--ps-ink)}
+.hp-go{margin-left:auto;flex:none;color:var(--ps-link);text-decoration:none;font-weight:500}
+.hp-go:hover{text-decoration:underline}
+.hp-b{padding:2px 12px 12px;border-top:1px solid var(--ps-hair);display:grid;gap:10px}
+.hp-sec{display:grid;gap:4px;padding-top:10px}
+.hp-l{font-size:11.5px;font-weight:600;color:var(--ps-ink-2)}
+.hp-sec p{margin:0;white-space:pre-line;line-height:1.5}
+.hp-sec a{color:var(--ps-link);word-break:break-all}
+.hp-note{display:grid;gap:2px;padding:6px 0 6px 10px;border-left:3px solid var(--ps-warn)}
+.hp-note s{text-decoration:none;font-size:11.5px;color:var(--ps-ink-2)}
+.hp-note span{white-space:pre-line}
+.hp-foot{margin:0;font-size:12px;color:var(--ps-ink-2)}
+@media (max-width:760px){.hp-v{display:none}.hp-bar{margin:8px 10px 0}}
 </style>
 </helmet>
 
@@ -4282,6 +4303,16 @@ select.p-in{padding-right:34px}
 </aside>
 
 <div class="p-stagecol">
+<sc-if value="{{ hpOn }}">
+  <details class="hp-bar" data-acc="ops-hubpost">
+    <summary><span class="hp-k">Hub post</span><b class="hp-t">{{ hpTitle }}</b><span class="hp-v">{{ hpVer }}</span><sc-if value="{{ hpNoteOn }}"><span class="hp-n">{{ hpNoteCount }}</span></sc-if><a class="hp-go" href="{{ hpUrl }}" target="_blank" rel="noopener">Open the post ↗</a></summary>
+    <div class="hp-b">
+      <sc-if value="{{ hpNoteOn }}"><div class="hp-sec"><div class="hp-l">Change requests</div><sc-for list="{{ hpNotes }}" as="n" hint-placeholder-count="0"><div class="hp-note"><s>{{ n.head }}</s><span>{{ n.text }}</span></div></sc-for></div></sc-if>
+      <div class="hp-sec"><div class="hp-l">Brief</div><p>{{ hpBrief }}</p><sc-for list="{{ hpLinks }}" as="l" hint-placeholder-count="0"><a href="{{ l.u }}" target="_blank" rel="noopener">{{ l.u }}</a></sc-for></div>
+      <p class="hp-foot">{{ hpFoot }}</p>
+    </div>
+  </details>
+</sc-if>
 <main class="p-stage">
   <sc-for list="{{ slideViews }}" as="sl" hint-placeholder-count="0">
     <div class="p-plate">
@@ -7827,7 +7858,7 @@ class OrganicStudio extends StudioBase {
   // gdStep and gdAsk are the run's POSITION. They were not stripped, so every Next pushed
   // an undo entry (the stack is 5 deep) and re-keyed the guided card cache, re-rendering
   // every slide on each move. Where you are standing is not a change to the post.
-  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.pid; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.rcvGuide; delete c.gdStep; delete c.gdAsk; return JSON.stringify(c); }
+  static strip(o) { const c = Object.assign({}, o); delete c.screen; delete c.pid; delete c.exportStatus; delete c.activeSi; delete c.exportMenuOpen; delete c.exportKind; delete c.storyOn; delete c.rcvGuide; delete c.gdStep; delete c.gdAsk; delete c.hubPost; return JSON.stringify(c); }
   upd(fn) {
     this.markDirty();
     this.setState(prev => {
@@ -7845,7 +7876,7 @@ class OrganicStudio extends StudioBase {
     // Undo on the guided screen threw the user out to All controls. An entry taken before
     // the first save carries no project identity, so today's is kept.
     const cur = this.state || {};
-    const n = Object.assign({}, st, { screen: cur.screen === 'guide' ? 'guide' : 'editor', pid: cur.pid || st.pid });
+    const n = Object.assign({}, st, { screen: cur.screen === 'guide' ? 'guide' : 'editor', pid: cur.pid || st.pid, hubPost: cur.hubPost || st.hubPost });
     try { localStorage.setItem('provident-smp-studio-v2', JSON.stringify(n)); } catch (e) {}
     this.setState(n);
   }
@@ -13362,7 +13393,8 @@ class OrganicStudio extends StudioBase {
       }
       if (!r) r = await fetch(c.url, opts);
       let msg = '';
-      try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || (j.card_id ? 'attached to the hub post' : ''); } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
+      try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || (j.card_id ? (j.version ? 'added to the hub post as v' + j.version + ', waiting for review' : 'attached to the hub post') : '');
+          if (r.ok && j.card_id && j.version) this.upd(x => { if (x.hubPost) x.hubPost = Object.assign({}, x.hubPost, { opened: j.version, next: j.version + 1 }); return x; }); } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
       if (typeof msg !== 'string') msg = '';
       if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
       this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + (fit.note ? ', ' + fit.note : '') + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
@@ -15989,7 +16021,21 @@ class OrganicStudio extends StudioBase {
               epBadOn: c.url && !ok ? '1' : undefined,
               onEpUrl: e => this.epSet('url', e.target.value), onEpKey: e => this.epSet('key', e.target.value),
               epSend: () => this.sendExport(), 
-              epLabel: 'Send ' + n + ' ' + w + ' + .json',
+              // The Hub post bar (above the stage): the post this project belongs to, its brief and the
+              // change notes. Set by hubDraftOpen from the hub's `hub` block; Send updates the version.
+              ...(() => {
+                const h = (s.hubCardId && s.hubPost) || null, notes = (h && Array.isArray(h.notes) ? h.notes : []).slice().reverse();
+                const when = t => { const d = new Date(String(t || '').replace(/([+-]\d\d)(\d\d)$/, '$1:$2')); return isNaN(d) ? '' : d.toLocaleDateString([], { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
+                return h ? {
+                  hpOn: '1', hpTitle: h.title || 'Untitled post', hpUrl: h.url || '#',
+                  hpVer: (h.opened ? 'Opened v' + h.opened + ' · ' : 'From the copy · ') + 'Send makes v' + (h.next || 1),
+                  hpNoteOn: notes.length ? '1' : undefined, hpNoteCount: notes.length + ' change request' + (notes.length === 1 ? '' : 's'),
+                  hpNotes: notes.map(n => ({ head: 'On v' + (n.v || '?') + (when(n.at) ? ' · ' + when(n.at) : ''), text: String(n.text || '') })),
+                  hpBrief: (h.brief && h.brief.text) || 'No written brief.', hpLinks: ((h.brief && h.brief.links) || []).filter(u => /^https?:\/\//.test(u)).map(u => ({ u })),
+                  hpFoot: 'Share › Send adds the pages and this project to the post as v' + (h.next || 1) + '. The post waits for review there.'
+                } : { hpOn: undefined, hpNotes: [], hpLinks: [] };
+              })(),
+              epLabel: (s.hubPost && s.hubCardId) ? 'Send v' + (s.hubPost.next || 1) + ' to the hub post' : 'Send ' + n + ' ' + w + ' + .json',
               epSum: ok ? (() => { try { return new URL(c.url).host; } catch (e) { return ''; } })() : 'Not set',
               epTip: 'Sends the project .json (content) and every exported image (images) to the import hub.' + (sel === 'pdf' ? ' A PDF stays local, so Send ships JPEGs.' : '')
             };

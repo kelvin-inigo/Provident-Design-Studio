@@ -1108,31 +1108,52 @@ class StudioBase {
     await Promise.all([one(), one(), one(), one()]);
     if (gen === this._hubGen) this.forceUpdate();
   }
-  // The Content Hub's "Open in OPS" button opens the studio at #hubdraft=<base64url session JSON>
-  // (the card's slide copy, laid out by the hub's design.py). The hash is dropped BEFORE loading,
-  // because loadSessionFile ends in a reload and would otherwise open the draft again forever.
-  // The draft carries hubCardId, so Send attaches the finished pages back to that card.
+  // The Content Hub's "Open in OPS" button opens the studio at #hubopen=<base64url URL>: the hub's
+  // GET /api/items/<id>/studio, which answers with the post's current design version (the project
+  // .json OPS sent, photos and all) or a draft from the copy. #hubdraft=<base64url JSON> carries the
+  // draft itself (the first form of the button). The hash is dropped BEFORE loading, because
+  // loadSessionFile ends in a reload and would otherwise open it again forever. The project carries
+  // hubCardId, so Send adds the next version to that post.
   hubHashOpen() {
-    const m = /^#hubdraft=([A-Za-z0-9_-]+)$/.exec(location.hash || '');
+    const m = /^#(hubdraft|hubopen)=([A-Za-z0-9_-]+)$/.exec(location.hash || '');
     if (!m) return false;
     history.replaceState(null, '', location.pathname + location.search);
-    let doc;
+    let raw;
     try {
-      const b = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'));
-      doc = JSON.parse(new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0))));
-    } catch (e) { this.setState({ exportStatus: 'The hub link did not carry a readable draft.' }); return false; }
+      const b = atob(m[2].replace(/-/g, '+').replace(/_/g, '/'));
+      raw = new TextDecoder().decode(Uint8Array.from(b, c => c.charCodeAt(0)));
+    } catch (e) { this.setState({ exportStatus: 'The hub link could not be read.' }); return false; }
+    if (m[1] === 'hubopen') { this.hubLinkOpen(raw); return true; }
+    let doc;
+    try { doc = JSON.parse(raw); } catch (e) { this.setState({ exportStatus: 'The hub link did not carry a readable draft.' }); return false; }
     const st = doc && doc.state;
     if (!st || !Array.isArray(st.slides) || !st.slides.length) { this.setState({ exportStatus: 'The hub draft has no pages.' }); return false; }
     this.hubDraftOpen(doc);
     return true;
   }
+  async hubLinkOpen(url) {
+    if (!/^https?:\/\/[^/]+\/api\/items\/\d+\/studio(\?[A-Za-z0-9=&_-]*)?$/.test(url)) { this.setState({ exportStatus: 'The hub link does not point at a hub post.' }); return; }
+    this.setState({ exportStatus: 'Opening the post from the hub…' });
+    let doc;
+    try {
+      const r = await this.hubFetch(url, 120000);
+      if (!r.ok) { this.setState({ exportStatus: 'The hub refused to open the post — HTTP ' + r.status + '.' }); return; }
+      doc = await r.json();
+    } catch (e) { this.setState({ exportStatus: this.hubWhy(e, url) }); return; }
+    if (!doc || !doc.state || !Array.isArray(doc.state.slides) || !doc.state.slides.length) { this.setState({ exportStatus: 'The hub sent a post with no pages.' }); return; }
+    this.hubDraftOpen(doc);
+  }
   // The brief's pictures travel as URLs (`hubImages`) — a photo is far too big for a URL hash —
   // and are fetched here, encoded as an upload would be, and placed as the backgrounds of the
   // pages that take a photo, in order. A picture that fails is skipped (logged to the console);
-  // the copy still opens. More pictures than pages: the extra ones are not placed.
+  // the copy still opens. More pictures than pages: the extra ones are not placed. `hub` (the
+  // post, its brief, the change notes, the next version) is kept as state.hubPost for the bar.
   async hubDraftOpen(doc) {
     const st = doc.state, urls = (Array.isArray(doc.hubImages) ? doc.hubImages : []).filter(u => typeof u === 'string');
     delete doc.hubImages;
+    if (doc.hub && typeof doc.hub === 'object') { st.hubPost = doc.hub; if (doc.hub.card) st.hubCardId = String(doc.hub.card); }
+    delete doc.hub;
+    st.screen = 'editor';
     doc.images = (doc.images && typeof doc.images === 'object') ? doc.images : {};
     let placed = 0;
     if (urls.length) {

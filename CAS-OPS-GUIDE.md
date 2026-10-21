@@ -573,6 +573,11 @@ This is the full editor.
   run **/hub-design-queue**. It lists the queue, claims the post you pick, lays it out as an OPS
   carousel from the hub's copy and brief photos, shows you the pages, then exports and sends
   them back to the post.
+- **Opened from a hub post's Open in OPS** (the local Content Hub): OPS opens with the post's
+  copy and brief pictures, or its latest design if one was sent before. A **Hub post** bar above
+  the canvas shows the post, its brief, any change requests and which version you're on; **Open the
+  post** goes back to it. Send reads **Send v2 to the hub post**: each send is kept on the post as a
+  new version and the post waits at **To review** until someone approves it or asks for changes.
 
 ---
 
