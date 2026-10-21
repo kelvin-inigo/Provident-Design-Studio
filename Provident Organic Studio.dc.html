@@ -4922,7 +4922,7 @@ select.p-in{padding-right:34px}
                 </sc-if>
                 <sc-if value="{{ a.row.isSel }}" hint-placeholder-val="{{ false }}">
                   <select value="{{ a.row.val }}" onChange="{{ a.row.setSel }}" class="gd-big gd-bigsel">
-                    <sc-for list="{{ a.row.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.v }}</option></sc-for>
+                    <sc-for list="{{ a.row.opts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
                   </select>
                 </sc-if>
                 <sc-if value="{{ a.row.isStep }}" hint-placeholder-val="{{ false }}">
@@ -6142,10 +6142,9 @@ class OrganicStudio extends StudioBase {
     pad: 55,          // the panel's padding
     blurb: 29, blurbLead: 38, name: 35,
     firstBase: 28,    // the first blurb baseline, below the panel's content-box top
-    // THE SOLO CARD'S HEADING, in place of the blurb: a cream caps line (the period and
-    // the team; brass measured ~1.7:1 on the glass over the paper ground) over "Top Agent /
-    // of the Week" — the carousel cover's two authored lines — at the carousel's heading
-    // rung (66.5) in Regular 400, the brand's header weight.
+    // THE SOLO CARD'S HEADING, in place of the blurb: ONE line, "Weekly Top Agent", at the
+    // carousel's heading rung (66.5) in Regular 400, with a cream caps line under it (the
+    // dates and the team; brass measured ~1.7:1 on the glass over the paper ground).
     headPx: 66.5, headLead: 1.08, headGap: 30,
     gRule: 48,        // last blurb baseline -> the rule
     gName: 74,        // the rule -> the name's baseline
@@ -6253,6 +6252,7 @@ class OrganicStudio extends StudioBase {
     const dw = tw / Math.max(1e-6, I.w), dh = th / Math.max(1e-6, I.h);
     return { tw, th, dw, dh, ox: dw * I.x, oy: dh * I.y };
   }
+  static soloHead(f) { return ((f && f.period) || 'Monthly') + ' Top Agent'; }
   // a solo rank card has no blurb, so its page says what it does ask for
   static pagePurpose(sl) {
     if (sl && sl.kind === 'tagent' && sl.f && sl.f.solo) return 'Who they are, the period, the team and their place.';
@@ -6265,6 +6265,20 @@ class OrganicStudio extends StudioBase {
     t.setDate(t.getDate() + 3 - (t.getDay() + 6) % 7);
     const w1 = new Date(t.getFullYear(), 0, 4);
     return 1 + Math.round(((t - w1) / 864e5 - 3 + (w1.getDay() + 6) % 7) / 7);
+  }
+  // THE DATES A WEEK COVERS, which is what a viewer reads — "Week 43" means nothing on a post.
+  // ISO weeks: Monday to Sunday, week 1 holds the year's first Thursday. Short months, so the
+  // line still fits beside the team: "19–25 Oct 2026", "28 Sep – 4 Oct 2026",
+  // "29 Dec 2025 – 4 Jan 2026". `withYear` false drops the year (the dropdown's label).
+  static weekRange(wk, yr, withYear) {
+    const n = parseInt(String(wk || '').replace(/\D+/g, ''), 10) || 1, y = parseInt(yr, 10) || new Date().getFullYear();
+    const j4 = new Date(y, 0, 4), mon = new Date(y, 0, 4 - (j4.getDay() + 6) % 7 + (n - 1) * 7);
+    const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+    const M = d => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    const Y = withYear === false ? '' : ' ' + sun.getFullYear();
+    if (mon.getFullYear() !== sun.getFullYear()) return mon.getDate() + ' ' + M(mon) + (withYear === false ? '' : ' ' + mon.getFullYear()) + ' \u2013 ' + sun.getDate() + ' ' + M(sun) + Y;
+    if (mon.getMonth() !== sun.getMonth()) return mon.getDate() + ' ' + M(mon) + ' \u2013 ' + sun.getDate() + ' ' + M(sun) + Y;
+    return mon.getDate() + '\u2013' + sun.getDate() + ' ' + M(sun) + Y;
   }
   static WEEKS = Array.from({ length: 53 }, (_, i) => 'Week ' + (i + 1));
   // THE SOLO RANK CARD carries its own period, team and place on the slide (`f.solo`), so it
@@ -9331,11 +9345,14 @@ class OrganicStudio extends StudioBase {
       return x;
     });
   }
+  // the rank card's top-left line. A WEEKLY ranking says so — "Weekly top agent - 19–25 Oct
+  // 2026" — because a bare date range does not say what period it is; a month already does.
+  taTopLine(cf) { return (cf.period === 'Weekly' ? 'Weekly top agent - ' : 'Top agent - ') + this.taDate(cf); }
   taPeriodOf(state) { const c = state.slides.find(z => z.kind === 'tacover' || (z.f && z.f.solo)); return (c && c.f.period) || 'Monthly'; }
   taDate(f) {
     const y = f.yr || String(new Date().getFullYear());
     if (f.period === 'Yearly') return y;
-    if (f.period === 'Weekly') return (f.wk || 'Week 1') + ', ' + y;
+    if (f.period === 'Weekly') return OrganicStudio.weekRange(f.wk, y);
     if (f.period === 'Quarterly') return (f.qtr || 'Q1') + ' ' + y;
     return (f.mon || 'January') + ' ' + y;
   }
@@ -9376,17 +9393,17 @@ class OrganicStudio extends StudioBase {
     if (solo) {
       const hpx = T.headPx * pk, hlead = hpx * T.headLead, epx2 = rpx, w = OrganicStudio.periodWord(f.period);
       const eye = (this.taDate(f) + (f.team ? ' \u00B7 ' + f.team + ' Team' : '')).toUpperCase();
-      const yE = pad + epx2 * .74, yH = yE + T.headGap * pk + hpx * .74;
-      hd = { eye, epx: epx2, els: epx2 * .14, yE, hpx, hlead, yH,
-             lines: ['Top Agent', 'of the ' + w.charAt(0).toUpperCase() + w.slice(1)] };
+      // ONE line, by request — "Weekly Top Agent" — and the dates and team UNDER it
+      const yH = pad + hpx * .74, yE = yH + T.headGap * pk + epx2 * .74;
+      hd = { eye, epx: epx2, els: epx2 * .14, yE, hpx, hlead, yH, line: OrganicStudio.soloHead(f) };
     }
     // Every row is an offset from the PANEL'S OWN TOP EDGE, so the ops and the preview
     // place a run from one number instead of each accumulating its own stack — the same
     // reason listedBox gives every row an absolute y.
-    const yB0 = hd ? hd.yH + hd.hlead : pad + T.firstBase * pk;
+    const yB0 = hd ? hd.yE : pad + T.firstBase * pk;
     const blurbH = Math.max(0, bl.length - 1) * lead;
     // a 66px heading carries a deeper descender than a 29px blurb, so it takes a little more air
-    const yRule = yB0 + blurbH + T.gRule * pk + (hd ? hd.hpx * .12 : 0);
+    const yRule = yB0 + blurbH + T.gRule * pk;
     const yName = yRule + T.gName * pk;
     const yRole = yName + T.gRole * pk;
     const h = yRole + T.gFloor * pk;
@@ -11086,7 +11103,7 @@ class OrganicStudio extends StudioBase {
       const x0 = pL + T.topInset, x1 = W - pR - T.topInset;
       // A SOLO CARD HAS NO COVER TO CARRY THE BRAND, so its top row is the wordmark, and the
       // period and team move into the panel as its heading.
-      const lt = f.solo ? '' : ('Top agent - ' + this.taDate(cf)).toUpperCase();
+      const lt = f.solo ? '' : this.taTopLine(cf).toUpperCase();
       const rt = (!f.solo && cf.team) ? (cf.team + ' Team').toUpperCase() : '';
       if (f.solo) ops.push({ op: 'text', x: x0, y: pT + tk.logo * .8, px: tk.logo, weight: 300, fill: A.deep, text: 'provident.' });
       else ops.push({ op: 'text', x: x0, y: eyeY, px: epx, weight: 500, fill: A.deep, text: lt, ls: els });
@@ -11175,7 +11192,7 @@ class OrganicStudio extends StudioBase {
       if (c.hd) {
         const hd = c.hd;
         ops.push({ op: 'text', x: pL + c.pad, y: cy + hd.yE, px: hd.epx, weight: 500, fill: A.warm, text: hd.eye, ls: hd.els });
-        hd.lines.forEach((t, i) => ops.push({ op: 'text', x: pL + c.pad, y: cy + hd.yH + i * hd.hlead, px: hd.hpx, weight: 400, fill: A.ink, text: t }));
+        ops.push({ op: 'text', x: pL + c.pad, y: cy + hd.yH, px: hd.hpx, weight: 400, fill: A.ink, text: hd.line });
       }
       ops.push({ op: 'rect', x: pL + c.pad, y: cy + c.yRule, w: c.contentW, h: 1, fill: A.hair });
       ops.push({ op: 'text', x: pL + c.pad, y: cy + c.yName, px: c.npx, weight: 300, fill: A.ink, text: this.toTitle(f.name || '') });
@@ -14803,8 +14820,8 @@ class OrganicStudio extends StudioBase {
         const hd = c.hd;
         K.taSoloEyeStyle = hd ? Object.assign(abs(c.pad, hd.yE - hd.epx), { fontWeight: 500, fontSize: cq(hd.epx),
           letterSpacing: '.14em', lineHeight: cq(LH(hd.epx)), color: A.warm, whiteSpace: 'nowrap' }) : { display: 'none' };
-        K.taSoloHeadStyle = hd ? Object.assign(abs(c.pad, hd.yH - bIn(hd.hpx, hd.hlead)), { fontWeight: 400,
-          fontSize: cq(hd.hpx), lineHeight: cq(hd.hlead), color: A.ink, whiteSpace: 'pre' }) : { display: 'none' };
+        K.taSoloHeadStyle = hd ? Object.assign(abs(c.pad, hd.yH - hd.hpx), { fontWeight: 400,
+          fontSize: cq(hd.hpx), lineHeight: cq(LH(hd.hpx)), color: A.ink, whiteSpace: 'nowrap' }) : { display: 'none' };
         if (f.solo) K.taTopLStyle = Object.assign(abs(x0, pT + tk.logo * .8 - tk.logo), { fontWeight: 300,
           fontSize: cq(tk.logo), lineHeight: cq(LH(tk.logo)), color: A.deep, whiteSpace: 'nowrap', zIndex: 1 });
         K.blurbStyle = Object.assign(abs(c.pad, c.yB0 - bIn(c.bpx, c.lead)),
@@ -15079,10 +15096,10 @@ class OrganicStudio extends StudioBase {
         taBarR: (sl.kind === 'tacover' && f.team) ? (f.team + ' Team') : '',
         blurb: f.solo ? '' : (f.blurb || ''),
         taSoloEye: f.solo ? (this.taDate(f) + (f.team ? ' \u00B7 ' + f.team + ' Team' : '')).toUpperCase() : '',
-        taSoloHead: f.solo ? ['Top Agent', 'of the ' + (w => w.charAt(0).toUpperCase() + w.slice(1))(OrganicStudio.periodWord(f.period))].join('\n') : '',
+        taSoloHead: f.solo ? OrganicStudio.soloHead(f) : '',
         taName: this.toTitle(f.name || ''), taRole: f.role || '', rankNum: this.taRank(si),
         taPlace: this.taPlace(si),
-        taTop1: f.solo ? 'provident.' : ('Top agent - ' + this.taDate(OrganicStudio.taSrc(s, f))),
+        taTop1: f.solo ? 'provident.' : this.taTopLine(OrganicStudio.taSrc(s, f)),
         taTop2: f.solo ? '' : (() => { const t = OrganicStudio.taSrc(s, f).team; return t ? t + ' Team' : ''; })(),
         statusPre: lh ? lh.pre : '', statusAccent: lh ? lh.accent : '',
         location: f.location || '', usp: f.usp || '',
@@ -15553,7 +15570,8 @@ class OrganicStudio extends StudioBase {
             segs: (seg || []).map(o => ({ label: o,
               on: (OrganicStudio.isCs(slide.kind) ? OrganicStudio.csSegVal(slide.kind, slide.f, f.k) : raw) === o ? '1' : undefined,
               icon: OrganicStudio.CS_POSICON[o] || '', iconStyle: OrganicStudio.maskIcon(OrganicStudio.CS_POSICON[o]), set: () => write(o) })),
-            opts: (opts || []).map(v => ({ v })),
+            opts: (opts || []).map(v => ({ v, l: (selAt && selAt[1] === 'weeks' && /^Week \d+$/.test(v))
+              ? v + ' \u00B7 ' + OrganicStudio.weekRange(v, (this.state.slides[si].f || {}).yr, false) : v })),
             // the rail's dropdowns can add a new entry to the list; keep that here
             setSel: e => {
               const v = e.target.value;

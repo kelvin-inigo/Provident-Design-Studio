@@ -15954,3 +15954,10 @@ values or a new template, and the carousel's own reads are unchanged.
   A new solo post opens on the navy glass (`pickTpl` / `tplDemoState` set `glassFill`), because
   white glass over the paper ground reads near 1:1 until a portrait stands behind it.
   `pagePurpose(sl)` words the page for a solo card.
+- **One-line heading and dates, not week numbers (same day, by request)**: the solo heading is
+  ONE line, `soloHead(f)` = "Weekly / Monthly / Quarterly / Yearly Top Agent", with the dates and
+  team under it. A weekly period prints the DATES the ISO week covers (`weekRange(wk, yr)`:
+  "19–25 Oct 2026", "28 Sep – 4 Oct 2026") everywhere `taDate` is read — the cover bar, the solo
+  card, file names — and the rank card's top line reads "Weekly top agent - 19–25 Oct 2026"
+  (`taTopLine`). The stored value is still "Week 43"; the dropdown labels it "Week 43 · 19–25 Oct"
+  (form `opts` carry `l` now, read by the select's option text).
