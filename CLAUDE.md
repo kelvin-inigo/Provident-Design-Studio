@@ -15802,3 +15802,27 @@ Verified: self-test 13 AA / 3 exempt / 0 fails in both themes, 0 contrast failur
 specimens (an open fold's hidden value excepted), 0 UA buttons, 0 elevation shadows, solid
 navy fills strokeless (the swatch's ring excepted, by rule), 1 `CSSFontFaceRule`, brace and
 comment balance 0.
+
+# OPS'S PAGE FORM SAYS WHAT IS NEEDED (2026-10-21)
+
+By request ("update the UI and UX" of the carousel's All-controls rail), section 33 of OPS's
+sheet; one markup, so the guided run takes it too. No artwork line changed.
+
+- **A live defect fixed: carousel fields marked "Optional" blocked the guided run's Next.**
+  `gdAskIssue` applied "every asked field is required" (exempting only `opt`) while the
+  section pill counted `req` fields — so the Kicker, Key facts line and supporting lines were
+  gaps and the pill said "1 to fill in" over a filled headline. `OrganicStudio.fieldReq(kind,
+  f)` is the one answer now, read by `gdAskIssue` and `gdAskGated`: on a carousel kind the
+  `req` flag decides; older templates keep every field required unless `opt`.
+- **Each text field carries a tag** (`.gd-tag`): Optional, or Required while it is empty. A
+  leading "Optional —" moves out of the hint into the tag.
+- **Placeholders are the hint's own example** (`OrganicStudio.fieldPh`: "e.g. …", markers
+  stripped), else "Type here…".
+- **The brass highlight is a button in the field's header** (`hiHeadOn`, `.gd-hih`), not a row.
+- **The rich body's block types are one track of icons** (`RT_OPS` gained a fourth column, a
+  Material Rounded glyph through `maskIcon`; short names Text / Quote / Divider / Callout /
+  List). The names hide below 460px of container width (`.rt` is a size container). An empty
+  body shows its placeholder (`data-empty`, `data-ph`) and is 84px tall; "0 blocks" is gone.
+- **A tier label never sits over a field of its own name** ("Headline" over Kicker and
+  Headline); in the rail it is a divider. `.p-opts` is border-box, so the Layout track no
+  longer runs 8px past the column.

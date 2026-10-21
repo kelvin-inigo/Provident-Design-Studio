@@ -3902,11 +3902,47 @@ select.p-in{padding-right:34px}
 .hp-l{font-size:11.5px;font-weight:600;color:var(--ps-ink-2)}
 .hp-sec p{margin:0;white-space:pre-line;line-height:1.5}
 .hp-sec a{color:var(--ps-link);word-break:break-all}
+/* each brief link, and what the hub did with it: placed as a picture (tick) or why not */
+.hp-lk{display:grid;gap:2px}
+.hp-lkn{font-size:12px;color:var(--ps-ink-2);padding-left:16px;position:relative}
+.hp-lkn::before{content:"!";position:absolute;left:0;font-weight:700;color:var(--ps-warn)}
+.hp-lkn[data-ok]::before{content:"\2713";color:var(--ps-good)}
 .hp-note{display:grid;gap:2px;padding:6px 0 6px 10px;border-left:3px solid var(--ps-warn)}
 .hp-note s{text-decoration:none;font-size:11.5px;color:var(--ps-ink-2)}
 .hp-note span{white-space:pre-line}
 .hp-foot{margin:0;font-size:12px;color:var(--ps-ink-2)}
 @media (max-width:760px){.hp-v{display:none}.hp-bar{margin:8px 10px 0}}
+/* ══ §33 THE PAGE FORM, TIDIED ═════════════════════════════════════════════════════════════
+   A field says whether it is needed; the brass highlight is a tool in the field's header;
+   the body's block types are one track of icons; an empty body says what to write. One
+   markup, so the guided run takes all of it too. */
+.gd-tag{flex:none;font:500 11px/1 var(--ps-font);padding:3px 7px;border-radius:var(--ps-pill);
+  background:var(--ps-fill);color:var(--ps-ink-2)}
+.gd-tag[data-k="req"]{background:var(--ps-warn-q, rgba(185,120,27,.16));color:var(--ps-ink)}
+.gd-ask-h .gd-hih{margin-left:auto;height:26px;padding:0 9px;font-size:11.5px}
+.gd-ask-h .gd-hih + .gd-switch{margin-left:8px}
+/* the block types: one track, icon beside a short name; the brass button stands apart */
+.rt-bar{flex-wrap:nowrap;gap:2px;padding:3px;border-radius:var(--ps-pill);background:var(--ps-fill);
+  box-sizing:border-box;width:100%}
+.rt-bar .rt-b{flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  height:30px;padding:0 6px;border-radius:var(--ps-pill);background:transparent}
+.rt-bar .rt-b:hover{background:var(--ps-fill-h)}
+.rt-bar .rt-b[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.rt-bar .hi-b{flex:none;margin-left:4px;padding:0 9px}
+.rt-i{flex:none;width:16px;height:16px;background:currentColor;-webkit-mask-size:100% 100%;mask-size:100% 100%}
+.rt-bl{overflow:hidden;text-overflow:ellipsis}
+/* under ~460px five names and a Brass do not fit: icons only, the name is the tooltip */
+.rt{container-type:inline-size}
+@container (max-width:460px){.rt-bar .rt-bl{display:none}.rt-bar .rt-b{padding:0}}
+/* an empty body is three lines tall and says what to write; it grows with what is typed */
+.rt-ed{position:relative;min-height:84px}
+.rt-ed[data-empty]::before{content:attr(data-ph);position:absolute;left:14px;right:14px;top:12px;
+  color:var(--ps-dim);pointer-events:none}
+/* the layout track's own 4px of padding sat outside its 100% and ran it past the column */
+.gd-sec-g .p-opts,.gd-ask .p-opts{box-sizing:border-box}
+/* a tier label is a divider between groups of fields, not a field's name */
+.gd[data-mode="editor"] .gd-grp{margin:6px 0 -4px;padding-top:14px;border-top:1px solid var(--ps-hair);
+  font:600 12px/1 var(--ps-font);color:var(--ps-ink-2)}
 </style>
 </helmet>
 
@@ -4308,7 +4344,7 @@ select.p-in{padding-right:34px}
     <summary><span class="hp-k">Hub post</span><b class="hp-t">{{ hpTitle }}</b><span class="hp-v">{{ hpVer }}</span><sc-if value="{{ hpNoteOn }}"><span class="hp-n">{{ hpNoteCount }}</span></sc-if><a class="hp-go" href="{{ hpUrl }}" target="_blank" rel="noopener">Open the post ↗</a></summary>
     <div class="hp-b">
       <sc-if value="{{ hpNoteOn }}"><div class="hp-sec"><div class="hp-l">Change requests</div><sc-for list="{{ hpNotes }}" as="n" hint-placeholder-count="0"><div class="hp-note"><s>{{ n.head }}</s><span>{{ n.text }}</span></div></sc-for></div></sc-if>
-      <div class="hp-sec"><div class="hp-l">Brief</div><p>{{ hpBrief }}</p><sc-for list="{{ hpLinks }}" as="l" hint-placeholder-count="0"><a href="{{ l.u }}" target="_blank" rel="noopener">{{ l.u }}</a></sc-for></div>
+      <div class="hp-sec"><div class="hp-l">Brief</div><p>{{ hpBrief }}</p><sc-for list="{{ hpLinks }}" as="l" hint-placeholder-count="0"><div class="hp-lk"><a href="{{ l.u }}" target="_blank" rel="noopener">{{ l.u }}</a><sc-if value="{{ l.noteOn }}"><span class="hp-lkn" data-ok="{{ l.okOn }}">{{ l.note }}</span></sc-if></div></sc-for></div>
       <p class="hp-foot">{{ hpFoot }}</p>
     </div>
   </details>
@@ -4790,7 +4826,16 @@ select.p-in{padding-right:34px}
             <div class="gd-ask" data-k="{{ a.key }}" data-half="{{ a.half }}">
               <div class="gd-ask-h">
                 <b class="gd-askq">{{ a.label }}</b>
+                <!-- WHAT THE FIELD ASKS OF YOU, beside its name: the section's "N to fill in"
+                     counts exactly the fields that say Required here -->
+                <sc-if value="{{ a.tagOn }}" hint-placeholder-val="{{ false }}"><span class="gd-tag" data-k="{{ a.tagK }}">{{ a.tag }}</span></sc-if>
                 <i class="tip p-info gd-tipi" data-tip="{{ a.tip }}" data-has="{{ a.tipOn }}">i</i>
+                <!-- THE BRASS HIGHLIGHT is a tool of the field, so it sits in the field's own
+                     header rather than taking a row of its own above every headline. The glyph
+                     is baked in: a `d` attribute is parsed before DC interpolates it. -->
+                <sc-if value="{{ a.hiHeadOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.row.hiSet }}" class="rt-b hi-b gd-hih" data-on="{{ a.row.hiIsOn }}" title="Select a word in this field, then press this to set it in brass. Press again to take it off." aria-label="Brass highlight">
+                  <svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M136.16 0q-15.47 0-25.81-10.35Q100-20.69 100-36.15v-76.93q0-15.46 10.35-25.8 10.34-10.35 25.81-10.35h687.68q15.47 0 25.81 10.35Q860-128.54 860-113.08v76.93q0 15.46-10.35 25.8Q839.31 0 823.84 0H136.16Zm146.53-280q-17.23 0-27.07-14.31-9.85-14.3-3.77-30.53l186-474.39q3.46-9.38 11.61-15.08 8.16-5.69 17.93-5.69h25.22q10.39 0 18.24 5.69 7.84 5.7 11.3 15.08l186.23 473.85q6.08 16.61-3.96 31Q694.38-280 677.15-280q-10.53 0-19.46-5.88-8.92-5.89-12.77-16.43l-45.53-122.46H360.31l-46.77 123.46q-3.85 10.16-12.08 15.73-8.23 5.58-18.77 5.58Zm98.69-204h195.7L482-736h-4.77l-95.85 252Z"/></svg>Brass
+                </button></sc-if>
                 <sc-if value="{{ a.togOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.togSet }}" class="gd-switch" role="switch" aria-checked="{{ a.togAria }}" data-on="{{ a.togIsOn }}" title="{{ a.togTitle }}"><i></i></button></sc-if>
               </div>
 
@@ -4820,22 +4865,8 @@ select.p-in{padding-right:34px}
                     <button onClick="{{ a.row.inc }}" class="gd-stepb">›</button>
                   </div>
                 </sc-if>
-                <!-- THE BRASS HIGHLIGHT, a toolbar over the field rather than a syntax to
-                     type. It sits where the rich body's own toolbar sits, so the two read
-                     as one idea: select, then press. -->
-                <sc-if value="{{ a.row.hiOn }}" hint-placeholder-val="{{ false }}">
-                  <div class="rt-bar hi-bar">
-                    <!-- THE GLYPH IS BAKED IN, NOT INTERPOLATED. The browser parses a `d`
-                         attribute before DC ever interpolates it, so `d="{{ … }}"` logs a
-                         path-parse error on every load — the trap the SWIPE chevron already
-                         records. This icon never varies, so there is nothing to interpolate. -->
-                    <button onClick="{{ a.row.hiSet }}" class="rt-b hi-b" data-on="{{ a.row.hiIsOn }}" title="Select a word, then press this to set it in brass. Press again to take it off.">
-                      <svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M136.16 0q-15.47 0-25.81-10.35Q100-20.69 100-36.15v-76.93q0-15.46 10.35-25.8 10.34-10.35 25.81-10.35h687.68q15.47 0 25.81 10.35Q860-128.54 860-113.08v76.93q0 15.46-10.35 25.8Q839.31 0 823.84 0H136.16Zm146.53-280q-17.23 0-27.07-14.31-9.85-14.3-3.77-30.53l186-474.39q3.46-9.38 11.61-15.08 8.16-5.69 17.93-5.69h25.22q10.39 0 18.24 5.69 7.84 5.7 11.3 15.08l186.23 473.85q6.08 16.61-3.96 31Q694.38-280 677.15-280q-10.53 0-19.46-5.88-8.92-5.89-12.77-16.43l-45.53-122.46H360.31l-46.77 123.46q-3.85 10.16-12.08 15.73-8.23 5.58-18.77 5.58Zm98.69-204h195.7L482-736h-4.77l-95.85 252Z"/></svg>Brass highlight
-                    </button>
-                  </div>
-                </sc-if>
                 <sc-if value="{{ a.row.isInput }}" hint-placeholder-val="{{ true }}">
-                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" class="gd-big" enterkeyhint="next" inputmode="{{ a.row.inputMode }}" placeholder="Type your answer here…">
+                  <input value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" class="gd-big" enterkeyhint="next" inputmode="{{ a.row.inputMode }}" placeholder="{{ a.row.ph }}">
                 </sc-if>
                 <!-- ONE FIELD PER POINT. It was a single field with the points separated by a
                      bar, which nobody could discover and which ate a space on every edit. -->
@@ -4854,7 +4885,7 @@ select.p-in{padding-right:34px}
                   </div>
                 </sc-if>
                 <sc-if value="{{ a.row.isArea }}" hint-placeholder-val="{{ false }}">
-                  <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" rows="3" class="gd-big gd-bigta" placeholder="Type your answer here…"></textarea>
+                  <textarea value="{{ a.row.val }}" onChange="{{ a.row.set }}" data-hi="{{ a.row.hiKey }}" rows="3" class="gd-big gd-bigta" placeholder="{{ a.row.ph }}"></textarea>
                   <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
                 </sc-if>
                 <!-- THE RICH BODY. The host is deliberately EMPTY here: its rows are built by
@@ -4863,13 +4894,13 @@ select.p-in{padding-right:34px}
                      what it last read or wrote and rebuilds only when the project moved. -->
                 <sc-if value="{{ a.row.isRich }}" hint-placeholder-val="{{ false }}">
                   <div class="rt">
-                    <div class="rt-bar"><sc-for list="{{ a.row.rtOps }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="rt-b" data-t="{{ o.t }}" title="{{ o.title }}">{{ o.label }}</button></sc-for>
+                    <div class="rt-bar"><sc-for list="{{ a.row.rtOps }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.set }}" class="rt-b" data-t="{{ o.t }}" title="{{ o.title }}" aria-label="{{ o.label }}"><em class="rt-i" style="{{ o.iconStyle }}" aria-hidden="true"></em><span class="rt-bl">{{ o.label }}</span></button></sc-for>
                       <!-- the block buttons retype a LINE; this one marks WORDS, so it sits
                            apart from them at the end of the same bar -->
                       <button onClick="{{ a.row.rtHiSet }}" class="rt-b hi-b" data-on="{{ a.row.rtHiOn }}" title="Select a word, then press this to set it in brass. Press again to take it off.">
                         <svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M136.16 0q-15.47 0-25.81-10.35Q100-20.69 100-36.15v-76.93q0-15.46 10.35-25.8 10.34-10.35 25.81-10.35h687.68q15.47 0 25.81 10.35Q860-128.54 860-113.08v76.93q0 15.46-10.35 25.8Q839.31 0 823.84 0H136.16Zm146.53-280q-17.23 0-27.07-14.31-9.85-14.3-3.77-30.53l186-474.39q3.46-9.38 11.61-15.08 8.16-5.69 17.93-5.69h25.22q10.39 0 18.24 5.69 7.84 5.7 11.3 15.08l186.23 473.85q6.08 16.61-3.96 31Q694.38-280 677.15-280q-10.53 0-19.46-5.88-8.92-5.89-12.77-16.43l-45.53-122.46H360.31l-46.77 123.46q-3.85 10.16-12.08 15.73-8.23 5.58-18.77 5.58Zm98.69-204h195.7L482-736h-4.77l-95.85 252Z"/></svg>Brass
                       </button></div>
-                    <div class="rt-ed" data-rt="{{ a.row.rtKey }}" data-rtv="{{ a.row.val }}"></div>
+                    <div class="rt-ed" data-rt="{{ a.row.rtKey }}" data-rtv="{{ a.row.val }}" data-ph="{{ a.row.ph }}" data-empty="{{ a.row.emptyOn }}"></div>
                   </div>
                   <sc-if value="{{ a.row.counterOn }}" hint-placeholder-val="{{ false }}"><span class="gd-count2" data-over="{{ a.row.overOn }}">{{ a.row.counter }}</span></sc-if>
                 </sc-if>
@@ -6567,11 +6598,28 @@ class OrganicStudio extends StudioBase {
   // Bold would be expressible (the face carries 500) and italic would not — the bundled
   // Google Sans Flex is upright-only and the one italic in the folder is the Source Serif
   // the brand retired — so a half-set was worse than none.
-  static RT_OPS = [['p', 'Normal text', 'Plain body copy'],
-                   ['q', 'Quote', 'A quotation behind a brass rule'],
-                   ['d', 'Divider', 'A hairline across the column'],
-                   ['c', 'Callout', 'A glass panel with a brass rule'],
-                   ['b', 'Bulleted list', 'A brass check against each line']];
+  // [type, short name, what it does, Material Rounded wght300 glyph]. The names are short so
+  // the five fit one track; the full description is the button's tooltip.
+  static fieldPh(f, rich) {
+    const m = /\be\.g\.\s*([^\u2014]+?)\s*(?:$|\u2014|\(|;)/.exec((f && f.hint) || '');
+    const ex = m ? m[1].replace(/\*\*/g, '').replace(/[.,]$/, '').trim() : '';
+    if (ex) return 'e.g. ' + ex;
+    return rich ? 'Write a line, then press Enter for the next' : 'Type here\u2026';
+  }
+  // WHETHER A FIELD MAY BE LEFT BLANK. A carousel page's own flags are the authority — its
+  // `req` fields are the copy the page is built on and everything else draws nothing when
+  // blank — while the older templates keep "every asked field is required", with `opt` as
+  // their one exemption. Read by the gate, the section's count and the field's own tag, so
+  // the three cannot disagree (they did: the Kicker said Optional and blocked Next).
+  static fieldReq(kind, f) {
+    if (!f || /(^|\s)opt(\s|$)/.test(f.flags)) return false;
+    return OrganicStudio.isCs(kind) ? /(^|\s)req(\s|$)/.test(f.flags) : true;
+  }
+  static RT_OPS = [['p', 'Text', 'Normal text \u2014 plain body copy', 'M170-254.62q-12.75 0-21.37-8.63-8.63-8.62-8.63-21.38 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h380q12.75 0 21.37 8.62 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H170ZM170-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q157.25-510 170-510h620q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q802.75-450 790-450H170Zm0-195.39q-12.75 0-21.37-8.62-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h620q12.75 0 21.37 8.63 8.63 8.62 8.63 21.38 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H170Z'],
+                   ['q', 'Quote', 'Quote \u2014 a quotation behind a brass rule', 'm271.23-298.85 68.39-118.46q-3.46 1.92-8.08 2.69t-9.23.77q-61 0-103.58-42.93-42.57-42.93-42.57-103.22 0-61 42.57-103.58 42.58-42.57 103.58-42.57 60.29 0 103.22 42.57 42.93 42.58 42.93 103.45 0 21.21-5.11 39.36-5.12 18.15-14.97 34.62l-125.46 217.3q-3.75 6.75-10.5 10.88-6.75 4.12-15.01 4.12-17.26 0-25.87-15-8.62-15-.31-30Zm355.39 0L695-417.31q-3.46 1.92-8.08 2.69-4.61.77-9.23.77-61 0-103.57-42.93-42.58-42.93-42.58-103.22 0-61.38 42.58-103.77 42.57-42.38 103.57-42.38 60.29 0 103.22 42.57 42.93 42.58 42.93 103.45 0 21.21-5.11 39.36-5.12 18.15-14.96 34.62l-125.46 217.3q-3.75 6.75-10.51 10.88-6.75 4.12-15 4.12-17.26 0-25.88-15-8.61-15-.3-30Zm-252-208.84q21.54-21.54 21.54-52.31 0-30.77-21.54-52.31-21.54-21.54-52.31-21.54-30.77 0-52.31 21.54-21.54 21.54-21.54 52.31 0 30.77 21.54 52.31 21.54 21.54 52.31 21.54 30.77 0 52.31-21.54Zm355.38 0q21.54-21.54 21.54-52.31 0-30.77-21.54-52.31-21.54-21.54-52.31-21.54-30.77 0-52.31 21.54-21.54 21.54-21.54 52.31 0 30.77 21.54 52.31 21.54 21.54 52.31 21.54 30.77 0 52.31-21.54ZM677.69-560Zm-355.38 0Z'],
+                   ['d', 'Divider', 'Divider \u2014 a hairline across the column', 'M210-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-510 210-510h540q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-450 750-450H210Z'],
+                   ['c', 'Callout', 'Callout \u2014 a glass panel with a brass rule', 'M212.31-200H560v-163.85q0-15.46 10.35-25.8Q580.69-400 596.15-400H760v-347.69q0-5.39-3.46-8.85t-8.85-3.46H212.31q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46Zm0 60q-29.92 0-51.12-21.19Q140-182.39 140-212.31v-535.38q0-29.92 21.19-51.12Q182.39-820 212.31-820h535.38q29.92 0 51.12 21.19Q820-777.61 820-747.69v343.54q0 14.46-5.62 27.8-5.61 13.35-15.46 23.19L606.84-161.08q-9.84 9.85-23.19 15.46-13.34 5.62-27.8 5.62H212.31ZM450-410.77H327.69q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38q8.61-8.62 21.38-8.62H450q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62ZM632.31-570H327.69q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38q8.61-8.62 21.38-8.62h304.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62ZM200-200V-760v560Z'],
+                   ['b', 'List', 'Bulleted list \u2014 a brass check against each line', 'M402.31-210q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62H790q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q802.75-210 790-210H402.31Zm0-240q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62H790q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q802.75-450 790-450H402.31Zm0-240q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62H790q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q802.75-690 790-690H402.31ZM206.54-173.46q-27.45 0-46.99-19.55Q140-212.55 140-240q0-27.45 19.55-46.99 19.54-19.55 46.99-19.55 27.45 0 46.99 19.55 19.55 19.54 19.55 46.99 0 27.45-19.55 46.99-19.54 19.55-46.99 19.55Zm0-240q-27.45 0-46.99-19.46Q140-452.39 140-480t19.55-47.08q19.54-19.46 46.99-19.46 27.45 0 46.99 19.46 19.55 19.47 19.55 47.08t-19.55 47.08q-19.54 19.46-46.99 19.46Zm-47.08-259.46Q140-692.39 140-720t19.46-47.08q19.46-19.46 47.08-19.46 27.61 0 47.08 19.46 19.46 19.47 19.46 47.08t-19.46 47.08q-19.47 19.46-47.08 19.46-27.62 0-47.08-19.46Z']];
   static CS_BT = { '>': 'q', '!': 'c', '*': 'b' };
   static CS_BP = { q: '> ', c: '! ', b: '* ' };
   static csBlocks(text) {
@@ -12795,6 +12843,22 @@ class OrganicStudio extends StudioBase {
       rguide: 'A Reel cover is cropped to 4:5 in the profile grid and the feed. Everything that has to read sits inside the box.',
       rpx: 'Pop-out only. The subject is lifted out of the photo and stands in front of the headline, locked to the photo\u2019s crop.'
     };
+    // A FIELD SAYS WHETHER IT IS NEEDED. "Optional —" moves out of the hint into the tag, so
+    // the hint (and the rail's tooltip) opens on what the field is for.
+    if (v.isField && v.row && !v.togOn) {
+      const text = v.row.isInput || v.row.isArea || v.row.isRich || v.row.isPts;
+      const f = sl ? OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k) : null;
+      if (text && f) {
+        const req = OrganicStudio.fieldReq(sl.kind, f);
+        if (req && v.issue) { v.tagOn = '1'; v.tagK = 'req'; v.tag = 'Required'; }
+        else if (!req) { v.tagOn = '1'; v.tagK = 'opt'; v.tag = 'Optional'; }
+      }
+    }
+    if (v.isField && v.row && v.row.hint) {
+      let h = v.row.hint.replace(/^Optional\s*[.,:\u2014-]*\s*/i, '').replace(/\s*[\u2014-]\s*optional\.?$/i, '');
+      v.row.hint = h ? h.charAt(0).toUpperCase() + h.slice(1) : '';
+    }
+    v.hiHeadOn = (v.isField && v.row && v.row.hiOn && (!v.togOn || v.togIsOn)) ? '1' : undefined;
     const tip = v.isField ? ((v.row && v.row.hint) || '') : (v.isGlass ? (v.glassHint || '') : v.isStory ? (v.storyHint || '')
       : v.isPhoto ? (v.photoHint || '') : v.isProj ? (v.projHint || '') : v.isPortrait ? (v.portraitHint || '') : (TIPS[ask.kind] || ''));
     v.tip = tip; v.tipOn = tip ? '1' : undefined;
@@ -13037,7 +13101,7 @@ class OrganicStudio extends StudioBase {
     // `opt` is the one exemption from "every asked field is required": the reel thumbnail's
     // ADM and CN chips and its tags each draw nothing when blank, so a blank one is an
     // answer rather than a gap. No other field carries the flag.
-    if (!v && /(^|\s)opt(\s|$)/.test(f.flags)) return '';
+    if (!v && !OrganicStudio.fieldReq(sl.kind, f)) return '';
     if (!v) return 'This one is required.';
     if (f.flags.indexOf('len11') >= 0 && v.replace(/\D/g, '').length !== 11) return 'That needs to be exactly 11 digits.';
     return '';
@@ -13093,7 +13157,7 @@ class OrganicStudio extends StudioBase {
     if (ask.kind !== 'field') return false;
     const sl = (this.state.slides || [])[ask.si];
     const f = sl ? OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k) : null;
-    return !!(f && f.flags.indexOf('req') >= 0);
+    return !!(f && OrganicStudio.fieldReq(sl.kind, f));
   }
   // A CTA slide reuses the cover's picture and a review card has none, so neither asks
   // for one of its own.
@@ -15239,8 +15303,9 @@ class OrganicStudio extends StudioBase {
             const nb = OrganicStudio.csBlocks(raw).filter(b => b.t === 'd' || String(b.s).trim()).length;
             let ov = 0;
             try { ov = this.csBox(this.state, si, OrganicStudio.PXT.ft).over || 0; } catch (e) {}
+            // nothing to count says nothing: "0 blocks" under an empty editor read as an error
             counter = ov ? ov + (ov === 1 ? ' block does' : ' blocks do') + ' not fit on this page \u2014 trim the body'
-                         : nb + (nb === 1 ? ' block' : ' blocks');
+                         : nb ? nb + (nb === 1 ? ' block' : ' blocks') : '';
             over = ov > 0;
           }
           if (slide.kind === 'review' && f.k === 'quote') {
@@ -15287,7 +15352,7 @@ class OrganicStudio extends StudioBase {
             // the editor is addressed by this key alone, so the toolbar's handler needs no
             // closure over the element and survives every re-render
             rtKey: si + ':' + f.k,
-            rtOps: OrganicStudio.RT_OPS.map(o => ({ t: o[0], label: o[1], title: o[2],
+            rtOps: OrganicStudio.RT_OPS.map(o => ({ t: o[0], label: o[1], title: o[2], iconStyle: OrganicStudio.maskIcon(o[3]),
               set: () => this.rtApply(si + ':' + f.k, o[0]) })),
             // the body's own brass button — the block types retype a LINE, this marks WORDS
             rtHiSet: () => this.rtHi(si + ':' + f.k),
@@ -15296,6 +15361,10 @@ class OrganicStudio extends StudioBase {
             // THE BRASS HIGHLIGHT'S BUTTON, on the fields flagged `hi`. Same `si:key`
             // addressing as the rich editor's toolbar.
             hiOn: isHi ? '1' : undefined,
+            // THE PLACEHOLDER IS THE HINT'S OWN EXAMPLE when it has one ("e.g. Aldar \u00B7 Yas
+            // Island"), markers stripped — a real answer to copy beats "Type your answer here".
+            ph: OrganicStudio.fieldPh(f, isRich),
+            emptyOn: isRich && !String(raw || '').trim() ? '1' : undefined,
             hiKey: si + ':' + f.k,
             hiIsOn: (isHi && this.hiActive(si + ':' + f.k)) ? '1' : undefined,
             hiSet: () => this.hiApply(si + ':' + f.k),
@@ -15371,7 +15440,10 @@ class OrganicStudio extends StudioBase {
             // print that name twice; the label earns its line only over two fields or a
             // field called something else
             const inGroup = rows.filter(z => z.group === r.group);
-            const worth = inGroup.length > 1 || (inGroup[0] && inGroup[0].label !== r.group);
+            // and never over a tier that already has a field of its name ("Headline" over Kicker
+            // and Headline read as if the Kicker were the headline)
+            const worth = (inGroup.length > 1 || (inGroup[0] && inGroup[0].label !== r.group))
+              && !inGroup.some(z => z.label === r.group);
             if (sec === 'words' && r.group && r.group !== lastGroup && worth) {
               items.push({ key: r.key + 'g', isGroup: true, isRow: false, group: r.group });
             }
@@ -16031,7 +16103,7 @@ class OrganicStudio extends StudioBase {
                   hpVer: (h.opened ? 'Opened v' + h.opened + ' · ' : 'From the copy · ') + 'Send makes v' + (h.next || 1),
                   hpNoteOn: notes.length ? '1' : undefined, hpNoteCount: notes.length + ' change request' + (notes.length === 1 ? '' : 's'),
                   hpNotes: notes.map(n => ({ head: 'On v' + (n.v || '?') + (when(n.at) ? ' · ' + when(n.at) : ''), text: String(n.text || '') })),
-                  hpBrief: (h.brief && h.brief.text) || 'No written brief.', hpLinks: ((h.brief && h.brief.links) || []).filter(u => /^https?:\/\//.test(u)).map(u => ({ u })),
+                  hpBrief: (h.brief && h.brief.text) || 'No written brief.', hpLinks: ((h.brief && h.brief.links) || []).filter(u => /^https?:\/\//.test(u)).map(u => { const n = ((h.brief && h.brief.linkNotes) || []).find(x => x && x.u === u); return { u, note: n ? n.note : '', noteOn: n ? '1' : undefined, okOn: n && n.ok ? '1' : undefined }; }),
                   hpFoot: 'Share › Send adds the pages and this project to the post as v' + (h.next || 1) + '. The post waits for review there.'
                 } : { hpOn: undefined, hpNotes: [], hpLinks: [] };
               })(),
