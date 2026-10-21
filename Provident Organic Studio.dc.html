@@ -3961,6 +3961,19 @@ select.p-in{padding-right:34px}
 .p-opts-cs .p-opt[data-on] > span:last-child{font-weight:600}
 .p-opts-cs .p-opt:focus-visible{outline:none}
 .p-opts-cs .p-opt:focus-visible .p-mini{outline:2px solid var(--ps-ink);outline-offset:2px}
+/* TWO TO A ROW, WITH AIR. Three across in a 240 rail left each skeleton 70px wide and 44 tall,
+   its bars packed edge to edge; two across gives the drawing room to read as a layout. */
+.p-csg{gap:10px}
+.p-csg + .p-csg{margin-top:22px}
+.p-opts-cs .p-opt{gap:8px}
+.p-rail-l .p-opts-cs{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
+.p-rail-l .p-opts-cs .p-mini{height:72px}
+.p-rail-l .p-opts-cs .p-opt > span:last-child{font-size:12px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-opts-cs{gap:18px 14px}
+.gd-opts-cs .p-mini{height:64px}
+/* the drawing sits inside its own margin: the marks are placed in % of this box, so an
+   inset box keeps every layout's bars off the tile's edges at any tile size */
+.p-opts-cs .p-mini-in{position:absolute;inset:16% 14%}
 </style>
 </helmet>
 
@@ -4307,7 +4320,7 @@ select.p-in{padding-right:34px}
     <div class="p-opts p-opts-cs">
       <sc-for list="{{ cg.tiles }}" as="ct" hint-placeholder-count="3">
         <button onClick="{{ ct.set }}" class="p-opt" data-on="{{ ct.on }}" title="{{ ct.tip }}" aria-label="{{ ct.aria }}">
-          <span class="p-mini"><sc-for list="{{ ct.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span>
+          <span class="p-mini"><span class="p-mini-in"><sc-for list="{{ ct.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span></span>
           <span>{{ ct.label }}</span>
         </button>
       </sc-for>
@@ -5067,7 +5080,7 @@ select.p-in{padding-right:34px}
                 <div class="p-csg"><span class="p-csg-h">{{ pg.name }}</span>
                 <div class="p-opts p-opts-cs gd-opts-cs"><sc-for list="{{ pg.tiles }}" as="o" hint-placeholder-count="3">
                   <button onClick="{{ o.set }}" class="p-opt" data-on="{{ o.on }}" title="{{ o.tip }}" aria-label="{{ o.aria }}">
-                    <span class="p-mini"><sc-for list="{{ o.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span>
+                    <span class="p-mini"><span class="p-mini-in"><sc-for list="{{ o.marks }}" as="mk" hint-placeholder-count="3"><i style="{{ mk }}"></i></sc-for></span></span>
                     <span>{{ o.label }}</span>
                   </button>
                 </sc-for></div></div>

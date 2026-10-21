@@ -15881,3 +15881,8 @@ tiles were one undifferentiated grid; `CS_TILEGROUPS` puts them in three — **O
 six icon-and-number facts"); tiles take a hover fill, the chosen name is 600, and focus rings
 the skeleton. `csTiles` is still computed and now unread. A new carousel layout needs a place
 in `CS_TILEGROUPS` or it shows in neither picker.
+**And given air, by request ("two columns … breathing room … too cramped").** The left rail's
+picker is TWO to a row (tiles 109 x 72, gaps 16 / 12, 22 between groups), and every skeleton
+draws inside `.p-mini-in` — an inset box at 16% / 14% that the marks' percentages resolve
+against, so no layout's bars touch its tile's edge. The guided run keeps three across in its
+wider column, with the same inset and 18 / 14 gaps.
