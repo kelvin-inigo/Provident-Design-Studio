@@ -3923,23 +3923,28 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-stage:has(> .as-body) > .as-src{flex:none;margin:16px auto}
 .as-body{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr)}
 /* the list of audiences */
-.as-nav{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:20px;padding:18px 12px 24px;
+.as-nav{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:0;padding:8px 12px 24px;
   background:var(--ps-app);border-right:1px solid var(--ps-hair);scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
-.as-nav-g{display:flex;flex-direction:column;gap:2px}
-.as-nav-m{display:flex;flex-direction:column;gap:2px;padding:0 10px 8px}
-.as-nav-m b{font:600 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
-.as-nav-m s{font:400 11px/1.35 var(--ps-font);color:var(--ps-dim);text-decoration:none}
-.as-nav-a{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:9px 12px;
+/* Three levels, each a step quieter than the one above: the main folder is a heading,
+   its audiences hang off it on a guide line, and the counts are the quietest ink. */
+.as-nav-g{display:flex;flex-direction:column;gap:2px;padding:16px 0 14px}
+.as-nav-g + .as-nav-g{border-top:1px solid var(--ps-hair)}
+.as-nav-m{display:flex;flex-direction:column;gap:3px;padding:0 10px 10px}
+.as-nav-m b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink);letter-spacing:-.005em}
+.as-nav-m s{font:400 11.5px/1.35 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-nav-a{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:calc(100% - 12px);margin-left:12px;padding:8px 12px;
   border:0;border-radius:var(--ps-r-sm);background:transparent;text-align:left;cursor:pointer;font:inherit;color:inherit;
   transition:background-color var(--ps-motion) var(--ps-ease)}
+.as-nav-a::before{content:'';position:absolute;left:-7px;top:-1px;bottom:-1px;width:1px;background:var(--ps-hair)}
 .as-nav-a:hover{background:var(--ps-fill)}
 .as-nav-a:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
-.as-nav-a b{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink);padding-right:14px}
-.as-nav-a s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.as-nav-a b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink-2);padding-right:14px}
+.as-nav-a s{font:400 11px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
 .as-nav-a[data-on]{background:var(--ps-accent)}
+.as-nav-a[data-on]::before{background:var(--ps-link);width:2px;left:-7.5px}
 .as-nav-a[data-on] b{color:var(--ps-accent-i)}
 .as-nav-a[data-on] s{color:var(--ps-ink-2)}
-.as-nav-a[data-bad]::after{content:'';position:absolute;top:14px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--ps-bad)}
+.as-nav-a[data-bad]::after{content:'';position:absolute;top:13px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--ps-bad)}
 /* the audience on screen */
 .as-pane{--as-h:clamp(170px,28vh,320px);min-height:0;min-width:0;overflow:auto;padding:0 28px 40px;
   scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
@@ -3953,6 +3958,12 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   font:600 14px/1 var(--ps-font);letter-spacing:.16px;white-space:nowrap;flex:0 0 auto;align-self:center}
 .as-pane-h .as-dl .mk-g{display:block;flex:0 0 16px;width:16px;height:16px;margin:0;fill:currentColor}
 .as-pane-h .as-dl[data-busy]{opacity:.6;pointer-events:none}
+.as-nav .as-nav-all{width:100%;margin:0 0 14px;padding:10px 12px;border-bottom:1px solid var(--ps-hair);border-radius:10px}
+.as-nav .as-nav-all::before{display:none}
+.as-agrp{display:flex;align-items:baseline;gap:10px;margin:28px 0 0;padding-bottom:8px;border-bottom:1px solid var(--ps-line)}
+.as-agrp:first-child{margin-top:4px}
+.as-agrp b{font:600 18px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-agrp s{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
 .as-vrow{display:flex;flex-direction:column;gap:14px;padding:22px 0 24px;border-bottom:1px solid var(--ps-hair)}
 .as-vrow:last-child{border-bottom:0}
 .as-vrow-h{display:flex;align-items:baseline;gap:10px}
@@ -4015,7 +4026,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   .as-nav-g{flex-direction:row;align-items:center;gap:4px;flex:none}
   .as-nav-m{padding:0 6px}
   .as-nav-m s{display:none}
-  .as-nav-a{width:auto;white-space:nowrap}
+  .as-nav-a{width:auto;margin-left:0;white-space:nowrap}
+  .as-nav-a::before{display:none}
+  .as-nav-g{padding:0}
+  .as-nav-g + .as-nav-g{border-top:0}
+  .as-nav-m b{font-size:13px}
   .as-nav-a s{display:none}
   .as-pane{padding:0 14px 24px}
   .as-pane-h{margin:0 -14px;padding:12px 14px 10px}
@@ -5131,7 +5146,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     <div class="as-ov" role="dialog" aria-label="Ad sets" onDragOver="{{ asDragOver }}" onDragLeave="{{ asDragLeave }}" onDrop="{{ asDrop }}" data-drag="{{ asDragOn }}">
       <div class="as-bar">
         <div class="as-ttl"><b>Ad sets</b><s>{{ asSub }}</s></div>
-        <sc-if value="{{ asBodyOn }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ asModeBarOn }}" hint-placeholder-val="{{ true }}">
           <div class="p-seg as-mode" role="group" aria-label="What to work on">
             <button onClick="{{ asSetImg }}" data-on="{{ asModeImgOn }}" title="The exported images, one variant per row"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM270-290h423.07L561.54-465.38 449.23-319.23l-80-102.31L270-290Zm-70 90v-560 560Z"/></svg>Images</button>
             <button onClick="{{ asSetTxt }}" data-on="{{ asModeTxtOn }}" title="Change the words — saved into the project file, and its images re-exported"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-25.79-25.67 50.46 50.46-24.67-24.79Z"/></svg>Edit text</button>
@@ -5160,6 +5175,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <sc-if value="{{ asBodyOn }}" hint-placeholder-val="{{ true }}">
         <div class="as-body">
           <nav class="as-nav" aria-label="Audiences">
+            <button onClick="{{ asPickAll }}" class="as-nav-a as-nav-all" data-on="{{ asAllOn }}" aria-current="{{ asAllCur }}" title="Every audience in this folder, in one window"><b>All audiences</b><s>{{ asAllSub }}</s></button>
             <sc-for list="{{ asNav }}" as="mn" hint-placeholder-count="2">
               <div class="as-nav-g">
                 <span class="as-nav-m"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></span>
@@ -5173,7 +5189,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <header class="as-pane-h">
               <div class="as-crumb"><s>{{ asSel.main }}</s><b>{{ asSel.title }}</b><i>{{ asSel.sub }}</i></div>
               <sc-if value="{{ asDlOn }}" hint-placeholder-val="{{ true }}">
-                <button onClick="{{ asDownload }}" class="p-ghost as-dl" data-busy="{{ asDlBusy }}" title="Download every image of this audience as one zip, a folder per variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ asDlLabel }}</button>
+                <button onClick="{{ asDownload }}" class="p-ghost as-dl" data-busy="{{ asDlBusy }}" title="Download every image in this folder as one zip, all files side by side"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ asDlLabel }}</button>
               </sc-if>
               <sc-if value="{{ aeOn }}" hint-placeholder-val="{{ false }}">
                 <div class="ae-stat" data-state="{{ aeState }}" role="status" aria-live="polite"><span class="ae-dot"></span>{{ aeStatus }}</div>
@@ -5181,6 +5197,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             </header>
             <sc-if value="{{ asImgOn }}" hint-placeholder-val="{{ true }}">
               <sc-for list="{{ asSel.cols }}" as="c" hint-placeholder-count="2">
+                <sc-if value="{{ c.headOn }}" hint-placeholder-val="{{ false }}"><h3 class="as-agrp"><b>{{ c.head }}</b><s>{{ c.headSub }}</s></h3></sc-if>
                 <section class="as-vrow">
                   <header class="as-vrow-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
                   <div class="as-vrow-b">
@@ -15490,27 +15507,47 @@ class Component extends DCLogic {
     this.forceUpdate();
   }
   asPickAud(key) {
-    if (key === this._asSel) return;
+    if (key === this._asSel && !this._asAll) return;
     this.aeFlush();
-    this._asSel = key;
+    this._asSel = key; this._asAll = false;
     if (this._asMode === 'text') this.aeSync();
     this.forceUpdate();
     const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
   }
-  // Download all: every exported image of the audience on screen, one zip, a folder per
-  // variant. Reads the files the scan already holds; nothing is re-rendered.
+  // Every audience at once, in one window: the whole folder laid out top to bottom.
+  asPickAll() {
+    if (this._asAll) return;
+    this.aeFlush();
+    this._asAll = true;
+    if (this._asMode === 'text') { this._asMode = 'images'; }
+    this.forceUpdate();
+    const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
+  }
+  asAllImgs() { let n = 0; for (const m of (this._as || {}).mains || []) for (const au of m.auds) for (const c of au.cols) for (const pl of c.plats) n += pl.tiles.length; return n; }
+  // Download all: every exported image in the folder being viewed, one flat zip. Reads the files the scan already holds;
+  // nothing is re-rendered.
   async asDownload() {
-    const au = this.asSelAud(); if (!au || this._asDl === 'busy') return;
+    const a = this._as || {}; if (this._asDl === 'busy') return;
+    const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim();
     const items = [];
-    for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles)
-      if (t.file) items.push({ dir: c.title, file: t.file, name: String(t.name || t.file.name).split('/').pop() });
+    for (const m of a.mains || []) for (const au of m.auds) for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles)
+      if (t.file) items.push({ dir: [au.main, au.title, c.title].map(clean).filter(Boolean).join('/'), file: t.file, name: String(t.name || t.file.name).split('/').pop() });
     if (!items.length) return;
     this._asDl = 'busy'; this.forceUpdate();
-    const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim();
     try {
-      const files = [];
-      for (const it of items) files.push({ name: clean(it.dir) + '/' + clean(it.name), data: new Uint8Array(await it.file.arrayBuffer()) });
-      const zipName = [au.main, au.title].map(clean).filter(Boolean).join(' - ') || 'Ad set';
+      // FLAT, by request: no folders inside the zip. Export names already carry the variant
+      // and the size; a name two audiences share gets its main folder and audience added.
+      const files = [], seen = new Map();
+      for (const it of items) { const n = clean(it.name); seen.set(n, (seen.get(n) || 0) + 1); }
+      const used = new Set();
+      for (const it of items) {
+        let n = clean(it.name);
+        if (seen.get(n) > 1) n = it.dir.split('/').slice(0, 2).join(' ') + ' ' + n;
+        let k = n, i = 2; while (used.has(k)) { const d = n.lastIndexOf('.'); k = d > 0 ? n.slice(0, d) + ' (' + i + ')' + n.slice(d) : n + ' (' + i + ')'; i++; }
+        used.add(k);
+        files.push({ name: k, data: new Uint8Array(await it.file.arrayBuffer()) });
+      }
+      const zipName = clean(a.root) || 'Ad sets';
       const how = await this.eng.saveAs(this.eng.zip(files), zipName + '.zip', 'Zip archive', 'application/zip', '.zip');
       this._asDl = how === 'cancelled' ? '' : 'done';
     } catch (e) { this._asDl = 'err'; }
@@ -15660,7 +15697,7 @@ class Component extends DCLogic {
     }
   }
   aeVals() {
-    const ae = this._ae, C = CampaignStudio, au = this.asSelAud(), on = (this._asMode === 'text') && !!au;
+    const ae = this._ae, C = CampaignStudio, au = this.asSelAud(), on = (this._asMode === 'text') && !!au && !this._asAll;
     const base = { aeOn: on, aeReady: false, aePages: [], aeVars: [], aeTabs: [], aeTabsOn: false };
     if (!on) return base;
     const projs = au.projs || [];
@@ -15898,9 +15935,20 @@ class Component extends DCLogic {
     const forced = !root || !!a.err || (!a.busy && !(a.mains || []).length);
     const big = this._asBig, list = this._asList || [], bi = big ? list.indexOf(big) : -1;
     // ONE audience on screen at a time, picked from the list on the left
-    const mode = this._asMode === 'text' ? 'text' : 'images', sel = open && !head ? this.asSelAud() : null;
+    const all = !!this._asAll && open && !head;
+    const mode = this._asMode === 'text' && !all ? 'text' : 'images';
+    let sel = open && !head ? this.asSelAud() : null;
+    if (all) {
+      const cols = [], auds = [];
+      for (const m of a.mains || []) for (const au of m.auds) {
+        auds.push(au);
+        au.cols.forEach((c, i) => cols.push(Object.assign({}, c, i ? { headOn: undefined } : { headOn: '1', head: au.title, headSub: au.main + ' · ' + au.navSub })));
+      }
+      const nV = cols.length;
+      sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + this.asAllImgs() + ' images', projs: [], cols };
+    }
     const nav = open && !head ? (a.mains || []).map(m => ({ title: m.title, sub: m.sub,
-      auds: m.auds.map(au => ({ title: au.title, sub: au.navSub, on: au.key === this._asSel ? '1' : undefined, cur: au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
+      auds: m.auds.map(au => ({ title: au.title, sub: au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
         tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     return {
@@ -15921,13 +15969,15 @@ class Component extends DCLogic {
       asPanelLabel: this._asPanel ? 'Hide' : 'Drop a folder',
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
-      asNav: nav, asBodyOn: !!sel,
+      asNav: nav, asBodyOn: !!sel, asModeBarOn: !!sel && !all,
+      asAllOn: all ? '1' : undefined, asAllCur: all ? 'true' : undefined, asPickAll: () => this.asPickAll(),
+      asAllSub: (a.mains || []).reduce((n, m) => n + m.auds.length, 0) + ' audiences · ' + this.asAllImgs() + ' images',
       asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
       asImgOn: !!sel && mode === 'images',
       asDlOn: !!sel && mode === 'images' ? '1' : undefined,
       asDownload: () => this.asDownload(),
       asDlBusy: this._asDl === 'busy' ? '1' : undefined,
-      asDlLabel: this._asDl === 'busy' ? 'Zipping…' : this._asDl === 'done' ? 'Downloaded' : this._asDl === 'err' ? 'Could not zip' : 'Download all' + (sel ? ' · ' + sel.cols.reduce((n, c) => n + c.plats.reduce((m, pl) => m + pl.tiles.length, 0), 0) : ''),
+      asDlLabel: this._asDl === 'busy' ? 'Zipping…' : this._asDl === 'done' ? 'Downloaded' : this._asDl === 'err' ? 'Could not zip' : 'Download all · ' + this.asAllImgs(),
       asModeImgOn: mode === 'images' ? '1' : undefined, asModeTxtOn: mode === 'text' ? '1' : undefined,
       asSetImg: () => this.asSetMode('images'), asSetTxt: () => this.asSetMode('text'),
       ...this.aeVals(),

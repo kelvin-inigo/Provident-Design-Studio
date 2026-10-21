@@ -15623,3 +15623,19 @@ names the zip `<main> - <audience>.zip`, and saves it through the engine's `save
 dialog, else a download). `_asDl` (instance) drives Zipping… / Downloaded / Could not zip. Uncompressed
 (the shared `zip`), so a big PNG set makes a big file. Verified on an OPFS stand-in: 4 files in two
 variant folders, `Local - Family.zip`.
+
+**Ad sets' left nav has a three-level hierarchy (2026-10-21, by request).** A main folder is a
+group heading, 15/600 in ink, with its count line. Its audiences are indented under it on a
+hairline guide, 13/500 in ink-2. The selected audience takes the resting fill and a 2px
+`--ps-link` guide. Hairlines separate the groups. On a phone the nav stays a sideways chip row
+with no guide. CSS only (`.as-nav*`). Text contrast is at least 6.47:1 in dark, with no light
+failures.
+
+**Ad sets: All audiences, and Download all takes the whole folder, flat (2026-10-21, by request).**
+An **All audiences** row tops the nav (`asPickAll`, `_asAll` instance state): the pane shows every
+audience's variant rows, each audience opening with an `.as-agrp` heading (`c.headOn` on its first
+col — cols are copied, not mutated). Edit text is hidden there (`asModeBarOn`; `aeVals` is off while
+`_asAll`). Picking an audience leaves it. **Download all now zips every image in the folder** (all
+audiences, `asAllImgs` is the count), named after the folder, and **FLAT — no folders in the zip**,
+by request: a file name two audiences share gets `<main> <audience> ` prefixed, and any remaining
+clash a ` (2)`. Verified: 3 audiences, 8 files, 6 prefixed, 2 unique kept as is.

@@ -355,9 +355,12 @@ and finds every exported ad set.
   per variant (Variant A, Variant B …). Each row shows its
   **Meta** images: Feed, Portrait 3:4, Portrait Fix, Story and the Horizontal 1.91:1. A small line under each image
   gives its pixel size and file size.
-- **Download all**, at the top right next to the audience's name, saves every image of that
-  audience as one zip, named after the main folder and the audience (for example
-  `Local - Family.zip`), with a folder for each variant inside. It shows in Images view.
+- **All audiences**, at the top of the list, shows every audience in the folder in one window,
+  each under its own heading. (Edit text works one audience at a time, so it is hidden there.)
+- **Download all**, at the top right, saves every image in the folder as one zip named after the
+  folder. The files sit side by side with no folders inside; their names already say the variant
+  and size, and where two audiences share a file name, the main folder and audience are added
+  to the front (for example `Local Family Test_Variant A_feed.png`).
 - **Images | Edit text** at the top of the window switches what you work on. The window remembers
   which one you used last.
 
