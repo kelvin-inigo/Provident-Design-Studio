@@ -1574,3 +1574,250 @@ select.p-in{padding-right:34px}
 /* two stragglers the first measurement of this block caught */
 .p-ic{font-size:14px}
 .p-tgrp > .p-ghost{padding:0 var(--ps-px)}
+
+/* ═══ 24. THE CONTROLS THE STUDIOS SHIP, BROUGHT BACK UPSTREAM ════════════════════
+   Everything here was built straight into Campaign and Organic after section 23 and
+   copied between the two by hand. Values are the WINNING rules in Campaign's sheet,
+   unscoped where the studio scoped them to a rail, so the library describes the
+   control rather than the one place it first appeared. Every colour is a token. */
+
+/* SWITCH ROW — a yes/no that takes effect at once. The whole row is the button and
+   the line under the name states the live value. role="switch", aria-checked as the
+   STRING 'true'/'false'. The ON track is a MARK, so it takes --ps-link: the navy is
+   1.25:1 on the dark card. .p-tgl-d is a div holding a standalone button.p-tgl-s, for
+   a row whose title carries an info tip — a tip inside a toggle would toggle. */
+.p-tgl{display:flex;align-items:center;gap:14px;width:100%;padding:2px 0;border:none;
+  background:transparent;color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit;
+  border-radius:12px}
+.p-tgl-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.p-tgl-t b{font:500 13px/1.35 var(--ps-font)}
+.p-tgl-t s{font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-tgl-s{flex:none;position:relative;width:40px;height:24px;border-radius:var(--ps-pill);
+  background:var(--ps-fill-dis);transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-tgl-s::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);
+  transition:transform var(--ps-motion) var(--ps-ease)}
+.p-tgl:hover .p-tgl-s{background:var(--ps-line)}
+.p-tgl[data-on] .p-tgl-s{background:var(--ps-link)}
+.p-tgl[data-on] .p-tgl-s::after{transform:translateX(16px)}
+.p-tgl-d{cursor:default}
+button.p-tgl-s{border:none;padding:0;cursor:pointer}
+.p-tgl-d .p-tgl-s:hover{background:var(--ps-line)}
+.p-tgl-s[data-on],.p-tgl-d .p-tgl-s[data-on]:hover{background:var(--ps-link)}
+.p-tgl-s[data-on]::after{transform:translateX(16px)}
+
+/* CHOICE CARDS — pick one of a few options that each need a fact to choose between
+   (the dock's Format, Share's export format). role="radio". Selected is the resting
+   tint with NO stroke; unselected is a --ps-line inset ring. The tick is a mark. */
+.p-rcs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.p-rc{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  text-align:left;padding:12px 12px 11px;border:none;border-radius:var(--ps-r);
+  background:transparent;color:var(--ps-ink);cursor:pointer;
+  box-shadow:inset 0 0 0 1px var(--ps-line);font:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
+.p-rc:hover{background:var(--ps-fill)}
+.p-rc b{font:600 13px/1.25 var(--ps-font);color:inherit}
+.p-rc s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.p-rc-i{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;
+  background:var(--ps-fill);color:var(--ps-ink-2);margin-bottom:5px}
+.p-rc-g{width:20px;height:20px;display:block;fill:currentColor}
+.p-rc-k{position:absolute;top:10px;right:10px;width:18px;height:18px;padding:2px;
+  box-sizing:border-box;border-radius:50%;fill:var(--ps-app);background:var(--ps-link);
+  opacity:0;transform:scale(.6);
+  transition:opacity var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease)}
+.p-rc[data-on],.p-rc[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.p-rc[data-on] s{color:var(--ps-accent-i);opacity:.8}
+.p-rc[data-on] .p-rc-i{background:var(--ps-card);color:var(--ps-ink)}
+.p-rc[data-on] .p-rc-k{opacity:1;transform:none}
+/* the compact form Share uses: 10px corners, a smaller icon box */
+.p-rcs-sm .p-rc{padding:10px 10px 9px;gap:2px;border-radius:10px}
+.p-rcs-sm .p-rc-i{width:28px;height:28px;margin-bottom:4px;border-radius:6px}
+
+/* ACTION ROW — a row that opens somewhere else. Fill, an icon, the words, a chevron
+   that nudges on hover. */
+.p-arow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px 10px 10px;
+  border:none;border-radius:var(--ps-r);background:var(--ps-fill);color:var(--ps-ink);
+  text-align:left;cursor:pointer;font:inherit;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-arow:hover{background:var(--ps-fill-h)}
+.p-arow-c{flex:none;width:18px;height:18px;color:var(--ps-dim);
+  transition:transform var(--ps-motion) var(--ps-ease)}
+.p-arow:hover .p-arow-c{transform:translateX(2px);color:var(--ps-ink)}
+.p-rc:focus-visible,.p-tgl:focus-visible,button.p-tgl-s:focus-visible,.p-arow:focus-visible,
+.p-szb:focus-visible,.p-rst:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+
+/* SIZE ROW — a canvas's name, its ratio chip, and icon buttons that never fill
+   loudly: link (edit separately), picture (own photo), align, eye (show). A toggle
+   carries BOTH glyphs and CSS swaps them on [data-on]: an interpolated path d
+   cannot be written, the browser parses it before the template runs. A hidden row
+   carries data-off and dims. */
+.p-szh{display:flex;align-items:center;gap:8px;min-height:32px;margin-top:6px}
+.p-szh > b{font-weight:600;font-size:13px;color:var(--ps-ink)}
+.p-szh > i{font-style:normal;font-weight:500;font-size:11.5px;color:var(--ps-ink-2);
+  background:var(--ps-fill);padding:2px 9px;border-radius:var(--ps-pill);
+  font-variant-numeric:tabular-nums}
+.p-szh[data-off] > b,.p-szh[data-off] > i{color:var(--ps-dim)}
+.p-szx{margin-left:auto;display:flex;align-items:center;gap:2px}
+.p-szb{width:32px;height:32px;padding:0;border:1px solid transparent;border-radius:var(--ps-pill);
+  background:transparent;color:var(--ps-ink-2);display:grid;place-items:center;cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.p-szb:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-szb[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.p-szb svg{width:18px;height:18px;fill:currentColor;display:block}
+.p-szb .i-on{display:none}
+.p-szb[data-on] .i-on{display:block}
+.p-szb[data-on] .i-off{display:none}
+/* the eye and the align button state a VALUE, not an override, so they never fill */
+.p-szb-eye[data-on],.p-szb-al[data-on]{background:transparent;color:var(--ps-ink-2)}
+.p-szb-eye[data-on]:hover,.p-szb-al[data-on]:hover{background:var(--ps-fill);color:var(--ps-ink)}
+
+/* RESET — a round icon button that sits beside the value it resets and hides itself
+   (visibility, so the row does not shift) while the value is at its default. */
+.p-rst{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;
+  border-radius:50%;background:var(--ps-fill);color:var(--ps-ink-2);cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-rst:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.p-rst svg{width:15px;height:15px;fill:currentColor}
+.p-rst[data-off]{visibility:hidden}
+
+/* FOLDING SECTION — native details/summary, UNCONTROLLED, so a re-render cannot snap
+   it shut; the studios remember it per computer. A closed section shows its value in
+   the summary (.p-acc-v); an open one hides it, because the controls say it. */
+.p-acc{display:block}
+.p-acc > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
+  user-select:none;border-radius:8px}
+.p-acc > summary::-webkit-details-marker{display:none}
+.p-acc > summary .p-lab{flex:none}
+.p-acc-v{margin-left:auto;display:inline-flex;align-items:center;gap:6px;min-width:0;
+  font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.p-acc-c{flex:none;width:16px;height:16px;color:var(--ps-dim);
+  transition:transform var(--ps-motion) var(--ps-ease)}
+.p-acc:not([open]) > summary .p-acc-c{transform:rotate(-90deg)}
+.p-acc > summary:hover .p-acc-c,.p-acc > summary:hover .p-acc-v{color:var(--ps-ink)}
+.p-acc > summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.p-acc[open] > summary .p-acc-v{opacity:0}
+/* a SECTION that folds: the edge-to-edge seam, and its head is the section caption */
+.p-acc-sec{border-top:1px solid var(--ps-hair);margin-inline:calc(-1 * var(--ps-secpad));padding-inline:var(--ps-secpad)}
+.p-acc-sec > .p-acc-hs{padding:14px 0;font:600 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.p-acc-sec > .p-acc-hs .p-shd-t{flex:none}
+.p-acc-sec[open] > .p-acc-hs{padding-bottom:4px}
+.p-acc-sec > .p-acc-b,.p-acc-sec > .p-nest{padding-bottom:14px}
+
+/* COMPACT SEGMENT — the same .p-opt markup restyled to one 44px track with the icon
+   beside the name, for a choice between two or three MODES (Background, Alignment).
+   Three classes deep so it beats .p-opt and .p-mini whatever order they load in. */
+.p-opts.p-opts-seg{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:row;gap:4px;
+  padding:4px;border-radius:var(--ps-pill);background:var(--ps-fill)}
+.p-opts.p-opts-seg .p-opt{flex-direction:row;align-items:center;justify-content:center;gap:8px;
+  height:36px;padding:0 10px;border-radius:var(--ps-pill);background:transparent;color:var(--ps-ink-2)}
+.p-opts.p-opts-seg .p-opt:hover{background:var(--ps-fill-h)}
+.p-opts.p-opts-seg .p-mini,.p-opts.p-opts-seg .p-opt[data-on] .p-mini{height:auto;width:auto;
+  flex:none;padding:0;background:none;box-shadow:none;border:0;color:inherit}
+.p-opts.p-opts-seg .p-mini svg{width:18px;height:18px;fill:currentColor}
+.p-opts.p-opts-seg .p-opt-l{margin:0;font:500 13px/1 var(--ps-font);color:inherit}
+.p-opts.p-opts-seg .p-opt[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+
+/* COLOUR ROW — swatches and the hex field in one row; the field takes what is left. */
+/* Colour swatch. The fill IS the value being chosen, so it cannot also be the state: one
+   ring says which colour is chosen, the one ring on a filled control the no-stroke rule keeps. */
+.p-sw{width:26px;height:26px;border-radius:50%;cursor:pointer;padding:0;flex:none;
+  border:1px solid var(--ps-hair)}
+.p-sw[data-on]{box-shadow:0 0 0 2px var(--ps-link)}
+.p-colr{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.p-colr .p-hexwrap{flex:1 1 96px;min-width:96px;margin:0}
+.p-colr .p-hexin{width:100%}
+.p-dotc{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px;
+  vertical-align:-1px;box-shadow:0 0 0 1px var(--ps-line)}
+
+/* SECTION HEAD — a title, an optional quiet line UNDER it, and a state pill only
+   where the pill can change. No ordinal: the number said nothing the order did not. */
+.p-shd{display:flex;align-items:flex-start;gap:10px;font:600 13px/1.2 var(--ps-font);
+  color:var(--ps-ink);letter-spacing:0}
+.p-shd-t{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;
+  row-gap:3px;white-space:nowrap;padding-top:3px}
+.p-shd-t > s{flex:1 0 100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:400 11.5px/1 var(--ps-font);color:var(--ps-dim);text-decoration:none;text-align:left}
+.p-shd-s{flex:none;display:inline-flex;align-items:center;gap:4px;padding:5px 9px;
+  font:500 11px/1 var(--ps-font);color:var(--ps-dim);border-radius:var(--ps-pill);background:var(--ps-fill)}
+.p-shd-tk{display:none;width:12px;height:12px;fill:currentColor;flex:none;margin-left:-2px}
+.p-shd[data-state="done"] .p-shd-s{background:var(--ps-good-q);color:var(--ps-good)}
+.p-shd[data-state="done"] .p-shd-tk{display:block}
+
+/* STUDIO SWITCHER ROW — the chip is a miniature CANVAS at the studio's own ratio
+   (36 tall, width 36 x ratio): a wordmark bar and two headline bars. The studio you
+   are in lights the chip in the row's ink; the other row shows an arrow on hover,
+   because choosing it opens another page. */
+.p-ws{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;position:relative;
+  padding:8px 12px 8px 8px;margin-bottom:2px;border:1px solid transparent;border-radius:var(--ps-r);
+  background:transparent;color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit}
+.p-ws:hover{background:var(--ps-fill)}
+.p-ws-t{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.p-ws-n{font:600 13px/1.25 var(--ps-font);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p-ws-s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.p-ws-sh{position:relative;display:block;height:36px;border-radius:6px;background:var(--ps-card);
+  box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden;flex:none}
+.p-ws-sh i{position:absolute;left:16%;height:9%;border-radius:9999px;background:var(--ps-dim)}
+.p-ws-sh i:nth-child(1){top:14%;width:34%;opacity:.9}
+.p-ws-sh i:nth-child(2){top:58%;width:66%;height:10%;background:var(--ps-ink-2)}
+.p-ws-sh i:nth-child(3){top:74%;width:46%;height:10%;background:var(--ps-ink-2)}
+.p-ws:hover .p-ws-sh{box-shadow:inset 0 0 0 1px var(--ps-link)}
+.p-ws[data-on],.p-ws[data-on]:hover{background:var(--ps-accent);border-color:transparent;box-shadow:none}
+.p-ws[data-on] .p-ws-n{color:var(--ps-accent-i)}
+.p-ws[data-on] .p-ws-s{color:var(--ps-ink-2);opacity:1}
+.p-ws[data-on] .p-ws-sh,.p-ws[data-on]:hover .p-ws-sh{background:var(--ps-accent-i);box-shadow:none}
+.p-ws[data-on] .p-ws-sh i{background:var(--ps-accent);opacity:1}
+.p-ws-go{display:inline-flex;flex:none;color:var(--ps-dim);opacity:0;
+  transition:opacity var(--ps-motion) var(--ps-ease)}
+.p-ws-go svg{width:15px;height:15px;fill:currentColor}
+.p-ws:hover .p-ws-go,.p-ws:focus-visible .p-ws-go{opacity:1}
+.p-ws[data-on] .p-ws-go{display:none}
+.p-ws:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+
+/* CANVAS BAR — the name edited in place, and a status pill with a KIND
+   (ready / busy / done / bad / info) read off data-st. The name truncates first
+   because it can be opened and read; the status never shrinks. */
+.p-cvname{display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;min-width:9ch;overflow:hidden;
+  height:30px;padding:0 8px 0 6px;margin-left:-6px;border-radius:8px;cursor:text;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-cvname:hover{background:var(--ps-fill)}
+.p-cvname:focus-within{background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-cvname input{field-sizing:content;min-width:6ch;max-width:none;flex:0 1 auto;width:auto;border:0;
+  background:transparent;padding:0;margin:0;font:600 13px/1.2 var(--ps-font);color:var(--ps-ink);
+  outline:none;text-overflow:ellipsis}
+.p-cvname input::placeholder{color:var(--ps-ink)}
+.p-cvname-g{width:15px;height:15px;flex:none;fill:currentColor;color:var(--ps-dim);order:2;opacity:0;
+  transition:opacity var(--ps-motion) var(--ps-ease)}
+.p-cvname:hover .p-cvname-g,.p-cvname:focus-within .p-cvname-g{opacity:1}
+.p-cvst{margin-left:auto;display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0;
+  max-width:60%;height:30px;padding:0 4px 0 10px;border-radius:var(--ps-pill);
+  font:500 12px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.p-cvst-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.p-cvst-i{display:inline-grid;place-items:center;width:16px;height:16px;flex:none}
+.p-cvst-i > *{grid-area:1/1;display:none}
+.p-cvst-ok,.p-cvst-bad{width:16px;height:16px;fill:currentColor}
+.p-cvst-dot{width:7px;height:7px;border-radius:50%;background:var(--ps-good)}
+.p-cvst-spin{width:12px;height:12px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ps-line);
+  border-top-color:var(--ps-link);animation:p-cvspin .8s linear infinite}
+@keyframes p-cvspin{to{transform:rotate(360deg)}}
+.p-cvst[data-st="ready"] .p-cvst-dot,.p-cvst[data-st="info"] .p-cvst-dot{display:block}
+.p-cvst[data-st="info"] .p-cvst-dot{background:var(--ps-link)}
+.p-cvst[data-st="ready"]{color:var(--ps-dim)}
+.p-cvst[data-st="busy"] .p-cvst-spin{display:block}
+.p-cvst[data-st="done"]{background:var(--ps-good-q);color:var(--ps-ink)}
+.p-cvst[data-st="done"] .p-cvst-ok{display:block;color:var(--ps-good)}
+.p-cvst[data-st="bad"]{background:var(--ps-bad-q);color:var(--ps-ink)}
+.p-cvst[data-st="bad"] .p-cvst-bad{display:block;color:var(--ps-bad)}
+.p-cvst[data-st="info"],.p-cvst[data-st="busy"]{background:var(--ps-fill);color:var(--ps-ink)}
+.p-cvst[data-st="ready"],.p-cvst[data-st="busy"]{padding-right:10px}
+.p-cvst-x{display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border:0;
+  border-radius:50%;background:transparent;color:var(--ps-ink-2);cursor:pointer;padding:0}
+.p-cvst-x:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.p-cvst-x:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.p-cvst-xg{width:15px;height:15px;fill:currentColor}
+
+@media (prefers-reduced-motion:reduce){
+  .p-rc,.p-rc-k,.p-tgl-s,.p-tgl-s::after,.p-arow-c,.p-acc-c,.p-ws-go,.p-szb,.p-rst,.p-cvname-g{transition:none}
+  .p-cvst-spin{animation-duration:2.4s}
+}

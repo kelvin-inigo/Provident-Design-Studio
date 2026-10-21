@@ -1,8 +1,8 @@
 {
   "$name": "Provident UI — chrome design system",
   "$description": "Tokens for the TOOL's own interface: studios, splash, guided run, and any webapp built on this system. This is NOT the brand/canvas system — exported artwork reads CampaignStudio.PAL / OrganicStudio.ART and never these values. See _ds/ for the brand web components.",
-  "$version": "3.1.0-proposed",
-  "$updated": "2026-10-01",
+  "$version": "3.2.0",
+  "$updated": "2026-10-21",
   "$source": "Structure from nexu-io/open-design, design-systems/coinbase (design-tokens.json, value for value - not its DESIGN.md prose, which names roles without giving every number). Colour is PROVIDENT NAVY #1A2942 and a tint ramp that is the navy's own. Type is unchanged: Google Sans Flex. Every value here is read back off the running studio as a COMPUTED value, never grepped from a stylesheet - these files end in override blocks, so what a rule appears to say and what a control computes are routinely different. Two supplied Figma frames (UI-Kelvz: the Header, 1990x55, and the Layout rail Container, 320x1170) were read in Dev Mode on 2026-09-10 and CONFIRMED this token set rather than changing it: every colour in both is already a token here. See the rules for the short list of component values they did move.",
   "theme": {
     "$note": "data-theme on <html>. LIGHT is the default now - the bare :root carries DARK, so the attribute is what a light app sets, and all three consumers plus the reference page default to light. Set it BEFORE first paint from a blocking script in <head>, or getComputedStyle returns a mixed pre/post-flip picture that reads exactly like a theming bug.",
@@ -223,7 +223,15 @@
     "--ps-px": "16px",
     "--ps-px-sm": "12px",
     "--ps-px-xs": "10px",
-    "$scale": "Three control heights and nothing in between. Padding is horizontal only; the block axis is the height with line-height 1, so two controls in a row always share an edge. Proposed 2026-10-01 in the kit; not yet mirrored into CAS, OPS or the image tool."
+    "$scale": "Three control heights and nothing in between. Padding is horizontal only; the block axis is the height with line-height 1, so two controls in a row always share an edge. Proposed 2026-10-01 in the kit; not yet mirrored into CAS, OPS or the image tool.",
+    "switch": "40 x 24 track on --ps-fill-dis, 18px white knob, ON = --ps-link (a mark). The row (.p-tgl) is the button; role=switch, aria-checked",
+    "choiceCard": ".p-rc: radius --ps-r, inset 1px --ps-line ring, selected = --ps-accent with NO stroke, tick in --ps-link; .p-rcs-sm is 10px for the Share panel",
+    "sizeButton": ".p-szb 32 x 32 pill; an override is --ps-accent; the eye and align buttons never fill",
+    "reset": ".p-rst 28 x 28 circle, visibility:hidden at the default (data-off)",
+    "segment": ".p-opts-seg: one 44px pill track, 4px padding, 36px options with the icon beside the name",
+    "swatch": ".p-sw 26px circle, --ps-hair edge; the chosen one takes a 2px --ps-link ring",
+    "statusPill": ".p-cvst 30px pill; data-st ready / busy / done / bad / info, each on its own wash",
+    "switcherChip": ".p-ws-sh 36px tall at the studio canvas ratio, three bars"
   },
   "icon": {
     "$rule": "An icon is authored SVG on the Material Symbols Rounded wght300 grid — the chrome's weight, and the only build Google publishes at it. Never a unicode character: those are a different family per platform, carry no consistent stroke, and are announced by a screen reader.",
@@ -362,7 +370,11 @@
     "viewBox IS SAFE IN INLINE SVG MARKUP and unsafe only inside a CSS string. Design Cursor camel-cases attribute names in a CSS data URI - which is what turned viewBox into sc-camel-view-box - but 40+ inline icons in Campaign carry viewBox and render correctly. Verified again for .p-wm-a: the attribute survives intact.",
     "THE LANDING PAGE LINKS THE LIBRARY RATHER THAN MIRRORING IT. The studios mirror because they carry ~500 colour literals in JS style objects and are opened off the disk; index.html at the repo root has neither problem, so it is a fourth live consumer and cannot drift. The kit's @font-face resolves ../_ds/ against the STYLESHEET, so linking it from the root also supplies the real Google Sans Flex.",
     "ONE CONTROL SCALE: 36 / 28 / 24, each with its own padding and type role. A new button-shaped class takes one of the three, never a height of its own.",
-    "NO LIGHT 300 IN THE CHROME. The small-text roles are 12/400; 300 survives only in canvas artwork, which this library never touches."
+    "NO LIGHT 300 IN THE CHROME. The small-text roles are 12/400; 300 survives only in canvas artwork, which this library never touches.",
+    "SECTION 24 IS THE STUDIOS' OWN CONTROLS, BROUGHT BACK UPSTREAM: switch row, choice cards, action row, size row, reset, folding section, compact segment, colour row and swatch, section head, studio switcher row, canvas-bar name and status pill. Values are CAS's winning rules, unscoped from the rail they shipped in.",
+    "A MARK IS NEVER THE NAVY. A switch's ON track, a card's tick and a swatch's ring read on the ground, so they take --ps-link; only a labelled fill takes --ps-accent.",
+    "A TOGGLE ICON CARRIES BOTH GLYPHS (.i-on / .i-off), swapped by [data-on]. An interpolated d attribute is parsed before the template runs.",
+    "A FOLD IS UNCONTROLLED. Never bind a details element's open attribute; a re-render would snap it shut. A closed section shows its value in the summary, an open one hides it."
   ],
   "a11y": {
     "$rule": "4.5:1 for text, 3:1 for a non-text indicator (WCAG AA). This REPLACES the 2.4:1 bar this project previously audited against.",

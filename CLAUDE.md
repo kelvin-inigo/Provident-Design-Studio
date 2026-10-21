@@ -15737,3 +15737,29 @@ carries `hubCardId`, so Send attaches back. The OPS address is per computer on t
 (`localStorage['hub-ops-url']`, the **OPS address** button), default the Vercel site — which needs a
 push before it has `hubHashOpen`. Copy only; the brief's images are not placed. Verified in the
 pane: six pages of copy, `hubCardId` set, the card marked In design.
+
+# THE KIT CARRIES THE CONTROLS THE STUDIOS SHIP — section 24 (2026-10-21)
+
+By request ("are these refinements reflected on ui-design-system?" — they were not). Section 24 of
+`provident-ui.css` brings back upstream the controls built straight into CAS and OPS after
+section 23: switch row `.p-tgl`, choice cards `.p-rcs`/`.p-rc` (`.p-rcs-sm` the Share panel's
+10px), action row `.p-arow`, size row `.p-szh`/`.p-szb` (with the `.i-on`/`.i-off` glyph swap),
+reset `.p-rst`, folding section `.p-acc`, compact segment `.p-opts-seg`, colour row `.p-colr` and
+the swatch `.p-sw` (the library had no base rule for it — swatches rendered as UA buttons),
+section head `.p-shd`, studio switcher row `.p-ws`, canvas-bar `.p-cvname` / `.p-cvst`. Values
+are CAS's WINNING rules, unscoped from the rail they shipped in. The guide's new **Shipped
+controls** section (`#shipped`) shows each with CAS's real markup; the tokens JSON is 3.2.0.
+
+**Nothing is owed to the consumers**: CAS and OPS already carry these rules (this was
+mirror-to-kit), and the image tool uses none of them. App screens (`.hb-*`, `.as-*`, `.cw-*`)
+and canvas fixes stay out of the kit by design.
+
+**A guide fact row whose label is a geometry word (height, width, padding, type, radius, size,
+tracking, weight, line-height) is OVERWRITTEN by the page's live-facts script**, measured off the
+first control in the specimen — so a choice-card "radius" measured the grid (0px) and a reset's
+"size" measured its font size. Name the control with a `class` row, or use a non-geometry label.
+
+Verified: self-test 13 AA / 3 exempt / 0 fails in both themes, 0 contrast failures over the
+specimens (an open fold's hidden value excepted), 0 UA buttons, 0 elevation shadows, solid
+navy fills strokeless (the swatch's ring excepted, by rule), 1 `CSSFontFaceRule`, brace and
+comment balance 0.
