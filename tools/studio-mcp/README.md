@@ -35,7 +35,8 @@ Without it, photos are stored as they are and the tool says so.
 **A project is a session file** — the `.adstudio.json` / `.smpstudio.json` the studio's
 **Save** writes and **Open Session** reads. So a project made here opens in the studio for
 fine-tuning, and one saved in the studio can be edited and exported here. Projects default to
-`~/Documents/Provident Studio/<name>/` (`PROVIDENT_STUDIO_OUT` changes it); exports go beside the
+`~/Claude/Provident Studio/<name>/` when `~/Claude` exists, else `~/Documents/Provident Studio/<name>/`
+(`PROVIDENT_STUDIO_OUT` changes it); exports go beside the
 session file.
 
 **The studio does the work.** The server serves this repository on a loopback port and opens the

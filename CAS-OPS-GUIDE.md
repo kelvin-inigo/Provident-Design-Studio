@@ -7,14 +7,27 @@ How to use the two Provident design studios in this folder.
 | **CAS** — Campaign Ads Studio | `Provident Campaign Studio.dc.html` | paid Meta ads (1:1, 3:4, 9:16, a horizontal 1.91:1) and Eventbrite banners |
 | **OPS** — Organic Post Studio | `Provident Organic Studio.dc.html` | organic feed and story posts, built from locked templates |
 
-> **For Claude in Cowork:** answer "how do I…" questions about CAS and OPS from this file, and
-> quote on-screen names exactly as they appear here in **bold**. `CLAUDE.md` is the engineering
-> record (why things work the way they do). It is very long, so search it rather than reading it
-> whole, and only for "why" questions or before changing code. Don't edit the `.dc.html` files
-> unless you're asked to. The studios are web pages: you can explain the steps, but you can only
-> click them if you have a browser tool.
+> **For Claude in Cowork — read this block first.**
+> - **Answer "how do I…" questions from this file**, and quote on-screen names exactly as they
+>   appear here in **bold**.
+> - **On a computer you haven't used before, check the setup in [section 0](#0-set-up-on-a-new-computer)**
+>   before starting any work: whether the folder is there and whether the **provident-studio**
+>   connector is listed. Tell the user what is missing; don't work around it silently.
+> - **If you have the provident-studio tools, do the work with them** ([section 15](#15-for-claude-the-studio-tools))
+>   instead of describing clicks. If you don't have them, explain the steps, or click them yourself
+>   if you have a browser tool. Tell the user which of the three you are doing.
+> - **Never make up a fact that goes on an ad**: a listing number, price, permit, ADM/CN number, a
+>   name, a phone number or a QR code. Ask for it. Every required field has to be filled before export.
+> - **Don't change the studios.** Don't edit the `.dc.html`, `.js` or `tools/` files unless you
+>   are asked to change the studio itself. `CLAUDE.md` is the engineering record of why things work
+>   the way they do. It is very long, so search it rather than reading it whole, and only for
+>   "why" questions or before changing code.
+> - **Never write a token, key or password into a file in this folder.** The folder is a public
+>   GitHub repository. Tokens are typed into the studio's own fields and stay on that computer.
+> - When you finish, **tell the user where the files are**: the folder path and the file names.
 
 **Contents:**
+0. [Set up on a new computer](#0-set-up-on-a-new-computer)
 1. [Opening the studios](#1-opening-the-studios)
 2. [Projects: new, open, save](#2-projects-new-open-save)
 3. [CAS: build an ad](#3-cas-build-an-ad)
@@ -33,6 +46,60 @@ How to use the two Provident design studios in this folder.
 
 ---
 
+## 0. Set up on a new computer
+
+Do this once on each Mac that will use the studios, including a teammate's Cowork.
+
+**1. Get the folder.** The studios are files, not an installed app. Two ways:
+
+| | how | what you get |
+|---|---|---|
+| **Website** | open `https://provident-design-studio.vercel.app` in Chrome | the studios to click through. Nothing to install, but Claude can't drive them, and the helpers below don't work |
+| **The folder** (recommended for Cowork) | in Terminal: `git clone https://github.com/kelvin-inigo/Provident-Design-Studio.git "$HOME/Documents/Provident Design Studio"`. Without git, use GitHub's **Code › Download ZIP** and unzip it in Documents | everything: the studios, this guide, the Claude tools and the helpers |
+
+Keep the folder as it is. The studios load their fonts and scripts from the folders next to them.
+To update it later, run `git pull` inside it, or download the ZIP again.
+
+**2. Open the folder in Cowork.** Pick the `Provident Design Studio` folder as the session's
+folder. Claude then reads this guide, `CLAUDE.md`, and the folder's own skills:
+**/cas-component** (a CAS component from a screenshot) and **/hub-design-queue** (design posts
+the Content Hub has queued).
+
+**3. Install the studio tools for Claude** (needed for Claude to make and export posts itself):
+
+```bash
+sh "$HOME/Documents/Provident Design Studio/tools/studio-mcp/install.sh"
+```
+
+Then quit Claude completely (⌘Q) and reopen it. **provident-studio** should now be in Claude's
+connectors. It needs Google Chrome installed, nothing else. Run the script again if the folder
+moves, because it records where the folder is.
+
+**4. Optional helpers**, each set up once and then started at every login:
+
+| helper | install | what it does |
+|---|---|---|
+| Background removal | `sh tools/rembg/install.sh` | cuts agent photos out automatically in OPS. Downloads about 1.1 GB once |
+| Edit in Photoshop | `sh tools/photoshop/install.sh` | the **Photoshop** / **Illustrator** button on a picture |
+
+Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"` first).
+
+**5. Settings each computer keeps for itself.** Ask the person who set up yours for the values:
+- **Import token**, in **Share › Import hub**, for **Send** and **From the hub**. The hub is only
+  reachable on the office network.
+- **Google Drive client ID**, in Ad sets' **Google Drive** box. The admin's steps are in
+  `docs/google-drive-setup.md`.
+- **Your name**, in CAS's Copy workspace › **History**, which labels copy snapshots.
+
+**6. Skills that live in Claude, not in this folder.** `meta-ad-design-copy` (brief to Meta ad
+copy) and `top-agents-of-the-month` are installed in your Claude account, not in this folder. If
+your Claude doesn't list them, ask whoever set yours up to share them.
+
+**Checklist for Claude:** the folder holds `Provident Campaign Studio.dc.html` and
+`Provident Organic Studio.dc.html`; the **provident-studio** tools are available (try
+`studio_catalog`); for agent photos, background removal is running. If any of these is missing,
+say so and point to the step above.
+
 ## 1. Opening the studios
 
 - Open the file in **Chrome** or **Edge**. You can double-click it, or open `index.html` (the
@@ -48,8 +115,8 @@ How to use the two Provident design studios in this folder.
   end of the address. That tab has its own project and photos, so several tabs (or several Claude
   Cowork sessions) can work at once without changing each other. Reloading keeps the tab's
   workspace; a new tab gets a new one. **Saved projects are shared**: every tab's Projects screen
-  lists all of them, and in a new tab **Continue last** opens the newest saved project. The source
-  folder you picked last is the starting folder in a new tab. Unsaved work belongs to its tab, so
+  lists all of them, and in a new tab **Continue last** opens the newest saved project. A new tab
+  has no Source folder until you pick one or open a session. Unsaved work belongs to its tab, so
   save before closing a tab. To work on one project in two windows at once, open both with
   `?ws=shared`.
 
@@ -89,8 +156,8 @@ Each studio opens on its **project browser**.
 
 What's on the screen, from left to right:
 - **Design Components**: the palette of pieces you can add.
-- **The canvases**: one row ("plate") per variant. The 1:1 is on top and the 9:16 under it, then
-  the optional 16:9 and banner.
+- **The canvases**: one row ("plate") per variant. The 1:1 is on top, then the Portrait 3:4,
+  the Portrait Fix and the 9:16, then the optional Horizontal 1.91:1 and the Eventbrite banner.
 - **This component**, **Background image** and **Hidden components**.
 - **Layout**, on the right.
 
@@ -350,6 +417,14 @@ Source folder/
   so on, banners included.
 - **Without a Source folder**, you get a zip with the same folders inside.
 - **PDF** is one file with every size, saved wherever you choose.
+- **Send … + .json** (under the Export button in **Share**) sends the project `.json` and every
+  exported image to the import hub. The first time, press it and paste your import token into
+  the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
+  A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
+  your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
+  the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
+  A project opened from a **Content Hub design job** remembers its post, so Send attaches the
+  pages to that post and moves it to **Ready to publish** ("attached to the hub post").
 
 ### See everything you exported: Ad sets
 
@@ -480,16 +555,6 @@ keeps your 10 newest saved projects, so that is the sample).
 Only saved projects count. A project you have opened but never saved is not in the numbers. With
 fewer than five saved projects the page says so — treat the verdicts as early signals.
 
-- **Send … + .json** (under the Export button in **Share**) sends the project `.json` and every
-  exported image to the import hub. The first time, press it and paste your import token into
-  the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
-  A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
-  your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
-  the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
-  A project opened from a **Content Hub design job** remembers its post, so Send attaches the
-  pages to that post and moves it to **Ready to publish** ("attached to the hub post").
-
-
 ## 8. OPS: make a post
 
 Picking a template opens the **guided run**: one page of the post at a time, filled in top to
@@ -584,22 +649,20 @@ This is the full editor.
 ## 12. Photos
 
 - **Adding:** drop a picture on its box, or click the box to choose a file. On a phone, tap.
-- **Once a picture is in:**
-  - OPS shows **Replace**, **Reframe** and **Remove** under it.
-  - CAS shows **Remove** under the drop box, and **Replace** or **Edit** when you hover the photo
-    on the canvas.
+- **Once a picture is in**, both studios list its actions beside the picture: **Replace**,
+  **Reframe** (photos only), **Photoshop** (or **Illustrator** for an SVG) and **Remove**. An
+  empty box shows **Upload**. In CAS you can also hover the photo on the canvas for the same
+  actions.
 - **Reframe:** drag the picture to move it, use the zoom slider, then press **Done**. In CAS you
   can also double-click the photo on the canvas.
 - **Agent cut-outs (OPS):** agent photos lose their background automatically while the removal
   service is running on this computer.
-  - Install it once with `./tools/rembg/install.sh`.
-  - Run `./tools/rembg/serve.sh` in Terminal while you work.
+  - Install it once with `./tools/rembg/install.sh`. After that it starts by itself at every login.
 
   The drop box tells you whether the service is on. Without it, upload a PNG that's already cut
   out.
 - **Edit in Photoshop (extend, retouch, Generative Expand):** once a picture is in, press
-  **Edit in Photoshop** (OPS: under the picture; CAS: under the drop box, or **Photoshop** when you
-  hover the photo on the canvas). Photoshop opens the picture. Edit it, then **save** (⌘S). Any
+  **Photoshop** in the picture's actions. Photoshop opens the picture. Edit it, then **save** (⌘S). Any
   format works, PSD included, as long as you keep the same name. The studio picks up each save
   within a couple of seconds, and the picture's framing resets to fit its new size.
   - The photo shows *Open in Photoshop — save there to update* while it is linked. **Unlink**
@@ -611,10 +674,9 @@ This is the full editor.
   - Without it, in Chrome or Edge with a **Source folder** set, the button still works: it saves
     the picture to `<Source folder>/Photoshop/` for you to open in Photoshop yourself. Save it
     back as PNG or JPEG under the same name (not PSD), and it updates the same way.
-  - **An SVG opens in Illustrator instead** (the button reads **Edit in Illustrator**), so a
+  - **An SVG opens in Illustrator instead** (the button reads **Illustrator**), so a
     partner mark or graphic stays vector. Save it there as SVG with the same name (⌘S, then OK
     on the SVG options). Saving as `.ai` does not come back.
-  - Not available in the iPhone app.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.
 
@@ -640,7 +702,7 @@ You don't need to set these; the layouts already follow them.
 | The type looks like a different font | Open the file in Chrome, from this folder, with `fonts/` and `_ds/` next to it. |
 | A photo is missing after opening a session file | A session file only carries the photos that were saved with it. Drop the photo again. |
 | An agent photo keeps its background | Background removal is set up once per computer with `./tools/rembg/install.sh`, and then starts by itself at every login. If it's off, run `./tools/rembg/serve.sh`, or upload a PNG that's already cut out. |
-| No **Edit in Photoshop** button | Set it up once with `./tools/photoshop/install.sh`, or set a **Source folder** in Chrome or Edge. The button appears within 15 seconds; no reload needed. |
+| No **Photoshop** button | Set it up once with `./tools/photoshop/install.sh`, or set a **Source folder** in Chrome or Edge. The button appears within 15 seconds; no reload needed. |
 | Saved in Photoshop but nothing changed | Keep the same file name (⌘S, or Save a Copy with the same name). Without the helper, save as PNG or JPEG, not PSD. |
 | The top bar is cut off and **Share** is missing | Make the window wider. CAS's top bar needs about 1150 px. |
 | Old files are still in the export folder | Exports overwrite but never delete. Remove old files by hand. |
@@ -656,6 +718,10 @@ You don't need to set these; the layouts already follow them.
 When the **provident-studio** connector is available, Claude can make CAS and OPS work itself
 instead of explaining the clicks. It runs the real studio in the background, so the result is
 exactly what the studio would export.
+
+Projects and their exports are saved in `~/Claude/Provident Studio/<project name>/` when a
+`~/Claude` folder exists (Cowork's own), otherwise in `~/Documents/Provident Studio/<project name>/`.
+Tell the user the full path when you're done.
 
 1. `studio_catalog` (studio `cas` or `ops`) — the templates and every field they ask for.
 2. `studio_new_project` — start from a template; or `studio_read_project` on an existing
