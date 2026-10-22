@@ -15961,3 +15961,7 @@ values or a new template, and the carousel's own reads are unchanged.
   card, file names — and the rank card's top line reads "Weekly top agent - 19–25 Oct 2026"
   (`taTopLine`). The stored value is still "Week 43"; the dropdown labels it "Week 43 · 19–25 Oct"
   (form `opts` carry `l` now, read by the select's option text).
+- **Then "Top Agent of the Week" (by request, 2026-10-22)**: `soloHead` reads "Top Agent of the
+  Week / Month / Quarter / Year", still ONE line (measured 619–722 of an 810 column at 66.5), and
+  the solo card draws NO hairline under its wordmark. The numeral still hangs off `ruleY`, so it
+  does not move; the carousel's rank cards keep their rule.

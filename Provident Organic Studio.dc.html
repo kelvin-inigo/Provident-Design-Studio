@@ -6252,7 +6252,8 @@ class OrganicStudio extends StudioBase {
     const dw = tw / Math.max(1e-6, I.w), dh = th / Math.max(1e-6, I.h);
     return { tw, th, dw, dh, ox: dw * I.x, oy: dh * I.y };
   }
-  static soloHead(f) { return ((f && f.period) || 'Monthly') + ' Top Agent'; }
+  // "Top Agent of the Week" (Month, Quarter, Year), on ONE line
+  static soloHead(f) { const w = OrganicStudio.periodWord((f && f.period) || 'Monthly'); return 'Top Agent of the ' + w.charAt(0).toUpperCase() + w.slice(1); }
   // a solo rank card has no blurb, so its page says what it does ask for
   static pagePurpose(sl) {
     if (sl && sl.kind === 'tagent' && sl.f && sl.f.solo) return 'Who they are, the period, the team and their place.';
@@ -11114,7 +11115,9 @@ class OrganicStudio extends StudioBase {
         ops.push({ op: 'text', x: x1 - rw, y: eyeY, px: epx, weight: 500, fill: A.deep, text: rt, ls: els });
       }
       const ruleY = pT + epx * T.ruleAt;
-      ops.push({ op: 'rect', x: x0, y: ruleY, w: x1 - x0, h: 1, fill: A.deepQ });
+      // the solo card's wordmark stands alone — no hairline under it (the numeral still
+      // hangs off `ruleY`, so it does not move)
+      if (!f.solo) ops.push({ op: 'rect', x: x0, y: ruleY, w: x1 - x0, h: 1, fill: A.deepQ });
 
       // ══ THE STACK, and the ORDER IS THE DESIGN ═══════════════════════════════════════
       //   1 white ground   2 this top row   3 the ground texture   4 the numeral
@@ -14785,6 +14788,7 @@ class OrganicStudio extends StudioBase {
           { left: 'auto', right: cq(T.topInset + pR), textAlign: 'right' });
         K.taTopRuleStyle = Object.assign(abs(x0, pT + epx * T.ruleAt),
           { width: cq(x1 - x0), height: uz(1), background: A.deepQ, zIndex: 1 });
+        if (f.solo) K.taTopRuleStyle = { display: 'none' };
         // THE ORDINAL is now the supplied art, so the preview is one background-image on a
         // box read from the SAME taOrdBox the op is built from — there is no type to place
         // and none of the baseline arithmetic the old text version needed.
