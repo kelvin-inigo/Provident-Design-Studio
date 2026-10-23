@@ -150,6 +150,32 @@ Each studio opens on its **project browser**.
   **Import token** from **Share › Import hub**; **Refresh** asks the hub again.
 - If there's unsaved work when you leave, the studio asks first.
 
+### Share an edit link
+
+**Share › Share an edit link** makes a link to the open project that other people can open, look
+at and change. It works the same in CAS and OPS.
+
+1. Press **Share an edit link**, type your name and press **Make the link**. The project and its
+   photos are uploaded, and the link is copied.
+2. Send the link to the people who should edit. When they open it, they're asked their name, and
+   the project opens with its photos in their browser.
+3. Everyone's changes reach everyone else within a few seconds. Two people can work at the same
+   time: different fields are kept from both. If two people change the same field, the last
+   save wins.
+4. **Changes** (the button at the bottom right) opens the panel on the right. It lists who
+   changed what, newest first: the field, what it said before (struck through) and what it says
+   now, plus layout, setting and photo changes. A number on the button counts changes made by
+   others since you last looked. **change** beside your name renames you.
+5. Once shared, the button reads **Copy edit link**.
+
+Things to know:
+- **Anyone with the link can edit.** There's no sign-in. Share it only with people who should edit.
+- The link works on the studio website. A link nobody opens or edits for 180 days expires.
+- **Undo** stays on your computer, and it's cleared when someone else's change arrives.
+- The link belongs to the browser tab. Opening another project in that tab, or **Stop following
+  this link on this tab** at the foot of the panel, stops it there. To rejoin, open the link again.
+- Saving, exporting and the Source folder are still each person's own.
+
 ---
 
 ## 3. CAS: build an ad
@@ -714,6 +740,8 @@ You don't need to set these; the layouts already follow them.
 | **From the hub** says the token was refused | Set the **Import token** in **Share › Import hub**. |
 | A project from the hub has no photo | It was sent before a photo was added, or the photo was never in the studio (the sent pictures are the finished exports, which aren't put back). Drop the photo again. |
 | ⌘V does nothing after `/cas-component` | Make sure CAS is showing the **editor** (not the project browser or Copy), then press ⌘V again. Claude also saved it in `custom-components/` — open that file and copy its contents if the clipboard was overwritten. |
+| **Share an edit link** says it isn't switched on | The website's share store hasn't been connected. An admin sets it up once: `docs/share-links-setup.md`. |
+| Others don't see my change | The panel's status line says **All changes saved to the link** once it has gone. If it says it can't reach the share store, check the connection; it tries again by itself. |
 | An export went into the wrong design folder | CAS's Master is **Variant A**, Variant 2 is **B**, Variant 3 is **C**. |
 
 ## 15. For Claude: the studio tools

@@ -16016,3 +16016,45 @@ gated and named in `exportBlockers` (both copies) only while on. Verified: op ce
 byte-identical against the pre-change copy; preview box equals the op's (93, 1376, 160);
 the switch by a real click; the layout tiles carry the uploaded code.
 
+# SHARED EDIT LINKS — CAS AND OPS, ON A VERCEL FUNCTION (2026-10-23)
+
+By request: a link others open to view AND edit a project, a right-side panel of who changed
+what, and a name asked of everyone who opens it. **Share › Share an edit link** in both studios.
+Admin setup (connect Upstash Redis to the Vercel project once): `docs/share-links-setup.md`.
+
+- **`api/share.py`** is a stdlib Python Vercel function on Upstash Redis REST, reading
+  `KV_REST_API_URL`/`TOKEN` (or `UPSTASH_REDIS_REST_*`) from the environment — never the repo.
+  Keys `sh:<id>:meta|state|rev|imgs|log` plus `img:<hash>:<i>` photo parts (~0.9 MB each, because a
+  Vercel request is capped near 4.5 MB). A save is ONE Lua `EVAL`: compare `base` with `rev`, write,
+  bump, apply the photo map, and append the log entry or, in the same burst, REPLACE the last one.
+  A stale base answers 409. 180-day TTL refreshed by every save and open. `tools/share-dev/serve.py`
+  serves the repo with an in-memory store (`SHARE_DEV=1`) for testing.
+- **`share-link.js`** (after studio-base.js in both `<head>`s) patches `StudioBase.prototype`: the
+  shells call `eng.shareInit()` in `componentDidMount` and merge `eng.shareVals()` into renderVals.
+  The panel, the pill and the name dialog are plain DOM it builds itself (styled with `--ps-*`
+  tokens), outside React — no markup per document beyond the Share panel's one button.
+- **A tab's link is in sessionStorage** (`provident-share:<app>`, plus `-base` and `-log`) with the
+  project's **pid**; a tab that opens another project has another pid, so the link stops there and a
+  new project can never be saved over a shared one. Opening a link goes through
+  `loadSessionFile({clean:true})`, so a link for the other studio hands over like a session file.
+- **Sync:** a 1s tick compares `canon(shPub(state))` with the last synced state (CANONICAL — the
+  studios' load rebuilds objects in another key order, which first read as a change on every
+  open); 2.5s after the last edit it uploads changed photos (followed through a new
+  `image-slots-change` event and `ImageSlot.getRec/putRec/slotIds` in image-slot.js) and saves. A
+  409 pulls, `StudioBase.merge3(base, mine, theirs)` (field by field, id-keyed lists by id; same
+  field = mine), and retries. A 12s poll (visible tabs only) pulls the same way, writes remote
+  photos with `putRec` under an `applying` flag so they are not sent back, and clears undo.
+  `LOCAL` keys (screen, selection, active slide, export pick, story view, guided step, hubPost) are
+  never sent or overwritten.
+- **The log** reads like the copy changelog: CAS words through `copyFlat(copySnap())`, OPS words
+  from `FIELDS` per slide id, plus "Changed the design / layout / a setting" per page and photo
+  lines named from the slot id. Edits within 90s are one entry (`shBurst`).
+- **An open panel takes 340px from the workspace** (`html.shl-open .p-body{margin-right}`, plus the
+  guided screen, the Copy view, the panel bar and the sheets); it hides on the splash and picker.
+- **Limits, stated to the user:** no sign-in (the link is the key); the same field edited by two
+  people at once goes to whoever saved last; undo is local.
+- Verified on the dev server with two tabs in both studios: create, open with a name, real typing
+  syncing, a concurrent edit on a stale base merged (both kept, rev 4 to 6), a replaced photo
+  arriving byte-correct and not re-uploaded, a CAS link opened from an OPS tab handing over, and
+  the panel at 0 contrast failures in both themes. **Not exercised against real Upstash or Vercel.**
+

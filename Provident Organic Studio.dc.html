@@ -15,6 +15,7 @@
      must load before that block; after runtime.js is enough, since nothing in it
      touches a window.provident* helper at class-definition time. -->
 <script src="./studio-base.js"></script>
+<script src="./share-link.js"></script>
 </head>
 <body>
 <x-dc>
@@ -4295,6 +4296,8 @@ select.p-in{padding-right:34px}
     </label>
     <p class="sx-epn">Kept on this computer only. Sends the project .json as content and every exported image as images.</p>
   </details>
+  <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
+  <button onClick="{{ shLinkGo }}" class="sx-eps" data-on="{{ shLinkOn }}" title="{{ shLinkTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ shLinkLabel }}</button>
       </div>
     </sc-if>
   </div>
@@ -16451,6 +16454,8 @@ class Component extends DCLogic {
   static band(w) { return w < 760 ? 's' : (w < 900 ? 'm' : (w < 1200 ? 'l' : 'xl')); }
   componentDidMount() {
     Component.applyTheme();
+    // a shared edit link: open one from #share=, or keep following the one this tab is on
+    try { if (this.eng.shareInit) this.eng.shareInit(); } catch (e) { console.warn(e); }
     this._band = Component.band(window.innerWidth || 1400);
     this._onResize = () => {
       const b = Component.band(window.innerWidth || 1400);
@@ -16697,7 +16702,7 @@ class Component extends DCLogic {
     const view = this.state.splashView || 'all';
     const eng = this.active();
     const sub = eng.renderVals();
-    return Object.assign({}, sub, eng.hubVals ? eng.hubVals(view === 'hub') : {}, {
+    return Object.assign({}, sub, eng.hubVals ? eng.hubVals(view === 'hub') : {}, eng.shareVals ? eng.shareVals() : {}, {
       // --- Theme. Written to <html data-theme> rather than held in React state
       // alone, because every chrome colour — including the inline style objects,
       // which beat any stylesheet rule — reads a `var(--ps-*)` token. Flipping the

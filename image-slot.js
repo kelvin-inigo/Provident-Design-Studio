@@ -255,6 +255,10 @@
     if (val) { slots[id] = val; tombstones.delete(id); }
     else { delete slots[id]; if (!loaded) tombstones.add(id); }
     subs.forEach((fn) => fn());
+    // Shared edit links (share-link.js) follow the store through this, to send a changed
+    // picture to everyone else on the link. Synchronous, so a write the link itself makes
+    // can be told apart from a user's.
+    try { window.dispatchEvent(new CustomEvent('image-slots-change', { detail: { id } })); } catch (e) {}
     // A drop is rare + high-value — write immediately so nav-away can't lose
     // it. Gate on the initial read so we don't overwrite a sidecar we haven't
     // merged yet; the merge in load() keeps this change once the read lands.
@@ -741,6 +745,16 @@
     // itself: Organic's reel thumbnail writes the cut-out its Remove background button
     // produced. A drop still goes through the element's own _ingest. Returns false before
     // hydration, like the other store statics.
+    // The whole stored record (bytes AND crop), by id — what a shared edit link reads and
+    // writes. null before hydration, or for an empty slot.
+    static getRec(id) { return loaded && id ? (getSlot(id) || null) : null; }
+    static putRec(id, rec) {
+      if (!loaded || !id) return false;
+      setSlot(id, rec && rec.u ? Object.assign({}, rec) : null);
+      return true;
+    }
+    static slotIds() { return loaded ? Object.keys(slots) : []; }
+    static ready() { return loaded; }
     static putUrl(id, url) {
       if (!loaded || !id || !url) return false;
       setSlot(id, { u: url, s: 1, x: 0, y: 0 });
