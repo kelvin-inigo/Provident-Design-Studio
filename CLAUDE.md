@@ -16158,3 +16158,17 @@ then the group, then Share.
 
 Verified at 1440, 1024 and 390 with no overflow and no wrapped label. Bar text contrast is 6.47 to
 18.28 in dark. Chrome only.
+
+# OPS'S TOP BAR TAKES THE SAME HIERARCHY (2026-10-23)
+
+By request ("do the same for the OPS top bar"), one appended block at the end of OPS's sheet plus
+two markup touches. **Share is the one solid navy button** (`--ps-primary`, open/hover
+`--ps-primary-h`). A hairline (`.p-top-sep`, hidden on a phone) sets it off from the theme toggle
+and the Undo/Redo capsule. A **dirty Save is the resting tint** (`--ps-accent` / `--ps-accent-i`)
+with its dot, not a second solid. Nothing wraps (`white-space:nowrap`), and a long Source-folder
+name truncates at 180px (`.p-tl`). The trio's labels show from **1360** (it was 1400): the bar
+measures 1296 with the studio switcher showing and 1327 with a dirty Save. Below that the trio is
+icons only. CAS's bar is unchanged.
+
+Verified at 1440, 1360, 1320, 1024 and 390, in both themes. No overflow. Bar labels measure 8.57
+to 19.69:1 in light. No console errors. Chrome only.
