@@ -4673,6 +4673,27 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .cw-br-pic[data-filled] image-slot{border-style:solid;border-color:var(--ps-good);background:var(--ps-good-q)}
 .cw-up{padding-top:0}
 .cw-br-pic:not([data-filled]) .up-done,.cw-br-pic[data-filled] .up-new,.cw-br-pic:not([data-filled]) .up-rep{display:none}
+/* ── Projects folder (2026-10-23) ── the library of saved sessions in one folder, on this
+   computer or in Google Drive (StudioBase.libScan). Its list reuses the hub view's cards. */
+.lb-pick{max-width:880px;margin:8px 0 0;display:flex;flex-direction:column;gap:20px}
+.lb-pick-h{display:flex;flex-direction:column;gap:6px}
+.lb-pick-h b{font-size:20px;font-weight:600;color:var(--ps-ink)}
+.lb-pick-h s,.lb-opt s{text-decoration:none;line-height:1.5}
+.lb-pick-h s{font-size:14px;color:var(--ps-ink-2);max-width:68ch}
+.lb-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.lb-opt{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.lb-opt b{font-size:15px;font-weight:600;color:var(--ps-ink)}
+.lb-opt s{font-size:13px;color:var(--ps-ink-2)}
+.lb-opt .p-btn,.lb-gd{margin-top:auto}
+.lb-gd{display:flex;gap:8px;width:100%}
+.lb-gd .p-in{flex:1;min-width:0}
+.lb-gd .p-ghost{flex:none;white-space:nowrap}
+.lb-no{font-style:normal}
+.lb-ask{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 20px;border-radius:16px;background:var(--ps-fill);margin:4px 0 20px}
+.lb-ask span{font-size:14px;color:var(--ps-ink);flex:1;min-width:220px}
+.lb-find{width:200px;flex:none}
+.lb-c .hb-row{justify-content:center}
+@media (max-width:640px){.lb-find{width:100%}.lb-gd{flex-wrap:wrap}}
 </style>
 </helmet>
 
@@ -4700,6 +4721,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <button onClick="{{ shViewAll }}" data-on="{{ shViewAllOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-520q-24.54 0-42.27-17.73Q140-555.46 140-580v-180q0-24.54 17.73-42.27Q175.46-820 200-820h180q24.54 0 42.27 17.73Q440-784.54 440-760v180q0 24.54-17.73 42.27Q404.54-520 380-520H200Zm0 380q-24.54 0-42.27-17.73Q140-175.46 140-200v-180q0-24.54 17.73-42.27Q175.46-440 200-440h180q24.54 0 42.27 17.73Q440-404.54 440-380v180q0 24.54-17.73 42.27Q404.54-140 380-140H200Zm380-380q-24.54 0-42.27-17.73Q520-555.46 520-580v-180q0-24.54 17.73-42.27Q555.46-820 580-820h180q24.54 0 42.27 17.73Q820-784.54 820-760v180q0 24.54-17.73 42.27Q784.54-520 760-520H580Zm0 380q-24.54 0-42.27-17.73Q520-175.46 520-200v-180q0-24.54 17.73-42.27Q555.46-440 580-440h180q24.54 0 42.27 17.73Q820-404.54 820-380v180q0 24.54-17.73 42.27Q784.54-140 760-140H580ZM200-580h180v-180H200v180Zm380 0h180v-180H580v180Zm0 380h180v-180H580v180Zm-380 0h180v-180H200v180Zm380-380Zm0 200Zm-200 0Zm0-200Z"/></svg></i>All<s>{{ allCount }}</s></button>
       <button onClick="{{ shViewTpl }}" data-on="{{ shViewTplOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60H450v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM510-200h237.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-480H510v280Zm0-340h250v-207.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H510v220Z"/></svg></i>Templates<s>{{ tplCount }}</s></button>
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
+      <button onClick="{{ shViewLib }}" data-on="{{ shViewLibOn }}" class="p-nav2" title="Every saved project in one folder — on this computer or in Google Drive"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-76.53-76.54q-1.93-1.92-4.04-2.69-2.12-.77-4.43-.77H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Zm120-90h240q12.77 0 21.38-8.62Q550-347.23 550-360t-8.62-21.38Q532.77-390 520-390H280q-12.77 0-21.38 8.62Q250-372.77 250-360t8.62 21.38Q267.23-330 280-330Zm0-160h400q12.77 0 21.38-8.62Q710-507.23 710-520t-8.62-21.38Q692.77-550 680-550H280q-12.77 0-21.38 8.62Q250-532.77 250-520t8.62 21.38Q267.23-490 280-490Z"/></svg></i>Projects folder<sc-if value="{{ libCountOn }}" hint-placeholder-val="{{ false }}"><s>{{ libCount }}</s></sc-if></button>
       <button onClick="{{ shViewHub }}" data-on="{{ shViewHubOn }}" class="p-nav2" title="What the Content Hub has received from Share › Send, to open as a project again"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85v-115.38H628.46q-26.15 38-64.96 59-38.81 21-83.5 21t-83.5-21q-38.81-21-64.96-59H200v115.38q0 5.39 3.46 8.85t8.85 3.46ZM480-307.69q32 0 59.38-16.31 27.39-16.31 43.24-44.08 5.61-9.38 14.8-14.5 9.2-5.11 20.2-5.11H760v-360q0-5.39-3.46-8.85t-8.85-3.46H212.31q-5.39 0-8.85 3.46t-3.46 8.85v360h142.38q11 0 20.2 5.11 9.19 5.12 14.8 14.5 15.85 27.77 43.24 44.08Q448-307.69 480-307.69ZM212.31-200H200h560H212.31Z"/></svg></i>From the hub<sc-if value="{{ hubCountOn }}" hint-placeholder-val="{{ false }}"><s>{{ hubCount }}</s></sc-if></button>
       <div class="p-sec-l">Review</div>
       <button onClick="{{ asOpen }}" class="p-nav2" title="Opens the ad sets viewer: every exported ad in a campaign folder, laid out by audience and variant"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m517.69-447.69-48.31-60q-5.61-6.85-14.27-6.85-8.65 0-14.26 7.23l-55.08 72.23q-7.23 9.23-2.31 19.08 4.92 9.85 16.39 9.85h300.3q11.46 0 16.39-9.85 4.92-9.85-1.93-19.08l-87.38-115.46q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-80.62 102.85ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></i>Ad sets<b class="p-nav2-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b></button>
@@ -4812,6 +4834,56 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </section>
         </sc-for>
         <sc-if value="{{ hubEmptyOn }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing received yet — Share › Send puts a project on the hub, and it shows here.</div></sc-if>
+      </sc-if>
+      <sc-if value="{{ libOn }}" hint-placeholder-val="{{ false }}">
+        <!-- PROJECTS FOLDER. Every saved session (.adstudio.json / .smpstudio.json) in one folder the
+             team chose — on this computer or in Google Drive — read by StudioBase.libScan and opened
+             through loadSessionFile, so a file for the other studio hands over to it. -->
+        <sc-if value="{{ libMsgOn }}" hint-placeholder-val="{{ false }}"><div class="p-br-note hb-err" role="alert">{{ libMsg }}</div></sc-if>
+        <sc-if value="{{ libNoneOn }}" hint-placeholder-val="{{ false }}">
+          <div class="lb-pick" data-lib="1">
+            <div class="lb-pick-h"><b>Where do you keep your saved projects?</b><s>Point the studio at the folder that holds them. Every Campaign and Organic project in it, and in the folders inside it, is listed here, newest first. Both studios and every tab on this computer use the same folder.</s></div>
+            <div class="lb-opts">
+              <div class="lb-opt"><b>On this computer</b><s>A folder in Documents, on a shared drive, or one Google Drive for desktop keeps in sync.</s>
+                <sc-if value="{{ libLocalOk }}" hint-placeholder-val="{{ true }}"><button onClick="{{ libPick }}" class="p-btn">Choose a folder</button></sc-if>
+                <sc-if value="{{ libLocalNo }}" hint-placeholder-val="{{ false }}"><s class="lb-no">Needs Chrome or Edge on a computer.</s></sc-if>
+              </div>
+              <div class="lb-opt"><b>Google Drive</b><s>Paste the folder’s link from the browser’s address bar. You sign in with your Provident Google account.</s>
+                <span class="lb-gd"><input class="p-in" data-lib-in="1" type="url" placeholder="https://drive.google.com/drive/folders/…" onKeyDown="{{ libGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ libGd }}" class="p-ghost">Use this folder</button></span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ libSrcOn }}" hint-placeholder-val="{{ false }}">
+          <div class="hb-bar">
+            <span class="hb-st" data-st="{{ libSt }}" role="status"><i aria-hidden="true"></i><b>{{ libStLabel }}</b><s>{{ libWhere }}</s></span>
+            <span class="hb-bar-t">{{ libBarNote }}</span>
+            <sc-if value="{{ libFindOn }}" hint-placeholder-val="{{ false }}"><input class="p-in lb-find" type="search" placeholder="Find a project" onInput="{{ libFind }}" aria-label="Find a project"></sc-if>
+            <button onClick="{{ libRefresh }}" class="p-br-alt hb-re" title="Look through the folder again"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-750q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v178.46q0 15.37-10.39 25.76-10.4 10.39-25.76 10.39H563.85q-12.75 0-21.38-8.62-8.62-8.63-8.62-21.39 0-12.75 8.62-21.37 8.63-8.61 21.38-8.61h128q-31.62-57.930-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q69.73 0 127.67-36.62 57.94-36.61 87.79-97.69 5.69-10.92 16.73-15.27 11.04-4.34 22.5-.5 12.23 3.85 17.12 16 4.88 12.16-.81 23.08-37.16 77.69-109.7 124.34Q570.3-180 481.54-180Z"/></svg>{{ libRefreshLabel }}</button>
+            <button onClick="{{ libChange }}" class="p-br-alt" title="Forget this folder and choose another">Change folder</button>
+          </div>
+          <sc-if value="{{ libAskOn }}" hint-placeholder-val="{{ false }}"><div class="lb-ask"><span>{{ libAskNote }}</span><button onClick="{{ libConnect }}" class="p-btn">{{ libAskLabel }}</button></div></sc-if>
+          <sc-for list="{{ libGroups }}" as="g" hint-placeholder-count="0">
+            <section class="hb-g">
+              <h3 class="hb-gh"><b>{{ g.label }}</b><s>{{ g.count }}</s></h3>
+              <div class="p-grid2 hb-grid">
+                <sc-for list="{{ g.items }}" as="lb" hint-placeholder-count="0">
+                  <button onClick="{{ lb.open }}" class="p-c hb-c lb-c" title="{{ lb.tip }}" data-kind="{{ lb.kind }}" data-other="{{ lb.other }}">
+                    <span class="p-c-p hb-p">
+                      <span class="hb-row"><sc-for list="{{ lb.thumbs }}" as="t" hint-placeholder-count="1"><span class="hb-t" style="{{ t.style }}" data-wait="{{ t.wait }}"></span></sc-for></span>
+                      <span class="hb-k">{{ lb.kindLabel }}<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></span>
+                      <span class="hb-go">{{ lb.openLabel }}</span>
+                    </span>
+                    <span class="p-c-n hb-n">{{ lb.title }}</span>
+                    <span class="p-c-m hb-m">{{ lb.meta }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </section>
+          </sc-for>
+          <sc-if value="{{ libEmptyOn }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">No saved projects in this folder yet — Save session writes one, and Change folder points the studio somewhere else.</div></sc-if>
+          <sc-if value="{{ libNoMatchOn }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">No project matches that.</div></sc-if>
+        </sc-if>
       </sc-if>
       <sc-if value="{{ shShowUse }}" hint-placeholder-val="{{ false }}">
         <div class="cu">
@@ -16464,7 +16536,7 @@ class Component extends DCLogic {
     const view = this.state.splashView || 'all';
     const eng = this.active();
     const sub = eng.renderVals();
-    return Object.assign({}, sub, this.asVals(), eng.hubVals ? eng.hubVals(view === 'hub') : {}, eng.shareVals ? eng.shareVals() : {}, {
+    return Object.assign({}, sub, this.asVals(), eng.hubVals ? eng.hubVals(view === 'hub') : {}, eng.libVals ? eng.libVals(view === 'lib') : {}, eng.shareVals ? eng.shareVals() : {}, {
       // --- Theme. Written to <html data-theme> rather than held in React state
       // alone, because every chrome colour — including the inline style objects,
       // which beat any stylesheet rule — reads a `var(--ps-*)` token. Flipping the
@@ -16555,9 +16627,10 @@ class Component extends DCLogic {
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: eng && eng.mockCopy ? eng.mockCopy() : {},
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'hub' ? 'From the hub' : 'All'))),
+      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'hub' ? 'From the hub' : (view === 'lib' ? 'Projects folder' : 'All')))),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
+      shViewSub: (n => view === 'lib' ? (eng._lib && eng._lib.st === 'ok' ? n((eng._lib.items || []).length, 'saved project') + ' in \u201c' + ((eng._lib.mark || {}).name || '') + '\u201d' : 'Every saved project in one folder, on this computer or in Google Drive')
+        : view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in your ' + n(sub.useCount, 'most recent saved project') : 'Nothing saved yet \u2014 usage is counted from saved projects')
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
@@ -16572,6 +16645,8 @@ class Component extends DCLogic {
       shViewRec: () => this.setState({ splashView: 'rec' }),
       shViewHub: () => { this.setState({ splashView: 'hub' }); eng.hubLoad && eng.hubLoad(); },
       shViewHubOn: view === 'hub' ? '1' : undefined,
+      shViewLib: () => { this.setState({ splashView: 'lib' }); eng.libLoad && eng.libLoad(); },
+      shViewLibOn: view === 'lib' ? '1' : undefined,
       shShareOn: this.state.shareOpen ? '1' : undefined,
       shToggleShare: () => {
         // Opening Share reveals the export formats with it — the panel exists to hand over

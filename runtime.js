@@ -407,7 +407,8 @@
     }
     return dbs[name];
   }
-  function shared(key) { return WS && /^recents:/.test(String(key)); }
+  // recents and the project library's folder are per COMPUTER, not per tab.
+  function shared(key) { return WS && /^(recents|lib):/.test(String(key)); }
   function rawGet(name, key) {
     if (!caps.idb) return Promise.resolve(undefined);
     return db(name).then(function (d) {
@@ -497,6 +498,12 @@
       return h;
     },
     async forget() { folder.handle = null; folder.pending = null; try { await idbDel(FKEY); } catch (e) {} },
+    // Make an already-granted handle the Source folder — the project library opens a project
+    // from a folder it found while scanning, and adopts that folder like Open Session does.
+    async adopt(h) { if (!h) return null; folder.handle = h; folder.pending = null; try { await idbSet(FKEY, h); } catch (e) {} return h; },
+    // The project library's own folder (Projects folder view), kept per computer.
+    libGet: function () { return idbGet('lib:dir'); },
+    libSet: function (h) { return h ? idbSet('lib:dir', h) : idbDel('lib:dir'); },
     // Load the saved handle. Returns it only when permission is already granted;
     // otherwise it is parked on `pending` for ensure() to re-request.
     async restore() {
@@ -733,6 +740,18 @@
   photoshop.probe();
 
   // ── 5. Storage stand-in ───────────────────────────────────────────────────
+  // THE PHOTO STORE, PARSED. Every photo a project holds lives in ONE json string, and
+  // the studios used to read it with fetch() + r.json() wherever they needed a picture —
+  // which rebuilt and re-parsed the whole thing each time: 61MB for a 17-photo weekly, on
+  // EVERY keystroke in the guided run. `providentSidecar()` is the one read now. Below,
+  // where the store is ours, it parses only when a write has changed it; here (Design
+  // Cursor, read-only) it falls back to the plain read. It hands back a SHALLOW copy, so a
+  // caller may add or delete slots before writing, but must never edit a record in place.
+  W.providentSidecar = function () {
+    return fetch('.image-slots.state.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .then(function (o) { return o || {}; }, function () { return {}; });
+  };
   // Inside Design Cursor the real thing already exists — leave it alone.
   if (W.omelette && W.omelette.writeFile) {
     W.providentRuntime = { mode: 'omelette', caps: caps, folder: folder };
@@ -753,10 +772,16 @@
   // once a path has been touched this session.
   var mirror = Object.create(null);
 
+  // Bumped by every write, so the parsed copy below knows when it is stale without
+  // comparing two 60MB strings.
+  var storeRev = 0, parsedRev = -1, parsed = null;
+  var STORE = '.image-slots.state.json';
+
   W.omelette = W.omelette || {};
   W.omelette.writeFile = function (path, text) {
     var key = base(path);
     mirror[key] = String(text);
+    if (key === STORE) storeRev++;
     return idbSet(key, mirror[key]);
   };
 
@@ -810,6 +835,23 @@
       });
     };
   }
+
+  W.providentSidecar = function () {
+    // the first read goes through the fetch shim, which fills the mirror (and runs the
+    // one-off seed clean-up); after that the mirror is the store
+    var ready = mirror[STORE] != null ? Promise.resolve()
+      : W.fetch(STORE, { cache: 'no-store' }).then(function (r) { return r.text(); }).catch(function () {});
+    return ready.then(function () {
+      var t = mirror[STORE];
+      if (t == null) return {};
+      if (parsedRev !== storeRev || !parsed) {
+        var rev = storeRev, o = {};
+        try { o = JSON.parse(t) || {}; } catch (e) { o = {}; }
+        parsed = o; parsedRev = rev;
+      }
+      return Object.assign({}, parsed);
+    });
+  };
 
   W.providentRuntime = {
     mode: 'indexeddb',

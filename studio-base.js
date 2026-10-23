@@ -102,6 +102,32 @@ class StudioBase {
       el.style.overflowY = el.scrollHeight > max ? 'auto' : 'hidden';
     }
   }
+  // ---------- the photo store ----------
+  // The ONE read of the photo store (`.image-slots.state.json`). runtime.js keeps it parsed
+  // and re-parses only after a write, so a keystroke no longer rebuilds 60MB of photos.
+  // A shallow copy: add or delete slots before a write, never edit a record in place.
+  static sidecar() {
+    if (window.providentSidecar) return window.providentSidecar();
+    return fetch('.image-slots.state.json', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : {}).then(o => o || {}, () => ({}));
+  }
+  // A decoded picture per URL, kept for the session, so a render re-uses the photo it
+  // decoded last time instead of decoding every photo in the project again. Resolves to
+  // the Image, or null if it would not load. Never set anything on the Image it returns.
+  // A Map, not an object: an object key of a multi-megabyte data URL gets interned and is
+  // never freed. The oldest go first past IMG_MAX.
+  static IMG_MAX = 48;
+  static img(u) {
+    if (!u) return Promise.resolve(null);
+    const M = StudioBase._imgs || (StudioBase._imgs = new Map());
+    let p = M.get(u);
+    if (p) { M.delete(u); M.set(u, p); return p; }
+    p = new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = u; });
+    M.set(u, p);
+    p.then(im => { if (!im) M.delete(u); });   // a failed load is tried again next time
+    while (M.size > StudioBase.IMG_MAX) M.delete(M.keys().next().value);
+    return p;
+  }
   static promoteImgs(root) {
     const els = (root || document).querySelectorAll('img[data-src]');
     for (let i = 0; i < els.length; i++) {
@@ -977,7 +1003,7 @@ class StudioBase {
         // Merge: clear only the target studio's slots so loading a session
         // cannot wipe the other studio's photos out of the shared store.
         let sidecar = {};
-        try { const r = await fetch('.image-slots.state.json', { cache: 'no-store' }); if (r.ok) sidecar = await r.json(); } catch (e) {}
+        try { sidecar = await StudioBase.sidecar(); } catch (e) {}
         Object.keys(sidecar).forEach(k => { if (spec.prefix.test(k)) delete sidecar[k]; });
         Object.assign(sidecar, imgs);
         let stored = false;
@@ -1288,6 +1314,293 @@ class StudioBase {
     };
   }
 
+  // ---------- the project library (Projects folder view) ----------
+  // A folder — on this computer or in Google Drive — where the team keeps its saved projects.
+  // Every .adstudio.json / .smpstudio.json in it (and up to four folders down) is listed with
+  // its name, when it was saved and a picture, and opens like Open Session: a file for the other
+  // studio hands over to it. The folder is remembered per COMPUTER (`provident-lib` for which
+  // kind, the local handle in IndexedDB as `lib:dir`), so both studios and every tab show the
+  // same library. It only ever READS the folder; a local project opened from it adopts its own
+  // folder as the Source folder, exactly as Open Session does. A Drive project opens as a copy:
+  // the studio cannot save into Drive, so Save session writes wherever this tab saves.
+  static LIB_SKIP = /^(\.|assets$|copy$|photoshop$|edits$|brief$|carousel$|variant [a-z]$|eventbrite banners$|yt demand gen$|node_modules$)/i;
+  static LIB_DEPTH = 4;
+  static LIB_MAX = 400;
+  libMark() { try { return JSON.parse(localStorage.getItem('provident-lib') || 'null'); } catch (e) { return null; } }
+  libSetMark(m) { try { m ? localStorage.setItem('provident-lib', JSON.stringify(m)) : localStorage.removeItem('provident-lib'); } catch (e) {} }
+  libDrop() {
+    const l = this._lib;
+    if (l && l.urls) l.urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
+  }
+  libSet(o) { this._lib = Object.assign({}, this._lib || {}, o); this.forceUpdate(); }
+  // Opening the view: list straight away when the folder is still reachable, else say what one
+  // click will do. Never opens a picker or a popup — those need the click.
+  async libLoad() {
+    const m = this.libMark(), F = window.providentFolder;
+    if (!m) { this.libDrop(); this._lib = { st: 'none' }; this.forceUpdate(); return; }
+    if (this._lib && this._lib.st === 'busy') return;
+    if (m.kind === 'drive') {
+      const D = window.providentDrive;
+      if (!D || !D.valid()) return this.libSet({ st: 'ask', mark: m });
+      return this.libScan(D.dir(m.id, m.name), m);
+    }
+    let h = null;
+    try { h = F && F.libGet ? await F.libGet() : null; } catch (e) {}
+    if (!h) { this.libSetMark(null); this._lib = { st: 'none' }; this.forceUpdate(); return; }
+    let p = 'prompt';
+    try { p = await h.queryPermission({ mode: 'readwrite' }); } catch (e) {}
+    if (p !== 'granted') return this.libSet({ st: 'ask', mark: m, handle: h });
+    this.libScan(h, m);
+  }
+  // The "Reconnect" / "Sign in" button: the one gesture a remembered folder needs.
+  async libConnect() {
+    const l = this._lib || {}, m = l.mark || this.libMark();
+    if (!m) return;
+    try {
+      if (m.kind === 'drive') { await window.providentDrive.signIn(); return this.libScan(window.providentDrive.dir(m.id, m.name), m); }
+      const h = l.handle || await window.providentFolder.libGet();
+      const p = h ? await h.requestPermission({ mode: 'readwrite' }) : 'denied';
+      if (p !== 'granted') return this.libSet({ st: 'ask', msg: 'The browser did not allow access to “' + m.name + '”. Choose the folder again.' });
+      this.libScan(h, m);
+    } catch (e) { this.libSet({ st: 'ask', msg: (e && e.message) || String(e) }); }
+  }
+  async libPickLocal() {
+    if (typeof window.showDirectoryPicker !== 'function') return this.libSet({ msg: 'This browser cannot open a folder on this computer — use a Google Drive folder link, or Chrome or Edge on a computer.' });
+    let h;
+    try { h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'provident-lib', startIn: 'documents' }); }
+    catch (e) { if (!(e && e.name === 'AbortError')) this.libSet({ msg: 'The folder could not be opened — ' + ((e && e.message) || e) + '.' }); return; }
+    const m = { kind: 'local', name: h.name };
+    try { await window.providentFolder.libSet(h); } catch (e) {}
+    this.libSetMark(m);
+    this.libScan(h, m);
+  }
+  async libUseDrive(e) {
+    const box = e && e.currentTarget && e.currentTarget.closest('[data-lib]');
+    const inp = box && box.querySelector('[data-lib-in]');
+    const D = window.providentDrive;
+    try {
+      if (!D.id(inp && inp.value)) throw new Error('That is not a Google Drive folder link. Open the folder in Drive and copy the address from the browser — it contains /folders/.');
+      await D.signIn();                 // first: the popup needs the click's activation
+      const f = await D.folderOf(inp.value);
+      const m = { kind: 'drive', id: f.id, name: f.name };
+      try { await window.providentFolder.libSet(null); } catch (er) {}
+      this.libSetMark(m);
+      this.libScan(D.dir(f.id, f.name), m);
+    } catch (er) { this.libSet({ msg: (er && er.message) || String(er) }); }
+  }
+  libDriveKey(e) { if (e.key === 'Enter') { e.preventDefault(); this.libUseDrive(e); } }
+  async libForget() {
+    this._libGen = (this._libGen || 0) + 1;
+    this.libDrop(); this.libSetMark(null);
+    try { await window.providentFolder.libSet(null); } catch (e) {}
+    this._lib = { st: 'none' }; this.forceUpdate();
+  }
+  // A saved session's state, read from the head of the file: the studios write
+  // {app, v, state, images}, so everything up to ,"images": is the project without its photos.
+  static libState(text) {
+    for (let i = text.indexOf(',"images":'); i > 0; i = text.indexOf(',"images":', i + 1)) {
+      try { const d = JSON.parse(text.slice(0, i) + '}'); if (d && d.state) return d; } catch (e) {}
+    }
+    try { return JSON.parse(text); } catch (e) { return null; }
+  }
+  async libScan(root, m) {
+    const gen = (this._libGen = (this._libGen || 0) + 1);
+    this.libDrop();
+    this._lib = { st: 'busy', mark: m, root, items: [], thumbs: {}, urls: [], q: (this._lib && this._lib.q) || '', found: 0 };
+    this.forceUpdate();
+    const T = StudioBase.SESSIONS, EXT = Object.keys(T).map(k => [T[k].ext, k]);
+    const appOf = n => { const l = n.toLowerCase(); const x = EXT.find(e => l.endsWith(e[0])); return x ? x[1] : ''; };
+    const items = [];
+    try {
+      // breadth first, four folders at a time, so a Drive folder is not listed one call at a time
+      let level = [{ dir: root, path: [] }];
+      for (let d = 0; d <= StudioBase.LIB_DEPTH && level.length && items.length < StudioBase.LIB_MAX; d++) {
+        const next = [];
+        let i = 0;
+        const one = async () => {
+          while (i < level.length && gen === this._libGen) {
+            const { dir, path } = level[i++];
+            const files = [], dirs = [];
+            try { for await (const [name, h] of dir.entries()) (h.kind === 'directory' ? dirs : files).push([name, h]); }
+            catch (e) { if (e && e.gdAuth) throw e; continue; }
+            const ses = files.filter(([n]) => appOf(n));
+            const renders = files.filter(([n]) => /_(3x4|feed|portrait_3x4)\.(jpe?g|png|webp)$/i.test(n));
+            const vdir = dirs.find(([n]) => /^(variant a|carousel)$/i.test(n));
+            ses.forEach(([n, h]) => items.length < StudioBase.LIB_MAX && items.push({ name: n, h, dir, path, app: appOf(n), solo: ses.length === 1, renders, vdir: vdir && vdir[1] }));
+            dirs.forEach(([n, h]) => { if (!StudioBase.LIB_SKIP.test(n)) next.push({ dir: h, path: path.concat(n) }); });
+          }
+        };
+        await Promise.all([one(), one(), one(), one()]);
+        if (gen !== this._libGen) return;
+        this._lib.found = items.length; this.forceUpdate();
+        level = next;
+      }
+      // what each one is: four at a time, from the head of the file only
+      let k = 0;
+      const meta = async () => {
+        while (k < items.length && gen === this._libGen) {
+          const it = items[k++];
+          try {
+            let text = '';
+            if (it.h.drive) { it.ts = it.h.modified || 0; text = await it.h.head(262144); }
+            else { const f = await it.h.getFile(); it.ts = f.lastModified || 0; text = await f.slice(0, 262144).text(); }
+            const d = StudioBase.libState(text);
+            it.st = (d && d.state) || null;
+          } catch (e) { if (e && e.gdAuth) throw e; it.st = null; }
+        }
+      };
+      await Promise.all([meta(), meta(), meta(), meta()]);
+    } catch (e) {
+      if (gen !== this._libGen) return;
+      return this.libSet({ st: e && e.gdAuth ? 'ask' : 'bad', msg: (e && e.message) || String(e) });
+    }
+    if (gen !== this._libGen) return;
+    items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    this.libSet({ st: 'ok', items, at: Date.now(), msg: '' });
+    this.libThumbs(gen);
+  }
+  // A picture per project: its card in Recent when this computer saved it (same pid), else the
+  // newest feed render beside it — only when it is the folder's ONE project, because a folder
+  // holding two would show the other one's render. Shrunk to 240px WebP, four at a time.
+  async libThumbs(gen) {
+    const l = this._lib;
+    if (!l || !l.items) return;
+    const rec = this.readRecents().filter(r => r && r.saved);
+    l.items.forEach(it => {
+      const pid = it.st && it.st.pid, r = pid && rec.find(x => x.pid === pid);
+      const u = r && ((r.thumbs && r.thumbs[0]) || r.thumb);
+      if (u) l.thumbs[it.name + '\u0001' + it.path.join('/')] = u;
+    });
+    this.forceUpdate();
+    const jobs = l.items.filter(it => it.solo && !l.thumbs[it.name + '\u0001' + it.path.join('/')]);
+    let i = 0, tick = 0;
+    const pickNewest = async list => {
+      let best = null, bt = -1;
+      for (const [n, h] of list.slice(0, 12)) {
+        const t = h.drive ? h.modified : await h.getFile().then(f => f.lastModified).catch(() => 0);
+        if (t > bt) { bt = t; best = h; }
+      }
+      return best;
+    };
+    const one = async () => {
+      while (i < jobs.length && gen === this._libGen) {
+        const it = jobs[i++];
+        try {
+          let list = it.renders;
+          if (!list.length && it.vdir) {
+            list = [];
+            for await (const [n, h] of it.vdir.entries()) if (h.kind === 'file' && /_(feed|portrait_3x4)\.(jpe?g|png|webp)$/i.test(n)) list.push([n, h]);
+          }
+          const fh = list.length ? await pickNewest(list) : null;
+          if (!fh) continue;
+          let blob = await fh.getFile();
+          try {
+            const bm = await createImageBitmap(blob, { resizeHeight: 240, resizeQuality: 'medium' });
+            const cv = document.createElement('canvas'); cv.width = bm.width; cv.height = bm.height;
+            cv.getContext('2d').drawImage(bm, 0, 0); bm.close && bm.close();
+            blob = await new Promise(res => cv.toBlob(b => res(b || blob), 'image/webp', .82));
+          } catch (e) {}
+          if (gen !== this._libGen) return;
+          const u = URL.createObjectURL(blob);
+          l.urls.push(u); l.thumbs[it.name + '\u0001' + it.path.join('/')] = u;
+          if (++tick % 3 === 0) this.forceUpdate();
+        } catch (e) {}
+      }
+    };
+    await Promise.all([one(), one(), one(), one()]);
+    if (gen === this._libGen) this.forceUpdate();
+  }
+  async libOpen(it) {
+    if (!this.confirmDiscard()) return;
+    this.setState({ exportStatus: 'Opening ' + it.name + '…' });
+    try {
+      const file = await it.h.getFile();
+      // a local project's own folder becomes this tab's Source folder, as Open Session does
+      const F = window.providentFolder;
+      if (!it.h.drive && F && F.supported && F.adopt) { try { await F.adopt(it.dir); } catch (e) {} }
+      this.loadSessionFile(file);
+    } catch (e) {
+      if (e && e.gdAuth) return this.libSet({ st: 'ask', msg: e.message });
+      this.libSet({ msg: 'Could not open ' + it.name + ' — ' + ((e && e.message) || e) + '.' });
+      this.setState({ exportStatus: 'Ready.' });
+    }
+  }
+  libVals(on) {
+    const l = this._lib || {}, m = l.mark || this.libMark();
+    const mine = this.sessionApp();
+    const NAME = { 'provident-ad-studio': 'Campaign', 'provident-smp-studio': 'Organic' };
+    const q = String(l.q || '').trim().toLowerCase();
+    const groups = [], byPath = {};
+    let shown = 0;
+    (l.items || []).forEach(it => {
+      const st = it.st || {}, stem = it.name.replace(/\.(adstudio|smpstudio)\.json$/i, '');
+      const title = String(st.campaign || st.customName || stem).trim() || stem;
+      const where = it.path.length ? it.path.join(' › ') : m ? m.name : '';
+      if (q && (title + ' ' + where + ' ' + it.name).toLowerCase().indexOf(q) < 0) return;
+      shown++;
+      const camp = it.app === 'provident-ad-studio';
+      const n = ((camp ? st.variants : st.slides) || []).length;
+      const what = !it.st ? 'Could not read its details'
+        : camp ? (st.adMode === 'carousel' ? 'Carousel · ' + n + ' page' + (n === 1 ? '' : 's') : n + ' variant' + (n === 1 ? '' : 's'))
+        : n + ' page' + (n === 1 ? '' : 's');
+      const when = it.ts ? StudioBase.hubWhen(new Date(it.ts).toISOString()) : '';
+      const other = it.app !== mine;
+      const u = (l.thumbs || {})[it.name + '\u0001' + it.path.join('/')];
+      const ar = camp ? 1 : .75;
+      const th = { width: 'calc(100% * ' + Math.min(1, .7 * ar).toFixed(4) + ')', aspectRatio: String(ar) };
+      if (u) th.backgroundImage = 'url(' + u + ')';
+      const v = {
+        title, meta: [when, what].filter(Boolean).join(' · '),
+        kind: camp ? 'campaign' : 'organic', kindLabel: NAME[it.app] || '', other: other ? '1' : undefined,
+        thumbs: [{ style: th, wait: u ? undefined : '1' }],
+        openLabel: other ? 'Open in ' + NAME[it.app] : 'Open',
+        tip: it.name + (other ? ' — opens in the ' + NAME[it.app] + ' studio' : '') + (it.h.drive ? '. Opens a copy; the file in Drive is not changed.' : '. Its folder becomes the Source folder.'),
+        open: () => this.libOpen(it)
+      };
+      const key = it.path.join('/');
+      if (!byPath[key]) { byPath[key] = { label: where || 'Top of the folder', items: [] }; groups.push(byPath[key]); }
+      byPath[key].items.push(v);
+    });
+    groups.forEach(g => { g.count = g.items.length + (g.items.length === 1 ? ' project' : ' projects'); });
+    const st = l.st || (m ? 'ask' : 'none');
+    const drive = m && m.kind === 'drive';
+    const ago = l.at ? Math.round((Date.now() - l.at) / 60000) : null;
+    const D = window.providentDrive;
+    if (on && D && D.clientId()) D.load().catch(() => {});      // warm it, so the click's popup is not blocked
+    const total = (l.items || []).length;
+    return {
+      libOn: on ? true : undefined,
+      libCount: st === 'ok' ? String(total) : '',
+      libCountOn: st === 'ok' && total ? true : undefined,
+      libNoneOn: st === 'none' ? true : undefined,
+      libSrcOn: st !== 'none' ? true : undefined,
+      libAskOn: st === 'ask' ? true : undefined,
+      libAskLabel: drive ? 'Sign in to Google' : 'Reconnect the folder',
+      libAskNote: drive ? 'Sign in with your Provident Google account to list “' + (m && m.name) + '”.'
+        : 'The browser asks again after a restart before the studio may read “' + (m && m.name) + '”.',
+      libSt: st === 'busy' ? 'busy' : st === 'bad' ? 'bad' : st === 'ok' ? 'ok' : 'idle',
+      libStLabel: st === 'busy' ? (l.found ? 'Found ' + l.found + '…' : 'Looking…') : st === 'bad' ? 'Not reachable' : st === 'ok' ? (drive ? 'Google Drive' : 'This computer') : (drive ? 'Google Drive' : 'This computer'),
+      libWhere: (m ? m.name : '') + (st === 'ok' && ago != null ? ' · ' + (ago < 1 ? 'updated just now' : 'updated ' + ago + ' min ago') : ''),
+      libBarNote: drive ? 'Opens a copy — the file in Drive is not changed.' : 'Opening a project makes its folder the Source folder.',
+      libGroups: groups,
+      libMsg: l.msg || '', libMsgOn: l.msg ? true : undefined,
+      libEmptyOn: st === 'ok' && !total ? true : undefined,
+      libNoMatchOn: st === 'ok' && total && !shown ? true : undefined,
+      libFindOn: st === 'ok' && total > 6 ? true : undefined,
+      libQ: l.q || '',
+      libFind: e => { (this._lib = this._lib || {}).q = e.target.value; this.forceUpdate(); },
+      libLocalOk: typeof window.showDirectoryPicker === 'function' ? true : undefined,
+      libLocalNo: typeof window.showDirectoryPicker === 'function' ? undefined : true,
+      libDriveOk: D && D.clientId() ? true : undefined,
+      libPick: () => this.libPickLocal(),
+      libGd: e => this.libUseDrive(e), libGdKey: e => this.libDriveKey(e),
+      libConnect: () => this.libConnect(),
+      libRefresh: () => { const mm = this.libMark(); if (l.root && mm) this.libScan(l.root, mm); else this.libLoad(); },
+      libRefreshLabel: st === 'busy' ? 'Looking…' : 'Refresh',
+      libChange: () => this.libForget()
+    };
+  }
+
   // ---------- project folder ----------
   // One folder holds the session, its source assets and its renders. Picked once,
   // then overwritten in place. Chrome/Edge only — Safari has no directory picker,
@@ -1436,3 +1749,138 @@ class StudioBase {
     }
   }
 }
+
+// ══ GOOGLE DRIVE, SHARED BY BOTH STUDIOS (2026-10-23) ═══════════════════════════════════════
+// Google Identity Services, token model — no secret, no server. The OAuth client ID is public
+// by design (an INTERNAL app, so only Provident accounts sign in). One token per page: CAS's
+// Ad sets and both studios' Projects folder view all read this object, so one sign-in serves
+// them all. The token is kept in memory only. docs/google-drive-setup.md has the admin steps.
+window.providentDrive = {
+  CLIENT: '210522580023-ajcrfmscqohgbdq36t6ph4mrhnk9u5s3.apps.googleusercontent.com',
+  SCOPE: 'https://www.googleapis.com/auth/drive',
+  FOLDER: 'application/vnd.google-apps.folder',
+  MIME: { json: 'application/json', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', svg: 'image/svg+xml', pdf: 'application/pdf', txt: 'text/plain' },
+  tok: null, lib: null,
+  clientId() { let v = ''; try { v = localStorage.getItem('provident-drive-client') || ''; } catch (e) {} return this.CLIENT || v; },
+  load() {
+    if (this.lib) return this.lib;
+    return (this.lib = new Promise((res, rej) => {
+      if (window.google && google.accounts && google.accounts.oauth2) return res();
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+      s.onload = () => res(); s.onerror = () => { this.lib = null; rej(new Error('Google sign-in could not load — check the connection.')); };
+      document.head.appendChild(s);
+    }));
+  },
+  valid() { const t = this.tok; return !!(t && t.exp > Date.now() + 60000); },
+  // Must be called from a click: Google opens its sign-in popup.
+  async signIn() {
+    if (this.valid()) return this.tok.at;
+    const id = this.clientId();
+    if (!id) throw new Error('Google Drive is not set up on this computer yet — paste the OAuth client ID your admin gave you.');
+    await this.load();
+    return new Promise((res, rej) => {
+      const tc = google.accounts.oauth2.initTokenClient({
+        client_id: id, scope: this.SCOPE, prompt: this.tok ? '' : 'select_account',
+        callback: r => {
+          if (!r || r.error || !r.access_token) return rej(new Error(r && r.error === 'access_denied' ? 'Google sign-in was cancelled.' : 'Google sign-in failed' + (r && r.error ? ' (' + r.error + ')' : '') + '.'));
+          this.tok = { at: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3600) * 1000 };
+          res(r.access_token);
+        },
+        error_callback: e => rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' : 'Google sign-in could not open — allow pop-ups for this site.'))
+      });
+      tc.requestAccessToken();
+    });
+  },
+  signOut() {
+    const t = this.tok; this.tok = null;
+    try { if (t && window.google && google.accounts) google.accounts.oauth2.revoke(t.at, () => {}); } catch (e) {}
+  },
+  async fetch(url, opt) {
+    const expired = () => { const e = new Error('Your Google sign-in has expired — sign in again.'); e.gdAuth = true; return e; };
+    if (!this.valid()) throw expired();
+    opt = Object.assign({}, opt || {}); opt.headers = Object.assign({ Authorization: 'Bearer ' + this.tok.at }, opt.headers || {});
+    const r = await fetch(url, opt);
+    if (r.status === 401) { this.tok = null; throw expired(); }
+    if (!r.ok) {
+      let m = 'Google Drive answered ' + r.status;
+      try { const d = await r.json(); if (d && d.error && d.error.message) m = d.error.message; } catch (e) {}
+      if (r.status === 404) m = 'Drive cannot find that folder, or your account has no access to it.';
+      throw new Error(m);
+    }
+    return r;
+  },
+  notFound() { const e = new Error('Not found'); e.name = 'NotFoundError'; return e; },
+  // The folder id from any shape of Drive folder link, or a bare id.
+  id(t) {
+    t = String(t || '').trim();
+    const m = /\/folders\/([\w-]{10,})/.exec(t) || /[?&]id=([\w-]{10,})/.exec(t);
+    if (m) return m[1];
+    return /^[\w-]{20,}$/.test(t) ? t : '';
+  },
+  // Resolves a folder link to {id, name}; throws a readable message for a file or no access.
+  async folderOf(link) {
+    const id = this.id(link);
+    if (!id) throw new Error('That is not a Google Drive folder link. Open the folder in Drive and copy the address from the browser — it contains /folders/.');
+    const r = await this.fetch('https://www.googleapis.com/drive/v3/files/' + id + '?fields=id,name,mimeType,shortcutDetails&supportsAllDrives=true');
+    const f = await r.json(), sc = f.shortcutDetails;
+    if (f.mimeType !== this.FOLDER && !(sc && sc.targetMimeType === this.FOLDER)) throw new Error('That link is a file, not a folder. Link the folder that holds the saved projects.');
+    return { id: sc && sc.targetId ? sc.targetId : f.id, name: f.name };
+  },
+  // A Drive folder as a directory stand-in (kind, name, entries(), getDirectoryHandle(), a
+  // file's getFile(), head(n) and `modified`), plus createWritable() — which uploads a new
+  // revision of THAT file, so its id and share link never change. Listings are held for 3s.
+  dir(id, name) {
+    const D = this, api = 'https://www.googleapis.com/drive/v3/files', up = 'https://www.googleapis.com/upload/drive/v3/files';
+    let kids = null, at = 0;
+    const list = () => {
+      if (kids && Date.now() - at < 3000) return kids;
+      at = Date.now();
+      return (kids = (async () => {
+        const out = []; let tok = '';
+        do {
+          const q = encodeURIComponent("'" + id + "' in parents and trashed=false");
+          const r = await D.fetch(api + '?q=' + q + '&fields=nextPageToken,files(id,name,mimeType,modifiedTime,size,shortcutDetails)&pageSize=1000'
+            + '&supportsAllDrives=true&includeItemsFromAllDrives=true' + (tok ? '&pageToken=' + tok : ''));
+          const d = await r.json();
+          out.push(...(d.files || [])); tok = d.nextPageToken || '';
+        } while (tok);
+        return out;
+      })().catch(e => { kids = null; throw e; }));
+    };
+    const isDir = f => f.mimeType === D.FOLDER || (f.shortcutDetails && f.shortcutDetails.targetMimeType === D.FOLDER);
+    const node = f => {
+      const sc = f.shortcutDetails;
+      if (isDir(f)) return D.dir(sc ? sc.targetId : f.id, f.name);
+      const fid = sc ? sc.targetId : f.id, lm = Date.parse(f.modifiedTime) || 0;
+      return { kind: 'file', name: f.name, modified: lm, size: Number(f.size) || 0, drive: true,
+        getFile: async () => {
+          const r = await D.fetch(api + '/' + fid + '?alt=media&supportsAllDrives=true');
+          const b = await r.blob();
+          return new File([b], f.name, { type: b.type || f.mimeType || '', lastModified: lm });
+        },
+        head: async n => {
+          const r = await D.fetch(api + '/' + fid + '?alt=media&supportsAllDrives=true', { headers: { Range: 'bytes=0-' + (n - 1) } });
+          return r.text();
+        },
+        createWritable: async () => {
+          const parts = [];
+          return {
+            write: async d => { parts.push(d && d.data !== undefined ? d.data : d); },
+            close: async () => {
+              const ext = (f.name.split('.').pop() || '').toLowerCase();
+              const type = D.MIME[ext] || f.mimeType || 'application/octet-stream';
+              await D.fetch(up + '/' + fid + '?uploadType=media&supportsAllDrives=true',
+                { method: 'PATCH', headers: { 'Content-Type': type }, body: new Blob(parts, { type }) });
+              kids = null;
+            }
+          };
+        } };
+    };
+    return { kind: 'directory', name, drive: true,
+      queryPermission: async () => D.valid() ? 'granted' : 'prompt',
+      requestPermission: async () => { try { await D.signIn(); return 'granted'; } catch (e) { return 'denied'; } },
+      async *entries() { for (const f of await list()) yield [f.name, node(f)]; },
+      async getDirectoryHandle(n) { const f = (await list()).find(x => x.name === n && isDir(x)); if (!f) throw D.notFound(); return node(f); } };
+  }
+};
