@@ -31,7 +31,7 @@ class H(SimpleHTTPRequestHandler):
     def _api(self, method):
         n = int(self.headers.get('Content-Length') or 0)
         body = self.rfile.read(n) if n else b''
-        code, ctype, out = share.app(method, urllib.parse.urlsplit(self.path).query, body)
+        code, ctype, out = share.route(method, urllib.parse.urlsplit(self.path).query, body)
         self.send_response(code)
         for k, v in share.CORS.items():
             self.send_header(k, v)

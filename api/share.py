@@ -284,7 +284,8 @@ def logs_of(raw):
     return out
 
 
-def app(method, query, body):
+# Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
+def route(method, query, body):
     """(method, {query}, bytes) -> (status, content-type, bytes)"""
     q = {k: v[0] for k, v in urllib.parse.parse_qs(query).items()}
     op = q.get('op', '')
@@ -394,7 +395,7 @@ class handler(BaseHTTPRequestHandler):
     def _go(self, method):
         n = int(self.headers.get('Content-Length') or 0)
         body = self.rfile.read(n) if n else b''
-        code, ctype, out = app(method, urllib.parse.urlsplit(self.path).query, body)
+        code, ctype, out = route(method, urllib.parse.urlsplit(self.path).query, body)
         self.send_response(code)
         for k2, v in CORS.items():
             self.send_header(k2, v)
