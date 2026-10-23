@@ -312,8 +312,9 @@ def route(method, query, body):
             # of anything secret
             return ok({'env': os.environ.get('VERCEL_ENV', ''), 'commit': os.environ.get('VERCEL_GIT_COMMIT_SHA', '')[:7],
                        'url': os.environ.get('VERCEL_URL', ''), 'project': os.environ.get('VERCEL_PROJECT_PRODUCTION_URL', ''),
-                       'store_vars': sorted(k for k in os.environ if any(w in k for w in ('KV', 'REDIS', 'UPSTASH'))),
-                       'var_count': len(os.environ)})
+                       'store_vars': sorted(k for k in os.environ if any(w in k.upper() for w in ('KV', 'REDIS', 'UPSTASH'))),
+                       'var_count': len(os.environ),
+                       'other_names': sorted(k for k in os.environ if not k.startswith(('VERCEL', 'AWS_', 'LAMBDA_', '_', 'LD_', 'PYTHON', 'LANG', 'PATH', 'TZ', 'HOME', 'PWD', 'SHLVL', 'NOW_')))})
         s = store()
         if method == 'POST' and op == 'create':
             d = json.loads(body or b'{}')
