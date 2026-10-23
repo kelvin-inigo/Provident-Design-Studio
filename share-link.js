@@ -597,7 +597,7 @@
   // The shared state is { kind:'adsets', root, projs:[{id, path, fname, app, v, st, photos:[slot],
   // files:[{id, path}]}] }; the store's picture map holds 'p<n>-<slot>' (a photo's record) and
   // 'f<n>' (a preview, {u: jpeg data URL}).
-  const ADSETS = 'provident-ad-sets', AS_KEY = 'provident-share:adsets', PREV = 1600;
+  const ADSETS = 'provident-ad-sets', AS_KEY = 'provident-share:adsets', PREV = 1600, PHOTO = 2000;
   function goCas(id) {
     const ws = window.providentWorkspace;
     StudioBase.reloading = true;
@@ -613,6 +613,24 @@
     x.imageSmoothingQuality = 'high'; x.drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
     const out = await new Promise(r => c.toBlob(r, 'image/jpeg', .86));
     return { u: await readUrl(out) };
+  }
+  // SPEED: a project's photos are stored at export grade (up to 3840px, 3-5 MB each), which is
+  // nearly all of what a link uploads. The shared view only ever draws them into 1600px previews,
+  // so a raster photo goes up at PHOTO px as WebP (alpha kept, so a cut-out stays a cut-out).
+  // Its crop is relative, so the smaller copy frames the same way. An SVG and a photo already
+  // small enough go as they are.
+  async function slim(rec) {
+    if (!rec || !rec.u || !/^data:image\/(png|jpe?g|webp)/i.test(rec.u)) return rec;
+    let bmp;
+    try { bmp = await createImageBitmap(await (await fetch(rec.u)).blob()); } catch (e) { return rec; }
+    const k = Math.min(1, PHOTO / Math.max(bmp.width, bmp.height));
+    if (k === 1 && rec.u.length < 700000) { bmp.close && bmp.close(); return rec; }
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+    const b = await new Promise(r => c.toBlob(r, 'image/webp', .82));
+    if (!b) return rec;
+    const u = await readUrl(b);
+    return u.length < rec.u.length ? Object.assign({}, rec, { u }) : rec;
   }
   const jpgName = n => n.replace(/\.(png|jpe?g|webp)$/i, '') + '.jpg';
   const AdSets = {
@@ -650,16 +668,19 @@
         }
         const pub = JSON.parse(JSON.stringify(data));
         const r = await api('create', {}, { app: ADSETS, name: data.root, by: name, state: pub });
-        const map = {}, done = new Set(), jobs = [];
+        // Every picture is slimmed first and keyed by its content, so a photo several projects
+        // share (the same background, QR or icon) goes up ONCE even while uploads run in parallel.
+        const map = {}, ups = {}, jobs = [];
         Object.keys(recs).forEach(sl => jobs.push({ sl, rec: recs[sl] }));
         data.projs.forEach(pp => pp.files.forEach(f => jobs.push({ sl: f.id, h: hs[f.id] })));
-        let k = 0;
-        await pool(jobs, 3, async j => {
-          const rec = j.rec || await shrink(await j.h.getFile());
+        let k = 0, sent = 0;
+        const say = () => dlg.busy('Uploading · ' + k + ' of ' + jobs.length + (sent ? ' · ' + (sent / 1048576).toFixed(1) + ' MB' : '') + '…');
+        await pool(jobs, 6, async j => {
+          const rec = j.rec ? await slim(j.rec) : await shrink(await j.h.getFile());
           const txt = JSON.stringify(rec), h = fnv(txt);
-          map[j.sl] = done.has(h) ? { h, n: Math.max(1, Math.ceil(txt.length / PART)) } : await putRec(r.id, j.sl, rec);
-          done.add(h);
-          dlg.busy('Uploading · ' + (++k) + ' of ' + jobs.length + '…');
+          if (!ups[h]) { ups[h] = putRec(r.id, j.sl, rec); sent += txt.length; }
+          map[j.sl] = await ups[h];
+          k++; say();
         });
         await api('save', { id: r.id }, { base: r.rev, state: pub, by: name, imgs: map });
         const link = StudioBase.shareBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + r.id;

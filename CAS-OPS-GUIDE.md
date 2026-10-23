@@ -186,7 +186,7 @@ Things to know:
 
 **In CAS, share the Ad sets view.** In the Ad sets window, open a folder of exported ads and press
 **Share**. The link carries every audience and variant in the folder, each project's
-words and photos, and a preview of each image (about 1600px — not the full-size files). Whoever
+words and photos, and a preview of each image (about 1600px — not the full-size files). To keep the upload quick, the photos go up at a smaller size too (2000px), which is still more than the previews use. Whoever
 opens it gets the same viewer: they can look through every audience, download the previews, and
 change the words in **Edit text**, which re-draws that project's previews for everyone. The
 **Changes** panel names who changed which audience's words. Your own folder is never changed by

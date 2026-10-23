@@ -16066,6 +16066,11 @@ Admin setup (connect Upstash Redis to the Vercel project once): `docs/share-link
   `#share=` of that app in OPS hands over to CAS (`goCas`). Panel over `.as-ov` via `html.shl-as`.
   Verified on the dev server: share, join as a second name, an Edit text change logged, the
   preview re-rendered and the other tab's tile updated.
+  **Upload speed (2026-10-23):** nearly all of a link is the projects' photos at export grade
+  (up to 3840px, 3-5 MB each; the first real link was ~170 parts for 46 photos). `slim()` sends a
+  raster photo at `PHOTO` 2000px as WebP .82 (alpha kept), and uploads are keyed by content hash
+  with a shared promise, so a photo several projects share goes up once even at 6 in parallel.
+  Measured on a 2-project fixture with 8.4 MB photos: 35.3 MB / 46 requests -> 5.1 MB / 12.
 - Vercel's Python runtime treats a module-level `app` as WSGI: the dispatcher is `route()`. The
   store's variables are found by suffix too (`STORAGE_KV_REST_API_URL`), and a not-connected
   answer names the store variables the deployment sees.
