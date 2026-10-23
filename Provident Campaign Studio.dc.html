@@ -171,6 +171,10 @@ input[type=range]::-moz-range-progress{height:4px;border-radius:var(--ps-pill);b
 .modwrap{position:relative}
 .modwrap .modhandle{opacity:0;transition:opacity .12s}
 .modwrap:hover .modhandle{opacity:1}
+.modwrap[data-mid]{cursor:grab}
+.modwrap[data-dragging]{opacity:.4}
+body.p-moddrag,body.p-moddrag *{cursor:grabbing!important;user-select:none!important}
+.p-moddrop{position:fixed;z-index:400;height:3px;border-radius:2px;background:var(--ps-link);box-shadow:0 0 0 1px var(--ps-app);pointer-events:none;display:none}
 .tip{cursor:help}
 
 /* ── shell ── */
@@ -5565,8 +5569,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
     <div class="p-selctl" data-selctl="1">
       <sc-if value="{{ turnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ turnToggle }}" class="sc-turn" data-on="{{ turnOpenOn }}" aria-haspopup="menu" aria-expanded="{{ turnAria }}" title="Turn this component into another kind, keeping its words"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m214.92-336.54 92.31 92.31q8.31 8.31 8.5 20.58.19 12.26-8.5 21.57-9.31 9.31-21.38 9.31-12.08 0-21.39-9.31L125.31-341.23q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l139.77-139.77q8.92-8.92 20.88-8.8 11.96.11 21.27 9.42 8.69 9.31 9 21.08.31 11.77-9 21.07l-92.31 92.31h261.23q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.39q-8.62 8.61-21.39 8.61H214.92Zm530.16-227.31H483.85q-12.77 0-21.39-8.61-8.61-8.62-8.61-21.39 0-12.76 8.61-21.38 8.62-8.61 21.39-8.61h261.23l-92.31-92.31q-8.31-8.31-8.5-20.58-.19-12.27 8.5-21.58 9.31-9.3 21.38-9.3 12.08 0 21.39 9.3l139.15 139.16q5.62 5.61 7.92 11.84 2.31 6.23 2.31 13.46 0 7.24-2.31 13.47-2.3 6.23-7.92 11.84L694.92-428.77q-8.92 8.92-20.88 8.81-11.96-.12-21.27-9.42-8.69-9.31-9-21.08-.31-11.77 9-21.08l92.31-92.31Z"/></svg><span>{{ turnName }}</span><svg class="mk-g sc-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></button><i></i></sc-if>
-      <button onClick="{{ selUp }}" title="Move up" aria-label="Move up"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-665.08 243.23-458.31q-8.92 8.92-20.88 8.81-11.96-.12-21.27-9.42-8.69-9.31-9-21.08-.31-11.77 9-21.08l253.61-253.61q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l253.61 253.61q8.31 8.31 8.5 20.58.19 12.27-8.5 21.58-9.31 9.3-21.38 9.3-12.08 0-21.39-9.3L510-665.08V-210q0 12.77-8.62 21.38Q492.77-180 480-180t-21.38-8.62Q450-197.23 450-210v-455.08Z"/></svg></button>
-      <button onClick="{{ selDown }}" title="Move down" aria-label="Move down"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-294.92V-750q0-12.77 8.62-21.38Q467.23-780 480-780t21.38 8.62Q510-762.77 510-750v455.08l206.77-206.77q8.92-8.92 20.88-8.81 11.96.12 21.27 9.42 8.69 9.31 9 21.08.31 11.77-9 21.08L505.31-205.31q-5.62 5.62-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31q-6.23-2.3-11.85-7.92L201.08-458.92q-8.31-8.31-8.5-20.58-.19-12.27 8.5-21.58 9.31-9.3 21.38-9.3 12.08 0 21.39 9.3L450-294.92Z"/></svg></button>
+      <button onClick="{{ selUp }}" title="Move up — or drag the component on the canvas" aria-label="Move up"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-665.08 243.23-458.31q-8.92 8.92-20.88 8.81-11.96-.12-21.27-9.42-8.69-9.31-9-21.08-.31-11.77 9-21.08l253.61-253.61q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l253.61 253.61q8.31 8.31 8.5 20.58.19 12.27-8.5 21.58-9.31 9.3-21.38 9.3-12.08 0-21.39-9.3L510-665.08V-210q0 12.77-8.62 21.38Q492.77-180 480-180t-21.38-8.62Q450-197.23 450-210v-455.08Z"/></svg></button>
+      <button onClick="{{ selDown }}" title="Move down — or drag the component on the canvas" aria-label="Move down"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-294.92V-750q0-12.77 8.62-21.38Q467.23-780 480-780t21.38 8.62Q510-762.77 510-750v455.08l206.77-206.77q8.92-8.92 20.88-8.81 11.96.12 21.27 9.42 8.69 9.31 9 21.08.31 11.77-9 21.08L505.31-205.31q-5.62 5.62-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31q-6.23-2.3-11.85-7.92L201.08-458.92q-8.31-8.31-8.5-20.58-.19-12.27 8.5-21.58 9.31-9.3 21.38-9.3 12.08 0 21.39 9.3L450-294.92Z"/></svg></button>
       <i></i>
       <button onClick="{{ selToTop }}" data-on="{{ selTopOn }}" title="Move into the top part of the ad"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-760q-12.77 0-21.38-8.62Q180-777.23 180-790t8.62-21.38Q197.23-820 210-820h540q12.77 0 21.38 8.62Q780-802.77 780-790t-8.62 21.38Q762.77-760 750-760H210Zm248.62 611.38Q450-157.23 450-170v-381.85l-92.92 92.93q-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69-8.69-8.7-8.5-21.27.2-12.58 8.5-20.89l139.77-139.77q5.62-5.61 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.31 11.85 7.92l139.77 139.77q8.69 8.7 8.69 21.08 0 12.38-8.69 21.08-8.7 8.69-21.27 8.5-12.58-.2-20.89-8.5L510-551.85V-170q0 12.77-8.62 21.38Q492.77-140 480-140t-21.38-8.62Z"/></svg><span>Top</span></button>
       <button onClick="{{ selToBottom }}" data-on="{{ selBottomOn }}" title="Move into the bottom part of the ad"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M210-140q-12.77 0-21.38-8.62Q180-157.23 180-170t8.62-21.38Q197.23-200 210-200h540q12.77 0 21.38 8.62Q780-182.77 780-170t-8.62 21.38Q762.77-140 750-140H210Zm256.54-171.23q-6.23-2.31-11.85-7.92L314.92-458.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L450-408.15V-790q0-12.77 8.62-21.38Q467.23-820 480-820t21.38 8.62Q510-802.77 510-790v381.85l92.92-92.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-319.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg><span>Bottom</span></button>
@@ -5715,7 +5719,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.sq.logoStyle }}"><span>provident.</span><sc-if value="{{ v.sq.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.sq.coRuleStyle }}"></span><span style="{{ v.sq.coInkStyle }}" data-icon-tint="{{ v.sq.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.sq.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.sq.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.sq.stackStyle }}">
             <sc-for list="{{ v.sq.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -5750,7 +5754,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.pt.logoStyle }}"><span>provident.</span><sc-if value="{{ v.pt.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.pt.coRuleStyle }}"></span><span style="{{ v.pt.coInkStyle }}" data-icon-tint="{{ v.pt.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.pt.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.pt.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.pt.stackStyle }}">
             <sc-for list="{{ v.pt.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -5787,7 +5791,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.pf.logoStyle }}"><span>provident.</span><sc-if value="{{ v.pf.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.pf.coRuleStyle }}"></span><span style="{{ v.pf.coInkStyle }}" data-icon-tint="{{ v.pf.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.pf.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.pf.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.pf.stackStyle }}">
             <sc-for list="{{ v.pf.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -5823,7 +5827,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.st.logoStyle }}"><span>provident.</span><sc-if value="{{ v.st.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.st.coRuleStyle }}"></span><span style="{{ v.st.coInkStyle }}" data-icon-tint="{{ v.st.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.st.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.st.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.st.stackStyle }}">
             <sc-for list="{{ v.st.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -5859,7 +5863,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.ls.logoStyle }}"><span>provident.</span><sc-if value="{{ v.ls.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.ls.coRuleStyle }}"></span><span style="{{ v.ls.coInkStyle }}" data-icon-tint="{{ v.ls.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.ls.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.ls.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.ls.stackStyle }}">
             <sc-for list="{{ v.ls.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -5895,7 +5899,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.bn.logoStyle }}"><span>provident.</span><sc-if value="{{ v.bn.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.bn.coRuleStyle }}"></span><span style="{{ v.bn.coInkStyle }}" data-icon-tint="{{ v.bn.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.bn.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.bn.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.bn.stackStyle }}">
             <sc-for list="{{ v.bn.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -5927,7 +5931,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div style="{{ v.bs.logoStyle }}"><span>provident.</span><sc-if value="{{ v.bs.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.bs.coRuleStyle }}"></span><span style="{{ v.bs.coInkStyle }}" data-icon-tint="{{ v.bs.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.bs.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.bs.coPaintStyle }}"></i></span></sc-if></div>
           <div style="{{ v.bs.stackStyle }}">
             <sc-for list="{{ v.bs.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}">
+              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
@@ -11486,6 +11490,30 @@ class CampaignStudio extends StudioBase {
       t.ord = read;
     }));
   }
+  // MOVE A COMPONENT ON ONE CANVAS — the design view's drag. Unlike copyMove it writes ONE
+  // record: the one that canvas reads (the variant, or its detached size's own), which is
+  // what the floating control's arrows and Top / Bottom write too. `tid` is the component
+  // dropped beside, and the moved one takes its cluster; with no `tid` the drop was into an
+  // EMPTY cluster (`cl`), so it opens the top or closes the bottom.
+  static canvasMove(x, vi, size, id, tid, after, cl) {
+    if (!id || id === tid) return;
+    const vv = x.variants[vi] || x.variants[0];
+    const t = CampaignStudio.sizeOv(vv, size) || vv;
+    t.clusters = t.clusters || {};
+    const cOf = m => t.clusters[m] || 'bottom';
+    const full = CampaignStudio.orderedFor(t, CampaignStudio.modulesFor(x, vi)).map(m => m.id);
+    const read = full.filter(m => cOf(m) === 'top').concat(full.filter(m => cOf(m) !== 'top'));
+    const from = read.indexOf(id);
+    if (from < 0) return;
+    read.splice(from, 1);
+    if (tid && read.indexOf(tid) >= 0) {
+      read.splice(read.indexOf(tid) + (after ? 1 : 0), 0, id);
+      t.clusters[id] = cOf(tid);
+    } else if (cl === 'top') { read.unshift(id); t.clusters[id] = 'top'; }
+    else if (cl === 'bottom') { read.push(id); t.clusters[id] = 'bottom'; }
+    else return;
+    t.ord = read;
+  }
   // "Headline", or "Headline 2" when a page carries two — so a changelog line is never
   // ambiguous about which one moved.
   static copyLabels(mods) {
@@ -12974,7 +13002,7 @@ class CampaignStudio extends StudioBase {
             })()
           })),
           select: e => { e.stopPropagation(); this.upd(x => { x.sel = { vi, size: sizeKey, id: m.id }; x.activeVi = vi; return x; }); },
-          wrapStyle: { pointerEvents: 'auto', cursor: 'pointer', outline: seld ? '2px dashed var(--ps-focus)' : '2px dashed transparent', outlineOffset: '3px', maxWidth: '100%', zIndex: m.type === 'hero' ? undefined : 2, alignSelf: (m.type === 'divider' || m.type === 'spec' || m.type === 'spacer' || m.type === 'steps' || m.type === 'list' || (m.type === 'body' && mv === 'ruled')) ? 'stretch' : (isNote ? 'flex-end' : undefined), padding: m.type === 'divider' ? '0.9cqw 0' : undefined, margin: m.type === 'divider' ? '-0.9cqw 0' : undefined },
+          wrapStyle: { pointerEvents: 'auto', cursor: isFl(m) ? 'pointer' : 'grab', outline: seld ? '2px dashed var(--ps-focus)' : '2px dashed transparent', outlineOffset: '3px', maxWidth: '100%', zIndex: m.type === 'hero' ? undefined : 2, alignSelf: (m.type === 'divider' || m.type === 'spec' || m.type === 'spacer' || m.type === 'steps' || m.type === 'list' || (m.type === 'body' && mv === 'ruled')) ? 'stretch' : (isNote ? 'flex-end' : undefined), padding: m.type === 'divider' ? '0.9cqw 0' : undefined, margin: m.type === 'divider' ? '-0.9cqw 0' : undefined },
           // A DIVIDER'S HIT AREA TAKES NO LAYOUT. Its wrap is padded so a 1px line can be
           // clicked, and that padding used to push the stack 19 canvas px taller than the op
           // lays it out; equal negative margins cancel it. `stamp` reads this when it adds the gap.
@@ -13666,6 +13694,86 @@ class CampaignStudio extends StudioBase {
         // to protect itself, and a key added between the last `else if` and its `else`
         // re-binds that else to the new test.
         if (view.prows && view.prows.length) view.prows.forEach(r => { if (!r.pairStyle) r.pairStyle = { display: 'contents' }; });
+        // DRAG TO REORDER, beside the floating control's arrows. The whole component is the
+        // handle: a press that travels 5px is a drag, anything shorter is still the click
+        // that selects it. The line under the pointer decides the drop — which half of it
+        // says before or after — and the moved component takes that neighbour's cluster, so a
+        // drag can carry it from the bottom of the ad to the top. One undo entry, on release,
+        // into the record THIS canvas reads (the variant, or a detached size's own), exactly
+        // as the arrows write. Pointer events, never native DnD (see the slide-reorder rule).
+        // A floating graphic is placed by its own drag, and a spacer's grip resizes it; both
+        // stop the event before it gets here.
+        if (!isFl(m)) {
+          view.dragId = m.id;
+          view.dragCl = clusterOf(m.id);
+          view.reorder = e => {
+            if (e.button !== 0 || e.pointerType === 'touch') return;
+            if (e.target.closest && e.target.closest('[data-gdir], input, textarea, button')) return;
+            const wrap = e.currentTarget, canvas = wrap.closest('[data-cwpx]');
+            if (!canvas) return;
+            const sx = e.clientX, sy = e.clientY, id = m.id, pid = e.pointerId;
+            let on = false, drop = null, line = null;
+            const pick = y => {
+              const ws = Array.from(canvas.querySelectorAll('.modwrap[data-mid]')).filter(w => w !== wrap);
+              const cr = canvas.getBoundingClientRect();
+              const has = c => ws.some(w => w.getAttribute('data-cl') === c);
+              // an EMPTY cluster can still be reached: the top or bottom third of the canvas
+              if (!has('top') && y < cr.top + cr.height * .34) return { cl: 'top', y: cr.top + cr.height * .1, x: cr.left, w: cr.width };
+              if (!has('bottom') && y > cr.bottom - cr.height * .34) return { cl: 'bottom', y: cr.bottom - cr.height * .1, x: cr.left, w: cr.width };
+              let best = null, bd = Infinity;
+              ws.forEach(w => {
+                const r = w.getBoundingClientRect();
+                const d = y < r.top ? r.top - y : (y > r.bottom ? y - r.bottom : 0);
+                if (d < bd) { bd = d; best = { w, r }; }
+              });
+              if (!best) return null;
+              const after = y > best.r.top + best.r.height / 2;
+              return { tid: best.w.getAttribute('data-mid'), after, y: after ? best.r.bottom + 4 : best.r.top - 4, x: Math.min(best.r.left, cr.left + cr.width * .08), w: Math.max(best.r.width, cr.width * .84) };
+            };
+            const mvFn = ev => {
+              if (ev.pointerId !== pid) return;
+              if (!on) {
+                if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+                on = true;
+                wrap.setAttribute('data-dragging', '1');
+                document.body.classList.add('p-moddrag');
+                line = document.createElement('div');
+                line.className = 'p-moddrop';
+                document.body.appendChild(line);
+              }
+              ev.preventDefault();
+              drop = pick(ev.clientY);
+              if (drop) Object.assign(line.style, { display: 'block', left: drop.x + 'px', top: (drop.y - 1.5) + 'px', width: drop.w + 'px' });
+              else line.style.display = 'none';
+            };
+            const end = commit => {
+              document.removeEventListener('pointermove', mvFn);
+              document.removeEventListener('pointerup', upFn);
+              document.removeEventListener('pointercancel', cancelFn);
+              document.removeEventListener('keydown', keyFn, true);
+              if (!on) return;
+              wrap.removeAttribute('data-dragging');
+              document.body.classList.remove('p-moddrag');
+              if (line) line.remove();
+              // the release fires a click on the canvas; it must not clear the selection
+              const swallow = ce => { ce.stopPropagation(); ce.preventDefault(); };
+              document.addEventListener('click', swallow, { capture: true, once: true });
+              setTimeout(() => document.removeEventListener('click', swallow, true), 0);
+              if (commit && drop) this.upd(x => {
+                CampaignStudio.canvasMove(x, vi, sizeKey, id, drop.tid, drop.after, drop.cl);
+                x.sel = { vi, size: sizeKey, id }; x.activeVi = vi;
+                return x;
+              });
+            };
+            const upFn = ev => { if (ev.pointerId === pid) end(true); };
+            const cancelFn = ev => { if (ev.pointerId === pid) end(false); };
+            const keyFn = ev => { if (ev.key === 'Escape' && on) { ev.stopPropagation(); end(false); } };
+            document.addEventListener('pointermove', mvFn);
+            document.addEventListener('pointerup', upFn);
+            document.addEventListener('pointercancel', cancelFn);
+            document.addEventListener('keydown', keyFn, true);
+          };
+        }
         return view;
       };
       const ordered = CampaignStudio.orderedFor(eff, plist);

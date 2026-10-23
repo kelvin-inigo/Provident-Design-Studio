@@ -15974,3 +15974,27 @@ values or a new template, and the carousel's own reads are unchanged.
   Week / Month / Quarter / Year", still ONE line (measured 619–722 of an 810 column at 66.5), and
   the solo card draws NO hairline under its wordmark. The numeral still hangs off `ruleY`, so it
   does not move; the carousel's rank cards keep their rule.
+
+# CAS COMPONENTS DRAG TO REORDER ON THE CANVAS (2026-10-23)
+
+By request, beside the floating control's ↑ / ↓ arrows. A press on a component that travels
+5px is a drag (shorter is still the selecting click); a link-coloured line (`.p-moddrop`, fixed,
+pointer-events none) marks the drop. **The line under the pointer decides it** — its top or
+bottom half says before or after — and the moved component takes that neighbour's cluster, so a
+drag can carry it from the bottom of the ad to the top. An EMPTY cluster is reached through the
+canvas's top or bottom third. Release commits ONE undo entry through
+`CampaignStudio.canvasMove(x, vi, size, id, tid, after, cl)`, which writes the record THAT
+canvas reads (the variant, or a detached size's own) — the record the arrows and Top / Bottom
+write — and selects the moved component. Escape or pointercancel aborts; the release's click
+is swallowed so it cannot clear the selection.
+
+- `view.reorder` / `dragId` / `dragCl` are set in `mk` after the type chain, on every
+  non-floating component; the modwrap carries `data-mid` / `data-cl` / `onPointerDown`. A
+  floating graphic's own move and a spacer's resize grip stop the event first.
+- Pointer events, mouse and pen only — a finger keeps scrolling the stage.
+- **Testing trap:** under `resize_window` emulation the pane's screenshot coordinates do not map
+  onto the page (the drag landed on `.p-plate`); with the desktop preset the frame is a clean
+  1.28x of the 1024px viewport. Log the pointer events before trusting a drag test.
+
+Verified with real drags: the CTA moved between eyebrow and headline; the headline into the
+empty top cluster; a plain click still selects; Escape leaves the order untouched.
