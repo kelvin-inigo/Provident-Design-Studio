@@ -16053,8 +16053,58 @@ Admin setup (connect Upstash Redis to the Vercel project once): `docs/share-link
   guided screen, the Copy view, the panel bar and the sheets); it hides on the splash and picker.
 - **Limits, stated to the user:** no sign-in (the link is the key); the same field edited by two
   people at once goes to whoever saved last; undo is local.
+- **CAS shares the Ad sets VIEW** (2026-10-23, by request; OPS keeps the project link). **Share
+  these ad sets** in the Ad sets bar (`asShareOn`) calls `window.providentAdSetsShare.create(shell)`
+  (share-link.js): app `provident-ad-sets`, state `{kind:'adsets', root, projs:[{id:'p<n>', path,
+  fname, app, v, st, photos:[slot], files:[{id:'f<n>', path}]}]}`, store pictures `p<n>-<slot>`
+  (the photo record) and `f<n>` (a 1600px JPEG preview `{u}`). The opener's view is a STAND-IN
+  FOLDER (`AsShare.build`, the gdDir shape) handed to `shell.asView({kind:'share', share})`, so
+  asScan, Edit text and Download all run unchanged. Its json `getFile` is the state only;
+  **`getFull`** fetches the photos (aeSync prefers it). A json write diffs `copyFlat` words per
+  project into the log ("Family · Ad copy · Heading"); an image write is shrunk and uploaded; one
+  save 1.5s after the last write, merge3 on a 409. A pull rescans unless someone is mid-edit.
+  `#share=` of that app in OPS hands over to CAS (`goCas`). Panel over `.as-ov` via `html.shl-as`.
+  Verified on the dev server: share, join as a second name, an Edit text change logged, the
+  preview re-rendered and the other tab's tile updated.
+- Vercel's Python runtime treats a module-level `app` as WSGI: the dispatcher is `route()`. The
+  store's variables are found by suffix too (`STORAGE_KV_REST_API_URL`), and a not-connected
+  answer names the store variables the deployment sees.
 - Verified on the dev server with two tabs in both studios: create, open with a name, real typing
   syncing, a concurrent edit on a stale base merged (both kept, rev 4 to 6), a replaced photo
   arriving byte-correct and not re-uploaded, a CAS link opened from an OPS tab handing over, and
   the panel at 0 contrast failures in both themes. **Not exercised against real Upstash or Vercel.**
 
+
+# THE PHOTO STORE IS READ ONCE, AND PHOTOS DECODE ONCE (2026-10-23)
+
+Profiled in headless Chrome with a CPU profiler and real-size photos (~3.5 MB each). Every
+photo a project holds lives in ONE json string (`.image-slots.state.json`, 61 MB for a
+17-photo weekly), and the studios read it with `fetch()` + `r.json()` wherever they needed a
+picture — which rebuilt the whole string as a Response, parsed it, and decoded every photo
+again. OPS's guided run did that on EVERY keystroke (its card refresh calls `loadAssets`):
+~130 ms of main-thread work per key at 15 properties.
+
+- **`StudioBase.sidecar()` is the one read** (all 17 sites in both studios and
+  studio-base.js). It calls `window.providentSidecar()` (runtime.js §5), which keeps the
+  parsed store and re-parses only when `omelette.writeFile` has bumped `storeRev`. It
+  returns a SHALLOW copy: add or delete slots before a write, never edit a record in place.
+  Design Cursor (omelette) mode falls back to the plain fetch. **Never add a new
+  `fetch('.image-slots.state.json')`.**
+- **`StudioBase.img(u)` decodes a photo once** (a Map, LRU at `IMG_MAX` 48 — never an object
+  keyed by a data URL, which interns the string forever, as CAS's `_vtImgs` did). Every
+  `loadAssets` `loadImg` and CAS's `_vtImg` read it. Never set anything on the Image it returns.
+- **Both rAF ticks run their page-wide scans every 200 ms, not every frame** (promoteImgs,
+  autoGrow — which forced a layout each frame — icon tints, the partner mark, rtSync, the
+  cut-out probe). The shell's `componentDidUpdate` already runs promoteImgs/autoGrow and sets
+  `eng._scanNow`, so the next frame catches up at once. Per frame still: CAS's floating
+  component control, and the overlap layer while a reframe is active (`_reframing`).
+
+Measured before → after, same scenarios: OPS guided typing at 15 properties 1,905 → 560 ms of
+work for 14 keys (what is left is the one changed card's WebP encode, ~25 ms); OPS idle tick
+~19 → ~2 ms a second; CAS 3 variants × 7 sizes, keystroke-to-frame 70 ms spikes → ≤19 ms;
+replacing one photo with 17 in the store 703 → 464 ms; reopening that project 1,220 → 957 ms.
+Verified: a replaced photo reaches the guided card and the export; the partner-mark tint paints.
+
+**Still open:** the image-slot save re-stringifies the whole store and writes it to IndexedDB
+on every photo change (one record per slot would fix it, but changes the storage format); the
+guided card's WebP encode is synchronous (`toBlob` would move it off the main thread).

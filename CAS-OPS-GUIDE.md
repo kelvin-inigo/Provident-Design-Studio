@@ -176,6 +176,15 @@ Things to know:
   this link on this tab** at the foot of the panel, stops it there. To rejoin, open the link again.
 - Saving, exporting and the Source folder are still each person's own.
 
+**In CAS, share the Ad sets view.** In the Ad sets window, open a folder of exported ads and press
+**Share these ad sets**. The link carries every audience and variant in the folder, each project's
+words and photos, and a preview of each image (about 1600px — not the full-size files). Whoever
+opens it gets the same viewer: they can look through every audience, download the previews, and
+change the words in **Edit text**, which re-draws that project's previews for everyone. The
+**Changes** panel names who changed which audience's words. Your own folder is never changed by
+edits on the link. Once shared, the button reads **Copy link**. An ad sets link opened in OPS
+moves to CAS.
+
 ---
 
 ## 3. CAS: build an ad

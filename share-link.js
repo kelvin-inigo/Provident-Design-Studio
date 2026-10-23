@@ -256,6 +256,8 @@
     }
     const b = ssGet(this.shKey());
     if (b && b.id && b.pid && b.pid === this.state.pid) this.shareStart();
+    const ab = ssGet(AS_KEY);
+    if (ab && ab.id && this.shApp() === 'provident-ad-studio') setTimeout(() => AdSets.resume(this.host, ab.id), 0);
     return false;
   };
   SP.shareOpenLink = async function (id) {
@@ -264,6 +266,10 @@
     try { d = await api('get', { id }); }
     catch (e) { dlg.fail(e.message, 'Close'); return; }
     const meta = d.meta || {};
+    if (meta.app === ADSETS) {
+      if (this.shApp() !== 'provident-ad-studio') { dlg.close(); goCas(id); return; }
+      dlg.close(); AdSets.join(this.host, id, d); return;
+    }
     const T = StudioBase.SESSIONS, spec = T[meta.app];
     if (!spec || !d.state) { dlg.fail('This link does not hold a studio project.', 'Close'); return; }
     dlg.ready({
@@ -580,6 +586,315 @@
     };
   };
 
+  // ---------- shared AD SETS (CAS) ----------
+  // CAS shares the Ad sets VIEW rather than one project: every project in the folder (its words
+  // and its photos, so Edit text can re-render) and a ~1600px JPEG preview of each exported
+  // image. Whoever opens the link gets the same viewer, built on a stand-in folder (the shape
+  // Drive and dropped folders already use), so the scan, Edit text and Download all run as
+  // they do on any folder. An edit writes the project and the re-rendered previews back to the
+  // link; the Changes panel says who changed what. The link never touches anyone's own folder.
+  //
+  // The shared state is { kind:'adsets', root, projs:[{id, path, fname, app, v, st, photos:[slot],
+  // files:[{id, path}]}] }; the store's picture map holds 'p<n>-<slot>' (a photo's record) and
+  // 'f<n>' (a preview, {u: jpeg data URL}).
+  const ADSETS = 'provident-ad-sets', AS_KEY = 'provident-share:adsets', PREV = 1600;
+  function goCas(id) {
+    const ws = window.providentWorkspace;
+    StudioBase.reloading = true;
+    location.href = encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + (ws ? '?ws=' + encodeURIComponent(ws) : '') + '#share=' + id;
+  }
+  const toBlob = d => d instanceof Blob ? d : new Blob([d && d.buffer ? d : new Uint8Array(d || [])]);
+  const readUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+  async function shrink(blob) {
+    const bmp = await createImageBitmap(blob);
+    const k = Math.min(1, PREV / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    x.imageSmoothingQuality = 'high'; x.drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+    const out = await new Promise(r => c.toBlob(r, 'image/jpeg', .86));
+    return { u: await readUrl(out) };
+  }
+  const jpgName = n => n.replace(/\.(png|jpe?g|webp)$/i, '') + '.jpg';
+  const AdSets = {
+    cur: null,
+    // ---- making a link, from the Ad sets bar ----
+    async create(shell) {
+      if (this.cur && shell._asSrc && shell._asSrc.share === this.cur) { this.cur.copy(); return; }
+      const a = shell._as;
+      const projs = [], seen = new Set();
+      (a && a.mains || []).forEach(m => m.auds.forEach(au => (au.projs || []).forEach(p => { if (!seen.has(p)) { seen.add(p); projs.push(p); } })));
+      if (!projs.length) { window.alert('There are no ad sets in this folder to share yet.'); return; }
+      const dlg = nameDialog({ title: 'Share these ad sets', btn: 'Make the link',
+        lead: 'Anyone with the link can see every audience and variant here and change the words in Edit text, and the Changes panel shows who changed what. ' +
+          'The link carries previews of the images (about 1600px), not the full-size files. There is no sign-in — share it only with people who should edit.',
+        note: 'Your name is shown beside every change you make.' });
+      const name = await dlg.name();
+      if (!name) return;
+      lsSet(NAME_KEY, name);
+      try {
+        dlg.busy('Reading the projects…');
+        const data = { kind: 'adsets', root: a.root || 'Ad sets', projs: [] }, recs = {}, hs = {};
+        let fi = 0;
+        for (let i = 0; i < projs.length; i++) {
+          const p = projs[i], full = p.jsonH.getFull ? await p.jsonH.getFull() : await p.jsonH.getFile();
+          const doc = JSON.parse(await full.text());
+          const pid = 'p' + i, photos = [];
+          Object.keys(doc.images || {}).forEach(sl => { if (doc.images[sl] && doc.images[sl].u) { photos.push(sl); recs[pid + '-' + sl] = doc.images[sl]; } });
+          const files = [];
+          for (const o of (p.outs || [])) {
+            if (/eventbrite/.test(o.job)) continue;
+            const id = 'f' + (fi++);
+            files.push({ id, path: o.name.replace(/[^/]+$/, jpgName) }); hs[id] = o.h;
+          }
+          data.projs.push({ id: pid, path: p.path, fname: p.fname, app: doc.app || 'provident-ad-studio', v: doc.v, st: doc.state || {}, photos, files });
+        }
+        const pub = JSON.parse(JSON.stringify(data));
+        const r = await api('create', {}, { app: ADSETS, name: data.root, by: name, state: pub });
+        const map = {}, done = new Set(), jobs = [];
+        Object.keys(recs).forEach(sl => jobs.push({ sl, rec: recs[sl] }));
+        data.projs.forEach(pp => pp.files.forEach(f => jobs.push({ sl: f.id, h: hs[f.id] })));
+        let k = 0;
+        await pool(jobs, 3, async j => {
+          const rec = j.rec || await shrink(await j.h.getFile());
+          const txt = JSON.stringify(rec), h = fnv(txt);
+          map[j.sl] = done.has(h) ? { h, n: Math.max(1, Math.ceil(txt.length / PART)) } : await putRec(r.id, j.sl, rec);
+          done.add(h);
+          dlg.busy('Uploading · ' + (++k) + ' of ' + jobs.length + '…');
+        });
+        await api('save', { id: r.id }, { base: r.rev, state: pub, by: name, imgs: map });
+        const link = StudioBase.shareBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + r.id;
+        const copied = await copyText(link);
+        dlg.done(link, copied);
+        const d = await api('get', { id: r.id });
+        this.start(shell, r.id, d, true);
+      } catch (e) { dlg.fail(e.message || String(e), 'Close'); }
+    },
+    // ---- opening one ----
+    async join(shell, id, d) {
+      const meta = d.meta || {}, n = ((d.state || {}).projs || []).length;
+      const dlg = nameDialog({ title: 'Open shared ad sets', btn: 'Open',
+        lead: '<b>' + esc(meta.name || 'Ad sets') + '</b> · shared by ' + esc(meta.by || 'someone') + ' · ' + n + (n === 1 ? ' project' : ' projects') +
+          '. You can look through every audience and variant and change the words in Edit text; the Changes panel shows who changed what.',
+        note: 'Your name is shown beside every change you make.' });
+      const name = await dlg.name();
+      if (!name) return;
+      lsSet(NAME_KEY, name);
+      dlg.close();
+      this.start(shell, id, d, false);
+    },
+    async resume(shell, id) {
+      try { this.start(shell, id, await api('get', { id }), false); }
+      catch (e) { ssSet(AS_KEY, null); }
+    },
+    start(shell, id, d, open) {
+      if (this.cur) this.cur.stop(true);
+      const c = this.cur = new AsShare(shell, id, d);
+      ssSet(AS_KEY, { id });
+      c.view();
+      if (open || lsGet('provident-share-open') === '1') c.shPanel(true);
+    }
+  };
+  window.providentAdSetsShare = AdSets;
+
+  function AsShare(shell, id, d) {
+    this.shell = shell; this.id = id;
+    this.data = d.state; this.base = JSON.parse(JSON.stringify(d.state)); this.rev = d.rev;
+    this.imgs = d.imgs || {}; this.n = d.n || 0; this.from = d.from || 0; this.log = d.log || [];
+    this.cache = {}; this.pend = {}; this.pimg = {}; this.busy = false; this.err = ''; this.burst = null;
+    this.seen = +lsGet('provident-share-seen:' + id) || Date.now();
+    this.dir = this.build();
+    injectCss();
+    this.ui = buildUi(this);
+    this.ui.root.querySelector('.shl-pill span').textContent = 'Changes';
+    document.documentElement.classList.add('shl-on', 'shl-as');
+    this.tick = setInterval(() => this.onTick(), 1000);
+    this.poll = setInterval(() => this.shPoll(), POLL);
+    this.clock = setInterval(() => this.shRender(), 30000);
+    this.onVis = () => { if (!document.hidden) this.shPoll(); };
+    document.addEventListener('visibilitychange', this.onVis);
+    this.ui.status('ok');
+    this.shRender();
+  }
+  const AP = AsShare.prototype;
+  AP.link = function () { return StudioBase.shareBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + this.id; };
+  AP.view = function () { this.shell.asView({ kind: 'share', handle: this.dir, name: this.data.root, share: this }); };
+  AP.here = function () { const sh = this.shell; return !!(sh.state.adSetsOpen && sh._asSrc && sh._asSrc.share === this); };
+  AP.onTick = function () {
+    const here = this.here(), r = this.ui.root;
+    r.classList.toggle('away', !here);
+    document.documentElement.classList.toggle('shl-open', here && r.classList.contains('open'));
+    if (Object.keys(this.pend).length && !this.busy && Date.now() - this.lastW > 1500) this.save();
+    this.ui.status(this.busy || Object.keys(this.pend).length ? 'saving' : (this.err ? 'error' : 'ok'), this.err || undefined);
+  };
+  // the stand-in folder: reads this.data live, so a pull is seen by the next scan
+  AP.build = function () {
+    const me = this, dirs = { name: this.data.root, kids: {} };
+    const node = path => { let n = dirs; (path ? path.split('/') : []).forEach(seg => { n = n.kids[seg] || (n.kids[seg] = { name: seg, kids: {} }); }); return n; };
+    const findP = pid => (me.data.projs || []).find(p => p.id === pid);
+    (this.data.projs || []).forEach(p => {
+      const pn = node(p.path);
+      pn.json = p.id;
+      p.files.forEach(f => { const parts = f.path.split('/'), nm = parts.pop(); const n2 = node((p.path ? p.path + '/' : '') + parts.join('/')); (n2.files || (n2.files = {}))[nm] = [p.id, f.id]; });
+    });
+    const writer = done => {
+      const parts = [];
+      return { write: async x => { parts.push(x && x.data !== undefined ? x.data : x); }, close: async () => done(new Blob(parts.map(toBlob))) };
+    };
+    const jsonH = (pid, nm) => ({ kind: 'file', name: nm, modified: 1,
+      getFile: async () => { const p = findP(pid); return new File([JSON.stringify({ app: p.app, v: p.v, state: p.st })], nm, { type: 'application/json' }); },
+      getFull: async () => {
+        const p = findP(pid), images = {};
+        await pool(p.photos, 3, async sl => { const r = await me.rec(p.id + '-' + sl); if (r) images[sl] = r; });
+        return new File([JSON.stringify({ app: p.app, v: p.v, state: p.st, images })], nm, { type: 'application/json' });
+      },
+      createWritable: async () => writer(async b => { const doc = JSON.parse(await b.text()); me.onJson(pid, doc.state); }) });
+    const imgH = (pid, fid, nm) => ({ kind: 'file', name: nm, modified: 1,
+      getFile: async () => {
+        const r = await me.rec(fid);
+        const b = r && r.u ? await (await fetch(r.u)).blob() : new Blob([], { type: 'image/jpeg' });
+        return new File([b], nm, { type: 'image/jpeg' });
+      },
+      createWritable: async () => writer(async b => me.onImage(fid, await shrink(b))) });
+    const dh = n => ({ kind: 'directory', name: n.name,
+      queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      async *entries() {
+        for (const k of Object.keys(n.kids)) yield [k, dh(n.kids[k])];
+        if (n.json) { const p = findP(n.json); yield [p.fname, jsonH(p.id, p.fname)]; }
+        for (const k of Object.keys(n.files || {})) yield [k, imgH(n.files[k][0], n.files[k][1], k)];
+      },
+      async getDirectoryHandle(x) { if (!n.kids[x]) { const e = new Error('Not found'); e.name = 'NotFoundError'; throw e; } return dh(n.kids[x]); } });
+    return dh(dirs);
+  };
+  AP.rec = async function (sl) {
+    const e = this.imgs[sl]; if (!e) return null;
+    if (this.cache[e.h]) return this.cache[e.h];
+    const r = await fetchRec(this.id, e);
+    if (r) this.cache[e.h] = r;
+    return r;
+  };
+  AP.onJson = function (pid, st) { this.pend[pid] = st; this.lastW = Date.now(); };
+  AP.onImage = function (fid, rec) { this.pimg[fid] = rec; this.lastW = Date.now(); };
+  AP.words = function (p, st) {
+    const out = {}, C = window.CampaignStudio || (this.shell.eng && this.shell.eng.constructor);
+    try {
+      const flat = C.copyFlat(C.copySnap(st, 'draft'));
+      Object.keys(flat).forEach(k => { out[k] = flat[k]; });
+    } catch (e) {}
+    return out;
+  };
+  // edits within BURST of each other are one log entry, as on a project link
+  AP.burstOf = function (ch) {
+    const now = Date.now();
+    if (!this.burst || now - this.burst.t > BURST) this.burst = { id: Math.random().toString(36).slice(2, 12), t: now, map: {}, order: [] };
+    const B = this.burst; B.t = now;
+    ch.forEach(c => {
+      const k = [c.kind === 'note' ? 'd' : 'w', c.page || '', c.label || '', c.kind === 'note' ? c.text : ''].join('|');
+      const o = B.map[k];
+      if (!o) { B.map[k] = Object.assign({}, c); B.order.push(k); }
+      else if ('now' in c) { o.now = c.now; o.kind = o.was ? (c.now ? 'changed' : 'removed') : 'added'; }
+    });
+    return { id: B.id, list: B.order.map(k => B.map[k]).filter(c => !(('was' in c) && c.was === c.now)) };
+  };
+  AP.label = function (p) { const segs = p.path ? p.path.split('/') : []; return segs.length >= 2 ? segs.slice(1).join(' / ') : p.fname.replace(/\.adstudio\.json$/i, ''); };
+  AP.save = async function () {
+    if (this.busy) return;
+    this.busy = true;
+    const by = StudioBase.shareName() || 'Someone';
+    try {
+      const pend = this.pend, pimg = this.pimg; this.pend = {}; this.pimg = {};
+      const ch = [];
+      Object.keys(pend).forEach(pid => {
+        const p = (this.data.projs || []).find(x => x.id === pid); if (!p) return;
+        const A = this.words(p, p.st), B = this.words(p, pend[pid]), who = this.label(p);
+        Object.keys(B).forEach(k => { const x = A[k], y = B[k]; if (!x || x.value !== y.value)
+          ch.push({ kind: x && x.value ? (y.value ? 'changed' : 'removed') : 'added', page: who + (y.page ? ' · ' + y.page : ''), label: y.label, was: x ? x.value : '', now: y.value }); });
+        Object.keys(A).forEach(k => { if (!B[k] && A[k].value) ch.push({ kind: 'removed', page: who, label: A[k].label, was: A[k].value, now: '' }); });
+        p.st = pend[pid];
+      });
+      const map = {};
+      for (const fid of Object.keys(pimg)) {
+        this.ui.status('saving', 'Uploading the new previews…');
+        map[fid] = await putRec(this.id, fid, pimg[fid]);
+        this.cache[map[fid].h] = pimg[fid];
+      }
+      const burst = this.burstOf(ch.length ? ch : [{ kind: 'note', page: '', text: 'Updated the images' }]);
+      for (let tries = 0; tries < 4; tries++) {
+        try {
+          const r = await api('save', { id: this.id }, { base: this.rev, state: this.data, by, burst: burst.id, changes: burst.list, imgs: map });
+          this.rev = r.rev; this.base = JSON.parse(JSON.stringify(this.data));
+          Object.keys(map).forEach(k => { this.imgs[k] = map[k]; });
+          this.err = '';
+          await this.shPull(true);
+          return;
+        } catch (e) {
+          if (!e.stale) throw e;
+          const d = await api('sync', { id: this.id, from: Math.max(0, this.n - 1) });
+          this.data = merge3(this.base, this.data, d.state); this.base = d.state; this.rev = d.rev;
+          Object.assign(this.imgs, d.imgs || {});
+        }
+      }
+      throw new Error('Could not save — others kept saving at the same moment. It will try again.');
+    } catch (e) {
+      this.err = e.message || String(e);
+      this.lastW = Date.now() + 8000;
+    } finally { this.busy = false; }
+  };
+  AP.shPoll = async function (force) {
+    if (this.polling || this.busy || (!force && document.hidden)) return;
+    this.polling = true;
+    try {
+      const r = await api('rev', { id: this.id });
+      if (r.rev !== this.rev) await this.shPull();
+      else if (r.n !== this.n) await this.shPull(true);
+    } catch (e) { if (/expired|never made/.test(e.message || '')) this.err = e.message; }
+    finally { this.polling = false; }
+  };
+  AP.shPull = async function (logOnly) {
+    const d = await api('sync', { id: this.id, from: Math.max(0, this.n - 1) });
+    const keep = this.log.slice(0, Math.max(0, d.from - this.from));
+    this.log = keep.concat(d.log || []); this.n = d.n;
+    if (this.log.length > 300) { this.from += this.log.length - 300; this.log = this.log.slice(-300); }
+    if (!logOnly && d.rev !== this.rev) {
+      this.data = merge3(this.base, this.data, d.state); this.base = d.state; this.rev = d.rev;
+      this.imgs = d.imgs || {};
+      this.rescan();
+    }
+    this.shRender();
+  };
+  // someone else's change: the viewer reads the folder again, unless this person is mid-edit
+  AP.rescan = function () {
+    const sh = this.shell, ae = sh._ae, a = document.activeElement;
+    if (!this.here()) return;
+    if ((ae && (ae.dirty || ae.saving)) || (a && a.closest && a.closest('.as-ov') && /^(INPUT|TEXTAREA)$/.test(a.tagName))) { this.again = true; setTimeout(() => { if (this.again) { this.again = false; this.rescan(); } }, 4000); return; }
+    sh.asScan();
+  };
+  // the panel's three hooks (buildUi calls them)
+  AP.shPanel = function (open) {
+    if (!this.here()) { this.view(); open = true; }
+    open = open == null ? !this.ui.root.classList.contains('open') : !!open;
+    this.ui.root.classList.toggle('open', open);
+    document.documentElement.classList.toggle('shl-open', open && this.here());
+    lsSet('provident-share-open', open ? '1' : '0');
+    if (open) { this.seen = Date.now(); lsSet('provident-share-seen:' + this.id, String(this.seen)); }
+    this.shRender();
+  };
+  AP.shRender = function () {
+    const me = StudioBase.shareName(), open = this.ui.root.classList.contains('open');
+    const unseen = this.log.filter(e => e.at > this.seen && e.by !== me).length;
+    this.ui.set({ link: this.link(), me, people: new Set(this.log.map(e => e.by).filter(Boolean)).size, unseen: open ? 0 : unseen, log: this.log.slice().reverse() });
+    this.ui.root.querySelector('.shl-sub').textContent = 'Shared ad sets · ' + this.data.root;
+  };
+  AP.copy = async function () { const ok = await copyText(this.link()); this.ui.flash(ok ? 'Link copied' : 'Select the link in the panel and copy it'); this.shPanel(true); };
+  AP.shareStop = function () { this.stop(); if (this.here()) this.shell.asUseSource(); };
+  AP.stop = function (keep) {
+    clearInterval(this.tick); clearInterval(this.poll); clearInterval(this.clock);
+    document.removeEventListener('visibilitychange', this.onVis);
+    this.ui.root.remove();
+    document.documentElement.classList.remove('shl-on', 'shl-open', 'shl-as');
+    if (AdSets.cur === this) AdSets.cur = null;
+    if (!keep) ssSet(AS_KEY, null);
+  };
+
   // ---------- the DOM: name dialog and the Changes panel ----------
   // Plain DOM outside the studio's React tree, so one copy serves both documents and React
   // never reconciles it. Styled with the chrome's own tokens.
@@ -755,6 +1070,12 @@
 .shl.open .shl-toast{right:356px}
 html.shl-on .p-rail,html.shl-on .gd-askwrap{padding-bottom:72px}
 .shl[hidden]{display:none}
+/* Shared ad sets: the panel sits over the Ad sets window and the window makes room for it.
+   Away from that view (the window closed, another folder open) only the pill stays, and
+   pressing it goes back to the shared ad sets. */
+html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.shl-as .shl-toast{z-index:212}
+.shl.away .shl-panel{display:none}.shl.away .shl-pill{display:flex}
+@media (min-width:761px){html.shl-as.shl-open .as-ov{right:340px}}
 /* An open panel takes its width from the workspace instead of covering the rail beside it. */
 @media (min-width:761px){html.shl-open .p-body{margin-right:340px}html.shl-open .gd:not([data-mode="editor"]),html.shl-open .cw{right:340px}
   html.shl-open .p-panelbar{right:340px}html.shl-open .p-rail-c[data-open],html.shl-open .p-rail-r[data-open],html.shl-open .gd[data-mode="editor"] .gd-in-zone[data-open]{right:340px}}

@@ -34,7 +34,7 @@ TTL = 180 * 86400          # a link nobody opens or edits for this long expires
 LOG_MAX = 500
 PART_MAX = 1_000_000       # one photo part, in characters
 STATE_MAX = 3_500_000      # the project state, photos left out
-APPS = ('provident-ad-studio', 'provident-smp-studio')
+APPS = ('provident-ad-studio', 'provident-smp-studio', 'provident-ad-sets')  # the last is CAS's shared Ad sets view
 ID_CHARS = string.ascii_letters + string.digits
 
 
