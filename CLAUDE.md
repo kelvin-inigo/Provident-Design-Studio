@@ -16142,3 +16142,19 @@ sheets; the list reuses the hub view's `.hb-*` cards.
   0 contrast failures in both themes, no overflow at 375. **The real Google sign-in and real
   Drive were not exercised.** A test-origin trap: an IndexedDB opened elsewhere at version 1 with
   no `files` store makes every runtime write fail — delete the databases before testing.
+
+# THE AD SETS BAR HAS ONE PRIMARY AND ONE FOLDER GROUP (2026-10-23)
+
+By request ("fix these buttons, add some hierarchy, use icons"). The labels used to wrap to two
+lines. Now **Share / Copy link** is the one `.p-btn`. The folder controls form one `.p-tgrp.as-srcgrp`:
+**Drop folder** (toggles the drop area), **Choose folder / Open folder**, and an icon-only
+**Refresh**. A hairline (`.as-bar-sep`) sets off a round icon-only **×** Close. Every button has a
+Material Rounded icon and `white-space:nowrap`. The title truncates instead of the buttons.
+
+The "Viewing the shared…" chip is gone, because the subtitle names the source now: `asSub` starts
+"Shared / Google Drive / Folder <name>". `asViewingOn` and `asViewing` are computed and unread.
+Below 760px the bar stacks: title plus × on the first row, then Images | Edit text at full width,
+then the group, then Share.
+
+Verified at 1440, 1024 and 390 with no overflow and no wrapped label. Bar text contrast is 6.47 to
+18.28 in dark. Chrome only.

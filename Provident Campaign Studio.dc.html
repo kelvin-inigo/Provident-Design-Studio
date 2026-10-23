@@ -4694,6 +4694,31 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .lb-find{width:200px;flex:none}
 .lb-c .hb-row{justify-content:center}
 @media (max-width:640px){.lb-find{width:100%}.lb-gd{flex-wrap:wrap}}
+
+/* Ad sets bar (2026-10-23) — one primary (Share), the folder controls as one outlined group,
+   Close an icon set off by a hairline. Nothing wraps: a label that breaks reads as two buttons.
+   The source rides in the subtitle, so the old "Viewing ..." chip is gone. */
+.as-bar{gap:10px}
+.as-ttl{flex:0 1 auto;min-width:120px;max-width:min(460px,40vw)}
+.as-ttl b,.as-ttl s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.as-bar .p-ghost,.as-bar .p-btn{white-space:nowrap;flex:none}
+.as-bar .p-btn{display:inline-flex;align-items:center;gap:6px;padding:0 18px;font:600 14px/1 var(--ps-font);letter-spacing:.16px;
+  background:var(--ps-primary);color:var(--ps-primary-i);box-shadow:none}
+.as-bar .p-btn:hover{background:var(--ps-primary-h)}
+.as-bar .p-btn .mk-g{fill:currentColor}
+.as-srcgrp > .p-ghost{gap:6px;padding:0 14px}
+.as-srcgrp > .p-ghost.as-ico{width:40px;padding:0;justify-content:center}
+.as-srcgrp:not(:has(button)){display:none}
+.as-bar .as-x{width:36px;padding:0;justify-content:center;border-radius:50%}
+.as-bar-sep{flex:none;width:1px;height:22px;background:var(--ps-hair)}
+@media (max-width:760px){
+  .as-ttl{max-width:none}
+  .as-bar-sep{display:none}
+  .as-bar > *{order:2}
+  .as-bar .as-ttl{order:0;flex:1 1 0;min-width:0}
+  .as-bar .as-x{order:1;margin-left:0}
+  .as-bar .as-mode{flex:1 1 100%}
+}
 </style>
 </helmet>
 
@@ -5359,12 +5384,14 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </div>
         </sc-if>
         <span class="p-spring"></span>
-        <sc-if value="{{ asViewingOn }}" hint-placeholder-val="{{ false }}"><span class="as-viewing">{{ asViewing }}</span></sc-if>
-        <sc-if value="{{ asPanelBtnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPanelToggle }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg>{{ asPanelLabel }}</button></sc-if>
-        <sc-if value="{{ asShareOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asShare }}" class="p-ghost" title="{{ asShareTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ asShareLabel }}</button></sc-if>
-        <sc-if value="{{ asHasRoot }}" hint-placeholder-val="{{ true }}"><button onClick="{{ asRefresh }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-133 0-226.5-93.5T160-480q0-133 93.5-226.5T480-800q85 0 149 34.5T740-671v-99q0-13 8.5-21.5T770-800q13 0 21.5 8.5T800-770v194q0 13-8.5 21.5T770-546H576q-13 0-21.5-8.5T546-576q0-13 8.5-21.5T576-606h138q-38-60-97-97t-137-37q-109 0-184.5 75.5T220-480q0 109 75.5 184.5T480-220q77 0 140-39.5t94-106.5q5-11 16.5-17.5T754-386q15 2 22.5 14t2.5 26q-38 87-118.5 136.5T480-160Z"/></svg>Refresh</button></sc-if>
-        <sc-if value="{{ asPickOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPick }}" class="p-ghost"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ asPickLabel }}</button></sc-if>
-        <button onClick="{{ asClose }}" class="p-ghost">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
+        <div class="p-tgrp as-srcgrp" role="group" aria-label="Folder">
+          <sc-if value="{{ asPanelBtnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPanelToggle }}" class="p-ghost" data-on="{{ asPanelOnFlag }}" title="{{ asPanelTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-321.54h60V-466l58 58 42.15-42.15L480-580.31 349.85-450.15 392-408l58-58v144.46ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q5.39 0 8.85-3.46t3.46-8.85v-375.38q0-5.39-3.46-8.85t-8.85-3.46H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85v455.38q0 5.39 3.46 8.85t8.85 3.46ZM160-240v-480 480Z"/></svg>{{ asPanelLabel }}</button></sc-if>
+          <sc-if value="{{ asPickOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asPick }}" class="p-ghost" title="{{ asPickTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg>{{ asPickLabel }}</button></sc-if>
+          <sc-if value="{{ asHasRoot }}" hint-placeholder-val="{{ true }}"><button onClick="{{ asRefresh }}" class="p-ghost as-ico" title="Refresh — read the folder again" aria-label="Refresh"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-133 0-226.5-93.5T160-480q0-133 93.5-226.5T480-800q85 0 149 34.5T740-671v-99q0-13 8.5-21.5T770-800q13 0 21.5 8.5T800-770v194q0 13-8.5 21.5T770-546H576q-13 0-21.5-8.5T546-576q0-13 8.5-21.5T576-606h138q-38-60-97-97t-137-37q-109 0-184.5 75.5T220-480q0 109 75.5 184.5T480-220q77 0 140-39.5t94-106.5q5-11 16.5-17.5T754-386q15 2 22.5 14t2.5 26q-38 87-118.5 136.5T480-160Z"/></svg></button></sc-if>
+        </div>
+        <sc-if value="{{ asShareOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asShare }}" class="p-btn as-share" title="{{ asShareTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ asShareLabel }}</button></sc-if>
+        <span class="as-bar-sep" aria-hidden="true"></span>
+        <button onClick="{{ asClose }}" class="p-ghost as-ico as-x" title="Close Ad sets" aria-label="Close Ad sets"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
       </div>
       <div class="as-stage">
         <sc-if value="{{ asNoteOn }}" hint-placeholder-val="{{ false }}"><div class="as-empty"><b>{{ asNoteHead }}</b><p>{{ asNote }}</p></div></sc-if>
@@ -16237,18 +16264,21 @@ class Component extends DCLogic {
       // share the view: every project, its words and photos, and previews of its images
       asShareOn: open && root && (a.mains || []).length && window.providentAdSetsShare ? '1' : undefined,
       asShare: () => window.providentAdSetsShare.create(this),
-      asShareLabel: this._asSrc && this._asSrc.kind === 'share' ? 'Copy link' : 'Share these ad sets',
+      asShareLabel: this._asSrc && this._asSrc.kind === 'share' ? 'Copy link' : 'Share',
       asShareTip: this._asSrc && this._asSrc.kind === 'share' ? 'Copies the link to these shared ad sets and opens the Changes panel'
         : 'Makes a link anyone can open to see every audience and variant here and change the words, with a panel of who changed what',
       asPickOn: open && supported ? '1' : undefined,
-      asPickLabel: viewing ? 'Open another folder' : 'Choose a folder',
-      asSub: root ? (proj ? proj + ' · ' : '') + 'Reading ' + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
+      asPickLabel: viewing ? 'Open folder' : 'Choose folder',
+      asPickTip: viewing ? 'Open another exported campaign folder' : 'Choose an exported campaign folder to view',
+      asSub: root ? (proj ? proj + ' · ' : '') + (this._asSrc && this._asSrc.kind === 'share' ? 'Shared ' : this._asSrc && this._asSrc.kind === 'drive' ? 'Google Drive ' : 'Folder ') + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head && root ? '1' : undefined,
       // the drop panel sits in the empty state, and stays reachable from the bar
       asSrcPanelOn: open && (forced || this._asPanel) ? '1' : undefined,
       asPanelBtnOn: open && !forced ? '1' : undefined,
       asPanelToggle: () => { this._asPanel = !this._asPanel; this.forceUpdate(); },
-      asPanelLabel: this._asPanel ? 'Hide' : 'Drop a folder',
+      asPanelLabel: this._asPanel ? 'Hide drop' : 'Drop folder',
+      asPanelOnFlag: this._asPanel ? '1' : undefined,
+      asPanelTip: this._asPanel ? 'Hide the drop zone' : 'Show the drop zone, to drop or link another exported campaign folder',
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
       asNav: nav, asBodyOn: !!sel, asModeBarOn: !!sel && !all,

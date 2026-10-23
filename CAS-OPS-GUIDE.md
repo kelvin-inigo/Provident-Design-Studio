@@ -185,7 +185,7 @@ Things to know:
 - Saving, exporting and the Source folder are still each person's own.
 
 **In CAS, share the Ad sets view.** In the Ad sets window, open a folder of exported ads and press
-**Share these ad sets**. The link carries every audience and variant in the folder, each project's
+**Share**. The link carries every audience and variant in the folder, each project's
 words and photos, and a preview of each image (about 1600px — not the full-size files). Whoever
 opens it gets the same viewer: they can look through every audience, download the previews, and
 change the words in **Edit text**, which re-draws that project's previews for everyone. The
@@ -543,7 +543,10 @@ Press **Edit text** to work on the words of the audience on screen, without open
     the format you are looking at, against the brand's 40% guide.
   The analysis reads the words only; it does not change anything.
 - Each variant row shows how many images it holds.
-- **Choose a folder** (top of the window) opens the folder picker. It needs Chrome or Edge.
+- **Choose folder** (top of the window) opens the folder picker. It needs Chrome or Edge.
+- The bar has one main button, **Share**. The folder controls sit together in one group:
+  **Drop folder** (shows or hides the drop area), **Choose folder** / **Open folder**, and the
+  circular-arrow **Refresh**. **×** at the right closes the window.
 
 #### View any folder: drop it
 
@@ -559,7 +562,7 @@ the Ad sets window:
   **click** the drop area (*Drop an exported campaign folder to view its ads*) to choose one.
 - Nothing is written to the
   dropped folder unless you change its words in **Edit text** and press **Allow editing**.
-- The bar says which folder you are viewing. **Open another folder** switches to a different one.
+- The bar says which folder you are viewing. **Open folder** switches to a different one.
   Closing the window forgets it; your Source folder is never changed.
 
 #### Open a Google Drive folder link
