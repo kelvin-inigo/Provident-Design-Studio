@@ -207,7 +207,10 @@ def store():
             url = env_end('KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL')
             tok = env_end('KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN')
             if not url or not tok:
-                raise Fail(503, 'Shared links are not switched on for this site yet — the share store is not connected. See docs/share-links-setup.md.')
+                # Names only, never values, so whoever sets it up can see what the deployment has.
+                seen = sorted(k for k in os.environ if any(w in k for w in ('KV', 'REDIS', 'UPSTASH')))
+                raise Fail(503, 'Shared links are not switched on for this site yet — the share store is not connected. See docs/share-links-setup.md.'
+                           + (' Variables seen: ' + ', '.join(seen) + '.' if seen else ' No store variables reach this deployment.'))
             _store = Upstash(url, tok)
     return _store
 
