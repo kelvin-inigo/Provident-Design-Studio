@@ -16108,3 +16108,37 @@ Verified: a replaced photo reaches the guided card and the export; the partner-m
 **Still open:** the image-slot save re-stringifies the whole store and writes it to IndexedDB
 on every photo change (one record per slot would fix it, but changes the storage format); the
 guided card's WebP encode is synchronous (`toBlob` would move it off the main thread).
+
+# THE PROJECTS FOLDER: EVERY SAVED SESSION IN ONE FOLDER, LOCAL OR DRIVE (2026-10-23)
+
+By request ("users can pinpoint a google drive or local where all their .jsons are stored").
+Sidebar row **Projects folder** (Library, under Recent, Material Rounded `topic`) in both
+studios → `splashView: 'lib'`. All logic is shared in `studio-base.js` (`libLoad`, `libConnect`,
+`libPickLocal`, `libUseDrive`, `libForget`, `libScan`, `libThumbs`, `libOpen`, `libVals`); each
+shell merges `eng.libVals(view === 'lib')`. Markup is mirrored, CSS `.lb-*` appended to both
+sheets; the list reuses the hub view's `.hb-*` cards.
+
+- **The folder is per COMPUTER**: `localStorage['provident-lib']` = `{kind:'local', name}` or
+  `{kind:'drive', id, name}`, and a local handle in the BASE IndexedDB as `lib:dir`
+  (`providentFolder.libGet/libSet`; runtime's `shared()` now routes `lib:*` there, beside
+  `recents:*`). Both studios and every tab show the same library.
+- **The scan** walks breadth first, four folders at a time, `LIB_DEPTH` 4, `LIB_MAX` 400,
+  skipping `LIB_SKIP` (Assets, Copy, Photoshop, Edits, brief, Carousel, Variant X, Eventbrite
+  Banners, YT Demand Gen, dot-folders). Each project's state is read from the first 256 KB
+  (`libState`, up to `,"images":`) — a Drive file through a `Range` header (`head()`).
+- **Pictures**: the project's own Recent card when this computer saved it (same `pid`), else the
+  newest `_3x4` / `_feed` render beside it (CAS: in `Variant A/` or `Carousel/`) — only when the
+  folder holds ONE session file, or it would show another project's render.
+- **Opening** is `loadSessionFile`, so the other studio's file hands over. A LOCAL project's
+  folder is adopted as the Source folder (`providentFolder.adopt`, granted through the root
+  picked readwrite); a DRIVE project opens as a copy — nothing writes back to Drive.
+- **Never opens a picker or popup without a click**: a remembered folder lands on `st: 'ask'`
+  (Reconnect the folder / Sign in to Google) until permission or a token exists.
+- **Google Drive moved to `window.providentDrive`** (end of studio-base.js): sign-in, the
+  in-memory token, `fetch`, `dir` (now with `head(n)` and `size`), `id`, `folderOf`. CAS's
+  `Component.gd*` are one-line delegates, so Ad sets and the library share one sign-in per page.
+- Verified: an OPFS tree (Assets decoy skipped, both thumbnail paths, open + folder adopted), a
+  mocked Drive (Range reads with the bearer token, ask on an expired token), a CAS→OPS hand-over,
+  0 contrast failures in both themes, no overflow at 375. **The real Google sign-in and real
+  Drive were not exercised.** A test-origin trap: an IndexedDB opened elsewhere at version 1 with
+  no `files` store makes every runtime write fail — delete the databases before testing.
