@@ -186,14 +186,26 @@ return {1, rev}
 _store = None
 
 
+def env_end(*names):
+    # Exact names first, then any variable ENDING in one: Vercel's Storage tab often adds a
+    # prefix (STORAGE_KV_REST_API_URL, …). A read-only token is never picked.
+    for n in names:
+        if os.environ.get(n):
+            return os.environ[n]
+    for k, v in sorted(os.environ.items()):
+        if v and 'READ_ONLY' not in k and any(k.endswith('_' + n) for n in names):
+            return v
+    return None
+
+
 def store():
     global _store
     if _store is None:
         if os.environ.get('SHARE_DEV') == '1':
             _store = Memory()
         else:
-            url = os.environ.get('KV_REST_API_URL') or os.environ.get('UPSTASH_REDIS_REST_URL')
-            tok = os.environ.get('KV_REST_API_TOKEN') or os.environ.get('UPSTASH_REDIS_REST_TOKEN')
+            url = env_end('KV_REST_API_URL', 'UPSTASH_REDIS_REST_URL')
+            tok = env_end('KV_REST_API_TOKEN', 'UPSTASH_REDIS_REST_TOKEN')
             if not url or not tok:
                 raise Fail(503, 'Shared links are not switched on for this site yet — the share store is not connected. See docs/share-links-setup.md.')
             _store = Upstash(url, tok)
