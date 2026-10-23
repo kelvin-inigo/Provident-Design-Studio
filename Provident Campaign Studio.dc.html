@@ -8570,10 +8570,17 @@ class CampaignStudio extends StudioBase {
     const K = Math.pow(1.2, d);
     const ar = CampaignStudio.isArabic() ? CampaignStudio.AR.eyebrow : 1;
     const o = Object.assign({}, tk);
-    ['hero', 'headline', 'hook', 'body', 'ctaF', 'stat'].forEach(key => { o[key] = CampaignStudio.typeAt(tk[key], d); });
+    // A size moves the component's OWN M value by the ratio between its rung and the rung
+    // d steps away — never by snapping to the ladder. With Scaling at 100% every token sits
+    // on a rung and this is exactly `typeAt(px, d)`. Below 100% the tokens fall between
+    // rungs, often under the 24 floor (83% gives a 20px eyebrow), and snapping made S jump
+    // UP to 24 while M stayed at 20 — S bigger than M. The ratio is never above 1 for a
+    // smaller size and never below 1 for a larger one, so S <= M <= L <= XL always holds.
+    const step = (px, dd) => px * CampaignStudio.typeAt(px, dd) / CampaignStudio.typeAt(px, 0);
+    ['hero', 'headline', 'hook', 'body', 'ctaF', 'stat'].forEach(key => { o[key] = step(tk[key], d); });
     // The Arabic eyebrow is deliberately OFF the ladder (x1.3, matched to the Latin cap
     // height), so it is stepped in Latin terms and the adjustment put back afterwards.
-    o.eyebrow = CampaignStudio.typeAt(tk.eyebrow / ar, d) * ar;
+    o.eyebrow = step(tk.eyebrow / ar, d) * ar;
     o.ctaPV = tk.ctaPV * K;
     o.stepD = tk.stepD * K;
     // What the eyebrow and body WOULD be without the floor. Type clamps at 24; the box

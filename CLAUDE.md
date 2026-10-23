@@ -13929,6 +13929,15 @@ M; `withOv` merges a detached record's `mvar` and `msize` over the variant's.
 - **`eyeG` / `bodyG` are the geometry bases WITHOUT the floor**: an S eyebrow keeps its 24px type on
   the 1:1 but its frame still tightens.
 - XL headlines are Light 300 (Jumbo's reason: past two rungs Regular reads as a slab).
+- **A size steps the component's OWN M value, by a rung RATIO** (`step` in `tkMod`:
+  `px * typeAt(px, d) / typeAt(px, 0)`), never by snapping to the ladder (2026-10-23). With
+  Scaling at 100% every token is on a rung and this is `typeAt` exactly — bit-identical,
+  checked over 7 canvases x S/L/XL. Below 100% the tokens sit BETWEEN rungs and under the 24
+  floor (83% gives a 20px eyebrow), and the snap pushed S UP to 24 while M stayed at 20 — S
+  bigger than M on eyebrow, body, list, tags, spec labels, steps, price and CTA. Verified
+  after: 1,484 component x style x canvas x scaling cases, S <= M <= L <= XL in every one.
+  **Still allowed to run backwards, by design:** a spec figure too wide for its column steps
+  DOWN to fit, so a 3-column spec on the 9:16 can draw its XL figure smaller than its L.
 - The three exceptions: the **graphic**'s size is a MODULE field (`m.gsize`, `GH` s 90 / m 150 /
   l 240 / xl 360) beside its corner-drag scale, and picking a size clears the drag everywhere
   (`gscale` / `gaspect`, module and detached records); the **spacer** is `m.h x K`; the **divider**'s
