@@ -307,13 +307,6 @@ def route(method, query, body):
     try:
         if method == 'OPTIONS':
             return 204, 'text/plain', b''
-        if op == 'where':
-            # which deployment answers, for setting the store up — names and ids only, never a value
-            # of anything secret
-            return ok({'env': os.environ.get('VERCEL_ENV', ''), 'commit': os.environ.get('VERCEL_GIT_COMMIT_SHA', '')[:7],
-                       'url': os.environ.get('VERCEL_URL', ''), 'project': os.environ.get('VERCEL_PROJECT_PRODUCTION_URL', ''),
-                       'store_vars': sorted(k for k in os.environ if any(w in k.upper() for w in ('KV', 'REDIS', 'UPSTASH'))),
-                       'var_count': len(os.environ)})
         s = store()
         if method == 'POST' and op == 'create':
             d = json.loads(body or b'{}')
