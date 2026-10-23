@@ -5248,6 +5248,7 @@ select.p-in{padding-right:34px}
               </sc-if>
 
               <sc-if value="{{ a.isQr }}" hint-placeholder-val="{{ false }}">
+                <sc-if value="{{ a.qrBodyOn }}" hint-placeholder-val="{{ true }}">
                 <div class="gd-qrow">
                   <div class="gd-drop gd-drop-sq" data-done="{{ a.qrDone }}">
                     <image-slot id="{{ a.qrSlot }}" data-noreframe="1" shape="rounded" radius="12" placeholder="Drop the QR" style="width:100%;aspect-ratio:1/1"></image-slot>
@@ -5259,6 +5260,7 @@ select.p-in{padding-right:34px}
                     <sc-if value="{{ a.qrLink }}" hint-placeholder-val="{{ false }}"><button onClick="{{ a.openQrLink }}" class="gd-link">Visit QR code link ↗</button></sc-if>
                     
                   </div>
+                </sc-if>
               </sc-if>
 
               <sc-if value="{{ a.isPages }}" hint-placeholder-val="{{ false }}">
@@ -6401,6 +6403,12 @@ class OrganicStudio extends StudioBase {
     chipTop: 1554, chipH: 48, chipR: 12, chipPad: 14, chipGap: 18, chipRowGap: 12,
     chipPx: 16, chipTrack: .1, chipBase: 29,
     chipLead: 79,                           // chip top -> the last baseline above it (drawing 3)
+    // THE DLD QR CODE, by request (2026-10-23) and HIDDEN BY DEFAULT (`f.dldOn`). The drawings
+    // carry none, so it takes the weekly page's own QR treatment — a white quiet-zone ring of 6
+    // and 4px corners — and the property page's arrangement: the code stacked ABOVE its
+    // number, here the ADM / CN chips, on the same axis as them. It stands on the chips' own
+    // line, so the block's top is the QR's and every layout already clears it.
+    dldQr: 160, dldRing: 6, dldR: 4, dldGap: 18,
     figK: 348 / 140, figBase: 1519,         // Big number: the figure in headline px, its baseline (drawing 2)
     // Centre stage's tags, all in the TAG's own px, which is a sixth of the headline's —
     // so they scale with the text as the drawing's 28px tags do beside its 168px headline
@@ -7569,9 +7577,17 @@ class OrganicStudio extends StudioBase {
       if (last && last.w + R.chipGap + w <= colW) { last.items.push({ t, w }); last.w += R.chipGap + w; }
       else crows.push({ items: [{ t, w }], w });
     });
-    const chipsTop = crows.length ? R.chipTop - (crows.length - 1) * (R.chipH + R.chipRowGap) : null;
+    const chipsTop0 = crows.length ? R.chipTop - (crows.length - 1) * (R.chipH + R.chipRowGap) : null;
+    // the DLD QR, above the chips (or on their line when there are none). `chipsTop` is the
+    // top of the whole compliance block from here on, so the text anchors above the code.
+    let qr = null;
+    if (f.dldOn) {
+      const qs = R.dldQr, bot = chipsTop0 != null ? chipsTop0 - R.dldGap : R.chipTop + R.chipH;
+      qr = { x: center ? (W - qs) / 2 : colX, y: bot - qs, s: qs, r: R.dldR, ring: R.dldRing };
+    }
+    const chipsTop = qr ? qr.y : chipsTop0;
     crows.forEach((row, ri) => {
-      const y = chipsTop + ri * (R.chipH + R.chipRowGap);
+      const y = chipsTop0 + ri * (R.chipH + R.chipRowGap);
       let x = center ? (W - row.w) / 2 : colX;
       row.items.forEach(c => {
         rects.push({ x, y, w: c.w, h: R.chipH, r: R.chipR, stroke: A.ink, sw: 1, layer: 'top' });
@@ -7597,7 +7613,7 @@ class OrganicStudio extends StudioBase {
     const ws = (state.scrimH == null ? 50 : state.scrimH) / 50;
     const bands = L.bands.map(b => ({ vec: OrganicStudio.rcvBandVec(b[0]), a: Math.max(0, Math.min(1, b[1] * ws)) }));
     return {
-      L, W, H, colX, colW, center, chipsTop, asked, used, fits: P.fits, lines: P.lines,
+      L, W, H, colX, colW, center, chipsTop, qr, asked, used, fits: P.fits, lines: P.lines,
       texts: P.texts.concat(texts), rects: P.rects.concat(rects), icons: P.icons, bands,
       logoY: P.logoY
     };
@@ -8086,7 +8102,7 @@ class OrganicStudio extends StudioBase {
         this._scSig = sig;
         // the stats icons' own bytes, for the preview's masks — a re-render when one lands
         const urls = {};
-        Object.keys(sc).forEach(k => { const v = norm(sc[k]); if (v && v.u && /^smp-(ic|cg)-/.test(k)) urls[k] = v.u; });
+        Object.keys(sc).forEach(k => { const v = norm(sc[k]); if (v && v.u && /^smp-(ic|cg|qr)-/.test(k)) urls[k] = v.u; });
         const usig = Object.keys(urls).sort().map(k => k + ':' + urls[k].length).join('|');
         if (this._slotUrlSig !== usig) { this._slotUrls = urls; this._slotUrlSig = usig; this.forceUpdate(); }
         // THE FLOATING GRAPHIC'S ASPECT, measured once per URL. `csGfx`'s stored value is
@@ -11298,6 +11314,8 @@ class OrganicStudio extends StudioBase {
         ops.push({ op: 'image', img: fg.img, url: fg.u, x: p.x, y: p.y, w: p.w, h: p.h, clip: p.clip });
       }
       put('top');
+      // the DLD QR, over the cut-out with the chips it belongs to
+      if (B.qr) drawQr(B.qr.x, B.qr.y, B.qr.s, assets['qr' + si], B.qr.r, B.qr.ring);
     } else if (OrganicStudio.isCs(kind)) {
       // ══ THE CAROUSEL PAGES — everything off `csBox`, in paint order: scrim, glass card,
       // rules and pills, icons, text, the SWIPE chevron. The photo is already down.
@@ -11872,7 +11890,7 @@ class OrganicStudio extends StudioBase {
       if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + si] = { img, u: fgv.u }; }
       const cgv = norm(sidecar['smp-cg-' + sl.id]);          // the carousel page's floating graphic
       if (cgv && cgv.u) { const img = await loadImg(cgv.u); if (img) assets['cg' + si] = { img, u: cgv.u }; }
-      if (sl.kind === 'prop') {
+      if (sl.kind === 'prop' || sl.kind === 'rcover') {
         const pq = norm(sidecar['smp-qr-' + sl.id]);
         if (pq && pq.u) { const img = await loadImg(pq.u); if (img) assets['qr' + si] = { img, u: pq.u }; }
         await domFill('qr' + si, 'smp-qr-' + sl.id, null);
@@ -12477,7 +12495,7 @@ class OrganicStudio extends StudioBase {
   // disagree.
   static GDSEC = {
     pages: 'Pages in this post', layout: 'Layout', words: 'Words', agent: 'Agent', pictures: 'Pictures',
-    listing: 'QR code & listing number', permit: 'ADM & CN', look: 'Look', save: 'Save'
+    listing: 'QR code & listing number', permit: 'ADM, CN & DLD QR', look: 'Look', save: 'Save'
   };
   static GDSECORDER = ['pages', 'layout', 'words', 'agent', 'pictures', 'listing', 'permit', 'look', 'save'];
   gdPlan() {
@@ -12541,6 +12559,8 @@ class OrganicStudio extends StudioBase {
       fs.filter(f => f.flags.indexOf('img') >= 0).forEach(f => raw.push({ si, sec: 'listing', kind: 'field', k: f.k }));
       // the compliance chips — the reel thumbnail's ADM permit and CN licence — last on the page
       fs.filter(f => /(^|\s)chip(\s|$)/.test(f.flags)).forEach(f => raw.push({ si, sec: 'permit', kind: 'field', k: f.k }));
+      // …and the reel thumbnail's DLD QR, behind a switch that is OFF until someone wants it
+      if (sl.kind === 'rcover') raw.push({ si, sec: 'permit', kind: 'qr', qrId: 'smp-qr-' + sl.id, dld: true });
     });
     // FINISH — post-level, once. Both look settings are gated on the render actually
     // reading them (`scrimUsed`, `imgOUsed`), because the run is a projection of the rail.
@@ -12679,7 +12699,7 @@ class OrganicStudio extends StudioBase {
   gdAskLabelFor(ask, sl) {
     if (!ask) return '';
     if (ask.kind === 'photo') return (sl && sl.kind === 'tagent') ? 'Agent portrait' : 'Background picture';
-    if (ask.kind === 'qr') return 'QR code';
+    if (ask.kind === 'qr') return ask.dld ? 'DLD QR code' : 'QR code';
     if (ask.kind === 'scrim') return 'How strong should the wash behind the text be?';
     if (ask.kind === 'shade') return 'How much should the photo darken at the top and bottom?';
     if (ask.kind === 'imgo') return 'How strong should the photo itself be?';
@@ -12904,6 +12924,17 @@ class OrganicStudio extends StudioBase {
       v.qrLabel = filled[v.qrSlot] ? 'QR added' : OrganicStudio.tapCap('Drop the QR code');
       v.qrLink = (this._qrLinks && this._qrLinks[v.qrSlot]) ? '1' : undefined;
       v.openQrLink = () => { const u = (this._qrLinks || {})[v.qrSlot]; if (u) window.open(u, '_blank', 'noopener'); };
+      v.qrBodyOn = '1';
+      if (ask.dld && sl) {
+        // HIDDEN BY DEFAULT: the switch on the row's header shows the code on the cover and
+        // reveals its drop; switched off, the upload is kept but nothing is drawn
+        const on = !!(sl.f && sl.f.dldOn);
+        v.togOn = '1'; v.togIsOn = on ? '1' : undefined; v.togAria = on ? 'true' : 'false';
+        v.togTitle = on ? 'Hide the DLD QR code' : 'Show the DLD QR code';
+        v.togSet = () => this.upd(x => { const t = x.slides[ask.si]; if (t) { t.f = t.f || {}; t.f.dldOn = !t.f.dldOn; } return x; });
+        v.qrBodyOn = on ? '1' : undefined;
+        v.qrLabel = filled[v.qrSlot] ? 'DLD QR added' : OrganicStudio.tapCap('Drop the DLD QR code');
+      }
     }
     if (v.isPortrait) {
       v.portraitSlot = ask.slot || 'smp-none';
@@ -13275,6 +13306,7 @@ class OrganicStudio extends StudioBase {
     if (!sl) return '';
     const filled = this._filled || {};
     if (ask.kind === 'photo') return filled['smp-bg-' + this.bgSidFor(sl)] ? '' : 'A picture is needed here.';
+    if (ask.kind === 'qr' && ask.dld) return (!(sl.f && sl.f.dldOn) || filled[ask.qrId]) ? '' : 'Add the DLD QR code, or switch it off.';
     if (ask.kind === 'qr') return filled[ask.qrId] ? '' : 'The QR code is needed here.';
     const f = OrganicStudio.fieldsFor(sl.kind, sl.f).find(x => x.k === ask.k);
     if (!f) return '';
@@ -13334,6 +13366,7 @@ class OrganicStudio extends StudioBase {
   // the moment the page opens; a section of requirements is done when they are all met.
   gdAskGated(ask) {
     if (!ask) return false;
+    if (ask.kind === 'qr' && ask.dld) { const qs0 = (this.state.slides || [])[ask.si]; return !!(qs0 && qs0.f && qs0.f.dldOn); }
     if (ask.kind === 'photo' || ask.kind === 'qr' || ask.kind === 'export' || ask.kind === 'stats' || ask.kind === 'rows') return true;
     if (ask.kind === 'proj') return !!ask.req;
     if (ask.kind === 'dest') return this.folderSupported();
@@ -13417,6 +13450,8 @@ class OrganicStudio extends StudioBase {
       });
     }
     if (s.tpl === 'agents' || s.tpl === 'agentsolo') s.slides.forEach((sl, i) => { if (sl.kind === 'tagent' && !filled['smp-bg-' + sl.id]) missing.push(this.sLabel(i) + ' portrait'); });
+    // the reel thumbnail's DLD QR is asked for only once it is switched on
+    if (s.tpl === 'rcover') s.slides.forEach(sl => { if (sl.kind === 'rcover' && sl.f && sl.f.dldOn && !filled['smp-qr-' + sl.id]) missing.push('DLD QR code'); });
     return missing;
   }
   async doExport(kind) {
@@ -13766,7 +13801,7 @@ class OrganicStudio extends StudioBase {
         const bgSid = (sl.kind === 'cta' && cover) ? cover.id : sl.id;
         await put('bg' + i, 'smp-bg-' + bgSid, true);
         await put('fg' + i, 'smp-fg-' + sl.id);
-        if (sl.kind === 'prop') await put('qr' + i, 'smp-qr-' + sl.id);
+        if (sl.kind === 'prop' || sl.kind === 'rcover') await put('qr' + i, 'smp-qr-' + sl.id);
         if (sl.kind === 'review') {
           await put('ragent' + i, 'smp-agent-r' + sl.id, true);
           // `bundledReady`'s own lesson, one layer down: this map is built BY HAND, so a
@@ -14345,6 +14380,12 @@ class OrganicStudio extends StudioBase {
           return Object.assign(abs(ic.x, ic.y), { width: cq(ic.w), height: cq(ic.h), backgroundColor: ic.fill, zIndex: zOf(ic.layer), pointerEvents: 'none',
             maskImage: 'url("' + u + '")', WebkitMaskImage: 'url("' + u + '")', maskSize: '100% 100%', WebkitMaskSize: '100% 100%',
             maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat' }); }));
+        // the DLD QR — the op's own ring and quiet zone (`qrBase`), the uploaded code inside it
+        if (B.qr) {
+          const qu = (this._slotUrls || {})['smp-qr-' + sl.id];
+          K.rcvRects = K.rcvRects.concat([Object.assign(qrBase(B.qr.s, B.qr.r, B.qr.ring), abs(B.qr.x, B.qr.y), { zIndex: 5 },
+            qu ? { backgroundImage: 'url("' + qu + '")', backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' } : {})]);
+        }
         K.canvasStyle = Object.assign({}, K.canvasStyle, { isolation: 'isolate' });
         // ── THE 4:5 GUIDE — what a feed and the profile grid show of the cover. The two
         // bands outside it are dimmed and its edges dashed. A PINNED dark and a pinned white,
@@ -15192,6 +15233,7 @@ class OrganicStudio extends StudioBase {
       });
     }
     if (s.tpl === 'agents' || s.tpl === 'agentsolo') s.slides.forEach((sl2, i2) => { if (sl2.kind === 'tagent' && !filled['smp-bg-' + sl2.id]) missing.push(this.sLabel(i2) + ' portrait'); });
+    if (s.tpl === 'rcover') s.slides.forEach(sl2 => { if (sl2.kind === 'rcover' && sl2.f && sl2.f.dldOn && !filled['smp-qr-' + sl2.id]) missing.push('DLD QR code'); });
     const qrWrapBase = {};
     const qrWrapErr = { border: '2px solid var(--ps-bad)', borderRadius: '8px', padding: '2px', background: 'var(--ps-bad-q)' };
     const area = (label, key) => ({ isInput: false, isArea: true, isSeg: false, isNote: false, label, val: asl.f[key] || '', set: editF(key), opts: [] });

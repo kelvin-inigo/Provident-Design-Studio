@@ -15998,3 +15998,21 @@ is swallowed so it cannot clear the selection.
 
 Verified with real drags: the CTA moved between eyebrow and headline; the headline into the
 empty top cluster; a plain click still selects; Escape leaves the order untouched.
+
+# THE REEL THUMBNAIL TAKES A DLD QR CODE, HIDDEN BY DEFAULT (2026-10-23)
+
+By request. The supplied drawings carry none, so it follows the weekly property page's
+arrangement — the code stacked ABOVE its number — with the ADM / CN chips as the number:
+`f.dldOn` (missing = hidden) on the `rcover` slide, slot `smp-qr-<id>` (the weekly page's own
+scheme, so the asset loader, Assets/ writer and export guard needed one `|| 'rcover'` each).
+`RCV.dldQr` 160 with the weekly's 6px quiet-zone ring and 4px corners (`drawQr`), 18 above the
+chips, on their axis (centred or the 93 column); with no chips it stands on their line (1602).
+**`rcvBox`'s `chipsTop` is the QR's top while it shows**, so every layout's anchor (bottom
+baseline, figure, Centre stage's limit, the top layouts' floor) clears it with no other change —
+a Caption headline climbs 178px. The preview draws it as an `rcvRects` entry through `qrBase`,
+reading `_slotUrls` (which now includes `smp-qr-*`). The form's ADM, CN & DLD QR section ends in
+a `qr` ask with `dld: true`: a header switch (`togOn`), the drop only while on (`qrBodyOn`);
+gated and named in `exportBlockers` (both copies) only while on. Verified: op census 37 / 37
+byte-identical against the pre-change copy; preview box equals the op's (93, 1376, 160);
+the switch by a real click; the layout tiles carry the uploaded code.
+
