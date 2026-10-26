@@ -14850,7 +14850,7 @@ record copied the clusters alone, so a variant's own `ord` and any floating grap
 
 By request: a new Meta size, key **`pt`**, 1080 × 1440 with the 1:1's own tokens, exported at
 2x (2160 × 2880) as `<name>_<Variant>_Portrait_3x4` into the variant's folder. **Shown by
-default on every Meta plate** — `v.ptHide` (missing = shown) is what the row's eye toggles, so
+default on every Meta plate** — `v.ptOn` (since 2026-10-26: missing = shown, see *PORTRAIT FIX WAS DELETED*) is what the row's eye toggles, so
 existing Meta projects gain the file on their next export. It has the 16:9's three controls
 (`ptOv` in `OVK` / `sizeOv`, `bgSep.pt` with slot `adstudio-bg-<vi>-pt`, its own Scaling row and
 alignment button), sits under the 1:1 at `dispW * .75`, and is skipped on YouTube. Ad sets
@@ -15312,26 +15312,17 @@ state) shows only what is not used. Section 48 of the sheet (`.cu-*`). The sampl
 Verified with four seeded saved projects (counts, hidden, XL, the filter), contrast 0 failures in
 both themes, no overflow at 375. Chrome only — no artwork line changed.
 
-# PORTRAIT FIX — A TEMPORARY CAS SIZE (2026-10-19, to be deleted soon)
+# PORTRAIT FIX WAS DELETED; THE 3:4 AND THE HORIZONTAL ARE ON BY DEFAULT (2026-10-26)
 
-By request: key **`pf`**, the 9:16 story's tokens with the top margin 520 (the story's 260 plus
-260 more), 1080 × 1920, exported at 2x as `<name>_<Variant>_Portrait_Fix`. Shown by default
-(`v.pfHide` is the eye); the **Portrait 3:4 is now OFF by default** (`v.ptOn`, missing = hidden —
-it was `v.ptHide`). It has the 3:4's controls (`pfOv` in `OVK` / `sizeOv`, `bgSep.pf` with slot
-`adstudio-bg-<vi>-pf`, a Scaling row, the align button, the rail's own-photo row) and Ad sets
-reads `portrait_fix`. Its row carries its own Scale slider (`pfSc*` in variantViews,
-`.p-scale-pf`), the same `scaleBy.pf` the Layout rail's Scaling row sets. The plate's 1.91:1 rows are named **Horizontal** (both the Meta `ls` and
-YouTube `yl`). To delete: grep `pf` / `Portrait Fix` / `portrait_fix` / `pfHide` / `pfOv`.
-
-**Previews and verdicts (same day, by request).** Each component and each style carries a real
-render (`useRender` / `useSync`): the export's `buildOps` on the dark canvas with the palette's
-sample copy (`addDefaults`, passed into `usageVals`), cropped by `vtCrop` with one window per
-component; rendered once per face in the background, pinned dark like the artwork it is. Verdicts
-are `useVerdictType` (keep: used in ≥ max(2, N/3) projects; rework: used fewer, or hidden more than
-shown, or only ever hidden; delete: unused) and `useVerdictStyle` (keep: ≥2 projects or ≥25% of
-the component's placements; rework: picked once; delete: never). Three verdict tiles are the filter
-(`_useFilt`). A trap hit here: DC wraps interpolated text in `span.sc-interp`, so `.cu-tile span`
-also styled the digit inside `<b>` — scope with `>`.
+By request. The temporary `pf` size (the 9:16 with a 520 top margin, 2026-10-19) is gone: its
+`PXT` entry, plate row, Scale slider, own-photo row, `pfOv` / `pfHide`, the `-pf` photo slot and
+the `portrait_fix` name in Ad sets. `normVariant` deletes what it left on a saved variant
+(`pfOv`, `pfHide`, `bgSep.pf`, `scaleBy.pf`); an old `-pf` photo stays in the store unread.
+**The Portrait 3:4 (`v.ptOn`) and the Horizontal 1.91:1 (`v.wide`) are SHOWN by default**:
+`newVariant` sets both true and `normVariant` turns a missing value on, so every saved project
+gains them unless it had hidden them (an explicit false, or the pre-10-19 `ptHide`). A Meta
+export is now feed, Portrait_3x4, Story and Landscape_1.91x1 per variant. Verified: New launch
+opens with Portrait, Story, Horizontal rows and exports those four files.
 
 # OPS SENDS AN EXPORT TO AN ENDPOINT (2026-10-19)
 

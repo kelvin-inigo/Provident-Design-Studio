@@ -664,7 +664,6 @@ textarea.p-in{resize:vertical}
 /* live scrim preview strip */
 .p-scale{display:grid;grid-template-columns:34px 1fr 34px 22px;align-items:center;gap:7px}
 .p-scale-n{font-weight:500;font-size:10px;letter-spacing:.08em;color:var(--ps-mute)}
-.p-scale-pf{max-width:280px;margin:-2px 0 8px}
 .p-scale-v{font-weight:300;font-size:11px;color:var(--ps-mute);text-align:right;font-variant-numeric:tabular-nums}
 .p-hexin{flex:1;min-width:0;font-variant-numeric:tabular-nums;text-transform:uppercase}
 .p-sec-c .p-rule{background:var(--ps-line)}
@@ -5860,43 +5859,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </div>
       <span class="p-meta">1080 × 1440 · <span style="{{ v.pt.coverStyle }}" class="tip" data-tip="{{ v.pt.coverTip }}">{{ v.pt.coverLabel }}</span></span>
       </sc-if>
-      <div class="p-szh" data-off="{{ v.pfOff }}"><b>Portrait Fix</b><i>9:16</i><span class="p-szx"><sc-if value="{{ v.pfShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.pfOvOn }}" onClick="{{ v.togglePfOv }}" title="{{ v.pfLinkTip }}" aria-label="{{ v.pfLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.pfAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.pfAlCtr }}" onClick="{{ v.pfAlFlip }}" title="{{ v.pfAlTip }}" aria-label="{{ v.pfAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgPfOn }}" onClick="{{ v.toggleBgPf }}" title="{{ v.bgPfTip }}" aria-label="{{ v.bgPfTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.pfShowOn }}" onClick="{{ v.togglePfShow }}" title="{{ v.pfEyeTip }}" aria-label="{{ v.pfEyeTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
-      <sc-if value="{{ v.pfShow }}" hint-placeholder-val="{{ false }}"><div class="p-scale p-scale-pf"><span class="p-scale-n">Scale</span><input type="range" min="{{ v.pfScMin }}" max="{{ v.pfScMax }}" step="1" value="{{ v.pfScVal }}" onChange="{{ v.pfScSet }}" aria-label="Portrait Fix scaling"><span class="p-scale-v">{{ v.pfScPct }}</span><button onClick="{{ v.pfScReset }}" class="p-rst" data-off="{{ v.pfScDef }}" title="Reset to 100%" aria-label="Reset to 100%"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></button></div></sc-if>
-      <sc-if value="{{ v.pfShow }}" hint-placeholder-val="{{ false }}">
-      <div onClick="{{ v.pf.select }}" data-cwpx="{{ v.pf.cwPx }}" style="{{ v.pf.canvasStyle }}">
-        <div class="canvasbg" style="{{ v.pf.bgWrapStyle }}"><sc-for list="{{ v.bgPfSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for Portrait Fix" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
-        <div style="{{ v.pf.scrimStyle }}"></div>
-        <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.pf.guideStyle }}"></div></sc-if>
-        <div style="{{ v.pf.frameStyle }}">
-          <div style="{{ v.pf.logoStyle }}"><span>provident.</span><sc-if value="{{ v.pf.coOn }}" hint-placeholder-val="{{ false }}"><span style="{{ v.pf.coRuleStyle }}"></span><span style="{{ v.pf.coInkStyle }}" data-icon-tint="{{ v.pf.coTint }}"><image-slot id="adstudio-colog" fit="contain" shape="rect" placeholder=" " style="{{ v.pf.coImgStyle }}"></image-slot><i data-icon-paint="1" style="{{ v.pf.coPaintStyle }}"></i></span></sc-if></div>
-          <div style="{{ v.pf.stackStyle }}">
-            <sc-for list="{{ v.pf.items }}" as="m" hint-placeholder-count="5">
-              <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
-                <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
-                <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
-                <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
-                <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
-                <sc-if value="{{ m.isTags }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.chips }}" as="c" hint-placeholder-count="0"><span style="{{ c.style }}">{{ c.t }}</span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isSpec }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.colStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isSpecLadder }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.cols }}" as="c" hint-placeholder-count="0"><span style="{{ c.rowStyle }}"><span style="{{ m.labStyle }}">{{ c.l }}</span><span style="{{ m.valStyle }}">{{ c.v }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isList }}" hint-placeholder-val="{{ false }}"><div style="{{ m.ladStyle }}"><sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="3"><span style="{{ r.rowStyle }}"><span style="{{ r.bulletStyle }}"><sc-if value="{{ r.isCheck }}" hint-placeholder-val="{{ false }}"><span style="{{ r.checkStyle }}"></span></sc-if></span><span style="{{ m.valStyle }}">{{ r.t }}</span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isRows }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowsStyle }}"><sc-for list="{{ m.prows }}" as="r" hint-placeholder-count="3"><span style="{{ r.wrapStyle }}"><span style="{{ r.connStyle }}"></span><sc-if value="{{ r.hasIcon }}" hint-placeholder-val="{{ false }}"><span style="{{ r.iconWrapStyle }}" data-icon-tint="{{ r.iconTint }}"><image-slot id="{{ r.iconId }}" fit="contain" shape="square" placeholder=" " style="{{ r.iconStyle }}"></image-slot><i data-icon-paint="1" style="{{ r.iconPaintStyle }}"></i><sc-if value="{{ r.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if></span></sc-if><sc-if value="{{ r.badgeAlone }}" hint-placeholder-val="{{ false }}"><span style="{{ r.badgeStyle }}">{{ r.badge }}</span></sc-if><span style="{{ r.pairStyle }}"><sc-if value="{{ r.hasFig }}" hint-placeholder-val="{{ false }}"><span style="{{ r.figStyle }}">{{ r.fig }}</span></sc-if><sc-if value="{{ r.hasLab }}" hint-placeholder-val="{{ false }}"><span style="{{ r.labStyle }}">{{ r.lab }}</span></sc-if></span></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isCta }}" hint-placeholder-val="{{ false }}"><span style="{{ m.tStyle }}">{{ m.text }}</span></sc-if>
-                <sc-if value="{{ m.isPrice }}" hint-placeholder-val="{{ false }}"><div style="{{ m.priceBoxStyle }}"><span style="{{ m.labStyle }}">{{ m.sub }}</span><span style="{{ m.valStyle }}">{{ m.text }}</span></div></sc-if>
-                <sc-if value="{{ m.isDiv }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"></div></sc-if>
-                <sc-if value="{{ m.isSpacerMod }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><span onPointerDown="{{ m.spacerDrag }}" style="{{ m.shStyle }}">↕ drag</span></div></sc-if>
-                <sc-if value="{{ m.isGraphic }}" hint-placeholder-val="{{ false }}"><div onPointerDown="{{ m.gMove }}" style="{{ m.tStyle }}" data-icon-tint="{{ m.gTint }}" data-gfx="1"><image-slot id="{{ m.slotId }}" fit="contain" shape="rect" placeholder="Drop SVG / PNG" style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i><sc-for list="{{ m.gHandles }}" as="gh" hint-placeholder-count="0"><span onPointerDown="{{ m.gDrag }}" data-gdir="{{ gh.dir }}" style="{{ gh.style }}"></span></sc-for></div></sc-if>
-                <sc-if value="{{ m.isCust }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.custEls }}" as="ce" hint-placeholder-count="0"><div style="{{ ce.style }}" data-icon-tint="{{ ce.tint }}">{{ ce.t }}<sc-if value="{{ ce.isIcon }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ ce.slot }}" fit="contain" shape="square" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%"></image-slot><i data-icon-paint="1" style="position:absolute;inset:0;display:none;pointer-events:none;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain"></i></sc-if></div></sc-for></div></sc-if>
-              </div>
-            </sc-for>
-          </div>
-        </div>
-        <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.pf.fgStyle }}"><div style="{{ v.pf.fgTintStyle }}"></div></div></div></sc-if>
-        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.pf.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
-      </div>
-      <span class="p-meta">1080 × 1920 · <span style="{{ v.pf.coverStyle }}" class="tip" data-tip="{{ v.pf.coverTip }}">{{ v.pf.coverLabel }}</span></span>
-      </sc-if>
       <sc-if value="{{ v.stOn }}" hint-placeholder-val="{{ true }}">
       <div class="p-szh"><b>{{ v.stHead }}</b><i>9:16</i><span class="p-szx"><button class="p-szb" data-on="{{ v.stOvOn }}" onClick="{{ v.toggleStory }}" title="{{ v.stLinkTip }}" aria-label="{{ v.stLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.stAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.stAlCtr }}" onClick="{{ v.stAlFlip }}" title="{{ v.stAlTip }}" aria-label="{{ v.stAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgStOn }}" onClick="{{ v.toggleBgSt }}" title="{{ v.bgStTip }}" aria-label="{{ v.bgStTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></span></div>
       <div onClick="{{ v.st.select }}" data-cwpx="{{ v.st.cwPx }}" style="{{ v.st.canvasStyle }}">
@@ -6260,11 +6222,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div class="p-droprow"><div class="p-drop" data-done="{{ bgPtDoneOn }}"><sc-for list="{{ activeBgPtSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the 3:4 picture" style="{{ bgSlotPtStyle }}"></image-slot></sc-for></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button data-up="reframe" class="up-a up-done" title="Crop and zoom the picture on the canvas"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M690-80v-130H282.31Q252-210 231-231q-21-21-21-51.31V-690H80q-12.75 0-21.37-8.63Q50-707.26 50-720.01q0-12.76 8.63-21.37Q67.25-750 80-750h130v-130q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q270-892.75 270-880v597.69q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85H880q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q892.75-210 880-210H750v130q0 12.75-8.63 21.37Q732.74-50 719.99-50q-12.76 0-21.37-8.63Q690-67.25 690-80Zm0-250v-347.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H330v-60h347.69Q708-750 729-729q21 21 21 51.31V-330h-60Z"/></svg>Reframe</button><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgPtPs }}" class="up-a up-done" title="Opens this picture in Photoshop. Save it there and it updates here."><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Photoshop</button></sc-if><button onClick="{{ bgPtRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
           <div class="p-drop-t p-drop-cap"><s>{{ bgPtDropLabel }}</s></div>
         </sc-if>
-        <sc-if value="{{ bgSepPfOn }}" hint-placeholder-val="{{ false }}">
-          <span class="p-lab">Portrait Fix own photo <span class="tip" data-tip="Used by the Portrait Fix instead of the shared picture." style="{{ infoStyle }}">i</span></span>
-          <div class="p-droprow"><div class="p-drop" data-done="{{ bgPfDoneOn }}"><sc-for list="{{ activeBgPfSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the Portrait Fix picture" style="{{ bgSlotPfStyle }}"></image-slot></sc-for></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button data-up="reframe" class="up-a up-done" title="Crop and zoom the picture on the canvas"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M690-80v-130H282.31Q252-210 231-231q-21-21-21-51.31V-690H80q-12.75 0-21.37-8.63Q50-707.26 50-720.01q0-12.76 8.63-21.37Q67.25-750 80-750h130v-130q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q270-892.75 270-880v597.69q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85H880q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q892.75-210 880-210H750v130q0 12.75-8.63 21.37Q732.74-50 719.99-50q-12.76 0-21.37-8.63Q690-67.25 690-80Zm0-250v-347.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H330v-60h347.69Q708-750 729-729q21 21 21 51.31V-330h-60Z"/></svg>Reframe</button><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgPfPs }}" class="up-a up-done" title="Opens this picture in Photoshop. Save it there and it updates here."><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Photoshop</button></sc-if><button onClick="{{ bgPfRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
-          <div class="p-drop-t p-drop-cap"><s>{{ bgPfDropLabel }}</s></div>
-        </sc-if>
         <sc-if value="{{ bgSepBnOn }}" hint-placeholder-val="{{ false }}">
           <span class="p-lab">Banner own photo <span class="tip" data-tip="Used by both banner sizes instead of the shared picture — one photo, cover-fitted edge to edge on the 1880 × 940 and the 758 × 380 alike." style="{{ infoStyle }}">i</span></span>
           <div class="p-droprow"><div class="p-drop" data-done="{{ bgBnDoneOn }}"><sc-for list="{{ activeBgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot id="{{ sl.id }}" shape="rounded" radius="10" placeholder="Drop the banner picture" style="{{ bgSlotBnStyle }}"></image-slot></sc-for></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button data-up="reframe" class="up-a up-done" title="Crop and zoom the picture on the canvas"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M690-80v-130H282.31Q252-210 231-231q-21-21-21-51.31V-690H80q-12.75 0-21.37-8.63Q50-707.26 50-720.01q0-12.76 8.63-21.37Q67.25-750 80-750h130v-130q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q270-892.75 270-880v597.69q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85H880q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q892.75-210 880-210H750v130q0 12.75-8.63 21.37Q732.74-50 719.99-50q-12.76 0-21.37-8.63Q690-67.25 690-80Zm0-250v-347.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H330v-60h347.69Q708-750 729-729q21 21 21 51.31V-330h-60Z"/></svg>Reframe</button><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ bgBnPs }}" class="up-a up-done" title="Opens this picture in Photoshop. Save it there and it updates here."><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Photoshop</button></sc-if><button onClick="{{ bgBnRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
@@ -6502,7 +6459,7 @@ class CampaignStudio extends StudioBase {
     const h = window.providentPhotoshop, f = window.providentFolder;
     return !!((h && h.state === 'on') || (f && f.supported && f.handle));
   }
-  static newVariant(name) { return { name, clusters: {}, mvar: {}, msize: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100, bn: 100, bs: 100 }, bg: 'dark', logoAlign: 'left', story: null, mods: null }; }
+  static newVariant(name) { return { name, clusters: {}, mvar: {}, msize: {}, align: 'left', gapScale: 1.5, scrimH: 45, scrimFade: 100, scrimHex: null, scaleBy: { sq: 100, st: 100, ls: 100, bn: 100, bs: 100 }, bg: 'dark', logoAlign: 'left', story: null, mods: null, ptOn: true, wide: true }; }
   // `Object.assign(defaults, saved)` is SHALLOW, so a saved `variants` array
   // replaces the defaults outright and every per-variant key added since that
   // session was written stays missing. Most render paths guard with `== null`,
@@ -6544,7 +6501,14 @@ class CampaignStudio extends StudioBase {
     if (v.banOv === undefined) v.banOv = null;
     // the YouTube landscape's and portrait's own detached layouts
     if (v.ptOv === undefined) v.ptOv = null;
-    if (v.pfOv === undefined) v.pfOv = null;
+    // PORTRAIT FIX (2026-10-19, temporary) is GONE (2026-10-26); drop what it left behind.
+    delete v.pfOv; delete v.pfHide; if (v.bgSep) delete v.bgSep.pf; if (v.scaleBy) delete v.scaleBy.pf;
+    // The 3:4 portrait and the Horizontal 1.91:1 are SHOWN by default (2026-10-26). A variant
+    // that never chose keeps them on; one that hid them keeps them hidden. `ptHide` is the 3:4's
+    // flag from before 2026-10-19.
+    if (v.ptOn === undefined) v.ptOn = !v.ptHide;
+    delete v.ptHide;
+    if (v.wide === undefined) v.wide = true;
     return v;
   }
   // `stats` was the same label/value block as `spec`, and `strip` the same authored
@@ -7258,11 +7222,8 @@ class CampaignStudio extends StudioBase {
     // wide (1920 x 1004.8, exported at .625 = exactly 1200 x 628); the 4:5 is the 1:1's own
     // tokens at 1080 wide (1080 x 1350, exported at 960 / 1080 = 960 x 1200).
     // META'S PORTRAIT 3:4 (2026-10-15, by request) — the 1:1's own tokens at 1080 x 1440,
-    // exported at 2x like every Meta size. Off by default since 2026-10-19 (`v.ptOn`).
-    pt: { W: 1080, H: 1440, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 },
-    // PORTRAIT FIX (2026-10-19, TEMPORARY — to be deleted): the 9:16 story replicated with 260
-    // more clearance at the top (story 260 + 260 = 520). Every other token is the story's.
-    pf: { W: 1080, H: 1920, pad: [520, 100, 460, 100], railR: 170, gapS: 30, hero: 103, headline: 71, hook: 41, body: 28, eyebrow: 28, logo: 50, ctaF: 35, ctaPV: 20, qr: 104, stat: 59, stepD: 60 }
+    // exported at 2x like every Meta size. Shown by default; `v.ptOn` false hides it.
+    pt: { W: 1080, H: 1440, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 }
   };
   // The file a size exports as: its own pixel size when the size declares one (the two
   // banners), otherwise the 2x every Meta size has always shipped at.
@@ -7275,10 +7236,10 @@ class CampaignStudio extends StudioBase {
   // (1880 x 940) and `EventBrite_Banner_Small` (758 x 380), spelled as asked — and lands in a
   // folder per variant, the banners in their own folder inside it (`exportPath`). The 16:9
   // was not named in the request and keeps its ratio, loose beside the feed and the Story.
-  static EXPORT_NAME = { sq: 'feed', pt: 'Portrait_3x4', pf: 'Portrait_Fix', st: 'Story', ls: 'Landscape_1.91x1', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
+  static EXPORT_NAME = { sq: 'feed', pt: 'Portrait_3x4', st: 'Story', ls: 'Landscape_1.91x1', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
   static BANNER_DIR = 'Eventbrite Banners';
   static isBanner(sizeKey) { return sizeKey === 'bn' || sizeKey === 'bs'; }
-  static SIZE_LAB = { sq: '1:1', pt: '3:4', pf: 'Portrait Fix', st: '9:16', ls: '1.91:1', bn: 'Banner 1880', bs: 'Banner 758' };
+  static SIZE_LAB = { sq: '1:1', pt: '3:4', st: '9:16', ls: '1.91:1', bn: 'Banner 1880', bs: 'Banner 758' };
   // The size whose OWN PHOTO a canvas reads. Both banners are one design, so the 758 reads
   // the 1880's — one upload, one crop, cover-fitted edge to edge on each.
   static photoSize(sizeKey) { return sizeKey === 'bs' ? 'bn' : sizeKey; }
@@ -8361,7 +8322,7 @@ class CampaignStudio extends StudioBase {
   // The 758 banner goes higher than the rest: an email shows it at 1:1, where 100% of the
   // 1880 design sets the smallest caps near 10px, so its type is the one that needs to come
   // UP. Each banner scales on its own, like every size.
-  static SCALE_RANGE = { sq: [80, 130], pt: [80, 130], pf: [50, 100], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150] };
+  static SCALE_RANGE = { sq: [80, 130], pt: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150] };
   static scaleRange(sizeKey) {
     return CampaignStudio.SCALE_RANGE[sizeKey] || [CampaignStudio.SCALE_MIN, CampaignStudio.SCALE_MAX];
   }
@@ -8893,7 +8854,7 @@ class CampaignStudio extends StudioBase {
   // The 9:16 can only be dropped on a carousel; a single ad always ships every size.
   static storyShown(s) { return !CampaignStudio.isCarousel(s) || s.storyOn !== false; }
   static sizesFor(s, v) {
-    const out = ['sq']; if (v && v.ptOn) out.push('pt'); if (!(v && v.pfHide)) out.push('pf'); if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out;
+    const out = ['sq']; if (v && v.ptOn) out.push('pt'); if (CampaignStudio.storyShown(s)) out.push('st'); if (v && v.wide) out.push('ls'); if (v && v.banner) out.push('bn', 'bs'); return out;
   }
   // The list a render of page/variant `vi` reads. Never mutate what this returns.
   static modulesFor(s, vi) {
@@ -8995,14 +8956,13 @@ class CampaignStudio extends StudioBase {
     if (size === 'ls') return v.wideOv || null;
     if (size === 'bn' || size === 'bs') return v.banOv || null;
     if (size === 'pt') return v.ptOv || null;
-    if (size === 'pf') return v.pfOv || null;
     return null;
   }
   // Every DETACHED size record a variant can carry. Anything that walks a variant's layout
   // records walks this list — forkPage, dropMod, copyMove, the layout presets, the merge
   // and the load — so a new size cannot be missed by one of them. They were six copies of
   // a literal `[v, v.story, v.wideOv]`, which is exactly how a new size gets missed.
-  static OVK = ['story', 'wideOv', 'banOv', 'ptOv', 'pfOv'];
+  static OVK = ['story', 'wideOv', 'banOv', 'ptOv'];
   static recsOf(v) { return v ? [v].concat(CampaignStudio.OVK.map(k => v[k])) : []; }
   // THE ONE LAYOUT of a recreated component: its box height and a flat list of elements in
   // component coordinates (x from the column's left edge, y from the component's top). The
@@ -11040,7 +11000,7 @@ class CampaignStudio extends StudioBase {
       const fgv = norm(sidecar['adstudio-fg-' + vi]);
       if (fgv && fgv.u) { const img = await loadImg(fgv.u); if (img) assets['fg' + vi] = { img, u: fgv.u, s: fgv.s, x: fgv.x, y: fgv.y }; }
       // `bn` is the banner's own photo — one slot for both banner sizes (photoSize)
-      for (const sz of ['st', 'ls', 'bn', 'pt', 'pf']) {
+      for (const sz of ['st', 'ls', 'bn', 'pt']) {
         const b2 = norm(sidecar['adstudio-bg-' + vi + '-' + sz]);
         if (b2 && b2.u) { const img = await loadImg(b2.u); if (img) assets['bg' + vi + '_' + sz] = { img, u: b2.u, s: b2.s, x: b2.x, y: b2.y }; }
       }
@@ -12377,7 +12337,7 @@ class CampaignStudio extends StudioBase {
     const A = {};
     const pic = async (slotId, key) => { const b = norm(sc[slotId]); if (b && b.u) { const im = await this._vtImg(b.u); if (im) A[key] = { img: im, u: b.u, s: b.s, x: b.x, y: b.y }; } };
     await pic('adstudio-bg-' + vi, 'bg0');
-    for (const sz of ['st', 'ls', 'bn', 'pt', 'pf']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
+    for (const sz of ['st', 'ls', 'bn', 'pt']) await pic('adstudio-bg-' + vi + '-' + sz, 'bg0_' + sz);
     if (m0.type === 'graphic') await pic('adstudio-mod-' + id, 'mod' + id);
     if (m0.type === 'steps' || m0.type === 'tags' || m0.type === 'spec' || m0.type === 'cust') {
       const glyph = await C.vtGlyph();
@@ -14137,12 +14097,10 @@ class CampaignStudio extends StudioBase {
         return {
           ptOvOn: f(v.ptOv), bgPtOn: f(bs.pt), ptLinkTip: link(v.ptOv, 'The 3:4'), bgPtTip: photo(bs.pt, 'The 3:4'),
           ptShowOn: f(v.ptOn), ptOff: f(!v.ptOn), ptEyeTip: eye(v.ptOn, 'the 3:4 portrait'),
-          pfOvOn: f(v.pfOv), bgPfOn: f(bs.pf), pfLinkTip: link(v.pfOv, 'Portrait Fix'), bgPfTip: photo(bs.pf, 'Portrait Fix'),
-          pfShowOn: f(!v.pfHide), pfOff: f(v.pfHide), pfEyeTip: eye(!v.pfHide, 'Portrait Fix'),
           stOvOn: f(v.story), bgStOn: f(bs.st), stLinkTip: link(v.story, 'The 9:16'), bgStTip: photo(bs.st, 'The 9:16'),
           lsOvOn: f(v.wideOv), bgLsOn: f(bs.ls), lsLinkTip: link(v.wideOv, 'The 1.91:1'), bgLsTip: photo(bs.ls, 'The 1.91:1'),
           // A DETACHED size picks its own alignment from its row; while linked there is no button.
-          ...(() => { const al = {}; [['pt', 'ptOv'], ['pf', 'pfOv'], ['st', 'story'], ['ls', 'wideOv'], ['bn', 'banOv']].forEach(([k, rk]) => {
+          ...(() => { const al = {}; [['pt', 'ptOv'], ['st', 'story'], ['ls', 'wideOv'], ['bn', 'banOv']].forEach(([k, rk]) => {
             const r = v[rk], ctr = ((r && r.align) || v.align) === 'center';
             al[k + 'AlOn'] = r ? '1' : undefined;
             al[k + 'AlCtr'] = ctr ? '1' : undefined;
@@ -14187,23 +14145,7 @@ class CampaignStudio extends StudioBase {
       togglePtOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ptOv = vv.ptOv ? null : CampaignStudio.detachRec(vv); return x; }); },
       toggleBgPt: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.pt = !vv.bgSep.pt; return x; }); },
       bgPtSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.pt) ? '-pt' : ''), key: 'pt' + vi + !!(v.bgSep && v.bgSep.pt) }],
-      pt: v.ptOn ? mkCanvas(vi, 'pt') : null,
-      // PORTRAIT FIX (2026-10-19, TEMPORARY, by request) — the 9:16 story with 260 more of top
-      // clearance. Shown by default (`v.pfHide`); the 3:4 portrait is now off by default (`v.ptOn`).
-      pfShow: !v.pfHide,
-      // Portrait Fix's own Scaling slider, on its row (the Layout rail's Scaling has it too).
-      ...(() => {
-        const steps = CampaignStudio.scaleSteps('pf'), cur = CampaignStudio.scaleStepOf(v, 'pf'), pct = Math.round(CampaignStudio.scaleOf(v, 'pf') * 100);
-        const put = val => this.upd(x => { const vv = x.variants[vi]; vv.scaleBy = vv.scaleBy || {}; vv.scaleBy.pf = val; return x; });
-        return { pfScVal: cur, pfScMin: steps[0], pfScMax: steps[steps.length - 1], pfScPct: pct + '%', pfScDef: pct === 100 ? '1' : undefined,
-          pfScSet: e => put(+(100 * Math.pow(1.2, Math.round(+e.target.value))).toFixed(2)),
-          pfScReset: e => { if (e && e.stopPropagation) e.stopPropagation(); put(100); } };
-      })(),
-      togglePfShow: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.pfHide = !vv.pfHide; if (vv.pfHide && x.sel && x.sel.vi === vi && x.sel.size === 'pf') x.sel = null; return x; }); },
-      togglePfOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.pfOv = vv.pfOv ? null : CampaignStudio.detachRec(vv); return x; }); },
-      toggleBgPf: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.pf = !vv.bgSep.pf; return x; }); },
-      bgPfSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.pf) ? '-pf' : ''), key: 'pf' + vi + !!(v.bgSep && v.bgSep.pf) }],
-      pf: !v.pfHide ? mkCanvas(vi, 'pf') : null
+      pt: v.ptOn ? mkCanvas(vi, 'pt') : null
     }); });
 
     const addDefaults = {
@@ -14623,8 +14565,6 @@ class CampaignStudio extends StudioBase {
           bgBnDoneOn: on('adstudio-bg-' + vi + '-bn'), bgBnDropLabel: lab('adstudio-bg-' + vi + '-bn', 'Picture', 'the banner picture'),
           bgPtDoneOn: on('adstudio-bg-' + vi + '-pt'), bgPtDropLabel: lab('adstudio-bg-' + vi + '-pt', 'Picture', 'the 3:4 picture'),
           bgPtRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-pt'), bgPtPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-pt'),
-          bgPfDoneOn: on('adstudio-bg-' + vi + '-pf'), bgPfDropLabel: lab('adstudio-bg-' + vi + '-pf', 'Picture', 'the Portrait Fix picture'),
-          bgPfRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-pf'), bgPfPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-pf'),
           fgDoneOn: on('adstudio-fg-' + vi), fgDropLabel: lab('adstudio-fg-' + vi, 'Cut-out', 'the cut-out PNG'),
           gDoneOn: selM ? on('adstudio-mod-' + selM.id) : undefined,
           gDropLabel: selM ? lab('adstudio-mod-' + selM.id, 'Graphic', 'an SVG or PNG') : '',
@@ -14676,8 +14616,6 @@ class CampaignStudio extends StudioBase {
       bgSlotPtStyle: { width: '100%', aspectRatio: '4 / 3' },
       bgSepPtOn: !!av.ptOn && !!(av.bgSep && av.bgSep.pt),
       bgSlotPfStyle: { width: '100%', aspectRatio: '4 / 3' },
-      bgSepPfOn: !av.pfHide && !!(av.bgSep && av.bgSep.pf),
-      activeBgPfSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-pf' }],
       activeBgPtSlot: [{ id: 'adstudio-bg-' + s.activeVi + '-pt' }],
       bgSepStOn: CampaignStudio.storyShown(s) && !!(av.bgSep && av.bgSep.st),
       bgSepLsOn: !!av.wide && !!(av.bgSep && av.bgSep.ls),
@@ -15061,8 +14999,8 @@ class CampaignStudio extends StudioBase {
       scaleMax: CampaignStudio.SCALE_MAX,
       // The two banners scale on their own, and are named by their file width — both are
       // 2:1, so a ratio would not tell them apart.
-      scaleRows: ([['sq', '1:1'], ['pt', '3:4'], ['pf', 'Fix'], ['st', '9:16'], ['ls', '1.91:1'], ['bn', '1880'], ['bs', '758']]
-          .filter(sz => (sz[0] !== 'pt' || av.ptOn) && (sz[0] !== 'pf' || !av.pfHide) && (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
+      scaleRows: ([['sq', '1:1'], ['pt', '3:4'], ['st', '9:16'], ['ls', '1.91:1'], ['bn', '1880'], ['bs', '758']]
+          .filter(sz => (sz[0] !== 'pt' || av.ptOn) && (sz[0] !== 'ls' || av.wide) && ((sz[0] !== 'bn' && sz[0] !== 'bs') || av.banner)))
         .map(sz => {
           const key = sz[0], val = Math.round(CampaignStudio.scaleOf(av, key) * 100);
           // The slider walks whole rungs of the minor third, so its value is the STEP and the
@@ -15436,7 +15374,7 @@ class Component extends DCLogic {
       // itself, or one level down, takes its own campaign name as the audience. Projects that land
       // on the same Main/Audience merge, so a Meta and a YouTube export sit under ONE Variant A.
       const KIND = {
-        feed: ['meta', 'sq', 'main', 'Feed'], portrait_3x4: ['meta', 'pt', 'main', 'Portrait 3:4'], portrait_fix: ['meta', 'pf', 'main', 'Portrait Fix'], story: ['meta', 'st', 'main', 'Story'],
+        feed: ['meta', 'sq', 'main', 'Feed'], portrait_3x4: ['meta', 'pt', 'main', 'Portrait 3:4'], story: ['meta', 'st', 'main', 'Story'],
         'landscape_1.91x1': ['meta', 'ls', 'sub', 'Horizontal 1.91:1']
       };
       const tree = new Map();   // main → aud → letter → kind → {file, path}
@@ -15448,10 +15386,10 @@ class Component extends DCLogic {
         for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, '']);
         return Promise.all(vdirs.map(async ([vname, vh, vpre]) => {
           const letter = vname.slice(-1).toUpperCase(), hits = [], outs = [];
-          const re = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|portrait_fix|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
+          const re = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
           // every file an export of this variant wrote — the banners too — so editing the
           // text re-exports exactly what is already in the folder, and nothing else
-          const reOut = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|portrait_fix|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5|eventbrite_banner_wide|eventbrite_banner_small)\\.(png|jpe?g)$', 'i');
+          const reOut = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5|eventbrite_banner_wide|eventbrite_banner_small)\\.(png|jpe?g)$', 'i');
           for await (const [name, h] of vh.entries()) {
             if (h.kind !== 'file') continue;
             const m = re.exec(name);
@@ -15515,7 +15453,7 @@ class Component extends DCLogic {
             const slots = tree.get(main).get(aud).get(letter), plats = [];
             for (const [key, label] of [['meta', 'Meta']]) {
               const tiles = [];
-              const order = ['feed', 'portrait_3x4', 'portrait_fix', 'story', 'landscape_1.91x1'];
+              const order = ['feed', 'portrait_3x4', 'story', 'landscape_1.91x1'];
               for (const k of order) {
                 if (slots[k]) { tiles.push(tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
               }
@@ -15791,8 +15729,8 @@ class Component extends DCLogic {
   // rasterFile the Share export runs, fed the photos the json carries, never the open
   // project's store. So the folder ends exactly as a fresh export would leave it, and a
   // file the project never exported is never created. Instance fields only (`_ae`).
-  static AE_JOB = { feed: 'sq', portrait_3x4: 'pt', portrait_fix: 'pf', story: 'st', eventbrite_banner_wide: 'bn', eventbrite_banner_small: 'bs' };
-  static AE_LAB = { feed: 'Feed', portrait_3x4: 'Portrait 3:4', portrait_fix: 'Portrait Fix', story: 'Story', square_1x1: 'Square 1:1', vertical_9x16: 'Vertical 9:16', 'landscape_1.91x1': 'Landscape 1.91:1',
+  static AE_JOB = { feed: 'sq', portrait_3x4: 'pt', story: 'st', eventbrite_banner_wide: 'bn', eventbrite_banner_small: 'bs' };
+  static AE_LAB = { feed: 'Feed', portrait_3x4: 'Portrait 3:4', story: 'Story', square_1x1: 'Square 1:1', vertical_9x16: 'Vertical 9:16', 'landscape_1.91x1': 'Landscape 1.91:1',
     portrait_4x5: 'Portrait 4:5', eventbrite_banner_wide: 'Eventbrite 1880', eventbrite_banner_small: 'Eventbrite 758' };
   static aeSize(job) { return job === 'landscape_1.91x1' ? 'ls' : Component.AE_JOB[job]; }
   static async aeWrite(h, data) { const w = await h.createWritable(); await w.write(data); await w.close(); }
@@ -15928,7 +15866,7 @@ class Component extends DCLogic {
   // The files to re-render, in reading order: by variant, then Feed, Story, the YouTube
   // ratios, the banners. A project that has exported nothing yet previews its feed.
   aeShots(ae) {
-    const order = ['feed', 'portrait_3x4', 'portrait_fix', 'story', 'square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5', 'eventbrite_banner_wide', 'eventbrite_banner_small'];
+    const order = ['feed', 'portrait_3x4', 'story', 'square_1x1', 'vertical_9x16', 'landscape_1.91x1', 'portrait_4x5', 'eventbrite_banner_wide', 'eventbrite_banner_small'];
     const outs = ae.p.outs.slice().sort((a, b) => a.letter < b.letter ? -1 : a.letter > b.letter ? 1 : order.indexOf(a.job) - order.indexOf(b.job));
     const list = outs.map(o => ({ key: o.letter + o.job, letter: o.letter, vi: o.letter.charCodeAt(0) - 65, sk: Component.aeSize(o.job, ae.st), label: Component.AE_LAB[o.job] || o.job, o }));
     if (!list.length) ae.st.variants.forEach((v, vi) => list.push({ key: vi + 'sq', letter: String.fromCharCode(65 + vi), vi, sk: 'sq', label: 'Feed' }));

@@ -193,7 +193,7 @@ moves to CAS.
 What's on the screen, from left to right:
 - **Design Components**: the palette of pieces you can add.
 - **The canvases**: one row ("plate") per variant. The 1:1 is on top, then the Portrait 3:4,
-  the Portrait Fix and the 9:16, then the optional Horizontal 1.91:1 and the Eventbrite banner.
+  the 9:16 and the Horizontal 1.91:1, then the optional Eventbrite banner.
 - **This component**, **Background image** and **Hidden components**.
 - **Layout**, on the right.
 
@@ -328,14 +328,10 @@ No API key or service is needed: Claude Code reads the screenshot.
     set the wordmark corner and alignment for that canvas only. It starts where the variant's is.
   - **Picture** — give that canvas its own photo instead of sharing the main one.
   - **Eye** — show or hide the canvas. A hidden canvas is not exported.
-- **Portrait 3:4:** hidden by default — press the eye on its row to show it. It mirrors the 1:1
+- **Portrait 3:4:** shown by default — press the eye on its row to hide it. It mirrors the 1:1
   until you press its link button. It exports as `<name>_Variant A_Portrait_3x4.jpg` at 2160 × 2880.
-- **Portrait Fix (temporary):** shown by default under the 3:4 row. It is the 9:16 Story with
-  260px more clearance at the top (520 in all). Same link, picture and eye buttons, and a
-  **Scale** slider right under its row (58–100%, on its own — it does not move the Story). It exports as
-  `<name>_Variant A_Portrait_Fix.jpg` at 2160 × 3840.
 - **9:16:** it mirrors the 1:1 until you press its link button.
-- **Horizontal 1.91:1:** press the eye on its row to show it. It is a 1200 × 628 landscape, and
+- **Horizontal 1.91:1:** shown by default — press the eye on its row to hide it. It is a 1200 × 628 landscape, and
   its words run the full width of the canvas. It exports into the variant's folder with the other
   images (section 7).
 - **All variants** (the pill next to **Add Variant**, which shows how many variants you have
@@ -437,8 +433,9 @@ machine reopens on Copy.
 Source folder/
   Variant A/                        ← the Master; Variant B and C for more variants
     <name>_Variant A_feed.jpg       ← 1:1
+    <name>_Variant A_Portrait_3x4.jpg            ← 3:4, unless hidden
     <name>_Variant A_Story.jpg      ← 9:16
-    <name>_Variant A_Landscape_1.91x1.jpg        ← 1200 × 628, only if shown
+    <name>_Variant A_Landscape_1.91x1.jpg        ← 1200 × 628, unless hidden
     <name>_Variant A_EventBrite_Banner_wide.jpg  ← 1880 × 940
     <name>_Variant A_EventBrite_Banner_Small.jpg ← 758 × 380
   <name>.adstudio.json   Assets/    ← the session and uploads, refreshed on every export
@@ -473,7 +470,7 @@ never loads the Source folder by itself.
   International EUR — Local comes first). Each one says how many variants and images it holds.
 - **Click an audience** to show it on the right: its name and main folder at the top, then one row
   per variant (Variant A, Variant B …). Each row shows its
-  **Meta** images: Feed, Portrait 3:4, Portrait Fix, Story and the Horizontal 1.91:1. A small line under each image
+  **Meta** images: Feed, Portrait 3:4, Story and the Horizontal 1.91:1. A small line under each image
   gives its pixel size and file size.
 - **All audiences**, at the top of the list, shows every audience in the folder in one window,
   each under its own heading. (Edit text works one audience at a time, so it is hidden there.)
@@ -513,7 +510,7 @@ Press **Edit text** to work on the words of the audience on screen, without open
 - It looks for **saved projects**: folders holding a `.adstudio.json`. Point it at the campaign
   folder that holds Local / International, or at a single project folder. A project directly in
   the Source folder uses its campaign name as the audience.
-- Only `<name>_Variant A_feed`, `_Portrait_3x4`, `_Portrait_Fix`, `_Story` and
+- Only `<name>_Variant A_feed`, `_Portrait_3x4`, `_Story` and
   `_Landscape_1.91x1` files are shown, from the Variant folders. Banners, carousels and anything
   else are left out.
 - **A size that was not exported is simply not shown.** A variant or audience with nothing to
