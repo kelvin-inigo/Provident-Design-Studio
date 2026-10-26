@@ -85,8 +85,8 @@ moves, because it records where the folder is.
 Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"` first).
 
 **5. Settings each computer keeps for itself.** Ask the person who set up yours for the values:
-- **Import token**, in **Share › Import hub**, for **Send** and **From the hub**. The hub is only
-  reachable on the office network.
+- **Import token**, in OPS's **Share › Import hub**, for **Send** and **From the hub** (OPS only).
+  The hub is `http://192.168.50.30:8090`, reachable only on the office network.
 - **Google Drive client ID**, in Ad sets' **Google Drive** box. The admin's steps are in
   `docs/google-drive-setup.md`.
 - **Your name**, in CAS's Copy workspace › **History**, which labels copy snapshots.
@@ -143,10 +143,10 @@ Each studio opens on its **project browser**.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count.
 - **Undo** / **Redo** (top bar) go back up to 5 steps.
-- **From the hub** (sidebar, under Library) lists what the Content Hub has received from **Send**,
+- **From the hub** (OPS only; sidebar, under Library) lists what the Content Hub has received from **Send**,
   newest first, with a few of the sent images on each card. Click one to open it as a project:
   its words, layout and the photos it was sent with all come back. A delivery made in the other
-  studio opens there. The hub keeps its copy; nothing is deleted. It uses the **Endpoint URL** and
+  studio (an older CAS delivery) opens there. The hub keeps its copy; nothing is deleted. It uses the **Endpoint URL** and
   **Import token** from **Share › Import hub**; **Refresh** asks the hub again.
 - If there's unsaved work when you leave, the studio asks first.
 
@@ -539,14 +539,8 @@ Source folder/
   so on, banners included.
 - **Without a Source folder**, you get a zip with the same folders inside.
 - **PDF** is one file with every size, saved wherever you choose.
-- **Send … + .json** (under the Export button in **Share**) sends the project `.json` and every
-  exported image to the import hub. The first time, press it and paste your import token into
-  the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
-  A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
-  your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
-  the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
-  A project opened from a **Content Hub design job** remembers its post, so Send attaches the
-  pages to that post and moves it to **Ready to publish** ("attached to the hub post").
+- **Everything Content Hub is in OPS only**: CAS has no Send, no Import hub settings and no
+  **From the hub** view.
 
 ### See everything you exported: Ad sets
 
@@ -666,11 +660,19 @@ installed.
 On CAS's home page, press **Component usage** in the sidebar, in the **Review** group. It counts
 every design component, and every style of it, across your saved projects.
 
-- **Choose the folder where the team keeps its projects** at the top of the view — on this
-  computer (**Choose a folder**) or in Google Drive (paste the folder's link, then sign in with
-  your Provident Google account). Every Campaign project in it, and up to four folders inside it,
-  is counted. The folder is only read, never changed, and is remembered on this computer. After a
-  restart, one click (**Reconnect the folder** or **Sign in to Google**) reads it again.
+- **Choose the folder where the team keeps its projects** at the top of the view. Every Campaign
+  project in it, and up to four folders inside it, is counted. The folder is only read, never
+  changed, and is remembered on this computer.
+- **Set it up once with Google Drive for desktop — no Google sign-in after that:**
+  1. Install Google Drive for desktop and sign in to your Provident account (once, in the app).
+  2. In Component usage press **Choose a folder**, open **Google Drive** in the picker's sidebar
+     and pick the team's projects folder.
+     If the picker shows several `GoogleDrive-…` folders, pick the one with no date after it. The
+     dated ones are old copies.
+  3. After the next Chrome restart, press **Reconnect the folder** once and choose **Allow on
+     every visit**. From then on the folder is read without asking.
+- **Without Drive for desktop**, paste the folder's Drive link instead and sign in with your
+  Provident Google account. That sign-in lasts an hour and is asked again after every reload.
 - The folder is read when you open the view. A project that has not changed since the last time
   is not read again, so it is quick after the first visit. **Refresh** reads it again now, and
   **Use Recent instead** forgets the folder.
@@ -772,6 +774,10 @@ This is the full editor.
   the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
   A project opened from a **Content Hub design job** remembers its post, so Send attaches the
   pages to that post and moves it to **Ready to publish** ("attached to the hub post").
+- **Save also sends** a project that came from a Content Hub post: after the save, the pages and
+  the `.json` go to that post exactly as Send would, so the hub always shows the latest saved
+  design. It only happens on a computer with the import URL and token set; elsewhere Save just
+  saves. To turn it off on one computer, set `localStorage['ops-save-sends']` to `off`.
 - **The hub's design queue** (posts someone pressed *Approve and send to design* on): in Claude,
   run **/hub-design-queue**. It lists the queue, claims the post you pick, lays it out as an OPS
   carousel from the hub's copy and brief photos, shows you the pages, then exports and sends

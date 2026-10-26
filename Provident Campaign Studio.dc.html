@@ -4751,7 +4751,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <button onClick="{{ shViewAll }}" data-on="{{ shViewAllOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-520q-24.54 0-42.27-17.73Q140-555.46 140-580v-180q0-24.54 17.73-42.27Q175.46-820 200-820h180q24.54 0 42.27 17.73Q440-784.54 440-760v180q0 24.54-17.73 42.27Q404.54-520 380-520H200Zm0 380q-24.54 0-42.27-17.73Q140-175.46 140-200v-180q0-24.54 17.73-42.27Q175.46-440 200-440h180q24.54 0 42.27 17.73Q440-404.54 440-380v180q0 24.54-17.73 42.27Q404.54-140 380-140H200Zm380-380q-24.54 0-42.27-17.73Q520-555.46 520-580v-180q0-24.54 17.73-42.27Q555.46-820 580-820h180q24.54 0 42.27 17.73Q820-784.54 820-760v180q0 24.54-17.73 42.27Q784.54-520 760-520H580Zm0 380q-24.54 0-42.27-17.73Q520-175.46 520-200v-180q0-24.54 17.73-42.27Q555.46-440 580-440h180q24.54 0 42.27 17.73Q820-404.54 820-380v180q0 24.54-17.73 42.27Q784.54-140 760-140H580ZM200-580h180v-180H200v180Zm380 0h180v-180H580v180Zm0 380h180v-180H580v180Zm-380 0h180v-180H200v180Zm380-380Zm0 200Zm-200 0Zm0-200Z"/></svg></i>All<s>{{ allCount }}</s></button>
       <button onClick="{{ shViewTpl }}" data-on="{{ shViewTplOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60H450v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM510-200h237.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-480H510v280Zm0-340h250v-207.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H510v220Z"/></svg></i>Templates<s>{{ tplCount }}</s></button>
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
-      <button onClick="{{ shViewHub }}" data-on="{{ shViewHubOn }}" class="p-nav2" title="What the Content Hub has received from Share › Send, to open as a project again"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85v-115.38H628.46q-26.15 38-64.96 59-38.81 21-83.5 21t-83.5-21q-38.81-21-64.96-59H200v115.38q0 5.39 3.46 8.85t8.85 3.46ZM480-307.69q32 0 59.38-16.31 27.39-16.31 43.24-44.08 5.61-9.38 14.8-14.5 9.2-5.11 20.2-5.11H760v-360q0-5.39-3.46-8.85t-8.85-3.46H212.31q-5.39 0-8.85 3.46t-3.46 8.85v360h142.38q11 0 20.2 5.11 9.19 5.12 14.8 14.5 15.85 27.77 43.24 44.08Q448-307.69 480-307.69ZM212.31-200H200h560H212.31Z"/></svg></i>From the hub<sc-if value="{{ hubCountOn }}" hint-placeholder-val="{{ false }}"><s>{{ hubCount }}</s></sc-if></button>
       <div class="p-sec-l">Review</div>
       <button onClick="{{ shViewUse }}" data-on="{{ shViewUseOn }}" class="p-nav2" title="How often each design component and style is used across your saved projects"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M676.15-180q-15.36 0-25.76-10.4Q640-200.79 640-216.16V-380q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h67.69q15.37 0 25.76 10.39Q780-395.36 780-380v163.84q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4h-67.69Zm-230 0q-15.36 0-25.76-10.4Q410-200.79 410-216.16v-527.68q0-15.37 10.39-25.76 10.4-10.4 25.76-10.4h67.7q15.36 0 25.76 10.4Q550-759.21 550-743.84v527.68q0 15.37-10.39 25.76-10.4 10.4-25.76 10.4h-67.7Zm-229.99 0q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-331.35q0-15.64 10.4-25.99 10.39-10.34 25.76-10.34h67.69q15.36 0 25.76 10.39Q320-563.06 320-547.69v331.35q0 15.65-10.39 25.99Q299.21-180 283.85-180h-67.69Z"/></svg></i>Component usage</button>
       <button onClick="{{ shViewRev }}" data-on="{{ shViewRevOn }}" class="p-nav2" title="Every ad set review you started or worked on: each audience's status, the links and everything that changed"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-140Q142-140 121-161q-21-21-21-51.31v-535.38Q100-778 121-799q21-21 51.31-21h615.38Q818-820 839-799q21 21 21 51.31v535.38Q860-182 839-161q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM360-290q12.77 0 21.38-8.62Q390-307.23 390-320t-8.62-21.38Q372.77-350 360-350H240q-12.77 0-21.38 8.62Q210-332.77 210-320t8.62 21.38Q227.23-290 240-290h120Zm222-168.77-35.92-35.92q-8.93-8.92-21.08-8.81-12.15.12-21.08 9.42-8.3 8.93-8.42 21.08-.11 12.15 8.81 21.08l52.38 52.38q10.85 10.85 25.31 10.85 14.46 0 25.31-10.85l137.38-137.38q8.92-8.93 9.12-20.89.19-11.96-9.12-21.27-9.31-9.3-21.38-9.3-12.08 0-21.39 9.3L582-458.77ZM360-450q12.77 0 21.38-8.62Q390-467.23 390-480t-8.62-21.38Q372.77-510 360-510H240q-12.77 0-21.38 8.62Q210-492.77 210-480t8.62 21.38Q227.23-450 240-450h120Zm0-160q12.77 0 21.38-8.62Q390-627.23 390-640t-8.62-21.38Q372.77-670 360-670H240q-12.77 0-21.38 8.62Q210-652.77 210-640t8.62 21.38Q227.23-610 240-610h120ZM160-200v-560 560Z"/></svg></i>Review links</button>
@@ -4821,37 +4820,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing yet — your projects appear here once you save one.</div></sc-if>
       </sc-if>
 
-      <sc-if value="{{ hubOn }}" hint-placeholder-val="{{ false }}">
-        <!-- FROM THE HUB. What the Content Hub received from Share › Send, read back from its
-             /api/imports. A card opens the delivery's own session .json through loadSessionFile; the
-             thumbnails are the renders Send attached, and they stay on the hub (StudioBase.hubVals). -->
-        <div class="hb-bar">
-          <span class="hb-st" data-st="{{ hubSt }}" role="status"><i aria-hidden="true"></i><b>{{ hubStLabel }}</b><s>{{ hubWhere }}</s></span>
-          <span class="hb-bar-t">Open a delivery to make it a project here. The hub keeps its copy.</span>
-          <button onClick="{{ hubRefresh }}" class="p-br-alt hb-re" title="Ask the hub again"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-750q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v178.46q0 15.37-10.39 25.76-10.4 10.39-25.76 10.39H563.85q-12.75 0-21.38-8.62-8.62-8.63-8.62-21.39 0-12.75 8.62-21.37 8.63-8.61 21.38-8.61h128q-31.62-57.930-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q69.73 0 127.67-36.62 57.94-36.61 87.79-97.69 5.69-10.92 16.73-15.27 11.04-4.34 22.5-.5 12.23 3.85 17.12 16 4.88 12.16-.81 23.08-37.16 77.69-109.7 124.34Q570.3-180 481.54-180Z"/></svg>{{ hubRefreshLabel }}</button>
-        </div>
-        <sc-if value="{{ hubMsgOn }}" hint-placeholder-val="{{ false }}"><div class="p-br-note hb-err" role="alert">{{ hubMsg }}</div></sc-if>
-        <sc-for list="{{ hubGroups }}" as="g" hint-placeholder-count="0">
-          <section class="hb-g">
-            <h3 class="hb-gh"><b>{{ g.label }}</b><s>{{ g.count }}</s></h3>
-            <div class="p-grid2 hb-grid">
-              <sc-for list="{{ g.items }}" as="hb" hint-placeholder-count="0">
-                <button onClick="{{ hb.open }}" class="p-c hb-c" title="{{ hb.tip }}" data-kind="{{ hb.kind }}" data-other="{{ hb.other }}">
-                  <span class="p-c-p hb-p">
-                    <span class="hb-row"><sc-for list="{{ hb.thumbs }}" as="t" hint-placeholder-count="3"><span class="hb-t" style="{{ t.style }}" data-wait="{{ t.wait }}"></span></sc-for></span>
-                    <span class="hb-k">{{ hb.kindLabel }}<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></span>
-                    <sc-if value="{{ hb.moreOn }}" hint-placeholder-val="{{ false }}"><span class="hb-more">{{ hb.more }}</span></sc-if>
-                    <span class="hb-go">{{ hb.openLabel }}</span>
-                  </span>
-                  <span class="p-c-n hb-n">{{ hb.title }}</span>
-                  <span class="p-c-m hb-m">{{ hb.meta }}<sc-if value="{{ hb.olderOn }}" hint-placeholder-val="{{ false }}"><span class="hb-old">Older copy</span></sc-if></span>
-                </button>
-              </sc-for>
-            </div>
-          </section>
-        </sc-for>
-        <sc-if value="{{ hubEmptyOn }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing received yet — Share › Send puts a project on the hub, and it shows here.</div></sc-if>
-      </sc-if>
       <!-- REVIEW LINKS: share-link.js fills this host itself (plain DOM, never reconciled) -->
       <sc-if value="{{ shShowRev }}" hint-placeholder-val="{{ false }}">
         <div class="rv-host" data-rv-arch="1"></div>
@@ -4865,11 +4833,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
             <div class="lb-pick" data-lib="1">
               <div class="lb-pick-h"><b>Count every project in a folder</b><s>Point the studio at the folder where the team keeps its saved projects. Every Campaign project in it, and in the folders inside it, is counted — not only the last ten saved on this computer. It is read, never changed, and remembered on this computer.</s></div>
               <div class="lb-opts">
-                <div class="lb-opt"><b>On this computer</b><s>A folder in Documents, on a shared drive, or one Google Drive for desktop keeps in sync.</s>
+                <div class="lb-opt"><b>On this computer · no sign-in</b><s>Best for a Drive folder: pick it where Google Drive for desktop keeps it in sync (Google Drive in Finder). After a restart, press Reconnect once and choose “Allow on every visit” — then it is read without asking.</s>
                   <sc-if value="{{ libLocalOk }}" hint-placeholder-val="{{ true }}"><button onClick="{{ libPick }}" class="p-btn">Choose a folder</button></sc-if>
                   <sc-if value="{{ libLocalNo }}" hint-placeholder-val="{{ false }}"><s class="lb-no">Needs Chrome or Edge on a computer.</s></sc-if>
                 </div>
-                <div class="lb-opt"><b>Google Drive</b><s>Paste the folder’s link from the browser’s address bar. You sign in with your Provident Google account.</s>
+                <div class="lb-opt"><b>Google Drive link</b><s>Without Drive for desktop: paste the folder’s link from the browser’s address bar. You sign in with your Provident Google account, again after each reload.</s>
                   <span class="lb-gd"><input class="p-in" data-lib-in="1" type="url" placeholder="https://drive.google.com/drive/folders/…" onKeyDown="{{ libGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ libGd }}" class="p-ghost">Use this folder</button></span>
                 </div>
               </div>
@@ -5027,20 +4995,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
        already shows and changes the folder. The shDest* keys are still computed and unread. -->
   <button onClick="{{ runExport }}" class="sx-go"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-345.85q-6.23-2.3-11.85-7.92L330.31-478.15q-8.92-8.93-8.81-20.89.12-11.96 8.81-21.27 9.31-9.3 21.38-9.61 12.08-.31 21.39 9L450-444v-306q0-12.77 8.62-21.38Q467.23-780 480-780t21.38 8.62Q510-762.77 510-750v306l76.92-76.92q8.93-8.92 21.19-8.81 12.27.12 21.58 9.42 8.69 9.31 9 21.08.31 11.77-9 21.08L505.31-353.77q-5.62 5.62-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31ZM252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31Z"/></svg>{{ shExportLabel }}</button>
   <sc-if value="{{ shStatusOn }}" hint-placeholder-val="{{ false }}"><p class="sx-status" role="status">{{ shStatus }}</p></sc-if>
-  <!-- SEND (2026-10-19): the export POSTed to an endpoint set per computer. The button is
-       always there; the URL and key fold below it, and Send opens them when nothing is set. -->
-  <button onClick="{{ epSend }}" class="sx-eps" title="{{ epTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M140-240v-480l570 240-570 240Zm60-90 356-150-356-150v105l180 45-180 45v105Zm0 0v-300 300Z"/></svg>{{ epLabel }}</button>
-  <details class="sx-ep" data-acc="share-ep">
-    <summary><b>Import hub</b><s>{{ epSum }}</s></summary>
-    <label class="p-fld">Endpoint URL
-      <input value="{{ epUrl }}" onChange="{{ onEpUrl }}" placeholder="http://192.168.50.30:8090/api/imports" class="p-in" type="url" inputmode="url" spellcheck="false" autocomplete="off">
-    </label>
-    <sc-if value="{{ epBadOn }}" hint-placeholder-val="{{ false }}"><p class="sx-epw">Use https — plain http only to this computer or the office network.</p></sc-if>
-    <label class="p-fld">Import token <span style="opacity:.6">(sent as Authorization: Bearer)</span>
-      <input value="{{ epKey }}" onChange="{{ onEpKey }}" class="p-in" type="password" spellcheck="false" autocomplete="off">
-    </label>
-    <p class="sx-epn">Kept on this computer only. Sends the project .json as content and every exported image as images.</p>
-  </details>
   <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
   <button onClick="{{ shLinkGo }}" class="sx-eps" data-on="{{ shLinkOn }}" title="{{ shLinkTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ shLinkLabel }}</button>
   <!-- A REVIEW (share-link.js): the edit link plus a Copy-only link for the content team and an
@@ -11136,152 +11090,8 @@ class CampaignStudio extends StudioBase {
     }
   }
   // Stable, readable names so re-uploading a photo overwrites its own file.
-  // ── SEND THE EXPORT TO AN ENDPOINT (2026-10-19). The same files an export writes — every
-  // render, the session .smpstudio.json and Assets/ — POSTed as ONE multipart/form-data
-  // request to a URL set per computer (localStorage, never the repo). The body is a
-  // `manifest` JSON part describing the bundle, then one `files` part per file whose filename
-  // is the file's path in the bundle. See docs/studio-endpoint.md for the contract. It reuses
-  // doExport whole: `_ep` makes `deliver` post instead of writing, so the gate, the renders
-  // and the file names are the export's own. A PDF is one local file, so Send ships images.
-  static EP_KEY = 'provident-cas-endpoint';
-  epCfg() {
-    if (!this._epCfg) { let c = {}; try { c = JSON.parse(localStorage.getItem(CampaignStudio.EP_KEY) || '{}') || {}; } catch (e) {} this._epCfg = { url: c.url || CampaignStudio.EP_DEFAULT, key: c.key || '' }; }
-    return this._epCfg;
-  }
-  epSet(k, v) {
-    const c = Object.assign({}, this.epCfg(), { [k]: String(v || '').trim() });
-    this._epCfg = c;
-    try { localStorage.setItem(CampaignStudio.EP_KEY, JSON.stringify(c)); } catch (e) {}
-    this.forceUpdate();
-  }
-  // https anywhere; plain http only to this machine or the office network (10.x, 172.16-31.x,
-  // 192.168.x) — never across the internet in the clear
-  static epUrlOk(u) {
-    try { const x = new URL(u); return x.protocol === 'https:' || (x.protocol === 'http:' && /^(localhost|127\.\d+\.\d+\.\d+|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(x.hostname)); }
-    catch (e) { return false; }
-  }
-  static epKind(k) { return k === 'png' || k === 'svg' ? k : 'jpg'; }
-  async sendExport() {
-    const c = this.epCfg();
-    if (!CampaignStudio.epUrlOk(c.url)) {
-      this.setState({ exportStatus: c.url ? 'Use an https URL — plain http only to this computer or the office network.' : 'Add the endpoint URL below, then press Send again.' });
-      const d = document.querySelector('.sx-ep'); if (d) { d.open = true; const i = d.querySelector('input'); if (i) i.focus(); }
-      return;
-    }
-    if (!c.key) {
-      this.setState({ exportStatus: 'Paste the import token below, then press Send again.' });
-      const d = document.querySelector('.sx-ep'); if (d) { d.open = true; const i = d.querySelector('input[type=password]'); if (i) i.focus(); }
-      return;
-    }
-    this._ep = CampaignStudio.epKind(this.state.exportKind || 'jpg');
-    try { await this.doExport(this._ep); } finally { this._ep = null; }
-  }
-  async deliver(files, name, opt) {
-    if (!this._ep) return super.deliver(files, name, opt);
-    return this.epPost(files, name, this._ep);
-  }
-  // THE HUB'S IMPORT FORMAT (2026-10-19, by request): one multipart POST with the project's
-  // session .json as `content` and every exported image as `images`, plus `X-Source: Design
-  // system` and the key as `Authorization: Bearer`. Assets/ is not sent: the .json already
-  // embeds every source photo. Non-image files an export writes (CAS's YouTube text file, the
-  // Meta upload manifest) are left out — the hub takes images.
-  static EP_DEFAULT = 'http://192.168.50.30:8090/api/imports';
-  // COMPRESSION ON SEND (2026-10-19, after "HTTP 413 · Delivery is larger than 50 MB"). The hub
-  // takes up to 50 MB and 50 images. When the export plus the .json fit, the images go as
-  // exported, byte for byte. When they do not, every raster image is re-encoded as JPEG,
-  // stepping quality down, and only past the lowest quality is the pixel size reduced — so
-  // a delivery shrinks just as far as the limit makes it. SVGs pass through untouched. The
-  // local export is never affected: this runs on the copy that is sent.
-  static EP_MAX = 48 * 1048576;     // the hub's 50 MB, less room for the multipart framing
-  static EP_MAX_IMGS = 50;
-  async epFit(imgs, jsonBytes) {
-    const C = CampaignStudio, MB = n => C.sizeLabel(n);
-    if (imgs.length > C.EP_MAX_IMGS) return { error: 'The hub takes up to ' + C.EP_MAX_IMGS + ' images and this export has ' + imgs.length + ' \u2014 send fewer variants or slides.' };
-    const room = C.EP_MAX - jsonBytes;
-    if (room <= 0) return { error: 'The project .json alone is ' + MB(jsonBytes) + ', over the hub\u2019s 50 MB \u2014 remove unused photos and try again.' };
-    const sum = list => list.reduce((a, f) => a + f.data.byteLength, 0);
-    if (sum(imgs) <= room) return { imgs, note: '' };
-    const raster = f => !/\.svg$/i.test(f.name);
-    const bmps = [];
-    for (const f of imgs) bmps.push(raster(f) ? await createImageBitmap(new Blob([f.data])) : null);
-    const enc = async (bmp, q, k) => {
-      const cv = document.createElement('canvas');
-      cv.width = Math.max(1, Math.round(bmp.width * k)); cv.height = Math.max(1, Math.round(bmp.height * k));
-      const g = cv.getContext('2d');
-      g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);   // JPEG has no alpha
-      g.imageSmoothingQuality = 'high'; g.drawImage(bmp, 0, 0, cv.width, cv.height);
-      const b = await new Promise(res => cv.toBlob(res, 'image/jpeg', q));
-      return new Uint8Array(await b.arrayBuffer());
-    };
-    const steps = [[.9, 1], [.85, 1], [.8, 1], [.72, 1], [.72, .85], [.72, .7], [.68, .55], [.65, .45]];
-    let out = null, used = null;
-    try {
-      for (const [q, k] of steps) {
-        this.setState({ exportStatus: 'Compressing for the hub \u2014 JPEG ' + Math.round(q * 100) + '%' + (k < 1 ? ' at ' + Math.round(k * 100) + '% size' : '') + '\u2026' });
-        out = [];
-        for (let i = 0; i < imgs.length; i++) {
-          const f = imgs[i];
-          out.push(bmps[i] ? { name: f.name.replace(/\.[a-z0-9]+$/i, '') + '.jpg', data: await enc(bmps[i], q, k), type: 'image/jpeg' } : f);
-        }
-        used = [q, k];
-        if (sum(out) <= room) break;
-      }
-    } finally { bmps.forEach(b => b && b.close && b.close()); }
-    if (sum(out) > room) return { error: 'Even compressed, the images are ' + MB(sum(out)) + ' with the .json at ' + MB(jsonBytes) + ' \u2014 over the hub\u2019s 50 MB. Send fewer variants or slides.' };
-    return { imgs: out, note: 'compressed from ' + MB(sum(imgs)) + ' to JPEG ' + Math.round(used[0] * 100) + '%' + (used[1] < 1 ? ' at ' + Math.round(used[1] * 100) + '% size' : '') };
-  }
-  async epPost(renders, name, kind) {
-    const c = this.epCfg();
-    await this.ensurePid();
-    const proj = await this.projectFiles(name);
-    const TYPE = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', svg: 'image/svg+xml' };
-    const extOf = n => (String(n).split('.').pop() || '').toLowerCase();
-    const json = proj[0];
-    const fit = await this.epFit(renders.filter(f => TYPE[extOf(f.name)]), json.data.byteLength);
-    if (fit.error) { this.setState({ exportStatus: fit.error }); return false; }
-    const imgs = fit.imgs;
-    const fd = new FormData();
-    fd.append('content', new Blob([json.data], { type: 'application/json' }), json.name);
-    for (const f of imgs) fd.append('images', new Blob([f.data], { type: f.type || TYPE[extOf(f.name)] }), String(f.name).split('/').pop());
-    const total = json.data.byteLength + imgs.reduce((a, f) => a + f.data.byteLength, 0);
-    const host = (() => { try { return new URL(c.url).host; } catch (e) { return c.url; } })();
-    this.setState({ exportStatus: 'Sending ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + CampaignStudio.sizeLabel(total) + ') to ' + host + '…' });
-    const headers = { 'X-Source': 'Design system' };
-    if (c.key) headers.Authorization = 'Bearer ' + c.key;
-    // A project opened from a Content Hub design job carries that post's id (`hubCardId`), so the
-    // hub attaches these pages to the post and moves it to Ready to publish.
-    const hub = StudioBase.hubCardOf(this.state);
-    if (hub) headers['X-Card-Id'] = hub;
-    const ac = new AbortController(), to = setTimeout(() => ac.abort(), 180000);
-    try {
-      // AN https PAGE (the Vercel site) POSTING TO AN http:// OFFICE ADDRESS is mixed content,
-      // which Chrome blocks outright — unless the request declares it is for the local network
-      // (`targetAddressSpace`, Chrome's Local Network Access), when Chrome asks the user once to
-      // allow it. The value was 'private' before Chrome renamed it 'local'; an unknown value
-      // throws a TypeError before anything is sent, so try each, then the plain request.
-      const opts = { method: 'POST', body: fd, headers, signal: ac.signal, mode: 'cors', credentials: 'omit' };
-      const lan = (() => { try { const x = new URL(c.url); return x.protocol === 'http:' && !/^(localhost|127\.|\[::1\])/.test(x.hostname); } catch (e) { return false; } })();
-      let r = null;
-      if (lan) for (const sp of ['local', 'private']) {
-        try { r = await fetch(c.url, Object.assign({}, opts, { targetAddressSpace: sp })); break; }
-        catch (e) { if (!(e instanceof TypeError) || /fetch|network|load/i.test(e.message || '')) throw e; }
-      }
-      if (!r) r = await fetch(c.url, opts);
-      let msg = '';
-      try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || (j.card_id ? 'attached to the hub post' : ''); } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
-      if (typeof msg !== 'string') msg = '';
-      if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
-      this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + CampaignStudio.sizeLabel(total) + (fit.note ? ', ' + fit.note : '') + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
-      return true;
-    } catch (e) {
-      const mixed = location.protocol === 'https:' && /^http:/i.test(c.url);
-      const why = e && e.name === 'AbortError' ? 'it took longer than 3 minutes'
-        : mixed ? 'the browser blocked it: this page is https and the hub is plain http. In Chrome, press Allow when it asks to access devices on your local network (check the address bar\u2019s site settings if you dismissed it), and on a Mac allow Chrome in System Settings \u203a Privacy & Security \u203a Local Network. Safari and Firefox cannot send from the website \u2014 open the studio from this Mac instead'
-        : 'the request did not reach it — check you are on the office network, the hub is up, and it allows requests from this page (CORS)';
-      this.setState({ exportStatus: 'Could not send to ' + host + ' — ' + why + '.' });
-      return false;
-    } finally { clearTimeout(to); }
-  }
+  // Send to the Content Hub lives in OPS only (2026-10-26, by request): CAS has no endpoint,
+  // no Send and no From the hub view. Its own deliver (StudioBase) is the export path.
   assetFiles(own) {
     const U = CampaignStudio.urlOf, E = CampaignStudio.extOf, B = CampaignStudio.bytesOf;
     const out = [];
@@ -14492,20 +14302,7 @@ class CampaignStudio extends StudioBase {
           shDestSub: sel === 'pdf' ? 'One PDF, every page in order' : (inFolder ? where + extra + ' \u00b7 replaces the last export' : 'One zip \u00b7 ' + where + extra),
           shDestActOn: (fa && fa.supported) ? '1' : undefined, shDestAct: inFolder ? 'Change' : 'Choose folder',
           shExportLabel: sel === 'pdf' ? 'Export PDF' : 'Export ' + nImg + ' ' + (nImg === 1 ? one[sel] : plural[sel]),
-          shStatus: s.exportStatus || '', shStatusOn: (s.exportStatus && s.exportStatus !== 'Ready.') ? '1' : undefined,
-          ...(() => {
-            const c = this.epCfg(), ok = CampaignStudio.epUrlOk(c.url), k = CampaignStudio.epKind(sel);
-            const n = nImg, w = n === 1 ? one[k] : plural[k];
-            return {
-              epUrl: c.url, epKey: c.key, epOkOn: ok ? '1' : undefined,
-              epBadOn: c.url && !ok ? '1' : undefined,
-              onEpUrl: e => this.epSet('url', e.target.value), onEpKey: e => this.epSet('key', e.target.value),
-              epSend: () => this.sendExport(), 
-              epLabel: 'Send ' + n + ' ' + w + ' + .json',
-              epSum: ok ? (() => { try { return new URL(c.url).host; } catch (e) { return ''; } })() : 'Not set',
-              epTip: 'Sends the project .json (content) and every exported image (images) to the import hub.' + (sel === 'pdf' ? ' A PDF stays local, so Send ships JPEGs.' : '')
-            };
-          })()
+          shStatus: s.exportStatus || '', shStatusOn: (s.exportStatus && s.exportStatus !== 'Ready.') ? '1' : undefined
         };
       })(),
       ...this.splashNoteVals(),
@@ -16553,10 +16350,10 @@ class Component extends DCLogic {
 
   renderVals() {
     // 'lib' was the Projects folder view (removed 2026-10-26); a tab still on it lands on All
-    const view = (this.state.splashView === 'lib' ? 'all' : this.state.splashView) || 'all';
+    const view = (this.state.splashView === 'lib' || this.state.splashView === 'hub' ? 'all' : this.state.splashView) || 'all';   // 'hub' is OPS only now
     const eng = this.active();
     const sub = eng.renderVals();
-    return Object.assign({}, sub, this.asVals(), eng.hubVals ? eng.hubVals(view === 'hub') : {}, eng.libVals ? eng.libVals(view === 'use') : {}, eng.shareVals ? eng.shareVals() : {}, {
+    return Object.assign({}, sub, this.asVals(), eng.libVals ? eng.libVals(view === 'use') : {}, eng.shareVals ? eng.shareVals() : {}, {
       // --- Theme. Written to <html data-theme> rather than held in React state
       // alone, because every chrome colour — including the inline style objects,
       // which beat any stylesheet rule — reads a `var(--ps-*)` token. Flipping the
@@ -16647,10 +16444,9 @@ class Component extends DCLogic {
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: eng && eng.mockCopy ? eng.mockCopy() : {},
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'hub' ? 'From the hub' : (view === 'rev' ? 'Review links' : 'All')))),
+      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Review links' : 'All'))),
       // the line under the title says what this view holds, so the counts read without the sidebar
       shViewSub: (n => view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'ad set') + ' kept on this computer')
-        : view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in ' + (sub.useFolder ? n(sub.useCount, 'project') + ' in \u201c' + sub.useFolder + '\u201d' : 'your ' + n(sub.useCount, 'most recent saved project')) : (sub.useFolder ? 'No Campaign projects in \u201c' + sub.useFolder + '\u201d yet' : 'Nothing saved yet \u2014 usage is counted from saved projects'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
@@ -16666,8 +16462,6 @@ class Component extends DCLogic {
       shViewAll: () => this.setState({ splashView: 'all' }),
       shViewTpl: () => this.setState({ splashView: 'tpl' }),
       shViewRec: () => this.setState({ splashView: 'rec' }),
-      shViewHub: () => { this.setState({ splashView: 'hub' }); eng.hubLoad && eng.hubLoad(); },
-      shViewHubOn: view === 'hub' ? '1' : undefined,
       shShareOn: this.state.shareOpen ? '1' : undefined,
       shToggleShare: () => {
         // Opening Share reveals the export formats with it — the panel exists to hand over

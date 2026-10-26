@@ -13610,7 +13610,10 @@ class OrganicStudio extends StudioBase {
   // and the file names are the export's own. A PDF is one local file, so Send ships images.
   static EP_KEY = 'provident-ops-endpoint';
   epCfg() {
-    if (!this._epCfg) { let c = {}; try { c = JSON.parse(localStorage.getItem(OrganicStudio.EP_KEY) || '{}') || {}; } catch (e) {} this._epCfg = { url: c.url || OrganicStudio.EP_DEFAULT, key: c.key || '' }; }
+    if (!this._epCfg) { let c = {}; try { c = JSON.parse(localStorage.getItem(OrganicStudio.EP_KEY) || '{}') || {}; } catch (e) {} this._epCfg = { url: c.url || OrganicStudio.EP_DEFAULT, key: c.key || '' };
+      // 2026-10-26: a URL left on this computer's local hub moves to the office hub, once.
+      try { if (!localStorage.getItem('provident-ep-office:' + OrganicStudio.EP_KEY) && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(this._epCfg.url)) { this._epCfg.url = OrganicStudio.EP_DEFAULT; localStorage.setItem(OrganicStudio.EP_KEY, JSON.stringify(this._epCfg)); } } catch (e) {}
+      try { localStorage.setItem('provident-ep-office:' + OrganicStudio.EP_KEY, '1'); } catch (e) {} }
     return this._epCfg;
   }
   epSet(k, v) {
@@ -13792,12 +13795,22 @@ class OrganicStudio extends StudioBase {
       const h = await this.folderOpen(true);
       if (h) {
         const ok = await this.writeProject(await this.projectFiles(name));
-        if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Saved "' + name + '" into "' + this.folderName() + '" · session + Assets' }); }
+        if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Saved "' + name + '" into "' + this.folderName() + '" · session + Assets' }); this.autoSendAfterSave(); }
         return;
       }
     }
     const files = await this.projectFiles(name);
-    return this.saveSessionCopy(name, '.smpstudio.json', files[0].data);
+    await this.saveSessionCopy(name, '.smpstudio.json', files[0].data);
+    this.autoSendAfterSave();
+  }
+  // A project opened from a Content Hub post (state.hubCardId) is also sent to that post on Save, so
+  // the hub always holds the latest saved design. Needs the endpoint URL and token (Share › Send);
+  // without them Save works as before. Off on one computer with localStorage 'ops-save-sends' = 'off'.
+  autoSendAfterSave() {
+    try { if (localStorage.getItem('ops-save-sends') === 'off') return; } catch (e) {}
+    const c = this.epCfg();
+    if (!StudioBase.hubCardOf(this.state) || !c.key || !OrganicStudio.epUrlOk(c.url)) return;
+    this.sendExport();
   }
   legacyRecentsKey() { return 'smp-recents'; }
   sessionExt() { return '.smpstudio.json'; }
