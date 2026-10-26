@@ -269,10 +269,18 @@
     }
     const b = ssGet(this.shKey());
     if (b && b.id && b.pid && b.pid === this.state.pid) this.shareStart();
+    // An ad set link resumes only on a REFRESH: the binding records the project the tab had open
+    // when the link was opened, and any other project (one opened from Recent, a template, a
+    // session file) means the tab moved on, so the binding is dropped instead of reopening the
+    // review window over the designer's project. A binding written before it carried a pid is
+    // dropped too — that is the stale case this exists for.
+    const here = b2 => b2 && b2.id && ('pid' in b2) && (b2.pid || '') === (this.state.pid || '');
     const ab = ssGet(AS_KEY);
-    if (ab && ab.id && this.shApp() === 'provident-ad-studio') setTimeout(() => AdSets.resume(this.host, ab.id), 0);
+    if (ab && !here(ab)) ssSet(AS_KEY, null);
+    else if (ab && this.shApp() === 'provident-ad-studio') setTimeout(() => AdSets.resume(this.host, ab.id), 0);
     const rb = ssGet(RS_KEY);
-    if (rb && rb.id && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
+    if (rb && !here(rb)) ssSet(RS_KEY, null);
+    else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
     return false;
   };
   SP.shareOpenLink = async function (id) {
@@ -1026,7 +1034,7 @@
       if (this.cur) this.cur.stop(true);
       if (d.role === 'dd' && d.rs && d.rs.tok) Arch.add(tok, d.rs.name, d.rs.product);
       const v = this.cur = new RsView(shell, tok, d);
-      ssSet(RS_KEY, { id: tok });
+      ssSet(RS_KEY, { id: tok, pid: (shell.eng && shell.eng.state && shell.eng.state.pid) || '' });
       await v.load();
       v.view();
       if (v.role === 'ct' || lsGet('provident-share-open') === '1') v.shPanel(true);
@@ -1689,7 +1697,7 @@
     start(shell, id, d, open) {
       if (this.cur) this.cur.stop(true);
       const c = this.cur = new AsShare(shell, id, d);
-      ssSet(AS_KEY, { id });
+      ssSet(AS_KEY, { id, pid: (shell.eng && shell.eng.state && shell.eng.state.pid) || '' });
       c.view();
       if (open || lsGet('provident-share-open') === '1') c.shPanel(true);
     }
