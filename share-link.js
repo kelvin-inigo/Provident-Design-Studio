@@ -141,6 +141,18 @@
     delete o.share;
     return JSON.parse(JSON.stringify(o));
   };
+  // What a project looks like once this studio has loaded it: its migration (normState) and its
+  // defaults for any missing key. The state a link hands over is compared in THIS shape, or
+  // merely opening a link reads as an edit ("Sara changed the design") because loading filled
+  // in a default nobody chose.
+  SP.shNorm = function (st) {
+    const C = this.constructor;
+    try {
+      const p = JSON.parse(JSON.stringify(st || {}));
+      if (C.normState) C.normState(p);
+      return this.shPub(Object.assign(C.defaults ? C.defaults() : {}, p));
+    } catch (e) { return JSON.parse(JSON.stringify(st || {})); }
+  };
   SP.shLocal = function () {
     const st = this.state, out = {};
     LOCAL.forEach(k => { if (k in st) out[k] = st[k]; });
@@ -272,10 +284,15 @@
     }
     const T = StudioBase.SESSIONS, spec = T[meta.app];
     if (!spec || !d.state) { dlg.fail('This link does not hold a studio project.', 'Close'); return; }
+    const role = d.role || 'edit', rv = d.rv || null;
+    const nm = '<b>' + esc((rv && rv.name) || meta.name || 'Untitled project') + '</b>';
     dlg.ready({
-      lead: '<b>' + esc(meta.name || 'Untitled project') + '</b> · shared by ' + esc(meta.by || 'someone') + ' in ' + esc(spec.label) +
-        '. Anyone with this link can change it, and the Changes panel shows who changed what.',
-      note: 'Your name is shown beside every change you make.'
+      title: role === 'ct' ? 'Check the copy' : role === 'pm' ? 'Ad set package' : role === 'dd' ? 'Open your review' : '',
+      lead: role === 'ct' ? nm + ' · copy check, from ' + esc(meta.by || 'the designer') + '. You see the words and a preview of the ad. Change them as needed, then press <b>Copy approved</b>.'
+        : role === 'pm' ? nm + ' · ad set package, from ' + esc(meta.by || 'the designer') + '. You see every variant and size, rendered from the latest project, and can download them. You cannot change the project from this link.'
+        : role === 'dd' ? nm + ' · the designer’s review link. You have the full Campaign Studio, and mark the design done when it is ready.'
+        : nm + ' · shared by ' + esc(meta.by || 'someone') + ' in ' + esc(spec.label) + '. Anyone with this link can change it, and the Changes panel shows who changed what.',
+      note: role === 'pm' ? 'Your name shows who looked at the package.' : 'Your name is shown beside every change you make.'
     });
     const name = await dlg.name();
     if (!name) return;
@@ -294,10 +311,13 @@
     const st = d.state;
     if (!st.pid) st.pid = StudioBase.newPid();
     if (meta.app === 'provident-smp-studio' && st.screen == null) st.screen = 'editor';
+    if (role === 'ct') st.screen = 'copy';
+    if (role === 'pm') st.screen = 'editor';
+    if (role === 'dd') Arch.add(id, (rv && rv.name) || meta.name || '');
     const imgs = {}; slots.forEach(s => { if (images[s]) imgs[s] = d.imgs[s].h; });
     const key = 'provident-share:' + meta.app;
-    ssSet(key, { id, rev: d.rev, n: d.n, pid: st.pid, imgs, name: meta.name || '' });
-    ssSet('provident-share-base:' + meta.app, d.state);
+    ssSet(key, { id, rev: d.rev, n: d.n, pid: st.pid, imgs, name: meta.name || '', role, rv });
+    ssSet('provident-share-base:' + meta.app, meta.app === this.shApp() ? this.shNorm(d.state) : d.state);
     ssSet('provident-share-log:' + meta.app, { from: d.from, log: d.log || [] });
     dlg.close();
     const fname = String(meta.name || 'Shared project').replace(/[\\/:*?"<>|]+/g, ' ').slice(0, 80) + '.json';
@@ -333,30 +353,35 @@
     const name = await dlg.name();
     if (!name) return;
     lsSet(NAME_KEY, name);
-    dlg.busy('Uploading the project…');
     try {
-      await this.ensurePid();
-      const st = this.shPub();
-      const r = await api('create', {}, { app: this.shApp(), name: this.shName(st), by: name, state: st });
-      const slots = this.shSlots(), C = IS(), imgs = {}, map = {};
-      let k = 0;
-      for (const sl of slots) {
-        const rec = C.getRec(sl);
-        if (!rec || !rec.u) continue;
-        k++;
-        dlg.busy('Uploading pictures · ' + k + ' of ' + slots.length + '…');
-        const e = await putRec(r.id, sl, rec);
-        imgs[sl] = e.h; map[sl] = e;
-      }
-      let rev = r.rev;
-      if (Object.keys(map).length) rev = (await api('save', { id: r.id }, { base: rev, state: st, by: name, imgs: map })).rev;
-      ssSet(this.shKey(), { id: r.id, rev, n: 0, pid: this.state.pid, imgs, name: this.shName(st) });
-      ssSet(this.shKey('-base'), st);
-      ssSet(this.shKey('-log'), null);
-      const link = this.shLink(r.id), copied = await copyText(link);
+      const id = await this.shCreateRaw(dlg, name);
+      const link = this.shLink(id), copied = await copyText(link);
       dlg.done(link, copied);
       this.shareStart(true);
     } catch (e) { dlg.fail(e.message, 'Close'); }
+  };
+  // Puts the open project on the store and binds this tab to it; returns the new id.
+  SP.shCreateRaw = async function (dlg, name) {
+    dlg.busy('Uploading the project…');
+    await this.ensurePid();
+    const st = this.shPub();
+    const r = await api('create', {}, { app: this.shApp(), name: this.shName(st), by: name, state: st });
+    const slots = this.shSlots(), C = IS(), imgs = {}, map = {};
+    let k = 0;
+    for (const sl of slots) {
+      const rec = C.getRec(sl);
+      if (!rec || !rec.u) continue;
+      k++;
+      dlg.busy('Uploading pictures · ' + k + ' of ' + slots.length + '…');
+      const e = await putRec(r.id, sl, rec);
+      imgs[sl] = e.h; map[sl] = e;
+    }
+    let rev = r.rev;
+    if (Object.keys(map).length) rev = (await api('save', { id: r.id }, { base: rev, state: st, by: name, imgs: map })).rev;
+    ssSet(this.shKey(), { id: r.id, rev, n: 0, pid: this.state.pid, imgs, name: this.shName(st) });
+    ssSet(this.shKey('-base'), st);
+    ssSet(this.shKey('-log'), null);
+    return r.id;
   };
   SP.shName = function (st) {
     st = st || this.state;
@@ -383,6 +408,7 @@
     if (S.ui) S.ui.root.remove();
     document.documentElement.classList.remove('shl-on', 'shl-open');
     this._sh = null;
+    this.rvApply(null);
     if (!keepBinding) { ssSet(this.shKey(), null); ssSet(this.shKey('-base'), null); ssSet(this.shKey('-log'), null); }
     this.forceUpdate();
   };
@@ -396,7 +422,8 @@
       id: b.id, rev: b.rev || 0, n: b.n || 0, imgs: b.imgs || {}, name: b.name || '',
       base: ssGet(this.shKey('-base')) || this.shPub(), dirty: new Set(), applying: false,
       busy: false, lastS: '', lastT: 0, burst: null, from: lg.from || 0, log: lg.log || [],
-      seen: +lsGet('provident-share-seen:' + b.id) || Date.now(), err: ''
+      seen: +lsGet('provident-share-seen:' + b.id) || Date.now(), err: '',
+      role: b.role || 'edit', rv: b.rv || null
     };
     S.baseS = canon(S.base);
     S.onSlot = e => { const id = e && e.detail && e.detail.id; if (!S.applying && id) { S.dirty.add(id); S.lastT = Date.now(); } };
@@ -408,7 +435,10 @@
     S.clock = setInterval(() => this.shRender(), 30000);
     S.ui = buildUi(this);
     document.documentElement.classList.add('shl-on');
-    if (open || lsGet('provident-share-open') === '1') this.shPanel(true);
+    this.rvApply(S.role);
+    if (S.role === 'dd') Arch.add(S.id, (S.rv && S.rv.name) || S.name);
+    // the copy team works beside the review panel: its Copy approved button is there
+    if (open || S.role === 'ct' || (S.role !== 'pm' && lsGet('provident-share-open') === '1')) this.shPanel(true);
     this.shRender();
     this.shPoll(true);
     this.forceUpdate();
@@ -423,8 +453,10 @@
       document.documentElement.classList.toggle('shl-open', !away && S.ui.root.classList.contains('open'));
       document.documentElement.classList.toggle('shl-on', !away);
     }
+    this.rvGuard();
     const cur = canon(this.shPub());
     if (cur !== S.lastS) { S.lastS = cur; S.lastT = Date.now(); }
+    if (S.role === 'pm') { S.dirty.clear(); S.pending = false; if (S.ui) S.ui.status(S.err ? 'error' : 'view'); return; }
     const pend = cur !== S.baseS || S.dirty.size > 0;
     S.pending = pend;
     if (S.ui) S.ui.status(pend ? 'saving' : (S.err ? 'error' : 'ok'));
@@ -461,7 +493,7 @@
       const burst = this.shBurst(ch);
       for (let tries = 0; tries < 4; tries++) {
         try {
-          const r = await api('save', { id: S.id }, { base: S.rev, state: cur, by, burst: burst.id, changes: burst.list, imgs: map });
+          const r = await api('save', { id: S.id }, { base: S.rev, state: cur, by, burst: burst.id, changes: burst.list, imgs: map, sum: S.rv ? this.rvSum(cur) : undefined });
           S.rev = r.rev; S.base = cur; S.baseS = canon(cur);
           Object.keys(map).forEach(k => { if (map[k]) S.imgs[k] = map[k].h; else delete S.imgs[k]; });
           S.err = '';
@@ -500,7 +532,7 @@
   };
   SP.shPersist = function () {
     const S = this._sh; if (!S) return;
-    ssSet(this.shKey(), { id: S.id, rev: S.rev, n: S.n, pid: this.state.pid, imgs: S.imgs, name: S.name });
+    ssSet(this.shKey(), { id: S.id, rev: S.rev, n: S.n, pid: this.state.pid, imgs: S.imgs, name: S.name, role: S.role, rv: S.rv });
     if (!ssSet(this.shKey('-base'), S.base)) ssSet(this.shKey('-base'), null);
     ssSet(this.shKey('-log'), { from: S.from, log: S.log.slice(-200) });
   };
@@ -510,6 +542,7 @@
     S.polling = true;
     try {
       const r = await api('rev', { id: S.id });
+      this.rvSet(r.rv);
       if (r.rev !== S.rev) await this.shPull();
       else if (r.n !== S.n) await this.shPull(true);
     } catch (e) {
@@ -521,10 +554,12 @@
     const d = await api('sync', { id: S.id, from: Math.max(0, S.n - 1) });
     // the log: the tail from `from`, the last entry possibly rewritten by its burst
     const keep = S.log.slice(0, Math.max(0, d.from - S.from));
+    this.rvNotify(d.log || [], S.n - d.from);
     S.log = keep.concat(d.log || []); S.n = d.n;
     if (S.log.length > 300) { S.from += S.log.length - 300; S.log = S.log.slice(-300); }
+    this.rvSet(d.rv);
     if (!logOnly && d.rev !== S.rev) {
-      const mine = this.shPub(), merged = merge3(S.base, mine, d.state);
+      const theirs = this.shNorm(d.state), mine = this.shPub(), merged = merge3(S.base, mine, theirs);
       S.applying = true;
       try {
         if (!jsonEq(merged, mine)) this.shApply(merged);
@@ -538,7 +573,7 @@
         }
         Object.keys(S.imgs).forEach(sl => { if (!want[sl]) { if (C && C.putRec) C.putRec(sl, null); delete S.imgs[sl]; } });
       } finally { S.applying = false; }
-      S.base = d.state; S.baseS = canon(d.state); S.rev = d.rev;
+      S.base = theirs; S.baseS = canon(theirs); S.rev = d.rev;
       S.lastS = canon(this.shPub());
     }
     this.shPersist();
@@ -573,17 +608,431 @@
       link: this.shLink(S.id), me, people: people.size, unseen: open ? 0 : unseen,
       log: S.log.slice().reverse()
     });
+    this.rvRender();
   };
   // render keys for the Share panel's button, merged by both shells
   SP.shareVals = function () {
-    const b = this.shBind();
+    const b = this.shBind(), S = this._sh, cas = this.shApp() === 'provident-ad-studio', role = S ? S.role : (b && b.role) || '';
+    // the designer's Review links archive mounts into its empty host once React has drawn it
+    if (cas) setTimeout(() => Arch.mount(this), 0);
+    const rv = S && S.rv;
     return {
+      rvShareOn: cas && role !== 'ct' && role !== 'pm' ? '1' : undefined,
+      rvGo: () => this.reviewCreate(),
+      rvLabel: rv ? 'Review links' : 'Start a review',
+      rvTip: rv ? 'This project is under review. Opens the review panel with the three links.'
+        : 'Makes three links: the full studio for you, the Copy view for the content team, and the ad set overview for performance marketing — with the process Initial design · Copy check · Deploy campaign.',
+      rvOn: rv ? '1' : undefined,
       shLinkGo: () => this.shareCreate(),
       shLinkLabel: b ? 'Copy edit link' : 'Share an edit link',
       shLinkTip: b ? 'This project is shared. Copies the link and opens the Changes panel.'
         : 'Makes a link anyone can open to view and edit this project, with a panel of who changed what.',
       shLinkOn: b ? '1' : undefined,
     };
+  };
+
+  // ---------- REVIEWS (CAS, 2026-10-26) ----------
+  // A review is a shared project with three links, one per team:
+  //   dd  the designer — the full studio; marks the design done or puts it back in progress
+  //   ct  the content team — the Copy view only; approves the copy
+  //   pm  performance marketing — the Ad sets overview only, rendered from the live project,
+  //       with the package to download; view-only (the server refuses its saves)
+  // The process is INITIAL DESIGN > COPY CHECK > DEPLOY CAMPAIGN. Design and copy are signed
+  // off on their own; when both are, the package is ready. A role's link is a 16-character
+  // token the server resolves, so the project's own id (the designer's link) never reaches
+  // the other two. Each lock is the chrome's (html[data-rv-role]); the server only enforces
+  // what pm may not do and who may move which step.
+  const ROLE_NAME = { dd: 'Designer', ct: 'Content team', pm: 'Performance marketing', edit: 'Editor' };
+  const RV_SIZES = ['sq', 'pt', 'st', 'ls'];   // what Meta takes — the banners are Eventbrite's
+  const SIZE_LAB = { sq: 'Feed 1:1', pt: 'Portrait 3:4', st: 'Story 9:16', ls: 'Horizontal 1.91:1', bn: 'Eventbrite 1880', bs: 'Eventbrite 758' };
+  const day = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const dayS = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '';
+  function rvSteps(rv) {
+    const d = rv && rv.design, c = rv && rv.copy, r = rv && rv.ready;
+    return [
+      { label: 'Initial design', s: d ? 'done' : 'cur', sub: d ? 'Done · ' + d.by + ' · ' + dayS(d.at) : 'In progress' },
+      { label: 'Copy check', s: c ? 'done' : 'cur', sub: c ? 'Approved · ' + c.by + ' · ' + dayS(c.at) : 'In progress' },
+      { label: 'Deploy campaign', s: r ? 'done' : 'pend', sub: r ? 'Package ready · ' + dayS(r) : (d ? 'Waiting for the copy' : c ? 'Waiting for the design' : 'Waiting for design and copy') }
+    ];
+  }
+  // dates above, the line, the steps under it — the shape of a delivery tracker
+  function stepperHtml(rv, compact) {
+    const st = rvSteps(rv), seg = on => '<span class="rv-seg"' + (on ? ' data-on="1"' : '') + '></span>';
+    const dot = x => '<i class="rv-dot" data-s="' + x.s + '">' + (x.s === 'done' ? '<svg viewBox="0 -960 960 960"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>' : '') + '</i>';
+    return '<div class="rv-st' + (compact ? ' rv-st-c' : '') + '" role="list" aria-label="Review progress">' +
+      '<div class="rv-st-line" aria-hidden="true">' + dot(st[0]) + seg(st[0].s === 'done') + dot(st[1]) + seg(!!(rv && rv.ready)) + dot(st[2]) + '</div>' +
+      '<div class="rv-st-lab">' + st.map(x => '<div role="listitem" data-s="' + x.s + '"><b>' + esc(x.label) + '</b><s>' + esc(x.sub) + '</s></div>').join('') + '</div></div>';
+  }
+  const pillHtml = rv => '<span class="rv-pill" data-s="' + (rv && rv.ready ? 'ready' : 'prog') + '">' + (rv && rv.ready ? 'Package ready' : 'In progress') + '</span>';
+  // changes to the project itself (not step moves) after the package was ready
+  const rvSince = (log, rv) => rv && rv.ready ? (log || []).filter(e => e.at > rv.ready && (e.changes || []).some(c => c.kind !== 'step')).length : 0;
+  const LINK_ROWS = [
+    ['dd', 'Designer', 'The full Campaign Studio. Change anything, and mark the design done.'],
+    ['ct', 'Content team', 'The Copy view only. Change the words, and approve the copy.'],
+    ['pm', 'Performance marketing', 'The ad set overview only, always the latest images, and the package to download.']
+  ];
+  function linkRows(eng, id, tok) {
+    return LINK_ROWS.map(([r, who, what]) => {
+      const link = eng.shLink(r === 'dd' ? id : (tok || {})[r] || '');
+      return '<div class="rv-lk"><div class="rv-lk-t"><b>' + who + '</b><s>' + what + '</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(link) + '" aria-label="' + who + ' link"><button type="button" class="p-ghost" data-copy="' + esc(link) + '">Copy</button></div></div>';
+    }).join('');
+  }
+
+  SP.rvSum = function (st) {
+    if (this.shApp() !== 'provident-ad-studio') return undefined;
+    const C = this.constructor; st = st || this.state;
+    try {
+      const sz = []; (st.variants || []).forEach(v => C.sizesFor(st, v).forEach(k => { if (sz.indexOf(k) < 0) sz.push(k); }));
+      return { campaign: String(st.campaign || ''), mode: C.isCarousel(st) ? 'carousel' : 'single', variants: (st.variants || []).length,
+        sizes: sz.map(k => SIZE_LAB[k] || k), comps: C.allMods(st).length, updated: Date.now(), pid: st.pid || '' };
+    } catch (e) { return undefined; }
+  };
+  // a small picture of the first design, for the archive
+  SP.rvThumb = async function () {
+    if (this.shApp() !== 'provident-ad-studio') return undefined;
+    try {
+      const st = this.state, a = await this.loadAssets(st);
+      const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .2);
+      StudioBase.applyFont(this.state);
+      const u = cv.toDataURL('image/webp', .8);
+      return /^data:image\/webp/.test(u) && u.length < 110000 ? u : undefined;
+    } catch (e) { return undefined; }
+  };
+  SP.rvLinks = function (id, tok) { return LINK_ROWS.map(([r, who, what]) => ({ who, what, link: this.shLink(r === 'dd' ? id : tok[r]) })); };
+
+  // Share › Start a review: the project is shared first if it is not yet, then made a review.
+  SP.reviewCreate = async function () {
+    const S = this._sh, b = this.shBind();
+    if (b && b.role && b.role !== 'dd' && b.role !== 'edit') return;
+    if (S && S.rv) { this.shPanel(true); const d = S.ui.root.querySelector('.rv-dd'); if (d) d.open = true; return; }
+    const dlg = nameDialog({ title: 'Start a review', btn: 'Make the review links',
+      lead: 'Makes three links for this campaign. <b>Designer</b> (you) keeps the full studio; the <b>Content team</b> sees only the Copy view; ' +
+        '<b>Performance marketing</b> sees only the ad set overview, always the latest images, with the package to download. ' +
+        'The process runs Initial design · Copy check · Deploy campaign: when you mark the design done and the content team approves the copy, the package is ready.',
+      note: 'There is no sign-in — whoever holds a link has its role. Your name is shown beside every change you make.' });
+    const name = await dlg.name();
+    if (!name) return;
+    lsSet(NAME_KEY, name);
+    try {
+      const id = b ? b.id : await this.shCreateRaw(dlg, name);
+      dlg.busy('Making the review links…');
+      const r = await api('rvmake', { id }, { by: name, sum: this.rvSum(this.shPub()), thumb: await this.rvThumb() });
+      const bb = ssGet(this.shKey()) || {}; bb.role = 'dd'; bb.rv = r.rv; ssSet(this.shKey(), bb);
+      Arch.add(id, (r.rv && r.rv.name) || this.shName());
+      dlg.links(this.rvLinks(id, r.rv.tok));
+      if (this._sh) { this._sh.role = 'dd'; this._sh.rv = r.rv; this.rvApply('dd'); this.shPanel(true); this.shPoll(true); }
+      else this.shareStart(true);
+    } catch (e) { dlg.fail(e.message || String(e), 'Close'); }
+  };
+  SP.rvSet = function (rv, role) {
+    const S = this._sh; if (!S || rv === undefined) return;
+    if (role && role !== S.role && (S.role === 'edit' || S.role === 'dd') && (role === 'edit' || role === 'dd')) { S.role = role; this.rvApply(role); }
+    if (canon(rv) === canon(S.rv)) return;
+    S.rv = rv;
+    this.shPersist(); this.rvRender(); this.forceUpdate();
+  };
+  // a step someone else took, while this tab is in the background
+  SP.rvNotify = function (log, skip) {
+    const S = this._sh; if (!S || !S.rv || !window.Notification || Notification.permission !== 'granted' || !document.hidden) return;
+    const me = StudioBase.shareName();
+    (log || []).slice(Math.max(0, skip)).forEach(e => {
+      if (e.by === me) return;
+      (e.changes || []).filter(c => c.kind === 'step').forEach(c => {
+        try { new Notification((S.rv.name || S.name || 'Campaign') + ' · review', { body: e.by + ' — ' + c.text, tag: 'rv-' + S.id + '-' + e.at }); } catch (er) {}
+      });
+    });
+  };
+  SP.rvStep = async function (act) {
+    const S = this._sh; if (!S || this._rvBusy) return;
+    this._rvBusy = act; this.rvRender();
+    try {
+      // the sign-off covers the latest words: whatever is waiting to save goes first
+      const pend = () => S.busy || canon(this.shPub()) !== S.baseS || S.dirty.size > 0;
+      for (let i = 0; i < 40 && pend(); i++) { if (!S.busy) await this.shSave(); else await new Promise(r => setTimeout(r, 250)); if (pend()) await new Promise(r => setTimeout(r, 250)); }
+      const body = { act, by: StudioBase.shareName() || 'Someone' };
+      if (act === 'design-done' || act === 'copy-done') body.thumb = await this.rvThumb();
+      const r = await api('step', { id: S.id }, body);
+      this.rvSet(r.rv);
+      S.ui.flash(r.rv && r.rv.ready ? 'The package is ready for performance marketing' : act === 'design-done' ? 'Design marked done' : act === 'copy-done' ? 'Copy approved' : 'Back in progress');
+      this.shPoll(true);
+    } catch (e) { S.ui.flash(e.message || String(e)); }
+    finally { this._rvBusy = null; this.rvRender(); }
+  };
+  SP.rvDrive = async function (v) {
+    const S = this._sh; if (!S || S.role !== 'dd') return;
+    try { const r = await api('rvset', { id: S.id }, { drive: v }); this.rvSet(r.rv); S.ui.flash('Drive location saved'); }
+    catch (e) { S.ui.flash(e.message || String(e)); }
+  };
+  // the role's lock on the chrome
+  SP.rvApply = function (role) {
+    const h = document.documentElement, on = role && role !== 'edit' ? role : '';
+    if (on) h.dataset.rvRole = on; else delete h.dataset.rvRole;
+    h.classList.toggle('rv-pm', on === 'pm');
+    if (on !== 'pm' && this._rvBar) { if (this._rvRo) this._rvRo.disconnect(); this._rvBar.remove(); this._rvBar = null; }
+    if (on === 'pm') this.rvBarMake();
+    if (this._sh && this._sh.ui) this._sh.ui.root.dataset.role = on;
+  };
+  SP.rvGuard = function () {
+    const S = this._sh; if (!S) return;
+    if (S.role === 'ct' && this.state.screen !== 'copy') this.setState({ screen: 'copy', sel: null });
+    if (S.role === 'pm') {
+      const h = this.host;
+      if (!h || !h.asView) return;
+      if (!h.state.adSetsOpen || !h._asSrc || h._asSrc.kind !== 'review') this.rvPmOpen();
+      else if (this._rvDir && this._rvDir.stale() && !(h._as && h._as.busy)) h.asScan();
+      this.rvBarRender();
+    }
+  };
+  // performance marketing: the Ad sets window on a stand-in folder rendered from the live project
+  SP.rvPmOpen = function () {
+    const h = this.host;
+    if (!this._rvDir) this._rvDir = liveDir(this);
+    h._asMode = 'images'; h._asAll = false;
+    if (!h.state.adSetsOpen) h.setState({ adSetsOpen: true });
+    h.asView({ kind: 'review', handle: this._rvDir, name: this._rvDir.name });
+  };
+  function liveDir(eng) {
+    const C = eng.constructor;
+    let key = '', scanned = null, lm = Date.now(), cache = {}, assets = null;
+    const keyNow = () => canon(eng.shPub()) + '|' + JSON.stringify(eng._filled || {});
+    const sync = () => { const k = keyNow(); if (k !== key) { key = k; lm = Date.now(); cache = {}; assets = null; } };
+    const fonts = async () => {
+      const L = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return null; } };
+      await Promise.all(['100 103px "Google Sans Flex"', '300 41px "Google Sans Flex"', '400 59px "Google Sans Flex"', '500 28px "Google Sans Flex"'].map(L));
+      try { await document.fonts.ready; } catch (e) {}
+    };
+    // one render per variant and size for a given project state, at the export's own size
+    const render = (vi, sk) => {
+      const id = vi + ':' + sk;
+      if (!cache[id]) cache[id] = (async () => {
+        const st = eng.state;
+        if (!assets) assets = (async () => { await fonts(); return eng.loadAssets(st); })();
+        const r = await eng.rasterFile(eng.buildOps(st, vi, sk, await assets), 'jpg', C.exportScale(sk, st));
+        StudioBase.applyFont(eng.state);
+        return r.data;
+      })();
+      return cache[id];
+    };
+    const nameOf = st => (st.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
+    const file = (nm, type, data) => ({ kind: 'file', name: nm, modified: lm,
+      getFile: async () => new File([await data()], nm, { type, lastModified: lm }) });
+    const dirH = (nm, items) => ({ kind: 'directory', name: nm, queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      async *entries() { for (const it of items) yield [it.name, it]; },
+      async getDirectoryHandle(x) { const e = new Error('Not found'); e.name = 'NotFoundError'; throw e; } });
+    // Variant A, B, C… holding <name>_Variant X_<job>.jpg — the names an export writes, so the
+    // package downloads under the names Ads Manager will see. A carousel's pages are its letters.
+    const tree = () => {
+      sync(); scanned = key;
+      const st = eng.state, name = nameOf(st), out = [];
+      // the folder is the campaign and the project in it "Meta ads", so the window reads
+      // Campaign › Meta ads and Download all names its zip after the campaign
+      out.push(file('Meta ads.adstudio.json', 'application/json', async () => JSON.stringify({ app: 'provident-ad-studio', state: eng.shPub() })));
+      (st.variants || []).slice(0, 26).forEach((v, vi) => {
+        const L = 'Variant ' + String.fromCharCode(65 + vi);
+        const files = C.sizesFor(st, v).filter(k => RV_SIZES.indexOf(k) >= 0)
+          .map(sk => file(name + '_' + L + '_' + (C.EXPORT_NAME[sk] || sk) + '.jpg', 'image/jpeg', () => render(vi, sk)));
+        if (files.length) out.push(dirH(L, files));
+      });
+      return out;
+    };
+    return { kind: 'directory', get name() { return nameOf(eng.state); }, queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      async *entries() { for (const it of tree()) yield [it.name, it]; },
+      async getDirectoryHandle(x) { const it = tree().find(i => i.kind === 'directory' && i.name === x); if (it) return it; const e = new Error('Not found'); e.name = 'NotFoundError'; throw e; },
+      stale() { return scanned !== null && keyNow() !== scanned; } };
+  }
+  // performance marketing's header over the Ad sets window
+  SP.rvBarMake = function () {
+    if (this._rvBar) return;
+    injectCss();
+    const el = document.createElement('div');
+    el.className = 'rvh'; el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Ad set package');
+    document.body.appendChild(el);
+    this._rvBar = el; this._rvBarHtml = '';
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-rv]'); if (!b) return;
+      if (b.dataset.rv === 'dl' && this.host.asDownload) this.host.asDownload('*');
+      if (b.dataset.rv === 'log') this.shPanel(true);
+    });
+    if (window.ResizeObserver) { this._rvRo = new ResizeObserver(() => document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px')); this._rvRo.observe(el); }
+    this.rvBarRender();
+  };
+  SP.rvBarRender = function () {
+    const S = this._sh, el = this._rvBar; if (!S || !el) return;
+    const rv = S.rv || {}, ready = !!rv.ready, since = rvSince(S.log, rv), h = this.host;
+    const n = h && h.asAllImgs ? h.asAllImgs() : 0, busy = !!(h && h._as && h._as.busy), dl = h && h._asDl;
+    const dlLab = dl === 'busy' ? 'Zipping…' : dl === 'done' ? 'Downloaded' : (ready ? 'Download package' : 'Download current images') + (n ? ' · ' + n : '');
+    const note = busy ? 'Rendering the latest images from the project…'
+      : ready ? (since ? since + (since === 1 ? ' change' : ' changes') + ' since the package was ready — the images below include ' + (since === 1 ? 'it' : 'them') + '. <button type="button" data-rv="log">See what changed</button>'
+        : 'Design and copy are signed off. The images below are what to run.')
+      : 'Not ready to run yet. The images below are the latest from the project and update as the designer and the content team work.';
+    const html = '<div class="rvh-in"><div class="rvh-top">' +
+      '<div class="rvh-t"><span class="rvh-k">Ad set package</span><b>' + esc(rv.name || S.name || 'Campaign') + '</b></div>' + pillHtml(rv) +
+      '<dl class="rvh-d"><div><dt>Created</dt><dd>' + esc(day(rv.created)) + (rv.by ? ' <s>by ' + esc(rv.by) + '</s>' : '') + '</dd></div>' +
+      '<div><dt>Ready</dt><dd>' + (ready ? esc(day(rv.ready)) : '<s>Not yet</s>') + '</dd></div></dl>' +
+      '<button type="button" class="' + (ready ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-rv="dl"' + (n && dl !== 'busy' ? '' : ' disabled') + '>' + esc(dlLab) + '</button></div>' +
+      stepperHtml(rv) + '<p class="rvh-note">' + note + '</p></div>';
+    if (html === this._rvBarHtml) return;
+    this._rvBarHtml = html; el.innerHTML = html;
+    document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px');
+  };
+  // the review section of the Changes panel
+  SP.rvRender = function () {
+    const S = this._sh; if (!S || !S.ui) return;
+    const sec = S.ui.root.querySelector('.rv');
+    S.ui.root.querySelector('.shl-panel h2').textContent = S.rv ? 'Review' : 'Changes';
+    if (!S.rv) { sec.hidden = true; return; }
+    sec.hidden = false;
+    const rv = S.rv, role = S.role, busy = this._rvBusy, since = rvSince(S.log, rv), acts = [];
+    if (role === 'dd') {
+      acts.push(rv.design ? ['design-open', 'Back to in process', 'p-ghost', 'Reopens the design. The package is not ready again until you mark the design done.']
+        : ['design-done', 'Mark design done', 'p-btn', 'Says the design is finished. When the copy is approved too, the package is ready for performance marketing.']);
+      if (rv.copy) acts.push(['copy-open', 'Reopen copy check', 'p-ghost', 'Sends the copy back to the content team to check again.']);
+    }
+    if (role === 'ct') acts.push(rv.copy ? ['copy-open', 'Reopen copy check', 'p-ghost', 'Takes your approval back while you change the words again.']
+      : ['copy-done', 'Copy approved', 'p-btn', 'Says the words are final. When the design is done too, the package is ready for performance marketing.']);
+    const lead = role === 'ct' ? (rv.copy ? 'You approved the copy. A change you make now reaches performance marketing too — reopen the check first if it needs another look.' : 'Change the words in the Copy view. They reach the designer within a few seconds. Approve the copy when it is ready to run.')
+      : role === 'pm' ? (rv.ready ? 'The package is ready. Download it from the bar above.' : 'You will see the package turn ready here when the design is done and the copy is approved.')
+      : role === 'dd' ? (rv.design ? 'You marked the design done.' : 'Mark the design done when it is ready for the content team’s final copy and for performance marketing.') : '';
+    const main = '<div class="rv-h"><div><span class="rv-k">' + esc(ROLE_NAME[role] || 'Viewer') + '</span><b>' + esc(rv.name || S.name || 'Campaign') + '</b></div>' + pillHtml(rv) + '</div>' +
+      stepperHtml(rv, true) +
+      (since && role !== 'pm' ? '<p class="rv-since">' + since + (since === 1 ? ' change' : ' changes') + ' since the package was ready. Performance marketing sees the latest.</p>' : '') +
+      '<p class="rv-lead">' + esc(lead) + '</p>' +
+      (acts.length ? '<div class="rv-acts">' + acts.map(a => '<button type="button" class="' + a[2] + '" data-act="' + a[0] + '" title="' + esc(a[3]) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a[0] ? 'Saving…' : esc(a[1])) + '</button>').join('') + '</div>' : '') +
+      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1">Notify me in this browser when a step changes</button>' : '');
+    const m = sec.querySelector('.rv-main');
+    if (m._h !== main) { m._h = main; m.innerHTML = main; }
+    const dd = sec.querySelector('.rv-dd');
+    dd.hidden = role !== 'dd' || !rv.tok;
+    if (!dd.hidden) {
+      const lk = linkRows(this, S.id, rv.tok);
+      const box = dd.querySelector('.rv-lks');
+      if (box._h !== lk) { box._h = lk; box.innerHTML = lk; }
+      const inp = dd.querySelector('.rv-drv input');
+      if (document.activeElement !== inp) inp.value = rv.drive || '';
+    }
+  };
+
+  // ---------- the designer's archive: Review links on CAS's home page ----------
+  // The reviews this computer started, or opened as the designer, are kept by id in
+  // localStorage; their records (status, dates, summary, log) are read from the store, where a
+  // review's record never expires. The view is plain DOM mounted into an empty host element in
+  // the home page's markup, so React never reconciles it.
+  const ARCH_KEY = 'provident-reviews';
+  const Arch = {
+    list() { try { const a = JSON.parse(localStorage.getItem(ARCH_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && /^[A-Za-z0-9]{8,15}$/.test(x.id || '')) : []; } catch (e) { return []; } },
+    save(a) { lsSet(ARCH_KEY, JSON.stringify(a.slice(0, 200))); },
+    add(id, name) {
+      if (!id || id.length === 16) return;
+      const a = this.list(), o = a.find(x => x.id === id);
+      if (o) { if (name) o.name = name; } else a.unshift({ id, name: name || '', at: Date.now() });
+      this.save(a);
+    },
+    drop(id) { this.save(this.list().filter(x => x.id !== id)); },
+    mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => { if (!el._rva) el._rva = new ArchView(el, eng); }); }
+  };
+  window.providentReviews = Arch;
+  function ArchView(el, eng) {
+    injectCss();
+    this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
+    el.innerHTML = '<div class="rva"><div class="rva-bar"><p>Every review this computer has started, or opened as the designer. Open one for its status, its details and everything that changed.</p>' +
+      '<form class="rva-add"><input class="p-in" placeholder="Paste a designer’s review link to add it here" aria-label="Designer review link"><button class="p-ghost" type="submit">Add</button></form></div>' +
+      '<div class="rva-body" aria-live="polite"></div></div>';
+    el.addEventListener('click', e => this.click(e));
+    el.querySelector('.rva-add').addEventListener('submit', e => {
+      e.preventDefault();
+      const inp = el.querySelector('.rva-add input'), m = /#share=([A-Za-z0-9]{8,16})/.exec(inp.value || '') || /^([A-Za-z0-9]{8,15})$/.exec((inp.value || '').trim());
+      if (!m || m[1].length === 16) { this.err = 'That is not a designer’s review link — it is the link that opens the full studio.'; this.draw(); return; }
+      Arch.add(m[1], ''); inp.value = ''; this.err = ''; this.load();
+    });
+    this.load();
+  }
+  const AV = ArchView.prototype;
+  AV.load = async function () {
+    const ids = Arch.list().map(x => x.id);
+    this.items = ids.length ? null : [];
+    this.draw();
+    if (!ids.length) return;
+    try {
+      const out = [];
+      for (let i = 0; i < ids.length; i += 50) out.push(...((await api('rvinfo', { ids: ids.slice(i, i + 50).join(',') })).items || []));
+      this.items = out; this.err = '';
+    } catch (e) { this.items = []; this.err = e.message || String(e); }
+    this.draw();
+  };
+  AV.open = async function (id) {
+    this.sel = id; this.det = null; this.draw();
+    try { const r = await api('rvinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; }
+    catch (e) { this.det = { id, error: e.message || String(e) }; }
+    if (this.sel === id) this.draw();
+  };
+  AV.click = async function (e) {
+    const t = e.target.closest('button,[data-id]'); if (!t || !this.el.contains(t)) return;
+    if (t.dataset.copy) { const ok = await copyText(t.dataset.copy); t.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { t.textContent = 'Copy'; }, 1600); return; }
+    if (t.dataset.id) { this.open(t.dataset.id); return; }
+    const a = t.dataset.a;
+    if (a === 'back') { this.sel = null; this.det = null; this.load(); }
+    if (a === 'open') window.open(this.eng.shLink(this.sel), '_blank', 'noopener');
+    if (a === 'refresh') this.load();
+    if (a === 'rm' && window.confirm('Remove this review from the list on this computer? The links keep working, and the record stays on the share store — paste the designer’s link to add it back.')) { Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
+    if (a === 'drive') {
+      const v = this.el.querySelector('.rva-drv input').value.trim();
+      t.disabled = true;
+      try { const r = await api('rvset', { id: this.sel }, { drive: v }); if (this.det && this.det.rv) this.det.rv.drive = r.rv.drive; t.textContent = 'Saved'; }
+      catch (er) { t.textContent = 'Not saved'; window.alert(er.message || String(er)); }
+      setTimeout(() => { t.disabled = false; t.textContent = 'Save'; }, 1600);
+    }
+  };
+  AV.draw = function () {
+    const body = this.el.querySelector('.rva-body'), errHtml = this.err ? '<p class="rva-err" role="alert">' + esc(this.err) + '</p>' : '';
+    this.el.querySelector('.rva-bar').hidden = !!this.sel;
+    if (this.sel) { body.innerHTML = this.detHtml(); return; }
+    if (this.items === null) { body.innerHTML = errHtml + '<p class="rva-wait">Reading the reviews…</p>'; return; }
+    if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">No reviews yet. In a project, Share › Start a review makes the three links, and the review is kept here.</div>'; return; }
+    const names = {}; Arch.list().forEach(x => { names[x.id] = x.name; });
+    const card = it => {
+      if (it.gone) return '<button class="rva-c" data-id="' + esc(it.id) + '" data-gone="1"><span class="rva-th"></span><span class="rva-ct"><span class="rva-n"><b>' + esc(names[it.id] || 'Unknown review') + '</b></span><span class="rva-m">No record on the share store</span></span></button>';
+      const rv = it.rv || {}, sm = it.sum || {}, st = rvSteps(rv);
+      return '<button class="rva-c" data-id="' + esc(it.id) + '"><span class="rva-th">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="">' : '') + '</span>' +
+        '<span class="rva-ct"><span class="rva-n"><b>' + esc(sm.campaign || rv.name || names[it.id] || 'Campaign') + '</b>' + pillHtml(rv) + '</span>' +
+        '<span class="rva-mini">' + st.map(x => '<span data-s="' + x.s + '"><i></i>' + esc(x.label) + '</span>').join('') + '</span>' +
+        '<span class="rva-m">' + (rv.ready ? 'Ready ' + esc(day(rv.ready)) + ' · ' : '') + 'Created ' + esc(day(rv.created)) + (rv.by ? ' by ' + esc(rv.by) : '') + '</span></span></button>';
+    };
+    const sorted = this.items.slice().sort((a, b) => ((b.rv || {}).created || 0) - ((a.rv || {}).created || 0));
+    const prog = sorted.filter(x => !x.gone && !(x.rv || {}).ready), done = sorted.filter(x => !x.gone && (x.rv || {}).ready), gone = sorted.filter(x => x.gone);
+    const grp = (t, l) => l.length ? '<section class="rva-g"><h3>' + t + ' <s>' + l.length + '</s></h3><div class="rva-grid">' + l.map(card).join('') + '</div></section>' : '';
+    body.innerHTML = errHtml + grp('In progress', prog) + grp('Package ready', done) + grp('Missing', gone);
+  };
+  AV.detHtml = function () {
+    const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">← All reviews</button>';
+    if (!d) return back + '<p class="rva-wait">Reading the review…</p>';
+    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || 'This review has no record on the share store.') + '</p><button type="button" class="rva-rm" data-a="rm">Remove from this list</button>';
+    const rv = d.rv || {}, sm = d.sum || {}, ready = !!rv.ready, name = sm.campaign || rv.name || 'Campaign';
+    const drv = rv.drive || '', url = /^https?:\/\//.test(drv);
+    const row = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
+    const log = (d.log || []).slice().reverse();
+    return back +
+      '<header class="rva-dh"><span class="rva-th rva-th-l">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
+      '<div class="rva-dt"><span class="rv-k">Campaign review</span><h2>' + esc(name) + '</h2>' +
+      '<div class="rva-st">' + pillHtml(rv) + '<span>' + (ready ? 'Finished ' + esc(day(rv.ready)) : 'Not finished yet') + '</span></div></div>' +
+      '<div class="rva-da"><button type="button" class="p-btn" data-a="open"' + (d.live ? '' : ' disabled title="The project on this link has expired; the record is kept"') + '>Open in Campaign Studio</button></div></header>' +
+      stepperHtml(rv) +
+      '<section class="rva-sec"><h3>Details</h3><dl class="rva-dl">' +
+      row('Google Drive', '<span class="rva-drv"><input class="p-in" value="' + esc(drv) + '" placeholder="Paste the project’s Drive folder link or path" aria-label="Google Drive location"><button type="button" class="p-ghost" data-a="drive">Save</button></span>' + (url ? '<a href="' + esc(drv) + '" target="_blank" rel="noopener">Open in Drive</a>' : '')) +
+      row('Created', esc(day(rv.created)) + (rv.by ? ' · by ' + esc(rv.by) : '')) +
+      row('Design', rv.design ? 'Done · ' + esc(rv.design.by) + ' · ' + esc(day(rv.design.at)) : 'In progress') +
+      row('Copy', rv.copy ? 'Approved · ' + esc(rv.copy.by) + ' · ' + esc(day(rv.copy.at)) : 'In progress') +
+      row('Format', sm.mode ? (sm.mode === 'carousel' ? 'Carousel · ' + (sm.variants || 0) + ' pages' : 'Single ad · ' + (sm.variants || 0) + ((sm.variants || 0) === 1 ? ' variant' : ' variants')) : '—') +
+      row('Sizes', sm.sizes && sm.sizes.length ? esc(sm.sizes.join(', ')) : '—') +
+      row('Components', sm.comps != null ? String(sm.comps) : '—') +
+      row('Last change', sm.updated ? esc(ago(sm.updated)) : '—') +
+      row('Project', d.live ? 'On the share store · ' + d.n + (d.n === 1 ? ' entry' : ' entries') + ' in the log' : 'Expired — the record below is kept, the project can no longer be opened') +
+      '</dl></section>' +
+      '<section class="rva-sec"><h3>Links</h3><div class="rv-lks">' + linkRows(this.eng, d.id, rv.tok) + '</div></section>' +
+      '<section class="rva-sec"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.map(e =>
+        '<li><div class="shl-who"><span class="shl-av">' + esc((e.by || '?').trim().charAt(0).toUpperCase()) + '</span><b>' + esc(e.by || 'Someone') + '</b><time>' + esc(ago(e.at)) + '</time></div><ul>' +
+        (e.changes || []).slice(0, 20).map(c => '<li>' + line(c) + '</li>').join('') + ((e.changes || []).length > 20 ? '<li class="shl-more">+ ' + (e.changes.length - 20) + ' more</li>' : '') + '</ul></li>').join('')
+        : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>' +
+      '<footer class="rva-f"><button type="button" class="rva-rm" data-a="rm">Remove from this list</button></footer>';
   };
 
   // ---------- shared AD SETS (CAS) ----------
@@ -958,13 +1407,22 @@
     const api2 = {
       name: () => p,
       busy: t => { $('.shl-st').textContent = t; go.disabled = true; inp.disabled = true; },
-      ready: r => { $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = r.note || ''; $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; setTimeout(() => inp.focus(), 30); },
+      ready: r => { if (r.title) $('h2').textContent = r.title; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = r.note || ''; $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; setTimeout(() => inp.focus(), 30); },
       fail: (t, btn) => { $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => close(''); x.hidden = true; },
       done: (link, copied) => {
         $('.shl-fld').hidden = true; $('.shl-note').textContent = '';
         $('.shl-lead').innerHTML = 'The link is ready' + (copied ? ' and copied' : '') + '. Send it to the people who should edit — they will be asked their name when they open it.';
         $('.shl-st').textContent = ''; const L = $('.shl-link'); L.hidden = false; L.querySelector('input').value = link;
         L.querySelector('.shl-cp').onclick = async () => { L.querySelector('.shl-cp').textContent = (await copyText(link)) ? 'Copied' : 'Select it'; L.querySelector('input').select(); };
+        x.hidden = true; go.textContent = 'Done'; go.disabled = false; go.onclick = () => el.remove();
+      },
+      links: list => {
+        $('.shl-fld').hidden = true; $('.shl-note').textContent = ''; $('.shl-st').textContent = '';
+        $('.shl-lead').innerHTML = 'The review is ready. Send each team its own link — each person is asked their name when they open it. All three are also kept in <b>Review links</b> on the home page.';
+        const box = document.createElement('div'); box.className = 'rv-lks shl-lks';
+        box.innerHTML = list.map(l => '<div class="rv-lk"><div class="rv-lk-t"><b>' + esc(l.who) + '</b><s>' + esc(l.what) + '</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(l.link) + '" aria-label="' + esc(l.who) + ' link"><button type="button" class="p-ghost" data-copy="' + esc(l.link) + '">Copy</button></div></div>').join('');
+        box.addEventListener('click', async e => { const b = e.target.closest('[data-copy]'); if (!b) return; const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; });
+        $('.shl-acts').before(box); el.querySelector('.shl-dlg-c').classList.add('shl-wide');
         x.hidden = true; go.textContent = 'Done'; go.disabled = false; go.onclick = () => el.remove();
       },
       close: () => el.remove(),
@@ -985,6 +1443,8 @@
       '<button class="shl-pill" type="button" aria-label="Changes on the shared link">' + svg(ICON.hist) + '<span>Changes</span><b class="shl-n" hidden></b><i class="shl-dot"></i></button>' +
       '<aside class="shl-panel" aria-label="Changes">' +
         '<header><div><h2>Changes</h2><p class="shl-sub"></p></div><button class="shl-close" type="button" aria-label="Close">' + svg(ICON.x) + '</button></header>' +
+        '<section class="rv" hidden><div class="rv-main"></div><details class="rv-dd" hidden><summary>Review links and Drive location</summary><div class="rv-lks"></div>' +
+          '<label class="rv-drv"><span>Google Drive location</span><span class="rv-drv-r"><input class="p-in" placeholder="Paste the project’s Drive folder link or path"><button type="button" class="p-ghost" data-drv="1">Save</button></span></label></details></section>' +
         '<div class="shl-share"><input class="p-in" readonly aria-label="Edit link"><button class="p-ghost" type="button">' + svg(ICON.link) + 'Copy</button></div>' +
         '<p class="shl-me"></p><p class="shl-state" aria-live="polite"></p>' +
         '<ol class="shl-list"></ol>' +
@@ -993,6 +1453,14 @@
     document.body.appendChild(root);
     const $ = s => root.querySelector(s);
     $('.shl-pill').onclick = () => eng.shPanel();
+    // the review section's buttons
+    root.addEventListener('click', async e => {
+      const b = e.target.closest && e.target.closest('button'); if (!b || !root.contains(b)) return;
+      if (b.dataset.act && eng.rvStep) eng.rvStep(b.dataset.act);
+      if (b.dataset.copy) { const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { b.textContent = 'Copy'; }, 1600); }
+      if (b.dataset.ntf && window.Notification) { try { await Notification.requestPermission(); } catch (er) {} if (eng.rvRender) eng.rvRender(); }
+      if (b.dataset.drv && eng.rvDrive) eng.rvDrive(root.querySelector('.rv-drv input').value.trim());
+    });
     $('.shl-close').onclick = () => eng.shPanel(false);
     $('.shl-share button').onclick = async () => { const ok = await copyText($('.shl-share input').value); ui.flash(ok ? 'Link copied' : 'Select the link and copy it'); };
     $('.shl-me').onclick = e => {
@@ -1008,14 +1476,15 @@
       root,
       status(kind, msg) {
         root.dataset.st = kind;
-        $('.shl-state').textContent = kind === 'saving' ? (msg || 'Saving your changes…') : kind === 'error' ? (msg || 'Not saved yet') : 'All changes saved to the link';
+        $('.shl-state').textContent = kind === 'saving' ? (msg || 'Saving your changes…') : kind === 'error' ? (msg || 'Not saved yet')
+          : kind === 'view' ? 'View only — this link shows the latest and cannot change the project' : 'All changes saved to the link';
         $('.shl-state').className = 'shl-state ' + kind;
       },
       flash(t) { const el = $('.shl-toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3200); },
       set(v) {
         $('.shl-share input').value = v.link;
         $('.shl-sub').textContent = v.people > 1 ? v.people + ' people have edited' : 'Shared edit link';
-        $('.shl-me').innerHTML = 'Editing as <b>' + esc(v.me || 'Someone') + '</b> · <button type="button">change</button>';
+        $('.shl-me').innerHTML = (root.dataset.role === 'pm' ? 'Viewing as <b>' : 'Editing as <b>') + esc(v.me || 'Someone') + '</b> · <button type="button">change</button>';
         const n = $('.shl-n'); n.hidden = !v.unseen; n.textContent = v.unseen > 9 ? '9+' : String(v.unseen);
         const top = v.log[0];
         const key = top ? top.rev + ':' + top.at + ':' + (top.changes || []).length : '';
@@ -1037,6 +1506,7 @@
   }
   function line(c, plain) {
     const where = [c.page, c.label].filter(Boolean).join(' · ');
+    if (c.kind === 'step' && !plain) return '<span class="shl-step">' + esc(c.text || '') + '</span>';
     if (plain) {
       if (c.kind === 'changed' || c.kind === 'added' || c.kind === 'removed') return (c.kind === 'removed' ? 'cleared ' : 'changed ') + (c.label || 'a field');
       return (c.text || 'changed').toLowerCase() + (where ? ' ' + where : '');
@@ -1134,6 +1604,135 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .shl-acts button[hidden]{display:none}
 @media (max-width:760px){.shl-panel{width:100vw;top:92px}.shl.open .shl-toast{right:16px}}
 @media (prefers-reduced-motion:reduce){.shl-toast{transition:none}}
+/* ---- REVIEWS: the stepper, the review panel section, the roles' locks, performance
+   marketing's header and the designer's archive. ---- */
+.rv-st{display:flex;flex-direction:column;gap:10px}
+.rv-st-line{display:flex;align-items:center;padding:0 2px}
+.rv-dot{flex:none;width:18px;height:18px;box-sizing:border-box;border-radius:50%;display:grid;place-items:center}
+.rv-dot[data-s="done"]{background:var(--ps-link);box-shadow:0 0 0 4px color-mix(in srgb,var(--ps-link) 18%,transparent)}
+.rv-dot svg{width:12px;height:12px;fill:var(--ps-card)}
+.rv-dot[data-s="cur"]{background:var(--ps-card);box-shadow:inset 0 0 0 2px var(--ps-link),0 0 0 4px color-mix(in srgb,var(--ps-link) 14%,transparent)}
+.rv-dot[data-s="pend"]{width:14px;height:14px;margin:2px;background:var(--ps-card);box-shadow:inset 0 0 0 2px var(--ps-line)}
+.rv-seg{flex:1;height:0;margin:0 8px;border-top:2px dashed var(--ps-line)}
+.rv-seg[data-on]{border-top-style:solid;border-top-color:var(--ps-link)}
+.rv-st-lab{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.rv-st-lab>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rv-st-lab>div:nth-child(2){align-items:center;text-align:center}
+.rv-st-lab>div:nth-child(3){align-items:flex-end;text-align:right}
+.rv-st-lab b{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rv-st-lab [data-s="pend"] b{color:var(--ps-ink-2)}
+.rv-st-lab s{text-decoration:none;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-dim)}
+.rv-st-c .rv-st-lab{gap:8px}.rv-st-c .rv-st-lab b{font-size:12.5px}.rv-st-c .rv-st-lab s{font-size:11.5px}
+.rv-pill{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink-2);font:600 12px/1 var(--ps-font);white-space:nowrap}
+.rv-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ps-dim)}
+.rv-pill[data-s="ready"]{background:var(--ps-good-q);color:var(--ps-good)}
+.rv-pill[data-s="ready"]::before{background:var(--ps-good)}
+.rv{display:flex;flex-direction:column;gap:12px;padding:2px 16px 16px;box-shadow:inset 0 -1px 0 var(--ps-hair)}
+.rv[hidden],.rv-dd[hidden]{display:none}
+.rv-main{display:flex;flex-direction:column;gap:14px}
+.rv-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.rv-h>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rv-k{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rv-h b{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rv-lead,.rv-since{margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rv-since{color:var(--ps-ink)}
+.rv-acts{display:flex;flex-wrap:wrap;gap:8px}
+.rv-acts button{height:36px}
+.rv-acts .p-btn{flex:1 1 auto}
+.rv-ntf{align-self:flex-start;border:none;background:none;padding:0;color:var(--ps-link);font:500 12.5px/1.4 var(--ps-font);text-decoration:underline;cursor:pointer}
+.rv-dd{border-radius:10px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rv-dd summary{padding:10px 12px;font:600 13px/1.3 var(--ps-font);color:var(--ps-ink);cursor:pointer}
+.rv-dd[open] summary{box-shadow:inset 0 -1px 0 var(--ps-hair)}
+.rv-dd .rv-lks{padding:12px}
+.rv-lks{display:flex;flex-direction:column;gap:14px}
+.rv-lk{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rv-lk-t{display:flex;flex-direction:column;gap:1px}
+.rv-lk-t b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rv-lk-t s{text-decoration:none;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim)}
+.rv-lk-r{display:flex;gap:8px}
+.rv-lk-r .p-in{flex:1;min-width:0;height:36px;font-size:12.5px;color:var(--ps-ink-2)}
+.rv-lk-r .p-ghost{flex:none;height:36px}
+.rv-drv{display:flex;flex-direction:column;gap:6px;padding:0 12px 12px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rv-drv-r{display:flex;gap:8px}.rv-drv .p-in{flex:1;min-width:0;height:36px;font-size:12.5px}.rv-drv .p-ghost{flex:none;height:36px}
+.shl-step{font-weight:600;color:var(--ps-ink)}
+.shl[data-role="ct"] .shl-leave,.shl[data-role="pm"] .shl-leave{display:none}
+.shl-dlg-c.shl-wide{width:min(580px,100%)}
+.shl-lks{margin:4px 0 0}
+/* the content team: the Copy view and nothing else — no studio switcher, project, folder,
+   save, Design, Preview or Share. Undo, Redo and the theme stay. */
+html[data-rv-role="ct"] .p-top>.p-seg:not(.p-seg-mode),html[data-rv-role="ct"] .p-top>.p-vr,html[data-rv-role="ct"] .p-top>.p-tgrp:not(.p-tgrp-h),
+html[data-rv-role="ct"] .p-seg-mode,html[data-rv-role="ct"] .p-prev,html[data-rv-role="ct"] .p-share{display:none!important}
+/* under review the process replaces the Copy view's own Draft · With design · Final hand-off */
+html[data-rv-role] .cw-steps,html[data-rv-role] .cw-note,html[data-rv-role] .cw-acts>.p-btn,html[data-rv-role] .cw-acts>.p-ghost~.p-ghost,html[data-rv-role] .p-cvcopy{display:none!important}
+/* performance marketing: the Ad sets window under its header, with nothing to choose, share or close */
+html.rv-pm .as-ov{top:var(--rvh,150px)}
+html.rv-pm .as-mode,html.rv-pm .as-srcgrp>.p-ghost:not(.as-ico),html.rv-pm .as-share,html.rv-pm .as-bar-sep,html.rv-pm .as-x{display:none!important}
+html.rv-pm .shl-pill{z-index:210}html.rv-pm .shl-panel{z-index:211;top:0}html.rv-pm .shl-toast{z-index:212}
+.rvh{position:fixed;top:0;left:0;right:0;z-index:205;background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 -1px 0 var(--ps-line);font-family:var(--ps-font)}
+.rvh-in{max-width:1180px;margin:0 auto;padding:16px 24px 14px;display:flex;flex-direction:column;gap:14px}
+.rvh-top{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px}
+.rvh-t{flex:1 1 220px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvh-k{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvh-t b{font:600 20px/1.25 var(--ps-font);letter-spacing:-.01em;overflow-wrap:anywhere}
+.rvh-d{display:flex;gap:24px;margin:0}
+.rvh-d div{display:flex;flex-direction:column;gap:2px}
+.rvh-d dt{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvh-d dd{margin:0;font:600 14px/1.3 var(--ps-font);white-space:nowrap}
+.rvh-d dd s{text-decoration:none;font-weight:400;color:var(--ps-ink-2)}
+.rvh-dl{height:36px}
+.rvh-note{margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rvh-note button{border:none;background:none;padding:0;color:var(--ps-link);font:inherit;text-decoration:underline;cursor:pointer}
+@media (min-width:761px){html.rv-pm.shl-open .as-ov,html.rv-pm.shl-open .rvh{right:340px}}
+@media (max-width:760px){.rvh-in{padding:12px 16px}.rvh-d{gap:16px}.rvh-dl{flex:1 1 100%}}
+/* the designer's archive */
+.rva{display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
+.rva-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
+.rva-bar[hidden]{display:none}
+.rva-bar p{flex:1 1 300px;margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rva-add{flex:1 1 360px;display:flex;gap:8px}
+.rva-add .p-in{flex:1;min-width:0;height:36px}
+.rva-wait,.rva-err{margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rva-err{color:var(--ps-bad)}
+.rva-g h3,.rva-sec h3{margin:0 0 12px;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-g h3 s,.rva-sec h3 s{margin-left:4px;text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.rva-g+.rva-g{margin-top:28px}
+.rva-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.rva-c{display:flex;align-items:center;gap:14px;padding:12px;border:none;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line);color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
+.rva-c:hover{box-shadow:0 0 0 2px var(--ps-link)}
+.rva-c:focus-visible,.rva button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rva-th{flex:none;width:72px;height:72px;overflow:hidden;border-radius:10px;background:var(--ps-fill)}
+.rva-th img{display:block;width:100%;height:100%;object-fit:cover}
+.rva-ct{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.rva-n{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rva-n b{overflow:hidden;font:600 14.5px/1.3 var(--ps-font);white-space:nowrap;text-overflow:ellipsis}
+.rva-mini{display:flex;flex-wrap:wrap;gap:4px 12px;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rva-mini span{display:inline-flex;align-items:center;gap:5px}
+.rva-mini i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ps-line)}
+.rva-mini [data-s="done"] i{background:var(--ps-link);box-shadow:none}
+.rva-mini [data-s="cur"] i{box-shadow:inset 0 0 0 1.5px var(--ps-link)}
+.rva-m{font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
+.rva-back{height:36px;margin-bottom:16px}
+.rva-dh{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+.rva-th-l{width:96px;height:96px;border-radius:12px}
+.rva-dt{flex:1 1 260px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.rva-dt h2{margin:0;font:600 26px/1.2 var(--ps-font);letter-spacing:-.01em;overflow-wrap:anywhere}
+.rva-st{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rva-da .p-btn{height:40px}
+.rva-body>.rv-st{max-width:860px}
+.rva-sec{margin-top:32px}
+.rva-dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px 24px;margin:0}
+.rva-dl div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.rva-dl div:first-child{grid-column:1/-1}
+.rva-dl dt{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rva-dl dd{margin:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rva-dl a{display:inline-block;margin-top:6px;color:var(--ps-link);font:500 13px/1.3 var(--ps-font)}
+.rva-drv{display:flex;gap:8px;max-width:640px}
+.rva-drv .p-in{flex:1;min-width:0;height:36px}.rva-drv .p-ghost{flex:none;height:36px}
+.rva-sec .rv-lks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.rva-log{flex:none;max-width:760px;padding:0;overflow:visible;box-shadow:none}
+.rva-f{margin-top:28px}
+.rva-rm{border:none;background:none;padding:0;color:var(--ps-dim);font:400 12.5px/1.4 var(--ps-font);text-decoration:underline;cursor:pointer}
+@media (max-width:760px){.rva-grid,.rva-sec .rv-lks{grid-template-columns:1fr}.rva-dt h2{font-size:21px}}
 `;
     document.head.appendChild(s);
   }

@@ -43,13 +43,23 @@ is not connected, step 1.4 or 1.5 is missing.
   so one person working all day uses about 2,400 commands. A handful of people sharing links
   every day fits the free plan; if it fills up, move to the pay-as-you-go plan in Upstash.
 
+- **Reviews (CAS):** a review adds a small record to its link (`sh:<id>:rv`, `:sum`, `:thumb`,
+  a ~20 KB picture) and two token keys (`rvt:<token>`). These, the link's `meta` and its log
+  **do not expire**, so the designer's **Review links** archive keeps the record. The project and
+  its photos still expire after 180 days unused. No extra setup: reviews use the same store.
+
 ## Security
 
 - **Anyone with the link can view and edit the project.** There is no sign-in. The link's id is
   12 random letters and digits, so it can't be guessed, but anyone it is forwarded to can edit.
 - The function only stores and returns project data. It never reads any other part of the site.
 - **To delete a link early:** in the Upstash console (Data Browser), delete the keys that start with
-  `sh:<id>:`. The id is the part of the link after `#share=`.
+  `sh:<id>:`. The id is the part of the link after `#share=`. For a review, also delete the two
+  `rvt:<token>` keys (the content team's and performance marketing's link ids, 16 characters).
+- **A review's three links are three roles, not three passwords.** The performance marketing
+  link is refused by the server if it tries to save. The content team link is kept to the Copy
+  view by the studio, not by the server. Only the designer's link (the project's own id) shows
+  the other two links; a token's holder never sees the project's id.
 
 ## Testing on this computer
 

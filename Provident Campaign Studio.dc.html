@@ -4752,6 +4752,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <div class="p-sec-l">Review</div>
       <button onClick="{{ asOpen }}" class="p-nav2" title="Opens the ad sets viewer: every exported ad in a campaign folder, laid out by audience and variant"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m517.69-447.69-48.31-60q-5.61-6.85-14.27-6.85-8.65 0-14.26 7.23l-55.08 72.23q-7.23 9.23-2.31 19.08 4.92 9.85 16.39 9.85h300.3q11.46 0 16.39-9.85 4.92-9.85-1.93-19.08l-87.38-115.46q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-80.62 102.85ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></i>Ad sets<b class="p-nav2-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b></button>
       <button onClick="{{ shViewUse }}" data-on="{{ shViewUseOn }}" class="p-nav2" title="How often each design component and style is used across your saved projects"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M676.15-180q-15.36 0-25.76-10.4Q640-200.79 640-216.16V-380q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h67.69q15.37 0 25.76 10.39Q780-395.36 780-380v163.84q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4h-67.69Zm-230 0q-15.36 0-25.76-10.4Q410-200.79 410-216.16v-527.68q0-15.37 10.39-25.76 10.4-10.4 25.76-10.4h67.7q15.36 0 25.76 10.4Q550-759.21 550-743.84v527.68q0 15.37-10.39 25.76-10.4 10.4-25.76 10.4h-67.7Zm-229.99 0q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-331.35q0-15.64 10.4-25.99 10.39-10.34 25.76-10.34h67.69q15.36 0 25.76 10.39Q320-563.06 320-547.69v331.35q0 15.65-10.39 25.99Q299.21-180 283.85-180h-67.69Z"/></svg></i>Component usage</button>
+      <button onClick="{{ shViewRev }}" data-on="{{ shViewRevOn }}" class="p-nav2" title="Every review you started: its status, its links and everything that changed"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-140Q142-140 121-161q-21-21-21-51.31v-535.38Q100-778 121-799q21-21 51.31-21h615.38Q818-820 839-799q21 21 21 51.31v535.38Q860-182 839-161q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM360-290q12.77 0 21.38-8.62Q390-307.23 390-320t-8.62-21.38Q372.77-350 360-350H240q-12.77 0-21.38 8.62Q210-332.77 210-320t8.62 21.38Q227.23-290 240-290h120Zm222-168.77-35.92-35.92q-8.93-8.92-21.08-8.81-12.15.12-21.08 9.42-8.3 8.93-8.42 21.08-.11 12.15 8.81 21.08l52.38 52.38q10.85 10.85 25.31 10.85 14.46 0 25.31-10.85l137.38-137.38q8.92-8.93 9.12-20.89.19-11.96-9.12-21.27-9.31-9.3-21.38-9.3-12.08 0-21.39 9.3L582-458.77ZM360-450q12.77 0 21.38-8.62Q390-467.23 390-480t-8.62-21.38Q372.77-510 360-510H240q-12.77 0-21.38 8.62Q210-492.77 210-480t8.62 21.38Q227.23-450 240-450h120Zm0-160q12.77 0 21.38-8.62Q390-627.23 390-640t-8.62-21.38Q372.77-670 360-670H240q-12.77 0-21.38 8.62Q210-652.77 210-640t8.62 21.38Q227.23-610 240-610h120ZM160-200v-560 560Z"/></svg></i>Review links</button>
       <div class="p-sec-l">Session</div>
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i><span class="p-nav2-t"><span>Continue last</span><small>{{ continueName }}</small></span></button>
@@ -4860,6 +4861,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </section>
         </sc-for>
         <sc-if value="{{ hubEmptyOn }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing received yet — Share › Send puts a project on the hub, and it shows here.</div></sc-if>
+      </sc-if>
+      <!-- REVIEW LINKS: share-link.js fills this host itself (plain DOM, never reconciled) -->
+      <sc-if value="{{ shShowRev }}" hint-placeholder-val="{{ false }}">
+        <div class="rv-host" data-rv-arch="1"></div>
       </sc-if>
       <sc-if value="{{ shShowUse }}" hint-placeholder-val="{{ false }}">
         <div class="cu">
@@ -5048,6 +5053,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   </details>
   <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
   <button onClick="{{ shLinkGo }}" class="sx-eps" data-on="{{ shLinkOn }}" title="{{ shLinkTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ shLinkLabel }}</button>
+  <!-- A REVIEW (share-link.js): the edit link plus a Copy-only link for the content team and an
+       ad-set-only link for performance marketing, with the process Initial design · Copy check ·
+       Deploy campaign. The designer's archive of them is Review links on the home page. -->
+  <sc-if value="{{ rvShareOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ rvGo }}" class="sx-eps" data-on="{{ rvOn }}" title="{{ rvTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M283.85-407.69h53.84q7.23 0 13.77-2.62 6.54-2.61 12.15-8.23l194.54-194.54q7.08-7.46 10.62-16.46 3.54-9 3.54-17.69 0-8.69-3.85-17.08-3.85-8.38-10.31-15.84l-36.38-38q-7.08-7.08-15.96-10.62-8.89-3.54-18.19-3.54-8.7 0-17.7 3.54t-16.46 10.62L258.54-523.61q-5.62 5.61-8.23 12.15-2.62 6.54-2.62 13.77v53.84q0 15.46 10.35 25.81 10.35 10.35 25.81 10.35Zm240.77-239.54-37-37.39 37 37.39ZM295.38-455.38v-38l119.47-119.47 19.23 18.77 18.38 19.62-119.08 119.08h-38Zm138.7-138.7 18.38 19.62-37.61-38.39 19.23 18.77Zm25.61 186.39h222.62q12.77 0 21.38-8.62 8.62-8.61 8.62-21.38t-8.62-21.39q-8.61-8.61-21.38-8.61H519.69l-60 60ZM241.54-260l-80.08 80.07q-17.07 17.08-39.27 7.74Q100-181.54 100-205.85v-581.84Q100-818 121-839q21-21 51.31-21h615.38Q818-860 839-839q21 21 21 51.31v455.38Q860-302 839-281q-21 21-51.31 21H241.54ZM216-320h571.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v523.08L216-320Zm-56 0v-480 480Z"/></svg>{{ rvLabel }}</button></sc-if>
   <!-- Layout guides are kept for a later release; the export path still works,
        only the BUTTON is out of the way — which is why this gate is `guidesBtnOn` and not
        `guidesOn`. The two were one key, so parking the button also killed the dashed
@@ -16240,7 +16249,7 @@ class Component extends DCLogic {
       asPickOn: open && supported ? '1' : undefined,
       asPickLabel: viewing ? 'Open folder' : 'Choose folder',
       asPickTip: viewing ? 'Open another exported campaign folder' : 'Choose an exported campaign folder to view',
-      asSub: root ? (proj ? proj + ' · ' : '') + (this._asSrc && this._asSrc.kind === 'share' ? 'Shared ' : this._asSrc && this._asSrc.kind === 'drive' ? 'Google Drive ' : 'Folder ') + rootName + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
+      asSub: root ? (proj ? proj + ' · ' : '') + (this._asSrc && this._asSrc.kind === 'review' ? 'Rendered from the ' : this._asSrc && this._asSrc.kind === 'share' ? 'Shared ' : this._asSrc && this._asSrc.kind === 'drive' ? 'Google Drive ' : 'Folder ') + (this._asSrc && this._asSrc.kind === 'review' ? 'live project' : rootName) + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head && root ? '1' : undefined,
       // the drop panel sits in the empty state, and stays reachable from the bar
       asSrcPanelOn: open && (forced || this._asPanel) ? '1' : undefined,
@@ -16410,7 +16419,7 @@ class Component extends DCLogic {
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
       if (this._asDet) { this._asDet = null; this.forceUpdate(); return; }
-      if (this.state.adSetsOpen) { this.asClose(); return; }
+      if (this.state.adSetsOpen) { if (this._asSrc && this._asSrc.kind === 'review') return; this.asClose(); return; }
       this._closePops();
     };
     this._popOut = e => {
@@ -16628,9 +16637,10 @@ class Component extends DCLogic {
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: eng && eng.mockCopy ? eng.mockCopy() : {},
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'hub' ? 'From the hub' : 'All'))),
+      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'hub' ? 'From the hub' : (view === 'rev' ? 'Review links' : 'All')))),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
+      shViewSub: (n => view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'review') + ' kept on this computer')
+        : view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in ' + (sub.useFolder ? n(sub.useCount, 'project') + ' in \u201c' + sub.useFolder + '\u201d' : 'your ' + n(sub.useCount, 'most recent saved project')) : (sub.useFolder ? 'No Campaign projects in \u201c' + sub.useFolder + '\u201d yet' : 'Nothing saved yet \u2014 usage is counted from saved projects'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
@@ -16638,6 +16648,9 @@ class Component extends DCLogic {
       shShowTpl: view === 'all' || view === 'tpl',
       shShowRec: view === 'all' || view === 'rec',
       shShowUse: view === 'use',
+      shShowRev: view === 'rev',
+      shViewRev: () => this.setState({ splashView: 'rev' }),
+      shViewRevOn: view === 'rev' ? '1' : undefined,
       shViewUse: () => { this.setState({ splashView: 'use' }); eng.libLoad && eng.libLoad(); },
       shViewUseOn: view === 'use' ? '1' : undefined,
       shViewAll: () => this.setState({ splashView: 'all' }),

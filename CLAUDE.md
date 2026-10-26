@@ -16230,3 +16230,72 @@ session, Recent and From the hub already open them) that cost a render pass on e
   scan runs, so the numbers do not flicker back to Recent), else Recent. The memo keys on that
   listing or on the recents list itself.
 
+
+# CAS REVIEWS: THREE ROLE LINKS AND A PROCESS (2026-10-26)
+
+By request: a campaign goes **INITIAL DESIGN > COPY CHECK > DEPLOY CAMPAIGN** with three
+audiences — the **designer (DD)** with the full studio, the **content team (CT)** with the Copy
+view only, **performance marketing (PM)** with the Ad sets overview only. Decided with the
+user: **both DD and CT must sign off** (in either order), **PM always sees the latest** (renders
+from the live project, not a published snapshot), **ready is the end** (no "campaign live"
+button), and notifications are in-link only (a Roam bot was discussed and parked). Built on the
+shared-edit-link infrastructure; everything is in `api/share.py` and `share-link.js`, and CAS
+carries only a Share button, the Review links home view, and two Ad sets guards.
+
+- **A review is a shared project plus `sh:<id>:rv`.** `rvmake` (only the project's own 12-char
+  id, never a token) adds the record and two 16-char tokens, `rvt:<tok> -> {sid, role}`. Every
+  op resolves a token wherever it takes an id (`resolve()`); the response carries `role` and
+  `rv` (tokens only to `dd`), and the project's id never reaches a token's holder. `rv`, `sum`,
+  `thumb`, `meta` and (for a review) the log have **no expiry** — the archive's record — while
+  state/imgs keep the 180-day TTL. The save Lua takes a 5th key so a review's log is not
+  re-expired.
+- **Server-enforced:** a `pm` token's save/part is 403; `step` acts are checked by role
+  (`STEP`: design-done/open dd only, copy-done ct only, copy-open ct or dd). **Client-enforced
+  only:** CT's lock to the Copy view (`html[data-rv-role="ct"]` CSS plus `rvGuard` resetting
+  `screen`). There is no sign-in; the link is the key.
+- **Ready** = `design && copy`; any reopen clears it. Each step appends a `kind:'step'` log
+  entry and a `hist` item; clients learn of steps through the polled `rev` (which now returns
+  `rv`) and the log count.
+- **PM's view is the Ad sets window on a stand-in folder** (`liveDir`): root named after the
+  campaign, one `Meta ads.adstudio.json`, `Variant A…` folders with `<name>_Variant X_<job>.jpg`
+  for sq/pt/st/ls, each file rendered on `getFile` through `buildOps` + `rasterFile` at
+  `exportScale` and cached per project-state key. `rvGuard` rescans when the key moves, keeps
+  the window open (`kind:'review'`; CAS's Escape returns early for it), and `html.rv-pm` hides
+  close/pick/share/Edit text and pushes `.as-ov` under the `.rvh` header (`--rvh`, set by a
+  ResizeObserver). Carousels show pages as Variant letters (named so the scan finds them).
+- **The process replaces the Copy view's Draft › With design › Final under review** —
+  `html[data-rv-role] .cw-steps/.cw-note/.cw-acts` hand-off buttons and `.p-cvcopy` are hidden.
+- **The panel is the Changes panel renamed Review**: a `.rv` section (stepper, role, buttons,
+  DD's links + Drive location). The stepper is `stepperHtml(rv, compact)`: dates/labels in a
+  3-column grid under a dot-segment-dot line, mirroring the supplied delivery-tracker image.
+- **The archive** (`Review links`, `splashView: 'rev'`) is plain DOM (`ArchView`) mounted into
+  an empty `[data-rv-arch]` host by `Arch.mount`, scheduled from `shareVals` — React never
+  reconciles it. Its index is `localStorage['provident-reviews']` (ids only); records come from
+  `rvinfo` (≤60 ids; `full=1` adds the log). The DD's Drive location is `rv.drive` (`rvset`).
+  The summary (`sum`) rides on every review save; the thumbnail is re-rendered at rvmake and at
+  each sign-off.
+
+## A PRE-EXISTING SHARE BUG THIS FIXED: OPENING A LINK READ AS AN EDIT
+
+`load()` runs `normState` and `Object.assign(defaults(), p)`, so the state a tab holds after
+opening a link differs from what it downloaded (`hidden: {}`, `bgO: 100`, `banOv: null`, top-level
+defaults) — and the first tick saved that as "Sara changed the design" before she typed
+anything. `SP.shNorm(st)` puts a downloaded state through the same normaliser; it is the base on
+open AND what `shPull` merges as "theirs", so normalisation is never a change and the merge
+never drops a default key. Verified: CT and PM opening a fresh review leave the log at rev 1.
+**A tab bound before the fix still carries a raw base and saves once on its next reload.**
+
+## Verification (local share server, `tools/share-dev/serve.py`)
+
+- Server ops exercised directly: role resolution, rvmake refused from a token, pm save 403,
+  steps by role, ready on both, rvinfo refusing tokens.
+- In the browser, three workspaces: DD made the review with real clicks; CT opened, typed into
+  the Copy view (synced and logged as "Ad copy · Heading"), pressed Copy approved; PM saw four
+  renders at 2160²/2160×2880/2160×3840/1200×628, picked up Package ready on its own, flagged
+  "1 change since ready" and re-rendered when CT edited after ready, returned to In progress
+  when DD pressed Back to in process; Download package zipped the four files under export names.
+  CT snapped back to Copy when pushed to the editor; PM ignored Escape.
+- The archive listed, opened and saved a Drive location. Contrast: 0 failures over the PM
+  header, the panel (26 runs) and the archive (18 + 66 runs), light and dark. No overflow at 390.
+- **Not exercised against the real Vercel/Upstash.** The Lua change (5 keys, conditional log
+  expire) and PERSIST/LTRIM only ran on the in-memory store.

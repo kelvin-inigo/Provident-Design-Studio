@@ -186,6 +186,74 @@ edits on the link: Edit text there says *Saved to the shared link · the origina
 changed*, and the files the link was made from keep their old words. Once shared, the button reads **Copy link**. An ad sets link opened in OPS
 moves to CAS.
 
+### Run a review: designer, content team, performance marketing (CAS)
+
+A review takes one campaign through three steps: **Initial design › Copy check › Deploy
+campaign**. Three people work on it, and each has their own link and sees only what they need:
+
+| who | the link opens | they can |
+|---|---|---|
+| **Designer** | the full Campaign Studio | change anything, mark the design done, put it back in progress |
+| **Content team** | the Copy view only | change the words, approve the copy |
+| **Performance marketing** | the ad set overview only | see every variant and size, download the package |
+
+1. **Start it.** In the project, press **Share › Start a review**, type your name and press
+   **Make the review links**. If the project isn't shared yet, it's shared first. Copy each link
+   and send it to the right team. The three links are also kept in **Review links** on the home
+   page.
+2. **The content team** opens their link, types their name and lands in the Copy view. There's
+   no Design switch, no project or Share button, just the words, the preview and Undo/Redo. Their
+   edits reach everyone within a few seconds. When the words are ready they press **Copy
+   approved** in the **Review** panel on the right.
+3. **The designer** works as usual. In the **Review** panel, **Mark design done** says the design
+   is finished.
+4. **When the design is done and the copy is approved, the package is ready.** The order doesn't
+   matter. Performance marketing's view shows **Package ready**, the date it became ready, and a
+   **Download package** button.
+5. **Performance marketing** opens their link and sees only the ad set overview. A progress bar at
+   the top shows the three steps, who signed off and when, and the created and ready dates.
+   The images are rendered from the project as it is now, so they're always the latest. There's
+   nothing to export or re-send. **Download package** saves every Meta image (feed, Portrait
+   3:4, Story, Horizontal 1.91:1) in one zip, named the way an export names them. This link
+   can't change the project.
+6. **Changes after it's ready.** If something changes after the package is ready, performance
+   marketing's bar says how many changes there have been, with **See what changed**. To pull it back, the
+   designer presses **Back to in process** (or **Reopen copy check**), and the package stops
+   being ready until both sign-offs are given again. The content team can take their own
+   approval back with **Reopen copy check**.
+
+The **Review** panel (bottom right, or open on arrival for the content team) shows the steps,
+your role and your button. Below that is the log of who changed what, including every step. **Notify me in this browser**
+shows a system notification when someone else moves a step while the tab is in the background.
+
+Things to know:
+- **No sign-in.** Whoever holds a link has its role, so send each link only to its team.
+  Performance marketing's link is view-only on the server too. The content team's link is
+  limited to the Copy view by the studio.
+- Under review, the Copy view's own **Draft › With design › Final** hand-off is hidden. The
+  review's steps take its place.
+- Carousel pages appear in performance marketing's view as Variant A, B, C… in page order.
+
+### Review links: every review you started (CAS home page)
+
+On the home page, **Review links** (in the **Review** group) lists every review you started on
+this computer, or opened as the designer. **In progress** reviews are listed first, then
+**Package ready**. Each card shows the design, its status and the dates.
+
+Open one to see its record:
+- **First:** status and the date it finished, then the three steps and who signed off.
+- **Details:** the **Google Drive** location (paste the project's folder link or path and press
+  **Save**; it's kept with the review), created by and when, the format, sizes, number of
+  components, and the last change.
+- **Links:** all three, each with **Copy**.
+- **Activity:** everything that happened, newest first.
+- **Open in Campaign Studio** opens the project in a new tab with your designer link.
+
+To add a review from another computer, paste its **designer** link into the box at the top.
+**Remove from this list** only removes it from this computer; the links keep working.
+A review's record (status, dates, log, links) is kept even after its project expires. The
+project itself still expires after 180 days unused.
+
 ---
 
 ## 3. CAS: build an ad
