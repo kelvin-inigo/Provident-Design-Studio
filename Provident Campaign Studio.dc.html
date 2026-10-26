@@ -4724,6 +4724,13 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   .as-bar .as-x{order:1;margin-left:0}
   .as-bar .as-mode{flex:1 1 100%}
 }
+
+/* 57 · which view the Ad sets window is: PM's overview, the content team's review, the designer's */
+.as-ttl b{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.as-role{font:600 11px/1 var(--ps-font);font-style:normal;letter-spacing:.01em;padding:4px 8px;border-radius:9999px;
+  background:var(--ps-fill-h);color:var(--ps-ink);white-space:nowrap}
+.as-role[data-role="pm"]{background:var(--ps-accent);color:var(--ps-accent-i)}
+.as-role[data-role="ct"]{background:var(--ps-good-q);color:var(--ps-ink)}
 </style>
 </helmet>
 
@@ -5311,7 +5318,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   <sc-if value="{{ asOn }}" hint-placeholder-val="{{ false }}">
     <div class="as-ov" role="dialog" aria-label="Ad sets" onDragOver="{{ asDragOver }}" onDragLeave="{{ asDragLeave }}" onDrop="{{ asDrop }}" data-drag="{{ asDragOn }}">
       <div class="as-bar">
-        <div class="as-ttl"><b>Ad sets</b><s>{{ asSub }}</s></div>
+        <div class="as-ttl"><b><span>{{ asTitle }}</span><sc-if value="{{ asRoleOn }}" hint-placeholder-val="{{ false }}"><em class="as-role" data-role="{{ asRoleKey }}">{{ asRoleName }}</em></sc-if></b><s>{{ asSub }}</s></div>
         <sc-if value="{{ asModeBarOn }}" hint-placeholder-val="{{ true }}">
           <div class="p-seg as-mode" role="group" aria-label="What to work on">
             <button onClick="{{ asSetImg }}" data-on="{{ asModeImgOn }}" title="The exported images, one variant per row"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM270-290h423.07L561.54-465.38 449.23-319.23l-80-102.31L270-290Zm-70 90v-560 560Z"/></svg>Images</button>
@@ -16039,7 +16046,15 @@ class Component extends DCLogic {
     const pj = embed && sel && !all && this._asSrc.share.projOf ? this._asSrc.share.projOf(sel.key) : null;
     const projV = { asProjOn: pj && !pj.here ? '1' : undefined, asProjHref: pj ? pj.href : '', asProjTip: pj ? 'Opens ' + pj.label + ' in the full studio, in a new tab' : '',
       asProjHereOn: pj && pj.here ? '1' : undefined };
+    // WHICH VIEW THIS IS, named in the header: a review link opens the window for one of three
+    // audiences, and they used to read identically ("Ad sets").
+    const rvRole = this._asSrc && this._asSrc.kind === 'review' ? (embed ? 'dd' : (this._asSrc.share && this._asSrc.share.role) || 'dd') : '';
+    const RVV = { pm: ['Ad set overview', 'Performance marketing'], ct: ['Content review', 'Content team'], dd: ['Designer overview', 'Designer'] }[rvRole];
     return {
+      asTitle: RVV ? RVV[0] : 'Ad sets',
+      asRoleOn: RVV ? '1' : undefined,
+      asRoleName: RVV ? RVV[1] : '',
+      asRoleKey: rvRole,
       asOn: open ? '1' : undefined,
       asOpen: () => this.asOpen(),
       asClose: () => this.asClose(),

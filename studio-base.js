@@ -981,6 +981,11 @@ class StudioBase {
   reloadNow(url) {
     StudioBase.reloading = true;
     this.markSaved();
+    // Every project swap comes through here, and a swap ends any AD SET link this tab was
+    // following (share-link.js resumes one from sessionStorage on every load): otherwise the
+    // designer opening their own project from Recent landed back in the review window. A
+    // project's own edit link is untouched; it only resumes for the project whose pid it holds.
+    try { sessionStorage.removeItem('provident-share:rs'); sessionStorage.removeItem('provident-share:adsets'); } catch (e) {}
     // A hand-over to the other studio stays in the same private workspace.
     if (url && window.providentWorkspace) url += (url.indexOf('?') < 0 ? '?' : '&') + 'ws=' + encodeURIComponent(window.providentWorkspace);
     if (url) location.href = url;
