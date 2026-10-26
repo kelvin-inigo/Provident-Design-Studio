@@ -1753,7 +1753,7 @@ html.rv-as .shl-pill{z-index:210}html.rv-as .shl-panel{z-index:211;top:0}html.rv
 @media (min-width:761px){html.rv-as.shl-open .as-ov,html.rv-pm.shl-open .rvh{right:340px}}
 @media (max-width:760px){.rvh-in{padding:12px 16px}.rvh-d{gap:16px}.rvh-dl{flex:1 1 100%}}
 /* the designer's archive */
-.rva{display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
+.rva{max-width:1240px;margin-inline:auto;display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
 .rva-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
 .rva-bar[hidden]{display:none}
 .rva-bar p{flex:1 1 300px;margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
