@@ -16299,3 +16299,14 @@ never drops a default key. Verified: CT and PM opening a fresh review leave the 
   header, the panel (26 runs) and the archive (18 + 66 runs), light and dark. No overflow at 390.
 - **Not exercised against the real Vercel/Upstash.** The Lua change (5 keys, conditional log
   expire) and PERSIST/LTRIM only ran on the in-memory store.
+
+**The Review links detail page was redesigned (2026-10-26, by request).** `AV.detHtml` in
+share-link.js: a header (thumbnail, title, pill, "Created … · changed …", **Drive folder** and
+**Open in Campaign Studio** with icons), then two columns capped at 1240 — main: a **Progress**
+card (the stepper plus `rvNext(rv)`, the plain next step, and the changes-since-ready count),
+**Review links** (one row per role: icon, description, the link in mono, a Copy link button that
+keeps its icon), **Activity**; aside 320: **Details** (Format, Components, Sizes as chips,
+Project live/expired — Design/Copy/Created left the list, the stepper and header say them),
+**Google Drive** (saving redraws so the header gains its Drive button), and Remove from this
+list. One column under 1100, stacked buttons under 760. Icons are Material Rounded wght300
+(`ICO`). Contrast 0 failures both themes, no overflow at 390. `linkRows` still serves the panel.

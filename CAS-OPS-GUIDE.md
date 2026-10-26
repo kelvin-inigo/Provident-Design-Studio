@@ -240,14 +240,16 @@ On the home page, **Review links** (in the **Review** group) lists every review 
 this computer, or opened as the designer. **In progress** reviews are listed first, then
 **Package ready**. Each card shows the design, its status and the dates.
 
-Open one to see its record:
-- **First:** status and the date it finished, then the three steps and who signed off.
-- **Details:** the **Google Drive** location (paste the project's folder link or path and press
-  **Save**; it's kept with the review), created by and when, the format, sizes, number of
-  components, and the last change.
-- **Links:** all three, each with **Copy**.
+Open one to see its record. At the top: the design, its status, when it was made and last
+changed, **Drive folder** (once a Drive link is saved) and **Open in Campaign Studio** (opens the
+project in a new tab with your designer link). Below that:
+- **Progress:** the three steps, who signed off and when, and one line saying what has to
+  happen next.
+- **Review links:** one row per team with what their link does, and **Copy link**.
 - **Activity:** everything that happened, newest first.
-- **Open in Campaign Studio** opens the project in a new tab with your designer link.
+- On the right, **Details** (format, components, sizes, whether the project is still live) and
+  **Google Drive**: paste the project's folder link or path and press **Save**; it's kept with
+  the review, and the **Drive folder** button appears at the top.
 
 To add a review from another computer, paste its **designer** link into the box at the top.
 **Remove from this list** only removes it from this computer; the links keep working.

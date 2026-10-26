@@ -288,7 +288,7 @@
     const nm = '<b>' + esc((rv && rv.name) || meta.name || 'Untitled project') + '</b>';
     dlg.ready({
       title: role === 'ct' ? 'Check the copy' : role === 'pm' ? 'Ad set package' : role === 'dd' ? 'Open your review' : '',
-      lead: role === 'ct' ? nm + ' · copy check, from ' + esc(meta.by || 'the designer') + '. You see the words and a preview of the ad. Change them as needed, then press <b>Copy approved</b>.'
+      lead: role === 'ct' ? nm + ' · copy check, from ' + esc(meta.by || 'the designer') + '. You see the words beside every image of the ad. Change them as needed — the images update as you type — then press <b>Copy approved</b>.'
         : role === 'pm' ? nm + ' · ad set package, from ' + esc(meta.by || 'the designer') + '. You see every variant and size, rendered from the latest project, and can download them. You cannot change the project from this link.'
         : role === 'dd' ? nm + ' · the designer’s review link. You have the full Campaign Studio, and mark the design done when it is ready.'
         : nm + ' · shared by ' + esc(meta.by || 'someone') + ' in ' + esc(spec.label) + '. Anyone with this link can change it, and the Changes panel shows who changed what.',
@@ -311,8 +311,7 @@
     const st = d.state;
     if (!st.pid) st.pid = StudioBase.newPid();
     if (meta.app === 'provident-smp-studio' && st.screen == null) st.screen = 'editor';
-    if (role === 'ct') st.screen = 'copy';
-    if (role === 'pm') st.screen = 'editor';
+    if (role === 'ct' || role === 'pm') st.screen = 'editor';
     if (role === 'dd') Arch.add(id, (rv && rv.name) || meta.name || '');
     const imgs = {}; slots.forEach(s => { if (images[s]) imgs[s] = d.imgs[s].h; });
     const key = 'provident-share:' + meta.app;
@@ -447,7 +446,8 @@
     const S = this._sh; if (!S || S.busy || StudioBase.loadingSession) return;
     if (!this.shBind()) { this.shareStop(true); return; }   // this tab has opened another project
     // the project browser and the template picker are not the project: no panel over them
-    const away = /^(splash|pick)$/.test(this.state.screen || '');
+    // (performance marketing and the content team work in the Ad sets window over everything)
+    const away = S.role !== 'pm' && S.role !== 'ct' && /^(splash|pick)$/.test(this.state.screen || '');
     if (S.ui && S.ui.root.hidden !== away) {
       S.ui.root.hidden = away;
       document.documentElement.classList.toggle('shl-open', !away && S.ui.root.classList.contains('open'));
@@ -621,7 +621,7 @@
       rvGo: () => this.reviewCreate(),
       rvLabel: rv ? 'Review links' : 'Start a review',
       rvTip: rv ? 'This project is under review. Opens the review panel with the three links.'
-        : 'Makes three links: the full studio for you, the Copy view for the content team, and the ad set overview for performance marketing — with the process Initial design · Copy check · Deploy campaign.',
+        : 'Makes three links: the full studio for you, the words beside every image for the content team, and the ad set overview for performance marketing — with the process Initial design · Copy check · Deploy campaign.',
       rvOn: rv ? '1' : undefined,
       shLinkGo: () => this.shareCreate(),
       shLinkLabel: b ? 'Copy edit link' : 'Share an edit link',
@@ -668,7 +668,7 @@
   const rvSince = (log, rv) => rv && rv.ready ? (log || []).filter(e => e.at > rv.ready && (e.changes || []).some(c => c.kind !== 'step')).length : 0;
   const LINK_ROWS = [
     ['dd', 'Designer', 'The full Campaign Studio. Change anything, and mark the design done.'],
-    ['ct', 'Content team', 'The Copy view only. Change the words, and approve the copy.'],
+    ['ct', 'Content team', 'The words beside every image of the ad. Change them, and approve the copy.'],
     ['pm', 'Performance marketing', 'The ad set overview only, always the latest images, and the package to download.']
   ];
   function linkRows(eng, id, tok) {
@@ -706,7 +706,7 @@
     if (b && b.role && b.role !== 'dd' && b.role !== 'edit') return;
     if (S && S.rv) { this.shPanel(true); const d = S.ui.root.querySelector('.rv-dd'); if (d) d.open = true; return; }
     const dlg = nameDialog({ title: 'Start a review', btn: 'Make the review links',
-      lead: 'Makes three links for this campaign. <b>Designer</b> (you) keeps the full studio; the <b>Content team</b> sees only the Copy view; ' +
+      lead: 'Makes three links for this campaign. <b>Designer</b> (you) keeps the full studio; the <b>Content team</b> sees only the words beside every image, to edit; ' +
         '<b>Performance marketing</b> sees only the ad set overview, always the latest images, with the package to download. ' +
         'The process runs Initial design · Copy check · Deploy campaign: when you mark the design done and the content team approves the copy, the package is ready.',
       note: 'There is no sign-in — whoever holds a link has its role. Your name is shown beside every change you make.' });
@@ -768,32 +768,40 @@
     const h = document.documentElement, on = role && role !== 'edit' ? role : '';
     if (on) h.dataset.rvRole = on; else delete h.dataset.rvRole;
     h.classList.toggle('rv-pm', on === 'pm');
+    h.classList.toggle('rv-as', on === 'pm' || on === 'ct');
     if (on !== 'pm' && this._rvBar) { if (this._rvRo) this._rvRo.disconnect(); this._rvBar.remove(); this._rvBar = null; }
     if (on === 'pm') this.rvBarMake();
     if (this._sh && this._sh.ui) this._sh.ui.root.dataset.role = on;
   };
   SP.rvGuard = function () {
     const S = this._sh; if (!S) return;
-    if (S.role === 'ct' && this.state.screen !== 'copy') this.setState({ screen: 'copy', sel: null });
-    if (S.role === 'pm') {
-      const h = this.host;
-      if (!h || !h.asView) return;
-      if (!h.state.adSetsOpen || !h._asSrc || h._asSrc.kind !== 'review') this.rvPmOpen();
-      else if (this._rvDir && this._rvDir.stale() && !(h._as && h._as.busy)) h.asScan();
-      this.rvBarRender();
-    }
-  };
-  // performance marketing: the Ad sets window on a stand-in folder rendered from the live project
-  SP.rvPmOpen = function () {
+    if (S.role !== 'pm' && S.role !== 'ct') return;
     const h = this.host;
-    if (!this._rvDir) this._rvDir = liveDir(this);
-    h._asMode = 'images'; h._asAll = false;
+    if (!h || !h.asView) return;
+    const mode = S.role === 'ct' ? 'text' : 'images';
+    if (!h.state.adSetsOpen || !h._asSrc || h._asSrc.kind !== 'review') { this.rvPmOpen(); return; }
+    if ((h._asMode || 'images') !== mode && h.asSetMode) h.asSetMode(mode);
+    // someone else's change: read the project again — never while this person is mid-edit
+    if (this._rvDir && this._rvDir.stale() && !(h._as && h._as.busy)) {
+      const ae = h._ae, a = document.activeElement;
+      const editing = (ae && (ae.dirty || ae.saving)) || (a && a.closest && a.closest('.as-ov') && /^(INPUT|TEXTAREA)$/.test(a.tagName));
+      if (!editing) { h._ae = null; h.asScan(); }
+    }
+    if (S.role === 'pm') this.rvBarRender();
+  };
+  // performance marketing and the content team: the Ad sets window on a stand-in folder rendered
+  // from the live project — Images for performance marketing, Edit text for the content team,
+  // whose words are written back into the project itself
+  SP.rvPmOpen = function () {
+    const h = this.host, S = this._sh;
+    if (!this._rvDir) this._rvDir = liveDir(this, S && S.role === 'ct');
+    h._asMode = S && S.role === 'ct' ? 'text' : 'images'; h._asAll = false;
     if (!h.state.adSetsOpen) h.setState({ adSetsOpen: true });
     h.asView({ kind: 'review', handle: this._rvDir, name: this._rvDir.name });
   };
-  function liveDir(eng) {
+  function liveDir(eng, write) {
     const C = eng.constructor;
-    let key = '', scanned = null, lm = Date.now(), cache = {}, assets = null;
+    let key = '', scanned = null, lm = Date.now(), cache = {}, assets = null, base = null;
     const keyNow = () => canon(eng.shPub()) + '|' + JSON.stringify(eng._filled || {});
     const sync = () => { const k = keyNow(); if (k !== key) { key = k; lm = Date.now(); cache = {}; assets = null; } };
     const fonts = async () => {
@@ -814,8 +822,37 @@
       return cache[id];
     };
     const nameOf = st => (st.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
-    const file = (nm, type, data) => ({ kind: 'file', name: nm, modified: lm,
-      getFile: async () => new File([await data()], nm, { type, lastModified: lm }) });
+    const file = (nm, type, data) => ({ kind: 'file', name: nm, modified: lm, live: true,
+      getFile: async () => new File([await data()], nm, { type, lastModified: lm }),
+      // Edit text never re-exports over a live image (CAS checks the source's kind); a write
+      // reaching one anyway is dropped
+      createWritable: async () => ({ write: async () => {}, close: async () => {} }) });
+    // The project file. Edit text reads it with getFull (the photos come from the studio's own
+    // store, so its previews show them) and writes the words back: the edit is merged onto the
+    // project as it is NOW, against the state it was read from, so a design change the designer
+    // made meanwhile is kept.
+    const json = nm => {
+      const pub = () => { base = eng.shNorm(eng.shPub()); return { app: 'provident-ad-studio', state: eng.shPub() }; };
+      const h = file(nm, 'application/json', async () => JSON.stringify(pub()));
+      h.getFull = async () => {
+        const sc = await StudioBase.sidecar(), images = {};
+        Object.keys(sc || {}).forEach(k => { if (/^adstudio-/.test(k) && sc[k] && sc[k].u) images[k] = sc[k]; });
+        return new File([JSON.stringify(Object.assign(pub(), { images }))], nm, { type: 'application/json', lastModified: lm });
+      };
+      if (write) h.createWritable = async () => {
+        const parts = [];
+        return { write: async x => { parts.push(x && x.data !== undefined ? x.data : x); },
+          close: async () => {
+            const doc = JSON.parse(await new Blob(parts.map(p => p instanceof Blob ? p : new Blob([p]))).text());
+            const mine = eng.shNorm(doc.state), now = eng.shPub(), merged = merge3(base || now, mine, now);
+            base = mine;
+            if (!jsonEq(merged, now)) eng.upd(x => { Object.keys(merged).forEach(k => { x[k] = merged[k]; }); return x; });
+            // its own edit is not a reason to read the project again — marked once React has it
+            setTimeout(() => { sync(); scanned = key; }, 60);
+          } };
+      };
+      return h;
+    };
     const dirH = (nm, items) => ({ kind: 'directory', name: nm, queryPermission: async () => 'granted', requestPermission: async () => 'granted',
       async *entries() { for (const it of items) yield [it.name, it]; },
       async getDirectoryHandle(x) { const e = new Error('Not found'); e.name = 'NotFoundError'; throw e; } });
@@ -826,7 +863,7 @@
       const st = eng.state, name = nameOf(st), out = [];
       // the folder is the campaign and the project in it "Meta ads", so the window reads
       // Campaign › Meta ads and Download all names its zip after the campaign
-      out.push(file('Meta ads.adstudio.json', 'application/json', async () => JSON.stringify({ app: 'provident-ad-studio', state: eng.shPub() })));
+      out.push(json('Meta ads.adstudio.json'));
       (st.variants || []).slice(0, 26).forEach((v, vi) => {
         const L = 'Variant ' + String.fromCharCode(65 + vi);
         const files = C.sizesFor(st, v).filter(k => RV_SIZES.indexOf(k) >= 0)
@@ -890,7 +927,7 @@
     }
     if (role === 'ct') acts.push(rv.copy ? ['copy-open', 'Reopen copy check', 'p-ghost', 'Takes your approval back while you change the words again.']
       : ['copy-done', 'Copy approved', 'p-btn', 'Says the words are final. When the design is done too, the package is ready for performance marketing.']);
-    const lead = role === 'ct' ? (rv.copy ? 'You approved the copy. A change you make now reaches performance marketing too — reopen the check first if it needs another look.' : 'Change the words in the Copy view. They reach the designer within a few seconds. Approve the copy when it is ready to run.')
+    const lead = role === 'ct' ? (rv.copy ? 'You approved the copy. A change you make now reaches performance marketing too — reopen the check first if it needs another look.' : 'Change the words on the left; every image updates as you type, and the designer sees it within a few seconds. Approve the copy when it is ready to run.')
       : role === 'pm' ? (rv.ready ? 'The package is ready. Download it from the bar above.' : 'You will see the package turn ready here when the design is done and the copy is approved.')
       : role === 'dd' ? (rv.design ? 'You marked the design done.' : 'Mark the design done when it is ready for the content team’s final copy and for performance marketing.') : '';
     const main = '<div class="rv-h"><div><span class="rv-k">' + esc(ROLE_NAME[role] || 'Viewer') + '</span><b>' + esc(rv.name || S.name || 'Campaign') + '</b></div>' + pillHtml(rv) + '</div>' +
@@ -966,8 +1003,8 @@
     if (this.sel === id) this.draw();
   };
   AV.click = async function (e) {
-    const t = e.target.closest('button,[data-id]'); if (!t || !this.el.contains(t)) return;
-    if (t.dataset.copy) { const ok = await copyText(t.dataset.copy); t.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { t.textContent = 'Copy'; }, 1600); return; }
+    let t = e.target.closest('button,[data-id]'); if (!t || !this.el.contains(t)) return;
+    if (t.dataset.copy) { const ok = await copyText(t.dataset.copy), sp = t.querySelector('span') || t, was = sp.textContent; sp.textContent = ok ? 'Copied' : 'Select it'; t.dataset.done = ok ? '1' : ''; setTimeout(() => { sp.textContent = was; t.dataset.done = ''; }, 1600); return; }
     if (t.dataset.id) { this.open(t.dataset.id); return; }
     const a = t.dataset.a;
     if (a === 'back') { this.sel = null; this.det = null; this.load(); }
@@ -977,8 +1014,10 @@
     if (a === 'drive') {
       const v = this.el.querySelector('.rva-drv input').value.trim();
       t.disabled = true;
-      try { const r = await api('rvset', { id: this.sel }, { drive: v }); if (this.det && this.det.rv) this.det.rv.drive = r.rv.drive; t.textContent = 'Saved'; }
-      catch (er) { t.textContent = 'Not saved'; window.alert(er.message || String(er)); }
+      try {
+        const r = await api('rvset', { id: this.sel }, { drive: v }); if (this.det && this.det.rv) this.det.rv.drive = r.rv.drive;
+        this.draw(); t = this.el.querySelector('[data-a="drive"]') || t; t.disabled = true; t.textContent = 'Saved';   // the header gains its Drive button
+      } catch (er) { t.textContent = 'Not saved'; window.alert(er.message || String(er)); }
       setTimeout(() => { t.disabled = false; t.textContent = 'Save'; }, 1600);
     }
   };
@@ -1002,37 +1041,65 @@
     const grp = (t, l) => l.length ? '<section class="rva-g"><h3>' + t + ' <s>' + l.length + '</s></h3><div class="rva-grid">' + l.map(card).join('') + '</div></section>' : '';
     body.innerHTML = errHtml + grp('In progress', prog) + grp('Package ready', done) + grp('Missing', gone);
   };
+  // Material Rounded, wght 300 — the studio's icon family
+  const ICO = {
+    back: 'm294.92-450 206.77 206.77q8.92 8.92 8.81 20.88-.12 11.96-9.42 21.27-9.31 8.69-21.08 9-11.77.31-21.08-9L205.31-454.69q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l253.61-253.61q8.31-8.31 20.58-8.5 12.27-.19 21.58 8.5 9.3 9.31 9.3 21.38 0 12.08-9.3 21.39L294.92-510H750q12.77 0 21.38 8.62Q780-492.77 780-480t-8.62 21.38Q762.77-450 750-450H294.92Z',
+    dd: 'M247.69-147.69q-34.33 0-67.89-15.08-33.57-15.08-55.95-40.31 22.92-6.54 43.38-27.81 20.46-21.26 20.46-56.8 0-41.93 29.04-70.96 29.04-29.04 70.96-29.04 41.93 0 70.96 29.04 29.04 29.03 29.04 70.96 0 57.75-41.12 98.87-41.13 41.13-98.88 41.13Zm0-60q33 0 56.5-23.5t23.5-56.5q0-17-11.5-28.5t-28.5-11.5q-17 0-28.5 11.5t-11.5 28.5q0 23-5.5 42t-14.5 36q5 2 10 2h10ZM460-370l-89.23-89.23 342.61-342.61q11-11 27.5-11.5t28.5 11.5l33.23 33.23q12 12 12 28t-12 28L460-370Zm-172.31 82.31Z',
+    ct: 'M210-400q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-460 210-460h220q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q442.75-400 430-400H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-620 210-620h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-560 590-560H210Zm0-160q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h380q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37Q602.75-720 590-720H210Zm314.62 503.84v-54.46q0-7.06 2.61-13.68 2.62-6.62 8.23-12.24l206.31-205.31q7.46-7.46 16.11-10.5 8.65-3.03 17.3-3.03 9.43 0 18.25 3.53 8.82 3.54 16.03 10.62l37 37.38q6.46 7.47 10 16.16Q860-439 860-430.31t-3.23 17.69q-3.23 9-10.31 16.46L641.15-190.85q-5.61 5.62-12.23 8.23-6.63 2.62-13.69 2.62h-54.46q-15.37 0-25.76-10.4-10.39-10.39-10.39-25.76Zm287.69-214.15-37-37.38 37 37.38Zm-240 202.62h38l129.84-130.47-18.38-19-18.62-18.76-130.84 130.23v38Zm149.46-149.47-18.62-18.76 37 37.76-18.38-19Z',
+    pm: 'M138.62-138.63Q130-147.25 130-160v-35.77q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37V-160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Zm160 0Q290-147.25 290-160v-215.77q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37V-160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Zm160 0Q450-147.25 450-160v-135.77q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37V-160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Zm160 0Q610-147.25 610-160v-195.77q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37V-160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Zm160 0Q770-147.25 770-160v-355.77q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37V-160q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM560-491.77q-14.08 0-27.22-5.4-13.14-5.4-24.01-15.29l-99.92-99.93q-3.46-3.46-8.85-3.46t-8.85 3.46L181.08-402.31q-8.93 8.92-21.39 8.81-12.46-.12-21.38-9.42-8.31-8.93-7.94-21.24.37-12.32 8.55-20.53l209.85-209.85q10.87-10.79 24.01-15.74 13.14-4.95 27.22-4.95 14.08 0 27.67 4.95 13.59 4.95 23.56 15.74l99.92 99.93q3.46 3.46 8.85 3.46t8.85-3.46l210.07-210.08q8.93-8.92 21.39-8.81 12.46.12 21.38 9.42 8.31 8.93 7.94 21.24-.37 12.32-8.55 20.53L611.23-512.46q-9.97 9.89-23.56 15.29-13.59 5.4-27.67 5.4Z',
+    copy: 'M362.31-260Q332-260 311-281q-21-21-21-51.31v-455.38Q290-818 311-839q21-21 51.31-21h335.38Q728-860 749-839q21 21 21 51.31v455.38Q770-302 749-281q-21 21-51.31 21H362.31Zm0-60h335.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H362.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q192-120 171-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h365.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H222.31ZM350-320v-480 480Z',
+    ext: 'M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z',
+    del: 'M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z'
+  };
+  const ico = (k, c) => '<svg class="' + (c || 'rva-i') + '" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + ICO[k] + '"/></svg>';
+  // what has to happen before the package is ready, in plain words
+  function rvNext(rv) {
+    if (rv.ready) return 'Ready since ' + day(rv.ready) + '. Performance marketing sees the latest images and can download the package.';
+    if (rv.design) return 'Next: the content team approves the copy.';
+    if (rv.copy) return 'Next: the designer marks the design done.';
+    return 'Next: the designer marks the design done and the content team approves the copy, in either order.';
+  }
   AV.detHtml = function () {
-    const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">← All reviews</button>';
+    const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">' + ico('back') + 'All reviews</button>';
     if (!d) return back + '<p class="rva-wait">Reading the review…</p>';
-    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || 'This review has no record on the share store.') + '</p><button type="button" class="rva-rm" data-a="rm">Remove from this list</button>';
-    const rv = d.rv || {}, sm = d.sum || {}, ready = !!rv.ready, name = sm.campaign || rv.name || 'Campaign';
+    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || 'This review has no record on the share store.') + '</p><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>';
+    const rv = d.rv || {}, sm = d.sum || {}, name = sm.campaign || rv.name || 'Campaign';
     const drv = rv.drive || '', url = /^https?:\/\//.test(drv);
     const row = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
-    const log = (d.log || []).slice().reverse();
+    const log = (d.log || []).slice().reverse(), since = rvSince(d.log, rv);
+    const meta = ['Created ' + esc(day(rv.created)) + (rv.by ? ' by ' + esc(rv.by) : '')].concat(sm.updated ? ['changed ' + esc(ago(sm.updated))] : []).join(' · ');
+    const links = LINK_ROWS.map(([r, who, what]) => {
+      const link = this.eng.shLink(r === 'dd' ? d.id : (rv.tok || {})[r] || '');
+      return '<li class="rva-lk"><span class="rva-lk-i">' + ico(r) + '</span><div class="rva-lk-t"><b>' + who + '</b><s>' + what + '</s><code title="' + esc(link) + '">' + esc(link.replace(/^https?:\/\//, '')) + '</code></div>' +
+        '<button type="button" class="p-ghost rva-cp" data-copy="' + esc(link) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy link</span></button></li>';
+    }).join('');
+    const sizes = sm.sizes && sm.sizes.length ? '<span class="rva-chips">' + sm.sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '—';
     return back +
       '<header class="rva-dh"><span class="rva-th rva-th-l">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
       '<div class="rva-dt"><span class="rv-k">Campaign review</span><h2>' + esc(name) + '</h2>' +
-      '<div class="rva-st">' + pillHtml(rv) + '<span>' + (ready ? 'Finished ' + esc(day(rv.ready)) : 'Not finished yet') + '</span></div></div>' +
-      '<div class="rva-da"><button type="button" class="p-btn" data-a="open"' + (d.live ? '' : ' disabled title="The project on this link has expired; the record is kept"') + '>Open in Campaign Studio</button></div></header>' +
-      stepperHtml(rv) +
-      '<section class="rva-sec"><h3>Details</h3><dl class="rva-dl">' +
-      row('Google Drive', '<span class="rva-drv"><input class="p-in" value="' + esc(drv) + '" placeholder="Paste the project’s Drive folder link or path" aria-label="Google Drive location"><button type="button" class="p-ghost" data-a="drive">Save</button></span>' + (url ? '<a href="' + esc(drv) + '" target="_blank" rel="noopener">Open in Drive</a>' : '')) +
-      row('Created', esc(day(rv.created)) + (rv.by ? ' · by ' + esc(rv.by) : '')) +
-      row('Design', rv.design ? 'Done · ' + esc(rv.design.by) + ' · ' + esc(day(rv.design.at)) : 'In progress') +
-      row('Copy', rv.copy ? 'Approved · ' + esc(rv.copy.by) + ' · ' + esc(day(rv.copy.at)) : 'In progress') +
-      row('Format', sm.mode ? (sm.mode === 'carousel' ? 'Carousel · ' + (sm.variants || 0) + ' pages' : 'Single ad · ' + (sm.variants || 0) + ((sm.variants || 0) === 1 ? ' variant' : ' variants')) : '—') +
-      row('Sizes', sm.sizes && sm.sizes.length ? esc(sm.sizes.join(', ')) : '—') +
-      row('Components', sm.comps != null ? String(sm.comps) : '—') +
-      row('Last change', sm.updated ? esc(ago(sm.updated)) : '—') +
-      row('Project', d.live ? 'On the share store · ' + d.n + (d.n === 1 ? ' entry' : ' entries') + ' in the log' : 'Expired — the record below is kept, the project can no longer be opened') +
-      '</dl></section>' +
-      '<section class="rva-sec"><h3>Links</h3><div class="rv-lks">' + linkRows(this.eng, d.id, rv.tok) + '</div></section>' +
-      '<section class="rva-sec"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.map(e =>
+      '<div class="rva-st">' + pillHtml(rv) + '<span>' + meta + '</span></div></div>' +
+      '<div class="rva-da">' + (url ? '<a class="p-ghost rva-a" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
+      '<button type="button" class="p-btn" data-a="open"' + (d.live ? '' : ' disabled title="The project on this link has expired; the record is kept"') + '>' + ico('ext') + 'Open in Campaign Studio</button></div></header>' +
+      '<div class="rva-cols"><div class="rva-main">' +
+      '<section class="rva-card"><h3>Progress</h3>' + stepperHtml(rv) +
+      '<p class="rva-next" data-s="' + (rv.ready ? 'ready' : 'prog') + '">' + esc(rvNext(rv)) + '</p>' +
+      (since ? '<p class="rva-since">' + since + (since === 1 ? ' change' : ' changes') + ' since the package was ready.</p>' : '') + '</section>' +
+      '<section class="rva-card"><h3>Review links</h3><p class="rva-sub">Each person gets their own link. Only the designer’s link opens the full studio.</p><ul class="rva-lks">' + links + '</ul></section>' +
+      '<section class="rva-card"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.map(e =>
         '<li><div class="shl-who"><span class="shl-av">' + esc((e.by || '?').trim().charAt(0).toUpperCase()) + '</span><b>' + esc(e.by || 'Someone') + '</b><time>' + esc(ago(e.at)) + '</time></div><ul>' +
         (e.changes || []).slice(0, 20).map(c => '<li>' + line(c) + '</li>').join('') + ((e.changes || []).length > 20 ? '<li class="shl-more">+ ' + (e.changes.length - 20) + ' more</li>' : '') + '</ul></li>').join('')
         : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>' +
-      '<footer class="rva-f"><button type="button" class="rva-rm" data-a="rm">Remove from this list</button></footer>';
+      '</div><aside class="rva-side">' +
+      '<section class="rva-card"><h3>Details</h3><dl class="rva-dl">' +
+      row('Format', sm.mode ? (sm.mode === 'carousel' ? 'Carousel · ' + (sm.variants || 0) + ' pages' : 'Single ad · ' + (sm.variants || 0) + ((sm.variants || 0) === 1 ? ' variant' : ' variants')) : '—') +
+      row('Components', sm.comps != null ? String(sm.comps) : '—') +
+      row('Sizes', sizes) +
+      row('Project', d.live ? '<span class="rva-live">Live on the share store</span>' : 'Expired — the record is kept, the project can no longer be opened') +
+      '</dl></section>' +
+      '<section class="rva-card"><h3>Google Drive</h3><p class="rva-sub">Where this campaign’s files are kept, for everyone who opens this list.</p>' +
+      '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Drive folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
+      '<button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
+      '</aside></div>';
   };
 
   // ---------- shared AD SETS (CAS) ----------
@@ -1662,12 +1729,13 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
    save, Design, Preview or Share. Undo, Redo and the theme stay. */
 html[data-rv-role="ct"] .p-top>.p-seg:not(.p-seg-mode),html[data-rv-role="ct"] .p-top>.p-vr,html[data-rv-role="ct"] .p-top>.p-tgrp:not(.p-tgrp-h),
 html[data-rv-role="ct"] .p-seg-mode,html[data-rv-role="ct"] .p-prev,html[data-rv-role="ct"] .p-share{display:none!important}
-/* under review the process replaces the Copy view's own Draft · With design · Final hand-off */
-html[data-rv-role] .cw-steps,html[data-rv-role] .cw-note,html[data-rv-role] .cw-acts>.p-btn,html[data-rv-role] .cw-acts>.p-ghost~.p-ghost,html[data-rv-role] .p-cvcopy{display:none!important}
-/* performance marketing: the Ad sets window under its header, with nothing to choose, share or close */
+/* performance marketing and the content team: the Ad sets window (Images for one, Edit text for
+   the other) with nothing to choose, switch, share or close; the review panel over it */
 html.rv-pm .as-ov{top:var(--rvh,150px)}
-html.rv-pm .as-mode,html.rv-pm .as-srcgrp>.p-ghost:not(.as-ico),html.rv-pm .as-share,html.rv-pm .as-bar-sep,html.rv-pm .as-x{display:none!important}
-html.rv-pm .shl-pill{z-index:210}html.rv-pm .shl-panel{z-index:211;top:0}html.rv-pm .shl-toast{z-index:212}
+html.rv-as .as-mode,html.rv-as .as-srcgrp>.p-ghost:not(.as-ico),html.rv-as .as-share,html.rv-as .as-bar-sep,html.rv-as .as-x{display:none!important}
+/* one project, so the audience list has nothing to choose — its width goes to the words and images */
+html.rv-as .as-nav{display:none}html.rv-as .as-body{grid-template-columns:minmax(0,1fr)}
+html.rv-as .shl-pill{z-index:210}html.rv-as .shl-panel{z-index:211;top:0}html.rv-as .shl-toast{z-index:212}
 .rvh{position:fixed;top:0;left:0;right:0;z-index:205;background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 -1px 0 var(--ps-line);font-family:var(--ps-font)}
 .rvh-in{max-width:1180px;margin:0 auto;padding:16px 24px 14px;display:flex;flex-direction:column;gap:14px}
 .rvh-top{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px}
@@ -1682,7 +1750,7 @@ html.rv-pm .shl-pill{z-index:210}html.rv-pm .shl-panel{z-index:211;top:0}html.rv
 .rvh-dl{height:36px}
 .rvh-note{margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
 .rvh-note button{border:none;background:none;padding:0;color:var(--ps-link);font:inherit;text-decoration:underline;cursor:pointer}
-@media (min-width:761px){html.rv-pm.shl-open .as-ov,html.rv-pm.shl-open .rvh{right:340px}}
+@media (min-width:761px){html.rv-as.shl-open .as-ov,html.rv-pm.shl-open .rvh{right:340px}}
 @media (max-width:760px){.rvh-in{padding:12px 16px}.rvh-d{gap:16px}.rvh-dl{flex:1 1 100%}}
 /* the designer's archive */
 .rva{display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
@@ -1711,28 +1779,54 @@ html.rv-pm .shl-pill{z-index:210}html.rv-pm .shl-panel{z-index:211;top:0}html.rv
 .rva-mini [data-s="done"] i{background:var(--ps-link);box-shadow:none}
 .rva-mini [data-s="cur"] i{box-shadow:inset 0 0 0 1.5px var(--ps-link)}
 .rva-m{font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
-.rva-back{height:36px;margin-bottom:16px}
-.rva-dh{display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px}
-.rva-th-l{width:96px;height:96px;border-radius:12px}
-.rva-dt{flex:1 1 260px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.rva-i{width:18px;height:18px;flex:none;fill:currentColor}
+.rva-back{display:inline-flex;align-items:center;gap:6px;height:32px;margin-bottom:20px;padding:0 14px 0 10px}
+.rva-dh{display:flex;align-items:center;flex-wrap:wrap;gap:16px 20px;max-width:1240px;margin-bottom:24px}
+.rva-th-l{width:88px;height:88px;border-radius:12px;box-shadow:0 0 0 1px var(--ps-hair)}
+.rva-dt{flex:1 1 300px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .rva-dt h2{margin:0;font:600 26px/1.2 var(--ps-font);letter-spacing:-.01em;overflow-wrap:anywhere}
-.rva-st{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
-.rva-da .p-btn{height:40px}
-.rva-body>.rv-st{max-width:860px}
-.rva-sec{margin-top:32px}
-.rva-dl{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px 24px;margin:0}
-.rva-dl div{display:flex;flex-direction:column;gap:4px;min-width:0}
-.rva-dl div:first-child{grid-column:1/-1}
+.rva-st{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rva-da{display:flex;flex-wrap:wrap;gap:8px}
+.rva-da .p-btn,.rva-da .rva-a{display:inline-flex;align-items:center;gap:8px;height:40px;text-decoration:none}
+.rva-cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start;max-width:1240px}
+.rva-main,.rva-side{display:flex;flex-direction:column;gap:20px;min-width:0}
+.rva-card{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rva-card h3{margin:0 0 16px;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-card h3 s{margin-left:4px;text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.rva-sub{margin:-10px 0 14px;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-dim)}
+.rva-next{margin:20px 0 0;padding:12px 14px;border-radius:10px;background:var(--ps-fill);font:500 13px/1.45 var(--ps-font);color:var(--ps-ink)}
+.rva-next[data-s="ready"]{background:var(--ps-good-q)}
+.rva-since{margin:10px 0 0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rva-lks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rva-lk{display:flex;align-items:center;gap:14px;padding:14px 0;box-shadow:inset 0 -1px 0 var(--ps-hair)}
+.rva-lk:first-child{padding-top:0}.rva-lk:last-child{padding-bottom:0;box-shadow:none}
+.rva-lk-i{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--ps-fill);color:var(--ps-ink-2)}
+.rva-lk-t{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rva-lk-t b{font:600 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-lk-t s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rva-lk-t code{margin-top:2px;overflow:hidden;font:400 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ps-dim);white-space:nowrap;text-overflow:ellipsis}
+.rva-cp{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px 0 12px}
+.rva-cp .rva-i{width:16px;height:16px}
+.rva-cp[data-done="1"]{color:var(--ps-good)}
+.rva-log{flex:none;padding:0;overflow:visible;box-shadow:none}
+.rva-log>li:first-child{padding-top:0}.rva-log>li:last-child{padding-bottom:0;box-shadow:none}
+.rva-dl{display:flex;flex-direction:column;margin:0}
+.rva-dl div{display:flex;flex-direction:column;gap:4px;padding:12px 0;box-shadow:inset 0 -1px 0 var(--ps-hair)}
+.rva-dl div:first-child{padding-top:0}.rva-dl div:last-child{padding-bottom:0;box-shadow:none}
 .rva-dl dt{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
-.rva-dl dd{margin:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
-.rva-dl a{display:inline-block;margin-top:6px;color:var(--ps-link);font:500 13px/1.3 var(--ps-font)}
-.rva-drv{display:flex;gap:8px;max-width:640px}
+.rva-dl dd{margin:0;font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rva-chips{display:flex;flex-wrap:wrap;gap:6px}
+.rva-chips span{padding:3px 9px;border-radius:9999px;background:var(--ps-fill);font:500 12px/1.4 var(--ps-font);color:var(--ps-ink)}
+.rva-live{display:inline-flex;align-items:center;gap:7px}
+.rva-live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ps-good)}
+.rva-drv{display:flex;gap:8px}
 .rva-drv .p-in{flex:1;min-width:0;height:36px}.rva-drv .p-ghost{flex:none;height:36px}
-.rva-sec .rv-lks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-.rva-log{flex:none;max-width:760px;padding:0;overflow:visible;box-shadow:none}
-.rva-f{margin-top:28px}
-.rva-rm{border:none;background:none;padding:0;color:var(--ps-dim);font:400 12.5px/1.4 var(--ps-font);text-decoration:underline;cursor:pointer}
-@media (max-width:760px){.rva-grid,.rva-sec .rv-lks{grid-template-columns:1fr}.rva-dt h2{font-size:21px}}
+.rva-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.rva-rm{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;border:none;background:none;padding:4px 2px;color:var(--ps-dim);font:500 12.5px/1.4 var(--ps-font);cursor:pointer}
+.rva-rm .rva-i{width:16px;height:16px}
+.rva-rm:hover{color:var(--ps-bad)}
+@media (max-width:1100px){.rva-cols{grid-template-columns:1fr}}
+@media (max-width:760px){.rva-grid{grid-template-columns:1fr}.rva-dt h2{font-size:21px}.rva-th-l{width:64px;height:64px}.rva-da{width:100%;flex-direction:column-reverse}.rva-da .p-btn,.rva-da .rva-a{justify-content:center;white-space:nowrap}.rva-card{padding:16px}.rva-cp span{display:none}.rva-cp{padding:0 10px}}
 `;
     document.head.appendChild(s);
   }
