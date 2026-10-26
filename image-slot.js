@@ -488,6 +488,10 @@
     ':host([data-working]) .loading{display:flex;flex-direction:column-reverse;gap:9px}' +
     ':host([data-working]) .frame img{visibility:hidden}' +
     ':host([data-working]) .empty{opacity:.22}' +
+    // data-nohint: a slot whose upload lives elsewhere (the studios' CANVAS photo slots, where the
+    // rail has the drop) shows no empty-state hint — on the canvas it sat under the copy and
+    // read as part of the ad. It still takes a dropped file.
+    ':host([data-nohint]) .empty{visibility:hidden}' +
     '.loadmsg:empty{display:none}' +
     '.loadmsg{font:11px/1.35 system-ui,-apple-system,sans-serif;opacity:.8;' +
     '  text-align:center;max-width:88%;text-wrap:balance}' +
