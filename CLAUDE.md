@@ -16415,3 +16415,10 @@ PM's bar showed both audiences done and **Download** for Local · Family zipped 
 ENG+ARB images under export names; the archive showed both audiences' steppers. Contrast 0
 failures over PM's bar and the panel (light). No console errors. **Not exercised against real
 Upstash/Vercel**, and the migration of an old review only ran in the Python harness.
+
+**The performance-marketing header is one row (2026-10-26, by request: "so many text").**
+`RV.barRender`: the ad set's name, the four steps as dots and labels only (`.rvh-st`, stretched
+across the bar), **See details** and **Download** (`Download 1 of 2` while partial). Created,
+Ready, each step's count and every audience with its own stepper and Download moved into a
+`<dialog class="rvh-dlg">` (`RV.barMake` makes it; the backdrop and × close it). Under 1000px only
+the current step keeps its label. Contrast 0 failures over bar and window, dark; no overflow at 390.

@@ -1247,32 +1247,55 @@
   RV.stop = function (keep) {
     clearInterval(this.tick); clearInterval(this.poll); clearInterval(this.clock);
     document.removeEventListener('visibilitychange', this.onVis);
-    this.ui.root.remove(); if (this.bar) this.bar.remove();
+    this.ui.root.remove(); if (this.bar) this.bar.remove(); if (this.dlg) this.dlg.remove();
     const h = document.documentElement;
     h.classList.remove('shl-on', 'shl-open', 'rs-on', 'rv-as', 'rv-pm'); delete h.dataset.rvRole;
     if (RS.cur === this) RS.cur = null;
     if (!keep) ssSet(RS_KEY, null);
   };
-  // performance marketing's header: the ad set's progress and a download per finished audience
+  // performance marketing's header: ONE row — the ad set, the four steps (labels only) spread
+  // across the bar, See details and Download. Dates, counts and the audiences live in the
+  // details window, so the bar stays a status line.
   RV.barMake = function () {
     const el = this.bar = document.createElement('div');
     el.className = 'rvh'; el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Ad set package');
     document.body.appendChild(el);
-    el.addEventListener('click', e => { const b = e.target.closest('[data-dl]'); if (b) this.download(b.dataset.dl); });
+    const dlg = this.dlg = document.createElement('dialog');
+    dlg.className = 'rvh-dlg'; dlg.setAttribute('aria-label', 'Ad set details');
+    document.body.appendChild(dlg);
+    const click = e => {
+      const b = e.target.closest('[data-dl],[data-det],[data-x]');
+      if (e.target === dlg) { dlg.close(); return; }          // a click on the backdrop
+      if (!b) return;
+      if (b.dataset.dl) this.download(b.dataset.dl);
+      if (b.dataset.det) { this.barRender(); dlg.showModal(); }
+      if (b.dataset.x) dlg.close();
+    };
+    el.addEventListener('click', click); dlg.addEventListener('click', click);
     if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px')).observe(el);
   };
   RV.barRender = function () {
     const el = this.bar; if (!el) return;
     const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), busy = this.dl;
-    const html = '<div class="rvh-in"><div class="rvh-top"><div class="rvh-t"><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b></div>' + pillHtml(all.ready) +
-      '<dl class="rvh-d"><div><dt>Created</dt><dd>' + esc(day(rs.created)) + (rs.by ? ' <s>by ' + esc(rs.by) + '</s>' : '') + '</dd></div><div><dt>Ready</dt><dd>' + (all.ready ? esc(day(all.at)) : '<s>' + all.done + ' of ' + all.n + ' audiences</s>') + '</dd></div></dl>' +
-      '<button type="button" class="' + (all.done ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (all.done && !busy ? '' : ' disabled') + '>' + (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download finished audiences') + '</button></div>' +
-      stepperHtml(all.steps) +
-      '<ul class="rvh-auds">' + auds.map(a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><b>' + esc(a.label) + '</b><s>' + esc(a.done ? 'Done · ' + dayS(a.at) : a.now ? a.now.label + ' — ' + a.now.sub : '') + '</s>' +
-        (a.done ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a.key ? 'Zipping…' : 'Download') + '</button>' : '') + '</li>').join('') + '</ul></div>';
-    if (html === this._barH) return;
-    this._barH = html; el.innerHTML = html;
-    document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px');
+    const dlBtn = '<button type="button" class="' + (all.done ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (all.done && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, in one zip' : all.done ? 'The audiences that are done, in one zip' : 'Nothing is done yet') + '">' +
+      (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download' + (all.done ? ' ' + all.done + ' of ' + all.n : '')) + '</button>';
+    const tick = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
+    const mini = '<ol class="rvh-st" aria-label="Progress">' + all.steps.map(x => '<li data-s="' + x.s + '" title="' + esc(x.label + ' — ' + x.sub) + '"><i>' + (x.s === 'done' ? tick : '') + '</i><b>' + esc(x.label) + '</b></li>').join('') + '</ol>';
+    const html = '<div class="rvh-in"><div class="rvh-t"><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b></div>' +
+      mini + '<div class="rvh-a"><button type="button" class="p-ghost rvh-det" data-det="1">See details</button>' + dlBtn + '</div></div>';
+    if (html !== this._barH) { this._barH = html; el.innerHTML = html; document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px'); }
+    // the details window: everything the bar leaves out
+    const dlg = this.dlg; if (!dlg) return;
+    const det = '<header class="rvh-dh"><div><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><h2>' + esc(rs.name || 'Ad set') + '</h2></div>' +
+      '<button type="button" class="p-ghost rvh-x" data-x="1" aria-label="Close">×</button></header>' +
+      '<div class="rvh-db"><div class="rvh-dm">' + pillHtml(all.ready) + '<span>Created ' + esc(day(rs.created)) + (rs.by ? ' by ' + esc(rs.by) : '') + '</span><span>' +
+      (all.ready ? 'Ready ' + esc(day(all.at)) : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' done') + '</span></div>' +
+      '<section><h3>Progress</h3>' + stepperHtml(all.steps) + '</section>' +
+      '<section><h3>Audiences <s>' + auds.length + '</s></h3>' + (auds.length ? '<ul class="rvh-al">' + auds.map(a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><div class="rvh-ah"><b>' + esc(a.label) + '</b>' +
+        (a.done ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a.key ? 'Zipping…' : 'Download') + '</button>' : '<span class="rvh-now">' + esc(a.now ? a.now.label : '') + '</span>') + '</div>' +
+        stepperHtml(a.steps) + '</li>').join('') + '</ul>' : '<p class="rvh-none">No audiences yet.</p>') + '</section></div>' +
+      '<footer class="rvh-df">' + dlBtn + '</footer>';
+    if (det !== this._dlgH) { this._dlgH = det; dlg.innerHTML = det; }
   };
   // one flat zip of a finished audience (both languages), or of every finished audience
   RV.download = async function (key) {
@@ -2095,11 +2118,11 @@ html.rv-pm .as-dl{display:none!important}
 html.rs-on .as-srcgrp>.p-ghost:not(.as-ico),html.rs-on .as-share,html.rs-on .as-bar-sep{display:none!important}
 html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs-on .shl-toast{z-index:212}
 .rvh{position:fixed;top:0;left:0;right:0;z-index:205;background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 -1px 0 var(--ps-line);font-family:var(--ps-font)}
-.rvh-in{max-width:1180px;margin:0 auto;padding:16px 24px 14px;display:flex;flex-direction:column;gap:14px}
-.rvh-top{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px}
-.rvh-t{flex:1 1 220px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvh-in{padding:12px 24px;display:flex;align-items:center;gap:16px 32px}
+
+.rvh-t{flex:0 1 auto;display:flex;flex-direction:column;gap:2px;min-width:0;max-width:340px}
 .rvh-k{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
-.rvh-t b{font:600 20px/1.25 var(--ps-font);letter-spacing:-.01em;overflow-wrap:anywhere}
+.rvh-t b{overflow:hidden;font:600 17px/1.25 var(--ps-font);letter-spacing:-.01em;white-space:nowrap;text-overflow:ellipsis}
 .rvh-d{display:flex;gap:24px;margin:0}
 .rvh-d div{display:flex;flex-direction:column;gap:2px}
 .rvh-d dt{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
@@ -2109,6 +2132,41 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rvh-note{margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
 .rvh-note button{border:none;background:none;padding:0;color:var(--ps-link);font:inherit;text-decoration:underline;cursor:pointer}
 @media (min-width:761px){html.rs-on.shl-open .as-ov,html.rv-pm.shl-open .rvh{right:340px}}
+.rvh-st{flex:1 1 auto;min-width:0;list-style:none;margin:0;padding:0;display:flex;align-items:center}
+.rvh-st li{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:8px}
+.rvh-st li:last-child{flex:0 0 auto}
+.rvh-st li:not(:last-child)::after{content:'';flex:1;min-width:16px;margin:0 6px 0 4px;border-top:2px dashed var(--ps-line)}
+.rvh-st li[data-s="done"]:not(:last-child)::after{border-top-style:solid;border-top-color:var(--ps-link)}
+.rvh-st i{flex:none;width:16px;height:16px;box-sizing:border-box;border-radius:50%;display:grid;place-items:center;background:var(--ps-card);box-shadow:inset 0 0 0 2px var(--ps-line)}
+.rvh-st [data-s="done"] i{background:var(--ps-link);box-shadow:none}
+.rvh-st [data-s="cur"] i{box-shadow:inset 0 0 0 2px var(--ps-link),0 0 0 3px color-mix(in srgb,var(--ps-link) 16%,transparent)}
+.rvh-st i svg{width:11px;height:11px;fill:var(--ps-card)}
+.rvh-st b{flex:none;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
+.rvh-st [data-s="cur"] b{font-weight:600;color:var(--ps-ink)}
+.rvh-a{flex:none;display:flex;gap:8px}
+.rvh-a button,.rvh-df button{height:36px;white-space:nowrap}
+.rvh-dlg{width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 64px);padding:0;border:none;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
+.rvh-dlg[open]{display:flex;flex-direction:column}
+.rvh-dlg::backdrop{background:rgba(0,0,0,.45)}
+.rvh-dh{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 20px 0 24px}
+.rvh-dh h2{margin:2px 0 0;font:600 20px/1.25 var(--ps-font);letter-spacing:-.01em;overflow-wrap:anywhere}
+.rvh-x{flex:none;width:36px;height:36px;padding:0;font-size:20px;line-height:1}
+.rvh-db{flex:1;overflow:auto;padding:16px 24px 8px;display:flex;flex-direction:column;gap:28px}
+.rvh-dm{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvh-db h3{margin:0 0 16px;font:600 15px/1.3 var(--ps-font)}
+.rvh-db h3 s{margin-left:4px;text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.rvh-al{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.rvh-al>li{padding:16px;border-radius:12px;background:var(--ps-fill)}
+.rvh-al>li[data-s="done"]{background:var(--ps-good-q)}
+.rvh-ah{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.rvh-ah b{font:600 14px/1.3 var(--ps-font)}
+.rvh-ah button{height:32px}
+.rvh-now{font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvh-al .rv-dot{background:var(--ps-fill)}
+.rvh-none{margin:0;font:400 13px/1.5 var(--ps-font);color:var(--ps-dim)}
+.rvh-df{display:flex;justify-content:flex-end;padding:16px 24px 20px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+@media (max-width:1000px){.rvh-st li{flex:1 1 auto}.rvh-st b{display:none}.rvh-st [data-s="cur"] b{display:block}}
+@media (max-width:760px){.rvh-in{flex-wrap:wrap;padding:12px 16px}.rvh-t{flex:1 1 100%;max-width:none}.rvh-st{flex:1 1 100%;order:3}.rvh-a{flex:1 1 100%}.rvh-a button{flex:1}}
 /* the ad set review in the panel */
 .rs-cur{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;background:var(--ps-fill)}
 .rs-cur b{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
@@ -2157,7 +2215,6 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva-pj>span:nth-child(2){display:flex;flex-direction:column;gap:1px;min-width:0}
 .rva-pj b{font:600 12.5px/1.3 var(--ps-font)}.rva-pj s{max-width:160px;overflow:hidden;text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;text-overflow:ellipsis}
 .rva-pj .rva-i{width:16px;height:16px;color:var(--ps-dim)}
-@media (max-width:760px){.rvh-in{padding:12px 16px}.rvh-d{gap:16px}.rvh-dl{flex:1 1 100%}}
 /* the designer's archive */
 .rva{max-width:1240px;margin-inline:auto;display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
 .rva-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
