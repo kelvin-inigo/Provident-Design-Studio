@@ -1082,7 +1082,7 @@ class StudioBase {
   // fetching every project just to label it would pull megabytes per card). A hint, nothing more.
   static hubKind(it) {
     const n = (it.assets || []).map(a => a.original_name || a.name).join('\n');
-    if (/_(feed|story|portrait_fix|portrait_3x4|landscape_1\.91x1|eventbrite_banner)/i.test(n)) return 'campaign';
+    if (/_(feed|story|portrait_3x4|landscape_1\.91x1|eventbrite_banner)/i.test(n)) return 'campaign';
     if (/_(3x4|9x16)\./i.test(n)) return 'organic';
     return '';
   }
