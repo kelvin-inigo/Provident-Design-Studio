@@ -629,6 +629,53 @@
       shLinkTip: b ? 'This project is shared. Copies the link and opens the Changes panel.'
         : 'Makes a link anyone can open to view and edit this project, with a panel of who changed what.',
       shLinkOn: b ? '1' : undefined,
+      ...(cas ? this.rsCopyVals() : {}),
+    };
+  };
+  // THE REVIEW FLOW IN THE DESIGNER'S STUDIO (2026-10-26): the Copy view's head and foot bar and
+  // the canvas bar's chip read this project's place in its ad set — its audience's four steps
+  // and the designer's own buttons — where they used to read Draft › With design › Final.
+  SP.rsCopyVals = function () {
+    const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null, busy = this._rvBusy;
+    if (!it) {
+      return {
+        rsInOn: undefined, rsOutOn: '1', rsBriefOn: true,
+        rsCwSteps: [], rsCwWhere: 'Not in an ad set yet',
+        rsCwNote: 'Write the words below, or start from a brief and let Claude draft them. When the design is ready, put it in an ad set review: the content team checks the copy from their own link.',
+        rsCwStatus: 'Not in an ad set review yet',
+        cvAdLabel: 'Ad sets', cvAdState: 'none', cvAdGo: () => this.host && this.host.asOpen(),
+        cvAdTip: 'Not in an ad set review yet. Opens the Ad sets viewer, to look through an exported campaign folder.',
+      };
+    }
+    const auds = rsAuds(rs), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
+    const steps = (mine ? mine.steps : []).map((x, i) => ({ label: x.label, n: i + 1, sub: x.sub, state: x.s === 'pend' ? 'todo' : x.s }));
+    const now = mine && mine.now, lang = arb ? 'Arabic' : 'English';
+    const where = itemLabel({ market: it.market, aud: it.aud }) + ' · ' + lang;
+    // the designer's two buttons on this project: the forward one and the one that takes it back
+    let fwd = null, back = null;
+    if (!it.design) fwd = { act: 'design-done', label: arb ? 'Arabic laid out' : 'Mark design done',
+      tip: arb ? 'Hands the Arabic version to the content team to check the translation.' : 'Hands the design to the content team to check the English copy.' };
+    else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back in progress' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
+    else back = { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check', tip: 'Sends the words back to the content team to check again.' };
+    const st = !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
+      : !it.copy ? (arb ? 'Translation with the content team' : 'English copy with the content team')
+        : mine && mine.done ? 'Done — ready to run' : (now ? now.label + ' · ' + now.sub : 'Approved');
+    const note = !it.design ? (arb ? 'Lay out the Arabic words, then mark it laid out — the content team checks the translation from their link.'
+      : 'Design the ad, then mark the design done — the content team checks the English copy from their link.')
+      : !it.copy ? 'With the content team. Their changes to the words arrive here as they make them.'
+        : 'Approved by the content team. Any change from here shows in the ad set’s activity.';
+    const go = a => () => this.rvStep(a + ':' + it.sid);
+    const lab = a => busy === a.act + ':' + it.sid ? 'Saving…' : a.label;
+    return {
+      rsInOn: '1', rsOutOn: undefined, rsBriefOn: !it.design,
+      rsCwSteps: steps, rsCwWhere: (rs.name ? rs.name + ' · ' : '') + where, rsCwNote: note, rsCwStatus: st,
+      rsFwdOn: !!fwd, rsFwd: fwd ? go(fwd.act) : () => {}, rsFwdLabel: fwd ? lab(fwd) : '', rsFwdTip: fwd ? fwd.tip : '',
+      rsBackOn: !!back, rsBack: back ? go(back.act) : () => {}, rsBackLabel: back ? lab(back) : '', rsBackTip: back ? back.tip : '',
+      rsBusy: busy ? '1' : undefined,
+      rsView: () => this.rsOverview(),
+      cvAdLabel: (it.aud || 'Ad set') + (arb ? ' · ARB' : '') + ' · ' + (mine && mine.done ? 'Done' : now ? now.label : 'Design'),
+      cvAdState: mine && mine.done ? 'final' : it.design ? 'design' : 'draft', cvAdGo: () => this.rsOverview(),
+      cvAdTip: 'In the ad set ' + (rs.name || '') + ' as ' + where + '. Opens the ad set overview: every audience and language, rendered from the latest work.',
     };
   };
 
@@ -776,7 +823,7 @@
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
     const [a, sid] = String(act).split(':');
-    this._rvBusy = act; this.rvRender();
+    this._rvBusy = act; this.rvRender(); this.forceUpdate();
     try {
       // the sign-off covers the latest work: whatever is waiting to save goes first
       const pend = () => S.busy || canon(this.shPub()) !== S.baseS || S.dirty.size > 0;
@@ -787,12 +834,42 @@
       this.rsSet(r.rs);
       S.ui.flash(a === 'design-done' ? 'Marked done' : a === 'copy-done' ? 'Approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
-    finally { this._rvBusy = null; this.rvRender(); }
+    finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
   };
   SP.rvDrive = async function (v) {
     const S = this._sh; if (!S || !S.rs) return;
     try { const r = await api('rsset', { id: S.id }, { drive: v }); this.rsSet(r.rs); S.ui.flash('Drive location saved'); }
     catch (e) { S.ui.flash(e.message || String(e)); }
+  };
+  // ---- the designer's own project: the AD SET OVERVIEW over the editor (2026-10-26) ----
+  // The Ad sets window over every project in this project's ad set — the same stand-in folder
+  // the designer's ad set link builds (RV.build), read through the dd token, but embedded: no
+  // panel, no timers, no html classes, Images only, closed with × or Escape like any folder.
+  // This project is taken from the editor as it is now (state and the local photo store), so
+  // what is on the canvas is what the overview shows; the others are read from the share store.
+  SP.rsOverview = async function () {
+    const S = this._sh, sh = this.host, rs = S && S.rs, tok = rs && rs.tok && rs.tok.dd;
+    if (!sh || !rs) return;
+    if (!tok) { if (S.ui) S.ui.flash('Only the designer’s link can open the ad set overview.'); return; }
+    const v = Object.create(RV);
+    Object.assign(v, { shell: sh, eng: this, tok, role: 'view', rs, proj: {}, ver: 1, embed: true });
+    sh._asMode = 'images'; sh._asAll = false; sh._ae = null; sh._asErr = '';
+    sh._asSrc = { kind: 'review', embed: true, name: rs.name || 'Ad set', share: v, handle: null };
+    sh._as = { busy: true, has: true, root: rs.name || 'Ad set' };
+    sh.setState({ adSetsOpen: true });
+    try {
+      // this project from the editor; the rest from the store
+      const me = this.shNorm(this.shPub());
+      v.rs = Object.assign({}, rs, { items: (rs.items || []).filter(it => it.sid !== S.id) });
+      await v.load();
+      v.rs = rs;
+      v.proj[S.id] = { st: me, base: me, rb: me, cache: {}, log: [], imgs: {}, assets: (async () => { await warmFonts(); return this.loadAssets(me); })() };
+    } catch (e) { sh._as = { err: e.message || String(e), has: true, root: rs.name || 'Ad set' }; sh.forceUpdate(); return; }
+    if (!sh.state.adSetsOpen || !sh._asSrc || sh._asSrc.share !== v) return;   // closed meanwhile
+    const it = this.rsItem();
+    if (it) { const pa = v.pathOf(it); sh._asSel = pa[0] + '\u0001' + pa[1]; }
+    v.dir = v.build();
+    sh.asView({ kind: 'review', embed: true, handle: v.dir, name: rs.name || 'Ad set', share: v });
   };
   // the review section of the Changes panel, for the designer working on one of the ad set's projects
   SP.rvRender = function () {
@@ -978,6 +1055,13 @@
     this.ui.status(this.role === 'pm' ? 'view' : 'ok');
   }
   const RV = RsView.prototype;
+  // the project a folder of the overview holds: its own designer link, or this one
+  RV.projOf = function (key) {
+    const it = (this.rs.items || []).find(x => { const pa = this.pathOf(x); return pa[0] + '\u0001' + pa[1] === key; });
+    if (!it) return null;
+    return { sid: it.sid, label: itemLabel(it), here: !!(this.embed && this.eng._sh && this.eng._sh.id === it.sid), href: this.eng.shLink(it.sid) };
+  };
+
   RV.link = function () { return rsLink(this.tok); };
   RV.here = function () { const sh = this.shell; return !!(sh.state.adSetsOpen && sh._asSrc && sh._asSrc.share === this); };
   // every project's state, its revision and its photo map
@@ -1032,7 +1116,7 @@
       const json = file(itemLabel(it) + '.adstudio.json', 'application/json', async () => JSON.stringify(pub()), {
         getFull: async () => new File([JSON.stringify(Object.assign(pub(), { images: await me.photos(sid) }))], itemLabel(it) + '.adstudio.json', { type: 'application/json' })
       });
-      if (this.role !== 'pm') json.createWritable = async () => {
+      if (this.role !== 'pm' && !this.embed) json.createWritable = async () => {
         const parts = [];
         return { write: async x => { parts.push(x && x.data !== undefined ? x.data : x); },
           close: async () => { const doc = JSON.parse(await new Blob(parts.map(q => q instanceof Blob ? q : new Blob([q]))).text()); me.onJson(sid, doc.state); } };

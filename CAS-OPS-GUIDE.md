@@ -213,8 +213,9 @@ steps: **Design › ENG copy check › Translation › Done**.
 2. **Add the other projects** the same way, from each project: **Share › Ad set review › Add to
    an ad set**, choose the ad set and say what the project is. Work audience by audience: design
    every audience first, then add the Arabic versions.
-3. **Design.** In a project's **Ad set review** panel, **Mark design done** sends that audience to
-   the content team. **Back to in process** takes it back.
+3. **Design.** In a project's **Copy** workspace, the bar at the bottom shows where that audience
+   is and has your button: **Mark design done** sends it to the content team, **Back to design**
+   takes it back. The same buttons are in the **Ad set review** panel.
 4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
    words are beside every image, which update as they type, and the designer sees the change
    within seconds. **Approve English copy** in the panel signs it off.
@@ -241,8 +242,13 @@ Things to know:
   to the words.
 - **Each project still has its own edit link.** That's the designer's way into the full studio for
   that project (the **Open** buttons in the overview use it).
-- The designer keeps the full Copy workspace, with its own **Draft › With design › Final**
-  hand-off and history, as before.
+- **The designer sees the whole ad set from inside the project.** In a project that is in an ad
+  set, the chip in the bar under the canvas names its audience and step (*Family · Design*).
+  Click it, or **Ad set overview** in the Copy workspace's bottom bar, to open the Ad sets window
+  over every audience and language in the ad set, rendered from the latest work. The audience
+  you are working on says *This project*. Every other audience has **Open in the studio**, which
+  opens that project in a new tab. Close the window with **×** or Escape.
+- The Copy workspace follows the review, not the old **Draft › With design › Final** hand-off.
 - If the designer changes a design while the content team is typing, both changes are kept: the
   content team's words go on top of the latest design.
 - A review started before ad sets (one project) opens as an ad set of one, with its old links.
@@ -453,11 +459,12 @@ This is for copywriters: the ad's words on their own, next to a live preview.
    back.
    - The big preview is the real export.
    - The picker above it chooses which variant (or page) you're looking at.
-   - The page reads top to bottom as one flow: the status (**Draft → With design → Final**),
-     an optional brief, **The words**, and a bar pinned to the bottom with the hand-off buttons.
-2. **Start from a brief (optional, Draft only).** The **Start from a brief** card at the top runs
-   the `meta-ad-design-copy` skill in your own Claude. It folds away once you have filled the
-   words, and is not shown once the copy is with design or final.
+   - The page reads top to bottom as one flow: where the project is in its ad set review (its
+     audience and **Design › ENG copy check › Translation › Done**), an optional brief,
+     **The words**, and a bar pinned to the bottom with the review buttons.
+2. **Start from a brief (optional, while the design is in progress).** The **Start from a brief**
+   card at the top runs the `meta-ad-design-copy` skill in your own Claude. It folds away once
+   you have filled the words, and is not shown once the design is marked done.
    - Paste the brief (script, fact sheet, EOI brief), tick the audiences, and add any notes
      (permit number, what to lead with).
    - **Folder, Drive link and pictures** folds the extras away. **Where it saves** shows the Source folder this campaign saves and exports into, with
@@ -487,16 +494,16 @@ This is for copywriters: the ad's words on their own, next to a live preview.
      basic look; the designer styles and places it.
    - The bin icon removes one, and the notice that appears offers **Undo**.
 4. **Reorder** a line by dragging its grip, or focus the grip and use the arrow keys.
-5. **Hand the copy off** from the bar at the bottom of the form, which also says how many lines
-   changed since the last snapshot:
-   - **Send to design** saves a snapshot and marks the copy "With design".
-   - **Mark as final** saves another snapshot and marks it "Final".
-   - **Reopen for edits** and **Back to draft** step back without saving a snapshot.
-6. **History** lists every snapshot, each with its own `.docx`.
-   - **Your name** labels the snapshots made on this computer.
-   - **Download .docx** gives you the words as they are right now.
-   - With a Source folder set, every hand-off also writes
-     `Copy/<name>_Copy_<Status>_<date>.docx` into it.
+5. **The bar at the bottom** says where this project is in its ad set review and has the
+   designer's buttons:
+   - **Mark design done** (or **Arabic laid out** on the Arabic version) sends it to the content
+     team. **Back to design** takes it back while they have it; **Reopen copy check** sends
+     approved words back to them.
+   - **Ad set overview** opens every audience and language in the ad set.
+   - A project that is not in an ad set yet has **Start an ad set review** instead. See *Run an
+     ad set review*.
+   - There is no `.docx` download any more. A project saved under the old hand-off still shows
+     its **History** of snapshots.
 
 CAS remembers which workspace (Design or Copy) you last used on each computer, so a copywriter's
 machine reopens on Copy.
@@ -543,9 +550,11 @@ Source folder/
 
 ### See everything you exported: Ad sets
 
-On CAS's home page, press **Ad sets** in the sidebar, in the **Review** group. It opens in its own window, empty
-each time: drop a folder of exported ad sets on it, choose one, or paste a Google Drive link. It
-never loads the Source folder by itself.
+The Ad sets window is opened from inside a project, not from the home page. In a project that is
+in an ad set review, the chip under the canvas opens the ad set's overview (see *Run an ad set
+review*). In any other project the chip reads **Ad sets** and opens the window empty: drop a
+folder of exported ad sets on it, choose one, or paste a Google Drive link. It never loads the
+Source folder by itself.
 
 
 - **The list on the left** is every audience, grouped under its main folder (Local, International,
@@ -622,14 +631,12 @@ Press **Edit text** to work on the words of the audience on screen, without open
 
 #### View any folder: drop it
 
-Ad sets never uses your Source folder. On CAS's home page, in the **Ad sets viewer** panel, and in
-the Ad sets window:
+Ad sets never uses your Source folder. In the Ad sets window:
 
 - The viewer is for **looking at finished exports**, not for opening a project to design. To
-  keep designing, use **Open session** at the top of the page. **Open viewer** in the panel
-  opens the Ad sets window, empty, ready for a folder.
+  keep designing, use **Open session** on the home page.
 
-- **Drop a folder** anywhere on the page. Use the project folder (the one holding the
+- **Drop a folder** anywhere on the window. Use the project folder (the one holding the
   `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
   **click** the drop area (*Drop an exported campaign folder to view its ads*) to choose one.
 - Nothing is written to the

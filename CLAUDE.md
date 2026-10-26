@@ -16422,3 +16422,39 @@ across the bar), **See details** and **Download** (`Download 1 of 2` while parti
 Ready, each step's count and every audience with its own stepper and Download moved into a
 `<dialog class="rvh-dlg">` (`RV.barMake` makes it; the backdrop and × close it). Under 1000px only
 the current step keeps its label. Contrast 0 failures over bar and window, dark; no overflow at 390.
+
+# AD SETS LIVE IN THE DESIGNER'S PROJECT; THE COPY VIEW FOLLOWS THE REVIEW (2026-10-26)
+
+By request: the Ad sets viewer was built for the designer to see an ad set's overview, so it is
+opened from inside a project now, and it knows the other projects of the ad set.
+
+- **The home page has no Ad sets panel, no Ad sets sidebar row and no folder drop** (`.as-home`
+  markup and the `.p-br` drag handlers are gone; the `.as-home*` CSS is left matching nothing).
+- **`SP.rsOverview()` (share-link.js)** opens the Ad sets window over every project of this
+  project's ad set: an `Object.create(RV)` with `embed: true` — RV's `load` / `photos` / `render`
+  / `build` through the dd token, but no panel, timers or html classes, and no writable json
+  (`!this.embed`). THIS project is taken from the editor (`shPub()` + the local photo store via
+  `loadAssets(me)`), the rest from the share store. `_asSrc = {kind:'review', embed:true, share}`;
+  the shell treats embed as an ordinary closable window (Escape closes, `!embed` on the Escape
+  guard), Images only (`asModeBarOn`), no Drop/Open folder/Share/drop panel, Refresh re-runs
+  `rsOverview`. `RV.projOf(key)` maps an audience folder to its item: the nav marks *This project*
+  and the pane header carries **Open in the studio** (`asProjHref` = the project's own designer
+  link, new tab) or *Open here*. The current audience is pre-selected.
+- **The canvas bar's copy chip is the ad set chip** (`cvAdLabel/State/Tip/Go`): "Family · Design"
+  opens the overview; out of an ad set it reads **Ad sets** and opens the empty folder viewer
+  (`asOpen`). `cwBarLabel` / `cwOpen` are computed and unread.
+- **The Copy view's Draft › With design › Final and Download .docx are retired.** `SP.rsCopyVals()`
+  (merged into `shareVals`, CAS only, so the SHELL supplies the keys over the engine's) gives the
+  head its audience line (`rsCwWhere`), the audience's four steps (`rsCwSteps`) and a note; the bar
+  its state (`rsCwStatus`), **Ad set overview**, and the designer's forward / back button
+  (`rsFwd*` / `rsBack*` → `rvStep`, which now also `forceUpdate`s). Out of an ad set: **Start an ad
+  set review** (`rvGo`). The brief card shows until the design is marked done (`rsBriefOn`).
+  History shows only for a project that has old snapshots, with no `.docx` buttons;
+  `copyStatus`/`copyLog`/`cwDownload` stay in the code, unread by the markup.
+- Verified on the dev share server (`tools/share-dev/serve.py`, port 8790) with a two-audience ad
+  set: the chip and the Copy bar opened the overview, both audiences rendered, Open in the studio
+  pointed at the other project's link, Escape closed it; a real click on Mark design done moved
+  the stepper to ENG copy check and swapped the button to Back to design; a project outside an ad
+  set showed Start an ad set review, which opened its dialog. `sc-if` +1/+1 on the baseline.
+  **Defining `RV.*` above `const RV` throws at load (TDZ) and takes the whole script down** —
+  `Arch`, `cssDone` then fail too. Add RV methods after its declaration.

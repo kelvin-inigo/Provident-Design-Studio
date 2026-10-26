@@ -3093,9 +3093,12 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 .cw-step[data-state="cur"]{background:var(--ps-accent);color:var(--ps-accent-i)}
 .cw-step[data-state="cur"] i{background:var(--ps-primary);color:var(--ps-primary-i)}
 .cw-note{margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cw-where{display:block;font:600 13px/1.4 var(--ps-font);color:var(--ps-ink)}
+.as-here{flex:none;align-self:center;padding:5px 12px;border-radius:var(--ps-pill);background:var(--ps-fill);font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.as-proj{text-decoration:none}
 .cw-acts{display:flex;flex-wrap:wrap;gap:8px}
 .cw-since{font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
-.cw-since[data-on]{color:var(--ps-ink)}
+.cw-since[data-on],.cw-since[data-rs]{color:var(--ps-ink)}
 .cw-msg{font:500 12.5px/1.45 var(--ps-font);color:var(--ps-good)}
 .cw-page{margin-top:18px;padding:6px 20px 10px;border-radius:16px;background:var(--ps-card);
   box-shadow:0 0 0 1px var(--ps-hair)}
@@ -4729,7 +4732,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 <!-- ══ PROJECT SPLASH — shared by both studios ══════════════════════════ -->
 <sc-if value="{{ onSplash }}" hint-placeholder-val="{{ false }}">
 <div class="p-over p-over-split">
-  <div class="p-br" onDragOver="{{ asDragOver }}" onDragLeave="{{ asDragLeave }}" onDrop="{{ asDrop }}" data-drag="{{ asDragOn }}">
+  <div class="p-br">
 
     <div class="p-br-sb">
       <div class="p-sec-l p-sec-l0">Studio</div>
@@ -4750,7 +4753,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
       <button onClick="{{ shViewHub }}" data-on="{{ shViewHubOn }}" class="p-nav2" title="What the Content Hub has received from Share › Send, to open as a project again"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85v-115.38H628.46q-26.15 38-64.96 59-38.81 21-83.5 21t-83.5-21q-38.81-21-64.96-59H200v115.38q0 5.39 3.46 8.85t8.85 3.46ZM480-307.69q32 0 59.38-16.31 27.39-16.31 43.24-44.08 5.61-9.38 14.8-14.5 9.2-5.11 20.2-5.11H760v-360q0-5.39-3.46-8.85t-8.85-3.46H212.31q-5.39 0-8.85 3.46t-3.46 8.85v360h142.38q11 0 20.2 5.11 9.19 5.12 14.8 14.5 15.85 27.77 43.24 44.08Q448-307.69 480-307.69ZM212.31-200H200h560H212.31Z"/></svg></i>From the hub<sc-if value="{{ hubCountOn }}" hint-placeholder-val="{{ false }}"><s>{{ hubCount }}</s></sc-if></button>
       <div class="p-sec-l">Review</div>
-      <button onClick="{{ asOpen }}" class="p-nav2" title="Opens the ad sets viewer: every exported ad in a campaign folder, laid out by audience and variant"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m517.69-447.69-48.31-60q-5.61-6.85-14.27-6.85-8.65 0-14.26 7.23l-55.08 72.23q-7.23 9.23-2.31 19.08 4.92 9.85 16.39 9.85h300.3q11.46 0 16.39-9.85 4.92-9.85-1.93-19.08l-87.38-115.46q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-80.62 102.85ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></i>Ad sets<b class="p-nav2-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M645.77-647.85 272.46-274.92q-8.31 8.3-20.88 8.11-12.58-.19-20.89-8.5-8.3-8.31-8.3-20.69t8.3-20.69L603.62-690H275.77q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h393.84q15.37 0 25.76 10.39 10.4 10.4 10.4 25.76V-320q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.38-8.63-8.61-8.62-8.61-21.37v-327.85Z"/></svg></b></button>
       <button onClick="{{ shViewUse }}" data-on="{{ shViewUseOn }}" class="p-nav2" title="How often each design component and style is used across your saved projects"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M676.15-180q-15.36 0-25.76-10.4Q640-200.79 640-216.16V-380q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h67.69q15.37 0 25.76 10.39Q780-395.36 780-380v163.84q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4h-67.69Zm-230 0q-15.36 0-25.76-10.4Q410-200.79 410-216.16v-527.68q0-15.37 10.39-25.76 10.4-10.4 25.76-10.4h67.7q15.36 0 25.76 10.4Q550-759.21 550-743.84v527.68q0 15.37-10.39 25.76-10.4 10.4-25.76 10.4h-67.7Zm-229.99 0q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-331.35q0-15.64 10.4-25.99 10.39-10.34 25.76-10.34h67.69q15.36 0 25.76 10.39Q320-563.06 320-547.69v331.35q0 15.65-10.39 25.99Q299.21-180 283.85-180h-67.69Z"/></svg></i>Component usage</button>
       <button onClick="{{ shViewRev }}" data-on="{{ shViewRevOn }}" class="p-nav2" title="Every ad set review you started or worked on: each audience's status, the links and everything that changed"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-140Q142-140 121-161q-21-21-21-51.31v-535.38Q100-778 121-799q21-21 51.31-21h615.38Q818-820 839-799q21 21 21 51.31v535.38Q860-182 839-161q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM360-290q12.77 0 21.38-8.62Q390-307.23 390-320t-8.62-21.38Q372.77-350 360-350H240q-12.77 0-21.38 8.62Q210-332.77 210-320t8.62 21.38Q227.23-290 240-290h120Zm222-168.77-35.92-35.92q-8.93-8.92-21.08-8.81-12.15.12-21.08 9.42-8.3 8.93-8.42 21.08-.11 12.15 8.81 21.08l52.38 52.38q10.85 10.85 25.31 10.85 14.46 0 25.31-10.85l137.38-137.38q8.92-8.93 9.12-20.89.19-11.96-9.12-21.27-9.31-9.3-21.38-9.3-12.08 0-21.39 9.3L582-458.77ZM360-450q12.77 0 21.38-8.62Q390-467.23 390-480t-8.62-21.38Q372.77-510 360-510H240q-12.77 0-21.38 8.62Q210-492.77 210-480t8.62 21.38Q227.23-450 240-450h120Zm0-160q12.77 0 21.38-8.62Q390-627.23 390-640t-8.62-21.38Q372.77-670 360-670H240q-12.77 0-21.38 8.62Q210-652.77 210-640t8.62 21.38Q227.23-610 240-610h120ZM160-200v-560 560Z"/></svg></i>Review links</button>
       <div class="p-sec-l">Session</div>
@@ -4777,18 +4779,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </sc-if>
 
       <sc-if value="{{ shShowTpl }}" hint-placeholder-val="{{ true }}">
-        <div class="as-home">
-        <div class="as-home-h"><span class="as-home-ic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m517.69-447.69-48.31-60q-5.61-6.85-14.27-6.85-8.65 0-14.26 7.23l-55.08 72.23q-7.23 9.23-2.31 19.08 4.92 9.85 16.39 9.85h300.3q11.46 0 16.39-9.85 4.92-9.85-1.93-19.08l-87.38-115.46q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-80.62 102.85ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></span><div class="as-home-t"><b>Ad sets viewer</b><s>Look through finished exports by audience, variant and platform, and check or fix their copy. To keep designing a project, use <em>Open session</em> instead.</s></div><span class="as-home-tag">Exported ads</span><button onClick="{{ asOpen }}" class="p-ghost as-home-go">Open viewer</button></div>
-        <div class="as-src">
-          <button type="button" class="as-src-drop" onClick="{{ asBrowse }}" aria-label="Choose an exported campaign folder to view its ad sets"><span class="as-src-hl" data-hl="exploded" aria-hidden="true"></span><span class="as-src-tx"><b>Drop an exported campaign folder to view its ads</b><s>or click to choose one. Every variant, size and platform it holds is laid out side by side — it does not open in the editor.</s></span></button><input type="file" data-as="dir" webkitdirectory multiple class="as-src-dir" onChange="{{ asDirPicked }}">
-          <div class="as-gd">
-            <div class="as-gd-h"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z"/></svg><b>Google Drive</b><s>{{ asGdNote }}</s><sc-if value="{{ asGdInOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asGdOut }}" class="as-gd-out">Sign out</button></sc-if></div>
-            <sc-if value="{{ asGdReadyOn }}" hint-placeholder-val="{{ true }}"><div class="as-src-row"><input class="p-in" data-as="gd" type="url" placeholder="Paste a Google Drive link to an exported campaign folder" onKeyDown="{{ asGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ asGdGo }}" class="p-ghost">View ads</button></div></sc-if>
-            <sc-if value="{{ asGdCfgOn }}" hint-placeholder-val="{{ false }}"><div class="as-src-row"><input class="p-in" data-as="gdc" type="text" spellcheck="false" placeholder="OAuth client ID — …apps.googleusercontent.com" aria-label="Google OAuth client ID"><button onClick="{{ asGdSaveId }}" class="p-ghost">Save</button></div></sc-if>
-          </div>
-          <sc-if value="{{ asSrcErrOn }}" hint-placeholder-val="{{ false }}"><p class="as-src-err" role="alert">{{ asSrcErr }}</p></sc-if>
-        </div>
-        </div>
         <div class="p-sec-l" style="padding-left:0">Pre loaded templates</div>
         <div class="p-grid2" style="margin-bottom:26px">
           <sc-for list="{{ tplCards }}" as="tc" hint-placeholder-count="4">
@@ -5087,18 +5077,23 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       <div class="cw-head">
         <span class="cw-kick">Copy</span>
         <input value="{{ cwName }}" onChange="{{ onCwName }}" placeholder="Campaign name" class="p-in cw-name" aria-label="Campaign name">
-        <div class="cw-steps" aria-label="Where the copy is">
-          <sc-for list="{{ cwSteps }}" as="st" hint-placeholder-count="3">
-            <span class="cw-step" data-state="{{ st.state }}"><i>{{ st.n }}</i>{{ st.label }}</span>
+        <!-- THE REVIEW FLOW (share-link.js rsCopyVals): this project's audience in its ad set,
+             Design › ENG copy check › Translation › Done. Draft › With design › Final is retired. -->
+        <span class="cw-where">{{ rsCwWhere }}</span>
+        <sc-if value="{{ rsInOn }}" hint-placeholder-val="{{ false }}">
+        <div class="cw-steps" aria-label="Where this audience is in the ad set review">
+          <sc-for list="{{ rsCwSteps }}" as="st" hint-placeholder-count="4">
+            <span class="cw-step" data-state="{{ st.state }}" title="{{ st.sub }}"><i>{{ st.n }}</i>{{ st.label }}</span>
           </sc-for>
         </div>
-        <p class="cw-note">{{ cwNote }}</p>
+        </sc-if>
+        <p class="cw-note">{{ rsCwNote }}</p>
       </div>
       </sc-if>
       <!-- BRIEF TO COPY, WITH CLAUDE: the /meta-ad-design-copy skill's first stage. The page
            cannot run Claude — it writes the prompt, opens the Claude app on it, and reads the
            reply back into the fields below. -->
-      <sc-if value="{{ brOn }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ rsBriefOn }}" hint-placeholder-val="{{ true }}">
       <details class="cw-page cw-br" data-acc="cw-brief" data-def="1">
         <summary class="cw-br-s"><span class="cw-br-ic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg></span><span class="cw-br-t"><b>Start from a brief</b><s>Claude drafts the words below from a fact sheet, script or EOI brief</s></span><em class="cw-br-st" data-on="{{ brSummOn }}">{{ brSumm }}</em><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
         <ol class="cw-br-steps">
@@ -5273,17 +5268,12 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </sc-for>
       </sc-if>
       <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ cwHistOn }}" hint-placeholder-val="{{ false }}">
       <section class="cw-page cw-hist">
-        <div class="cw-page-h"><b>History</b><s>Every hand-off keeps a snapshot of the words</s></div>
-        <label class="cw-sub">Your name <s>shown on the snapshots you make on this computer</s>
-          <input value="{{ cwAuthor }}" onChange="{{ onCwAuthor }}" class="p-in" placeholder="e.g. Sara">
-        </label>
-        <sc-if value="{{ cwHistEmptyOn }}" hint-placeholder-val="{{ true }}">
-          <p class="cw-empty">No hand-offs yet. Sending the copy to design saves the first snapshot.</p>
-        </sc-if>
+        <div class="cw-page-h"><b>History</b><s>Snapshots from the earlier Draft › With design › Final hand-off</s></div>
         <sc-for list="{{ cwHist }}" as="h" hint-placeholder-count="0">
           <div class="cw-h" data-state="{{ h.state }}">
-            <div class="cw-h-t"><em></em><b>{{ h.title }}</b><s>{{ h.meta }}</s><button onClick="{{ h.download }}" class="p-ghost p-sm" title="Download this snapshot as a Word document">.docx</button></div>
+            <div class="cw-h-t"><em></em><b>{{ h.title }}</b><s>{{ h.meta }}</s></div>
             <sc-for list="{{ h.changes }}" as="c" hint-placeholder-count="0">
               <div class="cw-c">
                 <span>{{ c.where }} · {{ c.kind }}</span>
@@ -5295,22 +5285,28 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           </div>
         </sc-for>
       </section>
+      </sc-if>
       <div class="cw-bar">
         <div class="cw-bar-t">
           <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
             <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
           </sc-if>
           <sc-if value="{{ cwMsgOff }}" hint-placeholder-val="{{ true }}">
-            <span class="cw-since" data-on="{{ cwSinceOn }}">{{ cwSince }}</span>
+            <span class="cw-since" data-rs="{{ rsInOn }}">{{ rsCwStatus }}</span>
           </sc-if>
         </div>
         <div class="cw-acts">
-          <button onClick="{{ cwDl }}" class="p-ghost" title="{{ cwDlTip }}">Download .docx</button>
-          <sc-if value="{{ cwBackOn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ cwBack }}" class="p-ghost">{{ cwBackLabel }}</button>
+          <sc-if value="{{ rsInOn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ rsView }}" class="p-ghost" title="Every audience and language in this ad set, rendered from the latest work">Ad set overview</button>
+            <sc-if value="{{ rsBackOn }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ rsBack }}" class="p-ghost" title="{{ rsBackTip }}" disabled="{{ rsBusy }}">{{ rsBackLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ rsFwdOn }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ rsFwd }}" class="p-btn" title="{{ rsFwdTip }}" disabled="{{ rsBusy }}">{{ rsFwdLabel }}</button>
+            </sc-if>
           </sc-if>
-          <sc-if value="{{ cwActOn }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ cwAct }}" class="p-btn" title="{{ cwActTip }}">{{ cwActLabel }}</button>
+          <sc-if value="{{ rsOutOn }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ rvGo }}" class="p-btn" title="{{ rvTip }}">Start an ad set review</button>
           </sc-if>
         </div>
       </div>
@@ -5407,6 +5403,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <div class="as-pane">
             <header class="as-pane-h">
               <div class="as-crumb"><s>{{ asSel.main }}</s><b>{{ asSel.title }}</b><i>{{ asSel.sub }}</i></div>
+              <sc-if value="{{ asProjHereOn }}" hint-placeholder-val="{{ false }}"><span class="as-here">Open here</span></sc-if>
+              <sc-if value="{{ asProjOn }}" hint-placeholder-val="{{ false }}"><a href="{{ asProjHref }}" target="_blank" rel="noopener" class="p-ghost as-dl as-proj" title="{{ asProjTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h227.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62h-227.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-227.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v227.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.38-367.23q-8.3 8.31-20.88 8.5-12.58.19-21.27-8.5-8.69-8.69-8.69-21.08 0-12.38 8.69-21.07L718.15-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.85q15.46 0 25.81 10.34Q820-799.31 820-783.85V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Open in the studio</a></sc-if>
               <sc-if value="{{ asDlAudOn }}" hint-placeholder-val="{{ true }}">
                 <button onClick="{{ asDlAud }}" class="p-ghost as-dl" data-busy="{{ asDlBusy }}" title="Download every image of this audience as one zip"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ asDlAudLabel }}</button>
               </sc-if>
@@ -6010,7 +6008,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cwOpen }}" class="p-cvcopy" data-state="{{ cwBarState }}" title="Where the copy is — open the copy view">{{ cwBarLabel }}</button><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
+  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy" data-state="{{ cvAdState }}" title="{{ cvAdTip }}">{{ cvAdLabel }}</button><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -16207,7 +16205,7 @@ class Component extends DCLogic {
   }
   asVals() {
     const open = !!this.state.adSetsOpen, f = window.providentFolder, a = this._as || {};
-    const supported = !!(f && f.supported), viewing = !!this._asSrc;
+    const supported = !!(f && f.supported), viewing = !!this._asSrc, embed = !!(this._asSrc && this._asSrc.embed);
     const root = a.has ? (a.root || 'the source folder') : '', rootName = a.root ? '“' + a.root + '”' : 'the source folder';
     const es = this.eng.state || {};
     const proj = es.screen === 'splash' ? '' : (es.campaign || '').trim();
@@ -16236,37 +16234,43 @@ class Component extends DCLogic {
       sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + this.asAllImgs() + ' images', projs: [], cols };
     }
     const nav = open && !head ? (a.mains || []).map(m => ({ title: m.title, sub: m.sub,
-      auds: m.auds.map(au => ({ title: au.title, sub: au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
+      auds: m.auds.map(au => ({ title: au.title, sub: (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
         tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
+    // the designer's ad set overview (share-link.js rsOverview): each audience folder is one
+    // project, opened in the studio from its own designer link — or marked as the one open here
+    const pj = embed && sel && !all && this._asSrc.share.projOf ? this._asSrc.share.projOf(sel.key) : null;
+    const projV = { asProjOn: pj && !pj.here ? '1' : undefined, asProjHref: pj ? pj.href : '', asProjTip: pj ? 'Opens ' + pj.label + ' in the full studio, in a new tab' : '',
+      asProjHereOn: pj && pj.here ? '1' : undefined };
     return {
       asOn: open ? '1' : undefined,
       asOpen: () => this.asOpen(),
       asClose: () => this.asClose(),
-      asRefresh: () => this.asScan(),
+      asRefresh: () => embed ? this.eng.rsOverview() : this.asScan(),
       asPick: e => this.asPick(e),
       asHasRoot: open && root ? '1' : undefined,
       // share the view: every project, its words and photos, and previews of its images
-      asShareOn: open && root && (a.mains || []).length && window.providentAdSetsShare ? '1' : undefined,
+      asShareOn: open && root && !embed && (a.mains || []).length && window.providentAdSetsShare ? '1' : undefined,
       asShare: () => window.providentAdSetsShare.create(this),
       asShareLabel: this._asSrc && this._asSrc.kind === 'share' ? 'Copy link' : 'Share',
       asShareTip: this._asSrc && this._asSrc.kind === 'share' ? 'Copies the link to these shared ad sets and opens the Changes panel'
         : 'Makes a link anyone can open to see every audience and variant here and change the words, with a panel of who changed what',
-      asPickOn: open && supported ? '1' : undefined,
+      asPickOn: open && supported && !embed ? '1' : undefined,
       asPickLabel: viewing ? 'Open folder' : 'Choose folder',
       asPickTip: viewing ? 'Open another exported campaign folder' : 'Choose an exported campaign folder to view',
-      asSub: root ? (proj ? proj + ' · ' : '') + (this._asSrc && this._asSrc.kind === 'review' ? 'Rendered from the ' : this._asSrc && this._asSrc.kind === 'share' ? 'Shared ' : this._asSrc && this._asSrc.kind === 'drive' ? 'Google Drive ' : 'Folder ') + (this._asSrc && this._asSrc.kind === 'review' ? 'live projects' : rootName) + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
+      asSub: root ? (embed ? root + ' · ' : proj ? proj + ' · ' : '') + (this._asSrc && this._asSrc.kind === 'review' ? 'Rendered from the ' : this._asSrc && this._asSrc.kind === 'share' ? 'Shared ' : this._asSrc && this._asSrc.kind === 'drive' ? 'Google Drive ' : 'Folder ') + (this._asSrc && this._asSrc.kind === 'review' ? 'live projects' : rootName) + (a.sets ? ' · ' + a.sets + (a.sets === 1 ? ' variant' : ' variants') + ' · ' + a.files + (a.files === 1 ? ' image' : ' images') : '') : (proj || 'Exported ads, one column per variant'),
       asNoteOn: open && head && root ? '1' : undefined,
       // the drop panel sits in the empty state, and stays reachable from the bar
-      asSrcPanelOn: open && (forced || this._asPanel) ? '1' : undefined,
-      asPanelBtnOn: open && !forced ? '1' : undefined,
+      asSrcPanelOn: open && !embed && (forced || this._asPanel) ? '1' : undefined,
+      asPanelBtnOn: open && !forced && !embed ? '1' : undefined,
       asPanelToggle: () => { this._asPanel = !this._asPanel; this.forceUpdate(); },
       asPanelLabel: this._asPanel ? 'Hide drop' : 'Drop folder',
       asPanelOnFlag: this._asPanel ? '1' : undefined,
       asPanelTip: this._asPanel ? 'Hide the drop zone' : 'Show the drop zone, to drop or link another exported campaign folder',
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
-      asNav: nav, asBodyOn: !!sel, asModeBarOn: !!sel && !all,
+      asNav: nav, asBodyOn: !!sel, asModeBarOn: !!sel && !all && !embed,
+      ...projV,
       asAllOn: all ? '1' : undefined, asAllCur: all ? 'true' : undefined, asPickAll: () => this.asPickAll(),
       asAllSub: (a.mains || []).reduce((n, m) => n + m.auds.length, 0) + ' audiences · ' + this.asAllImgs() + ' images',
       asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
@@ -16425,7 +16429,7 @@ class Component extends DCLogic {
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
       if (this._asDet) { this._asDet = null; this.forceUpdate(); return; }
-      if (this.state.adSetsOpen) { if (this._asSrc && this._asSrc.kind === 'review') return; this.asClose(); return; }
+      if (this.state.adSetsOpen) { if (this._asSrc && this._asSrc.kind === 'review' && !this._asSrc.embed) return; this.asClose(); return; }
       this._closePops();
     };
     this._popOut = e => {
