@@ -16177,3 +16177,33 @@ icons only. CAS's bar is unchanged.
 
 Verified at 1440, 1360, 1320, 1024 and 390, in both themes. No overflow. Bar labels measure 8.57
 to 19.69:1 in light. No console errors. Chrome only.
+
+# AD SETS SAVES SHOW UP IN IMAGES; OFF-SCREEN VIEWS COST NOTHING (2026-10-26)
+
+Reported as "if you save a change it doesn't reflect on the files". Reproduced on an OPFS
+fixture, three causes, all fixed:
+
+- **Images was never rescanned after an Edit text save that was still exporting.** `aeFlush`
+  resolved at once when the save was mid-export (`dirty` is cleared when a save STARTS), so
+  `asSetMode('images')` saw `_asStale` false, and nothing rescanned when the save later set it.
+  The tiles kept the old `File`s, which a rewrite makes unreadable, so **Download** failed with
+  "Could not zip" too. Now `aeSave` returns one promise per run (`ae.run`, through `aeSaveRun`)
+  and `aeFlush` returns it even when nothing is dirty; `asFresh()` (flush, then rescan if stale)
+  is called by the Images switch, audience picks, All audiences and every Download; a finished
+  save rescans by itself while Images is on screen; `asScan` waits for a save still writing.
+- **Shared ad sets kept an edit off the link's data until it uploaded** (`pend`), so a rescan in
+  that window (Images, another audience, someone else's change) read the old words back into
+  Edit text and the next keystroke saved over the edit. `AP.onJson` writes `p.st` at once;
+  `pend` is a flag cleared only once the store confirms (a failed save used to drop it), and the
+  stand-in's image `getFile` reads an unsent preview (`pimg`) first.
+- **A save in a shared view said "Saved to X.adstudio.json · N images re-exported"** — but a link
+  is a copy and never touches the folder it was made from. It says *Saved to the shared link ·
+  the original folder is not changed*, and Edit text carries a note saying so.
+
+**Off-screen views:** `libVals` / `hubVals` built every card on every shell render whether their
+view was open or not — 1 ms → 10 ms per render (each keystroke) once a 400-project folder had
+been listed. Off screen they return the sidebar count only. `usageVals` memoised on
+`savedRecents()`, a new array per call, so it never hit; it keys on `readRecents()` now, and the
+style previews render when Component usage is first OPENED, not on the first editor render.
+
+The studio switcher's Campaign row said "Meta and YouTube ads"; it reads "Meta ads, feed to banner".

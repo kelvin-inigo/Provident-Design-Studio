@@ -744,8 +744,9 @@
     const here = this.here(), r = this.ui.root;
     r.classList.toggle('away', !here);
     document.documentElement.classList.toggle('shl-open', here && r.classList.contains('open'));
-    if (Object.keys(this.pend).length && !this.busy && Date.now() - this.lastW > 1500) this.save();
-    this.ui.status(this.busy || Object.keys(this.pend).length ? 'saving' : (this.err ? 'error' : 'ok'), this.err || undefined);
+    const queued = Object.keys(this.pend).length || Object.keys(this.pimg).length;
+    if (queued && !this.busy && Date.now() - this.lastW > 1500) this.save();
+    this.ui.status(this.busy || queued ? 'saving' : (this.err ? 'error' : 'ok'), this.err || undefined);
   };
   // the stand-in folder: reads this.data live, so a pull is seen by the next scan
   AP.build = function () {
@@ -771,7 +772,8 @@
       createWritable: async () => writer(async b => { const doc = JSON.parse(await b.text()); me.onJson(pid, doc.state); }) });
     const imgH = (pid, fid, nm) => ({ kind: 'file', name: nm, modified: 1,
       getFile: async () => {
-        const r = await me.rec(fid);
+        // a preview written here but not yet uploaded is the current one
+        const r = me.pimg[fid] || await me.rec(fid);
         const b = r && r.u ? await (await fetch(r.u)).blob() : new Blob([], { type: 'image/jpeg' });
         return new File([b], nm, { type: 'image/jpeg' });
       },
@@ -793,7 +795,13 @@
     if (r) this.cache[e.h] = r;
     return r;
   };
-  AP.onJson = function (pid, st) { this.pend[pid] = st; this.lastW = Date.now(); };
+  // An edit lands in the shared data AT ONCE. It used to wait in `pend` until the upload, so a
+  // rescan in between (switching to Images, another audience, someone else's change) read the
+  // old words back into Edit text, and the next keystroke saved over the edit.
+  AP.onJson = function (pid, st) {
+    const p = (this.data.projs || []).find(x => x.id === pid); if (!p) return;
+    p.st = st; this.pend[pid] = true; this.lastW = Date.now();
+  };
   AP.onImage = function (fid, rec) { this.pimg[fid] = rec; this.lastW = Date.now(); };
   AP.words = function (p, st) {
     const out = {}, C = window.CampaignStudio || (this.shell.eng && this.shell.eng.constructor);
@@ -822,15 +830,17 @@
     this.busy = true;
     const by = StudioBase.shareName() || 'Someone';
     try {
-      const pend = this.pend, pimg = this.pimg; this.pend = {}; this.pimg = {};
+      // Nothing is taken off the queue until the store has it: a failed save used to drop the
+      // edit for good. The words are read against the last state the store confirmed.
+      const pids = Object.keys(this.pend), pimg = Object.assign({}, this.pimg);
       const ch = [];
-      Object.keys(pend).forEach(pid => {
+      pids.forEach(pid => {
         const p = (this.data.projs || []).find(x => x.id === pid); if (!p) return;
-        const A = this.words(p, p.st), B = this.words(p, pend[pid]), who = this.label(p);
+        const bp = (this.base.projs || []).find(x => x.id === pid);
+        const A = this.words(p, bp ? bp.st : {}), B = this.words(p, p.st), who = this.label(p);
         Object.keys(B).forEach(k => { const x = A[k], y = B[k]; if (!x || x.value !== y.value)
           ch.push({ kind: x && x.value ? (y.value ? 'changed' : 'removed') : 'added', page: who + (y.page ? ' · ' + y.page : ''), label: y.label, was: x ? x.value : '', now: y.value }); });
         Object.keys(A).forEach(k => { if (!B[k] && A[k].value) ch.push({ kind: 'removed', page: who, label: A[k].label, was: A[k].value, now: '' }); });
-        p.st = pend[pid];
       });
       const map = {};
       for (const fid of Object.keys(pimg)) {
@@ -841,9 +851,15 @@
       const burst = this.burstOf(ch.length ? ch : [{ kind: 'note', page: '', text: 'Updated the images' }]);
       for (let tries = 0; tries < 4; tries++) {
         try {
-          const r = await api('save', { id: this.id }, { base: this.rev, state: this.data, by, burst: burst.id, changes: burst.list, imgs: map });
-          this.rev = r.rev; this.base = JSON.parse(JSON.stringify(this.data));
-          Object.keys(map).forEach(k => { this.imgs[k] = map[k]; });
+          const sent = JSON.parse(JSON.stringify(this.data));
+          const r = await api('save', { id: this.id }, { base: this.rev, state: sent, by, burst: burst.id, changes: burst.list, imgs: map });
+          this.rev = r.rev; this.base = sent;
+          Object.keys(map).forEach(k => { this.imgs[k] = map[k]; if (this.pimg[k] === pimg[k]) delete this.pimg[k]; });
+          // a project edited again while this one uploaded stays queued
+          pids.forEach(pid => {
+            const a = (this.data.projs || []).find(x => x.id === pid), b = (sent.projs || []).find(x => x.id === pid);
+            if (!a || !b || canon(a.st) === canon(b.st)) delete this.pend[pid];
+          });
           this.err = '';
           await this.shPull(true);
           return;

@@ -190,7 +190,8 @@ words and photos, and a preview of each image (about 1600px — not the full-siz
 opens it gets the same viewer: they can look through every audience, download the previews, and
 change the words in **Edit text**, which re-draws that project's previews for everyone. The
 **Changes** panel names who changed which audience's words. Your own folder is never changed by
-edits on the link. Once shared, the button reads **Copy link**. An ad sets link opened in OPS
+edits on the link: Edit text there says *Saved to the shared link · the original folder is not
+changed*, and the files the link was made from keep their old words. Once shared, the button reads **Copy link**. An ad sets link opened in OPS
 moves to CAS.
 
 ---

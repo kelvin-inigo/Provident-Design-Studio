@@ -1255,6 +1255,9 @@ class StudioBase {
   }
   hubVals(on) {
     const h = this._hub || {};
+    // Off screen, only the sidebar's count is read: building every card on every render cost
+    // the editor a full pass over the deliveries on each keystroke.
+    if (!on) return { hubCount: h.ok ? String((h.items || []).length) : '', hubCountOn: h.ok ? true : undefined };
     const mine = this.sessionApp() === 'provident-ad-studio' ? 'campaign' : 'organic';
     const NAME = { campaign: 'Campaign', organic: 'Organic' };
     const seen = new Set(), groups = [], byDay = {};
@@ -1527,6 +1530,9 @@ class StudioBase {
   }
   libVals(on) {
     const l = this._lib || {}, m = l.mark || this.libMark();
+    // Off screen, only the sidebar's count is read. Building every card (up to LIB_MAX) on every
+    // render made each editor keystroke ~9 ms slower once a big folder had been listed.
+    if (!on) { const n = l.st === 'ok' ? (l.items || []).length : 0; return { libCount: l.st === 'ok' ? String(n) : '', libCountOn: n ? true : undefined }; }
     const mine = this.sessionApp();
     const NAME = { 'provident-ad-studio': 'Campaign', 'provident-smp-studio': 'Organic' };
     const q = String(l.q || '').trim().toLowerCase();

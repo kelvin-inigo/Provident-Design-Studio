@@ -12885,8 +12885,13 @@ class CampaignStudio extends StudioBase {
       .catch(() => { this._usePvBusy = false; });
   }
   usageVals(labels, recents, defaults) {
-    const memo = this._useMemo, filt = this._useFilt || 'all';
-    if (memo && memo.r === recents && memo.f === filt && memo.pv === this._usePv) return memo.v;
+    // memoised on the recents LIST ITSELF (it is replaced, never mutated): savedRecents() filters
+    // into a new array on every call, so keying on that array recounted every saved project on
+    // every render of the editor.
+    const memo = this._useMemo, filt = this._useFilt || 'all', raw = this.readRecents();
+    // the style previews are made when the view is first OPENED, not on the first editor render
+    if (recents.length && !this._usePv && (this.host.state || {}).splashView === 'use') this.useSync(defaults);
+    if (memo && memo.r === raw && memo.f === filt && memo.pv === this._usePv) return memo.v;
     const C = CampaignStudio, N = recents.length, V = C.USE_V;
     const T = this._useT = this.usageCount(recents);
     const pv = this._usePv || {};
@@ -12939,7 +12944,6 @@ class CampaignStudio extends StudioBase {
       sub: (tally[k][0] === 1 ? 'component' : 'components') + (tally[k][1] ? ' · ' + plural(tally[k][1], 'style') : ''), v: k,
       on: filt === k ? '1' : undefined, set: () => { this._useFilt = filt === k ? 'all' : k; this.forceUpdate(); },
       aria: filt === k ? 'true' : 'false' });
-    if (N && !this._usePv) this.useSync(defaults);
     const v = {
       useGroups: groups,
       useHasData: N > 0,
@@ -12953,7 +12957,7 @@ class CampaignStudio extends StudioBase {
       useSmall: 'Only ' + plural(N, 'saved project') + ' so far — read these as early signals.',
       useCount: N
     };
-    this._useMemo = { r: recents, f: filt, pv: this._usePv, v };
+    this._useMemo = { r: raw, f: filt, pv: this._usePv, v };
     return v;
   }
 
@@ -15343,7 +15347,7 @@ class Component extends DCLogic {
   // the splash's switcher row, so the shape beside a studio's name cannot drift from what
   // that studio actually makes. `initial` is gone with the letter chip it fed.
   static STUDIOS = [
-    { key: 'campaign', tab: 'Campaign ads', desc: 'Meta and YouTube ads', ratio: 1 },
+    { key: 'campaign', tab: 'Campaign ads', desc: 'Meta ads, feed to banner', ratio: 1 },
     { key: 'organic', tab: 'Organic posts', desc: 'Feed and story posts', ratio: .75, file: 'Provident Organic Studio.dc.html' }
   ];
   static load() {
@@ -15379,7 +15383,7 @@ class Component extends DCLogic {
   asPick(e) { return this.asBrowse(e); }
   async asScan() {
     // an edit in flight is saved first: the rescan reopens its project from the file
-    if (this._ae && this._ae.dirty) await this.aeFlush();
+    if (this._ae && (this._ae.dirty || this._ae.saving)) await this.aeFlush();
     // a folder dropped on home VIEWS that folder; it never replaces the
     // source folder the studio exports into (Use source folder goes back to it)
     const src = this._asSrc, root = src ? src.handle : null;
@@ -15791,14 +15795,22 @@ class Component extends DCLogic {
     this._asMode = mode;
     try { localStorage.setItem('adstudio-as-mode', mode); } catch (e) {}
     if (mode === 'text') this.aeSync();
-    else this.aeFlush().then(() => { if (this._asStale && this.state.adSetsOpen) this.asScan(); });
+    else this.asFresh();
     this.forceUpdate();
+  }
+  // Before the Images view (or a download) reads the folder: finish the save in flight — the
+  // re-export can take several seconds — and read the folder again if a save wrote into it.
+  // The tiles hold File objects from the last scan; once a file is rewritten they show the old
+  // picture and can no longer be read (a download then fails), so a stale scan is never kept.
+  async asFresh() {
+    await this.aeFlush();
+    if (this._asStale && this.state.adSetsOpen) await this.asScan();
   }
   asPickAud(key) {
     if (key === this._asSel && !this._asAll) return;
     this.aeFlush();
     this._asSel = key; this._asAll = false;
-    if (this._asMode === 'text') this.aeSync();
+    if (this._asMode === 'text') this.aeSync(); else this.asFresh();
     this.forceUpdate();
     const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
   }
@@ -15808,6 +15820,7 @@ class Component extends DCLogic {
     this.aeFlush();
     this._asAll = true;
     if (this._asMode === 'text') { this._asMode = 'images'; }
+    this.asFresh();
     this.forceUpdate();
     const pane = document.querySelector('.as-pane'); if (pane) pane.scrollTop = 0;
   }
@@ -15822,7 +15835,9 @@ class Component extends DCLogic {
   // (its key), as one flat zip. Reads the files the scan already holds; nothing is re-rendered.
   async asDownload(key) {
     key = key || '*';
-    const a = this._as || {}; if (this._asDl === 'busy') return;
+    if (this._asDl === 'busy') return;
+    await this.asFresh();
+    const a = this._as || {};
     const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim();
     const items = []; let one = null;
     for (const m of a.mains || []) for (const au of m.auds) {
@@ -15947,9 +15962,9 @@ class Component extends DCLogic {
   }
   aeFlush() {
     const ae = this._ae;
-    if (!ae || !ae.dirty) return Promise.resolve();
-    clearTimeout(ae.saveT);
-    return this.aeSave();
+    if (!ae) return Promise.resolve();
+    if (ae.dirty) { clearTimeout(ae.saveT); this.aeSave(); }
+    return ae.run || Promise.resolve();
   }
   async aeSave() {
     const ae = this._ae;
@@ -15960,11 +15975,14 @@ class Component extends DCLogic {
       ae.status = ae.can === 'no' ? 'Not saved — this folder was opened read-only.' : 'Not saved yet — allow editing this folder.';
       this.forceUpdate(); return;
     }
-    if (ae.saving) { ae.again = true; return; }
+    if (ae.saving) { ae.again = true; return ae.run; }
     ae.saving = true; ae.dirty = false; ae.state = 'busy'; ae.status = 'Saving…';
     this.forceUpdate();
-    const p = ae.p, st = ae.st;
-    let n = 0;
+    return (ae.run = this.aeSaveRun(ae));
+  }
+  async aeSaveRun(ae) {
+    const p = ae.p, st = ae.st, shared = !!(this._asSrc && this._asSrc.kind === 'share');
+    let n = 0, ok = false;
     try {
       const doc = Object.assign({}, ae.doc, { state: JSON.parse(JSON.stringify(st)) });
       await Component.aeWrite(p.jsonH, new TextEncoder().encode(JSON.stringify(doc)));
@@ -15980,10 +15998,12 @@ class Component extends DCLogic {
           n++;
         }
       }
-      this._asStale = true;
+      this._asStale = true; ok = true;
       const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       ae.state = 'ok';
-      ae.status = 'Saved to ' + p.fname + (n ? ' · ' + n + (n === 1 ? ' image' : ' images') + ' re-exported' : '')
+      // a shared link is a copy: say so, or "Saved to the file" reads as the folder having changed
+      ae.status = (shared ? 'Saved to the shared link' + (n ? ' · ' + n + (n === 1 ? ' preview' : ' previews') + ' updated' : '') + ' · the original folder is not changed'
+        : 'Saved to ' + p.fname + (n ? ' · ' + n + (n === 1 ? ' image' : ' images') + ' re-exported' : ''))
         + (!ae.photos && p.outs.length ? ' · images not re-exported (the file carries no photos)' : '') + ' · ' + t;
     } catch (e) {
       ae.dirty = true; ae.state = 'bad';
@@ -15992,12 +16012,16 @@ class Component extends DCLogic {
     } finally {
       StudioBase.applyFont(this.eng.state);
       ae.saving = false;
-      if (ae.again) { ae.again = false; if (ae.dirty) this.aeSave(); }
       this.forceUpdate();
     }
+    if (ae.again) { ae.again = false; if (ae.dirty) return this.aeSave(); }
+    // the Images view is on screen: show what was just written (the Edit text view keeps its
+    // own previews and rescans when it is left)
+    if (ok && this._ae === ae && this.state.adSetsOpen && (this._asMode !== 'text' || this._asAll)) setTimeout(() => this.asFresh(), 0);
   }
   aeVals() {
     const ae = this._ae, C = CampaignStudio, au = this.asSelAud(), on = (this._asMode === 'text') && !!au && !this._asAll;
+    const shared = !!(this._asSrc && this._asSrc.kind === 'share');
     const base = { aeOn: on, aeReady: false, aePages: [], aeVars: [], aeTabs: [], aeTabsOn: false };
     if (!on) return base;
     const projs = au.projs || [];
@@ -16012,8 +16036,9 @@ class Component extends DCLogic {
         ? { aePermHead: 'Sign in to Google to save', aePermNote: 'Your changes are written into the project file and its images in Drive, under your Google account. A sign-in lasts an hour.', aePermBtn: 'Sign in with Google' }
         : { aePermHead: 'Allow editing this folder', aePermNote: 'Your changes are written into the project file and its images, so the browser needs permission to change files here.', aePermBtn: 'Allow editing' }),
       aeRoOn: ae.can === 'no',
-      aeNoteOn: !!ae.st && (!ae.photos || (this.eng.state && this.eng.state.pid && ae.st.pid === this.eng.state.pid)),
-      aeNote: !ae.st ? '' : (!ae.photos ? 'This project file carries no photos, so its images are not re-exported — only the words are saved. Save it from the studio once to include them.'
+      aeNoteOn: !!ae.st && (shared || !ae.photos || (this.eng.state && this.eng.state.pid && ae.st.pid === this.eng.state.pid)),
+      aeNote: !ae.st ? '' : shared ? 'You are editing the shared link. Changes reach everyone on the link and update its previews, but not the project files or images in the folder it was made from.'
+        : (!ae.photos ? 'This project file carries no photos, so its images are not re-exported — only the words are saved. Save it from the studio once to include them.'
         : 'This project is also open in the studio. Its open copy does not see these edits — reopen it from the folder (Open session) to continue there.'),
     });
     if (!ae.st) return base;
@@ -16063,7 +16088,7 @@ class Component extends DCLogic {
     });
     vars.forEach(g => { g.sub = g.shots.length + (g.shots.length === 1 ? ' image' : ' images'); });
     base.aeVars = vars;
-    base.aeOut = ae.p.outs.length ? ae.p.outs.length + (ae.p.outs.length === 1 ? ' image updates' : ' images update') + ' on every change' : 'No exported images yet';
+    base.aeOut = ae.p.outs.length ? ae.p.outs.length + (ae.p.outs.length === 1 ? (shared ? ' preview updates' : ' image updates') : (shared ? ' previews update' : ' images update')) + ' on every change' : 'No exported images yet';
     base.aeSaveNow = () => { if (ae.dirty) this.aeFlush(); };
     base.aeSaveOn = !!ae.dirty && ae.can === 'yes';
     return base;
@@ -16231,7 +16256,7 @@ class Component extends DCLogic {
     else if (!root) { head = 'Choose what to view'; note = 'Drop a folder of exported ad sets here, choose one, or paste a Google Drive link.'; }
     else if (a.busy) { head = 'Reading "' + root + '"…'; note = ''; }
     else if (a.err) { head = 'The folder could not be read'; note = a.err; }
-    else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image (or the YouTube _Square_1x1, _Landscape_1.91x1 …). Save the project and export JPEG or PNG from Share.'; }
+    else if (!(a.mains || []).length) { head = 'No ad sets found'; note = 'Nothing in "' + root + '" has a saved project (.adstudio.json) with a Variant A, Variant B … folder holding a _feed / _Story image. Save the project and export JPEG or PNG from Share.'; }
     // with nothing to show, the drop panel IS the screen: no toggle, and no separate
     // note repeating what the panel already says
     const forced = !root || !!a.err || (!a.busy && !(a.mains || []).length);
