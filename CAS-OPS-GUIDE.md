@@ -194,17 +194,18 @@ campaign**. Three people work on it, and each has their own link and sees only w
 | who | the link opens | they can |
 |---|---|---|
 | **Designer** | the full Campaign Studio | change anything, mark the design done, put it back in progress |
-| **Content team** | the Copy view only | change the words, approve the copy |
+| **Content team** | the words beside every image of the ad | change the words, approve the copy |
 | **Performance marketing** | the ad set overview only | see every variant and size, download the package |
 
 1. **Start it.** In the project, press **Share › Start a review**, type your name and press
    **Make the review links**. If the project isn't shared yet, it's shared first. Copy each link
    and send it to the right team. The three links are also kept in **Review links** on the home
    page.
-2. **The content team** opens their link, types their name and lands in the Copy view. There's
-   no Design switch, no project or Share button, just the words, the preview and Undo/Redo. Their
-   edits reach everyone within a few seconds. When the words are ready they press **Copy
-   approved** in the **Review** panel on the right.
+2. **The content team** opens their link, types their name and lands on the ad's words: every
+   field on the left, and every image of every variant beside them, which update as they type.
+   There's no design control, project or Share button. Their edits reach the designer and
+   performance marketing within a few seconds. When the words are ready they press **Copy
+   approved** in the **Review** panel, which stays open on the right.
 3. **The designer** works as usual. In the **Review** panel, **Mark design done** says the design
    is finished.
 4. **When the design is done and the copy is approved, the package is ready.** The order doesn't
@@ -229,9 +230,11 @@ shows a system notification when someone else moves a step while the tab is in t
 Things to know:
 - **No sign-in.** Whoever holds a link has its role, so send each link only to its team.
   Performance marketing's link is view-only on the server too. The content team's link is
-  limited to the Copy view by the studio.
-- Under review, the Copy view's own **Draft › With design › Final** hand-off is hidden. The
-  review's steps take its place.
+  limited to the words by the studio.
+- The designer keeps the full Copy workspace, with its own **Draft › With design › Final**
+  hand-off and history, as before.
+- If the designer changes the design while the content team is typing, both are kept: the
+  content team's words go on top of the latest design.
 - Carousel pages appear in performance marketing's view as Variant A, B, C… in page order.
 
 ### Review links: every review you started (CAS home page)

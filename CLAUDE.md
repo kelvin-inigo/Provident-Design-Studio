@@ -16310,3 +16310,28 @@ Project live/expired — Design/Copy/Created left the list, the stepper and head
 **Google Drive** (saving redraws so the header gains its Drive button), and Remove from this
 list. One column under 1100, stacked buttons under 760. Icons are Material Rounded wght300
 (`ICO`). Contrast 0 failures both themes, no overflow at 390. `linkRows` still serves the panel.
+
+## THE CONTENT TEAM WORKS IN EDIT TEXT, NOT THE COPY VIEW (2026-10-26, same day)
+
+By request, with Ad sets › Edit text screenshotted as the window: the CT link now opens the Ad
+sets window in **Edit text** on the same live stand-in folder PM gets (`liveDir(eng, write)`),
+with the Review panel docked right. **The designer keeps the original Copy window**, hand-off
+and all — the rule hiding `.cw-steps` / `.cw-acts` / `.p-cvcopy` under review is deleted.
+
+- **The project file is writable for CT.** Edit text reads it with `getFull` (photos from
+  `StudioBase.sidecar()`, so its previews show them) and writes it back on save; the write is
+  `merge3(base = what it last read or wrote, mine = shNorm(doc.state), theirs = shPub())` onto
+  the engine through `upd`, so a design change the designer made meanwhile survives — verified:
+  DD centred the layout while CT was focused in a field; CT's next save kept `center` and both
+  heading edits. The share sync then saves it as CT's edit ("Sara · Heading").
+- **No re-export onto a live project**: `aeSaveRun` skips the image writes when the source's
+  kind is `review` (the images are rendered from state anyway) and says the edit reaches the
+  designer and PM; the image handles' `createWritable` is a no-op in case. The "no photos" and
+  "also open in the studio" notes are off for that kind (`aeNoteOn`).
+- **Own edits don't trigger a rescan** (`scanned` is re-marked 60 ms after the write, once React
+  has the state); someone else's change rescans only when CT is not mid-edit (ae dirty/saving
+  or focus in a field inside `.as-ov`), with `h._ae = null` so Edit text reopens the project.
+- `html.rv-as` (pm and ct): the audience list is hidden and `.as-body` is one column, so the
+  words and images get its width; the panel stays over `.as-ov` (z 211) and `.as-ov` gives it
+  340px. `shTick` no longer hides the panel on the splash for pm/ct — their window covers it.
+- The CT top-bar hiding rules remain but only matter for a frame before the window opens.

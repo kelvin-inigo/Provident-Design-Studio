@@ -15936,12 +15936,15 @@ class Component extends DCLogic {
   }
   async aeSaveRun(ae) {
     const p = ae.p, st = ae.st, shared = !!(this._asSrc && this._asSrc.kind === 'share');
+    // a review's live project (share-link.js): the words go into the project itself and every
+    // image is rendered from it on demand, so there is nothing to re-export over
+    const live = !!(this._asSrc && this._asSrc.kind === 'review');
     let n = 0, ok = false;
     try {
       const doc = Object.assign({}, ae.doc, { state: JSON.parse(JSON.stringify(st)) });
       await Component.aeWrite(p.jsonH, new TextEncoder().encode(JSON.stringify(doc)));
       ae.doc = doc;
-      if (ae.photos && p.outs.length) {
+      if (ae.photos && p.outs.length && !live) {
         ae.status = 'Saved · exporting the images…'; this.forceUpdate();
         await this.aeFonts(st);
         for (const x of this.aeShots(ae)) {
@@ -15956,9 +15959,10 @@ class Component extends DCLogic {
       const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       ae.state = 'ok';
       // a shared link is a copy: say so, or "Saved to the file" reads as the folder having changed
-      ae.status = (shared ? 'Saved to the shared link' + (n ? ' · ' + n + (n === 1 ? ' preview' : ' previews') + ' updated' : '') + ' · the original folder is not changed'
+      ae.status = live ? 'Saved · the designer and performance marketing see it within a few seconds · ' + t
+        : ((shared ? 'Saved to the shared link' + (n ? ' · ' + n + (n === 1 ? ' preview' : ' previews') + ' updated' : '') + ' · the original folder is not changed'
         : 'Saved to ' + p.fname + (n ? ' · ' + n + (n === 1 ? ' image' : ' images') + ' re-exported' : ''))
-        + (!ae.photos && p.outs.length ? ' · images not re-exported (the file carries no photos)' : '') + ' · ' + t;
+        + (!ae.photos && p.outs.length ? ' · images not re-exported (the file carries no photos)' : '') + ' · ' + t);
     } catch (e) {
       ae.dirty = true; ae.state = 'bad';
       if (e && e.gdAuth) ae.can = 'ask';     // Google sign-in lapsed: offer it again
@@ -15990,7 +15994,9 @@ class Component extends DCLogic {
         ? { aePermHead: 'Sign in to Google to save', aePermNote: 'Your changes are written into the project file and its images in Drive, under your Google account. A sign-in lasts an hour.', aePermBtn: 'Sign in with Google' }
         : { aePermHead: 'Allow editing this folder', aePermNote: 'Your changes are written into the project file and its images, so the browser needs permission to change files here.', aePermBtn: 'Allow editing' }),
       aeRoOn: ae.can === 'no',
-      aeNoteOn: !!ae.st && (shared || !ae.photos || (this.eng.state && this.eng.state.pid && ae.st.pid === this.eng.state.pid)),
+      // a review's live project IS the open one, and its images are rendered, not re-exported:
+      // none of these notes applies to it
+      aeNoteOn: !!ae.st && !(this._asSrc && this._asSrc.kind === 'review') && (shared || !ae.photos || (this.eng.state && this.eng.state.pid && ae.st.pid === this.eng.state.pid)),
       aeNote: !ae.st ? '' : shared ? 'You are editing the shared link. Changes reach everyone on the link and update its previews, but not the project files or images in the folder it was made from.'
         : (!ae.photos ? 'This project file carries no photos, so its images are not re-exported — only the words are saved. Save it from the studio once to include them.'
         : 'This project is also open in the studio. Its open copy does not see these edits — reopen it from the folder (Open session) to continue there.'),
