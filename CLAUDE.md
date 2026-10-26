@@ -16506,3 +16506,18 @@ cached connection and retries once on a fresh one (`drop`, `getOnce`, `setOnce` 
 `onclose` / `onversionchange` clear the cache); `providentRuntime.getStrict` REJECTS on a real
 failure; `loadRecents` never falls back to the legacy copy after a failure (`_recFail`), and
 `recordSaved` then does not write, so a tab's partial copy cannot replace the real list.
+
+**THE ACTUAL ROOT CAUSE: `runtime.js` declared `var STORE` twice.** Section 3 sets it to
+`'files'` (the IndexedDB object store); the photo-store pass of 23 Oct added
+`var STORE = '.image-slots.state.json'` ~450 lines further down the SAME function. `var` is
+function-scoped, so once that line ran every database read and write named the wrong store:
+reads of the shared recents failed ("object store not found"), and every workspace database
+created after 23 Oct got a `.image-slots.state.json` store and no `files` store — which is
+why saves stopped reaching Recent and a refreshed tab lost its Source folder. The second
+variable is `SIDECAR` now. `db()` opens at the database's current version, and a database with
+no `files` store is upgraded once: `files` is created and the stray store's entries (its
+folder handle, its photos) are copied in. An old tab holding the database open blocks the
+upgrade; after 4s the read fails and the next one tries again. **Never add a second `var` of
+an existing name in runtime.js** — it is one long function. Verified locally on a database
+broken the same way: upgraded to v2, folder, photo and Recent all back; a new workspace keeps
+its folder and its saves across a refresh. The retry and `getStrict` above stay as hardening.

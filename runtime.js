@@ -396,16 +396,44 @@
   function db(name) {
     name = name || DB;
     if (!dbs[name]) {
+      // Opened at whatever version it has. A database created while the store name was
+      // wrong (23-26 Oct, see SIDECAR below) has no `files` store, only a stray one holding
+      // what was written then; it is upgraded once: `files` is created and the stray
+      // store's entries are copied into it.
+      var STRAY = '.image-slots.state.json';
+      var ready = function (d, res) {
+        d.onclose = function () { if (dbs[name]) delete dbs[name]; };
+        d.onversionchange = function () { try { d.close(); } catch (e) {} delete dbs[name]; };
+        res(d);
+      };
       dbs[name] = new Promise(function (res, rej) {
-        var q = W.indexedDB.open(name, VER);
+        var q = W.indexedDB.open(name);
         q.onupgradeneeded = function () {
           if (!q.result.objectStoreNames.contains(STORE)) q.result.createObjectStore(STORE);
         };
         q.onsuccess = function () {
           var d = q.result;
-          d.onclose = function () { if (dbs[name]) delete dbs[name]; };
-          d.onversionchange = function () { try { d.close(); } catch (e) {} delete dbs[name]; };
-          res(d);
+          if (d.objectStoreNames.contains(STORE)) return ready(d, res);
+          var v = d.version + 1;
+          d.close();
+          var u = W.indexedDB.open(name, v);
+          u.onupgradeneeded = function () {
+            var nd = u.result, tx = u.transaction;
+            var to = nd.createObjectStore(STORE);
+            if (!nd.objectStoreNames.contains(STRAY)) return;
+            var c = tx.objectStore(STRAY).openCursor();
+            c.onsuccess = function () {
+              var cur = c.result;
+              if (!cur) return;
+              to.put(cur.value, cur.key);
+              cur['continue']();
+            };
+          };
+          u.onsuccess = function () { ready(u.result, res); };
+          u.onerror = function () { delete dbs[name]; rej(u.error); };
+          // An old tab of the studio holding this database open blocks the upgrade; give up on
+          // it after a while rather than hang every read (the next attempt tries again).
+          u.onblocked = function () { setTimeout(function () { delete dbs[name]; rej(new Error('database upgrade blocked by another tab')); }, 4000); };
         };
         q.onerror = function () { delete dbs[name]; rej(q.error); };
       });
@@ -846,13 +874,16 @@
   // Bumped by every write, so the parsed copy below knows when it is stale without
   // comparing two 60MB strings.
   var storeRev = 0, parsedRev = -1, parsed = null;
-  var STORE = '.image-slots.state.json';
+  // NOT `STORE`: `var` is function-scoped, so a second `var STORE` here silently renamed the
+  // IndexedDB object store (section 3) for every request made after this line ran — every
+  // database read and write failed from 23 Oct until this was renamed.
+  var SIDECAR = '.image-slots.state.json';
 
   W.omelette = W.omelette || {};
   W.omelette.writeFile = function (path, text) {
     var key = base(path);
     mirror[key] = String(text);
-    if (key === STORE) storeRev++;
+    if (key === SIDECAR) storeRev++;
     return idbSet(key, mirror[key]);
   };
 
@@ -910,10 +941,10 @@
   W.providentSidecar = function () {
     // the first read goes through the fetch shim, which fills the mirror (and runs the
     // one-off seed clean-up); after that the mirror is the store
-    var ready = mirror[STORE] != null ? Promise.resolve()
-      : W.fetch(STORE, { cache: 'no-store' }).then(function (r) { return r.text(); }).catch(function () {});
+    var ready = mirror[SIDECAR] != null ? Promise.resolve()
+      : W.fetch(SIDECAR, { cache: 'no-store' }).then(function (r) { return r.text(); }).catch(function () {});
     return ready.then(function () {
-      var t = mirror[STORE];
+      var t = mirror[SIDECAR];
       if (t == null) return {};
       if (parsedRev !== storeRev || !parsed) {
         var rev = storeRev, o = {};
