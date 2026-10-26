@@ -16116,6 +16116,10 @@ guided card's WebP encode is synchronous (`toBlob` would move it off the main th
 
 # THE PROJECTS FOLDER: EVERY SAVED SESSION IN ONE FOLDER, LOCAL OR DRIVE (2026-10-23)
 
+> **SUPERSEDED (2026-10-26): the view is DELETED from both studios.** The folder is now Component
+> usage's source — see *COMPONENT USAGE COUNTS A FOLDER* at the end of this file. The sign-in,
+> `providentDrive`, the local handle (`lib:dir`) and the scan's walk are what survive.
+
 By request ("users can pinpoint a google drive or local where all their .jsons are stored").
 Sidebar row **Projects folder** (Library, under Recent, Material Rounded `topic`) in both
 studios → `splashView: 'lib'`. All logic is shared in `studio-base.js` (`libLoad`, `libConnect`,
@@ -16207,3 +16211,31 @@ been listed. Off screen they return the sidebar count only. `usageVals` memoised
 style previews render when Component usage is first OPENED, not on the first editor render.
 
 The studio switcher's Campaign row said "Meta and YouTube ads"; it reads "Meta ads, feed to banner".
+
+# COMPONENT USAGE COUNTS A FOLDER; THE PROJECTS FOLDER VIEW IS GONE (2026-10-26)
+
+By request. Component usage was meant to be measured from a folder of saved projects the user
+picks; the Projects folder view had grown instead — a second browser of the same files (Open
+session, Recent and From the hub already open them) that cost a render pass on every keystroke.
+
+- **The view, its sidebar row, `shViewLib`, `libThumbs`, `libOpen` and the card model are deleted
+  from both studios.** A tab whose `splashView` is still `'lib'` lands on All. OPS has no use for
+  the folder any more; the scan code stays in `studio-base.js`, read by CAS alone.
+- **Component usage carries the source panel** at the top of its view (`libVals(view === 'use')`):
+  Choose a folder / a Drive link, then a status bar with Refresh and **Use Recent instead**. With no
+  folder it counts Recent, and its note and subtitle say which source is being counted.
+- **The scan is read-only** (`mode:'read'` on the picker and permission checks), lists only THIS
+  studio's extension, skips the same folders as before (`LIB_SKIP`), caps at `LIB_MAX` 2000, and
+  runs when the view opens — reused for `LIB_FRESH` (2 min), Refresh forces it.
+- **Each file is reduced to its PLACEMENTS** — `CampaignStudio.usePlacements(state)`: per component
+  per variant/page, `{key, m, hid, sk, z}` (a custom component keeps its spec and words for its
+  preview). `usageCount` reads `uses` or, for Recent, computes them from `state`. The engine hook is
+  `libUses(state)`.
+- **`lib:uses` in the SHARED IndexedDB keeps each file's placements with its modified time**, keyed
+  by the folder (`libKeyOf`), so the next scan only reads files that changed. Measured on a 12-
+  project fixture: first scan 12 reads, after a reload 0, after editing one project 1. A Drive file
+  is read by a growing head (`libRead`: 256 KB, 4 MB, whole), so photos are never downloaded.
+- `useSource()` is the one answer to what is counted: the folder's last listing (kept while a new
+  scan runs, so the numbers do not flicker back to Recent), else Recent. The memo keys on that
+  listing or on the recents list itself.
+

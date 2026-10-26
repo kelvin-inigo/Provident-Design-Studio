@@ -142,14 +142,6 @@ Each studio opens on its **project browser**.
   Save. A new browser tab is a fresh session too. **Open session** sets the folder it opens from.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count.
-- **Projects folder** (sidebar, under Library) lists every saved project in one folder you choose —
-  on this computer (**Choose a folder**) or in Google Drive (paste the folder's link, then sign in
-  with your Provident Google account). It looks in that folder and up to four folders inside it,
-  newest first, grouped by folder, with a picture where one is found. Click a project to open it;
-  a project from the other studio opens there. A project from this computer makes its folder the
-  Source folder; a project from Drive opens as a copy and the file in Drive is not changed. The
-  folder is remembered on this computer for both studios; **Change folder** picks another. After a
-  restart, one click (**Reconnect the folder** or **Sign in to Google**) lists it again.
 - **Undo** / **Redo** (top bar) go back up to 5 steps.
 - **From the hub** (sidebar, under Library) lists what the Content Hub has received from **Send**,
   newest first, with a few of the sent images on each card. Click one to open it as a project:
@@ -586,8 +578,18 @@ installed.
 ### Audit the components: Component usage
 
 On CAS's home page, press **Component usage** in the sidebar, in the **Review** group. It counts
-every design component, and every style of it, across the saved projects in **Recent** (the studio
-keeps your 10 newest saved projects, so that is the sample).
+every design component, and every style of it, across your saved projects.
+
+- **Choose the folder where the team keeps its projects** at the top of the view — on this
+  computer (**Choose a folder**) or in Google Drive (paste the folder's link, then sign in with
+  your Provident Google account). Every Campaign project in it, and up to four folders inside it,
+  is counted. The folder is only read, never changed, and is remembered on this computer. After a
+  restart, one click (**Reconnect the folder** or **Sign in to Google**) reads it again.
+- The folder is read when you open the view. A project that has not changed since the last time
+  is not read again, so it is quick after the first visit. **Refresh** reads it again now, and
+  **Use Recent instead** forgets the folder.
+- Until a folder is chosen, it counts the saved projects in **Recent** (the studio keeps your 10
+  newest), and says so.
 
 - Every component and every style has a **picture of it**, drawn the way the export draws it.
 - Each one carries a verdict and the reason for it:

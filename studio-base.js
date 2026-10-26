@@ -1317,31 +1317,35 @@ class StudioBase {
     };
   }
 
-  // ---------- the project library (Projects folder view) ----------
+  // ---------- the usage folder (Component usage's source) ----------
   // A folder — on this computer or in Google Drive — where the team keeps its saved projects.
-  // Every .adstudio.json / .smpstudio.json in it (and up to four folders down) is listed with
-  // its name, when it was saved and a picture, and opens like Open Session: a file for the other
-  // studio hands over to it. The folder is remembered per COMPUTER (`provident-lib` for which
-  // kind, the local handle in IndexedDB as `lib:dir`), so both studios and every tab show the
-  // same library. It only ever READS the folder; a local project opened from it adopts its own
-  // folder as the Source folder, exactly as Open Session does. A Drive project opens as a copy:
-  // the studio cannot save into Drive, so Save session writes wherever this tab saves.
+  // Component usage counts every project of THIS studio in it (and up to four folders down)
+  // instead of only the last few saved on this computer. It replaced the Projects folder view
+  // (2026-10-26), which listed the same files and only opened them — something Open session,
+  // Recent and From the hub already did.
+  //
+  // The folder is remembered per COMPUTER (`provident-lib` for which kind, the local handle in
+  // IndexedDB as `lib:dir`). It is only ever READ. It is scanned when Component usage opens (or
+  // Refresh is pressed), never at boot. Each file is reduced to what the count needs —
+  // `libUses(state)`, the engine's own summary — and that summary is kept per file with its
+  // modified time in `lib:uses`, so the next scan only reads the files that changed.
   static LIB_SKIP = /^(\.|assets$|copy$|photoshop$|edits$|brief$|carousel$|variant [a-z]$|eventbrite banners$|yt demand gen$|node_modules$)/i;
   static LIB_DEPTH = 4;
-  static LIB_MAX = 400;
+  static LIB_MAX = 2000;
+  static LIB_FRESH = 120000;      // a scan younger than this is reused when the view reopens
   libMark() { try { return JSON.parse(localStorage.getItem('provident-lib') || 'null'); } catch (e) { return null; } }
   libSetMark(m) { try { m ? localStorage.setItem('provident-lib', JSON.stringify(m)) : localStorage.removeItem('provident-lib'); } catch (e) {} }
-  libDrop() {
-    const l = this._lib;
-    if (l && l.urls) l.urls.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
-  }
   libSet(o) { this._lib = Object.assign({}, this._lib || {}, o); this.forceUpdate(); }
-  // Opening the view: list straight away when the folder is still reachable, else say what one
+  // what a file says about the count; the engine overrides it (CampaignStudio.usePlacements)
+  libUses(state) { return null; }
+  static libKeyOf(m) { return m ? (m.kind === 'drive' ? 'drive:' + m.id : 'local:' + m.name) : ''; }
+  // Opening the view: count straight away when the folder is still reachable, else say what one
   // click will do. Never opens a picker or a popup — those need the click.
-  async libLoad() {
-    const m = this.libMark(), F = window.providentFolder;
-    if (!m) { this.libDrop(); this._lib = { st: 'none' }; this.forceUpdate(); return; }
-    if (this._lib && this._lib.st === 'busy') return;
+  async libLoad(force) {
+    const m = this.libMark(), F = window.providentFolder, l = this._lib;
+    if (!m) { this._lib = { st: 'none' }; this.forceUpdate(); return; }
+    if (l && l.st === 'busy') return;
+    if (!force && l && l.st === 'ok' && l.key === StudioBase.libKeyOf(m) && Date.now() - (l.at || 0) < StudioBase.LIB_FRESH) return;
     if (m.kind === 'drive') {
       const D = window.providentDrive;
       if (!D || !D.valid()) return this.libSet({ st: 'ask', mark: m });
@@ -1351,7 +1355,7 @@ class StudioBase {
     try { h = F && F.libGet ? await F.libGet() : null; } catch (e) {}
     if (!h) { this.libSetMark(null); this._lib = { st: 'none' }; this.forceUpdate(); return; }
     let p = 'prompt';
-    try { p = await h.queryPermission({ mode: 'readwrite' }); } catch (e) {}
+    try { p = await h.queryPermission({ mode: 'read' }); } catch (e) {}
     if (p !== 'granted') return this.libSet({ st: 'ask', mark: m, handle: h });
     this.libScan(h, m);
   }
@@ -1362,15 +1366,15 @@ class StudioBase {
     try {
       if (m.kind === 'drive') { await window.providentDrive.signIn(); return this.libScan(window.providentDrive.dir(m.id, m.name), m); }
       const h = l.handle || await window.providentFolder.libGet();
-      const p = h ? await h.requestPermission({ mode: 'readwrite' }) : 'denied';
-      if (p !== 'granted') return this.libSet({ st: 'ask', msg: 'The browser did not allow access to “' + m.name + '”. Choose the folder again.' });
+      const p = h ? await h.requestPermission({ mode: 'read' }) : 'denied';
+      if (p !== 'granted') return this.libSet({ st: 'ask', msg: 'The browser did not allow reading “' + m.name + '”. Choose the folder again.' });
       this.libScan(h, m);
     } catch (e) { this.libSet({ st: 'ask', msg: (e && e.message) || String(e) }); }
   }
   async libPickLocal() {
     if (typeof window.showDirectoryPicker !== 'function') return this.libSet({ msg: 'This browser cannot open a folder on this computer — use a Google Drive folder link, or Chrome or Edge on a computer.' });
     let h;
-    try { h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'provident-lib', startIn: 'documents' }); }
+    try { h = await window.showDirectoryPicker({ mode: 'read', id: 'provident-lib', startIn: 'documents' }); }
     catch (e) { if (!(e && e.name === 'AbortError')) this.libSet({ msg: 'The folder could not be opened — ' + ((e && e.message) || e) + '.' }); return; }
     const m = { kind: 'local', name: h.name };
     try { await window.providentFolder.libSet(h); } catch (e) {}
@@ -1392,10 +1396,12 @@ class StudioBase {
     } catch (er) { this.libSet({ msg: (er && er.message) || String(er) }); }
   }
   libDriveKey(e) { if (e.key === 'Enter') { e.preventDefault(); this.libUseDrive(e); } }
+  // Back to counting Recent: the folder and its remembered summaries are forgotten.
   async libForget() {
     this._libGen = (this._libGen || 0) + 1;
-    this.libDrop(); this.libSetMark(null);
+    this.libSetMark(null);
     try { await window.providentFolder.libSet(null); } catch (e) {}
+    try { const rt = window.providentRuntime; if (rt && rt.del) await rt.del('lib:uses'); } catch (e) {}
     this._lib = { st: 'none' }; this.forceUpdate();
   }
   // A saved session's state, read from the head of the file: the studios write
@@ -1406,14 +1412,37 @@ class StudioBase {
     }
     try { return JSON.parse(text); } catch (e) { return null; }
   }
+  // The state of one file: a growing head (256 KB, then 4 MB), then the whole file. A state
+  // with a long copy history can outgrow the first read; the photos after it never matter.
+  static async libRead(h) {
+    for (const n of [262144, 4194304, 0]) {
+      let text, whole = false;
+      if (h.drive) {
+        if (n && (!h.size || h.size > n)) text = await h.head(n);
+        else { text = await (await h.getFile()).text(); whole = true; }
+      } else {
+        const f = await h.getFile();
+        whole = !n || f.size <= n;
+        text = await (whole ? f : f.slice(0, n)).text();
+      }
+      const d = StudioBase.libState(text);
+      if (d && d.state) return d.state;
+      if (whole) return null;
+    }
+    return null;
+  }
   async libScan(root, m) {
     const gen = (this._libGen = (this._libGen || 0) + 1);
-    this.libDrop();
-    this._lib = { st: 'busy', mark: m, root, items: [], thumbs: {}, urls: [], q: (this._lib && this._lib.q) || '', found: 0 };
+    const prev = this._lib && this._lib.key === StudioBase.libKeyOf(m) ? this._lib.items : null;
+    this._lib = { st: 'busy', mark: m, root, key: StudioBase.libKeyOf(m), items: prev || null, found: 0, read: 0 };
     this.forceUpdate();
-    const T = StudioBase.SESSIONS, EXT = Object.keys(T).map(k => [T[k].ext, k]);
-    const appOf = n => { const l = n.toLowerCase(); const x = EXT.find(e => l.endsWith(e[0])); return x ? x[1] : ''; };
+    const ext = (StudioBase.SESSIONS[this.sessionApp()] || {}).ext;
     const items = [];
+    const rt = window.providentRuntime;
+    let cache = null;
+    try { cache = rt && rt.get ? await rt.get('lib:uses') : null; } catch (e) {}
+    if (!cache || cache.key !== this._lib.key) cache = { key: this._lib.key, files: {} };
+    const keep = {};
     try {
       // breadth first, four folders at a time, so a Drive folder is not listed one call at a time
       let level = [{ dir: root, path: [] }];
@@ -1423,14 +1452,14 @@ class StudioBase {
         const one = async () => {
           while (i < level.length && gen === this._libGen) {
             const { dir, path } = level[i++];
-            const files = [], dirs = [];
-            try { for await (const [name, h] of dir.entries()) (h.kind === 'directory' ? dirs : files).push([name, h]); }
-            catch (e) { if (e && e.gdAuth) throw e; continue; }
-            const ses = files.filter(([n]) => appOf(n));
-            const renders = files.filter(([n]) => /_(3x4|feed|portrait_3x4)\.(jpe?g|png|webp)$/i.test(n));
-            const vdir = dirs.find(([n]) => /^(variant a|carousel)$/i.test(n));
-            ses.forEach(([n, h]) => items.length < StudioBase.LIB_MAX && items.push({ name: n, h, dir, path, app: appOf(n), solo: ses.length === 1, renders, vdir: vdir && vdir[1] }));
-            dirs.forEach(([n, h]) => { if (!StudioBase.LIB_SKIP.test(n)) next.push({ dir: h, path: path.concat(n) }); });
+            const dirs = [];
+            try {
+              for await (const [name, h] of dir.entries()) {
+                if (h.kind === 'directory') { if (!StudioBase.LIB_SKIP.test(name)) dirs.push([name, h]); }
+                else if (ext && name.toLowerCase().endsWith(ext) && items.length < StudioBase.LIB_MAX) items.push({ name, h, path });
+              }
+            } catch (e) { if (e && e.gdAuth) throw e; continue; }
+            dirs.forEach(([n, h]) => next.push({ dir: h, path: path.concat(n) }));
           }
         };
         await Promise.all([one(), one(), one(), one()]);
@@ -1438,18 +1467,25 @@ class StudioBase {
         this._lib.found = items.length; this.forceUpdate();
         level = next;
       }
-      // what each one is: four at a time, from the head of the file only
+      // each file's summary, four at a time; one unchanged since the last scan is not read again
       let k = 0;
       const meta = async () => {
         while (k < items.length && gen === this._libGen) {
-          const it = items[k++];
+          const it = items[k++], id = it.path.concat(it.name).join('/');
           try {
-            let text = '';
-            if (it.h.drive) { it.ts = it.h.modified || 0; text = await it.h.head(262144); }
-            else { const f = await it.h.getFile(); it.ts = f.lastModified || 0; text = await f.slice(0, 262144).text(); }
-            const d = StudioBase.libState(text);
-            it.st = (d && d.state) || null;
-          } catch (e) { if (e && e.gdAuth) throw e; it.st = null; }
+            it.ts = it.h.drive ? (it.h.modified || 0) : ((await it.h.getFile()).lastModified || 0);
+            const c = cache.files[id];
+            if (c && c.ts === it.ts && it.ts) { it.uses = c.uses; it.title = c.title; }
+            else {
+              const st = await StudioBase.libRead(it.h);
+              it.uses = st ? this.libUses(st) : null;
+              it.title = String((st && (st.campaign || st.customName)) || '').trim();
+            }
+          } catch (e) { if (e && e.gdAuth) throw e; it.uses = null; }
+          if (!it.title) it.title = it.name.replace(/\.(adstudio|smpstudio)\.json$/i, '');
+          if (it.uses) keep[id] = { ts: it.ts, uses: it.uses, title: it.title };
+          this._lib.read = k;
+          if (k % 10 === 0) this.forceUpdate();
         }
       };
       await Promise.all([meta(), meta(), meta(), meta()]);
@@ -1459,150 +1495,40 @@ class StudioBase {
     }
     if (gen !== this._libGen) return;
     items.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    try { if (rt && rt.set) await rt.set('lib:uses', { key: cache.key, files: keep }); } catch (e) {}
     this.libSet({ st: 'ok', items, at: Date.now(), msg: '' });
-    this.libThumbs(gen);
   }
-  // A picture per project: its card in Recent when this computer saved it (same pid), else the
-  // newest feed render beside it — only when it is the folder's ONE project, because a folder
-  // holding two would show the other one's render. Shrunk to 240px WebP, four at a time.
-  async libThumbs(gen) {
-    const l = this._lib;
-    if (!l || !l.items) return;
-    const rec = this.readRecents().filter(r => r && r.saved);
-    l.items.forEach(it => {
-      const pid = it.st && it.st.pid, r = pid && rec.find(x => x.pid === pid);
-      const u = r && ((r.thumbs && r.thumbs[0]) || r.thumb);
-      if (u) l.thumbs[it.name + '\u0001' + it.path.join('/')] = u;
-    });
-    this.forceUpdate();
-    const jobs = l.items.filter(it => it.solo && !l.thumbs[it.name + '\u0001' + it.path.join('/')]);
-    let i = 0, tick = 0;
-    const pickNewest = async list => {
-      let best = null, bt = -1;
-      for (const [n, h] of list.slice(0, 12)) {
-        const t = h.drive ? h.modified : await h.getFile().then(f => f.lastModified).catch(() => 0);
-        if (t > bt) { bt = t; best = h; }
-      }
-      return best;
-    };
-    const one = async () => {
-      while (i < jobs.length && gen === this._libGen) {
-        const it = jobs[i++];
-        try {
-          let list = it.renders;
-          if (!list.length && it.vdir) {
-            list = [];
-            for await (const [n, h] of it.vdir.entries()) if (h.kind === 'file' && /_(feed|portrait_3x4)\.(jpe?g|png|webp)$/i.test(n)) list.push([n, h]);
-          }
-          const fh = list.length ? await pickNewest(list) : null;
-          if (!fh) continue;
-          let blob = await fh.getFile();
-          try {
-            const bm = await createImageBitmap(blob, { resizeHeight: 240, resizeQuality: 'medium' });
-            const cv = document.createElement('canvas'); cv.width = bm.width; cv.height = bm.height;
-            cv.getContext('2d').drawImage(bm, 0, 0); bm.close && bm.close();
-            blob = await new Promise(res => cv.toBlob(b => res(b || blob), 'image/webp', .82));
-          } catch (e) {}
-          if (gen !== this._libGen) return;
-          const u = URL.createObjectURL(blob);
-          l.urls.push(u); l.thumbs[it.name + '\u0001' + it.path.join('/')] = u;
-          if (++tick % 3 === 0) this.forceUpdate();
-        } catch (e) {}
-      }
-    };
-    await Promise.all([one(), one(), one(), one()]);
-    if (gen === this._libGen) this.forceUpdate();
-  }
-  async libOpen(it) {
-    if (!this.confirmDiscard()) return;
-    this.setState({ exportStatus: 'Opening ' + it.name + '…' });
-    try {
-      const file = await it.h.getFile();
-      // a local project's own folder becomes this tab's Source folder, as Open Session does
-      const F = window.providentFolder;
-      if (!it.h.drive && F && F.supported && F.adopt) { try { await F.adopt(it.dir); } catch (e) {} }
-      this.loadSessionFile(file);
-    } catch (e) {
-      if (e && e.gdAuth) return this.libSet({ st: 'ask', msg: e.message });
-      this.libSet({ msg: 'Could not open ' + it.name + ' — ' + ((e && e.message) || e) + '.' });
-      this.setState({ exportStatus: 'Ready.' });
-    }
-  }
+  // The source panel at the top of Component usage. Off screen it costs nothing.
   libVals(on) {
+    if (!on) return {};
     const l = this._lib || {}, m = l.mark || this.libMark();
-    // Off screen, only the sidebar's count is read. Building every card (up to LIB_MAX) on every
-    // render made each editor keystroke ~9 ms slower once a big folder had been listed.
-    if (!on) { const n = l.st === 'ok' ? (l.items || []).length : 0; return { libCount: l.st === 'ok' ? String(n) : '', libCountOn: n ? true : undefined }; }
-    const mine = this.sessionApp();
-    const NAME = { 'provident-ad-studio': 'Campaign', 'provident-smp-studio': 'Organic' };
-    const q = String(l.q || '').trim().toLowerCase();
-    const groups = [], byPath = {};
-    let shown = 0;
-    (l.items || []).forEach(it => {
-      const st = it.st || {}, stem = it.name.replace(/\.(adstudio|smpstudio)\.json$/i, '');
-      const title = String(st.campaign || st.customName || stem).trim() || stem;
-      const where = it.path.length ? it.path.join(' › ') : m ? m.name : '';
-      if (q && (title + ' ' + where + ' ' + it.name).toLowerCase().indexOf(q) < 0) return;
-      shown++;
-      const camp = it.app === 'provident-ad-studio';
-      const n = ((camp ? st.variants : st.slides) || []).length;
-      const what = !it.st ? 'Could not read its details'
-        : camp ? (st.adMode === 'carousel' ? 'Carousel · ' + n + ' page' + (n === 1 ? '' : 's') : n + ' variant' + (n === 1 ? '' : 's'))
-        : n + ' page' + (n === 1 ? '' : 's');
-      const when = it.ts ? StudioBase.hubWhen(new Date(it.ts).toISOString()) : '';
-      const other = it.app !== mine;
-      const u = (l.thumbs || {})[it.name + '\u0001' + it.path.join('/')];
-      const ar = camp ? 1 : .75;
-      const th = { width: 'calc(100% * ' + Math.min(1, .7 * ar).toFixed(4) + ')', aspectRatio: String(ar) };
-      if (u) th.backgroundImage = 'url(' + u + ')';
-      const v = {
-        title, meta: [when, what].filter(Boolean).join(' · '),
-        kind: camp ? 'campaign' : 'organic', kindLabel: NAME[it.app] || '', other: other ? '1' : undefined,
-        thumbs: [{ style: th, wait: u ? undefined : '1' }],
-        openLabel: other ? 'Open in ' + NAME[it.app] : 'Open',
-        tip: it.name + (other ? ' — opens in the ' + NAME[it.app] + ' studio' : '') + (it.h.drive ? '. Opens a copy; the file in Drive is not changed.' : '. Its folder becomes the Source folder.'),
-        open: () => this.libOpen(it)
-      };
-      const key = it.path.join('/');
-      if (!byPath[key]) { byPath[key] = { label: where || 'Top of the folder', items: [] }; groups.push(byPath[key]); }
-      byPath[key].items.push(v);
-    });
-    groups.forEach(g => { g.count = g.items.length + (g.items.length === 1 ? ' project' : ' projects'); });
     const st = l.st || (m ? 'ask' : 'none');
     const drive = m && m.kind === 'drive';
     const ago = l.at ? Math.round((Date.now() - l.at) / 60000) : null;
     const D = window.providentDrive;
-    if (on && D && D.clientId()) D.load().catch(() => {});      // warm it, so the click's popup is not blocked
-    const total = (l.items || []).length;
+    if (D && D.clientId()) D.load().catch(() => {});      // warm it, so the click's popup is not blocked
+    const items = l.items || [], counted = items.filter(it => it.uses).length, skipped = items.length - counted;
+    const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
     return {
-      libOn: on ? true : undefined,
-      libCount: st === 'ok' ? String(total) : '',
-      libCountOn: st === 'ok' && total ? true : undefined,
       libNoneOn: st === 'none' ? true : undefined,
       libSrcOn: st !== 'none' ? true : undefined,
       libAskOn: st === 'ask' ? true : undefined,
       libAskLabel: drive ? 'Sign in to Google' : 'Reconnect the folder',
-      libAskNote: drive ? 'Sign in with your Provident Google account to list “' + (m && m.name) + '”.'
+      libAskNote: drive ? 'Sign in with your Provident Google account to count the projects in “' + (m && m.name) + '”.'
         : 'The browser asks again after a restart before the studio may read “' + (m && m.name) + '”.',
       libSt: st === 'busy' ? 'busy' : st === 'bad' ? 'bad' : st === 'ok' ? 'ok' : 'idle',
-      libStLabel: st === 'busy' ? (l.found ? 'Found ' + l.found + '…' : 'Looking…') : st === 'bad' ? 'Not reachable' : st === 'ok' ? (drive ? 'Google Drive' : 'This computer') : (drive ? 'Google Drive' : 'This computer'),
-      libWhere: (m ? m.name : '') + (st === 'ok' && ago != null ? ' · ' + (ago < 1 ? 'updated just now' : 'updated ' + ago + ' min ago') : ''),
-      libBarNote: drive ? 'Opens a copy — the file in Drive is not changed.' : 'Opening a project makes its folder the Source folder.',
-      libGroups: groups,
+      libStLabel: st === 'busy' ? (l.read ? 'Reading ' + l.read + ' of ' + l.found + '…' : l.found ? 'Found ' + l.found + '…' : 'Looking…')
+        : st === 'bad' ? 'Not reachable' : (drive ? 'Google Drive' : 'This computer'),
+      libWhere: (m ? m.name : '') + (st === 'ok' ? ' · ' + plural(counted, 'project') + (skipped ? ' (' + skipped + ' could not be read)' : '')
+        + (ago != null ? ' · ' + (ago < 1 ? 'updated just now' : 'updated ' + ago + ' min ago') : '') : ''),
       libMsg: l.msg || '', libMsgOn: l.msg ? true : undefined,
-      libEmptyOn: st === 'ok' && !total ? true : undefined,
-      libNoMatchOn: st === 'ok' && total && !shown ? true : undefined,
-      libFindOn: st === 'ok' && total > 6 ? true : undefined,
-      libQ: l.q || '',
-      libFind: e => { (this._lib = this._lib || {}).q = e.target.value; this.forceUpdate(); },
       libLocalOk: typeof window.showDirectoryPicker === 'function' ? true : undefined,
       libLocalNo: typeof window.showDirectoryPicker === 'function' ? undefined : true,
-      libDriveOk: D && D.clientId() ? true : undefined,
       libPick: () => this.libPickLocal(),
       libGd: e => this.libUseDrive(e), libGdKey: e => this.libDriveKey(e),
       libConnect: () => this.libConnect(),
-      libRefresh: () => { const mm = this.libMark(); if (l.root && mm) this.libScan(l.root, mm); else this.libLoad(); },
-      libRefreshLabel: st === 'busy' ? 'Looking…' : 'Refresh',
+      libRefresh: () => { const mm = this.libMark(); if (l.root && mm) this.libScan(l.root, mm); else this.libLoad(true); },
+      libRefreshLabel: st === 'busy' ? 'Reading…' : 'Refresh',
       libChange: () => this.libForget()
     };
   }
