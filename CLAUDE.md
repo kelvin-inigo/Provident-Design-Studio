@@ -16233,6 +16233,11 @@ session, Recent and From the hub already open them) that cost a render pass on e
 
 # CAS REVIEWS: THREE ROLE LINKS AND A PROCESS (2026-10-26)
 
+> **SUPERSEDED THE SAME DAY: a review is an AD SET now, not one project** — see *A REVIEW IS AN
+> AD SET* at the end of this file. `sh:<id>:rv`, `rvmake/rvstep/rvset/rvinfo`, `liveDir`,
+> `rvGuard`, `rvApply` and the single-project stepper are gone; an old review migrates to an ad
+> set of one. The shNorm fix below and the "no re-export onto a live project" rule still hold.
+
 By request: a campaign goes **INITIAL DESIGN > COPY CHECK > DEPLOY CAMPAIGN** with three
 audiences — the **designer (DD)** with the full studio, the **content team (CT)** with the Copy
 view only, **performance marketing (PM)** with the Ad sets overview only. Decided with the
@@ -16335,3 +16340,78 @@ and all — the rule hiding `.cw-steps` / `.cw-acts` / `.p-cvcopy` under review 
   words and images get its width; the panel stays over `.as-ov` (z 211) and `.as-ov` gives it
   340px. `shTick` no longer hides the panel on the splash for pm/ct — their window covers it.
 - The CT top-bar hiding rules remain but only matter for a frame before the window opens.
+
+# A REVIEW IS AN AD SET: EVERY AUDIENCE AND LANGUAGE UNDER ONE SET OF LINKS (2026-10-26)
+
+By request: "the generated link should be for the ad set (family + investor + international +
+ENG + ARB…) — all under one link… designer does all audiences first, then translation… appended
+on the same link". Decided with the user: **sign-off is per audience**; each audience runs
+**DESIGN › ENG COPY CHECK › TRANSLATION › DONE**; the **designer adds the ARB project, the
+content team approves it**; **PM downloads per audience**; markets are **Local / International /
+International EUR**; audiences are **Family / Investor** for Residential and **Investor / Hybrid**
+for Commercial (Hybrid = an end user who rents but may convert to buying).
+
+## The server (`api/share.py`)
+
+- **`rs:<rid>`** (no expiry): `{rid, name, product, created, by, tok:{dd,ct,pm}, drive,
+  eng_only:{"<market>|<aud>":true}, items:[{sid, market, aud, lang, added, by, design, copy}],
+  hist}`, plus `rs:<rid>:log` and `rs:<rid>:thumb`. `rvt:<tok> -> {rid, role}`; each member
+  project has `sh:<sid>:rid` and keeps `sum` / `thumb`. ITEMS_MAX 40; one item per
+  market+aud+lang; a project is in at most one ad set; Campaign projects only.
+- **`resolve(id, p)`**: a 16-char token is an ad set link and acts on the project named by `p=`
+  (which must be a member); a project's own 12-char id gets role `dd` when it is in an ad set.
+  So every project op (`get/sync/rev/save/part/chunk`) works through a token with `p`, and PM's
+  `save`/`part` is 403. Responses carry `role` and `rs` (tokens only for `dd`).
+- Ops: `rsmake` (from a project's own id: name, product, market, aud, lang), `rsadd` (dd token,
+  `sid` + labels), `rsstep` (`p` + act; design-done/open dd only, copy-done ct only, copy-open ct
+  or dd — per PROJECT), `rsset` (dd: drive, name, eng_only, remove), `rsget` (one request for
+  every member's rev and log count; `full=1` adds the log, sums, thumbs), `rsinfo` (archive by dd
+  token or member sid; returns `dd` so an old entry re-keys; `full=1` adds every project's log).
+- **`migrate_old(sid)`**: a pre-ad-set `sh:<sid>:rv` becomes an ad set of one (Local, first
+  audience, ENG) the first time anything touches it; its old ct/pm tokens keep working.
+
+## The client (`share-link.js`)
+
+- **`rsAuds(rs)` is the one derivation** read by the panel, PM's bar and the archive: items
+  grouped by market|aud, the ENG and ARB item, and four steps — Design (`eng.design`), ENG copy
+  check (`eng.copy`), Translation (`eng_only`, or `arb.design && arb.copy`), Done. `rsOverall`
+  counts audiences per step; Package ready = every audience done.
+- **In a member project** (designer, own edit link) the Changes panel is **Ad set review**: this
+  project's audience stepper, its buttons (`itemActs`), "n of N audiences done", **Open the ad
+  set**, and the links + Drive under a fold. `S.rs`/`S.role` come back on every `rev`/`sync`
+  (`rsSet`, which also notifies steps others took).
+- **Share › Ad set review** (`reviewCreate` + `rsDialog`): start a new ad set (name, product) or
+  add this project to one this computer knows (`Arch`, by dd token), then market / audience /
+  language; shares the project first if needed.
+- **An ad set link (`#share=<16 chars>`) is `RsView`**, not the studio's own binding: it loads
+  every member's state (`get` with `p`), builds a stand-in folder (`root / Market / Audience[ ·
+  Arabic] / {<label>.adstudio.json, Variant X/<name>_Variant X_<job>.jpg}` — English sorts
+  first) and opens the Ad sets window on it (`asView({kind:'review', share: this})`). Images
+  render on `getFile` from that project's state with its own photos (`fetchRec(tok, e, sid)`).
+  Edit text writes go to `onJson` -> `merge3` onto the project, saved per project (`save` with
+  `p`), retried on 409. A 1s tick keeps the window and its mode (CT Edit text, PM Images),
+  rescans when a pull or a new project bumps `ver` and nobody is mid-edit; a 12s `rsget` poll
+  pulls changed projects. Resumed from `sessionStorage['provident-share:rs']`. OPS hands a token
+  to CAS (`goCas`).
+- **The panel** (over the window, z 211) shows the ad set stepper, the project on screen with
+  CT's buttons, every audience with its mini progress and per-language buttons; the designer
+  also gets each project's **Open** link, **No Arabic for this audience**, and the links. The log
+  merges the ad set's own log (steps, labelled by project) with every project's word changes.
+- **PM's bar** (`.rvh`): the stepper, one chip per audience with **Download** once done, and
+  **Download package / Download finished audiences** — flat zips of the scanned tiles, both
+  languages; CAS's own Download buttons are hidden for PM.
+- **Archive**: cards per ad set (`rsinfo`), detail page with Progress, **Audiences** (each
+  audience's stepper and its project buttons, which open the project's own link), Ad set links,
+  Activity, Details, Drive.
+
+## Verification (local share server)
+
+Three projects in three workspaces (Local Family ENG, Local Family ARB, Local Investor ENG) put
+in one ad set with real clicks; the CT link listed all three, a real typed heading change saved
+into the right project (logged "Local · Family · ENG · Ad copy · Heading"); Approve English
+copy, then the designer's link marked the Arabic laid out, the Investor design done and Investor
+"No Arabic"; CT approved the translation and Investor's copy and the set went Package ready;
+PM's bar showed both audiences done and **Download** for Local · Family zipped all eight
+ENG+ARB images under export names; the archive showed both audiences' steppers. Contrast 0
+failures over PM's bar and the panel (light). No console errors. **Not exercised against real
+Upstash/Vercel**, and the migration of an old review only ran in the Python harness.

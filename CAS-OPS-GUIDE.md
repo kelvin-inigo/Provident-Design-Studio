@@ -186,78 +186,87 @@ edits on the link: Edit text there says *Saved to the shared link · the origina
 changed*, and the files the link was made from keep their old words. Once shared, the button reads **Copy link**. An ad sets link opened in OPS
 moves to CAS.
 
-### Run a review: designer, content team, performance marketing (CAS)
+### Run an ad set review: designer, content team, performance marketing (CAS)
 
-A review takes one campaign through three steps: **Initial design › Copy check › Deploy
-campaign**. Three people work on it, and each has their own link and sees only what they need:
+A review covers a whole **ad set**: every project of one campaign, for each market, audience
+and language, under **one set of links**. The designer can start it with the first audience and
+add the others, and the Arabic versions, later. They all join the same links.
 
 | who | the link opens | they can |
 |---|---|---|
-| **Designer** | the full Campaign Studio | change anything, mark the design done, put it back in progress |
-| **Content team** | the words beside every image of the ad | change the words, approve the copy |
-| **Performance marketing** | the ad set overview only | see every variant and size, download the package |
+| **Designer** | the ad set's overview, with each project one click from the full studio | design, mark steps done, add projects, put work back in progress |
+| **Content team** | the words of every project beside its images | change the words, approve the English copy and the translation |
+| **Performance marketing** | every project's images, always the latest | download each audience when it's done |
 
-1. **Start it.** In the project, press **Share › Start a review**, type your name and press
-   **Make the review links**. If the project isn't shared yet, it's shared first. Copy each link
-   and send it to the right team. The three links are also kept in **Review links** on the home
-   page.
-2. **The content team** opens their link, types their name and lands on the ad's words: every
-   field on the left, and every image of every variant beside them, which update as they type.
-   There's no design control, project or Share button. Their edits reach the designer and
-   performance marketing within a few seconds. When the words are ready they press **Copy
-   approved** in the **Review** panel, which stays open on the right.
-3. **The designer** works as usual. In the **Review** panel, **Mark design done** says the design
-   is finished.
-4. **When the design is done and the copy is approved, the package is ready.** The order doesn't
-   matter. Performance marketing's view shows **Package ready**, the date it became ready, and a
-   **Download package** button.
-5. **Performance marketing** opens their link and sees only the ad set overview. A progress bar at
-   the top shows the three steps, who signed off and when, and the created and ready dates.
-   The images are rendered from the project as it is now, so they're always the latest. There's
-   nothing to export or re-send. **Download package** saves every Meta image (feed, Portrait
-   3:4, Story, Horizontal 1.91:1) in one zip, named the way an export names them. This link
-   can't change the project.
-6. **Changes after it's ready.** If something changes after the package is ready, performance
-   marketing's bar says how many changes there have been, with **See what changed**. To pull it back, the
-   designer presses **Back to in process** (or **Reopen copy check**), and the package stops
-   being ready until both sign-offs are given again. The content team can take their own
-   approval back with **Reopen copy check**.
+**Markets:** Local, International, International EUR. **Audiences:** for Residential, Family and
+Investor. For Commercial, Investor and Hybrid (an end user who rents but may buy a commercial
+space). **Languages:** English and Arabic.
 
-The **Review** panel (bottom right, or open on arrival for the content team) shows the steps,
-your role and your button. Below that is the log of who changed what, including every step. **Notify me in this browser**
-shows a system notification when someone else moves a step while the tab is in the background.
+Each **audience** (a market plus an audience, for example *Local · Family*) goes through four
+steps: **Design › ENG copy check › Translation › Done**.
+
+1. **Start the ad set.** Open the English project for the first audience and press **Share › Ad
+   set review**. Choose **Start a new ad set**, name it, pick **Residential** or **Commercial**, then
+   say what this project is (market, audience, language) and press **Make the ad set**. The
+   project is shared first if it isn't already. Send each team its link once. All three links
+   stay the same as the ad set grows.
+2. **Add the other projects** the same way, from each project: **Share › Ad set review › Add to
+   an ad set**, choose the ad set and say what the project is. Work audience by audience: design
+   every audience first, then add the Arabic versions.
+3. **Design.** In a project's **Ad set review** panel, **Mark design done** sends that audience to
+   the content team. **Back to in process** takes it back.
+4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
+   words are beside every image, which update as they type, and the designer sees the change
+   within seconds. **Approve English copy** in the panel signs it off.
+5. **Translation.** The designer adds the Arabic project for that audience, lays it out and presses
+   **Arabic laid out**. The content team checks it and presses **Approve translation**. If an
+   audience needs no Arabic, the designer ticks **No Arabic for this audience** and the step is
+   skipped.
+6. **Done.** An audience is done when its design, English copy and translation are signed off.
+   The ad set is **Package ready** when every audience is.
+7. **Performance marketing** opens their link. A bar at the top shows the ad set's progress and
+   one row per audience. Each finished audience has **Download**, which zips its English and Arabic
+   images, named the way an export names them. **Download package** (or **Download finished
+   audiences** before then) takes every finished audience. Images are rendered from the projects as
+   they are now. This link can't change anything.
+
+The **Ad set review** panel lists every audience, with its four steps and the buttons for your
+role. Below that is the log of who changed what in every project, including each step. Turn on
+**Notify me in this browser** to get a system notification when someone else moves a step while
+the tab is in the background.
 
 Things to know:
-- **No sign-in.** Whoever holds a link has its role, so send each link only to its team.
-  Performance marketing's link is view-only on the server too. The content team's link is
-  limited to the words by the studio.
+- **No sign-in.** Whoever holds a link has that role, so send each link only to its team.
+  The server refuses saves from performance marketing's link. The studio keeps the content team
+  to the words.
+- **Each project still has its own edit link.** That's the designer's way into the full studio for
+  that project (the **Open** buttons in the overview use it).
 - The designer keeps the full Copy workspace, with its own **Draft › With design › Final**
   hand-off and history, as before.
-- If the designer changes the design while the content team is typing, both are kept: the
+- If the designer changes a design while the content team is typing, both changes are kept: the
   content team's words go on top of the latest design.
-- Carousel pages appear in performance marketing's view as Variant A, B, C… in page order.
+- A review started before ad sets (one project) opens as an ad set of one, with its old links.
 
-### Review links: every review you started (CAS home page)
+### Review links: every ad set you worked on (CAS home page)
 
-On the home page, **Review links** (in the **Review** group) lists every review you started on
-this computer, or opened as the designer. **In progress** reviews are listed first, then
-**Package ready**. Each card shows the design, its status and the dates.
+On the home page, **Review links** (in the **Review** group) lists every ad set you started or
+added to on this computer, or opened as the designer. Ad sets still **In progress** come first,
+then **Package ready**.
 
-Open one to see its record. At the top: the design, its status, when it was made and last
-changed, **Drive folder** (once a Drive link is saved) and **Open in Campaign Studio** (opens the
-project in a new tab with your designer link). Below that:
-- **Progress:** the three steps, who signed off and when, and one line saying what has to
-  happen next.
-- **Review links:** one row per team with what their link does, and **Copy link**.
-- **Activity:** everything that happened, newest first.
-- On the right, **Details** (format, components, sizes, whether the project is still live) and
-  **Google Drive**: paste the project's folder link or path and press **Save**; it's kept with
-  the review, and the **Drive folder** button appears at the top.
+Open one to see its record:
+- **At the top:** the name, its product, its status, the dates, **Drive folder** (once a link is
+  saved) and **Open the ad set**.
+- **Progress:** the four steps, counted in audiences, and one line saying what is still waiting.
+- **Audiences:** each audience's own four steps, who signed off and when, and its English and
+  Arabic projects. Each project opens in the full studio.
+- **Ad set links:** one row per team, with **Copy link**.
+- **Activity:** every step and every word changed in every project, newest first.
+- **On the right:** **Details** and **Google Drive**.
 
-To add a review from another computer, paste its **designer** link into the box at the top.
-**Remove from this list** only removes it from this computer; the links keep working.
-A review's record (status, dates, log, links) is kept even after its project expires. The
-project itself still expires after 180 days unused.
+To add an ad set from another computer, paste its **designer** link into the box at the top.
+**Remove from this list** only removes it from this computer. The links keep working. The record
+(status, dates, log, links) is kept even after a project expires. A project still expires after
+180 days unused.
 
 ---
 

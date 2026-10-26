@@ -18,21 +18,12 @@ Keys, all under sh:<id>:
                    a Vercel function takes about 4.5 MB per request)
   log    list of change entries, newest last, capped at LOG_MAX
 
-A REVIEW (CAS, 2026-10-26) is a shared project with three roles. `rvmake` turns a link into
-one and hands back two more tokens; the project's own id stays the designer's (DD) link.
-  rv     {created, by, name, tok:{ct, pm}, design, copy, ready, drive, hist}  — no expiry:
-         it is the record the designer's Review links archive keeps
-  sum    a small summary the studio writes on save (campaign, variants, sizes) — no expiry
-  thumb  a small picture of the design — no expiry
-  rvt:<token>  {sid, role}: a 16-character token for the copy team (ct) or performance
-         marketing (pm). Every op takes a token wherever it takes an id; the token is
-         resolved here and the project's id is never sent back to a token's holder.
-A pm link is view-only: save and part are refused. Only dd marks the design done or reopens
-it; only ct (or dd, to reopen) marks the copy approved. While a review exists the log keeps
-too, so the archive can still show who did what after the project itself has expired.
+AD SET REVIEWS (CAS, 2026-10-26): every project of one campaign — each market x audience x
+language — under one record (`rs:<rid>`) and three role links (`rvt:<token>`). See the
+"ad set reviews" section below for the keys and the rules.
 
-Every request is /api/share?op=...  (create, part, save, get, rev, sync, chunk, rvmake,
-step, rvset, rvinfo).
+Every request is /api/share?op=...  (create, part, save, get, rev, sync, chunk; for ad sets
+rsmake, rsadd, rsget, rsstep, rsset, rsinfo).
 """
 import json
 import os
@@ -114,6 +105,8 @@ class Memory:
                 self.d[a[0]] = str(a[1]); return 'OK'
             if op in ('EXPIRE', 'PERSIST'):
                 return 1
+            if op == 'DEL':
+                return 1 if self.d.pop(a[0], None) is not None else 0
             if op == 'EXISTS':
                 return 1 if a[0] in self.d else 0
             if op == 'HGETALL':
@@ -173,8 +166,8 @@ class Memory:
 
 # A save is one atomic step: check the client saw the latest revision, write the state,
 # bump the revision, apply the photo map, and add (or, in the same burst of edits, replace)
-# the log entry. KEYS: rev state imgs log rv. ARGV: base state entry burst ttl logmax, then
-# slot/value pairs where an empty value removes the slot. A review's log never expires.
+# the log entry. KEYS: rev state imgs log rid. ARGV: base state entry burst ttl logmax, then
+# slot/value pairs where an empty value removes the slot. A project in an ad set keeps its log.
 SAVE_LUA = r"""
 local rev = tonumber(redis.call('GET', KEYS[1]) or '0')
 if tonumber(ARGV[1]) ~= rev then return {0, rev} end
@@ -238,7 +231,7 @@ def do_save(k, base, state, entry, burst, slots):
     s = store()
     if isinstance(s, Memory):
         return s.save(k, base, state, entry, burst, slots, TTL)
-    args = ['EVAL', SAVE_LUA, 5, k + 'rev', k + 'state', k + 'imgs', k + 'log', k + 'rv',
+    args = ['EVAL', SAVE_LUA, 5, k + 'rev', k + 'state', k + 'imgs', k + 'log', k + 'rid',
             base, state or '', entry or '', burst or '', TTL, LOG_MAX]
     for sl, v in slots:
         args += [sl, v or '']
@@ -318,16 +311,36 @@ def logs_of(raw):
     return out
 
 
-# ---------- reviews ----------
+# ---------- ad set reviews ----------
+#
+# A REVIEW is an AD SET: every project of one campaign (each market x audience x language) under
+# one record and three links. `rs:<rid>` holds it and never expires — it is the record the
+# designer's Review links archive keeps:
+#   {rid, name, product, created, by, tok:{dd, ct, pm}, drive, eng_only:{"<market>|<aud>": true},
+#    items:[{sid, market, aud, lang, added, by, design, copy}], hist}
+# `rs:<rid>:log` (no expiry) is the ad set's own log: steps and projects added. Each project keeps
+# its own share record and log (`sh:<sid>:*`); `sh:<sid>:rid` says which ad set it belongs to.
+# `rvt:<token>` -> {rid, role} for the designer (dd), the content team (ct) and performance
+# marketing (pm). A token's holder reaches a project's data only by naming it (`p=<sid>`) and only
+# when it is in that ad set. A project's own id is still a full edit link: in an ad set it is the
+# designer's link to that one project.
+#
+# Per item the designer marks the design done (on an ARB item: the Arabic laid out) and the
+# content team approves the copy (on ARB: the translation). The studio derives each audience's
+# Design > ENG copy check > Translation > Done from those; the server only stores them.
 
-TOK_LEN = 16               # a role token; a project's own id is 12 characters
+TOK_LEN = 16               # a role token; a project's own id and an ad set's id are 12
 ROLES = ('dd', 'ct', 'pm')
-HIST_MAX = 200
+HIST_MAX = 400
+ITEMS_MAX = 40
+PRODUCTS = {'residential': ('Family', 'Investor'), 'commercial': ('Investor', 'Hybrid')}
+MARKETS = ('Local', 'International', 'International EUR')
+LANGS = ('ENG', 'ARB')
 STEP = {   # act -> (who may, field, done?, what the log says)
-    'design-done': (('dd',), 'design', True, 'Marked the design done'),
-    'design-open': (('dd',), 'design', False, 'Put the design back in progress'),
-    'copy-done': (('ct',), 'copy', True, 'Approved the copy'),
-    'copy-open': (('ct', 'dd'), 'copy', False, 'Put the copy check back in progress'),
+    'design-done': (('dd',), 'design', True, None),
+    'design-open': (('dd',), 'design', False, None),
+    'copy-done': (('ct',), 'copy', True, None),
+    'copy-open': (('ct', 'dd'), 'copy', False, None),
 }
 
 
@@ -335,53 +348,93 @@ def new_tok(n):
     return ''.join(random.SystemRandom().choice(ID_CHARS) for _ in range(n))
 
 
-def resolve(raw):
-    """A link's id or a role token -> (project id, role or None). None means 'the project's own
-    id': dd when the project is under review, an ordinary edit link when it is not."""
-    t = clean_id(raw)
-    if len(t) != TOK_LEN:
-        return t, None
-    v = store().cmd('GET', 'rvt:' + t)
-    if not v:
-        raise Fail(404, 'This review link has expired or was never made.')
-    d = json.loads(v)
-    if d.get('role') not in ROLES or not d.get('sid'):
-        raise Fail(404, 'This review link is not valid.')
-    return clean_id(d['sid']), d['role']
-
-
-def role_of(role, rv):
-    return role or ('dd' if rv else 'edit')
-
-
-def rv_pub(rv, role):
-    """What a link's holder may see: the tokens only reach the designer."""
-    if not rv:
-        return None
-    out = {x: rv.get(x) for x in ('created', 'by', 'name', 'design', 'copy', 'ready', 'drive')}
-    out['hist'] = (rv.get('hist') or [])[-40:]
-    if role == 'dd':
-        out['tok'] = rv.get('tok')
-    return out
-
-
-def add_log(k, by, changes):
-    """Append one entry outside a save (a step change), numbered with the current revision."""
-    s = store()
-    ent = entry_json(by, changes, '')
-    if not ent:
-        return
-    rev = int(s.cmd('GET', k + 'rev') or 0)
-    ent = ent[:-1] + ',"rev":' + str(rev) + '}'
-    s.pipe([['RPUSH', k + 'log', ent], ['LTRIM', k + 'log', -LOG_MAX, -1]])
-
-
-def read_rv(k):
-    v = store().cmd('GET', k + 'rv')
+def read_json(key):
+    v = store().cmd('GET', key)
     try:
         return json.loads(v) if v else None
     except Exception:  # noqa: BLE001
         return None
+
+
+def put_rs(rs):
+    store().cmd('SET', 'rs:' + rs['rid'], json.dumps(rs, separators=(',', ':')))
+
+
+def item_label(it):
+    parts = [it.get('market') or '', it.get('aud') or '', it.get('lang') or '']
+    return ' · '.join(p for p in parts if p) or 'Project'
+
+
+def rs_log(rid, by, changes):
+    s = store()
+    ent = entry_json(by, changes, '')
+    if ent:
+        s.pipe([['RPUSH', 'rs:' + rid + ':log', ent[:-1] + ',"rev":0}'], ['LTRIM', 'rs:' + rid + ':log', -LOG_MAX, -1]])
+
+
+def migrate_old(sid):
+    """A review made before ad sets (2026-10-26 morning) lived on one project as `sh:<sid>:rv`
+    with tokens pointing at that project. It becomes an ad set of one, unlabelled; its two
+    tokens keep working."""
+    s = store()
+    rid = s.cmd('GET', 'sh:' + sid + ':rid')
+    if rid:
+        return rid
+    old = read_json('sh:' + sid + ':rv')
+    if not old:
+        return None
+    rid = new_tok(12)
+    tok = dict(old.get('tok') or {})
+    tok['dd'] = new_tok(TOK_LEN)
+    rs = {'rid': rid, 'name': old.get('name') or '', 'product': '', 'created': old.get('created') or int(time.time() * 1000),
+          'by': old.get('by') or '', 'tok': tok, 'drive': old.get('drive') or '', 'eng_only': {},
+          'items': [{'sid': sid, 'market': '', 'aud': '', 'lang': 'ENG', 'added': old.get('created'), 'by': old.get('by') or '',
+                     'design': old.get('design'), 'copy': old.get('copy')}],
+          'hist': old.get('hist') or []}
+    cmds = [['SET', 'rvt:' + t, json.dumps({'rid': rid, 'role': r})] for r, t in tok.items() if t]
+    cmds += [['SET', 'rs:' + rid, json.dumps(rs, separators=(',', ':'))], ['SET', 'sh:' + sid + ':rid', rid]]
+    th = s.cmd('GET', 'sh:' + sid + ':thumb')
+    if th:
+        cmds.append(['SET', 'rs:' + rid + ':thumb', th])
+    s.pipe(cmds)
+    return rid
+
+
+def resolve(raw, p=None):
+    """(id, p) -> (project id or None, role, ad set or None).
+    A token is an ad set link: the project is the one named by `p`, which must be in it. A
+    project's own id is an edit link: 'dd' when the project is in an ad set, else None."""
+    t = clean_id(raw)
+    s = store()
+    if len(t) == TOK_LEN:
+        v = s.cmd('GET', 'rvt:' + t)
+        if not v:
+            raise Fail(404, 'This review link has expired or was never made.')
+        d = json.loads(v)
+        if d.get('sid') and not d.get('rid'):          # a token from before ad sets
+            d = {'rid': migrate_old(clean_id(d['sid'])), 'role': d.get('role')}
+        rs = read_json('rs:' + str(d.get('rid') or ''))
+        if not rs or d.get('role') not in ROLES:
+            raise Fail(404, 'This review link is not valid.')
+        sid = None
+        if p:
+            sid = clean_id(p)
+            if not any(it['sid'] == sid for it in rs['items']):
+                raise Fail(404, 'That project is not in this ad set.')
+        return sid, d['role'], rs
+    rid = s.cmd('GET', 'sh:' + t + ':rid') or (migrate_old(t) if s.cmd('EXISTS', 'sh:' + t + ':rv') else None)
+    rs = read_json('rs:' + rid) if rid else None
+    return t, ('dd' if rs else None), rs
+
+
+def rs_pub(rs, role):
+    if not rs:
+        return None
+    out = {x: rs.get(x) for x in ('rid', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items')}
+    out['hist'] = (rs.get('hist') or [])[-60:]
+    if role == 'dd':
+        out['tok'] = rs.get('tok')
+    return out
 
 
 def clean_sum(d):
@@ -397,110 +450,212 @@ def clean_sum(d):
     return out
 
 
-def rv_make(sid, role, k, d):
-    """Turn a shared project into a review. Only the project's own id can do this (never a
-    token), and doing it again hands back the same tokens."""
+def clean_labels(d, rs):
+    product = str(rs.get('product') or d.get('product') or '').lower()
+    market = str(d.get('market') or '')
+    aud = str(d.get('aud') or '')
+    lang = str(d.get('lang') or '')
+    if market not in MARKETS:
+        raise Fail(400, 'Choose a market.')
+    if product in PRODUCTS and aud not in PRODUCTS[product]:
+        raise Fail(400, 'Choose an audience.')
+    if lang not in LANGS:
+        raise Fail(400, 'Choose a language.')
+    return market, aud, lang
+
+
+def thumb_of(d):
+    t = d.get('thumb')
+    return t if isinstance(t, str) and t.startswith('data:image/') and len(t) < 120000 else None
+
+
+def new_item(s, sid, market, aud, lang, by, rs):
+    if any(it['sid'] == sid for it in rs['items']):
+        raise Fail(400, 'This project is already in the ad set.')
+    if any(it['market'] == market and it['aud'] == aud and it['lang'] == lang for it in rs['items']):
+        raise Fail(400, market + ' · ' + aud + ' · ' + lang + ' is already in the ad set.')
+    if len(rs['items']) >= ITEMS_MAX:
+        raise Fail(400, 'An ad set holds up to %d projects.' % ITEMS_MAX)
+    return {'sid': sid, 'market': market, 'aud': aud, 'lang': lang, 'added': int(time.time() * 1000), 'by': by, 'design': None, 'copy': None}
+
+
+def project_ok(s, sid):
+    k = 'sh:' + sid + ':'
+    meta = read_json(k + 'meta')
+    if not meta:
+        raise Fail(404, 'This project is not shared yet.')
+    if meta.get('app') != 'provident-ad-studio':
+        raise Fail(400, 'Ad set reviews are for Campaign projects.')
+    if s.cmd('GET', k + 'rid') or s.cmd('EXISTS', k + 'rv'):
+        raise Fail(400, 'This project is already in an ad set review.')
+    return meta
+
+
+def rs_make(sid, d):
+    """Start an ad set from a shared project: its labels, the ad set's name and product."""
     s = store()
-    if role is not None:
-        raise Fail(403, 'Only the designer’s link can start a review.')
-    need(k)
-    rv = read_rv(k)
     by = who(d.get('by'))
-    if not rv:
-        meta = json.loads(s.cmd('GET', k + 'meta') or '{}')
-        if meta.get('app') != 'provident-ad-studio':
-            raise Fail(400, 'Reviews are for Campaign projects.')
-        tok = {r: new_tok(TOK_LEN) for r in ('ct', 'pm')}
-        now = int(time.time() * 1000)
-        rv = {'created': now, 'by': by, 'name': meta.get('name') or '', 'tok': tok,
-              'design': None, 'copy': None, 'ready': None, 'drive': '',
-              'hist': [{'act': 'start', 'by': by, 'at': now}]}
-        cmds = [['SET', 'rvt:' + tok[r], json.dumps({'sid': sid, 'role': r})] for r in tok]
-        cmds += [['SET', k + 'rv', json.dumps(rv, separators=(',', ':'))], ['PERSIST', k + 'meta'], ['PERSIST', k + 'log']]
-        s.pipe(cmds)
-        add_log(k, by, [{'kind': 'step', 'text': 'Started a review'}])
+    product = str(d.get('product') or '').lower()
+    if product not in PRODUCTS:
+        raise Fail(400, 'Choose Residential or Commercial.')
+    meta = project_ok(s, sid)
+    rid = new_tok(12)
+    rs = {'rid': rid, 'name': str(d.get('name') or meta.get('name') or 'Ad set')[:120], 'product': product,
+          'created': int(time.time() * 1000), 'by': by, 'tok': {r: new_tok(TOK_LEN) for r in ROLES}, 'drive': '', 'eng_only': {},
+          'items': [], 'hist': []}
+    market, aud, lang = clean_labels(d, rs)
+    it = new_item(s, sid, market, aud, lang, by, rs)
+    rs['items'].append(it)
+    rs['hist'].append({'act': 'start', 'by': by, 'at': it['added'], 'sid': sid})
+    cmds = [['SET', 'rvt:' + t, json.dumps({'rid': rid, 'role': r})] for r, t in rs['tok'].items()]
+    cmds += [['SET', 'rs:' + rid, json.dumps(rs, separators=(',', ':'))], ['SET', 'sh:' + sid + ':rid', rid],
+             ['PERSIST', 'sh:' + sid + ':meta'], ['PERSIST', 'sh:' + sid + ':log']]
     if isinstance(d.get('sum'), dict):
-        s.cmd('SET', k + 'sum', json.dumps(clean_sum(d['sum']), separators=(',', ':')))
-    if isinstance(d.get('thumb'), str) and d['thumb'].startswith('data:image/') and len(d['thumb']) < 120000:
-        s.cmd('SET', k + 'thumb', d['thumb'])
-    return ok({'rv': rv_pub(rv, 'dd')})
+        cmds.append(['SET', 'sh:' + sid + ':sum', json.dumps(clean_sum(d['sum']), separators=(',', ':'))])
+    th = thumb_of(d)
+    if th:
+        cmds += [['SET', 'rs:' + rid + ':thumb', th], ['SET', 'sh:' + sid + ':thumb', th]]
+    s.pipe(cmds)
+    rs_log(rid, by, [{'kind': 'step', 'text': 'Started the ad set with ' + item_label(it)}])
+    return ok({'rs': rs_pub(rs, 'dd')})
 
 
-def rv_step(role, k, d):
+def rs_add(role, rs, d):
+    """The designer adds a shared project to the ad set (a new audience, or the Arabic version)."""
+    if role != 'dd':
+        raise Fail(403, 'Only the designer adds projects to an ad set.')
+    s = store()
+    sid = clean_id(d.get('sid'))
+    project_ok(s, sid)
+    by = who(d.get('by'))
+    market, aud, lang = clean_labels(d, rs)
+    it = new_item(s, sid, market, aud, lang, by, rs)
+    rs['items'].append(it)
+    rs['hist'] = (rs.get('hist') or [])[-HIST_MAX + 1:] + [{'act': 'add', 'by': by, 'at': it['added'], 'sid': sid}]
+    put_rs(rs)
+    cmds = [['SET', 'sh:' + sid + ':rid', rs['rid']], ['PERSIST', 'sh:' + sid + ':meta'], ['PERSIST', 'sh:' + sid + ':log']]
+    if isinstance(d.get('sum'), dict):
+        cmds.append(['SET', 'sh:' + sid + ':sum', json.dumps(clean_sum(d['sum']), separators=(',', ':'))])
+    th = thumb_of(d)
+    if th:
+        cmds.append(['SET', 'sh:' + sid + ':thumb', th])
+    s.pipe(cmds)
+    rs_log(rs['rid'], by, [{'kind': 'step', 'text': 'Added ' + item_label(it)}])
+    return ok({'rs': rs_pub(rs, 'dd')})
+
+
+def rs_step(sid, role, rs, d):
     act = str(d.get('act') or '')
     if act not in STEP:
         raise Fail(400, 'Unknown step.')
-    rv = read_rv(k)
-    if not rv:
-        raise Fail(404, 'This project is not under review.')
-    ro = role_of(role, rv)
-    may, field, done, text = STEP[act]
-    if ro not in may:
+    if not rs:
+        raise Fail(404, 'This project is not in an ad set review.')
+    sid = clean_id(d.get('p')) if d.get('p') else sid
+    it = next((x for x in rs['items'] if x['sid'] == sid), None)
+    if not it:
+        raise Fail(404, 'That project is not in this ad set.')
+    may, field, done, _ = STEP[act]
+    if role not in may:
         raise Fail(403, 'Your link cannot change that step.')
     by, now = who(d.get('by')), int(time.time() * 1000)
-    rv[field] = {'by': by, 'at': now} if done else None
-    if rv.get('design') and rv.get('copy'):
-        rv['ready'] = rv.get('ready') or now
-        text2 = 'The ad set package is ready'
-    else:
-        text2 = '' if not rv.get('ready') else 'The package is back in progress'
-        rv['ready'] = None
-    rv['hist'] = ((rv.get('hist') or []) + [{'act': act, 'by': by, 'at': now}])[-HIST_MAX:]
-    store().cmd('SET', k + 'rv', json.dumps(rv, separators=(',', ':')))
-    add_log(k, by, [{'kind': 'step', 'text': text}] + ([{'kind': 'step', 'text': text2}] if text2 else []))
-    if isinstance(d.get('thumb'), str) and d['thumb'].startswith('data:image/') and len(d['thumb']) < 120000:
-        store().cmd('SET', k + 'thumb', d['thumb'])
-    return ok({'rv': rv_pub(rv, ro)})
+    it[field] = {'by': by, 'at': now} if done else None
+    rs['hist'] = (rs.get('hist') or [])[-HIST_MAX + 1:] + [{'act': act, 'by': by, 'at': now, 'sid': sid}]
+    put_rs(rs)
+    arb = it.get('lang') == 'ARB'
+    text = {('design', True): 'Arabic laid out, ready for the translation check' if arb else 'Marked the design done',
+            ('design', False): 'Put the Arabic back in progress' if arb else 'Put the design back in progress',
+            ('copy', True): 'Approved the translation' if arb else 'Approved the English copy',
+            ('copy', False): 'Reopened the translation check' if arb else 'Reopened the copy check'}[(field, done)]
+    rs_log(rs['rid'], by, [{'kind': 'step', 'page': item_label(it), 'text': text}])
+    th = thumb_of(d)
+    if th:
+        store().pipe([['SET', 'sh:' + sid + ':thumb', th], ['SET', 'rs:' + rs['rid'] + ':thumb', th]])
+    return ok({'rs': rs_pub(rs, role)})
 
 
-def rv_set(role, k, d):
-    rv = read_rv(k)
-    if not rv:
-        raise Fail(404, 'This project is not under review.')
-    ro = role_of(role, rv)
-    if ro == 'pm':
-        raise Fail(403, 'Your link cannot change the review.')
+def rs_set(role, rs, d):
+    if not rs:
+        raise Fail(404, 'This project is not in an ad set review.')
+    if role != 'dd':
+        raise Fail(403, 'Only the designer changes the ad set.')
     if 'drive' in d:
-        if ro != 'dd':
-            raise Fail(403, 'Only the designer sets where the project is kept.')
-        rv['drive'] = str(d.get('drive') or '')[:400]
-        store().cmd('SET', k + 'rv', json.dumps(rv, separators=(',', ':')))
-    if isinstance(d.get('sum'), dict):
-        store().cmd('SET', k + 'sum', json.dumps(clean_sum(d['sum']), separators=(',', ':')))
-    if isinstance(d.get('thumb'), str) and d['thumb'].startswith('data:image/') and len(d['thumb']) < 120000:
-        store().cmd('SET', k + 'thumb', d['thumb'])
-    return ok({'rv': rv_pub(rv, ro)})
+        rs['drive'] = str(d.get('drive') or '')[:400]
+    if 'name' in d and str(d.get('name') or '').strip():
+        rs['name'] = str(d['name']).strip()[:120]
+    if isinstance(d.get('eng_only'), dict):
+        eo = rs.setdefault('eng_only', {})
+        for k, v in list(d['eng_only'].items())[:40]:
+            k = str(k)[:80]
+            if v:
+                eo[k] = True
+            else:
+                eo.pop(k, None)
+    if d.get('remove'):
+        sid = clean_id(d['remove'])
+        rs['items'] = [x for x in rs['items'] if x['sid'] != sid]
+        store().cmd('DEL', 'sh:' + sid + ':rid')
+    put_rs(rs)
+    return ok({'rs': rs_pub(rs, role)})
 
 
-def rv_info(q):
-    """The designer's archive: a summary per review, by the projects' own ids (never tokens).
-    Looking at a review keeps its project alive for another TTL. One id with full=1 also
-    returns the log."""
+def rs_get(role, rs, q):
+    """An ad set and where each of its projects is: its revision and log count, so a client
+    polls ONE request for all of them. full=1 adds the ad set's log and each project's summary."""
+    s = store()
+    items = rs['items']
+    res = s.pipe([['GET', 'sh:' + it['sid'] + ':rev'] for it in items] + [['LLEN', 'sh:' + it['sid'] + ':log'] for it in items]) if items else []
+    n = len(items)
+    proj = {it['sid']: {'rev': int(res[i]) if res[i] is not None else None, 'n': int(res[n + i] or 0)} for i, it in enumerate(items)}
+    out = {'role': role, 'rs': rs_pub(rs, role), 'proj': proj, 'ln': int(s.cmd('LLEN', 'rs:' + rs['rid'] + ':log') or 0)}
+    if q.get('full') == '1':
+        ln = out['ln']
+        out['log'] = logs_of(s.cmd('LRANGE', 'rs:' + rs['rid'] + ':log', max(0, ln - 300), -1)) if ln else []
+        if items:
+            sums = s.pipe([['GET', 'sh:' + it['sid'] + ':sum'] for it in items] + [['GET', 'sh:' + it['sid'] + ':thumb'] for it in items])
+            for i, it in enumerate(items):
+                proj[it['sid']]['sum'] = json.loads(sums[i]) if sums[i] else {}
+                proj[it['sid']]['thumb'] = sums[n + i] or ''
+    return ok(out)
+
+
+def rs_info(q):
+    """The designer's archive: one summary per ad set, by its designer token or by any of its
+    projects' own ids (which is how a review made before ad sets is found). Looking keeps every
+    project alive for another TTL. One id with full=1 also returns the logs."""
     s = store()
     ids = [x for x in str(q.get('ids') or '').split(',') if x][:60]
     full = q.get('full') == '1' and len(ids) == 1
     out = []
     for raw in ids:
         try:
-            sid = clean_id(raw)
+            sid, role, rs = resolve(raw)
         except Fail:
+            out.append({'id': raw, 'gone': True})
             continue
-        if len(sid) == TOK_LEN:
+        if role != 'dd' or not rs:
+            out.append({'id': raw, 'gone': True})
             continue
-        k = 'sh:' + sid + ':'
-        meta, rv, sm, th, rev, n = s.pipe([['GET', k + 'meta'], ['GET', k + 'rv'], ['GET', k + 'sum'], ['GET', k + 'thumb'],
-                                            ['GET', k + 'rev'], ['LLEN', k + 'log']])
-        if not rv:
-            out.append({'id': sid, 'gone': True})
-            continue
-        e = {'id': sid, 'meta': json.loads(meta or '{}'), 'rv': rv_pub(json.loads(rv), 'dd'), 'sum': json.loads(sm) if sm else {},
-             'thumb': th or '', 'live': rev is not None, 'n': int(n or 0)}
-        if rev is not None:
-            s.pipe([['EXPIRE', k + x, TTL] for x in ('state', 'rev', 'imgs')])
+        items = rs['items']
+        e = {'id': raw, 'dd': rs['tok'].get('dd'), 'rs': rs_pub(rs, 'dd'), 'thumb': s.cmd('GET', 'rs:' + rs['rid'] + ':thumb') or ''}
+        if items:
+            live = s.pipe([['EXISTS', 'sh:' + it['sid'] + ':rev'] for it in items])
+            e['live'] = {it['sid']: bool(live[i]) for i, it in enumerate(items)}
+            s.pipe([['EXPIRE', 'sh:' + it['sid'] + ':' + x, TTL] for it in items if e['live'][it['sid']] for x in ('state', 'rev', 'imgs')] or [['GET', 'x']])
         if full:
-            n = int(n or 0)
-            e['log'] = logs_of(s.cmd('LRANGE', k + 'log', max(0, n - 300), -1))
-            e['rv']['hist'] = json.loads(rv).get('hist') or []
+            ln = int(s.cmd('LLEN', 'rs:' + rs['rid'] + ':log') or 0)
+            e['log'] = logs_of(s.cmd('LRANGE', 'rs:' + rs['rid'] + ':log', max(0, ln - 300), -1)) if ln else []
+            e['rs']['hist'] = rs.get('hist') or []
+            plog, sums = [], {}
+            for it in items:
+                k = 'sh:' + it['sid'] + ':'
+                n = int(s.cmd('LLEN', k + 'log') or 0)
+                for x in logs_of(s.cmd('LRANGE', k + 'log', max(0, n - 100), -1) if n else []):
+                    x['page'] = item_label(it)
+                    plog.append(x)
+                sm, th = s.pipe([['GET', k + 'sum'], ['GET', k + 'thumb']])
+                sums[it['sid']] = {'sum': json.loads(sm) if sm else {}, 'thumb': th or ''}
+            e['plog'] = plog
+            e['proj'] = sums
         out.append(e)
     return ok({'items': out})
 
@@ -534,18 +689,31 @@ def route(method, query, body):
             else:
                 s.pipe([['RPUSH', k + 'log', ent], ['EXPIRE', k + 'log', TTL]])
             return ok({'id': sid, 'rev': 1})
-        if method == 'GET' and op == 'rvinfo':
-            return rv_info(q)
-        sid, role = resolve(q.get('id'))
+        if method == 'GET' and op == 'rsinfo':
+            return rs_info(q)
+        sid, role, rs = resolve(q.get('id'), q.get('p'))
+        if method == 'POST' and op == 'rsmake':
+            if role is not None or not sid:
+                raise Fail(403, 'Start an ad set from the project itself.')
+            return rs_make(sid, json.loads(body or b'{}'))
+        if op in ('rsget', 'rsadd', 'rsstep', 'rsset'):
+            if not rs:
+                raise Fail(404, 'This project is not in an ad set review.')
+            if method == 'GET' and op == 'rsget':
+                return rs_get(role, rs, q)
+            d = json.loads(body or b'{}')
+            if method == 'POST' and op == 'rsadd':
+                return rs_add(role, rs, d)
+            if method == 'POST' and op == 'rsstep':
+                return rs_step(sid, role, rs, d)
+            if method == 'POST' and op == 'rsset':
+                return rs_set(role, rs, d)
+        if not sid:
+            raise Fail(400, 'Name the project (p=) — this is an ad set link.')
         k = 'sh:' + sid + ':'
         if method == 'POST' and op in ('part', 'save') and role == 'pm':
             raise Fail(403, 'This link is for viewing the ad sets — it cannot change the project.')
-        if method == 'POST' and op == 'rvmake':
-            return rv_make(sid, role, k, json.loads(body or b'{}'))
-        if method == 'POST' and op == 'step':
-            return rv_step(role, k, json.loads(body or b'{}'))
-        if method == 'POST' and op == 'rvset':
-            return rv_set(role, k, json.loads(body or b'{}'))
+        pub = rs_pub(rs, role)
         if method == 'POST' and op == 'part':
             h, i, n = clean_hash(q.get('h')), int(q.get('i', '-1')), int(q.get('n', '0'))
             if not (0 <= i < n <= 400):
@@ -575,41 +743,36 @@ def route(method, query, body):
                         str(d.get('burst') or '')[:24], slots)
             if not r or int(r[0]) != 1:
                 return 409, 'application/json', json.dumps({'error': 'stale', 'rev': int(r[1]) if r else 0}).encode()
-            # a review's summary follows the project, for the archive
-            if isinstance(d.get('sum'), dict) and s.cmd('EXISTS', k + 'rv'):
+            # an ad set's project keeps a small summary for the archive
+            if rs and isinstance(d.get('sum'), dict):
                 s.cmd('SET', k + 'sum', json.dumps(clean_sum(d['sum']), separators=(',', ':')))
             return ok({'rev': int(r[1])})
         if method == 'GET' and op == 'rev':
-            rev, n, rv = s.pipe([['GET', k + 'rev'], ['LLEN', k + 'log'], ['GET', k + 'rv']])
+            rev, n = s.pipe([['GET', k + 'rev'], ['LLEN', k + 'log']])
             if rev is None:
                 raise Fail(404, 'This shared link has expired or was never made.')
-            rv = json.loads(rv) if rv else None
-            return ok({'rev': int(rev), 'n': int(n or 0), 'role': role_of(role, rv), 'rv': rv_pub(rv, role_of(role, rv))})
+            return ok({'rev': int(rev), 'n': int(n or 0), 'role': role, 'rs': pub})
         if method == 'GET' and op == 'get':
-            meta, state, rev, imgs, n, rv = s.pipe([['GET', k + 'meta'], ['GET', k + 'state'], ['GET', k + 'rev'],
-                                                     ['HGETALL', k + 'imgs'], ['LLEN', k + 'log'], ['GET', k + 'rv']])
-            rv = json.loads(rv) if rv else None
-            ro = role_of(role, rv)
+            meta, state, rev, imgs, n = s.pipe([['GET', k + 'meta'], ['GET', k + 'state'], ['GET', k + 'rev'],
+                                                 ['HGETALL', k + 'imgs'], ['LLEN', k + 'log']])
             if rev is None or state is None:
                 raise Fail(404, 'This shared link has expired or was never made.')
             n = int(n or 0)
             log = s.cmd('LRANGE', k + 'log', max(0, n - 200), -1)
             # Opening the link counts as use: keep it alive for another TTL.
-            s.pipe([['EXPIRE', k + x, TTL] for x in (('state', 'rev', 'imgs') if rv else ('meta', 'state', 'rev', 'imgs', 'log'))])
+            s.pipe([['EXPIRE', k + x, TTL] for x in (('state', 'rev', 'imgs') if rs else ('meta', 'state', 'rev', 'imgs', 'log'))])
             return ok({'meta': json.loads(meta or '{}'), 'state': json.loads(state), 'rev': int(rev),
-                       'imgs': imgs_of(imgs), 'log': logs_of(log), 'from': max(0, n - 200), 'n': n,
-                       'role': ro, 'rv': rv_pub(rv, ro)})
+                       'imgs': imgs_of(imgs), 'log': logs_of(log), 'from': max(0, n - 200), 'n': n, 'role': role, 'rs': pub})
         if method == 'GET' and op == 'sync':
             # what the client needs after another tab saved: state, photo map, log from `from`
-            state, rev, imgs, n, rv = s.pipe([['GET', k + 'state'], ['GET', k + 'rev'], ['HGETALL', k + 'imgs'], ['LLEN', k + 'log'], ['GET', k + 'rv']])
-            rv = json.loads(rv) if rv else None
+            state, rev, imgs, n = s.pipe([['GET', k + 'state'], ['GET', k + 'rev'], ['HGETALL', k + 'imgs'], ['LLEN', k + 'log']])
             if rev is None or state is None:
                 raise Fail(404, 'This shared link has expired or was never made.')
             n, frm = int(n or 0), max(0, int(q.get('from', '0')))
             frm = min(frm, n)
             log = s.cmd('LRANGE', k + 'log', frm, -1) if frm < n else []
             return ok({'state': json.loads(state), 'rev': int(rev), 'imgs': imgs_of(imgs), 'log': logs_of(log), 'from': frm, 'n': n,
-                       'role': role_of(role, rv), 'rv': rv_pub(rv, role_of(role, rv))})
+                       'role': role, 'rs': pub})
         if method == 'GET' and op == 'chunk':
             h, i = clean_hash(q.get('h')), int(q.get('i', '-1'))
             v = s.cmd('GET', k + 'img:' + h + ':' + str(i))
