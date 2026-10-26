@@ -16484,3 +16484,25 @@ since 23 Oct, and the origin held **98 workspaces**.
 Verified locally: a 4 MB list became 8 KB with the photo intact; a new workspace opening the
 project from Recent got its folder and photo back, by `dir:` and by `recall`; a new campaign
 had no folder; OPS boots clean.
+
+# THE CONTENT HUB IS OPS ONLY (2026-10-26)
+
+By request ("all CH endpoint related is for OPS only"). CAS has no Send, no Import hub fold, no
+From the hub sidebar row or view: its `sendExport` / `epCfg` / `epSet` / `epFit` / `epPost` /
+`deliver` override and the `ep*` render keys are DELETED, and a stored `splashView: 'hub'` lands
+on All. `StudioBase.hubVals` / `hubCfg` stay shared code, read by OPS alone; CAS's normState still
+keeps a `hubCardId` (harmless, unread). OPS's Save also sends a hub-linked project
+(`autoSendAfterSave`; off with `localStorage['ops-save-sends'] = 'off'`), and each studio moves a
+stored `localhost` endpoint to the office hub `http://192.168.50.30:8090/api/imports` once
+(`provident-ep-office:<key>`). Sections above that describe CAS's Send or From the hub are history.
+
+**Follow-up the same day, found on the live site: the read itself was failing.** In the user's
+Chrome `providentRuntime.get` answered `undefined` in 3 ms for BOTH recents lists while a fresh
+connection read the 210 MB value fine, so the runtime's cached connection was dead. And
+`loadRecents` took a failed read for "no list" and fell back to an old 19-card copy in
+`adstudio-recents` with no `saved` flags, which is the empty Recent the user saw (the fallback
+writer had also been dropping `saved` and `pid`). Now: a failed IndexedDB request drops the
+cached connection and retries once on a fresh one (`drop`, `getOnce`, `setOnce` in runtime.js;
+`onclose` / `onversionchange` clear the cache); `providentRuntime.getStrict` REJECTS on a real
+failure; `loadRecents` never falls back to the legacy copy after a failure (`_recFail`), and
+`recordSaved` then does not write, so a tab's partial copy cannot replace the real list.

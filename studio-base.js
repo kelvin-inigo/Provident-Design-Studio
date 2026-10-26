@@ -454,7 +454,13 @@ class StudioBase {
     // since this one loaded it — writing the cached copy would drop that tab's card.
     let rec = this.readRecents();
     const rt = window.providentRuntime;
-    if (rt && rt.get) { try { const raw = await rt.get(this.recentsKey()); if (raw) rec = JSON.parse(raw) || rec; } catch (e) {} }
+    if (rt && rt.get) {
+      try { const raw = await (rt.getStrict || rt.get)(this.recentsKey()); if (raw) rec = JSON.parse(raw) || rec; }
+      catch (e) {
+        // The stored list could not be read: writing now would replace it with this tab's copy.
+        if (this._recFail) { console.warn('[provident] recents unreadable; this save is not added to Recent', e); return; }
+      }
+    }
     const next = [entry].concat(rec.filter(r => r && r.saved && r.pid !== pid)).slice(0, StudioBase.RECENT_MAX)
       .concat(rec.filter(r => r && !r.saved));
     await this.writeRecents(next);
@@ -463,8 +469,14 @@ class StudioBase {
   async loadRecents() {
     let rec = null;
     const rt = window.providentRuntime;
-    if (rt && rt.get) { try { const raw = await rt.get(this.recentsKey()); if (raw) rec = JSON.parse(raw); } catch (e) {} }
-    if (!rec) {
+    this._recFail = false;
+    if (rt && rt.get) {
+      // A read that FAILED is not an empty list: falling back to the old localStorage copy
+      // here is what showed an empty Recent and then wrote that copy over the real one.
+      try { const raw = await (rt.getStrict || rt.get)(this.recentsKey()); if (raw) rec = JSON.parse(raw); }
+      catch (e) { this._recFail = true; console.warn('[provident] recents could not be read', e); }
+    }
+    if (!rec && !this._recFail) {
       // one-time migration from whatever localStorage still holds
       try { rec = JSON.parse(localStorage.getItem(this.legacyRecentsKey())) || null; } catch (e) {}
       if (rec && rec.length) await this.writeRecents(rec);
@@ -517,7 +529,7 @@ class StudioBase {
     // No IndexedDB: keep the metadata rather than lose the list entirely.
     try { localStorage.setItem(this.legacyRecentsKey(), JSON.stringify(rec)); return true; }
     catch (e) {
-      try { localStorage.setItem(this.legacyRecentsKey(), JSON.stringify(rec.map(r => ({ name: r.name, ts: r.ts, state: r.state, thumbs: r.thumbs })))); } catch (e2) {}
+      try { localStorage.setItem(this.legacyRecentsKey(), JSON.stringify(rec.map(r => ({ name: r.name, ts: r.ts, state: r.state, thumbs: r.thumbs, saved: r.saved, pid: r.pid })))); } catch (e2) {}
       return false;
     }
   }

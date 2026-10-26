@@ -401,8 +401,13 @@
         q.onupgradeneeded = function () {
           if (!q.result.objectStoreNames.contains(STORE)) q.result.createObjectStore(STORE);
         };
-        q.onsuccess = function () { res(q.result); };
-        q.onerror = function () { rej(q.error); };
+        q.onsuccess = function () {
+          var d = q.result;
+          d.onclose = function () { if (dbs[name]) delete dbs[name]; };
+          d.onversionchange = function () { try { d.close(); } catch (e) {} delete dbs[name]; };
+          res(d);
+        };
+        q.onerror = function () { delete dbs[name]; rej(q.error); };
       });
     }
     return dbs[name];
@@ -410,18 +415,30 @@
   // recents and the project library's folder are per COMPUTER, not per tab.
   // `dir:<pid>` is a project's own Source folder, remembered across tabs (folder.bind).
   function shared(key) { return WS && /^(recents|lib|dir):/.test(String(key)); }
-  function rawGet(name, key) {
-    if (!caps.idb) return Promise.resolve(undefined);
+  // A CACHED CONNECTION CAN DIE UNDER US — Chrome closes it on a backing-store error (a
+  // 210 MB recents value did it), and every later request on it throws. So a failed request
+  // drops the cached connection and is tried once more on a fresh one. `strict` makes a read
+  // that still fails REJECT instead of answering undefined: a caller that treats "missing"
+  // as "start a new list" must never be handed a failure as if nothing were there.
+  function drop(name) {
+    var p = dbs[name]; delete dbs[name];
+    if (p) p.then(function (d) { try { d.close(); } catch (e) {} }, function () {});
+  }
+  function getOnce(name, key) {
     return db(name).then(function (d) {
-      return new Promise(function (res) {
+      return new Promise(function (res, rej) {
         var r = d.transaction(STORE).objectStore(STORE).get(key);
         r.onsuccess = function () { res(r.result); };
-        r.onerror = function () { res(undefined); };
+        r.onerror = function () { rej(r.error || new Error('read failed')); };
       });
-    }).catch(function () { return undefined; });
+    });
   }
-  function rawSet(name, key, val) {
-    if (!caps.idb) return Promise.reject(new Error('no indexeddb'));
+  function rawGet(name, key, strict) {
+    if (!caps.idb) return strict ? Promise.reject(new Error('no indexeddb')) : Promise.resolve(undefined);
+    return getOnce(name, key).catch(function () { drop(name); return getOnce(name, key); })
+      .catch(function (e) { if (strict) throw e; return undefined; });
+  }
+  function setOnce(name, key, val) {
     return db(name).then(function (d) {
       return new Promise(function (res, rej) {
         var tr = d.transaction(STORE, 'readwrite');
@@ -434,10 +451,15 @@
       });
     });
   }
+  function rawSet(name, key, val) {
+    if (!caps.idb) return Promise.reject(new Error('no indexeddb'));
+    return setOnce(name, key, val).catch(function () { drop(name); return setOnce(name, key, val); });
+  }
   function idbGet(key) {
     if (shared(key)) return rawGet(BASE, key);
     return rawGet(DB, key);
   }
+  function idbGetStrict(key) { return rawGet(shared(key) ? BASE : DB, key, true); }
   function idbSet(key, val) {
     if (shared(key)) return rawSet(BASE, key, val);
     return rawSet(DB, key, val);
@@ -907,6 +929,7 @@
     caps: caps,
     folder: folder,
     get: idbGet,
+    getStrict: idbGetStrict,
     set: idbSet,
     del: idbDel,
     keys: idbKeys,
