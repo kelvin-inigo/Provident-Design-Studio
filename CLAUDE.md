@@ -16458,3 +16458,29 @@ opened from inside a project now, and it knows the other projects of the ad set.
   set showed Start an ad set review, which opened its dialog. `sc-if` +1/+1 on the baseline.
   **Defining `RV.*` above `const RV` throws at load (TDZ) and takes the whole script down** —
   `Arch`, `cssDone` then fail too. Add RV methods after its declaration.
+
+# RECENTS KEEP THEIR PHOTOS APART; A PROJECT REMEMBERS ITS SOURCE FOLDER (2026-10-26)
+
+Reported as "recent projects keep resetting, and the Source folder is gone after a refresh".
+Measured in the user's Chrome: the recents list was a **210 MB** string, with nothing added
+since 23 Oct, and the origin held **98 workspaces**.
+
+- **A recent card's photos live under `recents:<app>:img:<pid>`**, never in the list
+  (`writeRecents` moves them out; `recentImages(r)` reads them; both `openRecent`s and OPS's
+  thumbnail backfill go through it). Each card carried export-grade photos, the whole list
+  is read on every load and rewritten on every save, and at ~200 MB the write failed
+  silently, so new saves never reached the splash. An old list migrates on its first load.
+  A legacy card (no `saved` flag, never shown) loses its photos and keeps its metadata. A card
+  dropped from the list has its photo key deleted.
+- **The Source folder is remembered per PROJECT** — `providentFolder.bind(pid)` (runtime.js),
+  called by `StudioBase.bindFolder()` from `loadRecents` and `ensurePid`. A folder set while a
+  project is bound is stored as `dir:<pid>` in the SHARED database; a bound project with no
+  folder in its tab gets its own back (granted, or `pending` for `ensure()`). For a project
+  saved before this, `recall(pid)` finds a workspace that held that pid and reads its folder.
+  The fresh-session rule still holds: `applyProject` forgets the folder, and a new campaign has
+  no pid, so it starts with none. Every new tab is still its own workspace; the folder now
+  follows the project into it.
+
+Verified locally: a 4 MB list became 8 KB with the photo intact; a new workspace opening the
+project from Recent got its folder and photo back, by `dir:` and by `recall`; a new campaign
+had no folder; OPS boots clean.

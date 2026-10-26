@@ -12718,7 +12718,7 @@ class CampaignStudio extends StudioBase {
     const r = this.savedRecents()[i];
     if (!r) return;
     if (!this.confirmDiscard()) return;
-    await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), r.images || {});
+    await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), await this.recentImages(r));
   }
 
   // ══ COMPONENT USAGE — an audit of the design components across the saved projects ══════

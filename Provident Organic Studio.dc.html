@@ -13845,7 +13845,7 @@ class OrganicStudio extends StudioBase {
       if (r.thumbs && r.thumbs.length) continue;
       const st = r.state;
       if (!st || !st.slides) { r.thumbs = []; continue; }
-      const imgs = r.images || {};
+      const imgs = await this.recentImages(r);
       const assets = {};
       const put = async (key, id, keepView) => {
         const v = norm(imgs[id]);
@@ -13939,7 +13939,7 @@ class OrganicStudio extends StudioBase {
     const r = this.savedRecents()[i];
     if (!r) return;
     if (!this.confirmDiscard()) return;
-    await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), r.images || {});
+    await this.applyProject(Object.assign({}, r.state, { pid: r.pid || (r.state && r.state.pid) }), await this.recentImages(r));
   }
 
   // ---------- views ----------

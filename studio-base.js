@@ -414,8 +414,17 @@ class StudioBase {
     return new Promise(res => this.setState({ pid }, () => {
       const sp = StudioBase.SESSIONS[this.sessionApp()];
       try { if (sp) localStorage.setItem(sp.key, JSON.stringify(this.state)); } catch (e) {}
+      this.bindFolder();
       res(pid);
     }));
+  }
+  // The Source folder is remembered PER PROJECT (by pid), so reopening a project — in a new
+  // tab, from Recent or Continue last — brings its folder back, while a new campaign still
+  // starts with none. See `bind` in runtime.js.
+  bindFolder() {
+    const f = window.providentFolder;
+    if (!f || !f.bind) return;
+    Promise.resolve(f.bind(this.state && this.state.pid)).then(ch => { if (ch) this.forceUpdate(); }).catch(() => {});
   }
   // One-shot: a session file opened in this browser is recorded as a saved project on
   // the load that follows it. The loader cannot do it itself — it ends in a reload, and
@@ -461,18 +470,50 @@ class StudioBase {
       if (rec && rec.length) await this.writeRecents(rec);
     }
     this._recents = rec || [];
+    // An older list still carries photos in its cards: move them out once.
+    if (this._recents.some(r => r && r.images) && rt && rt.set) await this.writeRecents(this._recents);
     this.forceUpdate();
+    this.bindFolder();
     const k = this.recSavedKey();
     let pend = false;
     try { pend = !!k && localStorage.getItem(k) === '1'; if (pend) localStorage.removeItem(k); } catch (e) {}
     if (pend) this.recordSaved();
   }
+  // A RECENT CARD'S PHOTOS LIVE UNDER THEIR OWN KEY, never in the list. The list is read
+  // whole on every load and rewritten whole on every save, and with export-grade photos in
+  // each card it grew past 200 MB — at which point the write failed silently and every new
+  // save vanished from the splash. `recImgKey` holds one card's photo map; an entry with
+  // photos still inline (an older list) is moved out on its first write. A legacy card with
+  // no `saved` flag is never shown, so it keeps its metadata and loses its photos.
+  recImgKey(pid) { return this.recentsKey() + ':img:' + pid; }
+  async recentImages(r) {
+    if (!r) return {};
+    if (r.images) return r.images;
+    const rt = window.providentRuntime;
+    if (r.pid && rt && rt.get) { try { return (await rt.get(this.recImgKey(r.pid))) || {}; } catch (e) {} }
+    return {};
+  }
   async writeRecents(rec) {
-    this._recents = rec;
     const rt = window.providentRuntime;
     if (rt && rt.set) {
-      try { await rt.set(this.recentsKey(), JSON.stringify(rec)); return true; } catch (e) {}
+      const prev = this._recents || [];
+      const out = [];
+      for (const r of rec) {
+        if (!r) continue;
+        if (!r.images) { out.push(r); continue; }
+        const { images, ...meta } = r;
+        if (r.saved && r.pid) {
+          try { await rt.set(this.recImgKey(r.pid), images); out.push(meta); continue; } catch (e) {}
+          out.push(r);   // could not move them out: keep them rather than lose the photos
+        } else out.push(meta);
+      }
+      rec = out;
+      this._recents = rec;
+      const keep = new Set(rec.filter(r => r.saved && r.pid).map(r => r.pid));
+      prev.forEach(r => { if (r && r.pid && !keep.has(r.pid) && rt.del) rt.del(this.recImgKey(r.pid)).catch(() => {}); });
+      try { await rt.set(this.recentsKey(), JSON.stringify(rec)); return true; } catch (e) { console.warn('[provident] recents not saved', e); }
     }
+    this._recents = rec;
     // No IndexedDB: keep the metadata rather than lose the list entirely.
     try { localStorage.setItem(this.legacyRecentsKey(), JSON.stringify(rec)); return true; }
     catch (e) {

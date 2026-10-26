@@ -408,7 +408,8 @@
     return dbs[name];
   }
   // recents and the project library's folder are per COMPUTER, not per tab.
-  function shared(key) { return WS && /^(recents|lib):/.test(String(key)); }
+  // `dir:<pid>` is a project's own Source folder, remembered across tabs (folder.bind).
+  function shared(key) { return WS && /^(recents|lib|dir):/.test(String(key)); }
   function rawGet(name, key) {
     if (!caps.idb) return Promise.resolve(undefined);
     return db(name).then(function (d) {
@@ -495,12 +496,60 @@
       }
       folder.handle = h; folder.pending = null;
       try { await idbSet(FKEY, h); } catch (e) {}
+      folder.remember();
       return h;
     },
     async forget() { folder.handle = null; folder.pending = null; try { await idbDel(FKEY); } catch (e) {} },
     // Make an already-granted handle the Source folder — the project library opens a project
     // from a folder it found while scanning, and adopts that folder like Open Session does.
-    async adopt(h) { if (!h) return null; folder.handle = h; folder.pending = null; try { await idbSet(FKEY, h); } catch (e) {} return h; },
+    async adopt(h) { if (!h) return null; folder.handle = h; folder.pending = null; try { await idbSet(FKEY, h); } catch (e) {} folder.remember(); return h; },
+    // THE FOLDER IS REMEMBERED PER PROJECT. A tab's folder is per workspace and a project
+    // opened here forgets the one before it (a new campaign must never save into another's
+    // folder) — which also lost a project's OWN folder every time it was reopened in a new
+    // tab, from Recent or by Continue last. The studio binds the open project's pid; a folder
+    // set while it is bound is kept as `dir:<pid>` in the shared database, and a bound project
+    // with no folder in this tab gets its own back (granted, or parked on `pending` for
+    // ensure() to re-ask from a click). Resolves true when it changed what the tab shows.
+    pid: '',
+    remember: function () {
+      var h = folder.handle || folder.pending;
+      if (folder.pid && h) return idbSet('dir:' + folder.pid, h).catch(function () {});
+    },
+    // A project opened before folders were remembered per project: find another workspace
+    // that held this pid with a folder, newest workspace first, and remember that folder.
+    async recall(pid) {
+      if (!WS) return null;
+      var hits = [];
+      try {
+        for (var i = 0; i < W.localStorage.length; i++) {
+          var k = Storage.prototype.key.call(W.localStorage, i);
+          var m = /^ws:([^:]+):(provident-ad-studio-v2|provident-smp-studio-v2)$/.exec(k || '');
+          if (!m || m[1] === WS) continue;
+          var raw = W.localStorage.getItem(k) || '';
+          if (raw.indexOf('"pid":"' + pid + '"') >= 0) hits.push(m[1]);
+        }
+      } catch (e) {}
+      hits.sort().reverse();   // ids start with a base-36 timestamp
+      for (var j = 0; j < hits.length; j++) {
+        var h = await rawGet(BASE + '~' + hits[j], FKEY);
+        if (h) { idbSet('dir:' + pid, h).catch(function () {}); return h; }
+      }
+      return null;
+    },
+    async bind(pid) {
+      folder.pid = pid || '';
+      try { await folder.ready; } catch (e) {}
+      if (!folder.pid || !folder.supported) return false;
+      if (folder.handle || folder.pending) { folder.remember(); return false; }
+      var h = await idbGet('dir:' + folder.pid);
+      if (!h) h = await folder.recall(folder.pid);
+      if (!h || folder.handle || folder.pending) return false;
+      var p = 'prompt';
+      try { p = await h.queryPermission({ mode: 'readwrite' }); } catch (e) { p = 'denied'; }
+      if (p === 'granted') folder.handle = h; else folder.pending = h;
+      try { await idbSet(FKEY, h); } catch (e) {}
+      return true;
+    },
     // The project library's own folder (Projects folder view), kept per computer.
     libGet: function () { return idbGet('lib:dir'); },
     libSet: function (h) { return h ? idbSet('lib:dir', h) : idbDel('lib:dir'); },
@@ -556,7 +605,7 @@
     }
   };
   W.providentFolder = folder;
-  folder.restore();
+  folder.ready = folder.restore();
 
   // ── 4. Background removal, through a local service ────────────────────────
   // Agent photos on the Organic templates are CUT-OUTS: the ranking card stands
