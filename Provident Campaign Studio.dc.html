@@ -9441,8 +9441,12 @@ class CampaignStudio extends StudioBase {
             const lab = { t: up(c.l), px: labPx, w: 500, f: mute, ls: lsL, h: labH };
             const fig = { t: c.v, px: figPx, w: 300, f: ink, ls: 0, h: fH };
             const a = ft ? fig : lab, b = ft ? lab : fig;
-            T(a.t, x1, y0 + bl(a.px, a.h), a.px, a.w, a.f, a.ls);
-            T(b.t, x1, y0 + a.h + pg + bl(b.px, b.h), b.px, b.w, b.f, b.ls);
+            // a centred design centres each run in its own column (by its ink, so a tracked
+            // label's trailing unit does not push it left); the icon row keeps one left edge
+            // beside its icon, which is that variant's design
+            const cx = q => (center && !icons) ? (cw[i] - (Wd(q.t, q.px, q.w, q.ls) - q.ls)) / 2 : 0;
+            T(a.t, x1 + cx(a), y0 + bl(a.px, a.h), a.px, a.w, a.f, a.ls);
+            T(b.t, x1 + cx(b), y0 + a.h + pg + bl(b.px, b.h), b.px, b.w, b.f, b.ls);
             x += cw[i] + fGap;
           });
         });
