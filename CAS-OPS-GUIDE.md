@@ -233,7 +233,8 @@ steps: **Design › ENG copy check › Translation › Done**.
    one row per audience. Each finished audience has **Download**, which zips its English and Arabic
    images, named the way an export names them. **Download package** (or **Download finished
    audiences** before then) takes every finished audience. Images are rendered from the projects as
-   they are now. This link can't change anything.
+   they are now. This link can't change anything. There is no side panel on this link: the bar's **See details**
+   holds the steps, the dates and each audience.
 
 The **Ad set review** panel lists every audience, with its four steps and the buttons for your
 role. Below that is the log of who changed what in every project, including each step. Turn on
@@ -268,13 +269,22 @@ Open one to see its record:
   saved) and **Open the ad set**.
 - **Progress:** the four steps, counted in audiences, and one line saying what is still waiting.
 - **Audiences:** each audience's own four steps, who signed off and when, and its English and
-  Arabic projects. Each project opens in the full studio.
+  Arabic projects. Each project opens in the full studio. Under each project:
+  **Change audience** (its market, audience and language — **Set its audience** on a project that
+  has none, shown as "Project") and **Remove**, which takes it out of the ad set. The project
+  itself is not deleted and its own edit link keeps working.
+- **Add a project:** the Campaign projects saved on this computer that are not in the ad set yet.
+  **Add to this ad set** opens that project in a new tab and asks for its market, audience and
+  language, with this ad set already chosen.
 - **Ad set links:** one row per team, with **Copy link**.
 - **Activity:** every step and every word changed in every project, newest first.
 - **On the right:** **Details** and **Google Drive**.
 
 To add an ad set from another computer, paste its **designer** link into the box at the top.
-**Remove from this list** only removes it from this computer. The links keep working. The record
+**Remove from this list** only removes it from this computer, and it stays removed. Opening one of
+its projects no longer brings it back; paste its designer link to add it again. The links keep
+working. **Delete this ad set for everyone** ends it: its three links stop working and its review
+history goes. Its projects stay, each on its own edit link. The record
 (status, dates, log, links) is kept even after a project expires. Full-size photos expire after
 60 days unused; the project and its previews stay.
 

@@ -412,7 +412,10 @@ def migrate_old(sid):
                      'design': old.get('design'), 'copy': old.get('copy')}],
           'hist': old.get('hist') or []}
     cmds = [['SET', 'rvt:' + t, json.dumps({'rid': rid, 'role': r})] for r, t in tok.items() if t]
-    cmds += [['SET', 'rs:' + rid, json.dumps(rs, separators=(',', ':'))], ['SET', 'sh:' + sid + ':rid', rid]]
+    # The old record goes once it is converted. Left in place, removing the project from this ad
+    # set (or deleting the ad set) only lasted until the project was next opened, when it was
+    # converted again into a fresh ad set of one: "I delete it and it keeps coming back".
+    cmds += [['SET', 'rs:' + rid, json.dumps(rs, separators=(',', ':'))], ['SET', 'sh:' + sid + ':rid', rid], ['DEL', 'sh:' + sid + ':rv']]
     th = s.cmd('GET', 'sh:' + sid + ':thumb')
     if th:
         cmds.append(['SET', 'rs:' + rid + ':thumb', th])
@@ -610,12 +613,41 @@ def rs_set(role, rs, d):
                 eo[k] = True
             else:
                 eo.pop(k, None)
+    by = who(d.get('by'))
+    if isinstance(d.get('relabel'), dict):
+        r = d['relabel']
+        sid = clean_id(r.get('sid'))
+        it = next((x for x in rs['items'] if x['sid'] == sid), None)
+        if not it:
+            raise Fail(404, 'That project is not in this ad set.')
+        market, aud, lang = clean_labels(r, rs)
+        if any(x['sid'] != sid and x.get('market') == market and x.get('aud') == aud and x.get('lang') == lang for x in rs['items']):
+            raise Fail(409, 'Another project in this ad set is already ' + item_label({'market': market, 'aud': aud, 'lang': lang}) + '.')
+        was = item_label(it)
+        it['market'], it['aud'], it['lang'] = market, aud, lang
+        rs_log(rs['rid'], by, [{'kind': 'step', 'text': 'Changed ' + was + ' to ' + item_label(it)}])
     if d.get('remove'):
         sid = clean_id(d['remove'])
+        gone = next((x for x in rs['items'] if x['sid'] == sid), None)
         rs['items'] = [x for x in rs['items'] if x['sid'] != sid]
-        store().cmd('DEL', 'sh:' + sid + ':rid')
+        store().pipe([['DEL', 'sh:' + sid + ':rid'], ['DEL', 'sh:' + sid + ':rv']])
+        if gone:
+            rs_log(rs['rid'], by, [{'kind': 'step', 'text': 'Removed ' + item_label(gone) + ' from the ad set'}])
     put_rs(rs)
     return ok({'rs': rs_pub(rs, role)})
+
+
+def rs_del(role, rs):
+    """The designer deletes the whole ad set: its record, log, picture and three links. Its
+    projects stay as ordinary shared edit links."""
+    if role != 'dd':
+        raise Fail(403, 'Only the designer deletes an ad set.')
+    s, rid = store(), rs['rid']
+    cmds = [['DEL', 'rs:' + rid], ['DEL', 'rs:' + rid + ':log'], ['DEL', 'rs:' + rid + ':thumb']]
+    cmds += [['DEL', 'rvt:' + t] for t in (rs.get('tok') or {}).values()]
+    cmds += [['DEL', 'sh:' + it['sid'] + ':' + x] for it in rs.get('items') or [] for x in ('rid', 'rv')]
+    s.pipe(cmds)
+    return ok({'deleted': True})
 
 
 def rs_get(role, rs, q):
@@ -846,7 +878,7 @@ def route(method, query, body):
             if role is not None or not sid:
                 raise Fail(403, 'Start an ad set from the project itself.')
             return rs_make(sid, json.loads(body or b'{}'))
-        if op in ('rsget', 'rsadd', 'rsstep', 'rsset'):
+        if op in ('rsget', 'rsadd', 'rsstep', 'rsset', 'rsdel'):
             if not rs:
                 raise Fail(404, 'This project is not in an ad set review.')
             if method == 'GET' and op == 'rsget':
@@ -858,6 +890,8 @@ def route(method, query, body):
                 return rs_step(sid, role, rs, d)
             if method == 'POST' and op == 'rsset':
                 return rs_set(role, rs, d)
+            if method == 'POST' and op == 'rsdel':
+                return rs_del(role, rs)
         if not sid:
             raise Fail(400, 'Name the project (p=) — this is an ad set link.')
         k = 'sh:' + sid + ':'

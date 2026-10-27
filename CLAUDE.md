@@ -16583,3 +16583,37 @@ or slant axis** (its fvar is opsz + wght only, read off the woff2), so the itali
 browser's synthetic oblique. The panel's footnotes (`.rv-lead`, `.rv-ntf`, `.shl-me`,
 `.shl-state`) are italic too; their links stay upright. Rules are prefixed `.shl-list` to beat
 `.shl-list ul li`. Contrast 0 failures, dark.
+
+# AD SETS: REMOVE, RELABEL, DELETE AND ADD — AND WHY A REMOVED PROJECT CAME BACK (2026-10-27)
+
+Reported with a screenshot: an ad set holding a mistaken second project labelled "Project",
+"I tried deleting it but it keeps coming back", adding projects felt broken, and performance
+marketing's side panel was redundant beside its bar's See details.
+- **The "keeps coming back" bug was server-side.** A review made before ad sets lived on its
+  project as `sh:<sid>:rv`; `migrate_old` converted it into an ad set of one with NO market or
+  audience (hence "Project") and left `sh:<sid>:rv` in place. Removing the project, or deleting
+  the ad set, lasted until that project was next resolved, which converted it again into a fresh
+  ad set. `migrate_old` now DELs `sh:<sid>:rv` once converted, and remove / delete DEL it too.
+- **Server:** `rsset` takes `relabel: {sid, market, aud, lang}` (409 on a clash) and logs
+  "Changed X to Y"; `remove` now logs "Removed X". **`op=rsdel`** (designer only) deletes
+  `rs:<rid>`, its log and thumb, the three `rvt:` tokens and every member's `sh:<sid>:rid` / `:rv`;
+  the projects stay as plain edit links.
+- **The ad set page (Review links › an ad set):** under each project **Change audience** (or
+  **Set its audience** when unlabelled) as an inline market/audience/language row, and
+  **Remove**; an **Add a project** card listing this computer's `savedRecents()` not already in the
+  ad set (matched by `sum.pid`); **Delete this ad set for everyone** under Remove from this list.
+- **Add a project** writes `localStorage['provident-rsjoin'] = {dd, pid, at}` and opens the
+  studio in a new tab (a new workspace). `SP.rsJoinCheck` (end of `shareInit`, CAS only, 3-minute
+  window) opens that project from Recent (`openRecent` reloads; the key survives) and then
+  `reviewCreate({dd})`, whose dialog opens on "Add to an ad set" with that ad set chosen
+  (`rsDialog` `preset`). A project already in an ad set says so instead.
+- **Remove from this list sticks**: `Arch.drop` adds the id to `provident-reviews-hidden` and
+  `Arch.add` skips hidden ids unless `force` — only pasting the designer link (the archive's Add
+  box, or a preset join) brings it back. Opening a member project used to re-add it silently.
+- **Performance marketing has no side panel**: `RV.shPanel` returns for `pm`, `RS.start` never
+  opens it, and `html.rv-pm .shl-pill,.shl-panel{display:none}`. The bar and See details carry it.
+- Verified on the dev store: migrate → relabel → add → clash refused → remove (no reappearance)
+  → designer-only delete; in the browser, relabel, Add a project end to end (new workspace,
+  reload into the project, preset dialog, added as Local · Family), PM with no panel and the
+  window at full width, Remove from this list surviving an automatic re-add, paste to restore,
+  Delete. Not exercised against real Upstash.

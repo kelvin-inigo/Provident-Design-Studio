@@ -281,7 +281,27 @@
     const rb = ssGet(RS_KEY);
     if (rb && !here(rb)) ssSet(RS_KEY, null);
     else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
+    if (this.shApp() === 'provident-ad-studio') this.rsJoinCheck();
     return false;
+  };
+  // The ad set page's "Add to this ad set" opens this studio in a new tab with the project and
+  // the ad set in JOIN_KEY: open that project (from Recent), then ask for its labels.
+  const JOIN_KEY = 'provident-rsjoin';
+  SP.rsJoinCheck = async function () {
+    let j = null; try { j = JSON.parse(localStorage.getItem(JOIN_KEY) || 'null'); } catch (e) {}
+    if (!j || !j.dd || !j.pid || Date.now() - (j.at || 0) > 180000) return;
+    if (this.state.pid === j.pid) {
+      try { localStorage.removeItem(JOIN_KEY); } catch (e) {}
+      setTimeout(() => this.reviewCreate({ dd: j.dd }), 700);
+      return;
+    }
+    // the recents list loads after mount
+    for (let i = 0; i < 40 && !(this.savedRecents() || []).length; i++) await new Promise(r => setTimeout(r, 150));
+    const k = (this.savedRecents() || []).findIndex(r => r && r.pid === j.pid);
+    if (k < 0) { try { localStorage.removeItem(JOIN_KEY); } catch (e) {} return; }
+    StudioBase.reloading = true;
+    this.markSaved && this.markSaved();
+    this.openRecent(k);
   };
   SP.shareOpenLink = async function (id) {
     // an ad set link: the content team, performance marketing or the designer's overview
@@ -1087,12 +1107,19 @@
   };
 
   // Share › Ad set review: start an ad set from this project, or add it to one this computer knows.
-  SP.reviewCreate = async function () {
+  SP.reviewCreate = async function (preset) {
     const S = this._sh, b = this.shBind();
-    if (S && S.rs) { this.shPanel(true); const d = S.ui.root.querySelector('.rv-dd'); if (d) d.open = true; return; }
-    const known = Arch.list().filter(x => x.id.length === 16);
+    if (S && S.rs) {
+      if (preset && preset.dd && (S.rs.tok || {}).dd !== preset.dd) this.shFlash('This project is already in the ad set ' + (S.rs.name || '') + '. Remove it there first to move it.');
+      else if (preset) this.shFlash('This project is already in this ad set.');
+      this.shPanel(true); const d = S.ui.root.querySelector('.rv-dd'); if (d) d.open = true; return;
+    }
+    let known = Arch.list().filter(x => x.id.length === 16);
+    if (preset && preset.dd && !known.some(k => k.id === preset.dd)) {
+      try { const r = await api('rsinfo', { ids: preset.dd }); const x = (r.items || [])[0]; if (x && x.rs) { Arch.add(preset.dd, x.rs.name, x.rs.product, true); known = Arch.list().filter(k => k.id.length === 16); } } catch (e) {}
+    }
     const st = this.shPub(), C = this.constructor;
-    const dlg = rsDialog({ known, name: st.campaign || this.shName(st) });
+    const dlg = rsDialog({ known, name: st.campaign || this.shName(st), preset: preset && preset.dd });
     const ans = await dlg.answer();
     if (!ans) return;
     lsSet(NAME_KEY, ans.by);
@@ -1155,6 +1182,7 @@
     });
     if ($('[data-f="dd"]')) $('[data-f="dd"]').addEventListener('change', fillAud);
     $('[data-f="by"]').value = StudioBase.shareName();
+    if (o.preset && $('[data-f="dd"]')) { $('[data-f="dd"]').value = o.preset; setMode('add'); }
     fillAud();
     const p = new Promise(r => { res = r; });
     const close = v => { el.remove(); res(v); };
@@ -1217,7 +1245,8 @@
       ssSet(RS_KEY, { id: tok, pid: (shell.eng && shell.eng.state && shell.eng.state.pid) || '' });
       await v.load();
       v.view();
-      if (v.role === 'ct' || lsGet('provident-share-open') === '1') v.shPanel(true);
+      // Performance marketing has the bar and its See details window: no side panel at all.
+      if (v.role !== 'pm' && (v.role === 'ct' || lsGet('provident-share-open') === '1')) v.shPanel(true);
     }
   };
   function RsView(shell, tok, d) {
@@ -1496,6 +1525,7 @@
     }); }
   };
   RV.shPanel = function (open) {
+    if (this.role === 'pm') return;
     if (!this.here()) { this.view(); open = true; }
     open = open == null ? !this.ui.root.classList.contains('open') : !!open;
     this.ui.root.classList.toggle('open', open);
@@ -1600,18 +1630,23 @@
   // designer token in localStorage; the records come from the share store, where an ad set never
   // expires. Plain DOM mounted into an empty host in the home page's markup — React never
   // reconciles it.
-  const ARCH_KEY = 'provident-reviews';
+  const ARCH_KEY = 'provident-reviews', ARCH_HIDE = 'provident-reviews-hidden';
+  const hidden = () => { try { const a = JSON.parse(localStorage.getItem(ARCH_HIDE) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
   const Arch = {
     list() { try { const a = JSON.parse(localStorage.getItem(ARCH_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && /^[A-Za-z0-9]{8,16}$/.test(x.id || '')) : []; } catch (e) { return []; } },
     save(a) { lsSet(ARCH_KEY, JSON.stringify(a.slice(0, 200))); },
-    add(id, name, product) {
+    // An ad set removed from this computer's list stays removed: opening one of its projects
+    // used to put it straight back. Only pasting its link (force) brings it back.
+    add(id, name, product, force) {
       if (!id || id.length !== 16) return;
+      if (force) lsSet(ARCH_HIDE, JSON.stringify(hidden().filter(x => x !== id)));
+      else if (hidden().indexOf(id) >= 0) return;
       const a = this.list(), o = a.find(x => x.id === id);
       if (o) { if (name) o.name = name; if (product) o.product = product; } else a.unshift({ id, name: name || '', product: product || '', at: Date.now() });
       this.save(a);
     },
     swap(old, id) { if (old === id) return; const a = this.list(), o = a.find(x => x.id === old); if (!o) return; if (a.some(x => x.id === id)) this.save(a.filter(x => x.id !== old)); else { o.id = id; this.save(a); } },
-    drop(id) { this.save(this.list().filter(x => x.id !== id)); },
+    drop(id) { this.save(this.list().filter(x => x.id !== id)); lsSet(ARCH_HIDE, JSON.stringify([id].concat(hidden().filter(x => x !== id)).slice(0, 400))); },
     mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => { if (!el._rva) el._rva = new ArchView(el, eng); }); }
   };
   window.providentReviews = Arch;
@@ -1626,7 +1661,8 @@
       e.preventDefault();
       const inp = el.querySelector('.rva-add input'), m = /#share=([A-Za-z0-9]{8,16})/.exec(inp.value || '') || /^([A-Za-z0-9]{8,16})$/.exec((inp.value || '').trim());
       if (!m) { this.err = 'That is not an ad set link.'; this.draw(); return; }
-      const a = Arch.list(); if (!a.some(x => x.id === m[1])) { a.unshift({ id: m[1], name: '', at: Date.now() }); Arch.save(a); }
+      if (m[1].length === 16) Arch.add(m[1], '', '', true);
+      else { const a = Arch.list(); if (!a.some(x => x.id === m[1])) { a.unshift({ id: m[1], name: '', at: Date.now() }); Arch.save(a); } }
       inp.value = ''; this.err = ''; this.load();
     });
     this.load();
@@ -1655,12 +1691,33 @@
   AV.click = async function (e) {
     let t = e.target.closest('button,[data-id]'); if (!t || !this.el.contains(t)) return;
     if (t.dataset.copy) { const ok = await copyText(t.dataset.copy), sp = t.querySelector('span') || t, was = sp.textContent; sp.textContent = ok ? 'Copied' : 'Select it'; t.dataset.done = ok ? '1' : ''; setTimeout(() => { sp.textContent = was; t.dataset.done = ''; }, 1600); return; }
-    if (t.dataset.id) { this.open(t.dataset.id); return; }
+    if (t.dataset.id) { this.edit = null; this.open(t.dataset.id); return; }
     const a = t.dataset.a;
     if (a === 'back') { this.sel = null; this.det = null; this.load(); }
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
     if (a === 'proj') window.open(rsLink(t.dataset.sid), '_blank', 'noopener');
     if (a === 'refresh') this.load();
+    const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
+    if (a === 'relab') { this.edit = t.dataset.sid; this.draw(); }
+    if (a === 'relabx') { this.edit = null; this.draw(); }
+    if (a === 'relabsave') {
+      const f = t.closest('.rva-rl'), v = k => f.querySelector('[data-f="' + k + '"]').value;
+      t.disabled = true; t.textContent = 'Saving…';
+      try { await api('rsset', { id: this.sel }, { by, relabel: { sid: t.dataset.sid, market: v('market'), aud: v('aud'), lang: v('lang') } }); this.edit = null; again(); }
+      catch (er) { t.disabled = false; t.textContent = 'Save'; window.alert(er.message || String(er)); }
+    }
+    if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set? The project itself is not deleted and its own edit link keeps working; it just leaves the ad set and its review.')) {
+      try { await api('rsset', { id: this.sel }, { by, remove: t.dataset.sid }); again(); } catch (er) { window.alert(er.message || String(er)); }
+    }
+    if (a === 'delset' && window.confirm('Delete this whole ad set for everyone? Its three links stop working and its review history goes. The projects themselves stay, each on its own edit link.')) {
+      try { await api('rsdel', { id: this.sel }, {}); Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
+      catch (er) { window.alert(er.message || String(er)); }
+    }
+    if (a === 'addproj') {
+      lsSet(JOIN_KEY, JSON.stringify({ dd: this.sel, pid: t.dataset.pid, at: Date.now() }));
+      window.open(location.pathname, '_blank', 'noopener');
+      t.textContent = 'Opened in a new tab';
+    }
     if (a === 'rm' && window.confirm('Remove this ad set from the list on this computer? The links keep working, and the record stays on the share store — paste the designer’s link to add it back.')) { Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
     if (a === 'drive') {
       const v = this.el.querySelector('.rva-drv input').value.trim();
@@ -1724,7 +1781,10 @@
     const audRows = auds.map(a => '<li class="rva-au"><div class="rva-au-h"><b>' + esc(a.label) + '</b>' + pillHtml(a.done, a.done ? 'Done' : a.now ? a.now.label : '') + '</div>' + stepperHtml(a.steps) +
       '<div class="rva-au-p">' + a.items.map(it => {
         const pj = proj[it.sid] || {};
-        return '<button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (live[it.sid] === false ? ' disabled title="This project has expired; the record is kept"' : '') + '><span class="rva-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span><span><b>' + esc(it.lang || 'ENG') + '</b><s>' + esc((pj.sum || {}).campaign || '') + '</s></span>' + ico('ext') + '</button>';
+        return '<div class="rva-pjw"><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (live[it.sid] === false ? ' disabled title="This project has expired; the record is kept"' : '') + '><span class="rva-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span><span><b>' + esc(it.lang || 'ENG') + '</b><s>' + esc((pj.sum || {}).campaign || '') + '</s></span>' + ico('ext') + '</button>' +
+          (this.edit === it.sid ? this.relabHtml(it, rs)
+            : '<span class="rva-pja"><button type="button" class="p-ghost p-sm" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
+              '<button type="button" class="p-ghost p-sm rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span>') + '</div>';
       }).join('') + (a.engOnly ? '<span class="rva-m">No Arabic for this audience</span>' : !a.arb ? '<span class="rva-m">No Arabic project yet</span>' : '') + '</div></li>').join('');
     return back +
       '<header class="rva-dh"><span class="rva-th rva-th-l">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
@@ -1735,6 +1795,7 @@
       '<div class="rva-cols"><div class="rva-main">' +
       '<section class="rva-card"><h3>Progress</h3>' + stepperHtml(all.steps) + '<p class="rva-next" data-s="' + (all.ready ? 'ready' : 'prog') + '">' + esc(next) + '</p></section>' +
       '<section class="rva-card"><h3>Audiences <s>' + auds.length + '</s></h3><ul class="rva-aus">' + (audRows || '<li class="shl-empty">No projects yet.</li>') + '</ul></section>' +
+      this.addHtml(proj) +
       '<section class="rva-card"><h3>Ad set links</h3><p class="rva-sub">One link per team for the whole ad set. Each project’s button above opens it in the full studio.</p><ul class="rva-lks">' + links + '</ul></section>' +
       '<section class="rva-card"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
         : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>' +
@@ -1748,7 +1809,32 @@
       '<section class="rva-card"><h3>Google Drive</h3><p class="rva-sub">Where this ad set’s files are kept, for everyone who opens this list.</p>' +
       '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Drive folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
       '<button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
+      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete this ad set for everyone</button>' +
       '</aside></div>';
+  };
+  // a project's market, audience and language, edited in place
+  AV.relabHtml = function (it, rs) {
+    const opt = (v, l, on) => '<option value="' + esc(v) + '"' + (on ? ' selected' : '') + '>' + esc(l) + '</option>';
+    const auds = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'];
+    return '<span class="rva-rl" data-sid="' + esc(it.sid) + '">' +
+      '<select class="p-in" data-f="market" aria-label="Market">' + MARKETS.map(m => opt(m, m, m === (it.market || MARKETS[0]))).join('') + '</select>' +
+      '<select class="p-in" data-f="aud" aria-label="Audience">' + auds.map(a => opt(a, a, a === it.aud)).join('') + '</select>' +
+      '<select class="p-in" data-f="lang" aria-label="Language">' + opt('ENG', 'English', it.lang !== 'ARB') + opt('ARB', 'Arabic', it.lang === 'ARB') + '</select>' +
+      '<button type="button" class="p-btn p-sm" data-a="relabsave" data-sid="' + esc(it.sid) + '">Save</button><button type="button" class="p-ghost p-sm" data-a="relabx">Cancel</button></span>';
+  };
+  // Add a project: this computer's saved Campaign projects that are not in the ad set yet. The
+  // one picked opens in a new tab, which asks for its market, audience and language.
+  AV.addHtml = function (proj) {
+    const have = new Set(Object.keys(proj || {}).map(k => ((proj[k] || {}).sum || {}).pid).filter(Boolean));
+    let rec = [];
+    try { rec = (this.eng && this.eng.savedRecents ? this.eng.savedRecents() : []).filter(r => r && r.pid && !have.has(r.pid)); } catch (e) {}
+    const when = t => t ? new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
+    return '<section class="rva-card"><h3>Add a project</h3><p class="rva-sub">Another audience, market or the Arabic version — from the projects saved on this computer. It opens in a new tab, where you choose its market, audience and language.</p>' +
+      (rec.length ? '<ul class="rva-addl">' + rec.slice(0, 12).map(r => '<li><span class="rva-th">' + (r.thumbs && r.thumbs[0] ? '<img src="' + esc(r.thumbs[0]) + '" alt="">' : '') + '</span>' +
+        '<span class="rva-addn"><b>' + esc(r.name || 'Untitled') + '</b><s>Saved ' + esc(when(r.ts)) + '</s></span>' +
+        '<button type="button" class="p-ghost p-sm" data-a="addproj" data-pid="' + esc(r.pid) + '">Add to this ad set</button></li>').join('') + '</ul>'
+        : '<p class="rva-m">No other saved Campaign projects on this computer. Save the project first — or open it and use Share › Ad set review.</p>') +
+      '</section>';
   };
 
   // ---------- shared AD SETS (CAS) ----------
@@ -2306,6 +2392,18 @@
 .shl-share .p-in{flex:1;min-width:0;height:36px;font-size:12.5px;color:var(--ps-ink-2)}
 .shl-share .p-ghost{display:flex;align-items:center;gap:6px;flex:none;height:36px}
 .shl-share svg{width:16px;height:16px;fill:currentColor}
+html.rv-pm .shl-pill,html.rv-pm .shl-panel{display:none!important}
+.rva-pjw{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rva-pja{display:flex;gap:6px;flex-wrap:wrap}
+.rva-dng{color:var(--ps-bad)!important}
+.rva-rl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rva-rl .p-in{height:32px;width:auto;min-width:0;flex:1 1 90px;font-size:13px;padding:0 8px}
+.rva-addl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rva-addl li{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rva-addl .rva-th{width:44px;height:44px;flex:none}
+.rva-addn{flex:1;min-width:0;display:flex;flex-direction:column}
+.rva-addn b{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rva-addn s{text-decoration:none;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
 .shl-ph{margin:12px 16px 0;padding:12px 14px;border-radius:12px;background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .shl-ph p{margin:0 0 10px;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
 .shl-ph p b{font-weight:600;color:var(--ps-ink)}
