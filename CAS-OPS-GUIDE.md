@@ -187,8 +187,15 @@ Things to know:
   everyone (pick the project's saved `.json`), and opening the link on the computer that made the
   project restores them by itself. Export and Save ask first while a photo is only a preview.
 - **Undo** stays on your computer, and it's cleared when someone else's change arrives.
-- The link belongs to the browser tab. Opening another project in that tab, or **Stop following
-  this link on this tab** at the foot of the panel, stops it there. To rejoin, open the link again.
+- The link belongs to the PROJECT on this computer. Open the same project in another window, from
+  Recent or from its saved file, and it reconnects by itself ("Reconnected to the ad set …"); what
+  you changed while it was apart goes up to the link. Opening another project in a tab stops the
+  link there. **Stop following this link** at the foot of the panel stops it on this computer
+  until you open the link again.
+- Putting a project in an ad set it is already in (Share › Ad set review, or **Make the ad set**
+  into a Drive folder that already holds the ad set) reconnects it instead of refusing. A folder
+  that already holds an ad set takes the project as another audience; a slot already taken by a
+  different project says so.
 - Saving, exporting and the Source folder are still each person's own.
 
 **In CAS, share the Ad sets view.** In the Ad sets window, open a folder of exported ads and press

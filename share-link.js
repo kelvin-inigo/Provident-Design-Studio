@@ -463,24 +463,37 @@
       if (oldDir) files.push(...(await dsList(oldDir.id, DS_FILE)));
       let had = null;
       for (const x of files) { const old = await dsRead(x.id, true); if (!old.deleted) { had = x; break; } }
-      if (had) { const old = await dsRead(had.id, true); throw dsFail(409, '“' + folder.name + '” already holds an ad set (' + (old.name || 'unnamed') + '). Choose “Add to an ad set”, or another folder.'); }
+      if (had) {
+        // the folder's ad set IS the campaign's: add this project to it rather than refuse
+        const old = await dsRead(had.id, true);
+        rs = old; rid = had.id; ans.mode = 'add';
+      }
       const tokOf = () => dsRand(10);
-      rs = { app: 'provident-ad-set', name: ans.name, product: ans.product, created: dsNow(), by, drive: 'https://drive.google.com/drive/folders/' + folder.id,
+      if (!rs) rs = { app: 'provident-ad-set', name: ans.name, product: ans.product, created: dsNow(), by, drive: 'https://drive.google.com/drive/folders/' + folder.id,
         folder: folder.id, eng_only: {}, items: [], hist: [], log: [] };
       // set up from the home page's widget: the plan says which audiences and languages the
       // ad set will hold, and an audience planned without Arabic has nothing to translate
-      if (ans.plan) { rs.plan = planCells(ans.plan); rs.plan.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; }); }
-      const same = files.find(x => x.name === dsSetName(ans.name));
-      const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
-      rid = f.id; rs.rid = rid;
-      rs.tok = { dd: 'R' + tokOf() + '.' + rid, ct: 'R' + tokOf() + '.' + rid, pm: 'R' + tokOf() + '.' + rid };
+      if (ans.mode === 'new') {
+        if (ans.plan) { rs.plan = planCells(ans.plan); rs.plan.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; }); }
+        const same = files.find(x => x.name === dsSetName(ans.name));
+        const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
+        rid = f.id; rs.rid = rid;
+        rs.tok = { dd: 'R' + tokOf() + '.' + rid, ct: 'R' + tokOf() + '.' + rid, pm: 'R' + tokOf() + '.' + rid };
+      }
     } else {
       const R = await dsResolve(ans.dd, null, true);
       if (R.role !== 'dd') throw dsFail(403, 'Only the designer adds projects to an ad set.');
       rs = R.rs; rid = R.rid;
     }
     const it = { market: ans.market, aud: ans.aud, lang: ans.lang };
-    if ((rs.items || []).some(x => x.market === it.market && x.aud === it.aud && x.lang === it.lang)) throw dsFail(400, dsItemLabel(it) + ' is already in the ad set.');
+    const taken = (rs.items || []).find(x => x.market === it.market && x.aud === it.aud && x.lang === it.lang);
+    if (taken) {
+      // the same project, opened apart from its link: reconnect it, nothing to add
+      let pid = '';
+      try { pid = ((await dsRead(taken.sid.slice(1), true)).state || {}).pid || ''; } catch (e) {}
+      if (pid && pid === this.state.pid) return Object.assign(dsPub(rs, 'dd'), { rejoin: taken.sid });
+      throw dsFail(409, dsItemLabel(it) + ' is already in the ad set as another project. Pick another audience or language, or open that project from Review links.');
+    }
     dlg.busy('Saving the project into ' + [it.market, it.aud, DS_LANG[it.lang]].join(' / ') + '…', .1);
     const sid = await dsProject(rs.folder, rid, it, st, by, name, app);
     // the pictures, one file each, then the project's photo map
@@ -689,6 +702,11 @@
     }
     const b = ssGet(this.shKey());
     if (b && b.id && b.pid && b.pid === this.state.pid) this.shareStart();
+    else {
+      // not followed in this tab, but this project has a link on this computer: reconnect
+      const k = pidGet(this.state.pid);
+      if (k && k.id && k.app === this.shApp()) setTimeout(() => { if (!this._sh) this.shRejoin(k.id); }, 900);
+    }
     // An ad set link resumes only on a REFRESH: the binding records the project the tab had open
     // when the link was opened, and any other project (one opened from Recent, a template, a
     // session file) means the tab moved on, so the binding is dropped instead of reopening the
@@ -949,7 +967,8 @@
     document.documentElement.classList.remove('shl-on', 'shl-open');
     this.shGuard(false);
     this._sh = null;
-    if (!keepBinding) { ssSet(this.shKey(), null); ssSet(this.shKey('-base'), null); ssSet(this.shKey('-log'), null); }
+    if (!keepBinding) { ssSet(this.shKey(), null); ssSet(this.shKey('-base'), null); ssSet(this.shKey('-log'), null); if (this._shLeave) pidForget(this.state.pid); }
+    this._shLeave = false;
     this.forceUpdate();
   };
 
@@ -974,6 +993,7 @@
     S.poll = setInterval(() => this.shPoll(), POLL);
     S.clock = setInterval(() => this.shRender(), 30000);
     S.ui = buildUi(this);
+    pidRemember(this.state.pid, { id: S.id, app: this.shApp(), rev: S.rev, base: S.base, imgs: S.imgs });
     document.documentElement.classList.add('shl-on');
     if (S.rs && S.rs.tok) Arch.add(S.rs.tok.dd, S.rs.name, S.rs.product);
     if (open || lsGet('provident-share-open') === '1') this.shPanel(true);
@@ -1077,6 +1097,71 @@
     ssSet(this.shKey(), { id: S.id, rev: S.rev, n: S.n, pid: this.state.pid, imgs: S.imgs, pv: S.pv, name: S.name, role: S.role, rs: S.rs });
     if (!ssSet(this.shKey('-base'), S.base)) ssSet(this.shKey('-base'), null);
     ssSet(this.shKey('-log'), { from: S.from, log: S.log.slice(-200) });
+    pidRemember(this.state.pid, { id: S.id, app: this.shApp(), rev: S.rev, base: S.base, imgs: S.imgs });
+  };
+  // A PROJECT KNOWS ITS LINK, NOT ONLY THE TAB. The binding above is per tab (sessionStorage),
+  // so the same project opened in another window, from Recent, or from its saved file used to
+  // read as a new, unshared project — and putting it in its ad set again then hit "already
+  // there". `provident-share-pid:<pid>` (localStorage, every tab and workspace on this
+  // computer) keeps the link id and the last state synced with it, so any window that opens
+  // the project reconnects by itself, merging what was done while it was apart.
+  const PID_KEY = 'provident-share-pid:', PID_IDX = 'provident-share-pids', PID_MAX = 12;
+  function pidGet(pid) { try { return pid ? JSON.parse(localStorage.getItem(PID_KEY + pid) || 'null') : null; } catch (e) { return null; } }
+  function pidRemember(pid, v) {
+    if (!pid || !v || !v.id) return;
+    let idx = []; try { idx = JSON.parse(localStorage.getItem(PID_IDX) || '[]') || []; } catch (e) {}
+    idx = idx.filter(p => p !== pid); idx.unshift(pid);
+    idx.slice(PID_MAX).forEach(p => { try { localStorage.removeItem(PID_KEY + p); } catch (e) {} });
+    idx = idx.slice(0, PID_MAX);
+    const rec = Object.assign({ at: Date.now() }, v);
+    try { localStorage.setItem(PID_KEY + pid, JSON.stringify(rec)); }
+    catch (e) { try { delete rec.base; localStorage.setItem(PID_KEY + pid, JSON.stringify(rec)); } catch (e2) {} }   // too big: keep the id
+    try { localStorage.setItem(PID_IDX, JSON.stringify(idx)); } catch (e) {}
+  }
+  function pidForget(pid) { if (pid) try { localStorage.removeItem(PID_KEY + pid); } catch (e) {} }
+  // Reconnect THIS tab's project to its link `id` (its own link — a 12-char store id or a
+  // Drive 'D' id), with no dialog. The link must hold this same project (same pid). Words: a
+  // three-way merge over the last state this computer synced with it, so edits made here while
+  // apart and edits made by others both survive (with no known base, this computer's edits win
+  // where the two differ). Pictures: a photo that changed only here goes up, one that changed
+  // only there comes down.
+  SP.shRejoin = async function (id, quiet) {
+    if (this._sh || this._shRejoin || !id) return false;
+    this._shRejoin = true;
+    try {
+      if (isDs(id)) {
+        const D = window.providentDrive;
+        if (!(D && (await D.ensure())) && !(await dsGate('Reconnect to the ad set review'))) return false;
+      }
+      const d = await api('get', { id });
+      if (!d || !d.state || (d.state.pid || '') !== (this.state.pid || '')) return false;
+      if (this._sh) return false;
+      const was = pidGet(this.state.pid) || {}, known = was.id === id;
+      const theirs = this.shNorm(d.state), mine = this.shPub();
+      const base = known && was.base ? was.base : theirs;
+      const merged = merge3(base, mine, theirs);
+      const C = IS(), want = d.imgs || {}, baseImgs = known ? (was.imgs || {}) : {}, imgs = {}, up = [];
+      for (const sl of Object.keys(want)) {
+        const loc = C && C.getRec ? C.getRec(sl) : null, lh = loc && loc.u ? fnv(JSON.stringify(loc)) : '';
+        if (lh === want[sl].h) { imgs[sl] = lh; continue; }
+        if (lh && baseImgs[sl] === want[sl].h) { imgs[sl] = want[sl].h; up.push(sl); continue; }   // changed here only
+        const rec = await fetchRec(id, want[sl]);
+        if (rec && C && C.putRec) { C.putRec(sl, rec); imgs[sl] = want[sl].h; }
+      }
+      // a photo here the link has never had goes up too
+      (this.shSlots ? this.shSlots() : []).forEach(sl => { if (!want[sl] && C && C.getRec) { const r = C.getRec(sl); if (r && r.u) up.push(sl); } });
+      if (!jsonEq(merged, mine)) this.shApply(merged);
+      const meta = d.meta || {};
+      ssSet(this.shKey(), { id, rev: d.rev || 0, n: d.n || 0, pid: this.state.pid, imgs, pv: {}, name: meta.name || this.shName(), role: d.role || 'edit', rs: d.rs || null });
+      ssSet(this.shKey('-base'), theirs);
+      ssSet(this.shKey('-log'), null);
+      this.shareStart(false);
+      const S = this._sh;
+      if (S) { up.forEach(sl => S.dirty.add(sl)); if (up.length) S.lastT = Date.now(); }
+      if (!quiet) setTimeout(() => this.shFlash(d.rs ? 'Reconnected to the ad set ' + (d.rs.name || '') + ' — your changes reach the review link again.' : 'Reconnected to its shared link.'), 400);
+      return true;
+    } catch (e) { return false; }
+    finally { this._shRejoin = false; }
   };
   SP.shPoll = async function (force) {
     const S = this._sh; if (!S || S.polling) return;
@@ -1675,7 +1760,28 @@
     const ans = await dlg.answer();
     if (!ans) return;
     if (plan && ans.mode === 'new') ans.plan = Object.assign({}, plan, { product: ans.product });
-    lsSet(NAME_KEY, ans.by);
+    if (!StudioBase.shareWho()) lsSet(NAME_KEY, ans.by);
+    const label = itemLabel({ market: ans.market, aud: ans.aud, lang: ans.lang });
+    const rejoined = async (rs, sid) => {
+      dlg.busy('Reconnecting…');
+      if (this._sh) this.shareStop(true);
+      if (!(await this.shRejoin(sid, true))) { dlg.fail('This project is already ' + label + ' in ' + (rs.name || 'the ad set') + ', but it could not reconnect — open it from Review links.', 'Close'); return; }
+      if (rs.tok && rs.tok.dd) Arch.add(rs.tok.dd, rs.name, rs.product);
+      dlg.links(rs, 'This project is already ' + label + ' in ' + (rs.name || 'the ad set') + ' — it is reconnected, so your changes reach the review link again. The links are the same:');
+    };
+    if (ans.mode === 'add' && ans.dd) {
+      try {
+        const g = await api('rsget', { id: ans.dd });
+        const rsx = g.rs || {}, taken = (rsx.items || []).find(x => x.market === ans.market && x.aud === ans.aud && x.lang === ans.lang);
+        if (taken) {
+          let pid = '';
+          try { pid = (((await api('get', { id: ans.dd, p: taken.sid })) || {}).state || {}).pid || ''; } catch (e) {}
+          if (pid && pid === this.state.pid) { await rejoined(rsx, taken.sid); return; }
+          dlg.fail(label + ' is already in ' + (rsx.name || 'the ad set') + ' as another project. Pick another audience or language, or open that project from Review links.', 'Close');
+          return;
+        }
+      } catch (e) { if (e && e.gdAuth) { /* signed out: the path below signs in and checks again */ } }
+    }
     // A new ad set, or one that lives on Drive: its folder holds everything (see dsApi).
     if (drive && (ans.mode === 'new' || isDs(ans.dd))) {
       try {
@@ -1684,6 +1790,7 @@
         if (ans.folder) lsSet('provident-rs-folder', ans.folder);
         if (this._sh) this.shareStop(true);
         const rs = await this.dsReview(dlg, ans);
+        if (rs.rejoin) { await rejoined(rs, rs.rejoin); return; }
         Arch.add(rs.tok.dd, rs.name, rs.product);
         dlg.links(rs, ans.mode === 'new' ? 'The ad set is ready in its Drive folder, with this project in ' + [ans.market, ans.aud, DS_LANG[ans.lang]].join(' / ') + '. ' + (ans.plan ? 'When this design is done, make each other audience from it in the Ad set review panel. ' : 'Add each other audience and language from its own project, the same way. ') + 'Send each team its link once:'
           : 'Added as ' + itemLabel({ market: ans.market, aud: ans.aud, lang: ans.lang }) + ' to ' + rs.name + ', in its own folder. The links are the same for the whole ad set:');
@@ -3141,7 +3248,7 @@
       if (v) { lsSet(NAME_KEY, v); eng.shRender(); }
     };
     $('.shl-leave').onclick = () => {
-      if (window.confirm('Stop following the link on this tab? The project stays open here, but your changes will no longer reach the link, and theirs will not reach you. Open the link again to rejoin.')) eng.shareStop();
+      if (window.confirm('Stop following the link? The project stays open here, but your changes will no longer reach the link, and theirs will not reach you — on this computer, until you open the link again.')) { eng._shLeave = true; eng.shareStop(); }
     };
     let lastTop = '', toastT = 0;
     const ui = {

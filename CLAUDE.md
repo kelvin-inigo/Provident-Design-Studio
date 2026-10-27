@@ -16904,3 +16904,26 @@ now runs `whoFetch()` when the token is valid but WHO is empty; `watch()` does t
 load; and `nameDialog` loads Google's script before the click (a script fetched after the click
 can outlast the click's popup permission) and asks Drive whose a valid token is without waiting
 for a click. If Google still names no account, the dialog says so instead of doing nothing.
+
+# A PROJECT KNOWS ITS REVIEW LINK, NOT ONLY THE TAB (2026-10-27)
+
+Reported as "very disruptive": after the ad set setup, the same project opened in another window
+read as a NEW file; Share › Ad set review then said the folder already held an ad set, and Add to
+it refused the duplicate audience. Cause: the share binding lives in sessionStorage, per tab.
+- **`provident-share-pid:<pid>`** (localStorage, every tab and workspace; index
+  `provident-share-pids`, last 12) holds the link id, rev, the last synced state and photo map.
+  Written by `shareStart` and every `shPersist`.
+- **`shareInit` reconnects**: no binding in this tab but a pid entry for this app → `shRejoin(id)`
+  0.9s after load. It reads the link (`get`), checks the pid matches, three-way merges
+  (`merge3(stored base || theirs, mine, theirs)` — with no base, this computer's edits win), takes
+  down photos changed only there, marks photos changed only here dirty, binds and flashes
+  "Reconnected to the ad set …". A Drive link needs a token: `ensure()`, else `dsGate`.
+- **Stop following this link** now forgets the pid entry (`_shLeave`), so it does not reconnect.
+- **Duplicates reconnect**: `reviewCreate` checks an Add's cell first (`rsget`, then the taken
+  project's state via `get` with `p`); `dsReview` does the same on Drive. Same pid → `shRejoin`
+  and the links ("already … — it is reconnected"); another pid → a clear message. A Drive folder
+  that already holds an ad set takes the project as an ADD instead of refusing.
+Verified on the Drive stand-in: bound, binding cleared, an edit made apart, reload → reconnected
+by itself, the edit saved and logged "Heading"; with no local memory, both Make the ad set (same
+folder) and Add (same cell) reconnected with no new files; another project into the same folder
+was added as Investor; a third project on a taken cell got the message.
