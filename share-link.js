@@ -3040,8 +3040,21 @@
         await D.signIn();
         $('.shl-st').textContent = ''; $('.shl-st').classList.remove('bad');
       } catch (er) { $('.shl-st').textContent = er.message || String(er); $('.shl-st').classList.add('bad'); }
+      if (!StudioBase.shareWho() && D.valid && D.valid()) await D.whoFetch();
       if (showWho()) { $('.shl-note').textContent = ''; if (o.auto && autoGo) res(StudioBase.shareName()); }
+      else if (!$('.shl-st').textContent) $('.shl-st').textContent = 'Signed in, but Google did not say which account — type your name, or try again.';
     };
+    // No account known yet: load Google's script now, so the click's popup opens at once (a
+    // script fetched after the click can outlast the click's permission to open a popup) — and
+    // if a token is already here, ask Google whose it is without waiting for a click at all.
+    if (D && !StudioBase.shareWho() && dsOn()) {
+      D.load().catch(() => {});
+      if (D.valid && D.valid()) D.whoFetch().then(() => {
+        if (!el.isConnected || !showWho()) return;
+        $('.shl-note').textContent = '';
+        if (o.auto && autoGo) res(StudioBase.shareName());
+      });
+    }
     const submit = () => {
       if (StudioBase.shareWho()) { res(StudioBase.shareName()); return; }
       const v = inp.value.replace(/\s+/g, ' ').trim(); if (!v) { inp.focus(); $('.shl-st').textContent = 'Add your name so others know who made a change.'; return; } res(v);

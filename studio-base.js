@@ -1853,6 +1853,7 @@ window.providentDrive = {
   watch() {
     if (this._watch) return; this._watch = true;
     this.srvOn();
+    if (this.valid() && !this.who()) this.whoFetch();   // a token with no remembered account
     setInterval(() => {
       if (!this.kept() || document.visibilityState !== 'visible') return;
       const t = this.tok || (() => { try { return JSON.parse(localStorage.getItem(this.TOK) || 'null'); } catch (e) { return null; } })();
@@ -1886,8 +1887,9 @@ window.providentDrive = {
   },
   // Must be called from a click: Google opens its sign-in popup — unless the server can renew.
   async signIn() {
-    if (this.valid()) return this.tok.at;
-    if (await this.renew()) return this.tok.at;
+    // a token from an earlier sign-in, before the account was remembered: learn the account
+    // too, or a caller asking "who is this?" gets nothing and the sign-in looks like it failed
+    if (this.valid() || (await this.renew())) { if (!this.who()) await this.whoFetch(); return this.tok.at; }
     const id = this.clientId();
     if (!id) throw new Error('Google Drive is not set up on this computer yet — paste the OAuth client ID your admin gave you.');
     await this.load();

@@ -16896,3 +16896,11 @@ title ("1 of 4 audiences done"), one line of counts ("3 ad sets · 5 projects ·
 and Updated + refresh at the right; then the body (`.rvo-in`, hairline above) with the four step
 columns. Under 700px of container width the header stacks (figure, then text). The separate
 stat tiles (`.rvo-hero`, `.rvo-stats`) are no longer drawn; their CSS is unread.
+
+**Fix (same day, "sign in with Google is not working"):** a computer holding a valid token from
+an earlier Drive sign-in but no remembered account (WHO was only added on 27 Oct) made
+`signIn()` return at once without learning the account, so the dialog never changed. `signIn()`
+now runs `whoFetch()` when the token is valid but WHO is empty; `watch()` does the same at page
+load; and `nameDialog` loads Google's script before the click (a script fetched after the click
+can outlast the click's popup permission) and asks Drive whose a valid token is without waiting
+for a click. If Google still names no account, the dialog says so instead of doing nothing.
