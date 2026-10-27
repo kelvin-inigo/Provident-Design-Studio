@@ -3596,6 +3596,7 @@ select.p-in{padding-right:34px}
   transition:box-shadow var(--ps-motion) var(--ps-ease)}
 /* on the card's own ground, so the badge's status ink measures as it does in Publish */
 .as-ad-see:hover{box-shadow:0 0 0 1px var(--ps-ink-2)}
+.mk-ov{z-index:240}   /* over the Ad sets window, PM's review bar and the review panel */
 .as-ad-see .yt-badge{margin-left:0;font-size:11px}
 .as-ad-see:focus-visible,.as-det-img:focus-visible,.as-fmts button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-fmts{display:flex;flex-wrap:wrap;gap:6px}
@@ -5387,6 +5388,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                         <div class="as-plat-top">
                           <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
                           <button onClick="{{ pl.see }}" class="as-ad-see" title="Marketing angle, audience, USP and how much of the image the copy covers">Details</button>
+                          <sc-if value="{{ pl.prevOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pl.prev }}" class="as-ad-see" title="See this variant in the Facebook and Instagram feed, Reels and Story">Preview</button></sc-if>
                         </div>
                         <div class="as-tiles">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
@@ -11233,8 +11235,9 @@ class CampaignStudio extends StudioBase {
     return out;
   }
   // What the platform prints around the creative, filled from the creative's own words.
-  mockCopy() {
-    const list = CampaignStudio.modulesFor(this.state, this.state.activeVi);
+  mockCopy() { return CampaignStudio.mockCopyOf(this.state, this.state.activeVi); }
+  static mockCopyOf(st, vi) {
+    const list = st.variants ? CampaignStudio.modulesFor(st, vi) : [];
     const of = t => { const m = list.find(x => x.type === t); return m || null; };
     const txt = t => { const m = of(t); return m ? String(m.text || '').replace(/\n+/g, ' ').trim() : ''; };
     const price = of('price');
@@ -11245,7 +11248,7 @@ class CampaignStudio extends StudioBase {
       page: 'Provident Real Estate',
       domain,
       primary: txt('hook') || txt('body') || txt('eyebrow') || 'Your primary text sits here, above the creative.',
-      headline: txt('hero') || this.state.campaign || 'Headline',
+      headline: txt('hero') || st.campaign || 'Headline',
       desc: txt('body') || (price ? ((price.sub || '') + ' ' + (price.text || '')).trim() : '') || domain,
       cta: txt('cta') || 'Learn more'
     };
@@ -15282,7 +15285,7 @@ class Component extends DCLogic {
               const tiles = [];
               const order = ['feed', 'portrait_3x4', 'story', 'landscape_1.91x1'];
               for (const k of order) {
-                if (slots[k]) { tiles.push(tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '))); files++; }
+                if (slots[k]) { const tl = tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › ')); tl.kk = k; tiles.push(tl); files++; }
               }
               if (tiles.length) plats.push(this.asCard(key, label, slots['_' + key], letter, tiles, [main, aud, 'Variant ' + letter].join(' › ')));
             }
@@ -15885,6 +15888,17 @@ class Component extends DCLogic {
     };
     card.pick(tiles[0]);
     card.see = () => { this._asDet = card; this.forceUpdate(); };
+    // Preview: the placement preview over THIS variant's exported images — the files the
+    // window already holds, so it needs no engine and works on any source, a review link
+    // included. The words around the creative come from the saved project's own copy.
+    const SK = { feed: 'sq', portrait_3x4: 'pt', story: 'st' }, shots = {};
+    tiles.forEach(t => { if (SK[t.kk]) shots[SK[t.kk]] = t.url; });
+    card.prevOn = Object.keys(shots).length ? '1' : undefined;
+    card.prev = () => {
+      const vi = Math.max(0, letter.charCodeAt(0) - 65);
+      this._mkExt = { shots, copy: st.variants ? C.mockCopyOf(st, vi) : C.mockCopyOf({ campaign: label }, 0) };
+      this.setState({ mockOpen: true });
+    };
     return card;
   }
   // ══ THE AD ANALYSIS in Ad sets › Details (2026-10-15) ═══════════════════════════════════
@@ -16254,6 +16268,7 @@ class Component extends DCLogic {
         e.preventDefault(); return;
       }
       if (e.key !== 'Escape') return;
+      if (this.state.mockOpen) { this._mkExt = null; this.setState({ mockOpen: false }); return; }
       // Ad sets: the enlarged image first, then the window itself.
       if (this._asBig) { this._asBig = null; this.forceUpdate(); return; }
       if (this._asDet) { this._asDet = null; this.forceUpdate(); return; }
@@ -16285,7 +16300,7 @@ class Component extends DCLogic {
     StudioBase.autoGrow();
     if (this.eng) this.eng._scanNow = true;   // the engine's tick re-reads the page on its next frame
     // mockSync returns early unless the design actually changed, so this cannot loop.
-    if (this.state.mockOpen) { const a = this.active(); if (a && a.mockSync) a.mockSync(); }
+    if (this.state.mockOpen && !this._mkExt) { const a = this.active(); if (a && a.mockSync) a.mockSync(); }
     this._tplTick();
     this._cwTick();
     this._vtTick();
@@ -16435,10 +16450,11 @@ class Component extends DCLogic {
       mkOpen: this.state.mockOpen ? '1' : undefined,
       mkToggle: () => {
         const open = !this.state.mockOpen;
+        this._mkExt = null;
         this.setState({ mockOpen: open });
         if (open && eng && eng.mockSync) eng.mockSync();
       },
-      mkClose: () => this.setState({ mockOpen: false }),
+      mkClose: () => { this._mkExt = null; this.setState({ mockOpen: false }); },
       // ONE toggle, two apps, and every placement of that app side by side: its feed (the
       // 1:1 on Facebook, the Portrait 3:4 on Instagram), its Reel and its Story — the last
       // two are the same 9:16 render. The app chrome is always drawn, the phone is dark.
@@ -16457,10 +16473,10 @@ class Component extends DCLogic {
       mkDarkOn: this.state.mockMode === 'light' ? undefined : '1',
       mkLight: () => this.setState({ mockMode: 'light' }),
       mkDark: () => this.setState({ mockMode: 'dark' }),
-      mkStoryName: (() => { const c = eng && eng.mockCopy ? eng.mockCopy() : {}; return this.state.mockPlat === 'fb' ? (c.page || '') : (c.handle || ''); })(),
+      mkStoryName: (() => { const c = this._mkExt ? this._mkExt.copy : (eng && eng.mockCopy ? eng.mockCopy() : {}); return this.state.mockPlat === 'fb' ? (c.page || '') : (c.handle || ''); })(),
       mkPhones: (() => {
         const fb = this.state.mockPlat === 'fb';
-        const sh = eng && eng.mockShots ? eng.mockShots() : {};
+        const sh = this._mkExt ? this._mkExt.shots : (eng && eng.mockShots ? eng.mockShots() : {});
         const PX = eng ? eng.constructor.PXT : {};
         const dim = k => { const t = PX[k]; if (!t) return ''; const o = t.out || [t.W * 2, t.H * 2]; return o[0] + ' \u00d7 ' + o[1]; };
         return [['feed', 'Feed', fb ? 'sq' : 'pt', fb ? '1:1' : '3:4'], ['reel', 'Reels', 'st', '9:16'], ['story', 'Story', 'st', '9:16']].map(([v, label, k, r]) => ({
@@ -16473,7 +16489,7 @@ class Component extends DCLogic {
         }));
       })(),
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
-      mkCopy: eng && eng.mockCopy ? eng.mockCopy() : {},
+      mkCopy: this._mkExt ? this._mkExt.copy : (eng && eng.mockCopy ? eng.mockCopy() : {}),
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
       shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Review links' : 'All'))),
       // the line under the title says what this view holds, so the counts read without the sidebar
