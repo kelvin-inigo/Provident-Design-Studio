@@ -110,7 +110,8 @@
     if (/\.vercel\.app$/.test(location.hostname)) return location.origin;
     return PUBLIC;
   };
-  StudioBase.shareName = () => lsGet(NAME_KEY) || lsGet('adstudio-author') || '';
+  // a name typed once wins; otherwise the Google account this computer signed in with
+  StudioBase.shareName = () => lsGet(NAME_KEY) || lsGet('adstudio-author') || (window.providentDrive && window.providentDrive.alias ? window.providentDrive.alias() : '') || '';
 
   SP.shApp = function () { return this.sessionApp(); };
   SP.shKey = function (s) { return 'provident-share' + (s || '') + ':' + this.shApp(); };
@@ -501,7 +502,9 @@
     if (document.querySelector('.ds-sign')) return;
     const el = document.createElement('div');
     el.className = 'ds-sign'; el.setAttribute('role', 'status');
-    el.innerHTML = '<span>This review is stored on Google Drive. Sign in with your Provident Google account to keep it in step.</span><button class="p-btn" type="button">Sign in with Google</button>';
+    const w = window.providentDrive.who && window.providentDrive.who();
+    el.innerHTML = w ? '<span>Your Google session has expired — continue as ' + esc(w.email) + ' to keep the review in step.</span><button class="p-btn" type="button">Continue</button>'
+      : '<span>This review is saved in Google Drive. Sign in once to keep it in step.</span><button class="p-btn" type="button">Sign in with Google</button>';
     el.querySelector('button').onclick = async () => {
       try { await window.providentDrive.signIn(); el.remove(); window.dispatchEvent(new Event('provident-drive-signed')); }
       catch (e) { el.querySelector('span').textContent = e.message || String(e); }
@@ -516,11 +519,23 @@
     return new Promise(res => {
       const el = document.createElement('div');
       el.className = 'shl-dlg';
+      // a computer that signed in before says WHO and continues as them in one click; the
+      // first time, it explains why Google is asking
+      const w = D.who && D.who();
       el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true"><h2>' + esc(title) + '</h2>' +
-        '<p class="shl-lead">This review is stored in the ad set’s Google Drive folder. Sign in with your Provident Google account to open it — your account needs access to that folder.</p>' +
-        '<p class="shl-st" aria-live="polite"></p><div class="shl-acts"><button class="p-ghost shl-x">Cancel</button><button class="p-btn shl-go">Sign in with Google</button></div></div>';
+        (w ? '<p class="shl-lead">Your Google session has expired. Continue as <b>' + esc(w.email) + '</b> to open it.</p>'
+          : '<p class="shl-lead">This review is saved in Google Drive. Sign in once with your Provident Google account — this computer remembers it.</p>') +
+        '<p class="shl-st" aria-live="polite"></p><div class="shl-acts">' +
+        (w ? '<button class="shl-other" type="button">Use another account</button>' : '') +
+        '<button class="p-ghost shl-x">Cancel</button><button class="p-btn shl-go">' + (w ? 'Continue' : 'Sign in with Google') + '</button></div></div>';
       document.body.appendChild(el);
       el.querySelector('.shl-x').onclick = () => { el.remove(); res(false); };
+      const oth = el.querySelector('.shl-other');
+      if (oth) oth.onclick = async () => {
+        D.signOut();
+        try { await D.signIn(); el.remove(); res(true); }
+        catch (e) { const s = el.querySelector('.shl-st'); s.textContent = e.message || String(e); s.classList.add('bad'); }
+      };
       el.querySelector('.shl-go').onclick = async () => {
         try { await D.signIn(); el.remove(); res(true); }
         catch (e) { const s = el.querySelector('.shl-st'); s.textContent = e.message || String(e); s.classList.add('bad'); }
@@ -3274,6 +3289,8 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .rv{display:flex;flex-direction:column;gap:12px;padding:2px 16px 16px;box-shadow:inset 0 -1px 0 var(--ps-hair)}
 .rv[hidden],.rv-dd[hidden]{display:none}
 .rv-main{display:flex;flex-direction:column;gap:14px}
+.shl-other{margin-right:auto;padding:0;border:none;background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--ps-line)}
+.shl-other:hover{color:var(--ps-ink)}
 .rv-todo{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rv-todo p{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .rv-todo ul{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}

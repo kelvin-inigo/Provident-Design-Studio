@@ -3,9 +3,9 @@
 serve.py routes /drive/v3/... and /upload/drive/v3/... here, so review links stored on Drive
 can be tested on this computer with no Google account: in the studio's console,
 localStorage.setItem('provident-drive-base', location.origin) and
-sessionStorage.setItem('provident-drive-tok', JSON.stringify({at: 'dev', exp: Date.now() + 3e6})).
+localStorage.setItem('provident-drive-tok', JSON.stringify({at: 'dev', exp: Date.now() + 3e6})).
 
-Covers: listing a folder (q = "'<id>' in parents and trashed=false [and name='<n>']"), a file's
+Covers: who signed in (/drive/v3/about — a fixed test account), listing a folder (q = "'<id>' in parents and trashed=false [and name='<n>']"), a file's
 metadata and content (Range too), creating a folder or a file (metadata POST, or a multipart
 upload), replacing a file's content (PATCH media), renaming or moving (PATCH with addParents /
 removeParents), and deleting. Every change bumps the file's `version`, as Drive does.
@@ -92,6 +92,8 @@ def route(method, path, query, headers, body):
     if not (headers.get('Authorization') or '').startswith('Bearer '):
         return _err(401, 'Request had invalid authentication credentials.')
     q = {k: v[0] for k, v in urllib.parse.parse_qs(query).items()}
+    if path.endswith('/drive/v3/about'):
+        return _json(200, {'user': {'displayName': 'Kelvin Inigo', 'emailAddress': 'kelvin.inigo@providentestate.com'}})
     up = path.startswith('/upload/')
     rest = path.split('/files', 1)[1] if '/files' in path else ''
     fid = rest.strip('/') or None

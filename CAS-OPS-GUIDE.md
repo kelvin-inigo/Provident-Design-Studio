@@ -222,6 +222,11 @@ steps: **Design › ENG copy check › Translation › Done**.
    paste the link of the **Google Drive folder** the ad set goes in (its **Main folder**), then
    say what this project is (market, audience, language) and press **Make the ad set**. Google
    asks you to sign in with your Provident account the first time. Send each team its link once.
+   - **You sign in once per computer.** The studio remembers your Google account, and every tab
+     and both studios share the sign-in. Google ends a session after about an hour; the next
+     time it is needed, the studio asks you to **Continue as** your account — one click, no
+     email to type. **Use another account** in that prompt switches accounts. Your **name** in
+     the review is taken from the account (your first name) until you type a different one.
    All three links stay the same as the ad set grows.
    - **Everything is saved in that folder**, laid out like this, and kept up to date as people
      work:
@@ -720,7 +725,8 @@ installed.
 - The folder opens like a local one. In **Edit text**, saving writes the project file and the
   re-exported images back into that Drive folder, so its files and share links stay the same.
 - You can only open and change what your account can already open and change in Drive. A
-  sign-in lasts an hour; after that, Edit text shows **Sign in with Google** and keeps your
+  sign-in lasts about an hour; after that, Edit text shows **Sign in with Google** (one click —
+  the studio remembers your account) and keeps your
   edits until you do. **Sign out** is in the Google Drive box.
 
 ---

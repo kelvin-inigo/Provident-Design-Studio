@@ -16770,3 +16770,25 @@ The Arabic matrix, summary chips and Your name field are gone (the name comes fr
 `shareName()`; the review dialog still asks). **Markets & audiences** folds the market and
 audience toggles; their explanations are tooltips. Footer: **Blank project** as a quiet text
 link, **Start campaign →** as the primary. 0 contrast failures in both themes; fits at 375.
+
+# GOOGLE SIGN-IN IS ONCE PER COMPUTER, AND IT NAMES THE PERSON (2026-10-27)
+
+By request ("every time it asks for my Google email"). `providentDrive` (studio-base.js):
+- **The token is in localStorage** (`provident-drive-tok`, shared by every tab, workspace and
+  both studios — `provident-*` keys are not workspace-prefixed) until Google expires it (~1h).
+  `valid()` re-reads it when its cached copy is stale, so a tab picks up another tab's sign-in;
+  an old per-tab sessionStorage token is adopted once. `drop()` clears both.
+- **The account is remembered for good** (`provident-drive-who` = `{email, name}`), learned from
+  `GET /drive/v3/about?fields=user(...)` (`whoFetch`, no extra scope) after a sign-in. The next
+  sign-in passes `login_hint` with `prompt: ''`, so Google's popup closes by itself — no chooser,
+  no consent. **A token can only be renewed from a click** (the token model has no refresh token
+  in the browser), so an expired session still costs one click: `dsGate` / `dsSignBar` say
+  "Continue as <email>", with **Use another account** (`signOut()` forgets the account too).
+  A session that NEVER asks would need the authorisation-code flow and a refresh token held by a
+  server (a Vercel function with the client secret) — not built.
+- **`StudioBase.shareName()`** falls back to `providentDrive.alias()` — the account's first name,
+  else the email's alias capitalised — so every name dialog prefills from the sign-in. A name
+  typed once (`provident-share-name`) still wins.
+- The Drive stand-in answers `/drive/v3/about` with a fixed test account; set the test token in
+  **localStorage** now, not sessionStorage. **The real Google popup with login_hint was not
+  exercised** — only the stand-in.

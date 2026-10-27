@@ -1765,12 +1765,45 @@ window.providentDrive = {
       document.head.appendChild(s);
     }));
   },
-  // The token is kept for this tab only (sessionStorage), so a reload does not ask to sign in again.
+  // SIGN IN ONCE PER COMPUTER. The token is kept in localStorage (shared by every tab and both
+  // studios) until Google expires it, about an hour; the ACCOUNT is remembered for good
+  // (WHO), so the next sign-in passes it as login_hint with no prompt — Google's popup opens
+  // and closes by itself, with no account chooser and no consent screen. A token can only be
+  // renewed from a click (the popup), which is why an expired session still asks for one.
+  TOK: 'provident-drive-tok', WHO: 'provident-drive-who',
   valid() {
-    if (!this.tok) { try { this.tok = JSON.parse(sessionStorage.getItem('provident-drive-tok') || 'null'); } catch (e) {} }
-    const t = this.tok; return !!(t && t.exp > Date.now() + 60000);
+    const ok = t => !!(t && t.at && t.exp > Date.now() + 60000);
+    if (!ok(this.tok)) {
+      let t = null;
+      try { t = JSON.parse(localStorage.getItem(this.TOK) || 'null'); } catch (e) {}
+      if (!ok(t)) { try { t = JSON.parse(sessionStorage.getItem(this.TOK) || 'null'); } catch (e) {} }   // a tab signed in before this
+      if (ok(t)) { this.tok = t; this.keep(); }
+    }
+    return ok(this.tok);
   },
-  keep() { try { sessionStorage.setItem('provident-drive-tok', JSON.stringify(this.tok)); } catch (e) {} },
+  keep() { try { localStorage.setItem(this.TOK, JSON.stringify(this.tok)); } catch (e) {} },
+  drop() { this.tok = null; try { localStorage.removeItem(this.TOK); sessionStorage.removeItem(this.TOK); } catch (e) {} },
+  // The account that signed in on this computer: { email, name, first }.
+  who() { try { const w = JSON.parse(localStorage.getItem(this.WHO) || 'null'); return w && w.email ? w : null; } catch (e) { return null; } },
+  // A short name for review logs: the account's first name, else its email alias.
+  alias(w) {
+    w = w || this.who(); if (!w) return '';
+    const first = String(w.name || '').trim().split(/\s+/)[0];
+    if (first) return first;
+    const a = String(w.email || '').split('@')[0].split(/[._+-]/)[0].replace(/\d+$/, '');
+    return a ? a.charAt(0).toUpperCase() + a.slice(1) : '';
+  },
+  // Who the token belongs to, read from Drive itself (no extra scope).
+  async whoFetch() {
+    try {
+      const r = await this.fetch(this.base() + '/drive/v3/about?fields=user(displayName,emailAddress)');
+      const u = ((await r.json()) || {}).user || {};
+      if (!u.emailAddress) return null;
+      const w = { email: u.emailAddress, name: u.displayName || '' };
+      try { localStorage.setItem(this.WHO, JSON.stringify(w)); } catch (e) {}
+      return w;
+    } catch (e) { return null; }
+  },
   // Must be called from a click: Google opens its sign-in popup.
   async signIn() {
     if (this.valid()) return this.tok.at;
@@ -1778,23 +1811,29 @@ window.providentDrive = {
     if (!id) throw new Error('Google Drive is not set up on this computer yet — paste the OAuth client ID your admin gave you.');
     await this.load();
     return new Promise((res, rej) => {
+      const w = this.who();
       const tc = google.accounts.oauth2.initTokenClient({
-        client_id: id, scope: this.SCOPE, prompt: this.tok ? '' : 'select_account',
+        // the remembered account goes straight through; a first sign-in picks one
+        client_id: id, scope: this.SCOPE, prompt: w ? '' : 'select_account', login_hint: w ? w.email : undefined,
         callback: r => {
           if (!r || r.error || !r.access_token) return rej(new Error(r && r.error === 'access_denied' ? 'Google sign-in was cancelled.' : 'Google sign-in failed' + (r && r.error ? ' (' + r.error + ')' : '') + '.'));
           this.tok = { at: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3600) * 1000 };
           this.keep();
-          try { window.dispatchEvent(new Event('provident-drive-signed')); } catch (e) {}
-          res(r.access_token);
+          // learn the account (first sign-in, or another account picked) before saying signed in
+          const done = () => { try { window.dispatchEvent(new Event('provident-drive-signed')); } catch (e) {} res(r.access_token); };
+          const fresh = !w;
+          (fresh ? this.whoFetch() : Promise.resolve()).then(done, done);
+          if (!fresh) this.whoFetch();   // keeps a changed display name current, in the background
         },
         error_callback: e => rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' : 'Google sign-in could not open — allow pop-ups for this site.'))
       });
       tc.requestAccessToken();
     });
   },
+  // Forget the session AND the account, so the next sign-in shows Google's account chooser.
   signOut() {
-    const t = this.tok; this.tok = null;
-    try { sessionStorage.removeItem('provident-drive-tok'); } catch (e) {}
+    const t = this.tok; this.drop();
+    try { localStorage.removeItem(this.WHO); } catch (e) {}
     try { if (t && window.google && google.accounts) google.accounts.oauth2.revoke(t.at, () => {}); } catch (e) {}
   },
   async fetch(url, opt) {
@@ -1802,7 +1841,7 @@ window.providentDrive = {
     if (!this.valid()) throw expired();
     opt = Object.assign({}, opt || {}); opt.headers = Object.assign({ Authorization: 'Bearer ' + this.tok.at }, opt.headers || {});
     const r = await fetch(url, opt);
-    if (r.status === 401) { this.tok = null; try { sessionStorage.removeItem('provident-drive-tok'); } catch (e) {} throw expired(); }
+    if (r.status === 401) { this.drop(); throw expired(); }
     if (!r.ok) {
       let m = 'Google Drive answered ' + r.status;
       try { const d = await r.json(); if (d && d.error && d.error.message) m = d.error.message; } catch (e) {}
