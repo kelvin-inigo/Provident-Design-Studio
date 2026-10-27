@@ -159,7 +159,10 @@
   // every screen of the review links works unchanged. Drive's sharing is the access control:
   // whoever opens a link signs in with their Google account and needs access to the folder; the
   // role in the link (designer, content team, performance marketing) is a workflow, as before.
-  const DS_SET = 'Ad set review', DS_FILE = 'Ad set.json', DS_ASSETS = 'Assets';
+  // the ad set's record is one file in the Main folder, named after the ad set; ad sets started
+  // before it moved there keep theirs in 'Ad set review/Ad set.json' (links reach it by file id)
+  const DS_SET = 'Ad set review', DS_FILE = 'Ad set.json', DS_ASSETS = 'Assets', DS_TAIL = '_Adset.json';
+  const dsSetName = name => dsSafe(name || 'Ad set') + DS_TAIL;
   const DS_LANG = { ENG: 'English', ARB: 'Arabic' }, DS_FOLDER = 'application/vnd.google-apps.folder';
   const isDs = id => /^[DR][\w.-]{20,}$/.test(String(id || ''));
   const isRsId = id => { id = String(id || ''); return /^[A-Za-z0-9]{16}$/.test(id) || /^R[\w-]+\.[\w-]{20,}$/.test(id); };
@@ -288,7 +291,11 @@
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
       if (R.role !== 'dd') throw dsFail(403, 'Only the designer changes the ad set.');
       const rs = R.rs, by = dsWho(body.by);
-      if ('name' in body && String(body.name || '').trim()) rs.name = String(body.name).trim().slice(0, 120);
+      if ('name' in body && String(body.name || '').trim()) {
+        rs.name = String(body.name).trim().slice(0, 120);
+        // the file in the Main folder follows the ad set's name (an older one in its subfolder keeps 'Ad set.json')
+        try { const m = await dsMeta(R.rid); if (m.name.endsWith(DS_TAIL) && m.name !== dsSetName(rs.name)) await dsFetch('/drive/v3/files/' + R.rid + '?supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: dsSetName(rs.name) }) }); } catch (e) {}
+      }
       if (body.eng_only && typeof body.eng_only === 'object') { rs.eng_only = rs.eng_only || {}; Object.keys(body.eng_only).slice(0, 40).forEach(k => { if (body.eng_only[k]) rs.eng_only[k] = true; else delete rs.eng_only[k]; }); }
       if (body.relabel) {
         const r = body.relabel, it = (rs.items || []).find(x => x.sid === r.sid);
@@ -439,13 +446,17 @@
     if (ans.mode === 'new') {
       const folder = await D.folderOf(ans.folder);
       dlg.busy('Setting up the ad set in “' + folder.name + '”…', .04);
-      const setDir = await dsFolder(folder.id, DS_SET);
-      const had = (await dsList(setDir, DS_FILE))[0];
-      if (had) { const old = await dsRead(had.id, true); if (!old.deleted) throw dsFail(409, '“' + folder.name + '” already holds an ad set (' + (old.name || 'unnamed') + '). Choose “Add to an ad set”, or another folder.'); }
+      const files = (await dsList(folder.id)).filter(x => x.mimeType !== DS_FOLDER && x.name.endsWith(DS_TAIL));
+      const oldDir = (await dsList(folder.id, DS_SET)).find(x => x.mimeType === DS_FOLDER);
+      if (oldDir) files.push(...(await dsList(oldDir.id, DS_FILE)));
+      let had = null;
+      for (const x of files) { const old = await dsRead(x.id, true); if (!old.deleted) { had = x; break; } }
+      if (had) { const old = await dsRead(had.id, true); throw dsFail(409, '“' + folder.name + '” already holds an ad set (' + (old.name || 'unnamed') + '). Choose “Add to an ad set”, or another folder.'); }
       const tokOf = () => dsRand(10);
       rs = { app: 'provident-ad-set', name: ans.name, product: ans.product, created: dsNow(), by, drive: 'https://drive.google.com/drive/folders/' + folder.id,
         folder: folder.id, eng_only: {}, items: [], hist: [], log: [] };
-      const f = had ? { id: had.id } : await dsCreate(setDir, DS_FILE, dsJson(rs));
+      const same = files.find(x => x.name === dsSetName(ans.name));
+      const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
       rid = f.id; rs.rid = rid;
       rs.tok = { dd: 'R' + tokOf() + '.' + rid, ct: 'R' + tokOf() + '.' + rid, pm: 'R' + tokOf() + '.' + rid };
     } else {

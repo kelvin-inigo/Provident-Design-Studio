@@ -220,7 +220,7 @@ steps: **Design › ENG copy check › Translation › Done**.
 
      ```
      Main folder/
-       Ad set review/Ad set.json          ← the ad set: its steps, links and log
+       <ad set name>_Adset.json           ← the ad set: its steps, links and log
        Local/
          Family/
            English/

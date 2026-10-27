@@ -16693,7 +16693,8 @@ so `api()` just routes a Drive id to it, and photos go through `dsPutRec` / `dsF
 `putRec` / `fetchRec`. Layout of the Main folder the designer names in the setup dialog:
 
 ```
-<Main>/Ad set review/Ad set.json   ad set record + its log + tok + thumb (one file)
+<Main>/<ad set name>_Adset.json    ad set record + its log + tok + thumb (one file; renamed with the
+                                   ad set; ones made before 28 Oct sit in Ad set review/Ad set.json)
 <Main>/<Market>/<Audience>/<English|Arabic>/<name>.adstudio.json   session file; `review` holds
        meta, rev, imgs {slot: {h, n:1, f: Drive file id, m: crop fields}}, log, sum, thumb, rid
        .../Assets/background-variant-a.webp …   one file per picture (slimFull, 2560px)
