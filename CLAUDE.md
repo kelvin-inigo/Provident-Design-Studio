@@ -16562,3 +16562,11 @@ the link shows a preview until someone restores them.
   it (same hash, no log entry); restore from a record on another workspace swapped the canvas to
   full. **Not exercised on real Upstash.** Ad set views (CT, PM) fall back to previews silently and
   do not heal; PM's Download would ship previews.
+
+**Review surfaces carry a type hierarchy, and nothing in them is bold (2026-10-27, by request).**
+One block at the end of share-link.js's sheet (`TYPE HIERARCHY`) overrides every 600 in the
+activity log, the Changes panel, the ad set archive page, the details window and the PM bar:
+Medium 500 only for page titles, people's and audiences' names and buttons; everything else 400,
+ranked by colour — ink for what you read, ink-2 for headings and explanations, dim for dates,
+counts, kickers and pending steps. A step line in the log reads "<dim where> <ink action>".
+Contrast 0 failures, dark. Note: 1981bdf (another session) committed the first half of this block.

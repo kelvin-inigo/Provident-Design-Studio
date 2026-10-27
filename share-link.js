@@ -2606,6 +2606,13 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva-dl dt{font-weight:400}
 .rva-chips span{font-weight:400;color:var(--ps-ink-2)}
 .rva .p-btn,.rva .p-ghost,.rvh button,.rvh-dlg button,.shl-panel button,.shl-dlg button,.rva-rm{font-weight:500}
+.rv-st b,.rvh-st [data-s="cur"] b{font-weight:400}
+.rv-st [data-s="done"] b{color:var(--ps-ink-2)}
+.rv-st [data-s="pend"] b{color:var(--ps-dim)}
+.rva-next,.rvh-now{font-weight:400;color:var(--ps-ink-2)}
+.rv-k,.rvh-k{font-weight:400;color:var(--ps-dim)}
+.shl-av,.rv-pill{font-weight:400}
+.rva-au-h b,.rvh-ah b,.rs-ah b{color:var(--ps-ink)}
 `;
     document.head.appendChild(s);
   }
