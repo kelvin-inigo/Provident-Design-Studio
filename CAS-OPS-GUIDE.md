@@ -125,8 +125,16 @@ say so and point to the step above.
 Each studio opens on its **project browser**.
 
 - **Start something new:**
-  - In CAS, press **New campaign**, or click a template card: New launch, Event, Payment plan
-    or Spec ladder.
+  - In CAS, use **Set up the ad set** at the top of the project browser (**New campaign** jumps
+    to it). Name the campaign, pick **Residential** or **Commercial** and paste the **Main
+    folder** (the Google Drive folder the ad set goes in). By default the campaign is
+    **Local**, both audiences, **English only**. Open **More settings** to add **International**
+    or **International EUR**, choose the audiences, and turn on **Arabic** for just the
+    audiences that need it. The line under the fields says how many projects that makes. Press
+    **Start the campaign**: a new project opens as the first audience in English, with the **Ad
+    set review** window already filled in. Press **Make the ad set** to sign in and save it.
+    **Blank project, no ad set** starts a plain project instead. There are no preloaded
+    templates any more.
   - In OPS, click a template card, or press **New post** to get **Pick a template**.
 - **Continue last** reopens the project you were working on; the line under it names that project.
 - **Save** (top bar) writes the project into your **Source folder**:
@@ -234,7 +242,15 @@ steps: **Design › ENG copy check › Translation › Done**.
      to the folder. Share the folder (or use a Shared drive the team belongs to) before sending
      the links.
    - Ad sets started before 27 Oct 2026 stay where they were and keep working.
-2. **Add the other projects** the same way, from each project: **Share › Ad set review › Add to
+   - **Set up from the home page** (see *Start something new*), this step is one click: the
+     window opens filled in with the plan, and the audiences planned without Arabic are already
+     marked *Translation · Not needed*.
+2. **Make the other projects.** If the ad set was set up from the home page, the **Ad set
+   review** panel lists what is **Still to make** — every planned English version, then the
+   Arabic ones. **Make from this design** saves a copy of the design you are on into that
+   audience's folder, and the tab carries on as the new project (an Arabic one switches the
+   typeface to Arabic, ready to translate). The project you left stays in the ad set as it was.
+   Otherwise add each project the same way, from each project: **Share › Ad set review › Add to
    an ad set**, choose the ad set and say what the project is. Work audience by audience: design
    every audience first, then add the Arabic versions.
 3. **Design.** In a project's **Copy** workspace, the bar at the bottom shows where that audience

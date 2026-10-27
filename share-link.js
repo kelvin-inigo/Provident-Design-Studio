@@ -231,7 +231,7 @@
   const dsItemLabel = it => [it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project';
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -455,6 +455,9 @@
       const tokOf = () => dsRand(10);
       rs = { app: 'provident-ad-set', name: ans.name, product: ans.product, created: dsNow(), by, drive: 'https://drive.google.com/drive/folders/' + folder.id,
         folder: folder.id, eng_only: {}, items: [], hist: [], log: [] };
+      // set up from the home page's widget: the plan says which audiences and languages the
+      // ad set will hold, and an audience planned without Arabic has nothing to translate
+      if (ans.plan) { rs.plan = planCells(ans.plan); rs.plan.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; }); }
       const same = files.find(x => x.name === dsSetName(ans.name));
       const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
       rid = f.id; rs.rid = rid;
@@ -672,7 +675,7 @@
     const rb = ssGet(RS_KEY);
     if (rb && !here(rb)) ssSet(RS_KEY, null);
     else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
-    if (this.shApp() === 'provident-ad-studio') this.rsJoinCheck();
+    if (this.shApp() === 'provident-ad-studio') { this.rsJoinCheck(); this.rsPlanCheck(); }
     return false;
   };
   // The ad set page's "Add to this ad set" opens this studio in a new tab with the project and
@@ -1251,7 +1254,7 @@
   SP.shareVals = function () {
     const b = this.shBind(), S = this._sh, cas = this.shApp() === 'provident-ad-studio', role = S ? S.role : (b && b.role) || '';
     // the designer's Review links archive mounts into its empty host once React has drawn it
-    if (cas) setTimeout(() => Arch.mount(this), 0);
+    if (cas) setTimeout(() => { Arch.mount(this); Plan.mount(this); }, 0);
     const rs = S && S.rs;
     return {
       rvShareOn: cas ? '1' : undefined,
@@ -1333,6 +1336,98 @@
   const MARKETS = ['Local', 'International', 'International EUR'];
   const AUDS = { residential: ['Family', 'Investor'], commercial: ['Investor', 'Hybrid'] };
   const PRODUCT_NAME = { residential: 'Residential', commercial: 'Commercial' };
+
+  // ---- THE CAMPAIGN PLAN: the ad set, set up on the home page before any design ----
+  // A plan is { name, product, folder, by, markets[], auds[], arb: {"<market>|<aud>": true} }.
+  // Its CELLS are every chosen market × audience, in the review's own order, each saying
+  // whether it gets an Arabic version. Stored on the ad set (Drive) or, on the share store
+  // that keeps no plan, on this computer under PLAN_LOCAL + the designer's token.
+  const PLAN_KEY = 'provident-rsplan', PLAN_GO = 'provident-rsplan-go', PLAN_LOCAL = 'provident-rsplan:';
+  function planCells(plan) {
+    if (Array.isArray(plan)) return plan.filter(c => c && c.market && c.aud);
+    if (!plan) return [];
+    const auds = AUDS[plan.product] || AUDS.residential;
+    const ms = MARKETS.filter(m => (plan.markets || []).indexOf(m) >= 0), as = auds.filter(a => (plan.auds || []).indexOf(a) >= 0);
+    const out = [];
+    ms.forEach(m => as.forEach(a => out.push({ market: m, aud: a, arb: !!(plan.arb || {})[m + '|' + a] })));
+    return out;
+  }
+  function planOf(rs) {
+    if (rs && Array.isArray(rs.plan)) return rs.plan;
+    try { return JSON.parse(lsGet(PLAN_LOCAL + ((rs && rs.tok) || {}).dd) || 'null') || []; } catch (e) { return []; }
+  }
+  // what the plan still wants: an English project per cell, an Arabic one where planned
+  function planTodo(rs) {
+    const items = (rs && rs.items) || [], has = (c, l) => items.some(x => x.market === c.market && x.aud === c.aud && (x.lang || 'ENG') === l);
+    // every English version first, then the Arabic ones — the order the review runs in
+    const cells = planCells(planOf(rs));
+    return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG' }))
+      .concat(cells.filter(c => c.arb && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB' })));
+  }
+  function planTodoHtml(rs, busy) {
+    const todo = planTodo(rs); if (!todo.length) return '';
+    return '<div class="rv-todo"><span class="rv-k">Still to make · ' + todo.length + '</span><p>Each one starts as a copy of this design, saved into its own folder. The English versions first, then the Arabic.</p><ul>' +
+      todo.map(t => { const k = [t.market, t.aud, t.lang].join('|');
+        return '<li><span><b>' + esc(t.market + ' · ' + t.aud) + '</b><s>' + (t.lang === 'ARB' ? 'Arabic' : 'English') + '</s></span><button type="button" class="p-ghost" data-next="' + esc(k) + '"' + (busy ? ' disabled' : '') + '>' + (busy === k ? 'Making…' : 'Make from this design') + '</button></li>'; }).join('') + '</ul></div>';
+  }
+  // A busy dialog for work that needs no answer (dsReview reports into it).
+  function busyDlg(title, lead) {
+    injectCss();
+    const el = document.createElement('div');
+    el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true"><h2>' + esc(title) + '</h2><p class="shl-lead">' + esc(lead) + '</p><p class="shl-st" aria-live="polite"></p><div class="shl-acts"><button class="p-btn shl-go" disabled>Working…</button></div></div>';
+    document.body.appendChild(el);
+    const $ = q => el.querySelector(q);
+    return {
+      busy: (t, pr) => { $('.shl-st').textContent = t; stBar(el, pr); },
+      done: t => { stBar(el, null); $('.shl-st').textContent = t; const g = $('.shl-go'); g.disabled = false; g.textContent = 'Done'; g.onclick = () => el.remove(); g.focus(); },
+      fail: t => { stBar(el, null); $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); const g = $('.shl-go'); g.disabled = false; g.textContent = 'Close'; g.onclick = () => el.remove(); }
+    };
+  }
+  // Make the next planned audience FROM THIS DESIGN: this project (already in the ad set, and
+  // saved there by the link's own sync) stays where it is; the tab becomes a new project — a
+  // new pid, the same design and pictures — saved into the next audience's folder.
+  SP.rsNext = async function (key) {
+    const S = this._sh; if (!S || !S.rs || !S.rs.tok || this._rsNextBusy) return;
+    const [market, aud, lang] = key.split('|'), dd = S.rs.tok.dd, label = market + ' · ' + aud + ' · ' + (lang === 'ARB' ? 'Arabic' : 'English');
+    if (!window.confirm('Make ' + label + ' from this design?\n\nThis project stays in the ad set as it is. The tab carries on as the new project, saved into its own folder.')) return;
+    this._rsNextBusy = key; this.rvRender();
+    try { await this.shSave(); } catch (e) {}
+    const dlg = busyDlg('Making ' + label, 'A copy of this design is being saved into the ad set as ' + label + '.');
+    try {
+      if (isDs(dd)) await window.providentDrive.signIn();
+      try { this.recordSaved && await this.recordSaved(); } catch (e) {}
+      this.shareStop(false);
+      const pid = StudioBase.newPid();
+      this.upd(x => { x.pid = pid; if (lang === 'ARB') x.font = 'arabic'; return x; });
+      await new Promise(res => setTimeout(res, 60));
+      if (this.bindFolder) this.bindFolder();
+      if (lang === 'ARB' && StudioBase.ensureFont) StudioBase.ensureFont('arabic').then(() => { try { this.forceUpdate(); } catch (e) {} });
+      const by = StudioBase.shareName() || 'Someone', ans = { mode: 'add', by, dd, market, aud, lang };
+      if (isDs(dd)) {
+        const rs = await this.dsReview(dlg, ans);
+        Arch.add(rs.tok.dd, rs.name, rs.product);
+      } else {
+        const id = await this.shCreateRaw(dlg, by);
+        const r = await api('rsadd', { id: dd }, { by, market, aud, lang, sid: id, sum: this.rvSum(this.shPub()), thumb: await this.rvThumb() });
+        const bb = ssGet(this.shKey()) || {}; bb.role = 'dd'; bb.rs = r.rs; ssSet(this.shKey(), bb);
+      }
+      this.shareStart(true);
+      dlg.done('This tab is now ' + label + (lang === 'ARB' ? ' — the typeface is switched to Arabic; translate the words in place.' : '. Adapt the design for this audience.'));
+    } catch (e) { dlg.fail(e.message || String(e)); }
+    this._rsNextBusy = null; try { this.rvRender(); } catch (e) {}
+  };
+  // After the home page's "Start the campaign": the new project names itself and opens the ad
+  // set dialog with everything filled in — one click, which Google's sign-in needs anyway.
+  SP.rsPlanCheck = function () {
+    let g = null; try { g = JSON.parse(localStorage.getItem(PLAN_GO) || 'null'); } catch (e) {}
+    if (!g || !g.plan || Date.now() - (g.at || 0) > 180000) return;
+    if (this.state.screen !== 'editor') return;   // the new project opens in the editor; anywhere else, wait for it
+    try { localStorage.removeItem(PLAN_GO); } catch (e) {}
+    if (g.pid && g.pid !== this.state.pid) return;
+    if (g.plan.name && !this.state.campaign) this.upd(x => { x.campaign = g.plan.name; return x; });
+    setTimeout(() => this.reviewCreate({ plan: g.plan }), 600);
+  };
   const STEP_LABELS = ['Design', 'ENG copy check', 'Translation', 'Done'];
   const day = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   const dayS = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '';
@@ -1521,6 +1616,7 @@
       (it ? '<div class="rv-acts">' + itemActs(it, 'dd', this._rvBusy) + '</div>' : '') +
       '<p class="rv-lead">' + (all.ready ? 'Every audience is done — the package is ready for performance marketing.' : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' done in this ad set.') +
       ' <a href="' + esc(rsLink((rs.tok || {}).dd || '')) + '" target="_blank" rel="noopener">Open the ad set</a></p>' +
+      (rs.tok ? planTodoHtml(rs, this._rsNextBusy) : '') +
       (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1">Notify me in this browser when a step changes</button>' : '');
     const m = sec.querySelector('.rv-main');
     if (m._h !== main) { m._h = main; m.innerHTML = main; }
@@ -1548,9 +1644,11 @@
     }
     const st = this.shPub(), C = this.constructor;
     const drive = dsOn();
-    const dlg = rsDialog({ known, name: st.campaign || this.shName(st), preset: preset && preset.dd, drive, folder: lsGet('provident-rs-folder') });
+    const plan = preset && preset.plan;
+    const dlg = rsDialog({ known, name: (plan && plan.name) || st.campaign || this.shName(st), preset: preset && preset.dd, drive, folder: (plan && plan.folder) || lsGet('provident-rs-folder'), plan });
     const ans = await dlg.answer();
     if (!ans) return;
+    if (plan && ans.mode === 'new') ans.plan = Object.assign({}, plan, { product: ans.product });
     lsSet(NAME_KEY, ans.by);
     // A new ad set, or one that lives on Drive: its folder holds everything (see dsApi).
     if (drive && (ans.mode === 'new' || isDs(ans.dd))) {
@@ -1561,7 +1659,7 @@
         if (this._sh) this.shareStop(true);
         const rs = await this.dsReview(dlg, ans);
         Arch.add(rs.tok.dd, rs.name, rs.product);
-        dlg.links(rs, ans.mode === 'new' ? 'The ad set is ready in its Drive folder, with this project in ' + [ans.market, ans.aud, DS_LANG[ans.lang]].join(' / ') + '. Add each other audience and language from its own project, the same way. Send each team its link once:'
+        dlg.links(rs, ans.mode === 'new' ? 'The ad set is ready in its Drive folder, with this project in ' + [ans.market, ans.aud, DS_LANG[ans.lang]].join(' / ') + '. ' + (ans.plan ? 'When this design is done, make each other audience from it in the Ad set review panel. ' : 'Add each other audience and language from its own project, the same way. ') + 'Send each team its link once:'
           : 'Added as ' + itemLabel({ market: ans.market, aud: ans.aud, lang: ans.lang }) + ' to ' + rs.name + ', in its own folder. The links are the same for the whole ad set:');
         this.shareStart(true);
       } catch (e) { dlg.fail(e.message || String(e), 'Close'); }
@@ -1574,6 +1672,14 @@
       let r;
       if (ans.mode === 'new') r = await api('rsmake', { id }, Object.assign(body, { name: ans.name, product: ans.product }));
       else r = await api('rsadd', { id: ans.dd }, Object.assign(body, { sid: id }));
+      if (ans.plan && r.rs && r.rs.tok) {
+        // the share store keeps no plan: it is remembered on this computer, and the audiences
+        // planned without Arabic are marked so on the ad set itself
+        const cells = planCells(ans.plan), eo = {};
+        lsSet(PLAN_LOCAL + r.rs.tok.dd, JSON.stringify(cells));
+        cells.forEach(c => { if (!c.arb) eo[c.market + '|' + c.aud] = true; });
+        if (Object.keys(eo).length) try { r = { rs: (await api('rsset', { id: r.rs.tok.dd }, { by: ans.by, eng_only: eo })).rs || r.rs }; } catch (e) {}
+      }
       const bb = ssGet(this.shKey()) || {}; bb.role = 'dd'; bb.rs = r.rs; ssSet(this.shKey(), bb);
       Arch.add(r.rs.tok.dd, r.rs.name, r.rs.product);
       dlg.links(r.rs, ans.mode === 'new' ? 'The ad set is ready, with this project as ' + itemLabel({ market: ans.market, aud: ans.aud, lang: ans.lang }) + '. Add each other audience and language from its own project, the same way. Send each team its link once:'
@@ -1639,6 +1745,19 @@
     if ($('[data-f="dd"]')) $('[data-f="dd"]').addEventListener('change', fillAud);
     $('[data-f="by"]').value = StudioBase.shareName();
     if (o.preset && $('[data-f="dd"]')) { $('[data-f="dd"]').value = o.preset; setMode('add'); }
+    if (o.plan) {
+      // set up on the home page: everything is already chosen — this project is the plan's first
+      // audience in English, and the dialog is only the click Google's sign-in needs
+      const c0 = planCells(o.plan)[0] || {};
+      if ($('.rsd-mode')) $('.rsd-mode').style.display = 'none';   // .p-tabs' display beats [hidden]
+      prod = o.plan.product === 'commercial' ? 'commercial' : 'residential';
+      el.querySelectorAll('[data-prod]').forEach(y => { if (y.dataset.prod === prod) y.dataset.on = '1'; else delete y.dataset.on; });
+      fillAud();
+      if (c0.market) $('[data-f="market"]').value = c0.market;
+      if (c0.aud) $('[data-f="aud"]').value = c0.aud;
+      $('.shl-lead').textContent = 'Your campaign’s ad set, as set up on the home page. This project is its first audience. Check the details, then make it.';
+      if (o.plan.by) $('[data-f="by"]').value = o.plan.by;
+    }
     fillAud();
     const p = new Promise(r => { res = r; });
     const close = v => { el.remove(); res(v); };
@@ -2107,6 +2226,122 @@
     mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => { if (!el._rva) el._rva = new ArchView(el, eng); }); }
   };
   window.providentReviews = Arch;
+
+  // ---- THE HOME PAGE'S CAMPAIGN SETUP: the ad set, defined before the first design ----
+  // Quick: a name, the product and the Drive folder. More settings: the markets, the
+  // audiences and which of them get an Arabic version — not every campaign runs abroad or
+  // in Arabic, so the defaults are Local, both audiences, English only. The draft is kept on
+  // this computer, so a half-set-up campaign survives a reload. "Start the campaign" opens a
+  // new project which then makes the ad set from the plan (rsPlanCheck).
+  const Plan = {
+    mount(eng) { document.querySelectorAll('[data-rs-plan]').forEach(el => { if (!el._rsp) el._rsp = new PlanView(el, eng); }); }
+  };
+  function planDraft() {
+    let d = null; try { d = JSON.parse(lsGet(PLAN_KEY) || 'null'); } catch (e) {}
+    d = Object.assign({ name: '', product: 'residential', folder: lsGet('provident-rs-folder'), markets: ['Local'], auds: null, arb: {}, by: StudioBase.shareName(), open: false }, d || {});
+    if (!AUDS[d.product]) d.product = 'residential';
+    d.markets = MARKETS.filter(m => (d.markets || []).indexOf(m) >= 0); if (!d.markets.length) d.markets = ['Local'];
+    const as = AUDS[d.product]; d.auds = as.filter(a => (d.auds || as).indexOf(a) >= 0); if (!d.auds.length) d.auds = as.slice();
+    return d;
+  }
+  const PICO = {
+    more: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-357.85q-6.46 0-11.92-2.11-5.46-2.12-10.7-7.35L281.85-543.85q-8.31-8.3-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69L480-430.15 635.85-586q8.3-8.31 20.88-8.5 12.58-.19 21.27 8.5t8.69 21.08q0 12.38-8.69 21.07L502.62-367.31q-5.24 5.23-10.7 7.35-5.46 2.11-11.92 2.11Z"/></svg>',
+    tick: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>',
+    set: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-620H200v407.69q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-680h560v-67.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46V-680Zm0 0v-80 80Z"/></svg>'
+  };
+  function PlanView(el, eng) {
+    injectCss();
+    this.el = el; this.eng = eng; this.d = planDraft(); this.drive = dsOn();
+    const d = this.d;
+    el.innerHTML = '<section class="rsp" aria-labelledby="rsp-t">' +
+      '<header class="rsp-h"><span class="rsp-ic">' + PICO.set + '</span><div><span class="rsp-k">New campaign</span><h2 id="rsp-t">Set up the ad set</h2>' +
+      '<p>Every market, audience and language of the campaign, under one set of review links — decided now, before the first design.</p></div></header>' +
+      '<div class="rsp-q">' +
+        '<label class="rsp-f rsp-f-name"><span>Campaign name</span><input class="p-in" data-f="name" maxlength="120" placeholder="e.g. Sobha Hartland II — Q4" autocomplete="off"></label>' +
+        '<div class="rsp-f"><span id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
+        (this.drive ? '<label class="rsp-f rsp-f-dir"><span>Main folder · Google Drive</span><input class="p-in" data-f="folder" placeholder="Paste the Drive folder link" autocomplete="off"></label>' : '') +
+      '</div>' +
+      '<div class="rsp-sum"><div class="rsp-chips"></div><button type="button" class="rsp-mt" aria-expanded="false" aria-controls="rsp-more">More settings' + PICO.more + '</button></div>' +
+      '<div class="rsp-more" id="rsp-more" hidden>' +
+        '<div class="rsp-g"><div class="rsp-gh"><b>Markets</b><s>Local is AED; International runs in USD and International EUR in euros.</s></div><div class="rsp-tg" data-g="markets"></div></div>' +
+        '<div class="rsp-g"><div class="rsp-gh"><b>Audiences</b><s class="rsp-aud-s"></s></div><div class="rsp-tg" data-g="auds"></div></div>' +
+        '<div class="rsp-g"><div class="rsp-gh"><b>Arabic versions</b><s>Off for an audience means its ad runs in English only, with nothing to translate.</s></div><div class="rsp-mx"></div></div>' +
+        '<label class="rsp-f rsp-f-by"><span>Your name</span><input class="p-in" data-f="by" maxlength="60" autocomplete="name" placeholder="e.g. Sara"><small>Shown beside every change you make in the review.</small></label>' +
+      '</div>' +
+      '<footer class="rsp-ft"><p class="rsp-st" aria-live="polite"></p><button type="button" class="p-ghost rsp-blank">Blank project, no ad set</button><button type="button" class="p-btn rsp-go">Start the campaign</button></footer>' +
+    '</section>';
+    const $ = q => el.querySelector(q);
+    ['name', 'folder', 'by'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
+    $('.rsp-mt').onclick = () => { d.open = !d.open; this.save(); this.draw(); };
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
+      if (b.dataset.prod) this.setProd(b.dataset.prod);
+      if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
+      if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
+      if (b.dataset.arball) { const on = !this.allArb(); this.cells().forEach(c => { d.arb[c.market + '|' + c.aud] = on; }); this.save(); this.draw(); }
+    });
+    $('.rsp-go').onclick = () => this.go();
+    $('.rsp-blank').onclick = () => { if (eng.newProject) eng.newProject(); };
+    this.draw();
+  }
+  const PV = PlanView.prototype;
+  PV.save = function () { lsSet(PLAN_KEY, JSON.stringify(this.d)); };
+  PV.st = function (t) { const p = this.el.querySelector('.rsp-st'); p.textContent = t; p.classList.toggle('bad', !!t); };
+  PV.cells = function () { return planCells(this.d); };
+  PV.allArb = function () { const c = this.cells(); return c.length > 0 && c.every(x => this.d.arb[x.market + '|' + x.aud]); };
+  PV.setProd = function (p) {
+    const d = this.d; if (d.product === p) return;
+    d.product = p; const as = AUDS[p]; d.auds = as.filter(a => d.auds.indexOf(a) >= 0); if (!d.auds.length) d.auds = as.slice();
+    this.save(); this.draw();
+  };
+  PV.toggle = function (g, v) {
+    const d = this.d, a = d[g], i = a.indexOf(v);
+    if (i >= 0) { if (a.length === 1) { this.st(g === 'markets' ? 'A campaign runs in at least one market.' : 'A campaign speaks to at least one audience.'); return; } a.splice(i, 1); }
+    else a.push(v);
+    this.st(''); this.save(); this.draw();
+  };
+  PV.draw = function () {
+    const d = this.d, el = this.el, $ = q => el.querySelector(q), cells = this.cells();
+    const tab = (k, l, on) => '<button type="button" role="radio" aria-checked="' + (on ? 'true' : 'false') + '" data-prod="' + k + '"' + (on ? ' data-on="1"' : '') + '>' + esc(l) + '</button>';
+    $('.rsp-prod').innerHTML = tab('residential', 'Residential', d.product === 'residential') + tab('commercial', 'Commercial', d.product === 'commercial');
+    const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
+    const chip = t => '<span class="rsp-chip">' + esc(t) + '</span>';
+    $('.rsp-chips').innerHTML = chip(d.markets.join(' · ')) + chip(d.auds.join(' · ')) +
+      chip(arbN === 0 ? 'English only' : arbN === cells.length ? 'English + Arabic' : 'Arabic for ' + arbN + ' of ' + cells.length) +
+      '<span class="rsp-n">' + n + (n === 1 ? ' project' : ' projects') + '</span>';
+    const mt = $('.rsp-mt'); mt.setAttribute('aria-expanded', d.open ? 'true' : 'false'); mt.firstChild.textContent = d.open ? 'Fewer settings' : 'More settings';
+    $('.rsp-more').hidden = !d.open;
+    if (d.open) {
+      const tg = (g, v) => { const on = d[g].indexOf(v) >= 0; return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
+      el.querySelector('[data-g="markets"]').innerHTML = MARKETS.map(m => tg('markets', m)).join('');
+      el.querySelector('[data-g="auds"]').innerHTML = AUDS[d.product].map(a => tg('auds', a)).join('');
+      $('.rsp-aud-s').textContent = d.product === 'commercial' ? 'Hybrid is an end user who rents but may convert to buying.' : 'One project per audience, in each market.';
+      const sw = (k, on, lab) => '<button type="button" class="rsp-sw" role="switch" aria-checked="' + on + '" aria-label="' + esc(lab) + '" data-arb="' + esc(k) + '"><i></i></button>';
+      $('.rsp-mx').innerHTML = '<div class="rsp-mx-h"><span>Audience</span><span>English</span><span>Arabic</span></div>' +
+        cells.map(c => { const k = c.market + '|' + c.aud; return '<div class="rsp-mx-r"><b>' + esc(c.market + ' · ' + c.aud) + '</b><span class="rsp-mx-e">' + PICO.tick + '</span>' + sw(k, !!d.arb[k], 'Arabic version for ' + c.market + ' ' + c.aud) + '</div>'; }).join('') +
+        (cells.length > 1 ? '<div class="rsp-mx-r rsp-mx-all"><span>Every audience</span><span></span><button type="button" class="rsp-sw" role="switch" aria-checked="' + this.allArb() + '" aria-label="Arabic for every audience" data-arball="1"><i></i></button></div>' : '');
+    }
+    const first = cells[0];
+    $('.rsp-go').title = first ? 'Opens a new project for ' + first.market + ' · ' + first.aud + ' in English and makes the ad set — the other ' + (n - 1) + ' follow from that design' : '';
+  };
+  PV.go = function () {
+    const d = this.d, $ = q => this.el.querySelector(q);
+    d.name = (d.name || '').replace(/\s+/g, ' ').trim();
+    if (!d.name) { this.st('Name the campaign — the ad set and its folders are named after it.'); $('[data-f="name"]').focus(); return; }
+    if (this.drive && !window.providentDrive.id(d.folder || '')) { this.st('Paste the link of the Google Drive folder the ad set goes in — open the folder in Drive and copy the address; it contains /folders/.'); $('[data-f="folder"]').focus(); return; }
+    const eng = this.eng;
+    if (eng.confirmDiscard && !eng.confirmDiscard()) return;
+    if (eng.markSaved) eng.markSaved();
+    const plan = { name: d.name, product: d.product, folder: (d.folder || '').trim(), by: (d.by || '').replace(/\s+/g, ' ').trim(), markets: d.markets.slice(), auds: d.auds.slice(), arb: Object.assign({}, d.arb) };
+    if (plan.folder) lsSet('provident-rs-folder', plan.folder);
+    if (plan.by) lsSet(NAME_KEY, plan.by);
+    lsSet(PLAN_GO, JSON.stringify({ plan, at: Date.now() }));
+    // the draft is spent: the next campaign starts from the defaults, keeping folder and name
+    lsSet(PLAN_KEY, JSON.stringify({ product: d.product, folder: d.folder, by: d.by }));
+    $('.rsp-go').disabled = true; $('.rsp-go').textContent = 'Opening…';
+    if (eng.newProject) eng.newProject();
+  };
+  window.providentPlan = Plan;
   function ArchView(el, eng) {
     injectCss();
     this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
@@ -2780,6 +3015,7 @@
     root.addEventListener('click', async e => {
       const b = e.target.closest && e.target.closest('button'); if (!b || !root.contains(b)) return;
       if (b.dataset.act && eng.rvStep) eng.rvStep(b.dataset.act);
+      if (b.dataset.next && eng.rsNext) eng.rsNext(b.dataset.next);
       if (b.dataset.copy) { const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { b.textContent = 'Copy'; }, 1600); }
       if (b.dataset.ntf && window.Notification) { try { await Notification.requestPermission(); } catch (er) {} if (eng.rvRender) eng.rvRender(); else if (eng.panelRender) eng.panelRender(true); }
       if (b.dataset.drv && eng.rvDrive) eng.rvDrive(root.querySelector('.rv-drv input').value.trim());
@@ -3022,6 +3258,71 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .rv{display:flex;flex-direction:column;gap:12px;padding:2px 16px 16px;box-shadow:inset 0 -1px 0 var(--ps-hair)}
 .rv[hidden],.rv-dd[hidden]{display:none}
 .rv-main{display:flex;flex-direction:column;gap:14px}
+.rv-todo{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rv-todo p{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rv-todo ul{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rv-todo li{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rv-todo li>span{display:flex;flex-direction:column;min-width:0}
+.rv-todo li b{font:500 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.rv-todo li s{text-decoration:none;font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
+.rv-todo li .p-ghost{height:30px;padding:0 12px;font-size:12.5px;white-space:nowrap;flex:none}
+/* the home page's campaign setup */
+.rsp{display:flex;flex-direction:column;gap:20px;padding:24px;margin:0 0 32px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);font-family:var(--ps-font);color:var(--ps-ink);max-width:1240px;box-sizing:border-box}
+.rsp-h{display:flex;gap:14px;align-items:flex-start}
+.rsp-ic{flex:none;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--ps-fill);color:var(--ps-ink-2)}
+.rsp-ic svg{width:22px;height:22px;fill:currentColor}
+.rsp-k{display:block;font:500 12px/1.4 var(--ps-font);color:var(--ps-dim)}
+.rsp-h h2{margin:2px 0 4px;font:500 20px/1.25 var(--ps-font);letter-spacing:-.01em}
+.rsp-h p{margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2);max-width:62ch}
+.rsp-q{display:grid;grid-template-columns:minmax(220px,1.3fr) auto minmax(220px,1.2fr);gap:16px;align-items:end}
+.rsp-f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rsp-f>span{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rsp-f .p-in{width:100%;box-sizing:border-box;height:40px}
+.rsp-f small{font:400 12px/1.45 var(--ps-font);color:var(--ps-dim)}
+.rsp-prod{display:flex;height:40px;box-sizing:border-box}
+.rsp-prod button{white-space:nowrap}
+.rsp-sum{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--ps-hair)}
+.rsp-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.rsp-chip{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:9999px;background:var(--ps-fill);font:500 12.5px/1 var(--ps-font);color:var(--ps-ink)}
+.rsp-n{font:400 12.5px/1 var(--ps-font);color:var(--ps-dim);margin-left:4px}
+.rsp-mt{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 10px 0 12px;border:none;border-radius:9999px;background:none;color:var(--ps-ink);font:600 13px/1 var(--ps-font);cursor:pointer}
+.rsp-mt:hover{background:var(--ps-fill)}
+.rsp-mt svg{width:18px;height:18px;fill:currentColor;transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-mt[aria-expanded="true"] svg{transform:rotate(180deg)}
+.rsp-more{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px}
+.rsp-more[hidden]{display:none}
+.rsp-g{display:flex;flex-direction:column;gap:10px;min-width:0}
+.rsp-g:nth-child(3){grid-row:span 2}
+.rsp-gh{display:flex;flex-direction:column;gap:2px}
+.rsp-gh b{font:500 13.5px/1.35 var(--ps-font)}
+.rsp-gh s{text-decoration:none;font:400 12px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-tg{display:flex;gap:8px;flex-wrap:wrap}
+.rsp-t{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.rsp-t:hover{background:var(--ps-fill)}
+.rsp-t[aria-pressed="true"]{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none;padding-left:10px}
+.rsp-t svg{width:16px;height:16px;fill:currentColor}
+.rsp-mx{display:flex;flex-direction:column;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden}
+.rsp-mx-h,.rsp-mx-r{display:grid;grid-template-columns:1fr 64px 64px;align-items:center;gap:8px;padding:0 14px;min-height:42px}
+.rsp-mx-h{min-height:34px;background:var(--ps-fill);font:500 12px/1 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-mx-h span:not(:first-child),.rsp-mx-r>:not(:first-child){justify-self:center}
+.rsp-mx-r+.rsp-mx-r{border-top:1px solid var(--ps-hair)}
+.rsp-mx-r b{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rsp-mx-all span:first-child{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-mx-e{display:inline-flex;color:var(--ps-dim)}
+.rsp-mx-e svg{width:18px;height:18px;fill:currentColor}
+.rsp-sw{position:relative;width:36px;height:20px;padding:0;border:none;border-radius:9999px;background:var(--ps-fill-h);box-shadow:inset 0 0 0 1px var(--ps-line);cursor:pointer}
+.rsp-sw i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+/* the ON track is a MARK (the kit's .p-tgl rule): navy has no boundary on a dark card */
+.rsp-sw[aria-checked="true"]{background:var(--ps-link);box-shadow:none}
+.rsp-sw[aria-checked="true"] i{transform:translateX(16px)}
+.rsp-ft{display:flex;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--ps-hair)}
+.rsp-st{flex:1;margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);min-width:0}
+.rsp-st.bad{color:var(--ps-bad)}
+.rsp-ft .p-btn,.rsp-ft .p-ghost{height:40px;white-space:nowrap}
+.rsp button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+@media (max-width:900px){.rsp-q{grid-template-columns:1fr}.rsp-more{grid-template-columns:1fr}.rsp-g:nth-child(3){grid-row:auto}}
+@media (max-width:560px){.rsp{padding:18px}.rsp-ft{flex-wrap:wrap}.rsp-st{flex-basis:100%}.rsp-ft .p-btn,.rsp-ft .p-ghost{flex:1}}
+@media (prefers-reduced-motion:reduce){.rsp-mt svg,.rsp-sw i{transition:none}}
 .rv-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .rv-h>div{display:flex;flex-direction:column;gap:2px;min-width:0}
 .rv-k{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}

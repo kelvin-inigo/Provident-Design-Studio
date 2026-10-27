@@ -16723,3 +16723,39 @@ so `api()` just routes a Drive id to it, and photos go through `dsPutRec` / `dsF
   list + detail, relabel moving the folder. **Not exercised against the real Google Drive**:
   sign-in needs a person at the keyboard. The real test folder (Review link Test,
   11Rk2HnQXzIXpphUvdTFw_UkRFCRKof87) was confirmed reachable and writable via the Drive connector.
+
+# CAS'S HOME PAGE SETS UP THE AD SET; THE PRELOADED TEMPLATES ARE GONE (2026-10-27)
+
+By request: the templates "do not serve a purpose any more"; a campaign starts by defining its
+ad set. The splash's All view opens on **Set up the ad set** (`PlanView`, share-link.js, plain
+DOM mounted into `[data-rs-plan]` by `Plan.mount` from `shareVals`, like the archive). The
+Templates sidebar row, the template cards and `_tplTick`'s render are gone; `splashView: 'tpl'`
+lands on All. `tplCards` / `tplCount` / `tplRenderAll` are still computed and unread. The
+header's **New campaign** is `shNewGo` (scroll to and focus the widget).
+
+- **Quick**: campaign name, Residential | Commercial, Main folder (Drive link, only when Drive is
+  configured — `dsOn()`). A summary row of chips and a project count. **More settings**:
+  Markets (toggle chips, at least one), Audiences (`AUDS[product]`), an **Arabic matrix** (one
+  switch per market × audience, plus Every audience), Your name. Defaults: Local, both
+  audiences, English only. The draft is per computer in `localStorage['provident-rsplan']`.
+- **A plan** is `{name, product, folder, by, markets, auds, arb}`; `planCells(plan)` gives the
+  ordered `{market, aud, arb}` cells (an array passes through).
+- **Start the campaign** writes `provident-rsplan-go` and calls the engine's `newProject`
+  (after `confirmDiscard` + `markSaved`, so it asks once). After the reload `rsPlanCheck`
+  (from `shareInit`, only once the screen is `editor`, 3-minute window) names the campaign
+  and opens `reviewCreate({plan})`: `rsDialog` prefilled with the first cell in English, mode
+  tabs hidden. One click is still needed — Google's sign-in popup needs it.
+- **On Drive**, `dsReview` writes `rs.plan = planCells(...)` and sets `eng_only` for every cell
+  without Arabic; `dsPub` returns `plan`. On the old share store (no Drive) the plan is kept in
+  `localStorage[PLAN_LOCAL + dd token]` and `eng_only` is set with `rsset`. `planOf(rs)` reads
+  either.
+- **The panel lists what is still to make** (`planTodoHtml`: every planned English version,
+  then the Arabic ones). **Make from this design** = `SP.rsNext(key)`: flush the link's save,
+  `recordSaved`, `shareStop`, a new pid (and `font: 'arabic'` for ARB), then `dsReview` mode
+  `add` (or `rsadd`), `shareStart`. The project left behind keeps its file and link.
+- Verified on the Drive stand-in: the widget's chips, matrix and count by real clicks; Start
+  opened a new project and the prefilled dialog; the ad set saved `plan` and three `eng_only`
+  cells; the panel listed 4 to make; Make from this design wrote `Local/Investor/English` and
+  the tab became that project with Translation "Not needed". 0 contrast failures over the widget
+  in both themes; fits at 375. **Not exercised on real Google Drive.**
+- **Known gap:** "N of M audiences done" counts audiences that have a project, not the plan's.
