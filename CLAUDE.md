@@ -16888,3 +16888,11 @@ share-store links ask once only on a computer that never signed in. A typed name
 when there is no account. The Changes panel shows the email with **Not you?**. Verified on the
 dev share server: create, open in a fresh workspace with no dialog and the panel naming the
 account; with the account removed the field and the Google button come back.
+
+**And then the overview took the setup widget's own shape** (by request: "I like that it had a
+header area"). `.rva-hl` is a card with no padding: a header band (`.rvo-h`, `--ps-card-h`) with
+the persistent Stack figure and `.rvo-ht` — an "Overview" label, the one number as a 26/500
+title ("1 of 4 audiences done"), one line of counts ("3 ad sets · 5 projects · 0 ready to run")
+and Updated + refresh at the right; then the body (`.rvo-in`, hairline above) with the four step
+columns. Under 700px of container width the header stacks (figure, then text). The separate
+stat tiles (`.rvo-hero`, `.rvo-stats`) are no longer drawn; their CSS is unread.

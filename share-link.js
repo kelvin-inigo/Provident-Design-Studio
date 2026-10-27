@@ -2389,7 +2389,7 @@
     this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
     el.innerHTML = '<div class="rva"><div class="rva-bar">' +
       '<form class="rva-add" title="Paste a designer’s ad set link to keep that ad set on this computer">' + ico('link', 'rva-add-i') + '<input class="p-in" placeholder="Add a designer link" aria-label="Designer ad set link"><button class="p-ghost" type="submit">Add</button></form></div>' +
-      '<div class="rva-hl" data-s="wait"><span class="rvo-fig" data-hl="stack" aria-hidden="true"></span><div class="rvo-in"></div></div><div class="rva-body" aria-live="polite"></div></div>';
+      '<div class="rva-hl" data-s="wait"><div class="rvo-h"><span class="rvo-fig" data-hl="stack" aria-hidden="true"></span><div class="rvo-ht"></div></div><div class="rvo-in"></div></div><div class="rva-body" aria-live="polite"></div></div>';
     // the Stack figure mounts through the shell's own Hairline binding, which also destroys it
     // when the view leaves the page; it sits outside the part the overview redraws
     setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
@@ -2434,11 +2434,11 @@
   };
   // The strip above the list: where every ad set and audience on this computer stands.
   AV.drawHealth = function () {
-    const hl = this.el.querySelector('.rva-hl'), box = this.el.querySelector('.rvo-in'); if (!box) return;
+    const hl = this.el.querySelector('.rva-hl'), head = this.el.querySelector('.rvo-ht'), box = this.el.querySelector('.rvo-in'); if (!box) return;
     hl.hidden = !!this.sel;
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
     const up = '<span class="rvo-up">' + at + '<button type="button" class="rvo-re" data-a="refresh" aria-label="Refresh" title="Refresh">' + ico('ref', 'rvo-re-i') + '</button></span>';
-    if (this.items === null) { hl.dataset.s = 'wait'; box.innerHTML = '<div class="rvo-top"><p class="rva-sx-w">Reading the ad sets…</p>' + up + '</div>'; return; }
+    if (this.items === null) { hl.dataset.s = 'wait'; head.innerHTML = '<div class="rvo-t"><span class="rvo-k">Overview</span><h2>Reading the ad sets…</h2></div>' + up; box.innerHTML = ''; box.hidden = true; return; }
     // nothing to count yet: the sign-in card or the empty note below says all there is to say
     if (!(this.items || []).length) { hl.hidden = true; return; }
     const sets = (this.items || []).filter(x => !x.gone), miss = (this.items || []).length - sets.length;
@@ -2448,15 +2448,16 @@
     const at3 = auds.filter(a => a.done).length;
     // each audience sits at its first unfinished step; a finished one counts as Done
     const by = STEP_LABELS.map((l, i) => ({ l, i, n: auds.filter(a => (a.done ? 3 : a.steps.findIndex(x => x.s !== 'done')) === i).length }));
-    const stat = (n, l) => '<div><dd>' + n + '</dd><dt>' + l + '</dt></div>';
+    const n = (c, w) => c + ' ' + w + (c === 1 ? '' : 's');
     hl.dataset.s = 'ok';
-    // Hierarchy: ONE number (audiences done) leads; three counts beside it; then where every
-    // audience is, as four columns — the step, how many sit there, and a bar for its share.
-    box.innerHTML = '<div class="rvo-top">' +
-        '<div class="rvo-hero"><span class="rvo-k">Audiences done</span><b>' + at3 + '<i>of ' + auds.length + '</i></b></div>' +
-        '<dl class="rvo-stats">' + stat(sets.length, sets.length === 1 ? 'Ad set' : 'Ad sets') + stat(projs, projs === 1 ? 'Project' : 'Projects') + stat(done.length, 'Ready') + '</dl>' +
-        up + '</div>' +
-      (auds.length ? '<ol class="rvo-steps">' + by.map(x => '<li data-i="' + x.i + '"' + (x.n ? '' : ' data-zero="1"') + '><span><i></i>' + esc(x.l) + '</span><b>' + x.n + '</b><em><s style="width:' + (auds.length ? Math.round(x.n / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>' : '') +
+    // The setup widget's shape: a header band (figure, a small label, the one number as the
+    // title, the counts as one line), then the body — where every audience is, as four
+    // columns: the step, how many sit there, and a bar for its share.
+    head.innerHTML = '<div class="rvo-t"><span class="rvo-k">Overview</span>' +
+        '<h2>' + at3 + ' of ' + n(auds.length, 'audience') + ' done</h2>' +
+        '<p>' + [n(sets.length, 'ad set'), n(projs, 'project'), done.length + ' ready to run'].join(' · ') + '</p></div>' + up;
+    box.hidden = !auds.length && !miss && !this.sign;
+    box.innerHTML = (auds.length ? '<ol class="rvo-steps">' + by.map(x => '<li data-i="' + x.i + '"' + (x.n ? '' : ' data-zero="1"') + '><span><i></i>' + esc(x.l) + '</span><b>' + x.n + '</b><em><s style="width:' + (auds.length ? Math.round(x.n / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>' : '') +
       (miss || this.sign ? '<p class="rva-sx-w">' + [this.sign ? this.sign + ' on Google Drive not counted until you sign in' : '', miss ? miss + ' missing' : ''].filter(Boolean).join(' · ') + '.</p>' : '');
   };
   AV.load = async function (quiet) {
@@ -3766,14 +3767,22 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-add{position:relative;flex:0 1 420px;display:flex;align-items:center;gap:8px}
 .rva-add-i{position:absolute;left:12px;width:18px;height:18px;fill:var(--ps-dim);pointer-events:none}
 .rva-add .p-in{height:38px;padding-left:38px}
-.rva-hl{flex-direction:row;align-items:center;gap:32px;padding:24px 28px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rva{container-type:inline-size}
-.rvo-in{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px}
-@container (max-width:900px){.rva-hl{flex-direction:column;align-items:flex-start;gap:12px}.rvo-in{align-self:stretch}.rvo-fig{width:110px}}
+/* the setup widget's shape: a header band, then the body */
+.rva-hl{flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rvo-h{display:flex;align-items:center;gap:28px;padding:24px 28px;background:var(--ps-card-h)}
+.rvo-ht{flex:1;min-width:0;display:flex;align-items:center;gap:16px}
+.rvo-t{flex:1;min-width:0}
+.rvo-t h2{margin:4px 0 6px;font:500 26px/1.15 var(--ps-font);letter-spacing:-.015em;color:var(--ps-ink)}
+.rvo-t p{margin:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rvo-in{display:flex;flex-direction:column;gap:14px;padding:24px 28px;border-top:1px solid var(--ps-hair)}
+.rvo-in[hidden]{display:none}
+.rvo-in .rvo-steps{padding:0;border:none}
 .rvo-fig{flex:none;display:block;width:150px;aspect-ratio:400/320;
   --hairline-plate:var(--ps-fill);--hairline-hi:var(--ps-ink);--hairline-edge:var(--ps-ink-2);--hairline-mid:var(--ps-ink-2);--hairline-lo:var(--ps-dim);--hairline-stroke:1}
 .rva-hl:hover .rvo-fig{--hairline-hi:var(--ps-link)}
 .rvo-fig svg{display:block;width:100%;height:100%}
+@container (max-width:700px){.rvo-h{flex-direction:column;align-items:flex-start;padding:20px;gap:12px}.rvo-fig{width:96px}.rvo-ht{align-self:stretch;flex-direction:column;align-items:flex-start;gap:8px}.rvo-t{flex:none}.rvo-t h2{font-size:21px}.rvo-in{padding:20px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}}
 .rvo-top{display:flex;align-items:flex-end;gap:32px;flex-wrap:wrap}
 .rvo-hero{display:flex;flex-direction:column;gap:4px;margin-right:auto}
 .rvo-k{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
@@ -3823,7 +3832,7 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-m{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rva-n b{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .rva-go{flex:none;align-self:center;width:20px;height:20px;fill:currentColor;color:var(--ps-dim);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-@media (max-width:760px){.rva-hl{flex-direction:column;align-items:flex-start;gap:16px;padding:20px}.rvo-in{align-self:stretch}.rvo-fig{width:96px}.rvo-top{gap:20px}.rvo-hero{flex-basis:100%}.rvo-hero b{font-size:40px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}.rva-add{flex-basis:100%}.rva-grid{grid-template-columns:minmax(0,1fr)}.rva-c{min-width:0}.rva-th{width:64px;height:80px}}
+@media (max-width:760px){.rvo-top{gap:20px}.rvo-hero{flex-basis:100%}.rvo-hero b{font-size:40px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}.rva-add{flex-basis:100%}.rva-grid{grid-template-columns:minmax(0,1fr)}.rva-c{min-width:0}.rva-th{width:64px;height:80px}}
 @media (prefers-reduced-motion:reduce){.rva-go{transition:none}}
 `;
     document.head.appendChild(s);
