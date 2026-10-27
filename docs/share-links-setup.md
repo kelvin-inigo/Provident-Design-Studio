@@ -34,8 +34,11 @@ is not connected, step 1.4 or 1.5 is missing.
 
 ## What it costs and what it stores
 
-- **Per link:** the project (no photos, usually under 1 MB), each photo split into ~0.9 MB parts,
-  and the change log (the last 500 entries).
+- **Per link:** the project (no photos, usually under 1 MB) and the change log (the last 500
+  entries). **Photos are stored once for every link that uses them**, at 2560px on the long side
+  (about 1–1.5 MB each, in ~0.9 MB parts), so the same photo in an English and an Arabic project,
+  or in two links, takes the space once. A link made before 27 Oct 2026 moves its photos over the
+  next time the designer opens it on their computer.
 - **Expiry:** a link, its project and its changelog are **kept for good**, and so is a small
   (~640px) preview of every photo. Only the **full-size photos** expire: each one **60 days** after
   the link was last opened. After that the link still opens, showing the previews, and the
@@ -43,7 +46,7 @@ is not connected, step 1.4 or 1.5 is missing.
   folder). Opening the link on the computer that made the project puts the photos back by itself.
   Export and Save warn while a photo is still only its preview.
 - **Free plan limits (Upstash, check their pricing page for current numbers):** about 250 MB of
-  data and 500,000 commands a month. A project with ten photos is roughly 20–30 MB. An open
+  data and 500,000 commands a month. A project with ten photos is roughly 10–15 MB. An open
   studio tab on a link checks for changes every 12 seconds while it is on screen (2 commands),
   so one person working all day uses about 2,400 commands. A handful of people sharing links
   every day fits the free plan; if it fills up, move to the pay-as-you-go plan in Upstash.

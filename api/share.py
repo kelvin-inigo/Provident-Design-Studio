@@ -756,8 +756,15 @@ def rs_info(q):
 
 # ---------- photos that expired ----------
 
+def part_key(k, p, i):
+    # ONE PHOTO, STORED ONCE (2026-10-27): an entry carrying `c` (the hash of the stored text) has
+    # its parts under img:<c>:<i>, shared by every link holding the same photo. An entry without
+    # it is from before, with its parts under the link: sh:<id>:img:<h>:<i>.
+    return ('img:' + p['c'] if p.get('c') else k + 'img:' + p['h']) + ':' + str(i)
+
+
 def refresh(k, raw):
-    return [['EXPIRE', k + 'img:' + p['h'] + ':' + str(i), TTL] for p in parts_of(raw) for i in range(p['n'])]
+    return [['EXPIRE', part_key(k, p, i), TTL] for p in parts_of(raw) for i in range(p['n'])]
 
 
 def flagged(k, raw):
@@ -765,23 +772,24 @@ def flagged(k, raw):
     studio then shows its preview) and `nopv` when no preview is stored yet (a photo uploaded
     before previews existed — the studio adds one if it holds the photo)."""
     out = imgs_of(raw)
-    sl = [x for x in out if isinstance(out[x], dict) and out[x].get('h')]
-    if not sl:
-        return out
-    cmds = []
-    for x in sl:
+    sl, cmds = [], []
+    for x in out:
         e = out[x]
+        if not isinstance(e, dict) or not e.get('h'):
+            continue
         try:
-            h, n = clean_hash(e.get('h')), max(1, int(e.get('n') or 1))
+            p = {'h': clean_hash(e.get('h')), 'n': max(1, int(e.get('n') or 1)), 'c': clean_hash(e['c']) if e.get('c') else ''}
         except (Fail, ValueError, TypeError):
             continue
-        cmds += [['EXISTS', k + 'img:' + h + ':0'], ['EXISTS', k + 'img:' + h + ':' + str(n - 1)], ['EXISTS', k + 'pv:' + h]]
+        sl.append(x)
+        cmds += [['EXISTS', part_key(k, p, 0)], ['EXISTS', part_key(k, p, p['n'] - 1)],
+                 ['EXISTS', 'pv:' + p['h']], ['EXISTS', k + 'pv:' + p['h']]]
     r = store().pipe(cmds) if cmds else []
-    for j, x in enumerate(sl[:len(r) // 3]):
-        a, b, pv = r[j * 3:j * 3 + 3]
+    for j, x in enumerate(sl[:len(r) // 4]):
+        a, b, pv, pv0 = r[j * 4:j * 4 + 4]
         if not (int(a or 0) and int(b or 0)):
             out[x]['gone'] = 1
-        if not int(pv or 0):
+        if not (int(pv or 0) or int(pv0 or 0)):
             out[x]['nopv'] = 1
     return out
 
@@ -796,7 +804,7 @@ def parts_of(raw):
         try:
             h, n = clean_hash(v.get('h')), int(v.get('n') or 0)
             if 0 < n <= 400:
-                out.append({'h': h, 'n': n})
+                out.append({'h': h, 'n': n, 'c': clean_hash(v['c']) if v.get('c') else ''})
         except (Fail, ValueError, TypeError, AttributeError):
             pass
     return out
@@ -844,6 +852,22 @@ def admin_list():
                                                 ['TTL', next((x for x in by[sid] if ':img:' in x), 'sh:' + sid + ':state')])])
         for j, sid in enumerate(b):
             info[sid] = out[j * 3:j * 3 + 3]
+    # photos in the shared store (img:<c>:<i>) count for every link that holds them
+    gk, gh = {}, {}
+    gpv = {x.split(':')[1] for x in scan('pv:*')}
+    for i in range(0, len(sids), 150):
+        b = sids[i:i + 150]
+        for sid, raw in zip(b, s.pipe([['HGETALL', 'sh:' + sid + ':imgs'] for sid in b])):
+            gk[sid] = ['img:' + p['c'] + ':' + str(j) for p in parts_of(raw) if p.get('c') for j in range(p['n'])]
+            gh[sid] = [p['h'] for p in parts_of(raw)]
+    allg = sorted({x for v in gk.values() for x in v})
+    glen, gttl = {}, {}
+    for i in range(0, len(allg), 250):
+        b = allg[i:i + 250]
+        r = s.pipe([c for x in b for c in (['STRLEN', x], ['TTL', x])])
+        for j, x in enumerate(b):
+            glen[x], gttl[x] = int(r[j * 2] or 0), int(r[j * 2 + 1] if r[j * 2 + 1] is not None else -2)
+    shared_total = sum(glen.values())
     rsn = {}
     rows, total = [], 0
     for sid in sids:
@@ -854,17 +878,23 @@ def admin_list():
             meta = {}
         if rid and rid not in rsn:
             rsn[rid] = (read_json('rs:' + rid) or {}).get('name') or ''
-        size = sum(lens.get(k, 0) for k in by[sid])
-        total += size
+        own = sum(lens.get(k, 0) for k in by[sid])
+        total += own
+        g = [x for x in gk.get(sid, []) if glen.get(x)]
+        size = own + sum(glen[x] for x in g)
         ttl = int(ttl if ttl is not None else -2)
-        has_photo = any(':img:' in x for x in by[sid])
+        if ttl < 0 and g:
+            ttl = max(gttl.get(x, -2) for x in g)
+        has_photo = any(':img:' in x for x in by[sid]) or bool(g)
+        npv = sum(1 for k in by[sid] if ':pv:' in k) + sum(1 for h in gh.get(sid, ()) if h in gpv)
         rows.append({'sid': sid, 'name': meta.get('name') or '', 'app': meta.get('app') or '', 'by': meta.get('by') or '',
                      'created': meta.get('created') or 0, 'bytes': size,
-                     'photos': sum(1 for k in by[sid] if ':img:' in k), 'previews': sum(1 for k in by[sid] if ':pv:' in k),
+                     'photos': sum(1 for k in by[sid] if ':img:' in k) + len(g), 'previews': npv,
                      'live': any(x.endswith(':state') for x in by[sid]),
                      'days': round(ttl / 86400, 1) if has_photo and ttl >= 0 else None, 'rid': rid or '', 'set': rsn.get(rid, '') if rid else ''})
     rows.sort(key=lambda r: -r['bytes'])
-    return ok({'rows': rows, 'bytes': total, 'ttl_days': TTL // 86400})
+    # a link's size includes the shared photos it holds, so rows can add up to more than the total
+    return ok({'rows': rows, 'bytes': total + shared_total, 'ttl_days': TTL // 86400})
 
 
 def admin_del(sid):
@@ -878,6 +908,10 @@ def admin_del(sid):
         if rs:
             rs['items'] = [x for x in rs.get('items') or [] if x.get('sid') != sid]
             put_rs(rs)
+    try:
+        reclaim(1)  # photos only this link used
+    except Fail:
+        pass
     return ok({'deleted': len(keys)})
 
 
@@ -904,34 +938,53 @@ def reclaim(level=1):
         p = key.split(':')
         if len(p) >= 3:
             by.setdefault(p[1], []).append(key)
-    drop = []
+    gc, gh = set(), set()  # stored texts (c) and photos (h) some live link still uses
+    drop, keep_pv = [], set()
     for sid, keys in by.items():
+        live = any(x.endswith(':state') for x in keys)
         parts = [x for x in keys if ':img:' in x or ':pv:' in x]
-        if not parts:
-            continue
-        if not any(x.endswith(':state') for x in keys):
+        if not live:
             drop += parts  # the project is gone
             continue
-        used = {e.get('h') for e in imgs_of(s.cmd('HGETALL', 'sh:' + sid + ':imgs')).values() if isinstance(e, dict)}
+        ents = [e for e in imgs_of(s.cmd('HGETALL', 'sh:' + sid + ':imgs')).values() if isinstance(e, dict)]
+        gc |= {e.get('c') for e in ents if e.get('c')}
+        gh |= {e.get('h') for e in ents if e.get('h')}
+        legacy = {e.get('h') for e in ents if e.get('h') and not e.get('c')}
+        if not parts:
+            continue
         img = [x for x in parts if ':img:' in x]
         pv = {hash_of(x) for x in parts if ':pv:' in x}
         ttl = s.pipe([['TTL', x] for x in img]) if img else []
         for x, t in zip(img, ttl):
             t = int(t if t is not None else -1)
-            if hash_of(x) not in used:
-                # not in the link's photo map; but a part written in the last ten minutes may be
-                # an upload whose save has not landed yet, so it stays
+            if hash_of(x) not in legacy:
+                # not in the link's photo map (or moved to the shared store); a part written in
+                # the last ten minutes may be an upload whose save has not landed yet, so it stays
                 if t < TTL - 600:
                     drop.append(x)
-            elif level >= 2 and hash_of(x) in pv and 0 <= t < TTL - RECLAIM_DAYS * 86400:
+            elif level >= 2 and (hash_of(x) in pv or s.cmd('EXISTS', 'pv:' + hash_of(x))) and 0 <= t < TTL - RECLAIM_DAYS * 86400:
                 drop.append(x)
+        drop += [x for x in parts if ':pv:' in x and hash_of(x) not in gh]
+    # the shared store: img:<c>:<i> and pv:<h>
+    gimg = scan('img:*')
+    ttl = []
+    for i in range(0, len(gimg), 400):
+        ttl += s.pipe([['TTL', x] for x in gimg[i:i + 400]])
+    for x, t in zip(gimg, ttl):
+        c = x.split(':')[1]
+        t = int(t if t is not None else -1)
+        if c not in gc:
+            if t < TTL - 600:
+                drop.append(x)
+        elif level >= 2 and 0 <= t < TTL - RECLAIM_DAYS * 86400:
+            drop.append(x)  # every link that holds it keeps its preview (pv:<h>)
+    drop += [x for x in scan('pv:*') if x.split(':')[1] not in gh]
     freed = 0
     for i in range(0, len(drop), 400):
         b = drop[i:i + 400]
         freed += sum(int(n or 0) for n in s.pipe([['STRLEN', x] for x in b]))
         s.pipe([['DEL', x] for x in b])
     return {'deleted': len(drop), 'freed': freed}
-
 
 STORE_MB = int(os.environ.get('SHARE_STORE_MB') or 250)  # Upstash free plan: 250,000,000 bytes (its own threshold)
 
@@ -954,7 +1007,7 @@ def health():
         if isinstance(c, dict) and time.time() - c.get('at', 0) < 1200:
             used = c.get('bytes')
         else:
-            ks = [k for k in scan('*') if ':img:' in k or ':pv:' in k or k.split(':')[-1] in STR_TAILS or k.startswith('rs:') and k.count(':') == 1]
+            ks = [k for k in scan('*') if ':img:' in k or ':pv:' in k or k.startswith(('img:', 'pv:')) or k.split(':')[-1] in STR_TAILS or k.startswith('rs:') and k.count(':') == 1]
             used = 0
             for i in range(0, len(ks), 100):
                 b = ks[i:i + 100]
@@ -1060,30 +1113,45 @@ def _route(method, query, body):
             raise Fail(403, 'This link is for viewing the ad sets — it cannot change the project.')
         pub = rs_pub(rs, role)
         if method == 'POST' and op == 'part':
-            h, i, n = clean_hash(q.get('h')), int(q.get('i', '-1')), int(q.get('n', '0'))
+            h, i, n = clean_hash(q.get('c') or q.get('h')), int(q.get('i', '-1')), int(q.get('n', '0'))
             if not (0 <= i < n <= 400):
                 raise Fail(400, 'Bad picture part.')
             txt = (body or b'').decode('utf-8', 'strict')
             if not txt or len(txt) > PART_MAX:
                 raise Fail(413, 'That picture part is too large.')
             need(k)
-            s.set_raw(k + 'img:' + h + ':' + str(i), txt, TTL)
+            # c: the hash of the stored text, so the part is shared by every link with this photo
+            s.set_raw(('img:' if q.get('c') else k + 'img:') + h + ':' + str(i), txt, TTL)
             return ok({'ok': True})
+        if method == 'GET' and op == 'have':
+            # is this photo already stored (by any link)? Then there is nothing to upload, and
+            # its 60 days start again
+            c, n = clean_hash(q.get('c')), int(q.get('n', '0'))
+            if not (0 < n <= 400):
+                raise Fail(400, 'Bad picture part.')
+            have = all(int(x or 0) for x in s.pipe([['EXISTS', 'img:' + c + ':' + str(i)] for i in range(n)]))
+            if have:
+                s.pipe([['EXPIRE', 'img:' + c + ':' + str(i), TTL] for i in range(n)])
+            return ok({'have': have})
         if method == 'POST' and op == 'pvput':
             h = clean_hash(q.get('h'))
             txt = (body or b'').decode('utf-8', 'strict')
             if not txt or len(txt) > PV_MAX:
                 raise Fail(413, 'That preview is too large.')
             need(k)
-            s.cmd('SET', k + 'pv:' + h, txt)
+            s.cmd('SET', 'pv:' + h, txt)  # one preview per photo, shared by every link
             return ok({'ok': True})
         if method == 'POST' and op == 'devexpire' and isinstance(s, Memory):
             # SHARE_DEV only: what 60 days without opening does to a link's photos
-            gone = [x for x in list(s.d) if x.startswith(k + 'img:')]
+            mine = {part_key(k, p, i) for p in parts_of(s.cmd('HGETALL', k + 'imgs')) for i in range(p['n'])}
+            gone = [x for x in list(s.d) if x.startswith(k + 'img:') or x in mine]
             for x in gone: s.d.pop(x, None)
             return ok({'expired': len(gone)})
         if method == 'GET' and op == 'pv':
-            v = s.cmd('GET', k + 'pv:' + clean_hash(q.get('h')))
+            h = clean_hash(q.get('h'))
+            v = s.cmd('GET', 'pv:' + h)
+            if v is None:
+                v = s.cmd('GET', k + 'pv:' + h)
             if v is None:
                 raise Fail(404, 'No preview of that picture is stored.')
             return 200, 'text/plain; charset=utf-8', v.encode()
@@ -1098,14 +1166,25 @@ def _route(method, query, body):
             for sl, v in (d.get('imgs') or {}).items():
                 sl = clean_slot(sl)
                 if v:
-                    slots.append((sl, json.dumps({'h': clean_hash(v.get('h')), 'n': int(v.get('n') or 0)}, separators=(',', ':'))))
+                    e = {'h': clean_hash(v.get('h')), 'n': int(v.get('n') or 0)}
+                    if v.get('c'):
+                        e['c'] = clean_hash(v.get('c'))
+                    slots.append((sl, json.dumps(e, separators=(',', ':'))))
                 else:
                     slots.append((sl, ''))
             need(k)
+            before = parts_of(s.cmd('HGETALL', k + 'imgs')) if slots else []
             r = do_save(k, int(d.get('base') or 0), state, entry_json(d.get('by'), d.get('changes'), d.get('burst')),
                         str(d.get('burst') or '')[:24], slots)
             if not r or int(r[0]) != 1:
                 return 409, 'application/json', json.dumps({'error': 'stale', 'rev': int(r[1]) if r else 0}).encode()
+            # a photo this link stored on its own (before the shared store) that it no longer uses
+            # — replaced, removed, or moved to the shared store — goes now rather than in 60 days
+            if before:
+                still = {p['h'] for p in parts_of(s.cmd('HGETALL', k + 'imgs')) if not p.get('c')}
+                old = [k + 'img:' + p['h'] + ':' + str(i) for p in before if not p.get('c') and p['h'] not in still for i in range(p['n'])]
+                if old:
+                    s.pipe([['DEL', x] for x in old])
             # an ad set's project keeps a small summary for the archive
             if rs and isinstance(d.get('sum'), dict):
                 s.cmd('SET', k + 'sum', json.dumps(clean_sum(d['sum']), separators=(',', ':')))
@@ -1138,8 +1217,8 @@ def _route(method, query, body):
             return ok({'state': json.loads(state), 'rev': int(rev), 'imgs': flagged(k, imgs), 'log': logs_of(log), 'from': frm, 'n': n,
                        'role': role, 'rs': pub})
         if method == 'GET' and op == 'chunk':
-            h, i = clean_hash(q.get('h')), int(q.get('i', '-1'))
-            v = s.cmd('GET', k + 'img:' + h + ':' + str(i))
+            c, i = q.get('c'), int(q.get('i', '-1'))
+            v = s.cmd('GET', ('img:' + clean_hash(c) if c else k + 'img:' + clean_hash(q.get('h'))) + ':' + str(i))
             if v is None:
                 raise Fail(404, 'That picture is no longer stored.')
             return 200, 'text/plain; charset=utf-8', v.encode()

@@ -16661,3 +16661,25 @@ adds up STRLEN of the stored values, cached in `sys:size` for 20 minutes. Limit 
 **Not exercised on real Upstash**; links are under 14 days old, so level 2 frees nothing yet.
 Biggest remaining lever if it fills again: an edit link stores each photo per link at export
 grade, so the same photo in an ENG and an ARB project is stored twice.
+
+## ONE PHOTO, STORED ONCE, AT 2560px (2026-10-27)
+
+By request, right after the store filled. **`putRec` uploads `slimFull(rec)`** — 2560px long
+side, WebP .86, alpha kept; an SVG or a photo already under 2560px and 1.2 MB goes as it is —
+and keys its parts by **`c` = fnv of the stored text**, under the shared `img:<c>:<i>`; it asks
+`op=have` first and skips the upload when any link already stored it (that also restarts its 60
+days). A link's entry is `{h, n, c}`: **`h` is still the hash of the photo as the uploader holds
+it** (what tells an edit from a pull, and what the designer's computer matches to put a photo
+back), `c` is where its bytes live. Previews are shared too, `pv:<h>`. Entries without `c` are
+from before; their parts stay at `sh:<id>:img:<h>:<i>`, and every read (chunk, pv, flagged,
+refresh) falls back to them. **`shHeal` moves them**: an entry without `c` whose photo this
+computer holds is uploaded the new way and saved (no log entry), and **a save deletes the link's
+own old-style parts it no longer references** (replaced, removed or moved). `reclaim` drops a
+shared `img:<c>` no live link references and a `pv:<h>` none uses; `admin_del` runs `reclaim(1)`.
+admin list counts shared photos in every link that holds them, so rows can add up to more than
+the total. A receiver's 2560px copy is not treated as a preview (`PV_MAX` length test).
+Measured on the dev store: a 2.84 MB export-grade photo became 1.46 MB with its preview, a second
+link of the same project added ~1 KB, and the receiver loaded the 1.45 MB copy with nothing
+re-uploaded and nothing logged. **Trade-off:** someone who only has the link (PM's renders, CT)
+draws from the 2560px copy, a slight upscale on a 2x Story export; the designer exports from
+their own originals. Not exercised on real Upstash.

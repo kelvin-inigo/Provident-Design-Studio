@@ -392,7 +392,7 @@
     if (!e.gone) {
       try {
         const parts = new Array(e.n);
-        await pool(Array.from({ length: e.n }, (_, i) => i), 4, async i => { parts[i] = await api('chunk', { id, p, h: e.h, i }); });
+        await pool(Array.from({ length: e.n }, (_, i) => i), 4, async i => { parts[i] = await api('chunk', e.c ? { id, p, c: e.c, i } : { id, p, h: e.h, i }); });
         return JSON.parse(parts.join(''));
       } catch (er) { if (er && er.net) throw er; }
     }
@@ -425,14 +425,38 @@
     if (!t) return false;
     try { await api('pvput', { id, h }, t, true); return true; } catch (e) { return false; }
   }
+  // ONE PHOTO, STORED ONCE, AT A SHARING SIZE (2026-10-27). A link stores a photo at FULL_PX on
+  // its long side (WebP, alpha kept), not at the studio's export grade (up to 3840px, 3-5 MB),
+  // and the parts are keyed by the hash of that stored text (c), so the same photo in an English
+  // and an Arabic project, or in two links, is stored once. Its identity on the link (h) is still
+  // the hash of the photo as this computer holds it: that is what tells an edit apart from a
+  // pull, and how the designer's computer recognises its own photo to put it back.
+  const FULL_PX = 2560, FULL_SMALL = 1200000;
+  async function slimFull(rec) {
+    if (!rec || !rec.u || !/^data:image\/(png|jpe?g|webp)/i.test(rec.u)) return rec;
+    let bmp;
+    try { bmp = await createImageBitmap(await (await fetch(rec.u)).blob()); } catch (e) { return rec; }
+    const k = Math.min(1, FULL_PX / Math.max(bmp.width, bmp.height));
+    if (k === 1 && rec.u.length < FULL_SMALL) { bmp.close && bmp.close(); return rec; }
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+    const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+    const u = c.toDataURL('image/webp', 0.86);
+    return /^data:image\/webp/.test(u) && u.length < rec.u.length ? Object.assign({}, rec, { u }) : rec;
+  }
   async function putRec(id, slot, rec, onPart) {
-    const txt = JSON.stringify(rec), h = fnv(txt), n = Math.max(1, Math.ceil(txt.length / PART));
-    for (let i = 0; i < n; i++) {
-      await api('part', { id, h, i, n }, txt.slice(i * PART, (i + 1) * PART), true);
-      if (onPart) onPart(i + 1, n);
+    const txt = JSON.stringify(rec), h = fnv(txt);
+    const stx = JSON.stringify(await slimFull(rec)), c = fnv(stx), n = Math.max(1, Math.ceil(stx.length / PART));
+    let have = false;
+    try { have = (await api('have', { id, c, n })).have; } catch (e) { if (e && e.net) throw e; }
+    if (!have) {
+      for (let i = 0; i < n; i++) {
+        await api('part', { id, c, i, n }, stx.slice(i * PART, (i + 1) * PART), true);
+        if (onPart) onPart(i + 1, n);
+      }
     }
     await putPv(id, h, rec, txt);
-    return { h, n };
+    return { h, n, c };
   }
 
   // ---------- making a link ----------
@@ -693,7 +717,7 @@
     const S = this._sh; if (!S || S.healing || S.role === 'pm') return 0;
     S.healing = true;
     let back = 0;
-    const restored = new Set();
+    const restored = new Set(), moved = {};
     try {
       const d = await api('sync', { id: S.id, from: S.n });
       const want = d.imgs || {}, C = IS();
@@ -715,7 +739,7 @@
       // a tab that lost its binding still never sends a preview up as the photo.
       for (const sl of Object.keys(want)) {
         const e = want[sl], own = C && C.getRec ? C.getRec(sl) : null;
-        if (e && e.gone && own && own.u && !S.dirty.has(sl) && !S.pv[sl]) {
+        if (e && e.gone && own && own.u && !S.dirty.has(sl) && !S.pv[sl] && JSON.stringify(own).length <= PV_MAX) {
           const f = fnv(JSON.stringify(own));
           if (f !== e.h && S.imgs[sl] === e.h) S.pv[sl] = f;
         }
@@ -728,16 +752,25 @@
           if (full && !PV_RECS.has(full) && C && C.putRec) { S.applying = true; try { C.putRec(sl, full); } finally { S.applying = false; } delete S.pv[sl]; }
           continue;
         }
-        if (!e || !e.h || (!e.gone && !e.nopv)) continue;
+        // a photo stored before the shared, sharing-size store (no c) moves there too, which is
+        // what frees the old full-size copy
+        if (!e || !e.h || (!e.gone && !e.nopv && e.c)) continue;
         const rec = await findRec(sl, e.h);
         if (!rec) continue;
-        if (e.gone) {
-          if (S.ui) S.ui.status('saving', 'Restoring a full-size photo…');
-          await putRec(S.id, sl, rec);
-          back++; restored.add(sl);
-          if (S.pv[sl] && C && C.putRec) { S.applying = true; try { C.putRec(sl, rec); } finally { S.applying = false; } }
-          delete S.pv[sl];
+        if (e.gone || !e.c) {
+          if (e.gone && S.ui) S.ui.status('saving', 'Restoring a full-size photo…');
+          moved[sl] = await putRec(S.id, sl, rec);
+          if (e.gone) {
+            back++; restored.add(sl);
+            if (S.pv[sl] && C && C.putRec) { S.applying = true; try { C.putRec(sl, rec); } finally { S.applying = false; } }
+            delete S.pv[sl];
+          }
         } else await putPv(S.id, e.h, rec);
+      }
+      // the photo map now names where each moved photo lives (same photo, same h)
+      if (Object.keys(moved).length) {
+        try { const r = await api('save', { id: S.id }, { base: S.rev, by: StudioBase.shareName() || 'Someone', imgs: moved }); if (r && r.rev) S.rev = r.rev; }
+        catch (er) { if (!er.stale) throw er; }  // someone saved meanwhile: the next pass tries again
       }
       // photos still missing on the link, for the panel's notice
       S.gone = Object.keys(want).filter(sl => want[sl] && want[sl].gone && !restored.has(sl)).length;
