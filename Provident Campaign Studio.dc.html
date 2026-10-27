@@ -3596,7 +3596,13 @@ select.p-in{padding-right:34px}
   transition:box-shadow var(--ps-motion) var(--ps-ease)}
 /* on the card's own ground, so the badge's status ink measures as it does in Publish */
 .as-ad-see:hover{box-shadow:0 0 0 1px var(--ps-ink-2)}
-.mk-ov{z-index:240}   /* over the Ad sets window, PM's review bar and the review panel */
+.mk-ov{z-index:240}
+.mk-nav{display:inline-flex;align-items:center;gap:4px;margin-left:6px}
+.mk-bar .mk-nav-b{width:36px;height:36px;padding:0;justify-content:center;border-radius:9999px}
+.mk-bar .mk-nav-b:disabled{opacity:.35;cursor:default}
+.mk-nav-l{display:inline-flex;align-items:baseline;gap:8px;min-width:0;max-width:340px;padding:0 6px}
+.mk-nav-l b{font:500 13.5px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk-nav-l s{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim);text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums}   /* over the Ad sets window, PM's review bar and the review panel */
 .as-ad-see .yt-badge{margin-left:0;font-size:11px}
 .as-ad-see:focus-visible,.as-det-img:focus-visible,.as-fmts button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-fmts{display:flex;flex-wrap:wrap;gap:6px}
@@ -5525,6 +5531,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     <div class="mk-ov">
       <div class="mk-bar">
         <b>Placement preview</b>
+        <sc-if value="{{ mkNavOn }}" hint-placeholder-val="{{ true }}"><div class="mk-nav" role="group" aria-label="Variant"><button onClick="{{ mkPrev }}" disabled="{{ mkPrevOff }}" class="p-ghost mk-nav-b" title="Previous variant (←)" aria-label="Previous variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m432-480 156 156q11 11 11 28t-11 28q-11 11-28 11t-28-11L348-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 28-11t28 11q11 11 11 28t-11 28L432-480Z"/></svg></button><span class="mk-nav-l"><b>{{ mkNavLabel }}</b><s>{{ mkNavPos }}</s></span><button onClick="{{ mkNext }}" disabled="{{ mkNextOff }}" class="p-ghost mk-nav-b" title="Next variant (→)" aria-label="Next variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></button></div></sc-if>
         <div class="p-seg mk-seg" role="radiogroup" aria-label="Platform"><sc-for list="{{ mkPlats }}" as="pl" hint-placeholder-count="2"><button onClick="{{ pl.set }}" data-on="{{ pl.on }}" role="radio" aria-checked="{{ pl.aria }}">{{ pl.label }}</button></sc-for></div>
         <s>{{ mkPlaceLabel }}</s>
         <div class="p-seg mk-seg" role="radiogroup" aria-label="Phone appearance" title="The phone's own appearance. Reels and Stories stay dark in both apps."><button onClick="{{ mkLight }}" data-on="{{ mkLightOn }}" role="radio">Light</button><button onClick="{{ mkDark }}" data-on="{{ mkDarkOn }}" role="radio">Dark</button></div>
@@ -15153,6 +15160,26 @@ class Component extends DCLogic {
     this.asScan();
   }
   // a pending edit is saved before the window goes (aeSave holds its own reference)
+  mkCards() {
+    const out = [], a = this._as || {};
+    for (const m of a.mains || []) for (const au of m.auds) for (const c of au.cols) for (const pl of c.plats) if (pl.prevOn) out.push(pl);
+    return out;
+  }
+  mkNav() {
+    if (this._mkExt) {
+      const list = this.mkCards(), i = list.indexOf(this._mkExt.card);
+      return i < 0 ? null : { i, n: list.length, label: this._mkExt.label };
+    }
+    const eng = this.eng; if (!eng || !eng.state || !eng.state.variants) return null;
+    const n = eng.state.variants.length, i = Math.max(0, Math.min(eng.state.activeVi || 0, n - 1));
+    return { i, n, label: eng.vLabel(i) };
+  }
+  mkStep(d) {
+    const nav = this.mkNav(); if (!nav) return;
+    const j = nav.i + d; if (j < 0 || j >= nav.n) return;
+    if (this._mkExt) { this._mkExt = this.mkCards()[j].mk(); this.forceUpdate(); return; }
+    this.eng.upd(x => { x.activeVi = j; x.sel = null; return x; });
+  }
   asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this._asSrc = null; this.setState({ adSetsOpen: false }); }
   asFree() { (this._asUrls || []).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} }); this._asUrls = []; }
   asPick(e) { return this.asBrowse(e); }
@@ -15894,11 +15921,11 @@ class Component extends DCLogic {
     const SK = { feed: 'sq', portrait_3x4: 'pt', story: 'st' }, shots = {};
     tiles.forEach(t => { if (SK[t.kk]) shots[SK[t.kk]] = t.url; });
     card.prevOn = Object.keys(shots).length ? '1' : undefined;
-    card.prev = () => {
+    card.mk = () => {
       const vi = Math.max(0, letter.charCodeAt(0) - 65);
-      this._mkExt = { shots, copy: st.variants ? C.mockCopyOf(st, vi) : C.mockCopyOf({ campaign: label }, 0) };
-      this.setState({ mockOpen: true });
+      return { card, shots, label: ctx, copy: st.variants ? C.mockCopyOf(st, vi) : C.mockCopyOf({ campaign: label }, 0) };
     };
+    card.prev = () => { this._mkExt = card.mk(); this.setState({ mockOpen: true }); };
     return card;
   }
   // ══ THE AD ANALYSIS in Ad sets › Details (2026-10-15) ═══════════════════════════════════
@@ -16267,6 +16294,9 @@ class Component extends DCLogic {
         if (t) { this._asBig = t; this.forceUpdate(); }
         e.preventDefault(); return;
       }
+      if (this.state.mockOpen && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !(e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable]'))) {
+        this.mkStep(e.key === 'ArrowLeft' ? -1 : 1); e.preventDefault(); return;
+      }
       if (e.key !== 'Escape') return;
       if (this.state.mockOpen) { this._mkExt = null; this.setState({ mockOpen: false }); return; }
       // Ad sets: the enlarged image first, then the window itself.
@@ -16447,6 +16477,14 @@ class Component extends DCLogic {
       specClose: () => this.setState({ specOpen: false }),
       specDownload: () => { if (eng && eng.specDownload) eng.specDownload(); },
       // ── placement preview ──────────────────────────────────────────────────
+      // ‹ Variant › in the bar: the editor steps activeVi (mockKey follows it); a preview
+      // opened from Ad sets steps through every variant card the window lists.
+      ...(() => {
+        const nav = this.mkNav();
+        return { mkNavOn: nav && nav.n > 1 ? '1' : undefined, mkNavLabel: nav ? nav.label : '', mkNavPos: nav ? (nav.i + 1) + ' of ' + nav.n : '',
+          mkPrev: () => this.mkStep(-1), mkNext: () => this.mkStep(1),
+          mkPrevOff: nav && nav.i > 0 ? undefined : true, mkNextOff: nav && nav.i < nav.n - 1 ? undefined : true };
+      })(),
       mkOpen: this.state.mockOpen ? '1' : undefined,
       mkToggle: () => {
         const open = !this.state.mockOpen;
