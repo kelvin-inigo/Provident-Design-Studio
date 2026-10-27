@@ -2105,7 +2105,6 @@
     this.timer = setInterval(tick, 60000);
     document.addEventListener('visibilitychange', tick); window.addEventListener('focus', tick);
     window.addEventListener('provident-drive-signed', () => { if (el.isConnected) this.refresh(); });
-    this.health();
     el.querySelector('.rva-add').addEventListener('submit', e => {
       e.preventDefault();
       const inp = el.querySelector('.rva-add input'), m = /#share=([\w.-]{8,140})/.exec(inp.value || '') || /^([\w.-]{8,140})$/.exec((inp.value || '').trim());
@@ -2118,7 +2117,6 @@
   }
   const AV = ArchView.prototype;
   AV.refresh = function () {
-    this.health();
     if (!this.sel) return this.load(true);
     // the detail page is redrawn whole, so not while someone is typing in it
     const f = document.activeElement, drv = this.el.querySelector('.rva-drv input');
@@ -2126,27 +2124,37 @@
     if (drv && this.det && this.det.rs && drv.value.trim() !== (this.det.rs.drive || '')) return;
     return this.open(this.sel, true);
   };
-  AV.health = async function () {
-    let h;
-    try { const r = await fetch(StudioBase.shareBase() + '/api/share?op=health', { cache: 'no-store' }); h = await r.json(); if (!r.ok && !h) throw new Error(); }
-    catch (e) { h = { ok: false, error: 'The share store could not be reached from this computer.' }; }
-    this.hl = h; this.drawHealth();
-  };
+  // The strip above the list: where every ad set and audience on this computer stands.
   AV.drawHealth = function () {
-    const box = this.el.querySelector('.rva-hl'), h = this.hl; if (!box) return;
+    const box = this.el.querySelector('.rva-hl'); if (!box) return;
     box.hidden = !!this.sel;
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
-    const up = '<span class="rva-hl-up">' + at + '<button type="button" class="p-ghost p-sm" data-a="refresh">Refresh</button></span>';
-    if (!h) { box.dataset.s = 'wait'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store</b><s>Checking… (edit links and ad sets started before 27 Oct)</s></span>' + up; return; }
-    if (!h.ok) { box.dataset.s = 'down'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · Not answering</b><s>' + esc(h.error || 'No answer.') + ' Edit links and ad sets started before 27 Oct cannot be read or saved until it answers. Ad sets on Google Drive are not affected.</s></span>' + up; return; }
-    const mb = b => b >= 1048576 ? (b / 1048576).toFixed(b >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
-    const pct = h.bytes != null ? Math.min(100, h.bytes / h.limit * 100) : null;
-    const st = pct != null && pct >= 90 ? ['full', 'Nearly full'] : pct != null && pct >= 70 ? ['warn', 'Filling up'] : h.ms > 2000 ? ['warn', 'Slow to answer'] : ['ok', 'Healthy'];
-    const tip = st[0] === 'ok' ? '' : pct != null && pct >= 70 ? ' Full-size photos nobody has opened for 60 days are cleared by themselves; <a href="share-admin.html" target="_blank" rel="noopener">see what takes the space</a>.' : '';
-    box.dataset.s = st[0];
-    box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · ' + st[1] + (h.dev ? ' (test store)' : '') + '</b><s>' +
-      (pct != null ? mb(h.bytes) + ' of ' + mb(h.limit) + ' used (' + Math.round(pct) + '%) · ' : '') + h.keys.toLocaleString() + ' keys · answered in ' + h.ms + ' ms. Holds shared edit links and ad sets started before 27 Oct; ad sets on Google Drive do not use it.' + tip + '</s></span>' +
-      (pct != null ? '<span class="rva-hl-bar" role="meter" aria-label="Share store used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pct) + '"><i style="width:' + pct.toFixed(1) + '%"></i></span>' : '') + up;
+    const head = '<div class="rva-sx-h"><b>Overview</b><span class="rva-hl-up">' + at + '<button type="button" class="p-ghost p-sm" data-a="refresh">Refresh</button></span></div>';
+    if (this.items === null) { box.dataset.s = 'wait'; box.innerHTML = head + '<p class="rva-sx-w">Reading the ad sets…</p>'; return; }
+    const sets = (this.items || []).filter(x => !x.gone), miss = (this.items || []).length - sets.length;
+    const all = sets.map(x => ({ x, auds: rsAuds(x.rs || {}) })), done = all.filter(o => rsOverall(o.auds).ready);
+    const auds = [].concat(...all.map(o => o.auds.map(a => Object.assign({ set: (o.x.rs || {}).name || 'Ad set' }, a))));
+    const projs = sets.reduce((n, x) => n + ((x.rs || {}).items || []).length, 0);
+    const at3 = auds.filter(a => a.done).length;
+    // each audience sits at its first unfinished step; a finished one counts as Done
+    const by = STEP_LABELS.map((l, i) => ({ l, i, n: auds.filter(a => (a.done ? 3 : a.steps.findIndex(s => s.s !== 'done')) === i).length }));
+    const tile = (n, l, s) => '<div class="rva-sx-t"><b>' + n + '</b><span>' + l + '</span>' + (s ? '<s>' + s + '</s>' : '') + '</div>';
+    const pc = n => auds.length ? (n / auds.length * 100).toFixed(2) + '%' : '0';
+    const wait = auds.filter(a => !a.done).sort((a, b) => ((a.now && a.now.label) || '').localeCompare((b.now && b.now.label) || ''));
+    const waitTxt = wait.length ? wait.slice(0, 4).map(a => '<li><b>' + esc(a.set) + '</b> · ' + esc(a.label) + ' <s>' + esc(a.now ? a.now.label + ' · ' + a.now.sub : '') + '</s></li>').join('') +
+      (wait.length > 4 ? '<li class="rva-sx-more">and ' + (wait.length - 4) + ' more</li>' : '') : '';
+    box.dataset.s = 'ok';
+    box.innerHTML = head +
+      '<div class="rva-sx-ts">' +
+        tile(sets.length, sets.length === 1 ? 'Ad set' : 'Ad sets', projs + (projs === 1 ? ' project' : ' projects')) +
+        tile(sets.length - done.length, 'In progress', wait.length + (wait.length === 1 ? ' audience waiting' : ' audiences waiting')) +
+        tile(done.length, 'Package ready', done.length ? 'ready to run' : 'none yet') +
+        tile(at3 + '<i>/' + auds.length + '</i>', 'Audiences done', auds.length ? Math.round(at3 / auds.length * 100) + '% of every audience' : 'no audiences yet') +
+      '</div>' +
+      (auds.length ? '<div class="rva-sx-bar" role="img" aria-label="' + esc(by.map(b => b.n + ' at ' + b.l).join(', ')) + '">' + by.map(b => b.n ? '<i data-i="' + b.i + '" style="width:' + pc(b.n) + '"></i>' : '').join('') + '</div>' +
+        '<ul class="rva-sx-lg">' + by.map(b => '<li data-i="' + b.i + '"><i></i>' + esc(b.l) + ' <b>' + b.n + '</b></li>').join('') + '</ul>' : '') +
+      (waitTxt ? '<div class="rva-sx-wt"><span>Waiting on</span><ul>' + waitTxt + '</ul></div>' : '') +
+      (miss || this.sign ? '<p class="rva-sx-w">' + [this.sign ? this.sign + ' on Google Drive not counted until you sign in' : '', miss ? miss + ' missing' : ''].filter(Boolean).join(' · ') + '.</p>' : '');
   };
   AV.load = async function (quiet) {
     const ids = Arch.list().map(x => x.id);
@@ -2178,7 +2186,7 @@
     if (a === 'back') { this.sel = null; this.det = null; this.load(); }
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
     if (a === 'proj') window.open(rsLink(t.dataset.sid), '_blank', 'noopener');
-    if (a === 'refresh') { this.at = 0; this.refresh(); this.drawHealth(); }
+    if (a === 'refresh') { this.at = 0; this.refresh(); }
     if (a === 'gsign') {
       t.disabled = true;
       try { await window.providentDrive.signIn(); window.dispatchEvent(new Event('provident-drive-signed')); }
@@ -3128,21 +3136,33 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva{max-width:1240px;margin-inline:auto;display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
 .rva-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
 .rva-bar[hidden]{display:none}
-.rva-hl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 16px;border-radius:14px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rva-hl{display:flex;flex-direction:column;gap:14px;padding:18px 20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .rva-hl[hidden]{display:none}
-.rva-hl-d{width:10px;height:10px;border-radius:50%;flex:none;background:var(--ps-dim)}
-.rva-hl[data-s="ok"] .rva-hl-d{background:var(--ps-good)}
-.rva-hl[data-s="warn"] .rva-hl-d{background:var(--ps-warn)}
-.rva-hl[data-s="full"] .rva-hl-d,.rva-hl[data-s="down"] .rva-hl-d{background:var(--ps-bad)}
-.rva-hl[data-s="full"],.rva-hl[data-s="down"]{background:var(--ps-bad-q)}
-.rva-hl-t{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:2px}
-.rva-hl-t b{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rva-hl-t s{text-decoration:none;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
-.rva-hl-t a{color:var(--ps-link)}
-.rva-hl-bar{flex:0 1 180px;height:6px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
-.rva-hl-bar i{display:block;height:100%;background:var(--ps-link)}
-.rva-hl[data-s="warn"] .rva-hl-bar i{background:var(--ps-warn)}
-.rva-hl[data-s="full"] .rva-hl-bar i{background:var(--ps-bad)}
+.rva-sx-h{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rva-sx-h>b{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-sx-ts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.rva-sx-t{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;background:var(--ps-fill)}
+.rva-sx-t b{font:400 28px/1.1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.rva-sx-t b i{font-style:normal;font-size:16px;color:var(--ps-dim)}
+.rva-sx-t span{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-sx-t s{text-decoration:none;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rva-sx-bar{display:flex;gap:2px;height:8px;border-radius:9999px;overflow:hidden;background:var(--ps-fill)}
+.rva-sx-bar i{display:block;height:100%}
+.rva-sx-bar i[data-i="0"],.rva-sx-lg li[data-i="0"] i{background:var(--ps-dim)}
+.rva-sx-bar i[data-i="1"],.rva-sx-lg li[data-i="1"] i{background:var(--ps-warn)}
+.rva-sx-bar i[data-i="2"],.rva-sx-lg li[data-i="2"] i{background:var(--ps-link)}
+.rva-sx-bar i[data-i="3"],.rva-sx-lg li[data-i="3"] i{background:var(--ps-good)}
+.rva-sx-lg{display:flex;flex-wrap:wrap;gap:6px 18px;margin:-6px 0 0;padding:0;list-style:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rva-sx-lg li{display:flex;align-items:center;gap:6px}
+.rva-sx-lg i{width:8px;height:8px;border-radius:50%}
+.rva-sx-lg b{font-weight:500;color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.rva-sx-wt{display:flex;gap:12px;flex-wrap:wrap;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rva-sx-wt>span{flex:none;color:var(--ps-dim);padding-top:1px}
+.rva-sx-wt ul{flex:1 1 300px;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.rva-sx-wt b{font-weight:500;color:var(--ps-ink)}
+.rva-sx-wt s{text-decoration:none;color:var(--ps-ink-2);margin-left:6px}
+.rva-sx-more{color:var(--ps-dim)}
+.rva-sx-w{margin:0;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim);font-style:italic}
 .rva-hl-up{display:flex;align-items:center;gap:8px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
 .rva-bar p{flex:1 1 300px;margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .rva-add{flex:1 1 360px;display:flex;gap:8px}

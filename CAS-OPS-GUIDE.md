@@ -292,14 +292,16 @@ Ad sets started from 27 Oct live in their Google Drive folder. If you are not si
 a box above the list says how many there are, with **Sign in with Google**; once you sign in they
 appear. An ad set your account cannot reach shows under **Missing**.
 
-The strip above the list shows the **share store**. It holds shared edit links and ad sets started
-before 27 Oct; ad sets on Google Drive do not use it. It shows:
-- whether it is answering, and how fast
-- how full it is out of the free 250 MB
-- a link to see what takes the space, once it fills up
+The **Overview** above the list counts every ad set on this computer:
+- **Ad sets** and how many projects they hold
+- **In progress**, with how many audiences are still waiting
+- **Package ready**
+- **Audiences done**, out of all of them
+- a bar showing how many audiences are at each step (Design, ENG copy check, Translation, Done)
+- **Waiting on**: the first few audiences not done, with the step each is on
 
-If the store refuses a request, the red message now says why: for example, the plan's monthly
-requests are used up, or the store is full.
+Ad sets on Drive you have not signed in for, and missing ones, are not counted; a line says so.
+How full the share store is lives on `share-admin.html` now, not here.
 
 Open one to see its record:
 - **At the top:** the name, its product, its status, the dates, **Drive folder** (once a link is

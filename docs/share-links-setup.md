@@ -65,10 +65,10 @@ is not connected, step 1.4 or 1.5 is missing.
 
 ## Health
 
-CAS's **Review links** page shows a strip with the store's state: answering or not, how fast, and
-how full against the free 250 MB (`SHARE_STORE_MB` changes the figure; the size is the stored
-values added up, refreshed at most every 20 minutes). It uses
-`/api/share?op=health`, which anyone can call and which reveals no project data. When Upstash
+`/api/share?op=health` reports the store's state: answering or not, how fast, and how full
+against the free 250 MB (`SHARE_STORE_MB` changes the figure; the size is the stored values added
+up, refreshed at most every 20 minutes). Anyone can call it; it reveals no project data. CAS's
+Review links page no longer shows it — `share-admin.html` shows what takes the space. When Upstash
 refuses a request, the studio now shows Upstash's own reason, for example a used-up monthly
 request allowance or a full store.
 
