@@ -438,7 +438,7 @@
     let rs, rid;
     if (ans.mode === 'new') {
       const folder = await D.folderOf(ans.folder);
-      dlg.busy('Setting up the ad set in “' + folder.name + '”…');
+      dlg.busy('Setting up the ad set in “' + folder.name + '”…', .04);
       const setDir = await dsFolder(folder.id, DS_SET);
       const had = (await dsList(setDir, DS_FILE))[0];
       if (had) { const old = await dsRead(had.id, true); if (!old.deleted) throw dsFail(409, '“' + folder.name + '” already holds an ad set (' + (old.name || 'unnamed') + '). Choose “Add to an ad set”, or another folder.'); }
@@ -455,17 +455,16 @@
     }
     const it = { market: ans.market, aud: ans.aud, lang: ans.lang };
     if ((rs.items || []).some(x => x.market === it.market && x.aud === it.aud && x.lang === it.lang)) throw dsFail(400, dsItemLabel(it) + ' is already in the ad set.');
-    dlg.busy('Saving the project into ' + [it.market, it.aud, DS_LANG[it.lang]].join(' / ') + '…');
+    dlg.busy('Saving the project into ' + [it.market, it.aud, DS_LANG[it.lang]].join(' / ') + '…', .1);
     const sid = await dsProject(rs.folder, rid, it, st, by, name, app);
     // the pictures, one file each, then the project's photo map
-    const C = IS(), map = {}, imgs = {}, slots = this.shSlots();
+    const C = IS(), map = {}, imgs = {}, pics = this.shSlots().filter(sl => { const r = C.getRec(sl); return r && r.u; });
     let k = 0;
-    for (const sl of slots) {
-      const rec = C.getRec(sl);
-      if (!rec || !rec.u) continue;
-      dlg.busy('Saving pictures · ' + (++k) + '…');
-      const e = await dsPutRec(sid, sl, rec); map[sl] = e; imgs[sl] = e.h;
+    for (const sl of pics) {
+      dlg.busy('Saving pictures · ' + (k + 1) + ' of ' + pics.length + '…', .12 + .78 * k / pics.length);
+      const e = await dsPutRec(sid, sl, C.getRec(sl)); map[sl] = e; imgs[sl] = e.h; k++;
     }
+    dlg.busy('Finishing the ad set…', .94);
     let rev = 1;
     if (Object.keys(map).length) rev = (await dsApi('save', { id: sid }, { base: 1, by, imgs: map })).rev;
     const now = dsNow(), item = Object.assign({ sid, added: now, by, design: null, copy: null }, it);
@@ -724,7 +723,7 @@
       await pool(slots, 3, async sl => {
         const rec = await fetchRec(id, d.imgs[sl]);
         if (rec) images[sl] = rec;
-        done++; dlg.busy('Loading pictures · ' + done + ' of ' + slots.length + '…');
+        done++; dlg.busy('Loading pictures · ' + done + ' of ' + slots.length + '…', done / slots.length);
       });
     } catch (e) { dlg.fail(e.message, 'Close'); return; }
     // An expired photo this computer still holds in full — its photo store, or the project's
@@ -863,7 +862,7 @@
   };
   // Puts the open project on the store and binds this tab to it; returns the new id.
   SP.shCreateRaw = async function (dlg, name) {
-    dlg.busy('Uploading the project…');
+    dlg.busy('Uploading the project…', .04);
     await this.ensurePid();
     const st = this.shPub();
     const r = await api('create', {}, { app: this.shApp(), name: this.shName(st), by: name, state: st });
@@ -873,7 +872,7 @@
       const rec = C.getRec(sl);
       if (!rec || !rec.u) continue;
       k++;
-      dlg.busy('Uploading pictures · ' + k + ' of ' + slots.length + '…');
+      dlg.busy('Uploading pictures · ' + k + ' of ' + slots.length + '…', .1 + .85 * (k - 1) / slots.length);
       const e = await putRec(r.id, sl, rec);
       imgs[sl] = e.h; map[sl] = e;
     }
@@ -1574,6 +1573,15 @@
   };
   // the dialog: a new ad set (name, product) or one this computer knows; then this project's
   // market, audience and language
+  // A progress bar under a dialog's status line: p 0..1 fills it, no p runs it, null removes it.
+  function stBar(box, p) {
+    const st = box.querySelector('.shl-st'); if (!st) return;
+    let b = box.querySelector('.shl-pg');
+    if (p === null) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('div'); b.className = 'shl-pg'; b.setAttribute('role', 'progressbar'); b.setAttribute('aria-label', 'Saving'); b.innerHTML = '<i></i>'; st.after(b); }
+    if (typeof p === 'number') { b.removeAttribute('data-run'); b.setAttribute('aria-valuenow', Math.round(p * 100)); b.firstChild.style.width = Math.max(4, Math.min(100, p * 100)).toFixed(1) + '%'; }
+    else { b.setAttribute('data-run', ''); b.removeAttribute('aria-valuenow'); b.firstChild.style.width = ''; }
+  }
   function rsDialog(o) {
     injectCss();
     const el = document.createElement('div');
@@ -1636,10 +1644,10 @@
     setTimeout(() => ($('[data-f="name"]') || $('[data-f="by"]')).focus(), 30);
     return {
       answer: () => p,
-      busy: t => { $('.shl-st').textContent = t; go.disabled = true; el.querySelectorAll('input,select,.rsd button').forEach(i => { i.disabled = true; }); },
-      fail: (t, btn) => { $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => el.remove(); x.hidden = true; },
+      busy: (t, pr) => { $('.shl-st').textContent = t; stBar(el, pr); go.disabled = true; go.textContent = 'Saving…'; el.querySelectorAll('input,select,.rsd button').forEach(i => { i.disabled = true; }); },
+      fail: (t, btn) => { stBar(el, null); $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => el.remove(); x.hidden = true; },
       links: (rs, lead) => {
-        $('.rsd').hidden = true; $('.shl-note').textContent = ''; $('.shl-st').textContent = '';
+        stBar(el, null); $('.rsd').hidden = true; $('.shl-note').textContent = ''; $('.shl-st').textContent = '';
         $('.shl-lead').textContent = lead;
         const box = $('.shl-lks-h'); box.hidden = false; box.className = 'rv-lks shl-lks'; box.innerHTML = linkRows(rs.tok);
         box.addEventListener('click', async e => { const b = e.target.closest('[data-copy]'); if (!b) return; const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; });
@@ -2425,7 +2433,7 @@
         Object.keys(recs).forEach(sl => jobs.push({ sl, rec: recs[sl] }));
         data.projs.forEach(pp => pp.files.forEach(f => jobs.push({ sl: f.id, h: hs[f.id] })));
         let k = 0, sent = 0;
-        const say = () => dlg.busy('Uploading · ' + k + ' of ' + jobs.length + (sent ? ' · ' + (sent / 1048576).toFixed(1) + ' MB' : '') + '…');
+        const say = () => dlg.busy('Uploading · ' + k + ' of ' + jobs.length + (sent ? ' · ' + (sent / 1048576).toFixed(1) + ' MB' : '') + '…', jobs.length ? k / jobs.length : undefined);
         await pool(jobs, 6, async j => {
           const rec = j.rec ? await slim(j.rec) : await shrink(await j.h.getFile());
           const txt = JSON.stringify(rec), h = fnv(txt);
@@ -2708,10 +2716,11 @@
     el.onkeydown = e => { if (e.key === 'Escape') close(''); };
     const api2 = {
       name: () => p,
-      busy: t => { $('.shl-st').textContent = t; go.disabled = true; inp.disabled = true; },
-      ready: r => { if (r.title) $('h2').textContent = r.title; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = r.note || ''; $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; setTimeout(() => inp.focus(), 30); },
-      fail: (t, btn) => { $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => close(''); x.hidden = true; },
+      busy: (t, pr) => { $('.shl-st').textContent = t; stBar(el, pr); go.disabled = true; inp.disabled = true; },
+      ready: r => { stBar(el, null); if (r.title) $('h2').textContent = r.title; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = r.note || ''; $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; setTimeout(() => inp.focus(), 30); },
+      fail: (t, btn) => { stBar(el, null); $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => close(''); x.hidden = true; },
       done: (link, copied) => {
+        stBar(el, null);
         $('.shl-fld').hidden = true; $('.shl-note').textContent = '';
         $('.shl-lead').innerHTML = 'The link is ready' + (copied ? ' and copied' : '') + '. Send it to the people who should edit — they will be asked their name when they open it.';
         $('.shl-st').textContent = ''; const L = $('.shl-link'); L.hidden = false; L.querySelector('input').value = link;
@@ -2960,6 +2969,13 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .shl-note{margin:8px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim)}
 .shl-st{margin:10px 0 0;min-height:1.4em;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .shl-st.bad{color:var(--ps-bad)}
+.shl-pg{position:relative;height:6px;margin:8px 0 0;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
+.shl-pg i{position:absolute;inset:0 auto 0 0;overflow:hidden;width:4%;border-radius:inherit;background:var(--ps-link);transition:width .4s var(--ps-ease,ease)}
+.shl-pg[data-run] i{width:30%;animation:shl-pg 1.2s ease-in-out infinite}
+.shl-pg:not([data-run]) i::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-100%);animation:shl-sh 1.4s ease-in-out infinite}
+@keyframes shl-sh{to{transform:translateX(100%)}}
+@keyframes shl-pg{from{left:-30%}to{left:100%}}
+@media (prefers-reduced-motion:reduce){.shl-pg i{transition:none}.shl-pg i::after{display:none}.shl-pg[data-run] i{animation:none;width:100%;opacity:.45}}
 .shl-link{display:flex;gap:8px;margin-top:4px}
 .shl-link .p-in{font-size:13px;color:var(--ps-ink-2)}
 .shl-link .p-ghost{flex:none;height:42px}
