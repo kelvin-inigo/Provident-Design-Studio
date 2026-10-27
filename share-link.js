@@ -1736,9 +1736,7 @@
       '<section class="rva-card"><h3>Progress</h3>' + stepperHtml(all.steps) + '<p class="rva-next" data-s="' + (all.ready ? 'ready' : 'prog') + '">' + esc(next) + '</p></section>' +
       '<section class="rva-card"><h3>Audiences <s>' + auds.length + '</s></h3><ul class="rva-aus">' + (audRows || '<li class="shl-empty">No projects yet.</li>') + '</ul></section>' +
       '<section class="rva-card"><h3>Ad set links</h3><p class="rva-sub">One link per team for the whole ad set. Each project’s button above opens it in the full studio.</p><ul class="rva-lks">' + links + '</ul></section>' +
-      '<section class="rva-card"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map(e =>
-        '<li><div class="shl-who"><span class="shl-av">' + esc((e.by || '?').trim().charAt(0).toUpperCase()) + '</span><b>' + esc(e.by || 'Someone') + '</b><time>' + esc(ago(e.at)) + '</time></div><ul>' +
-        (e.changes || []).slice(0, 20).map(c => '<li>' + line(c) + '</li>').join('') + ((e.changes || []).length > 20 ? '<li class="shl-more">+ ' + (e.changes.length - 20) + ' more</li>' : '') + '</ul></li>').join('')
+      '<section class="rva-card"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
         : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>' +
       '</div><aside class="rva-side">' +
       '<section class="rva-card"><h3>Details</h3><dl class="rva-dl">' +
@@ -2218,16 +2216,51 @@
           ui.flash(top.by + ' ' + (c ? line(c, true) : 'made a change'));
         }
         lastTop = key;
-        $('.shl-list').innerHTML = v.log.length ? v.log.map(e => {
-          const mine = e.by === v.me;
-          const ch = (e.changes || []).slice(0, 12);
-          return '<li><div class="shl-who"><span class="shl-av">' + esc((e.by || '?').trim().charAt(0).toUpperCase()) + '</span><b>' + esc(e.by || 'Someone') + (mine ? ' <s>· you</s>' : '') +
-            '</b><time>' + esc(ago(e.at)) + '</time></div><ul>' + ch.map(c => '<li>' + line(c) + '</li>').join('') +
-            ((e.changes || []).length > 12 ? '<li class="shl-more">+ ' + ((e.changes || []).length - 12) + ' more</li>' : '') + '</ul></li>';
-        }).join('') : '<li class="shl-empty">No changes yet. Edits made by anyone on the link show up here.</li>';
+        $('.shl-list').innerHTML = v.log.length ? v.log.map((e, i, l) => logEntryHtml(e, { mine: e.by === v.me, cont: logCont(l[i - 1], e) })).join('') : '<li class="shl-empty">No changes yet. Edits made by anyone on the link show up here.</li>';
       }
     };
     return ui;
+  }
+  // ONE renderer for an activity entry, read by the Changes panel and the ad set page. Lines are
+  // grouped under the place they happened (the page or audience, named once instead of on every
+  // line); a field edit is the field's name over its old and new words; a step is a marked line;
+  // design, photo and housekeeping notes are italic footnotes, because they say THAT something
+  // changed rather than what it says now.
+  const logCont = (prev, e) => !!prev && prev.by === e.by && Math.abs(prev.at - e.at) < 6 * 3600e3;
+  function logEntryHtml(e, opt) {
+    opt = opt || {};
+    const max = opt.max || 12, all = e.changes || [], ch = all.slice(0, max);
+    const groups = [];
+    ch.forEach(c => {
+      let page = String(c.page || ''), label = String(c.label || '');
+      if (page && (label === page || label.indexOf(page + ' · ') === 0)) label = label.slice(page.length).replace(/^ · /, '');
+      let parts = label ? label.split(' · ') : [];
+      if (c.kind === 'design' && !label && page) { parts = page.split(' · '); page = ''; }   // the variant is the subject, its project the place
+      const field = parts.length ? parts.pop() : '';
+      const where = [page].concat(parts).filter(Boolean).join(' · ');
+      let g = groups[groups.length - 1];
+      if (!g || g.where !== where) groups.push(g = { where, items: [] });
+      g.items.push({ c, field });
+    });
+    const item = ({ c, field }) => {
+      if (c.kind === 'step') {
+        const back = /back|reopen|in progress/i.test(c.text || '');
+        return '<li class="lg-s" data-back="' + (back ? '1' : '') + '"><i aria-hidden="true"></i>' + esc(c.text || '') + '</li>';
+      }
+      if (c.kind === 'changed' || c.kind === 'added' || c.kind === 'removed') {
+        const verb = c.kind === 'changed' ? 'edited' : c.kind === 'added' ? 'added' : 'cleared';
+        return '<li class="lg-c"><span class="lg-f">' + esc(field || 'Text') + ' <em>' + verb + '</em></span><span class="lg-v">' +
+          (c.was ? '<del>' + esc(clip(c.was, 120)) + '</del>' : '') + (c.now ? '<ins>' + esc(clip(c.now, 120)) + '</ins>' : '') + '</span></li>';
+      }
+      const what = c.kind === 'photo' ? (field || 'Photo') + ' ' + String(c.text || 'changed').toLowerCase()
+        : c.kind === 'design' ? (field ? field + ' · design changed' : (c.text || 'Changed the design')) : (c.text || 'Changed');
+      return '<li class="lg-n">' + esc(what) + '</li>';
+    };
+    const who = esc(e.by || 'Someone');
+    return '<li class="lg"' + (opt.cont ? ' data-cont="1"' : '') + '><div class="lg-h"><span class="shl-av">' + esc((e.by || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+      '<span class="lg-who">' + who + (opt.mine ? '<s> · you</s>' : '') + '</span><time>' + esc(ago(e.at)) + '</time></div>' +
+      groups.map(g => '<div class="lg-g">' + (g.where ? '<div class="lg-p">' + esc(g.where) + '</div>' : '') + '<ul>' + g.items.map(item).join('') + '</ul></div>').join('') +
+      (all.length > max ? '<p class="lg-more">and ' + (all.length - max) + ' more</p>' : '') + '</li>';
   }
   function line(c, plain) {
     const where = [c.page, c.label].filter(Boolean).join(' · ');
@@ -2613,6 +2646,52 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rv-k,.rvh-k{font-weight:400;color:var(--ps-dim)}
 .shl-av,.rv-pill{font-weight:400}
 .rva-au-h b,.rvh-ah b,.rs-ah b{color:var(--ps-ink)}
+
+/* ACTIVITY (2026-10-27): designed rather than listed. An entry is a person and a time, then
+   one group per place. Medium 500 is the person only; the place is a small dim kicker; a field
+   is ink with its verb in italic; the old words are italic, dim and struck, the new words sit
+   under them on a hairline rule; design and photo notes are italic footnotes. The bundled face
+   has no italic, so the browser slants it. */
+.shl-list>li.lg{padding:16px 0}
+.shl-list .lg-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.shl-list .lg-h .shl-av{width:26px;height:26px;font:500 11.5px/1 var(--ps-font);color:var(--ps-ink-2);background:var(--ps-fill)}
+.shl-list .lg-who{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.shl-list .lg-who s{text-decoration:none;font-weight:400;font-style:italic;color:var(--ps-dim)}
+.shl-list .lg-h time{margin-left:auto;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.shl-list .lg-g{margin-left:36px}
+.shl-list .lg-g+.lg-g{margin-top:12px}
+.shl-list .lg-p{margin-bottom:6px;font:400 11.5px/1.35 var(--ps-font);color:var(--ps-dim);letter-spacing:.01em}
+.shl-list .lg-g ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.shl-list .lg-c{display:flex;flex-direction:column;gap:6px}
+.shl-list .lg-f{font:400 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.shl-list .lg-f em,.shl-list .lg-n{font-style:italic;color:var(--ps-dim)}
+.shl-list .lg-v{display:flex;flex-direction:column;gap:3px;padding:2px 0 2px 12px;box-shadow:inset 2px 0 0 var(--ps-line);overflow-wrap:anywhere}
+.shl-list .lg-v del{font:italic 400 12.5px/1.45 var(--ps-font);color:var(--ps-dim);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--ps-dim) 60%,transparent)}
+.shl-list .lg-v ins{font:400 13px/1.45 var(--ps-font);color:var(--ps-ink);text-decoration:none}
+.shl-list .lg-n{font:italic 400 12.5px/1.45 var(--ps-font)}
+.shl-list .lg-s{display:flex;align-items:center;gap:8px;font:400 13px/1.35 var(--ps-font);color:var(--ps-ink)}
+.shl-list .lg-s i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--ps-good)}
+.shl-list .lg-s[data-back="1"] i{background:none;box-shadow:inset 0 0 0 1.5px var(--ps-dim)}
+.shl-list .lg-s[data-back="1"]{color:var(--ps-ink-2)}
+.shl-list .lg-more{margin:10px 0 0 36px;font:italic 400 12px/1.4 var(--ps-font);color:var(--ps-dim)}
+.shl-empty{font-style:italic}
+
+/* the same person again, within six hours: one name for the run, each entry keeps its time */
+.shl-list>li.lg[data-cont]{padding-top:4px}
+.shl-list>li.lg:has(+ li.lg[data-cont]){box-shadow:none;padding-bottom:6px}
+.shl-list .lg[data-cont] .lg-h{margin-bottom:6px}
+.shl-list .lg[data-cont] .shl-av,.shl-list .lg[data-cont] .lg-who{visibility:hidden}
+.shl-list .lg[data-cont] .lg-h{height:16px}
+
+/* footnotes in the panel: italic and quiet, their one action stays upright in the link colour */
+.rv-lead{font-style:italic;color:var(--ps-dim)}
+.rv-lead a{font-style:normal;font-weight:500;color:var(--ps-link);text-decoration:none;white-space:nowrap}
+.rv-lead a:hover{text-decoration:underline;text-underline-offset:2px}
+.rv-ntf{font-style:italic;font-weight:400;text-decoration:none}
+.shl-me{font-style:italic;color:var(--ps-dim)}
+.shl-me b{font-style:normal;font-weight:500;color:var(--ps-ink)}
+.shl-me button{font-style:normal}
+.shl-state{font-style:italic}
 `;
     document.head.appendChild(s);
   }

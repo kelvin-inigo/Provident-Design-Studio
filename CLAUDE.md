@@ -16570,3 +16570,16 @@ Medium 500 only for page titles, people's and audiences' names and buttons; ever
 ranked by colour — ink for what you read, ink-2 for headings and explanations, dim for dates,
 counts, kickers and pending steps. A step line in the log reads "<dim where> <ink action>".
 Contrast 0 failures, dark. Note: 1981bdf (another session) committed the first half of this block.
+
+**The activity log is designed, and footnotes are italic (2026-10-27, by request).**
+`logEntryHtml(e, opt)` in share-link.js is the ONE renderer for an entry, read by the Changes
+panel and the ad set page (it replaced two hand-built copies). Changes group under the place
+they happened, named once as a small dim kicker (a label that repeats its page is de-duplicated);
+a field edit is the field in ink with an italic verb, then the old words italic, dim and struck
+over the new words on a 2px hairline rule; a step is a dot (green forward, hollow for "back");
+design and photo notes are italic dim footnotes ("Variant 2 · design changed"). The same person
+again within six hours (`logCont`) keeps one name for the run. **Google Sans Flex has no italic
+or slant axis** (its fvar is opsz + wght only, read off the woff2), so the italic is the
+browser's synthetic oblique. The panel's footnotes (`.rv-lead`, `.rv-ntf`, `.shl-me`,
+`.shl-state`) are italic too; their links stay upright. Rules are prefixed `.shl-list` to beat
+`.shl-list ul li`. Contrast 0 failures, dark.
