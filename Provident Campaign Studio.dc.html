@@ -4337,7 +4337,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    rather than by more words; the verdict is the only colour.
    SPACING is on one 8px rhythm and grows with the level it separates: 8 inside a row, 16
    between rows, 24 inside a card, 20 between cards, 48 between groups. */
-.cu{max-width:1040px;margin-inline:auto;padding:4px 0 64px}
+.cu{max-width:1240px;margin-inline:auto;padding:4px 0 64px}
 .cu-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:8px 0 32px}
 .cu-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:16px;row-gap:4px;align-items:baseline;text-align:left;
   padding:20px 22px;border-radius:var(--ps-r);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border:0;cursor:pointer;
@@ -4739,6 +4739,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   background:var(--ps-fill-h);color:var(--ps-ink);white-space:nowrap}
 .as-role[data-role="pm"]{background:var(--ps-accent);color:var(--ps-accent-i)}
 .as-role[data-role="ct"]{background:var(--ps-good-q);color:var(--ps-ink)}
+
+/* The project browser's views share one column: the header runs full width, and every
+   view under it sits in a centred 1240 column, the Review links page's own width. */
+.p-br-mn > :not(.p-br-h){max-width:1240px;margin-inline:auto;box-sizing:border-box}
 </style>
 </helmet>
 

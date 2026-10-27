@@ -4046,6 +4046,10 @@ select.p-in{padding-right:34px}
 @media (max-width:760px){
   .p-top-sep{display:none}
 }
+
+/* The project browser's views share one column: the header runs full width, and every
+   view under it sits in a centred 1240 column, the Review links page's own width. */
+.p-br-mn > :not(.p-br-h){max-width:1240px;margin-inline:auto;box-sizing:border-box}
 </style>
 </helmet>
 
