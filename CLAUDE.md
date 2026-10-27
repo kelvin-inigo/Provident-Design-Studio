@@ -16820,3 +16820,22 @@ Vercel** (docs/google-drive-setup.md, Step 7); until then `/api/gauth?op=status`
   sealed cookie, refresh works, missing header 403, tampered cookie 401, a concurrent pair makes
   one request, an expired session opens a Drive link with no dialog, sign-out revokes and the
   next refresh is 401. **Google's real code popup and token endpoint were not exercised.**
+
+# REVIEW LINKS' LIST WAS REDESIGNED (2026-10-27)
+
+Same brief as the setup widget: less text, a clear hierarchy (share-link.js, `ArchView`).
+- **Bar**: the explanatory paragraph is gone; adding a link is a small input with a link icon
+  ("Add a designer link") at the right, its explanation a tooltip.
+- **Overview** (`drawHealth`): ONE figure leads (audiences done, 48px, "of N"), three small
+  counts beside it (ad sets, projects, ready), Updated + an icon-only refresh. Below a hairline,
+  the four steps as columns (`.rvo-steps`): name with its colour dot, how many audiences sit
+  there (26px), and a bar for its share. The "Waiting on" list is gone from here — it moved
+  into each card. With nothing listed (all on Drive, signed out) the overview is hidden and
+  the sign-in card says it all.
+- **Cards**: name 16/500 on up to two lines; a "now" line — the least advanced audience's step
+  (coloured dot, step in ink) and the audience, `+N` for more, the full list in its tooltip;
+  four short progress segments (`.rva-segs`: done filled, current ringed — no gradient fills);
+  a dim one-line meta (product · audiences · short date); a chevron. 76x95 thumbnail.
+- Grid columns are `minmax(0,1fr)` on a phone — plain `1fr` let a card's min-content widen
+  the track past the screen. 0 contrast failures in both themes; fits at 375. Checked with
+  injected sample ad sets (the real ones are on Drive).
