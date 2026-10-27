@@ -111,7 +111,16 @@
     return PUBLIC;
   };
   // a name typed once wins; otherwise the Google account this computer signed in with
-  StudioBase.shareName = () => lsGet(NAME_KEY) || lsGet('adstudio-author') || (window.providentDrive && window.providentDrive.alias ? window.providentDrive.alias() : '') || '';
+  // WHO IS EDITING: the Google account signed in on this computer when there is one (every
+  // review link stored on Drive needs that sign-in anyway), so nobody is asked their name; a
+  // typed name only where no account is known. The account's full display name, so two people
+  // with one first name stay apart in the logs.
+  StudioBase.shareWho = () => {
+    const D = window.providentDrive, w = D && D.who ? D.who() : null;
+    if (!w) return null;
+    return { name: String(w.name || '').replace(/\s+/g, ' ').trim() || (D.alias ? D.alias(w) : '') || w.email, email: w.email };
+  };
+  StudioBase.shareName = () => { const w = StudioBase.shareWho(); return (w && w.name) || lsGet(NAME_KEY) || lsGet('adstudio-author') || ''; };
 
   SP.shApp = function () { return this.sessionApp(); };
   SP.shKey = function (s) { return 'provident-share' + (s || '') + ':' + this.shApp(); };
@@ -724,7 +733,7 @@
       catch (e) { dl.fail(e.message, 'Close'); }
       return;
     }
-    const dlg = nameDialog({ title: 'Open a shared project', lead: 'Loading the project…', btn: 'Open', busy: true });
+    const dlg = nameDialog({ title: 'Open a shared project', lead: 'Loading the project…', btn: 'Open', busy: true, auto: true });
     let d;
     try { d = await api('get', { id }); }
     catch (e) { dlg.fail(e.message, 'Close'); return; }
@@ -745,7 +754,7 @@
     });
     const name = await dlg.name();
     if (!name) return;
-    lsSet(NAME_KEY, name);
+    if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
     const slots = Object.keys(d.imgs || {});
     const images = {};
     let done = 0;
@@ -879,11 +888,11 @@
     const b = this.shBind();
     if (b) { this.shareCopy(); return; }
     const dlg = nameDialog({ title: 'Share an edit link', btn: 'Make the link',
-      lead: 'Anyone with the link can open this project, change it and see who changed what. There is no sign-in — share it only with people who should edit.',
+      lead: 'Anyone with the link can open this project, change it and see who changed what. Anyone who has it can edit — share it only with people who should.',
       note: 'Your name is shown beside every change you make.' });
     const name = await dlg.name();
     if (!name) return;
-    lsSet(NAME_KEY, name);
+    if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
     try {
       const id = await this.shCreateRaw(dlg, name);
       const link = this.shLink(id), copied = await copyText(link);
@@ -1814,7 +1823,7 @@
     cur: null,
     async open(shell, tok, d) {
       const role = d.role, rs = d.rs || {};
-      const dlg = nameDialog({ title: role === 'ct' ? 'Check the copy' : role === 'pm' ? 'Ad set package' : 'Your ad set', btn: 'Open',
+      const dlg = nameDialog({ title: role === 'ct' ? 'Check the copy' : role === 'pm' ? 'Ad set package' : 'Your ad set', btn: 'Open', auto: true,
         lead: '<b>' + esc(rs.name || 'Ad set') + '</b> · ' + (rs.items || []).length + ((rs.items || []).length === 1 ? ' project' : ' projects') + '. ' +
           (role === 'ct' ? 'You see the words of every project beside its images. Change them as needed — the images update as you type — then approve the English copy, and later the translation, for each audience.'
             : role === 'pm' ? 'You see every project’s images, rendered from the latest work. Each audience can be downloaded when it is done; the whole set is Package ready when every audience is. You cannot change the projects from this link.'
@@ -1822,7 +1831,7 @@
         note: role === 'pm' ? 'Your name shows who looked at the package.' : 'Your name is shown beside every change you make.' });
       const name = await dlg.name();
       if (!name) return;
-      lsSet(NAME_KEY, name);
+      if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
       dlg.busy('Loading the projects…');
       try { await this.start(shell, tok, d); dlg.close(); }
       catch (e) { dlg.fail(e.message || String(e), 'Close'); }
@@ -2704,11 +2713,11 @@
       if (!projs.length) { window.alert('There are no ad sets in this folder to share yet.'); return; }
       const dlg = nameDialog({ title: 'Share these ad sets', btn: 'Make the link',
         lead: 'Anyone with the link can see every audience and variant here and change the words in Edit text, and the Changes panel shows who changed what. ' +
-          'The link carries previews of the images (about 1600px), not the full-size files. There is no sign-in — share it only with people who should edit.',
+          'The link carries previews of the images (about 1600px), not the full-size files. Anyone who has it can edit — share it only with people who should.',
         note: 'Your name is shown beside every change you make.' });
       const name = await dlg.name();
       if (!name) return;
-      lsSet(NAME_KEY, name);
+      if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
       try {
         dlg.busy('Reading the projects…');
         const data = { kind: 'adsets', root: a.root || 'Ad sets', projs: [] }, recs = {}, hs = {};
@@ -2753,13 +2762,13 @@
     // ---- opening one ----
     async join(shell, id, d) {
       const meta = d.meta || {}, n = ((d.state || {}).projs || []).length;
-      const dlg = nameDialog({ title: 'Open shared ad sets', btn: 'Open',
+      const dlg = nameDialog({ title: 'Open shared ad sets', btn: 'Open', auto: true,
         lead: '<b>' + esc(meta.name || 'Ad sets') + '</b> · shared by ' + esc(meta.by || 'someone') + ' · ' + n + (n === 1 ? ' project' : ' projects') +
           '. You can look through every audience and variant and change the words in Edit text; the Changes panel shows who changed what.',
         note: 'Your name is shown beside every change you make.' });
       const name = await dlg.name();
       if (!name) return;
-      lsSet(NAME_KEY, name);
+      if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
       dlg.close();
       this.start(shell, id, d, false);
     },
@@ -3000,7 +3009,7 @@
     el.className = 'shl-dlg';
     el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true" aria-labelledby="shl-dlg-t">' +
       '<h2 id="shl-dlg-t">' + esc(o.title) + '</h2><p class="shl-lead"></p>' +
-      '<label class="shl-fld"><span>Your name</span><input class="p-in" maxlength="60" autocomplete="name" placeholder="e.g. Sara"></label>' +
+      '<label class="shl-fld"><span>Your name</span><input class="p-in" maxlength="60" autocomplete="name" placeholder="e.g. Sara"></label><p class="shl-who" hidden></p>' +
       '<p class="shl-note"></p><p class="shl-st" aria-live="polite"></p>' +
       '<div class="shl-link" hidden><input class="p-in" readonly><button class="p-ghost shl-cp">Copy</button></div>' +
       '<div class="shl-acts"><button class="p-ghost shl-x">Cancel</button><button class="p-btn shl-go"></button></div></div>';
@@ -3008,29 +3017,54 @@
     const $ = s => el.querySelector(s), inp = $('.shl-fld input'), go = $('.shl-go'), x = $('.shl-x');
     $('.shl-lead').innerHTML = o.lead || ''; $('.shl-note').textContent = o.note || ''; go.textContent = o.btn;
     inp.value = StudioBase.shareName();
-    let res;
+    let res, autoGo = false;
     const p = new Promise(r => { res = r; });
     const close = v => { el.remove(); res(v); };
-    const submit = () => { const v = inp.value.replace(/\s+/g, ' ').trim(); if (!v) { inp.focus(); $('.shl-st').textContent = 'Add your name so others know who made a change.'; return; } res(v); };
+    // Signed in with Google: the account IS the name — no field. "Not you?" switches account
+    // (a click, so Google's popup is allowed). With no account but sign-in available, Google is
+    // offered beside the field, so the name is asked at most once on a computer.
+    const D = window.providentDrive, fld = $('.shl-fld'), who = $('.shl-who');
+    const showWho = () => {
+      const w = StudioBase.shareWho();
+      fld.hidden = !!w;
+      who.hidden = !w && !dsOn();
+      who.innerHTML = w ? 'Signed in as <b>' + esc(w.name) + '</b> · ' + esc(w.email) + ' <button type="button" class="shl-notme">Not you?</button>'
+        : '<button type="button" class="p-ghost shl-gin">Sign in with Google instead</button><s>Your name then comes from your Google account, on every link.</s>';
+      return w;
+    };
+    who.onclick = async e => {
+      const b = e.target.closest('button'); if (!b || !D) return;
+      try {
+        if (b.classList.contains('shl-notme')) D.signOut();
+        await D.signIn();
+        $('.shl-st').textContent = ''; $('.shl-st').classList.remove('bad');
+      } catch (er) { $('.shl-st').textContent = er.message || String(er); $('.shl-st').classList.add('bad'); }
+      if (showWho()) { $('.shl-note').textContent = ''; if (o.auto && autoGo) res(StudioBase.shareName()); }
+    };
+    const submit = () => {
+      if (StudioBase.shareWho()) { res(StudioBase.shareName()); return; }
+      const v = inp.value.replace(/\s+/g, ' ').trim(); if (!v) { inp.focus(); $('.shl-st').textContent = 'Add your name so others know who made a change.'; return; } res(v);
+    };
     go.onclick = submit; x.onclick = () => close('');
     inp.onkeydown = e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') close(''); };
     el.onkeydown = e => { if (e.key === 'Escape') close(''); };
     const api2 = {
-      name: () => p,
-      busy: (t, pr) => { $('.shl-st').textContent = t; stBar(el, pr); go.disabled = true; inp.disabled = true; },
-      ready: r => { stBar(el, null); if (r.title) $('h2').textContent = r.title; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = r.note || ''; $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; setTimeout(() => inp.focus(), 30); },
+      // an opening dialog with a known account goes straight on: there is nothing to ask
+      name: () => { autoGo = true; if (o.auto && StudioBase.shareWho()) res(StudioBase.shareName()); return p; },
+      busy: (t, pr) => { $('.shl-st').textContent = t; stBar(el, pr); go.disabled = true; inp.disabled = true; fld.hidden = true; who.hidden = true; },
+      ready: r => { stBar(el, null); if (r.title) $('h2').textContent = r.title; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = StudioBase.shareWho() ? '' : (r.note || ''); $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; if (!showWho()) setTimeout(() => inp.focus(), 30); },
       fail: (t, btn) => { stBar(el, null); $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => close(''); x.hidden = true; },
       done: (link, copied) => {
         stBar(el, null);
         $('.shl-fld').hidden = true; $('.shl-note').textContent = '';
-        $('.shl-lead').innerHTML = 'The link is ready' + (copied ? ' and copied' : '') + '. Send it to the people who should edit — they will be asked their name when they open it.';
+        $('.shl-lead').innerHTML = 'The link is ready' + (copied ? ' and copied' : '') + '. Send it to the people who should edit. Their name comes from their Google sign-in, or they type it once.';
         $('.shl-st').textContent = ''; const L = $('.shl-link'); L.hidden = false; L.querySelector('input').value = link;
         L.querySelector('.shl-cp').onclick = async () => { L.querySelector('.shl-cp').textContent = (await copyText(link)) ? 'Copied' : 'Select it'; L.querySelector('input').select(); };
         x.hidden = true; go.textContent = 'Done'; go.disabled = false; go.onclick = () => el.remove();
       },
       links: list => {
         $('.shl-fld').hidden = true; $('.shl-note').textContent = ''; $('.shl-st').textContent = '';
-        $('.shl-lead').innerHTML = 'The review is ready. Send each team its own link — each person is asked their name when they open it. All three are also kept in <b>Review links</b> on the home page.';
+        $('.shl-lead').innerHTML = 'The review is ready. Send each team its own link — each person is named by their Google sign-in. All three are also kept in <b>Review links</b> on the home page.';
         const box = document.createElement('div'); box.className = 'rv-lks shl-lks';
         box.innerHTML = list.map(l => '<div class="rv-lk"><div class="rv-lk-t"><b>' + esc(l.who) + '</b><s>' + esc(l.what) + '</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(l.link) + '" aria-label="' + esc(l.who) + ' link"><button type="button" class="p-ghost" data-copy="' + esc(l.link) + '">Copy</button></div></div>').join('');
         box.addEventListener('click', async e => { const b = e.target.closest('[data-copy]'); if (!b) return; const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; });
@@ -3039,7 +3073,8 @@
       },
       close: () => el.remove(),
     };
-    if (o.busy) api2.busy(o.lead); else setTimeout(() => inp.focus(), 30);
+    if (showWho()) $('.shl-note').textContent = '';
+    if (o.busy) api2.busy(o.lead); else if (!StudioBase.shareWho()) setTimeout(() => inp.focus(), 30);
     return api2;
   }
   const ICON = {
@@ -3078,8 +3113,16 @@
     $('.shl-close').onclick = () => eng.shPanel(false);
     $('.shl-ph button').onclick = () => { if (eng.shRestoreFile) eng.shRestoreFile(); };
     $('.shl-share button').onclick = async () => { const ok = await copyText($('.shl-share input').value); ui.flash(ok ? 'Link copied' : 'Select the link and copy it'); };
-    $('.shl-me').onclick = e => {
-      if (!e.target.closest('button')) return;
+    $('.shl-me').onclick = async e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.who) {
+        const D = window.providentDrive;
+        D.signOut();
+        try { await D.signIn(); } catch (er) { ui.flash(er.message || 'Could not sign in'); }
+        if (eng.shRender) eng.shRender(); else if (eng.rvRender) eng.rvRender();
+        return;
+      }
       const v = (window.prompt('Your name, shown beside your changes:', StudioBase.shareName()) || '').replace(/\s+/g, ' ').trim();
       if (v) { lsSet(NAME_KEY, v); eng.shRender(); }
     };
@@ -3104,7 +3147,9 @@
           + ((v.pv || 0) ? 'The canvas shows ' + (pn > 1 ? 'previews' : 'a preview') + '. ' : '')
           + 'Photos are kept 60 days after the link was last opened. Pick the project’s saved .json (in its Source folder) to put them back for everyone.';
         $('.shl-sub').textContent = v.people > 1 ? v.people + ' people have edited' : 'Shared edit link';
-        $('.shl-me').innerHTML = (root.dataset.role === 'pm' ? 'Viewing as <b>' : 'Editing as <b>') + esc(v.me || 'Someone') + '</b> · <button type="button">change</button>';
+        { const w = StudioBase.shareWho();
+          $('.shl-me').innerHTML = (root.dataset.role === 'pm' ? 'Viewing as <b>' : 'Editing as <b>') + esc(v.me || 'Someone') + '</b>'
+            + (w ? ' · ' + esc(w.email) + ' · <button type="button" data-who="1">Not you?</button>' : ' · <button type="button">change</button>'); }
         const n = $('.shl-n'); n.hidden = !v.unseen; n.textContent = v.unseen > 9 ? '9+' : String(v.unseen);
         const top = v.log[0];
         const key = top ? top.rev + ':' + top.at + ':' + (top.changes || []).length : '';
@@ -3220,6 +3265,11 @@ html.rv-pm .shl-pill,html.rv-pm .shl-panel{display:none!important}
 .shl-ph p b{font-weight:600;color:var(--ps-ink)}
 .shl-ph button{white-space:nowrap}
 .shl-me{margin:10px 16px 0;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.shl-who{margin:4px 0 0;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+.shl-who[hidden]{display:none}
+.shl-who b{font-weight:500;color:var(--ps-ink)}
+.shl-who s{text-decoration:none;flex:1 0 100%;font-size:12px;color:var(--ps-dim)}
+.shl-notme{border:none;background:none;padding:0;color:var(--ps-link);font:inherit;text-decoration:underline;cursor:pointer}
 .shl-me b{font-weight:600;color:var(--ps-ink)}
 .shl-me button{border:none;background:none;padding:0;color:var(--ps-link);font:inherit;text-decoration:underline;cursor:pointer}
 .shl-state{margin:4px 16px 12px;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim)}

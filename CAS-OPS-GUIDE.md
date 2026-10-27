@@ -163,17 +163,20 @@ Each studio opens on its **project browser**.
 **Share › Share an edit link** makes a link to the open project that other people can open, look
 at and change. It works the same in CAS and OPS.
 
-1. Press **Share an edit link**, type your name and press **Make the link**. The project and its
+1. Press **Share an edit link** and **Make the link** (type your name if you're not signed in with Google). The project and its
    photos are uploaded, and the link is copied.
-2. Send the link to the people who should edit. When they open it, they're asked their name, and
-   the project opens with its photos in their browser.
+2. Send the link to the people who should edit. Anyone signed in with their Google account on
+   that computer goes straight in under their Google name; nobody else is asked their name once
+   (or can press **Sign in with Google instead**). The project opens with its photos in their
+   browser. Review links on Drive always need the Google sign-in, so they never ask.
 3. Everyone's changes reach everyone else within a few seconds. Two people can work at the same
    time: different fields are kept from both. If two people change the same field, the last
    save wins.
 4. **Changes** (the button at the bottom right) opens the panel on the right. It lists who
    changed what, newest first: the field, what it said before (struck through) and what it says
    now, plus layout, setting and photo changes. A number on the button counts changes made by
-   others since you last looked. **change** beside your name renames you.
+   others since you last looked. Your name and Google email show at the top; **Not you?** switches
+   the Google account (or **change** renames you, when you're not signed in).
 5. Once shared, the button reads **Copy edit link**.
 
 Things to know:

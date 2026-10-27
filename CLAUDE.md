@@ -16873,3 +16873,18 @@ Reviewed against the ad set setup, by request, with a five-project Stage 1 reply
 Verified on the sample: 5 projects × Families/Investors parsed right; a real click on Carousel
 then Fill made 5 pages (26 unique ids, one Undo); single ad with Investors · Verdes picked;
 the ad-set prompt and labels with a stand-in rs.
+
+# A REVIEW LINK KNOWS WHO OPENED IT FROM THEIR GOOGLE SIGN-IN (2026-10-27)
+
+By request: no name prompt. `StudioBase.shareWho()` (share-link.js) is the Google account this
+computer signed in with (`providentDrive.who()`, `{name: full display name, email}`), and
+`shareName()` returns its name first, a typed name only when no account is known. Every log
+entry and step is stamped with it. `nameDialog` hides the name field when an account is known
+("Signed in as … · email · Not you?" — signs out and runs Google sign-in from the click); with no
+account but Drive sign-in configured (`dsOn()`) it offers **Sign in with Google instead**. The
+three OPENING dialogs pass `auto: true`, so `dlg.name()` resolves at once and the link opens with
+no dialog to press. Drive-stored ad sets always pass `dsGate` first, so they never ask; old
+share-store links ask once only on a computer that never signed in. A typed name is stored only
+when there is no account. The Changes panel shows the email with **Not you?**. Verified on the
+dev share server: create, open in a fresh workspace with no dialog and the panel naming the
+account; with the account removed the field and the Google button come back.
