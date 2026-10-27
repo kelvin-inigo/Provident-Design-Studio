@@ -1655,8 +1655,18 @@
     this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
     el.innerHTML = '<div class="rva"><div class="rva-bar"><p>Every ad set this computer has started or worked on as the designer. Open one for each audience’s status, the links, and everything that changed.</p>' +
       '<form class="rva-add"><input class="p-in" placeholder="Paste a designer’s ad set link to add it here" aria-label="Designer ad set link"><button class="p-ghost" type="submit">Add</button></form></div>' +
-      '<div class="rva-body" aria-live="polite"></div></div>';
+      '<div class="rva-hl" data-s="wait"></div><div class="rva-body" aria-live="polite"></div></div>';
     el.addEventListener('click', e => this.click(e));
+    // It refreshes itself: on a timer while on screen, and the moment the window comes back,
+    // so a step someone took in another tab or on another computer shows without a reload.
+    const tick = () => {
+      if (!el.isConnected) { clearInterval(this.timer); document.removeEventListener('visibilitychange', tick); window.removeEventListener('focus', tick); return; }
+      if (document.hidden || Date.now() - (this.at || 0) < 15000) return;
+      this.refresh();
+    };
+    this.timer = setInterval(tick, 60000);
+    document.addEventListener('visibilitychange', tick); window.addEventListener('focus', tick);
+    this.health();
     el.querySelector('.rva-add').addEventListener('submit', e => {
       e.preventDefault();
       const inp = el.querySelector('.rva-add input'), m = /#share=([A-Za-z0-9]{8,16})/.exec(inp.value || '') || /^([A-Za-z0-9]{8,16})$/.exec((inp.value || '').trim());
@@ -1668,24 +1678,55 @@
     this.load();
   }
   const AV = ArchView.prototype;
-  AV.load = async function () {
+  AV.refresh = function () {
+    this.health();
+    if (!this.sel) return this.load(true);
+    // the detail page is redrawn whole, so not while someone is typing in it
+    const f = document.activeElement, drv = this.el.querySelector('.rva-drv input');
+    if (this.edit || (f && this.el.contains(f) && /INPUT|SELECT|TEXTAREA/.test(f.tagName))) return;
+    if (drv && this.det && this.det.rs && drv.value.trim() !== (this.det.rs.drive || '')) return;
+    return this.open(this.sel, true);
+  };
+  AV.health = async function () {
+    let h;
+    try { const r = await fetch(StudioBase.shareBase() + '/api/share?op=health', { cache: 'no-store' }); h = await r.json(); if (!r.ok && !h) throw new Error(); }
+    catch (e) { h = { ok: false, error: 'The share store could not be reached from this computer.' }; }
+    this.hl = h; this.drawHealth();
+  };
+  AV.drawHealth = function () {
+    const box = this.el.querySelector('.rva-hl'), h = this.hl; if (!box) return;
+    box.hidden = !!this.sel;
+    const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
+    const up = '<span class="rva-hl-up">' + at + '<button type="button" class="p-ghost p-sm" data-a="refresh">Refresh</button></span>';
+    if (!h) { box.dataset.s = 'wait'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store</b><s>Checking…</s></span>' + up; return; }
+    if (!h.ok) { box.dataset.s = 'down'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · Not answering</b><s>' + esc(h.error || 'No answer.') + ' Links and reviews cannot be read or saved until it answers.</s></span>' + up; return; }
+    const mb = b => b >= 1048576 ? (b / 1048576).toFixed(b >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+    const pct = h.bytes != null ? Math.min(100, h.bytes / h.limit * 100) : null;
+    const st = pct != null && pct >= 90 ? ['full', 'Nearly full'] : pct != null && pct >= 70 ? ['warn', 'Filling up'] : h.ms > 2000 ? ['warn', 'Slow to answer'] : ['ok', 'Healthy'];
+    const tip = st[0] === 'ok' ? '' : pct != null && pct >= 70 ? ' Full-size photos nobody has opened for 60 days are cleared by themselves; <a href="share-admin.html" target="_blank" rel="noopener">see what takes the space</a>.' : '';
+    box.dataset.s = st[0];
+    box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · ' + st[1] + (h.dev ? ' (test store)' : '') + '</b><s>' +
+      (pct != null ? mb(h.bytes) + ' of ' + mb(h.limit) + ' used (' + Math.round(pct) + '%) · ' : '') + h.keys.toLocaleString() + ' keys · answered in ' + h.ms + ' ms.' + tip + '</s></span>' +
+      (pct != null ? '<span class="rva-hl-bar" role="meter" aria-label="Share store used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pct) + '"><i style="width:' + pct.toFixed(1) + '%"></i></span>' : '') + up;
+  };
+  AV.load = async function (quiet) {
     const ids = Arch.list().map(x => x.id);
-    this.items = ids.length ? null : [];
-    this.draw();
-    if (!ids.length) return;
+    if (!quiet || !this.items) this.items = ids.length ? null : [];
+    if (!quiet) this.draw();
+    if (!ids.length) { this.at = Date.now(); this.draw(); return; }
     try {
       const out = [];
       for (let i = 0; i < ids.length; i += 50) out.push(...((await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') })).items || []));
       // a review from before ad sets was kept by its project's id: from now on, by its designer link
       out.forEach(x => { if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
-      const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = '';
-    } catch (e) { this.items = []; this.err = e.message || String(e); }
-    this.draw();
+      const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
+    } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }
+    if (!this.sel) this.draw();
   };
-  AV.open = async function (id) {
-    this.sel = id; this.det = null; this.draw();
-    try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; }
-    catch (e) { this.det = { id, error: e.message || String(e) }; }
+  AV.open = async function (id, quiet) {
+    this.sel = id; if (!quiet) { this.det = null; this.draw(); }
+    try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); }
+    catch (e) { if (!quiet) this.det = { id, error: e.message || String(e) }; }
     if (this.sel === id) this.draw();
   };
   AV.click = async function (e) {
@@ -1696,7 +1737,7 @@
     if (a === 'back') { this.sel = null; this.det = null; this.load(); }
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
     if (a === 'proj') window.open(rsLink(t.dataset.sid), '_blank', 'noopener');
-    if (a === 'refresh') this.load();
+    if (a === 'refresh') { this.at = 0; this.refresh(); this.drawHealth(); }
     const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
     if (a === 'relab') { this.edit = t.dataset.sid; this.draw(); }
     if (a === 'relabx') { this.edit = null; this.draw(); }
@@ -1732,6 +1773,7 @@
   AV.draw = function () {
     const body = this.el.querySelector('.rva-body'), errHtml = this.err ? '<p class="rva-err" role="alert">' + esc(this.err) + '</p>' : '';
     this.el.querySelector('.rva-bar').hidden = !!this.sel;
+    this.drawHealth();
     if (this.sel) { body.innerHTML = this.detHtml(); return; }
     if (this.items === null) { body.innerHTML = errHtml + '<p class="rva-wait">Reading the ad sets…</p>'; return; }
     if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">No ad sets yet. In a project, Share › Ad set review starts one, and it is kept here.</div>'; return; }
@@ -2633,6 +2675,22 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva{max-width:1240px;margin-inline:auto;display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
 .rva-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
 .rva-bar[hidden]{display:none}
+.rva-hl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 16px;border-radius:14px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rva-hl[hidden]{display:none}
+.rva-hl-d{width:10px;height:10px;border-radius:50%;flex:none;background:var(--ps-dim)}
+.rva-hl[data-s="ok"] .rva-hl-d{background:var(--ps-good)}
+.rva-hl[data-s="warn"] .rva-hl-d{background:var(--ps-warn)}
+.rva-hl[data-s="full"] .rva-hl-d,.rva-hl[data-s="down"] .rva-hl-d{background:var(--ps-bad)}
+.rva-hl[data-s="full"],.rva-hl[data-s="down"]{background:var(--ps-bad-q)}
+.rva-hl-t{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rva-hl-t b{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-hl-t s{text-decoration:none;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.rva-hl-t a{color:var(--ps-link)}
+.rva-hl-bar{flex:0 1 180px;height:6px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
+.rva-hl-bar i{display:block;height:100%;background:var(--ps-link)}
+.rva-hl[data-s="warn"] .rva-hl-bar i{background:var(--ps-warn)}
+.rva-hl[data-s="full"] .rva-hl-bar i{background:var(--ps-bad)}
+.rva-hl-up{display:flex;align-items:center;gap:8px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
 .rva-bar p{flex:1 1 300px;margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .rva-add{flex:1 1 360px;display:flex;gap:8px}
 .rva-add .p-in{flex:1;min-width:0;height:36px}

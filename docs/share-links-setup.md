@@ -54,6 +54,14 @@ is not connected, step 1.4 or 1.5 is missing.
   **Review links** archive keeps the record. Like every link, only the full-size photos expire
   (60 days unused). No extra setup: reviews use the same store.
 
+## Health
+
+CAS's **Review links** page shows a strip with the store's state: answering or not, how fast, and
+how full against the free 256 MB (`SHARE_STORE_MB` changes the figure). It uses
+`/api/share?op=health`, which anyone can call and which reveals no project data. When Upstash
+refuses a request, the studio now shows Upstash's own reason, for example a used-up monthly
+request allowance or a full store.
+
 ## Security
 
 - **Anyone with the link can view and edit the project.** There is no sign-in. The link's id is

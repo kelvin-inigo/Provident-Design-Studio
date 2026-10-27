@@ -264,6 +264,16 @@ On the home page, **Review links** (in the **Review** group) lists every ad set 
 added to on this computer, or opened as the designer. Ad sets still **In progress** come first,
 then **Package ready**.
 
+The page refreshes itself every minute while it is on screen, and again as soon as you come
+back to the window. A step someone takes elsewhere shows up without a reload. **Refresh**
+updates it at once. The strip above the list shows the **share store**:
+- whether it is answering, and how fast
+- how full it is out of the free 256 MB
+- a link to see what takes the space, once it fills up
+
+If the store refuses a request, the red message now says why: for example, the plan's monthly
+requests are used up, or the store is full.
+
 Open one to see its record:
 - **At the top:** the name, its product, its status, the dates, **Drive folder** (once a link is
   saved) and **Open the ad set**.

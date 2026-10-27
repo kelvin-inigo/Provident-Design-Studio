@@ -16617,3 +16617,29 @@ marketing's side panel was redundant beside its bar's See details.
   reload into the project, preset dialog, added as Local · Family), PM with no panel and the
   window at full width, Remove from this list surviving an automatic re-add, paste to restore,
   Delete. Not exercised against real Upstash.
+
+# REVIEW LINKS REFRESH ITSELF AND SHOW THE SHARE STORE'S HEALTH (2026-10-27)
+
+By request ("I feel it's not updating" plus a health widget). `ArchView` loaded once per mount,
+so a step taken in another tab or on another computer showed only after leaving the view. Now
+`AV.refresh()` runs every 60s while the page is visible and when the window regains focus or
+visibility (no more than once per 15s). The list reloads quietly with no "Reading…" flash. The
+detail page re-opens quietly, unless a field in it has focus, a relabel is open, or the Drive
+field holds an unsaved value. The timer stops once the host leaves the page.
+
+**`GET /api/share?op=health`** is public and costs three commands: PING, DBSIZE and INFO. It
+returns `{ok, ms, keys, bytes (INFO used_memory), limit (SHARE_STORE_MB, default 256), dev}`.
+A strip above the list (`.rva-hl`, `AV.health` / `drawHealth`) shows one of these states:
+- Healthy
+- Filling up (70%) / Nearly full (90%), linking to share-admin.html
+- Slow to answer (over 2s)
+- Not answering, with the reason
+
+The strip also carries "Updated hh:mm · Refresh".
+
+**Upstash's own error now reaches the user.** `Upstash._post` read nothing from an HTTPError
+body, so every refusal showed only as "refused the request (HTTP 400)". It now passes Upstash's
+message through, and words the two plan limits (monthly requests, data size) in plain terms.
+The live "HTTP 400" reported on 2026-10-27 was not identified: reads on production worked and
+the ad set's data was correct (Design simply not marked done). The real reason will show the
+next time it happens.

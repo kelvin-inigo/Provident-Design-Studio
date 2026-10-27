@@ -75,7 +75,19 @@ class Upstash:
             with urllib.request.urlopen(req, timeout=25) as r:
                 return json.loads(r.read() or b'null')
         except urllib.error.HTTPError as e:
-            raise Fail(502, 'The share store refused the request (HTTP %d).' % e.code)
+            # Upstash says why in the body (a plan limit, a bad command): pass that on.
+            why = ''
+            try:
+                b = json.loads(e.read() or b'null')
+                why = str(b.get('error') if isinstance(b, dict) else b or '')[:240]
+            except Exception:  # noqa: BLE001
+                pass
+            low = why.lower()
+            if 'limit' in low and ('request' in low or 'command' in low):
+                raise Fail(503, 'The share store has used up its monthly request allowance (Upstash free plan). Links will work again when it resets, or move the store to pay-as-you-go. Upstash said: ' + why)
+            if 'max' in low and ('size' in low or 'memory' in low or 'storage' in low) or 'oom' in low:
+                raise Fail(507, 'The share store is full (Upstash free plan data size). Delete old links in share-admin.html, or move the store to pay-as-you-go. Upstash said: ' + why)
+            raise Fail(502, 'The share store refused the request (HTTP %d)%s.' % (e.code, ': ' + why if why else ''))
         except Exception as e:  # noqa: BLE001
             raise Fail(502, 'The share store did not answer (%s).' % e.__class__.__name__)
 
@@ -127,6 +139,13 @@ class Memory:
                 return (self.ttl.get(a[0], -1)) if a[0] in self.d else -2
             if op == 'EXISTS':
                 return 1 if a[0] in self.d else 0
+            if op == 'PING':
+                return 'PONG'
+            if op == 'DBSIZE':
+                return len(self.d)
+            if op == 'INFO':
+                n = sum(len(v) if isinstance(v, str) else len(json.dumps(v)) for v in self.d.values())
+                return '# Memory\r\nused_memory:%d\r\n' % n
             if op == 'HGETALL':
                 h = self.d.get(a[0]) or {}; out = []
                 for k, v in h.items(): out += [k, v]
@@ -839,6 +858,30 @@ def admin_del(sid):
     return ok({'deleted': len(keys)})
 
 
+STORE_MB = int(os.environ.get('SHARE_STORE_MB') or 256)  # the Upstash free plan's data size
+
+
+def health():
+    """Public and cheap (three commands): is the store answering, how fast, how full."""
+    t = time.time()
+    try:
+        s = store()
+        pong, keys = s.pipe([['PING'], ['DBSIZE']])
+        ms = round((time.time() - t) * 1000)
+    except Fail as e:
+        return ok({'ok': False, 'error': e.msg, 'limit': STORE_MB * 1048576})
+    used = None
+    try:
+        for line in str(s.cmd('INFO') or '').splitlines():
+            if line.startswith('used_memory:'):
+                used = int(line.split(':', 1)[1].strip())
+                break
+    except Exception:  # noqa: BLE001
+        pass
+    return ok({'ok': pong in ('PONG', True), 'ms': ms, 'keys': int(keys or 0), 'bytes': used,
+               'limit': STORE_MB * 1048576, 'dev': isinstance(s, Memory)})
+
+
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
 def route(method, query, body):
     """(method, {query}, bytes) -> (status, content-type, bytes)"""
@@ -847,6 +890,8 @@ def route(method, query, body):
     try:
         if method == 'OPTIONS':
             return 204, 'text/plain', b''
+        if method == 'GET' and op == 'health':
+            return health()
         s = store()
         if method == 'POST' and op == 'create':
             d = json.loads(body or b'{}')
