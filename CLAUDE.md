@@ -16521,3 +16521,44 @@ upgrade; after 4s the read fails and the next one tries again. **Never add a sec
 an existing name in runtime.js** — it is one long function. Verified locally on a database
 broken the same way: upgraded to v2, folder, photo and Recent all back; a new workspace keeps
 its folder and its saves across a refresh. The retry and `getStrict` above stay as hardening.
+
+# SHARED LINKS EXPIRE AFTER 60 DAYS, AND share-admin.html CLEARS THE STORE (2026-10-27)
+
+Upstash warned the free plan's 256 MB was 70% full — nearly all of it shared links' photo parts.
+`api/share.py`'s `TTL` is **60 days** (was 180) and, since the pass below, applies to full-size
+photo parts ONLY. **Opening a link now also refreshes its photo parts** (`parts_of`): they
+were only given a TTL at upload, so a link used daily still lost photos nobody had replaced.
+**`share-admin.html`** (repo root, noindex) lists every `sh:<id>` with its size, largest first,
+and deletes one (`op=adminlist` / `op=admindel`, POST with `key`); deleting an ad set member also
+drops it from `rs:<rid>.items`. The key is **`SHARE_ADMIN_KEY` in Vercel's environment** — never
+the repo; without it both answer 503. The in-memory dev store gained `SCAN` / `STRLEN` / `TTL`.
+**The free alternative, not built:** keep photos in Vercel Blob or Cloudflare R2 as binary files
+instead of base64 text parts in Redis — about a third smaller and a far larger free allowance.
+
+# A LINK NEVER EXPIRES; ONLY ITS FULL-SIZE PHOTOS DO, AND THEY COME BACK (2026-10-27)
+
+By request: the link, project and changelog are kept for good; full photos expire at 60 days and
+the link shows a preview until someone restores them.
+- **Server** (`api/share.py`): meta / state / rev / imgs / log are written with no expiry (the
+  save Lua `SET`s without EX and `PERSIST`s; `get` PERSISTs too, which converts an older link).
+  Every `img:` part keeps `TTL` and `get` renews it. **`sh:<id>:pv:<hash>`** is a photo's preview,
+  no expiry (`op=pvput` POST ≤ 400 KB, refused for pm; `op=pv` GET). `get` / `sync` mark each
+  `imgs` entry **`gone`** (its parts are missing) and **`nopv`** (no preview yet) through
+  `flagged()`. `op=devexpire` exists on the in-memory dev store only, to simulate 60 days.
+- **Client** (`share-link.js`): `putRec` also uploads a preview (`pvText`: the record itself under
+  250 KB, else the picture at 640px WebP with the same crop fields). `fetchRec` falls back to the
+  preview and adds it to the `PV_RECS` WeakSet. **`S.pv[slot]` = the preview's hash**, persisted in
+  the binding; `shSave` skips a slot whose record is still that preview, so a preview is never sent
+  up as the photo. `shareOpenLink` prefers an exact full copy in this computer's store or the
+  project's Recent card. **`shHeal(extra)`** (1.5s after start, then every 60s while a preview is
+  showing): re-uploads any `gone` photo whose EXACT record (hash match) is here, adds missing
+  previews, swaps a preview for the full photo someone else restored, and infers `S.pv` from the
+  `gone` flags if the binding lost it. **Restore from a saved file…** in the Changes panel reads a
+  session `.json`'s `images`: exact matches restore in place, other photos for a still-preview
+  slot are put in the project and save as a replacement. **`shGuard`** wraps the instance's
+  `doExport` and `saveSessionFile` with a confirm while any photo is a preview.
+- Verified on the dev store: preview 61 KB for a 669 KB photo; open after expiry shows the
+  preview, flags it, never re-uploads it, export asks; opening on the original workspace restored
+  it (same hash, no log entry); restore from a record on another workspace swapped the canvas to
+  full. **Not exercised on real Upstash.** Ad set views (CT, PM) fall back to previews silently and
+  do not heal; PM's Download would ship previews.

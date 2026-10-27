@@ -170,7 +170,11 @@ at and change. It works the same in CAS and OPS.
 
 Things to know:
 - **Anyone with the link can edit.** There's no sign-in. Share it only with people who should edit.
-- The link works on the studio website. A link nobody opens or edits for 180 days expires.
+- The link works on the studio website and never expires, with its whole changelog. **Full-size
+  photos** are kept 60 days after the link was last opened; after that the link shows small
+  previews and the Changes panel says so. **Restore from a saved file…** puts them back for
+  everyone (pick the project's saved `.json`), and opening the link on the computer that made the
+  project restores them by itself. Export and Save ask first while a photo is only a preview.
 - **Undo** stays on your computer, and it's cleared when someone else's change arrives.
 - The link belongs to the browser tab. Opening another project in that tab, or **Stop following
   this link on this tab** at the foot of the panel, stops it there. To rejoin, open the link again.
@@ -271,8 +275,8 @@ Open one to see its record:
 
 To add an ad set from another computer, paste its **designer** link into the box at the top.
 **Remove from this list** only removes it from this computer. The links keep working. The record
-(status, dates, log, links) is kept even after a project expires. A project still expires after
-180 days unused.
+(status, dates, log, links) is kept even after a project expires. Full-size photos expire after
+60 days unused; the project and its previews stay.
 
 ---
 

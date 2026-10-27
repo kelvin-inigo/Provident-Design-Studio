@@ -127,7 +127,7 @@
     let r;
     try { r = await fetch(u, opt); }
     catch (e) { const er = new Error('The share store could not be reached — check the connection and try again.'); er.net = true; throw er; }
-    if (op === 'chunk' && r.ok) return r.text();
+    if ((op === 'chunk' || op === 'pv') && r.ok) return r.text();
     let d = null; try { d = await r.json(); } catch (e) {}
     if (r.status === 409) { const er = new Error('stale'); er.stale = true; er.rev = d && d.rev; throw er; }
     if (!r.ok) throw new Error((d && d.error) || ('The share store answered HTTP ' + r.status + '.'));
@@ -325,13 +325,30 @@
         done++; dlg.busy('Loading pictures · ' + done + ' of ' + slots.length + '…');
       });
     } catch (e) { dlg.fail(e.message, 'Close'); return; }
+    // An expired photo this computer still holds in full — its photo store, or the project's
+    // Recent card — opens as itself rather than as the preview (and shHeal then puts it back on
+    // the link), so opening a link never swaps a good local photo for a 640px one.
+    {
+      const C = IS(); let recent = null;
+      for (const sl of slots) {
+        if (images[sl] && !PV_RECS.has(images[sl])) continue;
+        const cands = [C && C.getRec ? C.getRec(sl) : null];
+        if (recent === null) {
+          recent = {};
+          try { const r = (this.readRecents() || []).find(x => x && x.pid && x.pid === d.state.pid); if (r && this.recentImages) recent = (await this.recentImages(r)) || {}; } catch (e) {}
+        }
+        cands.push(recent[sl]);
+        const hit = cands.find(r => r && r.u && fnv(JSON.stringify(r)) === d.imgs[sl].h);
+        if (hit) images[sl] = hit;
+      }
+    }
     const st = d.state;
     if (!st.pid) st.pid = StudioBase.newPid();
     if (meta.app === 'provident-smp-studio' && st.screen == null) st.screen = 'editor';
     if (rs && rs.tok) Arch.add(rs.tok.dd, rs.name, rs.product);
-    const imgs = {}; slots.forEach(s => { if (images[s]) imgs[s] = d.imgs[s].h; });
+    const imgs = {}, pv = {}; slots.forEach(s => { if (images[s]) { imgs[s] = d.imgs[s].h; if (PV_RECS.has(images[s])) pv[s] = fnv(JSON.stringify(images[s])); } });
     const key = 'provident-share:' + meta.app;
-    ssSet(key, { id, rev: d.rev, n: d.n, pid: st.pid, imgs, name: meta.name || '', role, rs });
+    ssSet(key, { id, rev: d.rev, n: d.n, pid: st.pid, imgs, pv, name: meta.name || '', role, rs });
     ssSet('provident-share-base:' + meta.app, meta.app === this.shApp() ? this.shNorm(d.state) : d.state);
     ssSet('provident-share-log:' + meta.app, { from: d.from, log: d.log || [] });
     dlg.close();
@@ -343,11 +360,50 @@
     const run = async () => { while (i < items.length) { const x = items[i++]; await fn(x); } };
     await Promise.all(Array.from({ length: Math.min(n, items.length) }, run));
   }
+  // FULL-SIZE PHOTOS EXPIRE, PREVIEWS DO NOT (2026-10-27). A link keeps its project and its
+  // changelog for good; each photo's full record lasts 60 days after the link was last opened,
+  // and a ~640px preview of it is kept with no expiry. fetchRec falls back to the preview, and
+  // a record that came back as one is in PV_RECS so the studio knows not to send it up again
+  // as if it were the photo. Putting the full photo back is putRec again: the store keys parts
+  // by the record's hash, so the same photo lands exactly where it was.
+  const PV_RECS = new WeakSet(), PV_PX = 640, PV_SMALL = 250000, PV_MAX = 390000;
   async function fetchRec(id, e, p) {
     if (!e || !e.h || !e.n) return null;
-    const parts = new Array(e.n);
-    await pool(Array.from({ length: e.n }, (_, i) => i), 4, async i => { parts[i] = await api('chunk', { id, p, h: e.h, i }); });
-    try { return JSON.parse(parts.join('')); } catch (e2) { return null; }
+    if (!e.gone) {
+      try {
+        const parts = new Array(e.n);
+        await pool(Array.from({ length: e.n }, (_, i) => i), 4, async i => { parts[i] = await api('chunk', { id, p, h: e.h, i }); });
+        return JSON.parse(parts.join(''));
+      } catch (er) { if (er && er.net) throw er; }
+    }
+    try {
+      const rec = JSON.parse(await api('pv', { id, p, h: e.h }));
+      if (rec && rec.u) { PV_RECS.add(rec); return rec; }
+    } catch (er) { if (er && er.net) throw er; }
+    return null;
+  }
+  // A small copy of a photo record: the same crop fields, the picture at PV_PX on its long side.
+  // A record already small enough (an SVG, a QR) is its own preview.
+  async function pvText(rec, txt) {
+    if (txt.length <= PV_SMALL) return txt;
+    try {
+      const blob = await (await fetch(rec.u)).blob();
+      const bmp = await createImageBitmap(blob);
+      const k = Math.min(1, PV_PX / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      if (bmp.close) bmp.close();
+      let u = c.toDataURL('image/webp', 0.72);
+      if (!/^data:image\/webp/.test(u)) u = c.toDataURL('image/png');
+      const t = JSON.stringify(Object.assign({}, rec, { u }));
+      return t.length <= PV_MAX ? t : null;
+    } catch (e) { return null; }
+  }
+  async function putPv(id, h, rec, txt) {
+    const t = await pvText(rec, txt || JSON.stringify(rec));
+    if (!t) return false;
+    try { await api('pvput', { id, h }, t, true); return true; } catch (e) { return false; }
   }
   async function putRec(id, slot, rec, onPart) {
     const txt = JSON.stringify(rec), h = fnv(txt), n = Math.max(1, Math.ceil(txt.length / PART));
@@ -355,6 +411,7 @@
       await api('part', { id, h, i, n }, txt.slice(i * PART, (i + 1) * PART), true);
       if (onPart) onPart(i + 1, n);
     }
+    await putPv(id, h, rec, txt);
     return { h, n };
   }
 
@@ -422,6 +479,7 @@
     document.removeEventListener('visibilitychange', S.onVis);
     if (S.ui) S.ui.root.remove();
     document.documentElement.classList.remove('shl-on', 'shl-open');
+    this.shGuard(false);
     this._sh = null;
     if (!keepBinding) { ssSet(this.shKey(), null); ssSet(this.shKey('-base'), null); ssSet(this.shKey('-log'), null); }
     this.forceUpdate();
@@ -433,7 +491,7 @@
     const b = ssGet(this.shKey()); if (!b) return;
     const lg = ssGet(this.shKey('-log')) || { from: 0, log: [] };
     const S = this._sh = {
-      id: b.id, rev: b.rev || 0, n: b.n || 0, imgs: b.imgs || {}, name: b.name || '',
+      id: b.id, rev: b.rev || 0, n: b.n || 0, imgs: b.imgs || {}, pv: b.pv || {}, name: b.name || '',
       base: ssGet(this.shKey('-base')) || this.shPub(), dirty: new Set(), applying: false,
       busy: false, lastS: '', lastT: 0, burst: null, from: lg.from || 0, log: lg.log || [],
       seen: +lsGet('provident-share-seen:' + b.id) || Date.now(), err: '',
@@ -451,8 +509,11 @@
     document.documentElement.classList.add('shl-on');
     if (S.rs && S.rs.tok) Arch.add(S.rs.tok.dd, S.rs.name, S.rs.product);
     if (open || lsGet('provident-share-open') === '1') this.shPanel(true);
+    this.shGuard(true);
     this.shRender();
     this.shPoll(true);
+    S.healT = Date.now(); setTimeout(() => this.shHeal(), 1500);
+    if (Object.keys(S.pv).length) setTimeout(() => this.shFlash(Object.keys(S.pv).length + ' full-size photo' + (Object.keys(S.pv).length > 1 ? 's have' : ' has') + ' expired — showing previews. Restore them from the Changes panel.'), 800);
     this.forceUpdate();
   };
   SP.shTick = function () {
@@ -471,6 +532,8 @@
     S.pending = pend;
     if (S.ui) S.ui.status(pend ? 'saving' : (S.err ? 'error' : 'ok'));
     if (pend && Date.now() - S.lastT > DEBOUNCE) this.shSave();
+    // while a photo is still a preview, look again now and then: someone may have restored it
+    if (!pend && Object.keys(S.pv).length && Date.now() - (S.healT || 0) > 60000) { S.healT = Date.now(); this.shHeal(); }
   };
   SP.shSave = async function () {
     const S = this._sh; if (!S || S.busy) return;
@@ -487,6 +550,7 @@
         if (rec && rec.u) {
           const txt = JSON.stringify(rec);
           if (fnv(txt) === S.imgs[sl]) continue;
+          if (S.pv[sl] && fnv(txt) === S.pv[sl]) continue;      // still the preview of an expired photo
           if (S.ui) S.ui.status('saving', 'Uploading a picture…');
           map[sl] = await putRec(S.id, sl, rec);
           const l = this.shSlotLabel(sl);
@@ -505,7 +569,7 @@
         try {
           const r = await api('save', { id: S.id }, { base: S.rev, state: cur, by, burst: burst.id, changes: burst.list, imgs: map, sum: S.rs ? this.rvSum(cur) : undefined });
           S.rev = r.rev; S.base = cur; S.baseS = canon(cur);
-          Object.keys(map).forEach(k => { if (map[k]) S.imgs[k] = map[k].h; else delete S.imgs[k]; });
+          Object.keys(map).forEach(k => { delete S.pv[k]; if (map[k]) S.imgs[k] = map[k].h; else delete S.imgs[k]; });
           S.err = '';
           this.shPersist();
           this.shPoll(true);
@@ -542,7 +606,7 @@
   };
   SP.shPersist = function () {
     const S = this._sh; if (!S) return;
-    ssSet(this.shKey(), { id: S.id, rev: S.rev, n: S.n, pid: this.state.pid, imgs: S.imgs, name: S.name, role: S.role, rs: S.rs });
+    ssSet(this.shKey(), { id: S.id, rev: S.rev, n: S.n, pid: this.state.pid, imgs: S.imgs, pv: S.pv, name: S.name, role: S.role, rs: S.rs });
     if (!ssSet(this.shKey('-base'), S.base)) ssSet(this.shKey('-base'), null);
     ssSet(this.shKey('-log'), { from: S.from, log: S.log.slice(-200) });
   };
@@ -578,9 +642,12 @@
         for (const sl of Object.keys(want)) {
           if (S.imgs[sl] === want[sl].h) continue;
           const rec = await fetchRec(S.id, want[sl]);
-          if (rec && C && C.putRec) { S.applying = true; C.putRec(sl, rec); S.imgs[sl] = want[sl].h; }
+          if (rec && C && C.putRec) {
+            S.applying = true; C.putRec(sl, rec); S.imgs[sl] = want[sl].h;
+            if (PV_RECS.has(rec)) S.pv[sl] = fnv(JSON.stringify(rec)); else delete S.pv[sl];
+          }
         }
-        Object.keys(S.imgs).forEach(sl => { if (!want[sl]) { if (C && C.putRec) C.putRec(sl, null); delete S.imgs[sl]; } });
+        Object.keys(S.imgs).forEach(sl => { if (!want[sl]) { if (C && C.putRec) C.putRec(sl, null); delete S.imgs[sl]; delete S.pv[sl]; } });
       } finally { S.applying = false; }
       S.base = theirs; S.baseS = canon(theirs); S.rev = d.rev;
       S.lastS = canon(this.shPub());
@@ -594,6 +661,119 @@
     this._undoStack = []; this._redoStack = [];
     const sp = this.shSpec();
     if (sp && !StudioBase.loadingSession) { try { localStorage.setItem(sp.key, JSON.stringify(n)); } catch (e) {} }
+  };
+
+  // ---------- putting expired photos back ----------
+  // A photo on the link has three states: here in full, expired with its preview showing
+  // (S.pv[slot] = the preview's hash), or expired with no copy here. shHeal runs once a tab
+  // starts following a link: any photo whose exact full record this computer still holds — in
+  // its photo store, or in the project's Recent card — goes back up, and a photo uploaded before
+  // previews existed gets one. Nothing here ever replaces a photo with a different one.
+  SP.shHeal = async function (extra) {
+    const S = this._sh; if (!S || S.healing || S.role === 'pm') return 0;
+    S.healing = true;
+    let back = 0;
+    const restored = new Set();
+    try {
+      const d = await api('sync', { id: S.id, from: S.n });
+      const want = d.imgs || {}, C = IS();
+      let recent = null;
+      const findRec = async (sl, h) => {
+        const cands = [];
+        if (extra && extra[sl]) cands.push(extra[sl]);
+        const own = C && C.getRec ? C.getRec(sl) : null; if (own) cands.push(own);
+        if (recent === null) {
+          recent = {};
+          try { const r = (this.readRecents() || []).find(x => x && x.pid && x.pid === this.state.pid); if (r && this.recentImages) recent = (await this.recentImages(r)) || {}; } catch (e) {}
+        }
+        if (recent[sl]) cands.push(recent[sl]);
+        if (extra) Object.keys(extra).forEach(k => { if (k !== sl) cands.push(extra[k]); });
+        return cands.find(r => r && r.u && fnv(JSON.stringify(r)) === h) || null;
+      };
+      // An expired photo whose copy here is not the photo is the preview (unless it is a
+      // replacement still waiting to be saved) — worked out from the store, not remembered, so
+      // a tab that lost its binding still never sends a preview up as the photo.
+      for (const sl of Object.keys(want)) {
+        const e = want[sl], own = C && C.getRec ? C.getRec(sl) : null;
+        if (e && e.gone && own && own.u && !S.dirty.has(sl) && !S.pv[sl]) {
+          const f = fnv(JSON.stringify(own));
+          if (f !== e.h && S.imgs[sl] === e.h) S.pv[sl] = f;
+        }
+      }
+      for (const sl of Object.keys(want)) {
+        const e = want[sl];
+        // someone else put this photo back: swap the preview here for the real one
+        if (e && e.h && !e.gone && S.pv[sl] && S.imgs[sl] === e.h) {
+          const full = await fetchRec(S.id, e);
+          if (full && !PV_RECS.has(full) && C && C.putRec) { S.applying = true; try { C.putRec(sl, full); } finally { S.applying = false; } delete S.pv[sl]; }
+          continue;
+        }
+        if (!e || !e.h || (!e.gone && !e.nopv)) continue;
+        const rec = await findRec(sl, e.h);
+        if (!rec) continue;
+        if (e.gone) {
+          if (S.ui) S.ui.status('saving', 'Restoring a full-size photo…');
+          await putRec(S.id, sl, rec);
+          back++; restored.add(sl);
+          if (S.pv[sl] && C && C.putRec) { S.applying = true; try { C.putRec(sl, rec); } finally { S.applying = false; } }
+          delete S.pv[sl];
+        } else await putPv(S.id, e.h, rec);
+      }
+      // photos still missing on the link, for the panel's notice
+      S.gone = Object.keys(want).filter(sl => want[sl] && want[sl].gone && !restored.has(sl)).length;
+      if (back) this.shFlash(back === 1 ? 'Restored 1 full-size photo' : 'Restored ' + back + ' full-size photos');
+      this.shPersist();
+    } catch (e) {
+      if (S.ui) S.ui.status('error', e.message || 'Could not restore the photos.');
+    } finally { if (this._sh) this._sh.healing = false; this.shRender(); }
+    return back;
+  };
+  // Restore from a saved session file (.adstudio.json / .smpstudio.json — it carries every
+  // photo). An exact match goes back as itself; a photo the file holds for an expired slot but
+  // in another version (reframed since, say) is put into the project here and saves as a
+  // replacement, which the changelog shows.
+  SP.shRestoreFile = function () {
+    const S = this._sh; if (!S) return;
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      let doc;
+      try { doc = JSON.parse(await f.text()); } catch (e) { this.shFlash('That file is not a saved project.'); return; }
+      const imgs = (doc && doc.images) || {};
+      if (!Object.keys(imgs).length) { this.shFlash('That file holds no photos.'); return; }
+      const before = Object.keys(S.pv).length;
+      const back = await this.shHeal(imgs);
+      // what is still a preview: take the file's own photo for that slot, as a replacement
+      const C = IS(); let swapped = 0;
+      Object.keys(S.pv).forEach(sl => {
+        const r = imgs[sl];
+        if (r && r.u && C && C.putRec) { C.putRec(sl, r); delete S.pv[sl]; swapped++; }
+      });
+      this.shPersist(); this.shRender();
+      if (!back && !swapped) this.shFlash(before ? 'None of the expired photos are in that file.' : 'Nothing to restore — every photo is here.');
+      else if (swapped) this.shFlash('Restored ' + (back + swapped) + ' photo' + (back + swapped > 1 ? 's' : '') + ' from ' + f.name);
+    };
+    inp.click();
+  };
+  // Saving or exporting while a photo is only its preview would ship (or write over a good
+  // session file with) a 640px picture, so both ask first.
+  SP.shGuard = function (on) {
+    const self = this;
+    ['doExport', 'saveSessionFile'].forEach(fn => {
+      const mark = '_shGuard_' + fn;
+      if (!on) { if (self[mark]) { delete self[fn]; delete self[mark]; } return; }
+      if (self[mark] || typeof self[fn] !== 'function') return;
+      const orig = self[fn];
+      self[mark] = true;
+      self[fn] = function () {
+        const S = self._sh, n = S ? Object.keys(S.pv || {}).length : 0;
+        if (n && !window.confirm(n + ' full-size photo' + (n > 1 ? 's have' : ' has') + ' expired on this shared link, so ' + (n > 1 ? 'they show' : 'it shows') + ' as a low-resolution preview. '
+          + (fn === 'doExport' ? 'Exporting now puts the preview in the files.' : 'Saving now writes the preview into the project file.')
+          + '\n\nRestore the photos first from the Changes panel (Restore from a saved file). Press OK to ' + (fn === 'doExport' ? 'export' : 'save') + ' anyway.')) return;
+        return orig.apply(self, arguments);
+      };
+    });
   };
 
   // ---------- the panel ----------
@@ -615,7 +795,7 @@
     const unseen = S.log.filter(e => e.at > S.seen && e.by !== me).length;
     S.ui.set({
       link: this.shLink(S.id), me, people: people.size, unseen: open ? 0 : unseen,
-      log: S.log.slice().reverse()
+      log: S.log.slice().reverse(), pv: Object.keys(S.pv || {}).length, gone: S.gone || 0
     });
     this.rvRender();
   };
@@ -1984,6 +2164,7 @@
         '<section class="rv" hidden><div class="rv-main"></div><details class="rv-dd" hidden><summary>Ad set links and Drive location</summary><div class="rv-lks"></div>' +
           '<label class="rv-drv"><span>Google Drive location</span><span class="rv-drv-r"><input class="p-in" placeholder="Paste the project’s Drive folder link or path"><button type="button" class="p-ghost" data-drv="1">Save</button></span></label></details></section>' +
         '<div class="shl-share"><input class="p-in" readonly aria-label="Edit link"><button class="p-ghost" type="button">' + svg(ICON.link) + 'Copy</button></div>' +
+        '<div class="shl-ph" hidden><p></p><button class="p-ghost" type="button">Restore from a saved file…</button></div>' +
         '<p class="shl-me"></p><p class="shl-state" aria-live="polite"></p>' +
         '<ol class="shl-list"></ol>' +
         '<footer><button class="shl-leave" type="button">Stop following this link on this tab</button></footer>' +
@@ -2000,6 +2181,7 @@
       if (b.dataset.drv && eng.rvDrive) eng.rvDrive(root.querySelector('.rv-drv input').value.trim());
     });
     $('.shl-close').onclick = () => eng.shPanel(false);
+    $('.shl-ph button').onclick = () => { if (eng.shRestoreFile) eng.shRestoreFile(); };
     $('.shl-share button').onclick = async () => { const ok = await copyText($('.shl-share input').value); ui.flash(ok ? 'Link copied' : 'Select the link and copy it'); };
     $('.shl-me').onclick = e => {
       if (!e.target.closest('button')) return;
@@ -2021,6 +2203,11 @@
       flash(t) { const el = $('.shl-toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3200); },
       set(v) {
         $('.shl-share input').value = v.link;
+        const ph = $('.shl-ph'), pn = Math.max(v.pv || 0, v.gone || 0);
+        ph.hidden = !pn;
+        if (pn) ph.querySelector('p').innerHTML = '<b>' + pn + ' full-size photo' + (pn > 1 ? 's have' : ' has') + ' expired.</b> '
+          + ((v.pv || 0) ? 'The canvas shows ' + (pn > 1 ? 'previews' : 'a preview') + '. ' : '')
+          + 'Photos are kept 60 days after the link was last opened. Pick the project’s saved .json (in its Source folder) to put them back for everyone.';
         $('.shl-sub').textContent = v.people > 1 ? v.people + ' people have edited' : 'Shared edit link';
         $('.shl-me').innerHTML = (root.dataset.role === 'pm' ? 'Viewing as <b>' : 'Editing as <b>') + esc(v.me || 'Someone') + '</b> · <button type="button">change</button>';
         const n = $('.shl-n'); n.hidden = !v.unseen; n.textContent = v.unseen > 9 ? '9+' : String(v.unseen);
@@ -2086,6 +2273,10 @@
 .shl-share .p-in{flex:1;min-width:0;height:36px;font-size:12.5px;color:var(--ps-ink-2)}
 .shl-share .p-ghost{display:flex;align-items:center;gap:6px;flex:none;height:36px}
 .shl-share svg{width:16px;height:16px;fill:currentColor}
+.shl-ph{margin:12px 16px 0;padding:12px 14px;border-radius:12px;background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.shl-ph p{margin:0 0 10px;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.shl-ph p b{font-weight:600;color:var(--ps-ink)}
+.shl-ph button{white-space:nowrap}
 .shl-me{margin:10px 16px 0;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .shl-me b{font-weight:600;color:var(--ps-ink)}
 .shl-me button{border:none;background:none;padding:0;color:var(--ps-link);font:inherit;text-decoration:underline;cursor:pointer}
@@ -2382,6 +2573,39 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva-rm:hover{color:var(--ps-bad)}
 @media (max-width:1100px){.rva-cols{grid-template-columns:1fr}}
 @media (max-width:760px){.rva-grid{grid-template-columns:1fr}.rva-dt h2{font-size:21px}.rva-th-l{width:64px;height:64px}.rva-da{width:100%;flex-direction:column-reverse}.rva-da .p-btn,.rva-da .rva-a{justify-content:center;white-space:nowrap}.rva-card{padding:16px}.rva-cp span{display:none}.rva-cp{padding:0 10px}}
+/* TYPE HIERARCHY for the review surfaces (2026-10-27, by request: "too text heavy… too many
+   bold… introduce muted colours… don't use bold"). One layer over everything above, so it wins
+   by order: nothing here is 600 any more. Titles and names are Medium 500 in ink; everything
+   else is Regular 400, and the colour carries the rank — ink for what you read, ink-2 for what
+   explains it, dim for dates, counts and metadata. Size steps down with importance. */
+.shl-panel h2,.shl-dlg h2,.rvh-dh h2,.rva-dt h2{font-weight:500}
+.rvh-t b{font-weight:500}
+.rva-g h3,.rva-sec h3,.rva-card h3,.rvh-db h3,.rsd-cap{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rva-card h3 s,.rvh-db h3 s,.rva-g h3 s{color:var(--ps-dim)}
+.shl-who b,.shl-av,.rv-h b,.rv-lk-t b,.rva-lk-t b,.rvh-ah b,.rva-au-h b,.rva-n b,.rs-ah b,.rs-cur b,.rvh-auds b,.rv-dd summary{font-weight:500}
+.shl-who b{font-size:13px;color:var(--ps-ink)}
+.shl-who b s{color:var(--ps-dim)}
+.shl-av{color:var(--ps-ink-2)}
+.shl-who time{color:var(--ps-dim)}
+.shl-list ul li{color:var(--ps-ink-2)}
+.shl-list ul li b{font-weight:400;color:var(--ps-ink)}
+.shl-list em{color:var(--ps-dim)}
+.shl-step{font-weight:400;color:var(--ps-ink)}
+.shl-list ul li b:has(+ .shl-step){color:var(--ps-dim)}
+.shl-ph p b,.shl-me b,.shl-lead b{font-weight:500}
+.rv-st b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rv-st [data-s="pend"] b{color:var(--ps-ink-2);font-weight:400}
+.rv-st s{color:var(--ps-dim)}
+.rvh-st [data-s="cur"] b{font-weight:500}
+.rvh-d dd{font-weight:400}
+.rv-pill{font-weight:500}
+.rs-it>span,.rva-pj b{font-weight:500}
+.rva-pj b{color:var(--ps-ink)}
+.rva-pj s,.rvh-now,.rva-lk-t s,.rv-lk-t s{color:var(--ps-dim)}
+.rvh-ah{margin-bottom:12px}
+.rva-dl dt{font-weight:400}
+.rva-chips span{font-weight:400;color:var(--ps-ink-2)}
+.rva .p-btn,.rva .p-ghost,.rvh button,.rvh-dlg button,.shl-panel button,.shl-dlg button,.rva-rm{font-weight:500}
 `;
     document.head.appendChild(s);
   }

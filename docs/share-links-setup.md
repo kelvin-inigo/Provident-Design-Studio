@@ -36,7 +36,12 @@ is not connected, step 1.4 or 1.5 is missing.
 
 - **Per link:** the project (no photos, usually under 1 MB), each photo split into ~0.9 MB parts,
   and the change log (the last 500 entries).
-- **Expiry:** a link nobody opens or edits for **180 days** expires and its data goes with it.
+- **Expiry:** a link, its project and its changelog are **kept for good**, and so is a small
+  (~640px) preview of every photo. Only the **full-size photos** expire: each one **60 days** after
+  the link was last opened. After that the link still opens, showing the previews, and the
+  Changes panel offers **Restore from a saved file…** (pick the project's `.json` from its Source
+  folder). Opening the link on the computer that made the project puts the photos back by itself.
+  Export and Save warn while a photo is still only its preview.
 - **Free plan limits (Upstash, check their pricing page for current numbers):** about 256 MB of
   data and 500,000 commands a month. A project with ten photos is roughly 20–30 MB. An open
   studio tab on a link checks for changes every 12 seconds while it is on screen (2 commands),
@@ -46,15 +51,21 @@ is not connected, step 1.4 or 1.5 is missing.
 - **Ad set reviews (CAS):** an ad set adds a small record (`rs:<rid>`, its log, a ~20 KB
   picture) and three token keys (`rvt:<token>`); each member project gets `sh:<id>:rid`, a summary
   and a picture. These, and each member's `meta` and log, **do not expire**, so the designer's
-  **Review links** archive keeps the record. The projects and their photos still expire after
-  180 days unused. No extra setup: reviews use the same store.
+  **Review links** archive keeps the record. Like every link, only the full-size photos expire
+  (60 days unused). No extra setup: reviews use the same store.
 
 ## Security
 
 - **Anyone with the link can view and edit the project.** There is no sign-in. The link's id is
   12 random letters and digits, so it can't be guessed, but anyone it is forwarded to can edit.
 - The function only stores and returns project data. It never reads any other part of the site.
-- **To delete a link early:** in the Upstash console (Data Browser), delete the keys that start with
+- **See what takes the space, and delete links:** open `share-admin.html` on the site
+  (`https://provident-design-studio.vercel.app/share-admin.html`). It needs one more environment
+  variable in the Vercel project, **`SHARE_ADMIN_KEY`** — any long random string you make up
+  (Settings › Environment Variables, then redeploy). Type that key into the page; it is kept on that
+  computer only. The page lists every link with its size, largest first, and a Delete button.
+  Deleting a project that is in an ad set also takes it out of the ad set.
+- **To delete a link by hand:** in the Upstash console (Data Browser), delete the keys that start with
   `sh:<id>:`. The id is the part of the link after `#share=`. For an ad set review, delete `rs:<rid>`
   (and `rs:<rid>:log`, `rs:<rid>:thumb`) and its three `rvt:<token>` keys (the 16-character link ids).
 - **An ad set's three links are three roles, not three passwords.** The performance marketing

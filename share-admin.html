@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Shared links storage</title>
+<script>try { var t = localStorage.getItem('provident-theme'); document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light'); } catch (e) {}</script>
+<link rel="stylesheet" href="ui-design-system/provident-ui.css">
+<style>
+  /* Shared-link storage: what each link keeps in the share store, and a way to delete it.
+     Talks to /api/share?op=adminlist|admindel with the deployment's SHARE_ADMIN_KEY. */
+  body{margin:0;background:var(--ps-app);color:var(--ps-ink);font:400 15px/1.5 'Google Sans Flex',system-ui,sans-serif}
+  .sa{max-width:1100px;margin:0 auto;padding:32px 16px 64px}
+  h1{font:400 28px/1.2 'Google Sans Flex',system-ui,sans-serif;letter-spacing:-.01em;margin:0 0 6px}
+  .sa-sub{color:var(--ps-ink-2);margin:0 0 24px}
+  .sa-key{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+  .sa-key .p-in{flex:1 1 260px;max-width:380px}
+  .sa-sum{display:flex;gap:24px;flex-wrap:wrap;margin:0 0 16px;color:var(--ps-ink-2)}
+  .sa-sum b{display:block;color:var(--ps-ink);font:500 22px/1.2 'Google Sans Flex',system-ui,sans-serif;font-variant-numeric:tabular-nums}
+  .sa-bar{height:8px;border-radius:9999px;background:var(--ps-fill);overflow:hidden;margin:0 0 24px;max-width:520px}
+  .sa-bar i{display:block;height:100%;background:var(--ps-link)}
+  .sa-bar[data-hi] i{background:var(--ps-bad)}
+  .sa-msg{min-height:22px;color:var(--ps-ink-2);margin:0 0 12px}
+  .sa-msg[data-bad]{color:var(--ps-bad)}
+  .sa-tw{overflow-x:auto;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+  table{border-collapse:collapse;width:100%;min-width:760px;font-variant-numeric:tabular-nums}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--ps-hair);vertical-align:middle;font-size:14px}
+  th{font-weight:600;color:var(--ps-ink-2);font-size:13px}
+  tr:last-child td{border-bottom:0}
+  td.n{text-align:right;white-space:nowrap}
+  td s{display:block;text-decoration:none;color:var(--ps-ink-2);font-size:12.5px}
+  .sa-tag{display:inline-block;padding:2px 8px;border-radius:9999px;background:var(--ps-fill);font-size:12px;color:var(--ps-ink-2)}
+  .sa-tag[data-dead]{background:var(--ps-bad-q);color:var(--ps-ink)}
+  .sa-del{color:var(--ps-bad)}
+  a{color:var(--ps-link)}
+</style>
+</head>
+<body>
+<main class="sa">
+  <h1>Shared links storage</h1>
+  <p class="sa-sub">Every shared edit link and ad set review keeps its project, its changelog and a small preview of each photo for good. Full-size photos are what take the space: each lasts a set number of days after the link was last opened, then the link shows the preview until someone restores it. Largest first. Deleting a link removes it for everyone who has it.</p>
+  <form class="sa-key" id="f">
+    <input class="p-in" id="key" type="password" autocomplete="off" placeholder="Admin key (SHARE_ADMIN_KEY)" aria-label="Admin key">
+    <button class="p-btn" type="submit">Load</button>
+    <button class="p-ghost" type="button" id="forget">Forget key</button>
+  </form>
+  <div class="sa-msg" id="msg"></div>
+  <div id="out"></div>
+</main>
+<script>
+(function () {
+  var LIMIT = 256 * 1024 * 1024; // Upstash free plan
+  var base = (function () { try { return localStorage.getItem('provident-share-base') || ''; } catch (e) { return ''; } })();
+  var api = base.replace(/\/$/, '') + '/api/share';
+  var $ = function (id) { return document.getElementById(id); };
+  var keyEl = $('key'), msg = $('msg'), out = $('out');
+  try { keyEl.value = localStorage.getItem('provident-share-admin') || ''; } catch (e) {}
+  function say(t, bad) { msg.textContent = t || ''; if (bad) msg.setAttribute('data-bad', ''); else msg.removeAttribute('data-bad'); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function mb(b) { return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
+  function post(op, body) {
+    body.key = keyEl.value;
+    return fetch(api + '?op=' + op, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status)); return d; }); });
+  }
+  var STUDIO = { 'provident-ad-studio': ['Campaign', 'Provident Campaign Studio.dc.html'], 'provident-smp-studio': ['Organic', 'Provident Organic Studio.dc.html'], 'provident-ad-sets': ['Ad sets view', 'Provident Campaign Studio.dc.html'] };
+  function load() {
+    if (!keyEl.value) { say('Enter the admin key.', true); return; }
+    say('Reading the share store…');
+    post('adminlist', {}).then(function (d) {
+      try { localStorage.setItem('provident-share-admin', keyEl.value); } catch (e) {}
+      var pct = Math.min(100, d.bytes / LIMIT * 100);
+      var h = '<div class="sa-sum"><div><b>' + mb(d.bytes) + '</b>stored, about ' + Math.round(pct) + '% of the free 256 MB</div>'
+        + '<div><b>' + d.rows.length + '</b>shared links</div><div><b>' + d.ttl_days + ' days</b>unused before full-size photos expire</div></div>'
+        + '<div class="sa-bar"' + (pct > 80 ? ' data-hi' : '') + '><i style="width:' + pct.toFixed(1) + '%"></i></div>';
+      if (!d.rows.length) { out.innerHTML = h + '<p>No shared links are stored.</p>'; say(''); return; }
+      h += '<div class="sa-tw"><table><thead><tr><th>Project</th><th>Studio</th><th>Shared by</th><th class="n">Size</th><th class="n">Photo parts</th><th>Full photos</th><th></th></tr></thead><tbody>';
+      d.rows.forEach(function (r) {
+        var st = STUDIO[r.app] || ['—', ''];
+        var when = r.created ? new Date(r.created).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+        var exp = !r.live ? '<span class="sa-tag" data-dead>Project gone, photos left</span>'
+          : !r.photos ? (r.previews ? '<span class="sa-tag">Expired · previews only</span>' : '<span class="sa-tag">No photos</span>')
+          : r.days == null ? '<span class="sa-tag">Kept</span>' : 'expire in ' + Math.round(r.days) + ' days';
+        var open = r.live && st[1] ? ' · <a href="' + encodeURI(st[1]) + '#share=' + r.sid + '" target="_blank" rel="noopener">Open</a>' : '';
+        h += '<tr><td>' + esc(r.name || 'Untitled') + '<s>' + (r.set ? 'Ad set: ' + esc(r.set) + ' · ' : '') + esc(when) + open + '</s></td>'
+          + '<td>' + st[0] + '</td><td>' + esc(r.by) + '</td><td class="n">' + mb(r.bytes) + '</td><td class="n">' + r.photos + '</td><td>' + exp + '</td>'
+          + '<td><button class="p-ghost p-sm sa-del" type="button" data-sid="' + r.sid + '" data-name="' + esc(r.name || 'Untitled') + '">Delete</button></td></tr>';
+      });
+      out.innerHTML = h + '</tbody></table></div>';
+      say('');
+    }).catch(function (e) { out.innerHTML = ''; say(e.message || 'Could not read the share store.', true); });
+  }
+  $('f').addEventListener('submit', function (e) { e.preventDefault(); load(); });
+  $('forget').addEventListener('click', function () { try { localStorage.removeItem('provident-share-admin'); } catch (e) {} keyEl.value = ''; out.innerHTML = ''; say('Key forgotten on this computer.'); });
+  out.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-sid]'); if (!b) return;
+    if (!confirm('Delete "' + b.getAttribute('data-name') + '"? Its link stops working for everyone. This cannot be undone.')) return;
+    b.disabled = true; say('Deleting…');
+    post('admindel', { sid: b.getAttribute('data-sid') }).then(function () { load(); }).catch(function (e) { b.disabled = false; say(e.message, true); });
+  });
+  if (keyEl.value) load();
+})();
+</script>
+</body>
+</html>

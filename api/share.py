@@ -17,14 +17,23 @@ Keys, all under sh:<id>:
   img:<hash>:<i>   one ~0.9 MB part of a photo's stored record (photos are split because
                    a Vercel function takes about 4.5 MB per request)
   log    list of change entries, newest last, capped at LOG_MAX
+  pv:<hash>        a small preview of that photo (~640px), kept for good
+
+ONLY THE PHOTO PARTS EXPIRE (2026-10-27): meta, state, rev, imgs, log and every preview are
+stored with no expiry; each `img:` part lasts TTL after the link was last opened. When the
+parts are gone the link still opens on the previews, and `get` / `sync` flag that photo
+(`gone`) so the studio can put the full photo back from a copy it holds (op=part again).
 
 AD SET REVIEWS (CAS, 2026-10-26): every project of one campaign — each market x audience x
 language — under one record (`rs:<rid>`) and three role links (`rvt:<token>`). See the
 "ad set reviews" section below for the keys and the rules.
 
 Every request is /api/share?op=...  (create, part, save, get, rev, sync, chunk; for ad sets
-rsmake, rsadd, rsget, rsstep, rsset, rsinfo).
+rsmake, rsadd, rsget, rsstep, rsset, rsinfo; pvput and pv for photo previews; adminlist and admindel for share-admin.html,
+which need SHARE_ADMIN_KEY set in the deployment).
 """
+import fnmatch
+import hmac
 import json
 import os
 import random
@@ -35,7 +44,9 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
 
-TTL = 180 * 86400          # a link nobody opens or edits for this long expires
+TTL = 60 * 86400           # a FULL-SIZE PHOTO nobody's link has opened for this long expires.
+                           # The link itself — project, changelog, previews — never does (2026-10-27).
+PV_MAX = 400_000           # one photo's preview record, in characters
 LOG_MAX = 500
 PART_MAX = 1_000_000       # one photo part, in characters
 STATE_MAX = 3_500_000      # the project state, photos left out
@@ -94,7 +105,7 @@ class Upstash:
 class Memory:
     """SHARE_DEV only — the same commands, held in this process."""
     def __init__(self):
-        self.d, self.lock = {}, threading.RLock()
+        self.d, self.lock, self.ttl = {}, threading.RLock(), {}
 
     def cmd(self, op, *a):
         with self.lock:
@@ -107,6 +118,13 @@ class Memory:
                 return 1
             if op == 'DEL':
                 return 1 if self.d.pop(a[0], None) is not None else 0
+            if op == 'SCAN':
+                pat = a[a.index('MATCH') + 1] if 'MATCH' in a else '*'
+                return ['0', [k for k in self.d if fnmatch.fnmatchcase(k, pat)]]
+            if op == 'STRLEN':
+                v = self.d.get(a[0]); return len(v) if isinstance(v, str) else 0
+            if op == 'TTL':
+                return (self.ttl.get(a[0], -1)) if a[0] in self.d else -2
             if op == 'EXISTS':
                 return 1 if a[0] in self.d else 0
             if op == 'HGETALL':
@@ -139,6 +157,8 @@ class Memory:
 
     def set_raw(self, key, value, ttl):
         self.cmd('SET', key, value)
+        if ttl:
+            self.ttl[key] = ttl
 
     def save(self, k, base, state, entry, burst, slots, ttl):
         with self.lock:
@@ -173,14 +193,14 @@ local rev = tonumber(redis.call('GET', KEYS[1]) or '0')
 if tonumber(ARGV[1]) ~= rev then return {0, rev} end
 rev = rev + 1
 local ttl = tonumber(ARGV[5])
-redis.call('SET', KEYS[1], rev, 'EX', ttl)
-if ARGV[2] ~= '' then redis.call('SET', KEYS[2], ARGV[2], 'EX', ttl) else redis.call('EXPIRE', KEYS[2], ttl) end
+redis.call('SET', KEYS[1], rev)
+if ARGV[2] ~= '' then redis.call('SET', KEYS[2], ARGV[2]) else redis.call('PERSIST', KEYS[2]) end
 local i = 7
 while i < #ARGV do
   if ARGV[i + 1] == '' then redis.call('HDEL', KEYS[3], ARGV[i]) else redis.call('HSET', KEYS[3], ARGV[i], ARGV[i + 1]) end
   i = i + 2
 end
-redis.call('EXPIRE', KEYS[3], ttl)
+redis.call('PERSIST', KEYS[3])
 if ARGV[3] ~= '' then
   local e = string.sub(ARGV[3], 1, -2) .. ',"rev":' .. rev .. '}'
   local last = redis.call('LINDEX', KEYS[4], -1)
@@ -191,7 +211,7 @@ if ARGV[3] ~= '' then
     redis.call('LTRIM', KEYS[4], -tonumber(ARGV[6]), -1)
   end
 end
-if redis.call('EXISTS', KEYS[5]) == 0 then redis.call('EXPIRE', KEYS[4], ttl) end
+redis.call('PERSIST', KEYS[4])
 return {1, rev}
 """
 
@@ -640,7 +660,7 @@ def rs_info(q):
         if items:
             live = s.pipe([['EXISTS', 'sh:' + it['sid'] + ':rev'] for it in items])
             e['live'] = {it['sid']: bool(live[i]) for i, it in enumerate(items)}
-            s.pipe([['EXPIRE', 'sh:' + it['sid'] + ':' + x, TTL] for it in items if e['live'][it['sid']] for x in ('state', 'rev', 'imgs')] or [['GET', 'x']])
+            s.pipe([['PERSIST', 'sh:' + it['sid'] + ':' + x] for it in items if e['live'][it['sid']] for x in ('state', 'rev', 'imgs')] or [['GET', 'x']])
         if full:
             ln = int(s.cmd('LLEN', 'rs:' + rs['rid'] + ':log') or 0)
             e['log'] = logs_of(s.cmd('LRANGE', 'rs:' + rs['rid'] + ':log', max(0, ln - 300), -1)) if ln else []
@@ -658,6 +678,133 @@ def rs_info(q):
             e['proj'] = sums
         out.append(e)
     return ok({'items': out})
+
+
+# ---------- photos that expired ----------
+
+def refresh(k, raw):
+    return [['EXPIRE', k + 'img:' + p['h'] + ':' + str(i), TTL] for p in parts_of(raw) for i in range(p['n'])]
+
+
+def flagged(k, raw):
+    """The photo map, each entry marked `gone` when its full-size parts have expired (the
+    studio then shows its preview) and `nopv` when no preview is stored yet (a photo uploaded
+    before previews existed — the studio adds one if it holds the photo)."""
+    out = imgs_of(raw)
+    sl = [x for x in out if isinstance(out[x], dict) and out[x].get('h')]
+    if not sl:
+        return out
+    cmds = []
+    for x in sl:
+        e = out[x]
+        try:
+            h, n = clean_hash(e.get('h')), max(1, int(e.get('n') or 1))
+        except (Fail, ValueError, TypeError):
+            continue
+        cmds += [['EXISTS', k + 'img:' + h + ':0'], ['EXISTS', k + 'img:' + h + ':' + str(n - 1)], ['EXISTS', k + 'pv:' + h]]
+    r = store().pipe(cmds) if cmds else []
+    for j, x in enumerate(sl[:len(r) // 3]):
+        a, b, pv = r[j * 3:j * 3 + 3]
+        if not (int(a or 0) and int(b or 0)):
+            out[x]['gone'] = 1
+        if not int(pv or 0):
+            out[x]['nopv'] = 1
+    return out
+
+
+# ---------- admin: what takes the space, and deleting a link ----------
+# share-admin.html. One key, SHARE_ADMIN_KEY, set in the deployment's environment — never in
+# this public repo. Without it both requests answer 503.
+
+def parts_of(raw):
+    out = []
+    for v in (imgs_of(raw) or {}).values():
+        try:
+            h, n = clean_hash(v.get('h')), int(v.get('n') or 0)
+            if 0 < n <= 400:
+                out.append({'h': h, 'n': n})
+        except (Fail, ValueError, TypeError, AttributeError):
+            pass
+    return out
+
+
+def admin_ok(key):
+    want = os.environ.get('SHARE_ADMIN_KEY') or ''
+    if not want:
+        raise Fail(503, 'Set SHARE_ADMIN_KEY in the deployment to use this page. See docs/share-links-setup.md.')
+    if not isinstance(key, str) or not hmac.compare_digest(key.encode(), want.encode()):
+        raise Fail(403, 'That admin key is not right.')
+
+
+def scan(pat):
+    s, cur, keys = store(), '0', []
+    while True:
+        r = s.cmd('SCAN', cur, 'MATCH', pat, 'COUNT', 1000)
+        cur, ks = str(r[0]), r[1] or []
+        keys += ks
+        if cur == '0' or len(keys) > 200_000:
+            return keys
+
+
+STR_TAILS = ('meta', 'state', 'rev', 'sum', 'thumb', 'rid')  # plus img: and pv: keys
+
+
+def admin_list():
+    s = store()
+    by = {}
+    for key in scan('sh:*'):
+        p = key.split(':')
+        if len(p) >= 3:
+            by.setdefault(p[1], []).append(key)
+    sids = list(by)
+    sized = [k for sid in sids for k in by[sid] if k.split(':', 2)[2] in STR_TAILS or ':img:' in k or ':pv:' in k]
+    lens = {}
+    for i in range(0, len(sized), 500):
+        b = sized[i:i + 500]
+        for k, n in zip(b, s.pipe([['STRLEN', k] for k in b])):
+            lens[k] = int(n or 0)
+    info = {}
+    for i in range(0, len(sids), 150):
+        b = sids[i:i + 150]
+        out = s.pipe([c for sid in b for c in (['GET', 'sh:' + sid + ':meta'], ['GET', 'sh:' + sid + ':rid'],
+                                                ['TTL', next((x for x in by[sid] if ':img:' in x), 'sh:' + sid + ':state')])])
+        for j, sid in enumerate(b):
+            info[sid] = out[j * 3:j * 3 + 3]
+    rsn = {}
+    rows, total = [], 0
+    for sid in sids:
+        meta, rid, ttl = info[sid]
+        try:
+            meta = json.loads(meta) if meta else {}
+        except Exception:  # noqa: BLE001
+            meta = {}
+        if rid and rid not in rsn:
+            rsn[rid] = (read_json('rs:' + rid) or {}).get('name') or ''
+        size = sum(lens.get(k, 0) for k in by[sid])
+        total += size
+        ttl = int(ttl if ttl is not None else -2)
+        has_photo = any(':img:' in x for x in by[sid])
+        rows.append({'sid': sid, 'name': meta.get('name') or '', 'app': meta.get('app') or '', 'by': meta.get('by') or '',
+                     'created': meta.get('created') or 0, 'bytes': size,
+                     'photos': sum(1 for k in by[sid] if ':img:' in k), 'previews': sum(1 for k in by[sid] if ':pv:' in k),
+                     'live': any(x.endswith(':state') for x in by[sid]),
+                     'days': round(ttl / 86400, 1) if has_photo and ttl >= 0 else None, 'rid': rid or '', 'set': rsn.get(rid, '') if rid else ''})
+    rows.sort(key=lambda r: -r['bytes'])
+    return ok({'rows': rows, 'bytes': total, 'ttl_days': TTL // 86400})
+
+
+def admin_del(sid):
+    s = store()
+    rid = s.cmd('GET', 'sh:' + sid + ':rid')
+    keys = scan('sh:' + sid + ':*')
+    for i in range(0, len(keys), 500):
+        s.pipe([['DEL', k] for k in keys[i:i + 500]])
+    if rid:
+        rs = read_json('rs:' + rid)
+        if rs:
+            rs['items'] = [x for x in rs.get('items') or [] if x.get('sid') != sid]
+            put_rs(rs)
+    return ok({'deleted': len(keys)})
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
@@ -682,13 +829,16 @@ def route(method, query, body):
                                'created': int(time.time() * 1000)}, separators=(',', ':'))
             ent = entry_json(d.get('by'), [{'kind': 'note', 'text': 'Shared the project'}], '')
             ent = ent[:-1] + ',"rev":1}'
-            s.pipe([['SET', k + 'meta', meta, 'EX', TTL], ['SET', k + 'state', state, 'EX', TTL],
-                    ['SET', k + 'rev', 1, 'EX', TTL]])
+            s.pipe([['SET', k + 'meta', meta], ['SET', k + 'state', state], ['SET', k + 'rev', 1]])
             if isinstance(s, Memory):
                 s.d.setdefault(k + 'log', []).append(ent)
             else:
-                s.pipe([['RPUSH', k + 'log', ent], ['EXPIRE', k + 'log', TTL]])
+                s.cmd('RPUSH', k + 'log', ent)
             return ok({'id': sid, 'rev': 1})
+        if method == 'POST' and op in ('adminlist', 'admindel'):
+            d = json.loads(body or b'{}')
+            admin_ok(d.get('key'))
+            return admin_list() if op == 'adminlist' else admin_del(clean_id(d.get('sid')))
         if method == 'GET' and op == 'rsinfo':
             return rs_info(q)
         sid, role, rs = resolve(q.get('id'), q.get('p'))
@@ -711,7 +861,7 @@ def route(method, query, body):
         if not sid:
             raise Fail(400, 'Name the project (p=) — this is an ad set link.')
         k = 'sh:' + sid + ':'
-        if method == 'POST' and op in ('part', 'save') and role == 'pm':
+        if method == 'POST' and op in ('part', 'save', 'pvput') and role == 'pm':
             raise Fail(403, 'This link is for viewing the ad sets — it cannot change the project.')
         pub = rs_pub(rs, role)
         if method == 'POST' and op == 'part':
@@ -724,6 +874,24 @@ def route(method, query, body):
             need(k)
             s.set_raw(k + 'img:' + h + ':' + str(i), txt, TTL)
             return ok({'ok': True})
+        if method == 'POST' and op == 'pvput':
+            h = clean_hash(q.get('h'))
+            txt = (body or b'').decode('utf-8', 'strict')
+            if not txt or len(txt) > PV_MAX:
+                raise Fail(413, 'That preview is too large.')
+            need(k)
+            s.cmd('SET', k + 'pv:' + h, txt)
+            return ok({'ok': True})
+        if method == 'POST' and op == 'devexpire' and isinstance(s, Memory):
+            # SHARE_DEV only: what 60 days without opening does to a link's photos
+            gone = [x for x in list(s.d) if x.startswith(k + 'img:')]
+            for x in gone: s.d.pop(x, None)
+            return ok({'expired': len(gone)})
+        if method == 'GET' and op == 'pv':
+            v = s.cmd('GET', k + 'pv:' + clean_hash(q.get('h')))
+            if v is None:
+                raise Fail(404, 'No preview of that picture is stored.')
+            return 200, 'text/plain; charset=utf-8', v.encode()
         if method == 'POST' and op == 'save':
             d = json.loads(body or b'{}')
             state = ''
@@ -759,10 +927,11 @@ def route(method, query, body):
                 raise Fail(404, 'This shared link has expired or was never made.')
             n = int(n or 0)
             log = s.cmd('LRANGE', k + 'log', max(0, n - 200), -1)
-            # Opening the link counts as use: keep it alive for another TTL.
-            s.pipe([['EXPIRE', k + x, TTL] for x in (('state', 'rev', 'imgs') if rs else ('meta', 'state', 'rev', 'imgs', 'log'))])
+            # The link never expires (PERSIST also turns a link made before that rule into one
+            # that does not); opening it keeps its full-size photos for another TTL.
+            s.pipe([['PERSIST', k + x] for x in ('meta', 'state', 'rev', 'imgs', 'log')] + refresh(k, imgs))
             return ok({'meta': json.loads(meta or '{}'), 'state': json.loads(state), 'rev': int(rev),
-                       'imgs': imgs_of(imgs), 'log': logs_of(log), 'from': max(0, n - 200), 'n': n, 'role': role, 'rs': pub})
+                       'imgs': flagged(k, imgs), 'log': logs_of(log), 'from': max(0, n - 200), 'n': n, 'role': role, 'rs': pub})
         if method == 'GET' and op == 'sync':
             # what the client needs after another tab saved: state, photo map, log from `from`
             state, rev, imgs, n = s.pipe([['GET', k + 'state'], ['GET', k + 'rev'], ['HGETALL', k + 'imgs'], ['LLEN', k + 'log']])
@@ -771,7 +940,7 @@ def route(method, query, body):
             n, frm = int(n or 0), max(0, int(q.get('from', '0')))
             frm = min(frm, n)
             log = s.cmd('LRANGE', k + 'log', frm, -1) if frm < n else []
-            return ok({'state': json.loads(state), 'rev': int(rev), 'imgs': imgs_of(imgs), 'log': logs_of(log), 'from': frm, 'n': n,
+            return ok({'state': json.loads(state), 'rev': int(rev), 'imgs': flagged(k, imgs), 'log': logs_of(log), 'from': frm, 'n': n,
                        'role': role, 'rs': pub})
         if method == 'GET' and op == 'chunk':
             h, i = clean_hash(q.get('h')), int(q.get('i', '-1'))
