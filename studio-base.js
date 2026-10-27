@@ -1751,6 +1751,9 @@ window.providentDrive = {
   FOLDER: 'application/vnd.google-apps.folder',
   MIME: { json: 'application/json', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', svg: 'image/svg+xml', pdf: 'application/pdf', txt: 'text/plain' },
   tok: null, lib: null,
+  // Where the Drive API answers: Google, or (tests only) localStorage['provident-drive-base'],
+  // which tools/share-dev/serve.py answers with an in-memory stand-in.
+  base() { let v = ''; try { v = localStorage.getItem('provident-drive-base') || ''; } catch (e) {} return /^https?:\/\/[^/]+$/.test(v) ? v : 'https://www.googleapis.com'; },
   clientId() { let v = ''; try { v = localStorage.getItem('provident-drive-client') || ''; } catch (e) {} return this.CLIENT || v; },
   load() {
     if (this.lib) return this.lib;
@@ -1762,7 +1765,12 @@ window.providentDrive = {
       document.head.appendChild(s);
     }));
   },
-  valid() { const t = this.tok; return !!(t && t.exp > Date.now() + 60000); },
+  // The token is kept for this tab only (sessionStorage), so a reload does not ask to sign in again.
+  valid() {
+    if (!this.tok) { try { this.tok = JSON.parse(sessionStorage.getItem('provident-drive-tok') || 'null'); } catch (e) {} }
+    const t = this.tok; return !!(t && t.exp > Date.now() + 60000);
+  },
+  keep() { try { sessionStorage.setItem('provident-drive-tok', JSON.stringify(this.tok)); } catch (e) {} },
   // Must be called from a click: Google opens its sign-in popup.
   async signIn() {
     if (this.valid()) return this.tok.at;
@@ -1775,6 +1783,8 @@ window.providentDrive = {
         callback: r => {
           if (!r || r.error || !r.access_token) return rej(new Error(r && r.error === 'access_denied' ? 'Google sign-in was cancelled.' : 'Google sign-in failed' + (r && r.error ? ' (' + r.error + ')' : '') + '.'));
           this.tok = { at: r.access_token, exp: Date.now() + (Number(r.expires_in) || 3600) * 1000 };
+          this.keep();
+          try { window.dispatchEvent(new Event('provident-drive-signed')); } catch (e) {}
           res(r.access_token);
         },
         error_callback: e => rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' : 'Google sign-in could not open — allow pop-ups for this site.'))
@@ -1784,6 +1794,7 @@ window.providentDrive = {
   },
   signOut() {
     const t = this.tok; this.tok = null;
+    try { sessionStorage.removeItem('provident-drive-tok'); } catch (e) {}
     try { if (t && window.google && google.accounts) google.accounts.oauth2.revoke(t.at, () => {}); } catch (e) {}
   },
   async fetch(url, opt) {
@@ -1791,7 +1802,7 @@ window.providentDrive = {
     if (!this.valid()) throw expired();
     opt = Object.assign({}, opt || {}); opt.headers = Object.assign({ Authorization: 'Bearer ' + this.tok.at }, opt.headers || {});
     const r = await fetch(url, opt);
-    if (r.status === 401) { this.tok = null; throw expired(); }
+    if (r.status === 401) { this.tok = null; try { sessionStorage.removeItem('provident-drive-tok'); } catch (e) {} throw expired(); }
     if (!r.ok) {
       let m = 'Google Drive answered ' + r.status;
       try { const d = await r.json(); if (d && d.error && d.error.message) m = d.error.message; } catch (e) {}
@@ -1812,7 +1823,7 @@ window.providentDrive = {
   async folderOf(link) {
     const id = this.id(link);
     if (!id) throw new Error('That is not a Google Drive folder link. Open the folder in Drive and copy the address from the browser — it contains /folders/.');
-    const r = await this.fetch('https://www.googleapis.com/drive/v3/files/' + id + '?fields=id,name,mimeType,shortcutDetails&supportsAllDrives=true');
+    const r = await this.fetch(this.base() + '/drive/v3/files/' + id + '?fields=id,name,mimeType,shortcutDetails&supportsAllDrives=true');
     const f = await r.json(), sc = f.shortcutDetails;
     if (f.mimeType !== this.FOLDER && !(sc && sc.targetMimeType === this.FOLDER)) throw new Error('That link is a file, not a folder. Link the folder that holds the saved projects.');
     return { id: sc && sc.targetId ? sc.targetId : f.id, name: f.name };
@@ -1821,7 +1832,7 @@ window.providentDrive = {
   // file's getFile(), head(n) and `modified`), plus createWritable() — which uploads a new
   // revision of THAT file, so its id and share link never change. Listings are held for 3s.
   dir(id, name) {
-    const D = this, api = 'https://www.googleapis.com/drive/v3/files', up = 'https://www.googleapis.com/upload/drive/v3/files';
+    const D = this, api = D.base() + '/drive/v3/files', up = D.base() + '/upload/drive/v3/files';
     let kids = null, at = 0;
     const list = () => {
       if (kids && Date.now() - at < 3000) return kids;

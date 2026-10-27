@@ -7226,6 +7226,7 @@ class CampaignStudio extends StudioBase {
   // (1880 x 940) and `EventBrite_Banner_Small` (758 x 380), spelled as asked — and lands in a
   // folder per variant, the banners in their own folder inside it (`exportPath`). The 16:9
   // was not named in the request and keeps its ratio, loose beside the feed and the Story.
+  // SUPERSEDED (2026-10-27): no folders at all — see exportPath.
   static EXPORT_NAME = { sq: 'feed', pt: 'Portrait_3x4', st: 'Story', ls: 'Landscape_1.91x1', bn: 'EventBrite_Banner_wide', bs: 'EventBrite_Banner_Small' };
   static BANNER_DIR = 'Eventbrite Banners';
   static isBanner(sizeKey) { return sizeKey === 'bn' || sizeKey === 'bs'; }
@@ -11059,17 +11060,17 @@ class CampaignStudio extends StudioBase {
   // The export's own token: `page1`, not `Page 1` — a filename wants no space, and
   // `_page1` was the requested form. A single ad keeps `Master` / `Variant 2`.
   fileLabel(vi) { return CampaignStudio.isCarousel(this.state) ? 'page' + (vi + 1) : this.vLabel(vi); }
-  // The folder a variant's files go in: `Variant A`, `B`, `C` on a single ad — the Master is
-  // A — and ONE `Carousel` folder for a carousel, whose pages belong together rather than a
-  // folder each. The variant is in the FILE name too, so a file dragged out of its folder
-  // into Ads Manager still says which design it is.
+  // Which design a file is: `Variant A`, `B`, `C` on a single ad — the Master is A — and
+  // `page1`, `page2`… on a carousel. It is in the FILE name.
   exportDir(vi) { return CampaignStudio.isCarousel(this.state) ? 'Carousel' : 'Variant ' + String.fromCharCode(65 + vi); }
   exportPath(name, vi, sizeKey, ext) {
-    const dir = this.exportDir(vi), who = CampaignStudio.isCarousel(this.state) ? this.fileLabel(vi) : dir;
+    const who = CampaignStudio.isCarousel(this.state) ? this.fileLabel(vi) : this.exportDir(vi);
     const job = CampaignStudio.EXPORT_NAME[sizeKey] || sizeKey;
-    // NO SUBFOLDERS (2026-10-15, by request): every image goes straight into its Variant (or
-    // Carousel) folder — the banners included. The file name says which job each one is.
-    return dir + '/' + name + '_' + who + '_' + job + '.' + ext;
+    // NO FOLDERS (2026-10-27, by request: "remove foldering of variants, just have it on the
+    // file name"): every image goes straight into the export's own folder, beside the session
+    // file — `<name>_Variant A_feed.jpg`, `<name>_page2_Story.jpg`. Ad sets still reads the
+    // `Variant A/` folders an older export left behind.
+    return name + '_' + who + '_' + job + '.' + ext;
   }
   async doExport(kind) {
     const state = this.state;
@@ -14281,8 +14282,8 @@ class CampaignStudio extends StudioBase {
       // nothing from then on. A page that already has a list (a round trip) keeps it.
       modeCarousel: () => this.upd(x => { if (x.adMode === 'carousel') return x; x.adMode = 'carousel'; x.variants.forEach((v, i) => { if (!Array.isArray(v.mods)) CampaignStudio.forkPage(x, i, x.modules || [], { keepOld: true }); }); x.sel = null; return x; }),
       modeHint: CampaignStudio.isCarousel(s)
-        ? 'Each page keeps its own copy and photo. Exports into one Carousel folder — Name_page1_feed, Name_page2_feed, …'
-        : 'The variants share one set of copy. Exports a folder per variant — Variant A, B, C.',
+        ? 'Each page keeps its own copy and photo. Exports straight into the folder — Name_page1_feed, Name_page2_feed, …'
+        : 'The variants share one set of copy. Exports straight into the folder — Name_Variant A_feed, Name_Variant B_feed, …',
       storyShownOn: CampaignStudio.storyShown(s) ? '1' : undefined,
       storyHiddenOn: CampaignStudio.storyShown(s) ? undefined : '1',
       storyShow: () => this.upd(x => { x.storyOn = true; return x; }),
@@ -14294,8 +14295,8 @@ class CampaignStudio extends StudioBase {
       qrOneCode: 'One code for every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + ' and every size. PNG or SVG, on a white quiet zone.',
       allVarsBtn: CampaignStudio.isCarousel(s) ? 'All pages' : 'All variants',
       allVarsTip: CampaignStudio.isCarousel(s)
-        ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes one Carousel folder — Name_pageN_feed, _Story and the banners for every page, all in that one folder — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
-        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes a folder per variant — Variant A, B and C, each holding all of that variant\u2019s images (feed, Story, 1.91:1, banners) with no folders inside — or a single PDF. Each export overwrites the last. Layout guides download PNG overlays — 1:1, 9:16 and 1.91:1 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
+        ? 'Everything here applies to every page at once. Up to ten pages share one QR code; each page carries its own design components, copy and photo. Export writes every page\u2019s images straight into the folder — Name_pageN_feed, _Story and the banners, no folders — or a single PDF. Each export overwrites the last. Session files carry the design and its photos, so they reopen anywhere.'
+        : 'Everything here applies to every variant at once. Up to three variants share one set of design components and one QR code. Export writes every variant\u2019s images straight into the folder, the variant in each file name — Name_Variant A_feed, Name_Variant B_Story, the 1.91:1 and the banners — with no folders, or a single PDF. Each export overwrites the last. Layout guides download PNG overlays — 1:1, 9:16 and 1.91:1 — marking the margins, platform-UI zones, logo clear space and QR box. Session files carry the design and its photos, so they reopen anywhere.',
       // short, so a field's "To fill in" tag and its scope share one line in the rail
       textScope: CampaignStudio.isCarousel(s) ? 'this page only' : 'every variant',
       // a style variant is per DESIGN variant on a single ad, and a carousel's page IS one
@@ -14311,8 +14312,8 @@ class CampaignStudio extends StudioBase {
       exportSvgDesc: this.deliverWord() + ' · vector text, embedded photos' + (CampaignStudio.storyShown(s) ? '' : ' · no 9:16'),
       // where the files go — the same folders exportPath writes, in the Share panel's words
       exportLayoutNote: CampaignStudio.isCarousel(s)
-        ? 'PNG, JPEG and SVG go into one Carousel folder — every page\u2019s images, banners included, with no folders inside. Each export overwrites the last.'
-        : 'PNG, JPEG and SVG go into a folder per variant — Variant A, then B and C — with every image of that variant in it, the 1.91:1 and the banners included; no folders inside. Each export overwrites the last.',
+        ? 'PNG, JPEG and SVG go straight into the folder, the page in each file name (Name_page1_feed, Name_page2_Story), banners included, with no folders. Each export overwrites the last.'
+        : 'PNG, JPEG and SVG go straight into the folder, the variant in each file name (Name_Variant A_feed, Name_Variant B_Story), the 1.91:1 and the banners included, with no folders. Each export overwrites the last.',
       exportPdfDesc: (CampaignStudio.storyShown(s) ? 'One file · 1:1, then 9:16, then 1.91:1' : 'One file · 1:1, then 1.91:1 — 9:16 hidden') + (anyBanner ? ', then the banners' : ''),
       ...this.expPickVals(true, false),
       // THE SHARE PANEL'S NEW KEYS: a short fact per format card, where the files go, and the
@@ -14324,7 +14325,7 @@ class CampaignStudio extends StudioBase {
         const nV = s.variants.length, car = CampaignStudio.isCarousel(s);
         const plural = { jpg: 'JPEGs', png: 'PNGs', svg: 'SVGs' };
         const one = { jpg: 'JPEG', png: 'PNG', svg: 'SVG' };
-        const where = car ? 'Carousel folder' : (nV > 1 ? 'Variant A\u2013' + String.fromCharCode(64 + nV) + ' folders' : 'Variant A folder');
+        const where = car ? 'No folders, the page in each name' : 'No folders, the variant in each name';
         const extra = '';
         return {
           shFmtJpgFact: 'Smallest \u00b7 for Meta', shFmtPngFact: 'Lossless \u00b7 larger',
@@ -15146,8 +15147,9 @@ class Component extends DCLogic {
   // a button the user had just pressed.
   // ── Ad sets — Main folder › Audience › Variant › Platform › Type ─────────────────
   // A PROJECT is a folder holding a saved .adstudio.json (the source folder itself, or
-  // any folder under it, three levels down). Inside a project only "Variant A/B/…"
-  // folders count, and inside each only "<name>_Variant X_feed" and "_Story" images —
+  // any folder under it, three levels down). Inside a project the exports count: written flat
+  // beside the .adstudio.json since 2026-10-27, or in the "Variant A/B/…" folders older exports
+  // made — only "<name>_Variant X_feed" and "_Story" images —
   // banners, 16:9, carousels and stray files are ignored, and a variant folder holding
   // neither is left out. The newest file wins a slot. Reads files, never re-renders.
   // Object URLs are revoked on every rescan and on close. Instance fields only.
@@ -15240,20 +15242,29 @@ class Component extends DCLogic {
       // read every project's Variant folders at once, then fill the tree in path order, so which
       // project wins a shared slot does not depend on which folder answered first
       const perProj = await Promise.all(found.map(async p => {
+        // an export's images, by variant letter: flat beside the project file (the variant is in
+        // the name), or in an older export's `Variant X/` folder
+        const groups = new Map();
+        const add = (letter, name, h, rel) => { if (!groups.has(letter)) groups.set(letter, []); groups.get(letter).push({ name, h, rel }); };
         const vdirs = [];
-        for await (const [name, h] of p.dir.entries()) if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h, '']);
-        return Promise.all(vdirs.map(async ([vname, vh, vpre]) => {
-          const letter = vname.slice(-1).toUpperCase(), hits = [], outs = [];
+        for await (const [name, h] of p.dir.entries()) {
+          if (h.kind === 'directory' && /^variant [a-z]$/i.test(name)) vdirs.push([name, h]);
+          else if (h.kind === 'file') { const m = /_variant ([a-z])_/i.exec(name); if (m) add(m[1].toUpperCase(), name, h, name); }
+        }
+        await Promise.all(vdirs.map(async ([vname, vh]) => {
+          for await (const [name, h] of vh.entries()) if (h.kind === 'file') add(vname.slice(-1).toUpperCase(), name, h, vname + '/' + name);
+        }));
+        return Promise.all([...groups].map(async ([letter, fl]) => {
+          const hits = [], outs = [];
           const re = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5)\\.(png|jpe?g|webp)$', 'i');
           // every file an export of this variant wrote — the banners too — so editing the
           // text re-exports exactly what is already in the folder, and nothing else
           const reOut = new RegExp('_variant ' + letter + '_(feed|portrait_3x4|story|square_1x1|vertical_9x16|landscape_1\\.91x1|portrait_4x5|eventbrite_banner_wide|eventbrite_banner_small)\\.(png|jpe?g)$', 'i');
-          for await (const [name, h] of vh.entries()) {
-            if (h.kind !== 'file') continue;
+          for (const { name, h, rel } of fl) {
             const m = re.exec(name);
-            if (m) hits.push({ kind: m[1].toLowerCase(), h, path: (p.path ? p.path + '/' : '') + vpre + vname + '/' + name });
+            if (m) hits.push({ kind: m[1].toLowerCase(), h, path: (p.path ? p.path + '/' : '') + rel });
             const o = reOut.exec(name);
-            if (o) outs.push({ letter, job: o[1].toLowerCase(), ext: o[2].toLowerCase(), h, name: vpre + vname + '/' + name });
+            if (o) outs.push({ letter, job: o[1].toLowerCase(), ext: o[2].toLowerCase(), h, name: rel });
           }
           await Promise.all(hits.concat(outs).map(async x => { x.lm = await lmOf(x.h); }));
           return { letter, hits, outs };
@@ -15514,7 +15525,7 @@ class Component extends DCLogic {
     const viaHandle = items.length && items[0].getAsFileSystemHandle ? items.map(it => it.getAsFileSystemHandle()) : null;
     const viaEntry = !viaHandle ? items.map(it => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean) : [];
     const done = dir => {
-      if (!dir) { this._asErr = 'That was a file, not a folder. Drop the folder that holds the saved project (the .adstudio.json and its Variant folders).'; this.setState({ adSetsOpen: true }); this.forceUpdate(); return; }
+      if (!dir) { this._asErr = 'That was a file, not a folder. Drop the folder that holds the saved project (the .adstudio.json and its exported images).'; this.setState({ adSetsOpen: true }); this.forceUpdate(); return; }
       this.asView({ kind: 'local', handle: dir, name: dir.name });
     };
     if (viaHandle) Promise.all(viaHandle).then(hs => done(hs.find(h => h && h.kind === 'directory'))).catch(() => done(null));

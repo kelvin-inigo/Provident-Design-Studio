@@ -22,6 +22,8 @@ if not (os.environ.get('KV_REST_API_URL') or os.environ.get('UPSTASH_REDIS_REST_
 spec = importlib.util.spec_from_file_location('share', os.path.join(ROOT, 'api', 'share.py'))
 share = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(share)
+sys.path.insert(0, os.path.dirname(__file__))
+import drive_mock  # noqa: E402  the Google Drive stand-in (review links stored on Drive)
 
 
 class H(SimpleHTTPRequestHandler):
@@ -44,12 +46,43 @@ class H(SimpleHTTPRequestHandler):
     def is_api(self):
         return urllib.parse.urlsplit(self.path).path == '/api/share'
 
+    def is_drive(self):
+        p = urllib.parse.urlsplit(self.path).path
+        return p.startswith('/drive/v3/') or p.startswith('/upload/drive/v3/') or p == '/drive-mock'
+
+    def _drive(self, method):
+        u = urllib.parse.urlsplit(self.path)
+        n = int(self.headers.get('Content-Length') or 0)
+        body = self.rfile.read(n) if n else b''
+        if u.path == '/drive-mock':  # the test's own view of the stand-in: its tree, or a reset
+            if 'reset' in u.query: drive_mock.reset()
+            import json as _j
+            code, ctype, out = 200, 'application/json', _j.dumps(drive_mock.snapshot()).encode()
+        else:
+            code, ctype, out = drive_mock.route(method, u.path, u.query, self.headers, body)
+        self.send_response(code)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Content-Type', ctype)
+        self.send_header('Content-Length', str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
+
     def do_GET(self):
         if self.is_api(): return self._api('GET')
+        if self.is_drive(): return self._drive('GET')
         return super().do_GET()
 
     def do_POST(self):
         if self.is_api(): return self._api('POST')
+        if self.is_drive(): return self._drive('POST')
+        self.send_error(405)
+
+    def do_PATCH(self):
+        if self.is_drive(): return self._drive('PATCH')
+        self.send_error(405)
+
+    def do_DELETE(self):
+        if self.is_drive(): return self._drive('DELETE')
         self.send_error(405)
 
     def do_OPTIONS(self):
@@ -57,7 +90,7 @@ class H(SimpleHTTPRequestHandler):
         self.send_error(405)
 
     def end_headers(self):
-        if not self.is_api():
+        if not self.is_api() and not self.is_drive():
             self.send_header('Cache-Control', 'no-store')
         super().end_headers()
 

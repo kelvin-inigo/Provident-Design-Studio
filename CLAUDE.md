@@ -16683,3 +16683,42 @@ link of the same project added ~1 KB, and the receiver loaded the 1.45 MB copy w
 re-uploaded and nothing logged. **Trade-off:** someone who only has the link (PM's renders, CT)
 draws from the 2560px copy, a slight upscale on a 2x Story export; the designer exports from
 their own originals. Not exercised on real Upstash.
+
+# AD SET REVIEWS LIVE IN THE AD SET'S GOOGLE DRIVE FOLDER (2026-10-27)
+
+By request: the review links' backend moved from Upstash to Google Drive; every screen is
+unchanged. **`dsApi` (share-link.js, "REVIEW LINKS ON GOOGLE DRIVE") answers the share store's
+own requests in the same shapes** — get, sync, rev, save, rsget, rsstep, rsset, rsdel, rsinfo —
+so `api()` just routes a Drive id to it, and photos go through `dsPutRec` / `dsFetchRec` from
+`putRec` / `fetchRec`. Layout of the Main folder the designer names in the setup dialog:
+
+```
+<Main>/Ad set review/Ad set.json   ad set record + its log + tok + thumb (one file)
+<Main>/<Market>/<Audience>/<English|Arabic>/<name>.adstudio.json   session file; `review` holds
+       meta, rev, imgs {slot: {h, n:1, f: Drive file id, m: crop fields}}, log, sum, thumb, rid
+       .../Assets/background-variant-a.webp …   one file per picture (slimFull, 2560px)
+```
+- **Ids**: a project is `'D' + .adstudio.json file id`; an ad set link is `'R' + 10 random chars +
+  '.' + Ad set.json file id`, role looked up in `rs.tok`. `isDs`, `isRsId` and `SHARE_ID` replaced
+  every `length === 16` / `{8,16}` test. Old Upstash ad sets (16-char tokens) keep working.
+- **Reads are cached by Drive `version`** (`dsRead`): a poll is one metadata request. Saves are
+  read-check-write against `review.rev`; Drive has no atomic compare-and-set, so two saves in the
+  same second can race (the loser's next save merges via the usual 409 path only if it reads the
+  new rev first). Acceptable for this team; note it.
+- **Sign-in**: `providentDrive` now keeps its token per tab in sessionStorage
+  (`provident-drive-tok`) and fires `provident-drive-signed`. A Drive link opens through `dsGate`
+  (a click to sign in); an expired token shows `dsSignBar`. Drive's sharing is the access
+  control; the role in a link is workflow only (a pm save is refused by dsApi, client side).
+- **Relabel moves the language folder** (`dsMove`); delete marks Ad set.json `deleted` and
+  clears each project's `rid` (files stay). Nothing on Drive expires, so `shHeal` skips Drive.
+- **Exports are flat** now (`exportPath`: `<name>_Variant A_feed.jpg`, no Variant folders); Ad
+  sets reads flat files and old Variant folders both.
+- **Testing**: `tools/share-dev/drive_mock.py` is a Drive v3 stand-in served by serve.py at the
+  same origin. Set `localStorage['provident-drive-base'] = location.origin` and
+  `sessionStorage['provident-drive-tok'] = {at:'dev', exp}`; `/drive-mock` prints the tree
+  (`?reset` clears). Verified there: setup dialog → folder tree, designer edit saved and logged,
+  content team's Edit text edit saved and pulled by the designer, design done → copy approved,
+  Arabic added to its own folder, PM view rendering both audiences from Drive photos, archive
+  list + detail, relabel moving the folder. **Not exercised against the real Google Drive**:
+  sign-in needs a person at the keyboard. The real test folder (Review link Test,
+  11Rk2HnQXzIXpphUvdTFw_UkRFCRKof87) was confirmed reachable and writable via the Drive connector.

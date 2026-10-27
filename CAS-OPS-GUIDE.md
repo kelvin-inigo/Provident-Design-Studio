@@ -210,10 +210,30 @@ Each **audience** (a market plus an audience, for example *Local · Family*) goe
 steps: **Design › ENG copy check › Translation › Done**.
 
 1. **Start the ad set.** Open the English project for the first audience and press **Share › Ad
-   set review**. Choose **Start a new ad set**, name it, pick **Residential** or **Commercial**, then
-   say what this project is (market, audience, language) and press **Make the ad set**. The
-   project is shared first if it isn't already. Send each team its link once. All three links
-   stay the same as the ad set grows.
+   set review**. Choose **Start a new ad set**, name it, pick **Residential** or **Commercial**,
+   paste the link of the **Google Drive folder** the ad set goes in (its **Main folder**), then
+   say what this project is (market, audience, language) and press **Make the ad set**. Google
+   asks you to sign in with your Provident account the first time. Send each team its link once.
+   All three links stay the same as the ad set grows.
+   - **Everything is saved in that folder**, laid out like this, and kept up to date as people
+     work:
+
+     ```
+     Main folder/
+       Ad set review/Ad set.json          ← the ad set: its steps, links and log
+       Local/
+         Family/
+           English/
+             <name>.adstudio.json         ← the project, its words and its change log
+             Assets/background-variant-a.webp …   ← its pictures, one file each
+           Arabic/ …
+         Investor/ …
+       International/ …
+     ```
+   - **Everyone who opens a link signs in with their Provident Google account** and needs access
+     to the folder. Share the folder (or use a Shared drive the team belongs to) before sending
+     the links.
+   - Ad sets started before 27 Oct 2026 stay where they were and keep working.
 2. **Add the other projects** the same way, from each project: **Share › Ad set review › Add to
    an ad set**, choose the ad set and say what the project is. Work audience by audience: design
    every audience first, then add the Arabic versions.
@@ -544,24 +564,25 @@ machine reopens on Copy.
 
 ```
 Source folder/
-  Variant A/                        ← the Master; Variant B and C for more variants
-    <name>_Variant A_feed.jpg       ← 1:1
-    <name>_Variant A_Portrait_3x4.jpg            ← 3:4, unless hidden
-    <name>_Variant A_Story.jpg      ← 9:16
-    <name>_Variant A_Landscape_1.91x1.jpg        ← 1200 × 628, unless hidden
-    <name>_Variant A_EventBrite_Banner_wide.jpg  ← 1880 × 940
-    <name>_Variant A_EventBrite_Banner_Small.jpg ← 758 × 380
+  <name>_Variant A_feed.jpg       ← 1:1 (Variant A is the Master; B and C for more variants)
+  <name>_Variant A_Portrait_3x4.jpg            ← 3:4, unless hidden
+  <name>_Variant A_Story.jpg      ← 9:16
+  <name>_Variant A_Landscape_1.91x1.jpg        ← 1200 × 628, unless hidden
+  <name>_Variant A_EventBrite_Banner_wide.jpg  ← 1880 × 940
+  <name>_Variant A_EventBrite_Banner_Small.jpg ← 758 × 380
+  <name>_Variant B_feed.jpg …
   <name>.adstudio.json   Assets/    ← the session and uploads, refreshed on every export
 ```
+
+The variant is in each file's name; there are no Variant folders (an export made before 27 Oct
+2026 has them, and Ad sets still reads those).
 
 - **Every export overwrites the last one without asking.** It never deletes anything, so files an
   export no longer writes (a removed variant, a hidden banner, old names) stay until you delete
   them yourself.
-- **There are no folders inside a variant's folder.** Every image of that variant sits side by
-  side; the file name says which one it is.
-- A **carousel** exports into one `Carousel/` folder, with files named `<name>_page1_feed.jpg` and
-  so on, banners included.
-- **Without a Source folder**, you get a zip with the same folders inside.
+- A **carousel** exports the same way, with files named `<name>_page1_feed.jpg` and so on,
+  banners included.
+- **Without a Source folder**, you get a zip of the same files.
 - **PDF** is one file with every size, saved wherever you choose.
 - **Everything Content Hub is in OPS only**: CAS has no Send, no Import hub settings and no
   **From the hub** view.

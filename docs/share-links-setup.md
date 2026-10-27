@@ -1,5 +1,11 @@
 # Shared edit links — admin setup
 
+> **Ad set reviews started from 27 Oct 2026 are stored in Google Drive**, in the Main folder the
+> designer names when starting the ad set (see CAS-OPS-GUIDE.md, *Run an ad set review*). They need
+> the Google sign-in client ID that is already in `studio-base.js`, and everyone who opens a link
+> needs access to that folder. They use none of the share store below. The store is still used by
+> plain **Share an edit link** links and by ad sets started before that date.
+
 CAS and OPS can make a link to a project that other people open, look at and change, with a
 Changes panel saying who changed what (**Share › Share an edit link**). The links are stored by a
 small function on the studio website, `api/share.py`, which needs a database connected to the

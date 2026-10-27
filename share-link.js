@@ -120,6 +120,14 @@
     return StudioBase.shareBase() + '/' + encodeURIComponent(sp ? sp.file : '') + '#share=' + id;
   };
   async function api(op, q, body, raw) {
+    if (q && isDs(q.id)) return dsApi(op, q, body);
+    if (op === 'rsinfo' && q && q.ids && String(q.ids).split(',').some(isDs)) {
+      // an archive holding both kinds: Drive ad sets from Drive, the rest from the share store
+      const all = String(q.ids).split(','), dsIds = all.filter(isDs), up = all.filter(x => !isDs(x));
+      const [a, b] = await Promise.all([dsInfo(dsIds, q.full === '1'), up.length ? api('rsinfo', Object.assign({}, q, { ids: up.join(',') })) : { items: [] }]);
+      const by = {}; a.items.concat(b.items || []).forEach(x => { by[x.id] = x; });
+      return { items: all.map(x => by[x]).filter(Boolean) };
+    }
     let u = StudioBase.shareBase() + '/api/share?op=' + op;
     Object.keys(q || {}).forEach(k => { if (q[k] != null && q[k] !== '') u += '&' + k + '=' + encodeURIComponent(q[k]); });
     const opt = { cache: 'no-store' };
@@ -132,6 +140,378 @@
     if (r.status === 409) { const er = new Error('stale'); er.stale = true; er.rev = d && d.rev; throw er; }
     if (!r.ok) throw new Error((d && d.error) || ('The share store answered HTTP ' + r.status + '.'));
     return d;
+  }
+
+  // ══ REVIEW LINKS ON GOOGLE DRIVE (2026-10-27) ══════════════════════════════════════════════
+  // An ad set made from now on lives in the Drive folder the designer names when starting it,
+  // not in the share store:
+  //   <Main folder>/
+  //     Ad set review/Ad set.json          the ad set: labels, steps, the three links, its log
+  //     <Market>/<Audience>/<English|Arabic>/
+  //       <name>.adstudio.json             the project, with its review data (revision, photo
+  //                                        map, changelog) under `review`; a session file too
+  //       Assets/background-variant-a.webp  …its pictures, one file per picture
+  //       <name>_Variant A_feed.jpg …      the exports, flat, when the designer exports there
+  // A project's id is 'D' + its .adstudio.json's Drive file id; an ad set link is
+  // 'R' + a random token + '.' + Ad set.json's file id. dsApi answers the share store's own
+  // requests (get, sync, rev, save, rsget, rsstep, rsset, rsdel, rsinfo) in the same shapes, so
+  // every screen of the review links works unchanged. Drive's sharing is the access control:
+  // whoever opens a link signs in with their Google account and needs access to the folder; the
+  // role in the link (designer, content team, performance marketing) is a workflow, as before.
+  const DS_SET = 'Ad set review', DS_FILE = 'Ad set.json', DS_ASSETS = 'Assets';
+  const DS_LANG = { ENG: 'English', ARB: 'Arabic' }, DS_FOLDER = 'application/vnd.google-apps.folder';
+  const isDs = id => /^[DR][\w.-]{20,}$/.test(String(id || ''));
+  const isRsId = id => { id = String(id || ''); return /^[A-Za-z0-9]{16}$/.test(id) || /^R[\w-]+\.[\w-]{20,}$/.test(id); };
+  const SHARE_ID = /^(?:[A-Za-z0-9]{8,16}|[DR][\w.-]{20,})$/;
+  const dsOn = () => !!(window.providentDrive && window.providentDrive.clientId && window.providentDrive.clientId());
+  function dsFail(code, msg) { const e = new Error(msg); e.code = code; return e; }
+  function dsAuth() { const e = new Error('Sign in with Google to open this review — it is stored in the ad set’s Drive folder.'); e.gdAuth = true; return e; }
+  async function dsFetch(path, opt) {
+    const D = window.providentDrive;
+    if (!D || !D.valid()) { dsSignBar(); throw dsAuth(); }
+    try { return await D.fetch(D.base() + path, opt); }
+    catch (e) { if (e && e.gdAuth) dsSignBar(); throw e; }
+  }
+  const DS_F = 'id,name,mimeType,version,modifiedTime,size,parents';
+  async function dsList(parent, name) {
+    let q = "'" + parent + "' in parents and trashed=false";
+    if (name != null) q += " and name='" + String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+    const out = []; let tok = '';
+    do {
+      const r = await dsFetch('/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=nextPageToken,files(' + DS_F + ')&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true' + (tok ? '&pageToken=' + tok : ''));
+      const d = await r.json(); out.push(...(d.files || [])); tok = d.nextPageToken || '';
+    } while (tok);
+    return out;
+  }
+  const dsMeta = async id => (await dsFetch('/drive/v3/files/' + id + '?fields=' + DS_F + '&supportsAllDrives=true')).json();
+  async function dsFolder(parent, name) {
+    const f = (await dsList(parent, name)).find(x => x.mimeType === DS_FOLDER);
+    if (f) return f.id;
+    const r = await dsFetch('/drive/v3/files?supportsAllDrives=true&fields=' + DS_F, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, mimeType: DS_FOLDER, parents: [parent] }) });
+    return (await r.json()).id;
+  }
+  async function dsCreate(parent, name, blob) {
+    const b = 'pds' + Math.random().toString(36).slice(2), type = blob.type || 'application/octet-stream';
+    const body = new Blob(['--' + b + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify({ name, parents: [parent] }) +
+      '\r\n--' + b + '\r\nContent-Type: ' + type + '\r\n\r\n', blob, '\r\n--' + b + '--'], { type: 'multipart/related; boundary=' + b });
+    return (await dsFetch('/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=' + DS_F, { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body })).json();
+  }
+  const dsPut = async (id, blob) => (await dsFetch('/upload/drive/v3/files/' + id + '?uploadType=media&supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': blob.type || 'application/octet-stream' }, body: blob })).json();
+  async function dsUpsert(parent, name, blob) { const f = (await dsList(parent, name)).find(x => x.mimeType !== DS_FOLDER); return f ? dsPut(f.id, blob) : dsCreate(parent, name, blob); }
+  const dsJson = o => new Blob([JSON.stringify(o)], { type: 'application/json' });
+  // A file's JSON, held by its Drive `version`: a poll costs one metadata request, and the
+  // content is fetched again only when someone changed it.
+  const DSC = {}, DSP = {};
+  async function dsRead(id, fresh) {
+    const c = DSC[id];
+    if (c && !fresh && Date.now() - c.at < 1500) return c.d;
+    const m = await dsMeta(id);
+    if (c && c.v === m.version) { c.at = Date.now(); c.meta = m; return c.d; }
+    const d = await (await dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true')).json();
+    DSC[id] = { v: m.version, d, at: Date.now(), meta: m };
+    return d;
+  }
+  async function dsWrite(id, d) { const m = await dsPut(id, dsJson(d)); DSC[id] = { v: m.version, d, at: Date.now(), meta: m }; return m; }
+  const dsNow = () => Date.now();
+  const dsWho = v => String(v || '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Someone';
+  function dsEntry(by, changes, burst) {
+    if (!Array.isArray(changes) || !changes.length) return null;
+    const out = [];
+    changes.slice(0, 60).forEach(c => {
+      if (!c || typeof c !== 'object') return;
+      const e = {}; ['kind', 'page', 'label', 'was', 'now', 'text'].forEach(f => { if (c[f] != null && c[f] !== '') e[f] = String(c[f]).slice(0, 400); });
+      if (Object.keys(e).length) out.push(e);
+    });
+    return out.length ? { by: dsWho(by), at: dsNow(), burst: String(burst || '').slice(0, 24), changes: out } : null;
+  }
+  const dsItemLabel = it => [it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project';
+  function dsPub(rs, role) {
+    if (!rs) return null;
+    const o = {}; ['rid', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items'].forEach(k => { o[k] = rs[k]; });
+    o.hist = (rs.hist || []).slice(-60);
+    if (role === 'dd') o.tok = rs.tok;
+    return o;
+  }
+  function dsLog(rs, by, changes) { const e = dsEntry(by, changes, ''); if (e) { e.rev = 0; rs.log = (rs.log || []).concat(e).slice(-500); } }
+  async function dsResolve(id, p, fresh) {
+    if (id[0] === 'R') {
+      const fid = id.slice(id.indexOf('.') + 1), rs = await dsRead(fid, fresh);
+      const role = Object.keys(rs.tok || {}).find(r => rs.tok[r] === id);
+      if (!role || rs.deleted) throw dsFail(404, 'This review link is not valid.');
+      if (p && !(rs.items || []).some(x => x.sid === p)) throw dsFail(404, 'That project is not in this ad set.');
+      return { sid: p || null, role, rs, rid: fid };
+    }
+    const d = await dsRead(id.slice(1), fresh), rv = d.review || {};
+    let rs = null;
+    if (rv.rid) { try { rs = await dsRead(rv.rid, fresh); if (rs.deleted || !(rs.items || []).some(x => x.sid === id)) rs = null; } catch (e) { if (e.gdAuth) throw e; rs = null; } }
+    return { sid: id, role: rs ? 'dd' : null, rs, rid: rs ? rv.rid : null };
+  }
+  const DS_STEP = { 'design-done': [['dd'], 'design', true], 'design-open': [['dd'], 'design', false], 'copy-done': [['ct'], 'copy', true], 'copy-open': [['ct', 'dd'], 'copy', false] };
+  async function dsApi(op, q, body) {
+    q = q || {}; body = body || {};
+    if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
+    const writes = { save: 1, rsstep: 1, rsset: 1, rsdel: 1 };
+    const R = await dsResolve(q.id, q.p, !!writes[op]);
+    const pub = () => dsPub(R.rs, R.role);
+    if (op === 'rsget') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      const proj = {};
+      await Promise.all((R.rs.items || []).map(async it => {
+        try {
+          const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
+          proj[it.sid] = { rev: rv.rev || 0, n: (rv.log || []).length };
+          if (q.full === '1') { proj[it.sid].sum = rv.sum || {}; proj[it.sid].thumb = rv.thumb || ''; }
+        } catch (e) { if (e.gdAuth) throw e; proj[it.sid] = { rev: null, n: 0 }; }
+      }));
+      const out = { role: R.role, rs: pub(), proj, ln: (R.rs.log || []).length };
+      if (q.full === '1') out.log = (R.rs.log || []).slice(-300);
+      return out;
+    }
+    if (op === 'rsstep') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      const st = DS_STEP[body.act]; if (!st) throw dsFail(400, 'Unknown step.');
+      const sid = body.p || R.sid, it = (R.rs.items || []).find(x => x.sid === sid);
+      if (!it) throw dsFail(404, 'That project is not in this ad set.');
+      if (st[0].indexOf(R.role) < 0) throw dsFail(403, 'Your link cannot change that step.');
+      const by = dsWho(body.by), now = dsNow(), field = st[1], done = st[2], arb = it.lang === 'ARB';
+      it[field] = done ? { by, at: now } : null;
+      R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
+      const text = field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
+        : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
+      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it), text }]);
+      if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
+      await dsWrite(R.rid, R.rs);
+      return { rs: pub() };
+    }
+    if (op === 'rsset') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      if (R.role !== 'dd') throw dsFail(403, 'Only the designer changes the ad set.');
+      const rs = R.rs, by = dsWho(body.by);
+      if ('name' in body && String(body.name || '').trim()) rs.name = String(body.name).trim().slice(0, 120);
+      if (body.eng_only && typeof body.eng_only === 'object') { rs.eng_only = rs.eng_only || {}; Object.keys(body.eng_only).slice(0, 40).forEach(k => { if (body.eng_only[k]) rs.eng_only[k] = true; else delete rs.eng_only[k]; }); }
+      if (body.relabel) {
+        const r = body.relabel, it = (rs.items || []).find(x => x.sid === r.sid);
+        if (!it) throw dsFail(404, 'That project is not in this ad set.');
+        if ((rs.items || []).some(x => x.sid !== r.sid && x.market === r.market && x.aud === r.aud && x.lang === r.lang)) throw dsFail(409, 'Another project in this ad set is already ' + dsItemLabel(r) + '.');
+        const was = dsItemLabel(it);
+        await dsMove(rs, it.sid, r);
+        it.market = r.market; it.aud = r.aud; it.lang = r.lang;
+        dsLog(rs, by, [{ kind: 'step', text: 'Changed ' + was + ' to ' + dsItemLabel(it) }]);
+      }
+      if (body.remove) {
+        const gone = (rs.items || []).find(x => x.sid === body.remove);
+        rs.items = (rs.items || []).filter(x => x.sid !== body.remove);
+        try { const d = await dsRead(body.remove.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(body.remove.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; }
+        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone) + ' from the ad set' }]);
+      }
+      await dsWrite(R.rid, rs);
+      return { rs: pub() };
+    }
+    if (op === 'rsdel') {
+      if (!R.rs || R.role !== 'dd') throw dsFail(403, 'Only the designer deletes an ad set.');
+      for (const it of R.rs.items || []) { try { const d = await dsRead(it.sid.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(it.sid.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; } }
+      R.rs.deleted = dsNow(); R.rs.items = []; R.rs.tok = {};
+      await dsWrite(R.rid, R.rs);
+      return { deleted: true };
+    }
+    // ---- one project ----
+    if (!R.sid) throw dsFail(400, 'Name the project (p=) — this is an ad set link.');
+    const fid = R.sid.slice(1);
+    if (op === 'get' || op === 'sync' || op === 'rev') {
+      const d = await dsRead(fid, op !== 'rev'), rv = d.review || {}, log = rv.log || [], n = log.length;
+      if (op === 'rev') return { rev: rv.rev || 0, n, role: R.role, rs: pub() };
+      const from = op === 'get' ? Math.max(0, n - 200) : Math.min(n, Math.max(0, Number(q.from) || 0));
+      const out = { state: d.state, rev: rv.rev || 0, imgs: rv.imgs || {}, log: log.slice(from), from, n, role: R.role, rs: pub() };
+      if (op === 'get') out.meta = rv.meta || { app: d.app, name: '' };
+      return out;
+    }
+    if (op === 'save') {
+      if (R.role === 'pm') throw dsFail(403, 'This link is for viewing the ad sets — it cannot change the project.');
+      const d = await dsRead(fid, true), rv = d.review || (d.review = {});
+      if ((rv.rev || 0) !== Number(body.base || 0)) { const e = new Error('stale'); e.stale = true; e.rev = rv.rev || 0; throw e; }
+      if (body.state != null) d.state = body.state;
+      rv.rev = (rv.rev || 0) + 1;
+      rv.imgs = rv.imgs || {};
+      Object.keys(body.imgs || {}).forEach(sl => { if (body.imgs[sl]) rv.imgs[sl] = body.imgs[sl]; else delete rv.imgs[sl]; });
+      const e = dsEntry(body.by, body.changes, body.burst);
+      if (e) {
+        e.rev = rv.rev;
+        const log = rv.log || (rv.log = []), last = log[log.length - 1];
+        if (e.burst && last && last.burst === e.burst) log[log.length - 1] = e; else log.push(e);
+        rv.log = log.slice(-500);
+      }
+      if (R.rs && body.sum && typeof body.sum === 'object') rv.sum = body.sum;
+      await dsWrite(fid, d);
+      return { rev: rv.rev };
+    }
+    throw dsFail(404, 'Unknown request.');
+  }
+  // the designer's archive: one summary per ad set, by its designer link
+  async function dsInfo(ids, full) {
+    const items = [];
+    for (const id of ids.slice(0, 60)) {
+      try {
+        const R = await dsResolve(id);
+        if (R.role !== 'dd' || !R.rs) { items.push({ id, gone: true }); continue; }
+        const e = { id, dd: R.rs.tok.dd, rs: dsPub(R.rs, 'dd'), thumb: R.rs.thumb || '', live: {} };
+        const plog = [], proj = {};
+        await Promise.all((R.rs.items || []).map(async it => {
+          try {
+            const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
+            e.live[it.sid] = true;
+            proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it) })));
+          } catch (er) { if (er.gdAuth) throw er; e.live[it.sid] = false; }
+        }));
+        if (full) { e.log = (R.rs.log || []).slice(-300); e.rs.hist = R.rs.hist || []; e.plog = plog; e.proj = proj; }
+        items.push(e);
+      } catch (er) { if (er.gdAuth) throw er; items.push({ id, gone: true }); }
+    }
+    return { items };
+  }
+  const dsRand = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 56]).join('');
+  const dsSafe = t => String(t || 'Project').replace(/[\\/:*?"<>|#%]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Project';
+  // where a project lives: <Main>/<Market>/<Audience>/<English|Arabic>
+  async function dsPath(main, it) {
+    const m = await dsFolder(main, it.market || 'Market');
+    const a = await dsFolder(m, it.aud || 'Audience');
+    return dsFolder(a, DS_LANG[it.lang] || it.lang || 'English');
+  }
+  // relabelling moves the project's folder to its new place
+  async function dsMove(rs, sid, to) {
+    const m = await dsMeta(sid.slice(1)), lang = (m.parents || [])[0];
+    if (!lang || !rs.folder) return;
+    const lm = await dsMeta(lang), m2 = await dsFolder(rs.folder, to.market), a2 = await dsFolder(m2, to.aud);
+    await dsFetch('/drive/v3/files/' + lang + '?addParents=' + a2 + '&removeParents=' + ((lm.parents || [])[0] || '') + '&supportsAllDrives=true&fields=' + DS_F,
+      { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DS_LANG[to.lang] || to.lang }) });
+    delete DSP[sid];
+  }
+  // A picture's file name in Assets/: what it is, then which variant.
+  function dsAssetName(sl) {
+    let m;
+    const L = i => 'variant-' + String.fromCharCode(97 + (Number(i) || 0));
+    if ((m = /^adstudio-bg-(\d+)(?:-(\w+))?$/.exec(sl))) return 'background-' + L(m[1]) + (m[2] ? '-' + ({ st: 'story', ls: 'landscape', pt: 'portrait', bn: 'banner' }[m[2]] || m[2]) : '');
+    if ((m = /^adstudio-fg-(\d+)$/.exec(sl))) return 'cutout-' + L(m[1]);
+    if (sl === 'adstudio-qr') return 'qr';
+    if (sl === 'adstudio-colog') return 'logo-partner';
+    if ((m = /^adstudio-mod-(.+)$/.exec(sl))) return 'graphic-' + m[1];
+    if ((m = /^adstudio-ic-(.+)-(\d+)$/.exec(sl))) return 'icon-' + m[1] + '-' + (Number(m[2]) + 1);
+    return sl.replace(/[^\w-]+/g, '-');
+  }
+  async function dsAssets(sid) {
+    const P = DSP[sid] || (DSP[sid] = {});
+    if (!P.assets) { const m = await dsMeta(sid.slice(1)); P.assets = await dsFolder((m.parents || [])[0], DS_ASSETS); }
+    return P.assets;
+  }
+  // A picture goes up as its own file (at the sharing size, see slimFull); the link's photo map
+  // names the file (f) and keeps the crop (m) — the bytes are never in a JSON.
+  async function dsPutRec(id, slot, rec) {
+    const txt = JSON.stringify(rec), h = fnv(txt), sl = await slimFull(rec);
+    const blob = await (await fetch(sl.u)).blob();
+    const ext = { 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/svg+xml': 'svg', 'image/gif': 'gif' }[blob.type] || 'bin';
+    const f = await dsUpsert(await dsAssets(id), dsAssetName(slot) + '.' + ext, blob);
+    const m = Object.assign({}, rec); delete m.u;
+    return { h, n: 1, f: f.id, m };
+  }
+  async function dsFetchRec(e) {
+    const b = await (await dsFetch('/drive/v3/files/' + e.f + '?alt=media&supportsAllDrives=true')).blob();
+    const u = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+    return Object.assign({}, e.m || {}, { u });
+  }
+  // A new project in an ad set's folder: the folders on its path, its file, its pictures.
+  async function dsProject(main, rid, it, st, by, name, app) {
+    const lang = await dsPath(main, it);
+    const fname = dsSafe(name) + '.adstudio.json';
+    if ((await dsList(lang, fname)).length) throw dsFail(409, 'This folder already holds ' + fname + ' for ' + dsItemLabel(it) + '.');
+    const now = dsNow();
+    const doc = { app, state: st, images: {}, review: { meta: { app, name, by, created: now }, rev: 1, imgs: {}, rid,
+      log: [{ by, at: now, burst: '', changes: [{ kind: 'note', text: 'Shared the project' }], rev: 1 }] } };
+    const f = await dsCreate(lang, fname, dsJson(doc));
+    DSC[f.id] = { v: f.version, d: doc, at: now, meta: f };
+    return 'D' + f.id;
+  }
+  // Start an ad set in a folder, or add a project to one: the setup dialog's two paths.
+  SP.dsReview = async function (dlg, ans) {
+    const D = window.providentDrive, by = dsWho(ans.by);
+    const st = this.shPub(), name = this.shName(st), app = this.shApp();
+    let rs, rid;
+    if (ans.mode === 'new') {
+      const folder = await D.folderOf(ans.folder);
+      dlg.busy('Setting up the ad set in “' + folder.name + '”…');
+      const setDir = await dsFolder(folder.id, DS_SET);
+      const had = (await dsList(setDir, DS_FILE))[0];
+      if (had) { const old = await dsRead(had.id, true); if (!old.deleted) throw dsFail(409, '“' + folder.name + '” already holds an ad set (' + (old.name || 'unnamed') + '). Choose “Add to an ad set”, or another folder.'); }
+      const tokOf = () => dsRand(10);
+      rs = { app: 'provident-ad-set', name: ans.name, product: ans.product, created: dsNow(), by, drive: 'https://drive.google.com/drive/folders/' + folder.id,
+        folder: folder.id, eng_only: {}, items: [], hist: [], log: [] };
+      const f = had ? { id: had.id } : await dsCreate(setDir, DS_FILE, dsJson(rs));
+      rid = f.id; rs.rid = rid;
+      rs.tok = { dd: 'R' + tokOf() + '.' + rid, ct: 'R' + tokOf() + '.' + rid, pm: 'R' + tokOf() + '.' + rid };
+    } else {
+      const R = await dsResolve(ans.dd, null, true);
+      if (R.role !== 'dd') throw dsFail(403, 'Only the designer adds projects to an ad set.');
+      rs = R.rs; rid = R.rid;
+    }
+    const it = { market: ans.market, aud: ans.aud, lang: ans.lang };
+    if ((rs.items || []).some(x => x.market === it.market && x.aud === it.aud && x.lang === it.lang)) throw dsFail(400, dsItemLabel(it) + ' is already in the ad set.');
+    dlg.busy('Saving the project into ' + [it.market, it.aud, DS_LANG[it.lang]].join(' / ') + '…');
+    const sid = await dsProject(rs.folder, rid, it, st, by, name, app);
+    // the pictures, one file each, then the project's photo map
+    const C = IS(), map = {}, imgs = {}, slots = this.shSlots();
+    let k = 0;
+    for (const sl of slots) {
+      const rec = C.getRec(sl);
+      if (!rec || !rec.u) continue;
+      dlg.busy('Saving pictures · ' + (++k) + '…');
+      const e = await dsPutRec(sid, sl, rec); map[sl] = e; imgs[sl] = e.h;
+    }
+    let rev = 1;
+    if (Object.keys(map).length) rev = (await dsApi('save', { id: sid }, { base: 1, by, imgs: map })).rev;
+    const now = dsNow(), item = Object.assign({ sid, added: now, by, design: null, copy: null }, it);
+    rs.items = (rs.items || []).concat(item);
+    rs.hist = (rs.hist || []).concat({ act: ans.mode === 'new' ? 'start' : 'add', by, at: now, sid }).slice(-400);
+    dsLog(rs, by, [{ kind: 'step', text: (ans.mode === 'new' ? 'Started the ad set with ' : 'Added ') + dsItemLabel(item) }]);
+    try { const th = await this.rvThumb(); if (th && th.length < 120000) rs.thumb = th; } catch (e) {}
+    await dsWrite(rid, rs);
+    // the project's summary and picture for the archive
+    try { const d = await dsRead(sid.slice(1), true); d.review.sum = this.rvSum(st); if (rs.thumb) d.review.thumb = rs.thumb; await dsWrite(sid.slice(1), d); } catch (e) {}
+    ssSet(this.shKey(), { id: sid, rev: (DSC[sid.slice(1)] && DSC[sid.slice(1)].d.review.rev) || rev, n: 0, pid: this.state.pid, imgs, name, role: 'dd', rs: dsPub(rs, 'dd') });
+    ssSet(this.shKey('-base'), st);
+    ssSet(this.shKey('-log'), null);
+    return dsPub(rs, 'dd');
+  };
+  // Signing in needs a click (Google opens a popup). One small bar asks for it whenever a review
+  // stored on Drive needs it; the polls carry on by themselves once it is done.
+  function dsSignBar() {
+    injectCss();
+    if (document.querySelector('.ds-sign')) return;
+    const el = document.createElement('div');
+    el.className = 'ds-sign'; el.setAttribute('role', 'status');
+    el.innerHTML = '<span>This review is stored on Google Drive. Sign in with your Provident Google account to keep it in step.</span><button class="p-btn" type="button">Sign in with Google</button>';
+    el.querySelector('button').onclick = async () => {
+      try { await window.providentDrive.signIn(); el.remove(); window.dispatchEvent(new Event('provident-drive-signed')); }
+      catch (e) { el.querySelector('span').textContent = e.message || String(e); }
+    };
+    document.body.appendChild(el);
+  }
+  // Before a Drive review opens: a click to sign in, unless this tab already has.
+  function dsGate(title) {
+    const D = window.providentDrive;
+    if (D && D.valid()) return Promise.resolve(true);
+    injectCss();
+    return new Promise(res => {
+      const el = document.createElement('div');
+      el.className = 'shl-dlg';
+      el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true"><h2>' + esc(title) + '</h2>' +
+        '<p class="shl-lead">This review is stored in the ad set’s Google Drive folder. Sign in with your Provident Google account to open it — your account needs access to that folder.</p>' +
+        '<p class="shl-st" aria-live="polite"></p><div class="shl-acts"><button class="p-ghost shl-x">Cancel</button><button class="p-btn shl-go">Sign in with Google</button></div></div>';
+      document.body.appendChild(el);
+      el.querySelector('.shl-x').onclick = () => { el.remove(); res(false); };
+      el.querySelector('.shl-go').onclick = async () => {
+        try { await D.signIn(); el.remove(); res(true); }
+        catch (e) { const s = el.querySelector('.shl-st'); s.textContent = e.message || String(e); s.classList.add('bad'); }
+      };
+    });
   }
 
   // ---------- what is shared ----------
@@ -258,10 +638,10 @@
   // Called from both shells' componentDidMount.
   SP.shareInit = function () {
     injectCss();
-    const m = /^#share=([A-Za-z0-9]{8,16})$/.exec(location.hash || '');
-    if (m) {
+    const m = /^#share=([\w.-]{8,140})$/.exec(location.hash || '');
+    if (m && SHARE_ID.test(m[1])) {
       history.replaceState(null, '', location.pathname + location.search);
-      if (m[1].length === 16) { this.shareOpenLink(m[1]); return true; }
+      if (isRsId(m[1])) { this.shareOpenLink(m[1]); return true; }
       const b = ssGet(this.shKey());
       if (b && b.id === m[1] && b.pid && b.pid === this.state.pid) { this.shareStart(); return true; }
       this.shareOpenLink(m[1]);
@@ -304,8 +684,9 @@
     this.openRecent(k);
   };
   SP.shareOpenLink = async function (id) {
+    if (isDs(id) && !(await dsGate(isRsId(id) ? 'Open the ad set' : 'Open a shared project'))) return;
     // an ad set link: the content team, performance marketing or the designer's overview
-    if (id.length === 16) {
+    if (isRsId(id)) {
       if (this.shApp() !== 'provident-ad-studio') { goCas(id); return; }
       const dl = nameDialog({ title: 'Open the ad set', lead: 'Loading the ad set…', btn: 'Open', busy: true });
       try { const d = await api('rsget', { id, full: '1' }); dl.close(); RS.open(this.host, id, d); }
@@ -388,6 +769,7 @@
   // by the record's hash, so the same photo lands exactly where it was.
   const PV_RECS = new WeakSet(), PV_PX = 640, PV_SMALL = 250000, PV_MAX = 390000;
   async function fetchRec(id, e, p) {
+    if (e && e.f) return dsFetchRec(e);   // a picture stored as its own file on Drive
     if (!e || !e.h || !e.n) return null;
     if (!e.gone) {
       try {
@@ -421,6 +803,7 @@
     } catch (e) { return null; }
   }
   async function putPv(id, h, rec, txt) {
+    if (isDs(id)) return true;            // Drive keeps the picture itself, for good
     const t = await pvText(rec, txt || JSON.stringify(rec));
     if (!t) return false;
     try { await api('pvput', { id, h }, t, true); return true; } catch (e) { return false; }
@@ -445,6 +828,7 @@
     return /^data:image\/webp/.test(u) && u.length < rec.u.length ? Object.assign({}, rec, { u }) : rec;
   }
   async function putRec(id, slot, rec, onPart) {
+    if (isDs(id)) return dsPutRec(id, slot, rec);
     const txt = JSON.stringify(rec), h = fnv(txt);
     const stx = JSON.stringify(await slimFull(rec)), c = fnv(stx), n = Math.max(1, Math.ceil(stx.length / PART));
     let have = false;
@@ -714,7 +1098,7 @@
   // its photo store, or in the project's Recent card — goes back up, and a photo uploaded before
   // previews existed gets one. Nothing here ever replaces a photo with a different one.
   SP.shHeal = async function (extra) {
-    const S = this._sh; if (!S || S.healing || S.role === 'pm') return 0;
+    const S = this._sh; if (!S || S.healing || S.role === 'pm' || isDs(S.id)) return 0;  // nothing on Drive expires
     S.healing = true;
     let back = 0;
     const restored = new Set(), moved = {};
@@ -1147,15 +1531,31 @@
       else if (preset) this.shFlash('This project is already in this ad set.');
       this.shPanel(true); const d = S.ui.root.querySelector('.rv-dd'); if (d) d.open = true; return;
     }
-    let known = Arch.list().filter(x => x.id.length === 16);
+    let known = Arch.list().filter(x => isRsId(x.id));
     if (preset && preset.dd && !known.some(k => k.id === preset.dd)) {
-      try { const r = await api('rsinfo', { ids: preset.dd }); const x = (r.items || [])[0]; if (x && x.rs) { Arch.add(preset.dd, x.rs.name, x.rs.product, true); known = Arch.list().filter(k => k.id.length === 16); } } catch (e) {}
+      try { const r = await api('rsinfo', { ids: preset.dd }); const x = (r.items || [])[0]; if (x && x.rs) { Arch.add(preset.dd, x.rs.name, x.rs.product, true); known = Arch.list().filter(k => isRsId(k.id)); } } catch (e) {}
     }
     const st = this.shPub(), C = this.constructor;
-    const dlg = rsDialog({ known, name: st.campaign || this.shName(st), preset: preset && preset.dd });
+    const drive = dsOn();
+    const dlg = rsDialog({ known, name: st.campaign || this.shName(st), preset: preset && preset.dd, drive, folder: lsGet('provident-rs-folder') });
     const ans = await dlg.answer();
     if (!ans) return;
     lsSet(NAME_KEY, ans.by);
+    // A new ad set, or one that lives on Drive: its folder holds everything (see dsApi).
+    if (drive && (ans.mode === 'new' || isDs(ans.dd))) {
+      try {
+        dlg.busy('Signing in to Google…');
+        await window.providentDrive.signIn();   // first: the popup needs the click
+        if (ans.folder) lsSet('provident-rs-folder', ans.folder);
+        if (this._sh) this.shareStop(true);
+        const rs = await this.dsReview(dlg, ans);
+        Arch.add(rs.tok.dd, rs.name, rs.product);
+        dlg.links(rs, ans.mode === 'new' ? 'The ad set is ready in its Drive folder, with this project in ' + [ans.market, ans.aud, DS_LANG[ans.lang]].join(' / ') + '. Add each other audience and language from its own project, the same way. Send each team its link once:'
+          : 'Added as ' + itemLabel({ market: ans.market, aud: ans.aud, lang: ans.lang }) + ' to ' + rs.name + ', in its own folder. The links are the same for the whole ad set:');
+        this.shareStart(true);
+      } catch (e) { dlg.fail(e.message || String(e), 'Close'); }
+      return;
+    }
     try {
       const id = b ? b.id : await this.shCreateRaw(dlg, ans.by);
       dlg.busy(ans.mode === 'new' ? 'Making the ad set…' : 'Adding the project…');
@@ -1183,14 +1583,17 @@
       '<div class="rsd">' +
       (o.known.length ? '<div class="rsd-mode p-tabs" role="radiogroup"><button type="button" data-mode="new" data-on="1">Start a new ad set</button><button type="button" data-mode="add">Add to an ad set</button></div>' : '') +
       '<div class="rsd-new"><label class="shl-fld"><span>Ad set name</span><input class="p-in" data-f="name" maxlength="120" value="' + esc(o.name || '') + '"></label>' +
-      '<div class="shl-fld"><span>Product</span><div class="p-tabs rsd-prod"><button type="button" data-prod="residential" data-on="1">Residential</button><button type="button" data-prod="commercial">Commercial</button></div></div></div>' +
+      '<div class="shl-fld"><span>Product</span><div class="p-tabs rsd-prod"><button type="button" data-prod="residential" data-on="1">Residential</button><button type="button" data-prod="commercial">Commercial</button></div></div>' +
+      (o.drive ? '<label class="shl-fld"><span>Main folder · Google Drive</span><input class="p-in" data-f="folder" placeholder="Paste the Drive folder link" autocomplete="off" value="' + esc(o.folder || '') + '">' +
+        '<small class="rsd-hint">Every project of the ad set is saved in it, one folder per market, audience and language, with its pictures in Assets. Everyone who opens a link signs in with their Provident Google account and needs access to this folder.</small></label>' : '') +
+      '</div>' +
       (o.known.length ? '<label class="shl-fld rsd-add" hidden><span>Ad set</span><select class="p-in" data-f="dd">' + o.known.map(k => opt(k.id, (k.name || 'Ad set') + (k.product ? ' · ' + (PRODUCT_NAME[k.product] || k.product) : ''))).join('') + '</select></label>' : '') +
       '<p class="rsd-cap">This project is</p><div class="rsd-row">' +
       '<label class="shl-fld"><span>Market</span><select class="p-in" data-f="market">' + MARKETS.map((m, i) => opt(m, m, !i)).join('') + '</select></label>' +
       '<label class="shl-fld"><span>Audience</span><select class="p-in" data-f="aud"></select></label>' +
       '<label class="shl-fld"><span>Language</span><select class="p-in" data-f="lang">' + opt('ENG', 'English', true) + opt('ARB', 'Arabic') + '</select></label></div>' +
       '<label class="shl-fld"><span>Your name</span><input class="p-in" data-f="by" maxlength="60" autocomplete="name" placeholder="e.g. Sara"></label></div>' +
-      '<p class="shl-note">No sign-in — whoever holds a link has its role. Your name is shown beside every change you make.</p><p class="shl-st" aria-live="polite"></p>' +
+      '<p class="shl-note">' + (o.drive ? 'Whoever holds a link has its role. Your name is shown beside every change you make.' : 'No sign-in — whoever holds a link has its role. Your name is shown beside every change you make.') + '</p><p class="shl-st" aria-live="polite"></p>' +
       '<div class="shl-lks-h" hidden></div><div class="shl-acts"><button class="p-ghost shl-x">Cancel</button><button class="p-btn shl-go">Make the ad set</button></div></div>';
     document.body.appendChild(el);
     const $ = s => el.querySelector(s), go = $('.shl-go'), x = $('.shl-x');
@@ -1224,7 +1627,8 @@
       const by = v('by').replace(/\s+/g, ' ').trim();
       if (!by) { $('.shl-st').textContent = 'Add your name so others know who made a change.'; $('[data-f="by"]').focus(); return; }
       if (mode === 'new' && !v('name').trim()) { $('.shl-st').textContent = 'Name the ad set.'; $('[data-f="name"]').focus(); return; }
-      res({ mode, by, name: v('name').trim(), product: prod, dd: v('dd'), market: v('market'), aud: v('aud'), lang: v('lang') });
+      if (mode === 'new' && o.drive && !window.providentDrive.id(v('folder'))) { $('.shl-st').textContent = 'Paste the link of the Google Drive folder the ad set goes in — open the folder in Drive and copy the address; it contains /folders/.'; $('[data-f="folder"]').focus(); return; }
+      res({ mode, by, name: v('name').trim(), product: prod, dd: v('dd'), market: v('market'), aud: v('aud'), lang: v('lang'), folder: v('folder').trim() });
     };
     x.onclick = () => close(null);
     el.onkeydown = e => { if (e.key === 'Escape') close(null); };
@@ -1666,12 +2070,12 @@
   const ARCH_KEY = 'provident-reviews', ARCH_HIDE = 'provident-reviews-hidden';
   const hidden = () => { try { const a = JSON.parse(localStorage.getItem(ARCH_HIDE) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
   const Arch = {
-    list() { try { const a = JSON.parse(localStorage.getItem(ARCH_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && /^[A-Za-z0-9]{8,16}$/.test(x.id || '')) : []; } catch (e) { return []; } },
+    list() { try { const a = JSON.parse(localStorage.getItem(ARCH_KEY) || '[]'); return Array.isArray(a) ? a.filter(x => x && SHARE_ID.test(x.id || '')) : []; } catch (e) { return []; } },
     save(a) { lsSet(ARCH_KEY, JSON.stringify(a.slice(0, 200))); },
     // An ad set removed from this computer's list stays removed: opening one of its projects
     // used to put it straight back. Only pasting its link (force) brings it back.
     add(id, name, product, force) {
-      if (!id || id.length !== 16) return;
+      if (!id || !isRsId(id)) return;
       if (force) lsSet(ARCH_HIDE, JSON.stringify(hidden().filter(x => x !== id)));
       else if (hidden().indexOf(id) >= 0) return;
       const a = this.list(), o = a.find(x => x.id === id);
@@ -1699,12 +2103,13 @@
     };
     this.timer = setInterval(tick, 60000);
     document.addEventListener('visibilitychange', tick); window.addEventListener('focus', tick);
+    window.addEventListener('provident-drive-signed', () => { if (el.isConnected) this.refresh(); });
     this.health();
     el.querySelector('.rva-add').addEventListener('submit', e => {
       e.preventDefault();
-      const inp = el.querySelector('.rva-add input'), m = /#share=([A-Za-z0-9]{8,16})/.exec(inp.value || '') || /^([A-Za-z0-9]{8,16})$/.exec((inp.value || '').trim());
-      if (!m) { this.err = 'That is not an ad set link.'; this.draw(); return; }
-      if (m[1].length === 16) Arch.add(m[1], '', '', true);
+      const inp = el.querySelector('.rva-add input'), m = /#share=([\w.-]{8,140})/.exec(inp.value || '') || /^([\w.-]{8,140})$/.exec((inp.value || '').trim());
+      if (!m || !SHARE_ID.test(m[1])) { this.err = 'That is not an ad set link.'; this.draw(); return; }
+      if (isRsId(m[1])) Arch.add(m[1], '', '', true);
       else { const a = Arch.list(); if (!a.some(x => x.id === m[1])) { a.unshift({ id: m[1], name: '', at: Date.now() }); Arch.save(a); } }
       inp.value = ''; this.err = ''; this.load();
     });
@@ -2522,6 +2927,9 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 @media (min-width:761px){html.shl-open .p-body{margin-right:340px}html.shl-open .gd:not([data-mode="editor"]),html.shl-open .cw{right:340px}
   html.shl-open .p-panelbar{right:340px}html.shl-open .p-rail-c[data-open],html.shl-open .p-rail-r[data-open],html.shl-open .gd[data-mode="editor"] .gd-in-zone[data-open]{right:340px}}
 .shl-dlg{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:16px;background:rgba(10,11,13,.55)}
+.ds-sign{position:fixed;left:16px;bottom:16px;z-index:240;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100% - 32px));box-sizing:border-box;padding:12px 12px 12px 16px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font:400 13px/1.45 var(--ps-font)}
+.ds-sign .p-btn{flex:0 0 auto;white-space:nowrap}
+.rsd-hint{display:block;margin-top:6px;color:var(--ps-ink-2);font:italic 400 12px/1.45 var(--ps-font)}
 .shl-dlg-c{width:min(460px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
 .shl-dlg h2{margin:0 0 8px;font:600 20px/1.3 var(--ps-font);letter-spacing:-.01em}
 .shl-lead{margin:0 0 16px;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
