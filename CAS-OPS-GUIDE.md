@@ -128,12 +128,12 @@ Each studio opens on its **project browser**.
   - In CAS, use **Set up the ad set** at the top of the project browser (**New campaign** jumps
     to it). Name the campaign, pick **Residential** or **Commercial** and paste the **Main
     folder** (the Google Drive folder the ad set goes in). By default the campaign is
-    **Local**, both audiences, **English only**. Open **More settings** to add **International**
-    or **International EUR**, choose the audiences, and turn on **Arabic** for just the
-    audiences that need it. The line under the fields says how many projects that makes. Press
-    **Start the campaign**: a new project opens as the first audience in English, with the **Ad
+    **Local**, both audiences, **English only**. Each audience is a tile; press **AR** on a tile
+    to give that audience an Arabic version. **Markets & audiences** adds **International** or
+    **International EUR** and chooses the audiences. The count beside Audiences says how many
+    projects that makes. Press **Start campaign**: a new project opens as the first audience in English, with the **Ad
     set review** window already filled in. Press **Make the ad set** to sign in and save it.
-    **Blank project, no ad set** starts a plain project instead. There are no preloaded
+    **Blank project** starts a plain project instead. There are no preloaded
     templates any more.
   - In OPS, click a template card, or press **New post** to get **Pick a template**.
 - **Continue last** reopens the project you were working on; the line under it names that project.

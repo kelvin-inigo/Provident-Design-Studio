@@ -16537,7 +16537,7 @@ class Component extends DCLogic {
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in ' + (sub.useFolder ? n(sub.useCount, 'project') + ' in \u201c' + sub.useFolder + '\u201d' : 'your ' + n(sub.useCount, 'most recent saved project')) : (sub.useFolder ? 'No Campaign projects in \u201c' + sub.useFolder + '\u201d yet' : 'Nothing saved yet \u2014 usage is counted from saved projects'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
-        : 'Set up a campaign\u2019s ad set, or open one of ' + n(sub.recentCount, 'saved project'))((c, w) => (c || 0) + ' ' + w + (c === 1 ? '' : 's')),
+        : n(sub.recentCount, 'saved project'))((c, w) => (c || 0) + ' ' + w + (c === 1 ? '' : 's')),
       shShowTpl: false,
       shShowPlan: view === 'all',
       // the header's New campaign goes to the setup widget, rather than past it to a blank canvas

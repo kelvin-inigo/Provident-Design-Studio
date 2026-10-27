@@ -16759,3 +16759,14 @@ header's **New campaign** is `shNewGo` (scroll to and focus the widget).
   the tab became that project with Translation "Not needed". 0 contrast failures over the widget
   in both themes; fits at 375. **Not exercised on real Google Drive.**
 - **Known gap:** "N of M audiences done" counts audiences that have a project, not the plan's.
+
+**The widget was redesigned the same day (by request: too text heavy, no hierarchy).** Three
+tiers: a header band (`--ps-card-h`) with Hairline's **Riffle** figure (`data-hl="riffle"`,
+mounted by the shell's `hlBind`, which also destroys it) beside "Set up the ad set" at 26/500
+and one line; three fields labelled Name / Product / Drive folder with no helper text; the plan
+as **tiles**, one per market × audience (market dim over audience 16/500) with an EN chip and an
+**AR toggle on the tile itself** (`.rsp-ar`, on = `--ps-link` fill with `--ps-app` ink, a mark).
+The Arabic matrix, summary chips and Your name field are gone (the name comes from
+`shareName()`; the review dialog still asks). **Markets & audiences** folds the market and
+audience toggles; their explanations are tooltips. Footer: **Blank project** as a quiet text
+link, **Start campaign →** as the primary. 0 contrast failures in both themes; fits at 375.

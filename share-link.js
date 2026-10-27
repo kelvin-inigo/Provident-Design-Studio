@@ -2245,6 +2245,8 @@
     return d;
   }
   const PICO = {
+    tune: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-220h60v80h320v60H510v80h-60Zm-320-80v-60h220v60H130Zm160-160v-80H130v-60h160v-80h60v220h-60Zm160-80v-60h380v60H450Zm160-160v-220h60v80h160v60H670v80h-60Zm-480-80v-60h380v60H130Z"/></svg>',
+    go: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg>',
     more: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-357.85q-6.46 0-11.92-2.11-5.46-2.12-10.7-7.35L281.85-543.85q-8.31-8.3-8.5-20.88-.19-12.58 8.5-21.27t21.08-8.69q12.38 0 21.07 8.69L480-430.15 635.85-586q8.3-8.31 20.88-8.5 12.58-.19 21.27 8.5t8.69 21.08q0 12.38-8.69 21.07L502.62-367.31q-5.24 5.23-10.7 7.35-5.46 2.11-11.92 2.11Z"/></svg>',
     tick: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>',
     set: '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-620H200v407.69q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-680h560v-67.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46V-680Zm0 0v-80 80Z"/></svg>'
@@ -2253,42 +2255,55 @@
     injectCss();
     this.el = el; this.eng = eng; this.d = planDraft(); this.drive = dsOn();
     const d = this.d;
+    // Hierarchy, top to bottom: the figure and one line say what this is; three fields hold
+    // what every campaign needs; the plan is drawn as tiles — one per audience, its Arabic
+    // switch on the tile — so the setup reads at a glance instead of as sentences.
     el.innerHTML = '<section class="rsp" aria-labelledby="rsp-t">' +
-      '<header class="rsp-h"><span class="rsp-ic">' + PICO.set + '</span><div><span class="rsp-k">New campaign</span><h2 id="rsp-t">Set up the ad set</h2>' +
-      '<p>Every market, audience and language of the campaign, under one set of review links — decided now, before the first design.</p></div></header>' +
-      '<div class="rsp-q">' +
-        '<label class="rsp-f rsp-f-name"><span>Campaign name</span><input class="p-in" data-f="name" maxlength="120" placeholder="e.g. Sobha Hartland II — Q4" autocomplete="off"></label>' +
-        '<div class="rsp-f"><span id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
-        (this.drive ? '<label class="rsp-f rsp-f-dir"><span>Main folder · Google Drive</span><input class="p-in" data-f="folder" placeholder="Paste the Drive folder link" autocomplete="off"></label>' : '') +
+      '<header class="rsp-h">' +
+        '<span class="rsp-fig" data-hl="riffle" aria-hidden="true"></span>' +
+        '<div class="rsp-ht"><span class="rsp-k">New campaign</span><h2 id="rsp-t">Set up the ad set</h2>' +
+        '<p>Every market, audience and language under one review.</p></div>' +
+      '</header>' +
+      '<div class="rsp-body">' +
+        '<div class="rsp-q">' +
+          '<label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" placeholder="Campaign name" autocomplete="off"></label>' +
+          '<div class="rsp-f"><span id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
+          (this.drive ? '<label class="rsp-f"><span>Drive folder</span><input class="p-in" data-f="folder" placeholder="Paste the folder link" autocomplete="off" title="The Google Drive folder the ad set is saved in, one subfolder per market, audience and language"></label>' : '') +
+        '</div>' +
+        '<div class="rsp-plan">' +
+          '<div class="rsp-ph"><b>Audiences</b><span class="rsp-n"></span>' +
+            '<button type="button" class="rsp-mt" aria-expanded="false" aria-controls="rsp-more">' + PICO.tune + '<span>Markets & audiences</span>' + PICO.more + '</button></div>' +
+          '<div class="rsp-more" id="rsp-more" hidden>' +
+            '<div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="markets"></div></div>' +
+            '<div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="auds"></div></div>' +
+          '</div>' +
+          '<div class="rsp-tiles" role="list"></div>' +
+        '</div>' +
       '</div>' +
-      '<div class="rsp-sum"><div class="rsp-chips"></div><button type="button" class="rsp-mt" aria-expanded="false" aria-controls="rsp-more">More settings' + PICO.more + '</button></div>' +
-      '<div class="rsp-more" id="rsp-more" hidden>' +
-        '<div class="rsp-g"><div class="rsp-gh"><b>Markets</b><s>Local is AED; International runs in USD and International EUR in euros.</s></div><div class="rsp-tg" data-g="markets"></div></div>' +
-        '<div class="rsp-g"><div class="rsp-gh"><b>Audiences</b><s class="rsp-aud-s"></s></div><div class="rsp-tg" data-g="auds"></div></div>' +
-        '<div class="rsp-g"><div class="rsp-gh"><b>Arabic versions</b><s>Off for an audience means its ad runs in English only, with nothing to translate.</s></div><div class="rsp-mx"></div></div>' +
-        '<label class="rsp-f rsp-f-by"><span>Your name</span><input class="p-in" data-f="by" maxlength="60" autocomplete="name" placeholder="e.g. Sara"><small>Shown beside every change you make in the review.</small></label>' +
-      '</div>' +
-      '<footer class="rsp-ft"><p class="rsp-st" aria-live="polite"></p><button type="button" class="p-ghost rsp-blank">Blank project, no ad set</button><button type="button" class="p-btn rsp-go">Start the campaign</button></footer>' +
+      '<footer class="rsp-ft"><p class="rsp-st" aria-live="polite"></p>' +
+        '<button type="button" class="rsp-blank">Blank project</button>' +
+        '<button type="button" class="p-btn rsp-go">Start campaign' + PICO.go + '</button></footer>' +
     '</section>';
     const $ = q => el.querySelector(q);
-    ['name', 'folder', 'by'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
+    ['name', 'folder'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
     $('.rsp-mt').onclick = () => { d.open = !d.open; this.save(); this.draw(); };
     el.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
       if (b.dataset.prod) this.setProd(b.dataset.prod);
       if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
       if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
-      if (b.dataset.arball) { const on = !this.allArb(); this.cells().forEach(c => { d.arb[c.market + '|' + c.aud] = on; }); this.save(); this.draw(); }
     });
     $('.rsp-go').onclick = () => this.go();
     $('.rsp-blank').onclick = () => { if (eng.newProject) eng.newProject(); };
     this.draw();
+    // the figure mounts through the shell's own Hairline binding, which also destroys it
+    // when the splash leaves the page
+    setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
   }
   const PV = PlanView.prototype;
   PV.save = function () { lsSet(PLAN_KEY, JSON.stringify(this.d)); };
   PV.st = function (t) { const p = this.el.querySelector('.rsp-st'); p.textContent = t; p.classList.toggle('bad', !!t); };
   PV.cells = function () { return planCells(this.d); };
-  PV.allArb = function () { const c = this.cells(); return c.length > 0 && c.every(x => this.d.arb[x.market + '|' + x.aud]); };
   PV.setProd = function (p) {
     const d = this.d; if (d.product === p) return;
     d.product = p; const as = AUDS[p]; d.auds = as.filter(a => d.auds.indexOf(a) >= 0); if (!d.auds.length) d.auds = as.slice();
@@ -2296,49 +2311,50 @@
   };
   PV.toggle = function (g, v) {
     const d = this.d, a = d[g], i = a.indexOf(v);
-    if (i >= 0) { if (a.length === 1) { this.st(g === 'markets' ? 'A campaign runs in at least one market.' : 'A campaign speaks to at least one audience.'); return; } a.splice(i, 1); }
+    if (i >= 0) { if (a.length === 1) { this.st(g === 'markets' ? 'Keep at least one market.' : 'Keep at least one audience.'); return; } a.splice(i, 1); }
     else a.push(v);
     this.st(''); this.save(); this.draw();
   };
+  const AUD_TIP = { Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
+  const MKT_TIP = { Local: 'AED', International: 'USD', 'International EUR': 'EUR' };
   PV.draw = function () {
     const d = this.d, el = this.el, $ = q => el.querySelector(q), cells = this.cells();
     const tab = (k, l, on) => '<button type="button" role="radio" aria-checked="' + (on ? 'true' : 'false') + '" data-prod="' + k + '"' + (on ? ' data-on="1"' : '') + '>' + esc(l) + '</button>';
     $('.rsp-prod').innerHTML = tab('residential', 'Residential', d.product === 'residential') + tab('commercial', 'Commercial', d.product === 'commercial');
     const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
-    const chip = t => '<span class="rsp-chip">' + esc(t) + '</span>';
-    $('.rsp-chips').innerHTML = chip(d.markets.join(' · ')) + chip(d.auds.join(' · ')) +
-      chip(arbN === 0 ? 'English only' : arbN === cells.length ? 'English + Arabic' : 'Arabic for ' + arbN + ' of ' + cells.length) +
-      '<span class="rsp-n">' + n + (n === 1 ? ' project' : ' projects') + '</span>';
-    const mt = $('.rsp-mt'); mt.setAttribute('aria-expanded', d.open ? 'true' : 'false'); mt.firstChild.textContent = d.open ? 'Fewer settings' : 'More settings';
+    $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects');
+    const mt = $('.rsp-mt'); mt.setAttribute('aria-expanded', d.open ? 'true' : 'false');
     $('.rsp-more').hidden = !d.open;
     if (d.open) {
-      const tg = (g, v) => { const on = d[g].indexOf(v) >= 0; return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
-      el.querySelector('[data-g="markets"]').innerHTML = MARKETS.map(m => tg('markets', m)).join('');
-      el.querySelector('[data-g="auds"]').innerHTML = AUDS[d.product].map(a => tg('auds', a)).join('');
-      $('.rsp-aud-s').textContent = d.product === 'commercial' ? 'Hybrid is an end user who rents but may convert to buying.' : 'One project per audience, in each market.';
-      const sw = (k, on, lab) => '<button type="button" class="rsp-sw" role="switch" aria-checked="' + on + '" aria-label="' + esc(lab) + '" data-arb="' + esc(k) + '"><i></i></button>';
-      $('.rsp-mx').innerHTML = '<div class="rsp-mx-h"><span>Audience</span><span>English</span><span>Arabic</span></div>' +
-        cells.map(c => { const k = c.market + '|' + c.aud; return '<div class="rsp-mx-r"><b>' + esc(c.market + ' · ' + c.aud) + '</b><span class="rsp-mx-e">' + PICO.tick + '</span>' + sw(k, !!d.arb[k], 'Arabic version for ' + c.market + ' ' + c.aud) + '</div>'; }).join('') +
-        (cells.length > 1 ? '<div class="rsp-mx-r rsp-mx-all"><span>Every audience</span><span></span><button type="button" class="rsp-sw" role="switch" aria-checked="' + this.allArb() + '" aria-label="Arabic for every audience" data-arball="1"><i></i></button></div>' : '');
+      const tg = (g, v, tip) => { const on = d[g].indexOf(v) >= 0; return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
+      el.querySelector('[data-g="markets"]').innerHTML = MARKETS.map(m => tg('markets', m, MKT_TIP[m])).join('');
+      el.querySelector('[data-g="auds"]').innerHTML = AUDS[d.product].map(a => tg('auds', a, AUD_TIP[a])).join('');
     }
+    // one tile per audience: market above, audience below, then its two languages
+    $('.rsp-tiles').innerHTML = cells.map(c => {
+      const k = c.market + '|' + c.aud, ar = !!d.arb[k];
+      return '<div class="rsp-tile" role="listitem"' + (ar ? ' data-ar="1"' : '') + '><div class="rsp-tt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></div>' +
+        '<div class="rsp-lg"><span class="rsp-l" title="English — always made">EN</span>' +
+        '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + ar + '" data-arb="' + esc(k) + '" title="' + (ar ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div></div>';
+    }).join('');
     const first = cells[0];
-    $('.rsp-go').title = first ? 'Opens a new project for ' + first.market + ' · ' + first.aud + ' in English and makes the ad set — the other ' + (n - 1) + ' follow from that design' : '';
+    $('.rsp-go').title = first ? 'Opens ' + first.market + ' · ' + first.aud + ' in English and makes the ad set' : '';
   };
   PV.go = function () {
     const d = this.d, $ = q => this.el.querySelector(q);
     d.name = (d.name || '').replace(/\s+/g, ' ').trim();
-    if (!d.name) { this.st('Name the campaign — the ad set and its folders are named after it.'); $('[data-f="name"]').focus(); return; }
-    if (this.drive && !window.providentDrive.id(d.folder || '')) { this.st('Paste the link of the Google Drive folder the ad set goes in — open the folder in Drive and copy the address; it contains /folders/.'); $('[data-f="folder"]').focus(); return; }
+    if (!d.name) { this.st('Name the campaign first.'); $('[data-f="name"]').focus(); return; }
+    if (this.drive && !window.providentDrive.id(d.folder || '')) { this.st('Paste a Drive folder link — it contains /folders/.'); $('[data-f="folder"]').focus(); return; }
     const eng = this.eng;
     if (eng.confirmDiscard && !eng.confirmDiscard()) return;
     if (eng.markSaved) eng.markSaved();
-    const plan = { name: d.name, product: d.product, folder: (d.folder || '').trim(), by: (d.by || '').replace(/\s+/g, ' ').trim(), markets: d.markets.slice(), auds: d.auds.slice(), arb: Object.assign({}, d.arb) };
+    const by = (d.by || StudioBase.shareName() || '').replace(/\s+/g, ' ').trim();
+    const plan = { name: d.name, product: d.product, folder: (d.folder || '').trim(), by, markets: d.markets.slice(), auds: d.auds.slice(), arb: Object.assign({}, d.arb) };
     if (plan.folder) lsSet('provident-rs-folder', plan.folder);
-    if (plan.by) lsSet(NAME_KEY, plan.by);
     lsSet(PLAN_GO, JSON.stringify({ plan, at: Date.now() }));
-    // the draft is spent: the next campaign starts from the defaults, keeping folder and name
-    lsSet(PLAN_KEY, JSON.stringify({ product: d.product, folder: d.folder, by: d.by }));
-    $('.rsp-go').disabled = true; $('.rsp-go').textContent = 'Opening…';
+    // the draft is spent: the next campaign starts from the defaults, keeping the folder
+    lsSet(PLAN_KEY, JSON.stringify({ product: d.product, folder: d.folder }));
+    const g = $('.rsp-go'); g.disabled = true; g.firstChild.textContent = 'Opening…';
     if (eng.newProject) eng.newProject();
   };
   window.providentPlan = Plan;
@@ -3266,63 +3282,63 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .rv-todo li b{font:500 13px/1.35 var(--ps-font);color:var(--ps-ink)}
 .rv-todo li s{text-decoration:none;font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
 .rv-todo li .p-ghost{height:30px;padding:0 12px;font-size:12.5px;white-space:nowrap;flex:none}
-/* the home page's campaign setup */
-.rsp{display:flex;flex-direction:column;gap:20px;padding:24px;margin:0 0 32px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);font-family:var(--ps-font);color:var(--ps-ink);max-width:1240px;box-sizing:border-box}
-.rsp-h{display:flex;gap:14px;align-items:flex-start}
-.rsp-ic{flex:none;width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:var(--ps-fill);color:var(--ps-ink-2)}
-.rsp-ic svg{width:22px;height:22px;fill:currentColor}
-.rsp-k{display:block;font:500 12px/1.4 var(--ps-font);color:var(--ps-dim)}
-.rsp-h h2{margin:2px 0 4px;font:500 20px/1.25 var(--ps-font);letter-spacing:-.01em}
-.rsp-h p{margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2);max-width:62ch}
-.rsp-q{display:grid;grid-template-columns:minmax(220px,1.3fr) auto minmax(220px,1.2fr);gap:16px;align-items:end}
-.rsp-f{display:flex;flex-direction:column;gap:6px;min-width:0}
-.rsp-f>span{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rsp-f .p-in{width:100%;box-sizing:border-box;height:40px}
-.rsp-f small{font:400 12px/1.45 var(--ps-font);color:var(--ps-dim)}
-.rsp-prod{display:flex;height:40px;box-sizing:border-box}
-.rsp-prod button{white-space:nowrap}
-.rsp-sum{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--ps-hair)}
-.rsp-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
-.rsp-chip{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:9999px;background:var(--ps-fill);font:500 12.5px/1 var(--ps-font);color:var(--ps-ink)}
-.rsp-n{font:400 12.5px/1 var(--ps-font);color:var(--ps-dim);margin-left:4px}
-.rsp-mt{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 10px 0 12px;border:none;border-radius:9999px;background:none;color:var(--ps-ink);font:600 13px/1 var(--ps-font);cursor:pointer}
+/* the home page's campaign setup — hierarchy: figure + title, three fields, the plan as tiles */
+.rsp{display:flex;flex-direction:column;margin:0 0 40px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);font-family:var(--ps-font);color:var(--ps-ink);max-width:1240px;overflow:hidden}
+.rsp-h{display:flex;align-items:center;gap:28px;padding:24px 28px;background:var(--ps-card-h);border-bottom:1px solid var(--ps-hair)}
+.rsp-fig{flex:none;display:block;width:150px;aspect-ratio:400/320;
+  --hairline-plate:var(--ps-fill);--hairline-hi:var(--ps-ink);--hairline-edge:var(--ps-ink-2);--hairline-mid:var(--ps-ink-2);--hairline-lo:var(--ps-dim);--hairline-stroke:1}
+.rsp:hover .rsp-fig{--hairline-hi:var(--ps-link)}
+.rsp-fig svg{display:block;width:100%;height:100%}
+.rsp-ht{min-width:0}
+.rsp-k{display:block;font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rsp-h h2{margin:4px 0 6px;font:500 26px/1.15 var(--ps-font);letter-spacing:-.015em;color:var(--ps-ink)}
+.rsp-h p{margin:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-body{display:flex;flex-direction:column;gap:24px;padding:24px 28px}
+.rsp-q{display:grid;grid-template-columns:minmax(200px,1.2fr) auto minmax(200px,1.2fr);gap:16px;align-items:end}
+.rsp-f{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rsp-f>span,.rsp-ph b,.rsp-g>span{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-f .p-in{width:100%;box-sizing:border-box;height:42px;font-size:15px}
+.rsp-prod{display:flex;height:42px;box-sizing:border-box}
+.rsp-prod button{white-space:nowrap;padding:0 16px}
+.rsp-plan{display:flex;flex-direction:column;gap:12px}
+.rsp-ph{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+.rsp-ph b,.rsp-n,.rsp-mt{white-space:nowrap}
+.rsp-n{font:400 13px/1.2 var(--ps-font);color:var(--ps-dim)}
+.rsp-mt{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 8px 0 10px;border:none;border-radius:9999px;background:none;color:var(--ps-ink);font:500 13px/1 var(--ps-font);cursor:pointer}
 .rsp-mt:hover{background:var(--ps-fill)}
-.rsp-mt svg{width:18px;height:18px;fill:currentColor;transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-.rsp-mt[aria-expanded="true"] svg{transform:rotate(180deg)}
-.rsp-more{display:grid;grid-template-columns:1fr 1fr;gap:20px 28px}
+.rsp-mt svg{width:18px;height:18px;fill:currentColor;flex:none}
+.rsp-mt svg:last-child{transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-mt[aria-expanded="true"] svg:last-child{transform:rotate(180deg)}
+.rsp-more{display:flex;flex-wrap:wrap;gap:16px 32px;padding:16px;border-radius:12px;background:var(--ps-fill)}
 .rsp-more[hidden]{display:none}
-.rsp-g{display:flex;flex-direction:column;gap:10px;min-width:0}
-.rsp-g:nth-child(3){grid-row:span 2}
-.rsp-gh{display:flex;flex-direction:column;gap:2px}
-.rsp-gh b{font:500 13.5px/1.35 var(--ps-font)}
-.rsp-gh s{text-decoration:none;font:400 12px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-g{display:flex;flex-direction:column;gap:8px}
 .rsp-tg{display:flex;gap:8px;flex-wrap:wrap}
-.rsp-t{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
-.rsp-t:hover{background:var(--ps-fill)}
+.rsp-t{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border:none;border-radius:9999px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.rsp-t:hover{color:var(--ps-ink)}
 .rsp-t[aria-pressed="true"]{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none;padding-left:10px}
 .rsp-t svg{width:16px;height:16px;fill:currentColor}
-.rsp-mx{display:flex;flex-direction:column;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden}
-.rsp-mx-h,.rsp-mx-r{display:grid;grid-template-columns:1fr 64px 64px;align-items:center;gap:8px;padding:0 14px;min-height:42px}
-.rsp-mx-h{min-height:34px;background:var(--ps-fill);font:500 12px/1 var(--ps-font);color:var(--ps-ink-2)}
-.rsp-mx-h span:not(:first-child),.rsp-mx-r>:not(:first-child){justify-self:center}
-.rsp-mx-r+.rsp-mx-r{border-top:1px solid var(--ps-hair)}
-.rsp-mx-r b{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rsp-mx-all span:first-child{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
-.rsp-mx-e{display:inline-flex;color:var(--ps-dim)}
-.rsp-mx-e svg{width:18px;height:18px;fill:currentColor}
-.rsp-sw{position:relative;width:36px;height:20px;padding:0;border:none;border-radius:9999px;background:var(--ps-fill-h);box-shadow:inset 0 0 0 1px var(--ps-line);cursor:pointer}
-.rsp-sw i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.08);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-/* the ON track is a MARK (the kit's .p-tgl rule): navy has no boundary on a dark card */
-.rsp-sw[aria-checked="true"]{background:var(--ps-link);box-shadow:none}
-.rsp-sw[aria-checked="true"] i{transform:translateX(16px)}
-.rsp-ft{display:flex;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--ps-hair)}
-.rsp-st{flex:1;margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2);min-width:0}
+.rsp-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px}
+.rsp-tile{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 14px 14px 16px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rsp-tt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rsp-tt s{text-decoration:none;font:400 12px/1.2 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsp-tt b{font:500 16px/1.2 var(--ps-font);color:var(--ps-ink)}
+.rsp-lg{display:flex;gap:4px;flex:none}
+.rsp-l{display:inline-grid;place-items:center;width:32px;height:26px;padding:0;border:none;border-radius:7px;background:var(--ps-fill);color:var(--ps-ink-2);font:600 11px/1 var(--ps-font);letter-spacing:.04em}
+.rsp-ar{background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-dim);cursor:pointer}
+.rsp-ar:hover{color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
+/* AR on is a MARK, so it takes the link ink: the resting navy tint all but vanishes on a dark card */
+.rsp-ar[aria-pressed="true"]{background:var(--ps-link);color:var(--ps-app);box-shadow:none}
+.rsp-ft{display:flex;align-items:center;gap:16px;padding:16px 28px;border-top:1px solid var(--ps-hair)}
+.rsp-st{flex:1;margin:0;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2);min-width:0}
 .rsp-st.bad{color:var(--ps-bad)}
-.rsp-ft .p-btn,.rsp-ft .p-ghost{height:40px;white-space:nowrap}
+.rsp-blank{height:42px;padding:0 6px;border:none;background:none;color:var(--ps-ink-2);font:500 14px/1 var(--ps-font);cursor:pointer;text-decoration:underline;text-decoration-color:var(--ps-line);text-underline-offset:4px}
+.rsp-blank:hover{color:var(--ps-ink);text-decoration-color:currentColor}
+.rsp-go{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px 0 22px;white-space:nowrap}
+.rsp-go svg{width:18px;height:18px;fill:currentColor}
 .rsp button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
-@media (max-width:900px){.rsp-q{grid-template-columns:1fr}.rsp-more{grid-template-columns:1fr}.rsp-g:nth-child(3){grid-row:auto}}
-@media (max-width:560px){.rsp{padding:18px}.rsp-ft{flex-wrap:wrap}.rsp-st{flex-basis:100%}.rsp-ft .p-btn,.rsp-ft .p-ghost{flex:1}}
-@media (prefers-reduced-motion:reduce){.rsp-mt svg,.rsp-sw i{transition:none}}
+@media (max-width:900px){.rsp-q{grid-template-columns:1fr 1fr}.rsp-q .rsp-f:first-child{grid-column:1/-1}}
+@media (max-width:600px){.rsp-h{padding:20px;gap:18px}.rsp-fig{width:96px}.rsp-h h2{font-size:21px}.rsp-body{padding:20px}.rsp-q{grid-template-columns:1fr}.rsp-ft{padding:14px 20px;flex-wrap:wrap}.rsp-st{flex-basis:100%;order:3}.rsp-go{flex:1;justify-content:center}.rsp-tiles{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.rsp-mt svg:last-child{transition:none}}
 .rv-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .rv-h>div{display:flex;flex-direction:column;gap:2px;min-width:0}
 .rv-k{font:500 12px/1.3 var(--ps-font);color:var(--ps-dim)}
