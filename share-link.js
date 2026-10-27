@@ -369,6 +369,8 @@
             const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            const lg = rv.log || [];
+            e.mod = Math.max(e.mod || 0, (rv.sum && rv.sum.updated) || 0, lg.length ? lg[lg.length - 1].at || 0 : 0);
             if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it) })));
           } catch (er) { if (er.gdAuth) throw er; e.live[it.sid] = false; }
         }));
@@ -2378,7 +2380,10 @@
     this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
     el.innerHTML = '<div class="rva"><div class="rva-bar">' +
       '<form class="rva-add" title="Paste a designer’s ad set link to keep that ad set on this computer">' + ico('link', 'rva-add-i') + '<input class="p-in" placeholder="Add a designer link" aria-label="Designer ad set link"><button class="p-ghost" type="submit">Add</button></form></div>' +
-      '<div class="rva-hl" data-s="wait"></div><div class="rva-body" aria-live="polite"></div></div>';
+      '<div class="rva-hl" data-s="wait"><span class="rvo-fig" data-hl="stack" aria-hidden="true"></span><div class="rvo-in"></div></div><div class="rva-body" aria-live="polite"></div></div>';
+    // the Stack figure mounts through the shell's own Hairline binding, which also destroys it
+    // when the view leaves the page; it sits outside the part the overview redraws
+    setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
     el.addEventListener('click', e => this.click(e));
     // It refreshes itself: on a timer while on screen, and the moment the window comes back,
     // so a step someone took in another tab or on another computer shows without a reload.
@@ -2401,6 +2406,15 @@
     this.load();
   }
   const AV = ArchView.prototype;
+  // When an ad set last changed: its own steps and log, each project's last save (on Drive),
+  // and when it was made — whichever is newest.
+  function modOf(it) {
+    const rs = (it && it.rs) || {}, at = x => (x && x.at) || 0;
+    let m = Math.max(it.mod || 0, rs.created || 0);
+    (rs.hist || []).forEach(h => { m = Math.max(m, at(h)); });
+    (rs.items || []).forEach(x => { m = Math.max(m, x.added || 0, at(x.design), at(x.copy)); });
+    return m;
+  }
   AV.refresh = function () {
     if (!this.sel) return this.load(true);
     // the detail page is redrawn whole, so not while someone is typing in it
@@ -2411,13 +2425,13 @@
   };
   // The strip above the list: where every ad set and audience on this computer stands.
   AV.drawHealth = function () {
-    const box = this.el.querySelector('.rva-hl'); if (!box) return;
-    box.hidden = !!this.sel;
+    const hl = this.el.querySelector('.rva-hl'), box = this.el.querySelector('.rvo-in'); if (!box) return;
+    hl.hidden = !!this.sel;
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
     const up = '<span class="rvo-up">' + at + '<button type="button" class="rvo-re" data-a="refresh" aria-label="Refresh" title="Refresh">' + ico('ref', 'rvo-re-i') + '</button></span>';
-    if (this.items === null) { box.dataset.s = 'wait'; box.innerHTML = '<div class="rvo-top"><p class="rva-sx-w">Reading the ad sets…</p>' + up + '</div>'; return; }
+    if (this.items === null) { hl.dataset.s = 'wait'; box.innerHTML = '<div class="rvo-top"><p class="rva-sx-w">Reading the ad sets…</p>' + up + '</div>'; return; }
     // nothing to count yet: the sign-in card or the empty note below says all there is to say
-    if (!(this.items || []).length) { box.hidden = true; return; }
+    if (!(this.items || []).length) { hl.hidden = true; return; }
     const sets = (this.items || []).filter(x => !x.gone), miss = (this.items || []).length - sets.length;
     const all = sets.map(x => ({ x, auds: rsAuds(x.rs || {}) })), done = all.filter(o => rsOverall(o.auds).ready);
     const auds = [].concat(...all.map(o => o.auds));
@@ -2426,7 +2440,7 @@
     // each audience sits at its first unfinished step; a finished one counts as Done
     const by = STEP_LABELS.map((l, i) => ({ l, i, n: auds.filter(a => (a.done ? 3 : a.steps.findIndex(x => x.s !== 'done')) === i).length }));
     const stat = (n, l) => '<div><dd>' + n + '</dd><dt>' + l + '</dt></div>';
-    box.dataset.s = 'ok';
+    hl.dataset.s = 'ok';
     // Hierarchy: ONE number (audiences done) leads; three counts beside it; then where every
     // audience is, as four columns — the step, how many sit there, and a bar for its share.
     box.innerHTML = '<div class="rvo-top">' +
@@ -2525,14 +2539,17 @@
         : first ? '<span class="rva-now" data-i="' + si + '" title="' + esc(open.map(a => a.label + ': ' + (a.now ? a.now.label + ' · ' + a.now.sub : '')).join('\n')) + '"><i></i><b>' + esc(first.now ? first.now.label : STEP_LABELS[si]) + '</b><u>' + esc(first.label) + '</u>' + (open.length > 1 ? '<s>+' + (open.length - 1) + '</s>' : '') + '</span>'
         : '<span class="rva-now"><i></i><b>No projects yet</b></span>';
       const segs = '<span class="rva-segs" aria-label="' + esc(all.steps.map(x => x.label + ' ' + (x.s === 'done' ? 'done' : x.s === 'cur' ? 'in progress' : 'not started')).join(', ')) + '">' + all.steps.map(x => '<i data-s="' + x.s + '" title="' + esc(x.label + ' · ' + x.sub) + '"></i>').join('') + '</span>';
-      const cd = rs.created ? new Date(rs.created) : null;
-      const when = cd ? cd.toLocaleDateString([], cd.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-      const meta = [rs.product ? PRODUCT_NAME[rs.product] || '' : '', auds.length + (auds.length === 1 ? ' audience' : ' audiences'), when].filter(Boolean).map(esc).join(' · ');
+      const cd = modOf(it) ? new Date(modOf(it)) : null;
+      const today = cd && cd.toDateString() === new Date().toDateString();
+      const when = !cd ? '' : 'Changed ' + (today ? cd.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+        : cd.toLocaleDateString([], cd.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' }));
+      const meta = [rs.product ? PRODUCT_NAME[rs.product] || '' : '', when].filter(Boolean).map(esc).join(' · ');
       return '<button class="rva-c" data-id="' + esc(it.id) + '"' + (all.ready ? ' data-ready="1"' : '') + '><span class="rva-th">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-ct"><span class="rva-n"><b title="' + esc(rs.name || names[it.id] || 'Ad set') + '">' + esc(rs.name || names[it.id] || 'Ad set') + '</b></span>' +
         now + segs + '<span class="rva-m">' + meta + '</span></span>' + ico('chev', 'rva-go') + '</button>';
     };
-    const sorted = this.items.slice().sort((a, b) => ((b.rs || {}).created || 0) - ((a.rs || {}).created || 0));
+    // newest change first: the last thing anyone did in the ad set or any of its projects
+    const sorted = this.items.slice().sort((a, b) => modOf(b) - modOf(a));
     const ready = x => rsOverall(rsAuds(x.rs || {})).ready;
     const prog = sorted.filter(x => !x.gone && !ready(x)), done = sorted.filter(x => !x.gone && ready(x)), gone = sorted.filter(x => x.gone);
     const grp = (t, l) => l.length ? '<section class="rva-g"><h3>' + t + '<s>' + l.length + '</s></h3><div class="rva-grid">' + l.map(card).join('') + '</div></section>' : '';
@@ -3699,7 +3716,14 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-add{position:relative;flex:0 1 420px;display:flex;align-items:center;gap:8px}
 .rva-add-i{position:absolute;left:12px;width:18px;height:18px;fill:var(--ps-dim);pointer-events:none}
 .rva-add .p-in{height:38px;padding-left:38px}
-.rva-hl{gap:20px;padding:24px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rva-hl{flex-direction:row;align-items:center;gap:32px;padding:24px 28px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rva{container-type:inline-size}
+.rvo-in{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px}
+@container (max-width:900px){.rva-hl{flex-direction:column;align-items:flex-start;gap:12px}.rvo-in{align-self:stretch}.rvo-fig{width:110px}}
+.rvo-fig{flex:none;display:block;width:150px;aspect-ratio:400/320;
+  --hairline-plate:var(--ps-fill);--hairline-hi:var(--ps-ink);--hairline-edge:var(--ps-ink-2);--hairline-mid:var(--ps-ink-2);--hairline-lo:var(--ps-dim);--hairline-stroke:1}
+.rva-hl:hover .rvo-fig{--hairline-hi:var(--ps-link)}
+.rvo-fig svg{display:block;width:100%;height:100%}
 .rvo-top{display:flex;align-items:flex-end;gap:32px;flex-wrap:wrap}
 .rvo-hero{display:flex;flex-direction:column;gap:4px;margin-right:auto}
 .rvo-k{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
@@ -3749,7 +3773,7 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-m{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rva-n b{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .rva-go{flex:none;align-self:center;width:20px;height:20px;fill:currentColor;color:var(--ps-dim);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-@media (max-width:760px){.rvo-top{gap:20px}.rvo-hero{flex-basis:100%}.rvo-hero b{font-size:40px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}.rva-add{flex-basis:100%}.rva-grid{grid-template-columns:minmax(0,1fr)}.rva-c{min-width:0}.rva-th{width:64px;height:80px}}
+@media (max-width:760px){.rva-hl{flex-direction:column;align-items:flex-start;gap:16px;padding:20px}.rvo-in{align-self:stretch}.rvo-fig{width:96px}.rvo-top{gap:20px}.rvo-hero{flex-basis:100%}.rvo-hero b{font-size:40px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}.rva-add{flex-basis:100%}.rva-grid{grid-template-columns:minmax(0,1fr)}.rva-c{min-width:0}.rva-th{width:64px;height:80px}}
 @media (prefers-reduced-motion:reduce){.rva-go{transition:none}}
 `;
     document.head.appendChild(s);

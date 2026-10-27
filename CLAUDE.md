@@ -16839,3 +16839,12 @@ Same brief as the setup widget: less text, a clear hierarchy (share-link.js, `Ar
 - Grid columns are `minmax(0,1fr)` on a phone — plain `1fr` let a card's min-content widen
   the track past the screen. 0 contrast failures in both themes; fits at 375. Checked with
   injected sample ad sets (the real ones are on Drive).
+
+**Then (same day): Hairline's Stack figure and newest-change order.** The overview opens on the
+**Stack** figure (`.rvo-fig`, `data-hl="stack"`), kept OUTSIDE the part `drawHealth` redraws
+(`.rvo-in`), so a refresh does not recreate it; the shell's `hlBind` mounts and destroys it.
+Beside the overview on a wide page, above it under 900px of container width (`.rva` is a size
+container). **Cards sort by last change, newest first** — `modOf(it)`: the newest of the ad
+set's `created`, its `hist` steps, each item's `added` / `design` / `copy`, and on Drive
+`it.mod` (set in `dsInfo` from each project's `review.sum.updated` and last log entry). The
+card's meta reads "Residential · Changed 3:45 PM" (today) or "Changed Oct 22".
