@@ -16643,3 +16643,21 @@ message through, and words the two plan limits (monthly requests, data size) in 
 The live "HTTP 400" reported on 2026-10-27 was not identified: reads on production worked and
 the ad set's data was correct (Design simply not marked done). The real reason will show the
 next time it happens.
+
+# A FULL SHARE STORE FREES ITSELF (2026-10-27)
+
+The live store hit Upstash's 250,000,000-byte threshold and every save was refused ("ERR DB
+capacity quota exceeded"), so edits stopped reaching review links. Upstash returns that in a 200
+body, which bypassed the HTTPError mapping; `up_fail(why)` now maps it in `_post`, `cmd`, `pipe`
+and `set_raw` (507). **`route` wraps `_route`: a POST answered 507 runs `reclaim(1)` and retries,
+then `reclaim(2)` and retries.** Level 1 deletes `img:` parts whose hash is not in the link's
+`imgs` map (replaced photos) unless written in the last ten minutes (an upload whose save has not
+landed), and every `img:`/`pv:` key of a link with no `state`. Level 2 also deletes full parts of
+a used photo whose TTL says nobody opened the link for `RECLAIM_DAYS` (14) — only when a preview
+exists, so nothing is lost. `op=adminreclaim` (`old` for level 2) is share-admin.html's Free space
+/ Free more. **Health's size was wrong**: INFO `used_memory` read 1.8 MB on a full store; it now
+adds up STRLEN of the stored values, cached in `sys:size` for 20 minutes. Limit default 250 MB
+(decimal, Upstash's own). The dev store takes `SHARE_DEV_QUOTA` (bytes) to act full.
+**Not exercised on real Upstash**; links are under 14 days old, so level 2 frees nothing yet.
+Biggest remaining lever if it fills again: an edit link stores each photo per link at export
+grade, so the same photo in an ENG and an ARB project is stored twice.

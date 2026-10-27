@@ -268,7 +268,7 @@ The page refreshes itself every minute while it is on screen, and again as soon 
 back to the window. A step someone takes elsewhere shows up without a reload. **Refresh**
 updates it at once. The strip above the list shows the **share store**:
 - whether it is answering, and how fast
-- how full it is out of the free 256 MB
+- how full it is out of the free 250 MB
 - a link to see what takes the space, once it fills up
 
 If the store refuses a request, the red message now says why: for example, the plan's monthly

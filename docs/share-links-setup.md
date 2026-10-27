@@ -42,7 +42,7 @@ is not connected, step 1.4 or 1.5 is missing.
   Changes panel offers **Restore from a saved file…** (pick the project's `.json` from its Source
   folder). Opening the link on the computer that made the project puts the photos back by itself.
   Export and Save warn while a photo is still only its preview.
-- **Free plan limits (Upstash, check their pricing page for current numbers):** about 256 MB of
+- **Free plan limits (Upstash, check their pricing page for current numbers):** about 250 MB of
   data and 500,000 commands a month. A project with ten photos is roughly 20–30 MB. An open
   studio tab on a link checks for changes every 12 seconds while it is on screen (2 commands),
   so one person working all day uses about 2,400 commands. A handful of people sharing links
@@ -57,10 +57,25 @@ is not connected, step 1.4 or 1.5 is missing.
 ## Health
 
 CAS's **Review links** page shows a strip with the store's state: answering or not, how fast, and
-how full against the free 256 MB (`SHARE_STORE_MB` changes the figure). It uses
+how full against the free 250 MB (`SHARE_STORE_MB` changes the figure; the size is the stored
+values added up, refreshed at most every 20 minutes). It uses
 `/api/share?op=health`, which anyone can call and which reveals no project data. When Upstash
 refuses a request, the studio now shows Upstash's own reason, for example a used-up monthly
 request allowance or a full store.
+
+## When the store is full
+
+Upstash refuses every write once the free plan's 250 MB is used, so edits on shared links stop
+saving. The function then frees space by itself and tries the save again:
+
+1. it deletes photos no link uses any more (replaced or removed) and photos left by deleted
+   projects — nothing anyone sees changes;
+2. if that is not enough, it deletes the full-size photos of links nobody has opened for
+   14 days. They keep their previews, and the full photo comes back when the designer opens the
+   link on their computer.
+
+`share-admin.html` has the same two steps as **Free space** and **Free more**. If both are done
+and it is still full, delete old links there or move the store to pay-as-you-go.
 
 ## Security
 

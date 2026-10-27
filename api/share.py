@@ -60,6 +60,16 @@ class Fail(Exception):
         self.code, self.msg = code, msg
 
 
+def up_fail(why):
+    """Upstash's plan limits, in plain words. A full store is 507, which route() answers by
+    freeing space and trying once more."""
+    low = (why or '').lower()
+    if 'limit' in low and ('request' in low or 'command' in low):
+        raise Fail(503, 'The share store has used up its monthly request allowance (Upstash free plan). Links will work again when it resets, or move the store to pay-as-you-go. Upstash said: ' + why)
+    if 'capacity' in low or 'quota' in low or 'oom' in low or ('max' in low and ('size' in low or 'memory' in low or 'storage' in low)):
+        raise Fail(507, 'The share store is full. Old full-size photos were cleared but it is still full: delete old links in share-admin.html, or move the store to pay-as-you-go. Upstash said: ' + why)
+
+
 # ---------- the store ----------
 
 class Upstash:
@@ -82,11 +92,7 @@ class Upstash:
                 why = str(b.get('error') if isinstance(b, dict) else b or '')[:240]
             except Exception:  # noqa: BLE001
                 pass
-            low = why.lower()
-            if 'limit' in low and ('request' in low or 'command' in low):
-                raise Fail(503, 'The share store has used up its monthly request allowance (Upstash free plan). Links will work again when it resets, or move the store to pay-as-you-go. Upstash said: ' + why)
-            if 'max' in low and ('size' in low or 'memory' in low or 'storage' in low) or 'oom' in low:
-                raise Fail(507, 'The share store is full (Upstash free plan data size). Delete old links in share-admin.html, or move the store to pay-as-you-go. Upstash said: ' + why)
+            up_fail(why)
             raise Fail(502, 'The share store refused the request (HTTP %d)%s.' % (e.code, ': ' + why if why else ''))
         except Exception as e:  # noqa: BLE001
             raise Fail(502, 'The share store did not answer (%s).' % e.__class__.__name__)
@@ -94,6 +100,7 @@ class Upstash:
     def cmd(self, *args):
         out = self._post('', [str(a) for a in args])
         if isinstance(out, dict) and out.get('error'):
+            up_fail(str(out['error']))
             raise Fail(502, 'Share store error: ' + str(out['error']))
         return out.get('result') if isinstance(out, dict) else None
 
@@ -102,6 +109,7 @@ class Upstash:
         res = []
         for o in out:
             if isinstance(o, dict) and o.get('error'):
+                up_fail(str(o['error']))
                 raise Fail(502, 'Share store error: ' + str(o['error']))
             res.append(o.get('result') if isinstance(o, dict) else None)
         return res
@@ -111,6 +119,7 @@ class Upstash:
         path = '/set/' + urllib.parse.quote(key, safe='') + '?EX=' + str(ttl)
         out = self._post(path, value.encode(), raw=True)
         if isinstance(out, dict) and out.get('error'):
+            up_fail(str(out['error']))
             raise Fail(502, 'Share store error: ' + str(out['error']))
 
 
@@ -125,8 +134,12 @@ class Memory:
             if op == 'GET':
                 v = self.d.get(a[0]); return v if isinstance(v, str) else None
             if op == 'SET':
+                self._room(len(str(a[1])) - (len(self.d[a[0]]) if isinstance(self.d.get(a[0]), str) else 0))
                 self.d[a[0]] = str(a[1]); return 'OK'
-            if op in ('EXPIRE', 'PERSIST'):
+            if op == 'EXPIRE':
+                if a[0] in self.d: self.ttl[a[0]] = int(a[1])
+                return 1
+            if op == 'PERSIST':
                 return 1
             if op == 'DEL':
                 return 1 if self.d.pop(a[0], None) is not None else 0
@@ -174,6 +187,15 @@ class Memory:
     def pipe(self, cmds):
         return [self.cmd(*c) for c in cmds]
 
+    def used(self):
+        return sum(len(v) if isinstance(v, str) else len(json.dumps(v)) for v in self.d.values())
+
+    def _room(self, add):
+        # SHARE_DEV_QUOTA (bytes): behave like a full Upstash database, to test reclaim()
+        q = int(os.environ.get('SHARE_DEV_QUOTA') or 0)
+        if q and add > 0 and self.used() + add > q:
+            up_fail('ERR DB capacity quota exceeded. Threshold: %d bytes, Usage: %d bytes' % (q, self.used()))
+
     def set_raw(self, key, value, ttl):
         self.cmd('SET', key, value)
         if ttl:
@@ -181,6 +203,7 @@ class Memory:
 
     def save(self, k, base, state, entry, burst, slots, ttl):
         with self.lock:
+            self._room(len(state or '') + len(entry or ''))
             rev = int(self.d.get(k + 'rev') or 0)
             if base != rev:
                 return [0, rev]
@@ -858,7 +881,59 @@ def admin_del(sid):
     return ok({'deleted': len(keys)})
 
 
-STORE_MB = int(os.environ.get('SHARE_STORE_MB') or 256)  # the Upstash free plan's data size
+# ---------- a full store frees itself ----------
+# Nearly all of the store is full-size photo parts (`img:`). Three kinds can go without losing
+# anything anyone sees: parts of a photo the link no longer uses (it was replaced, or removed),
+# parts left behind by a project that no longer exists, and (level 2 only) the full-size parts
+# of a link nobody has opened for RECLAIM_DAYS — those links keep their preview and put the
+# full photo back from the designer's computer, exactly as after the 60-day expiry. A photo
+# with no preview stored is never touched, so nothing is lost outright.
+
+RECLAIM_DAYS = 14
+
+
+def hash_of(key):
+    p = key.split(':')  # sh:<id>:img:<hash>:<i>  or  sh:<id>:pv:<hash>
+    return p[3] if len(p) > 3 else ''
+
+
+def reclaim(level=1):
+    s = store()
+    by = {}
+    for key in scan('sh:*'):
+        p = key.split(':')
+        if len(p) >= 3:
+            by.setdefault(p[1], []).append(key)
+    drop = []
+    for sid, keys in by.items():
+        parts = [x for x in keys if ':img:' in x or ':pv:' in x]
+        if not parts:
+            continue
+        if not any(x.endswith(':state') for x in keys):
+            drop += parts  # the project is gone
+            continue
+        used = {e.get('h') for e in imgs_of(s.cmd('HGETALL', 'sh:' + sid + ':imgs')).values() if isinstance(e, dict)}
+        img = [x for x in parts if ':img:' in x]
+        pv = {hash_of(x) for x in parts if ':pv:' in x}
+        ttl = s.pipe([['TTL', x] for x in img]) if img else []
+        for x, t in zip(img, ttl):
+            t = int(t if t is not None else -1)
+            if hash_of(x) not in used:
+                # not in the link's photo map; but a part written in the last ten minutes may be
+                # an upload whose save has not landed yet, so it stays
+                if t < TTL - 600:
+                    drop.append(x)
+            elif level >= 2 and hash_of(x) in pv and 0 <= t < TTL - RECLAIM_DAYS * 86400:
+                drop.append(x)
+    freed = 0
+    for i in range(0, len(drop), 400):
+        b = drop[i:i + 400]
+        freed += sum(int(n or 0) for n in s.pipe([['STRLEN', x] for x in b]))
+        s.pipe([['DEL', x] for x in b])
+    return {'deleted': len(drop), 'freed': freed}
+
+
+STORE_MB = int(os.environ.get('SHARE_STORE_MB') or 250)  # Upstash free plan: 250,000,000 bytes (its own threshold)
 
 
 def health():
@@ -869,21 +944,50 @@ def health():
         pong, keys = s.pipe([['PING'], ['DBSIZE']])
         ms = round((time.time() - t) * 1000)
     except Fail as e:
-        return ok({'ok': False, 'error': e.msg, 'limit': STORE_MB * 1048576})
+        return ok({'ok': False, 'error': e.msg, 'limit': STORE_MB * 1000000})
+    # INFO's used_memory is not what Upstash's size limit counts (it read 1.8 MB on a store
+    # Upstash called full at 250 MB). The stored values are: add them up, at most every 20
+    # minutes, and keep the answer in sys:size so the strip costs three commands otherwise.
     used = None
     try:
-        for line in str(s.cmd('INFO') or '').splitlines():
-            if line.startswith('used_memory:'):
-                used = int(line.split(':', 1)[1].strip())
-                break
+        c = json.loads(s.cmd('GET', 'sys:size') or 'null')
+        if isinstance(c, dict) and time.time() - c.get('at', 0) < 1200:
+            used = c.get('bytes')
+        else:
+            ks = [k for k in scan('*') if ':img:' in k or ':pv:' in k or k.split(':')[-1] in STR_TAILS or k.startswith('rs:') and k.count(':') == 1]
+            used = 0
+            for i in range(0, len(ks), 500):
+                used += sum(int(n or 0) for n in s.pipe([['STRLEN', k] for k in ks[i:i + 500]]))
+            try:
+                s.cmd('SET', 'sys:size', json.dumps({'bytes': used, 'at': time.time()}))
+            except Fail:
+                pass  # a full store refuses the write; the number is still right
     except Exception:  # noqa: BLE001
         pass
     return ok({'ok': pong in ('PONG', True), 'ms': ms, 'keys': int(keys or 0), 'bytes': used,
-               'limit': STORE_MB * 1048576, 'dev': isinstance(s, Memory)})
+               'limit': STORE_MB * 1000000, 'dev': isinstance(s, Memory)})
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
 def route(method, query, body):
+    """(method, {query}, bytes) -> (status, content-type, bytes). A write refused because the
+    store is full frees space (reclaim) and is tried again: unused photos first, then the
+    full-size photos of links nobody has opened for a while."""
+    r = _route(method, query, body)
+    if r[0] == 507 and method == 'POST':
+        for level in (1, 2):
+            try:
+                if not reclaim(level)['deleted']:
+                    continue
+            except Fail:
+                break
+            r = _route(method, query, body)
+            if r[0] != 507:
+                break
+    return r
+
+
+def _route(method, query, body):
     """(method, {query}, bytes) -> (status, content-type, bytes)"""
     q = {k: v[0] for k, v in urllib.parse.parse_qs(query).items()}
     op = q.get('op', '')
@@ -912,9 +1016,11 @@ def route(method, query, body):
             else:
                 s.cmd('RPUSH', k + 'log', ent)
             return ok({'id': sid, 'rev': 1})
-        if method == 'POST' and op in ('adminlist', 'admindel'):
+        if method == 'POST' and op in ('adminlist', 'admindel', 'adminreclaim'):
             d = json.loads(body or b'{}')
             admin_ok(d.get('key'))
+            if op == 'adminreclaim':
+                return ok(reclaim(2 if d.get('old') else 1))
             return admin_list() if op == 'adminlist' else admin_del(clean_id(d.get('sid')))
         if method == 'GET' and op == 'rsinfo':
             return rs_info(q)

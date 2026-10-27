@@ -44,13 +44,15 @@
     <input class="p-in" id="key" type="password" autocomplete="off" placeholder="Admin key (SHARE_ADMIN_KEY)" aria-label="Admin key">
     <button class="p-btn" type="submit">Load</button>
     <button class="p-ghost" type="button" id="forget">Forget key</button>
+    <button class="p-ghost" type="button" id="free" title="Deletes photos no link uses any more (replaced or removed), and photos left by deleted projects. Nothing anyone sees changes.">Free space</button>
+    <button class="p-ghost" type="button" id="freeOld" title="Also deletes the full-size photos of links nobody has opened for 14 days. They keep their previews, and the full photo comes back when the designer opens the link on their computer.">Free more (links unopened 14 days)</button>
   </form>
   <div class="sa-msg" id="msg"></div>
   <div id="out"></div>
 </main>
 <script>
 (function () {
-  var LIMIT = 256 * 1024 * 1024; // Upstash free plan
+  var LIMIT = 250000000; // Upstash free plan's own threshold, in bytes
   var base = (function () { try { return localStorage.getItem('provident-share-base') || ''; } catch (e) { return ''; } })();
   var api = base.replace(/\/$/, '') + '/api/share';
   var $ = function (id) { return document.getElementById(id); };
@@ -71,7 +73,7 @@
     post('adminlist', {}).then(function (d) {
       try { localStorage.setItem('provident-share-admin', keyEl.value); } catch (e) {}
       var pct = Math.min(100, d.bytes / LIMIT * 100);
-      var h = '<div class="sa-sum"><div><b>' + mb(d.bytes) + '</b>stored, about ' + Math.round(pct) + '% of the free 256 MB</div>'
+      var h = '<div class="sa-sum"><div><b>' + mb(d.bytes) + '</b>stored, about ' + Math.round(pct) + '% of the free 250 MB</div>'
         + '<div><b>' + d.rows.length + '</b>shared links</div><div><b>' + d.ttl_days + ' days</b>unused before full-size photos expire</div></div>'
         + '<div class="sa-bar"' + (pct > 80 ? ' data-hi' : '') + '><i style="width:' + pct.toFixed(1) + '%"></i></div>';
       if (!d.rows.length) { out.innerHTML = h + '<p>No shared links are stored.</p>'; say(''); return; }
@@ -99,6 +101,15 @@
     b.disabled = true; say('Deleting…');
     post('admindel', { sid: b.getAttribute('data-sid') }).then(function () { load(); }).catch(function (e) { b.disabled = false; say(e.message, true); });
   });
+  function free(old) {
+    if (!keyEl.value) { say('Enter the admin key.', true); return; }
+    if (old && !confirm('Delete the full-size photos of links nobody has opened for 14 days? They keep their previews until the designer opens them again.')) return;
+    say('Freeing space…');
+    post('adminreclaim', { old: !!old }).then(function (d) { load(); setTimeout(function () { say('Freed ' + mb(d.freed || 0) + ' (' + d.deleted + ' stored parts).'); }, 400); })
+      .catch(function (e) { say(e.message || 'Could not free space.', true); });
+  }
+  $('free').addEventListener('click', function () { free(false); });
+  $('freeOld').addEventListener('click', function () { free(true); });
   if (keyEl.value) load();
 })();
 </script>
