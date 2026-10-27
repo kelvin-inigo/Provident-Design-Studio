@@ -4503,6 +4503,9 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .cw-br-chip .cw-br-tk{width:16px;height:16px;fill:currentColor;opacity:0}
 .cw-br-chip[data-on]{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
 .cw-br-chip[data-on] .cw-br-tk{opacity:1}
+.cw-br-for{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cw-br-fmt{margin-top:-4px}
+.cw-br-pgs{display:flex;flex-wrap:wrap;gap:6px}
 .cw-br-go,.cw-br-cp{display:inline-flex;align-items:center;gap:8px;text-decoration:none}
 .cw-br-go svg,.cw-br-cp svg{width:18px;height:18px;fill:currentColor}
 .cw-br-go[disabled],.cw-br-cp[disabled]{opacity:.45;cursor:default}
@@ -5059,27 +5062,23 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
           <li class="cw-br-step">
             <div class="cw-br-h"><span><b>The brief</b><s>Video script, developer fact sheet, WhatsApp or EOI brief</s></span></div>
             <textarea value="{{ brBrief }}" onChange="{{ onBrBrief }}" rows="6" class="p-in" placeholder="Paste the project text here" aria-label="Brief"></textarea>
-            <div class="cw-br-row"><span class="cw-br-l">Audiences</span>
+            <sc-if value="{{ brAudPickOn }}" hint-placeholder-val="{{ true }}"><div class="cw-br-row"><span class="cw-br-l">Audiences</span>
               <button onClick="{{ brFam }}" data-on="{{ brFamOn }}" class="cw-br-chip" aria-label="Families"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Families</button>
               <button onClick="{{ brInv }}" data-on="{{ brInvOn }}" class="cw-br-chip" aria-label="Investors"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Investors</button>
+            </div></sc-if>
+            <sc-if value="{{ brForOn }}" hint-placeholder-val="{{ false }}"><div class="cw-br-row" title="{{ brForTip }}"><span class="cw-br-l">For</span><span class="cw-br-for">{{ brForLabel }}</span></div></sc-if>
+            <div class="cw-br-row" role="radiogroup" aria-label="Format"><span class="cw-br-l">Format</span>
+              <button onClick="{{ brFmtSingle }}" data-on="{{ brFmtSingleOn }}" class="cw-br-chip" role="radio" aria-checked="{{ brFmtSingleAria }}"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Single ad</button>
+              <button onClick="{{ brFmtCar }}" data-on="{{ brFmtCarOn }}" class="cw-br-chip" role="radio" aria-checked="{{ brFmtCarAria }}"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Carousel</button>
             </div>
+            <p class="cw-hint cw-br-fmt">{{ brFmtNote }}</p>
             <label class="cw-sub"><span class="cw-sub-t">Notes for Claude <b class="p-ftag p-ftag-opt">Optional</b></span><s>Permit number, what to lead with, what to leave out</s>
               <input value="{{ brNotes }}" onChange="{{ onBrNotes }}" class="p-in" placeholder="e.g. Trakheesi 7123456 · lead with the beach">
             </label>
             <details class="cw-br-more">
-              <summary><span><b>Folder, Drive link and pictures</b><s>{{ brMoreSumm }}</s></span><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
+              <summary><span><b>Pictures for the ad</b><s>{{ brMoreSumm }}</s></span><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
               <div class="cw-br-mb">
-                <span class="cw-br-gl">Where it saves<s>Claude names these in its reply, so the files land in the right place</s></span>
-            <div class="cw-br-dest" data-on="{{ brFolderOn }}">
-              <span class="cw-br-dic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M170-180q-29.15 0-49.58-20.42Q100-220.85 100-250v-457.69q0-29.15 21.58-50.73T172.31-780H362q14.46 0 27.81 5.62 13.34 5.61 23.19 15.46L471.92-700h354.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H447.38l-80-80H172.31q-5.39 0-8.85 3.46t-3.46 8.85V-240q0-5.39 2.12-4.04 2.11 1.35 5.57 3.27l77.85-259.92q7.23-23.31 26.61-37.46 19.39-14.16 43.08-14.16h514.46q36.77 0 58.35 29.23 21.57 29.23 11.34 63.77l-68.92 229.62q-6.85 22.53-25.65 36.11Q786-180 763.08-180H170Zm60.54-60h531q4.23 0 7.5-2.31 3.27-2.31 4.42-6.54l68.16-227.69q1.92-6.15-1.93-10.96-3.84-4.81-10-4.81H315.23q-4.23 0-7.5 2.31-3.27 2.31-4.42 6.54L230.54-240ZM160-500.08V-720-500.08ZM230.54-240l72.77-243.46q1.15-4.23 1.92-6.54l.77-2.31-1.35 4.81q-1.34 4.81-3.27 10.96l-68.15 227.69q-1.15 4.23-1.92 6.54l-.77 2.31Z"/></svg></span>
-              <span class="cw-br-dt"><s>Source folder</s><b>{{ brFolder }}</b></span>
-              <sc-if value="{{ brFolderCan }}" hint-placeholder-val="{{ true }}"><button onClick="{{ brFolderPick }}" class="p-ghost p-sm">{{ brFolderBtn }}</button></sc-if>
-            </div>
-            <label class="cw-sub"><span class="cw-sub-t">Google Drive folder <b class="p-ftag p-ftag-opt">Optional</b></span><s>The project folder with Local, International and International EUR inside</s>
-              <input value="{{ brDrive }}" onChange="{{ onBrDrive }}" class="p-in" placeholder="https://drive.google.com/drive/folders/…" inputmode="url" spellcheck="false">
-            </label>
-            <sc-if value="{{ brDriveBad }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">That doesn&#8217;t look like a Google Drive link.</p></sc-if>
-                <span class="cw-br-gl cw-br-gl2">Pictures for the ad<s>They go into the campaign when you press Fill</s></span>
+                
             <div class="cw-br-grp"><span class="cw-br-gl">Logo<s>The developer&#8217;s logo, SVG or PNG</s></span>
               <div class="cw-br-pics">
                 <div class="cw-br-pic" data-filled="{{ brLogoOn }}">
@@ -5133,6 +5132,12 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
                   <sc-for list="{{ brAuds }}" as="au" hint-placeholder-count="2"><button onClick="{{ au.pick }}" data-on="{{ au.on }}">{{ au.label }}</button></sc-for>
                 </div>
               </sc-if>
+              <sc-if value="{{ brPagesOn }}" hint-placeholder-val="{{ false }}">
+                <div class="cw-br-heads" role="radiogroup" aria-label="Project">
+                  <span class="cw-br-l">Project</span>
+                  <div class="cw-br-pgs"><sc-for list="{{ brPages }}" as="pj" hint-placeholder-count="3"><button onClick="{{ pj.pick }}" data-on="{{ pj.on }}" class="cw-br-chip">{{ pj.label }}</button></sc-for></div>
+                </div>
+              </sc-if>
               <sc-if value="{{ brHeadsOn }}" hint-placeholder-val="{{ true }}">
                 <div class="cw-br-heads" role="radiogroup" aria-label="Heading">
                   <span class="cw-br-l">Heading</span>
@@ -5146,7 +5151,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
               </div>
               <button onClick="{{ brPrune }}" class="p-tgl cw-br-prune" role="switch" aria-checked="{{ brPruneAria }}" data-on="{{ brPruneOn }}"><span class="p-tgl-t"><b>Remove components this copy doesn&#8217;t use</b><s>So no template sample text ships. Undo puts them back.</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
               <div class="cw-acts"><button onClick="{{ brFill }}" class="p-btn">{{ brFillLabel }}</button></div>
-              <p class="cw-hint">Families and Investors are separate campaigns. Fill this one, then start a new campaign for the other — the reply stays here.</p>
+              <p class="cw-hint">{{ brTailNote }}</p>
             </sc-if>
           </li>
         </ol>
@@ -11585,6 +11590,14 @@ class CampaignStudio extends StudioBase {
     audience: 'Families', tag: 'EXCLUSIVE LAUNCH', project: 'Project by Developer', headline: '…', alts: ['…', '…'],
     price: { label: 'From', figure: 'AED …' },
     payment: [{ label: 'On booking', value: '…%' }, { label: 'Payment plan', value: '…' }], cta: 'ENQUIRE NOW' }] };
+  // A CAROUSEL asks for PAGES: one list per audience, in swipe order, each page the same six
+  // short jobs. One page per project when the brief covers several; otherwise the story told
+  // across pages. Fill gives the project one carousel page per entry (up to 10).
+  static BRIEF_SAMPLE_CAR = { provident: 'cas-copy', format: 'carousel', flags: ['…'], audiences: [{
+    audience: 'Families', pages: [
+      { page: 'Project or point 1', tag: '…', project: 'Project by Developer', headline: '…', alts: ['…'],
+        price: { label: 'From', figure: 'AED …' }, payment: [{ label: 'Down payment', value: '…%' }, { label: 'Handover', value: '…' }], cta: 'ENQUIRE NOW' },
+      { page: 'Project or point 2', tag: '…', project: '…', headline: '…', alts: [], price: { label: '', figure: '' }, payment: [], cta: '…' }] }] };
   // THE AD CARRIES ONLY THE CRITICAL DETAILS. A first test filled support lines, amenity chips
   // and long rows and the creative drowned in text. So the block asks for the short form and
   // Fill takes six jobs: tag, heading, project, price, at most two payment rows, button.
@@ -11593,44 +11606,63 @@ class CampaignStudio extends StudioBase {
       let d = {};
       try { d = JSON.parse(localStorage.getItem(CampaignStudio.BRIEF_KEY) || '{}') || {}; } catch (e) {}
       this._br = { brief: d.brief || '', notes: d.notes || '', drive: d.drive || '', fam: d.fam !== false, inv: d.inv !== false,
-        reply: d.reply || '', aud: d.aud | 0, head: 0, prune: d.prune !== false, done: {}, filled: d.filled || '' };
+        reply: d.reply || '', aud: d.aud | 0, audSet: !!d.audSet, page: d.page | 0, fmt: d.fmt === 'carousel' || d.fmt === 'single' ? d.fmt : '',
+        head: 0, prune: d.prune !== false, done: {}, filled: d.filled || '' };
     }
     return this._br;
   }
   brSet(k, v) {
     const b = this.brRead();
     b[k] = v;
-    if (k === 'reply') { b.head = 0; b.done = {}; b.filled = ''; }
-    if (k === 'aud') b.head = 0;
-    try { localStorage.setItem(CampaignStudio.BRIEF_KEY, JSON.stringify({ brief: b.brief, notes: b.notes, drive: b.drive, fam: b.fam, inv: b.inv, reply: b.reply, aud: b.aud, prune: b.prune, filled: b.filled })); } catch (e) {}
+    if (k === 'reply') { b.head = 0; b.done = {}; b.filled = ''; b.page = 0; b.audSet = false; }
+    if (k === 'aud') { b.head = 0; b.page = 0; b.audSet = true; }
+    if (k === 'page') b.head = 0;
+    try { localStorage.setItem(CampaignStudio.BRIEF_KEY, JSON.stringify({ brief: b.brief, notes: b.notes, drive: b.drive, fam: b.fam, inv: b.inv, reply: b.reply, aud: b.aud, audSet: b.audSet, page: b.page, fmt: b.fmt, prune: b.prune, filled: b.filled })); } catch (e) {}
     this.forceUpdate();
+  }
+  // Single ad or carousel: the brief's own choice once made, else whatever the project is.
+  brFmt() { const b = this.brRead(); return b.fmt || (CampaignStudio.isCarousel(this.state) ? 'carousel' : 'single'); }
+  // IN AN AD SET THE PROJECT ALREADY KNOWS ITS AUDIENCE (set up on the home page), so the brief
+  // stops asking for one: the prompt names it, and the reply's matching audience is picked.
+  brCtx() {
+    const S = this._sh, rs = S && S.rs, it = rs && this.rsItem ? this.rsItem() : null;
+    if (!it) return null;
+    return { rs: rs.name || '', market: it.market || '', aud: it.aud || '', arb: it.lang === 'ARB', product: rs.product || '' };
   }
   brPrompt() {
     const b = this.brRead(), d = new Date(), pad = n => String(n).padStart(2, '0');
     const auds = [b.fam && 'Families', b.inv && 'Investors'].filter(Boolean);
+    const car = this.brFmt() === 'carousel', X = this.brCtx();
+    const where = X ? [X.market, X.aud, X.arb ? 'Arabic' : 'English'].filter(Boolean).join(' · ') : '';
     return [
       '/meta-ad-design-copy', '',
       'Stage 1 only: turn the brief below into on-design copy. Do not open or build anything in the Campaign Studio — I am working in it and will fill its fields from your reply.',
       'Today is ' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.',
-      'Audiences: ' + (auds.length ? auds.join(' and ') : 'Families and Investors') + '.',
+      X ? 'Audience: ' + (X.aud || 'the one below') + ' only' + (X.product ? ' (' + X.product + ')' : '') + '. This project is the ' + where + ' version'
+          + (X.rs ? ' in the ad set "' + X.rs + '"' : '') + '; the other audiences are separate projects.'
+        : 'Audiences: ' + (auds.length ? auds.join(' and ') : 'Families and Investors') + '.',
+      X && X.market ? 'Market: ' + X.market + ' — use that set\'s currency, as the skill does.' : null,
+      X && X.arb ? 'Language: Arabic — write the on-design copy in Arabic.' : null,
+      car ? 'Format: a CAROUSEL of up to 10 swipe pages, in swipe order. When the brief covers several projects, make one page per project; otherwise tell the story across pages. Every page stands on its own: its own tag, headline, price, payment rows and button.'
+        : 'Format: a single ad. When the brief covers several projects, give one entry per project for each audience.',
       b.notes.trim() ? 'Notes: ' + b.notes.trim() : null,
-      'Campaign Studio source folder (where it saves and exports): ' + (this.folderName() || 'not chosen yet') + '.',
-      b.drive.trim() ? 'Google Drive project folder: ' + b.drive.trim() : null,
       this.brAttachLine(), '',
-      'Reply as the skill says (Key Details, Flags, then each audience\'s stack and alternate headlines). Then END with one code block tagged cas-copy holding this JSON, one entry per audience.',
+      'Reply as the skill says (Key Details, Flags, then the copy and alternate headlines). Then END with one code block tagged cas-copy holding this JSON, '
+        + (car ? 'one entry per audience, its pages in swipe order.' : 'one entry per audience (and per project).'),
       'The cas-copy block goes straight onto the ad, so put ONLY the critical details in it, as short as the facts allow: tag up to 3 words; headline up to 6 words on one line (alts the same); project = name + developer; price = a short label ("From", "Avg.") + the figure exactly as the source states; payment = at most 2 short rows (e.g. On booking / 20%, Payment plan / 3 years, or Handover / Q4 2028); CTA up to 3 words. No support line, amenities, travel times or sentences. "" where there is nothing:',
-      '```cas-copy', JSON.stringify(CampaignStudio.BRIEF_SAMPLE), '```', '',
+      '```cas-copy', JSON.stringify(car ? CampaignStudio.BRIEF_SAMPLE_CAR : CampaignStudio.BRIEF_SAMPLE), '```', '',
       'BRIEF:', b.brief.trim(),
     ].filter(l => l !== null).join('\n');
   }
   // THE REPLY, read two ways. The cas-copy block when it is there (the prompt asks for it);
   // otherwise the skill's own stacks, read line by line in its stated order — tag, project,
   // headline, support, proof, price, payment, CTA — so a reply from a chat that ignored the
-  // block still lands somewhere sensible.
+  // block still lands somewhere sensible. Either way the result is AUDIENCES, each a list of
+  // PAGES (one per project, or per carousel page): `{src, flags, auds: [{name, pages: [stack]}]}`.
   static brParse(txt) {
     const t = String(txt || '');
     if (!t.trim()) return null;
-    const S = v => String(v == null ? '' : v).trim();
+    const C = CampaignStudio, S = v => String(v == null ? '' : v).trim();
     const tryJ = s => { try { const o = JSON.parse(s); return o && Array.isArray(o.audiences) ? o : null; } catch (e) { return null; } };
     let js = null;
     const blk = /```[ \t]*cas-copy[ \t]*\n([\s\S]*?)```/i.exec(t);
@@ -11646,57 +11678,129 @@ class CampaignStudio extends StudioBase {
         }
       }
     }
-    const pay = arr => (Array.isArray(arr) ? arr : []).map(p => typeof p === 'string' ? CampaignStudio.brPair(p) : { l: S(p.label || p.l), v: S(p.value || p.v) }).filter(p => p.l || p.v);
-    if (js) return {
-      src: 'block',
-      flags: (js.flags || []).map(S).filter(f => f && f !== '…'),
-      auds: js.audiences.map((a, i) => ({
-        name: S(a.audience) || ('Audience ' + (i + 1)),
-        tag: S(a.tag), project: S(a.project),
-        heads: [a.headline].concat(a.alts || a.alternates || []).map(S).filter(Boolean),
-        support: S(a.support), proof: (a.proof || []).map(S).filter(Boolean),
-        price: { label: S(a.price && a.price.label), figure: S(a.price && a.price.figure) },
-        pay: pay(a.payment), cta: S(a.cta),
-      })),
-    };
-    return CampaignStudio.brStacks(t);
+    const pay = arr => (Array.isArray(arr) ? arr : []).map(p => typeof p === 'string' ? C.brPair(p) : { l: S(p.label || p.l), v: S(p.value || p.v) }).filter(p => p.l || p.v);
+    const stack = a => ({
+      label: S(a.page || a.label), tag: S(a.tag), project: S(a.project),
+      heads: [a.headline].concat(a.alts || a.alternates || []).map(S).filter(Boolean),
+      support: S(a.support), proof: (a.proof || []).map(S).filter(Boolean),
+      price: { label: S(a.price && a.price.label), figure: S(a.price && a.price.figure) },
+      pay: pay(a.payment), cta: S(a.cta),
+    });
+    if (js) {
+      const rows = [];
+      js.audiences.forEach((a, i) => {
+        const name = S(a.audience) || ('Audience ' + (i + 1));
+        (Array.isArray(a.pages) && a.pages.length ? a.pages : [a]).forEach(p => rows.push({ name, st: stack(p) }));
+      });
+      return { src: 'block', flags: (js.flags || []).map(S).filter(f => f && f !== '…'), auds: C.brGroup(rows) };
+    }
+    return C.brStacks(t);
   }
+  // Rows of {name, st} → one entry per audience, its stacks in the order they came.
+  static brGroup(rows) {
+    const out = [];
+    rows.forEach(r => {
+      let g = out.find(o => o.name.toLowerCase() === r.name.toLowerCase());
+      if (!g) out.push(g = { name: r.name, pages: [] });
+      g.pages.push(r.st);
+    });
+    out.forEach(g => g.pages.forEach((p, i) => { if (!p.label) p.label = p.project || ('Page ' + (i + 1)); }));
+    return out;
+  }
+  // "Label: value" as written; without a colon, the shapes the skill writes a payment line in —
+  // "10% down payment", "40/60 plan", "Handover Q4 2029" — so the key-facts row gets a label
+  // and a figure rather than one long value.
   static brPair(p) {
     const s = String(p || '').trim(), k = s.indexOf(':');
-    return k > 0 ? { l: s.slice(0, k).trim(), v: s.slice(k + 1).trim() } : { l: '', v: s };
+    if (k > 0) return { l: s.slice(0, k).trim(), v: s.slice(k + 1).trim() };
+    const cap = w => w ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+    let m = /^(\d+(?:\.\d+)?\s?%)\s+(.+)$/.exec(s);
+    if (m) return { l: cap(m[2]), v: m[1] };
+    m = /^(\d+\s*\/\s*\d+)\s+(.+)$/.exec(s);
+    if (m) return { l: /^plan$/i.test(m[2]) ? 'Payment plan' : cap(m[2]), v: m[1] };
+    m = /^(handover|completion|on booking|booking)\s+(.+)$/i.exec(s);
+    if (m) return { l: cap(m[1].toLowerCase()), v: m[2] };
+    return { l: '', v: s };
   }
   static brPrice(s) {
     const m = /^(.*?)\s*((?:AED|USD|EUR|US\$|\$|€)\s?\d.*)$/i.exec(String(s || '').trim());
     return m ? { label: m[1].replace(/[:\s]+$/, ''), figure: m[2] } : { label: '', figure: String(s || '').trim() };
   }
   static brStacks(t) {
-    const C = CampaignStudio, auds = [], flags = [];
+    const C = CampaignStudio, rows = [], flags = [];
     const fl = /(^|\n)\s*#*\s*\**\s*flags?\b[^\n]*\n([\s\S]*?)(\n\s*#|\n\s*\*\*[A-Z]|$)/i.exec(t);
     if (fl) fl[2].split('\n').forEach(l => { const m = /^\s*(?:[-*•]|\d+[.)])\s+(.+)$/.exec(l); if (m) flags.push(m[1].replace(/\*\*/g, '').trim()); });
-    const re = /```[^\n]*\n([\s\S]*?)```/g;
+    const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const caps = s => s === s.toUpperCase() && /[A-Z]/.test(s);
+    const money = /(AED|USD|EUR|US\$|\$|€)\s?\d/i;
+    const isPay = l => /%/.test(l) || /^(on booking|booking|handover|payment|instal|down payment|completion)\b/i.test(l) || /^\d+\s*\/\s*\d+\b/.test(l);
+    const isUnit = l => /^\d[\d\s&,\-–]*\s*(BR|bed)/i.test(l) || /\bsq ?(m|ft)\b/i.test(l);
+    const re = /```[^\n]*\n([\s\S]*?)```/g, blocks = [];
     let m;
-    while ((m = re.exec(t))) {
-      const lines = m[1].split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length < 3) continue;
-      const before = t.slice(Math.max(0, m.index - 400), m.index).toLowerCase();
-      const fam = Math.max(before.lastIndexOf('famil'), before.lastIndexOf('end-user')), inv = before.lastIndexOf('invest');
-      const name = inv > fam ? 'Investors' : (fam >= 0 ? 'Families' : 'Audience ' + (auds.length + 1));
-      const caps = s => s === s.toUpperCase() && /[A-Z]/.test(s);
-      const a = { name, tag: '', project: '', heads: [], support: '', proof: [], price: { label: '', figure: '' }, pay: [], cta: '' };
+    while ((m = re.exec(t))) blocks.push({ at: m.index, end: re.lastIndex, body: m[1] });
+    let lastEnd = 0;
+    blocks.forEach((bk, bi) => {
+      const lines = bk.body.split('\n').map(l => l.trim()).filter(Boolean);
+      const gap = t.slice(lastEnd, bk.at).toLowerCase();
+      lastEnd = bk.end;
+      if (lines.length < 3) return;
+      // the audience is named between the previous block and this one
+      const pos = { Families: Math.max(gap.lastIndexOf('famil'), gap.lastIndexOf('end-user'), gap.lastIndexOf('end user')), Investors: gap.lastIndexOf('invest'), Hybrid: gap.lastIndexOf('hybrid') };
+      let name = 'Copy', best = -1;
+      Object.keys(pos).forEach(k => { if (pos[k] > best) { best = pos[k]; name = k; } });
+      // the project is the nearest markdown heading above ("## 1. Rise by Athlon")
+      const hs = t.slice(0, bk.at).match(/(^|\n)#{1,4}[ \t]+[^\n]+/g);
+      const title = hs ? hs[hs.length - 1].replace(/^\n?#+[ \t]+/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '').trim() : '';
+      const tn = norm(title);
+      const a = { label: title, tag: '', project: '', heads: [], support: '', proof: [], price: { label: '', figure: '' }, pay: [], cta: '' };
+      // the caps lines at the top are the tag and the project; the heading tells them apart
+      let i = 0;
+      const top = [];
+      while (i < lines.length - 1 && top.length < 3 && caps(lines[i]) && !money.test(lines[i])) top.push(lines[i++]);
+      if (top.length) {
+        let j = -1;
+        // the longest run of caps lines that sits inside the heading is the project; failing
+        // that, the last line that carries the heading inside it
+        if (tn) for (let k = 0; k < top.length && j < 0; k++) { const n = norm(top.slice(k).join(' ')); if (n.length > 3 && tn.indexOf(n) >= 0) j = k; }
+        if (tn) for (let k = top.length - 1; k >= 0 && j < 0; k--) { if (norm(top[k]).indexOf(tn) >= 0) j = k; }
+        if (j < 0 && top.length > 1) j = 1;
+        if (j < 0) a.tag = top[0];
+        else { a.tag = top.slice(0, j).join(' · '); a.project = top.slice(j).join(' '); }
+      }
       const rest = [];
-      lines.forEach((l, i) => {
-        if (i === 0 && caps(l)) a.tag = l;
-        else if (i === lines.length - 1 && caps(l) && l.split(/\s+/).length <= 5) a.cta = l;
-        else if (/%|payment|booking|handover|instal/i.test(l)) l.split(/\s+[·+]\s+/).forEach(p => a.pay.push(C.brPair(p)));
-        else if (!a.price.figure && /(AED|USD|EUR|US\$|\$|€)\s?\d/i.test(l)) a.price = C.brPrice(l);
+      let prevRest = false;
+      for (; i < lines.length; i++) {
+        const l = lines[i];
+        let r = false;
+        if (i === lines.length - 1 && caps(l) && l.split(/\s+/).length <= 5) a.cta = l;
+        // "from AED 13.5M" straight after a headline line is the headline's second line
+        else if (money.test(l) && /^[a-z]/.test(l) && prevRest) { rest.push(l); r = true; }
+        else if (isPay(l)) l.split(/\s+[·+|]\s+/).forEach(p => p.trim() && a.pay.push(C.brPair(p)));
+        else if (!a.price.figure && money.test(l)) a.price = C.brPrice(l);
         else if (/\s·\s/.test(l)) l.split(/\s+·\s+/).forEach(p => p.trim() && a.proof.push(p.trim()));
-        else rest.push(l);
-      });
-      if (rest.length >= 3) { a.project = rest[0]; a.heads = [rest[1]]; a.support = rest.slice(2).join(' '); }
-      else if (rest.length === 2) { a.project = rest[0]; a.heads = [rest[1]]; }
-      else if (rest.length === 1) a.heads = [rest[0]];
-      auds.push(a);
-    }
+        else if (isUnit(l)) a.proof.push(l);
+        else { rest.push(l); r = true; }
+        prevRest = r;
+      }
+      if (!a.project && rest.length >= 3) a.project = rest.shift();
+      if (rest.length) {
+        // a headline set over two lines: a lowercase continuation, or two short sentences
+        let h = rest.shift(), n = 1;
+        while (rest.length && n < 3 && (/^[a-z]/.test(rest[0]) || (/[.!?]$/.test(h) && /[.!?]$/.test(rest[0]) && rest[0].split(/\s+/).length <= 5))) { h += '\n' + rest.shift(); n++; }
+        a.heads = [h];
+        a.support = rest.join(' ');
+      } else if (a.price.figure) {
+        // the price IS the headline ("Enter from AED 1.7M")
+        a.heads = [[a.price.label, a.price.figure].filter(Boolean).join(' ')];
+        a.price = { label: '', figure: '' };
+      }
+      // alternates written under the block: Alts: "…" · "…"
+      const after = t.slice(bk.end, bi + 1 < blocks.length ? blocks[bi + 1].at : t.length);
+      const al = /(^|\n)\s*\**\s*alt(?:s|ernates?)?\s*\**\s*:\s*\**\s*([^\n]+)/i.exec(after);
+      if (al && a.heads.length) al[2].split(/\s+·\s+|\s*\|\s*/).map(x => x.replace(/^[\s"“”'‘’*]+|[\s"“”'‘’*]+$/g, '').trim()).filter(Boolean).forEach(x => a.heads.push(x));
+      rows.push({ name, st: a });
+    });
+    const auds = C.brGroup(rows);
     return auds.length ? { src: 'stacks', flags, auds } : { src: 'none', flags, auds };
   }
 
@@ -11750,10 +11854,12 @@ class CampaignStudio extends StudioBase {
     this.cwNotice('Image added as a graphic at the end of ' + (car ? 'page ' + (vi + 1) : 'the ad') + ' — the designer places and sizes it.');
   }
   // Called from brFill, after the words: what the pictures did, for the notice.
-  brPlacePics() {
+  // `n` is how many variants or pages the project has once the fill lands.
+  brPlacePics(n) {
     const IS = customElements.get('image-slot'), said = [];
     if (!IS) return said;
-    const ph = this.brFilled('ph'), n = (this.state.variants || []).length;
+    const ph = this.brFilled('ph');
+    n = n || (this.state.variants || []).length;
     ph.slice(0, n).forEach((i, k) => IS.copySlot('adbrief-ph-' + i, 'adstudio-bg-' + k));
     const nb = Math.min(ph.length, n);
     if (nb) said.push(nb + ' picture' + (nb === 1 ? '' : 's') + ' as background' + (nb === 1 ? '' : 's'));
@@ -11775,6 +11881,19 @@ class CampaignStudio extends StudioBase {
     if (!this._brP || this._brP.key !== b.reply) this._brP = { key: b.reply, val: CampaignStudio.brParse(b.reply) };
     return this._brP.val;
   }
+  // Which audience of the reply: the one picked, else (in an ad set) the project's own.
+  brAudIdx(P) {
+    const b = this.brRead();
+    if (!P || !P.auds.length) return 0;
+    if (!b.audSet) {
+      const X = this.brCtx();
+      if (X && X.aud) {
+        const k = X.aud.toLowerCase().slice(0, 5), i = P.auds.findIndex(a => a.name.toLowerCase().indexOf(k) >= 0);
+        if (i >= 0) return i;
+      }
+    }
+    return P.auds[b.aud] ? b.aud : 0;
+  }
   // What goes where, in the order the fields are filled: one component per job, the first
   // of that kind already on the page reused (so a template keeps its layout), a new one
   // added only when the page has none. Price figures, permits and payment splits are the
@@ -11789,41 +11908,82 @@ class CampaignStudio extends StudioBase {
       ['cta', 'Button', A.cta && { text: A.cta }],
     ].filter(w => w[2]);
   }
+  // `list` is the page's component list, `want` brWant's jobs: which existing component each
+  // job reuses, and (with prune on) which word components the copy leaves unused.
+  static brPlan(list, want, prune) {
+    const C = CampaignStudio, used = new Set(), out = [];
+    want.forEach(([type, , data]) => {
+      const m = list.find(n => n.type === type && !used.has(n.id));
+      if (m) used.add(m.id);
+      out.push({ type, data, id: m ? m.id : null });
+    });
+    return { out, drop: prune ? list.filter(n => C.COPY_TYPES.indexOf(n.type) >= 0 && !used.has(n.id)).map(n => n.id) : [] };
+  }
+  // FILL. A single ad takes the chosen audience's chosen project. A CAROUSEL takes every page
+  // of the audience: the project becomes a carousel if it is not one (the rail's own switch),
+  // gains pages up to the count — each a copy of page 1's layout, so the template carries —
+  // and page k gets stack k. Pages already past the count are left as they are. One update,
+  // so one Undo.
   brFill() {
     const C = CampaignStudio, P = this.brParsed(), b = this.brRead();
-    const A = P && (P.auds[b.aud] || P.auds[0]);
-    if (!A) return;
-    const want = C.brWant(A, A.heads[b.head] || A.heads[0] || '');
-    const car = C.isCarousel(this.state), vi = car ? Math.max(0, Math.min(this.state.activeVi || 0, this.state.variants.length - 1)) : 0;
-    // planned on the live state first, so the notice counts what the update will do
-    const plan = list => {
-      const used = new Set(), out = [];
-      want.forEach(([type, , data]) => {
-        const m = list.find(n => n.type === type && !used.has(n.id));
-        if (m) used.add(m.id);
-        out.push({ type, data, id: m ? m.id : null });
-      });
-      return { out, drop: b.prune ? list.filter(n => C.COPY_TYPES.indexOf(n.type) >= 0 && !used.has(n.id)).map(n => n.id) : [] };
-    };
-    const pre = plan(C.modulesFor(this.state, vi));
+    const A = P && P.auds[this.brAudIdx(P)];
+    if (!A || !A.pages.length) return;
+    const car = this.brFmt() === 'carousel', wasCar = C.isCarousel(this.state);
+    const pages = car ? A.pages.slice(0, 10) : [A.pages[A.pages[b.page] ? b.page : 0]];
+    const wants = pages.map((S, k) => C.brWant(S, (car ? S.heads[0] : (S.heads[b.head] || S.heads[0])) || ''));
+    const vi0 = wasCar && !car ? Math.max(0, Math.min(this.state.activeVi || 0, this.state.variants.length - 1)) : 0;
+    // counted on the live state first (the same templates the update uses), for the notice
+    const nVar = (this.state.variants || []).length;
+    const tmpl0 = wasCar ? C.modulesFor(this.state, 0) : (this.state.modules || []);
+    let nf = 0, na = 0, nr = 0;
+    pages.forEach((S, k) => {
+      const list = car ? (k < nVar ? (wasCar ? C.modulesFor(this.state, k) : (this.state.modules || [])) : tmpl0) : C.modulesFor(this.state, vi0);
+      const p = C.brPlan(list, wants[k], b.prune);
+      nf += p.out.filter(o => o.id).length; na += p.out.filter(o => !o.id).length; nr += p.drop.length;
+    });
     this.upd(x => {
-      const list = C.modList(x, vi), p = plan(list);
-      p.out.forEach(o => {
-        const data = JSON.parse(JSON.stringify(o.data));
-        if (o.id) Object.assign(list.find(n => n.id === o.id), data);
-        else list.push(Object.assign({ id: C.freshId(), type: o.type }, data));
+      if (car && !C.isCarousel(x)) {
+        x.adMode = 'carousel';
+        x.variants.forEach((v, i) => { if (!Array.isArray(v.mods)) C.forkPage(x, i, x.modules || [], { keepOld: true }); });
+      }
+      if (car) {
+        const tmpl = C.modulesFor(x, 0), src = JSON.parse(JSON.stringify(x.variants[0]));
+        while (x.variants.length < pages.length) {
+          const nv = JSON.parse(JSON.stringify(src));
+          nv.name = 'Page ' + (x.variants.length + 1);
+          x.variants.push(nv);
+          C.forkPage(x, x.variants.length - 1, tmpl, { keepOld: false });
+        }
+      }
+      pages.forEach((S, k) => {
+        const vi = car ? k : vi0, list = C.modList(x, vi), p = C.brPlan(list, wants[k], b.prune);
+        p.out.forEach(o => {
+          const data = JSON.parse(JSON.stringify(o.data));
+          if (o.id) Object.assign(list.find(n => n.id === o.id), data);
+          else list.push(Object.assign({ id: C.freshId(), type: o.type }, data));
+        });
+        p.drop.forEach(id => C.dropMod(x, vi, id));
       });
-      p.drop.forEach(id => C.dropMod(x, vi, id));
-      if (!String(x.campaign || '').trim() && A.project) x.campaign = A.project + ' - ' + A.name;
+      if (!String(x.campaign || '').trim()) {
+        const projs = pages.map(S => S.project).filter(Boolean);
+        if (projs.length && projs.every(pj => pj === projs[0])) x.campaign = projs[0] + ' - ' + A.name;
+        else if (car) x.campaign = A.name + ' carousel';
+        else if (projs.length) x.campaign = projs[0] + ' - ' + A.name;
+      }
+      if (car) x.activeVi = 0;
       x.sel = null;
       return x;
     });
-    const nf = pre.out.filter(o => o.id).length, na = pre.out.length - nf, nr = pre.drop.length;
-    const pics = this.brPlacePics();
-    this.cwNotice((car ? 'Page ' + (vi + 1) : 'The ad') + ' now carries the ' + A.name + ' copy — ' + nf + ' filled'
+    const total = car ? Math.max(nVar, pages.length) : nVar;
+    const pics = this.brPlacePics(total);
+    const kept = car && nVar > pages.length ? '; pages ' + (pages.length + 1) + (nVar > pages.length + 1 ? '–' + nVar : '') + ' kept as they were' : '';
+    const cut = car && A.pages.length > 10 ? '; Claude wrote ' + A.pages.length + ' pages and a carousel holds 10, so the first 10 are used' : '';
+    const head = car ? (wasCar ? 'The carousel' : 'The project is a carousel now and') + ' carries the ' + A.name + ' copy on ' + pages.length + ' page' + (pages.length === 1 ? '' : 's')
+      : (wasCar ? 'Page ' + (vi0 + 1) : 'The ad') + ' now carries the ' + A.name + ' copy';
+    this.cwNotice(head + ' — ' + nf + ' filled'
       + (na ? ', ' + na + ' added at the end (the designer places them)' : '') + (nr ? ', ' + nr + ' removed' : '')
-      + (pics.length ? '; ' + pics.join(' and ') : '') + '.', true);
-    this.brSet('filled', A.name);
+      + kept + cut + (pics.length ? '; ' + pics.join(' and ') : '') + '.', true);
+    this.brSet('filled', A.name + (car ? ' · ' + pages.length + ' pages' : ''));
     // the brief has done its job: fold it away and bring the filled words into view. The
     // notice sits in the hand-off bar, which is always on screen.
     setTimeout(() => {
@@ -11847,28 +12007,43 @@ class CampaignStudio extends StudioBase {
   briefVals() {
     const C = CampaignStudio, b = this.brRead(), P = this.brParsed();
     this.brWatch();
-    const nVar = (this.state.variants || []).length, car = C.isCarousel(this.state);
-    const vname = k => car ? 'Page ' + (k + 1) : (k ? 'Variant ' + (k + 1) : 'Master');
+    const nVar = (this.state.variants || []).length, projCar = C.isCarousel(this.state);
+    const car = this.brFmt() === 'carousel', X = this.brCtx();
+    const A = P && P.auds[this.brAudIdx(P)];
+    const pageIdx = A && A.pages[b.page] ? b.page : 0;
+    const S = A ? A.pages[pageIdx] : null;
+    const nPages = car && A ? Math.min(10, A.pages.length) : 0;
+    // how many backgrounds Fill will have to cover
+    const nBg = car ? Math.max(nVar, nPages || 1) : nVar;
+    const vname = k => car || projCar ? 'Page ' + (k + 1) : (k ? 'Variant ' + (k + 1) : 'Master');
     // filled ones in order, then ONE empty slot to add the next, up to the cap
     const brPics = kind => {
       const full = this.brFilled(kind), max = C.BRIEF_PH_MAX;
       const rows = full.map((i, k) => ({ id: 'adbrief-' + kind + '-' + i, filled: '1', last: undefined,
-        cap: k < nVar ? 'Background · ' + vname(k) : 'Not a background — use it as a graphic',
+        cap: k < nBg ? 'Background · ' + vname(k) : 'Not a background — use it as a graphic',
         drop: () => this.brDropPic(kind, i), useOn: true, use: () => this.brUseImage(i) }));
       if (full.length < max) rows.push({ id: 'adbrief-' + kind + '-' + full.length, filled: undefined, last: '1', cap: '', drop: () => {}, useOn: false, use: () => {} });
       return rows;
     };
-    const brPicNote = 'When you press Fill, the first ' + (nVar === 1 ? 'picture becomes the background' : nVar + ' pictures become the backgrounds of the ' + (car ? 'pages' : 'design variants') + ', in order') + ', and the logo becomes the partner mark beside provident. Any picture can also go on the ad as a graphic.';
+    const brPicNote = 'When you press Fill, the first ' + (nBg === 1 ? 'picture becomes the background'
+      : nBg + ' pictures become the backgrounds of the ' + (car || projCar ? 'pages' : 'design variants') + ', in order')
+      + ', and the logo becomes the partner mark beside provident. Any picture can also go on the ad as a graphic.';
     const prompt = b.brief.trim() ? this.brPrompt() : '';
     const long = new Blob([prompt]).size > C.BRIEF_Q_MAX;
     const q = prompt && !long ? encodeURIComponent(prompt) : '';
-    const A = P && (P.auds[b.aud] || P.auds[0]);
-    const heads = A ? A.heads : [];
+    const heads = S && !car ? S.heads : [];
     const hi = Math.min(b.head, Math.max(0, heads.length - 1));
-    const want = A ? C.brWant(A, heads[hi] || '') : [];
+    const want = S && !car ? C.brWant(S, heads[hi] || '') : [];
     const sent = this._brSent && Date.now() - this._brSent < 60000;
     const flags = P ? P.flags : [];
     const open = flags.filter((f, i) => !b.done[i]).length;
+    const one = s => String(s || '').replace(/\s*\n\s*/g, ' ');
+    const where = X ? [X.market, X.aud, X.arb ? 'Arabic' : 'English'].filter(Boolean).join(' · ') : '';
+    const fmtNote = car && !projCar ? 'Fill turns this project into a carousel, one page per entry in Claude’s reply (up to 10).'
+      : car ? 'Fill puts one entry of Claude’s reply on each page, in order, adding pages as needed (up to 10).'
+        : projCar ? 'Fill puts the copy on page ' + ((this.state.activeVi || 0) + 1) + ' only. Pick Carousel to fill every page.'
+          : 'One ad, with up to 3 A/B design variants sharing the words.';
+    const setFmt = f => () => this.brSet('fmt', f);
     return {
       brBrief: b.brief, onBrBrief: e => this.brSet('brief', e.target.value),
       brDrive: b.drive, onBrDrive: e => this.brSet('drive', e.target.value),
@@ -11883,8 +12058,14 @@ class CampaignStudio extends StudioBase {
       brPhotos: brPics('ph'),
       brPicNote: brPicNote,
       brNotes: b.notes, onBrNotes: e => this.brSet('notes', e.target.value),
+      // the audience: picked here outside an ad set, the project's own inside one
+      brAudPickOn: !X, brForOn: !!X, brForLabel: where,
+      brForTip: X ? 'Set when the ad set was set up' + (X.rs ? ' (' + X.rs + ')' : '') + '. The other audiences are their own projects in the ad set.' : '',
       brFamOn: b.fam ? '1' : undefined, brFam: () => this.brSet('fam', !b.fam),
       brInvOn: b.inv ? '1' : undefined, brInv: () => this.brSet('inv', !b.inv),
+      brFmtSingleOn: car ? undefined : '1', brFmtCarOn: car ? '1' : undefined,
+      brFmtSingleAria: car ? 'false' : 'true', brFmtCarAria: car ? 'true' : 'false',
+      brFmtSingle: setFmt('single'), brFmtCar: setFmt('carousel'), brFmtNote: fmtNote,
       brAskOn: !!prompt, brAskOff: !prompt,
       brOpenUrl: 'claude://claude.ai/new?' + (q ? 'q=' + q + '&' : '') + 'surface=chat&source=provident-cas',
       brWebUrl: 'https://claude.ai/new' + (q ? '?q=' + q : ''),
@@ -11893,36 +12074,43 @@ class CampaignStudio extends StudioBase {
       brAskNote: !prompt ? 'Paste the brief first.'
         : long ? 'The brief is too long to type into Claude for you — Claude opens on an empty chat and the prompt is on your clipboard: press ⌘V, then Return.'
         : sent ? 'Claude should be open with the brief typed in — press Return there, then paste its reply below. The prompt is on your clipboard too, if it opened empty.'
-        : 'Claude opens with the brief typed in — press Return there. It replies with the key details, any flags and the copy for each audience.',
+        : 'Claude opens with the brief typed in — press Return there. It replies with the key details, any flags and the copy' + (car ? ', page by page' : '') + (X ? '.' : ' for each audience.'),
       brReply: b.reply, onBrReply: e => this.brSet('reply', e.target.value),
-      brReadOn: !!(A),
-      brErrOn: !!(b.reply.trim() && !A),
+      brReadOn: !!(S),
+      brErrOn: !!(b.reply.trim() && !S),
       brErr: 'No copy found in that text. Paste Claude\'s whole reply — the part with the copy blocks.',
-      brStat: A ? ('Read ' + P.auds.map(a => a.name).join(' and ') + (P.src === 'stacks' ? ' from the copy blocks' : '')
+      brStat: S ? ('Read ' + P.auds.map(a => a.name + (a.pages.length > 1 ? ' (' + a.pages.length + ')' : '')).join(' and ') + (P.src === 'stacks' ? ' from the copy blocks' : '')
         + (flags.length ? ' · ' + flags.length + ' flag' + (flags.length === 1 ? '' : 's') : '')) : '',
       brFlagsOn: flags.length > 0,
       brFlagsHead: open ? open + ' to check before this runs' : 'All checked',
       brFlags: flags.map((f, i) => ({ text: f, on: b.done[i] ? '1' : undefined, aria: b.done[i] ? 'true' : 'false',
         toggle: () => { b.done[i] = !b.done[i]; this.forceUpdate(); } })),
       brAudsOn: !!(P && P.auds.length > 1),
-      brAuds: P ? P.auds.map((a, i) => ({ label: a.name, on: (P.auds[b.aud] ? b.aud : 0) === i ? '1' : undefined, pick: () => this.brSet('aud', i) })) : [],
+      brAuds: P ? P.auds.map((a, i) => ({ label: a.name, on: this.brAudIdx(P) === i ? '1' : undefined, pick: () => this.brSet('aud', i) })) : [],
+      // a single ad from a reply that covers several projects: pick the project
+      brPagesOn: !!(A && !car && A.pages.length > 1),
+      brPages: A && !car ? A.pages.map((p, i) => ({ label: one(p.label || p.project || ('Entry ' + (i + 1))), on: i === pageIdx ? '1' : undefined, pick: () => this.brSet('page', i) })) : [],
       brHeadsOn: heads.length > 1,
-      brHeads: heads.map((h, i) => ({ text: h, on: i === hi ? '1' : undefined, aria: i === hi ? 'true' : 'false', label: i ? 'Alternate ' + i : 'Main',
+      brHeads: heads.map((h, i) => ({ text: one(h), on: i === hi ? '1' : undefined, aria: i === hi ? 'true' : 'false', label: i ? 'Alternate ' + i : 'Main',
         pick: () => { b.head = i; this.forceUpdate(); } })),
-      brRows: want.map(w => ({ k: w[1], v: w[0] === 'tags' ? w[2].chips.join(' · ') : w[0] === 'spec' ? w[2].cols.map(c => [c.l, c.v].filter(Boolean).join(': ')).join(' · ')
-        : w[0] === 'price' ? [w[2].sub, w[2].text].filter(Boolean).join(' ') : w[2].text })),
+      brRows: car && A
+        ? A.pages.slice(0, 10).map((p, k) => ({ k: 'Page ' + (k + 1), v: [one(p.label || p.project), one(p.heads[0]), [p.price.label, p.price.figure].filter(Boolean).join(' ')].filter(Boolean).join(' — ') }))
+        : want.map(w => ({ k: w[1], v: w[0] === 'spec' ? w[2].cols.map(c => [c.l, c.v].filter(Boolean).join(': ')).join(' · ')
+          : w[0] === 'price' ? [w[2].sub, w[2].text].filter(Boolean).join(' ') : one(w[2].text) })),
       brPruneOn: b.prune ? '1' : undefined, brPruneAria: b.prune ? 'true' : 'false', brPrune: () => this.brSet('prune', !b.prune),
       brFill: () => this.brFill(),
-      brFillLabel: A ? 'Fill ' + (C.isCarousel(this.state) ? 'this page' : 'this campaign') + ' with the ' + A.name + ' copy' : 'Fill',
+      brFillLabel: !A ? 'Fill'
+        : car ? 'Fill ' + nPages + ' carousel page' + (nPages === 1 ? '' : 's') + ' with the ' + A.name + ' copy'
+          : 'Fill ' + (projCar ? 'this page' : 'this campaign') + ' with the ' + (A.pages.length > 1 ? one(S.label) + ' · ' : '') + A.name + ' copy',
+      brTailNote: X ? 'The other audiences are their own projects in the ad set — make each from the ad set panel. The reply stays here for them.'
+        : 'Families and Investors are separate campaigns. Fill this one, then start a new campaign for the other — the reply stays here.',
       brSumm: b.filled && A ? 'Filled · ' + b.filled : A ? 'Reply ready' : (b.brief.trim() ? 'Brief written' : 'Optional'),
       brSummOn: A ? '1' : undefined,
       brMoreSumm: (() => {
         const n = brPics('ph').filter(p => p.filled).length, bits = [];
-        if (this.folderName()) bits.push('Saves to ' + this.folderName());
-        if (b.drive.trim()) bits.push('Drive link');
         if (this.brHas('adbrief-logo')) bits.push('logo');
         if (n) bits.push(n + ' picture' + (n === 1 ? '' : 's'));
-        return bits.length ? bits.join(' · ') : 'Where it saves, and a logo and photos for the ad';
+        return bits.length ? bits.join(' · ') : 'A logo and photos for the ad';
       })(),
     };
   }

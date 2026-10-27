@@ -16848,3 +16848,28 @@ container). **Cards sort by last change, newest first** — `modOf(it)`: the new
 set's `created`, its `hist` steps, each item's `added` / `design` / `copy`, and on Drive
 `it.mod` (set in `dsInfo` from each project's `review.sum.updated` and last log entry). The
 card's meta reads "Residential · Changed 3:45 PM" (today) or "Changed Oct 22".
+
+# THE BRIEF CARD FILLS A CAROUSEL, AND FOLLOWS THE AD SET (2026-10-27)
+
+Reviewed against the ad set setup, by request, with a five-project Stage 1 reply as the test.
+- **Format: Single ad | Carousel** (`b.fmt`, '' = the project's own; `brFmt()`). Carousel asks
+  for `BRIEF_SAMPLE_CAR` — `audiences[].pages[]` in swipe order, one per project when the brief
+  covers several. **Fill** (`brFill`) then runs the rail's carousel switch if needed, adds pages
+  as copies of page 1's layout (`forkPage`, keepOld false) up to the count (10 max), and fills
+  page k with stack k through `brPlan`. Pages already past the count are left. One Undo.
+- **The parse is `{src, flags, auds: [{name, pages: [stack]}]}`** (`brGroup`). A single ad picks
+  a page with the **Project** tabs (`b.page`). `brStacks` reads plain replies per project:
+  audience from the text since the previous block, project from the nearest `##` heading (the
+  caps lines inside the heading are the project, the ones before it the tag), a headline set
+  over two lines kept with its break, "from AED…" after a headline line kept in the headline,
+  a price-only headline used as the heading, `Alts:` under a block as alternates, unit lines as
+  proof. `brPair` labels "10% down payment", "40/60 plan", "Handover Q4 2029".
+- **In an ad set** (`brCtx()`: the project's rs item) the audience chips are replaced by **For**
+  market · audience · language, the prompt names that audience, market and language only, and
+  the reply's matching audience is picked (`brAudIdx`, unless the user picked one).
+- **Where it saves (Source folder + Drive link) left the card and the prompt**: Stage 1 writes
+  copy only, the top bar owns the folder and the ad set owns the Drive folder. The fold is
+  **Pictures for the ad**. `brDrive` / `brFolder*` are still computed, unread.
+Verified on the sample: 5 projects × Families/Investors parsed right; a real click on Carousel
+then Fill made 5 pages (26 unique ids, one Undo); single ad with Investors · Verdes picked;
+the ad-set prompt and labels with a stand-in rs.

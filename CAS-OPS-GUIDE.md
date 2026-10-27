@@ -541,12 +541,15 @@ This is for copywriters: the ad's words on their own, next to a live preview.
 2. **Start from a brief (optional, while the design is in progress).** The **Start from a brief**
    card at the top runs the `meta-ad-design-copy` skill in your own Claude. It folds away once
    you have filled the words, and is not shown once the design is marked done.
-   - Paste the brief (script, fact sheet, EOI brief), tick the audiences, and add any notes
-     (permit number, what to lead with).
-   - **Folder, Drive link and pictures** folds the extras away. **Where it saves** shows the Source folder this campaign saves and exports into, with
-     **Choose folder** / **Change**, and takes the project's Google Drive folder link. Both go
-     into the prompt.
-   - **Attach pictures** (optional): a **Logo** and up to 10 **Photos & images**. On Fill, the
+   - Paste the brief (script, fact sheet, EOI brief) and add any notes (permit number, what to
+     lead with). Outside an ad set, tick the audiences. In an ad set, the card shows **For**
+     (market · audience · language, set on the home page) instead, and asks Claude for that
+     audience only.
+   - **Format: Single ad | Carousel.** It starts on the project's own format. Pick **Carousel** to
+     ask Claude for up to 10 pages in swipe order, one per project when the brief covers several.
+     Fill then makes the project a carousel if it isn't one, adds pages as needed, and puts one
+     page of the reply on each.
+   - **Pictures for the ad** (optional, folded): a **Logo** and up to 10 **Photos & images**. On Fill, the
      first pictures become the backgrounds of the design variants (or carousel pages) in order,
      and the logo becomes the partner mark beside provident. (collaboration logo turned on). Any
      picture can also go on the ad as a graphic with **As graphic** under it. The prompt tells Claude what is
@@ -556,15 +559,17 @@ This is for copywriters: the ad's words on their own, next to a live preview.
      prompt is also copied, so if Claude opens empty, press ⌘V. **or use claude.ai** opens the
      website instead. A very long brief is not typed in for you; paste it from the clipboard.
    - Paste Claude's whole reply into **Claude's reply**. The card lists Claude's **Flags** as checkboxes,
-     lets you pick **Families** or **Investors** and the main or an alternate heading, and shows
-     which field each line goes into.
-   - **Fill this campaign** puts only the critical details on the ad: small label, heading,
+     lets you pick **Families** or **Investors** and shows which field each line goes into. For a
+     single ad from a reply that covers several projects, **Project** picks which one, and you
+     pick the main or an alternate heading. For a carousel it lists each page instead. Plain
+     replies without the `cas-copy` block are read too, one stack per project and audience.
+   - **Fill** (it names what it fills: this campaign, this page, or N carousel pages) puts only the critical details on the ad: small label, heading,
      hook line (project), price, up to two key-fact rows (payment) and button. Claude is asked to
      keep each one short; support lines and amenities stay in its reply for you to read. It
      reuses the components already on the page and adds any that are missing at the end. With **Remove components this
      copy doesn't use** on, template sample text is cleared. **Undo** reverses the whole fill.
-   - Families and Investors are separate campaigns: fill one, then start a new campaign for the
-     other. The brief and the reply stay in the card.
+   - Families and Investors are separate campaigns: fill one, then make the other (from the ad
+     set panel, or as a new campaign). The brief and the reply stay in the card.
 3. Fill in the fields.
    - **Add to this page** adds a component, grouped as Text, Lists or Action. It arrives in its
      basic look; the designer styles and places it.
