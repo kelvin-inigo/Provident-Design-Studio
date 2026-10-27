@@ -16724,6 +16724,17 @@ so `api()` just routes a Drive id to it, and photos go through `dsPutRec` / `dsF
   sign-in needs a person at the keyboard. The real test folder (Review link Test,
   11Rk2HnQXzIXpphUvdTFw_UkRFCRKof87) was confirmed reachable and writable via the Drive connector.
 
+**The ad set page was reordered (2026-10-27, by request).** `AV.detHtml`, top to bottom: the
+header (Drive folder, Open the ad set); a controls row under it (`.rva-tools`: **Add a project**,
+now a pop-up `.rva-mod` from `AV.addHtml` — `this.addOpen`, Escape or the backdrop close it — and
+quiet **Remove from this list** / **Delete for everyone** at the right); **Progress** across the
+full width (`.rva-prog`, its next-step line beside the title); **Ad set links** as three cards side
+by side; **Audiences** as cards (market kicker over audience name, the steps, then an English and an
+Arabic tile with thumbnail, campaign and item state; an empty tile says what is missing) beside
+**Details** and **Google Drive**; **Activity** last, full width. CSS is one block at the end of the
+sheet (`.rva-det` scopes it). The Done pill on an audience card inks in `--ps-ink` (green ink on
+the card's fill measured 3.94).
+
 # CAS'S HOME PAGE SETS UP THE AD SET; THE PRELOADED TEMPLATES ARE GONE (2026-10-27)
 
 By request: the templates "do not serve a purpose any more"; a campaign starts by defining its
