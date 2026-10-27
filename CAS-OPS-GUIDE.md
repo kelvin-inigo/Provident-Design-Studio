@@ -223,9 +223,11 @@ steps: **Design › ENG copy check › Translation › Done**.
    say what this project is (market, audience, language) and press **Make the ad set**. Google
    asks you to sign in with your Provident account the first time. Send each team its link once.
    - **You sign in once per computer.** The studio remembers your Google account, and every tab
-     and both studios share the sign-in. Google ends a session after about an hour; the next
-     time it is needed, the studio asks you to **Continue as** your account — one click, no
-     email to type. **Use another account** in that prompt switches accounts. Your **name** in
+     and both studios share the sign-in. Once your admin has done the last step of
+     `docs/google-drive-setup.md`, the session then renews by itself in the background and you
+     are not asked again (Google shows its permission screen one time first). Until then,
+     Google ends a session after about an hour and the studio asks you to **Continue as** your
+     account — one click, no email to type. **Use another account** in that prompt switches accounts. Your **name** in
      the review is taken from the account (your first name) until you type a different one.
    All three links stay the same as the ad set grows.
    - **Everything is saved in that folder**, laid out like this, and kept up to date as people

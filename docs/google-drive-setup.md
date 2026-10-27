@@ -73,8 +73,8 @@ To read and write those files, the studio asks each person to **sign in with Goo
 6. Click **Create**.
 7. Copy the **Client ID** (`…apps.googleusercontent.com`) and send it to the design team.
 
-**Ignore the client secret.** The studio does not use it. Do not send it to anyone, and do not
-put it anywhere.
+**Keep the client secret for Step 7.** It goes into Vercel and nowhere else. Never paste it
+into the studio, a chat, an email or the repository (the repository is public).
 
 ## Step 5 — Only if your Workspace blocks unlisted apps
 
@@ -93,6 +93,38 @@ If that setting is not in use, skip this step.
 People can only edit what they could already edit in Drive. For the shared ad-set folders,
 give the design team **Editor** (or **Content manager** on a shared drive). A **Viewer** can
 open and browse a folder but cannot save changes.
+
+## Step 7 — Sign in once, not every hour (Vercel)
+
+Without this step everyone signs in to Google about once an hour. With it, each person signs
+in **once per computer** and the studio renews the session by itself in the background. The
+studio keeps working either way; this only removes the hourly prompt.
+
+1. Open **vercel.com** › the **provident-design-studio** project › **Settings** ›
+   **Environment Variables**.
+2. Add a variable:
+   - **Key:** `GOOGLE_CLIENT_SECRET`
+   - **Value:** the client secret from Step 4 (Google Auth Platform › Clients › Design Studio
+     web › the secret, starting `GOCSPX-`)
+   - **Environments:** Production (and Preview if you want previews to use it)
+   - Mark it **Sensitive**.
+3. **Redeploy** the latest deployment (Deployments › ⋯ › Redeploy), so it reads the variable.
+4. Nothing changes in Google Cloud: the authorised JavaScript origin from Step 4 is all it
+   needs, and **Authorised redirect URIs stay empty**.
+
+To check it is on, open `https://provident-design-studio.vercel.app/api/gauth?op=status` —
+it answers `{"on":true,…}`.
+
+**After this, each person signs in one more time.** Google shows its permission screen once
+(that is what gives the studio a renewal token). From then on the session renews silently for
+six months of use. It ends if the person changes their Google password, an admin removes the
+app's access, or they press **Use another account**.
+
+**How it is kept safe:** the renewal token never reaches the page's scripts. It is sealed and
+stored in a browser cookie that only the studio's own server function can read
+(`api/gauth.py`), on this site only. If the secret is ever exposed, reset it in Google Cloud
+(Clients › Design Studio web › Reset secret) and update the Vercel variable; everyone then
+signs in once more.
 
 ## Using it (for the design team)
 

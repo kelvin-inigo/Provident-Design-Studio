@@ -16792,3 +16792,31 @@ By request ("every time it asks for my Google email"). `providentDrive` (studio-
 - The Drive stand-in answers `/drive/v3/about` with a fixed test account; set the test token in
   **localStorage** now, not sessionStorage. **The real Google popup with login_hint was not
   exercised** — only the stand-in.
+
+## SILENT RENEWAL IS BUILT — `api/gauth.py` (2026-10-27)
+
+The "would need a server" note above is done. **Off until `GOOGLE_CLIENT_SECRET` is set in
+Vercel** (docs/google-drive-setup.md, Step 7); until then `/api/gauth?op=status` answers
+`on:false` and every path falls back to the token model, unchanged.
+
+- **Server** (stdlib, no store): `status` (GET), `exchange` {code} / `refresh` / `signout`
+  (POST, must carry `X-Provident: 1`; no CORS headers, so only the site reads answers). The
+  refresh token lives in cookie `pgr` — HttpOnly, Secure, SameSite=Strict, Path=/api/gauth,
+  180 days sliding — SEALED (SHA-256 counter-mode keystream + HMAC-SHA256, keys derived from the
+  client secret), so rotating the secret invalidates every cookie. `invalid_grant` clears it.
+- **Client** (`providentDrive`): `srvOn()` (cached status), `kept()` = `provident-drive-srv`
+  (JS cannot see an HttpOnly cookie), `renew()` (POST refresh; shared ONLY while in flight —
+  the promise clears itself in a `.then` registered before any caller's, a `setTimeout` clear
+  let a second renewal reuse a finished one), `ensure()` = valid or renewed. `signIn()` tries
+  `renew()` first, then on a server-enabled site the CODE flow (`initCodeClient`, popup,
+  `redirect_uri: 'postmessage'`, `prompt: 'consent'` the first time so Google returns a refresh
+  token, `login_hint` after). `fetch()` renews before throwing expired and retries once on a 401.
+  `watch()` (started at load) renews in the background when under 5 minutes remain, visible
+  tabs only. `signOut()` revokes server-side too. `dsGate` / `dsFetch` / `libLoad` call
+  `ensure()`, so an expired session opens a link with no prompt at all.
+- **Dev:** `tools/share-dev/serve.py` routes `/api/gauth` and stands in for Google's token and
+  revoke endpoints (`dev-code` signs in, `rt-dev` renews; `/gauth-mock` counts refreshes and
+  revokes); `GAUTH_REAL=1` leaves the environment alone. Verified there: exchange sets the
+  sealed cookie, refresh works, missing header 403, tampered cookie 401, a concurrent pair makes
+  one request, an expired session opens a Drive link with no dialog, sign-out revokes and the
+  next refresh is 401. **Google's real code popup and token endpoint were not exercised.**

@@ -1406,7 +1406,7 @@ class StudioBase {
     if (!force && l && l.st === 'ok' && l.key === StudioBase.libKeyOf(m) && Date.now() - (l.at || 0) < StudioBase.LIB_FRESH) return;
     if (m.kind === 'drive') {
       const D = window.providentDrive;
-      if (!D || !D.valid()) return this.libSet({ st: 'ask', mark: m });
+      if (!D || !(await D.ensure())) return this.libSet({ st: 'ask', mark: m });
       return this.libScan(D.dir(m.id, m.name), m);
     }
     let h = null;
@@ -1804,12 +1804,94 @@ window.providentDrive = {
       return w;
     } catch (e) { return null; }
   },
-  // Must be called from a click: Google opens its sign-in popup.
+  // ---- SILENT RENEWAL (api/gauth.py) ----
+  // Where the site has the OAuth client secret, sign-in is the authorisation-code flow: the
+  // server keeps a refresh token in an HttpOnly cookie and hands out a new access token on
+  // request, so an expired hour renews with no popup and no click. KEPT marks a computer whose
+  // cookie holds one (page scripts cannot see an HttpOnly cookie). Off the site — a file opened
+  // from disk, a deployment without the secret — everything falls back to the token model.
+  KEPT: 'provident-drive-srv',
+  srvOn() {
+    if (this._srv) return this._srv;
+    if (!/^https?:$/.test(location.protocol)) return (this._srv = Promise.resolve(false));
+    return (this._srv = fetch('/api/gauth?op=status', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null).then(d => !!(d && d.on)).catch(() => false));
+  },
+  kept() { try { return !!localStorage.getItem(this.KEPT); } catch (e) { return false; } },
+  async gpost(op, body) {
+    const r = await fetch('/api/gauth?op=' + op, { method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', 'X-Provident': '1' }, body: JSON.stringify(body || {}) });
+    let d = {}; try { d = await r.json(); } catch (e) {}
+    return { ok: r.ok, status: r.status, d };
+  },
+  took(at, sec) {
+    this.tok = { at, exp: Date.now() + (Number(sec) || 3600) * 1000 };
+    this.keep();
+    try { window.dispatchEvent(new Event('provident-drive-signed')); } catch (e) {}
+    return at;
+  },
+  // A new access token from the server's refresh token, with no popup. One at a time.
+  renew() {
+    if (this._renew) return this._renew;   // shared only while it is in flight
+    const p = (async () => {
+      try {
+        if (!this.kept() || !(await this.srvOn())) return false;
+        const r = await this.gpost('refresh');
+        if (r.ok && r.d.access_token) { this.took(r.d.access_token, r.d.expires_in); return true; }
+        if (r.status === 401) { try { localStorage.removeItem(this.KEPT); } catch (e) {} }
+        return false;
+      } catch (e) { return false; }
+    })();
+    this._renew = p;
+    p.then(() => { if (this._renew === p) this._renew = null; });   // runs before any awaiting caller resumes
+    return p;
+  },
+  // valid, or made valid without asking anyone
+  async ensure() { return this.valid() || (await this.renew()); },
+  // Renew in the background a few minutes before the hour is up, so a session never lapses
+  // while someone is working.
+  watch() {
+    if (this._watch) return; this._watch = true;
+    this.srvOn();
+    setInterval(() => {
+      if (!this.kept() || document.visibilityState !== 'visible') return;
+      const t = this.tok || (() => { try { return JSON.parse(localStorage.getItem(this.TOK) || 'null'); } catch (e) { return null; } })();
+      if (!t || t.exp - Date.now() < 5 * 60000) this.renew();
+    }, 60000);
+  },
+  // The code flow's popup, then the server's exchange. First time on this computer it asks for
+  // consent, which is what makes Google hand over a refresh token.
+  codeIn(id, w) {
+    return new Promise((res, rej) => {
+      const cc = google.accounts.oauth2.initCodeClient({
+        client_id: id, scope: this.SCOPE, ux_mode: 'popup',
+        login_hint: w ? w.email : undefined, select_account: !w, prompt: this.kept() ? '' : 'consent',
+        callback: async r => {
+          if (!r || r.error || !r.code) return rej(new Error(r && r.error === 'access_denied' ? 'Google sign-in was cancelled.' : 'Google sign-in failed' + (r && r.error ? ' (' + r.error + ')' : '') + '.'));
+          try {
+            const x = await this.gpost('exchange', { code: r.code });
+            if (!x.ok || !x.d.access_token) return rej(new Error(x.d.error || 'Google sign-in could not finish.'));
+            if (x.d.kept) { try { localStorage.setItem(this.KEPT, '1'); } catch (e) {} }
+            this.tok = { at: x.d.access_token, exp: Date.now() + (Number(x.d.expires_in) || 3600) * 1000 };
+            this.keep();
+            const done = () => { try { window.dispatchEvent(new Event('provident-drive-signed')); } catch (e) {} res(x.d.access_token); };
+            (w ? Promise.resolve() : this.whoFetch()).then(done, done);
+            if (w) this.whoFetch();
+          } catch (e) { rej(new Error('Google sign-in could not finish — check the connection.')); }
+        },
+        error_callback: e => rej(new Error(e && e.type === 'popup_closed' ? 'Google sign-in was closed before it finished.' : 'Google sign-in could not open — allow pop-ups for this site.'))
+      });
+      cc.requestCode();
+    });
+  },
+  // Must be called from a click: Google opens its sign-in popup — unless the server can renew.
   async signIn() {
     if (this.valid()) return this.tok.at;
+    if (await this.renew()) return this.tok.at;
     const id = this.clientId();
     if (!id) throw new Error('Google Drive is not set up on this computer yet — paste the OAuth client ID your admin gave you.');
     await this.load();
+    if (await this.srvOn()) return this.codeIn(id, this.who());
     return new Promise((res, rej) => {
       const w = this.who();
       const tc = google.accounts.oauth2.initTokenClient({
@@ -1834,14 +1916,21 @@ window.providentDrive = {
   signOut() {
     const t = this.tok; this.drop();
     try { localStorage.removeItem(this.WHO); } catch (e) {}
+    if (this.kept()) { try { localStorage.removeItem(this.KEPT); } catch (e) {} this.gpost('signout').catch(() => {}); }
     try { if (t && window.google && google.accounts) google.accounts.oauth2.revoke(t.at, () => {}); } catch (e) {}
   },
   async fetch(url, opt) {
     const expired = () => { const e = new Error('Your Google sign-in has expired — sign in again.'); e.gdAuth = true; return e; };
-    if (!this.valid()) throw expired();
+    if (!this.valid() && !(await this.renew())) throw expired();
+    if (!this.tok) throw expired();
     opt = Object.assign({}, opt || {}); opt.headers = Object.assign({ Authorization: 'Bearer ' + this.tok.at }, opt.headers || {});
     const r = await fetch(url, opt);
-    if (r.status === 401) { this.drop(); throw expired(); }
+    if (r.status === 401) {
+      // a token Google ended early: renew once and repeat the request
+      this.drop();
+      if (!opt._again && (await this.renew())) return this.fetch(url, Object.assign({}, opt, { _again: true, headers: Object.assign({}, opt.headers, { Authorization: 'Bearer ' + this.tok.at }) }));
+      throw expired();
+    }
     if (!r.ok) {
       let m = 'Google Drive answered ' + r.status;
       try { const d = await r.json(); if (d && d.error && d.error.message) m = d.error.message; } catch (e) {}
@@ -1924,3 +2013,4 @@ window.providentDrive = {
       async getDirectoryHandle(n) { const f = (await list()).find(x => x.name === n && isDir(x)); if (!f) throw D.notFound(); return node(f); } };
   }
 };
+try { window.providentDrive.watch(); } catch (e) {}

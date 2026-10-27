@@ -173,7 +173,7 @@
   function dsAuth() { const e = new Error('Sign in with Google to open this review — it is stored in the ad set’s Drive folder.'); e.gdAuth = true; return e; }
   async function dsFetch(path, opt) {
     const D = window.providentDrive;
-    if (!D || !D.valid()) { dsSignBar(); throw dsAuth(); }
+    if (!D || !(await D.ensure())) { dsSignBar(); throw dsAuth(); }
     try { return await D.fetch(D.base() + path, opt); }
     catch (e) { if (e && e.gdAuth) dsSignBar(); throw e; }
   }
@@ -512,9 +512,9 @@
     document.body.appendChild(el);
   }
   // Before a Drive review opens: a click to sign in, unless this tab already has.
-  function dsGate(title) {
+  async function dsGate(title) {
     const D = window.providentDrive;
-    if (D && D.valid()) return Promise.resolve(true);
+    if (D && (await D.ensure())) return true;   // signed in, or renewed by the server with no click
     injectCss();
     return new Promise(res => {
       const el = document.createElement('div');

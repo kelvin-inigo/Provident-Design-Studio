@@ -25,6 +25,19 @@ spec.loader.exec_module(share)
 sys.path.insert(0, os.path.dirname(__file__))
 import drive_mock  # noqa: E402  the Google Drive stand-in (review links stored on Drive)
 
+# Silent Google sign-in (api/gauth.py) against a stand-in for Google's token endpoint, below:
+# the code 'dev-code' signs in, the refresh token 'rt-dev' renews, anything else is refused.
+# Set GAUTH_REAL=1 to leave the environment alone (a real secret, Google's real endpoint).
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8790
+if os.environ.get('GAUTH_REAL') != '1':
+    os.environ.setdefault('GOOGLE_CLIENT_SECRET', 'dev-secret')
+    os.environ['GAUTH_TOKEN_URL'] = 'http://127.0.0.1:%d/gauth-mock/token' % PORT
+    os.environ['GAUTH_REVOKE_URL'] = 'http://127.0.0.1:%d/gauth-mock/revoke' % PORT
+gspec = importlib.util.spec_from_file_location('gauth', os.path.join(ROOT, 'api', 'gauth.py'))
+gauth = importlib.util.module_from_spec(gspec)
+gspec.loader.exec_module(gauth)
+GMOCK = {'refreshes': 0, 'revoked': 0}
+
 
 class H(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
@@ -45,6 +58,40 @@ class H(SimpleHTTPRequestHandler):
 
     def is_api(self):
         return urllib.parse.urlsplit(self.path).path == '/api/share'
+
+    def _gauth(self, method):
+        u = urllib.parse.urlsplit(self.path)
+        n = int(self.headers.get('Content-Length') or 0)
+        body = self.rfile.read(n) if n else b''
+        import json as _j
+        if u.path == '/gauth-mock/token':
+            f = {k: v[0] for k, v in urllib.parse.parse_qs(body.decode()).items()}
+            if f.get('grant_type') == 'authorization_code' and f.get('code') == 'dev-code':
+                code, d = 200, {'access_token': 'dev', 'expires_in': 3600, 'refresh_token': 'rt-dev'}
+            elif f.get('grant_type') == 'refresh_token' and f.get('refresh_token') == 'rt-dev' and f.get('client_secret') == os.environ.get('GOOGLE_CLIENT_SECRET'):
+                GMOCK['refreshes'] += 1
+                code, d = 200, {'access_token': 'dev', 'expires_in': 3600}
+            else:
+                code, d = 400, {'error': 'invalid_grant'}
+            out, ctype, extra = _j.dumps(d).encode(), 'application/json', []
+        elif u.path == '/gauth-mock/revoke':
+            GMOCK['revoked'] += 1
+            code, ctype, out, extra = 200, 'application/json', b'{}', []
+        elif u.path == '/gauth-mock':
+            code, ctype, out, extra = 200, 'application/json', _j.dumps(GMOCK).encode(), []
+        else:
+            code, ctype, out, extra = gauth.route(method, u.query, self.headers, body)
+        self.send_response(code)
+        self.send_header('Content-Type', ctype)
+        for k, v in extra:
+            self.send_header(k, v)
+        self.send_header('Content-Length', str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
+
+    def is_gauth(self):
+        p = urllib.parse.urlsplit(self.path).path
+        return p == '/api/gauth' or p.startswith('/gauth-mock')
 
     def is_drive(self):
         p = urllib.parse.urlsplit(self.path).path
@@ -68,11 +115,13 @@ class H(SimpleHTTPRequestHandler):
         self.wfile.write(out)
 
     def do_GET(self):
+        if self.is_gauth(): return self._gauth('GET')
         if self.is_api(): return self._api('GET')
         if self.is_drive(): return self._drive('GET')
         return super().do_GET()
 
     def do_POST(self):
+        if self.is_gauth(): return self._gauth('POST')
         if self.is_api(): return self._api('POST')
         if self.is_drive(): return self._drive('POST')
         self.send_error(405)
@@ -90,7 +139,7 @@ class H(SimpleHTTPRequestHandler):
         self.send_error(405)
 
     def end_headers(self):
-        if not self.is_api() and not self.is_drive():
+        if not self.is_api() and not self.is_drive() and not self.is_gauth():
             self.send_header('Cache-Control', 'no-store')
         super().end_headers()
 
@@ -98,6 +147,6 @@ class H(SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8790
+    port = PORT
     print('share dev server on http://localhost:%d  (store: %s)' % (port, 'memory' if os.environ.get('SHARE_DEV') == '1' else 'upstash'))
     ThreadingHTTPServer(('127.0.0.1', port), H).serve_forever()
