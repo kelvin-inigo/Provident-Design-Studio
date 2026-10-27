@@ -3596,13 +3596,14 @@ select.p-in{padding-right:34px}
   transition:box-shadow var(--ps-motion) var(--ps-ease)}
 /* on the card's own ground, so the badge's status ink measures as it does in Publish */
 .as-ad-see:hover{box-shadow:0 0 0 1px var(--ps-ink-2)}
-.mk-ov{z-index:240}
-.mk-nav{display:inline-flex;align-items:center;gap:4px;margin-left:6px}
-.mk-bar .mk-nav-b{width:36px;height:36px;padding:0;justify-content:center;border-radius:9999px}
-.mk-bar .mk-nav-b:disabled{opacity:.35;cursor:default}
+.mk-ov{z-index:240}   /* over the Ad sets window, PM's review bar and the review panel */
+.mk-nav{display:inline-flex;align-items:center;gap:4px;flex:none}
+.mk-nav .mk-nav-b{display:inline-flex;align-items:center;width:40px;height:40px;padding:0;justify-content:center;border-radius:9999px}
+.mk-nav .mk-nav-b:disabled{opacity:.35;cursor:default}
 .mk-nav-l{display:inline-flex;align-items:baseline;gap:8px;min-width:0;max-width:340px;padding:0 6px}
-.mk-nav-l b{font:500 13.5px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mk-nav-l s{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim);text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums}   /* over the Ad sets window, PM's review bar and the review panel */
+.mk-nav-l b{font:500 15px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk-nav-l s{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim);text-decoration:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mk-nav .mk-g{width:18px;height:18px}
 .as-ad-see .yt-badge{margin-left:0;font-size:11px}
 .as-ad-see:focus-visible,.as-det-img:focus-visible,.as-fmts button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-fmts{display:flex;flex-wrap:wrap;gap:6px}
@@ -5531,7 +5532,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     <div class="mk-ov">
       <div class="mk-bar">
         <b>Placement preview</b>
-        <sc-if value="{{ mkNavOn }}" hint-placeholder-val="{{ true }}"><div class="mk-nav" role="group" aria-label="Variant"><button onClick="{{ mkPrev }}" disabled="{{ mkPrevOff }}" class="p-ghost mk-nav-b" title="Previous variant (←)" aria-label="Previous variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m432-480 156 156q11 11 11 28t-11 28q-11 11-28 11t-28-11L348-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 28-11t28 11q11 11 11 28t-11 28L432-480Z"/></svg></button><span class="mk-nav-l"><b>{{ mkNavLabel }}</b><s>{{ mkNavPos }}</s></span><button onClick="{{ mkNext }}" disabled="{{ mkNextOff }}" class="p-ghost mk-nav-b" title="Next variant (→)" aria-label="Next variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></button></div></sc-if>
         <div class="p-seg mk-seg" role="radiogroup" aria-label="Platform"><sc-for list="{{ mkPlats }}" as="pl" hint-placeholder-count="2"><button onClick="{{ pl.set }}" data-on="{{ pl.on }}" role="radio" aria-checked="{{ pl.aria }}">{{ pl.label }}</button></sc-for></div>
         <s>{{ mkPlaceLabel }}</s>
         <div class="p-seg mk-seg" role="radiogroup" aria-label="Phone appearance" title="The phone's own appearance. Reels and Stories stay dark in both apps."><button onClick="{{ mkLight }}" data-on="{{ mkLightOn }}" role="radio">Light</button><button onClick="{{ mkDark }}" data-on="{{ mkDarkOn }}" role="radio">Dark</button></div>
@@ -5539,6 +5539,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <button onClick="{{ mkClose }}" class="p-ghost">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
       </div>
       <div class="mk-stage">
+        <sc-if value="{{ mkNavOn }}" hint-placeholder-val="{{ true }}"><div class="mk-nav" role="group" aria-label="Variant"><button onClick="{{ mkPrev }}" disabled="{{ mkPrevOff }}" class="p-ghost mk-nav-b" title="Previous variant (←)" aria-label="Previous variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m432-480 156 156q11 11 11 28t-11 28q-11 11-28 11t-28-11L348-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 28-11t28 11q11 11 11 28t-11 28L432-480Z"/></svg></button><span class="mk-nav-l"><b>{{ mkNavLabel }}</b><s>{{ mkNavPos }}</s></span><button onClick="{{ mkNext }}" disabled="{{ mkNextOff }}" class="p-ghost mk-nav-b" title="Next variant (→)" aria-label="Next variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></button></div></sc-if>
         <div class="mk-row"><sc-for list="{{ mkPhones }}" as="ph" hint-placeholder-count="3"><figure class="mk-fig"><figcaption><b>{{ ph.label }}</b><s>{{ ph.size }}</s></figcaption><div class="mk-phone">
           <i class="mk-b mk-b1"></i><i class="mk-b mk-b2"></i><i class="mk-b mk-b3"></i><i class="mk-b mk-b4"></i>
           <div class="mk-screen" data-mode="{{ mkModeKey }}" data-plat="{{ mkPlatKey }}" data-full="{{ ph.full }}" data-view="{{ ph.view }}">
