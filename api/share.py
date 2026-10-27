@@ -948,7 +948,7 @@ def health():
     # INFO's used_memory is not what Upstash's size limit counts (it read 1.8 MB on a store
     # Upstash called full at 250 MB). The stored values are: add them up, at most every 20
     # minutes, and keep the answer in sys:size so the strip costs three commands otherwise.
-    used = None
+    used, size_err = None, ''
     try:
         c = json.loads(s.cmd('GET', 'sys:size') or 'null')
         if isinstance(c, dict) and time.time() - c.get('at', 0) < 1200:
@@ -956,16 +956,26 @@ def health():
         else:
             ks = [k for k in scan('*') if ':img:' in k or ':pv:' in k or k.split(':')[-1] in STR_TAILS or k.startswith('rs:') and k.count(':') == 1]
             used = 0
-            for i in range(0, len(ks), 500):
-                used += sum(int(n or 0) for n in s.pipe([['STRLEN', k] for k in ks[i:i + 500]]))
+            for i in range(0, len(ks), 100):
+                b = ks[i:i + 100]
+                try:
+                    used += sum(int(n or 0) for n in s.pipe([['STRLEN', k] for k in b]))
+                except Fail:
+                    for k in b:  # one key of another type fails the whole batch: go one by one
+                        try:
+                            used += int(s.cmd('STRLEN', k) or 0)
+                        except Fail:
+                            pass
+            if not ks:
+                size_err = 'no stored values found (%d keys scanned)' % len(scan('*'))
             try:
                 s.cmd('SET', 'sys:size', json.dumps({'bytes': used, 'at': time.time()}))
             except Fail:
                 pass  # a full store refuses the write; the number is still right
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception as e:  # noqa: BLE001
+        size_err = getattr(e, 'msg', '') or e.__class__.__name__
     return ok({'ok': pong in ('PONG', True), 'ms': ms, 'keys': int(keys or 0), 'bytes': used,
-               'limit': STORE_MB * 1000000, 'dev': isinstance(s, Memory)})
+               'limit': STORE_MB * 1000000, 'dev': isinstance(s, Memory), **({'size_error': size_err} if size_err else {})})
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
