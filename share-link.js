@@ -124,9 +124,10 @@
     if (op === 'rsinfo' && q && q.ids && String(q.ids).split(',').some(isDs)) {
       // an archive holding both kinds: Drive ad sets from Drive, the rest from the share store
       const all = String(q.ids).split(','), dsIds = all.filter(isDs), up = all.filter(x => !isDs(x));
-      const [a, b] = await Promise.all([dsInfo(dsIds, q.full === '1'), up.length ? api('rsinfo', Object.assign({}, q, { ids: up.join(',') })) : { items: [] }]);
+      // not signed in to Google: the share store's ad sets still list, and the archive asks for a sign-in
+      const [a, b] = await Promise.all([dsInfo(dsIds, q.full === '1').catch(e => { if (e.gdAuth) return { items: [], sign: dsIds.length }; throw e; }), up.length ? api('rsinfo', Object.assign({}, q, { ids: up.join(',') })) : { items: [] }]);
       const by = {}; a.items.concat(b.items || []).forEach(x => { by[x.id] = x; });
-      return { items: all.map(x => by[x]).filter(Boolean) };
+      return { items: all.map(x => by[x]).filter(Boolean), sign: a.sign || 0 };
     }
     let u = StudioBase.shareBase() + '/api/share?op=' + op;
     Object.keys(q || {}).forEach(k => { if (q[k] != null && q[k] !== '') u += '&' + k + '=' + encodeURIComponent(q[k]); });
@@ -2136,25 +2137,27 @@
     box.hidden = !!this.sel;
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
     const up = '<span class="rva-hl-up">' + at + '<button type="button" class="p-ghost p-sm" data-a="refresh">Refresh</button></span>';
-    if (!h) { box.dataset.s = 'wait'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store</b><s>Checking…</s></span>' + up; return; }
-    if (!h.ok) { box.dataset.s = 'down'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · Not answering</b><s>' + esc(h.error || 'No answer.') + ' Links and reviews cannot be read or saved until it answers.</s></span>' + up; return; }
+    if (!h) { box.dataset.s = 'wait'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store</b><s>Checking… (edit links and ad sets started before 27 Oct)</s></span>' + up; return; }
+    if (!h.ok) { box.dataset.s = 'down'; box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · Not answering</b><s>' + esc(h.error || 'No answer.') + ' Edit links and ad sets started before 27 Oct cannot be read or saved until it answers. Ad sets on Google Drive are not affected.</s></span>' + up; return; }
     const mb = b => b >= 1048576 ? (b / 1048576).toFixed(b >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
     const pct = h.bytes != null ? Math.min(100, h.bytes / h.limit * 100) : null;
     const st = pct != null && pct >= 90 ? ['full', 'Nearly full'] : pct != null && pct >= 70 ? ['warn', 'Filling up'] : h.ms > 2000 ? ['warn', 'Slow to answer'] : ['ok', 'Healthy'];
     const tip = st[0] === 'ok' ? '' : pct != null && pct >= 70 ? ' Full-size photos nobody has opened for 60 days are cleared by themselves; <a href="share-admin.html" target="_blank" rel="noopener">see what takes the space</a>.' : '';
     box.dataset.s = st[0];
     box.innerHTML = '<span class="rva-hl-d"></span><span class="rva-hl-t"><b>Share store · ' + st[1] + (h.dev ? ' (test store)' : '') + '</b><s>' +
-      (pct != null ? mb(h.bytes) + ' of ' + mb(h.limit) + ' used (' + Math.round(pct) + '%) · ' : '') + h.keys.toLocaleString() + ' keys · answered in ' + h.ms + ' ms.' + tip + '</s></span>' +
+      (pct != null ? mb(h.bytes) + ' of ' + mb(h.limit) + ' used (' + Math.round(pct) + '%) · ' : '') + h.keys.toLocaleString() + ' keys · answered in ' + h.ms + ' ms. Holds shared edit links and ad sets started before 27 Oct; ad sets on Google Drive do not use it.' + tip + '</s></span>' +
       (pct != null ? '<span class="rva-hl-bar" role="meter" aria-label="Share store used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pct) + '"><i style="width:' + pct.toFixed(1) + '%"></i></span>' : '') + up;
   };
   AV.load = async function (quiet) {
     const ids = Arch.list().map(x => x.id);
+    if (!ids.length) this.sign = 0;
     if (!quiet || !this.items) this.items = ids.length ? null : [];
     if (!quiet) this.draw();
     if (!ids.length) { this.at = Date.now(); this.draw(); return; }
     try {
-      const out = [];
-      for (let i = 0; i < ids.length; i += 50) out.push(...((await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') })).items || []));
+      const out = []; let sign = 0;
+      for (let i = 0; i < ids.length; i += 50) { const r = await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') }); out.push(...(r.items || [])); sign += r.sign || 0; }
+      this.sign = sign;
       // a review from before ad sets was kept by its project's id: from now on, by its designer link
       out.forEach(x => { if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
       const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
@@ -2164,7 +2167,7 @@
   AV.open = async function (id, quiet) {
     this.sel = id; if (!quiet) { this.det = null; this.draw(); }
     try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); }
-    catch (e) { if (!quiet) this.det = { id, error: e.message || String(e) }; }
+    catch (e) { if (!quiet) this.det = { id, error: e.message || String(e), auth: !!e.gdAuth }; }
     if (this.sel === id) this.draw();
   };
   AV.click = async function (e) {
@@ -2176,6 +2179,12 @@
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
     if (a === 'proj') window.open(rsLink(t.dataset.sid), '_blank', 'noopener');
     if (a === 'refresh') { this.at = 0; this.refresh(); this.drawHealth(); }
+    if (a === 'gsign') {
+      t.disabled = true;
+      try { await window.providentDrive.signIn(); window.dispatchEvent(new Event('provident-drive-signed')); }
+      catch (er) { t.disabled = false; window.alert(er.message || String(er)); }
+      return;
+    }
     const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
     if (a === 'relab') { this.edit = t.dataset.sid; this.draw(); }
     if (a === 'relabx') { this.edit = null; this.draw(); }
@@ -2214,10 +2223,12 @@
     this.drawHealth();
     if (this.sel) { body.innerHTML = this.detHtml(); return; }
     if (this.items === null) { body.innerHTML = errHtml + '<p class="rva-wait">Reading the ad sets…</p>'; return; }
+    const signHtml = this.sign ? '<div class="rva-sign"><span><b>' + (this.sign === 1 ? 'One ad set is' : this.sign + ' ad sets are') + ' stored on Google Drive.</b><s>Sign in with your Provident Google account to list ' + (this.sign === 1 ? 'it' : 'them') + ' here. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>' : '';
+    if (!this.items.length && this.sign) { body.innerHTML = errHtml + signHtml; return; }
     if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">No ad sets yet. In a project, Share › Ad set review starts one, and it is kept here.</div>'; return; }
     const names = {}; Arch.list().forEach(x => { names[x.id] = x.name; });
     const card = it => {
-      if (it.gone) return '<button class="rva-c" data-id="' + esc(it.id) + '" data-gone="1"><span class="rva-th"></span><span class="rva-ct"><span class="rva-n"><b>' + esc(names[it.id] || 'Unknown ad set') + '</b></span><span class="rva-m">No record on the share store</span></span></button>';
+      if (it.gone) return '<button class="rva-c" data-id="' + esc(it.id) + '" data-gone="1"><span class="rva-th"></span><span class="rva-ct"><span class="rva-n"><b>' + esc(names[it.id] || 'Unknown ad set') + '</b></span><span class="rva-m">' + (isDs(it.id) ? 'Not found in Google Drive, or your account has no access' : 'No record on the share store') + '</span></span></button>';
       const rs = it.rs || {}, auds = rsAuds(rs), all = rsOverall(auds);
       return '<button class="rva-c" data-id="' + esc(it.id) + '"><span class="rva-th">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-ct"><span class="rva-n"><b>' + esc(rs.name || names[it.id] || 'Ad set') + '</b>' + pillHtml(all.ready) + '</span>' +
@@ -2228,7 +2239,7 @@
     const ready = x => rsOverall(rsAuds(x.rs || {})).ready;
     const prog = sorted.filter(x => !x.gone && !ready(x)), done = sorted.filter(x => !x.gone && ready(x)), gone = sorted.filter(x => x.gone);
     const grp = (t, l) => l.length ? '<section class="rva-g"><h3>' + t + ' <s>' + l.length + '</s></h3><div class="rva-grid">' + l.map(card).join('') + '</div></section>' : '';
-    body.innerHTML = errHtml + grp('In progress', prog) + grp('Package ready', done) + grp('Missing', gone);
+    body.innerHTML = errHtml + signHtml + grp('In progress', prog) + grp('Package ready', done) + grp('Missing', gone);
   };
   // Material Rounded, wght 300 — the studio's icon family
   const ICO = {
@@ -2244,7 +2255,8 @@
   AV.detHtml = function () {
     const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">' + ico('back') + 'All ad sets</button>';
     if (!d) return back + '<p class="rva-wait">Reading the ad set…</p>';
-    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || 'This ad set has no record on the share store.') + '</p><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>';
+    if (d.auth) return back + '<div class="rva-sign"><span><b>This ad set is stored on Google Drive.</b><s>Sign in with your Provident Google account to open it. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>';
+    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || (isDs(d.id) ? 'This ad set’s Ad set.json was not found in Google Drive, or your account has no access to its folder.' : 'This ad set has no record on the share store.')) + '</p><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>';
     const rs = d.rs || {}, auds = rsAuds(rs), all = rsOverall(auds), name = rs.name || 'Ad set';
     const drv = rs.drive || '', url = /^https?:\/\//.test(drv), proj = d.proj || {}, live = d.live || {};
     const row = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
@@ -3136,6 +3148,11 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva-add{flex:1 1 360px;display:flex;gap:8px}
 .rva-add .p-in{flex:1;min-width:0;height:36px}
 .rva-wait,.rva-err{margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rva-sign{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 20px;margin:0 0 20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+body:has(.rva-sign) .ds-sign{display:none}
+.rva-sign>span{flex:1 1 280px;display:flex;flex-direction:column;gap:2px}
+.rva-sign b{font:500 14px/1.4 var(--ps-font);color:var(--ps-ink)}
+.rva-sign s{text-decoration:none;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .rva-err{color:var(--ps-bad)}
 .rva-g h3,.rva-sec h3{margin:0 0 12px;font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
 .rva-g h3 s,.rva-sec h3 s{margin-left:4px;text-decoration:none;font-weight:400;color:var(--ps-dim)}
