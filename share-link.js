@@ -216,6 +216,8 @@
   // A file's JSON, held by its Drive `version`: a poll costs one metadata request, and the
   // content is fetched again only when someone changed it.
   const DSC = {}, DSP = {};
+  // Forget every Drive read this page has cached, so the next read goes back to Drive.
+  function dsFlush() { Object.keys(DSC).forEach(k => delete DSC[k]); Object.keys(DSP).forEach(k => delete DSP[k]); }
   async function dsRead(id, fresh) {
     const c = DSC[id];
     if (c && !fresh && Date.now() - c.at < 1500) return c.d;
@@ -264,7 +266,7 @@
   async function dsApi(op, q, body) {
     q = q || {}; body = body || {};
     if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
-    const writes = { save: 1, rsstep: 1, rsset: 1, rsdel: 1 };
+    const writes = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1 };
     const R = await dsResolve(q.id, q.p, !!writes[op]);
     const pub = () => dsPub(R.rs, R.role);
     if (op === 'rsget') {
@@ -362,6 +364,15 @@
       await dsWrite(fid, d);
       return { rev: rv.rev };
     }
+    if (op === 'thumb') {
+      if (R.role === 'pm') throw dsFail(403, 'This link is for viewing the ad sets — it cannot change the project.');
+      if (!(typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000)) throw dsFail(400, 'No preview.');
+      const d = await dsRead(fid, true), rv = d.review || (d.review = {});
+      rv.thumb = body.thumb; rv.thumbAt = dsNow();
+      if (body.sum && typeof body.sum === 'object') rv.sum = body.sum;
+      await dsWrite(fid, d);
+      return { ok: true };
+    }
     throw dsFail(404, 'Unknown request.');
   }
   // the designer's archive: one summary per ad set, by its designer link
@@ -372,12 +383,14 @@
         const R = await dsResolve(id);
         if (R.role !== 'dd' || !R.rs) { items.push({ id, gone: true }); continue; }
         const e = { id, dd: R.rs.tok.dd, rs: dsPub(R.rs, 'dd'), thumb: R.rs.thumb || '', live: {} };
+        let thAt = 0;
         const plog = [], proj = {};
         await Promise.all((R.rs.items || []).map(async it => {
           try {
             const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            if (rv.thumb && (rv.thumbAt || 0) > thAt) { thAt = rv.thumbAt; e.thumb = rv.thumb; }
             const lg = rv.log || [];
             e.mod = Math.max(e.mod || 0, (rv.sum && rv.sum.updated) || 0, lg.length ? lg[lg.length - 1].at || 0 : 0);
             if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it) })));
@@ -1004,6 +1017,21 @@
     if (Object.keys(S.pv).length) setTimeout(() => this.shFlash(Object.keys(S.pv).length + ' full-size photo' + (Object.keys(S.pv).length > 1 ? 's have' : ' has') + ' expired — showing previews. Restore them from the Changes panel.'), 800);
     this.forceUpdate();
   };
+  // THE PREVIEW REVIEW LINKS SHOWS. It was drawn once, when the project joined the ad set, so the
+  // cards never showed the work. Now it is redrawn after the edits settle — 4s with nothing
+  // pending, at most every 15s — and sent on its own (op 'thumb'), so it is no new revision
+  // and nobody pulls for it. The ad set's card shows its most recently changed project.
+  SP.shThumb = async function (force) {
+    const S = this._sh;
+    if (!S || !S.rs || S.thumbBusy || S.busy || this.shApp() !== 'provident-ad-studio') return;
+    if (!force && (!S.thumbDue || Date.now() - (S.savedAt || 0) < 4000 || Date.now() - (S.thumbAt || 0) < 15000)) return;
+    S.thumbBusy = true; S.thumbDue = false; S.thumbAt = Date.now();
+    try {
+      const th = await this.rvThumb();
+      if (th && this._sh === S) await api('thumb', { id: S.id }, { thumb: th, sum: this.rvSum(this.shPub()) });
+    } catch (e) { S.thumbDue = true; }
+    S.thumbBusy = false;
+  };
   SP.shTick = function () {
     const S = this._sh; if (!S || S.busy || StudioBase.loadingSession) return;
     if (!this.shBind()) { this.shareStop(true); return; }   // this tab has opened another project
@@ -1018,6 +1046,7 @@
     if (cur !== S.lastS) { S.lastS = cur; S.lastT = Date.now(); }
     const pend = cur !== S.baseS || S.dirty.size > 0;
     S.pending = pend;
+    if (!pend) this.shThumb();
     if (S.ui) S.ui.status(pend ? 'saving' : (S.err ? 'error' : 'ok'));
     if (pend && Date.now() - S.lastT > DEBOUNCE) this.shSave();
     // while a photo is still a preview, look again now and then: someone may have restored it
@@ -1057,6 +1086,7 @@
         try {
           const r = await api('save', { id: S.id }, { base: S.rev, state: cur, by, burst: burst.id, changes: burst.list, imgs: map, sum: S.rs ? this.rvSum(cur) : undefined });
           S.rev = r.rev; S.base = cur; S.baseS = canon(cur);
+          if (S.rs) { S.thumbDue = true; S.savedAt = Date.now(); }
           Object.keys(map).forEach(k => { delete S.pv[k]; if (map[k]) S.imgs[k] = map[k].h; else delete S.imgs[k]; });
           S.err = '';
           this.shPersist();
@@ -1157,7 +1187,7 @@
       ssSet(this.shKey('-log'), null);
       this.shareStart(false);
       const S = this._sh;
-      if (S) { up.forEach(sl => S.dirty.add(sl)); if (up.length) S.lastT = Date.now(); }
+      if (S) { up.forEach(sl => S.dirty.add(sl)); if (up.length) S.lastT = Date.now(); if (S.rs) { S.thumbDue = true; S.savedAt = 0; } }
       if (!quiet) setTimeout(() => this.shFlash(d.rs ? 'Reconnected to the ad set ' + (d.rs.name || '') + ' — your changes reach the review link again.' : 'Reconnected to its shared link.'), 400);
       return true;
     } catch (e) { return false; }
@@ -2494,7 +2524,7 @@
   function ArchView(el, eng) {
     injectCss();
     this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
-    el.innerHTML = '<div class="rva"><div class="rva-bar">' +
+    el.innerHTML = '<div class="rva"><div class="rva-gd" hidden></div><div class="rva-bar">' +
       '<form class="rva-add" title="Paste a designer’s ad set link to keep that ad set on this computer">' + ico('link', 'rva-add-i') + '<input class="p-in" placeholder="Add a designer link" aria-label="Designer ad set link"><button class="p-ghost" type="submit">Add</button></form></div>' +
       '<div class="rva-hl" data-s="wait"><div class="rvo-h"><span class="rvo-fig" data-hl="stack" aria-hidden="true"></span><div class="rvo-ht"></div></div><div class="rvo-in"></div></div><div class="rva-body" aria-live="polite"></div></div>';
     // the Stack figure mounts through the shell's own Hairline binding, which also destroys it
@@ -2597,7 +2627,20 @@
     if (a === 'back') { this.sel = null; this.det = null; this.load(); }
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
     if (a === 'proj') window.open(rsLink(t.dataset.sid), '_blank', 'noopener');
-    if (a === 'refresh') { this.at = 0; this.refresh(); }
+    if (a === 'refresh') { if (dsOn()) dsFlush(); this.at = 0; this.refresh(); }
+    if (a === 'gdref' || a === 'gdre' || a === 'gdsw') {
+      const D = window.providentDrive;
+      this.gdBusy = a === 'gdref' ? 'ref' : 're'; this.drawGd();
+      try {
+        if (a === 'gdsw') D.signOut();
+        else if (a === 'gdre') D.drop();   // a fresh session; the remembered account comes back with no chooser
+        if (a !== 'gdref') await D.signIn();
+        this.gdBusy = 'ref'; this.drawGd();
+        await this.gdRefresh();
+      } catch (er) { window.alert(er.message || String(er)); }
+      this.gdBusy = null; this.draw();
+      return;
+    }
     if (a === 'gsign') {
       t.disabled = true;
       try { await window.providentDrive.signIn(); window.dispatchEvent(new Event('provident-drive-signed')); }
@@ -2636,7 +2679,34 @@
       setTimeout(() => { t.disabled = false; t.textContent = 'Save'; }, 1600);
     }
   };
+  // GOOGLE DRIVE, AS A CONTROL: who this computer is signed in as, and two buttons. Refresh
+  // forgets every cached Drive read and reads the ad sets again; Reconnect gets a new Google
+  // session (the remembered account, so the popup closes by itself) and then refreshes —
+  // the fix for a page that stopped picking up changes because its session lapsed.
+  AV.drawGd = function () {
+    const box = this.el.querySelector('.rva-gd'); if (!box) return;
+    const D = window.providentDrive;
+    if (!dsOn() || !D) { box.hidden = true; return; }
+    const w = D.who && D.who(), ok = D.valid && D.valid(), busy = this.gdBusy;
+    const st = busy ? 'busy' : ok ? 'ok' : w ? 'exp' : 'out';
+    const line = busy === 'ref' ? 'Reading every ad set again from Google Drive…' : busy === 're' ? 'Reconnecting to Google Drive…'
+      : ok ? 'Connected' + (w ? ' as <b>' + esc(w.name || w.email) + '</b> · ' + esc(w.email) : '')
+        : w ? 'Session ended — reconnect as <b>' + esc(w.email) + '</b> to see the latest' : 'Not signed in — ad sets on Drive are not listed';
+    box.hidden = false; box.dataset.s = st;
+    box.innerHTML = '<span class="rva-gd-t"><i></i><span><b class="rva-gd-k">Google Drive</b><s>' + line + '</s></span></span>' +
+      '<span class="rva-gd-a">' +
+      (ok ? '<button type="button" class="p-ghost" data-a="gdref"' + (busy ? ' disabled' : '') + '>' + ico('ref') + 'Refresh</button>' : '') +
+      '<button type="button" class="' + (ok ? 'p-ghost' : 'p-btn') + '" data-a="gdre"' + (busy ? ' disabled' : '') + '>' + (ok ? 'Reconnect' : w ? 'Reconnect' : 'Sign in with Google') + '</button>' +
+      (w ? '<button type="button" class="rva-gd-sw" data-a="gdsw"' + (busy ? ' disabled' : '') + '>Use another account</button>' : '') +
+      '</span>';
+  };
+  AV.gdRefresh = async function () {
+    dsFlush();
+    this.at = 0;
+    if (this.sel) await this.open(this.sel, true); else await this.load(true);
+  };
   AV.draw = function () {
+    this.drawGd();
     const body = this.el.querySelector('.rva-body'), errHtml = this.err ? '<p class="rva-err" role="alert">' + esc(this.err) + '</p>' : '';
     this.el.querySelector('.rva-bar').hidden = !!this.sel;
     this.drawHealth();
@@ -3692,6 +3762,24 @@ html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs
 .rva{max-width:1240px;margin-inline:auto;display:flex;flex-direction:column;gap:20px;font-family:var(--ps-font);color:var(--ps-ink)}
 .rva-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
 .rva-bar[hidden]{display:none}
+.rva-gd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:12px 16px;border-radius:14px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rva-gd[hidden]{display:none}
+.rva-gd-t{display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 280px}
+.rva-gd-t>i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
+.rva-gd[data-s="ok"] .rva-gd-t>i{background:var(--ps-good)}
+.rva-gd[data-s="exp"] .rva-gd-t>i{background:var(--ps-warn)}
+.rva-gd[data-s="busy"] .rva-gd-t>i{background:var(--ps-link);animation:rvaGdP 1s ease-in-out infinite alternate}
+@keyframes rvaGdP{to{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.rva-gd[data-s="busy"] .rva-gd-t>i{animation:none}}
+.rva-gd-t>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rva-gd-k{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rva-gd-t s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.rva-gd-t s b{font-weight:500;color:var(--ps-ink)}
+.rva-gd-a{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.rva-gd-a .p-ghost,.rva-gd-a .p-btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;white-space:nowrap}
+.rva-gd-a svg{width:16px;height:16px;fill:currentColor}
+.rva-gd-sw{border:none;background:none;padding:0 4px;font:400 12.5px/1 var(--ps-font);color:var(--ps-link);text-decoration:underline;cursor:pointer}
+.rva-gd-sw:disabled,.rva-gd-a button:disabled{opacity:.5;cursor:default}
 .rva-hl{display:flex;flex-direction:column;gap:14px;padding:18px 20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .rva-hl[hidden]{display:none}
 .rva-sx-h{display:flex;align-items:center;justify-content:space-between;gap:12px}

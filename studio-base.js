@@ -1926,6 +1926,7 @@ window.providentDrive = {
     if (!this.valid() && !(await this.renew())) throw expired();
     if (!this.tok) throw expired();
     opt = Object.assign({}, opt || {}); opt.headers = Object.assign({ Authorization: 'Bearer ' + this.tok.at }, opt.headers || {});
+    if (!opt.cache) opt.cache = 'no-store';   // a Drive read must never come from the browser's HTTP cache
     const r = await fetch(url, opt);
     if (r.status === 401) {
       // a token Google ended early: renew once and repeat the request

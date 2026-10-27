@@ -16927,3 +16927,23 @@ Verified on the Drive stand-in: bound, binding cleared, an edit made apart, relo
 by itself, the edit saved and logged "Heading"; with no local memory, both Make the ad set (same
 folder) and Add (same cell) reconnected with no new files; another project into the same folder
 was added as Investor; a third project on a taken cell got the message.
+
+# REVIEW LINKS HAS A GOOGLE DRIVE STRIP, AND ITS PREVIEWS FOLLOW THE WORK (2026-10-27)
+
+By request ("refresh or reconnect the google drives… not refreshing", then "preview is not
+refreshing as well").
+- **`.rva-gd`** above the list and the detail page (`AV.drawGd`, only when `dsOn()`): connected as
+  name · email (green), session ended (amber), or not signed in. **Refresh** = `dsFlush()` (clears
+  `DSC`/`DSP`) then re-reads (`AV.gdRefresh`); **Reconnect** = `D.drop()` + `D.signIn()` (the
+  remembered account, no chooser) then refresh; **Use another account** = `signOut()` + sign-in.
+  The overview's small refresh icon also flushes. `providentDrive.fetch` now sends
+  `cache: 'no-store'`, so no Drive read can come from the browser's HTTP cache.
+- **Previews were drawn once** (when the project joined the ad set, and at design done) and never
+  again. `SP.shThumb` now redraws after edits settle (4s with nothing pending, at most every 15s)
+  and sends it on its own — op **`thumb`** in both stores (`api/share.py` sets `sh:<sid>:thumb`
+  and `rs:<rid>:thumb`; `dsApi` writes `review.thumb` + `thumbAt`) — so it is no new revision and
+  nobody pulls for it. On Drive the ad set's card shows its most recently re-drawn project
+  (`dsInfo`, by `thumbAt`). A reconnect sends one at once.
+Verified on the Drive stand-in: an edited heading's preview landed ~5s after its save with rev
+unchanged, the card showed it, a real click on Refresh re-read from Drive, an expired token showed
+the amber state. The real Reconnect popup was not clicked (it opens Google's real sign-in).

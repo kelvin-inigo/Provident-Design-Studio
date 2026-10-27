@@ -318,8 +318,17 @@ added to on this computer, or opened as the designer. Ad sets still **In progres
 then **Package ready**.
 
 The page refreshes itself every minute while it is on screen, and again as soon as you come
-back to the window. A step someone takes elsewhere shows up without a reload. **Refresh**
-updates it at once.
+back to the window. A step someone takes elsewhere shows up without a reload.
+
+The **Google Drive** strip at the top says which Google account this computer is connected as:
+- **Refresh** reads every ad set again straight from Drive (it forgets anything cached).
+- **Reconnect** gets a new Google session with the same account, then refreshes. Use it when the
+  page stops picking up changes, or the strip says the session has ended.
+- **Use another account** signs out and lets you pick a different Google account.
+
+Each card's picture is the latest look of its most recently changed project. A project's picture
+is redrawn a few seconds after you stop editing (at most every 15 seconds), so the cards follow
+the work instead of showing it as it was when the ad set was made.
 
 Ad sets started from 27 Oct live in their Google Drive folder. If you are not signed in to Google,
 a box above the list says how many there are, with **Sign in with Google**; once you sign in they

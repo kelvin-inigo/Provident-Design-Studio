@@ -1109,7 +1109,7 @@ def _route(method, query, body):
         if not sid:
             raise Fail(400, 'Name the project (p=) — this is an ad set link.')
         k = 'sh:' + sid + ':'
-        if method == 'POST' and op in ('part', 'save', 'pvput') and role == 'pm':
+        if method == 'POST' and op in ('part', 'save', 'pvput', 'thumb') and role == 'pm':
             raise Fail(403, 'This link is for viewing the ad sets — it cannot change the project.')
         pub = rs_pub(rs, role)
         if method == 'POST' and op == 'part':
@@ -1189,6 +1189,20 @@ def _route(method, query, body):
             if rs and isinstance(d.get('sum'), dict):
                 s.cmd('SET', k + 'sum', json.dumps(clean_sum(d['sum']), separators=(',', ':')))
             return ok({'rev': int(r[1])})
+        if method == 'POST' and op == 'thumb':
+            # the project's preview for Review links, redrawn after edits settle: no new revision
+            d = json.loads(body or b'{}')
+            th = thumb_of(d)
+            if not th:
+                raise Fail(400, 'No preview.')
+            need(k)
+            cmds = [['SET', k + 'thumb', th]]
+            if rs and rs.get('rid'):
+                cmds.append(['SET', 'rs:' + rs['rid'] + ':thumb', th])
+            if rs and isinstance(d.get('sum'), dict):
+                cmds.append(['SET', k + 'sum', json.dumps(clean_sum(d['sum']), separators=(',', ':'))])
+            s.pipe(cmds)
+            return ok({'ok': True})
         if method == 'GET' and op == 'rev':
             rev, n = s.pipe([['GET', k + 'rev'], ['LLEN', k + 'log']])
             if rev is None:
