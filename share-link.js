@@ -1433,7 +1433,7 @@
     const where = itemLabel({ market: it.market, aud: it.aud }) + ' · ' + lang;
     // the designer's two buttons on this project: the forward one and the one that takes it back
     let fwd = null, back = null;
-    if (!it.design) fwd = { act: 'design-done', label: arb ? 'Arabic laid out' : 'Mark design done',
+    if (!it.design) fwd = { act: 'design-done', label: arb ? 'Send for translation check' : 'Send to copy check',
       tip: arb ? 'Hands the Arabic version to the content team to check the translation.' : 'Hands the design to the content team to check the English copy.' };
     else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back in progress' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
     else back = { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check', tip: 'Sends the words back to the content team to check again.' };
@@ -1637,7 +1637,7 @@
   function itemActs(it, role, busy) {
     const arb = it.lang === 'ARB', out = [];
     if (role === 'dd') out.push(it.design ? ['design-open', arb ? 'Arabic back in progress' : 'Back to in process', 'p-ghost']
-      : ['design-done', arb ? 'Arabic laid out' : 'Mark design done', 'p-btn']);
+      : ['design-done', arb ? 'Send for translation check' : 'Send to copy check', 'p-btn']);
     if (role === 'ct' && (it.design || it.copy)) out.push(it.copy ? ['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']
       : ['copy-done', arb ? 'Approve translation' : 'Approve English copy', 'p-btn']);
     if (role === 'dd' && it.copy) out.push(['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']);
@@ -1692,9 +1692,43 @@
       try { if (document.hidden && window.Notification && Notification.permission === 'granted') new Notification((now.name || 'Ad set') + ' · review', { body: t, tag: 'rs-' + h.at }); } catch (e) {}
     });
   }
+  // What a project still lacks before the content team checks it: empty words on any page, a
+  // page or variant with no background photo, a QR code switched on with none dropped in, and
+  // copy covering more of a canvas than the brand ceiling. Campaign only (reads its engine).
+  SP.rsPrecheck = function () {
+    const C = this.constructor, s = this.state, out = [];
+    if (!C || !C.copySnap || !s || !Array.isArray(s.variants)) return out;
+    const IS = customElements.get('image-slot'), has = id => !!(IS && IS.getRec && IS.getRec(id));
+    const lab = vi => (this.vLabel ? this.vLabel(vi) : 'Page ' + (vi + 1));
+    try {
+      const snap = C.copySnap(s, 'draft', ''), pages = C.copyPages(s), multi = snap.pages.length > 1;
+      snap.pages.forEach((pg, k) => {
+        const v = s.variants[(pages[k] || {}).vi || 0] || {}, hid = v.hidden || {};
+        const empty = pg.fields.filter(f => !hid[f.id] && !String(C.copyValue(f) || '').trim()).map(f => f.label);
+        if (empty.length) out.push((multi ? pg.label + ': ' : '') + 'no words in ' + empty.join(', '));
+      });
+    } catch (e) {}
+    const noPic = s.variants.map((v, vi) => vi).filter(vi => !has('adstudio-bg-' + vi));
+    if (noPic.length) out.push(noPic.length === s.variants.length && s.variants.length === 1 ? 'no background photo' : 'no background photo on ' + noPic.map(lab).join(', '));
+    if (s.qr && s.qr.show && !has('adstudio-qr')) out.push('the QR code is switched on but none has been added');
+    try {
+      const max = C.COVER_MAX || 40, over = [], names = { sq: '1:1', pt: '3:4', st: '9:16' };
+      (this.renderVals().variantViews || []).forEach((vv, vi) => ['sq', 'pt', 'st'].forEach(k => {
+        const c = vv && vv[k]; if (c && c.coverPct > max) over.push(lab(vi) + ' ' + names[k] + ' ' + c.coverPct + '%');
+      }));
+      if (over.length) out.push('copy covers more than ' + max + '% of the canvas: ' + over.join(', '));
+    } catch (e) {}
+    return out;
+  };
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
     const [a, sid] = String(act).split(':');
+    // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
+    // blocks — the designer can send anyway — it only says what is missing before it goes.
+    if (a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {
+      const miss = this.rsPrecheck();
+      if (miss.length && !window.confirm('Before it goes to the content team:\n\n' + miss.map(m => '•  ' + m).join('\n') + '\n\nSend anyway?')) return;
+    }
     this._rvBusy = act; this.rvRender(); this.forceUpdate();
     try {
       // the sign-off covers the latest work: whatever is waiting to save goes first
@@ -1704,7 +1738,7 @@
       if (a === 'design-done') body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      S.ui.flash(a === 'design-done' ? 'Marked done' : a === 'copy-done' ? 'Approved' : 'Back in progress');
+      S.ui.flash(a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
     finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
   };

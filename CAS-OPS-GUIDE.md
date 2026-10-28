@@ -270,14 +270,16 @@ steps: **Design › ENG copy check › Translation › Done**.
    Otherwise add each project the same way, from each project: **Share › Ad set review › Add to
    an ad set**, choose the ad set and say what the project is. Work audience by audience: design
    every audience first, then add the Arabic versions.
-3. **Design.** In a project's **Copy** workspace, the bar at the bottom shows where that audience
-   is and has your button: **Mark design done** sends it to the content team, **Back to design**
-   takes it back. The same buttons are in the **Ad set review** panel.
+3. **Design.** When a project is ready, press **Send to copy check** in the bar under the
+   canvas, beside the ad set chip. It first lists anything missing: empty words, a page or
+   variant with no background photo, a QR code switched on with none added, or copy covering
+   more than 40% of a canvas. Fix them, or press OK to send anyway. **Back to design** takes it
+   back. The same buttons are in the **Ad set review** panel and the Copy workspace's bottom bar.
 4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
    words are beside every image, which update as they type, and the designer sees the change
    within seconds. **Approve English copy** in the panel signs it off.
 5. **Translation.** The designer adds the Arabic project for that audience, lays it out and presses
-   **Arabic laid out**. The content team checks it and presses **Approve translation**. If an
+   **Send for translation check**. The content team checks it and presses **Approve translation**. If an
    audience needs no Arabic, the designer ticks **No Arabic for this audience** and the step is
    skipped.
 6. **Done.** An audience is done when its design, English copy and translation are signed off.
@@ -600,8 +602,8 @@ This is for copywriters: the ad's words on their own, next to a live preview.
 4. **Reorder** a line by dragging its grip, or focus the grip and use the arrow keys.
 5. **The bar at the bottom** says where this project is in its ad set review and has the
    designer's buttons:
-   - **Mark design done** (or **Arabic laid out** on the Arabic version) sends it to the content
-     team. **Back to design** takes it back while they have it; **Reopen copy check** sends
+   - **Send to copy check** (or **Send for translation check** on the Arabic version) sends it
+     to the content team, after the same check as the canvas bar's button. **Back to design** takes it back while they have it; **Reopen copy check** sends
      approved words back to them.
    - **Ad set overview** opens every audience and language in the ad set.
    - A project that is not in an ad set yet has **Start an ad set review** instead. See *Run an

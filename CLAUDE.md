@@ -16973,3 +16973,21 @@ same `pgid`s in another order. `pgIds` gives every variant a unique `pgid` FIRST
 undo stack, and `restore()` calls the permute too, so Undo / Redo move the photos back.
 Verified with a real drag on three coloured pages: copy and photo moved together, Undo, Redo
 and the arrow keys kept them in step, no console errors. `_pgOpen` is instance state.
+
+# THE DESIGNER'S HAND-OFF IS "SEND TO COPY CHECK", IN THE CANVAS BAR, AND IT CHECKS FIRST (2026-10-28)
+
+By request, after a review of the flow. `design-done` is labelled **Send to copy check**
+(**Send for translation check** on an ARB project) everywhere — the canvas bar, the Ad set
+review panel (`itemActs`) and the Copy view's bar. The canvas bar carries it beside the ad set
+chip (`.p-cvsend`, section 58 of CAS's sheet, reading the shell keys `rsFwdOn` / `rsFwd` /
+`rsFwdLabel`) while this project's design is still with the designer. **`SP.rsPrecheck()`**
+(share-link.js, CAS only) lists what the content team would send back: empty words on any
+page (hidden components skipped), a page or variant with no `adstudio-bg-<vi>` photo, the QR
+switched on with no `adstudio-qr`, and any 1:1 / 3:4 / 9:16 canvas over `COVER_MAX`
+(`coverPct` from `renderVals().variantViews`). `rvStep` runs it for this project's
+`design-done` and asks `confirm()`; Cancel sends nothing, OK sends. It never blocks.
+**Below 1200px the dock rose to `bottom:115px`**: the bar carries 58px of room for the panel
+bar, and the dock row at 74px sat on the bar's content (name, chip, button) — found because a
+real click on the new button hit `.p-dock-r`. Verified on the Drive stand-in with real clicks:
+the check listed an empty heading, no photo and a missing QR; Cancel kept Design; OK moved the
+audience to ENG copy check and the button left the bar.
