@@ -554,24 +554,26 @@ the bar under the canvas. It applies to the whole project: every variant, size a
 
 - The **provident.** wordmark, the collaboration logo and the QR code are not drawn, and the
   wordmark's space goes back to the copy. The layout, components and copy stay as they are.
-- A strip opens under the canvas:
-  - **Palette**: five colours, one per role: **Text**, **Accent** (the eyebrow and the price),
+- A strip opens under the canvas. Its top line shows the look at a glance: the five colours,
+  the two fonts, and whether all the copy is readable. **Hide controls** (or the arrow beside
+  **Unbranded look**) folds the strip down to that one line once the design is set; **Edit
+  look**, or pressing **Unbranded** again, opens it. Folded or open is remembered on this
+  computer. Under the line are four cards:
+  - **Colour**: five colours, one per role: **Text**, **Accent** (the eyebrow and the price),
     **Button**, **Chip** and **Scrim**. The first time you switch on, they are read from the
-    background photo. **From photo** reads them again; **Generate** makes new ones. Click a
-    swatch to lock it (Generate and From photo then leave it alone); double-click it to type a
-    colour.
-  - **Light on dark | Dark on light** picks the tone: light text on a dark scrim, or dark text
-    on a light one. The palette is rebuilt for the tone from the photo, keeping locked swatches.
-  - The three lines under the palette check that the headline, the accent and the button label
-    are readable on the scrim as it sits over your photo. A red line means too faint.
-  - **Type**: a **Headline** font (headline and price) and a **Body** font (everything else),
-    from Google Fonts. The list starts with tested fonts; type in **Search all Google Fonts** to
-    find any of them. The **Arabic** font is used when the Typeface is set to Arabic.
-  - **Eyebrow tracking** sets the spacing of the capitals in eyebrows and labels.
-  - **Shape**: **Corners** (square to a full pill), **Glass blur** and **Glass opacity** for glass
-    components.
-  - **Save look** keeps the colours, fonts and shape under a name on this computer; click a
-    saved look on another project to apply it.
+    background photo. Click a colour to pick a new one; a colour you pick is locked. The lock in
+    a colour's corner keeps it when you press **From photo** (read the photo again) or
+    **Shuffle** (new colours). **Light on dark | Dark on light** picks the tone and rebuilds the
+    unlocked colours for it. **Readability** under the colours checks the copy, the accent and
+    the button label; a red chip means too faint (hover it for the numbers).
+  - **Type**: a **Headline** font (headline and price), a **Body** font (everything else) and an
+    **Arabic** font (used when the Typeface is set to Arabic), from Google Fonts. Each shows a
+    sample in its own face. The lists start with tested fonts; type in **Filter all Google
+    Fonts** to find any of them.
+  - **Shape**: **Corners** (square to a full pill), **Glass blur**, **Glass opacity**, and
+    **Eyebrow tracking** (the spacing of the capitals in eyebrows and labels).
+  - **Saved looks**: **Save look** keeps the colours, fonts and shape under a name on this
+    computer; click a saved look on another project to apply it.
 - The scrim keeps its own controls in the Layout rail (strength and fade); only its colour comes
   from the palette. The Layout rail's **Background** dark/light does nothing while Unbranded is
   on: the tone switch decides.

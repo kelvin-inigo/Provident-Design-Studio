@@ -4788,42 +4788,84 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-cvbrand button{padding:0 12px;font-size:12.5px}
 [data-look-host]{display:none;flex:none}
 [data-look-host][data-on]{display:block}
-.lk-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px 22px;padding:14px 16px 16px;border-top:1px solid var(--ps-hair);background:var(--ps-app);max-height:46vh;overflow:auto}
-.lk-col{display:flex;flex-direction:column;gap:9px;min-width:0}
-.lk-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.lk-hd h3{margin:0;font-size:13px;font-weight:600;color:var(--ps-ink-2)}
-.lk-hd2{margin-top:4px}
+.lk-strip{border-top:1px solid var(--ps-hair);background:var(--ps-app);container-type:inline-size}
+/* the head bar: always there, the look in one line and the fold */
+.lk-bar{display:flex;align-items:center;gap:14px;padding:8px 12px 8px 8px;min-height:48px}
+.lk-tog{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--ps-ink);font:inherit;font-size:14px;cursor:pointer;padding:6px 8px;border-radius:8px;flex:none}
+.lk-tog:hover{background:var(--ps-fill)}
+.lk-tog b{font-weight:600}
+.lk-chev{display:flex;width:20px;height:20px;transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.lk-chev svg{width:20px;height:20px;fill:currentColor}
+.lk-strip[data-open="0"] .lk-chev{transform:rotate(-90deg)}
+.lk-sum{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.lk-mini{display:flex;flex:none;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.lk-mini u{display:block;width:18px;height:22px}
+.lk-fonts{font-size:13px;color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lk-ok{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ps-ink-2);white-space:nowrap}
+.lk-ok::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ps-good)}
+.lk-ok[data-ok="0"]{color:var(--ps-ink)}
+.lk-ok[data-ok="0"]::before{background:var(--ps-bad)}
+.lk-tog2{flex:none}
+/* the controls: four cards, the colour card widest */
+.lk-body{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:2px 12px 14px;max-height:44vh;overflow:auto}
+.lk-strip[data-open="0"] .lk-body{display:none}
+.lk-card{display:flex;flex-direction:column;gap:12px;min-width:0;padding:14px;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.lk-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:30px}
+.lk-hd h3{margin:0;font-size:12.5px;font-weight:600;color:var(--ps-ink-2);flex:none}
 .lk-tone{height:30px}
 .lk-tone button{font-size:12px;padding:0 10px}
 .lk-sws{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.lk-sw{position:relative;height:76px;border:0;border-radius:10px;padding:7px 8px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(128,128,128,.28);font:inherit}
+.lk-sw{position:relative;height:84px;border-radius:10px;padding:8px 6px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:inset 0 0 0 1px rgba(128,128,128,.3);min-width:0;transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.lk-sw:hover{transform:translateY(-1px)}
+.lk-sw:focus-within{outline:2px solid var(--ps-ink);outline-offset:2px}
+.lk-sw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.lk-sw b,.lk-sw span{position:relative;pointer-events:none}
 .lk-sw b{font-size:12px;font-weight:600}
-.lk-sw span{font-size:10.5px;font-variant-numeric:tabular-nums;opacity:.85}
-.lk-sw input{position:absolute;inset:0;opacity:0;pointer-events:none}
-.lk-lock{position:absolute;top:6px;right:6px;width:15px;height:15px;fill:currentColor;opacity:.55}
-.lk-sw .lk-lk1{display:none}
-.lk-sw[data-locked="1"] .lk-lk1{display:inline}
-.lk-sw[data-locked="1"] .lk-lk0{display:none}
-.lk-sw[data-locked="1"] .lk-lock{opacity:1}
+.lk-sw span{font-size:10px;font-variant-numeric:tabular-nums;opacity:.82;white-space:nowrap;overflow:hidden}
+.lk-lk{position:absolute;top:5px;right:5px;z-index:1;width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;padding:0}
+.lk-lk svg{width:15px;height:15px;fill:currentColor}
+.lk-lk .lk-l1,.lk-sw[data-locked="1"] .lk-l0{display:none}
+.lk-sw[data-locked="1"] .lk-l1{display:inline}
+.lk-sw:hover .lk-lk,.lk-lk:focus-visible,.lk-sw[data-locked="1"] .lk-lk{opacity:.6}
+.lk-sw[data-locked="1"] .lk-lk{opacity:1;background:rgba(128,128,128,.22)}
+.lk-lk:hover{opacity:1!important;background:rgba(128,128,128,.22)}
+@media (hover:none){.lk-lk{opacity:.6}}
 .lk-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.lk-note{font-size:12px;color:var(--ps-dim)}
-.lk-ck{display:flex;flex-direction:column;gap:4px}
-.lk-c{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 9px;border-radius:8px;background:var(--ps-good-q);color:var(--ps-ink)}
+.lk-row .p-ghost{display:inline-flex;align-items:center;gap:6px}
+.lk-row .p-ghost svg{width:16px;height:16px;fill:currentColor}
+.lk-hint{font-size:12px;color:var(--ps-dim);margin-left:auto}
+.lk-note{font-size:12px;color:var(--ps-ink-2)}
+.lk-note:empty{display:none}
+.lk-ck{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lk-ckl{font-size:12px;color:var(--ps-dim);margin-right:2px}
+.lk-c{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--ps-good-q);color:var(--ps-ink)}
 .lk-c b{font-weight:600;font-variant-numeric:tabular-nums}
 .lk-c[data-ok="0"]{background:var(--ps-bad-q)}
-.lk-f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:500;color:var(--ps-ink-2)}
-.lk-f select,.lk-q{width:100%}
+.lk-q{flex:1;min-width:0;max-width:240px;height:30px!important;font-size:12.5px!important}
+.lk-fs{display:flex;flex-direction:column;gap:12px}
+.lk-f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:500;color:var(--ps-ink-2)}
+.lk-f select{width:100%}
+.lk-spec{font-style:normal;font-size:20px;line-height:1.25;color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lk-f[data-ff="B"] .lk-spec{font-size:15px}
 .lk-rng{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 10px}
 .lk-rng label{font-size:12.5px;font-weight:500;color:var(--ps-ink-2)}
 .lk-rng output{font-size:12px;color:var(--ps-dim);text-align:right;font-variant-numeric:tabular-nums}
 .lk-rng input{grid-column:1/-1;width:100%}
-.lk-looks{display:flex;flex-wrap:wrap;gap:6px}
-.lk-look{display:inline-flex;align-items:center;border-radius:999px;box-shadow:inset 0 0 0 1px var(--ps-line)}
-.lk-look button{border:0;background:transparent;color:var(--ps-ink);font:inherit;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 4px 4px 5px}
-.lk-look i{display:flex;border-radius:999px;overflow:hidden}
-.lk-look u{width:8px;height:16px;display:block}
-.lk-look .lk-x{padding:4px 9px 4px 4px;color:var(--ps-dim)}
-.lk-none{font-size:12px;color:var(--ps-dim)}
+.lk-looks{display:flex;flex-direction:column;gap:6px}
+.lk-look{display:flex;align-items:center;border-radius:10px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.lk-look:hover{background:var(--ps-fill)}
+.lk-look button{border:0;background:transparent;color:var(--ps-ink);font:inherit;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:7px 8px}
+.lk-look [data-li]{flex:1;min-width:0;text-align:left}
+.lk-look [data-li] span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lk-look i{display:flex;border-radius:5px;overflow:hidden;flex:none;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.lk-look u{width:10px;height:18px;display:block}
+.lk-look .lk-x{padding:7px 10px;color:var(--ps-dim);font-size:15px}
+.lk-none{font-size:12px;color:var(--ps-dim);line-height:1.5}
+/* the strip lives in the stage column, so it answers its OWN width, not the window's */
+@container (min-width:620px){.lk-body{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (min-width:1180px){.lk-body{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,.85fr) minmax(0,.8fr)}}
+@container (max-width:560px){.lk-fonts,.lk-hint{display:none}.lk-bar{gap:8px}}
+@container (max-width:420px){.lk-ok{font-size:0;gap:0}}
 /* the dock floats over the stage's foot; while the strip shows it rides above it */
 html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .mk-screen[data-unb] .mk-av-b,.mk-screen[data-unb] .mk-igr-av{background:#8A8F98 none!important}
@@ -8655,6 +8697,9 @@ class CampaignStudio extends StudioBase {
     this.upd(x => { x.look = Object.assign({}, CampaignStudio.LOOK_DEF, x.look || {}, typeof patch === 'function' ? patch(Object.assign({}, CampaignStudio.LOOK_DEF, x.look || {})) : patch); return x; });
   }
   lookToggle(on) {
+    // pressing Unbranded again while it is on brings folded controls back
+    const S = this._lookStrip;
+    if (on && this.state.look && this.state.look.on && S && !S.open) { S.open = true; try { localStorage.setItem(CampaignStudio.LOOK_OPEN_KEY, '1'); } catch (e) {} S.sync(); this.lookMount(); return; }
     const first = !(this.state.look && this.state.look.seeded);
     this.lookSet({ on: !!on, seeded: true });
     if (on && first) this.lookFromPhoto(true);
@@ -8688,35 +8733,66 @@ class CampaignStudio extends StudioBase {
   }
   // Plain DOM in an EMPTY host, so React never reconciles what it draws; sync() reads the
   // state on every shell update and leaves a control alone while it has the focus.
+  // THE UNBRANDED STRIP. A head bar that is always there while the look is on — a summary of
+  // the look (its five colours, its two fonts, whether the copy reads) and one button that
+  // folds the controls away once the design is set — and under it four cards: Colour, Type,
+  // Shape, Saved looks. Folded or open is per COMPUTER (`adstudio-look-open`), not per project:
+  // it is how you like to work, not part of the design.
+  static LOOK_OPEN_KEY = 'adstudio-look-open';
   static LookStrip = class {
     constructor(eng, host) {
       this.eng = eng; this.host = host; this.q = '';
       const C = CampaignStudio;
-      const lock = '<svg class="lk-lock" viewBox="0 -960 960 960" aria-hidden="true"><path class="lk-lk1" d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm60-560h360v-80q0-75-52.5-127.5T480-860q-75 0-127.5 52.5T300-720v80Z"/><path class="lk-lk0" d="M240-640h360v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85h-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640Z"/></svg>';
-      const rng = (k, lab, min, max) => '<div class="lk-rng"><label for="lk-' + k + '">' + lab + '</label><output data-o="' + k + '"></output><input type="range" id="lk-' + k + '" data-k="' + k + '" min="' + min + '" max="' + max + '" step="1"></div>';
+      const ico = d => '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="' + d + '"/></svg>';
+      const LOCK1 = 'M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm60-560h360v-80q0-75-52.5-127.5T480-860q-75 0-127.5 52.5T300-720v80Z';
+      const CHEV = 'M480-371.69q-7.23 0-13.46-2.31t-11.85-7.92L274.92-561.69q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-440.92l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-381.92q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31Z';
+      const PHOTO = 'M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31ZM270-290h420q9.31 0 13.65-8.46 4.35-8.46-1.27-16.08L586.23-470.77q-4.61-6-11.85-6-7.23 0-11.84 6L450-325.38 371.92-427.3q-4.62-6-11.85-6-7.22 0-11.84 6l-86.08 112.76q-5.61 7.62-1.27 16.08Q265.23-290 270-290Z';
+      const DICE = 'M300-240q25 0 42.5-17.5T360-300q0-25-17.5-42.5T300-360q-25 0-42.5 17.5T240-300q0 25 17.5 42.5T300-240Zm0-360q25 0 42.5-17.5T360-660q0-25-17.5-42.5T300-720q-25 0-42.5 17.5T240-660q0 25 17.5 42.5T300-600Zm180 180q25 0 42.5-17.5T540-480q0-25-17.5-42.5T480-540q-25 0-42.5 17.5T420-480q0 25 17.5 42.5T480-420Zm180 180q25 0 42.5-17.5T720-300q0-25-17.5-42.5T660-360q-25 0-42.5 17.5T600-300q0 25 17.5 42.5T660-240Zm0-360q25 0 42.5-17.5T720-660q0-25-17.5-42.5T660-720q-25 0-42.5 17.5T600-660q0 25 17.5 42.5T660-600ZM212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Z';
+      const ROLE_TIP = ['Headline, body and labels', 'Highlights: the eyebrow, figures, rules and bullets', 'The button’s fill', 'Chip and tag outlines', 'The wash behind the copy'];
+      const rng = (k, lab, min, max, tip) => '<div class="lk-rng" title="' + tip + '"><label for="lk-' + k + '">' + lab + '</label><output data-o="' + k + '"></output><input type="range" id="lk-' + k + '" data-k="' + k + '" min="' + min + '" max="' + max + '" step="1"></div>';
+      const font = (f, lab) => '<label class="lk-f" data-ff="' + f + '"><span>' + lab + '</span><select class="p-in" data-f="' + f + '"></select><i class="lk-spec" data-spec="' + f + '"></i></label>';
       host.innerHTML =
         '<div class="lk-strip" role="region" aria-label="Unbranded look">' +
-        '<section class="lk-col"><div class="lk-hd"><h3>Palette</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d">Light on dark</button><button data-tone="l">Dark on light</button></div></div>' +
-        '<div class="lk-sws">' + C.ROLES.map((r, i) => '<button class="lk-sw" data-i="' + i + '" title="Click to lock, double-click to type a colour">' + lock + '<b>' + r + '</b><span></span><input type="color" tabindex="-1" aria-hidden="true"></button>').join('') + '</div>' +
-        '<div class="lk-row"><button class="p-ghost p-sm" data-act="photo">From photo</button><button class="p-ghost p-sm" data-act="gen">Generate</button><span class="lk-note"></span></div>' +
-        '<div class="lk-ck"></div></section>' +
-        '<section class="lk-col"><div class="lk-hd"><h3>Type</h3></div>' +
-        '<input class="p-in lk-q" placeholder="Search all Google Fonts" aria-label="Search all Google Fonts" spellcheck="false">' +
-        '<label class="lk-f"><span>Headline</span><select class="p-in" data-f="H"></select></label>' +
-        '<label class="lk-f"><span>Body, labels and buttons</span><select class="p-in" data-f="B"></select></label>' +
-        '<label class="lk-f"><span>Arabic</span><select class="p-in" data-f="A"></select></label>' +
-        rng('trk', 'Eyebrow tracking', 0, 30) + '</section>' +
-        '<section class="lk-col"><div class="lk-hd"><h3>Shape</h3></div>' +
-        rng('rad', 'Corners', 0, C.RAD_PILL) + rng('blur', 'Glass blur', 0, 40) + rng('gop', 'Glass opacity', 0, 60) +
-        '<div class="lk-hd lk-hd2"><h3>Saved looks</h3><button class="p-ghost p-sm" data-act="save">Save look</button></div>' +
-        '<div class="lk-looks"></div></section></div>';
+        '<div class="lk-bar">' +
+          '<button class="lk-tog" aria-expanded="true" aria-controls="lk-body"><span class="lk-chev">' + ico(CHEV) + '</span><b>Unbranded look</b></button>' +
+          '<span class="lk-sum"><i class="lk-mini"></i><span class="lk-fonts"></span><span class="lk-ok"></span></span>' +
+          '<button class="p-ghost p-sm lk-tog2">Hide controls</button>' +
+        '</div>' +
+        '<div class="lk-body" id="lk-body">' +
+          '<section class="lk-card lk-c-col"><div class="lk-hd"><h3>Colour</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d" title="Light copy on a dark wash">Light on dark</button><button data-tone="l" title="Dark copy on a light wash">Dark on light</button></div></div>' +
+            '<div class="lk-sws">' + C.ROLES.map((r, i) => '<div class="lk-sw" data-i="' + i + '" title="' + ROLE_TIP[i] + ' · click to pick a colour"><input type="color" aria-label="' + r + ' colour"><b>' + r + '</b><span></span><button class="lk-lk" data-lk="' + i + '" aria-pressed="false"><svg viewBox="0 -960 960 960" aria-hidden="true"><path class="lk-l1" d="' + LOCK1 + '"/><path class="lk-l0" d="M240-640h360v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85h-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640Z"/></svg></button></div>').join('') + '</div>' +
+            '<div class="lk-row"><button class="p-ghost p-sm" data-act="photo" title="Read the palette from the background photo, keeping locked colours">' + ico(PHOTO) + 'From photo</button><button class="p-ghost p-sm" data-act="gen" title="A new random palette, keeping locked colours">' + ico(DICE) + 'Shuffle</button><span class="lk-hint">Lock a colour to keep it.</span></div>' +
+            '<div class="lk-note" role="status"></div>' +
+            '<div class="lk-ck"></div>' +
+          '</section>' +
+          '<section class="lk-card lk-c-type"><div class="lk-hd"><h3>Type</h3><input class="p-in lk-q" placeholder="Filter all Google Fonts" aria-label="Filter all Google Fonts" spellcheck="false"></div>' +
+            '<div class="lk-fs">' + font('H', 'Headline') + font('B', 'Body, labels and buttons') + font('A', 'Arabic') + '</div>' +
+          '</section>' +
+          '<section class="lk-card lk-c-shape"><div class="lk-hd"><h3>Shape</h3></div>' +
+            rng('rad', 'Corners', 0, C.RAD_PILL, 'Square to pill, on every box, chip and button') +
+            rng('blur', 'Glass blur', 0, 40, 'How much a glass panel blurs the photo behind it') +
+            rng('gop', 'Glass opacity', 0, 60, 'How much of the panel’s colour covers the photo') +
+            rng('trk', 'Eyebrow tracking', 0, 30, 'Letter-spacing on the all-caps eyebrow') +
+          '</section>' +
+          '<section class="lk-card lk-c-saved"><div class="lk-hd"><h3>Saved looks</h3><button class="p-ghost p-sm" data-act="save" title="Keep this look on this computer to use on other projects">Save look</button></div>' +
+            '<div class="lk-looks"></div>' +
+          '</section>' +
+        '</div></div>';
       const $ = sel => host.querySelector(sel);
+      this.open = (() => { try { return localStorage.getItem(C.LOOK_OPEN_KEY) !== '0'; } catch (e) { return true; } })();
+      const fold = () => { this.open = !this.open; try { localStorage.setItem(C.LOOK_OPEN_KEY, this.open ? '1' : '0'); } catch (e) {} this.sync(); eng.lookMount(); };
+      $('.lk-tog').onclick = fold; $('.lk-tog2').onclick = fold;
       host.querySelectorAll('[data-tone]').forEach(b => b.onclick = () => this.tone(b.getAttribute('data-tone')));
       host.querySelectorAll('.lk-sw').forEach(b => {
         const i = +b.getAttribute('data-i'), inp = b.querySelector('input');
-        b.onclick = e => { if (e.detail > 1) return; eng.lookSet(L => { const lk = L.lock.slice(); lk[i] = lk[i] ? 0 : 1; return { lock: lk }; }); };
-        b.ondblclick = () => { inp.value = (this.L().pal[i] || '#000000').toLowerCase(); inp.click(); };
+        inp.onclick = () => { inp.value = (this.L().pal[i] || '#000000').toLowerCase(); };
+        // a colour typed or picked is the user's: it locks, so From photo and Shuffle leave it alone
         inp.oninput = () => eng.lookSet(L => { const p = L.pal.slice(), lk = L.lock.slice(); p[i] = inp.value.toUpperCase(); lk[i] = 1; return { pal: p, lock: lk }; });
+      });
+      host.querySelectorAll('[data-lk]').forEach(b => b.onclick = e => {
+        e.stopPropagation();
+        const i = +b.getAttribute('data-lk');
+        eng.lookSet(L => { const lk = L.lock.slice(); lk[i] = lk[i] ? 0 : 1; return { lock: lk }; });
       });
       $('[data-act="photo"]').onclick = () => eng.lookFromPhoto();
       $('[data-act="gen"]').onclick = () => eng.lookSet(L => { const p = C.lookGen(L.tone); return { pal: L.pal.map((c, i) => L.lock[i] ? c : p[i]) }; });
@@ -8765,19 +8841,36 @@ class CampaignStudio extends StudioBase {
         if (document.activeElement === sl) return;
         sl.innerHTML = this.opts(list, L['f' + f], L['w' + f], ar);
       });
+      // a specimen under each pick, set in the face itself, so a font is chosen by how it LOOKS
+      const spec = { H: ['Your headline here', L.wH, 'hd'], B: ['Body copy, labels and BUTTONS', L.wB], A: ['عنوان الإعلان', L.wA] };
+      Object.keys(spec).forEach(f => {
+        const el = h.querySelector('[data-spec="' + f + '"]'), fam = L['f' + f], ws = C.lookWeights(spec[f][1]);
+        const w = f === 'H' ? (ws.indexOf(4) >= 0 ? 400 : ws[0] * 100) : (ws.indexOf(4) >= 0 ? 400 : ws[0] * 100);
+        el.textContent = spec[f][0];
+        el.style.fontFamily = '"' + fam + '", system-ui, sans-serif';
+        el.style.fontWeight = w;
+        if (f === 'A') el.setAttribute('dir', 'rtl');
+        C.fontLoad(fam, spec[f][1]);
+      });
     }
     sync(force) {
       const C = CampaignStudio, s = this.eng.state, L = this.L(), h = this.host;
       const on = !!(s.look && s.look.on);
       if (!on) return;
-      h.querySelectorAll('[data-tone]').forEach(b => b.setAttribute('data-on', b.getAttribute('data-tone') === L.tone ? '1' : ''));
-      h.querySelectorAll('[data-tone]').forEach(b => { if (!b.getAttribute('data-on')) b.removeAttribute('data-on'); });
+      const strip = h.querySelector('.lk-strip');
+      strip.setAttribute('data-open', this.open ? '1' : '0');
+      h.querySelector('.lk-tog').setAttribute('aria-expanded', this.open ? 'true' : 'false');
+      h.querySelector('.lk-tog2').textContent = this.open ? 'Hide controls' : 'Edit look';
+      h.querySelectorAll('[data-tone]').forEach(b => { if (b.getAttribute('data-tone') === L.tone) b.setAttribute('data-on', '1'); else b.removeAttribute('data-on'); });
       h.querySelectorAll('.lk-sw').forEach(b => {
-        const i = +b.getAttribute('data-i'), c = L.pal[i] || '#000000';
-        b.style.background = c; b.style.color = C.onInk(c);
-        b.querySelector('span').textContent = c;
+        const i = +b.getAttribute('data-i'), c = L.pal[i] || '#000000', ink = C.onInk(c);
+        b.style.background = c; b.style.color = ink;
+        b.querySelector('span').textContent = c.slice(1); // the # earns no room on a narrow swatch
         b.setAttribute('data-locked', L.lock[i] ? '1' : '0');
-        b.setAttribute('aria-label', C.ROLES[i] + ' ' + c + (L.lock[i] ? ', locked' : ''));
+        const lk = b.querySelector('[data-lk]');
+        lk.setAttribute('aria-pressed', L.lock[i] ? 'true' : 'false');
+        lk.setAttribute('aria-label', (L.lock[i] ? 'Unlock ' : 'Lock ') + C.ROLES[i]);
+        lk.title = L.lock[i] ? 'Locked: From photo and Shuffle keep it' : 'Lock it so From photo and Shuffle keep it';
       });
       h.querySelectorAll('input[type=range][data-k]').forEach(r => {
         const k = r.getAttribute('data-k');
@@ -8785,16 +8878,30 @@ class CampaignStudio extends StudioBase {
         const v = +r.value, o = h.querySelector('[data-o="' + k + '"]');
         o.textContent = k === 'rad' ? (v >= C.RAD_PILL ? 'Pill' : v + 'px') : k === 'trk' ? (v / 100).toFixed(2) + 'em' : k === 'gop' ? v + '%' : v + 'px';
       });
-      h.querySelector('.lk-note').textContent = this.eng._lookNote || '';
+      const note = h.querySelector('.lk-note'), nt = this.eng._lookNote || '';
+      if (note.textContent !== nt) note.textContent = nt;
       // contrast: the copy reads on the scrim as it sits over the photo, at the scrim's own strength
       const v = s.variants[s.activeVi || 0] || {}, a = Math.max(0, Math.min(100, v.scrimH == null ? 65 : v.scrimH)) / 100;
       const ground = C.hexA(C.mixA(C.rgbA(C._lookAvg || L.pal[4]), C.rgbA(L.pal[4]), a));
-      const rows = [['Headline on scrim', C.contrast(L.pal[0], ground), 4.5], ['Accent on scrim', C.contrast(L.pal[1], ground), 3],
-        ['Button label', C.contrast(C.onInk(L.pal[2]), L.pal[2]), 4.5]];
-      const ck = rows.map(r => '<div class="lk-c" data-ok="' + (r[1] >= r[2] ? '1' : '0') + '"><span>' + r[0] + '</span><b>' + r[1].toFixed(1) + ':1 ' + (r[1] >= r[2] ? 'reads' : 'too faint') + '</b></div>').join('');
+      const rows = [['Copy', 'Text on the scrim', C.contrast(L.pal[0], ground), 4.5], ['Accent', 'Accent on the scrim', C.contrast(L.pal[1], ground), 3],
+        ['Button', 'Button label on its fill', C.contrast(C.onInk(L.pal[2]), L.pal[2]), 4.5]];
+      const bad = rows.filter(r => r[2] < r[3]);
+      const ck = '<span class="lk-ckl">Readability</span>' + rows.map(r => '<span class="lk-c" data-ok="' + (r[2] >= r[3] ? '1' : '0') + '" title="' + r[1] + ': ' + r[2].toFixed(1) + ':1, needs ' + r[3] + ':1">' + (r[2] >= r[3] ? '✓ ' : '! ') + r[0] + ' <b>' + r[2].toFixed(1) + '</b></span>').join('');
       if (ck !== this._ck) { h.querySelector('.lk-ck').innerHTML = ck; this._ck = ck; }
+      // the head bar's summary: the five colours, the two fonts, one word on readability
+      const mini = L.pal.map((c, i) => '<u style="background:' + c + '" title="' + C.ROLES[i] + ' ' + c + '"></u>').join('');
+      const sum = mini + '|' + L.fH + '|' + L.fB + '|' + bad.length;
+      if (sum !== this._sum) {
+        this._sum = sum;
+        h.querySelector('.lk-mini').innerHTML = mini;
+        h.querySelector('.lk-fonts').textContent = L.fH + ' · ' + L.fB;
+        const ok = h.querySelector('.lk-ok');
+        ok.setAttribute('data-ok', bad.length ? '0' : '1');
+        ok.textContent = bad.length ? (bad.length === 1 ? bad[0][0] + ' is too faint' : bad.length + ' colours too faint') : 'All copy reads';
+        ok.title = bad.length ? 'Open the controls to see which colour to change' : 'Every role clears its contrast check';
+      }
       const looks = C.savedLooks();
-      const lk = looks.map((o, i) => '<span class="lk-look"><button data-li="' + i + '" title="Apply ' + o.n.replace(/"/g, '') + '"><i>' + (o.pal || []).map(c => '<u style="background:' + c + '"></u>').join('') + '</i>' + o.n.replace(/</g, '') + '</button><button class="lk-x" data-ld="' + i + '" aria-label="Delete ' + o.n.replace(/"/g, '') + '">×</button></span>').join('') || '<span class="lk-none">Save a look to use it on another project.</span>';
+      const lk = looks.map((o, i) => '<span class="lk-look"><button data-li="' + i + '" title="Apply ' + o.n.replace(/"/g, '') + '"><i>' + (o.pal || []).map(c => '<u style="background:' + c + '"></u>').join('') + '</i><span>' + o.n.replace(/</g, '') + '</span></button><button class="lk-x" data-ld="' + i + '" aria-label="Delete ' + o.n.replace(/"/g, '') + '" title="Delete this look">×</button></span>').join('') || '<span class="lk-none">Save a look to reuse its colours, fonts and shape on another project.</span>';
       if (force || lk !== this._lk) {
         this._lk = lk;
         const box = h.querySelector('.lk-looks');

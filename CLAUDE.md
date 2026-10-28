@@ -17082,6 +17082,14 @@ Provident resolves to the same face.
   Palette from the photo: k-means on a 60x80 sample of `adstudio-bg-<vi>`, roles by `lookAssign`,
   accent stepped until 4.5:1 on the scrim as it sits over the photo. Saved looks:
   `localStorage['adstudio-looks']`. The dock rides above the strip (`html.lk-on`, `--lk-h`).
+- **The strip folds to a head bar (2026-10-28, by request: "hide it when the design is set")**:
+  `.lk-bar` (the five colours, the two fonts, a readability word) is always there while the look
+  is on; `.lk-body` holds four cards (Colour, Type, Shape, Saved looks). Folded/open is per
+  COMPUTER, `localStorage['adstudio-look-open']`, never in the project. `lookToggle(true)` while
+  already on reopens a folded strip. A swatch's whole face is a transparent `input[type=color]`
+  (a pick locks it); the lock is its own button. Each font pick shows a specimen in its face
+  (`fontLoad` per pick). **Layout answers the strip's own width** (`container-type:inline-size`,
+  1/2/4 cards at <620/620/1180px), because it lives in the stage column, not the window.
 - The placement preview shows "Sponsored page" with a grey avatar (`mockCopyOf`, `data-unb`).
 - **Not done:** the Layout rail's Background dark/light still shows (it does nothing while the
   look is on); the copy-coverage chip and Ad sets' Details analysis do not know about the look.
