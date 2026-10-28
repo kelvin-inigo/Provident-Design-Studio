@@ -17010,3 +17010,29 @@ stubbed `Notification`: the designer's tab got "approved the English copy" and "
 copy check" from the content team's tab; the content team's tab got the designer's reopen;
 previews redrawn ~2s after each save. The real Chrome permission prompt and a truly hidden tab
 were not exercised (the pane reports every tab visible).
+
+# THE AD SET REVIEW PANEL AND PM'S DETAILS WINDOW, REFINED (2026-10-28)
+
+By request ("too much text, show hierarchy, explain in tooltips"). share-link.js, one CSS block at
+the end of its sheet ("REVIEW PANEL AND DETAILS WINDOW, REFINED").
+- **The panel's title is the ad set's name**; its sub-line is role · product · project count
+  (`RV.panelRender`), or "This project · Local · Family · ENG" in the designer's own project
+  (`SP.rvRender`). The duplicate kicker + name + pill block is gone.
+- **Where it stands is ONE block, `nowHtml(steps, done, info)`**: "Step 2 of 4", the step at
+  20/500, an `i` (`infoHtml`) carrying the old explanation paragraph, and four segments
+  (`segHtml`) whose tooltips name each step and its detail. No vertical stepper with sub-lines.
+- **Audiences**: a dim "Audiences n" heading, each row name + current step + segments, the
+  detail ("With the content team") as the row's tooltip. Hidden for a content-team link whose one
+  audience has one project — the On screen card already says it.
+- **The foot**: one full-width **Copy link** (the URL is its tooltip; the input is hidden, still
+  what Copy reads), then initials + name with the email as a tooltip and a quiet "Not you?", and
+  a one-word state (Saved / Saving… / View only).
+- **PM's See details window**: name as the title, "Residential · Created … by Kelvin" under it,
+  the pill by the close button. The overall step block only with 2+ audiences. Each audience
+  card: name, its current detail in one line, Download when done, and a BARE stepper
+  (`stepperHtml(steps, false, true)`: labels only, each step's detail in its tooltip).
+- Verified on the local share server with three projects (Local Family ENG + ARB, Local
+  Investor): contrast 0 failures over the panel (dark) and the window and PM bar (light).
+  Testing note: the Browser pane rewrites a 16-char token in a URL it navigates to, so open a
+  review link by calling `eng.shareOpenLink(tok)`, and set `localStorage['provident-share-base']`
+  to the local origin first or the studio talks to the public site.

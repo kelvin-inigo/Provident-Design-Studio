@@ -1618,10 +1618,21 @@
     return { steps, ready, done: cnt(3), n, at: ready ? Math.max(...auds.map(a => a.at)) : 0 };
   }
   // A row of steps, each centred over its own label (compact: a vertical list for the panel).
-  function stepperHtml(steps, compact) {
+  function stepperHtml(steps, compact, bare) {
     const tick = '<svg viewBox="0 -960 960 960"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
-    return '<ol class="rv-st' + (compact ? ' rv-st-c' : '') + '" style="--n:' + steps.length + '" aria-label="Review progress">' + steps.map(x =>
-      '<li data-s="' + x.s + '"><i class="rv-dot">' + (x.s === 'done' ? tick : '') + '</i><b>' + esc(x.label) + '</b><s>' + esc(x.sub || '') + '</s></li>').join('') + '</ol>';
+    return '<ol class="rv-st' + (compact ? ' rv-st-c' : '') + (bare ? ' rv-st-b' : '') + '" style="--n:' + steps.length + '" aria-label="Review progress">' + steps.map(x =>
+      '<li data-s="' + x.s + '"' + (bare && x.sub ? ' title="' + esc(x.label + ' — ' + x.sub) + '"' : '') + '><i class="rv-dot">' + (x.s === 'done' ? tick : '') + '</i><b>' + esc(x.label) + '</b>' + (bare ? '' : '<s>' + esc(x.sub || '') + '</s>') + '</li>').join('') + '</ol>';
+  }
+  // an "i" that carries the explanation a surface would otherwise print
+  const infoHtml = t => t ? '<span class="rv-i" tabindex="0" role="img" title="' + esc(t) + '" aria-label="' + esc(t) + '">i</span>' : '';
+  // four short segments, one per step; each says what it is in its tooltip
+  const segHtml = steps => '<span class="rv-seg" role="img" aria-label="' + esc(steps.map(x => x.label + ': ' + (x.s === 'done' ? 'done' : x.s === 'cur' ? 'now' : 'not yet')).join(', ')) + '">' +
+    steps.map(x => '<i data-s="' + x.s + '" title="' + esc(x.label + (x.sub ? ' — ' + x.sub : '')) + '"></i>').join('') + '</span>';
+  // where a review is now, as one line you can read at a glance: step n of 4, its name, the bar
+  function nowHtml(steps, done, info) {
+    const i = done ? steps.length - 1 : Math.max(0, steps.findIndex(x => x.s !== 'done'));
+    return '<div class="rv-now" data-s="' + (done ? 'done' : 'prog') + '"><span class="rv-k">' + (done ? 'Ready to run' : 'Step ' + (i + 1) + ' of ' + steps.length) + '</span>' +
+      '<div class="rv-now-t"><b>' + esc(done ? 'Done' : steps[i].label) + '</b>' + infoHtml(info) + '</div>' + segHtml(steps) + '</div>';
   }
   const pillHtml = (ready, label) => '<span class="rv-pill" data-s="' + (ready ? 'ready' : 'prog') + '">' + esc(label || (ready ? 'Package ready' : 'In progress')) + '</span>';
   const LINK_ROWS = [
@@ -1801,18 +1812,18 @@
   SP.rvRender = function () {
     const S = this._sh; if (!S || !S.ui) return;
     const sec = S.ui.root.querySelector('.rv');
-    S.ui.root.querySelector('.shl-panel h2').textContent = S.rs ? 'Ad set review' : 'Changes';
+    S.ui.root.querySelector('.shl-panel h2').textContent = S.rs ? (S.rs.name || 'Ad set') : 'Changes';
     if (!S.rs) { sec.hidden = true; return; }
     sec.hidden = false;
     const rs = S.rs, it = this.rsItem(), auds = rsAuds(rs), all = rsOverall(auds);
     const mine = it ? auds.find(a => a.items.indexOf(it) >= 0) : null;
-    const main = '<div class="rv-h"><div><span class="rv-k">' + esc(rs.name || 'Ad set') + '</span><b>' + esc(it ? itemLabel(it) : 'This project') + '</b></div>' + pillHtml(mine && mine.done, mine && mine.done ? 'Done' : mine && mine.now ? mine.now.label : '') + '</div>' +
-      (mine ? stepperHtml(mine.steps, true) : '') +
+    S.ui.root.querySelector('.shl-sub').textContent = 'This project · ' + (it ? itemLabel(it) : 'not in the ad set');
+    const main = (mine ? nowHtml(mine.steps, mine.done, mine.done ? '' : mine.now ? mine.now.sub : '') : '') +
       (it ? '<div class="rv-acts">' + itemActs(it, 'dd', this._rvBusy) + '</div>' : '') +
-      '<p class="rv-lead">' + (all.ready ? 'Every audience is done — the package is ready for performance marketing.' : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' done in this ad set.') +
-      ' <a href="' + esc(rsLink((rs.tok || {}).dd || '')) + '" target="_blank" rel="noopener">Open the ad set</a></p>' +
+      '<p class="rv-sum"><span title="' + esc(all.ready ? 'Every audience is done — the package is ready for performance marketing.' : 'Audiences in this ad set that have finished every step') + '">' + (all.ready ? 'Package ready' : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' done') + '</span>' +
+      '<a href="' + esc(rsLink((rs.tok || {}).dd || '')) + '" target="_blank" rel="noopener">Open the ad set</a></p>' +
       (rs.tok ? planTodoHtml(rs, this._rsNextBusy) : '') +
-      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1">Notify me in this browser when a step changes</button>' : '');
+      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1" title="A Chrome notification when a step changes">Notify me of changes</button>' : '');
     const m = sec.querySelector('.rv-main');
     if (m._h !== main) { m._h = main; m.innerHTML = main; }
     const dd = sec.querySelector('.rv-dd');
@@ -2291,23 +2302,26 @@
   // the panel's review section: the whole ad set, the audience on screen, every audience below
   RV.panelRender = function (force) {
     const sec = this.ui.root.querySelector('.rv');
-    this.ui.root.querySelector('.shl-panel h2').textContent = 'Ad set review';
     sec.hidden = false;
     const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), role = this.role, busy = this.stepBusy, cur = this.selItem();
-    const audRow = a => '<li class="rs-a' + (cur && a.items.indexOf(cur) >= 0 ? ' rs-on' : '') + '"><div class="rs-ah"><b>' + esc(a.label) + '</b>' + pillHtml(a.done, a.done ? 'Done' : a.now ? a.now.label : '') + '</div>' +
-      '<span class="rs-mini">' + a.steps.map(x => '<i data-s="' + x.s + '" title="' + esc(x.label + ' — ' + x.sub) + '"></i>').join('') + '<s>' + esc(a.done ? 'Ready to run' : a.now ? a.now.sub : '') + '</s></span>' +
-      (role !== 'pm' ? '<div class="rs-its">' + a.items.map(it => '<div class="rs-it"><span>' + esc(it.lang || 'ENG') + '</span>' + itemActs(it, role, busy) +
-        (role === 'dd' ? '<a class="p-ghost" href="' + esc(rsLink(it.sid)) + '" target="_blank" rel="noopener">Open</a>' : '') + '</div>').join('') +
-        (role === 'dd' && !a.arb ? '<label class="rs-eo"><input type="checkbox" data-eo="' + esc(a.market + '|' + a.aud) + '"' + (a.engOnly ? ' checked' : '') + '> No Arabic for this audience</label>' : '') + '</div>' : '') + '</li>';
+    const np = (rs.items || []).length;
+    this.ui.root.querySelector('.shl-panel h2').textContent = rs.name || 'Ad set';
+    this.ui.root.querySelector('.shl-sub').textContent = [ROLE_NAME[role], PRODUCT_NAME[rs.product], np + (np === 1 ? ' project' : ' projects')].filter(Boolean).join(' · ');
     const lead = role === 'ct' ? 'Pick a project on the left, change its words, then approve it here. The English copy comes first; the Arabic version is checked once the designer has laid it out.'
       : role === 'pm' ? 'Each audience can be downloaded from the bar above as soon as it is done.'
         : 'Open a project to design it. Add each other audience and language from its own project: Share › Ad set review › Add to an ad set.';
-    const html = '<div class="rv-h"><div><span class="rv-k">' + esc(ROLE_NAME[role] || '') + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || rs.product) : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b></div>' + pillHtml(all.ready) + '</div>' +
-      stepperHtml(all.steps, true) + '<p class="rv-lead">' + esc(lead) + '</p>' +
-      (cur && role === 'ct' ? '<div class="rs-cur"><span class="rv-k">On screen</span><b>' + esc(itemLabel(cur)) + '</b><div class="rv-acts">' + itemActs(cur, role, busy) + '</div>' +
-        (cur.lang === 'ARB' && !cur.design ? '<p class="rv-lead">The designer is still laying out the Arabic. You can edit it; approve it once it is marked laid out.</p>' : '') + '</div>' : '') +
-      '<ul class="rs-auds">' + (auds.length ? auds.map(audRow).join('') : '<li class="shl-empty">No projects yet.</li>') + '</ul>' +
-      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1">Notify me in this browser when a step changes</button>' : '');
+    // one audience whose only project is the one on screen: the card already says it all
+    const solo = role === 'ct' && cur && auds.length === 1 && auds[0].items.length === 1;
+    const audRow = a => '<li class="rs-a' + (cur && a.items.indexOf(cur) >= 0 ? ' rs-on' : '') + '"><div class="rs-ah" title="' + esc(a.done ? 'Ready to run' : a.now ? a.now.sub : '') + '"><b>' + esc(a.label) + '</b>' +
+      '<span class="rs-st" data-s="' + (a.done ? 'done' : 'prog') + '">' + esc(a.done ? 'Done' : a.now ? a.now.label : '') + '</span></div>' + segHtml(a.steps) +
+      (role !== 'pm' ? '<div class="rs-its">' + a.items.map(it => '<div class="rs-it"><span>' + esc(it.lang || 'ENG') + '</span>' + itemActs(it, role, busy) +
+        (role === 'dd' ? '<a class="p-ghost" href="' + esc(rsLink(it.sid)) + '" target="_blank" rel="noopener">Open</a>' : '') + '</div>').join('') +
+        (role === 'dd' && !a.arb ? '<label class="rs-eo"><input type="checkbox" data-eo="' + esc(a.market + '|' + a.aud) + '"' + (a.engOnly ? ' checked' : '') + '> No Arabic for this audience</label>' : '') + '</div>' : '') + '</li>';
+    const curNote = cur && cur.lang === 'ARB' && !cur.design ? 'The designer is still laying out the Arabic. You can edit it; approve it once it is marked laid out.' : '';
+    const html = nowHtml(all.steps, all.ready, lead + (auds.length > 1 ? ' ' + all.done + ' of ' + all.n + ' audiences done.' : '')) +
+      (cur && role === 'ct' ? '<div class="rs-cur"><span class="rv-k">On screen</span><div class="rs-cur-t"><b>' + esc(itemLabel(cur)) + '</b>' + infoHtml(curNote) + '</div><div class="rv-acts">' + itemActs(cur, role, busy) + '</div></div>' : '') +
+      (solo ? '' : '<div class="rs-sec"><h3 class="rs-h">Audiences <s>' + auds.length + '</s></h3><ul class="rs-auds">' + (auds.length ? auds.map(audRow).join('') : '<li class="shl-empty">No projects yet.</li>') + '</ul></div>') +
+      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1" title="A Chrome notification when a step changes">Notify me of changes</button>' : '');
     const m = sec.querySelector('.rv-main');
     if (force || m._h !== html) { m._h = html; m.innerHTML = html; }
     const dd = sec.querySelector('.rv-dd');
@@ -2390,14 +2404,15 @@
     if (html !== this._barH) { this._barH = html; el.innerHTML = html; document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px'); }
     // the details window: everything the bar leaves out
     const dlg = this.dlg; if (!dlg) return;
-    const det = '<header class="rvh-dh"><div><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><h2>' + esc(rs.name || 'Ad set') + '</h2></div>' +
-      '<button type="button" class="p-ghost rvh-x" data-x="1" aria-label="Close">×</button></header>' +
-      '<div class="rvh-db"><div class="rvh-dm">' + pillHtml(all.ready) + '<span>Created ' + esc(day(rs.created)) + (rs.by ? ' by ' + esc(rs.by) : '') + '</span><span>' +
-      (all.ready ? 'Ready ' + esc(day(all.at)) : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' done') + '</span></div>' +
-      '<section><h3>Progress</h3>' + stepperHtml(all.steps) + '</section>' +
-      '<section><h3>Audiences <s>' + auds.length + '</s></h3>' + (auds.length ? '<ul class="rvh-al">' + auds.map(a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><div class="rvh-ah"><b>' + esc(a.label) + '</b>' +
-        (a.done ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a.key ? 'Zipping…' : 'Download') + '</button>' : '<span class="rvh-now">' + esc(a.now ? a.now.label : '') + '</span>') + '</div>' +
-        stepperHtml(a.steps) + '</li>').join('') + '</ul>' : '<p class="rvh-none">No audiences yet.</p>') + '</section></div>' +
+    const meta = [PRODUCT_NAME[rs.product], 'Created ' + day(rs.created) + (rs.by ? ' by ' + String(rs.by).split(' ')[0] : '')].filter(Boolean).join(' · ');
+    const audCard = a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><div class="rvh-ah"><div><b>' + esc(a.label) + '</b><s>' + esc(a.done ? 'Ready to run' : a.now ? a.now.sub : '') + '</s></div>' +
+      (a.done ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a.key ? 'Zipping…' : 'Download') + '</button>' : '') + '</div>' +
+      stepperHtml(a.steps, false, true) + '</li>';
+    const det = '<header class="rvh-dh"><div><h2>' + esc(rs.name || 'Ad set') + '</h2><p class="rvh-sub">' + esc(meta) + '</p></div>' +
+      '<div class="rvh-dhr">' + pillHtml(all.ready) + '<button type="button" class="p-ghost rvh-x" data-x="1" aria-label="Close">×</button></div></header>' +
+      '<div class="rvh-db">' +
+      (auds.length > 1 ? '<section class="rvh-ov">' + nowHtml(all.steps, all.ready, all.done + ' of ' + all.n + ' audiences done' + (all.ready ? ' · ready ' + day(all.at) : '')) + '</section>' : '') +
+      '<section>' + (auds.length > 1 ? '<h3>Audiences <s>' + auds.length + '</s></h3>' : '') + (auds.length ? '<ul class="rvh-al">' + auds.map(audCard).join('') + '</ul>' : '<p class="rvh-none">No audiences yet.</p>') + '</section></div>' +
       '<footer class="rvh-df">' + dlBtn + '</footer>';
     if (det !== this._dlgH) { this._dlgH = det; dlg.innerHTML = det; }
   };
@@ -3368,7 +3383,7 @@
         '<header><div><h2>Changes</h2><p class="shl-sub"></p></div><button class="shl-close" type="button" aria-label="Close">' + svg(ICON.x) + '</button></header>' +
         '<section class="rv" hidden><div class="rv-main"></div><details class="rv-dd" hidden><summary>Ad set links and Drive location</summary><div class="rv-lks"></div>' +
           '<label class="rv-drv"><span>Google Drive location</span><span class="rv-drv-r"><input class="p-in" placeholder="Paste the project’s Drive folder link or path"><button type="button" class="p-ghost" data-drv="1">Save</button></span></label></details></section>' +
-        '<div class="shl-share"><input class="p-in" readonly aria-label="Edit link"><button class="p-ghost" type="button">' + svg(ICON.link) + 'Copy</button></div>' +
+        '<div class="shl-share"><input class="p-in" readonly aria-label="Edit link"><button class="p-ghost" type="button">' + svg(ICON.link) + 'Copy link</button></div>' +
         '<div class="shl-ph" hidden><p></p><button class="p-ghost" type="button">Restore from a saved file…</button></div>' +
         '<p class="shl-me"></p><p class="shl-state" aria-live="polite"></p>' +
         '<ol class="shl-list"></ol>' +
@@ -3411,12 +3426,12 @@
       status(kind, msg) {
         root.dataset.st = kind;
         $('.shl-state').textContent = kind === 'saving' ? (msg || 'Saving your changes…') : kind === 'error' ? (msg || 'Not saved yet')
-          : kind === 'view' ? 'View only — this link shows the latest and cannot change the project' : 'All changes saved to the link';
+          : kind === 'view' ? 'View only' : 'Saved';
         $('.shl-state').className = 'shl-state ' + kind;
       },
       flash(t) { const el = $('.shl-toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3200); },
       set(v) {
-        $('.shl-share input').value = v.link;
+        $('.shl-share input').value = v.link; $('.shl-share button').title = v.link;
         const ph = $('.shl-ph'), pn = Math.max(v.pv || 0, v.gone || 0);
         ph.hidden = !pn;
         if (pn) ph.querySelector('p').innerHTML = '<b>' + pn + ' full-size photo' + (pn > 1 ? 's have' : ' has') + ' expired.</b> '
@@ -3424,8 +3439,9 @@
           + 'Photos are kept 60 days after the link was last opened. Pick the project’s saved .json (in its Source folder) to put them back for everyone.';
         $('.shl-sub').textContent = v.people > 1 ? v.people + ' people have edited' : 'Shared edit link';
         { const w = StudioBase.shareWho();
-          $('.shl-me').innerHTML = (root.dataset.role === 'pm' ? 'Viewing as <b>' : 'Editing as <b>') + esc(v.me || 'Someone') + '</b>'
-            + (w ? ' · ' + esc(w.email) + ' · <button type="button" data-who="1">Not you?</button>' : ' · <button type="button">change</button>'); }
+          const nm = String(v.me || 'Someone'), ini = nm.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
+          $('.shl-me').innerHTML = '<span class="shl-av" aria-hidden="true">' + esc(ini) + '</span><b title="' + esc((root.dataset.role === 'pm' ? 'Viewing as ' : 'Editing as ') + nm + (w ? ' · ' + w.email : '')) + '">' + esc(nm) + '</b>'
+            + (w ? '<button type="button" data-who="1">Not you?</button>' : '<button type="button">Change</button>'); }
         const n = $('.shl-n'); n.hidden = !v.unseen; n.textContent = v.unseen > 9 ? '9+' : String(v.unseen);
         const top = v.log[0];
         const key = top ? top.rev + ':' + top.at + ':' + (top.changes || []).length : '';
@@ -4201,6 +4217,79 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-mod-e{white-space:normal}
 @media (max-width:1100px){.rva-det .rva-lks{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:760px){.rva-prog{padding:18px 16px}.rva-prog .rv-st b{font-size:12px}.rva-det .rva-aus{grid-template-columns:minmax(0,1fr)}.rva-det .rva-au-p{grid-template-columns:minmax(0,1fr)}.rva-tools-r{width:100%;justify-content:flex-start}}
+/* REVIEW PANEL AND DETAILS WINDOW, REFINED (2026-10-28): one thing per tier. The ad set's
+   name is the panel's title; where it stands is ONE line (step n of 4, the step, four
+   segments); explanations live in an "i" or a step's tooltip. No step carries a sub-line. */
+.rv-i{flex:none;display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-dim);font:italic 500 10.5px/1 Georgia,serif;cursor:help}
+.rv-i:hover,.rv-i:focus-visible{color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-ink-2);outline:none}
+.rv-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;width:100%}
+.rv-seg i{height:4px;border-radius:2px;background:var(--ps-line)}
+.rv-seg i[data-s="done"]{background:var(--ps-link)}
+.rv-seg i[data-s="cur"]{background:color-mix(in srgb,var(--ps-link) 40%,var(--ps-line))}
+.rv-now{display:flex;flex-direction:column;gap:6px}
+.rv-now .rv-k{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rv-now-t{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.rv-now-t b{font:500 20px/1.25 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.rv-now[data-s="done"] .rv-now-t b{color:var(--ps-good)}
+.rv-main{gap:20px}
+.rv{gap:16px;padding:4px 16px 20px}
+.rs-cur{gap:10px;padding:14px;border-radius:12px}
+.rs-cur .rv-k{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rs-cur-t{display:flex;align-items:center;gap:8px}
+.rs-cur-t b{font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rs-cur .rv-acts .p-btn{flex:1 1 100%;height:40px}
+.rs-sec{display:flex;flex-direction:column;gap:10px}
+.rs-h{margin:0;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rs-h s{margin-left:4px;text-decoration:none}
+.rs-a{gap:8px;padding:14px 0}
+.rs-ah{cursor:default}
+.rs-ah b{font-size:14px}
+.rs-st{flex:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
+.rs-st[data-s="done"]{color:var(--ps-good)}
+.rs-a .rv-seg{max-width:120px}
+.rs-a.rs-on .rs-ah b{color:var(--ps-ink)}
+.rs-a.rs-on .rs-ah b::before{content:'';display:inline-block;width:6px;height:6px;margin:0 7px 2px 0;border-radius:50%;background:var(--ps-link)}
+.rs-its{gap:8px;margin-top:2px}
+.rs-it>span{width:30px;font:400 11.5px/1 var(--ps-font);color:var(--ps-dim)}
+.rv-sum{margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rv-sum a{color:var(--ps-link);text-decoration:none;font-weight:500}
+.rv-sum a:hover{text-decoration:underline}
+.rv-ntf{font:400 12.5px/1.4 var(--ps-font);text-decoration:none;color:var(--ps-link)}
+.rv-ntf:hover{text-decoration:underline}
+.shl-share{padding:12px 16px 0}
+.shl-share .p-in{display:none}
+.shl-share .p-ghost{flex:1;justify-content:center;height:38px}
+.shl-me{display:flex;align-items:center;gap:8px;margin:12px 16px 0;font-style:normal}
+.shl-me .shl-av{width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--ps-fill);color:var(--ps-ink-2);font:500 10.5px/1 var(--ps-font)}
+.shl-me b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.shl-me button{flex:none;margin-left:auto;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.shl-me button:hover{color:var(--ps-ink);text-decoration:underline}
+.shl-state{margin:2px 16px 12px 48px;font-style:normal}
+/* the details window */
+.rvh-dh{align-items:center;padding:22px 20px 18px 24px;box-shadow:inset 0 -1px 0 var(--ps-hair)}
+.rvh-dh h2{margin:0;font:500 22px/1.25 var(--ps-font)}
+.rvh-sub{margin:4px 0 0;font:400 13px/1.4 var(--ps-font);color:var(--ps-dim)}
+.rvh-dhr{flex:none;display:flex;align-items:center;gap:12px}
+.rvh-db{padding:22px 24px 12px;gap:24px}
+.rvh-ov .rv-now{max-width:420px}
+.rvh-db h3{margin:0 0 12px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvh-al{gap:10px}
+.rvh-al>li{padding:18px 20px 20px;background:var(--ps-fill)}
+.rvh-al>li[data-s="done"]{background:var(--ps-good-q)}
+.rvh-ah{align-items:flex-start;margin-bottom:20px}
+.rvh-ah>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rvh-ah b{font:500 16px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvh-ah s{text-decoration:none;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.rvh-ah .rs-st{padding-top:3px}
+.rv-st-b li{cursor:default}
+.rv-st-b b{font:400 13px/1.3 var(--ps-font)}
+.rv-st-b [data-s="cur"] b{font-weight:500;color:var(--ps-ink)}
+.rv-st-b [data-s="done"] b{color:var(--ps-ink-2)}
+.rv-st-b [data-s="pend"] b{color:var(--ps-dim)}
+.rvh-al .rv-dot{background:var(--ps-fill)}
+.rvh-al>li[data-s="done"] .rv-dot{background:var(--ps-link)}
+.rvh-df{padding:14px 24px 18px}
+@media (max-width:560px){.rvh-dh{flex-wrap:wrap}.rvh-al>li{padding:16px}.rv-st-b b{font-size:11.5px}}
 `;
     document.head.appendChild(s);
   }
