@@ -17085,3 +17085,16 @@ Provident resolves to the same face.
 - The placement preview shows "Sponsored page" with a grey avatar (`mockCopyOf`, `data-unb`).
 - **Not done:** the Layout rail's Background dark/light still shows (it does nothing while the
   look is on); the copy-coverage chip and Ad sets' Details analysis do not know about the look.
+
+**Text selection is visible in dark mode (2026-10-28, by request).** The winning `::selection`
+rule in every sheet was a navy tint at 18%, which vanished on a dark field. All three consumers
+and the kit now add `:root:not([data-theme="light"]) ::selection{background:rgba(87,139,250,.55);
+color:#fff}` right after it; light mode keeps the navy tint.
+
+**PM's package bar is a widget in the pane now (2026-10-28, by request).** It is no longer fixed
+across the top of the window: `RV.barRender` moves `.rvh` into an empty `[data-rvh-host]` div that
+CAS's Ad sets pane carries right under its `.as-pane-h` (React gives that host no children; the
+1s tick re-homes the widget if the pane is drawn again). It takes the setup widget's shape — a
+header band (Ad set package · product, the name at 22/500, "n of N audiences ready to run", the
+status pill), the four steps, and a footer with See details and Download. `.as-ov` no longer
+leaves room above itself for PM (`top:0`). The details window is unchanged.

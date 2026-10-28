@@ -2407,6 +2407,8 @@ select.p-in{background-color:transparent}
 h1,h2,h3{font-weight:400; line-height:1.11; letter-spacing:-.01em}
 ::placeholder{font-weight:400; color:var(--ps-dim)}
 ::selection{background:rgba(26,41,66,.18); color:inherit}
+/* Dark mode: the navy selection tint vanished on dark fields. A bright blue wash with white ink reads on every dark surface. */
+:root:not([data-theme="light"]) ::selection{background:rgba(87,139,250,.55); color:#fff}
 
 /* THE TRACKED-CAPS KICKER IS RETIRED, and Coinbase is what retires it: its whole
    scale is sentence case and its two small roles are Small 13/600 and Caption 14/600.
@@ -5458,6 +5460,7 @@ html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
                 <div class="ae-stat" data-state="{{ aeState }}" role="status" aria-live="polite"><span class="ae-dot"></span>{{ aeStatus }}</div>
               </sc-if>
             </header>
+            <div class="rvh-host" data-rvh-host="1"></div>
             <sc-if value="{{ asImgOn }}" hint-placeholder-val="{{ true }}">
               <sc-for list="{{ asSel.cols }}" as="c" hint-placeholder-count="2">
                 <sc-if value="{{ c.headOn }}" hint-placeholder-val="{{ false }}"><h3 class="as-agrp"><b>{{ c.head }}</b><s>{{ c.headSub }}</s><button onClick="{{ c.dl }}" class="p-ghost as-dl as-dl-s" data-busy="{{ asDlBusy }}" title="{{ c.dlTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ c.dlLabel }}</button></h3></sc-if>

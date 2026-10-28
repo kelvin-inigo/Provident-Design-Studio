@@ -2398,10 +2398,18 @@
       (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download' + (all.done ? ' ' + all.done + ' of ' + all.n : '')) + '</button>';
     const tick = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
     const mini = '<ol class="rvh-st" aria-label="Progress">' + all.steps.map(x => '<li data-s="' + x.s + '" title="' + esc(x.label + ' — ' + x.sub) + '"><i>' + (x.s === 'done' ? tick : '') + '</i><b>' + esc(x.label) + '</b></li>').join('') + '</ol>';
-    const html = '<div class="rvh-in"><div class="rvh-t"><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b></div>' +
-      mini + '<div class="rvh-a">' + (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
+    // a widget under the audience's header in the Ad sets pane, the setup widget's shape:
+    // a header band (the package and where it stands), the steps, then the actions
+    const html = '<div class="rvh-in"><div class="rvh-wh"><div class="rvh-t"><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b>' +
+      '<s>' + esc(all.ready ? 'Every audience is ready to run' : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' ready to run') + '</s></div>' + pillHtml(all.ready) + '</div>' +
+      '<div class="rvh-wb">' + mini + '</div><div class="rvh-a">' + (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
       '<button type="button" class="p-ghost rvh-det" data-det="1">See details</button>' + dlBtn + '</div></div>';
-    if (html !== this._barH) { this._barH = html; el.innerHTML = html; document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px'); }
+    if (html !== this._barH) { this._barH = html; el.innerHTML = html; }
+    // it lives in the pane's empty host (React gives that host no children); the pane can be
+    // drawn again, so the widget is moved back in whenever its host changes
+    const host = document.querySelector('[data-rvh-host]');
+    if (host && el.parentNode !== host) host.appendChild(el);
+    else if (!host && el.parentNode !== document.body) document.body.appendChild(el);
     // the details window: everything the bar leaves out
     const dlg = this.dlg; if (!dlg) return;
     const meta = [PRODUCT_NAME[rs.product], 'Created ' + day(rs.created) + (rs.by ? ' by ' + String(rs.by).split(' ')[0] : '')].filter(Boolean).join(' · ');
@@ -4290,6 +4298,23 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rvh-al>li[data-s="done"] .rv-dot{background:var(--ps-link)}
 .rvh-df{padding:14px 24px 18px}
 @media (max-width:560px){.rvh-dh{flex-wrap:wrap}.rvh-al>li{padding:16px}.rv-st-b b{font-size:11.5px}}
+/* PM's package widget (2026-10-28): no longer a bar across the top of the window. It sits in
+   the Ad sets pane under the audience's header, shaped like the setup widget. */
+html.rv-pm .as-ov{top:0}
+.rvh-host{display:none}
+html.rv-pm .rvh-host{display:block;padding-top:20px}
+html.rv-pm .rvh,html.rv-pm.shl-open .rvh{position:static;inset:auto;z-index:auto;right:auto;background:none;box-shadow:none}
+body>.rvh{display:none}
+.rvh-in{display:block;padding:0;border-radius:16px;overflow:hidden;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvh-wh{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px;background:var(--ps-card-h);box-shadow:inset 0 -1px 0 var(--ps-line)}
+.rvh-wh .rvh-t{max-width:none;gap:4px}
+.rvh-wh .rvh-k{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvh-wh .rvh-t b{white-space:normal;font:500 22px/1.25 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.rvh-wh .rvh-t s{text-decoration:none;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvh-wb{padding:24px}
+.rvh-wb .rvh-st{width:100%}
+.rvh-in>.rvh-a{display:flex;justify-content:flex-end;gap:8px;padding:14px 24px;box-shadow:inset 0 1px 0 var(--ps-line)}
+@media (max-width:760px){.rvh-wh{padding:18px 16px}.rvh-wb{padding:18px 16px}.rvh-in>.rvh-a{padding:12px 16px;flex-wrap:wrap}.rvh-in>.rvh-a button{flex:1}}
 `;
     document.head.appendChild(s);
   }
