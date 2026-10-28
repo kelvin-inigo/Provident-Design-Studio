@@ -392,11 +392,18 @@
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
             if (rv.thumb && (rv.thumbAt || 0) > thAt) { thAt = rv.thumbAt; e.thumb = rv.thumb; }
             const lg = rv.log || [];
-            e.mod = Math.max(e.mod || 0, (rv.sum && rv.sum.updated) || 0, lg.length ? lg[lg.length - 1].at || 0 : 0);
+            const pm = Math.max((rv.sum && rv.sum.updated) || 0, lg.length ? lg[lg.length - 1].at || 0 : 0);
+            e.mod = Math.max(e.mod || 0, pm);
+            // a preview older than the project's last change is redrawn by Review links itself
+            // (AV.heal) — the designer's tab may never have sent one
+            if (!rv.thumb || (rv.thumbAt || 0) < pm - 2000) (e.stale = e.stale || []).push({ sid: it.sid, rev: rv.rev || 0, mod: pm });
+            if (pm >= (e.leadMod || 0)) { e.leadMod = pm; e.lead = it.sid; }
             if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it) })));
           } catch (er) { if (er.gdAuth) throw er; e.live[it.sid] = false; }
         }));
         if (full) { e.log = (R.rs.log || []).slice(-300); e.rs.hist = R.rs.hist || []; e.plog = plog; e.proj = proj; }
+        // the card shows the project changed last, so its preview is the one that must be current
+        if (e.lead && proj[e.lead] && proj[e.lead].thumb) e.thumb = proj[e.lead].thumb;
         items.push(e);
       } catch (er) { if (er.gdAuth) throw er; items.push({ id, gone: true }); }
     }
@@ -2717,13 +2724,61 @@
       out.forEach(x => { if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
       const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
     } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }
+    this.healPaint(this.items);
     if (!this.sel) this.draw();
+    this.heal(this.items);
+  };
+  // PREVIEWS ARE DRAWN HERE WHEN NOBODY ELSE DID. A project's preview was only ever sent by the
+  // designer's own tab after a save, and on the live Drive no project had one at all, so every
+  // card showed the ad set's first, photo-less picture. Review links runs the studio, so it
+  // renders any preview that is missing or older than its project's last change — from the
+  // project's state and its Drive photos — shows it, and writes it back (op 'thumb') for the
+  // next reader. One at a time; a render is kept per project revision for this page's life.
+  const HEAL = {};
+  AV.healPaint = function (list) {
+    (list || []).forEach(it => {
+      if (!it || !it.lead) return;
+      const h = HEAL[it.lead]; if (h && h.th) it.thumb = h.th;
+      if (it.proj) Object.keys(it.proj).forEach(sid => { if (HEAL[sid] && HEAL[sid].th) it.proj[sid].thumb = HEAL[sid].th; });
+    });
+  };
+  AV.heal = async function (list) {
+    if (!dsOn() || !this.eng || !this.eng.rvThumb) return;
+    const jobs = [];
+    (list || []).forEach(it => (it && it.stale || []).forEach(x => {
+      if (!isDs(it.id)) return;
+      const h = HEAL[x.sid]; if (h && (h.busy || h.rev === x.rev)) return;
+      jobs.push({ id: it.id, sid: x.sid, rev: x.rev });
+    }));
+    if (!jobs.length || this.healing) return;
+    this.healing = true;
+    try {
+      for (const j of jobs) {
+        if (!this.el || !document.body.contains(this.el)) break;
+        HEAL[j.sid] = { busy: true, rev: j.rev };
+        try {
+          const d = await dsRead(j.sid.slice(1), true), rv = d.review || {}, imgs = rv.imgs || {};
+          const st = this.eng.shNorm(d.state || {}), own = {};
+          // only the pictures the first variant's square can show
+          const want = Object.keys(imgs).filter(sl => /^adstudio-(bg-0|fg-0|qr|colog|ic-.+|mod-.+)$/.test(sl));
+          await pool(want, 3, async sl => { try { const r = await fetchRec(j.id, imgs[sl], j.sid); if (r) own[sl] = r; } catch (e) {} });
+          const th = await this.eng.rvThumb(st, own);
+          HEAL[j.sid] = { rev: j.rev, th: th || '' };
+          if (th) {
+            this.healPaint(this.items); if (this.det) this.healPaint([this.det]);
+            this.draw();
+            try { await api('thumb', { id: j.id, p: j.sid }, { thumb: th }); } catch (e) {}
+          }
+        } catch (e) { HEAL[j.sid] = { rev: j.rev, th: '' }; if (e && e.gdAuth) break; }
+      }
+    } finally { this.healing = false; }
   };
   AV.open = async function (id, quiet) {
     this.sel = id; if (!quiet) { this.det = null; this.draw(); }
-    try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); }
+    try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); this.healPaint([this.det]); }
     catch (e) { if (!quiet) this.det = { id, error: e.message || String(e), auth: !!e.gdAuth }; }
     if (this.sel === id) this.draw();
+    if (this.det && this.det.stale) this.heal([this.det]);
   };
   AV.click = async function (e) {
     let t = e.target.closest('button,[data-id],.rva-mod'); if (!t || !this.el.contains(t)) return;

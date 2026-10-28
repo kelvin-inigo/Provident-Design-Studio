@@ -17123,3 +17123,15 @@ that project from its own state and Drive photos after each save and sends op `t
 square (95, 76 on a phone), since the preview is the 1:1 — the 4:5 box cropped its sides.
 Verified on the Drive stand-in: a replaced photo and a typed heading from the content-team link
 both reached the project's preview within ~3s.
+
+**Review links draws missing previews itself (2026-10-28, after "previews are still blank").**
+Reading the live Drive showed that NO project had ever saved a preview (`review.thumb` empty on
+every one), so each card fell back to the ad set's first, photo-less picture — the designer-tab
+path above never ran in real use, cause not found. `dsInfo` now marks a project `stale` when its
+preview is missing or older than its last change, and names the ad set's `lead` (the project
+changed last; the card shows its preview). `AV.heal` renders each stale project on the Review
+links page itself — `shNorm(d.state)` plus the photos the first square can show
+(`adstudio-bg-0|fg-0|qr|colog|ic-*|mod-*`, via `fetchRec`) through `rvThumb` — paints it, and
+writes it back with op `thumb`, one at a time, kept per revision in `HEAL`. Verified on the
+Drive stand-in with the preview stripped from a project: the card showed the photo within
+seconds and Drive held the new preview.
