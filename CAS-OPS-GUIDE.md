@@ -292,9 +292,19 @@ steps: **Design › ENG copy check › Translation › Done**.
    holds the steps, the dates and each audience.
 
 The **Ad set review** panel lists every audience, with its four steps and the buttons for your
-role. Below that is the log of who changed what in every project, including each step. Turn on
-**Notify me in this browser** to get a system notification when someone else moves a step while
-the tab is in the background.
+role. Below that is the log of who changed what in every project, including each step.
+
+**Chrome notifications.** When someone else presses a step button (Send to copy check, Approve,
+Back to design, Reopen), everyone who has that ad set open gets a Chrome notification, whether
+the tab is in front or in the background. Clicking it brings the tab forward. Chrome asks
+permission once, the first time you press a step button; you can also turn it on with **Notify
+me in this browser** in the panel, or **Notify me** in performance marketing's bar. It only
+reaches a browser with the project or ad set link open in some tab: a closed browser gets
+nothing. A background tab checks about every 45 seconds, so a notification can arrive up to a
+minute late there.
+
+The **preview picture** each project shows on the Review links page is redrawn after every save,
+about two seconds after the save lands, and that page looks again every 20 seconds.
 
 Things to know:
 - **No sign-in.** Whoever holds a link has that role, so send each link only to its team.

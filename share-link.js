@@ -1018,13 +1018,13 @@
     this.forceUpdate();
   };
   // THE PREVIEW REVIEW LINKS SHOWS. It was drawn once, when the project joined the ad set, so the
-  // cards never showed the work. Now it is redrawn after the edits settle — 4s with nothing
-  // pending, at most every 15s — and sent on its own (op 'thumb'), so it is no new revision
+  // cards never showed the work. Now it is redrawn after EVERY save — 1.5s after it lands, at
+  // most every 5s — and sent on its own (op 'thumb'), so it is no new revision
   // and nobody pulls for it. The ad set's card shows its most recently changed project.
   SP.shThumb = async function (force) {
     const S = this._sh;
     if (!S || !S.rs || S.thumbBusy || S.busy || this.shApp() !== 'provident-ad-studio') return;
-    if (!force && (!S.thumbDue || Date.now() - (S.savedAt || 0) < 4000 || Date.now() - (S.thumbAt || 0) < 15000)) return;
+    if (!force && (!S.thumbDue || Date.now() - (S.savedAt || 0) < 1500 || Date.now() - (S.thumbAt || 0) < 5000)) return;
     S.thumbBusy = true; S.thumbDue = false; S.thumbAt = Date.now();
     try {
       const th = await this.rvThumb();
@@ -1195,7 +1195,9 @@
   };
   SP.shPoll = async function (force) {
     const S = this._sh; if (!S || S.polling) return;
-    if (!force && (document.hidden || S.busy)) return;
+    if (!force && S.busy) return;
+    // a tab in the background still looks, every 45s, so a step someone takes can notify here
+    if (!force && document.hidden) { if (!S.rs || Date.now() - (S.hidPoll || 0) < 45000) return; S.hidPoll = Date.now(); }
     S.polling = true;
     try {
       const r = await api('rev', { id: S.id });
@@ -1689,9 +1691,26 @@
         'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', add: 'added a project', start: 'started the ad set' }[h.act] || 'changed a step';
       const t = h.by + ' ' + what + (lab ? ' · ' + lab : '');
       if (ui) ui.flash(t);
-      try { if (document.hidden && window.Notification && Notification.permission === 'granted') new Notification((now.name || 'Ad set') + ' · review', { body: t, tag: 'rs-' + h.at }); } catch (e) {}
+      sysNotify((now.name || 'Ad set') + ' · review', t, 'rs-' + h.at);
     });
   }
+  // A CHROME NOTIFICATION, whether or not the tab is in front: a hand-off is the moment the next
+  // person has to act. It only reaches a browser that has this ad set open in some tab (the tab
+  // polls; there is no push server), and only once that browser has said yes (askNotify).
+  function sysNotify(title, body, tag) {
+    try {
+      if (!window.Notification || Notification.permission !== 'granted') return;
+      const n = new Notification(title, { body, tag, icon: 'favicon.ico' });
+      n.onclick = () => { try { window.focus(); } catch (e) {} n.close(); };
+    } catch (e) {}
+  }
+  // Asked from a click (a step button, or the Notify button), never on load: Chrome refuses a
+  // prompt without a user gesture and remembers a refusal for good.
+  function askNotify() {
+    try { if (window.Notification && Notification.permission === 'default') return Notification.requestPermission().catch(() => {}); } catch (e) {}
+    return Promise.resolve();
+  }
+  window.providentNotifyAsk = askNotify;
   // What a project still lacks before the content team checks it: empty words on any page, a
   // page or variant with no background photo, a QR code switched on with none dropped in, and
   // copy covering more of a canvas than the brand ceiling. Campaign only (reads its engine).
@@ -1729,6 +1748,7 @@
       const miss = this.rsPrecheck();
       if (miss.length && !window.confirm('Before it goes to the content team:\n\n' + miss.map(m => '•  ' + m).join('\n') + '\n\nSend anyway?')) return;
     }
+    askNotify();
     this._rvBusy = act; this.rvRender(); this.forceUpdate();
     try {
       // the sign-off covers the latest work: whatever is waiting to save goes first
@@ -2218,13 +2238,19 @@
     }
   };
   RV.shPoll = async function (force) {
-    if (this.polling || this.busy || (!force && document.hidden)) return;
+    if (this.polling || this.busy) return;
+    // in the background: only the steps (for the notification), every 45s, no project pulls
+    const bg = !force && document.hidden;
+    if (bg && Date.now() - (this.hidPoll || 0) < 45000) return;
+    if (bg) this.hidPoll = Date.now();
     this.polling = true;
     try {
       const d = await api('rsget', { id: this.tok });
+      if (bg) { if (canon(d.rs) !== canon(this.rs)) { notifySteps(this.rs, d.rs, this.ui); this.rsBg = true; } return; }
       if (d.ln !== this.ln) { const f = await api('rsget', { id: this.tok, full: '1' }); this.rlog = f.log || []; this.ln = f.ln; }
       if (canon(d.rs) !== canon(this.rs)) {
-        notifySteps(this.rs, d.rs, this.ui);
+        if (!this.rsBg) notifySteps(this.rs, d.rs, this.ui);
+        this.rsBg = false;
         const items = canon((d.rs.items || []).map(x => [x.sid, x.market, x.aud, x.lang])) !== canon((this.rs.items || []).map(x => [x.sid, x.market, x.aud, x.lang]));
         this.rs = d.rs;
         if (items) await this.load();
@@ -2242,6 +2268,7 @@
   RV.rvStep = async function (act) {
     if (this.stepBusy) return;
     const [a, sid] = String(act).split(':');
+    askNotify();
     this.stepBusy = act; this.panelRender(true);
     try {
       // the approval covers the words just typed: a pending save goes first
@@ -2339,11 +2366,12 @@
     dlg.className = 'rvh-dlg'; dlg.setAttribute('aria-label', 'Ad set details');
     document.body.appendChild(dlg);
     const click = e => {
-      const b = e.target.closest('[data-dl],[data-det],[data-x]');
+      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf]');
       if (e.target === dlg) { dlg.close(); return; }          // a click on the backdrop
       if (!b) return;
       if (b.dataset.dl) this.download(b.dataset.dl);
       if (b.dataset.det) { this.barRender(); dlg.showModal(); }
+      if (b.dataset.ntf) askNotify().then(() => { this._barH = ''; this.barRender(); });
       if (b.dataset.x) dlg.close();
     };
     el.addEventListener('click', click); dlg.addEventListener('click', click);
@@ -2357,7 +2385,8 @@
     const tick = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
     const mini = '<ol class="rvh-st" aria-label="Progress">' + all.steps.map(x => '<li data-s="' + x.s + '" title="' + esc(x.label + ' — ' + x.sub) + '"><i>' + (x.s === 'done' ? tick : '') + '</i><b>' + esc(x.label) + '</b></li>').join('') + '</ol>';
     const html = '<div class="rvh-in"><div class="rvh-t"><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b></div>' +
-      mini + '<div class="rvh-a"><button type="button" class="p-ghost rvh-det" data-det="1">See details</button>' + dlBtn + '</div></div>';
+      mini + '<div class="rvh-a">' + (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
+      '<button type="button" class="p-ghost rvh-det" data-det="1">See details</button>' + dlBtn + '</div></div>';
     if (html !== this._barH) { this._barH = html; el.innerHTML = html; document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px'); }
     // the details window: everything the bar leaves out
     const dlg = this.dlg; if (!dlg) return;
@@ -2570,10 +2599,10 @@
     // so a step someone took in another tab or on another computer shows without a reload.
     const tick = () => {
       if (!el.isConnected) { clearInterval(this.timer); document.removeEventListener('visibilitychange', tick); window.removeEventListener('focus', tick); return; }
-      if (document.hidden || Date.now() - (this.at || 0) < 15000) return;
+      if (document.hidden || Date.now() - (this.at || 0) < 10000) return;
       this.refresh();
     };
-    this.timer = setInterval(tick, 60000);
+    this.timer = setInterval(tick, 20000);
     document.addEventListener('visibilitychange', tick); window.addEventListener('focus', tick);
     window.addEventListener('provident-drive-signed', () => { if (el.isConnected) this.refresh(); });
     el.querySelector('.rva-add').addEventListener('submit', e => {

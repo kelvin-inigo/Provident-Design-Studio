@@ -16991,3 +16991,22 @@ bar, and the dock row at 74px sat on the bar's content (name, chip, button) — 
 real click on the new button hit `.p-dock-r`. Verified on the Drive stand-in with real clicks:
 the check listed an empty heading, no photo and a missing QR; Cancel kept Design; OK moved the
 audience to ENG copy check and the button left the bar.
+
+# STEP NOTIFICATIONS ACTUALLY FIRE NOW, AND PREVIEWS FOLLOW EVERY SAVE (2026-10-28)
+
+By request. **The notification code was there and could never run**: `notifySteps` only
+notified while `document.hidden`, and both polls (`SP.shPoll`, `RV.shPoll`) skipped a hidden
+tab. Now `sysNotify` shows a Chrome notification whenever permission is granted, front or back,
+and focuses the tab on click; a hidden tab polls every 45s (`hidPoll`) — the designer's only
+while in an ad set, the ad set view `rsget` only (no project pulls; `rsBg` stops the same step
+notifying twice when the tab comes back). `askNotify()` (also `window.providentNotifyAsk`) asks
+from a click: the designer's `rvStep` after the pre-check, the ad set view's `rvStep`, the panel's
+Notify button, and a new **Notify me** in PM's bar while permission is `default`. Your own steps
+never notify you — matched by NAME, so two tabs signed in as one Google account notify neither.
+No push server: a browser with no tab open gets nothing.
+**Previews**: `shThumb` runs 1.5s after each save, at most every 5s (was 4s / 15s); the Review
+links page re-reads every 20s (was 60s, min gap 10s). Verified on the Drive stand-in with a
+stubbed `Notification`: the designer's tab got "approved the English copy" and "reopened the
+copy check" from the content team's tab; the content team's tab got the designer's reopen;
+previews redrawn ~2s after each save. The real Chrome permission prompt and a truly hidden tab
+were not exercised (the pane reports every tab visible).
