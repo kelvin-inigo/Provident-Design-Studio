@@ -126,7 +126,7 @@ Each studio opens on its **project browser**.
 
 - **Start something new:**
   - In CAS, every project belongs to a **campaign** (an ad set). Use **Set up the campaign** at
-    the top of the project browser (**New campaign** jumps to it): a **Name**, **Residential** or
+    the top of **Home** (the first page of CAS): a **Name**, **Residential** or
     **Commercial**, a **Deadline**, the **Drive folder** (an empty Google Drive folder for this
     campaign), the **Brief** (paste the script, fact sheet or WhatsApp brief) and **Files**
     (renders, logos, brochures). By default the campaign is **Local**, both audiences, **English
@@ -143,12 +143,15 @@ Each studio opens on its **project browser**.
   - an `Assets/` folder with a copy of every upload.
 
   The first time, it asks you to pick the folder. After that it saves in place.
-- **Open session**: pick the project's folder, and the newest session file in it opens. A session
+- **Open session** (OPS, top right of the project browser) or **Open a project file…** (CAS, in
+  the sidebar under Session): pick the project's folder, and the newest session file in it opens. A session
   file from the other studio opens in that studio.
 - **Source folder** (top bar) picks or changes the folder that saves and exports go into.
 - **Every new project starts fresh.** A new campaign or post, a template, or a project opened from
   Recent has no Source folder and no pictures from the one before. Pick its folder on the first
-  Save. A new browser tab is a fresh session too. **Open session** sets the folder it opens from.
+  Save. A new browser tab is a fresh session too. Opening a project file sets the folder it opens from.
+- **Home** (CAS) is the first page. Under its title it counts your campaigns — open tickets, in
+  design, ready to run — as Status last read them.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count.
 - **Undo** / **Redo** (top bar) go back up to 5 steps.
@@ -598,7 +601,7 @@ them from their link):
 - **Audiences**, **Brief**, **Activity** and **Links for the teams** (see above).
 - The preview on the right is the ad as it will export.
 
-A project that is not in a campaign (an older one, opened with **Open session**) shows **Set up**
+A project that is not in a campaign (an older one, opened with **Open a project file…**) shows **Set up**
 here instead, which puts it in one.
 
 ## 7. CAS: export
@@ -722,7 +725,7 @@ Press **Edit text** to work on the words of the audience on screen, without open
 Ad sets never uses your Source folder. In the Ad sets window:
 
 - The viewer is for **looking at finished exports**, not for opening a project to design. To
-  keep designing, use **Open session** on the home page.
+  keep designing, use **Open a project file…** in CAS's sidebar.
 
 - **Drop a folder** anywhere on the window. Use the project folder (the one holding the
   `.adstudio.json` and its Variant folders), or a folder above several projects. You can also
@@ -974,6 +977,6 @@ Tell the user the full path when you're done.
 
 Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
 or name. Every required field must be filled; the export says what is missing. The project is a
-normal session file, so the user can open it with **Open session** to fine-tune by hand. Setup:
+normal session file, so the user can open it with **Open a project file…** (CAS) or **Open session** (OPS) to fine-tune by hand. Setup:
 `sh tools/studio-mcp/install.sh`, then restart Claude (see `tools/studio-mcp/README.md`).
 

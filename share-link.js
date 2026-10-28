@@ -2753,8 +2753,28 @@
     },
     swap(old, id) { if (old === id) return; const a = this.list(), o = a.find(x => x.id === old); if (!o) return; if (a.some(x => x.id === id)) this.save(a.filter(x => x.id !== old)); else { o.id = id; this.save(a); } },
     drop(id) { this.save(this.list().filter(x => x.id !== id)); lsSet(ARCH_HIDE, JSON.stringify([id].concat(hidden().filter(x => x !== id)).slice(0, 400))); },
-    mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => { if (!el._rva) el._rva = new ArchView(el, eng); }); }
+    mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => { if (!el._rva) el._rva = new ArchView(el, eng); }); },
+    // the Home page's subtitle: how many campaigns are open tickets, in design, ready to run —
+    // the counts Status last read, refreshed in the background (never with a sign-in prompt)
+    summary() { try { return JSON.parse(localStorage.getItem(SUM_KEY) || 'null'); } catch (e) { return null; } },
+    async refreshSum(eng) {
+      const s = this.summary(), ids = this.list().map(x => x.id);
+      if (!ids.length || this._sumBusy || (s && Date.now() - (s.at || 0) < 120000)) return;
+      const D = window.providentDrive;
+      if (ids.some(isDs) && !(D && D.valid && D.valid())) return;
+      this._sumBusy = true;
+      try { const out = []; for (let i = 0; i < ids.length; i += 50) out.push(...((await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') })).items || [])); statusSave(out, eng); }
+      catch (e) {}
+      this._sumBusy = false;
+    }
   };
+  const SUM_KEY = 'provident-status-sum';
+  function statusSave(items, eng) {
+    const live = (items || []).filter(x => !x.gone && x.rs);
+    const open = live.filter(x => isOpen(x.rs)).length, ready = live.filter(x => !isOpen(x.rs) && rsOverall(rsAuds(x.rs)).ready).length;
+    lsSet(SUM_KEY, JSON.stringify({ open, design: live.length - open - ready, ready, at: Date.now() }));
+    try { if (eng && eng.host) eng.host.forceUpdate(); } catch (e) {}
+  }
   window.providentReviews = Arch;
 
   // ---- THE HOME PAGE'S CAMPAIGN SETUP: the ad set, defined before the first design ----
@@ -2764,7 +2784,7 @@
   // this computer, so a half-set-up campaign survives a reload. "Start the campaign" opens a
   // new project which then makes the ad set from the plan (rsPlanCheck).
   const Plan = {
-    mount(eng) { document.querySelectorAll('[data-rs-plan]').forEach(el => { if (!el._rsp) el._rsp = new PlanView(el, eng); }); }
+    mount(eng) { document.querySelectorAll('[data-rs-plan]').forEach(el => { if (!el._rsp) el._rsp = new PlanView(el, eng); Arch.refreshSum(eng); }); }
   };
   function planDraft() {
     let d = null; try { d = JSON.parse(lsGet(PLAN_KEY) || 'null'); } catch (e) {}
@@ -3049,6 +3069,7 @@
       // a review from before ad sets was kept by its project's id: from now on, by its designer link
       out.forEach(x => { if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
       const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
+      statusSave(this.items, this.eng);
     } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }
     this.healPaint(this.items);
     if (!this.sel) this.draw();

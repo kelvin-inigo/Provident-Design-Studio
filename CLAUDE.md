@@ -17202,3 +17202,12 @@ canvas bar (pre-check, step saved, button turns to Create next audience), Create
 (blank, Local · Investor, Investors picked from the stored reply), Share menu export-only, a
 project outside a campaign shows Set up. Contrast 0 failures over the tab, Status, the ticket
 page and the form in both themes; no overflow at 375. **Not exercised on real Google Drive.**
+
+**The CAS home header is the title and the theme toggle only (2026-10-28, same day).** New
+campaign (it only scrolled to the form below it; Status has New ticket) and Open session are gone
+from it. Opening a file is **Open a project file…** in the sidebar's Session group (it calls the
+same `openSession`, and stays visible as a chip on a phone). **All is Home**, without the stale
+count (`allCount` counted the deleted templates), and its subtitle counts campaigns from
+`providentReviews.summary()` — `provident-status-sum`, written by Status's own load
+(`statusSave`) and refreshed in the background by `Arch.refreshSum` when Home mounts, at most
+every 2 minutes and only with a valid Google token (never a prompt). OPS's header is unchanged.
