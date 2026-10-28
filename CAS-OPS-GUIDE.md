@@ -304,7 +304,8 @@ nothing. A background tab checks about every 45 seconds, so a notification can a
 minute late there.
 
 The **preview picture** each project shows on the Review links page is redrawn after every save,
-about two seconds after the save lands, and that page looks again every 20 seconds.
+photos included, whoever made the change. If a preview is missing or older than the project,
+Review links draws it itself when you open it, and saves it for everyone else.
 
 Things to know:
 - **No sign-in.** Whoever holds a link has that role, so send each link only to its team.
@@ -327,7 +328,9 @@ Things to know:
 
 On the home page, **Review links** (in the **Review** group) lists every ad set you started or
 added to on this computer, or opened as the designer. Ad sets still **In progress** come first,
-then **Package ready**.
+then **Package ready**. Each card says whether the ads are **Provident** (branded: the
+wordmark and QR) or **Unbranded** — or **Mixed** when its projects differ — and so does the
+ad set's Details.
 
 The page refreshes itself every minute while it is on screen, and again as soon as you come
 back to the window. A step someone takes elsewhere shows up without a reload.

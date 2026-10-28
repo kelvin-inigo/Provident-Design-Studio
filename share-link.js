@@ -390,6 +390,8 @@
             const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            const br = d.state && d.state.look && d.state.look.on ? 'unbranded' : 'provident';
+            (e.brands = e.brands || {})[br] = (e.brands[br] || 0) + 1;
             if (rv.thumb && (rv.thumbAt || 0) > thAt) { thAt = rv.thumbAt; e.thumb = rv.thumb; }
             const lg = rv.log || [];
             const pm = Math.max((rv.sum && rv.sum.updated) || 0, lg.length ? lg[lg.length - 1].at || 0 : 0);
@@ -1677,7 +1679,8 @@
     try {
       const sz = []; (st.variants || []).forEach(v => C.sizesFor(st, v).forEach(k => { if (sz.indexOf(k) < 0) sz.push(k); }));
       return { campaign: String(st.campaign || ''), mode: C.isCarousel(st) ? 'carousel' : 'single', variants: (st.variants || []).length,
-        sizes: sz.map(k => SIZE_LAB[k] || k), comps: C.allMods(st).length, updated: Date.now(), pid: st.pid || '' };
+        sizes: sz.map(k => SIZE_LAB[k] || k), comps: C.allMods(st).length, updated: Date.now(), pid: st.pid || '',
+        brand: st.look && st.look.on ? 'unbranded' : 'provident' };
     } catch (e) { return undefined; }
   };
   // a small picture of a project's first design, for the archive
@@ -2735,10 +2738,22 @@
   // project's state and its Drive photos — shows it, and writes it back (op 'thumb') for the
   // next reader. One at a time; a render is kept per project revision for this page's life.
   const HEAL = {};
+  // Branded or not: Provident's own look, or the Unbranded look (no wordmark, no QR). An ad set
+  // whose projects differ says Mixed, with the counts in the tooltip.
+  function brandHtml(b) {
+    if (!b) return '';
+    const p = b.provident || 0, u = b.unbranded || 0;
+    if (!p && !u) return '';
+    const k = p && u ? 'mixed' : u ? 'unbranded' : 'provident';
+    const lab = { provident: 'Provident', unbranded: 'Unbranded', mixed: 'Mixed' }[k];
+    const tip = k === 'mixed' ? p + ' Provident, ' + u + ' Unbranded' : k === 'provident' ? 'Branded: Provident wordmark and QR' : 'Unbranded: no Provident wordmark or QR';
+    return '<span class="rva-br" data-k="' + k + '" title="' + tip + '">' + lab + '</span>';
+  }
   AV.healPaint = function (list) {
     (list || []).forEach(it => {
       if (!it || !it.lead) return;
       const h = HEAL[it.lead]; if (h && h.th) it.thumb = h.th;
+      else (it.stale || []).forEach(x => { if (HEAL[x.sid] && HEAL[x.sid].th) it.thumb = HEAL[x.sid].th; });
       if (it.proj) Object.keys(it.proj).forEach(sid => { if (HEAL[sid] && HEAL[sid].th) it.proj[sid].thumb = HEAL[sid].th; });
     });
   };
@@ -2772,6 +2787,8 @@
         } catch (e) { HEAL[j.sid] = { rev: j.rev, th: '' }; if (e && e.gdAuth) break; }
       }
     } finally { this.healing = false; }
+    // the previews are on Drive now: read the list again so every card shows its own
+    if (this.el && document.body.contains(this.el)) { if (this.sel) this.open(this.sel, true); else this.load(true); }
   };
   AV.open = async function (id, quiet) {
     this.sel = id; if (!quiet) { this.det = null; this.draw(); }
@@ -2894,9 +2911,10 @@
       const when = !cd ? '' : 'Changed ' + (today ? cd.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
         : cd.toLocaleDateString([], cd.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' }));
       const meta = [rs.product ? PRODUCT_NAME[rs.product] || '' : '', when].filter(Boolean).map(esc).join(' · ');
+      const brand = brandHtml(it.brands);
       return '<button class="rva-c" data-id="' + esc(it.id) + '"' + (all.ready ? ' data-ready="1"' : '') + '><span class="rva-th">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-ct"><span class="rva-n"><b title="' + esc(rs.name || names[it.id] || 'Ad set') + '">' + esc(rs.name || names[it.id] || 'Ad set') + '</b></span>' +
-        now + segs + '<span class="rva-m">' + meta + '</span></span>' + ico('chev', 'rva-go') + '</button>';
+        now + segs + '<span class="rva-m">' + brand + meta + '</span></span>' + ico('chev', 'rva-go') + '</button>';
     };
     // newest change first: the last thing anyone did in the ad set or any of its projects
     const sorted = this.items.slice().sort((a, b) => modOf(b) - modOf(a));
@@ -2976,6 +2994,7 @@
     const side = '<aside class="rva-side">' +
       '<section class="rva-card"><h3>Details</h3><dl class="rva-dl">' +
       row('Product', esc(PRODUCT_NAME[rs.product] || '—')) +
+      row('Brand', brandHtml(d.brands) || '—') +
       row('Audiences', auds.length + ' · ' + (rs.items || []).length + ' projects') +
       row('Markets', esc([...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ') || '—')) +
       row('Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '—') +
@@ -4206,6 +4225,10 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-c:hover{box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
 .rva-c:hover .rva-go{color:var(--ps-ink);transform:translateX(2px)}
 .rva-th{width:95px;height:95px;border-radius:10px;align-self:center}
+.rva-br{display:inline-flex;align-items:center;gap:5px;margin-right:8px;padding:1px 8px;border-radius:9999px;font-size:11.5px;font-weight:500;font-style:normal;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rva-br::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ps-ink-2)}
+.rva-br[data-k="provident"]::before{background:#F3793C}
+.rva-br[data-k="mixed"]::before{background:none;box-shadow:inset 0 0 0 1.5px #F3793C}
 .rva-ct{gap:8px;justify-content:center}
 .rva-n b{font:500 16px/1.25 var(--ps-font);color:var(--ps-ink)}
 .rva-now{display:flex;align-items:center;gap:7px;min-width:0;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}

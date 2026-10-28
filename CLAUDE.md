@@ -17135,3 +17135,12 @@ links page itself — `shNorm(d.state)` plus the photos the first square can sho
 writes it back with op `thumb`, one at a time, kept per revision in `HEAL`. Verified on the
 Drive stand-in with the preview stripped from a project: the card showed the photo within
 seconds and Drive held the new preview.
+
+**Each ad set says whether it is branded (2026-10-28, by request).** `rvSum` records `brand`
+(`provident` / `unbranded`, from `state.look.on`); `dsInfo` counts it per project straight from
+each project's state (so older saves need nothing) into `e.brands`; `brandHtml` prints a chip —
+Provident (orange dot), Unbranded (grey), Mixed (hollow orange, counts in the tooltip) — at the
+head of each card's meta line and as a **Brand** row in Details. Drive ad sets only; old
+share-store ones show nothing. Also: after `AV.heal` finishes, the page re-reads from Drive,
+because the first paint could keep the ad set's old picture (seen live: previews were saved to
+Drive but the cards changed only after a refresh).
