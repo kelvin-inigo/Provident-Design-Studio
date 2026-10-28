@@ -2823,9 +2823,9 @@
       '<section class="rva-card"><h3>Google Drive</h3><p class="rva-sub">Where this ad set’s files are kept, for everyone who opens this list.</p>' +
       '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Drive folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
       '</aside>';
-    const activity = '<section class="rva-card"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
+    const activity = '<section class="rva-card rva-actc"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
-    return back + head + '<div class="rva-det">' + progress + links + '<div class="rva-cols">' + audiences + side + '</div>' + activity + '</div>' +
+    return back + head + '<div class="rva-det">' + progress + links + '<div class="rva-cols">' + audiences + side + activity + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // a project's market, audience and language, edited in place
@@ -4075,6 +4075,10 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-tools .rva-rm{align-self:center}
 .rva-det{display:flex;flex-direction:column;gap:20px;min-width:0}
 .rva-det .rva-cols{max-width:none}
+/* Activity sits under Audiences, at its width, with Details + Google Drive beside both. */
+.rva-det .rva-cols{grid-template-areas:'au side' 'act side'}
+.rva-det .rva-auc{grid-area:au}.rva-det .rva-side{grid-area:side}.rva-det .rva-actc{grid-area:act}
+@media (max-width:1100px){.rva-det .rva-cols{grid-template-areas:'au' 'side' 'act'}}
 .rva-prog{padding:24px 28px}
 .rva-ph{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;margin-bottom:22px}
 .rva-ph h3{margin:0!important}

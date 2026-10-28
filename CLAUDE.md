@@ -16731,7 +16731,7 @@ quiet **Remove from this list** / **Delete for everyone** at the right); **Progr
 full width (`.rva-prog`, its next-step line beside the title); **Ad set links** as three cards side
 by side; **Audiences** as cards (market kicker over audience name, the steps, then an English and an
 Arabic tile with thumbnail, campaign and item state; an empty tile says what is missing) beside
-**Details** and **Google Drive**; **Activity** last, full width. CSS is one block at the end of the
+**Details** and **Google Drive**; **Activity** under Audiences at its width (grid areas in `.rva-cols`; one column under 1100px puts Details between them). CSS is one block at the end of the
 sheet (`.rva-det` scopes it). The Done pill on an audience card inks in `--ps-ink` (green ink on
 the card's fill measured 3.94).
 
