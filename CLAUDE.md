@@ -17112,3 +17112,14 @@ CAS's Ad sets pane carries right under its `.as-pane-h` (React gives that host n
 header band (Ad set package · product, the name at 22/500, "n of N audiences ready to run", the
 status pill), the four steps, and a footer with See details and Download. `.as-ov` no longer
 leaves room above itself for PM (`top:0`). The details window is unchanged.
+
+**Review links previews follow every change, photos included (2026-10-28, by request).** Three
+paths left a card stale. (1) A photo change only marked the preview due through the save it
+triggered; `S.onSlot` now marks it due for every photo, uploaded here or pulled from someone
+else. (2) A change pulled into the designer's tab never redrew; `shPull` marks it due. (3) The
+ad set link (the content team's Edit text) never drew one at all; `RV.thumbFor(sid)` renders
+that project from its own state and Drive photos after each save and sends op `thumb` with
+`p` (at most every 5s, retried). The first preview gets a `thumbAt`, and a card thumbnail is
+square (95, 76 on a phone), since the preview is the 1:1 — the 4:5 box cropped its sides.
+Verified on the Drive stand-in: a replaced photo and a typed heading from the content-team link
+both reached the project's preview within ~3s.

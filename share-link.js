@@ -526,7 +526,7 @@
     try { const th = await this.rvThumb(); if (th && th.length < 120000) rs.thumb = th; } catch (e) {}
     await dsWrite(rid, rs);
     // the project's summary and picture for the archive
-    try { const d = await dsRead(sid.slice(1), true); d.review.sum = this.rvSum(st); if (rs.thumb) d.review.thumb = rs.thumb; await dsWrite(sid.slice(1), d); } catch (e) {}
+    try { const d = await dsRead(sid.slice(1), true); d.review.sum = this.rvSum(st); if (rs.thumb) { d.review.thumb = rs.thumb; d.review.thumbAt = dsNow(); } await dsWrite(sid.slice(1), d); } catch (e) {}
     ssSet(this.shKey(), { id: sid, rev: (DSC[sid.slice(1)] && DSC[sid.slice(1)].d.review.rev) || rev, n: 0, pid: this.state.pid, imgs, name, role: 'dd', rs: dsPub(rs, 'dd') });
     ssSet(this.shKey('-base'), st);
     ssSet(this.shKey('-log'), null);
@@ -998,7 +998,12 @@
       role: b.role || 'edit', rs: b.rs || null
     };
     S.baseS = canon(S.base);
-    S.onSlot = e => { const id = e && e.detail && e.detail.id; if (!S.applying && id) { S.dirty.add(id); S.lastT = Date.now(); } };
+    S.onSlot = e => {
+      const id = e && e.detail && e.detail.id; if (!id) return;
+      // a new picture, here or pulled from someone else, is what a preview most needs to show
+      if (S.rs) S.thumbDue = true;
+      if (!S.applying) { S.dirty.add(id); S.lastT = Date.now(); }
+    };
     window.addEventListener('image-slots-change', S.onSlot);
     S.onVis = () => { if (!document.hidden) this.shPoll(); };
     document.addEventListener('visibilitychange', S.onVis);
@@ -1236,6 +1241,7 @@
       } finally { S.applying = false; }
       S.base = theirs; S.baseS = canon(theirs); S.rev = d.rev;
       S.lastS = canon(this.shPub());
+      if (S.rs) { S.thumbDue = true; S.savedAt = Date.now(); }
     }
     this.shPersist();
     this.shRender();
@@ -2215,6 +2221,7 @@
           if (canon(p.st) === canon(sent)) p.pend = false;
           this.err = '';
           await this.pull(sid, true);
+          this.thumbFor(sid);
           return;
         } catch (e) {
           if (!e.stale) throw e;
@@ -2224,6 +2231,18 @@
       throw new Error('Could not save — others kept saving at the same moment. It will try again.');
     } catch (e) { this.err = e.message || String(e); this.lastW = Date.now() + 8000; }
     finally { this.busy = false; }
+  };
+  // A save from the ad set link changes a project the designer may not have open, so the
+  // preview on Review links is redrawn here too: that project's own state and photos.
+  RV.thumbFor = async function (sid) {
+    const p = this.proj[sid]; if (!p || this.embed || this.role === 'pm') return;
+    const now = Date.now(); if (now - (p.thumbAt || 0) < 5000) { p.thumbDue = true; return; }
+    p.thumbAt = now; p.thumbDue = false;
+    try {
+      const th = await this.eng.rvThumb(p.st, await this.photos(sid));
+      if (th) await api('thumb', { id: this.tok, p: sid }, { thumb: th, sum: this.eng.rvSum(p.st) });
+    } catch (e) { p.thumbDue = true; }
+    if (p.thumbDue) setTimeout(() => { if (this.proj[sid] && this.proj[sid].thumbDue) this.thumbFor(sid); }, 5200);
   };
   RV.burstOf = function (ch) {
     const now = Date.now();
@@ -4131,7 +4150,7 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-c{align-items:stretch;gap:16px;padding:14px 12px 14px 14px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rva-c:hover{box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
 .rva-c:hover .rva-go{color:var(--ps-ink);transform:translateX(2px)}
-.rva-th{width:76px;height:95px;border-radius:10px;align-self:center}
+.rva-th{width:95px;height:95px;border-radius:10px;align-self:center}
 .rva-ct{gap:8px;justify-content:center}
 .rva-n b{font:500 16px/1.25 var(--ps-font);color:var(--ps-ink)}
 .rva-now{display:flex;align-items:center;gap:7px;min-width:0;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
@@ -4149,7 +4168,7 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-m{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rva-n b{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .rva-go{flex:none;align-self:center;width:20px;height:20px;fill:currentColor;color:var(--ps-dim);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-@media (max-width:760px){.rvo-top{gap:20px}.rvo-hero{flex-basis:100%}.rvo-hero b{font-size:40px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}.rva-add{flex-basis:100%}.rva-grid{grid-template-columns:minmax(0,1fr)}.rva-c{min-width:0}.rva-th{width:64px;height:80px}}
+@media (max-width:760px){.rvo-top{gap:20px}.rvo-hero{flex-basis:100%}.rvo-hero b{font-size:40px}.rvo-steps{grid-template-columns:repeat(2,1fr);row-gap:18px}.rva-add{flex-basis:100%}.rva-grid{grid-template-columns:minmax(0,1fr)}.rva-c{min-width:0}.rva-th{width:76px;height:76px}}
 @media (prefers-reduced-motion:reduce){.rva-go{transition:none}}
 /* THE AD SET PAGE, REORDERED (2026-10-27, by request): header, then its controls (Add a
    project opens a pop-up; Remove / Delete sit quietly at the right), Progress edge to edge,
