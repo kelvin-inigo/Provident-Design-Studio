@@ -17077,6 +17077,12 @@ Provident resolves to the same face.
   Weights ride with the pick (`wH`/`wB`/`wA`) so loading never needs the catalog —
   `fontLoad` asks the CSS2 API only for weights the family has (it refuses others). A load
   clears `StudioBase._asc` and re-renders (`_rerender`).
+- **The switch floats over the stage, bottom left** (2026-10-28, by request): `.p-lkdock` /
+  `.p-lkseg`, a sibling of `.p-dock` in `.p-body`, styled as the dock's twin — 36px pill on
+  `--ps-card` with a hairline, the chosen half the solid navy with no stroke — at
+  `padding-left: 272px + 28px`, the same bottoms as the dock (62 / 115), z 29 so the dock's
+  panel stays above it, rising with `html.lk-on`. On a phone it sits one row above the dock
+  (`bottom:159px`). It left the canvas bar; the `.p-cvbrand` CSS matches nothing.
 - **The strip** is `CampaignStudio.LookStrip`, plain DOM in an empty `[data-look-host]` under the
   stage (mounted from the shell's `_vtTick` via `eng.lookMount`), shown while the look is on.
   Palette from the photo: k-means on a 60x80 sample of `adstudio-bg-<vi>`, roles by `lookAssign`,

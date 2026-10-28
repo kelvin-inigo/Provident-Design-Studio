@@ -549,8 +549,8 @@ No API key or service is needed: Claude Code reads the screenshot.
 
 ### Unbranded ads
 
-For an ad that must not carry the Provident brand, use the **Provident | Unbranded** switch in
-the bar under the canvas. It applies to the whole project: every variant, size and banner.
+For an ad that must not carry the Provident brand, use the **Provident | Unbranded** switch that
+floats at the bottom left of the canvas, across from **Add Variant** and **All variants**. It applies to the whole project: every variant, size and banner.
 
 - The **provident.** wordmark, the collaboration logo and the QR code are not drawn, and the
   wordmark's space goes back to the copy. The layout, components and copy stay as they are.
