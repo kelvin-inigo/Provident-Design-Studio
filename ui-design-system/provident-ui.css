@@ -1146,6 +1146,8 @@ input[type=range].p-range:focus-visible,input[type=range].p-tri-in:focus-visible
    every filled control in this system uses (5.12:1), it needs no new value, and because
    both tokens are single-valued it cannot drift between themes. */
 ::selection{background:rgba(26,41,66,.18); color:inherit}
+/* Dark mode: the navy selection tint vanished on dark fields. A bright blue wash with white ink reads on every dark surface. */
+:root:not([data-theme="light"]) ::selection{background:rgba(87,139,250,.55); color:#fff}
 .ps,.p-shell{caret-color:var(--ps-link); text-underline-offset:2px}
 .p-fld > s,.p-lab > s,.p-cap > s,.p-hint,.p-tag,.p-badge,
 table,.p-in[type=number]{font-variant-numeric:tabular-nums}

@@ -2221,6 +2221,8 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
 /* the accent at 18% measured 1.18:1 dark / 1.25 light — a highlight you cannot see.
    Solid accent with --ps-accent-i is 5.12:1 and cannot drift between themes. */
 ::selection{background:var(--ps-accent); color:var(--ps-accent-i)}
+/* Dark mode: the navy selection tint vanished on dark fields. A bright blue wash with white ink reads on every dark surface. */
+:root:not([data-theme="light"]) ::selection{background:rgba(87,139,250,.55); color:#fff}
 .p-shell{caret-color:var(--ps-link); text-underline-offset:2px}
 .p-fld > s,.p-lab > s,.p-cap > s,.p-hint,.p-tag,.p-badge{font-variant-numeric:tabular-nums}
 /* Organic's guided run uses its own field and button classes, so the ring has to

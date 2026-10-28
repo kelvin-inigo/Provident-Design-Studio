@@ -2407,6 +2407,8 @@ select.p-in{background-color:transparent}
 h1,h2,h3{font-weight:400; line-height:1.11; letter-spacing:-.01em}
 ::placeholder{font-weight:400; color:var(--ps-dim)}
 ::selection{background:rgba(26,41,66,.18); color:inherit}
+/* Dark mode: the navy selection tint vanished on dark fields. A bright blue wash with white ink reads on every dark surface. */
+:root:not([data-theme="light"]) ::selection{background:rgba(87,139,250,.55); color:#fff}
 
 /* THE TRACKED-CAPS KICKER IS RETIRED, and Coinbase is what retires it: its whole
    scale is sentence case and its two small roles are Small 13/600 and Caption 14/600.

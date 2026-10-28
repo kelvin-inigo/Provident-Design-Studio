@@ -17036,3 +17036,8 @@ the end of its sheet ("REVIEW PANEL AND DETAILS WINDOW, REFINED").
   Testing note: the Browser pane rewrites a 16-char token in a URL it navigates to, so open a
   review link by calling `eng.shareOpenLink(tok)`, and set `localStorage['provident-share-base']`
   to the local origin first or the studio talks to the public site.
+
+**Text selection is visible in dark mode (2026-10-28, by request).** The winning `::selection`
+rule in every sheet was a navy tint at 18%, which vanished on a dark field. All three consumers
+and the kit now add `:root:not([data-theme="light"]) ::selection{background:rgba(87,139,250,.55);
+color:#fff}` right after it; light mode keeps the navy tint.
