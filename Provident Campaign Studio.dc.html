@@ -4746,6 +4746,28 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 /* The project browser's views share one column: the header runs full width, and every
    view under it sits in a centred 1240 column, the Review links page's own width. */
 .p-br-mn > :not(.p-br-h){max-width:1240px;margin-inline:auto;box-sizing:border-box}
+/* 57. ORGANIZE PAGES (carousel). A sheet of the pages as real 1:1 renders, dragged to
+   reorder; the line on a tile's edge says where the dragged page lands. */
+.pg-ov{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(10,11,13,.55)}
+.pg-in{width:min(880px,100%);max-height:calc(100vh - 48px);overflow:auto;padding:22px 24px 26px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-hair)}
+.pg-h{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px}
+.pg-ht{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pg-ht b{font:500 18px/1.3 var(--ps-font)}
+.pg-ht s{text-decoration:none;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.pg-done{flex:none}
+.pg-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:18px 16px}
+.pg-t{position:relative;display:flex;flex-direction:column;gap:8px;padding:6px;border-radius:12px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;outline:none;transition:opacity var(--ps-motion) var(--ps-ease)}
+.pg-t:hover{background:var(--ps-fill)}
+.pg-t:focus-visible{box-shadow:0 0 0 2px var(--ps-ink)}
+.pg-t[data-drag]{opacity:.4;cursor:grabbing}
+.pg-th{display:block;aspect-ratio:1;border-radius:8px;background:var(--ps-stage) center/cover no-repeat;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.pg-t[data-on] .pg-th{box-shadow:0 0 0 2px var(--ps-link)}
+.pg-n{display:flex;align-items:center;gap:4px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.pg-grip{width:16px;height:16px;flex:none;color:var(--ps-dim)}
+.pg-t[data-drop]::after{content:'';position:absolute;top:4px;bottom:4px;width:3px;border-radius:3px;background:var(--ps-link)}
+.pg-t[data-drop="before"]::after{left:-10px}
+.pg-t[data-drop="after"]::after{right:-10px}
+@media (prefers-reduced-motion:reduce){.pg-t{transition:none}}
 </style>
 </helmet>
 
@@ -5714,10 +5736,30 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
       </sc-if>
       <div class="p-dock-r">
         <button onClick="{{ addVariant }}" class="p-dock-t p-dock-add" title="{{ addVariantLabel }}" data-max="{{ addVarMaxOn }}"><svg class="p-dock-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>{{ addVariantText }}<s class="p-dock-n">{{ varCount }}</s></button>
+        <sc-if value="{{ pgBtnOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pgOpen }}" class="p-dock-t p-dock-pg" title="Organize pages: drag to change their order"><svg class="p-dock-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="7" height="14" rx="1.5"/><rect x="14" y="5" width="7" height="14" rx="1.5"/><path d="M10 12h4m-1.5-1.5L14 12l-1.5 1.5"/></svg>Organize pages</button></sc-if>
         <button onClick="{{ toggleAllVars }}" class="p-dock-t p-dock-opt" data-on="{{ allVarsOn }}" aria-expanded="{{ allVarsAria }}"><svg class="p-dock-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>{{ allVarsBtn }}<svg class="p-dock-g p-dock-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
       </div>
     </div>
   </div>
+
+<sc-if value="{{ pgOn }}" hint-placeholder-val="{{ false }}">
+  <div class="pg-ov" onClick="{{ pgBackdrop }}">
+    <div class="pg-in" role="dialog" aria-modal="true" aria-label="Organize pages">
+      <div class="pg-h">
+        <div class="pg-ht"><b>Organize pages</b><s>Drag a page to move it. This is the order people swipe through.</s></div>
+        <button onClick="{{ pgClose }}" class="p-btn pg-done">Done</button>
+      </div>
+      <ol class="pg-grid">
+        <sc-for list="{{ pgTiles }}" as="t" hint-placeholder-count="3">
+          <li class="pg-t" data-pgi="{{ t.i }}" data-on="{{ t.on }}" tabindex="0" title="{{ t.tip }}" onDoubleClick="{{ t.edit }}">
+            <span class="pg-th" style="{{ t.thStyle }}"></span>
+            <span class="pg-n"><svg class="pg-grip" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7" r="1.4"/><circle cx="15" cy="7" r="1.4"/><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><circle cx="9" cy="17" r="1.4"/><circle cx="15" cy="17" r="1.4"/></svg>{{ t.label }}</span>
+          </li>
+        </sc-for>
+      </ol>
+    </div>
+  </div>
+</sc-if>
 
 <!-- ══════════════════════════════════════════════════════════════════════
      CAMPAIGN AD STUDIO
@@ -6918,6 +6960,7 @@ class CampaignStudio extends StudioBase {
     // workflow: the status and the snapshot history are carried over from NOW, because
     // `strip()` leaves them out of every undo entry's comparison on purpose.
     const cur = this.state || {};
+    CampaignStudio.permutePageSlots(cur.variants, st.variants);
     const n = Object.assign({}, st, {
       screen: cur.screen === 'copy' ? cur.screen : 'editor',
       copyStatus: cur.copyStatus || st.copyStatus || 'draft',
@@ -8929,6 +8972,22 @@ class CampaignStudio extends StudioBase {
     if (!IS || !IS.moveSlot) return;
     for (let j = at; j < CampaignStudio.ICON_MAX - 1; j++) IS.moveSlot('adstudio-ic-' + id + '-' + (j + 1), 'adstudio-ic-' + id + '-' + j);
     IS.moveSlot(null, 'adstudio-ic-' + id + '-' + (CampaignStudio.ICON_MAX - 1));
+  }
+  // ORGANIZE PAGES. Photos are keyed by POSITION (`adstudio-bg-<vi>` and its size slots), so
+  // any change that reorders variants has to move them too. Each variant carries a stable
+  // `pgid` once a reorder has happened, and this compares two variant lists by it: when they
+  // hold the same pages in another order, every page's photos follow it. Read by movePage AND
+  // by restore(), so Undo / Redo of a reorder put the photos back as well. Anything else (a
+  // page added or removed, ids missing or repeated) is left alone.
+  static pageSlotIds(k) { return ['adstudio-bg-' + k, 'adstudio-bg-' + k + '-st', 'adstudio-bg-' + k + '-ls', 'adstudio-bg-' + k + '-bn', 'adstudio-bg-' + k + '-pt', 'adstudio-fg-' + k]; }
+  static permutePageSlots(cur, next) {
+    const IS = customElements.get('image-slot');
+    if (!IS || !IS.getRec || !IS.putRec || (IS.ready && !IS.ready())) return;
+    if (!Array.isArray(cur) || !Array.isArray(next) || cur.length !== next.length || cur.length < 2) return;
+    const ix = next.map(v => cur.findIndex(c => c && v && c.pgid && c.pgid === v.pgid));
+    if (ix.some(j => j < 0) || new Set(ix).size !== ix.length || ix.every((j, i) => j === i)) return;
+    const recs = cur.map((_, k) => CampaignStudio.pageSlotIds(k).map(id => IS.getRec(id)));
+    ix.forEach((j, i) => { if (j !== i) CampaignStudio.pageSlotIds(i).forEach((id, q) => IS.putRec(id, recs[j][q])); });
   }
   static clearModArt(ids) {
     const IS = customElements.get('image-slot');
@@ -12315,6 +12374,104 @@ class CampaignStudio extends StudioBase {
   // ── the style tiles (see CampaignStudio.VT) ─────────────────────────────────────────
   // What the tiles depend on: the component and its copy, the canvas it is selected on, its
   // size there, the palette, alignment and wash, the face, and whether its pictures are in.
+  // ── Organize pages (carousel) ────────────────────────────────────────────────────────
+  // A sheet of the pages as real renders (buildOps, the 1:1), dragged to reorder. Instance
+  // state, never saved: which sheet is open is not a change to the ad.
+  pgOpen() { this._pgOpen = true; this.forceUpdate(); this.pgSync(); }
+  pgClose() { this._pgOpen = false; this._pgDrag = null; this.forceUpdate(); }
+  // Give every page a stable id first, OUTSIDE the undo stack, so the undo entry the move
+  // makes already carries them and restore() can put the photos back.
+  pgIds(cb) {
+    const seen = new Set();
+    if ((this.state.variants || []).every(v => v.pgid && !seen.has(v.pgid) && seen.add(v.pgid))) return cb();
+    const n = JSON.parse(JSON.stringify(this.state)), got = new Set();
+    n.variants.forEach(v => { if (!v.pgid || got.has(v.pgid)) v.pgid = 'pg' + Math.random().toString(36).slice(2, 10); got.add(v.pgid); });
+    this.setState(n, () => { this.persist(); cb(); });
+  }
+  // Move page `from` so it lands before the page now at `to` (to === length: the end).
+  movePage(from, to) {
+    const n0 = (this.state.variants || []).length;
+    if (from < 0 || from >= n0 || to < 0 || to > n0) return;
+    const dest = from < to ? to - 1 : to;
+    if (dest === from) return;
+    this.pgIds(() => {
+      const cur = this.state.variants, act = this.state.activeVi || 0;
+      const order = cur.map((_, k) => k); order.splice(from, 1); order.splice(dest, 0, from);
+      const next = order.map(k => cur[k]);
+      CampaignStudio.permutePageSlots(cur, next);
+      this.upd(x => { x.variants = order.map(k => x.variants[k]); x.activeVi = Math.max(0, order.indexOf(act)); x.sel = null; return x; });
+      this._pgFocus = dest;
+    });
+  }
+  pgKey() { const s = this.state; return CampaignStudio.strip(s) + '|' + StudioBase.fontKey(s) + '|' + JSON.stringify(this._filled || {}); }
+  pgSync() {
+    if (!this._pgOpen) return;
+    const k = this.pgKey();
+    if (k === this._pgKey || this._pgBusy) { if (this._pgBusy) this._pgAgain = true; return; }
+    this._pgBusy = true; this._pgAgain = false;
+    (async () => {
+      try {
+        const st = this.state, fam = StudioBase.applyFont(st).fam;
+        const safe = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+        await Promise.all(['300 41px', '400 59px', '300 85px', '500 24px', '300 28px'].map(w => safe(w + ' "' + fam + '"')).concat([StudioBase.ensureFont(StudioBase.fontKey(st))]));
+        try { await document.fonts.ready; } catch (e) {}
+        const assets = await this.loadAssets(st), shots = {};
+        // keyed by the page's id when it has one, so a moved page keeps its picture until the
+        // re-render lands instead of flashing its neighbour's
+        st.variants.forEach((v, vi) => { shots[v.pgid || ('i' + vi)] = this.renderOpsToCanvas(this.buildOps(st, vi, 'sq', assets), .2).toDataURL('image/webp', .85); });
+        this._pgShots = shots; this._pgKey = k;
+      } catch (e) { console.warn('[provident] page thumbnails failed', e); this._pgKey = k; }
+      this._pgBusy = false; this.forceUpdate();
+      if (this._pgAgain) this.pgSync();
+    })();
+  }
+  // One delegated pointer + key handler, bound once. A press that travels 5px is a drag; a
+  // line marks where it lands (before or after the tile under the pointer, by its half).
+  pgBind() {
+    if (this._pgBound) return; this._pgBound = true;
+    const tileAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest ? el.closest('.pg-ov [data-pgi]') : null; };
+    const clear = () => document.querySelectorAll('.pg-ov [data-drop],.pg-ov [data-drag]').forEach(e => { e.removeAttribute('data-drop'); e.removeAttribute('data-drag'); });
+    document.addEventListener('pointerdown', e => {
+      const t = e.target.closest && e.target.closest('.pg-ov [data-pgi]');
+      if (!t || e.button !== 0) return;
+      const from = +t.getAttribute('data-pgi'), x0 = e.clientX, y0 = e.clientY;
+      let live = false, to = -1;
+      const mv = ev => {
+        if (!live && Math.hypot(ev.clientX - x0, ev.clientY - y0) < 5) return;
+        if (!live) { live = true; t.setAttribute('data-drag', '1'); }
+        ev.preventDefault();
+        document.querySelectorAll('.pg-ov [data-drop]').forEach(z => z.removeAttribute('data-drop'));
+        const o = tileAt(ev.clientX, ev.clientY);
+        if (!o) { to = -1; return; }
+        const r = o.getBoundingClientRect(), after = ev.clientX > r.left + r.width / 2, i = +o.getAttribute('data-pgi');
+        to = i + (after ? 1 : 0); o.setAttribute('data-drop', after ? 'after' : 'before');
+      };
+      const up = ev => {
+        document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
+        clear();
+        if (!live) return;
+        const sw = c => { c.stopPropagation(); c.preventDefault(); document.removeEventListener('click', sw, true); };
+        document.addEventListener('click', sw, true); setTimeout(() => document.removeEventListener('click', sw, true), 0);
+        if (ev.type === 'pointerup' && to >= 0) this.movePage(from, to);
+      };
+      document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+    });
+    document.addEventListener('keydown', e => {
+      if (!this._pgOpen) return;
+      if (e.key === 'Escape') { this.pgClose(); return; }
+      const t = e.target.closest && e.target.closest('.pg-ov [data-pgi]');
+      if (!t) return;
+      const i = +t.getAttribute('data-pgi'), n = (this.state.variants || []).length;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); if (i > 0) this.movePage(i, i - 1); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); if (i < n - 1) this.movePage(i, i + 2); }
+      else if (e.key === 'Enter') { e.preventDefault(); this.upd(x => { x.activeVi = i; return x; }); this.pgClose(); }
+    });
+  }
+  pgFocusTick() {
+    if (this._pgFocus == null) return;
+    const el = document.querySelector('.pg-ov [data-pgi="' + this._pgFocus + '"]');
+    if (el) { el.focus(); this._pgFocus = null; }
+  }
   vtKey() {
     const s = this.state, sel = s.sel, C = CampaignStudio;
     if (!sel || s.screen !== 'editor') return '';
@@ -15161,6 +15318,21 @@ class CampaignStudio extends StudioBase {
       qrAria: s.qr.show ? 'true' : 'false', coAria: (s.colog && s.colog.on) ? 'true' : 'false',
       addVarMaxOn: s.variants.length >= CampaignStudio.maxVars(s) ? '1' : undefined,
       varCount: s.variants.length + '/' + CampaignStudio.maxVars(s),
+      pgBtnOn: CampaignStudio.isCarousel(s) && s.variants.length > 1,
+      pgOpen: () => this.pgOpen(),
+      pgClose: () => this.pgClose(),
+      pgOn: !!(this._pgOpen && CampaignStudio.isCarousel(s)),
+      pgBackdrop: e => { if (e && e.target === e.currentTarget) this.pgClose(); },
+      pgTiles: s.variants.map((v, i) => {
+        const u = (this._pgShots || {})[v.pgid || ('i' + i)];
+        return {
+          i: String(i), key: (v.pgid || 'i' + i), label: 'Page ' + (i + 1),
+          on: s.activeVi === i ? '1' : undefined,
+          tip: 'Drag to move · arrow keys move it one place · Enter edits this page',
+          thStyle: u ? { backgroundImage: 'url(' + u + ')' } : {},
+          edit: () => { this.upd(x => { x.activeVi = i; return x; }); this.pgClose(); },
+        };
+      }),
       // the dock says the state as a PAIR now — Visible | Hidden, Off | On — so each half
       // needs its own setter and its own flag; the toggle keys above stay for any other reader
       qrSetShow: () => this.upd(x => { x.qr.show = true; return x; }),
@@ -16582,7 +16754,7 @@ class Component extends DCLogic {
       try { live.set(el, make(el, { play: true, intensity: .6 })); } catch (e) { console.warn('hairline', e); }
     });
   }
-  _vtTick() { this.hlBind(); this.accBind(); const e = this.active(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
+  _vtTick() { this.hlBind(); this.accBind(); const e = this.active(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.pgBind) { e.pgBind(); if (e._pgOpen) { e.pgSync(); e.pgFocusTick(); } } if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
   // The copy view's preview is the real export, re-rendered off a key — so, like the
   // placement preview, calling it on every update is a no-op unless the words moved.
   _cwTick() { const e = this.active(); if (e && e.state && e.state.screen === 'copy' && e.cwSync) e.cwSync(); }

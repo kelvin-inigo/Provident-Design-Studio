@@ -521,6 +521,10 @@ No API key or service is needed: Claude Code reads the screenshot.
   out of the most allowed) holds the settings for the whole project:
   - **Format** is a pair of cards: **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
     and each page has its own components, words and photo.
+- **Organize pages** (beside **Add Page**, on a carousel with two or more pages) opens every
+  page as a picture. Drag a page to move it: a line shows where it will land. Its photo moves
+  with it. You can also select a page and use the arrow keys, or press Enter or double-click a
+  page to edit it. Undo reverses a move. Press **Done** or Escape to close.
   - **Story 9:16**, **QR code** and **Collaboration logo** are switches. The line under each
     one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
     on, pick the **Corner** it sits in.

@@ -16958,3 +16958,18 @@ refreshing as well").
 Verified on the Drive stand-in: an edited heading's preview landed ~5s after its save with rev
 unchanged, the card showed it, a real click on Refresh re-read from Drive, an expired token showed
 the amber state. The real Reconnect popup was not clicked (it opens Google's real sign-in).
+
+# CAS CAROUSEL PAGES CAN BE REORDERED — "Organize pages" (2026-10-28)
+
+By request. A dock pill **Organize pages** (carousel, 2+ pages, `pgBtnOn`) opens `.pg-ov`
+(section 57 of the sheet): every page as a 1:1 render (`pgSync`, buildOps at .2, keyed on
+`pgKey`, thumbnails keyed by the page's `pgid`), dragged with pointer events (`pgBind`, bound
+once from the shell's `_vtTick`; 5px threshold, a line on the target tile's half), arrow keys
+move the focused page one place, Enter / double-click edits it, Escape or Done closes.
+`movePage(from, to)` reorders `variants` and keeps `activeVi` on the same page.
+**Photos are keyed by POSITION**, so `CampaignStudio.permutePageSlots(cur, next)` moves every
+page's slots (`pageSlotIds(k)`: bg, -st, -ls, -bn, -pt, fg) when two variant lists hold the
+same `pgid`s in another order. `pgIds` gives every variant a unique `pgid` FIRST, outside the
+undo stack, and `restore()` calls the permute too, so Undo / Redo move the photos back.
+Verified with a real drag on three coloured pages: copy and photo moved together, Undo, Redo
+and the arrow keys kept them in step, no console errors. `_pgOpen` is instance state.
