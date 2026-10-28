@@ -17144,3 +17144,61 @@ head of each card's meta line and as a **Brand** row in Details. Drive ad sets o
 share-store ones show nothing. Also: after `AV.heal` finishes, the page re-reads from Drive,
 because the first paint could keep the ad set's old picture (seen live: previews were saved to
 Drive but the cards changed only after a refresh).
+
+# A CAMPAIGN STARTS AS A TICKET; THE COPY TAB IS THE AD SET TAB (2026-10-28)
+
+By request: performance marketing files the campaign first, the designer picks it up, and the
+designer's flow is three moves — **initial setup · Design done · Create next audience**. CAS
+only; everything is in `share-link.js` plus markup and one CSS block (section 59) in CAS.
+
+- **Every CAS project is in a campaign.** Blank project, Share › Copy edit link and Share › Ad
+  set review are gone. A project outside one (old, opened with Open session) shows **Set up** in
+  the Ad set tab, which is `reviewCreate()` as before.
+- **A ticket is an ad set with no project yet** (`isOpen(rs)`: `rs.ticket && !items.length`).
+  `dsMakeSet(plan, by, ticket, files, busy)` writes `<name>_Adset.json` into the folder the
+  person names — **one folder per campaign** (it refuses a folder that already holds one) —
+  with `ticket: {brief, deadline, by, at, files:[{id,name,type,size}]}`, the plan cells and
+  `eng_only`, the three tokens; the files go to `<folder>/Brief/`. Drive only.
+- **The home page form (PlanView) is "Set up the campaign"**: name, product, deadline, Drive
+  folder (NOT remembered — a folder is a campaign), brief, files, audience tiles. **File as
+  ticket** shows the designer link; **Start designing** files it and picks it up at once.
+- **Status** is the old Review links page (`ArchView`, `splashView: 'rev'`): **New ticket**,
+  then Open tickets · In design · Package ready · Missing. An open ticket's page shows the brief
+  (`briefHtml`), files (Drive links), audiences and **Pick up**. The list is still this
+  computer's `provident-reviews`; a ticket from another computer appears once its designer link
+  is pasted.
+- **Pick up** = `pickUp(eng, dd)`: `provident-rspick` in localStorage, then `newProject()`.
+  After the reload `rsPickCheck()` (from `shareInit`, replacing `rsPlanCheck`) adds the project
+  as the first planned ENG audience through `dsReview` mode `add`, names it after the campaign,
+  binds the link and lands on the Ad set tab. The first project of a ticket sets `rs.picked`.
+- **The Ad set tab** (`screen: 'copy'`, top-bar label **Ad set | Design**) replaced the Copy
+  window: two plain-DOM hosts `.adt-host[data-adt="top|bot"]` filled by `SP.adtRender` (mounted
+  from `shareVals` with Arch and Plan), around CAS markup for **Copy from Claude** (the old
+  brief card's reply step only — brief, audiences, format, notes, pictures and Open in Claude are
+  gone from the markup; their render keys are still computed). Top: campaign · product, audience
+  and language, its now-line, **Overview**, the stage action (`adtNext`), the steps. Bottom:
+  Audiences (tiles; AR and Markets & audiences write `rsset {plan}`), Brief, Activity (ad set
+  log via `rsget full` + this project's log), Links for the teams. The words list and History
+  are gone; `copyVals` still computes them.
+- **`adtNext()` is the one answer to "what next"**, read by the tab and by the canvas bar's
+  button (`rsFlow*` keys; `rsFwd*` are unread now): Design done → Make the Arabic (this
+  audience's ARB, once its English copy is approved) → Create next audience → none.
+- **Create next audience is BLANK**: `rsNext` for an ENG cell clears the project's photo slots
+  and resets the state to `defaults()` (campaign name kept, screen 'copy') before `dsReview`;
+  an ARB cell still copies the design. The brief store's `audSet/filled/page/head` reset, so
+  the reply picks the new audience.
+- **Claude's reply is stored on the ad set** (`rs.reply`, `rsset {reply}`, debounced by
+  `rsReplySave` from `onBrReply`); the tab copies it into an empty local brief store.
+  `dsApi rsset` also takes `plan` and `product`; `dsPub` carries `ticket`, `picked`, `reply`.
+- **The Changes pill and panel step aside for a campaign project** (`.shl[data-camp]`,
+  `adtPill`), and `shPanel(true)` sends it to the Ad set tab instead. **Never flag the panel
+  root with `data-adt`** — `adtRender` writes into `[data-adt]` hosts, and the first cut of this
+  overwrote the panel itself, which hung Design done (rvRender threw on the missing h2).
+
+Verified on the Drive stand-in, real clicks where it mattered: file a ticket with two files
+(Brief/ written), Status lists it as Open, the ticket page, Pick up as another account (lands on
+the Ad set tab as Local · Family), paste a reply → Families picked → Fill, Design done from the
+canvas bar (pre-check, step saved, button turns to Create next audience), Create next audience
+(blank, Local · Investor, Investors picked from the stored reply), Share menu export-only, a
+project outside a campaign shows Set up. Contrast 0 failures over the tab, Status, the ticket
+page and the form in both themes; no overflow at 375. **Not exercised on real Google Drive.**

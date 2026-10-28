@@ -4886,6 +4886,18 @@ html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 @media (max-width:1200px){.p-lkdock{bottom:115px}}
 @media (max-width:760px){.p-lkdock{padding-left:14px;bottom:159px}}   /* a phone has no room beside the dock row, so it sits one row above it */
 html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
+/* 60. THE AD SET TAB (2026-10-28) — the Copy window's place: this project in its campaign.
+   share-link.js styles its own two hosts; this styles the reply section between them. */
+.cw-in{max-width:760px}
+.adt-host:empty{display:none}
+.adt-reply{display:flex;flex-direction:column;gap:12px;padding:20px}
+.adt-reply .adt-ch{margin:0}
+.adt-reply textarea.p-in{width:100%;box-sizing:border-box;min-height:96px;height:auto;padding:12px 14px;line-height:1.5;resize:vertical}
+.adt-reply .cw-acts{justify-content:flex-start}
+.adt-tip{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:auto;margin-left:6px;border-radius:50%;background:var(--ps-fill);color:var(--ps-ink-2);font:600 10.5px/1 var(--ps-font);cursor:help}
+.adt-reply .adt-ch h3{margin:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.adt-msg{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:12px 14px;border-radius:12px;background:var(--ps-good-q);font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink)}
+.cw-pv-n{font-size:12.5px;color:var(--ps-dim)}
 </style>
 </helmet>
 
@@ -4914,7 +4926,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
       <div class="p-sec-l">Review</div>
       <button onClick="{{ shViewUse }}" data-on="{{ shViewUseOn }}" class="p-nav2" title="How often each design component and style is used across your saved projects"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M676.15-180q-15.36 0-25.76-10.4Q640-200.79 640-216.16V-380q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h67.69q15.37 0 25.76 10.39Q780-395.36 780-380v163.84q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4h-67.69Zm-230 0q-15.36 0-25.76-10.4Q410-200.79 410-216.16v-527.68q0-15.37 10.39-25.76 10.4-10.4 25.76-10.4h67.7q15.36 0 25.76 10.4Q550-759.21 550-743.84v527.68q0 15.37-10.39 25.76-10.4 10.4-25.76 10.4h-67.7Zm-229.99 0q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-331.35q0-15.64 10.4-25.99 10.39-10.34 25.76-10.34h67.69q15.36 0 25.76 10.39Q320-563.06 320-547.69v331.35q0 15.65-10.39 25.99Q299.21-180 283.85-180h-67.69Z"/></svg></i>Component usage</button>
-      <button onClick="{{ shViewRev }}" data-on="{{ shViewRevOn }}" class="p-nav2" title="Every ad set review you started or worked on: each audience's status, the links and everything that changed"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-140Q142-140 121-161q-21-21-21-51.31v-535.38Q100-778 121-799q21-21 51.31-21h615.38Q818-820 839-799q21 21 21 51.31v535.38Q860-182 839-161q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM360-290q12.77 0 21.38-8.62Q390-307.23 390-320t-8.62-21.38Q372.77-350 360-350H240q-12.77 0-21.38 8.62Q210-332.77 210-320t8.62 21.38Q227.23-290 240-290h120Zm222-168.77-35.92-35.92q-8.93-8.92-21.08-8.81-12.15.12-21.08 9.42-8.3 8.93-8.42 21.08-.11 12.15 8.81 21.08l52.38 52.38q10.85 10.85 25.31 10.85 14.46 0 25.31-10.85l137.38-137.38q8.92-8.93 9.12-20.89.19-11.96-9.12-21.27-9.31-9.3-21.38-9.3-12.08 0-21.39 9.3L582-458.77ZM360-450q12.77 0 21.38-8.62Q390-467.23 390-480t-8.62-21.38Q372.77-510 360-510H240q-12.77 0-21.38 8.62Q210-492.77 210-480t8.62 21.38Q227.23-450 240-450h120Zm0-160q12.77 0 21.38-8.62Q390-627.23 390-640t-8.62-21.38Q372.77-670 360-670H240q-12.77 0-21.38 8.62Q210-652.77 210-640t8.62 21.38Q227.23-610 240-610h120ZM160-200v-560 560Z"/></svg></i>Review links</button>
+      <button onClick="{{ shViewRev }}" data-on="{{ shViewRevOn }}" class="p-nav2" title="Every campaign: open tickets, audiences in design, packages ready to run"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-140Q142-140 121-161q-21-21-21-51.31v-535.38Q100-778 121-799q21-21 51.31-21h615.38Q818-820 839-799q21 21 21 51.31v535.38Q860-182 839-161q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM360-290q12.77 0 21.38-8.62Q390-307.23 390-320t-8.62-21.38Q372.77-350 360-350H240q-12.77 0-21.38 8.62Q210-332.77 210-320t8.62 21.38Q227.23-290 240-290h120Zm222-168.77-35.92-35.92q-8.93-8.92-21.08-8.81-12.15.12-21.08 9.42-8.3 8.93-8.42 21.08-.11 12.15 8.81 21.08l52.38 52.38q10.85 10.85 25.31 10.85 14.46 0 25.31-10.85l137.38-137.38q8.92-8.93 9.12-20.89.19-11.96-9.12-21.27-9.31-9.3-21.38-9.3-12.08 0-21.39 9.3L582-458.77ZM360-450q12.77 0 21.38-8.62Q390-467.23 390-480t-8.62-21.38Q372.77-510 360-510H240q-12.77 0-21.38 8.62Q210-492.77 210-480t8.62 21.38Q227.23-450 240-450h120Zm0-160q12.77 0 21.38-8.62Q390-627.23 390-640t-8.62-21.38Q372.77-670 360-670H240q-12.77 0-21.38 8.62Q210-652.77 210-640t8.62 21.38Q227.23-610 240-610h120ZM160-200v-560 560Z"/></svg></i>Status</button>
       <div class="p-sec-l">Session</div>
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ continueSession }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M479.23-140q-120.61 0-212.61-73.62-92-73.61-117.93-188.38-3.23-11.92 3.89-21.92 7.11-10 20.27-11.62 12.15-1.61 21.88 4.85 9.73 6.46 13.58 19Q231.15-319 306.73-259.5t172.5 59.5q117 0 198.5-81.5t81.5-198.5q0-117-81.5-198.5T479.23-760q-65.54 0-122.84 29.12-57.31 29.11-98.7 80.11h74.62q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62H195.39q-15.46 0-25.81-10.35-10.35-10.34-10.35-25.81v-136.92q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.39 8.62q8.61 8.61 8.61 21.38v64.77q48.69-57.46 116.62-89.19Q403.77-820 479.23-820q70.77 0 132.62 26.77 61.84 26.77 107.84 72.77t72.77 107.85q26.77 61.84 26.77 132.61 0 70.77-26.77 132.61-26.77 61.85-72.77 107.85-46 46-107.84 72.77Q550-140 479.23-140Zm31.15-352.15 110 110q8.31 8.3 8.5 20.88.2 12.58-8.5 21.27-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69l-117-117q-5.61-5.62-8.23-12.15-2.61-6.54-2.61-13.77V-650q0-12.77 8.61-21.38 8.62-8.62 21.38-8.62 12.77 0 21.39 8.62 8.61 8.61 8.61 21.38v157.85Z"/></svg></i><span class="p-nav2-t"><span>Continue last</span><small>{{ continueName }}</small></span></button>
@@ -5101,7 +5113,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
        Meta ad text, or the YouTube text assets. Remembered per computer. -->
   <sc-if value="{{ cwModeOn }}" hint-placeholder-val="{{ true }}">
     <div class="p-seg p-seg-mode" role="group" aria-label="Workspace">
-      <button onClick="{{ cwModeCopy }}" data-on="{{ cwModeCopyOn }}" title="Just the words, in reading order — for copywriters">Copy</button>
+      <button onClick="{{ cwModeCopy }}" data-on="{{ cwModeCopyOn }}" title="This project's campaign: its audience, the copy from Claude, the hand-offs and the activity">Ad set</button>
       <button onClick="{{ cwModeDesign }}" data-on="{{ cwModeDesignOn }}" title="The full design workspace">Design</button>
     </div>
   </sc-if>
@@ -5143,12 +5155,8 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
        already shows and changes the folder. The shDest* keys are still computed and unread. -->
   <button onClick="{{ runExport }}" class="sx-go"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-345.85q-6.23-2.3-11.85-7.92L330.31-478.15q-8.92-8.93-8.81-20.89.12-11.96 8.81-21.27 9.31-9.3 21.38-9.61 12.08-.31 21.39 9L450-444v-306q0-12.77 8.62-21.38Q467.23-780 480-780t21.38 8.62Q510-762.77 510-750v306l76.92-76.92q8.93-8.92 21.19-8.81 12.27.12 21.58 9.42 8.69 9.31 9 21.08.31 11.77-9 21.08L505.31-353.77q-5.62 5.62-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31ZM252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31Z"/></svg>{{ shExportLabel }}</button>
   <sc-if value="{{ shStatusOn }}" hint-placeholder-val="{{ false }}"><p class="sx-status" role="status">{{ shStatus }}</p></sc-if>
-  <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
-  <button onClick="{{ shLinkGo }}" class="sx-eps" data-on="{{ shLinkOn }}" title="{{ shLinkTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ shLinkLabel }}</button>
-  <!-- A REVIEW (share-link.js): the edit link plus a Copy-only link for the content team and an
-       ad-set-only link for performance marketing, with the process Initial design · Copy check ·
-       Deploy campaign. The designer's archive of them is Review links on the home page. -->
-  <sc-if value="{{ rvShareOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ rvGo }}" class="sx-eps" data-on="{{ rvOn }}" title="{{ rvTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M283.85-407.69h53.84q7.23 0 13.77-2.62 6.54-2.61 12.15-8.23l194.54-194.54q7.08-7.46 10.62-16.46 3.54-9 3.54-17.69 0-8.69-3.85-17.08-3.85-8.38-10.31-15.84l-36.38-38q-7.08-7.08-15.96-10.62-8.89-3.54-18.19-3.54-8.7 0-17.7 3.54t-16.46 10.62L258.54-523.61q-5.62 5.61-8.23 12.15-2.62 6.54-2.62 13.77v53.84q0 15.46 10.35 25.81 10.35 10.35 25.81 10.35Zm240.77-239.54-37-37.39 37 37.39ZM295.38-455.38v-38l119.47-119.47 19.23 18.77 18.38 19.62-119.08 119.08h-38Zm138.7-138.7 18.38 19.62-37.61-38.39 19.23 18.77Zm25.61 186.39h222.62q12.77 0 21.38-8.62 8.62-8.61 8.62-21.38t-8.62-21.39q-8.61-8.61-21.38-8.61H519.69l-60 60ZM241.54-260l-80.08 80.07q-17.07 17.08-39.27 7.74Q100-181.54 100-205.85v-581.84Q100-818 121-839q21-21 51.31-21h615.38Q818-860 839-839q21 21 21 51.31v455.38Q860-302 839-281q-21 21-51.31 21H241.54ZM216-320h571.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v523.08L216-320Zm-56 0v-480 480Z"/></svg>{{ rvLabel }}</button></sc-if>
+  <!-- No sharing buttons here (2026-10-28): every Campaign project is in a campaign, and its
+       links live in the Ad set tab. -->
   <!-- Layout guides are kept for a later release; the export path still works,
        only the BUTTON is out of the way — which is why this gate is `guidesBtnOn` and not
        `guidesOn`. The two were one key, so parking the button also killed the dashed
@@ -5175,86 +5183,14 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 <div class="cw">
   <div class="cw-form">
     <div class="cw-in">
-      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
-      <div class="cw-head">
-        <span class="cw-kick">Copy</span>
-        <input value="{{ cwName }}" onChange="{{ onCwName }}" placeholder="Campaign name" class="p-in cw-name" aria-label="Campaign name">
-        <!-- THE REVIEW FLOW (share-link.js rsCopyVals): this project's audience in its ad set,
-             Design › ENG copy check › Translation › Done. Draft › With design › Final is retired. -->
-        <span class="cw-where">{{ rsCwWhere }}</span>
-        <sc-if value="{{ rsInOn }}" hint-placeholder-val="{{ false }}">
-        <div class="cw-steps" aria-label="Where this audience is in the ad set review">
-          <sc-for list="{{ rsCwSteps }}" as="st" hint-placeholder-count="4">
-            <span class="cw-step" data-state="{{ st.state }}" title="{{ st.sub }}"><i>{{ st.n }}</i>{{ st.label }}</span>
-          </sc-for>
-        </div>
-        </sc-if>
-        <p class="cw-note">{{ rsCwNote }}</p>
-      </div>
-      </sc-if>
-      <!-- BRIEF TO COPY, WITH CLAUDE: the /meta-ad-design-copy skill's first stage. The page
-           cannot run Claude — it writes the prompt, opens the Claude app on it, and reads the
-           reply back into the fields below. -->
-      <sc-if value="{{ rsBriefOn }}" hint-placeholder-val="{{ true }}">
-      <details class="cw-page cw-br" data-acc="cw-brief" data-def="1">
-        <summary class="cw-br-s"><span class="cw-br-ic"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg></span><span class="cw-br-t"><b>Start from a brief</b><s>Claude drafts the words below from a fact sheet, script or EOI brief</s></span><em class="cw-br-st" data-on="{{ brSummOn }}">{{ brSumm }}</em><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
-        <ol class="cw-br-steps">
-          <li class="cw-br-step">
-            <div class="cw-br-h"><span><b>The brief</b><s>Video script, developer fact sheet, WhatsApp or EOI brief</s></span></div>
-            <textarea value="{{ brBrief }}" onChange="{{ onBrBrief }}" rows="6" class="p-in" placeholder="Paste the project text here" aria-label="Brief"></textarea>
-            <sc-if value="{{ brAudPickOn }}" hint-placeholder-val="{{ true }}"><div class="cw-br-row"><span class="cw-br-l">Audiences</span>
-              <button onClick="{{ brFam }}" data-on="{{ brFamOn }}" class="cw-br-chip" aria-label="Families"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Families</button>
-              <button onClick="{{ brInv }}" data-on="{{ brInvOn }}" class="cw-br-chip" aria-label="Investors"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Investors</button>
-            </div></sc-if>
-            <sc-if value="{{ brForOn }}" hint-placeholder-val="{{ false }}"><div class="cw-br-row" title="{{ brForTip }}"><span class="cw-br-l">For</span><span class="cw-br-for">{{ brForLabel }}</span></div></sc-if>
-            <div class="cw-br-row" role="radiogroup" aria-label="Format"><span class="cw-br-l">Format</span>
-              <button onClick="{{ brFmtSingle }}" data-on="{{ brFmtSingleOn }}" class="cw-br-chip" role="radio" aria-checked="{{ brFmtSingleAria }}"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Single ad</button>
-              <button onClick="{{ brFmtCar }}" data-on="{{ brFmtCarOn }}" class="cw-br-chip" role="radio" aria-checked="{{ brFmtCarAria }}"><svg class="mk-g cw-br-tk" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>Carousel</button>
-            </div>
-            <p class="cw-hint cw-br-fmt">{{ brFmtNote }}</p>
-            <label class="cw-sub"><span class="cw-sub-t">Notes for Claude <b class="p-ftag p-ftag-opt">Optional</b></span><s>Permit number, what to lead with, what to leave out</s>
-              <input value="{{ brNotes }}" onChange="{{ onBrNotes }}" class="p-in" placeholder="e.g. Trakheesi 7123456 · lead with the beach">
-            </label>
-            <details class="cw-br-more">
-              <summary><span><b>Pictures for the ad</b><s>{{ brMoreSumm }}</s></span><svg class="mk-g cw-br-chev" viewBox="0 -960 960 960" aria-hidden="true"><path d="M466.54-375.23q-6.23-2.31-11.85-7.92L274.92-562.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-442.15l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-383.15q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31t-13.46-2.31Z"/></svg></summary>
-              <div class="cw-br-mb">
-                
-            <div class="cw-br-grp"><span class="cw-br-gl">Logo<s>The developer&#8217;s logo, SVG or PNG</s></span>
-              <div class="cw-br-pics">
-                <div class="cw-br-pic" data-filled="{{ brLogoOn }}">
-                  <image-slot id="adbrief-logo" fit="contain" shape="rounded" radius="10" placeholder="Logo" data-noreframe></image-slot>
-                  <sc-if value="{{ brLogoOn }}" hint-placeholder-val="{{ false }}"><span class="cw-br-cap">Partner mark</span></sc-if>
-                  <div class="up-acts cw-up"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button onClick="{{ brLogoDrop }}" class="up-a up-done up-rm" title="Remove the logo"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div>
-                </div>
-              </div>
-            </div>
-            <div class="cw-br-grp"><span class="cw-br-gl">Photos &amp; images<s>Up to 10 — renders, lifestyle shots, plans</s></span>
-              <div class="cw-br-pics">
-                <sc-for list="{{ brPhotos }}" as="pc" hint-placeholder-count="1">
-                  <div class="cw-br-pic" data-filled="{{ pc.filled }}">
-                    <image-slot id="{{ pc.id }}" fit="cover" shape="rounded" radius="10" placeholder="Picture" data-noreframe></image-slot>
-                    <sc-if value="{{ pc.filled }}" hint-placeholder-val="{{ false }}"><span class="cw-br-cap">{{ pc.cap }}</span></sc-if>
-                    <div class="up-acts cw-up"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><sc-if value="{{ pc.useOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pc.use }}" class="up-a up-done" title="Add this image to the ad as a graphic component"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-480ZM212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h270q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38t-8.62 21.38q-8.61 8.62-21.38 8.62h-270q-5.39 0-8.85 3.46t-3.46 8.85v535.38q0 5.39 3.46 8.85t8.85 3.46h535.38q5.39 0 8.85-3.46t3.46-8.85v-270q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v270Q820-182 799-161q-21 21-51.31 21H212.31Zm43.08-152.31h449.22L565-478.46 445-322.69l-85-108.08-104.61 138.46ZM680-680h-50q-12.77 0-21.38-8.62Q600-697.23 600-710t8.62-21.38Q617.23-740 630-740h50v-50q0-12.77 8.62-21.38Q697.23-820 710-820t21.38 8.62Q740-802.77 740-790v50h50q12.77 0 21.38 8.62Q820-722.77 820-710t-8.62 21.38Q802.77-680 790-680h-50v50q0 12.77-8.62 21.38Q722.77-600 710-600t-21.38-8.62Q680-617.23 680-630v-50Z"/></svg>As graphic</button></sc-if><button onClick="{{ pc.drop }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div>
-                  </div>
-                </sc-for>
-              </div>
-            </div>
-            <p class="cw-hint">{{ brPicNote }}</p>
-              </div>
-            </details>
-          </li>
-          <li class="cw-br-step">
-            <div class="cw-br-h"><span><b>Ask Claude</b><s>Runs the meta-ad-design-copy skill in your own Claude</s></span></div>
-            <div class="cw-acts">
-              <sc-if value="{{ brAskOn }}" hint-placeholder-val="{{ true }}"><a href="{{ brOpenUrl }}" onClick="{{ brOpen }}" class="p-btn cw-br-go"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg>Open in Claude</a></sc-if>
-              <sc-if value="{{ brAskOff }}" hint-placeholder-val="{{ false }}"><button class="p-btn cw-br-go" disabled><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m694.85-707.15-63.47-28.54q-4.53-2.3-6.42-6.13-1.88-3.83-1.88-7.66t1.88-7.5q1.89-3.66 6.42-5.87l63.47-28.92 28.53-63.07q2.3-4.47 6.13-6.7 3.83-2.23 7.66-2.23t7.5 2.23q3.67 2.23 5.87 6.7l28.86 63.13 63.14 28.86q4.46 2.21 6.69 5.87 2.23 3.67 2.23 7.5t-2.23 7.66q-2.23 3.83-6.69 6.13l-63.08 28.54-28.92 63.46q-2.2 4.53-5.87 6.42-3.67 1.88-7.5 1.88t-7.66-1.88q-3.83-1.89-6.13-6.42l-28.53-63.46ZM262.31-395.39 123.85-458q-7.37-3.19-10.65-9.17-3.27-5.98-3.27-12.83t3.27-12.83q3.28-5.98 10.65-9.17l138.46-62.61 62.61-138.46q3.19-7.38 9.17-10.65 5.99-3.28 12.83-3.28 6.85 0 12.83 3.28 5.98 3.27 9.17 10.65l62.62 138.46L570-502q7.37 3.19 10.64 9.17 3.28 5.98 3.28 12.83t-3.28 12.83q-3.27 5.98-10.64 9.17l-138.46 62.61-62.62 138.46q-3.19 7.38-9.17 10.65-5.98 3.28-12.83 3.28-6.84 0-12.83-3.28-5.98-3.27-9.17-10.65l-62.61-138.46ZM346.92-354l40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350.77 188.61-63.08-28.53q-4.46-2.23-6.88-6.08t-2.42-7.69q0-3.85 2.42-7.7 2.42-3.84 6.88-6.07L697.69-250l28.54-63.08q2.23-4.46 6.08-6.88 3.84-2.42 7.69-2.42 3.84 0 7.69 2.42 3.85 2.42 6.08 6.88L782.31-250l63.07 28.54q4.46 2.23 6.89 6.07 2.42 3.85 2.42 7.7 0 3.84-2.42 7.69-2.43 3.85-6.89 6.08l-63.07 28.53-28.54 63.08q-2.23 4.46-6.08 6.89Q743.84-93 740-93q-3.85 0-7.69-2.42-3.85-2.43-6.08-6.89l-28.54-63.08ZM346.92-480Z"/></svg>Open in Claude</button></sc-if>
-              <button onClick="{{ brCopy }}" class="p-ghost cw-br-cp" disabled="{{ brAskOff }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M362.31-260Q332-260 311-281q-21-21-21-51.31v-455.38Q290-818 311-839q21-21 51.31-21h335.38Q728-860 749-839q21 21 21 51.31v455.38Q770-302 749-281q-21 21-51.31 21H362.31Zm0-60h335.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H362.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q192-120 171-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h365.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H222.31ZM350-320v-480 480Z"/></svg>{{ brCopyLabel }}</button>
-              <sc-if value="{{ brAskOn }}" hint-placeholder-val="{{ true }}"><a href="{{ brWebUrl }}" target="_blank" rel="noopener" class="cw-br-web">or use claude.ai</a></sc-if>
-            </div>
-            <p class="cw-hint">{{ brAskNote }}</p>
-          </li>
-          <li class="cw-br-step">
-            <div class="cw-br-h"><span><b>Claude&#8217;s reply</b><s>Paste the whole reply, check it, then fill the words below</s></span></div>
+      <!-- THE AD SET TAB (2026-10-28). The Copy window is gone: this is the project's place in its
+           campaign. share-link.js fills the two hosts itself (plain DOM, never reconciled) —
+           the header with the stage's one action, then the audiences, the brief, the activity
+           and the links. Between them, Claude's reply: pasted once, it fills every audience. -->
+      <div class="adt-host" data-adt="top"></div>
+      <section class="adt-card adt-reply cw-br">
+
+            <div class="adt-ch"><h3>Copy from Claude</h3><span class="adt-tip" title="Run the meta-ad-design-copy skill in Claude on the brief, then paste its whole reply here. It is kept with the campaign, so every audience fills from it.">i</span></div>
             <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="4" class="p-in" placeholder="Paste Claude&#8217;s reply here" aria-label="Claude&#8217;s reply"></textarea>
             <sc-if value="{{ brErrOn }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">{{ brErr }}</p></sc-if>
             <sc-if value="{{ brReadOn }}" hint-placeholder-val="{{ false }}">
@@ -5293,128 +5229,11 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
               <div class="cw-acts"><button onClick="{{ brFill }}" class="p-btn">{{ brFillLabel }}</button></div>
               <p class="cw-hint">{{ brTailNote }}</p>
             </sc-if>
-          </li>
-        </ol>
-      </details>
+                </section>
+      <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
+        <p class="adt-msg" role="status">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></p>
       </sc-if>
-      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
-      <div class="cw-words-h"><b>The words</b><s>{{ cwWordsSub }}</s></div>
-      <sc-for list="{{ cwPages }}" as="pg" hint-placeholder-count="1">
-        <section class="cw-page" data-on="{{ pg.onPageOn }}" data-cwpg="{{ pg.vi }}" onPointerDown="{{ pg.pick }}">
-          <sc-if value="{{ cwMulti }}" hint-placeholder-val="{{ false }}">
-            <div class="cw-page-h"><b>{{ pg.label }}</b><s>{{ pg.meta }}</s></div>
-          </sc-if>
-          <sc-if value="{{ pg.emptyOn }}" hint-placeholder-val="{{ false }}">
-            <p class="cw-empty">No words on this page yet. Add a heading, a body line or anything else below.</p>
-          </sc-if>
-          <sc-for list="{{ pg.fields }}" as="f" hint-placeholder-count="3">
-            <div class="cw-f" data-cwf="{{ f.key }}" data-cl="{{ f.cl }}">
-              <div class="cw-lab-r">
-                <sc-if value="{{ f.moveOn }}" hint-placeholder-val="{{ true }}"><button onPointerDown="{{ f.grab }}" onKeyDown="{{ f.keyMove }}" class="cw-grip" title="{{ f.moveTip }}" aria-label="{{ f.moveTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-175.39q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Z"/></svg></button></sc-if>
-                <span class="cw-lab">{{ f.label }}<sc-if value="{{ f.needOn }}" hint-placeholder-val="{{ false }}"><b class="p-ftag">To fill in</b></sc-if><sc-if value="{{ f.hidOn }}" hint-placeholder-val="{{ false }}"><s class="cw-hid">{{ f.hidText }}</s></sc-if></span>
-                <button onClick="{{ f.del }}" class="cw-x cw-del" title="{{ f.delTip }}" aria-label="{{ f.delTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg></button>
-              </div>
-              <sc-if value="{{ f.isLine }}" hint-placeholder-val="{{ false }}">
-                <input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}">
-              </sc-if>
-              <sc-if value="{{ f.isArea }}" hint-placeholder-val="{{ true }}">
-                <textarea value="{{ f.val }}" onChange="{{ f.onText }}" rows="{{ f.rows }}" class="p-in" aria-label="{{ f.label }}" placeholder="{{ f.ph }}"></textarea>
-                <span class="cw-count" data-over="{{ f.overOn }}">{{ f.count }}</span>
-              </sc-if>
-              <sc-if value="{{ f.isPrice }}" hint-placeholder-val="{{ false }}">
-                <div class="cw-pair">
-                  <label class="cw-sub">Small label<input value="{{ f.sub }}" onChange="{{ f.onSub }}" class="p-in" placeholder="e.g. Starting from"></label>
-                  <label class="cw-sub">Figure<input value="{{ f.val }}" onChange="{{ f.onText }}" class="p-in" placeholder="e.g. AED 2.6M"></label>
-                </div>
-              </sc-if>
-              <sc-if value="{{ f.isChips }}" hint-placeholder-val="{{ false }}">
-                <sc-for list="{{ f.chips }}" as="c" hint-placeholder-count="2">
-                  <div class="cw-item">
-                    <input value="{{ c.val }}" onChange="{{ c.onInput }}" onBlur="{{ c.tidy }}" class="p-in" aria-label="Point">
-                    <button onClick="{{ c.del }}" class="cw-x" title="Remove this point" aria-label="Remove this point"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
-                  </div>
-                </sc-for>
-                <sc-if value="{{ f.chipAddOn }}" hint-placeholder-val="{{ true }}">
-                  <button onClick="{{ f.chipAdd }}" class="cw-add">+ Add a point</button>
-                </sc-if>
-              </sc-if>
-              <sc-if value="{{ f.isCols }}" hint-placeholder-val="{{ false }}">
-                <sc-for list="{{ f.cols }}" as="c" hint-placeholder-count="2">
-                  <div class="cw-item">
-                    <input value="{{ c.l }}" onChange="{{ c.onL }}" onBlur="{{ c.tidyL }}" class="p-in" placeholder="Label">
-                    <input value="{{ c.v }}" onChange="{{ c.onV }}" onBlur="{{ c.tidyV }}" class="p-in" placeholder="Figure">
-                    <button onClick="{{ c.del }}" class="cw-x" title="Remove this row" aria-label="Remove this row"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button>
-                  </div>
-                </sc-for>
-                <sc-if value="{{ f.colAddOn }}" hint-placeholder-val="{{ true }}">
-                  <button onClick="{{ f.colAdd }}" class="cw-add">+ Add a row</button>
-                </sc-if>
-              </sc-if>
-              <span class="cw-hint">{{ f.hint }}</span>
-            </div>
-          </sc-for>
-          <sc-if value="{{ pg.addOn }}" hint-placeholder-val="{{ true }}">
-            <div class="cw-addp">
-              <span class="cw-addp-h">Add to this page<s>Each one arrives in its basic look — the designer styles and places it.</s></span>
-              <sc-for list="{{ pg.addGroups }}" as="g" hint-placeholder-count="3">
-                <div class="cw-addg"><span class="cw-addg-l">{{ g.group }}</span>
-                  <sc-for list="{{ g.items }}" as="a" hint-placeholder-count="4">
-                    <button onClick="{{ a.add }}" class="cw-add" title="{{ a.tip }}">+ {{ a.label }}</button>
-                  </sc-for>
-                </div>
-              </sc-for>
-            </div>
-          </sc-if>
-          <sc-if value="{{ pg.addMoreOn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ pg.addMore }}" class="cw-add cw-addm">+ Add to this page</button>
-          </sc-if>
-        </section>
-      </sc-for>
-      </sc-if>
-      <sc-if value="{{ cwCopyOn }}" hint-placeholder-val="{{ true }}">
-      <sc-if value="{{ cwHistOn }}" hint-placeholder-val="{{ false }}">
-      <section class="cw-page cw-hist">
-        <div class="cw-page-h"><b>History</b><s>Snapshots from the earlier Draft › With design › Final hand-off</s></div>
-        <sc-for list="{{ cwHist }}" as="h" hint-placeholder-count="0">
-          <div class="cw-h" data-state="{{ h.state }}">
-            <div class="cw-h-t"><em></em><b>{{ h.title }}</b><s>{{ h.meta }}</s></div>
-            <sc-for list="{{ h.changes }}" as="c" hint-placeholder-count="0">
-              <div class="cw-c">
-                <span>{{ c.where }} · {{ c.kind }}</span>
-                <sc-if value="{{ c.wasOn }}" hint-placeholder-val="{{ false }}"><del>{{ c.was }}</del></sc-if>
-                <sc-if value="{{ c.nowOn }}" hint-placeholder-val="{{ false }}"><ins>{{ c.now }}</ins></sc-if>
-              </div>
-            </sc-for>
-            <sc-if value="{{ h.moreOn }}" hint-placeholder-val="{{ false }}"><span class="cw-more">{{ h.more }}</span></sc-if>
-          </div>
-        </sc-for>
-      </section>
-      </sc-if>
-      <div class="cw-bar">
-        <div class="cw-bar-t">
-          <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
-            <span class="cw-msg">{{ cwMsg }}<sc-if value="{{ cwUndoOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cwUndo }}" class="cw-undo">Undo</button></sc-if></span>
-          </sc-if>
-          <sc-if value="{{ cwMsgOff }}" hint-placeholder-val="{{ true }}">
-            <span class="cw-since" data-rs="{{ rsInOn }}">{{ rsCwStatus }}</span>
-          </sc-if>
-        </div>
-        <div class="cw-acts">
-          <sc-if value="{{ rsInOn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ rsView }}" class="p-ghost" title="Every audience and language in this ad set, rendered from the latest work">Ad set overview</button>
-            <sc-if value="{{ rsBackOn }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ rsBack }}" class="p-ghost" title="{{ rsBackTip }}" disabled="{{ rsBusy }}">{{ rsBackLabel }}</button>
-            </sc-if>
-            <sc-if value="{{ rsFwdOn }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ rsFwd }}" class="p-btn" title="{{ rsFwdTip }}" disabled="{{ rsBusy }}">{{ rsFwdLabel }}</button>
-            </sc-if>
-          </sc-if>
-          <sc-if value="{{ rsOutOn }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ rvGo }}" class="p-btn" title="{{ rvTip }}">Start an ad set review</button>
-          </sc-if>
-        </div>
-      </div>
-      </sc-if>
+      <div class="adt-host" data-adt="bot"></div>
     </div>
   </div>
   <aside class="cw-pv">
@@ -5429,7 +5248,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
     <div class="cw-shots">
       <div class="cw-shot" style="{{ cwShotSqStyle }}" data-ready="{{ cwPvReadyOn }}"></div>
     </div>
-    <p class="cw-pv-n">The words render in the design exactly as they will export. Layout, photos and styling stay with the designer — switch to Design to see them.</p>
+    <p class="cw-pv-n">As it will export. Layout and photos are changed in Design.</p>
   </aside>
 </div>
 </sc-if>
@@ -6139,7 +5958,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
   </sc-for>
 </main>
   <div data-look-host data-on="{{ lookOnOn }}"></div>
-  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy" data-state="{{ cvAdState }}" title="{{ cvAdTip }}">{{ cvAdLabel }}</button><sc-if value="{{ rsFwdOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ rsFwd }}" class="p-btn p-cvsend" title="{{ rsFwdTip }}"><svg class="p-cvsend-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M176-213.69q-15.08 6.08-28.54-2.62Q134-225 134-241.31v-157.92L462-480l-328-80.77v-157.92q0-16.31 13.46-25 13.46-8.7 28.54-2.62l614.23 259.39q18.15 8.07 18.15 26.92t-18.15 26.92L176-213.69Z"/></svg>{{ rsFwdLabel }}</button></sc-if><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
+  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy" data-state="{{ cvAdState }}" title="{{ cvAdTip }}">{{ cvAdLabel }}</button><sc-if value="{{ rsFlowOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ rsFlow }}" class="p-btn p-cvsend" title="{{ rsFlowTip }}"><svg class="p-cvsend-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M176-213.69q-15.08 6.08-28.54-2.62Q134-225 134-241.31v-157.92L462-480l-328-80.77v-157.92q0-16.31 13.46-25 13.46-8.7 28.54-2.62l614.23 259.39q18.15 8.07 18.15 26.92t-18.15 26.92L176-213.69Z"/></svg>{{ rsFlowLabel }}</button></sc-if><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -12745,7 +12564,7 @@ class CampaignStudio extends StudioBase {
         : long ? 'The brief is too long to type into Claude for you — Claude opens on an empty chat and the prompt is on your clipboard: press ⌘V, then Return.'
         : sent ? 'Claude should be open with the brief typed in — press Return there, then paste its reply below. The prompt is on your clipboard too, if it opened empty.'
         : 'Claude opens with the brief typed in — press Return there. It replies with the key details, any flags and the copy' + (car ? ', page by page' : '') + (X ? '.' : ' for each audience.'),
-      brReply: b.reply, onBrReply: e => this.brSet('reply', e.target.value),
+      brReply: b.reply, onBrReply: e => { this.brSet('reply', e.target.value); if (this.rsReplySave) this.rsReplySave(e.target.value); },
       brReadOn: !!(S),
       brErrOn: !!(b.reply.trim() && !S),
       brErr: 'No copy found in that text. Paste Claude\'s whole reply — the part with the copy blocks.',
@@ -12770,10 +12589,10 @@ class CampaignStudio extends StudioBase {
       brPruneOn: b.prune ? '1' : undefined, brPruneAria: b.prune ? 'true' : 'false', brPrune: () => this.brSet('prune', !b.prune),
       brFill: () => this.brFill(),
       brFillLabel: !A ? 'Fill'
+        : X && !car ? 'Fill with the ' + A.name + ' copy'
         : car ? 'Fill ' + nPages + ' carousel page' + (nPages === 1 ? '' : 's') + ' with the ' + A.name + ' copy'
           : 'Fill ' + (projCar ? 'this page' : 'this campaign') + ' with the ' + (A.pages.length > 1 ? one(S.label) + ' · ' : '') + A.name + ' copy',
-      brTailNote: X ? 'The other audiences are their own projects in the ad set — make each from the ad set panel. The reply stays here for them.'
-        : 'Families and Investors are separate campaigns. Fill this one, then start a new campaign for the other — the reply stays here.',
+      brTailNote: X ? 'Each other audience fills from this reply when you create it.' : '',
       brSumm: b.filled && A ? 'Filled · ' + b.filled : A ? 'Reply ready' : (b.brief.trim() ? 'Brief written' : 'Optional'),
       brSummOn: A ? '1' : undefined,
       brMoreSumm: (() => {
@@ -17510,9 +17329,9 @@ class Component extends DCLogic {
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: this._mkExt ? this._mkExt.copy : (eng && eng.mockCopy ? eng.mockCopy() : {}),
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Review links' : 'All'))),
+      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Status' : 'All'))),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'ad set') + ' kept on this computer')
+      shViewSub: (n => view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'campaign') + ' on this computer')
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in ' + (sub.useFolder ? n(sub.useCount, 'project') + ' in \u201c' + sub.useFolder + '\u201d' : 'your ' + n(sub.useCount, 'most recent saved project')) : (sub.useFolder ? 'No Campaign projects in \u201c' + sub.useFolder + '\u201d yet' : 'Nothing saved yet \u2014 usage is counted from saved projects'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')

@@ -33,7 +33,7 @@ How to use the two Provident design studios in this folder.
 3. [CAS: build an ad](#3-cas-build-an-ad)
 4. [CAS: variants, carousels and sizes](#4-cas-variants-carousels-and-sizes)
 5. [CAS: the Eventbrite banner](#5-cas-the-eventbrite-banner)
-6. [CAS: the Copy workspace](#6-cas-the-copy-workspace)
+6. [CAS: the Ad set tab](#6-cas-the-ad-set-tab)
 7. [CAS: export](#7-cas-export)
 8. [OPS: make a post](#8-ops-make-a-post)
 9. [OPS: the templates](#9-ops-the-templates)
@@ -89,7 +89,7 @@ Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"`
   The hub is `http://192.168.50.30:8090`, reachable only on the office network.
 - **Google Drive client ID**, in Ad sets' **Google Drive** box. The admin's steps are in
   `docs/google-drive-setup.md`.
-- **Your name**, in CAS's Copy workspace › **History**, which labels copy snapshots.
+- **Your name** in a campaign's activity comes from your Google account.
 
 **6. Skills that live in Claude, not in this folder.** `meta-ad-design-copy` (brief to Meta ad
 copy) and `top-agents-of-the-month` are installed in your Claude account, not in this folder. If
@@ -125,16 +125,17 @@ say so and point to the step above.
 Each studio opens on its **project browser**.
 
 - **Start something new:**
-  - In CAS, use **Set up the ad set** at the top of the project browser (**New campaign** jumps
-    to it). Name the campaign, pick **Residential** or **Commercial** and paste the **Main
-    folder** (the Google Drive folder the ad set goes in). By default the campaign is
-    **Local**, both audiences, **English only**. Each audience is a tile; press **AR** on a tile
-    to give that audience an Arabic version. **Markets & audiences** adds **International** or
-    **International EUR** and chooses the audiences. The count beside Audiences says how many
-    projects that makes. Press **Start campaign**: a new project opens as the first audience in English, with the **Ad
-    set review** window already filled in. Press **Make the ad set** to sign in and save it.
-    **Blank project** starts a plain project instead. There are no preloaded
-    templates any more.
+  - In CAS, every project belongs to a **campaign** (an ad set). Use **Set up the campaign** at
+    the top of the project browser (**New campaign** jumps to it): a **Name**, **Residential** or
+    **Commercial**, a **Deadline**, the **Drive folder** (an empty Google Drive folder for this
+    campaign), the **Brief** (paste the script, fact sheet or WhatsApp brief) and **Files**
+    (renders, logos, brochures). By default the campaign is **Local**, both audiences, **English
+    only**; press **AR** on an audience tile to add an Arabic version, and **Markets &
+    audiences** for International or International EUR. Then either:
+    - **File as ticket** — saves it in the Drive folder as an **open ticket** for a designer to
+      pick up from **Status**. Performance marketing uses this. It shows the designer link to send.
+    - **Start designing** — files the same ticket and opens its first audience straight away.
+    There is no blank project and no preloaded templates any more.
   - In OPS, click a template card, or press **New post** to get **Pick a template**.
 - **Continue last** reopens the project you were working on; the line under it names that project.
 - **Save** (top bar) writes the project into your **Source folder**:
@@ -168,7 +169,7 @@ at and change. It works the same in CAS and OPS.
 2. Send the link to the people who should edit. Anyone signed in with their Google account on
    that computer goes straight in under their Google name; nobody else is asked their name once
    (or can press **Sign in with Google instead**). The project opens with its photos in their
-   browser. Review links on Drive always need the Google sign-in, so they never ask.
+   browser. Campaigns on Drive always need the Google sign-in, so they never ask.
 3. Everyone's changes reach everyone else within a few seconds. Two people can work at the same
    time: different fields are kept from both. If two people change the same field, the last
    save wins.
@@ -192,7 +193,7 @@ Things to know:
   you changed while it was apart goes up to the link. Opening another project in a tab stops the
   link there. **Stop following this link** at the foot of the panel stops it on this computer
   until you open the link again.
-- Putting a project in an ad set it is already in (Share › Ad set review, or **Make the ad set**
+- Putting a project in an ad set it is already in (**Pick up**, or **Make the ad set**
   into a Drive folder that already holds the ad set) reconnects it instead of refusing. A folder
   that already holds an ad set takes the project as another audience; a slot already taken by a
   different project says so.
@@ -208,11 +209,32 @@ edits on the link: Edit text there says *Saved to the shared link · the origina
 changed*, and the files the link was made from keep their old words. Once shared, the button reads **Copy link**. An ad sets link opened in OPS
 moves to CAS.
 
-### Run an ad set review: designer, content team, performance marketing (CAS)
+### A campaign from ticket to package (CAS)
 
-A review covers a whole **ad set**: every project of one campaign, for each market, audience
-and language, under **one set of links**. The designer can start it with the first audience and
-add the others, and the Arabic versions, later. They all join the same links.
+The flow has three moves for the designer, and the screen always offers the next one:
+
+1. **Initial setup.** Performance marketing files the campaign as a ticket (above). In
+   **Status**, the designer opens the ticket — its brief, files and audiences — and presses
+   **Pick up**. A new project opens as the first audience, in English, on the **Ad set** tab.
+   Run the meta-ad-design-copy skill in your own Claude on the brief, paste its whole reply into
+   **Copy from Claude**, check the flags, and press **Fill with the … copy**. The reply is kept
+   with the campaign.
+2. **Design done.** Design the ad, then press **Design done** — in the bar under the canvas, or at
+   the top of the Ad set tab. It first lists anything missing (empty words, no photo, a QR code
+   with none added, too much copy on a canvas); press OK to send anyway. The content team checks
+   the English copy from their link.
+3. **Create next audience.** The same button now reads **Create next audience**. It opens a
+   blank project for the next planned audience, on the Ad set tab, with Claude's reply already
+   there and that audience picked: press **Fill**, design, **Design done**. Once an audience's
+   English copy is approved, the button offers **Make the Arabic** — a copy of the design in the
+   Arabic typeface, to translate.
+
+When every audience is done, performance marketing downloads the package from their link.
+
+### The roles, and the four steps of each audience
+
+A campaign covers every project of one ad set, for each market, audience and language, under
+**one set of links**. The links are in the Ad set tab, under **Links for the teams**.
 
 | who | the link opens | they can |
 |---|---|---|
@@ -227,54 +249,13 @@ space). **Languages:** English and Arabic.
 Each **audience** (a market plus an audience, for example *Local · Family*) goes through four
 steps: **Design › ENG copy check › Translation › Done**.
 
-1. **Start the ad set.** Open the English project for the first audience and press **Share › Ad
-   set review**. Choose **Start a new ad set**, name it, pick **Residential** or **Commercial**,
-   paste the link of the **Google Drive folder** the ad set goes in (its **Main folder**), then
-   say what this project is (market, audience, language) and press **Make the ad set**. Google
-   asks you to sign in with your Provident account the first time. Send each team its link once.
-   - **You sign in once per computer.** The studio remembers your Google account, and every tab
-     and both studios share the sign-in. Once your admin has done the last step of
-     `docs/google-drive-setup.md`, the session then renews by itself in the background and you
-     are not asked again (Google shows its permission screen one time first). Until then,
-     Google ends a session after about an hour and the studio asks you to **Continue as** your
-     account — one click, no email to type. **Use another account** in that prompt switches accounts. Your **name** in
-     the review is taken from the account (your first name) until you type a different one.
-   All three links stay the same as the ad set grows.
-   - **Everything is saved in that folder**, laid out like this, and kept up to date as people
-     work:
-
-     ```
-     Main folder/
-       <ad set name>_Adset.json           ← the ad set: its steps, links and log
-       Local/
-         Family/
-           English/
-             <name>.adstudio.json         ← the project, its words and its change log
-             Assets/background-variant-a.webp …   ← its pictures, one file each
-           Arabic/ …
-         Investor/ …
-       International/ …
-     ```
-   - **Everyone who opens a link signs in with their Provident Google account** and needs access
-     to the folder. Share the folder (or use a Shared drive the team belongs to) before sending
-     the links.
-   - Ad sets started before 27 Oct 2026 stay where they were and keep working.
-   - **Set up from the home page** (see *Start something new*), this step is one click: the
-     window opens filled in with the plan, and the audiences planned without Arabic are already
-     marked *Translation · Not needed*.
-2. **Make the other projects.** If the ad set was set up from the home page, the **Ad set
-   review** panel lists what is **Still to make** — every planned English version, then the
-   Arabic ones. **Make from this design** saves a copy of the design you are on into that
-   audience's folder, and the tab carries on as the new project (an Arabic one switches the
-   typeface to Arabic, ready to translate). The project you left stays in the ad set as it was.
-   Otherwise add each project the same way, from each project: **Share › Ad set review › Add to
-   an ad set**, choose the ad set and say what the project is. Work audience by audience: design
-   every audience first, then add the Arabic versions.
-3. **Design.** When a project is ready, press **Send to copy check** in the bar under the
+1. **Start the campaign** with **Set up the campaign** on the home page (see *Start something
+   new*). Google asks you to sign in with your Provident account the first time.
+2. **Design.** When a project is ready, press **Design done** in the bar under the
    canvas, beside the ad set chip. It first lists anything missing: empty words, a page or
    variant with no background photo, a QR code switched on with none added, or copy covering
    more than 40% of a canvas. Fix them, or press OK to send anyway. **Back to design** takes it
-   back. The same buttons are in the **Ad set review** panel and the Copy workspace's bottom bar.
+   back. The same buttons are at the top of the **Ad set** tab.
 4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
    words are beside every image, which update as they type, and the designer sees the change
    within seconds. **Approve English copy** in the panel signs it off.
@@ -291,8 +272,10 @@ steps: **Design › ENG copy check › Translation › Done**.
    they are now. This link can't change anything. There is no side panel on this link: the bar's **See details**
    holds the steps, the dates and each audience.
 
-The **Ad set review** panel lists every audience, with its four steps and the buttons for your
-role. Below that is the log of who changed what in every project, including each step.
+The **Ad set** tab lists every audience, with its progress (**AR** on a tile plans or drops its
+Arabic version; **Markets & audiences** adds or removes audiences), then the brief and files from
+the ticket, the **Activity** — who changed what, including each step — and **Links for the teams**.
+In a campaign project the floating **Changes** button is gone: the Ad set tab carries all of it.
 
 **Chrome notifications.** When someone else presses a step button (Send to copy check, Approve,
 Back to design, Reopen), everyone who has that ad set open gets a Chrome notification, whether
@@ -303,9 +286,9 @@ reaches a browser with the project or ad set link open in some tab: a closed bro
 nothing. A background tab checks about every 45 seconds, so a notification can arrive up to a
 minute late there.
 
-The **preview picture** each project shows on the Review links page is redrawn after every save,
+The **preview picture** each project shows on the Status page is redrawn after every save,
 photos included, whoever made the change. If a preview is missing or older than the project,
-Review links draws it itself when you open it, and saves it for everyone else.
+Status draws it itself when you open it, and saves it for everyone else.
 
 Things to know:
 - **No sign-in.** Whoever holds a link has that role, so send each link only to its team.
@@ -315,20 +298,21 @@ Things to know:
   that project (the **Open** buttons in the overview use it).
 - **The designer sees the whole ad set from inside the project.** In a project that is in an ad
   set, the chip in the bar under the canvas names its audience and step (*Family · Design*).
-  Click it, or **Ad set overview** in the Copy workspace's bottom bar, to open the Ad sets window
+  Click it, or **Overview** at the top of the Ad set tab, to open the Ad sets window
   over every audience and language in the ad set, rendered from the latest work. The audience
   you are working on says *This project*. Every other audience has **Open in the studio**, which
   opens that project in a new tab. Close the window with **×** or Escape.
-- The Copy workspace follows the review, not the old **Draft › With design › Final** hand-off.
 - If the designer changes a design while the content team is typing, both changes are kept: the
   content team's words go on top of the latest design.
 - A review started before ad sets (one project) opens as an ad set of one, with its old links.
 
-### Review links: every ad set you worked on (CAS home page)
+### Status: every campaign (CAS home page)
 
-On the home page, **Review links** (in the **Review** group) lists every ad set you started or
-added to on this computer, or opened as the designer. Ad sets still **In progress** come first,
-then **Package ready**. Each card says whether the ads are **Provident** (branded: the
+On the home page, **Status** (in the **Review** group) lists every campaign filed, picked up or
+opened as the designer on this computer: **Open tickets** first (waiting for a designer), then
+**In design**, then **Package ready**. **New ticket** files one. An open ticket's page shows its
+brief, files, deadline and audiences, and **Pick up**. A ticket filed on another computer is
+listed once you paste its designer link in **Add a campaign link**. Each card says whether the ads are **Provident** (branded: the
 wordmark and QR) or **Unbranded** — or **Mixed** when its projects differ — and so does the
 ad set's Details.
 
@@ -600,67 +584,22 @@ floats at the bottom left of the canvas, across from **Add Variant** and **All v
 Eventbrite shows the 1880 file at 940 px wide on a desktop and 375 px wide on a phone. On a phone
 only the headline really reads, so keep the words few and big.
 
-## 6. CAS: the Copy workspace
+## 6. CAS: the Ad set tab
 
-This is for copywriters: the ad's words on their own, next to a live preview.
+The top bar's **Ad set | Design** switch. **Ad set** is this project's place in its campaign
+(the old Copy workspace is gone; the words are edited in **Design**, and the content team edits
+them from their link):
 
-1. Press **Copy** in the top bar — the switch reads **Copy | Design**. **Design** takes you
-   back.
-   - The big preview is the real export.
-   - The picker above it chooses which variant (or page) you're looking at.
-   - The page reads top to bottom as one flow: where the project is in its ad set review (its
-     audience and **Design › ENG copy check › Translation › Done**), an optional brief,
-     **The words**, and a bar pinned to the bottom with the review buttons.
-2. **Start from a brief (optional, while the design is in progress).** The **Start from a brief**
-   card at the top runs the `meta-ad-design-copy` skill in your own Claude. It folds away once
-   you have filled the words, and is not shown once the design is marked done.
-   - Paste the brief (script, fact sheet, EOI brief) and add any notes (permit number, what to
-     lead with). Outside an ad set, tick the audiences. In an ad set, the card shows **For**
-     (market · audience · language, set on the home page) instead, and asks Claude for that
-     audience only.
-   - **Format: Single ad | Carousel.** It starts on the project's own format. Pick **Carousel** to
-     ask Claude for up to 10 pages in swipe order, one per project when the brief covers several.
-     Fill then makes the project a carousel if it isn't one, adds pages as needed, and puts one
-     page of the reply on each.
-   - **Pictures for the ad** (optional, folded): a **Logo** and up to 10 **Photos & images**. On Fill, the
-     first pictures become the backgrounds of the design variants (or carousel pages) in order,
-     and the logo becomes the partner mark beside provident. (collaboration logo turned on). Any
-     picture can also go on the ad as a graphic with **As graphic** under it. The prompt tells Claude what is
-     attached so it doesn't flag the logo as missing. Attachments stay in the card, not in the
-     session file.
-   - **Open in Claude** opens the Claude app with the prompt typed in; press Return there. The
-     prompt is also copied, so if Claude opens empty, press ⌘V. **or use claude.ai** opens the
-     website instead. A very long brief is not typed in for you; paste it from the clipboard.
-   - Paste Claude's whole reply into **Claude's reply**. The card lists Claude's **Flags** as checkboxes,
-     lets you pick **Families** or **Investors** and shows which field each line goes into. For a
-     single ad from a reply that covers several projects, **Project** picks which one, and you
-     pick the main or an alternate heading. For a carousel it lists each page instead. Plain
-     replies without the `cas-copy` block are read too, one stack per project and audience.
-   - **Fill** (it names what it fills: this campaign, this page, or N carousel pages) puts only the critical details on the ad: small label, heading,
-     hook line (project), price, up to two key-fact rows (payment) and button. Claude is asked to
-     keep each one short; support lines and amenities stay in its reply for you to read. It
-     reuses the components already on the page and adds any that are missing at the end. With **Remove components this
-     copy doesn't use** on, template sample text is cleared. **Undo** reverses the whole fill.
-   - Families and Investors are separate campaigns: fill one, then make the other (from the ad
-     set panel, or as a new campaign). The brief and the reply stay in the card.
-3. Fill in the fields.
-   - **Add to this page** adds a component, grouped as Text, Lists or Action. It arrives in its
-     basic look; the designer styles and places it.
-   - The bin icon removes one, and the notice that appears offers **Undo**.
-4. **Reorder** a line by dragging its grip, or focus the grip and use the arrow keys.
-5. **The bar at the bottom** says where this project is in its ad set review and has the
-   designer's buttons:
-   - **Send to copy check** (or **Send for translation check** on the Arabic version) sends it
-     to the content team, after the same check as the canvas bar's button. **Back to design** takes it back while they have it; **Reopen copy check** sends
-     approved words back to them.
-   - **Ad set overview** opens every audience and language in the ad set.
-   - A project that is not in an ad set yet has **Start an ad set review** instead. See *Run an
-     ad set review*.
-   - There is no `.docx` download any more. A project saved under the old hand-off still shows
-     its **History** of snapshots.
+- **The header** names the audience and language, where it stands, and the one thing to do next:
+  **Design done**, **Create next audience** or **Make the Arabic**. **Overview** opens every
+  audience and language of the campaign, rendered from the latest work.
+- **Copy from Claude**: paste the meta-ad-design-copy reply, check the flags, pick the heading,
+  and **Fill**. The reply is kept with the campaign, so the next audience fills from it.
+- **Audiences**, **Brief**, **Activity** and **Links for the teams** (see above).
+- The preview on the right is the ad as it will export.
 
-CAS remembers which workspace (Design or Copy) you last used on each computer, so a copywriter's
-machine reopens on Copy.
+A project that is not in a campaign (an older one, opened with **Open session**) shows **Set up**
+here instead, which puts it in one.
 
 ## 7. CAS: export
 
