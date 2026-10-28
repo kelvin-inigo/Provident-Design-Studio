@@ -17036,3 +17036,52 @@ the end of its sheet ("REVIEW PANEL AND DETAILS WINDOW, REFINED").
   Testing note: the Browser pane rewrites a 16-char token in a URL it navigates to, so open a
   review link by calling `eng.shareOpenLink(tok)`, and set `localStorage['provident-share-base']`
   to the local origin first or the studio talks to the public site.
+
+# CAS HAS AN UNBRANDED LOOK (2026-10-28)
+
+By request: the same design components with other cosmetics, for ads that must not carry the
+Provident brand. Spec agreed in conversation, mocked up first (an Artifact with the Palm
+Jumeirah photo), then built. **Provident ads are unchanged: op census, 4 templates x dark/light x
+left/centre x sq/pt/st/ls/bn/bs, 96 groups, 1,190 ops, byte-identical against the pre-change
+build — apart from `serif: 'hd'` now riding on headline and price-figure text ops**, which in
+Provident resolves to the same face.
+
+- **`state.look`**, one per PROJECT: `{on, tone 'd'|'l', pal [text, accent, button, chip, scrim],
+  lock[5], fH/wH, fB/wB, fA/wA, rad, blur, gop, trk, seeded}`. Saved with the project, not
+  stripped (it is the design). `CampaignStudio.lookOf(s)` fills defaults (`LOOK_DEF`).
+- **It is PUBLISHED with the face.** A static block in `CampaignStudio` wraps
+  `StudioBase.applyFont` (CAS document only — OPS never loads this class) to set
+  `CampaignStudio._look`, `window.providentFontHead`, `window.providentArabic` and, when the look
+  is on, `providentFont` / `providentFontFam`. So every path that already publishes the face
+  (buildOps, renderVals, previews, thumbnails, Ad sets renders) carries the look with no edit.
+  `StudioBase.ensureFont` is wrapped too, so every export waits for the look's fonts
+  (`lookReady`, capped at 6s so an offline machine still exports in the fallback).
+- **`palOf(v)` returns `lookPal(L)`** while a look is on: the tone's PAL with every ink, rule,
+  chip, glass, button and scrim key taken from the five roles. `v.bg` is ignored then.
+  `eyeInk` returns the accent; the price figure takes the accent (`fig` in modLayout);
+  `trackOf` uses `look.trk`; the scrim's colour is `pal[4]` (its strength and fade stay the
+  variant's).
+- **`lookEls(els, K)` applies corners, blur and glass AFTER layout**, at the end of `modLayout`
+  and `custLayout`, so export and editor (both read the elements) agree. A circle stays a
+  circle, a box thinner than 8K stays square. `bla` on a box is the blur amount, read by
+  `emitEls` and `elsView`.
+- **The HEADLINE FACE is `serif: 'hd'`**: `meas()` (studio-base.js) measures in
+  `providentFontHead` when serif is `'hd'`; both renderers draw it; `heroLines` wraps with it;
+  `mirrorOps` already passes `o.serif`. `elsView` gives an `hd` run its font-family and a
+  line-height from `ascOf(stack)` so its baseline lands on the op. Measured: every run within
+  0.1px horizontally and 0.5px vertically, Latin and Arabic.
+- **Unbranded draws no wordmark, lockup or QR**, and the wordmark's band and clear space go
+  (buildOps `unb`, scrimStops `unb`, the preview's `logoStyle` display none, `qrShow`, `qrNeed`).
+- **Fonts**: `google-fonts.js` (1,950 families: name|category|weights|Arabic, built from
+  fonts.google.com/metadata/fonts, which a browser cannot read) loads on the first search.
+  Weights ride with the pick (`wH`/`wB`/`wA`) so loading never needs the catalog —
+  `fontLoad` asks the CSS2 API only for weights the family has (it refuses others). A load
+  clears `StudioBase._asc` and re-renders (`_rerender`).
+- **The strip** is `CampaignStudio.LookStrip`, plain DOM in an empty `[data-look-host]` under the
+  stage (mounted from the shell's `_vtTick` via `eng.lookMount`), shown while the look is on.
+  Palette from the photo: k-means on a 60x80 sample of `adstudio-bg-<vi>`, roles by `lookAssign`,
+  accent stepped until 4.5:1 on the scrim as it sits over the photo. Saved looks:
+  `localStorage['adstudio-looks']`. The dock rides above the strip (`html.lk-on`, `--lk-h`).
+- The placement preview shows "Sponsored page" with a grey avatar (`mockCopyOf`, `data-unb`).
+- **Not done:** the Layout rail's Background dark/light still shows (it does nothing while the
+  look is on); the copy-coverage chip and Ad sets' Details analysis do not know about the look.

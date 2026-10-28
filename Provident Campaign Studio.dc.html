@@ -4777,6 +4777,54 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    its content (the name, the ad set chip and this button). It rises clear: 58 + the bar's 45 + 12. */
 @media (max-width:1200px){.p-dock{bottom:115px}}
 @container (max-width:640px){.p-cvsend-g{display:none}.p-cvbar .p-cvsend{padding:0 12px}}
+
+/* 59. UNBRANDED — the canvas bar's Provident | Unbranded switch and the visualizer strip
+   docked under the stage (a plain-DOM host React never reconciles; see LookStrip). The
+   strip shows only while the look is on. Swatches are filled with the role they set, so
+   their ink is chosen per swatch for contrast; everything else is chrome tokens. */
+.p-cvbrand{flex:none;height:30px;padding:2px}
+.p-cvbrand button{padding:0 12px;font-size:12.5px}
+[data-look-host]{display:none;flex:none}
+[data-look-host][data-on]{display:block}
+.lk-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px 22px;padding:14px 16px 16px;border-top:1px solid var(--ps-hair);background:var(--ps-app);max-height:46vh;overflow:auto}
+.lk-col{display:flex;flex-direction:column;gap:9px;min-width:0}
+.lk-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.lk-hd h3{margin:0;font-size:13px;font-weight:600;color:var(--ps-ink-2)}
+.lk-hd2{margin-top:4px}
+.lk-tone{height:30px}
+.lk-tone button{font-size:12px;padding:0 10px}
+.lk-sws{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.lk-sw{position:relative;height:76px;border:0;border-radius:10px;padding:7px 8px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(128,128,128,.28);font:inherit}
+.lk-sw b{font-size:12px;font-weight:600}
+.lk-sw span{font-size:10.5px;font-variant-numeric:tabular-nums;opacity:.85}
+.lk-sw input{position:absolute;inset:0;opacity:0;pointer-events:none}
+.lk-lock{position:absolute;top:6px;right:6px;width:15px;height:15px;fill:currentColor;opacity:.55}
+.lk-sw .lk-lk1{display:none}
+.lk-sw[data-locked="1"] .lk-lk1{display:inline}
+.lk-sw[data-locked="1"] .lk-lk0{display:none}
+.lk-sw[data-locked="1"] .lk-lock{opacity:1}
+.lk-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lk-note{font-size:12px;color:var(--ps-dim)}
+.lk-ck{display:flex;flex-direction:column;gap:4px}
+.lk-c{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 9px;border-radius:8px;background:var(--ps-good-q);color:var(--ps-ink)}
+.lk-c b{font-weight:600;font-variant-numeric:tabular-nums}
+.lk-c[data-ok="0"]{background:var(--ps-bad-q)}
+.lk-f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:500;color:var(--ps-ink-2)}
+.lk-f select,.lk-q{width:100%}
+.lk-rng{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 10px}
+.lk-rng label{font-size:12.5px;font-weight:500;color:var(--ps-ink-2)}
+.lk-rng output{font-size:12px;color:var(--ps-dim);text-align:right;font-variant-numeric:tabular-nums}
+.lk-rng input{grid-column:1/-1;width:100%}
+.lk-looks{display:flex;flex-wrap:wrap;gap:6px}
+.lk-look{display:inline-flex;align-items:center;border-radius:999px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.lk-look button{border:0;background:transparent;color:var(--ps-ink);font:inherit;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 4px 4px 5px}
+.lk-look i{display:flex;border-radius:999px;overflow:hidden}
+.lk-look u{width:8px;height:16px;display:block}
+.lk-look .lk-x{padding:4px 9px 4px 4px;color:var(--ps-dim)}
+.lk-none{font-size:12px;color:var(--ps-dim)}
+/* the dock floats over the stage's foot; while the strip shows it rides above it */
+html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
+.mk-screen[data-unb] .mk-av-b,.mk-screen[data-unb] .mk-igr-av{background:#8A8F98 none!important}
 </style>
 </helmet>
 
@@ -5568,7 +5616,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
         <sc-if value="{{ mkNavOn }}" hint-placeholder-val="{{ true }}"><div class="mk-nav" role="group" aria-label="Variant"><button onClick="{{ mkPrev }}" disabled="{{ mkPrevOff }}" class="p-ghost mk-nav-b" title="Previous variant (←)" aria-label="Previous variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m432-480 156 156q11 11 11 28t-11 28q-11 11-28 11t-28-11L348-452q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l184-184q11-11 28-11t28 11q11 11 11 28t-11 28L432-480Z"/></svg></button><span class="mk-nav-l"><b>{{ mkNavLabel }}</b><s>{{ mkNavPos }}</s></span><button onClick="{{ mkNext }}" disabled="{{ mkNextOff }}" class="p-ghost mk-nav-b" title="Next variant (→)" aria-label="Next variant"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg></button></div></sc-if>
         <div class="mk-row"><sc-for list="{{ mkPhones }}" as="ph" hint-placeholder-count="3"><figure class="mk-fig"><figcaption><b>{{ ph.label }}</b><s>{{ ph.size }}</s></figcaption><div class="mk-phone">
           <i class="mk-b mk-b1"></i><i class="mk-b mk-b2"></i><i class="mk-b mk-b3"></i><i class="mk-b mk-b4"></i>
-          <div class="mk-screen" data-mode="{{ mkModeKey }}" data-plat="{{ mkPlatKey }}" data-full="{{ ph.full }}" data-view="{{ ph.view }}">
+          <div class="mk-screen" data-unb="{{ mkUnb }}" data-mode="{{ mkModeKey }}" data-plat="{{ mkPlatKey }}" data-full="{{ ph.full }}" data-view="{{ ph.view }}">
             <div class="mk-island"></div>
             <div class="mk-stat">
               <span class="mk-time">9:41</span>
@@ -6025,7 +6073,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
     </div>
   </sc-for>
 </main>
-  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy" data-state="{{ cvAdState }}" title="{{ cvAdTip }}">{{ cvAdLabel }}</button><sc-if value="{{ rsFwdOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ rsFwd }}" class="p-btn p-cvsend" title="{{ rsFwdTip }}"><svg class="p-cvsend-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M176-213.69q-15.08 6.08-28.54-2.62Q134-225 134-241.31v-157.92L462-480l-328-80.77v-157.92q0-16.31 13.46-25 13.46-8.7 28.54-2.62l614.23 259.39q18.15 8.07 18.15 26.92t-18.15 26.92L176-213.69Z"/></svg>{{ rsFwdLabel }}</button></sc-if><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
+  <div data-look-host data-on="{{ lookOnOn }}"></div>
+  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><div class="p-tabs p-cvbrand" role="group" aria-label="Brand"><button onClick="{{ lookOff }}" data-on="{{ lookOffOn }}" title="Provident's own look: the wordmark, the QR and the brand palette">Provident</button><button onClick="{{ lookOnGo }}" data-on="{{ lookOnOn }}" title="Same design, your own colours and fonts; no Provident wordmark or QR">Unbranded</button></div><button onClick="{{ cvAdGo }}" class="p-cvcopy" data-state="{{ cvAdState }}" title="{{ cvAdTip }}">{{ cvAdLabel }}</button><sc-if value="{{ rsFwdOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ rsFwd }}" class="p-btn p-cvsend" title="{{ rsFwdTip }}"><svg class="p-cvsend-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M176-213.69q-15.08 6.08-28.54-2.62Q134-225 134-241.31v-157.92L462-480l-328-80.77v-157.92q0-16.31 13.46-25 13.46-8.7 28.54-2.62l614.23 259.39q18.15 8.07 18.15 26.92t-18.15 26.92L176-213.69Z"/></svg>{{ rsFwdLabel }}</button></sc-if><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -7523,6 +7572,8 @@ class CampaignStudio extends StudioBase {
   // be a brass rule or a brass frame. Absent, each variant keeps the ink it always had.
   static eyeInk(m, pal, mv) {
     if (m && m.inkHex) return m.inkHex;
+    // unbranded, the eyebrow carries the look's accent
+    if (CampaignStudio._look) return pal.accent;
     return pal.ink;
   }
   // The geometry base that ignores the 24px floor (see tkMod) — the canvas's own eyebrow at M.
@@ -8351,7 +8402,411 @@ class CampaignStudio extends StudioBase {
     const a = String(txt == null ? '' : txt).replace(/\r/g, '').split('\n').map(x => x.trim()).filter(x => x !== '');
     return (a.length ? a : ['']).slice(0, cap);
   }
-  static palOf(v) { return CampaignStudio.PAL[(v && v.bg === 'light') ? 'light' : 'dark']; }
+  static palOf(v) {
+    const L = CampaignStudio._look;
+    if (L) return CampaignStudio.lookPal(L);
+    return CampaignStudio.PAL[(v && v.bg === 'light') ? 'light' : 'dark'];
+  }
+  // ---------- UNBRANDED LOOK ----------
+  // One per PROJECT (`state.look`), off by default. While it is on, the same design
+  // components are drawn with the look's cosmetics instead of Provident's: five palette
+  // roles (text, accent, button, chip, scrim), a headline + body Google Font pair and an
+  // Arabic font, a corner radius, a glass blur and opacity, and the eyebrow's tracking.
+  // The wordmark, the co-brand lockup and the QR are not drawn, and the wordmark's space
+  // goes back to the copy. Switching back to Provident restores everything: nothing here
+  // overwrites a Provident setting.
+  //
+  // It is PUBLISHED like the face: applyFont (wrapped below) sets `_look` for the state
+  // being drawn, so palOf, trackOf, eyeInk and the scrim read it without being handed the
+  // state — the same reason window.providentFont exists.
+  static LOOK_DEF = { on: false, tone: 'd', pal: ['#FFFFFF', '#E8B25C', '#E8B25C', '#FFFFFF', '#132A2E'], lock: [0, 0, 0, 0, 0],
+    fH: 'Playfair Display', wH: '456789', fB: 'Manrope', wB: '2345678', fA: 'IBM Plex Sans Arabic', wA: '1234567',
+    rad: 12, blur: 14, gop: 14, trk: 4 };
+  static ROLES = ['Text', 'Accent', 'Button', 'Chip', 'Scrim'];
+  static RAD_PILL = 64;
+  static _look = null;
+  static lookOf(s) { const L = s && s.look; return (L && L.on) ? Object.assign({}, CampaignStudio.LOOK_DEF, L) : null; }
+  static lumOf(hex) {
+    const c = CampaignStudio.rgbOf(hex, '#000000').split(',').map(v => { v = +v / 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+    return .2126 * c[0] + .7152 * c[1] + .0722 * c[2];
+  }
+  static contrast(a, b) { const x = CampaignStudio.lumOf(a), y = CampaignStudio.lumOf(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
+  // the label ink on a filled role: whichever of near-black and white reads better
+  static onInk(hex) { return CampaignStudio.contrast(hex, '#111111') >= CampaignStudio.contrast(hex, '#FFFFFF') ? '#111111' : '#FFFFFF'; }
+  // The look as a PAL: the tone's own palette with every ink, rule, chip, glass, button
+  // and scrim key taken from the five roles, so every component reads it unchanged.
+  static lookPal(L) {
+    const key = L.tone + L.pal.join('') + L.gop;
+    if (CampaignStudio._lpK === key) return CampaignStudio._lpV;
+    const P = L.pal, A = (c, a) => CampaignStudio.rgbaOf(c, a), d = L.tone !== 'l';
+    const g = Math.max(0, Math.min(100, +L.gop || 0)) / 100;
+    const v = Object.assign({}, CampaignStudio.PAL[d ? 'dark' : 'light'], {
+      base: d ? '#000000' : '#FFFFFF', ink: P[0], inkSoft: A(P[0], .88), inkMute: A(P[0], .72),
+      accent: P[1], ruleGold: A(P[0], .8), brass: P[1],
+      rule: A(P[0], .55), ruleSoft: A(P[0], .45), ruleFaint: A(P[0], .3),
+      chip: A(P[3], .55), chipGold: A(P[3], .85),
+      glassFill: A('#FFFFFF', g), glassStroke: A(P[0], d ? .33 : .22),
+      ctaFill: P[2], ctaInk: CampaignStudio.onInk(P[2]), ctaOutline: A(P[0], .9),
+      warm: P[0], boxBd: A(P[0], .25), eyeFill: P[2], eyeInk: CampaignStudio.onInk(P[2]),
+      div: CampaignStudio.rgbOf(P[0]), scrim: P[4]
+    });
+    CampaignStudio._lpK = key; CampaignStudio._lpV = v;
+    return v;
+  }
+  // The look's corners, blur and glass on a component's laid-out boxes — after the
+  // layout, so every component (built-in and custom) takes them from one place, and the
+  // export and the editor, which both read the layout's elements, cannot disagree. A
+  // circle stays a circle (plates, dots, the arrow disc) and a hairline stays square.
+  static lookEls(els, K) {
+    const L = CampaignStudio._look;
+    if (!L) return els;
+    const R = L.rad >= CampaignStudio.RAD_PILL ? 1e9 : Math.max(0, +L.rad || 0) * K;
+    els.forEach(e => {
+      if (e.k !== 'box') return;
+      if (e.blur) e.bla = Math.max(0, +L.blur || 0);
+      const circ = e.r && Math.abs(e.w - e.h) < .5 && e.r >= e.w / 2 - .5;
+      if (circ || Math.min(e.w, e.h) < 8 * K) return;
+      e.r = Math.min(R, e.h / 2, e.w / 2);
+    });
+    return els;
+  }
+  // The look's fonts. Weights come from the look (recorded at pick time from the catalog),
+  // so loading one never needs the catalog: only weights the family actually has are asked
+  // for, because the CSS2 API refuses a request naming one it does not.
+  static BUNDLED = { 'Google Sans Flex': 1, 'Readex Pro': 1 };
+  static lookWeights(w) {
+    const have = String(w || '4').split('').map(Number).filter(n => n >= 1 && n <= 9);
+    const want = [3, 4, 5, 6].filter(n => have.indexOf(n) >= 0);
+    if (want.length) return want;
+    return [have.reduce((a, n) => Math.abs(n - 4) < Math.abs(a - 4) ? n : a, have[0] || 4)];
+  }
+  static fontLoad(fam, w) {
+    CampaignStudio._fP = CampaignStudio._fP || {};
+    if (!fam || CampaignStudio.BUNDLED[fam]) return Promise.resolve();
+    if (CampaignStudio._fP[fam]) return CampaignStudio._fP[fam];
+    const ws = CampaignStudio.lookWeights(w);
+    const p = new Promise(res => {
+      try {
+        const l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fam).replace(/%20/g, '+') + ':wght@' + ws.map(n => n * 100).join(';') + '&display=swap';
+        const done = () => {
+          const probes = ws.map(n => document.fonts ? document.fonts.load(n * 100 + ' 40px "' + fam + '"', 'Abg ابجد').catch(() => {}) : null);
+          Promise.all(probes).then(() => res());
+        };
+        l.onload = done; l.onerror = () => res();
+        document.head.appendChild(l);
+      } catch (e) { res(); }
+    }).then(() => {
+      // measurements taken before the face arrived were taken in the fallback
+      StudioBase._asc = {};
+      if (CampaignStudio._rerender) try { CampaignStudio._rerender(); } catch (e) {}
+    });
+    return (CampaignStudio._fP[fam] = p);
+  }
+  static lookFams(L, ar) { return ar ? [[L.fA, L.wA]] : [[L.fH, L.wH], [L.fB, L.wB]]; }
+  // Never hangs an export: an offline machine draws in the fallback after 6s.
+  static lookReady() {
+    const L = CampaignStudio._look;
+    if (!L) return Promise.resolve();
+    const all = Promise.all(CampaignStudio.lookFams(L, window.providentArabic).map(f => CampaignStudio.fontLoad(f[0], f[1])));
+    return Promise.race([all, new Promise(r => setTimeout(r, 6000))]);
+  }
+  static { // publish the look with the face, at every place the face is published
+    const af = StudioBase.applyFont, ef = StudioBase.ensureFont;
+    StudioBase.applyFont = function (state) {
+      const f = af.call(StudioBase, state), L = CampaignStudio.lookOf(state);
+      CampaignStudio._look = L;
+      window.providentArabic = StudioBase.fontKey(state) === 'arabic';
+      if (!L) { window.providentFontHead = window.providentFont; return f; }
+      const q = n => "'" + String(n).replace(/'/g, '') + "'";
+      if (window.providentArabic) {
+        window.providentFont = window.providentFontHead = q(L.fA) + ",'Readex Pro','Google Sans Flex',sans-serif";
+        window.providentFontFam = L.fA;
+      } else {
+        window.providentFont = q(L.fB) + ",'Google Sans Flex',sans-serif";
+        window.providentFontHead = q(L.fH) + ",'Google Sans Flex',serif";
+        window.providentFontFam = L.fB;
+      }
+      CampaignStudio.lookFams(L, window.providentArabic).forEach(x => CampaignStudio.fontLoad(x[0], x[1]));
+      return { fam: window.providentFontFam, stack: window.providentFont, label: window.providentFontFam };
+    };
+    StudioBase.ensureFont = function (key) {
+      return Promise.all([ef.call(StudioBase, key), CampaignStudio.lookReady()]).then(() => {});
+    };
+  }
+  // ascent of a given stack (the headline face), cached beside fontAsc's own
+  static ascOf(stack) {
+    StudioBase._asc = StudioBase._asc || {};
+    if (StudioBase._asc[stack]) return StudioBase._asc[stack];
+    let a = .75, d = .25;
+    try {
+      const x = document.createElement('canvas').getContext('2d');
+      x.font = '400 100px ' + stack;
+      const m = x.measureText('Hxpg');
+      if (m.fontBoundingBoxAscent) { a = m.fontBoundingBoxAscent / 100; d = m.fontBoundingBoxDescent / 100; }
+    } catch (e) {}
+    return (StudioBase._asc[stack] = { a, d });
+  }
+  // ---------- the unbranded visualizer strip ----------
+  // A tested shortlist leads each font picker; typing searches the whole Google Fonts
+  // catalog (google-fonts.js, loaded on first use). Weights ride with the pick.
+  static LOOK_FONTS = [['Playfair Display', '456789'], ['DM Serif Display', '4'], ['Fraunces', '123456789'], ['Instrument Serif', '4'],
+    ['Cormorant Garamond', '34567'], ['Libre Caslon Display', '4'], ['Bodoni Moda', '456789'], ['Gloock', '4'], ['Young Serif', '4'],
+    ['Marcellus', '4'], ['Lora', '4567'], ['Bricolage Grotesque', '2345678'], ['Syne', '45678'], ['Unbounded', '23456789'],
+    ['Space Grotesk', '34567'], ['Manrope', '2345678'], ['DM Sans', '12345678'], ['Outfit', '123456789'], ['Plus Jakarta Sans', '2345678'],
+    ['Sora', '12345678'], ['Archivo', '123456789'], ['Figtree', '3456789'], ['Lexend', '123456789'], ['Inter', '123456789'],
+    ['Montserrat', '123456789'], ['Poppins', '123456789'], ['Work Sans', '123456789'], ['Josefin Sans', '1234567'], ['Urbanist', '123456789'],
+    ['Epilogue', '123456789'], ['Red Hat Display', '3456789'], ['Albert Sans', '123456789'], ['Onest', '123456789'],
+    ['Hanken Grotesk', '123456789'], ['Instrument Sans', '4567'], ['Schibsted Grotesk', '456789']];
+  static LOOK_AR = [['IBM Plex Sans Arabic', '1234567'], ['Cairo', '23456789'], ['Tajawal', '2345789'], ['Almarai', '3478'],
+    ['Readex Pro', '234567'], ['Noto Kufi Arabic', '123456789'], ['Noto Naskh Arabic', '4567'], ['Noto Sans Arabic', '123456789'],
+    ['Alexandria', '123456789'], ['Vazirmatn', '123456789'], ['Changa', '2345678'], ['El Messiri', '4567'], ['Amiri', '47'],
+    ['Markazi Text', '4567'], ['Mada', '23456789'], ['Rubik', '3456789'], ['Zain', '234789'], ['Lalezar', '4']];
+  static gfList() {
+    if (CampaignStudio._gf) return CampaignStudio._gf;
+    if (!window.providentGoogleFonts) return null;
+    return (CampaignStudio._gf = window.providentGoogleFonts.split('\n').map(l => { const p = l.split('|'); return { n: p[0], c: p[1], w: p[2], a: p[3] === '1' }; }));
+  }
+  static gfLoad(cb) {
+    if (window.providentGoogleFonts) { cb(); return; }
+    CampaignStudio._gfCb = (CampaignStudio._gfCb || []).concat([cb]);
+    if (CampaignStudio._gfReq) return;
+    CampaignStudio._gfReq = 1;
+    const sc = document.createElement('script');
+    sc.src = 'google-fonts.js';
+    sc.onload = () => { (CampaignStudio._gfCb || []).forEach(f => { try { f(); } catch (e) {} }); CampaignStudio._gfCb = []; };
+    sc.onerror = () => { CampaignStudio._gfReq = 0; };
+    document.head.appendChild(sc);
+  }
+  // colour helpers for the palette (rgb arrays 0..255)
+  static hexA(c) { return '#' + c.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('').toUpperCase(); }
+  static rgbA(h) { return CampaignStudio.rgbOf(h, '#000000').split(',').map(Number); }
+  static mixA(a, b, t) { return a.map((v, i) => v + (b[i] - v) * t); }
+  static toHsl([r, g, b]) {
+    r /= 255; g /= 255; b /= 255;
+    const M = Math.max(r, g, b), m = Math.min(r, g, b), l = (M + m) / 2; let h = 0, s = 0;
+    if (M !== m) { const d = M - m; s = l > .5 ? d / (2 - M - m) : d / (M + m); h = M === r ? (g - b) / d + (g < b ? 6 : 0) : M === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+    return [h, s, l];
+  }
+  static fromHsl(h, s, l) {
+    const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return [f(0) * 255, f(8) * 255, f(4) * 255];
+  }
+  // Five colours off the photo (k-means on a 60 x 80 sample), plus the average of its lower
+  // half — where the copy usually sits — for the contrast check.
+  static lookExtract(img) {
+    const C = CampaignStudio, c = document.createElement('canvas'), w = 60, h = 80;
+    c.width = w; c.height = h;
+    const x = c.getContext('2d');
+    x.drawImage(img, 0, 0, w, h);
+    const d = x.getImageData(0, 0, w, h).data, px = [];
+    for (let i = 0; i < d.length; i += 4) px.push([d[i], d[i + 1], d[i + 2]]);
+    const L = p => C.lumOf(C.hexA(p));
+    px.sort((a, b) => L(a) - L(b));
+    let K = [.05, .25, .5, .75, .95].map(q => px[Math.floor(q * (px.length - 1))].slice());
+    for (let it = 0; it < 10; it++) {
+      const acc = K.map(() => [0, 0, 0, 0]);
+      px.forEach(p => {
+        let bi = 0, bd = 1e12;
+        K.forEach((k, i) => { const dd = (k[0] - p[0]) ** 2 + (k[1] - p[1]) ** 2 + (k[2] - p[2]) ** 2; if (dd < bd) { bd = dd; bi = i; } });
+        const a = acc[bi]; a[0] += p[0]; a[1] += p[1]; a[2] += p[2]; a[3]++;
+      });
+      K = acc.map((a, i) => a[3] ? [a[0] / a[3], a[1] / a[3], a[2] / a[3]] : K[i]);
+    }
+    const lo = x.getImageData(0, Math.floor(h * .5), w, Math.ceil(h * .5)).data, s = [0, 0, 0]; let n = 0;
+    for (let i = 0; i < lo.length; i += 4) { s[0] += lo[i]; s[1] += lo[i + 1]; s[2] += lo[i + 2]; n++; }
+    return { cols: K, avg: C.hexA(s.map(v => v / Math.max(1, n))) };
+  }
+  // Roles for a tone: the scrim from the darkest (or lightest) colour pushed further, the text
+  // a near-white (or near-black) tinted by the photo, the accent its most saturated colour
+  // moved in lightness until it reads at 4.5:1 on the scrim.
+  static lookAssign(cols, tone, avg, a) {
+    const C = CampaignStudio, d = tone !== 'l';
+    const byL = cols.slice().sort((a, b) => C.lumOf(C.hexA(a)) - C.lumOf(C.hexA(b))), dk = byL[0], lt = byL[byL.length - 1];
+    const scrim = d ? C.mixA(dk, [6, 10, 16], .45) : C.mixA(lt, [255, 255, 255], .55);
+    const text = d ? C.mixA([255, 255, 255], lt, .12) : C.mixA([12, 16, 24], dk, .25);
+    const sat = c => { const [, s, l] = C.toHsl(c); return s * (1 - Math.abs(2 * l - 1)); };
+    const acc0 = cols.slice().sort((a, b) => sat(b) - sat(a))[0];
+    let [h, s, l] = C.toHsl(acc0); s = Math.max(s, .45);
+    // measured against the scrim AS IT SITS OVER THE PHOTO, at the scrim's own strength
+    const ground = avg ? C.hexA(C.mixA(C.rgbA(avg), scrim, a == null ? .65 : a)) : C.hexA(scrim);
+    for (let i = 0; i < 30; i++) { if (C.contrast(C.hexA(C.fromHsl(h, s, l)), ground) >= 4.5) break; l = Math.max(.05, Math.min(.95, l + (d ? .03 : -.03))); }
+    const acc = C.fromHsl(h, s, l);
+    return [text, acc, acc, text, scrim].map(C.hexA);
+  }
+  static lookGen(tone) {
+    const C = CampaignStudio, h = Math.random() * 360, ah = (h + 120 + Math.random() * 120) % 360, d = tone !== 'l';
+    const scrim = d ? C.fromHsl(h, .35 + Math.random() * .3, .08 + Math.random() * .08) : C.fromHsl(h, .25 + Math.random() * .3, .9 + Math.random() * .06);
+    const text = d ? C.fromHsl(h, .2, .96) : C.fromHsl(h, .35, .1);
+    let l = d ? .6 : .4, acc = C.fromHsl(ah, .65, l);
+    for (let i = 0; i < 30; i++) { acc = C.fromHsl(ah, .65, l); if (C.contrast(C.hexA(acc), C.hexA(scrim)) >= 4.5) break; l += d ? .03 : -.03; }
+    return [text, acc, acc, text, scrim].map(C.hexA);
+  }
+  static LOOKS_KEY = 'adstudio-looks';
+  static savedLooks() { try { const a = JSON.parse(localStorage.getItem(CampaignStudio.LOOKS_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  static saveLooks(a) { try { localStorage.setItem(CampaignStudio.LOOKS_KEY, JSON.stringify(a.slice(0, 40))); } catch (e) {} }
+  static LOOK_KEYS = ['tone', 'pal', 'fH', 'wH', 'fB', 'wB', 'fA', 'wA', 'rad', 'blur', 'gop', 'trk'];
+  // ---- engine side: the switch, writes, the photo palette ----
+  lookSet(patch) {
+    this.upd(x => { x.look = Object.assign({}, CampaignStudio.LOOK_DEF, x.look || {}, typeof patch === 'function' ? patch(Object.assign({}, CampaignStudio.LOOK_DEF, x.look || {})) : patch); return x; });
+  }
+  lookToggle(on) {
+    const first = !(this.state.look && this.state.look.seeded);
+    this.lookSet({ on: !!on, seeded: true });
+    if (on && first) this.lookFromPhoto(true);
+  }
+  async lookPhoto() {
+    const s = this.state, vi = s.activeVi || 0;
+    let rec = null;
+    try { const sc = await StudioBase.sidecar(); rec = sc['adstudio-bg-' + vi] || sc['adstudio-bg-0']; } catch (e) {}
+    const u = rec && (rec.u || rec.url || (typeof rec === 'string' ? rec : null));
+    if (!u) return null;
+    const img = await StudioBase.img(u);
+    if (!img) return null;
+    try { const r = CampaignStudio.lookExtract(img); CampaignStudio._lookAvg = r.avg; return r; } catch (e) { return null; }
+  }
+  async lookFromPhoto(quiet) {
+    const r = await this.lookPhoto();
+    if (!r) { if (!quiet) this.lookNote('Add a background photo first — the palette is read from it.'); return; }
+    this.lookSet(L => { const p = CampaignStudio.lookAssign(r.cols, L.tone, r.avg, this.scrimA()); return { pal: L.pal.map((c, i) => L.lock[i] ? c : p[i]) }; });
+    this.lookNote('');
+  }
+  scrimA() { const v = this.state.variants[this.state.activeVi || 0] || {}; return Math.max(0, Math.min(100, v.scrimH == null ? 65 : v.scrimH)) / 100; }
+  lookNote(t) { this._lookNote = t; if (this._lookStrip) this._lookStrip.sync(); }
+  lookMount() {
+    const host = document.querySelector('[data-look-host]');
+    if (!host) return;
+    if (!this._lookStrip || this._lookStrip.host !== host) this._lookStrip = new CampaignStudio.LookStrip(this, host);
+    this._lookStrip.sync();
+    const on = !!(this.state.look && this.state.look.on) && this.state.screen === 'editor', de = document.documentElement;
+    de.classList.toggle('lk-on', on);
+    if (on) de.style.setProperty('--lk-h', host.offsetHeight + 'px');
+  }
+  // Plain DOM in an EMPTY host, so React never reconciles what it draws; sync() reads the
+  // state on every shell update and leaves a control alone while it has the focus.
+  static LookStrip = class {
+    constructor(eng, host) {
+      this.eng = eng; this.host = host; this.q = '';
+      const C = CampaignStudio;
+      const lock = '<svg class="lk-lock" viewBox="0 -960 960 960" aria-hidden="true"><path class="lk-lk1" d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm60-560h360v-80q0-75-52.5-127.5T480-860q-75 0-127.5 52.5T300-720v80Z"/><path class="lk-lk0" d="M240-640h360v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85h-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640Z"/></svg>';
+      const rng = (k, lab, min, max) => '<div class="lk-rng"><label for="lk-' + k + '">' + lab + '</label><output data-o="' + k + '"></output><input type="range" id="lk-' + k + '" data-k="' + k + '" min="' + min + '" max="' + max + '" step="1"></div>';
+      host.innerHTML =
+        '<div class="lk-strip" role="region" aria-label="Unbranded look">' +
+        '<section class="lk-col"><div class="lk-hd"><h3>Palette</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d">Light on dark</button><button data-tone="l">Dark on light</button></div></div>' +
+        '<div class="lk-sws">' + C.ROLES.map((r, i) => '<button class="lk-sw" data-i="' + i + '" title="Click to lock, double-click to type a colour">' + lock + '<b>' + r + '</b><span></span><input type="color" tabindex="-1" aria-hidden="true"></button>').join('') + '</div>' +
+        '<div class="lk-row"><button class="p-ghost p-sm" data-act="photo">From photo</button><button class="p-ghost p-sm" data-act="gen">Generate</button><span class="lk-note"></span></div>' +
+        '<div class="lk-ck"></div></section>' +
+        '<section class="lk-col"><div class="lk-hd"><h3>Type</h3></div>' +
+        '<input class="p-in lk-q" placeholder="Search all Google Fonts" aria-label="Search all Google Fonts" spellcheck="false">' +
+        '<label class="lk-f"><span>Headline</span><select class="p-in" data-f="H"></select></label>' +
+        '<label class="lk-f"><span>Body, labels and buttons</span><select class="p-in" data-f="B"></select></label>' +
+        '<label class="lk-f"><span>Arabic</span><select class="p-in" data-f="A"></select></label>' +
+        rng('trk', 'Eyebrow tracking', 0, 30) + '</section>' +
+        '<section class="lk-col"><div class="lk-hd"><h3>Shape</h3></div>' +
+        rng('rad', 'Corners', 0, C.RAD_PILL) + rng('blur', 'Glass blur', 0, 40) + rng('gop', 'Glass opacity', 0, 60) +
+        '<div class="lk-hd lk-hd2"><h3>Saved looks</h3><button class="p-ghost p-sm" data-act="save">Save look</button></div>' +
+        '<div class="lk-looks"></div></section></div>';
+      const $ = sel => host.querySelector(sel);
+      host.querySelectorAll('[data-tone]').forEach(b => b.onclick = () => this.tone(b.getAttribute('data-tone')));
+      host.querySelectorAll('.lk-sw').forEach(b => {
+        const i = +b.getAttribute('data-i'), inp = b.querySelector('input');
+        b.onclick = e => { if (e.detail > 1) return; eng.lookSet(L => { const lk = L.lock.slice(); lk[i] = lk[i] ? 0 : 1; return { lock: lk }; }); };
+        b.ondblclick = () => { inp.value = (this.L().pal[i] || '#000000').toLowerCase(); inp.click(); };
+        inp.oninput = () => eng.lookSet(L => { const p = L.pal.slice(), lk = L.lock.slice(); p[i] = inp.value.toUpperCase(); lk[i] = 1; return { pal: p, lock: lk }; });
+      });
+      $('[data-act="photo"]').onclick = () => eng.lookFromPhoto();
+      $('[data-act="gen"]').onclick = () => eng.lookSet(L => { const p = C.lookGen(L.tone); return { pal: L.pal.map((c, i) => L.lock[i] ? c : p[i]) }; });
+      $('[data-act="save"]').onclick = () => {
+        const all = C.savedLooks(), n = window.prompt('Name this look', 'Look ' + (all.length + 1));
+        if (!n) return;
+        const L = this.L(), o = { n: String(n).slice(0, 40) };
+        C.LOOK_KEYS.forEach(k => { o[k] = Array.isArray(L[k]) ? L[k].slice() : L[k]; });
+        C.saveLooks([o].concat(all.filter(x => x.n !== o.n)));
+        this.sync(true);
+      };
+      const q = $('.lk-q');
+      q.oninput = () => { this.q = q.value.trim().toLowerCase(); if (this.q) C.gfLoad(() => this.fill(true)); this.fill(true); };
+      host.querySelectorAll('select[data-f]').forEach(sl => sl.onchange = () => {
+        const f = sl.getAttribute('data-f'), o = sl.options[sl.selectedIndex];
+        eng.lookSet({ ['f' + f]: o.value, ['w' + f]: o.getAttribute('data-w') || '4' });
+      });
+      host.querySelectorAll('input[type=range][data-k]').forEach(r => r.oninput = () => eng.lookSet({ [r.getAttribute('data-k')]: +r.value }));
+    }
+    L() { const s = this.eng.state; return Object.assign({}, CampaignStudio.LOOK_DEF, s.look || {}); }
+    tone(t) {
+      const eng = this.eng;
+      eng.lookSet({ tone: t });
+      // the photo's own palette for the new tone, keeping what is locked; no photo, a generated one
+      eng.lookPhoto().then(r => eng.lookSet(L => { const p = r ? CampaignStudio.lookAssign(r.cols, t, r.avg, eng.scrimA()) : CampaignStudio.lookGen(t); return { pal: L.pal.map((c, i) => L.lock[i] ? c : p[i]) }; }));
+    }
+    opts(list, cur, curW, ar) {
+      const C = CampaignStudio, seen = {}, out = [];
+      const add = (n, w) => { if (seen[n]) return; seen[n] = 1; out.push('<option value="' + n.replace(/"/g, '') + '" data-w="' + w + '"' + (n === cur ? ' selected' : '') + '>' + n + '</option>'); };
+      if (this.q) {
+        const all = C.gfList() || [];
+        list.filter(f => f[0].toLowerCase().indexOf(this.q) >= 0).forEach(f => add(f[0], f[1]));
+        all.filter(f => (!ar || f.a) && f.n.toLowerCase().indexOf(this.q) >= 0).slice(0, 80).forEach(f => add(f.n, f.w));
+        if (!out.length) out.push('<option disabled>No font matches</option>');
+      } else list.forEach(f => add(f[0], f[1]));
+      if (cur && !seen[cur]) out.unshift('<option value="' + cur + '" data-w="' + (curW || '4') + '" selected>' + cur + '</option>');
+      return out.join('');
+    }
+    fill(force) {
+      const L = this.L(), C = CampaignStudio, h = this.host;
+      const key = this.q + '|' + L.fH + L.fB + L.fA + (C.gfList() ? 1 : 0);
+      if (!force && key === this._fk) return;
+      this._fk = key;
+      [['H', C.LOOK_FONTS, false], ['B', C.LOOK_FONTS, false], ['A', C.LOOK_AR, true]].forEach(([f, list, ar]) => {
+        const sl = h.querySelector('select[data-f="' + f + '"]');
+        if (document.activeElement === sl) return;
+        sl.innerHTML = this.opts(list, L['f' + f], L['w' + f], ar);
+      });
+    }
+    sync(force) {
+      const C = CampaignStudio, s = this.eng.state, L = this.L(), h = this.host;
+      const on = !!(s.look && s.look.on);
+      if (!on) return;
+      h.querySelectorAll('[data-tone]').forEach(b => b.setAttribute('data-on', b.getAttribute('data-tone') === L.tone ? '1' : ''));
+      h.querySelectorAll('[data-tone]').forEach(b => { if (!b.getAttribute('data-on')) b.removeAttribute('data-on'); });
+      h.querySelectorAll('.lk-sw').forEach(b => {
+        const i = +b.getAttribute('data-i'), c = L.pal[i] || '#000000';
+        b.style.background = c; b.style.color = C.onInk(c);
+        b.querySelector('span').textContent = c;
+        b.setAttribute('data-locked', L.lock[i] ? '1' : '0');
+        b.setAttribute('aria-label', C.ROLES[i] + ' ' + c + (L.lock[i] ? ', locked' : ''));
+      });
+      h.querySelectorAll('input[type=range][data-k]').forEach(r => {
+        const k = r.getAttribute('data-k');
+        if (document.activeElement !== r) r.value = L[k];
+        const v = +r.value, o = h.querySelector('[data-o="' + k + '"]');
+        o.textContent = k === 'rad' ? (v >= C.RAD_PILL ? 'Pill' : v + 'px') : k === 'trk' ? (v / 100).toFixed(2) + 'em' : k === 'gop' ? v + '%' : v + 'px';
+      });
+      h.querySelector('.lk-note').textContent = this.eng._lookNote || '';
+      // contrast: the copy reads on the scrim as it sits over the photo, at the scrim's own strength
+      const v = s.variants[s.activeVi || 0] || {}, a = Math.max(0, Math.min(100, v.scrimH == null ? 65 : v.scrimH)) / 100;
+      const ground = C.hexA(C.mixA(C.rgbA(C._lookAvg || L.pal[4]), C.rgbA(L.pal[4]), a));
+      const rows = [['Headline on scrim', C.contrast(L.pal[0], ground), 4.5], ['Accent on scrim', C.contrast(L.pal[1], ground), 3],
+        ['Button label', C.contrast(C.onInk(L.pal[2]), L.pal[2]), 4.5]];
+      const ck = rows.map(r => '<div class="lk-c" data-ok="' + (r[1] >= r[2] ? '1' : '0') + '"><span>' + r[0] + '</span><b>' + r[1].toFixed(1) + ':1 ' + (r[1] >= r[2] ? 'reads' : 'too faint') + '</b></div>').join('');
+      if (ck !== this._ck) { h.querySelector('.lk-ck').innerHTML = ck; this._ck = ck; }
+      const looks = C.savedLooks();
+      const lk = looks.map((o, i) => '<span class="lk-look"><button data-li="' + i + '" title="Apply ' + o.n.replace(/"/g, '') + '"><i>' + (o.pal || []).map(c => '<u style="background:' + c + '"></u>').join('') + '</i>' + o.n.replace(/</g, '') + '</button><button class="lk-x" data-ld="' + i + '" aria-label="Delete ' + o.n.replace(/"/g, '') + '">×</button></span>').join('') || '<span class="lk-none">Save a look to use it on another project.</span>';
+      if (force || lk !== this._lk) {
+        this._lk = lk;
+        const box = h.querySelector('.lk-looks');
+        box.innerHTML = lk;
+        box.querySelectorAll('[data-li]').forEach(b => b.onclick = () => {
+          const o = C.savedLooks()[+b.getAttribute('data-li')]; if (!o) return;
+          const p = {}; C.LOOK_KEYS.forEach(k => { if (o[k] != null) p[k] = Array.isArray(o[k]) ? o[k].slice() : o[k]; });
+          p.lock = [0, 0, 0, 0, 0];
+          this.eng.lookSet(p);
+        });
+        box.querySelectorAll('[data-ld]').forEach(b => b.onclick = () => { const all = C.savedLooks(); all.splice(+b.getAttribute('data-ld'), 1); C.saveLooks(all); this.sync(true); });
+      }
+      this.fill(force);
+    }
+  };
   static SCALE_MIN = 80;
   static SCALE_MAX = 130;
   // The range is PER SIZE. A 9:16 carries the same copy down a much narrower column
@@ -8387,7 +8842,9 @@ class CampaignStudio extends StudioBase {
   // Read through the SAME published face every measure and render path uses, so this
   // can never disagree with what is actually being drawn — applyFont() runs at the
   // top of buildOps and renderVals, before anything here is asked.
-  static isArabic() { return window.providentFontFam === 'Readex Pro'; }
+  // providentArabic is set wherever the face is published (applyFont, wrapped above), because
+  // an unbranded Arabic ad is drawn in its own Arabic font rather than Readex Pro.
+  static isArabic() { return window.providentArabic === true || window.providentFontFam === 'Readex Pro'; }
   static AR = {
     // Measured at 100px: a Latin cap stands 72.8 tall, an Arabic letter body 46.1 —
     // and an all-caps eyebrow shows Latin at its tallest, which is why Arabic read as
@@ -8721,7 +9178,7 @@ class CampaignStudio extends StudioBase {
   }
   // One tracked-caps unit. Every eyebrow, small label and spec label reads this, so
   // the Arabic rule is applied once instead of at five `* .16` call sites.
-  static trackOf(px) { return CampaignStudio.isArabic() ? CampaignStudio.AR.track : px * .16; }
+  static trackOf(px) { return CampaignStudio.isArabic() ? CampaignStudio.AR.track : px * (CampaignStudio._look ? (+CampaignStudio._look.trk || 0) / 100 : .16); }
   // The header weight: Regular in Latin, Light in Arabic.
   static headW(latin) { return CampaignStudio.isArabic() ? CampaignStudio.AR.header : latin; }
   // The line advance for a role, in em of its own size. Read it EVERYWHERE a line
@@ -9152,7 +9609,7 @@ class CampaignStudio extends StudioBase {
     if (!root) return { h: 0, els };
     const rw = root.fixed ? root.w : iw;
     root.draw(root.fixed && center ? (iw - rw) / 2 : 0, 0, rw, center ? 'center' : 'start', root.h);
-    return { h: root.h, els };
+    return { h: root.h, els: C.lookEls(els, C.kOf(tk)) };
   }
   // ══ THE BUILT-IN COMPONENTS, DRAWN TO THE FIGMA SPEC ══════════════════════════════════
   // "CAS Templates" › Design Components (figma.com/design/mKRZhwe2MvJDuMBjYas0D5, node 71:2)
@@ -9177,10 +9634,11 @@ class CampaignStudio extends StudioBase {
     const bl = (px, lh) => (lh - px * (F.a + F.d)) / 2 + px * F.a;
     const Wd = (t, px, w, ls) => this.meas(t, px, w, false, ls || 0);
     const at = w => center ? (iw - w) / 2 : 0;
-    const T = (text, x, y, px, weight, fill, ls) => { els.push({ k: 'text', x, y, px, weight, fill, text, ls: ls || 0 }); };
+    // hd: the run is set in the HEADLINE face (an unbranded look's display font; the same face otherwise)
+    const T = (text, x, y, px, weight, fill, ls, hd) => { els.push({ k: 'text', x, y, px, weight, fill, text, ls: ls || 0, hd: hd ? 1 : 0 }); };
     const Bx = o => { els.push(Object.assign({ k: 'box', r: 0 }, o)); };
     const A = (c, a) => C.rgbaOf(c, a);
-    const ink = pal.ink, mute = pal.inkMute;
+    const ink = pal.ink, mute = pal.inkMute, fig = C._look ? pal.accent : pal.ink;
     const wrap = (t, px, w, maxW) => this.wrapRuns([{ px, weight: w, serif: false, text: t }], maxW).map(l => l.parts.map(p => p.t).join(' '));
     // the arrow the button and the text link draw: 18 x 14, 2.5 stroke, round caps
     const arrow = (x, y, s, col) => {
@@ -9245,7 +9703,7 @@ class CampaignStudio extends StudioBase {
         const w = mv === 'split' ? C.heroW(v, m, mv, i) : r.weight;
         let fill = C.splitInk(mv, i, r.fill, pal);
         if (mv === 'fade') fill = A(fill, C.fadeA(i, n));
-        return { t, w, fill, px: r.px, tw: Wd(t, r.px, w) };
+        return { t, w, fill, px: r.px, tw: this.meas(t, r.px, w, 'hd', 0) };
       });
       const widest = runs.reduce((a, o) => o ? Math.max(a, o.tw) : a, 0);
       let x0 = 0, bw = iw, top = 0;
@@ -9256,7 +9714,7 @@ class CampaignStudio extends StudioBase {
       runs.forEach((o, i) => {
         if (!o) return;
         const x = glass ? (center ? x0 + (bw - o.tw) / 2 : x0 + HB.padX) : (center ? at(o.tw) : 0);
-        T(o.t, x, top + i * lh + bl(o.px, lh), o.px, o.w, o.fill);
+        T(o.t, x, top + i * lh + bl(o.px, lh), o.px, o.w, o.fill, 0, 1);
       });
       h = n * lh + 2 * top;
       if (mv === 'underscore') {
@@ -9585,18 +10043,18 @@ class CampaignStudio extends StudioBase {
       const sub = String(m.sub || '').toUpperCase(), pTxt = m.text || '', hw = C.headW(400);
       if (mv === 'line') {
         const px = C.priceLinePx(tk), lh = autoH(px), t = C.priceLine(m);
-        T(t, at(Wd(t, px, hw)), bl(px, lh), px, hw, ink);
+        T(t, at(this.meas(t, px, hw, 'hd', 0)), bl(px, lh), px, hw, fig, 0, 1);
         h = lh;
       } else {
         const glass = mv === 'glass', fp = glass ? C.typeAt(tk.hero, -1) : tk.hero, fh = autoH(fp);
         const g = (glass ? 8 : 10) * e + C.arGap(E, fp);
-        const w1 = Wd(sub, E, 500, ls), w2 = Wd(pTxt, fp, hw);
+        const w1 = Wd(sub, E, 500, ls), w2 = this.meas(pTxt, fp, hw, 'hd', 0);
         const pX = glass ? 48 * e + K : 0, pY = glass ? 28 * e + K : 0;
         const bw = Math.max(w1, w2) + 2 * pX, bh = lhE + g + fh + 2 * pY, x0 = at(bw);
         if (glass) Bx({ x: x0, y: 0, w: bw, h: bh, r: 28 * e, fill: pal.glassFill, stroke: pal.glassStroke, sw: K, blur: true });
         const cx = w => center ? x0 + (bw - w) / 2 : x0 + pX;
         if (sub) T(sub, cx(w1), pY + bl(E, lhE), E, 500, mute, ls);
-        T(pTxt, cx(w2), pY + lhE + g + bl(fp, fh), fp, hw, ink);
+        T(pTxt, cx(w2), pY + lhE + g + bl(fp, fh), fp, hw, fig, 0, 1);
         h = bh;
       }
     } else if (m.type === 'cta') {
@@ -9646,16 +10104,16 @@ class CampaignStudio extends StudioBase {
         h = d;
       } else { const t = 2 * K; Bx({ x: 0, y: 0, w: iw, h: t, fill: A(ink, .6) }); h = t; }
     }
-    return { h, els };
+    return { h, els: C.lookEls(els, K) };
   }
   // The export: modLayout's elements as ops, offset to the component's place on the canvas.
   // A stroked box draws its stroke INSIDE its edge, as the Figma frames do.
   emitEls(ops, els, ox, oy, m, assets) {
     els.forEach(e => {
       const x = ox + e.x, y = oy + e.y;
-      if (e.k === 'text') ops.push({ op: 'text', x, y, px: e.px, weight: e.weight, fill: e.fill, text: e.text, ls: e.ls });
+      if (e.k === 'text') ops.push(e.hd ? { op: 'text', x, y, px: e.px, weight: e.weight, fill: e.fill, text: e.text, ls: e.ls, serif: 'hd' } : { op: 'text', x, y, px: e.px, weight: e.weight, fill: e.fill, text: e.text, ls: e.ls });
       else if (e.k === 'box') {
-        if (e.blur) ops.push({ op: 'blur', x, y, w: e.w, h: e.h, r: e.r || 0, amount: 14 });
+        if (e.blur) ops.push({ op: 'blur', x, y, w: e.w, h: e.h, r: e.r || 0, amount: e.bla != null ? e.bla : 14 });
         const sw = e.stroke ? (e.sw || 1) : 0;
         if (e.fill) ops.push(e.r ? { op: 'rrect', x, y, w: e.w, h: e.h, r: e.r, fill: e.fill } : { op: 'rect', x, y, w: e.w, h: e.h, fill: e.fill });
         if (sw) ops.push({ op: 'rrect', x: x + sw / 2, y: y + sw / 2, w: e.w - sw, h: e.h - sw, r: Math.max(0, (e.r || 0) - sw / 2), fill: null, stroke: e.stroke, sw });
@@ -9677,7 +10135,10 @@ class CampaignStudio extends StudioBase {
     return els.map(e => {
       if (e.k === 'text') {
         const at = { position: 'absolute', left: cq(e.x), top: cq(e.y - e.px) };
-        return { t: e.text, style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre' }) };
+        // a headline-face run takes that face, and the line-height that puts ITS baseline px below the top
+        const hdS = e.hd && window.providentFontHead && window.providentFontHead !== window.providentFont ? window.providentFontHead : null;
+        const fa = hdS ? CampaignStudio.ascOf(hdS) : null;
+        return { t: e.text, style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(fa ? e.px * (2 - fa.a + fa.d) : StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre', fontFamily: hdS || undefined }) };
       }
       if (e.k === 'icon') return { t: '', isIcon: '1', slot: 'adstudio-ic-' + m.id + '-' + e.slot, tint: e.ink,
         style: { position: 'absolute', left: cq(e.x), top: cq(e.y), width: cq(e.w), height: cq(e.h) } };
@@ -9693,7 +10154,7 @@ class CampaignStudio extends StudioBase {
       if (e.k === 'grad') return { t: '', style: Object.assign(at, { background: 'linear-gradient(to right, ' + e.stops.map(s => s[1] + ' ' + (s[0] * 100) + '%').join(', ') + ')' }) };
       return { t: '', style: Object.assign(at, { borderRadius: cq(e.r || 0), background: e.fill || 'transparent',
         boxShadow: e.stroke ? 'inset 0 0 0 ' + cq(e.sw || 1) + ' ' + e.stroke : 'none',
-        backdropFilter: e.blur ? 'blur(14px)' : 'none', WebkitBackdropFilter: e.blur ? 'blur(14px)' : 'none' }) };
+        backdropFilter: e.blur ? 'blur(' + (e.bla != null ? e.bla : 14) + 'px)' : 'none', WebkitBackdropFilter: e.blur ? 'blur(' + (e.bla != null ? e.bla : 14) + 'px)' : 'none' }) };
     });
   }
   modPx(m, v, tk, innerW, ov) {
@@ -9767,7 +10228,9 @@ class CampaignStudio extends StudioBase {
     const useCol = !!tk.col && !center;
     const innerW = useCol ? tk.col : W - pL - pR;
     const A = Math.max(0, Math.min(100, v.scrimH == null ? 65 : v.scrimH)) / 100;
-    const base = CampaignStudio.rgbOf(v.scrimHex, v.scrimC === 'black' ? '#000000' : CampaignStudio.palOf(v).scrim);
+    // unbranded, the scrim takes the look's scrim role; its shape, opacity and fade stay the variant's
+    const base = CampaignStudio._look ? CampaignStudio.rgbOf(CampaignStudio._look.pal[4], '#000000')
+      : CampaignStudio.rgbOf(v.scrimHex, v.scrimC === 'black' ? '#000000' : CampaignStudio.palOf(v).scrim);
     const has = c => list.some(m => clusterOf(m.id) === c && m.type !== 'divider' && m.type !== 'spacer');
     // Per-component gaps, so the wash follows the real stack height — the first in a
     // cluster contributes none, exactly as the layout places it.
@@ -9777,8 +10240,10 @@ class CampaignStudio extends StudioBase {
     const clusterH = c => list.filter(m => clusterOf(m.id) === c)
       .reduce((a, m, i) => a + this.modPx(m, v, tk, c === 'bottom' ? guard.w : innerW, ov) + (i ? CampaignStudio.gapBefore(v, m, tk) : 0), 0);
     const wTop = has('top'), wBot = has('bottom');
-    const logoBottom = v.logoPos === 'bottom';
-    const CLEAR = 80;
+    // unbranded draws no wordmark, so it takes no band and no clear space
+    const unb = !!CampaignStudio._look;
+    const logoBottom = !unb && v.logoPos === 'bottom';
+    const CLEAR = unb ? 0 : 80;
     // The scrim is the BACKGROUND OF THE COPY, not a wash over the canvas: one
     // box per cluster, full width, its height set by what sits inside it (the
     // modules plus the wordmark when the wordmark shares that end) with PAD of
@@ -9790,8 +10255,8 @@ class CampaignStudio extends StudioBase {
     //   100 -> the ramp spans the whole box
     const PAD = tk.gapS * 2.4;
     const F = Math.max(0, Math.min(100, v.scrimFade == null ? 100 : v.scrimFade)) / 100;
-    const logoH = tk.logo * 1.2;
-    const topOn = wTop || !logoBottom;
+    const logoH = unb ? 0 : tk.logo * 1.2;
+    const topOn = wTop || (!logoBottom && !unb);
     const botOn = wBot || logoBottom;
     // `stops` is the wash painted over the photo. `botStops` is the same gradient
     // with the TOP band removed — it tints the parallax cutout, so the subject only
@@ -9887,13 +10352,17 @@ class CampaignStudio extends StudioBase {
     const logoLS = tk.logo * .04;
     const logoW = this.meas('provident.', tk.logo, 300, false, logoLS);
     const logoX = v.logoAlign === 'center' ? cctr(logoW) : pL;
-    const logoBottom = v.logoPos === 'bottom';
+    // UNBRANDED: no wordmark, no lockup, no QR, and the wordmark's space goes back to the copy
+    const unb = !!CampaignStudio._look;
+    const logoBottom = !unb && v.logoPos === 'bottom';
     // Everything pushed so far is background — base, photo, scrim. Content starts
     // here, and the cutout has to slide between the hero and the rest of it.
     const zContent = ops.length;
     const logoBaseY = logoBottom ? H - pB - tk.logo * .35 : pT + tk.logo * .8;
-    const coA = (state.colog && state.colog.on) ? assets.colog : null;
-    if (coA) {
+    const coA = (!unb && state.colog && state.colog.on) ? assets.colog : null;
+    if (unb) {
+      // nothing in the wordmark's place
+    } else if (coA) {
       // provident.  |  partner — the divider and the mark are centred on one axis so
       // the two marks read as a single lockup rather than two logos side by side.
       const CB = StudioBase.coBox(state, tk, innerW, coA.ink);
@@ -10546,7 +11015,7 @@ class CampaignStudio extends StudioBase {
     // Space is taken BEFORE each component, so a per-component override reads as
     // "push this one down" and the first in a cluster stays pinned to its margin.
     const gapB = m => CampaignStudio.gapBefore(v, m, tk);
-    let y = logoBottom ? pT : pT + tk.logo * 1.2 + CLEAR;
+    let y = (logoBottom || unb) ? pT : pT + tk.logo * 1.2 + CLEAR;
     top.forEach((m, i) => { if (i) y += gapB(m); draw(m, y); y += modH(m); });
     // the bottom cluster measures AND draws to the rail guard — a height measured at one
     // width and drawn at another puts the whole stack off its own baseline
@@ -10602,7 +11071,7 @@ class CampaignStudio extends StudioBase {
     // bottom margin, which is inside the Reels action rail's own band, so a right-corner
     // QR is pulled in past it — the same railR the bottom cluster respects.
     // A banner draws none: it is clicked, not scanned (see BANNER_TK).
-    if (state.qr.show && !tk.noQr) {
+    if (state.qr.show && !tk.noQr && !unb) {
       const qs = tk.qr;
       // Mirrored, the corner is chosen in the Latin frame (the mirror moves it) and the
       // Reels rail's clearance goes on the side that will be the RIGHT after it.
@@ -10629,7 +11098,7 @@ class CampaignStudio extends StudioBase {
     const pal = CampaignStudio.palOf(v);
     // Measured at the base weight. SPLIT draws its later lines Light, which is narrower,
     // so wrapping at Regular can never let one overflow.
-    const sans = { px: B.hpx, weight: CampaignStudio.heroW(v, m, mv === 'split' ? '' : mv, 0), fill: pal.ink, serif: false };
+    const sans = { px: B.hpx, weight: CampaignStudio.heroW(v, m, mv === 'split' ? '' : mv, 0), fill: pal.ink, serif: 'hd' };
     // Author-placed breaks split the headline first; each segment then still
     // auto-wraps to the column, so a manual break never causes an overflow.
     // ONE run per segment. The emphasis word used to split the segment in three, but
@@ -10917,7 +11386,7 @@ class CampaignStudio extends StudioBase {
         }
         ctx.restore();
       } else if (o.op === 'text') {
-        ctx.font = `${o.weight} ${o.px}px ${window.providentFont || '"Google Sans Flex", sans-serif'}`;
+        ctx.font = `${o.weight} ${o.px}px ${(o.serif === 'hd' && window.providentFontHead) || window.providentFont || '"Google Sans Flex", sans-serif'}`;
         // `grad` is a vertical gradient in canvas coordinates, so a headline fading
         // downward keeps one continuous ramp across all of its lines instead of
         // restarting per line.
@@ -11018,7 +11487,9 @@ class CampaignStudio extends StudioBase {
           body += `<rect x="0" y="0" width="${built.W}" height="${built.H}" fill="url(#tg${gi})" mask="url(#tm${gi})"${o.clip ? ` clip-path="url(#c${ci})"` : ''}/>`;
         }
       } else if (o.op === 'text') {
-        const fam = (window.providentFontFam || 'Google Sans Flex') + ', Google Sans Flex, sans-serif';
+        const fam = (o.serif === 'hd' && window.providentFontHead && window.providentFontHead !== window.providentFont)
+          ? window.providentFontHead.replace(/'/g, '')
+          : (window.providentFontFam || 'Google Sans Flex') + ', Google Sans Flex, sans-serif';
         let fill = o.fill;
         if (o.grad) {
           gi++;
@@ -11313,11 +11784,12 @@ class CampaignStudio extends StudioBase {
     const of = t => { const m = list.find(x => x.type === t); return m || null; };
     const txt = t => { const m = of(t); return m ? String(m.text || '').replace(/\n+/g, ' ').trim() : ''; };
     const price = of('price');
-    const domain = 'providentestate.com';
+    const unb = !!(st.look && st.look.on);
+    const domain = unb ? 'example.com' : 'providentestate.com';
     return {
-      brand: 'provident.',
-      handle: 'providentestate',
-      page: 'Provident Real Estate',
+      brand: unb ? '' : 'provident.',
+      handle: unb ? 'sponsoredpage' : 'providentestate',
+      page: unb ? 'Sponsored page' : 'Provident Real Estate',
       domain,
       primary: txt('hook') || txt('body') || txt('eyebrow') || 'Your primary text sits here, above the creative.',
       headline: txt('hero') || st.campaign || 'Headline',
@@ -13130,6 +13602,7 @@ class CampaignStudio extends StudioBase {
     // read the published face, so it has to be set before the values are built.
     StudioBase.applyFont(this.state);
     const s = this.state;
+    CampaignStudio._rerender = () => { try { this.forceUpdate(); } catch (e) {} };
     const cq = px => (px / 10.8).toFixed(2) + 'cqw';
     // The canvas is fitted to the viewport when there is not room for the desktop
     // floor. Clamping to 380 regardless is what overflowed a 375px screen — the media
@@ -13585,7 +14058,7 @@ class CampaignStudio extends StudioBase {
             // a border would take layout space inside the zoomed box
             const ring = e.stroke ? '0 0 0 ' + cq(e.sw / 2) + ' ' + e.stroke + ', inset 0 0 0 ' + cq(e.sw / 2) + ' ' + e.stroke : 'none';
             return { t: '', style: Object.assign(at, { width: cq(e.w), height: cq(e.h), borderRadius: cq(e.r), background: e.fill || 'transparent', boxShadow: ring,
-              backdropFilter: e.blur ? 'blur(14px)' : 'none', WebkitBackdropFilter: e.blur ? 'blur(14px)' : 'none' }) };
+              backdropFilter: e.blur ? 'blur(' + (e.bla != null ? e.bla : 14) + 'px)' : 'none', WebkitBackdropFilter: e.blur ? 'blur(' + (e.bla != null ? e.bla : 14) + 'px)' : 'none' }) };
           });
         } else if (m.type === 'cta') {
           const outline = mv === 'outline', rectV = mv === 'rect';
@@ -14155,13 +14628,15 @@ class CampaignStudio extends StudioBase {
           // lockup into never appearing unless the dock happened to be open with its own
           // copy of the slot. coBox() falls back to a square until the measurement lands,
           // one frame later.
-          const coOn = !!co.on;
+          const unbL = !!CampaignStudio._look;
+          const coOn = !!co.on && !unbL;
           // textAlign is EXPLICIT so the mirror can swap it: left unset, `unicode-bidi:
           // plaintext` resolves "start" from the text itself, and Latin "provident." stayed on
           // the LEFT of an Arabic lockup box — on top of the partner mark.
           const base = { textAlign: 'left', fontWeight: 300, fontSize: cq(tk.logo), letterSpacing: '.04em', color: pal.ink, alignSelf: v.logoAlign === 'center' ? 'center' : 'flex-start', flex: 'none', position: 'relative', zIndex: 2 };
           const bot = v.logoPos === 'bottom';
           Object.assign(base, bot ? { marginTop: cq(80), order: 2 } : { marginBottom: cq(80) });
+          if (unbL) { base.display = 'none'; return { logoStyle: base, coOn: false }; }
           if (!coOn) return { logoStyle: base, coOn: false };
           const CB = StudioBase.coBox(s, tk, tk.W - pL - pR, this._coInk);
           const lw = this.meas('provident.', tk.logo, 300, false, tk.logo * .04);
@@ -14711,7 +15186,11 @@ class CampaignStudio extends StudioBase {
       infoStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '50%', border: 'none', background: 'var(--ps-accent-q)', color: 'var(--ps-ink)', fontSize: '10px', fontWeight: 500, cursor: 'help', flex: 'none', fontStyle: 'normal' },
       infoStyleDark: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '50%', border: 'none', background: 'var(--ps-accent-q)', color: 'var(--ps-ink)', fontSize: '10px', fontWeight: 500, cursor: 'help', flex: 'none', fontStyle: 'normal' },
       guidesOn: this.props.showGuides ?? false,
-      qrShow: s.qr.show,
+      qrShow: !!s.qr.show && !(s.look && s.look.on),
+      lookOnOn: (s.look && s.look.on) ? '1' : undefined,
+      lookOffOn: (s.look && s.look.on) ? undefined : '1',
+      lookOnGo: () => this.lookToggle(true),
+      lookOff: () => this.lookToggle(false),
       activeName: this.vLabel(s.activeVi) + (selEff !== selV ? ' · ' + (CampaignStudio.SIZE_LAB[selSz] || selSz) + ' (own layout)' : ''),
       activeBgId: 'adstudio-bg-' + s.activeVi,
       // ── THE RAILS IN THE GUIDED FORM'S LANGUAGE: a drop is a dashed thumb with its caption
@@ -14740,7 +15219,7 @@ class CampaignStudio extends StudioBase {
           if (t === 'graphic' && !filled['adstudio-mod-' + selM.id]) need++;
         }
         const bgOk = !!filled['adstudio-bg-' + vi];
-        const qrNeed = !!(s.qr && s.qr.show) && !filled['adstudio-qr'];
+        const qrNeed = !!(s.qr && s.qr.show) && !(s.look && s.look.on) && !filled['adstudio-qr'];
         return {
           bgDoneOn: on('adstudio-bg-' + vi), bgDropLabel: lab('adstudio-bg-' + vi, 'Picture', 'a picture'),
           bgStDoneOn: on('adstudio-bg-' + vi + '-st'), bgStDropLabel: lab('adstudio-bg-' + vi + '-st', 'Picture', 'the 9:16 picture'),
@@ -16763,7 +17242,7 @@ class Component extends DCLogic {
       try { live.set(el, make(el, { play: true, intensity: .6 })); } catch (e) { console.warn('hairline', e); }
     });
   }
-  _vtTick() { this.hlBind(); this.accBind(); const e = this.active(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.pgBind) { e.pgBind(); if (e._pgOpen) { e.pgSync(); e.pgFocusTick(); } } if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
+  _vtTick() { this.hlBind(); this.accBind(); const e = this.active(); if (e && e.lookMount) e.lookMount(); if (e && e.custPasteBind) e.custPasteBind(); if (e && e.pgBind) { e.pgBind(); if (e._pgOpen) { e.pgSync(); e.pgFocusTick(); } } if (e && e.state && e.state.screen === 'editor' && e.state.sel && e.vtSync) e.vtSync(); }
   // The copy view's preview is the real export, re-rendered off a key — so, like the
   // placement preview, calling it on every update is a no-op unless the words moved.
   _cwTick() { const e = this.active(); if (e && e.state && e.state.screen === 'copy' && e.cwSync) e.cwSync(); }
@@ -16878,6 +17357,7 @@ class Component extends DCLogic {
       mkPlatKey: this.state.mockPlat === 'fb' ? 'fb' : 'ig',
       // the phone's appearance — only the FEED follows it, as in both apps
       mkModeKey: this.state.mockMode === 'light' ? 'light' : 'dark',
+      mkUnb: (!this._mkExt && eng && eng.state && eng.state.look && eng.state.look.on) ? '1' : undefined,
       mkLightOn: this.state.mockMode === 'light' ? '1' : undefined,
       mkDarkOn: this.state.mockMode === 'light' ? undefined : '1',
       mkLight: () => this.setState({ mockMode: 'light' }),

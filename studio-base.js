@@ -237,7 +237,9 @@ class StudioBase {
   }
   meas(text, px, weight, serif, ls) {
     const m = this.mctx();
-    m.font = `${weight} ${px}px ${window.providentFont || '"Google Sans Flex", sans-serif'}`;
+    // serif === 'hd' measures in the HEADLINE face, which only Campaign's unbranded look
+    // sets apart from the body face (window.providentFontHead); everywhere else they are one.
+    m.font = `${weight} ${px}px ${(serif === 'hd' && window.providentFontHead) || window.providentFont || '"Google Sans Flex", sans-serif'}`;
     let w = m.measureText(text).width;
     // One ls per character, INCLUDING the last. Both things that actually draw tracked
     // text add a trailing unit — CSS letter-spacing in the preview and ctx.letterSpacing
