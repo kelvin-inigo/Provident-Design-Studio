@@ -262,7 +262,9 @@
     if (rv.rid) { try { rs = await dsRead(rv.rid, fresh); if (rs.deleted || !(rs.items || []).some(x => x.sid === id)) rs = null; } catch (e) { if (e.gdAuth) throw e; rs = null; } }
     return { sid: id, role: rs ? 'dd' : null, rs, rid: rs ? rv.rid : null };
   }
-  const DS_STEP = { 'design-done': [['dd'], 'design', true], 'design-open': [['dd'], 'design', false], 'copy-done': [['ct'], 'copy', true], 'copy-open': [['ct', 'dd'], 'copy', false] };
+  const DS_STEP = { 'design-done': [['dd'], 'design', true], 'design-open': [['dd'], 'design', false], 'copy-done': [['ct'], 'copy', true], 'copy-open': [['ct', 'dd'], 'copy', false],
+    // the designer's bypass: an ad already signed off outside the review goes straight to approved
+    approved: [['dd'], 'copy', true] };
   async function dsApi(op, q, body) {
     q = q || {}; body = body || {};
     if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
@@ -291,8 +293,9 @@
       if (st[0].indexOf(R.role) < 0) throw dsFail(403, 'Your link cannot change that step.');
       const by = dsWho(body.by), now = dsNow(), field = st[1], done = st[2], arb = it.lang === 'ARB';
       it[field] = done ? { by, at: now } : null;
+      if (body.act === 'approved' && !it.design) it.design = { by, at: now };
       R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
-      const text = field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
+      const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
         : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
       dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it), text }]);
       if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
@@ -302,9 +305,12 @@
     if (op === 'rsset') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
       if (R.role !== 'dd') throw dsFail(403, 'Only the designer changes the ad set.');
-      const rs = R.rs, by = dsWho(body.by);
+      const rs = R.rs, by = dsWho(body.by), chg = [];
+      const cellsWas = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
       if ('name' in body && String(body.name || '').trim()) {
-        rs.name = String(body.name).trim().slice(0, 120);
+        const nm = String(body.name).trim().slice(0, 120);
+        if (rs.name && nm !== rs.name) chg.push('Renamed the campaign to “' + nm + '”');
+        rs.name = nm;
         // the file in the Main folder follows the ad set's name (an older one in its subfolder keeps 'Ad set.json')
         try { const m = await dsMeta(R.rid); if (m.name.endsWith(DS_TAIL) && m.name !== dsSetName(rs.name)) await dsFetch('/drive/v3/files/' + R.rid + '?supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: dsSetName(rs.name) }) }); } catch (e) {}
       }
@@ -314,10 +320,24 @@
         rs.plan = planCells(body.plan).slice(0, 40).map(c => ({ market: String(c.market), aud: String(c.aud), arb: !!c.arb }));
         rs.eng_only = rs.eng_only || {};
         rs.plan.forEach(c => { const k = c.market + '|' + c.aud; if (c.arb) delete rs.eng_only[k]; else rs.eng_only[k] = true; });
+        // the settings say what moved, in the ad set's own log
+        const key = c => c.market + ' · ' + c.aud, old = {}; cellsWas.forEach(c => { old[key(c)] = c; });
+        rs.plan.forEach(c => { const o = old[key(c)]; if (!o) chg.push('Added ' + key(c) + (c.arb ? ', with Arabic' : '')); else if (o.arb !== c.arb) chg.push(c.arb ? 'Planned an Arabic version of ' + key(c) : key(c) + ' is English only'); delete old[key(c)]; });
+        Object.keys(old).forEach(k => chg.push('Dropped ' + k));
+      }
+      // the ticket's brief and deadline, from the settings
+      if (body.ticket && typeof body.ticket === 'object') {
+        const bt = body.ticket, t = rs.ticket || {};
+        const dl = 'deadline' in bt ? String(bt.deadline || '').slice(0, 10) : t.deadline || '', br = 'brief' in bt ? String(bt.brief || '').slice(0, 20000) : t.brief || '';
+        if (dl !== (t.deadline || '') || br !== (t.brief || '')) {
+          if (dl !== (t.deadline || '')) chg.push(dl ? 'Set the deadline to ' + new Date(dl + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Cleared the deadline');
+          if (br !== (t.brief || '')) chg.push(t.brief ? 'Edited the brief' : 'Added a brief');
+          rs.ticket = Object.assign({ by, at: dsNow(), files: [] }, t, { deadline: dl, brief: br });
+        }
       }
       // Claude's reply, kept on the ad set so every audience (and every designer) fills from it
       if (typeof body.reply === 'string') rs.reply = body.reply.slice(0, 200000);
-      if ('product' in body && AUDS[body.product]) rs.product = body.product;
+      if ('product' in body && AUDS[body.product] && body.product !== rs.product) { if (rs.product) chg.push('Set the product to ' + PRODUCT_NAME[body.product]); rs.product = body.product; }
       if (body.relabel) {
         const r = body.relabel, it = (rs.items || []).find(x => x.sid === r.sid);
         if (!it) throw dsFail(404, 'That project is not in this ad set.');
@@ -333,6 +353,7 @@
         try { const d = await dsRead(body.remove.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(body.remove.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; }
         if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone) + ' from the ad set' }]);
       }
+      if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
       return { rs: pub() };
     }
@@ -1635,6 +1656,120 @@
       close: () => el.remove()
     };
   }
+  // ---- AD SET SETTINGS (2026-10-29): the setup form again, for a campaign that already exists ----
+  // Name, product, deadline, brief, the markets and audiences and which get an Arabic version —
+  // saved on the ad set for everyone's links. It never orphans work: an audience that already
+  // has a project stays (move the project with Change audience, or remove it, first), and its
+  // Arabic stays on while it has an Arabic project. Opened from Status (an ad set's page and an
+  // open ticket) and from the Ad set tab. Resolves to the saved ad set, or null on Cancel.
+  function rsSettings(rs, save, o) {
+    injectCss();
+    o = o || {};
+    const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
+    const has = (m, a, l) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l));
+    let cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
+    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !(rs.eng_only || {})[x.market + '|' + x.aud] }); });
+    items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud); if (c) c.arb = true; } });
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '' };
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb])]);
+    const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud))); };
+    ord();
+    const was = sig();
+    const el = document.createElement('div');
+    el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c rss" role="dialog" aria-modal="true" aria-labelledby="rss-t">' +
+      '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">Saved on the ad set, for everyone who has its links.</p>' +
+      '<div class="rss-q"><label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" autocomplete="off"></label>' +
+      '<div class="rsp-f"><span id="rss-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rss-prod-l"></div></div>' +
+      (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
+      (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
+      '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
+      '<div class="rsp-more"><div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="m"></div></div><div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="a"></div></div></div>' +
+      '<div class="rsp-tiles" role="list"></div></div>' +
+      '<p class="shl-st" aria-live="polite"></p>' +
+      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Save changes</button></div></div>';
+    document.body.appendChild(el);
+    const $ = q => el.querySelector(q), st = (t, bad) => { const p = $('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
+    ['name', 'deadline', 'brief'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; st(''); }); } });
+    const draw = () => {
+      const tab = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.product === k) + '" data-prod="' + k + '"' + (d.product === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+      $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
+      const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud));
+      const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
+      $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
+      $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
+      const n = cells.length + cells.filter(c => c.arb).length;
+      $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects');
+      $('.rsp-tiles').innerHTML = cells.map(c => {
+        const k = c.market + '|' + c.aud, busy = has(c.market, c.aud), arLock = has(c.market, c.aud, 'ARB');
+        return '<div class="rsp-tile" role="listitem"' + (c.arb ? ' data-ar="1"' : '') + '><div class="rsp-tt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b>' + (busy ? '<i class="rss-has">Has a project</i>' : '') + '</div>' +
+          '<div class="rsp-lg"><span class="rsp-l" title="English — always made">EN</span>' +
+          '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + c.arb + '" data-arb="' + esc(k) + '" title="' + (arLock ? 'Has an Arabic project — remove it first to make this English only' : c.arb ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div></div>';
+      }).join('');
+    };
+    const busyMsg = c => c.market + ' · ' + c.aud + ' already has a project. Move it with Change audience, or remove it, first.';
+    const toggle = (g, v) => {
+      const ms = [...new Set(cells.map(c => c.market))], as = [...new Set(cells.map(c => c.aud))], list = g === 'm' ? ms : as, on = list.indexOf(v) >= 0;
+      if (on) {
+        if (list.length === 1) return st(g === 'm' ? 'Keep at least one market.' : 'Keep at least one audience.');
+        const drop = cells.filter(c => (g === 'm' ? c.market : c.aud) === v), busy = drop.find(c => has(c.market, c.aud));
+        if (busy) return st(busyMsg(busy));
+        cells = cells.filter(c => drop.indexOf(c) < 0);
+      } else {
+        const nm = g === 'm' ? [v] : ms, na = g === 'a' ? [v] : as;
+        nm.forEach(m => na.forEach(a => { if (!cells.some(c => c.market === m && c.aud === a)) cells.push({ market: m, aud: a, arb: false }); }));
+      }
+      st(''); ord(); draw();
+    };
+    const setProd = p => {
+      if (p === d.product) return;
+      const na = AUDS[p], busy = cells.find(c => na.indexOf(c.aud) < 0 && has(c.market, c.aud));
+      if (busy) return st(busyMsg(busy) + ' ' + (PRODUCT_NAME[p] || p) + ' has no ' + busy.aud + ' audience.');
+      const ms = [...new Set(cells.map(c => c.market))];
+      cells = cells.filter(c => na.indexOf(c.aud) >= 0);
+      if (!cells.length) ms.forEach(m => na.forEach(a => cells.push({ market: m, aud: a, arb: false })));
+      d.product = p; st(''); ord(); draw();
+    };
+    return new Promise(res => {
+      const close = v => { document.removeEventListener('keydown', key, true); el.remove(); res(v); };
+      const key = e => { if (e.key === 'Escape') { e.stopPropagation(); close(null); } };
+      document.addEventListener('keydown', key, true);
+      el.addEventListener('click', async e => {
+        if (e.target === el) return close(null);
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.x) return close(null);
+        if (b.dataset.prod) return setProd(b.dataset.prod);
+        if (b.dataset.tg) return toggle(b.dataset.tg, b.dataset.v);
+        if (b.dataset.arb) {
+          const c = cells.find(x => x.market + '|' + x.aud === b.dataset.arb); if (!c) return;
+          if (c.arb && has(c.market, c.aud, 'ARB')) return st(c.market + ' · ' + c.aud + ' has an Arabic project. Remove it first to make this audience English only.');
+          c.arb = !c.arb; st(''); draw(); return;
+        }
+        if (b.dataset.go) {
+          d.name = d.name.replace(/\s+/g, ' ').trim();
+          if (!d.name) { st('Name the campaign.'); $('[data-f="name"]').focus(); return; }
+          if (sig() === was) return close(null);
+          const btns = el.querySelectorAll('.shl-acts button'); btns.forEach(x => { x.disabled = true; }); b.textContent = 'Saving…'; st('');
+          try {
+            const p = { name: d.name, product: d.product, plan: cells.map(c => ({ market: c.market, aud: c.aud, arb: c.arb })) };
+            if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
+            close(await save(p));
+          } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
+        }
+      });
+      draw();
+      setTimeout(() => { const i = $('[data-f="name"]'); if (i) i.focus(); }, 0);
+    });
+  }
+  // Drive keeps the whole plan on the ad set; the old share store keeps the name and product, the
+  // Arabic as eng_only, and the plan on this computer (PLAN_LOCAL), as it did when it was made
+  async function rsSettingsSave(id, rs, p, by) {
+    if (isDs(id) || isDs((rs.tok || {}).dd) || Array.isArray(rs.plan)) return (await api('rsset', { id }, Object.assign({ by }, p))).rs;
+    const eo = {}; p.plan.forEach(c => { eo[c.market + '|' + c.aud] = !c.arb; });
+    const r = await api('rsset', { id }, { by, name: p.name, product: p.product, eng_only: eo });
+    if (rs.tok && rs.tok.dd) lsSet(PLAN_LOCAL + rs.tok.dd, JSON.stringify(p.plan));
+    return r.rs;
+  }
   // Make the next planned audience FROM THIS DESIGN: this project (already in the ad set, and
   // saved there by the link's own sync) stays where it is; the tab becomes a new project — a
   // new pid, the same design and pictures — saved into the next audience's folder.
@@ -1766,6 +1901,8 @@
       return '<div class="rv-lk"><div class="rv-lk-t"><b>' + who + '</b><s>' + what + '</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(link) + '" aria-label="' + who + ' link"><button type="button" class="p-ghost" data-copy="' + esc(link) + '">Copy</button></div></div>';
     }).join('');
   }
+  // the designer's bypass, asked once: it skips the content team, so it says so
+  const APPROVE_Q = l => 'Mark ' + (l || 'this project') + ' approved without the content team?\n\nUse this for an ad that was already signed off outside the review. It goes straight to approved, and the log says you marked it.';
   // the buttons a role has on one project
   function itemActs(it, role, busy) {
     const arb = it.lang === 'ARB', out = [];
@@ -1774,6 +1911,8 @@
     if (role === 'ct' && (it.design || it.copy)) out.push(it.copy ? ['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']
       : ['copy-done', arb ? 'Approve translation' : 'Approve English copy', 'p-btn']);
     if (role === 'dd' && it.copy) out.push(['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']);
+    // the bypass: an ad already signed off outside the review
+    if (role === 'dd' && !it.copy) out.push(['approved', 'Already approved', 'p-ghost rs-byp']);
     if (!out.length) return '<s class="rs-wait">' + (it.design ? 'With the content team' : arb ? 'Arabic being laid out' : 'Design in progress') + '</s>';
     return out.map(a => '<button type="button" class="' + a[2] + '" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>').join('');
   }
@@ -1830,7 +1969,7 @@
     (now.hist || []).filter(h => !seen.has(h.at + h.act + h.sid) && h.by !== me).forEach(h => {
       const it = (now.items || []).find(x => x.sid === h.sid), lab = it ? itemLabel(it) : '';
       const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'put the design back in progress',
-        'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', add: 'added a project', start: 'started the ad set' }[h.act] || 'changed a step';
+        'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act] || 'changed a step';
       const t = h.by + ' ' + what + (lab ? ' · ' + lab : '');
       if (ui) ui.flash(t);
       sysNotify((now.name || 'Ad set') + ' · review', t, 'rs-' + h.at);
@@ -1884,6 +2023,7 @@
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
     const [a, sid] = String(act).split(':');
+    if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(APPROVE_Q(it && itemLabel(it)))) return; }
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
     if (a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {
@@ -1900,7 +2040,7 @@
       if (a === 'design-done') body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      S.ui.flash(a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : 'Back in progress');
+      S.ui.flash(a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
     finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
   };
@@ -2026,7 +2166,8 @@
         '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product]].filter(Boolean).join(' · ')) + '</span>' +
         '<h2>' + esc([it.market, it.aud].filter(Boolean).join(' · ') || 'This project') + ' <s>' + (arb ? 'Arabic' : 'English') + '</s></h2>' +
         '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p></div>' +
-        '<div class="adt-acts">' + (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
+        '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
+        (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
         '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + btn + '</div></div>' +
         (mine ? stepperHtml(mine.steps, false, true) : '') + '</section>';
       // the campaign's audiences: each planned cell, with its progress; the designer sets them here
@@ -2044,9 +2185,7 @@
       const tg = (g, v) => { const cur = g === 'markets' ? [...new Set(cells.map(c => c.market))] : [...new Set(cells.map(c => c.aud))], on = cur.indexOf(v) >= 0;
         return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
       const audCard = '<section class="adt-card"><div class="adt-ch"><h3>Audiences <s>' + cells.length + '</s></h3>' +
-        (dd ? '<details class="adt-ed"><summary>' + PICO.tune + '<span>Markets & audiences</span></summary><div class="rsp-more">' +
-          '<div class="rsp-g"><span>Markets</span><div class="rsp-tg">' + MARKETS.map(m => tg('markets', m)).join('') + '</div></div>' +
-          '<div class="rsp-g"><span>Audiences</span><div class="rsp-tg">' + (AUDS[rs.product] || AUDS.residential).map(a => tg('auds', a)).join('') + '</div></div></div></details>' : '') +
+        (dd ? '<button type="button" class="adt-ed adt-set" data-a="settings" title="The campaign’s name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune + '<span>Ad set settings</span></button>' : '') +
         '</div><ul class="adt-aus">' + (tiles || '<li class="shl-empty">No audiences planned.</li>') + '</ul></section>';
       const log = ((this._adtLog || {}).log || []).concat((S.log || []).filter(e => (e.changes || []).some(c => c.kind !== 'note'))).sort((a, b) => b.at - a.at);
       const act = '<section class="adt-card"><div class="adt-ch"><h3>Activity <s>' + log.length + '</s></h3></div><ol class="shl-list adt-log">' +
@@ -2069,6 +2208,12 @@
     if (b.dataset.copy) { const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { b.textContent = 'Copy'; }, 1600); return; }
     if (b.dataset.a === 'setup') return this.reviewCreate();
     if (b.dataset.a === 'overview') return this.rsOverview();
+    if (b.dataset.a === 'settings' && rs && rs.tok) {
+      const by = StudioBase.shareName() || 'Designer';
+      const r = await rsSettings(rs, p => rsSettingsSave(S.id, rs, p, by));
+      if (r) { this.rsSet(r); this.adtRender(); S.ui.flash('Ad set settings saved'); }
+      return;
+    }
     if (b.dataset.act) return this.rvStep(b.dataset.act);
     if (b.dataset.next) return this.rsNext(b.dataset.next);
     if (!rs || !rs.tok) return;
@@ -2560,6 +2705,7 @@
   RV.rvStep = async function (act) {
     if (this.stepBusy) return;
     const [a, sid] = String(act).split(':');
+    if (a === 'approved') { const it = ((this.rs || {}).items || []).find(x => x.sid === sid); if (!window.confirm(APPROVE_Q(it && itemLabel(it)))) return; }
     askNotify();
     this.stepBusy = act; this.panelRender(true);
     try {
@@ -2567,7 +2713,7 @@
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
       const r = await api('rsstep', { id: this.tok }, { p: sid, act: a, by: StudioBase.shareName() || 'Someone' });
       this.rs = r.rs;
-      this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
+      this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }
     finally { this.stepBusy = null; this.panelRender(true); }
@@ -3174,6 +3320,19 @@
     const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
+    if (a === 'settings') {
+      const rs = this.det && this.det.rs; if (!rs) return;
+      const id = this.sel, r = await rsSettings(rs, p => rsSettingsSave(id, rs, p, by), { ticket: isDs(id) || !!rs.ticket });
+      if (r) { if (r.name && r.name !== rs.name) Arch.add(id, r.name, r.product); this.at = 0; again(); }
+      const o = this.el.querySelector('[data-a="settings"]'); if (o) o.focus();
+      return;
+    }
+    if (a === 'approve' && window.confirm(APPROVE_Q(t.dataset.lab))) {
+      t.disabled = true; t.textContent = 'Saving…';
+      try { await api('rsstep', { id: this.sel }, { act: 'approved', p: t.dataset.sid, by }); again(); }
+      catch (er) { t.disabled = false; t.textContent = 'Already approved'; window.alert(er.message || String(er)); }
+      return;
+    }
     if (a === 'relab') { this.edit = t.dataset.sid; this.draw(); }
     if (a === 'relabx') { this.edit = null; this.draw(); }
     if (a === 'relabsave') {
@@ -3321,6 +3480,7 @@
       '<button type="button" class="p-btn" data-a="open">' + ico('ext') + 'Open the ad set</button></div></header>' +
       '<div class="rva-tools" role="toolbar" aria-label="Ad set actions">' +
       '<button type="button" class="p-ghost rva-tl" data-a="addopen">' + ico('add') + 'Add a project</button>' +
+      '<button type="button" class="p-ghost rva-tl" data-a="settings" title="Name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + 'Ad set settings</button>' +
       '<span class="rva-tools-r"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></span></div>';
     // PROGRESS, edge to edge
@@ -3343,6 +3503,7 @@
         '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || 'Untitled') + '</s><u><i></i>' + itState(it) + '</u></span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
           : '<span class="rva-pja"><button type="button" class="rva-lkb" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
+            (it.copy ? '' : '<button type="button" class="rva-lkb" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
             '<button type="button" class="rva-lkb rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span>') + '</div>';
     };
     const audCards = auds.map(a => {
@@ -3382,7 +3543,8 @@
       '<div class="rva-det rva-tk">' +
       (briefHtml(tk, true) || '<section class="rva-card"><h3>Brief</h3><p class="rva-sub">No brief or files were filed with this ticket.</p></section>') +
       '<section class="rva-card"><h3>Audiences <s>' + cells.length + '</s></h3><ul class="rva-tks">' + (tiles || '<li class="shl-empty">None chosen — the designer sets them up.</li>') + '</ul></section>' +
-      '<div class="rva-tools"><span class="rva-tools-r"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
+      '<div class="rva-tools"><button type="button" class="p-ghost rva-tl" data-a="settings" title="Name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + 'Ticket settings</button>' +
+      '<span class="rva-tools-r"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete the ticket</button></span></div></div>';
   };
   // a project's market, audience and language, edited in place
@@ -4902,6 +5064,25 @@ body>.rvh{display:none}
 .adt-drv svg{width:18px;height:18px;fill:currentColor}
 .adt button:focus-visible,.adt-card button:focus-visible,.adt-card summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 @media (max-width:760px){.adt{padding:18px}.adt-h h2{font-size:21px}.adt-acts{width:100%}.adt-go{flex:1;justify-content:center}}
+/* AD SET SETTINGS (2026-10-29): the setup form again, in a dialog, for a campaign that exists */
+.shl-dlg-c.rss{width:min(680px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:16px}
+.rss .shl-lead{margin:-8px 0 0}
+.rss-q{display:grid;grid-template-columns:minmax(0,1.4fr) auto minmax(0,1fr);gap:16px;align-items:end}
+.rss textarea.p-in{height:auto;min-height:84px;padding:10px 12px;resize:vertical;font:400 14px/1.5 var(--ps-font)}
+.rss-plan{display:flex;flex-direction:column;gap:12px}
+.rss-ph{display:flex;align-items:baseline;gap:8px}
+.rss-ph b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.rss-ph .rsp-n{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim)}
+.rss .rsp-more{padding:14px}
+.rss-has{font:italic 400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rss .shl-st{margin:0;min-height:0}
+.rss .shl-st:empty{display:none}
+.rss .shl-acts{margin-top:0}
+.rss button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.adt-set{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:none;border-radius:9999px;background:none;cursor:pointer;color:var(--ps-ink);font:500 13px/1 var(--ps-font)}
+.adt-set:hover{background:var(--ps-fill)}
+.adt-set svg{width:18px;height:18px;fill:currentColor}
+@media (max-width:640px){.rss-q{grid-template-columns:1fr}}
 `;
     document.head.appendChild(s);
   }

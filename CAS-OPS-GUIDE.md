@@ -266,6 +266,11 @@ steps: **Design › ENG copy check › Translation › Done**.
    **Send for translation check**. The content team checks it and presses **Approve translation**. If an
    audience needs no Arabic, the designer ticks **No Arabic for this audience** and the step is
    skipped.
+
+   **Already approved.** For an ad that was signed off before it came into the studio, the designer
+   can skip the content team: **Already approved** (in the Ad set tab's header, the review panel,
+   and under each project in Status) marks it designed and approved in one step, after asking once.
+   The activity log says who marked it. **Reopen copy check** undoes it.
 6. **Done.** An audience is done when its design, English copy and translation are signed off.
    The ad set is **Package ready** when every audience is.
 7. **Performance marketing** opens their link. A bar at the top shows the ad set's progress and
@@ -276,7 +281,7 @@ steps: **Design › ENG copy check › Translation › Done**.
    holds the steps, the dates and each audience.
 
 The **Ad set** tab lists every audience, with its progress (**AR** on a tile plans or drops its
-Arabic version; **Markets & audiences** adds or removes audiences), then the brief and files from
+Arabic version; **Ad set settings** changes the rest, see below), then the brief and files from
 the ticket, the **Activity** — who changed what, including each step — and **Links for the teams**.
 In a campaign project the floating **Changes** button is gone: the Ad set tab carries all of it.
 
@@ -359,6 +364,13 @@ Open one to see its record:
 - **Add a project:** the Campaign projects saved on this computer that are not in the ad set yet.
   **Add to this ad set** opens that project in a new tab and asks for its market, audience and
   language, with this ad set already chosen.
+- **Ad set settings** (beside Add a project; **Ticket settings** on an open ticket): the setup form
+  again. Change the **name**, **product**, **deadline**, **brief**, the **markets** and
+  **audiences**, and which audiences get an **Arabic** version (**AR** on each tile). **Save
+  changes** applies it for everyone on the ad set's links, and the Activity lists what changed.
+  It won't drop an audience that already has a project, or switch off Arabic where there is an
+  Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
+  set tab, under **Audiences**.
 - **Ad set links:** one row per team, with **Copy link**.
 - **Activity:** every step and every word changed in every project, newest first.
 - **On the right:** **Details** and **Google Drive**.

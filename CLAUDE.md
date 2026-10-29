@@ -17211,3 +17211,27 @@ count (`allCount` counted the deleted templates), and its subtitle counts campai
 `providentReviews.summary()` — `provident-status-sum`, written by Status's own load
 (`statusSave`) and refreshed in the background by `Arch.refreshSum` when Home mounts, at most
 every 2 minutes and only with a valid Google token (never a prompt). OPS's header is unchanged.
+
+# AD SET SETTINGS, AND THE DESIGNER'S "ALREADY APPROVED" (2026-10-29)
+
+By request: a way back into an ad set's setup after it is made, and a bypass of the content team
+for ads already signed off elsewhere (so they still show on Status). share-link.js + api/share.py.
+
+- **`rsSettings(rs, save, {ticket})`** is the setup form again as a `.shl-dlg` (`.rss`, section at
+  the end of share-link.js's sheet): name, product, deadline, brief, markets × audiences tiles with
+  AR. Opened by **Ad set settings** on the Status ad set page, **Ticket settings** on an open
+  ticket, and **Ad set settings** in the Ad set tab's Audiences card (it replaced the
+  Markets & audiences fold). It never orphans work: a cell with a project cannot be dropped (also
+  through a product switch), and AR stays on while an ARB project exists. Resolves to the saved
+  `rs` or null. **`rsSettingsSave`**: Drive → `rsset {name, product, plan, ticket}`; old share
+  store → name, product, eng_only on the server and the plan in `PLAN_LOCAL`.
+- **dsApi `rsset` logs what moved** (`chg`: renamed, product, added/dropped cells, Arabic on/off,
+  deadline, brief) and takes `ticket {brief, deadline}`. The Ad set tab's AR tiles now log too.
+  `api/share.py rs_set` accepts `product`.
+- **`approved`** is a designer-only step (`DS_STEP`, `STEP` in share.py): sets `copy` and, if
+  missing, `design`; log "Marked it approved — signed off before the review". Offered as
+  **Already approved** wherever the designer sees a project without copy approval (`itemActs`,
+  the Ad set tab header, Status's project rows), after `APPROVE_Q` confirm.
+- Verified on the Drive stand-in: ticket settings saved and logged, the Adset.json renamed, the
+  locks refused a busy cell / product switch, Already approved moved the audience on to the Arabic,
+  0 contrast failures in dark. Not exercised on real Google Drive.

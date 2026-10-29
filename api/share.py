@@ -403,6 +403,8 @@ STEP = {   # act -> (who may, field, done?, what the log says)
     'design-open': (('dd',), 'design', False, None),
     'copy-done': (('ct',), 'copy', True, None),
     'copy-open': (('ct', 'dd'), 'copy', False, None),
+    # the designer's bypass: an ad already signed off outside the review goes straight to approved
+    'approved': (('dd',), 'copy', True, None),
 }
 
 
@@ -624,10 +626,12 @@ def rs_step(sid, role, rs, d):
         raise Fail(403, 'Your link cannot change that step.')
     by, now = who(d.get('by')), int(time.time() * 1000)
     it[field] = {'by': by, 'at': now} if done else None
+    if act == 'approved' and not it.get('design'):
+        it['design'] = {'by': by, 'at': now}
     rs['hist'] = (rs.get('hist') or [])[-HIST_MAX + 1:] + [{'act': act, 'by': by, 'at': now, 'sid': sid}]
     put_rs(rs)
     arb = it.get('lang') == 'ARB'
-    text = {('design', True): 'Arabic laid out, ready for the translation check' if arb else 'Marked the design done',
+    text = ('Marked the Arabic approved — signed off before the review' if arb else 'Marked it approved — signed off before the review') if act == 'approved' else {('design', True): 'Arabic laid out, ready for the translation check' if arb else 'Marked the design done',
             ('design', False): 'Put the Arabic back in progress' if arb else 'Put the design back in progress',
             ('copy', True): 'Approved the translation' if arb else 'Approved the English copy',
             ('copy', False): 'Reopened the translation check' if arb else 'Reopened the copy check'}[(field, done)]
@@ -647,6 +651,8 @@ def rs_set(role, rs, d):
         rs['drive'] = str(d.get('drive') or '')[:400]
     if 'name' in d and str(d.get('name') or '').strip():
         rs['name'] = str(d['name']).strip()[:120]
+    if str(d.get('product') or '') in PRODUCTS:
+        rs['product'] = str(d['product'])
     if isinstance(d.get('eng_only'), dict):
         eo = rs.setdefault('eng_only', {})
         for k, v in list(d['eng_only'].items())[:40]:
