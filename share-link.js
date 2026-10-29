@@ -3069,14 +3069,13 @@
             '<div class="rsp-files"><label class="rsp-add" title="Renders, logos, brochures (PDF). Saved into the folder’s Brief/ for the designer.">' + PICO.attach + '<span>Attach files</span><input type="file" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.txt" hidden></label></div>' +
           '</div>' +
         '</div>' +
-        '<div class="rsp-plan">' +
+        // WHO IT'S FOR (2026-10-29): one matrix. Markets are the rows, audiences the columns,
+        // and every cell is a project with its languages — so what you see IS the plan, with no
+        // fold of filters above a second list of tiles. A row or column header switches it.
+        '<div class="rsp-plan rsp-plan2">' +
           '<div class="rsp-ph"><b>Who it’s for</b><span class="rsp-n"></span>' +
-            '<button type="button" class="rsp-mt" aria-expanded="false" aria-controls="rsp-more">' + PICO.tune + '<span>Markets & audiences</span>' + PICO.more + '</button></div>' +
-          '<div class="rsp-more" id="rsp-more" hidden>' +
-            '<div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="markets"></div></div>' +
-            '<div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="auds"></div></div>' +
-          '</div>' +
-          '<div class="rsp-tiles" role="list"></div>' +
+            '<button type="button" class="rsp-arall" aria-pressed="false" data-arall="1"></button></div>' +
+          '<div class="rsp-mx" role="grid" aria-label="Markets and audiences"></div>' +
         '</div>' +
       '</div>' +
       '<footer class="rsp-ft">' +
@@ -3086,13 +3085,14 @@
     '</section>';
     const $ = q => el.querySelector(q);
     ['name', 'folder', 'deadline', 'brief'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
-    $('.rsp-mt').onclick = () => { d.open = !d.open; this.save(); this.draw(); };
     $('.rsp-add input').addEventListener('change', e => { Array.from(e.target.files || []).forEach(f => { if (!this.files.some(x => x.name === f.name && x.size === f.size)) this.files.push(f); }); e.target.value = ''; this.drawFiles(); });
     el.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
       if (b.dataset.prod) this.setProd(b.dataset.prod);
       if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
       if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
+      if (b.dataset.cellM) this.addCell(b.dataset.cellM, b.dataset.cellA);
+      if (b.dataset.arall) { const cs = this.cells(), all = cs.length && cs.every(c => c.arb); cs.forEach(c => { d.arb[c.market + '|' + c.aud] = !all; }); this.save(); this.draw(); }
       if (b.dataset.rmf) { this.files.splice(+b.dataset.rmf, 1); this.drawFiles(); }
       if (b.dataset.a === 'again') this.reset();
       if (b.dataset.a === 'status') { const h = eng.host; if (h) h.setState({ splashView: 'rev' }); }
@@ -3120,6 +3120,13 @@
     else a.push(v);
     this.st(''); this.save(); this.draw();
   };
+  // an off cell switches on its market and its audience together
+  PV.addCell = function (m, a) {
+    const d = this.d;
+    if (d.markets.indexOf(m) < 0) d.markets.push(m);
+    if (d.auds.indexOf(a) < 0) d.auds.push(a);
+    this.st(''); this.save(); this.draw();
+  };
   const AUD_TIP = { Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
   const MKT_TIP = { Local: 'AED', International: 'USD', 'International EUR': 'EUR' };
   const fsize = n => n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB';
@@ -3139,20 +3146,30 @@
     const tab = (k, l, on) => '<button type="button" role="radio" aria-checked="' + (on ? 'true' : 'false') + '" data-prod="' + k + '"' + (on ? ' data-on="1"' : '') + '>' + esc(l) + '</button>';
     $('.rsp-prod').innerHTML = tab('residential', 'Residential', d.product === 'residential') + tab('commercial', 'Commercial', d.product === 'commercial');
     const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
-    $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects');
-    const mt = $('.rsp-mt'); mt.setAttribute('aria-expanded', d.open ? 'true' : 'false');
-    $('.rsp-more').hidden = !d.open;
-    if (d.open) {
-      const tg = (g, v, tip) => { const on = d[g].indexOf(v) >= 0; return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
-      el.querySelector('[data-g="markets"]').innerHTML = MARKETS.map(m => tg('markets', m, MKT_TIP[m])).join('');
-      el.querySelector('[data-g="auds"]').innerHTML = AUDS[d.product].map(a => tg('auds', a, AUD_TIP[a])).join('');
-    }
-    $('.rsp-tiles').innerHTML = cells.map(c => {
-      const k = c.market + '|' + c.aud, ar = !!d.arb[k];
-      return '<div class="rsp-tile" role="listitem"' + (ar ? ' data-ar="1"' : '') + '><div class="rsp-tt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></div>' +
-        '<div class="rsp-lg"><span class="rsp-l" title="English — always made">EN</span>' +
-        '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + ar + '" data-arb="' + esc(k) + '" title="' + (ar ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div></div>';
-    }).join('');
+    $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (arbN ? ' · ' + arbN + ' in Arabic' : '');
+    const all = cells.length && cells.every(c => c.arb), aa = $('.rsp-arall');
+    aa.setAttribute('aria-pressed', all ? 'true' : 'false');
+    aa.innerHTML = (all ? PICO.tick : ico('add')) + '<span>' + (all ? 'Arabic for every audience' : 'Arabic for all') + '</span>';
+    aa.title = all ? 'Every project also gets an Arabic version — click for English only' : 'Add an Arabic version to every audience';
+    const auds = AUDS[d.product], onM = m => d.markets.indexOf(m) >= 0, onA = a => d.auds.indexOf(a) >= 0;
+    const hdr = (g, v, sub, on) => '<button type="button" class="rsp-hd" role="' + (g === 'auds' ? 'columnheader' : 'rowheader') + '" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + (on ? 'Click to leave ' + esc(v) + ' out' : 'Click to include ' + esc(v)) + '">' +
+      '<span class="rsp-ck">' + (on ? PICO.tick : '') + '</span><span class="rsp-hdt"><b>' + esc(v) + '</b><s>' + (g === 'markets' && sub ? '<span class="rsp-pin">Prices in </span>' : '') + esc(sub) + '</s></span></button>';
+    let h = '<div class="rsp-mr" role="row"><span class="rsp-corner" role="columnheader">Market</span>' + auds.map(a => hdr('auds', a, AUD_TIP[a] || '', onA(a))).join('') + '</div>';
+    MARKETS.forEach(m => {
+      h += '<div class="rsp-mr' + (onM(m) ? '' : ' rsp-off') + '" role="row">' + hdr('markets', m, MKT_TIP[m] || '', onM(m));
+      auds.forEach(a => {
+        const k = m + '|' + a;
+        if (onM(m) && onA(a)) {
+          const ar = !!d.arb[k];
+          h += '<div class="rsp-cell" role="gridcell"' + (ar ? ' data-ar="1"' : '') + '><span class="rsp-l" title="English — always made">EN</span>' +
+            '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + ar + '" data-arb="' + esc(k) + '" title="' + (ar ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(m + ' ' + a) + '">' + (ar ? '' : ico('add')) + 'AR</button></div>';
+        } else {
+          h += '<button type="button" class="rsp-cell rsp-cell-off" role="gridcell" data-cell-m="' + esc(m) + '" data-cell-a="' + esc(a) + '" title="Add ' + esc(m + ' · ' + a) + '" aria-label="Add ' + esc(m + ' ' + a) + '">' + ico('add') + '<span>Add</span></button>';
+        }
+      });
+      h += '</div>';
+    });
+    const mx = $('.rsp-mx'); mx.style.setProperty('--rsp-cols', auds.length); mx.innerHTML = h;
     if (!this.drive) this.st('Google Drive is not set up on this site, so a campaign cannot be filed here.');
   };
   PV.busy = function (t, p) {
@@ -5213,6 +5230,44 @@ body>.rvh{display:none}
 .rsp2 .rsp-pg{top:-6px}
 @media (max-width:600px){.rsp2 .rsp-fo{flex-basis:100%}.rsp2 .rsp-ft{flex-wrap:wrap}.rsp2 .rsp-go{flex:1 1 100%;justify-content:center}.rsp2 .rsp-tk{flex:1 1 100%;justify-content:center}.rsp2 .rsp-st{flex-basis:100%;order:3}.rsp2 .rsp-tiles{grid-template-columns:1fr}.rsp-sheet textarea{min-height:150px}}
 @media (prefers-reduced-motion:reduce){.rsp-name,.rsp-chip,.rsp-sheet{transition:none}}
+/* WHO IT'S FOR, AS A MATRIX (2026-10-29). Rows are markets, columns audiences, a cell is a
+   project and its languages. A header is a switch; an off cell offers to add itself. */
+.rsp-plan2{gap:14px}
+.rsp-plan2 .rsp-ph{min-height:32px}
+.rsp-arall{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 12px 0 9px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;white-space:nowrap}
+.rsp-arall:hover{color:var(--ps-ink);background:var(--ps-fill)}
+.rsp-arall svg{width:16px;height:16px;fill:currentColor}
+.rsp-arall[aria-pressed="true"]{box-shadow:none;background:var(--ps-fill);color:var(--ps-ink)}
+.rsp-mx{display:flex;flex-direction:column;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden}
+.rsp-mr{display:grid;grid-template-columns:minmax(150px,1.25fr) repeat(var(--rsp-cols,2),minmax(0,1fr));align-items:stretch}
+.rsp-mr+.rsp-mr{border-top:1px solid var(--ps-hair)}
+.rsp-mr:first-child{background:var(--ps-card-h)}
+.rsp-mr>*+*{border-left:1px solid var(--ps-hair)}
+.rsp-corner{display:flex;align-items:flex-end;padding:14px 16px;font:500 12px/1.2 var(--ps-font);color:var(--ps-dim)}
+.rsp-hd{display:flex;align-items:center;gap:10px;min-width:0;margin:0;padding:12px 16px;border:none;border-radius:0;background:none;color:var(--ps-ink);text-align:left;cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-hd:hover{background:var(--ps-fill)}
+.rsp-ck{display:inline-grid;place-items:center;flex:none;width:20px;height:20px;border-radius:6px;box-shadow:inset 0 0 0 1.5px var(--ps-line)}
+.rsp-ck svg{width:16px;height:16px;fill:var(--ps-app)}
+.rsp-hd[aria-pressed="true"] .rsp-ck{background:var(--ps-link);box-shadow:none}
+.rsp-hdt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rsp-hdt b{font:500 15px/1.2 var(--ps-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsp-hdt s{text-decoration:none;font:400 12px/1.25 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsp-hd[aria-pressed="false"] .rsp-hdt b{color:var(--ps-ink-2)}
+.rsp-cell{display:flex;align-items:center;justify-content:center;gap:6px;min-height:60px;padding:10px 12px}
+.rsp-cell .rsp-l{width:auto;min-width:36px;height:28px;padding:0 9px;border-radius:8px}
+.rsp-cell .rsp-ar{display:inline-flex;align-items:center;gap:3px;padding:0 9px 0 6px}
+.rsp-cell .rsp-ar svg{width:14px;height:14px;fill:currentColor}
+.rsp-cell .rsp-ar[aria-pressed="true"]{padding:0 9px}
+.rsp-cell-off{margin:0;border:none;border-radius:0;background:none;color:var(--ps-dim);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease),color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-cell-off svg{width:16px;height:16px;fill:currentColor}
+.rsp-cell-off span{opacity:0;transition:opacity var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-cell-off:hover,.rsp-cell-off:focus-visible{background:var(--ps-fill);color:var(--ps-ink)}
+.rsp-cell-off:hover span,.rsp-cell-off:focus-visible span{opacity:1}
+.rsp-off .rsp-hd .rsp-hdt s{opacity:.9}
+.rsp-mx button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-3px}
+.rsp2 .rsp-plan2{padding-bottom:22px}
+@media (max-width:600px){.rsp-mr{grid-template-columns:minmax(0,1.45fr) repeat(var(--rsp-cols,2),minmax(0,1fr))}.rsp-hd{padding:10px 8px;gap:7px}.rsp-hd .rsp-pin{display:none}.rsp-corner{padding:10px}.rsp-hd[role=columnheader] .rsp-hdt s{display:none}.rsp-hdt b{white-space:normal;font-size:13.5px;line-height:1.25;overflow:visible}.rsp-hdt s{white-space:normal}.rsp-cell{flex-wrap:wrap;padding:8px 6px;gap:4px}.rsp-cell .rsp-l{min-width:30px;height:26px;padding:0 6px}.rsp-cell .rsp-ar svg{display:none}.rsp-cell-off span{display:none}.rsp-plan2 .rsp-ph{flex-wrap:wrap}.rsp-arall{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.rsp-hd,.rsp-cell-off,.rsp-cell-off span{transition:none}}
 `;
     document.head.appendChild(s);
   }
