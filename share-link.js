@@ -2137,6 +2137,20 @@
   }
   // the designer's bypass, asked once: it skips the content team, so it says so
   const APPROVE_Q = l => 'Mark ' + (l || 'this project') + ' approved without the content team?\n\nUse this for an ad that was already signed off outside the review. It goes straight to approved, and the log says you marked it.';
+  // a project as the content team sees it: "Local · Family · English"
+  const ctLabel = it => [it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : it.lang ? 'English' : ''].filter(Boolean).join(' · ') || 'Project';
+  // where one project stands for the content team: waiting for their check, approved, or still
+  // with the designer (they can edit it, but there is nothing to approve yet)
+  function ctState(it) {
+    const arb = it.lang === 'ARB';
+    if (it.copy) return { k: 'done', dot: 'done', word: 'Approved', when: dayS(it.copy.at),
+      title: arb ? 'Translation approved' : 'English copy approved', sub: 'Approved by ' + it.copy.by + ' · ' + dayS(it.copy.at) + '. Reopen it to change the words again.' };
+    if (it.design) return { k: 'todo', dot: 'prog', word: 'To check', when: '',
+      title: arb ? 'Check the Arabic translation' : 'Check the English copy',
+      sub: 'Sent by ' + it.design.by + ' · ' + dayS(it.design.at) + '. Change the words below — the previews follow as you type — then approve.' };
+    return { k: 'wait', dot: 'wait', word: 'With the designer', when: '', title: 'With the designer',
+      sub: arb ? 'The Arabic is still being laid out. You can edit the words now, and approve once it is sent to you.' : 'The design is still in progress. You can edit the words now, and approve once it is sent to you.' };
+  }
   // the buttons a role has on one project
   function itemActs(it, role, busy) {
     const arb = it.lang === 'ARB', out = [];
@@ -2709,7 +2723,8 @@
       await v.load();
       v.view();
       // Performance marketing has the bar and its See details window: no side panel at all.
-      if (v.role !== 'pm' && (v.role === 'ct' || lsGet('provident-share-open') === '1')) v.shPanel(true);
+      // The content team opens on the words; their Activity panel opens from the top bar.
+      if (v.role === 'dd' ? lsGet('provident-share-open') === '1' : v.role === 'ct' && lsGet('provident-share-open-ct') === '1') v.shPanel(true);
     }
   };
   function RsView(shell, tok, d) {
@@ -2726,7 +2741,7 @@
     h.classList.toggle('rv-as', this.role !== 'dd');
     h.classList.toggle('rv-pm', this.role === 'pm');
     h.dataset.rvRole = this.role;
-    if (this.role === 'pm') this.barMake();
+    if (this.role === 'pm' || this.role === 'ct') this.barMake();
     this.tick = setInterval(() => this.onTick(), 1000);
     this.poll = setInterval(() => this.shPoll(), POLL);
     this.clock = setInterval(() => this.shRender(), 30000);
@@ -2845,7 +2860,7 @@
     if (queued.length && !this.busy && Date.now() - this.lastW > 1500) this.save(queued[0]);
     if (this.role !== 'pm') this.ui.status(this.busy || queued.length ? 'saving' : (this.err ? 'error' : 'ok'), this.err || undefined);
     this.panelRender();
-    if (this.role === 'pm') this.barRender();
+    if (this.role === 'pm' || this.role === 'ct') this.barRender();
   };
   // Edit text saved a project: merge it onto that project as it is now, against what was read
   RV.onJson = function (sid, st) {
@@ -2955,7 +2970,7 @@
     const [a, sid] = String(act).split(':');
     if (a === 'approved') { const it = ((this.rs || {}).items || []).find(x => x.sid === sid); if (!window.confirm(APPROVE_Q(it && itemLabel(it)))) return; }
     askNotify();
-    this.stepBusy = act; this.panelRender(true);
+    this.stepBusy = act; this.panelRender(true); if (this.bar) this.barRender();
     try {
       // the approval covers the words just typed: a pending save goes first
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
@@ -2964,7 +2979,7 @@
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }
-    finally { this.stepBusy = null; this.panelRender(true); }
+    finally { this.stepBusy = null; this.panelRender(true); if (this.bar) this.barRender(); }
   };
   RV.rvDrive = async function (v) {
     try { const r = await api('rsset', { id: this.tok }, { drive: v }); this.rs = r.rs; this.ui.flash('Drive location saved'); }
@@ -2977,9 +2992,17 @@
   // the panel's review section: the whole ad set, the audience on screen, every audience below
   RV.panelRender = function (force) {
     const sec = this.ui.root.querySelector('.rv');
-    sec.hidden = false;
     const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), role = this.role, busy = this.stepBusy, cur = this.selItem();
     const np = (rs.items || []).length;
+    // the content team's panel is the activity alone: what to check, and the approve button,
+    // live in the window (ctRender)
+    if (role === 'ct') {
+      sec.hidden = true;
+      this.ui.root.querySelector('.shl-panel h2').textContent = 'Activity';
+      this.ui.root.querySelector('.shl-sub').textContent = (rs.name || 'Ad set') + ' · every change and approval';
+      return;
+    }
+    sec.hidden = false;
     this.ui.root.querySelector('.shl-panel h2').textContent = rs.name || 'Ad set';
     this.ui.root.querySelector('.shl-sub').textContent = [ROLE_NAME[role], PRODUCT_NAME[rs.product], np + (np === 1 ? ' project' : ' projects')].filter(Boolean).join(' · ');
     const lead = role === 'ct' ? 'Pick a project on the left, change its words, then approve it here. The English copy comes first; the Arabic version is checked once the designer has laid it out.'
@@ -3019,9 +3042,9 @@
     open = open == null ? !this.ui.root.classList.contains('open') : !!open;
     this.ui.root.classList.toggle('open', open);
     document.documentElement.classList.toggle('shl-open', open && this.here());
-    lsSet('provident-share-open', open ? '1' : '0');
+    lsSet(this.role === 'ct' ? 'provident-share-open-ct' : 'provident-share-open', open ? '1' : '0');
     if (open) { this.seen = Date.now(); lsSet('provident-share-seen:' + this.tok, String(this.seen)); }
-    this.shRender();
+    this.shRender(); if (this.bar) this.barRender();
   };
   // the log: the ad set's own (steps, projects added) and every project's words, newest first
   RV.shRender = function () {
@@ -3030,8 +3053,9 @@
     (this.rs.items || []).forEach(it => { const p = this.proj[it.sid]; (p && p.log || []).forEach(e => { if ((e.changes || []).some(c => c.kind !== 'note')) log.push(e); }); });
     log.sort((a, b) => b.at - a.at);
     const unseen = log.filter(e => e.at > this.seen && e.by !== me).length;
+    this.unseen = open ? 0 : unseen;
     this.ui.set({ link: this.link(), me, people: new Set(log.map(e => e.by).filter(Boolean)).size, unseen: open ? 0 : unseen, log: log.slice(0, 200) });
-    this.ui.root.querySelector('.shl-sub').textContent = (this.rs.items || []).length + ' projects · ' + (this.rs.name || 'Ad set');
+    if (this.role !== 'ct') this.ui.root.querySelector('.shl-sub').textContent = (this.rs.items || []).length + ' projects · ' + (this.rs.name || 'Ad set');
     this.panelRender();
   };
   RV.shareStop = function () { this.stop(); if (this.here()) this.shell.asClose(); };
@@ -3057,13 +3081,15 @@
     dlg.className = 'rvh-dlg'; dlg.setAttribute('aria-label', 'Ad set details');
     document.body.appendChild(dlg);
     const click = e => {
-      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf],[data-go]');
+      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf],[data-go],[data-act],[data-pnl]');
       if (e.target === dlg) { dlg.close(); return; }          // a click on the backdrop
       if (!b) return;
       if (b.dataset.dl) this.download(b.dataset.dl);
       if (b.dataset.det) { this.barRender(); dlg.showModal(); }
       if (b.dataset.ntf) askNotify().then(() => { this._barH = ''; this.barRender(); });
-      if (b.dataset.go && this.shell.asPickAud) this.shell.asPickAud(b.dataset.go);
+      if (b.dataset.go && this.shell.asPickAud) { this.shell._asAll = false; this.shell.asPickAud(b.dataset.go); }
+      if (b.dataset.act) this.rvStep(b.dataset.act);
+      if (b.dataset.pnl) this.shPanel();
       if (b.dataset.x) dlg.close();
     };
     el.addEventListener('click', click); st.addEventListener('click', click); dlg.addEventListener('click', click);
@@ -3071,6 +3097,10 @@
   // the window's title and line under it, read by the studio's Ad sets header
   RV.pmHead = function (a) {
     const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+    if (this.role === 'ct') {
+      const q = this.ctQueue(), its = rs.items || [], ok = its.filter(it => it.copy).length;
+      return { title: rs.name || 'Ad set', sub: ['Copy check', PRODUCT_NAME[rs.product], pl(its.length, 'project'), q.length ? q.length + ' to check' : '', ok ? ok + ' approved' : ''].filter(Boolean).join(' · ') };
+    }
     return { title: rs.name || 'Ad set', sub: [PRODUCT_NAME[rs.product], pl(auds.length, 'audience'), a && a.sets ? pl(a.sets, 'variant') : '', a && a.files ? pl(a.files, 'image') : '', all.ready ? 'ready ' + dayS(all.at) : ''].filter(Boolean).join(' · ') };
   };
   // the ad set's audience a folder of the overview belongs to (English and Arabic alike)
@@ -3078,11 +3108,65 @@
     return (auds || rsAuds(this.rs)).find(a => a.items.some(it => this.pathOf(it).join('\u0001') === key)) || null;
   };
   RV.audState = function (key) {
+    if (this.role === 'ct') { const it = this.itemOf(key); if (!it) return null; const s = ctState(it); return { st: s.dot, word: s.word }; }
     const a = this.audOf(key); if (!a) return null;
     return { st: a.done ? 'done' : 'prog', word: a.done ? 'Ready to run' : (a.now ? a.now.label : '') };
   };
+  // THE CONTENT TEAM'S WINDOW (2026-10-29). Their unit is a PROJECT (one audience in one
+  // language), not an audience: each is waiting for their check, approved, or still with the
+  // designer. The nav says which, the strip under the pane's header says what to do with the
+  // one on screen (and offers the next one to check), and the top bar counts what is left.
+  RV.itemOf = function (key) { return (this.rs.items || []).find(it => this.pathOf(it).join('\u0001') === key) || null; };
+  // the projects waiting for the content team, in the nav's order (audiences, English first)
+  RV.ctQueue = function () {
+    const out = [];
+    rsAuds(this.rs).forEach(a => [a.eng].concat(a.items.filter(it => it !== a.eng)).forEach(it => { if (it && it.design && !it.copy && out.indexOf(it) < 0) out.push(it); }));
+    return out;
+  };
+  RV.ctRender = function () {
+    const el = this.bar, sh = this.shell, rs = this.rs, its = rs.items || [], q = this.ctQueue(), busy = this.stepBusy;
+    const ico = d => '<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + d + '"/></svg>';
+    const TICK = 'M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z';
+    const NEXT = 'M647-440H200q-17 0-28.5-11.5T160-480q0-17 11.5-28.5T200-520h447L451-716q-12-12-11.5-28t12.5-28q12-11 28-11.5t28 11.5l264 264q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L508-188q-11 11-27.5 11T452-188q-12-12-12-28.5t12-28.5l195-195Z';
+    const ok = its.filter(it => it.copy).length, open = this.ui.root.classList.contains('open'), un = this.unseen || 0;
+    // 1 — the top bar: what is left, then the activity
+    const pill = q.length ? pillHtml(false, q.length + ' to check') : its.length && ok === its.length ? pillHtml(true, 'All copy approved') : '<span class="rv-pill" data-s="wait">Nothing to check yet</span>';
+    const html = pill +
+      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when the designer sends you a project">Notify me</button>' : '') +
+      '<button type="button" class="p-ghost rvh-act" data-pnl="1" aria-expanded="' + (open ? 'true' : 'false') + '" title="Every change and approval on this ad set, newest first">' + ico(ICON.hist) + 'Activity' + (un ? '<b class="rvh-n">' + (un > 9 ? '9+' : un) + '</b>' : '') + '</button>';
+    if (html !== this._barH) { this._barH = html; el.innerHTML = html; }
+    const bh = document.querySelector('[data-rvh-bar]');
+    if (bh && el.parentNode !== bh) bh.appendChild(el);
+    // 2 — the strip
+    const goKey = it => this.pathOf(it).join('\u0001');
+    const act = it => { const s = ctState(it);
+      if (s.k === 'wait') return '';
+      const a = s.k === 'todo' ? ['copy-done', it.lang === 'ARB' ? 'Approve translation' : 'Approve English copy', 'p-btn'] : ['copy-open', 'Reopen', 'p-ghost'];
+      return '<button type="button" class="' + a[2] + ' rvp-ap" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(s.k === 'todo' ? 'Approve the words of ' + ctLabel(it) + ' as they are now' : 'Take the approval back, to change the words again') + '">' + (s.k === 'todo' ? ico(TICK) : '') + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>'; };
+    let sh2;
+    const cur = sh._asAll ? null : this.itemOf(sh._asSel);
+    if (!cur) {
+      const row = it => { const s = ctState(it);
+        return '<li data-s="' + s.dot + '"><button type="button" class="rvp-go" data-go="' + esc(goKey(it)) + '" title="Open ' + esc(ctLabel(it)) + '"><i class="rvp-ic">' + (s.k === 'done' ? ico(TICK) : '') + '</i><span><b>' + esc(ctLabel(it)) + '</b><s>' + esc(s.word + (s.when ? ' · ' + s.when : '')) + '</s></span></button>' + act(it) + '</li>'; };
+      const order = q.concat(rsAuds(rs).reduce((o, a) => o.concat([a.eng].concat(a.items.filter(x => x !== a.eng))), []).filter(it => it && q.indexOf(it) < 0));
+      sh2 = '<div class="rvp-all"><div class="rvp-ah"><b>' + (q.length ? q.length + (q.length === 1 ? ' project' : ' projects') + ' to check' : ok === its.length && its.length ? 'Every project is approved' : 'Nothing is waiting for you yet') + '</b><s>' + ok + ' of ' + its.length + ' approved</s></div><ul>' + order.map(row).join('') + '</ul></div>';
+    } else {
+      const s = ctState(cur), a = this.audOf(sh._asSel), nx = q.find(it => it !== cur);
+      sh2 = '<div class="rvp-one" data-s="' + s.dot + '"><i class="rvp-ic">' + (s.k === 'done' ? ico(TICK) : '') + '</i><span class="rvp-t"><b>' + esc(s.title) + '</b><s>' + esc(s.sub) + '</s></span>' +
+        (a ? segHtml(a.steps) : '') + act(cur) +
+        (nx && s.k !== 'todo' ? '<button type="button" class="' + (s.k === 'done' ? 'p-btn' : 'p-ghost') + ' rvp-nx" data-go="' + esc(goKey(nx)) + '" title="Open ' + esc(ctLabel(nx)) + ', the next project waiting for you">Next: ' + esc(ctLabel(nx)) + ico(NEXT) + '</button>' : '') + '</div>';
+    }
+    const st = this.strip;
+    if (sh2 !== this._stripH) { this._stripH = sh2; st.innerHTML = sh2; }
+    const host = document.querySelector('[data-rvh-host]');
+    if (host && st.parentNode !== host) host.appendChild(st);
+  };
   RV.barRender = function () {
     const el = this.bar; if (!el) return;
+    // a step moved: the studio redraws the window's title line and the nav's dots and words
+    const sk = (this.rs.items || []).map(it => it.sid + (it.design ? 'd' : '') + (it.copy ? 'c' : '')).join(',');
+    if (sk !== this._stepK) { const first = this._stepK == null; this._stepK = sk; if (!first) this.shell.forceUpdate(); }
+    if (this.role === 'ct') return this.ctRender();
     const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), busy = this.dl, sh = this.shell;
     const ico = d => '<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + d + '"/></svg>';
     const DL = 'M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z';
@@ -5422,6 +5506,34 @@ html.rv-pm .as-t figcaption b{font-size:13.5px}
   .rvp-one{flex-wrap:wrap}.rvp-one .rvp-t{flex:1 1 calc(100% - 50px)}.rvp-one .rv-seg{order:3}.rvp-one .rvp-dl{order:4;margin-left:auto}
   .rvp-all li{flex-wrap:wrap}.rvp .rv-seg{width:100px}
   html.rv-pm .as-vrow{--as-h:clamp(150px,calc((100cqw - 40px) / 2),46vh)}
+}
+/* THE CONTENT TEAM'S WINDOW (2026-10-29). PM's shape: the ad set's name is the title, the
+   top bar counts what is left to check and opens the Activity panel, and the pane opens on a
+   strip saying what to do with the project on screen, with its approve button. */
+html[data-rv-role="ct"] .as-role{display:none}
+html[data-rv-role="ct"] .rvh-host{display:block;padding-top:20px}
+html[data-rv-role="ct"] .rvh-bar{display:contents}
+html[data-rv-role="ct"] .rvh,html[data-rv-role="ct"].shl-open .rvh{position:static;inset:auto;z-index:auto;background:none;box-shadow:none}
+html[data-rv-role="ct"] .shl-pill{display:none!important}
+html[data-rv-role="ct"] .as-dl:not(.as-proj){display:none!important}
+.rv-pill[data-s="wait"]{background:var(--ps-fill);color:var(--ps-ink-2)}
+.rv-pill[data-s="prog"]::before{background:var(--ps-warn)}
+.rvh-act{position:relative}
+.rvh-act[aria-expanded="true"]{background:var(--ps-fill-h)}
+.rvh-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--ps-primary);color:var(--ps-primary-i);font:500 11px/1 var(--ps-font)}
+.rvp-one[data-s="prog"]{background:color-mix(in srgb,var(--ps-warn) 9%,var(--ps-card));box-shadow:0 0 0 1px color-mix(in srgb,var(--ps-warn) 34%,transparent)}
+[data-s="wait"] .rvp-ic{box-shadow:inset 0 0 0 2px var(--ps-line)}
+[data-s="wait"] .rvp-ic::after{content:'';width:12px;height:2px;border-radius:2px;background:var(--ps-dim)}
+.rvp-nx .mk-g{order:2}
+.rvp-ap,.rvp-nx{flex:none}
+.rvp-ah{flex-wrap:wrap}
+.rvp-ah s{text-decoration:none;font:400 13px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvp-all li[data-s="prog"] .rvp-go b{font-weight:500}
+html.rv-as .as-nav-a[data-st="wait"]:not([data-bad])::after{background:none;box-shadow:inset 0 0 0 1.5px var(--ps-dim)}
+html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
+@media (max-width:760px){
+  html[data-rv-role="ct"] .as-bar .rvh{order:5;flex:1 1 100%;flex-wrap:wrap}
+  .rvp-one .rvp-nx{order:5;flex:1 1 100%;justify-content:center}
 }
 /* ══ TICKETS, STATUS AND THE AD SET TAB (2026-10-28) ══ one weight per tier: a 500 title, ink-2
    labels, dim facts; every explanation is a tooltip. */

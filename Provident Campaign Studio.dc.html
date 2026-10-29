@@ -16609,7 +16609,7 @@ class Component extends DCLogic {
       ae.assets = await this.eng.loadAssets(st, images);
       ae.can = await this.aeCan(p);
       ae.loading = false; ae.state = 'ok';
-      ae.status = 'Up to date with ' + p.fname;
+      ae.status = this._asSrc && this._asSrc.kind === 'review' ? 'Up to date' : 'Up to date with ' + p.fname;
     } catch (e) {
       ae.loading = false; ae.state = 'bad';
       ae.status = 'Could not open ' + p.fname + ' — ' + (e && e.message ? e.message : e) + '.';
@@ -16710,7 +16710,7 @@ class Component extends DCLogic {
       const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       ae.state = 'ok';
       // a shared link is a copy: say so, or "Saved to the file" reads as the folder having changed
-      ae.status = live ? 'Saved · the designer and performance marketing see it within a few seconds · ' + t
+      ae.status = live ? 'Saved for everyone · ' + t
         : ((shared ? 'Saved to the shared link' + (n ? ' · ' + n + (n === 1 ? ' preview' : ' previews') + ' updated' : '') + ' · the original folder is not changed'
         : 'Saved to ' + p.fname + (n ? ' · ' + n + (n === 1 ? ' image' : ' images') + ' re-exported' : ''))
         + (!ae.photos && p.outs.length ? ' · images not re-exported (the file carries no photos)' : '') + ' · ' + t);
@@ -16999,8 +16999,11 @@ class Component extends DCLogic {
     }
     // a review link's audiences say whether they are ready to run (share-link.js audState)
     const AST = k => { const sv = this._asSrc && this._asSrc.kind === 'review' && this._asSrc.share; const r = sv && sv.audState ? sv.audState(k) : null; return r ? r.st : undefined; };
+    // the content team's nav reads what each project needs from them, not its image count
+    const ctNav = this._asSrc && this._asSrc.kind === 'review' && !embed && this._asSrc.share && this._asSrc.share.role === 'ct';
+    const ASW = k => { const r = ctNav && this._asSrc.share.audState ? this._asSrc.share.audState(k) : null; return r && r.word; };
     const nav = open && !head ? (a.mains || []).map(m => ({ title: m.title, sub: m.sub,
-      auds: m.auds.map(au => ({ title: au.title, sub: (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
+      auds: m.auds.map(au => ({ title: au.title, sub: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
         st: AST(au.key), tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     // the designer's ad set overview (share-link.js rsOverview): each audience folder is one
@@ -17012,7 +17015,8 @@ class Component extends DCLogic {
     // audiences, and they used to read identically ("Ad sets").
     const rvRole = this._asSrc && this._asSrc.kind === 'review' ? (embed ? 'dd' : (this._asSrc.share && this._asSrc.share.role) || 'dd') : '';
     // performance marketing's window is titled with the ad set itself (share-link.js pmHead)
-    const PMH = rvRole === 'pm' && this._asSrc.share && this._asSrc.share.pmHead ? this._asSrc.share.pmHead(a) : null;
+    // (and so is the content team's, with what is left to check in the line under it)
+    const PMH = (rvRole === 'pm' || rvRole === 'ct') && this._asSrc.share && this._asSrc.share.pmHead ? this._asSrc.share.pmHead(a) : null;
     const RVV = { pm: ['Ad set overview', 'Performance marketing'], ct: ['Content review', 'Content team'], dd: ['Designer overview', 'Designer'] }[rvRole];
     return {
       asTitle: PMH ? PMH.title : RVV ? RVV[0] : 'Ad sets',
@@ -17049,7 +17053,8 @@ class Component extends DCLogic {
       ...projV,
       asAllOn: all ? '1' : undefined, asAllCur: all ? 'true' : undefined, asPickAll: () => this.asPickAll(),
       asAllSub: (a.mains || []).reduce((n, m) => n + m.auds.length, 0) + ' audiences · ' + this.asAllImgs() + ' images',
-      asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
+      // a review's projects are live, not files: no file name in the line
+      asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length && !(this._asSrc && this._asSrc.kind === 'review') ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
       asImgOn: !!sel && mode === 'images',
       asDlOn: !!sel && mode === 'images' ? '1' : undefined,
       asDownload: () => this.asDownload(),
