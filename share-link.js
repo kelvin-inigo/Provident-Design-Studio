@@ -1053,13 +1053,30 @@
     this.markSaved && this.markSaved();
     this.openRecent(k);
   };
+  // Status, on one ad set's page: where the designer's link lands
+  SP.rsShowStatus = function (id, rs) {
+    Arch.add(id, (rs || {}).name, (rs || {}).product, true);
+    Arch.want = id;
+    const go = () => { const h = this.host; if (h) h.setState({ splashView: 'rev' }, () => setTimeout(() => Arch.mount(this), 0)); };
+    if (this.state.screen !== 'splash') {
+      if (this.confirmDiscard && !this.confirmDiscard()) { Arch.want = null; return; }
+      this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved && this.markSaved();
+    }
+    go();
+  };
   SP.shareOpenLink = async function (id) {
     if (isDs(id) && !(await dsGate(isRsId(id) ? 'Open the ad set' : 'Open a shared project'))) return;
     // an ad set link: the content team, performance marketing or the designer's overview
     if (isRsId(id)) {
       if (this.shApp() !== 'provident-ad-studio') { goCas(id); return; }
       const dl = nameDialog({ title: 'Open the ad set', lead: 'Loading the ad set…', btn: 'Open', busy: true });
-      try { const d = await api('rsget', { id, full: '1' }); dl.close(); RS.open(this.host, id, d); }
+      try {
+        const d = await api('rsget', { id, full: '1' }); dl.close();
+        // THE DESIGNER'S LINK OPENS THE AD SET'S STATUS PAGE (2026-10-29). It used to open the old
+        // "Designer overview" window, which the Status page and each project's Ad set tab replaced.
+        if (d.role === 'dd') { ssSet(RS_KEY, null); this.rsShowStatus(id, d.rs); return; }
+        RS.open(this.host, id, d);
+      }
       catch (e) { dl.fail(e.message, 'Close'); }
       return;
     }
@@ -2108,7 +2125,7 @@
   }
   const pillHtml = (ready, label) => '<span class="rv-pill" data-s="' + (ready ? 'ready' : 'prog') + '">' + esc(label || (ready ? 'Package ready' : 'In progress')) + '</span>';
   const LINK_ROWS = [
-    ['dd', 'Designer', 'The ad set’s overview. Every project opens in the full studio from here.'],
+    ['dd', 'Designer', 'Opens this ad set’s page in Status. Every project opens in the full studio from there.'],
     ['ct', 'Content team', 'The words of every project beside its images. Approve the English copy and the translation.'],
     ['pm', 'Performance marketing', 'Every project’s images, always the latest. Download each audience when it is done.']
   ];
@@ -2675,7 +2692,13 @@
       catch (e) { dlg.fail(e.message || String(e), 'Close'); }
     },
     async resume(shell, tok) {
-      try { await this.start(shell, tok, await api('rsget', { id: tok, full: '1' })); }
+      try {
+        const d = await api('rsget', { id: tok, full: '1' });
+        // a tab that once opened the designer's link kept it, and the old overview window came
+        // back over whatever loaded next (any project with no id yet matched): drop it instead
+        if (d.role === 'dd') { ssSet(RS_KEY, null); return; }
+        await this.start(shell, tok, d);
+      }
       catch (e) { ssSet(RS_KEY, null); }
     },
     async start(shell, tok, d) {
@@ -3162,7 +3185,10 @@
     },
     swap(old, id) { if (old === id) return; const a = this.list(), o = a.find(x => x.id === old); if (!o) return; if (a.some(x => x.id === id)) this.save(a.filter(x => x.id !== old)); else { o.id = id; this.save(a); } },
     drop(id) { this.save(this.list().filter(x => x.id !== id)); lsSet(ARCH_HIDE, JSON.stringify([id].concat(hidden().filter(x => x !== id)).slice(0, 400))); },
-    mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => { if (!el._rva) el._rva = new ArchView(el, eng); }); },
+    mount(eng) { document.querySelectorAll('[data-rv-arch]').forEach(el => {
+      if (!el._rva) el._rva = new ArchView(el, eng);
+      else if (this.want) { const w = this.want; this.want = null; el._rva.edit = null; el._rva.open(w); }
+    }); },
     // the Home page's subtitle: how many campaigns are open tickets, in design, ready to run —
     // the counts Status last read, refreshed in the background (never with a sign-in prompt)
     summary() { try { return JSON.parse(localStorage.getItem(SUM_KEY) || 'null'); } catch (e) { return null; } },
@@ -3436,6 +3462,8 @@
       inp.value = ''; this.err = ''; this.load();
     });
     this.load();
+    // opened from the designer's link: straight to that ad set's page
+    if (Arch.want) { const w = Arch.want; Arch.want = null; this.open(w); }
   }
   const AV = ArchView.prototype;
   // A TICKET is an ad set nobody has picked up yet: it holds the brief and no project.
@@ -3789,7 +3817,7 @@
       '<span class="rvd-th">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
       '<div class="rvd-ht"><span class="rvd-k">' + esc(PRODUCT_NAME[rs.product] || 'Ad set') + brandHtml(d.brands) + '</span>' +
       '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready) + '<span>' + esc(meta) + '</span></p></div>' +
-      '<div class="rvd-ha"><button type="button" class="p-btn" data-a="open">' + ico('ext') + 'Open the ad set</button>' +
+      '<div class="rvd-ha">' +
       (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button></div></div>' +
       '<div class="rvd-hs">' + steps + nowLine + '</div></header>';
@@ -3828,7 +3856,7 @@
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
-    const LSHORT = { dd: 'Every project, in the full studio', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
+    const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + LINK_ROWS.map(([r, who, what]) => {
       const link = rsLink((rs.tok || {})[r] || '');
       return '<li title="' + esc(what) + '"><span class="rvd-lki">' + ico(r) + '</span><span class="rvd-lkt"><b>' + who + '</b><s>' + LSHORT[r] + '</s></span>' +
