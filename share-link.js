@@ -2150,6 +2150,7 @@
     try {
       st = st || this.state;
       const a = await this.loadAssets(st, own);
+      await projFonts(st);
       const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .2);
       StudioBase.applyFont(this.state);
       const u = cv.toDataURL('image/webp', .8);
@@ -2747,7 +2748,9 @@
     if (!p.cache[k]) p.cache[k] = (async () => {
       const st = p.st, C = this.eng.constructor;
       if (!p.assets) p.assets = (async () => { await warmFonts(); return this.eng.loadAssets(st, await this.photos(sid)); })();
-      const r = await this.eng.rasterFile(this.eng.buildOps(st, vi, sk, await p.assets), 'jpg', C.exportScale(sk, st));
+      const a = await p.assets;
+      await projFonts(st);
+      const r = await this.eng.rasterFile(this.eng.buildOps(st, vi, sk, a), 'jpg', C.exportScale(sk, st));
       StudioBase.applyFont(this.eng.state);
       return r.data;
     })();
@@ -3093,6 +3096,13 @@
     } catch (e) { this.ui.flash('Could not zip — ' + (e.message || e)); }
     this.dl = null; this.barRender();
   };
+  // A project's OWN faces, before anything draws it outside the editor: the Google Font pair of
+  // an unbranded look (and Readex Pro for Arabic) is fetched on demand, and a canvas never pulls
+  // a webfont, so a render that starts before the face lands is drawn in Google Sans Flex. The
+  // editor had always loaded them by then; performance marketing's window had not.
+  async function projFonts(st) {
+    try { StudioBase.applyFont(st); await StudioBase.ensureFont(StudioBase.fontKey(st)); } catch (e) {}
+  }
   async function warmFonts() {
     const L = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return null; } };
     await Promise.all(['100 103px "Google Sans Flex"', '300 41px "Google Sans Flex"', '400 59px "Google Sans Flex"', '500 28px "Google Sans Flex"'].map(L));

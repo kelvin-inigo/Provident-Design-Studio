@@ -17343,3 +17343,17 @@ kept saving to the trashed file.
 Verified on the Drive stand-in (which now returns `trashed` in metadata): a file wiped and trashed
 like the real one reconnected on opening its link from a fresh workspace; a wipe under an open tab
 kept rid, rev and log; a session write beside a review file went to `(session)`.
+
+# AN UNBRANDED PROJECT RENDERED OUTSIDE THE EDITOR WAITS FOR ITS OWN FONTS (2026-10-29)
+
+Reported: performance marketing's ad set window drew an unbranded project's headline in Google Sans
+Flex while the designer saw its Google Font, and within one variant some sizes had the face and
+some did not. A canvas never pulls a webfont, and the look's Google Fonts are fetched on demand
+(`CampaignStudio.fontLoad`); `RV.render` (the content team's and PM's windows, and the designer's
+ad set overview) and `rvThumb` (Status previews) drew as soon as the photos arrived, so every
+render that beat the font download was drawn in the fallback. Both now await `projFonts(st)`
+(share-link.js): `applyFont(st)` then `StudioBase.ensureFont`, which CAS wraps to include
+`lookReady()` (capped at 6s). Ad sets' Edit text already did this (`aeFonts`). Measured on the
+Drive stand-in from a clean origin: the headline face not loaded before opening the link, loaded
+at all four draws. **`document.fonts.check` answers true for a face that is not there** — count
+`[...document.fonts]` with `status === 'loaded'` instead.
