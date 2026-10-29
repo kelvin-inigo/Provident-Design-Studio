@@ -292,6 +292,8 @@
     const m = await dsMeta(id);
     if (c && c.v === m.version) { c.at = Date.now(); c.meta = m; return c.d; }
     const d = await (await dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true')).json();
+    // a project file written over by a plain session save (dsKeepReview): keep the review it had
+    if (c && c.d && c.d.review && d && d.state && !d.review) d.review = c.d.review;
     DSC[id] = { v: m.version, d, at: Date.now(), meta: m };
     return d;
   }
@@ -316,6 +318,20 @@
     if (role === 'dd') o.tok = rs.tok;
     return o;
   }
+  // A PROJECT FILE CAN BE OVERWRITTEN FROM OUTSIDE (2026-10-29). Its file is a plain
+  // <name>.adstudio.json in the ad set's Drive folder, and a Source folder that is that same
+  // folder, synced to the Mac by Google Drive, gets Save session's <name>.adstudio.json written
+  // over it: same name, same Drive file, and the review block (its rid, the link to its ad set)
+  // gone. The next save used to start review afresh and the project never found its ad set
+  // again. Now a save puts back what this page last read, or at least the rid it follows.
+  function dsKeepReview(d, was, rid) {
+    if (!d.review && was) d.review = JSON.parse(JSON.stringify(was));
+    const rv = d.review || (d.review = {});
+    if (!rv.rid && was && was.rid) rv.rid = was.rid;
+    if (!rv.rid && rid) rv.rid = String(rid);
+    if (!rv.meta && was && was.meta) rv.meta = was.meta;
+    return d;
+  }
   function dsLog(rs, by, changes) { const e = dsEntry(by, changes, ''); if (e) { e.rev = 0; rs.log = (rs.log || []).concat(e).slice(-500); } }
   async function dsResolve(id, p, fresh) {
     if (id[0] === 'R') {
@@ -336,7 +352,7 @@
   async function dsApi(op, q, body) {
     q = q || {}; body = body || {};
     if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
-    const writes = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1 };
+    const writes = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1 };
     const R = await dsResolve(q.id, q.p, !!writes[op]);
     const pub = () => dsPub(R.rs, R.role);
     if (op === 'rsget') {
@@ -432,6 +448,22 @@
       await dsWrite(R.rid, R.rs);
       return { deleted: true };
     }
+    // Put a project that lost its link back in its ad set (see dsKeepReview): the designer's
+    // ad set link names it, the project's file gets its rid back and leaves Drive's trash.
+    if (op === 'relink') {
+      if (!R.rs || R.role !== 'dd' || !q.p) throw dsFail(403, 'Only the designer reconnects a project.');
+      const pf = q.p.slice(1), d = await dsRead(pf, true), rv = d.review || (d.review = { rev: 1, imgs: {}, log: [] });
+      if (rv.rid !== R.rid) {
+        rv.rid = R.rid;
+        if (!rv.meta) rv.meta = { app: d.app || 'provident-ad-studio', name: (d.state || {}).campaign || R.rs.name || '', by: dsWho(body.by), created: dsNow() };
+        await dsWrite(pf, d);
+      }
+      try {
+        const m = await (await dsFetch('/drive/v3/files/' + pf + '?fields=trashed&supportsAllDrives=true')).json();
+        if (m.trashed) await dsFetch('/drive/v3/files/' + pf + '?supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: false }) });
+      } catch (e) { if (e.gdAuth) throw e; }
+      return { rs: pub() };
+    }
     // ---- one project ----
     if (!R.sid) throw dsFail(400, 'Name the project (p=) — this is an ad set link.');
     const fid = R.sid.slice(1);
@@ -445,7 +477,8 @@
     }
     if (op === 'save') {
       if (R.role === 'pm') throw dsFail(403, 'This link is for viewing the ad sets — it cannot change the project.');
-      const d = await dsRead(fid, true), rv = d.review || (d.review = {});
+      const was = DSC[fid] && DSC[fid].d && DSC[fid].d.review;
+      const d = dsKeepReview(await dsRead(fid, true), was, body.rid), rv = d.review;
       if ((rv.rev || 0) !== Number(body.base || 0)) { const e = new Error('stale'); e.stale = true; e.rev = rv.rev || 0; throw e; }
       if (body.state != null) d.state = body.state;
       rv.rev = (rv.rev || 0) + 1;
@@ -465,7 +498,8 @@
     if (op === 'thumb') {
       if (R.role === 'pm') throw dsFail(403, 'This link is for viewing the ad sets — it cannot change the project.');
       if (!(typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000)) throw dsFail(400, 'No preview.');
-      const d = await dsRead(fid, true), rv = d.review || (d.review = {});
+      const was = DSC[fid] && DSC[fid].d && DSC[fid].d.review;
+      const d = dsKeepReview(await dsRead(fid, true), was, body.rid), rv = d.review;
       rv.thumb = body.thumb; rv.thumbAt = dsNow();
       if (body.sum && typeof body.sum === 'object') rv.sum = body.sum;
       await dsWrite(fid, d);
@@ -973,7 +1007,20 @@
       this._rsFindDone = true;
       if (!hit || this.state.pid !== pid) return;
       const S = this._sh;
-      if (S && S.id === hit.sid) return;
+      if (S && S.id === hit.sid) {
+        // the link itself, but its file lost the way back to the ad set (dsKeepReview): put it back
+        if (!S.rs && isDs(hit.sid) && isDs(hit.dd)) {
+          try {
+            const r = await api('relink', { id: hit.dd, p: hit.sid }, { by: StudioBase.shareName() });
+            if (r && r.rs && this._sh === S) {
+              this.rsSet(r.rs, 'dd');
+              const it = (r.rs.items || []).find(x => x.sid === hit.sid);
+              setTimeout(() => this.shFlash('Reconnected to the ad set ' + (r.rs.name || '') + (it ? ' as ' + itemLabel(it) : '') + '.'), 300);
+            }
+          } catch (e) {}
+        }
+        return;
+      }
       // this tab's own changes go to the link it follows first; the ad set's copy then wins
       // where the two differ, unless nothing was following and this computer changed it later
       let theirs = true;
@@ -1341,7 +1388,7 @@
       const burst = this.shBurst(ch);
       for (let tries = 0; tries < 4; tries++) {
         try {
-          const r = await api('save', { id: S.id }, { base: S.rev, state: cur, by, burst: burst.id, changes: burst.list, imgs: map, sum: S.rs ? this.rvSum(cur) : undefined });
+          const r = await api('save', { id: S.id }, { base: S.rev, state: cur, by, burst: burst.id, changes: burst.list, imgs: map, sum: S.rs ? this.rvSum(cur) : undefined, rid: S.rs && S.rs.rid });
           S.rev = r.rev; S.base = cur; S.baseS = canon(cur);
           if (S.rs) { S.thumbDue = true; S.savedAt = Date.now(); }
           Object.keys(map).forEach(k => { delete S.pv[k]; if (map[k]) S.imgs[k] = map[k].h; else delete S.imgs[k]; });

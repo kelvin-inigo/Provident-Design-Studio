@@ -52,7 +52,7 @@ reset()
 
 def _meta(f):
     return {'id': f['id'], 'name': f['name'], 'mimeType': f['mimeType'], 'parents': f['parents'],
-            'version': str(f['version']), 'modifiedTime': f['modifiedTime'], 'size': str(len(f['content'])),
+            'version': str(f['version']), 'modifiedTime': f['modifiedTime'], 'size': str(len(f['content'])), 'trashed': f['trashed'],
             'webViewLink': 'https://drive.google.com/drive/folders/' + f['id'] if f['mimeType'] == FOLDER else
             'https://drive.google.com/file/d/' + f['id'] + '/view'}
 

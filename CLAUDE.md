@@ -17317,3 +17317,29 @@ longer says "on this computer". The Drive stand-in now answers OR'ed `in parents
 and `mimeType` queries. Verified on the stand-in: a campaign filed with no folder landed in its
 own folder; a browser with an empty list found it on opening Status. The real folder was read
 through the Drive connector: 5 ad sets, each directly in its campaign folder.
+
+# A SAVE SESSION INTO THE AD SET'S DRIVE FOLDER CUT A PROJECT OFF FROM ITS AD SET (2026-10-29)
+
+Reported: opening an audience from Status opened the project as "Not in an ad set". Read off the
+real Drive (Palm Springs by Dubai Holding): both projects' files had their `review` block but no
+`rid`, and both were in Drive's trash. The file's revisions showed why: at 08:36 on 28 Oct a
+**Save session** wrote a plain `{app, v, state, images}` over it. The Source folder was the ad
+set's own `Local/Family/English` folder, synced to the Mac by Google Drive, and the session file
+has the same name as the project file (`<campaign>.adstudio.json`), so it landed on the same Drive
+file. The next share save rebuilt `review` with no `rid`, and `dsResolve` could never find the ad
+set again. A later 14 MB session save replaced the file (new id, old one trashed), and the studio
+kept saving to the trashed file.
+- **Prevention** (`writeProject`, studio-base.js, both studios): a `.adstudio.json` /
+  `.smpstudio.json` that already exists AND carries `review` is never overwritten; the session is
+  written beside it as `<name> (session).adstudio.json`.
+- **Self-heal** (share-link.js): `dsRead` keeps the review block it held when a project file comes
+  back without one; `save` / `thumb` go through `dsKeepReview` (restore the cached review, else
+  the `rid` the client sends — the main save now sends `rid`).
+- **Repair** of a project already cut off: `rsFind` finds it in an ad set by pid (rsinfo `pids`),
+  and when the tab already follows that very link it calls the new Drive op **`relink`** (designer
+  token + `p`): sets the `rid` (and `meta`), takes the file out of the trash, and the bar shows the
+  ad set. Opening the project once repairs it. The repaired folder may then hold the session copy
+  too; Open Session on that folder can pick either.
+Verified on the Drive stand-in (which now returns `trashed` in metadata): a file wiped and trashed
+like the real one reconnected on opening its link from a fresh workspace; a wipe under an open tab
+kept rid, rev and log; a session write beside a review file went to `(session)`.

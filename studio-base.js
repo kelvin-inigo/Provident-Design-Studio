@@ -1633,6 +1633,23 @@ class StudioBase {
     const f = this.folderApi();
     if (!f || !f.handle) return false;
     const overwrite = !!(opt && opt.overwrite);
+    // An ad set review keeps each project as <name>.adstudio.json in the ad set's Drive folder.
+    // When the Source folder IS that folder (synced to the Mac by Google Drive), the session
+    // file has the same name and used to be written over it, cutting the project off from its
+    // ad set. A session file never carries `review`, so one that does is left alone and the
+    // session goes beside it as "<name> (session).adstudio.json".
+    files = await Promise.all(files.map(async fl => {
+      const m = /^(.*)(\.(?:adstudio|smpstudio)\.json)$/.exec(fl.name || '');
+      if (!m) return fl;
+      try {
+        const d = await f.dirFor(fl.name, false);
+        const file = d && await (await d.getFileHandle(fl.name.split('/').pop())).getFile();
+        if (!file || file.size > 8e6) return fl;
+        const doc = JSON.parse(await file.text());
+        if (doc && doc.review && typeof doc.review === 'object') return Object.assign({}, fl, { name: m[1] + ' (session)' + m[2] });
+      } catch (e) {}
+      return fl;
+    }));
     const clash = [];
     if (!overwrite) for (const fl of files) { if (await f.exists(fl.name)) clash.push(fl.name); }
     if (clash.length && f.askBeforeOverwrite) {
