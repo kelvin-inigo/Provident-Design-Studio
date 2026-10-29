@@ -17393,31 +17393,3 @@ Status's ad set page lost its "Open the ad set" button; the Team links' designer
 opens this page. Content-team and PM links are unchanged. The in-project Ad set tab's Overview
 (`rsOverview`, embedded) is kept. Verified on the dev share store: a stale binding no longer
 reopens the window, the designer link lands on the ad set page, the ct link still opens its window.
-
-# THE CONTENT TEAM'S WINDOW TAKES PM'S SHAPE (2026-10-29)
-
-By request, after PM's redesign. share-link.js + three CAS hooks; chrome only.
-- **Their unit is a PROJECT, not an audience.** `ctState(it)` (share-link.js) is the one answer:
-  **To check** (designer sent it, copy not approved), **Approved**, or **With the designer** (they
-  may edit, nothing to approve). `ctLabel(it)` names it "Local · Family · English";
-  `RV.ctQueue()` lists the To-check projects in nav order; `RV.itemOf(key)` maps a folder to it.
-- **Title** = the ad set's name; sub "Copy check · Residential · 3 projects · 1 to check · 1
-  approved" (`pmHead` is role-aware; CAS reads it for `ct` too). The role chip is hidden.
-- **Top bar** (`[data-rvh-bar]`): a pill ("N to check" / "All copy approved" / "Nothing to check
-  yet"), Notify me, and **Activity** (`data-pnl`, unread count) — the side panel is closed by
-  default now and remembered per computer (`provident-share-open-ct`); the floating Changes pill
-  is hidden for ct. The panel is the log alone, titled Activity (`.rv` section hidden).
-- **The strip** (`ctRender`, in `[data-rvh-host]`): the project on screen — state, who sent or
-  approved it and when, the audience's four segments, **Approve English copy / Approve
-  translation** (or Reopen), and **Next: <project>** to the next one waiting. Under All
-  audiences it is the queue: To-check first, one row per project, each with its button.
-- **Nav**: each folder's line is the project's state, with an amber (to check), green
-  (approved) or hollow (with the designer) dot (`audState` per item for ct; CAS `ASW`).
-- **`barRender` force-updates the shell when any project's design/copy flags change**, so the
-  title line and the nav follow a step at once (they lagged until the next render, PM's too).
-- CAS: a review's pane line drops the `.adstudio.json` name; Edit text reads "Up to date" and
-  "Saved for everyone · 3:00 PM"; ct has no Download buttons.
-- Verified on the dev share server: a typed heading saved, Approve by real click, Next opened the
-  second project, the queue and Activity, 0 contrast failures in both themes, fits at 390.
-  **Probe trap:** `getComputedStyle` returns a `color-mix()` background as `color(srgb 0-1 …)`;
-  an rgb parser reads that as black and reports false failures.
