@@ -17271,3 +17271,19 @@ button was missed in the canvas bar. CAS + share-link.js.
 - Verified on the Drive stand-in: a window following an old edit link reloaded into
   *Finding…* then the ad set's project, panel gone, toast naming the audience; Send to copy
   check from the top bar ran the pre-check and moved it to Copy check. Not on real Drive.
+
+# STATUS › AN AD SET'S PAGE WAS REDESIGNED (2026-10-29)
+
+By request. `AV.detHtml` (share-link.js) draws `.rvd` (CSS block "THE AD SET PAGE" at the end of
+the sheet, a size container): ONE header card — thumbnail, product + brand, the name at 30px, a
+plain pill and "Created … · changed …", then Open the ad set / Drive folder / a settings icon —
+whose lower half is the four steps as counts with bars (`.rvd-steps`, the board's step colours,
+the current step in ink) and a "Waiting on" row of chips, one per unfinished audience with its
+step dot and what it waits for. The separate Progress card and the tools row are gone. Main
+column: **Audiences** (Add a project in its heading) as one row each — name, the step and its
+sub-line, four segments coloured by step, then the English / Arabic tiles (old `.rva-lt` markup
+and actions) — then Activity. Side (340px): **Team links** (icon, role, one short line, Copy;
+the URL is the button's tooltip), Details (empty rows omitted), Brief, Drive location, and
+Remove / Delete at the foot. One column under 1000px of container width. Every `data-a` action
+is unchanged. Verified with injected sample ad sets: 0 contrast failures in both themes, no
+overflow at 375.

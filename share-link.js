@@ -3587,33 +3587,32 @@
     const log = (d.log || []).concat((d.plog || []).filter(e => (e.changes || []).some(c => c.kind !== 'note')).map(e => Object.assign({}, e, { changes: (e.changes || []).map(c => Object.assign({}, c, { page: e.page + (c.page ? ' · ' + c.page : '') })) })))
       .sort((a, b) => b.at - a.at);
     const sizes = []; Object.keys(proj).forEach(s => ((proj[s].sum || {}).sizes || []).forEach(z => { if (sizes.indexOf(z) < 0) sizes.push(z); }));
-    const next = all.ready ? 'Every audience is done since ' + day(all.at) + '. Performance marketing can download the whole package.'
-      : auds.length ? 'Waiting on ' + auds.filter(a => !a.done).map(a => a.label + ' (' + (a.now ? a.now.sub.toLowerCase() : '') + ')').join(', ') + '.' : 'No projects yet.';
-    // HEADER, then the controls under it: Add a project (a pop-up), and the two list actions
-    const head = '<header class="rva-dh"><span class="rva-th rva-th-l">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
-      '<div class="rva-dt"><span class="rv-k">Ad set review' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><h2>' + esc(name) + '</h2>' +
-      '<div class="rva-st">' + pillHtml(all.ready) + '<span>' + (all.ready ? 'Finished ' + esc(day(all.at)) : all.done + ' of ' + all.n + ' audiences done') + ' · created ' + esc(day(rs.created)) + (rs.by ? ' by ' + esc(rs.by) : '') + '</span></div></div>' +
-      '<div class="rva-da">' + (url ? '<a class="p-ghost rva-a" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
-      '<button type="button" class="p-btn" data-a="open">' + ico('ext') + 'Open the ad set</button></div></header>' +
-      '<div class="rva-tools" role="toolbar" aria-label="Ad set actions">' +
-      '<button type="button" class="p-ghost rva-tl" data-a="addopen">' + ico('add') + 'Add a project</button>' +
-      '<button type="button" class="p-ghost rva-tl" data-a="settings" title="Name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + 'Ad set settings</button>' +
-      '<span class="rva-tools-r"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
-      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></span></div>';
-    // PROGRESS, edge to edge
-    const progress = '<section class="rva-card rva-prog"><div class="rva-ph"><h3>Progress</h3><p class="rva-next" data-s="' + (all.ready ? 'ready' : 'prog') + '">' + esc(next) + '</p></div>' + stepperHtml(all.steps) + '</section>';
-    // AD SET LINKS, one card per team, side by side
-    const LI = { dd: 'dd', ct: 'ct', pm: 'pm' };
-    const links = '<section class="rva-lnk"><h3>Ad set links <s>One per team, for the whole ad set</s></h3><ul class="rva-lks">' + LINK_ROWS.map(([r, who, what]) => {
-      const link = rsLink((rs.tok || {})[r] || '');
-      return '<li class="rva-lk"><div class="rva-lk-h"><span class="rva-lk-i">' + ico(LI[r]) + '</span><b>' + who + '</b></div><s>' + what + '</s>' +
-        '<div class="rva-lk-r"><code title="' + esc(link) + '">' + esc(link.replace(/^https?:\/\//, '')) + '</code>' +
-        '<button type="button" class="p-ghost rva-cp" data-copy="' + esc(link) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy link</span></button></div></li>';
-    }).join('') + '</ul></section>';
-    // AUDIENCES: a card each, its steps, and a tile per language
+    // REDESIGNED 2026-10-29. One header card says what the campaign is and where it stands (the
+    // four steps as counts, the audiences still waiting); the audiences are the main column, a
+    // row each; the links, details, brief and Drive location sit in a narrow column beside them.
+    const cnt = i => auds.filter(a => a.steps[i].s === 'done').length;
+    const cur = all.ready ? 4 : STEP_LABELS.findIndex((l, i) => cnt(i) < auds.length);
+    const steps = '<ol class="rvd-steps">' + STEP_LABELS.map((l, i) => '<li data-i="' + i + '"' + (i === cur ? ' data-cur="1"' : '') + (auds.length && cnt(i) === auds.length ? ' data-done="1"' : '') + '>' +
+      '<span><i></i>' + esc(l) + '</span><b>' + cnt(i) + '<s>/' + auds.length + '</s></b><em><s style="width:' + (auds.length ? Math.round(cnt(i) / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>';
+    const waiting = auds.filter(a => !a.done);
+    const nowLine = all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
+      : !auds.length ? '<p class="rvd-now"><i></i>No projects yet — add the first one.</p>'
+        : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
+          return '<span class="rvd-wc" data-i="' + i + '" title="' + esc(a.now.label + ' — ' + a.now.sub) + '"><i></i>' + esc(a.label) + '<s>' + esc(a.now.sub) + '</s></span>'; }).join('') + '</p>';
+    const changed = modOf({ rs, mod: d.mod });
+    const meta = [rs.by ? 'Created ' + dayS(rs.created) + ' by ' + rs.by : 'Created ' + dayS(rs.created), changed ? 'changed ' + ago(changed) : ''].filter(Boolean).join(' · ');
+    const head = '<header class="rvd-h"><div class="rvd-hb">' +
+      '<span class="rvd-th">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
+      '<div class="rvd-ht"><span class="rvd-k">' + esc(PRODUCT_NAME[rs.product] || 'Ad set') + brandHtml(d.brands) + '</span>' +
+      '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready) + '<span>' + esc(meta) + '</span></p></div>' +
+      '<div class="rvd-ha"><button type="button" class="p-btn" data-a="open">' + ico('ext') + 'Open the ad set</button>' +
+      (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
+      '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button></div></div>' +
+      '<div class="rvd-hs">' + steps + nowLine + '</div></header>';
+    // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const tile = (a, it, lang) => {
-      if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.engOnly ? 'Not needed for this audience' : 'No Arabic project yet') : 'No English project yet') + '</s></span></div>';
+      if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
@@ -3623,28 +3622,35 @@
             (it.copy ? '' : '<button type="button" class="rva-lkb" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
             '<button type="button" class="rva-lkb rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span>') + '</div>';
     };
-    const audCards = auds.map(a => {
-      const extra = a.items.filter(it => it !== a.eng && it !== a.arb);
-      return '<li class="rva-au"' + (a.done ? ' data-done="1"' : '') + '><div class="rva-au-h"><span class="rva-au-n">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(a.aud || a.label) + '</b></span>' + pillHtml(a.done, a.done ? 'Done' : a.now ? a.now.label : '') + '</div>' +
-        stepperHtml(a.steps) +
-        '<div class="rva-au-p">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + '</div></li>';
+    const audRows = auds.map(a => {
+      const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
+      return '<li class="rvd-au"' + (a.done ? ' data-done="1"' : '') + '><div class="rvd-auh">' +
+        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(a.aud || a.label) + '</b></span>' +
+        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span></div>' +
+        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + '</div></li>';
     }).join('');
-    const audiences = '<section class="rva-card rva-auc"><h3>Audiences <s>' + auds.length + '</s></h3><ul class="rva-aus">' + (audCards || '<li class="shl-empty">No projects yet. Use Add a project above.</li>') + '</ul></section>';
-    const side = '<aside class="rva-side">' +
-      '<section class="rva-card"><h3>Details</h3><dl class="rva-dl">' +
-      row('Product', esc(PRODUCT_NAME[rs.product] || '—')) +
-      row('Brand', brandHtml(d.brands) || '—') +
-      row('Audiences', auds.length + ' · ' + (rs.items || []).length + ' projects') +
-      row('Markets', esc([...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ') || '—')) +
-      row('Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '—') +
-      '</dl></section>' +
-      briefHtml(rs.ticket) +
-      '<section class="rva-card"><h3>Google Drive</h3><p class="rva-sub">Where this ad set’s files are kept, for everyone who opens this list.</p>' +
-      '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Drive folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
-      '</aside>';
-    const activity = '<section class="rva-card rva-actc"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
+    const audiences = '<section class="rvd-sec"><h3>Audiences <s>' + auds.length + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
+    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
-    return back + head + '<div class="rva-det">' + progress + links + '<div class="rva-cols">' + audiences + side + activity + '</div></div>' +
+    // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
+    const LSHORT = { dd: 'Every project, in the full studio', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
+    const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + LINK_ROWS.map(([r, who, what]) => {
+      const link = rsLink((rs.tok || {})[r] || '');
+      return '<li title="' + esc(what) + '"><span class="rvd-lki">' + ico(r) + '</span><span class="rvd-lkt"><b>' + who + '</b><s>' + LSHORT[r] + '</s></span>' +
+        '<button type="button" class="p-ghost rvd-cp" data-copy="' + esc(link) + '" title="' + esc(link) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy</span></button></li>';
+    }).join('') + '</ul></section>';
+    const mk = [...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ');
+    const facts = [['Product', esc(PRODUCT_NAME[rs.product] || '')], ['Markets', esc(mk)], ['Projects', (rs.items || []).length + ' across ' + auds.length + (auds.length === 1 ? ' audience' : ' audiences')],
+      ['Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '']].filter(f => f[1]);
+    const side = '<aside class="rvd-side">' + links +
+      '<section class="rvd-card"><h3>Details</h3><dl class="rva-dl">' + facts.map(f => row(f[0], f[1])).join('') + '</dl></section>' +
+      briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
+      '<section class="rvd-card"><h3>Drive location</h3>' +
+      '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
+      '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
+      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
+      '</aside>';
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + audiences + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -5364,6 +5370,92 @@ body>.rvh{display:none}
 .rsp-plan3 button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:3px}
 @media (max-width:600px){.rsp-auds{grid-template-columns:1fr}.rsp-ac{padding:16px;gap:14px}.rsp-coin{height:58px;padding:0 10px}}
 @media (prefers-reduced-motion:reduce){.rsp-ac,.rsp-coin,.rsp-sw i,.rsp-sw i:after{transition:none}}
+/* THE AD SET PAGE (redesigned 2026-10-29). A header card (what it is, where it stands), the
+   audiences as the main column, and a narrow column of links and reference beside them. */
+.rvd{display:flex;flex-direction:column;gap:28px;max-width:1280px;min-width:0;container-type:inline-size}
+.rvd-h{border-radius:20px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line);overflow:hidden}
+.rvd-hb{display:flex;align-items:center;gap:24px;padding:24px 28px;background:var(--ps-card-h)}
+.rvd-th{flex:none;width:104px;height:104px;border-radius:14px;overflow:hidden;background:var(--ps-fill);box-shadow:0 0 0 1px var(--ps-hair)}
+.rvd-th img{display:block;width:100%;height:100%;object-fit:cover}
+.rvd-ht{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.rvd-k{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvd-ht h2{margin:0;font:500 30px/1.15 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink);overflow-wrap:anywhere}
+.rvd-ht p{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;margin:0;font:400 13px/1.4 var(--ps-font);color:var(--ps-dim)}
+.rvd-ha{flex:none;display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:8px;max-width:440px}
+.rvd-ha .p-btn,.rvd-ha .p-ghost{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;white-space:nowrap;text-decoration:none}
+.rvd-ha .rva-i{width:17px;height:17px;fill:currentColor}
+.rvd-ha .rvd-ic{width:36px;padding:0;justify-content:center}
+.rvd-hs{padding:24px 28px 22px}
+.rvd-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin:0;padding:0;list-style:none}
+.rvd-steps li{display:flex;flex-direction:column;gap:10px;min-width:0}
+.rvd-steps span{display:flex;align-items:center;gap:8px;font:400 13px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rvd-steps span i{flex:none;width:8px;height:8px;border-radius:50%}
+.rvd-steps b{font:400 30px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rvd-steps b s{text-decoration:none;font-size:15px;color:var(--ps-dim)}
+.rvd-steps [data-done] b,.rvd-steps [data-cur] b{color:var(--ps-ink)}
+.rvd-steps [data-cur] span{color:var(--ps-ink);font-weight:500}
+.rvd-steps em{display:block;height:4px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
+.rvd-steps em s{display:block;height:100%;border-radius:inherit;text-decoration:none}
+.rvd-steps [data-i="0"] i,.rvd-steps [data-i="0"] em s,.rvd-wc[data-i="0"] i,.rvd-aus[data-i="0"] i{background:var(--ps-dim)}
+.rvd-steps [data-i="1"] i,.rvd-steps [data-i="1"] em s,.rvd-wc[data-i="1"] i,.rvd-aus[data-i="1"] i{background:var(--ps-warn)}
+.rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-aus[data-i="2"] i{background:var(--ps-link)}
+.rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-aus[data-i="3"] i{background:var(--ps-good)}
+.rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:18px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-now>i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
+.rvd-now[data-s="ready"]>i{background:var(--ps-good)}
+.rvd-wk{margin-right:4px;color:var(--ps-dim)}
+.rvd-wc{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;height:30px;white-space:nowrap;padding:0 12px;border-radius:9999px;background:var(--ps-fill);font:500 12.5px/1 var(--ps-font);color:var(--ps-ink)}
+.rvd-wc i{flex:none;width:7px;height:7px;border-radius:50%}
+.rvd-wc s{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;font-weight:400;color:var(--ps-ink-2)}
+.rvd-cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
+.rvd-main{display:flex;flex-direction:column;gap:28px;min-width:0}
+.rvd-sec h3,.rvd-card h3{display:flex;align-items:baseline;gap:6px;margin:0 0 14px;font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-sec h3 s,.rvd-card h3 s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.rvd-auds{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
+.rvd-au{padding:18px 20px 16px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-auh{display:grid;grid-template-columns:minmax(120px,200px) minmax(0,1fr);gap:20px;align-items:center}
+.rvd-aun{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rvd-aun s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvd-aun b{font:500 18px/1.25 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rvd-aus{display:flex;flex-direction:column;gap:10px;min-width:0}
+.rvd-aus>span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
+.rvd-aus>span:first-child i{flex:none;width:8px;height:8px;border-radius:50%}
+.rvd-aus>span:first-child b{flex:none;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-aus>span:first-child s{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-aus .rv-seg{max-width:420px}
+.rvd-aus .rv-seg i{background:var(--ps-fill-h)}
+.rvd-aus .rv-seg i[data-s="done"]{background:var(--ps-ink-2)}
+.rvd-aus[data-i="0"] .rv-seg i[data-s="cur"]{background:var(--ps-dim)}
+.rvd-aus[data-i="1"] .rv-seg i[data-s="cur"]{background:var(--ps-warn)}
+.rvd-aus[data-i="2"] .rv-seg i[data-s="cur"]{background:var(--ps-link)}
+.rvd-aus[data-i="3"] .rv-seg i{background:var(--ps-good)}
+.rvd-sec h3 .rvd-add{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 14px 0 10px;font-size:13px}
+.rvd-sec h3 .rvd-add .rva-i{width:16px;height:16px;fill:currentColor}
+.rvd-sec h3{align-items:center}
+.rvd-aut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--ps-hair)}
+.rvd-act{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.rvd-card{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-lks{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+.rvd-lks li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--ps-hair)}
+.rvd-lks li:first-child{padding-top:0;border-top:none}.rvd-lks li:last-child{padding-bottom:0}
+.rvd-lki{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:var(--ps-fill)}
+.rvd-lki .rva-i{width:17px;height:17px;fill:var(--ps-ink-2)}
+.rvd-lkt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvd-lkt b{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-lkt s{text-decoration:none;font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
+.rvd-cp{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;white-space:nowrap}
+.rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
+.rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
+.rvd-card .rva-sub{margin-top:-8px}
+.rvd-card .rva-fl{box-sizing:border-box;min-width:0}
+@container (max-width:1000px){.rvd-cols{grid-template-columns:minmax(0,1fr)}}
+@container (max-width:760px){
+  .rvd-hb{flex-wrap:wrap;gap:16px;padding:20px}.rvd-th{width:72px;height:72px}.rvd-ht{flex-basis:calc(100% - 88px)}.rvd-ht h2{font-size:23px}
+  .rvd-ha{max-width:none;width:100%;justify-content:flex-start}.rvd-hs{padding:20px}
+  .rvd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}.rvd-steps b{font-size:24px}
+  .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
+}
 `;
     document.head.appendChild(s);
   }
