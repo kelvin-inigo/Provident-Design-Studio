@@ -17357,3 +17357,25 @@ render that beat the font download was drawn in the fallback. Both now await `pr
 Drive stand-in from a clean origin: the headline face not loaded before opening the link, loaded
 at all four draws. **`document.fonts.check` answers true for a face that is not there** — count
 `[...document.fonts]` with `status === 'loaded'` instead.
+
+# PERFORMANCE MARKETING'S WINDOW WAS REDESIGNED (2026-10-29)
+
+By request, from a screenshot of the PM link's Ad sets window. share-link.js + three CAS hooks.
+- **The window's title is the ad set's name** (`RV.pmHead(a)` → CAS `asTitle` / `asSub`: product
+  · audiences · variants · images · ready date); the "Performance marketing" chip is hidden.
+- **The package controls moved into the window's top bar**: an empty `[data-rvh-bar]` host
+  (CAS markup, before the close separator) receives `.rvh` — status pill ("Package ready" /
+  "1 of 2 ready"), Notify me, See details, and **Download package** as the one solid button.
+- **The pane's big widget became a strip** (`.rvp`, still moved into `[data-rvh-host]`): for the
+  audience on screen (`RV.audOf(key)` maps a folder — English or Arabic — to its ad set audience)
+  it reads Ready to run + who signed off + date + Download, or the current step and what it waits
+  on with Download disabled; under All audiences it is one row per audience (click opens it via
+  `asPickAud`, `data-go`).
+- **The nav says which audiences are ready**: `RV.audState(key)` → `au.st` → `data-st` on the
+  nav button, a green or amber dot (`html.rv-as`, so the content team gets it too).
+- **The tiles grow to fill the row** for PM: `.as-pane` is a size container and each `.as-vrow`
+  sets `--as-h` to (width − 100px) / 3.414 (the four Meta sizes side by side), capped at
+  min(58vh, 440px).
+- Verified on the dev share server with a two-audience ad set (Family done, Investor at copy
+  check): both views, the row click, 0 contrast failures over bar, strip and nav in dark, no
+  overflow at 390. The details dialog is unchanged.

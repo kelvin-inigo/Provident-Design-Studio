@@ -3015,53 +3015,84 @@
   RV.stop = function (keep) {
     clearInterval(this.tick); clearInterval(this.poll); clearInterval(this.clock);
     document.removeEventListener('visibilitychange', this.onVis);
-    this.ui.root.remove(); if (this.bar) this.bar.remove(); if (this.dlg) this.dlg.remove();
+    this.ui.root.remove(); if (this.bar) this.bar.remove(); if (this.strip) this.strip.remove(); if (this.dlg) this.dlg.remove();
     const h = document.documentElement;
     h.classList.remove('shl-on', 'shl-open', 'rs-on', 'rv-as', 'rv-pm'); delete h.dataset.rvRole;
     if (RS.cur === this) RS.cur = null;
     if (!keep) ssSet(RS_KEY, null);
   };
-  // performance marketing's header: ONE row — the ad set, the four steps (labels only) spread
-  // across the bar, See details and Download. Dates, counts and the audiences live in the
-  // details window, so the bar stays a status line.
+  // PERFORMANCE MARKETING'S WINDOW (2026-10-29): the package controls sit in the window's own
+  // top bar (status, Notify, See details, Download package), and the pane carries a strip for
+  // the audience on screen — ready with its Download, or where it stands — or, under All
+  // audiences, one row per audience. The ad set's name is the window's title (pmHead).
   RV.barMake = function () {
     const el = this.bar = document.createElement('div');
-    el.className = 'rvh'; el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Ad set package');
-    document.body.appendChild(el);
+    el.className = 'rvh'; el.setAttribute('role', 'group'); el.setAttribute('aria-label', 'Ad set package');
+    const st = this.strip = document.createElement('div');
+    st.className = 'rvp'; st.setAttribute('role', 'region'); st.setAttribute('aria-label', 'Audience status');
     const dlg = this.dlg = document.createElement('dialog');
     dlg.className = 'rvh-dlg'; dlg.setAttribute('aria-label', 'Ad set details');
     document.body.appendChild(dlg);
     const click = e => {
-      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf]');
+      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf],[data-go]');
       if (e.target === dlg) { dlg.close(); return; }          // a click on the backdrop
       if (!b) return;
       if (b.dataset.dl) this.download(b.dataset.dl);
       if (b.dataset.det) { this.barRender(); dlg.showModal(); }
       if (b.dataset.ntf) askNotify().then(() => { this._barH = ''; this.barRender(); });
+      if (b.dataset.go && this.shell.asPickAud) this.shell.asPickAud(b.dataset.go);
       if (b.dataset.x) dlg.close();
     };
-    el.addEventListener('click', click); dlg.addEventListener('click', click);
-    if (window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty('--rvh', el.offsetHeight + 'px')).observe(el);
+    el.addEventListener('click', click); st.addEventListener('click', click); dlg.addEventListener('click', click);
+  };
+  // the window's title and line under it, read by the studio's Ad sets header
+  RV.pmHead = function (a) {
+    const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+    return { title: rs.name || 'Ad set', sub: [PRODUCT_NAME[rs.product], pl(auds.length, 'audience'), a && a.sets ? pl(a.sets, 'variant') : '', a && a.files ? pl(a.files, 'image') : '', all.ready ? 'ready ' + dayS(all.at) : ''].filter(Boolean).join(' · ') };
+  };
+  // the ad set's audience a folder of the overview belongs to (English and Arabic alike)
+  RV.audOf = function (key, auds) {
+    return (auds || rsAuds(this.rs)).find(a => a.items.some(it => this.pathOf(it).join('\u0001') === key)) || null;
+  };
+  RV.audState = function (key) {
+    const a = this.audOf(key); if (!a) return null;
+    return { st: a.done ? 'done' : 'prog', word: a.done ? 'Ready to run' : (a.now ? a.now.label : '') };
   };
   RV.barRender = function () {
     const el = this.bar; if (!el) return;
-    const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), busy = this.dl;
-    const dlBtn = '<button type="button" class="' + (all.done ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (all.done && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, in one zip' : all.done ? 'The audiences that are done, in one zip' : 'Nothing is done yet') + '">' +
-      (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download' + (all.done ? ' ' + all.done + ' of ' + all.n : '')) + '</button>';
-    const tick = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
-    const mini = '<ol class="rvh-st" aria-label="Progress">' + all.steps.map(x => '<li data-s="' + x.s + '" title="' + esc(x.label + ' — ' + x.sub) + '"><i>' + (x.s === 'done' ? tick : '') + '</i><b>' + esc(x.label) + '</b></li>').join('') + '</ol>';
-    // a widget under the audience's header in the Ad sets pane, the setup widget's shape:
-    // a header band (the package and where it stands), the steps, then the actions
-    const html = '<div class="rvh-in"><div class="rvh-wh"><div class="rvh-t"><span class="rvh-k">Ad set package' + (rs.product ? ' · ' + esc(PRODUCT_NAME[rs.product] || '') : '') + '</span><b>' + esc(rs.name || 'Ad set') + '</b>' +
-      '<s>' + esc(all.ready ? 'Every audience is ready to run' : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' ready to run') + '</s></div>' + pillHtml(all.ready) + '</div>' +
-      '<div class="rvh-wb">' + mini + '</div><div class="rvh-a">' + (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
-      '<button type="button" class="p-ghost rvh-det" data-det="1">See details</button>' + dlBtn + '</div></div>';
+    const rs = this.rs, auds = rsAuds(rs), all = rsOverall(auds), busy = this.dl, sh = this.shell;
+    const ico = d => '<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + d + '"/></svg>';
+    const DL = 'M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z';
+    const TICK = 'M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z';
+    const dlBtn = '<button type="button" class="' + (all.done ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (all.done && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : all.done ? 'The audiences that are done, in one zip' : 'Nothing is ready yet') + '">' + ico(DL) +
+      (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download ' + all.done + ' of ' + all.n) + '</button>';
+    // 1 — the top bar: status, then the actions, the download last and loudest
+    const html = pillHtml(all.ready, all.ready ? 'Package ready' : all.done + ' of ' + all.n + ' ready') +
+      (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
+      '<button type="button" class="p-ghost rvh-det" data-det="1" title="Who did what and when, audience by audience">See details</button>' + dlBtn;
     if (html !== this._barH) { this._barH = html; el.innerHTML = html; }
+    const bh = document.querySelector('[data-rvh-bar]');
+    if (bh && el.parentNode !== bh) bh.appendChild(el);
+    // 2 — the pane's strip: the audience on screen, or every audience under All audiences
+    const st = this.strip;
+    const dlA = a => '<button type="button" class="' + (a.done ? 'p-btn' : 'p-ghost') + ' rvp-dl" data-dl="' + esc(a.key) + '"' + (a.done && !busy ? '' : ' disabled') + ' title="' + esc(a.done ? 'Every image of ' + a.label + ', English and Arabic, in one zip' : 'It can be downloaded once it is ready to run') + '">' + ico(DL) + (busy === a.key ? 'Zipping…' : 'Download') + '</button>';
+    const who = a => { const e = a.eng, r = a.arb, out = []; if (e && e.design) out.push('Design · ' + e.design.by); if (e && e.copy) out.push('Copy · ' + e.copy.by); if (r && r.copy) out.push('Arabic · ' + r.copy.by); return out.join('   '); };
+    const line = a => a.done ? 'Ready to run' + (a.at ? ' · ' + dayS(a.at) : '') : (a.now ? a.now.label + ' — ' + a.now.sub : '');
+    const goKey = a => this.pathOf(a.eng || a.items[0]).join('\u0001');
+    let sh2;
+    if (sh._asAll || !this.audOf(sh._asSel, auds)) {
+      sh2 = '<div class="rvp-all"><div class="rvp-ah"><b>' + all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' ready to run</b>' + segHtml(all.steps) + '</div><ul>' +
+        auds.map(a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><button type="button" class="rvp-go" data-go="' + esc(goKey(a)) + '"><i class="rvp-ic">' + (a.done ? ico(TICK) : '') + '</i><span><b>' + esc(a.label) + '</b><s>' + esc(line(a)) + '</s></span></button>' + segHtml(a.steps) + dlA(a) + '</li>').join('') + '</ul></div>';
+    } else {
+      const a = this.audOf(sh._asSel, auds);
+      sh2 = '<div class="rvp-one" data-s="' + (a.done ? 'done' : 'prog') + '"><i class="rvp-ic">' + (a.done ? ico(TICK) : '') + '</i><span class="rvp-t"><b>' + esc(a.done ? 'Ready to run' : a.now ? a.now.label : '') + '</b><s>' + esc(a.done ? (who(a) || line(a)) + (a.at ? ' · ' + dayS(a.at) : '') : a.now ? a.now.sub : '') + '</s></span>' +
+        segHtml(a.steps) + dlA(a) + '</div>';
+    }
+    if (sh2 !== this._stripH) { this._stripH = sh2; st.innerHTML = sh2; }
     // it lives in the pane's empty host (React gives that host no children); the pane can be
-    // drawn again, so the widget is moved back in whenever its host changes
+    // drawn again, so the strip is moved back in whenever its host changes
     const host = document.querySelector('[data-rvh-host]');
-    if (host && el.parentNode !== host) host.appendChild(el);
-    else if (!host && el.parentNode !== document.body) document.body.appendChild(el);
+    if (host && st.parentNode !== host) host.appendChild(st);
     // the details window: everything the bar leaves out
     const dlg = this.dlg; if (!dlg) return;
     const meta = [PRODUCT_NAME[rs.product], 'Created ' + day(rs.created) + (rs.by ? ' by ' + String(rs.by).split(' ')[0] : '')].filter(Boolean).join(' · ');
@@ -5307,23 +5338,63 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rvh-al>li[data-s="done"] .rv-dot{background:var(--ps-link)}
 .rvh-df{padding:14px 24px 18px}
 @media (max-width:560px){.rvh-dh{flex-wrap:wrap}.rvh-al>li{padding:16px}.rv-st-b b{font-size:11.5px}}
-/* PM's package widget (2026-10-28): no longer a bar across the top of the window. It sits in
-   the Ad sets pane under the audience's header, shaped like the setup widget. */
+/* PERFORMANCE MARKETING'S WINDOW (2026-10-29). The ad set's name is the window's title; the
+   status and the package actions sit at the right of its top bar; the pane opens on a strip for
+   the audience on screen; the tiles grow to fill the row, so the ads are what you look at. */
 html.rv-pm .as-ov{top:0}
-.rvh-host{display:none}
+html.rv-pm .as-role{display:none}
+.rvh-host,.rvh-bar{display:none}
 html.rv-pm .rvh-host{display:block;padding-top:20px}
-html.rv-pm .rvh,html.rv-pm.shl-open .rvh{position:static;inset:auto;z-index:auto;right:auto;background:none;box-shadow:none}
-body>.rvh{display:none}
-.rvh-in{display:block;padding:0;border-radius:16px;overflow:hidden;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
-.rvh-wh{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px;background:var(--ps-card-h);box-shadow:inset 0 -1px 0 var(--ps-line)}
-.rvh-wh .rvh-t{max-width:none;gap:4px}
-.rvh-wh .rvh-k{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
-.rvh-wh .rvh-t b{white-space:normal;font:500 22px/1.25 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
-.rvh-wh .rvh-t s{text-decoration:none;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
-.rvh-wb{padding:24px}
-.rvh-wb .rvh-st{width:100%}
-.rvh-in>.rvh-a{display:flex;justify-content:flex-end;gap:8px;padding:14px 24px;box-shadow:inset 0 1px 0 var(--ps-line)}
-@media (max-width:760px){.rvh-wh{padding:18px 16px}.rvh-wb{padding:18px 16px}.rvh-in>.rvh-a{padding:12px 16px;flex-wrap:wrap}.rvh-in>.rvh-a button{flex:1}}
+html.rv-pm .rvh-bar{display:contents}
+body>.rvh,body>.rvp{display:none}
+.rvh{display:flex;align-items:center;gap:8px;flex:none}
+html.rv-pm .rvh,html.rv-pm.shl-open .rvh{position:static;inset:auto;z-index:auto;background:none;box-shadow:none}
+.rvh .rv-pill{margin-right:8px}
+.rvh button,.rvp button{display:inline-flex;align-items:center;gap:8px;height:36px;white-space:nowrap;font:500 14px/1 var(--ps-font);letter-spacing:.16px}
+.rvh .p-btn,.rvp .p-btn{padding:0 18px 0 14px;background:var(--ps-primary);color:var(--ps-primary-i)}
+.rvh .p-btn:hover:not(:disabled),.rvp .p-btn:hover:not(:disabled){background:var(--ps-primary-h)}
+.rvh .mk-g,.rvp .mk-g{width:17px;height:17px;flex:none;fill:currentColor}
+.rvh button:disabled,.rvp button:disabled{opacity:.45;cursor:default}
+/* the strip */
+.rvp-one{display:flex;align-items:center;gap:16px 20px;padding:14px 16px 14px 18px;border-radius:14px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvp-one[data-s="done"]{background:var(--ps-good-q);box-shadow:0 0 0 1px color-mix(in srgb,var(--ps-good) 30%,transparent)}
+.rvp-ic{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;box-sizing:border-box;box-shadow:inset 0 0 0 2px var(--ps-line)}
+[data-s="done"]>.rvp-ic,[data-s="done"] .rvp-ic{background:var(--ps-good);box-shadow:none}
+.rvp-ic .mk-g{width:18px;height:18px;fill:var(--ps-app)}
+[data-s="prog"] .rvp-ic::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--ps-warn)}
+.rvp-t{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.rvp-t b,.rvp-go b{font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvp-t s,.rvp-go s{text-decoration:none;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2);white-space:pre-wrap}
+.rvp .rv-seg{flex:none;width:132px}
+.rvp-all{border-radius:14px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line);overflow:hidden}
+.rvp-ah{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 18px;background:var(--ps-card-h);box-shadow:inset 0 -1px 0 var(--ps-line)}
+.rvp-ah b{font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvp-all ul{list-style:none;margin:0;padding:0}
+.rvp-all li{display:flex;align-items:center;gap:16px 20px;padding:10px 16px 10px 10px}
+.rvp-all li+li{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.rvp-go{flex:1 1 auto;min-width:0;display:flex!important;align-items:center;gap:14px;height:auto!important;padding:6px 8px;border:none;border-radius:10px;background:none;text-align:left;cursor:pointer;color:inherit}
+.rvp-go:hover{background:var(--ps-fill)}
+.rvp-go span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvp-all .rvp-ic{width:26px;height:26px}
+.rvp-all .rvp-ic .mk-g{width:16px;height:16px}
+.rvp-dl{flex:none}
+/* a review link's audiences say whether they are ready: a green dot, or amber while in progress */
+html.rv-as .as-nav-a[data-st]{position:relative;padding-right:30px}
+html.rv-as .as-nav-a[data-st]:not([data-bad])::after{content:'';position:absolute;top:50%;right:12px;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--ps-warn)}
+html.rv-as .as-nav-a[data-st="done"]:not([data-bad])::after{background:var(--ps-good)}
+/* the ads fill the row: four sizes side by side (1 + .75 + .5625 + the 1.91:1 at .5766 of the
+   height) is 3.414 heights plus three gaps, capped so a row never outgrows the window */
+html.rv-pm .as-pane{container-type:inline-size}
+html.rv-pm .as-vrow{--as-h:clamp(200px,calc((100cqw - 100px) / 3.414),min(58vh,440px))}
+html.rv-pm .as-vrow-h b{font-size:17px}
+html.rv-pm .as-t figcaption b{font-size:13.5px}
+@media (max-width:760px){
+  html.rv-pm .as-bar .rvh{order:5;flex:1 1 100%;flex-wrap:wrap}
+  .rvh .p-btn{flex:1 1 auto;justify-content:center}
+  .rvp-one{flex-wrap:wrap}.rvp-one .rvp-t{flex:1 1 calc(100% - 50px)}.rvp-one .rv-seg{order:3}.rvp-one .rvp-dl{order:4;margin-left:auto}
+  .rvp-all li{flex-wrap:wrap}.rvp .rv-seg{width:100px}
+  html.rv-pm .as-vrow{--as-h:clamp(150px,calc((100cqw - 40px) / 2),46vh)}
+}
 /* ══ TICKETS, STATUS AND THE AD SET TAB (2026-10-28) ══ one weight per tier: a 500 title, ink-2
    labels, dim facts; every explanation is a tooltip. */
 .rsp-i{display:inline-grid;place-items:center;width:15px;height:15px;margin-left:4px;border-radius:50%;background:var(--ps-fill);color:var(--ps-ink-2);font:600 10px/1 var(--ps-font);font-style:normal;cursor:help;vertical-align:1px}
