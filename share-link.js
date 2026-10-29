@@ -3221,10 +3221,16 @@
   function ArchView(el, eng) {
     injectCss();
     this.el = el; this.eng = eng; this.items = null; this.sel = null; this.det = null; this.err = '';
-    el.innerHTML = '<div class="rva"><div class="rva-gd" hidden></div><div class="rva-bar">' +
-      '<button type="button" class="p-btn rva-new" data-a="newt" title="File a new campaign as an open ticket: the brief, the files and the audiences">' + ico('add') + 'New ticket</button>' +
-      '<form class="rva-add" title="Paste a campaign’s designer link to list it on this computer">' + ico('link', 'rva-add-i') + '<input class="p-in" placeholder="Add a campaign link" aria-label="Campaign designer link"><button class="p-ghost" type="submit">Add</button></form></div>' +
-      '<div class="rva-hl" data-s="wait"><div class="rvo-h"><span class="rvo-fig" data-hl="stack" aria-hidden="true"></span><div class="rvo-ht"></div></div><div class="rvo-in"></div></div><div class="rva-body" aria-live="polite"></div></div>';
+    // ONE HEADER (2026-10-29): the summary and the one action on top, then a quiet footer row with
+    // where the data comes from (Google Drive) and the way to list a campaign by its link. It was
+    // three stacked bands, each as loud as the others.
+    el.innerHTML = '<div class="rva"><div class="rva-hl" data-s="wait" data-mode="list">' +
+      '<div class="rvo-h"><span class="rvo-fig" data-hl="stack" aria-hidden="true"></span><div class="rvo-ht"></div>' +
+        '<div class="rva-bar"><button type="button" class="p-btn rva-new" data-a="newt" title="File a new campaign as an open ticket: the brief, the files and the audiences">' + ico('add') + 'New ticket</button></div></div>' +
+      '<div class="rvo-in"></div>' +
+      '<div class="rva-foot"><div class="rva-gd" hidden></div>' +
+        '<form class="rva-add" title="Paste a campaign’s designer link to list it on this computer">' + ico('link', 'rva-add-i') + '<input class="p-in" placeholder="Paste a campaign link" aria-label="Campaign designer link"><button class="p-ghost" type="submit">Add</button></form></div>' +
+      '</div><div class="rva-body" aria-live="polite"></div></div>';
     // the Stack figure mounts through the shell's own Hairline binding, which also destroys it
     // when the view leaves the page; it sits outside the part the overview redraws
     setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
@@ -3285,12 +3291,11 @@
   // The strip above the list: where every ad set and audience on this computer stands.
   AV.drawHealth = function () {
     const hl = this.el.querySelector('.rva-hl'), head = this.el.querySelector('.rvo-ht'), box = this.el.querySelector('.rvo-in'); if (!box) return;
-    hl.hidden = !!this.sel;
+    hl.hidden = false; hl.dataset.mode = this.sel ? 'det' : 'list';
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
     const up = '<span class="rvo-up">' + at + '<button type="button" class="rvo-re" data-a="refresh" aria-label="Refresh" title="Refresh">' + ico('ref', 'rvo-re-i') + '</button></span>';
-    if (this.items === null) { hl.dataset.s = 'wait'; head.innerHTML = '<div class="rvo-t"><span class="rvo-k">Overview</span><h2>Reading the ad sets…</h2></div>' + up; box.innerHTML = ''; box.hidden = true; return; }
-    // nothing to count yet: the sign-in card or the empty note below says all there is to say
-    if (!(this.items || []).length) { hl.hidden = true; return; }
+    if (this.items === null) { hl.dataset.s = 'wait'; head.innerHTML = '<div class="rvo-t"><h2>Reading the campaigns…</h2><p>' + up + '</p></div>'; box.innerHTML = ''; box.hidden = true; return; }
+    if (!(this.items || []).length) { hl.dataset.s = 'empty'; head.innerHTML = '<div class="rvo-t"><h2>No campaigns yet</h2><p><span>File one with New ticket, or paste a campaign link below.</span></p></div>'; box.hidden = true; return; }
     const sets = (this.items || []).filter(x => !x.gone), miss = (this.items || []).length - sets.length;
     const all = sets.map(x => ({ x, auds: rsAuds(x.rs || {}) })), done = all.filter(o => rsOverall(o.auds).ready);
     const auds = [].concat(...all.map(o => o.auds));
@@ -3303,12 +3308,14 @@
     // The setup widget's shape: a header band (figure, a small label, the one number as the
     // title, the counts as one line), then the body — where every audience is, as four
     // columns: the step, how many sit there, and a bar for its share.
-    head.innerHTML = '<div class="rvo-t"><span class="rvo-k">Overview</span>' +
+    head.innerHTML = '<div class="rvo-t">' +
         '<h2>' + at3 + ' of ' + n(auds.length, 'audience') + ' done</h2>' +
-        '<p>' + [n(sets.length, 'ad set'), n(projs, 'project'), done.length + ' ready to run'].join(' · ') + '</p></div>' + up;
-    box.hidden = !auds.length && !miss && !this.sign;
-    box.innerHTML = (auds.length ? '<ol class="rvo-steps">' + by.map(x => '<li data-i="' + x.i + '"' + (x.n ? '' : ' data-zero="1"') + '><span><i></i>' + esc(x.l) + '</span><b>' + x.n + '</b><em><s style="width:' + (auds.length ? Math.round(x.n / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>' : '') +
-      (miss || this.sign ? '<p class="rva-sx-w">' + [this.sign ? this.sign + ' on Google Drive not counted until you sign in' : '', miss ? miss + ' missing' : ''].filter(Boolean).join(' · ') + '.</p>' : '');
+        '<p><span>' + [n(sets.length, 'campaign'), n(projs, 'project'), done.length + ' ready to run'].join(' · ') + '</span>' + up + '</p></div>';
+    // THE BOARD (2026-10-29) carries the steps as its columns, so the overview is only the
+    // summary line; the note about uncounted or missing ad sets stays under it
+    box.hidden = !this.sign;
+    box.innerHTML = (false ? '<ol class="rvo-steps">' + by.map(x => '<li data-i="' + x.i + '"' + (x.n ? '' : ' data-zero="1"') + '><span><i></i>' + esc(x.l) + '</span><b>' + x.n + '</b><em><s style="width:' + (auds.length ? Math.round(x.n / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>' : '') +
+      (miss || this.sign ? '<p class="rva-sx-w">' + [this.sign ? this.sign + ' on Google Drive not counted until you sign in' : ''].filter(Boolean).join(' · ') + '.</p>' : '');
   };
   AV.load = async function (quiet) {
     const ids = Arch.list().map(x => x.id);
@@ -3482,14 +3489,13 @@
     if (!dsOn() || !D) { box.hidden = true; return; }
     const w = D.who && D.who(), ok = D.valid && D.valid(), busy = this.gdBusy;
     const st = busy ? 'busy' : ok ? 'ok' : w ? 'exp' : 'out';
-    const line = busy === 'ref' ? 'Reading every ad set again from Google Drive…' : busy === 're' ? 'Reconnecting to Google Drive…'
-      : ok ? 'Connected' + (w ? ' as <b>' + esc(w.name || w.email) + '</b> · ' + esc(w.email) : '')
-        : w ? 'Session ended — reconnect as <b>' + esc(w.email) + '</b> to see the latest' : 'Not signed in — ad sets on Drive are not listed';
+    const line = busy === 'ref' ? 'Reading every campaign again…' : busy === 're' ? 'Reconnecting…'
+      : ok ? 'Connected' + (w ? ' as <b title="' + esc(w.email) + '">' + esc(w.name || w.email) + '</b>' : '')
+        : w ? 'Session ended — reconnect to see the latest' : 'Not signed in — campaigns on Drive aren’t listed';
     box.hidden = false; box.dataset.s = st;
     box.innerHTML = '<span class="rva-gd-t"><i></i><span><b class="rva-gd-k">Google Drive</b><s>' + line + '</s></span></span>' +
       '<span class="rva-gd-a">' +
-      (ok ? '<button type="button" class="p-ghost" data-a="gdref"' + (busy ? ' disabled' : '') + '>' + ico('ref') + 'Refresh</button>' : '') +
-      '<button type="button" class="' + (ok ? 'p-ghost' : 'p-btn') + '" data-a="gdre"' + (busy ? ' disabled' : '') + '>' + (ok ? 'Reconnect' : w ? 'Reconnect' : 'Sign in with Google') + '</button>' +
+      '<button type="button" class="rva-gd-b' + (ok ? '' : ' rva-gd-go') + '" data-a="gdre"' + (busy ? ' disabled' : '') + '>' + (ok ? 'Reconnect' : w ? 'Reconnect' : 'Sign in with Google') + '</button>' +
       (w ? '<button type="button" class="rva-gd-sw" data-a="gdsw"' + (busy ? ' disabled' : '') + '>Use another account</button>' : '') +
       '</span>';
   };
@@ -3509,40 +3515,43 @@
     if (!this.items.length && this.sign) { body.innerHTML = errHtml + signHtml; return; }
     if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">No campaigns yet. File one with New ticket.</div>'; return; }
     const names = {}; Arch.list().forEach(x => { names[x.id] = x.name; });
+    // THE BOARD (2026-10-29). Status is read as "where is everything", so every campaign sits in
+    // the column of the step it is waiting on — its least advanced audience — and the card lists
+    // each audience with the step it is at. Newest change first inside a column.
+    const ago = ms => { if (!ms) return ''; const m = Math.round((Date.now() - ms) / 6e4); if (m < 1) return 'just now'; if (m < 60) return m + ' min ago';
+      const h = Math.round(m / 60); if (h < 24) return h + ' h ago'; const d = Math.round(h / 24); return d < 7 ? d + (d === 1 ? ' day ago' : ' days ago') : dayS(ms); };
+    const dueOf = v => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); if (!m) return null; const t = new Date(+m[1], m[2] - 1, +m[3]), n = new Date(); n.setHours(0, 0, 0, 0);
+      const days = Math.round((t - n) / 864e5); return { days, label: days < 0 ? 'Overdue · ' + dueLabel(v) : days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : 'Due ' + dueLabel(v) }; };
+    const stageOf = it => { const rs = it.rs || {}; if (isOpen(rs)) return 'o'; const auds = rsAuds(rs); if (!auds.length) return 0; if (rsOverall(auds).ready) return 3;
+      return Math.min(...auds.filter(a => !a.done).map(a => a.steps.findIndex(q => q.s !== 'done'))); };
+    const STEP_SHORT = ['Design', 'Copy check', 'Translation', 'Done'];
     const card = it => {
-      if (it.gone) return '<button class="rva-c" data-id="' + esc(it.id) + '" data-gone="1"><span class="rva-th"></span><span class="rva-ct"><span class="rva-n"><b>' + esc(names[it.id] || 'Unknown ad set') + '</b></span><span class="rva-m">' + (isDs(it.id) ? 'Not found in Google Drive, or no access' : 'No record on the share store') + '</span></span></button>';
-      const rs = it.rs || {}, auds = rsAuds(rs), all = rsOverall(auds);
-      if (isOpen(rs)) {
-        const tk = rs.ticket || {}, due = tk.deadline ? 'Due ' + dueLabel(tk.deadline) : '';
-        const meta = [rs.product ? PRODUCT_NAME[rs.product] || '' : '', planCells(planOf(rs)).length + ' audiences', due].filter(Boolean).map(esc).join(' · ');
-        return '<button class="rva-c" data-id="' + esc(it.id) + '" data-open="1"><span class="rva-th rva-th-t">' + ico('ticket', 'rva-ti') + '</span>' +
-          '<span class="rva-ct"><span class="rva-n"><b title="' + esc(rs.name || 'Campaign') + '">' + esc(rs.name || 'Campaign') + '</b></span>' +
-          '<span class="rva-now" data-i="o"><i></i><b>Open ticket</b>' + (tk.by ? '<u>' + esc(tk.by) + '</u>' : '') + '</span>' +
-          '<span class="rva-m">' + meta + '</span></span>' + ico('chev', 'rva-go') + '</button>';
+      const rs = it.rs || {}, name = rs.name || names[it.id] || 'Ad set', open = isOpen(rs), stage = stageOf(it);
+      const th = it.thumb ? '<span class="rvb-th"><img src="' + esc(it.thumb) + '" alt=""></span>' : '';
+      let body = '';
+      if (open) {
+        const tk = rs.ticket || {}, due = dueOf(tk.deadline), cells = planCells(planOf(rs));
+        body = (due ? '<span class="rvb-due"' + (due.days < 0 ? ' data-s="late"' : due.days <= 2 ? ' data-s="soon"' : '') + '>' + ico('event', 'rvb-di') + esc(due.label) + '</span>' : '') +
+          '<span class="rvb-aud">' + esc(cells.length + (cells.length === 1 ? ' audience' : ' audiences')) + (cells.some(c => c.arb) ? ' · with Arabic' : '') + '</span>' +
+          '<span class="rvb-m">' + (tk.by ? 'Filed by ' + esc(tk.by) + ' · ' : '') + esc(ago(tk.at || rs.created)) + '</span>';
+      } else {
+        const auds = rsAuds(rs), show = auds.slice(0, 3);
+        body = '<ul class="rvb-auds">' + show.map(a => { const si = a.done ? 3 : a.steps.findIndex(q => q.s !== 'done');
+          return '<li title="' + esc(a.label + ' — ' + (a.now ? a.now.label + ' · ' + a.now.sub : 'Ready to run')) + '"><span>' + esc(a.label) + '</span><b data-i="' + si + '"><i></i>' + esc(a.done ? 'Done' : STEP_SHORT[si]) + '</b></li>'; }).join('') +
+          (auds.length > show.length ? '<li class="rvb-more">+' + (auds.length - show.length) + ' more</li>' : '') + (auds.length ? '' : '<li class="rvb-more">No projects yet</li>') + '</ul>' +
+          '<span class="rvb-m">' + brandHtml(it.brands) + esc([rs.product ? PRODUCT_NAME[rs.product] || '' : '', modOf(it) ? 'changed ' + ago(modOf(it)) : ''].filter(Boolean).join(' · ')) + '</span>';
       }
-      // what it is waiting on: the least advanced audience, by name, and how many more
-      const open = auds.filter(a => !a.done).sort((x, y) => x.steps.findIndex(q => q.s !== 'done') - y.steps.findIndex(q => q.s !== 'done'));
-      const first = open[0], si = first ? first.steps.findIndex(q => q.s !== 'done') : 3;
-      const now = all.ready ? '<span class="rva-now" data-i="3"><i></i><b>Package ready</b></span>'
-        : first ? '<span class="rva-now" data-i="' + si + '" title="' + esc(open.map(a => a.label + ': ' + (a.now ? a.now.label + ' · ' + a.now.sub : '')).join('\n')) + '"><i></i><b>' + esc(first.now ? first.now.label : STEP_LABELS[si]) + '</b><u>' + esc(first.label) + '</u>' + (open.length > 1 ? '<s>+' + (open.length - 1) + '</s>' : '') + '</span>'
-        : '<span class="rva-now"><i></i><b>No projects yet</b></span>';
-      const segs = '<span class="rva-segs" aria-label="' + esc(all.steps.map(x => x.label + ' ' + (x.s === 'done' ? 'done' : x.s === 'cur' ? 'in progress' : 'not started')).join(', ')) + '">' + all.steps.map(x => '<i data-s="' + x.s + '" title="' + esc(x.label + ' · ' + x.sub) + '"></i>').join('') + '</span>';
-      const cd = modOf(it) ? new Date(modOf(it)) : null;
-      const today = cd && cd.toDateString() === new Date().toDateString();
-      const when = !cd ? '' : 'Changed ' + (today ? cd.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-        : cd.toLocaleDateString([], cd.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' }));
-      const meta = [rs.product ? PRODUCT_NAME[rs.product] || '' : '', when].filter(Boolean).map(esc).join(' · ');
-      const brand = brandHtml(it.brands);
-      return '<button class="rva-c" data-id="' + esc(it.id) + '"' + (all.ready ? ' data-ready="1"' : '') + '><span class="rva-th">' + (it.thumb ? '<img src="' + esc(it.thumb) + '" alt="">' : '') + '</span>' +
-        '<span class="rva-ct"><span class="rva-n"><b title="' + esc(rs.name || names[it.id] || 'Ad set') + '">' + esc(rs.name || names[it.id] || 'Ad set') + '</b></span>' +
-        now + segs + '<span class="rva-m">' + brand + meta + '</span></span>' + ico('chev', 'rva-go') + '</button>';
+      return '<button type="button" class="rvb-c" data-id="' + esc(it.id) + '"' + (open ? ' data-open="1"' : '') + (stage === 3 ? ' data-ready="1"' : '') + '>' +
+        '<span class="rvb-h">' + th + '<b title="' + esc(name) + '">' + esc(name) + '</b></span>' + body + '</button>';
     };
-    // newest change first: the last thing anyone did in the ad set or any of its projects
-    const sorted = this.items.slice().sort((a, b) => modOf(b) - modOf(a));
-    const ready = x => rsOverall(rsAuds(x.rs || {})).ready;
-    const open = sorted.filter(x => !x.gone && isOpen(x.rs)), prog = sorted.filter(x => !x.gone && !isOpen(x.rs) && !ready(x)), done = sorted.filter(x => !x.gone && !isOpen(x.rs) && ready(x)), gone = sorted.filter(x => x.gone);
-    const grp = (t, l) => l.length ? '<section class="rva-g"><h3>' + t + '<s>' + l.length + '</s></h3><div class="rva-grid">' + l.map(card).join('') + '</div></section>' : '';
-    body.innerHTML = errHtml + signHtml + grp('Open tickets', open) + grp('In design', prog) + grp('Package ready', done) + grp('Missing', gone);
+    const sorted = this.items.slice().sort((a, b) => modOf(b) - modOf(a)), live = sorted.filter(x => !x.gone), gone = sorted.filter(x => x.gone);
+    const COLS = [['o', 'Open tickets', 'Waiting for a designer'], [0, 'Design', 'Being laid out'], [1, 'Copy check', 'With the content team'], [2, 'Translation', 'Arabic in progress'], [3, 'Ready to run', 'Performance marketing can download']];
+    const col = ([k, t, sub]) => { const l = live.filter(x => stageOf(x) === k);
+      return '<section class="rvb-col" data-k="' + k + '" aria-label="' + esc(t) + '"><header><i></i><h3>' + esc(t) + '</h3><s>' + l.length + '</s><p>' + esc(sub) + '</p></header>' +
+        '<div class="rvb-list">' + (l.length ? l.map(card).join('') : '<span class="rvb-empty">Nothing here</span>') + '</div></section>'; };
+    const missing = gone.length ? '<p class="rvb-miss">' + ico('x', 'rvb-mi') + (gone.length === 1 ? 'One campaign' : gone.length + ' campaigns') + ' could not be found in Google Drive. ' +
+      gone.map(it => '<button type="button" data-id="' + esc(it.id) + '" data-gone="1">' + esc(names[it.id] || 'Unknown ad set') + '</button>').join(', ') + '</p>' : '';
+    body.innerHTML = errHtml + signHtml + '<div class="rvb">' + COLS.map(col).join('') + '</div>' + missing;
   };
   // Material Rounded, wght 300 — the studio's icon family
   const ICO = {
@@ -4878,6 +4887,89 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-br{display:inline-flex;align-items:center;gap:5px;margin-right:8px;padding:1px 8px;border-radius:9999px;font-size:11.5px;font-weight:500;font-style:normal;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rva-br::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ps-ink-2)}
 .rva-br[data-k="provident"]::before{background:#F3793C}
+/* STATUS AS A BOARD (2026-10-29). A column per step, each campaign in the column of the step it is
+   waiting on; the overview above is only its summary line. Columns are quiet wells, cards are
+   the one raised surface, and colour is spent only on the step dots. */
+.rva-hl .rvo-h{padding:16px 22px;gap:18px}
+.rva-hl .rvo-fig{width:84px}
+.rva-hl .rvo-t h2{font-size:21px;margin:2px 0 4px}
+.rva-hl .rvo-t p{font-size:13px}
+.rvb{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+.rvb-col{display:flex;flex-direction:column;gap:10px;min-width:0;padding:10px;border-radius:16px;background:var(--ps-fill);scroll-snap-align:start}
+.rvb-col header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:8px;padding:6px 6px 4px}
+.rvb-col header i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
+.rvb-col[data-k="o"] header i{background:var(--ps-ink)}
+.rvb-col[data-k="1"] header i{background:var(--ps-warn)}
+.rvb-col[data-k="2"] header i{background:var(--ps-link)}
+.rvb-col[data-k="3"] header i{background:var(--ps-good)}
+.rvb-col h3{margin:0;font:500 14px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rvb-col header s{text-decoration:none;font:500 13px/1 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.rvb-col header p{grid-column:2/-1;margin:3px 0 0;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvb-list{display:flex;flex-direction:column;gap:8px}
+.rvb-empty{padding:18px 8px;border-radius:12px;outline:1px dashed var(--ps-line);outline-offset:-1px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-align:center}
+.rvb-c{display:flex;flex-direction:column;align-items:stretch;gap:10px;width:100%;margin:0;padding:14px;border:none;border-radius:12px;background:var(--ps-card);box-shadow:none;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease),transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rvb-c:hover{background:var(--ps-card-h);transform:translateY(-1px)}
+.rvb-c:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvb-h{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.rvb-h b{font:500 15px/1.3 var(--ps-font);letter-spacing:-.005em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rvb-th{flex:none;width:40px;height:40px;border-radius:8px;overflow:hidden;background:var(--ps-fill)}
+.rvb-th img{display:block;width:100%;height:100%;object-fit:cover}
+.rvb-auds{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.rvb-auds li{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvb-auds li>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rvb-auds b{flex:none;display:inline-flex;align-items:center;gap:5px;font:500 12px/1 var(--ps-font);color:var(--ps-ink)}
+.rvb-auds b i{width:6px;height:6px;border-radius:50%;background:var(--ps-dim)}
+.rvb-auds b[data-i="1"] i{background:var(--ps-warn)}
+.rvb-auds b[data-i="2"] i{background:var(--ps-link)}
+.rvb-auds b[data-i="3"] i{background:var(--ps-good)}
+.rvb-more{color:var(--ps-dim)!important}
+.rvb-due{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:9999px;background:var(--ps-fill);font:500 12px/1 var(--ps-font);color:var(--ps-ink)}
+.rvb-due[data-s="soon"]{background:var(--ps-warn-q,var(--ps-fill));color:var(--ps-ink)}
+.rvb-due[data-s="late"]{background:var(--ps-bad-q,var(--ps-fill));color:var(--ps-bad)}
+.rvb-di{width:14px;height:14px;fill:currentColor}
+.rvb-aud{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvb-m{display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;padding-top:8px;border-top:1px solid var(--ps-hair);font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvb-m .rva-br{font-size:11px}
+.rvb-miss{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:14px 0 0;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rvb-mi{width:16px;height:16px;fill:var(--ps-bad)}
+.rvb-miss button{padding:0;border:none;background:none;font:500 13px/1.5 var(--ps-font);color:var(--ps-ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@container (max-width:760px){.rvb{grid-template-columns:1fr;overflow:visible}.rvb-col:has(.rvb-empty){padding-bottom:6px}.rvb-col:has(.rvb-empty) .rvb-list{display:none}}
+@container (min-width:761px) and (max-width:1100px){.rvb{grid-template-columns:repeat(5,minmax(220px,1fr))}}
+@media (prefers-reduced-motion:reduce){.rvb-c{transition:none}.rvb-c:hover{transform:none}}
+/* ONE HEADER (2026-10-29): summary + New ticket on top, Drive and the link field as a footer row */
+.rva-hl{gap:0;overflow:hidden}
+.rva-hl .rvo-h{display:flex;align-items:center;gap:20px;padding:18px 22px;background:none}
+.rva-hl .rvo-fig{width:72px}
+.rva-hl .rvo-ht{flex:1;min-width:0}
+.rva-hl .rvo-t h2{margin:0 0 6px;font:500 22px/1.2 var(--ps-font);letter-spacing:-.012em}
+.rva-hl .rvo-t p{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rva-hl .rvo-up{padding:0;gap:2px;font-size:12.5px}
+.rva-hl .rvo-re{width:28px;height:28px}
+.rva-hl .rvo-re-i{width:16px;height:16px}
+.rva-hl .rva-bar{flex:none;gap:8px}
+.rva-hl .rva-new{height:40px;padding:0 18px 0 14px}
+.rva-hl .rvo-in{padding:0 22px 14px;border-top:none}
+.rva-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;padding:10px 14px 10px 22px;border-top:1px solid var(--ps-hair);background:var(--ps-card-h)}
+.rva-foot .rva-gd{flex:1 1 320px;padding:0;border-radius:0;background:none;box-shadow:none;gap:8px 14px;justify-content:flex-start}
+.rva-foot .rva-gd-t{flex:0 1 auto;gap:10px}
+.rva-foot .rva-gd-t>span{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 8px}
+.rva-foot .rva-gd-k{font-size:13px}
+.rva-foot .rva-gd-t s{font-size:13px}
+.rva-foot .rva-gd-a{gap:4px}
+.rva-gd-b{height:30px;padding:0 12px;border:none;border-radius:9999px;background:none;color:var(--ps-ink);font:500 13px/1 var(--ps-font);cursor:pointer;white-space:nowrap}
+.rva-gd-b:hover{background:var(--ps-fill)}
+.rva-gd-b.rva-gd-go{background:var(--ps-primary);color:var(--ps-primary-i)}
+.rva-gd-b.rva-gd-go:hover{background:var(--ps-primary-h,var(--ps-primary))}
+.rva-foot .rva-gd-sw{font-size:12.5px;color:var(--ps-ink-2)}
+.rva-foot .rva-add{flex:0 1 340px}
+.rva-foot .rva-add .p-in{height:34px;background:var(--ps-card)}
+.rva-foot .rva-add .p-ghost{height:34px}
+.rva-hl[data-mode="det"] .rvo-h,.rva-hl[data-mode="det"] .rvo-in,.rva-hl[data-mode="det"] .rva-add{display:none}
+.rva-hl[data-mode="det"] .rva-foot{border-top:none}
+.rva-hl[data-mode="det"]:has(.rva-gd[hidden]){display:none}
+@container (max-width:700px){.rva-hl .rvo-h{flex-direction:row;align-items:center;flex-wrap:wrap;padding:16px}.rva-hl .rvo-fig{width:56px}.rva-hl .rvo-ht{flex:1 1 200px}.rva-hl .rva-bar{flex:1 1 100%}.rva-hl .rva-new{width:100%;justify-content:center}.rva-foot{padding:12px 16px}.rva-foot .rva-add{flex:1 1 100%}}
+
+
 .rva-br[data-k="mixed"]::before{background:none;box-shadow:inset 0 0 0 1.5px #F3793C}
 .rva-ct{gap:8px;justify-content:center}
 .rva-n b{font:500 16px/1.25 var(--ps-font);color:var(--ps-ink)}
