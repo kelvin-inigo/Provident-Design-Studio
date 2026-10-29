@@ -420,12 +420,15 @@
             const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            // which project is which (by pid): a project opened elsewhere finds its ad set by it
+            (e.pids = e.pids || {})[it.sid] = (d.state && d.state.pid) || (rv.sum || {}).pid || '';
             const br = d.state && d.state.look && d.state.look.on ? 'unbranded' : 'provident';
             (e.brands = e.brands || {})[br] = (e.brands[br] || 0) + 1;
             if (rv.thumb && (rv.thumbAt || 0) > thAt) { thAt = rv.thumbAt; e.thumb = rv.thumb; }
             const lg = rv.log || [];
             const pm = Math.max((rv.sum && rv.sum.updated) || 0, lg.length ? lg[lg.length - 1].at || 0 : 0);
             e.mod = Math.max(e.mod || 0, pm);
+            (e.pmod = e.pmod || {})[it.sid] = pm;
             // a preview older than the project's last change is redrawn by Review links itself
             // (AV.heal) — the designer's tab may never have sent one
             if (!rv.thumb || (rv.thumbAt || 0) < pm - 2000) (e.stale = e.stale || []).push({ sid: it.sid, rev: rv.rev || 0, mod: pm });
@@ -841,8 +844,57 @@
     const rb = ssGet(RS_KEY);
     if (rb && !here(rb)) ssSet(RS_KEY, null);
     else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
-    if (this.shApp() === 'provident-ad-studio') { this.rsJoinCheck(); this.rsPickCheck(); }
+    if (this.shApp() === 'provident-ad-studio') { this.rsJoinCheck(); this.rsPickCheck(); setTimeout(() => this.rsFind(), 1500); }
     return false;
+  };
+  // A PROJECT FINDS ITS OWN AD SET (2026-10-29). A tab can be following an older link of the
+  // project (the edit link from before the ad set), or none, while the project itself sits in
+  // an ad set on Drive — and the studio then read as a fresh ad with "Not in a campaign". Look
+  // it up by pid (the record above, else every ad set this computer knows) and follow the ad
+  // set's copy instead. The old link keeps whatever this tab sent it.
+  SP.rsFind = async function (force) {
+    if (this.shApp() !== 'provident-ad-studio' || (this._rsFindDone && !force) || this._rsFinding === true) return;
+    const pid = this.state.pid, done = () => { this._rsFindDone = true; this._rsFinding = false; this.forceUpdate(); this.adtRender(); };
+    if (!pid) return done();
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    this._rsFinding = true; this.forceUpdate(); this.adtRender();
+    // let a reconnect or the link's first poll settle first
+    for (let i = 0; i < 24 && (this._shRejoin || (this._sh && !this._sh.rs && !this._sh.rsChecked)); i++) { if (this._sh && i > 8) this._sh.rsChecked = true; await wait(250); }
+    if ((this._sh && this._sh.rs) || this.state.pid !== pid) return done();
+    try {
+      let hit = rsPidGet(pid);
+      if (!hit && dsOn()) {
+        const D = window.providentDrive;
+        let ok = false; try { ok = !!(D && (await D.ensure())); } catch (e) {}
+        if (ok) {
+          const ids = Arch.list().map(x => x.id).filter(isDs);
+          for (let i = 0; i < ids.length && !hit; i += 20) {
+            let r = null; try { r = await api('rsinfo', { ids: ids.slice(i, i + 20).join(',') }); } catch (e) { break; }
+            (r.items || []).forEach(e => {
+              if (hit || !e.pids || !e.rs) return;
+              const sid = Object.keys(e.pids).find(k => e.pids[k] === pid);
+              if (sid) hit = { dd: e.dd || e.id, sid, name: e.rs.name || '', mod: (e.pmod || {})[sid] || 0 };
+            });
+          }
+          if (hit) rsPidSet(pid, hit);
+        }
+      }
+      this._rsFindDone = true;
+      if (!hit || this.state.pid !== pid) return;
+      const S = this._sh;
+      if (S && S.id === hit.sid) return;
+      // this tab's own changes go to the link it follows first; the ad set's copy then wins
+      // where the two differ, unless nothing was following and this computer changed it later
+      let theirs = true;
+      if (S) { try { await this.shSave(); } catch (e) {} this.shareStop(false); }
+      else { const r = (this.savedRecents ? this.savedRecents() : []).find(x => x && x.pid === pid); if (r && (r.ts || 0) > (hit.mod || 0) + 60000) theirs = false; }
+      if (isDs(hit.sid)) { const D = window.providentDrive; if (!(D && (await D.ensure()))) return; }
+      const ok = await this.shRejoin(hit.sid, true, theirs);
+      if (ok) {
+        const it = ((this._sh && this._sh.rs) || {}).items ? this._sh.rs.items.find(x => x.sid === hit.sid) : null;
+        setTimeout(() => this.shFlash('This project is ' + (it ? itemLabel(it) + ' in ' : 'in ') + 'the ad set ' + (hit.name || '') + ' — it follows the ad set now.'), 300);
+      } else lsSet(RSPID_KEY + pid, '');
+    } finally { done(); }
   };
   // The ad set page's "Add to this ad set" opens this studio in a new tab with the project and
   // the ad set in JOIN_KEY: open that project (from Recent), then ask for its labels.
@@ -1241,8 +1293,18 @@
     ssSet(this.shKey(), { id: S.id, rev: S.rev, n: S.n, pid: this.state.pid, imgs: S.imgs, pv: S.pv, name: S.name, role: S.role, rs: S.rs });
     if (!ssSet(this.shKey('-base'), S.base)) ssSet(this.shKey('-base'), null);
     ssSet(this.shKey('-log'), { from: S.from, log: S.log.slice(-200) });
-    pidRemember(this.state.pid, { id: S.id, app: this.shApp(), rev: S.rev, base: S.base, imgs: S.imgs });
+    // a tab still following an OLDER link (one not in an ad set) must not take the project's
+    // entry from the link that is: every other window would then reconnect to the old one
+    const had = pidGet(this.state.pid);
+    if (!S.rs && had && had.inRs && had.id !== S.id) return;
+    pidRemember(this.state.pid, { id: S.id, app: this.shApp(), rev: S.rev, base: S.base, imgs: S.imgs, inRs: !!S.rs });
+    if (S.rs && S.rs.tok && S.rs.tok.dd) rsPidSet(this.state.pid, { dd: S.rs.tok.dd, sid: S.id, name: S.rs.name || '' });
   };
+  // WHICH AD SET HOLDS THIS PROJECT, by its pid: learnt whenever a tab follows it there, or by
+  // looking through the ad sets this computer knows (rsFind). One small record per project.
+  const RSPID_KEY = 'provident-rs-pid:';
+  function rsPidGet(pid) { try { return pid ? JSON.parse(localStorage.getItem(RSPID_KEY + pid) || 'null') : null; } catch (e) { return null; } }
+  function rsPidSet(pid, v) { if (pid && v && v.sid) lsSet(RSPID_KEY + pid, JSON.stringify(Object.assign({ at: Date.now() }, v))); }
   // A PROJECT KNOWS ITS LINK, NOT ONLY THE TAB. The binding above is per tab (sessionStorage),
   // so the same project opened in another window, from Recent, or from its saved file used to
   // read as a new, unshared project — and putting it in its ad set again then hit "already
@@ -1269,7 +1331,7 @@
   // apart and edits made by others both survive (with no known base, this computer's edits win
   // where the two differ). Pictures: a photo that changed only here goes up, one that changed
   // only there comes down.
-  SP.shRejoin = async function (id, quiet) {
+  SP.shRejoin = async function (id, quiet, theirsWin) {
     if (this._sh || this._shRejoin || !id) return false;
     this._shRejoin = true;
     try {
@@ -1282,7 +1344,9 @@
       if (this._sh) return false;
       const was = pidGet(this.state.pid) || {}, known = was.id === id;
       const theirs = this.shNorm(d.state), mine = this.shPub();
-      const base = known && was.base ? was.base : theirs;
+      // theirsWin: the link's copy is the project (an ad set found for a tab that followed an
+      // older link) — merging over `mine` as the base takes theirs wherever the two differ
+      const base = theirsWin ? mine : known && was.base ? was.base : theirs;
       const merged = merge3(base, mine, theirs);
       const C = IS(), want = d.imgs || {}, baseImgs = known ? (was.imgs || {}) : {}, imgs = {}, up = [];
       for (const sl of Object.keys(want)) {
@@ -1293,7 +1357,7 @@
         if (rec && C && C.putRec) { C.putRec(sl, rec); imgs[sl] = want[sl].h; }
       }
       // a photo here the link has never had goes up too
-      (this.shSlots ? this.shSlots() : []).forEach(sl => { if (!want[sl] && C && C.getRec) { const r = C.getRec(sl); if (r && r.u) up.push(sl); } });
+      if (!theirsWin) (this.shSlots ? this.shSlots() : []).forEach(sl => { if (!want[sl] && C && C.getRec) { const r = C.getRec(sl); if (r && r.u) up.push(sl); } });
       if (!jsonEq(merged, mine)) this.shApply(merged);
       const meta = d.meta || {};
       ssSet(this.shKey(), { id, rev: d.rev || 0, n: d.n || 0, pid: this.state.pid, imgs, pv: {}, name: meta.name || this.shName(), role: d.role || 'edit', rs: d.rs || null });
@@ -1509,7 +1573,7 @@
     const people = new Set(S.log.map(e => e.by).filter(Boolean));
     const unseen = S.log.filter(e => e.at > S.seen && e.by !== me).length;
     S.ui.set({
-      link: this.shLink(S.id), me, people: people.size, unseen: open ? 0 : unseen,
+      link: S.rs && S.rs.tok && S.rs.tok.dd ? rsLink(S.rs.tok.dd) : this.shLink(S.id), linkKind: S.rs && S.rs.tok && S.rs.tok.dd ? 'dd' : 'edit', me, people: people.size, unseen: open ? 0 : unseen,
       log: S.log.slice().reverse(), pv: Object.keys(S.pv || {}).length, gone: S.gone || 0
     });
     this.rvRender();
@@ -1540,6 +1604,7 @@
   // and the designer's own buttons — where they used to read Draft › With design › Final.
   SP.rsCopyVals = function () {
     const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null, busy = this._rvBusy;
+    if (!it && !this._rsFindDone && this.state.pid) this._rsFinding = this._rsFinding || 'soon';
     if (!it) {
       return {
         rsInOn: undefined, rsOutOn: '1', rsBriefOn: true,
@@ -1549,8 +1614,12 @@
         cvAdLabel: 'Ad sets', cvAdState: 'none', cvAdGo: () => this.host && this.host.asOpen(),
         cvAdTip: 'Not in an ad set review yet. Opens the Ad sets viewer, to look through an exported campaign folder.',
         // THE MAIN SCREEN'S ONE ACTION: what this project needs next (here: a campaign)
-        rsFlowOn: true, rsFlowLabel: 'Set up ad set', rsFlowTip: 'This project is not in a campaign yet. Opens the Ad set tab to set one up.',
-        rsFlow: () => this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }),
+        rsFlowOn: !this._rsFinding, rsFlowLabel: 'Add to an ad set', rsFlowTip: 'This project is not in a campaign yet. Puts it in one as a market, audience and language.',
+        rsFlow: () => this.reviewCreate(),
+        // THE TOP BAR'S FLOW: where this project stands, and its one action
+        rsBarOn: '1', rsBarState: this._rsFinding ? 'find' : 'none', rsBarSegs: [],
+        rsBarStep: this._rsFinding ? 'Finding its ad set…' : 'Not in an ad set', rsBarWhere: '',
+        rsBarTip: 'Opens the Ad set tab', rsBarGo: () => this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }),
       };
     }
     const auds = rsAuds(rs), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
@@ -1586,6 +1655,15 @@
         return { rsFlowOn: !!nx, rsFlowLabel: nx ? (b && (b === nx.act || b === nx.next) ? 'Saving…' : nx.label) : '', rsFlowTip: nx ? nx.tip : '',
           rsFlow: nx ? () => (nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
       cvAdTip: 'In the ad set ' + (rs.name || '') + ' as ' + where + '. Opens the ad set overview: every audience and language, rendered from the latest work.',
+      // THE TOP BAR'S FLOW: this audience's four steps as segments, the step it is on, and (beside
+      // it, rsFlow) the designer's one action — always in view, on both workspaces
+      rsBarOn: '1',
+      rsBarState: mine && mine.done ? 'done' : !it.design ? 'design' : !it.copy ? 'ct' : 'next',
+      rsBarSegs: (mine ? mine.steps : []).map(x => ({ s: x.s === 'pend' ? 'todo' : x.s, t: x.label + (x.sub ? ' · ' + x.sub : '') })),
+      rsBarStep: mine && mine.done ? 'Done' : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
+      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN'),
+      rsBarTip: (rs.name || 'Ad set') + ' · ' + where + ' — ' + st + '. Opens the Ad set tab.',
+      rsBarGo: () => this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }),
     };
   };
 
@@ -1948,7 +2026,7 @@
     if (canon(rs) === canon(S.rs)) return;
     const was = S.rs;
     S.rs = rs;
-    if (rs && rs.tok && rs.tok.dd) Arch.add(rs.tok.dd, rs.name, rs.product);
+    if (rs && rs.tok && rs.tok.dd) { Arch.add(rs.tok.dd, rs.name, rs.product); rsPidSet(this.state.pid, { dd: rs.tok.dd, sid: S.id, name: rs.name || '' }); }
     if (was && rs) this.rsNotify(was, rs);
     this.shPersist(); this.rvRender(); this.adtRender(); this.forceUpdate();
   };
@@ -2138,7 +2216,7 @@
     const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null;
     if (!it) return null;
     const arb = it.lang === 'ARB', todo = rs.tok ? planTodo(rs) : [];
-    if (!it.design) return { act: 'design-done:' + it.sid, label: arb ? 'Arabic done' : 'Design done', tip: arb ? 'Sends the Arabic to the content team to check the translation' : 'Sends this audience to the content team to check the English copy' };
+    if (!it.design) return { act: 'design-done:' + it.sid, label: arb ? 'Send for translation check' : 'Send to copy check', tip: arb ? 'Design done: sends the Arabic to the content team to check the translation' : 'Design done: sends this audience to the content team to check the English copy' };
     const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud);
     if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB'].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     if (eng) return { next: [eng.market, eng.aud, 'ENG'].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from Claude’s reply' };
@@ -2149,10 +2227,14 @@
     const hosts = document.querySelectorAll('.adt-host[data-adt]'); if (!hosts.length) return;
     const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null, busy = this._rvBusy || this._rsNextBusy;
     let top = '', bot = '';
-    if (!it) {
-      top = '<section class="adt adt-none"><div class="adt-h"><div class="adt-ht"><span class="adt-k">Not in a campaign</span><h2>Set up this project’s ad set</h2></div>' +
-        '<div class="adt-acts"><button type="button" class="p-btn" data-a="setup" title="Names its campaign, market, audience and language, and makes the links for the content team and performance marketing">' + PICO.go.replace('<svg', '<svg class="adt-gi"') + '<span>Set up</span></button></div></div>' +
-        '<p class="adt-lead">Campaigns start from New campaign on the home page. A project opened on its own joins one here.</p></section>';
+    if (!it && this._rsFinding) {
+      top = '<section class="adt adt-none" aria-busy="true"><div class="adt-h"><div class="adt-ht"><span class="adt-k">Ad set</span><h2>Looking for this project’s ad set…</h2></div></div>' +
+        '<p class="adt-lead">Checking the campaigns on this computer’s Status list.</p></section>';
+    } else if (!it) {
+      top = '<section class="adt adt-none"><div class="adt-h"><div class="adt-ht"><span class="adt-k">Not in a campaign</span><h2>This project is not in an ad set</h2></div>' +
+        '<div class="adt-acts"><button type="button" class="adt-q" data-a="find" title="Looks through every campaign on this computer’s Status list for this project">Look again</button>' +
+        '<button type="button" class="p-btn" data-a="setup" title="Names its campaign, market, audience and language, and makes the links for the content team and performance marketing">' + PICO.go.replace('<svg', '<svg class="adt-gi"') + '<span>Add to an ad set</span></button></div></div>' +
+        '<p class="adt-lead">If it belongs to a campaign that is not on this computer’s Status list, paste that campaign’s designer link into Status first, then Look again.</p></section>';
     } else {
       // Claude's reply lives on the ad set: an empty tab (a new audience, another computer) takes it
       if (rs.reply && this.brRead && !this.brRead().reply && this._adtReplied !== rs.reply) { this._adtReplied = rs.reply; setTimeout(() => this.brSet('reply', rs.reply), 0); }
@@ -2168,7 +2250,7 @@
         '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p></div>' +
         '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
         (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
-        '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + btn + '</div></div>' +
+        '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + '</div></div>' +
         (mine ? stepperHtml(mine.steps, false, true) : '') + '</section>';
       // the campaign's audiences: each planned cell, with its progress; the designer sets them here
       const cells = planCells(planOf(rs)), byK = {};
@@ -2207,6 +2289,7 @@
     const S = this._sh, rs = S && S.rs;
     if (b.dataset.copy) { const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { b.textContent = 'Copy'; }, 1600); return; }
     if (b.dataset.a === 'setup') return this.reviewCreate();
+    if (b.dataset.a === 'find') return this.rsFind(true);
     if (b.dataset.a === 'overview') return this.rsOverview();
     if (b.dataset.a === 'settings' && rs && rs.tok) {
       const by = StudioBase.shareName() || 'Designer';
@@ -2965,27 +3048,29 @@
     // designer STARTS DESIGNING at once (the same ticket, picked up in the same click).
     // Hierarchy: what this is, then the three facts every campaign needs, then the raw material,
     // then who it is for. Explanations live in tooltips.
-    el.innerHTML = '<section class="rsp" aria-labelledby="rsp-t">' +
-      '<header class="rsp-h">' +
-        '<span class="rsp-fig" data-hl="riffle" aria-hidden="true"></span>' +
-        '<div class="rsp-ht"><span class="rsp-k">New campaign</span><h2 id="rsp-t">Set up the campaign</h2>' +
-        '<p>File it as a ticket, or start designing now.</p></div>' +
-      '</header>' +
+    // THE BRIEF SHEET (redesigned 2026-10-29). No card around it: the campaign's NAME is the
+    // page's headline (an input set at display size), the three facts sit on one quiet line
+    // under it, and the BRIEF is the one big surface, with the files attached to its foot. The
+    // Hairline figure and the recent projects live in the column beside it (CAS markup).
+    el.innerHTML = '<section class="rsp rsp2" aria-label="New campaign">' +
       '<div class="rsp-body">' +
+        '<label class="rsp-namew"><span class="rsp-sr">Campaign name</span>' +
+          '<input class="rsp-name" data-f="name" maxlength="120" placeholder="Name the campaign" autocomplete="off" spellcheck="false"></label>' +
         '<div class="rsp-q">' +
-          '<label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" placeholder="Campaign or project name" autocomplete="off"></label>' +
-          '<div class="rsp-f"><span id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
-          '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' +
+          '<div class="rsp-f rsp-fp"><span class="rsp-sr" id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
+          '<label class="rsp-chip rsp-dl" title="Deadline"><span class="rsp-dlt">Deadline</span><input type="date" data-f="deadline"></label>' +
+          '<label class="rsp-chip rsp-fo" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language.">' + PICO.folder + '<span class="rsp-sr">Drive folder</span>' +
+            '<input data-f="folder" placeholder="Paste the Drive folder link" autocomplete="off" spellcheck="false"></label>' +
         '</div>' +
-        '<label class="rsp-f rsp-fw"><span>Drive folder <i class="rsp-i" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language. Everyone who opens it signs in with their Provident Google account.">i</i></span>' +
-          '<input class="p-in" data-f="folder" placeholder="Paste the folder link" autocomplete="off"></label>' +
         '<div class="rsp-raw">' +
-          '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="4" placeholder="Paste the script, fact sheet or WhatsApp brief"></textarea></label>' +
-          '<div class="rsp-f"><span>Files <i class="rsp-i" title="Renders, logos, brochures (PDF). Saved into the folder’s Brief/ for the designer.">i</i></span>' +
-            '<div class="rsp-files"><label class="rsp-add">' + PICO.attach + '<span>Add files</span><input type="file" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.txt" hidden></label></div></div>' +
+          '<label class="rsp-bl" for="rsp-brief">Brief</label>' +
+          '<div class="rsp-sheet">' +
+            '<textarea id="rsp-brief" data-f="brief" rows="7" placeholder="Paste the script, fact sheet or WhatsApp brief"></textarea>' +
+            '<div class="rsp-files"><label class="rsp-add" title="Renders, logos, brochures (PDF). Saved into the folder’s Brief/ for the designer.">' + PICO.attach + '<span>Attach files</span><input type="file" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.txt" hidden></label></div>' +
+          '</div>' +
         '</div>' +
         '<div class="rsp-plan">' +
-          '<div class="rsp-ph"><b>Audiences</b><span class="rsp-n"></span>' +
+          '<div class="rsp-ph"><b>Who it’s for</b><span class="rsp-n"></span>' +
             '<button type="button" class="rsp-mt" aria-expanded="false" aria-controls="rsp-more">' + PICO.tune + '<span>Markets & audiences</span>' + PICO.more + '</button></div>' +
           '<div class="rsp-more" id="rsp-more" hidden>' +
             '<div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="markets"></div></div>' +
@@ -2994,9 +3079,10 @@
           '<div class="rsp-tiles" role="list"></div>' +
         '</div>' +
       '</div>' +
-      '<footer class="rsp-ft"><p class="rsp-st" aria-live="polite"></p>' +
+      '<footer class="rsp-ft">' +
+        '<button type="button" class="p-btn rsp-go" title="Files the ticket and opens its first audience to design">Start designing' + PICO.go + '</button>' +
         '<button type="button" class="p-ghost rsp-tk" title="Saves the campaign in its Drive folder as an open ticket. A designer picks it up from Status.">' + PICO.ticket + 'File as ticket</button>' +
-        '<button type="button" class="p-btn rsp-go" title="Files the ticket and opens its first audience to design">Start designing' + PICO.go + '</button></footer>' +
+        '<p class="rsp-st" aria-live="polite"></p></footer>' +
     '</section>';
     const $ = q => el.querySelector(q);
     ['name', 'folder', 'deadline', 'brief'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
@@ -4073,6 +4159,8 @@
       flash(t) { const el = $('.shl-toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3200); },
       set(v) {
         $('.shl-share input').value = v.link; $('.shl-share button').title = v.link;
+        // in an ad set the link to hand out is the ad set's designer link, not this project's own
+        $('.shl-share button').lastChild.textContent = v.linkKind === 'dd' ? 'Copy designer link' : 'Copy edit link';
         const ph = $('.shl-ph'), pn = Math.max(v.pv || 0, v.gone || 0);
         ph.hidden = !pn;
         if (pn) ph.querySelector('p').innerHTML = '<b>' + pn + ' full-size photo' + (pn > 1 ? 's have' : ' has') + ' expired.</b> '
@@ -5083,6 +5171,48 @@ body>.rvh{display:none}
 .adt-set:hover{background:var(--ps-fill)}
 .adt-set svg{width:18px;height:18px;fill:currentColor}
 @media (max-width:640px){.rss-q{grid-template-columns:1fr}}
+/* THE BRIEF SHEET (2026-10-29): the setup form without a card. Overrides the .rsp rules above. */
+.rsp2{background:none;box-shadow:none;border-radius:0;margin:0;overflow:visible;max-width:none}
+.rsp2 .rsp-body{padding:14px 0 0;gap:26px}
+.rsp-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.rsp-namew{display:block}
+.rsp-name{display:block;width:100%;box-sizing:border-box;margin:0;padding:2px 0 12px;border:none;border-bottom:1px solid var(--ps-line);border-radius:0;background:none;color:var(--ps-ink);font:400 clamp(30px,3.4vw,46px)/1.12 var(--ps-font);letter-spacing:-.028em;outline:none;transition:border-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-name::placeholder{color:var(--ps-dim)}
+.rsp-name:hover{border-bottom-color:var(--ps-ink-2)}
+.rsp-name:focus{border-bottom-color:var(--ps-ink)}
+.rsp2 .rsp-q{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.rsp2 .rsp-fp{flex:none}
+.rsp2 .rsp-prod{height:40px}
+.rsp-chip{display:inline-flex;align-items:center;gap:8px;height:40px;box-sizing:border-box;padding:0 14px 0 12px;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink-2);cursor:text;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-chip:hover{background:var(--ps-fill-h)}
+.rsp-chip:focus-within{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rsp-chip svg{width:18px;height:18px;fill:currentColor;flex:none}
+.rsp-chip input{min-width:0;height:100%;padding:0;border:none;background:none;outline:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font)}
+.rsp-chip input::placeholder{color:var(--ps-dim)}
+.rsp-dlt{font:500 13px/1 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
+.rsp-dl input{width:122px}
+.rsp-dl input::-webkit-calendar-picker-indicator{opacity:.6;cursor:pointer}
+:root:not([data-theme="light"]) .rsp-dl input{color-scheme:dark}
+.rsp-fo{flex:1 1 280px;min-width:0}
+.rsp-fo input{flex:1}
+.rsp2 .rsp-raw{display:block}
+.rsp-bl{display:block;margin:0 0 10px;font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.rsp-sheet{border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden;transition:box-shadow var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-sheet:focus-within{box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
+.rsp-sheet textarea{display:block;width:100%;box-sizing:border-box;min-height:200px;margin:0;padding:18px 20px;border:none;background:none;outline:none;resize:vertical;color:var(--ps-ink);font:400 16px/1.6 var(--ps-font)}
+.rsp-sheet textarea::placeholder{color:var(--ps-dim)}
+.rsp2 .rsp-files{min-height:0;padding:10px 12px;border-radius:0;box-shadow:none;border-top:1px solid var(--ps-hair);background:var(--ps-card-h)}
+.rsp2 .rsp-add{background:none;color:var(--ps-ink-2)}
+.rsp2 .rsp-add:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.rsp2 .rsp-ph b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.rsp2 .rsp-tiles{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.rsp2 .rsp-ft{justify-content:flex-start;gap:12px;padding:6px 0 0;border-top:none}
+.rsp2 .rsp-go{height:48px;padding:0 22px 0 26px;font-size:15px}
+.rsp2 .rsp-tk{height:48px}
+.rsp2 .rsp-st{flex:1 1 220px;min-width:0}
+.rsp2 .rsp-pg{top:-6px}
+@media (max-width:600px){.rsp2 .rsp-fo{flex-basis:100%}.rsp2 .rsp-ft{flex-wrap:wrap}.rsp2 .rsp-go{flex:1 1 100%;justify-content:center}.rsp2 .rsp-tk{flex:1 1 100%;justify-content:center}.rsp2 .rsp-st{flex-basis:100%;order:3}.rsp2 .rsp-tiles{grid-template-columns:1fr}.rsp-sheet textarea{min-height:150px}}
+@media (prefers-reduced-motion:reduce){.rsp-name,.rsp-chip,.rsp-sheet{transition:none}}
 `;
     document.head.appendChild(s);
   }

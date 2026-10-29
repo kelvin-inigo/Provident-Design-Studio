@@ -17235,3 +17235,39 @@ for ads already signed off elsewhere (so they still show on Status). share-link.
 - Verified on the Drive stand-in: ticket settings saved and logged, the Adset.json renamed, the
   locks refused a busy cell / product switch, Already approved moved the audience on to the Arabic,
   0 contrast failures in dark. Not exercised on real Google Drive.
+
+# A PROJECT FINDS ITS AD SET; THE HAND-OFF LIVES IN THE TOP BAR (2026-10-29)
+
+Reported with a screenshot: a project in a fully set-up ad set showed "Not in a campaign" with
+the old Changes panel, its Copy link handed out the project's own edit link, and the Design done
+button was missed in the canvas bar. CAS + share-link.js.
+
+- **Cause:** the window followed the project's OLDER edit link (from before the ad set). The
+  pid record (`provident-share-pid:`) pointed at it, so every window reconnected there.
+- **`SP.rsFind(force)`** (from `shareInit`, 1.5s in; and **Look again** in the Ad set tab):
+  waits for any reconnect and the link's first poll, then looks the pid up — the
+  `provident-rs-pid:<pid>` record (written by `rsSet`/`shPersist` whenever a tab follows the
+  project in an ad set), else every Drive ad set in `Arch.list()` through `rsinfo`, whose
+  `dsInfo` now returns `pids {sid: pid}` and `pmod {sid: last change}`. Found: save to the old
+  link, `shareStop(false)`, then `shRejoin(sid, true, theirsWin)` — `theirsWin` merges over
+  `mine` as the base, so the ad set's copy wins wherever the two differ (and no local-only
+  photos go up). With no link followed, this computer's copy wins only when it was saved more
+  than a minute after the ad set's copy changed.
+- **`shPersist` never lets a link that is not in an ad set replace one that is** (`inRs` on the
+  pid record).
+- **`_rsFinding`** ('soon' until the first look, true while looking) makes the top bar say
+  *Finding its ad set…* and the Ad set tab *Looking for this project's ad set…*; not found, the
+  tab reads "This project is not in an ad set" with **Look again** and **Add to an ad set**.
+- **The Changes panel's Copy link is the ad set's designer link** in an ad set (`linkKind`
+  'dd', labelled "Copy designer link"), else "Copy edit link".
+- **`.p-flow`** (CAS section 61), right after Ad set | Design: four segments (`rsBarSegs`,
+  states `cur`/`done`/`pend`→todo; the current one amber while the content team has it), the
+  step (`rsBarStep`: Design / Copy check / Arabic layout / Translation check / Done), the place
+  (`rsBarWhere`, hidden ≤1360px) and `rsFlow` as a solid button. `adtNext` labels the hand-off
+  **Send to copy check** / **Send for translation check**. The canvas bar's `.p-cvsend` and the
+  Ad set tab header's action button are gone (one action, one place). Below 1600px a bar with a
+  flow drops the studio switcher. Measured: fits at 1440 and 1280; 18–20:1 / 14.6:1 contrast in
+  both themes.
+- Verified on the Drive stand-in: a window following an old edit link reloaded into
+  *Finding…* then the ad set's project, panel gone, toast naming the audience; Send to copy
+  check from the top bar ran the pre-check and moved it to Copy check. Not on real Drive.

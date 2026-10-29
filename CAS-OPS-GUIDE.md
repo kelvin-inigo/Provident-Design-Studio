@@ -254,11 +254,17 @@ steps: **Design › ENG copy check › Translation › Done**.
 
 1. **Start the campaign** with **Set up the campaign** on the home page (see *Start something
    new*). Google asks you to sign in with your Provident account the first time.
-2. **Design.** When a project is ready, press **Design done** in the bar under the
-   canvas, beside the ad set chip. It first lists anything missing: empty words, a page or
+2. **Design.** The top bar, beside **Ad set | Design**, always shows where this project stands
+   in its campaign: four small bars for the four steps, the step it is on, and its market,
+   audience and language (for example *Design · Local · Family · EN*). Beside it is the one
+   thing to do next. When the design is ready, press **Send to copy check** (an Arabic project
+   says **Send for translation check**). It first lists anything missing: empty words, a page or
    variant with no background photo, a QR code switched on with none added, or copy covering
-   more than 40% of a canvas. Fix them, or press OK to send anyway. **Back to design** takes it
-   back. The same buttons are at the top of the **Ad set** tab.
+   more than 40% of a canvas. Fix them, or press OK to send anyway. While the content team has
+   it, the current bar turns amber and the step reads **Copy check**; the button moves on to
+   **Create next audience** or **Make the Arabic**. **Back to design** is in the **Ad set** tab.
+   Clicking the status opens the Ad set tab. On a narrower screen the studio switcher leaves the
+   bar to make room; it is still on the home page.
 4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
    words are beside every image, which update as they type, and the designer sees the change
    within seconds. **Approve English copy** in the panel signs it off.
@@ -605,9 +611,18 @@ The top bar's **Ad set | Design** switch. **Ad set** is this project's place in 
 (the old Copy workspace is gone; the words are edited in **Design**, and the content team edits
 them from their link):
 
-- **The header** names the audience and language, where it stands, and the one thing to do next:
-  **Design done**, **Create next audience** or **Make the Arabic**. **Overview** opens every
-  audience and language of the campaign, rendered from the latest work.
+- **The header** names the audience and language and where it stands, with **Back to design**,
+  **Already approved** and **Overview** (every audience and language of the campaign, rendered
+  from the latest work). The next step itself (**Send to copy check**, **Create next audience**,
+  **Make the Arabic**) is in the top bar, on both tabs.
+- **A project knows its ad set.** Open it from Recent, a saved file or another window, and it
+  looks up its campaign by itself (the top bar says *Finding its ad set…*), then follows the ad
+  set's copy. That includes a window still following the project's older edit link from before
+  the ad set. If it is not found, the tab says so, with **Add to an ad set** and **Look again**.
+  It looks through the campaigns on this computer's Status list, so paste a campaign's designer
+  link into Status first if it came from someone else.
+- **Copy designer link.** In an ad set, the link to hand out is the ad set's designer link (the
+  overview of every audience), not this one project's edit link.
 - **Copy from Claude**: paste the meta-ad-design-copy reply, check the flags, pick the heading,
   and **Fill**. The reply is kept with the campaign, so the next audience fills from it.
 - **Audiences**, **Brief**, **Activity** and **Links for the teams** (see above).
