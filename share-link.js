@@ -1695,6 +1695,7 @@
   function planCells(plan) {
     if (Array.isArray(plan)) return plan.filter(c => c && c.market && c.aud);
     if (!plan) return [];
+    if (Array.isArray(plan.cells)) return planCells(plan.cells);
     const auds = AUDS[plan.product] || AUDS.residential;
     const ms = MARKETS.filter(m => (plan.markets || []).indexOf(m) >= 0), as = auds.filter(a => (plan.auds || []).indexOf(a) >= 0);
     const out = [];
@@ -3021,6 +3022,12 @@
     if (!AUDS[d.product]) d.product = 'residential';
     d.markets = MARKETS.filter(m => (d.markets || []).indexOf(m) >= 0); if (!d.markets.length) d.markets = ['Local'];
     const as = AUDS[d.product]; d.auds = as.filter(a => (d.auds || as).indexOf(a) >= 0); if (!d.auds.length) d.auds = as.slice();
+    // AUDIENCE CARDS (2026-10-29): each audience keeps its own markets and its own Arabic switch.
+    // A draft from before carries its markets × audiences over.
+    if (!d.am || typeof d.am !== 'object') { d.am = {}; d.arA = {}; as.forEach(a => { d.am[a] = d.auds.indexOf(a) >= 0 ? d.markets.slice() : []; d.arA[a] = d.markets.some(m => d.arb[m + '|' + a]); }); }
+    d.arA = d.arA || {};
+    as.forEach(a => { d.am[a] = MARKETS.filter(m => (d.am[a] || []).indexOf(m) >= 0); });
+    if (!as.some(a => d.am[a].length)) d.am[as[0]] = ['Local'];
     return d;
   }
   const PICO = {
@@ -3069,14 +3076,12 @@
             '<div class="rsp-files"><label class="rsp-add" title="Renders, logos, brochures (PDF). Saved into the folder’s Brief/ for the designer.">' + PICO.attach + '<span>Attach files</span><input type="file" multiple accept="image/*,application/pdf,.pdf,.doc,.docx,.txt" hidden></label></div>' +
           '</div>' +
         '</div>' +
-        // WHO IT'S FOR (2026-10-29): one matrix. Markets are the rows, audiences the columns,
-        // and every cell is a project with its languages — so what you see IS the plan, with no
-        // fold of filters above a second list of tiles. A row or column header switches it.
-        '<div class="rsp-plan rsp-plan2">' +
-          '<div class="rsp-ph"><b>Who it’s for</b><span class="rsp-n"></span>' +
-            '<button type="button" class="rsp-arall" aria-pressed="false" data-arall="1"></button></div>' +
-          '<div class="rsp-mx" role="grid" aria-label="Markets and audiences"></div>' +
-        '</div>' +
+        // WHO IT'S FOR (2026-10-29): one card per AUDIENCE. Inside it, the markets it runs in as
+        // currency coins and one switch for its Arabic version. Who first, then where.
+        '<div class="rsp-plan rsp-plan3">' +
+          '<div class="rsp-ph"><b>Who it’s for</b><span class="rsp-n"></span></div>' +
+          '<div class="rsp-auds" role="list"></div>' +
+        '</div>' +'</div>' +
       '</div>' +
       '<footer class="rsp-ft">' +
         '<button type="button" class="p-btn rsp-go" title="Files the ticket and opens its first audience to design">Start designing' + PICO.go + '</button>' +
@@ -3091,8 +3096,8 @@
       if (b.dataset.prod) this.setProd(b.dataset.prod);
       if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
       if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
-      if (b.dataset.cellM) this.addCell(b.dataset.cellM, b.dataset.cellA);
-      if (b.dataset.arall) { const cs = this.cells(), all = cs.length && cs.every(c => c.arb); cs.forEach(c => { d.arb[c.market + '|' + c.aud] = !all; }); this.save(); this.draw(); }
+      if (b.dataset.coinA) this.coin(b.dataset.coinA, b.dataset.coinM);
+      if (b.dataset.arA) { d.arA[b.dataset.arA] = !d.arA[b.dataset.arA]; this.save(); this.draw(); }
       if (b.dataset.rmf) { this.files.splice(+b.dataset.rmf, 1); this.drawFiles(); }
       if (b.dataset.a === 'again') this.reset();
       if (b.dataset.a === 'status') { const h = eng.host; if (h) h.setState({ splashView: 'rev' }); }
@@ -3108,10 +3113,23 @@
   const PV = PlanView.prototype;
   PV.save = function () { lsSet(PLAN_KEY, JSON.stringify(this.d)); };
   PV.st = function (t, bad) { const p = this.el.querySelector('.rsp-st'); if (!p) return; p.textContent = t; p.classList.toggle('bad', !!t && bad !== false); };
-  PV.cells = function () { return planCells(this.d); };
+  // the plan's cells, market first (the order the review runs in), from each audience's coins
+  PV.cells = function () {
+    const d = this.d, as = AUDS[d.product], out = [];
+    MARKETS.forEach(m => as.forEach(a => { if ((d.am[a] || []).indexOf(m) >= 0) out.push({ market: m, aud: a, arb: !!d.arA[a] }); }));
+    return out;
+  };
+  PV.coin = function (a, m) {
+    const d = this.d, l = d.am[a] = d.am[a] || [], i = l.indexOf(m);
+    if (i >= 0) { if (this.cells().length === 1) { this.st('Keep at least one audience in one market.'); return; } l.splice(i, 1); }
+    else { l.push(m); d.am[a] = MARKETS.filter(x => l.indexOf(x) >= 0); }
+    this.st(''); this.save(); this.draw();
+  };
   PV.setProd = function (p) {
     const d = this.d; if (d.product === p) return;
     d.product = p; const as = AUDS[p]; d.auds = as.filter(a => d.auds.indexOf(a) >= 0); if (!d.auds.length) d.auds = as.slice();
+    as.forEach(a => { if (!d.am[a]) d.am[a] = ['Local']; });
+    if (!as.some(a => d.am[a].length)) d.am[as[0]] = ['Local'];
     this.save(); this.draw();
   };
   PV.toggle = function (g, v) {
@@ -3120,15 +3138,12 @@
     else a.push(v);
     this.st(''); this.save(); this.draw();
   };
-  // an off cell switches on its market and its audience together
-  PV.addCell = function (m, a) {
-    const d = this.d;
-    if (d.markets.indexOf(m) < 0) d.markets.push(m);
-    if (d.auds.indexOf(a) < 0) d.auds.push(a);
-    this.st(''); this.save(); this.draw();
-  };
   const AUD_TIP = { Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
   const MKT_TIP = { Local: 'AED', International: 'USD', 'International EUR': 'EUR' };
+  const MKT_SYM = { Local: 'AED', International: '$', 'International EUR': '€' };
+  const MKT_SHORT = { Local: 'Local', International: 'Intl', 'International EUR': 'EUR' };
+  const AUD_PL = { Family: 'Families', Investor: 'Investors', Hybrid: 'Hybrid' };
+  const AUD_ICO = { Family: 'M240-200h133.85v-201.54q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h140q15.36 0 25.76 10.39 10.39 10.4 10.39 25.76V-200H720v-353.85q0-3.07-1.35-5.57-1.34-2.5-3.65-4.43L487.31-735q-3.08-2.69-7.31-2.69-4.23 0-7.31 2.69L245-563.85q-2.31 1.93-3.65 4.43-1.35 2.5-1.35 5.57V-200Zm-60 0v-353.85q0-17.17 7.68-32.53 7.69-15.37 21.24-25.31l227.7-171.54q18.95-14.46 43.32-14.46t43.44 14.46l227.7 171.54q13.55 9.94 21.24 25.31 7.68 15.36 7.68 32.53V-200q0 24.54-17.73 42.27Q744.54-140 720-140H562.31q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-201.53h-92.3v201.53q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4H240q-24.54 0-42.27-17.73Q180-175.46 180-200Zm300-269.23Z', Investor: 'M121.08-269.62q-9.31-9.3-8.81-21.38.5-12.08 8.81-20.38l201.77-204.39q20.69-21.08 51.23-21.08 30.53 0 51.61 21.08l99.92 100.54q3.47 3.46 8.47 3.46t8.84-3.46l215.7-213.31H670q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h153.84q15.47 0 25.81 10.35Q860-667.84 860-652.38v153.84q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61t-21.38-8.42q-8.62-8.42-8.62-21.19v-88.24l-214.69 214.7Q564.61-351 534.08-351q-30.54 0-51.23-20.69l-99.93-99.93q-3.46-3.46-8.84-3.46-5.39 0-8.85 3.46l-202 202q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7Z', Hybrid: 'M234.27-434.27q-18.88-18.88-18.88-45.73 0-26.85 18.88-45.73 18.88-18.88 45.73-18.88 26.85 0 45.73 18.88 18.88 18.88 18.88 45.73 0 26.85-18.88 45.73-18.88 18.88-45.73 18.88-26.85 0-45.73-18.88ZM280-260q-91.54 0-155.77-64.23T60-480q0-91.54 64.23-155.77T280-700q64.31 0 116.31 33.19 52 33.2 79.38 86.81h345q7.23 0 13.77 2.62 6.54 2.61 12.15 8.23l63.85 63.84q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L804.62-349.23q-4.62 4.61-10.85 7.42-6.23 2.81-12.46 3.42-6.23.62-12.46-1.19T757-345.62l-49.31-37.07-55.84 41.46q-4.62 3.61-9.85 5.23-5.23 1.61-10.85 1.61-5.61 0-11.15-1.8-5.54-1.81-10.15-5.04L553.46-380h-77.77q-27.38 53.23-79.38 86.61Q344.31-260 280-260Zm0-60q57.54 0 99.65-34.77 42.12-34.77 54.97-85.23h137.69l57.61 39.85q-.38 0-.19.3.19.31.19-.3l78.16-57.16L776-405.38v-.2.2L850.62-480h-.31.31l-40-40v-.31.31h-376q-12.85-50.46-54.97-85.23Q337.54-640 280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z' };
   const fsize = n => n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB';
   PV.drawFiles = function () {
     const box = this.el.querySelector('.rsp-files'); if (!box) return;
@@ -3147,29 +3162,18 @@
     $('.rsp-prod').innerHTML = tab('residential', 'Residential', d.product === 'residential') + tab('commercial', 'Commercial', d.product === 'commercial');
     const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
     $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (arbN ? ' · ' + arbN + ' in Arabic' : '');
-    const all = cells.length && cells.every(c => c.arb), aa = $('.rsp-arall');
-    aa.setAttribute('aria-pressed', all ? 'true' : 'false');
-    aa.innerHTML = (all ? PICO.tick : ico('add')) + '<span>' + (all ? 'Arabic for every audience' : 'Arabic for all') + '</span>';
-    aa.title = all ? 'Every project also gets an Arabic version — click for English only' : 'Add an Arabic version to every audience';
-    const auds = AUDS[d.product], onM = m => d.markets.indexOf(m) >= 0, onA = a => d.auds.indexOf(a) >= 0;
-    const hdr = (g, v, sub, on) => '<button type="button" class="rsp-hd" role="' + (g === 'auds' ? 'columnheader' : 'rowheader') + '" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + (on ? 'Click to leave ' + esc(v) + ' out' : 'Click to include ' + esc(v)) + '">' +
-      '<span class="rsp-ck">' + (on ? PICO.tick : '') + '</span><span class="rsp-hdt"><b>' + esc(v) + '</b><s>' + (g === 'markets' && sub ? '<span class="rsp-pin">Prices in </span>' : '') + esc(sub) + '</s></span></button>';
-    let h = '<div class="rsp-mr" role="row"><span class="rsp-corner" role="columnheader">Market</span>' + auds.map(a => hdr('auds', a, AUD_TIP[a] || '', onA(a))).join('') + '</div>';
-    MARKETS.forEach(m => {
-      h += '<div class="rsp-mr' + (onM(m) ? '' : ' rsp-off') + '" role="row">' + hdr('markets', m, MKT_TIP[m] || '', onM(m));
-      auds.forEach(a => {
-        const k = m + '|' + a;
-        if (onM(m) && onA(a)) {
-          const ar = !!d.arb[k];
-          h += '<div class="rsp-cell" role="gridcell"' + (ar ? ' data-ar="1"' : '') + '><span class="rsp-l" title="English — always made">EN</span>' +
-            '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + ar + '" data-arb="' + esc(k) + '" title="' + (ar ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(m + ' ' + a) + '">' + (ar ? '' : ico('add')) + 'AR</button></div>';
-        } else {
-          h += '<button type="button" class="rsp-cell rsp-cell-off" role="gridcell" data-cell-m="' + esc(m) + '" data-cell-a="' + esc(a) + '" title="Add ' + esc(m + ' · ' + a) + '" aria-label="Add ' + esc(m + ' ' + a) + '">' + ico('add') + '<span>Add</span></button>';
-        }
-      });
-      h += '</div>';
-    });
-    const mx = $('.rsp-mx'); mx.style.setProperty('--rsp-cols', auds.length); mx.innerHTML = h;
+    $('.rsp-auds').innerHTML = AUDS[d.product].map(a => {
+      const ms = d.am[a] || [], on = ms.length > 0, ar = on && !!d.arA[a];
+      const coins = MARKETS.map(m => { const c = ms.indexOf(m) >= 0;
+        return '<button type="button" class="rsp-coin" aria-pressed="' + c + '" data-coin-a="' + esc(a) + '" data-coin-m="' + esc(m) + '" title="' + esc(m) + ' · prices in ' + MKT_TIP[m] + (c ? ' — click to leave it out' : ' — click to add') + '"><b>' + MKT_TIP[m] + '</b><s>' + (m === 'Local' ? 'Local' : 'International') + '</s></button>'; }).join('');
+      const sub = on ? ms.length + (ms.length === 1 ? ' market' : ' markets') + ' · ' + (ar ? 'English and Arabic' : 'English') : 'Not in this campaign — pick a market';
+      return '<div class="rsp-ac" role="listitem"' + (on ? ' data-on="1"' : '') + '>' +
+        '<div class="rsp-ach"><div><b>' + esc(AUD_PL[a] || a) + '</b><s>' + esc(AUD_TIP[a] || '') + '</s></div><svg class="rsp-aci" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + AUD_ICO[a] + '"/></svg></div>' +
+        '<div class="rsp-coins" role="group" aria-label="Markets for ' + esc(AUD_PL[a] || a) + '">' + coins + '</div>' +
+        '<div class="rsp-acf"><span>' + esc(sub) + '</span>' +
+          '<button type="button" class="rsp-sw" role="switch" aria-checked="' + ar + '" data-ar-a="' + esc(a) + '"' + (on ? '' : ' disabled') + ' title="' + (ar ? 'Arabic version on for every market — click for English only' : 'Add an Arabic version in every market') + '"><span>Arabic</span><i></i></button></div>' +
+      '</div>';
+    }).join('');
     if (!this.drive) this.st('Google Drive is not set up on this site, so a campaign cannot be filed here.');
   };
   PV.busy = function (t, p) {
@@ -3188,7 +3192,8 @@
     if (!window.providentDrive.id(d.folder || '')) { this.st('Paste a Drive folder link — it contains /folders/.'); $('[data-f="folder"]').focus(); return; }
     if (design && this.eng.confirmDiscard && !this.eng.confirmDiscard()) return;
     const btns = this.el.querySelectorAll('.rsp-ft button'); btns.forEach(b => { b.disabled = true; });
-    const plan = { name: d.name, product: d.product, folder: (d.folder || '').trim(), markets: d.markets.slice(), auds: d.auds.slice(), arb: Object.assign({}, d.arb) };
+    const cells = this.cells(), arb = {}; cells.forEach(c => { if (c.arb) arb[c.market + '|' + c.aud] = true; });
+    const plan = { name: d.name, product: d.product, folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
     try {
       this.busy('Signing in to Google…', .02);
       await window.providentDrive.signIn();   // first: the popup needs the click
@@ -3197,7 +3202,7 @@
       lsSet('provident-rs-folder', plan.folder);
       Arch.add(rs.tok.dd, rs.name, rs.product, true);
       // the draft is spent: the next campaign starts from the defaults, keeping the product
-      this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', arb: {} }); this.files = []; this.save();
+      this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', arb: {}, arA: {} }); this.files = []; this.save();
       if (design) { this.busy('Opening the first audience…', 1); pickUp(this.eng, rs.tok.dd); return; }
       this.busy('', null);
       this.done(rs);
@@ -5230,44 +5235,43 @@ body>.rvh{display:none}
 .rsp2 .rsp-pg{top:-6px}
 @media (max-width:600px){.rsp2 .rsp-fo{flex-basis:100%}.rsp2 .rsp-ft{flex-wrap:wrap}.rsp2 .rsp-go{flex:1 1 100%;justify-content:center}.rsp2 .rsp-tk{flex:1 1 100%;justify-content:center}.rsp2 .rsp-st{flex-basis:100%;order:3}.rsp2 .rsp-tiles{grid-template-columns:1fr}.rsp-sheet textarea{min-height:150px}}
 @media (prefers-reduced-motion:reduce){.rsp-name,.rsp-chip,.rsp-sheet{transition:none}}
-/* WHO IT'S FOR, AS A MATRIX (2026-10-29). Rows are markets, columns audiences, a cell is a
-   project and its languages. A header is a switch; an off cell offers to add itself. */
-.rsp-plan2{gap:14px}
-.rsp-plan2 .rsp-ph{min-height:32px}
-.rsp-arall{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 12px 0 9px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;white-space:nowrap}
-.rsp-arall:hover{color:var(--ps-ink);background:var(--ps-fill)}
-.rsp-arall svg{width:16px;height:16px;fill:currentColor}
-.rsp-arall[aria-pressed="true"]{box-shadow:none;background:var(--ps-fill);color:var(--ps-ink)}
-.rsp-mx{display:flex;flex-direction:column;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden}
-.rsp-mr{display:grid;grid-template-columns:minmax(150px,1.25fr) repeat(var(--rsp-cols,2),minmax(0,1fr));align-items:stretch}
-.rsp-mr+.rsp-mr{border-top:1px solid var(--ps-hair)}
-.rsp-mr:first-child{background:var(--ps-card-h)}
-.rsp-mr>*+*{border-left:1px solid var(--ps-hair)}
-.rsp-corner{display:flex;align-items:flex-end;padding:14px 16px;font:500 12px/1.2 var(--ps-font);color:var(--ps-dim)}
-.rsp-hd{display:flex;align-items:center;gap:10px;min-width:0;margin:0;padding:12px 16px;border:none;border-radius:0;background:none;color:var(--ps-ink);text-align:left;cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
-.rsp-hd:hover{background:var(--ps-fill)}
-.rsp-ck{display:inline-grid;place-items:center;flex:none;width:20px;height:20px;border-radius:6px;box-shadow:inset 0 0 0 1.5px var(--ps-line)}
-.rsp-ck svg{width:16px;height:16px;fill:var(--ps-app)}
-.rsp-hd[aria-pressed="true"] .rsp-ck{background:var(--ps-link);box-shadow:none}
-.rsp-hdt{display:flex;flex-direction:column;gap:3px;min-width:0}
-.rsp-hdt b{font:500 15px/1.2 var(--ps-font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rsp-hdt s{text-decoration:none;font:400 12px/1.25 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rsp-hd[aria-pressed="false"] .rsp-hdt b{color:var(--ps-ink-2)}
-.rsp-cell{display:flex;align-items:center;justify-content:center;gap:6px;min-height:60px;padding:10px 12px}
-.rsp-cell .rsp-l{width:auto;min-width:36px;height:28px;padding:0 9px;border-radius:8px}
-.rsp-cell .rsp-ar{display:inline-flex;align-items:center;gap:3px;padding:0 9px 0 6px}
-.rsp-cell .rsp-ar svg{width:14px;height:14px;fill:currentColor}
-.rsp-cell .rsp-ar[aria-pressed="true"]{padding:0 9px}
-.rsp-cell-off{margin:0;border:none;border-radius:0;background:none;color:var(--ps-dim);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease),color var(--ps-motion,.15s) var(--ps-ease,ease)}
-.rsp-cell-off svg{width:16px;height:16px;fill:currentColor}
-.rsp-cell-off span{opacity:0;transition:opacity var(--ps-motion,.15s) var(--ps-ease,ease)}
-.rsp-cell-off:hover,.rsp-cell-off:focus-visible{background:var(--ps-fill);color:var(--ps-ink)}
-.rsp-cell-off:hover span,.rsp-cell-off:focus-visible span{opacity:1}
-.rsp-off .rsp-hd .rsp-hdt s{opacity:.9}
-.rsp-mx button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-3px}
-.rsp2 .rsp-plan2{padding-bottom:22px}
-@media (max-width:600px){.rsp-mr{grid-template-columns:minmax(0,1.45fr) repeat(var(--rsp-cols,2),minmax(0,1fr))}.rsp-hd{padding:10px 8px;gap:7px}.rsp-hd .rsp-pin{display:none}.rsp-corner{padding:10px}.rsp-hd[role=columnheader] .rsp-hdt s{display:none}.rsp-hdt b{white-space:normal;font-size:13.5px;line-height:1.25;overflow:visible}.rsp-hdt s{white-space:normal}.rsp-cell{flex-wrap:wrap;padding:8px 6px;gap:4px}.rsp-cell .rsp-l{min-width:30px;height:26px;padding:0 6px}.rsp-cell .rsp-ar svg{display:none}.rsp-cell-off span{display:none}.rsp-plan2 .rsp-ph{flex-wrap:wrap}.rsp-arall{margin-left:0}}
-@media (prefers-reduced-motion:reduce){.rsp-hd,.rsp-cell-off,.rsp-cell-off span{transition:none}}
+/* WHO IT'S FOR, AUDIENCE CARDS (2026-10-29). One card per audience; its markets are currency
+   coins, its Arabic version one switch. An audience with no market is a quiet, dashed card. */
+.rsp-plan3{gap:14px;padding-bottom:22px}
+.rsp-auds{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.rsp-ac{display:flex;flex-direction:column;gap:18px;padding:20px;border-radius:16px;background:var(--ps-card-h);box-shadow:inset 0 0 0 1px var(--ps-line);transition:box-shadow var(--ps-motion,.15s) var(--ps-ease,ease),background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-ac[data-on]{box-shadow:none}
+.rsp-ac:not([data-on]){background:none;box-shadow:none;outline:1px dashed var(--ps-line);outline-offset:-1px}
+.rsp-ach{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.rsp-ach b{display:block;font:500 22px/1.15 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.rsp-ach s{display:block;margin-top:4px;text-decoration:none;font:400 13px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rsp-ac:not([data-on]) .rsp-ach b{color:var(--ps-ink-2)}
+.rsp-aci{width:24px;height:24px;flex:none;fill:var(--ps-ink-2)}
+.rsp-ac:not([data-on]) .rsp-aci{fill:var(--ps-dim)}
+.rsp-coins{display:flex;gap:8px}
+/* CURRENCY TILES: the currency is the label you scan, the market sits under it. Chosen is a solid
+   ink tile, the rest a hairline — no rings, no blue. */
+.rsp-coin{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;height:64px;margin:0;padding:0 12px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);text-align:left;cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease),color var(--ps-motion,.15s) var(--ps-ease,ease),transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-coin b{font:500 20px/1 var(--ps-font);letter-spacing:-.01em}
+.rsp-coin s{max-width:100%;text-decoration:none;font:400 12px/1.2 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsp-coin:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.rsp-coin:active{transform:scale(.98)}
+.rsp-coin[aria-pressed="true"]{background:var(--ps-ink);color:var(--ps-app);box-shadow:none}
+.rsp-coin[aria-pressed="true"] s{color:var(--ps-app)}
+.rsp-coin[aria-pressed="true"]:hover{background:var(--ps-ink-2)}
+.rsp-acf{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--ps-hair)}
+.rsp-acf>span{font:400 13px/1.35 var(--ps-font);color:var(--ps-ink-2);min-width:0}
+.rsp-sw{display:inline-flex;align-items:center;gap:10px;flex:none;margin:0;padding:4px 4px 4px 10px;border:none;border-radius:9999px;background:none;color:var(--ps-ink);font:500 13px/1 var(--ps-font);cursor:pointer}
+.rsp-sw:hover:not(:disabled){background:var(--ps-fill)}
+.rsp-sw:disabled{color:var(--ps-dim);cursor:default}
+.rsp-sw i{position:relative;width:36px;height:20px;border-radius:10px;background:var(--ps-fill-dis);transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-sw i:after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--ps-ink-2);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease),background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rsp-sw i{box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rsp-sw[aria-checked="true"] i{background:var(--ps-link);box-shadow:none}
+.rsp-sw[aria-checked="true"] i:after{transform:translateX(16px);background:var(--ps-app)}
+.rsp-plan3 button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:3px}
+@media (max-width:600px){.rsp-auds{grid-template-columns:1fr}.rsp-ac{padding:16px;gap:14px}.rsp-coin{height:58px;padding:0 10px}}
+@media (prefers-reduced-motion:reduce){.rsp-ac,.rsp-coin,.rsp-sw i,.rsp-sw i:after{transition:none}}
 `;
     document.head.appendChild(s);
   }
