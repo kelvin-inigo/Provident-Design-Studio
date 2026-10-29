@@ -17686,3 +17686,27 @@ cards name their campaign. `openRecent(i)` keeps the original index. Section 65 
 the Recent view, where the "Pick up where you left off" label is hidden. Verified with stubbed
 recents: grouping, the click opening the right index, rows aligned, 0 contrast failures (min
 6.47:1 dark), no overflow at 375. OPS's recents are unchanged.
+
+# THE LEFT RAIL IS LAYERS OVER A PINNED TILE GRID (2026-10-29, /impeccable)
+
+By request ("improve the left side bar"), the user choosing it from three options. It ran ~1,130px
+tall, the library sat under the fold, its sketches looked alike and its counts repeated the outline.
+
+- **The rail no longer scrolls as one** (`.p-rail-l{overflow:hidden}`): `.ol-list` (the layers)
+  scrolls on its own and `.lt` (the grid) is pinned at the foot, `max-height:min(390px,46vh)`.
+  `railFoot` is the grid heading's tooltip; the footer line is gone.
+- **Layers drag to reorder**: `olDragStart` / `olDropAt` (pointer events, mouse and pen, 4px
+  threshold, a `.ol-ins` line, edge auto-scroll, Escape cancels, the release's click swallowed)
+  write through `canvasMove` on the focused size's record; Alt+arrows step (`olKey`). Top and
+  Bottom always render; an empty one is an `.ol-zone` drop target. Floating rows don't drag.
+- **The grid** is every palette item as a tile: its own look (`tileSp`, `tileText`/`tileStyle` on
+  the palette item — DC cannot index an array in an interpolation) over a short name (`TL`). No
+  counts and no group labels; the order is still the four groups'. Tiles keep `p-tile`.
+- Verified with real drags (Body bottom → above the eyebrow, Eyebrow into an empty Bottom), a tile
+  click adding a Price block, Alt+Up, no clipped specimen, contrast 0 failures in both themes.
+
+**CAS Home is one column (2026-10-29, by request).** The recent projects sit BELOW the setup
+at full width (section 66 of CAS's sheet overrides section 60's two-column grid and section 65's
+side-column rules), under a hairline and the "Pick up where you left off" label. The Riffle
+Hairline figure (`.p-home-fig`) is removed from the markup "for now"; its CSS is left unread.
+`hlBind` still mounts Status's Stack figure and the Ad sets drop zone's.

@@ -4962,6 +4962,22 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 @media (max-width:1180px){ .p-home:has(.p-home-main) .p-home-side .rc-row{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))} }
 @media (max-width:760px){ .rc-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px} .rc-hn{font-size:16px} .rc-m{flex-direction:column;gap:2px} }
 
+/* 66. HOME IS ONE COLUMN (2026-10-29, by request): the recent projects sit BELOW the setup,
+   full width, not in a side column; the Riffle figure is removed for now. Overrides section 60's
+   two-column grid and the side-column rules of section 65. */
+.p-home:has(.p-home-main){grid-template-columns:minmax(0,1fr);gap:56px}
+.p-home:has(.p-home-main) .p-home-side{position:static;padding-top:40px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+.p-home:has(.p-home-main) .p-home-side > .p-sec-l{display:block;margin:0 0 20px;font-size:13px;font-weight:500;color:var(--ps-ink-2)}
+.p-home:has(.p-home-main) .p-home-side .rc{gap:36px}
+.p-home:has(.p-home-main) .p-home-side .rc-row{grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:24px 20px}
+.p-home:has(.p-home-main) .p-home-side .rc-hn{font-size:18px}
+.p-home:has(.p-home-main) .p-home-side .rc-m{flex-direction:row;gap:8px}
+@media (max-width:760px){
+  .p-home:has(.p-home-main) .p-home-side .rc-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px}
+  .p-home:has(.p-home-main) .p-home-side .rc-hn{font-size:16px}
+  .p-home:has(.p-home-main) .p-home-side .rc-m{flex-direction:column;gap:2px}
+}
+
 /* 62. THE HOME SIDEBAR (2026-10-29): lockup, studios, one nav list, session pinned to the foot */
 .p-br-sb{gap:0;padding:20px 14px 16px}
 .p-sbw{display:flex;align-items:center;height:28px;padding:0 6px 18px;margin-bottom:6px;border-bottom:1px solid var(--ps-hair)}
@@ -5072,20 +5088,27 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .mk-r > i[data-k="dash"]{background:none;border:1px dashed currentColor;border-radius:3px}
 .mk-c{align-items:center;font:500 9px/1 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 
-/* ── the left rail: what is on the ad, over what can be added ── */
-.p-rail-l{gap:0}
-.ol,.lb{display:flex;flex-direction:column}
-.lb{margin:18px calc(-1 * 16px) 0;padding:16px 16px 0;border-top:1px solid var(--ps-hair)}
-.ol-h{display:flex;align-items:baseline;gap:8px;margin:0 0 10px}
+/* ── the left rail: the ad's layers over a pinned grid of components ── */
+/* the rail no longer scrolls as one: the layers list scrolls on its own and the grid stays */
+.p-rail-l{gap:0;overflow:hidden;padding-bottom:0}
+.ol{display:flex;flex-direction:column;flex:1 1 auto;min-height:140px}
+.ol-h{display:flex;align-items:baseline;gap:8px;margin:0 0 8px}
 .ol-h b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.ol-h b.tip{width:fit-content}
 .ol-h s{min-width:0;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ol-list{position:relative;flex:1 1 auto;min-height:0;overflow-y:auto;margin:0 -8px;padding:0 8px 12px;scrollbar-width:thin}
 .ol-gh{margin:10px 0 4px;font:500 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
-.ol-g:first-of-type .ol-gh,.lb-g:first-of-type .ol-gh{margin-top:0}
-.ol-empty{margin:0;padding:14px 12px;border-radius:10px;background:var(--ps-fill);font:400 12px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.ol-g:first-child .ol-gh{margin-top:0}
+.ol-zone{display:flex;align-items:center;justify-content:center;height:38px;border-radius:10px;border:1px dashed var(--ps-line);font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.ol-list[data-dragging] .ol-zone{border-color:var(--ps-link);color:var(--ps-ink-2)}
 .ol-r{position:relative;display:flex;align-items:center;border-radius:10px;transition:background-color var(--ps-motion) var(--ps-ease)}
 .ol-r:hover{background:var(--ps-fill)}
 .ol-r[data-on],.ol-r[data-on]:hover{background:var(--ps-accent)}
+.ol-r[data-drag]{opacity:.4}
+.ol-list[data-dragging] .ol-r:hover{background:none}
+.ol-list[data-dragging],.ol-list[data-dragging] *{cursor:grabbing}
 .ol-b{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:5px 34px 5px 5px;border:0;border-radius:10px;background:none;color:inherit;text-align:left;cursor:pointer}
+.ol-r:not([data-cl="float"]) .ol-b{cursor:grab}
 .ol-b:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
 .ol-t{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ol-t b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -5097,6 +5120,8 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .ol-r[data-hid] .ol-t b{color:var(--ps-dim);text-decoration:line-through;text-decoration-color:var(--ps-line)}
 .ol-r[data-hid] .ol-t s{color:var(--ps-dim)}
 .ol-r[data-hid] .mk{color:var(--ps-dim);background:none;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.ol-ins{position:absolute;display:none;height:2px;margin-top:-1px;border-radius:2px;background:var(--ps-link);pointer-events:none;z-index:2}
+.ol-ins::before{content:"";position:absolute;left:-3px;top:-2px;width:6px;height:6px;border-radius:50%;background:var(--ps-link)}
 .ol-eye{position:absolute;right:5px;top:50%;display:flex;align-items:center;justify-content:center;width:26px;height:26px;margin-top:-13px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-ink-2);cursor:pointer;opacity:0;transition:opacity var(--ps-motion) var(--ps-ease),background-color var(--ps-motion) var(--ps-ease)}
 .ol-eye svg{width:16px;height:16px;fill:currentColor}
 .ol-eye .ol-e0{display:none}
@@ -5108,29 +5133,29 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .ol-r[data-on] .ol-eye{color:var(--ps-accent-i)}
 @media (hover:none){.ol-eye{opacity:1}}
 
-.lb-g + .lb-g{margin-top:14px}
-.p-rail-l .p-tile.lb-r{display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;min-width:0;margin:0;padding:3px 6px 3px 3px;box-sizing:border-box;border:0;border-radius:10px;background:none;box-shadow:none;text-align:left;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}
-.p-rail-l .p-tile.lb-r + .p-tile.lb-r{margin-top:1px}
-.p-rail-l .p-tile.lb-r .mk{width:34px;height:24px;padding:0 5px}
-.p-rail-l .p-tile.lb-r > b{flex:1;min-width:0;font:400 13px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.p-rail-l .p-tile.lb-r:hover{background:var(--ps-fill)}
-.p-rail-l .p-tile.lb-r:hover > b{color:var(--ps-ink)}
-.p-rail-l .p-tile.lb-r:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
-.p-rail-l .p-tile.lb-r:active{transform:scale(.99)}
-.lb-k{flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--ps-fill-h);text-decoration:none;font:500 11px/18px var(--ps-font);text-align:center;color:var(--ps-ink);font-variant-numeric:tabular-nums}
-.lb-a{display:flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;border-radius:50%;color:var(--ps-dim);transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
-.lb-a svg{width:16px;height:16px;fill:currentColor}
-.p-tile.lb-r:hover .lb-a,.p-tile.lb-r:focus-visible .lb-a{background:var(--ps-primary);color:var(--ps-primary-i)}
-.lb-cr{position:relative}
-.lb-cr .p-tile.lb-r{padding-right:36px}
-.lb-cr .lb-a{position:absolute;right:6px;top:50%;margin-top:-11px}
-.lb-x{position:absolute;right:34px;top:50%;display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin-top:-11px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-dim);cursor:pointer}
-.lb-x svg{width:14px;height:14px;fill:currentColor}
-.lb-x:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
-.lb-hint{margin:6px 0 0;font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
-.lb-hint code{font:500 11px/1 ui-monospace,Menlo,monospace;color:var(--ps-ink-2)}
-.p-rail-l .p-foot{margin-top:16px}
-@media (prefers-reduced-motion:reduce){.ol-r,.ol-eye,.lb-a,.p-rail-l .p-tile.lb-r{transition:none}.p-rail-l .p-tile.lb-r:active{transform:none}}
+/* the pinned grid: every component as its own look over its name */
+.lt{flex:none;margin:0 -16px;padding:14px 16px 16px;border-top:1px solid var(--ps-hair);background:var(--ps-sb)}
+.lt-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 6px;max-height:min(390px,46vh);overflow-y:auto;scrollbar-width:thin}
+.p-rail-l .p-tile.lt-t{display:flex;flex-direction:column;align-items:stretch;gap:5px;width:100%;min-width:0;margin:0;padding:3px 3px 6px;box-sizing:border-box;border:0;border-radius:10px;background:none;box-shadow:none;text-align:center;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-rail-l .p-tile.lt-t + .p-tile.lt-t{margin-top:0}
+.lt-sp{position:relative;display:flex;align-items:center;justify-content:center;height:40px;padding:0 6px;box-sizing:border-box;border-radius:8px;background:var(--ps-stage);color:var(--ps-ink);overflow:hidden}
+:root[data-theme="light"] .lt-sp{background:var(--ps-fill-h)}
+.lt-sp > span:first-child{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-rail-l .p-tile.lt-t > b{font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-rail-l .p-tile.lt-t:hover{background:var(--ps-fill)}
+.p-rail-l .p-tile.lt-t:hover > b{color:var(--ps-ink)}
+.p-rail-l .p-tile.lt-t:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.p-rail-l .p-tile.lt-t:active{transform:scale(.97)}
+.lt-a{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--ps-stage) 55%,transparent);opacity:0;transition:opacity var(--ps-motion) var(--ps-ease)}
+.lt-a svg{width:22px;height:22px;padding:3px;border-radius:50%;box-sizing:border-box;fill:var(--ps-primary-i);background:var(--ps-primary)}
+.p-tile.lt-t:hover .lt-a,.p-tile.lt-t:focus-visible .lt-a{opacity:1}
+.lt-cr{position:relative}
+.lt-cs{font:400 9px/1.2 var(--ps-font)}
+.lt-x{position:absolute;top:2px;right:2px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:var(--ps-card);color:var(--ps-ink-2);cursor:pointer;z-index:1}
+.lt-x svg{width:14px;height:14px;fill:currentColor}
+.lt-hint{margin:10px 0 0;font:400 11.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.lt-hint code{font:500 11px/1 ui-monospace,Menlo,monospace;color:var(--ps-ink-2)}
+@media (prefers-reduced-motion:reduce){.ol-r,.ol-eye,.lt-a,.p-rail-l .p-tile.lt-t{transition:none}.p-rail-l .p-tile.lt-t:active{transform:none}}
 
 /* ── the Layout rail in words, each choice previewed on the canvas ── */
 .p-rail-r .lm{gap:0;padding-bottom:24px}
@@ -5299,7 +5324,6 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 
       <sc-if value="{{ shShowRec }}" hint-placeholder-val="{{ true }}">
        <aside class="p-home-side">
-        <sc-if value="{{ shShowPlan }}" hint-placeholder-val="{{ true }}"><div class="p-home-fig"><span class="p-home-hl" data-hl="riffle" aria-hidden="true"></span></div></sc-if>
         <div class="p-sec-l" style="padding-left:0">Pick up where you left off</div>
         <div class="rc">
           <sc-for list="{{ recentGroups }}" as="g" hint-placeholder-count="0">
@@ -6070,47 +6094,36 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
      ═════════════════════════════════════════════════════════════════════ -->
 
 <aside class="p-rail p-rail-l" data-open="{{ shPanelOnPalette }}">
-  <!-- THE LEFT RAIL IS AN OUTLINE OVER A LIBRARY (2026-10-29, /impeccable). The top half is the
-       ad you are looking at, in reading order — Top, then Bottom — each component drawn as the
-       skeleton of its shape beside its kind and its words; a click selects it, the eye hides it.
-       The lower half is what can be added, one line each, the same skeletons. -->
+  <!-- THE LEFT RAIL: LAYERS OVER A TILE GRID (2026-10-29, /impeccable). The top is the ad's
+       layers in reading order — drag a row to reorder it, between Top and Bottom too; Alt+arrows
+       step it; click selects; the eye hides it on this variant. It scrolls on its own. The foot
+       is a pinned grid of every component, each tile its own look over its name; click adds. -->
   <section class="ol" aria-label="On this ad">
     <div class="ol-h"><b>On this ad</b><s>{{ outlineCount }}</s></div>
-    <sc-if value="{{ outlineEmptyOn }}" hint-placeholder-val="{{ false }}"><p class="ol-empty">Nothing here yet. Add a component from the library below.</p></sc-if>
-    <sc-for list="{{ outline }}" as="og" hint-placeholder-count="2">
-      <div class="ol-g">
-        <div class="ol-gh">{{ og.name }}</div>
-        <sc-for list="{{ og.items }}" as="o" hint-placeholder-count="3">
-          <div class="ol-r" data-on="{{ o.on }}" data-hid="{{ o.hidOn }}">
-            <button class="ol-b" onClick="{{ o.pick }}" aria-pressed="{{ o.aria }}" title="{{ o.name }} — {{ o.snip }}"><span class="mk" aria-hidden="true"><sc-for list="{{ o.marks }}" as="mr" hint-placeholder-count="1"><span class="mk-r"><sc-for list="{{ mr.segs }}" as="sg" hint-placeholder-count="1"><i data-k="{{ sg.k }}" style="{{ sg.style }}"></i></sc-for></span></sc-for></span><span class="ol-t"><b>{{ o.name }}</b><s data-empty="{{ o.emptyOn }}">{{ o.snip }}</s></span></button>
-            <button class="ol-eye" onClick="{{ o.eye }}" title="{{ o.eyeTip }}" aria-label="{{ o.eyeTip }}"><svg class="ol-e1" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg><svg class="ol-e0" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg></button>
-          </div>
-        </sc-for>
-      </div>
-    </sc-for>
-  </section>
-  <section class="lb" aria-label="Add a component">
-    <div class="ol-h"><b>Add</b><s>click to place it at the bottom</s></div>
-    <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="4">
-      <div class="lb-g">
-        <div class="ol-gh">{{ cat.name }}</div>
-        <sc-for list="{{ cat.items }}" as="p" hint-placeholder-count="3">
-          <button onClick="{{ p.add }}" class="p-tile lb-r" title="{{ p.addTip }}"><span class="mk" aria-hidden="true"><sc-for list="{{ p.marks }}" as="mr" hint-placeholder-count="1"><span class="mk-r"><sc-for list="{{ mr.segs }}" as="sg" hint-placeholder-count="1"><i data-k="{{ sg.k }}" style="{{ sg.style }}"></i></sc-for></span></sc-for></span><b>{{ p.label }}</b><sc-if value="{{ p.countOn }}" hint-placeholder-val="{{ false }}"><s class="lb-k" title="On the canvas">{{ p.count }}</s></sc-if><span class="lb-a" aria-hidden="true"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span></button>
-        </sc-for>
-      </div>
-    </sc-for>
-    <div class="lb-g">
-      <div class="ol-gh">Custom</div>
-      <sc-for list="{{ custPal }}" as="p" hint-placeholder-count="0">
-        <div class="lb-cr">
-          <button onClick="{{ p.add }}" class="p-tile lb-r" title="{{ p.addTip }}"><span class="mk mk-c" aria-hidden="true">{{ p.sampleText }}</span><b>{{ p.label }}</b><span class="lb-a" aria-hidden="true"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span></button>
-          <sc-if value="{{ p.delOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.del }}" class="lb-x" title="Remove from the palette" aria-label="Remove from the palette"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if>
+    <div class="ol-list">
+      <sc-for list="{{ outline }}" as="og" hint-placeholder-count="2">
+        <div class="ol-g">
+          <div class="ol-gh">{{ og.name }}</div>
+          <sc-if value="{{ og.emptyOn }}" hint-placeholder-val="{{ false }}"><div class="ol-zone" data-cl="{{ og.cl }}">Nothing here · drag a component in</div></sc-if>
+          <sc-for list="{{ og.items }}" as="o" hint-placeholder-count="3">
+            <div class="ol-r" data-id="{{ o.id }}" data-cl="{{ o.cl }}" data-on="{{ o.on }}" data-hid="{{ o.hidOn }}">
+              <button class="ol-b" onClick="{{ o.pick }}" onPointerDown="{{ o.down }}" onKeyDown="{{ o.key }}" aria-pressed="{{ o.aria }}" title="{{ o.name }} — click to select, drag to move, Alt+arrows to step"><span class="mk" aria-hidden="true"><sc-for list="{{ o.marks }}" as="mr" hint-placeholder-count="1"><span class="mk-r"><sc-for list="{{ mr.segs }}" as="sg" hint-placeholder-count="1"><i data-k="{{ sg.k }}" style="{{ sg.style }}"></i></sc-for></span></sc-for></span><span class="ol-t"><b>{{ o.name }}</b><s data-empty="{{ o.emptyOn }}">{{ o.snip }}</s></span></button>
+              <button class="ol-eye" onClick="{{ o.eye }}" title="{{ o.eyeTip }}" aria-label="{{ o.eyeTip }}"><svg class="ol-e1" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg><svg class="ol-e0" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg></button>
+            </div>
+          </sc-for>
         </div>
       </sc-for>
-      <p class="lb-hint">From a screenshot: run <code>/cas-component</code> in Claude Code, then press ⌘V here.</p>
+      <i class="ol-ins" aria-hidden="true"></i>
     </div>
   </section>
-  <div class="p-foot">{{ railFoot }}</div>
+  <section class="lt" aria-label="Add a component">
+    <div class="ol-h"><b class="tip" data-tip="{{ railFoot }}">Add a component</b><s>goes to the bottom</s></div>
+    <div class="lt-grid">
+      <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="4"><sc-for list="{{ cat.items }}" as="p" hint-placeholder-count="3"><button onClick="{{ p.add }}" class="p-tile lt-t" title="{{ p.addTip }}"><span class="lt-sp"><span style="{{ p.tileStyle }}">{{ p.tileText }}</span><span class="lt-a" aria-hidden="true"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span></span><b>{{ p.short }}</b></button></sc-for></sc-for>
+      <sc-for list="{{ custPal }}" as="p" hint-placeholder-count="0"><div class="lt-cr"><button onClick="{{ p.add }}" class="p-tile lt-t" title="{{ p.addTip }}"><span class="lt-sp"><span class="lt-cs">{{ p.sampleText }}</span><span class="lt-a" aria-hidden="true"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span></span><b>{{ p.label }}</b></button><sc-if value="{{ p.delOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.del }}" class="lt-x" title="Remove from the palette" aria-label="Remove from the palette"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></div></sc-for>
+    </div>
+    <p class="lt-hint">From a screenshot: <code>/cas-component</code> in Claude Code, then ⌘V here.</p>
+  </section>
 </aside>
 
 <div class="p-stagecol">
@@ -12316,6 +12329,86 @@ class CampaignStudio extends StudioBase {
     }
     this.forceUpdate();
   }
+  // ── THE LAYERS LIST: drag a row to reorder, Alt+arrows to step (2026-10-29) ─────────────
+  // The list is the focused canvas's own reading order, so a move writes the record that
+  // canvas reads, through the canvas drag's own writer (canvasMove). Mouse and pen only; a
+  // press that travels under 4px is the click that selects. An empty Top or Bottom takes a
+  // drop as its only component.
+  olDropAt(box, id, cy) {
+    const rows = [...box.querySelectorAll('.ol-r[data-id]')].filter(r => r.getAttribute('data-id') !== id && r.getAttribute('data-cl') !== 'float');
+    const B = box.getBoundingClientRect();
+    for (const z of box.querySelectorAll('.ol-zone[data-cl]')) {
+      const r = z.getBoundingClientRect();
+      if (cy >= r.top - 4 && cy <= r.bottom + 4) return { tid: null, cl: z.getAttribute('data-cl'), y: r.top + r.height / 2 - B.top + box.scrollTop, x: r.left - B.left, w: r.width };
+    }
+    let best = null, bd = 1e9;
+    rows.forEach(r => { const q = r.getBoundingClientRect(), mid = q.top + q.height / 2, d = Math.abs(cy - mid); if (d < bd) { bd = d; best = { r, q, mid }; } });
+    if (!best) return null;
+    const after = cy > best.mid;
+    return { tid: best.r.getAttribute('data-id'), after, y: (after ? best.q.bottom : best.q.top) - B.top + box.scrollTop, x: best.q.left - B.left, w: best.q.width };
+  }
+  olDragStart(e, id) {
+    if (e.button !== 0 || e.pointerType === 'touch') return;
+    const row = e.currentTarget.closest('.ol-r'), box = row && row.closest('.ol-list');
+    if (!box || row.getAttribute('data-cl') === 'float') return;
+    const sx = e.clientX, sy = e.clientY;
+    let drag = false, at = null, raf = 0, lastY = sy;
+    const line = box.querySelector('.ol-ins');
+    const edge = () => {   // scroll the list while the pointer rests near its top or bottom edge
+      const B = box.getBoundingClientRect();
+      const d = lastY < B.top + 28 ? -6 : lastY > B.bottom - 28 ? 6 : 0;
+      if (d) { box.scrollTop += d; place(lastY); }
+      raf = drag ? requestAnimationFrame(edge) : 0;
+    };
+    const place = y => {
+      at = this.olDropAt(box, id, y);
+      if (line) { line.style.display = at ? 'block' : 'none'; if (at) { line.style.top = at.y + 'px'; line.style.left = at.x + 'px'; line.style.width = at.w + 'px'; } }
+    };
+    const move = ev => {
+      lastY = ev.clientY;
+      if (!drag && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 4) return;
+      if (!drag) { drag = true; row.setAttribute('data-drag', '1'); box.setAttribute('data-dragging', '1'); raf = requestAnimationFrame(edge); }
+      place(ev.clientY);
+    };
+    const end = ok => {
+      document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up);
+      document.removeEventListener('pointercancel', cancel); document.removeEventListener('keydown', esc, true);
+      cancelAnimationFrame(raf); row.removeAttribute('data-drag'); box.removeAttribute('data-dragging');
+      if (line) line.style.display = 'none';
+      if (!drag) return;
+      const swallow = ev => { ev.stopPropagation(); ev.preventDefault(); };
+      document.addEventListener('click', swallow, { capture: true, once: true });
+      setTimeout(() => document.removeEventListener('click', swallow, true), 0);
+      if (ok && at) this.upd(x => { const size = (x.sel && x.sel.size) || x.focusSz || 'sq';
+        CampaignStudio.canvasMove(x, x.activeVi, size, id, at.tid, at.after, at.cl); x.sel = { vi: x.activeVi, size, id }; return x; });
+    };
+    const up = () => end(true), cancel = () => end(false);
+    const esc = ev => { if (ev.key === 'Escape') { ev.stopPropagation(); end(false); } };
+    document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+    document.addEventListener('pointercancel', cancel); document.addEventListener('keydown', esc, true);
+  }
+  // Alt+Up / Alt+Down steps a component one place in reading order; at the seam between Top
+  // and Bottom it joins the other end rather than jumping past a neighbour.
+  olKey(e, id) {
+    if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault();
+    const up = e.key === 'ArrowUp';
+    this.upd(x => {
+      const vi = x.activeVi, size = (x.sel && x.sel.size) || x.focusSz || 'sq';
+      const vv = x.variants[vi] || x.variants[0], t = CampaignStudio.sizeOv(vv, size) || vv;
+      const cOf = m => (t.clusters || {})[m] || 'bottom';
+      const full = CampaignStudio.orderedFor(t, CampaignStudio.modulesFor(x, vi)).filter(m => !CampaignStudio.isFloatG(t, m)).map(m => m.id);
+      const read = full.filter(m => cOf(m) === 'top').concat(full.filter(m => cOf(m) !== 'top'));
+      const i = read.indexOf(id), j = i + (up ? -1 : 1);
+      if (i < 0) return x;
+      if (j < 0) { if (cOf(id) !== 'top') CampaignStudio.canvasMove(x, vi, size, id, null, false, 'top'); }
+      else if (j >= read.length) { if (cOf(id) === 'top') CampaignStudio.canvasMove(x, vi, size, id, null, false, 'bottom'); }
+      else { const nb = read[j], same = cOf(nb) === cOf(id); CampaignStudio.canvasMove(x, vi, size, id, nb, up ? !same : same, null); }
+      x.sel = { vi, size, id };
+      return x;
+    });
+    setTimeout(() => { const b = document.querySelector('.ol-r[data-id="' + id + '"] .ol-b'); if (b) b.focus(); }, 60);
+  }
   lmNote(text) {
     this._lmMsg = text;
     clearTimeout(this._lmMsgT);
@@ -15240,6 +15333,22 @@ class CampaignStudio extends StudioBase {
       graphic: ['SVG / PNG', { fontWeight: 400, fontSize: '10.5px', color: 'var(--ps-ink-2)', border: '1px dashed var(--ps-line)', borderRadius: '8px', padding: '4px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }],
       steps: ['① ② ③', { fontWeight: 400, fontSize: '13px', letterSpacing: '.08em', color: 'var(--ps-ink)' }]
     };
+    // THE ADD TILES' SPECIMENS: each component's own look, small enough for a third of the rail
+    const tileSp = {
+      eyebrow: ['LAUNCH', { font: '500 7.5px/1 var(--ps-font)', letterSpacing: '.16em' }],
+      hero: ['Skyline', { font: '400 14px/1 var(--ps-font)', letterSpacing: '-.01em' }],
+      hook: ['From 1.9M', { font: '300 11px/1 var(--ps-font)' }],
+      body: ['Easy plans', { font: '300 9px/1 var(--ps-font)', opacity: .8 }],
+      price: ['AED 2.6M', { font: '400 11.5px/1 var(--ps-font)' }],
+      spec: ['1BR · 40/60', { font: '300 9px/1 var(--ps-font)', fontVariantNumeric: 'tabular-nums' }],
+      tags: ['0% tax', { font: '400 8px/1 var(--ps-font)', padding: '3px 7px', borderRadius: '9999px', boxShadow: 'inset 0 0 0 1px currentColor' }],
+      list: ['• Furnished', { font: '300 8.5px/1 var(--ps-font)' }],
+      steps: ['1 · 2 · 3', { font: '400 9.5px/1 var(--ps-font)', letterSpacing: '.04em' }],
+      cta: ['Register', { font: '500 8px/1 var(--ps-font)', padding: '4px 9px', borderRadius: '9999px', background: 'var(--ps-ink)', color: 'var(--ps-stage)' }],
+      graphic: ['SVG', { font: '500 8px/1 var(--ps-font)', padding: '5px 8px', borderRadius: '3px', boxShadow: 'inset 0 0 0 1px currentColor', opacity: .85 }],
+      divider: ['', { display: 'block', width: '60%', height: '1px', background: 'currentColor', opacity: .8 }],
+      spacer: ['gap', { font: '400 8px/1 var(--ps-font)', padding: '4px 10px', borderRadius: '4px', border: '1px dashed currentColor', opacity: .85 }]
+    };
     const mkAdd = type => () => this.upd(x => { const id = CampaignStudio.freshId(); CampaignStudio.modList(x, x.activeVi).push(Object.assign({ id, type }, JSON.parse(JSON.stringify(addDefaults[type])))); x.sel = { vi: x.activeVi, size: 'sq', id }; return x; });
     // `count` is what is already on the canvas for this type — the state the palette
     // never reported. `list` is the ordered, unhidden module list for the active variant,
@@ -15248,7 +15357,8 @@ class CampaignStudio extends StudioBase {
     // would render as the string "false" and match [data-…] / sc-if.
     const item = type => {
       const n = list.filter(m => m.type === type).length;
-      return { type, label: labels[type][0], desc: labels[type][1], add: mkAdd(type),
+      const TL = { eyebrow: 'Eyebrow', hero: 'Headline', hook: 'Hook', body: 'Body', price: 'Price', spec: 'Key facts', tags: 'Tags', list: 'Bullets', steps: 'Steps', cta: 'Button', graphic: 'Graphic', divider: 'Divider', spacer: 'Spacer' };
+      return { type, short: TL[type] || labels[type][0], tileText: (tileSp[type] || [''])[0], tileStyle: (tileSp[type] || ['', {}])[1], label: labels[type][0], desc: labels[type][1], add: mkAdd(type),
                sampleText: samples[type][0], sampleStyle: samples[type][1],
                count: n, countOn: n ? '1' : undefined,
                addTip: labels[type][0] + ' — ' + labels[type][1] + '. ' + (n ? 'Click to add another; ' + n + ' already on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + '.' : 'Click to add it to the canvas.') };
@@ -15443,7 +15553,8 @@ class CampaignStudio extends StudioBase {
       return {
         id: m.id, name, snip: snipOf(m) || 'Empty', emptyOn: snipOf(m) ? undefined : '1',
         marks: markOf(m.type, 1), on: on ? '1' : undefined, hidOn: hid ? '1' : undefined,
-        aria: on ? 'true' : 'false',
+        aria: on ? 'true' : 'false', cl: olFl(m) ? 'float' : olCl(m) === 'top' ? 'top' : 'bottom',
+        down: e => this.olDragStart(e, m.id), key: e => this.olKey(e, m.id),
         pick: () => this.upd(x => { x.sel = { vi: x.activeVi, size: (x.sel && x.sel.size) || x.focusSz || 'sq', id: m.id }; return x; }),
         eyeTip: hid ? 'Show ' + name + ' on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') : 'Hide ' + name + ' on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant'),
         eye: e => { if (e) e.stopPropagation(); this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; vv.hidden = vv.hidden || {};
@@ -15453,11 +15564,13 @@ class CampaignStudio extends StudioBase {
     const olOrd = CampaignStudio.orderedFor(olR, list);
     const olCl = m => ((olR.clusters || {})[m.id]) || 'bottom';
     const olFl = m => CampaignStudio.isFloatG(olR, m);
+    // Top and Bottom are always listed — an empty one is where a drag drops to move a
+    // component there; Floating only when something floats.
     const outline = [
-      { name: 'Top', items: olOrd.filter(m => !olFl(m) && olCl(m) === 'top').map(olRow) },
-      { name: 'Bottom', items: olOrd.filter(m => !olFl(m) && olCl(m) !== 'top').map(olRow) },
-      { name: 'Floating', items: olOrd.filter(olFl).map(olRow) }
-    ].filter(g => g.items.length);
+      { name: 'Top', cl: 'top', items: olOrd.filter(m => !olFl(m) && olCl(m) === 'top').map(olRow) },
+      { name: 'Bottom', cl: 'bottom', items: olOrd.filter(m => !olFl(m) && olCl(m) !== 'top').map(olRow) },
+      { name: 'Floating', cl: 'float', items: olOrd.filter(olFl).map(olRow) }
+    ].filter(g => g.items.length || g.cl !== 'float').map(g => Object.assign(g, { emptyOn: g.items.length ? undefined : '1' }));
     const olN = olOrd.length;
 
     // THE LAYOUT RAIL IN WORDS, PREVIEWED ON THE CANVAS (2026-10-29, direction A, chosen over
