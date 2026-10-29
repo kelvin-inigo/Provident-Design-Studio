@@ -4904,37 +4904,63 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .adt-reply .adt-ch h3{margin:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink-2)}
 .adt-msg{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:12px 14px;border-radius:12px;background:var(--ps-good-q);font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink)}
 .cw-pv-n{font-size:12.5px;color:var(--ps-dim)}
-/* 61. THE AD SET FLOW IN THE TOP BAR (2026-10-29). One capsule beside Ad set | Design: this
-   audience's four steps as segments, the step it is on and where (Local · Family · EN), then the
-   designer's one action as a solid button. The current segment takes the state: with the
-   designer (link), with the content team (amber), done (green). It replaced the canvas bar's
-   button, which sat under the stage and was missed. */
-.p-flow{display:flex;align-items:center;gap:4px;height:36px;box-sizing:border-box;padding:0 3px 0 0;border-radius:var(--ps-pill);box-shadow:inset 0 0 0 1px var(--ps-line);flex:0 1 auto;min-width:0}
-.p-flow-at{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px 0 14px;border:none;border-radius:var(--ps-pill);background:none;color:var(--ps-ink);cursor:pointer;min-width:0;font-family:var(--ps-font)}
-.p-flow-at:hover{background:var(--ps-fill)}
-.p-flow-segs{display:flex;align-items:center;gap:3px;flex:none}
-.p-flow-segs i{display:block;width:12px;height:4px;border-radius:9999px;background:var(--ps-line)}
-.p-flow-segs i[data-s="done"]{background:var(--ps-good)}
-.p-flow-segs i[data-s="cur"]{background:var(--ps-link)}
-.p-flow[data-state="ct"] .p-flow-segs i[data-s="cur"]{background:var(--ps-warn)}
-.p-flow-t{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}
-.p-flow-t b{font:600 13.5px/1 var(--ps-font);letter-spacing:.01em}
-.p-flow-t s{text-decoration:none;font:400 12.5px/1 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis}
-.p-flow[data-state="none"] .p-flow-t b,.p-flow[data-state="find"] .p-flow-t b{font-weight:500;color:var(--ps-ink-2)}
-.p-flow[data-state="find"] .p-flow-segs::before{content:'';width:12px;height:12px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ps-line);border-top-color:var(--ps-link);animation:p-flow-spin .8s linear infinite}
-@keyframes p-flow-spin{to{transform:rotate(360deg)}}
-.p-flow-go{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 14px;border:none;border-radius:var(--ps-pill);background:var(--ps-primary);color:var(--ps-primary-i);font:600 13.5px/1 var(--ps-font);letter-spacing:.01em;white-space:nowrap;cursor:pointer;flex:none}
-.p-flow-go:hover{background:var(--ps-primary-h)}
-.p-flow-gi{width:16px;height:16px;fill:currentColor}
-.p-flow-at:focus-visible,.p-flow-go:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){.p-flow[data-state="find"] .p-flow-segs::before{animation:none}}
-/* the step name never shrinks; the place (Local · Family · EN) gives way first */
-.p-flow-t b{flex:none}
-/* in a campaign the flow outranks the studio switcher, which stays in the home page's sidebar:
-   below 1600px the switcher leaves the editor's bar, and below 1360px the place goes too */
-@media (max-width:1599px){.p-top:has(.p-flow) > .p-seg:not(.p-seg-mode){display:none}}
-@media (max-width:1360px){.p-flow-t s{display:none}}
-@media (max-width:760px){.p-flow{order:6;flex:1 1 100%;justify-content:space-between}.p-flow-go{margin-left:auto}}
+
+/* ── 60. HOME: THE BRIEF SHEET BESIDE WHAT TO PICK UP (2026-10-29) ── */
+.p-home{display:block}
+.p-home:has(.p-home-main){display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:48px;align-items:start;max-width:1240px}
+.p-home-main{min-width:0}
+.p-home-side{min-width:0}
+.p-home:has(.p-home-main) .p-home-side{position:sticky;top:24px}
+.p-home-fig{display:flex;justify-content:center;margin:0 0 24px;padding:20px 12px 8px;border-radius:18px;background:var(--ps-card-h);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.p-home-hl{display:block;width:100%;max-width:300px;aspect-ratio:400/320;
+  --hairline-plate:var(--ps-fill);--hairline-hi:var(--ps-ink);--hairline-edge:var(--ps-ink-2);--hairline-mid:var(--ps-ink-2);--hairline-lo:var(--ps-dim);--hairline-stroke:1}
+.p-home-fig:hover .p-home-hl{--hairline-hi:var(--ps-link)}
+.p-home:has(.p-home-main) .p-home-side .p-grid2{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}
+.p-home-side .p-sec-l{margin-top:0}
+@media (max-width:1180px){
+  .p-home:has(.p-home-main){grid-template-columns:minmax(0,1fr)}
+  .p-home:has(.p-home-main) .p-home-side{position:static}
+  .p-home-fig{display:none}
+  .p-home:has(.p-home-main) .p-home-side .p-grid2{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+}
+
+
+
+/* 65. RECENTS GROUPED BY CAMPAIGN (2026-10-29, /impeccable). The campaign is the group's heading,
+   once; a card names only the audience, the market and the language, then when it was saved and
+   how many variants it holds. Several variants show as plates stacked behind the render, which
+   replaced the "2V" badge. Every card reserves the plates' 8px so rows line up. */
+.rc{display:flex;flex-direction:column;gap:36px}
+.rc-g{display:flex;flex-direction:column;gap:16px}
+.rc-g + .rc-g{padding-top:32px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+.rc-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
+.rc-hn{margin:0;font-size:18px;font-weight:500;line-height:1.3;letter-spacing:-.01em;color:var(--ps-ink)}
+.rc-hm{font-size:12.5px;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rc-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:24px 20px}
+.rc-c{gap:0;min-width:0}
+.rc-f{position:relative;display:block;padding-top:8px;margin-bottom:12px}
+.rc-c .p-c-p{display:block;z-index:1;border-radius:12px}
+.rc-t,.rc-s{display:block}
+.rc-s{min-height:1.35em}
+.rc-c[data-stack] .rc-f::before,.rc-c[data-stack="2"] .rc-f::after{content:"";position:absolute;left:6%;right:6%;top:4px;height:40px;border-radius:12px;
+  background:var(--ps-fill-h);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rc-c[data-stack="2"] .rc-f::before{left:12%;right:12%;top:0}
+.rc-c[data-stack="2"] .rc-f::after{left:6%;right:6%;top:4px}
+.rc-t{font-size:14.5px;font-weight:500;line-height:1.3;color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-s{margin-top:2px;font-size:12.5px;line-height:1.35;color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-m{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rc-m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-w{flex:none}
+.rc-c:hover .p-c-p,.rc-c:focus-visible .p-c-p{box-shadow:0 0 0 2px var(--ps-link)}
+.rc-c:hover .rc-t{color:var(--ps-ink)}
+.rc-c:focus-visible{outline:none}
+.p-home:has(.p-home-main) .p-home-side .rc-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px}
+.p-home:has(.p-home-main) .p-home-side .rc{gap:28px}
+.p-home:has(.p-home-main) .p-home-side .rc-hn{font-size:15px}
+.p-home:has(.p-home-main) .p-home-side .rc-m{flex-direction:column;gap:2px}
+.p-home:not(:has(.p-home-main)) .p-home-side > .p-sec-l{display:none}
+@media (max-width:1180px){ .p-home:has(.p-home-main) .p-home-side .rc-row{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))} }
+@media (max-width:760px){ .rc-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px} .rc-hn{font-size:16px} .rc-m{flex-direction:column;gap:2px} }
 
 /* 62. THE HOME SIDEBAR (2026-10-29): lockup, studios, one nav list, session pinned to the foot */
 .p-br-sb{gap:0;padding:20px 14px 16px}
@@ -4967,6 +4993,217 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .p-sbc:focus-visible,.p-sbo:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 @media (max-width:760px){.p-sbw,.p-sbn-sep{display:none}.p-sbn{flex-direction:row;flex-wrap:wrap;gap:8px;margin:0;padding:0;border:none}.p-sbn .p-nav2{width:auto}.p-sbf{flex-direction:row;flex-wrap:wrap;margin:0;padding:0}.p-sbc{width:auto;flex:1 1 220px}}
 @media (prefers-reduced-motion:reduce){.p-sbc,.p-sbc-go{transition:none}}
+
+/* ── 63. THE RAILS AND THE BARS, REDESIGNED (2026-10-29, /impeccable) ──────────────────────
+   Four surfaces, one rule: each control says what it is by its shape, and only one thing in
+   view is solid.
+   · THE LAYOUT RAIL IS AN INSPECTOR. A property is one row: name (and its value under it) on
+     the left, one 36px track on the right. Seven sections in three vocabularies became two
+     groups. The help that sat in five i discs is the name's own tooltip (.tip).
+   · THE PALETTE IS A SPECIMEN GRID, two up, the group boxes gone.
+   · THE TOP BAR HAS ONE SOLID BUTTON: the designer's next step in the flow, or Share when there
+     is none. The studio switcher and Ad set | Design are navigation, so their ON half is the
+     quiet resting fill, not navy; Preview is a ghost; Share an outline.
+   · THE CANVAS BAR STOPS REPEATING THE FLOW. Its ad set chip said the audience's step while the
+     top bar said the project's ("Translation" against "Arabic layout"); it is now the plain
+     Ad set overview button, and the step lives in one place. */
+
+/* ── the top bar's flow, restored: an uncommitted edit had dropped section 61 and the flow's
+   arrow drew at its intrinsic 960px ── */
+.p-flow{display:flex;align-items:center;gap:4px;height:36px;box-sizing:border-box;padding:0 3px 0 0;border-radius:var(--ps-pill);background:var(--ps-fill);flex:0 1 auto;min-width:0}
+.p-flow-at{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px 0 14px;border:none;border-radius:var(--ps-pill);background:none;color:var(--ps-ink);cursor:pointer;min-width:0;font-family:var(--ps-font)}
+.p-flow-at:hover{background:var(--ps-fill-h)}
+.p-flow-segs{display:flex;align-items:center;gap:3px;flex:none}
+.p-flow-segs i{display:block;width:12px;height:4px;border-radius:9999px;background:var(--ps-line)}
+.p-flow-segs i[data-s="done"]{background:var(--ps-good)}
+.p-flow-segs i[data-s="cur"]{background:var(--ps-link)}
+.p-flow[data-state="ct"] .p-flow-segs i[data-s="cur"]{background:var(--ps-warn)}
+.p-flow-t{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}
+.p-flow-t b{flex:none;font:600 13.5px/1 var(--ps-font);letter-spacing:.01em}
+.p-flow-t s{text-decoration:none;font:400 12.5px/1 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis}
+.p-flow[data-state="none"] .p-flow-t b,.p-flow[data-state="find"] .p-flow-t b{font-weight:500;color:var(--ps-ink-2)}
+.p-flow[data-state="find"] .p-flow-segs::before{content:'';width:12px;height:12px;box-sizing:border-box;border-radius:50%;border:2px solid var(--ps-line);border-top-color:var(--ps-link);animation:p-flow-spin .8s linear infinite}
+@keyframes p-flow-spin{to{transform:rotate(360deg)}}
+.p-flow-go{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 14px;border:none;border-radius:var(--ps-pill);background:var(--ps-primary);color:var(--ps-primary-i);font:600 13.5px/1 var(--ps-font);letter-spacing:.01em;white-space:nowrap;cursor:pointer;flex:none}
+.p-flow-go:hover{background:var(--ps-primary-h)}
+.p-flow-gi{width:16px;height:16px;fill:currentColor;flex:none}
+.p-flow-at:focus-visible,.p-flow-go:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.p-flow[data-state="find"] .p-flow-segs::before{animation:none}}
+@media (max-width:1599px){.p-top:has(.p-flow) > .p-seg:not(.p-seg-mode){display:none}}
+@media (max-width:1360px){.p-flow-t s{display:none}}
+/* the step name never clips: the flow keeps its own width, and Preview gives up its word first */
+.p-flow-at{flex:none}
+@media (max-width:1360px){.p-top .p-prev{width:36px;padding:0;gap:0;justify-content:center;font-size:0}}
+@media (max-width:760px){.p-flow{order:6;flex:1 1 100%;justify-content:space-between}.p-flow-go{margin-left:auto}}
+
+/* ── the top bar: navigation is quiet, Preview a ghost, Share an outline, one solid ── */
+.p-top .p-seg button[data-on],.p-top .p-seg button[data-on]:hover{background:var(--ps-fill-h);color:var(--ps-ink);box-shadow:none}
+:root[data-theme="light"] .p-top .p-seg button[data-on]{background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-hair)}
+.p-top .p-seg button:not([data-on]){color:var(--ps-ink-2)}
+.p-top .p-seg button:not([data-on]):hover{color:var(--ps-ink);background:none}
+.p-top .p-prev,.p-top .p-prev[data-on]{background:transparent;color:var(--ps-ink);box-shadow:none}
+.p-top .p-prev:hover,.p-top .p-prev[data-on]{background:var(--ps-fill);color:var(--ps-ink)}
+.p-top .p-share > .p-ghost{background:transparent;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-top .p-share > .p-ghost:hover,.p-top .p-share > .p-ghost[data-on]{background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-top:not(:has(.p-flow-go)) .p-share > .p-ghost{background:var(--ps-primary);color:var(--ps-primary-i);box-shadow:none}
+.p-top:not(:has(.p-flow-go)) .p-share > .p-ghost:hover,.p-top:not(:has(.p-flow-go)) .p-share > .p-ghost[data-on]{background:var(--ps-primary-h);color:var(--ps-primary-i);box-shadow:none}
+
+/* ── the canvas bar's overview button ── */
+.p-cvov::before{content:none}
+.p-cvov{gap:6px;padding:0 12px 0 10px;background:transparent;color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.p-cvov:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.p-cvov svg{width:15px;height:15px;fill:currentColor;flex:none}
+.p-cvov:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+
+/* 64. THE OUTLINE, THE LIBRARY AND THE LAYOUT MAP (2026-10-29, /impeccable) — replaces the
+   two-up specimen grid and the inspector rows of the pass before it.
+
+   ONE MARK VOCABULARY. A component is drawn as the skeleton of its own shape (.mk: rows of
+   bars, pills, dots), so the left rail's outline, its library and the right rail's map of the
+   canvas show the same objects. Marks are currentColor; their segments carry data-k. */
+.mk{display:flex;flex-direction:column;justify-content:center;gap:2px;flex:none;width:38px;height:28px;padding:0 6px;box-sizing:border-box;border-radius:7px;background:var(--ps-stage);color:var(--ps-ink-2)}
+:root[data-theme="light"] .mk{background:var(--ps-fill-h)}
+.mk-r{display:flex;align-items:center;gap:2px;min-width:0}
+.mk-r > i,.lm-c .mk-r > i{display:block;flex:none;min-width:2px;border-radius:9999px;background:currentColor;box-sizing:border-box}
+.mk-r > i[data-k="pill"]{background:none;box-shadow:inset 0 0 0 1px currentColor}
+.mk-r > i[data-k="dot"]{background:none;box-shadow:inset 0 0 0 1px currentColor;border-radius:50%}
+.mk-r > i[data-k="box"]{background:none;border:1px dashed currentColor;border-radius:2px}
+.mk-r > i[data-k="line"]{border-radius:0}
+.mk-r > i[data-k="dash"]{background:none;border:1px dashed currentColor;border-radius:3px}
+.mk-c{align-items:center;font:500 9px/1 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+/* ── the left rail: what is on the ad, over what can be added ── */
+.p-rail-l{gap:0}
+.ol,.lb{display:flex;flex-direction:column}
+.lb{margin:18px calc(-1 * 16px) 0;padding:16px 16px 0;border-top:1px solid var(--ps-hair)}
+.ol-h{display:flex;align-items:baseline;gap:8px;margin:0 0 10px}
+.ol-h b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.ol-h s{min-width:0;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ol-gh{margin:10px 0 4px;font:500 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.ol-g:first-of-type .ol-gh,.lb-g:first-of-type .ol-gh{margin-top:0}
+.ol-empty{margin:0;padding:14px 12px;border-radius:10px;background:var(--ps-fill);font:400 12px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.ol-r{position:relative;display:flex;align-items:center;border-radius:10px;transition:background-color var(--ps-motion) var(--ps-ease)}
+.ol-r:hover{background:var(--ps-fill)}
+.ol-r[data-on],.ol-r[data-on]:hover{background:var(--ps-accent)}
+.ol-b{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:5px 34px 5px 5px;border:0;border-radius:10px;background:none;color:inherit;text-align:left;cursor:pointer}
+.ol-b:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.ol-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ol-t b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ol-t s{text-decoration:none;font:400 11.5px/1.25 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ol-t s[data-empty]{font-style:italic;color:var(--ps-dim)}
+.ol-r[data-on] .ol-t b,.ol-r[data-on] .ol-t s{color:var(--ps-accent-i)}
+.ol-r[data-on] .mk{background:var(--ps-stage);color:var(--ps-ink)}
+:root[data-theme="light"] .ol-r[data-on] .mk{background:var(--ps-card);color:var(--ps-ink)}
+.ol-r[data-hid] .ol-t b{color:var(--ps-dim);text-decoration:line-through;text-decoration-color:var(--ps-line)}
+.ol-r[data-hid] .ol-t s{color:var(--ps-dim)}
+.ol-r[data-hid] .mk{color:var(--ps-dim);background:none;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.ol-eye{position:absolute;right:5px;top:50%;display:flex;align-items:center;justify-content:center;width:26px;height:26px;margin-top:-13px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-ink-2);cursor:pointer;opacity:0;transition:opacity var(--ps-motion) var(--ps-ease),background-color var(--ps-motion) var(--ps-ease)}
+.ol-eye svg{width:16px;height:16px;fill:currentColor}
+.ol-eye .ol-e0{display:none}
+.ol-r[data-hid] .ol-eye .ol-e0{display:block}
+.ol-r[data-hid] .ol-eye .ol-e1{display:none}
+.ol-r:hover .ol-eye,.ol-r:focus-within .ol-eye,.ol-r[data-hid] .ol-eye{opacity:1}
+.ol-eye:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.ol-eye:focus-visible{opacity:1;outline:2px solid var(--ps-ink);outline-offset:1px}
+.ol-r[data-on] .ol-eye{color:var(--ps-accent-i)}
+@media (hover:none){.ol-eye{opacity:1}}
+
+.lb-g + .lb-g{margin-top:14px}
+.p-rail-l .p-tile.lb-r{display:flex;flex-direction:row;align-items:center;gap:10px;width:100%;min-width:0;margin:0;padding:3px 6px 3px 3px;box-sizing:border-box;border:0;border-radius:10px;background:none;box-shadow:none;text-align:left;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-rail-l .p-tile.lb-r + .p-tile.lb-r{margin-top:1px}
+.p-rail-l .p-tile.lb-r .mk{width:34px;height:24px;padding:0 5px}
+.p-rail-l .p-tile.lb-r > b{flex:1;min-width:0;font:400 13px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-rail-l .p-tile.lb-r:hover{background:var(--ps-fill)}
+.p-rail-l .p-tile.lb-r:hover > b{color:var(--ps-ink)}
+.p-rail-l .p-tile.lb-r:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.p-rail-l .p-tile.lb-r:active{transform:scale(.99)}
+.lb-k{flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--ps-fill-h);text-decoration:none;font:500 11px/18px var(--ps-font);text-align:center;color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.lb-a{display:flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;border-radius:50%;color:var(--ps-dim);transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.lb-a svg{width:16px;height:16px;fill:currentColor}
+.p-tile.lb-r:hover .lb-a,.p-tile.lb-r:focus-visible .lb-a{background:var(--ps-primary);color:var(--ps-primary-i)}
+.lb-cr{position:relative}
+.lb-cr .p-tile.lb-r{padding-right:36px}
+.lb-cr .lb-a{position:absolute;right:6px;top:50%;margin-top:-11px}
+.lb-x{position:absolute;right:34px;top:50%;display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin-top:-11px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-dim);cursor:pointer}
+.lb-x svg{width:14px;height:14px;fill:currentColor}
+.lb-x:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.lb-hint{margin:6px 0 0;font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
+.lb-hint code{font:500 11px/1 ui-monospace,Menlo,monospace;color:var(--ps-ink-2)}
+.p-rail-l .p-foot{margin-top:16px}
+@media (prefers-reduced-motion:reduce){.ol-r,.ol-eye,.lb-a,.p-rail-l .p-tile.lb-r{transition:none}.p-rail-l .p-tile.lb-r:active{transform:none}}
+
+/* ── the Layout rail in words, each choice previewed on the canvas ── */
+.p-rail-r .lm{gap:0;padding-bottom:24px}
+.lm-h{display:flex;align-items:baseline;gap:8px;margin:0 0 6px}
+.lm-h b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.lm-h s{min-width:0;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lw{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.lw-h{display:flex;align-items:baseline;gap:8px;margin:0 0 4px;font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.lw-h .tip{width:fit-content}
+.lw-h s{text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.lw-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 6px}
+.lw-o{display:flex;align-items:center;gap:10px;width:100%;min-width:0;height:36px;padding:0 10px;box-sizing:border-box;border:0;border-radius:10px;background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);text-align:left;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.lw-o:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.lw-o[data-on],.lw-o[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i)}
+.lw-o:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.lw-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lw-k{flex:none;width:16px;height:16px;fill:currentColor;opacity:0}
+.lw-o[data-on] .lw-k{opacity:1}
+.lw-2 .lw-k{display:none}
+.lw-2 .lw-o{gap:8px;padding:0 8px}
+/* the glyph is a tiny canvas with the marks where that choice puts things */
+.lw-gl{position:relative;flex:none;width:15px;height:19px;border-radius:3px;box-shadow:inset 0 0 0 1.25px currentColor}
+.lw-gl i{position:absolute;display:none;left:3px;right:3px;height:2px;border-radius:2px;background:currentColor}
+.lw-o[data-g="top"] .lw-gl i:nth-child(1){display:block;top:3.5px}
+.lw-o[data-g="top"] .lw-gl i:nth-child(2){display:block;top:7px;right:6px}
+.lw-o[data-g="split"] .lw-gl i:nth-child(1){display:block;top:3.5px}
+.lw-o[data-g="split"] .lw-gl i:nth-child(2){display:block;bottom:3.5px;right:6px}
+.lw-o[data-g="bottom"] .lw-gl i:nth-child(1){display:block;bottom:7px}
+.lw-o[data-g="bottom"] .lw-gl i:nth-child(2){display:block;bottom:3.5px;right:6px}
+.lw-o[data-g^="top-"] .lw-gl i:nth-child(3){display:block;top:3.5px}
+.lw-o[data-g^="bottom-"] .lw-gl i:nth-child(3){display:block;bottom:3.5px}
+.lw-o[data-g$="-left"] .lw-gl i:nth-child(3){right:7px}
+.lw-o[data-g$="-center"] .lw-gl i:nth-child(3){left:4.5px;right:4.5px}
+/* the canvas being previewed: outlined, and named in a chip */
+[data-lmk][data-preview]::after{content:"";position:absolute;inset:0;z-index:60;pointer-events:none;box-shadow:inset 0 0 0 calc(3px / var(--z,1)) #FFFFFF,inset 0 0 0 calc(5px / var(--z,1)) #2053D0}
+.p-plate:has([data-lmk][data-preview]) .p-plate-h::after{content:"Preview";margin-left:8px;padding:2px 8px;border-radius:9999px;background:#2053D0;color:#FFFFFF;font:600 11px/1.4 var(--ps-font)}
+.lm-cap{margin:10px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.lm-cap span[data-over]{color:var(--ps-warn)}
+.lm-cap:empty{display:none}
+.lm-msg{display:flex;align-items:center;gap:10px;margin:10px 0 0;padding:8px 8px 8px 12px;border-radius:10px;background:var(--ps-fill);font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink)}
+.lm-msg span{flex:1;min-width:0}
+.lm-msg button{flex:none;height:28px;padding:0 12px;border:0;border-radius:9999px;background:var(--ps-primary);color:var(--ps-primary-i);font:600 12.5px/1 var(--ps-font);cursor:pointer}
+.lm-msg button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.lm-rows{margin:16px calc(-1 * var(--ps-secpad)) 0;border-top:1px solid var(--ps-hair)}
+.lm-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:52px;padding:8px var(--ps-secpad);box-sizing:border-box;border-bottom:1px solid var(--ps-hair)}
+.lm-l{display:flex;flex-direction:column;gap:3px;min-width:0;font:500 13px/1.2 var(--ps-font);color:var(--ps-ink)}
+.lm-l > s,.lm-l s{text-decoration:none;font:400 11.5px/1.2 var(--ps-font);color:var(--ps-dim)}
+.lm-l .tip{width:fit-content}
+.lm .p-tri{flex:none;width:186px;height:34px}
+.lm .p-tri-w{left:3px;right:3px;top:3px;bottom:3px}
+.lm-seg{display:flex;flex:none;gap:2px;width:186px;padding:3px;box-sizing:border-box;border-radius:9999px;background:var(--ps-fill)}
+.lm-seg > button{display:flex;flex:1;align-items:center;justify-content:center;min-width:0;height:28px;padding:0 4px;border:0;border-radius:9999px;background:none;color:var(--ps-ink-2);font:500 12.5px/1 var(--ps-font);white-space:nowrap;cursor:pointer}
+.lm-seg > button:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.lm-seg > button[data-on],.lm-seg > button[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i)}
+.lm-seg > button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.lm-f{border-bottom:1px solid var(--ps-hair)}
+.lm-f > summary.lm-row{list-style:none;cursor:pointer;border-bottom:0}
+.lm-f > summary.lm-row::-webkit-details-marker{display:none}
+.lm-f > summary.lm-row:hover{background:var(--ps-fill)}
+.lm-f > summary.lm-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
+.lm-v{display:flex;align-items:center;gap:8px;min-width:0;font:400 12.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.lm-vt{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-v .p-acc-c{flex:none;width:16px;height:16px;color:var(--ps-dim);transition:transform var(--ps-motion) var(--ps-ease)}
+.lm-f:not([open]) .lm-v .p-acc-c{transform:rotate(-90deg)}
+.lm-f[open] > summary .lm-v{color:var(--ps-ink)}
+.lm-b{display:flex;flex-direction:column;gap:10px;padding:2px var(--ps-secpad) 16px}
+.lm .p-scale{grid-template-columns:44px minmax(0,1fr) 40px 28px;gap:8px}
+.lm .p-scale-n{font:500 12px/1 var(--ps-font);letter-spacing:0;color:var(--ps-ink-2)}
+.lm .p-scale-v{font:400 12px/1 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.lm-v .p-acc-c{transition:none}}
+
+
+
 </style>
 </helmet>
 
@@ -5053,32 +5290,48 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
       <!-- CAMPAIGN SETUP: the ad set (markets, audiences, Arabic, the Drive folder) is defined
            here, before the first design. share-link.js fills this host itself (plain DOM,
            never reconciled) — see PlanView. It replaced the preloaded templates. -->
+      <!-- HOME IS TWO COLUMNS (2026-10-29): the brief sheet, and beside it the Hairline figure over
+           the projects to pick up. The figure's span stays EMPTY in markup (hlBind draws into it). -->
+      <div class="p-home">
       <sc-if value="{{ shShowPlan }}" hint-placeholder-val="{{ true }}">
-        <div class="rsp-host" data-rs-plan="1"></div>
+        <div class="p-home-main"><div class="rsp-host" data-rs-plan="1"></div></div>
       </sc-if>
 
       <sc-if value="{{ shShowRec }}" hint-placeholder-val="{{ true }}">
-        <div class="p-sec-l" style="padding-left:0">Recent projects</div>
-        <div class="p-grid2">
-          <sc-for list="{{ recentsView }}" as="r" hint-placeholder-count="0">
-            <button onClick="{{ r.load }}" class="p-c">
-              <span class="p-c-p" style="{{ cardMini }}">
-                <sc-if value="{{ r.hasThumbs }}" hint-placeholder-val="{{ false }}">
-                  <span class="p-c-shot" style="{{ r.master }}"></span>
-                  <sc-if value="{{ r.hasMore }}" hint-placeholder-val="{{ false }}">
-                    <span class="p-c-vars"><span class="p-c-reel" style="{{ r.reelStyle }}"><sc-for list="{{ r.frames }}" as="th" hint-placeholder-count="3"><span style="{{ th.shot }}"></span></sc-for></span></span>
-                    <span class="p-c-hint">{{ r.moreLabel }}</span>
-                  </sc-if>
-                </sc-if>
-                <span class="p-c-b">{{ r.badge }}</span>
-              </span>
-              <span class="p-c-n">{{ r.name }}</span>
-              <span class="p-c-m">{{ r.meta }}</span>
-            </button>
+       <aside class="p-home-side">
+        <sc-if value="{{ shShowPlan }}" hint-placeholder-val="{{ true }}"><div class="p-home-fig"><span class="p-home-hl" data-hl="riffle" aria-hidden="true"></span></div></sc-if>
+        <div class="p-sec-l" style="padding-left:0">Pick up where you left off</div>
+        <div class="rc">
+          <sc-for list="{{ recentGroups }}" as="g" hint-placeholder-count="0">
+            <section class="rc-g">
+              <header class="rc-h"><h3 class="rc-hn">{{ g.name }}</h3><span class="rc-hm">{{ g.meta }}</span></header>
+              <div class="rc-row">
+                <sc-for list="{{ g.items }}" as="r" hint-placeholder-count="2">
+                  <button onClick="{{ r.load }}" class="p-c rc-c" title="{{ r.full }}" data-stack="{{ r.stack }}">
+                    <span class="rc-f">
+                      <span class="p-c-p" style="{{ cardMini }}">
+                        <sc-if value="{{ r.hasThumbs }}" hint-placeholder-val="{{ false }}">
+                          <span class="p-c-shot" style="{{ r.master }}"></span>
+                          <sc-if value="{{ r.hasMore }}" hint-placeholder-val="{{ false }}">
+                            <span class="p-c-vars"><span class="p-c-reel" style="{{ r.reelStyle }}"><sc-for list="{{ r.frames }}" as="th" hint-placeholder-count="3"><span style="{{ th.shot }}"></span></sc-for></span></span>
+                            <span class="p-c-hint">{{ r.moreLabel }}</span>
+                          </sc-if>
+                        </sc-if>
+                      </span>
+                    </span>
+                    <span class="rc-t">{{ r.title }}</span>
+                    <span class="rc-s">{{ r.sub }}</span>
+                    <span class="rc-m"><span>{{ r.when }}</span><span class="rc-w">{{ r.what }}</span></span>
+                  </button>
+                </sc-for>
+              </div>
+            </section>
           </sc-for>
         </div>
-        <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing yet — your projects appear here once you save one.</div></sc-if>
+        <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Campaigns you save show here, one click from opening.</div></sc-if>
+       </aside>
       </sc-if>
+      </div>
 
       <!-- REVIEW LINKS: share-link.js fills this host itself (plain DOM, never reconciled) -->
       <sc-if value="{{ shShowRev }}" hint-placeholder-val="{{ false }}">
@@ -5817,33 +6070,46 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
      ═════════════════════════════════════════════════════════════════════ -->
 
 <aside class="p-rail p-rail-l" data-open="{{ shPanelOnPalette }}">
-  <div class="p-cap p-pal-h">Design Components</div>
-  <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="4">
-    <details class="p-grp-w p-pal-g" data-acc="{{ cat.acc }}" data-def="1">
-      <summary class="p-cap p-grp-h"><span class="p-pal-t">{{ cat.name }}</span><s class="p-pal-v">{{ cat.names }}</s><sc-if value="{{ cat.countOn }}" hint-placeholder-val="{{ false }}"><span class="p-grp-c" title="{{ cat.countTip }}">{{ cat.count }}</span></sc-if><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <sc-for list="{{ cat.items }}" as="p" hint-placeholder-count="2">
-        <button onClick="{{ p.add }}" class="p-tile" title="{{ p.addTip }}">
-          <span class="p-tile-n"><b>{{ p.label }}</b><sc-if value="{{ p.countOn }}" hint-placeholder-val="{{ false }}"><s class="p-tile-k">{{ p.count }} in use</s></sc-if></span>
-          <span class="p-tile-p"><span style="{{ p.sampleStyle }}">{{ p.sampleText }}</span></span>
-          <span class="p-tile-a" aria-hidden="true"><svg class="p-g" viewBox="0 -960 960 960"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span>
-        </button>
-      </sc-for>
-    </details>
-  </sc-for>
-  <div class="p-grp-w p-cust-w">
-    <div class="p-cap p-grp-h">Custom</div>
-    <sc-for list="{{ custPal }}" as="p" hint-placeholder-count="0">
-      <div class="p-cust-r">
-        <button onClick="{{ p.add }}" class="p-tile" title="{{ p.addTip }}">
-          <span class="p-tile-n"><b>{{ p.label }}</b><s>{{ p.desc }}</s></span>
-          <span class="p-tile-p"><span class="p-cust-s">{{ p.sampleText }}</span></span>
-          <span class="p-tile-a" aria-hidden="true"><svg class="p-g" viewBox="0 -960 960 960"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span>
-        </button>
-        <sc-if value="{{ p.delOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.del }}" class="p-cust-x" title="Remove from the palette" aria-label="Remove from the palette"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if>
+  <!-- THE LEFT RAIL IS AN OUTLINE OVER A LIBRARY (2026-10-29, /impeccable). The top half is the
+       ad you are looking at, in reading order — Top, then Bottom — each component drawn as the
+       skeleton of its shape beside its kind and its words; a click selects it, the eye hides it.
+       The lower half is what can be added, one line each, the same skeletons. -->
+  <section class="ol" aria-label="On this ad">
+    <div class="ol-h"><b>On this ad</b><s>{{ outlineCount }}</s></div>
+    <sc-if value="{{ outlineEmptyOn }}" hint-placeholder-val="{{ false }}"><p class="ol-empty">Nothing here yet. Add a component from the library below.</p></sc-if>
+    <sc-for list="{{ outline }}" as="og" hint-placeholder-count="2">
+      <div class="ol-g">
+        <div class="ol-gh">{{ og.name }}</div>
+        <sc-for list="{{ og.items }}" as="o" hint-placeholder-count="3">
+          <div class="ol-r" data-on="{{ o.on }}" data-hid="{{ o.hidOn }}">
+            <button class="ol-b" onClick="{{ o.pick }}" aria-pressed="{{ o.aria }}" title="{{ o.name }} — {{ o.snip }}"><span class="mk" aria-hidden="true"><sc-for list="{{ o.marks }}" as="mr" hint-placeholder-count="1"><span class="mk-r"><sc-for list="{{ mr.segs }}" as="sg" hint-placeholder-count="1"><i data-k="{{ sg.k }}" style="{{ sg.style }}"></i></sc-for></span></sc-for></span><span class="ol-t"><b>{{ o.name }}</b><s data-empty="{{ o.emptyOn }}">{{ o.snip }}</s></span></button>
+            <button class="ol-eye" onClick="{{ o.eye }}" title="{{ o.eyeTip }}" aria-label="{{ o.eyeTip }}"><svg class="ol-e1" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg><svg class="ol-e0" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg></button>
+          </div>
+        </sc-for>
       </div>
     </sc-for>
-    <p class="p-cust-h">Run <code>/cas-component</code> in Claude Code with a screenshot, then press ⌘V here.</p>
-  </div>
+  </section>
+  <section class="lb" aria-label="Add a component">
+    <div class="ol-h"><b>Add</b><s>click to place it at the bottom</s></div>
+    <sc-for list="{{ paletteCats }}" as="cat" hint-placeholder-count="4">
+      <div class="lb-g">
+        <div class="ol-gh">{{ cat.name }}</div>
+        <sc-for list="{{ cat.items }}" as="p" hint-placeholder-count="3">
+          <button onClick="{{ p.add }}" class="p-tile lb-r" title="{{ p.addTip }}"><span class="mk" aria-hidden="true"><sc-for list="{{ p.marks }}" as="mr" hint-placeholder-count="1"><span class="mk-r"><sc-for list="{{ mr.segs }}" as="sg" hint-placeholder-count="1"><i data-k="{{ sg.k }}" style="{{ sg.style }}"></i></sc-for></span></sc-for></span><b>{{ p.label }}</b><sc-if value="{{ p.countOn }}" hint-placeholder-val="{{ false }}"><s class="lb-k" title="On the canvas">{{ p.count }}</s></sc-if><span class="lb-a" aria-hidden="true"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span></button>
+        </sc-for>
+      </div>
+    </sc-for>
+    <div class="lb-g">
+      <div class="ol-gh">Custom</div>
+      <sc-for list="{{ custPal }}" as="p" hint-placeholder-count="0">
+        <div class="lb-cr">
+          <button onClick="{{ p.add }}" class="p-tile lb-r" title="{{ p.addTip }}"><span class="mk mk-c" aria-hidden="true">{{ p.sampleText }}</span><b>{{ p.label }}</b><span class="lb-a" aria-hidden="true"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z"/></svg></span></button>
+          <sc-if value="{{ p.delOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ p.del }}" class="lb-x" title="Remove from the palette" aria-label="Remove from the palette"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if>
+        </div>
+      </sc-for>
+      <p class="lb-hint">From a screenshot: run <code>/cas-component</code> in Claude Code, then press ⌘V here.</p>
+    </div>
+  </section>
   <div class="p-foot">{{ railFoot }}</div>
 </aside>
 
@@ -5856,7 +6122,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
         <button onClick="{{ v.activate }}" style="{{ v.activateStyle }}">{{ v.activateLabel }}</button>
         <button onClick="{{ v.remove }}" style="{{ v.removeStyle }}">Remove</button>
       </div>
-      <div onClick="{{ v.sq.select }}" data-cwpx="{{ v.sq.cwPx }}" style="{{ v.sq.canvasStyle }}">
+      <div onClick="{{ v.sq.select }}" data-cwpx="{{ v.sq.cwPx }}" data-lmk="{{ v.sq.lmKey }}" style="{{ v.sq.canvasStyle }}">
         <div class="canvasbg" style="{{ v.sq.bgWrapStyle }}"><image-slot data-nohint id="{{ v.bgId }}" shape="rect" placeholder="Upload background in the right panel" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></div>
         <div style="{{ v.sq.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.guideStyle }}"></div></sc-if>
@@ -5891,7 +6157,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
       <span class="p-meta">{{ v.sqMeta }} · <span style="{{ v.sq.coverStyle }}" class="tip" data-tip="{{ v.sq.coverTip }}">{{ v.sq.coverLabel }}</span></span>
       <div class="p-szh" data-off="{{ v.ptOff }}"><b>Portrait</b><i>3:4</i><span class="p-szx"><sc-if value="{{ v.ptShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.ptOvOn }}" onClick="{{ v.togglePtOv }}" title="{{ v.ptLinkTip }}" aria-label="{{ v.ptLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.ptAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.ptAlCtr }}" onClick="{{ v.ptAlFlip }}" title="{{ v.ptAlTip }}" aria-label="{{ v.ptAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgPtOn }}" onClick="{{ v.toggleBgPt }}" title="{{ v.bgPtTip }}" aria-label="{{ v.bgPtTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.ptShowOn }}" onClick="{{ v.togglePtShow }}" title="{{ v.ptEyeTip }}" aria-label="{{ v.ptEyeTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.ptShow }}" hint-placeholder-val="{{ false }}">
-      <div onClick="{{ v.pt.select }}" data-cwpx="{{ v.pt.cwPx }}" style="{{ v.pt.canvasStyle }}">
+      <div onClick="{{ v.pt.select }}" data-cwpx="{{ v.pt.cwPx }}" data-lmk="{{ v.pt.lmKey }}" style="{{ v.pt.canvasStyle }}">
         <div class="canvasbg" style="{{ v.pt.bgWrapStyle }}"><sc-for list="{{ v.bgPtSlot }}" as="sl" hint-placeholder-count="1"><image-slot data-nohint id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 3:4" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.pt.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.pt.guideStyle }}"></div></sc-if>
@@ -5927,7 +6193,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
       </sc-if>
       <sc-if value="{{ v.stOn }}" hint-placeholder-val="{{ true }}">
       <div class="p-szh"><b>{{ v.stHead }}</b><i>9:16</i><span class="p-szx"><button class="p-szb" data-on="{{ v.stOvOn }}" onClick="{{ v.toggleStory }}" title="{{ v.stLinkTip }}" aria-label="{{ v.stLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.stAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.stAlCtr }}" onClick="{{ v.stAlFlip }}" title="{{ v.stAlTip }}" aria-label="{{ v.stAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgStOn }}" onClick="{{ v.toggleBgSt }}" title="{{ v.bgStTip }}" aria-label="{{ v.bgStTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></span></div>
-      <div onClick="{{ v.st.select }}" data-cwpx="{{ v.st.cwPx }}" style="{{ v.st.canvasStyle }}">
+      <div onClick="{{ v.st.select }}" data-cwpx="{{ v.st.cwPx }}" data-lmk="{{ v.st.lmKey }}" style="{{ v.st.canvasStyle }}">
         <div class="canvasbg" style="{{ v.st.bgWrapStyle }}"><sc-for list="{{ v.bgStSlot }}" as="sl" hint-placeholder-count="1"><image-slot data-nohint id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 9:16" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.st.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.st.guideStyle }}"></div></sc-if>
@@ -5963,7 +6229,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
       </sc-if>
       <div class="p-szh" data-off="{{ v.wideOff }}"><b>Horizontal</b><i>1.91:1</i><span class="p-szx"><sc-if value="{{ v.wideOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.lsOvOn }}" onClick="{{ v.toggleWideOv }}" title="{{ v.lsLinkTip }}" aria-label="{{ v.lsLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.lsAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.lsAlCtr }}" onClick="{{ v.lsAlFlip }}" title="{{ v.lsAlTip }}" aria-label="{{ v.lsAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgLsOn }}" onClick="{{ v.toggleBgLs }}" title="{{ v.bgLsTip }}" aria-label="{{ v.bgLsTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.wideShowOn }}" onClick="{{ v.toggleWide }}" title="{{ v.wideTip }}" aria-label="{{ v.wideTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.wideOn }}" hint-placeholder-val="{{ false }}">
-      <div onClick="{{ v.ls.select }}" data-cwpx="{{ v.ls.cwPx }}" style="{{ v.ls.canvasStyle }}">
+      <div onClick="{{ v.ls.select }}" data-cwpx="{{ v.ls.cwPx }}" data-lmk="{{ v.ls.lmKey }}" style="{{ v.ls.canvasStyle }}">
         <div class="canvasbg" style="{{ v.ls.bgWrapStyle }}"><sc-for list="{{ v.bgLsSlot }}" as="sl" hint-placeholder-count="1"><image-slot data-nohint id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for 1.91:1" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.ls.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.ls.guideStyle }}"></div></sc-if>
@@ -5999,7 +6265,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
       </sc-if>
       <div class="p-szh" data-off="{{ v.banOff }}"><b>Eventbrite banner</b><i>2:1</i><span class="p-szx"><sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.banOvOn }}" onClick="{{ v.toggleBanOv }}" title="{{ v.banLinkTip }}" aria-label="{{ v.banLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.bnAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.bnAlCtr }}" onClick="{{ v.bnAlFlip }}" title="{{ v.bnAlTip }}" aria-label="{{ v.bnAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgBnOn }}" onClick="{{ v.toggleBgBn }}" title="{{ v.bgBnTip }}" aria-label="{{ v.bgBnTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.banShowOn }}" onClick="{{ v.toggleBanner }}" title="{{ v.banTip }}" aria-label="{{ v.banTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
       <sc-if value="{{ v.banOn }}" hint-placeholder-val="{{ false }}">
-      <div onClick="{{ v.bn.select }}" data-cwpx="{{ v.bn.cwPx }}" style="{{ v.bn.canvasStyle }}">
+      <div onClick="{{ v.bn.select }}" data-cwpx="{{ v.bn.cwPx }}" data-lmk="{{ v.bn.lmKey }}" style="{{ v.bn.canvasStyle }}">
         <div class="canvasbg" style="{{ v.bn.bgWrapStyle }}"><sc-for list="{{ v.bgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot data-nohint id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for the banner" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.bn.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.bn.guideStyle }}"></div></sc-if>
@@ -6031,7 +6297,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bn.fgStyle }}"><div style="{{ v.bn.fgTintStyle }}"></div></div></div></sc-if>
       </div>
       <span class="p-meta">1880 × 940 · <span style="{{ v.bn.coverStyle }}" class="tip" data-tip="{{ v.bn.coverTip }}">{{ v.bn.coverLabel }}</span></span>
-      <div onClick="{{ v.bs.select }}" data-cwpx="{{ v.bs.cwPx }}" style="{{ v.bs.canvasStyle }}">
+      <div onClick="{{ v.bs.select }}" data-cwpx="{{ v.bs.cwPx }}" data-lmk="{{ v.bs.lmKey }}" style="{{ v.bs.canvasStyle }}">
         <div class="canvasbg" style="{{ v.bs.bgWrapStyle }}"><sc-for list="{{ v.bgBnSlot }}" as="sl" hint-placeholder-count="1"><image-slot data-nohint id="{{ sl.id }}" shape="rect" placeholder="Drop a photo for the banner" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></sc-for></div>
         <div style="{{ v.bs.scrimStyle }}"></div>
         <sc-if value="{{ guidesOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.bs.guideStyle }}"></div></sc-if>
@@ -6068,7 +6334,7 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
   </sc-for>
 </main>
   <div data-look-host data-on="{{ lookOnOn }}"></div>
-  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy" data-state="{{ cvAdState }}" title="{{ cvAdTip }}">{{ cvAdLabel }}</button><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
+  <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy p-cvov" title="{{ cvAdTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M220-500q-24.75 0-42.37-17.63Q160-535.25 160-560v-180q0-24.75 17.63-42.38Q195.25-800 220-800h180q24.75 0 42.38 17.62Q460-764.75 460-740v180q0 24.75-17.62 42.37Q424.75-500 400-500H220Zm0 340q-24.75 0-42.37-17.63Q160-195.25 160-220v-180q0-24.75 17.63-42.38Q195.25-460 220-460h180q24.75 0 42.38 17.62Q460-424.75 460-400v180q0 24.75-17.62 42.37Q424.75-160 400-160H220Zm340-340q-24.75 0-42.37-17.63Q500-535.25 500-560v-180q0-24.75 17.63-42.38Q535.25-800 560-800h180q24.75 0 42.38 17.62Q800-764.75 800-740v180q0 24.75-17.62 42.37Q764.75-500 740-500H560Zm0 340q-24.75 0-42.37-17.63Q500-195.25 500-220v-180q0-24.75 17.63-42.38Q535.25-460 560-460h180q24.75 0 42.38 17.62Q800-424.75 800-400v180q0 24.75-17.62 42.37Q764.75-160 740-160H560Z"/></svg>Ad set overview</button><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
 </div>
 
 <!-- component column: always mounted so the photo and hidden lists stay reachable -->
@@ -6323,88 +6589,29 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
   </div>
 </aside>
 <aside class="p-rail p-rail-r" data-open="{{ shPanelOnLayout }}">
-
-
-  <div class="p-sec p-sec-b">
-    <div class="p-cap p-shd"><span class="p-shd-t">Layout <s>{{ activeName }}</s></span></div>
-
-    <div class="p-grp-w">
-      <span class="p-lab">Background <span class="tip" data-tip="Dark is white copy on a dark canvas; Light flips the canvas to white with navy copy. Rules, bullets and chips stay neutral in both — cream on dark, slate on light — because the canvas carries no gold and no second typeface. Switching resets the scrim colour to that mode's default." style="{{ infoStyle }}">i</span></span>
-      <div class="p-opts p-opts-seg">
-        <button onClick="{{ bgDark }}" data-on="{{ bgDarkOn }}" class="p-opt">
-          <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M481.15-140Q339-140 240.08-238.92 141.16-337.85 141.16-480q0-118.38 73.26-210.46 73.27-92.08 195.19-118.69 12.62-3.16 22.23.61 9.62 3.77 15.62 11.23 6 7.47 7.08 18.12 1.07 10.65-5 21.27-12.39 22.54-18.39 46.83t-6 51.09q0 98.33 68.84 167.17Q562.82-424 661.15-424q29.47 0 56.31-7.46 26.85-7.46 47-17.31 9.85-4.3 19.23-3.04 9.39 1.27 16.02 6.27 7.37 5 10.94 13.66 3.58 8.65.81 20.34-21.31 118-114.81 194.77Q603.15-140 481.15-140Zm0-60q88 0 158-48.5t102-126.5q-20 5-40 8t-40 3q-123 0-209.5-86.5T365.15-660q0-20 3-40t8-40q-78 32-126.5 102t-48.5 158q0 116 82 198t198 82Zm-10-270Z"/></svg></span>
-          <span class="p-opt-l">Dark</span>
-        </button>
-        <button onClick="{{ bgLight }}" data-on="{{ bgLightOn }}" class="p-opt">
-          <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M458.62-760.16q-8.62-8.63-8.62-21.38v-87.69q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.69q0 12.75-8.63 21.38-8.63 8.62-21.38 8.62-12.76 0-21.37-8.62Zm213.23 88.31q-8.31-8.3-8.12-20.57.19-12.27 8.5-21.58l61-62.38q9.03-9.31 21.44-9.31 12.41 0 21.8 9.39 8.61 8.61 8.61 20.99 0 12.39-8.7 21.08L714-671.85q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7ZM781.54-450q-12.75 0-21.38-8.63-8.62-8.63-8.62-21.38 0-12.76 8.62-21.37 8.63-8.62 21.38-8.62h87.69q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62h-87.69ZM458.62-69.4Q450-78.02 450-90.77v-87.31q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63 8.62 8.62 8.62 21.37v87.31q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63ZM246.39-671.85l-62.77-61.38q-9.31-8.99-9.31-21.73 0-12.73 9.31-21.42 8.69-8.31 21.33-8.31 12.64 0 20.82 8.31l62.77 62.77q8.31 8.18 8.31 20.82t-8.23 20.94q-8.98 8.31-20.95 8.31-11.98 0-21.28-8.31Zm487.23 488.23L672.23-246q-8.31-9.31-8.5-21.58-.19-12.27 8.04-20.57 8.23-8.31 20.58-8.31 12.34 0 21.65 8.69l62.38 61.39q8.93 8.3 8.62 20.88-.31 12.58-8.73 21.88-9.19 9.31-21.83 9.31-12.65 0-20.82-9.31ZM90.77-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q78.02-510 90.77-510h87.69q12.75 0 21.38 8.63 8.62 8.63 8.62 21.38 0 12.76-8.62 21.37-8.63 8.62-21.38 8.62H90.77ZM184-183.62q-8.31-8.69-8.5-21.27-.19-12.57 8.12-20.88l62-62q8.69-8.69 20.77-8.69 12.07 0 21.38 8.61 9.31 9.39 9.31 21.66t-9.31 21.57l-61 61q-9.31 9.31-21.95 9.31-12.64 0-20.82-9.31Zm140.23-140.52Q260-388.28 260-479.91q0-91.63 64.14-155.86Q388.28-700 479.91-700q91.63 0 155.86 64.14Q700-571.72 700-480.09q0 91.63-64.14 155.86Q571.72-260 480.09-260q-91.63 0-155.86-64.14ZM593-367q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47ZM480-480Z"/></svg></span>
-          <span class="p-opt-l">Light</span>
-        </button>
-      </div>
+  <!-- THE LAYOUT RAIL IN WORDS (2026-10-29, direction A, chosen over the canvas map). Each
+       choice is a named row; pointing at it or focusing it previews it on the real canvas, and
+       a click keeps it. Copy and Logo are lists, the rest plain rows. -->
+  <div class="p-sec p-sec-b lm">
+    <div class="lm-h"><b>Layout</b><s>{{ activeName }}</s></div>
+    <div class="lw" role="group" aria-label="Where the copy sits">
+      <div class="lw-h"><span class="tip" data-tip="Point at a choice to see it on the canvas; click to keep it. On a size laid out separately, only that size changes.">Copy</span><sc-if value="{{ lmMap.scopeOn }}" hint-placeholder-val="{{ false }}"><s>this size only</s></sc-if></div>
+      <sc-for list="{{ lmMap.copy }}" as="o" hint-placeholder-count="3"><button class="lw-o" data-g="{{ o.key }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}" onClick="{{ o.set }}" onPointerEnter="{{ o.enter }}" onPointerLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}"><span class="lw-gl" aria-hidden="true"><i></i><i></i><i></i></span><span class="lw-t">{{ o.label }}</span><svg class="lw-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></button></sc-for>
     </div>
-
-    <div class="p-grp-w">
-      <span class="p-lab">Logo <s>{{ logoScope }}</s> <span class="tip" data-tip="Pick the corner the wordmark sits in. Right is deliberately not offered — the brand rules place the wordmark left or centre only." style="{{ infoStyle }}">i</span></span>
-      <div class="p-opts p-opts-2 p-opts-sm">
-        <sc-for list="{{ logoSpots }}" as="sp" hint-placeholder-count="4">
-          <button onClick="{{ sp.set }}" data-on="{{ sp.on }}" class="p-opt" title="{{ sp.label }}">
-            <span class="p-mini"><i style="{{ sp.barStyle }}"></i><i class="p-mini-d" style="{{ sp.dotStyle }}"></i></span>
-            <span class="p-opt-l">{{ sp.tile }}</span>
-          </button>
-        </sc-for>
-      </div>
+    <div class="lw" role="group" aria-label="Where the logo sits">
+      <div class="lw-h"><span class="tip" data-tip="The corner the wordmark sits in. Right is not offered: the brand places it left or center only.">Logo</span></div>
+      <div class="lw-2"><sc-for list="{{ lmMap.logo }}" as="o" hint-placeholder-count="3"><button class="lw-o" data-g="{{ o.key }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}" onClick="{{ o.set }}" onPointerEnter="{{ o.enter }}" onPointerLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}"><span class="lw-gl" aria-hidden="true"><i></i><i></i><i></i></span><span class="lw-t">{{ o.label }}</span><svg class="lw-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></button></sc-for></div>
     </div>
+    <p class="lm-cap" aria-live="polite"><span data-over="{{ lmMap.coverOver }}">{{ lmMap.cover }}</span></p>
+    <sc-if value="{{ lmMap.msgOn }}" hint-placeholder-val="{{ false }}"><div class="lm-msg" role="status"><span>{{ lmMap.msg }}</span><button onClick="{{ lmMap.undo }}">Undo</button></div></sc-if>
 
-    <div class="p-grp-w">
-      <span class="p-lab">Layout preset <span class="tip" data-tip="Where the design components cluster. The image window is whatever is left over — the brand rules want the photo to outweigh the copy, so keep one end clear." style="{{ infoStyle }}">i</span></span>
-      <div class="p-opts p-opts-sm">
-        <button onClick="{{ layoutBottom }}" data-on="{{ layoutBottomOn }}" class="p-opt">
-          <span class="p-mini"><i style="left:12%;right:12%;bottom:32%;height:8%"></i><i style="left:12%;right:12%;bottom:18%;height:8%"></i></span>
-          <span class="p-opt-l">Bottom</span>
-        </button>
-        <button onClick="{{ layoutSplit }}" data-on="{{ layoutSplitOn }}" class="p-opt">
-          <span class="p-mini"><i style="left:12%;right:12%;top:18%;height:8%"></i><i style="left:12%;right:12%;top:32%;height:8%"></i><i style="left:12%;right:12%;bottom:18%;height:8%"></i></span>
-          <span class="p-opt-l">Split</span>
-        </button>
-        <button onClick="{{ layoutTop }}" data-on="{{ layoutTopOn }}" class="p-opt">
-          <span class="p-mini"><i style="left:12%;right:12%;top:18%;height:8%"></i><i style="left:12%;right:12%;top:32%;height:8%"></i></span>
-          <span class="p-opt-l">Top</span>
-        </button>
+    <div class="lm-rows">
+      <div class="lm-row">
+        <span class="lm-l">Align<sc-if value="{{ lmMap.scopeOn }}" hint-placeholder-val="{{ false }}"><s>this size only</s></sc-if></span>
+        <div class="lm-seg" role="group" aria-label="Alignment"><sc-for list="{{ lmMap.aligns }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" onPointerEnter="{{ o.enter }}" onPointerLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}">{{ o.label }}</button></sc-for></div>
       </div>
-    </div>
-
-    <details class="p-grp-w p-acc" data-acc="scaling">
-      <summary class="p-acc-h"><span class="p-lab">Scaling <span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins and the banner text column stay fixed, so the brand grid holds. Each size scales on its own — the two banners too, by file width — and the background photo is untouched." style="{{ infoStyle }}">i</span></span><s class="p-acc-v">{{ scaleSummary }}</s><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <div class="p-acc-b">
-      <sc-for list="{{ scaleRows }}" as="sc" hint-placeholder-count="2">
-        <div class="p-scale">
-          <span class="p-scale-n">{{ sc.label }}</span>
-          <input type="range" min="{{ sc.min }}" max="{{ sc.max }}" step="1" value="{{ sc.val }}" onChange="{{ sc.set }}">
-          <span class="p-scale-v">{{ sc.pct }}</span>
-          <button onClick="{{ sc.reset }}" class="p-rst" data-off="{{ sc.defOn }}" title="Reset to 100%" aria-label="Reset to 100%"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></button>
-        </div>
-      </sc-for>
-      </div>
-    </details>
-
-    <div class="p-grp-w">
-      <span class="p-lab">Alignment <s>{{ alignScope }}</s></span>
-      <div class="p-opts p-opts-seg">
-        <button onClick="{{ alignLeft }}" data-on="{{ alignLeftOn }}" class="p-opt">
-          <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg></span>
-          <span class="p-opt-l">Left</span>
-        </button>
-        <button onClick="{{ alignCenter }}" data-on="{{ alignCenterOn }}" class="p-opt">
-          <span class="p-mini p-mini-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></span>
-          <span class="p-opt-l">Center</span>
-        </button>
-      </div>
-    </div>
-
-    <details class="p-grp-w p-acc" data-acc="vspace">
-      <summary class="p-acc-h"><span class="p-lab">Vertical spacing</span><s class="p-acc-v">{{ gapName }}</s><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <div class="p-acc-b">
-      <div class="p-trirow">
-        <span class="p-tri-l">{{ gapName }}</span>
+      <div class="lm-row">
+        <span class="lm-l"><span class="tip" data-tip="The gap between design components. Tight, Medium or Roomy; each component can add its own space above it in the component panel.">Spacing</span><s>{{ gapName }}</s></span>
         <div class="p-tri">
           <span class="p-tri-w">
             <span class="p-tri-t">
@@ -6419,12 +6626,26 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
           <input type="range" min="0" max="2" step="1" value="{{ gapStep }}" onChange="{{ onGapStep }}" class="p-tri-in" aria-label="Vertical spacing" title="{{ gapName }}">
         </div>
       </div>
+      <details class="lm-f p-acc" data-acc="scaling">
+        <summary class="lm-row lm-sum"><span class="lm-l"><span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins stay fixed, so the brand grid holds. Each size scales on its own; the background photo is untouched.">Scaling</span></span><span class="lm-v"><span class="lm-vt">{{ scaleSummary }}</span><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="lm-b">
+      <sc-for list="{{ scaleRows }}" as="sc" hint-placeholder-count="2">
+        <div class="p-scale">
+          <span class="p-scale-n">{{ sc.label }}</span>
+          <input type="range" min="{{ sc.min }}" max="{{ sc.max }}" step="1" value="{{ sc.val }}" onChange="{{ sc.set }}">
+          <span class="p-scale-v">{{ sc.pct }}</span>
+          <button onClick="{{ sc.reset }}" class="p-rst" data-off="{{ sc.defOn }}" title="Reset to 100%" aria-label="Reset to 100%"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg></button>
+        </div>
+      </sc-for>
+        </div>
+      </details>
+      <div class="lm-row">
+        <span class="lm-l"><span class="tip" data-tip="Dark is white copy on a dark canvas; Light flips the canvas to white with navy copy. Switching resets the scrim colour to that mode’s default.">Background</span></span>
+        <div class="lm-seg" role="group" aria-label="Background"><sc-for list="{{ lmMap.grounds }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" onPointerEnter="{{ o.enter }}" onPointerLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}">{{ o.label }}</button></sc-for></div>
       </div>
-    </details>
-
-    <details class="p-grp-w p-acc" data-acc="scrim">
-      <summary class="p-acc-h"><span class="p-lab">Scrim <span class="tip" data-tip="{{ scrimTip }}" style="{{ infoStyle }}">i</span></span><s class="p-acc-v"><i class="p-acc-sw" style="{{ scrimChipStyle }}"></i>{{ scrimSummary }}</s><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <div class="p-acc-b">
+      <details class="lm-f p-acc" data-acc="scrim">
+        <summary class="lm-row lm-sum"><span class="lm-l"><span class="tip" data-tip="{{ scrimTip }}">Scrim</span></span><span class="lm-v"><i class="p-acc-sw" style="{{ scrimChipStyle }}"></i><span class="lm-vt">{{ scrimSummary }}</span><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <div class="lm-b">
       <div class="p-tabs">
         <button onClick="{{ scrimTabOpacity }}" data-on="{{ scrimTabOpacityOn }}">Opacity</button>
         <button onClick="{{ scrimTabFade }}" data-on="{{ scrimTabFadeOn }}">Fade</button>
@@ -6438,12 +6659,10 @@ html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
         <input value="{{ scrimHexVal }}" onChange="{{ onScrimHex }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="#1A2942">
         </div>
       </div>
-      </div>
-    </details>
-
+        </div>
+      </details>
+    </div>
   </div>
-
-
 </aside>
 
 </div>
@@ -12082,6 +12301,27 @@ class CampaignStudio extends StudioBase {
   // what the floating control's arrows and Top / Bottom write too. `tid` is the component
   // dropped beside, and the moved one takes its cluster; with no `tid` the drop was into an
   // EMPTY cluster (`cl`), so it opens the top or closes the bottom.
+  // ── THE LAYOUT RAIL'S PREVIEW AND NOTE (2026-10-29) ────────────────────────────────
+  // A choice under the pointer is drawn on the canvas without being made: renderVals reads
+  // `_lmPrev` and draws from a clone with it applied, so nothing is saved, undone or shared.
+  // The canvas being previewed carries `data-preview`, which outlines it and names the choice.
+  lmPreview(apply, label) {
+    if (!apply && !this._lmPrev) return;
+    this._lmPrev = apply || null;
+    document.querySelectorAll('[data-lmk][data-preview]').forEach(e => e.removeAttribute('data-preview'));
+    if (apply) {
+      const st = this.state, key = st.activeVi + ':' + ((st.sel && st.sel.size) || st.focusSz || 'sq');
+      const cv = document.querySelector('[data-lmk="' + key + '"]');
+      if (cv) { cv.setAttribute('data-preview', 'Preview · ' + label); cv.style.setProperty('--z', String((cv.getBoundingClientRect().width / (cv.offsetWidth || 1)) || 1)); }
+    }
+    this.forceUpdate();
+  }
+  lmNote(text) {
+    this._lmMsg = text;
+    clearTimeout(this._lmMsgT);
+    this._lmMsgT = setTimeout(() => { this._lmMsg = ''; this.forceUpdate(); }, 9000);
+    this.forceUpdate();
+  }
   static canvasMove(x, vi, size, id, tid, after, cl) {
     if (!id || id === tid) return;
     const vv = x.variants[vi] || x.variants[0];
@@ -13747,7 +13987,9 @@ class CampaignStudio extends StudioBase {
     // Same reason as buildOps: the preview's canvasStyle and every meas() below
     // read the published face, so it has to be set before the values are built.
     StudioBase.applyFont(this.state);
-    const s = this.state;
+    // a Layout choice under the pointer is drawn from a clone, never written (lmPreview)
+    let s = this.state;
+    if (this._lmPrev) try { s = this._lmPrev(JSON.parse(JSON.stringify(s))) || s; } catch (e) { this._lmPrev = null; }
     CampaignStudio._rerender = () => { try { this.forceUpdate(); } catch (e) {} };
     const cq = px => (px / 10.8).toFixed(2) + 'cqw';
     // The canvas is fitted to the viewport when there is not room for the desktop
@@ -14760,6 +15002,7 @@ class CampaignStudio extends StudioBase {
         // inside sets its own tracking where it has one.
         canvasStyle: Object.assign({ width: tk.W + 'px', height: tk.H + 'px', containerType: 'inline-size', position: 'relative', overflow: 'hidden', flex: 'none', background: pal.base, boxShadow: 'none', fontFamily: window.providentFont || "'Google Sans Flex',sans-serif", lineHeight: 1.3, fontFeatureSettings: 'normal', fontVariantNumeric: 'normal', letterSpacing: 'normal', outline: uz(2) + (s.activeVi === vi && (!s.focusSz || (s.sel ? (s.sel.size || 'sq') : s.focusSz) === sizeKey) ? ' solid var(--ps-focus)' : ' solid transparent'), outlineOffset: uz(4) }, StudioBase.scaleBox(z, tk.W, tk.H)),
         scrimStyle: { position: 'absolute', inset: 0, background: scrim, pointerEvents: 'none' },
+        lmKey: vi + ':' + sizeKey,
         guideStyle: { position: 'absolute', top: cq(pT), right: cq(pR), bottom: cq(pB), left: cq(pL), border: uz(1) + ' dashed var(--ps-focus)', pointerEvents: 'none' },
         frameStyle: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', padding: `${cq(pT)} ${cq(pR)} ${cq(pB)} ${cq(pL)}`, pointerEvents: 'none', color: pal.ink },
         ...(() => {
@@ -14983,19 +15226,19 @@ class CampaignStudio extends StudioBase {
     // follow the theme, which is this file's standing rule for anything that is not a
     // canvas op. `var()` is the only thing that works in an inline style object.
     const samples = {
-      eyebrow: ['NEW LAUNCH · BUSINESS BAY', { fontWeight: 500, fontSize: '9px', letterSpacing: '.16em', color: 'var(--ps-ink-2)' }],
-      hero: ['Waterfront living', { fontWeight: 400, fontSize: '16px', color: 'var(--ps-ink)' }],
-      hook: ['From AED 1.9M', { fontWeight: 300, fontSize: '12px', color: 'var(--ps-ink-2)' }],
-      body: ['Flexible payment plans.', { fontWeight: 300, fontSize: '11px', color: 'var(--ps-ink-2)' }],
-      tags: ['0% property tax', { border: '1px solid var(--ps-line)', color: 'var(--ps-ink-2)', fontWeight: 300, fontSize: '10px', padding: '2px 9px', borderRadius: 'var(--ps-pill)' }],
-      spec: ['AED 799,000', { fontWeight: 300, fontSize: '13px', color: 'var(--ps-ink)' }],
-      list: ['✓ Fully furnished', { fontWeight: 300, fontSize: '11px', color: 'var(--ps-ink-2)' }],
-      cta: ['Register interest', { background: 'var(--ps-ink)', color: 'var(--ps-app)', fontWeight: 500, fontSize: '10px', padding: '3px 11px', borderRadius: 'var(--ps-pill)' }],
-      price: ['AED 2.6M', { fontWeight: 300, fontSize: '14px', color: 'var(--ps-ink)' }],
-      divider: ['', { display: 'block', height: '1px', background: 'var(--ps-line)', width: '100%' }],
-      spacer: ['↕ draggable gap', { fontWeight: 300, fontSize: '10px', color: 'var(--ps-link)', border: '1px dashed var(--ps-link)', borderRadius: '10px', padding: '3px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }],
-      graphic: ['⬚ SVG / PNG slot', { fontWeight: 300, fontSize: '10px', color: 'var(--ps-ink-2)', border: '1px dashed var(--ps-line)', borderRadius: '10px', padding: '3px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }],
-      steps: ['① ② ③  numbered plates', { fontWeight: 400, fontSize: '10px', color: 'var(--ps-ink)' }]
+      eyebrow: ['NEW LAUNCH', { fontWeight: 500, fontSize: '9px', letterSpacing: '.16em', color: 'var(--ps-ink-2)' }],
+      hero: ['Waterfront', { fontWeight: 400, fontSize: '17px', letterSpacing: '-.01em', color: 'var(--ps-ink)' }],
+      hook: ['From 1.9M', { fontWeight: 300, fontSize: '12.5px', color: 'var(--ps-ink)' }],
+      body: ['Payment plans', { fontWeight: 300, fontSize: '11px', color: 'var(--ps-ink-2)' }],
+      tags: ['0% tax', { boxShadow: 'inset 0 0 0 1px var(--ps-line)', color: 'var(--ps-ink)', fontWeight: 400, fontSize: '10.5px', padding: '3px 10px', borderRadius: 'var(--ps-pill)' }],
+      spec: ['799K · 40/60', { fontWeight: 300, fontSize: '12.5px', color: 'var(--ps-ink)', fontVariantNumeric: 'tabular-nums' }],
+      list: ['✓ Furnished', { fontWeight: 300, fontSize: '11.5px', color: 'var(--ps-ink)' }],
+      cta: ['Register', { background: 'var(--ps-ink)', color: 'var(--ps-app)', fontWeight: 500, fontSize: '10.5px', padding: '4px 12px', borderRadius: 'var(--ps-pill)' }],
+      price: ['AED 2.6M', { fontWeight: 400, fontSize: '16px', color: 'var(--ps-ink)' }],
+      divider: ['', { display: 'block', height: '1px', background: 'var(--ps-ink-2)', width: '72%', opacity: .7 }],
+      spacer: ['↕ gap', { fontWeight: 400, fontSize: '10.5px', color: 'var(--ps-link)', border: '1px dashed var(--ps-link)', borderRadius: '8px', padding: '4px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }],
+      graphic: ['SVG / PNG', { fontWeight: 400, fontSize: '10.5px', color: 'var(--ps-ink-2)', border: '1px dashed var(--ps-line)', borderRadius: '8px', padding: '4px 9px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }],
+      steps: ['① ② ③', { fontWeight: 400, fontSize: '13px', letterSpacing: '.08em', color: 'var(--ps-ink)' }]
     };
     const mkAdd = type => () => this.upd(x => { const id = CampaignStudio.freshId(); CampaignStudio.modList(x, x.activeVi).push(Object.assign({ id, type }, JSON.parse(JSON.stringify(addDefaults[type])))); x.sel = { vi: x.activeVi, size: 'sq', id }; return x; });
     // `count` is what is already on the canvas for this type — the state the palette
@@ -15005,7 +15248,7 @@ class CampaignStudio extends StudioBase {
     // would render as the string "false" and match [data-…] / sc-if.
     const item = type => {
       const n = list.filter(m => m.type === type).length;
-      return { label: labels[type][0], desc: labels[type][1], add: mkAdd(type),
+      return { type, label: labels[type][0], desc: labels[type][1], add: mkAdd(type),
                sampleText: samples[type][0], sampleStyle: samples[type][1],
                count: n, countOn: n ? '1' : undefined,
                addTip: labels[type][0] + ' — ' + labels[type][1] + '. ' + (n ? 'Click to add another; ' + n + ' already on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + '.' : 'Click to add it to the canvas.') };
@@ -15157,6 +15400,119 @@ class CampaignStudio extends StudioBase {
     const scrimFadeV = av.scrimFade == null ? 100 : av.scrimFade;
     const scrimHV = av.scrimH == null ? 45 : av.scrimH;
     const scrimTabF = this._scrimTab === 'f';
+
+    // ── THE OUTLINE, THE LIBRARY AND THE LAYOUT MAP (2026-10-29, /impeccable) ──────────
+    // One mark vocabulary for all three: a component is drawn as the skeleton of its own
+    // shape — a thick bar for a headline, a thin one for an eyebrow, an outlined pill for a
+    // chip, a filled one for the button — so the left rail's outline, its library and the
+    // right rail's map of the canvas all read as the same objects. A mark is rows of
+    // segments; w is a % of the row, h a px height (scaled where the map draws it).
+    const MK = {
+      eyebrow: [[{ w: 44, h: 2 }]], hero: [[{ w: 86, h: 6 }], [{ w: 58, h: 6 }]], hook: [[{ w: 66, h: 4 }]],
+      body: [[{ w: 80, h: 2 }], [{ w: 56, h: 2 }]], price: [[{ w: 28, h: 2 }], [{ w: 54, h: 6 }]],
+      spec: [[{ w: 26, h: 4 }, { w: 26, h: 4 }, { w: 26, h: 4 }]],
+      tags: [[{ w: 34, h: 7, k: 'pill' }, { w: 34, h: 7, k: 'pill' }]],
+      list: [[{ w: 6, h: 3 }, { w: 58, h: 2 }], [{ w: 6, h: 3 }, { w: 46, h: 2 }]],
+      steps: [[{ w: 0, h: 7, k: 'dot' }, { w: 0, h: 7, k: 'dot' }, { w: 0, h: 7, k: 'dot' }]],
+      cta: [[{ w: 42, h: 8, k: 'fill' }]], graphic: [[{ w: 28, h: 12, k: 'box' }]],
+      divider: [[{ w: 90, h: 1, k: 'line' }]], spacer: [[{ w: 64, h: 8, k: 'dash' }]],
+      cust: [[{ w: 62, h: 4 }], [{ w: 40, h: 2 }]]
+    };
+    const markOf = (type, k) => (MK[type] || MK.cust).map(row => ({ segs: row.map(sg => ({ k: sg.k || 'bar',
+      style: sg.k === 'dot' ? { height: Math.round(sg.h * k) + 'px', aspectRatio: '1', width: 'auto' }
+                             : { width: sg.w + '%', height: Math.max(1, Math.round(sg.h * k * 10) / 10) + 'px' } })) }));
+    paletteCats.forEach(g => g.items.forEach(it => { it.marks = markOf(it.type, 1); }));
+
+    // THE OUTLINE: what is on the canvas you are looking at, in reading order. It reads the
+    // record that canvas reads (a detached size's own clusters and order), so a 9:16 laid out
+    // on its own shows its own outline. A click selects, the eye hides it on this variant.
+    const olR = selEff, olV = selV;
+    const olHid = olV.hidden || {};
+    const snipOf = m => {
+      if (m.type === 'tags') return (m.chips || []).filter(c => String(c).trim()).join(' · ');
+      if (m.type === 'spec') return (m.cols || []).map(c => c && (c.v || c.l)).filter(Boolean).join(' · ');
+      if (m.type === 'price') return [m.sub, m.text].filter(t => t && String(t).trim()).join(' ');
+      if (m.type === 'graphic') return 'Picture';
+      if (m.type === 'divider') return 'Rule';
+      if (m.type === 'spacer') return Math.round(m.h || 60) + 'px gap';
+      return String(textOf(m) || '').replace(/\s+/g, ' ').trim();
+    };
+    const olRow = m => {
+      const hid = !!olHid[m.id], on = !!(sel && sel.id === m.id);
+      const name = labOf(m)[0];
+      return {
+        id: m.id, name, snip: snipOf(m) || 'Empty', emptyOn: snipOf(m) ? undefined : '1',
+        marks: markOf(m.type, 1), on: on ? '1' : undefined, hidOn: hid ? '1' : undefined,
+        aria: on ? 'true' : 'false',
+        pick: () => this.upd(x => { x.sel = { vi: x.activeVi, size: (x.sel && x.sel.size) || x.focusSz || 'sq', id: m.id }; return x; }),
+        eyeTip: hid ? 'Show ' + name + ' on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') : 'Hide ' + name + ' on this ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant'),
+        eye: e => { if (e) e.stopPropagation(); this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; vv.hidden = vv.hidden || {};
+          if (vv.hidden[m.id]) delete vv.hidden[m.id]; else { vv.hidden[m.id] = true; if (x.sel && x.sel.id === m.id) x.sel = null; } return x; }); }
+      };
+    };
+    const olOrd = CampaignStudio.orderedFor(olR, list);
+    const olCl = m => ((olR.clusters || {})[m.id]) || 'bottom';
+    const olFl = m => CampaignStudio.isFloatG(olR, m);
+    const outline = [
+      { name: 'Top', items: olOrd.filter(m => !olFl(m) && olCl(m) === 'top').map(olRow) },
+      { name: 'Bottom', items: olOrd.filter(m => !olFl(m) && olCl(m) !== 'top').map(olRow) },
+      { name: 'Floating', items: olOrd.filter(olFl).map(olRow) }
+    ].filter(g => g.items.length);
+    const olN = olOrd.length;
+
+    // THE LAYOUT RAIL IN WORDS, PREVIEWED ON THE CANVAS (2026-10-29, direction A, chosen over
+    // the canvas map). Every choice is a named row; pointing at one (or focusing it) shows it
+    // on the real canvas for as long as you point, and a click keeps it. The preview never
+    // touches the saved project, the undo stack or a shared link: renderVals draws from a
+    // clone with the choice applied (`_lmPrev`, read at the top of renderVals). On a size laid
+    // out apart, every choice writes only that size.
+    const lmScoped = selEff !== selV;
+    const lmRec = x => { const vv = x.variants[x.activeVi] || x.variants[0]; const own = CampaignStudio.sizeOv(vv, (x.sel && x.sel.size) || x.focusSz || 'sq'); return { vv, own }; };
+    const lmRead = st => {
+      const vv = st.variants[st.activeVi] || st.variants[0];
+      const rec = CampaignStudio.sizeOv(vv, (st.sel && st.sel.size) || st.focusSz || 'sq') || vv;
+      const mv = CampaignStudio.withOv(vv, rec), hid = vv.hidden || {};
+      const ms = CampaignStudio.modulesFor(st, st.activeVi).filter(m => !hid[m.id] && !CampaignStudio.isFloatG(rec, m) && m.type !== 'divider' && m.type !== 'spacer');
+      const nT = ms.filter(m => (rec.clusters || {})[m.id] === 'top').length;
+      return { copy: !ms.length ? 'none' : !nT ? 'bottom' : nT === ms.length ? 'top' : 'split',
+               logo: (mv.logoPos || 'top') + '-' + (mv.logoAlign || 'left'), align: mv.align === 'center' ? 'center' : 'left', bg: vv.bg === 'light' ? 'light' : 'dark' };
+    };
+    const lmNow = lmRead(this.state);
+    const lmWhere = lmScoped ? ' on the ' + (CampaignStudio.SIZE_LAB[selSz] || selSz) + ' only' : '';
+    const lmOpt = (key, label, tip, apply, note) => ({
+      key, label, tip, on: undefined, aria: 'false',
+      enter: () => this.lmPreview(apply, label),
+      leave: () => this.lmPreview(null),
+      set: () => {
+        this.lmPreview(null);
+        let changed = false;
+        this.upd(x => { const before = JSON.stringify(x.variants[x.activeVi]); apply(x); changed = before !== JSON.stringify(x.variants[x.activeVi]); return x; });
+        if (changed && note) this.lmNote(note + lmWhere);
+      }
+    });
+    const copyTo = fn => x => { const r = lmRec(x); (r.own ? [r.own] : CampaignStudio.recsOf(r.vv)).forEach(o => {
+      if (!o || !o.clusters) return; CampaignStudio.modulesFor(x, x.activeVi).forEach(m => { o.clusters[m.id] = fn(m); }); }); return x; };
+    const onOf = (o, cur) => Object.assign(o, { on: o.key === cur ? '1' : undefined, aria: o.key === cur ? 'true' : 'false' });
+    const lmCov = ((variantViews[s.activeVi] || {})[selSz] || {}).coverPct;
+    const lmMap = {
+      scopeOn: lmScoped ? '1' : undefined,
+      copy: [
+        lmOpt('top', 'At the top', 'Every component at the top', copyTo(() => 'top'), 'Moved all the copy to the top'),
+        lmOpt('split', 'Split', 'Eyebrow, headline and hook at the top; the rest at the bottom', copyTo(m => (['eyebrow', 'hero', 'hook'].indexOf(m.type) >= 0 ? 'top' : 'bottom')), 'Split the copy'),
+        lmOpt('bottom', 'At the bottom', 'Every component at the bottom', copyTo(() => 'bottom'), 'Moved all the copy to the bottom')
+      ].map(o => onOf(o, lmNow.copy)),
+      logo: [['top', 'left', 'Top left'], ['top', 'center', 'Top center'], ['bottom', 'left', 'Bottom left'], ['bottom', 'center', 'Bottom center']]
+        .map(r => onOf(lmOpt(r[0] + '-' + r[1], r[2], 'The wordmark ' + r[2].toLowerCase() + '. Never right: the brand places it left or center.',
+          x => { const q = lmRec(x), t = q.own || q.vv; t.logoPos = r[0]; t.logoAlign = r[1]; return x; }), lmNow.logo)),
+      aligns: [['left', 'Left'], ['center', 'Center']].map(r => onOf(lmOpt(r[0], r[1], 'Align the copy ' + r[0],
+        x => { const q = lmRec(x), t = q.own || q.vv; t.align = r[0]; return x; }), lmNow.align)),
+      grounds: [['dark', 'Dark'], ['light', 'Light']].map(r => onOf(lmOpt(r[0], r[1], r[0] === 'dark' ? 'White copy on a dark canvas' : 'Navy copy on a white canvas',
+        x => { const vv = x.variants[x.activeVi] || x.variants[0]; vv.bg = r[0]; vv.scrimHex = null; return x; }), lmNow.bg)),
+      cover: lmCov == null ? '' : 'Copy covers ' + lmCov + '% of the canvas',
+      coverOver: lmCov != null && lmCov > CampaignStudio.COVER_MAX ? '1' : undefined,
+      msg: this._lmMsg || '', msgOn: this._lmMsg ? '1' : undefined,
+      undo: () => { this._lmMsg = ''; clearTimeout(this._lmMsgT); this.undo(); }
+    };
     const hidAv = av.hidden || {};
     const hiddenList = Object.keys(hidAv).map(id => {
       const m = list.find(mm => mm.id === id);
@@ -15177,7 +15533,7 @@ class CampaignStudio extends StudioBase {
     return {
       ...this.copyVals(),
       ...this.usageVals(labels, this.useSource(), addDefaults),
-      paletteCats, variantViews,
+      paletteCats, variantViews, outline, outlineOn: olN ? '1' : undefined, outlineEmptyOn: olN ? undefined : '1', outlineCount: olN === 1 ? '1 component' : olN + ' components', lmMap,
       // THE CUSTOM GROUP — this computer's library plus anything the project carries. A
       // palette card cannot hold a second button (a button in a button), so Remove sits
       // beside it in the row.
@@ -15213,6 +15569,68 @@ class CampaignStudio extends StudioBase {
         frames: (r.thumbs || []).map(u => ({ shot: { backgroundImage: `url("${u}")` } })),
         reelStyle: StudioBase.reelTiming((r.thumbs || []).length || 1)
       })),
+      // RECENTS GROUPED BY CAMPAIGN (2026-10-29, /impeccable). The names repeated their campaign
+      // on every card ("KORE by Imtiaz - Investors (International EUR)" x6), so the campaign is
+      // the group's heading once and each card says only what differs: the audience, the market,
+      // the language. The campaign is the ad set this computer last followed the project in
+      // (provident-rs-pid:<pid>), else the name before " - ". Newest group first.
+      recentGroups: (() => {
+        const ago = ts => {
+          const d = new Date(ts), n = new Date(), day = 864e5;
+          const d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate()), n0 = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+          const k = Math.round((n0 - d0) / day), t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+          if (k <= 0) return 'Today, ' + t;
+          if (k === 1) return 'Yesterday, ' + t;
+          if (k < 7) return d.toLocaleDateString([], { weekday: 'long' });
+          return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: d.getFullYear() === n.getFullYear() ? undefined : 'numeric' });
+        };
+        const groups = [], byKey = {};
+        recents.forEach((r, i) => {
+          const st = r.state || {}, nm = String(r.name || 'Untitled').trim();
+          let rs = null; try { rs = st.pid ? JSON.parse(localStorage.getItem('provident-rs-pid:' + st.pid) || 'null') : null; } catch (e) {}
+          const cut = nm.indexOf(' - ');
+          let camp = (rs && rs.name) || (cut > 0 ? nm.slice(0, cut) : nm);
+          let rest = nm.toLowerCase().indexOf(camp.toLowerCase() + ' - ') === 0 ? nm.slice(camp.length + 3) : (camp === nm ? '' : nm);
+          const mk = rest.match(/\s*\(([^)]+)\)\s*$/), market = mk ? mk[1] : '';
+          if (mk) rest = rest.slice(0, mk.index);
+          const n = (st.variants || []).length, car = CampaignStudio.isCarousel(st);
+          const what = n + (car ? (n === 1 ? ' page' : ' pages') : (n === 1 ? ' variant' : ' variants'));
+          const ar = st.font === 'arabic';
+          const key = camp.toLowerCase();
+          if (!byKey[key]) { byKey[key] = { name: camp, items: [], ts: 0 }; groups.push(byKey[key]); }
+          const g = byKey[key];
+          g.ts = Math.max(g.ts, r.ts || 0);
+          g.items.push({
+            title: rest.trim() || (car ? 'Carousel' : 'Single ad'),
+            sub: [market, ar ? 'Arabic' : ''].filter(Boolean).join(' · '),
+            subOn: !!(market || ar),
+            when: ago(r.ts || 0),
+            what,
+            full: nm + ' — saved ' + new Date(r.ts || 0).toLocaleString(),
+            stack: n > 2 ? '2' : (n > 1 ? '1' : undefined),
+            load: () => this.openRecent(i),
+            hasThumbs: !!(r.thumbs && r.thumbs.length),
+            master: { backgroundImage: `url("${(r.thumbs || [])[0] || ''}")` },
+            hasMore: (r.thumbs || []).length > 1,
+            moreLabel: (car ? 'Pages ' : 'Variants ') + (r.thumbs || []).length,
+            frames: (r.thumbs || []).map(u => ({ shot: { backgroundImage: `url("${u}")` } })),
+            reelStyle: StudioBase.reelTiming((r.thumbs || []).length || 1)
+          });
+        });
+        groups.sort((a, b) => b.ts - a.ts);
+        // A campaign with one project gets no heading of its own (a heading over one card is the
+        // repetition this removed): they share an "Other projects" row, each card naming its
+        // campaign, after the campaigns with several projects.
+        const solo = groups.filter(g => g.items.length === 1);
+        const out = groups.filter(g => g.items.length > 1);
+        if (solo.length > 1 || (solo.length && out.length)) {
+          const items = solo.map(g => { const it = g.items[0], aud = /^(Carousel|Single ad)$/.test(it.title) ? '' : it.title;
+            return Object.assign({}, it, { title: g.name, sub: [aud, it.sub].filter(Boolean).join(' · '), subOn: !!(aud || it.sub) }); });
+          out.push({ name: out.length ? 'Other projects' : 'Projects', items, ts: solo[0].ts, other: true });
+        } else out.push(...solo);
+        return out.map(g => ({ name: g.name, items: g.items,
+          meta: g.items.length + (g.items.length === 1 ? ' project' : ' projects') + ' · last saved ' + ago(g.ts).replace(/^([A-Z])/, c => c.toLowerCase()) }));
+      })(),
       noRecents: recents.length === 0,
       splashTitle: 'Campaign Ad Studio',
       splashSub: 'Paid Meta ads, assembled from design components on the 2026 brand system.',
@@ -15799,6 +16217,10 @@ class CampaignStudio extends StudioBase {
       alignCenterOn: (selEff !== selV ? (selEff.align || selV.align) : av.align) === 'center' ? '1' : undefined,
       alignScope: selEff !== selV ? 'this size only' : '',
       logoScope: selEff !== selV ? 'this size only · never right' : 'never right',
+      // THE LAYOUT RAIL'S PROPERTY ROWS (2026-10-29): a track of glyphs states its choice in words
+      // under the row's name, so the reader never has to decode the glyph.
+      logoVal: (() => { const lr = selEff !== selV ? CampaignStudio.withOv(selV, selEff) : av; return ((lr.logoPos || 'top') === 'top' ? 'Top ' : 'Bottom ') + ((lr.logoAlign || 'left') === 'center' ? 'center' : 'left') + (selEff !== selV ? ' · this size' : ''); })(),
+      layoutName: allBottom ? 'Bottom' : allTop ? 'Top' : realMods.length ? 'Split' : 'Empty',
       scrimH: av.scrimH == null ? 65 : av.scrimH,
       bgDark: () => setAv(vv => { vv.bg = 'dark'; vv.scrimHex = null; }),
       bgLight: () => setAv(vv => { vv.bg = 'light'; vv.scrimHex = null; }),
@@ -15901,7 +16323,7 @@ class CampaignStudio extends StudioBase {
         const band = pos === 'top' ? { top: '28%' } : { bottom: '28%' };
         return {
           label: 'Logo ' + pos + ' ' + al,
-          tile: (pos === 'top' ? 'Top' : 'Bottom') + ' ' + (al === 'center' ? 'Center' : 'Left'),
+          tile: (pos === 'top' ? 'Top' : 'Bottom') + ' ' + (al === 'center' ? 'center' : 'left'),
           on: on ? '1' : undefined,
           set: () => (selEff !== selV ? setSelTarget(t => { t.logoPos = pos; t.logoAlign = al; }) : setAv(vv => { vv.logoPos = pos; vv.logoAlign = al; })),
           barStyle: Object.assign({ left: x + '%', width: BAR + '%', height: '6px' }, band),

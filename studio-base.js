@@ -488,10 +488,24 @@ class StudioBase {
     if (this._recents.some(r => r && r.images) && rt && rt.set) await this.writeRecents(this._recents);
     this.forceUpdate();
     this.bindFolder();
+    this.homeHash();
     const k = this.recSavedKey();
     let pend = false;
     try { pend = !!k && localStorage.getItem(k) === '1'; if (pend) localStorage.removeItem(k); } catch (e) {}
     if (pend) this.recordSaved();
+  }
+  // THE LANDING PAGE LINKS STRAIGHT INTO THE WORK: #recent=<pid> opens that saved project,
+  // #view=<name> opens that home view (CAS: rev = Status). Read once, after the recents list
+  // has loaded, and dropped from the address first, because opening a recent reloads.
+  homeHash() {
+    if (this._homeHash) return;
+    this._homeHash = true;
+    const m = /^#(recent|view)=([\w-]+)$/.exec(location.hash || '');
+    if (!m) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    if (m[1] === 'view') { try { this.host.setState({ splashView: m[2] }); } catch (e) {} return; }
+    const i = this.savedRecents().findIndex(r => (r.pid || (r.state && r.state.pid)) === m[2]);
+    if (i >= 0) this.openRecent(i);
   }
   // A RECENT CARD'S PHOTOS LIVE UNDER THEIR OWN KEY, never in the list. The list is read
   // whole on every load and rewritten whole on every save, and with export-grade photos in

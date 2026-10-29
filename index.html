@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Provident Design Studio</title>
-<meta name="description" content="Provident Design Studio — Campaign ads and Organic posts.">
+<meta name="description" content="Provident Design Studio: start or pick up Campaign ads and Organic posts.">
 
 <!-- SET data-theme BEFORE FIRST PAINT. Light-first, and the key is `provident-theme`,
      the SAME one all three studios read — so a choice made here carries straight into
@@ -23,108 +23,106 @@
 <link rel="stylesheet" href="ui-design-system/provident-ui.css">
 
 <style>
-/* The home page (2026-10-19). Layout only: every colour, radius, motion value and type role is a
-   kit token. Each studio card LEADS with its Hairline figure (vendor/hairline, MIT) — Elevator for
-   Campaign ads, Turntable for Organic posts — on the studio's own stage ground, interactive under
-   the pointer. The card is not one big link any more: a stretched link over the figure would eat
-   the pointer the figure reacts to, so the title row and the Open button are the way in. */
+/* THE LANDING PAGE (rebuilt 2026-10-29 from its own critique). It shows the WORK, not a pitch:
+   one line saying who is here and what is waiting; the two studios as compact doors whose Open
+   buttons sit in the first screen, each with its Hairline figure (vendor/hairline, MIT) as its
+   mark; then the desk — this computer's saved projects as real renders at their true shape,
+   one click from opening (#recent=<pid>). With nothing saved, the desk shows what each studio
+   makes, from preview/. Chrome is kit tokens; the doors' navy and inks are pinned, below. */
+:root{
+  --lp-band:#14223D; --lp-band-2:#0F1A31; --lp-rule:rgba(196,210,236,.16);
+  --lp-ink:#F4F6FA; --lp-ink-2:#B5C1D6; --lp-dim:#93A1BB;
+}
+:root:not([data-theme="light"]){ --lp-band:#1B2C4E; --lp-band-2:#15233F; }
 body{margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--ps-app)}
 .p-top{position:sticky; top:0; z-index:5}
 .lp-sp{flex:1}
-.lp{width:100%; max-width:1120px; margin:0 auto; padding:72px 24px 56px; flex:1; box-sizing:border-box}
+.lp{width:100%; max-width:1240px; margin:0 auto; padding:40px 32px 40px; flex:1; box-sizing:border-box}
 
-.lp-h{max-width:680px; margin:0 0 44px}
-.lp-kick{display:inline-flex; align-items:center; gap:8px; font:500 13px/1 var(--ps-font); color:var(--ps-ink-2)}
-.lp-kick::before{content:''; width:8px; height:8px; border-radius:50%; background:var(--ps-brand)}
-.lp-h h1{font:600 52px/1.06 var(--ps-font); letter-spacing:-.015em; margin:16px 0 0; color:var(--ps-ink); text-wrap:balance}
-.lp-lede{font:400 17px/1.55 var(--ps-font); color:var(--ps-ink-2); margin:18px 0 0; max-width:560px}
+/* one line: who, and what is waiting */
+.lp-h{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 18px; margin:0 0 28px}
+.lp-h h1{font:400 clamp(30px,3.6vw,46px)/1.12 var(--ps-font); letter-spacing:-.028em; margin:0; color:var(--ps-ink); text-wrap:balance}
+.lp-h h1 span{color:var(--ps-ink-2)}
 
-.lp-g{display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.lp-c{display:flex; flex-direction:column; background:var(--ps-card); border:1px solid var(--ps-hair);
-  border-radius:16px; overflow:hidden;
-  transition:border-color var(--ps-motion) var(--ps-ease);
-  animation:lpIn 220ms var(--ps-ease) backwards}
-.lp-c:nth-child(2){animation-delay:70ms}
-@keyframes lpIn{from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none}}
-.lp-c:hover{border-color:var(--ps-line)}
-
-/* THE STAGE: the figure on the studio's stage ground. The figure draws in a 5:4 frame and is
-   scaled to the stage's height; its plate is the stage itself, so it never shows as a box. */
-.lp-stage{position:relative; height:280px; background:var(--ps-stage); border-bottom:1px solid var(--ps-hair);
-  display:flex; align-items:center; justify-content:center; overflow:hidden}
-.lp-fig{display:block; height:100%; aspect-ratio:5/4; max-width:100%;
-  --hairline-plate:var(--ps-fill); --hairline-hi:var(--ps-ink); --hairline-edge:var(--ps-ink-2);
-  --hairline-mid:var(--ps-ink-2); --hairline-lo:var(--ps-dim); --hairline-stroke:1}
-.lp-c:hover .lp-fig{--hairline-hi:var(--ps-link)}
-.lp-hint{position:absolute; left:16px; bottom:12px; font:500 11.5px/1 var(--ps-font); color:var(--ps-dim);
-  opacity:0; transform:translateY(2px); transition:opacity var(--ps-motion) var(--ps-ease), transform var(--ps-motion) var(--ps-ease)}
-.lp-stage:hover .lp-hint{opacity:1; transform:none}
-
-.lp-c-in{display:flex; flex-direction:column; padding:20px 22px 22px; flex:1}
-.lp-c-t{display:flex; align-items:center; gap:12px}
-/* THE STUDIO CHIP — the studio switcher's own (CAS/OPS section 45): a miniature canvas at the
-   studio's ratio, 36 tall, carrying a wordmark bar and two headline bars. Quiet at rest; on the
-   card's hover it lights the way the switcher's current studio does — navy ground, pale bars. */
-.lp-mark{width:44px; height:44px; flex:none; display:inline-flex; align-items:center; justify-content:center}
-.lp-sh{position:relative; display:block; height:36px; width:calc(36px * var(--a)); border-radius:6px;
-  background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-line); overflow:hidden;
-  transition:background-color var(--ps-motion) var(--ps-ease), box-shadow var(--ps-motion) var(--ps-ease)}
-.lp-sh i{position:absolute; left:16%; height:9%; border-radius:9999px; background:var(--ps-dim);
-  transition:background-color var(--ps-motion) var(--ps-ease)}
-.lp-sh i:nth-child(1){top:14%; width:34%; opacity:.9}
-.lp-sh i:nth-child(2){top:58%; width:66%; height:10%; background:var(--ps-ink-2)}
-.lp-sh i:nth-child(3){top:74%; width:46%; height:10%; background:var(--ps-ink-2)}
-.lp-c:hover .lp-sh{background:var(--ps-accent-i); box-shadow:none}
-.lp-c:hover .lp-sh i{background:var(--ps-accent); opacity:1}
-.lp-c-n{min-width:0}
-.lp-c h2{font:600 20px/1.25 var(--ps-font); letter-spacing:-.01em; margin:0; color:var(--ps-ink)}
-.lp-c-d{font:500 13px/1.3 var(--ps-font); color:var(--ps-dim); margin:2px 0 0}
-.lp-c-b{font:400 14.5px/1.55 var(--ps-font); color:var(--ps-ink-2); margin:14px 0 0}
-
-/* three facts as figures, not as a row of pills */
-.lp-facts{list-style:none; margin:18px 0 0; padding:0; display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
-.lp-facts li{display:flex; flex-direction:column; gap:4px; padding:12px; border-radius:10px; background:var(--ps-fill)}
-.lp-facts b{font:600 22px/1 var(--ps-font); color:var(--ps-ink); font-variant-numeric:tabular-nums}
-.lp-facts span{font:400 12px/1.4 var(--ps-font); color:var(--ps-ink-2)}
-
-/* the studio's own template renders, small, with their names as tooltips */
-.lp-tpl{display:flex; align-items:center; gap:12px; margin:18px 0 22px}
-.lp-tpl-l{font:500 12px/1 var(--ps-font); color:var(--ps-dim); flex:none}
-.lp-tpl-r{display:flex; gap:6px; min-width:0; overflow:hidden}
-.lp-tpl-r img{height:44px; width:auto; border-radius:4px; box-shadow:0 0 0 1px var(--ps-hair); display:block}
-
-.lp-go{margin-top:auto; display:inline-flex; align-items:center; justify-content:center; gap:8px; height:44px;
-  border-radius:var(--ps-pill); background:var(--ps-primary); color:var(--ps-primary-i); text-decoration:none;
-  font:600 14px/1 var(--ps-font); letter-spacing:.16px;
+/* THE DOORS: compact, side by side, the figure as each studio's mark */
+.lp-studios{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px}
+.lp-door{position:relative; display:grid; grid-template-columns:168px minmax(0,1fr); align-items:center; gap:4px 18px;
+  padding:22px 24px 22px 12px; border-radius:18px; color:var(--lp-ink);
+  background:radial-gradient(130% 120% at 18% 50%, var(--lp-band) 0%, var(--lp-band-2) 100%);
+  box-shadow:inset 0 0 0 1px var(--lp-rule)}
+.lp-fig{display:block; width:168px; aspect-ratio:5/4;
+  --hairline-plate:rgba(255,255,255,.035); --hairline-hi:#FFFFFF; --hairline-edge:#B5C1D6;
+  --hairline-mid:#7F8EAA; --hairline-lo:#4B5A78; --hairline-stroke:1}
+.lp-door:hover .lp-fig{--hairline-edge:#DCE4F2; --hairline-mid:#A3B2CC}
+.lp-door h2{font:400 30px/1.1 var(--ps-font); letter-spacing:-.02em; margin:0}
+.lp-door-d{font:400 15px/1.45 var(--ps-font); color:var(--lp-ink-2); margin:6px 0 0}
+.lp-fmt{list-style:none; display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 14px; margin:14px 0 0; padding:0}
+.lp-fmt li{display:flex; align-items:flex-end; gap:6px}
+.lp-fmt i{display:block; height:18px; width:calc(18px * var(--r)); border-radius:2px; box-shadow:inset 0 0 0 1px var(--lp-ink-2)}
+.lp-fmt span{font:500 12px/1 var(--ps-font); color:var(--lp-ink-2); font-variant-numeric:tabular-nums; white-space:nowrap}
+.lp-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:18px}
+.lp-go{display:inline-flex; align-items:center; gap:10px; height:44px; padding:0 18px 0 20px; border-radius:var(--ps-pill);
+  background:#FFFFFF; color:#13203A; text-decoration:none; font:600 14.5px/1 var(--ps-font); letter-spacing:.16px;
   transition:background-color var(--ps-motion) var(--ps-ease), transform var(--ps-motion) var(--ps-ease)}
-.lp-go svg{width:17px; height:17px; fill:currentColor; transition:transform var(--ps-motion) var(--ps-ease)}
-.lp-go:hover{background:var(--ps-primary-h)}
-.lp-go:hover svg{transform:translateX(2px)}
+.lp-go svg{width:18px; height:18px; fill:currentColor; transition:transform var(--ps-motion) var(--ps-ease)}
+.lp-go:hover{background:#E3E9F4}
+.lp-go:hover svg{transform:translateX(3px)}
 .lp-go:active{transform:translateY(1px)}
-.lp-go:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+/* the waiting count: a fact, so it is a chip with a number, not a second link to the same page */
+.lp-wait{display:inline-flex; align-items:center; gap:8px; height:44px; padding:0 16px; border-radius:var(--ps-pill);
+  color:var(--lp-ink); text-decoration:none; font:500 14px/1 var(--ps-font); box-shadow:inset 0 0 0 1px rgba(244,246,250,.32);
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.lp-wait b{display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; box-sizing:border-box; border-radius:11px;
+  background:#FFFFFF; color:#13203A; font:600 12.5px/1 var(--ps-font); font-variant-numeric:tabular-nums}
+.lp-wait:hover{background:rgba(255,255,255,.08)}
+.lp-wait[hidden]{display:none}
+.lp-go:focus-visible,.lp-wait:focus-visible{outline:2px solid #FFFFFF; outline-offset:3px}
 
-.lp-f{max-width:1120px; margin:0 auto; width:100%; box-sizing:border-box;
-  padding:22px 24px 34px; border-top:1px solid var(--ps-hair);
-  display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px}
-.lp-f p{margin:0; font-size:12px; color:var(--ps-dim)}
-.lp-f a{font-size:12px; color:var(--ps-link); text-decoration:none; text-underline-offset:3px}
+/* THE DESK: the work itself, at its real shape */
+.lp-desk{margin-top:40px}
+.lp-desk-h{display:flex; align-items:baseline; gap:12px; margin:0 0 16px}
+.lp-desk-h h2{font:500 18px/1.2 var(--ps-font); letter-spacing:-.01em; margin:0; color:var(--ps-ink)}
+.lp-desk-h p{margin:0; font:400 14px/1.4 var(--ps-font); color:var(--ps-ink-2)}
+.lp-reel{list-style:none; margin:0; padding:2px 2px 14px; display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x proximity;
+  scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
+.lp-reel li{flex:none; scroll-snap-align:start}
+.lp-w{display:flex; flex-direction:column; gap:10px; color:var(--ps-ink); text-decoration:none; border-radius:8px}
+.lp-w img{display:block; height:240px; width:auto; border-radius:6px; box-shadow:0 0 0 1px var(--ps-hair);
+  transition:transform 240ms cubic-bezier(.16,1,.3,1), box-shadow var(--ps-motion) var(--ps-ease)}
+a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link), 0 12px 24px -12px rgba(10,20,40,.35)}
+a.lp-w:focus-visible{outline:2px solid var(--ps-ink); outline-offset:4px}
+.lp-w b{display:block; max-width:240px; font:500 15px/1.3 var(--ps-font); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lp-w small{display:block; margin-top:2px; font:400 13px/1.3 var(--ps-font); color:var(--ps-dim)}
+
+.lp-f{max-width:1240px; margin:0 auto; width:100%; box-sizing:border-box; padding:16px 32px 28px; display:flex; align-items:center; gap:18px}
+.lp-f p{margin:0; font-size:12.5px; color:var(--ps-dim)}
+.lp-f a{display:inline-flex; align-items:center; min-height:44px; font-size:13px; color:var(--ps-link); text-decoration:none; text-underline-offset:3px}
 .lp-f a:hover{text-decoration:underline}
 .lp-f a:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px; border-radius:3px}
 
-@media (max-width:900px){ .lp-h h1{font-size:40px; line-height:1.1} }
+@media (max-width:1120px){
+  .lp-studios{grid-template-columns:minmax(0,1fr)}
+}
 @media (max-width:640px){
-  .lp{padding:40px 16px 28px}
-  .lp-h{margin-bottom:28px}
-  .lp-h h1{font-size:32px}
-  .lp-lede{font-size:16px}
-  .lp-g{grid-template-columns:1fr}
-  .lp-stage{height:220px}
-  .lp-c-in{padding:18px 16px 18px}
-  .lp-facts b{font-size:20px}
+  .lp{padding:24px 16px 24px}
+  .lp-h{margin-bottom:20px}
+  .lp-door{display:block; padding:20px 18px 18px}
+  .lp-fig{position:absolute; top:10px; right:10px; width:96px}
+  .lp-door h2{font-size:26px; padding-right:96px}
+  .lp-door-d{font-size:14.5px; padding-right:84px}
+  .lp-fmt{margin-top:12px}
+  .lp-acts{margin-top:16px}
+  .lp-go{flex:1 1 auto; justify-content:center; white-space:nowrap}
+  .lp-desk-h{flex-direction:column; gap:4px}
+  .lp-desk{margin-top:28px}
+  .lp-w img{height:180px}
+  .lp-w b{max-width:180px}
+  .lp-f{padding:12px 16px 24px}
 }
 @media (prefers-reduced-motion:reduce){
-  .lp-c,.lp-go,.lp-go svg,.lp-hint{transition:none; animation:none}
+  .lp-go,.lp-go svg,.lp-wait,.lp-w img{transition:none}
   .lp-go:active{transform:none}
+  a.lp-w:hover img{transform:none}
 }
 </style>
 <script src="vendor/hairline/hairline.js"></script>
@@ -174,45 +172,57 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column; background
   </button>
 </header>
 <main class="lp">
-  <div class="lp-h">
-    <span class="lp-kick">Provident Design Studio</span>
-    <h1>Make on-brand ads and posts in minutes.</h1>
-    <p class="lp-lede">Two studios on one brand system — the same typeface, tokens and grid. Pick the one for what you are making.</p>
-  </div>
-  <div class="lp-g">
-    <article class="lp-c" data-studio="campaign">
-      <div class="lp-stage">
-        <span class="lp-fig" data-hl="elevator"></span>
-        <span class="lp-hint" aria-hidden="true">Move across it</span>
-      </div>
-      <div class="lp-c-in">
-        <div class="lp-c-t">
-          <span class="lp-mark" style="--a:1"><span class="lp-sh"><i></i><i></i><i></i></span></span>
-          <div class="lp-c-n"><h2>Campaign ads</h2><p class="lp-c-d">Paid Meta ads</p></div>
+  <div class="lp-h"><h1 id="greet">Make it on brand, in every size.</h1></div>
+
+  <div class="lp-studios">
+    <section class="lp-door" aria-labelledby="h-cas">
+      <span class="lp-fig" data-hl="elevator" aria-hidden="true"></span>
+      <div>
+        <h2 id="h-cas">Campaign ads</h2>
+        <p class="lp-door-d">Meta ads in every size, per audience and language.</p>
+        <ul class="lp-fmt" aria-label="Sizes it exports">
+          <li style="--r:1"><i></i><span>1:1</span></li>
+          <li style="--r:.75"><i></i><span>3:4</span></li>
+          <li style="--r:.5625"><i></i><span>9:16</span></li>
+          <li style="--r:1.91"><i></i><span>1.91:1</span></li>
+          <li style="--r:2"><i></i><span>2:1</span></li>
+        </ul>
+        <div class="lp-acts">
+          <a class="lp-go" href="Provident%20Campaign%20Studio.dc.html">Open Campaign ads<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></a>
+          <a class="lp-wait" id="wait" href="Provident%20Campaign%20Studio.dc.html#view=rev" hidden></a>
         </div>
-        <p class="lp-c-b">Build an ad from design components, then ship every size in one go — each variant keeps its own layout, scrim and scale.</p>
-        <ul class="lp-facts"><li><b>6</b><span>sizes, 1:1 to banner</span></li><li><b>3</b><span>A/B variants per ad</span></li><li><b>2</b><span>typefaces, EN and AR</span></li></ul>
-        <div class="lp-tpl"><span class="lp-tpl-l">Templates</span><div class="lp-tpl-r"><img src="preview/campaign-f.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="New launch"><img src="preview/campaign-d.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="Event"><img src="preview/campaign-g.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="Payment plan"><img src="preview/campaign-h.webp" alt="" width="475" height="475" loading="lazy" decoding="async" title="Spec ladder"></div></div>
-        <a class="lp-go" href="Provident%20Campaign%20Studio.dc.html">Open Campaign ads<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg></a>
       </div>
-    </article>
-    <article class="lp-c" data-studio="organic">
-      <div class="lp-stage">
-        <span class="lp-fig" data-hl="turntable"></span>
-        <span class="lp-hint" aria-hidden="true">Flick to spin it</span>
-      </div>
-      <div class="lp-c-in">
-        <div class="lp-c-t">
-          <span class="lp-mark" style="--a:.75"><span class="lp-sh"><i></i><i></i><i></i></span></span>
-          <div class="lp-c-n"><h2>Organic posts</h2><p class="lp-c-d">Feed and story posts</p></div>
+    </section>
+
+    <section class="lp-door" aria-labelledby="h-ops">
+      <span class="lp-fig" data-hl="turntable" aria-hidden="true"></span>
+      <div>
+        <h2 id="h-ops">Organic posts</h2>
+        <p class="lp-door-d">Feed and story posts from Provident's own templates.</p>
+        <ul class="lp-fmt" aria-label="Sizes it exports">
+          <li style="--r:.75"><i></i><span>3:4 feed</span></li>
+          <li style="--r:.5625"><i></i><span>9:16 story</span></li>
+        </ul>
+        <div class="lp-acts">
+          <a class="lp-go" href="Provident%20Organic%20Studio.dc.html">Open Organic posts<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></a>
         </div>
-        <p class="lp-c-b">Pick a locked template and fill it in page by page. The layout is the template’s; you bring the words and the photographs.</p>
-        <ul class="lp-facts"><li><b>8</b><span>templates</span></li><li><b>15</b><span>pages in a carousel</span></li><li><b>2</b><span>sizes, feed and story</span></li></ul>
-        <div class="lp-tpl"><span class="lp-tpl-l">Templates</span><div class="lp-tpl-r"><img src="preview/organic-listed.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Just listed"><img src="preview/organic-weekly.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Weekly listings"><img src="preview/organic-agents.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Top agents"><img src="preview/organic-review.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Google reviews"><img src="preview/organic-award.webp" alt="" width="475" height="633" loading="lazy" decoding="async" title="Award"></div></div>
-        <a class="lp-go" href="Provident%20Organic%20Studio.dc.html">Open Organic posts<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647-446H180q-14.16 0-23.58-9.43Q147-464.85 147-479.51q0-14.66 9.42-24.07Q165.84-513 180-513h467L437-723q-10-10-9.5-23.5T437-770q10-10 23.5-10t23.5 10l264 264q5.07 5.07 7.53 11.15 2.47 6.09 2.47 12.85 0 6.76-2.47 12.85Q753.07-463 748-458L484-194q-10 10-23 9.5T437.5-194.5Q428-205 428-218.5t9.5-23.5l209.5-204Z"/></svg></a>
       </div>
-    </article>
+    </section>
   </div>
+
+  <section class="lp-desk" aria-labelledby="h-desk">
+    <div class="lp-desk-h"><h2 id="h-desk">What the studios make</h2><p id="desk-sub">Real templates, as they export.</p></div>
+    <ol class="lp-reel" id="reel">
+      <li><a class="lp-w" href="Provident%20Organic%20Studio.dc.html"><img src="preview/organic-listed.webp" alt="" width="475" height="633" decoding="async"><span><b>Just listed</b><small>Organic posts</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Campaign%20Studio.dc.html"><img src="preview/campaign-f.webp" alt="" width="475" height="475" decoding="async"><span><b>New launch</b><small>Campaign ads</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Organic%20Studio.dc.html"><img src="preview/organic-agents.webp" alt="" width="475" height="633" decoding="async"><span><b>Top agents</b><small>Organic posts</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Campaign%20Studio.dc.html"><img src="preview/campaign-g.webp" alt="" width="475" height="475" loading="lazy" decoding="async"><span><b>Payment plan</b><small>Campaign ads</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Organic%20Studio.dc.html"><img src="preview/organic-review.webp" alt="" width="475" height="633" loading="lazy" decoding="async"><span><b>Google reviews</b><small>Organic posts</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Campaign%20Studio.dc.html"><img src="preview/campaign-d.webp" alt="" width="475" height="475" loading="lazy" decoding="async"><span><b>Event</b><small>Campaign ads</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Organic%20Studio.dc.html"><img src="preview/organic-award.webp" alt="" width="475" height="633" loading="lazy" decoding="async"><span><b>Award</b><small>Organic posts</small></span></a></li>
+      <li><a class="lp-w" href="Provident%20Organic%20Studio.dc.html"><img src="preview/organic-weekly.webp" alt="" width="475" height="633" loading="lazy" decoding="async"><span><b>Weekly listings</b><small>Organic posts</small></span></a></li>
+    </ol>
+  </section>
 </main>
 
 <footer class="lp-f">
@@ -222,9 +232,7 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column; background
 </footer>
 
 <script>
-/* The toggle writes the same `provident-theme` key the studios read, so the choice
-   follows you into whichever one you open. The glyph states the theme you would GET,
-   which is the direction every toggle in this system points. */
+/* The toggle writes the same `provident-theme` key the studios read. */
 (function(){
   var btn = document.getElementById('themebtn'), ico = document.getElementById('themeicon');
   function sync(){
@@ -243,13 +251,87 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column; background
   sync();
 })();
 
-/* THE FIGURES: Hairline's Elevator and Turntable, mounted once each. They play a short tour on
-   their own and then answer the pointer; reduced motion is honoured by the library itself. */
+/* THE FIGURES: Hairline's Elevator and Turntable, each studio's mark. */
 (function(){
   var H = window.providentHairline; if (!H) return;
   document.querySelectorAll('[data-hl]').forEach(function(el){
     var make = H[el.getAttribute('data-hl')]; if (!make) return;
     try { make(el, { play: true, intensity: .7 }); } catch (e) { console.warn('hairline', e); }
+  });
+})();
+
+/* WHO IS HERE, WHAT IS WAITING, AND THE DESK. All read from this computer, all optional:
+   - the Google account the studios signed in with (provident-drive-who);
+   - CAS's last Status count (provident-status-sum, ignored after 14 days);
+   - each studio's saved projects (IndexedDB provident-design-studio, recents:<studio>; never
+     created from here), shown as their own renders and linking to <studio>#recent=<pid>. */
+(function(){
+  function ls(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function ago(ts){
+    var s = Math.max(0, (Date.now() - ts) / 1000);
+    if (s < 60) return 'just now';
+    var m = Math.round(s / 60); if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
+    var h = Math.round(m / 60); if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+    var d = Math.round(h / 24); if (d < 7) return d === 1 ? 'yesterday' : d + ' days ago';
+    return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
+  var hr = new Date().getHours(), part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
+  var who = null; try { who = JSON.parse(ls('provident-drive-who') || 'null'); } catch (e) {}
+  var first = who && (who.name || '').trim().split(/\s+/)[0];
+  var sum = null; try { sum = JSON.parse(ls('provident-status-sum') || 'null'); } catch (e) {}
+  var fresh = sum && sum.at && Date.now() - sum.at < 14 * 864e5;
+  var open = fresh ? (sum.open || 0) : 0;
+
+  var hi = first ? 'Good ' + part + ', ' + esc(first) + '.' : '';
+  var tail = open ? (open === 1 ? '1 campaign is waiting for you.' : open + ' campaigns are waiting for you.') : (hi ? 'Pick up where you left off.' : '');
+  if (hi || tail) document.getElementById('greet').innerHTML = hi + (hi && tail ? ' ' : '') + (tail ? '<span>' + tail + '</span>' : '');
+
+  if (fresh && (sum.open || sum.design || sum.ready)) {
+    var w = document.getElementById('wait');
+    w.innerHTML = sum.open ? '<b>' + sum.open + '</b>waiting' : '<b>' + ((sum.design || 0) + (sum.ready || 0)) + '</b>in progress';
+    w.title = (sum.open || 0) + ' waiting · ' + (sum.design || 0) + ' in design · ' + (sum.ready || 0) + ' ready to run';
+    w.hidden = false;
+  }
+
+  var DBN = 'provident-design-studio';
+  function idbGet(key){
+    return new Promise(function(res){
+      if (!window.indexedDB) return res(null);
+      function go(){
+        var q; try { q = indexedDB.open(DBN); } catch (e) { return res(null); }
+        q.onsuccess = function(){
+          var d = q.result;
+          if (!d.objectStoreNames.contains('files')) { d.close(); return res(null); }
+          var g = d.transaction('files', 'readonly').objectStore('files').get(key);
+          g.onsuccess = function(){ d.close(); res(g.result == null ? null : g.result); };
+          g.onerror = function(){ d.close(); res(null); };
+        };
+        q.onerror = function(){ res(null); };
+      }
+      if (indexedDB.databases) indexedDB.databases().then(function(l){ l.some(function(x){ return x.name === DBN; }) ? go() : res(null); }, go);
+      else go();
+    });
+  }
+  var STUDIO = { campaign: ['Campaign ads', 'Provident%20Campaign%20Studio.dc.html'], organic: ['Organic posts', 'Provident%20Organic%20Studio.dc.html'] };
+  Promise.all(Object.keys(STUDIO).map(function(k){
+    return idbGet('recents:' + k).then(function(raw){
+      var list = raw;
+      if (typeof raw === 'string') { if (raw.length > 3e7) return []; try { list = JSON.parse(raw); } catch (e) { return []; } }
+      if (!Array.isArray(list)) return [];
+      return list.filter(function(r){ return r && r.saved && (r.pid || (r.state && r.state.pid)) && r.thumbs && /^data:image\//.test(r.thumbs[0] || ''); })
+        .map(function(r){ return { r: r, k: k }; });
+    });
+  })).then(function(all){
+    var rows = [].concat.apply([], all).sort(function(x, y){ return (y.r.ts || 0) - (x.r.ts || 0); }).slice(0, 8);
+    if (!rows.length) return;
+    document.getElementById('h-desk').textContent = 'Pick up where you left off';
+    document.getElementById('desk-sub').textContent = rows.length === 1 ? 'Your last saved project.' : 'Your last ' + rows.length + ' saved projects, newest first.';
+    document.getElementById('reel').innerHTML = rows.map(function(x){
+      var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid;
+      return '<li><a class="lp-w" href="' + st[1] + '#recent=' + encodeURIComponent(pid) + '"><img src="' + r.thumbs[0] + '" alt="">' +
+        '<span><b>' + esc(r.name || 'Untitled') + '</b><small>' + st[0] + ' · saved ' + esc(ago(r.ts || 0)) + '</small></span></a></li>';
+    }).join('');
   });
 })();
 </script>

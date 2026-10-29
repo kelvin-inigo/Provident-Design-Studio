@@ -153,7 +153,10 @@ Each studio opens on its **project browser**.
 - **Home** (CAS) is the first page. Under its title it counts your campaigns — open tickets, in
   design, ready to run — as Status last read them.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
-  folder, and opening a session file all count.
+  folder, and opening a session file all count. In CAS they are grouped by campaign: the
+  campaign's name is the heading, and each card shows the audience, market and language, when it
+  was saved and how many variants it has. Campaigns with only one project share an
+  **Other projects** row. Hover a card to see its full name.
 - **Undo** / **Redo** (top bar) go back up to 10 steps. A photo reframe counts as a step.
 - **From the hub** (OPS only; sidebar, under Library) lists what the Content Hub has received from **Send**,
   newest first, with a few of the sent images on each card. Click one to open it as a project:
@@ -311,8 +314,7 @@ Things to know:
 - **Each project still has its own edit link.** That's the designer's way into the full studio for
   that project (the **Open** buttons in the overview use it).
 - **The designer sees the whole ad set from inside the project.** In a project that is in an ad
-  set, the chip in the bar under the canvas names its audience and step (*Family · Design*).
-  Click it, or **Overview** at the top of the Ad set tab, to open the Ad sets window
+  set, **Ad set overview** in the bar under the canvas (or **Overview** at the top of the Ad set tab) opens the Ad sets window
   over every audience and language in the ad set, rendered from the latest work. The audience
   you are working on says *This project*. Every other audience has **Open in the studio**, which
   opens that project in a new tab. Close the window with **×** or Escape.
@@ -394,19 +396,23 @@ history goes. Its projects stay, each on its own edit link. The record
 ## 3. CAS: build an ad
 
 What's on the screen, from left to right:
-- **Design Components**: the palette of pieces you can add.
+- **On this ad / Add** (left rail): what is on the ad in reading order, then the pieces you can add.
 - **The canvases**: one row ("plate") per variant. The 1:1 is on top, then the Portrait 3:4,
   the 9:16 and the Horizontal 1.91:1, then the optional Eventbrite banner.
 - **This component**, **Background image** and **Hidden components**.
 - **Layout**, on the right.
 
 **Adding and editing:**
-- **Add a component:** click a card (or its **+**) in **Design Components**. The cards are in four
-  groups: **Text** (Eyebrow, Hero headline, Hook line, Body line), **Data** (Price block, Spec data,
-  Tag chips, Bullet list, Process steps), **Action & media** (CTA button, Graphic) and **Structure**
-  (Divider, Spacer). Click a group's heading to fold it; a folded group lists what it holds, and
-  the computer remembers which groups you folded. A card already on the canvas shows **N in use**;
-  hover a card for what it is.
+- **See what is on the ad:** the top of the left rail, **On this ad**, lists the components on the
+  canvas you are looking at, in reading order: **Top**, then **Bottom** (and **Floating** for a
+  graphic placed by hand). Each row shows the component's shape, its name and its words. Click a
+  row to select that component; hover it and press the eye to hide it on this variant (press it
+  again to show it). A hidden component stays in the list, struck through.
+- **Add a component:** click a row under **Add**. The rows are in four groups: **Text** (Eyebrow,
+  Hero headline, Hook line, Body line), **Data** (Price block, Spec data, Tag chips, Bullet list,
+  Process steps), **Action & media** (CTA button, Graphic) and **Structure** (Divider, Spacer). A
+  new component goes to the bottom of the ad. A number beside a row says how many are already on
+  the canvas. Hover a row for what it is.
 - **Edit its words:** click the component on the canvas, then type in **This component**.
   - Headline, hook and body take line breaks (Enter), up to 4 lines.
   - Tag chips and spec rows have one field per item. Use **+** to add one and × to remove one.
@@ -463,22 +469,23 @@ What's on the screen, from left to right:
   - Double-click the photo on the canvas to reframe it.
   - **Image opacity** dims it.
   - **Overlap image** takes a cut-out PNG that sits in front of the headline, for a parallax look.
-- **Layout** (right rail):
+- **Layout** (right rail) lists the choices in words. **Point at one and the canvas shows it**,
+  outlined and tagged Preview, before anything changes; click to keep it, move away to drop it.
+  With the keyboard, tabbing onto a choice previews it the same way.
+  - **Copy**: At the top, Split (eyebrow, headline and hook at the top, the rest at the bottom) or
+    At the bottom. Keeping one shows a message with **Undo**.
+  - **Logo**: Top left, Top center, Bottom left or Bottom center (never right).
+  - **Align**: Left or Center. Under the choices, a line says how much of the canvas the copy
+    covers (amber over the brand's 40%).
+  - Click another canvas (the 9:16, say) and the choices apply to that one. On a canvas you
+    separated with the link button they change only that size, and say "this size only".
 
-  | control | what it does |
-  |---|---|
-  | **Background** | Dark or Light |
-  | **Logo** | Top or Bottom, Left or Center (never right) |
-  | **Layout preset** | Bottom, Split or Top |
-  | **Scaling** | the size of all the content, in steps of the type scale (83%, 100%, 120%…), set per canvas size |
-  | **Alignment** | Left or Center |
-  | **Vertical spacing** | Tight, Medium or Roomy |
-  | **Scrim** | the wash behind the copy: Opacity, Fade and Colour |
-
-  **Scaling**, **Vertical spacing** and **Scrim** fold away. Closed, each one still shows its
-  current setting; click its title to open it. **Background image** and **Hidden components**
-  in the middle rail fold the same way, and the app remembers which ones you leave open.
-  The style previews show every style at once, two to a row. A reset button only appears once a value has been moved.
+  Then: **Spacing** (Tight, Medium or Roomy), **Scaling** (the size of all the content,
+  in steps of the type scale, set per canvas size), **Background** (Dark or Light) and **Scrim**
+  (the wash behind the copy: Opacity, Fade and Colour). **Scaling** and **Scrim** fold away and
+  show their setting when closed; the app remembers which ones you leave open. A reset button only
+  appears once a value has been moved.
+  In the middle rail, the style previews show every style at once, two to a row.
 
 **Checking it:**
 - **Copy %:** each canvas shows how much of the ad the copy covers. Above 40% it turns amber,
@@ -524,10 +531,10 @@ No API key or service is needed: Claude Code reads the screenshot.
     press it again to mirror the 1:1 again. Unlinking keeps the layout exactly as it was, so
     nothing moves until you change it.
   - **Alignment** — appears once a canvas is edited separately. It shows that canvas's alignment;
-    press it to switch between left and centre. The rail's **Alignment** does the same while that
+    press it to switch between left and centre. The rail's **Align** does the same while that
     canvas is selected (it reads *this size only*).
   - **Logo** — click a separated canvas (anywhere on it) and the Layout rail edits that canvas:
-    its heading reads e.g. *Master · 9:16 (own layout)*, and the **Logo** tiles and **Alignment**
+    its heading reads e.g. *Master · 9:16 (own layout)*, and the **Logo** and **Align** rows
     set the wordmark corner and alignment for that canvas only. It starts where the variant's is.
   - **Picture** — give that canvas its own photo instead of sharing the main one. It starts as a
     copy of the main photo, so you can simply reframe it, or replace it with another picture.

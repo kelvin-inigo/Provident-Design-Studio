@@ -17212,6 +17212,25 @@ count (`allCount` counted the deleted templates), and its subtitle counts campai
 (`statusSave`) and refreshed in the background by `Arch.refreshSum` when Home mounts, at most
 every 2 minutes and only with a valid Google token (never a prompt). OPS's header is unchanged.
 
+# THE LANDING PAGE SHOWS THE WORK (2026-10-29)
+
+Rebuilt the same day from its own critique (19/32: "a template — two equal dark feature
+cards, Open buttons below the fold, nothing Provident ships on the page"). `index.html`,
+still a `<link>`ed consumer of `ui-design-system/`:
+- **One line**: greeting from `provident-drive-who`, plus "N campaigns are waiting for you."
+  from CAS's Status count (`provident-status-sum`, ignored after 14 days). No account and no
+  count: "Make it on brand, in every size."
+- **Two compact doors** (pinned Provident Navy, both themes; lighter navy in dark): the
+  Hairline figure as each studio's mark beside a one-line description, the export ratios drawn
+  to scale, Open, and on CAS a "2 waiting" chip (the one link to Status). Both Open buttons sit
+  in the first screen at 1280x800 and on a phone.
+- **The desk**: your saved projects from both studios (IndexedDB `recents:campaign` /
+  `recents:organic`, never created from here) as their own renders at true shape, 240px tall,
+  newest first, each linking `<studio>#recent=<pid>`. With none, the same strip shows the real
+  template renders from `preview/` under "What the studios make".
+- **`StudioBase.homeHash()`** reads `#recent=<pid>` → `openRecent`, `#view=<name>` → `splashView`.
+- Verified: 0 contrast failures light/dark, no sideways scroll at 375, filled and empty states.
+
 # AD SET SETTINGS, AND THE DESIGNER'S "ALREADY APPROVED" (2026-10-29)
 
 By request: a way back into an ad set's setup after it is made, and a bypass of the content team
@@ -17235,6 +17254,20 @@ for ads already signed off elsewhere (so they still show on Status). share-link.
 - Verified on the Drive stand-in: ticket settings saved and logged, the Adset.json renamed, the
   locks refused a busy cell / product switch, Already approved moved the audience on to the Arabic,
   0 contrast failures in dark. Not exercised on real Google Drive.
+
+# CAS HOME IS A BRIEF SHEET BESIDE WHAT TO PICK UP (2026-10-29)
+
+By request, from a screenshot of the old "Set up the campaign" card. `PlanView` (share-link.js)
+draws `.rsp.rsp2`, styled by the "THE BRIEF SHEET" block at the end of the injected CSS:
+- **No card.** The campaign name is an input set at display size (30–46px, a hairline under it)
+  and is the page's headline; Product, Deadline and the Drive folder sit on one line as pills;
+  the Brief is the one big surface (200px textarea) with "Attach files" on its foot; then
+  "Who it's for" (the audience tiles) and the actions, Start designing first.
+- **CAS markup wraps the setup and the recents in `.p-home`** (section 60 of CAS's sheet): two
+  columns (`:has(.p-home-main)`), with the Riffle figure (`.p-home-hl`, empty span, drawn by
+  `hlBind`) over "Pick up where you left off" in a 340px sticky column. One column below
+  1180px, where the figure is hidden. The Recent view keeps its full-width grid.
+- Every class and `data-f` the form's logic reads is unchanged.
 
 # A PROJECT FINDS ITS AD SET; THE HAND-OFF LIVES IN THE TOP BAR (2026-10-29)
 
@@ -17479,6 +17512,70 @@ Three reports on **Make the Arabic version** / **Create next audience** (`rsNext
   `shInDrive()` (a project in a Drive ad set). CAS's Save there only flushes the share save and
   records Recent, and it says the project is kept on Drive. Exports write the renders only.
 
+# CAS'S RAILS AND BARS, REDESIGNED (2026-10-29, /impeccable)
+
+> **THE TWO RAILS WERE REDESIGNED AGAIN THE SAME DAY, by request ("I don't want what you did").**
+> The Layout inspector and the palette specimen grid below are gone; the top bar and canvas bar
+> notes still hold. See *THE OUTLINE, THE LIBRARY AND THE LAYOUT MAP* at the end of this file.
+
+By request, from screenshots of the Layout rail, the palette rail, the top bar and the canvas
+bar. Chrome only — no artwork line changed. CSS is section 63 at the end of CAS's sheet.
+
+- **The Layout rail is an inspector** (`.ly`): one row per property, name and value on the left
+  (`.ly-l`, 88px), ONE 36px track on the right (`.ly-seg`, or the three-stop slider, or a folding
+  field `.ly-f` / `.ly-v`). Two groups: **Composition** (Copy · Align · Logo · Spacing · Scaling)
+  and **Canvas** (Background · Scrim). Glyph-only tracks (Copy, Logo) say their choice in words
+  under the name (`layoutName`, `logoVal`, new keys beside `logoScope`); each glyph is a tiny
+  canvas (`.ly-gl`) with the marks where that choice puts things. The five i discs are gone —
+  the help is the row name's own `.tip`. Labels changed: Layout preset → **Copy**, Alignment →
+  **Align**, Vertical spacing → **Spacing** (the guide is updated). Vertical spacing no longer
+  folds. `data-acc` keys (`scaling`, `scrim`) are unchanged, so fold state carries over.
+- **The palette is a two-up specimen grid** (`.pl-grid` / `.pl-t`): each tile is the component's
+  look in a well of the stage's ground (`.pl-sp`) over its name; a count sits in the well's corner
+  (`.pl-k`) and the + shows on hover. The group boxes are gone; a heading says "N in use". Tiles
+  keep the `p-tile` class because the add-flash handler finds them by it. The specimen strings in
+  `samples` were shortened to fit a 104px tile.
+- **The top bar has one solid button**: the flow's next step, or Share when there is no flow
+  (`.p-top:not(:has(.p-flow-go))`). The studio switcher and Ad set | Design are navigation, so their
+  ON half is the quiet `--ps-fill-h` (a card with a hairline in light), not navy; Preview is a
+  ghost and goes icon-only ≤1360px; Share is an outline. The flow keeps its width (`.p-flow-at`
+  flex:none) so the step name never clips.
+- **Section 61 (the flow's own CSS) was missing from the working tree** — an uncommitted edit by
+  another session dropped it, and the flow's arrow drew at its intrinsic size. It is restored inside
+  section 63 (the capsule is a fill now, not a ring).
+- **The canvas bar's ad set chip is "Ad set overview"** (`.p-cvov`, a grid icon, same `cvAdGo`): its
+  label repeated the top bar's step in different words ("Translation" against "Arabic layout").
+  `cvAdLabel` / `cvAdState` are still computed and unread.
+- Verified in dark and light at 1512 / 1280 / 1024: 0 contrast failures over the four surfaces,
+  0 elevation shadows, no horizontal overflow, no clipped specimen; real clicks on Logo, Copy and a
+  palette tile; the flow in its design state fits at 1280.
+
+# THE OUTLINE, THE LIBRARY AND THE LAYOUT MAP (2026-10-29, /impeccable)
+
+By request, replacing the inspector rows and specimen grid of the pass before (section 63's rail
+rules are deleted; section 64 of CAS's sheet). The user chose both directions from three each.
+Chrome only: no artwork line changed.
+
+- **One mark vocabulary**, `MK` / `markOf(type, k)` in renderVals: a component drawn as the
+  skeleton of its shape (rows of segments, `data-k` bar / pill / dot / box / line / dash, w in %,
+  h in px × k). Read by the outline, the library and the map, so all three show the same objects.
+  A new component type needs an `MK` entry (it falls back to `cust`).
+- **Left rail = On this ad over Add.** `outline` (groups Top / Bottom / Floating) reads the record
+  the focused canvas reads (`selEff`: a detached size's own clusters and order). A row click sets
+  `sel` (size = current sel size, else `focusSz`); the eye toggles `hidden` on the active variant
+  and drops a selection on it. A hidden row stays, struck through in `--ps-dim`. The library
+  rows keep `p-tile` (the add-flash handler finds them by it); palette items now carry `type`.
+- **Layout rail = a map** (`lmMap`): the focused canvas at its own ratio (`PXT[selSz]`, at most
+  288 wide / 300 tall), its ground PINNED (a mid tone standing for the photo; light canvas a pale
+  one), the scrim band in the real colour at `scrimH` strength, the components as marks in their
+  real order and alignment (selected one in pinned blue). Clicking a band / the middle / a corner
+  calls the existing `layoutTop` / `layoutSplit` / `layoutBottom`; a corner writes the logo the way
+  the old tiles did (detached size aware). Spacing, Scaling, Background, Scrim are rows under it.
+- Verified in Chrome with real clicks (copy to top, split, logo bottom centre, select, hide, add);
+  contrast 0 failures over both rails in both themes (72 runs), 0 elevation shadows, the map
+  following a 9:16 focus at 169×300, no overflow. `layoutName`, `logoVal`, `logoScope`,
+  `logoSpots`' bar/dot styles and `paletteCats`' `names` / `acc` / `countTip` are now unread.
+
 # CAS: PORTRAIT PADDING, GRAPHIC SCALE, ONE PHOTO PER SIZE, UNDO 10 (2026-10-29)
 
 By request. CAS only; no OPS or studio-base.js change.
@@ -17518,8 +17615,74 @@ Measured on the Drive stand-in with 200 ms added per request, 8 ad sets x 3 proj
 open 6.7 s -> 1.1-1.6 s; every later open 10.2 s -> cards in ~0.1 s, fresh from Drive ~1.1 s;
 an ad set's page 0.46 s. Not measured on real Google Drive.
 
+## THE MAP WAS REVISED AFTER ITS CRITIQUE (same day, 24/40)
+
+The critique (`.impeccable/critique/2026-10-29T13-04-32Z__…`) found the first map's bands were a
+destructive click under the sketches, its flat scrim hid the photo, and its targets were
+invisible. All five issues fixed, plus dragging, by the user's choice:
+
+- **The map is MEASURED off the canvas it draws.** `lmMeasure()` (from the tick, every 200ms,
+  `this._lmKey` = activeVi:focused size) reads each `.modwrap[data-mid]` box, the photo's drawn
+  `img` box and opacity, and the ground, as fractions of the canvas carrying `data-lmk` (new on
+  all six canvas divs; `lmKey` in mkCanvas). The scrim is the canvas's own `scrimStyle`, the
+  coverage the canvas bar's `coverPct`.
+- **A sketch is the component**: click selects (`lmSelect`), a pointer drag moves it
+  (`lmDragStart` → `lmDropAt` → `canvasMove`, the canvas drag's own writer), Alt+arrows step it
+  (`lmKey`). Mouse and pen only.
+- **Whole-layout moves are a labelled row** (All copy: Top / Split / Bottom), scoped to a detached
+  size when one is focused, with an Undo message (`lmNote`, 9s). The old `layoutTop/Split/Bottom`
+  keys and `preset` still exist, unread by the map.
+- Logo spots always drawn; a spot the copy covers (`busy`) shows only while pointing at the map
+  and sits under the sketches. `aria-pressed` on every map and row button; reading-order DOM;
+  a white-in-black focus ring that reads on any photo; caption `aria-live`.
+- Verified with real pointer drags and clicks: CTA dragged to the top (ord and cluster written,
+  selected), All copy → Bottom with Undo, Alt+Up stepping with focus kept, a detached 9:16 moving
+  alone; a real photo (3:2, reframed to 160% and moved) drawn by the map at the canvas's box and
+  the export op's box exactly (-0.88, -0.18, 2.4 × 1.6 of the canvas) and at its opacity (.5);
+  contrast 0 failures over both rails in both themes; every map/row button has
+  aria-pressed.
+
+## THE MAP IS GONE: THE LAYOUT RAIL IS WORDS, PREVIEWED ON THE CANVAS (same day)
+
+The user did not like the map either. Three new directions were drawn as mockups
+(`.impeccable/mocks/layout-rail-options.html`: A words + live preview, B layout on the canvas,
+C one keyboard field) and A was chosen. The map's markup, CSS, `lmMeasure`, its drag/keys and the
+`data-lmk` geometry reads are deleted; `data-lmk` on the six canvas divs stays (the preview finds
+the canvas by it).
+
+- **Copy** (At the top / Split / At the bottom) and **Logo** (four corners) are lists of `.lw-o`
+  rows with a glyph; Align and Background are `.lm-seg` rows. Each option is `lmOpt(key, label,
+  tip, apply, note)` in renderVals: `apply(x)` mutates a draft, the click runs it through `upd`
+  (and `lmNote` with Undo for Copy), on a detached focused size it writes only that size.
+- **The preview never writes.** `lmPreview(apply, label)` sets `this._lmPrev`; the top of
+  renderVals draws from `JSON.parse(JSON.stringify(state))` with it applied (`let s`). So nothing
+  is persisted, undone or picked up by the share-link sync (which reads `this.state`). The focused
+  canvas gets `data-preview` (outline via `::after`, `--z` set for the transform scale) and its
+  plate head a Preview tag. Pointer enter/leave and focus/blur drive it. On-flags read the REAL
+  state (`lmRead(this.state)`), never the clone.
+- Verified with a real hover (preview drawn, state and undo untouched), leave (cleared), clicks
+  (one undo entry, Undo message; clicking the current choice records nothing), keyboard focus
+  (via focusin — `el.focus()` fires no focus event while the pane has no window focus), and
+  contrast 0 failures over the rail in both themes.
+
 **PM's and the content team's windows say which view they are (2026-10-29, by request).** A line
 above the ad set's title — **Performance marketing view** (navy dot) or **Content team view** (green
 dot), its tooltip saying what that view is for — from `asKickOn` / `asKick` / `asKickTip` in CAS's
 Ad sets keys, `.as-kick` (section 57b). Shown only when `pmHead` titles the window (pm, ct). The
 old role chip (`.as-role`) stays hidden for them.
+
+# CAS RECENTS ARE GROUPED BY CAMPAIGN (2026-10-29, /impeccable)
+
+By request, from a screenshot of the Recent grid ("KORE by Imtiaz - …" on six cards, a cryptic
+"2V" badge, "Saved 10/29/2026" on every card). `recentGroups` (CAS renderVals, beside the old
+`recentsView`, now unread) groups `savedRecents()` by campaign: the ad set's name from
+`provident-rs-pid:<pid>`, else the name before " - ". The heading carries the campaign once with
+"N projects · last saved today, 5:02 PM"; a card says only the rest — audience (name after the
+campaign), market (a trailing "(…)") and Arabic (`state.font`) — then a relative time and the
+variant/page count. Several variants show as plates stacked behind the render (`data-stack`),
+which replaced the badge. Campaigns with one project go into one **Other projects** row whose
+cards name their campaign. `openRecent(i)` keeps the original index. Section 65 of the sheet
+(`.rc-*`); the same markup serves Home's side column (2 up, scoped by `:has(.p-home-main)`) and
+the Recent view, where the "Pick up where you left off" label is hidden. Verified with stubbed
+recents: grouping, the click opening the right index, rows aligned, 0 contrast failures (min
+6.47:1 dark), no overflow at 375. OPS's recents are unchanged.

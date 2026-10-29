@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "share-dev", "runtimeExecutable": "python3", "runtimeArgs": ["tools/share-dev/serve.py", "8790"], "port": 8790 },
+    { "name": "share-dev-attach", "url": "http://localhost:8790", "port": 8790 }
+  ]
+}
