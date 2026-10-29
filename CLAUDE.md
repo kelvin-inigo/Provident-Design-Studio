@@ -17446,3 +17446,35 @@ answers instantly, so it never showed there.
 Test: serve stale content for 5s after each project PATCH by wrapping `window.fetch` (alt=media
 returns the pre-write text, metadata a moved version). The old code lost the photo about 20s
 after the save; the new code kept two variants' photos and a replacement through 7 stale reads.
+
+# AN AD SET'S NEXT PROJECT: ITS OWN FOLDER, GOOGLE TRANSLATE, NO DUPLICATE .JSON (2026-10-29)
+
+Three reports on **Make the Arabic version** / **Create next audience** (`rsNext`, share-link.js).
+
+- **The new project took the old one's Source folder.** `rsNext` changed the pid with the
+  English folder still in the tab, and `bind(newPid)` remembered that folder as the Arabic
+  project's own. Both export under the campaign's name, so the Arabic files overwrote the English
+  ones. `rsNext` now runs `providentFolder.forget()` before `bindFolder()`; the old project keeps
+  `dir:<old pid>`. **`rsNextDlg`** then finds the new folder. A browser can only go DOWN from a
+  folder handle, so `rsFolderFind` works out which level of the ad set's tree the old folder is:
+  Main (it holds the market folder), the market, or the audience. It then looks for
+  Market/Audience/Language under it, every 2s for up to 2 minutes, while Drive for desktop syncs
+  it down, and adopts it. When the old folder is the English project's own folder, it can't go
+  up, so the dialog shows **Choose the Arabic folder…**, which opens the picker at the old folder
+  (`startIn`). Picking the old folder again is refused.
+- **Translation is Chrome's built-in Google Translate** (Translator API, Chrome 138+ on a
+  computer; on-device, no key). After Make the Arabic version, the dialog's **Translate with
+  Google Translate** button calls `arTranslator` → `arTranslateState`. That translates every
+  component's `text` line by line (so breaks hold), `sub`, `chips[]` and `cols[].l/.v` — the
+  single ad's `modules`, or each carousel page's `v.mods`. It runs from its own click, because
+  the first use downloads the model and needs user activation. `availability()` gets 10s and
+  `create()` 20s with no download progress, then a plain message: in the Claude Browser pane both
+  hang. To stub it in a test, use `Object.defineProperty(window, 'Translator', …)`, since plain
+  assignment does not replace the native one. **The real model was not exercised here.**
+- **Duplicate `<name> (1).adstudio.json`.** Save, and every export, wrote a session `.json` and
+  `Assets/` into the Source folder. That is usually the ad set's Drive folder, synced to the Mac.
+  The guard that renames to "(session)" reads the local copy, and in a folder Drive for desktop
+  had not synced yet there was nothing to read. So a second same-named file went up, and Finder
+  showed "(1)". `writeProject` now drops session .json files and Assets/ while
+  `shInDrive()` (a project in a Drive ad set). CAS's Save there only flushes the share save and
+  records Recent, and it says the project is kept on Drive. Exports write the renders only.

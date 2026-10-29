@@ -1633,6 +1633,14 @@ class StudioBase {
     const f = this.folderApi();
     if (!f || !f.handle) return false;
     const overwrite = !!(opt && opt.overwrite);
+    // A PROJECT IN A DRIVE AD SET IS ALREADY SAVED ON DRIVE (2026-10-29): its file there, kept
+    // up to date by the review link, IS the project. A session .json and an Assets/ copy written
+    // into the Source folder — usually that same Drive folder, synced to the Mac — only collided
+    // with it: Drive for desktop had often not synced the project's own file down yet (a folder
+    // the ad set has just made), so the guard below found nothing, a second <name>.adstudio.json
+    // went up, and Finder showed "<name> (1).adstudio.json". So only the renders are written.
+    this._wpDrive = !!(this.shInDrive && this.shInDrive());
+    if (this._wpDrive) files = files.filter(fl => !/(^|\/)[^/]*\.(?:adstudio|smpstudio)\.json$/.test(fl.name || '') && !/^Assets\//.test(fl.name || ''));
     // An ad set review keeps each project as <name>.adstudio.json in the ad set's Drive folder.
     // When the Source folder IS that folder (synced to the Mac by Google Drive), the session
     // file has the same name and used to be written over it, cutting the project off from its
@@ -1713,7 +1721,7 @@ class StudioBase {
       const all = files.concat(await this.projectFiles(name));
       const ok = await this.writeProject(all, opt);
       // it rewrote the session file beside the renders, so it IS a save
-      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '"' + inDirs + ' · session + Assets refreshed' }); }
+      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '"' + inDirs + (this._wpDrive ? ' · the project itself is kept in the ad set on Google Drive' : ' · session + Assets refreshed') }); }
       return ok;
     }
     const blob = this.zip(files);

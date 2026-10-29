@@ -2052,9 +2052,12 @@
     // A NEW AUDIENCE STARTS ON A BLANK CANVAS and takes its words from Claude's reply in the Ad
     // set tab; the ARABIC version is a copy of this design, since it is the same ad translated.
     const arbCopy = lang === 'ARB';
-    if (!window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic.'
+    if (!window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic, and offers to translate the words with Google Translate.'
       : 'Create ' + label + '?\n\nThis project stays in the ad set as it is. The tab carries on as a new, blank project — fill its words from Claude’s reply in the Ad set tab.')) return;
     this._rsNextBusy = key; this.rvRender(); this.forceUpdate();
+    // the Source folder belongs to the project this tab is leaving (see rsNextDlg)
+    const FO = window.providentFolder, oldH = FO && FO.supported ? FO.handle : null;
+    const oldIt = (S.rs.items || []).find(x => x.sid === S.id) || {};
     try { await this.shSave(); } catch (e) {}
     const dlg = busyDlg('Making ' + label, arbCopy ? 'A copy of this design is being saved into the ad set as ' + label + '.' : 'A blank project is being saved into the ad set as ' + label + '.');
     try {
@@ -2070,6 +2073,11 @@
         if (this.brRead) { const b = this.brRead(); b.audSet = false; b.filled = ''; b.page = 0; b.head = 0; b.done = {}; }
         this.upd(x => Object.assign(C.defaults(), { pid, campaign: x.campaign || '', screen: 'copy' }));
       } else this.upd(x => { x.pid = pid; x.font = 'arabic'; return x; });
+      // A NEW PROJECT NEVER KEEPS THE OLD PROJECT'S SOURCE FOLDER: binding the new pid while
+      // the tab still held the English folder saved that folder as the Arabic project's own,
+      // and both export under the campaign's name, so the Arabic files overwrote the English
+      // ones. The old project keeps its folder (dir:<old pid>); rsNextDlg finds the new one.
+      try { if (FO && FO.forget) await FO.forget(); } catch (e) {}
       await new Promise(res => setTimeout(res, 60));
       if (this.bindFolder) this.bindFolder();
       if (lang === 'ARB' && StudioBase.ensureFont) StudioBase.ensureFont('arabic').then(() => { try { this.forceUpdate(); } catch (e) {} });
@@ -2083,10 +2091,148 @@
         const bb = ssGet(this.shKey()) || {}; bb.role = 'dd'; bb.rs = r.rs; ssSet(this.shKey(), bb);
       }
       this.shareStart(true);
-      if (arbCopy) dlg.done('This tab is now ' + label + ' — the typeface is switched to Arabic; translate the words in place.');
-      else { dlg.close(); this.shFlash('This tab is now ' + label + ' — fill its words from Claude’s reply'); }
+      dlg.close();
+      this.rsNextDlg({ label, arb: arbCopy, oldH, oldIt, newIt: { market, aud, lang } });
     } catch (e) { dlg.fail(e.message || String(e)); }
     this._rsNextBusy = null; try { this.rvRender(); } catch (e) {}
+  };
+  // This tab's project is in an ad set stored on Google Drive: its file there is the saved
+  // project, so writeProject (studio-base.js) writes no session .json or Assets/ beside it.
+  SP.shInDrive = function () { const S = this._sh; return !!(S && S.rs && isDs(S.id)); };
+  // ---- AFTER "MAKE THE ARABIC VERSION" / "CREATE NEXT AUDIENCE" (2026-10-29) ----
+  // One dialog for the two things the new project still needs here: its Source folder, and
+  // (Arabic) its words in Arabic.
+  //
+  // THE FOLDER. The new project's files are on Drive at Main/Market/Audience/Language. A browser
+  // can only go DOWN from a folder it was given, never up: so when the old Source folder is a
+  // folder of the ad set's tree above the new project (the campaign, the market or the
+  // audience), the new folder is found under it and adopted — after Google Drive for desktop
+  // has synced it down, which can take a while. When the old folder is the English project's own
+  // folder (or anything else), one click opens the picker right there, one level from Arabic.
+  async function rsFolderFind(oldH, oldIt, newIt, alive) {
+    if (!oldH || !oldIt.market) return null;
+    const sub = async (h, n) => { try { return await h.getDirectoryHandle(n); } catch (e) { return null; } };
+    let path = null;
+    if ((await sub(oldH, oldIt.market)) || (await sub(oldH, newIt.market))) path = [newIt.market, newIt.aud, DS_LANG[newIt.lang]];
+    else if (oldH.name === oldIt.market && (await sub(oldH, oldIt.aud))) path = newIt.market === oldIt.market ? [newIt.aud, DS_LANG[newIt.lang]] : null;
+    else if (oldH.name === oldIt.aud && newIt.market === oldIt.market && newIt.aud === oldIt.aud) path = [DS_LANG[newIt.lang]];
+    if (!path) return null;
+    for (let t = 0; t < 60 && alive(); t++) {        // up to 2 minutes for Drive's sync
+      let h = oldH;
+      for (const n of path) { h = h && (await sub(h, n)); }
+      if (h) return h;
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    return null;
+  }
+  // GOOGLE TRANSLATE, BUILT INTO CHROME: the Translator API (Chrome 138+ on a computer) runs
+  // Google's translation model on the device — no key, no account, nothing sent anywhere. The
+  // first use downloads the English→Arabic model once. It is a starting point: the content team
+  // checks the Arabic at the translation step.
+  async function arTranslator(onProg) {
+    const T = self.Translator;
+    if (!T || !T.create) throw new Error('This browser has no built-in Google Translate. Use Chrome 138 or later on a computer, or translate the words by hand.');
+    const lim = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r('timeout'), ms))]);
+    const av = await lim(T.availability({ sourceLanguage: 'en', targetLanguage: 'ar' }), 10000);
+    if (av === 'timeout') throw new Error('Chrome’s built-in translator did not answer. Use Chrome 138 or later on a computer, or translate the words by hand.');
+    if (av === 'unavailable') throw new Error('Chrome’s built-in translator cannot do English to Arabic on this computer.');
+    // a translator that never answers (seen in an embedded browser) must not leave the button
+    // on "Translating…" for ever: 20s with no answer and no download progress is a failure
+    let last = Date.now();
+    const made = T.create({ sourceLanguage: 'en', targetLanguage: 'ar', monitor(m) { m.addEventListener('downloadprogress', e => { last = Date.now(); onProg && onProg(e.loaded); }); } });
+    return new Promise((res, rej) => {
+      const iv = setInterval(() => { if (Date.now() - last > 20000) { clearInterval(iv); rej(new Error('Chrome’s built-in translator did not start. Use Chrome 138 or later on a computer, or translate the words by hand.')); } }, 1000);
+      made.then(t => { clearInterval(iv); res(t); }, e => { clearInterval(iv); rej(e); });
+    });
+  }
+  // Every word field of every component the project draws: text (line by line, so manual
+  // breaks hold), the price's small label, each tag, each fact's label and value.
+  async function arTranslateState(st, tr, onProg) {
+    const lists = [];
+    if (st.adMode === 'carousel') (st.variants || []).forEach(v => { if (Array.isArray(v.mods)) lists.push(v.mods); });
+    else lists.push(st.modules || []);
+    const jobs = [], seen = new Map();
+    const want = t => /[A-Za-z]/.test(t || '');
+    const put = (get, set) => { const t = get(); if (want(t)) jobs.push({ t, set }); };
+    lists.forEach(mods => mods.forEach(m => {
+      if (!m || typeof m !== 'object') return;
+      if (typeof m.text === 'string' && m.text) {
+        const lines = m.text.split('\n');
+        lines.forEach((ln, i) => put(() => ln, v => { lines[i] = v; m.text = lines.join('\n'); }));
+      }
+      if (typeof m.sub === 'string') put(() => m.sub, v => { m.sub = v; });
+      if (Array.isArray(m.chips)) m.chips.forEach((c, i) => put(() => String(c || ''), v => { m.chips[i] = v; }));
+      if (Array.isArray(m.cols)) m.cols.forEach(c => { if (c && typeof c === 'object') { put(() => c.l, v => { c.l = v; }); put(() => c.v, v => { c.v = v; }); } });
+    }));
+    let k = 0;
+    for (const j of jobs) {
+      const key = j.t.trim();
+      if (!seen.has(key)) seen.set(key, await tr.translate(key));
+      const lead = j.t.match(/^\s*/)[0], tail = j.t.match(/\s*$/)[0];
+      j.set(lead + seen.get(key) + tail);
+      if (onProg) onProg(++k / jobs.length);
+    }
+    return jobs.length;
+  }
+  SP.rsNextDlg = function (o) {
+    injectCss();
+    const FO = window.providentFolder, el = document.createElement('div');
+    el.className = 'shl-dlg';
+    const lang = DS_LANG[o.newIt.lang] || 'English';
+    el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true" aria-labelledby="rnx-t">' +
+      '<h2 id="rnx-t">This tab is now ' + esc(o.label) + '</h2>' +
+      '<p class="shl-lead">' + (o.arb ? 'A copy of the design, in the Arabic typeface. The English project stays as it was.' : 'A new, blank project — fill its words from Claude’s reply in the Ad set tab.') + '</p>' +
+      '<div class="rnx-row" data-r="folder"><b>Source folder</b><span class="rnx-st"></span><div class="rnx-act"></div></div>' +
+      (o.arb ? '<div class="rnx-row" data-r="tr"><b>Arabic words</b><span class="rnx-st">Still in English.</span><div class="rnx-act"><button class="p-btn" type="button" data-a="tr">Translate with Google Translate</button></div></div>' : '') +
+      '<div class="shl-acts"><button class="p-ghost" type="button" data-a="close">Done</button></div></div>';
+    document.body.appendChild(el);
+    const $ = q => el.querySelector(q), row = r => $('[data-r="' + r + '"]');
+    const say = (r, t, bad) => { const x = row(r).querySelector('.rnx-st'); x.textContent = t; x.classList.toggle('bad', !!bad); };
+    const acts = (r, html) => { row(r).querySelector('.rnx-act').innerHTML = html || ''; };
+    let alive = true, picked = false;
+    const close = () => { alive = false; el.remove(); this.forceUpdate(); };
+    const adopt = async h => { picked = true; await FO.adopt(h); this.forceUpdate(); say('folder', h.name + ' — saves and exports go here.'); acts('folder', ''); };
+    const ask = (why) => {
+      say('folder', why);
+      acts('folder', '<button class="p-ghost" type="button" data-a="pick">Choose the ' + esc(lang) + ' folder…</button>');
+    };
+    // the folder
+    if (!FO || !FO.supported) say('folder', 'This browser cannot set one — exports are downloaded.');
+    else if (!o.oldH) say('folder', 'None yet. Set one from the top bar when you save.');
+    else {
+      say('folder', 'Looking for ' + [o.newIt.market, o.newIt.aud, lang].join(' / ') + ' under “' + o.oldH.name + '”…');
+      rsFolderFind(o.oldH, o.oldIt, o.newIt, () => alive && !picked).then(h => {
+        if (!alive || picked) return;
+        if (h) adopt(h);
+        else ask('“' + o.oldH.name + '” is the ' + ((DS_LANG[o.oldIt.lang] || 'old') + ' project’s') + ' folder, so it is not used here. Choose ' + [o.newIt.market, o.newIt.aud, lang].join(' / ') + ' — once Google Drive has synced it to this computer.');
+      });
+    }
+    el.addEventListener('click', async e => {
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      if (b.dataset.a === 'close') return close();
+      if (b.dataset.a === 'pick') {
+        let h = null;
+        try { h = await window.showDirectoryPicker({ mode: 'readwrite', startIn: o.oldH || 'documents' }); }
+        catch (err) { if (err && err.name === 'AbortError') return; try { h = await window.showDirectoryPicker({ mode: 'readwrite' }); } catch (e2) { return; } }
+        if (o.oldH && h && (await o.oldH.isSameEntry(h).catch(() => false))) return say('folder', 'That is the ' + (DS_LANG[o.oldIt.lang] || 'old') + ' project’s folder — its files would be overwritten. Choose the ' + lang + ' folder.', true);
+        return adopt(h);
+      }
+      if (b.dataset.a === 'tr') {
+        b.disabled = true; b.textContent = 'Translating…';
+        try {
+          const tr = await arTranslator(p => say('tr', 'Downloading Google Translate’s Arabic, once · ' + Math.round(p * 100) + '%'));
+          const st = JSON.parse(JSON.stringify(this.shPub()));
+          const n = await arTranslateState(st, tr, p => say('tr', 'Translating · ' + Math.round(p * 100) + '%'));
+          try { tr.destroy && tr.destroy(); } catch (err) {}
+          this.upd(x => { x.modules = st.modules; (x.variants || []).forEach((v, i) => { if (st.variants && st.variants[i] && st.variants[i].mods) v.mods = st.variants[i].mods; }); return x; });
+          say('tr', n ? 'Translated ' + n + (n === 1 ? ' line' : ' lines') + ' — check them before sending for the translation check.' : 'There were no English words to translate.');
+          acts('tr', '');
+        } catch (err) {
+          say('tr', err.message || String(err), true);
+          b.disabled = false; b.textContent = 'Try again';
+        }
+      }
+    });
   };
   // After the home page's "Start the campaign": the new project names itself and opens the ad
   // set dialog with everything filled in — one click, which Google's sign-in needs anyway.
@@ -4730,6 +4876,14 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .shl-note{margin:8px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim)}
 .shl-st{margin:10px 0 0;min-height:1.4em;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .shl-st.bad{color:var(--ps-bad)}
+.rnx-row{display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:center;padding:14px 0;border-top:1px solid var(--ps-hair)}
+.rnx-row b{grid-column:1;font:500 14px/1.4 var(--ps-font);color:var(--ps-ink)}
+.rnx-st{grid-column:1;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rnx-st.bad{color:var(--ps-bad)}
+.rnx-act{grid-column:2;grid-row:1/span 2;display:flex;gap:8px}
+.rnx-act:empty{display:none}
+.rnx-row + .shl-acts{border-top:1px solid var(--ps-hair);padding-top:16px;margin-top:0}
+@media (max-width:520px){.rnx-row{grid-template-columns:1fr}.rnx-act{grid-column:1;grid-row:auto}}
 .shl-pg{position:relative;height:6px;margin:8px 0 0;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
 .shl-pg i{position:absolute;inset:0 auto 0 0;overflow:hidden;width:4%;border-radius:inherit;background:var(--ps-link);transition:width .4s var(--ps-ease,ease)}
 .shl-pg[data-run] i{width:30%;animation:shl-pg 1.2s ease-in-out infinite}

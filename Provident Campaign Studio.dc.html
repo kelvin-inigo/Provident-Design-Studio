@@ -11754,6 +11754,14 @@ class CampaignStudio extends StudioBase {
   async saveSessionFile() {
     const name = this.projName();
     await this.ensurePid();                       // the file carries the project's identity
+    // in a Drive ad set the project is saved on Drive as it changes: no session file to write
+    // (writeProject), so Save only records it here and says where it lives
+    if (this.shInDrive && this.shInDrive()) {
+      try { if (this._sh && this.shSave) await this.shSave(); } catch (e) {}
+      this.markSaved(); this.recordSaved();
+      this.setState({ exportStatus: 'Saved "' + name + '" — it is kept in the ad set on Google Drive, so no session file is written.' });
+      return;
+    }
     if (this.folderSupported()) {
       const h = await this.folderOpen(true);      // first save asks for the folder
       if (h) {
