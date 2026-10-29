@@ -197,6 +197,74 @@
     } while (tok);
     return out;
   }
+  // THE CAMPAIGNS FOLDER: the one Drive folder every campaign lives under. Status reads every
+  // ad set in it (a few folders deep), so anyone who can see the folder sees every campaign —
+  // performance marketing's browser has no list of its own. A campaign set up with no folder
+  // of its own gets one inside it. Per computer, localStorage['provident-status-root'] can
+  // point somewhere else (a folder link or id).
+  const DS_HOME = '1Xj6QMTlEAuOkcafWWFW4rECpe8Ja6s69';
+  const dsHome = () => { const v = lsGet('provident-status-root'); return (window.providentDrive && window.providentDrive.id(v)) || DS_HOME; };
+  const dsQ = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  async function dsQuery(q) {
+    const out = []; let tok = '';
+    do {
+      const r = await dsFetch('/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=nextPageToken,files(' + DS_F + ')&pageSize=1000&supportsAllDrives=true&includeItemsFromAllDrives=true&corpora=allDrives' + (tok ? '&pageToken=' + tok : ''));
+      const d = await r.json(); out.push(...(d.files || [])); tok = d.nextPageToken || '';
+    } while (tok);
+    return out;
+  }
+  // every ad set record under the campaigns folder. It sits in its campaign's own folder, one
+  // level down (an older one in that folder's 'Ad set review'), so the scan reads the campaigns
+  // folder, then every campaign folder in a few batched queries — never deeper into the work.
+  async function dsFindSets(root) {
+    const found = []; let level = [root];
+    for (let depth = 0; depth < 3 && level.length; depth++) {
+      const next = [];
+      for (let i = 0; i < level.length; i += 30) {
+        const par = level.slice(i, i + 30).map(id => dsQ(id) + ' in parents').join(' or ');
+        const files = await dsQuery('(' + par + ') and trashed=false and (mimeType=' + dsQ(DS_FOLDER) + " or name contains '" + DS_TAIL + "' or name=" + dsQ(DS_FILE) + ')');
+        files.forEach(f => {
+          if (f.mimeType === DS_FOLDER) { if (depth === 0 || f.name === DS_SET) next.push(f.id); }
+          else if (f.name.endsWith(DS_TAIL) || f.name === DS_FILE) found.push(f);
+        });
+      }
+      level = next;
+    }
+    return found;
+  }
+  // Puts every ad set in the campaigns folder on this computer's Status list (an ad set removed
+  // from the list stays removed). Never asks to sign in; at most once a minute.
+  let dsFindAt = 0, dsFindRun = null;
+  function dsDiscover(force) {
+    const D = window.providentDrive;
+    if (!dsOn() || !D || !(D.valid && D.valid())) return Promise.resolve(false);
+    if (dsFindRun) return dsFindRun;
+    if (!force && Date.now() - dsFindAt < 60000) return Promise.resolve(false);
+    dsFindRun = (async () => {
+      try {
+        const sets = await dsFindSets(dsHome());
+        for (const f of sets) {
+          try { const rs = await dsRead(f.id); if (rs && !rs.deleted && rs.tok && rs.tok.dd) Arch.add(rs.tok.dd, rs.name, rs.product); } catch (e) {}
+        }
+        dsFindAt = Date.now();
+        return true;
+      } catch (e) { return false; }
+      finally { dsFindRun = null; }
+    })();
+    return dsFindRun;
+  }
+  // the folder a new campaign is made in: the one pasted, or a new one named after it in the
+  // campaigns folder
+  async function dsCampaignFolder(link, name) {
+    const D = window.providentDrive;
+    if (D.id(link || '')) return D.folderOf(link);
+    const home = await D.folderOf(dsHome()), base = dsSafe(name || 'Campaign');
+    const kids = (await dsList(home.id)).filter(x => x.mimeType === DS_FOLDER).map(x => x.name);
+    let nm = base, n = 2; while (kids.indexOf(nm) >= 0) nm = base + ' (' + (n++) + ')';
+    const r = await dsFetch('/drive/v3/files?supportsAllDrives=true&fields=' + DS_F, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nm, mimeType: DS_FOLDER, parents: [home.id] }) });
+    const f = await r.json();
+    return { id: f.id, name: f.name };
+  }
   const dsMeta = async id => (await dsFetch('/drive/v3/files/' + id + '?fields=' + DS_F + '&supportsAllDrives=true')).json();
   async function dsFolder(parent, name) {
     const f = (await dsList(parent, name)).find(x => x.mimeType === DS_FOLDER);
@@ -511,7 +579,7 @@
     const st = this.shPub(), name = this.shName(st), app = this.shApp();
     let rs, rid;
     if (ans.mode === 'new') {
-      const folder = await D.folderOf(ans.folder);
+      const folder = await dsCampaignFolder(ans.folder, ans.name || name);
       dlg.busy('Setting up the ad set in “' + folder.name + '”…', .04);
       const files = (await dsList(folder.id)).filter(x => x.mimeType !== DS_FOLDER && x.name.endsWith(DS_TAIL));
       const oldDir = (await dsList(folder.id, DS_SET)).find(x => x.mimeType === DS_FOLDER);
@@ -584,7 +652,7 @@
   // designer picks it up: the first project added to it (dsReview) marks it picked.
   const DS_BRIEF = 'Brief';
   async function dsMakeSet(plan, by, ticket, files, busy) {
-    const D = window.providentDrive, folder = await D.folderOf(plan.folder);
+    const D = window.providentDrive, folder = await dsCampaignFolder(plan.folder, plan.name);
     busy('Opening “' + folder.name + '”…', .05);
     const had = (await dsList(folder.id)).filter(x => x.mimeType !== DS_FOLDER && x.name.endsWith(DS_TAIL));
     for (const x of had) { const old = await dsRead(x.id, true); if (!old.deleted) throw dsFail(409, '“' + folder.name + '” already holds the campaign ' + (old.name || '') + '. Pick an empty folder for a new one.'); }
@@ -889,6 +957,7 @@
         const D = window.providentDrive;
         let ok = false; try { ok = !!(D && (await D.ensure())); } catch (e) {}
         if (ok) {
+          await dsDiscover();   // the campaigns folder's ad sets, on a computer that has never listed them
           const ids = Arch.list().map(x => x.id).filter(isDs);
           for (let i = 0; i < ids.length && !hit; i += 20) {
             let r = null; try { r = await api('rsinfo', { ids: ids.slice(i, i + 20).join(',') }); } catch (e) { break; }
@@ -2457,7 +2526,7 @@
       (o.known.length ? '<div class="rsd-mode p-tabs" role="radiogroup"><button type="button" data-mode="new" data-on="1">Start a new ad set</button><button type="button" data-mode="add">Add to an ad set</button></div>' : '') +
       '<div class="rsd-new"><label class="shl-fld"><span>Ad set name</span><input class="p-in" data-f="name" maxlength="120" value="' + esc(o.name || '') + '"></label>' +
       '<div class="shl-fld"><span>Product</span><div class="p-tabs rsd-prod"><button type="button" data-prod="residential" data-on="1">Residential</button><button type="button" data-prod="commercial">Commercial</button></div></div>' +
-      (o.drive ? '<label class="shl-fld"><span>Main folder · Google Drive</span><input class="p-in" data-f="folder" placeholder="Paste the Drive folder link" autocomplete="off" value="' + esc(o.folder || '') + '">' +
+      (o.drive ? '<label class="shl-fld"><span>Main folder · Google Drive</span><input class="p-in" data-f="folder" placeholder="Empty: the campaigns folder" autocomplete="off" value="' + esc(o.folder || '') + '">' +
         '<small class="rsd-hint">Every project of the ad set is saved in it, one folder per market, audience and language, with its pictures in Assets. Everyone who opens a link signs in with their Provident Google account and needs access to this folder.</small></label>' : '') +
       '</div>' +
       (o.known.length ? '<label class="shl-fld rsd-add" hidden><span>Ad set</span><select class="p-in" data-f="dd">' + o.known.map(k => opt(k.id, (k.name || 'Ad set') + (k.product ? ' · ' + (PRODUCT_NAME[k.product] || k.product) : ''))).join('') + '</select></label>' : '') +
@@ -2513,7 +2582,7 @@
       const by = v('by').replace(/\s+/g, ' ').trim();
       if (!by) { $('.shl-st').textContent = 'Add your name so others know who made a change.'; $('[data-f="by"]').focus(); return; }
       if (mode === 'new' && !v('name').trim()) { $('.shl-st').textContent = 'Name the ad set.'; $('[data-f="name"]').focus(); return; }
-      if (mode === 'new' && o.drive && !window.providentDrive.id(v('folder'))) { $('.shl-st').textContent = 'Paste the link of the Google Drive folder the ad set goes in — open the folder in Drive and copy the address; it contains /folders/.'; $('[data-f="folder"]').focus(); return; }
+      if (mode === 'new' && o.drive && v('folder').trim() && !window.providentDrive.id(v('folder'))) { $('.shl-st').textContent = 'Paste the link of the Google Drive folder the ad set goes in — open the folder in Drive and copy the address; it contains /folders/.'; $('[data-f="folder"]').focus(); return; }
       res({ mode, by, name: v('name').trim(), product: prod, dd: v('dd'), market: v('market'), aud: v('aud'), lang: v('lang'), folder: v('folder').trim() });
     };
     x.onclick = () => close(null);
@@ -3010,6 +3079,8 @@
     // the counts Status last read, refreshed in the background (never with a sign-in prompt)
     summary() { try { return JSON.parse(localStorage.getItem(SUM_KEY) || 'null'); } catch (e) { return null; } },
     async refreshSum(eng) {
+      const s0 = this.summary();
+      if (!(s0 && Date.now() - (s0.at || 0) < 120000)) await dsDiscover();
       const s = this.summary(), ids = this.list().map(x => x.id);
       if (!ids.length || this._sumBusy || (s && Date.now() - (s.at || 0) < 120000)) return;
       const D = window.providentDrive;
@@ -3089,7 +3160,7 @@
           '<div class="rsp-f rsp-fp"><span class="rsp-sr" id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
           '<label class="rsp-chip rsp-dl" title="Deadline"><span class="rsp-dlt">Deadline</span><input type="date" data-f="deadline"></label>' +
           '<label class="rsp-chip rsp-fo" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language.">' + PICO.folder + '<span class="rsp-sr">Drive folder</span>' +
-            '<input data-f="folder" placeholder="Paste the Drive folder link" autocomplete="off" spellcheck="false"></label>' +
+            '<input data-f="folder" placeholder="Campaigns folder (default)" autocomplete="off" spellcheck="false"></label>' +
         '</div>' +
         '<div class="rsp-raw">' +
           '<label class="rsp-bl" for="rsp-brief">Brief</label>' +
@@ -3211,7 +3282,7 @@
     if (!this.drive) return;
     d.name = (d.name || '').replace(/\s+/g, ' ').trim();
     if (!d.name) { this.st('Name the campaign first.'); $('[data-f="name"]').focus(); return; }
-    if (!window.providentDrive.id(d.folder || '')) { this.st('Paste a Drive folder link — it contains /folders/.'); $('[data-f="folder"]').focus(); return; }
+    if ((d.folder || '').trim() && !window.providentDrive.id(d.folder)) { this.st('That is not a Drive folder link — it contains /folders/. Leave it empty to use the campaigns folder.'); $('[data-f="folder"]').focus(); return; }
     if (design && this.eng.confirmDiscard && !this.eng.confirmDiscard()) return;
     const btns = this.el.querySelectorAll('.rsp-ft button'); btns.forEach(b => { b.disabled = true; });
     const cells = this.cells(), arb = {}; cells.forEach(c => { if (c.arb) arb[c.market + '|' + c.aud] = true; });
@@ -3340,6 +3411,8 @@
       (miss || this.sign ? '<p class="rva-sx-w">' + [this.sign ? this.sign + ' on Google Drive not counted until you sign in' : ''].filter(Boolean).join(' · ') + '.</p>' : '');
   };
   AV.load = async function (quiet) {
+    if (!quiet) { this.items = null; this.draw(); }
+    await dsDiscover(!quiet);
     const ids = Arch.list().map(x => x.id);
     if (!ids.length) this.sign = 0;
     if (!quiet || !this.items) this.items = ids.length ? null : [];
@@ -3434,7 +3507,7 @@
     if (a === 'pick') { const dd = (this.det && this.det.dd) || this.sel; t.disabled = true; t.lastChild.textContent = 'Opening…'; if (!pickUp(this.eng, dd)) { t.disabled = false; t.lastChild.textContent = 'Pick up'; } return; }
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
     if (a === 'proj') window.open(rsLink(t.dataset.sid), '_blank', 'noopener');
-    if (a === 'refresh') { if (dsOn()) dsFlush(); this.at = 0; this.refresh(); }
+    if (a === 'refresh') { if (dsOn()) { dsFlush(); dsFindAt = 0; } this.at = 0; this.refresh(); }
     if (a === 'gdref' || a === 'gdre' || a === 'gdsw') {
       const D = window.providentDrive;
       this.gdBusy = a === 'gdref' ? 'ref' : 're'; this.drawGd();
@@ -3523,7 +3596,7 @@
       '</span>';
   };
   AV.gdRefresh = async function () {
-    dsFlush();
+    dsFlush(); dsFindAt = 0;
     this.at = 0;
     if (this.sel) await this.open(this.sel, true); else await this.load(true);
   };

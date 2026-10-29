@@ -17298,3 +17298,22 @@ CAS's `shareInit`) drops the hash, writes `provident-rspick` with the cell and r
 `newProject`; after the reload `rsPickCheck` adds that exact cell (Arabic sets `font: arabic`,
 blank design) and lands on the Ad set tab, where Claude's reply is pasted. A cell taken
 meanwhile says so instead of making a second project. Verified on the Drive stand-in end to end.
+
+# STATUS READS THE CAMPAIGNS FOLDER, SO EVERY BROWSER SEES EVERY CAMPAIGN (2026-10-29)
+
+Reported: performance marketing's browser showed no campaigns. Status listed only this
+computer's `provident-reviews` (ad sets this computer made, added to or opened), so a browser
+that never touched one saw nothing. **`DS_HOME` is the campaigns folder** — Drive "Offplan 2026",
+`1Xj6QMTlEAuOkcafWWFW4rECpe8Ja6s69` (per computer: `localStorage['provident-status-root']`,
+a link or id). `dsDiscover()` (share-link.js) reads it with batched Drive queries — the folder,
+then every campaign folder in it, then any `Ad set review` folder (`dsFindSets`, depth 3, never
+into Local/Brief/Assets) — and puts every live `*_Adset.json` on the list by its designer token
+(`Arch.add`, so one removed from the list stays removed). It runs before Status loads (forced on
+open, Refresh and Google Drive › Refresh; otherwise at most once a minute), before the Home
+subtitle's counts, and in `rsFind`. Never prompts: no Google session, no scan. **A campaign set
+up with the folder left empty goes in a new folder named after it inside the campaigns folder**
+(`dsCampaignFolder`, " (2)" on a clash); a pasted folder link still wins. The Status subtitle no
+longer says "on this computer". The Drive stand-in now answers OR'ed `in parents`, `name contains`
+and `mimeType` queries. Verified on the stand-in: a campaign filed with no folder landed in its
+own folder; a browser with an empty list found it on opening Status. The real folder was read
+through the Drive connector: 5 ad sets, each directly in its campaign folder.

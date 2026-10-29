@@ -99,13 +99,19 @@ def route(method, path, query, headers, body):
     fid = rest.strip('/') or None
     with LOCK:
         if method == 'GET' and not fid:
-            m = re.search(r"'([\w-]+)' in parents", q.get('q', ''))
-            nm = re.search(r"name\s*=\s*'((?:\\'|[^'])*)'", q.get('q', ''))
-            if not m:
+            qq = q.get('q', '')
+            pids = re.findall(r"'([\w-]+)' in parents", qq)
+            nm = re.search(r"name\s*=\s*'((?:\\'|[^'])*)'", qq)
+            ct = re.search(r"name contains '([^']*)'", qq)
+            mt = re.search(r"mimeType\s*=\s*'([^']*)'", qq)
+            if not pids:
                 return _err(400, 'q needs a parent')
-            pid = m.group(1)
             name = nm.group(1).replace("\\'", "'") if nm else None
-            fl = [_meta(f) for f in FILES.values() if pid in f['parents'] and not f['trashed'] and (name is None or f['name'] == name)]
+            def ok(f):
+                if ct or mt:   # the Status scan: folders, or files named like an ad set record
+                    return (mt and f['mimeType'] == mt.group(1)) or (ct and ct.group(1) in f['name']) or (name is not None and f['name'] == name)
+                return name is None or f['name'] == name
+            fl = [_meta(f) for f in FILES.values() if any(p in f['parents'] for p in pids) and not f['trashed'] and ok(f)]
             return _json(200, {'files': fl})
         if fid and fid not in FILES:
             return _err(404, 'File not found: ' + fid)
