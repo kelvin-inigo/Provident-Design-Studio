@@ -17421,3 +17421,28 @@ By request, after PM's redesign. share-link.js + three CAS hooks; chrome only.
   second project, the queue and Activity, 0 contrast failures in both themes, fits at 390.
   **Probe trap:** `getComputedStyle` returns a `color-mix()` background as `color(srgb 0-1 …)`;
   an rgb parser reads that as black and reports false failures.
+
+# A STALE DRIVE READ PUT OLD PHOTOS BACK (2026-10-29)
+
+Reported: in an ad set, a photo uploaded to a new design disappeared after it saved, or another
+picture came back in its place. Cause: every write to a project file on Drive is read the whole
+file, change it, write it back, with no compare-and-set. The preview writer (`op: 'thumb'`, 1.5s
+after each save, and the Status page's `AV.heal`) could read the file as it was BEFORE a save. Drive
+can serve an older copy for a moment after an upload, and a thumb could also overlap a save. It
+then wrote that copy back, rev and photo map included. The tab's next poll saw a different rev,
+pulled it, and `shPull` deleted every slot missing from the old map (or fetched an old entry's
+file, which `dsUpsert` overwrites in place, so pictures appeared to swap). The local stand-in
+answers instantly, so it never showed there.
+- **`_w` on every file this page writes** (`dsWrite`), with `DSW[id]` (never flushed) as the
+  newest this page has seen. `dsRead` never believes a read with a smaller `_w`: the cached newer
+  copy answers, or it retries 4 times and then fails as "still catching up".
+- **This page's Drive writes run one at a time** (`dsApi` queues `DS_WRITES` ops; `dsApi1` is the body).
+- **A tab never pulls an older revision**: `shPoll` pulls only on `r.rev > S.rev`; `shPull` returns on a
+  smaller one.
+- **`AV.heal` writes a preview only to a project unchanged for `HEAL_QUIET` (3 min)**, and `thumb`
+  takes `rev` and skips the write if the file has moved on.
+- The cross-COMPUTER case (two people saving within the same second) is still a lost update.
+  Drive has no atomic write, and that was already the case.
+Test: serve stale content for 5s after each project PATCH by wrapping `window.fetch` (alt=media
+returns the pre-write text, metadata a moved version). The old code lost the photo about 20s
+after the save; the new code kept two variants' photos and a replacement through 7 stale reads.

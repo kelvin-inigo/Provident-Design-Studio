@@ -286,18 +286,41 @@
   const DSC = {}, DSP = {};
   // Forget every Drive read this page has cached, so the next read goes back to Drive.
   function dsFlush() { Object.keys(DSC).forEach(k => delete DSC[k]); Object.keys(DSP).forEach(k => delete DSP[k]); }
+  // A READ OLDER THAN WHAT THIS PAGE ALREADY SAW IS NEVER BELIEVED (2026-10-29). Right after an
+  // upload Google Drive can still hand out the file as it was, and the preview writer reads the
+  // project 1.5s after every save: it got the pre-save file, wrote it back, and the next poll
+  // took the new photo for one somebody had removed — the photo vanished from the canvas.
+  // Every write stamps `_w` one past the newest this page has seen; DSW keeps that number per
+  // file (never flushed), and a read carrying a smaller one is stale: the newer copy this page
+  // holds answers, or the read is tried again.
+  const DSW = {}, dsW = d => (d && +d._w) || 0;
   async function dsRead(id, fresh) {
     const c = DSC[id];
     if (c && !fresh && Date.now() - c.at < 1500) return c.d;
-    const m = await dsMeta(id);
-    if (c && c.v === m.version) { c.at = Date.now(); c.meta = m; return c.d; }
-    const d = await (await dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true')).json();
-    // a project file written over by a plain session save (dsKeepReview): keep the review it had
-    if (c && c.d && c.d.review && d && d.state && !d.review) d.review = c.d.review;
-    DSC[id] = { v: m.version, d, at: Date.now(), meta: m };
-    return d;
+    for (let tries = 0; ; tries++) {
+      const m = await dsMeta(id);
+      if (c && c.v === m.version) { c.at = Date.now(); c.meta = m; return c.d; }
+      const d = await (await dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true')).json();
+      if (dsW(d) < (DSW[id] || 0)) {
+        // keep c.v as it was, so the next read asks Drive again
+        if (c && dsW(c.d) >= DSW[id]) { c.at = Date.now(); return c.d; }
+        if (tries < 4) { await new Promise(r => setTimeout(r, 500 + 500 * tries)); continue; }
+        throw dsFail(503, 'Google Drive is still catching up with the last save — it will try again.');
+      }
+      // a project file written over by a plain session save (dsKeepReview): keep the review it had
+      if (c && c.d && c.d.review && d && d.state && !d.review) d.review = c.d.review;
+      DSW[id] = Math.max(DSW[id] || 0, dsW(d));
+      DSC[id] = { v: m.version, d, at: Date.now(), meta: m };
+      return d;
+    }
   }
-  async function dsWrite(id, d) { const m = await dsPut(id, dsJson(d)); DSC[id] = { v: m.version, d, at: Date.now(), meta: m }; return m; }
+  async function dsWrite(id, d) {
+    d._w = Math.max(dsW(d), DSW[id] || 0) + 1;
+    const m = await dsPut(id, dsJson(d));
+    DSW[id] = d._w;
+    DSC[id] = { v: m.version, d, at: Date.now(), meta: m };
+    return m;
+  }
   const dsNow = () => Date.now();
   const dsWho = v => String(v || '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'Someone';
   function dsEntry(by, changes, burst) {
@@ -349,10 +372,21 @@
   const DS_STEP = { 'design-done': [['dd'], 'design', true], 'design-open': [['dd'], 'design', false], 'copy-done': [['ct'], 'copy', true], 'copy-open': [['ct', 'dd'], 'copy', false],
     // the designer's bypass: an ad already signed off outside the review goes straight to approved
     approved: [['dd'], 'copy', true] };
-  async function dsApi(op, q, body) {
+  // This page's Drive writes run one at a time: each is a read, a change and a write of a whole
+  // file, and two overlapping on one file (a save and the preview writer) let the later one put
+  // back what the earlier one replaced.
+  let dsQueue = Promise.resolve();
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1 };
+  function dsApi(op, q, body) {
+    if (!DS_WRITES[op]) return dsApi1(op, q, body);
+    const run = dsQueue.then(() => dsApi1(op, q, body));
+    dsQueue = run.catch(() => {});
+    return run;
+  }
+  async function dsApi1(op, q, body) {
     q = q || {}; body = body || {};
     if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
-    const writes = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1 };
+    const writes = DS_WRITES;
     const R = await dsResolve(q.id, q.p, !!writes[op]);
     const pub = () => dsPub(R.rs, R.role);
     if (op === 'rsget') {
@@ -500,6 +534,8 @@
       if (!(typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000)) throw dsFail(400, 'No preview.');
       const was = DSC[fid] && DSC[fid].d && DSC[fid].d.review;
       const d = dsKeepReview(await dsRead(fid, true), was, body.rid), rv = d.review;
+      // drawn from another revision than the file holds now: not this preview's to write
+      if (body.rev != null && (rv.rev || 0) !== Number(body.rev)) return { ok: true, skipped: true };
       rv.thumb = body.thumb; rv.thumbAt = dsNow();
       if (body.sum && typeof body.sum === 'object') rv.sum = body.sum;
       await dsWrite(fid, d);
@@ -1535,8 +1571,10 @@
     try {
       const r = await api('rev', { id: S.id });
       this.rsSet(r.rs, r.role);
-      if (r.rev !== S.rev) await this.shPull();
-      else if (r.n !== S.n) await this.shPull(true);
+      // a revision is never older than one this tab already has: a smaller one is a read of
+      // the file from before the last save, and pulling it would undo that save here
+      if (r.rev > S.rev) await this.shPull();
+      else if (r.rev === S.rev && r.n !== S.n) await this.shPull(true);
     } catch (e) {
       if (/expired|never made/.test(e.message || '')) { S.err = e.message; if (S.ui) S.ui.status('error', e.message); }
     } finally { if (this._sh) this._sh.polling = false; }
@@ -1544,6 +1582,7 @@
   SP.shPull = async function (logOnly) {
     const S = this._sh; if (!S) return;
     const d = await api('sync', { id: S.id, from: Math.max(0, S.n - 1) });
+    if ((d.rev || 0) < (S.rev || 0)) return;   // an older copy than this tab has (see shPoll)
     // the log: the tail from `from`, the last entry possibly rewritten by its burst
     const keep = S.log.slice(0, Math.max(0, d.from - S.from));
     S.log = keep.concat(d.log || []); S.n = d.n;
@@ -3657,6 +3696,7 @@
       if (it.proj) Object.keys(it.proj).forEach(sid => { if (HEAL[sid] && HEAL[sid].th) it.proj[sid].thumb = HEAL[sid].th; });
     });
   };
+  const HEAL_QUIET = 3 * 60 * 1000;
   AV.heal = async function (list) {
     if (!dsOn() || !this.eng || !this.eng.rvThumb) return;
     const jobs = [];
@@ -3682,7 +3722,11 @@
           if (th) {
             this.healPaint(this.items); if (this.det) this.healPaint([this.det]);
             this.draw();
-            try { await api('thumb', { id: j.id, p: j.sid }, { thumb: th }); } catch (e) {}
+            // Written only to a project nobody has changed for a few minutes, and only at the
+            // revision it was drawn from: this page is not the designer's, and a preview written
+            // over a save made meanwhile in their tab would put the old photos back.
+            const last = Math.max(+((rv.sum || {}).updated) || 0, +(((rv.log || [])[(rv.log || []).length - 1] || {}).at) || 0);
+            if (Date.now() - last > HEAL_QUIET) { try { await api('thumb', { id: j.id, p: j.sid }, { thumb: th, rev: rv.rev || 0 }); } catch (e) {} }
           }
         } catch (e) { HEAL[j.sid] = { rev: j.rev, th: '' }; if (e && e.gdAuth) break; }
       }
