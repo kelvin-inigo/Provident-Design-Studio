@@ -17499,3 +17499,21 @@ By request. CAS only; no OPS or studio-base.js change.
   `putRec` (picture kept, only `s/x/y/f` change) and hands the other stack the crops it replaced.
 Verified in the pane: graphic widths 368 on sq/ls/bn, 352 on st/pt; detaching the 3:4 made its
 own copy, a reframe there undid and redid without touching the 1:1's crop, 12 edits kept 10.
+
+# STATUS LOADS FAST: A CACHED LIST, PARALLEL DRIVE READS (2026-10-29)
+
+Status drew nothing until it had scanned the campaigns folder and then read every ad set and
+every project file ONE AFTER ANOTHER, two Drive requests per file. share-link.js now:
+- **paints the last list at once** (`provident-status-list`, written by `listKeep` after each
+  read; log/proj stripped, previews dropped if the JSON passes 1.5 MB), then refreshes quietly;
+- **reads the ad sets it knows while the folder scan runs** (`AV.load`), and only then any the
+  scan added;
+- **`dsDiscover` skips ad sets already on the list or removed from it** (the link carries the
+  file id) and reads new ones six at a time;
+- **`dsInfo` reads six ad sets at a time** (`dsInfo1` is one), each ad set's projects at once;
+- **`dsRead(id, fresh, fast)`**: a listing asks for metadata and content together when the file
+  is not cached. Such an entry is marked `fast` and NEVER trusted by a non-fast read (save, step,
+  preview writer), which reads it again the careful way.
+Measured on the Drive stand-in with 200 ms added per request, 8 ad sets x 3 projects: first
+open 6.7 s -> 1.1-1.6 s; every later open 10.2 s -> cards in ~0.1 s, fresh from Drive ~1.1 s;
+an ad set's page 0.46 s. Not measured on real Google Drive.

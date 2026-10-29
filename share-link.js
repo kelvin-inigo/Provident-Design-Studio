@@ -243,9 +243,13 @@
     dsFindRun = (async () => {
       try {
         const sets = await dsFindSets(dsHome());
-        for (const f of sets) {
-          try { const rs = await dsRead(f.id); if (rs && !rs.deleted && rs.tok && rs.tok.dd) Arch.add(rs.tok.dd, rs.name, rs.product); } catch (e) {}
-        }
+        // an ad set already on the list (or removed from it) is not read again: its link
+        // carries its file id, and Status reads its contents anyway
+        const fidOf = x => { x = String(x || ''); return x[0] === 'R' ? x.slice(x.indexOf('.') + 1) : ''; };
+        const known = new Set(Arch.list().map(x => fidOf(x.id)).concat(hidden().map(fidOf)).filter(Boolean));
+        await pool(sets.filter(f => !known.has(f.id)), 6, async f => {
+          try { const rs = await dsRead(f.id, false, true); if (rs && !rs.deleted && rs.tok && rs.tok.dd) Arch.add(rs.tok.dd, rs.name, rs.product); } catch (e) {}
+        });
         dsFindAt = Date.now();
         return true;
       } catch (e) { return false; }
@@ -294,13 +298,22 @@
   // file (never flushed), and a read carrying a smaller one is stale: the newer copy this page
   // holds answers, or the read is tried again.
   const DSW = {}, dsW = d => (d && +d._w) || 0;
-  async function dsRead(id, fresh) {
-    const c = DSC[id];
+  // `fast` (Status's read-only listing) asks for the metadata and the content at once when the
+  // file is not cached — one round trip instead of two. A write between the two answers could
+  // pair new metadata with old content, so an entry read that way is never trusted by a
+  // non-fast read (a save, a step, the preview writer): those read it again the careful way.
+  async function dsRead(id, fresh, fast) {
+    const c0 = DSC[id], c = c0 && (fast || !c0.fast) ? c0 : null;
     if (c && !fresh && Date.now() - c.at < 1500) return c.d;
     for (let tries = 0; ; tries++) {
-      const m = await dsMeta(id);
-      if (c && c.v === m.version) { c.at = Date.now(); c.meta = m; return c.d; }
-      const d = await (await dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true')).json();
+      const media = () => dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true').then(r => r.json());
+      let m, d;
+      if (fast && !c) [m, d] = await Promise.all([dsMeta(id), media()]);
+      else {
+        m = await dsMeta(id);
+        if (c && c.v === m.version) { c.at = Date.now(); c.meta = m; return c.d; }
+        d = await media();
+      }
       if (dsW(d) < (DSW[id] || 0)) {
         // keep c.v as it was, so the next read asks Drive again
         if (c && dsW(c.d) >= DSW[id]) { c.at = Date.now(); return c.d; }
@@ -310,7 +323,7 @@
       // a project file written over by a plain session save (dsKeepReview): keep the review it had
       if (c && c.d && c.d.review && d && d.state && !d.review) d.review = c.d.review;
       DSW[id] = Math.max(DSW[id] || 0, dsW(d));
-      DSC[id] = { v: m.version, d, at: Date.now(), meta: m };
+      DSC[id] = { v: m.version, d, at: Date.now(), meta: m, fast: !!(fast && !c) };
       return d;
     }
   }
@@ -356,9 +369,9 @@
     return d;
   }
   function dsLog(rs, by, changes) { const e = dsEntry(by, changes, ''); if (e) { e.rev = 0; rs.log = (rs.log || []).concat(e).slice(-500); } }
-  async function dsResolve(id, p, fresh) {
+  async function dsResolve(id, p, fresh, fast) {
     if (id[0] === 'R') {
-      const fid = id.slice(id.indexOf('.') + 1), rs = await dsRead(fid, fresh);
+      const fid = id.slice(id.indexOf('.') + 1), rs = await dsRead(fid, fresh, fast);
       const role = Object.keys(rs.tok || {}).find(r => rs.tok[r] === id);
       if (!role || rs.deleted) throw dsFail(404, 'This review link is not valid.');
       if (p && !(rs.items || []).some(x => x.sid === p)) throw dsFail(404, 'That project is not in this ad set.');
@@ -544,18 +557,24 @@
     throw dsFail(404, 'Unknown request.');
   }
   // the designer's archive: one summary per ad set, by its designer link
+  // Six ad sets at a time (and every project of each at once): Status used to read them one
+  // after another, two Drive requests per file, before it could draw anything.
   async function dsInfo(ids, full) {
-    const items = [];
-    for (const id of ids.slice(0, 60)) {
+    const list = ids.slice(0, 60), res = new Array(list.length);
+    await pool(list.map((id, i) => [id, i]), 6, async ([id, i]) => { res[i] = await dsInfo1(id, full); });
+    return { items: res.filter(Boolean) };
+  }
+  async function dsInfo1(id, full) {
+    {
       try {
-        const R = await dsResolve(id);
-        if (R.role !== 'dd' || !R.rs) { items.push({ id, gone: true }); continue; }
+        const R = await dsResolve(id, null, false, true);
+        if (R.role !== 'dd' || !R.rs) return { id, gone: true };
         const e = { id, dd: R.rs.tok.dd, rs: dsPub(R.rs, 'dd'), thumb: R.rs.thumb || '', live: {} };
         let thAt = 0;
         const plog = [], proj = {};
         await Promise.all((R.rs.items || []).map(async it => {
           try {
-            const d = await dsRead(it.sid.slice(1)), rv = d.review || {};
+            const d = await dsRead(it.sid.slice(1), false, true), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
             // which project is which (by pid): a project opened elsewhere finds its ad set by it
@@ -577,10 +596,9 @@
         if (full) { e.log = (R.rs.log || []).slice(-300); e.rs.hist = R.rs.hist || []; e.plog = plog; e.proj = proj; }
         // the card shows the project changed last, so its preview is the one that must be current
         if (e.lead && proj[e.lead] && proj[e.lead].thumb) e.thumb = proj[e.lead].thumb;
-        items.push(e);
-      } catch (er) { if (er.gdAuth) throw er; items.push({ id, gone: true }); }
+        return e;
+      } catch (er) { if (er.gdAuth) throw er; return { id, gone: true }; }
     }
-    return { items };
   }
   const dsRand = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 56]).join('');
   const dsSafe = t => String(t || 'Project').replace(/[\\/:*?"<>|#%]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Project';
@@ -3795,22 +3813,44 @@
     box.innerHTML = (false ? '<ol class="rvo-steps">' + by.map(x => '<li data-i="' + x.i + '"' + (x.n ? '' : ' data-zero="1"') + '><span><i></i>' + esc(x.l) + '</span><b>' + x.n + '</b><em><s style="width:' + (auds.length ? Math.round(x.n / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>' : '') +
       (miss || this.sign ? '<p class="rva-sx-w">' + [this.sign ? this.sign + ' on Google Drive not counted until you sign in' : ''].filter(Boolean).join(' · ') + '.</p>' : '');
   };
+  // THE LIST SHOWS AT ONCE (2026-10-29). Status drew nothing until it had scanned the campaigns
+  // folder and then read every ad set and every project file, one after another. Now it paints
+  // the list it read last time (kept on this computer), reads the ad sets it already knows while
+  // the folder scan runs, and adds any the scan found after.
+  const LIST_KEY = 'provident-status-list';
+  function listCache() { try { const c = JSON.parse(localStorage.getItem(LIST_KEY) || 'null'); return c && Array.isArray(c.items) ? c : null; } catch (e) { return null; } }
+  function listKeep(items) {
+    const keep = (items || []).filter(x => x && !x.gone && x.rs).map(x => { const o = Object.assign({}, x); delete o.log; delete o.plog; delete o.proj; return o; });
+    let j = JSON.stringify({ at: Date.now(), items: keep });
+    // previews are data URLs; a long list keeps the names and steps and leaves the pictures
+    if (j.length > 1500000) j = JSON.stringify({ at: Date.now(), items: keep.map(x => Object.assign({}, x, { thumb: '' })) });
+    lsSet(LIST_KEY, j);
+  }
   AV.load = async function (quiet) {
-    if (!quiet) { this.items = null; this.draw(); }
-    await dsDiscover(!quiet);
+    const cache = !quiet && !this.items ? listCache() : null;
+    if (cache) {
+      const on = new Set(Arch.list().map(x => x.id));
+      this.items = cache.items.filter(x => on.has(x.id)); this.at = cache.at; this.healPaint(this.items); this.draw();
+    } else if (!quiet) { this.items = null; this.draw(); }
+    const disc = dsDiscover(!quiet), ids0 = Arch.list().map(x => x.id);
+    if (!ids0.length) await disc;
     const ids = Arch.list().map(x => x.id);
     if (!ids.length) this.sign = 0;
-    if (!quiet || !this.items) this.items = ids.length ? null : [];
-    if (!quiet) this.draw();
+    if (!this.items) this.items = ids.length ? null : [];
+    if (!quiet && !cache) this.draw();
     if (!ids.length) { this.at = Date.now(); this.draw(); return; }
     try {
       const out = []; let sign = 0;
-      for (let i = 0; i < ids.length; i += 50) { const r = await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') }); out.push(...(r.items || [])); sign += r.sign || 0; }
+      const read = async list => { for (let i = 0; i < list.length; i += 50) { const r = await api('rsinfo', { ids: list.slice(i, i + 50).join(',') }); out.push(...(r.items || [])); sign += r.sign || 0; } };
+      await Promise.all([read(ids), disc]);
+      const more = Arch.list().map(x => x.id).filter(x => ids.indexOf(x) < 0);
+      if (more.length) await read(more);
       this.sign = sign;
       // a review from before ad sets was kept by its project's id: from now on, by its designer link
       out.forEach(x => { if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
       const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
       statusSave(this.items, this.eng);
+      listKeep(this.items);
     } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }
     this.healPaint(this.items);
     if (!this.sel) this.draw();
