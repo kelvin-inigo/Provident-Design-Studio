@@ -6996,7 +6996,7 @@ class CampaignStudio extends StudioBase {
     this.setState(n, () => {
       this.persist();
       if (CampaignStudio.strip(prev) !== CampaignStudio.strip(this.state)) {
-        this._undoStack = (this._undoStack || []).concat([prev]).slice(-5);
+        this._undoStack = (this._undoStack || []).concat([prev]).slice(-CampaignStudio.UNDO_MAX);
         this._redoStack = [];
       }
     });
@@ -7017,18 +7017,72 @@ class CampaignStudio extends StudioBase {
     if (!StudioBase.loadingSession) try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
     this.setState(n);
   }
-  undo() {
-    const u = this._undoStack || [];
-    if (!u.length) return;
-    this._redoStack = (this._redoStack || []).concat([JSON.parse(JSON.stringify(this.state))]).slice(-5);
-    this.restore(u.pop());
+  // ONE PHOTO, REFRAMED PER SIZE. Unlinking a size (Edit separately) gives it its own copy
+  // of the variant's photo — same picture, same crop to start — in its own slot
+  // (`adstudio-bg-<vi>-<size>`), so a reframe there leaves the 1:1 and every other size
+  // alone. Nothing is uploaded twice; a size that already has its own picture keeps it.
+  // Re-linking goes back to the shared photo only while the size's copy is still that
+  // same picture, so a different photo chosen for that size is never thrown away.
+  // Returns what `bgSep[size]` should become, or null to leave it as it is.
+  ownPhotoFor(vi, psz, detach) {
+    const IS = customElements.get('image-slot');
+    if (!IS || !IS.getRec) return null;
+    const v = (this.state.variants || [])[vi] || {};
+    const base = 'adstudio-bg-' + vi, own = base + '-' + psz;
+    const sh = IS.getRec(base), mine = IS.getRec(own);
+    if (detach) {
+      if (v.bgSep && v.bgSep[psz]) return null;          // already its own photo
+      if (!sh || !sh.u) return null;                      // nothing to copy yet
+      if (!(mine && mine.u)) IS.copySlot(base, own);
+      else if (mine.u !== sh.u) return true;              // its own picture is already there
+      else IS.putRec(own, Object.assign({}, sh));         // the same picture: start from today's crop
+      if (this._refreshAV) setTimeout(this._refreshAV, 50);
+      return true;
+    }
+    if (v.bgSep && v.bgSep[psz] && mine && sh && mine.u === sh.u) return false;
+    return null;
   }
-  redo() {
-    const r = this._redoStack || [];
-    if (!r.length) return;
-    this._undoStack = (this._undoStack || []).concat([JSON.parse(JSON.stringify(this.state))]).slice(-5);
-    this.restore(r.pop());
+
+  // A photo's crop lives on its slot in the photo store, not in the state, so a reframe
+  // is an undo entry of its own: a copy of the state as it is, carrying `__slots`, the
+  // crop each slot had BEFORE ({id: {s, x, y, f}}). Undo puts those crops back and hands
+  // redo the crops it replaced; only the crop moves, never the picture itself.
+  static CROP = ['s', 'x', 'y', 'f'];
+  static cropOf(rec) {
+    const c = {};
+    if (rec) CampaignStudio.CROP.forEach(k => { if (rec[k] != null) c[k] = rec[k]; });
+    return c;
   }
+  _slotCrops(ids) {
+    const IS = customElements.get('image-slot'), o = {};
+    if (IS && IS.getRec) ids.forEach(id => { o[id] = CampaignStudio.cropOf(IS.getRec(id)); });
+    return o;
+  }
+  _putCrops(map) {
+    const IS = customElements.get('image-slot');
+    if (!IS || !IS.getRec || !IS.putRec) return;
+    Object.keys(map || {}).forEach(id => {
+      const cur = IS.getRec(id);
+      if (!cur || !cur.u) return;
+      const n = Object.assign({}, cur);
+      CampaignStudio.CROP.forEach(k => { delete n[k]; });
+      IS.putRec(id, Object.assign(n, map[id]));
+    });
+    if (this._refreshAV) setTimeout(this._refreshAV, 50);
+  }
+  _histStep(from, to) {
+    const f = this['_' + from + 'Stack'] || [];
+    if (!f.length) return;
+    const e = f.pop();
+    const cur = JSON.parse(JSON.stringify(this.state));
+    if (e.__slots) cur.__slots = this._slotCrops(Object.keys(e.__slots));
+    this['_' + to + 'Stack'] = (this['_' + to + 'Stack'] || []).concat([cur]).slice(-CampaignStudio.UNDO_MAX);
+    if (e.__slots) this._putCrops(e.__slots);
+    delete e.__slots;
+    this.restore(e);
+  }
+  undo() { this._histStep('undo', 'redo'); }
+  redo() { this._histStep('redo', 'undo'); }
 
   componentDidMount() {
     // Edit in Photoshop is offered only while its helper (or a source folder) is there.
@@ -7085,8 +7139,25 @@ class CampaignStudio extends StudioBase {
     };
     this._refreshAV();
     this._reframeEnd = e => {
-      this._reframing = !!(e.detail && e.detail.active);   // the overlap layer follows every frame while this is on
-      if (e.detail && e.detail.active === false) setTimeout(this._refreshAV, 250);
+      const d = e.detail || {};
+      this._reframing = !!d.active;   // the overlap layer follows every frame while this is on
+      // Undo: remember the crop on the way in, and push one entry on the way out when the
+      // crop actually moved (a Done with no change, or Escape, records nothing).
+      if (d.active && d.id) this._rfBefore = { id: d.id, crop: this._slotCrops([d.id])[d.id] };
+      if (d.active === false) {
+        const b = this._rfBefore; this._rfBefore = null;
+        if (b && b.id === d.id) {
+          const now = this._slotCrops([d.id])[d.id];
+          if (JSON.stringify(now) !== JSON.stringify(b.crop)) {
+            const entry = JSON.parse(JSON.stringify(this.state));
+            entry.__slots = { [d.id]: b.crop };
+            this._undoStack = (this._undoStack || []).concat([entry]).slice(-CampaignStudio.UNDO_MAX);
+            this._redoStack = [];
+            this.forceUpdate();
+          }
+        }
+        setTimeout(this._refreshAV, 250);
+      }
     };
     document.addEventListener('image-slot:reframe', this._reframeEnd, true);
     this._dropRefresh = () => setTimeout(this._refreshAV, 600);
@@ -7297,7 +7368,7 @@ class CampaignStudio extends StudioBase {
     // tokens at 1080 wide (1080 x 1350, exported at 960 / 1080 = 960 x 1200).
     // META'S PORTRAIT 3:4 (2026-10-15, by request) — the 1:1's own tokens at 1080 x 1440,
     // exported at 2x like every Meta size. Shown by default; `v.ptOn` false hides it.
-    pt: { W: 1080, H: 1440, pad: [80, 80, 80, 80], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 }
+    pt: { W: 1080, H: 1440, pad: [120, 100, 120, 100], gapS: 24, hero: 85, headline: 59, hook: 35, body: 28, eyebrow: 24, logo: 41, ctaF: 28, ctaPV: 17, qr: 86, stat: 50, stepD: 52 }
   };
   // The file a size exports as: its own pixel size when the size declares one (the two
   // banners), otherwise the 2x every Meta size has always shipped at.
@@ -9348,7 +9419,15 @@ class CampaignStudio extends StudioBase {
     if (typeof o === 'number' && o > 0) return o;
     return (typeof m.gaspect === 'number' && m.gaspect > 0) ? m.gaspect : null;
   }
+  // A graphic's scale is a fraction of the SQUARE's column (920), never of a wider one:
+  // on the 1.91:1 and the banners the column is ~1680 wide, and the same gscale drew the
+  // art nearly twice the size it has on the 1:1. Narrower columns (9:16, 3:4) still win.
+  static GREF = 920;
+  // How many steps Undo and Redo keep.
+  static UNDO_MAX = 10;
+  static gRef(innerW) { return Math.min(innerW, CampaignStudio.GREF); }
   static graphicW(ov, m, innerW) {
+    innerW = CampaignStudio.gRef(innerW);
     const g = CampaignStudio.gScaleOf(ov, m);
     return g == null ? innerW
       : innerW * Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX, g));
@@ -14372,7 +14451,8 @@ class CampaignStudio extends StudioBase {
             e.stopPropagation(); e.preventDefault();
             const cwEl = e.target.closest('[data-cwpx]');
             const cw = cwEl ? +cwEl.getAttribute('data-cwpx') : 460;
-            const innerPx = Math.max(1, iW * cw / tk.W);
+            const gRW = CampaignStudio.gRef(iW);
+            const innerPx = Math.max(1, gRW * cw / tk.W);
             const dirSign = e.target.getAttribute('data-gdir') === 'w' ? -1 : 1;
             const node = e.target.parentElement;
             const slot = node && node.querySelector('image-slot');
@@ -14385,7 +14465,7 @@ class CampaignStudio extends StudioBase {
             // at tk.W and shrunk with `zoom`, so measure it against iW (canvas units) — not
             // innerPx, which is CSS px and is only right for the clientX delta below.
             const startG = CampaignStudio.gScaleOf(gov, m);
-            const start = startG != null ? startG : (node ? node.offsetWidth / Math.max(1, iW) : 1);
+            const start = startG != null ? startG : (node ? node.offsetWidth / Math.max(1, gRW) : 1);
             const mvFn = ev => {
               const g = Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX,
                 start + (ev.clientX - startX) * dirSign * mirS / innerPx));
@@ -14800,12 +14880,12 @@ class CampaignStudio extends StudioBase {
       },
       removeStyle: { display: vi === 0 ? 'none' : 'block', background: 'transparent', color: 'var(--ps-ink-2)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
       storyState: v.story ? '· detached' : '· mirrors 1:1',
-      toggleStory: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.story = vv.story ? null : CampaignStudio.detachRec(vv); return x; }); },
-      toggleWideOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.wideOv = vv.wideOv ? null : CampaignStudio.detachRec(vv); return x; }); },
+      toggleStory: e => { if (e && e.stopPropagation) e.stopPropagation(); const det = !v.story; const ph = this.ownPhotoFor(vi, 'st', det); this.upd(x => { const vv = x.variants[vi]; vv.story = vv.story ? null : CampaignStudio.detachRec(vv); if (ph != null) { vv.bgSep = vv.bgSep || {}; vv.bgSep['st'] = ph; } return x; }); },
+      toggleWideOv: e => { if (e && e.stopPropagation) e.stopPropagation(); const det = !v.wideOv; const ph = this.ownPhotoFor(vi, 'ls', det); this.upd(x => { const vv = x.variants[vi]; vv.wideOv = vv.wideOv ? null : CampaignStudio.detachRec(vv); if (ph != null) { vv.bgSep = vv.bgSep || {}; vv.bgSep['ls'] = ph; } return x; }); },
       wideOvLabel: v.wideOv ? 'Re-link layout' : 'Edit layout separately',
-      toggleBgSt: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.st = !vv.bgSep.st; return x; }); },
+      toggleBgSt: e => { e.stopPropagation(); if (!(v.bgSep && v.bgSep.st)) this.ownPhotoFor(vi, 'st', true); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.st = !vv.bgSep.st; return x; }); },
       bgStLabel: (v.bgSep && v.bgSep.st) ? 'Own photo ✓' : 'Own photo',
-      toggleBgLs: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.ls = !vv.bgSep.ls; return x; }); },
+      toggleBgLs: e => { e.stopPropagation(); if (!(v.bgSep && v.bgSep.ls)) this.ownPhotoFor(vi, 'ls', true); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.ls = !vv.bgSep.ls; return x; }); },
       bgLsLabel: (v.bgSep && v.bgSep.ls) ? 'Own photo ✓' : 'Own photo',
       bgStSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.st) ? '-st' : ''), key: 'st' + vi + !!(v.bgSep && v.bgSep.st) }],
       bgLsSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.ls) ? '-ls' : ''), key: 'ls' + vi + !!(v.bgSep && v.bgSep.ls) }],
@@ -14853,9 +14933,9 @@ class CampaignStudio extends StudioBase {
       banState: v.banner ? (v.banOv ? '· detached from 1:1' : '· mirrors 1:1') : '',
       toggleBanner: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.banner = !vv.banner; if (!vv.banner && x.sel && x.sel.vi === vi && (x.sel.size === 'bn' || x.sel.size === 'bs')) x.sel = null; return x; }); },
       banBtnLabel: v.banner ? 'Hide banner' : 'Show banner',
-      toggleBanOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.banOv = vv.banOv ? null : CampaignStudio.detachRec(vv); return x; }); },
+      toggleBanOv: e => { if (e && e.stopPropagation) e.stopPropagation(); const det = !v.banOv; const ph = this.ownPhotoFor(vi, 'bn', det); this.upd(x => { const vv = x.variants[vi]; vv.banOv = vv.banOv ? null : CampaignStudio.detachRec(vv); if (ph != null) { vv.bgSep = vv.bgSep || {}; vv.bgSep['bn'] = ph; } return x; }); },
       banOvLabel: v.banOv ? 'Re-link layout' : 'Edit layout separately',
-      toggleBgBn: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.bn = !vv.bgSep.bn; return x; }); },
+      toggleBgBn: e => { e.stopPropagation(); if (!(v.bgSep && v.bgSep.bn)) this.ownPhotoFor(vi, 'bn', true); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.bn = !vv.bgSep.bn; return x; }); },
       bgBnLabel: (v.bgSep && v.bgSep.bn) ? 'Own photo ✓' : 'Own photo',
       bgBnSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.bn) ? '-bn' : ''), key: 'bn' + vi + !!(v.bgSep && v.bgSep.bn) }],
       bn: v.banner ? mkCanvas(vi, 'bn') : null,
@@ -14874,8 +14954,8 @@ class CampaignStudio extends StudioBase {
       // META'S PORTRAIT 3:4 — shown by default; the eye hides it (and it is then not exported)
       ptShow: !!v.ptOn,
       togglePtShow: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ptOn = !vv.ptOn; if (!vv.ptOn && x.sel && x.sel.vi === vi && x.sel.size === 'pt') x.sel = null; return x; }); },
-      togglePtOv: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.ptOv = vv.ptOv ? null : CampaignStudio.detachRec(vv); return x; }); },
-      toggleBgPt: e => { e.stopPropagation(); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.pt = !vv.bgSep.pt; return x; }); },
+      togglePtOv: e => { if (e && e.stopPropagation) e.stopPropagation(); const det = !v.ptOv; const ph = this.ownPhotoFor(vi, 'pt', det); this.upd(x => { const vv = x.variants[vi]; vv.ptOv = vv.ptOv ? null : CampaignStudio.detachRec(vv); if (ph != null) { vv.bgSep = vv.bgSep || {}; vv.bgSep['pt'] = ph; } return x; }); },
+      toggleBgPt: e => { e.stopPropagation(); if (!(v.bgSep && v.bgSep.pt)) this.ownPhotoFor(vi, 'pt', true); this.upd(x => { const vv = x.variants[vi]; vv.bgSep = vv.bgSep || {}; vv.bgSep.pt = !vv.bgSep.pt; return x; }); },
       bgPtSlot: [{ id: 'adstudio-bg-' + vi + ((v.bgSep && v.bgSep.pt) ? '-pt' : ''), key: 'pt' + vi + !!(v.bgSep && v.bgSep.pt) }],
       pt: v.ptOn ? mkCanvas(vi, 'pt') : null
     }); });

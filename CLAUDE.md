@@ -17478,3 +17478,24 @@ Three reports on **Make the Arabic version** / **Create next audience** (`rsNext
   showed "(1)". `writeProject` now drops session .json files and Assets/ while
   `shInDrive()` (a project in a Drive ad set). CAS's Save there only flushes the share save and
   records Recent, and it says the project is kept on Drive. Exports write the renders only.
+
+# CAS: PORTRAIT PADDING, GRAPHIC SCALE, ONE PHOTO PER SIZE, UNDO 10 (2026-10-29)
+
+By request. CAS only; no OPS or studio-base.js change.
+- **Portrait 3:4 margins are `[120, 100, 120, 100]`** (were the 1:1's 80 all round, which read
+  as tighter on the taller canvas).
+- **A graphic's scale is a fraction of the SQUARE's column.** `graphicW` reads
+  `gRef(innerW) = min(innerW, GREF 920)`, and the corner drag measures against the same, so a
+  graphic on the 1.91:1 or a banner (1680/1640 columns) is the size it is on the 1:1. 9:16 and
+  3:4 (880) are unchanged.
+- **One photo, reframed per size**: `ownPhotoFor(vi, psz, detach)`. Pressing a size's link
+  button (story / wideOv / banOv / ptOv) copies `adstudio-bg-<vi>` into `-<psz>` (or refreshes
+  it when it holds the same picture) and sets `bgSep[psz]`; re-linking clears `bgSep` only if
+  that slot still holds the shared picture. The Own photo button also starts from the copy.
+  The copy doubles that photo in the store; replacing the main photo later does not reach it.
+- **Undo / Redo keep `UNDO_MAX` (10) steps, and a reframe is a step.** `_reframeEnd` records
+  the crop on `image-slot:reframe` active true and, on active false, pushes a state copy
+  carrying `__slots` ({id: crop before}) when the crop moved. `_histStep` puts crops back with
+  `putRec` (picture kept, only `s/x/y/f` change) and hands the other stack the crops it replaced.
+Verified in the pane: graphic widths 368 on sq/ls/bn, 352 on st/pt; detaching the 3:4 made its
+own copy, a reframe there undid and redid without touching the 1:1's crop, 12 edits kept 10.

@@ -154,7 +154,7 @@ Each studio opens on its **project browser**.
   design, ready to run — as Status last read them.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count.
-- **Undo** / **Redo** (top bar) go back up to 5 steps.
+- **Undo** / **Redo** (top bar) go back up to 10 steps. A photo reframe counts as a step.
 - **From the hub** (OPS only; sidebar, under Library) lists what the Content Hub has received from **Send**,
   newest first, with a few of the sent images on each card. Click one to open it as a project:
   its words, layout and the photos it was sent with all come back. A delivery made in the other
@@ -529,7 +529,11 @@ No API key or service is needed: Claude Code reads the screenshot.
   - **Logo** — click a separated canvas (anywhere on it) and the Layout rail edits that canvas:
     its heading reads e.g. *Master · 9:16 (own layout)*, and the **Logo** tiles and **Alignment**
     set the wordmark corner and alignment for that canvas only. It starts where the variant's is.
-  - **Picture** — give that canvas its own photo instead of sharing the main one.
+  - **Picture** — give that canvas its own photo instead of sharing the main one. It starts as a
+    copy of the main photo, so you can simply reframe it, or replace it with another picture.
+  - Pressing the **link button** does the same for the photo: the canvas gets its own copy of the
+    main photo, and reframing it there leaves the other sizes alone. You only upload once.
+    Re-linking goes back to the shared photo, unless you put a different picture on that canvas.
   - **Eye** — show or hide the canvas. A hidden canvas is not exported.
 - **Portrait 3:4:** shown by default — press the eye on its row to hide it. It mirrors the 1:1
   until you press its link button. It exports as `<name>_Variant A_Portrait_3x4.jpg` at 2160 × 2880.
