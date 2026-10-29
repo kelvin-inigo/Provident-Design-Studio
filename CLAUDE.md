@@ -17517,3 +17517,9 @@ every project file ONE AFTER ANOTHER, two Drive requests per file. share-link.js
 Measured on the Drive stand-in with 200 ms added per request, 8 ad sets x 3 projects: first
 open 6.7 s -> 1.1-1.6 s; every later open 10.2 s -> cards in ~0.1 s, fresh from Drive ~1.1 s;
 an ad set's page 0.46 s. Not measured on real Google Drive.
+
+**PM's and the content team's windows say which view they are (2026-10-29, by request).** A line
+above the ad set's title — **Performance marketing view** (navy dot) or **Content team view** (green
+dot), its tooltip saying what that view is for — from `asKickOn` / `asKick` / `asKickTip` in CAS's
+Ad sets keys, `.as-kick` (section 57b). Shown only when `pmHead` titles the window (pm, ct). The
+old role chip (`.as-role`) stays hidden for them.
