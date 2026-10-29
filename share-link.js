@@ -619,6 +619,23 @@
     if (eng.newProject) eng.newProject();
     return true;
   }
+  // START ONE PLANNED CELL IN A NEW WINDOW (the Status page's placeholders). The window is a
+  // new workspace, so the request travels in the address (#pick=…), not in localStorage.
+  function startCell(dd, cell) {
+    const ws = 'p' + Math.random().toString(36).slice(2, 12);
+    const q = btoa(unescape(encodeURIComponent(JSON.stringify({ dd, cell }))));
+    window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '?ws=' + ws + '#pick=' + encodeURIComponent(q), '_blank', 'noopener');
+  }
+  SP.rsPickHash = function () {
+    const m = /^#pick=(.+)$/.exec(location.hash || ''); if (!m) return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    let g = null; try { g = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]))))); } catch (e) {}
+    if (!g || !g.dd) return false;
+    if (this.markSaved) this.markSaved();
+    lsSet(PICK_KEY, JSON.stringify({ dd: g.dd, cell: g.cell || null, at: Date.now() }));
+    if (this.newProject) this.newProject();
+    return true;
+  };
   SP.rsPickCheck = async function () {
     let g = null; try { g = JSON.parse(localStorage.getItem(PICK_KEY) || 'null'); } catch (e) {}
     if (!g || !g.dd || Date.now() - (g.at || 0) > 300000) return;
@@ -630,13 +647,18 @@
     let rs;
     try { rs = (await api('rsget', { id: g.dd })).rs; }
     catch (e) { const d = busyDlg('Pick up the ticket', ''); d.fail(e.message || String(e)); return; }
-    const next = planTodo(rs).find(t => t.lang === 'ENG') || planTodo(rs)[0] || { market: 'Local', aud: (AUDS[rs.product] || AUDS.residential)[0], lang: 'ENG' };
-    const label = next.market + ' · ' + next.aud;
-    const dlg = busyDlg('Setting up ' + label, 'This project becomes the first audience of ' + (rs.name || 'the campaign') + '.');
+    const todo = planTodo(rs), want = g.cell;
+    // a placeholder on the Status page names its cell; one taken since is not made twice
+    if (want && !todo.some(t => t.market === want.market && t.aud === want.aud && t.lang === want.lang)) {
+      const d = busyDlg('Already made', ''); d.fail(want.market + ' · ' + want.aud + ' · ' + (want.lang === 'ARB' ? 'Arabic' : 'English') + ' already has a project in ' + (rs.name || 'this ad set') + '. Open it from Status.'); return;
+    }
+    const next = want || todo.find(t => t.lang === 'ENG') || todo[0] || { market: 'Local', aud: (AUDS[rs.product] || AUDS.residential)[0], lang: 'ENG' };
+    const arb = next.lang === 'ARB', label = next.market + ' · ' + next.aud + (arb ? ' · Arabic' : '');
+    const dlg = busyDlg('Setting up ' + label, 'This project becomes ' + label + ' in ' + (rs.name || 'the campaign') + '.');
     try {
-      this.upd(x => { x.campaign = rs.name || x.campaign; x.screen = 'copy'; return x; });
+      this.upd(x => { x.campaign = rs.name || x.campaign; x.screen = 'copy'; if (arb) x.font = 'arabic'; return x; });
       await new Promise(r => setTimeout(r, 60));
-      const out = await this.dsReview(dlg, { mode: 'add', by: StudioBase.shareName() || 'Someone', dd: g.dd, market: next.market, aud: next.aud, lang: 'ENG' });
+      const out = await this.dsReview(dlg, { mode: 'add', by: StudioBase.shareName() || 'Someone', dd: g.dd, market: next.market, aud: next.aud, lang: next.lang || 'ENG' });
       Arch.add(out.tok.dd, out.name, out.product, true);
       // the Claude reply filed on the ticket, if any, is ready in the Ad set tab
       if (out.reply && this.brRead && !this.brRead().reply) this.brSet('reply', out.reply);
@@ -844,7 +866,7 @@
     const rb = ssGet(RS_KEY);
     if (rb && !here(rb)) ssSet(RS_KEY, null);
     else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
-    if (this.shApp() === 'provident-ad-studio') { this.rsJoinCheck(); this.rsPickCheck(); setTimeout(() => this.rsFind(), 1500); }
+    if (this.shApp() === 'provident-ad-studio') { if (this.rsPickHash()) return; this.rsJoinCheck(); this.rsPickCheck(); setTimeout(() => this.rsFind(), 1500); }
     return false;
   };
   // A PROJECT FINDS ITS OWN AD SET (2026-10-29). A tab can be following an older link of the
@@ -3433,6 +3455,7 @@
       return;
     }
     const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
+    if (a === 'startcell') { const [market, aud, lang] = (t.dataset.cell || '').split('|'), dd = (this.det && this.det.dd) || this.sel; startCell(dd, { market, aud, lang }); return; }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
     if (a === 'settings') {
@@ -3611,7 +3634,12 @@
       '<div class="rvd-hs">' + steps + nowLine + '</div></header>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
+    const cells = planCells(planOf(rs));
+    const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang) + '" title="Opens a new window on the Ad set tab, where you paste Claude’s reply">' +
+      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
+      const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
+      if (cl && (lang === 'English' || (cl.arb && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
       if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
@@ -3629,7 +3657,13 @@
         '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span></div>' +
         '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + '</div></li>';
     }).join('');
-    const audiences = '<section class="rvd-sec"><h3>Audiences <s>' + auds.length + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
+    // planned in Ad set settings, no project yet: a row each at the foot, both languages as placeholders
+    const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
+    const planRows = todoA.map(c => '<li class="rvd-au" data-plan="1"><div class="rvd-auh">' +
+      '<span class="rvd-aun"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></span>' +
+      '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>Planned in Ad set settings — no project yet</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
+      '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (c.arb ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>Not needed for this audience</s></span></div>') + '</div></li>').join('');
+    const audiences = '<section class="rvd-sec"><h3>Audiences <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
@@ -5448,6 +5482,14 @@ body>.rvh{display:none}
 .rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
 .rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
 .rvd-card .rva-sub{margin-top:-8px}
+.rvd-ph{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:8px;border:none;border-radius:12px;background:none;outline:1px dashed var(--ps-line);outline-offset:-1px;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
+.rvd-ph:hover{background:var(--ps-fill)}
+.rvd-ph:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-phi{flex:none;display:grid;place-items:center;width:44px;height:55px;border-radius:8px;background:var(--ps-fill)}
+.rvd-phi .rva-i{width:20px;height:20px;fill:var(--ps-ink-2)}
+.rvd-ph>.rva-i{flex:none;width:16px;height:16px;fill:var(--ps-dim)}
+.rvd-ph .rva-lt-t s{white-space:normal}
+.rvd-au[data-plan]{background:none;box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-card .rva-fl{box-sizing:border-box;min-width:0}
 @container (max-width:1000px){.rvd-cols{grid-template-columns:minmax(0,1fr)}}
 @container (max-width:760px){

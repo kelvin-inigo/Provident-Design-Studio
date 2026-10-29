@@ -17287,3 +17287,14 @@ the URL is the button's tooltip), Details (empty rows omitted), Brief, Drive loc
 Remove / Delete at the foot. One column under 1000px of container width. Every `data-a` action
 is unchanged. Verified with injected sample ad sets: 0 contrast failures in both themes, no
 overflow at 375.
+
+**Planned audiences with no project yet show placeholders (2026-10-29, by request).** On an ad
+set's page every cell of the plan (Ad set settings: market × audience, Arabic or not) that has no
+project gets a dashed **Start the English / Start the Arabic** tile (`.rvd-ph`, `data-a=
+"startcell"`) — in an audience's row where one language is missing, and as a "Not started" row at
+the foot for an audience with none. A click calls `startCell(dd, cell)`, which opens the studio
+in a NEW window on a fresh workspace with `#pick=<base64 {dd, cell}>`; `SP.rsPickHash` (first in
+CAS's `shareInit`) drops the hash, writes `provident-rspick` with the cell and runs
+`newProject`; after the reload `rsPickCheck` adds that exact cell (Arabic sets `font: arabic`,
+blank design) and lands on the Ad set tab, where Claude's reply is pasted. A cell taken
+meanwhile says so instead of making a second project. Verified on the Drive stand-in end to end.
