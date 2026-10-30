@@ -127,14 +127,28 @@ use your **@providentestate.com** account. What you see next depends on what the
 
 | Role | What opens |
 |---|---|
-| **Designer** | Both studios: design, export, Status. |
-| **Social media manager** | OPS: draft posts and send them to a designer. In CAS, Home and Status only. |
-| **Content team · English** | OPS: check a post's copy, approve it or send it back. In CAS, Home and Status only. In a campaign's content-team link, only **Approve English copy** shows. |
+| **Designer** | Both studios, everything: design, export, Status, hand-offs. Only the admin's **Access** is not theirs. |
+| **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
+| **Content team · English** | The copy requests from both studios. OPS: check a post's copy, approve it or send it back. CAS opens on **Status** only: a campaign waiting on you carries **Your turn**, and its page has **Check the copy**, which opens the content-team link. There, only **Approve English copy** shows. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Performance marketing** | **Home** (set up a campaign; the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage, no Organic posts. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. |
 | **Admin** | Everything a designer has, plus **Access** in CAS's sidebar. There is one admin. |
 
 In OPS, performance marketing sees **Status** only.
+
+**Hand-offs name a person.** Each team has two people. Whenever you send work on — **File as
+ticket** (to a designer), **Send to designer**, **Send to copy check**, **Send for translation
+check** — a window asks **who** picks it up, listing that team's people with their Google names and
+emails (someone who hasn't signed in yet shows their email). The studio remembers who you chose last.
+From then on the post or campaign reads **With Sara** instead of "With the content team", it shows
+as **Your turn** only for that person, and the activity says "→ Sara". Sending something **back**
+(Back to design, Reopen copy check) returns it to whoever did that step. Only an English copy person
+is offered for an English project, and only an Arabic one for the translation; for a post, both.
+
+The team is set up already: exec10.media (social media manager), exec1.content (English copy),
+exec2.content (Arabic copy), exec4.graphics and exec5.graphics (designers),
+digitalmarketing.lead1 (performance marketing). They can sign in straight away; their names fill in
+from Google the first time they do. The admin can still change or remove anyone in **Access**.
 
 - **First time?** Sign in anyway. You land on **Waiting for access**, and the admin sees your
   request. Add a note and say whether you design ads or file campaigns, then press **Send to the
@@ -922,7 +936,7 @@ button for what you do next:
 
 | Step | Button | Who sees it |
 |---|---|---|
-| Draft | **Send to designer** | social media manager, designer |
+| Draft | **Send to designer** (the social media manager also gets **Send to copy check**, to skip the designer) | social media manager, designer |
 | Design | **Send to copy check** | designer |
 | Copy check | **Approve copy** | content team |
 | Ready | none (Share is the main button again) | |

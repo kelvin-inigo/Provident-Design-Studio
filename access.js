@@ -95,6 +95,13 @@
   // social media manager and the content team get Home's setup and Status there. OPS is open to
   // all but performance marketing, which gets OPS's Status only.
   const lim = () => { const r = role(); return !!r && (CAS ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'); };
+  // NOT THIS STUDIO AT ALL (2026-10-30, by request): the social media manager works in OPS only
+  // and sees nothing of CAS — signed in, CAS shows a page that sends them to OPS
+  const blocked = () => CAS && role() === 'smm';
+  // where a role's studio opens: the content team's CAS is its copy requests on Status
+  const only = () => { const r = role(); return CAS && r === 'ct' ? 'rev' : !CAS && r === 'pm' ? 'rev' : null; };
+  const OPS_FILE = 'Provident Organic Studio.dc.html';
+  const opsHref = () => location.href.replace(/[^/]*$/, encodeURIComponent(OPS_FILE)).replace(/#.*$/, '');
 
   // A review link (#share=) is its own key: it opens without signing in, and so does every
   // reload in the tab it opened.
@@ -164,7 +171,7 @@
   // CSS hides the controls (below); a capture-phase click guard and the shell's view check
   // (window.providentAccess.now) refuse them too, so a hidden button cannot be pressed by
   // other means. The server still holds the data rules: Drive sharing, the review links.
-  const PM_BLOCK = ['pick', 'proj', 'startcell', 'addopen', 'addproj', 'addx', 'approve', 'relab', 'relabsave', 'rmproj', 'delset', 'overview'];
+  const PM_BLOCK = ['pick', 'proj', 'startcell', 'addopen', 'addproj', 'addx', 'approve', 'relab', 'relabsave', 'rmproj', 'delset', 'overview', 'settings'];
   function apply() {
     const h = document.documentElement, r = role();
     if (r) h.setAttribute('data-acc-role', r); else h.removeAttribute('data-acc-role');
@@ -172,7 +179,9 @@
     const cl = copyLang(); if (cl) h.setAttribute('data-acc-copy', cl); else h.removeAttribute('data-acc-copy');
     h.toggleAttribute('data-acc-isadmin', !!(A.me && A.me.admin && A.phase === 'in'));
     h.toggleAttribute('data-acc-preview', !!viewAs());
-    if (A.phase === 'in' || !gated() || A.on === false) h.classList.remove('acx-hold');
+    if ((A.phase === 'in' && !blocked()) || !gated() || A.on === false) h.classList.remove('acx-hold');
+    else if (A.phase === 'in' && blocked()) h.classList.add('acx-hold');
+    h.toggleAttribute('data-acc-only', !!only());
     const sh = A.host;
     if (sh) {
       // performance marketing never reaches the editor: back to Home
@@ -182,11 +191,17 @@
     }
     bar(); chip();
   }
+  // the social media manager's OPS has no way across to CAS
+  document.addEventListener('click', e => {
+    if (CAS || role() !== 'smm') return;
+    const t = e.target && e.target.closest && e.target.closest('.p-ws:not([data-on]),.p-top > .p-seg:not(.p-seg-mode) button:not([data-on])');
+    if (t) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
   document.addEventListener('click', e => {
     if (!lim() || !CAS) return;
     const t = e.target && e.target.closest && e.target.closest('[data-a],.rsp-go,.p-sbf button,.rc-c');
     if (!t) return;
-    if (t.matches('.rsp-go,.p-sbf button,.rc-c') || PM_BLOCK.indexOf(t.dataset.a) >= 0) { e.preventDefault(); e.stopPropagation(); }
+    if (t.matches('.rsp-go,.p-sbf button,.rc-c') || PM_BLOCK.indexOf(t.dataset.a) >= 0 || (role() === 'ct' && t.dataset.a === 'newt')) { e.preventDefault(); e.stopPropagation(); }
   }, true);
 
   // ── the gate ─────────────────────────────────────────────────────────────────────────────
@@ -204,6 +219,10 @@
     const acct = x => x ? '<div class="acx-acct"><span class="acx-av">' + esc(initials(x.name, x.email)) + '</span><span><b>' + esc(x.name || x.email) + '</b><small>' + esc(x.email) + '</small></span></div>' : '';
     const errLine = A.err ? '<p class="acx-err" role="alert">' + esc(A.err) + '</p>' : '';
     const other = '<button type="button" class="acx-link" data-x="other">Use another account</button>';
+    if (A.phase === 'in' && blocked()) return '<h1>Your work is in the Organic Post Studio</h1><p class="acx-lede">The Campaign Ads Studio is for Meta ads. As ' + esc(roleWord(rawRole())) +
+      ', you draft, design and hand off organic posts in the Organic Post Studio.</p>' + acct(me) +
+      '<a class="acx-go acx-a" href="' + esc(opsHref()) + '"><span>Open the Organic Post Studio</span></a>' +
+      (viewAs() ? '<p class="acx-as"><button type="button" class="acx-link" data-x="endpv">End the preview</button></p>' : '<p class="acx-foot">' + other + '</p>');
     switch (A.phase) {
       case 'check': return '<h1>Checking your access</h1><p class="acx-lede">One moment.</p><div class="acx-skel"><i></i><i></i></div>';
       case 'busy': return '<h1>Signing you in</h1><p class="acx-lede">Finish in the Google window, then come back here.</p><div class="acx-skel"><i></i><i></i></div>';
@@ -231,7 +250,7 @@
   }
   function draw() {
     apply();
-    if (A.phase === 'in' || !gated() || A.on === false) { if (gate) { gate.remove(); gate = null; } return; }
+    if ((A.phase === 'in' && !blocked()) || !gated() || A.on === false) { if (gate) { gate.remove(); gate = null; } return; }
     if (!document.body) return;
     if (!gate) {
       gate = document.createElement('div');
@@ -261,6 +280,7 @@
     if (x === 'in') signIn(false);
     else if (x === 'other') signIn(true);
     else if (x === 'again' || x === 'retry') { A.phase = 'check'; draw(); boot(); }
+    else if (x === 'endpv') preview(null);
   }
   async function onSubmit(e) {
     e.preventDefault();
@@ -285,8 +305,8 @@
   function preview(r) {
     ss.set(LS_VIEWAS, r);
     const sh = A.host;
-    if (sh) { try { sh.setState({ splashView: r ? (!CAS && r === 'pm' ? 'rev' : 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
-    apply();
+    if (sh) { try { sh.setState({ splashView: r ? (only() || 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
+    apply(); draw();
   }
 
   // ── the account chip at the foot of the Home sidebar ─────────────────────────────────────
@@ -431,6 +451,85 @@
     }
   }
 
+  // ── the team, and who a hand-off goes to (2026-10-30) ──────────────────────────────────
+  // Each team has two people. Sending work on asks which of them picks it up; the choice is
+  // saved on the post or the ad set (it.to), so Status and Home say "With Sara" and only Sara
+  // sees it as her turn. Names are each person's Google name, learned at their first sign-in.
+  const me = () => { const x = (A.me && A.me.email) || (A.quiet && A.quiet.email) || ((D() && D().who && D().who()) || {}).email || ''; return String(x).toLowerCase(); };
+  let teamP = null, teamAt = 0;
+  function team(force) {
+    if (!force && teamP && Date.now() - teamAt < 300000) return teamP;
+    teamAt = Date.now();
+    teamP = (async () => {
+      const d = D(); if (!d || !(await d.ensure())) throw new Error('Sign in with Google to see the team.');
+      const r = await post('accteam'); return r.people || [];
+    })();
+    teamP.catch(() => { teamP = null; });
+    return teamP;
+  }
+  // which team a step goes to: a post's draft to a designer, a design to the content team (an ad
+  // set's English to English copy, its Arabic to Arabic copy); every other step names nobody
+  const TEAMS = {
+    designer: { roles: ['designer'], word: 'designer', head: 'Which designer picks it up?' },
+    copy: { roles: ['cten', 'ctar', 'ct'], word: 'content team', head: 'Who checks the copy?' },
+    'copy-en': { roles: ['cten', 'ct'], word: 'content team', head: 'Who checks the English copy?' },
+    'copy-ar': { roles: ['ctar', 'ct'], word: 'content team', head: 'Who checks the translation?' }
+  };
+  function teamFor(rs, it, act) {
+    const post = rs && rs.kind === 'post';
+    if (act === 'ticket' || act === 'draft-done') return 'designer';
+    if (act === 'design-done') return post ? 'copy' : it && it.lang === 'ARB' ? 'copy-ar' : 'copy-en';
+    return null;
+  }
+  const nameOf = p => p.name || String(p.email || '').split('@')[0];
+  const LS_TO = 'provident-handto:';
+  // Resolves { em, to } to add to the step's request, or null when the person cancelled.
+  async function handOff(rs, it, act, opt) {
+    opt = opt || {};
+    const out = { em: me() || undefined };
+    const k = teamFor(rs, it, act);
+    if (!k || A.on !== true && !(A.quiet && A.quiet.status === 'active')) return out;
+    let people = null, err = '';
+    try { people = await team(); } catch (e) { err = e.message || String(e); }
+    const T = TEAMS[k], mine = me();
+    let list = (people || []).filter(p => T.roles.indexOf(p.role) >= 0);
+    if (list.length > 1) list = list.filter(p => p.email !== mine).concat(list.filter(p => p.email === mine));
+    const to = await pickDlg({ T, list, err, k, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send' });
+    if (to === undefined) return null;
+    if (to) out.to = { email: to.email, name: to.name || '' };
+    return out;
+  }
+  function pickDlg(o) {
+    return new Promise(res => {
+      const mine = me(), last = (() => { try { return localStorage.getItem(LS_TO + o.k); } catch (e) { return null; } })();
+      let sel = (o.list.find(p => p.email === last && p.email !== mine) || o.list.find(p => p.email !== mine) || o.list[0] || {}).email || '';
+      const w = document.createElement('div'); w.className = 'acx-pk'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true'); w.setAttribute('aria-labelledby', 'acx-pk-h');
+      const draw2 = () => {
+        w.innerHTML = '<div class="acx-pk-in"><h2 id="acx-pk-h">' + esc(o.title) + '</h2>' + (o.lead ? '<p class="acx-pk-l">' + esc(o.lead) + '</p>' : '') +
+          (o.list.length ? '<div class="acx-pk-list" role="radiogroup" aria-label="' + esc(o.title) + '">' + o.list.map(p =>
+            '<button type="button" role="radio" aria-checked="' + (p.email === sel) + '" class="acx-pk-p" data-e="' + esc(p.email) + '"' + (p.email === sel ? ' data-on' : '') + '>' +
+            '<span class="acx-av">' + esc(initials(p.name, p.email)) + '</span><span class="acx-pk-t"><b>' + esc(nameOf(p)) + (p.email === mine ? ' <s>you</s>' : '') + '</b><small>' + esc(p.email) + '</small><small>' + esc(SEGL[p.role] || ROLE[p.role] || '') +
+            (p.last ? ' · last in ' + esc(when(p.last)) : ' · not signed in yet') + '</small></span><i class="acx-pk-r" aria-hidden="true">' + ic('check') + '</i></button>').join('') + '</div>'
+            : '<p class="acx-pk-l">' + esc(o.err || ('Nobody is on the ' + o.T.word + ' yet. The admin adds people in Access.')) + ' It goes to the whole ' + esc(o.T.word) + ' instead.</p>') +
+          '<div class="acx-row acx-pk-f"><button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
+          esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</button></div></div>';
+      };
+      const done = v => { document.removeEventListener('keydown', key, true); w.remove(); res(v); };
+      const key = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(undefined); } };
+      w.addEventListener('click', e => {
+        if (e.target === w) return done(undefined);
+        const p = e.target.closest('[data-e]'); if (p) { sel = p.dataset.e; draw2(); const b = w.querySelector('[data-e="' + CSS.escape(sel) + '"]'); if (b) b.focus(); return; }
+        const b = e.target.closest('[data-pk]'); if (!b) return;
+        if (b.dataset.pk === 'no') return done(undefined);
+        const who = o.list.find(p => p.email === sel) || null;
+        if (who) { try { localStorage.setItem(LS_TO + o.k, who.email); } catch (x) {} }
+        done(who);
+      });
+      draw2(); document.body.appendChild(w); document.addEventListener('keydown', key, true);
+      const f = w.querySelector('[data-on]') || w.querySelector('[data-pk=go]'); if (f) f.focus();
+    });
+  }
+
   // ── boot and keep checking ───────────────────────────────────────────────────────────────
   async function boot() {
     if (!gated()) {
@@ -473,8 +572,9 @@
     // { role, admin, preview, pending } — role null while nobody is signed in or the gate is off
     now() {
       return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(),
-               pending: A.list ? reqs().length : 0, gated: A.on === true && gated() };
+               pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: me() };
     },
+    team, handOff, me,
     attach(shell) { A.host = shell; apply(); },
     signOut
   };
@@ -482,6 +582,25 @@
   // ── styles ───────────────────────────────────────────────────────────────────────────────
   const css = `
 html.acx-hold .p-shell{visibility:hidden}
+html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-l0,html[data-acc-role="smm"] .p-top > .p-seg:not(.p-seg-mode){display:none !important}
+.acx-a{text-decoration:none}
+.acx-pk{position:fixed;inset:0;z-index:4100;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ps-app) 55%,transparent);backdrop-filter:blur(2px)}
+.acx-pk-in{width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
+.acx-pk h2{font:500 20px/1.25 var(--ps-font);margin:0 0 6px}
+.acx-pk-l{font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2);margin:0 0 16px}
+.acx-pk-list{display:grid;gap:8px;margin:14px 0 20px}
+.acx-pk-p{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:0;cursor:pointer;
+  background:var(--ps-fill);color:var(--ps-ink);font:inherit;box-shadow:inset 0 0 0 1px transparent;transition:background-color var(--ps-motion) var(--ps-ease)}
+.acx-pk-p:hover{background:var(--ps-fill-h)}
+.acx-pk-p[data-on]{box-shadow:inset 0 0 0 2px var(--ps-link);background:var(--ps-card-h)}
+.acx-pk-p:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.acx-pk-t{display:grid;gap:2px;min-width:0}.acx-pk-t b{font:500 15px/1.3 var(--ps-font)}.acx-pk-t b s{text-decoration:none;font:400 12px/1 var(--ps-font);color:var(--ps-dim);margin-left:4px}
+.acx-pk-t small{font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.acx-pk-t small + small{color:var(--ps-dim)}
+.acx-pk-r{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px var(--ps-line);color:transparent}
+.acx-pk-r .acx-i{width:16px;height:16px}
+.acx-pk-p[data-on] .acx-pk-r{background:var(--ps-link);box-shadow:none;color:var(--ps-app)}
+.acx-pk-f{display:flex;gap:8px;justify-content:flex-end}
+.acx-pk .acx-av{width:36px;height:36px}
 #acx{position:fixed;inset:0;z-index:4000;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);background:var(--ps-app);color:var(--ps-ink);font-family:var(--ps-font);overflow:auto}
 #acx .acx-l{display:flex;flex-direction:column;min-height:100vh;padding:40px clamp(28px,6vw,72px);box-sizing:border-box}
 #acx .acx-top{height:24px;display:flex;align-items:center}
@@ -566,7 +685,9 @@ html[data-acc-lim] .p-sbf,html[data-acc-lim] .p-home-side,
 html[data-acc-lim] .rsp-go,
 html[data-acc-lim] [data-a=pick],html[data-acc-lim] [data-a=startcell],html[data-acc-lim] [data-a=addopen],html[data-acc-lim] [data-a=approve],
 html[data-acc-lim] [data-a=relab],html[data-acc-lim] [data-a=rmproj],html[data-acc-lim] [data-a=delset],html[data-acc-lim] [data-a=overview],
-html[data-acc-lim] .rvd-ph{display:none !important}
+html[data-acc-lim] .rvd-ph,html[data-acc-lim] [data-a=settings]{display:none !important}
+/* the content team's CAS is its copy requests on Status: no Home, no tickets */
+html[data-acc-role="ct"][data-acc-only] .p-sbn .p-nav2:first-child,html[data-acc-role="ct"][data-acc-only] .rva-new{display:none !important}
 html[data-acc-lim] [data-a=proj]{pointer-events:none;cursor:default}
 html[data-acc-lim] .rsp-tk{background:var(--ps-primary);color:var(--ps-primary-i);box-shadow:none}
 html[data-acc-lim] .rsp-tk:hover{background:var(--ps-primary-h)}

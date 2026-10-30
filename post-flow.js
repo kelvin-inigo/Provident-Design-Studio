@@ -73,7 +73,21 @@
       { act: 'design-open', label: 'Back to design', tip: 'Sends it back to the designer with what to change' },
       { act: 'copy-open', label: 'Reopen copy check', tip: 'Takes it out of Ready, back to the content team' }][k];
     const backOk = back && (may(k) || (k === 2 && role() === 'designer'));
-    return { go: go && may(k) ? go : null, back: backOk ? back : null };
+    // the social media manager designs too (guided and All controls): at Draft or Design they may
+    // send it straight to the content team, skipping the designer
+    const alt = role() === 'smm' && (k === 0 || k === 1) ? { act: 'design-done', label: 'Send to copy check', tip: 'Skips the designer: the content team checks the copy' } : null;
+    return { go: go && may(k) ? go : null, back: backOk ? back : null, alt };
+  }
+  // WHO IT IS WITH (2026-10-30): the person the last hand-off named (it.to), else the team
+  const myEm = () => { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; };
+  const toWho = it => it && it.to ? (it.to.email && it.to.email === myEm() ? 'you' : (it.to.name || String(it.to.email || '').split('@')[0])) : '';
+  const waitOf = (rs, k) => { const it = stage(rs).it; return k > 0 && k < 3 && it && it.to ? 'With ' + toWho(it) : STEPS[k].wait; };
+  // the step body for a hand-off: who sent it, and the person it goes to (null: cancelled)
+  async function stepBody(rs, act, sid) {
+    const it = ((rs && rs.items) || []).find(x => x.sid === sid) || stage(rs).it;
+    const ho = window.providentHandOff ? await window.providentHandOff(rs, it, act) : {};
+    if (!ho) return null;
+    return Object.assign({ act, p: sid, by: StudioBase.shareName() || 'Someone' }, ho);
   }
   const segs = k => STEPS.map((s, i) => ({ s: i < k || k === 3 ? 'done' : i === k ? 'cur' : 'todo', t: s.t + ' · ' + s.who }));
 
@@ -229,8 +243,8 @@
     const st = stage(rs), a = acts(rs), busy = this._rvBusy;
     return {
       pfOn: '1', pfState: st.k === 2 ? 'ct' : st.k === 3 ? 'done' : 'k' + st.k, pfSegs: segs(st.k), pfStep: STEPS[st.k].t,
-      pfWhere: st.k === 3 ? (rs.name || '') : STEPS[st.k].wait + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
-      pfTip: (rs.name || 'Post') + ' — ' + STEPS[st.k].wait + '. Opens the post’s panel: its steps, who did what, and its Drive folder.',
+      pfWhere: st.k === 3 ? (rs.name || '') : waitOf(rs, st.k) + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
+      pfTip: (rs.name || 'Post') + ' — ' + waitOf(rs, st.k) + '. Opens the post’s panel: its steps, who did what, and its Drive folder.',
       pfGo: () => this.shPanel(true),
       pfFlowOn: a.go ? '1' : undefined, pfFlowLabel: busy ? 'Saving…' : a.go ? a.go.label : '', pfFlowTip: a.go ? a.go.tip : '',
       pfFlow: () => { if (a.go && !this._rvBusy) this.rvStep(a.go.act); }
@@ -244,8 +258,8 @@
     const btn = (x, cls) => x ? '<button type="button" class="' + cls + '" data-act="' + x.act + '" title="' + esc(x.tip) + '"' + (busy ? ' disabled' : '') + '>' + (busy === x.act ? 'Saving…' : esc(x.label)) + '</button>' : '';
     return '<div class="pf-now"><span class="pf-k">Step ' + Math.min(st.k + 1, 4) + ' of 4</span><b>' + esc(STEPS[st.k].t) + '</b>' +
       '<span class="pf-segs">' + segs(st.k).map(g => '<i data-s="' + g.s + '" title="' + esc(g.t) + '"></i>').join('') + '</span>' +
-      '<p class="pf-w">' + esc(STEPS[st.k].wait) + (rs.ticket && rs.ticket.deadline ? ' · due ' + esc(dueDay(rs.ticket.deadline)) : '') + '</p></div>' +
-      (a.go || a.back ? '<div class="rv-acts">' + btn(a.go, 'p-btn') + btn(a.back, 'p-ghost') + '</div>' : '') +
+      '<p class="pf-w">' + esc(waitOf(rs, st.k)) + (rs.ticket && rs.ticket.deadline ? ' · due ' + esc(dueDay(rs.ticket.deadline)) : '') + '</p></div>' +
+      (a.go || a.back || a.alt ? '<div class="rv-acts">' + btn(a.go, 'p-btn') + btn(a.alt, a.go ? 'p-ghost' : 'p-btn') + btn(a.back, 'p-ghost') + '</div>' : '') +
       (who ? '<ul class="pf-who">' + who + '</ul>' : '') +
       (rs.ticket && rs.ticket.brief ? '<details class="pf-brief"><summary>Brief</summary><p>' + esc(rs.ticket.brief) + '</p></details>' : '') +
       '<p class="pf-links"><button type="button" class="pf-a" data-post-go="' + esc((rs.tok || {}).dd || '') + '">Open on Status</button>' +
@@ -491,7 +505,7 @@
     return '<li class="ph-r"' + (mine ? ' data-me' : '') + (busy ? ' data-busy' : '') + ' data-id="' + esc(x.id) + '">' +
       '<button type="button" class="ph-th" data-ph="' + (sid && role() !== 'pm' ? 'open' : 'card') + '" data-sid="' + esc(sid || '') + '" data-id="' + esc(x.id) + '" aria-label="Open ' + esc(rs.name || 'post') + '">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</button>' +
       '<div class="ph-t"><b>' + esc(rs.name || 'Post') + '</b>' +
-        '<span class="ph-st">' + segsH + '<span class="ph-sn">' + esc(step) + '</span><span class="ph-fr">' + esc(mine || st.none || st.k === 3 ? fromLine(rs) : STEPS[st.k].wait + ' · ' + fromLine(rs).replace(/^From /, 'from ').replace(/^Started by /, 'started by ')) + '</span></span></div>' +
+        '<span class="ph-st">' + segsH + '<span class="ph-sn">' + esc(step) + '</span><span class="ph-fr">' + esc(mine || st.none || st.k === 3 ? fromLine(rs) : waitOf(rs, st.k) + ' · ' + fromLine(rs).replace(/^From /, 'from ').replace(/^Started by /, 'started by ')) + '</span></span></div>' +
       dueHtml(rs, st.k) +
       '<div class="ph-a">' + act + open + '</div></li>';
   };
@@ -511,7 +525,8 @@
     else if (Feed.err && !Feed.items) h += '<div class="ph-empty"><b>Couldn’t read the posts</b><span>' + esc(Feed.err) + '</span><button type="button" class="p-ghost" data-ph="refresh">Try again</button></div>';
     else if (!Feed.items) h += '<ul class="ph-list ph-load" aria-label="Loading">' + '<li></li>'.repeat(3) + '</ul>';
     else {
-      const meName = r && r !== 'admin';
+      // the admin sees everything as In progress — unless something was handed to them by name
+      const meName = r && (r !== 'admin' || mine.length > 0);
       if (meName) {
         h += '<section class="ph-g" aria-labelledby="ph-g1"><h3 id="ph-g1">Waiting on you' + (mine.length ? '<s>' + mine.length + '</s>' : '') + '</h3>';
         h += mine.length ? '<ul class="ph-list">' + mine.map(x => this.row(x, true)).join('') + '</ul>'
@@ -551,9 +566,11 @@
       // THE ONE AUTHORED MOMENT: the row hands itself on — it folds away from Waiting on you and
       // comes back under With others, from the same Drive read
       const sid = b.dataset.sid, row = b.closest('.ph-r');
+      const x0 = (Feed.items || []).find(y => y.id === b.dataset.id), body = await stepBody(x0 && x0.rs, b.dataset.act, sid);
+      if (!body) return;
       this.busyId = b.dataset.id; this.draw(); askNotify();
       try {
-        await api('rsstep', { id: sid }, { act: b.dataset.act, p: sid, by: StudioBase.shareName() || 'Someone' });
+        await api('rsstep', { id: sid }, body);
         const live = this.el.querySelector('.ph-r[data-id="' + CSS.escape(b.dataset.id) + '"]') || row;
         if (live) { live.setAttribute('data-sent', ''); await new Promise(r => setTimeout(r, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 320)); }
         this.busyId = null;
@@ -573,8 +590,11 @@
   //   // A DRAFT IS ITS AUTHOR'S: another social media manager, or a designer, may send one on, but it
   // is waiting only on whoever started it
   const waitingOnMe = rs => {
-    const r = role(); if (!r || r === 'admin') return false;
-    const st = stage(rs); if (st.k === 0) { const me = StudioBase.shareName(), by = (st.it && st.it.by) || rs.by; if (r === 'designer' || by !== me) return false; }
+    const r = role(), st = stage(rs);
+    // assigned: that person's alone, the admin included (the admin is on a team too)
+    if (r && st.it && st.it.to && st.it.to.email && st.k < 3) return st.it.to.email === myEm() && !!acts(rs).go;
+    if (!r || r === 'admin') return false;
+    if (st.k === 0) { const me = StudioBase.shareName(), by = (st.it && st.it.by) || rs.by; if (r === 'designer' || by !== me) return false; }
     return !!acts(rs).go;
   };
   function StatusView(el, eng) {
@@ -615,8 +635,10 @@
     else if (a === 'start') startDesign(this.eng, id);
     else if (a === 'copy') { const ok = await copyText(b.dataset.link); b.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { b.textContent = 'Copy link'; }, 1600); }
     else if (a === 'step') {
-      const sid = b.dataset.sid; b.disabled = true; b.textContent = 'Saving…';
-      try { await api('rsstep', { id: sid }, { act: b.dataset.act, p: sid, by: StudioBase.shareName() || 'Someone' }); askNotify(); await this.load(true); }
+      const sid = b.dataset.sid, x0 = this.det && this.det.e;
+      const body = await stepBody(x0 && x0.rs, b.dataset.act, sid); if (!body) return;
+      b.disabled = true; b.textContent = 'Saving…';
+      try { await api('rsstep', { id: sid }, body); askNotify(); await this.load(true); }
       catch (e) { window.alert(e.message || String(e)); this.draw(); }
     }
     else if (a === 'remove') { if (window.confirm('Take this post off Status on this computer? It stays on Google Drive.')) { Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); } }
@@ -627,7 +649,7 @@
     return '<button type="button" class="ps-c" data-ps="card" data-id="' + esc(x.id) + '"' + (me ? ' data-me' : '') + '>' +
       '<span class="ps-th">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</span>' +
       '<span class="ps-ct"><b>' + esc(rs.name || 'Post') + '</b>' +
-        '<small>' + (st.none ? 'No design yet' : esc(STEPS[st.k].wait)) + '</small>' +
+        '<small>' + (st.none ? 'No design yet' : esc(waitOf(rs, st.k))) + '</small>' +
         '<span class="ps-m">' + (t.deadline ? '<span class="ps-due"' + (overdue(t.deadline) && st.k < 3 ? ' data-late' : '') + '>Due ' + esc(dueDay(t.deadline)) + '</span>' : '') +
           '<span>' + esc(mod ? 'Changed ' + ago(mod) : '') + '</span></span>' +
         (me ? '<span class="ps-you">Your turn</span>' : '') + '</span></button>';
@@ -657,7 +679,7 @@
     const rs = x.rs, st = stage(rs), it = st.it, t = rs.ticket || {}, a = acts(rs), sid = it && it.sid;
     const step = (s, i) => {
       const f = FIELD[i], done = i < 3 ? !!(it && it[f]) : st.k === 3, cur = i === st.k && !done;
-      return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done ? 'Ready to publish' : cur ? s.wait : s.who) + '</span></li>';
+      return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done ? 'Ready to publish' : cur ? waitOf(rs, i) : s.who) + '</span></li>';
     };
     const btn = (y, cls) => y && sid ? '<button type="button" class="' + cls + '" data-ps="step" data-act="' + y.act + '" data-sid="' + esc(sid) + '" title="' + esc(y.tip) + '">' + esc(y.label) + '</button>' : '';
     // the post's log and its project's log both note the design's start: one line, not two
@@ -673,7 +695,7 @@
         '<p>Started by ' + esc(rs.by || 'someone') + ' · ' + esc(day(rs.created)) + (x.mod ? ' · changed ' + esc(ago(x.mod)) : '') + '</p>' +
         '<div class="psd-acts">' + (sid && role() !== 'pm' ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">Open in the studio</button>'
           : (sid || role() === 'pm' || role() === 'ct' ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>')) +
-          btn(a.go, 'p-ghost') + btn(a.back, 'p-ghost') +
+          btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.back, 'p-ghost') +
           (sid ? '<button type="button" class="p-ghost" data-ps="copy" data-link="' + esc(projLink(sid)) + '">Copy link</button>' : '') +
           (rs.drive ? '<a class="p-ghost" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">Drive folder</a>' : '') + '</div></div></header>' +
       '<div class="psd-cols"><div>' +

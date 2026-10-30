@@ -626,7 +626,16 @@ def rs_step(sid, role, rs, d):
     if role not in may:
         raise Fail(403, 'Your link cannot change that step.')
     by, now = who(d.get('by')), int(time.time() * 1000)
-    it[field] = {'by': by, 'at': now} if done else None
+    em = str(d.get('em') or '').strip().lower()[:120]
+    prev = it.get(field)
+    it[field] = dict({'by': by, 'at': now}, **({'em': em} if em else {})) if done else None
+    to = d.get('to') if isinstance(d.get('to'), dict) else None
+    if done and to and to.get('email'):
+        it['to'] = {'email': str(to['email'])[:120].lower(), 'name': str(to.get('name') or '')[:80], 'by': by, 'at': now}
+    elif not done:
+        it['to'] = {'email': prev.get('em'), 'name': prev.get('by'), 'by': by, 'at': now} if prev and prev.get('em') else None
+    else:
+        it['to'] = None
     if act == 'approved' and not it.get('design'):
         it['design'] = {'by': by, 'at': now}
     rs['hist'] = (rs.get('hist') or [])[-HIST_MAX + 1:] + [{'act': act, 'by': by, 'at': now, 'sid': sid}]
@@ -1098,12 +1107,36 @@ def acc_who(tok):
     return email, name
 
 
+# THE TEAM, SEEDED ONCE (2026-10-30, by request). These accounts are let in with these roles
+# the first time the user list is read, so nobody on the team waits at the gate. It runs once
+# per store (acc:seed1): an account the admin later removes or changes is not put back.
+# Names come from each person's Google account the first time they sign in.
+ACC_SEED = {
+    'exec10.media@providentestate.com': 'smm',
+    'exec1.content@providentestate.com': 'cten',
+    'exec2.content@providentestate.com': 'ctar',
+    'exec4.graphics@providentestate.com': 'designer',
+    'exec5.graphics@providentestate.com': 'designer',
+    'digitalmarketing.lead1@providentestate.com': 'pm',
+}
+# the admin is also on a team for hand-offs: a designer unless the deployment says otherwise
+ACC_ADMIN_ROLE = 'designer'
+
+
 def acc_users():
     try:
-        d = json.loads(store().cmd('GET', 'acc:users') or '{}')
-        return d if isinstance(d, dict) else {}
+        raw, seeded = store().pipe([['GET', 'acc:users'], ['GET', 'acc:seed1']])
+        d = json.loads(raw or '{}')
+        d = d if isinstance(d, dict) else {}
     except ValueError:
-        return {}
+        d, seeded = {}, '1'
+    if not seeded:
+        now = int(time.time() * 1000)
+        for em, rl in ACC_SEED.items():
+            if em not in d and em != acc_admin():
+                d[em] = {'email': em, 'name': '', 'role': rl, 'status': 'active', 'first': None, 'n': 0, 'by': 'seed', 'at': now}
+        store().pipe([['SET', 'acc:users', json.dumps(d, separators=(',', ':'))], ['SET', 'acc:seed1', '1']])
+    return d
 
 
 def acc_put(users):
@@ -1127,6 +1160,13 @@ def acc_me(d):
     now = int(time.time() * 1000)
     adm = acc_admin()
     if email == adm:
+        # kept on the list (role = the admin's team) so hand-offs can name the admin
+        users = acc_users(); u = users.get(email) or {}
+        arole = (os.environ.get('ACCESS_ADMIN_ROLE') or ACC_ADMIN_ROLE).strip()
+        if u.get('name') != name or u.get('role') != arole or now - int(u.get('last') or 0) > 600000:
+            users[email] = {'email': email, 'name': name or u.get('name') or '', 'role': arole, 'status': 'active', 'first': u.get('first') or now,
+                            'n': int(u.get('n') or 0) + 1, 'last': now, 'admin': True}
+            acc_put(users)
         return ok(acc_pub({'email': email, 'name': name, 'role': 'admin', 'status': 'active'}, True))
     if not email.endswith('@' + acc_domain()):
         acc_log({'email': email, 'name': name, 'what': 'outside'})
@@ -1181,7 +1221,7 @@ def acc_need_admin(d):
 
 def acc_list(d):
     acc_need_admin(d)
-    users = sorted(acc_users().values(), key=lambda u: -int(u.get('last') or u.get('at') or 0))
+    users = sorted((u for u in acc_users().values() if u.get('email') != acc_admin()), key=lambda u: -int(u.get('last') or u.get('at') or 0))
     raw = store().cmd('LRANGE', 'acc:log', -200, -1) or []
     log = []
     for r in raw:
@@ -1233,7 +1273,23 @@ def acc_set(d):
     return ok({'ok': True, 'user': acc_pub(users[email]) if email in users else None})
 
 
-ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set}
+def acc_team(d):
+    """Who is on each team, for the hand-off picker: anyone let in may read it."""
+    email, _ = acc_who(d.get('tok'))
+    users = acc_users()
+    me = users.get(email)
+    if email != acc_admin() and not (me and me.get('status') == 'active'):
+        raise Fail(403, 'Only people with access can see the team.')
+    out = []
+    for u in users.values():
+        if u.get('status') != 'active' or not u.get('role'):
+            continue
+        out.append({'email': u['email'], 'name': u.get('name') or '', 'role': u['role'], 'last': u.get('last')})
+    out.sort(key=lambda u: (u['role'], (u['name'] or u['email']).lower()))
+    return ok({'people': out})
+
+
+ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.

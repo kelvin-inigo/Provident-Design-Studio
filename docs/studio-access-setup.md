@@ -24,6 +24,23 @@ It uses the share store (Upstash) that review links already use — two keys, `a
   performance marketing does, and the post's steps go by role (see CAS-OPS-GUIDE.md §8). Other domains are refused and logged.
 - A removed person is shut out at the next check (the studio re-checks every five minutes).
 
+## The team is seeded
+
+`ACC_SEED` in `api/share.py` lets these accounts in, with these roles, the first time the user list
+is read (`acc:seed1` marks it done, so a later change or removal in **Access** sticks):
+
+| Account | Role |
+|---|---|
+| exec10.media@ | Social media manager (OPS only) |
+| exec1.content@ | Content team · English |
+| exec2.content@ | Content team · Arabic |
+| exec4.graphics@, exec5.graphics@ | Designer |
+| digitalmarketing.lead1@ | Performance marketing |
+
+The admin (`ACCESS_ADMIN`) is also listed on a team for hand-offs: designer, unless
+`ACCESS_ADMIN_ROLE` says otherwise. `op=accteam` gives anyone let in the list of active people and
+their roles, which is what the hand-off picker shows.
+
 ## What it does not protect
 
 - It guards the **studio and its access list**, not the files. Campaign data lives in Google

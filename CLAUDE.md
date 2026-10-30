@@ -18046,3 +18046,46 @@ scroll at 375. CAS-OPS-GUIDE.md, DESIGN.md and the surface brief are updated.
   Provident, when it was saved and its slide count, with stacked plates for a carousel. Single
   ones share "Other projects", each naming its template. Same markup on Home and on Recent (where
   the "Pick up where you left off" label hides). `recentsView` is still computed and unread.
+
+# VIEWS BY ROLE, AND HAND-OFFS THAT NAME A PERSON (2026-10-30)
+
+By request: **SMM** is OPS only (guided and All controls, Status, hand-offs to the designer and the
+copy team); **CT** gets the copy requests from both studios; **DD** everything but Access. Each team
+has two people, and every hand-off asks which one.
+
+- **The team is seeded** (`ACC_SEED`, api/share.py): exec10.media smm, exec1.content cten,
+  exec2.content ctar, exec4/exec5.graphics designer, digitalmarketing.lead1 pm. Applied once per
+  store (`acc:seed1`), so the admin's later changes stick. `acc_users` reads both keys in one pipe.
+  The admin's `accme` now also writes an `acc:users` record (role `ACCESS_ADMIN_ROLE`, default
+  designer) so hand-offs can name them; `acc_list` leaves it out. **`op=accteam`** (POST, any
+  active person) lists active people `{email, name, role, last}`.
+- **access.js**: `blocked()` = CAS and role smm → the gate shows "Your work is in the Organic Post
+  Studio" with a link (and **End the preview** for the admin); `only()` = CAS ct → `'rev'` (the CAS
+  shell reads `acc.only`), OPS pm → `'rev'`. `data-acc-only` hides CAS's Home row and New ticket for
+  ct; `[data-a=settings]` joined the limited roles' blocked actions. OPS hides the studio switch for
+  smm (`.p-ws:not([data-on])`, `.p-top > .p-seg:not(.p-seg-mode)`) and a click guard refuses it.
+  `now()` gains `only`, `blocked`, `email`.
+- **The picker**: `providentAccess.handOff(rs, it, act)` → `{em, to}` or null on Cancel. Team by step
+  (`teamFor`): ticket / draft-done → designers; design-done → copy (posts: both languages; an ad
+  set's ENG item cten+ct, ARB item ctar+ct). Self is listed last; the last choice per team is
+  remembered (`provident-handto:<team>`). Access off → no dialog, just `{em}`. It is `.acx-pk`, plain
+  DOM over everything (z 4100).
+- **Recorded on the item** (`it.to = {email, name, by, at}`) by both stores' rsstep: set on a forward
+  step from `body.to`, and on a BACK step from the reopened step's `em` (every step record now keeps
+  the sender's email). The log line gets " → Name". A ticket keeps `ticket.to` (PlanView asks on File
+  as ticket; Start designing is yourself).
+- **Callers**: `SP.rvStep`, `RV.rvStep`, post-flow's Home and Status step buttons (`stepBody`), all
+  through `window.providentHandOff` (share-link). The Home row only shows Sending… after a choice.
+- **Who sees it as theirs**: post-flow `waitingOnMe` and share-link `rsMine` / `toMine` — assigned
+  work is that person's alone, **the admin included** (the admin is on a team); unassigned falls back
+  to the role. The CT queue (`RV.ctQueue`) filters to `toMine`. Texts read "With Sara" (`withWho`,
+  `waitOf`). CAS Status cards carry `data-me` + **Your turn**; ct's ad set page gets **Check the
+  copy** (the ct link), pm's **Open the package**; non-designers no longer see the designer link in
+  Team links.
+- **SMM's second way on**: `acts(rs).alt` = design-done at Draft or Design, "Send to copy check",
+  skipping the designer; shown in the panel and on the post's Status page.
+- Verified on the dev server (port 8794; an older one held 8790) with the six accounts: SMM blocked
+  from CAS and OPS's switch gone; SMM → Kelvin; the other designer saw it under With others; Kelvin
+  → Sara (both CT offered for a post); Sara saw it as hers; PM's ticket → Rizi (For you · Your turn);
+  Rizi's design-done offered only Sara (English); Sara's CAS = Status with Your turn and Check the
+  copy; the admin's preview as smm and End the preview. **Not exercised on the real deployment.**

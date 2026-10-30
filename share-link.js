@@ -433,7 +433,14 @@
       if (!isPost(R.rs) && st[0].indexOf(R.role) < 0) throw dsFail(403, 'Your link cannot change that step.');
       if (!isPost(R.rs) && field0(body.act) === 'draft') throw dsFail(400, 'Unknown step.');
       const by = dsWho(body.by), now = dsNow(), field = st[1], done = st[2], arb = it.lang === 'ARB';
-      it[field] = done ? { by, at: now } : null;
+      // WHO IT GOES TO (2026-10-30): a step sent on names the person who picks it up next
+      // (body.to, chosen in the hand-off picker); a step sent back goes to whoever did it last
+      const em = String(body.em || '').trim().toLowerCase().slice(0, 120), prev = it[field];
+      it[field] = done ? Object.assign({ by, at: now }, em ? { em } : {}) : null;
+      const to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
+      it.to = done ? (to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null)
+        : (prev && prev.em ? { email: prev.em, name: prev.by || '', by, at: now } : null);
+      const toLine = it.to && it.to.name ? ' → ' + it.to.name : it.to ? ' → ' + it.to.email : '';
       if (body.act === 'approved' && !it.design) it.design = { by, at: now };
       if (isPost(R.rs)) {
         // a post's steps run in order: sending one on marks the ones before it; reopening one
@@ -443,7 +450,7 @@
         else ord.slice(k + 1).forEach(f => { it[f] = null; });
         if (body.act === 'approved') it.draft = it.draft || { by, at: now };
         R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
-        dsLog(R.rs, by, [{ kind: 'step', page: 'Post', text: POST_TEXT[body.act] || 'Changed a step' }]);
+        dsLog(R.rs, by, [{ kind: 'step', page: 'Post', text: (POST_TEXT[body.act] || 'Changed a step') + toLine }]);
         if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
         await dsWrite(R.rid, R.rs);
         return { rs: pub() };
@@ -451,7 +458,7 @@
       R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
       const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
         : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
-      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it), text }]);
+      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it), text: text + toLine }]);
       if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
       await dsWrite(R.rid, R.rs);
       return { rs: pub() };
@@ -770,7 +777,8 @@
     const now = dsNow(), cells = planCells(plan), name = String(plan.name || 'Campaign').trim().slice(0, 120);
     const rs = { app: 'provident-ad-set', name, product: plan.product, created: now, by, drive: 'https://drive.google.com/drive/folders/' + folder.id,
       folder: folder.id, eng_only: {}, items: [], hist: [{ act: 'ticket', by, at: now }], log: [], plan: cells,
-      ticket: { brief: String((ticket && ticket.brief) || '').slice(0, 60000), deadline: (ticket && ticket.deadline) || '', by, at: now, files: [] } };
+      ticket: { brief: String((ticket && ticket.brief) || '').slice(0, 60000), deadline: (ticket && ticket.deadline) || '', by, at: now, files: [],
+        to: ticket && ticket.to && ticket.to.email ? { email: String(ticket.to.email).toLowerCase(), name: String(ticket.to.name || '') } : null } };
     cells.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; });
     busy('Filing the ticket…', .12);
     const f = await dsCreate(folder.id, dsSetName(name), dsJson(rs)), rid = f.id, tok = () => 'R' + dsRand(10) + '.' + rid;
@@ -784,7 +792,7 @@
         rs.ticket.files.push({ id: x.id, name: list[i].name, type: list[i].type || '', size: list[i].size || 0 });
       }
     }
-    dsLog(rs, by, [{ kind: 'step', text: 'Filed the ticket' }]);
+    dsLog(rs, by, [{ kind: 'step', text: 'Filed the ticket' + (rs.ticket.to ? ' for ' + (rs.ticket.to.name || rs.ticket.to.email) : '') }]);
     await dsWrite(rid, rs);
     return dsPub(rs, 'dd');
   }
@@ -1879,7 +1887,7 @@
     else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back in progress' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
     else back = { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check', tip: 'Sends the words back to the content team to check again.' };
     const st = !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
-      : !it.copy ? (arb ? 'Translation with the content team' : 'English copy with the content team')
+      : !it.copy ? (arb ? 'Translation ' : 'English copy ') + withWho(it, 'content team').replace(/^With/, 'with')
         : mine && mine.done ? 'Done — ready to run' : (now ? now.label + ' · ' + now.sub : 'Approved');
     const note = !it.design ? (arb ? 'Lay out the Arabic words, then mark it laid out — the content team checks the translation from their link.'
       : 'Design the ad, then mark the design done — the content team checks the English copy from their link.')
@@ -1907,7 +1915,7 @@
       rsBarState: mine && mine.done ? 'done' : !it.design ? 'design' : !it.copy ? 'ct' : 'next',
       rsBarSegs: (mine ? mine.steps : []).map(x => ({ s: x.s === 'pend' ? 'todo' : x.s, t: x.label + (x.sub ? ' · ' + x.sub : '') })),
       rsBarStep: mine && mine.done ? 'Done' : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
-      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN'),
+      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN') + (it.design && !it.copy && it.to ? ' · ' + withWho(it, '') : ''),
       rsBarTip: (rs.name || 'Ad set') + ' · ' + where + ' — ' + st + '. Opens the Ad set tab.',
       rsBarGo: () => this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }),
     };
@@ -2323,9 +2331,9 @@
       a.done = d1 && d2 && d3;
       a.steps = [
         { label: STEP_LABELS[0], s: d1 ? 'done' : 'cur', sub: !e ? 'No English project yet' : d1 ? 'Done · ' + e.design.by + ' · ' + dayS(e.design.at) : 'In progress' },
-        { label: STEP_LABELS[1], s: d2 ? 'done' : d1 ? 'cur' : 'pend', sub: d2 ? 'Approved · ' + e.copy.by + ' · ' + dayS(e.copy.at) : d1 ? 'With the content team' : 'After the design' },
+        { label: STEP_LABELS[1], s: d2 ? 'done' : d1 ? 'cur' : 'pend', sub: d2 ? 'Approved · ' + e.copy.by + ' · ' + dayS(e.copy.at) : d1 ? withWho(e, 'content team') : 'After the design' },
         { label: STEP_LABELS[2], s: d3 ? 'done' : d2 ? 'cur' : 'pend',
-          sub: a.engOnly ? 'Not needed' : d3 ? 'Approved · ' + r.copy.by + ' · ' + dayS(r.copy.at) : !r ? 'Waiting for the Arabic version' : !r.design ? 'Arabic being laid out' : 'Arabic with the content team' },
+          sub: a.engOnly ? 'Not needed' : d3 ? 'Approved · ' + r.copy.by + ' · ' + dayS(r.copy.at) : !r ? 'Waiting for the Arabic version' : !r.design ? 'Arabic being laid out' : 'Arabic ' + withWho(r, 'content team').replace(/^With/, 'with') },
         { label: STEP_LABELS[3], s: a.done ? 'done' : 'pend', sub: a.done ? 'Ready to run' : 'Not yet' }
       ];
       a.at = a.done ? Math.max(e.design.at, e.copy.at, r && r.design ? r.design.at : 0, r && r.copy ? r.copy.at : 0) : 0;
@@ -2384,7 +2392,7 @@
       title: arb ? 'Translation approved' : 'English copy approved', sub: 'Approved by ' + it.copy.by + ' · ' + dayS(it.copy.at) + '. Reopen it to change the words again.' };
     if (it.design) return { k: 'todo', dot: 'prog', word: 'To check', when: '',
       title: arb ? 'Check the Arabic translation' : 'Check the English copy',
-      sub: 'Sent by ' + it.design.by + ' · ' + dayS(it.design.at) + '. Change the words below — the previews follow as you type — then approve.' };
+      sub: 'Sent by ' + it.design.by + (it.to ? ' to ' + (toMine(it) ? 'you' : toName(it)) : '') + ' · ' + dayS(it.design.at) + '. Change the words below — the previews follow as you type — then approve.' };
     return { k: 'wait', dot: 'wait', word: 'With the designer', when: '', title: 'With the designer',
       sub: arb ? 'The Arabic is still being laid out. You can edit the words now, and approve once it is sent to you.' : 'The design is still in progress. You can edit the words now, and approve once it is sent to you.' };
   }
@@ -2393,6 +2401,34 @@
   function ctLangOk(it) {
     let c = null; try { c = window.providentAccess && window.providentAccess.now().copy; } catch (e) {}
     return !c || (c === 'ar') === (it && it.lang === 'ARB');
+  }
+  // WHO A STEP IS WITH (2026-10-30): it.to is the person the last hand-off named (access.js's
+  // picker). Unassigned, it is with the whole team.
+  function myEmail() { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; }
+  const toName = it => it && it.to ? (it.to.name || String(it.to.email || '').split('@')[0]) : '';
+  const toMine = it => !it || !it.to || !it.to.email || !myEmail() || it.to.email === myEmail();
+  const withWho = (it, team) => it && it.to ? 'With ' + (it.to.email === myEmail() ? 'you' : toName(it)) : 'With the ' + team;
+  async function handOffFor(rs, it, act) {
+    const A = window.providentAccess;
+    if (!A || !A.handOff) return { em: myEmail() || undefined };
+    return A.handOff(rs, it, act);
+  }
+  window.providentHandOff = handOffFor;
+  function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }
+  // is anything in this ad set the signed-in person's to do? A designer: a ticket for them (or
+  // for nobody yet), or a project sent back to them. The content team: a project sent to them
+  // (or to nobody) in their language.
+  function rsMine(rs) {
+    let r = null; try { r = window.providentAccess && window.providentAccess.now().role; } catch (e) {}
+    if (!rs || !r) return false;
+    const em = myEmail();
+    if (r === 'admin') return isOpen(rs) ? !!(rs.ticket && rs.ticket.to && rs.ticket.to.email === em) : (rs.items || []).some(it => !it.copy && it.to && it.to.email === em);
+    if (r === 'designer') {
+      if (isOpen(rs)) return !rs.ticket || !rs.ticket.to || rs.ticket.to.email === em;
+      return (rs.items || []).some(it => !it.design && it.to && it.to.email === em);
+    }
+    if (r === 'ct') return (rs.items || []).some(it => it.design && !it.copy && ctLangOk(it) && toMine(it));
+    return false;
   }
   // the buttons a role has on one project
   function itemActs(it, role, busy) {
@@ -2404,7 +2440,7 @@
     if (role === 'dd' && it.copy) out.push(['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']);
     // the bypass: an ad already signed off outside the review
     if (role === 'dd' && !it.copy) out.push(['approved', 'Already approved', 'p-ghost rs-byp']);
-    if (!out.length) return '<s class="rs-wait">' + (it.design ? 'With the content team' : arb ? 'Arabic being laid out' : 'Design in progress') + '</s>';
+    if (!out.length) return '<s class="rs-wait">' + (it.design ? withWho(it, 'content team') : arb ? 'Arabic being laid out' : 'Design in progress') + '</s>';
     return out.map(a => '<button type="button" class="' + a[2] + '" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>').join('');
   }
 
@@ -2528,13 +2564,16 @@
       const miss = this.rsPrecheck();
       if (miss.length && !window.confirm('Before it goes to the content team:\n\n' + miss.map(m => '•  ' + m).join('\n') + '\n\nSend anyway?')) return;
     }
+    // WHO PICKS IT UP (access.js): the person on the next team, chosen here
+    const ho = await handOffFor(S.rs, ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)), a);
+    if (!ho) return;
     askNotify();
     this._rvBusy = act; this.rvRender(); this.forceUpdate();
     try {
       // the sign-off covers the latest work: whatever is waiting to save goes first
       const pend = () => S.busy || canon(this.shPub()) !== S.baseS || S.dirty.size > 0;
       for (let i = 0; i < 40 && pend(); i++) { if (!S.busy) await this.shSave(); else await new Promise(r => setTimeout(r, 250)); if (pend()) await new Promise(r => setTimeout(r, 250)); }
-      const body = { act: a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' };
+      const body = Object.assign({ act: a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' }, ho);
       if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
@@ -3227,12 +3266,14 @@
     if (this.stepBusy) return;
     const [a, sid] = String(act).split(':');
     if (a === 'approved') { const it = ((this.rs || {}).items || []).find(x => x.sid === sid); if (!window.confirm(APPROVE_Q(it && itemLabel(it)))) return; }
+    const ho = await handOffFor(this.rs, ((this.rs || {}).items || []).find(x => x.sid === sid), a);
+    if (!ho) return;
     askNotify();
     this.stepBusy = act; this.panelRender(true); if (this.bar) this.barRender();
     try {
       // the approval covers the words just typed: a pending save goes first
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
-      const r = await api('rsstep', { id: this.tok }, { p: sid, act: a, by: StudioBase.shareName() || 'Someone' });
+      const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
       this.rs = r.rs;
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
       this.shPoll(true);
@@ -3378,7 +3419,7 @@
   // the projects waiting for the content team, in the nav's order (audiences, English first)
   RV.ctQueue = function () {
     const out = [];
-    rsAuds(this.rs).forEach(a => [a.eng].concat(a.items.filter(it => it !== a.eng)).forEach(it => { if (it && it.design && !it.copy && ctLangOk(it) && out.indexOf(it) < 0) out.push(it); }));
+    rsAuds(this.rs).forEach(a => [a.eng].concat(a.items.filter(it => it !== a.eng)).forEach(it => { if (it && it.design && !it.copy && ctLangOk(it) && toMine(it) && out.indexOf(it) < 0) out.push(it); }));
     return out;
   };
   RV.ctRender = function () {
@@ -3752,7 +3793,15 @@
       this.busy('Signing in to Google…', .02);
       await window.providentDrive.signIn();   // first: the popup needs the click
       const by = StudioBase.shareName() || 'Someone';
-      const rs = await dsMakeSet(plan, by, { brief: d.brief || '', deadline: d.deadline || '' }, this.files, (t, p) => this.busy(t, p));
+      // which designer it is for: asked when filed as a ticket; yourself when you start designing
+      let to = null;
+      if (!design) {
+        this.busy('Choosing a designer…', .03);
+        const ho = await handOffFor(null, null, 'ticket');
+        if (!ho) { this.busy('', null); btns.forEach(b => { b.disabled = false; }); return; }
+        to = ho.to || null;
+      } else if (myEmail()) to = { email: myEmail(), name: by };
+      const rs = await dsMakeSet(plan, by, { brief: d.brief || '', deadline: d.deadline || '', to }, this.files, (t, p) => this.busy(t, p));
       lsSet('provident-rs-folder', plan.folder);
       Arch.add(rs.tok.dd, rs.name, rs.product, true);
       // the draft is spent: the next campaign starts from the defaults, keeping the product
@@ -3766,7 +3815,7 @@
   PV.done = function (rs) {
     const link = rsLink(rs.tok.dd), body = this.el.querySelector('.rsp-body'), ft = this.el.querySelector('.rsp-ft');
     body.innerHTML = '<div class="rsp-done"><span class="rsp-ok">' + PICO.tick + '</span><div><span class="rsp-k">Open ticket</span><b>' + esc(rs.name) + '</b>' +
-      '<s>Listed in Status on this computer. Send a designer the link, or they pick it up from Status.</s></div></div>' +
+      '<s>' + (rs.ticket && rs.ticket.to ? 'For ' + esc(rs.ticket.to.name || rs.ticket.to.email) + ' — it is their turn on Status. ' : 'Listed in Status. ') + 'Send the designer the link, or they pick it up from Status.</s></div></div>' +
       '<div class="rsp-lnk"><code title="' + esc(link) + '">' + esc(link.replace(/^https?:\/\//, '')) + '</code><button type="button" class="p-ghost" data-copy="' + esc(link) + '">' + PICO.link + '<span>Copy designer link</span></button></div>';
     ft.innerHTML = '<p class="rsp-st"></p><button type="button" class="p-ghost" data-a="again">File another</button><button type="button" class="p-btn rsp-go" data-a="status">Open Status' + PICO.go + '</button>';
   };
@@ -3851,7 +3900,7 @@
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
     const up = '<span class="rvo-up">' + at + '<button type="button" class="rvo-re" data-a="refresh" aria-label="Refresh" title="Refresh">' + ico('ref', 'rvo-re-i') + '</button></span>';
     if (this.items === null) { hl.dataset.s = 'wait'; head.innerHTML = '<div class="rvo-t"><h2>Reading the campaigns…</h2><p>' + up + '</p></div>'; box.innerHTML = ''; box.hidden = true; return; }
-    if (!(this.items || []).length) { hl.dataset.s = 'empty'; head.innerHTML = '<div class="rvo-t"><h2>No campaigns yet</h2><p><span>File one with New ticket, or paste a campaign link below.</span></p></div>'; box.hidden = true; return; }
+    if (!(this.items || []).length) { hl.dataset.s = 'empty'; head.innerHTML = '<div class="rvo-t"><h2>No campaigns yet</h2><p><span>' + (accRole() === 'ct' ? 'Copy requests show up here when a designer sends one to you.' : 'File one with New ticket, or paste a campaign link below.') + '</span></p></div>'; box.hidden = true; return; }
     const sets = (this.items || []).filter(x => !x.gone), miss = (this.items || []).length - sets.length;
     const all = sets.map(x => ({ x, auds: rsAuds(x.rs || {}) })), done = all.filter(o => rsOverall(o.auds).ready);
     const auds = [].concat(...all.map(o => o.auds));
@@ -4032,7 +4081,7 @@
     }
     if (a === 'approve' && window.confirm(APPROVE_Q(t.dataset.lab))) {
       t.disabled = true; t.textContent = 'Saving…';
-      try { await api('rsstep', { id: this.sel }, { act: 'approved', p: t.dataset.sid, by }); again(); }
+      try { await api('rsstep', { id: this.sel }, { act: 'approved', p: t.dataset.sid, by, em: myEmail() || undefined }); again(); }
       catch (er) { t.disabled = false; t.textContent = 'Already approved'; window.alert(er.message || String(er)); }
       return;
     }
@@ -4101,7 +4150,7 @@
     if (this.items === null) { body.innerHTML = errHtml + '<p class="rva-wait">Reading the ad sets…</p>'; return; }
     const signHtml = this.sign ? '<div class="rva-sign"><span><b>' + (this.sign === 1 ? 'One ad set is' : this.sign + ' ad sets are') + ' stored on Google Drive.</b><s>Sign in with your Provident Google account to list ' + (this.sign === 1 ? 'it' : 'them') + ' here. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>' : '';
     if (!this.items.length && this.sign) { body.innerHTML = errHtml + signHtml; return; }
-    if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">No campaigns yet. File one with New ticket.</div>'; return; }
+    if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">' + (accRole() === 'ct' ? 'No copy requests yet.' : 'No campaigns yet. File one with New ticket.') + '</div>'; return; }
     const names = {}; Arch.list().forEach(x => { names[x.id] = x.name; });
     // THE BOARD (2026-10-29). Status is read as "where is everything", so every campaign sits in
     // the column of the step it is waiting on — its least advanced audience — and the card lists
@@ -4121,7 +4170,7 @@
         const tk = rs.ticket || {}, due = dueOf(tk.deadline), cells = planCells(planOf(rs));
         body = (due ? '<span class="rvb-due"' + (due.days < 0 ? ' data-s="late"' : due.days <= 2 ? ' data-s="soon"' : '') + '>' + ico('event', 'rvb-di') + esc(due.label) + '</span>' : '') +
           '<span class="rvb-aud">' + esc(cells.length + (cells.length === 1 ? ' audience' : ' audiences')) + (cells.some(c => c.arb) ? ' · with Arabic' : '') + '</span>' +
-          '<span class="rvb-m">' + (tk.by ? 'Filed by ' + esc(tk.by) + ' · ' : '') + esc(ago(tk.at || rs.created)) + '</span>';
+          '<span class="rvb-m">' + (tk.to ? 'For ' + esc(tk.to.email === myEmail() ? 'you' : (tk.to.name || tk.to.email)) + ' · ' : '') + (tk.by ? 'Filed by ' + esc(tk.by) + ' · ' : '') + esc(ago(tk.at || rs.created)) + '</span>';
       } else {
         const auds = rsAuds(rs), show = auds.slice(0, 3);
         body = '<ul class="rvb-auds">' + show.map(a => { const si = a.done ? 3 : a.steps.findIndex(q => q.s !== 'done');
@@ -4129,8 +4178,9 @@
           (auds.length > show.length ? '<li class="rvb-more">+' + (auds.length - show.length) + ' more</li>' : '') + (auds.length ? '' : '<li class="rvb-more">No projects yet</li>') + '</ul>' +
           '<span class="rvb-m">' + brandHtml(it.brands) + esc([rs.product ? PRODUCT_NAME[rs.product] || '' : '', modOf(it) ? 'changed ' + ago(modOf(it)) : ''].filter(Boolean).join(' · ')) + '</span>';
       }
-      return '<button type="button" class="rvb-c" data-id="' + esc(it.id) + '"' + (open ? ' data-open="1"' : '') + (stage === 3 ? ' data-ready="1"' : '') + '>' +
-        '<span class="rvb-h">' + th + '<b title="' + esc(name) + '">' + esc(name) + '</b></span>' + body + '</button>';
+      const me = rsMine(rs);
+      return '<button type="button" class="rvb-c" data-id="' + esc(it.id) + '"' + (open ? ' data-open="1"' : '') + (stage === 3 ? ' data-ready="1"' : '') + (me ? ' data-me="1"' : '') + '>' +
+        '<span class="rvb-h">' + th + '<b title="' + esc(name) + '">' + esc(name) + '</b></span>' + body + (me ? '<span class="rvb-you">Your turn</span>' : '') + '</button>';
     };
     const sorted = this.items.slice().sort((a, b) => modOf(b) - modOf(a)), live = sorted.filter(x => !x.gone), gone = sorted.filter(x => x.gone);
     const COLS = [['o', 'Open tickets', 'Waiting for a designer'], [0, 'Design', 'Being laid out'], [1, 'Copy check', 'With the content team'], [2, 'Translation', 'Arabic in progress'], [3, 'Ready to run', 'Performance marketing can download']];
@@ -4193,7 +4243,13 @@
       '<span class="rvd-th">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
       '<div class="rvd-ht"><span class="rvd-k">' + esc(PRODUCT_NAME[rs.product] || 'Ad set') + brandHtml(d.brands) + '</span>' +
       '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready) + '<span>' + esc(meta) + '</span></p></div>' +
-      '<div class="rvd-ha">' +
+      '<div class="rvd-ha">' + (() => {
+        let r = null; try { r = window.providentAccess && window.providentAccess.now().role; } catch (e) {}
+        const tk = rs.tok || {};
+        if (r === 'ct' && tk.ct) return '<a class="p-btn" href="' + esc(rsLink(tk.ct)) + '" target="_blank" rel="noopener" title="Opens the words of every project beside its images, to check and approve">' + ico('ct') + (rsMine(rs) ? 'Check the copy' : 'Open the copy') + '</a>';
+        if (r === 'pm' && tk.pm) return '<a class="p-btn" href="' + esc(rsLink(tk.pm)) + '" target="_blank" rel="noopener" title="Every project’s images, always the latest; download each audience when it is done">' + ico('pm') + 'Open the package</a>';
+        return '';
+      })() +
       (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button></div></div>' +
       '<div class="rvd-hs">' + steps + nowLine + '</div></header>';
@@ -4233,7 +4289,9 @@
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
-    const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + LINK_ROWS.map(([r, who, what]) => {
+    // the designer's link opens the whole ad set: only designers (and the admin) are given it
+    const lr = accRole(), rows = !lr || lr === 'designer' || lr === 'admin' ? LINK_ROWS : LINK_ROWS.filter(([r]) => r !== 'dd');
+    const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + rows.map(([r, who, what]) => {
       const link = rsLink((rs.tok || {})[r] || '');
       return '<li title="' + esc(what) + '"><span class="rvd-lki">' + ico(r) + '</span><span class="rvd-lkt"><b>' + who + '</b><s>' + LSHORT[r] + '</s></span>' +
         '<button type="button" class="p-ghost rvd-cp" data-copy="' + esc(link) + '" title="' + esc(link) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy</span></button></li>';
@@ -4259,7 +4317,7 @@
     const tiles = cells.map(c => '<li class="rva-tkt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b><span>' + (c.arb ? 'EN · AR' : 'EN') + '</span></li>').join('');
     return '<header class="rva-dh"><span class="rva-th rva-th-l rva-th-t">' + ico('ticket', 'rva-ti') + '</span>' +
       '<div class="rva-dt"><span class="rv-k">Open ticket</span><h2>' + esc(rs.name || 'Campaign') + '</h2>' +
-      '<div class="rva-st"><span class="rv-pill" data-s="open">Waiting for a designer</span><span>' + facts.map(esc).join(' · ') + '</span></div></div>' +
+      '<div class="rva-st"><span class="rv-pill" data-s="open">' + (tk.to ? 'Waiting for ' + esc(tk.to.email === myEmail() ? 'you' : (tk.to.name || tk.to.email)) : 'Waiting for a designer') + '</span><span>' + facts.map(esc).join(' · ') + '</span></div></div>' +
       '<div class="rva-da">' + (url ? '<a class="p-ghost rva-a" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
       '<button type="button" class="p-btn" data-a="pick" title="Opens the campaign’s first audience in a new project, ready to design">' + ico('go') + '<span>Pick up</span></button></div></header>' +
       '<div class="rva-det rva-tk">' +
@@ -5535,6 +5593,8 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rvb-empty{padding:18px 8px;border-radius:12px;outline:1px dashed var(--ps-line);outline-offset:-1px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);text-align:center}
 .rvb-c{display:flex;flex-direction:column;align-items:stretch;gap:10px;width:100%;margin:0;padding:14px;border:none;border-radius:12px;background:var(--ps-card);box-shadow:none;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease),transform var(--ps-motion,.15s) var(--ps-ease,ease)}
 .rvb-c:hover{background:var(--ps-card-h);transform:translateY(-1px)}
+.rvb-c[data-me]{box-shadow:inset 0 0 0 1.5px var(--ps-link)}
+.rvb-you{align-self:flex-start;font:500 12px/1 var(--ps-font);padding:5px 9px;border-radius:9999px;background:var(--ps-accent);color:var(--ps-accent-i)}
 .rvb-c:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvb-h{display:flex;align-items:flex-start;gap:10px;min-width:0}
 .rvb-h b{font:500 15px/1.3 var(--ps-font);letter-spacing:-.005em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
