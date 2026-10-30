@@ -854,7 +854,9 @@ fewer than five saved projects the page says so — treat the verdicts as early 
 ## 8. OPS: make a post
 
 Picking a template opens the **guided run**: one page of the post at a time, filled in top to
-bottom.
+bottom. The page's name heads the form, with where it sits in the run beside it ("Page 2 of 6",
+or "Last step" on Finish). Over the preview are the template's name and its size (**Feed 3:4**,
+or **Reel cover 9:16**); under it, the size in pixels.
 
 1. **Each page's sections come in a fixed order:**
    1. **Pages in this post**: on the first page only. This is where you add or remove pages.
@@ -871,8 +873,9 @@ bottom.
    still missing.
 2. **Next** checks the page. If something's missing it lists it; click an item to jump to it.
    Enter moves to the next field.
-3. The thumbnails beside the preview are every page of the post. Click one to jump there. An amber
-   ring marks a page you've left with gaps.
+3. The thumbnails under the preview are every page of the post. Click one to jump there. The page
+   you are on has a blue ring, a finished page a green one, and an amber ring and **!** mark a
+   page you've left with gaps.
 4. The last tile is **Finish**:
    - **Look**: wash strength, photo strength, panel colour, and whether to include the 9:16 story.
    - **Save**: the file name, where the files go, then **Save all**.

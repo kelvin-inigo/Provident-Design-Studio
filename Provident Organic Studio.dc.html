@@ -4157,6 +4157,43 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .dk-col{flex-direction:column;align-items:stretch;gap:8px}
 .dk-colr{margin:0}
 @media (prefers-reduced-motion:reduce){.p-rail-l .p-nav .p-grip,.sn-add{transition:none}}
+
+/* 48. THE GUIDED WINDOW TAKES CAS'S LANGUAGE TOO (2026-10-30, /impeccable — "redesign also the
+   Guided window for all templates"). One markup serves every template, so this is the whole job:
+   - the page is the heading: its name 22/600 with where it sits beside it (Page 2 of 6, Last
+     step), then what it is for — the kicker above it is gone;
+   - the preview card is a PLATE, as on the canvas: the template's name and a size chip over it,
+     a hairline under them, the pixel size under the card;
+   - the page strip's tiles are the left rail's thumbnails: a 5px corner, a hairline ring, the
+     link ring on the page you are on; the Finish tile a quiet tile with its tick;
+   - the guided run keeps its numbered steps — there, they are the route. */
+.gd-ht{display:flex;align-items:baseline;gap:10px;min-width:0}
+.gd-ht b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-head .gd-ht s.gd-where{flex:none;font:500 12px/1 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.gd[data-mode="editor"] .gd-ht b{font-size:18px}
+.gd-plate{display:flex;flex-direction:column;align-items:stretch;gap:10px;min-width:0;max-height:100%}
+.gd-plate > .gd-card{align-self:center}
+.gd-pvh{display:flex;align-items:center;gap:8px;min-width:0;padding-bottom:8px;border-bottom:1px solid var(--ps-hair)}
+.gd-pvh b{min-width:0;font:600 15px/1.2 var(--ps-font);color:var(--ps-ink);letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-pvh i{flex:none;margin-left:auto;font-style:normal;font:500 11.5px/1 var(--ps-font);color:var(--ps-ink-2);background:var(--ps-fill);padding:5px 10px;border-radius:var(--ps-pill);font-variant-numeric:tabular-nums}
+.gd-pvm{align-self:flex-start;font:400 12px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.gd-card.gd-card-1{border-radius:6px;box-shadow:0 0 0 1px var(--ps-hair)}
+.gd-pthumb{width:48px;height:64px;border:0;border-radius:5px;box-shadow:0 0 0 1px var(--ps-hair);background-color:var(--ps-fill)}
+.gd-pthumb[data-a="916"]{width:36px;height:64px}
+.gd-pthumb .gd-pt-img{border-radius:5px}
+.gd-ptile:hover .gd-pthumb{box-shadow:0 0 0 1px var(--ps-line)}
+.gd-ptile[data-on] .gd-pthumb{box-shadow:0 0 0 2px var(--ps-link)}
+.gd-ptile[data-done]:not([data-on]) .gd-pthumb{box-shadow:0 0 0 1px var(--ps-good)}
+.gd-ptile[data-warn]:not([data-on]) .gd-pthumb{box-shadow:0 0 0 1.5px var(--ps-warn)}
+.gd-ptile s{font:500 11.5px/1.2 var(--ps-font)}
+.gd-ptile[data-on] s{font-weight:600}
+.gd-ptile[data-fin] .gd-pthumb{box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.gd-ptile[data-fin][data-on] .gd-pthumb{box-shadow:0 0 0 2px var(--ps-link)}
+@media (max-width:760px){
+  .gd-plate{width:100%;align-items:center}
+  .gd-pvh{align-self:stretch}
+  .gd-pvm{align-self:center}
+}
 </style>
 </helmet>
 
@@ -5010,9 +5047,10 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
          Agent · Pictures · QR & listing — so the words always come before the pictures,
          and every page reads the same way. -->
     <div class="gd-in-zone" data-open="{{ shPanelOnLayout }}">
+      <!-- THE PAGE IS THE HEADING (2026-10-30, CAS's plate-head language): its name, where it
+           sits in the run beside it, then what the page is for. No kicker above it. -->
       <div class="gd-head">
-        <s class="gd-kick">{{ tplLabel }} · {{ gdWhere }}</s>
-        <b>{{ gdPageTitle }}</b>
+        <div class="gd-ht"><b>{{ gdPageTitle }}</b><s class="gd-where">{{ gdHeadMeta }}</s></div>
         <s>{{ gdPagePurpose }}</s>
       </div>
 
@@ -5553,6 +5591,9 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
          the numbered type-stepper, the ask chevrons and the slide bar are gone. -->
     <div class="gd-pv-zone">
       <div class="gd-stage">
+        <!-- the card as a PLATE: the post's name and its size over it, its pixels under it -->
+        <div class="gd-plate">
+        <div class="gd-pvh"><b>{{ tplLabel }}</b><i>{{ gdPvSize }}</i></div>
         <div class="gd-card gd-card-1" data-a="{{ gdCardAsp }}">
           <sc-if value="{{ gdCard.hasShot }}" hint-placeholder-val="{{ false }}"><img class="gd-shot" data-src="{{ gdCard.src }}" alt="preview"></sc-if>
           <!-- the reel thumbnail's 4:5 guide, over the card as it is over the canvas -->
@@ -5560,6 +5601,8 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
           <sc-if value="{{ gdCard.noShot }}" hint-placeholder-val="{{ true }}">
             <div class="gd-lines"><sc-for list="{{ gdCard.rows }}" as="r" hint-placeholder-count="3"><i class="{{ r.barCls }}" style="{{ r.barStyle }}"></i></sc-for></div>
           </sc-if>
+        </div>
+        <span class="p-meta gd-pvm">{{ gdPvDims }}</span>
         </div>
       </div>
       <div class="gd-pstrip">
@@ -15955,6 +15998,9 @@ class OrganicStudio extends StudioBase {
           gdPageTitle: editor ? this.sLabel(asi) : (step ? step.t : ''),
           gdPagePurpose: editor ? OrganicStudio.pagePurpose(sl) : (step ? step.d : ''),
           gdWhere: editor ? 'All controls' : (isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages)),
+          gdHeadMeta: editor ? (TPLNAMES[s.tpl] || '') : (isFinish ? 'Last step' : ('Page ' + (idx + 1) + ' of ' + pages)),
+          gdPvSize: s.tpl === 'rcover' ? 'Reel cover 9:16' : 'Feed 3:4',
+          gdPvDims: s.tpl === 'rcover' ? '1080 \u00d7 1920' : '1080 \u00d7 1440',
           gdIsFinish: isFinish,
           gdSecs: secs,
           gdProgStyle: { width: (steps.length ? ((idx + 1) / steps.length * 100) : 0).toFixed(1) + '%' },

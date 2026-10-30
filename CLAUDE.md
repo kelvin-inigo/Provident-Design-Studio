@@ -17825,3 +17825,14 @@ diff is a read (thumbnails); no artwork line changed.
   parts, the plate heads, the dock, the top and canvas bars in light (88 runs) and dark; 0
   elevation shadows; the bar fits at 1440; phone rows 60px with the foot scrolling; guided screen
   unchanged; no console errors. OPS's home sidebar was not given CAS's section 62 redesign.
+
+**The guided window took the same language (2026-10-30, /impeccable, section 48 of OPS's
+sheet).** One markup serves every template. The form head drops its kicker: `.gd-ht` is the
+page's name with `gdHeadMeta` beside it ("Page 2 of 6" / "Last step"; the template's name in the
+All-controls rail), then the purpose. The preview card is wrapped in `.gd-plate`: `.gd-pvh` (the
+template's name and a size chip, `gdPvSize`) over it, `.gd-pvm` (`gdPvDims`) under it; the card
+keeps its own height-based size (`.gd-plate > .gd-card{align-self:center}` — stretched, it would
+lose its aspect). Strip tiles take the left rail's thumbnail treatment (5px corner, hairline ring,
+2px link ring on the current page, green done, amber warn). The numbered steps stay. Verified on
+all eight templates in dark (0 contrast failures, head width equals card width, card inside the
+column), three in light, and at 375 (one column, no overflow).
