@@ -17710,3 +17710,57 @@ at full width (section 66 of CAS's sheet overrides section 60's two-column grid 
 side-column rules), under a hairline and the "Pick up where you left off" label. The Riffle
 Hairline figure (`.p-home-fig`) is removed from the markup "for now"; its CSS is left unread.
 `hlBind` still mounts Status's Stack figure and the Ad sets drop zone's.
+
+# THE ALL-VARIANTS DOCK IS AN INSPECTOR (2026-10-30, /impeccable)
+
+By request, from a screenshot of the old dock (cards, big tiles, paragraphs). CAS section 67 and
+the `.p-dock-b.dk` markup: a 360px panel of rows in the Layout rail's language (`.lm-l` name +
+state line on the left, one `.lm-seg` on the right). Head: title, "Applies to every variant",
+an amber dot "1 to fill in" only while the QR is missing (`dkNeedOn`, beside `qrNeed`; the green
+Done pill is gone), the tip. Rows: Format (Single | Carousel; `modeHint` is the track's title),
+Story 9:16 (carousel; a whole-row switch `.dk-sw`), Typeface (Aa English | ع Arabic; `fontTip`
+on the name), QR code (switch row, then a 76px drop with a QR glyph and the Upload/Remove list,
+then Corner Left | Right), **Partner logo** (renamed from Collaboration logo; drop, Size slider,
+Colour Match canvas | Original). Both drops carry `data-nohint` with `.dk-ph` glyphs behind.
+Short state lines are `dkScope/dkFmtSub/dkStorySub/dkQrSub/dkCoSub`; `qrHint`, `coHint`,
+`storyHint`, `qrOneCode` are now tooltips or unread. Chrome only. Verified: 0 contrast failures
+in dark, no overflow, Single/Carousel and the switches by click. **The pane's window blur closes
+the dock (`_closePops` on blur)**, so a real click from the automation can close it — test with
+dispatched events.
+
+# THE PLATE HEAD IS A TITLE; EVERY CANVAS HAS A SIZE ROW (2026-10-30, /impeccable)
+
+By request ("continue redesigning this", with a screenshot of the plates). CAS section 68. The
+head mixed three pill treatments (navy Master, white Editing, outlined Edit / Remove); now
+`.pv-h`: the variant's name 15/600 in ink, "Editing" as a link-coloured word with a dot on the
+active plate (`activeOn`), **Edit** as a text link on the others (`editOn`, `editTip`), Remove as
+a bin icon `.pv-rm` (`removeOn`, `removeTip`), with a hairline under the head. The 1:1 gained the
+size row every other canvas has (`sqHead` "Feed", 1:1, no buttons). The caption's copy figure is
+`.p-cov`: "Copy 50%" beside a 44px bar (`coverBar`) with a tick at 40%; past `COVER_MAX`
+(`coverOver`) the BAR is amber and the text stays ink — amber 11.5px text measured 4.35:1 in
+light. `badgeStyle`, `activateStyle`, `activateLabel`, `removeStyle`, `coverStyle` are computed
+and unread. Contrast 0 failures both themes; Edit and the bin verified by click. Chrome only.
+
+# DEVELOPER LOGOS IN THE PARTNER LOGO GROUP (2026-10-30)
+
+By request: Nakheel, Emaar, Meeras, Imtiaz and Beyond preloaded in CAS's Partner (collaboration)
+logo, selectable, with a way to add more. `CampaignStudio.DEV_LOGOS` holds the five as base64
+SVG (rebuilt from ~/Desktop/SVG: the class fill inlined as `<g fill>`, width/height from the
+viewBox; Emaar keeps its dark #231f20, the rest are white). `DEV_KEY` `adstudio-dev-logos` holds
+logos added per COMPUTER — added to runtime.js's PREF list so every workspace shares it.
+`devLib()` = both. **Picking writes the file into the `adstudio-colog` slot through
+`ImageSlot.putUrl`** and turns the partner logo on, so the canvas, export, ink-box measurement and
+Assets/ treat it as a dropped file; the selected tile is read back off the slot (`devSlot()`),
+not stored in state. `devAdd` (file picker, `providentEncodeFile`), `devSaveCur` (a mark dropped
+into the slot that is not in the list), `devRemove` (own ones only; ads keep their copy).
+Section 69 of the sheet: tiles draw each mark as a MASK in the chrome ink, so white and dark files
+both read in either theme. Verified: pick → slot + op, add → listed and selected, remove → the
+save link appears. Chrome only; no artwork line changed.
+
+**Many logos (same day, simulated with 35).** The flat grid ran to 588px and pushed Size and
+Colour off the dock. Past `DEV_FEW` (9) the picker shows `DEV_SHOW` (6) tiles — the one in the
+slot, then `adstudio-dev-recent` (picked ids, newest first, per computer, PREF-listed), then the
+list's order — and **Show all N** opens every logo in a box capped at four rows that scrolls,
+with a search (`_devQ`, prefix matches first; Escape clears, then collapses, without closing the
+dock). Instance state `_devOpen` / `_devQ`. Up to 9 logos nothing changes. Section 69b; the ×
+and + are Material Rounded SVGs now. Verified with real typing; dark marks 8.4:1+.

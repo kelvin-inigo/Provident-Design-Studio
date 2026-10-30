@@ -86,7 +86,7 @@
     // Per-computer preferences and lists are excluded: the Design | Copy choice, the
     // copywriter's name, the custom-component library and the legacy recents.
     var OWN = /^(provident-ad-studio|provident-smp-studio|adstudio-|smp-)/;
-    var PREF = /^(adstudio-(workspace|author|custom-lib|recents)|smp-recents)$/;
+    var PREF = /^(adstudio-(workspace|author|custom-lib|dev-logos|dev-recent|recents)|smp-recents)$/;
     var nk = function (k) { return OWN.test(k) && !PREF.test(k) ? 'ws:' + WS + ':' + k : k; };
     try {
       var SP = Storage.prototype, g = SP.getItem, s = SP.setItem, r = SP.removeItem;

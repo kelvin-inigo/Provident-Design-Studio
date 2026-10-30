@@ -526,8 +526,10 @@ No API key or service is needed: Claude Code reads the screenshot.
   have up to 3: the Master plus two more.
   - The components and their words are shared by every variant.
   - Layout, style, visibility and photo are set per variant.
-- **Edit** / **Editing** on a plate chooses which variant the side panels edit. **Remove** deletes
-  that variant; the Master can't be removed.
+- Each plate's head names the variant. The one the side panels edit says **Editing**; press **Edit**
+  on another to switch. The bin icon at the right removes that variant; the Master can't be removed.
+- Under every canvas: its pixel size and **Copy N%**, a small bar with a tick at 40%. Past 40% the
+  bar turns amber — a warning about how much of the picture the copy covers, never a block.
 - **Each canvas row** is its name, its ratio, and icon buttons on the right (hover one to see
   what it does):
   - **Link** — the canvas mirrors the 1:1. Press it to edit that canvas's layout separately;
@@ -553,21 +555,31 @@ No API key or service is needed: Claude Code reads the screenshot.
   images (section 7).
 - **All variants** (the pill next to **Add Variant**, which shows how many variants you have
   out of the most allowed) holds the settings for the whole project:
-  - **Format** is a pair of cards: **Single ad** or **Carousel**. A tick marks the one in use. A carousel has up to 10 pages,
+  - Each setting is one row: its name and current state on the left, the control on the right.
+    Point at a row's name for the full explanation.
+  - **Format:** **Single** or **Carousel**. A carousel has up to 10 pages,
     and each page has its own components, words and photo.
 - **Organize pages** (beside **Add Page**, on a carousel with two or more pages) opens every
   page as a picture. Drag a page to move it: a line shows where it will land. Its photo moves
   with it. You can also select a page and use the arrow keys, or press Enter or double-click a
   page to edit it. Undo reverses a move. Press **Done** or Escape to close.
-  - **Story 9:16**, **QR code** and **Collaboration logo** are switches. The line under each
+  - **Story 9:16**, **QR code** and **Partner logo** are switches. The line under each
     one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
-    on, pick the **Corner** it sits in.
+    on, upload the code under the switch and pick the **Corner** it sits in: **Left** or **Right**.
   - **Typeface:** **English** or **Arabic**. Arabic mirrors the whole ad for right-to-left
     reading: a left-aligned design becomes right-aligned, the logo moves to
     the right (the photo is left as it is, so any sign or logo in it still reads correctly) and the QR code moves to the other corner (the code itself is not flipped, so it
     still scans). Lists, steps and tags read from the right. A centred design stays centred.
     Your alignment setting doesn't change, so switching back to English restores the layout.
-  - With the collaboration logo on, add the partner's mark and set its size and colour.
+  - With the partner logo on, pick a developer from the logos above the upload — **Nakheel**,
+    **Emaar**, **Meeras**, **Imtiaz** and **Beyond** come with the studio — or upload the
+    partner's mark yourself. Then set its **Size** and **Colour** (**Match canvas** or **Original**).
+  - With more than 9 logos the list shows two rows: the logo in use first, then the ones you
+    picked most recently. **Show all** opens the whole list with a search box (type part of a
+    name); **Show fewer** or Escape closes it.
+  - **Add logo** adds SVG or PNG logos to that list. They stay on this computer for every
+    project; hover one you added and press × to take it off the list (ads already using it
+    keep it). If you upload a mark straight into the slot, **Save this logo to the list** keeps it.
 
 ### Unbranded ads
 
