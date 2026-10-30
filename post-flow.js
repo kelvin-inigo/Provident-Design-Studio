@@ -11,7 +11,8 @@
  *     <post name>.smpstudio.json   the OPS project, with its review data (revision, photos, log)
  *     Assets/…                     its pictures, one file each
  *     Brief/…                      the files attached when it was started
- *     Exports/…                    every export, uploaded as it is made
+ *   (exports go to the team's files folder by template instead — see FILES_ROOT; and a
+ *    "Just me" post has no post folder and no Status entry at all)
  * It is the CAS ad set machinery (share-link.js's Drive kit, providentDsKit) with kind 'post' and
  * one project: the project follows its file exactly as an ad set's project does — every edit is
  * saved to Drive within seconds, and everyone on the post sees it. Everyone opens the post by the
@@ -38,6 +39,31 @@
   // is made beside them the first time a post is started. localStorage['provident-posts-root']
   // (a folder link or id) points somewhere else on one computer.
   const POSTS_PARENT = '1FD5dl42YxKi6h8hlHvTwaMT__Nt545WO';
+  // EVERY OPS EXPORT GOES TO GOOGLE DRIVE (2026-10-30, by request), into the team's files folder,
+  // by template: Weekly Listings/<Month Year>/, Top Agents/<Team>/, Reel Thumbnail/, and a folder
+  // named for each other template. localStorage['provident-ops-files-root'] (a link or id)
+  // points one computer somewhere else.
+  const FILES_ROOT = '1TaY-j8lW84J-JdrdZAyZwnJOuU9ozOyw';
+  const TPL_DIR = { weekly: 'Weekly Listings', agents: 'Top Agents', agentsolo: 'Top Agents', rcover: 'Reel Thumbnail',
+    listed: 'Just Listed & Sold', review: 'Google Reviews', award: 'Awards', carousel: 'Carousel' };
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  // the folders under FILES_ROOT this project's exports go in
+  function fileDest(st) {
+    const top = TPL_DIR[st.tpl] || 'Other posts', sl = st.slides || [];
+    if (st.tpl === 'weekly') {
+      const made = new Date(st.made || Date.now()), mi = MONTHS.indexOf(st.month || '');
+      let yr = made.getFullYear();
+      // a December post made in January belongs to the year before
+      if (mi >= 0 && mi - made.getMonth() > 6) yr--;
+      return [top, (mi >= 0 ? MONTHS[mi] : MONTHS[made.getMonth()]) + ' ' + yr];
+    }
+    if (st.tpl === 'agents' || st.tpl === 'agentsolo') {
+      const f = ((st.tpl === 'agents' ? sl.find(x => x.kind === 'tacover') : sl[0]) || {}).f || {};
+      return [top, String(f.team || '').trim() || 'No team'];
+    }
+    return [top];
+  }
+  const FLOW = 'provident-postflow';
   const LIST = 'provident-posts', HIDE = 'provident-posts-hidden', CACHE = 'provident-posts-list', PLAN = 'provident-postplan', PICK = 'provident-postpick';
   const STEPS = [
     { t: 'Draft', who: 'Social media manager', wait: 'With the social media manager', roles: ['smm', 'designer'] },
@@ -239,6 +265,9 @@
       const S = this._sh;
       if (S) return { pfOn: undefined };   // following a plain edit link
       const smm = role() === 'smm';
+      if (this.state.solo) return { pfOn: '1', pfState: 'solo', pfSegs: [], pfStep: 'Just you', pfWhere: 'Exports go to Drive · ' + fileDest(this.state).join('/'),
+        pfTip: 'Only you work on this post and it is not on Status. Click to hand it on after all: it is saved to Google Drive and put on Status.',
+        pfGo: () => { if (window.confirm('Hand this post on?\n\nIt is saved to Google Drive and put on Status, where the designer and the content team pick it up.')) { this.upd(x => { delete x.solo; return x; }); this.postToDrive(false); } } };
       return { pfOn: '1', pfState: 'none', pfSegs: segs(-1).map(g => ({ s: 'todo', t: g.t })), pfStep: 'Not on Drive', pfWhere: 'Save it to Google Drive to hand it off',
         pfTip: 'This post is only on this computer. Saving it to Drive puts it on Status, where the designer and the content team pick it up.', pfGo: () => this.postToDrive(false),
         pfFlowOn: '1', pfFlowLabel: smm ? 'Send to designer' : 'Save to Drive', pfFlowTip: smm ? 'Saves the post to Google Drive and sends the draft to a designer' : 'Saves the post to Google Drive, where everyone on it can open it',
@@ -301,24 +330,37 @@
     try { await addProject(this, g.tok, dlg); dlg.close(); this.forceUpdate(); }
     catch (e) { dlg.fail(e.message || String(e)); }
   };
-  // every export also goes up to the post's Exports folder on Drive
+  // every export also goes up to the team's files folder on Drive, in its template's folder. A
+  // file another project put there under the same name is never replaced: this one gets " (2)".
   async function exportsUp(eng, files) {
-    const rs = eng.postRs(); if (!rs || !rs.folder || !files || !files.length) return;
-    const pics = files.filter(f => /\.(jpe?g|png|svg|pdf|webp)$/i.test(String(f.name || '')));
+    if (!dsOn() || !files || !files.length) return;
+    const pics = files.filter(f => /\.(jpe?g|png|svg|pdf|webp)$/i.test(String(f.name || '')) && !/(^|\/)Assets\//.test(String(f.name || '')));
     if (!pics.length) return;
+    const say = t => { const s0 = eng.state.exportStatus || ''; eng.setState({ exportStatus: s0 + (s0 ? ' · ' : '') + t }); };
+    const D0 = D();
+    if (!(D0 && D0.valid && D0.valid())) { let ok = false; try { ok = !!(await D0.ensure()); } catch (e) {} if (!ok) { say('not saved to Google Drive: sign in to Google first'); return; } }
     try {
-      const dir = await dsFolder(rs.folder, 'Exports');
-      const have = await dsList(dir);
+      const st = eng.state, path = fileDest(st);
+      let dir = (D0.id && D0.id(lsGet('provident-ops-files-root'))) || FILES_ROOT;
+      for (const seg of path) dir = await dsFolder(dir, dsSafe(seg));
+      const have = await dsList(dir), key = 'provident-ops-out:' + (st.pid || 'x');
+      let mine = {}; try { mine = JSON.parse(lsGet(key) || '{}') || {}; } catch (e) {}
+      const taken = new Set(have.map(x => x.name));
       await pool(pics, 3, async f => {
-        const name = String(f.name).split('/').pop(), ext = name.split('.').pop().toLowerCase(), type = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml', pdf: 'application/pdf', webp: 'image/webp' }[ext] || '',
+        let name = String(f.name).split('/').pop();
+        const ext = name.split('.').pop().toLowerCase(), type = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml', pdf: 'application/pdf', webp: 'image/webp' }[ext] || '',
           blob = f.data instanceof Blob ? f.data : new Blob([f.data || ''], { type });
-        const old = have.find(x => x.name === name);
-        if (old) await K.dsFetch('/upload/drive/v3/files/' + old.id + '?uploadType=media&supportsAllDrives=true', { method: 'PATCH', headers: { 'Content-Type': blob.type || 'application/octet-stream' }, body: blob });
-        else await dsCreate(dir, name, blob);
+        const was = mine[name], old = was && have.find(x => x.id === was);
+        if (old) { await K.dsFetch('/upload/drive/v3/files/' + old.id + '?uploadType=media&supportsAllDrives=true', { method: 'PATCH', headers: { 'Content-Type': blob.type || 'application/octet-stream' }, body: blob }); return; }
+        const want = name, stem = name.replace(/\.[^.]+$/, ''), dot = name.slice(stem.length);
+        for (let n = 2; taken.has(name); n++) name = stem + ' (' + n + ')' + dot;
+        taken.add(name);
+        const x = await dsCreate(dir, name, blob);
+        mine[want] = x.id;
       });
-      const s0 = eng.state.exportStatus || '';
-      eng.setState({ exportStatus: s0 + (s0 ? ' · ' : '') + 'also on Google Drive in ' + (rs.name || 'the post') + '/Exports' });
-    } catch (e) { const s0 = eng.state.exportStatus || ''; eng.setState({ exportStatus: s0 + ' · not uploaded to Drive: ' + (e.message || e) }); }
+      lsSet(key, JSON.stringify(mine));
+      say('also on Google Drive in ' + path.join('/'));
+    } catch (e) { say('not uploaded to Drive: ' + (e.message || e)); }
   }
   // once per engine: the template pick and the export learn about posts
   SP.postInit = function () {
@@ -331,6 +373,8 @@
         // a post started earlier is waiting for its template (Start the design): no second post
         let g = null; try { g = JSON.parse(lsGet(PICK) || 'null'); } catch (e) {}
         if (g && g.tok && Date.now() - (g.at || 0) < 300000) return pick.call(this, t);
+        // JUST ME: finished here, never put on Status (its exports still go to Drive)
+        if (Plan.draft().flow === 'solo') { if (!this.confirmDiscard()) return; Plan.clear(); return pick.call(this, t, { solo: true }); }
         if (!this.confirmDiscard()) return;
         if (!(await dsGate('Start the post on Google Drive'))) return;
         const d = Plan.draft(), name = String(d.name || '').trim() || 'Untitled post · ' + day(Date.now());
@@ -358,8 +402,8 @@
   // template gallery under this sheet is the third step, and picking one makes the post.
   const Plan = {
     files: [],
-    draft() { let d = null; try { d = JSON.parse(lsGet(PLAN) || 'null'); } catch (e) {} return Object.assign({ name: '', deadline: '', brief: '' }, d || {}); },
-    set(k, v) { const d = this.draft(); d[k] = v; lsSet(PLAN, JSON.stringify(d)); },
+    draft() { let d = null; try { d = JSON.parse(lsGet(PLAN) || 'null'); } catch (e) {} return Object.assign({ name: '', deadline: '', brief: '', flow: lsGet(FLOW) || 'team' }, d || {}); },
+    set(k, v) { const d = this.draft(); d[k] = v; lsSet(PLAN, JSON.stringify(d)); if (k === 'flow') lsSet(FLOW, v); },
     clear() { lsSet(PLAN, ''); this.files = []; document.querySelectorAll('div[data-post-plan]').forEach(el => { if (el._pp) el._pp.draw(); }); },
     mount(eng) { document.querySelectorAll('div[data-post-plan]').forEach(el => { if (!el._pp) el._pp = new PlanView(el, eng); }); }
   };
@@ -373,6 +417,7 @@
       const b = e.target.closest('[data-pp]'); if (!b) return;
       if (b.dataset.pp === 'attach') el.querySelector('input[type=file]').click();
       if (b.dataset.pp === 'rm') { Plan.files.splice(+b.dataset.i, 1); this.draw(); }
+      if (b.dataset.pp === 'flow') { Plan.set('flow', b.dataset.v); this.draw(); }
     });
     this.draw();
     setTimeout(() => { const n = el.querySelector('.pp3-name'); if (n && !n.value && document.activeElement === document.body) n.focus({ preventScroll: true }); }, 0);
@@ -382,15 +427,19 @@
   // surface with the files attached to its foot, and the templates below are the last move.
   const kb = n => n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
   PlanView.prototype.draw = function () {
-    const d = Plan.draft(), on = dsOn();
+    const d = Plan.draft(), on = dsOn(), solo = on && d.flow === 'solo';
+    const fl = (v, t, sub, tip) => '<button type="button" role="radio" aria-checked="' + (d.flow === v) + '" data-pp="flow" data-v="' + v + '"' + (d.flow === v ? ' data-on="1"' : '') + ' title="' + esc(tip) + '"><b>' + t + '</b><span>' + sub + '</span></button>';
     this.el.innerHTML =
       '<section class="pp3" aria-label="New post">' +
         '<label class="pp3-namew"><span class="pf-sr">Post name</span>' +
           '<input class="pp3-name" data-f="name" maxlength="120" placeholder="Name the post" autocomplete="off" spellcheck="false" value="' + esc(d.name) + '"></label>' +
         '<div class="pp3-q">' +
           '<label class="pp3-chip pp3-due" title="When the post should go out">' + ico('event') + '<span class="pp3-cht">Due</span><input type="date" data-f="deadline" value="' + esc(d.deadline) + '"></label>' +
-          (on ? '<span class="pp3-chip pp3-where" title="Each post gets its own folder in Organic posts: the record, the design, the brief files and the exports">' + ico('folder') + '<span>Saved to Google Drive · Organic posts</span></span>' : '') +
+          (on ? '<span class="pp3-chip pp3-where" title="Exports go to the team\u2019s files folder on Google Drive, by template: Weekly Listings by month, Top Agents by team, Reel Thumbnail">' + ico('folder') + '<span>Exports saved to Google Drive</span></span>' : '') +
         '</div>' +
+        (on ? '<div class="pp3-flow" role="radiogroup" aria-label="Who works on it">' +
+          fl('solo', 'Just me', 'Finish it here', 'You make it and export it. It is not put on Status and nobody else is asked.') +
+          fl('team', 'Hand it on', 'Draft, design, copy check', 'It goes on Status: the designer refines it and the content team checks the copy.') + '</div>' : '') +
         '<div class="pp3-raw">' +
           '<label class="pp3-bl" for="pp3-brief">Brief <small>Optional</small></label>' +
           '<div class="pp3-sheet">' +
@@ -400,7 +449,7 @@
             '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="pp3-th"><b>Pick a template</b><span>' + (on ? 'Picking one opens the post and saves it to Google Drive. From there it goes Draft, Design, Copy check, Ready.' : 'Picking one opens the post.') + '</span></div>' +
+        '<div class="pp3-th"><b>Pick a template</b><span>' + (solo ? 'Picking one opens the post. Only you work on it, and its exports go to Google Drive.' : on ? 'Picking one opens the post and saves it to Google Drive. From there it goes Draft, Design, Copy check, Ready.' : 'Picking one opens the post.') + '</span></div>' +
       '</section>';
   };
 
@@ -958,6 +1007,15 @@ html[data-acc-lim] .p-br-sb .p-nav2:not(.p-nav2-rev),html[data-acc-lim] .p-br-sb
 .pp3-name:hover{border-bottom-color:var(--ps-ink-2)}
 .pp3-name:focus{border-bottom-color:var(--ps-ink)}
 .pp3-q{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.pp3-flow{display:grid;grid-template-columns:repeat(2,minmax(0,220px));gap:8px}
+.pp3-flow button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:11px 14px;border:none;border-radius:14px;background:var(--ps-fill);color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line);cursor:pointer;text-align:left}
+.pp3-flow button b{font:600 14px/1.2 var(--ps-font)}
+.pp3-flow button span{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.pp3-flow button:hover{background:var(--ps-fill-h)}
+.pp3-flow button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.pp3-flow button[data-on] span{color:var(--ps-accent-i)}
+.pp3-flow button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+@media (max-width:520px){.pp3-flow{grid-template-columns:1fr 1fr}}
 .pp3-chip{display:inline-flex;align-items:center;gap:8px;height:40px;box-sizing:border-box;padding:0 14px 0 12px;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink-2);transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
 .pp3-chip .pf-i{width:18px;height:18px}
 .pp3-due{cursor:text}

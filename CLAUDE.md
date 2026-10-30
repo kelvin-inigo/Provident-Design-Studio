@@ -18145,3 +18145,23 @@ By request.
   dropped once and comes back from `dir:<pid>`. Shared with CAS.
 - Verified on the Drive stand-in as smm: a new post and another post's pid open with no folder, the
   original post gets its folder back across reloads, Mark as done Draft → Ready, Send hidden on weekly.
+
+# OPS: "JUST ME" POSTS, AND EXPORTS TO THE TEAM'S DRIVE FOLDER BY TEMPLATE (2026-10-30)
+
+By request. post-flow.js.
+- **Start a post asks Just me | Hand it on** (`.pp3-flow`, `Plan.draft().flow`, remembered per
+  computer in `provident-postflow`, default Hand it on). Just me calls the original `pickTpl(t,
+  {solo: true})`: no post record, nothing on Status; `state.solo` makes the top bar read "Just you"
+  with the export destination, and clicking it hands the post on after all (`postToDrive`).
+- **Every OPS export uploads to `FILES_ROOT` (1TaY-j8lW84J-JdrdZAyZwnJOuU9ozOyw)**, solo or not,
+  replacing the old post/Exports upload. `fileDest(st)`: Weekly Listings/<Month Year> (year from
+  `state.made`, a December post made in January goes to the year before), Top Agents/<Team> (the
+  cover's team, or the solo card's), Reel Thumbnail, and Just Listed & Sold / Google Reviews / Awards /
+  Carousel (created on first use). Per computer `provident-ops-files-root` overrides. Assets/ never
+  goes up. `provident-ops-out:<pid>` maps file names to the Drive ids this project wrote: a re-export
+  PATCHes those, a same name from another project gets " (2)". Needs a Google token (`ensure()`, never a
+  popup); without one the status says so.
+- **Names**: weekly is `Weekly Listing_<Week>` (the month is the folder); the reel is
+  `Reel_Thumbnail_<YYYY-MM-DD>` from `state.made`, set by `pickTpl` (an older project falls back to today).
+- Verified on the Drive stand-in: Just me opened with no post, exports landed in Weekly Listings/October
+  2026, Reel Thumbnail and Top Agents/Primary, a re-export replaced, another pid got " (2)", Assets skipped.

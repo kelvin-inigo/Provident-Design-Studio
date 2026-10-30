@@ -12326,7 +12326,7 @@ class OrganicStudio extends StudioBase {
   }
   // FILE NAMES START WITH THE TEMPLATE (2026-10-30, by request): "Carousel_…", "Weekly Listing_…",
   // so a folder of exports sorts and reads by what each post is. A custom name keeps it too.
-  static FILETPL = { listed: '', weekly: 'Weekly Listing', review: 'Google Reviews', agents: 'Top Agents', agentsolo: 'Top Agent', award: 'Award', carousel: 'Carousel', rcover: 'Reel Thumbnail' };
+  static FILETPL = { listed: '', weekly: 'Weekly Listing', review: 'Google Reviews', agents: 'Top Agents', agentsolo: 'Top Agent', award: 'Award', carousel: 'Carousel', rcover: 'Reel_Thumbnail' };
   tplFileLabel() {
     const s = this.state;
     if (s.tpl === 'listed') return `Just ${(s.slides[0] && /sold/i.test(s.slides[0].f.status || '')) ? 'Sold' : 'Listed'}`;
@@ -12344,12 +12344,14 @@ class OrganicStudio extends StudioBase {
       // strip any `**brass**` marker before it reaches a filename — this is prose, not artwork
       rest = words(String((fr && fr.f && (fr.f.headline || fr.f.title || fr.f.big)) || '').replace(/\*\*([^*]+)\*\*/g, '$1').trim()) || 'Untitled';
     }
-    else if (s.tpl === 'rcover') rest = words(String((s.slides[0] && s.slides[0].f && s.slides[0].f.head) || '').replace(/\s+/g, ' ').trim()) || 'Untitled';
+    // the reel thumbnail is named by the day it was started (2026-10-30, by request)
+    else if (s.tpl === 'rcover') { const m = new Date(s.made || Date.now()); rest = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0') + '-' + String(m.getDate()).padStart(2, '0'); }
     else if (s.tpl === 'listed') rest = s.agent.name || 'Agent';
     else if (s.tpl === 'review') { const a0 = s.slides[0] && s.slides[0].f.agentName; rest = a0 || s.agent.name || 'Agent'; }
     else if (s.tpl === 'agentsolo') { const a0 = (s.slides[0] && s.slides[0].f) || {}; rest = `${this.taDate(a0).replace(',', '')}_${a0.name || 'Agent'}`; }
     else if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; rest = `${this.taDate(c0).replace(',', '') || 'Period'}_${c0.team || 'Team'}`; }
-    else rest = `${(s.month || '').toUpperCase()}_${(s.week || 'Week 01').replace(/\s+/g, '')}`;
+    // weekly: the month is the Drive folder it goes in, so the file is named by its week
+    else rest = (s.week || 'Week 01').replace(/\s+/g, '');
     return `${lead}_${rest}`;
   }
   fileNameFor(si) {
@@ -14280,10 +14282,14 @@ class OrganicStudio extends StudioBase {
     }
     this.reloadNow();
   }
-  async pickTpl(t) {
+  async pickTpl(t, o) {
     if (!this.confirmDiscard()) return;
     const d = OrganicStudio.defaults();
     d.pid = StudioBase.newPid();
+    // when it was started: the reel thumbnail's file name and the weekly folder's year read it
+    d.made = Date.now();
+    // "Just me": a post the person finishes alone, never put on Status (post-flow.js)
+    if (o && o.solo) d.solo = true;
     // A new post starts in the step-by-step run, not in the full editor.
     d.screen = 'guide';
     d.gdStep = 0;

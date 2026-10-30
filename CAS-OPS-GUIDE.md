@@ -949,10 +949,26 @@ Every post goes through four steps:
   **Attach files** (optional), then pick a template below. With nothing waiting on you, Home opens on this door. The content
   team has no Start a post door.
 
-Picking the template makes the post. The post gets its own folder in
-**Organic posts** on Google Drive (`<post name>/` with the project, its pictures, the brief's files
-and every export), and every change you make is saved there within seconds. Sign in to Google once
-if it asks.
+**Just me or Hand it on.** Under the name, choose who works on it (the choice is remembered):
+- **Just me** — you make it and export it here. It is **not** put on Status and nobody else is
+  asked. The top bar says **Just you** and where its exports go; click it to hand the post on
+  after all.
+- **Hand it on** — picking the template makes the post. It gets its own folder in **Organic posts**
+  on Google Drive (`<post name>/` with the project, its pictures and the brief's files), every
+  change is saved there within seconds, and it goes Draft › Design › Copy check › Ready on Status.
+Sign in to Google once if it asks.
+
+**Every export is also saved to the team's files folder on Google Drive**, by template:
+
+| Template | Folder | File name |
+|---|---|---|
+| Weekly listings | `Weekly Listings/<Month Year>/` | `Weekly Listing_Week01_01_Cover_3x4.jpg` |
+| Top agents, Top agent — solo | `Top Agents/<Team>/` | `Top Agents_…` / `Top Agent_…` |
+| Reel thumbnail | `Reel Thumbnail/` | `Reel_Thumbnail_2026-10-30_9x16.jpg` (the day it was started) |
+| Just listed / sold, Google reviews, Award, Carousel | `Just Listed & Sold/`, `Google Reviews/`, `Awards/`, `Carousel/` | as before |
+
+Exporting the same post again replaces its files. A different post with the same file name gets
+` (2)` instead of replacing someone else's.
 
 **A new post starts with no Source folder.** Opening a post from Status, the hub or a file never
 keeps the folder the tab had for another post; a post you set a folder for gets it back when
