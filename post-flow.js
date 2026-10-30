@@ -355,22 +355,33 @@
       if (b.dataset.pp === 'rm') { Plan.files.splice(+b.dataset.i, 1); this.draw(); }
     });
     this.draw();
-    setTimeout(() => { const n = el.querySelector('.pp2-name'); if (n && !n.value && document.activeElement === document.body) n.focus({ preventScroll: true }); }, 0);
+    setTimeout(() => { const n = el.querySelector('.pp3-name'); if (n && !n.value && document.activeElement === document.body) n.focus({ preventScroll: true }); }, 0);
   }
+  // START A POST IS CAS'S BRIEF SHEET (2026-10-30, /impeccable): no numbered steps. The post's NAME
+  // is the page's headline, the due date sits on one quiet line under it, the BRIEF is the one big
+  // surface with the files attached to its foot, and the templates below are the last move.
+  const kb = n => n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
   PlanView.prototype.draw = function () {
     const d = Plan.draft(), on = dsOn();
     this.el.innerHTML =
-      '<ol class="pp2">' +
-        '<li><span class="pp2-n" aria-hidden="true">1</span><div class="pp2-b"><h3 id="pp2-1">Name it</h3>' +
-          '<input class="pp2-name" data-f="name" maxlength="120" aria-labelledby="pp2-1" placeholder="e.g. Marina Gate launch" value="' + esc(d.name) + '">' +
-          '<label class="pp2-due">' + ico('event') + '<span>Due</span><input type="date" data-f="deadline" value="' + esc(d.deadline) + '"></label></div></li>' +
-        '<li><span class="pp2-n" aria-hidden="true">2</span><div class="pp2-b"><h3 id="pp2-2">Brief <small>Optional</small></h3>' +
-          '<textarea data-f="brief" rows="3" aria-labelledby="pp2-2" placeholder="What the post is for, the key message, anything the designer should know">' + esc(d.brief) + '</textarea>' +
-          '<div class="pp2-files"><button type="button" class="pp2-att" data-pp="attach">' + ico('attach') + 'Attach files</button><input type="file" multiple hidden>' +
-          Plan.files.map((f, i) => '<span class="pp2-f"><span>' + esc(f.name) + '</span><button type="button" data-pp="rm" data-i="' + i + '" aria-label="Remove ' + esc(f.name) + '">' + ico('x') + '</button></span>').join('') + '</div></div></li>' +
-        '<li><span class="pp2-n" aria-hidden="true">3</span><div class="pp2-b"><h3>Pick a template</h3>' +
-          '<p>' + (on ? 'Picking one opens the post and saves it to Google Drive. From there it goes Draft, Design, Copy check, Ready.' : 'Picking one opens the post.') + '</p></div></li>' +
-      '</ol>';
+      '<section class="pp3" aria-label="New post">' +
+        '<label class="pp3-namew"><span class="pf-sr">Post name</span>' +
+          '<input class="pp3-name" data-f="name" maxlength="120" placeholder="Name the post" autocomplete="off" spellcheck="false" value="' + esc(d.name) + '"></label>' +
+        '<div class="pp3-q">' +
+          '<label class="pp3-chip pp3-due" title="When the post should go out">' + ico('event') + '<span class="pp3-cht">Due</span><input type="date" data-f="deadline" value="' + esc(d.deadline) + '"></label>' +
+          (on ? '<span class="pp3-chip pp3-where" title="Each post gets its own folder in Organic posts: the record, the design, the brief files and the exports">' + ico('folder') + '<span>Saved to Google Drive · Organic posts</span></span>' : '') +
+        '</div>' +
+        '<div class="pp3-raw">' +
+          '<label class="pp3-bl" for="pp3-brief">Brief <small>Optional</small></label>' +
+          '<div class="pp3-sheet">' +
+            '<textarea id="pp3-brief" data-f="brief" rows="6" placeholder="What the post is for, the key message, anything the designer should know">' + esc(d.brief) + '</textarea>' +
+            '<div class="pp3-files"><button type="button" class="pp3-add" data-pp="attach" title="Renders, logos, brochures. Saved into the post’s Brief/ folder for the designer.">' + ico('attach') + '<span>Attach files</span></button><input type="file" multiple hidden>' +
+              Plan.files.map((f, i) => '<span class="pp3-fc" title="' + esc(f.name + ' · ' + kb(f.size || 0)) + '"><b>' + esc(f.name) + '</b><button type="button" data-pp="rm" data-i="' + i + '" aria-label="Remove ' + esc(f.name) + '">' + ico('x') + '</button></span>').join('') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="pp3-th"><b>Pick a template</b><span>' + (on ? 'Picking one opens the post and saves it to Google Drive. From there it goes Draft, Design, Copy check, Ready.' : 'Picking one opens the post.') + '</span></div>' +
+      '</section>';
   };
 
   // ── the posts, read once for Home and Status alike ──────────────────────────────────────
@@ -599,7 +610,7 @@
     else if (a === 'refresh') this.load(false);
     else if (a === 'sign') { if (await dsGate('Read the posts on Google Drive')) this.load(false); }
     else if (a === 'mine') { this.mine = !this.mine; lsSet('provident-posts-mine', this.mine ? '1' : '0'); this.draw(); }
-    else if (a === 'new') { const h = this.eng.host; if (h) h.setState({ splashView: 'all' }, () => setTimeout(() => { const n = document.querySelector('.pp-name input'); if (n) n.focus(); }, 60)); }
+    else if (a === 'new') { const h = this.eng.host; if (h) h.setState({ splashView: 'all' }, () => setTimeout(() => { const n = document.querySelector('.pp3-name'); if (n) n.focus(); }, 60)); }
     else if (a === 'openp') openProject(this.eng, b.dataset.sid);
     else if (a === 'start') startDesign(this.eng, id);
     else if (a === 'copy') { const ok = await copyText(b.dataset.link); b.textContent = ok ? 'Copied' : 'Select it'; setTimeout(() => { b.textContent = 'Copy link'; }, 1600); }
@@ -811,7 +822,7 @@
 .ph-r .ph-open:hover{background:var(--ps-fill);color:var(--ps-ink)}
 .ph-segs[data-k=copy] i[data-s=cur]{background:var(--ps-warn)}
 .ph-segs[data-k=ready] i{background:var(--ps-good)}
-.p-br-mn:has(div[data-post-home] .ph-room) .p-sec-l{padding:28px 0 0 !important;margin:0 0 12px;border-top:1px solid var(--ps-hair);font:600 14px/1.3 var(--ps-font);color:var(--ps-ink-2);letter-spacing:0;text-transform:none}
+.p-br-mn:has(div[data-post-home] .ph-room) .p-sec-l{padding:28px 0 0 !important;margin-block:0 12px;border-top:1px solid var(--ps-hair);font:600 14px/1.3 var(--ps-font);color:var(--ps-ink-2);letter-spacing:0;text-transform:none}
 .p-br-mn:has(.pp2) .p-c-car{left:auto;right:9px;top:9px;bottom:auto}
 @container (max-width:760px){.ph-fr{white-space:normal}.ph-meta{margin:0;width:100%}}
 /* the recents at Home's foot: a strip at queue scale — render and name, nothing from the library */
@@ -903,7 +914,69 @@
 @container (max-width:560px){.ps-cols,.psd-steps{grid-template-columns:1fr}.psd-h{grid-template-columns:64px minmax(0,1fr)}.psd-th{width:64px}}
 [data-post-status]{container-type:inline-size}
 /* performance marketing in OPS: Status only */
-html[data-acc-lim] .p-br-sb .p-nav2:not(.p-nav2-rev),html[data-acc-lim] .p-br-sb .p-ws,html[data-acc-lim] .p-br-sb .p-sec-l0,html[data-acc-lim] .p-br-sb .p-sec-l:not(.p-sec-posts),html[data-acc-lim] .p-br-new,html[data-acc-lim] .p-br-alt,html[data-acc-lim] .p-br-sep{display:none !important}
+html[data-acc-lim] .p-br-sb .p-nav2:not(.p-nav2-rev),html[data-acc-lim] .p-br-sb .p-ws,html[data-acc-lim] .p-br-sb .p-sec-l0,html[data-acc-lim] .p-br-sb .p-sbn-sep,html[data-acc-lim] .p-br-sb .p-sbf,html[data-acc-lim] .p-br-new,html[data-acc-lim] .p-br-alt,html[data-acc-lim] .p-br-sep{display:none !important}
+/* ── HOME TAKES CAS'S DESIGN (2026-10-30, /impeccable — "grab the design elements from CAS") ──
+   · Start a post is CAS's brief sheet: the name is the headline, the due date one chip under it,
+     the brief the one big card with its files attached to the foot, then the templates.
+   · The My turn | Start a post switch is CAS's .p-tabs track (40px), not a second, bigger one.
+   · A row is CAS's audience card: the lifted card fill, a hairline that firms on hover. */
+.pp3{display:flex;flex-direction:column;gap:26px;max-width:none;padding:6px 0 28px;font-family:var(--ps-font);color:var(--ps-ink);animation:phIn .32s cubic-bezier(.16,1,.3,1) both}
+.pp3-namew{display:block}
+.pp3-name{display:block;width:100%;box-sizing:border-box;margin:0;padding:2px 0 12px;border:none;border-bottom:1px solid var(--ps-line);border-radius:0;background:none;color:var(--ps-ink);font:400 clamp(30px,3.4vw,46px)/1.12 var(--ps-font);letter-spacing:-.028em;outline:none;transition:border-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.pp3-name::placeholder{color:var(--ps-dim)}
+.pp3-name:hover{border-bottom-color:var(--ps-ink-2)}
+.pp3-name:focus{border-bottom-color:var(--ps-ink)}
+.pp3-q{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.pp3-chip{display:inline-flex;align-items:center;gap:8px;height:40px;box-sizing:border-box;padding:0 14px 0 12px;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink-2);transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.pp3-chip .pf-i{width:18px;height:18px}
+.pp3-due{cursor:text}
+.pp3-due:hover{background:var(--ps-fill-h)}
+.pp3-due:focus-within{outline:2px solid var(--ps-ink);outline-offset:2px}
+.pp3-cht{font:500 13px/1 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
+.pp3-due input{width:122px;height:100%;padding:0;border:none;background:none;outline:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font)}
+.pp3-due input::-webkit-calendar-picker-indicator{opacity:.6;cursor:pointer}
+:root:not([data-theme="light"]) .pp3-due input{color-scheme:dark}
+.pp3-where{background:none;box-shadow:inset 0 0 0 1px var(--ps-hair);font:400 13px/1 var(--ps-font);color:var(--ps-ink-2);min-width:0}
+.pp3-where span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp3-bl{display:block;margin:0 0 10px;font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.pp3-bl small{margin-left:6px;font:400 12.5px/1 var(--ps-font);color:var(--ps-dim)}
+.pp3-sheet{border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden;transition:box-shadow var(--ps-motion,.15s) var(--ps-ease,ease)}
+.pp3-sheet:focus-within{box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
+.pp3-sheet textarea{display:block;width:100%;box-sizing:border-box;min-height:200px;margin:0;padding:18px 20px;border:none;background:none;outline:none;resize:vertical;color:var(--ps-ink);font:400 16px/1.6 var(--ps-font)}
+.pp3-sheet textarea::placeholder{color:var(--ps-dim)}
+.pp3-files{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--ps-hair);background:var(--ps-card-h)}
+.pp3-add{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px 0 10px;border:none;border-radius:9999px;background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.pp3-add:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.pp3-add .pf-i{width:18px;height:18px}
+.pp3-fc{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:34px;box-sizing:border-box;padding:0 4px 0 12px;border-radius:9999px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.pp3-fc b{min-width:0;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12.5px/1 var(--ps-font);color:var(--ps-ink)}
+.pp3-fc button{display:grid;place-items:center;width:26px;height:26px;padding:0;border:none;border-radius:50%;background:none;color:var(--ps-dim);cursor:pointer}
+.pp3-fc button:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.pp3-fc .pf-i{width:16px;height:16px}
+.pp3-th{display:grid;gap:4px;margin-top:4px}
+.pp3-th b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.pp3-th span{font:400 13px/1.45 var(--ps-font);color:var(--ps-dim);max-width:62ch}
+.pp3 :focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.pp3-sheet textarea:focus-visible,.pp3 .pp3-name:focus-visible{outline:none}
+.p-br-mn:has(.pp3) .p-sec-tpl{display:none}
+.p-br-mn:has(.pp3) .p-c-car{left:auto;right:9px;top:9px;bottom:auto}
+@media (max-width:600px){.pp3-where{flex-basis:100%}.pp3-sheet textarea{min-height:150px}}
+@media (prefers-reduced-motion:reduce){.pp3{animation:none}.pp3-name,.pp3-chip,.pp3-sheet{transition:none}}
+/* the switch: CAS's .p-tabs proportions */
+.ph-bar{margin:4px 0 28px}
+.ph-sw{padding:3px;gap:2px}
+.ph-sw button{height:34px;padding:0 16px;font:600 13.5px/1 var(--ps-font)}
+.ph-sw .pf-i{width:16px;height:16px}
+/* a row is CAS's audience card */
+.ph-r{background:var(--ps-card-h);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.ph-r:hover{box-shadow:inset 0 0 0 1px var(--ps-line)}
+:root[data-theme="light"] .ph-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.ph-g h3{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.ph-g:first-child h3{color:var(--ps-ink)}
+.ph-g h3 s{font:500 12px/1 var(--ps-font);padding:3px 8px}
+/* the recents under My turn take CAS's heading: a hairline, then "Pick up where you left off" */
+.p-br-mn:has(div[data-post-home] .ph-room) .p-sec-rec{font:500 13px/1.2 var(--ps-font) !important;color:var(--ps-ink-2)}
+
 `;
   const st = document.createElement('style'); st.id = 'pf-css'; st.textContent = css;
   (document.head || document.documentElement).appendChild(st);

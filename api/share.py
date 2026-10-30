@@ -1057,7 +1057,7 @@ ACC_LOG = 400
 # smm (social media manager) and ct (content team) arrived with OPS's posts (2026-10-30):
 # the social media manager drafts a post in OPS, the designer finishes it, the content team
 # checks the copy. Both studios read the same list.
-ACC_ROLES = ('designer', 'pm', 'smm', 'ct')
+ACC_ROLES = ('designer', 'pm', 'smm', 'ct', 'cten', 'ctar')   # ct = either language; cten / ctar = one
 _acc_seen = {}
 
 

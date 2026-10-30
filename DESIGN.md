@@ -34,10 +34,10 @@ colors:
 typography:
   headline:
     fontFamily: "'Google Sans Flex', system-ui, sans-serif"
-    fontSize: "clamp(24px, 2.6vw, 32px)"
-    fontWeight: 500
-    lineHeight: 1.2
-    letterSpacing: "-0.01em"
+    fontSize: "clamp(30px, 3.4vw, 46px)"
+    fontWeight: 400
+    lineHeight: 1.12
+    letterSpacing: "-0.028em"
   title:
     fontFamily: "'Google Sans Flex', system-ui, sans-serif"
     fontSize: "18px"
@@ -209,7 +209,7 @@ The palette is neutral grey surfaces with a single navy family. Status colours a
 **Character:** a single variable sans. Weight steps of 400, 500 and 600 and the three ink tiers do the work that a second typeface would otherwise do.
 
 ### Hierarchy
-- **Headline** (500, clamp(24px, 2.6vw, 32px), 1.2, -0.01em): the new post's name, typed in place as the page's headline.
+- **Headline** (400, clamp(30px, 3.4vw, 46px), 1.12, -0.028em): the new post's name, typed in place as the page's headline — CAS's campaign name, at the same size.
 - **Title** (500, 18px, 1.3): the name on a row that waits on you. Rows waiting on others drop to **Row title** (500, 15px).
 - **Section** (600, 14px, 1.3): group headings ("Waiting on you", "With others", "Ready to publish") and step headings. Groups waiting on others take ink-2.
 - **Button** (600, 14px, +0.16px): every labelled action and switch tab.
@@ -226,14 +226,16 @@ The palette is neutral grey surfaces with a single navy family. Status colours a
 
 The home page is one column inside the project browser's main pane, beside the studio's sidebar. The page is a container (`container-type: inline-size`), so rows reflow on the column's own width, not the window's. From top to bottom:
 
-1. The greeting and count.
+1. The title, **Home**, with the person and their count on the line under it (CAS's header).
 2. The switch row: the My turn | Start a post switch on the left, and the Drive status with Refresh and Open Status on the right, 28px below.
 3. Groups 32px apart, each a heading 12px above a list.
 4. Rows 10px apart.
 
 A row is a four-column grid: thumbnail, text, due date, actions, with a 20px column gap. The thumbnail is 48px wide at 3:4, or 72px for a row that waits on you. Recent projects sit at the foot under a hairline, as a strip of 140px items with 72px renders.
 
-Start a post is a numbered list with a maximum width of 760px. Each step is a 32px disc, an 18px gap, then the body. A 1px line joins the discs. The template grid below it is indented by 50px to align with the step bodies.
+Start a post is CAS's brief sheet (2026-10-30): the post's name as a headline-sized input on an underline, one row of 40px chips under it (Due, and where it is saved), the brief as one 16px card with its files attached to its foot, then a small "Pick a template" label over the template grid, all at the column's full width. No numbered steps.
+
+The sidebar is CAS's (its section 62): the Design Studio lockup, the studio switcher, one nav list with no headings, and the session pinned to the foot (Continue last as a card, Open a post file as a quiet row).
 
 Below 760px of container width, a row stacks: thumbnail and text on top, the due date under the text, and the actions full width. The primary button stretches to fill. On a phone the sidebar becomes a chip header, and the switch keeps its place under the greeting.
 

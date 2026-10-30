@@ -16,3 +16,6 @@ STORY: The person sees who they are and how many posts wait on them, acts on the
 FIRST VIEWPORT: Greeting and count, then the My turn | Start a post switch under them, left — it reads in order after the greeting and keeps its place on a phone (amended after review), Drive status and Refresh at the switch row's right; below, full-width rows: render 72px, name, step + due, one primary action at the row's end; quieter "Everyone else's" rows; recent renders strip at the foot.
 FORM: Two doors, candidate 7 of 7, seed eeaa4efa.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Amended 2026-10-30 (redesign, "grab the design elements from CAS")
+The two doors stay; their chrome is now CAS's. Sidebar = CAS section 62 (lockup, one nav list, Continue last card and Open a post file at the foot). Header = title "Home" with the person and count under it, theme toggle only. Start a post = CAS's brief sheet (headline name on an underline, chips row, brief card with files at its foot, templates last) — the numbered steps are gone. The switch takes CAS's .p-tabs proportions; rows take the audience card's lifted fill.

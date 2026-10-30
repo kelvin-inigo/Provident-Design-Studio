@@ -23,16 +23,25 @@
   const CAS = /Campaign Studio/.test(decodeURIComponent(location.pathname));
   if (!CAS && !/Organic Studio/.test(decodeURIComponent(location.pathname))) return;
 
-  const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing', smm: 'Social media manager', ct: 'Content team' };
+  // The content team is two roles, one per language: cten approves English copy, ctar the
+  // Arabic translation. Both read as 'ct' everywhere else (role() below); 'ct' itself is the
+  // older role and approves either.
+  const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing', smm: 'Social media manager', ct: 'Content team',
+                 cten: 'Content team · English', ctar: 'Content team · Arabic' };
+  const SEGL = { designer: 'Designer', smm: 'Social media', cten: 'Copy · English', ctar: 'Copy · Arabic', ct: 'Content team', pm: 'Performance' };
   const ROLE_SUB = {
     designer: 'Both studios: design, export, Status',
     pm: 'Set up campaigns as tickets, and follow them on Status',
     smm: 'Draft organic posts in OPS and send them to a designer',
-    ct: 'Check the copy of posts, and of campaigns through their links'
+    ct: 'Check the copy of posts, and of campaigns through their links',
+    cten: 'Check the English copy of posts and campaigns',
+    ctar: 'Check the Arabic translation of campaigns'
   };
-  const ROLES = ['designer', 'smm', 'ct', 'pm'];
-  const WANT = { designer: ['Design', 'Designer'], smm: ['Draft organic posts', 'Social media manager'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'] };
-  const roleWord = r => ({ pm: 'performance marketing', designer: 'a designer', smm: 'a social media manager', ct: 'the content team' }[r] || r);
+  const ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm'];
+  const WANT = { designer: ['Design', 'Designer'], smm: ['Draft organic posts', 'Social media manager'], cten: ['Check English copy', 'Content team · English'],
+                 ctar: ['Check Arabic copy', 'Content team · Arabic'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'] };
+  const roleWord = r => ({ pm: 'performance marketing', designer: 'a designer', smm: 'a social media manager', ct: 'the content team',
+                           cten: 'the content team (English)', ctar: 'the content team (Arabic)' }[r] || r);
   const LS_VIEWAS = 'provident-acc-viewas', LS_LINK = 'provident-acc-link';
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
                set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
@@ -75,7 +84,13 @@
     host: null, list: null, listErr: '', tab: 'req', listBusy: false, noteSent: false
   };
   const viewAs = () => (A.me && A.me.admin ? ss.get(LS_VIEWAS) : null);
-  const role = () => (A.phase === 'in' && A.me ? (viewAs() || A.me.role) : null);
+  const rawRole = () => (A.phase === 'in' && A.me ? (viewAs() || A.me.role) : null);
+  const fam = r => (r === 'cten' || r === 'ctar' ? 'ct' : r);
+  const role = () => fam(rawRole());
+  // which copy this person approves: 'en', 'ar', or null (either). A review link's tab is never
+  // gated, so there the account is looked up quietly (A.quiet) when Google is already signed in.
+  const copyLang = () => { const r = rawRole() || (A.quiet && A.quiet.status === 'active' ? A.quiet.role : null);
+    return r === 'cten' ? 'en' : r === 'ctar' ? 'ar' : null; };
   // LIMITED in this studio: CAS is the designer's (and the admin's); performance marketing, the
   // social media manager and the content team get Home's setup and Status there. OPS is open to
   // all but performance marketing, which gets OPS's Status only.
@@ -154,6 +169,7 @@
     const h = document.documentElement, r = role();
     if (r) h.setAttribute('data-acc-role', r); else h.removeAttribute('data-acc-role');
     h.toggleAttribute('data-acc-lim', lim());
+    const cl = copyLang(); if (cl) h.setAttribute('data-acc-copy', cl); else h.removeAttribute('data-acc-copy');
     h.toggleAttribute('data-acc-isadmin', !!(A.me && A.me.admin && A.phase === 'in'));
     h.toggleAttribute('data-acc-preview', !!viewAs());
     if (A.phase === 'in' || !gated() || A.on === false) h.classList.remove('acx-hold');
@@ -301,7 +317,7 @@
   const people = () => ((A.list && A.list.users) || []).filter(u => u.status !== 'pending');
   function seg(name, val, sel) {
     return '<span class="ac-seg" role="radiogroup" aria-label="Role">' + ROLES.map(k =>
-      '<button type="button" role="radio" aria-checked="' + (sel === k) + '" data-k="' + name + '" data-v="' + k + '" data-e="' + esc(val) + '"' + (sel === k ? ' data-on' : '') + '>' + ROLE[k] + '</button>').join('') + '</span>';
+      '<button type="button" role="radio" aria-checked="' + (sel === k) + '" data-k="' + name + '" data-v="' + k + '" data-e="' + esc(val) + '"' + (sel === k ? ' data-on' : '') + ' title="' + esc(ROLE[k] + ' — ' + ROLE_SUB[k]) + '">' + SEGL[k] + '</button>').join('') + '</span>';
   }
   const LOGW = {
     request: e => 'tried to sign in for the first time',
@@ -323,7 +339,7 @@
     const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['log', 'Activity', null]];
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
-      '<div class="ac-pv"><span>Preview the studio as</span>' + ['pm', 'smm', 'ct', 'designer'].map(k => '<button type="button" class="acx-ghost" data-ac="pv" data-v="' + k + '">' + ic('eye') + ROLE[k] + '</button>').join('') + '</div></div>';
+      '<div class="ac-pv"><span>Preview the studio as</span>' + ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<button type="button" class="acx-ghost" data-ac="pv" data-v="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + ic('eye') + ROLE[k] + '</button>').join('') + '</div></div>';
     if (A.listErr) h += '<p class="acx-err" role="alert">' + esc(A.listErr) + '</p>';
     if (A.tab === 'req') {
       if (!R.length) h += '<div class="ac-empty">' + ic('shield') + '<b>No one is waiting</b><span>When someone signs in for the first time they show up here, with any note they leave, for you to let in or decline.</span></div>';
@@ -410,7 +426,12 @@
 
   // ── boot and keep checking ───────────────────────────────────────────────────────────────
   async function boot() {
-    if (!gated()) { A.on = false; apply(); return; }
+    if (!gated()) {
+      A.on = false; apply();
+      // a review link: no gate, but learn quietly which copy this person approves
+      try { const d = D(); if (d && d.valid && d.valid()) { A.quiet = await post('accme'); apply(); } } catch (e) {}
+      return;
+    }
     const on = await status();
     if (on === false) { A.on = false; draw(); return; }
     if (on === 'down') { A.on = true; A.phase = 'error'; A.err = 'The studio could not reach its access check. Check the connection and try again.'; draw(); return; }
@@ -444,7 +465,7 @@
   window.providentAccess = {
     // { role, admin, preview, pending } — role null while nobody is signed in or the gate is off
     now() {
-      return { role: role(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(),
+      return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(),
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated() };
     },
     attach(shell) { A.host = shell; apply(); },

@@ -18019,3 +18019,24 @@ waiting count) and its title is the greeting (`homeTitle`/`homeSub` in OPS's she
 - Headless capture recipe (`.impeccable/review/`): drive `tools/studio-mcp/chrome.py`, set the dev
   Drive keys in localStorage, seed posts through `pickTpl` with a `provident-postplan` draft, and
   measure full-page height off every element's scrollHeight (the splash scrolls inside `.p-br-mn`).
+
+# OPS HOME TAKES CAS'S DESIGN (2026-10-30, /impeccable)
+
+By request ("the OPS home page is poorly designed, grab the design elements from CAS"). The two
+doors (My turn | Start a post) stay; everything around them is CAS's now. Chrome only.
+- **Sidebar = CAS's section 62**, mirrored as OPS section 49: the Design Studio lockup copied from
+  CAS's markup, the studio switcher, ONE nav list (Home with a resting-navy count `.p-nav2-bd`,
+  Status, a rule, Templates, Recent, From the hub as the quiet row), and the foot pinned: Continue
+  last as a `.p-sbc` card, **Open a post file…** as a `.p-sbo` row. The Posts / Library / Session
+  headings are gone. Status keeps `.p-nav2-rev`, which the PM-only rule in post-flow.js keys on.
+- **Header** is CAS's: title **Home**, the line under it "Kelvin, 2 posts are waiting on you", and
+  the theme toggle only. **Open session moved to the sidebar foot; New post is gone** (Start a post
+  is the door). The header takes the content's 1240 column (`.p-br-mn > .p-br-h`).
+- **Start a post is CAS's brief sheet** (`PlanView`, `.pp3` in post-flow.js): the name as a 46px
+  input on an underline, a chip row (Due; "Saved to Google Drive · Organic posts" when Drive is on),
+  the brief as one card with Attach files and file chips in its foot, then "Pick a template" over the
+  React gallery. The `.pp2` numbered-steps CSS matches nothing now.
+- The switch takes CAS's `.p-tabs` proportions; rows take the audience card's `--ps-card-h` fill;
+  the recents heading on Home reads **Pick up where you left off** (`shRecLabel`).
+Verified on the dev server: contrast 0 failures over both doors in light and dark, no sideways
+scroll at 375. CAS-OPS-GUIDE.md, DESIGN.md and the surface brief are updated.

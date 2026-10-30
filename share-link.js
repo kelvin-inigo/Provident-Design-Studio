@@ -2388,12 +2388,18 @@
     return { k: 'wait', dot: 'wait', word: 'With the designer', when: '', title: 'With the designer',
       sub: arb ? 'The Arabic is still being laid out. You can edit the words now, and approve once it is sent to you.' : 'The design is still in progress. You can edit the words now, and approve once it is sent to you.' };
   }
+  // A signed-in content team member checks one language (access.js: cten / ctar); a link opened
+  // with no sign-in, or the older 'ct' role, approves either.
+  function ctLangOk(it) {
+    let c = null; try { c = window.providentAccess && window.providentAccess.now().copy; } catch (e) {}
+    return !c || (c === 'ar') === (it && it.lang === 'ARB');
+  }
   // the buttons a role has on one project
   function itemActs(it, role, busy) {
     const arb = it.lang === 'ARB', out = [];
     if (role === 'dd') out.push(it.design ? ['design-open', arb ? 'Arabic back in progress' : 'Back to in process', 'p-ghost']
       : ['design-done', arb ? 'Send for translation check' : 'Send to copy check', 'p-btn']);
-    if (role === 'ct' && (it.design || it.copy)) out.push(it.copy ? ['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']
+    if (role === 'ct' && (it.design || it.copy) && ctLangOk(it)) out.push(it.copy ? ['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']
       : ['copy-done', arb ? 'Approve translation' : 'Approve English copy', 'p-btn']);
     if (role === 'dd' && it.copy) out.push(['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']);
     // the bypass: an ad already signed off outside the review
@@ -3372,7 +3378,7 @@
   // the projects waiting for the content team, in the nav's order (audiences, English first)
   RV.ctQueue = function () {
     const out = [];
-    rsAuds(this.rs).forEach(a => [a.eng].concat(a.items.filter(it => it !== a.eng)).forEach(it => { if (it && it.design && !it.copy && out.indexOf(it) < 0) out.push(it); }));
+    rsAuds(this.rs).forEach(a => [a.eng].concat(a.items.filter(it => it !== a.eng)).forEach(it => { if (it && it.design && !it.copy && ctLangOk(it) && out.indexOf(it) < 0) out.push(it); }));
     return out;
   };
   RV.ctRender = function () {
@@ -3392,7 +3398,7 @@
     // 2 — the strip
     const goKey = it => this.pathOf(it).join('\u0001');
     const act = it => { const s = ctState(it);
-      if (s.k === 'wait') return '';
+      if (s.k === 'wait' || !ctLangOk(it)) return '';
       const a = s.k === 'todo' ? ['copy-done', it.lang === 'ARB' ? 'Approve translation' : 'Approve English copy', 'p-btn'] : ['copy-open', 'Reopen', 'p-ghost'];
       return '<button type="button" class="' + a[2] + ' rvp-ap" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(s.k === 'todo' ? 'Approve the words of ' + ctLabel(it) + ' as they are now' : 'Take the approval back, to change the words again') + '">' + (s.k === 'todo' ? ico(TICK) : '') + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>'; };
     let sh2;

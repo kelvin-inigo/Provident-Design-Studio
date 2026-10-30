@@ -171,15 +171,15 @@ Each studio opens on its **project browser**.
       pick up from **Status**. Performance marketing uses this. It shows the designer link to send.
     - **Start designing** — files the same ticket and opens its first audience straight away.
     There is no blank project and no preloaded templates any more.
-  - In OPS, click a template card, or press **New post** to get **Pick a template**.
+  - In OPS, open **Start a post** on Home (or **Templates** in the sidebar) and click a template card.
 - **Continue last** reopens the project you were working on; the line under it names that project.
 - **Save** (top bar) writes the project into your **Source folder**:
   - the session file (`<name>.adstudio.json` for CAS, `.smpstudio.json` for OPS);
   - an `Assets/` folder with a copy of every upload.
 
   The first time, it asks you to pick the folder. After that it saves in place.
-- **Open session** (OPS, top right of the project browser) or **Open a project file…** (CAS, in
-  the sidebar under Session): pick the project's folder, and the newest session file in it opens. A session
+- **Open a post file…** (OPS) or **Open a project file…** (CAS), at the foot of the sidebar:
+  pick the project's folder, and the newest session file in it opens. A session
   file from the other studio opens in that studio.
 - **Source folder** (top bar) picks or changes the folder that saves and exports go into.
 - **Every new project starts fresh.** A new campaign or post, a template, or a project opened from
@@ -773,7 +773,7 @@ Press **Edit text** to work on the words of the audience on screen, without open
 - If the project file carries no photos, only the words are saved and the images are left alone —
   re-exporting would drop the photos. Save the project from the studio once to include them.
 - If that project is also open in the studio, the open copy does not see these edits. Reopen it
-  from the folder (Open session) to continue there.
+  from the folder (Open a project file…) to continue there.
 - To add or remove a line, move it or change its look, use the studio's Copy and Design views.
 
 #### What it shows
@@ -901,8 +901,8 @@ Every post goes through four steps:
   designer**, **Send to copy check**, **Approve copy**), so you can move it on without opening it.
   **Open** opens it in the studio. Below are the posts **With others** and those **Ready to
   publish**. A draft is waiting only on whoever started it.
-- **Start a post**: 1 name it and set a **Due** date, 2 write a **Brief** and **Attach files**
-  (optional), 3 pick a template. With nothing waiting on you, Home opens on this door. The content
+- **Start a post**: type the post's name at the top, set a **Due** date, write a **Brief** and
+  **Attach files** (optional), then pick a template below. With nothing waiting on you, Home opens on this door. The content
   team has no Start a post door.
 
 Picking the template makes the post. The post gets its own folder in
@@ -1129,6 +1129,6 @@ Tell the user the full path when you're done.
 
 Rules for Claude: ask for anything you don't have — never make up a listing number, price, permit
 or name. Every required field must be filled; the export says what is missing. The project is a
-normal session file, so the user can open it with **Open a project file…** (CAS) or **Open session** (OPS) to fine-tune by hand. Setup:
+normal session file, so the user can open it with **Open a project file…** (CAS) or **Open a post file…** (OPS) to fine-tune by hand. Setup:
 `sh tools/studio-mcp/install.sh`, then restart Claude (see `tools/studio-mcp/README.md`).
 
