@@ -403,16 +403,19 @@ What's on the screen, from left to right:
 - **Layout**, on the right.
 
 **Adding and editing:**
-- **See what is on the ad:** the top of the left rail, **On this ad**, lists the components on the
-  canvas you are looking at, in reading order: **Top**, then **Bottom** (and **Floating** for a
-  graphic placed by hand). Each row shows the component's shape, its name and its words. Click a
-  row to select that component; hover it and press the eye to hide it on this variant (press it
-  again to show it). A hidden component stays in the list, struck through.
-- **Add a component:** click a row under **Add**. The rows are in four groups: **Text** (Eyebrow,
-  Hero headline, Hook line, Body line), **Data** (Price block, Spec data, Tag chips, Bullet list,
-  Process steps), **Action & media** (CTA button, Graphic) and **Structure** (Divider, Spacer). A
-  new component goes to the bottom of the ad. A number beside a row says how many are already on
-  the canvas. Hover a row for what it is.
+- **See and arrange what is on the ad:** the top of the left rail, **On this ad**, lists the
+  components on the canvas you are looking at, in reading order, under **Top** and **Bottom** (and
+  **Floating** for a graphic placed by hand). Each row shows the component's shape, its name and
+  its words.
+  - Click a row to select it. **Drag a row** to reorder, including from Bottom to Top; a line
+    shows where it will land, and an empty Top or Bottom says "drag a component in". With a row
+    selected, **Alt+↑ / Alt+↓** steps it one place.
+  - Hover a row and press the eye to hide it on this variant (press it again to show it). A
+    hidden component stays in the list, struck through.
+- **Add a component:** the grid pinned at the foot of the left rail, **Add a component**, shows
+  every component as its own look over its name: Eyebrow, Headline, Hook, Body, Price, Key facts,
+  Tags, Bullets, Steps, Button, Graphic, Divider, Spacer. Click one and it goes to the bottom of
+  the ad. Hover a tile for what it is.
 - **Edit its words:** click the component on the canvas, then type in **This component**.
   - Headline, hook and body take line breaks (Enter), up to 4 lines.
   - Tag chips and spec rows have one field per item. Use **+** to add one and × to remove one.
