@@ -520,6 +520,13 @@
   // overwrite in place instead of prompting again. Safari has no equivalent
   // picker, so `supported` is false there and callers fall back to downloads.
   var FKEY = 'project-dir';
+  // WHICH PROJECT THE TAB'S FOLDER BELONGS TO (2026-10-30). Opening another project in a tab
+  // (a post from Status, a hub delivery, a session file) kept the tab's folder, and `bind` then
+  // remembered it as the opened project's OWN folder — so a design showed and saved into some
+  // other post's folder. The owner is the pid the folder was set for; '*' means "the next
+  // project to bind" (Open Session picks the folder before it knows the project's pid).
+  var OKEY = 'project-dir-pid';
+  function setOwner(v) { folder.owner = v; return idbSet(OKEY, v).catch(function () {}); }
   var folder = {
     supported: typeof W.showDirectoryPicker === 'function',
     handle: null,
@@ -546,13 +553,16 @@
       }
       folder.handle = h; folder.pending = null;
       try { await idbSet(FKEY, h); } catch (e) {}
+      await setOwner(folder.pid || '*');
       folder.remember();
       return h;
     },
-    async forget() { folder.handle = null; folder.pending = null; try { await idbDel(FKEY); } catch (e) {} },
+    // Open Session: the folder just picked belongs to the project about to be loaded from it
+    handOver: function () { return setOwner('*'); },
+    async forget() { folder.handle = null; folder.pending = null; folder.owner = ''; try { await idbDel(FKEY); await idbDel(OKEY); } catch (e) {} },
     // Make an already-granted handle the Source folder — the project library opens a project
     // from a folder it found while scanning, and adopts that folder like Open Session does.
-    async adopt(h) { if (!h) return null; folder.handle = h; folder.pending = null; try { await idbSet(FKEY, h); } catch (e) {} folder.remember(); return h; },
+    async adopt(h) { if (!h) return null; folder.handle = h; folder.pending = null; try { await idbSet(FKEY, h); } catch (e) {} await setOwner(folder.pid || '*'); folder.remember(); return h; },
     // THE FOLDER IS REMEMBERED PER PROJECT. A tab's folder is per workspace and a project
     // opened here forgets the one before it (a new campaign must never save into another's
     // folder) — which also lost a project's OWN folder every time it was reopened in a new
@@ -561,6 +571,7 @@
     // with no folder in this tab gets its own back (granted, or parked on `pending` for
     // ensure() to re-ask from a click). Resolves true when it changed what the tab shows.
     pid: '',
+    owner: '',
     remember: function () {
       var h = folder.handle || folder.pending;
       if (folder.pid && h) return idbSet('dir:' + folder.pid, h).catch(function () {});
@@ -590,14 +601,23 @@
       folder.pid = pid || '';
       try { await folder.ready; } catch (e) {}
       if (!folder.pid || !folder.supported) return false;
-      if (folder.handle || folder.pending) { folder.remember(); return false; }
+      var dropped = false;
+      if (folder.handle || folder.pending) {
+        if (folder.owner === '*') await setOwner(folder.pid);
+        if (folder.owner === folder.pid) { folder.remember(); return false; }
+        // set for ANOTHER project (or before owners were kept): this one does not inherit it
+        folder.handle = null; folder.pending = null; folder.owner = '';
+        try { await idbDel(FKEY); await idbDel(OKEY); } catch (e) {}
+        dropped = true;
+      }
       var h = await idbGet('dir:' + folder.pid);
       if (!h) h = await folder.recall(folder.pid);
-      if (!h || folder.handle || folder.pending) return false;
+      if (!h || folder.handle || folder.pending) return dropped;
       var p = 'prompt';
       try { p = await h.queryPermission({ mode: 'readwrite' }); } catch (e) { p = 'denied'; }
       if (p === 'granted') folder.handle = h; else folder.pending = h;
       try { await idbSet(FKEY, h); } catch (e) {}
+      await setOwner(folder.pid);
       return true;
     },
     // The project library's own folder (Projects folder view), kept per computer.
@@ -609,6 +629,7 @@
       if (!folder.supported || folder.handle) return folder.handle;
       var h = await idbGet(FKEY);
       if (!h) return null;
+      try { folder.owner = (await idbGet(OKEY)) || ''; } catch (e) { folder.owner = ''; }
       var p = 'prompt';
       try { p = await h.queryPermission({ mode: 'readwrite' }); } catch (e) { p = 'denied'; }
       if (p === 'granted') { folder.handle = h; return h; }

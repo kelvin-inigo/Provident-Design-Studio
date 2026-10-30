@@ -18121,3 +18121,27 @@ By request. Both are on Drive ad sets only (share-link.js); the old share store 
   log, placeholders carrying the phase), a Launch project started into `Launch/Local/Investor/
   English` while Teaser's stayed at Main, Create next audience staying in Launch; an unbranded ad
   set's first project opened (and saved to Drive) with `look.on`. **Not on real Google Drive.**
+
+# OPS: SMM'S MARK AS DONE, CAROUSEL-ONLY SEND, TEMPLATE-LED FILE NAMES, FOLDER OWNER (2026-10-30)
+
+By request.
+- **Mark as done** (post-flow.js `acts().fin`, smm only, any step before Ready): the existing
+  `approved` step, which on a post marks draft, design and copy at once (`rsstep`'s in-order rule).
+  A quiet `.p-flow-fin` button in the top bar (`pfFin*` keys), and in the panel and the Status page.
+  One confirm (`POST_DONE_Q` / `stepBody`); no hand-off picker (`teamFor('approved')` is null).
+  `POST_TEXT.approved` reads "Marked it done — ready to publish".
+- **The import hub's Send and its fold render only on the carousel template** (`epOn`), and Save's
+  auto-send (`autoSendAfterSave`) skips every other template.
+- **File names lead with the template** (`OrganicStudio.FILETPL`, `tplFileLabel()`, `baseName()`):
+  `Carousel_<head>`, `Weekly Listing_<MONTH>_<Week>`, `Google Reviews_<agent>`, `Top Agents_<date>_<team>`,
+  `Top Agent_<date>_<name>`, `Award_<rank>_<title>`, `Reel Thumbnail_<head>`, `Just Listed|Sold_<agent>`.
+  A custom name is prefixed unless it already starts with the label. Recents and the session file
+  carry the same name.
+- **The tab's Source folder has an OWNER** (`runtime.js` `project-dir-pid`, `folder.owner`). A folder
+  set by pick / adopt belongs to the bound pid ('*' when none, and Open Session's `handOver()`). `bind`
+  keeps it only for its owner; for any other pid it is dropped and that project's own `dir:<pid>`
+  (or nothing) is used. Before this, opening a post from Status / the hub / a file kept the tab's
+  folder and then remembered it as the opened post's own. A folder set before owners existed is
+  dropped once and comes back from `dir:<pid>`. Shared with CAS.
+- Verified on the Drive stand-in as smm: a new post and another post's pid open with no folder, the
+  original post gets its folder back across reloads, Mark as done Draft → Ready, Send hidden on weekly.

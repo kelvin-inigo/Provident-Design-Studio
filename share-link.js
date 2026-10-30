@@ -392,7 +392,7 @@
   const isPost = rs => !!(rs && rs.kind === 'post');
   const POST_TEXT = { 'draft-done': 'Sent the draft to the designer', 'draft-open': 'Took it back to draft',
     'design-done': 'Sent it to the copy check', 'design-open': 'Put the design back in progress',
-    'copy-done': 'Approved the copy — ready to publish', 'copy-open': 'Reopened the copy check', approved: 'Marked it approved' };
+    'copy-done': 'Approved the copy — ready to publish', 'copy-open': 'Reopened the copy check', approved: 'Marked it done — ready to publish' };
   // This page's Drive writes run one at a time: each is a read, a change and a write of a whole
   // file, and two overlapping on one file (a save and the preview writer) let the later one put
   // back what the earlier one replaced.
@@ -2461,6 +2461,7 @@
     }).join('');
   }
   // the designer's bypass, asked once: it skips the content team, so it says so
+  const POST_DONE_Q = 'Mark this post done?\n\nIt skips the designer and the copy check and goes straight to Ready to publish. The log says you marked it.';
   const APPROVE_Q = l => 'Mark ' + (l || 'this project') + ' approved without the content team?\n\nUse this for an ad that was already signed off outside the review. It goes straight to approved, and the log says you marked it.';
   // a project as the content team sees it: "Local · Family · English"
   const ctLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : it.lang ? 'English' : ''].filter(Boolean).join(' · ') || 'Project');
@@ -2637,7 +2638,7 @@
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
     const [a, sid] = String(act).split(':');
-    if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(APPROVE_Q(it && itemLabel(it)))) return; }
+    if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(isPost(S.rs) ? POST_DONE_Q : APPROVE_Q(it && itemLabel(it)))) return; }
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
     if (a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {

@@ -954,6 +954,10 @@ Picking the template makes the post. The post gets its own folder in
 and every export), and every change you make is saved there within seconds. Sign in to Google once
 if it asks.
 
+**A new post starts with no Source folder.** Opening a post from Status, the hub or a file never
+keeps the folder the tab had for another post; a post you set a folder for gets it back when
+you reopen it.
+
 **Hand it on from the top bar.** Beside **Guided | All controls** is the post's step and the one
 button for what you do next:
 
@@ -963,6 +967,10 @@ button for what you do next:
 | Design | **Send to copy check** | designer |
 | Copy check | **Approve copy** | content team |
 | Ready | none (Share is the main button again) | |
+
+**The social media manager can finish a post alone.** Until it is Ready, the top bar (and the
+post's panel and its Status page) also shows **Mark as done**: it asks once, then moves the post
+straight to **Ready**, with no designer and no copy check. The activity log says who marked it.
 
 Click the step itself to open the post's panel: its steps with who did each and when, **Back to
 draft** / **Back to design** / **Reopen copy check**, the brief, **Open on Status** and **Drive
@@ -1055,12 +1063,15 @@ This is the full editor.
 ## 11. OPS: export
 
 - Use **Save all** on **Finish**, or open **Share**: set the file name, pick a **Format** card, then press the button at the bottom. It names what it will do, for example **Export 6 JPEGs**.
+- File names start with the template: `Carousel_…`, `Weekly Listing_…`, `Google Reviews_…`,
+  `Top Agents_…`, `Top Agent_…`, `Award_…`, `Reel Thumbnail_…`, `Just Listed_…` / `Just Sold_…`.
+  A name typed in **File naming** gets the template in front too.
 - The files go flat into the Source folder: `…_3x4` for the feed, plus `…_9x16` for the story
   when **Story 9:16** is on. The session file and `Assets/` go beside them.
 - **PDF** holds the feed pages only. It's always in **Share**; on the guided **Finish** page,
   **Download as PDF** appears when the post has more than one page.
 - Unlike CAS, OPS asks before replacing files that are already there.
-- **Send … + .json** (under the Export button in **Share**) sends the project `.json` and every
+- **Send … + .json** (under the Export button in **Share**, **carousel posts only**) sends the project `.json` and every
   exported image to the import hub. The first time, press it and paste your import token into
   the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
   A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to

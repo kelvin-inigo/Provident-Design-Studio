@@ -588,6 +588,8 @@ class StudioBase {
       return;
     }
     if (!h) return;
+    // the folder belongs to the project about to be opened from it, not the one open now
+    try { if (f.handOver) await f.handOver(); } catch (e) {}
     // EITHER studio's session file counts. This used to match only the current
     // studio's extension, so opening a folder that held a Campaign project while
     // standing in Organic reported "No .smpstudio.json here" and refused — even

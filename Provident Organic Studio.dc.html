@@ -4548,7 +4548,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
   <sc-if value="{{ pfOn }}" hint-placeholder-val="{{ false }}">
     <div class="p-flow" data-state="{{ pfState }}" role="group" aria-label="Post">
       <button onClick="{{ pfGo }}" class="p-flow-at" title="{{ pfTip }}"><span class="p-flow-segs" aria-hidden="true"><sc-for list="{{ pfSegs }}" as="g" hint-placeholder-count="4"><i data-s="{{ g.s }}" title="{{ g.t }}"></i></sc-for></span><span class="p-flow-t"><b>{{ pfStep }}</b><s>{{ pfWhere }}</s></span></button>
-      <sc-if value="{{ pfFlowOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pfFlow }}" class="p-flow-go" title="{{ pfFlowTip }}">{{ pfFlowLabel }}<svg class="p-flow-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></button></sc-if>
+      <sc-if value="{{ pfFinOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pfFin }}" class="p-flow-fin" title="{{ pfFinTip }}">Mark as done</button></sc-if><sc-if value="{{ pfFlowOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pfFlow }}" class="p-flow-go" title="{{ pfFlowTip }}">{{ pfFlowLabel }}<svg class="p-flow-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></button></sc-if>
     </div>
   </sc-if>
   <div class="p-spring"></div>
@@ -4608,6 +4608,8 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
   <sc-if value="{{ shStatusOn }}" hint-placeholder-val="{{ false }}"><p class="sx-status" role="status">{{ shStatus }}</p></sc-if>
   <!-- SEND (2026-10-19): the export POSTed to an endpoint set per computer. The button is
        always there; the URL and key fold below it, and Send opens them when nothing is set. -->
+  <!-- The import hub takes CAROUSEL posts only (2026-10-30, by request): every other template has no Send. -->
+  <sc-if value="{{ epOn }}" hint-placeholder-val="{{ false }}">
   <button onClick="{{ epSend }}" class="sx-eps" title="{{ epTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M140-240v-480l570 240-570 240Zm60-90 356-150-356-150v105l180 45-180 45v105Zm0 0v-300 300Z"/></svg>{{ epLabel }}</button>
   <details class="sx-ep" data-acc="share-ep">
     <summary><b>Import hub</b><s>{{ epSum }}</s></summary>
@@ -4620,6 +4622,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
     </label>
     <p class="sx-epn">Kept on this computer only. Sends the project .json as content and every exported image as images.</p>
   </details>
+  </sc-if>
   <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
   <button onClick="{{ shLinkGo }}" class="sx-eps" data-on="{{ shLinkOn }}" title="{{ shLinkTip }}"><svg class="sx-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z"/></svg>{{ shLinkLabel }}</button>
       </div>
@@ -12321,30 +12324,33 @@ class OrganicStudio extends StudioBase {
     }
     return OrganicStudio.KLAB[sl.kind];
   }
-  baseName() {
+  // FILE NAMES START WITH THE TEMPLATE (2026-10-30, by request): "Carousel_…", "Weekly Listing_…",
+  // so a folder of exports sorts and reads by what each post is. A custom name keeps it too.
+  static FILETPL = { listed: '', weekly: 'Weekly Listing', review: 'Google Reviews', agents: 'Top Agents', agentsolo: 'Top Agent', award: 'Award', carousel: 'Carousel', rcover: 'Reel Thumbnail' };
+  tplFileLabel() {
     const s = this.state;
+    if (s.tpl === 'listed') return `Just ${(s.slides[0] && /sold/i.test(s.slides[0].f.status || '')) ? 'Sold' : 'Listed'}`;
+    return OrganicStudio.FILETPL[s.tpl] || OrganicStudio.FILETPL.weekly;
+  }
+  baseName() {
+    const s = this.state, lead = this.tplFileLabel();
     const custom = (s.customName || '').trim();
-    if (s.tpl === 'award') {
-      const f0 = (s.slides[0] && s.slides[0].f) || {};
-      return custom || `${OrganicStudio.awRank(f0)}_${f0.title || 'Award'}`;
-    }
-    if (s.tpl === 'carousel') {
+    if (custom) return custom.toLowerCase().indexOf(lead.toLowerCase()) === 0 ? custom : `${lead}_${custom}`;
+    const words = h => h ? h.split(/\s+/).slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : '';
+    let rest;
+    if (s.tpl === 'award') { const f0 = (s.slides[0] && s.slides[0].f) || {}; rest = `${OrganicStudio.awRank(f0)}_${f0.title || 'Award'}`; }
+    else if (s.tpl === 'carousel') {
       const fr = s.slides.find(z => z.kind === 'cfront') || s.slides[0];
       // strip any `**brass**` marker before it reaches a filename — this is prose, not artwork
-      const h = String((fr && fr.f && (fr.f.headline || fr.f.title || fr.f.big)) || '').replace(/\*\*([^*]+)\*\*/g, '$1').trim();
-      // the first four words of the front page's headline, with any trailing punctuation off
-      return custom || `${h ? h.split(/\s+/).slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : 'Carousel'}_Carousel`;
+      rest = words(String((fr && fr.f && (fr.f.headline || fr.f.title || fr.f.big)) || '').replace(/\*\*([^*]+)\*\*/g, '$1').trim()) || 'Untitled';
     }
-    if (s.tpl === 'rcover') {
-      const h = String((s.slides[0] && s.slides[0].f && s.slides[0].f.head) || '').replace(/\s+/g, ' ').trim();
-      // the headline's first four words with any trailing punctuation off, as the carousel does
-      return custom || `${h ? h.split(' ').slice(0, 4).join(' ').replace(/[.,!?:;\u2026]+$/, '') : 'Reel'}_Reel Thumbnail`;
-    }
-    if (s.tpl === 'listed') return custom || `Just ${(s.slides[0] && /sold/i.test(s.slides[0].f.status || '')) ? 'Sold' : 'Listed'}_${s.agent.name || 'Agent'}`;
-    if (s.tpl === 'review') { const a0 = s.slides[0] && s.slides[0].f.agentName; return custom || `${a0 || s.agent.name || 'Agent'}_Google Reviews`; }
-    if (s.tpl === 'agentsolo') { const a0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(a0).replace(',', '')}_Top Agent_${a0.name || 'Agent'}`; }
-    if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; return custom || `${this.taDate(c0).replace(',', '') || 'Period'}_Top Agents_${c0.team || 'Team'}`; }
-    return custom || `${(s.month || '').toUpperCase()}_${(s.week || 'Week 01').replace(/\s+/g, '')}_Weekly Listing`;
+    else if (s.tpl === 'rcover') rest = words(String((s.slides[0] && s.slides[0].f && s.slides[0].f.head) || '').replace(/\s+/g, ' ').trim()) || 'Untitled';
+    else if (s.tpl === 'listed') rest = s.agent.name || 'Agent';
+    else if (s.tpl === 'review') { const a0 = s.slides[0] && s.slides[0].f.agentName; rest = a0 || s.agent.name || 'Agent'; }
+    else if (s.tpl === 'agentsolo') { const a0 = (s.slides[0] && s.slides[0].f) || {}; rest = `${this.taDate(a0).replace(',', '')}_${a0.name || 'Agent'}`; }
+    else if (s.tpl === 'agents') { const c0 = (s.slides[0] && s.slides[0].f) || {}; rest = `${this.taDate(c0).replace(',', '') || 'Period'}_${c0.team || 'Team'}`; }
+    else rest = `${(s.month || '').toUpperCase()}_${(s.week || 'Week 01').replace(/\s+/g, '')}`;
+    return `${lead}_${rest}`;
   }
   fileNameFor(si) {
     const s = this.state, base = this.baseName();
@@ -14151,7 +14157,7 @@ class OrganicStudio extends StudioBase {
   autoSendAfterSave() {
     try { if (localStorage.getItem('ops-save-sends') === 'off') return; } catch (e) {}
     const c = this.epCfg();
-    if (!StudioBase.hubCardOf(this.state) || !c.key || !OrganicStudio.epUrlOk(c.url)) return;
+    if (this.state.tpl !== 'carousel' || !StudioBase.hubCardOf(this.state) || !c.key || !OrganicStudio.epUrlOk(c.url)) return;
     this.sendExport();
   }
   legacyRecentsKey() { return 'smp-recents'; }
@@ -16816,6 +16822,7 @@ class OrganicStudio extends StudioBase {
             const c = this.epCfg(), ok = OrganicStudio.epUrlOk(c.url), k = OrganicStudio.epKind(sel);
             const n = nImg, w = n === 1 ? one[k] : plural[k];
             return {
+              epOn: s.tpl === 'carousel' ? '1' : undefined,
               epUrl: c.url, epKey: c.key, epOkOn: ok ? '1' : undefined,
               epBadOn: c.url && !ok ? '1' : undefined,
               onEpUrl: e => this.epSet('url', e.target.value), onEpKey: e => this.epSet('key', e.target.value),

@@ -76,7 +76,10 @@
     // the social media manager designs too (guided and All controls): at Draft or Design they may
     // send it straight to the content team, skipping the designer
     const alt = role() === 'smm' && (k === 0 || k === 1) ? { act: 'design-done', label: 'Send to copy check', tip: 'Skips the designer: the content team checks the copy' } : null;
-    return { go: go && may(k) ? go : null, back: backOk ? back : null, alt };
+    // THE SOCIAL MEDIA MANAGER MAY FINISH IT ALONE (2026-10-30): from any step before Ready, straight
+    // to Ready to publish, with no designer and no copy check. The log says who marked it.
+    const fin = role() === 'smm' && k < 3 ? { act: 'approved', label: 'Mark as done', tip: 'Skips the designer and the copy check: the post goes straight to Ready to publish' } : null;
+    return { go: go && may(k) ? go : null, back: backOk ? back : null, alt, fin };
   }
   // WHO IT IS WITH (2026-10-30): the person the last hand-off named (it.to), else the team
   const myEm = () => { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; };
@@ -85,6 +88,7 @@
   // the step body for a hand-off: who sent it, and the person it goes to (null: cancelled)
   async function stepBody(rs, act, sid) {
     const it = ((rs && rs.items) || []).find(x => x.sid === sid) || stage(rs).it;
+    if (act === 'approved' && !window.confirm('Mark this post done?\n\nIt skips the designer and the copy check and goes straight to Ready to publish. The log says you marked it.')) return null;
     const ho = window.providentHandOff ? await window.providentHandOff(rs, it, act) : {};
     if (!ho) return null;
     return Object.assign({ act, p: sid, by: StudioBase.shareName() || 'Someone' }, ho);
@@ -247,7 +251,9 @@
       pfTip: (rs.name || 'Post') + ' — ' + waitOf(rs, st.k) + '. Opens the post’s panel: its steps, who did what, and its Drive folder.',
       pfGo: () => this.shPanel(true),
       pfFlowOn: a.go ? '1' : undefined, pfFlowLabel: busy ? 'Saving…' : a.go ? a.go.label : '', pfFlowTip: a.go ? a.go.tip : '',
-      pfFlow: () => { if (a.go && !this._rvBusy) this.rvStep(a.go.act); }
+      pfFlow: () => { if (a.go && !this._rvBusy) this.rvStep(a.go.act); },
+      pfFinOn: a.fin ? '1' : undefined, pfFinTip: a.fin ? a.fin.tip : '',
+      pfFin: () => { if (a.fin && !this._rvBusy) this.rvStep(a.fin.act); }
     };
   };
   // the Changes panel's post section: the step, its buttons, the links
@@ -259,7 +265,7 @@
     return '<div class="pf-now"><span class="pf-k">Step ' + Math.min(st.k + 1, 4) + ' of 4</span><b>' + esc(STEPS[st.k].t) + '</b>' +
       '<span class="pf-segs">' + segs(st.k).map(g => '<i data-s="' + g.s + '" title="' + esc(g.t) + '"></i>').join('') + '</span>' +
       '<p class="pf-w">' + esc(waitOf(rs, st.k)) + (rs.ticket && rs.ticket.deadline ? ' · due ' + esc(dueDay(rs.ticket.deadline)) : '') + '</p></div>' +
-      (a.go || a.back || a.alt ? '<div class="rv-acts">' + btn(a.go, 'p-btn') + btn(a.alt, a.go ? 'p-ghost' : 'p-btn') + btn(a.back, 'p-ghost') + '</div>' : '') +
+      (a.go || a.back || a.alt || a.fin ? '<div class="rv-acts">' + btn(a.go, 'p-btn') + btn(a.alt, a.go ? 'p-ghost' : 'p-btn') + btn(a.fin, a.go || a.alt ? 'p-ghost' : 'p-btn') + btn(a.back, 'p-ghost') + '</div>' : '') +
       (who ? '<ul class="pf-who">' + who + '</ul>' : '') +
       (rs.ticket && rs.ticket.brief ? '<details class="pf-brief"><summary>Brief</summary><p>' + esc(rs.ticket.brief) + '</p></details>' : '') +
       '<p class="pf-links"><button type="button" class="pf-a" data-post-go="' + esc((rs.tok || {}).dd || '') + '">Open on Status</button>' +
@@ -695,7 +701,7 @@
         '<p>Started by ' + esc(rs.by || 'someone') + ' · ' + esc(day(rs.created)) + (x.mod ? ' · changed ' + esc(ago(x.mod)) : '') + '</p>' +
         '<div class="psd-acts">' + (sid && role() !== 'pm' ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">Open in the studio</button>'
           : (sid || role() === 'pm' || role() === 'ct' ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>')) +
-          btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.back, 'p-ghost') +
+          btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.fin, 'p-ghost') + btn(a.back, 'p-ghost') +
           (sid ? '<button type="button" class="p-ghost" data-ps="copy" data-link="' + esc(projLink(sid)) + '">Copy link</button>' : '') +
           (rs.drive ? '<a class="p-ghost" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">Drive folder</a>' : '') + '</div></div></header>' +
       '<div class="psd-cols"><div>' +
@@ -754,6 +760,9 @@
 @keyframes p-flow-spin{to{transform:rotate(360deg)}}
 .p-flow-go{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 14px;border:none;border-radius:var(--ps-pill);background:var(--ps-primary);color:var(--ps-primary-i);font:600 13.5px/1 var(--ps-font);letter-spacing:.01em;white-space:nowrap;cursor:pointer;flex:none}
 .p-flow-go:hover{background:var(--ps-primary-h)}
+.p-flow-fin{height:30px;padding:0 12px;border:none;border-radius:var(--ps-pill);background:transparent;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line);font:600 13.5px/1 var(--ps-font);white-space:nowrap;cursor:pointer;flex:none}
+.p-flow-fin:hover{background:var(--ps-fill)}
+.p-flow-fin:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-flow-gi{width:16px;height:16px;fill:currentColor;flex:none}
 .p-flow-at:focus-visible,.p-flow-go:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.p-flow[data-state="find"] .p-flow-segs::before{animation:none}}
