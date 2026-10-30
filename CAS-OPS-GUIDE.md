@@ -129,7 +129,8 @@ use your **@providentestate.com** account. What you see next depends on what the
 |---|---|
 | **Designer** | Both studios: design, export, Status. |
 | **Social media manager** | OPS: draft posts and send them to a designer. In CAS, Home and Status only. |
-| **Content team** | OPS: check a post's copy, approve it or send it back. In CAS, Home and Status only (campaign copy is checked through the content-team link, as before). |
+| **Content team · English** | OPS: check a post's copy, approve it or send it back. In CAS, Home and Status only. In a campaign's content-team link, only **Approve English copy** shows. |
+| **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Performance marketing** | **Home** (set up a campaign; the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage, no Organic posts. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. |
 | **Admin** | Everything a designer has, plus **Access** in CAS's sidebar. There is one admin. |
 
@@ -147,9 +148,15 @@ In OPS, performance marketing sees **Status** only.
 **Access (admin only).** Open **Access** in the Home sidebar. The badge counts people waiting.
 
 - **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
-  note. Pick **Designer**, **Social media manager**, **Content team** or **Performance marketing**, then press **Let in**, or **Decline**.
-- **People**: everyone with access. Change a role with its switch, or **Remove access** (they're
+  note. Pick their role from the dropdown (Designer, Social media manager, Content team · English,
+  Content team · Arabic or Performance marketing), then press **Let in**, or **Decline**.
+- **People**: everyone with access. Change a role from its dropdown, or **Remove access** (they're
   shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
+- **Preview the studio as** is a dropdown beside the tabs: choose a role (Designer, Social media
+  manager, Content team · English, Content team · Arabic, Performance marketing) to see the studio
+  as that role does. **Back to Access** ends it.
+- A content-team member who opens a link while signed in with Google sees only their language's
+  approve button. Opened without signing in, the link still shows both.
   **Add someone** lets in an @providentestate.com email before they've signed in.
 - **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
 - **Preview the studio as**: see the studio exactly as that role sees it. A bar

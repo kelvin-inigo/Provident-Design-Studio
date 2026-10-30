@@ -17962,7 +17962,7 @@ in `<head>` after `access.js`) holds it; it is CAS's ad set machinery with `kind
 
 ## The login layer covers both studios, with two new roles
 
-`ACC_ROLES` is `designer · pm · smm · ct` (`api/share.py`). `access.js` gates OPS too (`CAS`
+`ACC_ROLES` is `designer · pm · smm · ct · cten · ctar` (`api/share.py`). **The content team is two roles since 2026-10-30**: `cten` approves English copy, `ctar` the translation; `access.js`'s `role()` folds both to `'ct'` (so every `=== 'ct'` check still holds), `now().copy` is `'en'`/`'ar'`/null and `html[data-acc-copy]` carries it. A review-link tab is never gated but looks the account up quietly (`A.quiet`) when Google is signed in; share-link's `ctLangOk(it)` hides the other language's approve buttons and drops it from the queue. Legacy `ct` approves either. OPS posts do not track a language, so both approve posts. Preview as lists all five roles. `access.js` gates OPS too (`CAS`
 flag; the gate's caption and figure follow the studio) and sets **`data-acc-lim`** when the role
 is limited in THIS studio: in CAS pm, smm and ct (Home + Status, the old pm rules now keyed on
 `data-acc-lim`); in OPS pm only (Status only — OPS's shell forces `view = 'rev'`). The request

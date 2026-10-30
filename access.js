@@ -315,9 +315,13 @@
   }
   const reqs = () => ((A.list && A.list.users) || []).filter(u => u.status === 'pending');
   const people = () => ((A.list && A.list.users) || []).filter(u => u.status !== 'pending');
+  // THE ROLE IS A DROPDOWN (2026-10-30, by request): five roles side by side ran wider than the
+  // table. One select per person; each option's tooltip says what that role can do.
   function seg(name, val, sel) {
-    return '<span class="ac-seg" role="radiogroup" aria-label="Role">' + ROLES.map(k =>
-      '<button type="button" role="radio" aria-checked="' + (sel === k) + '" data-k="' + name + '" data-v="' + k + '" data-e="' + esc(val) + '"' + (sel === k ? ' data-on' : '') + ' title="' + esc(ROLE[k] + ' — ' + ROLE_SUB[k]) + '">' + SEGL[k] + '</button>').join('') + '</span>';
+    return '<span class="ac-dd"><select class="ac-sel" aria-label="Role" data-k="' + name + '" data-e="' + esc(val) + '" title="' + esc(ROLE_SUB[sel] || '') + '">' +
+      ROLES.map(k => '<option value="' + k + '"' + (sel === k ? ' selected' : '') + ' title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') +
+      (sel && ROLES.indexOf(sel) < 0 ? '<option value="' + esc(sel) + '" selected>' + esc(ROLE[sel] || sel) + '</option>' : '') +
+      '</select></span>';
   }
   const LOGW = {
     request: e => 'tried to sign in for the first time',
@@ -339,7 +343,9 @@
     const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['log', 'Activity', null]];
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
-      '<div class="ac-pv"><span>Preview the studio as</span>' + ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<button type="button" class="acx-ghost" data-ac="pv" data-v="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + ic('eye') + ROLE[k] + '</button>').join('') + '</div></div>';
+      '<div class="ac-pv"><label for="ac-pvs">Preview the studio as</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
+        '<select id="ac-pvs" class="ac-sel" data-pv="1" title="Opens the studio as that role would see it, until you end the preview"><option value="" selected disabled>Choose a role</option>' +
+        ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</select></span></div></div>';
     if (A.listErr) h += '<p class="acx-err" role="alert">' + esc(A.listErr) + '</p>';
     if (A.tab === 'req') {
       if (!R.length) h += '<div class="ac-empty">' + ic('shield') + '<b>No one is waiting</b><span>When someone signs in for the first time they show up here, with any note they leave, for you to let in or decline.</span></div>';
@@ -386,7 +392,7 @@
     if (!host) return;
     if (!A.me || !A.me.admin) { host.innerHTML = ''; return; }
     let root = host.querySelector('.ac');
-    if (!root) { root = document.createElement('div'); root.className = 'ac'; host.appendChild(root); root.addEventListener('click', onAdmin); root.addEventListener('submit', onAdmin); force = true; if (!A.list) loadList(); }
+    if (!root) { root = document.createElement('div'); root.className = 'ac'; host.appendChild(root); root.addEventListener('click', onAdmin); root.addEventListener('submit', onAdmin); root.addEventListener('change', e => { if (e.target.matches('select[data-k]')) onAdmin(e); else if (e.target.matches('select[data-pv]') && e.target.value) { const v = e.target.value; e.target.value = ''; preview(v); } }); force = true; if (!A.list) loadList(); }
     if (!force) return;
     const ae = document.activeElement, keepEm = ae && ae.id === 'ac-em' ? ae.value : null;
     root.innerHTML = adminHtml();
@@ -402,8 +408,9 @@
     const t = e.type === 'submit' ? e.target : e.target.closest('[data-ac],[data-k]');
     if (!t) return;
     if (e.type === 'submit') e.preventDefault();
-    if (t.dataset.k) {   // a role segment
-      const em = t.dataset.e, v = t.dataset.v;
+    if (t.dataset.k) {   // a role dropdown: it acts on change, never on the click that opens it
+      if (t.tagName === 'SELECT' && e.type !== 'change') return;
+      const em = t.dataset.e, v = t.tagName === 'SELECT' ? t.value : t.dataset.v;
       if (t.dataset.k === 'pick') { A.pick = Object.assign({}, A.pick, { [em]: v }); drawAdmin(true); }
       else if (t.dataset.k === 'add') { A.addRole = v; drawAdmin(true); }
       else if (t.dataset.k === 'role') change(em, 'role', v, t);
@@ -576,6 +583,9 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 .ac .ac-tabs s[data-hot]{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:9999px;background:var(--ps-warn);color:#141210}
 .ac .ac-pv{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ac .ac-pv > span{font:400 13px/1 var(--ps-font);color:var(--ps-dim);margin-right:2px}
 .ac .ac-pv .acx-ghost{height:32px;padding:0 12px;font-size:13px}
+.ac .ac-pv > label{font:400 13px/1 var(--ps-font);color:var(--ps-dim);margin-right:2px}
+.ac .ac-dd-eye > .acx-i{position:absolute;left:14px;top:50%;width:18px;height:18px;margin-top:-9px;fill:var(--ps-ink-2);pointer-events:none}
+.ac .ac-dd-eye .ac-sel{padding-left:40px;min-width:250px}
 .ac .ac-empty{display:grid;justify-items:start;gap:8px;padding:40px;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .ac .ac-empty .acx-i{width:28px;height:28px;color:var(--ps-dim);margin-bottom:4px}
 .ac .ac-empty b{font:500 17px/1.3 var(--ps-font)}.ac .ac-empty span{font:400 14px/1.55 var(--ps-font);color:var(--ps-ink-2);max-width:52ch}
@@ -589,10 +599,21 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 .ac .ac-q{display:block;margin-top:12px;padding:10px 14px;border-radius:12px;background:var(--ps-fill);font:400 14px/1.5 var(--ps-font);color:var(--ps-ink);quotes:'\\201C' '\\201D';max-width:60ch}
 .ac .ac-q::before{content:open-quote}.ac .ac-q::after{content:close-quote}
 .ac .ac-act{display:grid;justify-items:end;gap:10px}.ac .ac-lbl{font:400 12.5px/1 var(--ps-font);color:var(--ps-dim)}
+.ac .ac-dd{position:relative;display:inline-flex;align-items:center;max-width:100%}
+.ac .ac-sel{-webkit-appearance:none;appearance:none;height:36px;min-width:220px;max-width:100%;box-sizing:border-box;padding:0 38px 0 14px;border:0;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink);font:500 13.5px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}
+.ac .ac-sel:hover{background:var(--ps-fill-h)}
+.ac .ac-sel:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.ac .ac-sel:disabled{opacity:.5;cursor:default}
+.ac .ac-sel option{background:var(--ps-card);color:var(--ps-ink)}
+.ac .ac-dd::after{content:'';position:absolute;right:16px;top:50%;width:7px;height:7px;margin-top:-6px;border-right:1.5px solid var(--ps-ink-2);border-bottom:1.5px solid var(--ps-ink-2);transform:rotate(45deg);pointer-events:none}
+.ac .ac-add .ac-sel{min-width:240px}
 .ac .ac-seg{display:inline-flex;gap:2px;padding:3px;border-radius:9999px;background:var(--ps-fill)}
 .ac .ac-seg button{height:30px;padding:0 12px;border:0;border-radius:9999px;background:transparent;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;white-space:nowrap}
 .ac .ac-seg button:hover{color:var(--ps-ink)}
 .ac .ac-seg button[data-on]{background:var(--ps-accent);color:var(--ps-accent-i)}
+/* five roles: tighter in the People table, and the track wraps before it runs out of the column */
+.ac .ac-t .ac-seg{flex-wrap:nowrap;max-width:100%}@media (max-width:1279px){.ac .ac-t .ac-seg{flex-wrap:wrap;border-radius:18px}}
+.ac .ac-t td:first-child{max-width:0;width:40%}.ac .ac-t .ac-p > span{min-width:0}.ac .ac-t .ac-p b,.ac .ac-t .ac-p small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ac .ac-t .ac-seg button{padding:0 8px;font-size:12.5px}
 .ac .ac-no{color:var(--ps-ink-2)}.ac .ac-no:hover{color:var(--ps-bad);background:var(--ps-bad-q);box-shadow:none}
 .ac .ac-add{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 20px;padding:14px 16px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .ac .ac-add label{font:500 14px/1 var(--ps-font);margin-right:4px}
@@ -621,7 +642,7 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
   .ac .ac-req{grid-template-columns:auto minmax(0,1fr)}.ac .ac-act{grid-column:1/-1;justify-items:start}
   .ac .ac-t thead{display:none}.ac .ac-t tr{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:12px 0;border-bottom:1px solid var(--ps-hair)}
   .ac .ac-t td{border:0;padding:0}.ac .ac-t td:nth-child(3){display:none}.ac .ac-end{grid-column:1/-1;text-align:left}
-  .ac .ac-pv > span{display:none}
+  .ac .ac-pv > label{display:none}
 }
 `;
   const st = document.createElement('style'); st.id = 'acx-css'; st.textContent = css;
