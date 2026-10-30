@@ -295,6 +295,29 @@ The flow has three moves for the designer, and the screen always offers the next
 
 When every audience is done, performance marketing downloads the package from their link.
 
+#### Phases: Teaser, Launch, Ad Fatigue 01, Ad Fatigue 02, Sold out
+
+A campaign runs in **phases**, and each phase is its own package of every planned audience. The
+setup on Home asks which phase the ad set **starts** with (**Phase**, Launch unless you pick
+another). Most ad sets only ever need one.
+
+To add another at any point, open the ad set in **Status** and press **Add phase** beside the phase
+tabs, or tick it under **Phases** in **Ad set settings**. Each phase has its own tab with its own
+progress, audiences and **Start the English / Start the Arabic** buttons. A new phase's audiences
+start empty. **Create next audience** and **Make the Arabic** stay in the phase you are working in.
+A phase that has projects can't be dropped.
+
+On Drive, the first phase's projects stay where they always were (Market / Audience / Language).
+Each phase you add gets its own folder above that (for example `Ad Fatigue 01/Local/Family/English`).
+The content team and performance marketing see each phase's projects under "Ad Fatigue 01 · Local".
+
+#### Branded or unbranded
+
+The setup's **Branded | Unbranded** choice (also in **Ad set settings**, under **Brand**) decides
+how each new project opens. An **unbranded** ad set opens every new project on the unbranded look:
+no wordmark or QR code, with its own colours and fonts (see *Unbranded ads*). Projects already made
+keep what they have; switch them with the Provident | Unbranded switch over the stage.
+
 ### The roles, and the four steps of each audience
 
 A campaign covers every project of one ad set, for each market, audience and language, under
@@ -431,7 +454,7 @@ Open one to see its record:
   **Add to this ad set** opens that project in a new tab and asks for its market, audience and
   language, with this ad set already chosen.
 - **Ad set settings** (beside Add a project; **Ticket settings** on an open ticket): the setup form
-  again. Change the **name**, **product**, **deadline**, **brief**, the **markets** and
+  again. Change the **name**, **product**, **brand**, **phases**, **deadline**, **brief**, the **markets** and
   **audiences**, and which audiences get an **Arabic** version (**AR** on each tile). **Save
   changes** applies it for everyone on the ad set's links, and the Activity lists what changed.
   It won't drop an audience that already has a project, or switch off Arabic where there is an

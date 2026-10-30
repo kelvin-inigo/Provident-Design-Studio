@@ -18089,3 +18089,35 @@ has two people, and every hand-off asks which one.
   → Sara (both CT offered for a post); Sara saw it as hers; PM's ticket → Rizi (For you · Your turn);
   Rizi's design-done offered only Sara (English); Sara's CAS = Status with Your turn and Check the
   copy; the admin's preview as smm and End the preview. **Not exercised on the real deployment.**
+
+# AD SETS RUN IN PHASES, AND ARE BRANDED OR UNBRANDED (2026-10-30)
+
+By request. Both are on Drive ad sets only (share-link.js); the old share store has neither.
+
+- **Phases**: `PHASES` = teaser · launch · fat1 (Ad Fatigue 01) · fat2 (Ad Fatigue 02) · sold.
+  `rs.phases` (enabled), `rs.phase0` (the first, default `launch`), `it.phase` on each item.
+  **`phOf(rs, it)` is the one answer** — an item with no phase is the first phase's, so every ad
+  set made before reads as one Launch package. `phList`, `phMulti`, `phPre` (a "Launch · " prefix
+  only when there is more than one phase), `dsItemLabel` / `itemLabel` / `ctLabel` take `rs` for it.
+- **`rsAuds` keys an audience by phase|market|aud** and returns `a.phase`; `rsOverall` over a
+  filtered list is one phase. Uniqueness (dsReview's taken check, relabel) includes the phase.
+  `planTodo(rs, ph)` is per phase; `rsNext` keys are `market|aud|lang|phase`; `startCell` /
+  `rsPickCheck` carry `cell.phase`. The plan (markets × audiences × Arabic) is shared by every phase.
+- **Drive layout**: the first phase stays at Main/Market/Audience/Language; an added phase lives
+  under Main/<Phase name>/ (`dsPhRoot`, read by `dsPath` and `dsMove`), so nothing already on Drive
+  moves. `rsFolderFind` looks for the phase folder too. The PM/CT stand-in folder names the market
+  folder "Launch · Local" when there is more than one phase (`RV.pathOf`).
+- **Adding a phase**: Status › an ad set's page has a tab per phase (`AV.phTabsHtml`, `.rvd-phs`,
+  instance `phTabs` per ad set, opening on the latest phase with projects) and **Add phase**
+  (designer, Drive only) → `rsset {phases}`. Ad set settings has a Phases row. `rsset` stamps every
+  item without a phase with the first phase before changing the list, refuses to drop a phase
+  with projects, and moves `phase0` only while it holds nothing. Logged.
+- **Brand**: `rs.brand` = `provident` | `unbranded`, set on Home's setup (Branded | Unbranded) and
+  in Ad set settings (`rsset {brand}`, logged). **It only decides how NEW projects open**:
+  `SP.rsBrandApply(rs)` turns CAS's unbranded look on (strip closed) in `rsPickCheck` and in
+  `rsNext`'s blank path; the Arabic copy keeps the English project's look. Existing projects are
+  never switched. Status's Provident/Unbranded/Mixed chip still reads each project's own state.
+- Verified on the Drive stand-in: a Teaser ad set picked up, Launch added by real clicks (tab,
+  log, placeholders carrying the phase), a Launch project started into `Launch/Local/Investor/
+  English` while Teaser's stayed at Main, Create next audience staying in Launch; an unbranded ad
+  set's first project opened (and saved to Drive) with `look.on`. **Not on real Google Drive.**

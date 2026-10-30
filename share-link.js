@@ -346,10 +346,10 @@
     });
     return out.length ? { by: dsWho(by), at: dsNow(), burst: String(burst || '').slice(0, 24), changes: out } : null;
   }
-  const dsItemLabel = it => [it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project';
+  const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -458,7 +458,7 @@
       R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
       const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
         : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
-      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it), text: text + toLine }]);
+      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it, R.rs), text: text + toLine }]);
       if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
       await dsWrite(R.rid, R.rs);
       return { rs: pub() };
@@ -496,23 +496,44 @@
           rs.ticket = Object.assign({ by, at: dsNow(), files: [] }, t, { deadline: dl, brief: br });
         }
       }
+      // THE PHASES: added any time; one with projects in it cannot be dropped. Every project with
+      // no phase of its own is stamped with the first one first, so it never changes package.
+      if (Array.isArray(body.phases)) {
+        const was = phList(rs), base = phBase(rs);
+        (rs.items || []).forEach(x => { if (!PH_NAME[x.phase]) x.phase = base; });
+        rs.phase0 = base;
+        let want = PHASES.map(p => p[0]).filter(k => body.phases.indexOf(k) >= 0);
+        (rs.items || []).forEach(x => { if (want.indexOf(x.phase) < 0) want.push(x.phase); });
+        want = PHASES.map(p => p[0]).filter(k => want.indexOf(k) >= 0);
+        if (!want.length) want = [base];
+        // the first phase changes only while it holds nothing (a ticket set up as the wrong phase)
+        if (want.indexOf(base) < 0) rs.phase0 = want[0];
+        rs.phases = want;
+        want.filter(k => was.indexOf(k) < 0).forEach(k => chg.push('Added the ' + PH_NAME[k] + ' phase'));
+        was.filter(k => want.indexOf(k) < 0).forEach(k => chg.push('Dropped the ' + PH_NAME[k] + ' phase'));
+      }
+      if (body.brand === 'provident' || body.brand === 'unbranded') {
+        if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : 'Made the ad set branded — new projects open with the Provident brand');
+        rs.brand = body.brand;
+      }
       // Claude's reply, kept on the ad set so every audience (and every designer) fills from it
       if (typeof body.reply === 'string') rs.reply = body.reply.slice(0, 200000);
       if ('product' in body && AUDS[body.product] && body.product !== rs.product) { if (rs.product) chg.push('Set the product to ' + PRODUCT_NAME[body.product]); rs.product = body.product; }
       if (body.relabel) {
         const r = body.relabel, it = (rs.items || []).find(x => x.sid === r.sid);
         if (!it) throw dsFail(404, 'That project is not in this ad set.');
-        if ((rs.items || []).some(x => x.sid !== r.sid && x.market === r.market && x.aud === r.aud && x.lang === r.lang)) throw dsFail(409, 'Another project in this ad set is already ' + dsItemLabel(r) + '.');
-        const was = dsItemLabel(it);
-        await dsMove(rs, it.sid, r);
-        it.market = r.market; it.aud = r.aud; it.lang = r.lang;
-        dsLog(rs, by, [{ kind: 'step', text: 'Changed ' + was + ' to ' + dsItemLabel(it) }]);
+        const rph = PH_NAME[r.phase] ? r.phase : phOf(rs, it);
+        if ((rs.items || []).some(x => x.sid !== r.sid && phOf(rs, x) === rph && x.market === r.market && x.aud === r.aud && x.lang === r.lang)) throw dsFail(409, 'Another project in this ad set is already ' + dsItemLabel(Object.assign({}, r, { phase: rph }), rs) + '.');
+        const was = dsItemLabel(it, rs);
+        await dsMove(rs, it.sid, Object.assign({}, r, { phase: rph }));
+        it.market = r.market; it.aud = r.aud; it.lang = r.lang; it.phase = rph;
+        dsLog(rs, by, [{ kind: 'step', text: 'Changed ' + was + ' to ' + dsItemLabel(it, rs) }]);
       }
       if (body.remove) {
         const gone = (rs.items || []).find(x => x.sid === body.remove);
         rs.items = (rs.items || []).filter(x => x.sid !== body.remove);
         try { const d = await dsRead(body.remove.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(body.remove.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; }
-        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone) + ' from the ad set' }]);
+        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set' }]);
       }
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
@@ -620,7 +641,7 @@
             // (AV.heal) — the designer's tab may never have sent one
             if (!rv.thumb || (rv.thumbAt || 0) < pm - 2000) (e.stale = e.stale || []).push({ sid: it.sid, rev: rv.rev || 0, mod: pm });
             if (pm >= (e.leadMod || 0)) { e.leadMod = pm; e.lead = it.sid; }
-            if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it) })));
+            if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it, R.rs) })));
           } catch (er) { if (er.gdAuth) throw er; e.live[it.sid] = false; }
         }));
         if (full) { e.log = (R.rs.log || []).slice(-300); e.rs.hist = R.rs.hist || []; e.plog = plog; e.proj = proj; }
@@ -633,8 +654,10 @@
   const dsRand = n => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 56]).join('');
   const dsSafe = t => String(t || 'Project').replace(/[\\/:*?"<>|#%]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Project';
   // where a project lives: <Main>/<Market>/<Audience>/<English|Arabic>
-  async function dsPath(main, it) {
-    const m = await dsFolder(main, it.market || 'Market');
+  // (a phase added after the first gets its own folder above the markets: Main/<Phase>/…)
+  async function dsPhRoot(main, rs, it) { const ph = phOf(rs, it); return rs && ph !== phBase(rs) ? dsFolder(main, PH_NAME[ph]) : main; }
+  async function dsPath(main, it, rs) {
+    const m = await dsFolder(await dsPhRoot(main, rs, it), it.market || 'Market');
     const a = await dsFolder(m, it.aud || 'Audience');
     return dsFolder(a, DS_LANG[it.lang] || it.lang || 'English');
   }
@@ -642,7 +665,7 @@
   async function dsMove(rs, sid, to) {
     const m = await dsMeta(sid.slice(1)), lang = (m.parents || [])[0];
     if (!lang || !rs.folder) return;
-    const lm = await dsMeta(lang), m2 = await dsFolder(rs.folder, to.market), a2 = await dsFolder(m2, to.aud);
+    const lm = await dsMeta(lang), m2 = await dsFolder(await dsPhRoot(rs.folder, rs, to), to.market), a2 = await dsFolder(m2, to.aud);
     await dsFetch('/drive/v3/files/' + lang + '?addParents=' + a2 + '&removeParents=' + ((lm.parents || [])[0] || '') + '&supportsAllDrives=true&fields=' + DS_F,
       { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DS_LANG[to.lang] || to.lang }) });
     delete DSP[sid];
@@ -680,10 +703,10 @@
     return Object.assign({}, e.m || {}, { u });
   }
   // A new project in an ad set's folder: the folders on its path, its file, its pictures.
-  async function dsProject(main, rid, it, st, by, name, app) {
-    const lang = await dsPath(main, it);
+  async function dsProject(main, rid, it, st, by, name, app, rs) {
+    const lang = await dsPath(main, it, rs);
     const fname = dsSafe(name) + '.adstudio.json';
-    if ((await dsList(lang, fname)).length) throw dsFail(409, 'This folder already holds ' + fname + ' for ' + dsItemLabel(it) + '.');
+    if ((await dsList(lang, fname)).length) throw dsFail(409, 'This folder already holds ' + fname + ' for ' + dsItemLabel(it, rs) + '.');
     const now = dsNow();
     const doc = { app, state: st, images: {}, review: { meta: { app, name, by, created: now }, rev: 1, imgs: {}, rid,
       log: [{ by, at: now, burst: '', changes: [{ kind: 'note', text: 'Shared the project' }], rev: 1 }] } };
@@ -716,6 +739,8 @@
       // ad set will hold, and an audience planned without Arabic has nothing to translate
       if (ans.mode === 'new') {
         if (ans.plan) { rs.plan = planCells(ans.plan); rs.plan.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; }); }
+        if (ans.plan && PH_NAME[ans.plan.phase] && !(rs.items || []).length) { rs.phase0 = ans.plan.phase; rs.phases = [ans.plan.phase]; }
+        if (ans.plan && ans.plan.brand && !(rs.items || []).length) rs.brand = ans.plan.brand === 'unbranded' ? 'unbranded' : 'provident';
         const same = files.find(x => x.name === dsSetName(ans.name));
         const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
         rid = f.id; rs.rid = rid;
@@ -726,17 +751,17 @@
       if (R.role !== 'dd') throw dsFail(403, 'Only the designer adds projects to an ad set.');
       rs = R.rs; rid = R.rid;
     }
-    const it = { market: ans.market, aud: ans.aud, lang: ans.lang };
-    const taken = (rs.items || []).find(x => x.market === it.market && x.aud === it.aud && x.lang === it.lang);
+    const it = { market: ans.market, aud: ans.aud, lang: ans.lang, phase: PH_NAME[ans.phase] ? ans.phase : phBase(rs) };
+    const taken = (rs.items || []).find(x => phOf(rs, x) === it.phase && x.market === it.market && x.aud === it.aud && x.lang === it.lang);
     if (taken) {
       // the same project, opened apart from its link: reconnect it, nothing to add
       let pid = '';
       try { pid = ((await dsRead(taken.sid.slice(1), true)).state || {}).pid || ''; } catch (e) {}
       if (pid && pid === this.state.pid) return Object.assign(dsPub(rs, 'dd'), { rejoin: taken.sid });
-      throw dsFail(409, dsItemLabel(it) + ' is already in the ad set as another project. Pick another audience or language, or open that project from Review links.');
+      throw dsFail(409, dsItemLabel(it, rs) + ' is already in the ad set as another project. Pick another audience or language, or open that project from Review links.');
     }
-    dlg.busy('Saving the project into ' + [it.market, it.aud, DS_LANG[it.lang]].join(' / ') + '…', .1);
-    const sid = await dsProject(rs.folder, rid, it, st, by, name, app);
+    dlg.busy('Saving the project into ' + [phMulti(Object.assign({}, rs, { items: (rs.items || []).concat(it) })) ? PH_NAME[it.phase] : '', it.market, it.aud, DS_LANG[it.lang]].filter(Boolean).join(' / ') + '…', .1);
+    const sid = await dsProject(rs.folder, rid, it, st, by, name, app, rs);
     // the pictures, one file each, then the project's photo map
     const C = IS(), map = {}, imgs = {}, pics = this.shSlots().filter(sl => { const r = C.getRec(sl); return r && r.u; });
     let k = 0;
@@ -752,7 +777,7 @@
     if (!(rs.items || []).length && rs.ticket && !rs.picked) { rs.picked = { by, at: now }; dsLog(rs, by, [{ kind: 'step', text: 'Picked up the ticket' }]); }
     rs.items = (rs.items || []).concat(item);
     rs.hist = (rs.hist || []).concat({ act: ans.mode === 'new' ? 'start' : 'add', by, at: now, sid }).slice(-400);
-    dsLog(rs, by, [{ kind: 'step', text: (ans.mode === 'new' ? 'Started the ad set with ' : 'Added ') + dsItemLabel(item) }]);
+    dsLog(rs, by, [{ kind: 'step', text: (ans.mode === 'new' ? 'Started the ad set with ' : 'Added ') + dsItemLabel(item, rs) }]);
     try { const th = await this.rvThumb(); if (th && th.length < 120000) rs.thumb = th; } catch (e) {}
     await dsWrite(rid, rs);
     // the project's summary and picture for the archive
@@ -780,6 +805,10 @@
       ticket: { brief: String((ticket && ticket.brief) || '').slice(0, 60000), deadline: (ticket && ticket.deadline) || '', by, at: now, files: [],
         to: ticket && ticket.to && ticket.to.email ? { email: String(ticket.to.email).toLowerCase(), name: String(ticket.to.name || '') } : null } };
     cells.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; });
+    // the package the ad set starts with; more phases are added later
+    rs.phase0 = PH_NAME[plan.phase] ? plan.phase : 'launch'; rs.phases = [rs.phase0];
+    // BRANDED OR UNBRANDED: every project made in the ad set opens with the Provident look or the unbranded one
+    rs.brand = plan.brand === 'unbranded' ? 'unbranded' : 'provident';
     busy('Filing the ticket…', .12);
     const f = await dsCreate(folder.id, dsSetName(name), dsJson(rs)), rid = f.id, tok = () => 'R' + dsRand(10) + '.' + rid;
     rs.rid = rid; rs.tok = { dd: tok(), ct: tok(), pm: tok() };
@@ -823,6 +852,12 @@
     if (this.newProject) this.newProject();
     return true;
   };
+  // A new project in an unbranded ad set opens on the unbranded look (CAS's look strip, closed)
+  SP.rsBrandApply = function (rs) {
+    if (!rs || rs.brand !== 'unbranded' || !this.lookToggle || (this.state.look && this.state.look.on)) return;
+    this.lookToggle(true);
+    const S = this._lookStrip; if (S) { S.open = false; S.sync(); }
+  };
   SP.rsPickCheck = async function () {
     let g = null; try { g = JSON.parse(localStorage.getItem(PICK_KEY) || 'null'); } catch (e) {}
     if (!g || !g.dd || Date.now() - (g.at || 0) > 300000) return;
@@ -834,18 +869,19 @@
     let rs;
     try { rs = (await api('rsget', { id: g.dd })).rs; }
     catch (e) { const d = busyDlg('Pick up the ticket', ''); d.fail(e.message || String(e)); return; }
-    const todo = planTodo(rs), want = g.cell;
+    const want = g.cell, todo = planTodo(rs, want && want.phase);
     // a placeholder on the Status page names its cell; one taken since is not made twice
     if (want && !todo.some(t => t.market === want.market && t.aud === want.aud && t.lang === want.lang)) {
-      const d = busyDlg('Already made', ''); d.fail(want.market + ' · ' + want.aud + ' · ' + (want.lang === 'ARB' ? 'Arabic' : 'English') + ' already has a project in ' + (rs.name || 'this ad set') + '. Open it from Status.'); return;
+      const d = busyDlg('Already made', ''); d.fail(phPre(rs, want) + want.market + ' · ' + want.aud + ' · ' + (want.lang === 'ARB' ? 'Arabic' : 'English') + ' already has a project in ' + (rs.name || 'this ad set') + '. Open it from Status.'); return;
     }
     const next = want || todo.find(t => t.lang === 'ENG') || todo[0] || { market: 'Local', aud: (AUDS[rs.product] || AUDS.residential)[0], lang: 'ENG' };
-    const arb = next.lang === 'ARB', label = next.market + ' · ' + next.aud + (arb ? ' · Arabic' : '');
+    const arb = next.lang === 'ARB', label = phPre(rs, next) + next.market + ' · ' + next.aud + (arb ? ' · Arabic' : '');
     const dlg = busyDlg('Setting up ' + label, 'This project becomes ' + label + ' in ' + (rs.name || 'the campaign') + '.');
     try {
       this.upd(x => { x.campaign = rs.name || x.campaign; x.screen = 'copy'; if (arb) x.font = 'arabic'; return x; });
+      this.rsBrandApply(rs);
       await new Promise(r => setTimeout(r, 60));
-      const out = await this.dsReview(dlg, { mode: 'add', by: StudioBase.shareName() || 'Someone', dd: g.dd, market: next.market, aud: next.aud, lang: next.lang || 'ENG' });
+      const out = await this.dsReview(dlg, { mode: 'add', by: StudioBase.shareName() || 'Someone', dd: g.dd, market: next.market, aud: next.aud, lang: next.lang || 'ENG', phase: next.phase });
       Arch.add(out.tok.dd, out.name, out.product, true);
       // the Claude reply filed on the ticket, if any, is ready in the Ad set tab
       if (out.reply && this.brRead && !this.brRead().reply) this.brSet('reply', out.reply);
@@ -1939,6 +1975,26 @@
   const MARKETS = ['Local', 'International', 'International EUR'];
   const AUDS = { residential: ['Family', 'Investor'], commercial: ['Investor', 'Hybrid'] };
   const PRODUCT_NAME = { residential: 'Residential', commercial: 'Commercial' };
+  // ---- PHASES (2026-10-30): an ad set runs in phases, each its own package of audiences ----
+  // An ad set starts with ONE phase (rs.phases, default Launch) and the designer can add more at
+  // any time (Ad set settings, or the + tab on its Status page). Each phase holds its own project
+  // per planned market × audience × language — the plan itself is shared by every phase. A
+  // project carries its phase (it.phase); one with none belongs to the ad set's first phase
+  // (rs.phase0), so every ad set made before phases reads as one Launch package. The first phase's
+  // projects live where they always did (Main/Market/Audience/Language); every phase added after
+  // it gets its own folder (Main/<Phase>/Market/…), so nothing already on Drive moves.
+  const PHASES = [['teaser', 'Teaser'], ['launch', 'Launch'], ['fat1', 'Ad Fatigue 01'], ['fat2', 'Ad Fatigue 02'], ['sold', 'Sold out']];
+  const PH_NAME = {}; PHASES.forEach(([k, n]) => { PH_NAME[k] = n; });
+  const phBase = rs => (rs && PH_NAME[rs.phase0]) ? rs.phase0 : 'launch';
+  function phList(rs) {
+    const have = new Set([phBase(rs)].concat(((rs && rs.phases) || []).filter(k => PH_NAME[k])));
+    ((rs && rs.items) || []).forEach(it => { if (PH_NAME[it.phase]) have.add(it.phase); });
+    return PHASES.map(p => p[0]).filter(k => have.has(k));
+  }
+  const phOf = (rs, it) => (it && PH_NAME[it.phase]) ? it.phase : phBase(rs);
+  const phMulti = rs => phList(rs).length > 1;
+  // "Launch · " before a label, only when the ad set has more than one phase
+  const phPre = (rs, it) => phMulti(rs) ? PH_NAME[phOf(rs, it)] + ' · ' : '';
 
   // ---- THE CAMPAIGN PLAN: the ad set, set up on the home page before any design ----
   // A plan is { name, product, folder, by, markets[], auds[], arb: {"<market>|<aud>": true} }.
@@ -1961,17 +2017,19 @@
     try { return JSON.parse(lsGet(PLAN_LOCAL + ((rs && rs.tok) || {}).dd) || 'null') || []; } catch (e) { return []; }
   }
   // what the plan still wants: an English project per cell, an Arabic one where planned
-  function planTodo(rs) {
-    const items = (rs && rs.items) || [], has = (c, l) => items.some(x => x.market === c.market && x.aud === c.aud && (x.lang || 'ENG') === l);
+  // (per PHASE: every phase is its own package of the same plan; no phase given = the first)
+  function planTodo(rs, ph) {
+    ph = PH_NAME[ph] ? ph : phBase(rs);
+    const items = ((rs && rs.items) || []).filter(x => phOf(rs, x) === ph), has = (c, l) => items.some(x => x.market === c.market && x.aud === c.aud && (x.lang || 'ENG') === l);
     // every English version first, then the Arabic ones — the order the review runs in
     const cells = planCells(planOf(rs));
-    return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG' }))
-      .concat(cells.filter(c => c.arb && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB' })));
+    return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG', phase: ph }))
+      .concat(cells.filter(c => c.arb && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB', phase: ph })));
   }
-  function planTodoHtml(rs, busy) {
-    const todo = planTodo(rs); if (!todo.length) return '';
-    return '<div class="rv-todo"><span class="rv-k">Still to make · ' + todo.length + '</span><p>Each one starts as a copy of this design, saved into its own folder. The English versions first, then the Arabic.</p><ul>' +
-      todo.map(t => { const k = [t.market, t.aud, t.lang].join('|');
+  function planTodoHtml(rs, busy, ph) {
+    const todo = planTodo(rs, ph); if (!todo.length) return '';
+    return '<div class="rv-todo"><span class="rv-k">Still to make' + (phMulti(rs) ? ' in ' + esc(PH_NAME[todo[0].phase]) : '') + ' · ' + todo.length + '</span><p>Each one starts as a copy of this design, saved into its own folder. The English versions first, then the Arabic.</p><ul>' +
+      todo.map(t => { const k = [t.market, t.aud, t.lang, t.phase].join('|');
         return '<li><span><b>' + esc(t.market + ' · ' + t.aud) + '</b><s>' + (t.lang === 'ARB' ? 'Arabic' : 'English') + '</s></span><button type="button" class="p-ghost" data-next="' + esc(k) + '"' + (busy ? ' disabled' : '') + '>' + (busy === k ? 'Making…' : 'Make from this design') + '</button></li>'; }).join('') + '</ul></div>';
   }
   // A busy dialog for work that needs no answer (dsReview reports into it).
@@ -2003,8 +2061,10 @@
     let cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
     items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !(rs.eng_only || {})[x.market + '|' + x.aud] }); });
     items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud); if (c) c.arb = true; } });
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '' };
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb])]);
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' ? 'unbranded' : 'provident' };
+    // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
+    const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb]), d.phases, d.brand]);
     const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud))); };
     ord();
     const was = sig();
@@ -2014,8 +2074,10 @@
       '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">Saved on the ad set, for everyone who has its links.</p>' +
       '<div class="rss-q"><label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" autocomplete="off"></label>' +
       '<div class="rsp-f"><span id="rss-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rss-prod-l"></div></div>' +
+      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
+      (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
       '<div class="rsp-more"><div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="m"></div></div><div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="a"></div></div></div>' +
       '<div class="rsp-tiles" role="list"></div></div>' +
@@ -2027,12 +2089,16 @@
     const draw = () => {
       const tab = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.product === k) + '" data-prod="' + k + '"' + (d.product === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
+      const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+      if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded');
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
       $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
-      const n = cells.length + cells.filter(c => c.arb).length;
-      $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects');
+      if (phOk) $('[data-g="ph"]').innerHTML = PHASES.map(([k, l]) => { const on = d.phases.indexOf(k) >= 0, lock = on && phBusy(k);
+        return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-ph="' + k + '" title="' + esc(lock ? l + ' has projects — remove them first to drop it' : on ? 'Click to drop the ' + l + ' phase' : 'Click to add a ' + l + ' package') + '">' + (on ? PICO.tick : '') + esc(l) + '</button>'; }).join('');
+      const n = (cells.length + cells.filter(c => c.arb).length) * (phOk ? d.phases.length : 1);
+      $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (phOk && d.phases.length > 1 ? ' · ' + d.phases.length + ' phases' : '');
       $('.rsp-tiles').innerHTML = cells.map(c => {
         const k = c.market + '|' + c.aud, busy = has(c.market, c.aud), arLock = has(c.market, c.aud, 'ARB');
         return '<div class="rsp-tile" role="listitem"' + (c.arb ? ' data-ar="1"' : '') + '><div class="rsp-tt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b>' + (busy ? '<i class="rss-has">Has a project</i>' : '') + '</div>' +
@@ -2072,6 +2138,14 @@
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.x) return close(null);
         if (b.dataset.prod) return setProd(b.dataset.prod);
+        if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
+        if (b.dataset.ph) {
+          const k = b.dataset.ph, on = d.phases.indexOf(k) >= 0;
+          if (on && d.phases.length === 1) return st('Keep at least one phase.');
+          if (on && phBusy(k)) return st(PH_NAME[k] + ' has projects. Remove them first to drop the phase.');
+          d.phases = on ? d.phases.filter(x => x !== k) : PHASES.map(p => p[0]).filter(x => x === k || d.phases.indexOf(x) >= 0);
+          st(''); draw(); return;
+        }
         if (b.dataset.tg) return toggle(b.dataset.tg, b.dataset.v);
         if (b.dataset.arb) {
           const c = cells.find(x => x.market + '|' + x.aud === b.dataset.arb); if (!c) return;
@@ -2086,6 +2160,7 @@
           try {
             const p = { name: d.name, product: d.product, plan: cells.map(c => ({ market: c.market, aud: c.aud, arb: c.arb })) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
+            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
         }
@@ -2108,7 +2183,8 @@
   // new pid, the same design and pictures — saved into the next audience's folder.
   SP.rsNext = async function (key) {
     const S = this._sh; if (!S || !S.rs || !S.rs.tok || this._rsNextBusy) return;
-    const [market, aud, lang] = key.split('|'), dd = S.rs.tok.dd, label = market + ' · ' + aud + ' · ' + (lang === 'ARB' ? 'Arabic' : 'English');
+    const [market, aud, lang, kph] = key.split('|'), dd = S.rs.tok.dd, cur = (S.rs.items || []).find(x => x.sid === S.id);
+    const phase = PH_NAME[kph] ? kph : phOf(S.rs, cur), label = phPre(S.rs, { phase }) + market + ' · ' + aud + ' · ' + (lang === 'ARB' ? 'Arabic' : 'English');
     // A NEW AUDIENCE STARTS ON A BLANK CANVAS and takes its words from Claude's reply in the Ad
     // set tab; the ARABIC version is a copy of this design, since it is the same ad translated.
     const arbCopy = lang === 'ARB';
@@ -2132,6 +2208,7 @@
         this.shSlots().forEach(sl => { try { if (IS && IS.clearSlot) IS.clearSlot(sl); } catch (e) {} });
         if (this.brRead) { const b = this.brRead(); b.audSet = false; b.filled = ''; b.page = 0; b.head = 0; b.done = {}; }
         this.upd(x => Object.assign(C.defaults(), { pid, campaign: x.campaign || '', screen: 'copy' }));
+        this.rsBrandApply(S.rs);
       } else this.upd(x => { x.pid = pid; x.font = 'arabic'; return x; });
       // A NEW PROJECT NEVER KEEPS THE OLD PROJECT'S SOURCE FOLDER: binding the new pid while
       // the tab still held the English folder saved that folder as the Arabic project's own,
@@ -2141,7 +2218,7 @@
       await new Promise(res => setTimeout(res, 60));
       if (this.bindFolder) this.bindFolder();
       if (lang === 'ARB' && StudioBase.ensureFont) StudioBase.ensureFont('arabic').then(() => { try { this.forceUpdate(); } catch (e) {} });
-      const by = StudioBase.shareName() || 'Someone', ans = { mode: 'add', by, dd, market, aud, lang };
+      const by = StudioBase.shareName() || 'Someone', ans = { mode: 'add', by, dd, market, aud, lang, phase };
       if (isDs(dd)) {
         const rs = await this.dsReview(dlg, ans);
         Arch.add(rs.tok.dd, rs.name, rs.product);
@@ -2152,7 +2229,7 @@
       }
       this.shareStart(true);
       dlg.close();
-      this.rsNextDlg({ label, arb: arbCopy, oldH, oldIt, newIt: { market, aud, lang } });
+      this.rsNextDlg({ label, arb: arbCopy, oldH, oldIt, newIt: { market, aud, lang, phDir: phase !== phBase(S.rs) ? PH_NAME[phase] : '' } });
     } catch (e) { dlg.fail(e.message || String(e)); }
     this._rsNextBusy = null; try { this.rvRender(); } catch (e) {}
   };
@@ -2173,7 +2250,8 @@
     if (!oldH || !oldIt.market) return null;
     const sub = async (h, n) => { try { return await h.getDirectoryHandle(n); } catch (e) { return null; } };
     let path = null;
-    if ((await sub(oldH, oldIt.market)) || (await sub(oldH, newIt.market))) path = [newIt.market, newIt.aud, DS_LANG[newIt.lang]];
+    if (newIt.phDir && oldH.name !== newIt.phDir && (await sub(oldH, newIt.phDir))) path = [newIt.phDir, newIt.market, newIt.aud, DS_LANG[newIt.lang]];
+    else if ((await sub(oldH, oldIt.market)) || (await sub(oldH, newIt.market))) path = [newIt.market, newIt.aud, DS_LANG[newIt.lang]];
     else if (oldH.name === oldIt.market && (await sub(oldH, oldIt.aud))) path = newIt.market === oldIt.market ? [newIt.aud, DS_LANG[newIt.lang]] : null;
     else if (oldH.name === oldIt.aud && newIt.market === oldIt.market && newIt.aud === oldIt.aud) path = [DS_LANG[newIt.lang]];
     if (!path) return null;
@@ -2308,7 +2386,7 @@
   const STEP_LABELS = ['Design', 'ENG copy check', 'Translation', 'Done'];
   const day = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   const dayS = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '';
-  const itemLabel = it => [it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project';
+  const itemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   const casFile = () => encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file);
   const rsLink = id => StudioBase.shareBase() + '/' + casFile() + '#share=' + id;
 
@@ -2317,13 +2395,15 @@
   function rsAuds(rs) {
     const map = new Map();
     ((rs && rs.items) || []).forEach(it => {
-      const k = it.market || it.aud ? it.market + '|' + it.aud : 'p:' + it.sid;
-      if (!map.has(k)) map.set(k, { key: k, market: it.market || '', aud: it.aud || '', label: [it.market, it.aud].filter(Boolean).join(' · ') || 'Project', eng: null, arb: null, items: [] });
+      // an audience is one per PHASE: Launch · Local · Family and Teaser · Local · Family are two
+      const ph = phOf(rs, it), k = it.market || it.aud ? ph + '|' + it.market + '|' + it.aud : 'p:' + it.sid;
+      if (!map.has(k)) map.set(k, { key: k, phase: ph, market: it.market || '', aud: it.aud || '', label: phPre(rs, it) + ([it.market, it.aud].filter(Boolean).join(' · ') || 'Project'), eng: null, arb: null, items: [] });
       const a = map.get(k); a.items.push(it);
       if (it.lang === 'ARB') a.arb = a.arb || it; else a.eng = a.eng || it;
     });
     const mo = m => { const i = MARKETS.indexOf(m); return i < 0 ? 9 : i; };
-    const out = [...map.values()].sort((x, y) => mo(x.market) - mo(y.market) || x.aud.localeCompare(y.aud));
+    const po = p => PHASES.findIndex(x => x[0] === p);
+    const out = [...map.values()].sort((x, y) => po(x.phase) - po(y.phase) || mo(x.market) - mo(y.market) || x.aud.localeCompare(y.aud));
     out.forEach(a => {
       a.engOnly = !!((rs && rs.eng_only) || {})[a.market + '|' + a.aud];
       const e = a.eng, r = a.arb;
@@ -2383,7 +2463,7 @@
   // the designer's bypass, asked once: it skips the content team, so it says so
   const APPROVE_Q = l => 'Mark ' + (l || 'this project') + ' approved without the content team?\n\nUse this for an ad that was already signed off outside the review. It goes straight to approved, and the log says you marked it.';
   // a project as the content team sees it: "Local · Family · English"
-  const ctLabel = it => [it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : it.lang ? 'English' : ''].filter(Boolean).join(' · ') || 'Project';
+  const ctLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : it.lang ? 'English' : ''].filter(Boolean).join(' · ') || 'Project');
   // where one project stands for the content team: waiting for their check, approved, or still
   // with the designer (they can edit it, but there is nothing to approve yet)
   function ctState(it) {
@@ -2639,7 +2719,7 @@
       (it ? '<div class="rv-acts">' + itemActs(it, 'dd', this._rvBusy) + '</div>' : '') +
       '<p class="rv-sum"><span title="' + esc(all.ready ? 'Every audience is done — the package is ready for performance marketing.' : 'Audiences in this ad set that have finished every step') + '">' + (all.ready ? 'Package ready' : all.done + ' of ' + all.n + (all.n === 1 ? ' audience' : ' audiences') + ' done') + '</span>' +
       '<a href="' + esc(rsLink((rs.tok || {}).dd || '')) + '" target="_blank" rel="noopener">Open the ad set</a></p>' +
-      (rs.tok ? planTodoHtml(rs, this._rsNextBusy) : '') +
+      (rs.tok ? planTodoHtml(rs, this._rsNextBusy, phOf(rs, it)) : '') +
       (window.Notification && Notification.permission === 'default' ? '<button type="button" class="rv-ntf" data-ntf="1" title="A Chrome notification when a step changes">Notify me of changes</button>' : '');
     const m = sec.querySelector('.rv-main');
     if (m._h !== main) { m._h = main; m.innerHTML = main; }
@@ -2683,12 +2763,12 @@
   SP.adtNext = function () {
     const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null;
     if (!it) return null;
-    const arb = it.lang === 'ARB', todo = rs.tok ? planTodo(rs) : [];
+    const arb = it.lang === 'ARB', ph = phOf(rs, it), todo = rs.tok ? planTodo(rs, ph) : [];
     if (!it.design) return { act: 'design-done:' + it.sid, label: arb ? 'Send for translation check' : 'Send to copy check', tip: arb ? 'Design done: sends the Arabic to the content team to check the translation' : 'Design done: sends this audience to the content team to check the English copy' };
     const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud);
-    if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB'].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
-    if (eng) return { next: [eng.market, eng.aud, 'ENG'].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from Claude’s reply' };
-    if (ar) return { next: [ar.market, ar.aud, 'ARB'].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
+    if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
+    if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from Claude’s reply' };
+    if (ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     return null;
   };
   SP.adtRender = function () {
@@ -2706,14 +2786,14 @@
     } else {
       // Claude's reply lives on the ad set: an empty tab (a new audience, another computer) takes it
       if (rs.reply && this.brRead && !this.brRead().reply && this._adtReplied !== rs.reply) { this._adtReplied = rs.reply; setTimeout(() => this.brSet('reply', rs.reply), 0); }
-      const auds = rsAuds(rs), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
+      const ph = phOf(rs, it), auds = rsAuds(rs).filter(a => a.phase === ph), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
       const nx = this.adtNext(), done = mine && mine.done;
       const back = !it.design ? null : !it.copy ? { act: 'design-open', label: 'Back to design' } : { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check' };
       const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
         '<span>' + esc(busy && (busy === nx.act || busy === nx.next) ? 'Saving…' : nx.label) + '</span>' + PICO.go + '</button>' : '';
       const now = done ? 'Done — ready to run' : mine && mine.now ? mine.now.sub : '';
       top = '<section class="adt"><div class="adt-h"><div class="adt-ht">' +
-        '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product]].filter(Boolean).join(' · ')) + '</span>' +
+        '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product], phMulti(rs) ? PH_NAME[ph] + ' phase' : ''].filter(Boolean).join(' · ')) + '</span>' +
         '<h2>' + esc([it.market, it.aud].filter(Boolean).join(' · ') || 'This project') + ' <s>' + (arb ? 'Arabic' : 'English') + '</s></h2>' +
         '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p></div>' +
         '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
@@ -2724,17 +2804,17 @@
       const cells = planCells(planOf(rs)), byK = {};
       auds.forEach(a => { byK[a.market + '|' + a.aud] = a; });
       const keys = cells.map(c => c.market + '|' + c.aud);
-      auds.forEach(a => { if (keys.indexOf(a.key) < 0 && a.market) { keys.push(a.key); cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); } });
+      auds.forEach(a => { const ak = a.market + '|' + a.aud; if (keys.indexOf(ak) < 0 && a.market) { keys.push(ak); cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); } });
       const dd = !!(rs.tok && rs.tok.dd);
       const tiles = cells.map(c => {
-        const k = c.market + '|' + c.aud, a = byK[k], me = mine && mine.key === k, st = a ? (a.done ? 'Done' : a.now ? a.now.label : '') : 'To make';
+        const k = c.market + '|' + c.aud, a = byK[k], me = mine && mine === a, st = a ? (a.done ? 'Done' : a.now ? a.now.label : '') : 'To make';
         return '<li class="adt-au"' + (me ? ' data-me="1"' : '') + (a && a.done ? ' data-done="1"' : '') + '><div class="adt-au-t"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></div>' +
           '<span class="adt-au-s">' + (me ? 'This project' : esc(st)) + '</span>' + (a ? segHtml(a.steps) : '<span class="rv-seg rv-seg-e"></span>') +
           (dd ? '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + !!c.arb + '" data-arb="' + esc(k) + '" title="' + (c.arb ? 'Arabic version planned — click for English only' : 'English only — click to plan an Arabic version') + '">AR</button>' : '') + '</li>';
       }).join('');
       const tg = (g, v) => { const cur = g === 'markets' ? [...new Set(cells.map(c => c.market))] : [...new Set(cells.map(c => c.aud))], on = cur.indexOf(v) >= 0;
         return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
-      const audCard = '<section class="adt-card"><div class="adt-ch"><h3>Audiences <s>' + cells.length + '</s></h3>' +
+      const audCard = '<section class="adt-card"><div class="adt-ch"><h3>' + (phMulti(rs) ? esc(PH_NAME[ph]) + ' audiences' : 'Audiences') + ' <s>' + cells.length + '</s></h3>' +
         (dd ? '<button type="button" class="adt-ed adt-set" data-a="settings" title="The campaign’s name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune + '<span>Ad set settings</span></button>' : '') +
         '</div><ul class="adt-aus">' + (tiles || '<li class="shl-empty">No audiences planned.</li>') + '</ul></section>';
       const log = ((this._adtLog || {}).log || []).concat((S.log || []).filter(e => (e.changes || []).some(c => c.kind !== 'note'))).sort((a, b) => b.at - a.at);
@@ -3092,7 +3172,8 @@
     return p.cache[k];
   };
   // English first: "Family" sorts before "Family · Arabic" in the window's list
-  RV.pathOf = function (it) { return it.market && it.aud ? [it.market, it.aud + (it.lang === 'ARB' ? ' · Arabic' : '')] : ['Ad set', ((this.proj[it.sid] || {}).st || {}).campaign || 'Project']; };
+  // (with more than one phase the market folder carries it: "Launch · Local", "Teaser · Local")
+  RV.pathOf = function (it) { return it.market && it.aud ? [phPre(this.rs, it) + it.market, it.aud + (it.lang === 'ARB' ? ' · Arabic' : '')] : ['Ad set', ((this.proj[it.sid] || {}).st || {}).campaign || 'Project']; };
   RV.build = function () {
     const me = this, C = this.eng.constructor, lm = Date.now();
     const file = (nm, type, data, extra) => Object.assign({ kind: 'file', name: nm, modified: lm, live: true,
@@ -3441,19 +3522,19 @@
     const act = it => { const s = ctState(it);
       if (s.k === 'wait' || !ctLangOk(it)) return '';
       const a = s.k === 'todo' ? ['copy-done', it.lang === 'ARB' ? 'Approve translation' : 'Approve English copy', 'p-btn'] : ['copy-open', 'Reopen', 'p-ghost'];
-      return '<button type="button" class="' + a[2] + ' rvp-ap" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(s.k === 'todo' ? 'Approve the words of ' + ctLabel(it) + ' as they are now' : 'Take the approval back, to change the words again') + '">' + (s.k === 'todo' ? ico(TICK) : '') + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>'; };
+      return '<button type="button" class="' + a[2] + ' rvp-ap" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(s.k === 'todo' ? 'Approve the words of ' + ctLabel(it, this.rs) + ' as they are now' : 'Take the approval back, to change the words again') + '">' + (s.k === 'todo' ? ico(TICK) : '') + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>'; };
     let sh2;
     const cur = sh._asAll ? null : this.itemOf(sh._asSel);
     if (!cur) {
       const row = it => { const s = ctState(it);
-        return '<li data-s="' + s.dot + '"><button type="button" class="rvp-go" data-go="' + esc(goKey(it)) + '" title="Open ' + esc(ctLabel(it)) + '"><i class="rvp-ic">' + (s.k === 'done' ? ico(TICK) : '') + '</i><span><b>' + esc(ctLabel(it)) + '</b><s>' + esc(s.word + (s.when ? ' · ' + s.when : '')) + '</s></span></button>' + act(it) + '</li>'; };
+        return '<li data-s="' + s.dot + '"><button type="button" class="rvp-go" data-go="' + esc(goKey(it)) + '" title="Open ' + esc(ctLabel(it, this.rs)) + '"><i class="rvp-ic">' + (s.k === 'done' ? ico(TICK) : '') + '</i><span><b>' + esc(ctLabel(it, this.rs)) + '</b><s>' + esc(s.word + (s.when ? ' · ' + s.when : '')) + '</s></span></button>' + act(it) + '</li>'; };
       const order = q.concat(rsAuds(rs).reduce((o, a) => o.concat([a.eng].concat(a.items.filter(x => x !== a.eng))), []).filter(it => it && q.indexOf(it) < 0));
       sh2 = '<div class="rvp-all"><div class="rvp-ah"><b>' + (q.length ? q.length + (q.length === 1 ? ' project' : ' projects') + ' to check' : ok === its.length && its.length ? 'Every project is approved' : 'Nothing is waiting for you yet') + '</b><s>' + ok + ' of ' + its.length + ' approved</s></div><ul>' + order.map(row).join('') + '</ul></div>';
     } else {
       const s = ctState(cur), a = this.audOf(sh._asSel), nx = q.find(it => it !== cur);
       sh2 = '<div class="rvp-one" data-s="' + s.dot + '"><i class="rvp-ic">' + (s.k === 'done' ? ico(TICK) : '') + '</i><span class="rvp-t"><b>' + esc(s.title) + '</b><s>' + esc(s.sub) + '</s></span>' +
         (a ? segHtml(a.steps) : '') + act(cur) +
-        (nx && s.k !== 'todo' ? '<button type="button" class="' + (s.k === 'done' ? 'p-btn' : 'p-ghost') + ' rvp-nx" data-go="' + esc(goKey(nx)) + '" title="Open ' + esc(ctLabel(nx)) + ', the next project waiting for you">Next: ' + esc(ctLabel(nx)) + ico(NEXT) + '</button>' : '') + '</div>';
+        (nx && s.k !== 'todo' ? '<button type="button" class="' + (s.k === 'done' ? 'p-btn' : 'p-ghost') + ' rvp-nx" data-go="' + esc(goKey(nx)) + '" title="Open ' + esc(ctLabel(nx, this.rs)) + ', the next project waiting for you">Next: ' + esc(ctLabel(nx, this.rs)) + ico(NEXT) + '</button>' : '') + '</div>';
     }
     const st = this.strip;
     if (sh2 !== this._stripH) { this._stripH = sh2; st.innerHTML = sh2; }
@@ -3660,7 +3741,10 @@
           '<input class="rsp-name" data-f="name" maxlength="120" placeholder="Name the campaign" autocomplete="off" spellcheck="false"></label>' +
         '<div class="rsp-q">' +
           '<div class="rsp-f rsp-fp"><span class="rsp-sr" id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
+          '<div class="rsp-f rsp-fp" title="Branded: the Provident wordmark and colours. Unbranded: no wordmark or QR — each project opens on the unbranded look, its colours read from the photo."><span class="rsp-sr" id="rsp-br-l">Brand</span><div class="p-tabs rsp-prod rsp-brand" role="radiogroup" aria-labelledby="rsp-br-l"></div></div>' +
           '<label class="rsp-chip rsp-dl" title="Deadline"><span class="rsp-dlt">Deadline</span><input type="date" data-f="deadline"></label>' +
+          '<label class="rsp-chip rsp-phs" title="The package this ad set starts with. Add more phases later from the ad set’s page on Status, or its settings."><span class="rsp-dlt">Phase</span><select data-f="phase">' +
+            PHASES.map(([k, l]) => '<option value="' + k + '">' + esc(l) + '</option>').join('') + '</select></label>' +
           '<label class="rsp-chip rsp-fo" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language.">' + PICO.folder + '<span class="rsp-sr">Drive folder</span>' +
             '<input data-f="folder" placeholder="Campaigns folder (default)" autocomplete="off" spellcheck="false"></label>' +
         '</div>' +
@@ -3684,11 +3768,13 @@
         '<p class="rsp-st" aria-live="polite"></p></footer>' +
     '</section>';
     const $ = q => el.querySelector(q);
-    ['name', 'folder', 'deadline', 'brief'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
+    if (!PH_NAME[d.phase]) d.phase = 'launch';
+    ['name', 'folder', 'deadline', 'brief', 'phase'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
     $('.rsp-add input').addEventListener('change', e => { Array.from(e.target.files || []).forEach(f => { if (!this.files.some(x => x.name === f.name && x.size === f.size)) this.files.push(f); }); e.target.value = ''; this.drawFiles(); });
     el.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
       if (b.dataset.prod) this.setProd(b.dataset.prod);
+      if (b.dataset.brand) { d.brand = b.dataset.brand; this.save(); this.draw(); }
       if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
       if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
       if (b.dataset.coinA) this.coin(b.dataset.coinA, b.dataset.coinM);
@@ -3755,6 +3841,9 @@
     if (!$('.rsp-prod')) return;
     const tab = (k, l, on) => '<button type="button" role="radio" aria-checked="' + (on ? 'true' : 'false') + '" data-prod="' + k + '"' + (on ? ' data-on="1"' : '') + '>' + esc(l) + '</button>';
     $('.rsp-prod').innerHTML = tab('residential', 'Residential', d.product === 'residential') + tab('commercial', 'Commercial', d.product === 'commercial');
+    const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+    if (d.brand !== 'unbranded') d.brand = 'provident';
+    $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded');
     const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
     $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (arbN ? ' · ' + arbN + ' in Arabic' : '');
     $('.rsp-auds').innerHTML = AUDS[d.product].map(a => {
@@ -3788,7 +3877,7 @@
     if (design && this.eng.confirmDiscard && !this.eng.confirmDiscard()) return;
     const btns = this.el.querySelectorAll('.rsp-ft button'); btns.forEach(b => { b.disabled = true; });
     const cells = this.cells(), arb = {}; cells.forEach(c => { if (c.arb) arb[c.market + '|' + c.aud] = true; });
-    const plan = { name: d.name, product: d.product, folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
+    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: PH_NAME[d.phase] ? d.phase : 'launch', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
     try {
       this.busy('Signing in to Google…', .02);
       await window.providentDrive.signIn();   // first: the popup needs the click
@@ -3805,7 +3894,7 @@
       lsSet('provident-rs-folder', plan.folder);
       Arch.add(rs.tok.dd, rs.name, rs.product, true);
       // the draft is spent: the next campaign starts from the defaults, keeping the product
-      this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', arb: {}, arA: {} }); this.files = []; this.save();
+      this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', phase: 'launch', brand: 'provident', arb: {}, arA: {} }); this.files = []; this.save();
       if (design) { this.busy('Opening the first audience…', 1); pickUp(this.eng, rs.tok.dd); return; }
       this.busy('', null);
       this.done(rs);
@@ -4069,7 +4158,16 @@
       return;
     }
     const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
-    if (a === 'startcell') { const [market, aud, lang] = (t.dataset.cell || '').split('|'), dd = (this.det && this.det.dd) || this.sel; startCell(dd, { market, aud, lang }); return; }
+    if (a === 'startcell') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'), dd = (this.det && this.det.dd) || this.sel; startCell(dd, { market, aud, lang, phase: phase || undefined }); return; }
+    if (a === 'phtab') { (this.phTabs || (this.phTabs = {}))[this.sel] = t.dataset.ph; this.phMenu = false; this.draw(); const b = this.el.querySelector('.rvd-pt[aria-selected="true"]'); if (b) b.focus(); return; }
+    if (a === 'phadd') { this.phMenu = !this.phMenu; this.draw(); const f = this.el.querySelector('.rvd-pm button'); if (f) f.focus(); return; }
+    if (a === 'phnew') {
+      const rs = this.det && this.det.rs, k = t.dataset.ph; if (!rs || !PH_NAME[k]) return;
+      t.disabled = true; t.textContent = 'Adding…';
+      try { await api('rsset', { id: this.sel }, { by, phases: phList(rs).concat(k) }); this.phMenu = false; (this.phTabs || (this.phTabs = {}))[this.sel] = k; again(); }
+      catch (er) { t.disabled = false; t.textContent = PH_NAME[k]; window.alert(er.message || String(er)); }
+      return;
+    }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
     if (a === 'settings') {
@@ -4213,14 +4311,36 @@
     del: 'M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z'
   };
   const ico = (k, c) => '<svg class="' + (c || 'rva-i') + '" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + ICO[k] + '"/></svg>';
+  // The phase tabs on an ad set's page: one per package, its done/planned count, and (for the
+  // designer, on a Drive ad set) "Add phase", a menu of the phases not added yet.
+  AV.phTabsHtml = function (d, rs, phs, tab, allAuds) {
+    const plan = planCells(planOf(rs)), n = plan.length || 0;
+    const r = accRole(), canAdd = isDs(d.id) && (!r || r === 'designer' || r === 'admin');
+    const left = PHASES.filter(([k]) => phs.indexOf(k) < 0);
+    const t = phs.map(k => {
+      const au = allAuds.filter(a => a.phase === k), dn = au.filter(a => a.done).length, tot = Math.max(n, au.length);
+      const st = tot && dn === tot ? 'done' : au.length ? 'prog' : 'new';
+      return '<button type="button" role="tab" class="rvd-pt" data-a="phtab" data-ph="' + k + '" aria-selected="' + (k === tab) + '" data-s="' + st + '" title="' + esc(PH_NAME[k] + ' — ' + (au.length ? dn + ' of ' + tot + ' audiences done' : 'not started')) + '">' +
+        '<i></i>' + esc(PH_NAME[k]) + '<s>' + dn + '/' + tot + '</s></button>';
+    }).join('');
+    const add = canAdd && left.length ? '<span class="rvd-pa"><button type="button" class="rvd-pt rvd-padd" data-a="phadd" aria-expanded="' + !!this.phMenu + '" title="Add another package to this ad set — its audiences start empty, in their own Drive folder">' + ico('add') + 'Add phase</button>' +
+      (this.phMenu ? '<span class="rvd-pm" role="menu">' + left.map(([k, l]) => '<button type="button" role="menuitem" data-a="phnew" data-ph="' + k + '">' + esc(l) + '</button>').join('') + '</span>' : '') + '</span>' : '';
+    return '<div class="rvd-phs" role="tablist" aria-label="Phases">' + t + add + '</div>';
+  };
   AV.detHtml = function () {
     const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">' + ico('back') + 'All campaigns</button>';
     if (!d) return back + '<p class="rva-wait">Reading the ad set…</p>';
     if (d.auth) return back + '<div class="rva-sign"><span><b>This ad set is stored on Google Drive.</b><s>Sign in with your Provident Google account to open it. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>';
     if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || (isDs(d.id) ? 'This ad set’s Ad set.json was not found in Google Drive, or your account has no access to its folder.' : 'This ad set has no record on the share store.')) + '</p><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>';
-    const rs = d.rs || {}, auds = rsAuds(rs), all = rsOverall(auds), name = rs.name || 'Ad set';
+    const rs = d.rs || {}, name = rs.name || 'Ad set';
     const drv = rs.drive || '', url = /^https?:\/\//.test(drv), proj = d.proj || {}, live = d.live || {};
     if (isOpen(rs)) return back + this.ticketHtml(d);
+    // PHASES: a tab per package (Teaser, Launch, Ad Fatigue 01…); everything below the title is the
+    // tab's own. Opens on the latest phase that has projects.
+    const phs = phList(rs), allAuds = rsAuds(rs), tabs = this.phTabs || (this.phTabs = {});
+    const used = phs.filter(k => allAuds.some(a => a.phase === k));
+    const tab = phs.indexOf(tabs[d.id]) >= 0 ? tabs[d.id] : (used[used.length - 1] || phs[0]);
+    const auds = allAuds.filter(a => a.phase === tab), all = rsOverall(auds);
     const row = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
     const log = (d.log || []).concat((d.plog || []).filter(e => (e.changes || []).some(c => c.kind !== 'note')).map(e => Object.assign({}, e, { changes: (e.changes || []).map(c => Object.assign({}, c, { page: e.page + (c.page ? ' · ' + c.page : '') })) })))
       .sort((a, b) => b.at - a.at);
@@ -4252,11 +4372,11 @@
       })() +
       (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button></div></div>' +
-      '<div class="rvd-hs">' + steps + nowLine + '</div></header>';
+      '<div class="rvd-hs">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</div></header>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const cells = planCells(planOf(rs));
-    const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang) + '" title="Opens a new window on the Ad set tab, where you paste Claude’s reply">' +
+    const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste Claude’s reply">' +
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
@@ -4284,7 +4404,7 @@
       '<span class="rvd-aun"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></span>' +
       '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>Planned in Ad set settings — no project yet</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
       '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (c.arb ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>Not needed for this audience</s></span></div>') + '</div></li>').join('');
-    const audiences = '<section class="rvd-sec"><h3>Audiences <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
+    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(PH_NAME[tab]) + ' audiences' : 'Audiences') + ' <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
@@ -4297,7 +4417,7 @@
         '<button type="button" class="p-ghost rvd-cp" data-copy="' + esc(link) + '" title="' + esc(link) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy</span></button></li>';
     }).join('') + '</ul></section>';
     const mk = [...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ');
-    const facts = [['Product', esc(PRODUCT_NAME[rs.product] || '')], ['Markets', esc(mk)], ['Projects', (rs.items || []).length + ' across ' + auds.length + (auds.length === 1 ? ' audience' : ' audiences')],
+    const facts = [['Product', esc(PRODUCT_NAME[rs.product] || '')], ['Phases', esc(phs.map(k => PH_NAME[k]).join(', '))], ['Markets', esc(mk)], ['Projects', (rs.items || []).length + ' across ' + allAuds.length + (allAuds.length === 1 ? ' audience' : ' audiences')],
       ['Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '']].filter(f => f[1]);
     const side = '<aside class="rvd-side">' + links +
       '<section class="rvd-card"><h3>Details</h3><dl class="rva-dl">' + facts.map(f => row(f[0], f[1])).join('') + '</dl></section>' +
@@ -6255,6 +6375,29 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .sho .shl-st.bad{margin-top:12px}
 .sho .shl-acts{margin-top:20px}
 .sho[data-busy] .shl-go{display:none}
+/* PHASES (2026-10-30): a tab per package on an ad set's page, and the start phase on the setup */
+.rvd-phs{display:flex;align-items:flex-end;flex-wrap:wrap;gap:4px 22px;margin:-6px 0 22px;border-bottom:1px solid var(--ps-hair)}
+.rvd-pt{display:inline-flex;align-items:center;gap:8px;height:40px;margin:0 0 -1px;padding:0 2px;border:none;border-bottom:2px solid transparent;background:none;color:var(--ps-ink-2);font:500 14px/1 var(--ps-font);cursor:pointer;white-space:nowrap;transition:color var(--ps-motion,.15s) var(--ps-ease,ease),border-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rvd-pt:hover{color:var(--ps-ink)}
+.rvd-pt[aria-selected="true"]{color:var(--ps-ink);border-bottom-color:var(--ps-ink)}
+.rvd-pt:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px;border-radius:4px}
+.rvd-pt>i{flex:none;width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ps-dim)}
+.rvd-pt[data-s="prog"]>i{background:var(--ps-warn);box-shadow:none}
+.rvd-pt[data-s="done"]>i{background:var(--ps-good);box-shadow:none}
+.rvd-pt>s{text-decoration:none;font-weight:400;font-size:12.5px;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rvd-pa{position:relative;display:inline-flex}
+.rvd-padd{color:var(--ps-dim);font-weight:400}
+.rvd-padd svg{width:16px;height:16px;fill:currentColor}
+.rvd-pm{position:absolute;left:0;top:calc(100% + 6px);z-index:5;display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rvd-pm button{height:36px;padding:0 12px;border:none;border-radius:8px;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);text-align:left;cursor:pointer}
+.rvd-pm button:hover,.rvd-pm button:focus-visible{background:var(--ps-fill-h);outline:none}
+.rsp-phs select{height:100%;padding:0 2px;border:none;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);outline:none;cursor:pointer}
+:root:not([data-theme="light"]) .rsp-phs select{color-scheme:dark}
+.rsp-phs{cursor:pointer}
+.rss-phs{margin:4px 0 0}
+.rss-q{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rss-q .rsp-prod,.rss-q .rsp-brand{width:max-content}
+.shl-dlg-c.rss{overflow-x:hidden}
 `;
     document.head.appendChild(s);
   }
