@@ -17795,3 +17795,33 @@ By request, from screenshots. Chrome only — no artwork line changed.
   `libPickVals`' reader needs them). "How it is counted" folds under the table.
 - Verified: contrast 0 failures over all three in light and dark; real clicks on fold, lock,
   Shuffle, a row's toggle; the open dialog through name → pictures → open, and Cancel mid-load.
+
+# OPS TAKES CAS'S REDESIGN (2026-10-30, /impeccable)
+
+By request ("redesign OPS, consider all the design changes you did for CAS"). Section 47 at the
+end of OPS's sheet, plus markup and render keys. Chrome only: the one new `buildOps(` call in the
+diff is a read (thumbnails); no artwork line changed.
+
+- **The left rail is the post's pages as layers** (the user chose real thumbnails over sketches):
+  `.ol-h` heading (template name, "5 pages", the two old tips on them), then `.sn-list` — each
+  `.p-nav` row keeps its class, `data-dragsi` and grip (drag to reorder is unchanged) and shows
+  `.sn-th`, the page's own render, over name and hint; a bin (`.sn-x`, `removeOn`) replaced the ✕.
+  `.sn-list > *{flex:none}` is load-bearing: a scrolling flex column shrinks its rows otherwise.
+  The Layout / Wordmark / reel accordions sit in `.sn-foot`, pinned (hidden when empty via
+  `:has`). `addSlideLabel` lost its "+" (the button draws one).
+- **`navSync()`** renders the thumbnails: `buildOps` at .12, WebP .82, keyed per slide by
+  `gdSlideKey` with the scale term swapped, settled 350ms after the last change, run from the
+  shell's update hook in the editor. On failure it marks every page tried, never loops.
+- **Plate head = CAS section 68**: `.pv-h` (name, Editing / Edit, bin), a size row
+  (`ftHead` Feed / Reel cover, `ftRatio`), and `ftMeta` is the pixel size alone.
+  `badgeStyle` / `activateStyle` / `removeStyle` are computed and unread.
+- **Post look is an inspector** (`.p-dock-b.dk`, CAS section 67's rows): Story switch
+  (`dkStorySub`), Scrim (Opacity | Fade, a range, the colour row), Wash, Photo darkening, Photo
+  strength, Logo select, Panel colour. Needs the `.p-dock-b.dk input.dk-range` specificity: an old
+  `.p-dock-b input[type=range]{width:100%}` stretched them.
+- **Top bar**: the studio switcher and Guided | All controls are a quiet fill (CAS's nav rule);
+  Share stays the one solid button.
+- Verified: real clicks on a page row and Panel colour; contrast 0 failures over both rails' new
+  parts, the plate heads, the dock, the top and canvas bars in light (88 runs) and dark; 0
+  elevation shadows; the bar fits at 1440; phone rows 60px with the foot scrolling; guided screen
+  unchanged; no console errors. OPS's home sidebar was not given CAS's section 62 redesign.

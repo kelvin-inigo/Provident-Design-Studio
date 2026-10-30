@@ -4052,6 +4052,111 @@ select.p-in{padding-right:34px}
 /* The project browser's views share one column: the header runs full width, and every
    view under it sits in a centred 1240 column, the Review links page's own width. */
 .p-br-mn > :not(.p-br-h){max-width:1240px;margin-inline:auto;box-sizing:border-box}
+
+/* 47. OPS TAKES CAS'S REDESIGN (2026-10-30, /impeccable — "consider all the design changes you
+   did for CAS"). The same five moves CAS made, applied to OPS's own surfaces:
+   - the top bar's navigation halves (studio switcher, Guided | All controls) are a quiet fill;
+     Share stays the one solid button;
+   - the left rail is the post's pages as LAYERS: each row is the page's own render, small
+     (navSync), over its name; the list scrolls and the active page's layout stays pinned below;
+   - the plate head is a title: the page's name, "Editing" as a link-coloured word, Edit as a text
+     link, Remove as a bin; and every canvas has a size row (Feed 3:4, Story 9:16);
+   - the Post look dock is an inspector: one row per setting, one compact control on the right. */
+
+/* ── top bar: navigation is not the action ── */
+.p-top .p-seg button[data-on],.p-top .p-seg button[data-on]:hover{background:var(--ps-fill-h);color:var(--ps-ink);box-shadow:none}
+:root[data-theme="light"] .p-top .p-seg button[data-on]{background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-hair)}
+.p-top .p-seg button:not([data-on]){color:var(--ps-ink-2)}
+.p-top .p-seg button:not([data-on]):hover{color:var(--ps-ink);background:none}
+
+/* ── the left rail: the pages over the pinned layout controls ── */
+.p-rail-l{gap:0;overflow:hidden;padding-bottom:0}
+.ol-h{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;flex:none}
+.ol-h b{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ol-h b.tip,.ol-h s.tip{width:fit-content}
+.ol-h s{flex:none;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap}
+.sn-list{display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-height:120px;overflow-y:auto;margin:0 -8px;padding:0 8px 14px;scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.p-rail-l .p-nav.p-nav{position:relative;gap:4px;min-height:0;padding:0;border:0;border-radius:12px;background:none;box-shadow:none;transition:background-color var(--ps-motion) var(--ps-ease)}
+.p-rail-l .p-nav:hover{background:var(--ps-fill)}
+.p-rail-l .p-nav[data-on],.p-rail-l .p-nav[data-on]:hover{background:var(--ps-accent);box-shadow:none}
+.p-rail-l .p-nav[data-drop]{box-shadow:inset 0 0 0 2px var(--ps-link)}
+.p-rail-l .p-nav .p-grip{position:absolute;left:2px;top:50%;margin:-7px 0 0;opacity:0;transition:opacity var(--ps-motion) var(--ps-ease)}
+.p-rail-l .p-nav:hover .p-grip{opacity:1}
+.sn-b.p-nav-b{display:flex;flex-direction:row;align-items:center;gap:12px;min-width:0;padding:6px 36px 6px 14px;border-radius:12px}
+.sn-b:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.sn-th{flex:none;width:36px;height:48px;border-radius:5px;background:var(--ps-stage) center/cover no-repeat;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+:root[data-theme="light"] .sn-th{background-color:var(--ps-fill-h)}
+.sn-th[data-k="916"]{width:27px;height:48px}
+.sn-b.p-nav-b{min-height:60px;box-sizing:border-box}
+.sn-list > *{flex:none}  /* a flex column that scrolls must not shrink its rows to fit */
+.p-nav[data-on] .sn-th{box-shadow:0 0 0 1.5px var(--ps-link)}
+.sn-t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.sn-t b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sn-t s{text-decoration:none;font:400 11.5px/1.25 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-nav[data-on] .sn-t b,.p-nav[data-on] .sn-t s{color:var(--ps-accent-i)}
+.p-rail-l .p-nav .sn-x{position:absolute;right:6px;top:50%;display:flex;align-items:center;justify-content:center;width:26px;height:26px;margin-top:-13px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-ink-2);cursor:pointer}
+.sn-x svg{width:16px;height:16px;fill:currentColor}
+.p-rail-l .p-nav .sn-x:hover{background:var(--ps-fill-h);color:var(--ps-bad)}
+.p-nav[data-on] .sn-x{color:var(--ps-accent-i)}
+.sn-x:focus-visible{opacity:1;outline:2px solid var(--ps-ink);outline-offset:1px}
+.sn-add{display:flex;align-items:center;justify-content:center;gap:6px;height:40px;margin-top:6px;border:1px dashed var(--ps-line);border-radius:12px;background:none;color:var(--ps-ink-2);font:500 12.5px/1 var(--ps-font);cursor:pointer;transition:border-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.sn-add svg{width:16px;height:16px;fill:currentColor}
+.sn-add:hover{border-color:var(--ps-link);color:var(--ps-ink)}
+.sn-add:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.sn-foot{flex:none;max-height:min(440px,52vh);overflow-y:auto;margin:0 -16px;padding:0 16px 16px;border-top:1px solid var(--ps-hair);background:var(--ps-sb);scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
+.sn-foot:not(:has(details,.rcv-guiderow)){display:none}
+.sn-foot > .p-acc-ops:first-child,.p-rail-l .sn-foot > .p-acc-ops:first-of-type{border-top:0;margin-top:0}
+.p-rail-l .sn-foot .p-acc-ops{margin-top:4px;padding-top:12px}
+
+/* ── the plate head is a title ── */
+.p-plate-h.pv-h{gap:10px;min-height:32px;padding-bottom:2px;border-bottom:1px solid var(--ps-hair)}
+.p-plate-h.pv-h > *{border-radius:0}
+.pv-t{font:600 15px/1.2 var(--ps-font);color:var(--ps-ink);letter-spacing:-.005em}
+.pv-st{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--ps-font);color:var(--ps-link)}
+.pv-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-plate-h .pv-ed{background:none;border:0;padding:4px 2px;font:500 12px/1 var(--ps-font);color:var(--ps-ink-2);cursor:pointer;text-decoration:underline;text-decoration-color:var(--ps-line);text-underline-offset:3px}
+.p-plate-h .pv-ed:hover{color:var(--ps-ink);text-decoration-color:currentColor}
+.p-plate-h .pv-rm{margin-left:auto;border-radius:var(--ps-pill)}
+.p-plate-h .pv-rm:hover{color:var(--ps-bad)}
+.p-plate-h.pv-h + .p-szh{margin-top:2px}
+.p-plate .p-meta{font-weight:400;font-variant-numeric:tabular-nums}
+
+/* ── the Post look dock is an inspector (CAS section 67) ── */
+.p-dock-b.dk{width:360px;max-width:calc(100vw - 32px);box-sizing:border-box;padding:0;overflow-y:auto}
+.p-dock-b.dk > *{border-bottom:1px solid var(--ps-hair)}
+.p-dock-b.dk > :last-child{border-bottom:0}
+.dk-h{display:flex;align-items:center;gap:10px;padding:14px 16px 12px}
+.dk-ht{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dk-ht b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink)}
+.dk-ht s{font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.dk-i{flex:none}
+.lm-l{display:flex;flex-direction:column;gap:3px;min-width:0;font:500 13px/1.2 var(--ps-font);color:var(--ps-ink)}
+.lm-l > s,.lm-l s{text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.lm-l .tip,.dk-tl{width:fit-content}
+.lm-seg{display:flex;flex:none;gap:2px;width:186px;padding:3px;box-sizing:border-box;border-radius:9999px;background:var(--ps-fill)}
+.lm-seg > button{display:flex;flex:1;align-items:center;justify-content:center;min-width:0;height:28px;padding:0 4px;border:0;border-radius:9999px;background:none;color:var(--ps-ink-2);font:500 12.5px/1 var(--ps-font);white-space:nowrap;cursor:pointer}
+.lm-seg > button:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.lm-seg > button[data-on],.lm-seg > button[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);box-shadow:none}
+.lm-seg > button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.lm-seg .p-dotc{width:10px;height:10px;margin-right:6px}
+.dk-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:56px;padding:10px 16px;box-sizing:border-box}
+button.dk-row{width:100%;margin:0;border-left:0;border-right:0;border-top:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+button.dk-row:hover{background:var(--ps-fill)}
+button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
+.dk-sw:hover .p-tgl-s{background:var(--ps-line)}
+.dk-sw[data-on] .p-tgl-s,.dk-sw[data-on]:hover .p-tgl-s{background:var(--ps-link)}
+.dk-sw[data-on] .p-tgl-s::after{transform:translateX(16px)}
+.dk-blk > .dk-row{min-height:52px}
+.dk-body{display:flex;flex-direction:column;gap:2px;padding:0 16px 12px}
+.dk-sub{min-height:44px;padding:6px 0}
+.dk-sub .lm-l{font-size:12.5px;color:var(--ps-ink-2)}
+.dk-seg{width:196px}
+.p-dock-b.dk input.dk-range{flex:none;width:150px;margin:0}
+.dk-row > .lm-l{flex:1}
+.dk-sel{flex:none;width:196px;height:36px}
+.dk-col{flex-direction:column;align-items:stretch;gap:8px}
+.dk-colr{margin:0}
+@media (prefers-reduced-motion:reduce){.p-rail-l .p-nav .p-grip,.sn-add{transition:none}}
 </style>
 </helmet>
 
@@ -4373,21 +4478,27 @@ select.p-in{padding-right:34px}
      ═════════════════════════════════════════════════════════════════════ -->
 
 <aside class="p-rail p-rail-l" data-open="{{ shPanelOnPalette }}">
-  <div class="p-cap p-ops-tpl">Template <s>{{ tplLabel }}</s> <span class="tip p-info" data-tip="{{ tplFoot }}">i</span></div>
-  <div class="p-cap p-ops-sl">Slides <s>{{ slideCount }}</s> <span class="tip p-info" data-tip="{{ slidesTip }}">i</span></div>
+  <!-- THE POST'S PAGES, AS THE POST (2026-10-30, /impeccable — CAS's layers list, applied to
+       OPS). The template is the heading; each page is a row with its own render, small, over its
+       name; the list scrolls on its own and the active page's layout controls stay pinned at the
+       foot, as CAS pins its library. -->
+  <div class="ol-h sn-h"><b class="tip" data-tip="{{ tplFoot }}">{{ tplLabel }}</b><s class="tip" data-tip="{{ slidesTip }}">{{ slideCountLabel }}</s></div>
+  <div class="sn-list">
   <sc-for list="{{ slideNav }}" as="n" hint-placeholder-count="3">
     <div class="p-nav" data-on="{{ n.on }}" data-dragsi="{{ n.dragSi }}" data-drop="{{ n.dropOn }}">
       <sc-if value="{{ n.gripOn }}" hint-placeholder-val="{{ false }}"><svg class="p-grip" viewBox="0 -960 960 960" aria-hidden="true"><path d="M360-175.39q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm-240-240q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Zm240 0q-26.65 0-45.63-18.98-18.98-18.98-18.98-45.63 0-26.65 18.98-45.63 18.98-18.98 45.63-18.98 26.65 0 45.63 18.98 18.98 18.98 18.98 45.63 0 26.65-18.98 45.63-18.98 18.98-45.63 18.98Z"/></svg></sc-if>
-      <button onClick="{{ n.activate }}" class="p-nav-b">
-        <span style="{{ n.nameStyle }}">{{ n.label }}</span>
-        <span class="p-hint">{{ n.hint }}</span>
+      <button onClick="{{ n.activate }}" class="p-nav-b sn-b" aria-current="{{ n.aria }}">
+        <span class="sn-th" data-k="{{ n.shape }}" style="{{ n.thumb }}"></span>
+        <span class="sn-t"><b>{{ n.label }}</b><s>{{ n.hint }}</s></span>
       </button>
-      <button onClick="{{ n.remove }}" class="p-nav-x" style="{{ n.removeStyle }}">✕</button>
+      <sc-if value="{{ n.removeOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ n.remove }}" class="p-nav-x sn-x" title="{{ n.removeTip }}" aria-label="{{ n.removeTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg></button></sc-if>
     </div>
   </sc-for>
   <sc-if value="{{ canAddSlide }}" hint-placeholder-val="{{ false }}">
-    <button onClick="{{ addSlide }}" class="p-dash">{{ addSlideLabel }}</button>
+    <button onClick="{{ addSlide }}" class="sn-add"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-450H230q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q217.25-510 230-510h220v-220q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-742.75 510-730v220h220q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q742.75-450 730-450H510v220q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-217.25 450-230v-220Z"/></svg>{{ addSlideLabel }}</button>
   </sc-if>
+  </div>
+  <div class="sn-foot">
   <!-- THE CAROUSEL'S LAYOUT PRESETS, for the active page. A tile is a skeleton of where
        that layout puts its copy; the active page's layout is the filled one. -->
   <sc-if value="{{ csOn }}" hint-placeholder-val="{{ false }}">
@@ -4453,6 +4564,7 @@ select.p-in{padding-right:34px}
     </details>
     <div class="rcv-guiderow"><span class="p-lab">4:5 guide <span class="tip p-info" data-tip="A Reel cover is cropped to 4:5 in the profile grid and the feed. The export is never marked; the guide is only on screen.">i</span></span><button onClick="{{ rcvGuideRailSet }}" class="gd-switch" role="switch" data-on="{{ rcvGuideRailOn }}" title="Show or hide the 4:5 box the grid and the feed crop a Reel cover to"><i></i></button></div>
   </sc-if>
+  </div>
 </aside>
 
 <div class="p-stagecol">
@@ -4469,11 +4581,13 @@ select.p-in{padding-right:34px}
 <main class="p-stage">
   <sc-for list="{{ slideViews }}" as="sl" hint-placeholder-count="0">
     <div class="p-plate">
-      <div class="p-plate-h">
-        <span style="{{ sl.badgeStyle }}">{{ sl.badge }}</span>
-        <button onClick="{{ sl.activate }}" style="{{ sl.activateStyle }}">{{ sl.activateLabel }}</button>
-        <button onClick="{{ sl.remove }}" style="{{ sl.removeStyle }}">Remove</button>
+      <div class="p-plate-h pv-h" data-on="{{ sl.activeOn }}">
+        <b class="pv-t">{{ sl.badge }}</b>
+        <sc-if value="{{ sl.activeOn }}" hint-placeholder-val="{{ false }}"><span class="pv-st">Editing</span></sc-if>
+        <sc-if value="{{ sl.editOn }}" hint-placeholder-val="{{ false }}"><button class="pv-ed" onClick="{{ sl.activate }}" title="Edit this page in the rails">Edit</button></sc-if>
+        <sc-if value="{{ sl.removeOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb pv-rm" onClick="{{ sl.remove }}" title="{{ sl.removeTip }}" aria-label="{{ sl.removeTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg></button></sc-if>
       </div>
+      <div class="p-szh"><b>{{ sl.ftHead }}</b><i>{{ sl.ftRatio }}</i></div>
 
       <div onClick="{{ sl.activate }}" style="{{ sl.ft.canvasStyle }}">
         <!-- The photo's WINDOW. The image-slot stays the drop target and the
@@ -4825,7 +4939,7 @@ select.p-in{padding-right:34px}
         <sc-if value="{{ sl.qrOn }}" hint-placeholder-val="{{ false }}"><div class="qrbox" style="{{ sl.st.qrStyle }}"><image-slot id="{{ sl.qrId }}" data-noreframe="1" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
         <sc-for list="{{ sl.st.wkListnoLines }}" as="ll" hint-placeholder-count="0"><div style="{{ ll.style }}">{{ ll.t }}</div></sc-for>
       </div>
-      <span class="p-meta">1080 × 1920 · story</span>
+      <span class="p-meta">1080 × 1920</span>
       </sc-if>
     </div>
   </sc-for>
@@ -4838,62 +4952,42 @@ select.p-in{padding-right:34px}
 <div class="p-dock">
   <div class="p-dock-in">
     <sc-if value="{{ shDockOn }}" hint-placeholder-val="{{ false }}">
-      <div class="p-dock-b">
-        <div class="p-cap p-shd"><span class="p-shd-t">Post look <span class="tip p-info" data-tip="These settings reach every page of the post. The page’s own copy and pictures are in the rail on the right — This page, under the canvas, takes you there.">i</span></span></div>
+      <!-- THE POST LOOK IS AN INSPECTOR (2026-10-30, /impeccable — CAS's all-variants dock):
+           one row per setting, its name and state on the left, ONE compact control on the
+           right; every explanation is a tooltip. -->
+      <div class="p-dock-b dk" role="dialog" aria-label="Post look">
+        <div class="dk-h"><span class="dk-ht"><b>Post look</b><s>Applies to every page</s></span><span class="tip p-info dk-i" data-tip="These settings reach every page of the post. The page’s own copy and pictures are in the rail on the right — This page, under the canvas, takes you there.">i</span></div>
         <sc-if value="{{ storyBtnOn }}" hint-placeholder-val="{{ true }}">
-          <div class="p-grp-w">
-            <button onClick="{{ toggleStory }}" class="p-tgl" role="switch" aria-checked="{{ storyAria }}" data-on="{{ storyOnFlag }}"><span class="p-tgl-t"><b>Story 9:16</b><s>{{ storyHint }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
-          </div>
+          <button onClick="{{ toggleStory }}" class="dk-row dk-sw" role="switch" aria-checked="{{ storyAria }}" data-on="{{ storyOnFlag }}"><span class="lm-l">Story 9:16<s>{{ dkStorySub }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
         </sc-if>
         <sc-if value="{{ csScrimOn }}" hint-placeholder-val="{{ false }}">
-          <div class="p-grp-w">
-            <span class="p-lab">Scrim <s>{{ csScrimSummary }}</s> <span class="tip p-info" data-tip="{{ csScrimTip }}">i</span></span>
-            <div class="p-tabs">
-              <button onClick="{{ csScrimTabOpacity }}" data-on="{{ csScrimTabOpacityOn }}">Opacity</button>
-              <button onClick="{{ csScrimTabFade }}" data-on="{{ csScrimTabFadeOn }}">Fade</button>
-            </div>
-            <input type="range" min="0" max="100" step="5" value="{{ csScrimTabVal }}" onChange="{{ onCsScrimTab }}" aria-label="{{ csScrimTabName }}">
-            <span class="p-lab p-lab-2">Colour <s>{{ csScrimHexVal }}</s></span>
-            <div class="p-colr">
-            <div class="p-swrow">
-              <sc-for list="{{ csScrimSwatches }}" as="sw" hint-placeholder-count="6"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" title="{{ sw.label }}"></button></sc-for>
-            </div>
-            <div class="p-hexwrap">
-              <span class="p-chip" style="{{ csScrimChipStyle }}"></span>
-              <input value="{{ csScrimHexVal }}" onChange="{{ onCsScrimHex }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="#1A2942">
-            </div>
+          <div class="dk-blk" data-on="1">
+            <div class="dk-row"><span class="lm-l"><span class="tip dk-tl" data-tip="{{ csScrimTip }}">Scrim</span><s>{{ csScrimSummary }}</s></span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Scrim setting"><button onClick="{{ csScrimTabOpacity }}" data-on="{{ csScrimTabOpacityOn }}" role="radio">Opacity</button><button onClick="{{ csScrimTabFade }}" data-on="{{ csScrimTabFadeOn }}" role="radio">Fade</button></div></div>
+            <div class="dk-body">
+              <div class="dk-row dk-sub"><span class="lm-l">{{ csScrimTabName }}<s>{{ csScrimTabVal }}%</s></span><input class="dk-range" type="range" min="0" max="100" step="5" value="{{ csScrimTabVal }}" onChange="{{ onCsScrimTab }}" aria-label="{{ csScrimTabName }}"></div>
+              <div class="dk-row dk-sub dk-col"><span class="lm-l">Colour<s>{{ csScrimHexVal }}</s></span>
+                <div class="p-colr dk-colr">
+                  <div class="p-swrow"><sc-for list="{{ csScrimSwatches }}" as="sw" hint-placeholder-count="6"><button onClick="{{ sw.set }}" class="p-sw" style="{{ sw.style }}" title="{{ sw.label }}"></button></sc-for></div>
+                  <div class="p-hexwrap"><input value="{{ csScrimHexVal }}" onChange="{{ onCsScrimHex }}" maxlength="7" spellcheck="false" class="p-in p-in-s p-hexin" placeholder="#1A2942" aria-label="Scrim colour"></div>
+                </div>
+              </div>
             </div>
           </div>
         </sc-if>
         <sc-if value="{{ scrimAllowed }}" hint-placeholder-val="{{ false }}">
-          <div class="p-grp-w">
-            <span class="p-lab">Wash strength <s>{{ scrimH }}%</s> <span class="tip p-info" data-tip="The dark wash behind the words, so they stay readable over the photo. Lower it until the photo comes through; raise it if the text is fighting the image.">i</span></span>
-            <input type="range" min="0" max="100" step="5" value="{{ scrimH }}" onChange="{{ onScrimH }}" aria-label="Wash strength">
-          </div>
+          <div class="dk-row"><span class="lm-l"><span class="tip dk-tl" data-tip="The dark wash behind the words, so they stay readable over the photo. Lower it until the photo comes through; raise it if the text is fighting the image.">Wash</span><s>{{ scrimH }}%</s></span><input class="dk-range" type="range" min="0" max="100" step="5" value="{{ scrimH }}" onChange="{{ onScrimH }}" aria-label="Wash strength"></div>
         </sc-if>
         <sc-if value="{{ shadeAllowed }}" hint-placeholder-val="{{ false }}">
-          <div class="p-grp-w">
-            <span class="p-lab">Photo darkening <s>{{ shadeVal }}%</s> <span class="tip p-info" data-tip="A black scrim at the top and the bottom of the photo — behind the status, and under the panel — leaving the middle clear. 0 leaves the photograph untouched.">i</span></span>
-            <input type="range" min="0" max="100" step="5" value="{{ shadeVal }}" onChange="{{ onShade }}" aria-label="Photo darkening">
-          </div>
+          <div class="dk-row"><span class="lm-l"><span class="tip dk-tl" data-tip="A black scrim at the top and the bottom of the photo — behind the status, and under the panel — leaving the middle clear. 0 leaves the photograph untouched.">Photo darkening</span><s>{{ shadeVal }}%</s></span><input class="dk-range" type="range" min="0" max="100" step="5" value="{{ shadeVal }}" onChange="{{ onShade }}" aria-label="Photo darkening"></div>
         </sc-if>
         <sc-if value="{{ imgOAllowed }}" hint-placeholder-val="{{ false }}">
-          <div class="p-grp-w">
-            <span class="p-lab">Photo strength <s>{{ imgOVal }}%</s> <span class="tip p-info" data-tip="How much of the photo shows through. Pull it down for a quieter, more typographic card.">i</span></span>
-            <input type="range" min="10" max="100" step="5" value="{{ imgOVal }}" onChange="{{ onImgO }}" aria-label="Photo strength">
-          </div>
+          <div class="dk-row"><span class="lm-l"><span class="tip dk-tl" data-tip="How much of the photo shows through. Pull it down for a quieter, more typographic card.">Photo strength</span><s>{{ imgOVal }}%</s></span><input class="dk-range" type="range" min="10" max="100" step="5" value="{{ imgOVal }}" onChange="{{ onImgO }}" aria-label="Photo strength"></div>
         </sc-if>
         <sc-if value="{{ csBrandOn }}" hint-placeholder-val="{{ false }}">
-        <div class="p-grp-w">
-          <span class="p-lab">Logo <span class="tip p-info" data-tip="{{ csBrandTip }}">i</span></span>
-          <select value="{{ csBrandVal }}" onChange="{{ csBrandSet }}" class="p-in p-in-s" aria-label="Logo"><sc-for list="{{ csBrandOpts }}" as="bo" hint-placeholder-count="4"><option value="{{ bo.v }}">{{ bo.label }}</option></sc-for></select>
-        </div>
+          <div class="dk-row"><span class="lm-l"><span class="tip dk-tl" data-tip="{{ csBrandTip }}">Logo</span></span><select value="{{ csBrandVal }}" onChange="{{ csBrandSet }}" class="p-in p-in-s dk-sel" aria-label="Logo"><sc-for list="{{ csBrandOpts }}" as="bo" hint-placeholder-count="4"><option value="{{ bo.v }}">{{ bo.label }}</option></sc-for></select></div>
         </sc-if>
         <sc-if value="{{ glassAllowed }}" hint-placeholder-val="{{ true }}">
-        <div class="p-grp-w">
-          <span class="p-lab">Panel colour <span class="tip p-info" data-tip="{{ glassTip }}">i</span></span>
-          <div class="p-tabs"><sc-for list="{{ glassOpts }}" as="go" hint-placeholder-count="2"><button onClick="{{ go.set }}" data-on="{{ go.on }}"><i class="p-dotc" style="{{ go.dot }}"></i>{{ go.label }}</button></sc-for></div>
-        </div>
+          <div class="dk-row"><span class="lm-l"><span class="tip dk-tl" data-tip="{{ glassTip }}">Panel colour</span></span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Panel colour"><sc-for list="{{ glassOpts }}" as="go" hint-placeholder-count="2"><button onClick="{{ go.set }}" data-on="{{ go.on }}" role="radio"><i class="p-dotc" style="{{ go.dot }}"></i>{{ go.label }}</button></sc-for></div></div>
         </sc-if>
       </div>
     </sc-if>
@@ -12757,6 +12851,41 @@ class OrganicStudio extends StudioBase {
     this.forceUpdate();
   }
   gdShots() { return this._gdShots || {}; }
+  // THE LEFT RAIL'S PAGE THUMBNAILS (2026-10-30). Each row shows its page's own render, small —
+  // the export's buildOps at .12, keyed per slide exactly as the guided cards are (gdSlideKey,
+  // with the scale term swapped), so one keystroke re-encodes one thumbnail. Settled 350ms after
+  // the last change so typing never waits on it; the first pass runs at once.
+  navSync() {
+    if (this._navBusy || this._navT) return;
+    const st = this.state, n = (st.slides || []).length;
+    const keys = this._navKeys || {};
+    let stale = false;
+    for (let i = 0; i < n; i++) if (keys[i] !== this.gdSlideKey(i).replace(/^[^|]*/, 'nav')) { stale = true; break; }
+    if (!stale && Object.keys(this._navShots || {}).length <= n) return;
+    this._navT = setTimeout(async () => {
+      this._navT = null; this._navBusy = true;
+      try {
+        const st2 = this.state, mk = OrganicStudio.mainSize(st2), m = (st2.slides || []).length;
+        const assets = await this.loadAssets(st2, mk);
+        const out = Object.assign({}, this._navShots || {}), ks = Object.assign({}, this._navKeys || {});
+        for (let i = 0; i < m; i++) {
+          const k = this.gdSlideKey(i).replace(/^[^|]*/, 'nav');
+          if (ks[i] === k && out[i]) continue;
+          out[i] = this.renderOpsToCanvas(this.buildOps(st2, i, mk, assets), .12).toDataURL('image/webp', .82);
+          ks[i] = k;
+        }
+        Object.keys(out).forEach(i => { if (+i >= m) { delete out[i]; delete ks[i]; } });
+        this._navShots = out; this._navKeys = ks;
+      } catch (e) {
+        // never retry in a loop: mark every page as tried until something changes
+        console.warn('[provident] page thumbnails failed', e);
+        const ks = {}; (this.state.slides || []).forEach((z, i) => { ks[i] = this.gdSlideKey(i).replace(/^[^|]*/, 'nav'); });
+        this._navKeys = ks;
+      }
+      this._navBusy = false;
+      this.forceUpdate();
+    }, this._navShots ? 350 : 0);
+  }
   // One ask, as the input column renders it. Everything the markup needs for a single
   // question lives here so the chunk loop can build several at once — the screen used to
   // render exactly one of these and page between them.
@@ -15187,6 +15316,12 @@ class OrganicStudio extends StudioBase {
         badgeStyle: { background: s.activeSi === si ? 'var(--ps-accent)' : 'var(--ps-fill-h)', color: s.activeSi === si ? 'var(--ps-accent-i)' : 'var(--ps-ink)', fontWeight: 500, fontSize: '12px', letterSpacing: 'normal', padding: '4px 12px', borderRadius: 'var(--ps-pill)' },
         activate: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { x.activeSi = si; return x; }); },
         activateLabel: s.activeSi === si ? 'Editing' : 'Edit',
+        activeOn: s.activeSi === si ? '1' : undefined,
+        editOn: s.activeSi === si ? undefined : '1',
+        removeOn: canRemove(si) ? '1' : undefined,
+        removeTip: 'Remove ' + this.sLabel(si),
+        ftHead: rcv ? 'Reel cover' : 'Feed',
+        ftRatio: rcv ? '9:16' : '3:4',
         activateStyle: { background: s.activeSi === si ? 'var(--ps-ink)' : 'transparent', color: s.activeSi === si ? 'var(--ps-app)' : 'var(--ps-ink-2)', border: '1px solid ' + (s.activeSi === si ? 'transparent' : 'var(--ps-line)'), borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
         remove: mkRemove(si),
         removeStyle: { display: canRemove(si) ? 'block' : 'none', background: 'transparent', color: 'var(--ps-ink-2)', border: '1px solid var(--ps-line)', borderRadius: 'var(--ps-pill)', padding: '4px 14px', fontWeight: 500, fontSize: '12px', cursor: 'pointer' },
@@ -15259,7 +15394,7 @@ class OrganicStudio extends StudioBase {
         rAgentRole: String(f.agentRole || '').toUpperCase(),
         ft: main,
         st: rcv ? main : mkCanvas(si, 'st'),
-        ftMeta: rcv ? '1080 \u00d7 1920 \u00b7 Reel cover 9:16' : '1080 \u00d7 1440 \u00b7 feed 3:4'
+        ftMeta: rcv ? '1080 \u00d7 1920' : '1080 \u00d7 1440'
       };
     });
 
@@ -15466,6 +15601,12 @@ class OrganicStudio extends StudioBase {
       gripOn: this.canMoveSlide(si) ? '1' : undefined,
       dropOn: (this._dragSi != null && this._dragOver === si && this._dragSi !== si) ? '1' : undefined,
       remove: mkRemove(si),
+      // the page's own render, small (navSync) — a skeleton until the first one lands
+      shape: sl.kind === 'rcover' ? '916' : '34',
+      thumb: (this._navShots && this._navShots[si]) ? { backgroundImage: 'url(' + this._navShots[si] + ')' } : {},
+      aria: s.activeSi === si ? 'page' : undefined,
+      removeOn: canRemove(si) ? '1' : undefined,
+      removeTip: 'Remove ' + this.sLabel(si),
       // #B3261E is the LIGHT-mode error red; on the dark rail it read as a muddy smudge,
       // and it could not follow the theme at all. --ps-bad is the themed pair.
       removeStyle: { display: canRemove(si) ? 'block' : 'none', background: 'transparent', border: 'none', color: 'var(--ps-bad)', fontSize: '12px', cursor: 'pointer', flex: 'none' }
@@ -15990,6 +16131,8 @@ class OrganicStudio extends StudioBase {
         (OrganicStudio.coarse() ? 'tap an empty photo on the card to add one.' : 'drop photos straight onto the canvases.'),
       slidesHint: OrganicStudio.tapWord() + ' to edit',
       slideCount: String((s.slides || []).length),
+      slideCountLabel: (s.slides || []).length + ((s.slides || []).length === 1 ? ' page' : ' pages'),
+      dkStorySub: s.storyOn ? 'Feed and story' : 'Feed only',
       slidesTip: OrganicStudio.tapWord() + ' a slide to edit it.' + ((s.tpl === 'carousel' || s.tpl === 'agents')
         ? ' ' + (OrganicStudio.coarse() ? 'Hold ' : 'Drag ') + (s.tpl === 'agents'
           ? (OrganicStudio.coarse() ? 'a rank, then drag it to reorder' : 'a rank to reorder') + ' \u2014 the order is the ranking. The cover stays first.'
@@ -15997,7 +16140,7 @@ class OrganicStudio extends StudioBase {
       canAddSlide: (s.tpl === 'weekly' && propCount < OrganicStudio.TPLGROW.weekly)
         || (s.tpl === 'review' && revCount < OrganicStudio.TPLGROW.review)
         || (s.tpl === 'carousel' && s.slides.length < OrganicStudio.TPLGROW.carousel),
-      addSlideLabel: s.tpl === 'review' ? '+ Add review slide' : (s.tpl === 'carousel' ? '+ Add page' : '+ Add property slide'),
+      addSlideLabel: s.tpl === 'review' ? 'Add review slide' : (s.tpl === 'carousel' ? 'Add page' : 'Add property slide'),
       // ── THE REEL THUMBNAIL'S PICKERS, read by the guided run's Layout section AND by the left
       // rail in the editor — one set of keys, because the template has exactly one slide. The
       // layout tiles are real renders (`rcvSync`); the size tiles light the size ASKED for and
@@ -16677,6 +16820,7 @@ class Component extends DCLogic {
       // rail in the editor too, so its dropdowns are seeded there as well.
       if (a2.gdSeedSelect) a2.gdSeedSelect();
       if (a2.state.screen === 'guide' && a2.gdSync) a2.gdSync();
+      if (a2.state.screen === 'editor' && a2.navSync) a2.navSync();
     }
     this._tplTick(a2);
     this._rcvTick(a2);

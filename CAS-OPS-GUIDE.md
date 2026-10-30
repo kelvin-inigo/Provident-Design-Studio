@@ -895,18 +895,24 @@ bottom.
 ## 10. OPS: All controls
 
 This is the full editor.
-- **Left rail:** the **Template** and the list of slides. Click a slide to edit it; add pages
-  where the template allows. Hover the **i** beside Template or Slides for how they work. A
-  slide's **✕** shows when you point at the slide (or on the slide you are editing).
+- **Left rail:** the template's name, then the post's pages, each shown as a small picture of
+  the page over its name. Click a page to edit it; add pages with **Add page** (or **Add
+  property slide** / **Add review slide**) where the template allows. Hover the template's name
+  or the page count for how they work. The **bin** at a page's right removes it, where the
+  template allows. The list scrolls on its own; the page's layout controls stay at the foot.
   - On a carousel, **Layout** (the page's layout) and **Wordmark** (Hide / Top / Bottom) fold:
     click the heading to fold one, and a folded one shows its current choice. On a Reel
     thumbnail, **Layout** and **Text size** fold the same way. The computer remembers what you folded.
 - **Right rail:** the same form as the guided run, for the page you're on. Each section
   (Words, Pictures, …) folds from its heading or the arrow at its right, and stays folded as
   you move between pages. The guided run itself never folds.
-- **Post look** (the pill at the foot of the canvases): settings for the whole post.
+- **Over each canvas:** the page's name, **Editing** on the page the rails edit, **Edit** on
+  the others, and a bin to remove it. Under that, the size: **Feed 3:4** (or **Reel cover 9:16**).
+- **Post look** (the pill at the foot of the canvases): settings for the whole post, one row
+  each — the name and its value on the left, the control on the right. Point at a name for what
+  it does.
   - **Story 9:16**, a switch: on, every page also exports a 9:16 story.
-  - Wash strength, photo strength and panel colour (White or Navy, each shown with its colour).
+  - Wash, photo strength and panel colour (White or Navy, each shown with its colour).
   - Photo darkening, on the listing card.
   - The wash, on a carousel.
   - The logo (Provident, Vacation Homes, Property Boutique, Property Solutions or Prism), on a carousel or a Reel thumbnail.
