@@ -1150,7 +1150,7 @@ class StudioBase {
     return 'Could not reach the hub at ' + host + ' — check you are on the office network and the hub is up.';
   }
   hubRefused(r, url) {
-    if (r.status === 401 || r.status === 403) return 'The hub at ' + StudioBase.hubHost(url) + ' refused the token — set the Import token in Share › Import hub.';
+    if (r.status === 401 || r.status === 403) return 'The hub at ' + StudioBase.hubHost(url) + ' refused the key — set the Design key in Share › Import hub.';
     if (r.status === 404) return 'Nothing answers at ' + url + ' — the Endpoint URL in Share › Import hub should end in /api/imports.';
     return 'The hub at ' + StudioBase.hubHost(url) + ' answered HTTP ' + r.status + '.';
   }

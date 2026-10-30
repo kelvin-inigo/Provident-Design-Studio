@@ -4617,10 +4617,10 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
       <input value="{{ epUrl }}" onChange="{{ onEpUrl }}" placeholder="http://192.168.50.30:8090/api/imports" class="p-in" type="url" inputmode="url" spellcheck="false" autocomplete="off">
     </label>
     <sc-if value="{{ epBadOn }}" hint-placeholder-val="{{ false }}"><p class="sx-epw">Use https — plain http only to this computer or the office network.</p></sc-if>
-    <label class="p-fld">Import token <span style="opacity:.6">(sent as Authorization: Bearer)</span>
+    <label class="p-fld">Design key <span style="opacity:.6">(sent as X-Design-Key)</span>
       <input value="{{ epKey }}" onChange="{{ onEpKey }}" class="p-in" type="password" spellcheck="false" autocomplete="off">
     </label>
-    <p class="sx-epn">Kept on this computer only. Sends the project .json as content and every exported image as images.</p>
+    <p class="sx-epn">The key the Content Hub checks on each delivery. Kept on this computer only. Sends the project .json as content and every exported image as images.</p>
   </details>
   </sc-if>
   <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
@@ -13987,7 +13987,7 @@ class OrganicStudio extends StudioBase {
       return;
     }
     if (!c.key) {
-      this.setState({ exportStatus: 'Paste the import token below, then press Send again.' });
+      this.setState({ exportStatus: 'Type the design key below, then press Send again.' });
       const d = document.querySelector('.sx-ep'); if (d) { d.open = true; const i = d.querySelector('input[type=password]'); if (i) i.focus(); }
       return;
     }
@@ -14065,7 +14065,9 @@ class OrganicStudio extends StudioBase {
     const host = (() => { try { return new URL(c.url).host; } catch (e) { return c.url; } })();
     this.setState({ exportStatus: 'Sending ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + ') to ' + host + '…' });
     const headers = { 'X-Source': 'Design system' };
-    if (c.key) headers.Authorization = 'Bearer ' + c.key;
+    // The hub checks the design key (X-Design-Key) on deliveries; Bearer stays for a hub that
+    // still only knows the import token.
+    if (c.key) { headers['X-Design-Key'] = c.key; headers.Authorization = 'Bearer ' + c.key; }
     // A project opened from a Content Hub design job carries that post's id (`hubCardId`), so the
     // hub attaches these pages to the post and moves it to Ready to publish.
     const hub = StudioBase.hubCardOf(this.state);

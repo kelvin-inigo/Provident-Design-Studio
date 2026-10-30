@@ -18165,3 +18165,17 @@ By request. post-flow.js.
   `Reel_Thumbnail_<YYYY-MM-DD>` from `state.made`, set by `pickTpl` (an older project falls back to today).
 - Verified on the Drive stand-in: Just me opened with no post, exports landed in Weekly Listings/October
   2026, Reel Thumbnail and Top Agents/Primary, a re-export replaced, another pid got " (2)", Assets skipped.
+
+# OPS SENDS A DESIGN KEY, NOT THE IMPORT TOKEN (2026-10-30)
+
+By request: the Content Hub checks a key the team hands out, not its import token. OPS's
+**Share › Import hub** field is **Design key** (still `epCfg().key`, per computer in
+`provident-ops-endpoint`, never the repo); `epPost` sends it as **`X-Design-Key`** and also as
+`Authorization: Bearer` for a hub that only knows the token. The local hub
+(`~/Documents/provident-content-hub`) accepts `HUB_DESIGN_KEY` from its `.env` on
+**`POST /api/imports` only** (`design_key_ok`, constant-time compare; the preflight lists the
+header); every other route still needs `HUB_IMPORT_TOKEN`. **Never write the key's value into
+this repo.** Verified on a throwaway hub: no key and a wrong key 401, the design key 201, the key
+alone refused on DELETE. **The ngrok link still fails until its host runs this hub version with
+`HUB_DESIGN_KEY` set and exempts `/api/imports` from the tunnel's Google sign-in** — the sign-in
+redirects the browser's preflight to ngrok's login, so the request never reaches the hub.
