@@ -120,6 +120,37 @@ say so and point to the step above.
   save before closing a tab. To work on one project in two windows at once, open both with
   `?ws=shared`.
 
+### Signing in to CAS
+
+On the website, CAS opens on a **Sign in to the studio** screen. Press **Continue with Google** and
+use your **@providentestate.com** account. What you see next depends on what the admin has given you:
+
+| Role | What opens |
+|---|---|
+| **Designer** | The whole studio: design, export, Status. |
+| **Performance marketing** | **Home** (set up a campaign; the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage, no Organic posts. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. |
+| **Admin** | Everything a designer has, plus **Access** in the sidebar. There is one admin. |
+
+- **First time?** Sign in anyway. You land on **Waiting for access**, and the admin sees your
+  request. Add a note and say whether you design ads or file campaigns, then press **Send to the
+  admin**. Keep the page open: it lets you in by itself once you're approved.
+- **Declined or removed?** The page says so. Write a note and press **Ask again**.
+- **Sign out** is the arrow beside your name at the foot of the Home sidebar.
+- **Review links still open without signing in.** A content-team or performance-marketing link
+  (`#share=…`) is its own key, as before.
+- Opened straight off the disk with no internet, CAS opens without the sign-in screen.
+
+**Access (admin only).** Open **Access** in the Home sidebar. The badge counts people waiting.
+
+- **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
+  note. Pick **Designer** or **Performance marketing**, then press **Let in**, or **Decline**.
+- **People**: everyone with access. Change a role with its switch, or **Remove access** (they're
+  shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
+  **Add someone** lets in an @providentestate.com email before they've signed in.
+- **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
+- **Preview the studio as**: see CAS exactly as performance marketing or a designer sees it. A bar
+  at the bottom says you're previewing; **Back to Access** returns.
+
 ## 2. Projects: new, open, save
 
 Each studio opens on its **project browser**.
@@ -590,10 +621,9 @@ floats at the bottom left of the canvas, across from **Add Variant** and **All v
 
 - The **provident.** wordmark, the collaboration logo and the QR code are not drawn, and the
   wordmark's space goes back to the copy. The layout, components and copy stay as they are.
-- A strip opens under the canvas. Its top line shows the look at a glance: the five colours,
-  the two fonts, and whether all the copy is readable. Click that line (or its arrow) to fold
-  the strip down to it once the design is set; click it again, or press **Unbranded** again, to
-  open it. Folded or open is remembered on this computer. Under the line are four sections:
+- Its colours, fonts and shape open in a panel above the switch, like **All variants**: press
+  **Unbranded** again (it carries an arrow) to open or close it, or press **Escape** or anywhere
+  outside it to close it. The panel's top line says whether all the copy is readable. Its four tabs:
   - **Colour**: five colours, one per role: **Text**, **Accent** (the eyebrow and the price),
     **Button**, **Chip** and **Scrim**. The first time you switch on, they are read from the
     background photo. Click a colour to pick a new one; a colour you pick is locked. The lock in
@@ -608,7 +638,7 @@ floats at the bottom left of the canvas, across from **Add Variant** and **All v
     to find any of them.
   - **Shape**: **Corners** (square to a full pill), **Glass blur**, **Glass fill** (how much of the panel's colour covers the photo), and
     **Eyebrow tracking** (the spacing of the capitals in eyebrows and labels).
-  - **Saved looks**: **Save** keeps the colours, fonts and shape under a name on this
+  - **Saved**: **Save** keeps the colours, fonts and shape under a name on this
     computer; click a saved look on another project to apply it.
 - The scrim keeps its own controls in the Layout rail (strength and fade); only its colour comes
   from the palette. The Layout rail's **Background** dark/light does nothing while Unbranded is

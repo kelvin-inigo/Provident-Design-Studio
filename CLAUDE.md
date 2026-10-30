@@ -17863,3 +17863,59 @@ fixed in `csBox` / `csScrimStops`; no other template moved.
   puts listed / weekly-spec / review / CTA-card copy at 1.1-2.3:1; Panel colour -> Navy fixes
   it per post. The brass designation on navy glass over a bright photo is 2.8 (recorded). The
   weekly listing number reads 3.1:1 over a bright photo at the default wash strength.
+
+**The Unbranded strip became a POPUP the same day, by request.** The look host (`[data-look-host]`)
+moved from under the stage into `.p-lkdock` after the switch; `LookStrip` draws `.lk-pop` there —
+a header with the readability status, a `.p-tabs` track (Colour / Type / Shape / Saved; the tab is
+`adstudio-look-tab`, per computer) and one `.lk-sec` at a time (`.lk-strip[data-tab]`). There is no
+separate pill: the **Unbranded** button (`data-lkbtn`, a caret `.p-lkcv`) is the toggle —
+`lookToggle(true)` while the look is on flips `S.open`. Open is page state, never stored; it closes
+on Escape or a pointerdown outside the host and the switch. `html.lk-open` turns the caret and
+`aria-expanded` is set on the button. The dock no longer rides above a strip (`--lk-h` is gone).
+Where the switch and the All variants row do not both fit (a ~630px stage at a 1512 window) the
+switch sits one row up (`.p-body .p-lkdock` at 106 / 159px — the bare `.p-lkdock` base rule is
+declared later and won at equal specificity). Contrast 0 failures over every tab in both themes.
+
+# CAS HAS A SIGN-IN AND ROLES (2026-10-30, /impeccable)
+
+By request: a login for CAS, a different view per role, and an admin panel that grants and
+reviews who tries to get in. Setup: `docs/studio-access-setup.md`. User decisions: unknown
+accounts **request access**; **one admin** (other designers get no admin panel); roles are
+**Designer** and **Performance marketing**; "simulate a sign-in view for PM" is **Preview as**
+in the admin panel.
+
+- **Server = the `acc*` ops in `api/share.py`** (it already has the store and the dev server).
+  `accstatus` (GET, public: on iff `ACCESS_ADMIN` is set), `accme`, `accreq`, `acclist`,
+  `accset` (POST, body carries `tok`). **Identity is the Google access token, checked by the
+  server against `{ACCESS_GOOGLE_BASE}/drive/v3/about`** (cached 5 min per token hash), never the
+  page's word. `ACCESS_ADMIN` lives in the deployment, never the repo. Keys `acc:users` (one JSON
+  map) and `acc:log` (list, 400). `accme` only writes when the record changes or ten minutes passed.
+- **Client = `access.js`** (CAS `<head>`, after hairline.js; plain DOM outside React). It hides
+  the shell (`html.acx-hold`) until the server answers; draws the gate `#acx` (sign in / checking /
+  waiting for access with a note and a wanted role / declined / outside the domain / can't reach);
+  sets `html[data-acc-role]` and `html[data-acc-isadmin]`; adds the account chip `.acx-me` to the
+  Home sidebar; fills `div[data-acc-admin]` with the Access view (Requests · People · Activity,
+  Preview as). **Never name the root flag `data-acc-admin`** — `querySelector('[data-acc-admin]')`
+  then returns `<html>` and the panel draws nowhere; that cost a round.
+- **Performance marketing**: CSS hides the studio switcher, Recent, Component usage, Continue /
+  Open a file, the recents column, **Start designing** (File as ticket becomes the primary), and
+  Status's designer actions (`PM_BLOCK`: pick, proj, startcell, add*, approve, relab*, rmproj,
+  delset, overview). A capture-phase click guard refuses the same actions, the shell's `view`
+  falls back to Home for anything but `all` / `rev`, and a tick sends `screen` back to `splash`.
+- **Shell hooks** (CAS): `providentAccess.now()` read at the top of the splash keys
+  (`shViewAcc`, `shShowAcc`, `shAccOn` / `shAccLabel`, the Access title and sub), and
+  `providentAccess.attach(this)` in the shell's `componentDidMount`.
+- **Bypasses, deliberately**: a `#share=` review link (and the tab it opened, `provident-acc-link`
+  in sessionStorage) skips the gate — the link is the key. Off the website with no answer the
+  studio opens; ON the website no answer fails closed. OPS and `index.html` are not gated.
+- **It is a UI gate.** Campaign data is protected by Drive sharing; the HTML can be opened off the
+  disk. Say so if asked whether this is "secure".
+- Dev: `tools/share-dev/serve.py` sets `ACCESS_ADMIN` to the Drive stand-in's account; the stand-in's
+  `about` answers `Bearer dev:<email>:<name>` as that person, so any role can be tested.
+
+Verified on the dev server: sign-in, a request with note and wanted role, an outside-domain refusal,
+Let in (real clicks), the waiting page letting itself in ~20s after approval, Preview as
+performance marketing (Home with File as ticket only, Status without designer actions, the editor
+and a `data-a="pick"` click refused), sign-out; 0 contrast failures over the gate and all three
+Access tabs in both themes; no sideways scroll at 375. **Not exercised against real Google or
+Vercel.**

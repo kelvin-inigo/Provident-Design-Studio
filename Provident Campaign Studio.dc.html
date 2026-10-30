@@ -4831,29 +4831,42 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-cvbrand button{padding:0 12px;font-size:12.5px}
 [data-look-host]{display:none;flex:none}
 [data-look-host][data-on]{display:block}
-/* REDESIGNED 2026-10-30: one panel, four hairline-divided sections (no cards); the palette is a
-   joined strip with each role's name, hex and readability score under it; the head bar is the fold. */
-.lk-strip{border-top:1px solid var(--ps-hair);background:var(--ps-card);container-type:inline-size}
-.lk-bar{display:flex;align-items:center;gap:16px;padding:6px 16px 6px 6px;min-height:48px}
-.lk-tog{display:flex;align-items:center;gap:10px;flex:1;min-width:0;height:36px;border:0;background:transparent;color:var(--ps-ink);font:inherit;cursor:pointer;padding:0 10px 0 6px;border-radius:10px;text-align:left}
-.lk-tog:hover{background:var(--ps-fill)}
-.lk-tog:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
-.lk-tog b{flex:none;font:600 14px/1 var(--ps-font)}
-.lk-chev{display:flex;flex:none;width:20px;height:20px;color:var(--ps-ink-2);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-.lk-chev svg{width:20px;height:20px;fill:currentColor}
-.lk-strip[data-open="0"] .lk-chev{transform:rotate(-90deg)}
-.lk-sum{display:flex;align-items:center;gap:12px;min-width:0;margin-left:8px}
-.lk-mini{display:flex;flex:none;border-radius:5px;overflow:hidden;box-shadow:0 0 0 1px var(--ps-line)}
-.lk-mini u{display:block;width:14px;height:18px}
-.lk-fonts{font:400 13px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.lk-ok{flex:none;display:inline-flex;align-items:center;gap:8px;font:500 12.5px/1 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
-.lk-ok::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ps-good)}
+/* THE UNBRANDED LOOK IS A POPUP (2026-10-30, by request): a "Look" pill beside the Provident |
+   Unbranded switch, the All variants pill's twin, opens a panel ABOVE it — header, a tab track
+   (Colour / Type / Shape / Saved), one section at a time. Closes on Escape or a press outside. */
+[data-look-host][data-on]{display:block;pointer-events:auto}
+.p-lkdock{--lk-x:calc(272px + 28px);padding-left:var(--lk-x);align-items:flex-end;gap:8px}
+@media (max-width:760px){.p-lkdock{--lk-x:14px}}
+.p-lkcv{display:none;width:16px;height:16px;margin:0 -4px 0 4px;fill:currentColor;vertical-align:-3px;transform:rotate(180deg);transition:transform var(--ps-motion) var(--ps-ease)}
+.p-lkseg button[data-on] .p-lkcv{display:inline-block}
+html.lk-open .p-lkcv{transform:none}
+/* the switch and the All variants row share the stage's foot; where they do not both fit (the
+   stage is ~630px at a 1512 window) the switch sits one row above */
+@media (min-width:1201px) and (max-width:1600px){.p-body .p-lkdock{bottom:106px}}
+@media (min-width:761px) and (max-width:1200px){.p-body .p-lkdock{bottom:159px}}
+/* the panel */
+.lk-pop{position:absolute;left:var(--lk-x);bottom:calc(100% + 10px);width:440px;max-width:calc(100vw - var(--lk-x) - 16px);max-height:min(620px,calc(100vh - 220px));
+  box-sizing:border-box;display:flex;flex-direction:column;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);overflow:hidden;
+  animation:p-rise .18s cubic-bezier(.2,.8,.3,1) both}
+.lk-strip[data-open="0"] .lk-pop{display:none}
+.lk-ph{display:flex;align-items:center;gap:12px;padding:16px 18px 12px}
+.lk-pht{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.lk-pht b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink)}
+.lk-pht s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
+.lk-ok{flex:none;display:inline-flex;align-items:center;gap:7px;font:500 12px/1 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
+.lk-ok::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ps-good)}
 .lk-ok[data-ok="0"]{color:var(--ps-ink)}
 .lk-ok[data-ok="0"]::before{background:var(--ps-bad)}
-.lk-body{display:grid;grid-template-columns:minmax(0,1fr);padding:16px 0 18px;max-height:44vh;overflow:auto;box-shadow:inset 0 1px 0 var(--ps-hair)}
-.lk-strip[data-open="0"] .lk-body{display:none}
-.lk-sec{display:flex;flex-direction:column;gap:12px;min-width:0;padding:0 20px}
-.lk-sec + .lk-sec{margin-top:16px;padding-top:16px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+.lk-tabs{display:flex;margin:0 18px 4px;height:34px}
+.lk-tabs button{flex:1;font-size:12.5px;padding:0 8px}
+.lk-body{flex:1;min-height:0;overflow:auto;padding:16px 18px 18px;box-shadow:inset 0 1px 0 var(--ps-hair);margin-top:12px}
+.lk-sec{display:none;flex-direction:column;gap:12px;min-width:0}
+.lk-strip[data-tab="col"] .lk-c-col,.lk-strip[data-tab="type"] .lk-c-type,.lk-strip[data-tab="shape"] .lk-c-shape,.lk-strip[data-tab="saved"] .lk-c-saved{display:flex}
+/* the tab names the section, so its own heading is gone; its controls stay on the heading row */
+.lk-hd h3{display:none}
+.lk-hd{justify-content:flex-start}
+.lk-c-shape .lk-hd{display:none}
+.lk-c-type .lk-qw{max-width:none}
 .lk-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:30px}
 .lk-hd h3{margin:0;flex:none;font:600 13px/1.2 var(--ps-font);color:var(--ps-ink)}
 .lk-tone{height:30px}
@@ -4930,23 +4943,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 @media (hover:none){.lk-look .lk-x{opacity:1}}
 .lk-none{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim)}
 .lk-none b{display:block;font-weight:500;color:var(--ps-ink-2)}
-/* the strip lives in the stage column, so it answers its OWN width, not the window's */
-@container (min-width:640px){
-  .lk-body{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:16px}
-  .lk-sec + .lk-sec{margin-top:0;padding-top:0;box-shadow:none}
-  .lk-sec:nth-child(even){box-shadow:inset 1px 0 0 var(--ps-hair)}
-  .lk-sec:nth-child(n+3){padding-top:16px;box-shadow:inset 0 1px 0 var(--ps-hair)}
-  .lk-sec:nth-child(4){box-shadow:inset 0 1px 0 var(--ps-hair),inset 1px 0 0 var(--ps-hair)}
-}
-@container (min-width:1180px){
-  .lk-body{grid-template-columns:minmax(0,1.45fr) minmax(0,1.2fr) minmax(0,.9fr) minmax(0,.75fr);row-gap:0}
-  .lk-sec:nth-child(n){padding-top:0;box-shadow:none}
-  .lk-sec + .lk-sec:nth-child(n){box-shadow:inset 1px 0 0 var(--ps-hair)}
-}
-@container (max-width:560px){.lk-fonts,.lk-hint{display:none}.lk-bar{gap:8px}.lk-sum{margin-left:0}}
-@container (max-width:420px){.lk-ok{font-size:0;gap:0}.lk-hex{display:none}}
+
 /* the dock floats over the stage's foot; while the strip shows it rides above it */
-html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .mk-screen[data-unb] .mk-av-b,.mk-screen[data-unb] .mk-igr-av{background:#8A8F98 none!important}
 /* 60. THE BRAND SWITCH FLOATS OVER THE STAGE'S FOOT, LEFT — the all-variants dock's twin.
    Provident | Unbranded left the canvas bar: it is one segmented pill on the dock pills'
@@ -4964,7 +4962,6 @@ html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .p-lkseg button[data-on]{background:var(--ps-accent-h);color:var(--ps-primary-i)}
 @media (max-width:1200px){.p-lkdock{bottom:115px}}
 @media (max-width:760px){.p-lkdock{padding-left:14px;bottom:159px}}   /* a phone has no room beside the dock row, so it sits one row above it */
-html.lk-on .p-lkdock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 /* 60. THE AD SET TAB (2026-10-28) — the Copy window's place: this project in its campaign.
    share-link.js styles its own two hosts; this styles the reply section between them. */
 .cw-in{max-width:760px}
@@ -6219,7 +6216,8 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
     </div>
   </div>
   <div class="p-lkdock">
-    <div class="p-lkseg" role="group" aria-label="Brand"><button onClick="{{ lookOff }}" data-on="{{ lookOffOn }}" title="Provident's own look: the wordmark, the QR and the brand palette">Provident</button><button onClick="{{ lookOnGo }}" data-on="{{ lookOnOn }}" title="Same design, your own colours and fonts; no Provident wordmark or QR">Unbranded</button></div>
+    <div class="p-lkseg" role="group" aria-label="Brand"><button onClick="{{ lookOff }}" data-on="{{ lookOffOn }}" title="Provident's own look: the wordmark, the QR and the brand palette">Provident</button><button onClick="{{ lookOnGo }}" data-on="{{ lookOnOn }}" title="Same design, your own colours and fonts; no Provident wordmark or QR. Press again for its colours, fonts and shape." data-lkbtn="1" aria-controls="lk-pop">Unbranded<svg class="p-lkcv" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-371.69q-7.23 0-13.46-2.31t-11.85-7.92L274.92-561.69q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-440.92l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-381.92q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31Z"/></svg></button></div>
+    <div data-look-host data-on="{{ lookOnOn }}"></div>
   </div>
 
 <sc-if value="{{ pgOn }}" hint-placeholder-val="{{ false }}">
@@ -6500,7 +6498,6 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
     </div>
   </sc-for>
 </main>
-  <div data-look-host data-on="{{ lookOnOn }}"></div>
   <div class="p-cvbar"><label class="p-cvname" title="Rename the campaign"><svg class="p-cvname-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-200h50.46l409.46-409.46-50.46-50.46L200-250.46V-200Zm-23.84 60q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-69.3q0-14.63 5.62-27.89 5.61-13.26 15.46-23.11l506.54-506.31q9.07-8.24 20.03-12.73 10.97-4.5 23-4.5t23.3 4.27q11.28 4.27 19.97 13.58l48.85 49.46q9.31 8.69 13.27 20 3.96 11.31 3.96 22.62 0 12.07-4.12 23.03-4.12 10.97-13.11 20.04L296.46-161.08q-9.85 9.85-23.11 15.46-13.26 5.62-27.89 5.62h-69.3Zm584.22-570.15-50.23-50.23 50.23 50.23Zm-126.13 75.9-24.79-25.67 50.46 50.46-25.67-24.79Z"/></svg><input value="{{ campaign }}" onChange="{{ onCampaign }}" placeholder="{{ projLabel }}" aria-label="Campaign name" spellcheck="false"></label><s>{{ projMeta }}</s><button onClick="{{ cvAdGo }}" class="p-cvcopy p-cvov" title="{{ cvAdTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M220-500q-24.75 0-42.37-17.63Q160-535.25 160-560v-180q0-24.75 17.63-42.38Q195.25-800 220-800h180q24.75 0 42.38 17.62Q460-764.75 460-740v180q0 24.75-17.62 42.37Q424.75-500 400-500H220Zm0 340q-24.75 0-42.37-17.63Q160-195.25 160-220v-180q0-24.75 17.63-42.38Q195.25-460 220-460h180q24.75 0 42.38 17.62Q460-424.75 460-400v180q0 24.75-17.62 42.37Q424.75-160 400-160H220Zm340-340q-24.75 0-42.37-17.63Q500-535.25 500-560v-180q0-24.75 17.63-42.38Q535.25-800 560-800h180q24.75 0 42.38 17.62Q800-764.75 800-740v180q0 24.75-17.62 42.37Q764.75-500 740-500H560Zm0 340q-24.75 0-42.37-17.63Q500-195.25 500-220v-180q0-24.75 17.63-42.38Q535.25-460 560-460h180q24.75 0 42.38 17.62Q800-424.75 800-400v180q0 24.75-17.62 42.37Q764.75-160 740-160H560Z"/></svg>Ad set overview</button><span class="p-cvst" data-st="{{ cvKind }}" title="{{ cvStatusFull }}" role="status"><span class="p-cvst-i" aria-hidden="true"><svg class="p-cvst-ok" viewBox="0 -960 960 960" aria-hidden="true"><path d="m423.23-394.15-92.92-92.93q-8.31-8.3-20.89-8.5-12.57-.19-21.27 8.5-8.69 8.7-8.69 21.08 0 12.38 8.69 21.08l109.77 109.77q10.85 10.84 25.31 10.84 14.46 0 25.31-10.84l222.54-222.54q8.3-8.31 8.5-20.89.19-12.57-8.5-21.27-8.7-8.69-21.08-8.69-12.38 0-21.08 8.69l-205.69 205.7ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><svg class="p-cvst-bad" viewBox="0 -960 960 960" aria-hidden="true"><path d="M502.92-300.15q9.39-9.39 9.39-22.93T502.92-346q-9.38-9.38-22.92-9.38-13.54 0-22.92 9.38-9.39 9.38-9.39 22.92 0 13.54 9.39 22.93 9.38 9.38 22.92 9.38 13.54 0 22.92-9.38Zm-1.54-145.4q8.62-8.62 8.62-21.37v-180q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62-8.62 8.63-8.62 21.38v180q0 12.75 8.63 21.37 8.63 8.63 21.38 8.63 12.76 0 21.37-8.63ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><em class="p-cvst-spin"></em><em class="p-cvst-dot"></em></span><span class="p-cvst-t">{{ cvShortA }}<span class="p-cvst-b">{{ cvShortB }}</span></span><sc-if value="{{ cvClearOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ cvClear }}" class="p-cvst-x" title="Dismiss" aria-label="Dismiss"><svg class="p-cvst-xg" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></svg></button></sc-if></span></div>
 </div>
 
@@ -9118,9 +9115,11 @@ class CampaignStudio extends StudioBase {
   lookToggle(on) {
     // pressing Unbranded again while it is on brings folded controls back
     const S = this._lookStrip;
-    if (on && this.state.look && this.state.look.on && S && !S.open) { S.open = true; try { localStorage.setItem(CampaignStudio.LOOK_OPEN_KEY, '1'); } catch (e) {} S.sync(); this.lookMount(); return; }
+    // pressing Unbranded while it is on opens or closes its panel
+    if (on && this.state.look && this.state.look.on && S) { S.open = !S.open; S.sync(); return; }
     const first = !(this.state.look && this.state.look.seeded);
     this.lookSet({ on: !!on, seeded: true });
+    if (S) { S.open = !!on; S.sync(); }
     if (on && first) this.lookFromPhoto(true);
   }
   async lookPhoto() {
@@ -9148,7 +9147,7 @@ class CampaignStudio extends StudioBase {
     this._lookStrip.sync();
     const on = !!(this.state.look && this.state.look.on) && this.state.screen === 'editor', de = document.documentElement;
     de.classList.toggle('lk-on', on);
-    if (on) de.style.setProperty('--lk-h', host.offsetHeight + 'px');
+    if (!on) de.classList.remove('lk-open');
   }
   // Plain DOM in an EMPTY host, so React never reconciles what it draws; sync() reads the
   // state on every shell update and leaves a control alone while it has the focus.
@@ -9158,6 +9157,7 @@ class CampaignStudio extends StudioBase {
   // Shape, Saved looks. Folded or open is per COMPUTER (`adstudio-look-open`), not per project:
   // it is how you like to work, not part of the design.
   static LOOK_OPEN_KEY = 'adstudio-look-open';
+  static LOOK_TAB_KEY = 'adstudio-look-tab';
   static LookStrip = class {
     constructor(eng, host) {
       this.eng = eng; this.host = host; this.q = '';
@@ -9178,23 +9178,25 @@ class CampaignStudio extends StudioBase {
       // cards; the palette is one joined strip whose labels carry each role's readability score
       // (Text, Accent and Button are the three a contrast check applies to), so the separate
       // chip row is gone; the whole head bar is the fold, so there is no second "Hide" button.
+      // A POPUP, like All variants (2026-10-30, by request): a pill beside the Provident |
+      // Unbranded switch opens a panel above it, its controls in four tabs.
+      const TABS = [['col', 'Colour'], ['type', 'Type'], ['shape', 'Shape'], ['saved', 'Saved']];
       host.innerHTML =
         '<div class="lk-strip" role="region" aria-label="Unbranded look">' +
-        '<div class="lk-bar">' +
-          '<button class="lk-tog" aria-expanded="true" aria-controls="lk-body"><span class="lk-chev">' + ico(CHEV) + '</span><b>Unbranded look</b><span class="lk-sum"><i class="lk-mini"></i><span class="lk-fonts"></span></span></button>' +
-          '<span class="lk-ok"></span>' +
-        '</div>' +
-        '<div class="lk-body" id="lk-body">' +
-          '<section class="lk-sec lk-c-col"><div class="lk-hd"><h3>Colour</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d" title="Light copy on a dark wash">Light on dark</button><button data-tone="l" title="Dark copy on a light wash">Dark on light</button></div></div>' +
+        '<div class="lk-pop" id="lk-pop" role="dialog" aria-label="Unbranded look">' +
+          '<div class="lk-ph"><div class="lk-pht"><b>Unbranded look</b><s>Applies to every variant</s></div><span class="lk-ok"></span></div>' +
+          '<div class="p-tabs lk-tabs" role="tablist" aria-label="Look settings">' + TABS.map(t => '<button role="tab" data-tab="' + t[0] + '" aria-selected="false">' + t[1] + '</button>').join('') + '</div>' +
+        '<div class="lk-body">' +
+          '<section class="lk-sec lk-c-col" data-tab="col"><div class="lk-hd"><h3>Colour</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d" title="Light copy on a dark wash">Light on dark</button><button data-tone="l" title="Dark copy on a light wash">Dark on light</button></div></div>' +
             '<div class="lk-pal">' + C.ROLES.map((r, i) => '<div class="lk-sw" data-i="' + i + '" title="' + ROLE_TIP[i] + ' · click to pick a colour"><input type="color" aria-label="' + r + ' colour"><button class="lk-lk" data-lk="' + i + '" aria-pressed="false"><svg viewBox="0 -960 960 960" aria-hidden="true"><path class="lk-l1" d="' + LOCK1 + '"/><path class="lk-l0" d="' + LOCK0 + '"/></svg></button></div>').join('') + '</div>' +
             '<div class="lk-lbls">' + C.ROLES.map((r, i) => '<div class="lk-lb" data-i="' + i + '"><b>' + r + '</b><span class="lk-hex"></span><span class="lk-cr"></span></div>').join('') + '</div>' +
             '<div class="lk-row"><button class="lk-act" data-act="photo" title="Read the palette from the background photo, keeping locked colours">' + ico(PHOTO) + 'From photo</button><button class="lk-act" data-act="gen" title="A new random palette, keeping locked colours">' + ico(DICE) + 'Shuffle</button><span class="lk-hint">Lock a colour to keep it</span></div>' +
             '<div class="lk-note" role="status"></div>' +
           '</section>' +
-          '<section class="lk-sec lk-c-type"><div class="lk-hd"><h3>Type</h3><label class="lk-qw">' + ico(SEARCH) + '<input class="lk-q" placeholder="Search Google Fonts" aria-label="Search all Google Fonts" spellcheck="false"></label></div>' +
+          '<section class="lk-sec lk-c-type" data-tab="type"><div class="lk-hd"><h3>Type</h3><label class="lk-qw">' + ico(SEARCH) + '<input class="lk-q" placeholder="Search Google Fonts" aria-label="Search all Google Fonts" spellcheck="false"></label></div>' +
             '<div class="lk-fs">' + font('H', 'Headline') + font('B', 'Body') + font('A', 'Arabic') + '</div>' +
           '</section>' +
-          '<section class="lk-sec lk-c-shape"><div class="lk-hd"><h3>Shape</h3></div>' +
+          '<section class="lk-sec lk-c-shape" data-tab="shape"><div class="lk-hd"><h3>Shape</h3></div>' +
             '<div class="lk-rngs">' +
             rng('rad', 'Corners', 0, C.RAD_PILL, 'Square to pill, on every box, chip and button') +
             rng('blur', 'Glass blur', 0, 40, 'How much a glass panel blurs the photo behind it') +
@@ -9202,14 +9204,20 @@ class CampaignStudio extends StudioBase {
             rng('trk', 'Eyebrow tracking', 0, 30, 'Letter-spacing on the all-caps eyebrow') +
             '</div>' +
           '</section>' +
-          '<section class="lk-sec lk-c-saved"><div class="lk-hd"><h3>Saved looks</h3><button class="lk-act" data-act="save" title="Keep this look on this computer to use on other projects">' + ico(BOOK) + 'Save</button></div>' +
+          '<section class="lk-sec lk-c-saved" data-tab="saved"><div class="lk-hd"><h3>Saved looks</h3><button class="lk-act" data-act="save" title="Keep this look on this computer to use on other projects">' + ico(BOOK) + 'Save</button></div>' +
             '<div class="lk-looks"></div>' +
           '</section>' +
-        '</div></div>';
+        '</div></div>' +
+        '</div>';
       const $ = sel => host.querySelector(sel);
-      this.open = (() => { try { return localStorage.getItem(C.LOOK_OPEN_KEY) !== '0'; } catch (e) { return true; } })();
-      const fold = () => { this.open = !this.open; try { localStorage.setItem(C.LOOK_OPEN_KEY, this.open ? '1' : '0'); } catch (e) {} this.sync(); eng.lookMount(); };
-      $('.lk-tog').onclick = fold;
+      this.open = false;
+      this.tab = (() => { try { return localStorage.getItem(C.LOOK_TAB_KEY) || 'col'; } catch (e) { return 'col'; } })();
+      const fold = () => { this.open = !this.open; this.sync(); };
+      host.querySelectorAll('.lk-tabs [data-tab]').forEach(b => b.onclick = () => { this.tab = b.getAttribute('data-tab'); try { localStorage.setItem(C.LOOK_TAB_KEY, this.tab); } catch (e) {} this.sync(); });
+      // closes like a popover: Escape, or a press anywhere outside it
+      // (the Unbranded button is the toggle, so a press on the switch is not "outside")
+      document.addEventListener('pointerdown', e => { if (this.open && host.isConnected && !host.contains(e.target) && !(e.target.closest && e.target.closest('.p-lkseg'))) { this.open = false; this.sync(); } }, true);
+      host.addEventListener('keydown', e => { if (e.key === 'Escape' && this.open) { this.open = false; this.sync(); const b = document.querySelector('[data-lkbtn]'); if (b) b.focus(); } });
       host.querySelectorAll('[data-tone]').forEach(b => b.onclick = () => this.tone(b.getAttribute('data-tone')));
       host.querySelectorAll('.lk-sw').forEach(b => {
         const i = +b.getAttribute('data-i'), inp = b.querySelector('input');
@@ -9287,7 +9295,10 @@ class CampaignStudio extends StudioBase {
       if (!on) return;
       const strip = h.querySelector('.lk-strip');
       strip.setAttribute('data-open', this.open ? '1' : '0');
-      h.querySelector('.lk-tog').setAttribute('aria-expanded', this.open ? 'true' : 'false');
+      strip.setAttribute('data-tab', this.tab);
+      h.querySelectorAll('.lk-tabs [data-tab]').forEach(b => { const on = b.getAttribute('data-tab') === this.tab; if (on) b.setAttribute('data-on', '1'); else b.removeAttribute('data-on'); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+      document.documentElement.classList.toggle('lk-open', this.open);
+      const lb = document.querySelector('[data-lkbtn]'); if (lb) lb.setAttribute('aria-expanded', this.open ? 'true' : 'false');
       h.querySelectorAll('[data-tone]').forEach(b => { if (b.getAttribute('data-tone') === L.tone) b.setAttribute('data-on', '1'); else b.removeAttribute('data-on'); });
       h.querySelectorAll('.lk-sw').forEach(b => {
         const i = +b.getAttribute('data-i'), c = L.pal[i] || '#000000', ink = C.onInk(c);
@@ -9329,8 +9340,6 @@ class CampaignStudio extends StudioBase {
       const sum = mini + '|' + L.fH + '|' + L.fB + '|' + bad.length;
       if (sum !== this._sum) {
         this._sum = sum;
-        h.querySelector('.lk-mini').innerHTML = mini;
-        h.querySelector('.lk-fonts').textContent = L.fH + ' · ' + L.fB;
         const ok = h.querySelector('.lk-ok');
         ok.setAttribute('data-ok', bad.length ? '0' : '1');
         ok.textContent = bad.length ? (bad.length === 1 ? bad[0][0] + ' is too faint' : bad.length + ' colours too faint') : 'All copy reads';
