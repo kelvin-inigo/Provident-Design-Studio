@@ -120,16 +120,20 @@ say so and point to the step above.
   save before closing a tab. To work on one project in two windows at once, open both with
   `?ws=shared`.
 
-### Signing in to CAS
+### Signing in (CAS and OPS)
 
-On the website, CAS opens on a **Sign in to the studio** screen. Press **Continue with Google** and
+On the website, both studios open on a **Sign in to the studio** screen. Press **Continue with Google** and
 use your **@providentestate.com** account. What you see next depends on what the admin has given you:
 
 | Role | What opens |
 |---|---|
-| **Designer** | The whole studio: design, export, Status. |
+| **Designer** | Both studios: design, export, Status. |
+| **Social media manager** | OPS: draft posts and send them to a designer. In CAS, Home and Status only. |
+| **Content team** | OPS: check a post's copy, approve it or send it back. In CAS, Home and Status only (campaign copy is checked through the content-team link, as before). |
 | **Performance marketing** | **Home** (set up a campaign; the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage, no Organic posts. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. |
-| **Admin** | Everything a designer has, plus **Access** in the sidebar. There is one admin. |
+| **Admin** | Everything a designer has, plus **Access** in CAS's sidebar. There is one admin. |
+
+In OPS, performance marketing sees **Status** only.
 
 - **First time?** Sign in anyway. You land on **Waiting for access**, and the admin sees your
   request. Add a note and say whether you design ads or file campaigns, then press **Send to the
@@ -143,12 +147,12 @@ use your **@providentestate.com** account. What you see next depends on what the
 **Access (admin only).** Open **Access** in the Home sidebar. The badge counts people waiting.
 
 - **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
-  note. Pick **Designer** or **Performance marketing**, then press **Let in**, or **Decline**.
+  note. Pick **Designer**, **Social media manager**, **Content team** or **Performance marketing**, then press **Let in**, or **Decline**.
 - **People**: everyone with access. Change a role with its switch, or **Remove access** (they're
   shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
   **Add someone** lets in an @providentestate.com email before they've signed in.
 - **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
-- **Preview the studio as**: see CAS exactly as performance marketing or a designer sees it. A bar
+- **Preview the studio as**: see the studio exactly as that role sees it. A bar
   at the bottom says you're previewing; **Back to Access** returns.
 
 ## 2. Projects: new, open, save
@@ -881,7 +885,55 @@ every design component, and every style of it, across your saved projects.
 Only saved projects count. A project you have opened but never saved is not in the numbers. With
 fewer than five saved projects the page says so — treat the verdicts as early signals.
 
-## 8. OPS: make a post
+## 8. OPS: posts on Google Drive, from draft to ready
+
+Every post goes through four steps:
+
+1. **Draft** — the **social media manager** makes the post.
+2. **Design** — a **designer** refines it and makes the final design.
+3. **Copy check** — the **content team** checks the words.
+4. **Ready** — ready to publish.
+
+**Home has two doors**, switched at the top: **My turn** and **Start a post**.
+
+- **My turn** greets you and lists the posts **Waiting on you**, most urgent first, each with its
+  render, its step, who handed it over and when it's due — and its next step as a button (**Send to
+  designer**, **Send to copy check**, **Approve copy**), so you can move it on without opening it.
+  **Open** opens it in the studio. Below are the posts **With others** and those **Ready to
+  publish**. A draft is waiting only on whoever started it.
+- **Start a post**: 1 name it and set a **Due** date, 2 write a **Brief** and **Attach files**
+  (optional), 3 pick a template. With nothing waiting on you, Home opens on this door. The content
+  team has no Start a post door.
+
+Picking the template makes the post. The post gets its own folder in
+**Organic posts** on Google Drive (`<post name>/` with the project, its pictures, the brief's files
+and every export), and every change you make is saved there within seconds. Sign in to Google once
+if it asks.
+
+**Hand it on from the top bar.** Beside **Guided | All controls** is the post's step and the one
+button for what you do next:
+
+| Step | Button | Who sees it |
+|---|---|---|
+| Draft | **Send to designer** | social media manager, designer |
+| Design | **Send to copy check** | designer |
+| Copy check | **Approve copy** | content team |
+| Ready | none (Share is the main button again) | |
+
+Click the step itself to open the post's panel: its steps with who did each and when, **Back to
+draft** / **Back to design** / **Reopen copy check**, the brief, **Open on Status** and **Drive
+folder**. **Notify me** turns on a Chrome notification when the post moves on.
+
+A post opened from a file, or made before this, says **Not on Drive** with **Save to Drive** (a
+social media manager sees **Send to designer**, which saves it and hands it on in one click).
+
+**Status** (Home sidebar, under Posts) shows every post in the Drive folder as four columns — Draft,
+Design, Copy check, Ready. **Waiting on me** shows only the posts at your step; a card with a blue
+ring and **Your turn** is yours. Click a card for its page: progress, the step buttons, **Open in
+the studio**, **Copy link**, the brief and files, and everything that happened. Every export is
+also uploaded to the post's **Exports** folder on Drive.
+
+## 8a. OPS: make a post
 
 Picking a template opens the **guided run**: one page of the post at a time, filled in top to
 bottom. The page's name heads the form, with where it sits in the run beside it ("Page 2 of 6",

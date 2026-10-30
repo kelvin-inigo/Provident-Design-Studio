@@ -349,7 +349,7 @@
   const dsItemLabel = it => [it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project';
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -384,11 +384,20 @@
   }
   const DS_STEP = { 'design-done': [['dd'], 'design', true], 'design-open': [['dd'], 'design', false], 'copy-done': [['ct'], 'copy', true], 'copy-open': [['ct', 'dd'], 'copy', false],
     // the designer's bypass: an ad already signed off outside the review goes straight to approved
-    approved: [['dd'], 'copy', true] };
+    approved: [['dd'], 'copy', true],
+    // an OPS POST (post-flow.js): the social media manager's draft goes to the designer
+    'draft-done': [['dd'], 'draft', true], 'draft-open': [['dd'], 'draft', false] };
+  // An OPS post's record carries kind 'post'. Everyone on it opens the project's own link (role
+  // 'dd'), so who may press which step is the signed-in role's (post-flow.js), not the link's.
+  const isPost = rs => !!(rs && rs.kind === 'post');
+  const POST_TEXT = { 'draft-done': 'Sent the draft to the designer', 'draft-open': 'Took it back to draft',
+    'design-done': 'Sent it to the copy check', 'design-open': 'Put the design back in progress',
+    'copy-done': 'Approved the copy — ready to publish', 'copy-open': 'Reopened the copy check', approved: 'Marked it approved' };
   // This page's Drive writes run one at a time: each is a read, a change and a write of a whole
   // file, and two overlapping on one file (a save and the preview writer) let the later one put
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
+  const field0 = act => (DS_STEP[act] || [])[1];
   const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
@@ -421,10 +430,24 @@
       const st = DS_STEP[body.act]; if (!st) throw dsFail(400, 'Unknown step.');
       const sid = body.p || R.sid, it = (R.rs.items || []).find(x => x.sid === sid);
       if (!it) throw dsFail(404, 'That project is not in this ad set.');
-      if (st[0].indexOf(R.role) < 0) throw dsFail(403, 'Your link cannot change that step.');
+      if (!isPost(R.rs) && st[0].indexOf(R.role) < 0) throw dsFail(403, 'Your link cannot change that step.');
+      if (!isPost(R.rs) && field0(body.act) === 'draft') throw dsFail(400, 'Unknown step.');
       const by = dsWho(body.by), now = dsNow(), field = st[1], done = st[2], arb = it.lang === 'ARB';
       it[field] = done ? { by, at: now } : null;
       if (body.act === 'approved' && !it.design) it.design = { by, at: now };
+      if (isPost(R.rs)) {
+        // a post's steps run in order: sending one on marks the ones before it; reopening one
+        // reopens the ones after it
+        const ord = ['draft', 'design', 'copy'], k = ord.indexOf(field);
+        if (done) ord.slice(0, k).forEach(f => { if (!it[f]) it[f] = { by, at: now }; });
+        else ord.slice(k + 1).forEach(f => { it[f] = null; });
+        if (body.act === 'approved') it.draft = it.draft || { by, at: now };
+        R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
+        dsLog(R.rs, by, [{ kind: 'step', page: 'Post', text: POST_TEXT[body.act] || 'Changed a step' }]);
+        if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
+        await dsWrite(R.rid, R.rs);
+        return { rs: pub() };
+      }
       R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
       const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
         : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
@@ -435,7 +458,7 @@
     }
     if (op === 'rsset') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
-      if (R.role !== 'dd') throw dsFail(403, 'Only the designer changes the ad set.');
+      if (R.role !== 'dd' && !isPost(R.rs)) throw dsFail(403, 'Only the designer changes the ad set.');
       const rs = R.rs, by = dsWho(body.by), chg = [];
       const cellsWas = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
       if ('name' in body && String(body.name || '').trim()) {
@@ -994,6 +1017,7 @@
   // Called from both shells' componentDidMount.
   SP.shareInit = function () {
     injectCss();
+    if (this.shApp() !== 'provident-ad-studio' && this.postInit) this.postInit();   // OPS: posts on Drive (post-flow.js)
     const m = /^#share=([\w.-]{8,140})$/.exec(location.hash || '');
     if (m && SHARE_ID.test(m[1])) {
       history.replaceState(null, '', location.pathname + location.search);
@@ -1195,7 +1219,7 @@
     const st = d.state;
     if (!st.pid) st.pid = StudioBase.newPid();
     if (meta.app === 'provident-smp-studio' && st.screen == null) st.screen = 'editor';
-    if (rs && rs.tok) Arch.add(rs.tok.dd, rs.name, rs.product);
+    if (rs && rs.tok && !isPost(rs)) Arch.add(rs.tok.dd, rs.name, rs.product);
     const imgs = {}, pv = {}; slots.forEach(s => { if (images[s]) { imgs[s] = d.imgs[s].h; if (PV_RECS.has(images[s])) pv[s] = fnv(JSON.stringify(images[s])); } });
     const key = 'provident-share:' + meta.app;
     ssSet(key, { id, rev: d.rev, n: d.n, pid: st.pid, imgs, pv, name: meta.name || '', role, rs });
@@ -1391,7 +1415,8 @@
     S.ui = buildUi(this);
     pidRemember(this.state.pid, { id: S.id, app: this.shApp(), rev: S.rev, base: S.base, imgs: S.imgs });
     document.documentElement.classList.add('shl-on');
-    if (S.rs && S.rs.tok) Arch.add(S.rs.tok.dd, S.rs.name, S.rs.product);
+    if (S.rs && S.rs.tok && !isPost(S.rs)) Arch.add(S.rs.tok.dd, S.rs.name, S.rs.product);
+    if (S.rs && isPost(S.rs) && window.providentPosts) window.providentPosts.add(S.rs);
     if (open || (lsGet('provident-share-open') === '1' && !(S.rs && this.shApp() === 'provident-ad-studio'))) this.shPanel(true);
     this.shGuard(true);
     this.shRender();
@@ -1406,7 +1431,7 @@
   // and nobody pulls for it. The ad set's card shows its most recently changed project.
   SP.shThumb = async function (force) {
     const S = this._sh;
-    if (!S || !S.rs || S.thumbBusy || S.busy || this.shApp() !== 'provident-ad-studio') return;
+    if (!S || !S.rs || S.thumbBusy || S.busy || (this.shApp() !== 'provident-ad-studio' && !isPost(S.rs))) return;
     if (!force && (!S.thumbDue || Date.now() - (S.savedAt || 0) < 1500 || Date.now() - (S.thumbAt || 0) < 5000)) return;
     S.thumbBusy = true; S.thumbDue = false; S.thumbAt = Date.now();
     try {
@@ -1793,7 +1818,7 @@
     const people = new Set(S.log.map(e => e.by).filter(Boolean));
     const unseen = S.log.filter(e => e.at > S.seen && e.by !== me).length;
     S.ui.set({
-      link: S.rs && S.rs.tok && S.rs.tok.dd ? rsLink(S.rs.tok.dd) : this.shLink(S.id), linkKind: S.rs && S.rs.tok && S.rs.tok.dd ? 'dd' : 'edit', me, people: people.size, unseen: open ? 0 : unseen,
+      link: S.rs && S.rs.tok && S.rs.tok.dd && !isPost(S.rs) ? rsLink(S.rs.tok.dd) : this.shLink(S.id), linkKind: S.rs && S.rs.tok && S.rs.tok.dd && !isPost(S.rs) ? 'dd' : 'edit', me, people: people.size, unseen: open ? 0 : unseen,
       log: S.log.slice().reverse(), pv: Object.keys(S.pv || {}).length, gone: S.gone || 0
     });
     this.rvRender();
@@ -1803,6 +1828,7 @@
     const b = this.shBind(), S = this._sh, cas = this.shApp() === 'provident-ad-studio', role = S ? S.role : (b && b.role) || '';
     // the designer's Review links archive mounts into its empty host once React has drawn it
     if (cas) setTimeout(() => { Arch.mount(this); Plan.mount(this); this.adtMount(); this.adtPill(); }, 0);
+    else if (this.postMount) this.postMount();
     const rs = S && S.rs;
     return {
       rvShareOn: cas ? '1' : undefined,
@@ -1816,7 +1842,7 @@
       shLinkTip: b ? 'This project is shared. Copies the link and opens the Changes panel.'
         : 'Makes a link anyone can open to view and edit this project, with a panel of who changed what.',
       shLinkOn: b ? '1' : undefined,
-      ...(cas ? this.rsCopyVals() : {}),
+      ...(cas ? this.rsCopyVals() : this.postVals ? this.postVals() : {}),
     };
   };
   // THE REVIEW FLOW IN THE DESIGNER'S STUDIO (2026-10-26): the Copy view's head and foot bar and
@@ -2377,7 +2403,7 @@
   }
 
   SP.rvSum = function (st) {
-    if (this.shApp() !== 'provident-ad-studio') return undefined;
+    if (this.shApp() !== 'provident-ad-studio') return this.postSum ? this.postSum(st) : undefined;
     const C = this.constructor; st = st || this.state;
     try {
       const sz = []; (st.variants || []).forEach(v => C.sizesFor(st, v).forEach(k => { if (sz.indexOf(k) < 0) sz.push(k); }));
@@ -2388,7 +2414,7 @@
   };
   // a small picture of a project's first design, for the archive
   SP.rvThumb = async function (st, own) {
-    if (this.shApp() !== 'provident-ad-studio') return undefined;
+    if (this.shApp() !== 'provident-ad-studio') return this.postThumb ? this.postThumb(st, own) : undefined;
     try {
       st = st || this.state;
       const a = await this.loadAssets(st, own);
@@ -2408,7 +2434,7 @@
     if (canon(rs) === canon(S.rs)) return;
     const was = S.rs;
     S.rs = rs;
-    if (rs && rs.tok && rs.tok.dd) { Arch.add(rs.tok.dd, rs.name, rs.product); rsPidSet(this.state.pid, { dd: rs.tok.dd, sid: S.id, name: rs.name || '' }); }
+    if (rs && rs.tok && rs.tok.dd && !isPost(rs)) { Arch.add(rs.tok.dd, rs.name, rs.product); rsPidSet(this.state.pid, { dd: rs.tok.dd, sid: S.id, name: rs.name || '' }); }
     if (was && rs) this.rsNotify(was, rs);
     this.shPersist(); this.rvRender(); this.adtRender(); this.forceUpdate();
   };
@@ -2427,6 +2453,12 @@
   function notifySteps(was, now, ui) {
     const me = StudioBase.shareName(), seen = new Set((was.hist || []).map(h => h.at + h.act + h.sid));
     (now.hist || []).filter(h => !seen.has(h.at + h.act + h.sid) && h.by !== me).forEach(h => {
+      if (isPost(now)) {
+        const t = h.by + ' · ' + (POST_TEXT[h.act] || 'changed a step').replace(/^./, c => c.toLowerCase());
+        if (ui) ui.flash(t);
+        sysNotify((now.name || 'Post') + ' · post', t, 'ps-' + h.at);
+        return;
+      }
       const it = (now.items || []).find(x => x.sid === h.sid), lab = it ? itemLabel(it) : '';
       const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'put the design back in progress',
         'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act] || 'changed a step';
@@ -2497,10 +2529,11 @@
       const pend = () => S.busy || canon(this.shPub()) !== S.baseS || S.dirty.size > 0;
       for (let i = 0; i < 40 && pend(); i++) { if (!S.busy) await this.shSave(); else await new Promise(r => setTimeout(r, 250)); if (pend()) await new Promise(r => setTimeout(r, 250)); }
       const body = { act: a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' };
-      if (a === 'design-done') body.thumb = await this.rvThumb();
+      if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      S.ui.flash(a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
+      if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
+      S.ui.flash(isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
     finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
   };
@@ -2545,6 +2578,14 @@
     const sec = S.ui.root.querySelector('.rv');
     S.ui.root.querySelector('.shl-panel h2').textContent = S.rs ? (S.rs.name || 'Ad set') : 'Changes';
     if (!S.rs) { sec.hidden = true; return; }
+    if (isPost(S.rs)) {
+      sec.hidden = false;
+      S.ui.root.querySelector('.shl-sub').textContent = 'Organic post · on Google Drive';
+      const html = this.postPanel ? this.postPanel() : '';
+      const m = sec.querySelector('.rv-main'); if (m._h !== html) { m._h = html; m.innerHTML = html; }
+      sec.querySelector('.rv-dd').hidden = true;
+      return;
+    }
     sec.hidden = false;
     const rs = S.rs, it = this.rsItem(), auds = rsAuds(rs), all = rsOverall(auds);
     const mine = it ? auds.find(a => a.items.indexOf(it) >= 0) : null;
@@ -2928,7 +2969,7 @@
     },
     async start(shell, tok, d) {
       if (this.cur) this.cur.stop(true);
-      if (d.role === 'dd' && d.rs && d.rs.tok) Arch.add(tok, d.rs.name, d.rs.product);
+      if (d.role === 'dd' && d.rs && d.rs.tok && !isPost(d.rs)) Arch.add(tok, d.rs.name, d.rs.product);
       const v = this.cur = new RsView(shell, tok, d);
       ssSet(RS_KEY, { id: tok, pid: (shell.eng && shell.eng.state && shell.eng.state.pid) || '' });
       await v.load();
@@ -3508,6 +3549,11 @@
     try { if (eng && eng.host) eng.host.forceUpdate(); } catch (e) {}
   }
   window.providentReviews = Arch;
+  // THE DRIVE KIT, for post-flow.js (OPS's posts): the same Drive calls, cache and write
+  // discipline the ad sets use — one place for every Drive read and write in the studios.
+  window.providentDsKit = { api, dsFetch, dsList, dsQuery, dsFolder, dsCreate, dsRead, dsWrite, dsMeta, dsPutRec, dsRand, dsSafe, dsJson, dsGate,
+    dsOn, dsLog, dsPub, dsWho, dsFlush, DSC, DS_FOLDER, get PICO() { return PICO; },   // PICO is declared further down: read it late
+    IS, esc, ago, clip, busyDlg, askNotify, sysNotify, copyText, injectCss, pool, lsGet, lsSet, ssSet, isDs, fnv };
 
   // ---- THE HOME PAGE'S CAMPAIGN SETUP: the ad set, defined before the first design ----
   // Quick: a name, the product and the Drive folder. More settings: the markets, the
@@ -3855,8 +3901,10 @@
       if (more.length) await read(more);
       this.sign = sign;
       // a review from before ad sets was kept by its project's id: from now on, by its designer link
-      out.forEach(x => { if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
-      const seen = new Set(); this.items = out.filter(x => !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
+      // an OPS post that reached this list (a build before posts kept to their own) leaves it
+      out.filter(x => x.rs && isPost(x.rs)).forEach(x => Arch.save(Arch.list().filter(y => y.id !== x.id)));
+      out.forEach(x => { if (x.rs && isPost(x.rs)) return; if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
+      const seen = new Set(); this.items = out.filter(x => !(x.rs && isPost(x.rs)) && !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
       statusSave(this.items, this.eng);
       listKeep(this.items);
     } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }

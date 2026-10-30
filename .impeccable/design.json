@@ -1,0 +1,637 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-30T09:23:49.891188Z",
+  "title": "Design System: Provident Design Studio — chrome",
+  "extensions": {
+    "scope": "Chrome (tool UI) only. Canvas artwork palettes CampaignStudio.PAL / OrganicStudio.ART are a separate system and are not recorded here.",
+    "source": "ui-design-system/provident-ui.css (--ps-* tokens); built surface post-flow.js (OPS home)",
+    "colorMeta": {
+      "app": {
+        "role": "neutral",
+        "displayName": "Desk Grey",
+        "canonical": "#131519",
+        "tonalRamp": [
+          "#21252B",
+          "#373D48",
+          "#4D5565",
+          "#636E82",
+          "#7D879C",
+          "#A2AAB9",
+          "#CBCFD7",
+          "#F1F2F4"
+        ]
+      },
+      "stage": {
+        "role": "neutral",
+        "displayName": "Stage Black",
+        "canonical": "#0A0B0D",
+        "tonalRamp": [
+          "#21252B",
+          "#373D48",
+          "#4E5565",
+          "#646E82",
+          "#7D879B",
+          "#A3AAB8",
+          "#CBCFD7",
+          "#F1F2F4"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "canonical": "#1D2024",
+        "tonalRamp": [
+          "#22262A",
+          "#393F47",
+          "#505863",
+          "#66717F",
+          "#808A99",
+          "#A5ACB6",
+          "#CCD0D6",
+          "#F1F2F4"
+        ]
+      },
+      "card-h": {
+        "role": "neutral",
+        "displayName": "Card Lift",
+        "canonical": "#252931",
+        "tonalRamp": [
+          "#21242C",
+          "#373D49",
+          "#4D5566",
+          "#636D83",
+          "#7C879C",
+          "#A2AAB9",
+          "#CBCFD8",
+          "#F0F2F4"
+        ]
+      },
+      "fill": {
+        "role": "neutral",
+        "displayName": "Fill",
+        "canonical": "#282B31",
+        "tonalRamp": [
+          "#22252A",
+          "#393E46",
+          "#505662",
+          "#676F7E",
+          "#818898",
+          "#A5ABB6",
+          "#CCD0D6",
+          "#F1F2F4"
+        ]
+      },
+      "fill-h": {
+        "role": "neutral",
+        "displayName": "Fill Lift",
+        "canonical": "#31353C",
+        "tonalRamp": [
+          "#22252A",
+          "#393E46",
+          "#505762",
+          "#67707E",
+          "#818998",
+          "#A5ABB6",
+          "#CCD0D6",
+          "#F1F2F4"
+        ]
+      },
+      "hair": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "rgba(148,154,166,.16)"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "rgba(148,154,166,.24)"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8C8C8C",
+          "#ADADAD",
+          "#D1D1D1",
+          "#F2F2F2"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#C3C8D0",
+        "tonalRamp": [
+          "#22252B",
+          "#383E47",
+          "#4E5764",
+          "#657081",
+          "#7E899A",
+          "#A3ABB7",
+          "#CCD0D7",
+          "#F1F2F4"
+        ]
+      },
+      "dim": {
+        "role": "neutral",
+        "displayName": "Dim",
+        "canonical": "#949AA6",
+        "tonalRamp": [
+          "#23252A",
+          "#3A3E46",
+          "#515761",
+          "#686F7D",
+          "#828997",
+          "#A6ABB5",
+          "#CDD0D5",
+          "#F1F2F3"
+        ]
+      },
+      "provident-navy": {
+        "role": "primary",
+        "displayName": "Provident Navy",
+        "canonical": "#1A2942",
+        "tonalRamp": [
+          "#162237",
+          "#24395B",
+          "#325080",
+          "#4166A5",
+          "#5A80BE",
+          "#8AA5D1",
+          "#BDCCE5",
+          "#EDF1F8"
+        ]
+      },
+      "navy-lift": {
+        "role": "primary",
+        "displayName": "Navy Lift",
+        "canonical": "#22355A",
+        "tonalRamp": [
+          "#152138",
+          "#23365D",
+          "#314C82",
+          "#3F62A7",
+          "#587CC0",
+          "#89A2D2",
+          "#BCCAE6",
+          "#ECF0F8"
+        ]
+      },
+      "resting-navy": {
+        "role": "primary",
+        "displayName": "Resting Navy",
+        "canonical": "#243352",
+        "tonalRamp": [
+          "#172135",
+          "#273759",
+          "#364D7C",
+          "#46639F",
+          "#607DB9",
+          "#8EA2CD",
+          "#BFCBE3",
+          "#EDF1F7"
+        ]
+      },
+      "link-slate": {
+        "role": "primary",
+        "displayName": "Link Slate",
+        "canonical": "#879CC5",
+        "tonalRamp": [
+          "#192234",
+          "#2A3956",
+          "#3A4F78",
+          "#4B669B",
+          "#647FB4",
+          "#91A4CA",
+          "#C1CCE1",
+          "#EEF1F7"
+        ]
+      },
+      "good": {
+        "role": "status",
+        "displayName": "Good",
+        "canonical": "#22B457",
+        "tonalRamp": [
+          "#0C401F",
+          "#146B34",
+          "#1C9649",
+          "#24C15D",
+          "#3EDB77",
+          "#76E59E",
+          "#B2F0C9",
+          "#EAFBF0"
+        ]
+      },
+      "warn": {
+        "role": "status",
+        "displayName": "Warn",
+        "canonical": "#EAB308",
+        "tonalRamp": [
+          "#4A3903",
+          "#7B5E04",
+          "#AD8406",
+          "#DEAA08",
+          "#F7C321",
+          "#FAD561",
+          "#FCE7A6",
+          "#FEF8E6"
+        ]
+      },
+      "bad": {
+        "role": "status",
+        "displayName": "Bad",
+        "canonical": "#F07272",
+        "tonalRamp": [
+          "#450707",
+          "#730C0C",
+          "#A11111",
+          "#CF1616",
+          "#E93030",
+          "#EF6B6B",
+          "#F6ACAC",
+          "#FDE8E8"
+        ]
+      },
+      "brand-orange": {
+        "role": "brand",
+        "displayName": "Brand Orange",
+        "canonical": "#F3793C",
+        "tonalRamp": [
+          "#481B04",
+          "#782D07",
+          "#A83F0A",
+          "#D8510D",
+          "#F26A27",
+          "#F69565",
+          "#FAC4A9",
+          "#FEEEE7"
+        ]
+      },
+      "app-light": {
+        "role": "neutral",
+        "displayName": "Desk Grey (light)",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#8C8C8C",
+          "#ADADAD",
+          "#D1D1D1",
+          "#F2F2F2"
+        ]
+      },
+      "fill-light": {
+        "role": "neutral",
+        "displayName": "Fill (light)",
+        "canonical": "#EDEEF0",
+        "tonalRamp": [
+          "#23252A",
+          "#3A3E46",
+          "#515761",
+          "#686F7D",
+          "#828997",
+          "#A6ABB5",
+          "#CDD0D5",
+          "#F1F2F3"
+        ]
+      },
+      "fill-h-light": {
+        "role": "neutral",
+        "displayName": "Fill Lift (light)",
+        "canonical": "#E4E5E8",
+        "tonalRamp": [
+          "#232529",
+          "#3B3D45",
+          "#525660",
+          "#6A6E7C",
+          "#838895",
+          "#A7AAB4",
+          "#CDCFD5",
+          "#F1F2F3"
+        ]
+      },
+      "resting-tint-light": {
+        "role": "neutral",
+        "displayName": "Resting Tint (light, Tint 16)",
+        "canonical": "#DADDE1",
+        "tonalRamp": [
+          "#22262A",
+          "#393F46",
+          "#505863",
+          "#67717F",
+          "#808B98",
+          "#A5ACB6",
+          "#CCD0D6",
+          "#F1F2F4"
+        ]
+      },
+      "ink-light": {
+        "role": "neutral",
+        "displayName": "Ink (light)",
+        "canonical": "#0A0B0D",
+        "tonalRamp": [
+          "#21252B",
+          "#373D48",
+          "#4E5565",
+          "#646E82",
+          "#7D879B",
+          "#A3AAB8",
+          "#CBCFD7",
+          "#F1F2F4"
+        ]
+      },
+      "ink-2-light": {
+        "role": "neutral",
+        "displayName": "Ink 2 (light)",
+        "canonical": "#3D434E",
+        "tonalRamp": [
+          "#22252B",
+          "#383D48",
+          "#4E5664",
+          "#656F81",
+          "#7E889A",
+          "#A3AAB7",
+          "#CBCFD7",
+          "#F1F2F4"
+        ]
+      },
+      "dim-light": {
+        "role": "neutral",
+        "displayName": "Dim (light)",
+        "canonical": "#5B616E",
+        "tonalRamp": [
+          "#23252A",
+          "#3A3E46",
+          "#515662",
+          "#686F7E",
+          "#818897",
+          "#A6ABB5",
+          "#CDD0D5",
+          "#F1F2F3"
+        ]
+      },
+      "good-light": {
+        "role": "status",
+        "displayName": "Good (light)",
+        "canonical": "#0F7A3A",
+        "tonalRamp": [
+          "#084420",
+          "#0E7236",
+          "#149F4C",
+          "#19CC61",
+          "#33E67B",
+          "#6EEDA1",
+          "#ADF5CA",
+          "#E8FCF0"
+        ]
+      },
+      "warn-light": {
+        "role": "status",
+        "displayName": "Warn (light)",
+        "canonical": "#8A6206",
+        "tonalRamp": [
+          "#493403",
+          "#7A5705",
+          "#AB7907",
+          "#DC9C0A",
+          "#F5B623",
+          "#F8CB63",
+          "#FBE2A7",
+          "#FEF7E7"
+        ]
+      },
+      "bad-light": {
+        "role": "status",
+        "displayName": "Bad (light)",
+        "canonical": "#C81E1E",
+        "tonalRamp": [
+          "#430A0A",
+          "#6F1111",
+          "#9B1717",
+          "#C81E1E",
+          "#E13737",
+          "#EA7171",
+          "#F3AFAF",
+          "#FCE9E9"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The new post's name, typed in place."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "A post that waits on you."
+      },
+      "row-title": {
+        "displayName": "Row title",
+        "purpose": "A post with others or ready."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Group and step headings."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Every labelled action and switch tab."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Brief and panel copy."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Step lines: who and when."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Drive status, Optional tag, file chips."
+      }
+    },
+    "shadows": [
+      {
+        "name": "elevation",
+        "value": "none",
+        "purpose": "The chrome is flat; --ps-shadow is none."
+      },
+      {
+        "name": "ring-rest",
+        "value": "inset 0 0 0 1px var(--ps-hair)",
+        "purpose": "Every card and row at rest."
+      },
+      {
+        "name": "ring-hover",
+        "value": "inset 0 0 0 1px var(--ps-line)",
+        "purpose": "Row/card hover; outline pills at rest."
+      },
+      {
+        "name": "focus",
+        "value": "outline: 2px solid var(--ps-ink); outline-offset: 2px",
+        "purpose": "Foreground focus ring; inverts with the theme."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state",
+        "value": "150ms cubic-bezier(0.2,0,0,1)",
+        "purpose": "--ps-motion / --ps-ease: hover and selection changes."
+      },
+      {
+        "name": "entrance",
+        "value": ".32s cubic-bezier(.16,1,.3,1)",
+        "purpose": "A Home door's content rising 8px in; a sent row sliding 28px out. Off under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "row-stack",
+        "value": "760px (container width)"
+      },
+      {
+        "name": "grid-indent",
+        "value": "760px (viewport)"
+      }
+    ],
+    "themes": {
+      "default": "dark (bare :root)",
+      "light": ":root[data-theme=\"light\"] — the -light colour keys"
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one step that moves a post on; one per row at most.",
+      "html": "<button class=\"ds-btn-primary\">Send to copy check</button>",
+      "css": ".ds-btn-primary{height:36px;padding:10px 16px;border:0;border-radius:9999px;background:var(--ps-accent-h,#1A2942);color:var(--ps-primary-i,#fff);font:600 14px/1 'Google Sans Flex',system-ui,sans-serif;letter-spacing:.16px;cursor:pointer;transition:background-color 150ms cubic-bezier(0.2,0,0,1)}.ds-btn-primary:hover{background:var(--ps-accent-h2,#22355A)}.ds-btn-primary:focus-visible{outline:2px solid var(--ps-ink,#fff);outline-offset:2px}"
+    },
+    {
+      "name": "Quiet Open",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Secondary row action: transparent until hovered.",
+      "html": "<button class=\"ds-btn-quiet\">Open</button>",
+      "css": ".ds-btn-quiet{height:36px;padding:10px 18px;border:0;border-radius:9999px;background:transparent;color:var(--ps-ink-2,#C3C8D0);font:600 14px/1 'Google Sans Flex',system-ui,sans-serif;letter-spacing:.16px;cursor:pointer;transition:background-color 150ms cubic-bezier(0.2,0,0,1),color 150ms}.ds-btn-quiet:hover{background:var(--ps-fill,#282B31);color:var(--ps-ink,#fff)}.ds-btn-quiet:focus-visible{outline:2px solid var(--ps-ink,#fff);outline-offset:2px}"
+    },
+    {
+      "name": "Home Switch",
+      "kind": "nav",
+      "refersTo": "switch-tab",
+      "description": "Two doors on one pill track: My turn and Start a post. The chosen half takes the resting navy.",
+      "html": "<div class=\"ds-sw\" role=\"tablist\"><button role=\"tab\" aria-selected=\"true\" data-on>My turn</button><button role=\"tab\" aria-selected=\"false\">Start a post</button></div>",
+      "css": ".ds-sw{display:inline-flex;gap:4px;padding:4px;border-radius:9999px;background:var(--ps-fill,#282B31)}.ds-sw button{height:40px;padding:0 20px;border:0;border-radius:9999px;background:transparent;color:var(--ps-ink-2,#C3C8D0);font:600 14px/1 'Google Sans Flex',system-ui,sans-serif;letter-spacing:.16px;cursor:pointer;transition:background-color 150ms cubic-bezier(0.2,0,0,1),color 150ms}.ds-sw button:hover{color:var(--ps-ink,#fff);background:var(--ps-fill-h,#31353C)}.ds-sw button[data-on]{background:var(--ps-accent,#243352);color:var(--ps-accent-i,#fff)}.ds-sw button:focus-visible{outline:2px solid var(--ps-ink,#fff);outline-offset:2px}"
+    },
+    {
+      "name": "Queue Row",
+      "kind": "card",
+      "refersTo": "queue-row",
+      "description": "One post's next step: render, name, step segments, due date, one action.",
+      "html": "<div class=\"ds-row\"><span class=\"ds-th\"></span><div class=\"ds-t\"><b>Top agents of October</b><span class=\"ds-st\"><span class=\"ds-segs\"><i data-s=\"done\"></i><i data-s=\"cur\"></i><i></i><i></i></span><em>Design</em> Started by you · 17 min ago</span></div><span class=\"ds-due\">Due Sunday</span><button class=\"ds-go\">Send to copy check</button></div>",
+      "css": ".ds-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;column-gap:20px;padding:14px 16px 14px 14px;border-radius:16px;background:var(--ps-card,#1D2024);box-shadow:inset 0 0 0 1px var(--ps-hair,rgba(148,154,166,.16));color:var(--ps-ink,#fff);font-family:'Google Sans Flex',system-ui,sans-serif;transition:box-shadow 150ms cubic-bezier(0.2,0,0,1)}.ds-row:hover{box-shadow:inset 0 0 0 1px var(--ps-line,rgba(148,154,166,.24))}.ds-th{width:72px;aspect-ratio:3/4;border-radius:8px;background:var(--ps-fill-h,#31353C)}.ds-t{display:grid;gap:6px;min-width:0}.ds-t b{font:500 18px/1.3 inherit}.ds-st{display:flex;align-items:center;gap:10px;font:400 13px/1.3 inherit;color:var(--ps-ink-2,#C3C8D0)}.ds-st em{font-style:normal;font-weight:500;color:var(--ps-ink,#fff)}.ds-segs{display:inline-flex;gap:3px}.ds-segs i{width:14px;height:4px;border-radius:9999px;background:var(--ps-line,rgba(148,154,166,.24))}.ds-segs i[data-s=done]{background:var(--ps-good,#22B457)}.ds-segs i[data-s=cur]{background:var(--ps-link,#879CC5)}.ds-due{display:inline-flex;align-items:center;gap:6px;font:500 13px/1 inherit;color:var(--ps-ink-2,#C3C8D0)}.ds-due::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ps-dim,#949AA6)}.ds-go{height:36px;padding:10px 16px;border:0;border-radius:9999px;background:var(--ps-accent-h,#1A2942);color:#fff;font:600 14px/1 inherit;letter-spacing:.16px}"
+    },
+    {
+      "name": "Count Chip",
+      "kind": "chip",
+      "refersTo": "count-chip",
+      "description": "A group's count beside its heading.",
+      "html": "<span class=\"ds-chip\">2</span>",
+      "css": ".ds-chip{display:inline-block;padding:4px 8px;border-radius:9999px;background:var(--ps-fill,#282B31);color:var(--ps-ink-2,#C3C8D0);font:500 12px/1 'Google Sans Flex',system-ui,sans-serif;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Brief Field",
+      "kind": "input",
+      "refersTo": "text-area",
+      "description": "Fill-coloured textarea; ink outline on focus.",
+      "html": "<textarea class=\"ds-ta\" rows=\"3\" placeholder=\"What the post is for, the key message\"></textarea>",
+      "css": ".ds-ta{width:100%;min-height:104px;border:0;border-radius:14px;background:var(--ps-fill,#282B31);color:var(--ps-ink,#fff);padding:14px 16px;font:400 15px/1.5 'Google Sans Flex',system-ui,sans-serif;resize:vertical}.ds-ta::placeholder{color:var(--ps-dim,#949AA6)}.ds-ta:focus{outline:2px solid var(--ps-ink,#fff);outline-offset:2px}"
+    },
+    {
+      "name": "Due Pill",
+      "kind": "input",
+      "refersTo": "outline-pill",
+      "description": "Outline pill holding a native date input.",
+      "html": "<label class=\"ds-due-p\">Due <input type=\"date\"></label>",
+      "css": ".ds-due-p{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 12px;border-radius:9999px;box-shadow:inset 0 0 0 1px var(--ps-line,rgba(148,154,166,.24));font:500 13px/1 'Google Sans Flex',system-ui,sans-serif;color:var(--ps-ink-2,#C3C8D0)}.ds-due-p:focus-within{box-shadow:inset 0 0 0 1px var(--ps-ink,#fff)}.ds-due-p input{border:0;background:transparent;color:var(--ps-ink,#fff);font:400 13.5px/1 inherit;color-scheme:light dark;outline:none}"
+    },
+    {
+      "name": "Clear Panel",
+      "kind": "custom",
+      "refersTo": "quiet-panel",
+      "description": "Nothing waits on you: a fill panel led by a good disc.",
+      "html": "<div class=\"ds-clear\"><span class=\"ds-disc\">✓</span><div><b>You’re clear</b><span>4 posts are with others right now.</span></div></div>",
+      "css": ".ds-clear{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;padding:20px 22px;border-radius:16px;background:var(--ps-fill,#282B31);color:var(--ps-ink,#fff);font-family:'Google Sans Flex',system-ui,sans-serif}.ds-disc{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ps-good,#22B457);color:var(--ps-app,#131519)}.ds-clear b{display:block;font:500 17px/1.3 inherit}.ds-clear span{display:block;margin-top:2px;font:400 14px/1.45 inherit;color:var(--ps-ink-2,#C3C8D0)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Desk",
+    "overview": "The chrome is a working desk set back from the work. It is neutral grey in dark mode (the default) and plain white in light. Provident Navy runs through it as one family of tints. The only pictures are the posts' own 3:4 renders. The room stays neutral because the studio's job is judging colour on a canvas, so the chrome never competes with it. The home screen follows one rule: one decision at a time. It shows the posts that wait on you or a new post, behind one pill switch, and never stacks a form, a gallery and a list on one page.\n\nDensity is moderate. The rows are full width, with a render, a name, a step line, and one action at the row's end. Hierarchy comes from weight (500 for names, 600 for headings and buttons, 400 for everything else) and from three ink tiers (ink, ink-2, dim). Size does very little of the work. Nothing is bold and nothing is uppercase. Copy is sentence case and plain (\"Waiting on you\", \"You're clear\", \"Send to copy check\").",
+    "keyCharacteristics": [
+      "Neutral grey ground in dark mode and white in light. Navy is never the ground.",
+      "One solid navy action per row. Choices sit on a quiet resting tint.",
+      "Rings, not shadows. A card is a fill plus a 1px inset hairline.",
+      "The four workflow steps show as small segments coloured link, warn and good.",
+      "Google Sans Flex only, with the hierarchy carried by weight and ink tier.",
+      "Motion is short and ease-out, and the reduced-motion setting turns it off."
+    ],
+    "rules": [
+      {
+        "name": "The One Loud Thing Rule",
+        "body": "Each row has at most one solid navy button, and it is the step that moves the post on. Open, Refresh and every secondary action are quiet: ghost, outline or text link.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rest Is Not Action Rule",
+        "body": "A selected state uses the resting tint (`resting-navy`). The solid navy is reserved for doing something. When the two are mixed, the screen loses its one call to action.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Systems Rule",
+        "body": "Chrome tokens never reach the artwork, and artwork colours never reach the chrome. Merging the two once leaked the UI's blue into finished posts.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Uppercase Rule",
+        "body": "The chrome has no all-caps text and no tracked kickers. Tracked caps belong to the artwork.",
+        "section": "typography"
+      },
+      {
+        "name": "The Weight-Not-Size Rule",
+        "body": "To raise something in the hierarchy, step its weight or its ink tier. Do not add a new size.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ring-Not-Shadow Rule",
+        "body": "If a box shadow has an offset or a blur, it does not belong in the chrome.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use `var(--ps-*)` tokens for every chrome colour, radius and motion value, and take them from `ui-design-system/provident-ui.css`.",
+      "**Do** give each row at most one Provident Navy primary (`provident-navy`). Make everything else ghost, outline or a text link.",
+      "**Do** show a selected state with the resting tint (`resting-navy` dark, `resting-tint-light` light), not the solid navy.",
+      "**Do** separate surfaces with fills and 1px inset rings (`hair` at rest, `line` on hover).",
+      "**Do** use the posts' own 3:4 renders as the only imagery, at 48 or 72px wide.",
+      "**Do** use status colours only as marks: segments, dots, a 28px disc.",
+      "**Do** time motion at about 150ms on `cubic-bezier(0.2,0,0,1)` for state changes, and turn every entrance and slide off under `prefers-reduced-motion`.",
+      "**Do** read a quiet ink against the surface it sits on. An ink that passes on the page can fail on a fill or a resting tint."
+    ],
+    "donts": [
+      "**Don't** fold the canvas palette (`CampaignStudio.PAL`, `OrganicStudio.ART`) into the chrome, or put a chrome token into an artwork op.",
+      "**Don't** use drop shadows or offset elevation in the chrome.",
+      "**Don't** set uppercase or tracked kickers in the chrome.",
+      "**Don't** fill a large area with brand orange (`brand-orange`) on dark. It is the wordmark's period.",
+      "**Don't** make the ground navy. Dark mode is neutral grey.",
+      "**Don't** stack the queue, the new-post form and a gallery on one screen. Home shows one door at a time.",
+      "**Don't** express quietness with `opacity` on text, because it does not survive a theme flip. Use the ink-2 or dim token."
+    ]
+  }
+}

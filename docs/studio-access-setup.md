@@ -1,6 +1,6 @@
-# CAS sign-in and roles — admin setup
+# CAS and OPS sign-in and roles — admin setup
 
-CAS asks people to sign in with Google and shows each of them what their role allows
+Both studios ask people to sign in with Google and shows each of them what their role allows
 (`access.js`, the `acc*` ops in `api/share.py`). It is **off** until the deployment names the admin.
 
 ## Switch it on (Vercel)
@@ -9,7 +9,7 @@ CAS asks people to sign in with Google and shows each of them what their role al
 2. Add **`ACCESS_ADMIN`** = the admin's Google email (one address). Production and Preview.
 3. Optional: **`ACCESS_DOMAIN`** (default `providentestate.com`) — the only accounts that can be let in.
 4. Redeploy. Open CAS on the site: it shows the sign-in screen. The admin signs in and gets
-   **Access** in the Home sidebar.
+   **Access** in CAS's Home sidebar (it manages both studios).
 
 It uses the share store (Upstash) that review links already use — two keys, `acc:users` and
 `acc:log`. No new service, no secret in the repo. Remove `ACCESS_ADMIN` to switch it off again.
@@ -19,7 +19,9 @@ It uses the share store (Upstash) that review links already use — two keys, `a
 - The page sends its Google access token; the server asks **Google** whose it is (Drive's `about`,
   the scope the studio already has). The page's own word is never trusted.
 - Admin = the `ACCESS_ADMIN` email. Everyone else on the domain is a request until the admin lets
-  them in as **Designer** or **Performance marketing**. Other domains are refused and logged.
+  them in as **Designer**, **Social media manager**, **Content team** or **Performance
+  marketing**. In CAS only the designer (and the admin) gets the editor; in OPS everyone but
+  performance marketing does, and the post's steps go by role (see CAS-OPS-GUIDE.md §8). Other domains are refused and logged.
 - A removed person is shut out at the next check (the studio re-checks every five minutes).
 
 ## What it does not protect
@@ -28,7 +30,9 @@ It uses the share store (Upstash) that review links already use — two keys, `a
   Drive, protected by Drive sharing as before. Anyone with the HTML file can still open it off the
   disk; it's a tool, not the data.
 - **Review links** (`#share=`) open without signing in — the link is the key, as before.
-- **OPS and the landing page** are not gated.
+- **The landing page** is not gated.
+- A post's step buttons follow the signed-in role in the page. Whoever can open the post's Drive
+  folder can open the project; Drive sharing on **Organic posts** is what guards it.
 
 ## Testing locally
 

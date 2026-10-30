@@ -1,6 +1,6 @@
 /* access.js — who may use the Campaign Ads Studio, and what each of them sees (2026-10-30).
  *
- * The sign-in screen, the role gate and the admin panel. CAS only; loaded in <head> after
+ * The sign-in screen, the role gate and the admin panel. Both studios; loaded in <head> after
  * share-link.js. The decisions live on the server (api/share.py, op=acc*): the page sends its
  * Google access token and the server asks Google whose it is, then answers with that person's
  * role. Nothing here is trusted for identity. Roles:
@@ -19,13 +19,20 @@
  */
 (function () {
   'use strict';
-  if (!/Campaign Studio/.test(decodeURIComponent(location.pathname))) return;
+  // BOTH STUDIOS since OPS's posts (2026-10-30). Each studio decides what a role sees in it.
+  const CAS = /Campaign Studio/.test(decodeURIComponent(location.pathname));
+  if (!CAS && !/Organic Studio/.test(decodeURIComponent(location.pathname))) return;
 
-  const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing' };
+  const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing', smm: 'Social media manager', ct: 'Content team' };
   const ROLE_SUB = {
-    designer: 'The whole studio: design, export, Status',
-    pm: 'Set up campaigns as tickets, and follow them on Status'
+    designer: 'Both studios: design, export, Status',
+    pm: 'Set up campaigns as tickets, and follow them on Status',
+    smm: 'Draft organic posts in OPS and send them to a designer',
+    ct: 'Check the copy of posts, and of campaigns through their links'
   };
+  const ROLES = ['designer', 'smm', 'ct', 'pm'];
+  const WANT = { designer: ['Design', 'Designer'], smm: ['Draft organic posts', 'Social media manager'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'] };
+  const roleWord = r => ({ pm: 'performance marketing', designer: 'a designer', smm: 'a social media manager', ct: 'the content team' }[r] || r);
   const LS_VIEWAS = 'provident-acc-viewas', LS_LINK = 'provident-acc-link';
   const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
                set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
@@ -69,6 +76,10 @@
   };
   const viewAs = () => (A.me && A.me.admin ? ss.get(LS_VIEWAS) : null);
   const role = () => (A.phase === 'in' && A.me ? (viewAs() || A.me.role) : null);
+  // LIMITED in this studio: CAS is the designer's (and the admin's); performance marketing, the
+  // social media manager and the content team get Home's setup and Status there. OPS is open to
+  // all but performance marketing, which gets OPS's Status only.
+  const lim = () => { const r = role(); return !!r && (CAS ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'); };
 
   // A review link (#share=) is its own key: it opens without signing in, and so does every
   // reload in the tab it opened.
@@ -142,6 +153,7 @@
   function apply() {
     const h = document.documentElement, r = role();
     if (r) h.setAttribute('data-acc-role', r); else h.removeAttribute('data-acc-role');
+    h.toggleAttribute('data-acc-lim', lim());
     h.toggleAttribute('data-acc-isadmin', !!(A.me && A.me.admin && A.phase === 'in'));
     h.toggleAttribute('data-acc-preview', !!viewAs());
     if (A.phase === 'in' || !gated() || A.on === false) h.classList.remove('acx-hold');
@@ -149,13 +161,13 @@
     if (sh) {
       // performance marketing never reaches the editor: back to Home
       const e = sh.eng;
-      if (r === 'pm' && e && e.state && e.state.screen && e.state.screen !== 'splash') { try { e.upd(x => { x.screen = 'splash'; return x; }); } catch (x) {} }
+      if (lim() && e && e.state && e.state.screen && e.state.screen !== 'splash') { try { e.upd(x => { x.screen = 'splash'; return x; }); } catch (x) {} }
       try { sh.forceUpdate(); } catch (x) {}
     }
     bar(); chip();
   }
   document.addEventListener('click', e => {
-    if (role() !== 'pm') return;
+    if (!lim() || !CAS) return;
     const t = e.target && e.target.closest && e.target.closest('[data-a],.rsp-go,.p-sbf button,.rc-c');
     if (!t) return;
     if (t.matches('.rsp-go,.p-sbf button,.rc-c') || PM_BLOCK.indexOf(t.dataset.a) >= 0) { e.preventDefault(); e.stopPropagation(); }
@@ -187,7 +199,7 @@
         acct(me) + steps(1) +
         '<form class="acx-note" data-x="note"><label for="acx-n">Add a note for the admin <small>Optional</small></label>' +
         '<textarea id="acx-n" rows="3" maxlength="400" placeholder="Who you are and what you need it for">' + esc(me.note || '') + '</textarea>' +
-        '<fieldset><legend>I need to</legend>' + ['designer', 'pm'].map(k => '<label class="acx-want"><input type="radio" name="want" value="' + k + '"' + (me.want === k ? ' checked' : '') + '><span><b>' + (k === 'pm' ? 'File campaigns' : 'Design ads') + '</b><small>' + (k === 'pm' ? 'Performance marketing' : 'Designer') + '</small></span></label>').join('') + '</fieldset>' +
+        '<fieldset><legend>I need to</legend>' + ROLES.map(k => '<label class="acx-want"><input type="radio" name="want" value="' + k + '"' + (me.want === k ? ' checked' : '') + '><span><b>' + WANT[k][0] + '</b><small>' + WANT[k][1] + '</small></span></label>').join('') + '</fieldset>' +
         '<div class="acx-row"><button type="submit" class="acx-btn">' + ic('send') + (A.noteSent ? 'Sent' : 'Send to the admin') + '</button><button type="button" class="acx-ghost" data-x="again">' + ic('refresh') + 'Check again</button></div></form>' +
         errLine + '<p class="acx-foot">' + other + '</p>';
       case 'declined': return '<h1>' + (me.status === 'revoked' ? 'Your access was removed' : 'Your request was declined') + '</h1>' +
@@ -209,12 +221,13 @@
       gate = document.createElement('div');
       gate.id = 'acx'; gate.setAttribute('role', 'dialog'); gate.setAttribute('aria-modal', 'true'); gate.setAttribute('aria-labelledby', 'acx-h');
       gate.innerHTML = '<main class="acx-l"><header class="acx-top"></header><section class="acx-b" aria-live="polite"></section></main>' +
-        '<aside class="acx-r" aria-hidden="true"><div class="acx-fig"></div><p class="acx-cap"><b>Campaign Ads Studio</b><span>Meta ads in every size, on brand, from one design.</span></p></aside>';
+        '<aside class="acx-r" aria-hidden="true"><div class="acx-fig"></div><p class="acx-cap">' + (CAS ? '<b>Campaign Ads Studio</b><span>Meta ads in every size, on brand, from one design.</span>' : '<b>Organic Post Studio</b><span>Feed and story posts, drafted, designed and checked in one place.</span>') + '</p></aside>';
       document.body.appendChild(gate);
       gate.addEventListener('click', onGate);
       gate.addEventListener('submit', onSubmit);
       const H = window.providentHairline, f = gate.querySelector('.acx-fig');
-      if (H && H.elevator && f) { try { gate._fig = H.elevator(f, { play: true, intensity: .7 }); } catch (e) {} }
+      const fig = CAS ? H && H.elevator : H && (H.turntable || H.elevator);
+      if (fig && f) { try { gate._fig = fig(f, { play: true, intensity: .7 }); } catch (e) {} }
       const lk = () => { const t = gate && gate.querySelector('.acx-top'); if (t) t.innerHTML = lockup(); };
       lk(); if (!document.querySelector('.p-wm-a')) setTimeout(lk, 600);
     }
@@ -256,7 +269,7 @@
   function preview(r) {
     ss.set(LS_VIEWAS, r);
     const sh = A.host;
-    if (sh) { try { sh.setState({ splashView: r ? 'all' : 'acc' }); } catch (e) {} }
+    if (sh) { try { sh.setState({ splashView: r ? (!CAS && r === 'pm' ? 'rev' : 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
     apply();
   }
 
@@ -287,13 +300,13 @@
   const reqs = () => ((A.list && A.list.users) || []).filter(u => u.status === 'pending');
   const people = () => ((A.list && A.list.users) || []).filter(u => u.status !== 'pending');
   function seg(name, val, sel) {
-    return '<span class="ac-seg" role="radiogroup" aria-label="Role">' + ['designer', 'pm'].map(k =>
-      '<button type="button" role="radio" aria-checked="' + (sel === k) + '" data-k="' + name + '" data-v="' + k + '" data-e="' + esc(val) + '"' + (sel === k ? ' data-on' : '') + '>' + (k === 'pm' ? 'Performance marketing' : 'Designer') + '</button>').join('') + '</span>';
+    return '<span class="ac-seg" role="radiogroup" aria-label="Role">' + ROLES.map(k =>
+      '<button type="button" role="radio" aria-checked="' + (sel === k) + '" data-k="' + name + '" data-v="' + k + '" data-e="' + esc(val) + '"' + (sel === k ? ' data-on' : '') + '>' + ROLE[k] + '</button>').join('') + '</span>';
   }
   const LOGW = {
     request: e => 'tried to sign in for the first time',
     retry: e => 'tried to sign in again (' + ({ pending: 'still waiting', declined: 'declined', revoked: 'access removed' }[e.status] || e.status) + ')',
-    note: e => 'sent a note' + (e.want ? ', asking to be ' + (e.want === 'pm' ? 'performance marketing' : 'a designer') : ''),
+    note: e => 'sent a note' + (e.want ? ', asking to be ' + roleWord(e.want) : ''),
     outside: e => 'tried to sign in with an account outside Provident',
     grant: e => 'was let in as ' + (ROLE[e.role] || e.role),
     add: e => 'was added as ' + (ROLE[e.role] || e.role),
@@ -310,7 +323,7 @@
     const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['log', 'Activity', null]];
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
-      '<div class="ac-pv"><span>Preview the studio as</span><button type="button" class="acx-ghost" data-ac="pv" data-v="pm">' + ic('eye') + 'Performance marketing</button><button type="button" class="acx-ghost" data-ac="pv" data-v="designer">' + ic('eye') + 'Designer</button></div></div>';
+      '<div class="ac-pv"><span>Preview the studio as</span>' + ['pm', 'smm', 'ct', 'designer'].map(k => '<button type="button" class="acx-ghost" data-ac="pv" data-v="' + k + '">' + ic('eye') + ROLE[k] + '</button>').join('') + '</div></div>';
     if (A.listErr) h += '<p class="acx-err" role="alert">' + esc(A.listErr) + '</p>';
     if (A.tab === 'req') {
       if (!R.length) h += '<div class="ac-empty">' + ic('shield') + '<b>No one is waiting</b><span>When someone signs in for the first time they show up here, with any note they leave, for you to let in or decline.</span></div>';
@@ -318,7 +331,7 @@
         const sel = (A.pick && A.pick[u.email]) || u.want || 'pm';
         return '<li class="ac-req"><span class="acx-av">' + esc(initials(u.name, u.email)) + '</span>' +
           '<div class="ac-who"><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + '</small>' +
-          '<span class="ac-meta">Tried ' + (u.n > 1 ? u.n + ' times · first ' + esc(when(u.first)) + ' · last ' : '') + esc(when(u.last)) + (u.want ? ' · asks to be ' + (u.want === 'pm' ? 'performance marketing' : 'a designer') : '') + '</span>' +
+          '<span class="ac-meta">Tried ' + (u.n > 1 ? u.n + ' times · first ' + esc(when(u.first)) + ' · last ' : '') + esc(when(u.last)) + (u.want ? ' · asks to be ' + roleWord(u.want) : '') + '</span>' +
           (u.note ? '<q class="ac-q">' + esc(u.note) + '</q>' : '') + '</div>' +
           '<div class="ac-act"><span class="ac-lbl">Let in as</span>' + seg('pick', u.email, sel) +
           '<div class="ac-btns"><button type="button" class="acx-btn" data-ac="grant" data-e="' + esc(u.email) + '">' + ic('check') + 'Let in</button><button type="button" class="acx-ghost ac-no" data-ac="decline" data-e="' + esc(u.email) + '">Decline</button></div></div></li>';
@@ -422,7 +435,7 @@
       const host = document.querySelector('div[data-acc-admin]');
       if (host) { drawAdmin(false); if (document.visibilityState === 'visible' && Date.now() - (A._lt || 0) > 30000) { A._lt = Date.now(); loadList(); } }
     }
-    if (role() === 'pm') apply();
+    if (lim()) apply();
   }, 500);
 
   window.addEventListener('provident-drive-signed', () => { if (A.phase === 'signin' && A.on) check(false); });
@@ -431,7 +444,7 @@
   window.providentAccess = {
     // { role, admin, preview, pending } — role null while nobody is signed in or the gate is off
     now() {
-      return { role: role(), admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(),
+      return { role: role(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(),
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated() };
     },
     attach(shell) { A.host = shell; apply(); },
@@ -507,7 +520,7 @@ html.acx-hold .p-shell{visibility:hidden}
 .acx-me-t{min-width:0;flex:1}.acx-me-t b,.acx-me-t small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acx-me-t b{font-size:13px}.acx-me-t small{font-size:11.5px}
 .acx-me-out{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--ps-ink-2);cursor:pointer}
 .acx-me-out:hover{background:var(--ps-fill);color:var(--ps-ink)}
-html[data-acc-role=pm] .acx-me{margin-top:auto}
+html[data-acc-lim] .acx-me{margin-top:auto}
 @media (max-width:760px){.acx-me{flex:1 0 100%;margin-top:6px}}
 
 /* an admin previewing someone else's view */
@@ -519,16 +532,16 @@ html[data-acc-preview] .p-br-mn{padding-bottom:96px}
 @media (max-width:640px){.acx-bar > span{display:none}}
 
 /* PERFORMANCE MARKETING: Home's setup with File as ticket only, and Status */
-html[data-acc-role=pm] .p-br-sb .p-ws,html[data-acc-role=pm] .p-br-sb .p-sec-l0,
-html[data-acc-role=pm] .p-sbn .p-nav2:not(:first-child):not(:nth-child(2)),html[data-acc-role=pm] .p-sbn-sep,
-html[data-acc-role=pm] .p-sbf,html[data-acc-role=pm] .p-home-side,
-html[data-acc-role=pm] .rsp-go,
-html[data-acc-role=pm] [data-a=pick],html[data-acc-role=pm] [data-a=startcell],html[data-acc-role=pm] [data-a=addopen],html[data-acc-role=pm] [data-a=approve],
-html[data-acc-role=pm] [data-a=relab],html[data-acc-role=pm] [data-a=rmproj],html[data-acc-role=pm] [data-a=delset],html[data-acc-role=pm] [data-a=overview],
-html[data-acc-role=pm] .rvd-ph{display:none !important}
-html[data-acc-role=pm] [data-a=proj]{pointer-events:none;cursor:default}
-html[data-acc-role=pm] .rsp-tk{background:var(--ps-primary);color:var(--ps-primary-i);box-shadow:none}
-html[data-acc-role=pm] .rsp-tk:hover{background:var(--ps-primary-h)}
+html[data-acc-lim] .p-br-sb .p-ws,html[data-acc-lim] .p-br-sb .p-sec-l0,
+html[data-acc-lim] .p-sbn .p-nav2:not(:first-child):not(:nth-child(2)),html[data-acc-lim] .p-sbn-sep,
+html[data-acc-lim] .p-sbf,html[data-acc-lim] .p-home-side,
+html[data-acc-lim] .rsp-go,
+html[data-acc-lim] [data-a=pick],html[data-acc-lim] [data-a=startcell],html[data-acc-lim] [data-a=addopen],html[data-acc-lim] [data-a=approve],
+html[data-acc-lim] [data-a=relab],html[data-acc-lim] [data-a=rmproj],html[data-acc-lim] [data-a=delset],html[data-acc-lim] [data-a=overview],
+html[data-acc-lim] .rvd-ph{display:none !important}
+html[data-acc-lim] [data-a=proj]{pointer-events:none;cursor:default}
+html[data-acc-lim] .rsp-tk{background:var(--ps-primary);color:var(--ps-primary-i);box-shadow:none}
+html[data-acc-lim] .rsp-tk:hover{background:var(--ps-primary-h)}
 html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{display:none}
 
 /* THE ACCESS VIEW (admin only) */

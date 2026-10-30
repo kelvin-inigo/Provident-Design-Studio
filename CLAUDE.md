@@ -17919,3 +17919,103 @@ performance marketing (Home with File as ticket only, Status without designer ac
 and a `data-a="pick"` click refused), sign-out; 0 contrast failures over the gate and all three
 Access tabs in both themes; no sideways scroll at 375. **Not exercised against real Google or
 Vercel.**
+
+# OPS POSTS LIVE ON GOOGLE DRIVE AND GO DRAFT › DESIGN › COPY CHECK › READY (2026-10-30)
+
+By request: the social media manager (SMM) drafts a post in OPS and hands it to a designer (DD)
+to refine and finish; the content team (CT) checks the copy; every OPS file lives on Google Drive;
+OPS's home page gets a Status board and the hand-off like CAS's. **`post-flow.js`** (OPS only,
+in `<head>` after `access.js`) holds it; it is CAS's ad set machinery with `kind: 'post'`.
+
+- **Storage**: `<Organic posts>/<post name>/` — `<name>_Post.json` (the record: name, `ticket`
+  {brief, deadline, files}, `items` [one project, with `draft`/`design`/`copy` steps], `hist`,
+  `log`, `tok.dd`, `folder`), `<name>.smpstudio.json` (the project, `review` block as CAS's),
+  `Assets/`, `Brief/`, `Exports/`. **Organic posts** is found or made inside the team folder that
+  holds Offplan 2025/2026 (`POSTS_PARENT` 1FD5dl42YxKi6h8hlHvTwaMT__Nt545WO; per computer
+  `provident-posts-root` overrides). The project syncs through the existing `dsApi` save/poll:
+  every edit reaches Drive in ~2.5s with its changelog.
+- **share-link.js gained only what posts need**: `window.providentDsKit` (the Drive helpers,
+  read by post-flow.js), `draft-done`/`draft-open` in `DS_STEP`, `isPost`/`POST_TEXT` (a post's
+  `rsstep` skips the link-role check — everyone opens a post by the project's own `D` link, role
+  `dd` — runs steps in order, logs post wording), `kind`/`folder`/`tpl` in `dsPub`, post-aware
+  `rvRender` (calls `postPanel`), `notifySteps`, `shRender` (the project link, not an ad set
+  link), `shThumb`/`rvSum`/`rvThumb` deferring to `postSum`/`postThumb` off CAS, `shareInit`
+  calling `postInit`, `shareVals` merging `postVals` and `postMount`. **Posts never enter CAS's
+  Status list**: every `Arch.add` on an rs is guarded, and CAS's `AV.load` drops any that did.
+- **Who presses what is the signed-in role** (`providentAccess.now().role`), client side: Draft
+  smm|designer, Design designer, Copy check ct, admin anything, sign-in off = anyone. A
+  designer's own new post opens at Design (draft marked done).
+- **The OPS surfaces**: Home's **New post** sheet (`[data-post-plan]`, draft per computer in
+  `provident-postplan`, files in memory); picking a template is wrapped (`proto.pickTpl`) to make
+  the post on Drive first, then `postPickCheck` adds the new project after the reload (the CAS
+  ticket/pick-up shape). **Status** (`[data-post-status]`, sidebar group "Posts", `splashView
+  'rev'`): four columns with "Your turn" cards, **Waiting on me**, and a post page (progress,
+  step buttons, Open in the studio, Copy link, Drive folder, brief + files, activity). The list is
+  this computer's `provident-posts` plus everything `discover()` finds in Organic posts. The
+  **top bar flow** (`pf*` keys, CAS's `.p-flow` markup and CSS) shows the step and the one
+  action; a project not on Drive offers **Save to Drive** (SMM: **Send to designer**).
+  `proto.deliver` is wrapped to upload every export to `Exports/`.
+- **Testing trap:** a button carrying `data-post-status` was a mount host to `Status.mount` — the
+  board drew inside the panel. Hosts are `div[data-post-…]`; the panel's button is `data-post-go`.
+- **Testing trap:** `StudioBase` is a top-level class — a global binding, **not** `window.StudioBase`.
+  post-flow.js returned early on `!window.StudioBase` and nothing ran.
+
+## The login layer covers both studios, with two new roles
+
+`ACC_ROLES` is `designer · pm · smm · ct` (`api/share.py`). `access.js` gates OPS too (`CAS`
+flag; the gate's caption and figure follow the studio) and sets **`data-acc-lim`** when the role
+is limited in THIS studio: in CAS pm, smm and ct (Home + Status, the old pm rules now keyed on
+`data-acc-lim`); in OPS pm only (Status only — OPS's shell forces `view = 'rev'`). The request
+form, the admin's role switch and Preview as list all four. CAS's shell view fallback reads
+`acc.lim`. The admin panel stays in CAS and manages both.
+
+Verified on the dev share server + Drive stand-in with four accounts and real clicks: SMM named a
+post, picked a template (folder, record and project on Drive), Send to designer; the designer's
+fresh workspace found it on Status by Drive discovery, opened it, an edit reached Drive with its
+log entry, Send to copy check; the content team saw "Your turn", Approve copy → Ready; an export
+landed in `Exports/`; Save to Drive for a local post; PM saw Status only; CAS's Status list
+stayed free of posts. Contrast 0 failures over the board, post page, Home sheet, panel and flow
+in both themes; no overflow at 375. **Not exercised against real Google Drive.**
+
+# OPS HOME IS TWO DOORS: MY TURN AND START A POST (2026-10-30, /impeccable)
+
+Designed through /impeccable (surface brief and direction contract in
+`.impeccable/surfaces/provident-organic-studio-dc-html.md`; structure "Two doors", picked by the
+user from three; code-led, no image generation here). OPS's `splashView` **`all` is My turn**
+and **`new` is Start a post**; the sidebar's All became **Home** (first in a Posts group, with the
+waiting count) and its title is the greeting (`homeTitle`/`homeSub` in OPS's shell).
+
+- **My turn** (`HomeView`, `div[data-post-home]`, post-flow.js): Waiting on you (full rows: 72px
+  render, name, step segments, "From X · when", due as words — Due today / tomorrow / weekday,
+  Overdue in red — and the step's button), then With others ("With the designer · from X") and
+  Ready to publish (4, then "All N on Status"). A row's step button calls `rsstep` directly; the
+  row slides out (`data-sent`) and the next Drive read files it under its new group — the page's
+  one authored moment.
+- **A draft is waiting only on whoever started it** (`waitingOnMe`). A designer or another social
+  media manager can still send it on from the post's page on Status or its panel; on Home it sits
+  under With others.
+- **The empty-queue door**: someone who can start a post (not ct/pm) with nothing waiting opens on
+  Start a post once per visit (`autoDoor`); My turn then reads "You're clear".
+- **Start a post** (`PlanView`, `.pp2`): three numbered steps — Name it (+ Due), Brief (+ files),
+  Pick a template — and the React template gallery under it is step three (indented to the step
+  column; its "Pre loaded templates" label is hidden). The header's New post button is hidden on
+  Home (the switch replaces it); `newProject` from the shell opens the `new` door.
+- **`Feed`** is the one reader of the posts for Home and Status (cache `provident-posts-list`,
+  45s poll while visible); `Status.count()` reads it.
+- **Bug found in testing, now fixed: the Drive kit referenced `PICO` before its `const`
+  declaration** — a TDZ error that killed share-link.js at load, and with it every studio feature
+  that file carries. The kit exposes it through a getter. Any new kit field must exist ABOVE
+  `window.providentDsKit`, or be a getter.
+- Tested in headless Chrome (`tools/studio-mcp/chrome.py`; the Browser pane was blocked by a
+  sign-in popup) with three roles and six seeded posts: contrast 0 failures on both doors in both
+  themes, a step from Home, the empty-queue door, 390 wide. Captures in `.impeccable/review/`.
+- **The finish review (two rounds, verdict "fix" then resolved) changed:** the switch stays under
+  the greeting (contract amended with the reason); the Drive line (Updated · Refresh · Open Status)
+  sits at the switch row's right, or in the first section heading when the content team has no
+  switch; Open in a row is unfilled; the count lives in the subtitle, the sidebar badge and each
+  section heading (not the switch); the current step segment takes its step's colour as on Status
+  (Copy check amber); recents at Home's foot are a strip at queue scale (72px render, 140px label,
+  name only); the Carousel chip sits top-right on Start a post's template tiles; phone from-lines wrap.
+- Headless capture recipe (`.impeccable/review/`): drive `tools/studio-mcp/chrome.py`, set the dev
+  Drive keys in localStorage, seed posts through `pickTpl` with a `provident-postplan` draft, and
+  measure full-page height off every element's scrollHeight (the splash scrolls inside `.p-br-mn`).

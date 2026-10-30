@@ -18280,7 +18280,7 @@ class Component extends DCLogic {
     // WHO IS SIGNED IN (access.js): performance marketing has Home and Status only, and the
     // Access view is the admin's alone. A view they cannot have falls back to Home.
     const acc = window.providentAccess ? window.providentAccess.now() : { role: null, admin: false, pending: 0 };
-    if (acc.role === 'pm' && view !== 'all' && view !== 'rev') view = 'all';
+    if ((acc.lim || acc.role === 'pm') && view !== 'all' && view !== 'rev') view = 'all';
     if (view === 'acc' && !acc.admin) view = 'all';   // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
     const eng = this.active();
     const sub = eng.renderVals();

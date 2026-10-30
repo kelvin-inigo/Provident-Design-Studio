@@ -16,6 +16,11 @@
      touches a window.provident* helper at class-definition time. -->
 <script src="./studio-base.js"></script>
 <script src="./share-link.js"></script>
+<script src="./vendor/hairline/hairline.js"></script>
+<!-- who may use the studio and what each role sees (both studios since 2026-10-30), and OPS's
+     posts on Google Drive: Draft › Design › Copy check › Ready, and the Status board. -->
+<script src="./access.js"></script>
+<script src="./post-flow.js"></script>
 </head>
 <body>
 <x-dc>
@@ -4217,8 +4222,11 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
         </button>
       </sc-for>
 
+      <div class="p-sec-l p-sec-posts">Posts</div>
+      <button onClick="{{ shViewAll }}" data-on="{{ shViewAllOn }}" class="p-nav2 p-nav2-home"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M240-200h133.85v-237.69h212.3V-200H720v-360L480-740.77 240-560v360Zm-60 0v-360q0-14.25 6.37-27 6.38-12.75 17.63-21l240-180.77q15.68-11.85 35.92-11.85 20.23 0 36.08 11.85L756-608q11.25 8.25 17.63 21 6.37 12.75 6.37 27v360q0 24.54-17.73 42.27Q744.54-140 720-140H566.15q-12.75 0-21.37-8.63-8.63-8.62-8.63-21.37v-207.69H423.85V-170q0 12.75-8.63 21.37-8.62 8.63-21.37 8.63H240q-24.54 0-42.27-17.73Q180-175.46 180-200Zm300-269.38Z"/></svg></i>Home<sc-if value="{{ postMineOn }}" hint-placeholder-val="{{ false }}"><s class="p-nav2-hot">{{ postMine }}</s></sc-if></button>
+      <button onClick="{{ shViewRev }}" data-on="{{ shViewRevOn }}" class="p-nav2 p-nav2-rev" title="Every post on Google Drive, by step: Draft, Design, Copy check, Ready"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h115.38v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm175.38 0h184.62v-560H387.69v560Zm244.62 0h115.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H632.31v560Z"/></svg></i>Status</button>
       <div class="p-sec-l">Library</div>
-      <button onClick="{{ shViewAll }}" data-on="{{ shViewAllOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M200-520q-24.54 0-42.27-17.73Q140-555.46 140-580v-180q0-24.54 17.73-42.27Q175.46-820 200-820h180q24.54 0 42.27 17.73Q440-784.54 440-760v180q0 24.54-17.73 42.27Q404.54-520 380-520H200Zm0 380q-24.54 0-42.27-17.73Q140-175.46 140-200v-180q0-24.54 17.73-42.27Q175.46-440 200-440h180q24.54 0 42.27 17.73Q440-404.54 440-380v180q0 24.54-17.73 42.27Q404.54-140 380-140H200Zm380-380q-24.54 0-42.27-17.73Q520-555.46 520-580v-180q0-24.54 17.73-42.27Q555.46-820 580-820h180q24.54 0 42.27 17.73Q820-784.54 820-760v180q0 24.54-17.73 42.27Q784.54-520 760-520H580Zm0 380q-24.54 0-42.27-17.73Q520-175.46 520-200v-180q0-24.54 17.73-42.27Q555.46-440 580-440h180q24.54 0 42.27 17.73Q820-404.54 820-380v180q0 24.54-17.73 42.27Q784.54-140 760-140H580ZM200-580h180v-180H200v180Zm380 0h180v-180H580v180Zm0 380h180v-180H580v180Zm-380 0h180v-180H200v180Zm380-380Zm0 200Zm-200 0Zm0-200Z"/></svg></i>All<s>{{ allCount }}</s></button>
+      
       <button onClick="{{ shViewTpl }}" data-on="{{ shViewTplOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60H450v-560H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM510-200h237.69q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46V-480H510v280Zm0-340h250v-207.69q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H510v220Z"/></svg></i>Templates<s>{{ tplCount }}</s></button>
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i>Recent<s>{{ recentCount }}</s></button>
       <button onClick="{{ shViewHub }}" data-on="{{ shViewHubOn }}" class="p-nav2" title="What the Content Hub has received from Share › Send, to open as a project again"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q5.39 0 8.85-3.46t3.46-8.85v-115.38H628.46q-26.15 38-64.96 59-38.81 21-83.5 21t-83.5-21q-38.81-21-64.96-59H200v115.38q0 5.39 3.46 8.85t8.85 3.46ZM480-307.69q32 0 59.38-16.31 27.39-16.31 43.24-44.08 5.61-9.38 14.8-14.5 9.2-5.11 20.2-5.11H760v-360q0-5.39-3.46-8.85t-8.85-3.46H212.31q-5.39 0-8.85 3.46t-3.46 8.85v360h142.38q11 0 20.2 5.11 9.19 5.12 14.8 14.5 15.85 27.77 43.24 44.08Q448-307.69 480-307.69ZM212.31-200H200h560H212.31Z"/></svg></i>From the hub<sc-if value="{{ hubCountOn }}" hint-placeholder-val="{{ false }}"><s>{{ hubCount }}</s></sc-if></button>
@@ -4245,8 +4253,13 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
         <div class="p-br-note">{{ splashNote }}</div>
       </sc-if>
 
+      <!-- OPS'S POSTS (post-flow.js): Home starts one, Status follows every one. Plain DOM in
+           empty hosts; React never reconciles their children. -->
+      <sc-if value="{{ shShowHome }}" hint-placeholder-val="{{ false }}"><div class="ph-host" data-post-home></div></sc-if>
+      <sc-if value="{{ shShowPlan }}" hint-placeholder-val="{{ false }}"><div class="pp-host" data-post-plan></div></sc-if>
+      <sc-if value="{{ shShowRev }}" hint-placeholder-val="{{ false }}"><div class="ps-host" data-post-status></div></sc-if>
       <sc-if value="{{ shShowTpl }}" hint-placeholder-val="{{ true }}">
-        <div class="p-sec-l" style="padding-left:0">Pre loaded templates</div>
+        <div class="p-sec-l p-sec-tpl" style="padding-left:0">Pre loaded templates</div>
         <div class="p-grid2" style="margin-bottom:26px">
           <sc-for list="{{ tplCards }}" as="tc" hint-placeholder-count="4">
             <button onClick="{{ tc.pick }}" class="p-c">
@@ -4418,6 +4431,15 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
     <div class="p-seg p-seg-mode">
       <button onClick="{{ gdModeGuide }}" data-on="{{ gdModeGuideOn }}" title="Guided setup — page by page">Guided</button>
       <button onClick="{{ gdModeEditor }}" data-on="{{ gdModeEditorOn }}" title="Every control at once">All controls</button>
+    </div>
+  </sc-if>
+  <!-- THE POST'S FLOW (post-flow.js, 2026-10-30): where the post stands — Draft, Design, Copy
+       check, Ready — and the signed-in person's one action: Send to designer, Send to copy
+       check, Approve copy. A post only on this computer offers Save to Drive. -->
+  <sc-if value="{{ pfOn }}" hint-placeholder-val="{{ false }}">
+    <div class="p-flow" data-state="{{ pfState }}" role="group" aria-label="Post">
+      <button onClick="{{ pfGo }}" class="p-flow-at" title="{{ pfTip }}"><span class="p-flow-segs" aria-hidden="true"><sc-for list="{{ pfSegs }}" as="g" hint-placeholder-count="4"><i data-s="{{ g.s }}" title="{{ g.t }}"></i></sc-for></span><span class="p-flow-t"><b>{{ pfStep }}</b><s>{{ pfWhere }}</s></span></button>
+      <sc-if value="{{ pfFlowOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pfFlow }}" class="p-flow-go" title="{{ pfFlowTip }}">{{ pfFlowLabel }}<svg class="p-flow-gi" viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></button></sc-if>
     </div>
   </sc-if>
   <div class="p-spring"></div>
@@ -16752,6 +16774,7 @@ class Component extends DCLogic {
     Component.applyTheme();
     // a shared edit link: open one from #share=, or keep following the one this tab is on
     try { if (this.eng.shareInit) this.eng.shareInit(); } catch (e) { console.warn(e); }
+    try { if (window.providentAccess) window.providentAccess.attach(this); } catch (e) { console.warn(e); }
     this._band = Component.band(window.innerWidth || 1400);
     this._onResize = () => {
       const b = Component.band(window.innerWidth || 1400);
@@ -16998,7 +17021,18 @@ class Component extends DCLogic {
 
   renderVals() {
     // 'lib' was the Projects folder view (removed 2026-10-26); a tab still on it lands on All
-    const view = (this.state.splashView === 'lib' ? 'all' : this.state.splashView) || 'all';
+    let view = (this.state.splashView === 'lib' ? 'all' : this.state.splashView) || 'all';
+    // performance marketing reaches OPS's Status only (access.js)
+    const acc = window.providentAccess ? window.providentAccess.now() : { role: null };
+    if (acc.lim) view = 'rev';
+    // starting a post is the social media manager's and the designer's (and the admin's)
+    const canStart = acc.role !== 'ct';
+    if (view === 'new' && !canStart) view = 'all';
+    const who = (StudioBase.shareWho && StudioBase.shareWho()) || null, first = who && who.name ? who.name.split(' ')[0] : '';
+    const mine = window.providentPostStatus ? window.providentPostStatus.count() : 0;
+    const homeTitle = view === 'new' ? 'Start a post' : (first ? 'Hi ' + first : 'Home');
+    const homeSub = view === 'new' ? 'Name it, add a brief, then pick a template. It is saved to Google Drive as you design.'
+      : mine ? mine + (mine === 1 ? ' post is' : ' posts are') + ' waiting on you' : 'Nothing is waiting on you';
     const eng = this.active();
     const sub = eng.renderVals();
     return Object.assign({}, sub, eng.hubVals ? eng.hubVals(view === 'hub') : {}, eng.shareVals ? eng.shareVals() : {}, {
@@ -17043,13 +17077,23 @@ class Component extends DCLogic {
         on: t.key === Component.STUDIO ? '1' : undefined,
         set: t.file ? (() => this.goOther(t.file)) : (() => {})
       })),
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'hub' ? 'From the hub' : 'All')),
+      shViewTitle: (view === 'all' || view === 'new') && !acc.lim ? homeTitle : view === 'rev' ? 'Status' : view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'hub' ? 'From the hub' : 'All')),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
+      shViewSub: (n => (view === 'all' || view === 'new') && !acc.lim ? homeSub : view === 'rev' ? 'Every post on Google Drive: Draft, Design, Copy check, Ready' : view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
         : n(sub.tplCount, 'template') + ' \u00b7 ' + n(sub.recentCount, 'saved project'))((c, w) => (c || 0) + ' ' + w + (c === 1 ? '' : 's')),
-      shShowTpl: view === 'all' || view === 'tpl',
+      // HOME IS TWO DOORS (2026-10-30): 'all' is My turn (post-flow.js draws it), 'new' is Start a
+      // post — name, brief, then the templates. The template gallery lives in that second door.
+      shShowTpl: view === 'tpl' || (view === 'new' && canStart) ? true : undefined,
+      shShowPlan: view === 'new' && canStart ? true : undefined,
+      shShowHome: (view === 'all' || view === 'new') ? true : undefined,
+      newProject: () => this.setState({ splashView: canStart ? 'new' : 'all' }),
+      shShowRev: view === 'rev' ? true : undefined,
+      shViewRev: () => this.setState({ splashView: 'rev' }),
+      shViewRevOn: view === 'rev' ? '1' : undefined,
+      postMineOn: (window.providentPostStatus && window.providentPostStatus.count()) ? '1' : undefined,
+      postMine: window.providentPostStatus ? window.providentPostStatus.count() : 0,
       shShowRec: view === 'all' || view === 'rec',
       shViewAll: () => this.setState({ splashView: 'all' }),
       shViewTpl: () => this.setState({ splashView: 'tpl' }),
@@ -17062,7 +17106,7 @@ class Component extends DCLogic {
         // files, so hiding them behind a second click was a step for nothing.
         this.setState({ shareOpen: !this.state.shareOpen });
       },
-      shViewAllOn: view === 'all' ? '1' : undefined,
+      shViewAllOn: view === 'all' || view === 'new' ? '1' : undefined,
       shViewTplOn: view === 'tpl' ? '1' : undefined,
       shViewRecOn: view === 'rec' ? '1' : undefined
     });

@@ -1041,8 +1041,8 @@ def health():
 # ---------- who may use the studio (CAS sign-in, 2026-10-30) ----------
 #
 # ONE admin, named by ACCESS_ADMIN in the deployment (never in this public repo). Everyone else
-# signs in with their Provident Google account and is either a designer (the whole studio) or
-# performance marketing (Home's campaign setup and Status). Somebody nobody has granted lands
+# signs in with their Provident Google account and is a designer (both studios), performance
+# marketing (CAS's campaign setup and Status), a social media manager or the content team (OPS). Somebody nobody has granted lands
 # as a request the admin approves or declines. Off unless ACCESS_ADMIN is set, so a deployment
 # without it behaves exactly as before.
 #
@@ -1054,7 +1054,10 @@ def health():
 #       acc:log    sign-in attempts and decisions, newest last, capped at ACC_LOG
 
 ACC_LOG = 400
-ACC_ROLES = ('designer', 'pm')
+# smm (social media manager) and ct (content team) arrived with OPS's posts (2026-10-30):
+# the social media manager drafts a post in OPS, the designer finishes it, the content team
+# checks the copy. Both studios read the same list.
+ACC_ROLES = ('designer', 'pm', 'smm', 'ct')
 _acc_seen = {}
 
 
