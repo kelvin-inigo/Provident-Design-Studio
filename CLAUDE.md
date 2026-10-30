@@ -17836,3 +17836,30 @@ lose its aspect). Strip tiles take the left rail's thumbnail treatment (5px corn
 2px link ring on the current page, green done, amber warn). The numbered steps stay. Verified on
 all eight templates in dark (0 contrast failures, head width equals card width, card inside the
 column), three in light, and at 375 (one column, no overflow).
+
+# TEMPLATE POLISH: EVERY CAROUSEL RUN SITS ON WASH (2026-10-30, /impeccable)
+
+By request ("refine the template designs in OPS", polish only). Every template's demo state was
+rendered at 1080 over a bright and a mid-grey stand-in photo, and every text run measured
+against the pixels actually behind it (render with the text removed, sample its box, worst
+point). Large text bar 3:1 (>=32px, or >=24px at 500), else 4.5. Two carousel defects, both
+fixed in `csBox` / `csScrimStops`; no other template moved.
+
+- **Runs outside every band.** The bands follow the copy BLOCK, so the stats title over a bottom
+  grid, a top wordmark over a bottom block, SWIPE under a top block sat on bare photograph
+  (1.2-1.3:1 over a bright sky). After the band assignment, any `B.texts` run not `scrimPad`
+  inside a band extends the band on its own half, clear `scrimPad` past it. Runs inside
+  `B.card` or a blurred rect (callout, glass cards) are skipped.
+- **The ramp eases** (asked and approved): 1-(1-p)^3 between the same clear and solid points
+  (stops at p .1/.2/.33/.5/.7), so copy near the clear end sits on wash. Fade keeps its meaning.
+- Result over the bright photo, navy glass, all carousel pages and both canvases: 25 failing
+  runs -> 2, both the bullets page's brass overline (brass is a mid tone; it cannot clear 3:1
+  over a near-white photo through partial wash).
+- Op census against HEAD served as `_PRE`: 37 groups, 29 identical; the 8 that differ are the
+  carousel pages with a wash (front, stats, bullets, text x feed/story), and in each the ONLY
+  changed op is the `grad`. The preview's `scrimStyle` reads the same stops (verified 8 and 14
+  stops computed). Every saved carousel gets a little darker behind its words.
+- **Found and left, by recorded decision:** the default WHITE glass (.22) over a bright photo
+  puts listed / weekly-spec / review / CTA-card copy at 1.1-2.3:1; Panel colour -> Navy fixes
+  it per post. The brass designation on navy glass over a bright photo is 2.8 (recorded). The
+  weekly listing number reads 3.1:1 over a bright photo at the default wash strength.
