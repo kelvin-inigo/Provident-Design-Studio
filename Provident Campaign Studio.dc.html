@@ -17,6 +17,9 @@
 <script src="./studio-base.js"></script>
 <script src="./share-link.js"></script>
 <script src="./vendor/hairline/hairline.js"></script>
+<!-- who may use the studio and what each role sees: the sign-in screen, the role gate and the
+     Access view (admin only). Off unless the server has ACCESS_ADMIN set. See access.js. -->
+<script src="./access.js"></script>
 </head>
 <body>
 <x-dc>
@@ -5463,6 +5466,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
       <button onClick="{{ shViewRec }}" data-on="{{ shViewRecOn }}" class="p-nav2"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M510-492.15V-650q0-12.75-8.63-21.38-8.63-8.62-21.38-8.62-12.76 0-21.37 8.62Q450-662.75 450-650v167.08q0 7.06 2.62 13.68 2.61 6.62 8.23 12.24l137 137q8.3 8.31 20.88 8.5 12.58.19 21.27-8.5t8.69-21.08q0-12.38-8.69-21.07l-130-130ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100ZM480-480Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg></i><span class="p-nav2-l">Recent</span><sc-if value="{{ shRecNOn }}" hint-placeholder-val="{{ false }}"><s>{{ recentCount }}</s></sc-if></button>
       <span class="p-sbn-sep" aria-hidden="true"></span>
       <button onClick="{{ shViewUse }}" data-on="{{ shViewUseOn }}" class="p-nav2 p-nav2-q" title="How often each design component and style is used across your saved projects"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M676.15-180q-15.36 0-25.76-10.4Q640-200.79 640-216.16V-380q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h67.69q15.37 0 25.76 10.39Q780-395.36 780-380v163.84q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4h-67.69Zm-230 0q-15.36 0-25.76-10.4Q410-200.79 410-216.16v-527.68q0-15.37 10.39-25.76 10.4-10.4 25.76-10.4h67.7q15.36 0 25.76 10.4Q550-759.21 550-743.84v527.68q0 15.37-10.39 25.76-10.4 10.4-25.76 10.4h-67.7Zm-229.99 0q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-331.35q0-15.64 10.4-25.99 10.39-10.34 25.76-10.34h67.69q15.36 0 25.76 10.39Q320-563.06 320-547.69v331.35q0 15.65-10.39 25.99Q299.21-180 283.85-180h-67.69Z"/></svg></i>Component usage</button>
+      <button onClick="{{ shViewAcc }}" data-on="{{ shViewAccOn }}" class="p-nav2 p-nav2-acc" title="Who can use the studio: requests to let in, people and their roles, sign-in activity"><i><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-114.23q-6.46 0-12.69-1-6.23-1-12.08-3Q320-163.08 240-286.35q-80-123.27-80-266.11v-181.46q0-22.82 13.13-41.04 13.14-18.21 33.95-26.27l227.69-85q12.84-4.62 25.23-4.62 12.39 0 25.23 4.62l227.69 85q20.81 8.06 33.95 26.27Q800-756.74 800-733.92v181.46q0 142.84-80 266.11-80 123.27-214.31 168.12-5.85 2-12.08 3-6.23 1-12.69 1Zm0-58.39Q584-205.69 652-302.23q68-96.54 68-224.31v-208.23L480-821.61l-240 86.84v208.23q0 127.77 68 224.31 68 96.54 172 129.61ZM480-480Z"/></svg></i><span class="p-nav2-l">Access</span><sc-if value="{{ shAccOn }}" hint-placeholder-val="{{ false }}"><b class="p-nav2-bd" title="People waiting to be let in">{{ shAccLabel }}</b></sc-if></button>
       </nav>
       <div class="p-sbf">
       <sc-if value="{{ canContinue }}" hint-placeholder-val="{{ false }}">
@@ -5534,6 +5538,10 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
       <!-- REVIEW LINKS: share-link.js fills this host itself (plain DOM, never reconciled) -->
       <sc-if value="{{ shShowRev }}" hint-placeholder-val="{{ false }}">
         <div class="rv-host" data-rv-arch="1"></div>
+      </sc-if>
+      <!-- ACCESS (admin only): access.js fills this host itself (plain DOM, never reconciled). -->
+      <sc-if value="{{ shShowAcc }}" hint-placeholder-val="{{ false }}">
+        <div class="ac-host" data-acc-admin="1"></div>
       </sc-if>
       <sc-if value="{{ shShowUse }}" hint-placeholder-val="{{ false }}">
         <div class="cu">
@@ -18038,6 +18046,8 @@ class Component extends DCLogic {
     Component.applyTheme();
     // a shared edit link: open one from #share=, or keep following the one this tab is on
     try { if (this.eng.shareInit) this.eng.shareInit(); } catch (e) { console.warn(e); }
+    // who is signed in decides what this shell shows (access.js)
+    try { if (window.providentAccess) window.providentAccess.attach(this); } catch (e) { console.warn(e); }
     // THE UPLOAD ROW'S Upload / Replace and Reframe: delegated, because the rows are many and
     // their slot ids are interpolated per row. The picker opens on the row's own slot; Reframe
     // prefers the CANVAS copy of the same id, where the crop can actually be seen.
@@ -18266,7 +18276,12 @@ class Component extends DCLogic {
 
   renderVals() {
     // 'lib' was the Projects folder view (removed 2026-10-26); a tab still on it lands on All
-    const view = (['lib', 'hub', 'tpl'].indexOf(this.state.splashView) >= 0 ? 'all' : this.state.splashView) || 'all';   // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
+    let view = (['lib', 'hub', 'tpl'].indexOf(this.state.splashView) >= 0 ? 'all' : this.state.splashView) || 'all';
+    // WHO IS SIGNED IN (access.js): performance marketing has Home and Status only, and the
+    // Access view is the admin's alone. A view they cannot have falls back to Home.
+    const acc = window.providentAccess ? window.providentAccess.now() : { role: null, admin: false, pending: 0 };
+    if (acc.role === 'pm' && view !== 'all' && view !== 'rev') view = 'all';
+    if (view === 'acc' && !acc.admin) view = 'all';   // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
     const eng = this.active();
     const sub = eng.renderVals();
     return Object.assign({}, sub, this.asVals(), eng.libVals ? eng.libVals(view === 'use') : {}, eng.shareVals ? eng.shareVals() : {}, {
@@ -18370,9 +18385,10 @@ class Component extends DCLogic {
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: this._mkExt ? this._mkExt.copy : (eng && eng.mockCopy ? eng.mockCopy() : {}),
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
-      shViewTitle: view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Status' : 'Home'))),
+      shViewTitle: view === 'acc' ? 'Access' : view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Status' : 'Home'))),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'campaign'))
+      shViewSub: (n => view === 'acc' ? (acc.pending ? n(acc.pending, 'person') .replace('persons', 'people') + ' waiting to be let in' : 'Who can use the studio, and what each of them sees')
+        : view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'campaign'))
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in ' + (sub.useFolder ? n(sub.useCount, 'project') + ' in \u201c' + sub.useFolder + '\u201d' : 'your ' + n(sub.useCount, 'most recent saved project')) : (sub.useFolder ? 'No Campaign projects in \u201c' + sub.useFolder + '\u201d yet' : 'Nothing saved yet \u2014 usage is counted from saved projects'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
         : view === 'rec' ? (sub.recentCount ? n(sub.recentCount, 'saved project') + ', newest first' : 'Nothing saved yet \u2014 Save in the top bar puts a project here')
@@ -18388,6 +18404,11 @@ class Component extends DCLogic {
       shShowRec: view === 'all' || view === 'rec',
       shShowUse: view === 'use',
       shShowRev: view === 'rev',
+      shShowAcc: view === 'acc',
+      shViewAcc: () => this.setState({ splashView: 'acc' }),
+      shViewAccOn: view === 'acc' ? '1' : undefined,
+      shAccOn: acc.admin && acc.pending ? '1' : undefined,
+      shAccLabel: acc.pending ? acc.pending + ' waiting' : '',
       shViewRev: () => this.setState({ splashView: 'rev' }),
       shViewRevOn: view === 'rev' ? '1' : undefined,
       shViewUse: () => { this.setState({ splashView: 'use' }); eng.libLoad && eng.libLoad(); },

@@ -33,6 +33,10 @@ if os.environ.get('GAUTH_REAL') != '1':
     os.environ.setdefault('GOOGLE_CLIENT_SECRET', 'dev-secret')
     os.environ['GAUTH_TOKEN_URL'] = 'http://127.0.0.1:%d/gauth-mock/token' % PORT
     os.environ['GAUTH_REVOKE_URL'] = 'http://127.0.0.1:%d/gauth-mock/revoke' % PORT
+# Sign-in to the studio (api/share.py, op=acc*): the dev admin is the Drive stand-in's fixed
+# account, and the server checks tokens against the stand-in's /drive/v3/about.
+os.environ.setdefault('ACCESS_ADMIN', 'kelvin.inigo@providentestate.com')
+os.environ.setdefault('ACCESS_GOOGLE_BASE', 'http://127.0.0.1:%d' % PORT)
 gspec = importlib.util.spec_from_file_location('gauth', os.path.join(ROOT, 'api', 'gauth.py'))
 gauth = importlib.util.module_from_spec(gspec)
 gspec.loader.exec_module(gauth)

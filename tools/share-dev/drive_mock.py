@@ -93,6 +93,11 @@ def route(method, path, query, headers, body):
         return _err(401, 'Request had invalid authentication credentials.')
     q = {k: v[0] for k, v in urllib.parse.parse_qs(query).items()}
     if path.endswith('/drive/v3/about'):
+        # 'Bearer dev:<email>:<name>' signs in as anyone (the access tests); plain 'dev' is the fixed account
+        t = (headers.get('Authorization') or '')[7:]
+        if t.startswith('dev:'):
+            em, _, nm = t[4:].partition(':')
+            return _json(200, {'user': {'displayName': urllib.parse.unquote(nm), 'emailAddress': em}})
         return _json(200, {'user': {'displayName': 'Kelvin Inigo', 'emailAddress': 'kelvin.inigo@providentestate.com'}})
     up = path.startswith('/upload/')
     rest = path.split('/files', 1)[1] if '/files' in path else ''

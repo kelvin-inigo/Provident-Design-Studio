@@ -33,6 +33,7 @@ rsmake, rsadd, rsget, rsstep, rsset, rsinfo; pvput and pv for photo previews; ad
 which need SHARE_ADMIN_KEY set in the deployment).
 """
 import fnmatch
+import hashlib
 import hmac
 import json
 import os
@@ -1037,6 +1038,201 @@ def health():
                'limit': STORE_MB * 1000000, 'dev': isinstance(s, Memory), **({'size_error': size_err} if size_err else {})})
 
 
+# ---------- who may use the studio (CAS sign-in, 2026-10-30) ----------
+#
+# ONE admin, named by ACCESS_ADMIN in the deployment (never in this public repo). Everyone else
+# signs in with their Provident Google account and is either a designer (the whole studio) or
+# performance marketing (Home's campaign setup and Status). Somebody nobody has granted lands
+# as a request the admin approves or declines. Off unless ACCESS_ADMIN is set, so a deployment
+# without it behaves exactly as before.
+#
+# Identity is checked HERE, never taken from the page: the page sends its Google access token
+# and this asks Google whose it is (Drive's `about`, the scope the studio already holds). A
+# token is remembered for five minutes so a poll is not a Google round trip.
+#
+# Keys: acc:users  one JSON map, email -> {email, name, role, status, first, last, n, note, want, by, at}
+#       acc:log    sign-in attempts and decisions, newest last, capped at ACC_LOG
+
+ACC_LOG = 400
+ACC_ROLES = ('designer', 'pm')
+_acc_seen = {}
+
+
+def acc_admin():
+    return (os.environ.get('ACCESS_ADMIN') or '').strip().lower()
+
+
+def acc_domain():
+    return (os.environ.get('ACCESS_DOMAIN') or 'providentestate.com').strip().lower().lstrip('@')
+
+
+def acc_who(tok):
+    """A Google access token -> (email, name). Asks Google; the page's word is never taken."""
+    tok = str(tok or '').strip()
+    if not tok or len(tok) > 4096:
+        raise Fail(401, 'Sign in with Google first.')
+    key = hashlib.sha256(tok.encode()).hexdigest()
+    hit = _acc_seen.get(key)
+    if hit and hit[2] > time.time():
+        return hit[0], hit[1]
+    base = (os.environ.get('ACCESS_GOOGLE_BASE') or 'https://www.googleapis.com').rstrip('/')
+    req = urllib.request.Request(base + '/drive/v3/about?fields=user(displayName,emailAddress)',
+                                 headers={'Authorization': 'Bearer ' + tok})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            u = (json.loads(r.read() or b'{}') or {}).get('user') or {}
+    except urllib.error.HTTPError as e:
+        raise Fail(401, 'Your Google sign-in has run out. Sign in again.' if e.code in (401, 403) else 'Google did not confirm who you are (HTTP %d).' % e.code)
+    except Exception as e:  # noqa: BLE001
+        raise Fail(502, 'Could not reach Google to check your sign-in (%s).' % e.__class__.__name__)
+    email = str(u.get('emailAddress') or '').strip().lower()
+    if not email or '@' not in email:
+        raise Fail(401, 'Google did not say which account this is.')
+    name = str(u.get('displayName') or '').strip()[:80]
+    if len(_acc_seen) > 500:
+        _acc_seen.clear()
+    _acc_seen[key] = (email, name, time.time() + 300)
+    return email, name
+
+
+def acc_users():
+    try:
+        d = json.loads(store().cmd('GET', 'acc:users') or '{}')
+        return d if isinstance(d, dict) else {}
+    except ValueError:
+        return {}
+
+
+def acc_put(users):
+    store().cmd('SET', 'acc:users', json.dumps(users, separators=(',', ':')))
+
+
+def acc_log(entry):
+    entry['at'] = int(time.time() * 1000)
+    store().pipe([['RPUSH', 'acc:log', json.dumps(entry, separators=(',', ':'))], ['LTRIM', 'acc:log', -ACC_LOG, -1]])
+
+
+def acc_pub(u, admin=False):
+    keys = ('email', 'name', 'role', 'status', 'first', 'last', 'n', 'note', 'want', 'by', 'at')
+    out = {k: u.get(k) for k in keys if u.get(k) is not None}
+    out['admin'] = admin
+    return out
+
+
+def acc_me(d):
+    email, name = acc_who(d.get('tok'))
+    now = int(time.time() * 1000)
+    adm = acc_admin()
+    if email == adm:
+        return ok(acc_pub({'email': email, 'name': name, 'role': 'admin', 'status': 'active'}, True))
+    if not email.endswith('@' + acc_domain()):
+        acc_log({'email': email, 'name': name, 'what': 'outside'})
+        raise Fail(403, 'Sign in with your @%s Google account. %s is not one.' % (acc_domain(), email))
+    users = acc_users()
+    u = users.get(email)
+    dirty = False
+    if not u:
+        u = users[email] = {'email': email, 'name': name, 'role': None, 'status': 'pending', 'first': now, 'n': 0}
+        acc_log({'email': email, 'name': name, 'what': 'request'})
+        dirty = True
+    elif u.get('status') != 'active' and now - int(u.get('last') or 0) > 600000:
+        acc_log({'email': email, 'name': name, 'what': 'retry', 'status': u.get('status')})
+    if name and u.get('name') != name:
+        u['name'] = name
+        dirty = True
+    # a sign-in counts once per ten minutes, and only then is the record written, so the
+    # studio's own polling costs one store read rather than a write every time
+    if now - int(u.get('last') or 0) > 600000:
+        u['n'] = int(u.get('n') or 0) + 1
+        u['last'] = now
+        dirty = True
+    if dirty:
+        acc_put(users)
+    return ok(acc_pub(u))
+
+
+def acc_req(d):
+    email, name = acc_who(d.get('tok'))
+    users = acc_users()
+    u = users.get(email)
+    if not u or u.get('status') == 'active':
+        raise Fail(409, 'There is nothing to request for this account.')
+    if u.get('status') == 'declined' and not d.get('again'):
+        raise Fail(409, 'The admin declined this request.')
+    u['note'] = str(d.get('note') or '').strip()[:400]
+    want = d.get('want')
+    u['want'] = want if want in ACC_ROLES else None
+    u['status'] = 'pending'
+    u['asked'] = int(time.time() * 1000)
+    acc_put(users)
+    acc_log({'email': email, 'name': u.get('name') or name, 'what': 'note', 'want': u['want']})
+    return ok(acc_pub(u))
+
+
+def acc_need_admin(d):
+    email, name = acc_who(d.get('tok'))
+    if not acc_admin() or email != acc_admin():
+        raise Fail(403, 'Only the studio admin can see this.')
+    return email, name
+
+
+def acc_list(d):
+    acc_need_admin(d)
+    users = sorted(acc_users().values(), key=lambda u: -int(u.get('last') or u.get('at') or 0))
+    raw = store().cmd('LRANGE', 'acc:log', -200, -1) or []
+    log = []
+    for r in raw:
+        try:
+            log.append(json.loads(r))
+        except ValueError:
+            pass
+    return ok({'users': [acc_pub(u) for u in users], 'log': log[::-1], 'admin': acc_admin(), 'domain': acc_domain()})
+
+
+def acc_set(d):
+    me, _ = acc_need_admin(d)
+    email = str(d.get('email') or '').strip().lower()
+    act = d.get('action')
+    role = d.get('role')
+    if not email or '@' not in email or len(email) > 120:
+        raise Fail(400, 'That is not an email address.')
+    if email == acc_admin():
+        raise Fail(409, 'The admin always has access.')
+    if not email.endswith('@' + acc_domain()):
+        raise Fail(400, 'Only @%s accounts can be given access.' % acc_domain())
+    users = acc_users()
+    now = int(time.time() * 1000)
+    u = users.get(email)
+    if act == 'add':
+        if role not in ACC_ROLES:
+            raise Fail(400, 'Pick a role.')
+        u = users.setdefault(email, {'email': email, 'name': '', 'first': None, 'n': 0})
+        u.update(role=role, status='active', by=me, at=now)
+    else:
+        if not u:
+            raise Fail(404, 'Nobody with that email has signed in or been added.')
+        if act == 'grant':
+            if role not in ACC_ROLES:
+                raise Fail(400, 'Pick a role.')
+            u.update(role=role, status='active', by=me, at=now)
+        elif act == 'role':
+            if role not in ACC_ROLES:
+                raise Fail(400, 'Pick a role.')
+            u.update(role=role, by=me, at=now)
+        elif act in ('decline', 'revoke'):
+            u.update(status='declined' if act == 'decline' else 'revoked', by=me, at=now)
+        elif act == 'remove':
+            users.pop(email, None)
+        else:
+            raise Fail(400, 'Unknown change.')
+    acc_put(users)
+    acc_log({'email': email, 'name': (u or {}).get('name') or '', 'what': act, 'role': role, 'by': me})
+    return ok({'ok': True, 'user': acc_pub(users[email]) if email in users else None})
+
+
+ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set}
+
+
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
 def route(method, query, body):
     """(method, {query}, bytes) -> (status, content-type, bytes). A write refused because the
@@ -1065,6 +1261,10 @@ def _route(method, query, body):
             return 204, 'text/plain', b''
         if method == 'GET' and op == 'health':
             return health()
+        if method == 'GET' and op == 'accstatus':
+            return ok({'on': bool(acc_admin()), 'domain': acc_domain()})
+        if method == 'POST' and op in ACC_OPS:
+            return ACC_OPS[op](json.loads(body or b'{}'))
         s = store()
         if method == 'POST' and op == 'create':
             d = json.loads(body or b'{}')
