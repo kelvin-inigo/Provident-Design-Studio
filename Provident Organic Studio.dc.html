@@ -4614,7 +4614,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
   <details class="sx-ep" data-acc="share-ep">
     <summary><b>Import hub</b><s>{{ epSum }}</s></summary>
     <label class="p-fld">Endpoint URL
-      <input value="{{ epUrl }}" onChange="{{ onEpUrl }}" placeholder="http://192.168.50.30:8090/api/imports" class="p-in" type="url" inputmode="url" spellcheck="false" autocomplete="off">
+      <input value="{{ epUrl }}" onChange="{{ onEpUrl }}" placeholder="https://provident-content-hub.ngrok-free.dev/api/imports" class="p-in" type="url" inputmode="url" spellcheck="false" autocomplete="off">
     </label>
     <sc-if value="{{ epBadOn }}" hint-placeholder-val="{{ false }}"><p class="sx-epw">Use https — plain http only to this computer or the office network.</p></sc-if>
     <label class="p-fld">Design key <span style="opacity:.6">(sent as X-Design-Key)</span>
@@ -13963,7 +13963,9 @@ class OrganicStudio extends StudioBase {
     if (!this._epCfg) { let c = {}; try { c = JSON.parse(localStorage.getItem(OrganicStudio.EP_KEY) || '{}') || {}; } catch (e) {} this._epCfg = { url: c.url || OrganicStudio.EP_DEFAULT, key: c.key || '' };
       // 2026-10-26: a URL left on this computer's local hub moves to the office hub, once.
       try { if (!localStorage.getItem('provident-ep-office:' + OrganicStudio.EP_KEY) && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(this._epCfg.url)) { this._epCfg.url = OrganicStudio.EP_DEFAULT; localStorage.setItem(OrganicStudio.EP_KEY, JSON.stringify(this._epCfg)); } } catch (e) {}
-      try { localStorage.setItem('provident-ep-office:' + OrganicStudio.EP_KEY, '1'); } catch (e) {} }
+      try { localStorage.setItem('provident-ep-office:' + OrganicStudio.EP_KEY, '1'); } catch (e) {}
+      // 2026-10-30: the office address (or this computer's) moves to the ngrok tunnel, once.
+      try { if (!localStorage.getItem('provident-ep-ngrok:' + OrganicStudio.EP_KEY)) { if (/^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.50\.30)(:\d+)?\//.test(this._epCfg.url)) { this._epCfg.url = OrganicStudio.EP_DEFAULT; localStorage.setItem(OrganicStudio.EP_KEY, JSON.stringify(this._epCfg)); } localStorage.setItem('provident-ep-ngrok:' + OrganicStudio.EP_KEY, '1'); } } catch (e) {} }
     return this._epCfg;
   }
   epSet(k, v) {
@@ -14003,7 +14005,8 @@ class OrganicStudio extends StudioBase {
   // system` and the key as `Authorization: Bearer`. Assets/ is not sent: the .json already
   // embeds every source photo. Non-image files an export writes (CAS's YouTube text file, the
   // Meta upload manifest) are left out — the hub takes images.
-  static EP_DEFAULT = 'http://192.168.50.30:8090/api/imports';
+  // 2026-10-30: the hub is reached through its ngrok tunnel, from anywhere, not only the office.
+  static EP_DEFAULT = 'https://provident-content-hub.ngrok-free.dev/api/imports';
   // COMPRESSION ON SEND (2026-10-19, after "HTTP 413 · Delivery is larger than 50 MB"). The hub
   // takes up to 50 MB and 50 images. When the export plus the .json fit, the images go as
   // exported, byte for byte. When they do not, every raster image is re-encoded as JPEG,
@@ -14068,6 +14071,7 @@ class OrganicStudio extends StudioBase {
     // The hub checks the design key (X-Design-Key) on deliveries; Bearer stays for a hub that
     // still only knows the import token.
     if (c.key) { headers['X-Design-Key'] = c.key; headers.Authorization = 'Bearer ' + c.key; }
+    StudioBase.hubTunnel(c.url, headers);
     // A project opened from a Content Hub design job carries that post's id (`hubCardId`), so the
     // hub attaches these pages to the post and moves it to Ready to publish.
     const hub = StudioBase.hubCardOf(this.state);

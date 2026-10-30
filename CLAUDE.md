@@ -18179,3 +18179,10 @@ this repo.** Verified on a throwaway hub: no key and a wrong key 401, the design
 alone refused on DELETE. **The ngrok link still fails until its host runs this hub version with
 `HUB_DESIGN_KEY` set and exempts `/api/imports` from the tunnel's Google sign-in** — the sign-in
 redirects the browser's preflight to ngrok's login, so the request never reaches the hub.
+
+**The default hub is the ngrok tunnel now** (`EP_DEFAULT` =
+`https://provident-content-hub.ngrok-free.dev/api/imports`, by request). A stored office
+(`192.168.50.30`) or localhost URL moves to it once per computer (`provident-ep-ngrok:<key>`); a
+URL typed by hand otherwise stays. Every request to an ngrok host carries
+`ngrok-skip-browser-warning` (`StudioBase.hubTunnel`, read by `hubFetch` and `epPost`) so ngrok's
+free-domain warning page is skipped; the hub lists that header in its CORS allowed headers.

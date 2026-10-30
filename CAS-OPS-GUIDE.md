@@ -86,7 +86,7 @@ Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"`
 
 **5. Settings each computer keeps for itself.** Ask the person who set up yours for the values:
 - **Design key**, in OPS's **Share › Import hub**, for **Send** and **From the hub** (OPS only).
-  The hub is `http://192.168.50.30:8090`, reachable only on the office network.
+  The hub is `https://provident-content-hub.ngrok-free.dev`, reachable from anywhere.
 - **Google Drive client ID**, in Ad sets' **Google Drive** box. The admin's steps are in
   `docs/google-drive-setup.md`.
 - **Your name** in a campaign's activity comes from your Google account.

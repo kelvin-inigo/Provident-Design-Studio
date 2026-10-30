@@ -1126,12 +1126,19 @@ class StudioBase {
     return { url: String(url).trim().replace(/\/+$/, ''), key };
   }
   static hubHost(u) { try { return new URL(u).host; } catch (e) { return u || 'the hub'; } }
+  // ngrok's free domains answer a browser's request with a warning page unless it carries this
+  // header, so every request to an ngrok hub sends it (the hub lists it in its CORS headers).
+  static hubTunnel(url, headers) {
+    try { if (/\.ngrok(-free)?\.(app|dev|io)$/i.test(new URL(url).hostname)) headers['ngrok-skip-browser-warning'] = '1'; } catch (e) {}
+    return headers;
+  }
   // Same Local Network Access dance as Send (epPost): an https page reading an http:// office
   // address is mixed content unless the request says it is for the local network.
   async hubFetch(url, ms, cache) {
     const c = this.hubCfg();
     const headers = {};
     if (c.key) headers.Authorization = 'Bearer ' + c.key;
+    StudioBase.hubTunnel(url, headers);
     const ac = new AbortController(), to = setTimeout(() => ac.abort(), ms || 30000);
     const opts = { headers, signal: ac.signal, mode: 'cors', credentials: 'omit', cache: cache || 'no-store' };
     try {

@@ -8,7 +8,7 @@ sends JPEGs) and uploads the result to the import hub instead of writing it to a
 
 Open the **Import hub** fold under the Send button (pressing Send with nothing set opens it):
 
-- **Endpoint URL** — defaults to `http://192.168.50.30:8090/api/imports`.
+- **Endpoint URL** — defaults to `https://provident-content-hub.ngrok-free.dev/api/imports`.
 - **Design key** — the hub's `HUB_DESIGN_KEY`. OPS sends it as `X-Design-Key` (and, for an older hub, as `Authorization: Bearer …`). The hub accepts it on `POST /api/imports` only; every other route still needs `HUB_IMPORT_TOKEN`.
 
 Both are kept in this browser's `localStorage` (`provident-ops-endpoint` /
