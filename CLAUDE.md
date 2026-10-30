@@ -18040,3 +18040,9 @@ doors (My turn | Start a post) stay; everything around them is CAS's now. Chrome
   the recents heading on Home reads **Pick up where you left off** (`shRecLabel`).
 Verified on the dev server: contrast 0 failures over both doors in light and dark, no sideways
 scroll at 375. CAS-OPS-GUIDE.md, DESIGN.md and the surface brief are updated.
+- **Recents are grouped as CAS's are** (OPS section 50 mirrors CAS section 65; `recentGroups` in
+  OPS renderVals, the `rc` markup verbatim). An OPS project is one post, so the group is its
+  TEMPLATE ("Reel thumbnail · 3 projects"); a card is the post's name, its brand mark if not
+  Provident, when it was saved and its slide count, with stacked plates for a carousel. Single
+  ones share "Other projects", each naming its template. Same markup on Home and on Recent (where
+  the "Pick up where you left off" label hides). `recentsView` is still computed and unread.

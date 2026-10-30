@@ -4241,6 +4241,36 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 /* OPS's Home count is posts waiting on YOU: the resting navy, not CAS's amber "open tickets" */
 .p-nav2-bd{background:var(--ps-accent);color:var(--ps-accent-i)}
 .p-nav2[data-on] .p-nav2-bd{background:var(--ps-accent-i);color:var(--ps-accent)}
+
+/* 50. RECENTS GROUPED, CAS'S SECTION 65 MIRRORED (2026-10-30, /impeccable). OPS groups by template. */
+.rc{display:flex;flex-direction:column;gap:36px}
+.rc-g{display:flex;flex-direction:column;gap:16px}
+.rc-g + .rc-g{padding-top:32px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+.rc-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 14px}
+.rc-hn{margin:0;font-size:18px;font-weight:500;line-height:1.3;letter-spacing:-.01em;color:var(--ps-ink)}
+.rc-hm{font-size:12.5px;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rc-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:24px 20px}
+.rc-c{gap:0;min-width:0}
+.rc-f{position:relative;display:block;padding-top:8px;margin-bottom:12px}
+.rc-c .p-c-p{display:block;z-index:1;border-radius:12px}
+.rc-t,.rc-s{display:block}
+.rc-s{min-height:1.35em}
+.rc-c[data-stack] .rc-f::before,.rc-c[data-stack="2"] .rc-f::after{content:"";position:absolute;left:6%;right:6%;top:4px;height:40px;border-radius:12px;
+  background:var(--ps-fill-h);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rc-c[data-stack="2"] .rc-f::before{left:12%;right:12%;top:0}
+.rc-c[data-stack="2"] .rc-f::after{left:6%;right:6%;top:4px}
+.rc-t{font-size:14.5px;font-weight:500;line-height:1.3;color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-s{margin-top:2px;font-size:12.5px;line-height:1.35;color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-m{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:12px;color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rc-m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-w{flex:none}
+.rc-c:hover .p-c-p,.rc-c:focus-visible .p-c-p{box-shadow:0 0 0 2px var(--ps-link)}
+.rc-c:hover .rc-t{color:var(--ps-ink)}
+.rc-c:focus-visible{outline:none}
+.p-br-mn > .rc{max-width:1240px;margin-inline:auto;box-sizing:border-box;width:100%;margin-bottom:40px}
+.rc-row{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+.p-br-mn:not(:has(div[data-post-home])) > .p-sec-rec{display:none}
+@media (max-width:760px){ .rc-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px} .rc-hn{font-size:16px} .rc-m{flex-direction:column;gap:2px} }
 </style>
 </helmet>
 
@@ -4354,23 +4384,31 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 
       <sc-if value="{{ shShowRec }}" hint-placeholder-val="{{ true }}">
         <div class="p-sec-l p-sec-rec" style="padding-left:0">{{ shRecLabel }}</div>
-        <div class="p-grid2">
-          <sc-for list="{{ recentsView }}" as="r" hint-placeholder-count="0">
-            <button onClick="{{ r.load }}" class="p-c">
-              <span class="p-c-p" style="{{ cardMini }}">
-                <sc-if value="{{ r.hasThumbs }}" hint-placeholder-val="{{ false }}">
-                  <span class="p-c-shot" style="{{ r.master }}"></span>
-                  <sc-if value="{{ r.hasMore }}" hint-placeholder-val="{{ false }}">
-                    <span class="p-c-vars"><span class="p-c-reel" style="{{ r.reelStyle }}"><sc-for list="{{ r.frames }}" as="th" hint-placeholder-count="3"><span style="{{ th.shot }}"></span></sc-for></span></span>
-                    <span class="p-c-hint">{{ r.moreLabel }}</span>
-                  </sc-if>
-                </sc-if>
-                <span class="p-c-b">{{ r.badge }}</span>
-              </span>
-              <span class="p-c-n">{{ r.name }}</span>
-              <span class="p-c-m">{{ r.meta }}</span>
-              <span class="p-c-tags"><span class="p-tag">{{ r.logoTag }}</span></span>
-            </button>
+        <div class="rc">
+          <sc-for list="{{ recentGroups }}" as="g" hint-placeholder-count="0">
+            <section class="rc-g">
+              <header class="rc-h"><h3 class="rc-hn">{{ g.name }}</h3><span class="rc-hm">{{ g.meta }}</span></header>
+              <div class="rc-row">
+                <sc-for list="{{ g.items }}" as="r" hint-placeholder-count="2">
+                  <button onClick="{{ r.load }}" class="p-c rc-c" title="{{ r.full }}" data-stack="{{ r.stack }}">
+                    <span class="rc-f">
+                      <span class="p-c-p" style="{{ cardMini }}">
+                        <sc-if value="{{ r.hasThumbs }}" hint-placeholder-val="{{ false }}">
+                          <span class="p-c-shot" style="{{ r.master }}"></span>
+                          <sc-if value="{{ r.hasMore }}" hint-placeholder-val="{{ false }}">
+                            <span class="p-c-vars"><span class="p-c-reel" style="{{ r.reelStyle }}"><sc-for list="{{ r.frames }}" as="th" hint-placeholder-count="3"><span style="{{ th.shot }}"></span></sc-for></span></span>
+                            <span class="p-c-hint">{{ r.moreLabel }}</span>
+                          </sc-if>
+                        </sc-if>
+                      </span>
+                    </span>
+                    <span class="rc-t">{{ r.title }}</span>
+                    <span class="rc-s">{{ r.sub }}</span>
+                    <span class="rc-m"><span>{{ r.when }}</span><span class="rc-w">{{ r.what }}</span></span>
+                  </button>
+                </sc-for>
+              </div>
+            </section>
           </sc-for>
         </div>
         <sc-if value="{{ noRecents }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing yet — your projects appear here once you save one.</div></sc-if>
@@ -16230,6 +16268,55 @@ class OrganicStudio extends StudioBase {
           load: () => this.openRecent(i)
         };
       }),
+      // RECENTS GROUPED, AS CAS DOES IT (2026-10-30, /impeccable): a heading once, then the cards.
+      // An OPS project is one post, so the group is its TEMPLATE ("Reel thumbnail · 3 projects");
+      // a card says the post, what it carries and when it was saved. Single ones share an
+      // "Other projects" row, each card naming its template.
+      recentGroups: (() => {
+        const ago = ts => {
+          const d = new Date(ts), n = new Date(), day = 864e5;
+          const d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate()), n0 = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+          const k = Math.round((n0 - d0) / day), t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+          if (k <= 0) return 'Today, ' + t;
+          if (k === 1) return 'Yesterday, ' + t;
+          if (k < 7) return d.toLocaleDateString([], { weekday: 'long' });
+          return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: d.getFullYear() === n.getFullYear() ? undefined : 'numeric' });
+        };
+        const MARK = { pvh: 'Vacation Homes', pb: 'Property Boutique', ps: 'Property Solutions', prism: 'Prism' };
+        const groups = [], byKey = {};
+        recents.forEach((r, i) => {
+          const st = r.state || {}, tpl = st.tpl || 'weekly', tn = TPLNAMES[tpl] || 'Post';
+          const th = r.thumbs || [], n = (st.slides || []).length;
+          const mark = OrganicStudio.CS_MARKS && OrganicStudio.CS_MARKS[st.csLogo] ? MARK[st.csLogo] : '';
+          if (!byKey[tpl]) { byKey[tpl] = { name: tn, items: [], ts: 0 }; groups.push(byKey[tpl]); }
+          const g = byKey[tpl];
+          g.ts = Math.max(g.ts, r.ts || 0);
+          g.items.push({
+            title: String(r.name || 'Untitled').trim(),
+            sub: mark, subOn: !!mark,
+            when: ago(r.ts || 0),
+            what: n + (n === 1 ? ' slide' : ' slides'),
+            full: (r.name || 'Untitled') + ' · ' + tn + ' — saved ' + new Date(r.ts || 0).toLocaleString(),
+            stack: n > 2 ? '2' : (n > 1 ? '1' : undefined),
+            load: () => this.openRecent(i),
+            hasThumbs: !!th.length,
+            master: { backgroundImage: `url("${th[0] || ''}")` },
+            hasMore: th.length > 1,
+            moreLabel: 'Slides ' + th.length,
+            frames: th.map(u => ({ shot: { backgroundImage: `url("${u}")` } })),
+            reelStyle: StudioBase.reelTiming(th.length || 1)
+          });
+        });
+        groups.sort((a, b) => b.ts - a.ts);
+        const solo = groups.filter(g => g.items.length === 1);
+        const out = groups.filter(g => g.items.length > 1);
+        if (solo.length > 1 || (solo.length && out.length)) {
+          const items = solo.map(g => { const it = g.items[0]; return Object.assign({}, it, { sub: [g.name, it.sub].filter(Boolean).join(' · '), subOn: true }); });
+          out.push({ name: out.length ? 'Other projects' : 'Projects', items, ts: solo[0].ts });
+        } else out.push(...solo);
+        return out.map(g => ({ name: g.name, items: g.items,
+          meta: g.items.length + (g.items.length === 1 ? ' project' : ' projects') + ' · last saved ' + ago(g.ts).replace(/^([A-Z])/, ch => ch.toLowerCase()) }));
+      })(),
       noRecents: recents.length === 0,
       splashTitle: 'Organic Post Studio',
       splashSub: 'Organic feed + story posts — pick a template, then fill in the details.',

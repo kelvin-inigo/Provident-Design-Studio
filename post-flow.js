@@ -822,7 +822,7 @@
 .ph-r .ph-open:hover{background:var(--ps-fill);color:var(--ps-ink)}
 .ph-segs[data-k=copy] i[data-s=cur]{background:var(--ps-warn)}
 .ph-segs[data-k=ready] i{background:var(--ps-good)}
-.p-br-mn:has(div[data-post-home] .ph-room) .p-sec-l{padding:28px 0 0 !important;margin-block:0 12px;border-top:1px solid var(--ps-hair);font:600 14px/1.3 var(--ps-font);color:var(--ps-ink-2);letter-spacing:0;text-transform:none}
+.p-br-mn:has(div[data-post-home] .ph-room) .p-sec-l{padding:32px 0 0 !important;margin-block:0 20px;border-top:1px solid var(--ps-hair);font:600 14px/1.3 var(--ps-font);color:var(--ps-ink-2);letter-spacing:0;text-transform:none}
 .p-br-mn:has(.pp2) .p-c-car{left:auto;right:9px;top:9px;bottom:auto}
 @container (max-width:760px){.ph-fr{white-space:normal}.ph-meta{margin:0;width:100%}}
 /* the recents at Home's foot: a strip at queue scale — render and name, nothing from the library */
