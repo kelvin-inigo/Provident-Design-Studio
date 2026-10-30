@@ -120,37 +120,6 @@ say so and point to the step above.
   save before closing a tab. To work on one project in two windows at once, open both with
   `?ws=shared`.
 
-### Signing in to CAS
-
-On the website, CAS opens on a **Sign in to the studio** screen. Press **Continue with Google** and
-use your **@providentestate.com** account. What you see next depends on what the admin has given you:
-
-| Role | What opens |
-|---|---|
-| **Designer** | The whole studio: design, export, Status. |
-| **Performance marketing** | **Home** (set up a campaign; the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage, no Organic posts. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. |
-| **Admin** | Everything a designer has, plus **Access** in the sidebar. There is one admin. |
-
-- **First time?** Sign in anyway. You land on **Waiting for access**, and the admin sees your
-  request. Add a note and say whether you design ads or file campaigns, then press **Send to the
-  admin**. Keep the page open: it lets you in by itself once you're approved.
-- **Declined or removed?** The page says so. Write a note and press **Ask again**.
-- **Sign out** is the arrow beside your name at the foot of the Home sidebar.
-- **Review links still open without signing in.** A content-team or performance-marketing link
-  (`#share=…`) is its own key, as before.
-- Opened straight off the disk with no internet, CAS opens without the sign-in screen.
-
-**Access (admin only).** Open **Access** in the Home sidebar. The badge counts people waiting.
-
-- **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
-  note. Pick **Designer** or **Performance marketing**, then press **Let in**, or **Decline**.
-- **People**: everyone with access. Change a role with its switch, or **Remove access** (they're
-  shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
-  **Add someone** lets in an @providentestate.com email before they've signed in.
-- **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
-- **Preview the studio as**: see CAS exactly as performance marketing or a designer sees it. A bar
-  at the bottom says you're previewing; **Back to Access** returns.
-
 ## 2. Projects: new, open, save
 
 Each studio opens on its **project browser**.
