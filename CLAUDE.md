@@ -17764,3 +17764,34 @@ list's order — and **Show all N** opens every logo in a box capped at four row
 with a search (`_devQ`, prefix matches first; Escape clears, then collapses, without closing the
 dock). Instance state `_devOpen` / `_devQ`. Up to 9 logos nothing changes. Section 69b; the ×
 and + are Material Rounded SVGs now. Verified with real typing; dark marks 8.4:1+.
+
+# THE UNBRANDED STRIP, THE OPEN-LINK DIALOG AND COMPONENT USAGE, REDESIGNED (2026-10-30, /impeccable)
+
+By request, from screenshots. Chrome only — no artwork line changed.
+- **Unbranded look strip** (`CampaignStudio.LookStrip`, CSS section 59): one panel of four
+  hairline-divided sections (`.lk-sec`), no cards. The palette is one joined strip (`.lk-pal`);
+  under it `.lk-lbls` gives each role's name, hex and — for Text, Accent, Button — its
+  readability score (`.lk-cr`, a green or red dot), which replaced the separate chip row
+  (`.lk-ck` is gone). The whole head bar (`.lk-tog`) is the fold; the "Hide controls" button
+  (`.lk-tog2`) is deleted. Font rows: name and a compact picker (`.lk-sel`) on one line, the
+  specimen under them. Labels: "Search Google Fonts", "Glass fill", "Save". Columns follow the
+  strip's own width (1 / 2 / 4 at <640 / 640 / 1180).
+- **Open a shared project** (`nameDialog` `o.steps` / `o.kicker`, CSS `.sho*` in share-link.js):
+  the project's name is the title, what it is in sits above it, and loading is three steps
+  (`dlg.step(n, detail, p, idle)` — done / run with a count and bar / next / wait / bad). While
+  busy only Cancel shows (`data-busy` hides Open). **Cancel now stops the open** (`dlg.gone()`
+  is checked between pictures and before `loadSessionFile`); it used to keep loading and open
+  the project anyway.
+- **Component usage** (CSS section 48, `usageVals`): an audit TABLE. A summary line
+  (`useSum` / `useSumSub`) beside one filter track with counts (`useSegs`, replacing the three
+  verdict tiles — `useTiles` is still computed, unread); then `.cu-t`: header row, group labels,
+  a `<details class="cu-r">` per component (render, name and reason, verdict dot, used-in bar,
+  placements + hidden, an S/M/L/XL bar spread `r.sizes`) that opens to its styles in the same
+  columns. A one-style row does not toggle (`r.sumClick` = preventDefault). The column template
+  `--cu-cols` lives on `.cu-t` and changes by CONTAINER query on `.cu` (the window's width says
+  nothing about the content column beside the sidebar); below 1120px the Sizes column is dropped
+  with its own six-column template — a hidden cell in a seven-column grid shifts the next cell
+  into the empty slot. The folder panel is one row (`.cu-src`; `data-lib` / `data-lib-in` kept,
+  `libPickVals`' reader needs them). "How it is counted" folds under the table.
+- Verified: contrast 0 failures over all three in light and dark; real clicks on fold, lock,
+  Shuffle, a row's toggle; the open dialog through name → pictures → open, and Cancel mid-load.

@@ -1134,7 +1134,10 @@
       catch (e) { dl.fail(e.message, 'Close'); }
       return;
     }
-    const dlg = nameDialog({ title: 'Open a shared project', lead: 'Loading the project…', btn: 'Open', busy: true, auto: true });
+    const appOf = a => a === 'provident-smp-studio' ? 'ops' : 'cas';
+    const dlg = nameDialog({ title: 'Opening the link…', kicker: 'Shared project', app: appOf(this.shApp()), lead: '', btn: 'Open', busy: true, auto: true,
+      steps: ['Read the project', 'Load the pictures', 'Open it here'] });
+    dlg.step(0, '');
     let d;
     try { d = await api('get', { id }); }
     catch (e) { dlg.fail(e.message, 'Close'); return; }
@@ -1146,27 +1149,32 @@
     const T = StudioBase.SESSIONS, spec = T[meta.app];
     if (!spec || !d.state) { dlg.fail('This link does not hold a studio project.', 'Close'); return; }
     const role = d.role || 'edit', rs = d.rs || null;
-    const nm = '<b>' + esc(meta.name || 'Untitled project') + '</b>';
+    const nPics = Object.keys(d.imgs || {}).length;
+    dlg.step(1, nPics ? nPics + (nPics === 1 ? ' picture' : ' pictures') : '', undefined, true);
     dlg.ready({
-      title: rs ? 'Open a project of ' + (rs.name || 'the ad set') : '',
-      lead: rs ? nm + ' · ' + esc(itemLabel((rs.items || []).find(x => x.sid === id) || {})) + ' in the ad set <b>' + esc(rs.name || '') + '</b>. You have the full Campaign Studio, and mark each step done from the Ad set review panel.'
-        : nm + ' · shared by ' + esc(meta.by || 'someone') + ' in ' + esc(spec.label) + '. Anyone with this link can change it, and the Changes panel shows who changed what.',
-      note: 'Your name is shown beside every change you make.'
+      title: meta.name || 'Untitled project',
+      kicker: rs ? (rs.name || 'Ad set') + ' · ' + itemLabel((rs.items || []).find(x => x.sid === id) || {}) : 'Shared project · ' + spec.label,
+      lead: rs ? 'A project in this ad set. You have the full studio; mark each step done from the Ad set tab.'
+        : 'Shared by <b>' + esc(meta.by || 'someone') + '</b>. Anyone with the link can edit it, and Changes shows who did what.'
     });
     const name = await dlg.name();
-    if (!name) return;
+    if (!name || dlg.gone()) return;
     if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
     const slots = Object.keys(d.imgs || {});
     const images = {};
     let done = 0;
-    dlg.busy('Loading pictures' + (slots.length ? ' · 0 of ' + slots.length : '') + '…');
+    dlg.busy('');
+    dlg.step(1, slots.length ? '0 of ' + slots.length : 'None', slots.length ? 0 : undefined);
     try {
       await pool(slots, 3, async sl => {
+        if (dlg.gone()) return;   // Cancel stops the open, not just the dialog
         const rec = await fetchRec(id, d.imgs[sl]);
         if (rec) images[sl] = rec;
-        done++; dlg.busy('Loading pictures · ' + done + ' of ' + slots.length + '…', done / slots.length);
+        done++; dlg.step(1, done + ' of ' + slots.length, done / slots.length);
       });
-    } catch (e) { dlg.fail(e.message, 'Close'); return; }
+    } catch (e) { if (!dlg.gone()) dlg.fail(e.message, 'Close'); return; }
+    if (dlg.gone()) return;
+    dlg.step(2, '');
     // An expired photo this computer still holds in full — its photo store, or the project's
     // Recent card — opens as itself rather than as the preview (and shHeal then puts it back on
     // the link), so opening a link never swaps a good local photo for a 640px one.
@@ -4586,8 +4594,12 @@
   function nameDialog(o) {
     const el = document.createElement('div');
     el.className = 'shl-dlg';
-    el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true" aria-labelledby="shl-dlg-t">' +
-      '<h2 id="shl-dlg-t">' + esc(o.title) + '</h2><p class="shl-lead"></p>' +
+    // o.steps: a dialog whose job is to LOAD something says so as a short list of steps, each
+    // done, running (with its own count and bar) or waiting — not as one changing status line.
+    const steps = o.steps ? '<ol class="sho-steps">' + o.steps.map((t, i) => '<li data-s="' + (i ? 'wait' : 'run') + '"><i aria-hidden="true"></i><b>' + esc(t) + '</b><s></s><span class="sho-pg"><u></u></span></li>').join('') + '</ol>' : '';
+    el.innerHTML = '<div class="shl-dlg-c' + (o.steps ? ' sho' : '') + '" role="dialog" aria-modal="true" aria-labelledby="shl-dlg-t">' +
+      (o.kicker ? '<div class="sho-h"><span class="sho-mk" data-app="' + esc(o.app || '') + '" aria-hidden="true"><i></i><i></i><i></i></span><div class="sho-ht"><p class="sho-k">' + esc(o.kicker) + '</p><h2 id="shl-dlg-t">' + esc(o.title) + '</h2></div></div>'
+        : '<h2 id="shl-dlg-t">' + esc(o.title) + '</h2>') + '<p class="shl-lead"></p>' + steps +
       '<label class="shl-fld"><span>Your name</span><input class="p-in" maxlength="60" autocomplete="name" placeholder="e.g. Sara"></label><p class="shl-who" hidden></p>' +
       '<p class="shl-note"></p><p class="shl-st" aria-live="polite"></p>' +
       '<div class="shl-link" hidden><input class="p-in" readonly><button class="p-ghost shl-cp">Copy</button></div>' +
@@ -4643,9 +4655,18 @@
     const api2 = {
       // an opening dialog with a known account goes straight on: there is nothing to ask
       name: () => { autoGo = true; if (o.auto && StudioBase.shareWho()) res(StudioBase.shareName()); return p; },
-      busy: (t, pr) => { $('.shl-st').textContent = t; stBar(el, pr); go.disabled = true; inp.disabled = true; fld.hidden = true; who.hidden = true; },
-      ready: r => { stBar(el, null); if (r.title) $('h2').textContent = r.title; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = StudioBase.shareWho() ? '' : (r.note || ''); $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; if (!showWho()) setTimeout(() => inp.focus(), 30); },
-      fail: (t, btn) => { stBar(el, null); $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => close(''); x.hidden = true; },
+      busy: (t, pr) => { if (!o.steps) { $('.shl-st').textContent = t; stBar(el, pr); } el.querySelector('.shl-dlg-c').setAttribute('data-busy', ''); go.disabled = true; inp.disabled = true; fld.hidden = true; who.hidden = true; },
+      // a step list: steps before n are done, n runs with its detail and its fraction (p 0..1)
+      step: (n, detail, p, idle) => {
+        el.querySelectorAll('.sho-steps li').forEach((li, i) => {
+          li.setAttribute('data-s', i < n ? 'done' : i === n ? (idle ? 'next' : 'run') : 'wait');
+          if (i === n) { li.querySelector('s').textContent = detail || ''; const u = li.querySelector('u'); li.toggleAttribute('data-pg', typeof p === 'number'); if (typeof p === 'number') u.style.width = Math.max(3, Math.min(100, p * 100)).toFixed(1) + '%'; }
+          else if (i < n) li.querySelector('s').textContent = '';
+        });
+      },
+      gone: () => !el.isConnected,
+      ready: r => { stBar(el, null); el.querySelector('.shl-dlg-c').removeAttribute('data-busy'); if (r.title) $('h2').textContent = r.title; if (r.kicker && $('.sho-k')) $('.sho-k').textContent = r.kicker; $('.shl-lead').innerHTML = r.lead; $('.shl-note').textContent = StudioBase.shareWho() ? '' : (r.note || ''); $('.shl-st').textContent = ''; go.disabled = false; inp.disabled = false; if (!showWho()) setTimeout(() => inp.focus(), 30); },
+      fail: (t, btn) => { stBar(el, null); el.querySelector('.shl-dlg-c').removeAttribute('data-busy'); el.querySelectorAll('.sho-steps li[data-s="run"]').forEach(li => { li.setAttribute('data-s', 'bad'); li.querySelector('s').textContent = ''; }); $('.shl-st').textContent = t; $('.shl-st').classList.add('bad'); go.textContent = btn || 'Close'; go.disabled = false; go.onclick = () => close(''); x.hidden = true; },
       done: (link, copied) => {
         stBar(el, null);
         $('.shl-fld').hidden = true; $('.shl-note').textContent = '';
@@ -6077,6 +6098,49 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
   .rvd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}.rvd-steps b{font-size:24px}
   .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
 }
+/* OPEN A SHARED PROJECT (2026-10-30, /impeccable): the project is the title, what it is in sits
+   above it as one quiet line, and loading is three steps — each done, running with its own count
+   and bar, or waiting — instead of one status line under a paragraph. While it loads there is
+   only Cancel (a disabled Open read as a broken button), and Cancel stops the open. */
+.shl-dlg-c.sho{width:min(440px,100%);padding:24px 24px 20px}
+.sho-h{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.sho-mk{flex:none;position:relative;width:40px;height:40px;border-radius:9px;background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.sho-mk[data-app="ops"]{width:30px}
+.sho-mk i{position:absolute;left:18%;height:3px;border-radius:2px;background:var(--ps-ink-2)}
+.sho-mk i:nth-child(1){top:20%;width:30%}
+.sho-mk i:nth-child(2){top:54%;width:64%;height:4px;background:var(--ps-ink)}
+.sho-mk i:nth-child(3){top:70%;width:46%;height:4px;background:var(--ps-ink)}
+.sho-ht{min-width:0}
+.sho-k{margin:0 0 3px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sho h2{margin:0;font:500 21px/1.25 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sho .shl-lead{margin:0 0 18px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.sho .shl-lead:empty{display:none}
+.sho .shl-lead b{font-weight:500;color:var(--ps-ink)}
+.sho-steps{list-style:none;margin:0 0 4px;padding:14px 16px;border-radius:12px;background:var(--ps-fill);display:flex;flex-direction:column;gap:12px}
+.sho-steps li{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;column-gap:12px;row-gap:8px}
+.sho-steps li>i{position:relative;width:18px;height:18px;border-radius:50%;box-sizing:border-box;box-shadow:inset 0 0 0 1.5px var(--ps-line)}
+.sho-steps b{font:400 13.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.sho-steps s{text-decoration:none;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.sho-steps li[data-s="run"] b{font-weight:500;color:var(--ps-ink)}
+.sho-steps li[data-s="run"]>i{box-shadow:inset 0 0 0 2px var(--ps-line)}
+.sho-steps li[data-s="run"]>i::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:var(--ps-link);animation:sho-spin .8s linear infinite}
+.sho-steps li[data-s="next"] b{color:var(--ps-ink)}
+.sho-steps li[data-s="next"]>i{box-shadow:inset 0 0 0 2px var(--ps-ink-2)}
+.sho-steps li[data-s="done"] b{color:var(--ps-ink-2)}
+.sho-steps li[data-s="done"]>i{background:var(--ps-good);box-shadow:none}
+.sho-steps li[data-s="done"]>i::after{content:'';position:absolute;left:6px;top:3.5px;width:4px;height:8px;border:solid var(--ps-app);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.sho-steps li[data-s="bad"] b{color:var(--ps-ink)}
+.sho-steps li[data-s="bad"]>i{background:var(--ps-bad);box-shadow:none}
+.sho-pg{display:none;grid-column:2/-1;height:4px;border-radius:var(--ps-pill);background:var(--ps-fill-h);overflow:hidden}
+.sho-pg u{display:block;height:100%;width:3%;border-radius:inherit;background:var(--ps-link);transition:width .2s var(--ps-ease,ease)}
+.sho-steps li[data-s="run"][data-pg] .sho-pg{display:block}
+@keyframes sho-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.sho-steps li[data-s="run"]>i::after{animation:none;border-color:var(--ps-link) transparent transparent}}
+.sho .shl-fld{margin-top:16px}
+.sho .shl-st:empty,.sho .shl-note:empty{display:none}
+.sho .shl-st.bad{margin-top:12px}
+.sho .shl-acts{margin-top:20px}
+.sho[data-busy] .shl-go{display:none}
 `;
     document.head.appendChild(s);
   }

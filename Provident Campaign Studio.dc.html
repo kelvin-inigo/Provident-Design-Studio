@@ -4330,81 +4330,118 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sx-ep .p-in{width:100%;box-sizing:border-box}
 .sx-epw{margin:-4px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-bad)}
 .sx-epn{margin:0;font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim)}
-/* ══ 48 · COMPONENT USAGE (2026-10-19, spacing reworked 2026-10-20) ══════════════════════════
-   The home page's audit view. Three verdict tiles on top double as the filter; then, per
-   palette group, one card per component: a real render of it (the export's buildOps, on the
-   dark canvas — a picture of the ARTWORK, so it is pinned dark in both themes), its name and
-   verdict, the reason in one line, and the project count set large. Under it, a "Styles" label
-   and one row per style with its own render. Hierarchy is carried by size, weight and ink tier
-   rather than by more words; the verdict is the only colour.
-   SPACING is on one 8px rhythm and grows with the level it separates: 8 inside a row, 16
-   between rows, 24 inside a card, 20 between cards, 48 between groups. */
-.cu{max-width:1240px;margin-inline:auto;padding:4px 0 64px}
-.cu-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:8px 0 32px}
-.cu-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:16px;row-gap:4px;align-items:baseline;text-align:left;
-  padding:20px 22px;border-radius:var(--ps-r);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border:0;cursor:pointer;
-  transition:background var(--ps-motion) var(--ps-ease),box-shadow var(--ps-motion) var(--ps-ease)}
-.cu .cu-tile > b{grid-row:1 / 3;align-self:center;font:600 40px/1 var(--ps-font);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.cu .cu-tile > span{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
-.cu .cu-tile > s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
-.cu-tile:hover{background:var(--ps-card-h)}
-.cu-tile[data-v="keep"] b{color:var(--ps-good)}
-.cu-tile[data-v="rework"] b{color:var(--ps-warn)}
-.cu-tile[data-v="del"] b{color:var(--ps-bad)}
-.cu-tile[data-on][data-v="keep"]{box-shadow:inset 0 0 0 2px var(--ps-good);background:var(--ps-good-q)}
-.cu-tile[data-on][data-v="rework"]{box-shadow:inset 0 0 0 2px var(--ps-warn);background:var(--ps-warn-q)}
-.cu-tile[data-on][data-v="del"]{box-shadow:inset 0 0 0 2px var(--ps-bad);background:var(--ps-bad-q)}
-.cu-warn{margin:-16px 0 32px;font:400 13px/1.55 var(--ps-font);color:var(--ps-ink-2)}
-.cu-fl{display:flex;align-items:center;gap:12px;margin:-16px 0 24px;font:500 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
-.cu-fl-x{border:0;background:none;padding:0;font:600 13.5px/1.4 var(--ps-font);color:var(--ps-link);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.cu-g + .cu-g{margin-top:48px}
-.cu-gh{margin:0 0 16px;font:600 13px/1.2 var(--ps-font);color:var(--ps-dim);letter-spacing:0}
-.cu-r{background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);border-radius:var(--ps-r);padding:24px;margin-bottom:20px}
-.cu-rh{display:grid;grid-template-columns:240px 1fr auto;align-items:center;gap:28px}
-.cu-pv,.cu-spv{display:block;aspect-ratio:2/1;border-radius:12px;background:#10151B center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+/* ══ 48 · COMPONENT USAGE (2026-10-19; redesigned as a table 2026-10-30) ══════════════════ */
+/* REDESIGNED 2026-10-30 (/impeccable): an audit table. A summary line and one filter track with
+   counts; then ONE table — a header row, the palette groups as quiet labels, a row per component
+   (render, name and reason, verdict, used-in bar, placements, the S/M/L/XL spread) that opens to
+   its styles in the same columns. The verdict is the only colour, as a dot. Renders are pictures
+   of the ARTWORK, so they stay pinned dark in both themes. */
+.cu-t,.cu-th{--cu-cols:112px minmax(0,1fr) 148px 168px 104px 92px 150px}
+.cu{max-width:1280px;margin-inline:auto;padding:4px 0 64px}
+.cu-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:8px 0 20px}
+.cu-hdt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cu-hdt b{font:500 22px/1.25 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
+.cu-hdt s{text-decoration:none;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.cu-seg{flex:none;height:36px}
+.cu-seg button{display:inline-flex;align-items:center;gap:7px;padding:0 14px;font-size:13px}
+.cu-seg button i{width:7px;height:7px;border-radius:50%;background:var(--ps-dim)}
+.cu-seg button[data-v="all"] i{display:none}
+.cu-seg button[data-v="keep"] i{background:var(--ps-good)}
+.cu-seg button[data-v="rework"] i{background:var(--ps-warn)}
+.cu-seg button[data-v="del"] i{background:var(--ps-bad)}
+.cu-seg button span{font-variant-numeric:tabular-nums;color:var(--ps-ink-2);font-weight:400}
+.cu-seg button[data-on] span{color:inherit}
+.cu-warn{margin:-8px 0 20px;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cu-t{border-radius:var(--ps-r);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);padding:0 8px 8px}
+.cu-th{display:grid;grid-template-columns:var(--cu-cols);column-gap:20px;align-items:center;height:44px;padding:0 12px;box-shadow:inset 0 -1px 0 var(--ps-hair);
+  font:500 12px/1.2 var(--ps-font);color:var(--ps-dim)}
+.cu-th span:first-child{grid-column:1 / 3}
+.cu-g{padding-top:6px}
+.cu-gh{margin:14px 12px 4px;font:500 12.5px/1.2 var(--ps-font);color:var(--ps-ink-2);letter-spacing:0}
+.cu-r{border-radius:12px}
+.cu-r + .cu-r{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.cu-r[open]{background:var(--ps-fill);box-shadow:none}
+.cu-r[open] + .cu-r{box-shadow:none}
+.cu-rs{display:grid;grid-template-columns:var(--cu-cols);column-gap:20px;align-items:center;padding:10px 12px;border-radius:12px;list-style:none;cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease)}
+.cu-rs::-webkit-details-marker{display:none}
+.cu-r:not([open]) .cu-rs:hover{background:var(--ps-fill)}
+.cu-r:not([data-can]) .cu-rs{cursor:default}
+.cu-rs:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
+.cu-pv,.cu-spv{display:block;width:100%;aspect-ratio:2/1;border-radius:8px;background:#10151B center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
 .cu-pv:not([data-ready]),.cu-spv:not([data-ready]){background-image:none}
-.cu-rt{min-width:0;display:grid;gap:8px}
-.cu-rn{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.cu-n{font:600 20px/1.25 var(--ps-font);color:var(--ps-ink);letter-spacing:-.01em}
-.cu-why{margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
-.cu-m{margin:0;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
-.cu-m:empty{display:none}
-.cu-stat{display:grid;justify-items:end;gap:4px;min-width:112px}
-.cu-stat b{font:600 36px/1 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.cu-stat s{text-decoration:none;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
-.cu-bar{display:block;width:112px;height:6px;margin-top:8px;border-radius:var(--ps-pill);background:var(--ps-fill);overflow:hidden}
+.cu-rt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.cu-n{font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu-sn{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu-why{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cu-why:empty{display:none}
+.cu-vd{display:inline-flex;align-items:center;gap:8px;font:500 12.5px/1.2 var(--ps-font);color:var(--ps-ink);white-space:nowrap}
+.cu-vd i{flex:none;width:8px;height:8px;border-radius:50%}
+.cu-vd[data-v="keep"] i{background:var(--ps-good)}
+.cu-vd[data-v="rework"] i{background:var(--ps-warn)}
+.cu-vd[data-v="del"] i{background:var(--ps-bad)}
+.cu-use{display:flex;flex-direction:column;gap:7px;min-width:0}
+.cu-use b,.cu-pl b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.cu-bar{display:block;width:100%;max-width:132px;height:5px;border-radius:var(--ps-pill);background:var(--ps-fill-h);overflow:hidden}
+.cu-r[open] .cu-bar{background:var(--ps-card)}
 .cu-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-link)}
-.cu-vb{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:var(--ps-pill);font:600 12px/1 var(--ps-font);white-space:nowrap}
-.cu-vb::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.cu-vb[data-v="keep"]{color:var(--ps-good);background:var(--ps-good-q)}
-.cu-vb[data-v="rework"]{color:var(--ps-warn);background:var(--ps-warn-q)}
-.cu-vb[data-v="del"]{color:var(--ps-bad);background:var(--ps-bad-q)}
-.cu-vb-s{height:24px;font-size:11.5px}
-.cu-sh{margin-top:24px;padding-top:20px;box-shadow:inset 0 1px 0 var(--ps-hair);font:600 12.5px/1.2 var(--ps-font);color:var(--ps-dim)}
-.cu-sh span{margin-left:6px;font-weight:400;font-variant-numeric:tabular-nums}
-.cu-ss{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:12px}
-.cu-s{display:grid;grid-template-columns:140px 1fr auto;grid-template-areas:"pv n v" "pv c v";column-gap:18px;row-gap:4px;align-items:center;align-content:center;
-  padding:12px 16px 12px 12px;border-radius:12px;background:transparent;box-shadow:inset 0 0 0 1px var(--ps-hair)}
-.cu-spv{grid-area:pv;width:140px}
-.cu-sn{grid-area:n;min-width:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
-.cu-sc{grid-area:c;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
-.cu-sc s{display:block;margin-top:2px;text-decoration:none;color:var(--ps-dim)}
-.cu-sc b{font-weight:600;color:var(--ps-ink);font-variant-numeric:tabular-nums}
-.cu-s .cu-vb{grid-area:v;justify-self:end;align-self:center}
-.cu-note{margin:48px 0 0;padding-top:20px;box-shadow:inset 0 1px 0 var(--ps-hair);font:400 12.5px/1.6 var(--ps-font);color:var(--ps-dim);max-width:72ch}
-@media (max-width:1100px){
-  .cu-rh{grid-template-columns:200px 1fr auto;gap:20px}
+.cu-pl{display:flex;flex-direction:column;gap:3px}
+.cu-pl s{text-decoration:none;font:400 12px/1.2 var(--ps-font);color:var(--ps-dim)}
+.cu-pl s:empty{display:none}
+.cu-sz{display:flex;gap:6px;align-items:flex-end;height:36px}
+.cu-sz>span{display:flex;flex-direction:column;align-items:center;gap:4px;width:16px}
+.cu-sz u{position:relative;display:block;width:8px;height:20px;border-radius:2px;background:var(--ps-fill-h)}
+.cu-r[open] .cu-sz u{background:var(--ps-card)}
+.cu-sz u i{position:absolute;left:0;right:0;bottom:0;border-radius:2px;background:var(--ps-ink-2)}
+.cu-sz s{text-decoration:none;font:500 10px/1 var(--ps-font);color:var(--ps-dim)}
+.cu-sz>span[data-on] s{color:var(--ps-ink-2)}
+.cu-ex{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
+.cu-ex s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2);text-align:right}
+.cu-ex svg{flex:none;width:20px;height:20px;fill:var(--ps-ink-2);transition:transform var(--ps-motion) var(--ps-ease)}
+.cu-r[open] .cu-ex svg{transform:rotate(180deg)}
+.cu-r:not([data-can]) .cu-ex svg{visibility:hidden}
+.cu-r:not([data-can]) .cu-ex s{color:var(--ps-dim)}
+/* a component's styles, in the same columns, under it */
+.cu-ss{display:flex;flex-direction:column;padding:2px 0 8px}
+.cu-s{display:grid;grid-template-columns:var(--cu-cols);column-gap:20px;align-items:center;padding:8px 12px}
+.cu-s + .cu-s{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.cu-spv{width:88px;justify-self:end}
+.cu-how{margin-top:20px;max-width:76ch}
+.cu-how summary{display:inline-flex;align-items:center;gap:4px;list-style:none;cursor:pointer;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink-2);padding:6px 0}
+.cu-how summary::-webkit-details-marker{display:none}
+.cu-how summary svg{width:18px;height:18px;fill:currentColor;transition:transform var(--ps-motion) var(--ps-ease)}
+.cu-how[open] summary svg{transform:rotate(180deg)}
+.cu-how summary:hover{color:var(--ps-ink)}
+.cu-how summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px;border-radius:4px}
+.cu-how p{margin:6px 0 0;font:400 13px/1.6 var(--ps-font);color:var(--ps-ink-2)}
+@media (prefers-reduced-motion:reduce){.cu-ex svg,.cu-how summary svg{transition:none}}
+.cu{container-type:inline-size}
+.cu-src{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:8px 0 28px;padding:14px 16px;border-radius:var(--ps-r);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.cu-src-i{flex:none;width:22px;height:22px;fill:var(--ps-ink-2)}
+.cu-src-t{flex:1 1 280px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cu-src-t b{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.cu-src-t s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.cu-src-a{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cu-src-gd{display:flex;align-items:center;gap:6px}
+.cu-src-gd .p-in{width:230px;height:36px}
+@container (max-width:1120px){
+  .cu-t,.cu-th{--cu-cols:96px minmax(0,1fr) 132px 140px 84px 128px}
+  .cu-sz,.cu-th span:nth-child(5){display:none}
+  .cu-rs,.cu-s,.cu-th{column-gap:14px}
 }
-@media (max-width:760px){
-  .cu-tiles{grid-template-columns:1fr;gap:10px;margin-bottom:24px}
-  .cu-tile{padding:16px 18px}
-  .cu-r{padding:18px}
-  .cu-rh{grid-template-columns:1fr auto;gap:16px}
-  .cu-pv{grid-column:1 / -1}
-  .cu-ss{grid-template-columns:1fr}
-  .cu-s{grid-template-columns:96px 1fr;grid-template-areas:"pv n" "pv c" "pv v";padding:12px}
-  .cu-spv{width:96px}
-  .cu-s .cu-vb{justify-self:start}
+@container (max-width:760px){
+  .cu-src-a,.cu-src-gd{width:100%}.cu-src-gd .p-in{flex:1;width:auto}
+  .cu-hd{align-items:stretch}
+  .cu-seg{width:100%;overflow-x:auto}
+  .cu-seg button{flex:none}
+  .cu-th{display:none}
+  .cu-t{padding:4px}
+  .cu-rs,.cu-s{grid-template-columns:88px minmax(0,1fr) auto;row-gap:8px;column-gap:12px;padding:10px}
+  .cu-rs .cu-pv,.cu-s .cu-spv{grid-row:1 / 3;width:88px}
+  .cu-rs .cu-vd,.cu-s .cu-vd{grid-column:3;grid-row:1}
+  .cu-use{grid-column:2;grid-row:2}
+  .cu-pl,.cu-ex s{display:none}
+  .cu-rs .cu-ex{grid-column:3;grid-row:2}
 }
 /* 49. THE ICON PICKER BROWSES EVERY SYMBOL (2026-10-20, OPS's section 43 mirrored): a count
    line, a taller auto-fill grid, and Show more / Show all under it. */
@@ -4794,84 +4831,120 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .p-cvbrand button{padding:0 12px;font-size:12.5px}
 [data-look-host]{display:none;flex:none}
 [data-look-host][data-on]{display:block}
-.lk-strip{border-top:1px solid var(--ps-hair);background:var(--ps-app);container-type:inline-size}
-/* the head bar: always there, the look in one line and the fold */
-.lk-bar{display:flex;align-items:center;gap:14px;padding:8px 12px 8px 8px;min-height:48px}
-.lk-tog{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--ps-ink);font:inherit;font-size:14px;cursor:pointer;padding:6px 8px;border-radius:8px;flex:none}
+/* REDESIGNED 2026-10-30: one panel, four hairline-divided sections (no cards); the palette is a
+   joined strip with each role's name, hex and readability score under it; the head bar is the fold. */
+.lk-strip{border-top:1px solid var(--ps-hair);background:var(--ps-card);container-type:inline-size}
+.lk-bar{display:flex;align-items:center;gap:16px;padding:6px 16px 6px 6px;min-height:48px}
+.lk-tog{display:flex;align-items:center;gap:10px;flex:1;min-width:0;height:36px;border:0;background:transparent;color:var(--ps-ink);font:inherit;cursor:pointer;padding:0 10px 0 6px;border-radius:10px;text-align:left}
 .lk-tog:hover{background:var(--ps-fill)}
-.lk-tog b{font-weight:600}
-.lk-chev{display:flex;width:20px;height:20px;transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
+.lk-tog:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.lk-tog b{flex:none;font:600 14px/1 var(--ps-font)}
+.lk-chev{display:flex;flex:none;width:20px;height:20px;color:var(--ps-ink-2);transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
 .lk-chev svg{width:20px;height:20px;fill:currentColor}
 .lk-strip[data-open="0"] .lk-chev{transform:rotate(-90deg)}
-.lk-sum{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
-.lk-mini{display:flex;flex:none;border-radius:6px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--ps-line)}
-.lk-mini u{display:block;width:18px;height:22px}
-.lk-fonts{font-size:13px;color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.lk-ok{flex:none;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ps-ink-2);white-space:nowrap}
+.lk-sum{display:flex;align-items:center;gap:12px;min-width:0;margin-left:8px}
+.lk-mini{display:flex;flex:none;border-radius:5px;overflow:hidden;box-shadow:0 0 0 1px var(--ps-line)}
+.lk-mini u{display:block;width:14px;height:18px}
+.lk-fonts{font:400 13px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lk-ok{flex:none;display:inline-flex;align-items:center;gap:8px;font:500 12.5px/1 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
 .lk-ok::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ps-good)}
 .lk-ok[data-ok="0"]{color:var(--ps-ink)}
 .lk-ok[data-ok="0"]::before{background:var(--ps-bad)}
-.lk-tog2{flex:none}
-/* the controls: four cards, the colour card widest */
-.lk-body{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:2px 12px 14px;max-height:44vh;overflow:auto}
+.lk-body{display:grid;grid-template-columns:minmax(0,1fr);padding:16px 0 18px;max-height:44vh;overflow:auto;box-shadow:inset 0 1px 0 var(--ps-hair)}
 .lk-strip[data-open="0"] .lk-body{display:none}
-.lk-card{display:flex;flex-direction:column;gap:12px;min-width:0;padding:14px;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
-.lk-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:30px}
-.lk-hd h3{margin:0;font-size:12.5px;font-weight:600;color:var(--ps-ink-2);flex:none}
+.lk-sec{display:flex;flex-direction:column;gap:12px;min-width:0;padding:0 20px}
+.lk-sec + .lk-sec{margin-top:16px;padding-top:16px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+.lk-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:30px}
+.lk-hd h3{margin:0;flex:none;font:600 13px/1.2 var(--ps-font);color:var(--ps-ink)}
 .lk-tone{height:30px}
 .lk-tone button{font-size:12px;padding:0 10px}
-.lk-sws{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
-.lk-sw{position:relative;height:84px;border-radius:10px;padding:8px 6px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:inset 0 0 0 1px rgba(128,128,128,.3);min-width:0;transition:transform var(--ps-motion,.15s) var(--ps-ease,ease)}
-.lk-sw:hover{transform:translateY(-1px)}
-.lk-sw:focus-within{outline:2px solid var(--ps-ink);outline-offset:2px}
+/* the palette: five roles as one strip, a lock on each */
+.lk-pal{display:flex;height:60px;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px var(--ps-line)}
+.lk-sw{position:relative;flex:1;min-width:0}
 .lk-sw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
-.lk-sw b,.lk-sw span{position:relative;pointer-events:none}
-.lk-sw b{font-size:12px;font-weight:600}
-.lk-sw span{font-size:10px;font-variant-numeric:tabular-nums;opacity:.82;white-space:nowrap;overflow:hidden}
-.lk-lk{position:absolute;top:5px;right:5px;z-index:1;width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;padding:0}
+.lk-sw:focus-within{box-shadow:inset 0 0 0 2px currentColor}
+.lk-lk{position:absolute;top:6px;right:6px;z-index:1;width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;padding:0;transition:opacity var(--ps-motion,.15s) var(--ps-ease,ease)}
 .lk-lk svg{width:15px;height:15px;fill:currentColor}
 .lk-lk .lk-l1,.lk-sw[data-locked="1"] .lk-l0{display:none}
 .lk-sw[data-locked="1"] .lk-l1{display:inline}
-.lk-sw:hover .lk-lk,.lk-lk:focus-visible,.lk-sw[data-locked="1"] .lk-lk{opacity:.6}
-.lk-sw[data-locked="1"] .lk-lk{opacity:1;background:rgba(128,128,128,.22)}
-.lk-lk:hover{opacity:1!important;background:rgba(128,128,128,.22)}
-@media (hover:none){.lk-lk{opacity:.6}}
-.lk-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.lk-row .p-ghost{display:inline-flex;align-items:center;gap:6px}
-.lk-row .p-ghost svg{width:16px;height:16px;fill:currentColor}
-.lk-hint{font-size:12px;color:var(--ps-dim);margin-left:auto}
-.lk-note{font-size:12px;color:var(--ps-ink-2)}
+.lk-sw:hover .lk-lk,.lk-lk:focus-visible{opacity:.7}
+.lk-sw[data-locked="1"] .lk-lk{opacity:1;background:rgba(128,128,128,.24)}
+.lk-lk:hover{opacity:1!important;background:rgba(128,128,128,.24)}
+.lk-lk:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+@media (hover:none){.lk-lk{opacity:.7}}
+.lk-lbls{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));margin-top:-4px}
+.lk-lb{display:flex;flex-direction:column;gap:3px;min-width:0;padding-right:6px}
+.lk-lb b{font:500 12.5px/1.2 var(--ps-font);color:var(--ps-ink)}
+.lk-hex{font:400 11.5px/1.2 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.lk-cr{display:inline-flex;align-items:center;gap:5px;font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.lk-cr:empty{display:none}
+.lk-cr::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--ps-good)}
+.lk-cr[data-ok="0"]{color:var(--ps-ink)}
+.lk-cr[data-ok="0"]::before{background:var(--ps-bad)}
+.lk-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lk-act{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 10px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink);font:500 12.5px/1 var(--ps-font);cursor:pointer;white-space:nowrap;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.lk-act:hover{background:var(--ps-fill-h)}
+.lk-act:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.lk-act svg{width:16px;height:16px;fill:currentColor;flex:none}
+.lk-hint{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);margin-left:auto}
+.lk-note{font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .lk-note:empty{display:none}
-.lk-ck{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.lk-ckl{font-size:12px;color:var(--ps-dim);margin-right:2px}
-.lk-c{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--ps-good-q);color:var(--ps-ink)}
-.lk-c b{font-weight:600;font-variant-numeric:tabular-nums}
-.lk-c[data-ok="0"]{background:var(--ps-bad-q)}
-.lk-q{flex:1;min-width:0;max-width:240px;height:30px!important;font-size:12.5px!important}
-.lk-fs{display:flex;flex-direction:column;gap:12px}
-.lk-f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:500;color:var(--ps-ink-2)}
-.lk-f select{width:100%}
-.lk-spec{font-style:normal;font-size:20px;line-height:1.25;color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lk-f[data-ff="B"] .lk-spec{font-size:15px}
-.lk-rng{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 10px}
-.lk-rng label{font-size:12.5px;font-weight:500;color:var(--ps-ink-2)}
-.lk-rng output{font-size:12px;color:var(--ps-dim);text-align:right;font-variant-numeric:tabular-nums}
-.lk-rng input{grid-column:1/-1;width:100%}
-.lk-looks{display:flex;flex-direction:column;gap:6px}
-.lk-look{display:flex;align-items:center;border-radius:10px;box-shadow:inset 0 0 0 1px var(--ps-line)}
-.lk-look:hover{background:var(--ps-fill)}
-.lk-look button{border:0;background:transparent;color:var(--ps-ink);font:inherit;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:7px 8px}
+/* type: a search, then each face as a name, a picker and a specimen set in it */
+.lk-qw{display:flex;align-items:center;gap:6px;flex:1;max-width:220px;height:30px;padding:0 12px 0 10px;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-dim);cursor:text}
+.lk-qw:focus-within{box-shadow:inset 0 0 0 1px var(--ps-line);background:var(--ps-fill-h)}
+.lk-qw svg{width:16px;height:16px;fill:currentColor;flex:none}
+.lk-q{flex:1;min-width:0;border:0;background:transparent;color:var(--ps-ink);font:400 12.5px/1 var(--ps-font);outline:none;padding:0}
+.lk-q::placeholder{color:var(--ps-dim)}
+.lk-fs{display:flex;flex-direction:column}
+.lk-f{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:10px;row-gap:4px;padding:10px 0}
+.lk-f:first-child{padding-top:2px}
+.lk-f + .lk-f{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.lk-fl{font:500 12.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.lk-sel{-webkit-appearance:none;appearance:none;max-width:190px;height:28px;padding:0 28px 0 10px;border:0;border-radius:8px;background:var(--ps-fill) var(--ps-chev) no-repeat right 8px center/14px 14px;color:var(--ps-ink);font:500 12.5px/1 var(--ps-font);cursor:pointer;text-overflow:ellipsis}
+.lk-sel:hover{background-color:var(--ps-fill-h)}
+.lk-sel:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.lk-sel option{background:var(--ps-card);color:var(--ps-ink)}
+.lk-spec{grid-column:1/-1;font-style:normal;font-size:24px;line-height:1.25;color:var(--ps-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lk-f[data-ff="B"] .lk-spec{font-size:15px;line-height:1.4}
+.lk-f[data-ff="A"] .lk-spec{font-size:20px;text-align:right}
+/* shape */
+.lk-rngs{display:flex;flex-direction:column;gap:14px}
+.lk-rng{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:6px 10px}
+.lk-rng label{font:500 12.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.lk-rng output{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim);text-align:right;font-variant-numeric:tabular-nums}
+.lk-rng input{grid-column:1/-1;width:100%;margin:0}
+/* saved looks */
+.lk-looks{display:flex;flex-direction:column;gap:2px;margin:0 -8px}
+.lk-look{display:flex;align-items:center;border-radius:10px}
+.lk-look:hover,.lk-look:focus-within{background:var(--ps-fill)}
+.lk-look button{border:0;background:transparent;color:var(--ps-ink);font:500 12.5px/1.2 var(--ps-font);cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px}
+.lk-look button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px;border-radius:10px}
 .lk-look [data-li]{flex:1;min-width:0;text-align:left}
 .lk-look [data-li] span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lk-look i{display:flex;border-radius:5px;overflow:hidden;flex:none;box-shadow:inset 0 0 0 1px var(--ps-line)}
-.lk-look u{width:10px;height:18px;display:block}
-.lk-look .lk-x{padding:7px 10px;color:var(--ps-dim);font-size:15px}
-.lk-none{font-size:12px;color:var(--ps-dim);line-height:1.5}
+.lk-look i{display:flex;border-radius:4px;overflow:hidden;flex:none;box-shadow:0 0 0 1px var(--ps-line)}
+.lk-look u{width:9px;height:16px;display:block}
+.lk-look .lk-x{color:var(--ps-dim);opacity:0}
+.lk-look:hover .lk-x,.lk-look .lk-x:focus-visible{opacity:1}
+.lk-look .lk-x:hover{color:var(--ps-ink)}
+.lk-look .lk-x svg{width:16px;height:16px;fill:currentColor}
+@media (hover:none){.lk-look .lk-x{opacity:1}}
+.lk-none{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim)}
+.lk-none b{display:block;font-weight:500;color:var(--ps-ink-2)}
 /* the strip lives in the stage column, so it answers its OWN width, not the window's */
-@container (min-width:620px){.lk-body{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container (min-width:1180px){.lk-body{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,.85fr) minmax(0,.8fr)}}
-@container (max-width:560px){.lk-fonts,.lk-hint{display:none}.lk-bar{gap:8px}}
-@container (max-width:420px){.lk-ok{font-size:0;gap:0}}
+@container (min-width:640px){
+  .lk-body{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:16px}
+  .lk-sec + .lk-sec{margin-top:0;padding-top:0;box-shadow:none}
+  .lk-sec:nth-child(even){box-shadow:inset 1px 0 0 var(--ps-hair)}
+  .lk-sec:nth-child(n+3){padding-top:16px;box-shadow:inset 0 1px 0 var(--ps-hair)}
+  .lk-sec:nth-child(4){box-shadow:inset 0 1px 0 var(--ps-hair),inset 1px 0 0 var(--ps-hair)}
+}
+@container (min-width:1180px){
+  .lk-body{grid-template-columns:minmax(0,1.45fr) minmax(0,1.2fr) minmax(0,.9fr) minmax(0,.75fr);row-gap:0}
+  .lk-sec:nth-child(n){padding-top:0;box-shadow:none}
+  .lk-sec + .lk-sec:nth-child(n){box-shadow:inset 1px 0 0 var(--ps-hair)}
+}
+@container (max-width:560px){.lk-fonts,.lk-hint{display:none}.lk-bar{gap:8px}.lk-sum{margin-left:0}}
+@container (max-width:420px){.lk-ok{font-size:0;gap:0}.lk-hex{display:none}}
 /* the dock floats over the stage's foot; while the strip shows it rides above it */
 html.lk-on .p-dock{transform:translateY(calc(-1 * var(--lk-h,0px)))}
 .mk-screen[data-unb] .mk-av-b,.mk-screen[data-unb] .mk-igr-av{background:#8A8F98 none!important}
@@ -5471,17 +5544,14 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
                StudioBase.libScan; until one is chosen the count comes from Recent. -->
           <sc-if value="{{ libMsgOn }}" hint-placeholder-val="{{ false }}"><div class="p-br-note hb-err" role="alert">{{ libMsg }}</div></sc-if>
           <sc-if value="{{ libNoneOn }}" hint-placeholder-val="{{ true }}">
-            <div class="lb-pick" data-lib="1">
-              <div class="lb-pick-h"><b>Count every project in a folder</b><s>Point the studio at the folder where the team keeps its saved projects. Every Campaign project in it, and in the folders inside it, is counted — not only the last ten saved on this computer. It is read, never changed, and remembered on this computer.</s></div>
-              <div class="lb-opts">
-                <div class="lb-opt"><b>On this computer · no sign-in</b><s>Best for a Drive folder: pick it where Google Drive for desktop keeps it in sync (Google Drive in Finder). After a restart, press Reconnect once and choose “Allow on every visit” — then it is read without asking.</s>
-                  <sc-if value="{{ libLocalOk }}" hint-placeholder-val="{{ true }}"><button onClick="{{ libPick }}" class="p-btn">Choose a folder</button></sc-if>
-                  <sc-if value="{{ libLocalNo }}" hint-placeholder-val="{{ false }}"><s class="lb-no">Needs Chrome or Edge on a computer.</s></sc-if>
-                </div>
-                <div class="lb-opt"><b>Google Drive link</b><s>Without Drive for desktop: paste the folder’s link from the browser’s address bar. You sign in with your Provident Google account, again after each reload.</s>
-                  <span class="lb-gd"><input class="p-in" data-lib-in="1" type="url" placeholder="https://drive.google.com/drive/folders/…" onKeyDown="{{ libGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ libGd }}" class="p-ghost">Use this folder</button></span>
-                </div>
-              </div>
+            <!-- what is counted, in one row: Recent until a team folder is chosen (2026-10-30) -->
+            <div class="cu-src" data-lib="1">
+              <svg class="cu-src-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h219.61l80 80h315.77Q818-700 839-679q21 21 21 51.31v375.38Q860-222 839-201q-21 21-51.31 21H172.31Z"/></svg>
+              <span class="cu-src-t"><b>Counting the projects saved in Recent</b><s>Only this computer’s last ten. Count the team’s folder for the full picture.</s></span>
+              <span class="cu-src-a">
+                <sc-if value="{{ libLocalOk }}" hint-placeholder-val="{{ true }}"><button onClick="{{ libPick }}" class="p-btn" title="Pick the folder where the team keeps its saved projects — on this computer, or where Google Drive for desktop keeps it in sync. It is read, never changed, and remembered on this computer.">Choose a folder</button></sc-if>
+                <span class="lb-gd cu-src-gd" title="Without Drive for desktop: paste the folder’s link. You sign in with your Provident Google account."><input class="p-in" data-lib-in="1" type="url" placeholder="Or paste a Google Drive folder link" onKeyDown="{{ libGdKey }}" aria-label="Google Drive folder link"><button onClick="{{ libGd }}" class="p-ghost">Use</button></span>
+              </span>
             </div>
           </sc-if>
           <sc-if value="{{ libSrcOn }}" hint-placeholder-val="{{ false }}">
@@ -5493,46 +5563,55 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
             <sc-if value="{{ libAskOn }}" hint-placeholder-val="{{ false }}"><div class="lb-ask"><span>{{ libAskNote }}</span><button onClick="{{ libConnect }}" class="p-btn">{{ libAskLabel }}</button></div></sc-if>
           </sc-if>
           <sc-if value="{{ useHasData }}" hint-placeholder-val="{{ true }}">
-            <div class="cu-tiles" role="group" aria-label="Filter by verdict">
-              <sc-for list="{{ useTiles }}" as="t" hint-placeholder-count="3">
-                <button onClick="{{ t.set }}" class="cu-tile" data-v="{{ t.v }}" data-on="{{ t.on }}" aria-pressed="{{ t.aria }}"><b>{{ t.num }}</b><span>{{ t.lab }}</span><s>{{ t.sub }}</s></button>
-              </sc-for>
+            <!-- REDESIGNED 2026-10-30 (/impeccable): an audit TABLE, not stacked cards. One line says
+                 what was counted and what nobody uses; the verdict filter is one track with counts;
+                 each component is a row that opens to its styles. -->
+            <div class="cu-hd">
+              <div class="cu-hdt"><b>{{ useSum }}</b><s>{{ useSumSub }}</s></div>
+              <div class="p-tabs cu-seg" role="group" aria-label="Show components">
+                <sc-for list="{{ useSegs }}" as="sg" hint-placeholder-count="4"><button onClick="{{ sg.set }}" data-on="{{ sg.on }}" data-v="{{ sg.v }}" aria-pressed="{{ sg.aria }}" title="{{ sg.tip }}"><i aria-hidden="true"></i>{{ sg.lab }}<span>{{ sg.n }}</span></button></sc-for>
+              </div>
             </div>
             <sc-if value="{{ useSmallOn }}" hint-placeholder-val="{{ false }}"><p class="cu-warn">{{ useSmall }}</p></sc-if>
-            <sc-if value="{{ useFiltOn }}" hint-placeholder-val="{{ false }}"><p class="cu-fl">{{ useFiltLabel }} <button onClick="{{ useShowAll }}" class="cu-fl-x">Show everything</button></p></sc-if>
-            <sc-for list="{{ useGroups }}" as="g" hint-placeholder-count="2">
-              <section class="cu-g">
-                <h3 class="cu-gh">{{ g.name }}</h3>
-                <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
-                  <article class="cu-r" data-v="{{ r.v }}">
-                    <div class="cu-rh">
-                      <span class="cu-pv" style="{{ r.shot }}" data-ready="{{ r.shotOn }}" aria-hidden="true"></span>
-                      <div class="cu-rt">
-                        <div class="cu-rn"><b class="cu-n">{{ r.name }}</b><span class="cu-vb" data-v="{{ r.v }}">{{ r.vLabel }}</span></div>
-                        <p class="cu-why">{{ r.why }}</p>
-                        <p class="cu-m">{{ r.meta }}</p>
-                      </div>
-                      <div class="cu-stat" title="{{ r.usedTip }}"><b>{{ r.num }}</b><s>{{ r.of }}</s><span class="cu-bar"><i style="{{ r.barStyle }}"></i></span></div>
-                    </div>
-                    <sc-if value="{{ r.stylesOn }}" hint-placeholder-val="{{ true }}">
-                      <div class="cu-sh">Styles <span>{{ r.styleCount }}</span></div>
-                      <div class="cu-ss">
-                        <sc-for list="{{ r.styles }}" as="st" hint-placeholder-count="3">
-                          <div class="cu-s" data-v="{{ st.v }}" title="{{ st.tip }}">
-                            <span class="cu-spv" style="{{ st.shot }}" data-ready="{{ st.shotOn }}" aria-hidden="true"></span>
-                            <span class="cu-sn">{{ st.name }}</span>
-                            <span class="cu-sc"><b>{{ st.num }}</b> {{ st.unit }}<s>{{ st.why }}</s></span>
-                            <span class="cu-vb cu-vb-s" data-v="{{ st.v }}">{{ st.vLabel }}</span>
-                          </div>
-                        </sc-for>
-                      </div>
-                    </sc-if>
-                  </article>
-                </sc-for>
-              </section>
-            </sc-for>
+            <div class="cu-t">
+              <div class="cu-th" aria-hidden="true"><span>Component</span><span>Verdict</span><span>Used in</span><span>Placements</span><span>Sizes</span><span></span></div>
+              <sc-for list="{{ useGroups }}" as="g" hint-placeholder-count="2">
+                <section class="cu-g">
+                  <h3 class="cu-gh">{{ g.name }}</h3>
+                  <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+                    <details class="cu-r" data-v="{{ r.v }}" data-can="{{ r.canOpen }}">
+                      <summary class="cu-rs" onClick="{{ r.sumClick }}">
+                        <span class="cu-pv" style="{{ r.shot }}" data-ready="{{ r.shotOn }}" aria-hidden="true"></span>
+                        <span class="cu-rt"><b class="cu-n">{{ r.name }}</b><s class="cu-why">{{ r.why }}</s></span>
+                        <span class="cu-vd" data-v="{{ r.v }}"><i aria-hidden="true"></i>{{ r.vLabel }}</span>
+                        <span class="cu-use" title="{{ r.usedTip }}"><b>{{ r.used }}</b><span class="cu-bar"><i style="{{ r.barStyle }}"></i></span></span>
+                        <span class="cu-pl"><b>{{ r.place }}</b><s>{{ r.hid }}</s></span>
+                        <span class="cu-sz" title="{{ r.sizesTip }}"><sc-for list="{{ r.sizes }}" as="z" hint-placeholder-count="4"><span data-on="{{ z.on }}" title="{{ z.l }}: {{ z.n }}"><u><i style="{{ z.st }}"></i></u><s>{{ z.l }}</s></span></sc-for></span>
+                        <span class="cu-ex"><s>{{ r.stylesSum }}</s><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-371.69q-7.23 0-13.46-2.31t-11.85-7.92L274.92-561.69q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-440.92l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-381.92q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31Z"/></svg></span>
+                      </summary>
+                      <sc-if value="{{ r.stylesOn }}" hint-placeholder-val="{{ true }}">
+                        <div class="cu-ss">
+                          <sc-for list="{{ r.styles }}" as="st" hint-placeholder-count="3">
+                            <div class="cu-s" data-v="{{ st.v }}" title="{{ st.tip }}">
+                              <span class="cu-spv" style="{{ st.shot }}" data-ready="{{ st.shotOn }}" aria-hidden="true"></span>
+                              <span class="cu-rt"><b class="cu-sn">{{ st.name }}</b><s class="cu-why">{{ st.why }}</s></span>
+                              <span class="cu-vd" data-v="{{ st.v }}"><i aria-hidden="true"></i>{{ st.vLabel }}</span>
+                              <span class="cu-use"><b>{{ st.num }} {{ st.unit }}</b><span class="cu-bar"><i style="{{ st.barStyle }}"></i></span></span>
+                              <span class="cu-pl"><b>{{ st.share }}</b><s>of its uses</s></span>
+                            </div>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </details>
+                  </sc-for>
+                </section>
+              </sc-for>
+            </div>
             <sc-if value="{{ useNothing }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">Nothing carries that verdict.</div></sc-if>
-            <p class="cu-note">{{ useNote }}A placement is one component on one variant or carousel page; hidden ones are counted apart. A component is worth keeping when a third of the projects use it, needs rework when only a few do or it keeps being hidden, and is worth deleting when none do. A style is judged by its share of its component's uses. Hover anything to see which projects use it.</p>
+            <details class="cu-how">
+              <summary>How it is counted<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-371.69q-7.23 0-13.46-2.31t-11.85-7.92L274.92-561.69q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-440.92l162.92-162.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L505.31-381.92q-5.62 5.61-11.85 7.92-6.23 2.31-13.46 2.31Z"/></svg></summary>
+              <p>{{ useNote }}A placement is one component on one variant or carousel page; hidden ones are counted apart. A component is worth keeping when a third of the projects use it, needs rework when only a few do or it keeps being hidden, and is worth deleting when none do. A style is judged by its share of its component's uses. Hover a row's Used in to see which projects use it.</p>
+            </details>
           </sc-if>
           <sc-if value="{{ useNoData }}" hint-placeholder-val="{{ false }}"><div class="p-empty2">{{ useEmpty }}</div></sc-if>
         </div>
@@ -9089,39 +9168,48 @@ class CampaignStudio extends StudioBase {
       const PHOTO = 'M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31ZM270-290h420q9.31 0 13.65-8.46 4.35-8.46-1.27-16.08L586.23-470.77q-4.61-6-11.85-6-7.23 0-11.84 6L450-325.38 371.92-427.3q-4.62-6-11.85-6-7.22 0-11.84 6l-86.08 112.76q-5.61 7.62-1.27 16.08Q265.23-290 270-290Z';
       const DICE = 'M300-240q25 0 42.5-17.5T360-300q0-25-17.5-42.5T300-360q-25 0-42.5 17.5T240-300q0 25 17.5 42.5T300-240Zm0-360q25 0 42.5-17.5T360-660q0-25-17.5-42.5T300-720q-25 0-42.5 17.5T240-660q0 25 17.5 42.5T300-600Zm180 180q25 0 42.5-17.5T540-480q0-25-17.5-42.5T480-540q-25 0-42.5 17.5T420-480q0 25 17.5 42.5T480-420Zm180 180q25 0 42.5-17.5T720-300q0-25-17.5-42.5T660-360q-25 0-42.5 17.5T600-300q0 25 17.5 42.5T660-240Zm0-360q25 0 42.5-17.5T720-660q0-25-17.5-42.5T660-720q-25 0-42.5 17.5T600-660q0 25 17.5 42.5T660-600ZM212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Z';
       const ROLE_TIP = ['Headline, body and labels', 'Highlights: the eyebrow, figures, rules and bullets', 'The button’s fill', 'Chip and tag outlines', 'The wash behind the copy'];
+      const SEARCH = 'M380-320q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z';
+      const BOOK = 'M280-80q-33 0-56.5-23.5T200-160v-640q0-33 23.5-56.5T280-880h400q33 0 56.5 23.5T760-800v640q0 33-23.5 56.5T680-80L480-180 280-80Zm0-87 200-100 200 100v-633H280v633Zm0-633h400-400Z';
       const rng = (k, lab, min, max, tip) => '<div class="lk-rng" title="' + tip + '"><label for="lk-' + k + '">' + lab + '</label><output data-o="' + k + '"></output><input type="range" id="lk-' + k + '" data-k="' + k + '" min="' + min + '" max="' + max + '" step="1"></div>';
-      const font = (f, lab) => '<label class="lk-f" data-ff="' + f + '"><span>' + lab + '</span><select class="p-in" data-f="' + f + '"></select><i class="lk-spec" data-spec="' + f + '"></i></label>';
+      // a font row: its name and the picker on one line, the specimen set in the face under them
+      const font = (f, lab) => '<label class="lk-f" data-ff="' + f + '"><span class="lk-fl">' + lab + '</span><select class="lk-sel" data-f="' + f + '" aria-label="' + lab + ' font"></select><i class="lk-spec" data-spec="' + f + '"></i></label>';
+      const LOCK0 = 'M240-640h360v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85h-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640Z';
+      // REDESIGNED (2026-10-30, /impeccable): one panel of hairline-divided sections, not four
+      // cards; the palette is one joined strip whose labels carry each role's readability score
+      // (Text, Accent and Button are the three a contrast check applies to), so the separate
+      // chip row is gone; the whole head bar is the fold, so there is no second "Hide" button.
       host.innerHTML =
         '<div class="lk-strip" role="region" aria-label="Unbranded look">' +
         '<div class="lk-bar">' +
-          '<button class="lk-tog" aria-expanded="true" aria-controls="lk-body"><span class="lk-chev">' + ico(CHEV) + '</span><b>Unbranded look</b></button>' +
-          '<span class="lk-sum"><i class="lk-mini"></i><span class="lk-fonts"></span><span class="lk-ok"></span></span>' +
-          '<button class="p-ghost p-sm lk-tog2">Hide controls</button>' +
+          '<button class="lk-tog" aria-expanded="true" aria-controls="lk-body"><span class="lk-chev">' + ico(CHEV) + '</span><b>Unbranded look</b><span class="lk-sum"><i class="lk-mini"></i><span class="lk-fonts"></span></span></button>' +
+          '<span class="lk-ok"></span>' +
         '</div>' +
         '<div class="lk-body" id="lk-body">' +
-          '<section class="lk-card lk-c-col"><div class="lk-hd"><h3>Colour</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d" title="Light copy on a dark wash">Light on dark</button><button data-tone="l" title="Dark copy on a light wash">Dark on light</button></div></div>' +
-            '<div class="lk-sws">' + C.ROLES.map((r, i) => '<div class="lk-sw" data-i="' + i + '" title="' + ROLE_TIP[i] + ' · click to pick a colour"><input type="color" aria-label="' + r + ' colour"><b>' + r + '</b><span></span><button class="lk-lk" data-lk="' + i + '" aria-pressed="false"><svg viewBox="0 -960 960 960" aria-hidden="true"><path class="lk-l1" d="' + LOCK1 + '"/><path class="lk-l0" d="M240-640h360v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85h-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640Z"/></svg></button></div>').join('') + '</div>' +
-            '<div class="lk-row"><button class="p-ghost p-sm" data-act="photo" title="Read the palette from the background photo, keeping locked colours">' + ico(PHOTO) + 'From photo</button><button class="p-ghost p-sm" data-act="gen" title="A new random palette, keeping locked colours">' + ico(DICE) + 'Shuffle</button><span class="lk-hint">Lock a colour to keep it.</span></div>' +
+          '<section class="lk-sec lk-c-col"><div class="lk-hd"><h3>Colour</h3><div class="p-tabs lk-tone" role="group" aria-label="Tone"><button data-tone="d" title="Light copy on a dark wash">Light on dark</button><button data-tone="l" title="Dark copy on a light wash">Dark on light</button></div></div>' +
+            '<div class="lk-pal">' + C.ROLES.map((r, i) => '<div class="lk-sw" data-i="' + i + '" title="' + ROLE_TIP[i] + ' · click to pick a colour"><input type="color" aria-label="' + r + ' colour"><button class="lk-lk" data-lk="' + i + '" aria-pressed="false"><svg viewBox="0 -960 960 960" aria-hidden="true"><path class="lk-l1" d="' + LOCK1 + '"/><path class="lk-l0" d="' + LOCK0 + '"/></svg></button></div>').join('') + '</div>' +
+            '<div class="lk-lbls">' + C.ROLES.map((r, i) => '<div class="lk-lb" data-i="' + i + '"><b>' + r + '</b><span class="lk-hex"></span><span class="lk-cr"></span></div>').join('') + '</div>' +
+            '<div class="lk-row"><button class="lk-act" data-act="photo" title="Read the palette from the background photo, keeping locked colours">' + ico(PHOTO) + 'From photo</button><button class="lk-act" data-act="gen" title="A new random palette, keeping locked colours">' + ico(DICE) + 'Shuffle</button><span class="lk-hint">Lock a colour to keep it</span></div>' +
             '<div class="lk-note" role="status"></div>' +
-            '<div class="lk-ck"></div>' +
           '</section>' +
-          '<section class="lk-card lk-c-type"><div class="lk-hd"><h3>Type</h3><input class="p-in lk-q" placeholder="Filter all Google Fonts" aria-label="Filter all Google Fonts" spellcheck="false"></div>' +
-            '<div class="lk-fs">' + font('H', 'Headline') + font('B', 'Body, labels and buttons') + font('A', 'Arabic') + '</div>' +
+          '<section class="lk-sec lk-c-type"><div class="lk-hd"><h3>Type</h3><label class="lk-qw">' + ico(SEARCH) + '<input class="lk-q" placeholder="Search Google Fonts" aria-label="Search all Google Fonts" spellcheck="false"></label></div>' +
+            '<div class="lk-fs">' + font('H', 'Headline') + font('B', 'Body') + font('A', 'Arabic') + '</div>' +
           '</section>' +
-          '<section class="lk-card lk-c-shape"><div class="lk-hd"><h3>Shape</h3></div>' +
+          '<section class="lk-sec lk-c-shape"><div class="lk-hd"><h3>Shape</h3></div>' +
+            '<div class="lk-rngs">' +
             rng('rad', 'Corners', 0, C.RAD_PILL, 'Square to pill, on every box, chip and button') +
             rng('blur', 'Glass blur', 0, 40, 'How much a glass panel blurs the photo behind it') +
-            rng('gop', 'Glass opacity', 0, 60, 'How much of the panel’s colour covers the photo') +
+            rng('gop', 'Glass fill', 0, 60, 'How much of the panel’s colour covers the photo') +
             rng('trk', 'Eyebrow tracking', 0, 30, 'Letter-spacing on the all-caps eyebrow') +
+            '</div>' +
           '</section>' +
-          '<section class="lk-card lk-c-saved"><div class="lk-hd"><h3>Saved looks</h3><button class="p-ghost p-sm" data-act="save" title="Keep this look on this computer to use on other projects">Save look</button></div>' +
+          '<section class="lk-sec lk-c-saved"><div class="lk-hd"><h3>Saved looks</h3><button class="lk-act" data-act="save" title="Keep this look on this computer to use on other projects">' + ico(BOOK) + 'Save</button></div>' +
             '<div class="lk-looks"></div>' +
           '</section>' +
         '</div></div>';
       const $ = sel => host.querySelector(sel);
       this.open = (() => { try { return localStorage.getItem(C.LOOK_OPEN_KEY) !== '0'; } catch (e) { return true; } })();
       const fold = () => { this.open = !this.open; try { localStorage.setItem(C.LOOK_OPEN_KEY, this.open ? '1' : '0'); } catch (e) {} this.sync(); eng.lookMount(); };
-      $('.lk-tog').onclick = fold; $('.lk-tog2').onclick = fold;
+      $('.lk-tog').onclick = fold;
       host.querySelectorAll('[data-tone]').forEach(b => b.onclick = () => this.tone(b.getAttribute('data-tone')));
       host.querySelectorAll('.lk-sw').forEach(b => {
         const i = +b.getAttribute('data-i'), inp = b.querySelector('input');
@@ -9200,13 +9288,12 @@ class CampaignStudio extends StudioBase {
       const strip = h.querySelector('.lk-strip');
       strip.setAttribute('data-open', this.open ? '1' : '0');
       h.querySelector('.lk-tog').setAttribute('aria-expanded', this.open ? 'true' : 'false');
-      h.querySelector('.lk-tog2').textContent = this.open ? 'Hide controls' : 'Edit look';
       h.querySelectorAll('[data-tone]').forEach(b => { if (b.getAttribute('data-tone') === L.tone) b.setAttribute('data-on', '1'); else b.removeAttribute('data-on'); });
       h.querySelectorAll('.lk-sw').forEach(b => {
         const i = +b.getAttribute('data-i'), c = L.pal[i] || '#000000', ink = C.onInk(c);
         b.style.background = c; b.style.color = ink;
-        b.querySelector('span').textContent = c.slice(1); // the # earns no room on a narrow swatch
         b.setAttribute('data-locked', L.lock[i] ? '1' : '0');
+        h.querySelector('.lk-lb[data-i="' + i + '"] .lk-hex').textContent = c.toUpperCase();
         const lk = b.querySelector('[data-lk]');
         lk.setAttribute('aria-pressed', L.lock[i] ? 'true' : 'false');
         lk.setAttribute('aria-label', (L.lock[i] ? 'Unlock ' : 'Lock ') + C.ROLES[i]);
@@ -9226,8 +9313,17 @@ class CampaignStudio extends StudioBase {
       const rows = [['Copy', 'Text on the scrim', C.contrast(L.pal[0], ground), 4.5], ['Accent', 'Accent on the scrim', C.contrast(L.pal[1], ground), 3],
         ['Button', 'Button label on its fill', C.contrast(C.onInk(L.pal[2]), L.pal[2]), 4.5]];
       const bad = rows.filter(r => r[2] < r[3]);
-      const ck = '<span class="lk-ckl">Readability</span>' + rows.map(r => '<span class="lk-c" data-ok="' + (r[2] >= r[3] ? '1' : '0') + '" title="' + r[1] + ': ' + r[2].toFixed(1) + ':1, needs ' + r[3] + ':1">' + (r[2] >= r[3] ? '✓ ' : '! ') + r[0] + ' <b>' + r[2].toFixed(1) + '</b></span>').join('');
-      if (ck !== this._ck) { h.querySelector('.lk-ck').innerHTML = ck; this._ck = ck; }
+      // each score sits under the colour it judges: Text, Accent, Button (roles 0, 1, 2)
+      const ck = rows.map(r => r[2].toFixed(1) + (r[2] >= r[3] ? 1 : 0)).join('|');
+      if (ck !== this._ck) {
+        this._ck = ck;
+        rows.forEach((r, i) => {
+          const el = h.querySelector('.lk-lb[data-i="' + i + '"] .lk-cr'), ok = r[2] >= r[3];
+          el.setAttribute('data-ok', ok ? '1' : '0');
+          el.textContent = r[2].toFixed(1) + ':1';
+          el.title = r[1] + ': ' + r[2].toFixed(1) + ':1, needs ' + r[3] + ':1' + (ok ? '' : ' — too faint');
+        });
+      }
       // the head bar's summary: the five colours, the two fonts, one word on readability
       const mini = L.pal.map((c, i) => '<u style="background:' + c + '" title="' + C.ROLES[i] + ' ' + c + '"></u>').join('');
       const sum = mini + '|' + L.fH + '|' + L.fB + '|' + bad.length;
@@ -9241,7 +9337,7 @@ class CampaignStudio extends StudioBase {
         ok.title = bad.length ? 'Open the controls to see which colour to change' : 'Every role clears its contrast check';
       }
       const looks = C.savedLooks();
-      const lk = looks.map((o, i) => '<span class="lk-look"><button data-li="' + i + '" title="Apply ' + o.n.replace(/"/g, '') + '"><i>' + (o.pal || []).map(c => '<u style="background:' + c + '"></u>').join('') + '</i><span>' + o.n.replace(/</g, '') + '</span></button><button class="lk-x" data-ld="' + i + '" aria-label="Delete ' + o.n.replace(/"/g, '') + '" title="Delete this look">×</button></span>').join('') || '<span class="lk-none">Save a look to reuse its colours, fonts and shape on another project.</span>';
+      const lk = looks.map((o, i) => '<span class="lk-look"><button data-li="' + i + '" title="Apply ' + o.n.replace(/"/g, '') + '"><i>' + (o.pal || []).map(c => '<u style="background:' + c + '"></u>').join('') + '</i><span>' + o.n.replace(/</g, '') + '</span></button><button class="lk-x" data-ld="' + i + '" aria-label="Delete ' + o.n.replace(/"/g, '') + '" title="Delete this look"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/></svg></button></span>').join('') || '<p class="lk-none"><b>Nothing saved yet.</b> Save keeps these colours, fonts and shape on this computer for your other projects.</p>';
       if (force || lk !== this._lk) {
         this._lk = lk;
         const box = h.querySelector('.lk-looks');
@@ -14149,12 +14245,22 @@ class CampaignStudio extends StudioBase {
         tally[sv][1]++;
         return { name: label, desc: C.vdescOf(m, k), num: so.projs.size ? String(so.projs.size) : '0',
           unit: so.projs.size === 1 ? 'project' : 'projects',
-          barStyle: { width: pct(so.n, t.n) + '%' }, v: sv, vLabel: V[sv].label, why: swhy,
+          barStyle: { width: pct(so.n, t.n) + '%' }, share: pct(so.n, t.n) + '%', v: sv, vLabel: V[sv].label, why: swhy,
           tip: label + (C.vdescOf(m, k) ? ' — ' + C.vdescOf(m, k) : '') + (so.n ? '. Used in ' + who(so.projs) : '. No saved project picks it.'),
           shot: shot((pv[key] || {})[k]), shotOn: (pv[key] || {})[k] ? '1' : undefined };
       }) : [];
       const sz = t.n ? C.SIZES.map(([k, l]) => t.sizes[k] ? l + ' ' + t.sizes[k] : '').filter(Boolean).join(' · ') : '';
-      return { name, v: vk, vLabel: V[vk].label, why,
+      // the S / M / L / XL spread as four small bars, each against the busiest size
+      const szMax = Math.max(1, ...C.SIZES.map(([k]) => t.sizes[k] || 0));
+      const sizes = C.SIZES.map(([k, l]) => ({ l, n: String(t.sizes[k] || 0), on: t.sizes[k] ? '1' : undefined,
+        st: { height: (t.sizes[k] ? Math.max(12, Math.round(t.sizes[k] / szMax * 100)) : 0) + '%' } }));
+      const sv2 = styles.reduce((a, x) => { a[x.v] = (a[x.v] || 0) + 1; return a; }, {});
+      return { name, v: vk, vLabel: V[vk].label, why, sizes, sizesOn: t.n ? '1' : undefined, sizesTip: sz ? 'Sizes used: ' + sz : 'Not placed yet',
+        used: t.projs.size + ' of ' + N, usedPct: pct(t.projs.size, N) + '%',
+        place: t.n ? String(t.n) : '—', hidOn: t.hid ? '1' : undefined, hid: t.hid ? t.hid + ' hidden' : '',
+        stylesSum: styles.length ? plural(styles.length, 'style') + (sv2.del ? ' · ' + sv2.del + ' unused' : '') + (sv2.rework ? ' · ' + sv2.rework + ' to rework' : '') : 'One style',
+        // a component with one style has nothing to open, so its row does not toggle
+        sumClick: styles.length ? undefined : e => e.preventDefault(), canOpen: styles.length ? '1' : undefined,
         num: String(t.projs.size), of: 'of ' + plural(N, 'project'),
         usedTip: t.projs.size ? 'Used in ' + who(t.projs) : 'No saved project uses it',
         barStyle: { width: pct(t.projs.size, N) + '%' },
@@ -14173,6 +14279,11 @@ class CampaignStudio extends StudioBase {
       .filter(r => r.v === filt || r.styles.some(x => x.v === filt))
       .map(r => { const ss = r.styles.filter(x => x.v === filt); return Object.assign({}, r, { styles: ss, stylesOn: ss.length > 0, styleCount: ss.length + ' of ' + r.styles.length }); }) }));
     groups = groups.filter(g => g.rows.length);
+    const nComp = tally.keep[0] + tally.rework[0] + tally.del[0];
+    const seg = k => ({ k, lab: k === 'all' ? 'All' : V[k].label, n: String(k === 'all' ? nComp : tally[k][0]), v: k,
+      on: filt === k ? '1' : undefined, aria: filt === k ? 'true' : 'false',
+      tip: k === 'all' ? 'Every component' : V[k].label + ': ' + plural(tally[k][0], 'component') + (tally[k][1] ? ' and ' + plural(tally[k][1], 'style') : ''),
+      set: () => { this._useFilt = k; this.forceUpdate(); } });
     const tile = k => ({ num: String(tally[k][0]), lab: V[k].label,
       sub: (tally[k][0] === 1 ? 'component' : 'components') + (tally[k][1] ? ' · ' + plural(tally[k][1], 'style') : ''), v: k,
       on: filt === k ? '1' : undefined, set: () => { this._useFilt = filt === k ? 'all' : k; this.forceUpdate(); },
@@ -14183,6 +14294,9 @@ class CampaignStudio extends StudioBase {
       useNoData: N === 0,
       useNothing: N > 0 && !groups.length,
       useTiles: N ? ['keep', 'rework', 'del'].map(tile) : [],
+      useSegs: N ? ['all', 'keep', 'rework', 'del'].map(seg) : [],
+      useSum: plural(nComp, 'component') + ' across ' + plural(N, 'saved project'),
+      useSumSub: tally.del[0] || tally.del[1] ? [tally.del[0] ? plural(tally.del[0], 'component') : '', tally.del[1] ? plural(tally.del[1], 'style') : ''].filter(Boolean).join(' and ') + ' no project uses' : 'Every component is in use',
       useFiltOn: filt !== 'all' ? '1' : undefined,
       useFiltLabel: filt !== 'all' ? 'Showing ' + V[filt].label.toLowerCase() + ' only' : '',
       useShowAll: () => { this._useFilt = 'all'; this.forceUpdate(); },

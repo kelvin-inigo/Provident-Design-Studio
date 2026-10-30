@@ -175,7 +175,9 @@ at and change. It works the same in CAS and OPS.
 2. Send the link to the people who should edit. Anyone signed in with their Google account on
    that computer goes straight in under their Google name; nobody else is asked their name once
    (or can press **Sign in with Google instead**). The project opens with its photos in their
-   browser. Campaigns on Drive always need the Google sign-in, so they never ask.
+   browser; while it loads, the window shows three steps — **Read the project**, **Load the
+   pictures** (with a count) and **Open it here**. **Cancel** stops the open. Campaigns on Drive
+   always need the Google sign-in, so they never ask.
 3. Everyone's changes reach everyone else within a few seconds. Two people can work at the same
    time: different fields are kept from both. If two people change the same field, the last
    save wins.
@@ -589,24 +591,24 @@ floats at the bottom left of the canvas, across from **Add Variant** and **All v
 - The **provident.** wordmark, the collaboration logo and the QR code are not drawn, and the
   wordmark's space goes back to the copy. The layout, components and copy stay as they are.
 - A strip opens under the canvas. Its top line shows the look at a glance: the five colours,
-  the two fonts, and whether all the copy is readable. **Hide controls** (or the arrow beside
-  **Unbranded look**) folds the strip down to that one line once the design is set; **Edit
-  look**, or pressing **Unbranded** again, opens it. Folded or open is remembered on this
-  computer. Under the line are four cards:
+  the two fonts, and whether all the copy is readable. Click that line (or its arrow) to fold
+  the strip down to it once the design is set; click it again, or press **Unbranded** again, to
+  open it. Folded or open is remembered on this computer. Under the line are four sections:
   - **Colour**: five colours, one per role: **Text**, **Accent** (the eyebrow and the price),
     **Button**, **Chip** and **Scrim**. The first time you switch on, they are read from the
     background photo. Click a colour to pick a new one; a colour you pick is locked. The lock in
     a colour's corner keeps it when you press **From photo** (read the photo again) or
     **Shuffle** (new colours). **Light on dark | Dark on light** picks the tone and rebuilds the
-    unlocked colours for it. **Readability** under the colours checks the copy, the accent and
-    the button label; a red chip means too faint (hover it for the numbers).
+    unlocked colours for it. Under each colour are its name and hex; **Text**, **Accent** and
+    **Button** also show their readability score — a green dot passes, a red dot means too faint
+    (hover it for what it needs).
   - **Type**: a **Headline** font (headline and price), a **Body** font (everything else) and an
     **Arabic** font (used when the Typeface is set to Arabic), from Google Fonts. Each shows a
-    sample in its own face. The lists start with tested fonts; type in **Filter all Google
-    Fonts** to find any of them.
-  - **Shape**: **Corners** (square to a full pill), **Glass blur**, **Glass opacity**, and
+    sample in its own face. The lists start with tested fonts; type in **Search Google Fonts**
+    to find any of them.
+  - **Shape**: **Corners** (square to a full pill), **Glass blur**, **Glass fill** (how much of the panel's colour covers the photo), and
     **Eyebrow tracking** (the spacing of the capitals in eyebrows and labels).
-  - **Saved looks**: **Save look** keeps the colours, fonts and shape under a name on this
+  - **Saved looks**: **Save** keeps the colours, fonts and shape under a name on this
     computer; click a saved look on another project to apply it.
 - The scrim keeps its own controls in the Layout rail (strength and fade); only its colour comes
   from the palette. The Layout rail's **Background** dark/light does nothing while Unbranded is
@@ -811,7 +813,8 @@ installed.
 On CAS's home page, press **Component usage** in the sidebar, in the **Review** group. It counts
 every design component, and every style of it, across your saved projects.
 
-- **Choose the folder where the team keeps its projects** at the top of the view. Every Campaign
+- The row at the top says what is being counted. **Choose a folder** there picks the folder where
+  the team keeps its projects (or paste its Google Drive link beside it). Every Campaign
   project in it, and up to four folders inside it, is counted. The folder is only read, never
   changed, and is remembered on this computer.
 - **Set it up once with Google Drive for desktop — no Google sign-in after that:**
@@ -830,15 +833,20 @@ every design component, and every style of it, across your saved projects.
 - Until a folder is chosen, it counts the saved projects in **Recent** (the studio keeps your 10
   newest), and says so.
 
-- Every component and every style has a **picture of it**, drawn the way the export draws it.
-- Each one carries a verdict and the reason for it:
+- The view is one table: a row per component, with a **picture of it** (drawn the way the export
+  draws it), the reason for its verdict, **Used in** (how many projects, with a bar),
+  **Placements** (and how many are hidden) and **Sizes** (how often S, M, L and XL are used).
+  Click a row to open its styles, in the same columns. A component with one style does not open.
+- Each component and style carries a verdict:
   - **Worth keeping** — a third or more of the projects use the component (at least two), or a
     style is picked in two projects or for a quarter of its component's uses.
   - **Needs rework** — used, but only rarely, or added and then hidden more often than shown.
   - **Consider deleting** — no saved project uses it.
-- The three boxes at the top count each verdict. Press one to see only those; press it again,
-  or **Show everything**, to go back.
-- The big number is how many projects use the component. Hover anything to see which projects.
+- The line over the table says how many components were counted and how many nobody uses. The
+  track beside it — **All**, **Worth keeping**, **Needs rework**, **Consider deleting**, each with
+  its count — shows only that verdict; **All** goes back.
+- Hover **Used in** to see which projects use a component. **How it is counted**, under the
+  table, explains the verdicts.
 
 Only saved projects count. A project you have opened but never saved is not in the numbers. With
 fewer than five saved projects the page says so — treat the verdicts as early signals.
