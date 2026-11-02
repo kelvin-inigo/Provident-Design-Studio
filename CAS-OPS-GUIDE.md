@@ -102,8 +102,11 @@ say so and point to the step above.
 
 ## 1. Opening the studios
 
-- Open the file in **Chrome** or **Edge**. You can double-click it, or open `index.html` (the
-  home page). The home page is one place for both studios, with three tabs at the top:
+- Open `index.html` (the **home page**; on the website it is the first page) in **Chrome** or
+  **Edge**. Everything that waits on someone — tickets, hand-offs, copy checks, packages — is
+  managed here for both studios. The studios themselves are for designing: CAS and OPS open on
+  **Recent**, and their sidebar's **Home** and **Status** come back to this page. The home page
+  has three tabs at the top:
   - **Home** shows **Next up**: the one campaign or post most worth doing now, with its picture,
     its step and one button that opens it in its studio. **‹ ›** (or the arrow keys) flip through
     the rest. Under it, **Also waiting on you** (filter by **Campaign ads** or **Organic posts**)
@@ -111,16 +114,21 @@ say so and point to the step above.
     **Design**, **Copy check**, **Ready**) with the work in it, and **Your studios**. Your last
     saved projects sit at the bottom under **Pick up where you left off**.
   - **Status** is one board for both studios, in the same four stages. **Only what waits on me**
-    and **Find by name** narrow it. Click a card to see where it stands; **Open in …** takes you to
-    the studio for the audiences, pages, activity and brief.
+    and **Find by name** narrow it. Click a card for its page — the same page the studios had:
+    a campaign's ticket or ad set page (brief, audiences, **Pick up**, **Ticket settings**,
+    phases, Remove, Delete) or a post's page (progress, the step buttons such as **Send to
+    designer**, **Send to copy check** and **Approve copy**, Copy link, the brief, activity). A step
+    that names who gets it next asks you to pick the person, as in the studios. **Pick up** and
+    **Open in the studio** open the studio on that work.
   - **Access**: the admin gets the whole Access panel (requests to let in, people and their roles,
     activity, and Preview as). Everyone else sees their role and what it lets them do.
 - **New** (top right) follows your role: a designer picks **A campaign** or **An organic post**;
-  performance marketing gets **New ticket** (CAS's campaign setup); social media gets **New post**
-  (OPS's Start a post). The content team has no New.
-- The home page's lists are what each studio last read on **Status** on this computer. Open
-  Status in a studio once, signed in with Google, and they fill in. **Refresh in Campaign ads /
-  Organic posts** opens Status to read them again.
+  performance marketing gets **New ticket**. **A campaign** is CAS's campaign setup, on the home
+  page (**File as ticket**, or **Start designing**, which opens CAS on its first audience).
+  **An organic post** opens OPS's **Start a post**. The content team has no New.
+- The home page reads the campaigns and posts from Google Drive itself, every minute or so while
+  it is open. The first time on a computer it asks you to **Connect Google Drive**. **Refresh**
+  under the lists reads them again now.
 - Safari and Firefox work too, but they can't use a **Source folder**. Exports then download as a
   zip instead.
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the
@@ -146,12 +154,10 @@ use your **@providentestate.com** account. What you see next depends on what the
 |---|---|
 | **Designer** | Both studios, everything: design, export, Status, hand-offs. Only the admin's **Access** is not theirs. |
 | **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
-| **Content team · English** | The copy requests from both studios. OPS: check a post's copy, approve it or send it back. CAS opens on **Status** only: a campaign waiting on you carries **Your turn**, and its page has **Check the copy**, which opens the content-team link. There, only **Approve English copy** shows. |
+| **Content team · English** | The copy requests from both studios, on the home page. A post's page has **Approve copy** (or send it back). A campaign waiting on you opens its content-team link, where only **Approve English copy** shows. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
-| **Performance marketing** | **Home** (set up a campaign; the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage, no Organic posts. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. |
-| **Admin** | Everything a designer has, plus **Access** in CAS's sidebar. There is one admin. |
-
-In OPS, performance marketing sees **Status** only.
+| **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. Opening CAS or OPS goes to the home page. |
+| **Admin** | Everything a designer has, plus **Access** (on the home page, and in CAS's sidebar). There is one admin. |
 
 **Hand-offs name a person.** Each team has two people. Whenever you send work on — **File as
 ticket** (to a designer), **Send to designer**, **Send to copy check**, **Send for translation
@@ -198,8 +204,8 @@ from Google the first time they do. The admin can still change or remove anyone 
 Each studio opens on its **project browser**.
 
 - **Start something new:**
-  - In CAS, every project belongs to a **campaign** (an ad set). Use **Set up the campaign** at
-    the top of **Home** (the first page of CAS): a **Name**, **Residential** or
+  - In CAS, every project belongs to a **campaign** (an ad set). Use **New › A campaign** on the
+    home page: a **Name**, **Residential** or
     **Commercial**, a **Deadline**, the **Drive folder** (an empty Google Drive folder for this
     campaign), the **Brief** (paste the script, fact sheet or WhatsApp brief) and **Files**
     (renders, logos, brochures). By default the campaign is **Local**, both audiences, **English
@@ -209,7 +215,8 @@ Each studio opens on its **project browser**.
       pick up from **Status**. Performance marketing uses this. It shows the designer link to send.
     - **Start designing** — files the same ticket and opens its first audience straight away.
     There is no blank project and no preloaded templates any more.
-  - In OPS, open **Start a post** on Home (or **Templates** in the sidebar) and click a template card.
+  - In OPS, use **New › An organic post** on the home page (it opens OPS's **Start a post**), or
+    **Templates** in OPS's sidebar, and click a template card.
 - **Continue last** reopens the project you were working on; the line under it names that project.
 - **Save** (top bar) writes the project into your **Source folder**:
   - the session file (`<name>.adstudio.json` for CAS, `.smpstudio.json` for OPS);
@@ -223,8 +230,6 @@ Each studio opens on its **project browser**.
 - **Every new project starts fresh.** A new campaign or post, a template, or a project opened from
   Recent has no Source folder and no pictures from the one before. Pick its folder on the first
   Save. A new browser tab is a fresh session too. Opening a project file sets the folder it opens from.
-- **Home** (CAS) is the first page. Under its title it counts your campaigns — open tickets, in
-  design, ready to run — as Status last read them.
 - **Recent** only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count. In CAS they are grouped by campaign: the
   campaign's name is the heading, and each card shows the audience, market and language, when it
@@ -294,8 +299,8 @@ moves to CAS.
 
 The flow has three moves for the designer, and the screen always offers the next one:
 
-1. **Initial setup.** Performance marketing files the campaign as a ticket (above). In
-   **Status**, the designer opens the ticket — its brief, files and audiences — and presses
+1. **Initial setup.** Performance marketing files the campaign as a ticket (above). On the home
+   page's **Status**, the designer opens the ticket — its brief, files and audiences — and presses
    **Pick up**. A new project opens as the first audience, in English, on the **Ad set** tab.
    Run the meta-ad-design-copy skill in your own Claude on the brief, paste its whole reply into
    **Copy from Claude**, check the flags, and press **Fill with the … copy**. The reply is kept
@@ -420,9 +425,9 @@ Things to know:
   content team's words go on top of the latest design.
 - A review started before ad sets (one project) opens as an ad set of one, with its old links.
 
-### Status: every campaign (CAS home page)
+### Status: every campaign (the home page)
 
-On the home page, **Status** (in the **Review** group) lists every campaign filed, picked up or
+The home page's **Status** lists every campaign filed, picked up or
 opened as the designer on this computer: **Open tickets** first (waiting for a designer), then
 **In design**, then **Package ready**. **New ticket** files one. An open ticket's page shows its
 brief, files, deadline and audiences, and **Pick up**. A ticket filed on another computer is
@@ -955,16 +960,15 @@ Every post goes through four steps:
 3. **Copy check** — the **content team** checks the words.
 4. **Ready** — ready to publish.
 
-**Home has two doors**, switched at the top: **My turn** and **Start a post**.
+**What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most
+urgent first, with their step, who handed them over and when they're due. A post's page there has
+its next step as a button (**Send to designer**, **Send to copy check**, **Approve copy**), so you
+can move it on without opening it; **Open in the studio** opens it in OPS. A draft is waiting
+only on whoever started it.
 
-- **My turn** greets you and lists the posts **Waiting on you**, most urgent first, each with its
-  render, its step, who handed it over and when it's due — and its next step as a button (**Send to
-  designer**, **Send to copy check**, **Approve copy**), so you can move it on without opening it.
-  **Open** opens it in the studio. Below are the posts **With others** and those **Ready to
-  publish**. A draft is waiting only on whoever started it.
-- **Start a post**: type the post's name at the top, set a **Due** date, write a **Brief** and
-  **Attach files** (optional), then pick a template below. With nothing waiting on you, Home opens on this door. The content
-  team has no Start a post door.
+**Start a post** (OPS, from **New › An organic post** on the home page): type the post's name at
+the top, set a **Due** date, write a **Brief** and **Attach files** (optional), then pick a
+template below. The content team has no Start a post.
 
 **Just me or Hand it on.** Under the name, choose who works on it (the choice is remembered):
 - **Just me** — you make it and export it here. It is **not** put on Status and nobody else is
@@ -1012,9 +1016,9 @@ folder**. **Notify me** turns on a Chrome notification when the post moves on.
 A post opened from a file, or made before this, says **Not on Drive** with **Save to Drive** (a
 social media manager sees **Send to designer**, which saves it and hands it on in one click).
 
-**Status** (Home sidebar, under Posts) shows every post in the Drive folder as four columns — Draft,
-Design, Copy check, Ready. **Waiting on me** shows only the posts at your step; a card with a blue
-ring and **Your turn** is yours. Click a card for its page: progress, the step buttons, **Open in
+**Status** (the home page) shows every post in the Drive folder with the campaigns, in four
+columns — New (drafts), Design, Copy check, Ready. **Only what waits on me** shows only yours; a
+card with a blue ring and **Waits on you** is yours. Click a card for its page: progress, the step buttons, **Open in
 the studio**, **Copy link**, the brief and files, and everything that happened. Every export is
 also uploaded to the post's **Exports** folder on Drive.
 

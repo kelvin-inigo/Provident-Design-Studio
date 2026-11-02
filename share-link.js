@@ -1179,7 +1179,8 @@
   SP.rsShowStatus = function (id, rs) {
     Arch.add(id, (rs || {}).name, (rs || {}).product, true);
     Arch.want = id;
-    const go = () => { const h = this.host; if (h) h.setState({ splashView: 'rev' }, () => setTimeout(() => Arch.mount(this), 0)); };
+    // ONE HOME (2026-11-02): Status is the home page's now, so the ad set page opens there
+    const go = () => StudioBase.goHome('item/cas/' + encodeURIComponent(id));
     if (this.state.screen !== 'splash') {
       if (this.confirmDiscard && !this.confirmDiscard()) { Arch.want = null; return; }
       this.upd(x => { x.screen = 'splash'; return x; }); this.markSaved && this.markSaved();
@@ -4225,7 +4226,7 @@
     }
     if (a === 'addproj') {
       lsSet(JOIN_KEY, JSON.stringify({ dd: this.sel, pid: t.dataset.pid, at: Date.now() }));
-      window.open(location.pathname, '_blank', 'noopener');
+      window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file), '_blank', 'noopener');
       t.textContent = 'Opened in a new tab';
     }
     if (a === 'rm' && window.confirm('Remove this ad set from the list on this computer? The links keep working, and the record stays on the share store — paste the designer’s link to add it back.')) { Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }

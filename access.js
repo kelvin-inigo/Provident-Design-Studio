@@ -97,7 +97,8 @@
   // LIMITED in this studio: CAS is the designer's (and the admin's); performance marketing, the
   // social media manager and the content team get Home's setup and Status there. OPS is open to
   // all but performance marketing, which gets OPS's Status only.
-  const lim = () => { const r = role(); return !!r && (CAS ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'); };
+  // The home page (index.html) carries CAS's Status and setup, so CAS's limits apply there.
+  const lim = () => { const r = role(); return !!r && (CAS || HOME ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'); };
   // NOT THIS STUDIO AT ALL (2026-10-30, by request): the social media manager works in OPS only
   // and sees nothing of CAS — signed in, CAS shows a page that sends them to OPS
   const blocked = () => CAS && role() === 'smm';
@@ -204,9 +205,9 @@
     if (t) { e.preventDefault(); e.stopPropagation(); }
   }, true);
   document.addEventListener('click', e => {
-    if (!lim() || !CAS) return;
+    if (!lim() || !(CAS || HOME)) return;
     const t = e.target && e.target.closest && e.target.closest('[data-a],.rsp-go,.p-sbf button,.rc-c');
-    if (!t) return;
+    if (!t || (HOME && !t.closest('[data-rv-arch],[data-rs-plan]'))) return;
     if (t.matches('.rsp-go,.p-sbf button,.rc-c') || PM_BLOCK.indexOf(t.dataset.a) >= 0 || (role() === 'ct' && t.dataset.a === 'newt')) { e.preventDefault(); e.stopPropagation(); }
   }, true);
 

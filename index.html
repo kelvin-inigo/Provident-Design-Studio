@@ -15,10 +15,15 @@
      literals in JS and is never opened off the disk, so it is a live consumer and cannot drift.
      The kit's @font-face resolves ../_ds/ against the stylesheet, so the real typeface comes with it. -->
 <link rel="stylesheet" href="ui-design-system/provident-ui.css">
-<!-- access.js in home mode (data-acc-home): no gate, a sign-in only from a click, and the admin's
-     Access panel drawn into [data-acc-admin]; studio-base.js supplies window.providentDrive -->
+<!-- ONE HOME: the studios' own code for the work, in the studios' order. studio-base.js supplies
+     providentDrive; share-link.js CAS's Status (ad set pages), the campaign setup and the Drive kit;
+     access.js in home mode (no gate, sign-in from a click, the admin's panel, the hand-off picker);
+     post-flow.js OPS's posts (the Feed and the post page). None of them needs a studio engine for
+     what this page mounts; the actions that do (a pick-up, a new design) open the studio. -->
 <script src="studio-base.js"></script>
+<script src="share-link.js"></script>
 <script src="access.js"></script>
+<script src="post-flow.js"></script>
 
 <style>
 /* THE HOME (2026-11-02, "one home"). One page for every role over both studios: Home (what is
@@ -508,6 +513,12 @@ button{font-family:inherit}
 .reel small{display:block; margin-top:2px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
 /* the admin's panel is access.js's own; this is only its frame */
 .acc-adm{width:100%; max-width:1320px; margin:0 auto; padding:0 32px 48px; box-sizing:border-box}
+/* THE STUDIOS' OWN PAGES, mounted here: CAS's ad set page (share-link.js ArchView), OPS's post page
+   (post-flow.js StatusView) and CAS's campaign setup (PlanView). Each host stays in the document once
+   mounted, hidden when its route is not on screen, so its own refresh keeps the queue current. */
+.mnt{width:100%; max-width:1320px; margin:0 auto; padding:8px 32px 48px; box-sizing:border-box}
+.mnt-bk{margin:0 0 8px}
+@media (max-width:640px){ .mnt{padding:4px 16px 32px} }
 .ft{max-width:1320px; width:100%; margin:0 auto; box-sizing:border-box; padding:12px 32px 28px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px;
   font:400 12.5px/1.4 var(--ps-font); color:var(--ps-ink-2)}
 .ft a{display:inline-flex; align-items:center; min-height:36px; color:var(--ps-link); text-decoration:none; font-weight:500}
@@ -593,6 +604,9 @@ button{font-family:inherit}
 
 <main class="pg" id="pg"></main>
 <section class="acc-adm" id="acc-adm" aria-label="Access" hidden><div data-acc-admin></div></section>
+<section class="mnt" id="cas-host" aria-label="Campaign" hidden><div data-rv-arch></div></section>
+<section class="mnt" id="ops-host" aria-label="Post" hidden><div data-post-status></div></section>
+<section class="mnt" id="plan-host" aria-label="New campaign" hidden><a class="bk mnt-bk" href="#/new"></a><div data-rs-plan></div></section>
 
 <footer class="ft">
   <span>Provident Design Studio</span>
@@ -633,7 +647,7 @@ button{font-family:inherit}
   'use strict';
   var CAS = 'Provident%20Campaign%20Studio.dc.html', OPS = 'Provident%20Organic%20Studio.dc.html';
   var STUDIO = {
-    cas: { n: 'Campaign ads', long: 'Campaign Ads Studio', a: 1, file: CAS, desc: 'Meta ads in every size', start: CAS },
+    cas: { n: 'Campaign ads', long: 'Campaign Ads Studio', a: 1, file: CAS, desc: 'Meta ads in every size', start: '#/new/cas' },
     ops: { n: 'Organic posts', long: 'Organic Post Studio', a: .75, file: OPS, desc: 'Feed and story posts', start: OPS + '#view=new' }
   };
   var ROLE = { designer: 'Designer', admin: 'Designer', pm: 'Performance marketing', smm: 'Social media', ct: 'Content team',
@@ -706,10 +720,16 @@ button{font-family:inherit}
   var acc = window.providentAccess, phase = acc && acc.phase ? acc.phase() : 'off';
   var data = null, cur = 0, flip = 0, homeF = 'all', sxF = 'all', sxMine = false, sxQ = '';
 
-  function roleOf(){ return me && me.role ? (me.role === 'cten' || me.role === 'ctar' ? 'ct' : me.role) : null; }
+  // access.js's answer first (it carries the admin's Preview as), else what it last left here
+  function roleOf(){
+    var n = acc && acc.now && phase === 'in' ? acc.now() : null;
+    if (n && n.role) return n.role;
+    return me && me.role ? (me.role === 'cten' || me.role === 'ctar' ? 'ct' : me.role) : null;
+  }
   function studiosFor(r){ return r === 'smm' ? ['ops'] : ['cas', 'ops']; }
   function canStart(r){ return r === 'ct' ? [] : r === 'pm' ? ['cas'] : r === 'smm' ? ['ops'] : ['cas', 'ops']; }
-  function isAdmin(){ return !!(me && me.admin && phase === 'in'); }
+  function rawRole(){ var n = acc && acc.now && phase === 'in' ? acc.now() : null; return (n && n.raw) || (me && me.role) || null; }
+  function isAdmin(){ var n = acc && acc.now ? acc.now() : null; return !!(phase === 'in' && (n ? n.admin : me && me.admin)); }
 
   function build(){
     var r = roleOf(), em = me && me.email ? String(me.email).toLowerCase() : '';
@@ -739,8 +759,8 @@ button{font-family:inherit}
     return { rows: rows, mine: mine, others: others, at: at, known: known, r: r };
   }
   function get(s, id){ return data.rows.filter(function(x){ return x.studio === s && String(x.id) === id; })[0]; }
-  function href(x){ return esc(x.href || STUDIO[x.studio].file); }
-  function statusIn(k){ return STUDIO[k].file + '#view=rev'; }
+  function itemLink(x){ return '#/item/' + x.studio + '/' + encodeURIComponent(x.id); }
+  function href(x){ var r = data.r; return x.studio === 'cas' && (r === 'ct' || r === 'pm') && x.href ? esc(x.href) : itemLink(x); }
 
   // the states a page shows before there is a queue: signed out, never read Status, clear
   function quiet(where){
@@ -748,9 +768,9 @@ button{font-family:inherit}
     if (!me || !me.email) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('key') + '</span><div><h3>Sign in to see your work</h3>' +
       '<p>Use your Provident Google account. What is waiting on you, and what is with others, follows your role.</p>' +
       (acc ? '<div class="qk-a"><button class="b b-p b-lg" type="button" data-sign="in"' + (phase === 'busy' ? ' disabled' : '') + '>' + (phase === 'busy' ? 'Signing in…' : 'Sign in with Google') + '</button></div>' : '') + '</div></div>';
-    if (!data.known) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Your work shows here</h3>' +
-      '<p>Open Status in a studio once on this computer. After that, ' + (where === 'status' ? 'every campaign and post you can see is on this board.' : 'what is waiting on you, and what is with others, appears here first.') + '</p>' +
-      '<div class="qk-a">' + studiosFor(r).map(function(k, i){ return '<a class="b ' + (i ? 'b-l' : 'b-p b-lg') + '" href="' + statusIn(k) + '">' + (i ? 'Status in ' : 'Open Status in ') + STUDIO[k].n + (i ? '' : ico('r')) + '</a>'; }).join('') + '</div></div></div>';
+    if (!data.known) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (busy ? 'Reading your work from Google Drive\u2026' : 'Connect Google Drive') + '</h3>' +
+      '<p>' + (busy ? 'Campaigns and posts are kept on the team\u2019s Drive. This takes a few seconds the first time.' : 'Campaigns and posts are kept on the team\u2019s Drive. Connect it once on this computer and ' + (where === 'status' ? 'every campaign and post you can see is on this board.' : 'what is waiting on you, and what is with others, appears here.')) + '</p>' +
+      (busy ? '' : '<div class="qk-a"><button class="b b-p b-lg" type="button" data-drive>Connect Google Drive' + ico('r') + '</button></div>') + '</div></div>';
     var o = data.others.length, cs = canStart(r);
     return '<div class="qk"><span class="qk-o">' + ico('check') + '</span><div><h3>You’re clear</h3>' +
       '<p>' + (o ? (o === 1 ? 'One campaign or post is' : o + ' campaigns and posts are') + ' with others. Nothing needs you until someone hands it back.' : 'Nothing is in flight right now.') + '</p>' +
@@ -758,7 +778,7 @@ button{font-family:inherit}
   }
   function freshLine(){
     if (!data.known) return '';
-    return '<p class="fresh">Read from Status ' + esc(ago(data.at)) + ' on this computer. ' + studiosFor(data.r).map(function(k){ return '<a href="' + statusIn(k) + '">Refresh in ' + STUDIO[k].n + '</a>'; }).join(' · ') + '</p>';
+    return '<p class="fresh">' + (busy ? 'Reading from Google Drive\u2026' : 'Read from Google Drive ' + esc(ago(data.at)) + '. <a href="#" data-refresh>Refresh</a>') + '</p>';
   }
 
   // ═════ HOME ═════
@@ -784,7 +804,7 @@ button{font-family:inherit}
           return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? (copy ? 'warn' : 'cur') : 'todo') + '"><span>' + esc(l) + '</span></li>';
         }).join('') + '</ol>' : '') +
         '<div class="nx-acts"><a class="b b-p b-lg" href="' + href(top) + '">' + esc(top.verb || 'Open') + ico('r') + '</a>' +
-        '<a class="b b-q" href="#/item/' + top.studio + '/' + encodeURIComponent(top.id) + '">Details</a></div></div></article>';
+        (href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') + '</div></div></article>';
     } else h += quiet('home');
 
     var rest = list.filter(function(x){ return x !== top; });
@@ -826,11 +846,11 @@ button{font-family:inherit}
       h += '<section class="pan"><div class="sh">Access<span class="sp"></span><a class="b b-l" href="#/access">Open</a></div><p class="lede" style="margin:0;font-size:14px">' +
         (pend ? '<b style="font-weight:500;color:var(--ps-ink)">' + pend + (pend === 1 ? ' person is' : ' people are') + ' waiting to get in.</b> ' : 'No one is waiting to get in. ') + 'Requests, people and their roles are under Access.</p></section>';
     }
-    h += '<section class="pan"><div class="sh">Your studios</div>' + studiosFor(r).map(function(k){
-      var only = r === 'pm' || (r === 'ct' && k === 'cas'), c = data.mine.filter(function(x){ return x.studio === k; }).length;
-      return '<a class="st" href="' + STUDIO[k].file + (only ? '#view=rev' : '') + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' +
-        (only ? (r === 'pm' ? 'Status and packages' : 'Copy checks on Status') : STUDIO[k].desc) + '</small></span>' + (c ? '<span class="uh-n" title="Waiting on you">' + c + '</span>' : ico('chev')) + '</a>';
-    }).join('') + '</section></aside></div>';
+    var opens = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
+    if (opens.length) h += '<section class="pan"><div class="sh">Your studios</div>' + opens.map(function(k){
+      return '<a class="st" href="' + STUDIO[k].file + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
+    }).join('') + '</section>';
+    h += '</aside></div>';
     return h;
   }
   function row(x, other){
@@ -865,29 +885,6 @@ button{font-family:inherit}
             '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + esc(initials(x.from)) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + dueEl(x) + '</span></a></li>';
         }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + (sxF !== 'all' || sxMine || sxQ ? ' for this filter' : '') + '.</p>') + '</section>';
     }).join('') + '</div>' + freshLine();
-    return h;
-  }
-
-  // ═════ ITEM: what the queue holds; the studio holds the rest ═════
-  function viewItem(s, id){
-    var x = STUDIO[s] && get(s, id), h = '<a class="bk" href="#/status">' + ico('l') + 'Status</a>';
-    if (!x) return h + '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Not in the queue on this computer</h3><p>It may have moved on since Status was last read here, or it belongs to a studio your role does not use.</p>' +
-      (STUDIO[s] ? '<div class="qk-a"><a class="b b-p b-lg" href="' + statusIn(s) + '">Open Status in ' + STUDIO[s].n + ico('r') + '</a></div>' : '') + '</div></div>';
-    var sc = SC[x.stage].c, steps = x.steps || [], sg = x.segs || [];
-    var now = { new: x.open ? 'Waiting for a designer to pick it up.' : 'A draft, waiting for a designer.', design: 'In design.', check: 'In ' + String(x.step || 'copy check').toLowerCase() + ' with the content team.',
-      ready: s === 'cas' ? 'Package ready — performance marketing can download it.' : 'Ready — social media can publish it.' }[x.stage];
-    h += '<section class="ih"><div class="ih-top">' + rd(x, 96) +
-      '<div style="min-width:0"><div class="ih-tags">' + mk(s) + dueEl(x) + '</div><h1>' + esc(x.name) + '</h1>' +
-      '<div class="ih-meta"><span class="pill" style="--c:' + sc + '">' + esc(x.step || SC[x.stage].n) + '</span><span>' + (x.sub ? esc(x.sub) : '') + (x.from ? (x.sub ? ' · ' : '') + 'from ' + esc(x.from) : '') + (x.at ? ' · changed ' + esc(ago(x.at)) : '') + '</span></div></div>' +
-      '<div class="it-acts"><a class="b b-p" href="' + href(x) + '">' + esc(x.verb || 'Open') + ico('r') + '</a><a class="b b-g" style="background:var(--ps-card)" href="' + statusIn(s) + '">Status in ' + (s === 'cas' ? 'CAS' : 'OPS') + ico('out') + '</a></div></div>' +
-      (steps.length && sg.length ? '<ol class="it-trk" style="--n:' + steps.length + '">' + steps.map(function(l, i){
-        var v = sg[i], copy = s === 'ops' ? i === 2 : i === 1 || i === 2, c = v === 'done' ? 'var(--ps-good)' : copy ? 'var(--ps-warn)' : 'var(--ps-link)';
-        return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? 'cur' : 'todo') + '" style="--c:' + c + '"><span>' + esc(l) + '</span><b>' + (v === 'done' ? 'Done' : v === 'cur' ? 'Now' : 'Next') + '</b><i></i></li>';
-      }).join('') + '</ol>' : '') +
-      '<p class="ih-now" style="--c:' + sc + '">' + esc(now) + (x.mine ? ' It is waiting on you.' : '') + '</p></section>';
-    h += '<div class="it-more"><div><b>' + (s === 'cas' ? 'Audiences, activity and the brief are in the Campaign Ads Studio' : 'Pages, the caption and activity are in the Organic Post Studio') + '</b>' +
-      '<p>This page shows what the studio last left for your queue. ' + (s === 'cas' ? 'The ad set page there has every audience in English and Arabic, the word changes and the team links.' : 'The post there has every page, the copy check and who it is with.') + '</p></div>' +
-      '<a class="b b-g b-lg" style="background:var(--ps-card)" href="' + href(x) + '">Open in ' + STUDIO[s].long + ico('out') + '</a></div>';
     return h;
   }
 
@@ -926,7 +923,7 @@ button{font-family:inherit}
     var h = '<h1 class="h1">Access</h1>';
     if (isAdmin()) return h + '<p class="lede">Who can sign in to the studios, and as what. Changes apply at their next sign-in.</p>';
     if (!me || !me.email || phase === 'signin' || phase === 'busy') return h + '<p class="lede" style="margin-bottom:24px">Who you are signed in as, and what your role lets you do.</p>' + quiet('access');
-    var raw = me.role || '', P = me, can = CAN.map(function(c){ return c[2].indexOf(raw) >= 0 || (raw === 'admin' && c[0] === 'Let people in') || (me.admin && c[0] === 'Let people in'); });
+    var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2].indexOf(raw) >= 0 || (raw === 'admin' && c[0] === 'Let people in') || (me.admin && c[0] === 'Let people in'); });
     h = '<div class="ax2"><div class="ax2-main">' + h + '<p class="lede">Who you are signed in as, and what your role lets you do.</p>' +
       '<section class="idc"><span class="uh-av">' + esc(initials(P.name || P.email)) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
         (raw ? '<span class="idc-r">' + esc(ROLE[raw] || raw) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (me.admin ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
@@ -945,12 +942,17 @@ button{font-family:inherit}
     var hs = location.hash.replace(/^#\/?/, ''), q = {}, path = hs.split('?')[0], parts = path.split('/');
     (hs.split('?')[1] || '').split('&').forEach(function(p){ var kv = p.split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); });
     var nav = parts[0] || 'home', html, pg = $('pg');
+    var host = null;
     if (nav === 'status') html = viewStatus(q);
-    else if (nav === 'item') { html = viewItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'status'; }
+    else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops')) { html = ''; host = parts[1]; openItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'status'; }
+    else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); }
     else if (nav === 'new') html = viewNew();
     else if (nav === 'access') html = viewAccess();
     else { html = viewHome(); nav = 'home'; }
-    pg.innerHTML = html;
+    pg.innerHTML = html; pg.hidden = !!host;
+    ['cas', 'ops', 'plan'].forEach(function(k){ $(k + '-host').hidden = host !== k; });
+    $('plan-host').firstChild.innerHTML = ico('l') + (canStart(data.r).length > 1 ? 'Something else' : 'Home');
+    $('plan-host').firstChild.href = canStart(data.r).length > 1 ? '#/new' : '#/';
     $('acc-adm').hidden = !(nav === 'access' && isAdmin());
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0, an = $('acc-n'); an.textContent = pend; an.hidden = !pend;
@@ -960,9 +962,10 @@ button{font-family:inherit}
     var nm = me && (me.name || me.email);
     $('meav').textContent = $('mn-av').textContent = nm ? initials(nm) : '?';
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
-    $('mn-r').textContent = data.r ? (ROLE[me.role] || me.role) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
+    $('mn-r').textContent = data.r ? (ROLE[rawRole()] || ROLE[data.r] || data.r) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = { home: 'Provident Design Studio', status: 'Status — Provident Design Studio', new: 'New — Provident Design Studio', access: 'Access — Provident Design Studio' }[nav];
+    document.title = { home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio' }[nav];
+    if (phase === 'in' || (me && me.email)) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
     if (nav === 'home') desk();
@@ -974,6 +977,8 @@ button{font-family:inherit}
     if (t.dataset.hf){ homeF = t.dataset.hf; route(); return; }
     if (t.dataset.sf){ sxF = t.dataset.sf; route(); return; }
     if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
+    if (t.hasAttribute('data-drive')){ connectDrive(); return; }
+    if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else acc.signOut(); } return; }
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
   });
@@ -997,6 +1002,68 @@ button{font-family:inherit}
     else if (phase === 'signin' && me && me.at) { me = null; try { localStorage.removeItem('provident-acc-me'); } catch (x) {} }
     route();
   });
+
+  // ── THE WORK: the studios' own pages and readers, with a stand-in for the studio engine ──────
+  // The stand-ins are where an action needs the studio: CAS's pick-up waits in localStorage and
+  // opens CAS (rsPickCheck takes it from there); OPS's Open and Start the design open OPS.
+  var CAS_ENG = { state: {}, host: { setState: function(st, cb){ if (st && st.splashView === 'all') location.hash = '#/new/cas'; else if (st && st.splashView === 'rev') location.hash = '#/status'; if (cb) cb(); }, forceUpdate: function(){} },
+    confirmDiscard: function(){ return true; }, markSaved: function(){}, savedRecents: function(){ return []; },
+    // CAS's pickUp leaves {dd} in localStorage and asks for a new project; a studio tab is its own
+    // workspace, so the request travels in the address instead (#pick=, as share-link's startCell)
+    newProject: function(){
+      var p = js('provident-rspick'), ws = 'p' + Math.random().toString(36).slice(2, 12);
+      location.href = CAS + '?ws=' + ws + (p && p.dd ? '#pick=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify({ dd: p.dd, cell: p.cell || null }))))) : '');
+    } };
+  var OPS_ENG = { state: {}, host: { setState: function(st, cb){ if (st && (st.splashView === 'all' || st.splashView === 'new')) location.href = OPS + '#view=new'; if (cb) cb(); }, forceUpdate: function(){} },
+    confirmDiscard: function(){ return true; }, markSaved: function(){},
+    shareOpenLink: function(sid){ location.href = OPS + '#share=' + encodeURIComponent(sid); },
+    upd: function(fn){ var x = fn({}); if (x && x.screen === 'pick') location.href = OPS + '#view=tpl'; } };
+  var busy = false, started = false, tick = null;
+  function sees(k){ return studiosFor(roleOf()).indexOf(k) >= 0; }
+  function startWork(){
+    if (started) return; started = true;
+    // the mounted pages refresh themselves while they are in the document (CAS every 20 s, OPS
+    // every 45 s); each read writes the queue, and the page re-draws from it
+    if (sees('cas') && window.providentReviews) window.providentReviews.mount(CAS_ENG);
+    if (sees('ops') && window.providentPostStatus) window.providentPostStatus.mount(OPS_ENG);
+    refreshAll(false);
+    tick = setInterval(function(){ if (document.visibilityState === 'visible') refreshAll(false); }, 60000);
+  }
+  function refreshAll(force){
+    var jobs = [];
+    if (sees('cas') && window.providentReviews) { if (force) { try { localStorage.removeItem('provident-status-sum'); } catch (e) {} } jobs.push(window.providentReviews.refreshSum(null)); }
+    if (sees('ops') && window.providentPostFeed) jobs.push(window.providentPostFeed.load(!force));
+    if (!jobs.length) return;
+    busy = true; if (!data || !data.known || force) redraw();
+    Promise.all(jobs.map(function(p){ return Promise.resolve(p).catch(function(){}); })).then(function(){ busy = false; redraw(); });
+  }
+  function connectDrive(){
+    var K = window.providentDsKit;
+    Promise.resolve(K && K.dsGate ? K.dsGate('Read your campaigns and posts on Google Drive') : window.providentDrive && window.providentDrive.signIn()).then(function(ok){ if (ok !== false) refreshAll(true); });
+  }
+  function openItem(s, id){
+    if (s === 'cas' && window.providentReviews) { var A = window.providentReviews; A.mount(CAS_ENG); A.want = id; A.mount(CAS_ENG); }
+    if (s === 'ops' && window.providentPostStatus) { var P = window.providentPostStatus; P.mount(OPS_ENG); P.want = id; P.mount(OPS_ENG); }
+  }
+  function mountPlan(){ if (window.providentPlan) window.providentPlan.mount(CAS_ENG); }
+  // the mounted pages' own Back goes to the board here, not to their studio list
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('#cas-host [data-a="back"], #ops-host [data-ps="back"]');
+    if (b) { e.preventDefault(); e.stopPropagation(); location.hash = '#/status'; }
+  }, true);
+  // the studios write the queue through StudioBase.inboxSave; here that is the signal to re-draw
+  var inboxSave0 = StudioBase.inboxSave;
+  StudioBase.inboxSave = function(){ inboxSave0.apply(StudioBase, arguments); inbox = { cas: js('provident-inbox-cas'), ops: js('provident-inbox-ops') }; redraw(); };
+  var rdT = 0;
+  function redraw(){
+    clearTimeout(rdT);
+    rdT = setTimeout(function(){
+      var hs = location.hash.replace(/^#\/?/, '').split('/')[0] || 'home';
+      if (hs !== 'home' && hs !== 'status') return;            // the item pages draw themselves
+      var a = document.activeElement; if (a && a.id === 'sx-q') return;   // never under someone typing
+      route();
+    }, 120);
+  }
 
   // ── the desk: this computer's saved projects, newest first ───────────────────────────────
   var DBN = 'provident-design-studio', deskRows = null;

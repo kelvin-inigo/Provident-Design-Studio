@@ -317,3 +317,45 @@ on the data the page already had. Supersedes the "Next up" layout above; its dat
   studios' own start forms).
 - Verified with seeded real-shaped queues: 0 contrast failures in both themes for designer/admin,
   pm, smm and cten across every route; no sideways scroll at 375; New routes per role.
+
+# THE HOME IS THE ONLY HOME: THE STUDIOS' HOME AND STATUS MOVED THERE (2026-11-02, by request)
+
+The user's point: two studio homes plus a unified one is duplication. `index.html` now carries the
+work itself; CAS and OPS are for designing. **The Content Hub bridge is untouched** (studio-base.js
+hub block, OPS `epPost` / `X-Card-Id` / `X-Design-Key`, From the hub, the hub skill) — verified by
+diff.
+
+- **index.html loads the studios' own code**, in their order: `studio-base.js`, `share-link.js`,
+  `access.js`, `post-flow.js`. It mounts, with a stand-in engine (`CAS_ENG` / `OPS_ENG`):
+  - `[data-rv-arch]` — CAS's ArchView (Status): its ad set / ticket page is `#/item/cas/<id>`
+    (`providentReviews.want` + `mount`). Its Back (`data-a="back"`) is caught and goes to `#/status`.
+  - `[data-post-status]` — OPS's StatusView: the post page is `#/item/ops/<id>`
+    (`providentPostStatus.want` + `mount`), step buttons and the hand-off picker included.
+  - `[data-rs-plan]` — CAS's PlanView (the campaign setup) on `#/new/cas`.
+  The hosts stay in the document once mounted (hidden off-route), so their own timers keep reading
+  Drive (CAS 20 s, OPS 45 s). The page also calls `providentReviews.refreshSum(null)` and
+  `providentPostFeed.load()` every 60 s; `StudioBase.inboxSave` is wrapped to re-draw.
+- **Stand-ins**: CAS `newProject` (after `pickUp` leaves `provident-rspick`) opens
+  `CAS?ws=<new>#pick=<b64{dd,cell}>` — a studio tab is its own workspace, so the request travels in
+  the address like `startCell`; a plain `location.href = CAS` lost it (verified). `host.setState`
+  maps `'all'` → `#/new/cas`, `'rev'` → `#/status`. OPS `shareOpenLink` → `OPS#share=<sid>`,
+  `upd(screen:'pick')` → `OPS#view=tpl`, `setState('all'|'new')` → `OPS#view=new`.
+- **post-flow.js** runs on `html[data-acc-home]` too and exports `window.providentPostFeed`; its
+  `postStatusOpen` goes home; Start a post no longer draws the My turn | Start a post switch.
+- **share-link.js**: `rsShowStatus` (a designer's `#share=<dd>` link) goes to `#/item/cas/<id>`;
+  Status's **Add a project** opens CAS (it opened `location.pathname`, which is now index.html).
+- **access.js**: on the home page CAS's limits apply (`lim()` includes HOME; the capture guard
+  covers `[data-rv-arch],[data-rs-plan]` there), so pm/ct cannot Pick up or Start designing.
+- **The studios** (`renderVals`): `'all'` and `'rev'` resolve to `'rec'` (Recent); the sidebar's
+  Home and Status rows call `StudioBase.goHome('' | 'status')` (kept as the first two rows — access.js
+  CSS counts nav positions). A role whose studio was only Home/Status (CAS: pm, ct; OPS: pm) is sent
+  home once, except in a review link's tab (`provident-acc-link`). OPS keeps `'new'` (Start a post).
+- **Verified on the dev server + Drive stand-in** (`tools/share-dev/serve.py`, with
+  `provident-status-root` / `provident-posts-root` set to the stand-in folder): filed a ticket from
+  the home with the designer picker; it reached the board and the queue; its page on the home; Pick
+  up opened CAS on a new project joined to the ticket ("Picked up the ticket"); a post started in
+  OPS appeared on the home; **Send to designer** from the home's post page with the picker, logged,
+  queue moved to Design; the post page's Back → `#/status`; a designer `#share=` link → the home's
+  ad set page; CAS sidebar Status → `#/status`; Preview as pm: CAS and OPS both go home, no Pick up
+  or Start designing on the home. 0 contrast failures on 7 routes in both themes with the mounted
+  pages; no sideways scroll at 375. **Not exercised against real Google Drive or real sign-in.**

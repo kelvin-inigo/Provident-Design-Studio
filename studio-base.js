@@ -413,6 +413,9 @@ class StudioBase {
   // what it last read on Status here: one row per campaign or post, already judged against the
   // signed-in person (waiting on them, with others, ready). `provident-inbox-cas|ops`, shared by
   // every workspace. Previews are dropped first when the list grows past ~1 MB.
+  // ONE HOME (2026-11-02): the studios' Home and Status live on the site's index.html now
+  // (#/, #/status, #/item/<cas|ops>/<id>); every way back to them goes through here
+  static goHome(route) { location.href = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'index.html' + (route ? '#/' + route : ''); }
   static inboxSave(app, rows, me) {
     try {
       let j = JSON.stringify({ at: Date.now(), me: me || null, items: rows || [] });

@@ -18277,11 +18277,18 @@ class Component extends DCLogic {
   renderVals() {
     // 'lib' was the Projects folder view (removed 2026-10-26); a tab still on it lands on All
     let view = (['lib', 'hub', 'tpl'].indexOf(this.state.splashView) >= 0 ? 'all' : this.state.splashView) || 'all';
+    // ONE HOME (2026-11-02): Home (the campaign setup) and Status live on the site's index.html,
+    // so CAS opens on Recent; the sidebar's Home and Status rows go there (StudioBase.goHome).
+    // A role whose CAS was only those two (performance marketing, the content team) goes home,
+    // except in a review link's tab, which is the link's own room.
+    if (view === 'all' || view === 'rev') view = 'rec';
     // WHO IS SIGNED IN (access.js): performance marketing has Home and Status only, and the
     // Access view is the admin's alone. A view they cannot have falls back to Home.
     const acc = window.providentAccess ? window.providentAccess.now() : { role: null, admin: false, pending: 0 };
-    if ((acc.lim || acc.role === 'pm') && view !== 'all' && view !== 'rev') view = 'all';
-    if (acc.only) view = acc.only;   // the content team's CAS opens on Status, its copy requests
+    if ((acc.lim || acc.role === 'pm' || acc.only) && !this._wentHome) {
+      let viaLink = false; try { viaLink = sessionStorage.getItem('provident-acc-link') === '1'; } catch (e) {}
+      if (!viaLink && (!this.active().state || this.active().state.screen === 'splash')) { this._wentHome = true; setTimeout(() => StudioBase.goHome(''), 0); }
+    }
     if (view === 'acc' && !acc.admin) view = 'all';   // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
     const eng = this.active();
     const sub = eng.renderVals();
@@ -18410,11 +18417,11 @@ class Component extends DCLogic {
       shViewAccOn: view === 'acc' ? '1' : undefined,
       shAccOn: acc.admin && acc.pending ? '1' : undefined,
       shAccLabel: acc.pending ? acc.pending + ' waiting' : '',
-      shViewRev: () => this.setState({ splashView: 'rev' }),
-      shViewRevOn: view === 'rev' ? '1' : undefined,
+      shViewRev: () => StudioBase.goHome('status'),
+      shViewRevOn: undefined,
       shViewUse: () => { this.setState({ splashView: 'use' }); eng.libLoad && eng.libLoad(); },
       shViewUseOn: view === 'use' ? '1' : undefined,
-      shViewAll: () => this.setState({ splashView: 'all' }),
+      shViewAll: () => StudioBase.goHome(''),
       shViewTpl: () => this.setState({ splashView: 'tpl' }),
       shViewRec: () => this.setState({ splashView: 'rec' }),
       shShareOn: this.state.shareOpen ? '1' : undefined,

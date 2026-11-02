@@ -17199,12 +17199,15 @@ class Component extends DCLogic {
   renderVals() {
     // 'lib' was the Projects folder view (removed 2026-10-26); a tab still on it lands on All
     let view = (this.state.splashView === 'lib' ? 'all' : this.state.splashView) || 'all';
-    // performance marketing reaches OPS's Status only (access.js)
+    // ONE HOME (2026-11-02): My turn and Status live on the site's index.html, so OPS opens on
+    // Recent; the sidebar's Home and Status rows go there (StudioBase.goHome). Performance
+    // marketing, whose OPS was Status only, goes home.
+    if (view === 'all' || view === 'rev') view = 'rec';
     const acc = window.providentAccess ? window.providentAccess.now() : { role: null };
-    if (acc.lim) view = 'rev';
+    if (acc.lim && !this._wentHome) { this._wentHome = true; setTimeout(() => StudioBase.goHome(''), 0); }
     // starting a post is the social media manager's and the designer's (and the admin's)
     const canStart = acc.role !== 'ct';
-    if (view === 'new' && !canStart) view = 'all';
+    if (view === 'new' && !canStart) view = 'rec';
     const who = (StudioBase.shareWho && StudioBase.shareWho()) || null, first = who && who.name ? who.name.split(' ')[0] : '';
     const mine = window.providentPostStatus ? window.providentPostStatus.count() : 0;
     // CAS's header (2026-10-30): the page is Home, and the line under it is the person and their count
@@ -17255,7 +17258,7 @@ class Component extends DCLogic {
         on: t.key === Component.STUDIO ? '1' : undefined,
         set: t.file ? (() => this.goOther(t.file)) : (() => {})
       })),
-      shViewTitle: (view === 'all' || view === 'new') && !acc.lim ? homeTitle : view === 'rev' ? 'Status' : view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'hub' ? 'From the hub' : 'All')),
+      shViewTitle: view === 'new' && !acc.lim ? 'Start a post' : view === 'all' && !acc.lim ? homeTitle : view === 'rev' ? 'Status' : view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'hub' ? 'From the hub' : 'All')),
       // the line under the title says what this view holds, so the counts read without the sidebar
       shViewSub: (n => (view === 'all' || view === 'new') && !acc.lim ? homeSub : view === 'rev' ? 'Every post on Google Drive: Draft, Design, Copy check, Ready' : view === 'hub' ? (eng._hub && eng._hub.ok ? n((eng._hub.items || []).length, 'delivery').replace('deliverys', 'deliveries') + '' : (eng._hub && eng._hub.busy ? 'Asking the hub\u2026' : 'What the Content Hub has received from Send'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
@@ -17268,13 +17271,13 @@ class Component extends DCLogic {
       shShowHome: (view === 'all' || view === 'new') ? true : undefined,
       newProject: () => this.setState({ splashView: canStart ? 'new' : 'all' }),
       shShowRev: view === 'rev' ? true : undefined,
-      shViewRev: () => this.setState({ splashView: 'rev' }),
+      shViewRev: () => StudioBase.goHome('status'),
       shViewRevOn: view === 'rev' ? '1' : undefined,
       postMineOn: (window.providentPostStatus && window.providentPostStatus.count()) ? '1' : undefined,
       postMine: window.providentPostStatus ? window.providentPostStatus.count() : 0,
       shShowRec: view === 'all' || view === 'rec',
       shRecLabel: view === 'all' ? 'Pick up where you left off' : 'Recent projects',
-      shViewAll: () => this.setState({ splashView: 'all' }),
+      shViewAll: () => StudioBase.goHome(''),
       shViewTpl: () => this.setState({ splashView: 'tpl' }),
       shViewRec: () => this.setState({ splashView: 'rec' }),
       shViewHub: () => { this.setState({ splashView: 'hub' }); eng.hubLoad && eng.hubLoad(); },
@@ -17285,7 +17288,7 @@ class Component extends DCLogic {
         // files, so hiding them behind a second click was a step for nothing.
         this.setState({ shareOpen: !this.state.shareOpen });
       },
-      shViewAllOn: view === 'all' || view === 'new' ? '1' : undefined,
+      shViewAllOn: undefined,
       shViewTplOn: view === 'tpl' ? '1' : undefined,
       shViewRecOn: view === 'rec' ? '1' : undefined
     });

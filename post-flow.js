@@ -24,7 +24,9 @@
  */
 (function () {
   'use strict';
-  if (!/Organic Studio/.test(decodeURIComponent(location.pathname))) return;
+  // OPS, and the site's home page (index.html, <html data-acc-home>), which mounts the Status
+  // board's post page and reads the Feed with no studio behind it (ONE HOME, 2026-11-02)
+  if (!/Organic Studio/.test(decodeURIComponent(location.pathname)) && !document.documentElement.hasAttribute('data-acc-home')) return;
   const K = window.providentDsKit;
   // StudioBase is a top-level class: a global binding, not a window property
   if (!K || typeof StudioBase === 'undefined') return;
@@ -591,7 +593,8 @@
     let h = !start ? '' : '<div class="ph-bar">' + (start ? '<div class="ph-sw" role="tablist" aria-label="Home">' +
       '<button type="button" role="tab" data-ph="door" data-v="all" aria-selected="' + (v === 'all') + '"' + (v === 'all' ? ' data-on' : '') + '>My turn</button>' +
       '<button type="button" role="tab" data-ph="door" data-v="new" aria-selected="' + (v === 'new') + '"' + (v === 'new' ? ' data-on' : '') + '>' + ico('add') + 'Start a post</button></div>' : '') + meta + '</div>';
-    if (v !== 'all') { this.set(h); return; }
+    // ONE HOME (2026-11-02): My turn is the home page's, so Start a post has no switch above it
+    if (v !== 'all') { this.set(''); return; }
     h += '<div class="ph-room">';
     if (!dsOn()) h += '<div class="ph-empty"><b>Posts are kept on Google Drive</b><span>Google sign-in is not set up on this copy of the studio, so there is no queue here. Start a post from a template, or open one from Recent.</span></div>';
     else if (Feed.sign) h += '<div class="ph-empty"><b>Sign in to see your posts</b><span>They are saved in Google Drive. Sign in once with your Provident Google account — this computer remembers it.</span><button type="button" class="p-btn" data-ph="sign">Sign in with Google</button></div>';
@@ -660,6 +663,7 @@
     count() { const it = Feed.cached() || []; return it.filter(x => x.rs && waitingOnMe(x.rs)).length; }
   };
   window.providentPostStatus = Status;
+  window.providentPostFeed = Feed;
   //   // A DRAFT IS ITS AUTHOR'S: another social media manager, or a designer, may send one on, but it
   // is waiting only on whoever started it
   const waitingOnMe = rs => {
@@ -783,7 +787,8 @@
 
   // ── markup hosts mount from the shell's render ──────────────────────────────────────────
   SP.postMount = function () { setTimeout(() => { Home.mount(this); Plan.mount(this); Status.mount(this); }, 0); };
-  SP.postStatusOpen = function (tok) { Status.want = tok; const h = this.host; if (h) h.setState({ splashView: 'rev' }, () => setTimeout(() => Status.mount(this), 0)); };
+  // ONE HOME (2026-11-02): a post's page is the home page's now
+  SP.postStatusOpen = function (tok) { StudioBase.goHome('item/ops/' + encodeURIComponent(tok)); };
   document.addEventListener('click', e => {
     const b = e.target.closest && e.target.closest('[data-post-go]'); if (!b) return;
     const sh = document.querySelector('.p-shell'), fib = sh && Object.keys(sh).find(k => k.indexOf('__reactFiber') === 0);
