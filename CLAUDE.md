@@ -18217,3 +18217,23 @@ Layout chosen from three wireframes: **Next up**. Surface brief and direction co
 - **The queue is only as fresh as the last Status read**; the page says when, and its
   Refresh links open Status. Verified with seeded data: 0 contrast failures in both themes, no
   overflow at 375, detector clean.
+
+## THE ADMIN'S ACCESS PANEL IS ON THE LANDING PAGE TOO (2026-11-02)
+
+By request. `index.html` loads `studio-base.js` (for `window.providentDrive`) and `access.js`, and
+`<html data-acc-home>` puts access.js in **home mode**: no gate and no `acx-hold`, `boot` asks the
+server who this is only when Google is already signed in (never a popup), a sign-in happens only
+from the account card's **Sign in with Google** button (`providentAccess.signIn`), and
+**Preview as** opens the role's studio in the same tab (sessionStorage carries the preview there).
+The panel is access.js's own (Requests · People · Activity), drawn into a full-width
+`div[data-acc-admin]` section that shows only while the signed-in person is the admin; access.js
+tells the page through a `provident-access` window event. The compact Sign-ins side panel and the
+page's own `accme`/`acclist` calls are gone. Verified on the dev server: a real request let in,
+0 contrast failures on all three tabs in both themes, sign out hides the section.
+
+**Fixed on the way, reaching CAS's Access view too:** on a phone the People rows showed no names —
+the desktop truncation trick (`td:first-child{max-width:0}`) survived into the stacked layout.
+The narrow rule now makes the table a block and resets that cell.
+
+Testing note: the dev Drive stand-in needs `localStorage['provident-drive-base'] = location.origin`
+as well as the `dev:<email>:<name>` token, or `providentDrive.watch()` asks real Google and drops it.

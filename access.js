@@ -21,7 +21,10 @@
   'use strict';
   // BOTH STUDIOS since OPS's posts (2026-10-30). Each studio decides what a role sees in it.
   const CAS = /Campaign Studio/.test(decodeURIComponent(location.pathname));
-  if (!CAS && !/Organic Studio/.test(decodeURIComponent(location.pathname))) return;
+  // THE LANDING PAGE (index.html, <html data-acc-home>) runs this file too, for the admin's
+  // Access panel: no gate, no hiding, a sign-in only from a click, and Preview as opens a studio.
+  const HOME = document.documentElement.hasAttribute('data-acc-home');
+  if (!CAS && !HOME && !/Organic Studio/.test(decodeURIComponent(location.pathname))) return;
 
   // The content team is two roles, one per language: cten approves English copy, ctar the
   // Arabic translation. Both read as 'ct' everywhere else (role() below); 'ct' itself is the
@@ -107,7 +110,7 @@
   // reload in the tab it opened.
   const viaLink = () => /(^|[#&])share=/.test(location.hash) || ss.get(LS_LINK) === '1';
   if (/(^|[#&])share=/.test(location.hash)) ss.set(LS_LINK, '1');
-  const gated = () => !viaLink();
+  const gated = () => !HOME && !viaLink();
 
   // Hide the studio before it paints; the gate takes over once the body exists.
   if (gated()) document.documentElement.classList.add('acx-hold');
@@ -192,6 +195,7 @@
     bar(); chip();
     // the landing page reads who is signed in from here (it runs no access code of its own)
     try { if (A.phase === 'in' && A.me) localStorage.setItem('provident-acc-me', JSON.stringify({ email: A.me.email, name: A.me.name, role: A.me.role, admin: !!A.me.admin, at: Date.now() })); } catch (x) {}
+    if (HOME) { try { window.dispatchEvent(new CustomEvent('provident-access', { detail: { phase: A.phase, admin: !!(A.me && A.me.admin && A.phase === 'in') } })); } catch (x) {} }
   }
   // the social media manager's OPS has no way across to CAS
   document.addEventListener('click', e => {
@@ -298,7 +302,7 @@
 
   // ── the preview bar: an admin looking at the studio as someone else ──────────────────────
   function bar() {
-    let b = document.querySelector('.acx-bar'); const va = viewAs();
+    let b = document.querySelector('.acx-bar'); const va = HOME ? null : viewAs();
     if (!va) { if (b) b.remove(); return; }
     if (!document.body) return;
     if (!b) { b = document.createElement('div'); b.className = 'acx-bar'; b.setAttribute('role', 'status'); document.body.appendChild(b); b.addEventListener('click', ev => { if (ev.target.closest('button')) preview(null); }); }
@@ -306,6 +310,8 @@
   }
   function preview(r) {
     ss.set(LS_VIEWAS, r);
+    // from the landing page a preview opens the studio that role works in, in this tab
+    if (HOME) { if (r) location.href = encodeURIComponent(r === 'smm' ? OPS_FILE : 'Provident Campaign Studio.dc.html'); return; }
     const sh = A.host;
     if (sh) { try { sh.setState({ splashView: r ? (only() || 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
     apply(); draw();
@@ -534,6 +540,15 @@
 
   // ── boot and keep checking ───────────────────────────────────────────────────────────────
   async function boot() {
+    if (HOME) {
+      // the landing page: learn who this is when Google is already signed in, never a popup
+      const on = await status();
+      A.on = on === true;
+      if (!A.on) { A.phase = on === 'down' ? 'error' : 'off'; apply(); return; }
+      const d = D();
+      if (d && d.valid && d.valid()) await check(false); else { A.phase = 'signin'; apply(); }
+      return;
+    }
     if (!gated()) {
       A.on = false; apply();
       // a review link: no gate, but learn quietly which copy this person approves
@@ -578,6 +593,8 @@
     },
     team, handOff, me,
     attach(shell) { A.host = shell; apply(); },
+    signIn: () => signIn(false),
+    phase: () => A.phase,
     signOut
   };
 
@@ -763,8 +780,8 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 .ac .ac-ev time{font:400 12.5px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 @media (max-width:860px){
   .ac .ac-req{grid-template-columns:auto minmax(0,1fr)}.ac .ac-act{grid-column:1/-1;justify-items:start}
-  .ac .ac-t thead{display:none}.ac .ac-t tr{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:12px 0;border-bottom:1px solid var(--ps-hair)}
-  .ac .ac-t td{border:0;padding:0}.ac .ac-t td:nth-child(3){display:none}.ac .ac-end{grid-column:1/-1;text-align:left}
+  .ac .ac-t thead{display:none}.ac .ac-t,.ac .ac-t tbody{display:block}.ac .ac-t tr{display:grid;grid-template-columns:minmax(0,1fr);gap:8px 12px;padding:12px 0;border-bottom:1px solid var(--ps-hair)}
+  .ac .ac-t td{border:0;padding:0}.ac .ac-t td:first-child{max-width:none;width:auto}.ac .ac-t td:nth-child(3){display:none}.ac .ac-end{grid-column:1/-1;text-align:left}
   .ac .ac-pv > label{display:none}
 }
 `;

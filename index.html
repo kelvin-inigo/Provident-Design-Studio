@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-acc-home>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -21,6 +21,10 @@
      fourth copy of it. The kit's @font-face resolves ../_ds/ against the STYLESHEET,
      which is the repo root from here, so the real Google Sans Flex comes with it. -->
 <link rel="stylesheet" href="ui-design-system/provident-ui.css">
+<!-- the admin's Access panel is access.js's own (data-acc-home on <html> puts it in home mode:
+     no gate, a sign-in only from a click); studio-base.js supplies window.providentDrive -->
+<script src="studio-base.js"></script>
+<script src="access.js"></script>
 
 <style>
 /* THE LANDING PAGE (redesigned 2026-11-02, "Next up"). It is one person's next move, not a menu:
@@ -35,10 +39,16 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column; background
 .p-top{position:sticky; top:0; z-index:5}
 .lp-sp{flex:1}
 .lp{width:100%; max-width:1280px; margin:0 auto; padding:44px 32px 40px; flex:1; box-sizing:border-box;
-  display:grid; grid-template-columns:minmax(0,1fr) 340px; grid-template-areas:"main side" "desk desk"; gap:40px 48px; align-items:start}
+  display:grid; grid-template-columns:minmax(0,1fr) 340px; grid-template-areas:"main side" "access access" "desk desk"; gap:40px 48px; align-items:start}
 .lp-main{grid-area:main; min-width:0}
 .lp-side{grid-area:side; display:flex; flex-direction:column; gap:16px; min-width:0}
 .lp-desk{grid-area:desk; min-width:0}
+.lp-access{grid-area:access; min-width:0}
+.lp-access .lp-sh{font-size:18px; font-weight:500; margin-bottom:16px}
+.lp-access .lp-sh small{font-size:13px}
+.lp-me-acts{display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; margin-top:12px}
+.lp-me-acts .lp-btn{height:36px; padding:0 16px; font-size:14px}
+.lp-me-acts .lp-lnk{min-height:36px; font-size:13px; border:0; background:none; padding:0; cursor:pointer}
 ::selection{background:color-mix(in srgb, var(--ps-link) 40%, transparent)}
 
 /* the greeting: who, and how much is waiting */
@@ -89,6 +99,8 @@ body{margin:0; min-height:100vh; display:flex; flex-direction:column; background
   background:var(--ps-primary); color:var(--ps-primary-i); text-decoration:none; font:600 14px/1 var(--ps-font); letter-spacing:.16px;
   transition:background-color var(--ps-motion) var(--ps-ease), transform var(--ps-motion) var(--ps-ease)}
 .lp-btn svg{width:18px; height:18px; fill:currentColor; transition:transform var(--ps-motion) var(--ps-ease)}
+button.lp-btn{border:0; cursor:pointer}
+button.lp-btn:disabled{opacity:.6; cursor:default}
 .lp-btn:hover{background:var(--ps-primary-h)}
 .lp-btn:hover svg{transform:translateX(3px)}
 .lp-btn:active{transform:translateY(1px)}
@@ -197,7 +209,7 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
 [hidden]{display:none !important}
 
 @media (max-width:1060px){
-  .lp{grid-template-columns:minmax(0,1fr); grid-template-areas:"main" "side" "desk"; gap:36px}
+  .lp{grid-template-columns:minmax(0,1fr); grid-template-areas:"main" "side" "access" "desk"; gap:36px}
   .lp-side{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); align-items:start}
 }
 @media (max-width:640px){
@@ -295,6 +307,7 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
       <div class="lp-me" id="me"></div>
       <div class="lp-chips" id="me-chips"></div>
       <p class="lp-note" id="me-note" hidden></p>
+      <div class="lp-me-acts" id="me-acts" hidden></div>
     </section>
 
     <section class="lp-pan" aria-labelledby="h-st">
@@ -302,11 +315,12 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
       <div id="studios"></div>
     </section>
 
-    <section class="lp-pan" aria-labelledby="h-acc" id="acc-sec" hidden>
-      <h2 id="h-acc">Sign-ins<small id="acc-at"></small></h2>
-      <div id="acc"></div>
-    </section>
   </aside>
+
+  <section class="lp-access" aria-labelledby="h-access" id="access" hidden>
+    <h2 class="lp-sh" id="h-access">Access<small>Who can use the studios, and what each of them sees</small></h2>
+    <div data-acc-admin></div>
+  </section>
 
   <section class="lp-desk" aria-labelledby="h-desk">
     <h2 class="lp-sh" id="h-desk">What the studios make<small id="desk-sub">Real templates, as they export</small></h2>
@@ -530,7 +544,13 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
   }
 
   function drawMe(){
-    var r = me && me.role;
+    var r = me && me.role, live = phase === 'in' || phase === 'signin' || phase === 'pending' || phase === 'declined' || phase === 'busy';
+    var A2 = $('me-acts');
+    A2.hidden = !live;
+    if (phase === 'signin' || phase === 'busy') A2.innerHTML = '<button class="lp-btn" type="button" data-acc-x="in"' + (phase === 'busy' ? ' disabled' : '') + '>' + (phase === 'busy' ? 'Signing in…' : 'Sign in with Google') + '</button>';
+    else if (phase === 'in') A2.innerHTML = '<button class="lp-lnk" type="button" data-acc-x="out">Sign out</button>';
+    else if (phase === 'pending') A2.innerHTML = '<span class="lp-note" style="margin:0">Waiting for the admin to let you in.</span>';
+    else if (phase === 'declined') A2.innerHTML = '<span class="lp-note" style="margin:0">Access was declined. Ask the admin.</span>';
     if (me && (me.email || me.name)) {
       $('me').innerHTML = '<span class="lp-av" aria-hidden="true">' + esc(initials(me.name || me.email)) + '</span><b>' + esc(me.name || me.email) + '</b><small>' + esc(me.email || '') + '</small>';
       $('me-chips').innerHTML = (r ? '<span class="lp-chip">' + esc(ROLE[r] || r) + '</span>' : '') + (me.admin ? '<span class="lp-chip" data-k="admin">Admin</span>' : '');
@@ -543,6 +563,7 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
       $('me-chips').hidden = true;
       $('me-note').hidden = false;
       $('me-note').textContent = 'Use your Provident Google account. Your queue and your studios follow your role.';
+      $('me-note').hidden = phase === 'signin';
     }
   }
   function drawStudios(){
@@ -558,32 +579,10 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
     }).join('');
   }
 
-  // ── the admin: who has signed in, and who is waiting to be let in ──────────────────
-  function drawAcc(list){
-    if (!me || !me.admin) { $('acc-sec').hidden = true; return; }
-    $('acc-sec').hidden = false;
-    if (!list) {
-      $('acc').innerHTML = '<p class="lp-note" style="margin-top:0">Open the studio on the website, signed in, to see who has signed in.</p><a class="lp-lnk" href="' + CAS + '#view=acc">Open Access</a>';
-      return;
-    }
-    $('acc-at').textContent = list.at ? 'updated ' + ago(list.at) : '';
-    var users = list.users || [], req = users.filter(function(u){ return u.status === 'pending'; });
-    var seen = users.filter(function(u){ return u.status === 'active' && u.last; }).sort(function(a, b){ return (b.last || 0) - (a.last || 0); }).slice(0, 6);
-    var li = function(u, k){
-      return '<li' + (k ? ' data-k="' + k + '"' : '') + '><span class="lp-av" aria-hidden="true">' + esc(initials(u.name || u.email)) + '</span>' +
-        '<span style="min-width:0"><b>' + esc(u.name || u.email) + '</b><small>' + esc(k === 'req' ? (u.want ? 'Asks to be ' + (ROLE[u.want] || u.want) : u.email) : (ROLE[u.role] || u.role || u.email)) + '</small></span>' +
-        (k === 'req' ? '<a class="lp-lnk" style="min-height:0;margin:0;font-size:13px" href="' + CAS + '#view=acc">Let in</a>' : '<time>' + esc(ago(u.last)) + '</time>') + '</li>';
-    };
-    $('acc').innerHTML = (req.length ? '<p class="lp-who-h">Waiting to be let in · ' + req.length + '</p><ul class="lp-who">' + req.slice(0, 4).map(function(u){ return li(u, 'req'); }).join('') + '</ul>' : '') +
-      (seen.length ? '<p class="lp-who-h">Last signed in</p><ul class="lp-who">' + seen.map(function(u){ return li(u); }).join('') + '</ul>' : '<p class="lp-note">Nobody else has signed in yet.</p>') +
-      '<a class="lp-lnk" href="' + CAS + '#view=acc">Open Access</a>';
-  }
-
   function draw(dir){
     data = build();
     if (cur >= data.mine.length) cur = Math.max(0, data.mine.length - 1);
     greet(); drawNext(dir); drawLists(); drawMe(); drawStudios();
-    drawAcc(me && me.admin ? js('provident-acc-list-lp') : null);
   }
   function go(d){
     var n = data.mine.length, i = Math.max(0, Math.min(n - 1, cur + d));
@@ -605,26 +604,19 @@ a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)
   });
   draw();
 
-  // ── on the website, ask the server who this is (and, for the admin, who has signed in) ──
-  var tok = js('provident-drive-tok');
-  var base = (function(){ var o = ls('provident-share-base'); if (/^https?:\/\/[^/]+$/.test(o || '')) return o;
-    return /\.vercel\.app$/.test(location.hostname) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin : ''; })();
-  if (base && tok && tok.at && tok.exp > Date.now() + 60000) {
-    var post = function(op){ return fetch(base + '/api/share?op=' + op, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tok: tok.at }) })
-      .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); };
-    post('accme').then(function(m){
-      if (!m || !m.email || m.status !== 'active') return;
-      me = { email: m.email, name: m.name || (me && me.name), role: m.role, admin: !!m.admin, at: Date.now() };
-      lsSet('provident-acc-me', JSON.stringify(me));
-      draw();
-      if (me.admin) post('acclist').then(function(l){
-        if (!l || !l.users) return;
-        var keep = { at: Date.now(), users: l.users.map(function(u){ return { email: u.email, name: u.name, role: u.role, status: u.status, last: u.last, want: u.want }; }) };
-        lsSet('provident-acc-list-lp', JSON.stringify(keep));
-        drawAcc(keep);
-      });
-    });
-  }
+  // ── the account, live: access.js (home mode) asks the server who this is ──────────────
+  var acc = window.providentAccess, phase = acc && acc.phase ? acc.phase() : 'off';
+  window.addEventListener('provident-access', function(e){
+    var d = e.detail || {}; phase = d.phase;
+    if (phase === 'in') me = js('provident-acc-me') || me;
+    else if (phase === 'signin' && me && me.at) { me = null; try { localStorage.removeItem('provident-acc-me'); } catch (x) {} }
+    $('access').hidden = !d.admin;
+    draw();
+  });
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-acc-x]'); if (!b || !acc) return;
+    if (b.getAttribute('data-acc-x') === 'in') acc.signIn(); else acc.signOut();
+  });
 
   // ── the desk: this computer's saved projects, newest first (else the templates stay) ──
   var DBN = 'provident-design-studio';

@@ -106,7 +106,8 @@ say so and point to the step above.
   home page). The home page shows **Next up**: the one campaign or post most worth doing now,
   with its picture, its step and one button that opens it. The rest of what is waiting on you,
   and what is with others, is listed under it. The studios your role works in sit on the right.
-  The admin also sees who has signed in and who is waiting to be let in.
+  The admin also gets the whole **Access** panel under it (requests to let in, people and their
+  roles, activity, and Preview as, which opens a studio as that role sees it).
 - The home page's list is what each studio last read on **Status**. Open Status in a studio
   once, signed in with Google, and the list fills in. **Refresh in Campaign ads / Organic posts**
   under the list opens Status to read it again.
