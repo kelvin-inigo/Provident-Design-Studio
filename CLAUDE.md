@@ -18186,3 +18186,34 @@ redirects the browser's preflight to ngrok's login, so the request never reaches
 URL typed by hand otherwise stays. Every request to an ngrok host carries
 `ngrok-skip-browser-warning` (`StudioBase.hubTunnel`, read by `hubFetch` and `epPost`) so ngrok's
 free-domain warning page is skipped; the hub lists that header in its CORS allowed headers.
+
+# THE LANDING PAGE IS "NEXT UP" — ONE PERSON'S QUEUE ACROSS BOTH STUDIOS (2026-11-02, /impeccable)
+
+By request ("redesign the home page"; the user chose the site's `index.html`, to lead with
+what is waiting on them, to vary by role, and to keep the template renders and the greeting).
+Layout chosen from three wireframes: **Next up**. Surface brief and direction contract:
+`.impeccable/surfaces/index-html.md`. This supersedes *THE LANDING PAGE SHOWS THE WORK*
+(the two navy doors and the Hairline figures are gone; `vendor/hairline` is no longer loaded here).
+
+- **The page runs no studio code, so each studio leaves its queue for it.**
+  `StudioBase.inboxSave(app, rows, me)` writes `provident-inbox-cas` / `provident-inbox-ops`
+  (shared by every workspace; previews dropped past ~1 MB). CAS writes from `statusSave`
+  (`inboxCas`, share-link.js — every Status read and Home's background `refreshSum`); OPS from
+  `Feed.load` (`inboxOps`, post-flow.js). A row: `{studio, id, name, mine, ready, open, step, sub,
+  segs, steps, verb, due, from, at, thumb, ratio, href}`, `mine` judged by the studio's own
+  `rsMine` / `waitingOnMe`. **A new field the page needs is added to those two writers.**
+- **The account is `provident-acc-me`**, written by access.js `apply()`; on the website (or
+  localhost) the page also POSTs `accme` with the Google token and, for the admin, `acclist`,
+  kept as `provident-acc-list-lp`. A queue written for another account on the same computer is
+  not treated as mine.
+- **Roles**: social media sees Organic only; performance marketing's "waiting on you" is the
+  CAS packages that are ready, and its studio rows open Status; the content team's CAS row opens
+  Status. Designers and the admin see both.
+- **Signature**: the Next up card flips through your queue in place (‹ ›, the arrow keys, or a
+  row in "Waiting on you"); the button opens that item (`#share=` link, else `#view=rev`).
+- Empty states: not signed in / never read Status ("Your work shows here", buttons to Status),
+  nothing waiting ("You're clear"). The desk below is recent saved projects, else the
+  `preview/` template renders.
+- **The queue is only as fresh as the last Status read**; the page says when, and its
+  Refresh links open Status. Verified with seeded data: 0 contrast failures in both themes, no
+  overflow at 375, detector clean.

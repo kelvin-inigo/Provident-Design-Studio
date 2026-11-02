@@ -111,6 +111,23 @@
   const myEm = () => { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; };
   const toWho = it => it && it.to ? (it.to.email && it.to.email === myEm() ? 'you' : (it.to.name || String(it.to.email || '').split('@')[0])) : '';
   const waitOf = (rs, k) => { const it = stage(rs).it; return k > 0 && k < 3 && it && it.to ? 'With ' + toWho(it) : STEPS[k].wait; };
+  // the landing page's queue (StudioBase.inboxSave): every post, judged for the signed-in person
+  function inboxOps(items) {
+    const VERB = ['Finish the draft', 'Design it', 'Check the copy'], file = 'Provident%20Organic%20Studio.dc.html';
+    const rows = (items || []).filter(x => x.rs).map(x => {
+      const rs = x.rs, st = stage(rs), it = st.it || {}, t = rs.ticket || {};
+      let last = null; ['draft', 'design', 'copy'].forEach(f => { const v = it[f]; if (v && v.at && (!last || v.at > last.at)) last = v; });
+      return {
+        studio: 'ops', id: x.id, name: rs.name || 'Post', mine: !!waitingOnMe(rs), ready: st.k === 3, open: false,
+        step: STEPS[st.k].t, sub: st.k === 3 ? 'Ready to publish' : waitOf(rs, st.k),
+        segs: segs(st.k).map(z => z.s === 'todo' ? 'pend' : z.s), steps: STEPS.map(z => z.t),
+        verb: VERB[st.k] || 'Open the post', due: t.deadline || '', from: last ? last.by : it.by || rs.by || '',
+        at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
+        thumb: x.thumb || '', ratio: .75, href: file + (it.sid ? '#share=' + encodeURIComponent(it.sid) : '#view=rev')
+      };
+    });
+    StudioBase.inboxSave('ops', rows, { email: myEm(), role: role(), name: StudioBase.shareName ? StudioBase.shareName() : '' });
+  }
   // the step body for a hand-off: who sent it, and the person it goes to (null: cancelled)
   async function stepBody(rs, act, sid) {
     const it = ((rs && rs.items) || []).find(x => x.sid === sid) || stage(rs).it;
@@ -474,6 +491,7 @@
           this.items = out.filter(x => !x.gone && isPost(x.rs));
           this.err = '';
           try { lsSet(CACHE, JSON.stringify({ at: Date.now(), items: this.items.map(x => Object.assign({}, x, { log: undefined, plog: undefined, proj: undefined })) })); } catch (e) {}
+          try { inboxOps(this.items); } catch (e) {}
         } catch (e) { if (e.gdAuth) this.sign = true; else this.err = e.message || String(e); }
         this.busy = false; this.at = Date.now(); this.emit();
         Status.views.forEach(v => { try { if (v.eng.host) v.eng.host.forceUpdate(); } catch (e) {} });

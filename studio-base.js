@@ -409,6 +409,18 @@ class StudioBase {
     const t = v == null ? '' : String(v).trim();
     return /^\d{1,20}$/.test(t) ? t : '';
   }
+  // THE LANDING PAGE'S QUEUE (2026-11-02). index.html runs no studio code, so each studio leaves
+  // what it last read on Status here: one row per campaign or post, already judged against the
+  // signed-in person (waiting on them, with others, ready). `provident-inbox-cas|ops`, shared by
+  // every workspace. Previews are dropped first when the list grows past ~1 MB.
+  static inboxSave(app, rows, me) {
+    try {
+      let j = JSON.stringify({ at: Date.now(), me: me || null, items: rows || [] });
+      if (j.length > 1000000) j = JSON.stringify({ at: Date.now(), me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: r.mine ? r.thumb : '' })) });
+      if (j.length > 1000000) j = JSON.stringify({ at: Date.now(), me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: '' })) });
+      localStorage.setItem('provident-inbox-' + app, j);
+    } catch (e) {}
+  }
   static newPid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   ensurePid() {
     if (this.state.pid) return Promise.resolve(this.state.pid);

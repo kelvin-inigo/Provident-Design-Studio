@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Provident Design Studio</title>
-<meta name="description" content="Provident Design Studio: start or pick up Campaign ads and Organic posts.">
+<meta name="description" content="Provident Design Studio: what is waiting on you in Campaign ads and Organic posts, and the way into each studio.">
 
 <!-- SET data-theme BEFORE FIRST PAINT. Light-first, and the key is `provident-theme`,
      the SAME one all three studios read — so a choice made here carries straight into
@@ -23,109 +23,205 @@
 <link rel="stylesheet" href="ui-design-system/provident-ui.css">
 
 <style>
-/* THE LANDING PAGE (rebuilt 2026-10-29 from its own critique). It shows the WORK, not a pitch:
-   one line saying who is here and what is waiting; the two studios as compact doors whose Open
-   buttons sit in the first screen, each with its Hairline figure (vendor/hairline, MIT) as its
-   mark; then the desk — this computer's saved projects as real renders at their true shape,
-   one click from opening (#recent=<pid>). With nothing saved, the desk shows what each studio
-   makes, from preview/. Chrome is kit tokens; the doors' navy and inks are pinned, below. */
-:root{
-  --lp-band:#14223D; --lp-band-2:#0F1A31; --lp-rule:rgba(196,210,236,.16);
-  --lp-ink:#F4F6FA; --lp-ink-2:#B5C1D6; --lp-dim:#93A1BB;
-}
-:root:not([data-theme="light"]){ --lp-band:#1B2C4E; --lp-band-2:#15233F; }
-body{margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--ps-app)}
+/* THE LANDING PAGE (redesigned 2026-11-02, "Next up"). It is one person's next move, not a menu:
+   the greeting, then the one item most worth doing now — its real render, where it stands, one
+   button — with the rest of the queue under it, and a right column holding who you are signed in
+   as, the studios your role works in and, for the admin, who has signed in. It runs no studio
+   code: each studio leaves what it last read on Status in localStorage (provident-inbox-cas|ops,
+   StudioBase.inboxSave), access.js leaves the account (provident-acc-me), and on the website the
+   page asks /api/share for the account and, for the admin, the sign-in list. Every colour,
+   radius and motion value is a kit token. */
+body{margin:0; min-height:100vh; display:flex; flex-direction:column; background:var(--ps-app); color:var(--ps-ink)}
 .p-top{position:sticky; top:0; z-index:5}
 .lp-sp{flex:1}
-.lp{width:100%; max-width:1240px; margin:0 auto; padding:40px 32px 40px; flex:1; box-sizing:border-box}
+.lp{width:100%; max-width:1280px; margin:0 auto; padding:44px 32px 40px; flex:1; box-sizing:border-box;
+  display:grid; grid-template-columns:minmax(0,1fr) 340px; grid-template-areas:"main side" "desk desk"; gap:40px 48px; align-items:start}
+.lp-main{grid-area:main; min-width:0}
+.lp-side{grid-area:side; display:flex; flex-direction:column; gap:16px; min-width:0}
+.lp-desk{grid-area:desk; min-width:0}
+::selection{background:color-mix(in srgb, var(--ps-link) 40%, transparent)}
 
-/* one line: who, and what is waiting */
-.lp-h{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 18px; margin:0 0 28px}
-.lp-h h1{font:400 clamp(30px,3.6vw,46px)/1.12 var(--ps-font); letter-spacing:-.028em; margin:0; color:var(--ps-ink); text-wrap:balance}
-.lp-h h1 span{color:var(--ps-ink-2)}
+/* the greeting: who, and how much is waiting */
+.lp-h{margin:0 0 32px; font:400 clamp(30px,3.4vw,46px)/1.12 var(--ps-font); letter-spacing:-.028em; color:var(--ps-ink)}
+.lp-h span{display:block; color:var(--ps-ink-2)}
 
-/* THE DOORS: compact, side by side, the figure as each studio's mark */
-.lp-studios{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px}
-.lp-door{position:relative; display:grid; grid-template-columns:168px minmax(0,1fr); align-items:center; gap:4px 18px;
-  padding:22px 24px 22px 12px; border-radius:18px; color:var(--lp-ink);
-  background:radial-gradient(130% 120% at 18% 50%, var(--lp-band) 0%, var(--lp-band-2) 100%);
-  box-shadow:inset 0 0 0 1px var(--lp-rule)}
-.lp-fig{display:block; width:168px; aspect-ratio:5/4;
-  --hairline-plate:rgba(255,255,255,.035); --hairline-hi:#FFFFFF; --hairline-edge:#B5C1D6;
-  --hairline-mid:#7F8EAA; --hairline-lo:#4B5A78; --hairline-stroke:1}
-.lp-door:hover .lp-fig{--hairline-edge:#DCE4F2; --hairline-mid:#A3B2CC}
-.lp-door h2{font:400 30px/1.1 var(--ps-font); letter-spacing:-.02em; margin:0}
-.lp-door-d{font:400 15px/1.45 var(--ps-font); color:var(--lp-ink-2); margin:6px 0 0}
-.lp-fmt{list-style:none; display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 14px; margin:14px 0 0; padding:0}
-.lp-fmt li{display:flex; align-items:flex-end; gap:6px}
-.lp-fmt i{display:block; height:18px; width:calc(18px * var(--r)); border-radius:2px; box-shadow:inset 0 0 0 1px var(--lp-ink-2)}
-.lp-fmt span{font:500 12px/1 var(--ps-font); color:var(--lp-ink-2); font-variant-numeric:tabular-nums; white-space:nowrap}
-.lp-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:18px}
-.lp-go{display:inline-flex; align-items:center; gap:10px; height:44px; padding:0 18px 0 20px; border-radius:var(--ps-pill);
-  background:#FFFFFF; color:#13203A; text-decoration:none; font:600 14.5px/1 var(--ps-font); letter-spacing:.16px;
+/* section headings: 14/600, more air above than below */
+.lp-sh{display:flex; align-items:baseline; gap:10px; margin:0 0 12px; font:600 14px/1.3 var(--ps-font); color:var(--ps-ink)}
+.lp-sh small{font:400 13px/1.3 var(--ps-font); color:var(--ps-dim); font-variant-numeric:tabular-nums}
+.lp-sh .lp-sp{flex:1}
+.lp-sec{margin-top:36px}
+
+/* NEXT UP: the one card on the page that shouts */
+.lp-next{position:relative; display:grid; grid-template-columns:auto minmax(0,1fr); gap:28px; padding:20px 28px 20px 20px; border-radius:16px;
+  background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.lp-r{display:block; height:260px; aspect-ratio:var(--a,1); border-radius:8px; overflow:hidden; background:var(--ps-stage);
+  box-shadow:0 0 0 1px var(--ps-hair); position:relative}
+.lp-r img{display:block; width:100%; height:100%; object-fit:cover}
+.lp-r i{position:absolute; inset:0; display:grid; place-items:center}
+.lp-r i::before{content:''; width:38%; aspect-ratio:var(--a,1); border-radius:6px; box-shadow:inset 0 0 0 1.5px var(--ps-line)}
+.lp-r i[data-t]{align-content:center; gap:12px}
+.lp-r i[data-t]::before{width:min(38%,96px)}
+.lp-r i[data-t]::after{content:attr(data-t); font:500 13px/1.3 var(--ps-font); color:var(--ps-dim)}
+.lp-nb{display:flex; flex-direction:column; min-width:0; padding-top:6px}
+.lp-nb h3{margin:0; font:400 30px/1.15 var(--ps-font); letter-spacing:-.02em; color:var(--ps-ink); text-wrap:pretty;
+  overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+.lp-meta{margin:10px 0 0; font:400 13px/1.45 var(--ps-font); color:var(--ps-ink-2)}
+.lp-meta b{font-weight:500; color:var(--ps-ink)}
+.lp-due{display:inline-flex; align-items:center; gap:6px; color:var(--ps-ink)}
+.lp-due::before{content:''; width:7px; height:7px; border-radius:50%; background:var(--ps-warn)}
+.lp-due[data-k="late"]{color:var(--ps-bad)}
+.lp-due[data-k="late"]::before{background:var(--ps-bad)}
+
+/* where it stands: the studio's own steps as segments */
+.lp-steps{list-style:none; display:grid; grid-template-columns:repeat(var(--n,4),minmax(0,1fr)); gap:6px; margin:22px 0 0; padding:0; max-width:520px}
+.lp-steps li{display:flex; flex-direction:column; gap:7px; min-width:0}
+.lp-steps li::before{content:''; height:4px; border-radius:var(--ps-pill); background:var(--ps-line)}
+.lp-steps li[data-s="done"]::before{background:var(--ps-good)}
+.lp-steps li[data-s="cur"]::before{background:var(--ps-link)}
+.lp-steps li[data-s="warn"]::before{background:var(--ps-warn)}
+.lp-steps li[data-s="warn"] span{font-weight:500; color:var(--ps-ink)}
+.lp-steps span{font:400 12.5px/1.2 var(--ps-font); color:var(--ps-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-steps li[data-s="cur"] span{font-weight:500; color:var(--ps-ink)}
+.lp-steps li[data-s="done"] span{color:var(--ps-ink-2)}
+
+.lp-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding-top:24px}
+.lp-btn{display:inline-flex; align-items:center; gap:10px; height:44px; padding:0 18px 0 20px; border-radius:var(--ps-pill);
+  background:var(--ps-primary); color:var(--ps-primary-i); text-decoration:none; font:600 14px/1 var(--ps-font); letter-spacing:.16px;
   transition:background-color var(--ps-motion) var(--ps-ease), transform var(--ps-motion) var(--ps-ease)}
-.lp-go svg{width:18px; height:18px; fill:currentColor; transition:transform var(--ps-motion) var(--ps-ease)}
-.lp-go:hover{background:#E3E9F4}
-.lp-go:hover svg{transform:translateX(3px)}
-.lp-go:active{transform:translateY(1px)}
-/* the waiting count: a fact, so it is a chip with a number, not a second link to the same page */
-.lp-wait{display:inline-flex; align-items:center; gap:8px; height:44px; padding:0 16px; border-radius:var(--ps-pill);
-  color:var(--lp-ink); text-decoration:none; font:500 14px/1 var(--ps-font); box-shadow:inset 0 0 0 1px rgba(244,246,250,.32);
-  transition:background-color var(--ps-motion) var(--ps-ease)}
-.lp-wait b{display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 6px; box-sizing:border-box; border-radius:11px;
-  background:#FFFFFF; color:#13203A; font:600 12.5px/1 var(--ps-font); font-variant-numeric:tabular-nums}
-.lp-wait:hover{background:rgba(255,255,255,.08)}
-.lp-wait[hidden]{display:none}
-.lp-go:focus-visible,.lp-wait:focus-visible{outline:2px solid #FFFFFF; outline-offset:3px}
+.lp-btn svg{width:18px; height:18px; fill:currentColor; transition:transform var(--ps-motion) var(--ps-ease)}
+.lp-btn:hover{background:var(--ps-primary-h)}
+.lp-btn:hover svg{transform:translateX(3px)}
+.lp-btn:active{transform:translateY(1px)}
+.lp-lnk{display:inline-flex; align-items:center; min-height:44px; font:500 14px/1 var(--ps-font); color:var(--ps-link); text-decoration:none; text-underline-offset:3px}
+.lp-lnk:hover{text-decoration:underline}
 
-/* THE DESK: the work itself, at its real shape */
-.lp-desk{margin-top:40px}
-.lp-desk-h{display:flex; align-items:baseline; gap:12px; margin:0 0 16px}
-.lp-desk-h h2{font:500 18px/1.2 var(--ps-font); letter-spacing:-.01em; margin:0; color:var(--ps-ink)}
-.lp-desk-h p{margin:0; font:400 14px/1.4 var(--ps-font); color:var(--ps-ink-2)}
-.lp-reel{list-style:none; margin:0; padding:2px 2px 14px; display:flex; gap:22px; overflow-x:auto; scroll-snap-type:x proximity;
+/* flip through the queue in place: 1 of 3, ‹ › and the arrow keys */
+.lp-pg{display:flex; align-items:center; gap:2px; margin:-8px -6px -8px 0; font:500 12.5px/1 var(--ps-font); color:var(--ps-dim); font-variant-numeric:tabular-nums}
+.lp-pg span{padding:0 6px}
+.lp-ib{display:inline-grid; place-items:center; width:32px; height:32px; border:0; border-radius:50%; background:transparent; color:var(--ps-ink-2); cursor:pointer;
+  transition:background-color var(--ps-motion) var(--ps-ease), color var(--ps-motion) var(--ps-ease)}
+.lp-ib svg{width:20px; height:20px; fill:currentColor}
+.lp-ib:hover{background:var(--ps-fill); color:var(--ps-ink)}
+.lp-ib:disabled{opacity:.35; cursor:default; background:transparent}
+.lp-next[data-flip] .lp-r, .lp-next[data-flip] .lp-nb{animation:lp-in 260ms cubic-bezier(.16,1,.3,1)}
+@keyframes lp-in{from{opacity:0; transform:translateX(calc(var(--d,1) * 14px)); filter:blur(3px)}}
+
+/* the quiet states of the card */
+.lp-quiet{display:flex; gap:16px; align-items:flex-start; padding:24px 26px; border-radius:16px; background:var(--ps-fill)}
+.lp-quiet h3{margin:0; font:500 18px/1.3 var(--ps-font); color:var(--ps-ink)}
+.lp-quiet p{margin:6px 0 0; font:400 15px/1.5 var(--ps-font); color:var(--ps-ink-2); max-width:62ch}
+.lp-quiet .lp-acts{padding-top:16px}
+.lp-ok{flex:none; display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:var(--ps-good); color:var(--ps-app)}
+.lp-ok svg{width:22px; height:22px; fill:currentColor}
+.lp-ok[data-k="info"]{background:var(--ps-fill-h); color:var(--ps-ink-2)}
+
+/* the rest of the queue: rows */
+.lp-rows{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px}
+.lp-row{display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:16px; padding:10px 16px 10px 10px; border-radius:14px;
+  background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair); color:inherit; text-decoration:none; cursor:pointer;
+  transition:box-shadow var(--ps-motion) var(--ps-ease), background-color var(--ps-motion) var(--ps-ease)}
+.lp-row:hover{box-shadow:inset 0 0 0 1px var(--ps-line); background:var(--ps-card-h)}
+.lp-row .lp-r{height:56px; border-radius:6px}
+.lp-row .lp-r i::before{width:46%}
+.lp-row b{display:block; font:500 15px/1.3 var(--ps-font); color:var(--ps-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-row small{display:block; margin-top:3px; font:400 13px/1.3 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-row .lp-due{font:400 13px/1 var(--ps-font); white-space:nowrap}
+.lp-fresh{margin:14px 0 0; font:400 12.5px/1.5 var(--ps-font); color:var(--ps-dim)}
+.lp-fresh a{color:var(--ps-link); text-decoration:none}
+.lp-fresh a:hover{text-decoration:underline}
+
+/* THE RIGHT COLUMN: plain panels on the card surface */
+.lp-pan{padding:18px 18px 16px; border-radius:16px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.lp-pan h2{margin:0 0 12px; font:600 14px/1.3 var(--ps-font); color:var(--ps-ink); display:flex; align-items:baseline; gap:8px}
+.lp-pan h2 small{font:400 12.5px/1 var(--ps-font); color:var(--ps-dim)}
+.lp-me{display:grid; grid-template-columns:40px minmax(0,1fr); gap:2px 12px; align-items:center}
+.lp-av{grid-row:span 2; display:grid; place-items:center; width:40px; height:40px; border-radius:50%; background:var(--ps-fill-on); color:var(--ps-accent-i);
+  font:600 14px/1 var(--ps-font)}
+.lp-me b{font:500 15px/1.25 var(--ps-font); color:var(--ps-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-me small{font:400 12.5px/1.3 var(--ps-font); color:var(--ps-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+.lp-chip{display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:var(--ps-pill); background:var(--ps-fill);
+  font:500 12.5px/1 var(--ps-font); color:var(--ps-ink-2)}
+.lp-chip[data-k="admin"]{background:var(--ps-fill-on); color:var(--ps-accent-i)}
+.lp-note{margin:10px 0 0; font:400 13px/1.45 var(--ps-font); color:var(--ps-ink-2)}
+
+/* the studios: one row each, the chip drawn at the studio's own canvas shape */
+.lp-st{display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:12px; margin:0 -8px; padding:10px 8px; border-radius:8px;
+  color:inherit; text-decoration:none; transition:background-color var(--ps-motion) var(--ps-ease)}
+.lp-st + .lp-st{margin-top:2px}
+.lp-st:hover{background:var(--ps-fill)}
+.lp-sh2{justify-self:center; height:30px; aspect-ratio:var(--a,1); border-radius:6px; background:var(--ps-fill); box-shadow:inset 0 0 0 1px var(--ps-line);
+  display:flex; flex-direction:column; justify-content:flex-end; gap:3px; padding:0 4px 5px; box-sizing:border-box}
+.lp-sh2 i{display:block; height:2px; border-radius:var(--ps-pill); background:var(--ps-dim)}
+.lp-sh2 i:first-child{width:70%}
+.lp-sh2 i:last-child{width:45%}
+.lp-st b{display:block; font:500 14px/1.25 var(--ps-font); color:var(--ps-ink)}
+.lp-st small{display:block; margin-top:2px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-dim)}
+.lp-cnt{display:inline-grid; place-items:center; min-width:24px; height:24px; padding:0 8px; box-sizing:border-box; border-radius:var(--ps-pill);
+  background:var(--ps-fill-on); color:var(--ps-accent-i); font:600 12.5px/1 var(--ps-font); font-variant-numeric:tabular-nums}
+.lp-go{width:20px; height:20px; fill:var(--ps-dim); transition:transform var(--ps-motion) var(--ps-ease), fill var(--ps-motion) var(--ps-ease)}
+.lp-st:hover .lp-go{transform:translateX(3px); fill:var(--ps-ink)}
+
+/* the admin's sign-ins */
+.lp-who{list-style:none; margin:0; padding:0; display:flex; flex-direction:column}
+.lp-who li{display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:10px; align-items:center; padding:8px 0}
+.lp-who li + li{box-shadow:0 -1px 0 var(--ps-hair)}
+.lp-who .lp-av{grid-row:auto; width:30px; height:30px; font-size:12.5px; background:var(--ps-fill); color:var(--ps-ink-2)}
+.lp-who b{display:block; font:500 14px/1.25 var(--ps-font); color:var(--ps-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-who small{display:block; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lp-who time{font:400 12.5px/1 var(--ps-font); color:var(--ps-dim); white-space:nowrap; font-variant-numeric:tabular-nums}
+.lp-who li[data-k="req"] .lp-av{background:var(--ps-warn-q); color:var(--ps-ink)}
+.lp-who li[data-k="req"] time{color:var(--ps-ink); font-weight:500}
+.lp-who-h{margin:14px 0 2px; font:500 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
+.lp-who-h:first-child{margin-top:0}
+.lp-pan .lp-lnk{min-height:36px; font-size:14px; margin-top:6px}
+
+/* THE DESK: recent saved work, else what the studios make, at its real shape */
+.lp-reel{list-style:none; margin:0; padding:2px 2px 14px; mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent); -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 56px),transparent); display:flex; gap:20px; overflow-x:auto; scroll-snap-type:x proximity;
   scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
 .lp-reel li{flex:none; scroll-snap-align:start}
 .lp-w{display:flex; flex-direction:column; gap:10px; color:var(--ps-ink); text-decoration:none; border-radius:8px}
-.lp-w img{display:block; height:240px; width:auto; border-radius:6px; box-shadow:0 0 0 1px var(--ps-hair);
+.lp-w img{display:block; height:200px; width:auto; border-radius:6px; box-shadow:0 0 0 1px var(--ps-hair);
   transition:transform 240ms cubic-bezier(.16,1,.3,1), box-shadow var(--ps-motion) var(--ps-ease)}
-a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link), 0 12px 24px -12px rgba(10,20,40,.35)}
-a.lp-w:focus-visible{outline:2px solid var(--ps-ink); outline-offset:4px}
-.lp-w b{display:block; max-width:240px; font:500 15px/1.3 var(--ps-font); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.lp-w small{display:block; margin-top:2px; font:400 13px/1.3 var(--ps-font); color:var(--ps-dim)}
+a.lp-w:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)}
+.lp-w b{display:block; max-width:200px; font:500 14px/1.3 var(--ps-font); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lp-w small{display:block; margin-top:2px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-dim)}
 
-.lp-f{max-width:1240px; margin:0 auto; width:100%; box-sizing:border-box; padding:16px 32px 28px; display:flex; align-items:center; gap:18px}
+.lp-f{max-width:1280px; margin:0 auto; width:100%; box-sizing:border-box; padding:16px 32px 28px; display:flex; align-items:center; gap:18px}
 .lp-f p{margin:0; font-size:12.5px; color:var(--ps-dim)}
 .lp-f a{display:inline-flex; align-items:center; min-height:44px; font-size:13px; color:var(--ps-link); text-decoration:none; text-underline-offset:3px}
 .lp-f a:hover{text-decoration:underline}
-.lp-f a:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px; border-radius:3px}
 
-@media (max-width:1120px){
-  .lp-studios{grid-template-columns:minmax(0,1fr)}
+.lp-btn:focus-visible,.lp-lnk:focus-visible,.lp-row:focus-visible,.lp-st:focus-visible,.lp-ib:focus-visible,a.lp-w:focus-visible,.lp-f a:focus-visible,.lp-fresh a:focus-visible{
+  outline:2px solid var(--ps-ink); outline-offset:3px}
+[hidden]{display:none !important}
+
+@media (max-width:1060px){
+  .lp{grid-template-columns:minmax(0,1fr); grid-template-areas:"main" "side" "desk"; gap:36px}
+  .lp-side{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); align-items:start}
 }
 @media (max-width:640px){
   .lp{padding:24px 16px 24px}
-  .lp-h{margin-bottom:20px}
-  .lp-door{display:block; padding:20px 18px 18px}
-  .lp-fig{position:absolute; top:10px; right:10px; width:96px}
-  .lp-door h2{font-size:26px; padding-right:96px}
-  .lp-door-d{font-size:14.5px; padding-right:84px}
-  .lp-fmt{margin-top:12px}
-  .lp-acts{margin-top:16px}
-  .lp-go{flex:1 1 auto; justify-content:center; white-space:nowrap}
-  .lp-desk-h{flex-direction:column; gap:4px}
-  .lp-desk{margin-top:28px}
-  .lp-w img{height:180px}
-  .lp-w b{max-width:180px}
+  .lp-h{margin-bottom:22px}
+  .lp-next{grid-template-columns:minmax(0,1fr); gap:18px; padding:14px 14px 18px}
+  .lp-next .lp-r{height:auto; width:100%; max-height:360px}
+  .lp-next .lp-r[style*="--a:.75"]{width:auto; height:300px; justify-self:center}
+  .lp-next .lp-r:has(i[data-t]){height:150px; aspect-ratio:auto}
+  .lp-nb{padding-top:0}
+  .lp-btn{flex:1 1 auto; justify-content:center}
+  .lp-row{gap:12px; padding-right:12px}
+  .lp-row .lp-due{grid-column:2; grid-row:2; margin-top:-4px}
+  .lp-row{grid-template-columns:auto minmax(0,1fr)}
+  .lp-row .lp-r{grid-row:span 2}
+  .lp-w img{height:170px}
   .lp-f{padding:12px 16px 24px}
 }
 @media (prefers-reduced-motion:reduce){
-  .lp-go,.lp-go svg,.lp-wait,.lp-w img{transition:none}
-  .lp-go:active{transform:none}
+  .lp-btn,.lp-btn svg,.lp-w img,.lp-go,.lp-row{transition:none}
+  .lp-next[data-flip] .lp-r,.lp-next[data-flip] .lp-nb{animation:none}
   a.lp-w:hover img{transform:none}
 }
 </style>
-<script src="vendor/hairline/hairline.js"></script>
 </head>
 <body class="p-shell">
 
@@ -172,46 +268,48 @@ a.lp-w:focus-visible{outline:2px solid var(--ps-ink); outline-offset:4px}
   </button>
 </header>
 <main class="lp">
-  <div class="lp-h"><h1 id="greet">Make it on brand, in every size.</h1></div>
+  <div class="lp-main">
+    <h1 class="lp-h" id="greet">Make it on brand, in every size.</h1>
 
-  <div class="lp-studios">
-    <section class="lp-door" aria-labelledby="h-cas">
-      <span class="lp-fig" data-hl="elevator" aria-hidden="true"></span>
-      <div>
-        <h2 id="h-cas">Campaign ads</h2>
-        <p class="lp-door-d">Meta ads in every size, per audience and language.</p>
-        <ul class="lp-fmt" aria-label="Sizes it exports">
-          <li style="--r:1"><i></i><span>1:1</span></li>
-          <li style="--r:.75"><i></i><span>3:4</span></li>
-          <li style="--r:.5625"><i></i><span>9:16</span></li>
-          <li style="--r:1.91"><i></i><span>1.91:1</span></li>
-          <li style="--r:2"><i></i><span>2:1</span></li>
-        </ul>
-        <div class="lp-acts">
-          <a class="lp-go" href="Provident%20Campaign%20Studio.dc.html">Open Campaign ads<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></a>
-          <a class="lp-wait" id="wait" href="Provident%20Campaign%20Studio.dc.html#view=rev" hidden></a>
-        </div>
-      </div>
+    <section aria-labelledby="h-next" id="next-sec">
+      <div class="lp-sh"><h2 id="h-next" style="font:inherit;margin:0">Next up</h2><small id="next-n"></small><span class="lp-sp"></span><div class="lp-pg" id="pg"></div></div>
+      <div id="next"></div>
     </section>
 
-    <section class="lp-door" aria-labelledby="h-ops">
-      <span class="lp-fig" data-hl="turntable" aria-hidden="true"></span>
-      <div>
-        <h2 id="h-ops">Organic posts</h2>
-        <p class="lp-door-d">Feed and story posts from Provident's own templates.</p>
-        <ul class="lp-fmt" aria-label="Sizes it exports">
-          <li style="--r:.75"><i></i><span>3:4 feed</span></li>
-          <li style="--r:.5625"><i></i><span>9:16 story</span></li>
-        </ul>
-        <div class="lp-acts">
-          <a class="lp-go" href="Provident%20Organic%20Studio.dc.html">Open Organic posts<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg></a>
-        </div>
-      </div>
+    <section class="lp-sec" aria-labelledby="h-mine" id="mine-sec" hidden>
+      <h2 class="lp-sh" id="h-mine">Also waiting on you<small id="mine-n"></small></h2>
+      <ol class="lp-rows" id="mine"></ol>
     </section>
+
+    <section class="lp-sec" aria-labelledby="h-others" id="others-sec" hidden>
+      <h2 class="lp-sh" id="h-others">With others<small id="others-n"></small></h2>
+      <ol class="lp-rows" id="others"></ol>
+    </section>
+
+    <p class="lp-fresh" id="fresh" hidden></p>
   </div>
 
+  <aside class="lp-side" aria-label="Your account and the studios">
+    <section class="lp-pan" aria-labelledby="h-me">
+      <h2 id="h-me">Signed in</h2>
+      <div class="lp-me" id="me"></div>
+      <div class="lp-chips" id="me-chips"></div>
+      <p class="lp-note" id="me-note" hidden></p>
+    </section>
+
+    <section class="lp-pan" aria-labelledby="h-st">
+      <h2 id="h-st">Studios</h2>
+      <div id="studios"></div>
+    </section>
+
+    <section class="lp-pan" aria-labelledby="h-acc" id="acc-sec" hidden>
+      <h2 id="h-acc">Sign-ins<small id="acc-at"></small></h2>
+      <div id="acc"></div>
+    </section>
+  </aside>
+
   <section class="lp-desk" aria-labelledby="h-desk">
-    <div class="lp-desk-h"><h2 id="h-desk">What the studios make</h2><p id="desk-sub">Real templates, as they export.</p></div>
+    <h2 class="lp-sh" id="h-desk">What the studios make<small id="desk-sub">Real templates, as they export</small></h2>
     <ol class="lp-reel" id="reel">
       <li><a class="lp-w" href="Provident%20Organic%20Studio.dc.html"><img src="preview/organic-listed.webp" alt="" width="475" height="633" decoding="async"><span><b>Just listed</b><small>Organic posts</small></span></a></li>
       <li><a class="lp-w" href="Provident%20Campaign%20Studio.dc.html"><img src="preview/campaign-f.webp" alt="" width="475" height="475" decoding="async"><span><b>New launch</b><small>Campaign ads</small></span></a></li>
@@ -251,24 +349,34 @@ a.lp-w:focus-visible{outline:2px solid var(--ps-ink); outline-offset:4px}
   sync();
 })();
 
-/* THE FIGURES: Hairline's Elevator and Turntable, each studio's mark. */
+/* NEXT UP. Everything here is read from this computer and is optional:
+   - provident-inbox-cas / -ops: what each studio last read on Status, already judged for the
+     signed-in person (StudioBase.inboxSave);
+   - provident-acc-me: the account and role access.js last confirmed; on the website the page
+     asks /api/share again with the Google token, and the admin's sign-in list with it;
+   - provident-drive-who: the Google account, when nothing else is known;
+   - recents in IndexedDB (provident-design-studio, recents:<studio>), never created from here. */
 (function(){
-  var H = window.providentHairline; if (!H) return;
-  document.querySelectorAll('[data-hl]').forEach(function(el){
-    var make = H[el.getAttribute('data-hl')]; if (!make) return;
-    try { make(el, { play: true, intensity: .7 }); } catch (e) { console.warn('hairline', e); }
-  });
-})();
+  var CAS = 'Provident%20Campaign%20Studio.dc.html', OPS = 'Provident%20Organic%20Studio.dc.html';
+  var STUDIO = {
+    cas: { name: 'Campaign Ads Studio', short: 'Campaign ads', a: 1, file: CAS, desc: 'Meta ads in every size' },
+    ops: { name: 'Organic Post Studio', short: 'Organic posts', a: .75, file: OPS, desc: 'Feed and story posts' }
+  };
+  var ROLE = { designer: 'Designer', admin: 'Designer', pm: 'Performance marketing', smm: 'Social media', ct: 'Content team',
+    cten: 'Content team · English', ctar: 'Content team · Arabic' };
+  var ARROW = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg>';
+  var CHEV_L = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m418.15-480 162.93 162.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L363.85-450.08q-6.24-6.23-8.85-13.46-2.62-7.23-2.62-16.46t2.62-16.46q2.61-7.23 8.85-13.46l175.07-175.08q8.31-8.31 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.69 8.69 21.08 0 12.38-8.69 21.07L418.15-480Z"/></svg>';
+  var CHEV_R = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M541.85-480 378.92-642.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69l175.07 175.08q6.24 6.23 8.85 13.46 2.62 7.23 2.62 16.46t-2.62 16.46q-2.61 7.23-8.85 13.46L421.08-275.08q-8.31 8.31-20.89 8.5-12.57.19-21.27-8.5-8.69-8.69-8.69-21.08 0-12.38 8.69-21.07L541.85-480Z"/></svg>';
+  var TICK = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
+  var INFO = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-280q17 0 28.5-11.5T520-320v-160q0-17-11.5-28.5T480-520q-17 0-28.5 11.5T440-480v160q0 17 11.5 28.5T480-280Zm0-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>';
 
-/* WHO IS HERE, WHAT IS WAITING, AND THE DESK. All read from this computer, all optional:
-   - the Google account the studios signed in with (provident-drive-who);
-   - CAS's last Status count (provident-status-sum, ignored after 14 days);
-   - each studio's saved projects (IndexedDB provident-design-studio, recents:<studio>; never
-     created from here), shown as their own renders and linking to <studio>#recent=<pid>. */
-(function(){
+  function $(id){ return document.getElementById(id); }
   function ls(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v){ try { localStorage.setItem(k, v); } catch (e) {} }
+  function js(k){ try { return JSON.parse(ls(k) || 'null'); } catch (e) { return null; } }
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function ago(ts){
+    if (!ts) return '';
     var s = Math.max(0, (Date.now() - ts) / 1000);
     if (s < 60) return 'just now';
     var m = Math.round(s / 60); if (m < 60) return m + (m === 1 ? ' minute ago' : ' minutes ago');
@@ -276,29 +384,254 @@ a.lp-w:focus-visible{outline:2px solid var(--ps-ink); outline-offset:4px}
     var d = Math.round(h / 24); if (d < 7) return d === 1 ? 'yesterday' : d + ' days ago';
     return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
   }
-  var hr = new Date().getHours(), part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
-  var who = null; try { who = JSON.parse(ls('provident-drive-who') || 'null'); } catch (e) {}
-  var first = who && (who.name || '').trim().split(/\s+/)[0];
-  var sum = null; try { sum = JSON.parse(ls('provident-status-sum') || 'null'); } catch (e) {}
-  var fresh = sum && sum.at && Date.now() - sum.at < 14 * 864e5;
-  var open = fresh ? (sum.open || 0) : 0;
-
-  var hi = first ? 'Good ' + part + ', ' + esc(first) + '.' : '';
-  var tail = open ? (open === 1 ? '1 campaign is waiting for you.' : open + ' campaigns are waiting for you.') : (hi ? 'Pick up where you left off.' : '');
-  if (hi || tail) document.getElementById('greet').innerHTML = hi + (hi && tail ? ' ' : '') + (tail ? '<span>' + tail + '</span>' : '');
-
-  if (fresh && (sum.open || sum.design || sum.ready)) {
-    var w = document.getElementById('wait');
-    w.innerHTML = sum.open ? '<b>' + sum.open + '</b>waiting' : '<b>' + ((sum.design || 0) + (sum.ready || 0)) + '</b>in progress';
-    w.title = (sum.open || 0) + ' waiting · ' + (sum.design || 0) + ' in design · ' + (sum.ready || 0) + ' ready to run';
-    w.hidden = false;
+  function initials(n){ var p = String(n || '').trim().split(/[\s.@_-]+/).filter(Boolean); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
+  // due dates are days ('2026-11-04'); late, today, tomorrow and this week read as words
+  function due(d){
+    if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return null;
+    var t = new Date(d + 'T00:00'), now = new Date(); now.setHours(0, 0, 0, 0);
+    var n = Math.round((t - now) / 864e5), dm = t.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    if (n < 0) return { n: n, k: 'late', t: 'Overdue · ' + dm };
+    if (n === 0) return { n: n, k: 'soon', t: 'Due today' };
+    if (n === 1) return { n: n, k: 'soon', t: 'Due tomorrow' };
+    if (n < 7) return { n: n, k: 'week', t: 'Due ' + t.toLocaleDateString(undefined, { weekday: 'long' }) };
+    return { n: n, k: 'later', t: 'Due ' + dm };
+  }
+  function dueHtml(x){ var d = due(x.due); return d ? '<span class="lp-due" data-k="' + d.k + '">' + esc(d.t) + '</span>' : ''; }
+  function rend(x, big){
+    var a = x.ratio || STUDIO[x.studio].a;
+    return '<span class="lp-r" style="--a:' + a + '">' + (x.thumb && /^data:image\/|^https?:/.test(x.thumb) ? '<img src="' + esc(x.thumb) + '" alt="" decoding="async">' : '<i' + (big ? ' data-t="' + (x.open ? 'Not started yet' : 'No preview yet') + '"' : '') + '></i>') + '</span>';
   }
 
+  // ── who is here ────────────────────────────────────────────────────────────────
+  var hr = new Date().getHours(), part = hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening';
+  var me = js('provident-acc-me'), who = js('provident-drive-who');
+  if (!me && who && (who.email || who.name)) me = { email: who.email, name: who.name, role: null };
+  var inbox = { cas: js('provident-inbox-cas'), ops: js('provident-inbox-ops') };
+  var cur = 0, data = null;
+
+  function roleOf(){ return me && me.role ? (me.role === 'cten' || me.role === 'ctar' ? 'ct' : me.role) : null; }
+  function studiosFor(r){ return r === 'smm' ? ['ops'] : ['cas', 'ops']; }
+
+  function build(){
+    var r = roleOf(), em = me && me.email ? String(me.email).toLowerCase() : '';
+    var rows = [], at = 0;
+    studiosFor(r).forEach(function(k){
+      var b = inbox[k]; if (!b || !Array.isArray(b.items)) return;
+      // a queue written for someone else on this computer is not this person's
+      var same = !b.me || !b.me.email || !em || String(b.me.email).toLowerCase() === em;
+      at = Math.max(at, b.at || 0);
+      b.items.forEach(function(x){
+        var y = Object.assign({}, x, { studio: k });
+        y.mine = same && !!x.mine;
+        // the studio wrote "With you" / "For you" for whoever was signed in there
+        // "With you" never prints on a row that is not the viewer's: it names the writer when the
+        // queue is someone else's, and the team otherwise
+        if (!y.mine) { var wn = !same ? ((b.me.name || '').trim().split(/\s+/)[0] || String(b.me.email).split('@')[0]) : '';
+          y.sub = String(y.sub || '').replace(/\b(With|For) you\b/g, wn ? '$1 ' + wn : 'With the team'); }
+        if (y.from && me && me.name && y.from === me.name) y.from = 'you';
+        // performance marketing's work is the finished package
+        if (r === 'pm') y.mine = same && k === 'cas' && !!x.ready;
+        rows.push(y);
+      });
+    });
+    function urgency(x){ var d = due(x.due); return d ? d.n : 999; }
+    var mine = rows.filter(function(x){ return x.mine; }).sort(function(p, q){ return urgency(p) - urgency(q) || (q.at || 0) - (p.at || 0); });
+    var others = rows.filter(function(x){ return !x.mine && !x.ready; }).sort(function(p, q){ return (q.at || 0) - (p.at || 0); });
+    var ready = rows.filter(function(x){ return x.ready && !x.mine; });
+    var known = studiosFor(r).some(function(k){ return inbox[k] && Array.isArray(inbox[k].items); });
+    return { mine: mine, others: others, ready: ready, at: at, known: known, r: r };
+  }
+
+  function greet(){
+    var first = me && (me.name || '').trim().split(/\s+/)[0];
+    var hi = first ? 'Good ' + part + ', ' + esc(first) + '.' : 'Good ' + part + '.';
+    var n = data.mine.length, tail;
+    if (!me || !me.email) tail = 'Sign in to see what is waiting on you.';
+    else if (!data.known) tail = 'Your queue fills in from Status.';
+    else if (!n) tail = 'Nothing is waiting on you.';
+    else tail = (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
+    $('greet').innerHTML = hi + ' <span>' + tail + '</span>';
+  }
+
+  function segs(x){
+    var lab = x.steps || [], s = x.segs || [];
+    if (!lab.length || !s.length) return '';
+    return '<ol class="lp-steps" style="--n:' + lab.length + '" aria-label="Where it stands">' + lab.map(function(l, i){
+      var copy = x.studio === 'ops' ? i === 2 : i === 1 || i === 2;
+      var st = s[i] === 'done' ? 'done' : s[i] === 'cur' ? (copy ? 'warn' : 'cur') : 'pend';
+      return '<li data-s="' + st + '"><span>' + esc(l) + '</span></li>';
+    }).join('') + '</ol>';
+  }
+  function metaLine(x){
+    var st = STUDIO[x.studio], bits = ['<b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '')];
+    var m2 = [esc(st.short)];
+    if (x.from) m2.push('from ' + esc(x.from));
+    if (x.at) m2.push(esc(ago(x.at)));
+    var d = dueHtml(x);
+    return '<p class="lp-meta">' + bits.join('') + '<br>' + m2.join(' · ') + (d ? ' · ' + d : '') + '</p>';
+  }
+
+  function drawNext(dir){
+    var box = $('next'), n = data.mine.length;
+    $('next-n').textContent = n > 1 ? (cur + 1) + ' of ' + n : ''; $('next-n').setAttribute('aria-live', 'polite'); $('pg').innerHTML = '';
+    if (!n) {
+      $('next-n').textContent = '';
+      if (!data.known) {
+        box.innerHTML = '<div class="lp-quiet"><span class="lp-ok" data-k="info">' + INFO + '</span><div><h3>Your work shows here</h3>' +
+          '<p>Open Status in a studio once, signed in with your Provident Google account. After that, what is waiting on you, and what is with others, appears here first.</p>' +
+          '<div class="lp-acts">' + studiosFor(data.r).map(function(k, i){
+            return '<a class="' + (i ? 'lp-lnk' : 'lp-btn') + '" href="' + STUDIO[k].file + '#view=rev">' + (i ? 'Status in ' : 'Open Status in ') + esc(STUDIO[k].short) + (i ? '' : ARROW) + '</a>';
+          }).join('') + '</div></div></div>';
+      } else {
+        var o = data.others.length;
+        box.innerHTML = '<div class="lp-quiet"><span class="lp-ok">' + TICK + '</span><div><h3>You\'re clear</h3>' +
+          '<p>' + (o ? (o === 1 ? 'One campaign or post is' : o + ' campaigns and posts are') + ' with others. Nothing needs you until someone hands it back.' : 'Nothing is in flight right now.') + '</p>' +
+          (data.r !== 'pm' && data.r !== 'ct' ? '<div class="lp-acts">' + studiosFor(data.r).map(function(k, i){
+            return '<a class="' + (i ? 'lp-lnk' : 'lp-btn') + '" href="' + STUDIO[k].file + '">' + (data.r === 'smm' || k === 'ops' ? 'Start a post' : 'Set up a campaign') + (i ? '' : ARROW) + '</a>';
+          }).join('') + '</div>' : '') + '</div></div>';
+      }
+      return;
+    }
+    var x = data.mine[cur], st = STUDIO[x.studio];
+    box.innerHTML = '<article class="lp-next"' + (dir ? ' data-flip style="--d:' + dir + '"' : '') + ' aria-labelledby="nx-t">' +
+      rend(x, true) +
+      '<div class="lp-nb"><h3 id="nx-t">' + esc(x.name).replace(/ (—|–|-) /g, '\u00a0$1 ') + '</h3>' + metaLine(x) + segs(x) +
+      '<div class="lp-acts"><a class="lp-btn" href="' + esc(x.href || st.file) + '">' + esc(x.verb || 'Open') + ARROW + '</a>' +
+      '<a class="lp-lnk" href="' + st.file + '#view=rev">See it on Status</a></div></div>' +
+      '</article>';
+    $('pg').innerHTML = n > 1 ? '<button class="lp-ib" type="button" data-nav="-1" aria-label="Previous" ' + (cur ? '' : 'disabled') + '>' + CHEV_L + '</button>' +
+      '<button class="lp-ib" type="button" data-nav="1" aria-label="Next" ' + (cur < n - 1 ? '' : 'disabled') + '>' + CHEV_R + '</button>' : '';
+  }
+
+  function rowHtml(x){
+    var st = STUDIO[x.studio], sub = esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '') + ' · ' + esc(st.short);
+    var inner = rend(x) + '<span style="min-width:0"><b>' + esc(x.name) + '</b><small>' + sub + '</small></span>' + dueHtml(x);
+    return '<li><a class="lp-row" href="' + esc(x.href || st.file) + '">' + inner + '</a></li>';
+  }
+  function drawLists(){
+    var n = data.mine.length;
+    // the rest of the queue: every item but the one in the card, each a plain link
+    var rest = data.mine.filter(function(x, i){ return i !== cur; });
+    $('mine-sec').hidden = !rest.length;
+    if (rest.length) { $('mine-n').textContent = rest.length; $('mine').innerHTML = rest.map(function(x){ return rowHtml(x); }).join(''); }
+    var o = data.others;
+    $('others-sec').hidden = !o.length;
+    if (o.length) {
+      $('others-n').textContent = o.length > 5 ? '5 of ' + o.length : o.length;
+      $('others').innerHTML = o.slice(0, 5).map(function(x){ return rowHtml(x); }).join('');
+    }
+    var f = $('fresh');
+    if (data.known) {
+      var rd = data.ready.length;
+      f.innerHTML = (rd ? '<a href="' + STUDIO[data.ready[0].studio].file + '#view=rev">' + rd + ' ready to run or publish</a>. ' : '') +
+        'Read from Status ' + esc(ago(data.at)) + '. ' + studiosFor(data.r).map(function(k){ return '<a href="' + STUDIO[k].file + '#view=rev">Refresh in ' + esc(STUDIO[k].short) + '</a>'; }).join(' · ');
+      f.hidden = false;
+    } else f.hidden = true;
+  }
+
+  function drawMe(){
+    var r = me && me.role;
+    if (me && (me.email || me.name)) {
+      $('me').innerHTML = '<span class="lp-av" aria-hidden="true">' + esc(initials(me.name || me.email)) + '</span><b>' + esc(me.name || me.email) + '</b><small>' + esc(me.email || '') + '</small>';
+      $('me-chips').innerHTML = (r ? '<span class="lp-chip">' + esc(ROLE[r] || r) + '</span>' : '') + (me.admin ? '<span class="lp-chip" data-k="admin">Admin</span>' : '');
+      $('me-chips').hidden = !r && !me.admin; $('h-me').textContent = 'Signed in';
+      $('me-note').hidden = !!r;
+      if (!r) $('me-note').textContent = 'Open a studio once to confirm your role.';
+    } else {
+      $('h-me').textContent = 'Account';
+      $('me').innerHTML = '<span class="lp-av" aria-hidden="true">?</span><b>Not signed in</b><small>Sign in from either studio</small>';
+      $('me-chips').hidden = true;
+      $('me-note').hidden = false;
+      $('me-note').textContent = 'Use your Provident Google account. Your queue and your studios follow your role.';
+    }
+  }
+  function drawStudios(){
+    var r = data.r;
+    $('studios').innerHTML = studiosFor(r).map(function(k){
+      var st = STUDIO[k], n = data.mine.filter(function(x){ return x.studio === k; }).length;
+      // the content team and performance marketing work from Status in the studios
+      var only = r === 'pm' || (r === 'ct' && k === 'cas');
+      var desc = only ? (r === 'pm' ? 'Status and packages' : 'Copy checks on Status') : st.desc;
+      return '<a class="lp-st" href="' + st.file + (only ? '#view=rev' : '') + '"><span class="lp-sh2" style="--a:' + st.a + '" aria-hidden="true"><i></i><i></i></span>' +
+        '<span><b>' + esc(st.name) + '</b><small>' + esc(desc) + '</small></span>' +
+        (n ? '<span class="lp-cnt" title="Waiting on you">' + n + '</span>' : '<svg class="lp-go" viewBox="0 -960 960 960" aria-hidden="true"><path d="M647.85-450H190q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q177.25-510 190-510h457.85L516.31-641.54q-8.92-8.92-8.81-20.88.12-11.96 9.42-21.27 9.31-8.69 21.08-8.89 11.77-.19 21.08 9.12l179.77 179.77q5.61 5.61 7.92 11.92 2.31 6.31 2.31 13.46t-2.31 13.46q-2.31 6.31-7.92 11.92L558.08-275.15q-8.31 8.3-20.58 8.5-12.27.19-21.58-8.5-9.3-9.31-9.3-21.38 0-12.08 9.3-21.39L647.85-450Z"/></svg>') + '</a>';
+    }).join('');
+  }
+
+  // ── the admin: who has signed in, and who is waiting to be let in ──────────────────
+  function drawAcc(list){
+    if (!me || !me.admin) { $('acc-sec').hidden = true; return; }
+    $('acc-sec').hidden = false;
+    if (!list) {
+      $('acc').innerHTML = '<p class="lp-note" style="margin-top:0">Open the studio on the website, signed in, to see who has signed in.</p><a class="lp-lnk" href="' + CAS + '#view=acc">Open Access</a>';
+      return;
+    }
+    $('acc-at').textContent = list.at ? 'updated ' + ago(list.at) : '';
+    var users = list.users || [], req = users.filter(function(u){ return u.status === 'pending'; });
+    var seen = users.filter(function(u){ return u.status === 'active' && u.last; }).sort(function(a, b){ return (b.last || 0) - (a.last || 0); }).slice(0, 6);
+    var li = function(u, k){
+      return '<li' + (k ? ' data-k="' + k + '"' : '') + '><span class="lp-av" aria-hidden="true">' + esc(initials(u.name || u.email)) + '</span>' +
+        '<span style="min-width:0"><b>' + esc(u.name || u.email) + '</b><small>' + esc(k === 'req' ? (u.want ? 'Asks to be ' + (ROLE[u.want] || u.want) : u.email) : (ROLE[u.role] || u.role || u.email)) + '</small></span>' +
+        (k === 'req' ? '<a class="lp-lnk" style="min-height:0;margin:0;font-size:13px" href="' + CAS + '#view=acc">Let in</a>' : '<time>' + esc(ago(u.last)) + '</time>') + '</li>';
+    };
+    $('acc').innerHTML = (req.length ? '<p class="lp-who-h">Waiting to be let in · ' + req.length + '</p><ul class="lp-who">' + req.slice(0, 4).map(function(u){ return li(u, 'req'); }).join('') + '</ul>' : '') +
+      (seen.length ? '<p class="lp-who-h">Last signed in</p><ul class="lp-who">' + seen.map(function(u){ return li(u); }).join('') + '</ul>' : '<p class="lp-note">Nobody else has signed in yet.</p>') +
+      '<a class="lp-lnk" href="' + CAS + '#view=acc">Open Access</a>';
+  }
+
+  function draw(dir){
+    data = build();
+    if (cur >= data.mine.length) cur = Math.max(0, data.mine.length - 1);
+    greet(); drawNext(dir); drawLists(); drawMe(); drawStudios();
+    drawAcc(me && me.admin ? js('provident-acc-list-lp') : null);
+  }
+  function go(d){
+    var n = data.mine.length, i = Math.max(0, Math.min(n - 1, cur + d));
+    if (i === cur) return;
+    cur = i; drawNext(d > 0 ? 1 : -1); drawLists();
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-nav]');
+    if (b) { go(+b.getAttribute('data-nav')); return; }
+  });
+  document.addEventListener('keydown', function(e){
+    if (!data || data.mine.length < 2 || e.altKey || e.metaKey || e.ctrlKey) return;
+    var t = document.activeElement; if (t && t !== document.body && !$('next-sec').contains(t)) return;
+    if (e.key === 'ArrowRight') { go(1); } else if (e.key === 'ArrowLeft') { go(-1); }
+  });
+  // a studio left open in another tab updates the queue while this page is open
+  window.addEventListener('storage', function(e){
+    if (!e.key || /^provident-(inbox-|acc-me)/.test(e.key)) { me = js('provident-acc-me') || me; inbox = { cas: js('provident-inbox-cas'), ops: js('provident-inbox-ops') }; draw(); }
+  });
+  draw();
+
+  // ── on the website, ask the server who this is (and, for the admin, who has signed in) ──
+  var tok = js('provident-drive-tok');
+  var base = (function(){ var o = ls('provident-share-base'); if (/^https?:\/\/[^/]+$/.test(o || '')) return o;
+    return /\.vercel\.app$/.test(location.hostname) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? location.origin : ''; })();
+  if (base && tok && tok.at && tok.exp > Date.now() + 60000) {
+    var post = function(op){ return fetch(base + '/api/share?op=' + op, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tok: tok.at }) })
+      .then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); };
+    post('accme').then(function(m){
+      if (!m || !m.email || m.status !== 'active') return;
+      me = { email: m.email, name: m.name || (me && me.name), role: m.role, admin: !!m.admin, at: Date.now() };
+      lsSet('provident-acc-me', JSON.stringify(me));
+      draw();
+      if (me.admin) post('acclist').then(function(l){
+        if (!l || !l.users) return;
+        var keep = { at: Date.now(), users: l.users.map(function(u){ return { email: u.email, name: u.name, role: u.role, status: u.status, last: u.last, want: u.want }; }) };
+        lsSet('provident-acc-list-lp', JSON.stringify(keep));
+        drawAcc(keep);
+      });
+    });
+  }
+
+  // ── the desk: this computer's saved projects, newest first (else the templates stay) ──
   var DBN = 'provident-design-studio';
   function idbGet(key){
     return new Promise(function(res){
       if (!window.indexedDB) return res(null);
-      function go(){
+      function go2(){
         var q; try { q = indexedDB.open(DBN); } catch (e) { return res(null); }
         q.onsuccess = function(){
           var d = q.result;
@@ -309,28 +642,28 @@ a.lp-w:focus-visible{outline:2px solid var(--ps-ink); outline-offset:4px}
         };
         q.onerror = function(){ res(null); };
       }
-      if (indexedDB.databases) indexedDB.databases().then(function(l){ l.some(function(x){ return x.name === DBN; }) ? go() : res(null); }, go);
-      else go();
+      if (indexedDB.databases) indexedDB.databases().then(function(l){ l.some(function(x){ return x.name === DBN; }) ? go2() : res(null); }, go2);
+      else go2();
     });
   }
-  var STUDIO = { campaign: ['Campaign ads', 'Provident%20Campaign%20Studio.dc.html'], organic: ['Organic posts', 'Provident%20Organic%20Studio.dc.html'] };
-  Promise.all(Object.keys(STUDIO).map(function(k){
+  var KEYS = { campaign: 'cas', organic: 'ops' };
+  Promise.all(Object.keys(KEYS).filter(function(k){ return studiosFor(roleOf()).indexOf(KEYS[k]) >= 0; }).map(function(k){
     return idbGet('recents:' + k).then(function(raw){
       var list = raw;
       if (typeof raw === 'string') { if (raw.length > 3e7) return []; try { list = JSON.parse(raw); } catch (e) { return []; } }
       if (!Array.isArray(list)) return [];
       return list.filter(function(r){ return r && r.saved && (r.pid || (r.state && r.state.pid)) && r.thumbs && /^data:image\//.test(r.thumbs[0] || ''); })
-        .map(function(r){ return { r: r, k: k }; });
+        .map(function(r){ return { r: r, k: KEYS[k] }; });
     });
   })).then(function(all){
-    var rows = [].concat.apply([], all).sort(function(x, y){ return (y.r.ts || 0) - (x.r.ts || 0); }).slice(0, 8);
+    var rows = [].concat.apply([], all).sort(function(x, y){ return (y.r.ts || 0) - (x.r.ts || 0); }).slice(0, 10);
     if (!rows.length) return;
-    document.getElementById('h-desk').textContent = 'Pick up where you left off';
-    document.getElementById('desk-sub').textContent = rows.length === 1 ? 'Your last saved project.' : 'Your last ' + rows.length + ' saved projects, newest first.';
-    document.getElementById('reel').innerHTML = rows.map(function(x){
+    $('h-desk').firstChild.nodeValue = 'Pick up where you left off';
+    $('desk-sub').textContent = rows.length === 1 ? 'Your last saved project' : 'Your last ' + rows.length + ' saved projects, newest first';
+    $('reel').innerHTML = rows.map(function(x){
       var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid;
-      return '<li><a class="lp-w" href="' + st[1] + '#recent=' + encodeURIComponent(pid) + '"><img src="' + r.thumbs[0] + '" alt="">' +
-        '<span><b>' + esc(r.name || 'Untitled') + '</b><small>' + st[0] + ' · saved ' + esc(ago(r.ts || 0)) + '</small></span></a></li>';
+      return '<li><a class="lp-w" href="' + st.file + '#recent=' + encodeURIComponent(pid) + '"><img src="' + r.thumbs[0] + '" alt="" decoding="async">' +
+        '<span><b>' + esc(r.name || 'Untitled') + '</b><small>' + esc(st.short) + ' · saved ' + esc(ago(r.ts || 0)) + '</small></span></a></li>';
     }).join('');
   });
 })();

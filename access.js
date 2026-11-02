@@ -190,6 +190,8 @@
       try { sh.forceUpdate(); } catch (x) {}
     }
     bar(); chip();
+    // the landing page reads who is signed in from here (it runs no access code of its own)
+    try { if (A.phase === 'in' && A.me) localStorage.setItem('provident-acc-me', JSON.stringify({ email: A.me.email, name: A.me.name, role: A.me.role, admin: !!A.me.admin, at: Date.now() })); } catch (x) {}
   }
   // the social media manager's OPS has no way across to CAS
   document.addEventListener('click', e => {

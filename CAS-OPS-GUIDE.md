@@ -103,7 +103,13 @@ say so and point to the step above.
 ## 1. Opening the studios
 
 - Open the file in **Chrome** or **Edge**. You can double-click it, or open `index.html` (the
-  home page) and pick a studio from there.
+  home page). The home page shows **Next up**: the one campaign or post most worth doing now,
+  with its picture, its step and one button that opens it. The rest of what is waiting on you,
+  and what is with others, is listed under it. The studios your role works in sit on the right.
+  The admin also sees who has signed in and who is waiting to be let in.
+- The home page's list is what each studio last read on **Status**. Open Status in a studio
+  once, signed in with Google, and the list fills in. **Refresh in Campaign ads / Organic posts**
+  under the list opens Status to read it again.
 - Safari and Firefox work too, but they can't use a **Source folder**. Exports then download as a
   zip instead.
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the

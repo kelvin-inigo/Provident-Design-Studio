@@ -3675,7 +3675,31 @@
     const live = (items || []).filter(x => !x.gone && x.rs);
     const open = live.filter(x => isOpen(x.rs)).length, ready = live.filter(x => !isOpen(x.rs) && rsOverall(rsAuds(x.rs)).ready).length;
     lsSet(SUM_KEY, JSON.stringify({ open, design: live.length - open - ready, ready, at: Date.now() }));
+    try { inboxCas(live); } catch (e) {}
     try { if (eng && eng.host) eng.host.forceUpdate(); } catch (e) {}
+  }
+  // the landing page's queue (StudioBase.inboxSave): every campaign on Status, judged for the
+  // signed-in person — the ticket to pick up, the design to finish, the copy to check
+  function inboxCas(live) {
+    const r = accRole(), em = myEmail(), file = 'Provident%20Campaign%20Studio.dc.html';
+    const rows = live.map(x => {
+      const rs = x.rs, open = isOpen(rs), t = rs.ticket || {};
+      const auds = open ? [] : rsAuds(rs), ov = open ? null : rsOverall(auds);
+      const a = auds.filter(z => !z.done).sort((p, q) => p.steps.findIndex(s => s.s !== 'done') - q.steps.findIndex(s => s.s !== 'done'))[0];
+      const k = open ? -1 : ov.ready ? 4 : a ? a.steps.findIndex(s => s.s !== 'done') : 0;
+      let last = null; (rs.items || []).forEach(it => ['design', 'copy'].forEach(f => { const v = it[f]; if (v && v.at && (!last || v.at > last.at)) last = v; }));
+      const tok = rs.tok || {}, link = (r === 'ct' && tok.ct) || (r === 'pm' && tok.pm) || x.id;
+      return {
+        studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready), open,
+        step: open ? 'Ticket' : ov.ready ? 'Ready to run' : STEP_LABELS[k] || 'Design',
+        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : ov.ready ? 'Package ready' : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
+        segs: open ? [] : ov.steps.map(s => s.s), steps: STEP_LABELS,
+        verb: open ? 'Pick up the ticket' : r === 'ct' ? 'Check the copy' : r === 'pm' ? 'Open the package' : 'Open the design',
+        due: t.deadline || '', from: last ? last.by : rs.by || '', at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
+        thumb: x.thumb || '', ratio: 1, href: file + '#share=' + encodeURIComponent(link)
+      };
+    });
+    StudioBase.inboxSave('cas', rows, { email: em, role: r, name: StudioBase.shareName ? StudioBase.shareName() : '' });
   }
   window.providentReviews = Arch;
   // THE DRIVE KIT, for post-flow.js (OPS's posts): the same Drive calls, cache and write
