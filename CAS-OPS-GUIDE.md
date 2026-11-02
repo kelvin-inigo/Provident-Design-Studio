@@ -103,14 +103,24 @@ say so and point to the step above.
 ## 1. Opening the studios
 
 - Open the file in **Chrome** or **Edge**. You can double-click it, or open `index.html` (the
-  home page). The home page shows **Next up**: the one campaign or post most worth doing now,
-  with its picture, its step and one button that opens it. The rest of what is waiting on you,
-  and what is with others, is listed under it. The studios your role works in sit on the right.
-  The admin also gets the whole **Access** panel under it (requests to let in, people and their
-  roles, activity, and Preview as, which opens a studio as that role sees it).
-- The home page's list is what each studio last read on **Status**. Open Status in a studio
-  once, signed in with Google, and the list fills in. **Refresh in Campaign ads / Organic posts**
-  under the list opens Status to read it again.
+  home page). The home page is one place for both studios, with three tabs at the top:
+  - **Home** shows **Next up**: the one campaign or post most worth doing now, with its picture,
+    its step and one button that opens it in its studio. **‹ ›** (or the arrow keys) flip through
+    the rest. Under it, **Also waiting on you** (filter by **Campaign ads** or **Organic posts**)
+    and **With others**. On the right, **Where everything is** shows each stage (**New**,
+    **Design**, **Copy check**, **Ready**) with the work in it, and **Your studios**. Your last
+    saved projects sit at the bottom under **Pick up where you left off**.
+  - **Status** is one board for both studios, in the same four stages. **Only what waits on me**
+    and **Find by name** narrow it. Click a card to see where it stands; **Open in …** takes you to
+    the studio for the audiences, pages, activity and brief.
+  - **Access**: the admin gets the whole Access panel (requests to let in, people and their roles,
+    activity, and Preview as). Everyone else sees their role and what it lets them do.
+- **New** (top right) follows your role: a designer picks **A campaign** or **An organic post**;
+  performance marketing gets **New ticket** (CAS's campaign setup); social media gets **New post**
+  (OPS's Start a post). The content team has no New.
+- The home page's lists are what each studio last read on **Status** on this computer. Open
+  Status in a studio once, signed in with Google, and they fill in. **Refresh in Campaign ads /
+  Organic posts** opens Status to read them again.
 - Safari and Firefox work too, but they can't use a **Source folder**. Exports then download as a
   zip instead.
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the

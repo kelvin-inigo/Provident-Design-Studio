@@ -288,3 +288,32 @@ The narrow rule now makes the table a block and resets that cell.
 
 Testing note: the dev Drive stand-in needs `localStorage['provident-drive-base'] = location.origin`
 as well as the `dev:<email>:<name>` token, or `providentDrive.watch()` asks real Google and drops it.
+
+# ONE HOME FOR BOTH STUDIOS (2026-11-02, /impeccable, by request)
+
+`index.html` was rebuilt from the reviewed prototype (`prototypes/unified-home.html`, sample data)
+on the data the page already had. Supersedes the "Next up" layout above; its data rules stand.
+
+- **Hash routes, one page**: `#/` Home, `#/status`, `#/item/<cas|ops>/<id>`, `#/new`, `#/access`.
+  The studios' own deep links (`#share=`, `#view=`, `#recent=`) are untouched — they live on the
+  studio pages.
+- **Data is unchanged**: `provident-inbox-cas|ops` rows (StudioBase.inboxSave), `provident-acc-me`,
+  `provident-drive-who`, recents in IndexedDB, access.js in home mode. `build()` is the previous
+  page's, line for line (same-account check, "With you" rewrite, pm's mine = ready packages).
+- **Stages** map each row onto one board: `ready` → Ready; CAS `open` or a Ticket/Draft step → New;
+  a step naming copy or translation → Copy check; else Design (`stageOf`). There is no Delivered
+  column: the queues do not carry finished work.
+- **The item page is what the row holds** (picture, step, sub, from, due, the studio's own steps)
+  and hands over to the studio for audiences, pages, activity and the brief. The prototype's richer
+  page (audience tiles, word changes, team links) needs those fields in `inboxCas` / `inboxOps` first.
+- **New** links out: CAS's home (the campaign setup) and OPS `#view=new` (Start a post). pm and smm
+  skip the chooser; the content team has no New.
+- **Access** for the admin is access.js's panel in `#acc-adm [data-acc-admin]`, a static section shown
+  only on `#/access` (access.js draws into it once; it must not be re-rendered by the router).
+  Everyone else sees their role and a fixed list of what it opens (`CAN`); asking for another role
+  is "ask the admin" — access.js has no role-change request for someone already let in.
+- **Not carried over from the prototype** (no data on this page yet): the Content Hub filter and
+  tags, "New" marks for fresh hand-offs, hand-off notes, the size pickers (they belong in the
+  studios' own start forms).
+- Verified with seeded real-shaped queues: 0 contrast failures in both themes for designer/admin,
+  pm, smm and cten across every route; no sideways scroll at 375; New routes per role.
