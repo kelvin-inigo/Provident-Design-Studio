@@ -5489,6 +5489,14 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
       <sc-if value="{{ splashNoteOn }}" hint-placeholder-val="{{ false }}">
         <div class="p-br-note">{{ splashNote }}</div>
       </sc-if>
+      <!-- ONE HOME (2026-11-02): projects are browsed on the site's home page (#/projects); the
+           studio keeps only the way to open a session file from a folder, which needs this page -->
+      <sc-if value="{{ shShowOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;max-width:720px;padding:22px 24px;border-radius:16px;background:var(--ps-fill)">
+          <span style="flex:1 1 280px;font:400 15px/1.5 var(--ps-font);color:var(--ps-ink-2)">{{ shOpenText }}</span>
+          <button onClick="{{ openSession }}" class="p-btn">Choose the folder</button>
+        </div>
+      </sc-if>
 
       <!-- CAMPAIGN SETUP: the ad set (markets, audiences, Arabic, the Drive folder) is defined
            here, before the first design. share-link.js fills this host itself (plain DOM,
@@ -18289,7 +18297,16 @@ class Component extends DCLogic {
       let viaLink = false; try { viaLink = sessionStorage.getItem('provident-acc-link') === '1'; } catch (e) {}
       if (!viaLink && (!this.active().state || this.active().state.screen === 'splash')) { this._wentHome = true; setTimeout(() => StudioBase.goHome(''), 0); }
     }
-    if (view === 'acc' && !acc.admin) view = 'all';   // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
+    if (view === 'acc' && !acc.admin) view = 'rec';
+    // ONE HOME (2026-11-02): projects are browsed on the home page, so a studio with nothing open
+    // goes there (#/projects) — never in a review link's tab, never while a link in the address
+    // (#share, #pick, #recent, #view, #hubopen) is still being opened
+    if (view === 'rec' && !this._wentHome) {
+      let viaLink2 = false; try { viaLink2 = sessionStorage.getItem('provident-acc-link') === '1'; } catch (e) {}
+      const st0 = this.active().state;
+      if (!viaLink2 && !/#(share|pick|recent|view|hubopen)/.test(location.hash) && (!st0 || st0.screen === 'splash')) { this._wentHome = true; setTimeout(() => StudioBase.goHome('projects'), 0); }
+    }
+   // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
     const eng = this.active();
     const sub = eng.renderVals();
     return Object.assign({}, sub, this.asVals(), eng.libVals ? eng.libVals(view === 'use') : {}, eng.shareVals ? eng.shareVals() : {}, {
@@ -18393,9 +18410,9 @@ class Component extends DCLogic {
       mkNote: 'The creatives are the real exports, rendered from the same ops \u2014 only smaller. A Reel is cover-cropped and loses about 5.5% of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.',
       mkCopy: this._mkExt ? this._mkExt.copy : (eng && eng.mockCopy ? eng.mockCopy() : {}),
       mkPlaceLabel: this.state.mockPlat === 'fb' ? 'Feed 1:1 \u00b7 Reels and Story 9:16' : 'Feed 3:4 portrait \u00b7 Reels and Story 9:16',
-      shViewTitle: view === 'acc' ? 'Access' : view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Status' : 'Home'))),
+      shViewTitle: view === 'open' ? 'Open a project file' : view === 'acc' ? 'Access' : view === 'tpl' ? 'Templates' : (view === 'rec' ? 'Recent projects' : (view === 'use' ? 'Component usage' : (view === 'rev' ? 'Status' : 'Home'))),
       // the line under the title says what this view holds, so the counts read without the sidebar
-      shViewSub: (n => view === 'acc' ? (acc.pending ? n(acc.pending, 'person') .replace('persons', 'people') + ' waiting to be let in' : 'Who can use the studio, and what each of them sees')
+      shViewSub: (n => view === 'open' ? 'Saved projects are on the home page; this opens one from its folder' : view === 'acc' ? (acc.pending ? n(acc.pending, 'person') .replace('persons', 'people') + ' waiting to be let in' : 'Who can use the studio, and what each of them sees')
         : view === 'rev' ? (n((window.providentReviews ? window.providentReviews.list() : []).length, 'campaign'))
         : view === 'use' ? (sub.useCount ? 'How often each component and style appears in ' + (sub.useFolder ? n(sub.useCount, 'project') + ' in \u201c' + sub.useFolder + '\u201d' : 'your ' + n(sub.useCount, 'most recent saved project')) : (sub.useFolder ? 'No Campaign projects in \u201c' + sub.useFolder + '\u201d yet' : 'Nothing saved yet \u2014 usage is counted from saved projects'))
         : view === 'tpl' ? n(sub.tplCount, 'template') + ' to start from'
@@ -18423,7 +18440,7 @@ class Component extends DCLogic {
       shViewUseOn: view === 'use' ? '1' : undefined,
       shViewAll: () => StudioBase.goHome(''),
       shViewTpl: () => this.setState({ splashView: 'tpl' }),
-      shViewRec: () => this.setState({ splashView: 'rec' }),
+      shViewRec: () => StudioBase.goHome('projects'),
       shShareOn: this.state.shareOpen ? '1' : undefined,
       shToggleShare: () => {
         // Opening Share reveals the export formats with it — the panel exists to hand over
@@ -18432,7 +18449,9 @@ class Component extends DCLogic {
       },
       shViewAllOn: view === 'all' ? '1' : undefined,
       shViewTplOn: view === 'tpl' ? '1' : undefined,
-      shViewRecOn: view === 'rec' ? '1' : undefined,
+      shViewRecOn: undefined,
+      shShowOpen: view === 'open',
+      shOpenText: 'Pick the folder a project was saved in (.adstudio.json); the newest project file there opens here. Every saved project is also on the home page, under Projects.',
       // the sidebar's counts: Recent only when there is something in it, Status the open tickets
       shRecNOn: sub.recentCount ? '1' : undefined,
       ...(sm => ({ shOpenOn: sm && sm.open ? '1' : undefined, shOpenLabel: sm && sm.open ? sm.open + ' open' : '' }))(window.providentReviews && window.providentReviews.summary ? window.providentReviews.summary() : null)

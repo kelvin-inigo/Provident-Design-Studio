@@ -392,3 +392,22 @@ name's prefix (Carousel_ / Reel_ / Post_ …, Reel_Thumbnail_) into a tag ("Caro
 the rest into words; the meta is the studio mark and the age. More than 8 → "N more … See all in
 <studio>" (each studio opens on Recent). Verified with seeded recents: 0 contrast failures both
 themes, tag clear of the render (13px), no sideways scroll at 375.
+
+## Projects moved to the home; the studios have no Recent screen (2026-11-02, by request)
+
+The studios' Recent screen read as a second home. Now:
+- **index.html `#/projects`**: every saved project on this computer (IndexedDB `recents:campaign|organic`,
+  the desk's reader `loadDesk`), both studios by role, CAS grouped by campaign (`provident-rs-pid:<pid>`
+  name, else the name before " - "), OPS by format (`recName`); single-project groups share one
+  "Other campaigns / Other posts" row, as the studios did. Filter chips, search, and **Open a project
+  file / Open a post file** (→ `<studio>#view=open`). Tiles are the desk's (`tileHtml`), each opening
+  `<studio>#recent=<pid>`. The desk's "more" links here; **Your studios** rows open the newest saved
+  project of that studio ("Continue …", `studioLinks()`), else start one.
+- **The studios**: `'rec'` (and `'all'`/`'rev'`, which resolve to it) sends a splash with nothing open to
+  `StudioBase.goHome('projects')` — not in a review link's tab, not while `#share|pick|recent|view|hubopen`
+  is in the address. The sidebar's Recent row goes there too. New view **`'open'`**: a card with
+  **Choose the folder** (the shell's `openSession`), so opening a session file from a folder still works
+  (it needs the studio page for the folder picker's click). Templates, From the hub, Component usage
+  and Access are untouched.
+- Verified on the dev server: bare CAS → #/projects; OPS Templates stays; OPS sidebar Recent → #/projects;
+  CAS `#view=open` shows the card; Projects page 0 contrast failures both themes, no sideways scroll at 375.

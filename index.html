@@ -528,6 +528,22 @@ button{font-family:inherit}
 .rc b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font:500 14px/1.3 var(--ps-font); text-wrap:pretty}
 .rc small{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; margin-top:-4px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2); min-width:0}
 .rc small .mk{font-weight:400; font-size:12.5px}
+/* PROJECTS: every saved project on this computer, both studios, grouped as the studios grouped them
+   (CAS by campaign, OPS by format); the tiles are the desk's */
+.pj-tools{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:24px 0 8px}
+.pj-tools .srch{margin-left:auto}
+.pj-open{display:flex; flex-wrap:wrap; gap:8px}
+.pj-open .b{height:32px; padding:0 13px; font-size:13px}
+.pj-s{margin-top:36px}
+.pj-s > h2{display:flex; align-items:center; gap:10px; margin:0 0 4px; font:500 18px/1.3 var(--ps-font)}
+.pj-g{margin-top:22px; padding-top:20px; box-shadow:0 -1px 0 var(--ps-hair)}
+.pj-s > h2 + .pj-g{box-shadow:none; padding-top:6px}
+.pj-g .dk2{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+@media (max-width:640px){ .pj-g .dk2{grid-template-columns:repeat(2,minmax(0,1fr))} .pj-tools .srch{width:100%} }
+.pj-gh{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin:0 0 14px}
+.pj-gh b{font:500 15px/1.3 var(--ps-font)}
+.pj-gh small{font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
+.pj-none{margin-top:24px}
 .desk-more{display:flex; flex-wrap:wrap; gap:4px 16px; margin:18px 0 0; font:400 13px/1.4 var(--ps-font); color:var(--ps-ink-2)}
 .desk-more a{color:var(--ps-link); font-weight:500; text-decoration:none}
 .desk-more a:hover{text-decoration:underline; text-underline-offset:3px}
@@ -654,6 +670,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   <nav class="uh-nav" aria-label="Main">
     <a href="#/" data-nav="home">Home</a>
     <a href="#/status" data-nav="status">Status</a>
+    <a href="#/projects" data-nav="projects">Projects</a>
     <a href="#/access" data-nav="access">Access <span class="uh-n" id="acc-n" hidden></span></a>
   </nav>
   <span class="sp"></span>
@@ -939,7 +956,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     }
     var opens = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
     if (opens.length) h += '<section class="pan"><div class="sh">Your studios</div>' + opens.map(function(k){
-      return '<a class="st" href="' + STUDIO[k].file + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
+      return '<a class="st" data-k="' + k + '" href="' + (k === 'cas' ? '#/new/cas' : STUDIO[k].start) + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
     }).join('') + '</section>';
     h += '</aside></div>';
     return h;
@@ -1041,6 +1058,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
     else if (nav === 'new') html = viewNew();
     else if (nav === 'access') html = viewAccess();
+    else if (nav === 'projects') html = viewProjects();
     else { html = viewHome(); nav = 'home'; }
     pg.innerHTML = html; pg.hidden = !!host;
     ['cas', 'ops', 'plan'].forEach(function(k){ $(k + '-host').hidden = host !== k; });
@@ -1060,17 +1078,19 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
     $('mn-r').textContent = data.r ? (ROLE[rawRole()] || ROLE[data.r] || data.r) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio' }[nav];
+    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio' }[nav];
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
     if (nav === 'home') desk();
+    if (nav === 'projects') loadDesk(paintProjects);
   }
   window.addEventListener('hashchange', function(){ route(true); });
   document.addEventListener('click', function(e){
     var t = e.target.closest && e.target.closest('button, a'); if (!t) return;
     if (t.dataset.nx){ var n = data.mine.length, i = Math.max(0, Math.min(n - 1, cur + +t.dataset.nx)); if (i === cur) return; flip = +t.dataset.nx; cur = i; route(); var b = document.querySelector('[data-nx="' + t.dataset.nx + '"]'); if (b && !b.disabled) b.focus(); return; }
     if (t.dataset.hf){ homeF = t.dataset.hf; route(); return; }
+    if (t.dataset.pf){ pjF = t.dataset.pf; paintProjects(); return; }
     if (t.dataset.sf){ sxF = t.dataset.sf; route(); return; }
     if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
     if (t.hasAttribute('data-drive')){ connectDrive(); return; }
@@ -1080,6 +1100,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
   });
   document.addEventListener('input', function(e){
+    if (e.target.id === 'pj-q'){ pjQ = e.target.value; paintProjects(); return; }
     if (e.target.id === 'sx-q'){ sxQ = e.target.value; var pos = e.target.selectionStart; route(); var q = $('sx-q'); q.focus(); q.setSelectionRange(pos, pos); }
   });
   document.addEventListener('keydown', function(e){
@@ -1204,8 +1225,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       else go2();
     });
   }
-  function desk(){
-    if (deskRows) return paintDesk();
+  function desk(){ loadDesk(paintDesk); }
+  function loadDesk(cb){
+    if (deskRows) return cb();
     var KEYS = { campaign: 'cas', organic: 'ops' };
     Promise.all(Object.keys(KEYS).filter(function(k){ return studiosFor(roleOf()).indexOf(KEYS[k]) >= 0; }).map(function(k){
       return idbGet('recents:' + k).then(function(raw){
@@ -1217,7 +1239,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       });
     })).then(function(all){
       deskRows = [].concat.apply([], all).sort(function(x, y){ return (y.r.ts || 0) - (x.r.ts || 0); });
-      paintDesk();
+      cb();
     });
   }
   // a project's saved name carries its format as a file prefix (Carousel_, Reel_ …): the tile shows
@@ -1230,6 +1252,77 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     return { fmt: fmt, name: rest && !/^untitled$/i.test(rest) ? rest : 'Untitled' };
   }
   var DESK_MAX = 8;
+  function tileHtml(x, title, sub){
+    var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid, nm = recName(r.name), th = (r.thumbs || []).filter(function(t){ return /^data:image\//.test(t || ''); });
+    var pages = th.length, tag = nm.fmt ? nm.fmt + (pages > 1 ? ' \u00b7 ' + pages + ' pages' : '') : pages > 1 ? pages + (x.k === 'cas' ? ' variants' : ' pages') : '';
+    return '<li><a class="rc" href="' + st.file + '#recent=' + encodeURIComponent(pid) + '" title="' + esc(r.name || 'Untitled') + '">' +
+      '<span class="rc-st">' + (tag ? '<span class="rc-f">' + esc(tag) + '</span>' : '') + '<span class="rc-pg">' +
+        (pages > 1 ? '<img src="' + th[1] + '" alt="" decoding="async" loading="lazy">' : '') + '<img src="' + th[0] + '" alt="" decoding="async" loading="lazy"></span></span>' +
+      '<b>' + esc(title || nm.name) + '</b><small>' + (sub ? '<span>' + esc(sub) + '</span><span aria-hidden="true">\u00b7</span>' : mk(x.k) + '<span aria-hidden="true">\u00b7</span>') + esc(ago(r.ts || 0)) + '</small></a></li>';
+  }
+  // the home's Your studios: each opens on its newest saved project, else on starting one
+  function studioLinks(){
+    document.querySelectorAll('.st[data-k]').forEach(function(a){
+      var k = a.dataset.k, x = (deskRows || []).filter(function(y){ return y.k === k; })[0];
+      if (!x) return;
+      a.href = STUDIO[k].file + '#recent=' + encodeURIComponent(x.r.pid || x.r.state.pid);
+      a.querySelector('small').textContent = 'Continue ' + recName(x.r.name).name;
+    });
+  }
+
+  // ═════ PROJECTS ═════
+  var pjF = 'all', pjQ = '';
+  function viewProjects(){
+    var r = data.r, ks = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
+    if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on Status.</p></div></div>';
+    return '<h1 class="h1">Projects</h1><p class="lede">Every project saved on this computer, newest first. Open one to keep designing.</p>' +
+      '<div class="pj-tools">' + (ks.length > 1 ? '<div class="flt" role="group" aria-label="Show" id="pj-f"></div>' : '') +
+        '<div class="pj-open">' + ks.map(function(k){ return '<a class="b b-g" href="' + STUDIO[k].file + '#view=open">' + ico('out') + (k === 'cas' ? 'Open a project file' : 'Open a post file') + '</a>'; }).join('') + '</div>' +
+        '<label class="srch">' + ico('search') + '<input id="pj-q" type="search" placeholder="Find by name" value="' + esc(pjQ) + '" aria-label="Find a project by name"></label></div>' +
+      '<div id="pj"><div class="gt-busy"><i></i>Reading this computer\u2019s projects\u2026</div></div>';
+  }
+  function paintProjects(){
+    var host = $('pj'); if (!host) return;
+    var r = data.r, ks = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
+    var rows = (deskRows || []).filter(function(x){ return ks.indexOf(x.k) >= 0; });
+    var cnt = { all: rows.length, cas: 0, ops: 0 }; rows.forEach(function(x){ cnt[x.k]++; });
+    var f = $('pj-f'); if (f) f.innerHTML = [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(o){ return '<button type="button" data-pf="' + o[0] + '" aria-pressed="' + (pjF === o[0]) + '">' + o[1] + ' <small>' + cnt[o[0]] + '</small></button>'; }).join('');
+    var q = pjQ.toLowerCase();
+    rows = rows.filter(function(x){ return (pjF === 'all' || pjF === x.k) && (!q || String(x.r.name || '').toLowerCase().indexOf(q) >= 0); });
+    if (!rows.length) { host.innerHTML = '<div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (q || pjF !== 'all' ? 'Nothing matches' : 'Nothing saved on this computer yet') + '</h3><p>' + (q || pjF !== 'all' ? 'Try another name, or show everything.' : 'A project shows here once it is saved in a studio. Start one from New.') + '</p></div></div>'; return; }
+    var out = '';
+    ['cas', 'ops'].forEach(function(k){
+      var list = rows.filter(function(x){ return x.k === k; }); if (!list.length) return;
+      var groups = [], by = {};
+      list.forEach(function(x){
+        var nm = String(x.r.name || 'Untitled').trim(), g, title = '', sub = '';
+        if (k === 'cas') {
+          var rs = null, pid = x.r.pid || x.r.state.pid; try { rs = JSON.parse(localStorage.getItem('provident-rs-pid:' + pid) || 'null'); } catch (e) {}
+          var cut = nm.indexOf(' - '), camp = (rs && rs.name) || (cut > 0 ? nm.slice(0, cut) : nm);
+          var rest = nm.toLowerCase().indexOf(camp.toLowerCase() + ' - ') === 0 ? nm.slice(camp.length + 3) : (camp === nm ? '' : nm);
+          var m = rest.match(/\s*\(([^)]+)\)\s*$/); if (m) rest = rest.slice(0, m.index);
+          g = camp; title = rest.trim() || 'Single ad'; sub = m ? m[1] : '';
+        } else { var rn = recName(nm); g = rn.fmt || 'Other posts'; title = rn.name; }
+        var key = g.toLowerCase(); if (!by[key]) { by[key] = { name: g, items: [], ts: 0 }; groups.push(by[key]); }
+        by[key].items.push({ x: x, title: title, sub: sub }); by[key].ts = Math.max(by[key].ts, x.r.ts || 0);
+      });
+      groups.sort(function(a, b){ return b.ts - a.ts; });
+      // as the studios did: a group of one gets no heading of its own; they share one row, each
+      // tile naming its campaign (CAS) or keeping its own title (OPS)
+      var solo = groups.filter(function(g){ return g.items.length === 1; });
+      if (solo.length > 1 || (solo.length && solo.length < groups.length)) {
+        groups = groups.filter(function(g){ return g.items.length > 1; });
+        groups.push({ name: groups.length ? (k === 'cas' ? 'Other campaigns' : 'Other posts') : (k === 'cas' ? 'Campaigns' : 'Posts'), ts: solo[0].ts,
+          items: solo.map(function(g){ var it = g.items[0]; return k === 'cas' ? { x: it.x, title: g.name, sub: [it.title === 'Single ad' ? '' : it.title, it.sub].filter(Boolean).join(' \u00b7 ') } : it; }) });
+      }
+      out += '<section class="pj-s" aria-label="' + STUDIO[k].n + '"><h2>' + mk(k) .replace('class="mk"', 'class="mk" style="font:inherit;color:inherit"') + '<small style="font:400 13px/1 var(--ps-font);color:var(--ps-ink-2)">' + list.length + '</small></h2>' +
+        groups.map(function(gr){
+          return '<div class="pj-g"><div class="pj-gh"><b>' + esc(gr.name) + '</b><small>' + gr.items.length + (gr.items.length === 1 ? ' project' : ' projects') + ' \u00b7 last saved ' + esc(ago(gr.ts)) + '</small></div>' +
+            '<ol class="dk2">' + gr.items.map(function(it){ return tileHtml(it.x, it.title, it.sub); }).join('') + '</ol></div>';
+        }).join('') + '</section>';
+    });
+    host.innerHTML = out;
+  }
   function paintDesk(){
     var sec = $('desk'); if (!sec || !deskRows || !deskRows.length) return;
     var show = deskRows.slice(0, DESK_MAX), more = deskRows.length - show.length;
@@ -1242,9 +1335,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
           (pages > 1 ? '<img src="' + th[1] + '" alt="" decoding="async" loading="lazy">' : '') + '<img src="' + th[0] + '" alt="" decoding="async" loading="lazy"></span></span>' +
         '<b>' + esc(nm.name) + '</b><small>' + mk(x.k) + '<span aria-hidden="true">\u00b7</span>' + esc(ago(r.ts || 0)) + '</small></a></li>';
     }).join('');
-    var ks = ['cas', 'ops'].filter(function(k){ return deskRows.some(function(x){ return x.k === k; }); });
     $('desk-more').hidden = !more;
-    if (more) $('desk-more').innerHTML = '<span>' + more + ' more saved on this computer.</span>' + ks.map(function(k){ return '<a href="' + STUDIO[k].file + '">See all in ' + STUDIO[k].n + '</a>'; }).join('');
+    if (more) $('desk-more').innerHTML = '<span>' + more + ' more saved on this computer.</span><a href="#/projects">See all ' + deskRows.length + ' in Projects</a>';
+    studioLinks();
     sec.hidden = false;
   }
 
