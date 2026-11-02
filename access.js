@@ -311,8 +311,9 @@
   }
   function preview(r) {
     ss.set(LS_VIEWAS, r);
-    // from the landing page a preview opens the studio that role works in, in this tab
-    if (HOME) { if (r) location.href = encodeURIComponent(r === 'smm' ? OPS_FILE : 'Provident Campaign Studio.dc.html'); return; }
+    // ONE HOME (2026-11-02): on the home page a preview is the home as that role sees it — its
+    // queue, its board, its New and Access — not a jump into a studio; the page shows the bar
+    if (HOME) { apply(); return; }
     const sh = A.host;
     if (sh) { try { sh.setState({ splashView: r ? (only() || 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
     apply(); draw();
@@ -372,7 +373,7 @@
     const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['log', 'Activity', null]];
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
-      '<div class="ac-pv"><label for="ac-pvs">Preview the studio as</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
+      '<div class="ac-pv"><label for="ac-pvs">' + (HOME ? 'Preview the home as' : 'Preview the studio as') + '</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
         '<select id="ac-pvs" class="ac-sel" data-pv="1" title="Opens the studio as that role would see it, until you end the preview"><option value="" selected disabled>Choose a role</option>' +
         ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</select></span></div></div>';
     if (A.listErr) h += '<p class="acx-err" role="alert">' + esc(A.listErr) + '</p>';
@@ -595,6 +596,7 @@
     team, handOff, me,
     attach(shell) { A.host = shell; apply(); },
     signIn: () => signIn(false),
+    preview: r => preview(r || null),
     phase: () => A.phase,
     signOut
   };

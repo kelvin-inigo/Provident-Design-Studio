@@ -89,7 +89,7 @@ button{font-family:inherit}
 .b svg.i{width:17px; height:17px}
 
 /* ── page frame ── */
-.pg{width:100%; max-width:1320px; margin:0 auto; padding:40px 32px 48px; box-sizing:border-box; flex:1}
+.pg{width:100%; max-width:1320px; margin:0 auto; padding:40px 32px 48px; box-sizing:border-box}
 .h1{margin:0; font:400 clamp(30px,3.4vw,46px)/1.12 var(--ps-font); letter-spacing:-.028em; color:var(--ps-ink); text-wrap:balance}
 .h1 span{display:block; color:var(--ps-ink-2)}
 .h2{margin:0; font:400 28px/1.2 var(--ps-font); letter-spacing:-.018em}
@@ -512,14 +512,62 @@ button{font-family:inherit}
 .reel b{display:block; max-width:180px; font:500 14px/1.3 var(--ps-font); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .reel small{display:block; margin-top:2px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
 /* the admin's panel is access.js's own; this is only its frame */
-.acc-adm{width:100%; max-width:1320px; margin:0 auto; padding:0 32px 48px; box-sizing:border-box}
+.acc-adm{width:100%; max-width:1320px; margin:-24px auto 0; padding:0 32px 48px; box-sizing:border-box}
+
+/* SIGNED OUT: the page is a sign-in page, nothing of anyone's work behind it */
+body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-gate] .ft{display:none !important}
+.gt{min-height:calc(100vh - 140px); display:grid; grid-template-columns:minmax(0,440px) minmax(0,1fr); align-items:center; gap:48px; padding:24px 0}
+.gt-c{width:100%; max-width:440px; text-align:left}
+/* what the studios make, fanned: the only pictures here are the work itself */
+.gt-art{position:relative; height:440px; border-radius:24px; background:var(--ps-fill); overflow:hidden}
+.gt-art .rd{position:absolute; border-radius:8px; box-shadow:0 0 0 1px var(--ps-hair)}
+.gt-art .rd:nth-child(1){left:12%; top:16%; --h:250px; transform:rotate(-6deg)}
+.gt-art .rd:nth-child(2){left:38%; top:10%; --h:300px; z-index:1}
+.gt-art .rd:nth-child(3){right:10%; top:22%; --h:230px; transform:rotate(5deg)}
+@media (max-width:900px){ .gt{grid-template-columns:minmax(0,1fr); gap:28px} .gt-art{height:280px; order:-1} .gt-art .rd:nth-child(1){--h:160px} .gt-art .rd:nth-child(2){--h:190px} .gt-art .rd:nth-child(3){--h:150px} }
+.gt-c .h1{font-size:clamp(30px,3.2vw,40px); margin:0}
+.gt-c .lede{margin:12px 0 0}
+.gt-c .qk-a{margin-top:24px}
+.gt-c .b-lg{min-width:220px}
+.gt-n{margin:20px 0 0; padding-top:16px; box-shadow:0 -1px 0 var(--ps-hair); font:400 13px/1.5 var(--ps-font); color:var(--ps-ink-2)}
+.gt-n button{border:0; background:none; padding:0; color:var(--ps-link); font:500 13px/1.5 var(--ps-font); cursor:pointer; text-underline-offset:3px}
+.gt-n button:hover{text-decoration:underline}
+.gt-busy{display:flex; align-items:center; gap:12px; margin-top:24px; font:400 14px/1.4 var(--ps-font); color:var(--ps-ink-2)}
+.gt-busy i{width:18px; height:18px; border-radius:50%; box-shadow:inset 0 0 0 2px var(--ps-line); border-top:2px solid var(--ps-ink); box-sizing:border-box; animation:gt-r 900ms linear infinite}
+@keyframes gt-r{to{transform:rotate(360deg)}}
+/* PREVIEW AS: the admin sees the home as a role sees it, under a bar that says so */
+.pv{display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding:10px 32px; background:var(--ps-fill-on); color:var(--ps-ink); font:400 14px/1.3 var(--ps-font)}
+.pv b{font-weight:600}
+.pv .sp{flex:1}
+.pv button{height:32px; padding:0 14px; border:0; border-radius:var(--ps-pill); background:var(--ps-card); color:var(--ps-ink); font:600 13px/1 var(--ps-font); cursor:pointer}
+.pv button:hover{box-shadow:inset 0 0 0 1px var(--ps-line)}
+/* NEW CAMPAIGN: CAS's setup form, given a page — a title, the form in one card, and beside it how
+   a campaign moves from here */
+.np{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:28px 40px; align-items:start}
+.np-h{margin:0}
+.np-main .lede{margin:10px 0 24px}
+.np-card{padding:26px 30px 24px; border-radius:20px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair)}
+#plan-host .rsp-body{padding-top:0; gap:22px}
+#plan-host .rsp-name{font-size:clamp(24px,2.2vw,30px); letter-spacing:-.018em; padding-bottom:10px}
+#plan-host .rsp-sheet textarea{min-height:120px; height:132px}
+#plan-host .rsp-ft{margin-top:6px; padding-top:18px; box-shadow:0 -1px 0 var(--ps-hair)}
+.np-side{position:sticky; top:84px; display:flex; flex-direction:column; gap:16px}
+.np-flow{list-style:none; margin:0; padding:0; position:relative}
+.np-flow::before{content:''; position:absolute; left:4px; top:10px; bottom:12px; width:1px; background:var(--ps-line)}
+.np-flow li{position:relative; display:grid; grid-template-columns:9px minmax(0,1fr); gap:14px; padding:0 0 16px}
+.np-flow li:last-child{padding-bottom:0}
+.np-flow li > i{margin-top:5px; width:9px; height:9px; border-radius:50%; background:var(--c); box-shadow:0 0 0 3px var(--ps-card)}
+.np-flow b{display:block; font:500 14px/1.3 var(--ps-font)}
+.np-flow small{display:block; margin-top:3px; font:400 12.5px/1.45 var(--ps-font); color:var(--ps-ink-2)}
+@media (max-width:1060px){ .np{grid-template-columns:minmax(0,1fr)} .np-side{position:static} }
+@media (max-width:640px){ .np-card{padding:18px 16px} .pv{padding:10px 16px} .acc-adm{margin-top:-12px} }
 /* THE STUDIOS' OWN PAGES, mounted here: CAS's ad set page (share-link.js ArchView), OPS's post page
    (post-flow.js StatusView) and CAS's campaign setup (PlanView). Each host stays in the document once
    mounted, hidden when its route is not on screen, so its own refresh keeps the queue current. */
 .mnt{width:100%; max-width:1320px; margin:0 auto; padding:8px 32px 48px; box-sizing:border-box}
 .mnt-bk{margin:0 0 8px}
 @media (max-width:640px){ .mnt{padding:4px 16px 32px} }
-.ft{max-width:1320px; width:100%; margin:0 auto; box-sizing:border-box; padding:12px 32px 28px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px;
+.ft{max-width:1320px; width:100%; margin:auto auto 0; box-sizing:border-box; padding:12px 32px 28px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px;
   font:400 12.5px/1.4 var(--ps-font); color:var(--ps-ink-2)}
 .ft a{display:inline-flex; align-items:center; min-height:36px; color:var(--ps-link); text-decoration:none; font-weight:500}
 .ft a:hover{text-decoration:underline; text-underline-offset:3px}
@@ -602,11 +650,15 @@ button{font-family:inherit}
   </div>
 </header>
 
+<div class="pv" id="pv" role="status" hidden></div>
 <main class="pg" id="pg"></main>
 <section class="acc-adm" id="acc-adm" aria-label="Access" hidden><div data-acc-admin></div></section>
 <section class="mnt" id="cas-host" aria-label="Campaign" hidden><div data-rv-arch></div></section>
 <section class="mnt" id="ops-host" aria-label="Post" hidden><div data-post-status></div></section>
-<section class="mnt" id="plan-host" aria-label="New campaign" hidden><a class="bk mnt-bk" href="#/new"></a><div data-rs-plan></div></section>
+<section class="mnt" id="plan-host" aria-labelledby="np-h" hidden><a class="bk mnt-bk" href="#/new"></a>
+  <div class="np"><div class="np-main"><h1 class="h1 np-h" id="np-h">New campaign</h1><p class="lede" id="np-lede"></p>
+    <div class="np-card"><div data-rs-plan></div></div></div>
+  <aside class="np-side" id="np-side" aria-label="How a campaign moves"></aside></div></section>
 
 <footer class="ft">
   <span>Provident Design Studio</span>
@@ -781,6 +833,25 @@ button{font-family:inherit}
     return '<p class="fresh">' + (busy ? 'Reading from Google Drive\u2026' : 'Read from Google Drive ' + esc(ago(data.at)) + '. <a href="#" data-refresh>Refresh</a>') + '</p>';
   }
 
+  // ═════ THE GATE: signed out, checking, waiting for the admin, or the wrong account ═════
+  function gated(){ return !!acc && ['check', 'signin', 'busy', 'pending', 'declined', 'outside'].indexOf(phase) >= 0; }
+  function viewGate(){
+    var m = {
+      check: ['Checking your access', 'One moment.', ''],
+      signin: ['Sign in', 'Use your Provident Google account. What is waiting on you, and every campaign and post you work on, follow your role.', 'in'],
+      busy: ['Sign in', 'Finish signing in in the Google window.', 'busy'],
+      pending: ['Waiting for the admin', 'You asked to use the studios. The admin sees your request and lets you in; this page opens by itself when they do.', 'other'],
+      declined: ['No access yet', 'The admin has not let this account in. Ask them, or sign in with another account.', 'other'],
+      outside: ['That account can\u2019t sign in', 'Use your Provident Google account (@providentestate.com).', 'other']
+    }[phase] || ['Sign in', '', 'in'];
+    return '<div class="gt"><div class="gt-c"><h1 class="h1">' + m[0] + '</h1><p class="lede">' + m[1] + '</p>' +
+      (m[2] === 'in' ? '<div class="qk-a"><button class="b b-p b-lg" type="button" data-sign="in">Sign in with Google' + ico('r') + '</button></div>' : '') +
+      (m[2] === 'busy' || phase === 'check' ? '<div class="gt-busy"><i></i>' + (phase === 'check' ? 'Checking\u2026' : 'Signing in\u2026') + '</div>' : '') +
+      (m[2] === 'other' ? '<div class="qk-a"><button class="b b-p b-lg" type="button" data-sign="other">Use another account' + ico('r') + '</button></div>' : '') +
+      '<p class="gt-n">Provident Design Studio \u00b7 Campaign ads and Organic posts' + (m[2] === 'other' ? ' \u00b7 <button type="button" data-sign="out">Sign out</button>' : '') + '</p></div>' +
+      '<div class="gt-art" aria-hidden="true">' + [['campaign-d', 1], ['organic-listed', .75], ['campaign-h', 1]].map(function(r){ return '<span class="rd" style="--a:' + r[1] + '"><img src="preview/' + r[0] + '.webp" alt=""></span>'; }).join('') + '</div></div>';
+  }
+
   // ═════ HOME ═════
   function viewHome(){
     var r = data.r, list = data.mine, hr = new Date().getHours();
@@ -923,10 +994,10 @@ button{font-family:inherit}
     var h = '<h1 class="h1">Access</h1>';
     if (isAdmin()) return h + '<p class="lede">Who can sign in to the studios, and as what. Changes apply at their next sign-in.</p>';
     if (!me || !me.email || phase === 'signin' || phase === 'busy') return h + '<p class="lede" style="margin-bottom:24px">Who you are signed in as, and what your role lets you do.</p>' + quiet('access');
-    var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2].indexOf(raw) >= 0 || (raw === 'admin' && c[0] === 'Let people in') || (me.admin && c[0] === 'Let people in'); });
+    var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2].indexOf(raw) >= 0 || (isAdmin() && c[0] === 'Let people in'); });
     h = '<div class="ax2"><div class="ax2-main">' + h + '<p class="lede">Who you are signed in as, and what your role lets you do.</p>' +
       '<section class="idc"><span class="uh-av">' + esc(initials(P.name || P.email)) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
-        (raw ? '<span class="idc-r">' + esc(ROLE[raw] || raw) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (me.admin ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
+        (raw ? '<span class="idc-r">' + esc(ROLE[raw] || raw) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (isAdmin() ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
       '<section class="pan"><div class="sh">What your role opens<small>' + can.filter(Boolean).length + ' of ' + CAN.length + '</small></div><ul class="cn">' + CAN.map(function(c, i){
         return '<li data-on="' + (can[i] ? 1 : 0) + '"><span class="cn-i">' + (can[i] ? ico('check') : '') + '</span><span><b>' + c[0] + '</b><small>' + c[1] + '</small></span><span class="cn-s">' + (can[i] ? 'Yes' : 'No') + '</span></li>';
       }).join('') + '</ul></section></div><aside class="ax2-side">' +
@@ -943,9 +1014,11 @@ button{font-family:inherit}
     (hs.split('?')[1] || '').split('&').forEach(function(p){ var kv = p.split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); });
     var nav = parts[0] || 'home', html, pg = $('pg');
     var host = null;
-    if (nav === 'status') html = viewStatus(q);
+    document.body.toggleAttribute('data-gate', gated());
+    if (gated()) { html = viewGate(); nav = 'gate'; }
+    else if (nav === 'status') html = viewStatus(q);
     else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops')) { html = ''; host = parts[1]; openItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'status'; }
-    else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); }
+    else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
     else if (nav === 'new') html = viewNew();
     else if (nav === 'access') html = viewAccess();
     else { html = viewHome(); nav = 'home'; }
@@ -954,6 +1027,9 @@ button{font-family:inherit}
     $('plan-host').firstChild.innerHTML = ico('l') + (canStart(data.r).length > 1 ? 'Something else' : 'Home');
     $('plan-host').firstChild.href = canStart(data.r).length > 1 ? '#/new' : '#/';
     $('acc-adm').hidden = !(nav === 'access' && isAdmin());
+    var pv = acc && acc.now && phase === 'in' ? acc.now().preview : null, pb = $('pv');
+    pb.hidden = !pv || nav === 'gate';
+    if (pv) pb.innerHTML = '<span>Previewing the home as <b>' + esc(ROLE[pv] || pv) + '</b> \u2014 their queue, board, New and Access. Nothing you do here changes their account.</span><span class="sp"></span><button type="button" data-endpv>End preview</button>';
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0, an = $('acc-n'); an.textContent = pend; an.hidden = !pend;
     var cs = canStart(data.r), nb = $('newbtn');
@@ -964,8 +1040,8 @@ button{font-family:inherit}
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
     $('mn-r').textContent = data.r ? (ROLE[rawRole()] || ROLE[data.r] || data.r) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = { home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio' }[nav];
-    if (phase === 'in' || (me && me.email)) startWork();
+    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio' }[nav];
+    if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
     if (nav === 'home') desk();
@@ -979,7 +1055,8 @@ button{font-family:inherit}
     if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
     if (t.hasAttribute('data-drive')){ connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
-    if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else acc.signOut(); } return; }
+    if (t.hasAttribute('data-endpv')){ if (acc && acc.preview) acc.preview(null); return; }
+    if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
   });
   document.addEventListener('input', function(e){
@@ -997,9 +1074,11 @@ button{font-family:inherit}
   });
   // the account, live: access.js (home mode) asks the server who this is
   window.addEventListener('provident-access', function(e){
-    var d = e.detail || {}; phase = d.phase;
+    var d = e.detail || {}, was = phase, pvNow = acc && acc.now ? acc.now().preview : null; phase = d.phase;
     if (phase === 'in') me = js('provident-acc-me') || me;
+    else if (phase === 'signin' && was === 'in') signedOut();
     else if (phase === 'signin' && me && me.at) { me = null; try { localStorage.removeItem('provident-acc-me'); } catch (x) {} }
+    if (phase === 'in' && pvNow !== lastPv) { lastPv = pvNow; cur = 0; route(true); refreshAll(true); return; }
     route();
   });
 
@@ -1018,7 +1097,16 @@ button{font-family:inherit}
     confirmDiscard: function(){ return true; }, markSaved: function(){},
     shareOpenLink: function(sid){ location.href = OPS + '#share=' + encodeURIComponent(sid); },
     upd: function(fn){ var x = fn({}); if (x && x.screen === 'pick') location.href = OPS + '#view=tpl'; } };
-  var busy = false, started = false, tick = null;
+  var busy = false, started = false, tick = null, lastPv = acc && acc.now ? acc.now().preview : null;
+  // SIGNED OUT: nothing of the last person stays — not on the page, not in this computer's queue
+  function signedOut(){
+    me = null; inbox = { cas: null, ops: null }; started = false; clearInterval(tick); deskRows = null;
+    ['provident-acc-me', 'provident-inbox-cas', 'provident-inbox-ops', 'provident-status-sum', 'provident-status-list', 'provident-posts-list'].forEach(function(k){ try { localStorage.removeItem(k); } catch (x) {} });
+    // the studios' pages leave the document (their timers stop when their host is disconnected);
+    // a fresh empty host takes each one's place, and the next sign-in mounts them anew
+    document.querySelectorAll('[data-rv-arch], [data-post-status], [data-rs-plan]').forEach(function(d){ d.replaceWith(d.cloneNode(false)); });
+    if (location.hash && location.hash !== '#/') history.replaceState(null, '', location.pathname + location.search);
+  }
   function sees(k){ return studiosFor(roleOf()).indexOf(k) >= 0; }
   function startWork(){
     if (started) return; started = true;
@@ -1046,6 +1134,17 @@ button{font-family:inherit}
     if (s === 'ops' && window.providentPostStatus) { var P = window.providentPostStatus; P.mount(OPS_ENG); P.want = id; P.mount(OPS_ENG); }
   }
   function mountPlan(){ if (window.providentPlan) window.providentPlan.mount(CAS_ENG); }
+  function drawPlanPage(){
+    var r = data.r, pm = r === 'pm', waiting = data.rows.filter(function(x){ return x.studio === 'cas' && x.open; }).length;
+    $('np-lede').textContent = pm ? 'Name it, add the brief and who it\u2019s for, then file it as a ticket. A designer picks it up from Status.'
+      : 'Name it, add the brief and who it\u2019s for. File it as a ticket for a designer, or start designing it yourself.';
+    var F = [['var(--ps-dim)', 'Ticket', pm ? 'Filed here. It waits on Status until a designer picks it up.' : 'Filed here. Start designing picks it up at once.'],
+      ['var(--ps-link)', 'Design', 'Each audience is its own project, in English first.'],
+      ['var(--ps-warn)', 'Copy check', 'The content team checks the English, then the Arabic translation.'],
+      ['var(--ps-good)', 'Ready', 'Performance marketing downloads the package for every audience.']];
+    $('np-side').innerHTML = '<section class="pan"><div class="sh">How it moves</div><ol class="np-flow">' + F.map(function(f){ return '<li><i style="--c:' + f[0] + '"></i><span><b>' + f[1] + '</b><small>' + f[2] + '</small></span></li>'; }).join('') + '</ol></section>' +
+      (!pm && waiting ? '<section class="pan"><div class="sh">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/status?stage=new">See them on Status</a></p></section>' : '');
+  }
   // the mounted pages' own Back goes to the board here, not to their studio list
   document.addEventListener('click', function(e){
     var b = e.target.closest && e.target.closest('#cas-host [data-a="back"], #ops-host [data-ps="back"]');

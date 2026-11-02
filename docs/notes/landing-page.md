@@ -359,3 +359,25 @@ diff.
   ad set page; CAS sidebar Status → `#/status`; Preview as pm: CAS and OPS both go home, no Pick up
   or Start designing on the home. 0 contrast failures on 7 routes in both themes with the mounted
   pages; no sideways scroll at 375. **Not exercised against real Google Drive or real sign-in.**
+
+## QA pass (2026-11-02, by request): sign-out, Preview as, New campaign
+
+- **Signed out is a sign-in page.** `gated()` (access.js phase check / signin / busy / pending /
+  declined / outside) renders `viewGate()` and `body[data-gate]` hides the nav, New, the account and
+  the footer. A sign-out (phase `in` → `signin`) runs `signedOut()`: clears `provident-acc-me`, both
+  inbox keys, `provident-status-sum|list`, `provident-posts-list`, and REPLACES the three mount hosts
+  with empty clones — the studios' views stop their timers only when their own host is disconnected
+  (emptying it is not enough; verified: nothing written for 26 s after sign-out). Before this the
+  last person's queue stayed on screen after Sign out.
+- **Preview as previews the home.** access.js `preview()` in HOME mode just re-applies (no jump into
+  a studio); `providentAccess.preview(r)` is exported; the panel label says "Preview the home as".
+  The home reads the role from `providentAccess.now()` (role, raw, admin, preview), shows the `#pv`
+  bar with **End preview**, and re-reads both queues on a preview change (the studios' writers judge
+  `mine` by the previewed role). Verified for smm, pm and cten.
+- **New campaign** (`#/new/cas`) has a page: title, a lede by role, the setup form in one card (its
+  name input brought down to 30px, the brief to 132px), and a side panel — How it moves (the four
+  stages) and, for designers, the open tickets already waiting.
+- **Access**: `.pg` no longer `flex:1` (it pushed the admin panel half a screen down); the footer
+  takes `margin-top:auto`.
+- Seen and left: CAS's ad set page counts "Translation 1/1" on an English-only campaign (CAS's own
+  counter); its Google Drive status row repeats the account (kept: it is the Reconnect control).
