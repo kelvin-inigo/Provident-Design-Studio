@@ -381,3 +381,14 @@ diff.
   takes `margin-top:auto`.
 - Seen and left: CAS's ad set page counts "Translation 1/1" on an English-only campaign (CAS's own
   counter); its Google Drive status row repeats the account (kept: it is the Reconnect control).
+
+## Pick up where you left off, as a grid (2026-11-02, /impeccable, by request)
+
+The strip was a horizontal scroller of renders at their own widths, file-style names
+("Carousel_Untitled") and a cut-off last card. Now `.dk2`: up to 8 tiles, 4 a row (3 under 860px,
+2 on a phone), each a 4:5 `--ps-fill` stage with the render contained whole (never cropped); a
+carousel (`thumbs.length > 1`) shows its second page fanned behind; `recName()` turns the saved
+name's prefix (Carousel_ / Reel_ / Post_ …, Reel_Thumbnail_) into a tag ("Carousel · 3 pages") and
+the rest into words; the meta is the studio mark and the age. More than 8 → "N more … See all in
+<studio>" (each studio opens on Recent). Verified with seeded recents: 0 contrast failures both
+themes, tag clear of the render (13px), no sideways scroll at 375.

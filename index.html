@@ -502,15 +502,35 @@ button{font-family:inherit}
 .qk-o{flex:none; display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:var(--ps-good); color:var(--ps-app)}
 .qk-o[data-k="info"]{background:var(--ps-fill-h); color:var(--ps-ink-2)}
 .qk-o svg.i{width:20px; height:20px; stroke-width:2.2}
-/* the desk: this computer's saved projects, at their real shape */
-.desk{margin-top:40px}
-.reel{list-style:none; margin:0; padding:2px 2px 14px; display:flex; gap:18px; overflow-x:auto; scroll-snap-type:x proximity; scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
-.reel li{flex:none; scroll-snap-align:start}
-.reel a{display:flex; flex-direction:column; gap:10px; color:var(--ps-ink); text-decoration:none}
-.reel img{display:block; height:160px; width:auto; border-radius:6px; box-shadow:0 0 0 1px var(--ps-hair); transition:transform 240ms cubic-bezier(.16,1,.3,1), box-shadow var(--ps-motion) var(--ps-ease)}
-.reel a:hover img{transform:translateY(-3px); box-shadow:0 0 0 2px var(--ps-link)}
-.reel b{display:block; max-width:180px; font:500 14px/1.3 var(--ps-font); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.reel small{display:block; margin-top:2px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
+/* THE DESK: this computer's saved projects as an even grid. Every tile is the same frame — a
+   4:5 stage — and the render sits whole inside it at its own shape (never cropped: the layout is
+   what you are looking for). A carousel shows its second page behind the first and says how many
+   pages it has; the title is the project's name without its file prefix. */
+.desk{margin-top:44px}
+.desk .sh{margin-bottom:16px}
+.dk2{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px 16px}
+@media (max-width:860px){ .dk2{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.rc{display:flex; flex-direction:column; gap:10px; color:var(--ps-ink); text-decoration:none; border-radius:14px}
+.rc-st{position:relative; display:grid; place-items:center; aspect-ratio:4/5; padding:14% 12% 12%; box-sizing:border-box; border-radius:14px;
+  background:var(--ps-fill); box-shadow:inset 0 0 0 1px var(--ps-hair); transition:box-shadow var(--ps-motion) var(--ps-ease), background-color var(--ps-motion) var(--ps-ease)}
+.rc-st:has(.rc-f){padding-top:22%}
+.rc-pg{position:relative; display:grid; place-items:center; width:100%; height:100%}
+.rc-pg img{grid-area:1/1; display:block; max-width:100%; max-height:100%; width:auto; height:auto; border-radius:4px; box-shadow:0 0 0 1px var(--ps-hair);
+  transition:transform 320ms cubic-bezier(.16,1,.3,1)}
+.rc-pg img + img{position:relative; z-index:1}
+.rc-pg img:first-child:not(:only-child){transform:translate(7%,-5%) rotate(5deg) scale(.94); opacity:.9}
+.rc-f{position:absolute; left:10px; top:10px; z-index:2; display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:var(--ps-pill);
+  background:var(--ps-card); box-shadow:0 0 0 1px var(--ps-hair); font:500 11.5px/1 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap}
+.rc:hover .rc-st{background:var(--ps-fill-h); box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rc:hover .rc-pg img:last-child{transform:translateY(-4px)}
+.rc:hover .rc-pg img:first-child:not(:only-child){transform:translate(12%,-7%) rotate(8deg) scale(.94)}
+.rc:focus-visible{outline:2px solid var(--ps-ink); outline-offset:3px}
+.rc b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font:500 14px/1.3 var(--ps-font); text-wrap:pretty}
+.rc small{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; margin-top:-4px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2); min-width:0}
+.rc small .mk{font-weight:400; font-size:12.5px}
+.desk-more{display:flex; flex-wrap:wrap; gap:4px 16px; margin:18px 0 0; font:400 13px/1.4 var(--ps-font); color:var(--ps-ink-2)}
+.desk-more a{color:var(--ps-link); font-weight:500; text-decoration:none}
+.desk-more a:hover{text-decoration:underline; text-underline-offset:3px}
 /* the admin's panel is access.js's own; this is only its frame */
 .acc-adm{width:100%; max-width:1320px; margin:-24px auto 0; padding:0 32px 48px; box-sizing:border-box}
 
@@ -577,7 +597,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   .it-trk{grid-template-columns:repeat(2,minmax(0,1fr)); padding:18px 16px 0}
   .it-more{grid-template-columns:minmax(0,1fr); padding:18px}
   .qk{padding:20px}
-  .reel img{height:140px}
+  .dk2{grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px}
 }
 </style>
 </head>
@@ -893,7 +913,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
         data.others.slice(0, 5).map(function(x){ return row(x, true); }).join('') + '</ol></section>';
     }
     h += freshLine();
-    h += '<section class="desk" id="desk" hidden aria-labelledby="h-desk"><div class="sh" id="h-desk">Pick up where you left off<small id="desk-n"></small></div><ol class="reel" id="reel"></ol></section>';
+    h += '<section class="desk" id="desk" hidden aria-labelledby="h-desk"><div class="sh" id="h-desk">Pick up where you left off<small id="desk-n"></small></div><ol class="dk2" id="reel"></ol><p class="desk-more" id="desk-more" hidden></p></section>';
     h += '</div><aside class="hm-side" aria-label="Overview">';
 
     // where everything is: the four stages, each with the work actually in it
@@ -1196,18 +1216,35 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
           .map(function(r){ return { r: r, k: KEYS[k] }; });
       });
     })).then(function(all){
-      deskRows = [].concat.apply([], all).sort(function(x, y){ return (y.r.ts || 0) - (x.r.ts || 0); }).slice(0, 10);
+      deskRows = [].concat.apply([], all).sort(function(x, y){ return (y.r.ts || 0) - (x.r.ts || 0); });
       paintDesk();
     });
   }
+  // a project's saved name carries its format as a file prefix (Carousel_, Reel_ …): the tile shows
+  // the format as a tag and the name as words
+  function recName(n){
+    var m = /^(carousel|reel|post|story|feed|single|banner)[\s_-]+/i.exec(String(n || '')), rest = m ? String(n).slice(m[0].length) : String(n || '');
+    rest = rest.replace(/_+/g, ' ').replace(/\s+/g, ' ').trim();
+    var fmt = m ? m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() : '';
+    if (fmt === 'Reel' && /^thumbnail\b/i.test(rest)) { fmt = 'Reel thumbnail'; rest = rest.replace(/^thumbnail\s*/i, ''); }
+    return { fmt: fmt, name: rest && !/^untitled$/i.test(rest) ? rest : 'Untitled' };
+  }
+  var DESK_MAX = 8;
   function paintDesk(){
     var sec = $('desk'); if (!sec || !deskRows || !deskRows.length) return;
+    var show = deskRows.slice(0, DESK_MAX), more = deskRows.length - show.length;
     $('desk-n').textContent = deskRows.length;
-    $('reel').innerHTML = deskRows.map(function(x){
-      var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid;
-      return '<li><a href="' + st.file + '#recent=' + encodeURIComponent(pid) + '"><img src="' + r.thumbs[0] + '" alt="" decoding="async">' +
-        '<span><b>' + esc(r.name || 'Untitled') + '</b><small>' + st.n + ' · saved ' + esc(ago(r.ts || 0)) + '</small></span></a></li>';
+    $('reel').innerHTML = show.map(function(x){
+      var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid, nm = recName(r.name), th = (r.thumbs || []).filter(function(t){ return /^data:image\//.test(t || ''); });
+      var pages = th.length, tag = nm.fmt ? nm.fmt + (pages > 1 ? ' \u00b7 ' + pages + ' pages' : '') : pages > 1 ? pages + ' pages' : '';
+      return '<li><a class="rc" href="' + st.file + '#recent=' + encodeURIComponent(pid) + '" title="' + esc(r.name || 'Untitled') + '">' +
+        '<span class="rc-st">' + (tag ? '<span class="rc-f">' + esc(tag) + '</span>' : '') + '<span class="rc-pg">' +
+          (pages > 1 ? '<img src="' + th[1] + '" alt="" decoding="async" loading="lazy">' : '') + '<img src="' + th[0] + '" alt="" decoding="async" loading="lazy"></span></span>' +
+        '<b>' + esc(nm.name) + '</b><small>' + mk(x.k) + '<span aria-hidden="true">\u00b7</span>' + esc(ago(r.ts || 0)) + '</small></a></li>';
     }).join('');
+    var ks = ['cas', 'ops'].filter(function(k){ return deskRows.some(function(x){ return x.k === k; }); });
+    $('desk-more').hidden = !more;
+    if (more) $('desk-more').innerHTML = '<span>' + more + ' more saved on this computer.</span>' + ks.map(function(k){ return '<a href="' + STUDIO[k].file + '">See all in ' + STUDIO[k].n + '</a>'; }).join('');
     sec.hidden = false;
   }
 
