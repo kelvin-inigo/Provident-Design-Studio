@@ -7378,7 +7378,11 @@ class CampaignStudio extends StudioBase {
       }
       // Resuming lands in whichever WORKSPACE this browser last used — a copywriter's
       // machine reopens on the copy view, a designer's on the canvas.
-      return Object.assign(d, p, { exportStatus: warn, sel: null, screen: resume ? CampaignStudio.workScreen() : 'splash' });
+      // ONE HOME (2026-11-03): the studio has no start screen of its own any more (it goes to the
+      // home's Projects), so a reload reopens the project this tab was working on, as it was;
+      // a tab that was on the start screen stays there and goes home
+      const was = p.screen && p.screen !== 'splash' && p.screen !== 'pick';
+      return Object.assign(d, p, { exportStatus: warn, sel: null, screen: resume || was ? CampaignStudio.workScreen() : 'splash' });
     }
     try {
       const old = localStorage.getItem('provident-ad-studio');
@@ -18306,10 +18310,35 @@ class Component extends DCLogic {
     // (#share, #pick, #recent, #view, #hubopen) is still being opened
     // (2026-11-03) also in a tab that once opened a review link, and also when a project is closed
     // back to the start: the address's link only counts until something has opened
+    // A pick-up (Status's Pick up, a placeholder's #pick=) clears its hash and reloads into the new
+    // project with the request waiting in localStorage (share-link rsPickCheck) — that is opening
+    // too. The move waits a moment and looks again, so a studio still loading is never sent away.
+    if (this._link0 === undefined) this._link0 = StudioBase.linkAt || (/#(share|pick|recent|view|hubopen)/.test(location.hash) ? Date.now() : 0);
     if (view === 'rec' && !this._wentHome) {
-      const st0 = this.active().state;
-      if (st0 && st0.screen && st0.screen !== 'splash') this._opened = true;
-      else if (this._opened || !/#(share|pick|recent|view|hubopen)/.test(location.hash)) { this._wentHome = true; setTimeout(() => StudioBase.goHome('projects'), 0); }
+      const busy = () => {
+        const st = this.active().state;
+        if (st && st.screen && st.screen !== 'splash') { this._opened = true; return true; }
+        if (this._opened) return false;
+        // a link the page opened with (#share= clears itself before the project has loaded) gets
+        // up to 15 s; a dialog on screen (the name prompt, a picker, a progress box) holds it too
+        if (/#(share|pick|recent|view|hubopen)/.test(location.hash) || (this._link0 && Date.now() - this._link0 < 15000)) return true;
+        if (document.querySelector('.shl-dlg, .shl-dlg-c, .acx-pk, #acx')) return true;
+        // Add a project's request (provident-rsjoin) opens a saved project the same way
+        try { const p = JSON.parse(localStorage.getItem('provident-rspick') || 'null'); if (p && Date.now() - (p.at || 0) < 300000) return true; } catch (e) {}
+        try { const j = JSON.parse(localStorage.getItem('provident-rsjoin') || 'null'); if (j && Date.now() - (j.at || 0) < 180000) return true; } catch (e) {}
+        return false;
+      };
+      const isRec = () => ['all', 'rev', 'rec', 'acc'].indexOf(this.state.splashView || 'all') >= 0;
+      const check = () => {
+        this._homeT = null;
+        if (this._wentHome || !isRec()) return;
+        if (busy()) { if (!this._opened) this._homeT = setTimeout(check, 700); return; }
+        this._wentHome = true; StudioBase.goHome('projects');
+      };
+      // poll while something is opening; once a project is open, only its closing (the start
+      // screen again) schedules the move
+      const b = busy();
+      if (!this._homeT && (!b || !this._opened)) this._homeT = setTimeout(check, 700);
     }
    // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
     const eng = this.active();

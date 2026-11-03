@@ -3662,7 +3662,10 @@
       const s0 = this.summary();
       if (!(s0 && Date.now() - (s0.at || 0) < 120000)) await dsDiscover();
       const s = this.summary(), ids = this.list().map(x => x.id);
-      if (!ids.length || this._sumBusy || (s && Date.now() - (s.at || 0) < 120000)) return;
+      // nothing left on the list (the last one deleted or removed): the queue says so too, rather
+      // than keeping the gone campaign (2026-11-03)
+      if (!ids.length) { if (!this._sumBusy) statusSave([], eng); return; }
+      if (this._sumBusy || (s && Date.now() - (s.at || 0) < 120000)) return;
       const D = window.providentDrive;
       if (ids.some(isDs) && !(D && D.valid && D.valid())) return;
       this._sumBusy = true;
@@ -4374,10 +4377,14 @@
     // REDESIGNED 2026-10-29. One header card says what the campaign is and where it stands (the
     // four steps as counts, the audiences still waiting); the audiences are the main column, a
     // row each; the links, details, brief and Drive location sit in a narrow column beside them.
-    const cnt = i => auds.filter(a => a.steps[i].s === 'done').length;
-    const cur = all.ready ? 4 : STEP_LABELS.findIndex((l, i) => cnt(i) < auds.length);
-    const steps = '<ol class="rvd-steps">' + STEP_LABELS.map((l, i) => '<li data-i="' + i + '"' + (i === cur ? ' data-cur="1"' : '') + (auds.length && cnt(i) === auds.length ? ' data-done="1"' : '') + '>' +
-      '<span><i></i>' + esc(l) + '</span><b>' + cnt(i) + '<s>/' + auds.length + '</s></b><em><s style="width:' + (auds.length ? Math.round(cnt(i) / auds.length * 100) : 0) + '%"></s></em></li>').join('') + '</ol>';
+    // Translation counts only the audiences that have an Arabic version (2026-11-03): an English-only
+    // campaign read "Translation 1/1" with nothing ever translated
+    const need = i => i === 2 ? auds.filter(a => !a.engOnly) : auds;
+    const cnt = i => need(i).filter(a => a.steps[i].s === 'done').length;
+    const cur = all.ready ? 4 : STEP_LABELS.findIndex((l, i) => cnt(i) < need(i).length);
+    const steps = '<ol class="rvd-steps">' + STEP_LABELS.map((l, i) => { const n = need(i).length;
+      return '<li data-i="' + i + '"' + (i === cur ? ' data-cur="1"' : '') + (n && cnt(i) === n ? ' data-done="1"' : '') + '>' +
+      '<span><i></i>' + esc(l) + '</span><b>' + (auds.length && !n ? '<s>Not needed</s>' : cnt(i) + '<s>/' + n + '</s>') + '</b><em><s style="width:' + (n ? Math.round(cnt(i) / n * 100) : 0) + '%"></s></em></li>'; }).join('') + '</ol>';
     const waiting = auds.filter(a => !a.done);
     const nowLine = all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
       : !auds.length ? '<p class="rvd-now"><i></i>No projects yet — add the first one.</p>'

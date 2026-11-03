@@ -459,3 +459,27 @@ once a minute (visible tab only). The admin list (acclist) was re-read every 30 
 Access hidden; now 30 s on Access, 2 min elsewhere (the waiting badge).
 Not changed: the Content Hub's Send bridge, OPS's Templates / From the hub / Start a post, CAS's
 Component usage, the editors.
+
+## STATUS DETAILS PAGES, CLICKED THROUGH (2026-11-03)
+Asked "did you check the status details page?" — every control on a campaign page and a post
+page, on the share dev server. Worked as is: Ticket settings (save deadline/audiences), Pick
+up, Change audience, Add phase, Add a project, Already approved, Remove, Drive location Save,
+open a project / Start the English (new-tab links), All campaigns, Send to copy check (picker
+from Access › Roles), Approve copy. Fixed:
+- A ticket filed on the home wasn't on Status until Refresh (refreshSum skips a summary under
+  2 min old): coming back to Status/Home from New or an item page now runs refreshAll(true).
+- Delete for everyone / Remove from this list redrew the studio's old campaign list inside the
+  home: the home now watches for the page closing and goes to #/status. And when the last
+  campaign goes, refreshSum returned early and the queue kept it: an empty list saves an empty
+  queue (statusSave([])).
+- Campaign tracker said "Translation 1/1" with no Arabic anywhere: Translation counts only the
+  audiences with an Arabic version, and reads "Not needed" when none have one.
+- THE BIG ONE — a studio reload (and a post's "Open in the studio", which re-opens a link the
+  tab already followed) booted to the start screen, which now goes home: you lost your design
+  on ⌘R. CampaignStudio.load / OrganicStudio.load now resume the tab's own project on the
+  screen it was on (CAS: workScreen(); OPS: editor or guide) unless it was on the start screen.
+- The Projects move waited only on the address. Now it polls while anything is opening: a
+  link the page loaded with (StudioBase.linkAt, noted as studio-base.js loads, 15 s), a dialog
+  on screen, a pending Pick up (provident-rspick) or Add a project (provident-rsjoin); once a
+  project is open it stays, and closing it (the editor's Projects button) goes home.
+Not verified: real Google Drive, real sign-in, the live site.

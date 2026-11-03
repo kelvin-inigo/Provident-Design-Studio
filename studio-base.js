@@ -1814,6 +1814,11 @@ class StudioBase {
 // by design (an INTERNAL app, so only Provident accounts sign in). One token per page: CAS's
 // Ad sets and both studios' Projects folder view all read this object, so one sign-in serves
 // them all. The token is kept in memory only. docs/google-drive-setup.md has the admin steps.
+// A LINK THE PAGE OPENED WITH (2026-11-03): #share, #pick, #recent, #view, #hubopen are read and
+// dropped from the address by the time the shell first draws, so the moment is noted here, as
+// the page loads; a studio with nothing open waits for it before going to the home's Projects.
+StudioBase.linkAt = /#(share|pick|recent|view|hubopen)=/.test(location.hash || '') ? Date.now() : 0;
+
 window.providentDrive = {
   CLIENT: '210522580023-ajcrfmscqohgbdq36t6ph4mrhnk9u5s3.apps.googleusercontent.com',
   SCOPE: 'https://www.googleapis.com/auth/drive',
