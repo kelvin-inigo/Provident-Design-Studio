@@ -517,8 +517,9 @@ button{font-family:inherit}
 .rc-st:empty{aspect-ratio:4/5; background:var(--ps-fill); box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .rc:focus-visible{outline:2px solid var(--ps-ink); outline-offset:3px}
 .rc b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font:500 14px/1.3 var(--ps-font); text-wrap:pretty}
-.rc small{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; margin-top:-4px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2); min-width:0}
-.rc small .mk{font-weight:400; font-size:12.5px}
+.rc small{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; margin-top:-4px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-dim); min-width:0}
+.rc small .mk{font-weight:400; font-size:12.5px; color:inherit}   /* the quiet grey of the meta line, not the studio mark's colour (2026-11-03) */
+.rc small .mk i{box-shadow:inset 0 0 0 1.25px var(--ps-dim)} .rc small .mk i::before,.rc small .mk i::after{background:var(--ps-dim)}
 /* PROJECTS: every saved project on this computer, both studios, grouped as the studios grouped them
    (CAS by campaign, OPS by format); the tiles are the desk's */
 .pj-tools{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:24px 0 8px}
