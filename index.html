@@ -881,6 +881,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
         rows.push(y);
       });
     });
+    if (studiosFor(r).indexOf('ops') >= 0) hubRows(r).forEach(function(y){ y.stage = stageOf(y); rows.push(y); });
     function urgency(x){ var d = due(x.due); return d ? d.n : 999; }
     var mine = rows.filter(function(x){ return x.mine; }).sort(function(p, q){ return urgency(p) - urgency(q) || (q.at || 0) - (p.at || 0); });
     var others = rows.filter(function(x){ return !x.mine && !x.ready; }).sort(function(p, q){ return (q.at || 0) - (p.at || 0); });
@@ -888,8 +889,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     return { rows: rows, mine: mine, others: others, at: at, known: known, r: r };
   }
   function get(s, id){ return data.rows.filter(function(x){ return x.studio === s && String(x.id) === id; })[0]; }
-  function itemLink(x){ return '#/item/' + x.studio + '/' + encodeURIComponent(x.id); }
-  function href(x){ var r = data.r; return x.studio === 'cas' && (r === 'ct' || r === 'pm') && x.href ? esc(x.href) : itemLink(x); }
+  function itemLink(x){ return x.hub ? esc(x.href) : '#/item/' + x.studio + '/' + encodeURIComponent(x.id); }
+  function href(x){ var r = data.r; return (x.hub || (x.studio === 'cas' && (r === 'ct' || r === 'pm'))) && x.href ? esc(x.href) : itemLink(x); }
+  function mkOf(x){ return x.hub ? '<span class="mk-h">' + ico('tray') + 'Content Hub</span>' : mk(x.studio); }
 
   // the states a page shows before there is a queue: signed out, never read Status, clear
   function quiet(where){
@@ -907,7 +909,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   }
   function freshLine(){
     if (!data.known) return '';
-    return '<p class="fresh">' + (busy ? 'Reading from Google Drive\u2026' : 'Read from Google Drive ' + esc(ago(data.at)) + '. <a href="#" data-refresh>Refresh</a>') + '</p>';
+    return '<p class="fresh">' + (busy ? 'Reading from Google Drive\u2026' : 'Read from Google Drive ' + esc(ago(data.at)) + '.' + hubLine() + ' <a href="#" data-refresh>Refresh</a>') + '</p>';
   }
 
   // ═════ THE GATE: signed out, checking, waiting for the admin, or the wrong account ═════
@@ -944,9 +946,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       '<button class="icb" type="button" data-nx="1" aria-label="Next"' + (cur < n - 1 ? '' : ' disabled') + '>' + ico('chev') + '</button></span>' : '') + '</div>';
     if (top){
       var st = top.steps || [], sg = top.segs || [];
-      h += '<article class="nx"' + (fd ? ' data-flip style="--d:' + fd + '"' : '') + '><a href="#/item/' + top.studio + '/' + encodeURIComponent(top.id) + '" tabindex="-1" aria-hidden="true">' + rd(top, 250, true) + '</a><div class="nx-b">' +
+      h += '<article class="nx"' + (fd ? ' data-flip style="--d:' + fd + '"' : '') + '><a href="' + itemLink(top) + '" tabindex="-1" aria-hidden="true">' + rd(top, 250, true) + '</a><div class="nx-b">' +
         '<div class="nx-src">' + mk(top.studio) + dueEl(top) + '</div>' +
-        '<h3><a href="#/item/' + top.studio + '/' + encodeURIComponent(top.id) + '">' + esc(top.name) + '</a></h3>' +
+        '<h3><a href="' + itemLink(top) + '">' + esc(top.name) + '</a></h3>' +
         '<p class="lede" style="font-size:13px;margin-top:10px"><b style="font-weight:500;color:var(--ps-ink)">' + esc(top.step || '') + '</b>' + (top.sub ? ' · ' + esc(top.sub) : '') + (top.from ? ' · from ' + esc(top.from) : '') + (top.at ? ', ' + esc(ago(top.at)) : '') + '</p>' +
         (st.length && sg.length ? '<ol class="nx-steps" style="--n:' + st.length + '">' + st.map(function(l, i){
           var copy = top.studio === 'ops' ? i === 2 : i === 1 || i === 2, v = sg[i];
@@ -1003,9 +1005,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     return h;
   }
   function row(x, other){
-    var link = '#/item/' + x.studio + '/' + encodeURIComponent(x.id);
+    var link = itemLink(x);
     return '<li class="row"><a class="th" style="--w:' + (other ? 44 : 56) + 'px" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, other ? 44 : 56) + '</a><div class="row-t"><a href="' + link + '">' + esc(x.name) + '</a>' +
-      '<div class="row-m">' + mk(x.studio) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div></div>' +
+      '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div></div>' +
       dueEl(x) + (other ? '' : '<a class="b b-g" href="' + href(x) + '">' + esc(x.verb || 'Open') + '</a>') + '</li>';
   }
 
@@ -1029,7 +1031,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       return '<section class="col" id="col-' + s.k + '" aria-label="' + s.n + '"><div class="col-h"><i style="--c:' + s.c + '"></i>' + s.n + (late ? '<span class="col-late">' + late + ' overdue</span>' : '') + '<small>' + c.length + '</small></div>' +
         '<span class="col-who">' + esc(s.who) + '</span>' +
         (c.length ? '<ul class="cds">' + c.map(function(x){
-          return '<li><a class="cd" href="#/item/' + x.studio + '/' + encodeURIComponent(x.id) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span>' + mk(x.studio) + '<b>' + esc(x.name) + '</b></span></span>' +
+          return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span>' + mkOf(x) + '<b>' + esc(x.name) + '</b></span></span>' +
             '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
             '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + esc(initials(x.from)) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + dueEl(x) + '</span></a></li>';
         }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + (sxF !== 'all' || sxMine || sxQ ? ' for this filter' : '') + '.</p>') + '</section>';
@@ -1207,9 +1209,76 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var jobs = [];
     if (sees('cas') && window.providentReviews) { if (force) { try { localStorage.removeItem('provident-status-sum'); } catch (e) {} } jobs.push(window.providentReviews.refreshSum(null)); }
     if (sees('ops') && window.providentPostFeed) jobs.push(window.providentPostFeed.load(!force));
+    if (sees('ops') && hubCfg()) jobs.push(hubLoad(force));
     if (!jobs.length) return;
     busy = true; if (!data || !data.known || force) redraw();
     Promise.all(jobs.map(function(p){ return Promise.resolve(p).catch(function(){}); })).then(function(){ busy = false; redraw(); });
+  }
+  // ── THE CONTENT HUB'S DESIGN QUEUE ON STATUS (2026-11-03) ─────────────────────────────────
+  // Read only: GET <hub>/api/design/jobs?all=1 with the hub address and token this computer
+  // already keeps for OPS's Send (Share › Import hub), through the same local-network fetch
+  // (StudioBase.hubFetch). Nothing here claims a job or sends anything — the Send bridge is
+  // untouched. A task opens in OPS through the hub's own link (#hubopen=<…/api/items/<id>/studio>),
+  // which carries the post's card id, so the studio's Send attaches the design to that post.
+  var HUB_LS = 'provident-inbox-hub', HUB_DONE = 14 * 864e5, HUB_DEFAULT = 'https://provident-content-hub.ngrok-free.dev/api/imports';   // OPS's EP_DEFAULT
+  function hubCfg(){
+    for (var i = 0, ks = ['provident-ops-endpoint', 'provident-cas-endpoint']; i < ks.length; i++) {
+      var c = js(ks[i]) || {};
+      if (c.key && !c.url) c.url = HUB_DEFAULT;
+      if (c.url && c.key) return { url: String(c.url).trim(), key: c.key, base: String(c.url).trim().replace(/\/api\/imports.*$/, '').replace(/\/+$/, '') };
+    }
+    return null;
+  }
+  function hubLoad(force){
+    var c = hubCfg(), was = js(HUB_LS) || {};
+    if (!c) return null;
+    if (!force && was.base === c.base && Date.now() - (was.at || 0) < 60000) return null;
+    var url = c.base + '/api/design/jobs?all=1', ctx = { hubCfg: function(){ return { url: c.url, key: c.key }; } };
+    function keep(o){ try { localStorage.setItem(HUB_LS, JSON.stringify(o)); } catch (e) {} }
+    return StudioBase.prototype.hubFetch.call(ctx, url, 20000, 'no-store', { 'X-Design-Key': c.key }).then(function(r){
+      if (!r.ok) throw { why: r.status === 401 || r.status === 403 ? 'it refused this computer’s key for reading the queue' : 'it answered HTTP ' + r.status };
+      return r.json();
+    }).then(function(d){
+      var jobs = (d && d.jobs || []).map(function(j){ var cp = j.copy || {};
+        return { id: j.card_id, state: j.state, title: cp.title || '', format: j.format || '', site: j.site || '', plat: j.platforms || [],
+          sent: j.sent_at || '', claimed: j.claimed_at || '', by: j.claimed_by || '', done: j.delivered_at || '', assets: (j.assets || []).slice(0, 1) }; });
+      keep({ at: Date.now(), base: c.base, jobs: jobs });
+    }).catch(function(e){
+      keep(Object.assign({}, was.base === c.base ? was : {}, { base: c.base, err: e && e.why ? e.why : (e && e.name === 'AbortError' ? 'it took too long to answer' : 'it could not be reached'), errAt: Date.now() }));
+    });
+  }
+  function hubTime(t){ var n = Date.parse(t || ''); return isNaN(n) ? 0 : n; }
+  // the hub's job states on the board: queued → New, in design / changes asked → Design,
+  // delivered and waiting for the hub's approval → Copy check, approved → Ready (for two weeks)
+  function hubRows(r){
+    var c = hubCfg(), h = js(HUB_LS);
+    if (!c || !h || h.base !== c.base || !Array.isArray(h.jobs)) return [];
+    var designs = r === 'designer' || r === 'admin', OPSF = 'Provident%20Organic%20Studio.dc.html';
+    var http = location.protocol === 'https:' && /^http:/i.test(c.base);
+    return h.jobs.filter(function(j){ return j.state !== 'approved' && j.state !== 'delivered' || Date.now() - hubTime(j.done) < HUB_DONE; }).map(function(j){
+      var st = j.state, open = st === 'queued', ready = st === 'approved' || st === 'delivered';
+      var step = open ? 'Ticket' : st === 'review' ? 'Copy check' : ready ? 'Ready' : 'Design';
+      var sub = open ? 'Waiting for a designer' : st === 'changes' ? 'Changes asked on the hub' : st === 'review' ? 'Waiting for approval on the hub' : ready ? 'Approved on the hub' : 'In design' + (j.by ? ' · ' + j.by.replace(/\s*\(.*\)$/, '') : '');
+      var k = open ? 0 : st === 'review' ? 2 : ready ? 3 : 1, link = c.base + '/api/items/' + j.id + '/studio';
+      var b64 = btoa(unescape(encodeURIComponent(link))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      var th = j.assets[0] ? (/^\//.test(j.assets[0]) ? c.base + j.assets[0] : j.assets[0]) : '';
+      return {
+        studio: 'ops', hub: true, id: 'hub-' + j.id, name: j.title || 'Hub post', open: open, ready: ready,
+        mine: designs ? (open || st === 'changes') : r === 'smm' ? st === 'review' : false,
+        step: step, sub: sub, verb: open ? 'Design it' : st === 'changes' ? 'Make the changes' : 'Open in OPS',
+        segs: [0, 1, 2, 3].map(function(i){ return i < k || ready ? 'done' : i === k ? 'cur' : 'pend'; }), steps: ['Ticket', 'Design', 'Copy check', 'Ready'],
+        due: '', from: 'Content Hub', at: Math.max(hubTime(j.sent), hubTime(j.claimed), hubTime(j.done)),
+        thumb: th && !(http && /^http:/i.test(th)) ? th : '', ratio: .75, href: OPSF + '#hubopen=' + b64
+      };
+    });
+  }
+  function hubLine(){
+    if (!sees('ops')) return '';
+    var c = hubCfg(), h = js(HUB_LS) || {};
+    if (!c) return ' Content Hub not set up on this computer (OPS › Share › Import hub).';
+    if (h.base !== c.base) return '';
+    if (h.err && (h.errAt || 0) >= (h.at || 0)) return ' Content Hub not read: ' + esc(h.err) + (location.protocol === 'https:' && /^http:/i.test(c.base) ? ' (on the office network, allow local network access when Chrome asks)' : '') + '.';
+    return h.at ? ' Content Hub read ' + esc(ago(h.at)) + '.' : '';
   }
   function connectDrive(){
     var K = window.providentDsKit;

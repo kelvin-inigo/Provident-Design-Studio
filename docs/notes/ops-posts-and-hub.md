@@ -472,3 +472,32 @@ redirects the browser's preflight to ngrok's login, so the request never reaches
 URL typed by hand otherwise stays. Every request to an ngrok host carries
 `ngrok-skip-browser-warning` (`StudioBase.hubTunnel`, read by `hubFetch` and `epPost`) so ngrok's
 free-domain warning page is skipped; the hub lists that header in its CORS allowed headers.
+
+# THE CONTENT HUB'S DESIGN QUEUE IS ON STATUS (2026-11-03)
+
+By request ("build it in so CH tasks are pulled into the status"). Read only: index.html's
+`hubLoad()` GETs `<hub>/api/design/jobs?all=1` through `StudioBase.prototype.hubFetch` (the same
+local-network dance as the studios; it now takes optional extra headers) with the address and key
+from `provident-ops-endpoint` (else `provident-cas-endpoint`; a key with no address means OPS's
+`EP_DEFAULT`), sending the key as `X-Design-Key` and `Authorization: Bearer`. The answer is kept
+in `provident-inbox-hub` {at, base, jobs, err, errAt}; `hubRows()` turns each job into an `ops`
+row with `hub: true`: queued → New ("Ticket"), in_progress / changes → Design, review → Copy check,
+approved / delivered → Ready for 14 days. Mine: a designer (or admin) for queued and changes, the
+social media manager for review. A card opens `OPS#hubopen=<base64url <hub>/api/items/<id>/studio>`,
+the hub's own Open-in-OPS link, so the project carries `hubCardId` and Send attaches to the post.
+Nothing claims a job or posts anything: **the Send bridge is untouched.** Read on every Status
+refresh (at most once a minute otherwise); the footer says when, or why not.
+
+**What the real hub still needs (not done — the permission check refused it as weakening the
+hub's auth):** the hub's `design_get` accepts only `HUB_IMPORT_TOKEN`, while OPS keeps the
+**design key** (which opens `POST /api/imports` only). So against the real hub, Status says "it
+refused this computer's key for reading the queue" until either the hub lets the design key READ
+`/api/design/jobs` (one line in `backend/server/server.py` `design_get`: `token_ok() or
+design_key_ok()`), or this computer's Import hub key is the import token. Behind ngrok the route
+must also be exempt from the tunnel's Google sign-in, as `/api/imports` is.
+
+Test server: `serve.py` answers `/api/design/jobs` and `/api/items/<id>/studio` like the hub (key
+`dev-hub-token`, one job per state) and `/dev-seed` points OPS's Import hub at it. Verified: the
+five jobs in their columns, Open → OPS opened the 3-page carousel with `hubCardId`, SMM owns the
+review job, a wrong key says so and keeps the last list, PM sees them read only. Not verified
+against the office or ngrok hub.

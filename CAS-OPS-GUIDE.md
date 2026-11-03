@@ -20,11 +20,13 @@ How to use the two Provident design studios in this folder.
 >   name, a phone number or a QR code. Ask for it. Every required field has to be filled before export.
 > - **Don't change the studios.** Don't edit the `.dc.html`, `.js` or `tools/` files unless you
 >   are asked to change the studio itself. `CLAUDE.md` is the engineering record of why things work
->   the way they do. It is very long, so search it rather than reading it whole, and only for
->   "why" questions or before changing code.
+>   the way they do: the standing rules, with the history of each area in `docs/notes/`. Search
+>   those only for "why" questions or before changing code.
 > - **Never write a token, key or password into a file in this folder.** The folder is a public
 >   GitHub repository. Tokens are typed into the studio's own fields and stay on that computer.
 > - When you finish, **tell the user where the files are**: the folder path and the file names.
+> - **Read `CAS-OPS-WHATS-NEW.md` too**: what moved in the latest changes (one home page, Projects
+>   off the studios, Roles in Access), so you never send anyone to a screen that is gone.
 
 **Contents:**
 0. [Set up on a new computer](#0-set-up-on-a-new-computer)
@@ -120,6 +122,14 @@ say so and point to the step above.
     designer**, **Send to copy check** and **Approve copy**, Copy link, the brief, activity). A step
     that names who gets it next asks you to pick the person, as in the studios. **Pick up** and
     **Open in the studio** open the studio on that work.
+  - **Content Hub posts on Status.** Posts the Content Hub sent to design show on the board too,
+    tagged **Content Hub**: waiting for a designer under **New**, in design or with changes asked
+    under **Design**, delivered and waiting for approval on the hub under **Copy check**, approved
+    under **Ready** (for two weeks). Clicking one opens it in OPS with the hub's copy on its pages,
+    and **Send** then attaches the design to that hub post. Status reads the hub with the address
+    and key set in OPS under **Share › Import hub**; the line under the board says when the hub was
+    last read, or why it could not be (not set up, the key refused, the hub not reached). From the
+    website, Chrome asks to allow local network access the first time.
   - **Access**: the admin gets the whole Access panel (requests to let in, people and their roles,
     activity, and Preview as). Everyone else sees their role and what it lets them do.
 - **New** (top right) follows your role: a designer picks **A campaign** or **An organic post**;
@@ -133,8 +143,8 @@ say so and point to the step above.
   zip instead.
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the
   two studios link to each other.
-- To switch studios, use **Campaign ads** / **Organic posts** in the top bar or in the project
-  browser's sidebar.
+- To switch studios, go back to the home page: the editors' top bar has no **Campaign ads** /
+  **Organic posts** switch any more.
 - The sun/moon button switches between light and dark. Both studios share the setting.
 - **Every tab is its own workspace.** When you open a studio, a `?ws=…` tag appears at the
   end of the address. That tab has its own project and photos, so several tabs (or several Claude
@@ -209,7 +219,8 @@ from Google the first time they do. The admin can still change or remove anyone 
 
 ## 2. Projects: new, open, save
 
-Each studio opens on its **project browser**.
+Saved projects from both studios are on the home page's **Projects**; a studio opened with
+nothing in it goes there.
 
 - **Start something new:**
   - In CAS, every project belongs to a **campaign** (an ad set). Use **New › A campaign** on the
@@ -238,7 +249,7 @@ Each studio opens on its **project browser**.
 - **Every new project starts fresh.** A new campaign or post, a template, or a project opened from
   Recent has no Source folder and no pictures from the one before. Pick its folder on the first
   Save. A new browser tab is a fresh session too. Opening a project file sets the folder it opens from.
-- **Recent** only lists projects that have actually been saved. A save, an export into the Source
+- **Projects** (on the home) only lists projects that have actually been saved. A save, an export into the Source
   folder, and opening a session file all count. In CAS they are grouped by campaign: the
   campaign's name is the heading, and each card shows the audience, market and language, when it
   was saved and how many variants it has. Campaigns with only one project share an
