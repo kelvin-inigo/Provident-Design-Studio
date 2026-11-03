@@ -12,7 +12,6 @@ studios talk to the public website's store (share-link.js, shareBase()).
 """
 import importlib.util
 import os
-import re
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import urllib.parse
@@ -196,48 +195,7 @@ button:disabled{opacity:.6;cursor:default}ol{margin:20px 0 0;padding-left:20px;c
         self.end_headers()
         self.wfile.write(out)
 
-    # A CONTENT HUB STAND-IN (2026-11-03): /api/design/jobs answers like the office hub's design
-    # queue (one job in each state), /api/items/<id>/studio with a draft OPS can open — the hub's
-    # own paths, so OPS's #hubopen check passes. Key 'dev-hub-token'. Read only; /dev-seed points
-    # OPS's Import hub at this server.
-    HUB_JOBS = [
-        (900001, 'queued', 'Golden Visa in 5 steps', ''),
-        (900002, 'in_progress', 'Dubai Marina weekend guide', 'Design Studio (Claude)'),
-        (900003, 'changes', 'Off-plan vs ready: what to buy', 'Aisha Rahman'),
-        (900004, 'review', 'Q4 rental yields by area', 'Marco Santos'),
-        (900005, 'approved', 'Meet the team: leasing', 'Aisha Rahman'),
-    ]
-
-    def _hubmock(self, path):
-        import json as _j, time as _t, re as _re
-        def send(code, obj):
-            out = _j.dumps(obj).encode()
-            self.send_response(code); self.send_header('Content-Type', 'application/json')
-            self.send_header('Content-Length', str(len(out))); self.end_headers(); self.wfile.write(out)
-        if 'dev-hub-token' not in ((self.headers.get('Authorization') or '') + (self.headers.get('X-Design-Key') or '')):
-            return send(401, {'error': 'Missing or wrong token. Send Authorization: Bearer <token>.'})
-        now = _t.time()
-        iso = lambda h: _t.strftime('%Y-%m-%dT%H:%M:%S+0000', _t.gmtime(now - h * 3600))
-        jobs = [{'card_id': i, 'state': st, 'site': 'PE', 'format': 'Carousel', 'platforms': ['Instagram'],
-                 'sent_at': iso(30 + n * 6), 'claimed_at': iso(20 + n * 5) if by else None, 'claimed_by': by or None,
-                 'delivered_at': iso(n * 3) if st in ('review', 'approved') else None, 'assets': [],
-                 'copy': {'title': t, 'slides': [t, 'The point, in a line.', 'Link in bio'], 'caption': t}}
-                for n, (i, st, t, by) in enumerate(self.HUB_JOBS)]
-        if path == '/api/design/jobs':
-            return send(200, {'count': len(jobs), 'jobs': jobs})
-        m = _re.match(r'^/api/items/(\d+)/studio$', path)
-        j = m and next((x for x in jobs if str(x['card_id']) == m.group(1)), None)
-        if j:
-            t = j['copy']['title']
-            return send(200, {'app': 'provident-smp-studio', 'v': 3, 'hubCardId': str(j['card_id']),
-                              'state': {'tpl': 'carousel', 'customName': t, 'hubCardId': str(j['card_id']), 'slides': [
-                                  {'id': 's1', 'kind': 'cfront', 'f': {'headline': t, 'sub': ''}},
-                                  {'id': 's2', 'kind': 'ctext', 'f': {'eyebrow': '', 'title': 'The point', 'body': 'In a line.'}},
-                                  {'id': 's3', 'kind': 'ccta', 'f': {'big': 'Talk to us', 'small': 'Provident', 'button': 'Link in bio'}}]}})
-        return send(404, {'error': 'Not on the stand-in hub'})
-
     def do_GET(self):
-        if re.match(r'^/api/(design/jobs|items/\d+/studio)$', urllib.parse.urlsplit(self.path).path): return self._hubmock(urllib.parse.urlsplit(self.path).path)
         if urllib.parse.urlsplit(self.path).path == '/dev-signin': return self._dev_signin()
         if urllib.parse.urlsplit(self.path).path == '/dev-seed': return self._dev_seed()
         if self.is_gauth(): return self._gauth('GET')

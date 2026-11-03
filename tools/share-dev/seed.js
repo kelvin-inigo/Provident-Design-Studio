@@ -224,10 +224,6 @@
       await idbPut('recents:campaign', l => camp.concat(l.filter(r => !r.seed)));
       await idbPut('recents:organic', l => org.concat(l.filter(r => !r.seed)));
       say('Saved projects on this computer: ' + camp.length + ' campaign, ' + org.length + ' organic');
-      // the Content Hub stand-in (serve.py, the hub's own paths): OPS's Import hub, which Status reads
-      localStorage.setItem('provident-ops-endpoint', JSON.stringify({ url: O + '/api/imports', key: 'dev-hub-token' }));
-      ['provident-ep-office:', 'provident-ep-ngrok:'].forEach(f => localStorage.setItem(f + 'provident-ops-endpoint', '1'));   // OPS keeps this address
-      say('Content Hub stand-in: 5 design jobs, one in each state');
       // the home reads these afresh
       ['provident-inbox-cas', 'provident-inbox-ops', 'provident-inbox-hub', 'provident-status-sum', 'provident-acc-me', 'provident-rv-arch', 'provident-posts'].forEach(x => localStorage.removeItem(x));
       sessionStorage.clear();

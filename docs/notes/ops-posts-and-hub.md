@@ -473,31 +473,39 @@ URL typed by hand otherwise stays. Every request to an ngrok host carries
 `ngrok-skip-browser-warning` (`StudioBase.hubTunnel`, read by `hubFetch` and `epPost`) so ngrok's
 free-domain warning page is skipped; the hub lists that header in its CORS allowed headers.
 
-# THE CONTENT HUB'S DESIGN QUEUE IS ON STATUS (2026-11-03)
+# THE CONTENT HUB PUSHES ITS DESIGN TASKS TO STATUS (2026-11-03)
 
-By request ("build it in so CH tasks are pulled into the status"). Read only: index.html's
-`hubLoad()` GETs `<hub>/api/design/jobs?all=1` through `StudioBase.prototype.hubFetch` (the same
-local-network dance as the studios; it now takes optional extra headers) with the address and key
-from `provident-ops-endpoint` (else `provident-cas-endpoint`; a key with no address means OPS's
-`EP_DEFAULT`), sending the key as `X-Design-Key` and `Authorization: Bearer`. The answer is kept
-in `provident-inbox-hub` {at, base, jobs, err, errAt}; `hubRows()` turns each job into an `ops`
-row with `hub: true`: queued → New ("Ticket"), in_progress / changes → Design, review → Copy check,
-approved / delivered → Ready for 14 days. Mine: a designer (or admin) for queued and changes, the
-social media manager for review. A card opens `OPS#hubopen=<base64url <hub>/api/items/<id>/studio>`,
-the hub's own Open-in-OPS link, so the project carries `hubCardId` and Send attaches to the post.
-Nothing claims a job or posts anything: **the Send bridge is untouched.** Read on every Status
-refresh (at most once a minute otherwise); the footer says when, or why not.
+By request: "just push the task to status when CH sends it" — **without changing OPS's endpoint or
+Send**. (A first cut read the hub's queue from the home with OPS's Import hub key; replaced the
+same day, and its `hubFetch` change undone: studio-base.js, the studios, share-link.js and
+post-flow.js are byte for byte what they were.)
 
-**What the real hub still needs (not done — the permission check refused it as weakening the
-hub's auth):** the hub's `design_get` accepts only `HUB_IMPORT_TOKEN`, while OPS keeps the
-**design key** (which opens `POST /api/imports` only). So against the real hub, Status says "it
-refused this computer's key for reading the queue" until either the hub lets the design key READ
-`/api/design/jobs` (one line in `backend/server/server.py` `design_get`: `token_ok() or
-design_key_ok()`), or this computer's Import hub key is the import token. Behind ngrok the route
-must also be exempt from the tunnel's Google sign-in, as `/api/imports` is.
+- **The hub pushes.** `provident-content-hub/backend/server/studio_push.py`: after every card
+  write (`write_card`) and delete, a background POST of that social post's task to the share
+  service, `api/share.py?op=hubpush` {key, tasks}. Only when the task changed; a card that leaves
+  design (or is deleted) is sent as `{id, gone: true}`. Hub `.env`: `STUDIO_PUSH_KEY` (unset =
+  nothing sent), `STUDIO_SHARE_URL` (default the Vercel site's /api/share), `HUB_PUBLIC_URL` (the
+  hub as designers' browsers reach it, default the office address) — the task's open link is
+  `<HUB_PUBLIC_URL>/api/items/<id>/studio`.
+- **The share service keeps them.** `hub:tasks` (one JSON), `hub_push` checks `HUB_PUSH_KEY`
+  (Vercel env; `dev-hub-push` on the dev server), cleans each field, refuses an open link that is
+  not a hub `/api/items/<id>/studio`, drops approved ones after 14 days. `hubtasks` (anyone let
+  in) lists them; `hubteam` (the key) gives the active designers for the hub's picker.
+- **Status reads them.** index.html `hubLoad()` → `providentAccess.call('hubtasks')` (new: the
+  share call as the signed-in person), kept in `provident-inbox-hub`; `hubRows()` maps queued →
+  New, in_progress / changes → Design, review → Copy check, approved → Ready, tagged **Content
+  Hub**. A task with `to` waits on that designer only ("For <name>" for everyone else); without one
+  it waits on every designer; review waits on the social media manager. A card opens
+  `OPS#hubopen=<open link>` — the hub's own Open-in-OPS link — so OPS's Send attaches as always.
+- **The hub picks the designer.** content-hub.html: a **Designer** select at Approve and send to
+  design and in the post's Design section beside Open in OPS (queued / in design / changes),
+  filled from `GET /api/design/designers` (server.py → studio_push.designers → hubteam, cached
+  5 min). The choice is `card.design.to` {email, name}.
 
-Test server: `serve.py` answers `/api/design/jobs` and `/api/items/<id>/studio` like the hub (key
-`dev-hub-token`, one job per state) and `/dev-seed` points OPS's Import hub at it. Verified: the
-five jobs in their columns, Open → OPS opened the 3-page carousel with `hubCardId`, SMM owns the
-review job, a wrong key says so and keeps the last list, PM sees them read only. Not verified
-against the office or ngrok hub.
+Verified on this Mac (studio test server + the hub's serve_local.py on :8091 with DATA_DIR in a
+scratch folder, STUDIO_* given in the environment — serve_local.py now passes those three through):
+picked a designer and approved → the hub pushed → Status showed it under New, "Waits on you" for
+that designer and "For <name>" for the other; Open → OPS opened the hub's draft with hubCardId;
+changing the Designer in the hub moved it. **Not done, needs people:** set `HUB_PUSH_KEY` in
+Vercel and the same value as `STUDIO_PUSH_KEY` in the office hub's `.env`, and copy the three hub
+files (studio_push.py, server.py, content-hub.html) to the office hub — I never touch it.

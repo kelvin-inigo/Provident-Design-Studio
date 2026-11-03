@@ -1209,76 +1209,61 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var jobs = [];
     if (sees('cas') && window.providentReviews) { if (force) { try { localStorage.removeItem('provident-status-sum'); } catch (e) {} } jobs.push(window.providentReviews.refreshSum(null)); }
     if (sees('ops') && window.providentPostFeed) jobs.push(window.providentPostFeed.load(!force));
-    if (sees('ops') && hubCfg()) jobs.push(hubLoad(force));
+    if (sees('ops')) jobs.push(hubLoad(force));
     if (!jobs.length) return;
     busy = true; if (!data || !data.known || force) redraw();
     Promise.all(jobs.map(function(p){ return Promise.resolve(p).catch(function(){}); })).then(function(){ busy = false; redraw(); });
   }
-  // ── THE CONTENT HUB'S DESIGN QUEUE ON STATUS (2026-11-03) ─────────────────────────────────
-  // Read only: GET <hub>/api/design/jobs?all=1 with the hub address and token this computer
-  // already keeps for OPS's Send (Share › Import hub), through the same local-network fetch
-  // (StudioBase.hubFetch). Nothing here claims a job or sends anything — the Send bridge is
-  // untouched. A task opens in OPS through the hub's own link (#hubopen=<…/api/items/<id>/studio>),
-  // which carries the post's card id, so the studio's Send attaches the design to that post.
-  var HUB_LS = 'provident-inbox-hub', HUB_DONE = 14 * 864e5, HUB_DEFAULT = 'https://provident-content-hub.ngrok-free.dev/api/imports';   // OPS's EP_DEFAULT
-  function hubCfg(){
-    for (var i = 0, ks = ['provident-ops-endpoint', 'provident-cas-endpoint']; i < ks.length; i++) {
-      var c = js(ks[i]) || {};
-      if (c.key && !c.url) c.url = HUB_DEFAULT;
-      if (c.url && c.key) return { url: String(c.url).trim(), key: c.key, base: String(c.url).trim().replace(/\/api\/imports.*$/, '').replace(/\/+$/, '') };
-    }
-    return null;
-  }
+  // ── THE CONTENT HUB'S DESIGN TASKS ON STATUS (2026-11-03) ─────────────────────────────────
+  // The hub PUSHES them: its server posts each social post sent to design, and every change of
+  // its design state, to the share service (api/share.py, op hubpush, with the hub's key). This
+  // page reads that list (op hubtasks, as the signed-in person) and never talks to the hub or
+  // OPS's Import hub settings, so the endpoint and Send stay as they are. A task opens in OPS
+  // through the hub's own link (#hubopen=<hub>/api/items/<id>/studio), which carries the post's
+  // card id, so OPS's Send attaches the design to that post as it always has.
+  var HUB_LS = 'provident-inbox-hub';
   function hubLoad(force){
-    var c = hubCfg(), was = js(HUB_LS) || {};
-    if (!c) return null;
-    if (!force && was.base === c.base && Date.now() - (was.at || 0) < 60000) return null;
-    var url = c.base + '/api/design/jobs?all=1', ctx = { hubCfg: function(){ return { url: c.url, key: c.key }; } };
+    var was = js(HUB_LS) || {};
+    if (!acc || !acc.call || phase !== 'in') return null;
+    if (!force && Date.now() - (was.at || 0) < 60000) return null;
     function keep(o){ try { localStorage.setItem(HUB_LS, JSON.stringify(o)); } catch (e) {} }
-    return StudioBase.prototype.hubFetch.call(ctx, url, 20000, 'no-store', { 'X-Design-Key': c.key }).then(function(r){
-      if (!r.ok) throw { why: r.status === 401 || r.status === 403 ? 'it refused this computer’s key for reading the queue' : 'it answered HTTP ' + r.status };
-      return r.json();
-    }).then(function(d){
-      var jobs = (d && d.jobs || []).map(function(j){ var cp = j.copy || {};
-        return { id: j.card_id, state: j.state, title: cp.title || '', format: j.format || '', site: j.site || '', plat: j.platforms || [],
-          sent: j.sent_at || '', claimed: j.claimed_at || '', by: j.claimed_by || '', done: j.delivered_at || '', assets: (j.assets || []).slice(0, 1) }; });
-      keep({ at: Date.now(), base: c.base, jobs: jobs });
-    }).catch(function(e){
-      keep(Object.assign({}, was.base === c.base ? was : {}, { base: c.base, err: e && e.why ? e.why : (e && e.name === 'AbortError' ? 'it took too long to answer' : 'it could not be reached'), errAt: Date.now() }));
-    });
+    return acc.call('hubtasks').then(function(d){ keep({ at: Date.now(), tasks: d.tasks || [] }); })
+      .catch(function(e){ keep(Object.assign({}, was, { err: e && e.message || 'the list could not be read', errAt: Date.now() })); });
   }
   function hubTime(t){ var n = Date.parse(t || ''); return isNaN(n) ? 0 : n; }
-  // the hub's job states on the board: queued → New, in design / changes asked → Design,
-  // delivered and waiting for the hub's approval → Copy check, approved → Ready (for two weeks)
+  // the hub's design states on the board: queued → New, in design / changes asked → Design,
+  // delivered and waiting for the hub's approval → Copy check, approved → Ready. A task the hub
+  // assigned to a designer waits on that designer only.
   function hubRows(r){
-    var c = hubCfg(), h = js(HUB_LS);
-    if (!c || !h || h.base !== c.base || !Array.isArray(h.jobs)) return [];
-    var designs = r === 'designer' || r === 'admin', OPSF = 'Provident%20Organic%20Studio.dc.html';
-    var http = location.protocol === 'https:' && /^http:/i.test(c.base);
-    return h.jobs.filter(function(j){ return j.state !== 'approved' && j.state !== 'delivered' || Date.now() - hubTime(j.done) < HUB_DONE; }).map(function(j){
-      var st = j.state, open = st === 'queued', ready = st === 'approved' || st === 'delivered';
+    var h = js(HUB_LS);
+    if (!h || !Array.isArray(h.tasks)) return [];
+    var designs = r === 'designer' || r === 'admin', em = me && me.email ? String(me.email).toLowerCase() : '';
+    var OPSF = 'Provident%20Organic%20Studio.dc.html', https = location.protocol === 'https:';
+    return h.tasks.filter(function(t){ return t && t.id && /^https?:\/\/[^/]+\/api\/items\/\d+\/studio/.test(t.open || ''); }).map(function(t){
+      var st = t.state, open = st === 'queued', ready = st === 'approved' || st === 'delivered';
+      var to = t.to && t.to.email ? t.to : null, mineTo = to && to.email === em;
       var step = open ? 'Ticket' : st === 'review' ? 'Copy check' : ready ? 'Ready' : 'Design';
-      var sub = open ? 'Waiting for a designer' : st === 'changes' ? 'Changes asked on the hub' : st === 'review' ? 'Waiting for approval on the hub' : ready ? 'Approved on the hub' : 'In design' + (j.by ? ' · ' + j.by.replace(/\s*\(.*\)$/, '') : '');
-      var k = open ? 0 : st === 'review' ? 2 : ready ? 3 : 1, link = c.base + '/api/items/' + j.id + '/studio';
-      var b64 = btoa(unescape(encodeURIComponent(link))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      var th = j.assets[0] ? (/^\//.test(j.assets[0]) ? c.base + j.assets[0] : j.assets[0]) : '';
+      var who = to ? (mineTo ? 'you' : to.name || to.email.split('@')[0]) : '';
+      var sub = open ? (who ? 'For ' + who : 'Waiting for a designer') : st === 'changes' ? 'Changes asked on the hub' + (who ? ' · ' + who : '')
+        : st === 'review' ? 'Waiting for approval on the hub' : ready ? 'Approved on the hub' : 'In design' + (who ? ' · ' + who : t.by ? ' · ' + t.by.replace(/\s*\(.*\)$/, '') : '');
+      var k = open ? 0 : st === 'review' ? 2 : ready ? 3 : 1;
+      var b64 = btoa(unescape(encodeURIComponent(t.open))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      var waits = open || st === 'changes';
       return {
-        studio: 'ops', hub: true, id: 'hub-' + j.id, name: j.title || 'Hub post', open: open, ready: ready,
-        mine: designs ? (open || st === 'changes') : r === 'smm' ? st === 'review' : false,
+        studio: 'ops', hub: true, id: 'hub-' + t.id, name: t.title || 'Hub post', open: open, ready: ready,
+        mine: designs ? waits && (to ? mineTo : true) : r === 'smm' ? st === 'review' : false,
         step: step, sub: sub, verb: open ? 'Design it' : st === 'changes' ? 'Make the changes' : 'Open in OPS',
         segs: [0, 1, 2, 3].map(function(i){ return i < k || ready ? 'done' : i === k ? 'cur' : 'pend'; }), steps: ['Ticket', 'Design', 'Copy check', 'Ready'],
-        due: '', from: 'Content Hub', at: Math.max(hubTime(j.sent), hubTime(j.claimed), hubTime(j.done)),
-        thumb: th && !(http && /^http:/i.test(th)) ? th : '', ratio: .75, href: OPSF + '#hubopen=' + b64
+        due: '', from: 'Content Hub', at: Math.max(hubTime(t.sent), hubTime(t.claimed), hubTime(t.done)),
+        thumb: t.thumb && !(https && /^http:/i.test(t.thumb)) ? t.thumb : '', ratio: .75, href: OPSF + '#hubopen=' + b64
       };
     });
   }
   function hubLine(){
-    if (!sees('ops')) return '';
-    var c = hubCfg(), h = js(HUB_LS) || {};
-    if (!c) return ' Content Hub not set up on this computer (OPS › Share › Import hub).';
-    if (h.base !== c.base) return '';
-    if (h.err && (h.errAt || 0) >= (h.at || 0)) return ' Content Hub not read: ' + esc(h.err) + (location.protocol === 'https:' && /^http:/i.test(c.base) ? ' (on the office network, allow local network access when Chrome asks)' : '') + '.';
-    return h.at ? ' Content Hub read ' + esc(ago(h.at)) + '.' : '';
+    var h = js(HUB_LS) || {};
+    if (!sees('ops') || !h.at && !h.err) return '';
+    if (h.err && (h.errAt || 0) >= (h.at || 0)) return ' Content Hub tasks not read: ' + esc(String(h.err).replace(/\.$/, '')) + '.';
+    return '';
   }
   function connectDrive(){
     var K = window.providentDsKit;

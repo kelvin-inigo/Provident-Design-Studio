@@ -122,14 +122,14 @@ say so and point to the step above.
     designer**, **Send to copy check** and **Approve copy**, Copy link, the brief, activity). A step
     that names who gets it next asks you to pick the person, as in the studios. **Pick up** and
     **Open in the studio** open the studio on that work.
-  - **Content Hub posts on Status.** Posts the Content Hub sent to design show on the board too,
-    tagged **Content Hub**: waiting for a designer under **New**, in design or with changes asked
-    under **Design**, delivered and waiting for approval on the hub under **Copy check**, approved
-    under **Ready** (for two weeks). Clicking one opens it in OPS with the hub's copy on its pages,
-    and **Send** then attaches the design to that hub post. Status reads the hub with the address
-    and key set in OPS under **Share › Import hub**; the line under the board says when the hub was
-    last read, or why it could not be (not set up, the key refused, the hub not reached). From the
-    website, Chrome asks to allow local network access the first time.
+  - **Content Hub posts on Status.** When the Content Hub sends a post to design, it shows on the
+    board too, tagged **Content Hub**: waiting for a designer under **New**, in design or with
+    changes asked under **Design**, delivered and waiting for approval on the hub under **Copy
+    check**, approved under **Ready** (for two weeks). In the hub, the **Designer** field (at
+    **Approve and send to design**, and in the post's Design section beside **Open in OPS**) says
+    who it's for: it then waits on that designer only, and shows "For <name>" to everyone else.
+    Clicking it on Status opens it in OPS with the hub's copy on its pages; **Send** works exactly
+    as before and attaches the design to that hub post.
   - **Access**: the admin gets the whole Access panel (requests to let in, people and their roles,
     activity, and Preview as). Everyone else sees their role and what it lets them do.
 - **New** (top right) follows your role: a designer picks **A campaign** or **An organic post**;

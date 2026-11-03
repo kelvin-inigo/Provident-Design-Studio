@@ -38,6 +38,7 @@ import hmac
 import json
 import os
 import random
+import re
 import string
 import threading
 import time
@@ -1328,7 +1329,88 @@ def acc_team(d):
     return ok({'people': out, 'perms': acc_perms()})
 
 
-ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms}
+# ── THE CONTENT HUB PUSHES ITS DESIGN TASKS HERE (2026-11-03) ─────────────────────────────────
+# The hub's server posts each social post that goes to design (and every change of its design
+# state) to op 'hubpush', with HUB_PUSH_KEY (Vercel env and the hub's .env, never this repo).
+# Status reads them with op 'hubtasks' (anyone let in); the hub's Designer picker reads the
+# designers with op 'hubteam' (the same key). Nothing here reaches OPS's Send or the hub's
+# /api/imports: that bridge is untouched.
+HUB_KEY = 'hub:tasks'
+HUB_DONE_MS = 14 * 864e5
+HUB_STATES = ('queued', 'in_progress', 'changes', 'review', 'approved', 'delivered')
+
+
+def hub_key_ok(d):
+    want = (os.environ.get('HUB_PUSH_KEY') or ('dev-hub-push' if os.environ.get('SHARE_DEV') == '1' else '')).strip()
+    got = str((d or {}).get('key') or '').strip()
+    if not (want and hmac.compare_digest(got.encode(), want.encode())):
+        raise Fail(401, 'Missing or wrong hub key.')
+
+
+def hub_tasks():
+    try:
+        d = json.loads(store().cmd('GET', HUB_KEY) or '{}')
+        return d if isinstance(d, dict) else {}
+    except ValueError:
+        return {}
+
+
+def hub_clean(t):
+    def s(v, n=300):
+        return str(v or '')[:n]
+    to = t.get('to') if isinstance(t.get('to'), dict) else {}
+    out = {'id': s(t.get('id'), 24), 'state': s(t.get('state'), 16), 'title': s(t.get('title'), 200), 'site': s(t.get('site'), 40),
+           'format': s(t.get('format'), 40), 'plat': [s(x, 30) for x in (t.get('plat') or [])][:6] if isinstance(t.get('plat'), list) else [],
+           'sent': s(t.get('sent'), 40), 'claimed': s(t.get('claimed'), 40), 'by': s(t.get('by'), 80), 'done': s(t.get('done'), 40),
+           'thumb': s(t.get('thumb'), 500), 'open': s(t.get('open'), 500),
+           'to': {'email': s(to.get('email'), 120).lower(), 'name': s(to.get('name'), 120)} if to.get('email') else None,
+           'at': int(time.time() * 1000)}
+    if not out['id'].isdigit() or out['state'] not in HUB_STATES:
+        raise Fail(400, 'A task needs a numeric id and a design state.')
+    if out['open'] and not re.match(r'^https?://[^/\s]+/api/items/\d+/studio(\?[A-Za-z0-9=&_-]*)?$', out['open']):
+        raise Fail(400, 'The open link must be the hub post\'s /api/items/<id>/studio.')
+    return out
+
+
+def hub_push(d):
+    """{key, tasks: [task, …]} — a task with gone: true is taken off Status."""
+    hub_key_ok(d)
+    tasks, now = hub_tasks(), int(time.time() * 1000)
+    for t in (d.get('tasks') or [])[:200]:
+        if not isinstance(t, dict):
+            continue
+        if t.get('gone'):
+            tasks.pop(str(t.get('id') or ''), None)
+            continue
+        c = hub_clean(t)
+        tasks[c['id']] = c
+    # approved ones leave after two weeks
+    tasks = {k: v for k, v in tasks.items() if v.get('state') not in ('approved', 'delivered') or now - int(v.get('at') or 0) < HUB_DONE_MS}
+    store().cmd('SET', HUB_KEY, json.dumps(tasks, separators=(',', ':')))
+    return ok({'ok': True, 'n': len(tasks)})
+
+
+def hub_list(d):
+    email, _ = acc_who(d.get('tok'))
+    me = acc_users().get(email)
+    if acc_admin() and email != acc_admin() and not (me and me.get('status') == 'active'):
+        raise Fail(403, 'Only people with access can see the hub\'s tasks.')
+    return ok({'tasks': sorted(hub_tasks().values(), key=lambda t: t.get('sent') or ''), 'at': int(time.time() * 1000)})
+
+
+def hub_team(d):
+    """The designers, for the hub's picker: name and email only."""
+    hub_key_ok(d)
+    out = []
+    for u in acc_users().values():
+        if u.get('status') == 'active' and u.get('role') == 'designer':
+            out.append({'email': u['email'], 'name': u.get('name') or u['email'].split('@')[0]})
+    out.sort(key=lambda u: u['name'].lower())
+    return ok({'designers': out})
+
+
+ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
+           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.

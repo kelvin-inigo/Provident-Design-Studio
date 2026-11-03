@@ -681,6 +681,8 @@
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: me() };
     },
     team, handOff, me,
+    // the share service as the signed-in person (the home reads the Content Hub's tasks with it)
+    call: (op, body) => post(op, body),
     // what each role opens (Access › Roles): can('tickets'), can('design-ops', 'smm'), perms()
     can, perms, caps: () => CAPS.slice(),
     attach(shell) { A.host = shell; apply(); },

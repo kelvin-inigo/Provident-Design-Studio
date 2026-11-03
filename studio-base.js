@@ -1153,9 +1153,9 @@ class StudioBase {
   }
   // Same Local Network Access dance as Send (epPost): an https page reading an http:// office
   // address is mixed content unless the request says it is for the local network.
-  async hubFetch(url, ms, cache, more) {
+  async hubFetch(url, ms, cache) {
     const c = this.hubCfg();
-    const headers = Object.assign({}, more || {});
+    const headers = {};
     if (c.key) headers.Authorization = 'Bearer ' + c.key;
     StudioBase.hubTunnel(url, headers);
     const ac = new AbortController(), to = setTimeout(() => ac.abort(), ms || 30000);
