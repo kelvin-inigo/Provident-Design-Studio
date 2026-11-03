@@ -165,9 +165,16 @@ button{font-family:inherit}
 .sky-c{position:absolute; left:var(--x); top:var(--y); width:var(--w); aspect-ratio:3.2; opacity:calc(var(--co,0) * var(--k,1)); filter:blur(5px);
   background:radial-gradient(42% 62% at 28% 64%, var(--cc) 62%, transparent 64%), radial-gradient(36% 80% at 54% 44%, var(--cc) 62%, transparent 64%),
     radial-gradient(30% 58% at 78% 64%, var(--cc) 62%, transparent 64%);
-  animation:sky-drift var(--d,90s) ease-in-out infinite alternate; animation-delay:var(--dl,0s); transition:opacity 1.2s ease}
-@keyframes sky-drift{from{transform:translateX(-28px)} to{transform:translateX(28px)}}
-@media (prefers-reduced-motion:reduce){ .sky-c{animation:none} }
+  transition:opacity 1.2s ease}
+/* one entry when the home loads or is opened again, never a loop: the sky fades up, the sun
+   settles, the clouds slide in one after another (2026-11-03) */
+.sky[data-in] .sky-l{animation:sky-l-in 900ms ease-out both; animation-delay:var(--ent,0ms)}
+.sky[data-in] .sky-sun{animation:sky-sun-in 1600ms cubic-bezier(.16,1,.3,1) both; animation-delay:calc(150ms + var(--ent,0ms))}
+.sky[data-in] .sky-c{animation:sky-c-in 1700ms cubic-bezier(.16,1,.3,1) both; animation-delay:calc(200ms + var(--i,0) * 110ms + var(--ent,0ms))}
+@keyframes sky-l-in{from{opacity:0}}
+@keyframes sky-sun-in{from{opacity:0; transform:translate(-50%,-38%) scale(.86)}}
+@keyframes sky-c-in{from{opacity:0; transform:translateX(-40px)}}
+@media (prefers-reduced-motion:reduce){ .sky[data-in] .sky-l,.sky[data-in] .sky-sun,.sky[data-in] .sky-c{animation:none} }
 .sky-t{position:absolute; top:16px; right:16px; display:inline-flex; align-items:center; gap:8px; height:28px; padding:0 11px; border-radius:var(--ps-pill);
   background:color-mix(in srgb, var(--ps-card) 80%, transparent); box-shadow:inset 0 0 0 1px var(--ps-hair);
   font:500 12.5px/1 var(--ps-font); color:var(--ps-ink); font-variant-numeric:tabular-nums; white-space:nowrap}
@@ -976,7 +983,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var top = list[cur], fd = flip; flip = 0;
     // the greeting spans the page; the side column starts level with Next up (2026-11-03)
     var h = '<div class="hm"><section class="sky" id="sky" aria-label="Today"><div class="sky-l" aria-hidden="true"><i class="sky-g"></i><i class="sky-st"></i><i class="sky-sun"></i>' +
-      SKY_CLOUDS.map(function(c, i){ return '<i class="sky-c" style="--x:' + c[0] + '%;--y:' + c[1] + '%;--w:' + c[2] + 'px;--k:' + c[3] + ';--d:' + c[4] + 's;--dl:-' + (Date.now() / 1000 % c[4]).toFixed(1) + 's"></i>'; }).join('') +
+      SKY_CLOUDS.map(function(c, i){ return '<i class="sky-c" style="--x:' + c[0] + '%;--y:' + c[1] + '%;--w:' + c[2] + 'px;--k:' + c[3] + ';--i:' + i + '"></i>'; }).join('') +
       '</div><h1 class="h1">' + hi + '<span>' + tail + '</span></h1><time class="sky-t" id="sky-t">' + skyClock() + '</time></section><div class="hm-main">';
 
     h += '<div class="sh">Next up' + (n > 1 ? '<small>' + (cur + 1) + ' of ' + n + '</small><span class="sp"></span><span class="pgr">' +
@@ -1050,8 +1057,12 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   }
 
   // ═════ THE SKY: the greeting panel's time of day ═════
-  // [x %, y %, width px, how much of the cloud cover it takes, drift seconds]
-  var SKY_CLOUDS = [[58, 14, 210, 1, 96], [76, 46, 170, .8, 118], [90, 8, 150, .6, 84], [66, 68, 240, .45, 132]];
+  // [x %, y %, width px, how much of the cloud cover it takes]
+  var SKY_CLOUDS = [[58, 14, 210, 1], [76, 46, 170, .8], [90, 8, 150, .6], [66, 68, 240, .45]];
+  // the entry plays on the page's first home and on coming back to it. A redraw while it runs (the
+  // queues arriving re-render the page) picks it up where it was (--ent, a negative delay);
+  // after it, a redraw draws the sky still.
+  var skyT0 = 0, SKY_ENTRY = 2700;
   // minute of the day → top, middle, horizon, sun (or moon), stars, cloud cover, cloud colour
   var SKY_K = [
     [0,    '#0b1430', '#16244a', '#243660', '#e9edf6', 1,   .12, '#7d89aa'],
@@ -1205,7 +1216,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
-    if (nav === 'home') { desk(); skyPaint(); }
+    if (nav === 'home') { desk(); skyPaint(); if (anim || !skyT0) skyT0 = Date.now(); var sk = $('sky'), ago0 = Date.now() - skyT0; if (sk && ago0 < SKY_ENTRY) { sk.setAttribute('data-in', ''); sk.style.setProperty('--ent', -ago0 + 'ms'); } }
     if (nav === 'projects') loadDesk(paintProjects);
     // coming back from filing, a campaign or post page, read the queues afresh: a ticket filed
     // a moment ago, or a step taken there, is on the board at once (2026-11-03)

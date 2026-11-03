@@ -523,7 +523,10 @@ quiet sky for the time of day behind it, faded out where the words are (a left-t
 minute of the day — night, dawn 6:30, a clear and cloudy 9:00, midday, a warmer 16:00, sunset
 17:45, dusk 19:15, night 21:00 — interpolated each minute by skyPaint() into --s1..3 (gradient),
 --sc / --sx / --sy / --sr (the sun crossing the right half 6:30–18:30, low at either end, a small
-moon after), --co / --cc (four clouds, SKY_CLOUDS, drifting ±28px over 84–132 s, still with
-reduced motion; their phase comes from the clock so a re-render doesn't jump) and --st (stars).
+moon after), --co / --cc (four clouds, SKY_CLOUDS) and --st (stars). NO LOOP (by request): one entry when
+the home loads or is opened again — the sky fades up, the sun settles, the clouds slide in one by
+one ([data-in], ~2 s). The queues arriving re-render the page, so skyT0 marks the entry and a
+redraw inside SKY_ENTRY resumes it with a negative delay (--ent); after it the sky is drawn still.
+Reduced motion: no entry.
 Dark theme: the sky at .58. Light theme: clouds get a blue-grey underside (drop-shadow) or white
 vanishes on a pale sky. Chrome colours only — nothing on any canvas.
