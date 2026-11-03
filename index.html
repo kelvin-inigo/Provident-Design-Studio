@@ -137,7 +137,7 @@ button{font-family:inherit}
 /* ═════ HOME ═════ */
 .hm{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:40px 48px; align-items:start}
 .hm-main{min-width:0}
-.hm-side{display:flex; flex-direction:column; gap:16px; min-width:0}
+.hm-side{display:flex; flex-direction:column; gap:16px; min-width:0; margin-top:33.7px}   /* level with the Next up card, under its heading */
 .hm > .h1{grid-column:1/-1; margin-bottom:-8px}   /* 32px to Next up, with the grid's 40px row gap */
 
 /* Next up: the one card that shouts */
@@ -432,7 +432,7 @@ button{font-family:inherit}
 
 @media (max-width:1100px){
   .hm{grid-template-columns:minmax(0,1fr)}
-  .hm-side{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); align-items:start}
+  .hm-side{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); align-items:start; margin-top:0}
   .it-b{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:820px){
