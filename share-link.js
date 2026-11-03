@@ -6111,6 +6111,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rva-fl span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rva-fi{width:18px;height:18px;flex:none;fill:var(--ps-ink-2)}
 .rva-tk{display:flex;flex-direction:column;gap:16px;max-width:1240px}
+.rva-dh + .rva-tk{margin-top:28px}   /* the open ticket: room between its header and the brief (a later rule zeroes .rva-dh's margin) */
 .rva-tks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:10px}
 .rva-tkt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rva-tkt s{text-decoration:none;font:400 12px/1.2 var(--ps-font);color:var(--ps-dim)}
