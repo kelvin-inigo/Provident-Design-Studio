@@ -1141,6 +1141,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     else if (phase === 'signin' && was === 'in') signedOut();
     else if (phase === 'signin' && me && me.at) { me = null; try { localStorage.removeItem('provident-acc-me'); } catch (x) {} }
     if (phase === 'in' && pvNow !== lastPv) { lastPv = pvNow; cur = 0; route(true); refreshAll(true); return; }
+    // a campaign or post page draws itself: re-routing re-opens it, so only when the account changed
+    if (phase === was && /^#\/item\//.test(location.hash)) return;
     route();
   });
 

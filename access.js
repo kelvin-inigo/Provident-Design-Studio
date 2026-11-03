@@ -662,7 +662,9 @@
       // then only the waiting count needs it, every two minutes (2026-11-03)
       if (host) { drawAdmin(false); if (document.visibilityState === 'visible' && Date.now() - (A._lt || 0) > (host.offsetParent ? 30000 : 120000)) { A._lt = Date.now(); loadList(); } }
     }
-    if (lim()) apply();
+    // keeps a limited role out of a studio's editor; the home has no editor, and each apply()
+    // re-routes it, which re-opened a details page twice a second for PM, SMM and CT (2026-11-03)
+    if (lim() && !HOME) apply();
   }, 500);
 
   window.addEventListener('provident-drive-signed', () => { if (A.phase === 'signin' && A.on) check(false); });
