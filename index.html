@@ -502,28 +502,21 @@ button{font-family:inherit}
 .qk-o{flex:none; display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:var(--ps-good); color:var(--ps-app)}
 .qk-o[data-k="info"]{background:var(--ps-fill-h); color:var(--ps-ink-2)}
 .qk-o svg.i{width:20px; height:20px; stroke-width:2.2}
-/* THE DESK: this computer's saved projects as an even grid. Every tile is the same frame — a
-   4:5 stage — and the render sits whole inside it at its own shape (never cropped: the layout is
-   what you are looking for). A carousel shows its second page behind the first and says how many
-   pages it has; the title is the project's name without its file prefix. */
+/* THE DESK (2026-11-03, by request): this computer's saved projects as a masonry, as Pinterest
+   stacks pins. Each tile is the first page whole at its own shape, in a quiet frame (as the
+   studios' Recent tiles were); columns fill top to bottom, so tall stories and short banners
+   pack without gaps. The format and page count ride in the line under the title. */
 .desk{margin-top:44px}
 .desk .sh{margin-bottom:16px}
-.dk2{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:24px 16px}
-@media (max-width:860px){ .dk2{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.dk2{list-style:none; margin:0; padding:0; columns:4 160px; column-gap:16px}
+.dk2 > li{break-inside:avoid; margin:0 0 22px}
 .rc{display:flex; flex-direction:column; gap:10px; color:var(--ps-ink); text-decoration:none; border-radius:14px}
-.rc-st{position:relative; display:grid; place-items:center; aspect-ratio:4/5; padding:14% 12% 12%; box-sizing:border-box; border-radius:14px;
-  background:var(--ps-fill); box-shadow:inset 0 0 0 1px var(--ps-hair); transition:box-shadow var(--ps-motion) var(--ps-ease), background-color var(--ps-motion) var(--ps-ease)}
-.rc-st:has(.rc-f){padding-top:22%}
-.rc-pg{position:relative; display:grid; place-items:center; width:100%; height:100%}
-.rc-pg img{grid-area:1/1; display:block; max-width:100%; max-height:100%; width:auto; height:auto; border-radius:4px; box-shadow:0 0 0 1px var(--ps-hair);
-  transition:transform 320ms cubic-bezier(.16,1,.3,1)}
-.rc-pg img + img{position:relative; z-index:1}
-.rc-pg img:first-child:not(:only-child){transform:translate(7%,-5%) rotate(5deg) scale(.94); opacity:.9}
-.rc-f{position:absolute; left:10px; top:10px; z-index:2; display:inline-flex; align-items:center; height:22px; padding:0 8px; border-radius:var(--ps-pill);
-  background:var(--ps-card); box-shadow:0 0 0 1px var(--ps-hair); font:500 11.5px/1 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap}
+.rc-st{display:block; padding:10px; border-radius:14px; background:var(--ps-fill); box-shadow:inset 0 0 0 1px var(--ps-hair);
+  transition:box-shadow var(--ps-motion) var(--ps-ease), background-color var(--ps-motion) var(--ps-ease)}
+.rc-st img{display:block; width:100%; height:auto; border-radius:6px; box-shadow:0 0 0 1px var(--ps-hair); transition:transform 320ms cubic-bezier(.16,1,.3,1)}
 .rc:hover .rc-st{background:var(--ps-fill-h); box-shadow:inset 0 0 0 1px var(--ps-line)}
-.rc:hover .rc-pg img:last-child{transform:translateY(-4px)}
-.rc:hover .rc-pg img:first-child:not(:only-child){transform:translate(12%,-7%) rotate(8deg) scale(.94)}
+.rc-st:empty{aspect-ratio:4/5}
+.rc:hover .rc-st img{transform:translateY(-3px)}
 .rc:focus-visible{outline:2px solid var(--ps-ink); outline-offset:3px}
 .rc b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; font:500 14px/1.3 var(--ps-font); text-wrap:pretty}
 .rc small{display:flex; flex-wrap:wrap; align-items:center; gap:2px 6px; margin-top:-4px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2); min-width:0}
@@ -538,8 +531,8 @@ button{font-family:inherit}
 .pj-s > h2{display:flex; align-items:center; gap:10px; margin:0 0 4px; font:500 18px/1.3 var(--ps-font)}
 .pj-g{margin-top:22px; padding-top:20px; box-shadow:0 -1px 0 var(--ps-hair)}
 .pj-s > h2 + .pj-g{box-shadow:none; padding-top:6px}
-.pj-g .dk2{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
-@media (max-width:640px){ .pj-g .dk2{grid-template-columns:repeat(2,minmax(0,1fr))} .pj-tools .srch{width:100%} }
+.pj-g .dk2{columns:5 168px}
+@media (max-width:640px){ .pj-g .dk2{columns:2} .pj-tools .srch{width:100%} }
 .pj-gh{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin:0 0 14px}
 .pj-gh b{font:500 15px/1.3 var(--ps-font)}
 .pj-gh small{font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
@@ -613,7 +606,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   .it-trk{grid-template-columns:repeat(2,minmax(0,1fr)); padding:18px 16px 0}
   .it-more{grid-template-columns:minmax(0,1fr); padding:18px}
   .qk{padding:20px}
-  .dk2{grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px}
+  .dk2{columns:2; column-gap:12px}
+  .dk2 > li{margin-bottom:18px}
 }
 </style>
 </head>
@@ -815,8 +809,13 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (n && n.role) return n.role;
     return me && me.role ? (me.role === 'cten' || me.role === 'ctar' ? 'ct' : me.role) : null;
   }
-  function studiosFor(r){ return r === 'smm' ? ['ops'] : ['cas', 'ops']; }
-  function canStart(r){ return r === 'ct' ? [] : r === 'pm' ? ['cas'] : r === 'smm' ? ['ops'] : ['cas', 'ops']; }
+  // WHAT A ROLE OPENS is the admin's (Access › Roles, kept by access.js): with no role yet the
+  // home shows everything, as before
+  function cap(c){ return !rawRole() || !acc || !acc.can || acc.can(c); }
+  function studiosFor(r){ return r === 'smm' && !cap('design-cas') && !cap('tickets') ? ['ops'] : ['cas', 'ops']; }
+  function canStart(r){ void r; return (cap('tickets') ? ['cas'] : []).concat(cap('posts') ? ['ops'] : []); }
+  // the studios a role designs in (Your studios, Projects): drafting a post counts for OPS
+  function designs(){ return ['cas', 'ops'].filter(function(k){ return cap('design-' + k) || (k === 'ops' && cap('posts')); }); }
   function rawRole(){ var n = acc && acc.now && phase === 'in' ? acc.now() : null; return (n && n.raw) || (me && me.role) || null; }
   function isAdmin(){ var n = acc && acc.now ? acc.now() : null; return !!(phase === 'in' && (n ? n.admin : me && me.admin)); }
 
@@ -954,7 +953,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       h += '<section class="pan"><div class="sh">Access<span class="sp"></span><a class="b b-l" href="#/access">Open</a></div><p class="lede" style="margin:0;font-size:14px">' +
         (pend ? '<b style="font-weight:500;color:var(--ps-ink)">' + pend + (pend === 1 ? ' person is' : ' people are') + ' waiting to get in.</b> ' : 'No one is waiting to get in. ') + 'Requests, people and their roles are under Access.</p></section>';
     }
-    var opens = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
+    var opens = designs();
     if (opens.length) h += '<section class="pan"><div class="sh">Your studios</div>' + opens.map(function(k){
       return '<a class="st" data-k="' + k + '" href="' + (k === 'cas' ? '#/new/cas' : STUDIO[k].start) + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
     }).join('') + '</section>';
@@ -1015,30 +1014,22 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   }
 
   // ═════ ACCESS ═════
-  // what each role can do: [name, what it means, roles that can]
-  var CAN = [
-    ['Design campaign ads', 'Open and edit projects in the Campaign Ads Studio', ['designer','admin']],
-    ['Design organic posts', 'Open and edit posts in the Organic Post Studio', ['designer','admin']],
-    ['File campaign tickets', 'Start a campaign for the designers', ['pm','designer','admin']],
-    ['Draft organic posts', 'Start a post for the designers', ['smm','designer','admin']],
-    ['Approve English copy', 'Check the words before anything goes out', ['ct','cten']],
-    ['Approve the Arabic translation', 'Check the Arabic version of campaigns', ['ct','ctar']],
-    ['Download campaign packages', 'Take the finished files for every audience', ['pm','designer','admin']],
-    ['Publish organic posts', 'Mark a ready post as published', ['smm']],
-    ['Let people in', 'Answer access requests and change roles', []]
-  ];
+  // what each role can do: the admin sets these under Access › Roles (access.js keeps them);
+  // [name, what it means, capability] — 'admin' is the admin's alone
+  var CAN = (acc && acc.caps ? acc.caps() : []).map(function(c){ return [c[1], c[2], c[0]]; })
+    .concat([['Let people in', 'Answer access requests and change roles', 'admin']]);
   function viewAccess(){
     var h = '<h1 class="h1">Access</h1>';
-    if (isAdmin()) return h + '<p class="lede">Who can sign in to the studios, and as what. Changes apply at their next sign-in.</p>';
+    if (isAdmin()) return h + '<p class="lede">Who can sign in to the studios, as what, and what each role opens (Roles). Changes reach people within five minutes.</p>';
     if (!me || !me.email || phase === 'signin' || phase === 'busy') return h + '<p class="lede" style="margin-bottom:24px">Who you are signed in as, and what your role lets you do.</p>' + quiet('access');
-    var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2].indexOf(raw) >= 0 || (isAdmin() && c[0] === 'Let people in'); });
+    var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2] === 'admin' ? isAdmin() : !!(acc && acc.can && acc.can(c[2])); });
     h = '<div class="ax2"><div class="ax2-main">' + h + '<p class="lede">Who you are signed in as, and what your role lets you do.</p>' +
       '<section class="idc"><span class="uh-av">' + esc(initials(P.name || P.email)) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
         (raw ? '<span class="idc-r">' + esc(ROLE[raw] || raw) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (isAdmin() ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
       '<section class="pan"><div class="sh">What your role opens<small>' + can.filter(Boolean).length + ' of ' + CAN.length + '</small></div><ul class="cn">' + CAN.map(function(c, i){
         return '<li data-on="' + (can[i] ? 1 : 0) + '"><span class="cn-i">' + (can[i] ? ico('check') : '') + '</span><span><b>' + c[0] + '</b><small>' + c[1] + '</small></span><span class="cn-s">' + (can[i] ? 'Yes' : 'No') + '</span></li>';
       }).join('') + '</ul></section></div><aside class="ax2-side">' +
-      '<section class="pan"><div class="sh">A different role</div><p class="br">The admin sets each person’s role. Ask them, and the change applies at your next sign-in.</p>' +
+      '<section class="pan"><div class="sh">A different role</div><p class="br">The admin sets each person’s role, and what each role opens. Ask them; a change reaches you within five minutes.</p>' +
       (phase === 'pending' ? '<p class="lede" style="font-size:13px">Your request to get in is with the admin.</p>' : '') +
       '<div class="qk-a"><button class="b b-g" type="button" data-sign="out">Sign out</button></div></section></aside></div>';
     return h;
@@ -1256,9 +1247,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid, nm = recName(r.name), th = (r.thumbs || []).filter(function(t){ return /^data:image\//.test(t || ''); });
     var pages = th.length, tag = nm.fmt ? nm.fmt + (pages > 1 ? ' \u00b7 ' + pages + ' pages' : '') : pages > 1 ? pages + (x.k === 'cas' ? ' variants' : ' pages') : '';
     return '<li><a class="rc" href="' + st.file + '#recent=' + encodeURIComponent(pid) + '" title="' + esc(r.name || 'Untitled') + '">' +
-      '<span class="rc-st">' + (tag ? '<span class="rc-f">' + esc(tag) + '</span>' : '') + '<span class="rc-pg">' +
-        (pages > 1 ? '<img src="' + th[1] + '" alt="" decoding="async" loading="lazy">' : '') + '<img src="' + th[0] + '" alt="" decoding="async" loading="lazy"></span></span>' +
-      '<b>' + esc(title || nm.name) + '</b><small>' + (sub ? '<span>' + esc(sub) + '</span><span aria-hidden="true">\u00b7</span>' : mk(x.k) + '<span aria-hidden="true">\u00b7</span>') + esc(ago(r.ts || 0)) + '</small></a></li>';
+      '<span class="rc-st">' + (th[0] ? '<img src="' + th[0] + '" alt="" decoding="async" loading="lazy">' : '') + '</span>' +
+      '<b>' + esc(title || nm.name) + '</b><small>' + (sub ? '<span>' + esc(sub) + '</span>' : mk(x.k)) + (tag ? '<span aria-hidden="true">\u00b7</span><span>' + esc(tag) + '</span>' : '') + '<span aria-hidden="true">\u00b7</span>' + esc(ago(r.ts || 0)) + '</small></a></li>';
   }
   // the home's Your studios: each opens on its newest saved project, else on starting one
   function studioLinks(){
@@ -1273,7 +1263,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   // ═════ PROJECTS ═════
   var pjF = 'all', pjQ = '';
   function viewProjects(){
-    var r = data.r, ks = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
+    var r = data.r, ks = designs(); void r;
     if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on Status.</p></div></div>';
     return '<h1 class="h1">Projects</h1><p class="lede">Every project saved on this computer, newest first. Open one to keep designing.</p>' +
       '<div class="pj-tools">' + (ks.length > 1 ? '<div class="flt" role="group" aria-label="Show" id="pj-f"></div>' : '') +
@@ -1283,7 +1273,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   }
   function paintProjects(){
     var host = $('pj'); if (!host) return;
-    var r = data.r, ks = studiosFor(r).filter(function(k){ return !(r === 'pm' || (r === 'ct' && k === 'cas')); });
+    var r = data.r, ks = designs(); void r;
     var rows = (deskRows || []).filter(function(x){ return ks.indexOf(x.k) >= 0; });
     var cnt = { all: rows.length, cas: 0, ops: 0 }; rows.forEach(function(x){ cnt[x.k]++; });
     var f = $('pj-f'); if (f) f.innerHTML = [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(o){ return '<button type="button" data-pf="' + o[0] + '" aria-pressed="' + (pjF === o[0]) + '">' + o[1] + ' <small>' + cnt[o[0]] + '</small></button>'; }).join('');
@@ -1327,14 +1317,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var sec = $('desk'); if (!sec || !deskRows || !deskRows.length) return;
     var show = deskRows.slice(0, DESK_MAX), more = deskRows.length - show.length;
     $('desk-n').textContent = deskRows.length;
-    $('reel').innerHTML = show.map(function(x){
-      var r = x.r, st = STUDIO[x.k], pid = r.pid || r.state.pid, nm = recName(r.name), th = (r.thumbs || []).filter(function(t){ return /^data:image\//.test(t || ''); });
-      var pages = th.length, tag = nm.fmt ? nm.fmt + (pages > 1 ? ' \u00b7 ' + pages + ' pages' : '') : pages > 1 ? pages + ' pages' : '';
-      return '<li><a class="rc" href="' + st.file + '#recent=' + encodeURIComponent(pid) + '" title="' + esc(r.name || 'Untitled') + '">' +
-        '<span class="rc-st">' + (tag ? '<span class="rc-f">' + esc(tag) + '</span>' : '') + '<span class="rc-pg">' +
-          (pages > 1 ? '<img src="' + th[1] + '" alt="" decoding="async" loading="lazy">' : '') + '<img src="' + th[0] + '" alt="" decoding="async" loading="lazy"></span></span>' +
-        '<b>' + esc(nm.name) + '</b><small>' + mk(x.k) + '<span aria-hidden="true">\u00b7</span>' + esc(ago(r.ts || 0)) + '</small></a></li>';
-    }).join('');
+    $('reel').innerHTML = show.map(function(x){ return tileHtml(x); }).join('');
     $('desk-more').hidden = !more;
     if (more) $('desk-more').innerHTML = '<span>' + more + ' more saved on this computer.</span><a href="#/projects">See all ' + deskRows.length + ' in Projects</a>';
     studioLinks();

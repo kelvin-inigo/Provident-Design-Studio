@@ -411,3 +411,26 @@ The studios' Recent screen read as a second home. Now:
   and Access are untouched.
 - Verified on the dev server: bare CAS → #/projects; OPS Templates stays; OPS sidebar Recent → #/projects;
   CAS `#view=open` shows the card; Projects page 0 contrast failures both themes, no sideways scroll at 375.
+
+
+## ROLES: THE ADMIN SETS WHAT EACH ROLE OPENS (2026-11-03)
+By request: Access › **Roles** (a tab in access.js's admin panel, beside Requests / People /
+Activity) is a capability × role grid. The server keeps it as `acc:perms` (api/share.py,
+`ACC_PERMS` defaults, `acc_perms()`, op `accperms`, admin only, logged as `perms`) and sends it
+with `accme`, `acclist` and `accteam`; access.js caches it in `provident-acc-perms` and exports
+`providentAccess.can(cap[, rawRole])`, `perms()`, `caps()`. The admin has everything; legacy `ct`
+has a copy capability when cten or ctar has it.
+Wired: `tickets` / `posts` → the home's New (`canStart`); `design-cas` / `design-ops` (+ `posts`
+for OPS) → Your studios and Projects (`designs()`); `design-cas` → CAS's `blocked()` gate for
+designer/smm (a role with neither OPS capability is sent to the home); the hand-off pickers'
+lists (`TEAMS` getters: designer-cas / designer-ops / copy / copy-en / copy-ar).
+NOT wired, so NOT in the grid: downloading packages and marking a post published (the old
+read-only list showed them; they were never real switches) and the link roles inside an ad set
+review (share.py STEP checks the link's role, not the account's). The CSS `lim` rules in
+access.js still follow the role names.
+
+## PICK UP / PROJECTS TILES ARE A MASONRY (2026-11-03)
+By request: one thumbnail per tile again (the first page whole, in a quiet padded frame, as the
+studios' Recent tiles were), no tilted second page, no chip; the format and page count moved to
+the meta line. `.dk2` is CSS columns (4 on the desk, 5 on Projects, 2 on a phone), Pinterest
+style. The desk now draws with `tileHtml` (it had its own copy).

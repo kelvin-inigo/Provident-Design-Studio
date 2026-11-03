@@ -43,6 +43,21 @@
   const ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm'];
   const WANT = { designer: ['Design', 'Designer'], smm: ['Draft organic posts', 'Social media manager'], cten: ['Check English copy', 'Content team · English'],
                  ctar: ['Check Arabic copy', 'Content team · Arabic'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'] };
+  // WHAT EACH ROLE OPENS (2026-11-03, by request): the admin edits it under Access › Roles; the
+  // server keeps it (acc:perms) and sends it with every sign-in. These are its defaults, and
+  // what a page uses before the server has answered. The admin has everything; ct (the older
+  // either-language content role) has a copy capability when either language's role has it.
+  const PERM_ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm'];
+  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'] };
+  const CAPS = [
+    ['design-cas', 'Design campaign ads', 'Open and edit projects in the Campaign Ads Studio'],
+    ['design-ops', 'Design organic posts', 'Open and edit posts in the Organic Post Studio'],
+    ['tickets', 'File campaign tickets', 'Start a campaign for the designers'],
+    ['posts', 'Draft organic posts', 'Start a post for the designers'],
+    ['copy-en', 'Approve English copy', 'Picked to check the words before anything goes out'],
+    ['copy-ar', 'Approve the Arabic translation', 'Picked to check the Arabic version of campaigns']
+  ];
+  const LS_PERMS = 'provident-acc-perms';
   const roleWord = r => ({ pm: 'performance marketing', designer: 'a designer', smm: 'a social media manager', ct: 'the content team',
                            cten: 'the content team (English)', ctar: 'the content team (Arabic)' }[r] || r);
   const LS_VIEWAS = 'provident-acc-viewas', LS_LINK = 'provident-acc-link';
@@ -90,6 +105,18 @@
   const rawRole = () => (A.phase === 'in' && A.me ? (viewAs() || A.me.role) : null);
   const fam = r => (r === 'cten' || r === 'ctar' ? 'ct' : r);
   const role = () => fam(rawRole());
+  const perms = () => {
+    let p = (A.me && A.me.perms) || (A.list && A.list.perms) || (A.quiet && A.quiet.perms) || A.teamPerms || null;
+    if (!p) { try { p = JSON.parse(localStorage.getItem(LS_PERMS) || 'null'); } catch (e) {} }
+    return Object.assign({}, PERMS0, p || {});
+  };
+  // can(cap[, raw role]): the admin (not previewing) has everything
+  const can = (cap, r) => {
+    if (r === undefined) { if (A.me && A.me.admin && A.phase === 'in' && !viewAs()) return true; r = rawRole(); }
+    if (r === 'admin') return true;
+    const p = perms(), l = p[cap] || [];
+    return l.indexOf(r) >= 0 || (r === 'ct' && (cap === 'copy-en' || cap === 'copy-ar') && (l.indexOf('cten') >= 0 || l.indexOf('ctar') >= 0));
+  };
   // which copy this person approves: 'en', 'ar', or null (either). A review link's tab is never
   // gated, so there the account is looked up quietly (A.quiet) when Google is already signed in.
   const copyLang = () => { const r = rawRole() || (A.quiet && A.quiet.status === 'active' ? A.quiet.role : null);
@@ -101,7 +128,9 @@
   const lim = () => { const r = role(); return !!r && (CAS || HOME ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'); };
   // NOT THIS STUDIO AT ALL (2026-10-30, by request): the social media manager works in OPS only
   // and sees nothing of CAS — signed in, CAS shows a page that sends them to OPS
-  const blocked = () => CAS && role() === 'smm';
+  // since Roles (2026-11-03): a designer or social media manager whose role cannot design
+  // campaign ads is kept out of CAS the same way
+  const blocked = () => CAS && (role() === 'designer' || role() === 'smm') && !can('design-cas');
   // where a role's studio opens: the content team's CAS is its copy requests on Status
   const only = () => { const r = role(); return CAS && r === 'ct' ? 'rev' : !CAS && r === 'pm' ? 'rev' : null; };
   const OPS_FILE = 'Provident Organic Studio.dc.html';
@@ -146,6 +175,7 @@
     try {
       const me = await post('accme');
       A.me = me; A.err = '';
+      if (me.perms) { try { localStorage.setItem(LS_PERMS, JSON.stringify(me.perms)); } catch (e) {} }
       A.phase = me.status === 'active' ? 'in' : (me.status === 'pending' ? 'pending' : 'declined');
     } catch (e) {
       if (e.code === 403 && /account/.test(e.message)) { A.phase = 'outside'; A.err = e.message; }
@@ -226,9 +256,11 @@
     const acct = x => x ? '<div class="acx-acct"><span class="acx-av">' + esc(initials(x.name, x.email)) + '</span><span><b>' + esc(x.name || x.email) + '</b><small>' + esc(x.email) + '</small></span></div>' : '';
     const errLine = A.err ? '<p class="acx-err" role="alert">' + esc(A.err) + '</p>' : '';
     const other = '<button type="button" class="acx-link" data-x="other">Use another account</button>';
-    if (A.phase === 'in' && blocked()) return '<h1>Your work is in the Organic Post Studio</h1><p class="acx-lede">The Campaign Ads Studio is for Meta ads. As ' + esc(roleWord(rawRole())) +
+    if (A.phase === 'in' && blocked()) return (can('design-ops') || can('posts') ? '<h1>Your work is in the Organic Post Studio</h1><p class="acx-lede">The Campaign Ads Studio is for Meta ads. As ' + esc(roleWord(rawRole())) +
       ', you draft, design and hand off organic posts in the Organic Post Studio.</p>' + acct(me) +
-      '<a class="acx-go acx-a" href="' + esc(opsHref()) + '"><span>Open the Organic Post Studio</span></a>' +
+      '<a class="acx-go acx-a" href="' + esc(opsHref()) + '"><span>Open the Organic Post Studio</span></a>'
+      : '<h1>Your work is on the home page</h1><p class="acx-lede">The admin hasn’t given ' + esc(roleWord(rawRole())) + ' the Campaign Ads Studio. What comes to you is on the home page.</p>' + acct(me) +
+      '<a class="acx-go acx-a" href="' + esc(location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'index.html') + '"><span>Go to the home page</span></a>') +
       (viewAs() ? '<p class="acx-as"><button type="button" class="acx-link" data-x="endpv">End the preview</button></p>' : '<p class="acx-foot">' + other + '</p>');
     switch (A.phase) {
       case 'check': return '<h1>Checking your access</h1><p class="acx-lede">One moment.</p><div class="acx-skel"><i></i><i></i></div>';
@@ -363,14 +395,15 @@
     role: e => 'became ' + (ROLE[e.role] || e.role),
     decline: e => 'was declined',
     revoke: e => 'lost access',
-    remove: e => 'was taken off the list'
+    remove: e => 'was taken off the list',
+    perms: e => 'changed what the roles open'
   };
   const LOGK = { request: 'ask', retry: 'ask', note: 'ask', outside: 'bad', grant: 'good', add: 'good', role: 'good', decline: 'bad', revoke: 'bad', remove: 'bad' };
   function adminHtml() {
     if (!A.list) return A.listErr ? '<div class="ac-empty"><b>Couldn’t load who has access</b><span>' + esc(A.listErr) + '</span><button type="button" class="acx-btn" data-ac="reload">' + ic('refresh') + 'Try again</button></div>'
       : '<div class="ac-load"><i></i><i></i><i></i></div>';
     const R = reqs(), Pp = people(), L = A.list.log || [];
-    const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['log', 'Activity', null]];
+    const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['roles', 'Roles', null], ['log', 'Activity', null]];
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
       '<div class="ac-pv"><label for="ac-pvs">' + (HOME ? 'Preview the home as' : 'Preview the studio as') + '</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
@@ -388,6 +421,21 @@
           '<div class="ac-act"><span class="ac-lbl">Let in as</span>' + seg('pick', u.email, sel) +
           '<div class="ac-btns"><button type="button" class="acx-btn" data-ac="grant" data-e="' + esc(u.email) + '">' + ic('check') + 'Let in</button><button type="button" class="acx-ghost ac-no" data-ac="decline" data-e="' + esc(u.email) + '">Decline</button></div></div></li>';
       }).join('') + '</ul>';
+    } else if (A.tab === 'roles') {
+      const cur = perms(), ed = A.permEd || cur, dirty = !!A.permEd && JSON.stringify(A.permEd) !== JSON.stringify(cur);
+      const same = JSON.stringify(PERM_ROLES.map(r => CAPS.map(c => (ed[c[0]] || []).indexOf(r) >= 0))) === JSON.stringify(PERM_ROLES.map(r => CAPS.map(c => PERMS0[c[0]].indexOf(r) >= 0)));
+      h += '<p class="ac-rl-lede">What each role opens in the studios and on the home. A change applies to everyone with that role the next time their page checks in, within five minutes. You always have everything.</p>' +
+        '<div class="ac-rl-wrap"><table class="ac-rl"><thead><tr><th scope="col"><span class="ac-sr">Capability</span></th>' + PERM_ROLES.map(r => '<th scope="col" title="' + esc(ROLE_SUB[r]) + '">' + esc(SEGL[r]) + '</th>').join('') + '</tr></thead><tbody>' +
+        CAPS.map(c => '<tr><th scope="row"><b>' + esc(c[1]) + '</b><small>' + esc(c[2]) + '</small></th>' + PERM_ROLES.map(r => {
+          const on = (ed[c[0]] || []).indexOf(r) >= 0, was = (cur[c[0]] || []).indexOf(r) >= 0;
+          return '<td><label class="ac-ck"' + (on !== was ? ' data-ch' : '') + '><input type="checkbox" data-perm="' + c[0] + '" data-r="' + r + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(SEGL[r] + ': ' + c[1]) + '"><i aria-hidden="true">' + ic('check') + '</i></label></td>';
+        }).join('') + '</tr>').join('') +
+        '<tr class="ac-rl-fix"><th scope="row"><b>Let people in</b><small>Answer access requests and change roles</small></th><td colspan="' + PERM_ROLES.length + '"><span class="ac-dim">Only you, the admin</span></td></tr>' +
+        '</tbody></table></div>' +
+        '<div class="ac-rl-bar"' + (dirty ? ' data-on' : '') + '>' + (dirty ? '<span>Unsaved changes</span>' : '<span class="ac-dim">' + (same ? 'These are the studio’s defaults.' : 'Saved.') + '</span>') +
+          '<span class="ac-rl-sp"></span>' + (!same ? '<button type="button" class="acx-link" data-ac="permdef">Back to defaults</button>' : '') +
+          (dirty ? '<button type="button" class="acx-ghost" data-ac="permundo">Discard</button>' : '') +
+          '<button type="button" class="acx-btn" data-ac="permsave"' + (dirty && !A.permBusy ? '' : ' disabled') + '>' + ic('check') + (A.permBusy ? 'Saving…' : 'Save changes') + '</button></div>';
     } else if (A.tab === 'ppl') {
       const adm = A.list.admin;
       h += '<form class="ac-add" data-ac="add"><label for="ac-em">Add someone</label><input id="ac-em" type="email" required placeholder="name@' + esc(A.list.domain || A.domain) + '" autocomplete="off">' +
@@ -422,11 +470,22 @@
     if (!host) return;
     if (!A.me || !A.me.admin) { host.innerHTML = ''; return; }
     let root = host.querySelector('.ac');
-    if (!root) { root = document.createElement('div'); root.className = 'ac'; host.appendChild(root); root.addEventListener('click', onAdmin); root.addEventListener('submit', onAdmin); root.addEventListener('change', e => { if (e.target.matches('select[data-k]')) onAdmin(e); else if (e.target.matches('select[data-pv]') && e.target.value) { const v = e.target.value; e.target.value = ''; preview(v); } }); force = true; if (!A.list) loadList(); }
+    if (!root) { root = document.createElement('div'); root.className = 'ac'; host.appendChild(root); root.addEventListener('click', onAdmin); root.addEventListener('submit', onAdmin); root.addEventListener('change', e => { if (e.target.matches('select[data-k], input[data-perm]')) onAdmin(e); else if (e.target.matches('select[data-pv]') && e.target.value) { const v = e.target.value; e.target.value = ''; preview(v); } }); force = true; if (!A.list) loadList(); }
     if (!force) return;
     const ae = document.activeElement, keepEm = ae && ae.id === 'ac-em' ? ae.value : null;
     root.innerHTML = adminHtml();
     if (keepEm != null) { const i = root.querySelector('#ac-em'); if (i) { i.value = keepEm; i.focus(); } }
+  }
+  async function savePerms() {
+    A.permBusy = true; drawAdmin(true);
+    try {
+      const j = await post('accperms', { perms: A.permEd });
+      if (A.list) A.list.perms = j.perms; if (A.me) A.me.perms = j.perms;
+      try { localStorage.setItem(LS_PERMS, JSON.stringify(j.perms)); } catch (e) {}
+      A.permEd = null; A.listErr = ''; teamP = null;
+      window.dispatchEvent(new CustomEvent('provident-access', { detail: { phase: A.phase, perms: true } }));
+    } catch (e) { A.listErr = e.message; }
+    A.permBusy = false; drawAdmin(true); loadList();
   }
   async function change(email, action, rl, btn) {
     if (btn) btn.disabled = true;
@@ -435,6 +494,13 @@
     await loadList();
   }
   function onAdmin(e) {
+    if (e.type === 'change' && e.target.matches('input[data-perm]')) {
+      const k = e.target.dataset.perm, r = e.target.dataset.r, ed = JSON.parse(JSON.stringify(A.permEd || perms())), l = ed[k] || [];
+      ed[k] = e.target.checked ? PERM_ROLES.filter(x => x === r || l.indexOf(x) >= 0) : l.filter(x => x !== r);
+      A.permEd = ed; drawAdmin(true);
+      const back = document.querySelector('input[data-perm="' + k + '"][data-r="' + r + '"]'); if (back) back.focus();
+      return;
+    }
     const t = e.type === 'submit' ? e.target : e.target.closest('[data-ac],[data-k]');
     if (!t) return;
     if (e.type === 'submit') e.preventDefault();
@@ -448,6 +514,9 @@
     }
     const a = t.dataset.ac, em = t.dataset.e;
     if (a === 'tab') { A.tab = t.dataset.v; drawAdmin(true); }
+    else if (a === 'permundo') { A.permEd = null; drawAdmin(true); }
+    else if (a === 'permdef') { A.permEd = JSON.parse(JSON.stringify(PERMS0)); drawAdmin(true); }
+    else if (a === 'permsave' && A.permEd) savePerms();
     else if (a === 'reload') loadList();
     else if (a === 'pv') preview(t.dataset.v);
     else if (a === 'grant') change(em, 'grant', (A.pick && A.pick[em]) || (reqs().find(u => u.email === em) || {}).want || 'pm', t);
@@ -472,22 +541,29 @@
     teamAt = Date.now();
     teamP = (async () => {
       const d = D(); if (!d || !(await d.ensure())) throw new Error('Sign in with Google to see the team.');
-      const r = await post('accteam'); return r.people || [];
+      const r = await post('accteam');
+      if (r.perms) { A.teamPerms = r.perms; try { localStorage.setItem(LS_PERMS, JSON.stringify(r.perms)); } catch (e) {} }
+      return r.people || [];
     })();
     teamP.catch(() => { teamP = null; });
     return teamP;
   }
   // which team a step goes to: a post's draft to a designer, a design to the content team (an ad
   // set's English to English copy, its Arabic to Arabic copy); every other step names nobody
+  // since Roles (2026-11-03) each list is the roles that have that capability
+  const withCap = (...caps) => ['designer', 'smm', 'pm', 'cten', 'ctar', 'ct'].filter(r => caps.some(c => can(c, r)));
   const TEAMS = {
-    designer: { roles: ['designer'], word: 'designer', head: 'Which designer picks it up?' },
-    copy: { roles: ['cten', 'ctar', 'ct'], word: 'content team', head: 'Who checks the copy?' },
-    'copy-en': { roles: ['cten', 'ct'], word: 'content team', head: 'Who checks the English copy?' },
-    'copy-ar': { roles: ['ctar', 'ct'], word: 'content team', head: 'Who checks the translation?' }
+    get designer() { return { roles: withCap('design-cas', 'design-ops'), word: 'designer', head: 'Which designer picks it up?' }; },
+    get 'designer-cas'() { return { roles: withCap('design-cas'), word: 'designer', head: 'Which designer picks it up?' }; },
+    get 'designer-ops'() { return { roles: withCap('design-ops'), word: 'designer', head: 'Which designer picks it up?' }; },
+    get copy() { return { roles: withCap('copy-en', 'copy-ar'), word: 'content team', head: 'Who checks the copy?' }; },
+    get 'copy-en'() { return { roles: withCap('copy-en'), word: 'content team', head: 'Who checks the English copy?' }; },
+    get 'copy-ar'() { return { roles: withCap('copy-ar'), word: 'content team', head: 'Who checks the translation?' }; }
   };
   function teamFor(rs, it, act) {
     const post = rs && rs.kind === 'post';
-    if (act === 'ticket' || act === 'draft-done') return 'designer';
+    if (act === 'ticket') return 'designer-cas';
+    if (act === 'draft-done') return 'designer-ops';
     if (act === 'design-done') return post ? 'copy' : it && it.lang === 'ARB' ? 'copy-ar' : 'copy-en';
     return null;
   }
@@ -594,6 +670,8 @@
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: me() };
     },
     team, handOff, me,
+    // what each role opens (Access › Roles): can('tickets'), can('design-ops', 'smm'), perms()
+    can, perms, caps: () => CAPS.slice(),
     attach(shell) { A.host = shell; apply(); },
     signIn: () => signIn(false),
     preview: r => preview(r || null),
@@ -729,6 +807,30 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 .ac .ac-pv > label{font:400 13px/1 var(--ps-font);color:var(--ps-dim);margin-right:2px}
 .ac .ac-dd-eye > .acx-i{position:absolute;left:14px;top:50%;width:18px;height:18px;margin-top:-9px;fill:var(--ps-ink-2);pointer-events:none}
 .ac .ac-dd-eye .ac-sel{padding-left:40px;min-width:250px}
+/* ROLES (2026-11-03): what each role opens, one checkbox per role and capability */
+.ac .ac-rl-lede{margin:0 0 18px;max-width:64ch;font:400 14px/1.55 var(--ps-font);color:var(--ps-ink-2)}
+.ac .ac-rl-wrap{overflow-x:auto;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.ac .ac-rl{width:100%;min-width:640px;border-collapse:collapse;font:400 14px/1.4 var(--ps-font)}
+.ac .ac-rl thead th{padding:14px 8px;font:500 12px/1.2 var(--ps-font);letter-spacing:.04em;text-transform:uppercase;color:var(--ps-ink-2);text-align:center;white-space:nowrap}
+.ac .ac-rl thead th:first-child{text-align:left;padding-left:20px}
+.ac .ac-rl tbody th{padding:14px 12px 14px 20px;text-align:left;font-weight:400}
+.ac .ac-rl tbody th b{display:block;font:500 14.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.ac .ac-rl tbody th small{display:block;margin-top:3px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.ac .ac-rl tbody tr{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.ac .ac-rl td{padding:8px;text-align:center}
+.ac .ac-rl-fix td{text-align:center;font-size:13px}
+.ac .ac-ck{position:relative;display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;cursor:pointer}
+.ac .ac-ck:hover{background:var(--ps-fill)}
+.ac .ac-ck input{position:absolute;inset:0;margin:0;opacity:0;cursor:pointer}
+.ac .ac-ck i{display:grid;place-items:center;width:22px;height:22px;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--ps-ink-2);transition:background .15s,box-shadow .15s}
+.ac .ac-ck i .acx-i{width:16px;height:16px;fill:var(--ps-card);opacity:0}
+.ac .ac-ck input:checked + i{background:var(--ps-ink);box-shadow:none}
+.ac .ac-ck input:checked + i .acx-i{opacity:1}
+.ac .ac-ck input:focus-visible + i{outline:2px solid var(--ps-link);outline-offset:3px}
+.ac .ac-ck[data-ch]::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ps-warn)}
+.ac .ac-rl-bar{position:sticky;bottom:12px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:16px;padding:12px 12px 12px 20px;border-radius:14px;font:400 14px/1.4 var(--ps-font);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.ac .ac-rl-bar[data-on]{box-shadow:inset 0 0 0 1.5px var(--ps-warn)}
+.ac .ac-rl-sp{flex:1}
 .ac .ac-empty{display:grid;justify-items:start;gap:8px;padding:40px;border-radius:16px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .ac .ac-empty .acx-i{width:28px;height:28px;color:var(--ps-dim);margin-bottom:4px}
 .ac .ac-empty b{font:500 17px/1.3 var(--ps-font)}.ac .ac-empty span{font:400 14px/1.55 var(--ps-font);color:var(--ps-ink-2);max-width:52ch}

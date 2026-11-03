@@ -195,6 +195,14 @@ from Google the first time they do. The admin can still change or remove anyone 
 - A content-team member who opens a link while signed in with Google sees only their language's
   approve button. Opened without signing in, the link still shows both.
   **Add someone** lets in an @providentestate.com email before they've signed in.
+- **Roles**: what each role opens. One row per capability (Design campaign ads, Design organic
+  posts, File campaign tickets, Draft organic posts, Approve English copy, Approve the Arabic
+  translation), one tick box per role. Change the ticks, then **Save changes** (**Discard** drops
+  them, **Back to defaults** restores the studio's own). It reaches everyone with that role within
+  five minutes: what **New** offers, **Your studios** and **Projects** on the home, whether the
+  Campaign Ads Studio opens for them, and who appears in the "Which designer" and "Who checks the
+  copy" pickers. **Let people in** is always the admin's alone. Each person sees their own role's
+  list on their Access page.
 - **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
 - **Preview the studio as**: see the studio exactly as that role sees it. A bar
   at the bottom says you're previewing; **Back to Access** returns.

@@ -1123,6 +1123,30 @@ ACC_SEED = {
 ACC_ADMIN_ROLE = 'designer'
 
 
+# WHAT EACH ROLE OPENS (2026-11-03, by request): the admin sets it on the home's Access page,
+# under Roles. One JSON map, capability -> roles that have it (acc:perms); a capability missing
+# from the stored map keeps its default. The admin has everything and is never in a list; ct
+# (the older either-language content role) has a copy capability when cten or ctar has it.
+ACC_PERM_ROLES = ('designer', 'smm', 'cten', 'ctar', 'pm')
+ACC_PERMS = {
+    'design-cas': ['designer'],
+    'design-ops': ['designer'],
+    'tickets': ['designer', 'pm'],
+    'posts': ['designer', 'smm'],
+    'copy-en': ['cten'],
+    'copy-ar': ['ctar'],
+}
+
+
+def acc_perms():
+    try:
+        d = json.loads(store().cmd('GET', 'acc:perms') or '{}')
+    except ValueError:
+        d = {}
+    d = d if isinstance(d, dict) else {}
+    return {k: [r for r in (d.get(k) if isinstance(d.get(k), list) else v) if r in ACC_PERM_ROLES] for k, v in ACC_PERMS.items()}
+
+
 def acc_users():
     try:
         raw, seeded = store().pipe([['GET', 'acc:users'], ['GET', 'acc:seed1']])
@@ -1167,7 +1191,7 @@ def acc_me(d):
             users[email] = {'email': email, 'name': name or u.get('name') or '', 'role': arole, 'status': 'active', 'first': u.get('first') or now,
                             'n': int(u.get('n') or 0) + 1, 'last': now, 'admin': True}
             acc_put(users)
-        return ok(acc_pub({'email': email, 'name': name, 'role': 'admin', 'status': 'active'}, True))
+        return ok(dict(acc_pub({'email': email, 'name': name, 'role': 'admin', 'status': 'active'}, True), perms=acc_perms()))
     if not email.endswith('@' + acc_domain()):
         acc_log({'email': email, 'name': name, 'what': 'outside'})
         raise Fail(403, 'Sign in with your @%s Google account. %s is not one.' % (acc_domain(), email))
@@ -1191,7 +1215,7 @@ def acc_me(d):
         dirty = True
     if dirty:
         acc_put(users)
-    return ok(acc_pub(u))
+    return ok(dict(acc_pub(u), perms=acc_perms()))
 
 
 def acc_req(d):
@@ -1229,7 +1253,22 @@ def acc_list(d):
             log.append(json.loads(r))
         except ValueError:
             pass
-    return ok({'users': [acc_pub(u) for u in users], 'log': log[::-1], 'admin': acc_admin(), 'domain': acc_domain()})
+    return ok({'users': [acc_pub(u) for u in users], 'log': log[::-1], 'admin': acc_admin(), 'domain': acc_domain(), 'perms': acc_perms()})
+
+
+def acc_setperms(d):
+    me, _ = acc_need_admin(d)
+    want = d.get('perms')
+    if not isinstance(want, dict):
+        raise Fail(400, 'Send the roles for each capability.')
+    cur = acc_perms()
+    for k, v in want.items():
+        if k not in ACC_PERMS or not isinstance(v, list):
+            raise Fail(400, 'Unknown capability.')
+        cur[k] = [r for r in ACC_PERM_ROLES if r in v]
+    store().cmd('SET', 'acc:perms', json.dumps(cur, separators=(',', ':')))
+    acc_log({'email': me, 'name': '', 'what': 'perms', 'by': me})
+    return ok({'ok': True, 'perms': cur})
 
 
 def acc_set(d):
@@ -1286,10 +1325,10 @@ def acc_team(d):
             continue
         out.append({'email': u['email'], 'name': u.get('name') or '', 'role': u['role'], 'last': u.get('last')})
     out.sort(key=lambda u: (u['role'], (u['name'] or u['email']).lower()))
-    return ok({'people': out})
+    return ok({'people': out, 'perms': acc_perms()})
 
 
-ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team}
+ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
