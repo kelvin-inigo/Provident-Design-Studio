@@ -434,3 +434,11 @@ By request: one thumbnail per tile again (the first page whole, in a quiet padde
 studios' Recent tiles were), no tilted second page, no chip; the format and page count moved to
 the meta line. `.dk2` is CSS columns (4 on the desk, 5 on Projects, 2 on a phone), Pinterest
 style. The desk now draws with `tileHtml` (it had its own copy).
+
+## RECENT STILL SHOWED ON THE LIVE SITE (2026-11-03)
+Reported with screenshots: CAS and OPS still opened on Recent projects. The guard exempted any tab
+whose sessionStorage carried `provident-acc-link` (a tab that once opened a review link keeps it
+for its whole life), and a `#recent=`-style hash exempted the screen for as long as it stayed in
+the address. Now the only exemption is a link in the address that has not opened anything yet
+(`this._opened` turns true once the active project leaves the splash); everything else on `rec`
+goes to the home's #/projects. Shell renderVals only, both studios; zero artwork lines.

@@ -18301,10 +18301,12 @@ class Component extends DCLogic {
     // ONE HOME (2026-11-02): projects are browsed on the home page, so a studio with nothing open
     // goes there (#/projects) — never in a review link's tab, never while a link in the address
     // (#share, #pick, #recent, #view, #hubopen) is still being opened
+    // (2026-11-03) also in a tab that once opened a review link, and also when a project is closed
+    // back to the start: the address's link only counts until something has opened
     if (view === 'rec' && !this._wentHome) {
-      let viaLink2 = false; try { viaLink2 = sessionStorage.getItem('provident-acc-link') === '1'; } catch (e) {}
       const st0 = this.active().state;
-      if (!viaLink2 && !/#(share|pick|recent|view|hubopen)/.test(location.hash) && (!st0 || st0.screen === 'splash')) { this._wentHome = true; setTimeout(() => StudioBase.goHome('projects'), 0); }
+      if (st0 && st0.screen && st0.screen !== 'splash') this._opened = true;
+      else if (this._opened || !/#(share|pick|recent|view|hubopen)/.test(location.hash)) { this._wentHome = true; setTimeout(() => StudioBase.goHome('projects'), 0); }
     }
    // 'hub' is OPS only; 'tpl' (the preloaded templates) is gone   // 'hub' is OPS only now
     const eng = this.active();
