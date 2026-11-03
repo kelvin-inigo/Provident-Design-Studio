@@ -118,7 +118,44 @@ class H(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(out)
 
+    # SIGN IN WITHOUT GOOGLE (2026-11-03): /dev-signin lists the admin and the seeded team; a
+    # click stores a stand-in token ('dev:<email>:<name>', which the Drive stand-in and the
+    # access check accept) and opens the home. This server only — the website never has it.
+    def _dev_signin(self):
+        import html as _h, json as _j
+        people = [(share.acc_admin(), 'Admin')] + [(e, r) for e, r in share.ACC_SEED.items() if e != share.acc_admin()]
+        word = {'Admin': 'Admin', 'designer': 'Designer', 'smm': 'Social media manager', 'cten': 'Content team \u00b7 English',
+                'ctar': 'Content team \u00b7 Arabic', 'pm': 'Performance marketing', 'ct': 'Content team'}
+        rows = ''.join('<button data-e="%s"><b>%s</b><small>%s</small></button>' % (_h.escape(e), _h.escape(word.get(r, r)), _h.escape(e)) for e, r in people)
+        out = ('''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test sign-in</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#131519;color:#fff;font:300 15px/1.5 system-ui,sans-serif}
+main{width:min(440px,calc(100vw - 32px))}h1{font-weight:400;font-size:24px;margin:0 0 6px}p{color:#b8bcc6;margin:0 0 20px}
+button{display:grid;width:100%;text-align:left;gap:2px;margin:0 0 8px;padding:14px 16px;border:0;border-radius:12px;background:#1d2024;color:#fff;font:inherit;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+button:hover{background:#252931}button b{font-weight:500}small{color:#b8bcc6;font-size:13px}</style>
+<main><h1>Sign in for testing</h1><p>Local test server only. Pick who to be; the home opens signed in as them, with that role's queue, New and Access.</p>__ROWS__
+<p style="margin-top:16px;font-size:13px">To switch, come back to /dev-signin. The admin can also use Access \u203a Preview the home as.</p></main>
+<script>
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('button[data-e]'); if (!b) return;
+  var em = b.dataset.e, o = location.origin, name = em.split('@')[0];
+  if (em === __ADMIN__) name = 'Kelvin Inigo';
+  localStorage.setItem('provident-share-base', o); localStorage.setItem('provident-drive-base', o);
+  localStorage.setItem('provident-drive-tok', JSON.stringify({ at: 'dev:' + em + ':' + name, exp: Date.now() + 365 * 864e5 }));
+  localStorage.setItem('provident-status-root', __ROOT__); localStorage.setItem('provident-posts-root', __ROOT__);
+  ['provident-acc-me', 'provident-inbox-cas', 'provident-inbox-ops', 'provident-status-sum'].forEach(function (k) { localStorage.removeItem(k); });
+  sessionStorage.clear();
+  location.href = '/index.html#/';
+});
+</script>''').replace('__ROWS__', rows).replace('__ADMIN__', _j.dumps(share.acc_admin())).replace('__ROOT__', _j.dumps(drive_mock.SEED['id'])).encode()
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
+
     def do_GET(self):
+        if urllib.parse.urlsplit(self.path).path == '/dev-signin': return self._dev_signin()
         if self.is_gauth(): return self._gauth('GET')
         if self.is_api(): return self._api('GET')
         if self.is_drive(): return self._drive('GET')
@@ -153,4 +190,5 @@ class H(SimpleHTTPRequestHandler):
 if __name__ == '__main__':
     port = PORT
     print('share dev server on http://localhost:%d  (store: %s)' % (port, 'memory' if os.environ.get('SHARE_DEV') == '1' else 'upstash'))
+    print('sign in without Google: http://localhost:%d/dev-signin' % port)
     ThreadingHTTPServer(('127.0.0.1', port), H).serve_forever()
