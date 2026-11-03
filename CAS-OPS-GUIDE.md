@@ -377,8 +377,8 @@ steps: **Design › ENG copy check › Translation › Done**.
    more than 40% of a canvas. Fix them, or press OK to send anyway. While the content team has
    it, the current bar turns amber and the step reads **Copy check**; the button moves on to
    **Create next audience** or **Make the Arabic**. **Back to design** is in the **Ad set** tab.
-   Clicking the status opens the Ad set tab. On a narrower screen the studio switcher leaves the
-   bar to make room; it is still on the home page.
+   Clicking the status opens the Ad set tab. The editor's bar has no Campaign ads | Organic posts
+   switch: to work in the other studio, go back to the home page.
 4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
    words are beside every image, which update as they type, and the designer sees the change
    within seconds. **Approve English copy** in the panel signs it off.
