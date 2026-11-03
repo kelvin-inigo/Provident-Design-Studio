@@ -13,7 +13,7 @@ for designing.** When a user asks "where is…", the answer is almost always the
 | they ask for | send them to |
 |---|---|
 | their queue, what to do next | home › **Home** › **Next up** (‹ › or the arrow keys flip through it) |
-| every campaign and post, by stage | home › **Status** (one board: **New**, **Design**, **Copy check**, **Ready**) |
+| every campaign and post, by stage (Content Hub posts too) | home › **Status** (one board: **New**, **Design**, **Copy check**, **Ready**) |
 | a saved project, "Recent", "Continue last" | home › **Projects**, or **Pick up where you left off** at the foot of Home |
 | a new campaign, ticket or post | home › **New** (top right; it follows the role) |
 | roles, requests, who can do what | home › **Access** |
@@ -51,7 +51,16 @@ Remove, Delete) or a post's page (**Send to designer**, **Send to copy check**, 
 Copy link, activity). A filed ticket shows on Status at once. Translation only counts audiences
 that have an Arabic version.
 
-**5. Access has a Roles tab (admin only).** One row per capability (Design campaign ads, Design
+**5. Content Hub posts are on Status.** Posts the Content Hub sent to design show on the board,
+tagged **Content Hub**: waiting for a designer under **New**, in design or with changes asked
+under **Design**, delivered and waiting for approval on the hub under **Copy check**, approved
+under **Ready** (for two weeks). Clicking one opens it in OPS with the hub's copy on its pages;
+**Send** then attaches the design to that hub post. Status reads the hub only — it claims and
+posts nothing. It uses the address and **Design key** set in OPS under **Share › Import hub**; the
+line under the board says when the hub was last read, or why it couldn't be (not set up, key
+refused, hub not reached). From the website, Chrome asks once to allow local network access.
+
+**6. Access has a Roles tab (admin only).** One row per capability (Design campaign ads, Design
 organic posts, File campaign tickets, Draft organic posts, Approve English copy, Approve the
 Arabic translation), one tick box per role. **Save changes** reaches everyone with that role
 within five minutes: what **New** offers, **Your studios**, **Projects**, whether CAS opens, and
@@ -59,10 +68,10 @@ who appears in the "Which designer" / "Who checks the copy" pickers. **Let peopl
 admin's alone. **Preview the home as** shows the home as that role, with an **End preview**
 bar, instead of opening the old studio screens.
 
-**6. Signing out** lands on a sign-in page and clears the last person's queue and cached lists
+**7. Signing out** lands on a sign-in page and clears the last person's queue and cached lists
 from that computer. Sign out is the arrow beside your name.
 
-**7. Phones, tablets and Safari.** The home works on a tablet (Status shows two stages by two) and
+**8. Phones, tablets and Safari.** The home works on a tablet (Status shows two stages by two) and
 a phone (a compact Next up, filters in one swipeable line, a Status board that swipes one stage at
 a time). Safari's broken thumbnails and gaps in the tile grids are fixed. Safari and Firefox still
 can't use a **Source folder**: exports download as a zip.
