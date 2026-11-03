@@ -136,9 +136,10 @@ button:hover{background:#252931}button b{font-weight:500}small{color:#b8bcc6;fon
 <main><h1>Sign in for testing</h1><p>Local test server only. Pick who to be; the home opens signed in as them, with that role's queue, New and Access.</p>__ROWS__
 <p style="margin-top:16px;font-size:13px">Empty? <a href="/dev-seed" style="color:#fff">Fill it with demo data</a>. To switch, come back to /dev-signin. The admin can also use Access \u203a Preview the home as.</p></main>
 <script>
-document.addEventListener('click', function (e) {
-  var b = e.target.closest('button[data-e]'); if (!b) return;
-  var em = b.dataset.e, o = location.origin, name = em.split('@')[0];
+// ?as=<email, or a role word such as pm>&go=<home route>: signs in without a click, for a
+// browser that cannot be scripted (Safari)
+function signIn(em, go) {
+  var o = location.origin, name = em.split('@')[0];
   name = ({ 'exec4.graphics': 'Aisha Rahman', 'exec5.graphics': 'Marco Santos', 'exec10.media': 'Layla Haddad', 'exec1.content': 'Priya Nair',
     'exec2.content': 'Omar Khalil', 'digitalmarketing.lead1': 'Dennis Bugos' })[name] || name;
   if (em === __ADMIN__) name = 'Kelvin Inigo';
@@ -148,8 +149,18 @@ document.addEventListener('click', function (e) {
   localStorage.setItem('provident-status-root', __ROOT__); localStorage.setItem('provident-posts-root', __ROOT__);
   ['provident-acc-me', 'provident-inbox-cas', 'provident-inbox-ops', 'provident-status-sum'].forEach(function (k) { localStorage.removeItem(k); });
   sessionStorage.clear();
-  location.href = '/index.html#/';
+  location.href = '/index.html#/' + (go || '');
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('button[data-e]'); if (b) signIn(b.dataset.e);
 });
+(function () {
+  var q = new URLSearchParams(location.search), as = q.get('as'); if (!as) return;
+  var bs = [].slice.call(document.querySelectorAll('button[data-e]')), hit = bs.filter(function (b) {
+    return b.dataset.e === as || b.textContent.toLowerCase().indexOf(as.toLowerCase()) >= 0; })[0];
+  if (as === 'pm') hit = bs.filter(function (b) { return /Performance/.test(b.textContent); })[0];
+  if (hit) signIn(hit.dataset.e, q.get('go') || '');
+})();
 </script>''').replace('__ROWS__', rows).replace('__ADMIN__', _j.dumps(share.acc_admin())).replace('__ROOT__', _j.dumps(drive_mock.SEED['id'])).encode()
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')

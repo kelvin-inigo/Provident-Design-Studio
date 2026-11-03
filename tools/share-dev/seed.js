@@ -229,6 +229,7 @@
       sessionStorage.clear();
       btn.textContent = 'Done — open the home';
       btn.disabled = false; btn.onclick = () => { location.href = '/index.html#/'; };
+      if (/[?&]auto\b/.test(location.search)) location.href = '/index.html#/';
       say('Done. Signed in as the admin; /dev-signin switches person.');
     } catch (e) {
       say('Stopped: ' + (e && e.message || e)); btn.disabled = false; btn.textContent = 'Try again';
@@ -236,4 +237,6 @@
     }
   }
   document.getElementById('go').addEventListener('click', run, { once: true });
+  // ?auto runs it on load, for a browser that cannot be clicked from a script (Safari)
+  if (/[?&]auto\b/.test(location.search)) run();
 })();

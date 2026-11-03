@@ -377,6 +377,10 @@
     A.listBusy = false;
     if (A.host) { try { A.host.forceUpdate(); } catch (e) {} }
     drawAdmin(true);
+    // the home's Access badge counts the requests: tell it when that number moves (it read 0
+    // before the first list came back, so the badge was missing on the home)
+    const n = reqs().length;
+    if (HOME && n !== A._pn) { A._pn = n; try { window.dispatchEvent(new CustomEvent('provident-access', { detail: { phase: A.phase, admin: !!(A.me && A.me.admin && A.phase === 'in') } })); } catch (x) {} }
   }
   const reqs = () => ((A.list && A.list.users) || []).filter(u => u.status === 'pending');
   const people = () => ((A.list && A.list.users) || []).filter(u => u.status !== 'pending');
@@ -895,6 +899,9 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
   .ac .ac-t thead{display:none}.ac .ac-t,.ac .ac-t tbody{display:block}.ac .ac-t tr{display:grid;grid-template-columns:minmax(0,1fr);gap:8px 12px;padding:12px 0;border-bottom:1px solid var(--ps-hair)}
   .ac .ac-t td{border:0;padding:0}.ac .ac-t td:first-child{max-width:none;width:auto}.ac .ac-t td:nth-child(3){display:none}.ac .ac-end{grid-column:1/-1;text-align:left}
   .ac .ac-pv > label{display:none}
+}
+@media (max-width:520px){
+  .ac .ac-tabs{display:flex;max-width:100%;overflow-x:auto;scrollbar-width:none}.ac .ac-tabs::-webkit-scrollbar{display:none}.ac .ac-tabs button{flex:none;padding:0 11px;font-size:13px;gap:6px}
 }
 `;
   const st = document.createElement('style'); st.id = 'acx-css'; st.textContent = css;

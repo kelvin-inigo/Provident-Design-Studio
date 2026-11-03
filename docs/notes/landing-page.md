@@ -491,3 +491,27 @@ the 4:5, 9:16 and 1.91:1 canvases as hairline outlines round it, labelled at the
 (.cg, .cg-f); hover brightens the outlines. OPS is a real three-page carousel fanned (weekly,
 agents, review — all true 3:4 renders) with page dots, beside a 9:16 story frame that shows the
 listed render whole on black (.og). Phone: both stages scale to .82 in a 200px band.
+
+## SAFARI, TABLET AND PHONE PASS (2026-11-03)
+Seen in real Safari (captured by window id) and measured in the Browser pane at 1440 / 1024 /
+820 / 375.
+- Safari crushed "Where everything is": .rd set only height + aspect-ratio, and Safari sizes an
+  auto grid track by the photo's own width. .rd now carries width:calc(var(--h) * var(--a)).
+- Pick up / Projects tiles were CSS columns: Safari spread a few tiles over every other column
+  and dropped some lazy pictures. Now a grid (--n columns, auto-fill) packed by stack()/pack():
+  each li spans ceil((height + gap) / 2) rows of 2px; repacked on each picture's load (a timer,
+  not rAF) and on width change (ResizeObserver); a grid with no width waits. No loading=lazy.
+  The Browser pane runs no animation frames, so neither rAF nor ResizeObserver fire there —
+  reload after resizing the pane before judging the packing.
+- The page settle (.pg[data-in]) starts at opacity .5: Safari pauses animations in a covered
+  window and the page sat invisible.
+- Status's board had its columns in an inline style, so no media rule ever applied. In CSS now:
+  four columns; two by two at ≤1100; one 84vw stage per swipe on phones (scroll-snap).
+- Home: side column kept (320px, heads on one line) down to 900, Next up picture 200px; below
+  900 it stacks. rd() writes --h inline, so the media rules override it with !important.
+- Phone: Next up is a compact card (112px picture beside the text); filter chips are one
+  swipeable line; Access's tabs (access.js) fit at 13px and scroll if they must.
+- The home's Access badge was missing until a route ran after the admin list loaded; access.js
+  now fires provident-access on the home when the waiting count changes.
+- Test server: /dev-signin?as=<email or role>&go=<route> and /dev-seed?auto, for a browser
+  that cannot be clicked from a script.
