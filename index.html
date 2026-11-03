@@ -138,7 +138,7 @@ button{font-family:inherit}
 .hm{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:40px 48px; align-items:start}
 .hm-main{min-width:0}
 .hm-side{display:flex; flex-direction:column; gap:16px; min-width:0}
-.hm .h1{margin-bottom:32px}
+.hm > .h1{grid-column:1/-1; margin-bottom:-8px}   /* 32px to Next up, with the grid's 40px row gap */
 
 /* Next up: the one card that shouts */
 .nx{display:grid; grid-template-columns:auto minmax(0,1fr); gap:28px; padding:20px 28px 20px 20px; border-radius:16px; background:var(--ps-card);
@@ -444,7 +444,7 @@ button{font-family:inherit}
 }
 @media (max-width:640px){
   .pg{padding:24px 16px 32px}
-  .hm .h1{margin-bottom:22px}
+  .hm > .h1{margin-bottom:-18px}
   .nx{grid-template-columns:minmax(0,1fr); padding:14px 14px 18px; gap:16px}
   .nx .rd{--h:220px; justify-self:center}
   .nx h3{font-size:24px}
@@ -895,7 +895,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var n = list.length, tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !data.known ? 'Your queue fills in from Status.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
     if (cur >= n) cur = Math.max(0, n - 1);
     var top = list[cur], fd = flip; flip = 0;
-    var h = '<div class="hm"><div class="hm-main"><h1 class="h1">' + hi + '<span>' + tail + '</span></h1>';
+    // the greeting spans the page; the side column starts level with Next up (2026-11-03)
+    var h = '<div class="hm"><h1 class="h1">' + hi + '<span>' + tail + '</span></h1><div class="hm-main">';
 
     h += '<div class="sh">Next up' + (n > 1 ? '<small>' + (cur + 1) + ' of ' + n + '</small><span class="sp"></span><span class="pgr">' +
       '<button class="icb" type="button" data-nx="-1" aria-label="Previous"' + (cur ? '' : ' disabled') + '>' + ico('chevl') + '</button>' +
