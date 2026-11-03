@@ -515,3 +515,15 @@ Seen in real Safari (captured by window id) and measured in the Browser pane at 
   now fires provident-access on the home when the waiting count changes.
 - Test server: /dev-signin?as=<email or role>&go=<route> and /dev-seed?auto, for a browser
   that cannot be clicked from a script.
+
+## THE SKY OVER THE GREETING (2026-11-03)
+By request: the home's greeting sits in a rounded panel (.sky, card colour, hairline ring) with a
+quiet sky for the time of day behind it, faded out where the words are (a left-to-right mask on
+.sky-l), and the date and time in a small pill at the top right (.sky-t). SKY_K holds keyframes by
+minute of the day — night, dawn 6:30, a clear and cloudy 9:00, midday, a warmer 16:00, sunset
+17:45, dusk 19:15, night 21:00 — interpolated each minute by skyPaint() into --s1..3 (gradient),
+--sc / --sx / --sy / --sr (the sun crossing the right half 6:30–18:30, low at either end, a small
+moon after), --co / --cc (four clouds, SKY_CLOUDS, drifting ±28px over 84–132 s, still with
+reduced motion; their phase comes from the clock so a re-render doesn't jump) and --st (stars).
+Dark theme: the sky at .58. Light theme: clouds get a blue-grey underside (drop-shadow) or white
+vanishes on a pale sky. Chrome colours only — nothing on any canvas.
