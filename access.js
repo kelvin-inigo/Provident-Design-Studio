@@ -346,6 +346,9 @@
     // ONE HOME (2026-11-02): on the home page a preview is the home as that role sees it — its
     // queue, its board, its New and Access — not a jump into a studio; the page shows the bar
     if (HOME) { apply(); return; }
+    // HOUSEKEEPING (2026-11-03): a studio has no home screens of its own any more, so a preview
+    // started (or ended) there continues on the home page, where the bar is
+    if (window.StudioBase && StudioBase.goHome) { StudioBase.goHome(r ? '' : 'access'); return; }
     const sh = A.host;
     if (sh) { try { sh.setState({ splashView: r ? (only() || 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
     apply(); draw();
@@ -655,7 +658,9 @@
     chip();
     if (A.me && A.me.admin && A.phase === 'in') {
       const host = document.querySelector('div[data-acc-admin]');
-      if (host) { drawAdmin(false); if (document.visibilityState === 'visible' && Date.now() - (A._lt || 0) > 30000) { A._lt = Date.now(); loadList(); } }
+      // the list every 30 s while the panel is on screen; the home keeps it in the page hidden, and
+      // then only the waiting count needs it, every two minutes (2026-11-03)
+      if (host) { drawAdmin(false); if (document.visibilityState === 'visible' && Date.now() - (A._lt || 0) > (host.offsetParent ? 30000 : 120000)) { A._lt = Date.now(); loadList(); } }
     }
     if (lim()) apply();
   }, 500);

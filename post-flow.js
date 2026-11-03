@@ -635,7 +635,8 @@
     if (a === 'door') { autoDoor = true; eng.host.setState({ splashView: b.dataset.v }); }
     else if (a === 'open') openProject(eng, b.dataset.sid);
     else if (a === 'design') startDesign(eng, b.dataset.id);
-    else if (a === 'card' || a === 'status') { Status.want = a === 'card' ? b.dataset.id : null; eng.host.setState({ splashView: 'rev' }, () => setTimeout(() => Status.mount(eng), 0)); }
+    // HOUSEKEEPING (2026-11-03): Status and a post's page are the home's
+    else if (a === 'card' || a === 'status') StudioBase.goHome(a === 'card' ? 'item/ops/' + encodeURIComponent(b.dataset.id) : 'status');
     else if (a === 'refresh') Feed.load(false);
     else if (a === 'sign') { if (await dsGate('Read your posts on Google Drive')) Feed.load(false); }
     else if (a === 'step') {

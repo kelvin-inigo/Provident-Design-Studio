@@ -415,7 +415,11 @@ class StudioBase {
   // every workspace. Previews are dropped first when the list grows past ~1 MB.
   // ONE HOME (2026-11-02): the studios' Home and Status live on the site's index.html now
   // (#/, #/status, #/item/<cas|ops>/<id>); every way back to them goes through here
-  static goHome(route) { location.href = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'index.html' + (route ? '#/' + route : ''); }
+  static goHome(route) {
+    // already on the home: a hash change, not a reload
+    if (document.documentElement.hasAttribute('data-acc-home')) { location.hash = '#/' + (route || ''); return; }
+    location.href = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'index.html' + (route ? '#/' + route : '');
+  }
   static inboxSave(app, rows, me) {
     try {
       let j = JSON.stringify({ at: Date.now(), me: me || null, items: rows || [] });

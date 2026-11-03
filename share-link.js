@@ -3807,7 +3807,7 @@
       if (b.dataset.arA) { d.arA[b.dataset.arA] = !d.arA[b.dataset.arA]; this.save(); this.draw(); }
       if (b.dataset.rmf) { this.files.splice(+b.dataset.rmf, 1); this.drawFiles(); }
       if (b.dataset.a === 'again') this.reset();
-      if (b.dataset.a === 'status') { const h = eng.host; if (h) h.setState({ splashView: 'rev' }); }
+      if (b.dataset.a === 'status') StudioBase.goHome('status');   // Status is the home's (2026-11-03)
       if (b.dataset.copy) copyText(b.dataset.copy).then(ok => { b.lastChild.textContent = ok ? 'Copied' : 'Select it'; });
     });
     $('.rsp-tk').onclick = () => this.go(false);

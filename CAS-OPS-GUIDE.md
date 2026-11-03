@@ -104,9 +104,9 @@ say so and point to the step above.
 
 - Open `index.html` (the **home page**; on the website it is the first page) in **Chrome** or
   **Edge**. Everything that waits on someone — tickets, hand-offs, copy checks, packages — is
-  managed here for both studios. The studios themselves are for designing: CAS and OPS open on
-  **Recent**, and their sidebar's **Home** and **Status** come back to this page. The home page
-  has three tabs at the top:
+  managed here for both studios. The studios themselves are for designing: opened with nothing in
+  them, CAS and OPS bring you to the home's **Projects**, and their sidebar's **Home**, **Status**,
+  **Projects** and **Access** all come back to this page. The home page has these tabs at the top:
   - **Home** shows **Next up**: the one campaign or post most worth doing now, with its picture,
     its step and one button that opens it in its studio. **‹ ›** (or the arrow keys) flip through
     the rest. Under it, **Also waiting on you** (filter by **Campaign ads** or **Organic posts**)
@@ -157,7 +157,7 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Content team · English** | The copy requests from both studios, on the home page. A post's page has **Approve copy** (or send it back). A campaign waiting on you opens its content-team link, where only **Approve English copy** shows. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. Opening CAS or OPS goes to the home page. |
-| **Admin** | Everything a designer has, plus **Access** (on the home page, and in CAS's sidebar). There is one admin. |
+| **Admin** | Everything a designer has, plus **Access** on the home page (CAS's sidebar row opens it there too). There is one admin. |
 
 **Hand-offs name a person.** Each team has two people. Whenever you send work on — **File as
 ticket** (to a designer), **Send to designer**, **Send to copy check**, **Send for translation
@@ -182,7 +182,7 @@ from Google the first time they do. The admin can still change or remove anyone 
   (`#share=…`) is its own key, as before.
 - Opened straight off the disk with no internet, CAS opens without the sign-in screen.
 
-**Access (admin only).** Open **Access** in the Home sidebar. The badge counts people waiting.
+**Access (admin only).** Open **Access** at the top of the home page. The badge counts people waiting.
 
 - **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
   note. Pick their role from the dropdown (Designer, Social media manager, Content team · English,
@@ -1200,7 +1200,7 @@ You don't need to set these; the layouts already follow them.
 | Saved in Photoshop but nothing changed | Keep the same file name (⌘S, or Save a Copy with the same name). Without the helper, save as PNG or JPEG, not PSD. |
 | The top bar is cut off and **Share** is missing | Make the window wider. CAS's top bar needs about 1150 px. |
 | Old files are still in the export folder | Exports overwrite but never delete. Remove old files by hand. |
-| A project isn't in **Recent** | Only saved projects are listed. Press **Save**. |
+| A project isn't in **Projects** | Only saved projects are listed. Press **Save**. |
 | **From the hub** says it can't reach the hub | Be on the office network. On the website, press **Allow** when Chrome asks about devices on your local network (and allow Chrome under System Settings › Privacy & Security › Local Network on a Mac). Safari and Firefox can't read the hub from the website. |
 | **From the hub** says the key was refused | Set the **Design key** in **Share › Import hub**. |
 | A project from the hub has no photo | It was sent before a photo was added, or the photo was never in the studio (the sent pictures are the finished exports, which aren't put back). Drop the photo again. |

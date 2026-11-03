@@ -442,3 +442,20 @@ for its whole life), and a `#recent=`-style hash exempted the screen for as long
 the address. Now the only exemption is a link in the address that has not opened anything yet
 (`this._opened` turns true once the active project leaves the splash); everything else on `rec`
 goes to the home's #/projects. Shell renderVals only, both studios; zero artwork lines.
+
+
+## HOUSEKEEPING: NO OLD SCREENS LEFT IN THE STUDIOS (2026-11-03)
+By request ("no remnants of the old windows popping out"). The studios' own Recent, Status, Home
+(campaign setup) and Access panels no longer draw at all (`shShowRec`/`shShowRev`/`shShowPlan`/
+`shShowAcc` false); their views go home: rec → #/projects, acc → #/access (CAS). The brief frame
+before the redirect says "Projects · Opening them on the home page…". Sidebar **Recent** is now
+**Projects** (no count). CAS's header New campaign → #/new/cas. Calls that still asked a studio
+for the old views now go home: OPS Start a post's Status / card (post-flow HomeView click),
+the campaign setup's "See it on Status" (share-link PlanView), and an admin's Preview as started
+or ended inside a studio (access.js preview → goHome('' | 'access')). `StudioBase.goHome` on the
+home itself is a hash change, not a reload. OPS's Start a post follows Access › Roles (`posts`).
+Speed: the home loads in ~50 ms locally, 16 requests, no duplicates; idle, it reads the queues
+once a minute (visible tab only). The admin list (acclist) was re-read every 30 s even with
+Access hidden; now 30 s on Access, 2 min elsewhere (the waiting badge).
+Not changed: the Content Hub's Send bridge, OPS's Templates / From the hub / Start a post, CAS's
+Component usage, the editors.
