@@ -483,3 +483,11 @@ from Access › Roles), Approve copy. Fixed:
   on screen, a pending Pick up (provident-rspick) or Add a project (provident-rsjoin); once a
   project is open it stays, and closing it (the editor's Projects button) goes home.
 Not verified: real Google Drive, real sign-in, the live site.
+
+## NEW CHOOSER STAGES REDESIGNED (2026-11-03)
+The old strips cropped one square preview into 4:5, 9:16 and 1.91:1 frames (sliced words), and a
+feed post into the story frame. Now: CAS is a crop guide — one real 1:1 render (campaign-d) with
+the 4:5, 9:16 and 1.91:1 canvases as hairline outlines round it, labelled at their corners
+(.cg, .cg-f); hover brightens the outlines. OPS is a real three-page carousel fanned (weekly,
+agents, review — all true 3:4 renders) with page dots, beside a 9:16 story frame that shows the
+listed render whole on black (.og). Phone: both stages scale to .82 in a 200px band.

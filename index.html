@@ -342,20 +342,38 @@ button{font-family:inherit}
 .door{display:flex; flex-direction:column; border-radius:20px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair); color:inherit; text-decoration:none; overflow:hidden;
   transition:box-shadow var(--ps-motion) var(--ps-ease)}
 .door:hover{box-shadow:inset 0 0 0 1px var(--ps-line)}
-.door-st{display:flex; align-items:flex-end; justify-content:center; gap:14px; height:236px; padding:0 20px 18px; box-sizing:border-box; background:var(--ps-fill)}
-.dfr{display:flex; flex-direction:column; align-items:center; gap:8px; transition:transform 320ms cubic-bezier(.16,1,.3,1)}
-.dfr .rd{border-radius:6px}
-.dfr small{font:500 11.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
-.door:hover .dfr{transform:translateY(-6px)}
-.door:hover .dfr:nth-child(2){transition-delay:30ms} .door:hover .dfr:nth-child(3){transition-delay:60ms} .door:hover .dfr:nth-child(4){transition-delay:90ms}
-/* the carousel: two pages peeking behind the first */
-.dcar{position:relative; display:flex}
-.dcar > i{position:absolute; top:0; width:90px; height:160px; border-radius:6px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-line); transition:transform 320ms cubic-bezier(.16,1,.3,1)}
-.dcar > i:nth-of-type(1){left:14px; z-index:-1; transform:translateY(-6px) scale(.96)}
-.dcar > i:nth-of-type(2){left:28px; z-index:-2; transform:translateY(-12px) scale(.92)}
-.dcar{isolation:isolate}
-.door:hover .dcar > i:nth-of-type(1){transform:translate(10px,-8px) scale(.96)}
-.door:hover .dcar > i:nth-of-type(2){transform:translate(22px,-16px) scale(.92)}
+.door-st{position:relative; display:grid; place-items:center; height:236px; box-sizing:border-box; background:var(--ps-fill); overflow:hidden}
+/* NEW CHOOSER STAGES (2026-11-03, redesign): each shows what the studio makes, uncropped.
+   CAS — a crop guide: ONE real 1:1 design, the 4:5, 9:16 and 1.91:1 canvases drawn round it. */
+.cg{position:relative; width:250px; height:208px; flex:none}
+.cg-f{position:absolute; box-sizing:border-box; border-radius:5px; box-shadow:inset 0 0 0 1px var(--ps-line); transition:box-shadow 260ms var(--ps-ease), transform 420ms cubic-bezier(.16,1,.3,1)}
+.cg-f > b{position:absolute; font:500 10px/1 var(--ps-font); letter-spacing:.02em; color:var(--ps-ink-2); font-variant-numeric:tabular-nums; white-space:nowrap}
+.cg-45{left:57px; top:19px; width:136px; height:170px} .cg-45 > b{left:6px; top:6px}
+.cg-916{left:74px; top:13.5px; width:102px; height:181px} .cg-916 > b{left:50%; top:-14px; transform:translateX(-50%)}
+.cg-191{left:1px; top:39px; width:248px; height:130px} .cg-191 > b{left:6px; top:7px}
+.cg-11{left:65px; top:44px; width:120px; height:120px; border-radius:6px; overflow:visible; box-shadow:0 6px 18px -8px rgba(0,0,0,.55)}
+.cg-11 img{display:block; width:100%; height:100%; border-radius:6px; object-fit:cover; box-shadow:0 0 0 1px var(--ps-hair)}
+.cg-11 > b{left:calc(100% + 13px); top:50%; transform:translateY(-50%)}
+.door:hover .cg-f:not(.cg-11){box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
+.door:hover .cg-45{transform:scale(1.03)} .door:hover .cg-916{transform:scale(1.03); transition-delay:40ms} .door:hover .cg-191{transform:scale(1.03); transition-delay:80ms}
+.door:hover .cg-11{transform:translateY(-3px)}
+/* OPS — a carousel, its pages fanned (feed 3:4), and a story with its design whole (9:16) */
+.og{display:flex; align-items:flex-end; gap:34px}
+.og-col{display:flex; flex-direction:column; align-items:center; gap:12px}
+.og-col > small{font:500 11.5px/1 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap}
+.og-car{position:relative; width:144px; height:150px; isolation:isolate}
+.og-car img{position:absolute; left:0; bottom:0; width:112px; height:149px; border-radius:6px; object-fit:cover; box-shadow:0 0 0 1px var(--ps-hair), 0 6px 18px -8px rgba(0,0,0,.55);
+  transform-origin:left bottom; transition:transform 420ms cubic-bezier(.16,1,.3,1)}
+.og-car img:nth-child(1){z-index:3}
+.og-car img:nth-child(2){z-index:2; transform:translateX(16px) scale(.93); filter:brightness(.8)}
+.og-car img:nth-child(3){z-index:1; transform:translateX(30px) scale(.86); filter:brightness(.62)}
+.door:hover .og-car img:nth-child(2){transform:translateX(26px) scale(.93)} .door:hover .og-car img:nth-child(3){transform:translateX(50px) scale(.86)}
+.og-dots{display:flex; gap:4px} .og-dots i{width:5px; height:5px; border-radius:50%; background:var(--ps-line)} .og-dots i:first-child{background:var(--ps-ink-2)}
+.og-sto{position:relative; width:84px; height:149px; border-radius:7px; background:#000; display:grid; place-items:center; overflow:hidden;
+  box-shadow:0 0 0 1px var(--ps-line), 0 6px 18px -8px rgba(0,0,0,.55); transition:transform 420ms cubic-bezier(.16,1,.3,1)}
+.og-sto img{width:100%; height:auto; display:block}
+.door:hover .og-sto{transform:translateY(-4px)}
+@media (prefers-reduced-motion:reduce){ .cg-f,.og-car img,.og-sto{transition:none} }
 .door-b{display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:22px 24px 22px; flex:1}
 .door-b b{font:400 26px/1.15 var(--ps-font); letter-spacing:-.018em}
 .door-b p{margin:0; font:400 14.5px/1.5 var(--ps-font); color:var(--ps-ink-2); max-width:46ch}
@@ -416,9 +434,8 @@ button{font-family:inherit}
   .doors{grid-template-columns:minmax(0,1fr)}
 }
 @media (max-width:640px){
-  .door-st{height:auto; gap:10px; padding:28px 12px 14px}
-  .dfr .rd{--h:var(--hm) !important}
-  .dcar > i{width:74px; height:99px}
+  .door-st{height:200px}
+  .cg,.og{transform:scale(.82)}
   .door-b{padding:18px}
   .door-go{margin-left:0}
   .idc{grid-template-columns:48px minmax(0,1fr); gap:14px; padding:16px}
@@ -1002,12 +1019,17 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   function viewNew(){
     var r = data.r, ok = canStart(r);
     if (!ok.length) return '<div class="nw nw-w"><h1 class="h1">New</h1><div class="qk" style="margin-top:24px"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>The content team checks, it doesn’t start</h3><p>Campaigns start as a ticket from performance marketing, and posts as a draft from social media. Copy checks come to your Home.</p></div></div></div>';
-    var fr = function(img, a, hh, lab){ return '<span class="dfr" style="--a:' + a + ';--h:' + hh + 'px;--hm:' + Math.round(hh * .62) + 'px"><span class="rd" style="--a:' + a + ';--h:' + hh + 'px"><img src="preview/' + img + '.webp" alt=""></span><small>' + lab + '</small></span>'; };
+    // the stages: real template renders, never cropped to a shape they weren't made in
+    var casStage = '<span class="cg"><span class="cg-f cg-191"><b>1.91:1</b></span><span class="cg-f cg-45"><b>4:5</b></span><span class="cg-f cg-916"><b>9:16</b></span>' +
+      '<span class="cg-f cg-11"><img src="preview/campaign-d.webp" alt=""><b>1:1</b></span></span>';
+    var opsStage = '<span class="og"><span class="og-col"><span class="og-car"><img src="preview/organic-weekly.webp" alt=""><img src="preview/organic-agents.webp" alt=""><img src="preview/organic-review.webp" alt=""></span>' +
+      '<span class="og-dots"><i></i><i></i><i></i></span><small>Feed 3:4 \u00b7 one page or a carousel</small></span>' +
+      '<span class="og-col"><span class="og-sto"><img src="preview/organic-listed.webp" alt=""></span><span class="og-dots" style="visibility:hidden"><i></i></span><small>Story 9:16</small></span></span>';
     var doors = {
-      cas: '<a class="door" href="' + STUDIO.cas.start + '"><span class="door-st" aria-hidden="true">' + fr('campaign-d', 1, 104, '1:1') + fr('campaign-g', .8, 130, '4:5') + fr('campaign-h', .5625, 160, '9:16') + fr('campaign-f', 1.91, 66, '1.91:1') + '</span>' +
+      cas: '<a class="door" href="' + STUDIO.cas.start + '"><span class="door-st" aria-hidden="true">' + casStage + '</span>' +
         '<span class="door-b">' + mk('cas') + '<b>A campaign</b><p>Paid Meta ads for one or more audiences, English then Arabic, in every size.</p>' +
         '<span class="door-f"><small>' + (r === 'pm' ? 'Files a ticket for the designers' : 'Usually a ticket from performance marketing') + '</small><span class="door-go">' + (r === 'pm' ? 'File a ticket' : 'Start a campaign') + ico('r') + '</span></span></span></a>',
-      ops: '<a class="door" href="' + STUDIO.ops.start + '"><span class="door-st" aria-hidden="true"><span class="dcar">' + fr('organic-weekly', .75, 160, 'Feed 3:4') + '<i></i><i></i></span>' + fr('organic-listed', .5625, 160, 'Story 9:16') + '</span>' +
+      ops: '<a class="door" href="' + STUDIO.ops.start + '"><span class="door-st" aria-hidden="true">' + opsStage + '</span>' +
         '<span class="door-b">' + mk('ops') + '<b>An organic post</b><p>A feed or story post from one of the locked templates, one page or a carousel.</p>' +
         '<span class="door-f"><small>' + (r === 'smm' ? 'Drafts a post for the designers' : 'Usually a draft from social media') + '</small><span class="door-go">' + (r === 'smm' ? 'Draft a post' : 'Start a post') + ico('r') + '</span></span></span></a>'
     };
