@@ -134,14 +134,17 @@ main{width:min(440px,calc(100vw - 32px))}h1{font-weight:400;font-size:24px;margi
 button{display:grid;width:100%;text-align:left;gap:2px;margin:0 0 8px;padding:14px 16px;border:0;border-radius:12px;background:#1d2024;color:#fff;font:inherit;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
 button:hover{background:#252931}button b{font-weight:500}small{color:#b8bcc6;font-size:13px}</style>
 <main><h1>Sign in for testing</h1><p>Local test server only. Pick who to be; the home opens signed in as them, with that role's queue, New and Access.</p>__ROWS__
-<p style="margin-top:16px;font-size:13px">To switch, come back to /dev-signin. The admin can also use Access \u203a Preview the home as.</p></main>
+<p style="margin-top:16px;font-size:13px">Empty? <a href="/dev-seed" style="color:#fff">Fill it with demo data</a>. To switch, come back to /dev-signin. The admin can also use Access \u203a Preview the home as.</p></main>
 <script>
 document.addEventListener('click', function (e) {
   var b = e.target.closest('button[data-e]'); if (!b) return;
   var em = b.dataset.e, o = location.origin, name = em.split('@')[0];
+  name = ({ 'exec4.graphics': 'Aisha Rahman', 'exec5.graphics': 'Marco Santos', 'exec10.media': 'Layla Haddad', 'exec1.content': 'Priya Nair',
+    'exec2.content': 'Omar Khalil', 'digitalmarketing.lead1': 'Dennis Bugos' })[name] || name;
   if (em === __ADMIN__) name = 'Kelvin Inigo';
   localStorage.setItem('provident-share-base', o); localStorage.setItem('provident-drive-base', o);
   localStorage.setItem('provident-drive-tok', JSON.stringify({ at: 'dev:' + em + ':' + name, exp: Date.now() + 365 * 864e5 }));
+  localStorage.setItem('provident-drive-who', JSON.stringify({ email: em, name: name }));
   localStorage.setItem('provident-status-root', __ROOT__); localStorage.setItem('provident-posts-root', __ROOT__);
   ['provident-acc-me', 'provident-inbox-cas', 'provident-inbox-ops', 'provident-status-sum'].forEach(function (k) { localStorage.removeItem(k); });
   sessionStorage.clear();
@@ -154,8 +157,36 @@ document.addEventListener('click', function (e) {
         self.end_headers()
         self.wfile.write(out)
 
+    # DEMO DATA (2026-11-03): /dev-seed fills the stand-ins with campaigns and posts at every
+    # stage, access requests and saved projects (seed.js), signed in as the admin.
+    def _dev_seed(self):
+        import json as _j
+        out = ('''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo data</title>
+<script>
+window.SEED_ROOT = __ROOT__; window.SEED_ADMIN = __ADMIN__;
+localStorage.setItem('provident-share-base', location.origin); localStorage.setItem('provident-drive-base', location.origin);
+localStorage.setItem('provident-drive-tok', JSON.stringify({ at: 'dev:' + __ADMIN__ + ':Kelvin Inigo', exp: Date.now() + 365 * 864e5 }));
+localStorage.setItem('provident-status-root', __ROOT__); localStorage.setItem('provident-posts-root', __ROOT__);
+</script>
+<script src="/studio-base.js"></script><script src="/share-link.js"></script>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#131519;color:#fff;font:300 15px/1.5 system-ui,sans-serif}
+main{width:min(520px,calc(100vw - 32px))}h1{font-weight:400;font-size:24px;margin:0 0 6px}p{color:#b8bcc6;margin:0 0 18px}
+button{height:44px;padding:0 20px;border:0;border-radius:999px;background:#fff;color:#131519;font:500 15px system-ui,sans-serif;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}ol{margin:20px 0 0;padding-left:20px;color:#b8bcc6;font-size:13.5px}</style>
+<main><h1>Fill with demo data</h1>
+<p>Local test server only. Adds 7 campaigns and 7 posts across every stage (ticket, design, copy check, translation, ready), the team's names, 3 access requests, and 12 saved projects on this computer. Run it once after the server starts; it starts empty each time.</p>
+<button id="go" type="button">Fill it</button><ol id="log"></ol></main>
+<script src="/tools/share-dev/seed.js"></script>''').replace('__ROOT__', _j.dumps(drive_mock.SEED['id'])).replace('__ADMIN__', _j.dumps(share.acc_admin())).encode()
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
+
     def do_GET(self):
         if urllib.parse.urlsplit(self.path).path == '/dev-signin': return self._dev_signin()
+        if urllib.parse.urlsplit(self.path).path == '/dev-seed': return self._dev_seed()
         if self.is_gauth(): return self._gauth('GET')
         if self.is_api(): return self._api('GET')
         if self.is_drive(): return self._drive('GET')
@@ -191,4 +222,5 @@ if __name__ == '__main__':
     port = PORT
     print('share dev server on http://localhost:%d  (store: %s)' % (port, 'memory' if os.environ.get('SHARE_DEV') == '1' else 'upstash'))
     print('sign in without Google: http://localhost:%d/dev-signin' % port)
+    print('demo data: http://localhost:%d/dev-seed' % port)
     ThreadingHTTPServer(('127.0.0.1', port), H).serve_forever()
