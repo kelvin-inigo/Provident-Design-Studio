@@ -1814,6 +1814,39 @@ class StudioBase {
 // by design (an INTERNAL app, so only Provident accounts sign in). One token per page: CAS's
 // Ad sets and both studios' Projects folder view all read this object, so one sign-in serves
 // them all. The token is kept in memory only. docs/google-drive-setup.md has the admin steps.
+// ROOM IN THE BROWSER'S STORAGE (2026-11-03). Every tab is its own workspace and keeps its own copy
+// of its project in localStorage (runtime.js, ws:<id>:…), and none was ever cleared — one
+// computer held 98. When a save fails for room, the copies of workspaces untouched for 30 days
+// are dropped (their ids start with the time they were made: 'w' + base-36 ms); never this tab's.
+// Returns true when it freed any.
+StudioBase.lsFree = function () {
+  const own = window.providentWorkspace || '', cut = Date.now() - 30 * 864e5, drop = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = Storage.prototype.key.call(localStorage, i) || '', m = /^ws:(w([0-9a-z]{8})[0-9a-z]*):(.+)$/.exec(k);
+      if (m && m[1] !== own && parseInt(m[2], 36) < cut) drop.push(k);
+    }
+    drop.forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+  return drop.length > 0;
+};
+
+// A NOTICE THAT STAYS UNTIL IT IS CLOSED (2026-11-03): bottom centre, chrome tokens, one at a time.
+StudioBase.warn = function (text) {
+  try {
+    let el = document.getElementById('sb-warn');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'sb-warn'; el.setAttribute('role', 'alert');
+      el.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:14px;max-width:min(560px,calc(100vw - 32px));' +
+        'padding:12px 12px 12px 16px;border-radius:12px;background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-warn),0 12px 32px -12px rgba(0,0,0,.5);font:400 13.5px/1.45 var(--ps-font)';
+      el.innerHTML = '<span style="flex:1"></span><button type="button" style="flex:none;height:30px;padding:0 12px;border:0;border-radius:999px;background:var(--ps-fill);color:var(--ps-ink);font:500 13px var(--ps-font);cursor:pointer">OK</button>';
+      el.querySelector('button').addEventListener('click', () => el.remove());
+      document.body.appendChild(el);
+    }
+    el.firstChild.textContent = text;
+  } catch (e) {}
+};
+
 // A LINK THE PAGE OPENED WITH (2026-11-03): #share, #pick, #recent, #view, #hubopen are read and
 // dropped from the address by the time the shell first draws, so the moment is noted here, as
 // the page loads; a studio with nothing open waits for it before going to the home's Projects.

@@ -1383,3 +1383,20 @@ since 23 Oct, and the origin held **98 workspaces**.
 Verified locally: a 4 MB list became 8 KB with the photo intact; a new workspace opening the
 project from Recent got its folder and photo back, by `dir:` and by `recall`; a new campaign
 had no folder; OPS boots clean.
+
+# ALT-TAB LOOKED LIKE UNDO IN CAS (2026-11-03)
+
+Reported: switching away from Chrome and back undid the canvas, mostly on carousels. Cause:
+`_syncLS` (window `focus` + `storage`) replaced the in-memory state with localStorage's copy
+whenever the two differed — and `persist()` swallowed a failed write. With localStorage full
+(every workspace keeps its own project copy, never cleared; one computer held 98), the newest
+edits never reached storage, so the next focus put the previous copy back. Reproduced with a
+throwing setItem: edit → focus → reverted. Carousels are the biggest projects, so they fail first.
+- `_lsWrite(raw)` is the one write path (persist, restore). `_lsSeen` = the copy this window last
+  wrote or read; `_syncLS` ignores storage equal to it, so it only takes another window's write.
+  Verified: a failed save survives focus; a real write from "another window" still applies.
+- On a failed write, `StudioBase.lsFree()` drops localStorage keys of workspaces made 30+ days
+  ago (id = 'w' + base-36 ms; never this tab's; random 'p…' ids from the home are left alone),
+  then retries; if it still fails, `StudioBase.warn()` says once that changes would be lost on a
+  reload and to press Save.
+OPS has no focus sync, so it never reverted this way.

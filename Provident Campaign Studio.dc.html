@@ -7409,7 +7409,19 @@ class CampaignStudio extends StudioBase {
     // an undo that took it back would erase the changelog it exists to keep.
     delete c.copyStatus; delete c.copyLog;
     return JSON.stringify(c); }
-  persist() { if (StudioBase.loadingSession) return; try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(this.state)); } catch (e) {} }
+  persist() { if (StudioBase.loadingSession) return; this._lsWrite(JSON.stringify(this.state)); }
+  // THE CANVAS NEVER JUMPS BACK ON FOCUS (2026-11-03). A save that failed (the browser's storage
+  // full — every tab keeps its own copy) used to leave the older copy in storage, and _syncLS
+  // put it back on the canvas the moment the window got focus again: Alt-Tab looked like Undo.
+  // _lsSeen is the copy this window last wrote or read; _syncLS only takes one someone else wrote.
+  _lsWrite(raw) {
+    try { localStorage.setItem('provident-ad-studio-v2', raw); this._lsSeen = raw; this._lsFull = false; return true; }
+    catch (e) {
+      if (StudioBase.lsFree && StudioBase.lsFree()) { try { localStorage.setItem('provident-ad-studio-v2', raw); this._lsSeen = raw; this._lsFull = false; return true; } catch (e2) {} }
+      if (!this._lsFull) { this._lsFull = true; StudioBase.warn('This browser\u2019s storage is full, so your changes are on screen but would be lost on a reload. Press Save to keep them.'); }
+      return false;
+    }
+  }
   upd(fn) {
     const prev = JSON.parse(JSON.stringify(this.state));
     const n = fn(JSON.parse(JSON.stringify(this.state)));
@@ -7435,7 +7447,7 @@ class CampaignStudio extends StudioBase {
       // an undo entry taken before the first save carries no identity; keep today's
       pid: cur.pid || st.pid,
     });
-    if (!StudioBase.loadingSession) try { localStorage.setItem('provident-ad-studio-v2', JSON.stringify(n)); } catch (e) {}
+    if (!StudioBase.loadingSession) this._lsWrite(JSON.stringify(n));
     this.setState(n);
   }
   // ONE PHOTO, REFRAMED PER SIZE. Unlinking a size (Edit separately) gives it its own copy
@@ -7517,7 +7529,8 @@ class CampaignStudio extends StudioBase {
       if (document.visibilityState && document.visibilityState !== 'visible') return;
       try {
         const raw = localStorage.getItem('provident-ad-studio-v2');
-        if (!raw) return;
+        if (!raw || raw === this._lsSeen) return;   // nobody else wrote it (see _lsWrite)
+        this._lsSeen = raw;
         const p = JSON.parse(raw);
         // The copy signature rides beside strip(): a status moved in another window (a
         // copywriter marking it Final while the designer's tab is open) has to reach this
@@ -7528,6 +7541,7 @@ class CampaignStudio extends StudioBase {
         }
       } catch (e) {}
     };
+    try { this._lsSeen = localStorage.getItem('provident-ad-studio-v2'); } catch (e) {}
     window.addEventListener('focus', this._syncLS);
     window.addEventListener('storage', this._syncLS);
     this.loadRecents();
