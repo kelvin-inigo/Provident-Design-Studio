@@ -321,7 +321,25 @@
     } catch (e) { return undefined; }
   };
   SP.postRs = function () { const S = this._sh; return S && isPost(S.rs) ? S.rs : null; };
-  SP.postAfterStep = function () { this.forceUpdate(); Status.poke(); };
+  // THE CONTENT TEAM'S COPY CHECK (2026-11-04, by request): a post at Copy check, opened by the
+  // content team, is the guided run with the words only (OPS gdPlan reads this) — every line of
+  // copy page by page beside its preview, and Approve copy on the last page.
+  // A post opens by its link, which skips the sign-in gate, so role() is empty there; the access
+  // check still learns quietly which copy this person checks (now().copy: 'en' | 'ar').
+  const isCt = () => { if (role() === 'ct') return true; try { const n = window.providentAccess && window.providentAccess.now(); return !!(n && n.copy); } catch (e) { return false; } };
+  SP.postCopyMode = function () { const rs = this.postRs(); return !!rs && stage(rs).k === 2 && isCt(); };
+  // …and it opens there, on its first page, once per post, wherever the designer left the project
+  SP.postCopyLand = function () {
+    const id = this.postRs() && this._sh.id;
+    if (!id || this._ccLanded === id || !this.postCopyMode()) return;
+    this._ccLanded = id;
+    setTimeout(() => this.upd(x => { x.screen = 'guide'; x.gdStep = 0; x.gdAsk = 0; x.activeSi = 0; return x; }), 0);
+  };
+  SP.postAfterStep = function () {
+    this.forceUpdate(); Status.poke();
+    // the content team's copy check is done once they approve (or send it back): back to Status
+    if (this._ccLanded && !this.postCopyMode() && isCt()) { this.markSaved && this.markSaved(); setTimeout(() => StudioBase.goHome('status'), 600); }
+  };
   // the top bar's flow: where the post stands, and the one thing the signed-in person does next
   SP.postVals = function () {
     const rs = this.postRs(), scr = this.state.screen, work = scr === 'editor' || scr === 'guide';
@@ -339,6 +357,7 @@
         pfFlow: () => this.postToDrive(smm) };
     }
     const st = stage(rs), a = acts(rs), busy = this._rvBusy;
+    this.postCopyLand();
     return {
       pfOn: '1', pfState: st.k === 2 ? 'ct' : st.k === 3 ? 'done' : 'k' + st.k, pfSegs: segs(st.k), pfStep: STEPS[st.k].t,
       pfWhere: st.k === 3 ? (rs.name || '') : waitOf(rs, st.k) + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
@@ -819,7 +838,7 @@
       '<header class="psd-h"><span class="psd-th">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</span>' +
         '<div class="psd-t"><span class="pf-k">Organic post' + (t.deadline ? ' · due ' + esc(dueDay(t.deadline)) : '') + '</span><h2>' + esc(rs.name || 'Post') + '</h2>' +
         '<p>Started by ' + esc(rs.by || 'someone') + ' · ' + esc(day(rs.created)) + (x.mod ? ' · changed ' + esc(ago(x.mod)) : '') + '</p>' +
-        '<div class="psd-acts">' + (sid && role() !== 'pm' ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">Open in the studio</button>'
+        '<div class="psd-acts">' + (sid && role() !== 'pm' ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">' + (role() === 'ct' && st.k === 2 ? 'Check the copy' : 'Open in the studio') + '</button>'
           : (sid || role() === 'pm' || role() === 'ct' ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>')) +
           btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.fin, 'p-ghost') + btn(a.back, 'p-ghost') +
           (sid ? '<button type="button" class="p-ghost" data-ps="copy" data-link="' + esc(projLink(sid)) + '">Copy link</button>' : '') +

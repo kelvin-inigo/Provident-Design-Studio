@@ -925,6 +925,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       });
     });
     if (studiosFor(r).indexOf('ops') >= 0) hubRows(r).forEach(function(y){ y.stage = stageOf(y); rows.push(y); });
+    // THE CONTENT TEAM SEES ONLY WHAT IS HANDED TO THEM (2026-11-04, by request): Home and Status
+    // list the copy waiting on them, and nothing of what other people are working on
+    if (r === 'ct') rows = rows.filter(function(x){ return x.mine; });
     function urgency(x){ var d = due(x.due); return d ? d.n : 999; }
     var mine = rows.filter(function(x){ return x.mine; }).sort(function(p, q){ return urgency(p) - urgency(q) || (q.at || 0) - (p.at || 0); });
     var others = rows.filter(function(x){ return !x.mine && !x.ready; }).sort(function(p, q){ return (q.at || 0) - (p.at || 0); });
@@ -1117,7 +1120,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
       var c = data.rows.filter(function(x){ return f[0] === 'all' || x.studio === f[0]; }).length;
       return '<button type="button" data-sf="' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
-    h += '<button class="tg" type="button" id="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
+    if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
     h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
     var shown = data.rows.filter(function(x){
       return (sxF === 'all' || x.studio === sxF) && (!sxMine || x.mine) && (!sxQ || String(x.name).toLowerCase().indexOf(sxQ.toLowerCase()) >= 0);

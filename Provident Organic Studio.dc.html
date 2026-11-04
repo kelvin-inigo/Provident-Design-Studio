@@ -12965,13 +12965,18 @@ class OrganicStudio extends StudioBase {
       fin.push({ sec: 'look', kind: 'story' });
     } else fin.push({ sec: 'look', kind: 'cslogo' });
     fin.push({ sec: 'save', kind: 'name' }, { sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
+    // THE CONTENT TEAM'S COPY CHECK (2026-11-04, post-flow.js postCopyMode): the same run, words
+    // only — every line of copy and the agent's name and role, page by page, no pictures, no
+    // layout, no Finish. The last page's Next approves the copy.
+    const cc = !!(this.postCopyMode && this.postCopyMode());
+    if (cc) { for (let i = raw.length - 1; i >= 0; i--) if (!(raw[i].sec === 'words' || (raw[i].sec === 'agent' && (raw[i].kind === 'field' || raw[i].kind === 'proj')))) raw.splice(i, 1); fin.length = 0; }
     // the steps: every slide that asked for something, in slide order, then Finish
     const pageSis = [];
     raw.forEach(a => { if (pageSis.indexOf(a.si) < 0) pageSis.push(a.si); });
     const steps = pageSis.map(si => ({ k: 'page', si, t: this.sLabel(si),
       d: OrganicStudio.pagePurpose(slides[si]) }));
     const lastSi = pageSis.length ? pageSis[pageSis.length - 1] : 0;
-    steps.push({ k: 'finish', si: lastSi, t: 'Finish', d: 'Check how it reads, then choose where the files go.' });
+    if (!cc) steps.push({ k: 'finish', si: lastSi, t: 'Finish', d: 'Check how it reads, then choose where the files go.' });
     raw.forEach(a => { a.step = pageSis.indexOf(a.si); });
     fin.forEach(a => { a.si = lastSi; a.step = steps.length - 1; });
     return { steps, asks: raw.concat(fin) };
@@ -15862,6 +15867,7 @@ class OrganicStudio extends StudioBase {
       ...(() => {
         // ══ THE VIEW: one page, top to bottom ═════════════════════════════════════
         const plan = this.gdPlan(), steps = plan.steps, asks = plan.asks;
+        const copyChk = !!(this.postCopyMode && this.postCopyMode());
         const slides = s.slides || [];
         // THE FORM HAS TWO HOMES. `editor` means it is the right rail, showing the ACTIVE
         // slide's page with no gate and no Finish — plus the Look section on every page,
@@ -15933,6 +15939,8 @@ class OrganicStudio extends StudioBase {
           this._gdBlock = null;
           // Finish's Done goes back to Projects: the run is the main window now, so there
           // is no other workspace to hand over to. All controls is one click in the top bar.
+          // the copy check's last page approves the copy (the step's own confirm and hand-off)
+          if (idx >= steps.length - 1 && copyChk) { if (this.rvStep) this.rvStep('copy-done'); return; }
           if (idx >= steps.length - 1) { this.upd(x => { x.screen = 'splash'; return x; }); return; }
           goStep(idx + 1);
         };
@@ -16191,7 +16199,7 @@ class OrganicStudio extends StudioBase {
           gdPageTitle: editor ? this.sLabel(asi) : (step ? step.t : ''),
           gdPagePurpose: editor ? OrganicStudio.pagePurpose(sl) : (step ? step.d : ''),
           gdWhere: editor ? 'All controls' : (isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages)),
-          gdHeadMeta: editor ? (TPLNAMES[s.tpl] || '') : (isFinish ? 'Last step' : ('Page ' + (idx + 1) + ' of ' + pages)),
+          gdHeadMeta: editor ? (TPLNAMES[s.tpl] || '') : (isFinish ? 'Last step' : ((copyChk ? 'Copy check \u00b7 ' : '') + 'Page ' + (idx + 1) + ' of ' + pages)),
           gdPvSize: s.tpl === 'rcover' ? 'Reel cover 9:16' : 'Feed 3:4',
           gdPvDims: s.tpl === 'rcover' ? '1080 \u00d7 1920' : '1080 \u00d7 1440',
           gdIsFinish: isFinish,
@@ -16207,7 +16215,7 @@ class OrganicStudio extends StudioBase {
           gdBackOff: idx === 0 ? '1' : undefined,
           gdNext: advance,
           gdAskNext: advance,            // the document-level Enter handler reads this
-          gdNextLabel: isFinish ? 'Done' : (nextStep ? 'Next: ' + nextStep.t : 'Next'),
+          gdNextLabel: isFinish ? 'Done' : (nextStep ? 'Next: ' + nextStep.t : copyChk ? 'Approve copy' : 'Next'),
           gdNextReady: this.gdStepGaps(idx, asks).length ? undefined : '1',
           // in the editor the rail's slide can have NO page step (the weekly closing slide),
           // so the card — hidden there anyway — is keyed on the active slide, not the step
@@ -16231,7 +16239,8 @@ class OrganicStudio extends StudioBase {
               dragSi: mv ? String(st2.si) : undefined,
               dropOn: (mv && this._dragSi != null && this._dragOver === st2.si && this._dragSi !== st2.si) ? '1' : undefined });
           }),
-          gdNote: isFinish
+          gdNote: copyChk ? 'Check every line and change what needs it \u2014 the preview follows as you type. Approve the copy on the last page.'
+            : isFinish
             ? (s.tpl === 'rcover'
               ? 'What you see is exactly what exports \u2014 one 9:16 cover. The 4:5 guide is only on screen.'
               : 'What you see is exactly what exports. The 9:16 story is built from the same answers'

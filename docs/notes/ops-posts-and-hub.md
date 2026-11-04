@@ -553,3 +553,26 @@ Verified on the Drive stand-in: Save to Drive made `Weekly Listings/November 202
 export inside; a fresh Status (post list cleared) found it and the old posts.
 **Sharing:** FILES_ROOT lists exec3.content but not exec1.content or exec2.content (2026-11-04), so
 until the owner (exec5.graphics) adds them as editors their Status cannot find posts here either.
+
+## The content team: only their hand-offs, and a words-only copy check (2026-11-04)
+
+By request ("for CT, on Status only show what they need to see, task handover to them; on OPS when
+it's handed over to them, go straight to the copy check window so CT can edit/review text").
+- **Home and Status** (index.html `build()`): role `ct` keeps only rows with `mine`; the "Only what
+  waits on me" switch is hidden for them. A post's page reads **Check the copy** for CT at step 2.
+- **The copy check is the guided run, words only** — a projection, not a new screen (the run's own
+  rule). `SP.postCopyMode()` (post-flow.js) is true for a post at Copy check opened by CT;
+  `gdPlan` then keeps only `words` asks and the agent's text (`field`/`proj`), drops Finish, and the
+  last page's Next reads **Approve copy** and calls `rvStep('copy-done')`. `postCopyLand` (from
+  `postVals`) puts the tab on `screen: 'guide'`, first page, once per post. `postAfterStep` sends
+  CT back to Status once the post leaves Copy check.
+- **CT on a post link has no `role()`**: the link skips the sign-in gate (`gated()` false), so
+  `access.js` only learns the role quietly — `now().copy` ('en' | 'ar') is what post-flow's `isCt()`
+  reads. That is also why the top bar showed Approve copy (`may()` is true with no role) while
+  the copy mode stayed off at first.
+- Verified on the Drive stand-in as exec1.content: Status listed only their four hand-offs; Check
+  the copy opened OPS on "Property 01 · Copy check · Page 1 of 1" with Words only; typing a
+  community updated the preview; Approve copy moved it to Ready and returned to Status, where it
+  was gone. OPS diff: no artwork-path lines.
+- **Test data trap**: the seeded posts' projects hold only `{pid}`, so opening one from Status
+  loads OPS's blank default and the studio sends you to Projects. Test with a post saved from OPS.
