@@ -421,11 +421,35 @@ class StudioBase {
     location.href = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'index.html' + (route ? '#/' + route : '');
   }
   static inboxSave(app, rows, me) {
+    const key = 'provident-inbox-' + app, at = Date.now();
+    let j = JSON.stringify({ at, me: me || null, items: rows || [] });
+    if (j.length > 1000000) j = JSON.stringify({ at, me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: r.mine ? r.thumb : '' })) });
+    if (j.length > 1000000) j = JSON.stringify({ at, me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: '' })) });
+    // A FULL localStorage used to fail this write silently, so Home and Status kept an old
+    // queue for good (2026-11-04: OPS's agent crop marks had filled it). Make room and try
+    // again, then without the pictures.
+    const put = v => { try { localStorage.setItem(key, v); return true; } catch (e) { return false; } };
+    if (put(j)) return;
+    StudioBase.lsRoom();
+    if (put(j)) return;
+    put(JSON.stringify({ at, me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: '' })) }));
+  }
+  // A short, stable mark for a picture's data URL: its length and a hash of ~4,000 of its
+  // characters. For "already did this to that picture" notes, never the picture itself.
+  static mark(u) {
+    u = String(u || ''); let h = 2166136261;
+    for (let i = 0, step = Math.max(1, u.length >> 12); i < u.length; i += step) h = Math.imul(h ^ u.charCodeAt(i), 16777619);
+    return u.length + '.' + (h >>> 0).toString(36);
+  }
+  // Clears what localStorage should never have held: OPS's agent crop marks written as the
+  // whole photo (smp-agent…-auto, up to megabytes each) are made short marks again.
+  static lsRoom() {
     try {
-      let j = JSON.stringify({ at: Date.now(), me: me || null, items: rows || [] });
-      if (j.length > 1000000) j = JSON.stringify({ at: Date.now(), me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: r.mine ? r.thumb : '' })) });
-      if (j.length > 1000000) j = JSON.stringify({ at: Date.now(), me: me || null, items: (rows || []).map(r => Object.assign({}, r, { thumb: '' })) });
-      localStorage.setItem('provident-inbox-' + app, j);
+      const ks = []; for (let i = 0; i < localStorage.length; i++) ks.push(localStorage.key(i));
+      ks.filter(k => /^smp-agent.*-auto$/.test(k)).forEach(k => {
+        const v = localStorage.getItem(k) || '';
+        if (v.length > 64) { localStorage.removeItem(k); try { localStorage.setItem(k, StudioBase.mark(v)); } catch (e) {} }
+      });
     } catch (e) {}
   }
   static newPid() { return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
@@ -2124,3 +2148,5 @@ window.providentDrive = {
   }
 };
 try { window.providentDrive.watch(); } catch (e) {}
+// every page that loads this file gives back the room the old agent crop marks took (2026-11-04)
+try { StudioBase.lsRoom(); } catch (e) {}

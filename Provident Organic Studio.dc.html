@@ -8588,10 +8588,12 @@ class OrganicStudio extends StudioBase {
           Object.keys(sc).filter(k => /^smp-agent/.test(k)).forEach(id => {
             const ag = norm(sc[id]);
             if (!(ag && ag.u && window.omelette && window.omelette.writeFile)) return;
-            const done = localStorage.getItem(id + '-auto') || '';
+            // the photo's mark, not the photo: a data URL here filled localStorage (2026-11-04)
+            const done = localStorage.getItem(id + '-auto') || '', mk = StudioBase.mark(ag.u);
+            if (done === ag.u) { localStorage.setItem(id + '-auto', mk); return; }
             const isDefault = (ag.s || 1) === 1 && !(ag.x) && !(ag.y);
-            if (ag.u !== done && isDefault) {
-              localStorage.setItem(id + '-auto', ag.u);
+            if (mk !== done && isDefault) {
+              localStorage.setItem(id + '-auto', mk);
               sc[id] = { u: ag.u, s: 1.35, x: 0, y: -18 };
               dirty = true;
             }

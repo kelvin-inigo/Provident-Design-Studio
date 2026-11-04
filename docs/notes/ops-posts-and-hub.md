@@ -509,3 +509,14 @@ that designer and "For <name>" for the other; Open → OPS opened the hub's draf
 changing the Designer in the hub moved it. **Not done, needs people:** set `HUB_PUSH_KEY` in
 Vercel and the same value as `STUDIO_PUSH_KEY` in the office hub's `.env`, and copy the three hub
 files (studio_push.py, server.py, content-hub.html) to the office hub — I never touch it.
+
+## A full localStorage froze Home and Status (2026-11-04)
+
+Symptom: a post sent to Copy check never showed on Status, while Drive's `_Post.json` was right
+and `providentPostFeed` had read it. `provident-inbox-ops` was a day old: the browser's 5 MB
+localStorage was full and `StudioBase.inboxSave` swallowed the QuotaExceededError. The space
+went to OPS's agent auto-crop marks (`smp-agent…-auto`), which stored the whole photo data URL
+(3 MB for one) just to remember "cropped this one". Now the mark is `StudioBase.mark(u)`
+(length + sampled FNV hash); `StudioBase.lsRoom()` turns old marks into short ones on every
+page load of studio-base.js and before inboxSave retries; inboxSave retries, then drops thumbs.
+Never keep a picture in localStorage; IndexedDB (`runtime.js`) is the photo store.
