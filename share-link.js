@@ -3675,7 +3675,8 @@
       if (ids.some(isDs) && !(D && (D.ensure ? await D.ensure() : D.valid && D.valid()))) { this.sumSign = true; return; }
       this.sumSign = false;
       this._sumBusy = true;
-      try { const out = []; for (let i = 0; i < ids.length; i += 50) out.push(...((await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') })).items || [])); statusSave(out, eng); }
+      try { const out = []; let sign = 0; for (let i = 0; i < ids.length; i += 50) { const r = await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') }); out.push(...(r.items || [])); sign += r.sign || 0; }
+        if (sign) this.sumSign = true; else statusSave(out, eng); }
       catch (e) {}
       this._sumBusy = false;
     }
@@ -4084,8 +4085,9 @@
       out.filter(x => x.rs && isPost(x.rs)).forEach(x => Arch.save(Arch.list().filter(y => y.id !== x.id)));
       out.forEach(x => { if (x.rs && isPost(x.rs)) return; if (x.dd && x.dd !== x.id) { Arch.swap(x.id, x.dd); x.id = x.dd; } if (x.rs) Arch.add(x.id, x.rs.name, x.rs.product); });
       const seen = new Set(); this.items = out.filter(x => !(x.rs && isPost(x.rs)) && !seen.has(x.id) && seen.add(x.id)); this.err = ''; this.at = Date.now();
-      statusSave(this.items, this.eng);
-      listKeep(this.items);
+      // a read that needed the Google sign-in (sign > 0) left those ad sets out: never save it as
+      // the queue, or Home and Status lose every Drive campaign until the next good read (2026-11-04)
+      if (!sign) { statusSave(this.items, this.eng); listKeep(this.items); }
     } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }
     this.healPaint(this.items);
     if (!this.sel) this.draw();
