@@ -164,7 +164,7 @@ use your **@providentestate.com** account. What you see next depends on what the
 |---|---|
 | **Designer** | Both studios, everything: design, export, Status, hand-offs. Only the admin's **Access** is not theirs. |
 | **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
-| **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post's page has **Check the copy**, which opens OPS on the copy check, and **Approve copy** (or send it back). A campaign waiting on you opens its content-team link, where only **Approve English copy** shows. Opening CAS itself goes to the home page. |
+| **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link, where only **Approve English copy** shows. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**. No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. Opening CAS or OPS goes to the home page. |
 | **Admin** | Everything a designer has, plus **Access** on the home page (CAS's sidebar row opens it there too). There is one admin. |
@@ -980,10 +980,11 @@ Every post goes through four steps:
 
 1. **Draft** — the **social media manager** makes the post.
 2. **Design** — a **designer** refines it and makes the final design.
-3. **Copy check** — the **content team** checks the words. **Check the copy** on the post's page
-   opens OPS on the copy check: only the words, page by page, beside the page's preview, which
-   follows as you type. **Approve copy** on the last page (or in the top bar) moves it to Ready
-   and goes back to Status; **Back to design** sends it back to the designer.
+3. **Copy check** — the **content team** checks the words, right on the post's page: every line of
+   copy on the left (headed by its page), every page rendered on the right, updating as you type.
+   **Approve copy** moves it to Ready and goes back to Status; **Back to design** sends it back to
+   the designer. The content team never gets the OPS editor: opening a post's link in OPS brings
+   them to its page.
 4. **Ready** — ready to publish.
 
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most

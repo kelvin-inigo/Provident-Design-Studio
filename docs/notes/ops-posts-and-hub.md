@@ -576,3 +576,27 @@ it's handed over to them, go straight to the copy check window so CT can edit/re
   was gone. OPS diff: no artwork-path lines.
 - **Test data trap**: the seeded posts' projects hold only `{pid}`, so opening one from Status
   loads OPS's blank default and the studio sends you to Projects. Test with a post saved from OPS.
+
+## The copy check lives in the post's page; the content team has no OPS editor (2026-11-04, later)
+
+By request, with CAS's content-team window as the model ("have this screen inside this screen,
+don't give them access to open the OPS designer"). Replaces the page-by-page landing above.
+- **The post's page frames OPS** (post-flow `detHtml`): for the content team (`isCt()`) at Copy check,
+  `<section class="psd-cc"><iframe src="OPS?cc=1#share=<sid>">`. Their step buttons and "Open in the
+  studio" are gone from the page; Approve copy / Back to design are in the frame.
+- **`cc=1` = EMBED** (post-flow): `html[data-cc-embed]` hides the top bar, the Changes pill, the
+  preview bar and the run's progress, and `.gd` sits at top 0 (OPS stylesheet, end).
+- **The view is one step**: `gdPlan` in copy mode returns every page's words (and the agent's text)
+  as ONE step, each ask's `group` = its page's name (always printed as a heading, `copyChk`), and
+  the preview zone shows `gdCcPages` — every page's render from `gdShots` — instead of the card and
+  strip (`.gd[data-cc]`). Back reads **Back to design** (`rvStep('design-open')`), Next **Approve
+  copy** (`copy-done`), with no gap gate: it checks the words, not the designer's fields.
+- **The frame survives redraws**: every Drive read redraws the page, and re-creating or MOVING an
+  iframe reloads it (losing typing). `draw()` swaps only the frame's siblings when the same sid's
+  frame is already there. Verified: typing kept across a refresh.
+- **No editor for CT**: `postCtGate()` (first thing in `postVals`) sends CT outside the frame to
+  `#/item/ops/<tok>` (or Status). After a step in the frame, `postAfterStep` sets the parent's hash
+  to `#/status`.
+- Verified on the stand-in as exec1.content: the page showed Copy check · Weekly listings · 3 pages
+  with all three renders; a direct OPS link landed on the post's page; Approve copy in the frame
+  moved it to Ready and the page went to Status. OPS diff: no artwork-path lines.

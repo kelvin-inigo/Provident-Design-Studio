@@ -4271,6 +4271,20 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .rc-row{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
 .p-br-mn:not(:has(div[data-post-home])) > .p-sec-rec{display:none}
 @media (max-width:760px){ .rc-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px} .rc-hn{font-size:16px} .rc-m{flex-direction:column;gap:2px} }
+/* THE CONTENT TEAM'S COPY CHECK (2026-11-04): the guided run, words only, one column, beside
+   every page at once. Inside the post's page on the home it is framed with no chrome:
+   html[data-cc-embed] is set by post-flow.js when the address carries cc=1. */
+.gd[data-cc] .gd-stage,.gd[data-cc] .gd-pstrip{display:none}
+.gd[data-cc] .gd-pv-zone{justify-content:flex-start}
+.gd-cc-grid{display:flex;flex-wrap:wrap;gap:20px;align-content:flex-start;justify-content:center;width:100%;overflow:auto;padding:4px 0 12px}
+.gd-cc-pg{margin:0;width:min(280px,calc(50% - 10px));display:flex;flex-direction:column;gap:8px}
+.gd-cc-img{display:block;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--ps-fill)}
+.gd-cc-pg[data-a="916"] .gd-cc-img{aspect-ratio:9/16}
+.gd-cc-img img{display:block;width:100%;height:100%;object-fit:cover}
+.gd-cc-pg figcaption{font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+html[data-cc-embed] .p-top,html[data-cc-embed] .shl-pill,html[data-cc-embed] .acx-bar,html[data-cc-embed] .gd-prog{display:none}
+html[data-cc-embed]{--ps-toph:0px}
+html[data-cc-embed] .gd{top:0}
 </style>
 </helmet>
 
@@ -5182,7 +5196,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
      where the old `.p-rail-r` aside was so that, as a flex child of .p-body, it lands
      after the stage. -->
 <sc-if value="{{ gdFormOn }}" hint-placeholder-val="{{ false }}">
-<div class="gd" data-mode="{{ gdModeAttr }}">
+<div class="gd" data-mode="{{ gdModeAttr }}" data-cc="{{ gdCcOn }}">
   <div class="gd-body">
     <!-- THE FORM: one page, top to bottom. Sections in a fixed order — Pages · Words ·
          Agent · Pictures · QR & listing — so the words always come before the pictures,
@@ -5721,7 +5735,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
       </div>
 
       <div class="gd-nav">
-        <button onClick="{{ gdBack }}" class="p-ghost gd-navb" data-off="{{ gdBackOff }}">Back</button>
+        <button onClick="{{ gdBack }}" class="p-ghost gd-navb" data-off="{{ gdBackOff }}">{{ gdBackLabel }}</button>
         <span class="p-spring"></span>
         <button onClick="{{ gdNext }}" class="p-btn gd-navb" data-ready="{{ gdNextReady }}">{{ gdNextLabel }}</button>
       </div>
@@ -5731,6 +5745,18 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
          and Finish as the last tile. That strip is the ONE navigation besides Back/Next —
          the numbered type-stepper, the ask chevrons and the slide bar are gone. -->
     <div class="gd-pv-zone">
+      <!-- THE CONTENT TEAM'S COPY CHECK: every page at once, as CAS's content-team window shows
+           every size of an ad; the large card and the strip below are hidden there -->
+      <sc-if value="{{ gdCcOn }}" hint-placeholder-val="{{ false }}">
+        <div class="gd-cc-grid">
+          <sc-for list="{{ gdCcPages }}" as="c" hint-placeholder-count="3">
+            <figure class="gd-cc-pg" data-a="{{ gdCardAsp }}">
+              <span class="gd-cc-img"><sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img data-src="{{ c.src }}" alt="{{ c.t }}"></sc-if></span>
+              <figcaption>{{ c.t }}</figcaption>
+            </figure>
+          </sc-for>
+        </div>
+      </sc-if>
       <div class="gd-stage">
         <!-- the card as a PLATE: the post's name and its size over it, its pixels under it -->
         <div class="gd-plate">
@@ -12966,10 +12992,15 @@ class OrganicStudio extends StudioBase {
     } else fin.push({ sec: 'look', kind: 'cslogo' });
     fin.push({ sec: 'save', kind: 'name' }, { sec: 'save', kind: 'dest' }, { sec: 'save', kind: 'export' });
     // THE CONTENT TEAM'S COPY CHECK (2026-11-04, post-flow.js postCopyMode): the same run, words
-    // only — every line of copy and the agent's name and role, page by page, no pictures, no
-    // layout, no Finish. The last page's Next approves the copy.
+    // only — every line of copy and the agent's name and role, no pictures, no layout, no Finish
+    // — and ONE step: every page's words in one column, headed by the page, beside a render of
+    // every page (gdCcPages). It is shown inside the post's page on the home (post-flow EMBED).
     const cc = !!(this.postCopyMode && this.postCopyMode());
-    if (cc) { for (let i = raw.length - 1; i >= 0; i--) if (!(raw[i].sec === 'words' || (raw[i].sec === 'agent' && (raw[i].kind === 'field' || raw[i].kind === 'proj')))) raw.splice(i, 1); fin.length = 0; }
+    if (cc) {
+      for (let i = raw.length - 1; i >= 0; i--) if (!(raw[i].sec === 'words' || (raw[i].sec === 'agent' && (raw[i].kind === 'field' || raw[i].kind === 'proj')))) raw.splice(i, 1);
+      raw.forEach(a => { a.sec = 'words'; a.group = this.sLabel(a.si); a.step = 0; });
+      return { steps: [{ k: 'page', si: raw.length ? raw[0].si : 0, t: 'Copy check', d: 'Check every line and change what needs it. The pages beside it follow as you type.' }], asks: raw };
+    }
     // the steps: every slide that asked for something, in slide order, then Finish
     const pageSis = [];
     raw.forEach(a => { if (pageSis.indexOf(a.si) < 0) pageSis.push(a.si); });
@@ -15931,7 +15962,8 @@ class OrganicStudio extends StudioBase {
         const advance = () => {
           const mine = asks.map((q, i) => ({ q, i })).filter(o => o.q.step === idx);
           const gaps = mine.filter(o => this.gdAskIssue(o.q)).map(o => ({ i: o.i, t: this.gdAskTitle(o.q) }));
-          if (gaps.length) {
+          // the copy check judges the words, not whether the designer has filled every field
+          if (gaps.length && !copyChk) {
             this._gdBlock = gaps; this.forceUpdate();
             setTimeout(() => { const t = document.querySelector('.gd-ask-tail[data-on]'); if (t) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 0);
             return;
@@ -16149,7 +16181,7 @@ class OrganicStudio extends StudioBase {
             // A one-field tier prints nothing either: "Name" over "Agent name" and "Price" over
             // "Price in AED" said the same thing twice in a narrower rail.
             const worth = inGroup.length > 1 && !inGroup.some(z => z.label === r.group);
-            if (sec === 'words' && r.group && r.group !== lastGroup && worth) {
+            if (sec === 'words' && r.group && r.group !== lastGroup && (worth || copyChk)) {
               items.push({ key: r.key + 'g', isGroup: true, isRow: false, group: r.group });
             }
             lastGroup = r.group;
@@ -16199,7 +16231,7 @@ class OrganicStudio extends StudioBase {
           gdPageTitle: editor ? this.sLabel(asi) : (step ? step.t : ''),
           gdPagePurpose: editor ? OrganicStudio.pagePurpose(sl) : (step ? step.d : ''),
           gdWhere: editor ? 'All controls' : (isFinish ? 'Finish' : ('Page ' + (idx + 1) + ' of ' + pages)),
-          gdHeadMeta: editor ? (TPLNAMES[s.tpl] || '') : (isFinish ? 'Last step' : ((copyChk ? 'Copy check \u00b7 ' : '') + 'Page ' + (idx + 1) + ' of ' + pages)),
+          gdHeadMeta: editor ? (TPLNAMES[s.tpl] || '') : copyChk ? (TPLNAMES[s.tpl] || '') + ' \u00b7 ' + slides.length + (slides.length === 1 ? ' page' : ' pages') : (isFinish ? 'Last step' : ('Page ' + (idx + 1) + ' of ' + pages)),
           gdPvSize: s.tpl === 'rcover' ? 'Reel cover 9:16' : 'Feed 3:4',
           gdPvDims: s.tpl === 'rcover' ? '1080 \u00d7 1920' : '1080 \u00d7 1440',
           gdIsFinish: isFinish,
@@ -16211,12 +16243,16 @@ class OrganicStudio extends StudioBase {
           gdBlockRows: live.slice(0, OrganicStudio.GD_BLOCK_MAX).map(g => ({ t: g.t, go: () => focusAsk(g.i) })),
           gdBlockMoreOn: more > 0 ? '1' : undefined,
           gdBlockMore: more > 0 ? ('+ ' + more + ' more after these') : '',
-          gdBack: () => goStep(idx - 1),
-          gdBackOff: idx === 0 ? '1' : undefined,
+          gdBack: copyChk ? () => { if (this.rvStep) this.rvStep('design-open'); } : () => goStep(idx - 1),
+          gdBackOff: !copyChk && idx === 0 ? '1' : undefined,
+          gdBackLabel: copyChk ? 'Back to design' : 'Back',
+          // the copy check's right side: every page, rendered, as it will export
+          gdCcOn: copyChk ? '1' : undefined,
+          gdCcPages: copyChk ? slides.map((sl2, i) => ({ key: 'cc' + i, src: shots[i] || '', hasShot: !!shots[i], t: this.sLabel(i) })) : [],
           gdNext: advance,
           gdAskNext: advance,            // the document-level Enter handler reads this
           gdNextLabel: isFinish ? 'Done' : (nextStep ? 'Next: ' + nextStep.t : copyChk ? 'Approve copy' : 'Next'),
-          gdNextReady: this.gdStepGaps(idx, asks).length ? undefined : '1',
+          gdNextReady: copyChk || !this.gdStepGaps(idx, asks).length ? '1' : undefined,
           // in the editor the rail's slide can have NO page step (the weekly closing slide),
           // so the card — hidden there anyway — is keyed on the active slide, not the step
           gdCard: sl ? cardFor(editor ? asi : step.si, sl) : { src: '', hasShot: false, noShot: true, rows: [] },
@@ -16239,7 +16275,7 @@ class OrganicStudio extends StudioBase {
               dragSi: mv ? String(st2.si) : undefined,
               dropOn: (mv && this._dragSi != null && this._dragOver === st2.si && this._dragSi !== st2.si) ? '1' : undefined });
           }),
-          gdNote: copyChk ? 'Check every line and change what needs it \u2014 the preview follows as you type. Approve the copy on the last page.'
+          gdNote: copyChk ? 'Every page updates as you type. Approve the copy when every line reads right.'
             : isFinish
             ? (s.tpl === 'rcover'
               ? 'What you see is exactly what exports \u2014 one 9:16 cover. The 4:5 guide is only on screen.'

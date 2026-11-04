@@ -102,6 +102,10 @@
   const FIELD = ['draft', 'design', 'copy'];
   const isPost = rs => !!(rs && rs.kind === 'post');
   const D = () => window.providentDrive;
+  // THE COPY CHECK INSIDE THE POST'S PAGE (2026-11-04, by request): the home frames OPS with
+  // cc=1 in its address; there OPS shows the copy check alone, with no top bar or editor
+  const EMBED = /[?&]cc=1(&|$)/.test(location.search);
+  if (EMBED) document.documentElement.setAttribute('data-cc-embed', '');
   const role = () => { try { const n = window.providentAccess && window.providentAccess.now(); return n && n.role; } catch (e) { return null; } };
   const may = k => { const r = role(); return !r || r === 'admin' || STEPS[k].roles.indexOf(r) >= 0; };
   const fidOf = tok => { tok = String(tok || ''); return tok[0] === 'R' ? tok.slice(tok.indexOf('.') + 1) : ''; };
@@ -335,13 +339,26 @@
     this._ccLanded = id;
     setTimeout(() => this.upd(x => { x.screen = 'guide'; x.gdStep = 0; x.gdAsk = 0; x.activeSi = 0; return x; }), 0);
   };
+  // THE CONTENT TEAM NEVER HAS THE OPS EDITOR (2026-11-04, by request): outside the post page's
+  // frame, OPS sends them to the post's page on the home (or to Status), where the copy check is
+  SP.postCtGate = function () {
+    if (EMBED || this._ctGone || !isCt()) return;
+    this._ctGone = true;
+    const rs = this.postRs(), tok = rs && rs.tok && rs.tok.dd;
+    this.markSaved && this.markSaved();
+    setTimeout(() => StudioBase.goHome(tok ? 'item/ops/' + encodeURIComponent(tok) : 'status'), 0);
+  };
   SP.postAfterStep = function () {
     this.forceUpdate(); Status.poke();
-    // the content team's copy check is done once they approve (or send it back): back to Status
-    if (this._ccLanded && !this.postCopyMode() && isCt()) { this.markSaved && this.markSaved(); setTimeout(() => StudioBase.goHome('status'), 600); }
+    // the copy check is done once they approve (or send it back): the post's page shows Status
+    if (EMBED && this._ccLanded && !this.postCopyMode()) {
+      this.markSaved && this.markSaved();
+      try { const T = window.parent; if (T && T !== window) { if (T.providentPostStatus) T.providentPostStatus.poke(); T.location.hash = '#/status'; } } catch (e) {}
+    }
   };
   // the top bar's flow: where the post stands, and the one thing the signed-in person does next
   SP.postVals = function () {
+    this.postCtGate();
     const rs = this.postRs(), scr = this.state.screen, work = scr === 'editor' || scr === 'guide';
     if (!work || !dsOn()) return { pfOn: undefined };
     if (!rs) {
@@ -800,7 +817,17 @@
         (me ? '<span class="ps-you">Your turn</span>' : '') + '</span></button>';
   }
   StatusView.prototype.draw = function () {
-    if (this.det) { this.el.innerHTML = this.detHtml(); return; }
+    if (this.det) {
+      // the framed copy check must survive a redraw (every Drive read redraws the page): moving or
+      // re-creating an iframe reloads it and loses what is being typed, so only its siblings change
+      const html = this.detHtml(), keep = this.el.querySelector('.psd-cc[data-sid]'), root = this.el.firstElementChild;
+      if (keep && root && html.indexOf('class="psd-cc" data-sid="' + keep.dataset.sid + '"') >= 0) {
+        const t = document.createElement('div'); t.innerHTML = html;
+        const nk = [...t.firstElementChild.children], ok = [...root.children];
+        if (nk.length === ok.length) { nk.forEach((n, i) => { if (!n.classList.contains('psd-cc')) root.replaceChild(n, ok[i]); }); return; }
+      }
+      this.el.innerHTML = html; return;
+    }
     const items = (this.items || []).slice().sort((a, b) => Math.max(b.mod || 0, b.rs.created || 0) - Math.max(a.mod || 0, a.rs.created || 0));
     const mine = items.filter(x => waitingOnMe(x.rs)), r = role(), show = this.mine ? mine : items;
     const cols = STEPS.map((s, k) => ({ s, k, list: show.filter(x => stage(x.rs).k === k) }));
@@ -822,6 +849,8 @@
     const d = this.det, x = d.e;
     if (!x) return '<div class="ps"><button type="button" class="pf-a ps-back" data-ps="back">‹ All posts</button><div class="ps-load"><i></i><i></i></div></div>';
     const rs = x.rs, st = stage(rs), it = st.it, t = rs.ticket || {}, a = acts(rs), sid = it && it.sid;
+    // the content team never opens the OPS editor; at Copy check the page carries the check itself
+    const ct = isCt(), cc = ct && st.k === 2 && !!sid;
     const step = (s, i) => {
       const f = FIELD[i], done = i < 3 ? !!(it && it[f]) : st.k === 3, cur = i === st.k && !done;
       return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done ? 'Ready to publish' : cur ? waitOf(rs, i) : s.who) + '</span></li>';
@@ -838,11 +867,14 @@
       '<header class="psd-h"><span class="psd-th">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</span>' +
         '<div class="psd-t"><span class="pf-k">Organic post' + (t.deadline ? ' · due ' + esc(dueDay(t.deadline)) : '') + '</span><h2>' + esc(rs.name || 'Post') + '</h2>' +
         '<p>Started by ' + esc(rs.by || 'someone') + ' · ' + esc(day(rs.created)) + (x.mod ? ' · changed ' + esc(ago(x.mod)) : '') + '</p>' +
-        '<div class="psd-acts">' + (sid && role() !== 'pm' ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">' + (role() === 'ct' && st.k === 2 ? 'Check the copy' : 'Open in the studio') + '</button>'
-          : (sid || role() === 'pm' || role() === 'ct' ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>')) +
-          btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.fin, 'p-ghost') + btn(a.back, 'p-ghost') +
+        '<div class="psd-acts">' + (sid && role() !== 'pm' && !ct ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">Open in the studio</button>'
+          : (sid || role() === 'pm' || ct ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>')) +
+          (cc ? '' : btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.fin, 'p-ghost') + btn(a.back, 'p-ghost')) +
           (sid ? '<button type="button" class="p-ghost" data-ps="copy" data-link="' + esc(projLink(sid)) + '">Copy link</button>' : '') +
           (rs.drive ? '<a class="p-ghost" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">Drive folder</a>' : '') + '</div></div></header>' +
+      // THE CONTENT TEAM'S COPY CHECK, IN THE PAGE (2026-11-04, by request): OPS framed with cc=1,
+      // the words beside every page; Approve copy and Back to design are inside it
+      (cc ? '<section class="psd-cc" data-sid="' + esc(sid) + '"><iframe class="psd-ccf" title="Copy check" src="' + esc(projLink(sid).replace('#', '?cc=1#')) + '"></iframe></section>' : '') +
       '<div class="psd-cols"><div>' +
         '<section class="psd-card"><h3>Progress</h3><ol class="psd-steps">' + STEPS.map(step).join('') + '</ol></section>' +
         '<section class="psd-card"><h3>Activity</h3>' + (logs.length ? '<ul class="psd-log">' + logs.map(e => '<li><b>' + esc(e.by || '') + '</b><span>' + esc(line(e)) + '</span><s>' + esc(ago(e.at || 0)) + '</s></li>').join('') + '</ul>' : '<p class="ps-none">Nothing yet</p>') + '</section>' +
@@ -1066,6 +1098,8 @@
 .psd-t p{margin:0;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .psd-acts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}.psd-acts a{text-decoration:none;display:inline-flex;align-items:center}
 .psd-cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.psd-cc{margin:0 0 20px;border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--ps-line);background:var(--ps-card)}
+.psd-ccf{display:block;width:100%;height:min(880px,calc(100vh - 120px));border:0}
 .psd-cols>div,.psd-cols>aside{display:grid;gap:16px}
 .psd-card{padding:18px 20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .psd-card h3{margin:0 0 12px;font:600 14px/1.3 var(--ps-font)}
