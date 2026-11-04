@@ -1550,6 +1550,24 @@ By request. Both are on Drive ad sets only (share-link.js); the old share store 
   English` while Teaser's stayed at Main, Create next audience staying in Launch; an unbranded ad
   set's first project opened (and saved to Drive) with `look.on`. **Not on real Google Drive.**
 
+**A new phase showed nothing to start (2026-11-04, fixed).** Reported on Palm Springs by Dubai
+Holding: Ad set settings › tick Ad Fatigue 01 › Save changes, and the new phase had no Start
+placeholders. Two causes. (1) The placeholders, the tab's done/planned count and `planTodo` read
+only `rs.plan`; an ad set made before plans (or from a project) keeps none, so every added phase
+read "0/0 · No projects yet". **`rsCells(rs)`** is now the one list of an ad set's audiences: the
+plan's cells plus any market × audience a project holds in any phase (Arabic from `eng_only` or an
+ARB project — the same merge Ad set settings always did, which now calls it too), sorted MARKETS ×
+AUDS. `planTodo` (so `rsPickCheck`'s "Already made" check and the Ad set tab's "Still to make"),
+`AV.phTabsHtml`, `AV.detHtml` and the Ad set tab's audience card read it. (2) Saving Ad set
+settings stayed on the latest phase with projects, so the new, empty phase was a tab nobody
+opened; the settings handler now sets `phTabs[id]` to a phase the save added, as **Add phase**
+did. An empty phase's header says "Nothing started in <Phase> yet — start each audience below"
+and its rows "No <Phase> project yet". Verified on the Drive stand-in: Ellington with `plan`
+deleted from its Ad set.json → Add phase › Ad Fatigue 01 reproduced "0/0" on the old code, then
+read 0/2 with a Start placeholder per audience; one opened CAS on the Ad set tab as Ad Fatigue 01
+· International · Investor · English and landed in that phase; Damac's settings save of Ad Fatigue
+02 opened on the fat2 tab with its three placeholders. **Not on real Google Drive.**
+
 # PREVIEW AS ONE PERSON (2026-11-04)
 
 By request ("give me access on what CT see and other users as well"). Access › **Preview the home

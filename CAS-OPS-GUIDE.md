@@ -348,8 +348,11 @@ another). Most ad sets only ever need one.
 
 To add another at any point, open the ad set in **Status** and press **Add phase** beside the phase
 tabs, or tick it under **Phases** in **Ad set settings**. Each phase has its own tab with its own
-progress, audiences and **Start the English / Start the Arabic** buttons. A new phase's audiences
-start empty. **Create next audience** and **Make the Arabic** stay in the phase you are working in.
+progress, audiences and **Start the English / Start the Arabic** buttons. A new phase starts with
+no projects: every audience of the ad set (the planned ones and any that already have a project in
+another phase) waits there as a **Start the English** (and, where planned, **Start the Arabic**)
+button that opens CAS in a new window on that audience's **Ad set** tab. After you save Ad set
+settings with a new phase ticked, the page opens on that phase. **Create next audience** and **Make the Arabic** stay in the phase you are working in.
 A phase that has projects can't be dropped.
 
 On Drive, the first phase's projects stay where they always were (Market / Audience / Language).

@@ -2019,13 +2019,24 @@
     if (rs && Array.isArray(rs.plan)) return rs.plan;
     try { return JSON.parse(lsGet(PLAN_LOCAL + ((rs && rs.tok) || {}).dd) || 'null') || []; } catch (e) { return []; }
   }
+  // THE AD SET'S AUDIENCES, for every phase: the plan's cells, plus any audience a project already
+  // holds in some phase (an ad set made from a project, before plans, keeps no plan — a phase
+  // added to it still needs its audiences). Arabic as the settings show it.
+  function rsCells(rs) {
+    const items = ((rs && rs.items) || []).filter(x => x.market && x.aud), eo = (rs && rs.eng_only) || {};
+    const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
+    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud] }); });
+    items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud); if (c) c.arb = true; } });
+    const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
+    return cells.sort((x, y) => (at(x.market) - at(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud)));
+  }
   // what the plan still wants: an English project per cell, an Arabic one where planned
   // (per PHASE: every phase is its own package of the same plan; no phase given = the first)
   function planTodo(rs, ph) {
     ph = PH_NAME[ph] ? ph : phBase(rs);
     const items = ((rs && rs.items) || []).filter(x => phOf(rs, x) === ph), has = (c, l) => items.some(x => x.market === c.market && x.aud === c.aud && (x.lang || 'ENG') === l);
     // every English version first, then the Arabic ones — the order the review runs in
-    const cells = planCells(planOf(rs));
+    const cells = rsCells(rs);
     return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG', phase: ph }))
       .concat(cells.filter(c => c.arb && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB', phase: ph })));
   }
@@ -2061,9 +2072,7 @@
     o = o || {};
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l));
-    let cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
-    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !(rs.eng_only || {})[x.market + '|' + x.aud] }); });
-    items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud); if (c) c.arb = true; } });
+    let cells = rsCells(rs);
     const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' ? 'unbranded' : 'provident' };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
@@ -2805,7 +2814,7 @@
         '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + '</div></div>' +
         (mine ? stepperHtml(mine.steps, false, true) : '') + '</section>';
       // the campaign's audiences: each planned cell, with its progress; the designer sets them here
-      const cells = planCells(planOf(rs)), byK = {};
+      const cells = rsCells(rs), byK = {};
       auds.forEach(a => { byK[a.market + '|' + a.aud] = a; });
       const keys = cells.map(c => c.market + '|' + c.aud);
       auds.forEach(a => { const ak = a.market + '|' + a.aud; if (keys.indexOf(ak) < 0 && a.market) { keys.push(ak); cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); } });
@@ -4209,8 +4218,14 @@
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
     if (a === 'settings') {
       const rs = this.det && this.det.rs; if (!rs) return;
-      const id = this.sel, r = await rsSettings(rs, p => rsSettingsSave(id, rs, p, by), { ticket: isDs(id) || !!rs.ticket });
-      if (r) { if (r.name && r.name !== rs.name) Arch.add(id, r.name, r.product); this.at = 0; again(); }
+      const id = this.sel, phWas = phList(rs), r = await rsSettings(rs, p => rsSettingsSave(id, rs, p, by), { ticket: isDs(id) || !!rs.ticket });
+      if (r) {
+        if (r.name && r.name !== rs.name) Arch.add(id, r.name, r.product);
+        // a phase just added opens, its audiences waiting as Start placeholders
+        const nph = phList(r).filter(k => phWas.indexOf(k) < 0).pop();
+        if (nph) (this.phTabs || (this.phTabs = {}))[id] = nph;
+        this.at = 0; again();
+      }
       const o = this.el.querySelector('[data-a="settings"]'); if (o) o.focus();
       return;
     }
@@ -4351,7 +4366,7 @@
   // The phase tabs on an ad set's page: one per package, its done/planned count, and (for the
   // designer, on a Drive ad set) "Add phase", a menu of the phases not added yet.
   AV.phTabsHtml = function (d, rs, phs, tab, allAuds) {
-    const plan = planCells(planOf(rs)), n = plan.length || 0;
+    const plan = rsCells(rs), n = plan.length || 0;
     const r = accRole(), canAdd = isDs(d.id) && (!r || r === 'designer' || r === 'admin');
     const left = PHASES.filter(([k]) => phs.indexOf(k) < 0);
     const t = phs.map(k => {
@@ -4395,7 +4410,7 @@
       '<span><i></i>' + esc(l) + '</span><b>' + (auds.length && !n ? '<s>Not needed</s>' : cnt(i) + '<s>/' + n + '</s>') + '</b><em><s style="width:' + (n ? Math.round(cnt(i) / n * 100) : 0) + '%"></s></em></li>'; }).join('') + '</ol>';
     const waiting = auds.filter(a => !a.done);
     const nowLine = all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
-      : !auds.length ? '<p class="rvd-now"><i></i>No projects yet — add the first one.</p>'
+      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCells(rs).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(PH_NAME[tab]) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
         : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
           return '<span class="rvd-wc" data-i="' + i + '" title="' + esc(a.now.label + ' — ' + a.now.sub) + '"><i></i>' + esc(a.label) + '<s>' + esc(a.now.sub) + '</s></span>'; }).join('') + '</p>';
     const changed = modOf({ rs, mod: d.mod });
@@ -4416,7 +4431,7 @@
       '<div class="rvd-hs">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</div></header>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
-    const cells = planCells(planOf(rs));
+    const cells = rsCells(rs);
     const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste Claude’s reply">' +
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
@@ -4443,7 +4458,7 @@
     const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
     const planRows = todoA.map(c => '<li class="rvd-au" data-plan="1"><div class="rvd-auh">' +
       '<span class="rvd-aun"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></span>' +
-      '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>Planned in Ad set settings — no project yet</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
+      '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>' + (phs.length > 1 ? 'No ' + esc(PH_NAME[tab]) + ' project yet' : 'Planned in Ad set settings — no project yet') + '</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
       '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (c.arb ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>Not needed for this audience</s></span></div>') + '</div></li>').join('');
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(PH_NAME[tab]) + ' audiences' : 'Audiences') + ' <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
