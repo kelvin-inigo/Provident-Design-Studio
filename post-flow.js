@@ -161,8 +161,10 @@
       const rs = x.rs, st = stage(rs), it = st.it || {}, t = rs.ticket || {};
       let last = null; ['draft', 'design', 'copy'].forEach(f => { const v = it[f]; if (v && v.at && (!last || v.at > last.at)) last = v; });
       return {
-        studio: 'ops', id: x.id, name: rs.name || 'Post', mine: !!waitingOnMe(rs), ready: st.k === 3, open: false,
-        step: STEPS[st.k].t, sub: st.k === 3 ? 'Ready to publish' : waitOf(rs, st.k),
+        // posted (the social media manager's Posted): closed, and the home drops it
+        studio: 'ops', id: x.id, name: rs.name || 'Post', mine: !!waitingOnMe(rs) && !rs.posted, ready: st.k === 3 && !rs.posted, open: false,
+        dl: st.k === 3 && rs.folder ? x.id : '', live: rs.posted ? rs.posted.at || 1 : 0,
+        step: rs.posted ? 'Posted' : STEPS[st.k].t, sub: rs.posted ? 'Posted by ' + rs.posted.by : st.k === 3 ? 'Ready to publish' : waitOf(rs, st.k),
         segs: segs(st.k).map(z => z.s === 'todo' ? 'pend' : z.s), steps: STEPS.map(z => z.t),
         verb: VERB[st.k] || 'Open the post', due: t.deadline || '', from: last ? last.by : it.by || rs.by || '',
         at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
@@ -497,8 +499,13 @@
         // JUST ME: finished here, never put on Status (its exports still go to Drive)
         if (Plan.draft().flow === 'solo') { if (!this.confirmDiscard()) return; Plan.clear(); return pick.call(this, t, { solo: true }); }
         if (!this.confirmDiscard()) return;
+        // NO EMPTY DRAFTS ON DRIVE (2026-11-04, by request): a template picked with no name, brief or
+        // files opens on this computer only ("Not on Drive"); Send to designer / Save to Drive puts
+        // it on Drive under the project's own name. Every look at a template made an "Untitled post".
+        const d = Plan.draft();
+        if (!String(d.name || '').trim() && !String(d.brief || '').trim() && !Plan.files.length) { Plan.clear(); return pick.call(this, t); }
         if (!(await dsGate('Start the post on Google Drive'))) return;
-        const d = Plan.draft(), name = String(d.name || '').trim() || 'Untitled post · ' + day(Date.now());
+        const name = String(d.name || '').trim() || 'Untitled post · ' + day(Date.now());
         const dlg = busyDlg('Starting “' + name + '”', 'The post gets its own folder on Google Drive. Pick up where you left off from Status, on any computer.');
         try {
           const rs = await makePost({ name, brief: d.brief, deadline: d.deadline, tpl: t, by: StudioBase.shareName() || 'Someone' }, Plan.files, dlg.busy);
@@ -570,7 +577,7 @@
             '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="pp3-th"><b>Pick a template</b><span>' + (solo ? 'Picking one opens the post. Only you work on it, and its exports go to Google Drive.' : on ? 'Picking one opens the post and saves it to Google Drive. From there it goes Draft, Design, Copy check, Ready.' : 'Picking one opens the post.') + '</span></div>' +
+        '<div class="pp3-th"><b>Pick a template</b><span>' + (solo ? 'Picking one opens the post. Only you work on it, and its exports go to Google Drive.' : on ? 'Picking one opens the post. With a name or a brief it is saved to Google Drive now; without, it stays on this computer until you send it to a designer.' : 'Picking one opens the post.') + '</span></div>' +
       '</section>';
   };
 
@@ -578,6 +585,24 @@
   const Feed = {
     items: null, at: 0, busy: false, sign: false, err: '', subs: new Set(),
     on(fn) { this.subs.add(fn); return () => this.subs.delete(fn); },
+    // THE SOCIAL MEDIA MANAGER'S FILES (2026-11-04, by request): a ready post's images, read from its
+    // Drive folder (exportsUp puts every export there). files() lists them, blob() reads one,
+    // download() saves one file as it is, or all of them as one zip
+    async files(id) {
+      const x = (this.cached() || []).find(y => y.id === id), rs = x && x.rs;
+      if (!rs || !rs.folder) throw new Error('This post has no folder on Google Drive.');
+      return { rs, files: (await K.dsList(rs.folder)).filter(f => /\.(jpe?g|png|pdf|webp|svg)$/i.test(f.name || '')).sort((a, b) => a.name.localeCompare(b.name)) };
+    },
+    async blob(fid) { return (await K.dsFetch('/drive/v3/files/' + fid + '?alt=media&supportsAllDrives=true')).blob(); },
+    async download(id, fid) {
+      const { rs, files } = await this.files(id), pics = fid ? files.filter(f => f.id === fid) : files;
+      if (!pics.length) throw new Error('Nothing has been exported for this post yet. The designer’s export puts the images in its Drive folder.');
+      const got = await Promise.all(pics.map(async f => ({ name: f.name, data: new Uint8Array(await (await this.blob(f.id)).arrayBuffer()) })));
+      const one = got.length === 1, blob = one ? new Blob([got[0].data], { type: pics[0].mimeType || 'application/octet-stream' }) : StudioBase.prototype.zip.call(StudioBase.prototype, got);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = one ? got[0].name : K.dsSafe(rs.name || 'Post') + '.zip';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+      return got.length;
+    },
     emit() { this.subs.forEach(fn => { try { fn(); } catch (e) {} }); },
     cached() { if (this.items) return this.items; try { const c = JSON.parse(lsGet(CACHE) || 'null'); if (c && Array.isArray(c.items)) { this.items = c.items; this.at = c.at || 0; } } catch (e) {} return this.items; },
     async load(quiet) {
@@ -871,7 +896,7 @@
     const ct = isCt(), cc = ct && st.k === 2 && !!sid;
     const step = (s, i) => {
       const f = FIELD[i], done = i < 3 ? !!(it && it[f]) : st.k === 3, cur = i === st.k && !done;
-      return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done ? 'Ready to publish' : cur ? waitOf(rs, i) : s.who) + '</span></li>';
+      return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done && rs.posted ? 'Posted · ' + rs.posted.by + ' · ' + day(rs.posted.at) : done ? 'Ready to publish' : cur ? waitOf(rs, i) : s.who) + '</span></li>';
     };
     const btn = (y, cls) => y && sid ? '<button type="button" class="' + cls + '" data-ps="step" data-act="' + y.act + '" data-sid="' + esc(sid) + '" title="' + esc(y.tip) + '">' + esc(y.label) + '</button>' : '';
     // the post's log and its project's log both note the design's start: one line, not two

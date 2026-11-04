@@ -298,6 +298,22 @@ button{font-family:inherit}
 .st > svg.i{color:var(--ps-dim); transition:transform var(--ps-motion) var(--ps-ease)}
 .st:hover > svg.i{transform:translateX(3px); color:var(--ps-ink)}
 
+/* ═════ A READY POST'S FILES (social media) ═════ */
+.fz-back{margin:0 0 14px -12px}
+.fz-h{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px 24px; margin-bottom:24px}
+.fz-h .h2{margin-top:8px}
+.fz-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px}
+.fz-wait{font:400 14px/1.5 var(--ps-font); color:var(--ps-ink-2)}
+.fz-g{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; margin:0; padding:0; list-style:none}
+.fz-c{display:flex; flex-direction:column; gap:12px; padding:12px; border-radius:16px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.fz-th{display:grid; place-items:center; aspect-ratio:3/4; border-radius:10px; background:var(--ps-fill); overflow:hidden}
+.fz-th img{width:100%; height:100%; object-fit:contain}
+.fz-th img:not([src]){visibility:hidden}
+.fz-t{display:grid; gap:2px; min-width:0}
+.fz-t b{font:500 14px/1.3 var(--ps-font); color:var(--ps-ink)}
+.fz-t small{font:400 12.5px/1.35 var(--ps-font); color:var(--ps-ink-2); overflow-wrap:anywhere}
+.fz-c .b{align-self:flex-start}
+
 /* ═════ STATUS: one board, both studios ═════ */
 .sx-head{display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px 24px; margin-bottom:24px}
 .sx-tools{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:20px}
@@ -829,7 +845,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     { k: 'ready', n: 'Ready', who: 'To run or to publish', c: 'var(--ps-good)' }
   ];
   // a stage's subtitle for this viewer: one studio's Ready is "To run" or "To publish"
-  function whoOf(s){ var k = studiosFor(roleOf()); return s.k !== 'ready' || k.length > 1 ? s.who : k[0] === 'cas' ? 'To run' : 'To publish'; }
+  // (2026-11-04) and social media's whole board speaks of posts
+  var WHO_OPS = { new: 'Drafts, not sent to a designer yet', design: 'With the designer', check: 'With the content team', ready: 'To download and publish' };
+  function whoOf(s){ var k = studiosFor(roleOf()); return k.length > 1 ? s.who : k[0] === 'ops' ? WHO_OPS[s.k] : s.k === 'ready' ? 'To run' : s.who; }
   var SC = {}; STAGES.forEach(function(s){ SC[s.k] = s; });
 
   function $(id){ return document.getElementById(id); }
@@ -927,6 +945,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
         if (y.from && me && me.name && y.from === me.name) y.from = 'you';
         // performance marketing's work is the finished package
         if (r === 'pm') y.mine = same && k === 'cas' && !!x.ready;
+        // THE SOCIAL MEDIA MANAGER'S WORK IS THE FINISHED POST (2026-11-04, by request): ready to download
+        if (r === 'smm' && k === 'ops') y.mine = same && !!x.ready;
         // a launched campaign (performance marketing's Launch) is finished: off the queue and the board
         if (y.live) return;
         y.stage = stageOf(y);
@@ -939,7 +959,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (r === 'ct') rows = rows.filter(function(x){ return x.mine; });
     function urgency(x){ var d = due(x.due); return d ? d.n : 999; }
     var mine = rows.filter(function(x){ return x.mine; }).sort(function(p, q){ return urgency(p) - urgency(q) || (q.at || 0) - (p.at || 0); });
-    var others = rows.filter(function(x){ return !x.mine && !x.ready; }).sort(function(p, q){ return (q.at || 0) - (p.at || 0); });
+    // social media's With others is what they sent on: posts with the designer or the content team
+    var others = rows.filter(function(x){ return !x.mine && !x.ready && (r !== 'smm' || x.stage === 'design' || x.stage === 'check'); }).sort(function(p, q){ return (q.at || 0) - (p.at || 0); });
     var known = studiosFor(r).some(function(k){ return inbox[k] && Array.isArray(inbox[k].items); });
     return { rows: rows, mine: mine, others: others, at: at, known: known, r: r };
   }
@@ -1014,10 +1035,13 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
           var copy = top.studio === 'ops' ? i === 2 : i === 1 || i === 2, v = sg[i];
           return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? (copy ? 'warn' : 'cur') : 'todo') + '"><span>' + esc(l) + '</span></li>';
         }).join('') + '</ol>' : '') +
-        '<div class="nx-acts"><a class="b b-p b-lg" href="' + href(top) + '">' + esc(top.verb || 'Open') + ico('r') + '</a>' +
-        (href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') +
+        '<div class="nx-acts">' + (dlOf(top) ? '<a class="b b-p b-lg" href="#/files/' + encodeURIComponent(top.dl) + '">Open the files' + ico('r') + '</a>'
+          : '<a class="b b-p b-lg" href="' + href(top) + '">' + esc(top.verb || 'Open') + ico('r') + '</a>') +
+        (dlOf(top) || href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') +
         // LAUNCH (2026-11-04, by request): performance marketing says the package is running
-        (r === 'pm' && top.launch ? '<button class="b b-l" type="button" data-launch="' + esc(top.launch) + '" data-nm="' + esc(top.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + '</div></div></article>';
+        (r === 'pm' && top.launch ? '<button class="b b-l" type="button" data-launch="' + esc(top.launch) + '" data-nm="' + esc(top.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') +
+        // POSTED (2026-11-04, by request): social media closes the post once it is published
+        (dlOf(top) ? postedBtn(top, 'b b-l') : '') + '</div></div></article>';
     } else h += quiet('home');
 
     var rest = list.filter(function(x){ return x !== top; });
@@ -1066,11 +1090,46 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     h += '</aside></div>';
     return h;
   }
+  // ═════ A READY POST'S FILES: social media's package window (2026-11-04, by request) ═════
+  // Like performance marketing's package: every exported image of the post, its size, a Download
+  // each and Download all. The list and the previews come from the post's Drive folder
+  // (providentPostFeed.files / blob) and are kept here, so a redraw does not read them again.
+  var FL = {}, FLB = {};
+  function fmtOf(n){ return /_9x16\b/i.test(n) ? 'Story 9:16' : /_3x4\b/i.test(n) ? 'Feed 3:4' : /_1x1\b/i.test(n) ? 'Square 1:1' : ''; }
+  function kb(n){ n = +n || 0; return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+  function viewFiles(id){
+    var x = get('ops', id), F = window.providentPostFeed, back = '<a class="b b-q fz-back" href="#/">' + ico('l') + 'Home</a>';
+    if (!x) return back + '<div class="qk" style="margin-top:16px"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (data.known ? 'This post isn\u2019t ready' : 'Reading your posts\u2026') + '</h3><p>' + (data.known ? 'It may have been sent back, or it is not on Status any more.' : 'One moment.') + '</p></div></div>';
+    var L = FL[id];
+    if (!L && F && F.files) { L = FL[id] = { busy: true }; F.files(id).then(function(r){ FL[id] = { files: r.files, folder: r.rs.folder }; redraw(); }).catch(function(e){ FL[id] = { err: (e && e.message) || 'Google Drive refused.' }; redraw(); }); }
+    L = L || {};
+    var fs = L.files || [];
+    var h = back + '<header class="fz-h"><div><div class="nx-src">' + mk('ops') + '</div><h1 class="h2">' + esc(x.name) + '</h1>' +
+      '<p class="lede" style="font-size:14px"><b style="font-weight:500;color:var(--ps-ink)">Ready to publish</b>' + (x.from ? ' · from ' + esc(x.from) : '') + (x.at ? ', ' + esc(ago(x.at)) : '') + (fs.length ? ' · ' + fs.length + (fs.length === 1 ? ' image' : ' images') : '') + '</p></div>' +
+      '<div class="fz-acts">' + (L.folder ? '<a class="b b-g" href="https://drive.google.com/drive/folders/' + esc(L.folder) + '" target="_blank" rel="noopener">' + ico('folder') + 'Drive folder</a>' : '') +
+      '<a class="b b-q" href="' + itemLink(x) + '">Details</a>' +
+      postedBtn(x, 'b b-o') +
+      (fs.length ? '<button class="b b-p" type="button" data-dl="' + esc(id) + '">' + ico('down') + '<span>' + (fs.length > 1 ? 'Download all' : 'Download') + '</span></button>' : '') + '</div></header>';
+    if (L.busy) return h + '<p class="fz-wait">Reading the files from Google Drive\u2026</p>';
+    if (L.err) return h + '<p class="fz-wait" role="alert">' + esc(L.err) + '</p>';
+    if (!fs.length) return h + '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Nothing exported yet</h3><p>The images appear here once the designer exports the post. They go into its Drive folder.</p></div></div>';
+    return h + '<ul class="fz-g">' + fs.map(function(f){
+      var u = FLB[f.id];
+      if (u === undefined && F && F.blob && /\.(jpe?g|png|webp|svg)$/i.test(f.name)) { FLB[f.id] = null; F.blob(f.id).then(function(b){ FLB[f.id] = URL.createObjectURL(b); var im = document.querySelector('[data-fid="' + f.id + '"]'); if (im) im.src = FLB[f.id]; }).catch(function(){}); }
+      var fm = fmtOf(f.name);
+      return '<li class="fz-c"><span class="fz-th"><img data-fid="' + esc(f.id) + '" alt=""' + (u ? ' src="' + u + '"' : '') + '></span>' +
+        '<span class="fz-t"><b>' + esc(fm || f.name) + '</b><small>' + (fm ? esc(f.name) + ' · ' : '') + kb(f.size) + '</small></span>' +
+        '<button class="b b-g" type="button" data-dl="' + esc(id) + '" data-f="' + esc(f.id) + '">' + ico('down') + '<span>Download</span></button></li>';
+    }).join('') + '</ul>';
+  }
+  function postedBtn(x, cls){ return '<button class="' + cls + '" type="button" data-launch="' + esc(x.id) + '" data-op="rsposted" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Posted</span></button>'; }
+  // a ready post's images, for social media (post-flow.js providentPostFeed.download)
+  function dlOf(x){ return data.r === 'smm' && x.studio === 'ops' && x.ready && x.dl; }
   function row(x, other){
     var link = itemLink(x);
     return '<li class="row"><a class="th" style="--w:' + (other ? 44 : 56) + 'px" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, other ? 44 : 56) + '</a><div class="row-t"><a href="' + link + '">' + esc(x.name) + '</a>' +
       '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div></div>' +
-      dueEl(x) + (other ? '' : '<a class="b b-g" href="' + href(x) + '">' + esc(x.verb || 'Open') + '</a>') + '</li>';
+      dueEl(x) + (other ? '' : dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '">' + esc(x.verb || 'Open') + '</a>') + '</li>';
   }
 
   // ═════ THE SKY: the greeting panel's time of day ═════
@@ -1209,6 +1268,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
     else if (nav === 'new') html = viewNew();
     else if (nav === 'access') html = viewAccess();
+    else if (nav === 'files' && parts[1]) { html = viewFiles(decodeURIComponent(parts.slice(1).join('/'))); nav = 'home'; }
     else if (nav === 'projects') html = viewProjects();
     else { html = viewHome(); nav = 'home'; }
     pg.innerHTML = html; pg.hidden = !!host;
@@ -1253,6 +1313,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (t.hasAttribute('data-drive')){ e.preventDefault(); connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
     if (t.dataset.launch){ launch(t); return; }
+    if (t.dataset.dl){ download(t); return; }
     if (t.hasAttribute('data-endpv')){ if (acc && acc.preview) acc.preview(null); return; }
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
@@ -1320,14 +1381,23 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   }
   // Launch marks every finished phase of the ad set live (share-link.js op rslaunch, logged as the
   // person), then re-reads Status so it leaves the queue and the board
+  // and Posted (op rsposted, post-flow's posts): the post is published, so it is closed
   function launch(t){
     var K = window.providentDsKit; if (!K || !K.api || t.disabled) return;
-    if (!window.confirm('Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running and takes it off your queue and Status. The log says you launched it.')) return;
-    t.disabled = true; t.lastChild.textContent = 'Launching\u2026';
+    var post = t.dataset.op === 'rsposted', word = post ? 'Posted' : 'Launch';
+    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post and takes it off your queue and Status. The log says you marked it.'
+      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running and takes it off your queue and Status. The log says you launched it.')) return;
+    t.disabled = true; t.lastChild.textContent = post ? 'Closing\u2026' : 'Launching\u2026';
     var nw = acc && acc.now ? acc.now() : null, by = (me && me.name) || (typeof StudioBase !== 'undefined' && StudioBase.shareName && StudioBase.shareName()) || 'Performance marketing';
-    K.api('rslaunch', { id: t.dataset.launch }, { by: by, em: (nw && nw.email) || (me && me.email) || '' })
-      .then(function(){ cur = 0; refreshAll(true); })
-      .catch(function(er){ t.disabled = false; t.lastChild.textContent = 'Launch'; window.alert('Couldn\u2019t launch it: ' + ((er && er.message) || 'Google Drive refused the change.')); });
+    K.api(t.dataset.op || 'rslaunch', { id: t.dataset.launch }, { by: by, em: (nw && nw.email) || (me && me.email) || '' })
+      .then(function(){ cur = 0; if (post && /^#\/files\//.test(location.hash)) location.hash = '#/'; refreshAll(true); })
+      .catch(function(er){ t.disabled = false; t.lastChild.textContent = word; window.alert('Couldn\u2019t ' + (post ? 'close' : 'launch') + ' it: ' + ((er && er.message) || 'Google Drive refused the change.')); });
+  }
+  function download(t){
+    var F = window.providentPostFeed; if (!F || !F.download || t.disabled) return;
+    t.disabled = true; t.lastChild.textContent = 'Downloading\u2026';
+    F.download(t.dataset.dl, t.dataset.f || '').catch(function(er){ window.alert('Couldn\u2019t download it: ' + ((er && er.message) || 'Google Drive refused.')); })
+      .then(function(){ t.disabled = false; t.lastChild.textContent = 'Download'; });
   }
   function refreshAll(force){
     var jobs = [];
@@ -1427,7 +1497,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     clearTimeout(rdT);
     rdT = setTimeout(function(){
       var hs = location.hash.replace(/^#\/?/, '').split('/')[0] || 'home';
-      if (hs !== 'home' && hs !== 'status') return;            // the item pages draw themselves
+      if (hs !== 'home' && hs !== 'status' && hs !== 'files') return;   // the item pages draw themselves
       var a = document.activeElement; if (a && a.id === 'sx-q') return;   // never under someone typing
       route();
     }, 120);

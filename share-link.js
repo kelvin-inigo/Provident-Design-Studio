@@ -351,7 +351,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -400,7 +400,7 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -557,6 +557,19 @@
       add.forEach(k => { lv[k] = Object.assign({ by, at: now }, em ? { em } : {}); });
       rs.hist = (rs.hist || []).concat({ act: 'launch', by, at: now }).slice(-400);
       dsLog(rs, by, [{ kind: 'step', text: 'Launched the campaign' + (phMulti(rs) ? ' — ' + add.map(k => PH_NAME[k]).join(', ') : '') }]);
+      await dsWrite(R.rid, rs);
+      return { rs: pub() };
+    }
+    // POSTED (2026-11-04, by request): the social media manager has published a ready post; it is
+    // closed, and leaves the queue and the board
+    if (op === 'rsposted') {
+      if (!R.rs || !isPost(R.rs)) throw dsFail(404, 'This is not a post.');
+      const rs = R.rs, it = (rs.items || [])[0];
+      if (!it || !it.copy) throw dsFail(409, 'This post is not ready to publish yet.');
+      const by = dsWho(body.by), now = dsNow(), em = String(body.em || '').trim().toLowerCase().slice(0, 120);
+      rs.posted = Object.assign({ by, at: now }, em ? { em } : {});
+      rs.hist = (rs.hist || []).concat({ act: 'posted', by, at: now }).slice(-400);
+      dsLog(rs, by, [{ kind: 'step', page: 'Post', text: 'Marked it posted — the post is closed' }]);
       await dsWrite(R.rid, rs);
       return { rs: pub() };
     }

@@ -163,7 +163,7 @@ use your **@providentestate.com** account. What you see next depends on what the
 | Role | What opens |
 |---|---|
 | **Designer** | Both studios, everything: design, export, Status, hand-offs. Only the admin's **Access** is not theirs. |
-| **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
+| **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published. **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
 | **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link, where only **Approve English copy** shows. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
@@ -998,7 +998,14 @@ Every post goes through four steps:
    **Approve copy** moves it to Ready and goes back to Status; **Back to design** sends it back to
    the designer. The content team never gets the OPS editor: opening a post's link in OPS brings
    them to its page.
-4. **Ready** — ready to publish.
+4. **Ready** — ready to publish. The social media manager opens its files from the home page
+   (**Open the files**: each image, **Download**, **Download all**, **Drive folder**), publishes it,
+   then presses **Posted**: the post is closed, its page reads "Posted", the log says who, and it
+   leaves Home and Status.
+
+A post goes on Google Drive (and Status) when it has a name or a brief as you pick its template.
+Picked with neither, it opens on this computer only ("Not on Drive"), and **Send to designer** puts
+it on Drive under the project's name, so looking at a template no longer leaves an "Untitled post".
 
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most
 urgent first, with their step, who handed them over and when they're due. A post's page there has

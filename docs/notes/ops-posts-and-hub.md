@@ -621,3 +621,29 @@ content-team window as the picture). The framed check now mirrors it:
 - Verified on the stand-in as exec1.content at 1600×1000: head, strip and card as CAS's; 3 groups
   with Feed + Story once the story was on; Approve copy from the strip moved it to Ready and the page
   to Status; no console errors. OPS diff: no artwork-path lines.
+
+## The social media manager's home: files to download, Posted, no empty drafts (2026-11-04)
+
+By request, from annotated screenshots of the live site previewed as Jerry (SMM).
+- **Queue = ready posts.** index.html `build()`: for `smm` an OPS row is mine only when `ready`;
+  With others is posts at Design or Copy check (what they sent on). The board's subtitles for an
+  OPS-only viewer are `WHO_OPS` via `whoOf(s)` ("Drafts, not sent to a designer yet" … "To download
+  and publish").
+- **Files page** `#/files/<post id>` (`viewFiles`, CSS `.fz-*` — `.fl-*` is taken by Where
+  everything is): name, Ready to publish, Drive folder, Details, **Posted**, **Download all**; a
+  card per exported image (format from the `_3x4` / `_9x16` suffix, size, Download). Data from
+  post-flow `Feed.files(id)` (the post folder's images; exportsUp puts every export there),
+  `Feed.blob(fid)`, `Feed.download(id, fid?)` (one file as is, several as one zip via
+  `StudioBase.prototype.zip`). The list and preview blob URLs are cached in `FL` / `FLB`;
+  `redraw()` now redraws `files` too. inboxOps rows carry `dl` (the id, when ready with a folder).
+- **Posted**: dsApi `rsposted` (posts only, needs `it.copy`) sets `rs.posted {by, at, em}`, logs
+  "Marked it posted — the post is closed"; `dsPub` passes `posted`. inboxOps then writes `live`,
+  `ready: false`, step "Posted", so the home drops it (as a launched campaign). The post page's
+  Ready step reads "Posted · <by> · <day>". The home's `launch()` serves both buttons (`data-op`).
+- **No empty drafts on Drive**: `proto.pickTpl` makes the Drive post only when the Start a post sheet
+  has a name, a brief or files; otherwise it opens the template locally ("Not on Drive" → Send to
+  designer / Save to Drive, named by `shName()`). Every template look had made an "Untitled post".
+- Verified on the share dev server (8791) as Layla: Next up Open the files / Details / Posted; the
+  files page listed two test JPEGs put in the post folder, Download all gave a zip (PK header),
+  Download with none exported says so; Posted logged and dropped the post (Ready 2 → 1); a template
+  picked with no name left the stand-in's post count at 7 with "Not on Drive". **Not on real Drive.**
