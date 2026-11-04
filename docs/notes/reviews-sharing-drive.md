@@ -1628,3 +1628,29 @@ shared by every phase. share-link.js only.
   logged; the Ad Fatigue 01 tab showed Start the English with "Arabic · Not needed in Ad Fatigue 01";
   reload read it back; re-ticking logged "Arabic again" and restored the seed. **Not exercised:**
   the Ad set tab's per-phase AR in CAS, and real Google Drive.
+
+# PERFORMANCE MARKETING: CAMPAIGNS ONLY, LAUNCH, A SHORTER DETAILS PAGE (2026-11-04)
+
+By request, from annotated screenshots of the live site previewed as Dennis (PM). **Supersedes
+"ready is the end (no 'campaign live' button)"** from the review-process section above.
+- **CAS only.** index.html `studiosFor('pm')` is `['cas']`, so posts leave PM's queue, With
+  others, Where everything is and Status (no filter chips; lede "Every campaign in one place…";
+  Ready's subtitle is `whoOf(s)`: "To run" for one studio's CAS, "To publish" for OPS).
+- **Launch.** A PM sees **Launch** on the home's Next up card when the row carries `launch`. It
+  confirms, then `providentDsKit.api('rslaunch', {id: row.launch})` — Drive ad sets only; the id is
+  `tok.pm` (role pm) else the row id. dsApi `rslaunch` (pm or dd) stamps `rs.live[phase] = {by, at,
+  em}` for every phase whose audiences are all done, logs "Launched the campaign" (with the phases
+  when there are several), and is in `DS_WRITES`. `dsPub` passes `live`. **`rsLive(rs)` is the one
+  answer**: every phase with projects is live → the latest launch, else null. A phase added later
+  makes it null again, so the ad set comes back. `inboxCas` writes `live` (and `ready: false`,
+  step "Launched") and `launch`; the home drops `live` rows from everything, for every role.
+  The ad set page shows a **Launched** pill and "Launched <day> by <name>."
+- **Details for PM**: `AV.detHtml` leaves out the Audiences section and Team links when
+  `accRole() === 'pm'`; Open the package stays in the header. The designer-only buttons were
+  already hidden by access.js's `data-acc-lim` CSS.
+- **Open the package** already opened PM's ad set link (`#share=<tok.pm>`); unchanged.
+- Verified on the share dev server (8791, seeded) as Dennis: Home/Status campaigns only; Launch on
+  Ellington → off the queue, board 7 → 6, `rs.live.launch` by Dennis, logged; the designer saw it
+  gone from Status, its page "Launched" with Audiences and Team links intact; PM's Damac page had
+  neither. **Not exercised on real Drive: whether a PM's Google account can write Ad set.json** —
+  if their account has only view access to the folder, Launch shows Drive's refusal.

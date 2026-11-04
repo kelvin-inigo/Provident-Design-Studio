@@ -351,7 +351,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -400,7 +400,7 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -542,6 +542,21 @@
         if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set' }]);
       }
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
+      await dsWrite(R.rid, rs);
+      return { rs: pub() };
+    }
+    // LAUNCH (2026-11-04, by request): performance marketing says the finished package is running.
+    // Every phase whose audiences are all done is marked live; a phase added later is not.
+    if (op === 'rslaunch') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      if (R.role !== 'pm' && R.role !== 'dd') throw dsFail(403, 'Only performance marketing launches a campaign.');
+      const rs = R.rs, by = dsWho(body.by), now = dsNow(), em = String(body.em || '').trim().toLowerCase().slice(0, 120);
+      const auds = rsAuds(rs), lv = rs.live = rs.live || {};
+      const add = [...new Set(auds.map(a => a.phase))].filter(k => !lv[k] && auds.filter(a => a.phase === k).every(a => a.done));
+      if (!add.length) throw dsFail(409, 'Nothing in this ad set is ready to launch.');
+      add.forEach(k => { lv[k] = Object.assign({ by, at: now }, em ? { em } : {}); });
+      rs.hist = (rs.hist || []).concat({ act: 'launch', by, at: now }).slice(-400);
+      dsLog(rs, by, [{ kind: 'step', text: 'Launched the campaign' + (phMulti(rs) ? ' — ' + add.map(k => PH_NAME[k]).join(', ') : '') }]);
       await dsWrite(R.rid, rs);
       return { rs: pub() };
     }
@@ -2469,6 +2484,13 @@
     if (ready) steps[3].sub = 'Package ready';
     return { steps, ready, done: cnt(3), n, at: ready ? Math.max(...auds.map(a => a.at)) : 0 };
   }
+  // LAUNCHED: while every phase with projects is live (rs.live, written by rslaunch) the ad set
+  // has left the queue and the board; the latest launch, or null
+  function rsLive(rs) {
+    const lv = (rs && rs.live) || {}, phs = [...new Set(rsAuds(rs).map(a => a.phase))];
+    if (!phs.length || phs.some(k => !lv[k])) return null;
+    return phs.map(k => lv[k]).sort((a, b) => b.at - a.at)[0];
+  }
   // A row of steps, each centred over its own label (compact: a vertical list for the panel).
   function stepperHtml(steps, compact, bare) {
     const tick = '<svg viewBox="0 -960 960 960"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
@@ -3750,10 +3772,13 @@
       const k = open ? -1 : ov.ready ? 4 : a ? a.steps.findIndex(s => s.s !== 'done') : 0;
       let last = null; (rs.items || []).forEach(it => ['design', 'copy'].forEach(f => { const v = it[f]; if (v && v.at && (!last || v.at > last.at)) last = v; }));
       const tok = rs.tok || {}, link = (r === 'ct' && tok.ct) || (r === 'pm' && tok.pm) || x.id;
+      // launched (rsLive): no longer ready, and the home drops it; launch is the id Launch writes through
+      const lv = ov && ov.ready ? rsLive(rs) : null, lid = tok.pm || x.id;
       return {
-        studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready), open,
-        step: open ? 'Ticket' : ov.ready ? 'Ready to run' : STEP_LABELS[k] || 'Design',
-        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : ov.ready ? 'Package ready' : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
+        studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready) && !lv, open,
+        live: lv ? lv.at || 1 : 0, launch: ov && ov.ready && !lv && isDs(lid) ? lid : '',
+        step: open ? 'Ticket' : lv ? 'Launched' : ov.ready ? 'Ready to run' : STEP_LABELS[k] || 'Design',
+        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : lv ? 'Launched by ' + lv.by : ov.ready ? 'Package ready' : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
         segs: open ? [] : ov.steps.map(s => s.s), steps: STEP_LABELS,
         verb: open ? 'Pick up the ticket' : r === 'ct' ? 'Check the copy' : r === 'pm' ? 'Open the package' : 'Open the design',
         due: t.deadline || '', from: last ? last.by : rs.by || '', at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
@@ -4450,7 +4475,9 @@
       return '<li data-i="' + i + '"' + (i === cur ? ' data-cur="1"' : '') + (n && cnt(i) === n ? ' data-done="1"' : '') + '>' +
       '<span><i></i>' + esc(l) + '</span><b>' + (auds.length && !n ? '<s>Not needed</s>' : cnt(i) + '<s>/' + n + '</s>') + '</b><em><s style="width:' + (n ? Math.round(cnt(i) / n * 100) : 0) + '%"></s></em></li>'; }).join('') + '</ol>';
     const waiting = auds.filter(a => !a.done);
-    const nowLine = all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
+    const lv = all.ready ? rsLive(rs) : null;
+    const nowLine = lv ? '<p class="rvd-now" data-s="ready"><i></i>Launched ' + esc(dayS(lv.at)) + ' by ' + esc(lv.by) + '.</p>'
+      : all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
       : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCells(rs).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(PH_NAME[tab]) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
         : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
           return '<span class="rvd-wc" data-i="' + i + '" title="' + esc(a.now.label + ' — ' + a.now.sub) + '"><i></i>' + esc(a.label) + '<s>' + esc(a.now.sub) + '</s></span>'; }).join('') + '</p>';
@@ -4459,7 +4486,7 @@
     const head = '<header class="rvd-h"><div class="rvd-hb">' +
       '<span class="rvd-th">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
       '<div class="rvd-ht"><span class="rvd-k">' + esc(PRODUCT_NAME[rs.product] || 'Ad set') + brandHtml(d.brands) + '</span>' +
-      '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready) + '<span>' + esc(meta) + '</span></p></div>' +
+      '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready, lv ? 'Launched' : '') + '<span>' + esc(meta) + '</span></p></div>' +
       '<div class="rvd-ha">' + (() => {
         let r = null; try { r = window.providentAccess && window.providentAccess.now().role; } catch (e) {}
         const tk = rs.tok || {};
@@ -4516,7 +4543,10 @@
     const mk = [...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ');
     const facts = [['Product', esc(PRODUCT_NAME[rs.product] || '')], ['Phases', esc(phs.map(k => PH_NAME[k]).join(', '))], ['Markets', esc(mk)], ['Projects', (rs.items || []).length + ' across ' + allAuds.length + (allAuds.length === 1 ? ' audience' : ' audiences')],
       ['Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '']].filter(f => f[1]);
-    const side = '<aside class="rvd-side">' + links +
+    // PERFORMANCE MARKETING'S DETAILS (2026-11-04, by request): no audiences and no team links —
+    // the package itself is behind Open the package
+    const pmV = lr === 'pm';
+    const side = '<aside class="rvd-side">' + (pmV ? '' : links) +
       '<section class="rvd-card"><h3>Details</h3><dl class="rva-dl">' + facts.map(f => row(f[0], f[1])).join('') + '</dl></section>' +
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
       '<section class="rvd-card"><h3>Drive location</h3>' +
@@ -4524,7 +4554,7 @@
       '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + audiences + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + (pmV ? '' : audiences) + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.

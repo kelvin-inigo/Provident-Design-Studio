@@ -257,8 +257,9 @@ Layout chosen from three wireframes: **Next up**. Surface brief and direction co
   localhost) the page also POSTs `accme` with the Google token and, for the admin, `acclist`,
   kept as `provident-acc-list-lp`. A queue written for another account on the same computer is
   not treated as mine.
-- **Roles**: social media sees Organic only; performance marketing's "waiting on you" is the
-  CAS packages that are ready, and its studio rows open Status; the content team's CAS row opens
+- **Roles**: social media sees Organic only; performance marketing sees CAS only (2026-11-04) and
+  its "waiting on you" is the CAS packages that are ready, with **Launch** on Next up (see
+  reviews-sharing-drive.md, PERFORMANCE MARKETING: CAMPAIGNS ONLY), and its studio rows open Status; the content team's CAS row opens
   Status. Designers and the admin see both.
 - **Signature**: the Next up card flips through your queue in place (‹ ›, the arrow keys, or a
   row in "Waiting on you"); the button opens that item (`#share=` link, else `#view=rev`).

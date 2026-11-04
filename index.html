@@ -828,6 +828,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     { k: 'check', n: 'Copy check', who: 'With the content team', c: 'var(--ps-warn)' },
     { k: 'ready', n: 'Ready', who: 'To run or to publish', c: 'var(--ps-good)' }
   ];
+  // a stage's subtitle for this viewer: one studio's Ready is "To run" or "To publish"
+  function whoOf(s){ var k = studiosFor(roleOf()); return s.k !== 'ready' || k.length > 1 ? s.who : k[0] === 'cas' ? 'To run' : 'To publish'; }
   var SC = {}; STAGES.forEach(function(s){ SC[s.k] = s; });
 
   function $(id){ return document.getElementById(id); }
@@ -898,7 +900,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   // WHAT A ROLE OPENS is the admin's (Access › Roles, kept by access.js): with no role yet the
   // home shows everything, as before
   function cap(c){ return !rawRole() || !acc || !acc.can || acc.can(c); }
-  function studiosFor(r){ return r === 'smm' && !cap('design-cas') && !cap('tickets') ? ['ops'] : ['cas', 'ops']; }
+  // PERFORMANCE MARKETING SEES CAMPAIGNS ONLY (2026-11-04, by request): no posts on Home or Status
+  function studiosFor(r){ return r === 'pm' ? ['cas'] : r === 'smm' && !cap('design-cas') && !cap('tickets') ? ['ops'] : ['cas', 'ops']; }
   function canStart(r){ void r; return (cap('tickets') ? ['cas'] : []).concat(cap('posts') ? ['ops'] : []); }
   // the studios a role designs in (Your studios, Projects): drafting a post counts for OPS
   function designs(){ return ['cas', 'ops'].filter(function(k){ return cap('design-' + k) || (k === 'ops' && cap('posts')); }); }
@@ -924,6 +927,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
         if (y.from && me && me.name && y.from === me.name) y.from = 'you';
         // performance marketing's work is the finished package
         if (r === 'pm') y.mine = same && k === 'cas' && !!x.ready;
+        // a launched campaign (performance marketing's Launch) is finished: off the queue and the board
+        if (y.live) return;
         y.stage = stageOf(y);
         rows.push(y);
       });
@@ -1010,7 +1015,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
           return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? (copy ? 'warn' : 'cur') : 'todo') + '"><span>' + esc(l) + '</span></li>';
         }).join('') + '</ol>' : '') +
         '<div class="nx-acts"><a class="b b-p b-lg" href="' + href(top) + '">' + esc(top.verb || 'Open') + ico('r') + '</a>' +
-        (href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') + '</div></div></article>';
+        (href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') +
+        // LAUNCH (2026-11-04, by request): performance marketing says the package is running
+        (r === 'pm' && top.launch ? '<button class="b b-l" type="button" data-launch="' + esc(top.launch) + '" data-nm="' + esc(top.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + '</div></div></article>';
     } else h += quiet('home');
 
     var rest = list.filter(function(x){ return x !== top; });
@@ -1039,7 +1046,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
         var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
         var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
         var late = c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
-        var sub = !c.length ? 'Nothing here' : both ? [a ? a + (a === 1 ? ' ad set' : ' ad sets') : '', o ? o + (o === 1 ? ' post' : ' posts') : ''].filter(Boolean).join(' · ') : s.who;
+        var sub = !c.length ? 'Nothing here' : both ? [a ? a + (a === 1 ? ' ad set' : ' ad sets') : '', o ? o + (o === 1 ? ' post' : ' posts') : ''].filter(Boolean).join(' · ') : whoOf(s);
         var stack = c.slice(0, 3).map(function(x){ return '<span class="fl-t"' + (x.mine ? ' data-me' : '') + '>' + rd(x, 30) + '</span>'; }).join('') + (c.length > 3 ? '<span class="fl-more">+' + (c.length - 3) + '</span>' : '');
         h += '<li style="--c:' + s.c + '"' + (c.length ? '' : ' data-empty') + '><a href="#/status?stage=' + s.k + '" aria-label="' + s.n + ': ' + c.length + (late ? ', ' + late + ' overdue' : '') + '">' +
           '<i class="fl-d"></i><span class="fl-n"><b>' + s.n + '</b><small>' + sub + (late ? '<em>' + late + ' overdue</em>' : '') + '</small></span>' +
@@ -1118,7 +1125,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   // ═════ STATUS ═════
   function viewStatus(q){
     var r = data.r, both = studiosFor(r).length > 1;
-    var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : 'Your organic posts, from draft to ready.') + '</p></div></div>';
+    var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : 'Your organic posts, from draft to ready.') + '</p></div></div>';
     if (!data.known || !me || !me.email) return h + quiet('status');
     h += '<div class="sx-tools">';
     if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
@@ -1133,7 +1140,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       var c = shown.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
       var late = c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
       return '<section class="col" id="col-' + s.k + '" aria-label="' + s.n + '"><div class="col-h"><i style="--c:' + s.c + '"></i>' + s.n + (late ? '<span class="col-late">' + late + ' overdue</span>' : '') + '<small>' + c.length + '</small></div>' +
-        '<span class="col-who">' + esc(s.who) + '</span>' +
+        '<span class="col-who">' + esc(whoOf(s)) + '</span>' +
         (c.length ? '<ul class="cds">' + c.map(function(x){
           return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span>' + mkOf(x) + '<b>' + esc(x.name) + '</b></span></span>' +
             '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
@@ -1245,6 +1252,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
     if (t.hasAttribute('data-drive')){ e.preventDefault(); connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
+    if (t.dataset.launch){ launch(t); return; }
     if (t.hasAttribute('data-endpv')){ if (acc && acc.preview) acc.preview(null); return; }
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
@@ -1309,6 +1317,17 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (sees('ops') && window.providentPostStatus) window.providentPostStatus.mount(OPS_ENG);
     refreshAll(false);
     tick = setInterval(function(){ if (document.visibilityState === 'visible') refreshAll(false); }, 60000);
+  }
+  // Launch marks every finished phase of the ad set live (share-link.js op rslaunch, logged as the
+  // person), then re-reads Status so it leaves the queue and the board
+  function launch(t){
+    var K = window.providentDsKit; if (!K || !K.api || t.disabled) return;
+    if (!window.confirm('Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running and takes it off your queue and Status. The log says you launched it.')) return;
+    t.disabled = true; t.lastChild.textContent = 'Launching\u2026';
+    var nw = acc && acc.now ? acc.now() : null, by = (me && me.name) || (typeof StudioBase !== 'undefined' && StudioBase.shareName && StudioBase.shareName()) || 'Performance marketing';
+    K.api('rslaunch', { id: t.dataset.launch }, { by: by, em: (nw && nw.email) || (me && me.email) || '' })
+      .then(function(){ cur = 0; refreshAll(true); })
+      .catch(function(er){ t.disabled = false; t.lastChild.textContent = 'Launch'; window.alert('Couldn\u2019t launch it: ' + ((er && er.message) || 'Google Drive refused the change.')); });
   }
   function refreshAll(force){
     var jobs = [];
