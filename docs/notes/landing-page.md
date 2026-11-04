@@ -541,3 +541,12 @@ for good, while the footer still read "Read from Google Drive …". OPS roles re
 because `Feed.load` calls `ensure()`. Both now `await D.ensure()` (silent renewal through
 api/gauth, never a prompt). When renewal fails, `refreshSum` sets `sumSign` and the footer says
 the sign-in ran out, with a Sign in again link (`data-drive` → `connectDrive`).
+
+## THE TOP BAR SHOWS ONLY A ROLE'S PAGES (2026-11-04, by request)
+Projects shows when `designs()` has a studio (designers, SMM, the admin); Access only for the
+admin (the account menu already carries the role and Sign out; `#/access` still works). Set in
+`route()` with `[hidden]` (`.uh-nav a[hidden]{display:none}` — `.uh-nav a` sets display). While
+the admin previews a role the Access tab goes too; the banner's End preview is the way back. The
+"Pick up where you left off" desk reads `designs()` instead of `studiosFor()`, so the content team
+and PM no longer see this computer's saved projects. Verified on the stand-in: CT and PM Home ·
+Status; SMM + Projects; admin all four.

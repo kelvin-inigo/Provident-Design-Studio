@@ -46,6 +46,7 @@ button{font-family:inherit}
   text-decoration:none; font:600 14px/1 var(--ps-font); letter-spacing:.16px; transition:background-color var(--ps-motion) var(--ps-ease), color var(--ps-motion) var(--ps-ease)}
 .uh-nav a:hover{background:var(--ps-fill-h); color:var(--ps-ink)}
 .uh-nav a[aria-current="page"]{background:var(--ps-fill-on); color:var(--ps-ink)}
+.uh-nav a[hidden]{display:none}
 .uh-n{display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; box-sizing:border-box; border-radius:var(--ps-pill);
   background:var(--ps-primary); color:var(--ps-primary-i); font:600 11.5px/1 var(--ps-font); font-variant-numeric:tabular-nums}
 .uh-me{display:inline-grid; place-items:center; width:36px; height:36px; padding:0; border:0; border-radius:50%; background:var(--ps-fill-on); color:var(--ps-ink);
@@ -968,6 +969,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   function get(s, id){ return data.rows.filter(function(x){ return x.studio === s && String(x.id) === id; })[0]; }
   function itemLink(x){ return x.hub ? esc(x.href) : '#/item/' + x.studio + '/' + encodeURIComponent(x.id); }
   function href(x){ var r = data.r; return (x.hub || (x.studio === 'cas' && (r === 'ct' || r === 'pm'))) && x.href ? esc(x.href) : itemLink(x); }
+  // THE CONTENT TEAM'S CAMPAIGN COPY CHECK OPENS IN ITS OWN TAB (2026-11-04, by request)
+  function tgt(x){ return data.r === 'ct' && x.studio === 'cas' && x.href && !x.hub ? ' target="_blank" rel="noopener"' : ''; }
   function mkOf(x){ return x.hub ? '<span class="mk-h">' + ico('tray') + 'Content Hub</span>' : mk(x.studio); }
 
   // the states a page shows before there is a queue: signed out, never read Status, clear
@@ -1037,7 +1040,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
           return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? (copy ? 'warn' : 'cur') : 'todo') + '"><span>' + esc(l) + '</span></li>';
         }).join('') + '</ol>' : '') +
         '<div class="nx-acts">' + (dlOf(top) ? '<a class="b b-p b-lg" href="#/files/' + encodeURIComponent(top.dl) + '">Open the files' + ico('r') + '</a>'
-          : '<a class="b b-p b-lg" href="' + href(top) + '">' + esc(top.verb || 'Open') + ico('r') + '</a>') +
+          : '<a class="b b-p b-lg" href="' + href(top) + '"' + tgt(top) + '>' + esc(top.verb || 'Open') + ico('r') + '</a>') +
         (dlOf(top) || href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') +
         // LAUNCH (2026-11-04, by request): performance marketing says the package is running
         (r === 'pm' && top.launch ? '<button class="b b-l" type="button" data-launch="' + esc(top.launch) + '" data-nm="' + esc(top.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') +
@@ -1132,7 +1135,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div></div>' +
       // a row's actions: open it, and (2026-11-04, by request) social media's Posted and
       // performance marketing's Launch, as on Next up
-      dueEl(x) + (other ? '' : '<span class="row-a">' + (dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '">' + esc(x.verb || 'Open') + '</a>') +
+      dueEl(x) + (other ? '' : '<span class="row-a">' + (dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>' + esc(x.verb || 'Open') + '</a>') +
         (dlOf(x) ? postedBtn(x, 'b b-q') : data.r === 'pm' && x.launch ? '<button class="b b-q" type="button" data-launch="' + esc(x.launch) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + '</span>') + '</li>';
   }
 
@@ -1285,6 +1288,11 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var pw = pv && acc.now().previewWho;
     if (pv) pb.innerHTML = '<span>Previewing the home as <b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? ' (' + esc(ROLE[pv] || pv) + ')' : '') + ' \u2014 ' + (pw ? 'what waits on them, ' : 'their queue, ') + 'board, New and Access. Nothing here changes their account, but a step you press is really taken.</span><span class="sp"></span><button type="button" data-endpv>End preview</button>';
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    // ONLY THE PAGES A ROLE USES (2026-11-04, by request): Projects is for people who design,
+    // Access is the admin's (everyone else's role and sign-out are in the account menu)
+    var navTop = document.querySelector('[data-nav="projects"]'), navAcc = document.querySelector('[data-nav="access"]');
+    if (navTop) navTop.hidden = !!data.r && !designs().length;
+    if (navAcc) navAcc.hidden = !!(me && me.email) && phase === 'in' && !isAdmin();
     var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0, an = $('acc-n'); an.textContent = pend; an.hidden = !pend;
     var cs = canStart(data.r), nb = $('newbtn');
     nb.hidden = !cs.length; nb.href = cs.length > 1 ? '#/new' : cs.length ? STUDIO[cs[0]].start : '#/new';
@@ -1531,7 +1539,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   function loadDesk(cb){
     if (deskRows) return cb();
     var KEYS = { campaign: 'cas', organic: 'ops' };
-    Promise.all(Object.keys(KEYS).filter(function(k){ return studiosFor(roleOf()).indexOf(KEYS[k]) >= 0; }).map(function(k){
+    Promise.all(Object.keys(KEYS).filter(function(k){ return designs().indexOf(KEYS[k]) >= 0; }).map(function(k){
       return idbGet('recents:' + k).then(function(raw){
         var list = raw;
         if (typeof raw === 'string') { if (raw.length > 3e7) return []; try { list = JSON.parse(raw); } catch (e) { return []; } }

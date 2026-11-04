@@ -4559,7 +4559,8 @@
       ['Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '']].filter(f => f[1]);
     // PERFORMANCE MARKETING'S DETAILS (2026-11-04, by request): no audiences and no team links —
     // the package itself is behind Open the package
-    const pmV = lr === 'pm';
+    // and the content team's (same day): their copy check is behind Check the copy
+    const pmV = lr === 'pm' || lr === 'ct';
     const side = '<aside class="rvd-side">' + (pmV ? '' : links) +
       '<section class="rvd-card"><h3>Details</h3><dl class="rva-dl">' + facts.map(f => row(f[0], f[1])).join('') + '</dl></section>' +
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +

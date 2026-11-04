@@ -1654,3 +1654,6 @@ By request, from annotated screenshots of the live site previewed as Dennis (PM)
   gone from Status, its page "Launched" with Audiences and Team links intact; PM's Damac page had
   neither. **Not exercised on real Drive: whether a PM's Google account can write Ad set.json** —
   if their account has only view access to the folder, Launch shows Drive's refusal.
+- **The content team too (same day, by request):** `pmV` in `AV.detHtml` is `pm` or `ct`, so CT's
+  campaign page has no Audiences or Team links either; its header keeps **Check the copy**
+  (new tab). On the home, `tgt(x)` adds `target="_blank"` to a CT's campaign link (Next up and rows).
