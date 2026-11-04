@@ -647,3 +647,10 @@ By request, from annotated screenshots of the live site previewed as Jerry (SMM)
   files page listed two test JPEGs put in the post folder, Download all gave a zip (PK header),
   Download with none exported says so; Posted logged and dropped the post (Ready 2 → 1); a template
   picked with no name left the stand-in's post count at 7 with "Not on Drive". **Not on real Drive.**
+- **Delete for everyone** (same day, by request, to clear the old "Untitled post" drafts — a bulk
+  delete from the agent was refused by the permission check, so the user presses it): the post page
+  (`detHtml`, `data-ps="delete"`, `.psd-del` in `--ps-bad`) for admin, designer and smm. It calls dsApi
+  `rsdel` (role dd: posts open by `tok.dd`), which marks the record `deleted` and clears the
+  project's `rid`; `discover()` skips deleted posts and the files stay in the post folder. The home's
+  close watcher now includes `#ops-host [data-ps="delete"]`, so it lands on `#/status`. Verified on
+  the stand-in as the admin (two posts gone from Status, `rsget` "not valid", files kept).

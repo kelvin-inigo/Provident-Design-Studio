@@ -846,6 +846,12 @@
       try { await api('rsstep', { id: sid }, body); askNotify(); await this.load(true); }
       catch (e) { window.alert(e.message || String(e)); this.draw(); }
     }
+    else if (a === 'delete') {
+      if (!window.confirm('Delete “' + b.dataset.nm + '” for everyone?\n\nIt leaves Status and Home on every computer. Its files stay in its Google Drive folder.')) return;
+      b.disabled = true; b.textContent = 'Deleting…';
+      try { await api('rsdel', { id }); Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); Feed.load(false); }
+      catch (e) { window.alert('Couldn’t delete it: ' + (e.message || String(e))); b.disabled = false; b.textContent = 'Delete for everyone'; }
+    }
     else if (a === 'remove') { if (window.confirm('Take this post off Status on this computer? It stays on Google Drive.')) { Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); } }
   };
   const STEP_DOT = ['draft', 'design', 'copy', 'ready'];
@@ -925,6 +931,9 @@
         '<section class="psd-card"><h3>Brief</h3>' + (t.brief ? '<p class="psd-brief">' + esc(t.brief) + '</p>' : '<p class="ps-none">No brief</p>') +
           ((t.files || []).length ? '<ul class="psd-files">' + t.files.map(f => '<li><a href="https://drive.google.com/file/d/' + esc(f.id) + '/view" target="_blank" rel="noopener">' + esc(f.name) + '</a></li>').join('') + '</ul>' : '') + '</section>' +
         '<button type="button" class="pf-a psd-rm" data-ps="remove" data-id="' + esc(x.id) + '">Take off this computer’s Status</button>' +
+        // DELETE FOR EVERYONE (2026-11-04, by request: clearing out empty "Untitled post" drafts):
+        // dsApi rsdel marks the post deleted, so discover() skips it; its files stay in its Drive folder
+        (['admin', 'designer', 'smm'].indexOf(role()) >= 0 ? '<button type="button" class="pf-a psd-rm psd-del" data-ps="delete" data-id="' + esc(x.id) + '" data-nm="' + esc(rs.name || 'this post') + '">Delete for everyone</button>' : '') +
       '</aside></div></div>';
   };
 
@@ -1161,6 +1170,7 @@
 .psd-brief{margin:0;white-space:pre-wrap;font:400 13.5px/1.55 var(--ps-font);color:var(--ps-ink-2)}
 .psd-files{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px;font:400 13px/1.3 var(--ps-font)}.psd-files a{color:var(--ps-link)}
 .psd-rm{justify-self:start;color:var(--ps-ink-2)}
+.psd-del{color:var(--ps-bad)}
 @container (max-width:1000px){.ps-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.psd-cols{grid-template-columns:1fr}}
 @container (max-width:560px){.ps-cols,.psd-steps{grid-template-columns:1fr}.psd-h{grid-template-columns:64px minmax(0,1fr)}.psd-th{width:64px}}
 [data-post-status]{container-type:inline-size}

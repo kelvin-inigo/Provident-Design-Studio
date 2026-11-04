@@ -1485,7 +1485,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (b) { e.preventDefault(); e.stopPropagation(); location.hash = '#/status'; return; }
     // Remove from this list / Delete (after their confirm) leave the page for the studio's own
     // list; here the board takes over once the page has closed
-    var x = e.target.closest && e.target.closest('#cas-host [data-a="rm"], #cas-host [data-a="delset"], #ops-host [data-ps="remove"]');
+    var x = e.target.closest && e.target.closest('#cas-host [data-a="rm"], #cas-host [data-a="delset"], #ops-host [data-ps="remove"], #ops-host [data-ps="delete"]');
     if (x) { var n = 0, w = setInterval(function(){ if (++n > 40 || !/^#\/item\//.test(location.hash)) return clearInterval(w);
       if (!document.querySelector('#cas-host [data-a="back"], #ops-host [data-ps="back"]')) { clearInterval(w); location.hash = '#/status'; refreshAll(true); } }, 250); }
   }, true);

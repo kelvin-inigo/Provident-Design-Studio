@@ -1007,6 +1007,10 @@ A post goes on Google Drive (and Status) when it has a name or a brief as you pi
 Picked with neither, it opens on this computer only ("Not on Drive"), and **Send to designer** puts
 it on Drive under the project's name, so looking at a template no longer leaves an "Untitled post".
 
+**Delete for everyone** (a post's page, under the brief; the admin, designers and the social media
+manager) takes the post off Status and Home on every computer, after a confirm. Its files stay in
+its Google Drive folder. **Take off this computer's Status** only hides it here.
+
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most
 urgent first, with their step, who handed them over and when they're due. A post's page there has
 its next step as a button (**Send to designer**, **Send to copy check**, **Approve copy**), so you
