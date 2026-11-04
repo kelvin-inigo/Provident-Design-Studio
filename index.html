@@ -904,7 +904,9 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   function isAdmin(){ var n = acc && acc.now ? acc.now() : null; return !!(phase === 'in' && (n ? n.admin : me && me.admin)); }
 
   function build(){
-    var r = roleOf(), em = me && me.email ? String(me.email).toLowerCase() : '';
+    // previewing one person (Access › Preview the home as): their email, so "mine" is theirs
+    var nw = acc && acc.now && phase === 'in' ? acc.now() : null;
+    var r = roleOf(), em = nw && nw.email ? String(nw.email).toLowerCase() : me && me.email ? String(me.email).toLowerCase() : '';
     var rows = [], at = 0;
     studiosFor(r).forEach(function(k){
       var b = inbox[k]; if (!b || !Array.isArray(b.items)) return;
@@ -1207,7 +1209,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     $('acc-adm').hidden = !(nav === 'access' && isAdmin());
     var pv = acc && acc.now && phase === 'in' ? acc.now().preview : null, pb = $('pv');
     pb.hidden = !pv || nav === 'gate';
-    if (pv) pb.innerHTML = '<span>Previewing the home as <b>' + esc(ROLE[pv] || pv) + '</b> \u2014 their queue, board, New and Access. Nothing you do here changes their account.</span><span class="sp"></span><button type="button" data-endpv>End preview</button>';
+    var pw = pv && acc.now().previewWho;
+    if (pv) pb.innerHTML = '<span>Previewing the home as <b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? ' (' + esc(ROLE[pv] || pv) + ')' : '') + ' \u2014 ' + (pw ? 'what waits on them, ' : 'their queue, ') + 'board, New and Access. Nothing here changes their account, but a step you press is really taken.</span><span class="sp"></span><button type="button" data-endpv>End preview</button>';
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0, an = $('acc-n'); an.textContent = pend; an.hidden = !pend;
     var cs = canStart(data.r), nb = $('newbtn');
@@ -1260,7 +1263,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   });
   // the account, live: access.js (home mode) asks the server who this is
   window.addEventListener('provident-access', function(e){
-    var d = e.detail || {}, was = phase, pvNow = acc && acc.now ? acc.now().preview : null; phase = d.phase;
+    var d = e.detail || {}, was = phase, pvNow = acc && acc.now ? acc.now().previewKey : null; phase = d.phase;
     if (phase === 'in') me = js('provident-acc-me') || me;
     else if (phase === 'signin' && was === 'in') signedOut();
     else if (phase === 'signin' && me && me.at) { me = null; try { localStorage.removeItem('provident-acc-me'); } catch (x) {} }
@@ -1285,7 +1288,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     confirmDiscard: function(){ return true; }, markSaved: function(){},
     shareOpenLink: function(sid){ location.href = OPS + '#share=' + encodeURIComponent(sid); },
     upd: function(fn){ var x = fn({}); if (x && x.screen === 'pick') location.href = OPS + '#view=tpl'; } };
-  var busy = false, started = false, tick = null, lastPv = acc && acc.now ? acc.now().preview : null;
+  var busy = false, started = false, tick = null, lastPv = acc && acc.now ? acc.now().previewKey : null;
   // SIGNED OUT: nothing of the last person stays — not on the page, not in this computer's queue
   function signedOut(){
     me = null; inbox = { cas: null, ops: null }; started = false; clearInterval(tick); deskRows = null;

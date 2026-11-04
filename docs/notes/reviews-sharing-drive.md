@@ -1549,3 +1549,23 @@ By request. Both are on Drive ad sets only (share-link.js); the old share store 
   log, placeholders carrying the phase), a Launch project started into `Launch/Local/Investor/
   English` while Teaser's stayed at Main, Create next audience staying in Launch; an unbranded ad
   set's first project opened (and saved to Drive) with `look.on`. **Not on real Google Drive.**
+
+# PREVIEW AS ONE PERSON (2026-11-04)
+
+By request ("give me access on what CT see and other users as well"). Access › **Preview the home
+as** has two groups: **A role** (as before) and **A person** (every active user but the admin).
+`provident-acc-viewas` (sessionStorage) holds the role, or `role|email|name`. `viewAs()` still
+returns the role; `viewWho()` the person; `now().email` is the person's email while previewing, so
+post-flow's `myEm`, share-link's `myEmail` and index.html's `build()` (which now reads
+`acc.now().email` before `provident-acc-me`) judge "mine" for them. `me()` is untouched: hand-offs
+and step bodies still carry the admin's own email. `now().previewKey` (the raw value) is what the
+home compares to re-read on a switch between two people of one role.
+- **The preview reaches a post-link tab** (no sign-in gate there): `viewRaw` honours `A.quiet.admin`,
+  and `copyLang()` reads `viewAs()`, so previewing a content-team person opens OPS's copy check.
+- **Fixed in passing:** `preview()` tested `window.StudioBase`, which is never set (a top-level class
+  is a global binding, not a window property), so Back to Access in a studio ended the preview but
+  stayed put. Now `typeof StudioBase`. `base()` at access.js:68 has the same test and falls back to a
+  relative `/api/share` — harmless on the site, left alone.
+- Verified on the stand-in as the admin: previewing Priya listed her four hand-offs with her email;
+  her copy-check post opened on the words-only view with "Previewing as Priya Nair · Content team ·
+  English"; Back to Access went to the home's Access.

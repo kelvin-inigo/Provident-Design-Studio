@@ -101,7 +101,13 @@
     err: '', domain: 'providentestate.com',
     host: null, list: null, listErr: '', tab: 'req', listBusy: false, noteSent: false
   };
-  const viewAs = () => (A.me && A.me.admin ? ss.get(LS_VIEWAS) : null);
+  // PREVIEW AS A ROLE, OR AS ONE PERSON (2026-11-04, by request): the value is the role, or
+  // 'role|email|name' — then the queue, "Waits on you" and the board are judged for that person's
+  // email (now().email), as they see them. Server calls still go as the admin.
+  // (a link's tab knows the account only quietly, A.quiet: the admin's preview carries there too)
+  const viewRaw = () => ((A.me && A.me.admin) || (A.quiet && A.quiet.admin && A.quiet.status === 'active') ? ss.get(LS_VIEWAS) : null);
+  const viewAs = () => { const v = viewRaw(); return v ? v.split('|')[0] : null; };
+  const viewWho = () => { const v = viewRaw(), p = v ? v.split('|') : []; return p.length > 2 && p[1] ? { email: p[1], name: p.slice(2).join('|') } : null; };
   const rawRole = () => (A.phase === 'in' && A.me ? (viewAs() || A.me.role) : null);
   const fam = r => (r === 'cten' || r === 'ctar' ? 'ct' : r);
   const role = () => fam(rawRole());
@@ -119,7 +125,7 @@
   };
   // which copy this person approves: 'en', 'ar', or null (either). A review link's tab is never
   // gated, so there the account is looked up quietly (A.quiet) when Google is already signed in.
-  const copyLang = () => { const r = rawRole() || (A.quiet && A.quiet.status === 'active' ? A.quiet.role : null);
+  const copyLang = () => { const r = rawRole() || viewAs() || (A.quiet && A.quiet.status === 'active' ? A.quiet.role : null);
     return r === 'cten' ? 'en' : r === 'ctar' ? 'ar' : null; };
   // LIMITED in this studio: CAS is the designer's (and the admin's); performance marketing, the
   // social media manager and the content team get Home's setup and Status there. OPS is open to
@@ -339,7 +345,7 @@
     if (!va) { if (b) b.remove(); return; }
     if (!document.body) return;
     if (!b) { b = document.createElement('div'); b.className = 'acx-bar'; b.setAttribute('role', 'status'); document.body.appendChild(b); b.addEventListener('click', ev => { if (ev.target.closest('button')) preview(null); }); }
-    b.innerHTML = ic('eye') + '<span>Previewing as <b>' + esc(ROLE[va]) + '</b></span><button type="button">' + ic('back') + 'Back to Access</button>';
+    b.innerHTML = ic('eye') + '<span>Previewing as <b>' + esc(viewWho() ? (viewWho().name || viewWho().email) + ' · ' + ROLE[va] : ROLE[va]) + '</b></span><button type="button">' + ic('back') + 'Back to Access</button>';
   }
   function preview(r) {
     ss.set(LS_VIEWAS, r);
@@ -348,7 +354,8 @@
     if (HOME) { apply(); return; }
     // HOUSEKEEPING (2026-11-03): a studio has no home screens of its own any more, so a preview
     // started (or ended) there continues on the home page, where the bar is
-    if (window.StudioBase && StudioBase.goHome) { StudioBase.goHome(r ? '' : 'access'); return; }
+    // (StudioBase is a top-level class: a global binding, never a window property)
+    if (typeof StudioBase !== 'undefined' && StudioBase.goHome) { StudioBase.goHome(r ? '' : 'access'); return; }
     const sh = A.host;
     if (sh) { try { sh.setState({ splashView: r ? (only() || 'all') : (CAS ? 'acc' : 'all') }); } catch (e) {} }
     apply(); draw();
@@ -414,8 +421,11 @@
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
       '<div class="ac-pv"><label for="ac-pvs">' + (HOME ? 'Preview the home as' : 'Preview the studio as') + '</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
-        '<select id="ac-pvs" class="ac-sel" data-pv="1" title="Opens the studio as that role would see it, until you end the preview"><option value="" selected disabled>Choose a role</option>' +
-        ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</select></span></div></div>';
+        '<select id="ac-pvs" class="ac-sel" data-pv="1" title="Opens the studio as that role, or that person, would see it, until you end the preview"><option value="" selected disabled>Choose a role or a person</option>' +
+        '<optgroup label="A role">' + ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</optgroup>' +
+        (() => { const pp = people().filter(u => u.status === 'active' && u.role && ROLE[u.role] && u.role !== 'admin' && String(u.email || '').toLowerCase() !== me());
+          return pp.length ? '<optgroup label="A person">' + pp.map(u => '<option value="' + esc(u.role + '|' + String(u.email).toLowerCase() + '|' + (u.name || '')) + '" title="' + esc(u.email) + '">' + esc((u.name || u.email) + ' \u00b7 ' + ROLE[u.role]) + '</option>').join('') + '</optgroup>' : ''; })() +
+        '</select></span></div></div>';
     if (A.listErr) h += '<p class="acx-err" role="alert">' + esc(A.listErr) + '</p>';
     if (A.tab === 'req') {
       if (!R.length) h += '<div class="ac-empty">' + ic('shield') + '<b>No one is waiting</b><span>When someone signs in for the first time they show up here, with any note they leave, for you to let in or decline.</span></div>';
@@ -677,8 +687,8 @@
   window.providentAccess = {
     // { role, admin, preview, pending } — role null while nobody is signed in or the gate is off
     now() {
-      return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(),
-               pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: me() };
+      return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(), previewWho: viewWho(), previewKey: viewRaw(),
+               pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: (viewWho() && viewWho().email) || me() };
     },
     team, handOff, me,
     // the share service as the signed-in person (the home reads the Content Hub's tasks with it)

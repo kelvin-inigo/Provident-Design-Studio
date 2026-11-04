@@ -199,9 +199,13 @@ from Google the first time they do. The admin can still change or remove anyone 
   Content team · Arabic or Performance marketing), then press **Let in**, or **Decline**.
 - **People**: everyone with access. Change a role from its dropdown, or **Remove access** (they're
   shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
-- **Preview the studio as** is a dropdown beside the tabs: choose a role (Designer, Social media
-  manager, Content team · English, Content team · Arabic, Performance marketing) to see the studio
-  as that role does. **Back to Access** ends it.
+- **Preview the home as** is a dropdown beside the tabs. Choose **a role** (Designer, Social media
+  manager, Content team · English, Content team · Arabic, Performance marketing) to see the home and
+  studios as that role does, or **a person** (everyone let in, listed by name and role) to see
+  exactly what waits on them — their Status, their "Waits on you", and in OPS the view they get
+  (for the content team, the copy check). The bar says who you are previewing; **End preview** or
+  **Back to Access** ends it. Nothing changes their account, but a step you press (Approve copy,
+  Send…) is really taken.
 - A content-team member who opens a link while signed in with Google sees only their language's
   approve button. Opened without signing in, the link still shows both.
   **Add someone** lets in an @providentestate.com email before they've signed in.
