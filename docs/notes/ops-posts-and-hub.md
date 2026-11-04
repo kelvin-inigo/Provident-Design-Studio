@@ -664,3 +664,8 @@ By request, from annotated screenshots of the live site previewed as Jerry (SMM)
   SMM queue needs `x.mine` too. Verified on the stand-in: admin's Send to SMM → picker with Layla →
   `it.to` Layla, logged "→ Layla Haddad", page "With Layla Haddad to download", on Layla's Home.
   **Not seen:** the OPS top bar button itself (the seeded project link would not open in OPS).
+- **Rows act too** (same day, by request): Also waiting on you rows carry **Posted** (SMM) and
+  **Launch** (PM) beside their open button (`.row-a`). Found in passing: that list was built with
+  `.map(row)`, so `row(x, index)` treated every row after the first as an "other" row — no button
+  and no "from". Now `map(function(x){ return row(x); })`. Verified on the stand-in as Layla: two
+  rows, each Open the files / Posted; Posted on the second removed it (3 → 2 waiting).

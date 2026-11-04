@@ -163,7 +163,7 @@ use your **@providentestate.com** account. What you see next depends on what the
 | Role | What opens |
 |---|---|
 | **Designer** | Both studios, everything: design, export, Status, hand-offs. Only the admin's **Access** is not theirs. |
-| **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published. **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
+| **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published (on Next up and on every row of Also waiting on you). **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
 | **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link, where only **Approve English copy** shows. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
@@ -339,7 +339,7 @@ The flow has three moves for the designer, and the screen always offers the next
    Arabic typeface, to translate.
 
 When every audience is done, performance marketing downloads the package from their link. Once
-the ads are running, they press **Launch** on the home's Next up card: the campaign reads
+the ads are running, they press **Launch** on the home's Next up card (or on its row under Also waiting on you): the campaign reads
 **Launched** on its page, the log says who launched it, and it leaves everyone's Home and Status.
 A phase added later (say Ad Fatigue 01) brings it back once that phase is ready.
 

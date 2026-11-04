@@ -232,6 +232,7 @@ button{font-family:inherit}
 .row:hover{box-shadow:inset 0 0 0 1px var(--ps-line); background:var(--ps-card-h)}
 .row[data-gone]{opacity:0; transform:translateX(28px)}
 .row-t{min-width:0}
+.row-a{display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px}
 .row-t a{display:block; font:500 15px/1.3 var(--ps-font); color:var(--ps-ink); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .row-t a:hover{text-decoration:underline; text-underline-offset:3px}
 .row-m{display:flex; align-items:center; gap:8px 12px; margin-top:6px; flex-wrap:wrap; font:400 13px/1.3 var(--ps-font); color:var(--ps-ink-2)}
@@ -544,7 +545,7 @@ button{font-family:inherit}
   .nx-acts .b-p{flex:1}
   .row{grid-template-columns:auto minmax(0,1fr); gap:10px 12px}
   .row .due{grid-column:2}
-  .row > .b{grid-column:1 / -1}
+  .row > .row-a{grid-column:1 / -1; justify-content:flex-start}
   .oth .row{grid-template-columns:auto minmax(0,1fr)}
   .kv{grid-template-columns:minmax(0,1fr); gap:2px}
   .kv dd{margin-bottom:10px}
@@ -1052,7 +1053,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       h += '<section class="ib" aria-labelledby="h-ib"><div class="sh" id="h-ib">Also waiting on you<small>' + rest.length + '</small></div>';
       if (cnt.cas && cnt.ops) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
         return '<button type="button" data-hf="' + f[0] + '" aria-pressed="' + (homeF === f[0]) + '">' + f[1] + ' <small>' + cnt[f[0]] + '</small></button>'; }).join('') + '</div>';
-      h += '<ol class="rows">' + rest.filter(function(x){ return homeF === 'all' || homeF === x.studio; }).map(row).join('') + '</ol></section>';
+      h += '<ol class="rows">' + rest.filter(function(x){ return homeF === 'all' || homeF === x.studio; }).map(function(x){ return row(x); }).join('') + '</ol></section>';
     }
     if (data.others.length){
       h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" id="h-oth" style="color:var(--ps-ink-2)">With others<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/status">All on Status</a></div><ol class="rows">' +
@@ -1129,7 +1130,10 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var link = itemLink(x);
     return '<li class="row"><a class="th" style="--w:' + (other ? 44 : 56) + 'px" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, other ? 44 : 56) + '</a><div class="row-t"><a href="' + link + '">' + esc(x.name) + '</a>' +
       '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div></div>' +
-      dueEl(x) + (other ? '' : dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '">' + esc(x.verb || 'Open') + '</a>') + '</li>';
+      // a row's actions: open it, and (2026-11-04, by request) social media's Posted and
+      // performance marketing's Launch, as on Next up
+      dueEl(x) + (other ? '' : '<span class="row-a">' + (dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '">' + esc(x.verb || 'Open') + '</a>') +
+        (dlOf(x) ? postedBtn(x, 'b b-q') : data.r === 'pm' && x.launch ? '<button class="b b-q" type="button" data-launch="' + esc(x.launch) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + '</span>') + '</li>';
   }
 
   // ═════ THE SKY: the greeting panel's time of day ═════
