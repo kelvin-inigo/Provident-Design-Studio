@@ -1202,7 +1202,7 @@
         if (d.role === 'dd') { ssSet(RS_KEY, null); this.rsShowStatus(id, d.rs); return; }
         RS.open(this.host, id, d);
       }
-      catch (e) { dl.fail(e.message, 'Close'); }
+      catch (e) { document.documentElement.classList.remove('lnk-wait'); dl.fail(e.message, 'Close'); }
       return;
     }
     const appOf = a => a === 'provident-smp-studio' ? 'ops' : 'cas';
@@ -3128,6 +3128,7 @@
     this.ui.root.querySelector('.shl-share').hidden = true;
     const h = document.documentElement;
     h.classList.add('shl-on', 'rs-on');
+    h.classList.remove('lnk-wait');   // studio-base: the link's cover over the start screen
     h.classList.toggle('rv-as', this.role !== 'dd');
     h.classList.toggle('rv-pm', this.role === 'pm');
     h.dataset.rvRole = this.role;

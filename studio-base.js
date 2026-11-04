@@ -1875,6 +1875,20 @@ StudioBase.warn = function (text) {
 // dropped from the address by the time the shell first draws, so the moment is noted here, as
 // the page loads; a studio with nothing open waits for it before going to the home's Projects.
 StudioBase.linkAt = /#(share|pick|recent|view|hubopen)=/.test(location.hash || '') ? Date.now() : 0;
+// AN AD SET LINK OPENS WITHOUT THE STUDIO'S START SCREEN (2026-11-04): a designer's link goes on to
+// the home's Status, the content team's and performance marketing's become their window, and the
+// start screen (sidebar, "Projects") flashed behind "Open the ad set" on the way. The studio is
+// hidden until the window opens (share-link RV.start), the open fails, or 20 s pass; the dialog
+// itself (.shl-dlg, outside the shell) stays visible.
+if (/^#share=R[\w-]+\./.test(location.hash || '')) {
+  try {
+    const h = document.documentElement, st = document.createElement('style');
+    st.textContent = 'html.lnk-wait .p-shell,html.lnk-wait .p-br{visibility:hidden}';
+    (document.head || h).appendChild(st);
+    h.classList.add('lnk-wait');
+    setTimeout(() => h.classList.remove('lnk-wait'), 20000);
+  } catch (e) {}
+}
 
 window.providentDrive = {
   CLIENT: '210522580023-ajcrfmscqohgbdq36t6ph4mrhnk9u5s3.apps.googleusercontent.com',

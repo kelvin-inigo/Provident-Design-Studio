@@ -1587,3 +1587,18 @@ home compares to re-read on a switch between two people of one role.
 - Verified on the stand-in as the admin: previewing Priya listed her four hand-offs with her email;
   her copy-check post opened on the words-only view with "Previewing as Priya Nair · Content team ·
   English"; Back to Access went to the home's Access.
+
+# AD SET LINKS NO LONGER GLITCH (2026-11-04)
+
+Reported as "the generated links are glitching" (the ad set page's Designer / Content team /
+Performance marketing links). Two faults, one cause — the links open through CAS's start screen:
+- **The content team's and PM's link left for the home's Projects ~15 s after opening.** Their
+  window (`RV`, `html.rs-on`) lies over the start screen, so `state.screen` stays 'splash', and
+  CAS's "nothing open → the home's Projects" check (`busy()` in the shell's renderVals) gives a
+  link only 15 s. `busy()` now counts `html.rs-on` as an open project.
+- **Every link flashed the start screen** (sidebar, "Projects · Opening them on the home page")
+  behind "Open the ad set". `studio-base.js`, at load, puts `html.lnk-wait` on a `#share=R…` link,
+  which hides `.p-shell` (the dialog sits outside it); `RV.start` removes it, a failed open removes
+  it, and it lifts on its own after 20 s. The designer's link still goes on to the home's ad set page.
+- Verified on the stand-in: Content team (Priya) and Performance marketing stayed on their windows
+  for 25 s with no start screen behind the dialog; Designer went straight to #/item/cas/<id>.

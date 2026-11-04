@@ -18331,6 +18331,10 @@ class Component extends DCLogic {
       const busy = () => {
         const st = this.active().state;
         if (st && st.screen && st.screen !== 'splash') { this._opened = true; return true; }
+        // AN AD SET WINDOW IS OPEN TOO (2026-11-04): the content team's and performance marketing's
+        // window lies over the start screen (html.rs-on), so the screen stays 'splash'; without this
+        // their link's tab went to the home's Projects 15 s after it opened
+        if (document.documentElement.classList.contains('rs-on')) { this._opened = true; return true; }
         if (this._opened) return false;
         // a link the page opened with (#share= clears itself before the project has loaded) gets
         // up to 15 s; a dialog on screen (the name prompt, a picker, a progress box) holds it too
