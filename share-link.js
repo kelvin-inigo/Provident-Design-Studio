@@ -469,7 +469,7 @@
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
       if (R.role !== 'dd' && !isPost(R.rs)) throw dsFail(403, 'Only the designer changes the ad set.');
       const rs = R.rs, by = dsWho(body.by), chg = [];
-      const cellsWas = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
+      const cellsWas = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [] }));
       if ('name' in body && String(body.name || '').trim()) {
         const nm = String(body.name).trim().slice(0, 120);
         if (rs.name && nm !== rs.name) chg.push('Renamed the campaign to “' + nm + '”');
@@ -480,12 +480,16 @@
       if (body.eng_only && typeof body.eng_only === 'object') { rs.eng_only = rs.eng_only || {}; Object.keys(body.eng_only).slice(0, 40).forEach(k => { if (body.eng_only[k]) rs.eng_only[k] = true; else delete rs.eng_only[k]; }); }
       // the designer's settings, from the Ad set tab: the planned audiences and their Arabic
       if (Array.isArray(body.plan)) {
-        rs.plan = planCells(body.plan).slice(0, 40).map(c => ({ market: String(c.market), aud: String(c.aud), arb: !!c.arb }));
+        rs.plan = planCells(body.plan).slice(0, 40).map(c => { const o = { market: String(c.market), aud: String(c.aud), arb: !!c.arb }, off = c.arb ? arbOffOf(c) : []; if (off.length) o.arbOff = off; return o; });
         rs.eng_only = rs.eng_only || {};
         rs.plan.forEach(c => { const k = c.market + '|' + c.aud; if (c.arb) delete rs.eng_only[k]; else rs.eng_only[k] = true; });
         // the settings say what moved, in the ad set's own log
         const key = c => c.market + ' · ' + c.aud, old = {}; cellsWas.forEach(c => { old[key(c)] = c; });
-        rs.plan.forEach(c => { const o = old[key(c)]; if (!o) chg.push('Added ' + key(c) + (c.arb ? ', with Arabic' : '')); else if (o.arb !== c.arb) chg.push(c.arb ? 'Planned an Arabic version of ' + key(c) : key(c) + ' is English only'); delete old[key(c)]; });
+        rs.plan.forEach(c => { const o = old[key(c)]; if (!o) chg.push('Added ' + key(c) + (c.arb ? ', with Arabic' : '')); else if (o.arb !== c.arb) chg.push(c.arb ? 'Planned an Arabic version of ' + key(c) : key(c) + ' is English only');
+          if (c.arb) { const off = arbOffOf(c), was = o && o.arb ? o.arbOff : [], nm = l => l.map(k => PH_NAME[k]).join(', ');
+            const dr = off.filter(k => was.indexOf(k) < 0), ad = o && o.arb ? was.filter(k => off.indexOf(k) < 0) : [];
+            if (dr.length) chg.push(key(c) + ': no Arabic in ' + nm(dr)); if (ad.length) chg.push(key(c) + ': Arabic again in ' + nm(ad)); }
+          delete old[key(c)]; });
         Object.keys(old).forEach(k => chg.push('Dropped ' + k));
       }
       // the ticket's brief and deadline, from the settings
@@ -2021,15 +2025,19 @@
   }
   // THE AD SET'S AUDIENCES, for every phase: the plan's cells, plus any audience a project already
   // holds in some phase (an ad set made from a project, before plans, keeps no plan — a phase
-  // added to it still needs its audiences). Arabic as the settings show it.
+  // added to it still needs its audiences). Arabic as the settings show it: `arb` for the
+  // audience, and `arbOff` the phases that skip it (2026-11-04: a fatigue round may need no Arabic).
   function rsCells(rs) {
     const items = ((rs && rs.items) || []).filter(x => x.market && x.aud), eo = (rs && rs.eng_only) || {};
-    const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb }));
-    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud] }); });
-    items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud); if (c) c.arb = true; } });
+    const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [] }));
+    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] }); });
+    items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud), p = phOf(rs, x); if (c) { c.arb = true; c.arbOff = c.arbOff.filter(k => k !== p); } } });
     const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
     return cells.sort((x, y) => (at(x.market) - at(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud)));
   }
+  const arbOffOf = c => [...new Set((Array.isArray(c && c.arbOff) ? c.arbOff : []).filter(k => PH_NAME[k]))];
+  // does this cell get an Arabic version in phase ph
+  const arbIn = (c, ph) => !!(c && c.arb) && arbOffOf(c).indexOf(ph) < 0;
   // what the plan still wants: an English project per cell, an Arabic one where planned
   // (per PHASE: every phase is its own package of the same plan; no phase given = the first)
   function planTodo(rs, ph) {
@@ -2038,7 +2046,7 @@
     // every English version first, then the Arabic ones — the order the review runs in
     const cells = rsCells(rs);
     return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG', phase: ph }))
-      .concat(cells.filter(c => c.arb && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB', phase: ph })));
+      .concat(cells.filter(c => arbIn(c, ph) && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB', phase: ph })));
   }
   function planTodoHtml(rs, busy, ph) {
     const todo = planTodo(rs, ph); if (!todo.length) return '';
@@ -2071,12 +2079,12 @@
     injectCss();
     o = o || {};
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
-    const has = (m, a, l) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l));
+    const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
     const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' ? 'unbranded' : 'provident' };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb]), d.phases, d.brand]);
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.brand]);
     const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud))); };
     ord();
     const was = sig();
@@ -2109,13 +2117,18 @@
       $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
       if (phOk) $('[data-g="ph"]').innerHTML = PHASES.map(([k, l]) => { const on = d.phases.indexOf(k) >= 0, lock = on && phBusy(k);
         return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-ph="' + k + '" title="' + esc(lock ? l + ' has projects — remove them first to drop it' : on ? 'Click to drop the ' + l + ' phase' : 'Click to add a ' + l + ' package') + '">' + (on ? PICO.tick : '') + esc(l) + '</button>'; }).join('');
-      const n = (cells.length + cells.filter(c => c.arb).length) * (phOk ? d.phases.length : 1);
+      const phs = phOk ? d.phases : [null], multi = phOk && d.phases.length > 1;
+      const n = phs.reduce((t, k) => t + cells.length + cells.filter(c => k ? arbIn(c, k) : c.arb).length, 0);
       $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (phOk && d.phases.length > 1 ? ' · ' + d.phases.length + ' phases' : '');
       $('.rsp-tiles').innerHTML = cells.map(c => {
         const k = c.market + '|' + c.aud, busy = has(c.market, c.aud), arLock = has(c.market, c.aud, 'ARB');
         return '<div class="rsp-tile" role="listitem"' + (c.arb ? ' data-ar="1"' : '') + '><div class="rsp-tt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b>' + (busy ? '<i class="rss-has">Has a project</i>' : '') + '</div>' +
           '<div class="rsp-lg"><span class="rsp-l" title="English — always made">EN</span>' +
-          '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + c.arb + '" data-arb="' + esc(k) + '" title="' + (arLock ? 'Has an Arabic project — remove it first to make this English only' : c.arb ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div></div>';
+          '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + c.arb + '" data-arb="' + esc(k) + '" title="' + (arLock ? 'Has an Arabic project — remove it first to make this English only' : c.arb ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div>' +
+          // more than one phase: which of them get the Arabic (a fatigue round may not)
+          (multi && c.arb ? '<div class="rss-arp" role="group" aria-label="' + esc('Arabic for ' + c.market + ' ' + c.aud + ', by phase') + '"><span>Arabic in</span>' + PHASES.filter(([pk]) => d.phases.indexOf(pk) >= 0).map(([pk, pl]) => {
+            const on = arbIn(c, pk), lock = on && has(c.market, c.aud, 'ARB', pk);
+            return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div>' : '') + '</div>';
       }).join('');
     };
     const busyMsg = c => c.market + ' · ' + c.aud + ' already has a project. Move it with Change audience, or remove it, first.';
@@ -2161,8 +2174,17 @@
         if (b.dataset.tg) return toggle(b.dataset.tg, b.dataset.v);
         if (b.dataset.arb) {
           const c = cells.find(x => x.market + '|' + x.aud === b.dataset.arb); if (!c) return;
-          if (c.arb && has(c.market, c.aud, 'ARB')) return st(c.market + ' · ' + c.aud + ' has an Arabic project. Remove it first to make this audience English only.');
-          c.arb = !c.arb; st(''); draw(); return;
+          if (c.arb && has(c.market, c.aud, 'ARB')) return st(c.market + ' · ' + c.aud + ' has an Arabic project. Remove it first to make this audience English only' + (phOk && d.phases.length > 1 ? ', or untick just the phases that need no Arabic under it.' : '.'));
+          c.arb = !c.arb; c.arbOff = []; st(''); draw(); return;
+        }
+        if (b.dataset.arbph) {
+          const [m, a, pk] = b.dataset.arbph.split('|'), c = cells.find(x => x.market === m && x.aud === a); if (!c) return;
+          const off = arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0), on = off.indexOf(pk) < 0;
+          if (on && has(m, a, 'ARB', pk)) return st(PH_NAME[pk] + ' · ' + m + ' · ' + a + ' has an Arabic project. Remove it first to drop the Arabic there.');
+          c.arbOff = on ? off.concat([pk]) : off.filter(k => k !== pk);
+          // no phase left with Arabic: the audience is English only
+          if (d.phases.every(k => c.arbOff.indexOf(k) >= 0)) { c.arb = false; c.arbOff = []; }
+          st(''); draw(); return;
         }
         if (b.dataset.go) {
           d.name = d.name.replace(/\s+/g, ' ').trim();
@@ -2170,7 +2192,8 @@
           if (sig() === was) return close(null);
           const btns = el.querySelectorAll('.shl-acts button'); btns.forEach(x => { x.disabled = true; }); b.textContent = 'Saving…'; st('');
           try {
-            const p = { name: d.name, product: d.product, plan: cells.map(c => ({ market: c.market, aud: c.aud, arb: c.arb })) };
+            const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
+              if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
             if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; }
             close(await save(p));
@@ -2416,8 +2439,11 @@
     const mo = m => { const i = MARKETS.indexOf(m); return i < 0 ? 9 : i; };
     const po = p => PHASES.findIndex(x => x[0] === p);
     const out = [...map.values()].sort((x, y) => po(x.phase) - po(y.phase) || mo(x.market) - mo(y.market) || x.aud.localeCompare(y.aud));
+    const cells = out.length ? rsCells(rs) : [];
     out.forEach(a => {
-      a.engOnly = !!((rs && rs.eng_only) || {})[a.market + '|' + a.aud];
+      const cl = cells.find(c => c.market === a.market && c.aud === a.aud);
+      a.engOnly = !!((rs && rs.eng_only) || {})[a.market + '|' + a.aud] || !!(cl && cl.arb && !arbIn(cl, a.phase) && !a.arb);
+      a.phOff = a.engOnly && !!(cl && cl.arb);
       const e = a.eng, r = a.arb;
       const d1 = !!(e && e.design), d2 = !!(e && e.copy), d3 = a.engOnly || !!(r && r.design && r.copy);
       a.done = d1 && d2 && d3;
@@ -2818,12 +2844,12 @@
       auds.forEach(a => { byK[a.market + '|' + a.aud] = a; });
       const keys = cells.map(c => c.market + '|' + c.aud);
       auds.forEach(a => { const ak = a.market + '|' + a.aud; if (keys.indexOf(ak) < 0 && a.market) { keys.push(ak); cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); } });
-      const dd = !!(rs.tok && rs.tok.dd);
+      const dd = !!(rs.tok && rs.tok.dd), pm = phMulti(rs), arOn = c => pm ? arbIn(c, ph) : !!c.arb;
       const tiles = cells.map(c => {
         const k = c.market + '|' + c.aud, a = byK[k], me = mine && mine === a, st = a ? (a.done ? 'Done' : a.now ? a.now.label : '') : 'To make';
         return '<li class="adt-au"' + (me ? ' data-me="1"' : '') + (a && a.done ? ' data-done="1"' : '') + '><div class="adt-au-t"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></div>' +
           '<span class="adt-au-s">' + (me ? 'This project' : esc(st)) + '</span>' + (a ? segHtml(a.steps) : '<span class="rv-seg rv-seg-e"></span>') +
-          (dd ? '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + !!c.arb + '" data-arb="' + esc(k) + '" title="' + (c.arb ? 'Arabic version planned — click for English only' : 'English only — click to plan an Arabic version') + '">AR</button>' : '') + '</li>';
+          (dd ? '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + arOn(c) + '" data-arb="' + esc(k) + '"' + (pm ? ' data-ph="' + esc(ph) + '"' : '') + ' title="' + (pm ? (arOn(c) ? 'Arabic planned in ' + esc(PH_NAME[ph]) + ' — click: none in this phase' : 'No Arabic in ' + esc(PH_NAME[ph]) + ' — click to plan one') : arOn(c) ? 'Arabic version planned — click for English only' : 'English only — click to plan an Arabic version') + '">AR</button>' : '') + '</li>';
       }).join('');
       const tg = (g, v) => { const cur = g === 'markets' ? [...new Set(cells.map(c => c.market))] : [...new Set(cells.map(c => c.aud))], on = cur.indexOf(v) >= 0;
         return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '">' + (on ? PICO.tick : '') + esc(v) + '</button>'; };
@@ -2864,7 +2890,21 @@
     // the designer's settings: the planned audiences and their Arabic
     let cells = planCells(planOf(rs)).map(c => Object.assign({}, c));
     rsAuds(rs).forEach(a => { if (a.market && !cells.some(c => c.market === a.market && c.aud === a.aud)) cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); });
-    if (b.dataset.arb) { const c = cells.find(x => x.market + '|' + x.aud === b.dataset.arb); if (c) c.arb = !c.arb; }
+    if (b.dataset.arb) {
+      const c = cells.find(x => x.market + '|' + x.aud === b.dataset.arb), pk = b.dataset.ph; if (!c) return;
+      const arbP = (rs.items || []).some(x => x.lang === 'ARB' && x.market === c.market && x.aud === c.aud && (!pk || phOf(rs, x) === pk));
+      if (pk) {
+        // one phase's Arabic: the others keep theirs
+        const phs = phList(rs), off = arbOffOf(c).filter(k => phs.indexOf(k) >= 0), on = arbIn(c, pk);
+        if (on && arbP) { S.ui.flash('This audience has an Arabic project in ' + PH_NAME[pk] + ' — remove it first.'); return; }
+        if (!c.arb) { c.arb = true; c.arbOff = phs.filter(k => k !== pk); }
+        else c.arbOff = on ? off.concat([pk]) : off.filter(k => k !== pk);
+        if (phs.every(k => c.arbOff.indexOf(k) >= 0)) { c.arb = false; c.arbOff = []; }
+      } else {
+        if (c.arb && arbP) { S.ui.flash('This audience has an Arabic project — remove it first.'); return; }
+        c.arb = !c.arb; c.arbOff = [];
+      }
+    }
     else if (b.dataset.tg) {
       const g = b.dataset.tg, v = b.dataset.v, ms = [...new Set(cells.map(c => c.market))], as = [...new Set(cells.map(c => c.aud))];
       const list = g === 'markets' ? ms : as, on = list.indexOf(v) >= 0;
@@ -4437,8 +4477,8 @@
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
-      if (cl && (lang === 'English' || (cl.arb && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
-      if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
+      if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
+      if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.phOff ? 'Not needed in ' + esc(PH_NAME[tab]) : a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
@@ -4460,7 +4500,7 @@
     const planRows = todoA.map(c => '<li class="rvd-au" data-plan="1"><div class="rvd-auh">' +
       '<span class="rvd-aun"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></span>' +
       '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>' + (phs.length > 1 ? 'No ' + esc(PH_NAME[tab]) + ' project yet' : 'Planned in Ad set settings — no project yet') + '</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
-      '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (c.arb ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>Not needed for this audience</s></span></div>') + '</div></li>').join('');
+      '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (arbIn(c, tab) ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(PH_NAME[tab]) : 'Not needed for this audience') + '</s></span></div>') + '</div></li>').join('');
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(PH_NAME[tab]) + ' audiences' : 'Audiences') + ' <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
@@ -6209,6 +6249,12 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rss-ph .rsp-n{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim)}
 .rss .rsp-more{padding:14px}
 .rss-has{font:italic 400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rss .rsp-tile{flex-wrap:wrap}
+.rss-arp{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--ps-hair)}
+.rss-arp>span{font:500 11px/1 var(--ps-font);letter-spacing:.06em;text-transform:uppercase;color:var(--ps-dim);margin-right:2px}
+.rss-arp .rsp-t{height:28px;padding:0 10px;font-size:12px}
+.rss-arp .rsp-t[aria-pressed="true"]{padding-left:7px}
+.rss-arp .rsp-t svg{width:14px;height:14px}
 .rss .shl-st{margin:0;min-height:0}
 .rss .shl-st:empty{display:none}
 .rss .shl-acts{margin-top:0}

@@ -355,6 +355,13 @@ button that opens CAS in a new window on that audience's **Ad set** tab. After y
 settings with a new phase ticked, the page opens on that phase. **Create next audience** and **Make the Arabic** stay in the phase you are working in.
 A phase that has projects can't be dropped.
 
+**Arabic per phase.** An audience's **AR** covers every phase. When an ad set has more than one
+phase, each Arabic audience tile in **Ad set settings** also has an **Arabic in** row with one
+chip per phase: untick a phase (an Ad Fatigue round, say) and that audience is English only there.
+Its Arabic tile on that phase's tab reads **Not needed in <phase>**, and Translation is skipped.
+In CAS's **Ad set** tab the **AR** on each audience is the current phase's Arabic. A phase that
+already has an Arabic project for that audience can't be unticked.
+
 On Drive, the first phase's projects stay where they always were (Market / Audience / Language).
 Each phase you add gets its own folder above that (for example `Ad Fatigue 01/Local/Family/English`).
 The content team and performance marketing see each phase's projects under "Ad Fatigue 01 · Local".

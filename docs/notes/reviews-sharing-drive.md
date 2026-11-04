@@ -1602,3 +1602,29 @@ Performance marketing links). Two faults, one cause — the links open through C
   it, and it lifts on its own after 20 s. The designer's link still goes on to the home's ad set page.
 - Verified on the stand-in: Content team (Priya) and Performance marketing stayed on their windows
   for 25 s with no start screen behind the dialog; Designer went straight to #/item/cas/<id>.
+
+# ARABIC PER PHASE (2026-11-04)
+
+By request ("there are instances it doesn't require one on separate phases"). Reported as Ad set
+settings refusing "Local · Family has an Arabic project. Remove it first to make this audience
+English only." when only a later phase needed no Arabic: the plan was markets × audiences × Arabic,
+shared by every phase. share-link.js only.
+- **A plan cell may carry `arbOff: [phase keys]`**: the phases that skip its Arabic (only with
+  `arb: true`; absent = Arabic in every phase, so every older plan reads as before). `arbOffOf(c)`
+  cleans it, **`arbIn(c, ph)` is the one answer**. `rsCells` copies it and takes a phase off the
+  list when that phase holds an ARB project. `planTodo` (so Make the Arabic, Still to make,
+  rsPickCheck) and Status's placeholders (`AV.detHtml`) read `arbIn`; `rsAuds` sets `a.engOnly`
+  for a phase that skips it (Translation "Not needed") and `a.phOff` for the "Not needed in
+  <Phase>" wording. `eng_only` stays per market|aud and still means no Arabic anywhere.
+- **dsApi `rsset {plan}`** keeps `arbOff` and logs "<cell>: no Arabic in …" / "Arabic again in …".
+- **Ad set settings**: with more than one phase, an Arabic tile gets an **Arabic in** row (`.rss-arp`,
+  `data-arbph="market|aud|phase"`, `.rsp-t` chips). A phase with that cell's ARB project is locked;
+  unticking every phase turns AR off; AR on resets `arbOff`; save drops entries for phases no
+  longer ticked. The whole-AR lock message now points at the chips.
+- **CAS's Ad set tab**: on a multi-phase ad set the audience card's AR is the current phase's
+  (`data-ph`), and it refuses to turn off where an ARB project exists (it did not check before).
+- Verified on the Drive stand-in (Damac Lagoons, Launch + Ad Fatigue 01 + 02): real clicks unticked
+  Ad Fatigue 01/02 for Local · Family (count 9 → 7), Launch refused with the new message, saved,
+  logged; the Ad Fatigue 01 tab showed Start the English with "Arabic · Not needed in Ad Fatigue 01";
+  reload read it back; re-ticking logged "Arabic again" and restored the seed. **Not exercised:**
+  the Ad set tab's per-phase AR in CAS, and real Google Drive.
