@@ -4276,15 +4276,51 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
    html[data-cc-embed] is set by post-flow.js when the address carries cc=1. */
 .gd[data-cc] .gd-stage,.gd[data-cc] .gd-pstrip{display:none}
 .gd[data-cc] .gd-pv-zone{justify-content:flex-start}
-.gd-cc-grid{display:flex;flex-wrap:wrap;gap:20px;align-content:flex-start;justify-content:center;width:100%;overflow:auto;padding:4px 0 12px}
-.gd-cc-pg{margin:0;width:min(280px,calc(50% - 10px));display:flex;flex-direction:column;gap:8px}
-.gd-cc-img{display:block;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--ps-fill)}
-.gd-cc-pg[data-a="916"] .gd-cc-img{aspect-ratio:9/16}
-.gd-cc-img img{display:block;width:100%;height:100%;object-fit:cover}
-.gd-cc-pg figcaption{font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+/* MIRRORED FROM CAS's content-team window (Provident Campaign Studio.dc.html, .ae / .cw-page /
+   .as-vrow-h), by request: the same head, words card and grouped renders */
+.gd[data-cc]{background:var(--ps-app)}
+.gd[data-cc] .gd-head,.gd[data-cc] .gd-nav,.gd[data-cc] .gd-help,.gd[data-cc] .gd-sec-n,.gd[data-cc] .gd-sec-s,.gd[data-cc] .gd-sec-f{display:none}
+.gd[data-cc] .gd-sec{padding-left:0}
+.gd[data-cc] .gd-sec-h{padding:14px 0 6px}
+.gd[data-cc] .gd-sec-t{font:600 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.gd-cch{display:flex;flex-direction:column;gap:14px;padding:16px 28px 0}
+.gd-cch-t{display:flex;flex-direction:column;gap:2px;padding-bottom:14px;border-bottom:1px solid var(--ps-hair)}
+.gd-cch-t s{text-decoration:none;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.gd-cch-t b{font:600 22px/1.25 var(--ps-font);color:var(--ps-ink)}
+.gd[data-cc] .gd-body{padding:20px 28px 0;gap:32px}
+.gd[data-cc] .gd-in-zone{flex:0 0 min(460px,40%);max-width:460px;background:transparent;border:0;box-shadow:none}
+.gd[data-cc] .gd-askwrap .gd-sec{margin:0;padding:6px 20px 10px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-hair)}
+.gd[data-cc] .gd-pv-zone{background:transparent;align-items:stretch;justify-content:flex-start;padding:0 0 24px;overflow:auto}
+.ae-prev{display:flex;flex-direction:column;gap:28px;min-width:0}
+.ae-var{display:flex;flex-direction:column;gap:10px}
+.as-vrow-h{display:flex;align-items:baseline;gap:10px}
+.as-vrow-h b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink)}
+.as-vrow-h s{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
+.ae-shots{display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px}
+.ae-shot{--ae-h:clamp(260px,46vh,520px);margin:0;display:flex;flex-direction:column;gap:6px}
+.ae-shot > span{display:block;height:var(--ae-h);border-radius:var(--ps-r-sm);overflow:hidden;background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair)}
+.ae-shot[data-shape="pt"] > span{aspect-ratio:3/4}
+.ae-shot[data-shape="st"] > span{aspect-ratio:9/16}
+.ae-shot img{display:block;width:100%;height:100%;object-fit:contain}
+.ae-shot[data-wait] > span{animation:gdCcPulse .9s ease-in-out infinite alternate}
+.ae-shot[data-wait] img{visibility:hidden}
+@keyframes gdCcPulse{from{opacity:.55}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ae-shot[data-wait] > span{animation:none}}
+.ae-shot figcaption{font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.ae-foot{display:flex;align-items:center;gap:12px;min-height:36px}
+.ae-foot s{flex:1;font:400 12px/1.4 var(--ps-font);color:var(--ps-dim);text-decoration:none}
+.gd-ccban .rvp-one .p-ghost,.gd-ccban .rvp-one .p-btn{flex:none}
+/* in the frame: the studio's own start screen never shows; a note stands in while it opens */
+html[data-cc-embed]:not(:has(.gd[data-cc])) body > *:not(.shl-dlg){visibility:hidden}
+html[data-cc-embed] .shl-dlg{z-index:2147483002}
+html[data-cc-embed]:not(:has(.gd[data-cc]))::before{content:'Opening the copy check\2026';position:fixed;inset:0;display:grid;place-items:center;z-index:2147483000;background:var(--ps-app);color:var(--ps-ink);font:400 14px/1.4 var(--ps-font)}
+html[data-cc-embed]:has(#cc-none)::before{content:none}
+#cc-none{position:fixed;inset:0;z-index:2147483001;visibility:visible !important;display:grid;place-content:center;gap:6px;text-align:center;padding:24px;background:var(--ps-app);color:var(--ps-ink);font:300 14px/1.5 var(--ps-font)}
+#cc-none b{font-weight:400;font-size:18px}
 html[data-cc-embed] .p-top,html[data-cc-embed] .shl-pill,html[data-cc-embed] .acx-bar,html[data-cc-embed] .gd-prog{display:none}
 html[data-cc-embed]{--ps-toph:0px}
-html[data-cc-embed] .gd{top:0}
+html[data-cc-embed] .gd{top:0;animation:none !important;transition:none !important;opacity:1 !important}
+html[data-cc-embed] .gd *{animation-delay:0s !important}
 </style>
 </helmet>
 
@@ -5197,6 +5233,21 @@ html[data-cc-embed] .gd{top:0}
      after the stage. -->
 <sc-if value="{{ gdFormOn }}" hint-placeholder-val="{{ false }}">
 <div class="gd" data-mode="{{ gdModeAttr }}" data-cc="{{ gdCcOn }}">
+  <!-- THE CONTENT TEAM'S COPY CHECK takes CAS's content-team window (by request): its head, and
+       share-link's status strip (.rvp-one) with the two steps -->
+  <sc-if value="{{ gdCcOn }}" hint-placeholder-val="{{ false }}">
+    <div class="gd-cch">
+      <div class="gd-cch-t"><s>{{ gdCcKick }}</s><b>{{ gdCcTitle }}</b><s>{{ gdCcSub }}</s></div>
+      <div class="rvp gd-ccban">
+        <div class="rvp-one" data-s="{{ gdCcState }}">
+          <i class="rvp-ic"><sc-if value="{{ gdCcDone }}" hint-placeholder-val="{{ false }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg></sc-if></i>
+          <span class="rvp-t"><b>{{ gdCcBanT }}</b><s>{{ gdCcBanS }}</s></span>
+          <button onClick="{{ gdBack }}" class="p-ghost">Back to design</button>
+          <button onClick="{{ gdNext }}" class="p-btn"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>Approve copy</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
   <div class="gd-body">
     <!-- THE FORM: one page, top to bottom. Sections in a fixed order — Pages · Words ·
          Agent · Pictures · QR & listing — so the words always come before the pictures,
@@ -5734,6 +5785,7 @@ html[data-cc-embed] .gd{top:0}
         </sc-if>
       </div>
 
+      <sc-if value="{{ gdCcOn }}" hint-placeholder-val="{{ false }}"><div class="ae-foot gd-ccfoot"><s>{{ gdCcOut }}</s></div></sc-if>
       <div class="gd-nav">
         <button onClick="{{ gdBack }}" class="p-ghost gd-navb" data-off="{{ gdBackOff }}">{{ gdBackLabel }}</button>
         <span class="p-spring"></span>
@@ -5748,12 +5800,16 @@ html[data-cc-embed] .gd{top:0}
       <!-- THE CONTENT TEAM'S COPY CHECK: every page at once, as CAS's content-team window shows
            every size of an ad; the large card and the strip below are hidden there -->
       <sc-if value="{{ gdCcOn }}" hint-placeholder-val="{{ false }}">
-        <div class="gd-cc-grid">
-          <sc-for list="{{ gdCcPages }}" as="c" hint-placeholder-count="3">
-            <figure class="gd-cc-pg" data-a="{{ gdCardAsp }}">
-              <span class="gd-cc-img"><sc-if value="{{ c.hasShot }}" hint-placeholder-val="{{ false }}"><img data-src="{{ c.src }}" alt="{{ c.t }}"></sc-if></span>
-              <figcaption>{{ c.t }}</figcaption>
-            </figure>
+        <div class="ae-prev gd-cc-prev">
+          <sc-for list="{{ gdCcPages }}" as="g" hint-placeholder-count="2">
+            <section class="ae-var">
+              <header class="as-vrow-h"><b>{{ g.title }}</b><s>{{ g.sub }}</s></header>
+              <div class="ae-shots">
+                <sc-for list="{{ g.shots }}" as="sh" hint-placeholder-count="2">
+                  <figure class="ae-shot" data-shape="{{ sh.shape }}" data-wait="{{ sh.wait }}"><span><img data-src="{{ sh.url }}" alt="{{ sh.label }}"></span><figcaption>{{ sh.label }}</figcaption></figure>
+                </sc-for>
+              </div>
+            </section>
           </sc-for>
         </div>
       </sc-if>
@@ -13084,8 +13140,19 @@ class OrganicStudio extends StudioBase {
       out[i] = this.renderOpsToCanvas(built, this.gdScale()).toDataURL('image/webp', 0.88);
       keys[i] = k;
     }
+    // THE COPY CHECK SHOWS EVERY SIZE, as CAS's content-team window does: the 9:16 story of each
+    // page too, kept as 's<i>' beside the feed render (only while the story is on)
+    if (mk === 'ft' && st.storyOn && this.postCopyMode && this.postCopyMode()) {
+      const sa = await this.loadAssets(st, 'st');
+      for (let i = 0; i < n; i++) {
+        const k = 's' + this.gdSlideKey(i);
+        if (keys['s' + i] === k && out['s' + i]) continue;
+        out['s' + i] = this.renderOpsToCanvas(this.buildOps(st, i, 'st', sa), this.gdScale() * .75).toDataURL('image/webp', 0.88);
+        keys['s' + i] = k;
+      }
+    }
     // a deleted page must not leave its bitmap behind for the next page to inherit
-    Object.keys(out).forEach(i => { if (+i >= n) { delete out[i]; delete keys[i]; } });
+    Object.keys(out).forEach(i => { const j = +String(i).replace(/^s/, ''); if (j >= n) { delete out[i]; delete keys[i]; } });
     this._gdShotKeys = keys;
     return out;
   }
@@ -16207,7 +16274,7 @@ class OrganicStudio extends StudioBase {
           const folded = editor && this.gdFoldSet().has(sec);
           const flip = () => { if (!editor) return; const fs = this.gdFoldSet(); if (fs.has(sec)) fs.delete(sec); else fs.add(sec);
             try { localStorage.setItem('ops-rail-fold', JSON.stringify([...fs])); } catch (e) {} this.forceUpdate(); };
-          secs.push({ key: sec, idx: String(secIdx), no: String(secIdx + 1), title: OrganicStudio.GDSEC[sec], items, state, note,
+          secs.push({ key: sec, idx: String(secIdx), no: String(secIdx + 1), title: copyChk ? 'Words on every page' : OrganicStudio.GDSEC[sec], items, state, note,
             foldOn: folded ? '1' : undefined, foldAria: folded ? 'false' : 'true',
             foldLabel: (folded ? 'Show ' : 'Hide ') + OrganicStudio.GDSEC[sec],
             fold: e => { if (e && e.target && e.target.closest && e.target.closest('.gd-sec-f')) return; flip(); },
@@ -16248,7 +16315,17 @@ class OrganicStudio extends StudioBase {
           gdBackLabel: copyChk ? 'Back to design' : 'Back',
           // the copy check's right side: every page, rendered, as it will export
           gdCcOn: copyChk ? '1' : undefined,
-          gdCcPages: copyChk ? slides.map((sl2, i) => ({ key: 'cc' + i, src: shots[i] || '', hasShot: !!shots[i], t: this.sLabel(i) })) : [],
+          gdCcPages: copyChk ? slides.map((sl2, i) => {
+            const sz = [{ key: 'f', label: s.tpl === 'rcover' ? 'Reel cover 9:16' : 'Feed 3:4', shape: s.tpl === 'rcover' ? 'st' : 'pt', url: shots[i] || '', wait: shots[i] ? undefined : '1' }];
+            if (s.tpl !== 'rcover' && s.storyOn) sz.push({ key: 's', label: 'Story 9:16', shape: 'st', url: shots['s' + i] || '', wait: shots['s' + i] ? undefined : '1' });
+            return { key: 'cc' + i, title: this.sLabel(i), sub: sz.length + (sz.length === 1 ? ' image' : ' images'), shots: sz };
+          }) : [],
+          ...(copyChk ? (() => {
+            const b = (this.postCcBanner && this.postCcBanner()) || {}, imgs = slides.length * (s.tpl !== 'rcover' && s.storyOn ? 2 : 1);
+            return { gdCcKick: TPLNAMES[s.tpl] || 'Organic post', gdCcTitle: this.baseName ? this.baseName() : '', gdCcSub: slides.length + (slides.length === 1 ? ' page' : ' pages') + ' \u00b7 ' + imgs + (imgs === 1 ? ' image' : ' images'),
+              gdCcState: b.dot || 'prog', gdCcDone: b.dot === 'done' ? '1' : undefined, gdCcBanT: b.title || 'Check the copy', gdCcBanS: b.sub || '',
+              gdCcOut: imgs + (imgs === 1 ? ' image updates' : ' images update') + ' on every change' };
+          })() : {}),
           gdNext: advance,
           gdAskNext: advance,            // the document-level Enter handler reads this
           gdNextLabel: isFinish ? 'Done' : (nextStep ? 'Next: ' + nextStep.t : copyChk ? 'Approve copy' : 'Next'),

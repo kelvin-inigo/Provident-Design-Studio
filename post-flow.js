@@ -105,7 +105,18 @@
   // THE COPY CHECK INSIDE THE POST'S PAGE (2026-11-04, by request): the home frames OPS with
   // cc=1 in its address; there OPS shows the copy check alone, with no top bar or editor
   const EMBED = /[?&]cc=1(&|$)/.test(location.search);
-  if (EMBED) document.documentElement.setAttribute('data-cc-embed', '');
+  if (EMBED) {
+    document.documentElement.setAttribute('data-cc-embed', '');
+    // THE FRAME NEVER LEAVES FOR THE HOME (2026-11-04): OPS with nothing open goes to the home's
+    // Projects, which in the frame drew the whole home inside the post's page. In the frame that
+    // means the post has no design to check yet, and it says so in place.
+    StudioBase.goHome = function () {
+      if (document.getElementById('cc-none')) return;
+      const el = document.createElement('div'); el.id = 'cc-none'; el.setAttribute('role', 'status');
+      el.innerHTML = '<b>No design to check yet</b><span>The designer has not put a design on this post. When they send it to the copy check, its words and pages show here.</span>';
+      (document.body || document.documentElement).appendChild(el);
+    };
+  }
   const role = () => { try { const n = window.providentAccess && window.providentAccess.now(); return n && n.role; } catch (e) { return null; } };
   const may = k => { const r = role(); return !r || r === 'admin' || STEPS[k].roles.indexOf(r) >= 0; };
   const fidOf = tok => { tok = String(tok || ''); return tok[0] === 'R' ? tok.slice(tok.indexOf('.') + 1) : ''; };
@@ -332,6 +343,13 @@
   // check still learns quietly which copy this person checks (now().copy: 'en' | 'ar').
   const isCt = () => { if (role() === 'ct') return true; try { const n = window.providentAccess && window.providentAccess.now(); return !!(n && n.copy); } catch (e) { return false; } };
   SP.postCopyMode = function () { const rs = this.postRs(); return !!rs && stage(rs).k === 2 && isCt(); };
+  // the copy check's status strip, in CAS's content-team words (share-link ctState)
+  SP.postCcBanner = function () {
+    const rs = this.postRs(), st = rs && stage(rs), it = st && st.it; if (!it) return null;
+    if (it.copy) return { dot: 'done', title: 'Copy approved', sub: 'Approved by ' + it.copy.by + ' \u00b7 ' + day(it.copy.at) + '. Reopen it to change the words again.' };
+    const to = it.to ? (it.to.email === myEm() ? 'you' : (it.to.name || String(it.to.email || '').split('@')[0])) : '';
+    return { dot: 'prog', title: 'Check the copy', sub: (it.design ? 'Sent by ' + it.design.by + (to ? ' to ' + to : '') + ' \u00b7 ' + day(it.design.at) + '. ' : '') + 'Change the words below \u2014 the pages follow as you type \u2014 then approve.' };
+  };
   // …and it opens there, on its first page, once per post, wherever the designer left the project
   SP.postCopyLand = function () {
     const id = this.postRs() && this._sh.id;
@@ -862,7 +880,7 @@
       if (seen.has(k)) return false; seen.add(k); return true;
     }).slice(0, 60);
     const line = e => { const c = e.changes || []; return c.map(y => y.text || ((y.label || y.page || '') + (y.now ? ': ' + clip(y.now, 70) : ''))).filter(Boolean).slice(0, 3).join(' · ') + (c.length > 3 ? ' · +' + (c.length - 3) + ' more' : ''); };
-    return '<div class="ps ps-det">' +
+    return '<div class="ps ps-det"' + (cc ? ' data-cc' : '') + '>' +
       '<button type="button" class="pf-a ps-back" data-ps="back">‹ All posts</button>' +
       '<header class="psd-h"><span class="psd-th">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</span>' +
         '<div class="psd-t"><span class="pf-k">Organic post' + (t.deadline ? ' · due ' + esc(dueDay(t.deadline)) : '') + '</span><h2>' + esc(rs.name || 'Post') + '</h2>' +
@@ -1099,7 +1117,10 @@
 .psd-acts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}.psd-acts a{text-decoration:none;display:inline-flex;align-items:center}
 .psd-cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
 .psd-cc{margin:0 0 20px;border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--ps-line);background:var(--ps-card)}
-.psd-ccf{display:block;width:100%;height:min(880px,calc(100vh - 120px));border:0}
+.psd-ccf{display:block;width:100%;height:calc(100vh - 110px);min-height:560px;border:0}
+/* the copy check carries the post's name and its steps itself, as CAS's content-team window does */
+.ps-det[data-cc] > .psd-h{display:none}
+.ps-det[data-cc] .psd-cc{margin-top:8px;border-radius:0;box-shadow:none;background:transparent}
 .psd-cols>div,.psd-cols>aside{display:grid;gap:16px}
 .psd-card{padding:18px 20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .psd-card h3{margin:0 0 12px;font:600 14px/1.3 var(--ps-font)}

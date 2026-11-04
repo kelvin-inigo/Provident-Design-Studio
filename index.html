@@ -678,6 +678,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
    (post-flow.js StatusView) and CAS's campaign setup (PlanView). Each host stays in the document once
    mounted, hidden when its route is not on screen, so its own refresh keeps the queue current. */
 .mnt{width:100%; max-width:1320px; margin:0 auto; padding:8px 32px 48px; box-sizing:border-box}
+/* a post's page carrying the content team's copy check takes the window's width, as CAS's content-team window does */
+.mnt:has(.psd-cc){max-width:none}
 .mnt-bk{margin:0 0 8px}
 @media (max-width:640px){ .mnt{padding:4px 16px 32px} }
 .ft{max-width:1320px; width:100%; margin:auto auto 0; box-sizing:border-box; padding:12px 32px 28px; display:flex; flex-wrap:wrap; align-items:center; gap:8px 18px;

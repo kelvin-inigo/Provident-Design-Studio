@@ -600,3 +600,24 @@ don't give them access to open the OPS designer"). Replaces the page-by-page lan
 - Verified on the stand-in as exec1.content: the page showed Copy check · Weekly listings · 3 pages
   with all three renders; a direct OPS link landed on the post's page; Approve copy in the frame
   moved it to Ready and the page went to Status. OPS diff: no artwork-path lines.
+
+## The copy check takes CAS's content-team window (2026-11-04, latest)
+
+By request ("can it be the same as this", "this window, exact design as well", with CAS's
+content-team window as the picture). The framed check now mirrors it:
+- **Head**: template (kicker), post name, "N pages · N images"; then share-link's own status strip
+  (`.rvp-one`, the component CAS uses) — "Check the copy · Sent by … to you" or "Copy approved ·
+  Approved by …" (`SP.postCcBanner`) — carrying **Back to design** and **Approve copy**. The run's
+  own head, nav, note and section numbers are hidden (`.gd[data-cc]`).
+- **Words**: one card ("Words on every page", page names as group heads), CAS's `.cw-page` look, and
+  "N images update on every change" under it.
+- **Renders**: CAS's `.ae-prev / .ae-var / .as-vrow-h / .ae-shots / .ae-shot` mirrored into OPS's
+  stylesheet — one group per page ("Cover · 2 images"), Feed 3:4 and, when the story is on, Story
+  9:16 (`gdRenderAll` adds `s<i>` renders in copy mode only, at .75 of the card scale).
+- **The post's page** hides its own header for them (`.ps-det[data-cc]`), the frame fills the
+  window (`.mnt:has(.psd-cc)` max-width none), and the frame never navigates to the home: in it
+  `StudioBase.goHome` shows "No design to check yet" (a post whose project holds no design), and an
+  "Opening the copy check…" cover stands in until the check is drawn (no fade-in in the frame).
+- Verified on the stand-in as exec1.content at 1600×1000: head, strip and card as CAS's; 3 groups
+  with Feed + Story once the story was on; Approve copy from the strip moved it to Ready and the page
+  to Status; no console errors. OPS diff: no artwork-path lines.
