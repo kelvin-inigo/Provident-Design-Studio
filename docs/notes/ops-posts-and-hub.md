@@ -654,3 +654,13 @@ By request, from annotated screenshots of the live site previewed as Jerry (SMM)
   project's `rid`; `discover()` skips deleted posts and the files stay in the post folder. The home's
   close watcher now includes `#ops-host [data-ps="delete"]`, so it lands on `#/status`. Verified on
   the stand-in as the admin (two posts gone from Status, `rsget` "not valid", files kept).
+- **A finished post goes to a social media manager** (same day, by request): access.js `TEAMS.smm`
+  (roles `['smm']`) and `teamFor` → `'smm'` for a post's `copy-done`, and for `approved` unless an
+  SMM presses it; the picker preselects `it.draft.em` (`opt.pre`). post-flow `acts()`: designers and
+  the admin get **Send to SMM** at Design (`approved`, the `fin` slot; OPS's top bar button now reads
+  `{{ pfFinLabel }}` instead of a fixed "Mark as done"); the designer's confirm is worded for it
+  (post-flow `stepBody`, share-link `POST_SEND_Q`). `waitOf(rs, 3)` = "With <name> to download";
+  `waitingOnMe` at Ready = the SMM it went to (any SMM when unassigned), not posted; the home's
+  SMM queue needs `x.mine` too. Verified on the stand-in: admin's Send to SMM → picker with Layla →
+  `it.to` Layla, logged "→ Layla Haddad", page "With Layla Haddad to download", on Layla's Home.
+  **Not seen:** the OPS top bar button itself (the seeded project link would not open in OPS).

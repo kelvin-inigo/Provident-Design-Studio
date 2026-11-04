@@ -2534,6 +2534,7 @@
     }).join('');
   }
   // the designer's bypass, asked once: it skips the content team, so it says so
+  const POST_SEND_Q = 'Send this post to the social media manager?\n\nIt skips the copy check: the post is ready to download and publish. The log says you sent it.';
   const POST_DONE_Q = 'Mark this post done?\n\nIt skips the designer and the copy check and goes straight to Ready to publish. The log says you marked it.';
   const APPROVE_Q = l => 'Mark ' + (l || 'this project') + ' approved without the content team?\n\nUse this for an ad that was already signed off outside the review. It goes straight to approved, and the log says you marked it.';
   // a project as the content team sees it: "Local · Family · English"
@@ -2711,7 +2712,7 @@
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
     const [a, sid] = String(act).split(':');
-    if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(isPost(S.rs) ? POST_DONE_Q : APPROVE_Q(it && itemLabel(it)))) return; }
+    if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(isPost(S.rs) ? (accRole() === 'smm' ? POST_DONE_Q : POST_SEND_Q) : APPROVE_Q(it && itemLabel(it)))) return; }
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
     if (a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {

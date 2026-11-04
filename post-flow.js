@@ -137,7 +137,7 @@
     if (!it) return { go: null, back: null };
     const go = [{ act: 'draft-done', label: 'Send to designer', tip: 'The draft is ready: the designer refines it and makes the final design' },
       { act: 'design-done', label: 'Send to copy check', tip: 'Design done: the content team checks the copy' },
-      { act: 'copy-done', label: 'Approve copy', tip: 'The copy is right: the post is ready to publish' }][k] || null;
+      { act: 'copy-done', label: 'Approve copy', tip: 'The copy is right: the post is ready and goes to the social media manager to download' }][k] || null;
     const back = [null, { act: 'draft-open', label: 'Back to draft', tip: 'Sends it back to the social media manager' },
       { act: 'design-open', label: 'Back to design', tip: 'Sends it back to the designer with what to change' },
       { act: 'copy-open', label: 'Reopen copy check', tip: 'Takes it out of Ready, back to the content team' }][k];
@@ -147,13 +147,17 @@
     const alt = role() === 'smm' && (k === 0 || k === 1) ? { act: 'design-done', label: 'Send to copy check', tip: 'Skips the designer: the content team checks the copy' } : null;
     // THE SOCIAL MEDIA MANAGER MAY FINISH IT ALONE (2026-10-30): from any step before Ready, straight
     // to Ready to publish, with no designer and no copy check. The log says who marked it.
-    const fin = role() === 'smm' && k < 3 ? { act: 'approved', label: 'Mark as done', tip: 'Skips the designer and the copy check: the post goes straight to Ready to publish' } : null;
+    // A DESIGNER MAY FINISH IT WITHOUT THE COPY CHECK (2026-11-04, by request): Send to SMM marks it
+    // ready and hands it to a social media manager (access.js picks who) to download
+    const fin = role() === 'smm' && k < 3 ? { act: 'approved', label: 'Mark as done', tip: 'Skips the designer and the copy check: the post goes straight to Ready to publish' }
+      : (role() === 'designer' || role() === 'admin') && k === 1 ? { act: 'approved', label: 'Send to SMM', tip: 'Skips the copy check: the post is ready and goes to the social media manager to download' } : null;
     return { go: go && may(k) ? go : null, back: backOk ? back : null, alt, fin };
   }
   // WHO IT IS WITH (2026-10-30): the person the last hand-off named (it.to), else the team
   const myEm = () => { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; };
   const toWho = it => it && it.to ? (it.to.email && it.to.email === myEm() ? 'you' : (it.to.name || String(it.to.email || '').split('@')[0])) : '';
-  const waitOf = (rs, k) => { const it = stage(rs).it; return k > 0 && k < 3 && it && it.to ? 'With ' + toWho(it) : STEPS[k].wait; };
+  // a ready post names the social media manager it went to
+  const waitOf = (rs, k) => { const it = stage(rs).it; return k === 3 && it && it.to ? 'With ' + toWho(it) + ' to download' : k > 0 && k < 3 && it && it.to ? 'With ' + toWho(it) : STEPS[k].wait; };
   // the landing page's queue (StudioBase.inboxSave): every post, judged for the signed-in person
   function inboxOps(items) {
     const VERB = ['Finish the draft', 'Design it', 'Check the copy'], file = 'Provident%20Organic%20Studio.dc.html';
@@ -164,7 +168,7 @@
         // posted (the social media manager's Posted): closed, and the home drops it
         studio: 'ops', id: x.id, name: rs.name || 'Post', mine: !!waitingOnMe(rs) && !rs.posted, ready: st.k === 3 && !rs.posted, open: false,
         dl: st.k === 3 && rs.folder ? x.id : '', live: rs.posted ? rs.posted.at || 1 : 0,
-        step: rs.posted ? 'Posted' : STEPS[st.k].t, sub: rs.posted ? 'Posted by ' + rs.posted.by : st.k === 3 ? 'Ready to publish' : waitOf(rs, st.k),
+        step: rs.posted ? 'Posted' : STEPS[st.k].t, sub: rs.posted ? 'Posted by ' + rs.posted.by : waitOf(rs, st.k),
         segs: segs(st.k).map(z => z.s === 'todo' ? 'pend' : z.s), steps: STEPS.map(z => z.t),
         verb: VERB[st.k] || 'Open the post', due: t.deadline || '', from: last ? last.by : it.by || rs.by || '',
         at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
@@ -176,7 +180,8 @@
   // the step body for a hand-off: who sent it, and the person it goes to (null: cancelled)
   async function stepBody(rs, act, sid) {
     const it = ((rs && rs.items) || []).find(x => x.sid === sid) || stage(rs).it;
-    if (act === 'approved' && !window.confirm('Mark this post done?\n\nIt skips the designer and the copy check and goes straight to Ready to publish. The log says you marked it.')) return null;
+    if (act === 'approved' && !window.confirm(role() === 'smm' ? 'Mark this post done?\n\nIt skips the designer and the copy check and goes straight to Ready to publish. The log says you marked it.'
+      : 'Send this post to the social media manager?\n\nIt skips the copy check: the post is ready to download and publish. The log says you sent it.')) return null;
     const ho = window.providentHandOff ? await window.providentHandOff(rs, it, act) : {};
     if (!ho) return null;
     return Object.assign({ act, p: sid, by: StudioBase.shareName() || 'Someone' }, ho);
@@ -393,16 +398,16 @@
         pfFlowOn: '1', pfFlowLabel: smm ? 'Send to designer' : 'Save to Drive', pfFlowTip: smm ? 'Saves the post to Google Drive and sends the draft to a designer' : 'Saves the post to Google Drive, where everyone on it can open it',
         pfFlow: () => this.postToDrive(smm) };
     }
-    const st = stage(rs), a = acts(rs), busy = this._rvBusy;
+    const st = stage(rs), a = acts(rs), busy = this._rvBusy, it0 = st.it;
     this.postCopyLand();
     return {
       pfOn: '1', pfState: st.k === 2 ? 'ct' : st.k === 3 ? 'done' : 'k' + st.k, pfSegs: segs(st.k), pfStep: STEPS[st.k].t,
-      pfWhere: st.k === 3 ? (rs.name || '') : waitOf(rs, st.k) + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
+      pfWhere: st.k === 3 && !(it0 && it0.to) ? (rs.name || '') : waitOf(rs, st.k) + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
       pfTip: (rs.name || 'Post') + ' — ' + waitOf(rs, st.k) + '. Opens the post’s panel: its steps, who did what, and its Drive folder.',
       pfGo: () => this.shPanel(true),
       pfFlowOn: a.go ? '1' : undefined, pfFlowLabel: busy ? 'Saving…' : a.go ? a.go.label : '', pfFlowTip: a.go ? a.go.tip : '',
       pfFlow: () => { if (a.go && !this._rvBusy) this.rvStep(a.go.act); },
-      pfFinOn: a.fin ? '1' : undefined, pfFinTip: a.fin ? a.fin.tip : '',
+      pfFinOn: a.fin ? '1' : undefined, pfFinTip: a.fin ? a.fin.tip : '', pfFinLabel: a.fin ? a.fin.label : '',
       pfFin: () => { if (a.fin && !this._rvBusy) this.rvStep(a.fin.act); }
     };
   };
@@ -798,6 +803,8 @@
     const r = role(), st = stage(rs);
     // assigned: that person's alone, the admin included (the admin is on a team too)
     if (r && st.it && st.it.to && st.it.to.email && st.k < 3) return st.it.to.email === myEm() && !!acts(rs).go;
+    // ready: the social media manager it was sent to (any of them when it went to nobody), to download
+    if (st.k === 3) return r === 'smm' && !rs.posted && (!st.it.to || !st.it.to.email || st.it.to.email === myEm());
     if (!r || r === 'admin') return false;
     if (st.k === 0) { const me = StudioBase.shareName(), by = (st.it && st.it.by) || rs.by; if (r === 'designer' || by !== me) return false; }
     return !!acts(rs).go;
@@ -902,7 +909,7 @@
     const ct = isCt(), cc = ct && st.k === 2 && !!sid;
     const step = (s, i) => {
       const f = FIELD[i], done = i < 3 ? !!(it && it[f]) : st.k === 3, cur = i === st.k && !done;
-      return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done && rs.posted ? 'Posted · ' + rs.posted.by + ' · ' + day(rs.posted.at) : done ? 'Ready to publish' : cur ? waitOf(rs, i) : s.who) + '</span></li>';
+      return '<li data-s="' + (done ? 'done' : cur ? 'cur' : 'todo') + '"><i></i><b>' + esc(s.t) + '</b><span>' + esc(done && i < 3 ? it[f].by + ' · ' + day(it[f].at) : done && rs.posted ? 'Posted · ' + rs.posted.by + ' · ' + day(rs.posted.at) : done ? waitOf(rs, 3) : cur ? waitOf(rs, i) : s.who) + '</span></li>';
     };
     const btn = (y, cls) => y && sid ? '<button type="button" class="' + cls + '" data-ps="step" data-act="' + y.act + '" data-sid="' + esc(sid) + '" title="' + esc(y.tip) + '">' + esc(y.label) + '</button>' : '';
     // the post's log and its project's log both note the design's start: one line, not two

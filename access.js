@@ -575,13 +575,17 @@
     get 'designer-ops'() { return { roles: withCap('design-ops'), word: 'designer', head: 'Which designer picks it up?' }; },
     get copy() { return { roles: withCap('copy-en', 'copy-ar'), word: 'content team', head: 'Who checks the copy?' }; },
     get 'copy-en'() { return { roles: withCap('copy-en'), word: 'content team', head: 'Who checks the English copy?' }; },
-    get 'copy-ar'() { return { roles: withCap('copy-ar'), word: 'content team', head: 'Who checks the translation?' }; }
+    get 'copy-ar'() { return { roles: withCap('copy-ar'), word: 'content team', head: 'Who checks the translation?' }; },
+    // A FINISHED POST GOES TO A SOCIAL MEDIA MANAGER (2026-11-04, by request), to download and publish
+    get smm() { return { roles: ['smm'], word: 'social media manager', head: 'Which social media manager gets it?' }; }
   };
   function teamFor(rs, it, act) {
     const post = rs && rs.kind === 'post';
     if (act === 'ticket') return 'designer-cas';
     if (act === 'draft-done') return 'designer-ops';
     if (act === 'design-done') return post ? 'copy' : it && it.lang === 'ARB' ? 'copy-ar' : 'copy-en';
+    // the copy approved, or a designer finishing without a copy check: the post is ready for social media
+    if (post && (act === 'copy-done' || (act === 'approved' && role() !== 'smm'))) return 'smm';
     return null;
   }
   const nameOf = p => p.name || String(p.email || '').split('@')[0];
@@ -597,7 +601,9 @@
     const T = TEAMS[k], mine = me();
     let list = (people || []).filter(p => T.roles.indexOf(p.role) >= 0);
     if (list.length > 1) list = list.filter(p => p.email !== mine).concat(list.filter(p => p.email === mine));
-    const to = await pickDlg({ T, list, err, k, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send' });
+    // a finished post goes back to whoever drafted it, unless someone else is picked
+    const pre = k === 'smm' && it && it.draft && it.draft.em ? it.draft.em : '';
+    const to = await pickDlg({ T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send' });
     if (to === undefined) return null;
     if (to) out.to = { email: to.email, name: to.name || '' };
     return out;
@@ -605,7 +611,7 @@
   function pickDlg(o) {
     return new Promise(res => {
       const mine = me(), last = (() => { try { return localStorage.getItem(LS_TO + o.k); } catch (e) { return null; } })();
-      let sel = (o.list.find(p => p.email === last && p.email !== mine) || o.list.find(p => p.email !== mine) || o.list[0] || {}).email || '';
+      let sel = (o.list.find(p => o.pre && p.email === o.pre) || o.list.find(p => p.email === last && p.email !== mine) || o.list.find(p => p.email !== mine) || o.list[0] || {}).email || '';
       const w = document.createElement('div'); w.className = 'acx-pk'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true'); w.setAttribute('aria-labelledby', 'acx-pk-h');
       const draw2 = () => {
         w.innerHTML = '<div class="acx-pk-in"><h2 id="acx-pk-h">' + esc(o.title) + '</h2>' + (o.lead ? '<p class="acx-pk-l">' + esc(o.lead) + '</p>' : '') +

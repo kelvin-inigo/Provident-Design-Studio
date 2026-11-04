@@ -998,7 +998,11 @@ Every post goes through four steps:
    **Approve copy** moves it to Ready and goes back to Status; **Back to design** sends it back to
    the designer. The content team never gets the OPS editor: opening a post's link in OPS brings
    them to its page.
-4. **Ready** — ready to publish. The social media manager opens its files from the home page
+4. **Ready** — ready to publish, and **sent to a social media manager**. When the content team
+   presses **Approve copy**, or a designer presses **Send to SMM** at Design (a post that needs no
+   copy check), a picker asks **Which social media manager gets it?** — whoever drafted the post is
+   picked already. The post then reads "With <name> to download" and is on that person's Home.
+   The social media manager opens its files from the home page
    (**Open the files**: each image, **Download**, **Download all**, **Drive folder**), publishes it,
    then presses **Posted**: the post is closed, its page reads "Posted", the log says who, and it
    leaves Home and Status.
