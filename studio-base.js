@@ -1787,7 +1787,7 @@ class StudioBase {
       const all = files.concat(await this.projectFiles(name));
       const ok = await this.writeProject(all, opt);
       // it rewrote the session file beside the renders, so it IS a save
-      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '"' + inDirs + (this._wpDrive ? ' · the project itself is kept in the ad set on Google Drive' : ' · session + Assets refreshed') }); }
+      if (ok) { this.markSaved(); this.recordSaved(); this.setState({ exportStatus: 'Exported ' + files.length + ' file' + (files.length === 1 ? '' : 's') + ' into "' + f.name + '"' + inDirs + (this._wpDrive ? ' · the project itself is kept in the ' + (this.sessionApp() === 'provident-smp-studio' ? 'post' : 'ad set') + ' on Google Drive' : ' · session + Assets refreshed') }); }
       return ok;
     }
     const blob = this.zip(files);

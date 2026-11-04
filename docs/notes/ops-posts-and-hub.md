@@ -526,7 +526,30 @@ Never keep a picture in localStorage; IndexedDB (`runtime.js`) is the photo stor
 Status lists posts with Drive searches (`'<folder>' in parents`), and Drive search leaves out
 files a person reaches only through the company-wide (domain) share. 'Organic posts' was shared
 by name with the designers and media accounts but not the content team, so CT's Status found no
-posts (CAS worked: the campaigns folder names exec1/exec2.content). Fix: 'Organic posts' is
-shared with them as editors (they write the copy check), and `postsRoot` falls back to its id
-(`POSTS_ROOT`) when the name look-up in POSTS_PARENT finds nothing. Anyone new on SMM or CT must
+posts (CAS worked: the campaigns folder names exec1/exec2.content). Fix: `postsRoot` falls back
+to its id (`POSTS_ROOT`) when the name look-up in POSTS_PARENT finds nothing. **The share itself
+was still missing on 2026-11-04** (the folder's permissions list no exec1/exec2.content, so a
+hand-off to the copy check never reached their Status even though `_Post.json` named them in
+`it.to`). Only the owner, exec5.graphics, can add them — an editor's share is refused. They need
+editor (they write the copy check). Anyone new on SMM or CT must
 be added on 'Organic posts' by name, like the campaigns folder.
+
+## Posts live in the team's files folder, by template (2026-11-04)
+
+By request ("save it here instead … depending on the template it goes under the existing folders,
+then it will subfolder according to name, save also the .json review"). A new post's folder is
+made at `<FILES_ROOT>/<fileDest(st)>/<post name>/` instead of `Organic posts/<post name>/`
+(`makePost` → `destDir`; `postToDrive` passes the open state, so month and team are right; a
+post started on Home has no slides yet, so Top Agents waits in `Top Agents/` with no team level).
+The folder holds `_Post.json` (the review/step record), the `.smpstudio.json` project, `Assets/`,
+`Brief/` and now **the exports too**: `exportsUp` writes into the post's own folder after
+`placePost` moves it to `fileDest(st)` when the path changed (month, team, or a post still in
+'Organic posts') — a Drive move (PATCH addParents/removeParents), so every file id and link stays.
+A Just me post's exports go to `<fileDest>/<post name>/`.
+Status (`discover` → `postDirs`) walks FILES_ROOT three folder levels down (template › month/team ›
+post) plus 'Organic posts' one level, skipping Assets/ and Brief/, then finds `_Post.json` in them.
+Verified on the Drive stand-in: Save to Drive made `Weekly Listings/November 2026/<name>/` with both
+.json files; after setting the month to October an export moved it to `October 2026/` with the
+export inside; a fresh Status (post list cleared) found it and the old posts.
+**Sharing:** FILES_ROOT lists exec3.content but not exec1.content or exec2.content (2026-11-04), so
+until the owner (exec5.graphics) adds them as editors their Status cannot find posts here either.

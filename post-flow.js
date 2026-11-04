@@ -5,14 +5,17 @@
  *
  *   Draft (social media manager) › Design (designer) › Copy check (content team) › Ready
  *
- * EVERY POST LIVES ON GOOGLE DRIVE, in one folder per post under the posts folder:
- *   <Organic posts>/<post name>/
+ * EVERY POST LIVES ON GOOGLE DRIVE, in one folder per post in the team's files folder, under
+ * its template's folder (2026-11-04, by request; see FILES_ROOT and fileDest):
+ *   <files>/<template folder>[/<Month Year> | /<Team>]/<post name>/
  *     <post name>_Post.json        the post: name, brief, deadline, steps, its log
  *     <post name>.smpstudio.json   the OPS project, with its review data (revision, photos, log)
  *     Assets/…                     its pictures, one file each
  *     Brief/…                      the files attached when it was started
- *   (exports go to the team's files folder by template instead — see FILES_ROOT; and a
- *    "Just me" post has no post folder and no Status entry at all)
+ *     …_3x4.jpg, …_9x16.jpg        its exports
+ *   Posts started before then stay in 'Organic posts' until their next export moves them.
+ *   A "Just me" post has no post record and no Status entry; its exports go to
+ *   <files>/<template folder>/…/<post name>/ all the same.
  * It is the CAS ad set machinery (share-link.js's Drive kit, providentDsKit) with kind 'post' and
  * one project: the project follows its file exactly as an ad set's project does — every edit is
  * saved to Drive within seconds, and everyone on the post sees it. Everyone opens the post by the
@@ -65,9 +68,28 @@
     }
     if (st.tpl === 'agents' || st.tpl === 'agentsolo') {
       const f = ((st.tpl === 'agents' ? sl.find(x => x.kind === 'tacover') : sl[0]) || {}).f || {};
-      return [top, String(f.team || '').trim() || 'No team'];
+      // a post just started has no slides yet: it waits in Top Agents until an export names the team
+      return String(f.team || '').trim() ? [top, String(f.team).trim()] : sl.length ? [top, 'No team'] : [top];
     }
     return [top];
+  }
+  const filesRoot = () => { const D0 = D(); return (D0 && D0.id && D0.id(lsGet('provident-ops-files-root'))) || FILES_ROOT; };
+  // the folder at the end of a path under the files folder, made where missing
+  async function destDir(path) {
+    let dir = filesRoot();
+    for (const seg of path) dir = await dsFolder(dir, dsSafe(seg));
+    return dir;
+  }
+  // A post's folder follows its template's path: a weekly post whose month changed, a Top Agents post
+  // whose team was filled in, a post from 'Organic posts' — the first export moves it (its files keep
+  // their ids, so every link to the post still opens it). Resolves the folder's id either way.
+  async function placePost(rs, path) {
+    const to = await destDir(path);
+    try {
+      const par = (await K.dsMeta(rs.folder)).parents || [];
+      if (par.indexOf(to) < 0) await K.dsFetch('/drive/v3/files/' + rs.folder + '?addParents=' + to + (par.length ? '&removeParents=' + par.join(',') : '') + '&supportsAllDrives=true', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    } catch (e) { console.warn('[post] could not move the post folder', e); }
+    return rs.folder;
   }
   const FLOW = 'provident-postflow';
   const LIST = 'provident-posts', HIDE = 'provident-posts-hidden', CACHE = 'provident-posts-list', PLAN = 'provident-postplan', PICK = 'provident-postpick';
@@ -173,7 +195,27 @@
     lsSet('provident-posts-root-id', id);
     return id;
   }
-  // every post in the posts folder, put on this computer's list (once a minute at most)
+  // Every folder a post can be in: under the files folder its template's folder, a month or team
+  // folder, then the post's own (three levels), and the old 'Organic posts' one level down. Assets/
+  // and Brief/ are inside a post, never a post.
+  async function postDirs() {
+    let old = null; try { old = await postsRoot(false); } catch (e) {}
+    const out = [], seen = new Set();
+    let level = [filesRoot()].concat(old ? [old] : []);
+    for (let depth = 0; depth < 3 && level.length; depth++) {
+      const next = [];
+      for (let i = 0; i < level.length; i += 30) {
+        const par = level.slice(i, i + 30).map(id => "'" + id + "' in parents").join(' or ');
+        (await dsQuery('(' + par + ") and trashed=false and mimeType='" + DS_FOLDER + "'")).forEach(f => {
+          if (seen.has(f.id) || /^(Assets|Brief)$/.test(f.name || '')) return;
+          seen.add(f.id); out.push(f.id); next.push(f.id);
+        });
+      }
+      level = next;
+    }
+    return out;
+  }
+  // every post on Drive, put on this computer's list (once a minute at most)
   let findAt = 0, findRun = null;
   function discover(force) {
     const D0 = D();
@@ -182,8 +224,7 @@
     if (!force && Date.now() - findAt < 60000) return Promise.resolve(false);
     findRun = (async () => {
       try {
-        const root = await postsRoot(false); if (!root) return false;
-        const dirs = (await dsQuery("'" + root + "' in parents and trashed=false and mimeType='" + DS_FOLDER + "'")).map(f => f.id);
+        const dirs = await postDirs();
         const known = new Set(Posts.list().map(x => fidOf(x.id)).concat(Posts.hidden().map(fidOf)));
         const found = [];
         for (let i = 0; i < dirs.length; i += 30) {
@@ -201,9 +242,9 @@
   }
   // a new post: its folder, its record, the brief's files
   async function makePost(plan, files, busy) {
-    const by = dsWho(plan.by), now = Date.now();
-    busy('Opening the posts folder on Google Drive…', .04);
-    const root = await postsRoot(true);
+    const by = dsWho(plan.by), now = Date.now(), path = fileDest(plan.st || { tpl: plan.tpl, made: now, slides: [] });
+    busy('Opening ' + path.join(' › ') + ' on Google Drive…', .04);
+    const root = await destDir(path);
     const kids = (await dsList(root)).filter(x => x.mimeType === DS_FOLDER).map(x => x.name);
     const base = dsSafe(plan.name || 'Post'); let nm = base, n = 2; while (kids.indexOf(nm) >= 0) nm = base + ' (' + (n++) + ')';
     const folder = await dsFolder(root, nm);
@@ -329,10 +370,10 @@
   SP.postToDrive = async function (send) {
     if (this._pfBusy) return;
     if (!(await dsGate('Save the post to Google Drive'))) return;
-    const dlg = busyDlg(send ? 'Send to designer' : 'Save to Google Drive', 'The post gets its own folder in “' + POST_DIR + '” on Google Drive. Everyone on it opens the same file, and every change is saved there.');
+    const dlg = busyDlg(send ? 'Send to designer' : 'Save to Google Drive', 'The post gets its own folder in “' + fileDest(this.state).join(' › ') + '” on Google Drive. Everyone on it opens the same file, and every change is saved there.');
     this._pfBusy = true;
     try {
-      const plan = { name: this.shName(), tpl: this.state.tpl, by: StudioBase.shareName() || 'Someone' };
+      const plan = { name: this.shName(), tpl: this.state.tpl, st: this.state, by: StudioBase.shareName() || 'Someone' };
       const rs = await makePost(plan, [], dlg.busy);
       await addProject(this, rs.tok.dd, dlg);
       if (send) { await new Promise(r => setTimeout(r, 300)); await this.rvStep('draft-done'); }
@@ -364,9 +405,11 @@
     const D0 = D();
     if (!(D0 && D0.valid && D0.valid())) { let ok = false; try { ok = !!(await D0.ensure()); } catch (e) {} if (!ok) { say('not saved to Google Drive: sign in to Google first'); return; } }
     try {
-      const st = eng.state, path = fileDest(st);
-      let dir = (D0.id && D0.id(lsGet('provident-ops-files-root'))) || FILES_ROOT;
-      for (const seg of path) dir = await dsFolder(dir, dsSafe(seg));
+      // into the post's own folder (moved to its template's path first), or for a post that is
+      // only on this computer, a folder named for it in the same place
+      const st = eng.state, rs = eng.postRs && eng.postRs(), path = fileDest(st);
+      const where = path.concat(rs ? (rs.name || 'Post') : (eng.shName ? eng.shName() : eng.projName()) || 'Post');
+      const dir = rs && rs.folder ? await placePost(rs, path) : await destDir(where);
       const have = await dsList(dir), key = 'provident-ops-out:' + (st.pid || 'x');
       let mine = {}; try { mine = JSON.parse(lsGet(key) || '{}') || {}; } catch (e) {}
       const taken = new Set(have.map(x => x.name));
@@ -383,7 +426,7 @@
         mine[want] = x.id;
       });
       lsSet(key, JSON.stringify(mine));
-      say('also on Google Drive in ' + path.join('/'));
+      say('also on Google Drive in ' + where.join('/'));
     } catch (e) { say('not uploaded to Drive: ' + (e.message || e)); }
   }
   // once per engine: the template pick and the export learn about posts
