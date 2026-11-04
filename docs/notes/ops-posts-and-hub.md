@@ -520,3 +520,13 @@ went to OPS's agent auto-crop marks (`smp-agent…-auto`), which stored the whol
 (length + sampled FNV hash); `StudioBase.lsRoom()` turns old marks into short ones on every
 page load of studio-base.js and before inboxSave retries; inboxSave retries, then drops thumbs.
 Never keep a picture in localStorage; IndexedDB (`runtime.js`) is the photo store.
+
+## The content team saw no posts (2026-11-04)
+
+Status lists posts with Drive searches (`'<folder>' in parents`), and Drive search leaves out
+files a person reaches only through the company-wide (domain) share. 'Organic posts' was shared
+by name with the designers and media accounts but not the content team, so CT's Status found no
+posts (CAS worked: the campaigns folder names exec1/exec2.content). Fix: 'Organic posts' is
+shared with them as editors (they write the copy check), and `postsRoot` falls back to its id
+(`POSTS_ROOT`) when the name look-up in POSTS_PARENT finds nothing. Anyone new on SMM or CT must
+be added on 'Organic posts' by name, like the campaigns folder.

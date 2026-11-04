@@ -41,6 +41,10 @@
   // is made beside them the first time a post is started. localStorage['provident-posts-root']
   // (a folder link or id) points somewhere else on one computer.
   const POSTS_PARENT = '1FD5dl42YxKi6h8hlHvTwaMT__Nt545WO';
+  // 'Organic posts' itself, as it was made (2026-10-30). Found by name only when it can be
+  // listed: someone who can open it but not search its parent (the content team, shared on the
+  // folder alone) would otherwise find no posts at all (2026-11-04).
+  const POSTS_ROOT = '1p_-Bn9KeO2tC-tElUgho_EPMSuUvRaja';
   // EVERY OPS EXPORT GOES TO GOOGLE DRIVE (2026-10-30, by request), into the team's files folder,
   // by template: Weekly Listings/<Month Year>/, Top Agents/<Team>/, Reel Thumbnail/, and a folder
   // named for each other template. localStorage['provident-ops-files-root'] (a link or id)
@@ -163,6 +167,7 @@
     if (had) return had;
     const f = (await dsList(POSTS_PARENT, POST_DIR)).find(x => x.mimeType === DS_FOLDER);
     if (f) { lsSet('provident-posts-root-id', f.id); return f.id; }
+    if (POSTS_ROOT) return POSTS_ROOT;
     if (!make) return null;
     const id = await dsFolder(POSTS_PARENT, POST_DIR);
     lsSet('provident-posts-root-id', id);
