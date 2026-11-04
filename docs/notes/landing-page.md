@@ -530,3 +530,13 @@ redraw inside SKY_ENTRY resumes it with a negative delay (--ent); after it the s
 Reduced motion: no entry.
 Dark theme: the sky at .58. Light theme: clouds get a blue-grey underside (drop-shadow) or white
 vanishes on a pale sky. Chrome colours only — nothing on any canvas.
+
+## Refresh after the Drive hour (2026-11-04)
+
+Home's only CAS read is `providentReviews.refreshSum` (the CAS Status page is not mounted on
+Home). It and `dsDiscover` used to check `providentDrive.valid()` and quietly return when the
+token's hour was up, so for a CAS-only role (PM, CT) Refresh and the minute tick read nothing
+for good, while the footer still read "Read from Google Drive …". OPS roles recovered only
+because `Feed.load` calls `ensure()`. Both now `await D.ensure()` (silent renewal through
+api/gauth, never a prompt). When renewal fails, `refreshSum` sets `sumSign` and the footer says
+the sign-in ran out, with a Sign in again link (`data-drive` → `connectDrive`).

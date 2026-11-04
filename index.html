@@ -952,7 +952,10 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
   }
   function freshLine(){
     if (!data.known) return '';
-    return '<p class="fresh">' + (busy ? 'Reading from Google Drive\u2026' : 'Read from Google Drive ' + esc(ago(data.at)) + '.' + hubLine() + ' <a href="#" data-refresh>Refresh</a>') + '</p>';
+    // the Drive sign-in lapsed and could not be renewed: say so, rather than a Refresh that reads nothing
+    var R = window.providentReviews, lapsed = !busy && sees('cas') && R && R.sumSign;
+    return '<p class="fresh">' + (busy ? 'Reading from Google Drive\u2026' : lapsed ? 'Last read from Google Drive ' + esc(ago(data.at)) + '. The Google Drive sign-in has run out. <a href="#" data-drive>Sign in again</a>'
+      : 'Read from Google Drive ' + esc(ago(data.at)) + '.' + hubLine() + ' <a href="#" data-refresh>Refresh</a>') + '</p>';
   }
 
   // ═════ THE GATE: signed out, checking, waiting for the admin, or the wrong account ═════
@@ -1232,7 +1235,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (t.dataset.pf){ pjF = t.dataset.pf; paintProjects(); return; }
     if (t.dataset.sf){ sxF = t.dataset.sf; route(); return; }
     if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
-    if (t.hasAttribute('data-drive')){ connectDrive(); return; }
+    if (t.hasAttribute('data-drive')){ e.preventDefault(); connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
     if (t.hasAttribute('data-endpv')){ if (acc && acc.preview) acc.preview(null); return; }
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }

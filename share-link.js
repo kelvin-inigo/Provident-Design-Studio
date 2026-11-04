@@ -237,11 +237,13 @@
   let dsFindAt = 0, dsFindRun = null;
   function dsDiscover(force) {
     const D = window.providentDrive;
-    if (!dsOn() || !D || !(D.valid && D.valid())) return Promise.resolve(false);
+    if (!dsOn() || !D) return Promise.resolve(false);
     if (dsFindRun) return dsFindRun;
     if (!force && Date.now() - dsFindAt < 60000) return Promise.resolve(false);
     dsFindRun = (async () => {
       try {
+        // an hour-old token is renewed first, silently, as every other Drive read does (2026-11-04)
+        if (!(D.ensure ? await D.ensure() : D.valid && D.valid())) return false;
         const sets = await dsFindSets(dsHome());
         // an ad set already on the list (or removed from it) is not read again: its link
         // carries its file id, and Status reads its contents anyway
@@ -3667,7 +3669,11 @@
       if (!ids.length) { if (!this._sumBusy) statusSave([], eng); return; }
       if (this._sumBusy || (s && Date.now() - (s.at || 0) < 120000)) return;
       const D = window.providentDrive;
-      if (ids.some(isDs) && !(D && D.valid && D.valid())) return;
+      // the Home page's only read for a CAS-only role: renew an expired token (silently, never a
+      // prompt) rather than skip, which left Home on the old queue; sumSign tells Home when the
+      // renewal failed and the sign-in is needed again (2026-11-04)
+      if (ids.some(isDs) && !(D && (D.ensure ? await D.ensure() : D.valid && D.valid()))) { this.sumSign = true; return; }
+      this.sumSign = false;
       this._sumBusy = true;
       try { const out = []; for (let i = 0; i < ids.length; i += 50) out.push(...((await api('rsinfo', { ids: ids.slice(i, i + 50).join(',') })).items || [])); statusSave(out, eng); }
       catch (e) {}
