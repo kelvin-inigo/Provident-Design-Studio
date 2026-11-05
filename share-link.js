@@ -4377,13 +4377,13 @@
       return;
     }
     const by = StudioBase.shareName() || 'Designer', again = () => this.open(this.sel);
+    if (a === 'startub') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'); ubStart(t.dataset.sid, [market, aud, lang, phase].join('|')); return; }
     if (a === 'startcell') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'), dd = (this.det && this.det.dd) || this.sel; startCell(dd, { market, aud, lang, phase: phase || undefined }); return; }
     if (a === 'phtab') { (this.phTabs || (this.phTabs = {}))[this.sel] = t.dataset.ph; this.phMenu = false; this.draw(); const b = this.el.querySelector('.rvd-pt[aria-selected="true"]'); if (b) b.focus(); return; }
     if (a === 'phadd') { this.phMenu = !this.phMenu; this.draw(); const f = this.el.querySelector('.rvd-pm button'); if (f) f.focus(); return; }
     if (a === 'phnew') {
       const rs = this.det && this.det.rs, k = t.dataset.ph; if (!rs || !PH_NAME[k]) return;
       t.disabled = true; t.textContent = 'Adding…';
-    if (a === 'startub') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'); ubStart(t.dataset.sid, [market, aud, lang, phase].join('|')); return; }
       try { await api('rsset', { id: this.sel }, { by, phases: phList(rs).concat(k) }); this.phMenu = false; (this.phTabs || (this.phTabs = {}))[this.sel] = k; again(); }
       catch (er) { t.disabled = false; t.textContent = PH_NAME[k]; window.alert(er.message || String(er)); }
       return;
@@ -4623,12 +4623,6 @@
             (it.copy ? '' : '<button type="button" class="rva-lkb" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
             '<button type="button" class="rva-lkb rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span>') + '</div>';
     };
-    const audRows = auds.map(a => {
-      const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
-      return '<li class="rvd-au"' + (a.done ? ' data-done="1"' : '') + (isUb(a.aud) ? ' data-ub="1"' : '') + '><div class="rvd-auh">' +
-        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market + (isUb(a.aud) ? ' · Unbranded' : '')) + '</s>' : '') + '<b>' + esc(ubBase(a.aud) || a.label) + '</b></span>' +
-        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span></div>' +
-        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div></li>';
     // A MIXED AD SET: every branded audience can also run unbranded. Until it does, the card ends
     // on one placeholder that copies its English design (in a new window) onto the unbranded look
     const ubTile = a => {
@@ -4637,6 +4631,12 @@
       return '<button type="button" class="rvd-ph rvd-ub" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + UB + '|ENG|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design, on the unbranded look, as ' + esc(a.market + ' · ' + a.aud + UB) + '">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the unbranded</b><s>Copies this English design onto the unbranded look · its own copy, check and Arabic</s></span>' + ico('ext') + '</button>';
     };
+    const audRows = auds.map(a => {
+      const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
+      return '<li class="rvd-au"' + (a.done ? ' data-done="1"' : '') + (isUb(a.aud) ? ' data-ub="1"' : '') + '><div class="rvd-auh">' +
+        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market + (isUb(a.aud) ? ' · Unbranded' : '')) + '</s>' : '') + '<b>' + esc(ubBase(a.aud) || a.label) + '</b></span>' +
+        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span></div>' +
+        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div></li>';
     }).join('');
     // planned in Ad set settings, no project yet: a row each at the foot, both languages as placeholders
     const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
