@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Provident Organic Post Studio</title>
 <!-- Parser-inserted, BEFORE support.js: the helmet mounts its <script src> tags
      with createElement and never clears async, so image-slot.js can run at any
@@ -4321,6 +4321,102 @@ html[data-cc-embed] .p-top,html[data-cc-embed] .shl-pill,html[data-cc-embed] .ac
 html[data-cc-embed]{--ps-toph:0px}
 html[data-cc-embed] .gd{top:0;animation:none !important;transition:none !important;opacity:1 !important}
 html[data-cc-embed] .gd *{animation-delay:0s !important}
+/* ══ 29. THE TOUCH LAYER — TABLETS AND PHONES, SAFARI INCLUDED (2026-11-05, /impeccable adapt) ══
+   MEASURED BEFORE. Section 28 fitted the bar in September; the Drive flow (post-flow.js) arrived
+   after it. At 1024 the bar then ran 110px past the right edge (Undo / Redo and Share cut off),
+   at 820 it ran 241px, and at 375 its two rows became four inside a 92px bar, so the wordmark
+   row stood 24px above the top of the screen and the theme and Undo sat on the slide's name.
+   THREE WIDTHS, ONE BAR — mirrored rule for rule from Provident Campaign Studio.dc.html
+   (its section 69), because the bar, stage, docks and panel bar are the same markup.
+     961-1180  one row. The flow keeps its segments and its button and gives up its words.
+     761-960   two rows: the project row over the workspace row (Guided | All controls, the
+               flow, the theme, Undo / Redo).
+     760 down  the same two rows, and the flow leaves the bar for the foot of the screen, over
+               the panel bar, where a thumb reaches the one action that moves the post on. In
+               the guided run it sits at the very foot under Back / Next and goes quiet, so
+               Next stays the one loud thing on the screen.
+   SAFARI. viewport-fit=cover is in the head, so the bars pad themselves by the safe area; no
+   text inflation on rotation; no grey tap flash; the shell never rubber-bands under a finger.
+   Chrome only — no rule here reaches a canvas op. Every rule is a breakpoint, a pointer query
+   or a no-op on the desktop; reverting is deleting this block. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.p-shell,.gd{-webkit-tap-highlight-color:transparent}
+@media (pointer:coarse){
+  html,body{overscroll-behavior:none}
+  .p-top button,.p-panelbar button,.p-dock button,.gd button{touch-action:manipulation}
+}
+
+/* ── TABLET, ONE ROW ── */
+@media (max-width:1180px){
+  .p-top > .p-flow .p-flow-t{display:none}
+  .p-top > .p-flow .p-flow-at{padding:0 10px 0 12px}
+  .p-top .p-share > .p-ghost{font-size:0;gap:0;width:40px;padding:0;justify-content:center;letter-spacing:0}
+  .p-top .p-share > .p-ghost .p-chev{display:none}
+  .p-top > .p-seg:not(.p-seg-mode){display:none}
+}
+
+/* ── TABLET PORTRAIT AND PHONE: TWO ROWS. The empty rule element is the line break. ── */
+@media (max-width:960px){
+  :root{--ps-toph:92px}
+  .p-top{box-sizing:border-box;height:var(--ps-toph);flex-wrap:wrap;align-content:center;
+    column-gap:8px;row-gap:6px;overflow:visible;
+    padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px))}
+  .p-top > .p-wm{order:1}
+  .p-top > .p-spring{order:2}
+  .p-top > .p-tgrp:not(.p-tgrp-h){order:3}
+  .p-top > .p-share{order:4}
+  .p-top > .p-vr{display:block;order:5;flex:0 0 100%;width:auto;height:0;margin:0;background:none}
+  .p-top > .p-seg-mode{order:6;display:flex;flex:0 1 auto;min-width:0}
+  .p-top > .p-flow{order:7;flex:0 1 auto;min-width:0}
+  .p-top > .p-ico-o{order:8;margin-left:auto}
+  .p-top > .p-tgrp-h{order:9}
+  .p-top > .p-prev{order:10}
+  .p-top > .p-top-sep{display:none}
+  .p-top .p-share-m{position:fixed;top:calc(var(--ps-toph) + 6px);left:8px;right:8px;width:auto;
+    max-height:calc(100dvh - var(--ps-toph) - 20px)}
+  /* sheets that were pinned under a 56px bar start under this one */
+  .shl-panel{top:var(--ps-toph)}
+  .p-rail-l{top:var(--ps-toph)}
+}
+
+/* ── PHONE ── */
+@media (max-width:760px){
+  .p-top > .p-seg-mode{flex:1 1 auto}
+  .p-top > .p-seg-mode button{flex:1 1 0;min-width:0;padding-left:8px;padding-right:8px}
+  .p-top > .p-ico-o{margin-left:0}
+
+  /* the foot: the panel bar, then the flow strip over it; both carry the home indicator's inset */
+  .p-shell{--ps-pbh:calc(62px + env(safe-area-inset-bottom,0px));--ps-flh:0px}
+  .p-shell:has(.p-top > .p-flow){--ps-flh:56px}
+  .p-panelbar{padding:7px max(10px,env(safe-area-inset-right,0px)) calc(7px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+  .p-panelbar button{min-height:44px}
+  .p-top > .p-flow{position:fixed;left:0;right:0;bottom:var(--ps-pbh);z-index:71;order:0;
+    height:var(--ps-flh);box-sizing:border-box;margin:0;gap:8px;
+    padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(6px,env(safe-area-inset-left,0px));
+    border-radius:0;background:var(--ps-sb);box-shadow:inset 0 1px 0 var(--ps-hair);
+    justify-content:space-between}
+  .p-top > .p-flow .p-flow-t{display:flex}
+  .p-top > .p-flow .p-flow-t b{overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+  .p-top > .p-flow .p-flow-at{height:44px;flex:0 1 auto;min-width:0;padding:0 10px}
+  .p-top > .p-flow .p-flow-go,.p-top > .p-flow .p-flow-fin{height:40px;padding:0 16px 0 18px;margin-left:auto;flex:none}
+
+  /* the stage column makes room for the foot; the canvas bar sits on it, the dock above that */
+  .p-stagecol{box-sizing:border-box;padding-bottom:calc(var(--ps-pbh) + var(--ps-flh))}
+  .p-stage{padding-bottom:84px;scroll-padding-bottom:84px}
+  .p-stage .p-plate{max-width:100%;min-width:0;box-sizing:border-box}
+  .p-dock{bottom:calc(var(--ps-pbh) + var(--ps-flh) + 45px + 12px)}
+  .p-dock-b{max-height:calc(100dvh - var(--ps-toph) - var(--ps-pbh) - var(--ps-flh) - 120px)}
+  .p-rail-l{padding-bottom:calc(var(--ps-pbh) + var(--ps-flh))}
+
+  /* THE GUIDED RUN covers the panel bar, so the flow strip drops to the very foot and the run
+     ends above it; the strip's action goes quiet, and Next stays the one loud thing */
+  .p-shell:has(.gd[data-mode="guide"]){--ps-pbh:0px;--ps-flh:0px}
+  .p-shell:has(.gd[data-mode="guide"]):has(.p-top > .p-flow){--ps-flh:calc(56px + env(safe-area-inset-bottom,0px))}
+  .p-shell:has(.gd[data-mode="guide"]) .p-top > .p-flow{padding-bottom:env(safe-area-inset-bottom,0px)}
+  .p-shell:has(.gd[data-mode="guide"]) .gd{bottom:var(--ps-flh)}
+  .p-shell:has(.gd[data-mode="guide"]):has(.p-top > .p-flow) .gd[data-mode="guide"] .gd-nav{padding-bottom:10px}
+  .p-shell:has(.gd[data-mode="guide"]) .p-top > .p-flow .p-flow-go{background:transparent;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line)}
+}
 </style>
 </helmet>
 

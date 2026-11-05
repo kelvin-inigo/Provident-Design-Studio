@@ -32,3 +32,8 @@ tools/meta-ads/kit/local/
 tools/meta-ads/kit/workspace/
 tools/meta-ads/kit/output/
 tools/meta-ads/kit/memory/
+
+# Environment files. Secrets stay on this computer or in Vercel — the repo is public.
+.env
+.env.*
+!.env.example

@@ -141,6 +141,12 @@ say so and point to the step above.
   under the lists reads them again now.
 - Safari and Firefox work too, but they can't use a **Source folder**. Exports then download as a
   zip instead.
+- **On an iPad or a phone** (Safari or Chrome) the studios fit the screen. On a tablet held
+  upright and on a phone the top bar has two rows: **Projects**, the folder, **Save** and
+  **Share** on top, then **Ad set | Design** (CAS) or **Guided | All controls** (OPS), the theme,
+  **Undo** and **Redo**. On a phone the step that moves the work on (**Add to an ad set**,
+  **Save to Drive** and the like) sits at the foot of the screen, over **Components /
+  Component / Layout** (CAS) or **Template / Slide** (OPS).
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the
   two studios link to each other.
 - To switch studios, go back to the home page: the editors' top bar has no **Campaign ads** /

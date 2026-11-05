@@ -3574,3 +3574,27 @@ Illustrator, Remove** (danger ink) on a filled one. Captions sit UNDER the row.
   Edit text, which shares the markup); `.p-ftag` is a global rule now, not rail-scoped.
 - **"Optional" is a tag**, not a lowercase "optional —" in the hint: Notes for Claude, Google
   Drive folder, and the folder/pictures fold's summary.
+
+## THE TOUCH LAYER — TABLETS, PHONES, SAFARI (2026-11-05, /impeccable adapt)
+CAS section 69 and OPS section 29, the last block of each sheet, mirrored rule for rule.
+- **Measured before:** the ad set / Drive flow (`.p-flow`) joined the bar after both bars were
+  fitted. OPS ran 110px past the edge at 1024 and 241px at 820; at 375 its two rows became four
+  inside the 92px bar (wordmark at y −24). CAS at 375 was one 1080px row clipped to the screen
+  (Design unreachable), its plate stood 6px past the edge, and its two docks overlapped.
+- **Three widths:** 961–1180 one row, the flow drops `.p-flow-t` and Share its word; 761–960 two
+  rows (`--ps-toph` 92, `.p-vr` the line break, the flow inline on row 2); ≤760 the same two rows
+  and the flow `position:fixed` at the foot over the panel bar (`--ps-pbh` + `--ps-flh` on
+  `.p-shell`; stage column, docks and rails pad by both). CAS's Ad set screen
+  (`data-screen="copy"`) hides the strip — its card has the same button. OPS's guided run drops
+  the strip to the very foot, ends `.gd` above it, and makes its button an outline so Next is the
+  one solid action.
+- **Pinned at 56px, now `var(--ps-toph)` at ≤960:** `.cw` (CAS) and `.shl-panel` (share-link.js).
+- **CAS dock on a phone:** `.p-dock-r` is one row, Add Variant and All variants at equal widths
+  (nowrap); the Brand switch rides above it.
+- **Safari:** `viewport-fit=cover` on both studios and the home page; safe-area insets on the bar,
+  the panel bar and the flow strip (the home page pads `body`); `text-size-adjust:100%`; no tap
+  highlight; `overscroll-behavior:none` under `pointer:coarse`; fields 16px on phones. Every
+  canvas `backdrop-filter` / `mask-image` already carried its `-webkit-` twin — none touched.
+- **Proved:** whole-file diff — the viewport meta and one CSS block per file, zero artwork lines.
+  Desktop bar at 1440 unchanged (56px, fits). Seen in the Browser pane at 375 / 820 / 1024 / 1440;
+  not yet seen on a real iPhone or iPad.

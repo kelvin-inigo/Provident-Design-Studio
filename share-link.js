@@ -509,7 +509,6 @@
           if (c.arb) { const off = arbOffOf(c), was = o && o.arb ? o.arbOff : [], nm = l => l.map(k => PH_NAME[k]).join(', ');
             const dr = off.filter(k => was.indexOf(k) < 0), ad = o && o.arb ? was.filter(k => off.indexOf(k) < 0) : [];
             if (dr.length) chg.push(key(c) + ': no Arabic in ' + nm(dr)); if (ad.length) chg.push(key(c) + ': Arabic again in ' + nm(ad)); }
-          if (o && (body.brand || rs.brand) === 'mixed' && o.brand !== (c.brand === 'unbranded' ? 'unbranded' : 'provident')) chg.push(key(c) + (c.brand === 'unbranded' ? ' opens unbranded' : ' opens branded'));
           delete old[key(c)]; });
         Object.keys(old).forEach(k => chg.push('Dropped ' + k));
       }
@@ -540,7 +539,7 @@
         was.filter(k => want.indexOf(k) < 0).forEach(k => chg.push('Dropped the ' + PH_NAME[k] + ' phase'));
       }
       if (body.brand === 'provident' || body.brand === 'unbranded' || body.brand === 'mixed') {
-        if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : body.brand === 'mixed' ? 'Mixed the ad set’s brand — each audience opens branded or unbranded' : 'Made the ad set branded — new projects open with the Provident brand');
+        if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : body.brand === 'mixed' ? 'Mixed the ad set’s brand — every audience can also run unbranded' : 'Made the ad set branded — new projects open with the Provident brand');
         rs.brand = body.brand;
       }
       // Claude's reply, kept on the ad set so every audience (and every designer) fills from it
@@ -6589,15 +6588,15 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-card .rva-sub{margin-top:-8px}
 .rvd-ph{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:8px;border:none;border-radius:12px;background:none;outline:1px dashed var(--ps-line);outline-offset:-1px;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
 .rvd-ph:hover{background:var(--ps-fill)}
+/* a mixed ad set's unbranded version: one placeholder across the foot of the branded card */
+.rvd-ub{grid-column:1 / -1}
+.rvd-au[data-ub] .rvd-aun s{color:var(--ps-ink-2)}
 .rvd-ph:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-phi{flex:none;display:grid;place-items:center;width:44px;height:55px;border-radius:8px;background:var(--ps-fill)}
 .rvd-phi .rva-i{width:20px;height:20px;fill:var(--ps-ink-2)}
 .rvd-ph>.rva-i{flex:none;width:16px;height:16px;fill:var(--ps-dim)}
 .rvd-ph .rva-lt-t s{white-space:normal}
 .rvd-au[data-plan]{background:none;box-shadow:inset 0 0 0 1px var(--ps-line)}
-/* a mixed ad set's unbranded version: one placeholder across the foot of the branded card */
-.rvd-ub{grid-column:1 / -1}
-.rvd-au[data-ub] .rvd-aun s{color:var(--ps-ink-2)}
 .rvd-card .rva-fl{box-sizing:border-box;min-width:0}
 @container (max-width:1000px){.rvd-cols{grid-template-columns:minmax(0,1fr)}}
 @container (max-width:760px){
