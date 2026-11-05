@@ -5010,11 +5010,29 @@ html.lk-open .p-lkcv{transform:none}
   font:500 13px/1.25 var(--ps-font);color:var(--ps-ink)}
 .cw-lay-fact s{text-decoration:none;font:400 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
 .cw-lay-fact s:empty{display:none}
-.cw-lay-go{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;padding-top:2px}
+.cw-lay-go{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;margin-top:16px}
 .cw-lay-go .p-btn{flex:none}
-.cw-lay-go .cw-br-prune{flex:1 1 240px;width:auto;padding:0}
-.adt-reply .cw-hint{margin:-4px 0 0}
-.adt-reply .cw-hint:empty{display:none}
+.cw-lay-go .cw-hint{flex:1 1 220px;margin:0;font:400 12.5px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.cw-lay-go .cw-hint:empty{display:none}
+/* the prune switch reads as the preview's last line: what Fill will do to the rest */
+.cw-lay .cw-br-prune{gap:12px;padding:2px 4px 0 16px}
+.cw-lay .cw-br-prune .p-tgl-t{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 6px}
+.cw-lay .cw-br-prune .p-tgl-t b{font:500 13px/1.4 var(--ps-font)}
+.cw-lay .cw-br-prune .p-tgl-t s{font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+/* once the copy is read the paste box steps back to a few lines; it grows again on focus */
+.adt-reply textarea.cw-pz[data-read]{min-height:0;height:112px;transition:height var(--ps-motion) var(--ps-ease)}
+.adt-reply textarea.cw-pz[data-read]:focus{height:240px}
+/* flags: a checklist on the card, not a second panel */
+.adt-reply .cw-br-flags{gap:0;padding:4px 16px 8px;border-radius:14px;background:transparent;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.adt-reply .cw-br-fh{padding:10px 0 4px}
+.adt-reply .cw-br-flag{padding:8px 0;border-top:1px solid var(--ps-hair);font:400 13.5px/1.45 var(--ps-font)}
+.adt-reply .cw-br-fh + .cw-br-flag,.adt-reply .cw-br-fh ~ sc-for > .cw-br-flag:first-child{border-top:0}
+.adt-reply .cw-br-flag i{width:16px;height:16px;margin-top:2px;border-radius:4px}
+.adt-reply .cw-br-flag i svg{width:12px;height:12px}
+.adt-reply .cw-br-ok{margin-top:6px;font:500 13px/1.4 var(--ps-font)}
+.cw-lay .cw-br-heads{gap:8px}
+.cw-lay .cw-br-heads .cw-br-l{font:500 12px/1.4 var(--ps-font);color:var(--ps-dim)}
+.cw-lay .cw-br-chip{height:32px;font-size:13px}
 .cw-ar-p{margin:0;font:400 14px/1.55 var(--ps-font);color:var(--ps-ink-2);max-width:62ch}
 .cw-ar-go{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap}
 .cw-ar-st{font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
@@ -5822,7 +5840,7 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
               <div class="cw-ar-go"><button onClick="{{ brArGo }}" class="p-btn">{{ brArLabel }}</button><span class="cw-ar-st" data-bad="{{ brArBad }}" role="status">{{ brArMsg }}</span></div>
             </sc-if>
             <sc-if value="{{ brEnOn }}" hint-placeholder-val="{{ true }}">
-            <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="6" class="p-in cw-pz" placeholder="Family:&#10;Small label&#10;Heading&#10;Hook line&#10;Tag chips or key facts, one per line (optional)&#10;Button&#10;&#10;Investor:&#10;&#8230;" aria-label="The copy" spellcheck="true"></textarea>
+            <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="6" class="p-in cw-pz" data-read="{{ brReadAttr }}" placeholder="Family:&#10;Small label&#10;Heading&#10;Hook line&#10;Tag chips or key facts, one per line (optional)&#10;Button&#10;&#10;Investor:&#10;&#8230;" aria-label="The copy" spellcheck="true"></textarea>
             <sc-if value="{{ brKeyOn }}" hint-placeholder-val="{{ true }}">
               <div class="cw-key"><p>Start each audience with its name and a colon, <b>Family:</b>, on a line of its own. Then one line each, in this order:</p><ol><li>Small label</li><li>Heading</li><li>Hook line</li><li>Tag chips or key facts <s>any number, optional</s></li><li>Button</li></ol></div>
             </sc-if>
@@ -5860,12 +5878,12 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
                 <ol class="cw-lay-l" aria-label="Where each line goes">
                   <sc-for list="{{ brRows }}" as="r" hint-placeholder-count="5"><li data-k="{{ r.kind }}"><span class="cw-lay-k">{{ r.k }}</span><span class="cw-lay-v">{{ r.v }}<sc-for list="{{ r.chips }}" as="c" hint-placeholder-count="0"><i class="cw-lay-chip">{{ c.t }}</i></sc-for><sc-for list="{{ r.facts }}" as="f" hint-placeholder-count="0"><i class="cw-lay-fact"><s>{{ f.l }}</s>{{ f.v }}</i></sc-for></span></li></sc-for>
                 </ol>
+                <button onClick="{{ brPrune }}" class="p-tgl cw-br-prune" role="switch" aria-checked="{{ brPruneAria }}" data-on="{{ brPruneOn }}"><span class="p-tgl-t"><b>Remove unused parts</b><s>so no template sample text ships</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
               </div>
               <div class="cw-lay-go">
                 <button onClick="{{ brFill }}" class="p-btn">{{ brFillLabel }}</button>
-                <button onClick="{{ brPrune }}" class="p-tgl cw-br-prune" role="switch" aria-checked="{{ brPruneAria }}" data-on="{{ brPruneOn }}"><span class="p-tgl-t"><b>Remove unused parts</b><s>So no template sample text ships</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
+                <p class="cw-hint">{{ brTailNote }}</p>
               </div>
-              <p class="cw-hint">{{ brTailNote }}</p>
             </sc-if>
             </sc-if>
                 </section>
@@ -13121,15 +13139,18 @@ class CampaignStudio extends StudioBase {
     const re = /```[^\n]*\n([\s\S]*?)```/g, blocks = [];
     let m;
     while ((m = re.exec(t))) blocks.push({ at: m.index, end: re.lastIndex, body: m[1] });
-    let lastEnd = 0;
+    let lastEnd = 0, lastName = '';
     blocks.forEach((bk, bi) => {
       const lines = bk.body.split('\n').map(l => l.trim()).filter(Boolean);
       const gap = t.slice(lastEnd, bk.at).toLowerCase();
       lastEnd = bk.end;
       if (lines.length < 3) return;
-      // the audience is named between the previous block and this one
+      // an Arabic block is skipped: the Arabic project translates its own layout (2026-11-05)
+      if ((bk.body.match(/[\u0600-\u06FF]/g) || []).length > bk.body.length * .2) return;
+      // the audience is named between the previous block and this one; a block with none
+      // named before it carries on the previous block's audience (it was a tab called "Copy")
       const pos = { Families: Math.max(gap.lastIndexOf('famil'), gap.lastIndexOf('end-user'), gap.lastIndexOf('end user')), Investors: gap.lastIndexOf('invest'), Hybrid: gap.lastIndexOf('hybrid') };
-      let name = 'Copy', best = -1;
+      let name = lastName || 'Copy', best = -1;
       Object.keys(pos).forEach(k => { if (pos[k] > best) { best = pos[k]; name = k; } });
       // the project is the nearest markdown heading above ("## 1. Rise by Athlon")
       const hs = t.slice(0, bk.at).match(/(^|\n)#{1,4}[ \t]+[^\n]+/g);
@@ -13152,6 +13173,7 @@ class CampaignStudio extends StudioBase {
       }
       const rest = [];
       let prevRest = false;
+      lastName = name;
       for (; i < lines.length; i++) {
         const l = lines[i];
         let r = false;
@@ -13192,6 +13214,8 @@ class CampaignStudio extends StudioBase {
   // carry them; they live in this workspace's photo store beside the brief. Fill copies them
   // onto the campaign's own slots: photos onto each variant's (or page's) background in order,
   // the logo onto the co-brand partner mark. Other images stay in the card, each one a click
+        // a caps line under a sentence-case heading is the hook ("A NEW MASTER COMMUNITY BY ALDAR")
+        if (!a.project && rest.length && caps(rest[0]) && !caps(h)) a.project = rest.shift();
   // from becoming a graphic component.
   static BRIEF_PH_MAX = 10;
   brHas(id) {
@@ -13515,6 +13539,7 @@ class CampaignStudio extends StudioBase {
       brPruneOn: b.prune ? '1' : undefined, brPruneAria: b.prune ? 'true' : 'false', brPrune: () => this.brSet('prune', !b.prune),
       brFill: () => this.brFill(),
       brFillLabel: !A ? 'Fill'
+      brReadAttr: S ? '1' : undefined,
         : X && !car ? 'Fill with the ' + A.name + ' copy'
         : car ? 'Fill ' + nPages + ' carousel page' + (nPages === 1 ? '' : 's') + ' with the ' + A.name + ' copy'
           : 'Fill ' + (projCar ? 'this page' : 'this campaign') + ' with the ' + (A.pages.length > 1 ? one(S.label) + ' · ' : '') + A.name + ' copy',
