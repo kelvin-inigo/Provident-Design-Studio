@@ -4697,8 +4697,7 @@
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     const LSAY = { ct: 'Content Review', pm: 'AdSet Overview' };
     // the designer's link opens the whole ad set: only designers (and the admin) are given it
-    // (2026-11-05, by request) the designer's link is this page itself, so it is not listed here
-    const rows = LINK_ROWS.filter(([r]) => r !== 'dd');
+    const lr = accRole(), rows = !lr || lr === 'designer' || lr === 'admin' ? LINK_ROWS : LINK_ROWS.filter(([r]) => r !== 'dd');
     const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + rows.map(([r, who, what]) => {
       const link = rsLink((rs.tok || {})[r] || '');
       // COPY PASTES READY TO SEND (2026-11-05, by request): the content team's and performance

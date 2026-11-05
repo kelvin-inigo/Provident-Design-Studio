@@ -1804,5 +1804,3 @@ copy (Arabic typeface, mirrored), Chrome's translator failed in the pane and the
 translated the layout ("Translated 2 lines"); the merged Family card with both chips; the copied
 team-link text and open links. Demo data put back. **Not exercised:** real Chrome's Translator,
 real Drive, a phone-width merged card.
-- **(Same day) Team links on Status list only ct and pm**: the designer's row is gone for every
-  role — that link is the page itself. It is still in CAS's Ad set tab (Links for the teams).

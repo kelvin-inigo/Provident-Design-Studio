@@ -442,8 +442,7 @@ An Arabic copy keeps its English project's look.
 
 A campaign covers every project of one ad set, for each market, audience and language, under
 **one set of links**. The links are in the Ad set tab, under **Links for the teams**, and on the
-ad set's Status page under **Team links** (the content team's and performance marketing's; the
-designer's link is that page itself, and stays in the Ad set tab). There, **Copy** puts a line ready to send on the
+ad set's Status page under **Team links**. There, **Copy** puts a line ready to send on the
 clipboard (`Content Review: <link>` for the content team, `AdSet Overview: <link>` for
 performance marketing), and the button beside it opens that team's view in a new tab.
 
