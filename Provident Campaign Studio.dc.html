@@ -13316,7 +13316,12 @@ class CampaignStudio extends StudioBase {
     if (!b.audSet) {
       const X = this.brCtx();
       if (X && X.aud) {
-        const k = X.aud.toLowerCase().slice(0, 5), i = P.auds.findIndex(a => a.name.toLowerCase().indexOf(k) >= 0);
+        // an unbranded audience ("Family · Unbranded") takes the block that says unbranded first
+        const ub = /unbranded/i.test(X.aud), k = X.aud.toLowerCase().slice(0, 5);
+        const hit = a => a.name.toLowerCase().indexOf(k) >= 0, u = a => /unbrand/i.test(a.name);
+        let i = P.auds.findIndex(a => hit(a) && u(a) === ub);
+        if (i < 0 && ub) i = P.auds.findIndex(u);
+        if (i < 0) i = P.auds.findIndex(hit);
         if (i >= 0) return i;
       }
     }
@@ -18673,6 +18678,8 @@ class Component extends DCLogic {
       shShowUse: view === 'use',
       shShowRev: false,
       shShowAcc: false,
+        // Status's Start the unbranded (provident-rsub) opens the branded project to copy it
+        try { const u = JSON.parse(localStorage.getItem('provident-rsub') || 'null'); if (u && Date.now() - (u.at || 0) < 120000) return true; } catch (e) {}
       shViewAcc: () => StudioBase.goHome('access'),
       shViewAccOn: view === 'acc' ? '1' : undefined,
       shAccOn: acc.admin && acc.pending ? '1' : undefined,

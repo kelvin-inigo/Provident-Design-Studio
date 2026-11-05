@@ -1681,3 +1681,39 @@ phase, not both versions side by side). share-link.js only, Drive ad sets only (
   English for Local · Investor opened CAS with the unbranded look on (`[data-look-host]` on). The
   test project was removed and Brand reset to Branded through `rsset`. **Not on real Google
   Drive**; a branded cell in a mixed set opening branded was not opened separately.
+
+# MIXED, SECOND VERSION: EVERY AUDIENCE CAN ALSO RUN UNBRANDED (2026-11-05)
+
+By request, replacing the per-audience Branded | Unbranded switch from earlier the same day.
+Spec agreed: the unbranded version has its own steps (copy check, Arabic, translation, folder),
+and in a Mixed ad set every audience offers it.
+- **It is an audience of its own, `<aud> · Unbranded`** (`UB`, `isUb`, `ubBase` at the top of
+  share-link.js). So rsAuds, planTodo, the folders (`Market/Family · Unbranded/English`), the
+  copy view, the package and the logs needed no new key. `audOrd` sorts it straight after its
+  branded audience (rsCells, Ad set settings); a twin cell derived from its items inherits the
+  branded cell's Arabic and phases; rsAuds marks it English-only when the branded cell has no
+  Arabic.
+- **`brandOf`**: a `· Unbranded` audience is unbranded, anything else follows `rs.brand`
+  (mixed = branded). Plan cells no longer carry `brand`; Ad set settings has no `.rss-br` rows,
+  no seeding into Mixed, twin names are kept out of the audience chips, and setProd checks the
+  base name. `rsset` no longer logs "opens branded/unbranded".
+- **Status (`detHtml`)**: in a Mixed ad set each branded card (and each planned row) ends with
+  `ubTile` — **Start the unbranded** (`.rvd-ph.rvd-ub`, spans the row) once the English exists,
+  else a quiet "Start the English first". The twin's card header reads "Local · Unbranded /
+  Investor" (`data-ub`).
+- **The copy**: `ubStart(sid, key)` writes `provident-rsub` and opens the branded English
+  project's own link. `rsSet` (every refresh while the key exists) calls `rsUbCheck`, which runs
+  `rsNext(key, {auto: true})` once that project's ad set is loaded. `rsNext`'s new `ubCopy` path:
+  no confirm, the design kept with a new pid, the Copy card's audience choice reset, screen
+  'copy', `rsBrandApply` (look on); rsNextDlg says so. An existing twin in that phase stops it.
+  CAS's home redirect waits while `provident-rsub` is fresh. `brAudIdx` (CAS) prefers a reply
+  block whose name says unbranded for a `· Unbranded` project.
+- **Found while testing:** a `#share=` link does not pass through the init line that runs
+  rsPickCheck, which is why the check sits in rsSet. The Browser pane blocks `window.open`, so
+  the new window was stood in for by writing the key and opening the link in the same tab.
+Verified on the Drive stand-in (Damac Lagoons, Ad Fatigue 01 · Local · Investor made fresh from a
+`#pick`): the placeholder on both branded cards; the copy saved as `Investor · Unbranded · ENG`
+with the look on (unbranded preview, no wordmark or QR); its Status card after the branded one
+with Arabic "Not needed"; Ad set settings with no brand switches and the twin's own tile. Test
+projects, their stand-in files and the brand were put back. **Not exercised:** a real new window
+from Status, real Drive, a twin with Arabic, the Copy card picking an unbranded block.

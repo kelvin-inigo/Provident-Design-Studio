@@ -174,6 +174,13 @@
   const DS_SET = 'Ad set review', DS_FILE = 'Ad set.json', DS_ASSETS = 'Assets', DS_TAIL = '_Adset.json';
   const dsSetName = name => dsSafe(name || 'Ad set') + DS_TAIL;
   const DS_LANG = { ENG: 'English', ARB: 'Arabic' }, DS_FOLDER = 'application/vnd.google-apps.folder';
+  // THE UNBRANDED VERSION OF AN AUDIENCE (2026-11-05). In a Mixed ad set every audience can also
+  // run unbranded, with its own words: that version is an audience of its own, "Family ·
+  // Unbranded", so it has its own steps, Arabic, copy check and Drive folder with no new keys
+  // anywhere. Its first project is a copy of the branded English design on the unbranded look.
+  const UB = ' · Unbranded';
+  const isUb = a => typeof a === 'string' && a.length > UB.length && a.slice(-UB.length) === UB;
+  const ubBase = a => isUb(a) ? a.slice(0, -UB.length) : a;
   const isDs = id => /^[DR][\w.-]{20,}$/.test(String(id || ''));
   const isRsId = id => { id = String(id || ''); return /^[A-Za-z0-9]{16}$/.test(id) || /^R[\w-]+\.[\w-]{20,}$/.test(id); };
   const SHARE_ID = /^(?:[A-Za-z0-9]{8,16}|[DR][\w.-]{20,})$/;
@@ -872,6 +879,24 @@
   }
   // START ONE PLANNED CELL IN A NEW WINDOW (the Status page's placeholders). The window is a
   // new workspace, so the request travels in the address (#pick=…), not in localStorage.
+  // START THE UNBRANDED: the branded English project opens in a new window (its own link), and
+  // once its ad set is loaded there `rsUbCheck` runs the copy — `rsNext` on the "· Unbranded"
+  // audience, which copies the design like Make the Arabic and turns the unbranded look on.
+  const UB_KEY = 'provident-rsub';
+  function ubStart(sid, key) {
+    if (!sid || !key) return;
+    lsSet(UB_KEY, JSON.stringify({ sid, key, at: Date.now() }));
+    window.open(rsLink(sid), '_blank', 'noopener');
+  }
+  SP.rsUbCheck = function (t) {
+    let g = null; try { g = JSON.parse(localStorage.getItem(UB_KEY) || 'null'); } catch (e) {}
+    if (!g || !g.sid || Date.now() - (g.at || 0) > 120000) return;
+    const S = this._sh;
+    if (!(S && S.rs && S.rs.tok && S.id === g.sid)) { if ((t || 0) < 60) setTimeout(() => this.rsUbCheck((t || 0) + 1), 500); return; }
+    if (this._rsNextBusy) return;
+    try { localStorage.removeItem(UB_KEY); } catch (e) {}
+    this.rsNext(g.key, { auto: true });
+  };
   function startCell(dd, cell) {
     const ws = 'p' + Math.random().toString(36).slice(2, 12);
     const q = btoa(unescape(encodeURIComponent(JSON.stringify({ dd, cell }))));
@@ -1125,7 +1150,7 @@
     const rb = ssGet(RS_KEY);
     if (rb && !here(rb)) ssSet(RS_KEY, null);
     else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
-    if (this.shApp() === 'provident-ad-studio') { if (this.rsPickHash()) return; this.rsJoinCheck(); this.rsPickCheck(); setTimeout(() => this.rsFind(), 1500); }
+    if (this.shApp() === 'provident-ad-studio') { if (this.rsPickHash()) return; this.rsJoinCheck(); this.rsPickCheck(); this.rsUbCheck(); setTimeout(() => this.rsFind(), 1500); }
     return false;
   };
   // A PROJECT FINDS ITS OWN AD SET (2026-10-29). A tab can be following an older link of the
@@ -2059,21 +2084,27 @@
   function rsCells(rs) {
     const items = ((rs && rs.items) || []).filter(x => x.market && x.aud), eo = (rs && rs.eng_only) || {};
     const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [], brand: c.brand === 'unbranded' ? 'unbranded' : 'provident' }));
-    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] }); });
+    items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) {
+      // an unbranded version gets the Arabic its branded audience gets
+      const bc = isUb(x.aud) && cells.find(c => c.market === x.market && c.aud === ubBase(x.aud));
+      cells.push(bc ? { market: x.market, aud: x.aud, arb: bc.arb, arbOff: bc.arbOff.slice() } : { market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] });
+    } });
     items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud), p = phOf(rs, x); if (c) { c.arb = true; c.arbOff = c.arbOff.filter(k => k !== p); } } });
     const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
-    return cells.sort((x, y) => (at(x.market) - at(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud)));
+    return cells.sort((x, y) => (at(x.market) - at(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud)));
   }
+  // an audience's place in the list: its product order, its unbranded version straight after it
+  const audOrd = (as, a) => { const i = as.indexOf(ubBase(a)); return (i < 0 ? 99 : i) + (isUb(a) ? .5 : 0); };
   const arbOffOf = c => [...new Set((Array.isArray(c && c.arbOff) ? c.arbOff : []).filter(k => PH_NAME[k]))];
   // does this cell get an Arabic version in phase ph
   const arbIn = (c, ph) => !!(c && c.arb) && arbOffOf(c).indexOf(ph) < 0;
-  // HOW A NEW PROJECT OF THIS AUDIENCE OPENS (2026-11-05): rs.brand is provident | unbranded, or
-  // mixed — then each plan cell says its own (`brand`, branded when it says nothing)
+  // HOW A NEW PROJECT OF THIS AUDIENCE OPENS: rs.brand is provident | unbranded | mixed. Mixed
+  // (2026-11-05, second version): every audience is branded and can ALSO run unbranded, as its
+  // own "· Unbranded" audience — the per-audience switch of the first version is gone.
   const brandOf = (rs, c) => {
+    if (c && isUb(c.aud)) return 'unbranded';
     const b = rs && rs.brand;
-    if (b !== 'mixed') return b === 'unbranded' ? 'unbranded' : 'provident';
-    const pc = c && planCells(planOf(rs)).find(x => x.market === c.market && x.aud === c.aud);
-    return pc && pc.brand === 'unbranded' ? 'unbranded' : 'provident';
+    return b === 'unbranded' ? 'unbranded' : 'provident';
   };
   // what the plan still wants: an English project per cell, an Arabic one where planned
   // (per PHASE: every phase is its own package of the same plan; no phase given = the first)
@@ -2121,8 +2152,8 @@
     const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident' };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : [], d.brand === 'mixed' ? c.brand : '']), d.phases, d.brand]);
-    const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud))); };
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.brand]);
+    const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
     ord();
     const was = sig();
     const el = document.createElement('div');
@@ -2131,7 +2162,7 @@
       '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">Saved on the ad set, for everyone who has its links.</p>' +
       '<div class="rss-q"><label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" autocomplete="off"></label>' +
       '<div class="rsp-f"><span id="rss-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rss-prod-l"></div></div>' +
-      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: each audience picks. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
+      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: every audience is branded and can also run unbranded, with its own words — Start the unbranded on Status copies its branded design. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
       (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div></div>' : '') +
@@ -2148,7 +2179,7 @@
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
       const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
-      const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud));
+      const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => !isUb(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
       $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
@@ -2166,9 +2197,7 @@
           (multi && c.arb ? '<div class="rss-arp" role="group" aria-label="' + esc('Arabic for ' + c.market + ' ' + c.aud + ', by phase') + '"><span>Arabic in</span>' + PHASES.filter(([pk]) => d.phases.indexOf(pk) >= 0).map(([pk, pl]) => {
             const on = arbIn(c, pk), lock = on && has(c.market, c.aud, 'ARB', pk);
             return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div>' : '') +
-          // a mixed ad set: this audience opens branded or unbranded
-          (phOk && d.brand === 'mixed' ? '<div class="rss-br p-tabs" role="radiogroup" aria-label="' + esc('Brand for ' + c.market + ' ' + c.aud) + '">' + [['provident', 'Branded'], ['unbranded', 'Unbranded']].map(([bk, bl]) => {
-            const on = (c.brand || 'provident') === bk; return '<button type="button" role="radio" aria-checked="' + on + '" data-cbr="' + esc(k + '|' + bk) + '"' + (on ? ' data-on="1"' : '') + ' title="' + esc('New ' + c.market + ' · ' + c.aud + ' projects open ' + bl.toLowerCase() + (busy ? '; the ones already made keep their own' : '')) + '">' + bl + '</button>'; }).join('') + '</div>' : '') + '</div>';
+          '</div>';
       }).join('');
     };
     const busyMsg = c => c.market + ' · ' + c.aud + ' already has a project. Move it with Change audience, or remove it, first.';
@@ -2187,10 +2216,10 @@
     };
     const setProd = p => {
       if (p === d.product) return;
-      const na = AUDS[p], busy = cells.find(c => na.indexOf(c.aud) < 0 && has(c.market, c.aud));
+      const na = AUDS[p], busy = cells.find(c => na.indexOf(ubBase(c.aud)) < 0 && has(c.market, c.aud));
       if (busy) return st(busyMsg(busy) + ' ' + (PRODUCT_NAME[p] || p) + ' has no ' + busy.aud + ' audience.');
       const ms = [...new Set(cells.map(c => c.market))];
-      cells = cells.filter(c => na.indexOf(c.aud) >= 0);
+      cells = cells.filter(c => na.indexOf(ubBase(c.aud)) >= 0);
       if (!cells.length) ms.forEach(m => na.forEach(a => cells.push({ market: m, aud: a, arb: false })));
       d.product = p; st(''); ord(); draw();
     };
@@ -2203,12 +2232,7 @@
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.x) return close(null);
         if (b.dataset.prod) return setProd(b.dataset.prod);
-        if (b.dataset.brand) {
-          // into Mixed, every audience starts on the brand the ad set had
-          if (b.dataset.brand === 'mixed' && d.brand !== 'mixed') cells.forEach(c => { c.brand = d.brand; });
-          d.brand = b.dataset.brand; st(''); draw(); return;
-        }
-        if (b.dataset.cbr) { const [m, a, bk] = b.dataset.cbr.split('|'), c = cells.find(x => x.market === m && x.aud === a); if (c) c.brand = bk; st(''); draw(); return; }
+        if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
         if (b.dataset.ph) {
           const k = b.dataset.ph, on = d.phases.indexOf(k) >= 0;
           if (on && d.phases.length === 1) return st('Keep at least one phase.');
@@ -2238,7 +2262,7 @@
           const btns = el.querySelectorAll('.shl-acts button'); btns.forEach(x => { x.disabled = true; }); b.textContent = 'Saving…'; st('');
           try {
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
-              if (off.length) o.arbOff = off; if (d.brand === 'mixed' && c.brand === 'unbranded') o.brand = 'unbranded'; return o; }) };
+              if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
             if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; }
             close(await save(p));
@@ -2261,33 +2285,47 @@
   // Make the next planned audience FROM THIS DESIGN: this project (already in the ad set, and
   // saved there by the link's own sync) stays where it is; the tab becomes a new project — a
   // new pid, the same design and pictures — saved into the next audience's folder.
-  SP.rsNext = async function (key) {
+  SP.rsNext = async function (key, o) {
+    o = o || {};
     const S = this._sh; if (!S || !S.rs || !S.rs.tok || this._rsNextBusy) return;
     const [market, aud, lang, kph] = key.split('|'), dd = S.rs.tok.dd, cur = (S.rs.items || []).find(x => x.sid === S.id);
     const phase = PH_NAME[kph] ? kph : phOf(S.rs, cur), label = phPre(S.rs, { phase }) + market + ' · ' + aud + ' · ' + (lang === 'ARB' ? 'Arabic' : 'English');
     // A NEW AUDIENCE STARTS ON A BLANK CANVAS and takes its words from Claude's reply in the Ad
     // set tab; the ARABIC version is a copy of this design, since it is the same ad translated.
-    const arbCopy = lang === 'ARB';
-    if (!window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic, and its words are translated from the layout with Google Translate.'
+    // The UNBRANDED version of a branded audience (Status's Start the unbranded, `o.auto`) is a
+    // copy too, from that audience's English, on the unbranded look.
+    const arbCopy = lang === 'ARB', ubCopy = !arbCopy && isUb(aud) && !!cur && cur.aud === ubBase(aud);
+    if (ubCopy && (S.rs.items || []).some(x => x.market === market && x.aud === aud && (x.lang || 'ENG') === 'ENG' && phOf(S.rs, x) === phase)) {
+      busyDlg('Already made', '').fail(label + ' already has a project. Open it from Status.'); return;
+    }
+    if (!o.auto && !window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic, and its words are translated from the layout with Google Translate.'
       : 'Create ' + label + '?\n\nThis project stays in the ad set as it is. The tab carries on as a new, blank project — fill its words from the copy in the Ad set tab.')) return;
     this._rsNextBusy = key; this.rvRender(); this.forceUpdate();
     // the Source folder belongs to the project this tab is leaving (see rsNextDlg)
     const FO = window.providentFolder, oldH = FO && FO.supported ? FO.handle : null;
     const oldIt = (S.rs.items || []).find(x => x.sid === S.id) || {};
     try { await this.shSave(); } catch (e) {}
-    const dlg = busyDlg('Making ' + label, arbCopy ? 'A copy of this design is being saved into the ad set as ' + label + '.' : 'A blank project is being saved into the ad set as ' + label + '.');
+    const dlg = busyDlg('Making ' + label, arbCopy ? 'A copy of this design is being saved into the ad set as ' + label + '.'
+      : ubCopy ? 'A copy of this design, on the unbranded look, is being saved into the ad set as ' + label + '. The branded project stays as it is.'
+      : 'A blank project is being saved into the ad set as ' + label + '.');
     try {
       if (isDs(dd)) await window.providentDrive.signIn();
       try { this.recordSaved && await this.recordSaved(); } catch (e) {}
       this.shareStop(false);
       const pid = StudioBase.newPid(), C = this.constructor;
-      if (!arbCopy) {
+      if (!arbCopy && !ubCopy) {
         // blank: the pictures leave the store (the project left behind keeps its own on Drive and
         // in Recent) and the state goes back to the studio's defaults, keeping the campaign name
         const IS = customElements.get('image-slot');
         this.shSlots().forEach(sl => { try { if (IS && IS.clearSlot) IS.clearSlot(sl); } catch (e) {} });
         if (this.brRead) { const b = this.brRead(); b.audSet = false; b.filled = ''; b.page = 0; b.head = 0; b.done = {}; }
         this.upd(x => Object.assign(C.defaults(), { pid, campaign: x.campaign || '', screen: 'copy' }));
+        this.rsBrandApply(S.rs, { market, aud });
+      } else if (ubCopy) {
+        // the same design with a new pid, then the unbranded look; the words stay until the Ad set
+        // tab fills this audience's own copy
+        if (this.brRead) { const b = this.brRead(); b.audSet = false; b.filled = ''; b.page = 0; b.head = 0; b.done = {}; }
+        this.upd(x => { x.pid = pid; x.screen = 'copy'; return x; });
         this.rsBrandApply(S.rs, { market, aud });
       } else this.upd(x => { x.pid = pid; x.font = 'arabic'; return x; });
       // A NEW PROJECT NEVER KEEPS THE OLD PROJECT'S SOURCE FOLDER: binding the new pid while
@@ -2309,7 +2347,7 @@
       }
       this.shareStart(true);
       dlg.close();
-      this.rsNextDlg({ label, arb: arbCopy, oldH, oldIt, newIt: { market, aud, lang, phDir: phase !== phBase(S.rs) ? PH_NAME[phase] : '' } });
+      this.rsNextDlg({ label, arb: arbCopy, ub: ubCopy, oldH, oldIt, newIt: { market, aud, lang, phDir: phase !== phBase(S.rs) ? PH_NAME[phase] : '' } });
     } catch (e) { dlg.fail(e.message || String(e)); }
     this._rsNextBusy = null; try { this.rvRender(); } catch (e) {}
   };
@@ -2419,7 +2457,9 @@
     const lang = DS_LANG[o.newIt.lang] || 'English';
     el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true" aria-labelledby="rnx-t">' +
       '<h2 id="rnx-t">This tab is now ' + esc(o.label) + '</h2>' +
-      '<p class="shl-lead">' + (o.arb ? 'A copy of the design, in the Arabic typeface. The English project stays as it was.' : 'A new, blank project — fill its words from the copy in the Ad set tab.') + '</p>' +
+      '<p class="shl-lead">' + (o.arb ? 'A copy of the design, in the Arabic typeface. The English project stays as it was.'
+        : o.ub ? 'A copy of the branded design, on the unbranded look. The branded project stays as it was. Fill its own words from the copy in the Ad set tab.'
+        : 'A new, blank project — fill its words from the copy in the Ad set tab.') + '</p>' +
       '<div class="rnx-row" data-r="folder"><b>Source folder</b><span class="rnx-st"></span><div class="rnx-act"></div></div>' +
       (o.arb ? '<div class="rnx-row" data-r="tr"><b>Arabic words</b><span class="rnx-st">Translating the layout with Google Translate…</span><div class="rnx-act"><button class="p-btn" type="button" data-a="tr">Translate with Google Translate</button></div></div>' : '') +
       '<div class="shl-acts"><button class="p-ghost" type="button" data-a="close">Done</button></div></div>';
@@ -2508,7 +2548,9 @@
     const cells = out.length ? rsCells(rs) : [];
     out.forEach(a => {
       const cl = cells.find(c => c.market === a.market && c.aud === a.aud);
-      a.engOnly = !!((rs && rs.eng_only) || {})[a.market + '|' + a.aud] || !!(cl && cl.arb && !arbIn(cl, a.phase) && !a.arb);
+      a.engOnly = !!((rs && rs.eng_only) || {})[a.market + '|' + a.aud] || !!(cl && cl.arb && !arbIn(cl, a.phase) && !a.arb)
+        // an unbranded version whose branded audience has no Arabic has none either
+        || !!(isUb(a.aud) && cl && !cl.arb && !a.arb);
       a.phOff = a.engOnly && !!(cl && cl.arb);
       const e = a.eng, r = a.arb;
       const d1 = !!(e && e.design), d2 = !!(e && e.copy), d3 = a.engOnly || !!(r && r.design && r.copy);
@@ -2665,6 +2707,9 @@
   SP.rsItem = function () { const S = this._sh; return S && S.rs ? (S.rs.items || []).find(x => x.sid === S.id) || null : null; };
   SP.rsSet = function (rs, role) {
     const S = this._sh; if (!S || rs === undefined) return;
+    // Status's Start the unbranded opened this tab on the branded project: copy it once it is
+    // loaded (a resumed tab already holds its ad set, so this runs on every refresh; it is one read)
+    if (rs && localStorage.getItem(UB_KEY)) setTimeout(() => this.rsUbCheck(99), 300);
     if (role !== undefined && role !== S.role) S.role = role || 'edit';
     if (canon(rs) === canon(S.rs)) return;
     const was = S.rs;
@@ -4328,6 +4373,7 @@
     if (a === 'phnew') {
       const rs = this.det && this.det.rs, k = t.dataset.ph; if (!rs || !PH_NAME[k]) return;
       t.disabled = true; t.textContent = 'Adding…';
+    if (a === 'startub') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'); ubStart(t.dataset.sid, [market, aud, lang, phase].join('|')); return; }
       try { await api('rsset', { id: this.sel }, { by, phases: phList(rs).concat(k) }); this.phMenu = false; (this.phTabs || (this.phTabs = {}))[this.sel] = k; again(); }
       catch (er) { t.disabled = false; t.textContent = PH_NAME[k]; window.alert(er.message || String(er)); }
       return;
@@ -4553,7 +4599,7 @@
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const cells = rsCells(rs);
     const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste the copy">' +
-      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (brandOf(rs, { market, aud }) === 'unbranded' ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
+      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (isUb(aud) ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
       if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
@@ -4569,17 +4615,25 @@
     };
     const audRows = auds.map(a => {
       const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
-      return '<li class="rvd-au"' + (a.done ? ' data-done="1"' : '') + '><div class="rvd-auh">' +
-        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(a.aud || a.label) + '</b></span>' +
+      return '<li class="rvd-au"' + (a.done ? ' data-done="1"' : '') + (isUb(a.aud) ? ' data-ub="1"' : '') + '><div class="rvd-auh">' +
+        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market + (isUb(a.aud) ? ' · Unbranded' : '')) + '</s>' : '') + '<b>' + esc(ubBase(a.aud) || a.label) + '</b></span>' +
         '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span></div>' +
-        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + '</div></li>';
+        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div></li>';
+    // A MIXED AD SET: every branded audience can also run unbranded. Until it does, the card ends
+    // on one placeholder that copies its English design (in a new window) onto the unbranded look
+    const ubTile = a => {
+      if (rs.brand !== 'mixed' || !a.market || isUb(a.aud) || auds.some(x => x.market === a.market && x.aud === a.aud + UB)) return '';
+      if (!a.eng) return '<div class="rva-lt rvd-ub" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Unbranded</b><s>Start the English first — the unbranded version is a copy of its design</s></span></div>';
+      return '<button type="button" class="rvd-ph rvd-ub" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + UB + '|ENG|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design, on the unbranded look, as ' + esc(a.market + ' · ' + a.aud + UB) + '">' +
+        '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the unbranded</b><s>Copies this English design onto the unbranded look · its own copy, check and Arabic</s></span>' + ico('ext') + '</button>';
+    };
     }).join('');
     // planned in Ad set settings, no project yet: a row each at the foot, both languages as placeholders
     const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
     const planRows = todoA.map(c => '<li class="rvd-au" data-plan="1"><div class="rvd-auh">' +
       '<span class="rvd-aun"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></span>' +
       '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>' + (phs.length > 1 ? 'No ' + esc(PH_NAME[tab]) + ' project yet' : 'Planned in Ad set settings — no project yet') + '</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
-      '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (arbIn(c, tab) ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(PH_NAME[tab]) : 'Not needed for this audience') + '</s></span></div>') + '</div></li>').join('');
+      '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (arbIn(c, tab) ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(PH_NAME[tab]) : 'Not needed for this audience') + '</s></span></div>') + ubTile({ market: c.market, aud: c.aud, eng: null }) + '</div></li>').join('');
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(PH_NAME[tab]) + ' audiences' : 'Audiences') + ' <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
@@ -6513,6 +6567,9 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-ph>.rva-i{flex:none;width:16px;height:16px;fill:var(--ps-dim)}
 .rvd-ph .rva-lt-t s{white-space:normal}
 .rvd-au[data-plan]{background:none;box-shadow:inset 0 0 0 1px var(--ps-line)}
+/* a mixed ad set's unbranded version: one placeholder across the foot of the branded card */
+.rvd-ub{grid-column:1 / -1}
+.rvd-au[data-ub] .rvd-aun s{color:var(--ps-ink-2)}
 .rvd-card .rva-fl{box-sizing:border-box;min-width:0}
 @container (max-width:1000px){.rvd-cols{grid-template-columns:minmax(0,1fr)}}
 @container (max-width:760px){
