@@ -1386,9 +1386,14 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     if (started) return; started = true;
     // the mounted pages refresh themselves while they are in the document (CAS every 20 s, OPS
     // every 45 s); each read writes the queue, and the page re-draws from it
-    if (sees('cas') && window.providentReviews) window.providentReviews.mount(CAS_ENG);
-    if (sees('ops') && window.providentPostStatus) window.providentPostStatus.mount(OPS_ENG);
-    refreshAll(false);
+    // opened on an item's page (a link, a reload): that page reads first, and the list and the
+    // queue's background read wait a few seconds rather than queue in front of it (2026-11-05)
+    var it0 = /^#\/item\/(cas|ops)\/(.+)$/.exec(location.hash);
+    if (it0 && it0[1] === 'cas' && window.providentReviews) window.providentReviews.want = decodeURIComponent(it0[2]);
+    function mountCas(){ if (sees('cas') && window.providentReviews) window.providentReviews.mount(CAS_ENG); }
+    function mountOps(){ if (sees('ops') && window.providentPostStatus) window.providentPostStatus.mount(OPS_ENG); }
+    if (!it0) { mountCas(); mountOps(); refreshAll(false); }
+    else { (it0[1] === 'cas' ? mountCas : mountOps)(); setTimeout(function(){ (it0[1] === 'cas' ? mountOps : mountCas)(); refreshAll(false); }, 4000); }
     tick = setInterval(function(){ if (document.visibilityState === 'visible') refreshAll(false); }, 60000);
   }
   // Launch marks every finished phase of the ad set live (share-link.js op rslaunch, logged as the
@@ -1476,7 +1481,8 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     Promise.resolve(K && K.dsGate ? K.dsGate('Read your campaigns and posts on Google Drive') : window.providentDrive && window.providentDrive.signIn()).then(function(ok){ if (ok !== false) refreshAll(true); });
   }
   function openItem(s, id){
-    if (s === 'cas' && window.providentReviews) { var A = window.providentReviews; A.mount(CAS_ENG); A.want = id; A.mount(CAS_ENG); }
+    // the ad set is named before the view is made: a view made first reads the whole list first
+    if (s === 'cas' && window.providentReviews) { var A = window.providentReviews; A.want = id; A.mount(CAS_ENG); }
     if (s === 'ops' && window.providentPostStatus) { var P = window.providentPostStatus; P.mount(OPS_ENG); P.want = id; P.mount(OPS_ENG); }
   }
   function mountPlan(){ if (window.providentPlan) window.providentPlan.mount(CAS_ENG); }

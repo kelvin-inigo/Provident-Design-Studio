@@ -1753,3 +1753,26 @@ opened full size before its render showed the 2160 x 2160 export; CT fetched onl
 project's photos. No console errors. **Not measured on real Google Drive or the live site** (the
 live link asked to renew a Google session). Left: the page itself (~1 s to the window), and the
 same photo is a separate Drive file per slot, so a project downloads it more than once.
+
+# AN AD SET'S STATUS PAGE OPENS AT ONCE (2026-11-05)
+
+Reported as "status detail screen is loading slow". On the Drive stand-in (200 ms per request,
+the seeded campaigns plus a four-project one), a cold open of `#/item/cas/<id>` took 2.0 s to
+draw anything past "Reading the ad set…":
+- **the whole Status list read first.** index.html's `openItem` mounted the view and only then set
+  `want`, so `ArchView` started on `load()` (discovery plus every ad set and every project file),
+  and `startWork` also mounted OPS's post list (which `dsFlush`es the cache) and ran `refreshAll`.
+  Now `want` is set before the view is made; the constructor opens that ad set and reads the
+  list after it (`load(true)`); on an item page `startWork` mounts that page's studio only and the
+  other studio plus `refreshAll` 4 s later.
+- **the same files were downloaded twice**, by the list and the page at once. `dsRead` now shares
+  a read already on its way (`DSI`, by id; a fast read may share a careful one, not the reverse;
+  `fresh === true` — the writes — never shares).
+- **the page waited for the slowest read.** `AV.open` draws at once from the ad set's card on
+  the list (this page's, or `provident-status-list`) as `part`: name, steps, audiences; the
+  activity says "Reading…" and the project lines leave out "Untitled" until the full read lands.
+
+Cold open: drawn 0.05 s, complete 0.77 s (2.0 s), 10 Drive requests instead of ~50 before it.
+From the board: drawn at once, complete 0.6 s (blank until 0.5 s before). Back, the board, an
+OPS post's page opened cold — all checked; no console errors. Not measured on real Google Drive;
+over HTTP/2 the remaining wait is about two Drive round trips.

@@ -312,7 +312,19 @@
   // pair new metadata with old content, so an entry read that way is never trusted by a
   // non-fast read (a save, a step, the preview writer): those read it again the careful way.
   // `fresh` 'warm': a link opening reads what the ad set's own read fetched a moment ago (15s)
-  async function dsRead(id, fresh, fast) {
+  // A read that may use the cache also shares one already on its way: Status's list and an ad
+  // set's page read the same project files at the same moment, and each was downloaded twice.
+  // A fast read can share a careful one, never the other way round.
+  const DSI = {};
+  function dsRead(id, fresh, fast) {
+    if (fresh === true) return dsRead1(id, fresh, fast);
+    const run = DSI[id + '|c'] || (fast && DSI[id + '|f']);
+    if (run) return run;
+    const k = id + (fast ? '|f' : '|c'), p = DSI[k] = dsRead1(id, fresh, fast);
+    p.then(() => { if (DSI[k] === p) delete DSI[k]; }, () => { if (DSI[k] === p) delete DSI[k]; });
+    return p;
+  }
+  async function dsRead1(id, fresh, fast) {
     const c0 = DSC[id], c = c0 && (fast || !c0.fast) ? c0 : null;
     if (c && Date.now() - c.at < (fresh === 'warm' ? 15000 : fresh ? 0 : 1500)) return c.d;
     for (let tries = 0; ; tries++) {
@@ -4164,9 +4176,11 @@
       else { const a = Arch.list(); if (!a.some(x => x.id === m[1])) { a.unshift({ id: m[1], name: '', at: Date.now() }); Arch.save(a); } }
       inp.value = ''; this.err = ''; this.load();
     });
-    this.load();
-    // opened from the designer's link: straight to that ad set's page
-    if (Arch.want) { const w = Arch.want; Arch.want = null; this.open(w); }
+    // opened from the designer's link (or a reload on an ad set's page): straight to that ad
+    // set's page, and the whole list only after it — read together, the list's dozens of Drive
+    // reads queued in front of the page's own (2026-11-05)
+    if (Arch.want) { const w = Arch.want; Arch.want = null; this.open(w).then(() => this.load(true)); }
+    else this.load();
   }
   const AV = ArchView.prototype;
   // A TICKET is an ad set nobody has picked up yet: it holds the brief and no project.
@@ -4340,7 +4354,11 @@
     if (this.el && document.body.contains(this.el)) { if (this.sel) this.open(this.sel, true); else this.load(true); }
   };
   AV.open = async function (id, quiet) {
-    this.sel = id; if (!quiet) { this.det = null; this.draw(); }
+    // THE PAGE DRAWS AT ONCE (2026-11-05) from the ad set's card on the list (this page's, or the
+    // one kept on this computer) — name, audiences and steps; `part` until the full read lands
+    // with the previews, the brief's files and the activity
+    const known = id => { const x = (this.items || (listCache() || {}).items || []).find(y => y && y.id === id && y.rs); return x ? Object.assign({}, x, { part: true }) : null; };
+    this.sel = id; if (!quiet) { this.det = known(id); this.draw(); }
     try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); this.healPaint([this.det]); }
     catch (e) { if (!quiet) this.det = { id, error: e.message || String(e), auth: !!e.gdAuth }; }
     if (this.sel === id) this.draw();
@@ -4617,7 +4635,7 @@
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
-        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || 'Untitled') + '</s><u><i></i>' + itState(it) + '</u></span>' + ico('ext') + '</button>' +
+        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u></span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
           : '<span class="rva-pja"><button type="button" class="rva-lkb" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
             (it.copy ? '' : '<button type="button" class="rva-lkb" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
@@ -4645,8 +4663,8 @@
       '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>' + (phs.length > 1 ? 'No ' + esc(PH_NAME[tab]) + ' project yet' : 'Planned in Ad set settings — no project yet') + '</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
       '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (arbIn(c, tab) ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(PH_NAME[tab]) : 'Not needed for this audience') + '</s></span></div>') + ubTile({ market: c.market, aud: c.aud, eng: null }) + '</div></li>').join('');
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(PH_NAME[tab]) + ' audiences' : 'Audiences') + ' <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
-    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + log.length + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
-      : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
+    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
+      : '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     // the designer's link opens the whole ad set: only designers (and the admin) are given it

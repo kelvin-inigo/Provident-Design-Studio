@@ -550,3 +550,10 @@ the admin previews a role the Access tab goes too; the banner's End preview is t
 "Pick up where you left off" desk reads `designs()` instead of `studiosFor()`, so the content team
 and PM no longer see this computer's saved projects. Verified on the stand-in: CT and PM Home ·
 Status; SMM + Projects; admin all four.
+
+## An item page reads first (2026-11-05)
+
+Opened on `#/item/<cas|ops>/<id>` (a link, a reload), `startWork` names the CAS ad set
+(`providentReviews.want`) before mounting, mounts only that page's studio, and mounts the other
+plus `refreshAll(false)` 4 s later; `openItem` sets `want` before `mount` (mounting first started
+the whole list). Detail in reviews-sharing-drive.md, "AN AD SET'S STATUS PAGE OPENS AT ONCE".
