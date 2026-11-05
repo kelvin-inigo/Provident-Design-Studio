@@ -557,3 +557,19 @@ Opened on `#/item/<cas|ops>/<id>` (a link, a reload), `startWork` names the CAS 
 (`providentReviews.want`) before mounting, mounts only that page's studio, and mounts the other
 plus `refreshAll(false)` 4 s later; `openItem` sets `want` before `mount` (mounting first started
 the whole list). Detail in reviews-sharing-drive.md, "AN AD SET'S STATUS PAGE OPENS AT ONCE".
+
+# FOUR FIXES ON THE HOME (2026-11-05, by request with marked-up screenshots)
+
+- **The role preview is one quiet line** (`#pv` > `.pv-in`, /impeccable): an eye (`g-eye`, new
+  symbol), "Viewing as" with the person's initials, name and a role chip, the warning "A step you
+  press here is really taken" (the old sentence is its tooltip), and **End preview** (with an x)
+  at the end. The page ground with a hairline under it replaces the navy slab; under 720px the
+  warning and role chip drop. A role-only preview shows the role's name in place of a person.
+- **Status board cards wrap a long name**: `.cd-n` is min-width 0, the title breaks at its
+  underscores (`<wbr>` after each) and anywhere else, and stops at three lines; the full name is
+  its tooltip. "Carousel_Prism_GoldenVisa_5in5" used to run past the card.
+- **A ready post's files (`viewFiles`) are the desk's cards** (`.fz-*` restyled after `.rc`):
+  the render whole at its own shape on top, its size and file name under it (the name clamped to
+  two lines), the ring over both, a compact Download at the foot, five across like Projects.
+  Checked with stand-in images (the stand-in's posts have no exported files).
+- The OPS post page's back link is post-flow.js's (see ops-posts-and-hub.md).

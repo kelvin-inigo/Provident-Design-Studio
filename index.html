@@ -306,15 +306,21 @@ button{font-family:inherit}
 .fz-h .h2{margin-top:8px}
 .fz-acts{display:flex; flex-wrap:wrap; align-items:center; gap:10px}
 .fz-wait{font:400 14px/1.5 var(--ps-font); color:var(--ps-ink-2)}
-.fz-g{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:16px; margin:0; padding:0; list-style:none}
-.fz-c{display:flex; flex-direction:column; gap:12px; padding:12px; border-radius:16px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair)}
-.fz-th{display:grid; place-items:center; aspect-ratio:3/4; border-radius:10px; background:var(--ps-fill); overflow:hidden}
-.fz-th img{width:100%; height:100%; object-fit:contain}
-.fz-th img:not([src]){visibility:hidden}
-.fz-t{display:grid; gap:2px; min-width:0}
-.fz-t b{font:500 14px/1.3 var(--ps-font); color:var(--ps-ink)}
-.fz-t small{font:400 12.5px/1.35 var(--ps-font); color:var(--ps-ink-2); overflow-wrap:anywhere}
-.fz-c .b{align-self:flex-start}
+/* a ready post's images take the desk's cards (2026-11-05, by request): the render whole on top,
+   its size and file under it in the card, the ring drawn over both, Download at the foot */
+.fz-g{--n:5; --g:16px; display:grid; align-items:start; gap:22px var(--g); margin:0; padding:0; list-style:none;
+  grid-template-columns:repeat(auto-fill, minmax(max(160px, (100% - (var(--n) - 1) * var(--g)) / var(--n)), 1fr))}
+.fz-c{position:relative; display:flex; flex-direction:column; border-radius:12px; overflow:hidden; background:var(--ps-card); transition:transform 320ms cubic-bezier(.16,1,.3,1)}
+.fz-c::after{content:''; position:absolute; inset:0; border-radius:inherit; box-shadow:inset 0 0 0 1px var(--ps-hair); pointer-events:none}
+.fz-c:hover{transform:translateY(-2px)} .fz-c:hover::after{box-shadow:inset 0 0 0 1px var(--ps-line)}
+.fz-th{display:block}
+.fz-th img{display:block; width:100%; height:auto}
+.fz-th img:not([src]){aspect-ratio:3/4; background:var(--ps-fill)}
+.fz-t{display:block; min-width:0}
+.fz-t b{display:block; margin:12px 14px 0; font:500 14px/1.3 var(--ps-font); color:var(--ps-ink)}
+.fz-t small{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin:5px 14px 0; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-dim); overflow-wrap:anywhere}
+.fz-c .b{position:relative; z-index:1; align-self:flex-start; height:32px; margin:12px 14px 14px; padding:0 13px 0 10px; font-size:13px}
+@media (max-width:640px){ .fz-g{--n:2; --g:12px; grid-template-columns:repeat(2, minmax(0,1fr)); row-gap:18px} }
 
 /* ═════ STATUS: one board, both studios ═════ */
 .sx-head{display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px 24px; margin-bottom:24px}
@@ -343,7 +349,9 @@ button{font-family:inherit}
 .cd:hover{box-shadow:inset 0 0 0 1px var(--ps-line); transform:translateY(-1px)}
 .cd-g{display:grid; grid-template-columns:auto minmax(0,1fr); gap:12px; align-items:start}
 .cd .th{align-self:start}
-.cd b{display:block; margin-top:6px; font:500 14px/1.3 var(--ps-font); color:var(--ps-ink); text-wrap:pretty}
+.cd-n{min-width:0}
+/* a long name wraps (at its underscores first) and stops at three lines, never past the card */
+.cd b{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-top:6px; font:500 14px/1.3 var(--ps-font); color:var(--ps-ink); text-wrap:pretty; overflow-wrap:anywhere}
 .cd-st{display:flex; align-items:center; gap:8px; margin-top:8px; font:400 12.5px/1.2 var(--ps-font); color:var(--ps-ink-2)}
 .cd-ft{display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; box-shadow:0 -1px 0 var(--ps-hair)}
 .cd-ft .due{margin-left:auto; font-size:12.5px}
@@ -667,11 +675,22 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
 .gt-busy i{width:18px; height:18px; border-radius:50%; box-shadow:inset 0 0 0 2px var(--ps-line); border-top:2px solid var(--ps-ink); box-sizing:border-box; animation:gt-r 900ms linear infinite}
 @keyframes gt-r{to{transform:rotate(360deg)}}
 /* PREVIEW AS: the admin sees the home as a role sees it, under a bar that says so */
-.pv{display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding:10px 32px; background:var(--ps-fill-on); color:var(--ps-ink); font:400 14px/1.3 var(--ps-font)}
-.pv b{font-weight:600}
-.pv .sp{flex:1}
-.pv button{height:32px; padding:0 14px; border:0; border-radius:var(--ps-pill); background:var(--ps-card); color:var(--ps-ink); font:600 13px/1 var(--ps-font); cursor:pointer}
-.pv button:hover{box-shadow:inset 0 0 0 1px var(--ps-line)}
+/* THE ROLE PREVIEW (2026-11-05, /impeccable): one quiet line under the header, not a navy slab:
+   an eye, "Viewing as" the person and their role, the one warning, and End preview at the end */
+.pv{background:var(--ps-app); box-shadow:0 1px 0 var(--ps-hair)}
+.pv-in{display:flex; align-items:center; gap:10px 14px; max-width:1320px; margin:0 auto; padding:10px 32px; box-sizing:border-box; font:400 13.5px/1.3 var(--ps-font); color:var(--ps-ink-2)}
+.pv-ic{display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--ps-fill-on); color:var(--ps-ink); flex:none}
+.pv-ic svg.i{width:16px; height:16px}
+.pv-t{display:inline-flex; align-items:center; gap:8px; min-width:0; flex:none; max-width:60%}
+.pv-t .uh-av{width:22px; height:22px; font-size:10px; flex:none}
+.pv-t b{font-weight:500; color:var(--ps-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pv-r{padding:4px 9px; border-radius:var(--ps-pill); background:var(--ps-fill); font:500 12px/1 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap}
+.pv-n{flex:1 1 auto; min-width:0; color:var(--ps-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.pv button{display:inline-flex; align-items:center; gap:6px; height:32px; margin-left:auto; padding:0 14px 0 10px; border:0; border-radius:var(--ps-pill); background:var(--ps-fill); color:var(--ps-ink); font:600 13px/1 var(--ps-font); cursor:pointer; flex:none}
+.pv button svg.i{width:15px; height:15px}
+.pv button:hover{background:var(--ps-fill-h)}
+.pv button:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+@media (max-width:720px){ .pv-in{padding:10px 16px} .pv-n{display:none} .pv-r{display:none} }
 /* NEW CAMPAIGN: CAS's setup form, given a page — a title, the form in one card, and beside it how
    a campaign moves from here */
 .np{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:28px 40px; align-items:start}
@@ -733,6 +752,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
 <symbol id="g-out" viewBox="0 0 24 24"><path d="M14 5h5v5M19 5l-8 8M17 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 4 18.5v-10A1.5 1.5 0 0 1 5.5 7H10"/></symbol>
 <symbol id="g-folder" viewBox="0 0 24 24"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/></symbol>
 <symbol id="g-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
+<symbol id="g-eye" viewBox="0 0 24 24"><path d="M2.75 12S6.25 5.75 12 5.75 21.25 12 21.25 12 17.75 18.25 12 18.25 2.75 12 2.75 12z"/><circle cx="12" cy="12" r="2.75"/></symbol>
 <symbol id="g-file" viewBox="0 0 24 24"><path d="M13.5 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8.5z"/><path d="M13.5 3.5v5h5"/></symbol>
 <symbol id="g-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5L19 4M16 7l2.5 2.5M14 9l2 2"/></symbol>
 </defs>
@@ -1208,7 +1228,7 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
       return '<section class="col" id="col-' + s.k + '" aria-label="' + s.n + '"><div class="col-h"><i style="--c:' + s.c + '"></i>' + s.n + (late ? '<span class="col-late">' + late + ' overdue</span>' : '') + '<small>' + c.length + '</small></div>' +
         '<span class="col-who">' + esc(whoOf(s)) + '</span>' +
         (c.length ? '<ul class="cds">' + c.map(function(x){
-          return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span>' + mkOf(x) + '<b>' + esc(x.name) + '</b></span></span>' +
+          return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span class="cd-n">' + mkOf(x) + '<b title="' + esc(x.name) + '">' + esc(x.name).replace(/_/g, '_<wbr>') + '</b></span></span>' +
             '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
             '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + esc(initials(x.from)) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + dueEl(x) + '</span></a></li>';
         }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + (sxF !== 'all' || sxMine || sxQ ? ' for this filter' : '') + '.</p>') + '</section>';
@@ -1286,7 +1306,12 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
     var pv = acc && acc.now && phase === 'in' ? acc.now().preview : null, pb = $('pv');
     pb.hidden = !pv || nav === 'gate';
     var pw = pv && acc.now().previewWho;
-    if (pv) pb.innerHTML = '<span>Previewing the home as <b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? ' (' + esc(ROLE[pv] || pv) + ')' : '') + ' \u2014 ' + (pw ? 'what waits on them, ' : 'their queue, ') + 'board, New and Access. Nothing here changes their account, but a step you press is really taken.</span><span class="sp"></span><button type="button" data-endpv>End preview</button>';
+    // ONE QUIET LINE (2026-11-05, /impeccable): who you are seeing the home as, their role, the one
+    // thing to know, and the way out, under the header on the page's own gutter
+    if (pv) pb.innerHTML = '<div class="pv-in"><span class="pv-ic">' + ico('eye') + '</span>' +
+      '<span class="pv-t">Viewing as ' + (pw ? '<span class="uh-av" data-sm>' + esc(initials(pw.name || pw.email)) + '</span>' : '') + '<b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? '<span class="pv-r">' + esc(ROLE[pv] || pv) + '</span>' : '') + '</span>' +
+      '<span class="pv-n" title="' + (pw ? 'What waits on them, ' : 'Their queue, ') + 'board, New and Access. Nothing here changes their account.">A step you press here is really taken</span>' +
+      '<button type="button" data-endpv>' + ico('x') + 'End preview</button></div>';
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     // ONLY THE PAGES A ROLE USES (2026-11-04, by request): Projects is for people who design,
     // Access is the admin's (everyone else's role and sign-out are in the account menu)

@@ -3898,3 +3898,13 @@ lines (the one `drawImage` is `hasClear`'s 64px probe canvas).
 
 **Pictures already in a project are not re-cut.** An overlap stored before this fix keeps its
 background; the row now flags it, and Replace cuts it out.
+
+# THE COPY CHECK SHOWS EACH VARIANT'S FEED 1:1 (2026-11-05, by request)
+The Ad sets window's text editor (the content team's copy check, and anyone's Edit text) lists
+every exported size of every variant beside the words. It now shows each variant's **Feed 1:1**
+alone (`sk === 'sq'`; a variant with no 1:1 shows its first size), with a line above the
+previews: "Feed 1:1 of each variant · N more sizes" and **Show all sizes** / **Feed 1:1 only**
+(`_aeAll`, instance state). The variant header reads "Feed · 1 of 4" while sizes are hidden. All
+sizes still render and save as before; only the display is filtered. **Not exercised in the
+browser** (it needs a real ad set's content-team link; the stand-in's demo projects have no
+files); the script block parses.

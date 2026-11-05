@@ -669,3 +669,8 @@ By request, from annotated screenshots of the live site previewed as Jerry (SMM)
   `.map(row)`, so `row(x, index)` treated every row after the first as an "other" row — no button
   and no "from". Now `map(function(x){ return row(x); })`. Verified on the stand-in as Layla: two
   rows, each Open the files / Posted; Posted on the second removed it (3 → 2 waiting).
+
+# THE POST PAGE'S BACK BUTTON (2026-11-05)
+By request: "‹ All posts" (a `pf-a` text link) is now the ad set page's button — `p-ghost
+ps-back` with the same Material back arrow (`BACK_D`, copied from share-link.js's `back`) and the
+same 32px pill and spacing as `.rva-back`. Both renderings in `PS` (loading and loaded) use it.

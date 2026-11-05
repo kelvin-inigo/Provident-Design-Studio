@@ -38,6 +38,8 @@
 
   // the studio's icons: Material Symbols Rounded at wght300, the same paths the archive uses
   const ADD_D = 'M450-450H250q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q237.25-510 250-510h200v-200q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-722.75 510-710v200h200q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q722.75-450 710-450H510v200q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-237.25 450-250v-200Z';
+  // the back arrow of the ad set page's "All campaigns" (share-link.js), for the post page's own
+  const BACK_D = 'm294.92-450 206.77 206.77q8.92 8.92 8.81 20.88-.12 11.96-9.42 21.27-9.31 8.69-21.08 9-11.77.31-21.08-9L205.31-454.69q-5.62-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.3-6.23 7.92-11.85l253.61-253.61q8.31-8.31 20.58-8.5 12.27-.19 21.58 8.5 9.3 9.31 9.3 21.38 0 12.08-9.3 21.39L294.92-510H750q12.77 0 21.38 8.62Q780-492.77 780-480t-8.62 21.38Q762.77-450 750-450H294.92Z';
   const ico = k => k === 'add' ? '<svg class="pf-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + ADD_D + '"/></svg>' : (K.PICO[k] || '').replace('<svg ', '<svg class="pf-i" ');
   const POST_TAIL = '_Post.json', POST_DIR = 'Organic posts';
   // the team's shared Drive folder that holds 'Offplan 2025' and 'Offplan 2026'; 'Organic posts'
@@ -903,7 +905,7 @@
   };
   StatusView.prototype.detHtml = function () {
     const d = this.det, x = d.e;
-    if (!x) return '<div class="ps"><button type="button" class="pf-a ps-back" data-ps="back">‹ All posts</button><div class="ps-load"><i></i><i></i></div></div>';
+    if (!x) return '<div class="ps"><button type="button" class="p-ghost ps-back" data-ps="back"><svg class="pf-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + BACK_D + '"/></svg>All posts</button><div class="ps-load"><i></i><i></i></div></div>';
     const rs = x.rs, st = stage(rs), it = st.it, t = rs.ticket || {}, a = acts(rs), sid = it && it.sid;
     // the content team never opens the OPS editor; at Copy check the page carries the check itself
     const ct = isCt(), cc = ct && st.k === 2 && !!sid;
@@ -919,7 +921,7 @@
     }).slice(0, 60);
     const line = e => { const c = e.changes || []; return c.map(y => y.text || ((y.label || y.page || '') + (y.now ? ': ' + clip(y.now, 70) : ''))).filter(Boolean).slice(0, 3).join(' · ') + (c.length > 3 ? ' · +' + (c.length - 3) + ' more' : ''); };
     return '<div class="ps ps-det"' + (cc ? ' data-cc' : '') + '>' +
-      '<button type="button" class="pf-a ps-back" data-ps="back">‹ All posts</button>' +
+      '<button type="button" class="p-ghost ps-back" data-ps="back"><svg class="pf-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + BACK_D + '"/></svg>All posts</button>' +
       '<header class="psd-h"><span class="psd-th">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</span>' +
         '<div class="psd-t"><span class="pf-k">Organic post' + (t.deadline ? ' · due ' + esc(dueDay(t.deadline)) : '') + '</span><h2>' + esc(rs.name || 'Post') + '</h2>' +
         '<p>Started by ' + esc(rs.by || 'someone') + ' · ' + esc(day(rs.created)) + (x.mod ? ' · changed ' + esc(ago(x.mod)) : '') + '</p>' +
@@ -1150,7 +1152,7 @@
 .ps-load{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.ps-load i{height:180px;border-radius:16px;background:var(--ps-fill);animation:psPulse 1.4s ease-in-out infinite}
 @keyframes psPulse{50%{opacity:.5}}
 @media (prefers-reduced-motion:reduce){.ps-load i{animation:none}}
-.ps-back{display:inline-block;margin:0 0 16px}
+.ps-back{display:inline-flex;align-items:center;gap:6px;height:32px;margin:0 0 20px;padding:0 14px 0 10px}
 .psd-h{display:grid;grid-template-columns:96px minmax(0,1fr);gap:20px;align-items:start;margin:0 0 24px}
 .psd-th{display:block;width:96px;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--ps-fill)}.psd-th img{width:100%;height:100%;object-fit:cover;display:block}
 .psd-t h2{margin:2px 0 6px;font:500 28px/1.2 var(--ps-font);letter-spacing:-.01em}

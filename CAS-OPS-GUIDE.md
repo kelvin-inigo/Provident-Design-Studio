@@ -204,7 +204,8 @@ from Google the first time they do. The admin can still change or remove anyone 
   manager, Content team · English, Content team · Arabic, Performance marketing) to see the home and
   studios as that role does, or **a person** (everyone let in, listed by name and role) to see
   exactly what waits on them — their Status, their "Waits on you", and in OPS the view they get
-  (for the content team, the copy check). The bar says who you are previewing; **End preview** or
+  (for the content team, the copy check). A line under the top bar says **Viewing as** that person
+  and their role; **End preview** at its end or
   **Back to Access** ends it. Nothing changes their account, but a step you press (Approve copy,
   Send…) is really taken.
 - A content-team member who opens a link while signed in with Google sees only their language's
@@ -459,8 +460,9 @@ steps: **Design › ENG copy check › Translation › Done**.
    Clicking the status opens the Ad set tab. The editor's bar has no Campaign ads | Organic posts
    switch: to work in the other studio, go back to the home page.
 4. **ENG copy check.** The content team opens their link and picks a project on the left. Its
-   words are beside every image, which update as they type, and the designer sees the change
-   within seconds. **Approve English copy** in the panel signs it off.
+   words are beside each variant's Feed 1:1, which updates as they type, and the designer sees the
+   change within seconds. **Show all sizes** above the previews brings in every other size
+   (**Feed 1:1 only** goes back). **Approve English copy** in the panel signs it off.
 5. **Translation.** The designer adds the Arabic project for that audience, lays it out and presses
    **Send for translation check**. The content team checks it and presses **Approve translation**. If an
    audience needs no Arabic, the designer ticks **No Arabic for this audience** and the step is
