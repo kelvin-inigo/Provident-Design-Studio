@@ -891,7 +891,8 @@
   }
   // START ONE PLANNED CELL IN A NEW WINDOW (the Status page's placeholders). The window is a
   // new workspace, so the request travels in the address (#pick=…), not in localStorage.
-  // START THE UNBRANDED: the branded English project opens in a new window (its own link), and
+  // START THE UNBRANDED (and, the same way, START THE ARABIC once the English exists): the English
+  // project opens in a new window (its own link), and
   // once its ad set is loaded there `rsUbCheck` runs the copy — `rsNext` on the "· Unbranded"
   // audience, which copies the design like Make the Arabic and turns the unbranded look on.
   const UB_KEY = 'provident-rsub';
@@ -2306,8 +2307,9 @@
     // set tab; the ARABIC version is a copy of this design, since it is the same ad translated.
     // The UNBRANDED version of a branded audience (Status's Start the unbranded, `o.auto`) is a
     // copy too, from that audience's English, on the unbranded look.
+    if (o.auto && lang === 'ARB' && !(cur && cur.market === market && cur.aud === aud)) return;
     const arbCopy = lang === 'ARB', ubCopy = !arbCopy && isUb(aud) && !!cur && cur.aud === ubBase(aud);
-    if (ubCopy && (S.rs.items || []).some(x => x.market === market && x.aud === aud && (x.lang || 'ENG') === 'ENG' && phOf(S.rs, x) === phase)) {
+    if ((ubCopy || (arbCopy && o.auto)) && (S.rs.items || []).some(x => x.market === market && x.aud === aud && (x.lang || 'ENG') === lang && phOf(S.rs, x) === phase)) {
       busyDlg('Already made', '').fail(label + ' already has a project. Open it from Status.'); return;
     }
     if (!o.auto && !window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic, and its words are translated from the layout with Google Translate.'
@@ -2397,7 +2399,20 @@
   // Google's translation model on the device — no key, no account, nothing sent anywhere. The
   // first use downloads the English→Arabic model once. It is a starting point: the content team
   // checks the Arabic at the translation step.
+  // WHEN CHROME HAS NO TRANSLATOR (Safari, an iPad, an embedded browser, or one that never
+  // answers — 2026-11-05): Google Translate's own web service, one line at a time. This one does
+  // send the words to Google, which is what was asked for ("google translate").
+  const AR_WEB = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=';
+  const arWeb = { translate: async t => {
+    const r = await fetch(AR_WEB + encodeURIComponent(t));
+    if (!r.ok) throw new Error('Google Translate did not answer (' + r.status + '). Try again, or translate the words by hand.');
+    const j = await r.json();
+    return ((j && j[0]) || []).map(x => (x && x[0]) || '').join('') || t;
+  }, destroy() {} };
   async function arTranslator(onProg) {
+    try { return await arChrome(onProg); } catch (e) { return arWeb; }
+  }
+  async function arChrome(onProg) {
     const T = self.Translator;
     if (!T || !T.create) throw new Error('This browser has no built-in Google Translate. Use Chrome 138 or later on a computer, or translate the words by hand.');
     const lim = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r('timeout'), ms))]);
@@ -4629,6 +4644,11 @@
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (isUb(aud) ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
+      // START THE ARABIC once the English exists (2026-11-05, by request): the English project opens
+      // in a new window and a copy of its design becomes the Arabic — the Arabic layout on and the
+      // words through Google Translate — the same as its own Make the Arabic (`startub` → rsNext)
+      if (cl && lang === 'Arabic' && arbIn(cl, tab) && !a.engOnly && a.eng) return '<button type="button" class="rvd-ph" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + '|ARB|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design as the Arabic, laid out right to left, its words through Google Translate">' +
+        '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the Arabic</b><s>Copies the English · Arabic layout · Google Translate</s></span>' + ico('ext') + '</button>';
       if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
       if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.phOff ? 'Not needed in ' + esc(PH_NAME[tab]) : a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
@@ -4648,12 +4668,21 @@
       return '<button type="button" class="rvd-ph rvd-ub" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + UB + '|ENG|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design, on the unbranded look, as ' + esc(a.market + ' · ' + a.aud + UB) + '">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the unbranded</b><s>Copies this English design onto the unbranded look · its own copy, check and Arabic</s></span>' + ico('ext') + '</button>';
     };
-    const audRows = auds.map(a => {
+    // ONE CARD PER AUDIENCE (2026-11-05, by request): in a mixed ad set the unbranded version sits
+    // in its branded audience's card as a second part, each part tagged Branded or Unbranded on the
+    // right; its own steps, tiles and links are unchanged
+    const twinOf = a => !isUb(a.aud) && a.market ? auds.find(x => x.market === a.market && x.aud === a.aud + UB) : null;
+    const brChip = a => rs.brand === 'mixed' && a.market ? '<span class="rvd-brc"' + (isUb(a.aud) ? ' data-ub="1"' : '') + '>' + (isUb(a.aud) ? 'Unbranded' : 'Branded') + '</span>' : '';
+    const part = (a, sub) => {
       const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
-      return '<li class="rvd-au"' + (a.done ? ' data-done="1"' : '') + (isUb(a.aud) ? ' data-ub="1"' : '') + '><div class="rvd-auh">' +
-        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market + (isUb(a.aud) ? ' · Unbranded' : '')) + '</s>' : '') + '<b>' + esc(ubBase(a.aud) || a.label) + '</b></span>' +
-        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span></div>' +
-        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div></li>';
+      return '<div class="rvd-auh">' +
+        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(ubBase(a.aud) || a.label) + '</b></span>' +
+        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span>' + brChip(a) + '</div>' +
+        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div>';
+    };
+    const audRows = auds.filter(a => !(isUb(a.aud) && auds.some(x => x.market === a.market && x.aud === ubBase(a.aud)))).map(a => {
+      const tw = twinOf(a), done = a.done && (!tw || tw.done);
+      return '<li class="rvd-au"' + (done ? ' data-done="1"' : '') + (rs.brand === 'mixed' ? ' data-mx="1"' : '') + '>' + part(a) + (tw ? '<div class="rvd-tw">' + part(tw) + '</div>' : '') + '</li>';
     }).join('');
     // planned in Ad set settings, no project yet: a row each at the foot, both languages as placeholders
     const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
@@ -4666,12 +4695,18 @@
       : '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
+    const LSAY = { ct: 'Content Review', pm: 'AdSet Overview' };
     // the designer's link opens the whole ad set: only designers (and the admin) are given it
     const lr = accRole(), rows = !lr || lr === 'designer' || lr === 'admin' ? LINK_ROWS : LINK_ROWS.filter(([r]) => r !== 'dd');
     const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + rows.map(([r, who, what]) => {
       const link = rsLink((rs.tok || {})[r] || '');
-      return '<li title="' + esc(what) + '"><span class="rvd-lki">' + ico(r) + '</span><span class="rvd-lkt"><b>' + who + '</b><s>' + LSHORT[r] + '</s></span>' +
-        '<button type="button" class="p-ghost rvd-cp" data-copy="' + esc(link) + '" title="' + esc(link) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy</span></button></li>';
+      // COPY PASTES READY TO SEND (2026-11-05, by request): the content team's and performance
+      // marketing's links go out as "Content Review: <link>" / "AdSet Overview: <link>"; each also
+      // opens in a new tab, to see the ad set as that team does
+      const say = LSAY[r] ? LSAY[r] + ': ' + link : link;
+      return '<li title="' + esc(what) + '"><span class="rvd-lki">' + ico(r) + '</span><span class="rvd-lkt"><b>' + who + '</b><s>' + LSHORT[r] + '</s></span><span class="rvd-lka">' +
+        (LSAY[r] ? '<a class="p-ghost rvd-op" href="' + esc(link) + '" target="_blank" rel="noopener" title="Opens the ' + esc(who.toLowerCase()) + ' view in a new tab" aria-label="Open the ' + esc(who.toLowerCase()) + ' view">' + ico('ext') + '</a>' : '') +
+        '<button type="button" class="p-ghost rvd-cp" data-copy="' + esc(say) + '" title="' + esc(say) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy</span></button></span></li>';
     }).join('') + '</ul></section>';
     const mk = [...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ');
     const facts = [['Product', esc(PRODUCT_NAME[rs.product] || '')], ['Phases', esc(phs.map(k => PH_NAME[k]).join(', '))], ['Markets', esc(mk)], ['Projects', (rs.items || []).length + ' across ' + allAuds.length + (allAuds.length === 1 ? ' audience' : ' audiences')],
@@ -4711,7 +4746,10 @@
   // a project's market, audience and language, edited in place
   AV.relabHtml = function (it, rs) {
     const opt = (v, l, on) => '<option value="' + esc(v) + '"' + (on ? ' selected' : '') + '>' + esc(l) + '</option>';
-    const auds = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'];
+    // a mixed ad set (or an unbranded project) also lists each audience's unbranded version, so
+    // moving an unbranded project keeps it unbranded
+    const base = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'];
+    const auds = rs.brand === 'mixed' || isUb(it.aud) ? base.flatMap(a => [a, a + UB]) : base;
     return '<span class="rva-rl" data-sid="' + esc(it.sid) + '">' +
       '<select class="p-in" data-f="market" aria-label="Market">' + MARKETS.map(m => opt(m, m, m === (it.market || MARKETS[0]))).join('') + '</select>' +
       '<select class="p-in" data-f="aud" aria-label="Audience">' + auds.map(a => opt(a, a, a === it.aud)).join('') + '</select>' +
@@ -6583,6 +6621,9 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-lkt b{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
 .rvd-lkt s{text-decoration:none;font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
 .rvd-cp{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;white-space:nowrap}
+.rvd-lka{display:inline-flex;align-items:center;gap:6px}
+.rvd-op{display:inline-grid;place-items:center;width:32px;height:32px;padding:0;text-decoration:none}
+.rvd-op .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
 .rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
 .rvd-card .rva-sub{margin-top:-8px}
@@ -6590,7 +6631,11 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-ph:hover{background:var(--ps-fill)}
 /* a mixed ad set's unbranded version: one placeholder across the foot of the branded card */
 .rvd-ub{grid-column:1 / -1}
-.rvd-au[data-ub] .rvd-aun s{color:var(--ps-ink-2)}
+/* ...and once made, the second part of that card: a hairline, its own head and tiles */
+.rvd-tw{margin-top:18px;padding-top:18px;border-top:1px solid var(--ps-line)}
+.rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(120px,200px) minmax(0,1fr) auto}
+.rvd-brc{align-self:start;justify-self:end;padding:5px 10px;border-radius:var(--ps-pill);background:var(--ps-fill-on);color:var(--ps-ink);font:500 12px/1 var(--ps-font);white-space:nowrap}
+.rvd-brc[data-ub]{background:var(--ps-fill);color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-ph:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-phi{flex:none;display:grid;place-items:center;width:44px;height:55px;border-radius:8px;background:var(--ps-fill)}
 .rvd-phi .rva-i{width:20px;height:20px;fill:var(--ps-ink-2)}
@@ -6603,7 +6648,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
   .rvd-hb{flex-wrap:wrap;gap:16px;padding:20px}.rvd-th{width:72px;height:72px}.rvd-ht{flex-basis:calc(100% - 88px)}.rvd-ht h2{font-size:23px}
   .rvd-ha{max-width:none;width:100%;justify-content:flex-start}.rvd-hs{padding:20px}
   .rvd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}.rvd-steps b{font-size:24px}
-  .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
+  .rvd-auh,.rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-brc{justify-self:start}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
 }
 /* OPEN A SHARED PROJECT (2026-10-30, /impeccable): the project is the title, what it is in sits
    above it as one quiet line, and loading is three steps — each done, running with its own count

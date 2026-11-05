@@ -377,10 +377,13 @@ Investor:
 #### The Arabic copy
 
 An Arabic project takes no pasted copy. Its words are the English layout's, translated by Google
-Translate (built into Chrome, on the computer). That runs by itself when **Make the Arabic** makes
-the project; the Ad set tab's **Arabic copy** card has **Translate the layout to Arabic** to run it
-again after the layout changed. Undo puts the English back. The content team checks the Arabic at
-the translation step.
+Translate: Chrome's own translator on the computer, or, where a browser has none (Safari, an
+iPad), Google Translate's web service. That runs by itself when **Make the Arabic** makes the
+project, and when **Start the Arabic** is pressed on Status once the audience's English exists:
+the English project opens in a new window and a copy of its design becomes the Arabic, laid out
+right to left and translated, with no question asked. The Ad set tab's **Arabic copy** card has
+**Translate the layout to Arabic** to run it again after the layout changed. Undo puts the
+English back. The content team checks the Arabic at the translation step.
 
 When every audience is done, performance marketing downloads the package from their link. Once
 the ads are running, they press **Launch** on the home's Next up card (or on its row under Also waiting on you): the campaign reads
@@ -427,8 +430,9 @@ run unbranded, with its own words:
 - Each audience card on Status ends with **Start the unbranded**. Press it once the audience's
   English exists: the English project opens in a new window and a copy of its design is saved
   on the unbranded look as its own audience, for example **Local · Family · Unbranded**.
-- That unbranded version has its own card, steps, copy check, Arabic (when its branded audience
-  has one) and Drive folder (`Local/Family · Unbranded/English`), in every phase.
+- That unbranded version has its own steps, copy check, Arabic (when its branded audience has
+  one) and Drive folder (`Local/Family · Unbranded/English`), in every phase. On Status it sits in
+  its audience's card, under the branded part; each part is tagged **Branded** or **Unbranded**.
 - Its words: give it its own block in the Copy card, named for it (`Family unbranded:`). An
   unbranded project picks the block whose name says unbranded.
 
@@ -437,7 +441,10 @@ An Arabic copy keeps its English project's look.
 ### The roles, and the four steps of each audience
 
 A campaign covers every project of one ad set, for each market, audience and language, under
-**one set of links**. The links are in the Ad set tab, under **Links for the teams**.
+**one set of links**. The links are in the Ad set tab, under **Links for the teams**, and on the
+ad set's Status page under **Team links**. There, **Copy** puts a line ready to send on the
+clipboard (`Content Review: <link>` for the content team, `AdSet Overview: <link>` for
+performance marketing), and the button beside it opens that team's view in a new tab.
 
 | who | the link opens | they can |
 |---|---|---|

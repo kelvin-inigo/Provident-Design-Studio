@@ -1776,3 +1776,31 @@ Cold open: drawn 0.05 s, complete 0.77 s (2.0 s), 10 Drive requests instead of ~
 From the board: drawn at once, complete 0.6 s (blank until 0.5 s before). Back, the board, an
 OPS post's page opened cold — all checked; no console errors. Not measured on real Google Drive;
 over HTTP/2 the remaining wait is about two Drive round trips.
+
+# STATUS: START THE ARABIC COPIES THE ENGLISH; ONE CARD PER AUDIENCE; TEAM LINKS (2026-11-05)
+
+All by request, on the ad set's Status page (`detHtml`).
+- **Start the Arabic, once the English exists,** is `data-a="startub"` with the cell
+  `market|aud|ARB|phase` and the English sid — the Start the unbranded hand-off. In the English
+  project's tab `rsUbCheck` runs `rsNext(key, {auto: true})`: the `arbCopy` path (no confirm,
+  `font: 'arabic'`, so the Arabic mirror), and `rsNextDlg` starts the translation at once. An auto
+  ARB run only proceeds from that audience's own English, and stops if the Arabic exists. Before
+  the English exists the placeholder is the old blank `startcell`.
+- **Translation fallback** (`arTranslator`): Chrome's Translator API first (`arChrome`); on any
+  failure (none, unavailable, no answer in 10/20s) `arWeb` — Google Translate's web endpoint
+  (`translate.googleapis.com/translate_a/single?client=gtx`, CORS-open), one line at a time.
+  That one sends the words to Google. Found because the Browser pane's Translator never answers.
+- **One card per audience**: `part(a)` draws a head and tiles; an unbranded twin is drawn inside
+  its branded audience's `li` (`.rvd-tw`, hairline above) and not on its own. In a mixed ad set
+  each head ends with `.rvd-brc` — Branded (navy tint) / Unbranded (outline); `data-mx` widens
+  the head grid to three columns (one column under the breakpoint).
+- **Team links**: Copy puts `Content Review: <link>` / `AdSet Overview: <link>` (`LSAY`) on the
+  clipboard for ct / pm (the designer's stays the bare link), and an icon link (`.rvd-op`) opens
+  that view in a new tab.
+- **Change audience** (`relabHtml`) lists each audience's `· Unbranded` version in a mixed ad set
+  or for an unbranded project, so moving one no longer makes it branded.
+Verified on the stand-in: Start the Arabic from a fresh Ad Fatigue 01 English made the Arabic
+copy (Arabic typeface, mirrored), Chrome's translator failed in the pane and the web fallback
+translated the layout ("Translated 2 lines"); the merged Family card with both chips; the copied
+team-link text and open links. Demo data put back. **Not exercised:** real Chrome's Translator,
+real Drive, a phone-width merged card.
