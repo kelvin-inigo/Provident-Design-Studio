@@ -1657,3 +1657,27 @@ By request, from annotated screenshots of the live site previewed as Dennis (PM)
 - **The content team too (same day, by request):** `pmV` in `AV.detHtml` is `pm` or `ct`, so CT's
   campaign page has no Audiences or Team links either; its header keeps **Check the copy**
   (new tab). On the home, `tgt(x)` adds `target="_blank"` to a CT's campaign link (Next up and rows).
+
+# MIXED BRAND, PER AUDIENCE (2026-11-05)
+
+By request ("mix branded and non branded" in one ad set); asked and chosen: per audience (not per
+phase, not both versions side by side). share-link.js only, Drive ad sets only (as Brand is).
+- **`rs.brand` may be `mixed`**; then a plan cell's `brand: 'unbranded'` makes that market ×
+  audience open unbranded (absent = branded). **`brandOf(rs, cell)` is the one answer**; it reads
+  the plan, not `rsCells`. `SP.rsBrandApply(rs, cell)` takes the cell: `rsPickCheck` passes
+  `next`, `rsNext`'s blank path `{market, aud}`. The Arabic copy still keeps the English look.
+- **dsApi `rsset`** accepts `brand: 'mixed'` (logged "Mixed the ad set's brand…"), keeps a cell's
+  `brand`, and logs "<cell> opens unbranded / branded" while mixed.
+- **Ad set settings**: Brand is Branded | Unbranded | **Mixed**; going into Mixed seeds every cell
+  with the brand the ad set had; each tile gets a `.rss-br` Branded | Unbranded `p-tabs` row
+  (`data-cbr="market|aud|brand"`); save writes `brand` on unbranded cells only while mixed. The
+  settings tiles now top-align (`align-content:flex-start`) — they stretch to the tallest in a row.
+- **Status**: in a mixed ad set an English Start placeholder's line begins "Branded · " /
+  "Unbranded · ". The Provident / Unbranded / Mixed chip still reads each project's own look.
+- **Not done**: Home's New › A campaign setup still offers Branded | Unbranded only (its tiles are
+  per audience across markets, not per cell) — set Mixed in Ad set settings after filing.
+- Verified on the Drive stand-in (Damac Lagoons): real clicks set Mixed and Local · Investor
+  Unbranded, saved and logged; Ad Fatigue 01's placeholders read Branded / Unbranded; its Start the
+  English for Local · Investor opened CAS with the unbranded look on (`[data-look-host]` on). The
+  test project was removed and Brand reset to Branded through `rsset`. **Not on real Google
+  Drive**; a branded cell in a mixed set opening branded was not opened separately.

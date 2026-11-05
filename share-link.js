@@ -469,7 +469,7 @@
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
       if (R.role !== 'dd' && !isPost(R.rs)) throw dsFail(403, 'Only the designer changes the ad set.');
       const rs = R.rs, by = dsWho(body.by), chg = [];
-      const cellsWas = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [] }));
+      const cellsWas = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [], brand: c.brand === 'unbranded' ? 'unbranded' : 'provident' }));
       if ('name' in body && String(body.name || '').trim()) {
         const nm = String(body.name).trim().slice(0, 120);
         if (rs.name && nm !== rs.name) chg.push('Renamed the campaign to “' + nm + '”');
@@ -480,7 +480,7 @@
       if (body.eng_only && typeof body.eng_only === 'object') { rs.eng_only = rs.eng_only || {}; Object.keys(body.eng_only).slice(0, 40).forEach(k => { if (body.eng_only[k]) rs.eng_only[k] = true; else delete rs.eng_only[k]; }); }
       // the designer's settings, from the Ad set tab: the planned audiences and their Arabic
       if (Array.isArray(body.plan)) {
-        rs.plan = planCells(body.plan).slice(0, 40).map(c => { const o = { market: String(c.market), aud: String(c.aud), arb: !!c.arb }, off = c.arb ? arbOffOf(c) : []; if (off.length) o.arbOff = off; return o; });
+        rs.plan = planCells(body.plan).slice(0, 40).map(c => { const o = { market: String(c.market), aud: String(c.aud), arb: !!c.arb }, off = c.arb ? arbOffOf(c) : []; if (off.length) o.arbOff = off; if (c.brand === 'unbranded') o.brand = 'unbranded'; return o; });
         rs.eng_only = rs.eng_only || {};
         rs.plan.forEach(c => { const k = c.market + '|' + c.aud; if (c.arb) delete rs.eng_only[k]; else rs.eng_only[k] = true; });
         // the settings say what moved, in the ad set's own log
@@ -489,6 +489,7 @@
           if (c.arb) { const off = arbOffOf(c), was = o && o.arb ? o.arbOff : [], nm = l => l.map(k => PH_NAME[k]).join(', ');
             const dr = off.filter(k => was.indexOf(k) < 0), ad = o && o.arb ? was.filter(k => off.indexOf(k) < 0) : [];
             if (dr.length) chg.push(key(c) + ': no Arabic in ' + nm(dr)); if (ad.length) chg.push(key(c) + ': Arabic again in ' + nm(ad)); }
+          if (o && (body.brand || rs.brand) === 'mixed' && o.brand !== (c.brand === 'unbranded' ? 'unbranded' : 'provident')) chg.push(key(c) + (c.brand === 'unbranded' ? ' opens unbranded' : ' opens branded'));
           delete old[key(c)]; });
         Object.keys(old).forEach(k => chg.push('Dropped ' + k));
       }
@@ -518,8 +519,8 @@
         want.filter(k => was.indexOf(k) < 0).forEach(k => chg.push('Added the ' + PH_NAME[k] + ' phase'));
         was.filter(k => want.indexOf(k) < 0).forEach(k => chg.push('Dropped the ' + PH_NAME[k] + ' phase'));
       }
-      if (body.brand === 'provident' || body.brand === 'unbranded') {
-        if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : 'Made the ad set branded — new projects open with the Provident brand');
+      if (body.brand === 'provident' || body.brand === 'unbranded' || body.brand === 'mixed') {
+        if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : body.brand === 'mixed' ? 'Mixed the ad set’s brand — each audience opens branded or unbranded' : 'Made the ad set branded — new projects open with the Provident brand');
         rs.brand = body.brand;
       }
       // Claude's reply, kept on the ad set so every audience (and every designer) fills from it
@@ -886,9 +887,9 @@
     if (this.newProject) this.newProject();
     return true;
   };
-  // A new project in an unbranded ad set opens on the unbranded look (CAS's look strip, closed)
-  SP.rsBrandApply = function (rs) {
-    if (!rs || rs.brand !== 'unbranded' || !this.lookToggle || (this.state.look && this.state.look.on)) return;
+  // A new project of an unbranded audience opens on the unbranded look (CAS's look strip, closed)
+  SP.rsBrandApply = function (rs, cell) {
+    if (!rs || brandOf(rs, cell) !== 'unbranded' || !this.lookToggle || (this.state.look && this.state.look.on)) return;
     this.lookToggle(true);
     const S = this._lookStrip; if (S) { S.open = false; S.sync(); }
   };
@@ -913,7 +914,7 @@
     const dlg = busyDlg('Setting up ' + label, 'This project becomes ' + label + ' in ' + (rs.name || 'the campaign') + '.');
     try {
       this.upd(x => { x.campaign = rs.name || x.campaign; x.screen = 'copy'; if (arb) x.font = 'arabic'; return x; });
-      this.rsBrandApply(rs);
+      this.rsBrandApply(rs, next);
       await new Promise(r => setTimeout(r, 60));
       const out = await this.dsReview(dlg, { mode: 'add', by: StudioBase.shareName() || 'Someone', dd: g.dd, market: next.market, aud: next.aud, lang: next.lang || 'ENG', phase: next.phase });
       Arch.add(out.tok.dd, out.name, out.product, true);
@@ -2057,7 +2058,7 @@
   // audience, and `arbOff` the phases that skip it (2026-11-04: a fatigue round may need no Arabic).
   function rsCells(rs) {
     const items = ((rs && rs.items) || []).filter(x => x.market && x.aud), eo = (rs && rs.eng_only) || {};
-    const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [] }));
+    const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [], brand: c.brand === 'unbranded' ? 'unbranded' : 'provident' }));
     items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) cells.push({ market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] }); });
     items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud), p = phOf(rs, x); if (c) { c.arb = true; c.arbOff = c.arbOff.filter(k => k !== p); } } });
     const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
@@ -2066,6 +2067,14 @@
   const arbOffOf = c => [...new Set((Array.isArray(c && c.arbOff) ? c.arbOff : []).filter(k => PH_NAME[k]))];
   // does this cell get an Arabic version in phase ph
   const arbIn = (c, ph) => !!(c && c.arb) && arbOffOf(c).indexOf(ph) < 0;
+  // HOW A NEW PROJECT OF THIS AUDIENCE OPENS (2026-11-05): rs.brand is provident | unbranded, or
+  // mixed — then each plan cell says its own (`brand`, branded when it says nothing)
+  const brandOf = (rs, c) => {
+    const b = rs && rs.brand;
+    if (b !== 'mixed') return b === 'unbranded' ? 'unbranded' : 'provident';
+    const pc = c && planCells(planOf(rs)).find(x => x.market === c.market && x.aud === c.aud);
+    return pc && pc.brand === 'unbranded' ? 'unbranded' : 'provident';
+  };
   // what the plan still wants: an English project per cell, an Arabic one where planned
   // (per PHASE: every phase is its own package of the same plan; no phase given = the first)
   function planTodo(rs, ph) {
@@ -2109,10 +2118,10 @@
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' ? 'unbranded' : 'provident' };
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident' };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.brand]);
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : [], d.brand === 'mixed' ? c.brand : '']), d.phases, d.brand]);
     const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (as.indexOf(x.aud) - as.indexOf(y.aud))); };
     ord();
     const was = sig();
@@ -2122,7 +2131,7 @@
       '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">Saved on the ad set, for everyone who has its links.</p>' +
       '<div class="rss-q"><label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" autocomplete="off"></label>' +
       '<div class="rsp-f"><span id="rss-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rss-prod-l"></div></div>' +
-      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
+      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: each audience picks. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
       (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div></div>' : '') +
@@ -2138,7 +2147,7 @@
       const tab = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.product === k) + '" data-prod="' + k + '"' + (d.product === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
       const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
-      if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded');
+      if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
@@ -2156,7 +2165,10 @@
           // more than one phase: which of them get the Arabic (a fatigue round may not)
           (multi && c.arb ? '<div class="rss-arp" role="group" aria-label="' + esc('Arabic for ' + c.market + ' ' + c.aud + ', by phase') + '"><span>Arabic in</span>' + PHASES.filter(([pk]) => d.phases.indexOf(pk) >= 0).map(([pk, pl]) => {
             const on = arbIn(c, pk), lock = on && has(c.market, c.aud, 'ARB', pk);
-            return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div>' : '') + '</div>';
+            return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div>' : '') +
+          // a mixed ad set: this audience opens branded or unbranded
+          (phOk && d.brand === 'mixed' ? '<div class="rss-br p-tabs" role="radiogroup" aria-label="' + esc('Brand for ' + c.market + ' ' + c.aud) + '">' + [['provident', 'Branded'], ['unbranded', 'Unbranded']].map(([bk, bl]) => {
+            const on = (c.brand || 'provident') === bk; return '<button type="button" role="radio" aria-checked="' + on + '" data-cbr="' + esc(k + '|' + bk) + '"' + (on ? ' data-on="1"' : '') + ' title="' + esc('New ' + c.market + ' · ' + c.aud + ' projects open ' + bl.toLowerCase() + (busy ? '; the ones already made keep their own' : '')) + '">' + bl + '</button>'; }).join('') + '</div>' : '') + '</div>';
       }).join('');
     };
     const busyMsg = c => c.market + ' · ' + c.aud + ' already has a project. Move it with Change audience, or remove it, first.';
@@ -2191,7 +2203,12 @@
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.x) return close(null);
         if (b.dataset.prod) return setProd(b.dataset.prod);
-        if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
+        if (b.dataset.brand) {
+          // into Mixed, every audience starts on the brand the ad set had
+          if (b.dataset.brand === 'mixed' && d.brand !== 'mixed') cells.forEach(c => { c.brand = d.brand; });
+          d.brand = b.dataset.brand; st(''); draw(); return;
+        }
+        if (b.dataset.cbr) { const [m, a, bk] = b.dataset.cbr.split('|'), c = cells.find(x => x.market === m && x.aud === a); if (c) c.brand = bk; st(''); draw(); return; }
         if (b.dataset.ph) {
           const k = b.dataset.ph, on = d.phases.indexOf(k) >= 0;
           if (on && d.phases.length === 1) return st('Keep at least one phase.');
@@ -2221,7 +2238,7 @@
           const btns = el.querySelectorAll('.shl-acts button'); btns.forEach(x => { x.disabled = true; }); b.textContent = 'Saving…'; st('');
           try {
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
-              if (off.length) o.arbOff = off; return o; }) };
+              if (off.length) o.arbOff = off; if (d.brand === 'mixed' && c.brand === 'unbranded') o.brand = 'unbranded'; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
             if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; }
             close(await save(p));
@@ -2271,7 +2288,7 @@
         this.shSlots().forEach(sl => { try { if (IS && IS.clearSlot) IS.clearSlot(sl); } catch (e) {} });
         if (this.brRead) { const b = this.brRead(); b.audSet = false; b.filled = ''; b.page = 0; b.head = 0; b.done = {}; }
         this.upd(x => Object.assign(C.defaults(), { pid, campaign: x.campaign || '', screen: 'copy' }));
-        this.rsBrandApply(S.rs);
+        this.rsBrandApply(S.rs, { market, aud });
       } else this.upd(x => { x.pid = pid; x.font = 'arabic'; return x; });
       // A NEW PROJECT NEVER KEEPS THE OLD PROJECT'S SOURCE FOLDER: binding the new pid while
       // the tab still held the English folder saved that folder as the Arabic project's own,
@@ -4515,7 +4532,7 @@
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const cells = rsCells(rs);
     const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste Claude’s reply">' +
-      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
+      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (brandOf(rs, { market, aud }) === 'unbranded' ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
       if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
@@ -6294,12 +6311,14 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rss-ph .rsp-n{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim)}
 .rss .rsp-more{padding:14px}
 .rss-has{font:italic 400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
-.rss .rsp-tile{flex-wrap:wrap}
+.rss .rsp-tile{flex-wrap:wrap;align-content:flex-start}
 .rss-arp{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--ps-hair)}
 .rss-arp>span{font:500 11px/1 var(--ps-font);letter-spacing:.06em;text-transform:uppercase;color:var(--ps-dim);margin-right:2px}
 .rss-arp .rsp-t{height:28px;padding:0 10px;font-size:12px}
 .rss-arp .rsp-t[aria-pressed="true"]{padding-left:7px}
 .rss-arp .rsp-t svg{width:14px;height:14px}
+.rss-br{flex:1 1 100%}
+.rss-br button{height:28px;font-size:12px}
 .rss .shl-st{margin:0;min-height:0}
 .rss .shl-st:empty{display:none}
 .rss .shl-acts{margin-top:0}

@@ -377,6 +377,12 @@ how each new project opens. An **unbranded** ad set opens every new project on t
 no wordmark or QR code, with its own colours and fonts (see *Unbranded ads*). Projects already made
 keep what they have; switch them with the Provident | Unbranded switch over the stage.
 
+To mix them in one ad set, pick **Mixed** under **Brand** in **Ad set settings**. Each audience
+tile then has its own **Branded | Unbranded** switch (for example, Local · Family branded and
+International · Investor unbranded), and every phase follows it. The audience's **Start the
+English** button on Status says which way it will open. An Arabic copy keeps its English
+project's look.
+
 ### The roles, and the four steps of each audience
 
 A campaign covers every project of one ad set, for each market, audience and language, under
