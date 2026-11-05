@@ -4976,6 +4976,51 @@ html.lk-open .p-lkcv{transform:none}
 .adt-tip{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:auto;margin-left:6px;border-radius:50%;background:var(--ps-fill);color:var(--ps-ink-2);font:600 10.5px/1 var(--ps-font);cursor:help}
 .adt-reply .adt-ch h3{margin:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink-2)}
 .adt-msg{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:12px 14px;border-radius:12px;background:var(--ps-good-q);font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink)}
+/* THE COPY CARD (2026-11-05, /impeccable). Paste zone, the order it is read in, then the
+   audience tabs over a preview that sets each line the way its part reads on the ad, and the
+   fill beside the prune switch. An Arabic project shows one action instead: translate the
+   layout. Chrome tokens only. */
+.adt-reply{gap:14px}
+.adt-reply textarea.cw-pz{min-height:176px;padding:14px 16px;font:400 14px/1.6 var(--ps-font);border-radius:14px}
+.adt-reply textarea.cw-pz::placeholder{color:var(--ps-dim)}
+.cw-key{display:flex;flex-direction:column;gap:10px;margin-top:-2px}
+.cw-key p{margin:0;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2);max-width:64ch}
+.cw-key p b{font-weight:500;color:var(--ps-ink)}
+.cw-key ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;counter-reset:cwk}
+.cw-key li{counter-increment:cwk;display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px 0 5px;border-radius:var(--ps-pill);
+  background:var(--ps-fill);font:500 12.5px/1 var(--ps-font);color:var(--ps-ink)}
+.cw-key li::before{content:counter(cwk);display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ps-card);
+  font:600 11px/1 var(--ps-font);color:var(--ps-ink-2)}
+.cw-key li s{text-decoration:none;font-weight:400;color:var(--ps-ink-2)}
+.cw-lay{display:flex;flex-direction:column;gap:10px}
+.cw-lay-l{list-style:none;margin:0;padding:0;border-radius:14px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.cw-lay-l li{display:grid;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:baseline;padding:13px 16px;border-top:1px solid var(--ps-hair)}
+.cw-lay-l li:first-child{border-top:0}
+.cw-lay-k{font:500 12px/1.45 var(--ps-font);color:var(--ps-dim)}
+.cw-lay-v{min-width:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink);white-space:pre-line;overflow-wrap:anywhere}
+.cw-lay-l li[data-k="eyebrow"] .cw-lay-v{font:500 12.5px/1.45 var(--ps-font);letter-spacing:.03em;color:var(--ps-ink-2)}
+.cw-lay-l li[data-k="hero"] .cw-lay-v{font:400 19px/1.3 var(--ps-font);letter-spacing:-.01em;text-wrap:balance}
+.cw-lay-l li[data-k="tags"],.cw-lay-l li[data-k="spec"],.cw-lay-l li[data-k="cta"]{align-items:center}
+.cw-lay-l li[data-k="tags"] .cw-lay-v,.cw-lay-l li[data-k="spec"] .cw-lay-v{display:flex;flex-wrap:wrap;gap:6px}
+.cw-lay-l li[data-k="cta"] .cw-lay-v{justify-self:start;display:inline-flex;align-items:center;min-height:32px;padding:0 16px;border-radius:var(--ps-pill);
+  box-shadow:inset 0 0 0 1px var(--ps-line);font:600 13px/1.2 var(--ps-font);letter-spacing:.16px}
+.cw-lay-chip{font-style:normal;display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:var(--ps-pill);background:var(--ps-fill);
+  font:400 13px/1 var(--ps-font);color:var(--ps-ink)}
+.cw-lay-fact{font-style:normal;display:inline-flex;flex-direction:column;gap:3px;padding:7px 12px;border-radius:10px;background:var(--ps-fill);
+  font:500 13px/1.25 var(--ps-font);color:var(--ps-ink)}
+.cw-lay-fact s{text-decoration:none;font:400 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.cw-lay-fact s:empty{display:none}
+.cw-lay-go{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;padding-top:2px}
+.cw-lay-go .p-btn{flex:none}
+.cw-lay-go .cw-br-prune{flex:1 1 240px;width:auto;padding:0}
+.adt-reply .cw-hint{margin:-4px 0 0}
+.adt-reply .cw-hint:empty{display:none}
+.cw-ar-p{margin:0;font:400 14px/1.55 var(--ps-font);color:var(--ps-ink-2);max-width:62ch}
+.cw-ar-go{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap}
+.cw-ar-st{font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.cw-ar-st[data-bad]{color:var(--ps-bad)}
+.cw-ar-st:empty{display:none}
+@media (max-width:560px){.cw-lay-l li{grid-template-columns:1fr;gap:6px}}
 .cw-pv-n{font-size:12.5px;color:var(--ps-dim)}
 
 /* ── 60. HOME: THE BRIEF SHEET BESIDE WHAT TO PICK UP (2026-10-29) ── */
@@ -5771,8 +5816,16 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
       <div class="adt-host" data-adt="top"></div>
       <section class="adt-card adt-reply cw-br">
 
-            <div class="adt-ch"><h3>Copy from Claude</h3><span class="adt-tip" title="Run the meta-ad-design-copy skill in Claude on the brief, then paste its whole reply here. It is kept with the campaign, so every audience fills from it.">i</span></div>
-            <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="4" class="p-in" placeholder="Paste Claude&#8217;s reply here" aria-label="Claude&#8217;s reply"></textarea>
+            <div class="adt-ch"><h3>{{ brTitle }}</h3><span class="adt-tip" title="{{ brTip }}">i</span></div>
+            <sc-if value="{{ brArOn }}" hint-placeholder-val="{{ false }}">
+              <p class="cw-ar-p">{{ brArLead }}</p>
+              <div class="cw-ar-go"><button onClick="{{ brArGo }}" class="p-btn">{{ brArLabel }}</button><span class="cw-ar-st" data-bad="{{ brArBad }}" role="status">{{ brArMsg }}</span></div>
+            </sc-if>
+            <sc-if value="{{ brEnOn }}" hint-placeholder-val="{{ true }}">
+            <textarea value="{{ brReply }}" onChange="{{ onBrReply }}" rows="6" class="p-in cw-pz" placeholder="Family:&#10;Small label&#10;Heading&#10;Hook line&#10;Tag chips or key facts, one per line (optional)&#10;Button&#10;&#10;Investor:&#10;&#8230;" aria-label="The copy" spellcheck="true"></textarea>
+            <sc-if value="{{ brKeyOn }}" hint-placeholder-val="{{ true }}">
+              <div class="cw-key"><p>Start each audience with its name and a colon, <b>Family:</b>, on a line of its own. Then one line each, in this order:</p><ol><li>Small label</li><li>Heading</li><li>Hook line</li><li>Tag chips or key facts <s>any number, optional</s></li><li>Button</li></ol></div>
+            </sc-if>
             <sc-if value="{{ brErrOn }}" hint-placeholder-val="{{ false }}"><p class="cw-br-err">{{ brErr }}</p></sc-if>
             <sc-if value="{{ brReadOn }}" hint-placeholder-val="{{ false }}">
               <p class="cw-br-ok"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m382-339.38 345.54-345.54q8.92-8.93 20.88-9.12 11.96-.19 21.27 9.12 9.31 9.31 9.31 21.38 0 12.08-9.31 21.39l-362.38 363q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84l-167-167q-8.92-8.93-8.8-21.2.11-12.26 9.42-21.57t21.38-9.31q12.08 0 21.39 9.31L382-339.38Z"/></svg>{{ brStat }}</p>
@@ -5784,31 +5837,36 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
                   </sc-for>
                 </div>
               </sc-if>
-              <sc-if value="{{ brAudsOn }}" hint-placeholder-val="{{ true }}">
-                <div class="p-tabs cw-br-aud" role="tablist">
-                  <sc-for list="{{ brAuds }}" as="au" hint-placeholder-count="2"><button onClick="{{ au.pick }}" data-on="{{ au.on }}">{{ au.label }}</button></sc-for>
-                </div>
-              </sc-if>
-              <sc-if value="{{ brPagesOn }}" hint-placeholder-val="{{ false }}">
-                <div class="cw-br-heads" role="radiogroup" aria-label="Project">
-                  <span class="cw-br-l">Project</span>
-                  <div class="cw-br-pgs"><sc-for list="{{ brPages }}" as="pj" hint-placeholder-count="3"><button onClick="{{ pj.pick }}" data-on="{{ pj.on }}" class="cw-br-chip">{{ pj.label }}</button></sc-for></div>
-                </div>
-              </sc-if>
-              <sc-if value="{{ brHeadsOn }}" hint-placeholder-val="{{ true }}">
-                <div class="cw-br-heads" role="radiogroup" aria-label="Heading">
-                  <span class="cw-br-l">Heading</span>
-                  <sc-for list="{{ brHeads }}" as="hd" hint-placeholder-count="3">
-                    <button onClick="{{ hd.pick }}" data-on="{{ hd.on }}" role="radio" aria-checked="{{ hd.aria }}" class="cw-br-hd"><s>{{ hd.label }}</s>{{ hd.text }}</button>
-                  </sc-for>
-                </div>
-              </sc-if>
-              <div class="cw-br-map">
-                <sc-for list="{{ brRows }}" as="r" hint-placeholder-count="6"><div><span>{{ r.k }}</span><b>{{ r.v }}</b></div></sc-for>
+              <div class="cw-lay">
+                <sc-if value="{{ brAudsOn }}" hint-placeholder-val="{{ true }}">
+                  <div class="p-tabs cw-br-aud" role="tablist" aria-label="Audience">
+                    <sc-for list="{{ brAuds }}" as="au" hint-placeholder-count="2"><button onClick="{{ au.pick }}" data-on="{{ au.on }}" role="tab">{{ au.label }}</button></sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ brPagesOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="cw-br-heads" role="radiogroup" aria-label="Project">
+                    <span class="cw-br-l">Project</span>
+                    <div class="cw-br-pgs"><sc-for list="{{ brPages }}" as="pj" hint-placeholder-count="3"><button onClick="{{ pj.pick }}" data-on="{{ pj.on }}" class="cw-br-chip">{{ pj.label }}</button></sc-for></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ brHeadsOn }}" hint-placeholder-val="{{ true }}">
+                  <div class="cw-br-heads" role="radiogroup" aria-label="Heading">
+                    <span class="cw-br-l">Heading</span>
+                    <sc-for list="{{ brHeads }}" as="hd" hint-placeholder-count="3">
+                      <button onClick="{{ hd.pick }}" data-on="{{ hd.on }}" role="radio" aria-checked="{{ hd.aria }}" class="cw-br-hd"><s>{{ hd.label }}</s>{{ hd.text }}</button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <ol class="cw-lay-l" aria-label="Where each line goes">
+                  <sc-for list="{{ brRows }}" as="r" hint-placeholder-count="5"><li data-k="{{ r.kind }}"><span class="cw-lay-k">{{ r.k }}</span><span class="cw-lay-v">{{ r.v }}<sc-for list="{{ r.chips }}" as="c" hint-placeholder-count="0"><i class="cw-lay-chip">{{ c.t }}</i></sc-for><sc-for list="{{ r.facts }}" as="f" hint-placeholder-count="0"><i class="cw-lay-fact"><s>{{ f.l }}</s>{{ f.v }}</i></sc-for></span></li></sc-for>
+                </ol>
               </div>
-              <button onClick="{{ brPrune }}" class="p-tgl cw-br-prune" role="switch" aria-checked="{{ brPruneAria }}" data-on="{{ brPruneOn }}"><span class="p-tgl-t"><b>Remove components this copy doesn&#8217;t use</b><s>So no template sample text ships. Undo puts them back.</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
-              <div class="cw-acts"><button onClick="{{ brFill }}" class="p-btn">{{ brFillLabel }}</button></div>
+              <div class="cw-lay-go">
+                <button onClick="{{ brFill }}" class="p-btn">{{ brFillLabel }}</button>
+                <button onClick="{{ brPrune }}" class="p-tgl cw-br-prune" role="switch" aria-checked="{{ brPruneAria }}" data-on="{{ brPruneOn }}"><span class="p-tgl-t"><b>Remove unused parts</b><s>So no template sample text ships</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
+              </div>
               <p class="cw-hint">{{ brTailNote }}</p>
+            </sc-if>
             </sc-if>
                 </section>
       <sc-if value="{{ cwMsgOn }}" hint-placeholder-val="{{ false }}">
@@ -12975,7 +13033,51 @@ class CampaignStudio extends StudioBase {
       });
       return { src: 'block', flags: (js.flags || []).map(S).filter(f => f && f !== '…'), auds: C.brGroup(rows) };
     }
-    return C.brStacks(t);
+    return C.brPlain(t) || C.brStacks(t);
+  }
+  // PLAIN COPY, as the designer types it (2026-11-05): an audience's name and a colon on a line
+  // of its own ("Family:"), then one line per field in the order the ad reads — the small
+  // label, the heading, the hook line, then any tag chips or key facts, and the button last.
+  // Between the hook and the button, a line that reads as a fact ("Handover: Q4 2028",
+  // "10% down payment", "From AED 2.1M") is a key fact and any other is a chip; " · " or " | "
+  // puts several on one line. Shorter blocks keep the button last: 3 lines are label, heading,
+  // button; 2 are heading, button. No audience line: one audience called Copy. A long text with
+  // no audience line, or a block past 14 lines, is prose (a full Claude reply), not plain copy.
+  static brPlain(t) {
+    const C = CampaignStudio;
+    if (/```/.test(t)) return null;
+    const clean = l => l.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, '').replace(/\*\*|__/g, '').replace(/^#+\s*/, '').trim();
+    const head = l => { const m = /^([^:]{1,32}):$/.exec(l); return m && m[1].trim().split(/\s+/).length <= 3 ? m[1].trim() : null; };
+    const groups = [];
+    let g = null;
+    String(t).split('\n').map(clean).forEach(l => {
+      if (!l) return;
+      const h = head(l);
+      if (h) { groups.push(g = { name: h, lines: [] }); return; }
+      if (!g) groups.push(g = { name: 'Copy', lines: [] });
+      g.lines.push(l);
+    });
+    const got = groups.filter(x => x.lines.length);
+    if (!got.length || got.some(x => x.lines.length > 14) || (got.every(x => x.name === 'Copy') && got[0].lines.length > 8)) return null;
+    const stack = L => {
+      const n = L.length, a = { label: '', plain: true, tag: '', project: '', heads: [], support: '', proof: [], price: { label: '', figure: '' }, pay: [], cta: '' };
+      if (n === 1) a.heads = [L[0]];
+      else if (n === 2) { a.heads = [L[0]]; a.cta = L[1]; }
+      else if (n === 3) { a.tag = L[0]; a.heads = [L[1]]; a.cta = L[2]; }
+      else {
+        a.tag = L[0]; a.heads = [L[1]]; a.project = L[2]; a.cta = L[n - 1];
+        L.slice(3, n - 1).forEach(l => l.split(/\s+[·|]\s+/).forEach(p => {
+          p = p.trim();
+          if (!p) return;
+          const pr = C.brPair(p), pc = C.brPrice(p);
+          if (pr.l) a.pay.push(pr);
+          else if (pc.label && pc.figure) a.pay.push({ l: pc.label, v: pc.figure });
+          else a.proof.push(p);
+        }));
+      }
+      return a;
+    };
+    return { src: 'plain', flags: [], auds: C.brGroup(got.map(x => ({ name: x.name, st: stack(x.lines) }))) };
   }
   // Rows of {name, st} → one entry per audience, its stacks in the order they came.
   static brGroup(rows) {
@@ -13184,8 +13286,9 @@ class CampaignStudio extends StudioBase {
       ['eyebrow', 'Small label', A.tag && { text: A.tag }],
       ['hero', 'Heading', head && { text: head }],
       ['hook', 'Hook line', A.project && { text: A.project }],
+      ['tags', 'Tag chips', A.plain && A.proof.length && { chips: A.proof.slice() }],
       ['price', 'Price', (A.price.label || A.price.figure) && { sub: A.price.label, text: A.price.figure }],
-      ['spec', 'Key facts', A.pay.length && { cols: A.pay.slice(0, 2).map(p => ({ l: p.l, v: p.v })) }],
+      ['spec', 'Key facts', A.pay.length && { cols: A.pay.slice(0, A.plain ? CampaignStudio.SPEC_MAX : 2).map(p => ({ l: p.l, v: p.v })) }],
       ['cta', 'Button', A.cta && { text: A.cta }],
     ].filter(w => w[2]);
   }
@@ -13238,10 +13341,19 @@ class CampaignStudio extends StudioBase {
       }
       pages.forEach((S, k) => {
         const vi = car ? k : vi0, list = C.modList(x, vi), p = C.brPlan(list, wants[k], b.prune);
+        // a component the page lacks goes in straight after the one filled before it, in that
+        // one's cluster, so the ad reads in the copy's order (a page with none of them: the end)
+        let prev = null;
         p.out.forEach(o => {
           const data = JSON.parse(JSON.stringify(o.data));
-          if (o.id) Object.assign(list.find(n => n.id === o.id), data);
-          else list.push(Object.assign({ id: C.freshId(), type: o.type }, data));
+          if (o.id) { Object.assign(list.find(n => n.id === o.id), data); prev = o.id; return; }
+          const nm = Object.assign({ id: C.freshId(), type: o.type }, data), at = prev ? list.findIndex(n => n.id === prev) : -1;
+          if (at < 0) list.push(nm);
+          else {
+            list.splice(at + 1, 0, nm);
+            (x.variants || []).forEach(v => { if (v.clusters && v.clusters[prev]) v.clusters[nm.id] = v.clusters[prev]; });
+          }
+          prev = nm.id;
         });
         p.drop.forEach(id => C.dropMod(x, vi, id));
       });
@@ -13262,7 +13374,7 @@ class CampaignStudio extends StudioBase {
     const head = car ? (wasCar ? 'The carousel' : 'The project is a carousel now and') + ' carries the ' + A.name + ' copy on ' + pages.length + ' page' + (pages.length === 1 ? '' : 's')
       : (wasCar ? 'Page ' + (vi0 + 1) : 'The ad') + ' now carries the ' + A.name + ' copy';
     this.cwNotice(head + ' — ' + nf + ' filled'
-      + (na ? ', ' + na + ' added at the end (the designer places them)' : '') + (nr ? ', ' + nr + ' removed' : '')
+      + (na ? ', ' + na + ' added' : '') + (nr ? ', ' + nr + ' removed' : '')
       + kept + cut + (pics.length ? '; ' + pics.join(' and ') : '') + '.', true);
     this.brSet('filled', A.name + (car ? ' · ' + pages.length + ' pages' : ''));
     // the brief has done its job: fold it away and bring the filled words into view. The
@@ -13271,6 +13383,16 @@ class CampaignStudio extends StudioBase {
       const card = document.querySelector('.cw-br'); if (card) card.open = false;
       const el = document.querySelector('.cw-words-h'); if (el) try { el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
     }, 60);
+  }
+  // AN ARABIC PROJECT'S COPY CARD translates what the layout says (share-link.js
+  // `arTranslateLayout`, Chrome's built-in Google Translate) instead of taking pasted words.
+  brArabic() {
+    if (!this.arTranslateLayout || this._arBusy) return;
+    this._arBusy = true; this._arMsg = { t: 'Starting Google Translate…' }; this.forceUpdate();
+    this.arTranslateLayout(t => { this._arMsg = { t }; this.forceUpdate(); })
+      .then(n => { this._arMsg = { t: n ? 'Translated ' + n + (n === 1 ? ' line' : ' lines') + '. Check them before the translation check — Undo puts the English back.' : 'There is no English left on the layout to translate.', ok: true }; },
+        e => { this._arMsg = { t: (e && e.message) || String(e), bad: true }; })
+      .then(() => { this._arBusy = false; this.forceUpdate(); });
   }
   brOpen(e) {
     const p = this.brPrompt();
@@ -13359,9 +13481,19 @@ class CampaignStudio extends StudioBase {
       brReply: b.reply, onBrReply: e => { this.brSet('reply', e.target.value); if (this.rsReplySave) this.rsReplySave(e.target.value); },
       brReadOn: !!(S),
       brErrOn: !!(b.reply.trim() && !S),
-      brErr: 'No copy found in that text. Paste Claude\'s whole reply — the part with the copy blocks.',
-      brStat: S ? ('Read ' + P.auds.map(a => a.name + (a.pages.length > 1 ? ' (' + a.pages.length + ')' : '')).join(' and ') + (P.src === 'stacks' ? ' from the copy blocks' : '')
+      brErr: 'No copy found in that text. Start each audience with its name and a colon (Family:) on a line of its own, then one line per field.',
+      brStat: S ? ((P.auds.length === 1 ? 'One audience' : P.auds.length + ' audiences') + ' · ' + P.auds.map(a => a.name + (a.pages.length > 1 ? ' (' + a.pages.length + ')' : '')).join(', ')
         + (flags.length ? ' · ' + flags.length + ' flag' + (flags.length === 1 ? '' : 's') : '')) : '',
+      // THE CARD'S TWO FACES: English takes the pasted copy; Arabic translates the layout
+      brTitle: X && X.arb ? 'Arabic copy' : 'Copy',
+      brTip: X && X.arb ? 'The Arabic version says what the English design says, translated by Google Translate (built into Chrome, on this computer). It ran when this project was made; run it again after the layout changes. The content team checks the Arabic at the translation step.'
+        : 'Type or paste the copy. Each audience starts with its name and a colon on a line of its own (Family:), then one line each, in order: the small label, the heading, the hook line, any tag chips or key facts, and the button. A Claude reply with a cas-copy block works too. It is kept with the campaign, so every audience fills from it.',
+      brArOn: !!(X && X.arb), brEnOn: !(X && X.arb),
+      brArLead: 'The words on this layout, in Arabic, straight from Google Translate. Edit the English layout first if anything should change, then translate again.',
+      brArGo: () => this.brArabic(),
+      brArLabel: this._arBusy ? 'Translating…' : (this._arMsg && this._arMsg.ok ? 'Translate the layout again' : 'Translate the layout to Arabic'),
+      brArMsg: this._arMsg ? this._arMsg.t : '', brArBad: this._arMsg && this._arMsg.bad ? '1' : undefined,
+      brKeyOn: !S && !b.reply.trim(),
       brFlagsOn: flags.length > 0,
       brFlagsHead: open ? open + ' to check before this runs' : 'All checked',
       brFlags: flags.map((f, i) => ({ text: f, on: b.done[i] ? '1' : undefined, aria: b.done[i] ? 'true' : 'false',
@@ -13375,9 +13507,11 @@ class CampaignStudio extends StudioBase {
       brHeads: heads.map((h, i) => ({ text: one(h), on: i === hi ? '1' : undefined, aria: i === hi ? 'true' : 'false', label: i ? 'Alternate ' + i : 'Main',
         pick: () => { b.head = i; this.forceUpdate(); } })),
       brRows: car && A
-        ? A.pages.slice(0, 10).map((p, k) => ({ k: 'Page ' + (k + 1), v: [one(p.label || p.project), one(p.heads[0]), [p.price.label, p.price.figure].filter(Boolean).join(' ')].filter(Boolean).join(' — ') }))
-        : want.map(w => ({ k: w[1], v: w[0] === 'spec' ? w[2].cols.map(c => [c.l, c.v].filter(Boolean).join(': ')).join(' · ')
-          : w[0] === 'price' ? [w[2].sub, w[2].text].filter(Boolean).join(' ') : one(w[2].text) })),
+        ? A.pages.slice(0, 10).map((p, k) => ({ k: 'Page ' + (k + 1), kind: 'page', chips: [], facts: [], v: [one(p.label || p.project), one(p.heads[0]), [p.price.label, p.price.figure].filter(Boolean).join(' ')].filter(Boolean).join(' — ') }))
+        : want.map(w => ({ k: w[1], kind: w[0],
+          chips: w[0] === 'tags' ? w[2].chips.map(t => ({ t })) : [],
+          facts: w[0] === 'spec' ? w[2].cols.map(c => ({ l: c.l, v: c.v })) : [],
+          v: w[0] === 'spec' || w[0] === 'tags' ? '' : w[0] === 'price' ? [w[2].sub, w[2].text].filter(Boolean).join(' ') : one(w[2].text) })),
       brPruneOn: b.prune ? '1' : undefined, brPruneAria: b.prune ? 'true' : 'false', brPrune: () => this.brSet('prune', !b.prune),
       brFill: () => this.brFill(),
       brFillLabel: !A ? 'Fill'

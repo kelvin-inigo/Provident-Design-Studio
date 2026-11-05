@@ -2268,8 +2268,8 @@
     // A NEW AUDIENCE STARTS ON A BLANK CANVAS and takes its words from Claude's reply in the Ad
     // set tab; the ARABIC version is a copy of this design, since it is the same ad translated.
     const arbCopy = lang === 'ARB';
-    if (!window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic, and offers to translate the words with Google Translate.'
-      : 'Create ' + label + '?\n\nThis project stays in the ad set as it is. The tab carries on as a new, blank project — fill its words from Claude’s reply in the Ad set tab.')) return;
+    if (!window.confirm(arbCopy ? 'Make the Arabic version of this design?\n\nThis project stays in the ad set as it is. The tab carries on as a copy of it, in Arabic, and its words are translated from the layout with Google Translate.'
+      : 'Create ' + label + '?\n\nThis project stays in the ad set as it is. The tab carries on as a new, blank project — fill its words from the copy in the Ad set tab.')) return;
     this._rsNextBusy = key; this.rvRender(); this.forceUpdate();
     // the Source folder belongs to the project this tab is leaving (see rsNextDlg)
     const FO = window.providentFolder, oldH = FO && FO.supported ? FO.handle : null;
@@ -2392,6 +2392,26 @@
     }
     return jobs.length;
   }
+  // THE ARABIC PROJECT'S WORDS ARE GOOGLE TRANSLATE'S, straight off the layout (2026-11-05): no
+  // Arabic copy is pasted or written — whatever the English design says is translated in place,
+  // one Undo. Run on its own when "Make the Arabic version" lands, and again from the Ad set
+  // tab's Arabic copy card after the English changed. `say(text)` reports progress. Resolves to
+  // the number of lines translated; one run at a time.
+  SP.arTranslateLayout = function (say) {
+    if (this._arRun) return this._arRun;
+    const run = (async () => {
+      const tr = await arTranslator(p => say && say('Downloading Google Translate’s Arabic, once · ' + Math.round(p * 100) + '%'));
+      const st = JSON.parse(JSON.stringify(this.shPub()));
+      const n = await arTranslateState(st, tr, p => say && say('Translating · ' + Math.round(p * 100) + '%'));
+      try { tr.destroy && tr.destroy(); } catch (err) {}
+      if (n) this.upd(x => { x.modules = st.modules; (x.variants || []).forEach((v, i) => { if (st.variants && st.variants[i] && st.variants[i].mods) v.mods = st.variants[i].mods; }); return x; });
+      return n;
+    })();
+    this._arRun = run;
+    const done = () => { this._arRun = null; };
+    run.then(done, done);
+    return run;
+  };
   SP.rsNextDlg = function (o) {
     injectCss();
     const FO = window.providentFolder, el = document.createElement('div');
@@ -2399,9 +2419,9 @@
     const lang = DS_LANG[o.newIt.lang] || 'English';
     el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true" aria-labelledby="rnx-t">' +
       '<h2 id="rnx-t">This tab is now ' + esc(o.label) + '</h2>' +
-      '<p class="shl-lead">' + (o.arb ? 'A copy of the design, in the Arabic typeface. The English project stays as it was.' : 'A new, blank project — fill its words from Claude’s reply in the Ad set tab.') + '</p>' +
+      '<p class="shl-lead">' + (o.arb ? 'A copy of the design, in the Arabic typeface. The English project stays as it was.' : 'A new, blank project — fill its words from the copy in the Ad set tab.') + '</p>' +
       '<div class="rnx-row" data-r="folder"><b>Source folder</b><span class="rnx-st"></span><div class="rnx-act"></div></div>' +
-      (o.arb ? '<div class="rnx-row" data-r="tr"><b>Arabic words</b><span class="rnx-st">Still in English.</span><div class="rnx-act"><button class="p-btn" type="button" data-a="tr">Translate with Google Translate</button></div></div>' : '') +
+      (o.arb ? '<div class="rnx-row" data-r="tr"><b>Arabic words</b><span class="rnx-st">Translating the layout with Google Translate…</span><div class="rnx-act"><button class="p-btn" type="button" data-a="tr">Translate with Google Translate</button></div></div>' : '') +
       '<div class="shl-acts"><button class="p-ghost" type="button" data-a="close">Done</button></div></div>';
     document.body.appendChild(el);
     const $ = q => el.querySelector(q), row = r => $('[data-r="' + r + '"]');
@@ -2435,22 +2455,23 @@
         if (o.oldH && h && (await o.oldH.isSameEntry(h).catch(() => false))) return say('folder', 'That is the ' + (DS_LANG[o.oldIt.lang] || 'old') + ' project’s folder — its files would be overwritten. Choose the ' + lang + ' folder.', true);
         return adopt(h);
       }
-      if (b.dataset.a === 'tr') {
-        b.disabled = true; b.textContent = 'Translating…';
-        try {
-          const tr = await arTranslator(p => say('tr', 'Downloading Google Translate’s Arabic, once · ' + Math.round(p * 100) + '%'));
-          const st = JSON.parse(JSON.stringify(this.shPub()));
-          const n = await arTranslateState(st, tr, p => say('tr', 'Translating · ' + Math.round(p * 100) + '%'));
-          try { tr.destroy && tr.destroy(); } catch (err) {}
-          this.upd(x => { x.modules = st.modules; (x.variants || []).forEach((v, i) => { if (st.variants && st.variants[i] && st.variants[i].mods) v.mods = st.variants[i].mods; }); return x; });
-          say('tr', n ? 'Translated ' + n + (n === 1 ? ' line' : ' lines') + ' — check them before sending for the translation check.' : 'There were no English words to translate.');
-          acts('tr', '');
-        } catch (err) {
-          say('tr', err.message || String(err), true);
-          b.disabled = false; b.textContent = 'Try again';
-        }
-      }
+      if (b.dataset.a === 'tr') trNow(b);
     });
+    // the Arabic words are the layout's English through Google Translate: start at once
+    const trNow = async b => {
+      if (b) { b.disabled = true; b.textContent = 'Translating…'; }
+      try {
+        const n = await this.arTranslateLayout(t => alive && say('tr', t));
+        if (!alive) return;
+        say('tr', n ? 'Translated ' + n + (n === 1 ? ' line' : ' lines') + ' with Google Translate — check them before sending for the translation check.' : 'There were no English words to translate.');
+        acts('tr', '');
+      } catch (err) {
+        if (!alive) return;
+        say('tr', err.message || String(err), true);
+        acts('tr', '<button class="p-btn" type="button" data-a="tr">Try again</button>');
+      }
+    };
+    if (o.arb) trNow(el.querySelector('[data-a="tr"]'));
   };
   // After the home page's "Start the campaign": the new project names itself and opens the ad
   // set dialog with everything filled in — one click, which Google's sign-in needs anyway.
@@ -2859,7 +2880,7 @@
     if (!it.design) return { act: 'design-done:' + it.sid, label: arb ? 'Send for translation check' : 'Send to copy check', tip: arb ? 'Design done: sends the Arabic to the content team to check the translation' : 'Design done: sends this audience to the content team to check the English copy' };
     const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud);
     if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
-    if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from Claude’s reply' };
+    if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from the pasted copy' };
     if (ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     return null;
   };
@@ -4531,8 +4552,8 @@
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const cells = rsCells(rs);
-    const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste Claude’s reply">' +
-      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (brandOf(rs, { market, aud }) === 'unbranded' ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste Claude’s reply</s></span>' + ico('ext') + '</button>';
+    const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste the copy">' +
+      '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (brandOf(rs, { market, aud }) === 'unbranded' ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
       if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');

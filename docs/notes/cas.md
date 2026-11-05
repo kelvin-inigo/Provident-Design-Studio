@@ -3819,3 +3819,39 @@ By request, from screenshots. Chrome only — no artwork line changed.
   `libPickVals`' reader needs them). "How it is counted" folds under the table.
 - Verified: contrast 0 failures over all three in light and dark; real clicks on fold, lock,
   Shuffle, a row's toggle; the open dialog through name → pictures → open, and Cancel mid-load.
+
+# CAS'S COPY CARD TAKES PLAIN LINES; ARABIC IS THE LAYOUT THROUGH GOOGLE TRANSLATE (2026-11-05, /impeccable)
+
+By request ("let me just paste a plain text like this"). The Ad set tab's **Copy from Claude**
+card is now **Copy**, and reads plain lines first.
+- **`CampaignStudio.brPlain(t)`**, tried after the `cas-copy` block and before `brStacks`: an
+  audience is a line of 1–3 words ending in a colon (`Family:`); its lines are small label,
+  heading, hook line, extras, button (button always last; 3 lines = label/heading/button, 2 =
+  heading/button, 1 = heading). Extras split on ` · ` / ` | `; `brPair` with a label, or
+  `brPrice` with label and figure, makes a key fact, anything else a tag chip. Skipped when the
+  text has code fences, a block runs past 14 lines, or there is no audience line and more than 8
+  lines (that is a full Claude reply). Stacks carry `plain: true`.
+- **`brWant`** gained `tags` (plain only, so the skill's proof lines still do not become chips)
+  and spec rows up to `SPEC_MAX` for plain (2 for the skill).
+- **`brFill` inserts a missing component right after the one filled before it**, copying that
+  one's cluster on every variant, so the ad reads in the copy's order (it used to append). The
+  notice says "N added".
+- **The card** (CSS block "THE COPY CARD"): a taller paste zone with the format as placeholder,
+  a numbered key of the order while empty (`brKeyOn`), the status line, flags (skill replies
+  only), audience tabs over **`.cw-lay`** — each line set the way its part reads (heading 19px,
+  chips as pills, facts as label-over-value tiles, the button as an outline pill) — then Fill
+  beside **Remove unused parts**. **`.cw-pv` was taken** (the Copy view's preview pane, dark
+  stage fill), hence `cw-lay-*`.
+- **Arabic projects (`brCtx().arb`) show "Arabic copy" instead**: one action, **Translate the
+  layout to Arabic** (`brArabic` → `SP.arTranslateLayout`, share-link.js), progress and errors in
+  `_arMsg`. `arTranslateLayout` is the old dialog code made a method (Chrome's built-in
+  Translator API — Google Translate on the device, nothing sent). **`rsNextDlg` now runs it on
+  open** for the Arabic version, so "Make the Arabic" lands translated; the row offers Try again
+  on failure. One Undo.
+- Status's Start placeholders and the next-audience prompts say "paste the copy".
+Verified in the pane: the two-audience sample from the request plus an Investor block with a
+fact line and a chip line parsed right; a real click on Fill laid the Investor ad out as label,
+heading, hook, chips, facts (inserted before the button), button; the copy survived a reload;
+0 contrast failures over 24 text runs in light and dark; no script errors. **Not exercised:** the
+Arabic card and the auto-translate (the Arabic project's share link bounced the test tab to the
+landing page), and real Drive.

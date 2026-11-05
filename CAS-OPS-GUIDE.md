@@ -326,18 +326,54 @@ The flow has three moves for the designer, and the screen always offers the next
 1. **Initial setup.** Performance marketing files the campaign as a ticket (above). On the home
    page's **Status**, the designer opens the ticket — its brief, files and audiences — and presses
    **Pick up**. A new project opens as the first audience, in English, on the **Ad set** tab.
-   Run the meta-ad-design-copy skill in your own Claude on the brief, paste its whole reply into
-   **Copy from Claude**, check the flags, and press **Fill with the … copy**. The reply is kept
-   with the campaign.
+   Type or paste the copy into **Copy** on the Ad set tab, as plain lines (see *Pasting the
+   copy* below), check where each line lands, and press **Fill with the … copy**. The copy is
+   kept with the campaign.
 2. **Design done.** Design the ad, then press **Design done** — in the bar under the canvas, or at
    the top of the Ad set tab. It first lists anything missing (empty words, no photo, a QR code
    with none added, too much copy on a canvas); press OK to send anyway. The content team checks
    the English copy from their link.
 3. **Create next audience.** The same button now reads **Create next audience**. It opens a
-   blank project for the next planned audience, on the Ad set tab, with Claude's reply already
-   there and that audience picked: press **Fill**, design, **Design done**. Once an audience's
-   English copy is approved, the button offers **Make the Arabic** — a copy of the design in the
-   Arabic typeface, to translate.
+   blank project for the next planned audience, on the Ad set tab, with the copy already there
+   and that audience picked: press **Fill**, design, **Design done**. Once an audience's English
+   copy is approved, the button offers **Make the Arabic** — a copy of the design in the Arabic
+   typeface, whose words are translated from the layout with Google Translate straight away.
+
+#### Pasting the copy
+
+Each audience starts with its name and a colon on a line of its own, then one line per part, in
+the order the ad reads:
+
+```
+Family:
+Haven and Athlon Sold Out Within Hours.      ← small label
+Aldar's Next Dubai Launch Is Coming.         ← heading
+3BR Townhouses                               ← hook line
+Handover: Q4 2028 · 10% down payment         ← key facts (optional)
+Golden Visa eligible | Waterfront            ← tag chips (optional)
+Be the First to Know                         ← button (always the last line)
+
+Investor:
+…
+```
+
+- Any lines between the hook line and the button are extras. A line that reads as a fact (it has
+  a colon, a percentage, a split like 40/60, a handover date or a price) becomes a **key fact**;
+  any other line becomes a **tag chip**. Put several on one line with ` · ` or ` | `.
+- A shorter block still ends on the button: three lines are small label, heading, button; two are
+  heading, button.
+- Each audience gets its own tab. The card shows every line in the part it will fill, and parts
+  the ad does not have yet are added in that order. **Remove unused parts** drops the template's
+  sample words. One Undo puts it all back.
+- A Claude reply with a `cas-copy` block still works the old way.
+
+#### The Arabic copy
+
+An Arabic project takes no pasted copy. Its words are the English layout's, translated by Google
+Translate (built into Chrome, on the computer). That runs by itself when **Make the Arabic** makes
+the project; the Ad set tab's **Arabic copy** card has **Translate the layout to Arabic** to run it
+again after the layout changed. Undo puts the English back. The content team checks the Arabic at
+the translation step.
 
 When every audience is done, performance marketing downloads the package from their link. Once
 the ads are running, they press **Launch** on the home's Next up card (or on its row under Also waiting on you): the campaign reads
@@ -794,8 +830,10 @@ them from their link):
   link into Status first if it came from someone else.
 - **Copy designer link.** In an ad set, the link to hand out is the ad set's designer link (the
   overview of every audience), not this one project's edit link.
-- **Copy from Claude**: paste the meta-ad-design-copy reply, check the flags, pick the heading,
-  and **Fill**. The reply is kept with the campaign, so the next audience fills from it.
+- **Copy**: type or paste the copy as plain lines, one audience per block (see *Pasting the
+  copy*), check where each line lands, and **Fill**. It is kept with the campaign, so the next
+  audience fills from it. In an Arabic project this card is **Arabic copy**, with **Translate the
+  layout to Arabic**.
 - **Audiences**, **Brief**, **Activity** and **Links for the teams** (see above).
 - The preview on the right is the ad as it will export.
 
