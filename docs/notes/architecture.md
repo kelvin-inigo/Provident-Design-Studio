@@ -801,6 +801,8 @@ later pass make this a hard dependency; it would cost the single-file property.
 document marks the slots with **`data-cutout`** and `image-slot.js` reads it. That is
 what keeps Campaign — which mounts no such slot — untouched by construction, verified:
 **0 `data-cutout` in Campaign**, and it boots at 286 render keys and 977 CSS rules.
+(Since 2026-11-05 CAS's Overlap image slot is marked too — see cas.md, "The overlap image is
+cut out on upload".)
 
 | slot | where |
 |---|---|

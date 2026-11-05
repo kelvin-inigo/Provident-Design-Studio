@@ -6817,11 +6817,11 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
         </sc-if>
       </div>
       <div class="p-grp">
-        <span class="p-lab">Overlap image <span class="tip" data-tip="Drop a cutout PNG — it sits over the hero headline only, so the eyebrow, hook, body, tags, spec, price, CTA, wordmark and QR all stay on top of it. It automatically matches the background photo's position and zoom, so reframing the background carries the cutout with it. Pair with the Jumbo hero for the parallax look." style="{{ infoStyle }}">i</span></span>
+        <span class="p-lab">Overlap image <span class="tip" data-tip="Drop a photo and its background is removed for you, or drop a PNG already cut out. It sits over the hero headline only, so the eyebrow, hook, body, tags, spec, price, CTA, wordmark and QR all stay on top of it. It automatically matches the background photo's position and zoom, so reframing the background carries the cutout with it. Pair with the Jumbo hero for the parallax look." style="{{ infoStyle }}">i</span></span>
         <div class="p-tabs"><button onClick="{{ fgSetOff }}" data-on="{{ fgOffOn }}">Off</button><button onClick="{{ fgSetOn }}" data-on="{{ fgShownOn }}">On this {{ fgScopeWord }}</button></div>
         <sc-if value="{{ fgOn }}" hint-placeholder-val="{{ false }}">
-          <div class="p-droprow"><div class="p-drop" data-done="{{ fgDoneOn }}"><image-slot id="{{ activeFgId }}" fit="contain" shape="rounded" radius="10" placeholder="Drop the cut-out" style="{{ bgSlotStyle }}"></image-slot></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fgPs }}" class="up-a up-done" title="Opens this picture in Photoshop. Save it there and it updates here."><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Photoshop</button></sc-if><button onClick="{{ fgRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
-          <div class="p-drop-t p-drop-cap"><s>{{ fgDropLabel }}</s></div>
+          <div class="p-droprow"><div class="p-drop" data-done="{{ fgDoneOn }}"><image-slot id="{{ activeFgId }}" data-cutout="1" fit="contain" shape="rounded" radius="10" placeholder="Drop the cut-out" style="{{ bgSlotStyle }}"></image-slot></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><sc-if value="{{ psOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ fgPs }}" class="up-a up-done" title="Opens this picture in Photoshop. Save it there and it updates here."><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Photoshop</button></sc-if><button onClick="{{ fgRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
+          <div class="p-drop-t p-drop-cap"><s>{{ fgDropLabel }}</s><sc-if value="{{ fgCutNoteOn }}" hint-placeholder-val="{{ false }}"><s>{{ fgCutNote }}</s></sc-if></div>
         </sc-if>
       </div>
     </div>
@@ -7597,6 +7597,11 @@ class CampaignStudio extends StudioBase {
     // Edit in Photoshop is offered only while its helper (or a source folder) is there.
     this._psTick = () => this.forceUpdate();
     document.addEventListener('provident-photoshop', this._psTick);
+    // The overlap image is cut out on upload by the local service (tools/rembg). It can be
+    // started and stopped while the studio is open, so the rail follows it: the event fires
+    // on a CHANGE only, and the tick's probe is TTL-cached to one request per 15s.
+    document.addEventListener('provident-cutout', this._psTick);
+    try { window.providentCutout && window.providentCutout.probe(); } catch (e) {}
     try {
       ['100 85px', '300 35px', '500 24px'].forEach(f => document.fonts.load(f + ' "Google Sans Flex"').catch(() => {}));
     } catch (e) {}
@@ -7640,7 +7645,10 @@ class CampaignStudio extends StudioBase {
             const cur = this._assetView.fg[i];
             if (!cur || cur.u !== f.u) {
               const im = new Image();
-              im.onload = () => { this._assetView.fg[i] = { u: f.u, w: im.naturalWidth, h: im.naturalHeight }; this.forceUpdate(); };
+              // `cut`: does the overlap picture have a transparent background at all? An
+              // opaque one covers the hero outright, and the rail says so rather than calling
+              // it a cut-out. Same test as tools/rembg's pass-through: >2% fully clear pixels.
+              im.onload = () => { this._assetView.fg[i] = { u: f.u, w: im.naturalWidth, h: im.naturalHeight, cut: CampaignStudio.hasClear(im) }; this.forceUpdate(); };
               im.src = f.u;
             }
           } else delete this._assetView.fg[i];
@@ -7804,12 +7812,14 @@ class CampaignStudio extends StudioBase {
         }
       } catch (e) {}
       if (scan) try { StudioBase.promoteImgs(); StudioBase.autoGrow(); } catch (e) {}
+      if (scan) try { window.providentCutout && window.providentCutout.probe(); } catch (e) {}
       this._rafId = requestAnimationFrame(tick);
     };
     this._rafId = requestAnimationFrame(tick);
   }
   componentWillUnmount() {
     if (this._psTick) document.removeEventListener('provident-photoshop', this._psTick);
+    if (this._psTick) document.removeEventListener('provident-cutout', this._psTick);
     if (this._reframeEnd) document.removeEventListener('image-slot:reframe', this._reframeEnd, true);
     if (this._dropRefresh) document.removeEventListener('drop', this._dropRefresh, true);
     if (this._fillObs) this._fillObs.disconnect();
@@ -10017,6 +10027,17 @@ class CampaignStudio extends StudioBase {
   // downstream reads `m.text`, `m.chips`, `m.cols`… off whichever list those hand back.
   static RECENT_THUMBS = 6;
   static isCarousel(s) { return !!s && s.adMode === 'carousel'; }
+  // Has this picture a transparent background? >2% fully clear pixels, tools/rembg's own
+  // pass-through test, read off a 64px copy. Unreadable answers true: no false warning.
+  static hasClear(im) {
+    try {
+      const n = 64, c = document.createElement('canvas'); c.width = n; c.height = n;
+      const x = c.getContext('2d'); x.drawImage(im, 0, 0, n, n);
+      const d = x.getImageData(0, 0, n, n).data; let k = 0;
+      for (let i = 3; i < d.length; i += 4) if (d[i] < 8) k++;
+      return k / (n * n) > .02;
+    } catch (e) { return true; }
+  }
   static maxVars(s) { return CampaignStudio.isCarousel(s) ? 10 : 3; }
   // The 9:16 can only be dropped on a carousel; a single ad always ships every size.
   static storyShown(s) { return !CampaignStudio.isCarousel(s) || s.storyOn !== false; }
@@ -13152,6 +13173,7 @@ class CampaignStudio extends StudioBase {
       const pos = { Families: Math.max(gap.lastIndexOf('famil'), gap.lastIndexOf('end-user'), gap.lastIndexOf('end user')), Investors: gap.lastIndexOf('invest'), Hybrid: gap.lastIndexOf('hybrid') };
       let name = lastName || 'Copy', best = -1;
       Object.keys(pos).forEach(k => { if (pos[k] > best) { best = pos[k]; name = k; } });
+      lastName = name;
       // the project is the nearest markdown heading above ("## 1. Rise by Athlon")
       const hs = t.slice(0, bk.at).match(/(^|\n)#{1,4}[ \t]+[^\n]+/g);
       const title = hs ? hs[hs.length - 1].replace(/^\n?#+[ \t]+/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '').trim() : '';
@@ -13173,7 +13195,6 @@ class CampaignStudio extends StudioBase {
       }
       const rest = [];
       let prevRest = false;
-      lastName = name;
       for (; i < lines.length; i++) {
         const l = lines[i];
         let r = false;
@@ -13193,6 +13214,8 @@ class CampaignStudio extends StudioBase {
         let h = rest.shift(), n = 1;
         while (rest.length && n < 3 && (/^[a-z]/.test(rest[0]) || (/[.!?]$/.test(h) && /[.!?]$/.test(rest[0]) && rest[0].split(/\s+/).length <= 5))) { h += '\n' + rest.shift(); n++; }
         a.heads = [h];
+        // a caps line under a sentence-case heading is the hook ("A NEW MASTER COMMUNITY BY ALDAR")
+        if (!a.project && rest.length && caps(rest[0]) && !caps(h)) a.project = rest.shift();
         a.support = rest.join(' ');
       } else if (a.price.figure) {
         // the price IS the headline ("Enter from AED 1.7M")
@@ -13214,8 +13237,6 @@ class CampaignStudio extends StudioBase {
   // carry them; they live in this workspace's photo store beside the brief. Fill copies them
   // onto the campaign's own slots: photos onto each variant's (or page's) background in order,
   // the logo onto the co-brand partner mark. Other images stay in the card, each one a click
-        // a caps line under a sentence-case heading is the hook ("A NEW MASTER COMMUNITY BY ALDAR")
-        if (!a.project && rest.length && caps(rest[0]) && !caps(h)) a.project = rest.shift();
   // from becoming a graphic component.
   static BRIEF_PH_MAX = 10;
   brHas(id) {
@@ -13518,6 +13539,7 @@ class CampaignStudio extends StudioBase {
       brArLabel: this._arBusy ? 'Translating…' : (this._arMsg && this._arMsg.ok ? 'Translate the layout again' : 'Translate the layout to Arabic'),
       brArMsg: this._arMsg ? this._arMsg.t : '', brArBad: this._arMsg && this._arMsg.bad ? '1' : undefined,
       brKeyOn: !S && !b.reply.trim(),
+      brReadAttr: S ? '1' : undefined,
       brFlagsOn: flags.length > 0,
       brFlagsHead: open ? open + ' to check before this runs' : 'All checked',
       brFlags: flags.map((f, i) => ({ text: f, on: b.done[i] ? '1' : undefined, aria: b.done[i] ? 'true' : 'false',
@@ -13539,7 +13561,6 @@ class CampaignStudio extends StudioBase {
       brPruneOn: b.prune ? '1' : undefined, brPruneAria: b.prune ? 'true' : 'false', brPrune: () => this.brSet('prune', !b.prune),
       brFill: () => this.brFill(),
       brFillLabel: !A ? 'Fill'
-      brReadAttr: S ? '1' : undefined,
         : X && !car ? 'Fill with the ' + A.name + ' copy'
         : car ? 'Fill ' + nPages + ' carousel page' + (nPages === 1 ? '' : 's') + ' with the ' + A.name + ' copy'
           : 'Fill ' + (projCar ? 'this page' : 'this campaign') + ' with the ' + (A.pages.length > 1 ? one(S.label) + ' · ' : '') + A.name + ' copy',
@@ -16339,6 +16360,19 @@ class CampaignStudio extends StudioBase {
         // Replace is a visible action beside the picture now, so the caption only says what is there
         const lab = (k, what, verb) => filled[k] ? what + ' added' : 'Drop ' + verb + ', or click to choose';
         const vi = s.activeVi;
+        // The overlap row's second line: whether background removal is on, and — once a
+        // picture is in — whether it actually came out as a cut-out. An opaque picture there
+        // covers the hero as a rectangle; the first line used to call it "Cut-out added".
+        const cutSt = window.providentCutout ? window.providentCutout.state : 'off';
+        const fgAv = ((this._assetView || {}).fg || {})[vi];
+        const fgOpaque = !!(filled['adstudio-fg-' + vi] && fgAv && fgAv.cut === false);
+        const cutOff = 'Automatic background removal is not running on this computer, so ';
+        const fgCutNote = fgOpaque
+          ? (cutSt === 'on' ? 'It covers the headline as a rectangle. Replace it and the background is removed for you.'
+            : 'It covers the headline as a rectangle. ' + cutOff + 'replace it with a PNG that has the background already removed.')
+          : filled['adstudio-fg-' + vi] ? ''
+          : cutSt === 'on' ? 'The background is removed for you when you ' + (touch ? 'add' : 'drop') + ' a photo here.'
+          : cutSt === 'off' ? cutOff + (touch ? 'add' : 'drop') + ' a PNG with the background already removed.' : '';
         // This component: what the selected component still has empty. Nothing here is a
         // gate — Campaign has none — but a component with no text renders nothing, and the
         // head should say so before the export does.
@@ -16361,7 +16395,8 @@ class CampaignStudio extends StudioBase {
           bgBnDoneOn: on('adstudio-bg-' + vi + '-bn'), bgBnDropLabel: lab('adstudio-bg-' + vi + '-bn', 'Picture', 'the banner picture'),
           bgPtDoneOn: on('adstudio-bg-' + vi + '-pt'), bgPtDropLabel: lab('adstudio-bg-' + vi + '-pt', 'Picture', 'the 3:4 picture'),
           bgPtRemove: () => CampaignStudio.slotClear('adstudio-bg-' + vi + '-pt'), bgPtPs: () => CampaignStudio.slotPs('adstudio-bg-' + vi + '-pt'),
-          fgDoneOn: on('adstudio-fg-' + vi), fgDropLabel: lab('adstudio-fg-' + vi, 'Cut-out', 'the cut-out PNG'),
+          fgDoneOn: on('adstudio-fg-' + vi), fgDropLabel: (filled['adstudio-fg-' + vi] && fgOpaque) ? 'Picture added, background not removed' : lab('adstudio-fg-' + vi, 'Cut-out', 'the cut-out PNG'),
+          fgCutNote, fgCutNoteOn: fgCutNote ? '1' : undefined,
           gDoneOn: selM ? on('adstudio-mod-' + selM.id) : undefined,
           gDropLabel: selM ? lab('adstudio-mod-' + selM.id, 'Graphic', 'an SVG or PNG') : '',
           qrDoneOn: on('adstudio-qr'), coDoneOn: on('adstudio-colog'),

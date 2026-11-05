@@ -3855,3 +3855,46 @@ heading, hook, chips, facts (inserted before the button), button; the copy survi
 0 contrast failures over 24 text runs in light and dark; no script errors. **Not exercised:** the
 Arabic card and the auto-translate (the Arabic project's share link bounced the test tab to the
 landing page), and real Drive.
+
+# THE OVERLAP IMAGE IS CUT OUT ON UPLOAD (2026-11-05)
+
+Reported as "the cut-out is not working": the Overlap image row read **"Cut-out added"** over a
+whole rectangular photo of a tower, which then covered the hero headline outright.
+
+**Cause: CAS never asked for a cut-out.** The rembg service (`tools/rembg`, login item
+`ae.provident.cutout`) was up, its weights present, CORS fine — but `image-slot.js` runs it only
+on a slot the DOCUMENT marks `data-cutout`, and Organic's agent slots were the only ones marked
+(architecture.md's rembg section even records "0 `data-cutout` in Campaign" as the scope of that
+pass). The overlap slot stored whatever was dropped, and its caption was the generic
+`lab(k, 'Cut-out', …)` — "X added" for any filled slot — so it called an opaque photo a cut-out.
+
+**Fix (rail and runtime only, no paint path touched):**
+- `data-cutout="1"` on the overlap `<image-slot>` (`activeFgId`). The slot's own guards carry
+  over: an already-transparent PNG passes through byte for byte; a failure keeps the original
+  and shows the slot's error line; the service being off is silent at the slot and lands the
+  original in ~30ms (measured 28ms).
+- The row's caption tells the truth. `_refreshAV` already decodes each overlap picture for its
+  size; it now also records `cut` = `CampaignStudio.hasClear(im)` — >2% fully clear pixels on a
+  64px copy, tools/rembg's own pass-through test; unreadable answers true (no false warning).
+  An opaque picture reads **"Picture added, background not removed"** plus a second line ("It
+  covers the headline as a rectangle. Replace it and the background is removed for you." — or,
+  with the service off, "…Automatic background removal is not running on this computer, so
+  replace it with a PNG that has the background already removed."). An empty row says whether
+  removal is on (OPS's `cutoutNote` wording). Nothing is said while the first probe is out.
+- CAS now probes the service like OPS: once on mount, then from the 200ms scan (TTL-cached to
+  one request per 15s), re-rendering off `provident-cutout`, so starting/stopping it needs no
+  reload.
+- The tooltip and `CAS-OPS-GUIDE.md` say a photo is cut out for you. The MCP server's
+  `adstudio-fg-<vi>` slot now defaults to `remove_background: true` (`tools/studio-mcp/page.js`).
+
+**Verified** (127.0.0.1:8790 test origin, `/dev-signin?as=designer`, a fresh project): a
+generated JPEG tower on a sky gradient dropped on the overlap slot → "Removing the background…"
+→ stored `data:image/png` (31s cold, model load included) → the preview, the Design canvas and
+`buildOps`+`renderOpsToCanvas` export all show the tower with the sky gone and the headline
+behind it (export pixel beside the tower (0,0,0), tower window (252,234,161)). The same JPEG put
+in directly showed the opaque warning; with the probe stubbed off, the empty and filled rows
+showed the off wording and a drop landed the original JPEG. Whole-file diff: 0 artwork-path
+lines (the one `drawImage` is `hasClear`'s 64px probe canvas).
+
+**Pictures already in a project are not re-cut.** An overlap stored before this fix keeps its
+background; the row now flags it, and Replace cuts it out.

@@ -168,7 +168,7 @@
         add('adstudio-bg-' + vi + '-st', lab(vi) + ' — own 9:16 photo', { optional: true });
         if (v.wide) add('adstudio-bg-' + vi + '-ls', lab(vi) + ' — own 16:9 photo', { optional: true });
         if (v.banner) add('adstudio-bg-' + vi + '-bn', lab(vi) + ' — Eventbrite banner photo', { optional: true });
-        add('adstudio-fg-' + vi, lab(vi) + ' — overlap cut-out (PNG with transparency)', { optional: true });
+        add('adstudio-fg-' + vi, lab(vi) + ' — overlap cut-out (cut out automatically)', { remove_background: true, optional: true });
       });
       add('adstudio-qr', 'QR code', { optional: true });
       add('adstudio-colog', 'Partner (co-brand) logo', { optional: true });

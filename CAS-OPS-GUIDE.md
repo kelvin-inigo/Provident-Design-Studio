@@ -653,7 +653,7 @@ What's on the screen, from left to right:
 - **Background photo:** use **Background image** → **Photo**.
   - Double-click the photo on the canvas to reframe it.
   - **Image opacity** dims it.
-  - **Overlap image** takes a cut-out PNG that sits in front of the headline, for a parallax look.
+  - **Overlap image** sits in front of the headline, for a parallax look. Drop a photo and its background is removed for you (10–20 seconds), or drop a PNG already cut out. If background removal is not running on that computer the line under the picture says so, and a picture that still has its background is flagged "background not removed".
 - **Layout** (right rail) lists the choices in words. **Point at one and the canvas shows it**,
   outlined and tagged Preview, before anything changes; click to keep it, move away to drop it.
   With the keyboard, tabbing onto a choice previews it the same way.
