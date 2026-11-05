@@ -1717,3 +1717,39 @@ with the look on (unbranded preview, no wordmark or QR); its Status card after t
 with Arabic "Not needed"; Ad set settings with no brand switches and the twin's own tile. Test
 projects, their stand-in files and the brand were put back. **Not exercised:** a real new window
 from Status, real Drive, a twin with Arabic, the Copy card picking an unbranded block.
+
+# CT AND PM LINKS OPEN FAST: TILES LAID OUT AT ONCE, THUMBNAILS DRAWN SMALL (2026-11-05)
+
+By request ("optimize the speed of when PM and CT are viewing their generated link"). Measured on
+the Drive stand-in with `DRIVE_DELAY_MS=200` (serve.py now takes it: that much latency on every
+Drive request) and a real four-project ad set (Wadeem session files, 8 images each, ~2–4 MB
+photos). The window opened at 1.0 s but **`asScan` rendered every image of every audience at full
+export size (32 JPEGs, a Story is 2160 x 3840) before laying out one tile**, then shrank each to a
+640px thumbnail; the content team's words waited for that too.
+- **RV.build's image files say `lazy`, their size (`dim`) and `thumb`** (`RV.render(…, small)`:
+  the same ops drawn 640px tall). `asScan` lays a lazy tile out from that with no render; the
+  tile's `load()` renders the full file on the first ask (opened full size, Details, a format
+  pick, Preview, a download) and `got` fills `url`/`file`/`meta`.
+- **`asThumbs` takes the audience on screen first**, re-picked per tile so choosing another
+  audience jumps the queue; then renders the full files two at a time in the background. While
+  the window shows the words (CT) lazy tiles wait, so nothing competes with the live preview.
+- `asCard`'s `img`/`meta` are getters on the current tile (it renders after the card is made);
+  Preview and its arrows wait for the shots. `asDownload` and `RV.download` wait for any tile
+  still rendering, all at once (one after another took ~10 s).
+- **`RV.load`'s first read trusts what `rsget` fetched under 15 s ago** (`warm`, `dsRead(id,
+  'warm')`): every project's metadata was being asked for a second time.
+- Folder sources (real files) are unchanged: their tiles are not lazy.
+
+| PM link, 200 ms per Drive request | before | after |
+|---|---|---|
+| tiles laid out | 7.6 s | 1.1 s |
+| first image | 8.1 s | 2.3 s |
+| the audience on screen complete | 8.3 s | 3.2 s |
+| open and press Download at once → zip | not before 8.4 s | 6.2 s |
+| CT: words and preview | after the scan (≥ 7.6 s) | 2.7 s |
+
+Verified: PM Download zipped 16 images (14.9 MB) pressed at 2.2 s; a second Download 84 ms; a tile
+opened full size before its render showed the 2160 x 2160 export; CT fetched only the open
+project's photos. No console errors. **Not measured on real Google Drive or the live site** (the
+live link asked to renew a Google session). Left: the page itself (~1 s to the window), and the
+same photo is a separate Drive file per slot, so a project downloads it more than once.

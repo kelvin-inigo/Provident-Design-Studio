@@ -13,6 +13,7 @@ studios talk to the public website's store (share-link.js, shareBase()).
 import importlib.util
 import os
 import sys
+import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import urllib.parse
 
@@ -110,6 +111,9 @@ class H(SimpleHTTPRequestHandler):
             import json as _j
             code, ctype, out = 200, 'application/json', _j.dumps(drive_mock.snapshot()).encode()
         else:
+            # DRIVE_DELAY_MS=200 adds a round trip's worth of latency to every Drive request, to
+            # time a page against something nearer to Google than localhost
+            if os.environ.get('DRIVE_DELAY_MS'): time.sleep(int(os.environ['DRIVE_DELAY_MS']) / 1000)
             code, ctype, out = drive_mock.route(method, u.path, u.query, self.headers, body)
         self.send_response(code)
         self.send_header('Access-Control-Allow-Origin', '*')

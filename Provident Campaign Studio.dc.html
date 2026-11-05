@@ -17227,7 +17227,7 @@ class Component extends DCLogic {
   mkStep(d) {
     const nav = this.mkNav(); if (!nav) return;
     const j = nav.i + d; if (j < 0 || j >= nav.n) return;
-    if (this._mkExt) { this._mkExt = this.mkCards()[j].mk(); this.forceUpdate(); return; }
+    if (this._mkExt) { this.mkCards()[j].prev(); return; }   // waits for a review link's renders
     this.eng.upd(x => { x.activeVi = j; x.sel = null; return x; });
   }
   asClose() { this.aeFlush(); this._ae = null; this._asBig = null; this._asDet = null; this.asFree(); this._as = null; this._asSrc = null; this.setState({ adSetsOpen: false }); }
@@ -17342,15 +17342,28 @@ class Component extends DCLogic {
       const want = [];
       for (const m of tree.values()) for (const a of m.values()) for (const slots of a.values())
         for (const k of Object.keys(KIND)) if (slots[k]) want.push(slots[k]);
+      // A review link's images are rendered from the projects, not read (share-link.js RV.build):
+      // such a file says `lazy` and its size up front, so the tiles are laid out at once and
+      // rendered in the background, the audience on screen first (asThumbs). Waiting for every
+      // render first kept performance marketing and the content team on "Reading…" for seconds.
       await Component.asPool(want, 6, async e => {
+        if (e.h.lazy) { e.dim = e.h.dim || ''; return; }
         if (!e.file) e.file = await e.h.getFile();
         e.dim = await Component.asDims(e.file);
       });
       if (seq !== this._asSeq) return;
-      const tile = (e, shape, label, ctx) => {
-        const url = URL.createObjectURL(e.file); urls.push(url);
-        const t = { url, thumb: '', file: e.file, name: e.path, label, shape, ctx: ctx + ' · ' + label, meta: [e.dim, mb(e.file.size)].filter(Boolean).join(' · ') };
-        t.open = () => { this._asBig = t; this.forceUpdate(); };
+      const tile = (e, shape, label, ctx, aud) => {
+        const t = { url: '', thumb: '', file: null, small: e.file ? null : e.h.thumb, name: e.path, label, shape, ctx: ctx + ' · ' + label, meta: e.dim || '', aud };
+        const got = f => {
+          t.file = f; t.url = URL.createObjectURL(f);
+          if (seq === this._asSeq) urls.push(t.url); else URL.revokeObjectURL(t.url);
+          t.meta = [e.dim, mb(f.size)].filter(Boolean).join(' · ');
+          return f;
+        };
+        // the File, once it exists: a lazy tile renders on the first ask
+        if (e.file) { got(e.file); t.load = () => Promise.resolve(t.file); }
+        else t.load = () => t._ld || (t._ld = e.h.getFile().then(got, er => { t._ld = null; throw er; }));
+        t.open = () => { this._asBig = t; this.forceUpdate(); if (!t.file) t.load().then(() => this.forceUpdate(), () => {}); };
         list.push(t);
         return t;
       };
@@ -17371,7 +17384,7 @@ class Component extends DCLogic {
               const tiles = [];
               const order = ['feed', 'portrait_3x4', 'story', 'landscape_1.91x1'];
               for (const k of order) {
-                if (slots[k]) { const tl = tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › ')); tl.kk = k; tiles.push(tl); files++; }
+                if (slots[k]) { const tl = tile(slots[k], KIND[k][1], KIND[k][3], [main, aud, 'Variant ' + letter, label].join(' › '), main + '\u0001' + aud); tl.kk = k; tiles.push(tl); files++; }
               }
               if (tiles.length) plats.push(this.asCard(key, label, slots['_' + key], letter, tiles, [main, aud, 'Variant ' + letter].join(' › ')));
             }
@@ -17461,13 +17474,35 @@ class Component extends DCLogic {
     return {};
   }
   // Small thumbnails for the tiles, made in the background four at a time (decoding happens off
-  // the main thread) and shown in batches; a newer scan stops it.
+  // the main thread) and shown in batches; a newer scan stops it. The audience on screen goes
+  // first, picked again for every tile, so choosing another audience moves it up the queue.
+  // A review link's tile draws its own thumbnail (RV.render small), and the full files follow,
+  // two at a time, so a download rarely waits.
   async asThumbs(list, seq) {
     let pend = false;
     const show = () => { if (!pend) { pend = true; setTimeout(() => { pend = false; if (seq === this._asSeq) this.forceUpdate(); }, 120); } };
-    await Component.asPool(list.slice(), 4, async t => {
-      if (seq !== this._asSeq || t.thumb) return;
+    // a lazy tile waits while the window shows the words (the content team): nobody sees it,
+    // and its render would only compete with the live preview they are typing into
+    const shown = async () => { while (seq === this._asSeq && this._asMode === 'text' && !this._asAll) await new Promise(r => setTimeout(r, 500)); };
+    const queue = () => {
+      const left = list.slice();
+      return () => { const i = left.findIndex(t => this._asAll || t.aud === this._asSel); return left.splice(i < 0 ? 0 : i, 1)[0]; };
+    };
+    let next = queue();
+    await Component.asPool(list.map(() => 0), 4, async () => {
+      const t = next();
+      if (!t || seq !== this._asSeq || t.thumb) return;
       try {
+        if (!t.file && t.small) {
+          await shown();
+          if (seq !== this._asSeq) return;
+          const b = await t.small();
+          if (seq !== this._asSeq) return;
+          t.thumb = URL.createObjectURL(b); (this._asUrls || []).push(t.thumb);
+          show(); return;
+        }
+        if (!t.file) await t.load();
+        if (seq !== this._asSeq) return;
         const bmp = await createImageBitmap(t.file, { resizeHeight: 640, resizeQuality: 'medium' });
         if (seq !== this._asSeq) { bmp.close && bmp.close(); return; }
         const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
@@ -17477,6 +17512,12 @@ class Component extends DCLogic {
         t.thumb = URL.createObjectURL(blob); (this._asUrls || []).push(t.thumb);
       } catch (e) { t.thumb = t.url; }
       show();
+    });
+    if (seq !== this._asSeq || !list.some(t => !t.file)) return;
+    next = queue();
+    await Component.asPool(list.map(() => 0), 2, async () => {
+      const t = next();
+      if (t && !t.file && seq === this._asSeq) { await shown(); if (seq === this._asSeq) try { await t.load(); show(); } catch (e) {} }
     });
   }
   // A platform block in a variant card: its exported images, plain, and "See details" — the
@@ -17705,11 +17746,15 @@ class Component extends DCLogic {
       if (key !== '*' && au.key !== key) continue;
       one = au;
       for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles)
-        if (t.file) items.push({ dir: [au.main, au.title, c.title].map(clean).filter(Boolean).join('/'), file: t.file, name: String(t.name || t.file.name).split('/').pop() });
+        items.push({ dir: [au.main, au.title, c.title].map(clean).filter(Boolean).join('/'), t, name: String(t.name).split('/').pop() });
     }
     if (!items.length) return;
     this._asDl = 'busy'; this._asDlKey = key; this.forceUpdate();
     try {
+      // a review link's tiles may still be rendering: wait for them; one that fails is left out
+      await Promise.all(items.map(async it => { it.file = await it.t.load().catch(() => null); }));
+      for (let i = items.length - 1; i >= 0; i--) if (!items[i].file) items.splice(i, 1);
+      if (!items.length) throw new Error('nothing to zip');
       // FLAT, by request: no folders inside the zip. Export names already carry the variant
       // and the size; a name two audiences share gets its main folder and audience added.
       const files = [], seen = new Map();
@@ -17968,23 +18013,30 @@ class Component extends DCLogic {
       if (t.length) rows.push({ kind, tiles: t });
     }
     const card = { key, label, tiles, rows, ctx, letter, yt, proj: p, need: false };
+    // img and meta are read off the tile each time: a review link's tile is rendered after this
+    Object.defineProperty(card, 'img', { get: () => card.cur.url || card.cur.thumb });
+    Object.defineProperty(card, 'meta', { get: () => card.cur.label + ' · ' + card.cur.meta });
+    const want = t => { if (!t.file) t.load().then(() => this.forceUpdate(), () => {}); };
     card.pick = t => {
-      card.img = t.url; card.shape = t.shape; card.open = t.open; card.meta = t.label + ' · ' + t.meta;
-      card.fmts = tiles.length > 1 ? tiles.map(x => ({ label: x.label, on: x === t ? '1' : undefined, set: () => { card.pick(x); this.forceUpdate(); } })) : [];
+      card.cur = t; card.shape = t.shape; card.open = t.open;
+      card.fmts = tiles.length > 1 ? tiles.map(x => ({ label: x.label, on: x === t ? '1' : undefined, set: () => { card.pick(x); want(x); this.forceUpdate(); } })) : [];
     };
     card.pick(tiles[0]);
-    card.see = () => { this._asDet = card; this.forceUpdate(); };
+    card.see = () => { this._asDet = card; want(card.cur); this.forceUpdate(); };
     // Preview: the placement preview over THIS variant's exported images — the files the
     // window already holds, so it needs no engine and works on any source, a review link
     // included. The words around the creative come from the saved project's own copy.
-    const SK = { feed: 'sq', portrait_3x4: 'pt', story: 'st' }, shots = {};
-    tiles.forEach(t => { if (SK[t.kk]) shots[SK[t.kk]] = t.url; });
-    card.prevOn = Object.keys(shots).length ? '1' : undefined;
+    const SK = { feed: 'sq', portrait_3x4: 'pt', story: 'st' };
+    card.prevOn = tiles.some(t => SK[t.kk]) ? '1' : undefined;
     card.mk = () => {
-      const vi = Math.max(0, letter.charCodeAt(0) - 65);
+      const vi = Math.max(0, letter.charCodeAt(0) - 65), shots = {};
+      tiles.forEach(t => { if (SK[t.kk]) shots[SK[t.kk]] = t.url; });
       return { card, shots, label: ctx, copy: st.variants ? C.mockCopyOf(st, vi) : C.mockCopyOf({ campaign: label }, 0) };
     };
-    card.prev = () => { this._mkExt = card.mk(); this.setState({ mockOpen: true }); };
+    card.prev = async () => {
+      await Promise.all(tiles.filter(t => SK[t.kk]).map(t => t.load().catch(() => null)));
+      this._mkExt = card.mk(); this.setState({ mockOpen: true });
+    };
     return card;
   }
   // ══ THE AD ANALYSIS in Ad sets › Details (2026-10-15) ═══════════════════════════════════
@@ -18228,7 +18280,7 @@ class Component extends DCLogic {
       asSetImg: () => this.asSetMode('images'), asSetTxt: () => this.asSetMode('text'),
       ...this.aeVals(),
       asBigOn: big ? '1' : undefined,
-      asBigUrl: big ? big.url : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
+      asBigUrl: big ? big.url || big.thumb : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
       asBigCtx: big ? big.ctx : '',
       asBigPos: big && list.length > 1 ? (bi + 1) + ' of ' + list.length : '',
       asBigPrev: () => step(-1), asBigNext: () => step(1),

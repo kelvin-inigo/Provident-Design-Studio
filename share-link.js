@@ -311,9 +311,10 @@
   // file is not cached — one round trip instead of two. A write between the two answers could
   // pair new metadata with old content, so an entry read that way is never trusted by a
   // non-fast read (a save, a step, the preview writer): those read it again the careful way.
+  // `fresh` 'warm': a link opening reads what the ad set's own read fetched a moment ago (15s)
   async function dsRead(id, fresh, fast) {
     const c0 = DSC[id], c = c0 && (fast || !c0.fast) ? c0 : null;
-    if (c && !fresh && Date.now() - c.at < 1500) return c.d;
+    if (c && Date.now() - c.at < (fresh === 'warm' ? 15000 : fresh ? 0 : 1500)) return c.d;
     for (let tries = 0; ; tries++) {
       const media = () => dsFetch('/drive/v3/files/' + id + '?alt=media&supportsAllDrives=true').then(r => r.json());
       let m, d;
@@ -418,7 +419,7 @@
     q = q || {}; body = body || {};
     if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
     const writes = DS_WRITES;
-    const R = await dsResolve(q.id, q.p, !!writes[op]);
+    const R = await dsResolve(q.id, q.p, writes[op] ? true : q.warm ? 'warm' : false);
     const pub = () => dsPub(R.rs, R.role);
     if (op === 'rsget') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
@@ -608,7 +609,7 @@
     if (!R.sid) throw dsFail(400, 'Name the project (p=) — this is an ad set link.');
     const fid = R.sid.slice(1);
     if (op === 'get' || op === 'sync' || op === 'rev') {
-      const d = await dsRead(fid, op !== 'rev'), rv = d.review || {}, log = rv.log || [], n = log.length;
+      const d = await dsRead(fid, op === 'get' && q.warm ? 'warm' : op !== 'rev'), rv = d.review || {}, log = rv.log || [], n = log.length;
       if (op === 'rev') return { rev: rv.rev || 0, n, role: R.role, rs: pub() };
       const from = op === 'get' ? Math.max(0, n - 200) : Math.min(n, Math.max(0, Number(q.from) || 0));
       const out = { state: d.state, rev: rv.rev || 0, imgs: rv.imgs || {}, log: log.slice(from), from, n, role: R.role, rs: pub() };
@@ -3311,10 +3312,12 @@
   RV.here = function () { const sh = this.shell; return !!(sh.state.adSetsOpen && sh._asSrc && sh._asSrc.share === this); };
   // every project's state, its revision and its photo map
   RV.load = async function () {
-    const items = (this.rs.items || []).filter(it => !this.proj[it.sid]);
+    const items = (this.rs.items || []).filter(it => !this.proj[it.sid]), warm = isDs(this.tok) && !this.loaded;
+    this.loaded = true;
     await pool(items, 3, async it => {
       try {
-        const d = await api('get', { id: this.tok, p: it.sid });
+        // the first load follows rsget, which has just read every project file from Drive
+        const d = await api('get', Object.assign({ id: this.tok, p: it.sid }, warm ? { warm: '1' } : {}));
         const st = this.eng.shNorm(d.state);
         this.proj[it.sid] = { st, base: st, rb: st, rev: d.rev, n: d.n, from: d.from, log: d.log || [], imgs: d.imgs || {}, cache: {}, photos: null, assets: null, pend: false };
       } catch (e) { this.proj[it.sid] = { gone: e.message || String(e), st: null, cache: {}, log: [] }; }
@@ -3331,14 +3334,16 @@
     })();
     return p.photos;
   };
-  RV.render = function (sid, vi, sk) {
-    const p = this.proj[sid], k = vi + ':' + sk;
+  // `small`: the tile's thumbnail, drawn 640px tall instead of shrinking the full export (a
+  // Story is 2160 x 3840) — the full file is rendered only when someone opens or downloads it
+  RV.render = function (sid, vi, sk, small) {
+    const p = this.proj[sid], k = (small ? 's' : '') + vi + ':' + sk;
     if (!p.cache[k]) p.cache[k] = (async () => {
-      const st = p.st, C = this.eng.constructor;
+      const st = p.st, C = this.eng.constructor, full = C.exportScale(sk, st), t = C.PXT[sk];
       if (!p.assets) p.assets = (async () => { await warmFonts(); return this.eng.loadAssets(st, await this.photos(sid)); })();
       const a = await p.assets;
       await projFonts(st);
-      const r = await this.eng.rasterFile(this.eng.buildOps(st, vi, sk, a), 'jpg', C.exportScale(sk, st));
+      const r = await this.eng.rasterFile(this.eng.buildOps(st, vi, sk, a), 'jpg', small && t ? Math.min(full, 640 / t.H) : full);
       StudioBase.applyFont(this.eng.state);
       return r.data;
     })();
@@ -3372,8 +3377,11 @@
       const kids = [json];
       (st.variants || []).slice(0, 26).forEach((v, vi) => {
         const L = 'Variant ' + String.fromCharCode(65 + vi);
+        // lazy: the window lays the tile out from its size and renders it in the background
+        const dim = sk => { const t = C.PXT[sk] || {}, sc = C.exportScale(sk, st); return t.W ? Math.round(t.W * sc) + ' × ' + Math.round(t.H * sc) : ''; };
         const files = C.sizesFor(st, v).filter(k => RV_SIZES.indexOf(k) >= 0)
-          .map(sk => file(nm + '_' + L + '_' + (C.EXPORT_NAME[sk] || sk) + '.jpg', 'image/jpeg', () => me.render(sid, vi, sk)));
+          .map(sk => file(nm + '_' + L + '_' + (C.EXPORT_NAME[sk] || sk) + '.jpg', 'image/jpeg', () => me.render(sid, vi, sk),
+            { lazy: true, dim: dim(sk), thumb: async () => new Blob([await me.render(sid, vi, sk, true)], { type: 'image/jpeg' }) }));
         if (files.length) kids.push(dirH(L, files));
       });
       (tree[m] || (tree[m] = [])).push(dirH(a, kids));
@@ -3773,10 +3781,12 @@
     const auds = rsAuds(this.rs).filter(a => a.done && (key === '*' || a.key === key));
     const want = new Set(); auds.forEach(a => a.items.forEach(it => want.add(this.pathOf(it).join('\u0001'))));
     const a = this.shell._as || {}, items = [];
-    for (const m of a.mains || []) for (const au of m.auds) if (want.has(au.key)) for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles) if (t.file) items.push({ file: t.file, name: String(t.name || t.file.name).split('/').pop(), pre: au.key.replace('\u0001', ' ') });
+    for (const m of a.mains || []) for (const au of m.auds) if (want.has(au.key)) for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles) items.push({ t, name: String(t.name).split('/').pop(), pre: au.key.replace('\u0001', ' ') });
     if (!items.length) return;
     this.dl = key; this.barRender();
     try {
+      // the window renders tiles in the background, the audience on screen first: wait for the rest
+      await Promise.all(items.map(async it => { it.file = it.t.load ? await it.t.load() : it.t.file; }));
       const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim(), used = new Set(), files = [];
       for (const it of items) {
         let n = clean(it.name); if (used.has(n)) n = clean(it.pre) + ' ' + n;
