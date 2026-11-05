@@ -18542,6 +18542,8 @@ class Component extends DCLogic {
         // Add a project's request (provident-rsjoin) opens a saved project the same way
         try { const p = JSON.parse(localStorage.getItem('provident-rspick') || 'null'); if (p && Date.now() - (p.at || 0) < 300000) return true; } catch (e) {}
         try { const j = JSON.parse(localStorage.getItem('provident-rsjoin') || 'null'); if (j && Date.now() - (j.at || 0) < 180000) return true; } catch (e) {}
+        // Status's Start the unbranded (provident-rsub) opens the branded project to copy it
+        try { const u = JSON.parse(localStorage.getItem('provident-rsub') || 'null'); if (u && Date.now() - (u.at || 0) < 120000) return true; } catch (e) {}
         return false;
       };
       const isRec = () => ['all', 'rev', 'rec', 'acc'].indexOf(this.state.splashView || 'all') >= 0;
@@ -18678,8 +18680,6 @@ class Component extends DCLogic {
       shShowUse: view === 'use',
       shShowRev: false,
       shShowAcc: false,
-        // Status's Start the unbranded (provident-rsub) opens the branded project to copy it
-        try { const u = JSON.parse(localStorage.getItem('provident-rsub') || 'null'); if (u && Date.now() - (u.at || 0) < 120000) return true; } catch (e) {}
       shViewAcc: () => StudioBase.goHome('access'),
       shViewAccOn: view === 'acc' ? '1' : undefined,
       shAccOn: acc.admin && acc.pending ? '1' : undefined,
