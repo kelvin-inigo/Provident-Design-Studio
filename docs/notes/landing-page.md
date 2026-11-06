@@ -573,3 +573,20 @@ the whole list). Detail in reviews-sharing-drive.md, "AN AD SET'S STATUS PAGE OP
   two lines), the ring over both, a compact Download at the foot, five across like Projects.
   Checked with stand-in images (the stand-in's posts have no exported files).
 - The OPS post page's back link is post-flow.js's (see ops-posts-and-hub.md).
+
+## Status's Closed column (2026-11-06, by request)
+"On status window, add a column where all the posted and launch task go. Call it Closed."
+Supersedes "There is no Delivered column" above. `STAGES` gains `closed` (Closed, "Launched or
+posted", `--ps-ink-2` dot; whoOf: CAS-only "Launched", OPS-only "Posted"); `MOVING` is the four
+without it and drives Home's **Where everything is** (its "in motion" count is `data.rows`, which
+holds no closed row). `build()` no longer drops a row with `live` (CAS `rsLive`, OPS `rs.posted`
+— both rows already carried `live` and the step "Launched" / "Posted"): it is stamped
+`stage:'closed'`, `mine:false`, kept in `data.closed`, newest `live` first; the content team's
+is empty (it sees only what waits on it). `viewStatus` and `get()` read `rows.concat(closed)`, so
+the filter counts and an item page include them. A Closed card shows `ago(live)` in the due slot,
+never a due date or an overdue count. `.bd` is `repeat(5,minmax(200px,1fr))` (5 × 84vw on a
+phone; two by two ≤1100 unchanged). Launch / Posted confirms say "moves it to Closed on Status".
+Verified: a CAS and an OPS ready row marked `live` in the local queue (storage event) landed in
+Closed, newest first ("1 h ago", "2 days ago"), Ready went 11 → 9, Home read 42 in motion with
+four stages; five columns at 1440 with no sideways scroll; queue restored from Drive on reload.
+

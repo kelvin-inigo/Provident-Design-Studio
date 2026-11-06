@@ -336,7 +336,7 @@ button{font-family:inherit}
 .tg[aria-pressed="true"]{color:var(--ps-ink)}
 .tg[aria-pressed="true"] i{background:var(--ps-primary)}
 .tg[aria-pressed="true"] i::after{transform:translateX(12px); background:var(--ps-primary-i)}
-.bd{display:grid; grid-template-columns:repeat(4,minmax(220px,1fr)); gap:14px; align-items:start; overflow-x:auto; padding-bottom:8px;
+.bd{display:grid; grid-template-columns:repeat(5,minmax(200px,1fr)); gap:14px; align-items:start; overflow-x:auto; padding-bottom:8px;
   scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
 .col{min-width:0; border-radius:16px; background:var(--ps-fill); padding:12px 10px 10px}
 .col-h{display:flex; align-items:center; gap:8px; padding:2px 6px 12px; font:600 14px/1.2 var(--ps-font)}
@@ -549,7 +549,7 @@ button{font-family:inherit}
   .flt::-webkit-scrollbar{display:none}
   .flt button{flex:none}
   .sx-tools .flt{width:100%}
-  .bd{grid-template-columns:repeat(4,84vw); overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -16px; padding:0 16px 8px; scroll-padding:0 16px}
+  .bd{grid-template-columns:repeat(5,84vw); overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -16px; padding:0 16px 8px; scroll-padding:0 16px}
   .col{scroll-snap-align:start}
   .nx-acts .b-p{flex:1}
   .row{grid-template-columns:auto minmax(0,1fr); gap:10px 12px}
@@ -865,17 +865,21 @@ body{-webkit-tap-highlight-color:transparent;
   };
   var ROLE = { designer: 'Designer', admin: 'Designer', pm: 'Performance marketing', smm: 'Social media', ct: 'Content team',
     cten: 'Content team · English', ctar: 'Content team · Arabic' };
-  // the board's four columns; each studio's own step names map onto them
+  // the board's columns; each studio's own step names map onto them. CLOSED (2026-11-06, by
+  // request) is Status's alone: launched campaigns and posted posts, the newest first. Home's
+  // "Where everything is" keeps to the four stages still in motion (MOVING).
   var STAGES = [
     { k: 'new', n: 'New', who: 'Tickets and drafts, waiting for a designer', c: 'var(--ps-dim)' },
     { k: 'design', n: 'Design', who: 'With design', c: 'var(--ps-link)' },
     { k: 'check', n: 'Copy check', who: 'With the content team', c: 'var(--ps-warn)' },
-    { k: 'ready', n: 'Ready', who: 'To run or to publish', c: 'var(--ps-good)' }
+    { k: 'ready', n: 'Ready', who: 'To run or to publish', c: 'var(--ps-good)' },
+    { k: 'closed', n: 'Closed', who: 'Launched or posted', c: 'var(--ps-ink-2)' }
   ];
+  var MOVING = STAGES.filter(function(s){ return s.k !== 'closed'; });
   // a stage's subtitle for this viewer: one studio's Ready is "To run" or "To publish"
   // (2026-11-04) and social media's whole board speaks of posts
-  var WHO_OPS = { new: 'Drafts, not sent to a designer yet', design: 'With the designer', check: 'With the content team', ready: 'To download and publish' };
-  function whoOf(s){ var k = studiosFor(roleOf()); return k.length > 1 ? s.who : k[0] === 'ops' ? WHO_OPS[s.k] : s.k === 'ready' ? 'To run' : s.who; }
+  var WHO_OPS = { new: 'Drafts, not sent to a designer yet', design: 'With the designer', check: 'With the content team', ready: 'To download and publish', closed: 'Posted' };
+  function whoOf(s){ var k = studiosFor(roleOf()); return k.length > 1 ? s.who : k[0] === 'ops' ? WHO_OPS[s.k] : s.k === 'ready' ? 'To run' : s.k === 'closed' ? 'Launched' : s.who; }
   var SC = {}; STAGES.forEach(function(s){ SC[s.k] = s; });
 
   function $(id){ return document.getElementById(id); }
@@ -958,7 +962,7 @@ body{-webkit-tap-highlight-color:transparent;
     // previewing one person (Access › Preview the home as): their email, so "mine" is theirs
     var nw = acc && acc.now && phase === 'in' ? acc.now() : null;
     var r = roleOf(), em = nw && nw.email ? String(nw.email).toLowerCase() : me && me.email ? String(me.email).toLowerCase() : '';
-    var rows = [], at = 0;
+    var rows = [], closed = [], at = 0;
     studiosFor(r).forEach(function(k){
       var b = inbox[k]; if (!b || !Array.isArray(b.items)) return;
       // a queue written for someone else on this computer is not this person's
@@ -975,8 +979,9 @@ body{-webkit-tap-highlight-color:transparent;
         if (r === 'pm') y.mine = same && k === 'cas' && !!x.ready;
         // THE SOCIAL MEDIA MANAGER'S WORK IS THE FINISHED POST (2026-11-04, by request): ready to download
         if (r === 'smm' && k === 'ops') y.mine = same && !!x.ready && !!x.mine;
-        // a launched campaign (performance marketing's Launch) is finished: off the queue and the board
-        if (y.live) return;
+        // a launched campaign (performance marketing's Launch) or a posted post is finished: off the
+        // queue and Home, into Status's Closed column
+        if (y.live) { y.stage = 'closed'; y.mine = false; closed.push(y); return; }
         y.stage = stageOf(y);
         rows.push(y);
       });
@@ -984,15 +989,16 @@ body{-webkit-tap-highlight-color:transparent;
     if (studiosFor(r).indexOf('ops') >= 0) hubRows(r).forEach(function(y){ y.stage = stageOf(y); rows.push(y); });
     // THE CONTENT TEAM SEES ONLY WHAT IS HANDED TO THEM (2026-11-04, by request): Home and Status
     // list the copy waiting on them, and nothing of what other people are working on
-    if (r === 'ct') rows = rows.filter(function(x){ return x.mine; });
+    if (r === 'ct') { rows = rows.filter(function(x){ return x.mine; }); closed = []; }
+    closed.sort(function(p, q){ return (q.live || 0) - (p.live || 0); });
     function urgency(x){ var d = due(x.due); return d ? d.n : 999; }
     var mine = rows.filter(function(x){ return x.mine; }).sort(function(p, q){ return urgency(p) - urgency(q) || (q.at || 0) - (p.at || 0); });
     // social media's With others is what they sent on: posts with the designer or the content team
     var others = rows.filter(function(x){ return !x.mine && !x.ready && (r !== 'smm' || x.stage === 'design' || x.stage === 'check'); }).sort(function(p, q){ return (q.at || 0) - (p.at || 0); });
     var known = studiosFor(r).some(function(k){ return inbox[k] && Array.isArray(inbox[k].items); });
-    return { rows: rows, mine: mine, others: others, at: at, known: known, r: r };
+    return { rows: rows, closed: closed, mine: mine, others: others, at: at, known: known, r: r };
   }
-  function get(s, id){ return data.rows.filter(function(x){ return x.studio === s && String(x.id) === id; })[0]; }
+  function get(s, id){ return data.rows.concat(data.closed).filter(function(x){ return x.studio === s && String(x.id) === id; })[0]; }
   function itemLink(x){ return x.hub ? esc(x.href) : '#/item/' + x.studio + '/' + encodeURIComponent(x.id); }
   function href(x){ var r = data.r; return (x.hub || (x.studio === 'cas' && (r === 'ct' || r === 'pm'))) && x.href ? esc(x.href) : itemLink(x); }
   // THE CONTENT TEAM'S CAMPAIGN COPY CHECK OPENS IN ITS OWN TAB (2026-11-04, by request)
@@ -1096,7 +1102,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (data.known){
       var both = studiosFor(r).length > 1;
       h += '<section class="pan"><div class="sh">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/status">Status</a></div><ol class="flw">';
-      STAGES.forEach(function(s){
+      MOVING.forEach(function(s){
         var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
         var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
         var late = c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
@@ -1219,24 +1225,26 @@ body{-webkit-tap-highlight-color:transparent;
     var r = data.r, both = studiosFor(r).length > 1;
     var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : 'Your organic posts, from draft to ready.') + '</p></div></div>';
     if (!data.known || !me || !me.email) return h + quiet('status');
+    var all = data.rows.concat(data.closed);
     h += '<div class="sx-tools">';
     if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
-      var c = data.rows.filter(function(x){ return f[0] === 'all' || x.studio === f[0]; }).length;
+      var c = all.filter(function(x){ return f[0] === 'all' || x.studio === f[0]; }).length;
       return '<button type="button" data-sf="' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
     if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
     h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
-    var shown = data.rows.filter(function(x){
+    var shown = all.filter(function(x){
       return (sxF === 'all' || x.studio === sxF) && (!sxMine || x.mine) && (!sxQ || String(x.name).toLowerCase().indexOf(sxQ.toLowerCase()) >= 0);
     });
     h += '<div class="bd" id="bd">' + STAGES.map(function(s){
-      var c = shown.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
-      var late = c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
+      var cl = s.k === 'closed', c = shown.filter(function(x){ return x.stage === s.k; });
+      if (!cl) c.sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
+      var late = cl ? 0 : c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
       return '<section class="col" id="col-' + s.k + '" aria-label="' + s.n + '"><div class="col-h"><i style="--c:' + s.c + '"></i>' + s.n + (late ? '<span class="col-late">' + late + ' overdue</span>' : '') + '<small>' + c.length + '</small></div>' +
         '<span class="col-who">' + esc(whoOf(s)) + '</span>' +
         (c.length ? '<ul class="cds">' + c.map(function(x){
           return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span class="cd-n">' + mkOf(x) + '<b title="' + esc(x.name) + '">' + esc(x.name).replace(/_/g, '_<wbr>') + '</b></span></span>' +
             '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
-            '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + esc(initials(x.from)) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + dueEl(x) + '</span></a></li>';
+            '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + esc(initials(x.from)) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x)) + '</span></a></li>';
         }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + (sxF !== 'all' || sxMine || sxQ ? ' for this filter' : '') + '.</p>') + '</section>';
     }).join('') + '</div>' + freshLine();
     return h;
@@ -1428,13 +1436,13 @@ body{-webkit-tap-highlight-color:transparent;
     tick = setInterval(function(){ if (document.visibilityState === 'visible') refreshAll(false); }, 60000);
   }
   // Launch marks every finished phase of the ad set live (share-link.js op rslaunch, logged as the
-  // person), then re-reads Status so it leaves the queue and the board
+  // person), then re-reads Status so it leaves the queue for the board's Closed column
   // and Posted (op rsposted, post-flow's posts): the post is published, so it is closed
   function launch(t){
     var K = window.providentDsKit; if (!K || !K.api || t.disabled) return;
     var post = t.dataset.op === 'rsposted', word = post ? 'Posted' : 'Launch';
-    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post and takes it off your queue and Status. The log says you marked it.'
-      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running and takes it off your queue and Status. The log says you launched it.')) return;
+    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post, takes it off your queue and moves it to Closed on Status. The log says you marked it.'
+      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running, takes it off your queue and moves it to Closed on Status. The log says you launched it.')) return;
     t.disabled = true; t.lastChild.textContent = post ? 'Closing\u2026' : 'Launching\u2026';
     var nw = acc && acc.now ? acc.now() : null, by = (me && me.name) || (typeof StudioBase !== 'undefined' && StudioBase.shareName && StudioBase.shareName()) || 'Performance marketing';
     K.api(t.dataset.op || 'rslaunch', { id: t.dataset.launch }, { by: by, em: (nw && nw.email) || (me && me.email) || '' })

@@ -387,7 +387,7 @@ English back. The content team checks the Arabic at the translation step.
 
 When every audience is done, performance marketing downloads the package from their link. Once
 the ads are running, they press **Launch** on the home's Next up card (or on its row under Also waiting on you): the campaign reads
-**Launched** on its page, the log says who launched it, and it leaves everyone's Home and Status.
+**Launched** on its page, the log says who launched it, and it leaves everyone's Home for the **Closed** column on Status.
 A phase added later (say Ad Fatigue 01) brings it back once that phase is ready.
 
 #### Phases
@@ -1084,7 +1084,7 @@ Every post goes through four steps:
    The social media manager opens its files from the home page
    (**Open the files**: each image, **Download**, **Download all**, **Drive folder**), publishes it,
    then presses **Posted**: the post is closed, its page reads "Posted", the log says who, and it
-   leaves Home and Status.
+   leaves Home for the **Closed** column on Status.
 
 A post goes on Google Drive (and Status) when it has a name or a brief as you pick its template.
 Picked with neither, it opens on this computer only ("Not on Drive"), and **Send to designer** puts
@@ -1160,8 +1160,10 @@ folder**. **Notify me** turns on a Chrome notification when the post moves on.
 A post opened from a file, or made before this, says **Not on Drive** with **Save to Drive** (a
 social media manager sees **Send to designer**, which saves it and hands it on in one click).
 
-**Status** (the home page) shows every post in the Drive folder with the campaigns, in four
-columns — New (drafts), Design, Copy check, Ready. **Only what waits on me** shows only yours; a
+**Status** (the home page) shows every post in the Drive folder with the campaigns, in five
+columns — New (drafts), Design, Copy check, Ready, and **Closed**: every campaign that
+performance marketing launched and every post marked posted, the newest first, with how long ago.
+Home's **Where everything is** counts only the four still moving. **Only what waits on me** shows only yours; a
 card with a blue ring and **Waits on you** is yours. Click a card for its page: progress, the step buttons, **Open in
 the studio**, **Copy link**, the brief and files, and everything that happened. Every export is
 also uploaded to the post's **Exports** folder on Drive.
