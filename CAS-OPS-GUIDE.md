@@ -1104,6 +1104,11 @@ template below. The content team has no Start a post.
   holding the post's record (`<post name>_Post.json`), the project (`<post name>.smpstudio.json`),
   its pictures (`Assets/`), the brief's files and its exports. Every change is saved there within
   seconds, and it goes Draft › Design › Copy check › Ready on Status.
+
+**A Reel thumbnail always starts as Just me**, whichever you chose: it stays with you and is not on
+Status. To have a designer approve it, press **Send to designer** in the top bar (beside **Just
+you**). That saves it to Google Drive, puts it on Status, and asks which designer picks it up.
+From there it goes Design › Copy check › Ready like any other post.
 Sign in to Google once if it asks.
 
 **Every export is also saved to the team's files folder on Google Drive**, by template, in a

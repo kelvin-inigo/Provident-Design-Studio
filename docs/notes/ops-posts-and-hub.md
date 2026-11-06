@@ -674,3 +674,18 @@ By request, from annotated screenshots of the live site previewed as Jerry (SMM)
 By request: "‹ All posts" (a `pf-a` text link) is now the ad set page's button — `p-ghost
 ps-back` with the same Material back arrow (`BACK_D`, copied from share-link.js's `back`) and the
 same 32px pill and spacing as `.rva-back`. Both renderings in `PS` (loading and loaded) use it.
+
+# OPS: A REEL THUMBNAIL STAYS WITH THE SOCIAL MEDIA MANAGER (2026-11-06)
+
+By request: a reel thumbnail goes on nobody else's Status unless the SMM sends it to a designer.
+- The `pickTpl` wrapper takes the Just me path for `t === 'rcover'` whatever `Plan.draft().flow`
+  says. That means no post record and no Status entry, and it opens with `state.solo`. A template
+  picked for a post that already exists (`PICK`, Start the design) is unchanged.
+- The solo top bar (`postVals`) gets `pfFlowOn` **Send to designer** for smm, an admin, or with
+  sign-in off. It drops `solo` and calls `postToDrive(true)`: the post goes to Drive, then
+  `draft-done`, then the usual named hand-off ("Which designer picks it up?"). This applies to
+  every Just me post, not only reels. Clicking the Just you chip still hands it on at Draft.
+- The Start a post sheet's template line says a reel thumbnail stays with you until you send it.
+Verified on the stand-in, as admin with Hand it on selected: the reel opened as Just you, the top
+bar fits at 1280, and Send to designer went Draft › Design "With Aisha Rahman", on Status under
+Design. Test post deleted. **Not exercised:** an SMM account, real Drive.

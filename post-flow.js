@@ -392,9 +392,14 @@
       const S = this._sh;
       if (S) return { pfOn: undefined };   // following a plain edit link
       const smm = role() === 'smm';
+      // the social media manager's way on from Just you: Send to designer saves it to Drive, puts
+      // it on Status and hands the draft to a designer to approve (2026-11-06, by request)
+      const send = smm || !role() || role() === 'admin';
       if (this.state.solo) return { pfOn: '1', pfState: 'solo', pfSegs: [], pfStep: 'Just you', pfWhere: 'Exports go to Drive · ' + fileDest(this.state).join('/'),
         pfTip: 'Only you work on this post and it is not on Status. Click to hand it on after all: it is saved to Google Drive and put on Status.',
-        pfGo: () => { if (window.confirm('Hand this post on?\n\nIt is saved to Google Drive and put on Status, where the designer and the content team pick it up.')) { this.upd(x => { delete x.solo; return x; }); this.postToDrive(false); } } };
+        pfGo: () => { if (window.confirm('Hand this post on?\n\nIt is saved to Google Drive and put on Status, where the designer and the content team pick it up.')) { this.upd(x => { delete x.solo; return x; }); this.postToDrive(false); } },
+        pfFlowOn: send ? '1' : undefined, pfFlowLabel: 'Send to designer', pfFlowTip: 'Saves the post to Google Drive and puts it on Status, where a designer approves it',
+        pfFlow: () => { if (this._pfBusy) return; this.upd(x => { delete x.solo; return x; }); this.postToDrive(true); } };
       return { pfOn: '1', pfState: 'none', pfSegs: segs(-1).map(g => ({ s: 'todo', t: g.t })), pfStep: 'Not on Drive', pfWhere: 'Save it to Google Drive to hand it off',
         pfTip: 'This post is only on this computer. Saving it to Drive puts it on Status, where the designer and the content team pick it up.', pfGo: () => this.postToDrive(false),
         pfFlowOn: '1', pfFlowLabel: smm ? 'Send to designer' : 'Save to Drive', pfFlowTip: smm ? 'Saves the post to Google Drive and sends the draft to a designer' : 'Saves the post to Google Drive, where everyone on it can open it',
@@ -503,8 +508,10 @@
         // a post started earlier is waiting for its template (Start the design): no second post
         let g = null; try { g = JSON.parse(lsGet(PICK) || 'null'); } catch (e) {}
         if (g && g.tok && Date.now() - (g.at || 0) < 300000) return pick.call(this, t);
-        // JUST ME: finished here, never put on Status (its exports still go to Drive)
-        if (Plan.draft().flow === 'solo') { if (!this.confirmDiscard()) return; Plan.clear(); return pick.call(this, t, { solo: true }); }
+        // JUST ME: finished here, never put on Status (its exports still go to Drive). A REEL
+        // THUMBNAIL always starts this way (2026-11-06, by request): it stays with the social media
+        // manager unless they send it to a designer for approval from the top bar.
+        if (Plan.draft().flow === 'solo' || t === 'rcover') { if (!this.confirmDiscard()) return; Plan.clear(); return pick.call(this, t, { solo: true }); }
         if (!this.confirmDiscard()) return;
         // NO EMPTY DRAFTS ON DRIVE (2026-11-04, by request): a template picked with no name, brief or
         // files opens on this computer only ("Not on Drive"); Send to designer / Save to Drive puts
@@ -584,7 +591,7 @@
             '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="pp3-th"><b>Pick a template</b><span>' + (solo ? 'Picking one opens the post. Only you work on it, and its exports go to Google Drive.' : on ? 'Picking one opens the post. With a name or a brief it is saved to Google Drive now; without, it stays on this computer until you send it to a designer.' : 'Picking one opens the post.') + '</span></div>' +
+        '<div class="pp3-th"><b>Pick a template</b><span>' + (solo ? 'Picking one opens the post. Only you work on it, and its exports go to Google Drive.' : on ? 'Picking one opens the post. With a name or a brief it is saved to Google Drive now; without, it stays on this computer until you send it to a designer. A reel thumbnail stays with you until you send it.' : 'Picking one opens the post.') + '</span></div>' +
       '</section>';
   };
 
