@@ -397,7 +397,10 @@ setup on Home asks which phase the ad set **starts** with (**Phase**, Launch unl
 another). Most ad sets only ever need one.
 
 To add another at any point, open the ad set in **Status** and press **Add phase** beside the phase
-tabs, or tick it under **Phases** in **Ad set settings**. Each phase has its own tab with its own
+tabs, or tick it under **Phases** in **Ad set settings**. To call a phase something else, type its
+name in the field under the phases in **Ad set settings** (for example "Price Drop") and press **Add
+phase** or Enter. It becomes a phase like the others, with its own tab and its own Drive folder.
+Click it to drop it again while it has no projects. Each phase has its own tab with its own
 progress, audiences and **Start the English / Start the Arabic** buttons. A new phase starts with
 no projects: every audience of the ad set (the planned ones and any that already have a project in
 another phase) waits there as a **Start the English** (and, where planned, **Start the Arabic**)

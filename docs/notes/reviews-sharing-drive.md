@@ -1818,3 +1818,16 @@ Verified on the stand-in: a PM `save` went through (before this it was a 403). O
 Edit text showed the project's fields, and changing the Button to "Book a viewing" re-rendered
 the preview, read "Saved for everyone", and was logged under the signed-in name. Demo state put
 back (`{pid}`). **Not exercised:** api/share.py (the Upstash path) and real Drive.
+
+## A phase of the designer's own name (2026-11-06, by request)
+Ad set settings › Phases gets a field (`.rss-phx`, **Add phase** or Enter, `phAdd`) beside the five
+standard chips. A typed phase's key is `'x:' + name` (`phKey`; `phClean` drops `| / \ :` and caps
+it at 40). A name that matches a standard phase uses that phase's key. The name travels in the key,
+so there is no table. Every `PH_NAME[k]` lookup is now `phN(k)` (standard name, or the name after
+`x:`), and the fixed-order filters are `phSort` (the standard five in order, then typed ones in
+the order they were added): `phList`, the rsset `phases` whitelist, the settings chips and
+"Arabic in", and `rsAuds`'s sort. The folder for a later phase is `Main/<name>/…` as before. The
+Status page's **+ Add phase** menu still lists only the standard five.
+Verified on the stand-in: "Price Drop" typed in settings and saved became its own Status tab
+(`x:Price Drop`, 0/2, "No Price Drop project yet"), and a second typed phase dropped by clicking
+it. Demo phases put back. **Not exercised:** making a project in a typed phase (the new window).
