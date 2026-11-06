@@ -333,6 +333,10 @@ The flow has three moves for the designer, and the screen always offers the next
 1. **Initial setup.** Performance marketing files the campaign as a ticket (above). On the home
    page's **Status**, the designer opens the ticket — its brief, files and audiences — and presses
    **Pick up**. A new project opens as the first audience, in English, on the **Ad set** tab.
+   Already have the design? Press **Use an existing design** instead: pick one of the projects
+   saved in the studio, or **Open a project folder…** and choose the folder it was saved in (the
+   one holding its .adstudio.json). It opens in a new tab, you say which market, audience and
+   language it is, and the ticket is picked up with that design.
    Type or paste the copy into **Copy** on the Ad set tab, as plain lines (see *Pasting the
    copy* below), check where each line lands, and press **Fill with the … copy**. The copy is
    kept with the campaign.

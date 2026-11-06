@@ -1863,3 +1863,30 @@ shows its name). `PHASES` stays only as the keys older ad sets carry, so a typed
   Main became "Price Cut" with the rename. Renaming back to "Launch" / "ad fatigue 01" landed on
   `launch` / `fat1`; demo phases put back, test folder deleted. **Not exercised:** the
   new-campaign Phase field (CAS's home now redirects to the landing page), real Drive.
+
+## Use an existing design, on an open ticket (2026-11-06, by request)
+"Have option to add existing design right away, so user only opens the existing project seen on
+PDS or completely open the local folder." `AV.ticketHtml` gets **Use an existing design** (ghost,
+before Pick up, `data-a="addopen"`) and draws `addHtml({}, true)` — the Add a project modal in its
+ticket form: its own title and lead, an **Open a project folder…** button (`data-a="addfile"`,
+`.rva-addf`) above the saved-projects list.
+- **A saved project** is the existing Add a project path: `JOIN_KEY {dd, pid}` → CAS (default
+  workspace) `rsJoinCheck` opens it from Recent → `reviewCreate({dd})` → rsDialog preset to the
+  ticket → `dsReview` add, which stamps `picked`. On the home page `CAS_ENG.savedRecents` was a
+  stub returning `[]` (so Add a project there always said "No other saved projects"); it now
+  returns the desk's Campaign recents (`deskRows`, `pid` lifted from `state.pid`), and mounting a
+  CAS item page calls `loadDesk`.
+- **A project folder** is `joinFile(dd)`: CAS in a new workspace with `#joinfile=<dd>`.
+  `rsJoinFileHash` (beside `rsPickHash` in the mount hook) shows one dialog, because the folder
+  picker needs a click; **Choose the folder** writes `JOIN_KEY {dd, pid:'*file', was: state.pid}`
+  and calls `openSessionFolder` (newest .adstudio.json, reload). After the reload `rsJoinCheck`
+  sees `'*file'` with a different pid and runs `reviewCreate({dd})`; same pid (picker dismissed)
+  does nothing, and the key expires in 3 minutes.
+- Verified on the stand-in (Rockefeller Tower ticket): the modal lists 6 saved projects and the
+  folder button; Add writes `JOIN_KEY` with the ticket and pid; the folder button opens
+  `?ws=…#joinfile=<dd>`. In that tab, with `showDirectoryPicker` stubbed to a folder holding a test
+  .adstudio.json, Choose the folder loaded it, reloaded, and the Ad set review dialog opened on
+  **Add to an ad set** › Rockefeller Tower; cancelled, nothing written. **Not exercised:** the real
+  OS folder picker, finishing the join (dsReview add is the Pick up path), Safari (no directory
+  picker: `openSessionFolder` falls back to choosing the file, which works the same way).
+

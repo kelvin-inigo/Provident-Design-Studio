@@ -1399,7 +1399,9 @@ body{-webkit-tap-highlight-color:transparent;
   // The stand-ins are where an action needs the studio: CAS's pick-up waits in localStorage and
   // opens CAS (rsPickCheck takes it from there); OPS's Open and Start the design open OPS.
   var CAS_ENG = { state: {}, host: { setState: function(st, cb){ if (st && st.splashView === 'all') location.hash = '#/new/cas'; else if (st && st.splashView === 'rev') location.hash = '#/status'; if (cb) cb(); }, forceUpdate: function(){} },
-    confirmDiscard: function(){ return true; }, markSaved: function(){}, savedRecents: function(){ return []; },
+    confirmDiscard: function(){ return true; }, markSaved: function(){},
+    // this computer's saved Campaign projects (the desk's list), for Add a project and Use an existing design
+    savedRecents: function(){ return (deskRows || []).filter(function(x){ return x.k === 'cas'; }).map(function(x){ return Object.assign({}, x.r, { pid: x.r.pid || x.r.state.pid }); }); },
     // CAS's pickUp leaves {dd} in localStorage and asks for a new project; a studio tab is its own
     // workspace, so the request travels in the address instead (#pick=, as share-link's startCell)
     newProject: function(){
@@ -1521,7 +1523,7 @@ body{-webkit-tap-highlight-color:transparent;
   }
   function openItem(s, id){
     // the ad set is named before the view is made: a view made first reads the whole list first
-    if (s === 'cas' && window.providentReviews) { var A = window.providentReviews; A.want = id; A.mount(CAS_ENG); }
+    if (s === 'cas' && window.providentReviews) { var A = window.providentReviews; A.want = id; A.mount(CAS_ENG); loadDesk(function(){}); }
     if (s === 'ops' && window.providentPostStatus) { var P = window.providentPostStatus; P.mount(OPS_ENG); P.want = id; P.mount(OPS_ENG); }
   }
   function mountPlan(){ if (window.providentPlan) window.providentPlan.mount(CAS_ENG); }

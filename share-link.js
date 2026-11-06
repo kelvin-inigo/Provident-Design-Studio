@@ -1183,7 +1183,7 @@
     const rb = ssGet(RS_KEY);
     if (rb && !here(rb)) ssSet(RS_KEY, null);
     else if (rb && this.shApp() === 'provident-ad-studio') setTimeout(() => RS.resume(this.host, rb.id), 0);
-    if (this.shApp() === 'provident-ad-studio') { if (this.rsPickHash()) return; this.rsJoinCheck(); this.rsPickCheck(); this.rsUbCheck(); setTimeout(() => this.rsFind(), 1500); }
+    if (this.shApp() === 'provident-ad-studio') { if (this.rsPickHash() || this.rsJoinFileHash()) return; this.rsJoinCheck(); this.rsPickCheck(); this.rsUbCheck(); setTimeout(() => this.rsFind(), 1500); }
     return false;
   };
   // A PROJECT FINDS ITS OWN AD SET (2026-10-29). A tab can be following an older link of the
@@ -1255,6 +1255,14 @@
   SP.rsJoinCheck = async function () {
     let j = null; try { j = JSON.parse(localStorage.getItem(JOIN_KEY) || 'null'); } catch (e) {}
     if (!j || !j.dd || !j.pid || Date.now() - (j.at || 0) > 180000) return;
+    // a project folder chosen in this tab (rsJoinFileHash): once it has loaded — the reload brings
+    // another project — it joins; before that (the picker still open, or dismissed) nothing does
+    if (j.pid === '*file') {
+      if ((this.state.pid || '') === (j.was || '')) return;
+      try { localStorage.removeItem(JOIN_KEY); } catch (e) {}
+      setTimeout(() => this.reviewCreate({ dd: j.dd }), 700);
+      return;
+    }
     if (this.state.pid === j.pid) {
       try { localStorage.removeItem(JOIN_KEY); } catch (e) {}
       setTimeout(() => this.reviewCreate({ dd: j.dd }), 700);
@@ -1267,6 +1275,36 @@
     StudioBase.reloading = true;
     this.markSaved && this.markSaved();
     this.openRecent(k);
+  };
+  // USE AN EXISTING DESIGN › A PROJECT FOLDER (2026-11-06, by request): the ticket page opens CAS
+  // in a new workspace with #joinfile=<dd>. The folder picker needs a click, so one small dialog
+  // asks for it; the folder opens as Open a project file does (it reloads into the project), and
+  // rsJoinCheck then asks for its market, audience and language — the ticket is picked up.
+  function joinFile(dd) {
+    const ws = 'p' + Math.random().toString(36).slice(2, 12);
+    window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '?ws=' + ws + '#joinfile=' + encodeURIComponent(dd), '_blank', 'noopener');
+  }
+  SP.rsJoinFileHash = function () {
+    const m = /^#joinfile=(.+)$/.exec(location.hash || ''); if (!m) return false;
+    history.replaceState(null, '', location.pathname + location.search);
+    const dd = decodeURIComponent(m[1]); if (!isRsId(dd)) return false;
+    injectCss();
+    const el = document.createElement('div');
+    el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c" role="dialog" aria-modal="true" aria-labelledby="rsjf-t"><h2 id="rsjf-t">Open the existing design</h2>' +
+      '<p class="shl-lead">Choose the folder the project was saved in (it holds its .adstudio.json). It opens here, then you say which market, audience and language it is, and the ticket is picked up.</p>' +
+      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Choose the folder</button></div></div>';
+    document.body.appendChild(el);
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      el.remove();
+      if (!b.dataset.go) return;
+      lsSet(JOIN_KEY, JSON.stringify({ dd, pid: '*file', was: this.state.pid || '', at: Date.now() }));
+      if (this.markSaved) this.markSaved();
+      this.openSessionFolder();
+    });
+    const go = el.querySelector('[data-go]'); if (go) go.focus();
+    return true;
   };
   // Status, on one ad set's page: where the designer's link lands
   SP.rsShowStatus = function (id, rs) {
@@ -4524,6 +4562,7 @@
       try { await api('rsdel', { id: this.sel }, {}); Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
       catch (er) { window.alert(er.message || String(er)); }
     }
+    if (a === 'addfile') { joinFile((this.det && this.det.dd) || this.sel); this.addOpen = false; this.draw(); return; }
     if (a === 'addproj') {
       lsSet(JOIN_KEY, JSON.stringify({ dd: this.sel, pid: t.dataset.pid, at: Date.now() }));
       window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file), '_blank', 'noopener');
@@ -4811,13 +4850,15 @@
       '<div class="rva-dt"><span class="rv-k">Open ticket</span><h2>' + esc(rs.name || 'Campaign') + '</h2>' +
       '<div class="rva-st"><span class="rv-pill" data-s="open">' + (tk.to ? 'Waiting for ' + esc(tk.to.email === myEmail() ? 'you' : (tk.to.name || tk.to.email)) : 'Waiting for a designer') + '</span><span>' + facts.map(esc).join(' · ') + '</span></div></div>' +
       '<div class="rva-da">' + (url ? '<a class="p-ghost rva-a" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
+      '<button type="button" class="p-ghost rva-a" data-a="addopen" title="Pick up the ticket with a design that already exists: a project saved in the studio, or a project folder on this computer">' + ico('add') + 'Use an existing design</button>' +
       '<button type="button" class="p-btn" data-a="pick" title="Opens the campaign’s first audience in a new project, ready to design">' + ico('go') + '<span>Pick up</span></button></div></header>' +
       '<div class="rva-det rva-tk">' +
       (briefHtml(tk, true) || '<section class="rva-card"><h3>Brief</h3><p class="rva-sub">No brief or files were filed with this ticket.</p></section>') +
       '<section class="rva-card"><h3>Audiences <s>' + cells.length + '</s></h3><ul class="rva-tks">' + (tiles || '<li class="shl-empty">None chosen — the designer sets them up.</li>') + '</ul></section>' +
       '<div class="rva-tools"><button type="button" class="p-ghost rva-tl" data-a="settings" title="Name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + 'Ticket settings</button>' +
       '<span class="rva-tools-r"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
-      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete the ticket</button></span></div></div>';
+      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete the ticket</button></span></div></div>' +
+      (this.addOpen ? this.addHtml({}, true) : '');
   };
   // a project's market, audience and language, edited in place
   AV.relabHtml = function (it, rs) {
@@ -4834,18 +4875,22 @@
   };
   // Add a project: this computer's saved Campaign projects that are not in the ad set yet. The
   // one picked opens in a new tab, which asks for its market, audience and language.
-  AV.addHtml = function (proj) {
+  // On an open ticket (tk) it is USE AN EXISTING DESIGN (2026-11-06, by request): the same list,
+  // and a project folder on this computer (joinFile); either picks up the ticket.
+  AV.addHtml = function (proj, tk) {
     const have = new Set(Object.keys(proj || {}).map(k => ((proj[k] || {}).sum || {}).pid).filter(Boolean));
     let rec = [];
     try { rec = (this.eng && this.eng.savedRecents ? this.eng.savedRecents() : []).filter(r => r && r.pid && !have.has(r.pid)); } catch (e) {}
     const when = t => t ? new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
     return '<div class="rva-mod" data-a="addx"><div class="rva-mod-in" role="dialog" aria-modal="true" aria-labelledby="rva-mod-t">' +
-      '<div class="rva-mod-h"><h3 id="rva-mod-t">Add a project</h3><button type="button" class="rva-mod-x" data-a="addx" aria-label="Close">' + ico('x') + '</button></div>' +
-      '<p class="rva-sub">Another audience, market or the Arabic version, from the projects saved on this computer. It opens in a new tab, where you choose its market, audience and language.</p>' +
+      '<div class="rva-mod-h"><h3 id="rva-mod-t">' + (tk ? 'Use an existing design' : 'Add a project') + '</h3><button type="button" class="rva-mod-x" data-a="addx" aria-label="Close">' + ico('x') + '</button></div>' +
+      '<p class="rva-sub">' + (tk ? 'Pick up the ticket with a design you already have: a project saved in the studio, or a project folder on this computer. It opens in a new tab, where you choose its market, audience and language.'
+        : 'Another audience, market or the Arabic version, from the projects saved on this computer. It opens in a new tab, where you choose its market, audience and language.') + '</p>' +
+      (tk ? '<button type="button" class="p-ghost rva-addf" data-a="addfile">' + PICO.folder.replace('<svg', '<svg class="rva-i"') + 'Open a project folder…</button>' : '') +
       (rec.length ? '<ul class="rva-addl">' + rec.slice(0, 12).map(r => '<li><span class="rva-th">' + (r.thumbs && r.thumbs[0] ? '<img src="' + esc(r.thumbs[0]) + '" alt="">' : '') + '</span>' +
         '<span class="rva-addn"><b>' + esc(r.name || 'Untitled') + '</b><s>Saved ' + esc(when(r.ts)) + '</s></span>' +
         '<button type="button" class="p-ghost p-sm" data-a="addproj" data-pid="' + esc(r.pid) + '">Add</button></li>').join('') + '</ul>'
-        : '<p class="rva-m rva-mod-e">No other saved Campaign projects on this computer. Save the project first, or open it and use Share › Ad set review.</p>') +
+        : '<p class="rva-m rva-mod-e">' + (tk ? 'No saved Campaign projects on this computer. Open a project folder instead.' : 'No other saved Campaign projects on this computer. Save the project first, or open it and use Share › Ad set review.') + '</p>') +
       '</div></div>';
   };
 
@@ -5477,6 +5522,8 @@ html.rv-pm .shl-pill,html.rv-pm .shl-panel{display:none!important}
 .rva-dng{color:var(--ps-bad)!important}
 .rva-rl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .rva-rl .p-in{height:32px;width:auto;min-width:0;flex:1 1 90px;font-size:13px;padding:0 8px}
+.rva-addf{display:inline-flex;align-items:center;gap:8px;height:40px;margin:0 0 6px}
+.rva-addf .rva-i{width:18px;height:18px;fill:currentColor}
 .rva-addl{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .rva-addl li{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .rva-addl .rva-th{width:44px;height:44px;flex:none}
