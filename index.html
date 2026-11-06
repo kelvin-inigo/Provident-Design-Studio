@@ -336,7 +336,8 @@ button{font-family:inherit}
 .tg[aria-pressed="true"]{color:var(--ps-ink)}
 .tg[aria-pressed="true"] i{background:var(--ps-primary)}
 .tg[aria-pressed="true"] i::after{transform:translateX(12px); background:var(--ps-primary-i)}
-.bd{display:grid; grid-template-columns:repeat(5,minmax(200px,1fr)); gap:14px; align-items:start; overflow-x:auto; padding-bottom:8px;
+.tg small{margin-left:-4px; font:400 12.5px/1 var(--ps-font); color:var(--ps-dim); font-variant-numeric:tabular-nums}
+.bd{display:grid; grid-template-columns:repeat(var(--n,4),minmax(200px,1fr)); gap:14px; align-items:start; overflow-x:auto; padding-bottom:8px;
   scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
 .col{min-width:0; border-radius:16px; background:var(--ps-fill); padding:12px 10px 10px}
 .col-h{display:flex; align-items:center; gap:8px; padding:2px 6px 12px; font:600 14px/1.2 var(--ps-font)}
@@ -549,7 +550,7 @@ button{font-family:inherit}
   .flt::-webkit-scrollbar{display:none}
   .flt button{flex:none}
   .sx-tools .flt{width:100%}
-  .bd{grid-template-columns:repeat(5,84vw); overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -16px; padding:0 16px 8px; scroll-padding:0 16px}
+  .bd{grid-template-columns:repeat(var(--n,4),84vw); overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -16px; padding:0 16px 8px; scroll-padding:0 16px}
   .col{scroll-snap-align:start}
   .nx-acts .b-p{flex:1}
   .row{grid-template-columns:auto minmax(0,1fr); gap:10px 12px}
@@ -940,6 +941,8 @@ body{-webkit-tap-highlight-color:transparent;
   var inbox = { cas: js('provident-inbox-cas'), ops: js('provident-inbox-ops') };
   var acc = window.providentAccess, phase = acc && acc.phase ? acc.phase() : 'off';
   var data = null, cur = 0, flip = 0, homeF = 'all', sxF = 'all', sxMine = false, sxQ = '';
+  // Status's Closed column is hidden until asked for (2026-11-06); the choice is this viewer's own
+  var sxClosed = ls('provident-sx-closed') === '1';
 
   // access.js's answer first (it carries the admin's Preview as), else what it last left here
   function roleOf(){
@@ -1225,17 +1228,18 @@ body{-webkit-tap-highlight-color:transparent;
     var r = data.r, both = studiosFor(r).length > 1;
     var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : 'Your organic posts, from draft to ready.') + '</p></div></div>';
     if (!data.known || !me || !me.email) return h + quiet('status');
-    var all = data.rows.concat(data.closed);
+    var all = sxClosed ? data.rows.concat(data.closed) : data.rows, stg = sxClosed ? STAGES : MOVING;
     h += '<div class="sx-tools">';
     if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
       var c = all.filter(function(x){ return f[0] === 'all' || x.studio === f[0]; }).length;
       return '<button type="button" data-sf="' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
     if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
+    if (data.closed.length) h += '<button class="tg" type="button" id="sx-closed" aria-pressed="' + sxClosed + '" title="Launched campaigns and posted posts"><i></i>Show closed <small>' + data.closed.length + '</small></button>';
     h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
     var shown = all.filter(function(x){
       return (sxF === 'all' || x.studio === sxF) && (!sxMine || x.mine) && (!sxQ || String(x.name).toLowerCase().indexOf(sxQ.toLowerCase()) >= 0);
     });
-    h += '<div class="bd" id="bd">' + STAGES.map(function(s){
+    h += '<div class="bd" id="bd" style="--n:' + stg.length + '">' + stg.map(function(s){
       var cl = s.k === 'closed', c = shown.filter(function(x){ return x.stage === s.k; });
       if (!cl) c.sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
       var late = cl ? 0 : c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
@@ -1361,6 +1365,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (t.dataset.pf){ pjF = t.dataset.pf; paintProjects(); return; }
     if (t.dataset.sf){ sxF = t.dataset.sf; route(); return; }
     if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
+    if (t.id === 'sx-closed'){ sxClosed = !sxClosed; try { localStorage.setItem('provident-sx-closed', sxClosed ? '1' : '0'); } catch (x) {} route(); if (sxClosed) { var cc = $('col-closed'); if (cc) cc.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } return; }
     if (t.hasAttribute('data-drive')){ e.preventDefault(); connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
     if (t.dataset.launch){ launch(t); return; }

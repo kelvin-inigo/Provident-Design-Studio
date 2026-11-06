@@ -589,4 +589,11 @@ phone; two by two ≤1100 unchanged). Launch / Posted confirms say "moves it to 
 Verified: a CAS and an OPS ready row marked `live` in the local queue (storage event) landed in
 Closed, newest first ("1 h ago", "2 days ago"), Ready went 11 → 9, Home read 42 in motion with
 four stages; five columns at 1440 with no sideways scroll; queue restored from Drive on reload.
+**Closed is hidden by default (same day, by request).** A `.tg` toggle **Show closed <n>**
+(`#sx-closed`, shown only when `data.closed` has rows) after Only what waits on me; `sxClosed`
+is kept in `provident-sx-closed` ('1'/'0', a per-viewer convenience). Off: the board draws `MOVING`
+and the filter counts leave closed rows out; on: `STAGES` and `rows.concat(closed)`, and the
+Closed column scrolls into view. `.bd` columns are `repeat(var(--n,4), …)` (and `var(--n,4)` × 84vw
+on a phone) with `--n` set inline to the stage count. Verified at 1440: 4 × 303px off (Everything
+27), 5 × 240px on (29), choice saved, no sideways scroll; queue and toggle reset afterwards.
 
