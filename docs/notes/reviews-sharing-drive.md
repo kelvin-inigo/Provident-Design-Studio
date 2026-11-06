@@ -1826,8 +1826,12 @@ it at 40). A name that matches a standard phase uses that phase's key. The name 
 so there is no table. Every `PH_NAME[k]` lookup is now `phN(k)` (standard name, or the name after
 `x:`), and the fixed-order filters are `phSort` (the standard five in order, then typed ones in
 the order they were added): `phList`, the rsset `phases` whitelist, the settings chips and
-"Arabic in", and `rsAuds`'s sort. The folder for a later phase is `Main/<name>/…` as before. The
-Status page's **+ Add phase** menu still lists only the standard five.
+"Arabic in", and `rsAuds`'s sort. The folder for a later phase is `Main/<name>/…` as before.
+**Status's + Add phase menu takes a name too** (same day): `.rvd-pmx` at the menu's foot,
+`data-a="phtype"`, which shares `phnew`'s rsset call. The menu always shows for the designer
+now, even with all five standard phases added. A name already added switches to that tab. The
+typed text (`phTyped`) and the caret survive `AV.draw`'s redraws. Verified: "Price Drop" by Enter
+became the selected tab; "sold out" typed added the standard `sold`. Demo phases put back.
 Verified on the stand-in: "Price Drop" typed in settings and saved became its own Status tab
 (`x:Price Drop`, 0/2, "No Price Drop project yet"), and a second typed phase dropped by clicking
 it. Demo phases put back. **Not exercised:** making a project in a typed phase (the new window).

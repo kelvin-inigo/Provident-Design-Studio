@@ -4191,6 +4191,9 @@
     setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
     el.addEventListener('click', e => this.click(e));
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && this.addOpen) { this.addOpen = false; this.draw(); } });
+    // the Add phase menu's own-name field: kept across redraws, Enter adds it
+    el.addEventListener('input', e => { if (e.target.matches && e.target.matches('[data-phx-st]')) this.phTyped = e.target.value; });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-phx-st]')) { e.preventDefault(); const b = this.el.querySelector('[data-a="phtype"]'); if (b && !b.disabled) b.click(); } });
     // It refreshes itself: on a timer while on screen, and the moment the window comes back,
     // so a step someone took in another tab or on another computer shows without a reload.
     const tick = () => {
@@ -4431,12 +4434,19 @@
     if (a === 'startub') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'); ubStart(t.dataset.sid, [market, aud, lang, phase].join('|')); return; }
     if (a === 'startcell') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'), dd = (this.det && this.det.dd) || this.sel; startCell(dd, { market, aud, lang, phase: phase || undefined }); return; }
     if (a === 'phtab') { (this.phTabs || (this.phTabs = {}))[this.sel] = t.dataset.ph; this.phMenu = false; this.draw(); const b = this.el.querySelector('.rvd-pt[aria-selected="true"]'); if (b) b.focus(); return; }
-    if (a === 'phadd') { this.phMenu = !this.phMenu; this.draw(); const f = this.el.querySelector('.rvd-pm button'); if (f) f.focus(); return; }
-    if (a === 'phnew') {
+    if (a === 'phadd') { this.phMenu = !this.phMenu; this.draw(); const f = this.el.querySelector('.rvd-pm button[data-a="phnew"]') || this.el.querySelector('[data-phx-st]'); if (f) f.focus(); return; }
+    if (a === 'phtype') {
+      const rs = this.det && this.det.rs, i = this.el.querySelector('[data-phx-st]'), k = phKey(i ? i.value : '');
+      if (!rs) return;
+      if (!k) { if (i) i.focus(); return; }
+      if (phList(rs).indexOf(k) >= 0) { (this.phTabs || (this.phTabs = {}))[this.sel] = k; this.phMenu = false; this.phTyped = ''; this.draw(); return; }
+      t.dataset.ph = k;
+    }
+    if (a === 'phnew' || a === 'phtype') {
       const rs = this.det && this.det.rs, k = t.dataset.ph; if (!rs || !phN(k)) return;
       t.disabled = true; t.textContent = 'Adding…';
-      try { await api('rsset', { id: this.sel }, { by, phases: phList(rs).concat(k) }); this.phMenu = false; (this.phTabs || (this.phTabs = {}))[this.sel] = k; again(); }
-      catch (er) { t.disabled = false; t.textContent = phN(k); window.alert(er.message || String(er)); }
+      try { await api('rsset', { id: this.sel }, { by, phases: phList(rs).concat(k) }); this.phMenu = false; this.phTyped = ''; (this.phTabs || (this.phTabs = {}))[this.sel] = k; again(); }
+      catch (er) { t.disabled = false; t.textContent = a === 'phtype' ? 'Add' : phN(k); window.alert(er.message || String(er)); }
       return;
     }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
@@ -4521,7 +4531,13 @@
     const body = this.el.querySelector('.rva-body'), errHtml = this.err ? '<p class="rva-err" role="alert">' + esc(this.err) + '</p>' : '';
     this.el.querySelector('.rva-bar').hidden = !!this.sel;
     this.drawHealth();
-    if (this.sel) { body.innerHTML = this.detHtml(); return; }
+    if (this.sel) {
+      // a redraw (a refresh, the clock) keeps the caret in the Add phase field
+      const f = document.activeElement, keep = f && f.matches && f.matches('[data-phx-st]') ? [f.selectionStart, f.selectionEnd] : null;
+      body.innerHTML = this.detHtml();
+      if (keep) { const i = body.querySelector('[data-phx-st]'); if (i) { i.focus(); try { i.setSelectionRange(keep[0], keep[1]); } catch (e) {} } }
+      return;
+    }
     if (this.items === null) { body.innerHTML = errHtml + '<p class="rva-wait">Reading the ad sets…</p>'; return; }
     const signHtml = this.sign ? '<div class="rva-sign"><span><b>' + (this.sign === 1 ? 'One ad set is' : this.sign + ' ad sets are') + ' stored on Google Drive.</b><s>Sign in with your Provident Google account to list ' + (this.sign === 1 ? 'it' : 'them') + ' here. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>' : '';
     if (!this.items.length && this.sign) { body.innerHTML = errHtml + signHtml; return; }
@@ -4600,8 +4616,11 @@
       return '<button type="button" role="tab" class="rvd-pt" data-a="phtab" data-ph="' + k + '" aria-selected="' + (k === tab) + '" data-s="' + st + '" title="' + esc(phN(k) + ' — ' + (au.length ? dn + ' of ' + tot + ' audiences done' : 'not started')) + '">' +
         '<i></i>' + esc(phN(k)) + '<s>' + dn + '/' + tot + '</s></button>';
     }).join('');
-    const add = canAdd && left.length ? '<span class="rvd-pa"><button type="button" class="rvd-pt rvd-padd" data-a="phadd" aria-expanded="' + !!this.phMenu + '" title="Add another package to this ad set — its audiences start empty, in their own Drive folder">' + ico('add') + 'Add phase</button>' +
-      (this.phMenu ? '<span class="rvd-pm" role="menu">' + left.map(([k, l]) => '<button type="button" role="menuitem" data-a="phnew" data-ph="' + k + '">' + esc(l) + '</button>').join('') + '</span>' : '') + '</span>' : '';
+    const add = canAdd ? '<span class="rvd-pa"><button type="button" class="rvd-pt rvd-padd" data-a="phadd" aria-expanded="' + !!this.phMenu + '" title="Add another package to this ad set — its audiences start empty, in their own Drive folder">' + ico('add') + 'Add phase</button>' +
+      // the standard phases not added yet, then a field for a phase of your own name (2026-11-06)
+      (this.phMenu ? '<span class="rvd-pm" role="menu">' + left.map(([k, l]) => '<button type="button" role="menuitem" data-a="phnew" data-ph="' + k + '">' + esc(l) + '</button>').join('') +
+        '<span class="rvd-pmx"' + (left.length ? '' : ' data-only="1"') + '><input class="p-in" data-phx-st maxlength="40" placeholder="Name a phase" aria-label="A phase of your own" autocomplete="off" spellcheck="false" value="' + esc(this.phTyped || '') + '">' +
+        '<button type="button" class="p-ghost" data-a="phtype">Add</button></span></span>' : '') + '</span>' : '';
     return '<div class="rvd-phs" role="tablist" aria-label="Phases">' + t + add + '</div>';
   };
   AV.detHtml = function () {
@@ -6728,6 +6747,10 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-pm{position:absolute;left:0;top:calc(100% + 6px);z-index:5;display:flex;flex-direction:column;min-width:180px;padding:6px;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-pm button{height:36px;padding:0 12px;border:none;border-radius:8px;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);text-align:left;cursor:pointer}
 .rvd-pm button:hover,.rvd-pm button:focus-visible{background:var(--ps-fill-h);outline:none}
+.rvd-pmx{display:flex;gap:6px;margin:6px 0 0;padding:8px 0 0;box-shadow:inset 0 1px 0 var(--ps-hair)}
+.rvd-pmx[data-only]{margin:0;padding:0;box-shadow:none}
+.rvd-pmx .p-in{flex:1;min-width:150px;height:36px;font-size:13px}
+.rvd-pm .rvd-pmx .p-ghost{flex:none;height:36px;padding:0 14px;font-weight:600;text-align:center;box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rsp-phs select{height:100%;padding:0 2px;border:none;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);outline:none;cursor:pointer}
 :root:not([data-theme="light"]) .rsp-phs select{color-scheme:dark}
 .rsp-phs{cursor:pointer}
