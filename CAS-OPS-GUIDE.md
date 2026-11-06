@@ -390,22 +390,28 @@ the ads are running, they press **Launch** on the home's Next up card (or on its
 **Launched** on its page, the log says who launched it, and it leaves everyone's Home and Status.
 A phase added later (say Ad Fatigue 01) brings it back once that phase is ready.
 
-#### Phases: Teaser, Launch, Ad Fatigue 01, Ad Fatigue 02, Sold out
+#### Phases
 
-A campaign runs in **phases**, and each phase is its own package of every planned audience. The
-setup on Home asks which phase the ad set **starts** with (**Phase**, Launch unless you pick
-another). Most ad sets only ever need one.
+A campaign runs in **phases**, and each phase is its own package of every planned audience. You
+name every phase yourself (Teaser, Launch, Price Drop, Ad Fatigue 03… whatever the round is
+called). The setup on Home asks for the phase the ad set **starts** with (**Phase**, Launch if
+you leave it). Most ad sets only ever need one.
 
-To add another at any point, open the ad set in **Status** and press **Add phase** beside the phase
-tabs, or tick it under **Phases** in **Ad set settings**. To call a phase something else, type its
-name in the field under the phases in **Ad set settings**, or at the foot of the **Add phase** menu
-on Status (for example "Price Drop"), and press **Add phase** / **Add** or Enter. It becomes a phase like the others, with its own tab and its own Drive folder.
-Click it to drop it again while it has no projects. Each phase has its own tab with its own
+To add another at any point, open the ad set in **Status**, press **Add phase** beside the phase
+tabs, type its name and press **Add** or Enter. Or type it in the field under **Phases** in
+**Ad set settings** and press **Add phase**. It gets its own tab and its own Drive folder. A name
+the ad set already has (in any case) isn't added twice: Status opens that phase's tab instead.
+
+**Renaming a phase.** In **Ad set settings**, every phase under **Phases** is a field holding its
+name: click it, type the new name, and press **Save changes**. The phase keeps its projects, its
+Arabic and its progress; its tab, labels and Drive folder take the new name. Two phases can't
+share a name. Press the **×** on a phase to drop it while it has no projects.
+Each phase has its own tab with its own
 progress, audiences and **Start the English / Start the Arabic** buttons. A new phase starts with
 no projects: every audience of the ad set (the planned ones and any that already have a project in
 another phase) waits there as a **Start the English** (and, where planned, **Start the Arabic**)
 button that opens CAS in a new window on that audience's **Ad set** tab. After you save Ad set
-settings with a new phase ticked, the page opens on that phase. **Create next audience** and **Make the Arabic** stay in the phase you are working in.
+settings with a new phase added, the page opens on that phase. **Create next audience** and **Make the Arabic** stay in the phase you are working in.
 A phase that has projects can't be dropped.
 
 **Arabic per phase.** An audience's **AR** covers every phase. When an ad set has more than one

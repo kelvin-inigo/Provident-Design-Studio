@@ -528,7 +528,7 @@
         const was = phList(rs), base = phBase(rs);
         (rs.items || []).forEach(x => { if (!phN(x.phase)) x.phase = base; });
         rs.phase0 = base;
-        let want = phSort(body.phases);
+        let want = phSort(body.phases).filter((k, i, all) => phFind(all, phN(k)) === k);
         (rs.items || []).forEach(x => { if (want.indexOf(x.phase) < 0) want.push(x.phase); });
         want = phSort(want);
         if (!want.length) want = [base];
@@ -537,6 +537,27 @@
         rs.phases = want;
         want.filter(k => was.indexOf(k) < 0).forEach(k => chg.push('Added the ' + phN(k) + ' phase'));
         was.filter(k => want.indexOf(k) < 0).forEach(k => chg.push('Dropped the ' + phN(k) + ' phase'));
+      }
+      // RENAMING A PHASE (2026-11-06, by request): [[key, new name]…]. The phase takes the new
+      // name's key in its list, its projects, the plan's Arabic and its launch; a phase after the
+      // first renames its Drive folder too, so its projects stay where they are.
+      if (Array.isArray(body.rename)) {
+        for (const r of body.rename.slice(0, 20)) {
+          const from = Array.isArray(r) ? r[0] : '', to = phKey(Array.isArray(r) ? r[1] : ''), have = phList(rs), base = phBase(rs);
+          if (!phN(from) || have.indexOf(from) < 0 || !to || to === from) continue;
+          if (have.indexOf(to) >= 0 || (phFind(have, phN(to)) || from) !== from) throw dsFail(409, 'This ad set already has a phase called ' + phN(to) + '.');
+          if (from !== base && rs.folder) try {
+            const f = (await dsList(rs.folder, phN(from))).find(x => x.mimeType === DS_FOLDER);
+            if (f) await dsFetch('/drive/v3/files/' + f.id + '?supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: phN(to) }) });
+          } catch (e) { if (e.gdAuth) throw e; }
+          const sw = k => k === from ? to : k;
+          (rs.items || []).forEach(x => { if (phOf(rs, x) === from) x.phase = to; });
+          rs.phases = have.map(sw);
+          if (base === from) rs.phase0 = to;
+          if (Array.isArray(rs.plan)) rs.plan.forEach(c => { if (Array.isArray(c.arbOff)) c.arbOff = c.arbOff.map(sw); });
+          if (rs.live && rs.live[from]) { rs.live[to] = rs.live[from]; delete rs.live[from]; }
+          chg.push('Renamed the ' + phN(from) + ' phase to ' + phN(to));
+        }
       }
       if (body.brand === 'provident' || body.brand === 'unbranded' || body.brand === 'mixed') {
         if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : body.brand === 'mixed' ? 'Mixed the ad set’s brand — every audience can also run unbranded' : 'Made the ad set branded — new projects open with the Provident brand');
@@ -2058,17 +2079,22 @@
   // it gets its own folder (Main/<Phase>/Market/…), so nothing already on Drive moves.
   const PHASES = [['teaser', 'Teaser'], ['launch', 'Launch'], ['fat1', 'Ad Fatigue 01'], ['fat2', 'Ad Fatigue 02'], ['sold', 'Sold out']];
   const PH_NAME = {}; PHASES.forEach(([k, n]) => { PH_NAME[k] = n; });
-  // A PHASE THE DESIGNER NAMES (2026-11-06, by request): Ad set settings takes any name beside the
-  // five above. Its key is 'x:' + the name, so the name travels with it (folders, tabs, labels)
-  // with no table to keep; it sorts after the standard five, in the order it was added.
+  // A PHASE THE DESIGNER NAMES (2026-11-06, by request): every phase is typed — the five above are
+  // only the keys older ad sets carry (a typed "Sold out" still lands on 'sold'). A new name's key
+  // is 'x:' + the name, so the name travels with it (folders, tabs, labels) with no table to keep.
+  // Phases keep the ad set's own order (rs.phases), the order they were added; a rename (rsset
+  // rename) rekeys the phase everywhere it is held and renames its Drive folder.
   const PH_X = 'x:';
   const phClean = v => String(v || '').replace(/[|/\\:]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
   const phN = k => PH_NAME[k] || (typeof k === 'string' && k.indexOf(PH_X) === 0 && k.length > PH_X.length && phClean(k.slice(PH_X.length)) === k.slice(PH_X.length) ? k.slice(PH_X.length) : undefined);
   const phKey = v => { const n = phClean(v), p = n && PHASES.find(x => x[1].toLowerCase() === n.toLowerCase()); return !n ? '' : p ? p[0] : PH_X + n; };
-  const phSort = keys => { const ks = (keys || []).filter((k, i, all) => phN(k) && all.indexOf(k) === i); return PHASES.map(p => p[0]).filter(k => ks.indexOf(k) >= 0).concat(ks.filter(k => !PH_NAME[k])); };
+  // the phase in a list already called this name, whatever its case ("go live" is Go live)
+  const phFind = (keys, v) => { const n = phClean(v).toLowerCase(); return n ? (keys || []).find(k => (phN(k) || '').toLowerCase() === n) : undefined; };
+  const phSort = keys => (keys || []).filter((k, i, all) => phN(k) && all.indexOf(k) === i);
   const phBase = rs => (rs && phN(rs.phase0)) ? rs.phase0 : 'launch';
   function phList(rs) {
-    const have = new Set([phBase(rs)].concat(((rs && rs.phases) || []).filter(k => phN(k))));
+    const own = ((rs && rs.phases) || []).filter(k => phN(k)), b = phBase(rs);
+    const have = new Set(own.indexOf(b) >= 0 ? own : [b].concat(own));
     ((rs && rs.items) || []).forEach(it => { if (phN(it.phase)) have.add(it.phase); });
     return phSort([...have]);
   }
@@ -2138,7 +2164,7 @@
   }
   function planTodoHtml(rs, busy, ph) {
     const todo = planTodo(rs, ph); if (!todo.length) return '';
-    return '<div class="rv-todo"><span class="rv-k">Still to make' + (phMulti(rs) ? ' in ' + esc(PH_NAME[todo[0].phase]) : '') + ' · ' + todo.length + '</span><p>Each one starts as a copy of this design, saved into its own folder. The English versions first, then the Arabic.</p><ul>' +
+    return '<div class="rv-todo"><span class="rv-k">Still to make' + (phMulti(rs) ? ' in ' + esc(phN(todo[0].phase)) : '') + ' · ' + todo.length + '</span><p>Each one starts as a copy of this design, saved into its own folder. The English versions first, then the Arabic.</p><ul>' +
       todo.map(t => { const k = [t.market, t.aud, t.lang, t.phase].join('|');
         return '<li><span><b>' + esc(t.market + ' · ' + t.aud) + '</b><s>' + (t.lang === 'ARB' ? 'Arabic' : 'English') + '</s></span><button type="button" class="p-ghost" data-next="' + esc(k) + '"' + (busy ? ' disabled' : '') + '>' + (busy === k ? 'Making…' : 'Make from this design') + '</button></li>'; }).join('') + '</ul></div>';
   }
@@ -2172,7 +2198,9 @@
     const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident' };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.brand]);
+    // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
+    d.phn = {}; const phL = k => k in d.phn ? phClean(d.phn[k]) : phN(k);
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand]);
     const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
     ord();
     const was = sig();
@@ -2204,8 +2232,9 @@
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
       $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
-      if (phOk) $('[data-g="ph"]').innerHTML = phSort(PHASES.map(p => p[0]).concat(d.phases)).map(k => { const l = phN(k), on = d.phases.indexOf(k) >= 0, lock = on && phBusy(k);
-        return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-ph="' + k + '" title="' + esc(lock ? l + ' has projects — remove them first to drop it' : on ? 'Click to drop the ' + l + ' phase' : 'Click to add a ' + l + ' package') + '">' + (on ? PICO.tick : '') + esc(l) + '</button>'; }).join('');
+      if (phOk) $('[data-g="ph"]').innerHTML = d.phases.map(k => { const l = phL(k), lock = phBusy(k);
+        return '<span class="rss-pc"><input class="rss-pn" data-phn="' + esc(k) + '" maxlength="40" value="' + esc(k in d.phn ? d.phn[k] : l) + '" size="' + Math.max(6, (l || '').length + 1) + '" aria-label="Phase name — type to rename it" title="Type to rename the phase" autocomplete="off" spellcheck="false">' +
+          '<button type="button" data-ph="' + esc(k) + '" aria-label="' + esc('Drop the ' + l + ' phase') + '" title="' + esc(lock ? l + ' has projects — remove them first to drop it' : 'Drop the ' + l + ' phase') + '"' + (lock || d.phases.length === 1 ? ' data-lock="1"' : '') + '>' + PICO.x + '</button></span>'; }).join('');
       const phs = phOk ? d.phases : [null], multi = phOk && d.phases.length > 1;
       const n = phs.reduce((t, k) => t + cells.length + cells.filter(c => k ? arbIn(c, k) : c.arb).length, 0);
       $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (phOk && d.phases.length > 1 ? ' · ' + d.phases.length + ' phases' : '');
@@ -2216,7 +2245,7 @@
           '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + c.arb + '" data-arb="' + esc(k) + '" title="' + (arLock ? 'Has an Arabic project — remove it first to make this English only' : c.arb ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div>' +
           // more than one phase: which of them get the Arabic (a fatigue round may not)
           (multi && c.arb ? '<div class="rss-arp" role="group" aria-label="' + esc('Arabic for ' + c.market + ' ' + c.aud + ', by phase') + '"><span>Arabic in</span>' + phSort(d.phases).map(pk => {
-            const pl = phN(pk), on = arbIn(c, pk), lock = on && has(c.market, c.aud, 'ARB', pk);
+            const pl = phL(pk), on = arbIn(c, pk), lock = on && has(c.market, c.aud, 'ARB', pk);
             return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div>' : '') +
           '</div>';
       }).join('');
@@ -2225,12 +2254,16 @@
     // a phase of the designer's own name (Add phase, or Enter in its field): a chip like the others
     const phAdd = () => {
       const inp = $('[data-phx-in]'); if (!inp) return;
-      const k = phKey(inp.value);
+      const k = phKey(inp.value), same = k && d.phases.find(x => phL(x).toLowerCase() === phN(k).toLowerCase());
       if (!k) { inp.focus(); return st('Type the phase’s name first.'); }
-      if (d.phases.indexOf(k) < 0) d.phases = phSort(d.phases.concat(k));
+      if (same) { inp.focus(); return st('There is already a phase called ' + phL(same) + '.'); }
+      if (d.phases.indexOf(k) >= 0) { inp.focus(); return st('Save first — a phase you renamed still holds ' + phN(k) + ' until then.'); }
+      d.phases = d.phases.concat(k);
       inp.value = ''; st(''); draw(); inp.focus();
     };
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-phx-in]')) { e.preventDefault(); phAdd(); } });
+    el.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.phn; if (k) { d.phn[k] = e.target.value; e.target.size = Math.max(6, e.target.value.length + 1); st(''); } });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.phn) { e.preventDefault(); e.target.blur(); } });
     const toggle = (g, v) => {
       const ms = [...new Set(cells.map(c => c.market))], as = [...new Set(cells.map(c => c.aud))], list = g === 'm' ? ms : as, on = list.indexOf(v) >= 0;
       if (on) {
@@ -2264,10 +2297,10 @@
         if (b.dataset.prod) return setProd(b.dataset.prod);
         if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
         if (b.dataset.ph) {
-          const k = b.dataset.ph, on = d.phases.indexOf(k) >= 0;
-          if (on && d.phases.length === 1) return st('Keep at least one phase.');
-          if (on && phBusy(k)) return st(phN(k) + ' has projects. Remove them first to drop the phase.');
-          d.phases = on ? d.phases.filter(x => x !== k) : phSort(d.phases.concat(k));
+          const k = b.dataset.ph;
+          if (d.phases.length === 1) return st('Keep at least one phase.');
+          if (phBusy(k)) return st(phL(k) + ' has projects. Remove them first to drop the phase.');
+          d.phases = d.phases.filter(x => x !== k); delete d.phn[k];
           st(''); draw(); return;
         }
         if (b.dataset.phx !== undefined) return phAdd();
@@ -2290,12 +2323,17 @@
           d.name = d.name.replace(/\s+/g, ' ').trim();
           if (!d.name) { st('Name the campaign.'); $('[data-f="name"]').focus(); return; }
           if (sig() === was) return close(null);
+          if (phOk) {
+            const bad = d.phases.find(k => !phL(k)), fin = d.phases.map(k => phL(k).toLowerCase()), dup = d.phases.find((k, i) => fin.indexOf(fin[i]) !== i);
+            if (bad) { st('Name every phase.'); const i = el.querySelector('[data-phn="' + CSS.escape(bad) + '"]'); if (i) i.focus(); return; }
+            if (dup) return st('Two phases are called ' + phL(dup) + '. Give each its own name.');
+          }
           const btns = el.querySelectorAll('.shl-acts button'); btns.forEach(x => { x.disabled = true; }); b.textContent = 'Saving…'; st('');
           try {
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
               if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
-            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; }
+            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
         }
@@ -4006,8 +4044,7 @@
           '<div class="rsp-f rsp-fp"><span class="rsp-sr" id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
           '<div class="rsp-f rsp-fp" title="Branded: the Provident wordmark and colours. Unbranded: no wordmark or QR — each project opens on the unbranded look, its colours read from the photo."><span class="rsp-sr" id="rsp-br-l">Brand</span><div class="p-tabs rsp-prod rsp-brand" role="radiogroup" aria-labelledby="rsp-br-l"></div></div>' +
           '<label class="rsp-chip rsp-dl" title="Deadline"><span class="rsp-dlt">Deadline</span><input type="date" data-f="deadline"></label>' +
-          '<label class="rsp-chip rsp-phs" title="The package this ad set starts with. Add more phases later from the ad set’s page on Status, or its settings."><span class="rsp-dlt">Phase</span><select data-f="phase">' +
-            PHASES.map(([k, l]) => '<option value="' + k + '">' + esc(l) + '</option>').join('') + '</select></label>' +
+          '<label class="rsp-chip rsp-phs" title="The package this ad set starts with. Add more phases later from the ad set’s page on Status, or its settings."><span class="rsp-dlt">Phase</span><input data-f="phase" maxlength="40" placeholder="Launch" size="12" autocomplete="off" spellcheck="false"></label>' +
           '<label class="rsp-chip rsp-fo" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language.">' + PICO.folder + '<span class="rsp-sr">Drive folder</span>' +
             '<input data-f="folder" placeholder="Campaigns folder (default)" autocomplete="off" spellcheck="false"></label>' +
         '</div>' +
@@ -4031,7 +4068,8 @@
         '<p class="rsp-st" aria-live="polite"></p></footer>' +
     '</section>';
     const $ = q => el.querySelector(q);
-    if (!phN(d.phase)) d.phase = 'launch';
+    // the phase is typed (2026-11-06); a draft saved with a key shows its name
+    if (phN(d.phase)) d.phase = phN(d.phase); else if (typeof d.phase !== 'string') d.phase = 'Launch';
     ['name', 'folder', 'deadline', 'brief', 'phase'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; this.save(); this.st(''); }); } });
     $('.rsp-add input').addEventListener('change', e => { Array.from(e.target.files || []).forEach(f => { if (!this.files.some(x => x.name === f.name && x.size === f.size)) this.files.push(f); }); e.target.value = ''; this.drawFiles(); });
     el.addEventListener('click', e => {
@@ -4140,7 +4178,7 @@
     if (design && this.eng.confirmDiscard && !this.eng.confirmDiscard()) return;
     const btns = this.el.querySelectorAll('.rsp-ft button'); btns.forEach(b => { b.disabled = true; });
     const cells = this.cells(), arb = {}; cells.forEach(c => { if (c.arb) arb[c.market + '|' + c.aud] = true; });
-    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: phN(d.phase) ? d.phase : 'launch', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
+    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: phKey(d.phase) || 'launch', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
     try {
       this.busy('Signing in to Google…', .02);
       await window.providentDrive.signIn();   // first: the popup needs the click
@@ -4157,7 +4195,7 @@
       lsSet('provident-rs-folder', plan.folder);
       Arch.add(rs.tok.dd, rs.name, rs.product, true);
       // the draft is spent: the next campaign starts from the defaults, keeping the product
-      this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', phase: 'launch', brand: 'provident', arb: {}, arA: {} }); this.files = []; this.save();
+      this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', phase: 'Launch', brand: 'provident', arb: {}, arA: {} }); this.files = []; this.save();
       if (design) { this.busy('Opening the first audience…', 1); pickUp(this.eng, rs.tok.dd); return; }
       this.busy('', null);
       this.done(rs);
@@ -4434,19 +4472,20 @@
     if (a === 'startub') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'); ubStart(t.dataset.sid, [market, aud, lang, phase].join('|')); return; }
     if (a === 'startcell') { const [market, aud, lang, phase] = (t.dataset.cell || '').split('|'), dd = (this.det && this.det.dd) || this.sel; startCell(dd, { market, aud, lang, phase: phase || undefined }); return; }
     if (a === 'phtab') { (this.phTabs || (this.phTabs = {}))[this.sel] = t.dataset.ph; this.phMenu = false; this.draw(); const b = this.el.querySelector('.rvd-pt[aria-selected="true"]'); if (b) b.focus(); return; }
-    if (a === 'phadd') { this.phMenu = !this.phMenu; this.draw(); const f = this.el.querySelector('.rvd-pm button[data-a="phnew"]') || this.el.querySelector('[data-phx-st]'); if (f) f.focus(); return; }
+    if (a === 'phadd') { this.phMenu = !this.phMenu; this.draw(); const f = this.el.querySelector('[data-phx-st]'); if (f) f.focus(); return; }
     if (a === 'phtype') {
       const rs = this.det && this.det.rs, i = this.el.querySelector('[data-phx-st]'), k = phKey(i ? i.value : '');
       if (!rs) return;
       if (!k) { if (i) i.focus(); return; }
-      if (phList(rs).indexOf(k) >= 0) { (this.phTabs || (this.phTabs = {}))[this.sel] = k; this.phMenu = false; this.phTyped = ''; this.draw(); return; }
+      const was = phFind(phList(rs), i ? i.value : '');
+      if (was) { (this.phTabs || (this.phTabs = {}))[this.sel] = was; this.phMenu = false; this.phTyped = ''; this.draw(); return; }
       t.dataset.ph = k;
     }
-    if (a === 'phnew' || a === 'phtype') {
+    if (a === 'phtype') {
       const rs = this.det && this.det.rs, k = t.dataset.ph; if (!rs || !phN(k)) return;
       t.disabled = true; t.textContent = 'Adding…';
       try { await api('rsset', { id: this.sel }, { by, phases: phList(rs).concat(k) }); this.phMenu = false; this.phTyped = ''; (this.phTabs || (this.phTabs = {}))[this.sel] = k; again(); }
-      catch (er) { t.disabled = false; t.textContent = a === 'phtype' ? 'Add' : phN(k); window.alert(er.message || String(er)); }
+      catch (er) { t.disabled = false; t.textContent = 'Add'; window.alert(er.message || String(er)); }
       return;
     }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
@@ -4609,7 +4648,6 @@
   AV.phTabsHtml = function (d, rs, phs, tab, allAuds) {
     const plan = rsCells(rs), n = plan.length || 0;
     const r = accRole(), canAdd = isDs(d.id) && (!r || r === 'designer' || r === 'admin');
-    const left = PHASES.filter(([k]) => phs.indexOf(k) < 0);
     const t = phs.map(k => {
       const au = allAuds.filter(a => a.phase === k), dn = au.filter(a => a.done).length, tot = Math.max(n, au.length);
       const st = tot && dn === tot ? 'done' : au.length ? 'prog' : 'new';
@@ -4617,9 +4655,9 @@
         '<i></i>' + esc(phN(k)) + '<s>' + dn + '/' + tot + '</s></button>';
     }).join('');
     const add = canAdd ? '<span class="rvd-pa"><button type="button" class="rvd-pt rvd-padd" data-a="phadd" aria-expanded="' + !!this.phMenu + '" title="Add another package to this ad set — its audiences start empty, in their own Drive folder">' + ico('add') + 'Add phase</button>' +
-      // the standard phases not added yet, then a field for a phase of your own name (2026-11-06)
-      (this.phMenu ? '<span class="rvd-pm" role="menu">' + left.map(([k, l]) => '<button type="button" role="menuitem" data-a="phnew" data-ph="' + k + '">' + esc(l) + '</button>').join('') +
-        '<span class="rvd-pmx"' + (left.length ? '' : ' data-only="1"') + '><input class="p-in" data-phx-st maxlength="40" placeholder="Name a phase" aria-label="A phase of your own" autocomplete="off" spellcheck="false" value="' + esc(this.phTyped || '') + '">' +
+      // a field for the new phase's name, typed (2026-11-06); rename one in Ad set settings
+      (this.phMenu ? '<span class="rvd-pm">' +
+        '<span class="rvd-pmx" data-only="1"><input class="p-in" data-phx-st maxlength="40" placeholder="Name a phase" aria-label="A phase of your own" autocomplete="off" spellcheck="false" value="' + esc(this.phTyped || '') + '">' +
         '<button type="button" class="p-ghost" data-a="phtype">Add</button></span></span>' : '') + '</span>' : '';
     return '<div class="rvd-phs" role="tablist" aria-label="Phases">' + t + add + '</div>';
   };
@@ -6751,9 +6789,16 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-pmx[data-only]{margin:0;padding:0;box-shadow:none}
 .rvd-pmx .p-in{flex:1;min-width:150px;height:36px;font-size:13px}
 .rvd-pm .rvd-pmx .p-ghost{flex:none;height:36px;padding:0 14px;font-weight:600;text-align:center;box-shadow:inset 0 0 0 1px var(--ps-line)}
-.rsp-phs select{height:100%;padding:0 2px;border:none;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);outline:none;cursor:pointer}
-:root:not([data-theme="light"]) .rsp-phs select{color-scheme:dark}
-.rsp-phs{cursor:pointer}
+.rsp-phs input{width:auto;max-width:180px}
+/* Ad set settings: each phase a pill holding its name as a field, its drop button at the end */
+.rss-pc{display:inline-flex;align-items:center;height:34px;padding:0 4px 0 14px;border-radius:9999px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rss-pc:focus-within{box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.rss-pn{min-width:0;max-width:220px;height:100%;padding:0;border:none;background:none;outline:none;color:var(--ps-ink);font:500 13px/1 var(--ps-font)}
+.rss-pc button{display:grid;place-items:center;width:26px;height:26px;margin-left:2px;padding:0;border:none;border-radius:50%;background:none;color:var(--ps-dim);cursor:pointer}
+.rss-pc button:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.rss-pc button[data-lock]{opacity:.45}
+.rss-pc button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.rss-pc button svg{width:16px;height:16px;fill:currentColor}
 .rss-phs{margin:4px 0 0}
 .rss-phx{display:flex;gap:8px;max-width:420px}
 .rss-phx .p-in{flex:1;min-width:0;height:34px;font-size:13px}

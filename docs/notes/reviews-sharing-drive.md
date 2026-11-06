@@ -1835,3 +1835,31 @@ became the selected tab; "sold out" typed added the standard `sold`. Demo phases
 Verified on the stand-in: "Price Drop" typed in settings and saved became its own Status tab
 (`x:Price Drop`, 0/2, "No Price Drop project yet"), and a second typed phase dropped by clicking
 it. Demo phases put back. **Not exercised:** making a project in a typed phase (the new window).
+
+## Every phase is typed, and can be renamed (2026-11-06, by request)
+"I completely want user text input, and I need to rename it if phase already existing." The five
+standard chips are gone from Ad set settings, Status's Add phase menu (the field alone now,
+`data-only`; `phnew` removed) and the new-campaign setup (its Phase `<select>` is a text input,
+`d.phase` holds the name, `plan.phase = phKey(d.phase) || 'launch'`; an old draft holding a key
+shows its name). `PHASES` stays only as the keys older ad sets carry, so a typed "Launch" or
+"sold out" still lands on `launch` / `sold`.
+- **Order is the ad set's own**: `phSort` only dedupes and validates now; `phList` reads
+  `rs.phases` in its order (the first phase first when missing). A rename keeps its place.
+- **`phFind(keys, name)`** matches a name case-insensitively. Settings' add and its save
+  ("Two phases are called …"), Status's typed add (switches to the tab), rsset's `phases`
+  (drops a case-twin) and the rename collision check all use it.
+- **Settings**: each phase is `.rss-pc` holding an input `.rss-pn[data-phn=key]` and an × drop
+  button (`data-ph`, `data-lock` when it has projects or is the last one). Typing goes into
+  `d.phn` (no redraw); `phL(k)` is the shown name, used by "Arabic in" too; `sig` includes it.
+  Save sends `rename: [[key, name]…]` for every phase whose `phKey(name)` differs from its key.
+- **rsset `rename`** runs after `phases`: for each, the new key is `phKey(name)`; it refuses
+  (409) a name the ad set already has. A phase after the first renames its Drive folder
+  (`dsList(rs.folder, old name)` then PATCH name). Then it rekeys `it.phase` (via `phOf`, so
+  unstamped items of a renamed first phase move too), `rs.phases`, `phase0`, every plan cell's
+  `arbOff` and `rs.live`. Logged "Renamed the X phase to Y".
+- Verified on the stand-in: Status added "Price Drop" by Enter; settings renamed Launch to
+  "Go live" (2/2 kept, phase0 followed) and Ad Fatigue 01 to "Refresh 01"; "PRICE drop" refused
+  as a duplicate, and so was a field renamed to "price drop" on save. A "Price Drop" folder under
+  Main became "Price Cut" with the rename. Renaming back to "Launch" / "ad fatigue 01" landed on
+  `launch` / `fat1`; demo phases put back, test folder deleted. **Not exercised:** the
+  new-campaign Phase field (CAS's home now redirects to the landing page), real Drive.
