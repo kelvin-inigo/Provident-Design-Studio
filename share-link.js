@@ -627,8 +627,8 @@
       if (op === 'get') out.meta = rv.meta || { app: d.app, name: '' };
       return out;
     }
+    // performance marketing changes the words too (2026-11-06, by request): Edit text saves here
     if (op === 'save') {
-      if (R.role === 'pm') throw dsFail(403, 'This link is for viewing the ad sets — it cannot change the project.');
       const was = DSC[fid] && DSC[fid].d && DSC[fid].d.review;
       const d = dsKeepReview(await dsRead(fid, true), was, body.rid), rv = d.review;
       if ((rv.rev || 0) !== Number(body.base || 0)) { const e = new Error('stale'); e.stale = true; e.rev = rv.rev || 0; throw e; }
@@ -648,7 +648,6 @@
       return { rev: rv.rev };
     }
     if (op === 'thumb') {
-      if (R.role === 'pm') throw dsFail(403, 'This link is for viewing the ad sets — it cannot change the project.');
       if (!(typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000)) throw dsFail(400, 'No preview.');
       const was = DSC[fid] && DSC[fid].d && DSC[fid].d.review;
       const d = dsKeepReview(await dsRead(fid, true), was, body.rid), rv = d.review;
@@ -3271,9 +3270,9 @@
       const dlg = nameDialog({ title: role === 'ct' ? 'Check the copy' : role === 'pm' ? 'Ad set package' : 'Your ad set', btn: 'Open', auto: true,
         lead: '<b>' + esc(rs.name || 'Ad set') + '</b> · ' + (rs.items || []).length + ((rs.items || []).length === 1 ? ' project' : ' projects') + '. ' +
           (role === 'ct' ? 'You see the words of every project beside its images. Change them as needed — the images update as you type — then approve the English copy, and later the translation, for each audience.'
-            : role === 'pm' ? 'You see every project’s images, rendered from the latest work. Each audience can be downloaded when it is done; the whole set is Package ready when every audience is. You cannot change the projects from this link.'
+            : role === 'pm' ? 'You see every project’s images, rendered from the latest work. Each audience can be downloaded when it is done; the whole set is Package ready when every audience is. Edit text changes the words of a project, and the images update as you type.'
               : 'The designer’s overview: every project, its status, and a link to open each in the full studio.'),
-        note: role === 'pm' ? 'Your name shows who looked at the package.' : 'Your name is shown beside every change you make.' });
+        note: 'Your name is shown beside every change you make.' });
       const name = await dlg.name();
       if (!name) return;
       if (!StudioBase.shareWho()) lsSet(NAME_KEY, name);
@@ -3324,7 +3323,7 @@
     this.clock = setInterval(() => this.shRender(), 30000);
     this.onVis = () => { if (!document.hidden) this.shPoll(); };
     document.addEventListener('visibilitychange', this.onVis);
-    this.ui.status(this.role === 'pm' ? 'view' : 'ok');
+    this.ui.status('ok');
   }
   const RV = RsView.prototype;
   // the project a folder of the overview holds: its own designer link, or this one
@@ -3395,7 +3394,7 @@
       const json = file(itemLabel(it) + '.adstudio.json', 'application/json', async () => JSON.stringify(pub()), {
         getFull: async () => new File([JSON.stringify(Object.assign(pub(), { images: await me.photos(sid) }))], itemLabel(it) + '.adstudio.json', { type: 'application/json' })
       });
-      if (this.role !== 'pm' && !this.embed) json.createWritable = async () => {
+      if (!this.embed) json.createWritable = async () => {
         const parts = [];
         return { write: async x => { parts.push(x && x.data !== undefined ? x.data : x); },
           close: async () => { const doc = JSON.parse(await new Blob(parts.map(q => q instanceof Blob ? q : new Blob([q]))).text()); me.onJson(sid, doc.state); } };
@@ -3432,7 +3431,8 @@
     document.documentElement.classList.toggle('shl-open', here && this.ui.root.classList.contains('open'));
     document.documentElement.classList.toggle('rs-on', here);
     if (here) {
-      const mode = this.role === 'ct' ? 'text' : this.role === 'pm' ? 'images' : null;
+      // the content team stays on the words; performance marketing switches Images | Edit text
+      const mode = this.role === 'ct' ? 'text' : null;
       if (mode && (sh._asMode || 'images') !== mode && sh.asSetMode) sh.asSetMode(mode);
       if (this.ver !== this.scanned && !(sh._as && sh._as.busy) && !this.editing()) {
         const sel = sh._asSel;
@@ -3443,7 +3443,7 @@
     }
     const queued = Object.keys(this.proj).filter(s => this.proj[s].pend);
     if (queued.length && !this.busy && Date.now() - this.lastW > 1500) this.save(queued[0]);
-    if (this.role !== 'pm') this.ui.status(this.busy || queued.length ? 'saving' : (this.err ? 'error' : 'ok'), this.err || undefined);
+    this.ui.status(this.busy || queued.length ? 'saving' : (this.err ? 'error' : 'ok'), this.err || undefined);
     this.panelRender();
     if (this.role === 'pm' || this.role === 'ct') this.barRender();
   };
@@ -3490,7 +3490,7 @@
   // A save from the ad set link changes a project the designer may not have open, so the
   // preview on Review links is redrawn here too: that project's own state and photos.
   RV.thumbFor = async function (sid) {
-    const p = this.proj[sid]; if (!p || this.embed || this.role === 'pm') return;
+    const p = this.proj[sid]; if (!p || this.embed) return;
     const now = Date.now(); if (now - (p.thumbAt || 0) < 5000) { p.thumbDue = true; return; }
     p.thumbAt = now; p.thumbDue = false;
     try {
@@ -5295,7 +5295,7 @@
         $('.shl-sub').textContent = v.people > 1 ? v.people + ' people have edited' : 'Shared edit link';
         { const w = StudioBase.shareWho();
           const nm = String(v.me || 'Someone'), ini = nm.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
-          $('.shl-me').innerHTML = '<span class="shl-av" aria-hidden="true">' + esc(ini) + '</span><b title="' + esc((root.dataset.role === 'pm' ? 'Viewing as ' : 'Editing as ') + nm + (w ? ' · ' + w.email : '')) + '">' + esc(nm) + '</b>'
+          $('.shl-me').innerHTML = '<span class="shl-av" aria-hidden="true">' + esc(ini) + '</span><b title="' + esc('Editing as ' + nm + (w ? ' · ' + w.email : '')) + '">' + esc(nm) + '</b>'
             + (w ? '<button type="button" data-who="1">Not you?</button>' : '<button type="button">Change</button>'); }
         const n = $('.shl-n'); n.hidden = !v.unseen; n.textContent = v.unseen > 9 ? '9+' : String(v.unseen);
         const top = v.log[0];
@@ -5620,7 +5620,7 @@ html[data-rv-role="ct"] .p-seg-mode,html[data-rv-role="ct"] .p-prev,html[data-rv
 /* performance marketing and the content team: the Ad sets window (Images for one, Edit text for
    the other) with nothing to choose, switch, share or close; the review panel over it */
 html.rv-pm .as-ov{top:var(--rvh,150px)}
-html.rv-as .as-mode,html.rv-as .as-srcgrp>.p-ghost:not(.as-ico),html.rv-as .as-share,html.rv-as .as-bar-sep,html.rv-as .as-x{display:none!important}
+html.rv-as:not(.rv-pm) .as-mode,html.rv-as .as-srcgrp>.p-ghost:not(.as-ico),html.rv-as .as-share,html.rv-as .as-bar-sep,html.rv-as .as-x{display:none!important}
 html.rv-pm .as-dl{display:none!important}
 html.rs-on .as-srcgrp>.p-ghost:not(.as-ico),html.rs-on .as-share,html.rs-on .as-bar-sep{display:none!important}
 html.rs-on .shl-pill{z-index:210}html.rs-on .shl-panel{z-index:211;top:0}html.rs-on .shl-toast{z-index:212}

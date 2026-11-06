@@ -18353,7 +18353,7 @@ class Component extends DCLogic {
       // pm and ct: the view is named ABOVE the ad set's title, so nobody mistakes one for the other
       asKickOn: PMH ? '1' : undefined,
       asKick: PMH ? (rvRole === 'pm' ? 'Performance marketing view' : 'Content team view') : '',
-      asKickTip: PMH ? (rvRole === 'pm' ? 'For performance marketing: see the finished ads and download each audience once it is ready to run' : 'For the content team: check the words on each project and approve the copy') : '',
+      asKickTip: PMH ? (rvRole === 'pm' ? 'For performance marketing: see the finished ads, change their words in Edit text, and download each audience once it is ready to run' : 'For the content team: check the words on each project and approve the copy') : '',
       asOn: open ? '1' : undefined,
       asOpen: () => this.asOpen(),
       asClose: () => this.asClose(),

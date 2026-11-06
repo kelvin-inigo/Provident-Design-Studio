@@ -1495,7 +1495,8 @@ def _route(method, query, body):
         if not sid:
             raise Fail(400, 'Name the project (p=) — this is an ad set link.')
         k = 'sh:' + sid + ':'
-        if method == 'POST' and op in ('part', 'save', 'pvput', 'thumb') and role == 'pm':
+        # performance marketing changes the words (Edit text: save, thumb), never the photos
+        if method == 'POST' and op in ('part', 'pvput') and role == 'pm':
             raise Fail(403, 'This link is for viewing the ad sets — it cannot change the project.')
         pub = rs_pub(rs, role)
         if method == 'POST' and op == 'part':

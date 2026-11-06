@@ -1804,3 +1804,17 @@ copy (Arabic typeface, mirrored), Chrome's translator failed in the pane and the
 translated the layout ("Translated 2 lines"); the merged Family card with both chips; the copied
 team-link text and open links. Demo data put back. **Not exercised:** real Chrome's Translator,
 real Drive, a phone-width merged card.
+
+## Performance marketing edits the words too (2026-11-06, by request)
+The PM ad set link gets **Images | Edit text** like the content team's Edit text. The PM link
+no longer opens in a forced mode: `RV.onTick` forces only CT to text, and `html.rv-as:not(.rv-pm)
+.as-mode` shows the switch for PM. `RV.build` gives PM the writable project json, so `onJson`
+merges and saves. `thumbFor` redraws the Review links preview for PM too, and the status shows
+saving and saved instead of `view`. On the server side both share stores allow `save` / `thumb`
+for pm: dsApi stopped throwing, and api/share.py now refuses only `part` / `pvput` (photos) for
+pm. The PM bar, See details and Download are unchanged, and there's still no Changes panel on that
+link.
+Verified on the stand-in: a PM `save` went through (before this it was a 403). On the PM link,
+Edit text showed the project's fields, and changing the Button to "Book a viewing" re-rendered
+the preview, read "Saved for everyone", and was logged under the signed-in name. Demo state put
+back (`{pid}`). **Not exercised:** api/share.py (the Upstash path) and real Drive.

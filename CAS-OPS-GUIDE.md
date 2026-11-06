@@ -450,7 +450,7 @@ performance marketing), and the button beside it opens that team's view in a new
 |---|---|---|
 | **Designer** | the ad set's overview, with each project one click from the full studio | design, mark steps done, add projects, put work back in progress |
 | **Content team** | the words of every project beside its images | change the words, approve the English copy and the translation |
-| **Performance marketing** | every project's images, always the latest | download each audience when it's done |
+| **Performance marketing** | every project's images, always the latest | change the words in **Edit text**, download each audience when it's done |
 
 **Markets:** Local, International, International EUR. **Audiences:** for Residential, Family and
 Investor. For Commercial, Investor and Hybrid (an end user who rents but may buy a commercial
@@ -491,7 +491,9 @@ steps: **Design › ENG copy check › Translation › Done**.
    one row per audience. Each finished audience has **Download**, which zips its English and Arabic
    images, named the way an export names them. **Download package** (or **Download finished
    audiences** before then) takes every finished audience. Images are rendered from the projects as
-   they are now. This link can't change anything. There is no side panel on this link: the bar's **See details**
+   they are now. **Images | Edit text** at the top switches to the words: change them as the
+   content team does, the images update as you type, and your name goes beside the change. Words
+   are all it can change. There is no side panel on this link: the bar's **See details**
    holds the steps, the dates and each audience.
 
 The **Ad set** tab lists every audience, with its progress (**AR** on a tile plans or drops its
@@ -514,8 +516,8 @@ Status draws it itself when you open it, and saves it for everyone else.
 
 Things to know:
 - **No sign-in.** Whoever holds a link has that role, so send each link only to its team.
-  The server refuses saves from performance marketing's link. The studio keeps the content team
-  to the words.
+  The content team's and performance marketing's links can change the words only (photos, design
+  and steps stay the designer's).
 - **Each project still has its own edit link.** That's the designer's way into the full studio for
   that project (the **Open** buttons in the overview use it).
 - **The designer sees the whole ad set from inside the project.** In a project that is in an ad
