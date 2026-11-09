@@ -1890,3 +1890,17 @@ ticket form: its own title and lead, an **Open a project folder…** button (`da
   OS folder picker, finishing the join (dsReview add is the Pick up path), Safari (no directory
   picker: `openSessionFolder` falls back to choosing the file, which works the same way).
 
+## Performance marketing's downloads go in the Activity (2026-11-09, by request)
+"Add in the activity log if PM downloads the images on an adset." dsApi op **`rsdl`** (in
+`DS_WRITES`; pm only, 403 otherwise) logs a step "Downloaded <what>" (`what` capped at 160) with
+`dsLog`. `RV.logDl(what)` calls it on a Drive ad set when the role is pm, then `shPoll`. Two call
+sites, both after a save that was not cancelled: `RV.download` (the PM bar: "the images of
+<audience>" or "every finished audience (n)") and CAS's `asDownload` in the Ad sets window, through
+`this._asSrc.share.logDl` ("the images of <main> · <audience>" or "every image in the ad set").
+The old share store (api/share.py) has no such op; non-Drive ad sets log nothing.
+Verified on the stand-in (the server had stopped, so its in-memory Drive was empty and the demo
+ad sets are gone): an ad set written by hand with dd and pm tokens; `rsdl` with the pm token
+logged "Downloaded the images of Local · Family" by "Sam (PM)", the dd token was refused, and the
+line showed in the Status page's Activity. Test ad set deleted. **Not exercised:** pressing a real
+Download (no finished audience on the empty stand-in), real Drive.
+

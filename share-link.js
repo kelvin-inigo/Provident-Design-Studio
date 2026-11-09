@@ -420,7 +420,7 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -584,6 +584,16 @@
       }
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
+      return { rs: pub() };
+    }
+    // A DOWNLOAD, IN THE LOG (2026-11-09, by request): performance marketing zipped the package or
+    // one audience (the bar's Download, or the Ad sets window's); the ad set's Activity says so
+    if (op === 'rsdl') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      if (R.role !== 'pm') throw dsFail(403, 'Only performance marketing’s downloads are logged.');
+      const what = String(body.what || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+      dsLog(R.rs, dsWho(body.by), [{ kind: 'step', text: 'Downloaded ' + (what || 'the images') }]);
+      await dsWrite(R.rid, R.rs);
       return { rs: pub() };
     }
     // LAUNCH (2026-11-04, by request): performance marketing says the finished package is running.
@@ -3914,9 +3924,16 @@
         used.add(n); files.push({ name: n, data: new Uint8Array(await it.file.arrayBuffer()) });
       }
       const nm = clean(this.rs.name) + (key === '*' ? '' : ' - ' + clean(auds[0].label));
-      await this.eng.saveAs(this.eng.zip(files), nm + '.zip', 'Zip archive', 'application/zip', '.zip');
+      const how = await this.eng.saveAs(this.eng.zip(files), nm + '.zip', 'Zip archive', 'application/zip', '.zip');
+      if (how !== 'cancelled') this.logDl(key === '*' ? (auds.length > 1 ? 'every finished audience (' + auds.length + ')' : 'the images of ' + auds[0].label) : 'the images of ' + auds[0].label);
     } catch (e) { this.ui.flash('Could not zip — ' + (e.message || e)); }
     this.dl = null; this.barRender();
+  };
+  // performance marketing's download goes in the ad set's Activity (op rsdl, Drive ad sets only);
+  // the Ad sets window's own Download calls it too (asDownload, through _asSrc.share)
+  RV.logDl = function (what) {
+    if (this.role !== 'pm' || !isDs(this.tok)) return;
+    api('rsdl', { id: this.tok }, { by: StudioBase.shareName() || 'Performance marketing', what }).then(r => { if (r && r.rs) this.rs = r.rs; this.shPoll(); }).catch(() => {});
   };
   // A project's OWN faces, before anything draws it outside the editor: the Google Font pair of
   // an unbranded look (and Readex Pro for Arabic) is fetched on demand, and a canvas never pulls

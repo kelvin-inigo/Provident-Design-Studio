@@ -17880,6 +17880,9 @@ class Component extends DCLogic {
       const zipName = key === '*' ? (clean(a.root) || 'Ad sets') : ([one.main, one.title].map(clean).filter(Boolean).join(' - ') || 'Ad set');
       const how = await this.eng.saveAs(this.eng.zip(files), zipName + '.zip', 'Zip archive', 'application/zip', '.zip');
       this._asDl = how === 'cancelled' ? '' : 'done';
+      // on an ad set review link, performance marketing's download goes in its Activity (share-link)
+      const sh = this._asSrc && this._asSrc.share;
+      if (how !== 'cancelled' && sh && sh.logDl) sh.logDl(key === '*' ? 'every image in the ad set' : 'the images of ' + [one.main, one.title].filter(Boolean).join(' · '));
     } catch (e) { this._asDl = 'err'; }
     this.forceUpdate();
     if (this._asDl === 'done' || this._asDl === 'err') setTimeout(() => { if (this._asDl !== 'busy') { this._asDl = ''; this.forceUpdate(); } }, 3000);

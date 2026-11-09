@@ -389,7 +389,8 @@ right to left and translated, with no question asked. The Ad set tab's **Arabic 
 **Translate the layout to Arabic** to run it again after the layout changed. Undo puts the
 English back. The content team checks the Arabic at the translation step.
 
-When every audience is done, performance marketing downloads the package from their link. Once
+When every audience is done, performance marketing downloads the package from their link. Each
+download (the package, or one audience) shows in the ad set's **Activity** with who and when. Once
 the ads are running, they press **Launch** on the home's Next up card (or on its row under Also waiting on you): the campaign reads
 **Launched** on its page, the log says who launched it, and it leaves everyone's Home for the **Closed** column on Status (shown with **Show closed**).
 A phase added later (say Ad Fatigue 01) brings it back once that phase is ready.
