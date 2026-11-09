@@ -14306,6 +14306,8 @@ class OrganicStudio extends StudioBase {
           if (r.ok && j.card_id && j.version) this.upd(x => { if (x.hubPost) x.hubPost = Object.assign({}, x.hubPost, { opened: j.version, next: j.version + 1 }); return x; }); } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
       if (typeof msg !== 'string') msg = '';
       if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
+      // the post is with the hub for approval now: Status shows it under Copy check (StudioBase.hubSeen)
+      if (hub) { try { StudioBase.hubSeen(new URL(c.url).origin + '/api/items/' + hub + '/studio', (this.state.hubPost && this.state.hubPost.title) || this.state.customName, 'review'); } catch (e) {} }
       this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + (fit.note ? ', ' + fit.note : '') + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
       return true;
     } catch (e) {

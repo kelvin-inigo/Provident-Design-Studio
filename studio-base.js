@@ -404,6 +404,19 @@ class StudioBase {
   // name ("Untitled") are two cards. It rides in the state and in the session file.
   // The Content Hub post a project belongs to: `hubCardId` (or `card_id`) when it is a card id,
   // as a string, else ''. Read by both studios' Send (the X-Card-Id header) and normState.
+  // TELL STATUS ABOUT A HUB POST (2026-11-09, by request: "once you press Open in OPS it should
+  // show on PDS status"). The hub may push nothing (an older hub), so OPS reports the post itself
+  // through the share service as the signed-in person: in_progress when it opens from the hub's
+  // Open in OPS, review when Send attaches a version. Never blocks or fails the open or the Send.
+  static hubSeen(open, title, state) {
+    try {
+      const m = /^(https?:\/\/[^/]+)\/api\/items\/(\d+)\/studio/.exec(String(open || ''));
+      const A = window.providentAccess;
+      if (!m || !A || !A.call) return;
+      A.call('hubseen', { task: { id: m[2], title: String(title || '').slice(0, 200), open: m[1] + '/api/items/' + m[2] + '/studio', state } })
+        .catch(e => console.warn('hub post not put on Status:', e && e.message));
+    } catch (e) { console.warn('hub post not put on Status:', e); }
+  }
   static hubCardOf(o) {
     const v = o && (o.hubCardId != null ? o.hubCardId : o.card_id);
     const t = v == null ? '' : String(v).trim();
@@ -1301,6 +1314,7 @@ class StudioBase {
       doc = await r.json();
     } catch (e) { this.setState({ exportStatus: this.hubWhy(e, url) }); return; }
     if (!doc || !doc.state || !Array.isArray(doc.state.slides) || !doc.state.slides.length) { this.setState({ exportStatus: 'The hub sent a post with no pages.' }); return; }
+    StudioBase.hubSeen(url, (doc.hub && doc.hub.title) || doc.state.customName, 'in_progress');
     this.hubDraftOpen(doc);
   }
   // The brief's pictures travel as URLs (`hubImages`) — a photo is far too big for a URL hash —

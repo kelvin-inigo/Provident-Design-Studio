@@ -519,6 +519,19 @@ test server with three pushed tasks (queued / in_progress / review) as cten, des
 (`/api/design/designers` answered 404), so it never posted a task; the deploy steps above were
 still not done.
 
+**OPS reports a hub post itself (2026-11-09, by request: "once you press Open in OPS it should
+show on PDS status").** The office hub (provident-content-hub.ngrok-free.dev, behind ngrok's
+OAuth) runs an older build with no Designer field and no push, and it has features the local
+copy lacks ("Ask the studio"), so the push files must be MERGED there, never copied over. Until
+then OPS tells Status: `StudioBase.hubSeen(open, title, state)` → `providentAccess.call('hubseen')`
+→ api/share.py `hub_seen` (signed-in, let-in people only) writes the same `hub:tasks` record a push
+would. `hubLinkOpen` reports `in_progress` with `to` = the person who opened it; OPS's Send, after a
+2xx with a card id, reports `review` (open link = Send URL's origin + `/api/items/<id>/studio`). It
+never overrides an approved/delivered task and never blocks the open or the Send. Status: an
+`in_progress` task assigned to the viewer waits on them. Verified on the test server with a
+stand-in hub: Open in OPS as the designer → Design, Waits on you; CT saw it; `review` → Copy
+check, Waits on you for CT and SMM.
+
 ## A full localStorage froze Home and Status (2026-11-04)
 
 Symptom: a post sent to Copy check never showed on Status, while Drive's `_Post.json` was right

@@ -1398,6 +1398,36 @@ def hub_list(d):
     return ok({'tasks': sorted(hub_tasks().values(), key=lambda t: t.get('sent') or ''), 'at': int(time.time() * 1000)})
 
 
+def hub_seen(d):
+    """OPS reports a hub post itself (2026-11-09, by request: "once you press Open in OPS it should
+    show on PDS status"), so Status shows it even when the hub pushes nothing: {tok, task: {id,
+    title, open, state}}, state in_progress (opened in OPS by the signed-in designer) or review
+    (Sent to the hub post). A hub push of the same id still wins on its next change."""
+    email, name = acc_who(d.get('tok'))
+    me = acc_users().get(email)
+    if acc_admin() and email != acc_admin() and not (me and me.get('status') == 'active'):
+        raise Fail(403, 'Only people with access can put a hub post on Status.')
+    t = d.get('task') if isinstance(d.get('task'), dict) else {}
+    state = str(t.get('state') or '')
+    if state not in ('in_progress', 'review'):
+        raise Fail(400, 'A reported hub post is in design or sent for review.')
+    tasks = hub_tasks()
+    old = tasks.get(str(t.get('id') or '')) or {}
+    if old.get('state') in ('approved', 'delivered'):
+        return ok({'ok': True, 'kept': old.get('state')})
+    now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+    who = (me and me.get('name')) or name or email.split('@')[0]
+    c = hub_clean(dict(old, id=t.get('id'), state=state, title=t.get('title') or old.get('title'), open=t.get('open') or old.get('open'),
+                       sent=old.get('sent') or now, claimed=old.get('claimed') or now, by=old.get('by') or who,
+                       done=now if state == 'review' else old.get('done'),
+                       to=old.get('to') or ({'email': email, 'name': who} if state == 'in_progress' else None)))
+    if not c['open']:
+        raise Fail(400, 'A reported hub post needs its open link.')
+    tasks[c['id']] = c
+    store().cmd('SET', HUB_KEY, json.dumps(tasks, separators=(',', ':')))
+    return ok({'ok': True})
+
+
 def hub_team(d):
     """The designers, for the hub's picker: name and email only."""
     hub_key_ok(d)
@@ -1410,7 +1440,7 @@ def hub_team(d):
 
 
 ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
-           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team}
+           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.

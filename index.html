@@ -1507,7 +1507,8 @@ body{-webkit-tap-highlight-color:transparent;
         : st === 'review' ? 'Waiting for approval on the hub' : ready ? 'Approved on the hub' : 'In design' + (who ? ' · ' + who : t.by ? ' · ' + t.by.replace(/\s*\(.*\)$/, '') : '');
       var k = open ? 0 : st === 'review' ? 2 : ready ? 3 : 1;
       var b64 = btoa(unescape(encodeURIComponent(t.open))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-      var waits = open || st === 'changes';
+      // a post a designer opened in OPS (StudioBase.hubSeen) is theirs while it is in design
+      var waits = open || st === 'changes' || (st === 'in_progress' && mineTo);
       return {
         studio: 'ops', hub: true, id: 'hub-' + t.id, name: t.title || 'Hub post', open: open, ready: ready,
         mine: designs ? waits && (to ? mineTo : true) : r === 'smm' || r === 'ct' ? st === 'review' : false,
