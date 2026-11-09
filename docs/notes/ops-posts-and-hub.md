@@ -510,6 +510,15 @@ changing the Designer in the hub moved it. **Not done, needs people:** set `HUB_
 Vercel and the same value as `STUDIO_PUSH_KEY` in the office hub's `.env`, and copy the three hub
 files (studio_push.py, server.py, content-hub.html) to the office hub — I never touch it.
 
+**Who sees them (2026-11-09, by request: "its for DD and CT and add in SMM").** Designers, CT and
+SMM all get the hub's tasks on Status. CT's "only my hand-offs" filter (`build()`, 2026-11-04) had
+silently dropped them because no hub task was ever `mine` for CT; it now keeps `x.hub` rows too. A
+task in `review` (waiting for approval on the hub) is `mine` for both CT and SMM. Verified on the
+test server with three pushed tasks (queued / in_progress / review) as cten, designer and smm.
+**Why nothing showed live on 2026-11-09:** the office hub still had none of the push code
+(`/api/design/designers` answered 404), so it never posted a task; the deploy steps above were
+still not done.
+
 ## A full localStorage froze Home and Status (2026-11-04)
 
 Symptom: a post sent to Copy check never showed on Status, while Drive's `_Post.json` was right

@@ -992,7 +992,9 @@ body{-webkit-tap-highlight-color:transparent;
     if (studiosFor(r).indexOf('ops') >= 0) hubRows(r).forEach(function(y){ y.stage = stageOf(y); rows.push(y); });
     // THE CONTENT TEAM SEES ONLY WHAT IS HANDED TO THEM (2026-11-04, by request): Home and Status
     // list the copy waiting on them, and nothing of what other people are working on
-    if (r === 'ct') { rows = rows.filter(function(x){ return x.mine; }); closed = []; }
+    // — except the Content Hub's tasks, which the content team, the designers and social media all
+    // follow on Status (2026-11-09, by request: "its for DD and CT and add in SMM")
+    if (r === 'ct') { rows = rows.filter(function(x){ return x.mine || x.hub; }); closed = []; }
     closed.sort(function(p, q){ return (q.live || 0) - (p.live || 0); });
     function urgency(x){ var d = due(x.due); return d ? d.n : 999; }
     var mine = rows.filter(function(x){ return x.mine; }).sort(function(p, q){ return urgency(p) - urgency(q) || (q.at || 0) - (p.at || 0); });
@@ -1508,7 +1510,7 @@ body{-webkit-tap-highlight-color:transparent;
       var waits = open || st === 'changes';
       return {
         studio: 'ops', hub: true, id: 'hub-' + t.id, name: t.title || 'Hub post', open: open, ready: ready,
-        mine: designs ? waits && (to ? mineTo : true) : r === 'smm' ? st === 'review' : false,
+        mine: designs ? waits && (to ? mineTo : true) : r === 'smm' || r === 'ct' ? st === 'review' : false,
         step: step, sub: sub, verb: open ? 'Design it' : st === 'changes' ? 'Make the changes' : 'Open in OPS',
         segs: [0, 1, 2, 3].map(function(i){ return i < k || ready ? 'done' : i === k ? 'cur' : 'pend'; }), steps: ['Ticket', 'Design', 'Copy check', 'Ready'],
         due: '', from: 'Content Hub', at: Math.max(hubTime(t.sent), hubTime(t.claimed), hubTime(t.done)),

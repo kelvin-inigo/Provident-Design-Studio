@@ -128,7 +128,10 @@ say so and point to the step above.
     check**, approved under **Ready** (for two weeks). In the hub, the **Designer** field (at
     **Approve and send to design**, and in the post's Design section beside **Open in OPS**) says
     who it's for: it then waits on that designer only, and shows "For <name>" to everyone else.
-    Clicking it on Status opens it in OPS with the hub's copy on its pages; **Send** works exactly
+    Designers, the content team and the social media manager all see these posts on Status (the
+    content team sees them even though the rest of their board is only their own hand-offs); one
+    waiting for approval on the hub shows **Waits on you** to the content team and the social
+    media manager. Clicking it on Status opens it in OPS with the hub's copy on its pages; **Send** works exactly
     as before and attaches the design to that hub post.
   - **Access**: the admin gets the whole Access panel (requests to let in, people and their roles,
     activity, and Preview as). Everyone else sees their role and what it lets them do.
