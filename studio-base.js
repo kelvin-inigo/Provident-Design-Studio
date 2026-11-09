@@ -1367,6 +1367,8 @@ class StudioBase {
       await Promise.race([StudioBase.hubSeen(u, (st.hubPost && st.hubPost.title) || st.customName, 'in_progress'), new Promise(r => setTimeout(r, 6000))]);
       try { sessionStorage.setItem('provident-hub-seen', JSON.stringify({ u, card: String(st.hubCardId || ''), at: Date.now() })); } catch (e) {}
     }
+    // the content team's OPS gate (post-flow postCtGate) lets a hub post through this reload
+    try { sessionStorage.setItem('provident-hub-open', String(Date.now())); } catch (e) {}
     const fname = String(st.customName || 'Hub post').replace(/[\\/:*?"<>|]+/g, ' ').slice(0, 80) + '.json';
     this.loadSessionFile(new File([JSON.stringify(doc)], fname, { type: 'application/json' }), { clean: true });
     return placed;
@@ -1910,6 +1912,8 @@ StudioBase.warn = function (text) {
 // dropped from the address by the time the shell first draws, so the moment is noted here, as
 // the page loads; a studio with nothing open waits for it before going to the home's Projects.
 StudioBase.linkAt = /#(share|pick|recent|view|hubopen)=/.test(location.hash || '') ? Date.now() : 0;
+// …and a Content Hub post on its way in, for the content team's OPS gate (post-flow postCtGate)
+StudioBase.hubAt = /#(hubopen|hubdraft)=/.test(location.hash || '') ? Date.now() : 0;
 // AN AD SET LINK OPENS WITHOUT THE STUDIO'S START SCREEN (2026-11-04): a designer's link goes on to
 // the home's Status, the content team's and performance marketing's become their window, and the
 // start screen (sidebar, "Projects") flashed behind "Open the ad set" on the way. The studio is

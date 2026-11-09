@@ -368,8 +368,17 @@
   };
   // THE CONTENT TEAM NEVER HAS THE OPS EDITOR (2026-11-04, by request): outside the post page's
   // frame, OPS sends them to the post's page on the home (or to Status), where the copy check is
+  // A CONTENT HUB POST IS THE EXCEPTION (2026-11-09, by request: Status's hub card opens the post
+  // in OPS for the content team too). It has no post page on the home, and its copy is checked on
+  // the hub, so OPS keeps it: while the #hubopen link is being fetched (StudioBase.hubAt), across
+  // the reload that loads it (sessionStorage provident-hub-open), and once it is open (hubCardId).
+  const hubPost = eng => {
+    if (eng.state && eng.state.hubCardId) return true;
+    if (StudioBase.hubAt && Date.now() - StudioBase.hubAt < 130000) return true;
+    try { return Date.now() - (+sessionStorage.getItem('provident-hub-open') || 0) < 30000; } catch (e) { return false; }
+  };
   SP.postCtGate = function () {
-    if (EMBED || this._ctGone || !isCt()) return;
+    if (EMBED || this._ctGone || !isCt() || hubPost(this)) return;
     this._ctGone = true;
     const rs = this.postRs(), tok = rs && rs.tok && rs.tok.dd;
     this.markSaved && this.markSaved();

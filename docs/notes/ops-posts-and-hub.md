@@ -542,6 +542,14 @@ the card id matches. Send draws it too, with the `review` report. **Vercel misse
 feb5d00** (no deployment, no GitHub status); an empty commit re-triggered it. Check the live file
 after a push.
 
+**The content team opens hub posts in OPS (2026-11-09).** In Sana's view (CT) a hub card on Status
+opened OPS and bounced straight back to Status: `postCtGate` (post-flow.js, 2026-11-04) keeps CT
+out of the OPS editor and sends them to the post's page, or to Status when there is none. A hub post
+has no post page and its copy is checked on the hub, so the gate now lets it through: while the
+`#hubopen` link is fetched (`StudioBase.hubAt`, set at load like `linkAt`), across
+`loadSessionFile`'s reload (sessionStorage `provident-hub-open`, 30 s), and once open
+(`state.hubCardId`). Drive posts and plain projects are still gated for CT.
+
 ## A full localStorage froze Home and Status (2026-11-04)
 
 Symptom: a post sent to Copy check never showed on Status, while Drive's `_Post.json` was right
