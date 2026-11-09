@@ -1067,7 +1067,9 @@ ACC_LOG = 400
 # smm (social media manager) and ct (content team) arrived with OPS's posts (2026-10-30):
 # the social media manager drafts a post in OPS, the designer finishes it, the content team
 # checks the copy. Both studios read the same list.
-ACC_ROLES = ('designer', 'pm', 'smm', 'ct', 'cten', 'ctar')   # ct = either language; cten / ctar = one
+ACC_ROLES = ('designer', 'pm', 'smm', 'ct', 'cten', 'ctar', 'dmt')   # ct = either language; cten / ctar = one
+# dmt, the Digital Marketing Team (2026-11-09): email, SMS and WhatsApp on the same campaigns; the
+# studios treat it as pm (access.js fam), Roles gives it its own column
 _acc_seen = {}
 
 
@@ -1128,11 +1130,11 @@ ACC_ADMIN_ROLE = 'designer'
 # under Roles. One JSON map, capability -> roles that have it (acc:perms); a capability missing
 # from the stored map keeps its default. The admin has everything and is never in a list; ct
 # (the older either-language content role) has a copy capability when cten or ctar has it.
-ACC_PERM_ROLES = ('designer', 'smm', 'cten', 'ctar', 'pm')
+ACC_PERM_ROLES = ('designer', 'smm', 'cten', 'ctar', 'pm', 'dmt')
 ACC_PERMS = {
     'design-cas': ['designer'],
     'design-ops': ['designer'],
-    'tickets': ['designer', 'pm'],
+    'tickets': ['designer', 'pm', 'dmt'],
     'posts': ['designer', 'smm'],
     'copy-en': ['cten'],
     'copy-ar': ['ctar'],
@@ -1145,7 +1147,13 @@ def acc_perms():
     except ValueError:
         d = {}
     d = d if isinstance(d, dict) else {}
-    return {k: [r for r in (d.get(k) if isinstance(d.get(k), list) else v) if r in ACC_PERM_ROLES] for k, v in ACC_PERMS.items()}
+    # a role added after the map was saved (dmt) keeps its defaults: the map names the roles it knew
+    known = d.get('_roles') if isinstance(d.get('_roles'), list) else ['designer', 'smm', 'cten', 'ctar', 'pm']
+    out = {}
+    for k, v in ACC_PERMS.items():
+        got = d.get(k) if isinstance(d.get(k), list) else v
+        out[k] = [r for r in ACC_PERM_ROLES if r in got or (r in v and r not in known)]
+    return out
 
 
 def acc_users():
@@ -1267,7 +1275,7 @@ def acc_setperms(d):
         if k not in ACC_PERMS or not isinstance(v, list):
             raise Fail(400, 'Unknown capability.')
         cur[k] = [r for r in ACC_PERM_ROLES if r in v]
-    store().cmd('SET', 'acc:perms', json.dumps(cur, separators=(',', ':')))
+    store().cmd('SET', 'acc:perms', json.dumps(dict(cur, _roles=list(ACC_PERM_ROLES)), separators=(',', ':')))
     acc_log({'email': me, 'name': '', 'what': 'perms', 'by': me})
     return ok({'ok': True, 'perms': cur})
 

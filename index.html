@@ -865,7 +865,7 @@ body{-webkit-tap-highlight-color:transparent;
     ops: { n: 'Organic posts', long: 'Organic Post Studio', a: .75, file: OPS, desc: 'Feed and story posts', start: OPS + '#view=new' }
   };
   var ROLE = { designer: 'Designer', admin: 'Designer', pm: 'Performance marketing', smm: 'Social media', ct: 'Content team',
-    cten: 'Content team · English', ctar: 'Content team · Arabic' };
+    cten: 'Content team · English', ctar: 'Content team · Arabic', dmt: 'Digital Marketing Team' };
   // the board's columns; each studio's own step names map onto them. CLOSED (2026-11-06, by
   // request) is Status's alone: launched campaigns and posted posts, the newest first. Home's
   // "Where everything is" keeps to the four stages still in motion (MOVING).
@@ -948,7 +948,7 @@ body{-webkit-tap-highlight-color:transparent;
   function roleOf(){
     var n = acc && acc.now && phase === 'in' ? acc.now() : null;
     if (n && n.role) return n.role;
-    return me && me.role ? (me.role === 'cten' || me.role === 'ctar' ? 'ct' : me.role) : null;
+    return me && me.role ? (me.role === 'cten' || me.role === 'ctar' ? 'ct' : me.role === 'dmt' ? 'pm' : me.role) : null;
   }
   // WHAT A ROLE OPENS is the admin's (Access › Roles, kept by access.js): with no role yet the
   // home shows everything, as before

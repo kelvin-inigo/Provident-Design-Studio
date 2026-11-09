@@ -129,7 +129,7 @@ class H(SimpleHTTPRequestHandler):
         import html as _h, json as _j
         people = [(share.acc_admin(), 'Admin')] + [(e, r) for e, r in share.ACC_SEED.items() if e != share.acc_admin()]
         word = {'Admin': 'Admin', 'designer': 'Designer', 'smm': 'Social media manager', 'cten': 'Content team \u00b7 English',
-                'ctar': 'Content team \u00b7 Arabic', 'pm': 'Performance marketing', 'ct': 'Content team'}
+                'ctar': 'Content team \u00b7 Arabic', 'pm': 'Performance marketing', 'ct': 'Content team', 'dmt': 'Digital Marketing Team'}
         rows = ''.join('<button data-e="%s"><b>%s</b><small>%s</small></button>' % (_h.escape(e), _h.escape(word.get(r, r)), _h.escape(e)) for e, r in people)
         out = ('''<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Test sign-in</title>

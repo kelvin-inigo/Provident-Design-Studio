@@ -180,6 +180,7 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
 | **Everyone but the admin** | The top bar shows only the pages you use: **Home** and **Status** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your initials). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
+| **Digital Marketing Team** | Runs the same campaigns as the Meta ads on email, SMS and WhatsApp. It sees and does exactly what **Performance marketing** does (above): file tickets, follow campaigns on Status, open an ad set's performance-marketing link to see the finished ads, change words in **Edit text**, download and **Launch**. It has its own name and its own column (**Digital**) under Access › Roles. |
 | **Admin** | Everything a designer has, plus **Access** on the home page (CAS's sidebar row opens it there too). There is one admin. |
 
 **Hand-offs name a person.** Each team has two people. Whenever you send work on — **File as
@@ -209,11 +210,11 @@ from Google the first time they do. The admin can still change or remove anyone 
 
 - **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
   note. Pick their role from the dropdown (Designer, Social media manager, Content team · English,
-  Content team · Arabic or Performance marketing), then press **Let in**, or **Decline**.
+  Content team · Arabic, Performance marketing or Digital Marketing Team), then press **Let in**, or **Decline**.
 - **People**: everyone with access. Change a role from its dropdown, or **Remove access** (they're
   shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
 - **Preview the home as** is a dropdown beside the tabs. Choose **a role** (Designer, Social media
-  manager, Content team · English, Content team · Arabic, Performance marketing) to see the home and
+  manager, Content team · English, Content team · Arabic, Performance marketing, Digital Marketing Team) to see the home and
   studios as that role does, or **a person** (everyone let in, listed by name and role) to see
   exactly what waits on them — their Status, their "Waits on you", and in OPS the view they get
   (for the content team, the copy check). A line under the top bar says **Viewing as** that person

@@ -28,27 +28,31 @@
 
   // The content team is two roles, one per language: cten approves English copy, ctar the
   // Arabic translation. Both read as 'ct' everywhere else (role() below); 'ct' itself is the
-  // older role and approves either.
-  const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing', smm: 'Social media manager', ct: 'Content team',
+  // older role and approves either. THE DIGITAL MARKETING TEAM (dmt, 2026-11-09, by request) runs
+  // the same campaigns as the Meta ads on email, SMS and WhatsApp: its own name and its own
+  // column under Roles, and 'pm' everywhere else — its home, queue, ad set link and downloads.
+  const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing', dmt: 'Digital Marketing Team', smm: 'Social media manager', ct: 'Content team',
                  cten: 'Content team · English', ctar: 'Content team · Arabic' };
-  const SEGL = { designer: 'Designer', smm: 'Social media', cten: 'Copy · English', ctar: 'Copy · Arabic', ct: 'Content team', pm: 'Performance' };
+  const SEGL = { designer: 'Designer', smm: 'Social media', cten: 'Copy · English', ctar: 'Copy · Arabic', ct: 'Content team', pm: 'Performance', dmt: 'Digital' };
   const ROLE_SUB = {
     designer: 'Both studios: design, export, Status',
     pm: 'Set up campaigns as tickets, and follow them on Status',
+    dmt: 'Run campaigns on email, SMS and WhatsApp: file tickets, download the finished ads',
     smm: 'Draft organic posts in OPS and send them to a designer',
     ct: 'Check the copy of posts, and of campaigns through their links',
     cten: 'Check the English copy of posts and campaigns',
     ctar: 'Check the Arabic translation of campaigns'
   };
-  const ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm'];
+  const ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt'];
   const WANT = { designer: ['Design', 'Designer'], smm: ['Draft organic posts', 'Social media manager'], cten: ['Check English copy', 'Content team · English'],
-                 ctar: ['Check Arabic copy', 'Content team · Arabic'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'] };
+                 ctar: ['Check Arabic copy', 'Content team · Arabic'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'],
+                 dmt: ['Email, SMS and WhatsApp', 'Digital Marketing Team'] };
   // WHAT EACH ROLE OPENS (2026-11-03, by request): the admin edits it under Access › Roles; the
   // server keeps it (acc:perms) and sends it with every sign-in. These are its defaults, and
   // what a page uses before the server has answered. The admin has everything; ct (the older
   // either-language content role) has a copy capability when either language's role has it.
-  const PERM_ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm'];
-  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'] };
+  const PERM_ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt'];
+  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm', 'dmt'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'] };
   const CAPS = [
     ['design-cas', 'Design campaign ads', 'Open and edit projects in the Campaign Ads Studio'],
     ['design-ops', 'Design organic posts', 'Open and edit posts in the Organic Post Studio'],
@@ -109,7 +113,7 @@
   const viewAs = () => { const v = viewRaw(); return v ? v.split('|')[0] : null; };
   const viewWho = () => { const v = viewRaw(), p = v ? v.split('|') : []; return p.length > 2 && p[1] ? { email: p[1], name: p.slice(2).join('|') } : null; };
   const rawRole = () => (A.phase === 'in' && A.me ? (viewAs() || A.me.role) : null);
-  const fam = r => (r === 'cten' || r === 'ctar' ? 'ct' : r);
+  const fam = r => (r === 'cten' || r === 'ctar' ? 'ct' : r === 'dmt' ? 'pm' : r);
   const role = () => fam(rawRole());
   const perms = () => {
     let p = (A.me && A.me.perms) || (A.list && A.list.perms) || (A.quiet && A.quiet.perms) || A.teamPerms || null;
@@ -422,7 +426,7 @@
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
       '<div class="ac-pv"><label for="ac-pvs">' + (HOME ? 'Preview the home as' : 'Preview the studio as') + '</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
         '<select id="ac-pvs" class="ac-sel" data-pv="1" title="Opens the studio as that role, or that person, would see it, until you end the preview"><option value="" selected disabled>Choose a role or a person</option>' +
-        '<optgroup label="A role">' + ['designer', 'smm', 'cten', 'ctar', 'pm'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</optgroup>' +
+        '<optgroup label="A role">' + ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</optgroup>' +
         (() => { const pp = people().filter(u => u.status === 'active' && u.role && ROLE[u.role] && u.role !== 'admin' && String(u.email || '').toLowerCase() !== me());
           return pp.length ? '<optgroup label="A person">' + pp.map(u => '<option value="' + esc(u.role + '|' + String(u.email).toLowerCase() + '|' + (u.name || '')) + '" title="' + esc(u.email) + '">' + esc((u.name || u.email) + ' \u00b7 ' + ROLE[u.role]) + '</option>').join('') + '</optgroup>' : ''; })() +
         '</select></span></div></div>';
@@ -568,7 +572,7 @@
   // which team a step goes to: a post's draft to a designer, a design to the content team (an ad
   // set's English to English copy, its Arabic to Arabic copy); every other step names nobody
   // since Roles (2026-11-03) each list is the roles that have that capability
-  const withCap = (...caps) => ['designer', 'smm', 'pm', 'cten', 'ctar', 'ct'].filter(r => caps.some(c => can(c, r)));
+  const withCap = (...caps) => ['designer', 'smm', 'pm', 'dmt', 'cten', 'ctar', 'ct'].filter(r => caps.some(c => can(c, r)));
   const TEAMS = {
     get designer() { return { roles: withCap('design-cas', 'design-ops'), word: 'designer', head: 'Which designer picks it up?' }; },
     get 'designer-cas'() { return { roles: withCap('design-cas'), word: 'designer', head: 'Which designer picks it up?' }; },

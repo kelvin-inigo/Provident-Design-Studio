@@ -1904,3 +1904,26 @@ logged "Downloaded the images of Local · Family" by "Sam (PM)", the dd token wa
 line showed in the Status page's Activity. Test ad set deleted. **Not exercised:** pressing a real
 Download (no finished audience on the empty stand-in), real Drive.
 
+## The Digital Marketing Team role (2026-11-09, by request)
+"On CAS access add a new team category named Digital Marketing Team" — asked what it does: "more
+like Email, SMS, WhatsApp, but they run the same campaign as the meta ads". So **`dmt`** is a role
+of its own that behaves as performance marketing, the way cten / ctar behave as ct:
+- **access.js**: `ROLE` / `SEGL` ("Digital") / `ROLE_SUB` / `WANT` / `ROLES` / `PERM_ROLES` /
+  `withCap` and the Preview list carry it; **`fam('dmt') = 'pm'`**, so `role()` (and `now().role`,
+  `accRole()`, index.html's `roleOf`) reads pm everywhere — home, Status (campaigns only),
+  queue, New ticket, the PM link, downloads, Launch. `now().raw` stays `dmt`, and `can()` reads
+  the raw role, so Roles gives it its own column. Default: File campaign tickets.
+- **index.html**: `ROLE.dmt` for labels; its cached-me fallback maps dmt to pm.
+- **api/share.py**: `ACC_ROLES` and `ACC_PERM_ROLES` carry it, `ACC_PERMS.tickets` defaults to it.
+  **A saved Roles map now records `_roles`** (the roles it was saved with); `acc_perms` gives a role
+  the map did not know its defaults, so a store saved before dmt still lets it file tickets.
+  Older maps (no `_roles`) are read as knowing the first five roles.
+- `tools/share-dev/serve.py`'s test sign-in names it.
+Verified: Python against the in-memory store — fresh store tickets `designer, pm, dmt`; an old
+saved map without dmt still gave dmt tickets; a save writes `_roles`. In the browser (admin, test
+sign-in): the role is in Let in as, People and Preview the home as, Roles has a Digital column;
+Preview as Digital Marketing Team gives `role 'pm'`, `raw 'dmt'`, and the same Status as Preview as
+Performance marketing. The running test server was someone else's and predated the change, so
+its Roles showed Digital's ticket box unticked. **Not exercised:** letting a real person in as it on
+the live site, the Upstash store.
+
