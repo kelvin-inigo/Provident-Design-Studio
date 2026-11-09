@@ -8597,6 +8597,8 @@ class OrganicStudio extends StudioBase {
     this.restore(r.pop());
   }
   componentDidMount() {
+    // a hub post just opened from the hub's Open in OPS / Status: its preview goes to Status
+    setTimeout(() => { try { StudioBase.hubThumbLater(this); } catch (e) {} }, 4000);
     try {
       ['100 92px', '300 35px', '500 24px'].forEach(f => document.fonts.load(f + ' "Google Sans Flex"').catch(() => {}));
       document.fonts.ready.then(() => this.forceUpdate()).catch(() => {});
@@ -14307,7 +14309,8 @@ class OrganicStudio extends StudioBase {
       if (typeof msg !== 'string') msg = '';
       if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
       // the post is with the hub for approval now: Status shows it under Copy check (StudioBase.hubSeen)
-      if (hub) { try { StudioBase.hubSeen(new URL(c.url).origin + '/api/items/' + hub + '/studio', (this.state.hubPost && this.state.hubPost.title) || this.state.customName, 'review'); } catch (e) {} }
+      if (hub) { try { const o = new URL(c.url).origin, t = (this.state.hubPost && this.state.hubPost.title) || this.state.customName;
+        this.postThumb().then(th => StudioBase.hubSeen(o + '/api/items/' + hub + '/studio', t, 'review', th)).catch(() => StudioBase.hubSeen(o + '/api/items/' + hub + '/studio', t, 'review')); } catch (e) {} }
       this.setState({ exportStatus: 'Sent ' + imgs.length + ' image' + (imgs.length === 1 ? '' : 's') + ' + project .json (' + OrganicStudio.sizeLabel(total) + (fit.note ? ', ' + fit.note : '') + ') to ' + host + ' · HTTP ' + r.status + (msg ? ' · ' + msg : '') });
       return true;
     } catch (e) {

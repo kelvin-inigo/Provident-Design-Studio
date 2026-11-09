@@ -408,14 +408,27 @@ class StudioBase {
   // show on PDS status"). The hub may push nothing (an older hub), so OPS reports the post itself
   // through the share service as the signed-in person: in_progress when it opens from the hub's
   // Open in OPS, review when Send attaches a version. Never blocks or fails the open or the Send.
-  static hubSeen(open, title, state) {
+  // `thumb` is page 1 drawn small (OPS's postThumb), so the card on Status has a preview. Returns
+  // the call (resolved either way), so an open can wait for it before its reload.
+  static hubSeen(open, title, state, thumb) {
     try {
       const m = /^(https?:\/\/[^/]+)\/api\/items\/(\d+)\/studio/.exec(String(open || ''));
       const A = window.providentAccess;
-      if (!m || !A || !A.call) return;
-      A.call('hubseen', { task: { id: m[2], title: String(title || '').slice(0, 200), open: m[1] + '/api/items/' + m[2] + '/studio', state } })
+      if (!m || !A || !A.call) return Promise.resolve();
+      return A.call('hubseen', { task: { id: m[2], title: String(title || '').slice(0, 200), open: m[1] + '/api/items/' + m[2] + '/studio', state, thumb: thumb || '' } })
         .catch(e => console.warn('hub post not put on Status:', e && e.message));
-    } catch (e) { console.warn('hub post not put on Status:', e); }
+    } catch (e) { console.warn('hub post not put on Status:', e); return Promise.resolve(); }
+  }
+  // …and once the reloaded studio has the post's photos, page 1 drawn small (OPS's postThumb) goes
+  // to Status as the card's preview. Runs once per open, a few seconds after the studio mounts.
+  static hubThumbLater(eng) {
+    let k = null;
+    try { k = JSON.parse(sessionStorage.getItem('provident-hub-seen') || 'null'); } catch (e) {}
+    if (!k || !k.u || Date.now() - (k.at || 0) > 120000) return;
+    try { sessionStorage.removeItem('provident-hub-seen'); } catch (e) {}
+    const st = eng && eng.state;
+    if (!st || !k.card || String(st.hubCardId || '') !== k.card || typeof eng.postThumb !== 'function') return;
+    eng.postThumb().then(th => { if (th) StudioBase.hubSeen(k.u, (st.hubPost && st.hubPost.title) || st.customName, 'in_progress', th); }).catch(() => {});
   }
   static hubCardOf(o) {
     const v = o && (o.hubCardId != null ? o.hubCardId : o.card_id);
@@ -1314,7 +1327,7 @@ class StudioBase {
       doc = await r.json();
     } catch (e) { this.setState({ exportStatus: this.hubWhy(e, url) }); return; }
     if (!doc || !doc.state || !Array.isArray(doc.state.slides) || !doc.state.slides.length) { this.setState({ exportStatus: 'The hub sent a post with no pages.' }); return; }
-    StudioBase.hubSeen(url, (doc.hub && doc.hub.title) || doc.state.customName, 'in_progress');
+    this._hubSeenUrl = url;
     this.hubDraftOpen(doc);
   }
   // The brief's pictures travel as URLs (`hubImages`) — a photo is far too big for a URL hash —
@@ -1345,6 +1358,14 @@ class StudioBase {
         } catch (e) { console.warn('brief picture', u, e); return null; }
       }));
       got.forEach((d, i) => { if (d) { doc.images['smp-bg-' + pages[i].id] = d; placed++; } });
+    }
+    // opened by the hub's Open in OPS (or Status): put it on Status before loadSessionFile's reload
+    // (waits at most 6 s; never stops the open). Its preview needs the photos in the store, so the
+    // reloaded studio sends that (StudioBase.hubThumbLater, keyed in this tab's sessionStorage).
+    if (this._hubSeenUrl) {
+      const u = this._hubSeenUrl; this._hubSeenUrl = '';
+      await Promise.race([StudioBase.hubSeen(u, (st.hubPost && st.hubPost.title) || st.customName, 'in_progress'), new Promise(r => setTimeout(r, 6000))]);
+      try { sessionStorage.setItem('provident-hub-seen', JSON.stringify({ u, card: String(st.hubCardId || ''), at: Date.now() })); } catch (e) {}
     }
     const fname = String(st.customName || 'Hub post').replace(/[\\/:*?"<>|]+/g, ' ').slice(0, 80) + '.json';
     this.loadSessionFile(new File([JSON.stringify(doc)], fname, { type: 'application/json' }), { clean: true });

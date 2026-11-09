@@ -532,6 +532,16 @@ never overrides an approved/delivered task and never blocks the open or the Send
 stand-in hub: Open in OPS as the designer → Design, Waits on you; CT saw it; `review` → Copy
 check, Waits on you for CT and SMM.
 
+**Preview and no step back (2026-11-09).** A hub card on Status had no picture, and opening a post
+at Copy check from Status reported `in_progress` and moved it back to Design. Now `hub_seen` keeps
+`review` when an open reports `in_progress`, and stores a `thumb` (OPS's `postThumb`, a WebP data
+URL under 120 KB). The preview cannot be drawn before `loadSessionFile`'s reload (the photo store
+still holds the previous project), so `hubDraftOpen` leaves `provident-hub-seen` in the tab's
+sessionStorage and OPS's `componentDidMount` runs `StudioBase.hubThumbLater(this)` 4 s later, when
+the card id matches. Send draws it too, with the `review` report. **Vercel missed the push of
+feb5d00** (no deployment, no GitHub status); an empty commit re-triggered it. Check the live file
+after a push.
+
 ## A full localStorage froze Home and Status (2026-11-04)
 
 Symptom: a post sent to Copy check never showed on Status, while Drive's `_Post.json` was right

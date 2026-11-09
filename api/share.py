@@ -1413,8 +1413,18 @@ def hub_seen(d):
         raise Fail(400, 'A reported hub post is in design or sent for review.')
     tasks = hub_tasks()
     old = tasks.get(str(t.get('id') or '')) or {}
+    # a page-1 preview OPS drew (postThumb: a small WebP data URL)
+    th = str(t.get('thumb') or '')
+    th = th if th.startswith('data:image/webp;base64,') and len(th) < 120000 else ''
     if old.get('state') in ('approved', 'delivered'):
+        if th:
+            old['thumb'] = th
+            store().cmd('SET', HUB_KEY, json.dumps(tasks, separators=(',', ':')))
         return ok({'ok': True, 'kept': old.get('state')})
+    # opening a post that is already with the hub for approval (from Status, say) does not move it
+    # back to design; only a new Send or the hub itself moves it on
+    if state == 'in_progress' and old.get('state') == 'review':
+        state = 'review'
     now = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
     who = (me and me.get('name')) or name or email.split('@')[0]
     c = hub_clean(dict(old, id=t.get('id'), state=state, title=t.get('title') or old.get('title'), open=t.get('open') or old.get('open'),
@@ -1423,6 +1433,8 @@ def hub_seen(d):
                        to=old.get('to') or ({'email': email, 'name': who} if state == 'in_progress' else None)))
     if not c['open']:
         raise Fail(400, 'A reported hub post needs its open link.')
+    if th or old.get('thumb'):
+        c['thumb'] = th or old.get('thumb')
     tasks[c['id']] = c
     store().cmd('SET', HUB_KEY, json.dumps(tasks, separators=(',', ':')))
     return ok({'ok': True})
