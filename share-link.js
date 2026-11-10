@@ -2780,6 +2780,17 @@
     return A.handOff(rs, it, act);
   }
   window.providentHandOff = handOffFor;
+  // SEND TO COPY CHECK TELLS ROAM (2026-11-09): a CAS ad set project sent to the content team
+  // posts to Design Task Hub through the server (api/share.py op roamnote, which holds the key).
+  // After the step has saved, and never in its way: a note that fails only says so.
+  function roamNote(rs, sid, ho, flash) {
+    const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid);
+    if (!A || !A.call || !it || isPost(rs)) return;
+    const tk = rs.tok || {};
+    A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
+                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '' })
+      .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
+  }
   function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }
   // is anything in this ad set the signed-in person's to do? A designer: a ticket for them (or
   // for nobody yet), or a project sent back to them. The content team: a project sent to them
@@ -2946,6 +2957,7 @@
       if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
+      if (a === 'design-done') roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m));
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
       S.ui.flash(isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
@@ -3668,6 +3680,7 @@
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
       const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
       this.rs = r.rs;
+      if (a === 'design-done') roamNote(r.rs, sid, ho, m => this.ui.flash(m));
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }

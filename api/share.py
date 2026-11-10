@@ -1337,6 +1337,98 @@ def acc_team(d):
     return ok({'people': out, 'perms': acc_perms()})
 
 
+# ── SEND TO COPY CHECK TELLS ROAM (2026-11-09, by request) ───────────────────────────────────
+# When a designer sends a CAS ad set project to the copy check, share-link.js calls op
+# 'roamnote' and the Content Engine bot posts to one Roam channel: the picked person, that
+# language's copywriter and performance marketing tagged, and the PM link. ROAM_API_KEY lives in
+# Vercel env and the local .env only. The channel and the always-tagged people can be changed
+# there too; the defaults below are the ones agreed (Design Task Hub; Sana English, Fatema
+# Arabic, Dennis always). Nothing is sent without a signed-in, active sender.
+ROAM_API = 'https://api.ro.am/v1/'
+ROAM_GROUP = 'a39a794c-5fa1-4958-82d8-ef37738558f2'   # Design Task Hub
+ROAM_TAGS = {'ENG': 'exec1.content@providentestate.com', 'ARB': 'exec2.content@providentestate.com',
+             'ALL': 'digitalmarketing.lead1@providentestate.com'}
+_roam_ids = {}
+
+
+def roam_call(path, body=None):
+    key = (os.environ.get('ROAM_API_KEY') or '').strip()
+    if not key:
+        raise Fail(503, 'Roam is not connected on this site (ROAM_API_KEY).')
+    req = urllib.request.Request(ROAM_API + path, data=json.dumps(body).encode() if body is not None else None,
+                                 method='POST' if body is not None else 'GET',
+                                 headers={'Authorization': 'Bearer ' + key, 'Roam-Version': '2026-08-25', 'Content-Type': 'application/json'})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read() or b'{}')
+    except urllib.error.HTTPError as e:
+        try:
+            err = json.loads(e.read() or b'{}').get('error') or ''
+        except Exception:  # noqa: BLE001
+            err = ''
+        raise Fail(502, 'Roam refused the message (HTTP %d%s).' % (e.code, ', ' + err if err else ''))
+    except Exception as e:  # noqa: BLE001
+        raise Fail(502, 'Could not reach Roam (%s).' % e.__class__.__name__)
+
+
+def roam_id(email):
+    """A Provident email -> its Roam user id (user.list matches emails with user:read.email)."""
+    email = str(email or '').strip().lower()
+    if not email:
+        return None
+    if email not in _roam_ids:
+        try:
+            users = roam_call('user.list?' + urllib.parse.urlencode({'q': email, 'limit': 5})).get('users') or []
+        except Fail:
+            return None
+        _roam_ids[email] = next((u['id'] for u in users if str(u.get('email') or '').lower() == email), None)
+    return _roam_ids[email]
+
+
+def roam_plain(v, n=120):
+    # no <…> in what the page sends, so it can never add a mention or <!channel> of its own
+    return ' '.join(str(v or '').replace('<', '').replace('>', '').split())[:n]
+
+
+def roam_note(d):
+    email, name = acc_who(d.get('tok'))
+    me = acc_users().get(email)
+    if email != acc_admin() and not (me and me.get('status') == 'active'):
+        raise Fail(403, 'Only people with access can send a Roam note.')
+    lang = 'ARB' if d.get('lang') == 'ARB' else 'ENG'
+    link = str(d.get('link') or '').strip()
+    if not re.match(r'^https?://[^\s<>()\[\]]{1,400}$', link):
+        link = ''
+    to = d.get('to') if isinstance(d.get('to'), dict) else {}
+    tags, seen = [], set()
+    for em in (to.get('email'), os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]):
+        em = str(em or '').strip().lower()
+        if em and em not in seen:
+            seen.add(em)
+            tags.append(em)
+    for em in (os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']).split(','):
+        em = em.strip().lower()
+        if em and em not in seen:
+            seen.add(em)
+            tags.append(em)
+    ment = []
+    for em in tags:
+        rid = roam_id(em)
+        ment.append('<@' + rid + '>' if rid else (roam_plain(to.get('name')) if em == str(to.get('email') or '').lower() and to.get('name') else em.split('@')[0]))
+    what = 'Arabic translation check' if lang == 'ARB' else 'copy check'
+    title = roam_plain(d.get('name')) or 'An ad set'
+    label = roam_plain(d.get('label'))
+    text = ('**Ready for the ' + what + '** · ' + title + (' · ' + label if label else '') + '\n'
+            + 'Sent by ' + (roam_plain(name, 60) or who(d.get('by'))) + '. ' + ' '.join(ment)
+            + ('\n[Open the package](' + link + ')' if link else ''))
+    if os.environ.get('ROAM_DRY') == '1':
+        return ok({'ok': True, 'dry': True, 'text': text})
+    r = roam_call('chat.post', {'groupId': os.environ.get('ROAM_GROUP_ID') or ROAM_GROUP, 'text': text})
+    if not r.get('ok'):
+        raise Fail(502, 'Roam did not take the message (%s).' % (r.get('error') or 'no reason given'))
+    return ok({'ok': True})
+
+
 # ── THE CONTENT HUB PUSHES ITS DESIGN TASKS HERE (2026-11-03) ─────────────────────────────────
 # The hub's server posts each social post that goes to design (and every change of its design
 # state) to op 'hubpush', with HUB_PUSH_KEY (Vercel env and the hub's .env, never this repo).
@@ -1460,7 +1552,7 @@ def hub_team(d):
 
 
 ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
-           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen}
+           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'roamnote': roam_note}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.

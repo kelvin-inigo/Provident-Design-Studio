@@ -307,7 +307,7 @@ audiences — the **designer (DD)** with the full studio, the **content team (CT
 view only, **performance marketing (PM)** with the Ad sets overview only. Decided with the
 user: **both DD and CT must sign off** (in either order), **PM always sees the latest** (renders
 from the live project, not a published snapshot), **ready is the end** (no "campaign live"
-button), and notifications are in-link only (a Roam bot was discussed and parked). Built on the
+button), and notifications are in-link only (a Roam bot was discussed and parked — built 2026-11-09 for Send to copy check, see the end of this file). Built on the
 shared-edit-link infrastructure; everything is in `api/share.py` and `share-link.js`, and CAS
 carries only a Share button, the Review links home view, and two Ad sets guards.
 
@@ -1927,3 +1927,28 @@ Performance marketing. The running test server was someone else's and predated t
 its Roles showed Digital's ticket box unticked. **Not exercised:** letting a real person in as it on
 the live site, the Upstash store.
 
+
+
+# SEND TO COPY CHECK POSTS TO ROAM (2026-11-09)
+
+By request: a CAS ad set project sent to the copy check (`design-done`, either language) posts to
+Roam's **Design Task Hub** as the **Content Engine** bot. Tagged: the person picked in the hand-off,
+that language's copywriter (ENG Sana exec1.content, ARB Fatema exec2.content) and Dennis
+(digitalmarketing.lead1), deduplicated; plus **Open the package** (`rsLink(tok.pm)`).
+
+- **Server, not the page**: `api/share.py` op `roamnote` (in `ACC_OPS`). The sender must be signed in
+  and active (`acc_who` + `acc_users`, like `accteam`). Page text has `<` `>` stripped
+  (`roam_plain`) so it cannot add a mention or `<!channel>`; the link must be plain http(s).
+  Roam ids come from `user.list?q=<email>` (key needs `user:read.email`), cached per instance.
+- **Env**: `ROAM_API_KEY` (Vercel + local `.env`), optional `ROAM_GROUP_ID`, `ROAM_TAG_ENG/ARB/ALL`,
+  `ROAM_DRY=1` (returns the text, posts nothing). Defaults in `ROAM_GROUP` / `ROAM_TAGS`.
+- **Why a separate op, not inside `rs_step`**: Drive ad sets step in the browser (`dsApi`), never
+  reaching `rs_step`. `share-link.js` `roamNote()` is called after a successful `rsstep` from both
+  `SP.rvStep` and `RV.rvStep`; fire-and-forget, a failure flashes "Sent — but Roam was not told".
+  OPS posts (`isPost`) are skipped.
+- **Verified** 2026-11-09: dry run against real Roam lookups (ids correct, dedupe, injection
+  stripped); on the dev server (8797, `ROAM_DRY=1`) the signed-in page's call passed the access
+  check and an unsigned call got 401; one real post to "test group" (tagging only exec4.graphics)
+  returned ok. **Not yet pressed through a real hand-off on the live site.**
+- **The Browser pane's launcher cannot read ~/Documents** (macOS): start serve.py from the shell
+  and open the pane by URL.
