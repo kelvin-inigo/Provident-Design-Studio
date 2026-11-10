@@ -2016,3 +2016,15 @@ on International · Family instead of the hidden Local · Investor.
 
 
 **2026-11-10, by request:** a second line under the title says `ENG copy check` or `ARABIC copy check` (from the item's `lang`).
+
+## Performance marketing downloads the English before the Arabic (2026-11-10, by request)
+"Allow PM to download the English version if it's done." `engOk(a)` (beside `RV.barRender`): not
+done, and `a.eng` has design and copy. The PM bar's per-audience button (`dlA`, strip and All
+audiences) and the details window's card enable for it, read **Download English**, and
+`RV.download(key)` zips only that audience's non-ARB items with copy approved, named
+"<ad set> - <audience> - English.zip", logged "Downloaded the English images of …". Download
+package / Download n of N (`*`) still takes finished audiences only.
+Verified on the stand-in PM link (Sobha Hartland II): Local · Investor (done) Download;
+International · Family (English approved, Arabic with Omar) Download English → 4 files, the
+English feed / portrait / story / landscape; Investor · Design 2 (in design) disabled.
+
