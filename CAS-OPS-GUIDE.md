@@ -814,8 +814,9 @@ No API key or service is needed: Claude Code reads the screenshot.
     on, upload the code under the switch and pick the **Corner** it sits in: **Left** or **Right**
     (bottom), or **Top** (top right, in the wordmark's row). With the logo at the bottom, a top-right
     code pushes the top copy down to clear it. Under the code's picture a line says what it opens,
-    read off the code itself (for example *Opens nakheel.com/palm-springs*), so you can tell whose
-    code it is; *No QR code found in this picture* means the file is probably the wrong one.
+    read off the code itself (for example *Opens trakheesi.dubailand.gov.ae/…*), with **Open link**
+    beside it: it opens the code's page (the DLD permit card, which names the project) in a new tab.
+    *No QR code found in this picture* means the file is probably the wrong one.
   - **Typeface:** **English** or **Arabic**. Arabic mirrors the whole ad for right-to-left
     reading: a left-aligned design becomes right-aligned, the logo moves to
     the right (the photo is left as it is, so any sign or logo in it still reads correctly) and the QR code moves to the other corner (the code itself is not flipped, so it

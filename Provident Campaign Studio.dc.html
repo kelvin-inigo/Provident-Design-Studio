@@ -5403,7 +5403,12 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .dk-seg:has(> button:nth-child(3)){width:auto;flex:1;max-width:236px;margin-left:12px}
 .dk-seg:has(> button:nth-child(3)) > button{gap:4px;padding-left:6px;padding-right:6px}
 /* what the QR code opens, read off its picture */
-.dk-qrl{display:flex;align-items:baseline;gap:6px;min-width:0;margin:2px 0 4px;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.dk-qrl{display:flex;align-items:center;gap:10px;min-width:0;margin:2px 0 4px}
+.dk-qrl p{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0;margin:0;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.dk-qrgo{flex:none;display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 11px 0 9px;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink);font:500 12.5px/1 var(--ps-font);text-decoration:none;white-space:nowrap}
+.dk-qrgo:hover{background:var(--ps-fill-h)}
+.dk-qrgo:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.dk-qrgo .dk-g{width:15px;height:15px;fill:currentColor}
 .dk-qrl s{flex:none;text-decoration:none;color:var(--ps-dim)}
 .dk-qrl b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ps-ink)}
 .dk-qrl[data-bad] b{color:var(--ps-warn)}
@@ -6399,7 +6404,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
     <sc-if value="{{ qrShowFlag }}" hint-placeholder-val="{{ true }}">
     <div class="dk-body">
       <div class="p-droprow dk-drop" title="{{ qrOneCode }}"><div class="p-drop p-drop-sq" data-done="{{ qrDoneOn }}"><image-slot id="adstudio-qr" shape="rounded" radius="8" placeholder="QR" data-nohint style="{{ qrSlotStyle }}"></image-slot><svg class="dk-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/></svg></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button onClick="{{ qrRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
-      <sc-if value="{{ qrInfoOn }}" hint-placeholder-val="{{ false }}"><p class="dk-qrl" data-bad="{{ qrInfoBad }}" title="{{ qrInfoTip }}"><s>{{ qrInfoK }}</s><b>{{ qrInfo }}</b></p></sc-if>
+      <sc-if value="{{ qrInfoOn }}" hint-placeholder-val="{{ false }}"><div class="dk-qrl" data-bad="{{ qrInfoBad }}"><p title="{{ qrInfoTip }}"><s>{{ qrInfoK }}</s><b>{{ qrInfo }}</b></p><sc-if value="{{ qrLinkOn }}" hint-placeholder-val="{{ false }}"><a class="dk-qrgo" href="{{ qrLinkHref }}" target="_blank" rel="noopener" title="{{ qrLinkTip }}"><svg class="dk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h227.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62h-227.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-227.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v227.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.38-367.23q-8.3 8.31-20.88 8.5-12.58.19-21.27-8.5-8.69-8.69-8.69-21.08 0-12.38 8.69-21.07L718.15-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.85q15.46 0 25.81 10.34Q820-799.31 820-783.85V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Open link</a></sc-if></div></sc-if>
       <div class="dk-row dk-sub"><span class="lm-l">Corner</span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Corner"><button onClick="{{ qrLeft }}" data-on="{{ qrLeftOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="6.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Left</button><button onClick="{{ qrRight }}" data-on="{{ qrRightOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Right</button><button onClick="{{ qrTop }}" data-on="{{ qrTopOn }}" role="radio" title="Top right, in the wordmark's row"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="6.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Top</button></div></div>
     </div>
     </sc-if>
@@ -11047,7 +11052,7 @@ class CampaignStudio extends StudioBase {
       else {
         const url = /^https?:\/\//i.test(raw);
         const show = url ? raw.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '') : raw;
-        out = { url, show, tip: (url ? 'This code opens ' : 'This code reads ') + raw };
+        out = { url, raw, show, tip: (url ? 'This code opens ' : 'This code reads ') + raw };
       }
     } catch (e) { out = null; }
     if (u === this._qrU) { this._qrRead = out; this.forceUpdate(); }
@@ -17255,6 +17260,11 @@ class CampaignStudio extends StudioBase {
       qrInfo: this._qrRead ? this._qrRead.show : '',
       qrInfoBad: this._qrRead && this._qrRead.bad ? '1' : undefined,
       qrInfoTip: this._qrRead ? this._qrRead.tip : '',
+      // OPEN LINK (2026-11-10, by request): the permit page itself (DLD's Madmoun card names the
+      // project); it cannot be read from here — DLD loads it behind reCAPTCHA — so it is opened
+      qrLinkOn: this._qrRead && this._qrRead.url ? '1' : undefined,
+      qrLinkHref: this._qrRead && this._qrRead.url ? this._qrRead.raw : '',
+      qrLinkTip: this._qrRead && this._qrRead.url ? 'Opens ' + this._qrRead.raw + ' in a new tab — the permit page names the project' : '',
       campaign: s.campaign,
       onCampaign: e => this.upd(x => { x.campaign = e.target.value; return x; }),
       exportBtnStyle: Object.assign({ flex: 1 }, darkBtn),

@@ -3935,4 +3935,13 @@ cluster × sq/pt/st/ls/bn. Top right: op and preview QR both at 914,80 (1:1) / 8
 logo bottom: the top cluster's wrapper at 246 in both preview and op (1:1). A segno test code for
 nakheel.com/en/projects/palm-springs read back as "Opens nakheel.com/en/projects/palm-springs".
 The three corner buttons are 75px each at 1440, no clipping.
+**Open link, not the project's name (same day).** Asked to show the project name off the link
+("all QR codes are the same"): the codes are DLD advertisement permits, which open the Madmoun
+card at `trakheesi.dubailand.gov.ae/rev/madmoun/…`. That page is a create-react-app shell that
+loads Google reCAPTCHA v3 before it asks for the permit's data, so a server fetch reads no
+"Project Name" — and getting past the check is not ours to do. A `qrname` op in api/share.py was
+written and removed. Instead `.dk-qrl` carries **Open link** (`.dk-qrgo`, `qrLinkOn` / `qrLinkHref`
+= the code's raw https value, `target=_blank rel=noopener`), which opens the card in a new tab.
+Verified: the line reads "Opens nakheel.com/… · Open link", the link points at the raw URL,
+elementFromPoint reaches it.
 
