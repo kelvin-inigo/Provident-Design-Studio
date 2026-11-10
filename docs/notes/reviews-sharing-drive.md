@@ -2014,3 +2014,5 @@ setting `eng_only` for Local|Investor, which **Change audience lost** — relabe
 `eng_only` to the new market; pre-existing) listed International first, Local hidden, and opened
 on International · Family instead of the hidden Local · Investor.
 
+
+**2026-11-10, by request:** a second line under the title says `ENG copy check` or `ARABIC copy check` (from the item's `lang`).

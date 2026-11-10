@@ -1446,6 +1446,7 @@ def roam_note(d):
     # two spaces (a hard break) so it stays one line per item
     text = '  \n'.join([
         '**' + title.replace('*', '') + (' · ' + label.replace('*', '') if label else '') + '**',
+        'ARABIC copy check' if lang == 'ARB' else 'ENG copy check',
         tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']) + ' - ' + ('[Ad Set Overview](' + pm + ')' if pm else 'Ad Set Overview (no link)'),
         tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]) + ' - ' + ('[Content Review](' + ct + ')' if ct else 'Content Review (no link)')])
     if os.environ.get('ROAM_DRY') == '1':
