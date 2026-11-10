@@ -1952,3 +1952,9 @@ that language's copywriter (ENG Sana exec1.content, ARB Fatema exec2.content) an
   returned ok. **Not yet pressed through a real hand-off on the live site.**
 - **The Browser pane's launcher cannot read ~/Documents** (macOS): start serve.py from the shell
   and open the pane by URL.
+
+**Changed 2026-11-10, by request:** the channel is now **Paid Ads Hub** (`ac8c5b51…`), and the
+message is the user's own format, one item per line: ad set name · market · audience; Dennis
+tagged; `AdSet Overview: <PM link>`; the language's copywriter tagged; `Content Review: <CT link>`
+(`ctlink`, `rsLink(tok.ct)`, sent by `roamNote`). The person picked in the hand-off is no longer
+tagged and "Sent by" is gone (the user chose "just your format"). Dry run checked for ENG and ARB.

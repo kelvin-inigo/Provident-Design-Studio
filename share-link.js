@@ -2781,14 +2781,14 @@
   }
   window.providentHandOff = handOffFor;
   // SEND TO COPY CHECK TELLS ROAM (2026-11-09): a CAS ad set project sent to the content team
-  // posts to Design Task Hub through the server (api/share.py op roamnote, which holds the key).
+  // posts to Paid Ads Hub through the server (api/share.py op roamnote, which holds the key).
   // After the step has saved, and never in its way: a note that fails only says so.
   function roamNote(rs, sid, ho, flash) {
     const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid);
     if (!A || !A.call || !it || isPost(rs)) return;
     const tk = rs.tok || {};
     A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
-                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '' })
+                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '', ctlink: tk.ct ? rsLink(tk.ct) : '' })
       .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
   }
   function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }

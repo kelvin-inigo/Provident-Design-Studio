@@ -1339,13 +1339,13 @@ def acc_team(d):
 
 # ── SEND TO COPY CHECK TELLS ROAM (2026-11-09, by request) ───────────────────────────────────
 # When a designer sends a CAS ad set project to the copy check, share-link.js calls op
-# 'roamnote' and the Content Engine bot posts to one Roam channel: the picked person, that
-# language's copywriter and performance marketing tagged, and the PM link. ROAM_API_KEY lives in
+# 'roamnote' and the Content Engine bot posts to one Roam channel: the ad set's name, performance
+# marketing tagged over the PM link, that language's copywriter tagged over the content review link. ROAM_API_KEY lives in
 # Vercel env and the local .env only. The channel and the always-tagged people can be changed
-# there too; the defaults below are the ones agreed (Design Task Hub; Sana English, Fatema
+# there too; the defaults below are the ones agreed (Paid Ads Hub; Sana English, Fatema
 # Arabic, Dennis always). Nothing is sent without a signed-in, active sender.
 ROAM_API = 'https://api.ro.am/v1/'
-ROAM_GROUP = 'a39a794c-5fa1-4958-82d8-ef37738558f2'   # Design Task Hub
+ROAM_GROUP = 'ac8c5b51-5640-47e5-9c2f-fbf4ef6da408'   # Paid Ads Hub (was Design Task Hub to 2026-11-10)
 ROAM_TAGS = {'ENG': 'exec1.content@providentestate.com', 'ARB': 'exec2.content@providentestate.com',
              'ALL': 'digitalmarketing.lead1@providentestate.com'}
 _roam_ids = {}
@@ -1396,31 +1396,29 @@ def roam_note(d):
     if email != acc_admin() and not (me and me.get('status') == 'active'):
         raise Fail(403, 'Only people with access can send a Roam note.')
     lang = 'ARB' if d.get('lang') == 'ARB' else 'ENG'
-    link = str(d.get('link') or '').strip()
-    if not re.match(r'^https?://[^\s<>()\[\]]{1,400}$', link):
-        link = ''
-    to = d.get('to') if isinstance(d.get('to'), dict) else {}
-    tags, seen = [], set()
-    for em in (to.get('email'), os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]):
-        em = str(em or '').strip().lower()
-        if em and em not in seen:
-            seen.add(em)
-            tags.append(em)
-    for em in (os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']).split(','):
-        em = em.strip().lower()
-        if em and em not in seen:
-            seen.add(em)
-            tags.append(em)
-    ment = []
-    for em in tags:
-        rid = roam_id(em)
-        ment.append('<@' + rid + '>' if rid else (roam_plain(to.get('name')) if em == str(to.get('email') or '').lower() and to.get('name') else em.split('@')[0]))
-    what = 'Arabic translation check' if lang == 'ARB' else 'copy check'
+
+    def url(v):
+        v = str(v or '').strip()
+        return v if re.match(r'^https?://[^\s<>()\[\]]{1,400}$', v) else ''
+
+    def tags(v):
+        out = []
+        for em in str(v or '').split(','):
+            em = em.strip().lower()
+            if em and em not in out:
+                rid = roam_id(em)
+                out.append('<@' + rid + '>' if rid else '@' + em.split('@')[0])
+        return ' '.join(out)
+    # the format the user asked for (2026-11-10): name, then PM tagged over the ad set overview,
+    # then the language's copywriter tagged over the content review link
     title = roam_plain(d.get('name')) or 'An ad set'
     label = roam_plain(d.get('label'))
-    text = ('**Ready for the ' + what + '** · ' + title + (' · ' + label if label else '') + '\n'
-            + 'Sent by ' + (roam_plain(name, 60) or who(d.get('by'))) + '. ' + ' '.join(ment)
-            + ('\n[Open the package](' + link + ')' if link else ''))
+    pm, ct = url(d.get('link')), url(d.get('ctlink'))
+    text = '\n'.join([title + (' · ' + label if label else ''),
+                      tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']),
+                      'AdSet Overview: ' + (pm or '(no link)'),
+                      tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]),
+                      'Content Review: ' + (ct or '(no link)')])
     if os.environ.get('ROAM_DRY') == '1':
         return ok({'ok': True, 'dry': True, 'text': text})
     r = roam_call('chat.post', {'groupId': os.environ.get('ROAM_GROUP_ID') or ROAM_GROUP, 'text': text})
