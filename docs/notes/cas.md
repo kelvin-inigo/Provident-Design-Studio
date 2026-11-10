@@ -3908,3 +3908,31 @@ previews: "Feed 1:1 of each variant · N more sizes" and **Show all sizes** / **
 sizes still render and save as before; only the display is filtered. **Not exercised in the
 browser** (it needs a real ad set's content-team link; the stand-in's demo projects have no
 files); the script block parses.
+
+## The QR's top-right corner, and what the code opens (2026-11-10, by request)
+"On QR code, give option to place it top right, and have a small name of what QR code this is —
+scan what's inside." The brand rule said bottom corner only; asked, the user chose to allow top
+right (brand-rules.md and CLAUDE.md record the exception).
+- **`state.qr.corner = 'top'`** (Left | Right | **Top** in All variants › QR code › Corner; the seg
+  widens to the row when it holds three, `.dk-seg:has(> button:nth-child(3))`). The op sits at
+  `(W - pR - qs, pT)`; the top band is above the Reels rail, so the plain margin, not `railR`.
+  Mirrored it is computed as `W - pL - qs` in the Latin frame and reflected, as Right is. The
+  preview's `qrStyle` takes `top: pT` and `right: mir ? pL : pR`.
+- **The wordmark's row clears it**: the top cluster already starts at `pT + 1.2·logo + 80`, below
+  the QR on every size (1:1 209 vs QR to 166; 9:16 400 vs 364). With the logo at the BOTTOM the row
+  is empty, so **`CampaignStudio.qrTopRes(st, v, tk)`** = `tk.qr + 80` there (0 in every other
+  case) starts the top cluster under it — buildOps' `y`, `scrimStops(…, qrR)`'s top band and the
+  preview stack's `paddingTop` all read it.
+- **What the code opens**: `_refreshAV` sees the `adstudio-qr` slot's url change and calls
+  `qrRead(u)` (a CampaignStudio method — the Ad sets `Component` class is a different one), which
+  runs the browser's `BarcodeDetector` (`qr_code`) on `StudioBase.img(u)`. A URL shows without
+  scheme or www ("Opens nakheel.com/…"), text as "Reads …", no code as "Check it · No QR code found
+  in this picture" (`--ps-warn`); the full value is the tooltip. No BarcodeDetector (Firefox):
+  nothing is shown. `.dk-qrl` under the drop row.
+Verified: **op census against `_PRE` (both warm, same workspace): 160 groups, 1,072 ops, 0
+differing** — Left/Right × logo top/bottom × left/centre × dark/light × with/without a top
+cluster × sq/pt/st/ls/bn. Top right: op and preview QR both at 914,80 (1:1) / 876,260 (9:16);
+logo bottom: the top cluster's wrapper at 246 in both preview and op (1:1). A segno test code for
+nakheel.com/en/projects/palm-springs read back as "Opens nakheel.com/en/projects/palm-springs".
+The three corner buttons are 75px each at 1440, no clipping.
+

@@ -13,7 +13,8 @@
 - 9:16 reels/stories: campaign canvas margins in px at 1080×1920 — **left 100, top 260, right 100, bottom 460** — so platform UI never covers copy. Retraced off live Facebook Reels ads that WERE being overlapped, then confirmed by a supplied UI-mockup SVG (which puts the bottom at 466 against this 460). The like/comment/share rail is reserved separately, as **`railR: 170` on the BOTTOM CLUSTER only** — not as a margin, because the rail covers only the lower two-thirds and a margin would narrow the top cluster and shift the whole design off centre. See *The 9:16 margins ARE the Reels safe area*. 1:1 ads: 80px margin all sides.
 - All ads run a full-bleed background image; modules cluster top/bottom leaving a clear image window (centre, top, or bottom).
 - Logo: main "provident." wordmark only (no sub-brand lockups); placed left or centre, never right.
-- QR code: small rounded-rectangle placeholder in a bottom corner — visible, never dominant.
+- QR code: small rounded-rectangle placeholder in a bottom corner — visible, never dominant. **Exception
+  (2026-11-10, by request):** CAS also offers top right, on the top margin in the wordmark's row.
 - Kicker bars: hairline-framed or rule-flanked, never solid fills (solid reads as a CTA).
 - Image-first ratio: the image always outweighs text — modules/copy cover at most ~40% of the canvas; keep only essential elements (headline, one hook/spec, CTA, logo, QR), cut the rest.
 - Meta-ads type scale: minor third ×1.200 from the 2.2cqw floor — steps 2.2 · 2.6 · 3.2 · 3.8 · 4.6 · 5.5 · 6.6 · 7.9 · 9.5 cqw (≈24px floor at 1080). No off-scale sizes, nothing under the floor. Eyebrows/tags 2.2–2.6, body 2.6–3.2, hooks 3.2–3.8, headlines 5.5+.

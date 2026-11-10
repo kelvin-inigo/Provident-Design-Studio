@@ -181,6 +181,13 @@
   const UB = ' · Unbranded';
   const isUb = a => typeof a === 'string' && a.length > UB.length && a.slice(-UB.length) === UB;
   const ubBase = a => isUb(a) ? a.slice(0, -UB.length) : a;
+  // MORE THAN ONE DESIGN PER AUDIENCE (2026-11-10, by request): an audience's next design is an
+  // audience of its own named "<aud> · Design 2" (3, 4…), as the unbranded version is "· Unbranded":
+  // its own projects, Drive folder, steps and Arabic, drawn inside its audience's card on Status.
+  // "Investor · Design 2 · Unbranded" is that design's unbranded version.
+  const DSG = ' · Design ';
+  const dsgOf = a => { const m = typeof a === 'string' && / · Design (\d+)(?: · Unbranded)?$/.exec(a); return m ? +m[1] : 1; };
+  const audRoot = a => ubBase(a).replace(/ · Design \d+$/, '');
   const isDs = id => /^[DR][\w.-]{20,}$/.test(String(id || ''));
   const isRsId = id => { id = String(id || ''); return /^[A-Za-z0-9]{16}$/.test(id) || /^R[\w-]+\.[\w-]{20,}$/.test(id); };
   const SHARE_ID = /^(?:[A-Za-z0-9]{8,16}|[DR][\w.-]{20,})$/;
@@ -973,8 +980,11 @@
     try { rs = (await api('rsget', { id: g.dd })).rs; }
     catch (e) { const d = busyDlg('Pick up the ticket', ''); d.fail(e.message || String(e)); return; }
     const want = g.cell, todo = planTodo(rs, want && want.phase);
+    // Add a design names a design nothing holds yet: it is new, unless it was made meanwhile
+    const wph = want && phN(want.phase) ? want.phase : phBase(rs);
+    const fresh = want && dsgOf(want.aud) > 1 && !(rs.items || []).some(x => phOf(rs, x) === wph && x.market === want.market && x.aud === want.aud && (x.lang || 'ENG') === want.lang);
     // a placeholder on the Status page names its cell; one taken since is not made twice
-    if (want && !todo.some(t => t.market === want.market && t.aud === want.aud && t.lang === want.lang)) {
+    if (want && !fresh && !todo.some(t => t.market === want.market && t.aud === want.aud && t.lang === want.lang)) {
       const d = busyDlg('Already made', ''); d.fail(phPre(rs, want) + want.market + ' · ' + want.aud + ' · ' + (want.lang === 'ARB' ? 'Arabic' : 'English') + ' already has a project in ' + (rs.name || 'this ad set') + '. Open it from Status.'); return;
     }
     const next = want || todo.find(t => t.lang === 'ENG') || todo[0] || { market: 'Local', aud: (AUDS[rs.product] || AUDS.residential)[0], lang: 'ENG' };
@@ -2179,16 +2189,17 @@
     const items = ((rs && rs.items) || []).filter(x => x.market && x.aud), eo = (rs && rs.eng_only) || {};
     const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [], brand: c.brand === 'unbranded' ? 'unbranded' : 'provident' }));
     items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) {
-      // an unbranded version gets the Arabic its branded audience gets
-      const bc = isUb(x.aud) && cells.find(c => c.market === x.market && c.aud === ubBase(x.aud));
+      // an unbranded version gets the Arabic its branded audience gets; a further design, its audience's
+      const bc = x.aud !== audRoot(x.aud) && (cells.find(c => c.market === x.market && c.aud === ubBase(x.aud) && c.aud !== x.aud) || cells.find(c => c.market === x.market && c.aud === audRoot(x.aud)));
       cells.push(bc ? { market: x.market, aud: x.aud, arb: bc.arb, arbOff: bc.arbOff.slice() } : { market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] });
     } });
     items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud), p = phOf(rs, x); if (c) { c.arb = true; c.arbOff = c.arbOff.filter(k => k !== p); } } });
     const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
     return cells.sort((x, y) => (at(x.market) - at(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud)));
   }
-  // an audience's place in the list: its product order, its unbranded version straight after it
-  const audOrd = (as, a) => { const i = as.indexOf(ubBase(a)); return (i < 0 ? 99 : i) + (isUb(a) ? .5 : 0); };
+  // an audience's place in the list: its product order, its unbranded version straight after it,
+  // then its further designs (each with its own unbranded version)
+  const audOrd = (as, a) => { const i = as.indexOf(audRoot(a)); return (i < 0 ? 99 : i) + Math.min(dsgOf(a) - 1, 49) * .02 + (isUb(a) ? .01 : 0); };
   const arbOffOf = c => [...new Set((Array.isArray(c && c.arbOff) ? c.arbOff : []).filter(k => phN(k)))];
   // does this cell get an Arabic version in phase ph
   const arbIn = (c, ph) => !!(c && c.arb) && arbOffOf(c).indexOf(ph) < 0;
@@ -2276,7 +2287,7 @@
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
       const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
-      const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => !isUb(a)));
+      const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
       $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
@@ -2327,10 +2338,10 @@
     };
     const setProd = p => {
       if (p === d.product) return;
-      const na = AUDS[p], busy = cells.find(c => na.indexOf(ubBase(c.aud)) < 0 && has(c.market, c.aud));
+      const na = AUDS[p], busy = cells.find(c => na.indexOf(audRoot(c.aud)) < 0 && has(c.market, c.aud));
       if (busy) return st(busyMsg(busy) + ' ' + (PRODUCT_NAME[p] || p) + ' has no ' + busy.aud + ' audience.');
       const ms = [...new Set(cells.map(c => c.market))];
-      cells = cells.filter(c => na.indexOf(ubBase(c.aud)) >= 0);
+      cells = cells.filter(c => na.indexOf(audRoot(c.aud)) >= 0);
       if (!cells.length) ms.forEach(m => na.forEach(a => cells.push({ market: m, aud: a, arb: false })));
       d.product = p; st(''); ord(); draw();
     };
@@ -2680,8 +2691,8 @@
     out.forEach(a => {
       const cl = cells.find(c => c.market === a.market && c.aud === a.aud);
       a.engOnly = !!((rs && rs.eng_only) || {})[a.market + '|' + a.aud] || !!(cl && cl.arb && !arbIn(cl, a.phase) && !a.arb)
-        // an unbranded version whose branded audience has no Arabic has none either
-        || !!(isUb(a.aud) && cl && !cl.arb && !a.arb);
+        // an unbranded version whose branded audience has no Arabic has none either; nor a further design
+        || !!(a.aud !== audRoot(a.aud) && cl && !cl.arb && !a.arb);
       a.phOff = a.engOnly && !!(cl && cl.arb);
       const e = a.eng, r = a.arb;
       const d1 = !!(e && e.design), d2 = !!(e && e.copy), d3 = a.engOnly || !!(r && r.design && r.copy);
@@ -4837,16 +4848,28 @@
     // right; its own steps, tiles and links are unchanged
     const twinOf = a => !isUb(a.aud) && a.market ? auds.find(x => x.market === a.market && x.aud === a.aud + UB) : null;
     const brChip = a => rs.brand === 'mixed' && a.market ? '<span class="rvd-brc"' + (isUb(a.aud) ? ' data-ub="1"' : '') + '>' + (isUb(a.aud) ? 'Unbranded' : 'Branded') + '</span>' : '';
-    const part = (a, sub) => {
+    // an audience with more than one design tags each part "Design 1", "Design 2"…
+    const chips = (a, many) => { const c = (many && a.market ? '<span class="rvd-brc rvd-dzc">Design ' + dsgOf(a.aud) + '</span>' : '') + brChip(a); return c ? '<span class="rvd-chs">' + c + '</span>' : ''; };
+    const part = (a, many) => {
       const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
       return '<div class="rvd-auh">' +
-        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(ubBase(a.aud) || a.label) + '</b></span>' +
-        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span>' + brChip(a) + '</div>' +
+        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(audRoot(a.aud) || a.label) + '</b></span>' +
+        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span>' + chips(a, many) + '</div>' +
         '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div>';
     };
-    const audRows = auds.filter(a => !(isUb(a.aud) && auds.some(x => x.market === a.market && x.aud === ubBase(a.aud)))).map(a => {
-      const tw = twinOf(a), done = a.done && (!tw || tw.done);
-      return '<li class="rvd-au"' + (done ? ' data-done="1"' : '') + (rs.brand === 'mixed' ? ' data-mx="1"' : '') + '>' + part(a) + (tw ? '<div class="rvd-tw">' + part(tw) + '</div>' : '') + '</li>';
+    // ONE CARD PER AUDIENCE, ITS DESIGNS INSIDE (2026-11-10, by request): Design 2, 3… follow the
+    // first, each a part with its own steps and tiles (and its unbranded twin); the card ends on Add
+    // a design, which starts the next one's English in a new window (startcell, as Start the English)
+    const groups = [];
+    auds.forEach(a => { const k = a.market ? a.market + '|' + audRoot(a.aud) : 'p:' + a.key; let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, m: [] }); g.m.push(a); });
+    const canDz = isDs(d.id);
+    const audRows = groups.map(g => {
+      const heads = g.m.filter(a => !(isUb(a.aud) && g.m.some(x => x.aud === ubBase(a.aud)))).sort((x, y) => dsgOf(x.aud) - dsgOf(y.aud));
+      const many = heads.length > 1 || heads.some(a => dsgOf(a.aud) > 1), done = g.m.every(a => a.done), a0 = heads[0];
+      const body = heads.map((a, i) => { const tw = twinOf(a), p = part(a, many) + (tw ? '<div class="rvd-tw">' + part(tw, many) + '</div>' : ''); return i ? '<div class="rvd-tw">' + p + '</div>' : p; }).join('');
+      const nx = audRoot(a0.aud) + DSG + (Math.max(...g.m.map(a => dsgOf(a.aud))) + 1);
+      const add = canDz && a0.market ? '<div class="rvd-dza"><button type="button" class="p-ghost rvd-dz" data-a="startcell" data-cell="' + esc(a0.market + '|' + nx + '|ENG|' + tab) + '" title="' + esc('Another design for ' + a0.market + ' · ' + audRoot(a0.aud) + ': ' + nx + ', a new project in a new window, with its own copy check and Arabic') + '">' + ico('add') + 'Add a design</button></div>' : '';
+      return '<li class="rvd-au"' + (done ? ' data-done="1"' : '') + (rs.brand === 'mixed' || many ? ' data-mx="1"' : '') + '>' + body + add + '</li>';
     }).join('');
     // planned in Ad set settings, no project yet: a row each at the foot, both languages as placeholders
     const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
@@ -4914,7 +4937,10 @@
     const opt = (v, l, on) => '<option value="' + esc(v) + '"' + (on ? ' selected' : '') + '>' + esc(l) + '</option>';
     // a mixed ad set (or an unbranded project) also lists each audience's unbranded version, so
     // moving an unbranded project keeps it unbranded
-    const base = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'];
+    const base0 = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'], its = (rs.items || []).filter(x => x.aud);
+    const dz = [...new Set(its.map(x => ubBase(x.aud)).filter(a => dsgOf(a) > 1))];
+    const root = audRoot(it.aud || base0[0]), nx = root + DSG + (Math.max(1, ...its.filter(x => x.market === it.market && audRoot(x.aud) === root).map(x => dsgOf(x.aud))) + 1);
+    const base = base0.concat(dz, dz.indexOf(nx) < 0 ? [nx] : []).sort((x, y) => audOrd(base0, x) - audOrd(base0, y));
     const auds = rs.brand === 'mixed' || isUb(it.aud) ? base.flatMap(a => [a, a + UB]) : base;
     return '<span class="rva-rl" data-sid="' + esc(it.sid) + '">' +
       '<select class="p-in" data-f="market" aria-label="Market">' + MARKETS.map(m => opt(m, m, m === (it.market || MARKETS[0]))).join('') + '</select>' +
@@ -6806,6 +6832,11 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 /* ...and once made, the second part of that card: a hairline, its own head and tiles */
 .rvd-tw{margin-top:18px;padding-top:18px;border-top:1px solid var(--ps-line)}
 .rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(120px,200px) minmax(0,1fr) auto}
+.rvd-chs{align-self:start;justify-self:end;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.rvd-dzc{background:var(--ps-fill);color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rvd-dza{display:flex;margin-top:14px}
+.rvd-dz{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px 0 10px;font-size:13px}
+.rvd-dz .rva-i{width:18px;height:18px;fill:currentColor}
 .rvd-brc{align-self:start;justify-self:end;padding:5px 10px;border-radius:var(--ps-pill);background:var(--ps-fill-on);color:var(--ps-ink);font:500 12px/1 var(--ps-font);white-space:nowrap}
 .rvd-brc[data-ub]{background:var(--ps-fill);color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-ph:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
@@ -6820,7 +6851,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
   .rvd-hb{flex-wrap:wrap;gap:16px;padding:20px}.rvd-th{width:72px;height:72px}.rvd-ht{flex-basis:calc(100% - 88px)}.rvd-ht h2{font-size:23px}
   .rvd-ha{max-width:none;width:100%;justify-content:flex-start}.rvd-hs{padding:20px}
   .rvd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}.rvd-steps b{font-size:24px}
-  .rvd-auh,.rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-brc{justify-self:start}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
+  .rvd-auh,.rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-brc,.rvd-chs{justify-self:start}.rvd-chs{justify-content:flex-start}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
 }
 /* OPEN A SHARED PROJECT (2026-10-30, /impeccable): the project is the title, what it is in sits
    above it as one quiet line, and loading is three steps — each done, running with its own count

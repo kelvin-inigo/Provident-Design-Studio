@@ -103,7 +103,7 @@ the Projects folder view, the old in-editor guided wizard.
   bottom cluster only; 1:1 margins 80.
 - Full-bleed photo; copy clusters top/bottom, at most ~40% of the canvas.
 - Logo: the `provident.` wordmark only, left or centre, never right. QR a small rounded square in
-  a bottom corner (campaign). Kicker bars framed or rule-flanked, never solid.
+  a bottom corner, or top right in the wordmark's row (campaign). Kicker bars framed or rule-flanked, never solid.
 - Type scale: minor third ×1.200 from the 24px floor (`CampaignStudio.TYPE`).
 - Organic: feed 1080×1440 (80/90 margins), story 1080×1920 (200 top); layouts fixed per template;
   scrims cover only the text areas; property pages need their own QR and a listing number (no

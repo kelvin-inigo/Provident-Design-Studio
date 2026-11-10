@@ -3949,6 +3949,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    its audiences hang off it on a guide line, and the counts are the quietest ink. */
 .as-nav-g{display:flex;flex-direction:column;gap:2px;padding:16px 0 14px}
 .as-nav-g + .as-nav-g{border-top:1px solid var(--ps-hair)}
+/* a review link's finished groups, folded (2026-11-10) */
+.as-nav-fin{align-self:flex-start;height:32px;margin:6px 10px 12px;padding:0 14px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.as-nav-fin:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.as-nav-fin:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-nav-m{display:flex;flex-direction:column;gap:3px;padding:0 10px 10px}
 .as-nav-m b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink);letter-spacing:-.005em}
 .as-nav-m s{font:400 11.5px/1.35 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
@@ -5395,6 +5399,14 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .dk-sub .lm-l{font-size:12.5px;color:var(--ps-ink-2)}
 .dk-seg{width:196px}
 .dk-seg > button{gap:6px}
+/* the QR's three corners (2026-11-10): the seg takes the row's width */
+.dk-seg:has(> button:nth-child(3)){width:auto;flex:1;max-width:236px;margin-left:12px}
+.dk-seg:has(> button:nth-child(3)) > button{gap:4px;padding-left:6px;padding-right:6px}
+/* what the QR code opens, read off its picture */
+.dk-qrl{display:flex;align-items:baseline;gap:6px;min-width:0;margin:2px 0 4px;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
+.dk-qrl s{flex:none;text-decoration:none;color:var(--ps-dim)}
+.dk-qrl b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;color:var(--ps-ink)}
+.dk-qrl[data-bad] b{color:var(--ps-warn)}
 .dk-g{flex:none;width:15px;height:15px}
 .dk-gl{font:500 13px/1 var(--ps-font)}
 .dk-ar{font-family:'Readex Pro',var(--ps-font);font-size:14px}
@@ -6089,6 +6101,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                 </sc-for>
               </div>
             </sc-for>
+            <sc-if value="{{ asFinOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asFinToggle }}" class="as-nav-fin" aria-pressed="{{ asFinPressed }}" title="{{ asFinTip }}">{{ asFinLabel }}</button></sc-if>
           </nav>
           <div class="as-pane">
             <header class="as-pane-h">
@@ -6386,7 +6399,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
     <sc-if value="{{ qrShowFlag }}" hint-placeholder-val="{{ true }}">
     <div class="dk-body">
       <div class="p-droprow dk-drop" title="{{ qrOneCode }}"><div class="p-drop p-drop-sq" data-done="{{ qrDoneOn }}"><image-slot id="adstudio-qr" shape="rounded" radius="8" placeholder="QR" data-nohint style="{{ qrSlotStyle }}"></image-slot><svg class="dk-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/></svg></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button onClick="{{ qrRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
-      <div class="dk-row dk-sub"><span class="lm-l">Corner</span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Corner"><button onClick="{{ qrLeft }}" data-on="{{ qrLeftOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="6.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Left</button><button onClick="{{ qrRight }}" data-on="{{ qrRightOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Right</button></div></div>
+      <sc-if value="{{ qrInfoOn }}" hint-placeholder-val="{{ false }}"><p class="dk-qrl" data-bad="{{ qrInfoBad }}" title="{{ qrInfoTip }}"><s>{{ qrInfoK }}</s><b>{{ qrInfo }}</b></p></sc-if>
+      <div class="dk-row dk-sub"><span class="lm-l">Corner</span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Corner"><button onClick="{{ qrLeft }}" data-on="{{ qrLeftOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="6.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Left</button><button onClick="{{ qrRight }}" data-on="{{ qrRightOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Right</button><button onClick="{{ qrTop }}" data-on="{{ qrTopOn }}" role="radio" title="Top right, in the wordmark's row"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="6.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Top</button></div></div>
     </div>
     </sc-if>
   </div>
@@ -7747,6 +7761,8 @@ class CampaignStudio extends StudioBase {
         const nf = {};
         Object.keys(sc).forEach(k => { const v = norm(sc[k]); nf[k] = !!(v && v.u); });
         if (JSON.stringify(nf) !== JSON.stringify(this._filled || {})) { this._filled = nf; this.forceUpdate(); }
+        const qrv = norm(sc['adstudio-qr']), qu = qrv && qrv.u ? qrv.u : '';
+        if (qu !== (this._qrU || '')) { this._qrU = qu; this.qrRead(qu); }
         for (let i = 0; i < 3; i++) {
           const b = norm(sc['adstudio-bg-' + i]);
           this._assetView.crops[i] = b ? { s: b.s || 1, x: b.x || 0, y: b.y || 0 } : { s: 1, x: 0, y: 0 };
@@ -11016,6 +11032,33 @@ class CampaignStudio extends StudioBase {
   // on both sides; left-aligned content keeps its margin and simply stops sooner. Canvases
   // with no `railR` — 1:1 and 16:9, which have no reel placement — get the full column, so
   // this is a no-op for them.
+  // Reads the uploaded QR code with the browser's barcode reader (Chrome, Edge, Safari 17+); with
+  // no reader, nothing is said. A URL shows without its scheme and www; a picture holding no code
+  // says so, since it is probably the wrong file.
+  async qrRead(u) {
+    this._qrRead = null; this.forceUpdate();
+    if (!u || typeof window.BarcodeDetector !== 'function') return;
+    let out = null;
+    try {
+      const im = await StudioBase.img(u); if (!im || u !== this._qrU) return;
+      const hit = (await new window.BarcodeDetector({ formats: ['qr_code'] }).detect(im))[0];
+      const raw = hit && String(hit.rawValue || '').trim();
+      if (!raw) out = { bad: true, show: 'No QR code found in this picture', tip: 'The barcode reader found no code in it. Upload the QR image itself.' };
+      else {
+        const url = /^https?:\/\//i.test(raw);
+        const show = url ? raw.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/$/, '') : raw;
+        out = { url, show, tip: (url ? 'This code opens ' : 'This code reads ') + raw };
+      }
+    } catch (e) { out = null; }
+    if (u === this._qrU) { this._qrRead = out; this.forceUpdate(); }
+  }
+  // A TOP-RIGHT QR (2026-11-10, by request) sits on the top margin in the wordmark's row, which
+  // the top cluster already clears. With the wordmark at the BOTTOM that row is empty and the top
+  // cluster starts on the margin, so it starts under the QR and the wordmark's 80 clear instead.
+  // Read by buildOps, scrimStops and the preview's stack, so all three agree; 0 everywhere else.
+  static qrTopRes(st, v, tk) {
+    return st && st.qr && st.qr.show && st.qr.corner === 'top' && !tk.noQr && !CampaignStudio._look && v && v.logoPos === 'bottom' ? tk.qr + 80 : 0;
+  }
   static railBox(tk, center, innerW, pL) {
     const r = tk.railR;
     if (!r) return { x0: pL, w: innerW };
@@ -11025,7 +11068,7 @@ class CampaignStudio extends StudioBase {
     if (CampaignStudio.mirrored()) { const x0 = Math.max(pL, r); return { x0, w: Math.min(innerW, tk.W - tk.pad[1] - x0) }; }
     return { x0: pL, w: Math.min(innerW, tk.W - r - pL) };
   }
-  scrimStops(v, tk, list, clusterOf, ov) {
+  scrimStops(v, tk, list, clusterOf, ov, qrR) {
     const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H;
     const center = v.align === 'center';
     const useCol = !!tk.col && !center;
@@ -11076,7 +11119,7 @@ class CampaignStudio extends StudioBase {
     } else {
       // Inner edge of each box, in canvas px.
       const topEnd = (wTop
-        ? (logoBottom ? pT : pT + logoH + CLEAR) + clusterH('top')
+        ? (logoBottom ? pT + (qrR || 0) : pT + logoH + CLEAR) + clusterH('top')
         : pT + logoH) + PAD;
       const botStart = (wBot
         ? (logoBottom ? H - pB - logoH - CLEAR : H - pB) - clusterH('bottom')
@@ -11147,7 +11190,8 @@ class CampaignStudio extends StudioBase {
     }
     const hid = v.hidden || {};
     const list = CampaignStudio.orderedFor(eff, CampaignStudio.modulesFor(state, vi)).filter(m => !hid[m.id]);
-    const sc = this.scrimStops(v, tk, list, clusterOf, gov);
+    const qrR = CampaignStudio.qrTopRes(state, v, tk);
+    const sc = this.scrimStops(v, tk, list, clusterOf, gov, qrR);
     const scrimCss = sc.stops.map(st2 => [st2[0], `rgba(${sc.base},${+st2[1].toFixed(3)})`]);
     ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: scrimCss, horiz: sc.horiz });
     // logo — 80px clear space around it
@@ -11818,7 +11862,7 @@ class CampaignStudio extends StudioBase {
     // Space is taken BEFORE each component, so a per-component override reads as
     // "push this one down" and the first in a cluster stays pinned to its margin.
     const gapB = m => CampaignStudio.gapBefore(v, m, tk);
-    let y = (logoBottom || unb) ? pT : pT + tk.logo * 1.2 + CLEAR;
+    let y = (logoBottom || unb) ? pT + qrR : pT + tk.logo * 1.2 + CLEAR;
     top.forEach((m, i) => { if (i) y += gapB(m); draw(m, y); y += modH(m); });
     // the bottom cluster measures AND draws to the rail guard — a height measured at one
     // width and drawn at another puts the whole stack off its own baseline
@@ -11878,10 +11922,12 @@ class CampaignStudio extends StudioBase {
       const qs = tk.qr;
       // Mirrored, the corner is chosen in the Latin frame (the mirror moves it) and the
       // Reels rail's clearance goes on the side that will be the RIGHT after it.
+      // TOP RIGHT sits on the top margin, above the Reels rail's band, so it takes the plain margin
+      const top = state.qr.corner === 'top';
       const qx = CampaignStudio.mirrored()
-        ? (state.qr.corner === 'left' ? Math.max(pR, tk.railR || 0) : W - pL - qs)
-        : (state.qr.corner === 'left' ? pL : W - Math.max(pR, tk.railR || 0) - qs);
-      const qy = H - pB - qs;
+        ? (top ? W - pL - qs : state.qr.corner === 'left' ? Math.max(pR, tk.railR || 0) : W - pL - qs)
+        : (top ? W - pR - qs : state.qr.corner === 'left' ? pL : W - Math.max(pR, tk.railR || 0) - qs);
+      const qy = top ? pT : H - pB - qs;
       ops.push({ op: 'rect', x: qx, y: qy, w: qs, h: qs, fill: '#FFFFFF' });
       if (assets.qr && assets.qr.img) ops.push({ op: 'image', img: assets.qr.img, url: assets.qr.u, x: qx, y: qy, w: qs, h: qs, clip: { x: qx, y: qy, w: qs, h: qs, r: 0 } });
     }
@@ -13429,7 +13475,11 @@ class CampaignStudio extends StudioBase {
         // an unbranded audience ("Family · Unbranded") takes the block that says unbranded first
         const ub = /unbranded/i.test(X.aud), k = X.aud.toLowerCase().slice(0, 5);
         const hit = a => a.name.toLowerCase().indexOf(k) >= 0, u = a => /unbrand/i.test(a.name);
-        let i = P.auds.findIndex(a => hit(a) && u(a) === ub);
+        // a further design ("Investor · Design 2", 2026-11-10) takes the block that says "design 2";
+        // the first design, a block that names no design
+        const dm = / · Design (\d+)/.exec(X.aud), dz = a => dm ? new RegExp('design\\s*' + dm[1] + '\\b', 'i').test(a.name) : !/design\s*\d/i.test(a.name);
+        let i = P.auds.findIndex(a => hit(a) && u(a) === ub && dz(a));
+        if (i < 0) i = P.auds.findIndex(a => hit(a) && u(a) === ub);
         if (i < 0 && ub) i = P.auds.findIndex(u);
         if (i < 0) i = P.auds.findIndex(hit);
         if (i >= 0) return i;
@@ -14700,7 +14750,8 @@ class CampaignStudio extends StudioBase {
       const gapPx = m => CampaignStudio.gapBefore(v, m, tk);
       const colW0 = (tk.col && !center) ? tk.col : tk.W - tk.pad[3] - tk.pad[1];
       const isFl = m => CampaignStudio.isFloatG(eff, m);
-      const sc = this.scrimStops(v, tk, plist.filter(m => !hid[m.id] && !isFl(m)), clusterOf, gov);
+      const qrR = CampaignStudio.qrTopRes(s, v, tk);
+      const sc = this.scrimStops(v, tk, plist.filter(m => !hid[m.id] && !isFl(m)), clusterOf, gov, qrR);
       const scrim = `linear-gradient(${sc.horiz ? 'to right' : 'to bottom'}, ${sc.stops.map(st2 => `rgba(${sc.base},${+st2[1].toFixed(3)}) ${(st2[0] * 100).toFixed(1)}%`).join(', ')})`;
       const [pT, pR, pB, pL] = tk.pad;
       // The 1880 banner is shown as wide as the 16:9; the 758 one smaller, so the pair reads
@@ -15728,7 +15779,7 @@ class CampaignStudio extends StudioBase {
           background: coverPct > CampaignStudio.COVER_MAX ? 'var(--ps-warn-q)' : 'transparent',
           borderRadius: 'var(--ps-pill)', padding: coverPct > CampaignStudio.COVER_MAX ? '2px 9px' : '2px 0' },
         coverTip: 'How much of the canvas the design components cover, measured from the same stack heights the export lays out. The brand rules put the ceiling at about ' + CampaignStudio.COVER_MAX + '% so the image always outweighs the copy — over that the figure is highlighted, but nothing is blocked.',
-        stackStyle: { display: 'flex', flexDirection: 'column', gap: 0, alignItems: center ? 'center' : 'flex-start', textAlign: center ? 'center' : 'left', flex: 1, minHeight: 0, width: (tk.col && !center) ? cq(tk.col) : undefined },
+        stackStyle: { display: 'flex', flexDirection: 'column', gap: 0, alignItems: center ? 'center' : 'flex-start', textAlign: center ? 'center' : 'left', flex: 1, minHeight: 0, width: (tk.col && !center) ? cq(tk.col) : undefined, paddingTop: qrR ? cq(qrR) : undefined },
         // floaters are absolutely placed, so they can ride along in the same list
         // without disturbing the stack they are no longer part of
         items: [...top, spacer, ...bot, ...floatMods],
@@ -15737,7 +15788,7 @@ class CampaignStudio extends StudioBase {
         // edited separately takes its own logo and alignment without a component selected
         select: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { x.activeVi = vi; x.sel = null; x.focusSz = sizeKey; return x; }); },
         // a right-corner QR clears the Reels action rail, exactly as the op places it
-        qrStyle: { position: 'absolute', bottom: cq(pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(s.qr.corner === 'left' ? (mir ? Math.max(pR, tk.railR || 0) : pL) : (mir ? pL : Math.max(pR, tk.railR || 0))), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#FFFFFF', pointerEvents: 'none', overflow: 'hidden', zIndex: 2 }
+        qrStyle: { position: 'absolute', [s.qr.corner === 'top' ? 'top' : 'bottom']: cq(s.qr.corner === 'top' ? pT : pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(s.qr.corner === 'top' ? (mir ? pL : pR) : s.qr.corner === 'left' ? (mir ? Math.max(pR, tk.railR || 0) : pL) : (mir ? pL : Math.max(pR, tk.railR || 0))), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#FFFFFF', pointerEvents: 'none', overflow: 'hidden', zIndex: 2 }
       };
       // ARABIC: the same tree, mirrored — see CampaignStudio.mirrored(). The canvas box
       // itself is not mirrored (it sits in the plate); everything drawn inside it is.
@@ -17115,7 +17166,7 @@ class CampaignStudio extends StudioBase {
       qrSetHide: () => this.upd(x => { x.qr.show = false; return x; }),
       qrHiddenOn: s.qr.show ? undefined : '1',
       qrShowFlag: !!s.qr.show,
-      qrHint: s.qr.show ? 'Local campaigns: the code prints in a bottom corner on every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + '.' : 'International campaigns: no code is printed, and none is asked for.',
+      qrHint: s.qr.show ? 'Local campaigns: the code prints in its corner (bottom left, bottom right or top right) on every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + '.' : 'International campaigns: no code is printed, and none is asked for.',
       coSetOn: () => this.upd(x => { x.colog = Object.assign({ on: false, scale: 100, tint: true }, x.colog); x.colog.on = true; return x; }),
       coSetOff: () => this.upd(x => { x.colog = Object.assign({ on: false, scale: 100, tint: true }, x.colog); x.colog.on = false; return x; }),
       coOffOn: (s.colog && s.colog.on) ? undefined : '1',
@@ -17193,8 +17244,17 @@ class CampaignStudio extends StudioBase {
       qrSlotStyle: { display: 'block', width: '100%', aspectRatio: '1 / 1' },
       qrLeft: () => this.upd(x => { x.qr.corner = 'left'; return x; }),
       qrRight: () => this.upd(x => { x.qr.corner = 'right'; return x; }),
+      qrTop: () => this.upd(x => { x.qr.corner = 'top'; return x; }),
       qrLeftOn: s.qr.corner === 'left' ? '1' : undefined,
-      qrRightOn: s.qr.corner !== 'left' ? '1' : undefined,
+      qrRightOn: s.qr.corner !== 'left' && s.qr.corner !== 'top' ? '1' : undefined,
+      qrTopOn: s.qr.corner === 'top' ? '1' : undefined,
+      // WHAT THE CODE OPENS (2026-11-10, by request): read off the uploaded picture (qrRead), so
+      // the designer can tell which campaign's code this is
+      qrInfoOn: this._qrRead ? '1' : undefined,
+      qrInfoK: this._qrRead && this._qrRead.bad ? 'Check it' : this._qrRead && this._qrRead.url ? 'Opens' : 'Reads',
+      qrInfo: this._qrRead ? this._qrRead.show : '',
+      qrInfoBad: this._qrRead && this._qrRead.bad ? '1' : undefined,
+      qrInfoTip: this._qrRead ? this._qrRead.tip : '',
       campaign: s.campaign,
       onCampaign: e => this.upd(x => { x.campaign = e.target.value; return x; }),
       exportBtnStyle: Object.assign({ flex: 1 }, darkBtn),
@@ -18316,6 +18376,16 @@ class Component extends DCLogic {
     // ONE audience on screen at a time, picked from the list on the left
     const all = !!this._asAll && open && !head;
     const mode = this._asMode === 'text' && !all ? 'text' : 'images';
+    // FINISHED GROUPS FOLD AWAY (2026-11-10, by request): on the content team's and performance
+    // marketing's link, a group (phase · market) whose every audience is done from their side —
+    // approved, or ready to run — moves to the foot of the list and stays hidden until Show
+    // finished; what still needs them comes first, and opens first
+    const rvw = open && !head && this._asSrc && this._asSrc.kind === 'review' && !embed && this._asSrc.share;
+    const fst = k => { const r = rvw && rvw.audState ? rvw.audState(k) : null; return r ? r.st : ''; };
+    const finM = m => !!rvw && (rvw.role === 'ct' || rvw.role === 'pm') && m.auds.length > 0 && m.auds.every(au => fst(au.key) === 'done');
+    const mainsAll = a.mains || [], nFin = mainsAll.filter(finM).length, folds = nFin > 0 && nFin < mainsAll.length;
+    const navMains = folds ? mainsAll.filter(m => !finM(m)).concat(this._asShowFin ? mainsAll.filter(finM) : []) : mainsAll;
+    if (folds && !all && !navMains.some(m => m.auds.some(au => au.key === this._asSel))) this._asSel = navMains[0].auds[0].key;
     let sel = open && !head ? this.asSelAud() : null;
     if (all) {
       const cols = [], auds = [];
@@ -18332,7 +18402,7 @@ class Component extends DCLogic {
     // the content team's nav reads what each project needs from them, not its image count
     const ctNav = this._asSrc && this._asSrc.kind === 'review' && !embed && this._asSrc.share && this._asSrc.share.role === 'ct';
     const ASW = k => { const r = ctNav && this._asSrc.share.audState ? this._asSrc.share.audState(k) : null; return r && r.word; };
-    const nav = open && !head ? (a.mains || []).map(m => ({ title: m.title, sub: m.sub,
+    const nav = open && !head ? navMains.map(m => ({ title: m.title, sub: m.sub,
       auds: m.auds.map(au => ({ title: au.title, sub: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
         st: AST(au.key), tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
@@ -18384,6 +18454,10 @@ class Component extends DCLogic {
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
       asNav: nav, asBodyOn: !!sel, asModeBarOn: !!sel && !all && !embed,
+      asFinOn: folds ? '1' : undefined, asFinPressed: this._asShowFin ? 'true' : 'false',
+      asFinLabel: this._asShowFin ? 'Hide finished' : 'Show finished · ' + nFin,
+      asFinTip: (rvw && rvw.role === 'ct' ? 'Groups whose every audience you have approved' : 'Groups whose every audience is ready to run') + (this._asShowFin ? ' — hide them again' : ' — show them at the foot of the list'),
+      asFinToggle: () => { this._asShowFin = !this._asShowFin; this.forceUpdate(); },
       ...projV,
       asAllOn: all ? '1' : undefined, asAllCur: all ? 'true' : undefined, asPickAll: () => this.asPickAll(),
       asAllSub: (a.mains || []).reduce((n, m) => n + m.auds.length, 0) + ' audiences · ' + this.asAllImgs() + ' images',

@@ -448,6 +448,16 @@ To run both in one ad set, pick **Mixed** under **Brand** in **Ad set settings**
 the top right of the ad set's header on Status). Every audience is then branded and can **also**
 run unbranded, with its own words:
 
+**More than one design for an audience.** Each audience card on Status ends with **Add a design**.
+It opens a new window on a new project for the next design, for example
+**Local · Investor · Design 2** (then Design 3, and so on). Each design has its own steps, copy
+check, Arabic (when the audience has one) and Drive folder (`Local/Investor · Design 2/English`),
+and the performance-marketing link shows and downloads it as its own audience. On Status the
+designs sit in their audience's card one under the other, each tagged **Design 1**, **Design 2**…;
+the audience is done when every design is. **Change audience** also offers the ad set's designs, to
+move a project you already made into one. In a pasted copy reply, a block named
+`Investor design 2:` fills Design 2.
+
 - Each audience card on Status ends with **Start the unbranded**. Press it once the audience's
   English exists: the English project opens in a new window and a copy of its design is saved
   on the unbranded look as its own audience, for example **Local · Family · Unbranded**.
@@ -801,7 +811,11 @@ No API key or service is needed: Claude Code reads the screenshot.
   page to edit it. Undo reverses a move. Press **Done** or Escape to close.
   - **Story 9:16**, **QR code** and **Partner logo** are switches. The line under each
     one says what it does right now. Story 9:16 only appears on a carousel. With the QR code
-    on, upload the code under the switch and pick the **Corner** it sits in: **Left** or **Right**.
+    on, upload the code under the switch and pick the **Corner** it sits in: **Left** or **Right**
+    (bottom), or **Top** (top right, in the wordmark's row). With the logo at the bottom, a top-right
+    code pushes the top copy down to clear it. Under the code's picture a line says what it opens,
+    read off the code itself (for example *Opens nakheel.com/palm-springs*), so you can tell whose
+    code it is; *No QR code found in this picture* means the file is probably the wrong one.
   - **Typeface:** **English** or **Arabic**. Arabic mirrors the whole ad for right-to-left
     reading: a left-aligned design becomes right-aligned, the logo moves to
     the right (the photo is left as it is, so any sign or logo in it still reads correctly) and the QR code moves to the other corner (the code itself is not flipped, so it
@@ -944,6 +958,10 @@ Source folder by itself.
   per variant (Variant A, Variant B …). Each row shows its
   **Meta** images: Feed, Portrait 3:4, Story and the Horizontal 1.91:1. A small line under each image
   gives its pixel size and file size.
+- **On a content-team or performance-marketing link**, a group (a phase and market, such as
+  *Launch · Local*) whose every audience is done from your side — approved, or ready to run — moves
+  to the foot of the list and is hidden, so what still needs you comes first. **Show finished · n**
+  at the foot of the list shows those groups again; **Hide finished** folds them away.
 - **All audiences**, at the top of the list, shows every audience in the folder in one window,
   each under its own heading. (Edit text works one audience at a time, so it is hidden there.)
 - **Each audience has its own Download** — beside Download all when one audience is on screen
@@ -1343,7 +1361,7 @@ This is the full editor.
 - **Image first:** copy should stay under about 40% of the canvas.
 - **9:16 margins:** the copy stays clear of Instagram's and Facebook's own buttons. The studio sets
   these margins for you.
-- **QR code:** small and in a bottom corner. Banners don't have one.
+- **QR code:** small, in a bottom corner or top right. Banners don't have one.
 
 You don't need to set these; the layouts already follow them.
 
@@ -1391,4 +1409,13 @@ Rules for Claude: ask for anything you don't have — never make up a listing nu
 or name. Every required field must be filled; the export says what is missing. The project is a
 normal session file, so the user can open it with **Open a project file…** (CAS) or **Open a post file…** (OPS) to fine-tune by hand. Setup:
 `sh tools/studio-mcp/install.sh`, then restart Claude (see `tools/studio-mcp/README.md`).
+
+**The Grok bot uses the same tools.** `tools/studio-mcp/remote.py` serves them over https from one
+always-on office Mac, behind a token per person, so a Grok custom connector (or a bot built on the
+xAI API) can make and export posts and ads from anywhere. Exports and previews come back as links
+that open for 14 days; the projects live on that Mac in
+`~/Library/Application Support/Provident/studio-remote/projects/`, where **Open a post file…** /
+**Open a project file…** picks them up for hand-finishing. The bot cannot touch tickets, Status,
+hand-offs or Drive. Setup: `docs/grok-bot-setup.md`; the bot's instructions:
+`GROK-BOT-INSTRUCTIONS.md`.
 

@@ -1969,3 +1969,48 @@ it as `items`. A picture that fails never holds the message back (`{pic:false, w
 **Trap:** "test group" in Roam is Lloyd, Antony and Rehan's channel, not the user's — the two
 earlier tests landed there. Test as a DM instead: `chat.post` with `userIds` (Anandu
 `59e8c1fc…`); the DM test was approved by the user.
+
+## More than one design per audience (2026-11-10, by request)
+"On CAS adset, allow user to add more designs inside an audience" (Investor already had one). A
+further design is **an audience of its own named "<aud> · Design N"**, exactly as the unbranded
+version is "<aud> · Unbranded": items, `rsAuds`, steps, folders (`Local/Investor · Design 2/English`),
+labels, the PM bar, downloads and the CT list all work unchanged. No server change (nothing
+validates audience names). Helpers beside `UB`: `DSG`, `dsgOf(aud)` (1 when none), `audRoot(aud)`
+(strips Unbranded, then Design N). "Investor · Design 2 · Unbranded" is that design's unbranded.
+- `rsCells`: a design not in the plan takes its audience's Arabic (as an unbranded one does);
+  `rsAuds.engOnly` likewise (an English-only audience's Design 2 says "Not needed").
+- `audOrd`: root order, then +.02 per design, +.01 unbranded. Settings' Audiences chips and
+  `setProd` read `audRoot` (a design is never a chip).
+- **Status card** (`AV.detHtml`): audiences grouped by market|`audRoot`; each design a part (its
+  unbranded twin under it), tagged **Design n** (`.rvd-chs` wraps that chip and Branded/Unbranded;
+  `data-mx` gives the header its third column), done when every part is. The card ends on **Add a
+  design** (`.rvd-dz`, Drive ad sets) → `startcell` with `market|<root> · Design <max+1>|ENG|tab`.
+- `rsPickCheck`: a design cell nothing holds yet is `fresh`, so it is not refused as "Already made"
+  for not being in the plan.
+- `relabHtml`: Change audience lists the ad set's designs and the next one of the project's root.
+- CAS `brAudIdx`: "Investor · Design 2" takes a reply block whose name says `design 2`; the first
+  design, a block naming no design.
+Verified on the stand-in (demo data, Sobha Hartland II): Add a design on International · Investor
+opened a new project "International · Investor · Design 2 / English", saved under
+`International/Investor · Design 2/English`, logged "Added International · Investor · Design 2 ·
+ENG"; the card showed Design 1 and Design 2 parts and Add a design now naming Design 3; the
+English-only audience's Design 2 read "Not needed for this audience" (after a fix). **Not
+exercised:** Start the Arabic of a design (same path as any audience), a pasted reply with a
+`design 2` block, Change audience into a design.
+
+## A review link folds its finished groups (2026-11-10, by request)
+"In the CT view, if the project is done from their side and a new phase is added, by default hide
+the finished phase, then put up the projects/phases they need to review; same for PM's view." In
+CAS `asVals` (Ad sets window, review link, not embedded, role ct or pm): a main group (phase ·
+market) whose every audience's `audState().st` is `done` (ct: approved; pm: ready to run) is
+finished. When some but not all are, `navMains` puts the open groups first and the finished ones
+after only while `_asShowFin`; a selection inside a hidden group moves to the first open audience.
+The nav ends on `.as-nav-fin` (**Show finished · n** / **Hide finished**, aria-pressed). All
+audiences and downloads still cover everything.
+Verified on the stand-in (Sobha Hartland II with its approved Investor moved to Local): the CT link
+listed International (Family approved, Family · Arabic to check, Investor · Design 2 with the
+designer) and Show finished · 1; pressing it added Local, Hide finished. The PM link (after
+setting `eng_only` for Local|Investor, which **Change audience lost** — relabel does not carry
+`eng_only` to the new market; pre-existing) listed International first, Local hidden, and opened
+on International · Family instead of the hidden Local · Investor.
+
