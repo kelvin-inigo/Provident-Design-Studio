@@ -32,6 +32,7 @@ Every request is /api/share?op=...  (create, part, save, get, rev, sync, chunk; 
 rsmake, rsadd, rsget, rsstep, rsset, rsinfo; pvput and pv for photo previews; adminlist and admindel for share-admin.html,
 which need SHARE_ADMIN_KEY set in the deployment).
 """
+import base64
 import fnmatch
 import hashlib
 import hmac
@@ -1385,6 +1386,33 @@ def roam_id(email):
     return _roam_ids[email]
 
 
+def roam_pic_bytes(v):
+    """A data:image/png|jpeg|webp;base64 URL from the page -> (bytes, mime, filename), or None."""
+    m = re.match(r'^data:image/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$', str(v or ''))
+    if not m or len(m.group(2)) > 3_000_000:
+        return None
+    try:
+        raw = base64.b64decode(m.group(2), validate=True)
+    except Exception:  # noqa: BLE001
+        return None
+    ext = 'jpg' if m.group(1) == 'jpeg' else m.group(1)
+    return raw, 'image/' + m.group(1), 'design.' + ext
+
+
+def roam_upload(raw, mime, fname):
+    key = (os.environ.get('ROAM_API_KEY') or '').strip()
+    req = urllib.request.Request(ROAM_API + 'item.upload', data=raw, method='POST',
+                                 headers={'Authorization': 'Bearer ' + key, 'Roam-Version': '2026-08-25',
+                                          'Content-Type': mime, 'Content-Disposition': 'attachment; filename="' + fname + '"'})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.loads(r.read() or b'{}')
+    except urllib.error.HTTPError as e:
+        raise Fail(502, 'Roam would not take the picture (HTTP %d).' % e.code)
+    except Exception as e:  # noqa: BLE001
+        raise Fail(502, 'Could not send the picture to Roam (%s).' % e.__class__.__name__)
+
+
 def roam_plain(v, n=120):
     # no <…> in what the page sends, so it can never add a mention or <!channel> of its own
     return ' '.join(str(v or '').replace('<', '').replace('>', '').split())[:n]
@@ -1414,16 +1442,30 @@ def roam_note(d):
     title = roam_plain(d.get('name')) or 'An ad set'
     label = roam_plain(d.get('label'))
     pm, ct = url(d.get('link')), url(d.get('ctlink'))
-    text = '\n'.join([title + (' · ' + label if label else ''),
-                      tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']),
-                      'AdSet Overview: ' + (pm or '(no link)'),
-                      tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]),
-                      'Content Review: ' + (ct or '(no link)')])
+    # Roam reads text as GitHub markdown, where a lone newline is a space: end each line with
+    # two spaces (a hard break) so it stays one line per item
+    text = '  \n'.join([
+        '**' + title.replace('*', '') + (' · ' + label.replace('*', '') if label else '') + '**',
+        tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']) + ' - ' + ('[Ad Set Overview](' + pm + ')' if pm else 'Ad Set Overview (no link)'),
+        tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]) + ' - ' + ('[Content Review](' + ct + ')' if ct else 'Content Review (no link)')])
     if os.environ.get('ROAM_DRY') == '1':
-        return ok({'ok': True, 'dry': True, 'text': text})
-    r = roam_call('chat.post', {'groupId': os.environ.get('ROAM_GROUP_ID') or ROAM_GROUP, 'text': text})
+        return ok({'ok': True, 'dry': True, 'text': text, 'pic': bool(roam_pic_bytes(d.get('pic')))})
+    body = {'groupId': os.environ.get('ROAM_GROUP_ID') or ROAM_GROUP, 'text': text}
+    # the master design rides along as an image (item.upload, scope item:write); a picture that
+    # will not upload never holds the message back
+    pic, pic_err = roam_pic_bytes(d.get('pic')), ''
+    if pic:
+        try:
+            item = roam_upload(*pic)
+            if item.get('id'):
+                body['items'] = [item['id']]
+        except Fail as e:
+            pic_err = e.msg if hasattr(e, 'msg') else str(e)
+    r = roam_call('chat.post', body)
     if not r.get('ok'):
         raise Fail(502, 'Roam did not take the message (%s).' % (r.get('error') or 'no reason given'))
+    if pic_err:
+        return ok({'ok': True, 'pic': False, 'why': pic_err})
     return ok({'ok': True})
 
 

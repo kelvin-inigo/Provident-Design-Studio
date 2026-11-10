@@ -523,11 +523,12 @@ the ticket, the **Activity** — who changed what, including each step — and *
 In a campaign project the floating **Changes** button is gone: the Ad set tab carries all of it.
 
 **Roam message.** Pressing **Send to copy check** (or **Send for translation check**) also posts
-to the **Paid Ads Hub** channel in Roam, from the Content Engine bot. It gives the ad set's name,
-tags Dennis in performance marketing above **AdSet Overview** (the PM link), then the copywriter
-for that language (Sana for English, Fatema for Arabic) above **Content Review** (the content
-team's link). If Roam cannot be reached, the step still goes through and the studio says Roam
-was not told.
+to the **Paid Ads Hub** channel in Roam, from the Content Engine bot: the master design as a
+picture, the ad set's name, market and audience in bold, then Dennis in performance marketing with
+an **Ad Set Overview** link (the PM link), then the copywriter for that language (Sana for English,
+Fatema for Arabic) with a **Content Review** link (the content team's link). If Roam cannot be
+reached, the step still goes through and the studio says Roam was not told; if only the picture
+fails, the message goes without it and the studio says so.
 
 **Chrome notifications.** When someone else presses a step button (Send to copy check, Approve,
 Back to design, Reopen), everyone who has that ad set open gets a Chrome notification, whether

@@ -2783,12 +2783,13 @@
   // SEND TO COPY CHECK TELLS ROAM (2026-11-09): a CAS ad set project sent to the content team
   // posts to Paid Ads Hub through the server (api/share.py op roamnote, which holds the key).
   // After the step has saved, and never in its way: a note that fails only says so.
-  function roamNote(rs, sid, ho, flash) {
+  function roamNote(rs, sid, ho, flash, pic) {
     const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid);
     if (!A || !A.call || !it || isPost(rs)) return;
     const tk = rs.tok || {};
     A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
-                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '', ctlink: tk.ct ? rsLink(tk.ct) : '' })
+                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '', ctlink: tk.ct ? rsLink(tk.ct) : '', pic: pic || '' })
+      .then(r => { if (r && r.pic === false && flash) flash('Sent — Roam was told, without the picture: ' + (r.why || '')); })
       .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
   }
   function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }
@@ -2842,6 +2843,20 @@
       StudioBase.applyFont(this.state);
       const u = cv.toDataURL('image/webp', .8);
       return /^data:image\/webp/.test(u) && u.length < 110000 ? u : undefined;
+    } catch (e) { return undefined; }
+  };
+
+  // the master design for the Roam note (2026-11-10): the same render as rvThumb at 540 px
+  SP.roamPic = async function (st, own) {
+    if (this.shApp() !== 'provident-ad-studio') return undefined;
+    try {
+      st = st || this.state;
+      const a = await this.loadAssets(st, own);
+      await projFonts(st);
+      const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .5);
+      StudioBase.applyFont(this.state);
+      const u = cv.toDataURL('image/jpeg', .85);
+      return /^data:image\/jpeg/.test(u) && u.length < 3000000 ? u : undefined;
     } catch (e) { return undefined; }
   };
 
@@ -2957,7 +2972,7 @@
       if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      if (a === 'design-done') roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m));
+      if (a === 'design-done') this.roamPic().then(pic => roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic));
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
       S.ui.flash(isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
@@ -3680,7 +3695,11 @@
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
       const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
       this.rs = r.rs;
-      if (a === 'design-done') roamNote(r.rs, sid, ho, m => this.ui.flash(m));
+      if (a === 'design-done') {
+        const p = this.proj[sid] || {}, eng = this.eng;
+        Promise.resolve(eng && eng.roamPic && p.st ? Promise.resolve(this.photos(sid)).then(own => eng.roamPic(p.st, own)) : undefined).catch(() => undefined)
+          .then(pic => roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic));
+      }
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }

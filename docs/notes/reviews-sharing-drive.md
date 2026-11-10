@@ -1958,3 +1958,14 @@ message is the user's own format, one item per line: ad set name · market · au
 tagged; `AdSet Overview: <PM link>`; the language's copywriter tagged; `Content Review: <CT link>`
 (`ctlink`, `rsLink(tok.ct)`, sent by `roamNote`). The person picked in the hand-off is no longer
 tagged and "Sent by" is gone (the user chose "just your format"). Dry run checked for ENG and ARB.
+
+**Changed again 2026-11-10 (the plain-text version read as one run-on line in Roam):** Roam's
+`text` is GitHub markdown, so a lone `\n` is a space; lines are joined with `"  \n"` (hard break).
+Layout: `**name · market · audience**`, then `<@Dennis> - [Ad Set Overview](pm)`, then
+`<@copywriter> - [Content Review](ct)`. The master design goes with it: `SP.roamPic` renders the
+`sq` master at .5 scale (540 px JPEG) — the review page (`RV.rvStep`) through `this.eng.roamPic`
+— and the server uploads it with `item.upload` (raw bytes; the key has `item:write`) and attaches
+it as `items`. A picture that fails never holds the message back (`{pic:false, why}` → a flash).
+**Trap:** "test group" in Roam is Lloyd, Antony and Rehan's channel, not the user's — the two
+earlier tests landed there. Test as a DM instead: `chat.post` with `userIds` (Anandu
+`59e8c1fc…`); the DM test was approved by the user.
