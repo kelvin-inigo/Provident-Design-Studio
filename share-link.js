@@ -2590,17 +2590,28 @@
     else lists.push(st.modules || []);
     const jobs = [], seen = new Map();
     const want = t => /[A-Za-z]/.test(t || '');
-    const put = (get, set) => { const t = get(); if (want(t)) jobs.push({ t, set }); };
+    // each line carries its component and field, so Claude writes it to its slot (a heading's
+    // length, a button's 2–4 words)
+    const put = (get, set, kind, part) => { const t = get(); if (want(t)) jobs.push({ t, set, kind, part }); };
     lists.forEach(mods => mods.forEach(m => {
       if (!m || typeof m !== 'object') return;
+      const kind = m.type || '';
       if (typeof m.text === 'string' && m.text) {
         const lines = m.text.split('\n');
-        lines.forEach((ln, i) => put(() => ln, v => { lines[i] = v; m.text = lines.join('\n'); }));
+        lines.forEach((ln, i) => put(() => ln, v => { lines[i] = v; m.text = lines.join('\n'); }, kind, 'text'));
       }
-      if (typeof m.sub === 'string') put(() => m.sub, v => { m.sub = v; });
-      if (Array.isArray(m.chips)) m.chips.forEach((c, i) => put(() => String(c || ''), v => { m.chips[i] = v; }));
-      if (Array.isArray(m.cols)) m.cols.forEach(c => { if (c && typeof c === 'object') { put(() => c.l, v => { c.l = v; }); put(() => c.v, v => { c.v = v; }); } });
+      if (typeof m.sub === 'string') put(() => m.sub, v => { m.sub = v; }, kind, 'sub');
+      if (Array.isArray(m.chips)) m.chips.forEach((c, i) => put(() => String(c || ''), v => { m.chips[i] = v; }, kind, 'chip'));
+      if (Array.isArray(m.cols)) m.cols.forEach(c => { if (c && typeof c === 'object') { put(() => c.l, v => { c.l = v; }, kind, 'l'); put(() => c.v, v => { c.v = v; }, kind, 'v'); } });
     }));
+    // CLAUDE writes the whole ad in one go (it needs every line to write any of them well)
+    if (tr.many && jobs.length) {
+      if (onProg) onProg(0.1);
+      const out = await tr.many(jobs.map(j => ({ t: j.t.trim(), kind: j.kind, part: j.part })));
+      jobs.forEach((j, i) => { const lead = j.t.match(/^\s*/)[0], tail = j.t.match(/\s*$/)[0]; j.set(lead + String(out[i] == null ? j.t.trim() : out[i]).trim() + tail); });
+      if (onProg) onProg(1);
+      return jobs.length;
+    }
     let k = 0;
     for (const j of jobs) {
       const key = j.t.trim();
@@ -2616,13 +2627,40 @@
   // one Undo. Run on its own when "Make the Arabic version" lands, and again from the Ad set
   // tab's Arabic copy card after the English changed. `say(text)` reports progress. Resolves to
   // the number of lines translated; one run at a time.
+  // CLAUDE WRITES THE ARABIC (2026-11-11, by request): the layout's English goes to the site's
+  // `arcopy` (api/share.py), where Claude writes it under the content team's Arabic copy rules
+  // (AR_RULES there: original, natural Arabic for buyers of every Arab nationality, each line to
+  // its slot, no invented facts), for the ad set's audience. Anything wrong — no key on the site,
+  // not signed in, Claude down — falls back to Google Translate below, and says so.
+  function arClaude(ctx) {
+    const A = window.providentAccess;
+    if (!A || !A.call) return null;
+    return { many: async rows => {
+      const r = await A.call('arcopy', { lines: rows, aud: ctx.aud || '', project: ctx.project || '', market: ctx.market || '' });
+      if (!r || !Array.isArray(r.lines) || r.lines.length !== rows.length) throw new Error('Claude’s answer did not match the layout.');
+      return r.lines;
+    } };
+  }
   SP.arTranslateLayout = function (say) {
     if (this._arRun) return this._arRun;
     const run = (async () => {
-      const tr = await arTranslator(p => say && say('Downloading Google Translate’s Arabic, once · ' + Math.round(p * 100) + '%'));
       const st = JSON.parse(JSON.stringify(this.shPub()));
-      const n = await arTranslateState(st, tr, p => say && say('Translating · ' + Math.round(p * 100) + '%'));
-      try { tr.destroy && tr.destroy(); } catch (err) {}
+      const rs = this._sh && this._sh.rs, it = rs && this.rsItem ? this.rsItem() : null;
+      const ctx = { aud: it ? audRoot(it.aud || '') : '', market: (it && it.market) || '', project: (rs && rs.name) || this.state.campaign || '' };
+      let n = 0, why = '';
+      const cl = arClaude(ctx);
+      if (cl) {
+        say && say('Claude is writing the Arabic…');
+        try { n = await arTranslateState(st, cl, null); this._arBy = 'Claude'; }
+        catch (e) { why = (e && e.message) || String(e); }
+      }
+      if (!cl || why) {
+        const st2 = JSON.parse(JSON.stringify(this.shPub())); Object.keys(st).forEach(k => delete st[k]); Object.assign(st, st2);
+        const tr = await arTranslator(p => say && say('Downloading Google Translate’s Arabic, once · ' + Math.round(p * 100) + '%'));
+        n = await arTranslateState(st, tr, p => say && say((why ? 'Claude could not write it · Google Translate · ' : 'Translating · ') + Math.round(p * 100) + '%'));
+        try { tr.destroy && tr.destroy(); } catch (err) {}
+        this._arBy = 'Google Translate'; this._arWhy = why;
+      } else this._arWhy = '';
       if (n) this.upd(x => { x.modules = st.modules; (x.variants || []).forEach((v, i) => { if (st.variants && st.variants[i] && st.variants[i].mods) v.mods = st.variants[i].mods; }); return x; });
       return n;
     })();
@@ -2642,7 +2680,7 @@
         : o.ub ? 'A copy of the branded design, on the unbranded look. The branded project stays as it was. Fill its own words from the copy in the Ad set tab.'
         : 'A new, blank project — fill its words from the copy in the Ad set tab.') + '</p>' +
       '<div class="rnx-row" data-r="folder"><b>Source folder</b><span class="rnx-st"></span><div class="rnx-act"></div></div>' +
-      (o.arb ? '<div class="rnx-row" data-r="tr"><b>Arabic words</b><span class="rnx-st">Translating the layout with Google Translate…</span><div class="rnx-act"><button class="p-btn" type="button" data-a="tr">Translate with Google Translate</button></div></div>' : '') +
+      (o.arb ? '<div class="rnx-row" data-r="tr"><b>Arabic words</b><span class="rnx-st">Claude is writing the Arabic…</span><div class="rnx-act"><button class="p-btn" type="button" data-a="tr">Write the Arabic</button></div></div>' : '') +
       '<div class="shl-acts"><button class="p-ghost" type="button" data-a="close">Done</button></div></div>';
     document.body.appendChild(el);
     const $ = q => el.querySelector(q), row = r => $('[data-r="' + r + '"]');
@@ -2680,11 +2718,11 @@
     });
     // the Arabic words are the layout's English through Google Translate: start at once
     const trNow = async b => {
-      if (b) { b.disabled = true; b.textContent = 'Translating…'; }
+      if (b) { b.disabled = true; b.textContent = 'Writing…'; }
       try {
         const n = await this.arTranslateLayout(t => alive && say('tr', t));
         if (!alive) return;
-        say('tr', n ? 'Translated ' + n + (n === 1 ? ' line' : ' lines') + ' with Google Translate — check them before sending for the translation check.' : 'There were no English words to translate.');
+        say('tr', n ? (this._arBy === 'Claude' ? 'Claude wrote ' + n + (n === 1 ? ' line' : ' lines') + ' of Arabic' : 'Translated ' + n + (n === 1 ? ' line' : ' lines') + ' with Google Translate' + (this._arWhy ? ' (Claude could not: ' + this._arWhy + ')' : '')) + ' — check them before sending for the translation check.' : 'There were no English words to translate.');
         acts('tr', '');
       } catch (err) {
         if (!alive) return;

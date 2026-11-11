@@ -1627,8 +1627,121 @@ def hub_team(d):
     return ok({'designers': out})
 
 
+# ── CAS ARABIC COPY, WRITTEN BY CLAUDE (2026-11-11, by request) ───────────────────────────────
+# "Make the Arabic version" / "Translate the layout to Arabic" sends the English layout's lines
+# here; Claude writes the Arabic under the content team's Arabic copy rules (AR_RULES) and the
+# studio puts each line back in place. The key is ANTHROPIC_API_KEY in Vercel's environment —
+# never in this public repo. No key (or Claude failing) answers 503 and the studio falls back to
+# Google Translate. Only a signed-in, active team member (or the admin) can call it, so the site
+# is not an open door to the key. ARCOPY_DRY=1 (the local stand-in) answers without calling
+# Claude. Model: ARCOPY_MODEL, default claude-opus-5-5.
+AR_RULES = """You are a senior Arabic copywriter and creative director for Provident Real Estate in Dubai. You write the Arabic version of a paid Meta / Instagram real estate ad, line by line, from the English layout you are given.
+
+You are NOT translating word for word. For each English line, write the Arabic an experienced Arabic real estate copywriter would naturally write for the same slot: the same job, the same selling point, the same facts, written as original Arabic.
+
+LANGUAGE
+- Modern, natural Modern Standard Arabic (العربية الفصحى المعاصرة) with a contemporary, conversational flow. Premium, confident, never stiff.
+- It must read naturally to Arabic speakers of every nationality buying in the UAE: Emirati, Saudi, Egyptian, Syrian, Lebanese, Jordanian, Palestinian, Iraqi and others. Do not default to Gulf, Egyptian or Levantine dialect; avoid expressions that are natural in one country but odd, confusing or too informal in another.
+- No literal translation, no awkward word order, nothing that sounds machine-made. No overly classical, literary or poetic Arabic. Natural phrasing beats sophisticated vocabulary.
+- Concise and visual: these lines sit on an ad image.
+
+AUDIENCE (you are told which)
+- Families / end users: comfort, time together, privacy and space, safe surroundings, children's amenities, community facilities, convenience, a home that fits the family's future. Warm, understated and relatable; never cheesy, dramatic, sentimental or greeting-card. No exaggerated family emotion, no poetic homeownership, no lines that fit any project.
+- Investors: location, entry price, value and positioning, developer reputation, payment flexibility, demand. Confident and commercially persuasive. Never promise returns or appreciation.
+- Luxury buyers: exclusivity through specific features, privacy, architecture, location, space. No generic luxury clichés.
+
+TERMS (references, not mandatory): فلل · تاون هاوس · شقق · وحدات سكنية (use the specific type when known) · مجمع سكني · عقارات قيد الإنشاء · خطة سداد · دفعة أولى · التسليم · تبدأ الأسعار من / ابتداءً من · على الواجهة البحرية · شاطئ خاص · مجمع سكني مسوّر · فرصة استثمارية · مجموعة محدودة · حياة عائلية متكاملة · سجّل اهتمامك · اكتشف المشروع
+
+AVOID as defaults (at most rarely, when genuinely right): استمتع بتجربة لا مثيل لها · حيث تلتقي الفخامة بالراحة · عش حياة الأحلام · فرصة العمر · الرفاهية التي تستحقها · اكتشف عالماً من الفخامة · أسلوب حياة لا مثيل له. No sentences opening with حيث, no long sentences, no piles of adjectives. Never translate "Your dream home awaits" or "Elevate your lifestyle" literally: carry the appeal in fresh Arabic.
+
+EACH LINE KEEPS ITS SLOT. You get every line with its role:
+- eyebrow / label: a short tag of 1–4 words.
+- heading (hero): the hook. 4–9 Arabic words at most, shorter is better. One benefit or desire, stops the scroll, specific to this project.
+- hook / body: one short supporting line with the main benefit.
+- chip: a short tag (a feature or amenity), 1–3 words.
+- fact label / fact value, price label / price: keep it to the same short form. Keep every number, price, currency, percentage, date, size and payment split exactly as given (Western digits as written, e.g. AED 1.2M → 1.2 مليون درهم is fine, but never change the figure).
+- list / step: a short line in the same form.
+- button (cta): 2–4 Arabic words, e.g. سجّل اهتمامك.
+A line may be a single word or a fragment of a heading broken across lines: keep the break where it reads naturally, and keep the same number of lines.
+
+FACTS
+- Use only facts in the English. Never invent or add prices, availability, yields, payment plans, completion or handover dates, discounts, returns or scarcity.
+- Keep project, developer, community and brand names exactly as written in English letters (Provident, the developer, the project) unless the English itself has them in Arabic.
+- If a line has nothing to translate (only a number, a name or a symbol), return it unchanged.
+
+CHECK every line before answering: would a native Arabic copywriter write this? Is it clear across the Gulf, Egypt, the Levant and beyond? Is any emotion genuine rather than cringe? Persuasive without exaggeration? Short enough for the slot? Free of translation-like phrasing? Every fact supported by the English? Rewrite any line that fails.
+
+Answer with JSON only: {"lines": [...]} with exactly one Arabic string per input line, in the same order."""
+AR_ROLE = {'eyebrow': 'eyebrow / label', 'hero': 'heading', 'hook': 'hook', 'body': 'body', 'price': 'price', 'tags': 'chip',
+           'spec': 'fact', 'list': 'list item', 'steps': 'step', 'cta': 'button'}
+
+
+def ar_copy(d):
+    """{tok, lines:[{t, kind, part}], aud, project, market} -> {lines:[Arabic]} — see AR_RULES."""
+    email, name = acc_who(d.get('tok'))
+    me = acc_users().get(email) or {}
+    if email != acc_admin() and me.get('status') != 'active':
+        raise Fail(403, 'Sign in to the studio to write the Arabic with Claude.')
+    src = d.get('lines') if isinstance(d.get('lines'), list) else []
+    if not src or len(src) > 120:
+        raise Fail(400, 'No English lines to write in Arabic.' if not src else 'Too many lines at once.')
+    rows = []
+    for i, ln in enumerate(src):
+        ln = ln if isinstance(ln, dict) else {'t': ln}
+        t = str(ln.get('t') or '')[:400]
+        role = AR_ROLE.get(str(ln.get('kind') or ''), 'text')
+        part = str(ln.get('part') or '')
+        if part == 'sub':
+            role = 'price label' if role == 'price' else role + ' (small line)'
+        elif part in ('l', 'v'):
+            role = role + (' label' if part == 'l' else ' value')
+        rows.append({'n': i + 1, 'role': role, 'en': t})
+    if os.environ.get('ARCOPY_DRY') == '1':
+        return ok({'lines': ['[عربي] ' + r['en'] for r in rows], 'by': 'dry run'})
+    key = (os.environ.get('ANTHROPIC_API_KEY') or '').strip()
+    if not key:
+        raise Fail(503, 'Claude is not set up on this site (no ANTHROPIC_API_KEY).')
+    aud = str(d.get('aud') or '').strip()[:60]
+    brief = {'project': str(d.get('project') or '')[:120], 'market': str(d.get('market') or '')[:40],
+             'audience': aud or 'not given', 'lines': rows}
+    try:
+        import anthropic
+    except ImportError:
+        raise Fail(503, 'The Claude library is not installed on this site.')
+    client = anthropic.Anthropic(api_key=key, timeout=55.0, max_retries=0)
+    try:
+        r = client.beta.messages.create(
+            model=(os.environ.get('ARCOPY_MODEL') or 'claude-opus-5-5').strip(),
+            max_tokens=16000,
+            betas=['server-side-fallback-2026-07-01'],
+            fallbacks='default',
+            system=[{'type': 'text', 'text': AR_RULES, 'cache_control': {'type': 'ephemeral'}}],
+            output_config={'effort': 'medium', 'format': {'type': 'json_schema', 'schema': {
+                'type': 'object', 'properties': {'lines': {'type': 'array', 'items': {'type': 'string'}}},
+                'required': ['lines'], 'additionalProperties': False}}},
+            messages=[{'role': 'user', 'content': 'Write the Arabic for this ad. Audience: ' + brief['audience'] + '.\n\n' +
+                       json.dumps(brief, ensure_ascii=False, indent=1)}])
+    except anthropic.APIStatusError as e:
+        raise Fail(503, 'Claude did not answer (%s).' % e.status_code)
+    except anthropic.APIConnectionError:
+        raise Fail(503, 'Claude could not be reached.')
+    except Exception as e:  # an SDK older than a parameter used here, say: fall back, never a 500
+        raise Fail(503, 'Claude could not be asked (%s).' % type(e).__name__)
+    if r.stop_reason == 'refusal':
+        raise Fail(503, 'Claude declined these lines.')
+    txt = ''.join(b.text for b in r.content if getattr(b, 'type', '') == 'text')
+    try:
+        out = json.loads(txt).get('lines')
+    except (ValueError, AttributeError):
+        out = None
+    if not isinstance(out, list) or len(out) != len(rows):
+        raise Fail(503, 'Claude\'s answer did not match the layout.')
+    return ok({'lines': [str(x) for x in out], 'by': 'Claude'})
+
+
 ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
-           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'hubok': hub_ok, 'roamnote': roam_note}
+           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'hubok': hub_ok, 'roamnote': roam_note,
+           'arcopy': ar_copy}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.

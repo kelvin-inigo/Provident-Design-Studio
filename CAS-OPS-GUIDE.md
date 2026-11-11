@@ -361,7 +361,7 @@ The flow has three moves for the designer, and the screen always offers the next
    blank project for the next planned audience, on the Ad set tab, with the copy already there
    and that audience picked: press **Fill**, design, **Design done**. Once an audience's English
    copy is approved, the button offers **Make the Arabic** — a copy of the design in the Arabic
-   typeface, whose words are translated from the layout with Google Translate straight away.
+   typeface, whose words Claude writes in Arabic from the layout straight away.
 
 #### Pasting the copy
 
@@ -393,14 +393,22 @@ Investor:
 
 #### The Arabic copy
 
-An Arabic project takes no pasted copy. Its words are the English layout's, translated by Google
-Translate: Chrome's own translator on the computer, or, where a browser has none (Safari, an
-iPad), Google Translate's web service. That runs by itself when **Make the Arabic** makes the
-project, and when **Start the Arabic** is pressed on Status once the audience's English exists:
-the English project opens in a new window and a copy of its design becomes the Arabic, laid out
-right to left and translated, with no question asked. The Ad set tab's **Arabic copy** card has
-**Translate the layout to Arabic** to run it again after the layout changed. Undo puts the
-English back. The content team checks the Arabic at the translation step.
+An Arabic project takes no pasted copy. Its words are the English layout's, written in Arabic by
+Claude under the team's Arabic copy rules: original, natural Modern Standard Arabic that reads
+right to buyers of every Arab nationality, not a word-for-word translation; written for the ad
+set's audience (Families or Investors); each line kept to its place (a short heading, a 2–4 word
+button, chips and key facts as short as the English); every number, price, date and name kept
+exactly; nothing added that the English does not say. You need to be signed in to the studio.
+
+If Claude cannot write it (the site has no Claude key yet, or Claude does not answer), Google
+Translate does it instead, as before, and the message says so: Chrome's own translator on the
+computer, or, where a browser has none (Safari, an iPad), Google Translate's web service.
+
+That runs by itself when **Make the Arabic** makes the project, and when **Start the Arabic** is
+pressed on Status once the audience's English exists: the English project opens in a new window
+and a copy of its design becomes the Arabic, laid out right to left, with no question asked. The
+Ad set tab's **Arabic copy** card has **Write the Arabic** to run it again after the layout
+changed. Undo puts the English back. The content team checks the Arabic at the translation step.
 
 When every audience is done, performance marketing downloads the package from their link. They
 don't have to wait for the Arabic: once an audience's English copy is approved, its button reads

@@ -13605,12 +13605,13 @@ class CampaignStudio extends StudioBase {
     }, 60);
   }
   // AN ARABIC PROJECT'S COPY CARD translates what the layout says (share-link.js
-  // `arTranslateLayout`, Chrome's built-in Google Translate) instead of taking pasted words.
+  // `arTranslateLayout`: Claude under the Arabic copy rules, Google Translate when Claude cannot)
+  // instead of taking pasted words.
   brArabic() {
     if (!this.arTranslateLayout || this._arBusy) return;
-    this._arBusy = true; this._arMsg = { t: 'Starting Google Translate…' }; this.forceUpdate();
+    this._arBusy = true; this._arMsg = { t: 'Claude is writing the Arabic…' }; this.forceUpdate();
     this.arTranslateLayout(t => { this._arMsg = { t }; this.forceUpdate(); })
-      .then(n => { this._arMsg = { t: n ? 'Translated ' + n + (n === 1 ? ' line' : ' lines') + '. Check them before the translation check — Undo puts the English back.' : 'There is no English left on the layout to translate.', ok: true }; },
+      .then(n => { this._arMsg = { t: n ? (this._arBy === 'Claude' ? 'Claude wrote ' + n + (n === 1 ? ' line' : ' lines') + ' of Arabic.' : 'Translated ' + n + (n === 1 ? ' line' : ' lines') + ' with Google Translate' + (this._arWhy ? ' — Claude could not (' + this._arWhy + ').' : '.')) + ' Check them before the translation check — Undo puts the English back.' : 'There is no English left on the layout to translate.', ok: true }; },
         e => { this._arMsg = { t: (e && e.message) || String(e), bad: true }; })
       .then(() => { this._arBusy = false; this.forceUpdate(); });
   }
@@ -13706,12 +13707,12 @@ class CampaignStudio extends StudioBase {
         + (flags.length ? ' · ' + flags.length + ' flag' + (flags.length === 1 ? '' : 's') : '')) : '',
       // THE CARD'S TWO FACES: English takes the pasted copy; Arabic translates the layout
       brTitle: X && X.arb ? 'Arabic copy' : 'Copy',
-      brTip: X && X.arb ? 'The Arabic version says what the English design says, translated by Google Translate (built into Chrome, on this computer). It ran when this project was made; run it again after the layout changes. The content team checks the Arabic at the translation step.'
+      brTip: X && X.arb ? 'The Arabic version says what the English design says, written in Arabic by Claude under the team\u2019s Arabic copy rules (Google Translate when Claude cannot). It ran when this project was made; run it again after the layout changes. The content team checks the Arabic at the translation step.'
         : 'Type or paste the copy. Each audience starts with its name and a colon on a line of its own (Family:), then one line each, in order: the small label, the heading, the hook line, any tag chips or key facts, and the button. A Claude reply with a cas-copy block works too. It is kept with the campaign, so every audience fills from it.',
       brArOn: !!(X && X.arb), brEnOn: !(X && X.arb),
-      brArLead: 'The words on this layout, in Arabic, straight from Google Translate. Edit the English layout first if anything should change, then translate again.',
+      brArLead: 'The words on this layout, written in Arabic by Claude for this audience: natural Arabic, each line kept to its place, no facts added. Edit the English layout first if anything should change, then write it again.',
       brArGo: () => this.brArabic(),
-      brArLabel: this._arBusy ? 'Translating…' : (this._arMsg && this._arMsg.ok ? 'Translate the layout again' : 'Translate the layout to Arabic'),
+      brArLabel: this._arBusy ? 'Writing…' : (this._arMsg && this._arMsg.ok ? 'Write the Arabic again' : 'Write the Arabic'),
       brArMsg: this._arMsg ? this._arMsg.t : '', brArBad: this._arMsg && this._arMsg.bad ? '1' : undefined,
       brKeyOn: !S && !b.reply.trim(),
       brReadAttr: S ? '1' : undefined,

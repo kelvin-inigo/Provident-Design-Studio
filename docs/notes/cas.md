@@ -3945,3 +3945,34 @@ written and removed. Instead `.dk-qrl` carries **Open link** (`.dk-qrgo`, `qrLin
 Verified: the line reads "Opens nakheel.com/… · Open link", the link points at the raw URL,
 elementFromPoint reaches it.
 
+
+# CAS'S ARABIC IS WRITTEN BY CLAUDE UNDER THE TEAM'S ARABIC COPY RULES (2026-11-11)
+
+By request: the content team's Arabic creative-director brief (native MSA for every Arab
+nationality, not a translation; audience motivations; banned clichés; real estate terms; slot
+lengths; no invented facts) applies to CAS's Arabic. Google Translate cannot follow rules, so
+`SP.arTranslateLayout` (share-link.js) now asks Claude first:
+- **`arClaude(ctx)`** posts every Latin line of the layout in ONE request through
+  `providentAccess.call('arcopy', {lines:[{t, kind, part}], aud, project, market})`. `kind` is the
+  component type (`hero`, `cta` …), `part` the field (`text`, `sub`, `chip`, fact `l`/`v`), so
+  each line is written to its slot. `aud` is `audRoot(it.aud)` (no "· Design N", no Unbranded).
+  `arTranslateState` takes a translator with `many(rows)` for the one-shot path; the Google path
+  (per line, deduped) is unchanged.
+- **`api/share.py` `ar_copy`** (in `ACC_OPS`): the caller must be the admin or an active user
+  (`acc_who` + `acc_users`), so the key is not an open proxy. `AR_RULES` is the brief, condensed
+  and adapted to "write the Arabic for this English slot"; cached system prompt. Claude Opus 5.5,
+  effort medium, structured output `{"lines": [...]}` (count must match), server-side fallbacks
+  `"default"`. Every failure is a 503 with a reason; the studio then runs Google Translate on a
+  fresh copy of the state and says why (`this._arBy`, `this._arWhy`).
+- Key: `ANTHROPIC_API_KEY` in Vercel only (docs/arabic-copy-setup.md). `requirements.txt` (new,
+  root) installs `anthropic` for the Python function. `ARCOPY_DRY=1` on the stand-in answers
+  `[عربي] <English>`. No `vercel.json` was added (a maxDuration over the plan's cap fails the
+  deploy); the SDK timeout is 55 s, no retries.
+- Labels: the card's button is **Write the Arabic** / **Write the Arabic again** ("Writing…"),
+  the make-Arabic dialog row "Claude is writing the Arabic…", messages "Claude wrote N lines of
+  Arabic" or "Translated N lines with Google Translate — Claude could not (reason)".
+Verified: the op's gate (admin ok, outside account 403, no token 401) and dry answer over HTTP;
+the request against a fake Claude endpoint with the current SDK (2.8.0, Python 3.12): model,
+beta header, `fallbacks`, cached system, schema, the line roles; in CAS on the stand-in, both
+paths on a real layout (7 lines, one Undo each) — Claude (dry) and the fallback with the call
+failing. **Not exercised:** a real Claude call (no key here) and the Arabic card's look.
