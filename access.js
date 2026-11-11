@@ -71,6 +71,22 @@
   const D = () => window.providentDrive;
   const base = () => (window.StudioBase && StudioBase.shareBase ? StudioBase.shareBase() : '') + '/api/share?op=';
   const initials = (n, e) => { const w = String(n || '').trim().split(/\s+/).filter(Boolean); return ((w.length ? (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : '')) : String(e || '?')[0]) || '?').toUpperCase(); };
+  // GOOGLE ACCOUNT PHOTOS (2026-11-11, by request): each person's photo where their initials were.
+  // The server keeps the photo Google reports at each sign-in (accme, acclist, accteam carry it);
+  // this page remembers them by email and by name (the step logs keep names only), and a photo
+  // that will not load falls back to the initials.
+  const LS_PH = 'provident-photos';
+  const PH = (() => { try { return JSON.parse(localStorage.getItem(LS_PH) || '{}') || {}; } catch (e) { return {}; } })();
+  const phNote = list => {
+    let ch = false;
+    (list || []).forEach(u => { if (!u || !u.photo || !/^https:\/\//.test(u.photo)) return;
+      [u.email && String(u.email).toLowerCase(), u.name && 'n:' + String(u.name).trim().toLowerCase()].forEach(k => { if (k && PH[k] !== u.photo) { PH[k] = u.photo; ch = true; } }); });
+    if (ch) { try { localStorage.setItem(LS_PH, JSON.stringify(PH)); } catch (e) {} document.dispatchEvent(new CustomEvent('provident-photos')); }
+  };
+  const photoOf = (n, e) => (e && PH[String(e).toLowerCase()]) || (n && PH['n:' + String(n).trim().toLowerCase()]) || '';
+  // the inside of an avatar circle: the photo, or the initials
+  const avIn = (n, e, ini) => { const t = esc(ini || initials(n, e)), u = photoOf(n, e);
+    return u ? '<img class="acx-ph" src="' + esc(u) + '" alt="" referrerpolicy="no-referrer" data-i="' + t + '" onerror="this.parentNode.textContent=this.dataset.i">' : t; };
   const when = t => {
     if (!t) return '';
     const d = new Date(t), now = new Date(), m = Math.round((now - d) / 60000);
@@ -184,7 +200,7 @@
     }
     try {
       const me = await post('accme');
-      A.me = me; A.err = '';
+      A.me = me; A.err = ''; phNote([me]);
       if (me.perms) { try { localStorage.setItem(LS_PERMS, JSON.stringify(me.perms)); } catch (e) {} }
       A.phase = me.status === 'active' ? 'in' : (me.status === 'pending' ? 'pending' : 'declined');
     } catch (e) {
@@ -263,7 +279,7 @@
   }
   function body() {
     const d = D(), w = d && d.who ? d.who() : null, me = A.me;
-    const acct = x => x ? '<div class="acx-acct"><span class="acx-av">' + esc(initials(x.name, x.email)) + '</span><span><b>' + esc(x.name || x.email) + '</b><small>' + esc(x.email) + '</small></span></div>' : '';
+    const acct = x => x ? '<div class="acx-acct"><span class="acx-av">' + avIn(x.name, x.email) + '</span><span><b>' + esc(x.name || x.email) + '</b><small>' + esc(x.email) + '</small></span></div>' : '';
     const errLine = A.err ? '<p class="acx-err" role="alert">' + esc(A.err) + '</p>' : '';
     const other = '<button type="button" class="acx-link" data-x="other">Use another account</button>';
     if (A.phase === 'in' && blocked()) return (can('design-ops') || can('posts') ? '<h1>Your work is in the Organic Post Studio</h1><p class="acx-lede">The Campaign Ads Studio is for Meta ads. As ' + esc(roleWord(rawRole())) +
@@ -375,7 +391,7 @@
       c.addEventListener('click', e => { if (e.target.closest('[data-x=out]')) signOut(); });
     }
     if (c.parentNode !== sb || sb.lastElementChild !== c) sb.appendChild(c);
-    const html = '<span class="acx-av">' + esc(initials(A.me.name, A.me.email)) + '</span><span class="acx-me-t" title="' + esc((A.me.name ? A.me.name + ' · ' : '') + A.me.email + ' · ' + (ROLE[A.me.role] || '')) + '"><b>' + esc(A.me.name || A.me.email) + '</b><small>' + esc(ROLE[A.me.role] || '') + '</small></span>' +
+    const html = '<span class="acx-av">' + avIn(A.me.name, A.me.email) + '</span><span class="acx-me-t" title="' + esc((A.me.name ? A.me.name + ' · ' : '') + A.me.email + ' · ' + (ROLE[A.me.role] || '')) + '"><b>' + esc(A.me.name || A.me.email) + '</b><small>' + esc(ROLE[A.me.role] || '') + '</small></span>' +
       '<button type="button" class="acx-me-out" data-x="out" title="Sign out of ' + esc(A.me.email) + '" aria-label="Sign out">' + ic('logout') + '</button>';
     if (c._h !== html) { c.innerHTML = html; c._h = html; }
   }
@@ -383,7 +399,7 @@
   // ── the admin panel (the Access view) ────────────────────────────────────────────────────
   async function loadList(quiet) {
     if (A.listBusy) return; A.listBusy = true;
-    try { A.list = await post('acclist'); A.listErr = ''; }
+    try { A.list = await post('acclist'); A.listErr = ''; phNote(A.list && A.list.users); }
     catch (e) { A.listErr = e.message; }
     A.listBusy = false;
     if (A.host) { try { A.host.forceUpdate(); } catch (e) {} }
@@ -435,7 +451,7 @@
       if (!R.length) h += '<div class="ac-empty">' + ic('shield') + '<b>No one is waiting</b><span>When someone signs in for the first time they show up here, with any note they leave, for you to let in or decline.</span></div>';
       else h += '<ul class="ac-reqs">' + R.map(u => {
         const sel = (A.pick && A.pick[u.email]) || u.want || 'pm';
-        return '<li class="ac-req"><span class="acx-av">' + esc(initials(u.name, u.email)) + '</span>' +
+        return '<li class="ac-req"><span class="acx-av">' + avIn(u.name, u.email) + '</span>' +
           '<div class="ac-who"><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + '</small>' +
           '<span class="ac-meta">Tried ' + (u.n > 1 ? u.n + ' times · first ' + esc(when(u.first)) + ' · last ' : '') + esc(when(u.last)) + (u.want ? ' · asks to be ' + roleWord(u.want) : '') + '</span>' +
           (u.note ? '<q class="ac-q">' + esc(u.note) + '</q>' : '') + '</div>' +
@@ -462,10 +478,10 @@
       h += '<form class="ac-add" data-ac="add"><label for="ac-em">Add someone</label><input id="ac-em" type="email" required placeholder="name@' + esc(A.list.domain || A.domain) + '" autocomplete="off">' +
         seg('add', '', A.addRole || 'pm') + '<button type="submit" class="acx-btn">Add</button></form>' +
         '<table class="ac-t"><thead><tr><th>Person</th><th>Role</th><th>Last signed in</th><th><span class="ac-sr">Actions</span></th></tr></thead><tbody>' +
-        '<tr data-st="active"><td><div class="ac-p"><span class="acx-av">' + esc(initials(A.me.name, adm)) + '</span><span><b>' + esc(A.me.name || adm) + '</b><small>' + esc(adm) + '</small></span></div></td><td><span class="ac-role">Admin · you</span></td><td>now</td><td></td></tr>' +
+        '<tr data-st="active"><td><div class="ac-p"><span class="acx-av">' + avIn(A.me.name, adm) + '</span><span><b>' + esc(A.me.name || adm) + '</b><small>' + esc(adm) + '</small></span></div></td><td><span class="ac-role">Admin · you</span></td><td>now</td><td></td></tr>' +
         Pp.map(u => {
           const act = u.status === 'active';
-          return '<tr data-st="' + esc(u.status) + '"><td><div class="ac-p"><span class="acx-av">' + esc(initials(u.name, u.email)) + '</span><span><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + '</small></span></div></td>' +
+          return '<tr data-st="' + esc(u.status) + '"><td><div class="ac-p"><span class="acx-av">' + avIn(u.name, u.email) + '</span><span><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + '</small></span></div></td>' +
             '<td>' + (act ? seg('role', u.email, u.role) : '<span class="ac-st">' + esc({ declined: 'Declined', revoked: 'Access removed' }[u.status] || u.status) + '</span>') + '</td>' +
             '<td class="ac-num">' + (u.last ? esc(when(u.last)) : '<span class="ac-dim">not yet</span>') + '</td>' +
             '<td class="ac-end">' + (act ? '<button type="button" class="acx-ghost ac-no" data-ac="revoke" data-e="' + esc(u.email) + '">Remove access</button>'
@@ -564,6 +580,7 @@
       const d = D(); if (!d || !(await d.ensure())) throw new Error('Sign in with Google to see the team.');
       const r = await post('accteam');
       if (r.perms) { A.teamPerms = r.perms; try { localStorage.setItem(LS_PERMS, JSON.stringify(r.perms)); } catch (e) {} }
+      phNote(r.people);
       return r.people || [];
     })();
     teamP.catch(() => { teamP = null; });
@@ -621,7 +638,7 @@
         w.innerHTML = '<div class="acx-pk-in"><h2 id="acx-pk-h">' + esc(o.title) + '</h2>' + (o.lead ? '<p class="acx-pk-l">' + esc(o.lead) + '</p>' : '') +
           (o.list.length ? '<div class="acx-pk-list" role="radiogroup" aria-label="' + esc(o.title) + '">' + o.list.map(p =>
             '<button type="button" role="radio" aria-checked="' + (p.email === sel) + '" class="acx-pk-p" data-e="' + esc(p.email) + '"' + (p.email === sel ? ' data-on' : '') + '>' +
-            '<span class="acx-av">' + esc(initials(p.name, p.email)) + '</span><span class="acx-pk-t"><b>' + esc(nameOf(p)) + (p.email === mine ? ' <s>you</s>' : '') + '</b><small>' + esc(p.email) + '</small><small>' + esc(SEGL[p.role] || ROLE[p.role] || '') +
+            '<span class="acx-av">' + avIn(p.name, p.email) + '</span><span class="acx-pk-t"><b>' + esc(nameOf(p)) + (p.email === mine ? ' <s>you</s>' : '') + '</b><small>' + esc(p.email) + '</small><small>' + esc(SEGL[p.role] || ROLE[p.role] || '') +
             (p.last ? ' · last in ' + esc(when(p.last)) : ' · not signed in yet') + '</small></span><i class="acx-pk-r" aria-hidden="true">' + ic('check') + '</i></button>').join('') + '</div>'
             : '<p class="acx-pk-l">' + esc(o.err || ('Nobody is on the ' + o.T.word + ' yet. The admin adds people in Access.')) + ' It goes to the whole ' + esc(o.T.word) + ' instead.</p>') +
           '<div class="acx-row acx-pk-f"><button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
@@ -701,6 +718,8 @@
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: (viewWho() && viewWho().email) || me() };
     },
     team, handOff, me,
+    // a person's Google photo (or ''), and the inside of an avatar circle: photo or initials
+    photo: (n, e) => photoOf(n, e), avIn,
     // the share service as the signed-in person (the home reads the Content Hub's tasks with it)
     call: (op, body) => post(op, body),
     // what each role opens (Access › Roles): can('tickets'), can('design-ops', 'smm'), perms()
@@ -754,6 +773,8 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 #acx .acx-skel{display:grid;gap:10px}#acx .acx-skel i{display:block;height:52px;border-radius:9999px;background:var(--ps-fill);animation:acxPulse 1.4s ease-in-out infinite}#acx .acx-skel i+i{width:60%;height:14px;margin:4px auto 0}
 @keyframes acxPulse{50%{opacity:.5}}
 #acx .acx-acct{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);margin:0 0 24px}
+.acx-av,.uh-av,.uh-me,.shl-av{overflow:hidden}
+.acx-ph{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
 .acx-av{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ps-accent);color:var(--ps-accent-i);font:600 12.5px/1 var(--ps-font);letter-spacing:.02em}
 #acx .acx-acct b,.acx-me-t b{display:block;font:500 14px/1.3 var(--ps-font)}#acx .acx-acct small,.acx-me-t small{display:block;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-dim)}
 #acx .acx-steps{list-style:none;margin:0 0 28px;padding:0;display:grid;gap:0}

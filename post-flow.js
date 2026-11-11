@@ -256,7 +256,7 @@
           found.push(...(await dsQuery('(' + par + ") and trashed=false and name contains '" + POST_TAIL + "'")));
         }
         await pool(found.filter(f => !known.has(f.id)), 6, async f => {
-          try { const rs = await dsRead(f.id, false, true); if (isPost(rs) && !rs.deleted && rs.tok) Posts.add(rs); } catch (e) {}
+          try { const rs = await dsRead(f.id, false, true); if (isPost(rs) && !rs.deleted && !rs.pending && rs.tok) Posts.add(rs); } catch (e) {}
         });
         findAt = Date.now();
         return true;
@@ -275,6 +275,9 @@
     const rs = { app: 'provident-post', kind: 'post', name: String(plan.name || 'Post').trim().slice(0, 120), created: now, by, folder,
       drive: 'https://drive.google.com/drive/folders/' + folder, tpl: plan.tpl || '', items: [], hist: [{ act: 'ticket', by, at: now }], log: [],
       ticket: { brief: String(plan.brief || '').slice(0, 60000), deadline: plan.deadline || '', by, at: now, files: [] } };
+    // NOT ON STATUS UNTIL SAVED (2026-11-11, by request): a post made by picking its template is
+    // pending — kept off Status and Home — until the person saves it or takes a step (postSaved)
+    if (plan.pending) rs.pending = now;
     busy('Saving the post…', .12);
     const f = await dsCreate(folder, dsSafe(rs.name) + POST_TAIL, dsJson(rs));
     rs.rid = f.id; rs.tok = { dd: 'R' + dsRand(10) + '.' + f.id };
@@ -418,7 +421,7 @@
     this.postCopyLand();
     return {
       pfOn: '1', pfState: st.k === 2 ? 'ct' : st.k === 3 ? 'done' : 'k' + st.k, pfSegs: segs(st.k), pfStep: STEPS[st.k].t,
-      pfWhere: st.k === 3 && !(it0 && it0.to) ? (rs.name || '') : waitOf(rs, st.k) + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
+      pfWhere: rs.pending ? 'Not on Status until you save it' : st.k === 3 && !(it0 && it0.to) ? (rs.name || '') : waitOf(rs, st.k) + (rs.ticket && rs.ticket.deadline ? ' · due ' + dueDay(rs.ticket.deadline) : ''),
       pfTip: (rs.name || 'Post') + ' — ' + waitOf(rs, st.k) + '. Opens the post’s panel: its steps, who did what, and its Drive folder.',
       pfGo: () => this.shPanel(true),
       pfFlowOn: a.go ? '1' : undefined, pfFlowLabel: busy ? 'Saving…' : a.go ? a.go.label : '', pfFlowTip: a.go ? a.go.tip : '',
@@ -531,7 +534,7 @@
         const name = String(d.name || '').trim() || 'Untitled post · ' + day(Date.now());
         const dlg = busyDlg('Starting “' + name + '”', 'The post gets its own folder on Google Drive. Pick up where you left off from Status, on any computer.');
         try {
-          const rs = await makePost({ name, brief: d.brief, deadline: d.deadline, tpl: t, by: StudioBase.shareName() || 'Someone' }, Plan.files, dlg.busy);
+          const rs = await makePost({ name, brief: d.brief, deadline: d.deadline, tpl: t, by: StudioBase.shareName() || 'Someone', pending: true }, Plan.files, dlg.busy);
           lsSet(PICK, JSON.stringify({ tok: rs.tok.dd, at: Date.now() }));
           Plan.clear();
           dlg.close();
@@ -539,6 +542,9 @@
         this.markSaved && this.markSaved();
         return pick.call(this, t);
       };
+      // Save puts a pending post on Status
+      const rec = proto.recordSaved;
+      if (rec) proto.recordSaved = async function () { const r = await rec.apply(this, arguments); try { await this.postSaved(); } catch (e) {} return r; };
       proto.deliver = async function (files, name, opt) {
         const r = await deliver.call(this, files, name, opt);
         if (r !== false && !this._ep) await exportsUp(this, files);
@@ -546,6 +552,25 @@
       };
     }
     this.postPickCheck();
+    // CLOSING A POST THAT WAS NEVER SAVED (2026-11-11, by request): the browser asks first; leaving
+    // anyway keeps it off Status for good (it stays pending; its Drive folder is left as it is)
+    if (!this._pfLeave) {
+      this._pfLeave = e => { const rs = this.postRs(); if (StudioBase.reloading || !rs || !rs.pending) return undefined; e.preventDefault(); e.returnValue = 'This post is not saved yet. Save it to put it on Status.'; return e.returnValue; };
+      window.addEventListener('beforeunload', this._pfLeave);
+    }
+  };
+  // the person saved (or stepped): a pending post goes on Status
+  SP.postSaved = async function () {
+    const rs = this.postRs(), S = this._sh;
+    if (!rs || !rs.pending || this._pfSaving) return;
+    this._pfSaving = true;
+    try {
+      const r = await api('rsset', { id: (rs.tok && rs.tok.dd) || S.id }, { by: StudioBase.shareName() || 'Someone', pending: false });
+      if (r && r.rs) S.rs = Object.assign({}, S.rs, r.rs); else delete rs.pending;
+      if (S.rs) delete S.rs.pending;
+      Posts.add(S.rs, true);
+      this.forceUpdate();
+    } finally { this._pfSaving = false; }
   };
 
   // ── Home, door two: Start a post ─────────────────────────────────────────────────────────
@@ -640,7 +665,7 @@
           await discover(!quiet);
           const ids = Posts.list().map(x => x.id), out = [];
           for (let i = 0; i < ids.length; i += 40) out.push(...((await api('rsinfo', { ids: ids.slice(i, i + 40).join(',') })).items || []));
-          this.items = out.filter(x => !x.gone && isPost(x.rs));
+          this.items = out.filter(x => !x.gone && isPost(x.rs) && !x.rs.pending);
           this.err = '';
           try { lsSet(CACHE, JSON.stringify({ at: Date.now(), items: this.items.map(x => Object.assign({}, x, { log: undefined, plog: undefined, proj: undefined })) })); } catch (e) {}
           try { inboxOps(this.items); } catch (e) {}
@@ -872,10 +897,24 @@
       catch (e) { window.alert(e.message || String(e)); this.draw(); }
     }
     else if (a === 'delete') {
-      if (!window.confirm('Delete “' + b.dataset.nm + '” for everyone?\n\nIt leaves Status and Home on every computer. Its files stay in its Google Drive folder.')) return;
+      // ASKED ON THE PAGE (2026-11-11): the first click arms the button, the second deletes. A
+      // browser that suppresses window.confirm (an embedded pane) made the button do nothing at all
+      if (b.dataset.armed !== '1') {
+        b.dataset.armed = '1'; b.textContent = 'Click again to delete “' + b.dataset.nm + '” for everyone';
+        b.title = 'It leaves Status and Home on every computer. Its files stay in its Google Drive folder.';
+        clearTimeout(b._arm); b._arm = setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete for everyone'; } }, 6000);
+        return;
+      }
+      clearTimeout(b._arm);
       b.disabled = true; b.textContent = 'Deleting…';
-      try { await api('rsdel', { id }); Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); Feed.load(false); }
-      catch (e) { window.alert('Couldn’t delete it: ' + (e.message || String(e))); b.disabled = false; b.textContent = 'Delete for everyone'; }
+      const gone = () => { Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); Feed.load(false); };
+      try { await api('rsdel', { id }); gone(); }
+      catch (e) {
+        // A POST ALREADY GONE (2026-11-11): deleted elsewhere, or its file no longer readable — the
+        // delete found nothing, so the post only lived on in this computer's list; it leaves it
+        if (e && (e.code === 404 || /not valid|not found|cannot find|any more/i.test(e.message || ''))) { gone(); return; }
+        window.alert('Couldn’t delete it: ' + (e.message || String(e))); b.disabled = false; b.textContent = 'Delete for everyone';
+      }
     }
     else if (a === 'remove') { if (window.confirm('Take this post off Status on this computer? It stays on Google Drive.')) { Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); } }
   };

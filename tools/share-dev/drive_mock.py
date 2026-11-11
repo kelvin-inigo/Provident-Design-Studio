@@ -87,6 +87,10 @@ def _multipart(ctype, body):
     return meta, (out[1][1] if len(out) > 1 else b'')
 
 
+# every stand-in account's Google photo (Google's default picture), for the avatars (2026-11-11)
+PHOTO = 'https://lh3.googleusercontent.com/a/default-user=s96-c'
+
+
 def route(method, path, query, headers, body):
     """(method, path, query, headers, body) -> (status, content-type, bytes)"""
     if not (headers.get('Authorization') or '').startswith('Bearer '):
@@ -97,8 +101,8 @@ def route(method, path, query, headers, body):
         t = (headers.get('Authorization') or '')[7:]
         if t.startswith('dev:'):
             em, _, nm = t[4:].partition(':')
-            return _json(200, {'user': {'displayName': urllib.parse.unquote(nm), 'emailAddress': em}})
-        return _json(200, {'user': {'displayName': 'Kelvin Inigo', 'emailAddress': 'kelvin.inigo@providentestate.com'}})
+            return _json(200, {'user': {'displayName': urllib.parse.unquote(nm), 'emailAddress': em, 'photoLink': PHOTO}})
+        return _json(200, {'user': {'displayName': 'Kelvin Inigo', 'emailAddress': 'kelvin.inigo@providentestate.com', 'photoLink': PHOTO}})
     up = path.startswith('/upload/')
     rest = path.split('/files', 1)[1] if '/files' in path else ''
     fid = rest.strip('/') or None

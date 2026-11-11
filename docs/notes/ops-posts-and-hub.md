@@ -729,3 +729,27 @@ By request: a reel thumbnail goes on nobody else's Status unless the SMM sends i
 Verified on the stand-in, as admin with Hand it on selected: the reel opened as Just you, the top
 bar fits at 1280, and Send to designer went Draft › Design "With Aisha Rahman", on Status under
 Design. Test post deleted. **Not exercised:** an SMM account, real Drive.
+
+## Posts stay off Status until saved; delete without confirm; hub copy approved from Home (2026-11-11, by request)
+- **Pending posts.** "Before creating a design in OPS, if the user closes the tab, warn them; if
+  they still click away, don't save them here." `pickTpl` (a name, brief or files) still makes the
+  Drive post (the brief files need a home), but `makePost(plan.pending)` sets `rs.pending`.
+  `discover()` and `Feed.load` skip pending posts, so Status and Home (inboxOps) never list them.
+  `postSaved()` (wrapped `recordSaved`, i.e. Save) sends `rsset {pending:false}` (logged "Saved the
+  post — it is on Status now"); any `rsstep` on a post deletes `pending` too. `_pfLeave` is a
+  beforeunload guard while `postRs().pending` (not on `StudioBase.reloading`). The flow bar reads
+  "Not on Status until you save it". A post left pending stays in its Drive folder, invisible.
+  `dsPub` passes `pending`. Verified on the stand-in: a named post picked from Start a post was not
+  on Status (6 posts), Save (recordSaved) cleared pending and it showed (7). The leave prompt itself
+  was not clicked through.
+- **Delete for everyone** no longer uses `window.confirm` (an embedded browser pane may swallow
+  it, which looked like "not working" on a live post): first click arms the button ("Click again to
+  delete …", 6 s), the second deletes. A delete that finds the record gone (404 / not valid) drops
+  it from this computer's list anyway. Verified with two real clicks on the stand-in (7 → 6).
+- **Copy approved from Home.** api/share.py `hub_ok` (op `hubok`, {tok, id}): the admin or an active
+  ct/cten/ctar/smm marks a hub task in `review` as `approved` with `ok {by, email, at}`. index.html
+  `hubRows` sets `hubok` (review, role ct/smm/admin) and the sub "Copy approved by <first name>";
+  `hubOkBtn` on Next up and the list rows, two clicks (`hubArm` kept across redraws), then
+  `hubLoad(true)`. The hub is not told; its next push of that post wins. Verified on the stand-in
+  (pushed task 4242 in review, preview as cten): Copy approved → Ready, ok.by recorded.
+

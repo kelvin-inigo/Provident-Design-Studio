@@ -128,6 +128,10 @@ say so and point to the step above.
     check**, approved under **Ready** (for two weeks). In the hub, the **Designer** field (at
     **Approve and send to design**, and in the post's Design section beside **Open in OPS**) says
     who it's for: it then waits on that designer only, and shows "For <name>" to everyone else.
+    A Content Hub post waiting for approval has a **Copy approved** button on Home (Next up and
+    the list) for the content team and social media: click it, then **Click again to approve**.
+    It moves to **Ready** on Status ("Copy approved by <name>"). The Content Hub itself is not
+    told, so approve it there too if the hub needs it.
     Designers, the content team and the social media manager all see these posts on Status (the
     content team sees them even though the rest of their board is only their own hand-offs); one
     waiting for approval on the hub shows **Waits on you** to the content team and the social
@@ -155,6 +159,7 @@ say so and point to the step above.
   Component / Layout** (CAS) or **Template / Slide** (OPS).
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the
   two studios link to each other.
+- People show with their Google account photo wherever their initials were (the account menu, Status cards, Access, the hand-off picker, the activity logs). Someone who hasn't signed in since 11 November 2026 still shows initials until they next sign in.
 - To switch studios, go back to the home page: the editors' top bar has no **Campaign ads** /
   **Organic posts** switch any more.
 - The **provident. DESIGN STUDIO** wordmark at the left of the top bar, in CAS and OPS, is a link to the home page.
@@ -179,7 +184,7 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published (on Next up and on every row of Also waiting on you). **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
 | **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link in a new tab, where only **Approve English copy** shows. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
-| **Everyone but the admin** | The top bar shows only the pages you use: **Home** and **Status** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your initials). |
+| **Everyone but the admin** | The top bar shows only the pages you use: **Home** and **Status** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
 | **Digital Marketing Team** | Runs the same campaigns as the Meta ads on email, SMS and WhatsApp. It sees and does exactly what **Performance marketing** does (above): file tickets, follow campaigns on Status, open an ad set's performance-marketing link to see the finished ads, change words in **Edit text**, download and **Launch**. It has its own name and its own column (**Digital**) under Access › Roles. |
 | **Admin** | Everything a designer has, plus **Access** on the home page (CAS's sidebar row opens it there too). There is one admin. |
@@ -1140,12 +1145,16 @@ Every post goes through four steps:
    then presses **Posted**: the post is closed, its page reads "Posted", the log says who, and it
    leaves Home for the **Closed** column on Status (shown with **Show closed**).
 
-A post goes on Google Drive (and Status) when it has a name or a brief as you pick its template.
-Picked with neither, it opens on this computer only ("Not on Drive"), and **Send to designer** puts
-it on Drive under the project's name, so looking at a template no longer leaves an "Untitled post".
+A post goes on Google Drive when it has a name or a brief as you pick its template, but it stays
+off Status and Home until you **Save** it (or press a step such as **Send to designer**). Until
+then the top bar reads "Not on Status until you save it", and closing the tab asks first ("Leave
+site?"). Leave anyway and the post never shows on Status. Picked with neither a name nor a brief,
+it opens on this computer only ("Not on Drive"), and **Send to designer** puts it on Drive under
+the project's name, so looking at a template no longer leaves an "Untitled post".
 
 **Delete for everyone** (a post's page, under the brief; the admin, designers and the social media
-manager) takes the post off Status and Home on every computer, after a confirm. Its files stay in
+manager) takes the post off Status and Home on every computer. Click it once, then click again
+(**Click again to delete …**) within a few seconds. Its files stay in
 its Google Drive folder. **Take off this computer's Status** only hides it here.
 
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most

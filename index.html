@@ -636,6 +636,8 @@ button{font-family:inherit}
    (CAS by campaign, OPS by format); the tiles are the desk's */
 .pj-tools{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:24px 0 8px}
 .pj-tools .srch{margin-left:auto}
+/* the filter chips' own bottom margin lifted them above the Open buttons (2026-11-11) */
+.pj-tools .flt{margin:0}
 .pj-open{display:flex; flex-wrap:wrap; gap:8px}
 .pj-open .b{height:32px; padding:0 13px; font-size:13px}
 .pj-s{margin-top:36px}
@@ -898,6 +900,13 @@ body{-webkit-tap-highlight-color:transparent;
     return new Date(ts).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
   }
   function initials(n){ var p = String(n || '').trim().split(/[\s.@_-]+/).filter(Boolean); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
+  // GOOGLE PHOTOS (2026-11-11, by request): the inside of an avatar — the person's Google photo
+  // where access.js knows it (by email or name; "You" is the signed-in person), else the initials
+  function avIn(n, e){
+    var A = window.providentAccess, ini = initials(n || e);
+    if (/^you$/i.test(String(n || '').trim()) && me) { n = me.name; e = me.email; }
+    return A && A.avIn ? A.avIn(n, e, ini) : esc(ini);
+  }
   function first(n){ return String(n || '').trim().split(/\s+/)[0] || ''; }
   // due dates are days ('2026-11-04'); late, today, tomorrow and this week read as words
   function due(d){
@@ -1082,7 +1091,7 @@ body{-webkit-tap-highlight-color:transparent;
         // LAUNCH (2026-11-04, by request): performance marketing says the package is running
         (r === 'pm' && top.launch ? '<button class="b b-l" type="button" data-launch="' + esc(top.launch) + '" data-nm="' + esc(top.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') +
         // POSTED (2026-11-04, by request): social media closes the post once it is published
-        (dlOf(top) ? postedBtn(top, 'b b-l') : '') + '</div></div></article>';
+        (dlOf(top) ? postedBtn(top, 'b b-l') : '') + hubOkBtn(top, 'b b-l') + '</div></div></article>';
     } else h += quiet('home');
 
     var rest = list.filter(function(x){ return x !== top; });
@@ -1163,6 +1172,24 @@ body{-webkit-tap-highlight-color:transparent;
         '<button class="b b-g" type="button" data-dl="' + esc(id) + '" data-f="' + esc(f.id) + '">' + ico('down') + '<span>Download</span></button></li>';
     }).join('') + '</ul>';
   }
+  // COPY APPROVED (2026-11-11, by request): a Content Hub post waiting for approval; the first
+  // click arms it, the second marks it approved (op hubok) and it moves to Ready
+  // the armed button is remembered here, so a redraw of Home between the two clicks keeps it
+  var hubArm = { id: '', at: 0 };
+  function hubArmed(id){ return hubArm.id === id && Date.now() - hubArm.at < 8000; }
+  function hubOkBtn(x, cls){ return x.hubok ? '<button class="' + cls + '" type="button" data-hubok="' + esc(x.hubok) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>' + (hubArmed(x.hubok) ? 'Click again to approve' : 'Copy approved') + '</span></button>' : ''; }
+  function hubOk(t){
+    var id = t.dataset.hubok;
+    if (t.disabled || !acc || !acc.call) return;
+    if (!hubArmed(id)) {
+      hubArm = { id: id, at: Date.now() }; t.lastChild.textContent = 'Click again to approve';
+      setTimeout(function(){ if (hubArm.id === id && !hubArmed(id)) { hubArm = { id: '', at: 0 }; document.querySelectorAll('[data-hubok="' + id + '"]').forEach(function(b){ if (!b.disabled) b.lastChild.textContent = 'Copy approved'; }); } }, 8100);
+      return;
+    }
+    hubArm = { id: '', at: 0 }; t.disabled = true; t.lastChild.textContent = 'Saving\u2026';
+    acc.call('hubok', { id: id }).then(function(){ cur = 0; return hubLoad(true); }).then(function(){ redraw(); })
+      .catch(function(er){ t.disabled = false; t.lastChild.textContent = 'Copy approved'; window.alert('Couldn\u2019t approve it: ' + ((er && er.message) || 'The studio refused.')); });
+  }
   function postedBtn(x, cls){ return '<button class="' + cls + '" type="button" data-launch="' + esc(x.id) + '" data-op="rsposted" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Posted</span></button>'; }
   // a ready post's images, for social media (post-flow.js providentPostFeed.download)
   function dlOf(x){ return data.r === 'smm' && x.studio === 'ops' && x.ready && x.dl; }
@@ -1173,7 +1200,7 @@ body{-webkit-tap-highlight-color:transparent;
       // a row's actions: open it, and (2026-11-04, by request) social media's Posted and
       // performance marketing's Launch, as on Next up
       dueEl(x) + (other ? '' : '<span class="row-a">' + (dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>' + esc(x.verb || 'Open') + '</a>') +
-        (dlOf(x) ? postedBtn(x, 'b b-q') : data.r === 'pm' && x.launch ? '<button class="b b-q" type="button" data-launch="' + esc(x.launch) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + '</span>') + '</li>';
+        hubOkBtn(x, 'b b-q') + (dlOf(x) ? postedBtn(x, 'b b-q') : data.r === 'pm' && x.launch ? '<button class="b b-q" type="button" data-launch="' + esc(x.launch) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + '</span>') + '</li>';
   }
 
   // ═════ THE SKY: the greeting panel's time of day ═════
@@ -1250,7 +1277,7 @@ body{-webkit-tap-highlight-color:transparent;
         (c.length ? '<ul class="cds">' + c.map(function(x){
           return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span class="cd-n">' + mkOf(x) + '<b title="' + esc(x.name) + '">' + esc(x.name).replace(/_/g, '_<wbr>') + '</b></span></span>' +
             '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
-            '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + esc(initials(x.from)) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x)) + '</span></a></li>';
+            '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + avIn(x.from) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x)) + '</span></a></li>';
         }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + (sxF !== 'all' || sxMine || sxQ ? ' for this filter' : '') + '.</p>') + '</section>';
     }).join('') + '</div>' + freshLine();
     return h;
@@ -1290,7 +1317,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (!me || !me.email || phase === 'signin' || phase === 'busy') return h + '<p class="lede" style="margin-bottom:24px">Who you are signed in as, and what your role lets you do.</p>' + quiet('access');
     var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2] === 'admin' ? isAdmin() : !!(acc && acc.can && acc.can(c[2])); });
     h = '<div class="ax2"><div class="ax2-main">' + h + '<p class="lede">Who you are signed in as, and what your role lets you do.</p>' +
-      '<section class="idc"><span class="uh-av">' + esc(initials(P.name || P.email)) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
+      '<section class="idc"><span class="uh-av">' + avIn(P.name, P.email) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
         (raw ? '<span class="idc-r">' + esc(ROLE[raw] || raw) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (isAdmin() ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
       '<section class="pan"><div class="sh">What your role opens<small>' + can.filter(Boolean).length + ' of ' + CAN.length + '</small></div><ul class="cn">' + CAN.map(function(c, i){
         return '<li data-on="' + (can[i] ? 1 : 0) + '"><span class="cn-i">' + (can[i] ? ico('check') : '') + '</span><span><b>' + c[0] + '</b><small>' + c[1] + '</small></span><span class="cn-s">' + (can[i] ? 'Yes' : 'No') + '</span></li>';
@@ -1329,7 +1356,7 @@ body{-webkit-tap-highlight-color:transparent;
     // ONE QUIET LINE (2026-11-05, /impeccable): who you are seeing the home as, their role, the one
     // thing to know, and the way out, under the header on the page's own gutter
     if (pv) pb.innerHTML = '<div class="pv-in"><span class="pv-ic">' + ico('eye') + '</span>' +
-      '<span class="pv-t">Viewing as ' + (pw ? '<span class="uh-av" data-sm>' + esc(initials(pw.name || pw.email)) + '</span>' : '') + '<b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? '<span class="pv-r">' + esc(ROLE[pv] || pv) + '</span>' : '') + '</span>' +
+      '<span class="pv-t">Viewing as ' + (pw ? '<span class="uh-av" data-sm>' + avIn(pw.name, pw.email) + '</span>' : '') + '<b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? '<span class="pv-r">' + esc(ROLE[pv] || pv) + '</span>' : '') + '</span>' +
       '<span class="pv-n" title="' + (pw ? 'What waits on them, ' : 'Their queue, ') + 'board, New and Access. Nothing here changes their account.">A step you press here is really taken</span>' +
       '<button type="button" data-endpv>' + ico('x') + 'End preview</button></div>';
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -1343,7 +1370,8 @@ body{-webkit-tap-highlight-color:transparent;
     nb.hidden = !cs.length; nb.href = cs.length > 1 ? '#/new' : cs.length ? STUDIO[cs[0]].start : '#/new';
     $('newlbl').textContent = cs.length > 1 ? 'New' : cs[0] === 'cas' ? 'New ticket' : 'New post';
     var nm = me && (me.name || me.email);
-    $('meav').textContent = $('mn-av').textContent = nm ? initials(nm) : '?';
+    var avh = nm ? avIn(me.name, me.email) : '?';
+    if ($('meav')._h !== avh) { $('meav').innerHTML = $('mn-av').innerHTML = avh; $('meav')._h = avh; }
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
     $('mn-r').textContent = data.r ? (ROLE[rawRole()] || ROLE[data.r] || data.r) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
@@ -1371,6 +1399,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (t.hasAttribute('data-drive')){ e.preventDefault(); connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
     if (t.dataset.launch){ launch(t); return; }
+    if (t.dataset.hubok){ hubOk(t); return; }
     if (t.dataset.dl){ download(t); return; }
     if (t.hasAttribute('data-endpv')){ if (acc && acc.preview) acc.preview(null); return; }
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }
@@ -1464,7 +1493,10 @@ body{-webkit-tap-highlight-color:transparent;
     F.download(t.dataset.dl, t.dataset.f || '').catch(function(er){ window.alert('Couldn\u2019t download it: ' + ((er && er.message) || 'Google Drive refused.')); })
       .then(function(){ t.disabled = false; t.lastChild.textContent = 'Download'; });
   }
+  var phPrimed = false;
+  document.addEventListener('provident-photos', function(){ redraw(); });
   function refreshAll(force){
+    if (!phPrimed && acc && acc.team && phase === 'in') { phPrimed = true; acc.team().catch(function(){}); }
     var jobs = [];
     if (sees('cas') && window.providentReviews) { if (force) { try { localStorage.removeItem('provident-status-sum'); } catch (e) {} } jobs.push(window.providentReviews.refreshSum(null)); }
     if (sees('ops') && window.providentPostFeed) jobs.push(window.providentPostFeed.load(!force));
@@ -1504,7 +1536,7 @@ body{-webkit-tap-highlight-color:transparent;
       var step = open ? 'Ticket' : st === 'review' ? 'Copy check' : ready ? 'Ready' : 'Design';
       var who = to ? (mineTo ? 'you' : to.name || to.email.split('@')[0]) : '';
       var sub = open ? (who ? 'For ' + who : 'Waiting for a designer') : st === 'changes' ? 'Changes asked on the hub' + (who ? ' · ' + who : '')
-        : st === 'review' ? 'Waiting for approval on the hub' : ready ? 'Approved on the hub' : 'In design' + (who ? ' · ' + who : t.by ? ' · ' + t.by.replace(/\s*\(.*\)$/, '') : '');
+        : st === 'review' ? 'Waiting for approval on the hub' : ready ? (t.ok && t.ok.by ? 'Copy approved by ' + t.ok.by.split(/\s+/)[0] : 'Approved on the hub') : 'In design' + (who ? ' · ' + who : t.by ? ' · ' + t.by.replace(/\s*\(.*\)$/, '') : '');
       var k = open ? 0 : st === 'review' ? 2 : ready ? 3 : 1;
       var b64 = btoa(unescape(encodeURIComponent(t.open))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       // a post a designer opened in OPS (StudioBase.hubSeen) is theirs while it is in design
@@ -1515,6 +1547,8 @@ body{-webkit-tap-highlight-color:transparent;
         step: step, sub: sub, verb: open ? 'Design it' : st === 'changes' ? 'Make the changes' : 'Open in OPS',
         segs: [0, 1, 2, 3].map(function(i){ return i < k || ready ? 'done' : i === k ? 'cur' : 'pend'; }), steps: ['Ticket', 'Design', 'Copy check', 'Ready'],
         due: '', from: 'Content Hub', at: Math.max(hubTime(t.sent), hubTime(t.claimed), hubTime(t.done)),
+        // the content team, social media or the admin marks its copy approved here (op hubok)
+        hubok: st === 'review' && (r === 'ct' || r === 'smm' || r === 'admin') ? t.id : '',
         thumb: t.thumb && !(https && /^http:/i.test(t.thumb)) ? t.thumb : '', ratio: .75, href: OPSF + '#hubopen=' + b64
       };
     });

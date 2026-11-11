@@ -192,6 +192,8 @@
   const isRsId = id => { id = String(id || ''); return /^[A-Za-z0-9]{16}$/.test(id) || /^R[\w-]+\.[\w-]{20,}$/.test(id); };
   const SHARE_ID = /^(?:[A-Za-z0-9]{8,16}|[DR][\w.-]{20,})$/;
   const dsOn = () => !!(window.providentDrive && window.providentDrive.clientId && window.providentDrive.clientId());
+  // a person's Google photo in an avatar circle, where access.js knows it (2026-11-11); else ini
+  const avIn = (n, ini, em) => { const A = window.providentAccess; return A && A.avIn ? A.avIn(n, em, ini) : esc(ini); };
   function dsFail(code, msg) { const e = new Error(msg); e.code = code; return e; }
   function dsAuth() { const e = new Error('Sign in with Google to open this review — it is stored in the ad set’s Drive folder.'); e.gdAuth = true; return e; }
   async function dsFetch(path, opt) {
@@ -378,7 +380,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -479,6 +481,7 @@
         else ord.slice(k + 1).forEach(f => { it[f] = null; });
         if (body.act === 'approved') it.draft = it.draft || { by, at: now };
         R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
+        delete R.rs.pending;   // a step is a save: the post is on Status from now on
         dsLog(R.rs, by, [{ kind: 'step', page: 'Post', text: (POST_TEXT[body.act] || 'Changed a step') + toLine }]);
         if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
         await dsWrite(R.rid, R.rs);
@@ -573,6 +576,9 @@
       // Claude's reply, kept on the ad set so every audience (and every designer) fills from it
       if (typeof body.reply === 'string') rs.reply = body.reply.slice(0, 200000);
       if ('product' in body && AUDS[body.product] && body.product !== rs.product) { if (rs.product) chg.push('Set the product to ' + PRODUCT_NAME[body.product]); rs.product = body.product; }
+      // AN OPS POST NOT SAVED YET (2026-11-11, by request): made when its template was picked, kept
+      // off Status until the person saves it (Save, or any step); pending:false puts it on
+      if (body.pending === false && isPost(rs) && rs.pending) { delete rs.pending; chg.push('Saved the post — it is on Status now'); }
       if (body.relabel) {
         const r = body.relabel, it = (rs.items || []).find(x => x.sid === r.sid);
         if (!it) throw dsFail(404, 'That project is not in this ad set.');
@@ -5578,7 +5584,7 @@
         $('.shl-sub').textContent = v.people > 1 ? v.people + ' people have edited' : 'Shared edit link';
         { const w = StudioBase.shareWho();
           const nm = String(v.me || 'Someone'), ini = nm.split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
-          $('.shl-me').innerHTML = '<span class="shl-av" aria-hidden="true">' + esc(ini) + '</span><b title="' + esc('Editing as ' + nm + (w ? ' · ' + w.email : '')) + '">' + esc(nm) + '</b>'
+          $('.shl-me').innerHTML = '<span class="shl-av" aria-hidden="true">' + avIn(nm, ini, w && w.email) + '</span><b title="' + esc('Editing as ' + nm + (w ? ' · ' + w.email : '')) + '">' + esc(nm) + '</b>'
             + (w ? '<button type="button" data-who="1">Not you?</button>' : '<button type="button">Change</button>'); }
         const n = $('.shl-n'); n.hidden = !v.unseen; n.textContent = v.unseen > 9 ? '9+' : String(v.unseen);
         const top = v.log[0];
@@ -5629,7 +5635,7 @@
       return '<li class="lg-n">' + esc(what) + '</li>';
     };
     const who = esc(e.by || 'Someone');
-    return '<li class="lg"' + (opt.cont ? ' data-cont="1"' : '') + '><div class="lg-h"><span class="shl-av">' + esc((e.by || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+    return '<li class="lg"' + (opt.cont ? ' data-cont="1"' : '') + '><div class="lg-h"><span class="shl-av">' + avIn(e.by, (e.by || '?').trim().charAt(0).toUpperCase()) + '</span>' +
       '<span class="lg-who">' + who + (opt.mine ? '<s> · you</s>' : '') + '</span><time>' + esc(ago(e.at)) + '</time></div>' +
       groups.map(g => '<div class="lg-g">' + (g.where ? '<div class="lg-p">' + esc(g.where) + '</div>' : '') + '<ul>' + g.items.map(item).join('') + '</ul></div>').join('') +
       (all.length > max ? '<p class="lg-more">and ' + (all.length - max) + ' more</p>' : '') + '</li>';

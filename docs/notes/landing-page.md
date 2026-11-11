@@ -597,3 +597,19 @@ Closed column scrolls into view. `.bd` columns are `repeat(var(--n,4), …)` (an
 on a phone) with `--n` set inline to the stage count. Verified at 1440: 4 × 303px off (Everything
 27), 5 × 240px on (29), choice saved, no sideways scroll; queue and toggle reset afterwards.
 
+## Projects row aligned; Google photos (2026-11-11, by request)
+- `.pj-tools .flt{margin:0}`: the filter chips' own 14px bottom margin lifted them above the Open
+  buttons (Status already zeroed it in `.sx-tools`). Measured: chips, Open buttons and search all
+  centre at 219px.
+- **Google account photos where initials were.** api/share.py `acc_who` asks Drive `about` for
+  `photoLink` too (`_acc_photo`); `acc_me` stores it on the user (`photo`), `acc_pub` and `acc_team`
+  return it. access.js keeps a photo map by email and by name (`provident-photos`, so step logs that
+  carry only names find one), `phNote` from accme / acclist / accteam, and `avIn(n, e, ini)` draws
+  `<img class="acx-ph" referrerpolicy="no-referrer">` with an onerror fallback to the initials;
+  exposed as `providentAccess.photo` / `.avIn`. Used by every `.acx-av` (access pages, picker), the
+  home's account button and menu, Status cards (`x.from`, "You" = me), the Access identity card, the
+  preview bar, and share-link's activity log and "Editing as" (`.shl-av`). The home calls
+  `acc.team()` once after sign-in to learn everyone's photo and redraws on `provident-photos`.
+  The stand-in gives every account Google's default picture. Verified: the account button and 14
+  Status card avatars drew photos.
+

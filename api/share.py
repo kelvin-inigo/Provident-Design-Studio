@@ -1072,6 +1072,8 @@ ACC_ROLES = ('designer', 'pm', 'smm', 'ct', 'cten', 'ctar', 'dmt')   # ct = eith
 # dmt, the Digital Marketing Team (2026-11-09): email, SMS and WhatsApp on the same campaigns; the
 # studios treat it as pm (access.js fam), Roles gives it its own column
 _acc_seen = {}
+# each person's Google account photo, as Google reported it at their last sign-in (2026-11-11)
+_acc_photo = {}
 
 
 def acc_admin():
@@ -1092,7 +1094,7 @@ def acc_who(tok):
     if hit and hit[2] > time.time():
         return hit[0], hit[1]
     base = (os.environ.get('ACCESS_GOOGLE_BASE') or 'https://www.googleapis.com').rstrip('/')
-    req = urllib.request.Request(base + '/drive/v3/about?fields=user(displayName,emailAddress)',
+    req = urllib.request.Request(base + '/drive/v3/about?fields=user(displayName,emailAddress,photoLink)',
                                  headers={'Authorization': 'Bearer ' + tok})
     try:
         with urllib.request.urlopen(req, timeout=10) as r:
@@ -1105,6 +1107,9 @@ def acc_who(tok):
     if not email or '@' not in email:
         raise Fail(401, 'Google did not say which account this is.')
     name = str(u.get('displayName') or '').strip()[:80]
+    photo = str(u.get('photoLink') or '').strip()
+    if photo.startswith('https://') and len(photo) < 600:
+        _acc_photo[email] = photo
     if len(_acc_seen) > 500:
         _acc_seen.clear()
     _acc_seen[key] = (email, name, time.time() + 300)
@@ -1183,7 +1188,7 @@ def acc_log(entry):
 
 
 def acc_pub(u, admin=False):
-    keys = ('email', 'name', 'role', 'status', 'first', 'last', 'n', 'note', 'want', 'by', 'at')
+    keys = ('email', 'name', 'photo', 'role', 'status', 'first', 'last', 'n', 'note', 'want', 'by', 'at')
     out = {k: u.get(k) for k in keys if u.get(k) is not None}
     out['admin'] = admin
     return out
@@ -1197,11 +1202,14 @@ def acc_me(d):
         # kept on the list (role = the admin's team) so hand-offs can name the admin
         users = acc_users(); u = users.get(email) or {}
         arole = (os.environ.get('ACCESS_ADMIN_ROLE') or ACC_ADMIN_ROLE).strip()
-        if u.get('name') != name or u.get('role') != arole or now - int(u.get('last') or 0) > 600000:
+        photo = _acc_photo.get(email) or u.get('photo') or ''
+        if u.get('name') != name or u.get('role') != arole or (photo and u.get('photo') != photo) or now - int(u.get('last') or 0) > 600000:
             users[email] = {'email': email, 'name': name or u.get('name') or '', 'role': arole, 'status': 'active', 'first': u.get('first') or now,
                             'n': int(u.get('n') or 0) + 1, 'last': now, 'admin': True}
+            if photo:
+                users[email]['photo'] = photo
             acc_put(users)
-        return ok(dict(acc_pub({'email': email, 'name': name, 'role': 'admin', 'status': 'active'}, True), perms=acc_perms()))
+        return ok(dict(acc_pub({'email': email, 'name': name, 'photo': photo or None, 'role': 'admin', 'status': 'active'}, True), perms=acc_perms()))
     if not email.endswith('@' + acc_domain()):
         acc_log({'email': email, 'name': name, 'what': 'outside'})
         raise Fail(403, 'Sign in with your @%s Google account. %s is not one.' % (acc_domain(), email))
@@ -1216,6 +1224,9 @@ def acc_me(d):
         acc_log({'email': email, 'name': name, 'what': 'retry', 'status': u.get('status')})
     if name and u.get('name') != name:
         u['name'] = name
+        dirty = True
+    if _acc_photo.get(email) and u.get('photo') != _acc_photo[email]:
+        u['photo'] = _acc_photo[email]
         dirty = True
     # a sign-in counts once per ten minutes, and only then is the record written, so the
     # studio's own polling costs one store read rather than a write every time
@@ -1333,7 +1344,7 @@ def acc_team(d):
     for u in users.values():
         if u.get('status') != 'active' or not u.get('role'):
             continue
-        out.append({'email': u['email'], 'name': u.get('name') or '', 'role': u['role'], 'last': u.get('last')})
+        out.append({'email': u['email'], 'name': u.get('name') or '', 'photo': u.get('photo') or '', 'role': u['role'], 'last': u.get('last')})
     out.sort(key=lambda u: (u['role'], (u['name'] or u['email']).lower()))
     return ok({'people': out, 'perms': acc_perms()})
 
@@ -1581,6 +1592,30 @@ def hub_seen(d):
     return ok({'ok': True})
 
 
+def hub_ok(d):
+    """COPY APPROVED FROM STATUS (2026-11-11, by request): a hub post waiting for approval on the
+    hub ('review') is marked approved by the content team, social media or the admin from Home or
+    Status: {tok, id}. It moves to Ready on Status, with who approved it. The hub itself is not
+    told (Status never talks to the hub); a later push of the same post from the hub still wins."""
+    email, name = acc_who(d.get('tok'))
+    me = acc_users().get(email) or {}
+    adm = email == acc_admin()
+    if not adm and not (me.get('status') == 'active' and me.get('role') in ('ct', 'cten', 'ctar', 'smm')):
+        raise Fail(403, 'Only the content team or social media approves a hub post\'s copy.')
+    tasks = hub_tasks()
+    t = tasks.get(str(d.get('id') or ''))
+    if not t:
+        raise Fail(404, 'That hub post is not on Status any more.')
+    if t.get('state') != 'review':
+        raise Fail(409, 'This hub post is not waiting for approval.')
+    who = me.get('name') or name or email.split('@')[0]
+    t['state'] = 'approved'
+    t['ok'] = {'by': who[:80], 'email': email, 'at': int(time.time() * 1000)}
+    t['at'] = int(time.time() * 1000)
+    store().cmd('SET', HUB_KEY, json.dumps(tasks, separators=(',', ':')))
+    return ok({'ok': True, 'task': t})
+
+
 def hub_team(d):
     """The designers, for the hub's picker: name and email only."""
     hub_key_ok(d)
@@ -1593,7 +1628,7 @@ def hub_team(d):
 
 
 ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
-           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'roamnote': roam_note}
+           'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'hubok': hub_ok, 'roamnote': roam_note}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
