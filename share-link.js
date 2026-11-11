@@ -875,7 +875,7 @@
       if (R.role !== 'dd') throw dsFail(403, 'Only the designer adds projects to an ad set.');
       rs = R.rs; rid = R.rid;
     }
-    const it = { market: ans.market, aud: ans.aud, lang: ans.lang, phase: phN(ans.phase) ? ans.phase : phBase(rs) };
+    const it = { market: ans.market, aud: ans.aud, lang: ans.lang, phase: phList(rs).indexOf(ans.phase) >= 0 ? ans.phase : phBase(rs) };
     const taken = (rs.items || []).find(x => phOf(rs, x) === it.phase && x.market === it.market && x.aud === it.aud && x.lang === it.lang);
     if (taken) {
       // the same project, opened apart from its link: reconnect it, nothing to add
@@ -1313,12 +1313,12 @@
     if (j.pid === '*file') {
       if ((this.state.pid || '') === (j.was || '')) return;
       try { localStorage.removeItem(JOIN_KEY); } catch (e) {}
-      setTimeout(() => this.reviewCreate({ dd: j.dd }), 700);
+      setTimeout(() => this.reviewCreate({ dd: j.dd, phase: j.ph || '' }), 700);
       return;
     }
     if (this.state.pid === j.pid) {
       try { localStorage.removeItem(JOIN_KEY); } catch (e) {}
-      setTimeout(() => this.reviewCreate({ dd: j.dd }), 700);
+      setTimeout(() => this.reviewCreate({ dd: j.dd, phase: j.ph || '' }), 700);
       return;
     }
     // the recents list loads after mount
@@ -1333,14 +1333,14 @@
   // in a new workspace with #joinfile=<dd>. The folder picker needs a click, so one small dialog
   // asks for it; the folder opens as Open a project file does (it reloads into the project), and
   // rsJoinCheck then asks for its market, audience and language — the ticket is picked up.
-  function joinFile(dd) {
+  function joinFile(dd, ph) {
     const ws = 'p' + Math.random().toString(36).slice(2, 12);
-    window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '?ws=' + ws + '#joinfile=' + encodeURIComponent(dd), '_blank', 'noopener');
+    window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '?ws=' + ws + '#joinfile=' + encodeURIComponent(dd) + (phN(ph) ? '|' + encodeURIComponent(ph) : ''), '_blank', 'noopener');
   }
   SP.rsJoinFileHash = function () {
     const m = /^#joinfile=(.+)$/.exec(location.hash || ''); if (!m) return false;
     history.replaceState(null, '', location.pathname + location.search);
-    const dd = decodeURIComponent(m[1]); if (!isRsId(dd)) return false;
+    const parts = m[1].split('|'), dd = decodeURIComponent(parts[0]), ph = parts[1] ? decodeURIComponent(parts[1]) : ''; if (!isRsId(dd)) return false;
     injectCss();
     const el = document.createElement('div');
     el.className = 'shl-dlg';
@@ -1352,7 +1352,7 @@
       const b = e.target.closest('button'); if (!b) return;
       el.remove();
       if (!b.dataset.go) return;
-      lsSet(JOIN_KEY, JSON.stringify({ dd, pid: '*file', was: this.state.pid || '', at: Date.now() }));
+      lsSet(JOIN_KEY, JSON.stringify({ dd, pid: '*file', ph, was: this.state.pid || '', at: Date.now() }));
       if (this.markSaved) this.markSaved();
       this.openSessionFolder();
     });
@@ -3269,7 +3269,7 @@
     const st = this.shPub(), C = this.constructor;
     const drive = dsOn();
     const plan = preset && preset.plan;
-    const dlg = rsDialog({ known, name: (plan && plan.name) || st.campaign || this.shName(st), preset: preset && preset.dd, drive, folder: (plan && plan.folder) || lsGet('provident-rs-folder'), plan });
+    const dlg = rsDialog({ known, name: (plan && plan.name) || st.campaign || this.shName(st), preset: preset && preset.dd, phase: preset && preset.phase, drive, folder: (plan && plan.folder) || lsGet('provident-rs-folder'), plan });
     const ans = await dlg.answer();
     if (!ans) return;
     if (plan && ans.mode === 'new') ans.plan = Object.assign({}, plan, { product: ans.product });
@@ -3285,7 +3285,8 @@
     if (ans.mode === 'add' && ans.dd) {
       try {
         const g = await api('rsget', { id: ans.dd });
-        const rsx = g.rs || {}, taken = (rsx.items || []).find(x => x.market === ans.market && x.aud === ans.aud && x.lang === ans.lang);
+        const rsx = g.rs || {}, aph = phList(rsx).indexOf(ans.phase) >= 0 ? ans.phase : phBase(rsx), inPh = x => phOf(rsx, x) === aph;
+        const taken = (rsx.items || []).find(x => inPh(x) && x.market === ans.market && x.aud === ans.aud && x.lang === ans.lang);
         if (taken) {
           let pid = '';
           try { pid = (((await api('get', { id: ans.dd, p: taken.sid })) || {}).state || {}).pid || ''; } catch (e) {}
@@ -3294,7 +3295,7 @@
           // one in the ad set, so it joins as the next design of it (“Investor · Design 2”), with
           // its own copy check and Arabic, the same as Add a design on Status
           if (ans.lang === 'ENG') {
-            const ub = isUb(ans.aud) ? UB : '', root = audRoot(ans.aud), held = a => (rsx.items || []).some(x => x.market === ans.market && x.aud === a && x.lang === 'ENG');
+            const ub = isUb(ans.aud) ? UB : '', root = audRoot(ans.aud), held = a => (rsx.items || []).some(x => inPh(x) && x.market === ans.market && x.aud === a && x.lang === 'ENG');
             let n = 2; while (held(root + DSG + n + ub) && n < 50) n++;
             ans.aud = root + DSG + n + ub;
           } else {
@@ -3372,7 +3373,10 @@
       '<p class="rsd-cap">This project is</p><div class="rsd-row">' +
       '<label class="shl-fld"><span>Market</span><select class="p-in" data-f="market">' + MARKETS.map((m, i) => opt(m, m, !i)).join('') + '</select></label>' +
       '<label class="shl-fld"><span>Audience</span><select class="p-in" data-f="aud"></select></label>' +
-      '<label class="shl-fld"><span>Language</span><select class="p-in" data-f="lang">' + opt('ENG', 'English', true) + opt('ARB', 'Arabic') + '</select></label></div>' +
+      '<label class="shl-fld"><span>Language</span><select class="p-in" data-f="lang">' + opt('ENG', 'English', true) + opt('ARB', 'Arabic') + '</select></label>' +
+      // WHICH PHASE (2026-11-11): an ad set with phases files the project in the one picked — the
+      // Status tab it was added from, else the newest. Without it every project went to the first.
+      '<label class="shl-fld rsd-ph" hidden><span>Phase</span><select class="p-in" data-f="phase"></select></label></div>' +
       '<label class="shl-fld"><span>Your name</span><input class="p-in" data-f="by" maxlength="60" autocomplete="name" placeholder="e.g. Sara"></label></div>' +
       '<p class="shl-note">' + (o.drive ? 'Whoever holds a link has its role. Your name is shown beside every change you make.' : 'No sign-in — whoever holds a link has its role. Your name is shown beside every change you make.') + '</p><p class="shl-st" aria-live="polite"></p>' +
       '<div class="shl-lks-h" hidden></div><div class="shl-acts"><button class="p-ghost shl-x">Cancel</button><button class="p-btn shl-go">Make the ad set</button></div></div>';
@@ -3390,14 +3394,26 @@
       el.querySelectorAll('[data-mode]').forEach(b => { if (b.dataset.mode === m) b.dataset.on = '1'; else delete b.dataset.on; });
       $('.rsd-new').hidden = m !== 'new'; if ($('.rsd-add')) $('.rsd-add').hidden = m !== 'add';
       go.textContent = m === 'new' ? 'Make the ad set' : 'Add to the ad set';
-      fillAud();
+      fillAud(); fillPh();
     };
     el.addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.mode) setMode(b.dataset.mode);
       if (b.dataset.prod) { prod = b.dataset.prod; el.querySelectorAll('[data-prod]').forEach(y => { if (y === b) y.dataset.on = '1'; else delete y.dataset.on; }); fillAud(); }
     });
-    if ($('[data-f="dd"]')) $('[data-f="dd"]').addEventListener('change', fillAud);
+    const phSeq = { n: 0 };
+    const fillPh = async () => {
+      const box = $('.rsd-ph'), sel = $('[data-f="phase"]'), id = mode === 'add' && $('[data-f="dd"]') ? $('[data-f="dd"]').value : '', n = ++phSeq.n;
+      box.hidden = true; sel.innerHTML = '';
+      if (!id) return;
+      let list = [];
+      try { list = phList((await api('rsget', { id })).rs || {}); } catch (e) { return; }
+      if (n !== phSeq.n || !list.length) return;
+      const pick = list.indexOf(o.phase) >= 0 && id === o.preset ? o.phase : list[list.length - 1];
+      sel.innerHTML = list.map(k => opt(k, phN(k), k === pick)).join('');
+      box.hidden = list.length < 2;
+    };
+    if ($('[data-f="dd"]')) $('[data-f="dd"]').addEventListener('change', () => { fillAud(); fillPh(); });
     $('[data-f="by"]').value = StudioBase.shareName();
     if (o.preset && $('[data-f="dd"]')) { $('[data-f="dd"]').value = o.preset; setMode('add'); }
     if (o.plan) {
@@ -3422,7 +3438,7 @@
       if (!by) { $('.shl-st').textContent = 'Add your name so others know who made a change.'; $('[data-f="by"]').focus(); return; }
       if (mode === 'new' && !v('name').trim()) { $('.shl-st').textContent = 'Name the ad set.'; $('[data-f="name"]').focus(); return; }
       if (mode === 'new' && o.drive && v('folder').trim() && !window.providentDrive.id(v('folder'))) { $('.shl-st').textContent = 'Paste the link of the Google Drive folder the ad set goes in — open the folder in Drive and copy the address; it contains /folders/.'; $('[data-f="folder"]').focus(); return; }
-      res({ mode, by, name: v('name').trim(), product: prod, dd: v('dd'), market: v('market'), aud: v('aud'), lang: v('lang'), folder: v('folder').trim() });
+      res({ mode, by, name: v('name').trim(), product: prod, dd: v('dd'), market: v('market'), aud: v('aud'), lang: v('lang'), phase: mode === 'add' ? v('phase') : '', folder: v('folder').trim() });
     };
     x.onclick = () => close(null);
     el.onkeydown = e => { if (e.key === 'Escape') close(null); };
@@ -4382,8 +4398,9 @@
       const sel = e.target; if (!(sel.matches && sel.matches('.rva-rl [data-f="dd"]'))) return;
       const f = sel.closest('.rva-rl'), ph = f.querySelector('[data-f="ph"]'), o = sel.selectedOptions[0];
       let list = []; try { list = JSON.parse((o && o.dataset.ph) || '[]'); } catch (er) {}
-      ph.innerHTML = list.map((p, i) => '<option value="' + esc(p[0]) + '"' + (i === list.length - 1 ? ' selected' : '') + '>' + esc(p[1]) + '</option>').join('');
-      ph.hidden = !sel.value || list.length < 2;
+      const cur = !sel.value && f.dataset.ph;
+      ph.innerHTML = list.map((p, i) => '<option value="' + esc(p[0]) + '"' + ((cur ? p[0] === cur : i === list.length - 1) ? ' selected' : '') + '>' + esc(p[1]) + '</option>').join('');
+      ph.hidden = list.length < 2;
       const b = f.querySelector('[data-a="relabsave"]'); if (b) b.textContent = sel.value ? 'Move' : 'Save';
     });
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-phx-st]')) { e.preventDefault(); const b = this.el.querySelector('[data-a="phtype"]'); if (b && !b.disabled) b.click(); } });
@@ -4671,7 +4688,7 @@
       t.disabled = true; t.textContent = 'Saving…';
       const to = f.querySelector('[data-f="dd"]') ? v('dd') : '';
       const body = to ? { by, move: { sid: t.dataset.sid, dd: to, market: v('market'), aud: v('aud'), lang: v('lang'), phase: v('ph') } }
-        : { by, relabel: { sid: t.dataset.sid, market: v('market'), aud: v('aud'), lang: v('lang') } };
+        : { by, relabel: { sid: t.dataset.sid, market: v('market'), aud: v('aud'), lang: v('lang'), phase: v('ph') } };
       try { await api('rsset', { id: this.sel }, body); this.edit = null; if (to) this.load(true); again(); }
       catch (er) { t.disabled = false; t.textContent = 'Save'; window.alert(er.message || String(er)); }
     }
@@ -4682,9 +4699,9 @@
       try { await api('rsdel', { id: this.sel }, {}); Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
       catch (er) { window.alert(er.message || String(er)); }
     }
-    if (a === 'addfile') { joinFile((this.det && this.det.dd) || this.sel); this.addOpen = false; this.draw(); return; }
+    if (a === 'addfile') { joinFile((this.det && this.det.dd) || this.sel, this.curTab); this.addOpen = false; this.draw(); return; }
     if (a === 'addproj') {
-      lsSet(JOIN_KEY, JSON.stringify({ dd: this.sel, pid: t.dataset.pid, at: Date.now() }));
+      lsSet(JOIN_KEY, JSON.stringify({ dd: this.sel, pid: t.dataset.pid, ph: this.curTab || '', at: Date.now() }));
       window.open(encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file), '_blank', 'noopener');
       t.textContent = 'Opened in a new tab';
     }
@@ -4833,6 +4850,7 @@
     const phs = phList(rs), allAuds = rsAuds(rs), tabs = this.phTabs || (this.phTabs = {});
     const used = phs.filter(k => allAuds.some(a => a.phase === k));
     const tab = phs.indexOf(tabs[d.id]) >= 0 ? tabs[d.id] : (used[used.length - 1] || phs[0]);
+    this.curTab = tab;
     const auds = allAuds.filter(a => a.phase === tab), all = rsOverall(auds);
     const row = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
     const log = (d.log || []).concat((d.plog || []).filter(e => (e.changes || []).some(c => c.kind !== 'note')).map(e => Object.assign({}, e, { changes: (e.changes || []).map(c => Object.assign({}, c, { page: e.page + (c.page ? ' · ' + c.page : '') })) })))
@@ -5003,16 +5021,18 @@
     const base = base0.concat(dz, dz.indexOf(nx) < 0 ? [nx] : []).sort((x, y) => audOrd(base0, x) - audOrd(base0, y));
     const auds = rs.brand === 'mixed' || isUb(it.aud) ? base.flatMap(a => [a, a + UB]) : base;
     // the other Drive ad sets on this computer's list that can still take a design
+    const phs = phList(rs), phJ = r => JSON.stringify(phList(r).map(k => [k, phN(k)]));
     const sets = isDs(this.sel) ? (this.items || []).filter(x => x.id !== this.sel && isDs(x.id) && x.id[0] === 'R' && x.rs && !x.rs.deleted && !isPost(x.rs) && x.rs.folder) : [];
-    return '<span class="rva-rl" data-sid="' + esc(it.sid) + '">' +
+    return '<span class="rva-rl" data-sid="' + esc(it.sid) + '" data-ph="' + esc(phOf(rs, it)) + '">' +
       '<select class="p-in" data-f="market" aria-label="Market">' + MARKETS.map(m => opt(m, m, m === (it.market || MARKETS[0]))).join('') + '</select>' +
       '<select class="p-in" data-f="aud" aria-label="Audience">' + auds.map(a => opt(a, a, a === it.aud)).join('') + '</select>' +
       '<select class="p-in" data-f="lang" aria-label="Language">' + opt('ENG', 'English', it.lang !== 'ARB') + opt('ARB', 'Arabic', it.lang === 'ARB') + '</select>' +
       // ANOTHER AD SET (2026-11-11, by request): the project moves there — its Drive folder too.
       // Each option carries its phases, so picking one lists them in the phase field.
+      // its PHASE (2026-11-11): a project filed in the wrong phase moves to another one here
       (sets.length ? '<select class="p-in" data-f="dd" aria-label="Ad set" title="Move the project to another ad set: it leaves this one, and its Drive folder moves into the other ad set’s folder">' +
-        '<option value="">This ad set</option>' + sets.map(x => '<option value="' + esc(x.id) + '" data-ph="' + esc(JSON.stringify(phList(x.rs).map(k => [k, phN(k)]))) + '">' + esc('Move to ' + (x.rs.name || 'Ad set')) + '</option>').join('') + '</select>' +
-        '<select class="p-in" data-f="ph" aria-label="Phase in that ad set" hidden></select>' : '') +
+        '<option value="" data-ph="' + esc(phJ(rs)) + '">This ad set</option>' + sets.map(x => '<option value="' + esc(x.id) + '" data-ph="' + esc(phJ(x.rs)) + '">' + esc('Move to ' + (x.rs.name || 'Ad set')) + '</option>').join('') + '</select>' : '') +
+      '<select class="p-in" data-f="ph" aria-label="Phase" title="The phase the project is in"' + (phs.length > 1 ? '' : ' hidden') + '>' + phs.map(k => opt(k, phN(k), k === phOf(rs, it))).join('') + '</select>' +
       '<button type="button" class="p-btn p-sm" data-a="relabsave" data-sid="' + esc(it.sid) + '">Save</button><button type="button" class="p-ghost p-sm" data-a="relabx">Cancel</button></span>';
   };
   // Add a project: this computer's saved Campaign projects that are not in the ad set yet. The

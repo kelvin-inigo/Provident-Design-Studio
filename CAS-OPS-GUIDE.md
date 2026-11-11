@@ -461,7 +461,9 @@ move a project you already made into one. In a pasted copy reply, a block named
 `Investor design 2:` fills Design 2. CAS also recognises a second design on its own: adding a
 project to an ad set (**Add to an ad set**, or **Use an existing design** on a ticket) as an
 audience that already has an English design makes it that audience's next design, for example
-**Investor · Design 2**, instead of refusing it.
+**Investor · Design 2**, instead of refusing it. In an ad set with phases, that dialog also asks
+for the **Phase**. It starts on the Status tab you added the project from, otherwise on the
+newest phase.
 
 - Each audience card on Status ends with **Start the unbranded**. Press it once the audience's
   English exists: the English project opens in a new window and a copy of its design is saved
@@ -625,7 +627,8 @@ Open one to see its record:
   Drive folder moves into the other ad set's folder at its new market, audience and language.
   Both ad sets' Activity logs say so. When the other ad set already has that audience in English,
   the project becomes its next design (**Investor · Design 2**). The other ad set must be on
-  this computer's list.
+  this computer's list. In an ad set with phases there is also a **Phase** field: pick another phase and **Save**
+  to move a project filed in the wrong phase (its Drive folder moves into that phase's folder).
 - **Add a project:** the Campaign projects saved on this computer that are not in the ad set yet.
   **Add to this ad set** opens that project in a new tab and asks for its market, audience and
   language, with this ad set already chosen.

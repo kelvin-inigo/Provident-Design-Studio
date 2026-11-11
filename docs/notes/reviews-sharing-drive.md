@@ -2050,3 +2050,22 @@ Ellington Belgrove Residences picked as "Investor" (held there) → became Inter
 Design 2; its file's path is Ellington/International/Investor · Design 2/English, review.rid is
 Ellington's, it left Sobha's items, both logs say so. The reviewCreate path was not clicked through.
 
+## Existing designs land in the right phase (2026-11-11, from a live case)
+Live case: Palm Springs by Nakheel (phases teaser · Ad Set 01 · launch). A Raw District design was
+added to Launch as Local · Investor · Design 2, removed, then re-added through the add dialog,
+which had no phase field: dsReview filed it in `phBase` (Teaser). Its Drive folder was right for
+Teaser (Main/Local/Investor · Design 2/English) and the item approved, but Status's Launch tab
+showed the planned Design 2 cell as Not started.
+Fix: `rsDialog` has a Phase field (`.rsd-ph`, add mode; read with rsget on the picked ad set,
+hidden for one phase), preset to `o.phase` (the Status tab: `AV.curTab` → JOIN_KEY `ph` for
+Add, `#joinfile=<dd>|<ph>` for a project folder), else the newest phase. `reviewCreate`'s taken
+check and its next-design count are per phase; `dsReview` accepts only a phase of the ad set.
+Change audience has a Phase select (shown for more than one phase; the "This ad set" option
+carries its phases, the row's `data-ph` the current one) and relabel sends `phase`, so a project
+in the wrong phase moves (dsMove takes the folder to that phase's root).
+Verified on the stand-in: Sobha Hartland II with Launch + Ad Fatigue 01 — Change audience moved
+Local · Investor · ENG to Ad Fatigue 01 (folder under Ad Fatigue 01/Local/Investor/English, log
+"Changed Launch · … to Ad Fatigue 01 · …"); CAS reviewCreate({dd, phase: Ad Fatigue 01}) showed
+Phase Launch | Ad Fatigue 01*, and Local · Investor ENG joined as Ad Fatigue 01 · Local · Investor
+· Design 2 · ENG.
+
