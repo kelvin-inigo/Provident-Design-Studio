@@ -583,6 +583,39 @@
         it.market = r.market; it.aud = r.aud; it.lang = r.lang; it.phase = rph;
         dsLog(rs, by, [{ kind: 'step', text: 'Changed ' + was + ' to ' + dsItemLabel(it, rs) }]);
       }
+      // MOVING A DESIGN TO ANOTHER AD SET (2026-11-11, by request): the project leaves this ad set
+      // and joins the other one as the market, audience, language and phase picked. On Drive its
+      // folder (the language folder, with its file and Assets) moves into the other ad set's tree
+      // at the same place, its file follows the other ad set (review.rid), and both Activity logs
+      // say so. Its steps go with it. Only the designer, holding both ad sets' designer links.
+      if (body.move) {
+        const mv = body.move, it = (rs.items || []).find(x => x.sid === mv.sid);
+        if (!it) throw dsFail(404, 'That project is not in this ad set.');
+        if (!isDs(String(mv.dd || '')) || String(mv.dd)[0] !== 'R') throw dsFail(400, 'Pick the ad set to move it to.');
+        const T = await dsResolve(String(mv.dd), null, true);
+        if (!T.rs || T.role !== 'dd' || isPost(T.rs)) throw dsFail(403, 'Only the designer moves a project into an ad set.');
+        if (T.rid === R.rid) throw dsFail(400, 'The project is already in this ad set.');
+        if (!T.rs.folder) throw dsFail(409, (T.rs.name || 'That ad set') + ' has no Drive folder to move the project into.');
+        const tph = phList(T.rs), to = { market: MARKETS.indexOf(mv.market) >= 0 ? mv.market : it.market, aud: String(mv.aud || it.aud || '').slice(0, 80), lang: mv.lang === 'ARB' ? 'ARB' : 'ENG' };
+        to.phase = tph.indexOf(mv.phase) >= 0 ? mv.phase : tph[tph.length - 1] || phBase(T.rs);
+        if (!to.market || !to.aud) throw dsFail(400, 'Pick its market and audience.');
+        const held = a => (T.rs.items || []).some(x => phOf(T.rs, x) === to.phase && x.market === to.market && x.aud === a && x.lang === to.lang);
+        // an English design whose audience the other ad set already has joins as its next design
+        // (“Investor · Design 2”), an unbranded one keeping its look
+        if (held(to.aud) && to.lang === 'ENG') { const ub = isUb(to.aud) ? UB : ''; let n = 2; while (held(audRoot(to.aud) + DSG + n + ub) && n < 50) n++; to.aud = audRoot(to.aud) + DSG + n + ub; }
+        if (held(to.aud)) throw dsFail(409, (T.rs.name || 'That ad set') + ' already has ' + dsItemLabel(to, T.rs) + '. Pick another audience — a further design is “' + audRoot(to.aud) + DSG + '2”.');
+        const was = dsItemLabel(it, rs), now = dsNow();
+        await dsMove(T.rs, it.sid, to);
+        const d = await dsRead(it.sid.slice(1), true); d.review = d.review || {}; d.review.rid = T.rid; await dsWrite(it.sid.slice(1), d);
+        rs.items = (rs.items || []).filter(x => x.sid !== it.sid);
+        const ni = Object.assign({}, it, to, { to: null });
+        if (!(T.rs.items || []).length && T.rs.ticket && !T.rs.picked) { T.rs.picked = { by, at: now }; dsLog(T.rs, by, [{ kind: 'step', text: 'Picked up the ticket' }]); }
+        T.rs.items = (T.rs.items || []).concat(ni);
+        T.rs.hist = (T.rs.hist || []).concat({ act: 'add', by, at: now, sid: it.sid }).slice(-400);
+        dsLog(T.rs, by, [{ kind: 'step', text: 'Moved in ' + dsItemLabel(ni, T.rs) + ' from ' + (rs.name || 'another ad set') }]);
+        dsLog(rs, by, [{ kind: 'step', text: 'Moved ' + was + ' to ' + (T.rs.name || 'another ad set') + (dsItemLabel(ni, T.rs) !== was ? ' as ' + dsItemLabel(ni, T.rs) : '') }]);
+        await dsWrite(T.rid, T.rs);
+      }
       if (body.remove) {
         const gone = (rs.items || []).find(x => x.sid === body.remove);
         rs.items = (rs.items || []).filter(x => x.sid !== body.remove);
@@ -3257,8 +3290,17 @@
           let pid = '';
           try { pid = (((await api('get', { id: ans.dd, p: taken.sid })) || {}).state || {}).pid || ''; } catch (e) {}
           if (pid && pid === this.state.pid) { await rejoined(rsx, taken.sid); return; }
-          dlg.fail(label + ' is already in ' + (rsx.name || 'the ad set') + ' as another project. Pick another audience or language, or open that project from Review links.', 'Close');
-          return;
+          // A SECOND DESIGN (2026-11-11, by request): this English design's audience already has
+          // one in the ad set, so it joins as the next design of it (“Investor · Design 2”), with
+          // its own copy check and Arabic, the same as Add a design on Status
+          if (ans.lang === 'ENG') {
+            const ub = isUb(ans.aud) ? UB : '', root = audRoot(ans.aud), held = a => (rsx.items || []).some(x => x.market === ans.market && x.aud === a && x.lang === 'ENG');
+            let n = 2; while (held(root + DSG + n + ub) && n < 50) n++;
+            ans.aud = root + DSG + n + ub;
+          } else {
+            dlg.fail(label + ' is already in ' + (rsx.name || 'the ad set') + ' as another project. Pick another audience or language, or open that project from Review links.', 'Close');
+            return;
+          }
         }
       } catch (e) { if (e && e.gdAuth) { /* signed out: the path below signs in and checks again */ } }
     }
@@ -4334,6 +4376,16 @@
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && this.addOpen) { this.addOpen = false; this.draw(); } });
     // the Add phase menu's own-name field: kept across redraws, Enter adds it
     el.addEventListener('input', e => { if (e.target.matches && e.target.matches('[data-phx-st]')) this.phTyped = e.target.value; });
+    // Change audience's ad set field: the phase field lists the picked ad set's phases (shown
+    // when it has more than one), and Save says Move
+    el.addEventListener('change', e => {
+      const sel = e.target; if (!(sel.matches && sel.matches('.rva-rl [data-f="dd"]'))) return;
+      const f = sel.closest('.rva-rl'), ph = f.querySelector('[data-f="ph"]'), o = sel.selectedOptions[0];
+      let list = []; try { list = JSON.parse((o && o.dataset.ph) || '[]'); } catch (er) {}
+      ph.innerHTML = list.map((p, i) => '<option value="' + esc(p[0]) + '"' + (i === list.length - 1 ? ' selected' : '') + '>' + esc(p[1]) + '</option>').join('');
+      ph.hidden = !sel.value || list.length < 2;
+      const b = f.querySelector('[data-a="relabsave"]'); if (b) b.textContent = sel.value ? 'Move' : 'Save';
+    });
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-phx-st]')) { e.preventDefault(); const b = this.el.querySelector('[data-a="phtype"]'); if (b && !b.disabled) b.click(); } });
     // It refreshes itself: on a timer while on screen, and the moment the window comes back,
     // so a step someone took in another tab or on another computer shows without a reload.
@@ -4617,7 +4669,10 @@
     if (a === 'relabsave') {
       const f = t.closest('.rva-rl'), v = k => f.querySelector('[data-f="' + k + '"]').value;
       t.disabled = true; t.textContent = 'Saving…';
-      try { await api('rsset', { id: this.sel }, { by, relabel: { sid: t.dataset.sid, market: v('market'), aud: v('aud'), lang: v('lang') } }); this.edit = null; again(); }
+      const to = f.querySelector('[data-f="dd"]') ? v('dd') : '';
+      const body = to ? { by, move: { sid: t.dataset.sid, dd: to, market: v('market'), aud: v('aud'), lang: v('lang'), phase: v('ph') } }
+        : { by, relabel: { sid: t.dataset.sid, market: v('market'), aud: v('aud'), lang: v('lang') } };
+      try { await api('rsset', { id: this.sel }, body); this.edit = null; if (to) this.load(true); again(); }
       catch (er) { t.disabled = false; t.textContent = 'Save'; window.alert(er.message || String(er)); }
     }
     if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set? The project itself is not deleted and its own edit link keeps working; it just leaves the ad set and its review.')) {
@@ -4947,10 +5002,17 @@
     const root = audRoot(it.aud || base0[0]), nx = root + DSG + (Math.max(1, ...its.filter(x => x.market === it.market && audRoot(x.aud) === root).map(x => dsgOf(x.aud))) + 1);
     const base = base0.concat(dz, dz.indexOf(nx) < 0 ? [nx] : []).sort((x, y) => audOrd(base0, x) - audOrd(base0, y));
     const auds = rs.brand === 'mixed' || isUb(it.aud) ? base.flatMap(a => [a, a + UB]) : base;
+    // the other Drive ad sets on this computer's list that can still take a design
+    const sets = isDs(this.sel) ? (this.items || []).filter(x => x.id !== this.sel && isDs(x.id) && x.id[0] === 'R' && x.rs && !x.rs.deleted && !isPost(x.rs) && x.rs.folder) : [];
     return '<span class="rva-rl" data-sid="' + esc(it.sid) + '">' +
       '<select class="p-in" data-f="market" aria-label="Market">' + MARKETS.map(m => opt(m, m, m === (it.market || MARKETS[0]))).join('') + '</select>' +
       '<select class="p-in" data-f="aud" aria-label="Audience">' + auds.map(a => opt(a, a, a === it.aud)).join('') + '</select>' +
       '<select class="p-in" data-f="lang" aria-label="Language">' + opt('ENG', 'English', it.lang !== 'ARB') + opt('ARB', 'Arabic', it.lang === 'ARB') + '</select>' +
+      // ANOTHER AD SET (2026-11-11, by request): the project moves there — its Drive folder too.
+      // Each option carries its phases, so picking one lists them in the phase field.
+      (sets.length ? '<select class="p-in" data-f="dd" aria-label="Ad set" title="Move the project to another ad set: it leaves this one, and its Drive folder moves into the other ad set’s folder">' +
+        '<option value="">This ad set</option>' + sets.map(x => '<option value="' + esc(x.id) + '" data-ph="' + esc(JSON.stringify(phList(x.rs).map(k => [k, phN(k)]))) + '">' + esc('Move to ' + (x.rs.name || 'Ad set')) + '</option>').join('') + '</select>' +
+        '<select class="p-in" data-f="ph" aria-label="Phase in that ad set" hidden></select>' : '') +
       '<button type="button" class="p-btn p-sm" data-a="relabsave" data-sid="' + esc(it.sid) + '">Save</button><button type="button" class="p-ghost p-sm" data-a="relabx">Cancel</button></span>';
   };
   // Add a project: this computer's saved Campaign projects that are not in the ad set yet. The

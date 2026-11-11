@@ -2028,3 +2028,25 @@ Verified on the stand-in PM link (Sobha Hartland II): Local · Investor (done) D
 International · Family (English approved, Arabic with Omar) Download English → 4 files, the
 English feed / portrait / story / landscape; Investor · Design 2 (in design) disabled.
 
+## Moving a design to another ad set; a second design recognised (2026-11-11, by request)
+"Give users the ability to change an existing design's ad set, so they can move designs to other ad
+sets; detach it from its existing ad set and make sure on Drive it follows." `rsset` body
+`move: { sid, dd, market, aud, lang, phase }` (dd = the OTHER ad set's designer token; the caller
+holds both): resolves the target (`dsResolve`, role dd, not a post, has a folder), phase = the
+picked one or the target's last, `dsMove(T.rs, …)` moves the language folder into the target's
+tree (Main/[Phase]/Market/Audience/Lang), the project file's `review.rid` becomes the target's,
+the item leaves `rs.items` and joins `T.rs.items` with its design/copy steps (`to` cleared), the
+target's ticket is picked if it was open, both logs get a line. An English cell already held in
+the target becomes the next free `· Design n` (keeping `· Unbranded`). The old empty
+Market/Audience folders are left in place (nothing is trashed).
+UI: `relabHtml` adds an Ad set select (`data-f="dd"`, this computer's other Drive ad sets from
+`AV.items`, each option carrying its phases as JSON) and a phase select shown when the target has
+more than one; the ArchView `change` listener fills it and turns Save into Move.
+CAS recognising a second design: `reviewCreate`'s add check, when the picked English cell is held
+by another project, sets `ans.aud` to the root's next free `· Design n` instead of failing (an
+Arabic one still fails).
+Verified on the stand-in: Sobha Hartland II's International · Investor · Design 2 moved to
+Ellington Belgrove Residences picked as "Investor" (held there) → became International · Investor ·
+Design 2; its file's path is Ellington/International/Investor · Design 2/English, review.rid is
+Ellington's, it left Sobha's items, both logs say so. The reviewCreate path was not clicked through.
+

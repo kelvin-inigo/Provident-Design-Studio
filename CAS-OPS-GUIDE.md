@@ -458,7 +458,10 @@ and the performance-marketing link shows and downloads it as its own audience. O
 designs sit in their audience's card one under the other, each tagged **Design 1**, **Design 2**…;
 the audience is done when every design is. **Change audience** also offers the ad set's designs, to
 move a project you already made into one. In a pasted copy reply, a block named
-`Investor design 2:` fills Design 2.
+`Investor design 2:` fills Design 2. CAS also recognises a second design on its own: adding a
+project to an ad set (**Add to an ad set**, or **Use an existing design** on a ticket) as an
+audience that already has an English design makes it that audience's next design, for example
+**Investor · Design 2**, instead of refusing it.
 
 - Each audience card on Status ends with **Start the unbranded**. Press it once the audience's
   English exists: the English project opens in a new window and a copy of its design is saved
@@ -616,7 +619,13 @@ Open one to see its record:
   Arabic projects. Each project opens in the full studio. Under each project:
   **Change audience** (its market, audience and language — **Set its audience** on a project that
   has none, shown as "Project") and **Remove**, which takes it out of the ad set. The project
-  itself is not deleted and its own edit link keeps working.
+  itself is not deleted and its own edit link keeps working. **Change audience** also has an
+  **Ad set** field: pick **Move to <another ad set>** (and its phase, when it has more than one),
+  then **Move**. The project leaves this ad set and joins the other one with its steps, and its
+  Drive folder moves into the other ad set's folder at its new market, audience and language.
+  Both ad sets' Activity logs say so. When the other ad set already has that audience in English,
+  the project becomes its next design (**Investor · Design 2**). The other ad set must be on
+  this computer's list.
 - **Add a project:** the Campaign projects saved on this computer that are not in the ad set yet.
   **Add to this ad set** opens that project in a new tab and asks for its market, audience and
   language, with this ad set already chosen.
