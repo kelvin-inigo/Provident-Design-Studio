@@ -157,6 +157,7 @@ say so and point to the step above.
   two studios link to each other.
 - To switch studios, go back to the home page: the editors' top bar has no **Campaign ads** /
   **Organic posts** switch any more.
+- The **provident. DESIGN STUDIO** wordmark at the left of the top bar, in CAS and OPS, is a link to the home page.
 - The sun/moon button switches between light and dark. Both studios share the setting.
 - **Every tab is its own workspace.** When you open a studio, a `?ws=…` tag appears at the
   end of the address. That tab has its own project and photos, so several tabs (or several Claude

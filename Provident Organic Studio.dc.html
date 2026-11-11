@@ -2657,6 +2657,10 @@ input[type=range]:focus-visible,.p-c:focus-visible,.p-ws:focus-visible,
   user-select:none; color:var(--ps-wm)}
 .p-wm-a{height:var(--ps-wm-h); width:auto; display:block; fill:currentColor}
 .p-wm-d{fill:var(--ps-wm-dot)}
+/* the top bar's wordmark is a link Home (2026-11-11): no underline, a quiet hover, a focus ring */
+a.p-wm{text-decoration:none; cursor:pointer; border-radius:6px; transition:opacity .15s}
+a.p-wm:hover{opacity:.72}
+a.p-wm:focus-visible{outline:2px solid var(--ps-focus, var(--ps-brand)); outline-offset:3px}
 /* the bar scrolls rather than dropping controls, but the lockup is 167px wide
    and it is the one thing on it that can afford to give room back. */
 @media (max-width:760px){ :root{ --ps-wm-h:16px } }
@@ -4645,7 +4649,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
      DOM it painted OVER the splash and covered its own header row. -->
 <sc-if value="{{ shTopOn }}" hint-placeholder-val="{{ true }}">
 <header class="p-top">
-  <span class="p-wm">
+  <!-- (2026-11-11, by request) the wordmark is the way Home -->
+  <a class="p-wm" href="index.html" title="Home" aria-label="Provident Design Studio — Home">
     <svg class="p-wm-a" viewBox="0 0 802.41 91.17" role="img" aria-label="Provident Design Studio">
       <path d="M344.32,29.82v-4.79h-9.63v-10.16h-5.26v10.16h-6.32v4.79h6.32v26.24c0,4.11.87,6.94,2.61,8.51,1.74,1.54,3.84,2.31,6.29,2.31.74,0,1.48-.07,2.24-.2.76-.1,1.51-.27,2.24-.51.76-.24,1.14-.35,1.14-.35v-4.98s-.38.12-1.14.35c-.74.24-1.37.41-1.91.51-.54.08-1.14.12-1.8.12-1.4,0-2.49-.42-3.27-1.26-.76-.84-1.14-2.38-1.14-4.63v-26.12h9.63Z"/>
       <path d="M300.57,24.33c-2.65,0-5.11.68-7.39,2.04-2.25,1.36-4,3.06-5.22,5.1v-6.43h-5.18v41.15h5.26v-23.65c0-3.79,1.12-6.86,3.35-9.22,2.25-2.38,4.94-3.57,8.05-3.57,3.41,0,5.87,1.05,7.39,3.14,1.52,2.09,2.28,4.8,2.28,8.12v25.18h5.26v-26.16c0-4.63-1.21-8.39-3.64-11.3-2.4-2.93-5.78-4.39-10.15-4.39Z"/>
@@ -4672,7 +4677,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <path d="M781.64,0h-387.07c-11.45,0-20.77,9.32-20.77,20.77v49.63c0,11.45,9.32,20.77,20.77,20.77h387.07c11.45,0,20.77-9.32,20.77-20.77V20.77c0-11.45-9.32-20.77-20.77-20.77ZM797.3,20.77v49.63c0,8.63-7.02,15.66-15.66,15.66h-387.07c-8.63,0-15.66-7.02-15.66-15.66V20.77c0-8.63,7.02-15.66,15.66-15.66h387.07c8.63,0,15.66,7.02,15.66,15.66Z"/>
       <path class="p-wm-d" d="M357.14,67.05c2.21,0,3.99-1.79,3.99-3.99s-1.79-3.99-3.99-3.99-3.99,1.79-3.99,3.99,1.79,3.99,3.99,3.99Z"/>
     </svg>
-  </span>
+  </a>
   <!-- (2026-11-03, by request) the Campaign ads | Organic posts switch is gone from the editor's
        bar: a project belongs to one studio, and the other is reached from the home -->
   <div class="p-vr"></div>
