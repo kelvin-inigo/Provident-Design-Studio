@@ -38,3 +38,4 @@ tools/meta-ads/kit/memory/
 .env.*
 !.env.example
 _test-media/
+_animate/

@@ -42,6 +42,21 @@
     { id: 'music', name: 'Music', icon: 'music_note' },
     { id: 'sfx', name: 'Sound', icon: 'graphic_eq' }
   ];
+  // Camera moves for turning a photo into video (Higgsfield Cinema Studio). The move is a phrase
+  // in the prompt; the studio writes the WHOLE prompt, so the skill that runs it decides nothing.
+  const MOVES = [
+    ['push_in', 'Push in', 'slow, steady dolly push-in toward the centre of the frame'],
+    ['pull_back', 'Pull back', 'slow, steady dolly pull-back that reveals more of the space'],
+    ['pan_left', 'Pan left', 'smooth, slow camera pan to the left'],
+    ['pan_right', 'Pan right', 'smooth, slow camera pan to the right'],
+    ['tilt_up', 'Tilt up', 'smooth, slow camera tilt upward'],
+    ['tilt_down', 'Tilt down', 'smooth, slow camera tilt downward'],
+    ['crane_up', 'Crane up', 'crane shot rising smoothly straight up'],
+    ['orbit', 'Orbit', 'slow orbit, the camera arcing gently to the right around the subject'],
+    ['slide', 'Slide', 'slow lateral tracking move to the right, parallel to the subject'],
+    ['hold', 'Hold', 'locked-off camera with no camera movement']
+  ];
+  const MOVE_BASE = 'Photorealistic real estate footage from this exact photograph. Camera: {move}. Keep the architecture, layout, furniture, materials and proportions exactly as in the image. Do not add people, objects, text or logos, and do not warp or morph anything. Only gentle natural motion: light, foliage, water, curtains. Stable, smooth, cinematic, no cuts.';
   const ANIMS = [['none', 'None'], ['fade', 'Fade'], ['rise', 'Rise'], ['lines', 'Line by line'], ['words', 'Word by word']];
   const LBL = 92;
 
@@ -666,7 +681,7 @@
         P.clips.forEach((c, i) => {
           const m = media[c.mid] || {};
           body += '<div class="vs-it" data-kind="clip" data-id="' + c.id + '"' + on('clip', c.id) + ' style="left:' + (LBL + st[i] * pps) + 'px;width:' + Math.max(6, clipLen(c) * pps - 1) + 'px;top:4px;' +
-            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + hd + '<span class="n">' + esc(m.name || 'Clip') + (c.mute ? ' · muted' : '') + '</span></div>';
+            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + hd + '<span class="n">' + esc(m.name || 'Clip') + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
         });
       } else {
         const kind = tr.id === 'text' ? 'text' : tr.id === 'logo' ? 'logo' : 'audio';
@@ -966,7 +981,19 @@
       const m = media[it.mid] || {}, vid = m.kind === 'video';
       h = '<div class="vs-sec"><span class="vs-h">' + (vid ? 'Video clip' : 'Photo clip') + '</span><span class="vs-note">' + esc(m.name) + ' · ' + fmt(clipLen(it)) + (vid ? ' of ' + fmt(m.dur) : '') + '</span></div>';
       if (vid) h += '<div class="vs-sec"><span class="vs-h">Sound</span>' + seg('mute', [[false, 'On'], [true, 'Muted']]) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
-      else h += '<div class="vs-sec"><span class="vs-h">Timing</span>' + f('Lasts', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
+      else {
+        h += '<div class="vs-sec"><span class="vs-h">Timing</span>' + f('Lasts', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
+        const j = it.job, busy = j && (j.status === 'queued' || j.status === 'working');
+        h += '<div class="vs-sec"><span class="vs-h">Animate with Higgsfield</span>' +
+          '<div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + m[1] + '</button>').join('') + '</div>' +
+          f('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+          f('Extra direction', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Optional, e.g. golden hour light"' + (busy ? ' disabled' : '') + '>') +
+          (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'
+            : (j && j.status === 'failed' ? '<span class="vs-note"><b>That did not work:</b> ' + esc(j.error || 'no reason given') + '</span>' : '') +
+              '<button class="p-btn p-sm" id="animBtn"' + (it.move ? '' : ' disabled') + '>Send to the animate queue</button>' +
+              '<span class="vs-note">' + (it.move ? 'Sends the photo as it is framed here. Then run <b>/animate-photos</b> in Claude; it spends Higgsfield credits and shows the cost first.' : 'Pick a camera move first.') + '</span>') +
+          '</div>';
+      }
       h += '<div class="vs-sec"><span class="vs-h">Framing</span>' + seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
         rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, '') + '</div>';
     } else if (sel.kind === 'audio') {
@@ -1021,6 +1048,10 @@
       return;
     }
     if (!it) return;
+    if (b.dataset.mv) { mark(); it.move = b.dataset.mv; renderAll(); return; }
+    if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
+    if (b.id === 'animBtn') return animSend(it);
+    if (b.id === 'animCancel') return animCancel(it);
     if (b.dataset.hi) {                       // wrap the selection (or the word under the caret) in the marker, or unwrap it
       const ta = insp.querySelector('[data-s="' + b.dataset.hi + '"]'), v = ta.value; let a = ta.selectionStart, z = ta.selectionEnd;
       if (a === z) { while (a > 0 && !/[\s*]/.test(v[a - 1])) a--; while (z < v.length && !/[\s*]/.test(v[z])) z++; }
@@ -1082,6 +1113,67 @@
   function saveFrame() {
     sync(); draw();
     cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'provident-video_' + P.size + '_frame.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); }, 'image/png');
+  }
+
+  // ── animate queue: a photo clip goes out as the frame it shows; the finished video comes back ──
+  // The local server keeps the queue in `_animate/`; the animate-photos skill (Claude, talking to
+  // Higgsfield) works through it. The studio never talks to Higgsfield itself.
+  const api = (path, body) => fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined).then(r => r.json());
+  async function animSend(c) {
+    const m = media[c.mid], mv = MOVES.find(x => x[0] === c.move); if (!m || !mv) return;
+    const im = imgFor(m); if (!im.complete || !im.naturalWidth) { toast('The photo is still loading. Try again in a moment.'); return; }
+    // the start frame is the photo exactly as this clip frames it, at the video's size
+    const g = G(), k = document.createElement('canvas'); k.width = g.w; k.height = g.h;
+    const x = k.getContext('2d'); x.fillStyle = ART.ground; x.fillRect(0, 0, g.w, g.h);
+    const fill = c.fit !== 'fit', sc = (fill ? Math.max(g.w / im.naturalWidth, g.h / im.naturalHeight) : Math.min(g.w / im.naturalWidth, g.h / im.naturalHeight)) * (c.z || 100) / 100;
+    const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
+    x.drawImage(im, (g.w - dw) * (c.fx == null ? 50 : c.fx) / 100, (g.h - dh) * (c.fy == null ? 50 : c.fy) / 100, dw, dh);
+    const id = uid() + uid().slice(0, 3);
+    const prompt = MOVE_BASE.replace('{move}', mv[2]) + (c.moveNote ? ' ' + String(c.moveNote).trim() : '');
+    try {
+      const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
+      if (r.error) throw new Error(r.error);
+      mark(); c.job = { id, status: 'queued' }; renderAll(); animWatch();
+      toast('Queued. Run /animate-photos in Claude to generate it.');
+    } catch (e) { toast('Could not reach the local server\'s animate queue (' + e.message + ').'); }
+  }
+  async function animCancel(c) {
+    if (!c.job) return;
+    try { await api('/api/animate/cancel', { id: c.job.id }); } catch (e) {}
+    delete c.job; renderAll();
+  }
+  let animT = 0;
+  function animWatch() {
+    clearTimeout(animT);
+    if (!P.clips.some(c => c.job && (c.job.status === 'queued' || c.job.status === 'working'))) return;
+    animT = setTimeout(animPoll, 4000);
+  }
+  async function animPoll() {
+    let jobs = [];
+    try { jobs = (await api('/api/animate/jobs')).jobs || []; } catch (e) { return animWatch(); }
+    let changed = false;
+    for (const c of P.clips) {
+      if (!c.job || c.job.status === 'failed') continue;
+      const j = jobs.find(x => x.id === c.job.id);
+      if (!j) { delete c.job; changed = true; continue; }                   // taken off the queue elsewhere
+      if (j.status === 'done' && j.video) {
+        try {
+          const blob = await (await fetch('/_animate/' + j.video)).blob();
+          const rec = { id: uid(), kind: 'video', name: (media[c.mid] ? media[c.mid].name : 'Photo') + ' · ' + (j.move || 'animated'), blob: new File([blob], j.video, { type: 'video/mp4' }) };
+          await probe(rec); media[rec.id] = rec;
+          DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster });
+          // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size)
+          Object.assign(c, { mid: rec.id, in: 0, out: rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: true });
+          delete c.job; changed = true;
+          api('/api/animate/placed', { id: j.id }).catch(() => {});
+          toast('The animated clip is on the timeline.');
+        } catch (e) { c.job = { id: j.id, status: 'failed', error: 'the finished video could not be loaded' }; changed = true; }
+      } else if (j.status !== c.job.status) {
+        c.job = j.status === 'failed' ? { id: j.id, status: 'failed', error: j.error } : { id: j.id, status: j.status }; changed = true;
+      }
+    }
+    if (changed) renderAll();
+    animWatch();
   }
 
   // ── placement preview (CAS's phone frames and app chrome; see tools/video-dev/build-preview.py) ──
@@ -1201,7 +1293,7 @@
     const ok = i => !!media[i.mid];
     P.clips = P.clips.filter(ok); P.audio = P.audio.filter(ok); P.logos = P.logos.filter(ok);
     if (document.fonts && document.fonts.load) { try { await Promise.all([300, 400, 500].map(w => document.fonts.load(w + " 40px 'Google Sans Flex'"))); } catch (e) {} }
-    fitCanvas(); renderAll();
+    fitCanvas(); renderAll(); animWatch();
     requestAnimationFrame(tick);
   })();
 

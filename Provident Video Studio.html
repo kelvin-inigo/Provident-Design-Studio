@@ -151,6 +151,13 @@ button{font-family:inherit}
 .vs-hi{display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:var(--ps-ink-2);font:inherit;font-size:11px;cursor:pointer;padding:2px 6px;margin:-2px -6px;border-radius:var(--ps-pill)}
 .vs-hi:hover{background:var(--ps-fill);color:var(--ps-ink)}
 .vs-hi i{width:9px;height:9px;border-radius:50%;background:#B0905C}
+/* camera moves */
+.vs-mvs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.vs-mv{height:34px;border:1px solid var(--ps-hair);border-radius:var(--ps-r-sm);background:transparent;color:var(--ps-ink-2);font-size:12px;cursor:pointer;padding:0 8px}
+.vs-mv:hover:not(:disabled){background:var(--ps-fill);border-color:var(--ps-focus);color:var(--ps-ink)}
+.vs-mv[data-on]{background:var(--ps-fill-on);border-color:var(--ps-focus);box-shadow:0 0 0 1px var(--ps-focus);color:var(--ps-ink)}
+.vs-mv:disabled,.vs-seg button:disabled{opacity:.45;cursor:default}
+.vs-note b{font-weight:500;color:var(--ps-ink-2)}
 /* export overlay + toast */
 .vs-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:none;align-items:center;justify-content:center}
 .vs-ov[data-on]{display:flex}

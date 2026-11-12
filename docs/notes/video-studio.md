@@ -78,3 +78,29 @@ Started 2026-11-12 by request: a simple video editor beside CAS and OPS. Lives i
 - **The preview always shows Feed, Reels and Story** (by request, same day). A 9:16 in the feed is the
   centre 4:5 crop, as Meta does — which cuts off a wordmark at the top margin (260 < the crop's 285);
   a 1:1 in Reels and Story sits centred on black.
+
+## Photos to video with Higgsfield (2026-11-12)
+
+By request: a photo clip can be animated with a directed camera move, the way Higgsfield's Cinema
+Studio offers them. **The studio never talks to Higgsfield.** It queues; Claude generates.
+
+- **Picker** on a photo clip (inspector › Animate with Higgsfield): ten moves in `MOVES` (Push in,
+  Pull back, Pan left/right, Tilt up/down, Crane up, Orbit, Slide, Hold), a length (5 / 8 / 10 s) and
+  an optional extra direction. In Cinema Studio a move is a phrase in the prompt, so each move is one
+  phrase and `MOVE_BASE` is the fixed real-estate prompt around it. **The studio writes the whole
+  prompt** so the skill decides nothing — that is what keeps a run to a few short tool calls.
+- **Send to the animate queue** renders the photo exactly as the clip frames it, at the video's size
+  (so the generated clip drops in unreframed), and POSTs it to the local server.
+- **The queue is `_animate/`** (git-ignored) served by `tools/video-dev/serve.py`:
+  `POST /api/animate/job` · `GET /api/animate/jobs` · `POST /api/animate/placed` · `/cancel`.
+  `<id>.json` (status queued → working → done / failed → placed), `<id>.jpg`, `<id>.mp4`.
+- **The skill** is `.claude/skills/animate-photos/` (`/animate-photos`): reads the queue with
+  `scripts/animate.py`, shows the credit cost and waits for a yes, uploads the frames, generates with
+  `cinematic_studio_video_v2` (start image, sound off, std), waits, and runs `animate.py done` which
+  downloads the MP4. It is told not to look at the photos or the results.
+- **The studio polls every 4 s** while a clip is queued or generating (`animWatch` / `animPoll`),
+  loads the MP4 into the library, and points the SAME clip at it (in 0, out = its length, muted).
+- Tested end to end with a stand-in MP4 for the result — **no real Higgsfield generation has been run
+  through it yet**, so the result URL's shape and the model's settings are unproven.
+- The main checkout has a symlink `.claude/skills/animate-photos` → this worktree's copy, so the
+  skill is listed in sessions started from the main folder. Untracked there.
