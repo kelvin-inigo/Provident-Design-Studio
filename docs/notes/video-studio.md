@@ -32,3 +32,23 @@ Started 2026-11-12 by request: a simple video editor beside CAS and OPS. Lives i
   in IndexedDB (`provident-video`). One project at a time; no Drive, no sign-in gate, no Recents.
 - The Browser pane's launcher cannot start a server from inside `.claude/worktrees` ("Operation not
   permitted"); run `serve.py` from a shell instead.
+
+## Second pass (2026-11-12, from the first test)
+
+- **Scrubbing.** The playhead line is a 13px grab strip the full height of the timeline (it used to be
+  grabbable only on the 24px ruler). Scrubbing lands on whole frames (1/30) and is magnetic to the start
+  and end of every clip and item (`magnet()`, 9px). A click on the video clip moves the playhead to the
+  click; a click on any other item moves it only if the playhead is outside that item.
+- **Track labels are `position:sticky`** — an `absolute` after it used to win, so they scrolled away.
+- **Graphics.** The track is called Graphics. Any uploaded image can be placed (Logos tab), and an image
+  dropped on the video becomes a graphic, not a photo clip, once there is a video. A graphic placed at the
+  very end steps back so it is on screen. Colour per graphic: Original / White / Navy (`flat()`).
+- **Lockup colour.** "Match canvas / Original" looked dead because four of the five developer files are
+  already white. The wordmark now has Colour White / Navy and the partner is Match wordmark / Original,
+  so the control visibly does something for every file.
+- **Drag guides and the Reel overlay** (`.vs-guide`, a DOM layer over the canvas, never exported) were
+  added by a Side chat session in the same pass: safe-area bands, the Reel interface in outline, centre
+  lines that light on lock, edges magnetic to the safe area, Alt frees it. The phone button in the
+  transport keeps the overlay on.
+- **Layer colours**: Text violet, Graphics rose, Video blue, Music green, Sound amber — a bar on each
+  track label and the same colour on its items (`--tc`).

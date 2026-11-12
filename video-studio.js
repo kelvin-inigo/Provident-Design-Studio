@@ -19,7 +19,7 @@
 
   // ── ARTWORK constants (never a chrome token) ─────────────────────────────────────────
   const ART = {
-    ink: '#FFFFFF', ground: '#0A0B0D', wash: '8,12,22',
+    ink: '#FFFFFF', navy: '#1A2942', ground: '#0A0B0D', wash: '8,12,22',
     font: "'Google Sans Flex', system-ui, sans-serif",
     logoPx: 41, logoTrack: .04,               // the wordmark, as on the Reel thumbnail
     headTrack: -.046, headLead: 158 / 168,    // RCV.headTrack / RCV.headLead
@@ -37,7 +37,7 @@
   };
   const TRACKS = [
     { id: 'text', name: 'Text', icon: 'title' },
-    { id: 'logo', name: 'Logos', icon: 'image' },
+    { id: 'logo', name: 'Graphics', icon: 'image' },
     { id: 'clip', name: 'Video', icon: 'movie' },
     { id: 'music', name: 'Music', icon: 'music_note' },
     { id: 'sfx', name: 'Sound', icon: 'graphic_eq' }
@@ -50,11 +50,11 @@
   function fresh() {
     return {
       v: 1, size: '9x16', clips: [], audio: [], texts: [], logos: [],
-      brand: { on: true, align: 'left', vpos: 'top', scale: 100, wash: 40, partner: null, pScale: 100, tint: 'match' }
+      brand: { on: true, align: 'left', vpos: 'top', scale: 100, wash: 40, partner: null, pScale: 100, tint: 'match', ink: 'white' }
     };
   }
   let P = fresh();
-  try { const s = JSON.parse(localStorage.getItem(PKEY) || 'null'); if (s && s.v === 1) P = Object.assign(fresh(), s); } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem(PKEY) || 'null'); if (s && s.v === 1) { P = Object.assign(fresh(), s); P.brand = Object.assign(fresh().brand, s.brand); } } catch (e) {}
   if (!SIZES[P.size]) P.size = '9x16';
   const media = {};                 // id -> { id, kind, name, url, dur, w, h, poster, peaks }
   let sel = null;                   // { kind: 'clip'|'audio'|'text'|'logo', id }
@@ -170,7 +170,8 @@
       media[rec.id] = rec; added++;
       DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks });
       // the first video dropped goes straight onto the timeline; so does anything dropped on the stage
-      if ((kind === 'video' || kind === 'image') && (firstVideo || want === 'stage')) { addClip(rec.id, true); firstVideo = false; }
+      if (kind === 'image' && want === 'stage' && P.clips.length) addLogo(rec.id, true);
+      else if ((kind === 'video' || kind === 'image') && (firstVideo || want === 'stage')) { addClip(rec.id, true); firstVideo = false; }
       if (kind === 'audio' && want === 'stage') addAudio(rec.id, 'music', true);
     }
     if (added) {
@@ -218,10 +219,16 @@
     const t = Object.assign(base, pre);
     P.texts.push(t); sel = { kind: 'text', id: t.id }; renderAll();
   }
-  function addLogo(mid) {
-    mark();
-    const l = { id: uid(), mid, at: T, dur: Math.max(3, Math.min(5, (total() - T) || 3)), x: 50, y: 50, w: 30, op: 100, fade: true };
-    P.logos.push(l); sel = { kind: 'logo', id: l.id }; renderAll();
+  function addLogo(mid, quiet) {
+    if (!media[mid]) return;
+    if (!quiet) mark();
+    // never past the end of the video: at the very end it steps back so it is on screen
+    const end = total(); let at = T, dur = 5;
+    if (end > 0) { if (end - at < 1) at = Math.max(0, end - 3); dur = Math.min(5, end - at); }
+    const l = { id: uid(), mid, at, dur, x: 50, y: 50, w: 30, op: 100, fade: true, tint: 'orig' };
+    P.logos.push(l); sel = { kind: 'logo', id: l.id };
+    if (at !== T) T = at;
+    if (!quiet) renderAll();
   }
 
   // ── cut, duplicate, delete ───────────────────────────────────────────────────────────
@@ -332,6 +339,17 @@
   }
   function pause() { playing = false; sync(); paintTransport(); }
   function seek(t) { T = clamp(t, 0, Math.max(0, total())); dirty = true; paintPlayhead(); }
+  // Scrubbing lands on whole frames, and locks onto the start and end of whatever is near.
+  function edges(skipId) {
+    const c = [0]; let acc = 0; P.clips.forEach(k => { acc += clipLen(k); c.push(acc); });
+    [P.audio, P.texts, P.logos].forEach(L => L.forEach(i => { if (i.id !== skipId) c.push(i.at, i.at + i.dur); }));
+    return c;
+  }
+  function magnet(t) {
+    const tol = 9 / pps; let best = null, bd = tol;
+    edges().forEach(v => { const d = Math.abs(v - t); if (d < bd) { bd = d; best = v; } });
+    return best == null ? Math.round(t * 30) / 30 : best;
+  }
   function tick(now) {
     if (playing) {
       const hold = sync();
@@ -401,9 +419,11 @@
     return L;
   }
   function drawText(tx) {
-    const g = G(), rel = T - tx.at, L = layoutText(tx);
+    // paused on the selected item: show it finished, so what is being edited is never mid-effect
+    const still = !playing && sel && sel.id === tx.id;
+    const g = G(), rel = still ? 99 : T - tx.at, L = layoutText(tx);
     if (!L.rows.length) return;
-    const out = tx.anim === 'none' ? 1 : ease((tx.dur - rel) / .3), inn = tx.anim === 'none' ? 1 : ease(rel / .45);
+    const out = tx.anim === 'none' || still ? 1 : ease((tx.dur - rel) / .3), inn = tx.anim === 'none' ? 1 : ease(rel / .45);
     const env = Math.min(inn, out);
     // the wash covers the text area only, plus breathing room, and fades out beyond it
     if (tx.scrim > 0) {
@@ -442,9 +462,19 @@
     const im = imgFor(m); if (!im.complete || !im.naturalWidth) return;
     const g = G(), rel = T - l.at, w = g.w * l.w / 100, h = w * im.naturalHeight / im.naturalWidth;
     const x = g.w * l.x / 100 - w / 2, y = g.h * l.y / 100 - h / 2;
-    cx.save(); cx.globalAlpha = (l.op / 100) * (l.fade ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
-    cx.drawImage(im, x, y, w, h); cx.restore();
+    cx.save(); cx.globalAlpha = (l.op / 100) * (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
+    cx.drawImage(l.tint && l.tint !== 'orig' ? flat(im, m.id, l.tint === 'navy' ? ART.navy : ART.ink) : im, x, y, w, h); cx.restore();
     hits[l.id] = { kind: 'logo', x, y, w, h };
+  }
+  // One flat ink over a mark, keeping its own alpha (CAS's tintFlat). Cached per file and colour.
+  const flats = {};
+  function flat(im, id, colour) {
+    const k = id + colour; if (flats[k]) return flats[k];
+    const s = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(im.naturalWidth * s)); c.height = Math.max(1, Math.round(im.naturalHeight * s));
+    const x = c.getContext('2d'); x.drawImage(im, 0, 0, c.width, c.height);
+    x.globalCompositeOperation = 'source-in'; x.fillStyle = colour; x.fillRect(0, 0, c.width, c.height);
+    return (flats[k] = c);
   }
   // ── the co-brand lockup: provident. | partner ────────────────────────────────────────
   let pImg = null, pInk = null, pTint = null;
@@ -486,7 +516,8 @@
       if (b.vpos === 'top') { gr = cx.createLinearGradient(0, 0, 0, base + reach); gr.addColorStop(0, 'rgba(' + ART.wash + ',' + a + ')'); gr.addColorStop(1, 'rgba(' + ART.wash + ',0)'); cx.fillStyle = gr; cx.fillRect(0, 0, g.w, base + reach); }
       else { gr = cx.createLinearGradient(0, base - reach, 0, g.h); gr.addColorStop(0, 'rgba(' + ART.wash + ',0)'); gr.addColorStop(1, 'rgba(' + ART.wash + ',' + a + ')'); cx.fillStyle = gr; cx.fillRect(0, base - reach, g.w, g.h - base + reach); }
     }
-    cx.fillStyle = ART.ink; cx.textAlign = 'left'; cx.textBaseline = 'alphabetic';
+    const ink = b.ink === 'navy' ? ART.navy : ART.ink;
+    cx.fillStyle = ink; cx.textAlign = 'left'; cx.textBaseline = 'alphabetic';
     setFont(L, 300, ART.logoTrack);
     cx.fillText('provident.', x0, base);
     try { cx.letterSpacing = '0px'; } catch (e) {}
@@ -496,11 +527,11 @@
       const px = rx + rw + gap, py = cy - th / 2;
       const sx = pInk.x * pImg.naturalWidth, sy = pInk.y * pImg.naturalHeight, sw = pInk.w * pImg.naturalWidth, sh = pInk.h * pImg.naturalHeight;
       if (b.tint === 'match') {               // one flat ink, keeping the mark's own alpha
-        const key = Math.ceil(tw) + 'x' + Math.ceil(th);
+        const key = Math.ceil(tw) + 'x' + Math.ceil(th) + ink;
         if (!pTint || pTint._k !== key) {
           const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(tw * 2)); c.height = Math.max(1, Math.ceil(th * 2)); c._k = key;
           const x = c.getContext('2d'); x.drawImage(pImg, sx, sy, sw, sh, 0, 0, c.width, c.height);
-          x.globalCompositeOperation = 'source-in'; x.fillStyle = ART.ink; x.fillRect(0, 0, c.width, c.height); pTint = c;
+          x.globalCompositeOperation = 'source-in'; x.fillStyle = ink; x.fillRect(0, 0, c.width, c.height); pTint = c;
         }
         cx.drawImage(pTint, px, py, tw, th);
       } else cx.drawImage(pImg, sx, sy, sw, sh, px, py, tw, th);
@@ -517,7 +548,7 @@
       if (m && m.kind === 'video') {
         const el = vel[a.c.id];
         if (el && el.readyState >= 2) { cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(el, el.videoWidth, el.videoHeight, a.c); painted = true; }
-        else if (el) { dirty = true; painted = draw._had; }      // keep the last frame while it seeks
+        else if (el && draw._had) { dirty = true; return; }      // still seeking: leave the last frame up, untouched
       } else if (m) {
         const im = imgFor(m);
         if (im.complete && im.naturalWidth) { cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(im, im.naturalWidth, im.naturalHeight, a.c); painted = true; }
@@ -534,6 +565,7 @@
     if (cv.width !== g.w || cv.height !== g.h) { cv.width = g.w; cv.height = g.h; }
     const s = Math.min((box.clientWidth - 36) / g.w, (box.clientHeight - 36) / g.h);
     cv.style.width = Math.max(40, Math.floor(g.w * s)) + 'px'; cv.style.height = Math.max(40, Math.floor(g.h * s)) + 'px';
+    if (showSafe) guideShow();
     dirty = true;
   }
 
@@ -578,7 +610,7 @@
       }
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
     });
-    h += '<div class="vs-ph" id="ph"></div>';
+    h += '<div class="vs-ph" id="ph" title="Drag to scrub"></div>';
     tlin.style.width = W + 'px'; tlin.innerHTML = h;
     tlin.querySelectorAll('canvas[data-wave]').forEach(c => {
       const a = P.audio.find(x => x.id === c.dataset.wave), m = a && media[a.mid]; if (!m || !m.peaks) return;
@@ -602,9 +634,7 @@
   }
   const xToT = e => (e.clientX - tlin.getBoundingClientRect().left - LBL) / pps;
   function snapT(t, skipId) {
-    const c = [0, T], tol = 8 / pps;
-    let acc = 0; P.clips.forEach(k => { acc += clipLen(k); c.push(acc); });
-    [P.audio, P.texts, P.logos].forEach(L => L.forEach(i => { if (i.id !== skipId) c.push(i.at, i.at + i.dur); }));
+    const c = edges(skipId).concat([T]), tol = 8 / pps;
     let best = t, bd = tol; c.forEach(v => { const d = Math.abs(v - t); if (d < bd) { bd = d; best = v; } });
     return best;
   }
@@ -613,22 +643,28 @@
     if (e.button) return;
     const itEl = e.target.closest('.vs-it');
     if (e.target.closest('.vs-trk-l')) return;
-    if (itEl) {
+    if (e.target.closest('.vs-ph')) { drag = { mode: 'seek' }; if (playing) pause(); }
+    else if (itEl) {
       const kind = itEl.dataset.kind, id = itEl.dataset.id, h = e.target.closest('.vs-hd');
       sel = { kind, id }; const it = find(sel);
-      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P) };
+      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e) };
       renderAll();
     } else {
       drag = { mode: 'seek' };
       if (e.target.closest('.vs-trk') && sel) { sel = null; renderAll(); }
       if (playing) pause();
-      seek(xToT(e));
+      seek(magnet(xToT(e)));
     }
     tl.setPointerCapture(e.pointerId); e.preventDefault();
   });
   tl.addEventListener('pointermove', e => {
     if (!drag) return;
-    if (drag.mode === 'seek') { seek(xToT(e)); return; }
+    if (drag.mode === 'seek') {
+      seek(magnet(xToT(e)));
+      const r = tl.getBoundingClientRect();     // scrubbing past an edge scrolls the timeline
+      if (e.clientX > r.right - 30) tl.scrollLeft += 14; else if (e.clientX < r.left + LBL + 20) tl.scrollLeft -= 14;
+      return;
+    }
     const dx = e.clientX - drag.x0;
     if (!drag.moved) { if (Math.abs(dx) < 3) return; drag.moved = true; undo.push(drag.snap); redo.length = 0; }
     const it = find(drag), o = drag.o, d = dx / pps, m = media[it.mid];
@@ -654,7 +690,14 @@
     }
     dirty = true; renderTimeline();
   });
-  const endDrag = () => { if (drag && drag.moved) { T = Math.min(T, Math.max(T, 0)); renderAll(); } drag = null; };
+  const endDrag = () => {
+    if (drag && drag.moved) renderAll();
+    else if (drag && drag.kind) {             // a plain click on an item also brings the playhead to it
+      const it = find(drag), sp = it && span(drag.kind, it);
+      if (sp && (drag.kind === 'clip' || T < sp[0] || T >= sp[1])) { if (playing) pause(); seek(clamp(magnet(drag.t), sp[0], Math.max(sp[0], sp[1] - 1 / 30))); }
+    }
+    drag = null;
+  };
   tl.addEventListener('pointerup', endDrag); tl.addEventListener('pointercancel', endDrag);
   tl.addEventListener('wheel', e => {
     if (!(e.ctrlKey || e.metaKey)) return;
@@ -671,15 +714,63 @@
     sel = { kind: hit.kind, id: hit.id }; renderAll();
     if (hit.kind === 'logo') { const l = find(sel); cdrag = { p, x: l.x, y: l.y, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); }
   });
+  // ── drag guides (chrome only, never painted on the canvas, so never exported) ────────
+  // While a graphic is dragged: the safe area, the Reel interface in x-ray over the 9:16,
+  // and a centre line each way that lights when the graphic locks onto it.
+  const guide = document.createElement('div'); guide.className = 'vs-guide'; $('#cvw').appendChild(guide);
+  function guideShow() {
+    const g = G(), pc = (v, of) => (v / of * 100).toFixed(3) + '%';
+    let h = '<i class="vs-g-band" style="left:0;right:0;top:0;height:' + pc(g.t, g.h) + '"></i>' +
+      '<i class="vs-g-band" style="left:0;right:0;bottom:0;height:' + pc(g.b, g.h) + '"></i>' +
+      '<i class="vs-g-band" style="left:0;width:' + pc(g.l, g.w) + ';top:' + pc(g.t, g.h) + ';bottom:' + pc(g.b, g.h) + '"></i>' +
+      '<i class="vs-g-band" style="right:0;width:' + pc(g.r, g.w) + ';top:' + pc(g.t, g.h) + ';bottom:' + pc(g.b, g.h) + '"></i>' +
+      '<i class="vs-g-safe" style="left:' + pc(g.l, g.w) + ';right:' + pc(g.r, g.w) + ';top:' + pc(g.t, g.h) + ';bottom:' + pc(g.b, g.h) + '"><b>Safe area</b></i>';
+    if (P.size === '9x16') {                  // the Reel interface, traced off a phone screenshot
+      const box = (x, y, w, hh, r, cls) => '<i class="vs-g-ui' + (cls ? ' ' + cls : '') + '" style="left:' + x + '%;top:' + y + '%;width:' + w + '%;height:' + hh + '%;border-radius:' + (r || 0) + 'px"></i>';
+      h += box(5, 7.2, 3, 2.2, 3) + box(11, 7.2, 16, 2.2, 4) + box(80, 7.2, 5, 2.6, 99) + box(89, 7, 7, 3.9, 99) +   // back, Reels, search, profile
+        box(88.5, 48, 8, 4.5, 99) + box(88.5, 55.5, 8, 4.5, 99) + box(88.5, 63, 8, 4.5, 99) + box(90.5, 70.3, 4, 1, 99) + // like, comment, share, more
+        box(4.5, 72.5, 9.5, 5.3, 99) + box(16.5, 72.8, 54, 1.9, 4) + box(16.5, 75.4, 20, 1.4, 4) +                      // avatar, name, Sponsored
+        box(4.5, 78.4, 66, 1.6, 4) + box(4.5, 80.5, 22, 1.6, 4) +                                                       // caption
+        box(4.5, 83.2, 91, 4.7, 8, 'cta') + box(4.5, 89, 91, .25, 2) +                                                  // button, progress
+        box(0, 90.6, 100, 9.4, 0, 'nav');
+    }
+    h += '<i class="vs-g-cx" data-cx></i><i class="vs-g-cy" data-cy></i>';
+    guide.innerHTML = h;
+    guide.style.left = cv.offsetLeft + 'px'; guide.style.top = cv.offsetTop + 'px';
+    guide.style.width = cv.offsetWidth + 'px'; guide.style.height = cv.offsetHeight + 'px';
+    guide.dataset.on = '1';
+  }
+  function guideLock(x, y) {
+    const a = guide.querySelector('[data-cx]'), b = guide.querySelector('[data-cy]');
+    if (a) { if (x) a.dataset.on = '1'; else delete a.dataset.on; }
+    if (b) { if (y) b.dataset.on = '1'; else delete b.dataset.on; }
+  }
+  let showSafe = false;
+  const guideHide = () => { if (showSafe) guideLock(false, false); else delete guide.dataset.on; };
   cv.addEventListener('pointermove', e => {
     if (!cdrag) return; const l = find(sel); if (!l) return;
     const p = cvPt(e);
-    if (!cdrag.moved) { cdrag.moved = true; undo.push(cdrag.snap); redo.length = 0; }
-    l.x = clamp(cdrag.x + (p.x - cdrag.p.x) / cv.width * 100, 0, 100); l.y = clamp(cdrag.y + (p.y - cdrag.p.y) / cv.height * 100, 0, 100);
-    if (Math.abs(l.x - 50) < 1.2) l.x = 50; if (Math.abs(l.y - 50) < 1.2) l.y = 50;
-    dirty = true;
+    if (!cdrag.moved) {
+      if (Math.abs(p.x - cdrag.p.x) + Math.abs(p.y - cdrag.p.y) < 4) return;
+      cdrag.moved = true; undo.push(cdrag.snap); redo.length = 0; guideShow();
+    }
+    const g = G(), hb = hits[l.id] || { w: g.w * l.w / 100, h: 0 };
+    let x = cdrag.x + (p.x - cdrag.p.x) / g.w * 100, y = cdrag.y + (p.y - cdrag.p.y) / g.h * 100;
+    // magnetic: the centre first, then the graphic's edges against the safe area (Alt frees it)
+    const pull = 9 * cv.width / (cv.getBoundingClientRect().width || cv.width);   // 9px on screen, whatever the zoom
+    const tx = pull / g.w * 100, ty = pull / g.h * 100, hw = hb.w / g.w * 50, hh = hb.h / g.h * 50;
+    let lx = false, ly = false;
+    if (!e.altKey) {
+      const L = g.l / g.w * 100, R = (g.w - g.r) / g.w * 100, Tp = g.t / g.h * 100, B = (g.h - g.b) / g.h * 100;
+      if (Math.abs(x - 50) < tx) { x = 50; lx = true; }
+      else if (Math.abs(x - hw - L) < tx) x = L + hw; else if (Math.abs(x + hw - R) < tx) x = R - hw;
+      if (Math.abs(y - 50) < ty) { y = 50; ly = true; }
+      else if (Math.abs(y - hh - Tp) < ty) y = Tp + hh; else if (Math.abs(y + hh - B) < ty) y = B - hh;
+    }
+    l.x = clamp(x, 0, 100); l.y = clamp(y, 0, 100);
+    guideLock(lx, ly); dirty = true;
   });
-  const cEnd = () => { if (cdrag && cdrag.moved) { save(); renderInspector(); } cdrag = null; };
+  const cEnd = () => { const m = cdrag && cdrag.moved; cdrag = null; guideHide(); if (m) renderAll(); };
   cv.addEventListener('pointerup', cEnd); cv.addEventListener('pointercancel', cEnd);
 
   // ── left rail ────────────────────────────────────────────────────────────────────────
@@ -713,16 +804,17 @@
       const seg = (k, opts) => '<div class="vs-seg">' + opts.map(o => '<button data-bk="' + k + '" data-bv="' + o[0] + '"' + (String(b[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
       h += '<div class="vs-sec"><span class="vs-h">Provident wordmark</span>' + seg('on', [[true, 'Shown'], [false, 'Hidden']]) +
         '<div class="vs-two">' + seg('align', [['left', 'Left'], ['centre', 'Centre']]) + seg('vpos', [['top', 'Top'], ['bottom', 'Bottom']]) + '</div>' +
+        '<div class="vs-f"><label>Colour</label>' + seg('ink', [['white', 'White'], ['navy', 'Navy']]) + '</div>' +
         rng('b', 'scale', 'Size', b.scale, 60, 200, '%') + rng('b', 'wash', 'Wash behind it', b.wash, 0, 100, '%') + '</div>';
       h += '<div class="vs-sec"><span class="vs-h">Collaboration logo</span><div class="vs-lgs">' +
         '<button class="vs-lg" data-partner=""' + (!b.partner ? ' data-on="1"' : '') + '>None</button>' +
         lib.map(l => '<button class="vs-lg" data-partner="' + esc(l.id) + '" title="' + esc(l.name) + '"' + (b.partner && b.partner.id === l.id ? ' data-on="1"' : '') + '><i class="m" style="-webkit-mask-image:url(\'' + l.u + '\');mask-image:url(\'' + l.u + '\')"></i>' + (l.own ? '<span class="vs-x" data-rmdev="' + esc(l.id) + '" title="Remove from this computer">' + ico('close') + '</span>' : '') + '</button>').join('') +
         '<button class="vs-lg" data-up="partner" title="Add a developer logo">' + ico('add') + '</button></div>' +
-        (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') + '<div class="vs-f"><label>Colour</label>' + seg('tint', [['match', 'Match canvas'], ['orig', 'Original']]) + '</div>' : '') +
+        (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') + '<div class="vs-f"><label>Colour</label>' + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) + '</div><span class="vs-note">Match wordmark paints the mark in the wordmark\'s colour. Most developer files are already white, so on a white wordmark both look the same.</span>' : '') +
         '<span class="vs-note">Prints provident. | partner beside the wordmark, for the whole video. A logo you add stays on this computer.</span></div>';
-      const lg = M.filter(m => m.kind === 'logo');
-      h += '<div class="vs-sec"><span class="vs-h">Other logos</span>' + drop('logo', 'Upload a logo', 'PNG or SVG with a clear background') +
-        (lg.length ? '<div class="vs-grid">' + lg.map(m => '<button class="vs-tile" data-addlogo="' + m.id + '" title="Place at the playhead" style="background-image:url(\'' + m.url + '\');background-size:70%"><b>' + esc(m.name) + '</b><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></button>').join('') + '</div><span class="vs-note">Click to place one at the playhead, then drag it on the canvas.</span>' : '') + '</div>';
+      const lg = M.filter(m => m.kind === 'logo' || m.kind === 'image');
+      h += '<div class="vs-sec"><span class="vs-h">Graphics and other logos</span>' + drop('logo', 'Upload a graphic or logo', 'PNG or SVG with a clear background') +
+        (lg.length ? '<div class="vs-grid">' + lg.map(m => '<button class="vs-tile" data-addlogo="' + m.id + '" title="Place at the playhead" style="background-image:url(\'' + m.url + '\');background-size:70%"><b>' + esc(m.name) + '</b><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></button>').join('') + '</div><span class="vs-note">Click one to place it at the playhead, then drag it on the canvas.</span>' : '<span class="vs-note">Upload one, or drop an image on the video.</span>') + '</div>';
     }
     $('#lib').innerHTML = h;
   }
@@ -818,8 +910,9 @@
         '<button class="p-ghost p-sm" id="previewBtn">Play this text</button></div>' + timing();
     } else {
       const m = media[it.mid] || {};
-      h = '<div class="vs-sec"><span class="vs-h">Logo</span><span class="vs-note">' + esc(m.name) + ' — drag it on the canvas to move it.</span>' +
+      h = '<div class="vs-sec"><span class="vs-h">Graphic</span><span class="vs-note">' + esc(m.name) + ' — drag it on the canvas to move it.</span>' +
         rng('i', 'w', 'Size', it.w, 5, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
+        f('Colour', seg('tint', [['orig', 'Original'], ['white', 'White'], ['navy', 'Navy']])) +
         f('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']])) +
         '<div class="vs-two"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div></div>' + timing();
     }
@@ -915,6 +1008,8 @@
   }
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
   $('#dupBtn').innerHTML = ico('content_copy'); $('#delBtn').innerHTML = ico('delete'); $('#homeBtn').innerHTML = ico('skip_previous');
+  $('#safeBtn').innerHTML = ico('smartphone');
+  $('#safeBtn').addEventListener('click', () => { showSafe = !showSafe; $('#safeBtn').setAttribute('aria-pressed', showSafe); if (showSafe) guideShow(); else guideHide(); });
   $('#zoIc').innerHTML = ico('zoom_out'); $('#ziIc').innerHTML = ico('zoom_in');
   $('#frameBtn').innerHTML = ico('photo_camera') + 'Save frame'; $('#exportBtn').innerHTML = ico('download') + 'Export video';
   function paintTheme() { const light = document.documentElement.dataset.theme === 'light'; $('#themeBtn').innerHTML = ico(light ? 'dark_mode' : 'light_mode'); }

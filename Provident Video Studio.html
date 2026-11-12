@@ -88,6 +88,7 @@ button{font-family:inherit}
 .vs-ib{width:34px;height:34px;border-radius:50%;border:0;background:transparent;color:var(--ps-ink);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:none}
 .vs-ib:hover{background:var(--ps-fill)}
 .vs-ib:disabled{opacity:.35;cursor:default;background:transparent}
+.vs-ib[aria-pressed=true]{background:var(--ps-fill-on);color:var(--ps-ink)}
 .vs-ib.p{background:var(--ps-primary);color:var(--ps-primary-i);width:38px;height:38px}
 .vs-ib.p .vs-i{width:22px;height:22px}
 .vs-time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--ps-ink);min-width:132px;text-align:center}
@@ -96,21 +97,25 @@ button{font-family:inherit}
 .vs-zoom{width:110px;accent-color:var(--ps-link)}
 
 /* timeline */
-.vs-tl{height:262px;background:var(--ps-app);border-top:1px solid var(--ps-hair);overflow:auto;position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+.vs-tl{height:clamp(170px,32vh,262px);background:var(--ps-app);border-top:1px solid var(--ps-hair);overflow:auto;position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
 .vs-tl-in{position:relative;min-width:100%;min-height:100%}
-.vs-ruler{height:24px;position:relative;border-bottom:1px solid var(--ps-hair);cursor:pointer}
-.vs-tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--ps-hair);padding-left:4px;font-size:10px;color:var(--ps-dim);line-height:22px;font-variant-numeric:tabular-nums}
+.vs-ruler{height:30px;position:relative;border-bottom:1px solid var(--ps-hair);cursor:ew-resize}
+.vs-tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--ps-hair);padding-left:4px;font-size:10px;color:var(--ps-dim);line-height:28px;font-variant-numeric:tabular-nums}
 .vs-trk{position:relative;border-bottom:1px solid var(--ps-hair)}
-.vs-trk-l{position:sticky;left:0;z-index:3;width:92px;height:100%;position:absolute;top:0;display:flex;align-items:center;gap:6px;padding:0 10px;box-sizing:border-box;
+.vs-trk-l{position:sticky;left:0;z-index:3;width:92px;height:100%;display:flex;align-items:center;gap:6px;padding:0 10px;box-sizing:border-box;
   background:var(--ps-app);border-right:1px solid var(--ps-hair);font-size:11px;color:var(--ps-ink-2)}
 .vs-trk-l .vs-i{width:15px;height:15px;color:var(--ps-dim)}
 .vs-it{position:absolute;height:30px;border-radius:6px;box-sizing:border-box;overflow:hidden;cursor:grab;font-size:11px;color:#fff;
   display:flex;align-items:center;border:1px solid rgba(255,255,255,.14)}
-.vs-it[data-kind=clip]{height:46px;background:#243352 left center/auto 100% repeat-x}
-.vs-it[data-kind=text]{background:#3B4A6B}
-.vs-it[data-kind=logo]{background:#4A5568}
-.vs-it[data-kind=audio]{background:#1F5A4A;height:36px}
-.vs-it[data-kind=audio][data-sfx]{background:#5A4A1F}
+.vs-trk[data-trk=text]{--tc:#6D5BD0}
+.vs-trk[data-trk=logo]{--tc:#B0437E}
+.vs-trk[data-trk=clip]{--tc:#2F5FB3}
+.vs-trk[data-trk=music]{--tc:#1B7A50}
+.vs-trk[data-trk=sfx]{--tc:#946A14}
+.vs-trk-l::before{content:"";flex:none;width:4px;height:18px;border-radius:2px;background:var(--tc)}
+.vs-it{background-color:var(--tc)}
+.vs-it[data-kind=clip]{height:46px;background:var(--tc) left center/auto 100% repeat-x;box-shadow:inset 0 4px 0 var(--tc)}
+.vs-it[data-kind=audio]{height:36px}
 .vs-it[data-on]{outline:2px solid #fff;outline-offset:-2px;z-index:2}
 :root[data-theme=light] .vs-it[data-on]{outline-color:#0A0B0D}
 .vs-it .n{position:relative;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.6);z-index:1}
@@ -118,8 +123,24 @@ button{font-family:inherit}
 .vs-hd{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2}
 .vs-hd.l{left:0}.vs-hd.r{right:0}
 .vs-it:hover .vs-hd,.vs-it[data-on] .vs-hd{background:rgba(255,255,255,.45)}
-.vs-ph{position:absolute;top:0;bottom:0;width:0;border-left:1.5px solid var(--ps-brand);z-index:4;pointer-events:none}
-.vs-ph::before{content:"";position:absolute;top:0;left:-6px;width:11px;height:11px;background:var(--ps-brand);border-radius:2px 2px 6px 6px}
+.vs-ph{position:absolute;top:0;bottom:0;width:13px;margin-left:-6px;z-index:4;cursor:ew-resize}
+.vs-ph::after{content:"";position:absolute;top:0;bottom:0;left:6px;border-left:1.5px solid var(--ps-brand)}
+.vs-ph::before{content:"";position:absolute;top:0;left:0;width:13px;height:13px;background:var(--ps-brand);border-radius:2px 2px 6px 6px}
+
+/* drag guides: shown over the canvas only while a graphic is being moved */
+.vs-guide{position:absolute;pointer-events:none;display:none;overflow:hidden;border-radius:6px}
+.vs-guide[data-on]{display:block}
+.vs-guide i{position:absolute;box-sizing:border-box;display:block}
+.vs-g-band{background:rgba(240,60,60,.13)}
+.vs-g-safe{border:1px dashed rgba(255,255,255,.85)}
+.vs-g-safe b{position:absolute;left:6px;top:4px;font:500 9px/1 var(--ps-font);letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.vs-g-ui{border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.14)}
+.vs-g-ui.cta{background:rgba(255,255,255,.24)}
+.vs-g-ui.nav{background:rgba(0,0,0,.5);border-width:1px 0 0}
+.vs-g-cx,.vs-g-cy{background:rgba(255,255,255,.28)}
+.vs-g-cx{left:50%;top:0;bottom:0;width:1px;margin-left:-.5px}
+.vs-g-cy{top:50%;left:0;right:0;height:1px;margin-top:-.5px}
+.vs-g-cx[data-on],.vs-g-cy[data-on]{background:#F3793C;box-shadow:0 0 0 .5px #F3793C}
 
 /* export overlay + toast */
 .vs-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:none;align-items:center;justify-content:center}
@@ -198,6 +219,8 @@ button{font-family:inherit}
       <button class="vs-ib p" id="playBtn" title="Play / pause (Space)" aria-label="Play"></button>
       <span class="vs-time" id="time">0:00.00 <s>/ 0:00.00</s></span>
       <span class="vs-sp"></span>
+      <button class="vs-ib" id="safeBtn" title="Show the Reel safe zones" aria-label="Show the Reel safe zones" aria-pressed="false"></button>
+      <span class="vs-sep"></span>
       <span class="vs-i" id="zoIc"></span>
       <input type="range" class="vs-zoom" id="zoom" min="8" max="240" value="60" aria-label="Timeline zoom">
       <span class="vs-i" id="ziIc"></span>
