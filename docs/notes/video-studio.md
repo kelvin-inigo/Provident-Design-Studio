@@ -52,3 +52,26 @@ Started 2026-11-12 by request: a simple video editor beside CAS and OPS. Lives i
   transport keeps the overlay on.
 - **Layer colours**: Text violet, Graphics rose, Video blue, Music green, Sound amber — a bar on each
   track label and the same colour on its items (`--tc`).
+
+## Third pass (2026-11-12)
+
+- **Placement preview** (top bar › Preview): CAS's phone frames and Facebook / Instagram chrome, ported
+  by `tools/video-dev/build-preview.py`, which reads CAS's `.mk-*` rules and phone template and writes
+  `video-preview.css` and `video-preview.js` (both GENERATED — rerun the script when CAS's preview
+  changes, never edit them). 9:16 shows Reels + Story, 1:1 shows Feed. Each phone holds a
+  `<canvas class="mk-shot">` the editor mirrors the live canvas into (`pvMirror`, called from `draw`),
+  so the video plays inside the phones.
+- **Scrub lag, the real cause.** The paused tick ran `sync(); draw();` — so a moving scrub started the
+  NEXT seek before the frame that had just arrived was painted, and the picture only caught up when the
+  pointer stopped. It is `draw(); sync();` now. Measured with `VideoStudio.stats.seeked`: ~27–30 new
+  frames a second while sweeping the 1080×1920 test file, every source frame on a slow sweep.
+- **Logo colour is one switch** (Logos tab › Logo colour): Match wordmark / Original. It sets the
+  collaboration logo AND every placed graphic (`l.tint`), and a new graphic takes the current setting.
+  **A logo on a flat background is keyed** (`keyed()`): when every edge pixel is opaque and the four
+  corners agree, the background colour is removed so the mark can be painted; the lockup then measures
+  the keyed mark's ink box. A photo (corners disagree) is left alone.
+- **Brass highlight in text**: `**marked**` runs print in `ART.brass` #B0905C (headline and the line
+  under it; it can start inside a word and run across lines). The Headline field has a Brass highlight
+  button that wraps the selection, or the word under the caret, and unwraps on a second press.
+  By request — the same exemption OPS records for its brass highlight.
+- **The wash is the brand navy** (`ART.wash` 26,41,66), under text and behind the lockup.

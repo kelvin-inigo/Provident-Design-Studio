@@ -19,7 +19,7 @@
 
   // ── ARTWORK constants (never a chrome token) ─────────────────────────────────────────
   const ART = {
-    ink: '#FFFFFF', navy: '#1A2942', ground: '#0A0B0D', wash: '8,12,22',
+    ink: '#FFFFFF', navy: '#1A2942', brass: '#B0905C', ground: '#0A0B0D', wash: '26,41,66',   // the wash is the brand navy
     font: "'Google Sans Flex', system-ui, sans-serif",
     logoPx: 41, logoTrack: .04,               // the wordmark, as on the Reel thumbnail
     headTrack: -.046, headLead: 158 / 168,    // RCV.headTrack / RCV.headLead
@@ -63,6 +63,7 @@
   const undo = [], redo = [];
   const vel = {}, ael = {}, imgs = {};
   let actx = null, master = null;
+  const stats = { seeked: 0 };       // for measuring scrub rate from the console
   const hits = {};                  // id -> { kind, x, y, w, h } of what was last painted
 
   const cv = $('#cv'), cx = cv.getContext('2d');
@@ -225,7 +226,7 @@
     // never past the end of the video: at the very end it steps back so it is on screen
     const end = total(); let at = T, dur = 5;
     if (end > 0) { if (end - at < 1) at = Math.max(0, end - 3); dur = Math.min(5, end - at); }
-    const l = { id: uid(), mid, at, dur, x: 50, y: 50, w: 30, op: 100, fade: true, tint: 'orig' };
+    const l = { id: uid(), mid, at, dur, x: 50, y: 50, w: 30, op: 100, fade: true, tint: P.brand.tint === 'match' ? 'match' : 'orig' };
     P.logos.push(l); sel = { kind: 'logo', id: l.id };
     if (at !== T) T = at;
     if (!quiet) renderAll();
@@ -277,7 +278,7 @@
     let el = map[id];
     if (!el) {
       el = map[id] = document.createElement(tag); el.preload = 'auto'; el.playsInline = true; el.src = url;
-      el.addEventListener('seeked', () => { dirty = true; });
+      el.addEventListener('seeked', () => { dirty = true; stats.seeked++; });
       el.addEventListener('loadeddata', () => { dirty = true; });
     }
     return el;
@@ -359,7 +360,10 @@
       if (T >= end) { T = end; playing = false; sync(); paintTransport(); if (exporting) finishExport(); }
       draw(); paintPlayhead();
     } else if (dirty) {
-      sync(); draw(); paintPlayhead();
+      // PAINT FIRST, then ask for the next frame. The other way round, a scrub that keeps moving
+      // starts a new seek before the frame that just arrived is painted, and the picture only
+      // catches up when the pointer stops.
+      draw(); sync(); paintPlayhead();
     }
     requestAnimationFrame(tick);
   }
@@ -383,6 +387,38 @@
     });
     return out;
   }
+  // `**like this**` marks a brass highlight. It can start and stop inside a word, and runs on
+  // across line breaks. Returns lines of { s: plain text, words: [{ s, runs: [{ s, hi }] }], hi }.
+  const plain = s => String(s || '').replace(/\*\*/g, '');
+  function wrapHi(str, maxW) {
+    const out = []; let hi = false;
+    String(str || '').split('\n').forEach(par => {
+      const words = []; let cur = null;
+      par.split(/(\*\*|\s+)/).forEach(part => {
+        if (part === '**') hi = !hi;
+        else if (!part || /^\s+$/.test(part)) cur = null;
+        else { if (!cur) { cur = { s: '', runs: [] }; words.push(cur); } cur.s += part; cur.runs.push({ s: part, hi }); }
+      });
+      if (!words.length) { out.push({ s: '', words: [] }); return; }
+      let line = [];
+      const flush = () => { out.push({ s: line.map(w => w.s).join(' '), words: line, hi: line.some(w => w.runs.some(r => r.hi)) }); line = []; };
+      words.forEach(w => {
+        if (line.length && cx.measureText(line.map(x => x.s).join(' ') + ' ' + w.s).width > maxW) flush();
+        line.push(w);
+      });
+      flush();
+    });
+    return out;
+  }
+  // one word at x, in its own colours; returns where the next word starts
+  function putWord(w, x, y, sp) {
+    w.runs.forEach(r => { cx.fillStyle = r.hi ? ART.brass : ART.ink; cx.fillText(r.s, x, y); x += cx.measureText(r.s).width; });
+    cx.fillStyle = ART.ink; return x + sp;
+  }
+  function putRow(r, x, y) {
+    if (!r.hi) { cx.fillText(r.s, x, y); return; }
+    const sp = cx.measureText(' ').width; r.words.forEach(w => { x = putWord(w, x, y, sp); });
+  }
   function drawCover(src, sw, sh, c) {
     const g = G(); if (!sw || !sh) return;
     const fill = c.fit !== 'fit', s = (fill ? Math.max(g.w / sw, g.h / sh) : Math.min(g.w / sw, g.h / sh)) * (c.z || 100) / 100;
@@ -397,14 +433,14 @@
     for (; idx >= 0; idx--) {
       const rows = []; let y = 0;
       const px = ART.sizes[ART.order[idx]] * k, eb = Math.max(24, ART.eyebrow * (k < 1 ? .85 : 1)), sb = Math.max(24, ART.sub * (k < 1 ? .8 : 1));
-      if (tx.eyebrow) { setFont(eb, 500, .1); y += eb; rows.push({ s: tx.eyebrow.toUpperCase(), px: eb, wt: 500, tr: .1, y }); y += px * .16; }
+      if (tx.eyebrow) { setFont(eb, 500, .1); y += eb; rows.push({ s: plain(tx.eyebrow).toUpperCase(), px: eb, wt: 500, tr: .1, y }); y += px * .16; }
       if (tx.text) {
         setFont(px, 400, ART.headTrack);
-        wrap(tx.text, maxW).forEach((s, i) => { y += i ? px * ART.headLead : px * .8; rows.push({ s, px, wt: 400, tr: ART.headTrack, y, head: 1 }); });
+        wrapHi(tx.text, maxW).forEach((ln, i) => { y += i ? px * ART.headLead : px * .8; rows.push(Object.assign(ln, { px, wt: 400, tr: ART.headTrack, y, head: 1 })); });
       }
       if (tx.sub) {
         setFont(sb, 300, 0); y += px * .22;
-        wrap(tx.sub, maxW).forEach((s, i) => { y += i ? sb * 1.3 : sb * 1.05; rows.push({ s, px: sb, wt: 300, tr: 0, y }); });
+        wrapHi(tx.sub, maxW).forEach((ln, i) => { y += i ? sb * 1.3 : sb * 1.05; rows.push(Object.assign(ln, { px: sb, wt: 300, tr: 0, y })); });
       }
       const last = rows[rows.length - 1];
       L = { rows, h: last ? y + last.px * .22 : 0 };
@@ -441,17 +477,17 @@
       cx.textAlign = 'left';
       const p = ease((rel - i * .08) / .5);
       cx.save();
-      if (tx.anim === 'rise') { cx.globalAlpha = p * out; cx.fillText(r.s, x0, y + (1 - p) * 46); }
+      if (tx.anim === 'rise') { cx.globalAlpha = p * out; putRow(r, x0, y + (1 - p) * 46); }
       else if (tx.anim === 'lines') {
         cx.globalAlpha = out; cx.beginPath(); cx.rect(0, y - r.px * .95, g.w, r.px * 1.25); cx.clip();
-        cx.fillText(r.s, x0, y + (1 - p) * r.px * 1.25);
+        putRow(r, x0, y + (1 - p) * r.px * 1.25);
       } else if (tx.anim === 'words' && r.head) {
         let x = x0; const sp = cx.measureText(' ').width;
-        r.s.split(' ').forEach(wd => {
+        r.words.forEach(wd => {
           const q = ease((rel - wi * .11) / .4); wi++;
-          cx.globalAlpha = q * out; cx.fillText(wd, x, y + (1 - q) * 18); x += cx.measureText(wd).width + sp;
+          cx.globalAlpha = q * out; x = putWord(wd, x, y + (1 - q) * 18, sp);
         });
-      } else { cx.globalAlpha = env; cx.fillText(r.s, x0, y); }
+      } else { cx.globalAlpha = env; putRow(r, x0, y); }
       cx.restore();
     });
     try { cx.letterSpacing = '0px'; } catch (e) {}
@@ -463,23 +499,56 @@
     const g = G(), rel = T - l.at, w = g.w * l.w / 100, h = w * im.naturalHeight / im.naturalWidth;
     const x = g.w * l.x / 100 - w / 2, y = g.h * l.y / 100 - h / 2;
     cx.save(); cx.globalAlpha = (l.op / 100) * (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
-    cx.drawImage(l.tint && l.tint !== 'orig' ? flat(im, m.id, l.tint === 'navy' ? ART.navy : ART.ink) : im, x, y, w, h); cx.restore();
+    const tint = l.tint === 'match' ? (P.brand.ink === 'navy' ? ART.navy : ART.ink) : l.tint === 'navy' ? ART.navy : l.tint === 'white' ? ART.ink : null;
+    cx.drawImage(tint ? flat(im, m.id, tint) : im, x, y, w, h); cx.restore();
     hits[l.id] = { kind: 'logo', x, y, w, h };
   }
   // One flat ink over a mark, keeping its own alpha (CAS's tintFlat). Cached per file and colour.
   const flats = {};
   function flat(im, id, colour) {
     const k = id + colour; if (flats[k]) return flats[k];
-    const s = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
-    c.width = Math.max(1, Math.round(im.naturalWidth * s)); c.height = Math.max(1, Math.round(im.naturalHeight * s));
-    const x = c.getContext('2d'); x.drawImage(im, 0, 0, c.width, c.height);
+    const src = keyed(im, id) || im, sw = src.naturalWidth || src.width, sh = src.naturalHeight || src.height;
+    const s = Math.min(1, 1600 / Math.max(sw, sh)), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(sw * s)); c.height = Math.max(1, Math.round(sh * s));
+    const x = c.getContext('2d'); x.drawImage(src, 0, 0, c.width, c.height);
     x.globalCompositeOperation = 'source-in'; x.fillStyle = colour; x.fillRect(0, 0, c.width, c.height);
     return (flats[k] = c);
   }
+  // A logo saved on a flat background (a JPG, or a PNG with no transparency) has no shape to
+  // tint: the whole rectangle is ink. When every edge is opaque and the four corners agree, the
+  // background colour is keyed out so the mark itself can be painted. Null when the file has its
+  // own transparency, or when the edge is a picture rather than a flat colour.
+  const keys = {};
+  function keyed(im, id) {
+    if (id in keys) return keys[id];
+    let out = null;
+    try {
+      const iw = im.naturalWidth, ih = im.naturalHeight, s = Math.min(1, 1400 / Math.max(iw, ih));
+      const w = Math.max(2, Math.round(iw * s)), h = Math.max(2, Math.round(ih * s)), c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h);
+      const id2 = x.getImageData(0, 0, w, h), d = id2.data, at = (px, py) => (py * w + px) * 4;
+      let opaque = true;
+      for (let i = 0; i < w && opaque; i += 3) if (d[at(i, 0) + 3] < 250 || d[at(i, h - 1) + 3] < 250) opaque = false;
+      for (let j = 0; j < h && opaque; j += 3) if (d[at(0, j) + 3] < 250 || d[at(w - 1, j) + 3] < 250) opaque = false;
+      if (opaque) {
+        const cs = [at(0, 0), at(w - 1, 0), at(0, h - 1), at(w - 1, h - 1)], b = [0, 1, 2].map(k => cs.reduce((a, o) => a + d[o + k], 0) / 4);
+        const flatBg = cs.every(o => Math.max(Math.abs(d[o] - b[0]), Math.abs(d[o + 1] - b[1]), Math.abs(d[o + 2] - b[2])) < 26);
+        if (flatBg) {
+          for (let i = 0; i < d.length; i += 4) {
+            const dist = Math.max(Math.abs(d[i] - b[0]), Math.abs(d[i + 1] - b[1]), Math.abs(d[i + 2] - b[2]));
+            d[i + 3] = Math.round(clamp((dist - 14) / 46, 0, 1) * 255);
+          }
+          x.putImageData(id2, 0, 0); out = c;
+        }
+      }
+    } catch (e) {}
+    return (keys[id] = out);
+  }
   // ── the co-brand lockup: provident. | partner ────────────────────────────────────────
-  let pImg = null, pInk = null, pTint = null;
+  let pImg = null, pInk = null, pTint = null, pKey = null, pKeyInk = null, pSeq = 0;
   function inkBox(img) {                      // StudioBase.inkBox, minus the cache
-    const iw = img.naturalWidth || 1, ih = img.naturalHeight || 1;
+    const iw = img.naturalWidth || img.width || 1, ih = img.naturalHeight || img.height || 1;
     let out = { x: 0, y: 0, w: 1, h: 1, aspect: iw / ih };
     try {
       const s = Math.min(1, 240 / Math.max(iw, ih)), w = Math.max(1, Math.round(iw * s)), h = Math.max(1, Math.round(ih * s));
@@ -493,11 +562,11 @@
   }
   function partnerLoad() {
     const p = P.brand.partner; pTint = null;
-    if (!p) { pImg = null; pInk = null; dirty = true; return; }
+    if (!p) { pImg = null; pInk = null; pKey = null; dirty = true; return; }
     if (pImg && pImg._u === p.u) return;
     const im = new Image(); im._u = p.u;
-    im.onload = () => { pInk = inkBox(im); pTint = null; dirty = true; };
-    pImg = im; pInk = null; im.src = p.u;
+    im.onload = () => { pInk = inkBox(im); pKey = keyed(im, 'partner' + (++pSeq)); pKeyInk = pKey ? inkBox(pKey) : null; pTint = null; dirty = true; };
+    pImg = im; pInk = null; pKey = null; im.src = p.u;
   }
   function drawBrand() {
     const b = P.brand; if (!b.on) return;
@@ -505,9 +574,11 @@
     setFont(L, 300, ART.logoTrack);
     const wm = cx.measureText('provident.').width - L * ART.logoTrack;
     const has = pImg && pInk && pImg.complete && pImg.naturalWidth;
+    // Match wordmark on a file with a flat background paints the keyed mark, measured by its own ink
+    const useK = b.tint === 'match' && pKey && pKeyInk, pSrc = useK ? pKey : pImg, I = useK ? pKeyInk : pInk;
     const gap = L * CO.gap, rw = Math.max(1, L * CO.rule), rh = L * CO.ruleH;
-    let th = L * CO.h * (b.pScale / 100), tw = has ? th * pInk.aspect : 0;
-    if (has && tw > innerW * CO.maxW) { tw = innerW * CO.maxW; th = tw / pInk.aspect; }
+    let th = L * CO.h * (b.pScale / 100), tw = has ? th * I.aspect : 0;
+    if (has && tw > innerW * CO.maxW) { tw = innerW * CO.maxW; th = tw / I.aspect; }
     const totalW = wm + (has ? gap + rw + gap + tw : 0);
     const x0 = b.align === 'centre' ? (g.w - totalW) / 2 : g.l;
     const base = b.vpos === 'top' ? g.t + L * .8 : g.h - g.b - L * .35;
@@ -525,12 +596,13 @@
       const cy = base - L * CO.cy, rx = x0 + wm + gap;
       cx.fillRect(rx, cy - rh / 2, rw, rh);
       const px = rx + rw + gap, py = cy - th / 2;
-      const sx = pInk.x * pImg.naturalWidth, sy = pInk.y * pImg.naturalHeight, sw = pInk.w * pImg.naturalWidth, sh = pInk.h * pImg.naturalHeight;
+      const nw = pSrc.naturalWidth || pSrc.width, nh = pSrc.naturalHeight || pSrc.height;
+      const sx = I.x * nw, sy = I.y * nh, sw = I.w * nw, sh = I.h * nh;
       if (b.tint === 'match') {               // one flat ink, keeping the mark's own alpha
         const key = Math.ceil(tw) + 'x' + Math.ceil(th) + ink;
         if (!pTint || pTint._k !== key) {
           const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(tw * 2)); c.height = Math.max(1, Math.ceil(th * 2)); c._k = key;
-          const x = c.getContext('2d'); x.drawImage(pImg, sx, sy, sw, sh, 0, 0, c.width, c.height);
+          const x = c.getContext('2d'); x.drawImage(pSrc, sx, sy, sw, sh, 0, 0, c.width, c.height);
           x.globalCompositeOperation = 'source-in'; x.fillStyle = ink; x.fillRect(0, 0, c.width, c.height); pTint = c;
         }
         cx.drawImage(pTint, px, py, tw, th);
@@ -547,8 +619,8 @@
       const m = media[a.c.mid];
       if (m && m.kind === 'video') {
         const el = vel[a.c.id];
-        if (el && el.readyState >= 2) { cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(el, el.videoWidth, el.videoHeight, a.c); painted = true; }
-        else if (el && draw._had) { dirty = true; return; }      // still seeking: leave the last frame up, untouched
+        if (el && (el.readyState >= 2 || (el.seeking && el.videoWidth && el._shown))) { el._shown = 1; cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(el, el.videoWidth, el.videoHeight, a.c); painted = true; }
+        else if (el && draw._had) { return; }                    // nothing decoded yet: leave the last frame up; 'seeked' repaints
       } else if (m) {
         const im = imgFor(m);
         if (im.complete && im.naturalWidth) { cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(im, im.naturalWidth, im.naturalHeight, a.c); painted = true; }
@@ -559,6 +631,7 @@
     P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur) drawText(t); });
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
     drawBrand();
+    pvMirror();
   }
   function fitCanvas() {
     const g = G(), box = $('#cvw');
@@ -602,7 +675,7 @@
         rowH = ln.n * (ih + 4) + 4;
         items.forEach(it => {
           const m = media[it.mid] || {};
-          const name = kind === 'text' ? (it.text || it.eyebrow || it.sub || 'Text').split('\n')[0] : (m.name || kind);
+          const name = kind === 'text' ? plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0] : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
             (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + '</span></div>';
@@ -810,8 +883,10 @@
         '<button class="vs-lg" data-partner=""' + (!b.partner ? ' data-on="1"' : '') + '>None</button>' +
         lib.map(l => '<button class="vs-lg" data-partner="' + esc(l.id) + '" title="' + esc(l.name) + '"' + (b.partner && b.partner.id === l.id ? ' data-on="1"' : '') + '><i class="m" style="-webkit-mask-image:url(\'' + l.u + '\');mask-image:url(\'' + l.u + '\')"></i>' + (l.own ? '<span class="vs-x" data-rmdev="' + esc(l.id) + '" title="Remove from this computer">' + ico('close') + '</span>' : '') + '</button>').join('') +
         '<button class="vs-lg" data-up="partner" title="Add a developer logo">' + ico('add') + '</button></div>' +
-        (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') + '<div class="vs-f"><label>Colour</label>' + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) + '</div><span class="vs-note">Match wordmark paints the mark in the wordmark\'s colour. Most developer files are already white, so on a white wordmark both look the same.</span>' : '') +
+        (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') : '') +
         '<span class="vs-note">Prints provident. | partner beside the wordmark, for the whole video. A logo you add stays on this computer.</span></div>';
+      h += '<div class="vs-sec"><span class="vs-h">Logo colour</span>' + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) +
+        '<span class="vs-note">Match wordmark paints the collaboration logo and every graphic you place in the wordmark\'s colour. Original keeps each file\'s own colours. A logo saved on a flat background has that background removed.</span></div>';
       const lg = M.filter(m => m.kind === 'logo' || m.kind === 'image');
       h += '<div class="vs-sec"><span class="vs-h">Graphics and other logos</span>' + drop('logo', 'Upload a graphic or logo', 'PNG or SVG with a clear background') +
         (lg.length ? '<div class="vs-grid">' + lg.map(m => '<button class="vs-tile" data-addlogo="' + m.id + '" title="Place at the playhead" style="background-image:url(\'' + m.url + '\');background-size:70%"><b>' + esc(m.name) + '</b><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></button>').join('') + '</div><span class="vs-note">Click one to place it at the playhead, then drag it on the canvas.</span>' : '<span class="vs-note">Upload one, or drop an image on the video.</span>') + '</div>';
@@ -847,6 +922,7 @@
     }
     else if ((el = q('data-bk'))) {
       mark(); const v = el.dataset.bv; P.brand[el.dataset.bk] = v === 'true' ? true : v === 'false' ? false : v;
+      if (el.dataset.bk === 'tint') P.logos.forEach(l => { l.tint = v; });   // the one switch reaches every placed graphic
       pTint = null; renderAll();
     }
   });
@@ -901,7 +977,7 @@
     } else if (sel.kind === 'text') {
       h = '<div class="vs-sec"><span class="vs-h">Text</span>' +
         f('Eyebrow', '<input class="p-in" data-s="eyebrow" value="' + esc(it.eyebrow) + '" placeholder="Optional, set in caps">') +
-        f('Headline', '<textarea class="p-in" data-s="text" rows="3">' + esc(it.text) + '</textarea>') +
+        '<div class="vs-f"><label>Headline <button class="vs-hi" data-hi="text" title="Paint the selected words, or the word under the caret, in brass. Press again to remove."><i></i>Brass highlight</button></label><textarea class="p-in" data-s="text" rows="3">' + esc(it.text) + '</textarea></div>' +
         f('Line under it', '<textarea class="p-in" data-s="sub" rows="2" placeholder="Optional">' + esc(it.sub) + '</textarea>') + '</div>' +
         '<div class="vs-sec"><span class="vs-h">Layout</span>' + f('Size', seg('size', ART.order.map(s => [s, s]))) +
         f('Position', seg('pos', [['top', 'Top'], ['centre', 'Centre'], ['bottom', 'Bottom']])) + f('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
@@ -912,7 +988,7 @@
       const m = media[it.mid] || {};
       h = '<div class="vs-sec"><span class="vs-h">Graphic</span><span class="vs-note">' + esc(m.name) + ' — drag it on the canvas to move it.</span>' +
         rng('i', 'w', 'Size', it.w, 5, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
-        f('Colour', seg('tint', [['orig', 'Original'], ['white', 'White'], ['navy', 'Navy']])) +
+        f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']])) +
         f('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']])) +
         '<div class="vs-two"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div></div>' + timing();
     }
@@ -945,6 +1021,17 @@
       return;
     }
     if (!it) return;
+    if (b.dataset.hi) {                       // wrap the selection (or the word under the caret) in the marker, or unwrap it
+      const ta = insp.querySelector('[data-s="' + b.dataset.hi + '"]'), v = ta.value; let a = ta.selectionStart, z = ta.selectionEnd;
+      if (a === z) { while (a > 0 && !/[\s*]/.test(v[a - 1])) a--; while (z < v.length && !/[\s*]/.test(v[z])) z++; }
+      if (a === z) return;
+      mark(); let nv, na, nz;
+      if (v.slice(a - 2, a) === '**' && v.slice(z, z + 2) === '**') { nv = v.slice(0, a - 2) + v.slice(a, z) + v.slice(z + 2); na = a - 2; nz = z - 2; }
+      else if (v.slice(a, a + 2) === '**' && v.slice(z - 2, z) === '**' && z - a >= 4) { nv = v.slice(0, a) + v.slice(a + 2, z - 2) + v.slice(z); na = a; nz = z - 4; }
+      else { nv = v.slice(0, a) + '**' + v.slice(a, z) + '**' + v.slice(z); na = a + 2; nz = z + 2; }
+      it[b.dataset.hi] = nv; ta.value = nv; ta.focus(); ta.setSelectionRange(na, nz);
+      dirty = true; save(); renderTimeline(); return;
+    }
     if (b.id === 'iDel') return del();
     if (b.id === 'iDup') return dup();
     if (b.id === 'previewBtn') { seek(it.at); play(); const stopAt = it.at + it.dur; const iv = setInterval(() => { if (!playing || T >= stopAt) { clearInterval(iv); if (playing) pause(); } }, 40); return; }
@@ -997,6 +1084,49 @@
     cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'provident-video_' + P.size + '_frame.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); }, 'image/png');
   }
 
+  // ── placement preview (CAS's phone frames and app chrome; see tools/video-dev/build-preview.py) ──
+  const PV = window.providentVideoPreview || {};
+  let pvOn = false, pvPlat = 'fb', pvMode = 'dark', pvShots = [];
+  const pv = document.createElement('div'); pv.className = 'mk-ov'; pv.hidden = true; document.body.appendChild(pv);
+  function pvCopy() {
+    const t = P.texts[0] || {}, fb = pvPlat === 'fb';
+    return {
+      page: 'Provident Real Estate', handle: 'providentestate', domain: 'providentestate.com',
+      primary: plain(t.sub || t.text || 'Your primary text sits here, above the video.').replace(/\n+/g, ' '),
+      headline: plain(t.text || 'Headline').replace(/\n+/g, ' '), desc: 'providentestate.com', cta: 'Learn more',
+      story: fb ? 'Provident Real Estate' : 'providentestate', mode: pvMode
+    };
+  }
+  function pvRender() {
+    const g = G(), c = pvCopy(), sq = P.size === '1x1';
+    const phones = sq ? [['feed', 'Feed', '1:1']] : [['reel', 'Reels', '9:16'], ['story', 'Story', '9:16']];
+    const seg = (cur, opts, k) => opts.map(o => '<button data-pv="' + k + '" data-v="' + o[0] + '"' + (cur === o[0] ? ' data-on="1"' : '') + ' role="radio">' + o[1] + '</button>').join('');
+    pv.innerHTML = '<div class="mk-bar"><b>Placement preview</b>' +
+      '<div class="p-seg mk-seg" role="radiogroup" aria-label="Platform">' + seg(pvPlat, [['fb', 'Facebook'], ['ig', 'Instagram']], 'plat') + '</div>' +
+      '<s>' + (sq ? 'Feed 1:1' : 'Reels and Story 9:16') + '</s>' +
+      '<div class="p-seg mk-seg" role="radiogroup" aria-label="Phone appearance" title="The phone\'s own appearance. Reels and Stories stay dark in both apps.">' + seg(pvMode, [['light', 'Light'], ['dark', 'Dark']], 'mode') + '</div>' +
+      '<span class="vs-sp"></span><button class="p-ghost" data-pv="play">' + ico(playing ? 'pause' : 'play_arrow') + (playing ? 'Pause' : 'Play') + '</button>' +
+      '<button class="p-ghost" data-pv="close">Close ' + ico('close') + '</button></div>' +
+      '<div class="mk-stage"><div class="mk-row">' + phones.map(p =>
+        '<figure class="mk-fig"><figcaption><b>' + p[1] + '</b><s>' + p[2] + ' · ' + g.w + ' × ' + g.h + '</s></figcaption>' +
+        (PV[pvPlat + ':' + p[0]] || '').replace(/\[\[([a-z]+)\]\]/g, (m, k) => esc(c[k] || '')) + '</figure>').join('') + '</div>' +
+      '<div class="mk-note">The video plays here exactly as it exports, only smaller. A Reel is cover-cropped and loses a little of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.</div></div>';
+    pvShots = Array.from(pv.querySelectorAll('canvas.mk-shot'));
+    pvShots.forEach(k => { k.width = g.w / 2; k.height = g.h / 2; });
+    pvMirror();
+  }
+  function pvMirror() { if (pvOn) pvShots.forEach(k => k.getContext('2d').drawImage(cv, 0, 0, k.width, k.height)); }
+  function pvOpen() { if (!total()) { toast('Add a video first.'); return; } pvOn = true; pv.hidden = false; sel = null; renderAll(); pvRender(); }
+  function pvClose() { pvOn = false; pv.hidden = true; if (playing) pause(); }
+  pv.addEventListener('click', e => {
+    const b = e.target.closest('[data-pv]'); if (!b) return;
+    const k = b.dataset.pv;
+    if (k === 'close') return pvClose();
+    if (k === 'play') { playing ? pause() : play(); }
+    else if (k === 'plat') pvPlat = b.dataset.v; else if (k === 'mode') pvMode = b.dataset.v;
+    pvRender();
+  });
+
   // ── chrome wiring ────────────────────────────────────────────────────────────────────
   function renderAll() {
     $('#sizeSeg').querySelectorAll('button').forEach(b => { if (b.dataset.size === P.size) b.dataset.on = '1'; else delete b.dataset.on; });
@@ -1023,6 +1153,7 @@
   $('#splitBtn').addEventListener('click', split); $('#delBtn').addEventListener('click', del); $('#dupBtn').addEventListener('click', dup);
   $('#homeBtn').addEventListener('click', () => { seek(0); tl.scrollLeft = 0; });
   $('#playBtn').addEventListener('click', () => (playing ? pause() : play()));
+  $('#previewBtn2').innerHTML = ico('visibility') + 'Preview'; $('#previewBtn2').addEventListener('click', pvOpen);
   $('#exportBtn').addEventListener('click', exportVideo); $('#frameBtn').addEventListener('click', saveFrame);
   $('#zoom').addEventListener('input', e => { pps = +e.target.value; renderTimeline(); });
   window.addEventListener('resize', () => { fitCanvas(); renderTimeline(); });
@@ -1038,6 +1169,7 @@
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); del(); }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); if (playing) pause(); seek(T + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 1 / 30)); }
     else if (e.key === 'Home') seek(0);
+    else if (e.key === 'Escape' && pvOn) pvClose();
     else if (e.key === 'Escape' && sel) { sel = null; renderAll(); }
   });
   // files dropped anywhere on the page
@@ -1062,5 +1194,5 @@
   })();
 
   // a small handle for tests and the console
-  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, addFiles, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
+  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, addFiles, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
 })();
