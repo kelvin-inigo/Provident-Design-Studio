@@ -1099,23 +1099,35 @@
   }
   function pvRender() {
     const g = G(), c = pvCopy(), sq = P.size === '1x1';
-    const phones = sq ? [['feed', 'Feed', '1:1']] : [['reel', 'Reels', '9:16'], ['story', 'Story', '9:16']];
+    // all three placements, whichever size the video is: a 9:16 in the feed is cropped to 4:5, as Meta
+    // does; a 1:1 in Reels and Stories sits in the middle of the screen
+    const phones = [['feed', 'Feed', sq ? '1:1 · 1080 × 1080' : '4:5 crop of the 9:16'], ['reel', 'Reels', sq ? '1:1 centred' : '9:16 · 1080 × 1920'], ['story', 'Story', sq ? '1:1 centred' : '9:16 · 1080 × 1920']];
     const seg = (cur, opts, k) => opts.map(o => '<button data-pv="' + k + '" data-v="' + o[0] + '"' + (cur === o[0] ? ' data-on="1"' : '') + ' role="radio">' + o[1] + '</button>').join('');
     pv.innerHTML = '<div class="mk-bar"><b>Placement preview</b>' +
       '<div class="p-seg mk-seg" role="radiogroup" aria-label="Platform">' + seg(pvPlat, [['fb', 'Facebook'], ['ig', 'Instagram']], 'plat') + '</div>' +
-      '<s>' + (sq ? 'Feed 1:1' : 'Reels and Story 9:16') + '</s>' +
+      '<s>' + (sq ? 'Feed 1:1 · centred in Reels and Story' : 'Reels and Story 9:16 · Feed crops to 4:5') + '</s>' +
       '<div class="p-seg mk-seg" role="radiogroup" aria-label="Phone appearance" title="The phone\'s own appearance. Reels and Stories stay dark in both apps.">' + seg(pvMode, [['light', 'Light'], ['dark', 'Dark']], 'mode') + '</div>' +
       '<span class="vs-sp"></span><button class="p-ghost" data-pv="play">' + ico(playing ? 'pause' : 'play_arrow') + (playing ? 'Pause' : 'Play') + '</button>' +
       '<button class="p-ghost" data-pv="close">Close ' + ico('close') + '</button></div>' +
       '<div class="mk-stage"><div class="mk-row">' + phones.map(p =>
-        '<figure class="mk-fig"><figcaption><b>' + p[1] + '</b><s>' + p[2] + ' · ' + g.w + ' × ' + g.h + '</s></figcaption>' +
+        '<figure class="mk-fig"><figcaption><b>' + p[1] + '</b><s>' + p[2] + '</s></figcaption>' +
         (PV[pvPlat + ':' + p[0]] || '').replace(/\[\[([a-z]+)\]\]/g, (m, k) => esc(c[k] || '')) + '</figure>').join('') + '</div>' +
-      '<div class="mk-note">The video plays here exactly as it exports, only smaller. A Reel is cover-cropped and loses a little of its width at each side; a Story is shown whole. The app chrome is drawn here, with no Meta logo art.</div></div>';
+      '<div class="mk-note">The video plays here exactly as it exports, only smaller. A Reel is cover-cropped and loses a little of its width at each side; a Story is shown whole; a 9:16 video in the feed is cropped to 4:5. The app chrome is drawn here, with no Meta logo art.</div></div>';
     pvShots = Array.from(pv.querySelectorAll('canvas.mk-shot'));
-    pvShots.forEach(k => { k.width = g.w / 2; k.height = g.h / 2; });
+    pvShots.forEach(k => {
+      const feed = !!k.closest('[data-view="feed"]');
+      k.width = 540; k.height = feed ? (sq ? 540 : 675) : 960;
+    });
     pvMirror();
   }
-  function pvMirror() { if (pvOn) pvShots.forEach(k => k.getContext('2d').drawImage(cv, 0, 0, k.width, k.height)); }
+  function pvMirror() {
+    if (!pvOn) return;
+    pvShots.forEach(k => {
+      const x = k.getContext('2d'), s = Math.max(k.width / cv.width, k.height / cv.height), fit = Math.min(k.width / cv.width, k.height / cv.height);
+      if (k.height < 900) { const w = cv.width * s, h = cv.height * s; x.drawImage(cv, (k.width - w) / 2, (k.height - h) / 2, w, h); }   // feed: cover
+      else { const w = cv.width * fit, h = cv.height * fit; if (h < k.height) { x.fillStyle = '#000'; x.fillRect(0, 0, k.width, k.height); } x.drawImage(cv, (k.width - w) / 2, (k.height - h) / 2, w, h); }
+    });
+  }
   function pvOpen() { if (!total()) { toast('Add a video first.'); return; } pvOn = true; pv.hidden = false; sel = null; renderAll(); pvRender(); }
   function pvClose() { pvOn = false; pv.hidden = true; if (playing) pause(); }
   pv.addEventListener('click', e => {

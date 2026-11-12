@@ -75,3 +75,6 @@ Started 2026-11-12 by request: a simple video editor beside CAS and OPS. Lives i
   button that wraps the selection, or the word under the caret, and unwraps on a second press.
   By request — the same exemption OPS records for its brass highlight.
 - **The wash is the brand navy** (`ART.wash` 26,41,66), under text and behind the lockup.
+- **The preview always shows Feed, Reels and Story** (by request, same day). A 9:16 in the feed is the
+  centre 4:5 crop, as Meta does — which cuts off a wordmark at the top margin (260 < the crop's 285);
+  a 1:1 in Reels and Story sits centred on black.
