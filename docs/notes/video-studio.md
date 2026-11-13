@@ -130,3 +130,5 @@ on the clip, `model` in the job). Seedance goes as `mode: "omni_reference"` with
 `generate_audio: false`; Draft = 720p standard bitrate (7 credits/s), Full = 1080p high (16/s; bitrate
 and audio do not change the price). Priced with `get_cost` only: **no Seedance clip has been
 generated through the skill yet**, so its `start_image` round trip is unproven.
+
+**Name (2026-11-13):** the user calls the Video Studio **CASV**. Use it in replies; file names are unchanged.
