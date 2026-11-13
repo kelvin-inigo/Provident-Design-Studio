@@ -132,3 +132,8 @@ and audio do not change the price). Priced with `get_cost` only: **no Seedance c
 generated through the skill yet**, so its `start_image` round trip is unproven.
 
 **Name (2026-11-13):** the user calls the Video Studio **CASV**. Use it in replies; file names are unchanged.
+
+**Seedance only (2026-11-13, user: "all needs to run on seadance"):** the Model choice is gone;
+CASV always queues `seedance_2_5`. Quality stays Draft 720p (7 credits/s) / Full 1080p (16/s).
+The skill's table still lists Cinema Studio for old jobs. Kling was priced but never built in.
+A real Seedance run through the skill is still unproven.
