@@ -1105,6 +1105,40 @@
   }
   // a short sample of the chosen voice: Higgsfield's own preview clip (free), or a Mac voice
   // reading one line (free). Nothing is added to the project.
+  // ── make music: a description becomes an instrumental bed under the whole video ──
+  // Higgsfield only (credits), so it is always priced first. Sonilo is the cheaper model.
+  const MU = { text: '', len: '', model: 'sonilo', busy: '', quote: null };
+  function muHtml() {
+    const dis = MU.busy ? ' disabled' : '', end = videoEnd();
+    return '<div class="vs-sec"><span class="vs-h">Make music</span>' +
+      '<div class="vs-f"><label>Describe it</label><textarea class="p-in" id="muText" rows="3" placeholder="Calm cinematic piano with soft strings, slow build"' + dis + '>' + esc(MU.text) + '</textarea></div>' +
+      '<div class="vs-f"><label>Length, in seconds</label><input class="p-in" type="number" id="muLen" min="5" max="180" step="1" placeholder="' + (end > 0 ? Math.ceil(end) + ' (your video)' : '30') + '" value="' + esc(MU.len) + '"' + dis + '></div>' +
+      '<div class="vs-f"><label>Model</label><div class="vs-seg">' + [['sonilo', 'Sonilo'], ['elevenlabs', 'ElevenLabs']].map(o => '<button data-mum="' + o[0] + '"' + (MU.model === o[0] ? ' data-on="1"' : '') + dis + '>' + o[1] + '</button>').join('') + '</div></div>' +
+      (MU.busy ? '<span class="vs-note"><b>' + MU.busy + '</b></span>'
+        : MU.quote != null ? '<span class="vs-note"><b>This will spend ' + MU.quote + ' credits</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="muGo">Make it</button><button class="p-ghost p-sm" id="muCancel">Cancel</button>'
+        : '<button class="p-btn p-sm" id="muBtn">Make music</button>') +
+      '<span class="vs-note">Instrumental only. It lands as the music bed from 0:00, trimmed to the video. The cost is shown first.</span></div>';
+  }
+  async function muMake(confirmed) {
+    const text = MU.text.trim(); if (!text) { toast('Describe the music first.'); return; }
+    const duration = clamp(parseFloat(MU.len) || Math.ceil(videoEnd()) || 30, 5, 180), body = { text, duration, model: MU.model };
+    try {
+      if (!confirmed) {
+        MU.busy = 'Asking Higgsfield for the price…'; renderLib();
+        const q = await api('/api/music/cost', Object.assign({ id: uid() + 'mu' }, body)); MU.busy = '';
+        if (q.error) { toast(q.error); renderLib(); return; }
+        MU.quote = q.credits; renderLib(); return;
+      }
+      MU.quote = null; MU.busy = 'Making the music… this can take a minute or two.'; renderLib();
+      const r = await api('/api/music/make', Object.assign({ id: uid() + 'mu' }, body));
+      if (r.error) throw new Error(r.error);
+      const blob = await (await fetch('/_animate/' + r.file)).blob(), ext = r.file.split('.').pop(), name = 'Music ' + text.split(/\s+/).slice(0, 3).join(' ') + ' ' + uid().slice(0, 3);
+      await addFiles([new File([blob], name + '.' + ext, { type: ext === 'wav' ? 'audio/wav' : 'audio/mpeg' })], 'audio');
+      const m = Object.values(media).filter(x => x.kind === 'audio' && x.name === name).pop();
+      if (!m) throw new Error('the audio could not be read');
+      addAudio(m.id, 'music'); MU.busy = ''; save(); renderAll(); toast('The music is on the Music track.');
+    } catch (e) { MU.busy = ''; renderLib(); toast('The music could not be made (' + e.message + ').'); }
+  }
   async function voHear() {
     if (VO.playing) { try { VO.playing.pause(); } catch (e) {} VO.playing = null; renderLib(); return; }
     const v = VO.voice.split(':'); let src = '';
@@ -1161,7 +1195,7 @@
     } else if (tab === 'audio') {
       const a = M.filter(m => m.kind === 'audio');
       h += '<div class="vs-sec">' + drop('audio', 'Upload music or sound', 'MP3, WAV, M4A') + '</div>';
-      h += voHtml();
+      h += voHtml() + muHtml();
       h += '<div class="vs-sec"><span class="vs-h">Your audio</span>' + (a.length ? a.map(m =>
         '<div class="vs-arow"><div class="n"><b>' + esc(m.name) + '</b><s>' + fmt(m.dur) + '</s></div><button class="p-ghost p-sm" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music</button><button class="p-ghost p-sm" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></div>').join('') +
         '<span class="vs-note">Music starts at 0:00 and is trimmed to the video. Sound lands at the playhead.</span>'
@@ -1196,7 +1230,7 @@
     return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
   }
   let upWant = 'media';
-  $('#lib').addEventListener('input', e => { if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
+  $('#lib').addEventListener('input', e => { if (e.target.id === 'muText') MU.text = e.target.value; else if (e.target.id === 'muLen') { MU.len = e.target.value; MU.quote = null; } else if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');
     let el;
@@ -1214,6 +1248,10 @@
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
     else if (e.target.closest('#voHear')) voHear();
+    else if (e.target.closest('#muBtn')) muMake(false);
+    else if (e.target.closest('#muGo')) muMake(true);
+    else if (e.target.closest('#muCancel')) { MU.quote = null; renderLib(); }
+    else if ((el = q('data-mum'))) { MU.model = el.dataset.mum; MU.quote = null; renderLib(); }
     else if (e.target.closest('#voBtn')) voMake(false);
     else if (e.target.closest('#voGo')) voMake(true);
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderLib(); }

@@ -131,6 +131,14 @@ def tts_args(body):
             '--voice_id', str(body.get('voice_id') or ''), '--voice_type', str(body.get('voice_type') or 'preset')]
 
 
+def music_args(body):
+    """Instrumental music from a description. Sonilo is the cheap one; ElevenLabs Music v2.5 is the
+    other. Always instrumental: a voiceover sits on top."""
+    model = 'elevenlabs_music_v2_5' if body.get('model') == 'elevenlabs' else 'sonilo_music'
+    a = [model, '--prompt', str(body.get('text') or '')[:2000], '--duration', str(int(max(5, min(180, float(body.get('duration') or 30)))))]
+    return a + (['--force_instrumental', 'true'] if model.startswith('eleven') else [])
+
+
 class H(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=ROOT, **k)
@@ -183,6 +191,28 @@ class H(SimpleHTTPRequestHandler):
             job.update(status='queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
             return self._json(200, job)
+        if path == '/api/music/cost':
+            rc, out = hf('generate', 'cost', *music_args(body))
+            m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out)
+            if rc or not m:
+                return self._json(200, {'error': out[-300:] or 'Higgsfield gave no price.'})
+            return self._json(200, {'credits': float(m.group(1))})
+        if path == '/api/music/make':
+            if not str(body.get('text') or '').strip():
+                return self._json(200, {'error': 'Describe the music first.'})
+            rc, out = hf('generate', 'create', *music_args(body), timeout=180)
+            m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
+            if rc or not m:
+                return self._json(200, {'error': (out or 'no job id came back')[-300:]})
+            hf('generate', 'wait', m.group(0), '--timeout', '8m', '--interval', '4s', '--quiet', timeout=520)
+            rc, out = hf('generate', 'get', m.group(0))
+            u, ext = hf_result(out, 'mp3|wav|m4a|ogg')
+            if rc or not u:
+                return self._json(200, {'error': (out or 'no audio came back')[-300:]})
+            name = jid + '.' + ext
+            with urllib.request.urlopen(u, timeout=180) as r, open(os.path.join(QUEUE, name), 'wb') as f:
+                shutil.copyfileobj(r, f)
+            return self._json(200, {'file': name})
         if path == '/api/voice/cost':
             rc, out = hf('generate', 'cost', *tts_args(body))
             m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out)

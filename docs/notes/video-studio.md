@@ -233,3 +233,5 @@ Higgsfield voice with a target, and export of a speed-changed item.
 Checked on a contact sheet: count 50 -> 72 -> 73, the ruler growing then its figure, the box
 drawing round its label, a fade mid-way and slats mid-way. NOT checked: wipe and dip, transitions
 during real-time playback and export, 1:1, a photo-to-video transition.
+
+**Make music (2026-11-13, by request):** Audio tab > Make music: a description, a length (defaults to the video), Sonilo or ElevenLabs Music v2.5 (always `force_instrumental`). `/api/music/cost` and `/api/music/make` in serve.py, same shape as the voiceover; the track is added as the music bed. Prices: Sonilo 1.88 credits for 30 s, 3.75 for 60 s; ElevenLabs 4.36 and 8.72. Tested to the price step for both models, then Cancel (driven by script in Chrome because the Browser pane was closed, so not real clicks). NOT tested: an actual generation and download. OpenMusic (IRCAM, a composition environment, not a generator) was installed to /Applications at the user's request and is not connected to CASV.
