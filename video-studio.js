@@ -624,6 +624,87 @@
       } else cx.drawImage(pImg, sx, sy, sw, sh, px, py, tw, th);
     }
   }
+
+  // ── captions: a voiceover's script, a few words at a time, in step with the speech ──────────
+  // No transcription service. The script is the user's; the timing comes from the audio's own
+  // loudness (media.peaks, 40 a second): words are spread across the SPOKEN stretches in
+  // proportion to their length, so pauses hold the caption and fast passages speed it up. It is
+  // an estimate, usually within a word; capShift nudges it. Times are in the file's own seconds.
+  const CAP = { sizes: { S: 41.5, M: 49.8, L: 59.7 }, wt: 500, tr: .02, lead: 1.18, padX: 26, padY: 14, r: 18, pill: .78 };
+  const capCache = {};
+  function capTiming(a) {
+    const m = media[a.mid], txt = String(a.cap || '').trim(); if (!m || !txt) return null;
+    const n = Math.max(1, Math.min(3, +a.capN || 2)), sig = a.mid + '|' + n + '|' + (m.peaks ? m.peaks.length : 0) + '|' + txt;
+    const c = capCache[a.id]; if (c && c.sig === sig) return c;
+    const words = txt.split(/\s+/).filter(Boolean), dur = m.dur || 1;
+    const pk = m.peaks && m.peaks.length > 8 ? m.peaks : null, N = pk ? pk.length : Math.ceil(dur * 40), per = dur / N;
+    let voiced = new Array(N).fill(true);
+    if (pk) {
+      const srt = pk.slice().sort((x, y) => x - y), thr = Math.max(.03, srt[Math.floor(N * .95)] * .14);
+      voiced = pk.map(v => v > thr);
+      for (let i = 0, gap = 0; i < N; i++) {                      // a breath shorter than 0.15 s is still speech
+        if (voiced[i]) { if (gap && gap <= 6 && i - gap - 1 >= 0) for (let j = i - gap; j < i; j++) voiced[j] = true; gap = 0; } else gap++;
+      }
+      if (!voiced.some(Boolean)) voiced.fill(true);
+    }
+    const cum = [0]; for (let i = 0; i < N; i++) cum.push(cum[i] + (voiced[i] ? 1 : 0));
+    // seconds where fraction f of the speech between samples a and b has been spoken
+    const at = (a, b, f) => {
+      const want = cum[a] + f * (cum[b] - cum[a]); let lo = a, hi = b; while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid + 1] > want) hi = mid; else lo = mid + 1; }
+      return Math.min(b, lo + (voiced[lo] ? want - cum[lo] : 0)) * per;
+    };
+    const wOf = w => Math.max(2, w.replace(/[^\p{L}\p{N}]/gu, '').length) + 1;
+    // sentences are anchored to the voice's own pauses: with S sentence breaks in the script, the S
+    // longest silences are taken as those breaks, unless that would squeeze a sentence absurdly
+    const sents = []; let sc = [];
+    words.forEach(w => { sc.push(w); if (/[.!?…]["')\]]?$/.test(w)) { sents.push(sc); sc = []; } }); if (sc.length) sents.push(sc);
+    let cuts = [];
+    if (pk && sents.length > 1) {
+      const gaps = []; let st = -1; const first = voiced.indexOf(true), last = voiced.lastIndexOf(true);
+      for (let i = first; i <= last; i++) { if (!voiced[i]) { if (st < 0) st = i; } else if (st >= 0) { gaps.push([st, i]); st = -1; } }
+      const pick = gaps.filter(g2 => g2[1] - g2[0] >= 12).sort((x, y) => (y[1] - y[0]) - (x[1] - x[0])).slice(0, sents.length - 1).sort((x, y) => x[0] - y[0]);
+      if (pick.length === sents.length - 1) {
+        const b = [0, ...pick.map(g2 => (g2[0] + g2[1]) >> 1), N], totW = words.reduce((x, w) => x + wOf(w), 0);
+        const sane = sents.every((se, k) => { const share = se.reduce((x, w) => x + wOf(w), 0) / totW, got = (cum[b[k + 1]] - cum[b[k]]) / (cum[N] || 1); return got > share / 2.5 && got < share * 2.5; });
+        if (sane) cuts = b;
+      }
+    }
+    const ws = [];
+    (cuts.length ? sents : [words]).forEach((se, k) => {
+      const a0 = cuts.length ? cuts[k] : 0, b0 = cuts.length ? cuts[k + 1] : N, tot = se.reduce((x, w) => x + wOf(w), 0); let acc = 0;
+      se.forEach(w => { const t0 = at(a0, b0, acc / tot); acc += wOf(w); ws.push({ w, t0, t1: at(a0, b0, Math.min(1, acc / tot) - 1e-9) }); });
+    });
+    const groups = []; let cur = [];
+    ws.forEach(w => { cur.push(w); if (cur.length >= n || /[.!?…]$/.test(w.w)) { groups.push(cur); cur = []; } });
+    if (cur.length) groups.push(cur);
+    return capCache[a.id] = { sig, groups: groups.map((g, i) => ({ ws: g, t0: g[0].t0, t1: g[g.length - 1].t1 })) };
+  }
+  function drawCaption(a) {
+    if (!a.capOn || T < a.at || T >= a.at + a.dur) return;
+    const c = capTiming(a); if (!c) return;
+    const t = a.in + (T - a.at) - (+a.capShift || 0);
+    let gi = -1; for (let i = 0; i < c.groups.length; i++) { if (c.groups[i].t0 <= t) gi = i; else break; }
+    if (gi < 0) return;
+    const grp = c.groups[gi], nx = c.groups[gi + 1];
+    if (t > grp.t1 + .35 && (!nx || nx.t0 - grp.t1 > .8)) return;   // a real pause: clear the screen
+    const g = G(), caps = a.capCase !== 'as', words = grp.ws.map(w => { const d = w.w.replace(/[.,;:…]+$/, '') || w.w; return caps ? d.toUpperCase() : d; });   // full stops and commas are not shown
+    let px = (CAP.sizes[a.capSize] || CAP.sizes.M), maxW = g.w - g.l - g.r - (a.capStyle === 'pill' ? CAP.padX * 2 : 0);
+    setFont(px, CAP.wt, CAP.tr); const sp = () => cx.measureText(' ').width;
+    let ww = words.map(w => cx.measureText(w).width), W = ww.reduce((x, y) => x + y, 0) + sp() * (words.length - 1);
+    if (W > maxW) { px = px * maxW / W; setFont(px, CAP.wt, CAP.tr); ww = words.map(w => cx.measureText(w).width); W = ww.reduce((x, y) => x + y, 0) + sp() * (words.length - 1); }
+    const y0 = g.t, y1 = g.h - g.b, cy = y0 + (y1 - y0) * (a.capY == null ? 90 : +a.capY) / 100, x0 = (g.w - W) / 2;
+    cx.save(); cx.textBaseline = 'middle'; cx.textAlign = 'left';
+    if (a.capStyle === 'pill') {
+      const h = px * CAP.lead + CAP.padY * 2; cx.fillStyle = 'rgba(' + ART.wash + ',' + CAP.pill + ')';
+      cx.beginPath(); cx.roundRect(x0 - CAP.padX, cy - h / 2, W + CAP.padX * 2, h, CAP.r); cx.fill();
+    } else { cx.shadowColor = 'rgba(' + ART.wash + ',.7)'; cx.shadowBlur = 18; cx.shadowOffsetY = 2; }
+    let x = x0; const gap = sp();
+    words.forEach((w, i) => {
+      const on = a.capHi !== false && a.capHi !== 'false' && t >= grp.ws[i].t0 && (i === words.length - 1 || t < grp.ws[i + 1].t0);
+      cx.fillStyle = on && words.length > 1 ? ART.brass : ART.ink; cx.fillText(w, x, cy + px * .04); x += ww[i] + gap;
+    });
+    cx.restore(); try { cx.letterSpacing = '0px'; } catch (e) {}
+  }
   function draw() {
     dirty = false;
     const g = G();
@@ -645,6 +726,7 @@
     draw._had = !!a;
     P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur) drawText(t); });
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
+    P.audio.forEach(drawCaption);
     drawBrand();
     pvMirror();
   }
@@ -1004,7 +1086,18 @@
       const m = media[it.mid] || {};
       h = '<div class="vs-sec"><span class="vs-h">Audio</span><span class="vs-note">' + esc(m.name) + '</span>' + seg('track', [['music', 'Music'], ['sfx', 'Sound']]) + '</div>' +
         '<div class="vs-sec"><span class="vs-h">Level</span>' + rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%') +
-        rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) + '</div>' + timing();
+        rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) + '</div>' +
+        '<div class="vs-sec"><span class="vs-h">Captions</span>' + seg('capOn', [[false, 'Off'], [true, 'On']]) +
+        (it.capOn ? f('Voiceover script', '<textarea class="p-in" data-s="cap" rows="6" placeholder="Paste exactly what is said in this audio">' + esc(it.cap || '') + '</textarea>') +
+          f('Words at a time', seg('capN', [['1', 'One'], ['2', 'Two'], ['3', 'Three']])) +
+          f('Style', seg('capStyle', [['plain', 'Plain'], ['pill', 'Navy pill']])) +
+          f('Size', seg('capSize', [['S', 'Small'], ['M', 'Medium'], ['L', 'Large']])) +
+          f('Letters', seg('capCase', [['caps', 'Capitals'], ['as', 'As typed']])) +
+          f('Spoken word in brass', seg('capHi', [[true, 'On'], [false, 'Off']])) +
+          rng('i', 'capY', 'Height', it.capY == null ? 90 : it.capY, 0, 100, '%') +
+          rng('i', 'capShift', 'Earlier / later', it.capShift || 0, -1.5, 1.5, 's', .05) +
+          '<span class="vs-note">The words are timed from the loudness of the speech, not from a transcript, so they are an estimate. If they run ahead or behind, nudge them with Earlier / later. Music under the voice makes the timing less accurate.</span>' : '') +
+        '</div>' + timing();
     } else if (sel.kind === 'text') {
       h = '<div class="vs-sec"><span class="vs-h">Text</span>' +
         f('Eyebrow', '<input class="p-in" data-s="eyebrow" value="' + esc(it.eyebrow) + '" placeholder="Optional, set in caps">') +
@@ -1081,6 +1174,7 @@
     }
     if (b.dataset.k) {
       mark(); const v = b.dataset.v; it[b.dataset.k] = v === 'true' ? true : v === 'false' ? false : v;
+      if (b.dataset.k === 'capOn' && it.capOn) { if (!it.capN) it.capN = '2'; if (!it.capStyle) it.capStyle = 'plain'; if (!it.capSize) it.capSize = 'M'; if (!it.capCase) it.capCase = 'caps'; if (it.capHi == null) it.capHi = true; }
       renderAll();
     }
   });

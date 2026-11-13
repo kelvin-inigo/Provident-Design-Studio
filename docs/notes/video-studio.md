@@ -153,3 +153,24 @@ and an .mp4 URL), and any real run. Kling's output size is not measured.
 **Tool signed in and priced (2026-11-13):** `higgsfield auth login --port 8766` — the default 8765 clashes with a Logitech service on [::1]:8765, so Safari hands the callback to Logitech and the login times out. One workspace (Private) must be selected once with `higgsfield workspace set <id>`. Param flags are the model param names as written (`--aspect_ratio`, `--bitrate_mode`, `--generate_audio false`); `generate cost --json` answers `{"credits": N}` (Seedance 720p 5 s = 35, Kling std 5 s = 6.25, matching the connector). Generate now reached the confirm step in the page and Cancel cleared it. A real run through the tool (create, wait, get, download) is still unproven.
 
 **Generate now proven (2026-11-13):** one Kling 3.0 draft (Pull back, 5 s, 9:16) went from the page through the tool with no Claude: price 6.25, confirm, `generate create` -> `wait` -> `get` -> download, and the page placed it (job file `placed`). About 2 minutes. Result 720x1280, 5.04 s, 8.4 MB; balance 2794.92 -> 2788.67. Kling Full and any Seedance run are still unproven.
+
+## Captions timed to a voiceover (2026-11-13, by request)
+
+Asked for after two reference reels (word-by-word captions under a voiceover). Captions belong to
+an AUDIO item, not a new track: select the voiceover, Captions On, paste the script. Fields on the
+item: `capOn, cap, capN (1-3 words), capStyle (plain | pill), capSize (S/M/L = 41.5/49.8/59.7),
+capCase, capHi (spoken word in brass), capY (% of the safe area, default 90), capShift (s)`.
+`drawCaption` runs in `draw()` after the logos, so preview and export share it.
+
+**No transcription.** `capTiming` spreads the script's words over the SPOKEN stretches of
+`media.peaks` (40/s, threshold 14% of the 95th percentile, breaths under 0.15 s bridged) in
+proportion to word length. First cut drifted across sentences (a short first sentence pulled the
+next one early), so sentences are now anchored: with S sentence breaks in the script, the S
+longest silences (>= 0.3 s) are taken as those breaks, unless a sentence's share of speech would
+be more than 2.5x off its share of letters, in which case it falls back to one global spread.
+A pause longer than 0.8 s clears the caption. Trailing . , ; : are not drawn.
+
+Tested with a macOS `say` voiceover (3 sentences, 11.4 s): twelve sampled frames all showed the
+right words, and the two pauses cleared. NOT tested: a real recorded voice, music under the
+voice (the threshold will read music as speech), a script that does not match the audio, 1:1.
+The default height collides with a bottom-anchored text block; the user moves one of them.
