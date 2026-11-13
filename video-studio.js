@@ -494,13 +494,13 @@
     for (; idx >= 0; idx--) {
       const rows = []; let y = 0;
       const px = ART.sizes[ART.order[idx]] * k, eb = Math.max(24, ART.eyebrow * (k < 1 ? .85 : 1)), sb = Math.max(24, ART.sub * (k < 1 ? .8 : 1));
-      if (tx.eyebrow) { setFont(eb, 500, .1); y += eb; rows.push({ s: plain(tx.eyebrow).toUpperCase(), px: eb, wt: 500, tr: .1, y }); y += px * .16; }
+      if (tx.eyebrow) { setFont(eb, 500, .1); y += eb; rows.push({ s: plain(tx.eyebrow).toUpperCase(), px: eb, wt: 500, tr: .1, y }); y += Math.max(px * .2, eb * .8); }   // 2026-11-13: was px * .16, which closed up at the smaller sizes
       if (tx.text) {
         setFont(px, 400, ART.headTrack);
         wrapHi(tx.text, maxW).forEach((ln, i) => { y += i ? px * ART.leads[leadOf(tx)] : px * .8; rows.push(Object.assign(ln, { px, wt: 400, tr: ART.headTrack, y, head: 1 })); });
       }
       if (tx.sub) {
-        setFont(sb, 300, 0); y += px * .22;
+        setFont(sb, 300, 0); y += Math.max(px * .26, sb * .7);   // was px * .22
         wrapHi(tx.sub, maxW).forEach((ln, i) => { y += i ? sb * 1.3 : sb * 1.05; rows.push(Object.assign(ln, { px: sb, wt: 300, tr: 0, y })); });
       }
       const last = rows[rows.length - 1];
@@ -554,11 +554,18 @@
     try { cx.letterSpacing = '0px'; } catch (e) {}
     hits[tx.id] = { kind: 'text', x: g.l, y: L.top, w: L.maxW, h: L.h };
   }
+  // A graphic has its own place and size in each size. x / y / w are the 9:16's; the Square's live in
+  // `sq` once it is moved or resized there. Until then the Square derives them: the same place, at
+  // 1080/1920 of the width, so two graphics stacked on the Reel do not land on each other (their gap
+  // is a share of the HEIGHT, which is 56% as tall on the Square, while widths stayed the same).
+  const SQW = 1080 / 1920;
+  function lgeo(l) { return P.size === '1x1' ? (l.sq || { x: l.x, y: l.y, w: l.w * SQW }) : l; }                    // to read
+  function lgeoW(l) { if (P.size !== '1x1') return l; if (!l.sq) l.sq = { x: l.x, y: l.y, w: Math.round(l.w * SQW * 10) / 10 }; return l.sq; }   // to write
   function drawLogo(l) {
     const m = media[l.mid]; if (!m) return;
     const im = imgFor(m); if (!im.complete || !im.naturalWidth) return;
-    const g = G(), rel = T - l.at, w = g.w * l.w / 100, h = w * im.naturalHeight / im.naturalWidth;
-    const x = g.w * l.x / 100 - w / 2, y = g.h * l.y / 100 - h / 2;
+    const g = G(), q = lgeo(l), rel = T - l.at, w = g.w * q.w / 100, h = w * im.naturalHeight / im.naturalWidth;
+    const x = g.w * q.x / 100 - w / 2, y = g.h * q.y / 100 - h / 2;
     cx.save(); cx.globalAlpha = (l.op / 100) * (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
     const tint = l.tint === 'match' ? (P.brand.ink === 'navy' ? ART.navy : ART.ink) : l.tint === 'navy' ? ART.navy : l.tint === 'white' ? ART.ink : null;
     cx.drawImage(tint ? flat(im, m.id, tint) : im, x, y, w, h); cx.restore();
@@ -1058,7 +1065,7 @@
     Object.keys(hits).forEach(id => { const h = hits[id]; if (p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h && (!hit || h.kind === 'logo')) hit = { id, kind: h.kind }; });
     if (!hit) { if (sel) { sel = null; renderAll(); } return; }
     sel = { kind: hit.kind, id: hit.id }; renderAll();
-    if (hit.kind === 'logo') { const l = find(sel); cdrag = { p, x: l.x, y: l.y, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); }
+    if (hit.kind === 'logo') { const l = find(sel), q = lgeo(l); cdrag = { p, x: q.x, y: q.y, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); }
     else { const t = find(sel), h = hits[hit.id]; if (t && t.call === 'cta') { cdrag = { p, cta: true, y: (h.y + h.h / 2) / G().h * 100, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); } }
   });
   // ── drag guides (chrome only, never painted on the canvas, so never exported) ────────
@@ -1107,7 +1114,7 @@
       if (!e.altKey && Math.abs(y - 50) < 9 * cv.width / (cv.getBoundingClientRect().width || cv.width) / g.h * 100) { y = 50; ly = true; }
       l.y = Math.round(clamp(y, Math.min(lo, hi), Math.max(lo, hi))); guideLock(false, ly); dirty = true; return;
     }
-    const g = G(), hb = hits[l.id] || { w: g.w * l.w / 100, h: 0 };
+    const g = G(), hb = hits[l.id] || { w: g.w * lgeo(l).w / 100, h: 0 };
     let x = cdrag.x + (p.x - cdrag.p.x) / g.w * 100, y = cdrag.y + (p.y - cdrag.p.y) / g.h * 100;
     // magnetic: the centre first, then the graphic's edges against the safe area (Alt frees it)
     const pull = 9 * cv.width / (cv.getBoundingClientRect().width || cv.width);   // 9px on screen, whatever the zoom
@@ -1120,7 +1127,7 @@
       if (Math.abs(y - 50) < ty) { y = 50; ly = true; }
       else if (Math.abs(y - hh - Tp) < ty) y = Tp + hh; else if (Math.abs(y + hh - B) < ty) y = B - hh;
     }
-    l.x = clamp(x, 0, 100); l.y = clamp(y, 0, 100);
+    const q = lgeoW(l); q.x = clamp(x, 0, 100); q.y = clamp(y, 0, 100);
     guideLock(lx, ly); dirty = true;
   });
   const cEnd = () => { const m = cdrag && cdrag.moved; cdrag = null; guideHide(); if (m) renderAll(); };
@@ -1451,8 +1458,8 @@
         '<button class="p-ghost p-sm" id="previewBtn">Play this text</button></div>' + timing();
     } else {
       const m = media[it.mid] || {};
-      h = '<div class="vs-sec"><span class="vs-h">Graphic</span><span class="vs-note">' + esc(m.name) + ' — drag it on the canvas to move it.</span>' +
-        rng('i', 'w', 'Size', it.w, 5, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
+      h = '<div class="vs-sec"><span class="vs-h">Graphic</span><span class="vs-note">' + esc(m.name) + ' — drag it on the canvas to move it. Reel and Square each keep their own place and size.</span>' +
+        rng('i', 'w', 'Size', Math.round(lgeo(it).w), 3, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
         f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']])) +
         f('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']])) +
         '<div class="vs-two"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div></div>' + timing();
@@ -1468,7 +1475,8 @@
     if (d.ir) {
       let v = +e.target.value; const k = d.ir;
       const o = insp.querySelector('[data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
-      it[k] = k === 'vol' ? v / 100 : v;
+      if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
+      else it[k] = k === 'vol' ? v / 100 : v;
     } else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
     else if (d.n) {
       const v = parseFloat(e.target.value); if (!isFinite(v)) return;
@@ -1515,7 +1523,8 @@
     if (b.id === 'previewBtn') { seek(it.at); play(); const stopAt = it.at + it.dur; const iv = setInterval(() => { if (!playing || T >= stopAt) { clearInterval(iv); if (playing) pause(); } }, 40); return; }
     if (b.dataset.place) {
       mark(); const g = G();
-      if (b.dataset.place === 'corner') { it.x = (g.w - g.r) / g.w * 100 - it.w / 2; it.y = (g.h - g.b) / g.h * 100 - 4; } else { it.x = 50; it.y = 50; }
+      const q = lgeoW(it);
+      if (b.dataset.place === 'corner') { q.x = (g.w - g.r) / g.w * 100 - q.w / 2; q.y = (g.h - g.b) / g.h * 100 - 4; } else { q.x = 50; q.y = 50; }
       renderAll(); return;
     }
     if (b.dataset.k) {

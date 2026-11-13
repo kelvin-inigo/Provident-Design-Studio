@@ -320,3 +320,18 @@ native method; keep the original and assign it back.
   `dirty` and `draw._had`. Synchronous, guarded by `pvBusy` (draw() ends in pvMirror()). Only runs
   while the preview is open, so export is untouched. Verified: Feed shows the square with the whole
   headline; the main canvas hashed identical before and after opening the preview (1080x1920).
+
+### Graphics per size; text block gaps (2026-11-13)
+- **Two graphics landed on each other in Square.** A graphic's x / y / w are shares of the canvas, so
+  two stacked on the Reel keep their widths on the Square while the gap between them (a share of the
+  height) shrinks to 56%. Now each size has its own: x / y / w are the 9:16's, `l.sq = {x, y, w}` is
+  the Square's, written only when the graphic is moved or resized IN Square (`lgeoW`). Until then the
+  Square derives it (`lgeo`): same place, width x 1080/1920. So a lone graphic is also smaller in
+  Square than before this change. Drag, the Size slider, Centre it and Bottom corner all go through
+  `lgeoW`.
+- **Eyebrow / headline / line sat too close** at the smaller sizes, because the gaps were a share of
+  the headline size only. Now `max(px * .2, eb * .8)` under the eyebrow (was `px * .16`) and
+  `max(px * .26, sb * .7)` above the line (was `px * .22`). Slightly more air at Large and Jumbo too.
+Seen in Chrome on the user's project, both sizes: the Palm Springs and Nakheel marks are apart in
+Square and unchanged on the Reel; "Aliso Townhouses / 3 to 4-BR townhouses / From AED 3.8M" has clear
+gaps. Moving a graphic in Square (the `sq` write path) was NOT exercised.
