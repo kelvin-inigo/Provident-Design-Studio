@@ -372,3 +372,22 @@ each theme. Canvas hashes at six times in both sizes equal the pre-change page s
 reload; a logo uploaded in the same session hashes differently until then, in both versions).
 NOT exercised: Export and Send to CAS end to end (real click needed), the generators' paid steps, the
 comments list with real comments, drag on the picture, the placement preview, Safari.
+### Send to CAS, comments back, Apply to all (2026-11-13)
+**Send to CAS** (top bar): asks a name, then records the Reel 9:16 and the Square 1:1 through the one
+`exportVideo(cb)` (twice the video's length), takes a poster a third of the way in, and PUTs all three
+to the local server's **outbox** (`_outbox/`, git-ignored; `/api/outbox/file|meta|list|notes` in
+serve.py). `P.cas = { id, title, at }` keeps the outbox id, so sending again replaces the same entry.
+CASV never signs in: CAS's Add video (share-link.js, see reviews-sharing-drive.md) reads the outbox
+from the website and uploads to Drive. The outbox answers only the site's origin, localhost origins
+and `CASV_ORIGINS`, and answers Chrome's private-network preflight.
+**Comments back:** CAS posts a video's timeline comments to `/api/outbox/notes`; `casNotes()` polls
+every 15 s and shows open ones as numbered pins on the ruler (`.vs-nt`) and all of them under
+"Comments from CAS" in the Whole video rail. Read-only here.
+**Apply to all** (Selected rail, by request): copies a GROUP of settings from the selected item to
+every other item on its track (`ALLG`, `allOf`, `allApply`): Sound / Transition / Fit and zoom for
+clips; Volume and fades / Caption style for sounds (same track only); Size, place and effect for
+texts; Size for callouts of the same kind; Size, opacity and colour for graphics. Never words, files
+or timing. One undo step.
+Verified in Chrome with real clicks, saving blocked in the test tab: a real Send to CAS of the 32 s
+project parked 47.7 MB and 47.4 MB files and put the size back; two posted comments showed as a pin
+(the open one) and two list rows; Volume and fades went from one sound to the other four.
