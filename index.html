@@ -963,6 +963,7 @@ body{-webkit-tap-highlight-color:transparent;
   // home shows everything, as before
   function cap(c){ return !rawRole() || !acc || !acc.can || acc.can(c); }
   // PERFORMANCE MARKETING SEES CAMPAIGNS ONLY (2026-11-04, by request): no posts on Home or Status
+  function casvAt(){ var v = ''; try { v = localStorage.getItem('provident-casv-local') || ''; } catch (x) {} return (/^https?:\/\//.test(v) ? v.replace(/\/+$/, '') : 'http://localhost:8794') + '/'; }
   function studiosFor(r){ return r === 'pm' ? ['cas'] : r === 'smm' && !cap('design-cas') && !cap('tickets') ? ['ops'] : ['cas', 'ops']; }
   function canStart(r){ void r; return (cap('tickets') ? ['cas'] : []).concat(cap('posts') ? ['ops'] : []); }
   // the studios a role designs in (Your studios, Projects): drafting a post counts for OPS
@@ -1136,7 +1137,11 @@ body{-webkit-tap-highlight-color:transparent;
     var opens = designs();
     if (opens.length) h += '<section class="pan"><div class="sh">Your studios</div>' + opens.map(function(k){
       return '<a class="st" data-k="' + k + '" href="' + (k === 'cas' ? '#/new/cas' : STUDIO[k].start) + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
-    }).join('') + '</section>';
+    }).join('') +
+      // CASV, the Video Studio: it runs on the designer's own computer (photos are animated there), so
+      // this row opens that local page; its finished videos reach an ad set through Add video on Status
+      (cap('design-cas') ? '<a class="st" href="' + esc(casvAt()) + '" target="_blank" rel="noopener" title="Opens the Video Studio running on this computer. Start it first if the page does not load."><span class="mk" data-s="cas"><i></i></span><span><b>Video Studio</b><small>Reels and squares for an ad set · runs on this computer</small></span>' + ico('chev') + '</a>' : '') +
+      '</section>';
     h += '</aside></div>';
     return h;
   }

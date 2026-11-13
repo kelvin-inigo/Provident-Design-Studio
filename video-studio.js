@@ -1426,6 +1426,40 @@
     const p = document.body.dataset.pane || 'add';
     $('#mseg').querySelectorAll('button').forEach(b => { const on = b.dataset.pane === p; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
   }
+  // APPLY TO ALL (2026-11-13, by request): what was set on one item, copied to every other item on
+  // the same track, a group of settings at a time. Never the words, the file or the timing.
+  const ALLG = {
+    clip: [['Sound', ['vol', 'mute']], ['Transition', ['tr', 'trD']], ['Fit and zoom', ['fit', 'z', 'fx', 'fy']]],
+    audio: [['Volume and fades', ['vol', 'fi', 'fo']], ['Caption style', ['capOn', 'capN', 'capStyle', 'capSize', 'capCase', 'capHi', 'capY']]],
+    text: [['Size, place and effect', ['size', 'pos', 'align', 'anim', 'scrim', 'lead']]],
+    call: [['Size', ['scale']]],
+    logo: [['Size, opacity and colour', ['w', 'op', 'tint', 'fade']]]
+  };
+  function allOf(it) {
+    const k = sel.kind;
+    if (k === 'audio') return { g: ALLG.audio, peers: P.audio.filter(a => a !== it && a.track === it.track), word: it.track === 'music' ? 'music' : 'sound', track: it.track === 'music' ? 'Music' : 'Sound' };
+    if (k === 'text') return it.call === 'cta' ? null : it.call ? { g: ALLG.call, peers: P.texts.filter(t => t !== it && t.call === it.call), word: 'callout of this kind', track: 'Text' }
+      : { g: ALLG.text, peers: P.texts.filter(t => t !== it && !t.call), word: 'text', track: 'Text' };
+    if (k === 'clip') return { g: ALLG.clip, peers: P.clips.filter(c => c !== it), word: 'clip', track: 'Video' };
+    return { g: ALLG.logo, peers: P.logos.filter(l => l !== it), word: 'graphic', track: 'Graphics' };
+  }
+  function allHtml(it) {
+    const a = allOf(it); if (!a || !a.peers.length) return '';
+    return '<div class="vs-sec"><span class="vs-h">Apply to all</span><span class="vs-note">Copies this one’s settings to the other ' + a.peers.length + ' on the ' + a.track + ' track. Words, files and timing are left alone.</span>' +
+      '<div class="vs-acts" style="flex-wrap:wrap">' + a.g.map((g, i) => '<button class="p-ghost p-sm" data-all="' + i + '" title="' + esc(g[0] + ': copy to every other ' + a.word) + '">' + esc(g[0]) + '</button>').join('') + '</div></div>';
+  }
+  function allApply(it, i) {
+    const a = allOf(it), g = a && a.g[+i]; if (!g || !a.peers.length) return;
+    mark();
+    a.peers.forEach(p2 => {
+      g[1].forEach(k => {
+        if (sel.kind === 'logo' && k === 'w') { lgeoW(p2).w = lgeo(it).w; return; }   // the size of the size being looked at
+        if (it[k] === undefined) delete p2[k]; else p2[k] = it[k];
+      });
+    });
+    pTint = null; dirty = true; save(); renderAll();
+    toast(g[0] + ' applied to ' + a.peers.length + ' more on the ' + a.track + ' track. ⌘Z undoes it.');
+  }
   function renderInspector() {
     const it = find(sel), el = $('#insp'); let h = '';
     const key = it ? sel.kind + ':' + sel.id : '';
@@ -1525,6 +1559,7 @@
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
         '<span class="vs-note">Drag it on the picture to move it. Reel and Square each keep their own place and size.</span></div>' + timing();
     }
+    if (it) h += allHtml(it);
     if (it) h += '<div class="vs-sec"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
     el.innerHTML = h;
   }
@@ -1563,6 +1598,7 @@
     if (brandClick(e)) return;
     const it = find(sel), b = e.target.closest('button'); if (!b) return;
     if (b.dataset.nt != null) { if (playing) pause(); seek(+b.dataset.nt); return; }
+    if (b.dataset.all != null && it) return allApply(it, b.dataset.all);
     if (!it || rtab !== 'sel') return;
     if (b.dataset.mv) { mark(); it.move = b.dataset.mv; renderAll(); return; }
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
