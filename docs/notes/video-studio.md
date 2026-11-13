@@ -123,3 +123,10 @@ swapped the clip on its own (job file ended `placed`).
 **7.5 credits per 5 s** (15 for 10 s; std is 5 and 10), again about 2.5 minutes. The photo clip's
 inspector now has **Quality: Draft 720p / Full 1080p** (`genMode` on the clip, `mode` in the job,
 read by the skill; a job without one is `std`) and a credit estimate (1 or 1.5 per second).
+
+**Model choice (same day):** the user's own Higgsfield habit is Seedance 2.5, 10 s, 1080p, High
+bitrate (160 credits). The photo clip now has **Model: Cinema Studio / Seedance 2.5** (`genModel`
+on the clip, `model` in the job). Seedance goes as `mode: "omni_reference"` with `start_image`,
+`generate_audio: false`; Draft = 720p standard bitrate (7 credits/s), Full = 1080p high (16/s; bitrate
+and audio do not change the price). Priced with `get_cost` only: **no Seedance clip has been
+generated through the skill yet**, so its `start_image` round trip is unproven.

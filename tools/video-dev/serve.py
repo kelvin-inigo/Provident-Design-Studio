@@ -65,7 +65,7 @@ class H(SimpleHTTPRequestHandler):
             if not m:
                 return self._json(400, {'error': 'photo must be a JPEG data URL'})
             open(os.path.join(QUEUE, jid + '.jpg'), 'wb').write(base64.b64decode(m.group(1)))
-            job = {k: body.get(k) for k in ('id', 'name', 'move', 'prompt', 'duration', 'aspect', 'mode')}
+            job = {k: body.get(k) for k in ('id', 'name', 'move', 'prompt', 'duration', 'aspect', 'mode', 'model')}
             job.update(status='queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
             return self._json(200, job)
