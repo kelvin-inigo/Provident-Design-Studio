@@ -372,6 +372,32 @@ each theme. Canvas hashes at six times in both sizes equal the pre-change page s
 reload; a logo uploaded in the same session hashes differently until then, in both versions).
 NOT exercised: Export and Send to CAS end to end (real click needed), the generators' paid steps, the
 comments list with real comments, drag on the picture, the placement preview, Safari.
+
+### Filmstrips on the Video track (2026-11-13, by request)
+Every piece of a split clip showed the file's first frame (the poster, repeated). Now each video file
+gets a sprite of frames (`buildStrip`: one every 0.5 s, or dur/200 for long files, 92px high, by
+seeking a spare in-page `<video>`), and `paintStrips` lays the frames inside a clip's in..out along
+its `<canvas data-strip>`. In memory only, so it is rebuilt after each load (the 27.5 s test file
+took a few seconds); one file at a time; it waits while the video plays or exports. The poster stays
+underneath until the frames arrive. Photo clips are unchanged.
+Seen in the Browser pane: a 27.5 s clip cut at 6.92 and 13.92 shows three different stretches, and
+trims follow. NOT checked: a very long file, Safari, and whether the seeking slows scrubbing while a
+strip is still being built.
+
+### Taller timeline; the scrubber selects the clip it lands on (2026-11-13, by request)
+- **Timeline height.** The top edge of the transport bar is a handle (`#tlRz`, `setTlh`): drag it up or
+  down, or focus it and press the arrow keys; double-click puts the default back. It sets `--vs-tlh`
+  (120px up to the window less 294px), kept per computer in `provident-video-tlh`. Hidden on phones.
+- **Scrubbing shows the clip's options.** `landOn()` runs on a ruler click, a playhead drag and the
+  arrow keys: the video clip under the playhead becomes the selection, so the right rail turns to it.
+  It leaves a selected text, graphic or sound alone, and does nothing during playback or export. Side
+  effect: a click on an empty part of a track no longer leaves nothing selected when a clip is under the
+  playhead; Esc or the Whole video tab still does. This was my reading of "show option of the frame
+  when scrubber lands on it"; the user has not confirmed it.
+Seen with a real pointer in the Browser pane: drag 269 -> 419px and the picture refits; double-click
+resets; ruler click and a drag across a cut switch the selected clip; a selected text stays selected.
+
+
 ### Send to CAS, comments back, Apply to all (2026-11-13)
 **Send to CAS** (top bar): asks a name, then records the Reel 9:16 and the Square 1:1 through the one
 `exportVideo(cb)` (twice the video's length), takes a poster a third of the way in, and PUTs all three
@@ -391,3 +417,22 @@ or timing. One undo step.
 Verified in Chrome with real clicks, saving blocked in the test tab: a real Send to CAS of the 32 s
 project parked 47.7 MB and 47.4 MB files and put the size back; two posted comments showed as a pin
 (the open one) and two list rows; Volume and fades went from one sound to the other four.
+
+### Marker options (2026-11-13, by request)
+A **Markers** button on the transport bar opens a card with four switches (`MK`, kept per computer in
+`provident-video-markers`, not in the project). `markersAll()` returns `{t, k}`; `markers()` is its
+times, so the playhead (`magnet`) and dragged items (`snapT` via `edges`) snap to whatever is on.
+- **Scene changes** (dim, dashed, diamond): the existing `findCuts` markers, now switchable.
+- **Clip cuts** (solid, round head): where two clips meet, so a split shows as a marker.
+- **Voice pauses** (amber): `voiceStops(m)` on the Sound track, from the 40-a-second peaks with the
+  captions' own threshold: 0.2 s or more of speech followed by 0.3 s of quiet, or the end of the file.
+- **Music beats** Off / Bars / Beats (green, faint line): `findBeats` decodes the file once and
+  `beatGrid` reads the rise in loudness at 100 a second, takes the tempo from its autocorrelation
+  (70-180 a minute, leaning to 120), tunes period and phase on a comb, and drops the grid when the comb
+  scores under 1.4x the mean (no steady pulse). Bars = every fourth beat, starting on the loudest of
+  the four. In memory only, so it is worked out again after each load.
+Tested: a synthetic click track at 100 a minute, first click at 0.30 s, came back as 100 with beats at
+0.30 0.90 1.50 and bars 2.4 s apart; the Sonilo bed read 149 (nobody has checked that by ear); the two
+test voiceovers gave pauses at 1.30 3.78 7.40 10.40 and 4.47 8.98; Scene changes off and on with a real
+click changed the count 9 -> 0 -> 9. NOT tested: whether the pauses and bars sit where a person hears
+them, snapping to the new kinds with a real drag, music under a voice, a tempo that changes.

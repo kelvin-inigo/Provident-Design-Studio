@@ -15,7 +15,8 @@
   // the few icons the Material file does not carry, drawn on a 24 grid at the same weight
   const ICS = {
     keyboard: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.3 10h.01M13.7 10h.01M17 10h.01M7 14h.01M17 14h.01M10 14h4"/>',
-    add_box: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'
+    add_box: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
+    flag: '<path d="M6 20.5V4.5"/><path d="M6 5.5h11l-2.2 3.5 2.2 3.5H6"/>'
   };
   const sico = n => '<i class="vs-i vs-is"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICS[n] || '') + '</svg></i>';
   const CHEV = '<svg class="vs-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
@@ -158,12 +159,119 @@
       renderTimeline();
     } catch (e) {} finally { rec._cutting = false; }
   }
+  // ── filmstrips: a video clip on the timeline shows ITS OWN stretch of the file ─────────────
+  // 2026-11-13, by request: every piece of a split clip showed the file's first frame, so the
+  // pieces could not be told apart. Each video file gets one sprite of small frames, taken every
+  // `step` seconds by seeking a spare <video> (in the page, or nothing is decoded), and
+  // paintStrips() lays the frames that fall inside a clip's in..out along it. Kept in memory
+  // only, built one file at a time, and never while the video plays or exports.
+  let stripBusy = false;
+  async function buildStrip(rec) {
+    if (!rec || rec.kind !== 'video' || rec.strip || !rec.dur || stripBusy) return;
+    stripBusy = true;
+    const fh = 92, fw = Math.max(8, Math.round(fh * (rec.w || 9) / (rec.h || 16))), step = Math.max(.5, rec.dur / 200), n = Math.max(1, Math.ceil(rec.dur / step));
+    const c = document.createElement('canvas'); c.width = fw * n; c.height = fh;
+    const st = rec.strip = { c, step, n, fw, fh, got: new Uint8Array(n) }, x = c.getContext('2d');
+    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = rec.url;
+    v.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none'; document.body.appendChild(v);
+    try {
+      await once(v, 'loadeddata');
+      for (let i = 0; i < n; i++) {
+        while (playing || exporting) await new Promise(r => setTimeout(r, 400));
+        if (!media[rec.id]) break;            // removed from the library meanwhile
+        v.currentTime = Math.min(rec.dur - .05, i * step + step / 2); await once(v, 'seeked');
+        x.drawImage(v, i * fw, 0, fw, fh); st.got[i] = 1;
+        if (i % 8 === 7 || i === n - 1) paintStrips();
+      }
+    } catch (e) {} finally { v.removeAttribute('src'); v.load(); v.remove(); stripBusy = false; }
+    const next = P.clips.map(k => media[k.mid]).find(m => m && m.kind === 'video' && !m.strip); if (next) buildStrip(next);
+  }
+  function paintStrips() {
+    tlin.querySelectorAll('canvas[data-strip]').forEach(k => {
+      const c = P.clips.find(q => q.id === k.dataset.strip), m = c && media[c.mid], st = m && m.strip; if (!st) return;
+      const wpx = Math.max(6, clipLen(c) * pps - 1), sc = Math.min(2, 8000 / wpx), tw = 46 * st.fw / st.fh;   // 46: the clip's height on the timeline
+      k.width = Math.max(2, Math.round(wpx * sc)); k.height = Math.round(46 * sc);
+      const x = k.getContext('2d');
+      for (let px = 0; px < wpx; px += tw) {
+        const i = Math.max(0, Math.min(st.n - 1, Math.floor((c.in + (px + tw / 2) / pps) / st.step)));
+        if (st.got[i]) x.drawImage(st.c, i * st.fw, 0, st.fw, st.fh, px * sc, 0, tw * sc, k.height);
+      }
+    });
+  }
   // marker times on the timeline: each cut that falls inside the part of a clip that is used
-  function markers() {
+  // ── MARKERS, FOUR KINDS, EACH WITH ITS OWN SWITCH (2026-11-13, by request) ───────────────
+  // scene: a shot change inside one video file (findCuts) · cut: where two clips meet, so a split
+  // shows too · voice: where the voice stops (a pause, from the loudness) on the Sound track ·
+  // beat: the music's beat or every fourth one (findBeats) on the Music track. The playhead and
+  // anything dragged snap to whichever are on. The choice is kept per computer, not in the project.
+  const MKEY = 'provident-video-markers';
+  const MK = Object.assign({ scene: true, cut: true, voice: true, beat: 'bar' }, (() => { try { return JSON.parse(localStorage.getItem(MKEY) || '{}') || {}; } catch (e) { return {}; } })());
+  const MKT = { scene: 'Scene change', cut: 'Clip cut', voice: 'Voice pause', beat: 'Beat' };
+  // where the voice stops: 0.2 s or more of speech followed by 0.3 s of quiet, or by the end of the file
+  function voiceStops(m) {
+    if (!m || !m.peaks || m.peaks.length < 9) return [];
+    if (m._stops && m._stopsN === m.peaks.length) return m._stops;
+    const pk = m.peaks, N = pk.length, per = (m.dur || N / 40) / N, srt = pk.slice().sort((x, y) => x - y), thr = Math.max(.03, srt[Math.floor(N * .95)] * .14);
+    const v = pk.map(x => x > thr);
+    for (let i = 0, gap = 0; i < N; i++) { if (v[i]) { if (gap && gap <= 6 && i - gap - 1 >= 0) for (let j = i - gap; j < i; j++) v[j] = true; gap = 0; } else gap++; }
+    const out = []; let run = 0;
+    for (let i = 0; i <= N; i++) {
+      if (i < N && v[i]) { run++; continue; }
+      if (run >= 8) { let g = 0; while (i + g < N && !v[i + g]) g++; if (g >= 12 || i + g >= N) out.push(i * per); }
+      run = 0;
+    }
+    m._stopsN = N; return m._stops = out;
+  }
+  // the music's beat: the rise in loudness 100 times a second, the tempo from its autocorrelation
+  // (70 to 180 beats a minute, leaning to 120), then the period and the phase tuned so a grid of
+  // beats sits on the rises. A track with no steady pulse gets none. In memory only.
+  function beatGrid(d, sr) {
+    const none = { all: [], bars: [], bpm: 0 };
+    const hop = Math.max(1, Math.round(sr / 100)), N = Math.floor(d.length / hop), fr = sr / hop;
+    if (N < fr * 4) return none;
+    const e = new Float32Array(N), f = new Float32Array(N), g = new Float32Array(N), ps = new Float64Array(N + 1);
+    for (let i = 0; i < N; i++) { let q = 0; for (let j = i * hop, z = j + hop; j < z; j += 2) q += d[j] * d[j]; e[i] = Math.log(1 + 1000 * Math.sqrt(q / (hop / 2))); }
+    for (let i = 1; i < N; i++) f[i] = Math.max(0, e[i] - e[i - 1]);
+    for (let i = 0; i < N; i++) ps[i + 1] = ps[i] + f[i];
+    const W = Math.round(fr); let mean = 0;
+    for (let i = 0; i < N; i++) { const a = Math.max(0, i - W), b = Math.min(N, i + W); g[i] = Math.max(0, f[i] - (ps[b] - ps[a]) / (b - a)); mean += g[i]; }
+    mean /= N; if (!(mean > 1e-6)) return none;
+    const lo = Math.round(fr * 60 / 180), hi = Math.round(fr * 60 / 70); let bestL = lo, bs = -1;
+    for (let L = lo; L <= hi; L++) { let r = 0; for (let i = 0; i + L < N; i++) r += g[i] * g[i + L]; r = r / (N - L) * Math.exp(-.5 * Math.pow(Math.log2(L / (fr * .5)) / .8, 2)); if (r > bs) { bs = r; bestL = L; } }
+    const at = x => { const i = Math.floor(x); return i < 0 || i + 1 >= N ? 0 : g[i] + (g[i + 1] - g[i]) * (x - i); };
+    const comb = (p, ph) => { let q = 0, n = 0; for (let x = ph; x < N - 1; x += p) { q += at(x); n++; } return n ? q / n : 0; };
+    let bp = bestL, bph = 0, bsc = -1;
+    for (let p = bestL - 1; p <= bestL + 1; p += .02) for (let ph = 0; ph < p; ph += 1) { const q = comb(p, ph); if (q > bsc) { bsc = q; bp = p; bph = ph; } }
+    for (let ph = Math.max(0, bph - 1), z = bph + 1; ph <= z; ph += .1) { const q = comb(bp, ph); if (q > bsc) { bsc = q; bph = ph; } }
+    if (bsc < mean * 1.4) return none;
+    const all = []; for (let x = bph; x < N; x += bp) all.push(Math.round(x / fr * 1000) / 1000);
+    let bo = 0, bb = -1;                        // the bar starts on whichever of the four beats is loudest on average
+    for (let o = 0; o < 4; o++) { let q = 0, n = 0; for (let k = o; k < all.length; k += 4) { q += at(all[k] * fr); n++; } q = n ? q / n : 0; if (q > bb) { bb = q; bo = o; } }
+    return { all, bars: all.filter((t, k) => k % 4 === bo), bpm: Math.round(60 * fr / bp) };
+  }
+  async function findBeats(rec) {
+    if (!rec || rec.kind !== 'audio' || rec.beats || rec._beating || exporting) return;
+    rec._beating = true;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext, c = new AC();
+      const buf = await c.decodeAudioData(await rec.blob.arrayBuffer()); c.close();
+      rec.beats = beatGrid(buf.getChannelData(0), buf.sampleRate);
+    } catch (e) { rec.beats = { all: [], bars: [], bpm: 0 }; } finally { rec._beating = false; }
+    renderTimeline(); mkPaint();
+  }
+  function markersAll() {
     const out = [], st = clipStarts();
-    P.clips.forEach((c, i) => { const m = media[c.mid]; if (m && m.cuts) m.cuts.forEach(t => { if (t > c.in + .05 && t < c.out - .05) out.push(st[i] + t - c.in); }); });
+    if (MK.scene) P.clips.forEach((c, i) => { const m = media[c.mid]; if (m && m.cuts) m.cuts.forEach(t => { if (t > c.in + .05 && t < c.out - .05) out.push({ t: st[i] + t - c.in, k: 'scene' }); }); });
+    if (MK.cut) st.forEach((t, i) => { if (i) out.push({ t, k: 'cut' }); });
+    P.audio.forEach(a => {
+      const m = media[a.mid]; if (!m) return;
+      const end = a.at + a.dur, map = ft => a.at + (ft - a.in) / (a.rate || 1);
+      if (a.track === 'sfx' && MK.voice) voiceStops(m).forEach(ft => { const t = map(ft); if (t > a.at + .05 && t <= end + 1e-3) out.push({ t, k: 'voice' }); });
+      if (a.track === 'music' && MK.beat !== 'off' && m.beats) (MK.beat === 'bar' ? m.beats.bars : m.beats.all).forEach(ft => { const t = map(ft); if (t >= a.at && t < end) out.push({ t, k: 'beat' }); });
+    });
     return out;
   }
+  function markers() { return markersAll().map(x => x.t); }
   function clipStarts() { let t = 0; return P.clips.map(c => { const s = t; t += clipLen(c); return s; }); }
   function videoEnd() { return P.clips.reduce((a, c) => a + clipLen(c), 0); }
   function total() {
@@ -181,6 +289,14 @@
     const st = clipStarts();
     for (let i = 0; i < P.clips.length; i++) if (t >= st[i] && t < st[i] + clipLen(P.clips[i]) - 1e-6) return { c: P.clips[i], start: st[i], i };
     return null;
+  }
+  // THE SCRUBBER SHOWS WHAT IT LANDS ON (2026-11-13, by request): scrubbing or stepping onto a
+  // video clip selects it, so its options are in the right rail without a click. It never takes
+  // the selection from a text, graphic or sound being worked on, and never runs during playback.
+  function landOn() {
+    if (playing || exporting || (sel && sel.kind !== 'clip')) return;
+    const a = clipAt(T), id = a && a.c.id;
+    if (id && (!sel || sel.id !== id)) { sel = { kind: 'clip', id }; renderAll(); }
   }
   const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
   function toast(msg) { const el = $('#toast'); el.textContent = msg; el.dataset.on = '1'; clearTimeout(toast._t); toast._t = setTimeout(() => delete el.dataset.on, 3800); }
@@ -952,7 +1068,7 @@
         P.clips.forEach((c, i) => {
           const m = media[c.mid] || {};
           body += '<div class="vs-it" data-kind="clip" data-id="' + c.id + '"' + on('clip', c.id) + ' style="left:' + (LBL + st[i] * pps) + 'px;width:' + Math.max(6, clipLen(c) * pps - 1) + 'px;top:4px;' +
-            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + hd + '<span class="n">' + esc(m.name || 'Clip') + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
+            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + (m.kind === 'video' ? '<canvas data-strip="' + c.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(m.name || 'Clip') + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
         });
       } else {
         const kind = tr.id === 'text' ? 'text' : tr.id === 'logo' ? 'logo' : 'audio';
@@ -970,8 +1086,10 @@
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
     });
     CASN.forEach((n, i) => { if (!n.done) h += '<i class="vs-nt" style="left:' + (LBL + clamp(+n.t || 0, 0, total()) * pps) + 'px" title="' + esc((n.by || 'Comment') + ' at ' + fmt(+n.t || 0) + ': ' + n.text) + '"><b>' + (i + 1) + '</b></i>'; });
-    markers().forEach(t => { h += '<i class="vs-mk" style="left:' + (LBL + t * pps) + 'px" title="Shot change at ' + fmt(t) + '. Layers and the playhead snap here."></i>'; });
+    markersAll().forEach(x => { h += '<i class="vs-mk" data-k="' + x.k + '" style="left:' + (LBL + x.t * pps) + 'px" title="' + MKT[x.k] + ' at ' + fmt(x.t) + '. Layers and the playhead snap here."></i>'; });
+    if (MK.beat !== 'off') P.audio.forEach(a => { if (a.track === 'music') findBeats(media[a.mid]); });
     P.clips.forEach(c => findCuts(media[c.mid]));
+    P.clips.forEach(c => buildStrip(media[c.mid]));
     h += '<div class="vs-ph" id="ph" title="Drag to scrub"></div>';
     tlin.style.width = W + 'px'; tlin.innerHTML = h;
     tlin.querySelectorAll('canvas[data-wave]').forEach(c => {
@@ -980,6 +1098,7 @@
       x.fillStyle = getComputedStyle(c).color;
       for (let i = 0; i < w; i++) { const p = m.peaks[Math.floor((a.in + i / w * a.dur * (a.rate || 1)) * 40)] || 0, bh = Math.max(1, p * hh * .9); x.fillRect(i, (hh - bh) / 2, 1, bh); }
     });
+    paintStrips();
     paintPlayhead();
   }
   function paintPlayhead() {
@@ -1015,14 +1134,14 @@
       drag = { mode: 'seek' };
       if (e.target.closest('.vs-trk') && sel) { sel = null; renderAll(); }
       if (playing) pause();
-      seek(magnet(xToT(e)));
+      seek(magnet(xToT(e))); landOn();
     }
     tl.setPointerCapture(e.pointerId); e.preventDefault();
   });
   tl.addEventListener('pointermove', e => {
     if (!drag) return;
     if (drag.mode === 'seek') {
-      seek(magnet(xToT(e)));
+      seek(magnet(xToT(e))); landOn();
       const r = tl.getBoundingClientRect();     // scrubbing past an edge scrolls the timeline
       if (e.clientX > r.right - 30) tl.scrollLeft += 14; else if (e.clientX < r.left + LBL + 20) tl.scrollLeft -= 14;
       return;
@@ -1422,6 +1541,17 @@
   // Layout column). Picking something turns to Selected, dropping it turns back to Whole video,
   // and the switch lets either be opened by hand.
   let rtab = 'doc', selKey = '';
+  function mkPaint() {
+    const pop = $('#mkPop'); if (!pop) return;
+    const seg = (k, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-mk="' + k + '" data-v="' + o[0] + '"' + (String(MK[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
+    const row = (k, label, body) => '<div class="vs-row"><span><i class="vs-mkd" data-k="' + k + '"></i>' + label + '</span>' + body + '</div>';
+    const onoff = [[true, 'On'], [false, 'Off']];
+    const mus = P.audio.filter(a => a.track === 'music').map(a => media[a.mid]).filter(Boolean);
+    const beat = MK.beat === 'off' ? '' : !mus.length ? 'There is no music on the Music track yet. ' : mus.some(m => m._beating || !m.beats) ? 'Listening to the music… ' : mus.every(m => !m.beats.all.length) ? 'No steady beat was found in the music. ' : 'The music runs at about ' + mus.filter(m => m.beats.bpm).map(m => m.beats.bpm).join(' and ') + ' beats a minute. ';
+    pop.innerHTML = '<b>Markers</b>' + row('scene', 'Scene changes', seg('scene', onoff, 's')) + row('cut', 'Clip cuts', seg('cut', onoff, 's')) +
+      row('voice', 'Voice pauses', seg('voice', onoff, 's')) + row('beat', 'Music beats', seg('beat', [['off', 'Off'], ['bar', 'Bars'], ['beat', 'Beats']])) +
+      '<p>' + beat + 'The playhead and anything you drag snap to the markers that are on. Voice pauses are read from the Sound track, beats from the Music track.</p>';
+  }
   function paintPane() {
     const p = document.body.dataset.pane || 'add';
     $('#mseg').querySelectorAll('button').forEach(b => { const on = b.dataset.pane === p; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
@@ -1944,11 +2074,20 @@
     if (total() && !(await ask('Start a new video?', 'The timeline is cleared. Everything you uploaded stays in the library, and Undo brings this video back.', 'Start new'))) return;
     mark(); const keep = P.size; P = fresh(); P.size = keep; sel = null; T = 0; partnerLoad(); renderAll();
   });
-  // the shortcuts card opens above its button
-  $('#keys').addEventListener('toggle', e => {
-    const open = e.newState === 'open', k = $('#keys'), r = $('#keysBtn').getBoundingClientRect();
-    $('#keysBtn').setAttribute('aria-expanded', open);
-    if (open) { k.style.left = Math.max(12, Math.min(innerWidth - k.offsetWidth - 12, r.right - k.offsetWidth)) + 'px'; k.style.top = Math.max(12, r.top - k.offsetHeight - 8) + 'px'; }
+  // a card opens above its button (the shortcuts, the markers)
+  const popAt = (pop, btn) => e => {
+    const open = e.newState === 'open', r = btn.getBoundingClientRect();
+    btn.setAttribute('aria-expanded', open);
+    if (open) { pop.style.left = Math.max(12, Math.min(innerWidth - pop.offsetWidth - 12, r.right - pop.offsetWidth)) + 'px'; pop.style.top = Math.max(12, r.top - pop.offsetHeight - 8) + 'px'; }
+  };
+  $('#keys').addEventListener('toggle', popAt($('#keys'), $('#keysBtn')));
+  $('#mkBtn').innerHTML = sico('flag') + 'Markers';
+  $('#mkPop').addEventListener('toggle', e => { if (e.newState === 'open') mkPaint(); popAt($('#mkPop'), $('#mkBtn'))(e); });
+  $('#mkPop').addEventListener('click', e => {
+    const b = e.target.closest('[data-mk]'); if (!b) return;
+    const v = b.dataset.v; MK[b.dataset.mk] = v === 'true' ? true : v === 'false' ? false : v;
+    try { localStorage.setItem(MKEY, JSON.stringify(MK)); } catch (x) {}
+    renderTimeline(); mkPaint();
   });
   $('#mseg').addEventListener('click', e => { const b = e.target.closest('[data-pane]'); if (b) { document.body.dataset.pane = b.dataset.pane; paintPane(); } });
   paintPane();
@@ -1969,7 +2108,27 @@
   $('#previewBtn2').innerHTML = ico('visibility') + '<span class="vs-l">Preview</span>'; $('#previewBtn2').addEventListener('click', pvOpen);
   $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + '<span class="vs-l2">Send to CAS</span>'; $('#sendBtn').addEventListener('click', sendToCas); $('#frameBtn').addEventListener('click', saveFrame);
   $('#zoom').addEventListener('input', e => { pps = +e.target.value; renderTimeline(); });
-  window.addEventListener('resize', () => { fitCanvas(); renderTimeline(); });
+  // THE TIMELINE CAN BE PULLED TALLER (2026-11-13, by request): drag the top edge of its bar, or
+  // focus it and use the arrow keys; double-click puts it back. Kept per computer.
+  const HKEY = 'provident-video-tlh', rz = $('#tlRz');
+  function setTlh(px, keep) {
+    const root = document.documentElement;
+    if (px == null) { root.style.removeProperty('--vs-tlh'); try { localStorage.removeItem(HKEY); } catch (e) {} }
+    else {
+      px = Math.round(clamp(px, 120, Math.max(160, innerHeight - 56 - 48 - 190)));
+      root.style.setProperty('--vs-tlh', px + 'px'); if (keep) { try { localStorage.setItem(HKEY, px); } catch (e) {} }
+    }
+    fitCanvas(); renderTimeline();
+  }
+  { const h0 = parseFloat(localStorage.getItem(HKEY)); if (h0 > 0) setTlh(h0); }
+  let rzD = null;
+  rz.addEventListener('pointerdown', e => { if (e.button) return; rzD = { y: e.clientY, h: tl.offsetHeight }; rz.setPointerCapture(e.pointerId); rz.dataset.on = '1'; e.preventDefault(); });
+  rz.addEventListener('pointermove', e => { if (rzD) setTlh(rzD.h + (rzD.y - e.clientY), true); });
+  const rzEnd = () => { rzD = null; delete rz.dataset.on; };
+  rz.addEventListener('pointerup', rzEnd); rz.addEventListener('pointercancel', rzEnd);
+  rz.addEventListener('dblclick', () => setTlh(null));
+  rz.addEventListener('keydown', e => { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); setTlh(tl.offsetHeight + (e.key === 'ArrowUp' ? 24 : -24), true); } });
+  window.addEventListener('resize', () => { const h = parseFloat(document.documentElement.style.getPropertyValue('--vs-tlh')); if (h > 0) setTlh(h); else { fitCanvas(); renderTimeline(); } });
   document.addEventListener('keydown', e => {
     if (exporting || $('#ask').open) return;
     const tg = e.target, typing = tg.matches && tg.matches('input:not([type=range]),textarea,select');
@@ -1980,7 +2139,7 @@
     if (e.code === 'Space') { e.preventDefault(); playing ? pause() : play(); }
     else if (e.key.toLowerCase() === 's') split();
     else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); del(); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); if (playing) pause(); seek(T + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 1 / 30)); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); if (playing) pause(); seek(T + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 1 / 30)); landOn(); }
     else if (e.key === 'Home') seek(0);
     else if (e.key === 'Escape' && pvOn) pvClose();
     else if (e.key === 'Escape' && sel) { sel = null; renderAll(); }

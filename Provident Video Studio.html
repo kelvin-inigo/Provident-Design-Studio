@@ -210,6 +210,11 @@ body[data-drag] #cv{box-shadow:0 0 0 2px var(--ps-focus)}
 /* ── transport: the timeline's own bar ── */
 .vs-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;min-height:48px;padding:0 16px;
   background:var(--ps-sb);border-top:1px solid var(--ps-hair)}
+.vs-bar{position:relative}
+.vs-rz{position:absolute;left:0;right:0;top:-5px;height:9px;z-index:6;cursor:ns-resize;touch-action:none}
+.vs-rz::after{content:"";position:absolute;left:50%;top:3px;width:44px;height:3px;margin-left:-22px;border-radius:2px;background:var(--ps-line);transition:background-color var(--ps-motion) var(--ps-ease),width var(--ps-motion) var(--ps-ease),margin var(--ps-motion) var(--ps-ease)}
+.vs-rz:hover::after,.vs-rz[data-on]::after,.vs-rz:focus-visible::after{background:var(--ps-ink);width:72px;margin-left:-36px}
+.vs-rz:focus-visible{outline:none}
 .vs-bar > div{display:flex;align-items:center;gap:6px;min-width:0}
 .vs-bar > div:last-child{justify-content:flex-end}
 .vs-bar .p-tgrp{height:34px}
@@ -267,6 +272,22 @@ body[data-drag] #cv{box-shadow:0 0 0 2px var(--ps-focus)}
 .vs-it:hover .vs-hd::after,.vs-it[data-on] .vs-hd::after{opacity:1}
 .vs-mk{position:absolute;top:18px;bottom:0;width:0;border-left:1px dashed var(--ps-dim);pointer-events:none;z-index:3}
 .vs-mk::before{content:"";position:absolute;top:-6px;left:-4px;width:7px;height:7px;background:var(--ps-dim);transform:rotate(45deg);border-radius:1px}
+.vs-tl,.vs-pop{--mkv:#D9A93F;--mkb:#5FC592}
+:root[data-theme="light"] .vs-tl,:root[data-theme="light"] .vs-pop{--mkv:#8A6206;--mkb:#0F7A3A}
+.vs-mk[data-k=cut]{border-left:1px solid var(--ps-ink-2)}
+.vs-mk[data-k=cut]::before{background:var(--ps-ink-2);transform:none;border-radius:50%;width:7px;height:7px;left:-4px}
+.vs-mk[data-k=voice]{border-left-color:var(--mkv)}
+.vs-mk[data-k=voice]::before{background:var(--mkv)}
+.vs-mk[data-k=beat]{border-left:1px solid color-mix(in srgb,var(--mkb) 34%,transparent)}
+.vs-mk[data-k=beat]::before{background:var(--mkb);transform:none;border-radius:50%;width:5px;height:5px;left:-3px;top:-5px}
+.vs-pop-mk{width:324px}
+.vs-pop-mk .vs-row + .vs-row{margin-top:4px}
+.vs-pop-mk .vs-row > span{display:inline-flex;align-items:center;gap:8px}
+.vs-mkd{width:7px;height:7px;flex:none;background:var(--ps-dim);transform:rotate(45deg);border-radius:1px}
+.vs-mkd[data-k=cut]{background:var(--ps-ink-2);transform:none;border-radius:50%}
+.vs-mkd[data-k=voice]{background:var(--mkv)}
+.vs-mkd[data-k=beat]{background:var(--mkb);transform:none;border-radius:50%}
+.vs-bar .vs-chipb[aria-expanded=true]{background:var(--ps-accent);color:var(--ps-accent-i)}
 .vs-ph{position:absolute;top:0;bottom:0;width:13px;margin-left:-6px;z-index:4;cursor:ew-resize}
 .vs-ph::after{content:"";position:absolute;top:0;bottom:0;left:6px;border-left:1.5px solid var(--ps-ink)}
 .vs-ph::before{content:"";position:absolute;top:0;left:0;width:13px;height:14px;background:var(--ps-ink);border-radius:3px 3px 7px 7px}
@@ -357,7 +378,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   .vs-body{display:contents}
   .vs-stage{order:1;height:58dvh;min-height:340px;flex:none}
   .vs-bar{order:2;grid-template-columns:auto 1fr auto;padding:0 12px;gap:8px}
-  .vs-zm,#keysBtn{display:none}
+  .vs-zm,#keysBtn,.vs-rz{display:none}
   .vs-time{min-width:0}
   .vs-tl{order:3;flex:none}
   .vs-mseg{order:4;display:block;padding:12px 16px 4px;background:var(--ps-sb);border-top:1px solid var(--ps-hair)}
@@ -465,6 +486,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 </div>
 
 <div class="vs-bar">
+  <i class="vs-rz" id="tlRz" role="separator" aria-orientation="horizontal" aria-label="Timeline height" tabindex="0" title="Drag to make the timeline taller or shorter. Double-click to put it back."></i>
   <div>
     <div class="p-tgrp" role="group" aria-label="Edit the selection">
       <button class="p-ghost p-ico-t" id="splitBtn" title="Cut at the playhead (S)" aria-label="Cut at the playhead"></button>
@@ -478,6 +500,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
     <span class="vs-time" id="time">0:00.00 <s>/ 0:00.00</s></span>
   </div>
   <div>
+    <button class="vs-chipb" id="mkBtn" popovertarget="mkPop" title="Choose which markers show on the timeline" aria-expanded="false"></button>
     <label class="vs-zm" title="Zoom the timeline (⌘ scroll)">
       <span class="vs-i" id="zoIc"></span>
       <input type="range" class="vs-zoom p-range" id="zoom" min="8" max="240" value="60" aria-label="Timeline zoom">
@@ -489,6 +512,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 
 <div class="vs-tl" id="tl"><div class="vs-tl-in" id="tlin"></div></div>
 
+<div class="vs-pop vs-pop-mk" id="mkPop" popover></div>
 <div class="vs-pop" id="keys" popover>
   <b>Shortcuts</b>
   <dl>
