@@ -2126,5 +2126,9 @@ Video on in settings → placeholder and Activity line → Add video finds the p
 files upload → tile → window plays → comment at 0:02 → the comment reaches CASV's local server. As
 PM: sees the tile, no Add video, comments at 0:11, both downloads (`Test reel_9x16.mp4`,
 `Test reel_1x1.mp4`), the download is logged. Home shows Video Studio for the designer, not for PM.
-**Not exercised:** the PM window's Video button, the Ad set tab's section inside CAS, Or choose the
+From the branch that went to main (main's newer PM download code, same day): the PM window's
+**Video** button opens the player, a comment saves, Square downloads. That window knows no account
+role, so `vidOpen` takes the LINK's role there: PM is not offered Replace / Remove and PM's comments
+are not posted to a local CASV.
+**Not exercised:** the Ad set tab's section inside CAS, Or choose the
 two files, Replace, Remove, Mark done, real Google Drive, the deployed site.

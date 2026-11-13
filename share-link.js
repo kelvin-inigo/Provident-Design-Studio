@@ -3971,7 +3971,7 @@
       const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf],[data-go],[data-act],[data-pnl],[data-vid]');
       if (e.target === dlg) { dlg.close(); return; }          // a click on the backdrop
       if (!b) return;
-      if (b.dataset.vid) { vidOpen(this.tok, this.rs, b.dataset.vid, StudioBase.shareName() || 'Performance marketing', r => { if (r) { this.rs = r; this._barH = ''; this.barRender(); } }); return; }
+      if (b.dataset.vid) { vidOpen(this.tok, this.rs, b.dataset.vid, StudioBase.shareName() || 'Performance marketing', r => { if (r) { this.rs = r; this._barH = ''; this.barRender(); } }, this.role); return; }
       if (b.dataset.dl) this.download(b.dataset.dl);
       if (b.dataset.det) { this.barRender(); dlg.showModal(); }
       if (b.dataset.ntf) askNotify().then(() => { this._barH = ''; this.barRender(); });
@@ -5130,11 +5130,13 @@
     setTimeout(() => ti.focus(), 0);
   }
   // PLAY, COMMENT, DOWNLOAD. Anyone on the ad set comments; the designer replaces or removes.
-  function vidOpen(id, rs, vid, by, after) {
+  // `role`: the review link's own role (the PM / content team window, where no account role is
+  // known); without it the signed-in account's role decides.
+  function vidOpen(id, rs, vid, by, after, role) {
     vidCss();
     let v = vidList(rs).find(x => x.id === vid); if (!v) return;
     let size = v.f['9x16'] ? '9x16' : '1x1', changed = false, told = '';
-    const can = vidCan(), urls = {};
+    const can = role ? role === 'dd' && vidCan() : vidCan(), isPm = role ? role === 'pm' : accRole() === 'pm', urls = {};
     let em = ''; try { em = (window.providentAccess.now().email || '').toLowerCase(); } catch (e) {}
     const el = document.createElement('div'); el.className = 'shl-dlg vdo-dlg';
     el.innerHTML = '<div class="shl-dlg-c vdo" role="dialog" aria-modal="true" aria-labelledby="vdo-t">' +
@@ -5204,7 +5206,7 @@
         try {
           const u = URL.createObjectURL(await vidBlob(v.f[k])), a = document.createElement('a'); a.href = u; a.download = dsSafe(v.title) + '_' + k + '.mp4';
           document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
-          if (accRole() === 'pm') api('rsvideo', { id }, { by, vid: v.id, act: 'dl', size: k }).then(() => { changed = true; }).catch(() => {});
+          if (isPm) api('rsvideo', { id }, { by, vid: v.id, act: 'dl', size: k }).then(() => { changed = true; }).catch(() => {});
         } catch (er) { st('That file could not be read from Drive.'); }
         b.disabled = false; b.textContent = was; return;
       }
