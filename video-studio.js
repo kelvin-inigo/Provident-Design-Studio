@@ -23,7 +23,9 @@
     font: "'Google Sans Flex', system-ui, sans-serif",
     logoPx: 41, logoTrack: .04,               // the wordmark, as on the Reel thumbnail
     headTrack: -.046, headLead: 158 / 168,    // RCV.headTrack / RCV.headLead
-    sizes: { Small: 140 / 1.2, Medium: 140, Large: 168, Jumbo: 168 * 1.2 },
+    // 2026-11-13, by request: Small was too big. Now steps of the x1.2 scale (59.7, 86, 123.8), with
+    // the Reel thumbnail's 168 kept as the top size. Was 116.7 / 140 / 168 / 201.6.
+    sizes: { Small: 59.7, Medium: 86, Large: 123.8, Jumbo: 168 },
     order: ['Small', 'Medium', 'Large', 'Jumbo'],
     eyebrow: 28.8, sub: 41.5,                 // steps of the x1.2 scale from the 24px floor
     maxBlock: .42                             // copy covers at most ~40% of the canvas
@@ -114,6 +116,42 @@
 
   // ── model helpers ────────────────────────────────────────────────────────────────────
   const clipLen = c => c.out - c.in;
+  // ── shot markers: where the picture cuts INSIDE one continuous video ─────────────────────
+  // The file is played once, muted and fast, into a 36x64 canvas; a frame that differs from the
+  // one before by far more than the video's usual motion is a cut. Kept on the media record
+  // (`cuts`, in the file's own seconds) so it is found once. Other layers and the playhead snap
+  // to these (edges()), which is the point: text and sound can be lined up with the edit.
+  async function findCuts(rec) {
+    if (!rec || rec.kind !== 'video' || (rec.cuts && rec.cutsV === 2) || rec._cutting) return;
+    rec._cutting = true;
+    try {
+      const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.src = rec.url;
+      v.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none'; document.body.appendChild(v);
+      await once(v, 'canplay');
+      if (!v.requestVideoFrameCallback) { v.remove(); rec.cuts = []; rec.cutsV = 2; return; }
+      const c = document.createElement('canvas'); c.width = 36; c.height = 64; const x = c.getContext('2d', { willReadFrequently: true });
+      let prev = null; const d = [];
+      const cb = (now, meta) => {
+        x.drawImage(v, 0, 0, 36, 64); const px = x.getImageData(0, 0, 36, 64).data;
+        if (prev) { let sum = 0; for (let i = 0; i < px.length; i += 4) sum += Math.abs(px[i] - prev[i]) + Math.abs(px[i + 1] - prev[i + 1]) + Math.abs(px[i + 2] - prev[i + 2]); d.push([meta.mediaTime, sum / (36 * 64 * 3)]); }
+        prev = px.slice(); if (!v.ended) v.requestVideoFrameCallback(cb);
+      };
+      v.requestVideoFrameCallback(cb); v.playbackRate = 2;   // at 3x one real cut of ten was missed
+      const done = new Promise(r => { v.onended = r; setTimeout(r, Math.max(8000, (rec.dur || 30) / 2 * 1000 * 2.5)); });
+      await v.play(); await done; v.pause(); v.remove();
+      const vals = d.map(e => e[1]).sort((p1, p2) => p1 - p2), med = vals[vals.length >> 1] || 0, thr = Math.max(40, med * 5), cuts = [];
+      d.forEach(e => { if (e[1] < thr) return; const last = cuts[cuts.length - 1]; if (last && e[0] - last.t < .5) { if (e[1] > last.v) { last.t = e[0]; last.v = e[1]; } } else cuts.push({ t: e[0], v: e[1] }); });
+      rec.cutsV = 2; rec.cuts = cuts.map(k => Math.round(k.t * 100) / 100).filter(t => t > .2 && t < (rec.dur || 1e9) - .2);
+      DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, cuts: rec.cuts, cutsV: 2 });
+      renderTimeline();
+    } catch (e) {} finally { rec._cutting = false; }
+  }
+  // marker times on the timeline: each cut that falls inside the part of a clip that is used
+  function markers() {
+    const out = [], st = clipStarts();
+    P.clips.forEach((c, i) => { const m = media[c.mid]; if (m && m.cuts) m.cuts.forEach(t => { if (t > c.in + .05 && t < c.out - .05) out.push(st[i] + t - c.in); }); });
+    return out;
+  }
   function clipStarts() { let t = 0; return P.clips.map(c => { const s = t; t += clipLen(c); return s; }); }
   function videoEnd() { return P.clips.reduce((a, c) => a + clipLen(c), 0); }
   function total() {
@@ -359,6 +397,7 @@
   function edges(skipId) {
     const c = [0]; let acc = 0; P.clips.forEach(k => { acc += clipLen(k); c.push(acc); });
     [P.audio, P.texts, P.logos].forEach(L => L.forEach(i => { if (i.id !== skipId) c.push(i.at, i.at + i.dur); }));
+    markers().forEach(t => c.push(t));
     return c;
   }
   function magnet(t) {
@@ -630,7 +669,7 @@
   // loudness (media.peaks, 40 a second): words are spread across the SPOKEN stretches in
   // proportion to their length, so pauses hold the caption and fast passages speed it up. It is
   // an estimate, usually within a word; capShift nudges it. Times are in the file's own seconds.
-  const CAP = { sizes: { S: 41.5, M: 49.8, L: 59.7 }, wt: 500, tr: .02, lead: 1.18, padX: 26, padY: 14, r: 18, pill: .78 };
+  const CAP = { sizes: { S: 34.6, M: 41.5, L: 49.8 }, wt: 500, tr: .02, lead: 1.18, padX: 26, padY: 14, r: 18, pill: .78 };
   const capCache = {};
   function capTiming(a) {
     const m = media[a.mid], txt = String(a.cap || '').trim(); if (!m || !txt) return null;
@@ -780,6 +819,8 @@
       }
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
     });
+    markers().forEach(t => { h += '<i class="vs-mk" style="left:' + (LBL + t * pps) + 'px" title="Shot change at ' + fmt(t) + '. Layers and the playhead snap here."></i>'; });
+    P.clips.forEach(c => findCuts(media[c.mid]));
     h += '<div class="vs-ph" id="ph" title="Drag to scrub"></div>';
     tlin.style.width = W + 'px'; tlin.innerHTML = h;
     tlin.querySelectorAll('canvas[data-wave]').forEach(c => {
@@ -961,12 +1002,26 @@
       '<div class="vs-f"><label>Voice</label><select class="p-in" id="voVoice" style="width:100%"' + (VO.busy ? ' disabled' : '') + '>' +
         ((L.mac || []).length ? '<optgroup label="On this Mac, free">' + L.mac.map(v => opt('mac:' + v, v)).join('') + '</optgroup>' : '') +
         (mine.length ? '<optgroup label="Your Higgsfield voices">' + mine.map(v => opt('hf:' + v.type + ':' + v.id, v.name)).join('') + '</optgroup>' : '') +
-        (pre.length ? '<optgroup label="Higgsfield voices">' + pre.map(v => opt('hf:' + v.type + ':' + v.id, v.name + (v.about ? ' · ' + v.about : ''))).join('') + '</optgroup>' : '') +
+        (pre.length ? '<optgroup label="Higgsfield voices">' + pre.map(v => opt('hf:' + v.type + ':' + v.id, v.name + (v.gender ? ' · ' + v.gender : ''))).join('') + '</optgroup>' : '') +
       '</select></div>' +
+      '<button class="p-ghost p-sm" id="voHear"' + (VO.busy ? ' disabled' : '') + '>' + (VO.playing ? 'Stop' : 'Hear this voice') + '</button>' +
       (VO.busy ? '<span class="vs-note"><b>' + VO.busy + '</b></span>'
         : VO.quote != null ? '<span class="vs-note"><b>This will spend ' + VO.quote + ' credits</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="voGo">Make it</button><button class="p-ghost p-sm" id="voCancel">Cancel</button>'
         : '<button class="p-btn p-sm" id="voBtn">Make voiceover</button>') +
       '<span class="vs-note">' + (L.note === 'off' ? 'The local server is not running, so voiceovers cannot be made here.' : 'It lands on the Sound track at the playhead with captions already on. Mac voices are free; Higgsfield voices show their cost first.') + '</span></div>';
+  }
+  // a short sample of the chosen voice: Higgsfield's own preview clip (free), or a Mac voice
+  // reading one line (free). Nothing is added to the project.
+  async function voHear() {
+    if (VO.playing) { try { VO.playing.pause(); } catch (e) {} VO.playing = null; renderLib(); return; }
+    const v = VO.voice.split(':'); let src = '';
+    if (v[0] === 'hf') { src = ((VO.list.hf || []).find(x => x.id === v[2]) || {}).preview || ''; if (!src) { toast('There is no sample for that voice.'); return; } }
+    else if (v[0] === 'mac') {
+      try { const r = await api('/api/voice/make', { id: uid() + 'pv', text: 'This is how I sound reading your script.', mac: v[1] }); if (r.error) throw new Error(r.error); src = '/_animate/' + r.file; }
+      catch (e) { toast('The sample could not be made (' + e.message + ').'); return; }
+    } else return;
+    const a = new Audio(src); VO.playing = a; a.onended = a.onerror = () => { if (VO.playing === a) { VO.playing = null; renderLib(); } };
+    renderLib(); a.play().catch(() => { VO.playing = null; renderLib(); toast('The sample could not be played.'); });
   }
   async function voMake(confirmed) {
     const text = VO.text.trim(), v = VO.voice.split(':'); if (!text) { toast('Type the script first.'); return; }
@@ -1057,6 +1112,7 @@
     }
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
+    else if (e.target.closest('#voHear')) voHear();
     else if (e.target.closest('#voBtn')) voMake(false);
     else if (e.target.closest('#voGo')) voMake(true);
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderLib(); }

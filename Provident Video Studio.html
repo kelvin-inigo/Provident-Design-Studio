@@ -124,6 +124,8 @@ button{font-family:inherit}
 .vs-hd{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2}
 .vs-hd.l{left:0}.vs-hd.r{right:0}
 .vs-it:hover .vs-hd,.vs-it[data-on] .vs-hd{background:rgba(255,255,255,.45)}
+.vs-mk{position:absolute;top:18px;bottom:0;width:0;border-left:1px dashed var(--ps-brand);opacity:.55;pointer-events:none;z-index:3}
+.vs-mk::before{content:"";position:absolute;top:-7px;left:-4.5px;width:8px;height:8px;background:var(--ps-brand);transform:rotate(45deg);border-radius:1px}
 .vs-ph{position:absolute;top:0;bottom:0;width:13px;margin-left:-6px;z-index:4;cursor:ew-resize}
 .vs-ph::after{content:"";position:absolute;top:0;bottom:0;left:6px;border-left:1.5px solid var(--ps-brand)}
 .vs-ph::before{content:"";position:absolute;top:0;left:0;width:13px;height:13px;background:var(--ps-brand);border-radius:2px 2px 6px 6px}

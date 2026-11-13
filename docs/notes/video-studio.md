@@ -178,3 +178,24 @@ The default height collides with a bottom-anchored text block; the user moves on
 **Make a voiceover (2026-11-13, by request):** Audio tab > Make a voiceover: script, voice, button. `/api/voice/list` gives Mac voices (`say`, free, offline) and the account's Higgsfield voices (3 of the user's own + 114 presets, from `higgsfield voices list`); `/api/voice/cost` and `/api/voice/make` use `text2speech_v2` with `--variant elevenlabs`. The result is added to the library and the Sound track at the playhead with captions on and the script filled in. Tested: Mac voice end to end (8.1 s file, captions on); Higgsfield price step (0.45 credits for 140 characters) then Cancel. NOT tested: an actual Higgsfield voice generation (the audio URL regex and download are unproven).
 
 **Higgsfield voice proven, after one bug (2026-11-13):** the first real run (Grady, 0.45 credits) placed a 2.2 s file: the server regex-read the first .mp3 URL in `generate get --json`, which was the VOICE'S PREVIEW sample inside `params.voice.source`, not the result. Fixed with `hf_result()`, which reads `result_url` only, for audio and video alike. The paid result (10.4 s) was fetched and put in place by hand; the fixed path has NOT been re-run end to end (that would cost another generation).
+
+## Shot markers, voice preview, smaller text (2026-11-13, by request)
+
+- **Shot markers.** `findCuts(rec)` plays each video once, muted at 2x, into a 36x64 canvas via
+  requestVideoFrameCallback; a frame whose mean RGB difference from the previous one is over
+  `max(40, 5 x median)` is a cut (cuts within 0.5 s merge to the strongest). Stored on the media
+  record as `cuts` (file seconds) with `cutsV: 2`. At 3x it missed one of the test video's nine
+  cuts; at 2x it finds all nine (2.58 5.88 9.21 11.83 12.75 15.38 18.33 20.04 21.79). Seeking
+  frame by frame does NOT work for this (frames are not decoded for an off-screen video).
+  `markers()` maps cuts inside each clip's used range to timeline time; `renderTimeline` draws
+  them (`.vs-mk`, dashed line with a diamond) and `edges()` includes them, so the playhead
+  (`magnet`) and every dragged or trimmed item (`snapT`) lock to them. Dissolves are not found.
+  NOT tested with a real pointer: an item actually snapping to a marker (same code path as the
+  existing snapping, which was).
+- **Hear this voice.** Higgsfield's listing in the CLI has no preview link; the MCP's does. The
+  117 links were saved once to `_animate/voice-previews.json` (git-ignored; the user's own voices'
+  links contain their account id) and `voice_list()` merges them in with gender. A voice added
+  later has no sample until that file is refreshed. Mac voices read one line through `say`.
+- **Text sizes.** Headline ladder was 116.7 / 140 / 168 / 201.6; now 59.7 / 86 / 123.8 / 168.
+  Captions were 41.5 / 49.8 / 59.7; now 34.6 / 41.5 / 49.8. Existing items keep their size NAME,
+  so they shrank.

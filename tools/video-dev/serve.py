@@ -111,7 +111,14 @@ def voice_list():
         try:
             items = json.loads(out)
             items = items if isinstance(items, list) else (items.get('items') or items.get('voices') or items.get('data') or [])
-            _voices['hf'] = [{'id': v['id'], 'name': v.get('name'), 'type': v.get('voice_type'), 'about': (v.get('description') or v.get('category') or '')[:80]}
+            # preview clips are not in the tool's listing; `_animate/voice-previews.json` (id -> gender, url)
+            # was saved once from Higgsfield's own voice list. A voice missing from it has no sample.
+            try:
+                pv = json.load(open(os.path.join(QUEUE, 'voice-previews.json')))
+            except Exception:
+                pv = {}
+            _voices['hf'] = [{'id': v['id'], 'name': v.get('name'), 'type': v.get('voice_type'),
+                              'gender': (pv.get(v['id']) or {}).get('gender', ''), 'preview': (pv.get(v['id']) or {}).get('url', '')}
                              for v in items if v.get('status') == 'completed']
         except Exception:
             _voices['hf'] = []
