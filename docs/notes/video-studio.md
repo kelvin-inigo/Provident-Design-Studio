@@ -309,3 +309,14 @@ Size on the text panel. Seen in Chrome: the user's two-line Small headline now s
 The Tight / Normal / Open buttons themselves were NOT clicked in a browser (the user was working in
 the test tab). Test hygiene: never `delete Storage.prototype.setItem` to undo a patch — it removes the
 native method; keep the original and assign it back.
+
+### End card background wash; the preview's Feed shows the Square (2026-11-13)
+- **Wash.** By request, a navy wash over the whole picture while the end card shows (`ctaWash`,
+  `t.wash` 0–80, default 45, "Background wash" slider). It fades with the card and is painted BEFORE
+  the captions, so they sit on top at full strength. Seen in Chrome at 77%.
+- **Preview.** The Feed phone showed a 4:5 crop of the 9:16, which cut the headline off. It now shows
+  the Square 1:1 version of the same frame: `pvSquare()` swaps `cv` / `cx` (now `let`) and `P.size`
+  to an offscreen 1080 canvas, runs the one `draw()`, and restores them, the hit boxes, `pTint`,
+  `dirty` and `draw._had`. Synchronous, guarded by `pvBusy` (draw() ends in pvMirror()). Only runs
+  while the preview is open, so export is untouched. Verified: Feed shows the square with the whole
+  headline; the main canvas hashed identical before and after opening the preview (1080x1920).

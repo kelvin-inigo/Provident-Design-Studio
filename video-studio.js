@@ -86,7 +86,7 @@
   const stats = { seeked: 0 };       // for measuring scrub rate from the console
   const hits = {};                  // id -> { kind, x, y, w, h } of what was last painted
 
-  const cv = $('#cv'), cx = cv.getContext('2d');
+  let cv = $('#cv'), cx = cv.getContext('2d');   // let: the preview paints the Square into its own canvas through the same draw() (pvSquare)
   const tl = $('#tl'), tlin = $('#tlin');
 
   // ── storage: project JSON in localStorage, media files in IndexedDB ──────────────────
@@ -804,6 +804,13 @@
   // corner wordmark is hidden while it shows (draw()), so the logo appears once. Every word is
   // the user's; an empty field drops its row.
   const CTA = { w: .76, r: 44, pad: 72, rule: [84, 4], line: 41.5, head: 86, btn: 36, mark: 62, glass: 46 };
+  // A navy wash over the whole picture while the end card shows, so the card reads on a bright
+  // shot. Painted before the captions (draw()), so they stay at full strength on top of it.
+  function ctaWash(t) {
+    const g = G(), still = !playing && sel && sel.id === t.id, rel = still ? 99 : T - t.at;
+    const env = Math.min(ease(rel / .5), still ? 1 : ease((t.dur - rel) / .3)), a = clamp((t.wash == null ? 45 : +t.wash) / 100, 0, 1) * env;
+    if (a > 0) { cx.fillStyle = 'rgba(' + ART.wash + ',' + a + ')'; cx.fillRect(0, 0, g.w, g.h); }
+  }
   function drawCta(t) {
     const g = G(), k = g.k < 1 ? .86 : 1, still = !playing && sel && sel.id === t.id, rel = still ? 99 : T - t.at;
     const env = Math.min(ease(rel / .5), still ? 1 : ease((t.dur - rel) / .3)), rise = (1 - ease(rel / .6)) * 40;
@@ -891,6 +898,7 @@
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
     // the end card goes over everything and carries the wordmark itself, so the corner lockup rests
     const ctas = P.texts.filter(t => t.call === 'cta' && T >= t.at && T < t.at + t.dur);
+    ctas.forEach(ctaWash);
     if (!ctas.some(t => t.capHide === 'hide')) P.audio.forEach(drawCaption);
     if (ctas.length) ctas.forEach(drawCta); else drawBrand();
     pvMirror();
@@ -1418,6 +1426,7 @@
         f('Panel', seg('glass', [['glass', 'Frosted glass'], ['plain', 'Navy']])) +
         f('Position', '<div class="vs-seg">' + [[32, 'Higher'], [50, 'Middle'], [62, 'Lower']].map(o => '<button data-k="y" data-v="' + o[0] + '"' + (+(it.y == null ? 50 : it.y) === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
         rng('i', 'y', 'Up or down', it.y == null ? 50 : it.y, 15, 85, '%') +
+        rng('i', 'wash', 'Background wash', it.wash == null ? 45 : it.wash, 0, 80, '%') +
         f('Captions while it shows', '<div class="vs-seg">' + [['show', 'Shown'], ['hide', 'Hidden']].map(o => '<button data-k="capHide" data-v="' + o[0] + '"' + ((it.capHide || 'show') === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
         '<span class="vs-note">Drag the card on the picture to move it up or down. It stays inside the safe area. The corner logo hides while the end card is showing, so the wordmark appears once.</span></div>' + timing();
     } else if (sel.kind === 'text' && it.call) {
@@ -1658,30 +1667,48 @@
   }
   function pvRender() {
     const g = G(), c = pvCopy(), sq = P.size === '1x1';
-    // all three placements, whichever size the video is: a 9:16 in the feed is cropped to 4:5, as Meta
-    // does; a 1:1 in Reels and Stories sits in the middle of the screen
-    const phones = [['feed', 'Feed', sq ? '1:1 · 1080 × 1080' : '4:5 crop of the 9:16'], ['reel', 'Reels', sq ? '1:1 centred' : '9:16 · 1080 × 1920'], ['story', 'Story', sq ? '1:1 centred' : '9:16 · 1080 × 1920']];
+    // all three placements, whichever size the video is. 2026-11-13, by request: the Feed phone shows
+    // the SQUARE version of the video (pvSquare), not a 4:5 crop of the 9:16, which cut the headline
+    // off; a 1:1 in Reels and Stories sits in the middle of the screen
+    const phones = [['feed', 'Feed', sq ? '1:1 · 1080 × 1080' : 'The Square 1:1 version'], ['reel', 'Reels', sq ? '1:1 centred' : '9:16 · 1080 × 1920'], ['story', 'Story', sq ? '1:1 centred' : '9:16 · 1080 × 1920']];
     const seg = (cur, opts, k) => opts.map(o => '<button data-pv="' + k + '" data-v="' + o[0] + '"' + (cur === o[0] ? ' data-on="1"' : '') + ' role="radio">' + o[1] + '</button>').join('');
     pv.innerHTML = '<div class="mk-bar"><b>Placement preview</b>' +
       '<div class="p-seg mk-seg" role="radiogroup" aria-label="Platform">' + seg(pvPlat, [['fb', 'Facebook'], ['ig', 'Instagram']], 'plat') + '</div>' +
-      '<s>' + (sq ? 'Feed 1:1 · centred in Reels and Story' : 'Reels and Story 9:16 · Feed crops to 4:5') + '</s>' +
+      '<s>' + (sq ? 'Feed 1:1 · centred in Reels and Story' : 'Reels and Story 9:16 · Feed shows the Square 1:1') + '</s>' +
       '<div class="p-seg mk-seg" role="radiogroup" aria-label="Phone appearance" title="The phone\'s own appearance. Reels and Stories stay dark in both apps.">' + seg(pvMode, [['light', 'Light'], ['dark', 'Dark']], 'mode') + '</div>' +
       '<span class="vs-sp"></span><button class="p-ghost" data-pv="play">' + ico(playing ? 'pause' : 'play_arrow') + (playing ? 'Pause' : 'Play') + '</button>' +
       '<button class="p-ghost" data-pv="close">Close ' + ico('close') + '</button></div>' +
       '<div class="mk-stage"><div class="mk-row">' + phones.map(p =>
         '<figure class="mk-fig"><figcaption><b>' + p[1] + '</b><s>' + p[2] + '</s></figcaption>' +
         (PV[pvPlat + ':' + p[0]] || '').replace(/\[\[([a-z]+)\]\]/g, (m, k) => esc(c[k] || '')) + '</figure>').join('') + '</div>' +
-      '<div class="mk-note">The video plays here exactly as it exports, only smaller. A Reel is cover-cropped and loses a little of its width at each side; a Story is shown whole; a 9:16 video in the feed is cropped to 4:5. The app chrome is drawn here, with no Meta logo art.</div></div>';
+      '<div class="mk-note">The video plays here exactly as it exports, only smaller. A Reel is cover-cropped and loses a little of its width at each side; a Story is shown whole; the Feed shows the Square 1:1 version, so check it there before exporting Square. The app chrome is drawn here, with no Meta logo art.</div></div>';
     pvShots = Array.from(pv.querySelectorAll('canvas.mk-shot'));
     pvShots.forEach(k => {
       const feed = !!k.closest('[data-view="feed"]');
-      k.width = 540; k.height = feed ? (sq ? 540 : 675) : 960;
+      k.width = 540; k.height = feed ? 540 : 960; k._feed = feed;
     });
     pvMirror();
   }
+  // The same frame as the Square 1:1 would paint it: draw() run once more into an offscreen canvas
+  // with the size switched, then everything put back. Synchronous, so nothing sees the switch.
+  let pvSq = null, pvBusy = false;
+  function pvSquare() {
+    if (!pvSq) { pvSq = document.createElement('canvas'); pvSq.width = SIZES['1x1'].w; pvSq.height = SIZES['1x1'].h; }
+    const keep = { cv, cx, size: P.size, hits: Object.assign({}, hits), tint: pTint, dirty, had: draw._had };
+    pvBusy = true;
+    try { cv = pvSq; cx = pvSq.getContext('2d'); P.size = '1x1'; draw(); }
+    catch (e) {}
+    finally {
+      cv = keep.cv; cx = keep.cx; P.size = keep.size; pTint = keep.tint; dirty = keep.dirty; draw._had = keep.had;
+      for (const k in hits) delete hits[k]; Object.assign(hits, keep.hits); pvBusy = false;
+    }
+    return pvSq;
+  }
   function pvMirror() {
-    if (!pvOn) return;
+    if (!pvOn || pvBusy) return;
+    const sqPic = P.size === '9x16' && pvShots.some(k => k._feed) ? pvSquare() : null;
     pvShots.forEach(k => {
+      if (k._feed && sqPic) { k.getContext('2d').drawImage(sqPic, 0, 0, k.width, k.height); return; }
       const x = k.getContext('2d'), s = Math.max(k.width / cv.width, k.height / cv.height), fit = Math.min(k.width / cv.width, k.height / cv.height);
       if (k.height < 900) { const w = cv.width * s, h = cv.height * s; x.drawImage(cv, (k.width - w) / 2, (k.height - h) / 2, w, h); }   // feed: cover
       else { const w = cv.width * fit, h = cv.height * fit; if (h < k.height) { x.fillStyle = '#000'; x.fillRect(0, 0, k.width, k.height); } x.drawImage(cv, (k.width - w) / 2, (k.height - h) / 2, w, h); }
