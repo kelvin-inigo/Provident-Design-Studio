@@ -794,6 +794,53 @@
     }
     cx.restore(); try { cx.letterSpacing = '0px'; } catch (e) {} cx.textAlign = 'left';
   }
+  // ── end card: OPS's CTA page as a video overlay ───────────────────────────────────────
+  // A frosted panel in the middle of the frame: the brass overline (a recorded exemption, as on
+  // the carousel), one Light line, the Regular headline, an outlined pill and the wordmark. The
+  // corner wordmark is hidden while it shows (draw()), so the logo appears once. Every word is
+  // the user's; an empty field drops its row.
+  const CTA = { w: .76, r: 44, pad: 72, rule: [84, 4], line: 41.5, head: 86, btn: 36, mark: 62, glass: 46 };
+  function drawCta(t) {
+    const g = G(), k = g.k < 1 ? .86 : 1, still = !playing && sel && sel.id === t.id, rel = still ? 99 : T - t.at;
+    const env = Math.min(ease(rel / .5), still ? 1 : ease((t.dur - rel) / .3)), rise = (1 - ease(rel / .6)) * 40;
+    const W = g.w * CTA.w, maxW = W - CTA.pad * 2, cxm = g.w / 2;
+    // measure first: rows are [kind, height, lines/px]
+    const rows = []; let px;
+    rows.push(['rule', CTA.rule[1], 0, 64 * k]);
+    if (t.line) { px = CTA.line * k; setFont(px, 300, 0); const ls = wrap(t.line, maxW); rows.push(['line', ls.length * px * 1.3, { ls, px }, 30 * k]); }
+    if (t.head) { px = CTA.head * k; setFont(px, 400, -.02); let ls = wrap(t.head, maxW); while (ls.length > 2 && px > 50) { px *= .9; setFont(px, 400, -.02); ls = wrap(t.head, maxW); } rows.push(['head', ls.length * px * 1.12, { ls, px }, 54 * k]); }
+    if (t.btn) { px = CTA.btn * k; setFont(px, 400, 0); rows.push(['btn', px * 2.7, { px, w: cx.measureText(t.btn).width + px * 2.6 }, 0]); }
+    if (t.mark !== false && t.mark !== 'false') rows.push(['mark', CTA.mark * k, 0, 0]);
+    const markGap = 96 * k;
+    let H = CTA.pad * 2; rows.forEach((r, i) => { H += r[1] + (i < rows.length - 1 ? (rows[i + 1][0] === 'mark' ? markGap : r[3]) : 0); });
+    const x0 = cxm - W / 2, y0 = g.h * (t.y == null ? 50 : t.y) / 100 - H / 2 + rise;
+    cx.save(); cx.globalAlpha = env;
+    // the glass: the picture already on the canvas, blurred inside the panel, under a navy veil
+    cx.save(); cx.beginPath(); cx.roundRect(x0, y0, W, H, CTA.r); cx.clip();
+    if (t.glass !== 'plain' && 'filter' in cx) { try { cx.filter = 'blur(' + CTA.glass + 'px)'; cx.drawImage(cv, 0, 0); cx.filter = 'none'; } catch (e) {} }
+    cx.fillStyle = 'rgba(' + ART.wash + ',' + (t.glass === 'plain' ? .82 : .34) + ')'; cx.fillRect(x0, y0, W, H);
+    cx.fillStyle = 'rgba(255,255,255,.10)'; cx.fillRect(x0, y0, W, H);
+    cx.restore();
+    cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = 1.5; cx.beginPath(); cx.roundRect(x0, y0, W, H, CTA.r); cx.stroke();
+    cx.textAlign = 'center'; cx.textBaseline = 'alphabetic'; cx.fillStyle = ART.ink;
+    let y = y0 + CTA.pad;
+    rows.forEach((r, i) => {
+      const d = r[2];
+      if (r[0] === 'rule') { cx.fillStyle = ART.brass; cx.fillRect(cxm - CTA.rule[0] / 2, y, CTA.rule[0], CTA.rule[1]); cx.fillStyle = ART.ink; }
+      else if (r[0] === 'line') { setFont(d.px, 300, 0); d.ls.forEach((ln, j) => cx.fillText(ln, cxm, y + d.px * (j * 1.3 + .95))); }
+      else if (r[0] === 'head') { setFont(d.px, 400, -.02); d.ls.forEach((ln, j) => cx.fillText(ln, cxm, y + d.px * (j * 1.12 + .9))); }
+      else if (r[0] === 'btn') { cx.strokeStyle = ART.ink; cx.lineWidth = 2; cx.beginPath(); cx.roundRect(cxm - d.w / 2, y, d.w, r[1], r[1] / 2); cx.stroke(); setFont(d.px, 400, 0); cx.textBaseline = 'middle'; cx.fillText(t.btn, cxm, y + r[1] / 2 + 2); cx.textBaseline = 'alphabetic'; }
+      else { setFont(r[1], 300, ART.logoTrack); cx.fillText('provident.', cxm, y + r[1] * .8); }
+      y += r[1] + (i < rows.length - 1 ? (rows[i + 1][0] === 'mark' ? markGap : r[3]) : 0);
+    });
+    cx.restore(); cx.textAlign = 'left'; try { cx.letterSpacing = '0px'; } catch (e) {}
+  }
+  function addCta() {
+    mark();
+    const end = total(), dur = Math.min(4, Math.max(2, end || 4));
+    const t = { id: uid(), at: Math.max(0, (videoEnd() || end) - dur), dur, call: 'cta', line: 'What this means for properties around DIFC?', head: 'Read the full story', btn: 'Link in bio', mark: true, glass: 'glass', y: 50 };
+    P.texts.push(t); sel = { kind: 'text', id: t.id }; seek(t.at + 1); renderAll();
+  }
   function addCallout(kind) {
     mark();
     const t = Object.assign({ id: uid(), at: T, dur: 3, call: kind, scale: 100 }, {
@@ -834,10 +881,12 @@
       }
     }
     draw._had = !!a;
-    P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur) (t.call ? drawCallout : drawText)(t); });
+    P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur && t.call !== 'cta') (t.call ? drawCallout : drawText)(t); });
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
     P.audio.forEach(drawCaption);
-    drawBrand();
+    // the end card goes over everything and carries the wordmark itself, so the corner lockup rests
+    const ctas = P.texts.filter(t => t.call === 'cta' && T >= t.at && T < t.at + t.dur);
+    if (ctas.length) ctas.forEach(drawCta); else drawBrand();
     pvMirror();
   }
   function fitCanvas() {
@@ -882,7 +931,7 @@
         rowH = ln.n * (ih + 4) + 4;
         items.forEach(it => {
           const m = media[it.mid] || {};
-          const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box' }[it.call] + ' · ' + (it.value || it.label || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
+          const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
             (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + '</span></div>';
@@ -1133,7 +1182,7 @@
       const r = await api('/api/music/make', Object.assign({ id: uid() + 'mu' }, body));
       if (r.error) throw new Error(r.error);
       const blob = await (await fetch('/_animate/' + r.file)).blob(), ext = r.file.split('.').pop(), name = 'Music ' + text.split(/\s+/).slice(0, 3).join(' ') + ' ' + uid().slice(0, 3);
-      await addFiles([new File([blob], name + '.' + ext, { type: ext === 'wav' ? 'audio/wav' : 'audio/mpeg' })], 'audio');
+      await addFiles([new File([blob], name + '.' + ext, { type: ext === 'wav' ? 'audio/wav' : ext === 'm4a' ? 'audio/mp4' : 'audio/mpeg' })], 'audio');
       const m = Object.values(media).filter(x => x.kind === 'audio' && x.name === name).pop();
       if (!m) throw new Error('the audio could not be read');
       addAudio(m.id, 'music'); MU.busy = ''; save(); renderAll(); toast('The music is on the Music track.');
@@ -1202,7 +1251,7 @@
         : '<span class="vs-note">Nothing uploaded yet.</span>') + '</div>';
     } else if (tab === 'text') {
       const pre = [['headline', 'Headline', 'Regular 400, bottom left, rises in'], ['full', 'Eyebrow, headline and line', 'Tracked caps over the headline, a Light line under'], ['caption', 'Caption', 'A small line at the bottom, fades'], ['centre', 'Centre stage', 'Large, centred, revealed line by line'], ['number', 'Big number', 'Jumbo figure under an eyebrow, word by word']];
-      h += '<div class="vs-sec"><span class="vs-h">Add a callout at the playhead</span>' + [['ruler', 'Measure line', 'A line that grows, with a figure: 380 m tall'], ['count', 'Counting figure', 'A number that counts up over a label'], ['box', 'Outline box', 'An outline that draws round a label']].map(p2 => '<button class="vs-pre" data-addcall="' + p2[0] + '"><b>' + p2[1] + '</b><s>' + p2[2] + '</s></button>').join('') + '</div>';
+      h += '<div class="vs-sec"><span class="vs-h">Add a callout at the playhead</span>' + [['ruler', 'Measure line', 'A line that grows, with a figure: 380 m tall'], ['count', 'Counting figure', 'A number that counts up over a label'], ['box', 'Outline box', 'An outline that draws round a label'], ['cta', 'End card', 'A frosted panel at the end: your message, a button and the wordmark']].map(p2 => '<button class="vs-pre" data-addcall="' + p2[0] + '"><b>' + p2[1] + '</b><s>' + p2[2] + '</s></button>').join('') + '</div>';
       h += '<div class="vs-sec"><span class="vs-h">Add text at the playhead</span>' + pre.map(p => '<button class="vs-pre" data-addtext="' + p[0] + '"><b>' + p[1] + '</b><s>' + p[2] + '</s></button>').join('') +
         '<span class="vs-note">The type follows the Reel thumbnail: one typeface, the headline on the brand scale, a wash under the copy only.</span></div>';
     } else {
@@ -1256,7 +1305,7 @@
     else if (e.target.closest('#voGo')) voMake(true);
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderLib(); }
     else if ((el = q('data-addtext'))) addText(el.dataset.addtext);
-    else if ((el = q('data-addcall'))) addCallout(el.dataset.addcall);
+    else if ((el = q('data-addcall'))) (el.dataset.addcall === 'cta' ? addCta() : addCallout(el.dataset.addcall));
     else if ((el = q('data-addlogo'))) addLogo(el.dataset.addlogo);
     else if ((el = q('data-partner'))) {
       mark(); const l = devLib().find(x => x.id === el.dataset.partner);
@@ -1347,6 +1396,15 @@
           rng('i', 'capShift', 'Earlier / later', it.capShift || 0, -1.5, 1.5, 's', .05) +
           '<span class="vs-note">The words are timed from the loudness of the speech, not from a transcript, so they are an estimate. If they run ahead or behind, nudge them with Earlier / later. Music under the voice makes the timing less accurate.</span>' : '') +
         '</div>' + timing();
+    } else if (sel.kind === 'text' && it.call === 'cta') {
+      h = '<div class="vs-sec"><span class="vs-h">End card</span>' +
+        f('Line above', '<textarea class="p-in" data-s="line" rows="2" placeholder="Optional">' + esc(it.line || '') + '</textarea>') +
+        f('Headline', '<textarea class="p-in" data-s="head" rows="2">' + esc(it.head || '') + '</textarea>') +
+        f('Button', '<input class="p-in" data-s="btn" value="' + esc(it.btn || '') + '" placeholder="Leave empty for no button">') +
+        f('Provident wordmark', seg('mark', [[true, 'Shown'], [false, 'Hidden']])) +
+        f('Panel', seg('glass', [['glass', 'Frosted glass'], ['plain', 'Navy']])) +
+        rng('i', 'y', 'Down', it.y == null ? 50 : it.y, 20, 80, '%') +
+        '<span class="vs-note">The corner logo hides while the end card is showing, so the wordmark appears once.</span></div>' + timing();
     } else if (sel.kind === 'text' && it.call) {
       const nm = { ruler: 'Measure line', count: 'Counting figure', box: 'Outline box' }[it.call];
       h = '<div class="vs-sec"><span class="vs-h">' + nm + '</span>' +

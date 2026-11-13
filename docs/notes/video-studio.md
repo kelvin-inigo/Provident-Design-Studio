@@ -235,3 +235,19 @@ drawing round its label, a fade mid-way and slats mid-way. NOT checked: wipe and
 during real-time playback and export, 1:1, a photo-to-video transition.
 
 **Make music (2026-11-13, by request):** Audio tab > Make music: a description, a length (defaults to the video), Sonilo or ElevenLabs Music v2.5 (always `force_instrumental`). `/api/music/cost` and `/api/music/make` in serve.py, same shape as the voiceover; the track is added as the music bed. Prices: Sonilo 1.88 credits for 30 s, 3.75 for 60 s; ElevenLabs 4.36 and 8.72. Tested to the price step for both models, then Cancel (driven by script in Chrome because the Browser pane was closed, so not real clicks). NOT tested: an actual generation and download. OpenMusic (IRCAM, a composition environment, not a generator) was installed to /Applications at the user's request and is not connected to CASV.
+
+## End card, and music proven (2026-11-13, by request)
+
+- **End card** (`call: 'cta'` on the Text track, `drawCta`, added from Text > End card at the last
+  four seconds). After OPS's CTA page and the user's screenshot: a centred frosted panel (the
+  canvas drawn onto itself through `ctx.filter = blur(46px)` inside a rounded clip, under a 34%
+  navy veil; "Navy" is the plain fallback and what a browser without canvas filters gets), the
+  brass overline, a Light line, the Regular headline (steps down past two lines), an outlined pill,
+  and `provident.` in Light. Fields `line, head, btn, mark, glass, y`; an empty field drops its row.
+  It draws last, over captions, and `drawBrand()` is skipped while it shows so the wordmark appears
+  once. Seen rendered on a real project at 9:16. NOT seen: 1:1, Navy, export, Safari.
+- **Music proven.** One Sonilo track (30 s, 1.88 credits) went end to end from the page: priced,
+  confirmed, generated, downloaded as .m4a through `hf_result`, placed on the Music track at 30.0 s.
+  That is also the first full run of the repaired `result_url` download path.
+- The user now works in CHROME (their project and a Seedance clip they generated are there); the
+  app's Browser pane was closed. Test there, and remember two open tabs share one saved project.
