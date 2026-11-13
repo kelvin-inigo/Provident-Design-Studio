@@ -2082,3 +2082,49 @@ Local · Investor · ENG to Ad Fatigue 01 (folder under Ad Fatigue 01/Local/Inve
 Phase Launch | Ad Fatigue 01*, and Local · Investor ENG joined as Ad Fatigue 01 · Local · Investor
 · Design 2 · ENG.
 
+
+
+## A video on the ad set (CASV), 2026-11-13
+
+Agreed with the user: **the editor stays local, Drive is the meeting point.** CASV (branch
+`video-studio`, `http://localhost:8794`) has no Google sign-in and never talks to Drive. The site
+does: the designer's **Add video** in Status fetches the two recorded sizes from CASV's local server
+and uploads them. The CASV side (the editor, its local server and outbox) is on the local-only `video-studio` branch and is written up there, in `docs/notes/video-studio.md`; it is not on the website.
+
+**Model.** NOT items. `rs.video = { on, list: [{ id, title, aud, dur, by, at, n (version),
+f: { '9x16', '1x1' } (Drive file ids in `<Main>/Video/<title>_9x16.mp4`), bytes, thumb (data URL),
+casv (the outbox id on the designer's computer), notes: [{ id, t, text, by, em, at, done, doneBy }] }] }`.
+Nothing in `rsAuds`, the steps, `dsInfo1`, the image scan or the package zip knows a video; that is
+on purpose (every one of those assumes a `.adstudio.json`). `'video'` joined the `dsPub` whitelist.
+dsApi op **`rsvideo`** (a queued write): acts `on`, `add` (same id = replace, comments kept, `n`+1),
+`rm`, `note`, `notedone`, `noterm`, `dl`. Each logs to `rs.log`. The op does not check the link's
+role: every Status row opens with the dd link, so who may add / replace / remove is the SIGNED-IN
+role, in the page (`vidCan`: designer, admin, or no gate).
+
+**Surfaces** (all in share-link.js, between the op and `AV.detHtml`): `vidSecHtml(rs)` (tiles + the
+Add video placeholder; shown when `rs.video.on` or a video exists), `vidAdd` (dialog), `vidOpen`
+(player, size tabs, pin bar, comments, the two downloads, Replace / Remove), `vidThumb`, `vidBlob`.
+Mounted in: Status's ad set page for every role (`AV.detHtml`, actions `vid` / `vidadd`), the
+designer's Ad set tab (`adtRender` / `adtClick`), the PM window's bar (`RV.barRender`, `[data-vid]`).
+Ad set settings has **Video: No video | Includes a video** (`d.video`, saved by `rsSettingsSave`
+through `rsvideo` after `rsset`). Home: a **Video Studio** row in Your studios for whoever designs
+CAS (`casvAt()`, `provident-casv-local` overrides `http://localhost:8794`).
+
+**Traps.**
+- The download buttons are `data-vdl`, never `data-dl`: the home page's document click handler takes
+  every `[data-dl]` for an OPS post's files and answers with a blocking `alert`, which froze the tab.
+- Uploads are `dsUpsert` (one multipart request, about 50 MB each). There is no resumable upload in
+  the repo and the Drive stand-in has none; it worked against the stand-in. NOT proven on real Drive.
+- The player gets the file as a blob (`alt=media`, re-wrapped as `video/mp4`: the stand-in answers
+  octet-stream), so a video is downloaded whole before it plays.
+- The site reads `http://localhost:8794/api/outbox/*` from an https page. Chrome allows localhost
+  from a secure page and the local server answers the private-network preflight; NOT tried from the
+  deployed site.
+
+**Verified** on the stand-in (`tools/share-dev/serve.py 8796`, seeded, real clicks): designer turns
+Video on in settings → placeholder and Activity line → Add video finds the parked video → both 53 MB
+files upload → tile → window plays → comment at 0:02 → the comment reaches CASV's local server. As
+PM: sees the tile, no Add video, comments at 0:11, both downloads (`Test reel_9x16.mp4`,
+`Test reel_1x1.mp4`), the download is logged. Home shows Video Studio for the designer, not for PM.
+**Not exercised:** the PM window's Video button, the Ad set tab's section inside CAS, Or choose the
+two files, Replace, Remove, Mark done, real Google Drive, the deployed site.

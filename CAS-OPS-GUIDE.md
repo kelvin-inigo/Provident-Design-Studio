@@ -670,6 +670,38 @@ history goes. Its projects stay, each on its own edit link. The record
 
 ---
 
+### A video on the ad set (the Video Studio, CASV)
+
+An ad set can also deliver a **video**. The video is made in the **Video Studio (CASV)**, which runs
+on the designer's own computer, and reaches the ad set through CAS.
+
+**Turn it on.** Status › the ad set › **Ad set settings** › **Video** › **Includes a video**. The ad
+set page then shows a **Video** section with an **Add video** placeholder. Only the designer and the
+admin see Add video.
+
+**The designer adds it.**
+1. In the Video Studio press **Send to CAS**, name the video and press **Record and send**. It records
+   the **Reel 9:16** and then the **Square 1:1** (twice the video's length) and keeps both on that
+   computer.
+2. In Status, open the ad set and press **Add video**. Under **From CASV on this computer** pick the
+   video, choose its **Audience** (or All audiences) and press **Add video**. Both sizes are uploaded
+   into the ad set's Drive folder, in **Video**.
+3. On another computer, use **Or choose the two files** and pick the Reel and the Square.
+
+**Everyone reviews it.** Click the video's tile. The window plays it, with **Reel 9:16 | Square 1:1**
+at the top.
+- **Comment on the timeline:** pause where something should change, write under **Comment at 0:12**
+  and press **Add comment**. Each comment is a numbered pin on the bar under the video; click a pin
+  or a comment to jump there. **Mark done** / **Reopen** on each; **Delete** your own.
+- **Download Reel 9:16** and **Download Square 1:1** save the two MP4 files. Performance marketing's
+  downloads are written to the ad set's Activity.
+- Performance marketing also has a **Video** button in the bar of **Open the package**.
+
+**Back to the designer.** When the designer opens the video on the computer that made it, the
+comments are sent to the Video Studio and show as numbered pins on its timeline and under **Comments
+from CAS**. After the changes, **Send to CAS** again and use **Replace video** in the window: the
+comments stay and the version number goes up.
+
 ## 3. CAS: build an ad
 
 What's on the screen, from left to right:

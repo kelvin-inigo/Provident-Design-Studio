@@ -613,3 +613,10 @@ on a phone) with `--n` set inline to the stage count. Verified at 1440: 4 × 303
   The stand-in gives every account Google's default picture. Verified: the account button and 14
   Status card avatars drew photos.
 
+
+## Video Studio in Your studios (2026-11-13)
+Your studios ends on a **Video Studio** row for whoever designs CAS (`cap('design-cas')`). CASV runs
+on the designer's own computer, so the row is a plain link to `casvAt()` (`http://localhost:8794/`,
+or `localStorage['provident-casv-local']`), in a new tab; it has no `data-k`, so the "continue the
+newest project" rewrite leaves it alone. The page is not on the website. See
+`docs/notes/reviews-sharing-drive.md`, "A video on the ad set".
