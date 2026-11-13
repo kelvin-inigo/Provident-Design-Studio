@@ -55,6 +55,17 @@ def hf(*args, timeout=120):
     return r.returncode, out.strip()
 
 
+def hf_result(out, exts):
+    """The finished file's URL from `generate get --json`: result_url, never a URL buried in the
+    params (a voice's preview sample is an .mp3 too, and was once downloaded by mistake)."""
+    try:
+        u = json.loads(out).get('result_url') or ''
+    except Exception:
+        u = ''
+    m = re.search(r'\.(%s)(?:\?|$)' % exts, u)
+    return (u, m.group(1)) if m else ('', '')
+
+
 def hf_run(jp):
     """Create, wait, download. Runs in its own thread; the job file carries the state."""
     def save(**k):
@@ -68,11 +79,11 @@ def hf_run(jp):
         save(job_id=m.group(0))
         hf('generate', 'wait', m.group(0), '--timeout', '25m', '--interval', '5s', '--quiet', timeout=1600)
         rc, out = hf('generate', 'get', m.group(0))
-        u = re.search(r'https://[^"\s]+\.mp4[^"\s]*', out)
+        u, _ = hf_result(out, 'mp4|mov|webm')
         if rc or not u:
             return save(status='failed', error=(out or 'no video came back')[-300:])
         mp4 = os.path.join(QUEUE, job['id'] + '.mp4')
-        with urllib.request.urlopen(u.group(0), timeout=300) as r, open(mp4, 'wb') as f:
+        with urllib.request.urlopen(u, timeout=300) as r, open(mp4, 'wb') as f:
             shutil.copyfileobj(r, f)
         save(status='done', video=job['id'] + '.mp4')
     except Exception as e:                   # never leave a clip reading "Generating…" forever
@@ -189,11 +200,11 @@ class H(SimpleHTTPRequestHandler):
                 return self._json(200, {'error': (out or 'no job id came back')[-300:]})
             hf('generate', 'wait', m.group(0), '--timeout', '5m', '--interval', '3s', '--quiet', timeout=330)
             rc, out = hf('generate', 'get', m.group(0))
-            u = re.search(r'https://[^"\s]+\.(mp3|wav|m4a|ogg)[^"\s]*', out)
+            u, ext = hf_result(out, 'mp3|wav|m4a|ogg')
             if rc or not u:
                 return self._json(200, {'error': (out or 'no audio came back')[-300:]})
-            name = jid + '.' + u.group(1)
-            with urllib.request.urlopen(u.group(0), timeout=120) as r, open(os.path.join(QUEUE, name), 'wb') as f:
+            name = jid + '.' + ext
+            with urllib.request.urlopen(u, timeout=120) as r, open(os.path.join(QUEUE, name), 'wb') as f:
                 shutil.copyfileobj(r, f)
             return self._json(200, {'file': name})
         if path in ('/api/animate/cost', '/api/animate/run') and os.path.exists(jp):
