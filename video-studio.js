@@ -813,7 +813,9 @@
     if (t.mark !== false && t.mark !== 'false') rows.push(['mark', CTA.mark * k, 0, 0]);
     const markGap = 96 * k;
     let H = CTA.pad * 2; rows.forEach((r, i) => { H += r[1] + (i < rows.length - 1 ? (rows[i + 1][0] === 'mark' ? markGap : r[3]) : 0); });
-    const x0 = cxm - W / 2, y0 = g.h * (t.y == null ? 50 : t.y) / 100 - H / 2 + rise;
+    // kept inside the safe area wherever it is put; the box is a hit target so it can be dragged up and down
+    const x0 = cxm - W / 2, yTop = clamp(g.h * (t.y == null ? 50 : t.y) / 100 - H / 2, g.t, Math.max(g.t, g.h - g.b - H)), y0 = yTop + rise;
+    hits[t.id] = { kind: 'text', x: x0, y: yTop, w: W, h: H };
     cx.save(); cx.globalAlpha = env;
     // the glass: the picture already on the canvas, blurred inside the panel, under a navy veil
     cx.save(); cx.beginPath(); cx.roundRect(x0, y0, W, H, CTA.r); cx.clip();
@@ -883,9 +885,9 @@
     draw._had = !!a;
     P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur && t.call !== 'cta') (t.call ? drawCallout : drawText)(t); });
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
-    P.audio.forEach(drawCaption);
     // the end card goes over everything and carries the wordmark itself, so the corner lockup rests
     const ctas = P.texts.filter(t => t.call === 'cta' && T >= t.at && T < t.at + t.dur);
+    if (!ctas.some(t => t.capHide === 'hide')) P.audio.forEach(drawCaption);
     if (ctas.length) ctas.forEach(drawCta); else drawBrand();
     pvMirror();
   }
@@ -1045,6 +1047,7 @@
     if (!hit) { if (sel) { sel = null; renderAll(); } return; }
     sel = { kind: hit.kind, id: hit.id }; renderAll();
     if (hit.kind === 'logo') { const l = find(sel); cdrag = { p, x: l.x, y: l.y, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); }
+    else { const t = find(sel), h = hits[hit.id]; if (t && t.call === 'cta') { cdrag = { p, cta: true, y: (h.y + h.h / 2) / G().h * 100, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); } }
   });
   // ── drag guides (chrome only, never painted on the canvas, so never exported) ────────
   // While a graphic is dragged: the safe area, the Reel interface in x-ray over the 9:16,
@@ -1085,6 +1088,12 @@
     if (!cdrag.moved) {
       if (Math.abs(p.x - cdrag.p.x) + Math.abs(p.y - cdrag.p.y) < 4) return;
       cdrag.moved = true; undo.push(cdrag.snap); redo.length = 0; guideShow();
+    }
+    if (cdrag.cta) {                          // the end card moves up and down only, inside the safe area
+      const g = G(), hb = hits[l.id] || { h: 0 }, half = hb.h / g.h * 50, lo = g.t / g.h * 100 + half, hi = (g.h - g.b) / g.h * 100 - half;
+      let y = cdrag.y + (p.y - cdrag.p.y) / g.h * 100, ly = false;
+      if (!e.altKey && Math.abs(y - 50) < 9 * cv.width / (cv.getBoundingClientRect().width || cv.width) / g.h * 100) { y = 50; ly = true; }
+      l.y = Math.round(clamp(y, Math.min(lo, hi), Math.max(lo, hi))); guideLock(false, ly); dirty = true; return;
     }
     const g = G(), hb = hits[l.id] || { w: g.w * l.w / 100, h: 0 };
     let x = cdrag.x + (p.x - cdrag.p.x) / g.w * 100, y = cdrag.y + (p.y - cdrag.p.y) / g.h * 100;
@@ -1403,8 +1412,10 @@
         f('Button', '<input class="p-in" data-s="btn" value="' + esc(it.btn || '') + '" placeholder="Leave empty for no button">') +
         f('Provident wordmark', seg('mark', [[true, 'Shown'], [false, 'Hidden']])) +
         f('Panel', seg('glass', [['glass', 'Frosted glass'], ['plain', 'Navy']])) +
-        rng('i', 'y', 'Down', it.y == null ? 50 : it.y, 20, 80, '%') +
-        '<span class="vs-note">The corner logo hides while the end card is showing, so the wordmark appears once.</span></div>' + timing();
+        f('Position', '<div class="vs-seg">' + [[32, 'Higher'], [50, 'Middle'], [62, 'Lower']].map(o => '<button data-k="y" data-v="' + o[0] + '"' + (+(it.y == null ? 50 : it.y) === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
+        rng('i', 'y', 'Up or down', it.y == null ? 50 : it.y, 15, 85, '%') +
+        f('Captions while it shows', '<div class="vs-seg">' + [['show', 'Shown'], ['hide', 'Hidden']].map(o => '<button data-k="capHide" data-v="' + o[0] + '"' + ((it.capHide || 'show') === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
+        '<span class="vs-note">Drag the card on the picture to move it up or down. It stays inside the safe area. The corner logo hides while the end card is showing, so the wordmark appears once.</span></div>' + timing();
     } else if (sel.kind === 'text' && it.call) {
       const nm = { ruler: 'Measure line', count: 'Counting figure', box: 'Outline box' }[it.call];
       h = '<div class="vs-sec"><span class="vs-h">' + nm + '</span>' +

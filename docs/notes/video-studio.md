@@ -289,3 +289,14 @@ Verified in Chrome on the 8-clip 32.07 s project: script click on a fresh load �
 2 s with that message; real click immediately after a fresh load → context `running`, 32.25 s,
 1080x1920, 48.9 MB, done in 40 s of wall time. Nothing was written to the saved project this time.
 **Testing rule: drive Export with a real pointer click, never `el.click()` from a script.**
+
+### End card: move it, and captions under it (2026-11-13)
+The user's end card sat on top of a caption. Three ways to clear it, all on the end card's panel:
+- **Drag the card on the picture**, up and down only (`cdrag.cta`), snapping to the middle (Alt frees it).
+  `drawCta` now registers a hit box and clamps the card inside the safe area wherever `y` puts it.
+- **Position** Higher / Middle / Lower (`y` 32 / 50 / 62) plus the "Up or down" slider (15–85).
+- **Captions while it shows** Shown / Hidden (`capHide`, default shown): hidden skips `drawCaption`
+  for as long as that end card is on screen.
+Verified in Chrome with a real pointer on the user's project, saving blocked in the test tab: drag up
+→ 36%, caption clear below; drag far down → stops at 54% (safe area); Higher → 32%; Hidden → the
+caption is gone. 1:1 not checked.
