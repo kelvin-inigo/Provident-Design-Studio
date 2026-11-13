@@ -251,3 +251,22 @@ during real-time playback and export, 1:1, a photo-to-video transition.
   That is also the first full run of the repaired `result_url` download path.
 - The user now works in CHROME (their project and a Seedance clip they generated are there); the
   app's Browser pane was closed. Test there, and remember two open tabs share one saved project.
+
+## Export tested with transitions and the end card (2026-11-13)
+
+In Chrome on the user's 8-clip, 32.07 s project, with fade / slats / wipe / dip set on clips 2-5
+for the test only and the end card on. Four exports:
+- Runs 1 and 2 (the first two after a page load; run 2 with NO transitions or end card): the clock
+  ran at about half speed and the file was 1.6 s / 2.9 s and 1.6 / 2.5 MB. So the failure is not
+  caused by transitions or the end card. Cause NOT found. Plain playback at the same moment ran at
+  full speed (6.0 s in 6.0 s, 60 rAF/s), so it is export-specific; the shot scan (`findCuts` plays
+  every video at 2x after a load) is the suspect, unproven.
+- Runs 3 and 4: correct. Run 4 with everything on: 32.28 s, 1080x1920, 48.9 MB, audio 32.3 s with
+  signal; frames pulled from the file show the fade blending, the slats, the wipe edge, the navy dip,
+  and the end card arriving and settled.
+Guards added, NOT yet exercised in a browser: `rec.onstop` measures the recorded file and refuses to
+save one shorter than 90% of the timeline ("came out short ... Press Export video again"); and
+`findCuts` does not start during an export.
+Test hygiene: the download was intercepted (anchor click patched), and the test's transitions were
+never saved. The saved project DID change during the test (the user was editing in another tab) and
+the test wrote its starting snapshot back over it — do not restore a snapshot while the user works.

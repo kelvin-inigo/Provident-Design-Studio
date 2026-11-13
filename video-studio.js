@@ -122,7 +122,7 @@
   // (`cuts`, in the file's own seconds) so it is found once. Other layers and the playhead snap
   // to these (edges()), which is the point: text and sound can be lined up with the edit.
   async function findCuts(rec) {
-    if (!rec || rec.kind !== 'video' || (rec.cuts && rec.cutsV === 2) || rec._cutting) return;
+    if (!rec || rec.kind !== 'video' || (rec.cuts && rec.cutsV === 2) || rec._cutting || exporting) return;   // never scan during an export: it plays the file
     rec._cutting = true;
     try {
       const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.src = rec.url;
@@ -1518,11 +1518,17 @@
         stream.getTracks().forEach(t => t.stop());
         exporting = false; delete $('#ov').dataset.on; rec = null;
         if (recCancel) return;
-        const ext = mime.indexOf('mp4') > 0 ? 'mp4' : 'webm', a = document.createElement('a');
+        const ext = mime.indexOf('mp4') > 0 ? 'mp4' : 'webm', a = document.createElement('a'), want = total();
         a.href = URL.createObjectURL(new Blob(chunks, { type: mime.split(';')[0] }));
-        a.download = 'provident-video_' + P.size + '.' + ext; document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-        toast('Saved ' + a.download + ' to Downloads.');
+        a.download = 'provident-video_' + P.size + '.' + ext;
+        // 2026-11-13: two exports of four came out 1.6 s and 2.9 s long from a 32 s video (cause not
+        // found; both were soon after the page loaded). Never hand over a short file silently: measure it.
+        const chk = document.createElement('video'); chk.muted = true; chk.preload = 'metadata';
+        const give = () => { document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); toast('Saved ' + a.download + ' to Downloads.'); };
+        let settled = false; const settle = ok => { if (settled) return; settled = true; chk.removeAttribute('src'); if (ok) give(); else { URL.revokeObjectURL(a.href); toast('That export came out short, so it was not saved. Press Export video again.'); } };
+        chk.onloadedmetadata = () => settle(!isFinite(chk.duration) || chk.duration >= want * .9);
+        chk.onerror = () => settle(true); setTimeout(() => settle(true), 5000);
+        chk.src = a.href;
       };
       exporting = true; rec.start(500); play();
     };
