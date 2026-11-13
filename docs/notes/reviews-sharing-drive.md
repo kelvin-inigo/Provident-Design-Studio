@@ -2132,3 +2132,16 @@ role, so `vidOpen` takes the LINK's role there: PM is not offered Replace / Remo
 are not posted to a local CASV.
 **Not exercised:** the Ad set tab's section inside CAS, Or choose the
 two files, Replace, Remove, Mark done, real Google Drive, the deployed site.
+
+### Proven on the live site with real Drive (2026-11-13, by request)
+On https://provident-design-studio.vercel.app, signed in as the admin, on **Palm Springs by Nakheel**
+(the user's choice), with real clicks: Ad set settings › Includes a video saved; the Add video
+placeholder appeared; the dialog listed the video the user had just parked with CASV's Send to CAS —
+so **an https page reading `http://localhost:8794` works in Chrome**; both files (47.7 MB and 47.5 MB)
+uploaded to the ad set's Drive folder through the single multipart request in about ten seconds
+each; the player played the Reel (1080x1920) and the Square (1080x1080) from Drive; both downloads
+came back byte for byte (47,683,046 and 47,456,885); a comment saved, reached CASV's local server
+(an https page POSTing to localhost), and was deleted again. The Activity keeps "Commented on the
+video … at 0:00" from that test. Still NOT exercised anywhere: Or choose the two files, Replace,
+Remove, Mark done, the Ad set tab's Video section inside CAS, a non-admin account on the live site,
+Safari.
