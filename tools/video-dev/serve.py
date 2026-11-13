@@ -19,6 +19,18 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8794
 QUEUE = os.path.join(ROOT, '_animate')
+# Finished videos waiting for CAS. CASV records the Reel and the Square, parks both here, and the
+# CAS website (which holds the Google sign-in) fetches them from this computer and uploads them to
+# the ad set's Drive folder. `_outbox/` is git-ignored: <id>.json the record, <id>_9x16.mp4,
+# <id>_1x1.mp4, <id>.jpg the poster, <id>.notes.json the comments CAS sends back.
+OUTBOX = os.path.join(ROOT, '_outbox')
+# Only these pages may read the outbox from a browser. Add more with CASV_ORIGINS="https://a,https://b".
+SITES = ['https://provident-design-studio.vercel.app'] + [o.strip() for o in os.environ.get('CASV_ORIGINS', '').split(',') if o.strip()]
+PARTS = {'9x16': ('_9x16.mp4', 'video/mp4'), '1x1': ('_1x1.mp4', 'video/mp4'), 'poster': ('.jpg', 'image/jpeg')}
+
+
+def site_ok(origin):
+    return bool(origin) and (origin in SITES or re.match(r'^http://(localhost|127\.0\.0\.1)(:\d+)?$', origin) is not None)
 
 
 # ── Generate now: Higgsfield's own command-line tool (`npm i -g @higgsfield/cli`, then
@@ -145,7 +157,51 @@ class H(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')
+        o = self.headers.get('Origin')
+        if self.path.startswith('/api/outbox/') and site_ok(o):
+            self.send_header('Access-Control-Allow-Origin', o)
+            self.send_header('Vary', 'Origin')
         super().end_headers()
+
+    def do_OPTIONS(self):                     # the website asking before it reads this computer
+        self.send_response(204 if site_ok(self.headers.get('Origin')) else 403)
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Private-Network', 'true')
+        self.send_header('Access-Control-Max-Age', '600')
+        self.end_headers()
+
+    def _q(self):
+        from urllib.parse import urlparse, parse_qs
+        return {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()}
+
+    def _out(self):
+        os.makedirs(OUTBOX, exist_ok=True)
+        rows = []
+        for f in os.listdir(OUTBOX):
+            if f.endswith('.json') and not f.endswith('.notes.json'):
+                try:
+                    rows.append(json.load(open(os.path.join(OUTBOX, f))))
+                except Exception:
+                    pass
+        return sorted(rows, key=lambda r: -r.get('at', 0))
+
+    def do_PUT(self):                         # CASV parks one recorded file: raw bytes, no JSON
+        q, n = self._q(), int(self.headers.get('Content-Length') or 0)
+        if self.path.split('?')[0] != '/api/outbox/file' or not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or q.get('part') not in PARTS:
+            return self._json(400, {'error': 'bad request'})
+        if n <= 0 or n > 600 * 1024 * 1024:
+            return self._json(400, {'error': 'bad size'})
+        os.makedirs(OUTBOX, exist_ok=True)
+        with open(os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0]), 'wb') as f:
+            left = n
+            while left > 0:
+                chunk = self.rfile.read(min(left, 1 << 20))
+                if not chunk:
+                    break
+                f.write(chunk)
+                left -= len(chunk)
+        return self._json(200, {'ok': True, 'bytes': n - left})
 
     # ── the animate queue: photos waiting to be turned into video by the animate-photos skill ──
     # One folder, `_animate/` (git-ignored): <id>.json is the job, <id>.jpg the start frame the
@@ -180,6 +236,16 @@ class H(SimpleHTTPRequestHandler):
         jid = str(body.get('id') or '')
         if not re.match(r'^[a-z0-9]{4,16}$', jid):
             return self._json(400, {'error': 'bad id'})
+        if path == '/api/outbox/meta':            # the record for a parked video, written last
+            os.makedirs(OUTBOX, exist_ok=True)
+            rec = {k: body.get(k) for k in ('id', 'title', 'dur', 'sizes')}
+            rec['at'] = int(time.time())
+            json.dump(rec, open(os.path.join(OUTBOX, jid + '.json'), 'w'), indent=1)
+            return self._json(200, {'ok': True})
+        if path == '/api/outbox/notes':           # CAS hands the reviewers' timeline comments back
+            os.makedirs(OUTBOX, exist_ok=True)
+            json.dump({'id': jid, 'notes': body.get('notes') or [], 'at': int(time.time())}, open(os.path.join(OUTBOX, jid + '.notes.json'), 'w'), indent=1)
+            return self._json(200, {'ok': True})
         os.makedirs(QUEUE, exist_ok=True)
         jp = os.path.join(QUEUE, jid + '.json')
         if path == '/api/animate/job':
@@ -278,6 +344,33 @@ class H(SimpleHTTPRequestHandler):
             return self._json(200, voice_list())
         if self.path.split('?')[0] == '/api/animate/jobs':
             return self._json(200, {'jobs': self._jobs()})
+        path = self.path.split('?')[0]
+        if path == '/api/outbox/list':
+            return self._json(200, {'videos': self._out()})
+        if path == '/api/outbox/notes':
+            q = self._q()
+            fp = os.path.join(OUTBOX, q.get('id', '') + '.notes.json')
+            if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or not os.path.exists(fp):
+                return self._json(200, {'notes': []})
+            return self._json(200, json.load(open(fp)))
+        if path == '/api/outbox/file':
+            q = self._q()
+            if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or q.get('part') not in PARTS:
+                return self._json(400, {'error': 'bad request'})
+            fp = os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0])
+            if not os.path.exists(fp):
+                return self._json(404, {'error': 'not found'})
+            self.send_response(200)
+            self.send_header('Content-Type', PARTS[q['part']][1])
+            self.send_header('Content-Length', str(os.path.getsize(fp)))
+            self.end_headers()
+            with open(fp, 'rb') as f:
+                while True:
+                    chunk = f.read(1 << 20)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+            return
         if self.path in ('/', '/index.html'):
             self.send_response(302)
             self.send_header('Location', '/Provident%20Video%20Studio.html')

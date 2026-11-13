@@ -39,3 +39,4 @@ tools/meta-ads/kit/memory/
 !.env.example
 _test-media/
 _animate/
+_outbox/

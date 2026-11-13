@@ -124,6 +124,8 @@ button{font-family:inherit}
 .vs-hd{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2}
 .vs-hd.l{left:0}.vs-hd.r{right:0}
 .vs-it:hover .vs-hd,.vs-it[data-on] .vs-hd{background:rgba(255,255,255,.45)}
+.vs-nt{position:absolute;top:0;bottom:0;width:0;border-left:1px solid var(--ps-ink);opacity:.9;pointer-events:auto;z-index:4}
+.vs-nt b{position:absolute;top:1px;left:-8px;min-width:16px;height:16px;padding:0 3px;border-radius:8px;background:var(--ps-ink);color:var(--ps-app);font:500 10px/16px var(--ps-font);text-align:center;box-sizing:border-box}
 .vs-mk{position:absolute;top:18px;bottom:0;width:0;border-left:1px dashed var(--ps-brand);opacity:.55;pointer-events:none;z-index:3}
 .vs-mk::before{content:"";position:absolute;top:-7px;left:-4.5px;width:8px;height:8px;background:var(--ps-brand);transform:rotate(45deg);border-radius:1px}
 .vs-ph{position:absolute;top:0;bottom:0;width:13px;margin-left:-6px;z-index:4;cursor:ew-resize}
@@ -209,7 +211,8 @@ button{font-family:inherit}
   </div>
   <button class="p-ghost p-ico-t" id="previewBtn2" title="See the video inside Facebook and Instagram"></button>
   <button class="p-ghost p-ico-t" id="frameBtn" title="Save the current frame as a PNG"></button>
-  <button class="p-btn p-ico-t" id="exportBtn"></button>
+  <button class="p-ghost p-ico-t" id="exportBtn"></button>
+  <button class="p-btn p-ico-t" id="sendBtn" title="Record both sizes and hand them to CAS for the ad set"></button>
   <button class="p-ghost p-ico-o" id="themeBtn" title="Switch theme" aria-label="Switch theme"></button>
 </header>
 

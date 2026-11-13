@@ -960,6 +960,7 @@
       }
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
     });
+    CASN.forEach((n, i) => { if (!n.done) h += '<i class="vs-nt" style="left:' + (LBL + clamp(+n.t || 0, 0, total()) * pps) + 'px" title="' + esc((n.by || 'Comment') + ' at ' + fmt(+n.t || 0) + ': ' + n.text) + '"><b>' + (i + 1) + '</b></i>'; });
     markers().forEach(t => { h += '<i class="vs-mk" style="left:' + (LBL + t * pps) + 'px" title="Shot change at ' + fmt(t) + '. Layers and the playhead snap here."></i>'; });
     P.clips.forEach(c => findCuts(media[c.mid]));
     h += '<div class="vs-ph" id="ph" title="Drag to scrub"></div>';
@@ -1378,7 +1379,7 @@
       f('Lasts', '<input class="p-in" type="number" data-n="dur" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') + '</div></div>';
     if (!it) {
       h = '<div class="vs-sec"><span class="vs-h">' + G().name + ' · ' + G().w + ' × ' + G().h + '</span>' +
-        '<span class="vs-note">Select anything on the timeline to edit it here.</span></div>' +
+        '<span class="vs-note">Select anything on the timeline to edit it here.</span></div>' + casNotesHtml() +
         '<div class="vs-sec"><span class="vs-h">How to cut</span><span class="vs-note">Move the playhead and press <b>S</b> (or the scissors) to cut the clip under it. Drag a clip\'s edge to trim, drag its body to reorder, <b>⌫</b> to delete. The video track closes its own gaps.</span></div>' +
         '<div class="vs-sec"><span class="vs-h">Keys</span><span class="vs-note">Space play · S cut · ⌫ delete · ⌘D duplicate · ⌘Z undo · ← → one frame (⇧ one second) · ⌘ scroll to zoom the timeline</span></div>' +
         '<div class="vs-sec"><button class="p-ghost" id="clearBtn">Start a new video</button></div>';
@@ -1493,6 +1494,7 @@
   });
   insp.addEventListener('click', e => {
     const it = find(sel), b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.nt != null) { if (playing) pause(); seek(+b.dataset.nt); return; }
     if (b.id === 'clearBtn') {
       if (!total() || confirm('Clear the timeline and start a new video? Uploaded files stay in the library.')) { mark(); const keep = P.size; P = fresh(); P.size = keep; sel = null; T = 0; partnerLoad(); renderAll(); }
       return;
@@ -1536,9 +1538,11 @@
 
   // ── export: the canvas and the mix are recorded as the video plays ───────────────────
   let rec = null, recDest = null, recCancel = false;
-  function exportVideo() {
-    if (!total()) { toast('Add a video first.'); return; }
-    if (!window.MediaRecorder || !cv.captureStream) { toast('This browser cannot record video. Use Chrome.'); return; }
+  // `cb` (Send to CAS): the recorded file is handed to it instead of being downloaded; null = nothing recorded.
+  function exportVideo(cb) {
+    if (typeof cb !== 'function') cb = null;
+    if (!total()) { toast('Add a video first.'); if (cb) cb(null); return; }
+    if (!window.MediaRecorder || !cv.captureStream) { toast('This browser cannot record video. Use Chrome.'); if (cb) cb(null); return; }
     const mime = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
     ensureCtx(); pause(); sel = null; renderAll(); seek(0); recCancel = false;
     $('#ov').dataset.on = '1'; $('#ovP').style.width = '0';
@@ -1551,15 +1555,16 @@
         try { master.disconnect(recDest); } catch (e) {}
         stream.getTracks().forEach(t => t.stop());
         exporting = false; delete $('#ov').dataset.on; rec = null;
-        if (recCancel) return;
+        if (recCancel) { if (cb) cb(null); return; }
+        const blob = new Blob(chunks, { type: mime.split(';')[0] });
         const ext = mime.indexOf('mp4') > 0 ? 'mp4' : 'webm', a = document.createElement('a'), want = total();
-        a.href = URL.createObjectURL(new Blob(chunks, { type: mime.split(';')[0] }));
+        a.href = URL.createObjectURL(blob);
         a.download = 'provident-video_' + P.size + '.' + ext;
         // 2026-11-13: two exports of four came out 1.6 s and 2.9 s long from a 32 s video (the sound
         // engine was suspended; see ready() below). Never hand over a short file silently: measure it.
         const chk = document.createElement('video'); chk.muted = true; chk.preload = 'metadata';
-        const give = () => { document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); toast('Saved ' + a.download + ' to Downloads.'); };
-        let settled = false; const settle = ok => { if (settled) return; settled = true; chk.removeAttribute('src'); if (ok) give(); else { URL.revokeObjectURL(a.href); toast('That export came out short, so it was not saved. Press Export video again.'); } };
+        const give = () => { if (cb) { URL.revokeObjectURL(a.href); return cb(blob); } document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); toast('Saved ' + a.download + ' to Downloads.'); };
+        let settled = false; const settle = ok => { if (settled) return; settled = true; chk.removeAttribute('src'); if (ok) give(); else { URL.revokeObjectURL(a.href); toast('That export came out short, so it was not saved. Press Export video again.'); if (cb) cb(null); } };
         chk.onloadedmetadata = () => settle(!isFinite(chk.duration) || chk.duration >= want * .9);
         chk.onerror = () => settle(true); setTimeout(() => settle(true), 5000);
         chk.src = a.href;
@@ -1572,13 +1577,84 @@
     // seen a real click on this page yet), the recording's sound track carries no time, the file
     // comes out a few seconds long, and the videos refuse to play so the timeline crawls. That was
     // the cause of the short exports of 2026-11-13 (the test pressed Export from a script).
-    const stop = () => { delete $('#ov').dataset.on; toast('The sound could not start, so nothing was exported. Click anywhere on the page, then press Export video again.'); };
+    const stop = () => { delete $('#ov').dataset.on; toast('The sound could not start, so nothing was exported. Click anywhere on the page, then press Export video again.'); if (cb) cb(null); };
     let m = 0; const ready = () => { if (actx.state === 'running') return wait(); if (m++ > 30) return stop(); const p = actx.resume(); if (p && p.catch) p.catch(() => {}); setTimeout(ready, 50); };
     ready();
   }
   function finishExport() { setTimeout(() => { if (rec && rec.state !== 'inactive') rec.stop(); }, 200); }
   setInterval(() => { if (exporting) $('#ovP').style.width = (T / Math.max(.01, total()) * 100) + '%'; }, 120);
-  $('#ovX').addEventListener('click', () => { recCancel = true; pause(); if (rec && rec.state !== 'inactive') rec.stop(); else { exporting = false; delete $('#ov').dataset.on; } });
+  $('#ovX').addEventListener('click', () => { recCancel = true; casStop = true; pause(); if (rec && rec.state !== 'inactive') rec.stop(); else { exporting = false; delete $('#ov').dataset.on; } });
+  // ── Send to CAS ──────────────────────────────────────────────────────────────────────
+  // The editor stays on this computer; CAS on the website holds the Google sign-in and the ad
+  // sets. So CASV records BOTH sizes (Reel, then Square: twice the video's length), parks them with
+  // a poster in the local server's outbox, and CAS's "Add video" fetches them from this computer
+  // and uploads them into the ad set's Drive folder. `P.cas` remembers the outbox id, so sending
+  // again replaces the same video and the reviewers' comments find their way back (casNotes).
+  let casStop = false, casBusy = false;
+  const CAS_SITE = () => { try { return localStorage.getItem('provident-casv-site') || 'https://provident-design-studio.vercel.app/'; } catch (e) { return 'https://provident-design-studio.vercel.app/'; } };
+  const recordOnce = () => new Promise(res => exportVideo(res));
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  async function sendToCas() {
+    if (casBusy || exporting) return;
+    if (!total()) { toast('Add a video first.'); return; }
+    const first = P.texts.find(t => !t.call && t.text), def = (P.cas && P.cas.title) || (first ? plain(first.text).replace(/\s+/g, ' ').slice(0, 60) : 'Video');
+    const title = prompt('Send this video to CAS.\n\nCASV records the Reel 9:16 and then the Square 1:1, which takes twice the video\'s length. Keep this tab in front until it finishes.\n\nName of the video:', def);
+    if (title == null) return;
+    const keep = P.size, id = (P.cas && P.cas.id) || uid() + uid().slice(0, 2), out = {};
+    casBusy = true; casStop = false;
+    try {
+      const up = async (part, blob) => { const r = await fetch('/api/outbox/file?id=' + id + '&part=' + part, { method: 'PUT', body: blob }); if (!r.ok) throw new Error('outbox'); };
+      for (const size of ['9x16', '1x1']) {
+        P.size = size; pTint = null; fitCanvas(); renderAll();
+        if (size === '9x16') {                // the poster: a frame a third of the way in, before anything is recorded
+          seek(Math.min(total() * .33, 4)); await wait(900); sync(); draw(); await wait(250); draw();
+          const jpg = await new Promise(r => cv.toBlob(r, 'image/jpeg', .82));
+          if (jpg) await up('poster', jpg);
+        }
+        $('#ovT').textContent = size === '9x16' ? 'Recording the Reel 9:16 (1 of 2)' : 'Recording the Square 1:1 (2 of 2)';
+        const blob = await recordOnce();
+        if (!blob || casStop) throw new Error('stopped');
+        if (blob.type.indexOf('mp4') < 0) throw new Error('mp4');
+        await up(size, blob);
+        out[size] = { bytes: blob.size, w: SIZES[size].w, h: SIZES[size].h };
+      }
+      const r = await fetch('/api/outbox/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, title: title.trim() || 'Video', dur: Math.round(total() * 100) / 100, sizes: out }) });
+      if (!r.ok) throw new Error('outbox');
+      P.cas = { id, title: title.trim() || 'Video', at: Date.now() };
+      casDone();
+    } catch (e) {
+      toast(e.message === 'mp4' ? 'This browser did not record an MP4. Use Chrome.' : e.message === 'outbox' ? 'Could not reach the local server, so nothing was sent. Is serve.py running?' : 'Nothing was sent to CAS.');
+    } finally {
+      P.size = keep; pTint = null; fitCanvas(); $('#ovT').textContent = 'Exporting the video'; casBusy = false; save(); renderAll();
+    }
+  }
+  // Comments a reviewer left on the video's timeline in CAS. CAS posts them to the local server when
+  // the designer opens the video there ("Send comments to CASV"); they show as numbered pins on the
+  // ruler and as a list while nothing is selected. Read-only here: they are answered in CAS.
+  let CASN = [];
+  function casNotesHtml() {
+    if (!P.cas) return '';
+    const open = CASN.filter(n => !n.done);
+    return '<div class="vs-sec"><span class="vs-h">Comments from CAS</span>' + (CASN.length
+      ? CASN.map((n, i) => '<button class="vs-pre" data-nt="' + (+n.t || 0) + '"' + (n.done ? ' style="opacity:.55"' : '') + '><b>' + (i + 1) + ' · ' + fmt(+n.t || 0) + (n.by ? ' · ' + esc(n.by) : '') + (n.done ? ' · done' : '') + '</b><s>' + esc(n.text) + '</s></button>').join('') +
+        '<span class="vs-note">' + open.length + ' open. Click one to jump to it. Send the video to CAS again once they are dealt with.</span>'
+      : '<span class="vs-note">“' + esc(P.cas.title) + '” was sent to CAS. Comments left on its timeline there appear here.</span>') + '</div>';
+  }
+  async function casNotes() {
+    if (!P.cas || document.hidden || exporting) return;
+    try {
+      const r = await fetch('/api/outbox/notes?id=' + P.cas.id), j = await r.json(), n = Array.isArray(j.notes) ? j.notes : [];
+      if (JSON.stringify(n) !== JSON.stringify(CASN)) { CASN = n; renderTimeline(); if (!sel) renderInspector(); }
+    } catch (e) {}
+  }
+  setInterval(casNotes, 15000); setTimeout(casNotes, 1200);
+  function casDone() {
+    const d = document.createElement('div'); d.className = 'vs-ov'; d.dataset.on = '1';
+    d.innerHTML = '<div class="vs-dlg"><b>Ready for CAS</b><span class="vs-note" style="display:block;margin:8px 0 14px">The Reel 9:16 and the Square 1:1 are waiting on this computer. In CAS, open the ad set, press <b>Add video</b> on the audience and choose <b>From CASV on this computer</b>.</span>' +
+      '<div class="vs-two"><button class="p-btn" data-go="1">Open CAS</button><button class="p-ghost" data-go="0">Close</button></div></div>';
+    d.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b && e.target !== d) return; if (b && b.dataset.go === '1') window.open(CAS_SITE(), '_blank', 'noopener'); d.remove(); });
+    document.body.appendChild(d);
+  }
   function saveFrame() {
     sync(); draw();
     cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'provident-video_' + P.size + '_frame.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); }, 'image/png');
@@ -1761,7 +1837,7 @@
   $('#homeBtn').addEventListener('click', () => { seek(0); tl.scrollLeft = 0; });
   $('#playBtn').addEventListener('click', () => (playing ? pause() : play()));
   $('#previewBtn2').innerHTML = ico('visibility') + 'Preview'; $('#previewBtn2').addEventListener('click', pvOpen);
-  $('#exportBtn').addEventListener('click', exportVideo); $('#frameBtn').addEventListener('click', saveFrame);
+  $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + 'Send to CAS'; $('#sendBtn').addEventListener('click', sendToCas); $('#frameBtn').addEventListener('click', saveFrame);
   $('#zoom').addEventListener('input', e => { pps = +e.target.value; renderTimeline(); });
   window.addEventListener('resize', () => { fitCanvas(); renderTimeline(); });
   document.addEventListener('keydown', e => {
