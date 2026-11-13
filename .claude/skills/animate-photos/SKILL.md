@@ -49,14 +49,14 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
 
    | job `model` | job `mode` | extra params | size | credits per second |
    |---|---|---|---|---|
-   | `cinematic_studio_video_v2` (or none) | `std` (or none) | `sound: "off"`, `mode: "std"` | 720x1280 | 1 |
-   | `cinematic_studio_video_v2` | `pro` | `sound: "off"`, `mode: "pro"` | 1080x1920 | 1.5 |
-   | `kling3_0` | `std` | `sound: "off"`, `mode: "std"` | not measured | 1.25 |
-   | `kling3_0` | `pro` | `sound: "off"`, `mode: "pro"` | not measured | 1.5 |
-   | `seedance_2_5` | `std` | `mode: "omni_reference"`, `resolution: "720p"`, `bitrate_mode: "standard"`, `generate_audio: false` | 720p | 7 |
-   | `seedance_2_5` | `pro` | `mode: "omni_reference"`, `resolution: "1080p"`, `bitrate_mode: "high"`, `generate_audio: false` | 1080p | 16 |
+   | `cinematic_studio_video_v2` (or none) | `std` (or none) | `sound: "on"`, `mode: "std"` | 720x1280 | 1.5 |
+   | `cinematic_studio_video_v2` | `pro` | `sound: "on"`, `mode: "pro"` | 1080x1920 | 2 |
+   | `kling3_0` | `std` | `sound: "on"`, `mode: "std"` | 720x1280 | 1.75 |
+   | `kling3_0` | `pro` | `sound: "on"`, `mode: "pro"` | not measured | 2 |
+   | `seedance_2_5` | `std` | `mode: "omni_reference"`, `resolution: "720p"`, `bitrate_mode: "standard"`, `generate_audio: true` | 720p | 7 |
+   | `seedance_2_5` | `pro` | `mode: "omni_reference"`, `resolution: "1080p"`, `bitrate_mode: "high"`, `generate_audio: true` | 1080p | 16 |
 
-   Sound is always off: the studio adds its own music. The credit figures were measured on
+   Sound is always ON (since 2026-11-13): the job's prompt asks for natural environment sound and the studio plays it under its own music. The credit figures were measured on
    2026-11-13; the cost check in step 2 is what you quote.
 
    One job: `generate_video`. Two to twelve: `generate_video_batch`, one item per job (load its

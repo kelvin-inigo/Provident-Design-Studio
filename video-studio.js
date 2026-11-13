@@ -58,7 +58,7 @@
     ['slide', 'Slide', 'slow lateral tracking move to the right, parallel to the subject'],
     ['hold', 'Hold', 'locked-off camera with no camera movement']
   ];
-  const MOVE_BASE = 'Photorealistic real estate footage from this exact photograph. Camera: {move}. Keep the architecture, layout, furniture, materials and proportions exactly as in the image. Do not add people, objects, text or logos, and do not warp or morph anything. Only gentle natural motion: light, foliage, water, curtains. Stable, smooth, cinematic, no cuts.';
+  const MOVE_BASE = 'Photorealistic real estate footage from this exact photograph. Camera: {move}. Keep the architecture, layout, furniture, materials and proportions exactly as in the image. Do not add people, objects, text or logos, and do not warp or morph anything. Only gentle natural motion: light, foliage, water, curtains. Stable, smooth, cinematic, no cuts. Add natural sound of the environment in each scene, every interaction with the environment, accurate sound details.';   // the sound line: user, 2026-11-13
   const ANIMS = [['none', 'None'], ['fade', 'Fade'], ['rise', 'Rise'], ['lines', 'Line by line'], ['words', 'Word by word']];
   const LBL = 92;
 
@@ -367,6 +367,8 @@
       if (on && playing && (el.seeking || el.readyState < 2)) hold = true;
       // pre-roll the next clip so the cut lands on a decoded frame
       if (!on && st[i] > T && st[i] - T < 1.2 && !el.seeking && Math.abs(el.currentTime - c.in) > .02) el.currentTime = c.in;
+      // just finished: hold its last frame, the next clip's transition draws it underneath
+      if (!on && T >= st[i] + len && T - (st[i] + len) < 1.6 && !el.seeking && Math.abs(el.currentTime - (c.out - .04)) > .15) el.currentTime = Math.max(c.in, c.out - .04);
     });
     Object.keys(vel).forEach(id => { if (!live[id]) { vel[id].pause(); vel[id].removeAttribute('src'); delete vel[id]; } });
     const liveA = {};
@@ -746,26 +748,93 @@
     });
     cx.restore(); try { cx.letterSpacing = '0px'; } catch (e) {}
   }
+  // what a clip shows right now, if it can be drawn: { src, w, h, c }
+  function picOf(c) {
+    const m = c && media[c.mid]; if (!m) return null;
+    if (m.kind === 'video') {
+      const el = vel[c.id];
+      if (el && (el.readyState >= 2 || (el.seeking && el.videoWidth && el._shown))) { el._shown = 1; return { src: el, w: el.videoWidth, h: el.videoHeight, c }; }
+      return null;
+    }
+    const im = imgFor(m); return im.complete && im.naturalWidth ? { src: im, w: im.naturalWidth, h: im.naturalHeight, c } : null;
+  }
+  const TRANS = [['cut', 'Cut'], ['fade', 'Fade'], ['wipe', 'Wipe'], ['slats', 'Slats'], ['dip', 'Dip to navy']];
+
+  // ── callouts: small explainer graphics that draw themselves on. They live on the Text track
+  // (a text item with `call`), white only: gold is not on the list of recorded exemptions. ──
+  // x, y, w, h are % of the canvas. `rel` seconds since the item began.
+  const CALL = { line: 3, tick: 14, num: 86, label: 28.8, wtNum: 300, wtLab: 500, trLab: .16 };
+  function drawCallout(t) {
+    const g = G(), still = !playing && sel && sel.id === t.id, rel = still ? 99 : T - t.at;
+    const out = still ? 1 : ease((t.dur - rel) / .3), k = g.k || 1;
+    const X = g.w * t.x / 100, Y = g.h * t.y / 100, num = CALL.num * k * (t.scale || 100) / 100, lab = CALL.label * k * (t.scale || 100) / 100;
+    cx.save(); cx.globalAlpha = out; cx.strokeStyle = ART.ink; cx.fillStyle = ART.ink; cx.lineWidth = CALL.line; cx.lineCap = 'round';
+    cx.shadowColor = 'rgba(' + ART.wash + ',.55)'; cx.shadowBlur = 14;
+    const label = String(t.label || '').toUpperCase();
+    if (t.call === 'ruler') {                                   // a vertical measure that grows upward, then its figure
+      const H = g.h * (t.h || 40) / 100, p = ease(rel / .9), top = Y - H * p, side = t.side === 'left' ? -1 : 1;
+      cx.beginPath(); cx.moveTo(X, Y); cx.lineTo(X, top);
+      for (let i = 0; i <= 10; i++) { const yy = Y - H * i / 10; if (yy < top - .5) break; const w = (i % 5 === 0 ? CALL.tick : CALL.tick * .55); cx.moveTo(X, yy); cx.lineTo(X - side * w, yy); }
+      cx.stroke();
+      const a2 = ease((rel - .5) / .5); cx.globalAlpha = out * a2; cx.textAlign = side > 0 ? 'right' : 'left'; cx.textBaseline = 'alphabetic';
+      const tx = X - side * (CALL.tick + 22), ty = Y - H * .55;
+      setFont(num, CALL.wtNum, -.02); cx.fillText(t.value || '', tx, ty);
+      if (label) { setFont(lab, CALL.wtLab, CALL.trLab); cx.fillText(label, tx, ty + lab * 1.5); }
+    } else if (t.call === 'count') {                            // a figure that counts up, with a label under it
+      const p = ease(rel / 1.1), raw = String(t.value || '0'), m = raw.match(/-?[\d,]*\.?\d+/);
+      let shown = raw;
+      if (m) { const end = parseFloat(m[0].replace(/,/g, '')), dec = (m[0].split('.')[1] || '').length, v = end * p; shown = raw.replace(m[0], m[0].indexOf(',') >= 0 ? Number(v.toFixed(dec)).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) : v.toFixed(dec)); }
+      cx.globalAlpha = out * ease(rel / .3); cx.textAlign = 'center'; cx.textBaseline = 'alphabetic';
+      setFont(num * 1.4, CALL.wtNum, -.03); cx.fillText(shown, X, Y);
+      if (label) { setFont(lab, CALL.wtLab, CALL.trLab); cx.fillText(label, X, Y + lab * 1.7); }
+    } else {                                                    // box: an outline that draws round, with a label inside
+      const W = g.w * (t.w || 60) / 100, H = g.h * (t.h || 12) / 100, x0 = X - W / 2, y0 = Y - H / 2, r = 14, per = 2 * (W + H), p = ease(rel / .9);
+      cx.setLineDash([per * p, per]); cx.beginPath(); cx.roundRect(x0, y0, W, H, r); cx.stroke(); cx.setLineDash([]);
+      if (label) { cx.globalAlpha = out * ease((rel - .45) / .4); cx.textAlign = 'center'; cx.textBaseline = 'middle'; setFont(lab * 1.25, CALL.wtLab, CALL.trLab); cx.fillText(label, X, Y + 2); }
+    }
+    cx.restore(); try { cx.letterSpacing = '0px'; } catch (e) {} cx.textAlign = 'left';
+  }
+  function addCallout(kind) {
+    mark();
+    const t = Object.assign({ id: uid(), at: T, dur: 3, call: kind, scale: 100 }, {
+      ruler: { x: 86, y: 62, h: 38, value: '380 m', label: 'Tall', side: 'right' },
+      count: { x: 50, y: 48, value: '73', label: 'Floors' },
+      box: { x: 50, y: 50, w: 70, h: 10, label: 'One home' }
+    }[kind]);
+    P.texts.push(t); sel = { kind: 'text', id: t.id }; renderAll();
+  }
+
   function draw() {
     dirty = false;
     const g = G();
     for (const k in hits) delete hits[k];
     const a = clipAt(T) || (T > 0 && T >= videoEnd() - 1e-6 && P.clips.length ? { c: P.clips[P.clips.length - 1] } : null);
-    let painted = false;
-    if (a) {
-      const m = media[a.c.mid];
-      if (m && m.kind === 'video') {
-        const el = vel[a.c.id];
-        if (el && (el.readyState >= 2 || (el.seeking && el.videoWidth && el._shown))) { el._shown = 1; cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(el, el.videoWidth, el.videoHeight, a.c); painted = true; }
-        else if (el && draw._had) { return; }                    // nothing decoded yet: leave the last frame up; 'seeked' repaints
-      } else if (m) {
-        const im = imgFor(m);
-        if (im.complete && im.naturalWidth) { cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); drawCover(im, im.naturalWidth, im.naturalHeight, a.c); painted = true; }
+    // the picture: the clip under the playhead, and for the length of its transition the clip
+    // before it underneath (held on its last frame; sync() parks that video there)
+    const pic = a ? picOf(a.c) : null;
+    if (a && !pic && media[a.c.mid] && media[a.c.mid].kind === 'video' && draw._had) return;   // nothing decoded yet: leave the last frame up; 'seeked' repaints
+    cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h);
+    if (pic) {
+      const tr = a.i > 0 && a.c.tr && a.c.tr !== 'cut' ? a.c.tr : '', D = tr ? Math.min(a.c.trD || .5, clipLen(a.c)) : 0, p = tr ? (T - a.start) / D : 1;
+      const put = q => drawCover(q.src, q.w, q.h, q.c);
+      if (!tr || p >= 1) put(pic);
+      else {
+        const was = picOf(P.clips[a.i - 1]), e = p * p * (3 - 2 * p);          // smoothstep
+        if (tr === 'dip') {                                                     // out to navy, in from navy
+          if (p < .5) { if (was) put(was); cx.fillStyle = 'rgba(' + ART.wash + ',' + Math.min(1, p * 2) + ')'; }
+          else { put(pic); cx.fillStyle = 'rgba(' + ART.wash + ',' + Math.min(1, (1 - p) * 2) + ')'; }
+          cx.fillRect(0, 0, g.w, g.h);
+        } else {
+          if (was) put(was);
+          cx.save();
+          if (tr === 'fade') cx.globalAlpha = e;
+          else { cx.beginPath(); if (tr === 'wipe') cx.rect(0, 0, g.w * e, g.h); else { const n = 12, sw = g.w / n; for (let k = 0; k < n; k++) cx.rect(k * sw, 0, sw * e, g.h); } cx.clip(); }
+          put(pic); cx.restore();
+        }
       }
     }
-    if (!painted) { cx.fillStyle = ART.ground; cx.fillRect(0, 0, g.w, g.h); }
     draw._had = !!a;
-    P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur) drawText(t); });
+    P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur) (t.call ? drawCallout : drawText)(t); });
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
     P.audio.forEach(drawCaption);
     drawBrand();
@@ -813,7 +882,7 @@
         rowH = ln.n * (ih + 4) + 4;
         items.forEach(it => {
           const m = media[it.mid] || {};
-          const name = kind === 'text' ? plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0] : (m.name || kind);
+          const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box' }[it.call] + ' · ' + (it.value || it.label || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
             (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + '</span></div>';
@@ -1099,6 +1168,7 @@
         : '<span class="vs-note">Nothing uploaded yet.</span>') + '</div>';
     } else if (tab === 'text') {
       const pre = [['headline', 'Headline', 'Regular 400, bottom left, rises in'], ['full', 'Eyebrow, headline and line', 'Tracked caps over the headline, a Light line under'], ['caption', 'Caption', 'A small line at the bottom, fades'], ['centre', 'Centre stage', 'Large, centred, revealed line by line'], ['number', 'Big number', 'Jumbo figure under an eyebrow, word by word']];
+      h += '<div class="vs-sec"><span class="vs-h">Add a callout at the playhead</span>' + [['ruler', 'Measure line', 'A line that grows, with a figure: 380 m tall'], ['count', 'Counting figure', 'A number that counts up over a label'], ['box', 'Outline box', 'An outline that draws round a label']].map(p2 => '<button class="vs-pre" data-addcall="' + p2[0] + '"><b>' + p2[1] + '</b><s>' + p2[2] + '</s></button>').join('') + '</div>';
       h += '<div class="vs-sec"><span class="vs-h">Add text at the playhead</span>' + pre.map(p => '<button class="vs-pre" data-addtext="' + p[0] + '"><b>' + p[1] + '</b><s>' + p[2] + '</s></button>').join('') +
         '<span class="vs-note">The type follows the Reel thumbnail: one typeface, the headline on the brand scale, a wash under the copy only.</span></div>';
     } else {
@@ -1148,6 +1218,7 @@
     else if (e.target.closest('#voGo')) voMake(true);
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderLib(); }
     else if ((el = q('data-addtext'))) addText(el.dataset.addtext);
+    else if ((el = q('data-addcall'))) addCallout(el.dataset.addcall);
     else if ((el = q('data-addlogo'))) addLogo(el.dataset.addlogo);
     else if ((el = q('data-partner'))) {
       mark(); const l = devLib().find(x => x.id === el.dataset.partner);
@@ -1199,6 +1270,7 @@
     } else if (sel.kind === 'clip') {
       const m = media[it.mid] || {}, vid = m.kind === 'video';
       h = '<div class="vs-sec"><span class="vs-h">' + (vid ? 'Video clip' : 'Photo clip') + '</span><span class="vs-note">' + esc(m.name) + ' · ' + fmt(clipLen(it)) + (vid ? ' of ' + fmt(m.dur) : '') + '</span></div>';
+      if (P.clips.indexOf(it) > 0) h += '<div class="vs-sec"><span class="vs-h">Transition in</span><select class="p-in" data-s="tr" style="width:100%">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : '') + '<span class="vs-note">How this clip arrives from the one before it.</span></div>';
       if (vid) h += '<div class="vs-sec"><span class="vs-h">Sound</span>' + seg('mute', [[false, 'On'], [true, 'Muted']]) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
       else {
         h += '<div class="vs-sec"><span class="vs-h">Timing</span>' + f('Lasts', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
@@ -1237,6 +1309,15 @@
           rng('i', 'capShift', 'Earlier / later', it.capShift || 0, -1.5, 1.5, 's', .05) +
           '<span class="vs-note">The words are timed from the loudness of the speech, not from a transcript, so they are an estimate. If they run ahead or behind, nudge them with Earlier / later. Music under the voice makes the timing less accurate.</span>' : '') +
         '</div>' + timing();
+    } else if (sel.kind === 'text' && it.call) {
+      const nm = { ruler: 'Measure line', count: 'Counting figure', box: 'Outline box' }[it.call];
+      h = '<div class="vs-sec"><span class="vs-h">' + nm + '</span>' +
+        (it.call !== 'box' ? f(it.call === 'count' ? 'Figure it counts to' : 'Figure', '<input class="p-in" data-s="value" value="' + esc(it.value || '') + '">') : '') +
+        f('Label', '<input class="p-in" data-s="label" value="' + esc(it.label || '') + '" placeholder="Set in capitals">') +
+        (it.call === 'ruler' ? f('Figure sits', seg('side', [['right', 'Left of the line'], ['left', 'Right of the line']])) : '') + '</div>' +
+        '<div class="vs-sec"><span class="vs-h">Place and size</span>' + rng('i', 'x', 'Across', it.x, 0, 100, '%') + rng('i', 'y', 'Down', it.y, 0, 100, '%') +
+        (it.call === 'box' ? rng('i', 'w', 'Width', it.w, 10, 100, '%') : '') + (it.call !== 'count' ? rng('i', 'h', it.call === 'ruler' ? 'Line length' : 'Height', it.h, 4, 90, '%') : '') +
+        rng('i', 'scale', 'Type size', it.scale || 100, 50, 200, '%') + '</div>' + timing();
     } else if (sel.kind === 'text') {
       h = '<div class="vs-sec"><span class="vs-h">Text</span>' +
         f('Eyebrow', '<input class="p-in" data-s="eyebrow" value="' + esc(it.eyebrow) + '" placeholder="Optional, set in caps">') +
@@ -1267,7 +1348,7 @@
       let v = +e.target.value; const k = d.ir;
       const o = insp.querySelector('[data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
       it[k] = k === 'vol' ? v / 100 : v;
-    } else if (d.s) { it[d.s] = e.target.value; }
+    } else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
     else if (d.n) {
       const v = parseFloat(e.target.value); if (!isFinite(v)) return;
       const m = media[it.mid];
@@ -1365,8 +1446,8 @@
   // The local server keeps the queue in `_animate/`; the animate-photos skill (Claude, talking to
   // Higgsfield) works through it. The studio never talks to Higgsfield itself.
   const api = (path, body) => fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined).then(r => r.json());
-  // [key, label, Higgsfield model id, credits per second Draft, Full] — measured 2026-11-13, sound off
-  const GEN_MODELS = [['seedance', 'Seedance 2.5', 'seedance_2_5', 7, 16], ['kling', 'Kling 3.0', 'kling3_0', 1.25, 1.5], ['cinema', 'Cinema Studio', 'cinematic_studio_video_v2', 1, 1.5]];
+  // [key, label, Higgsfield model id, credits per second Draft, Full] — measured 2026-11-13, sound ON (clips are generated with their own sound since the same day)
+  const GEN_MODELS = [['seedance', 'Seedance 2.5', 'seedance_2_5', 7, 16], ['kling', 'Kling 3.0', 'kling3_0', 1.75, 2], ['cinema', 'Cinema Studio', 'cinematic_studio_video_v2', 1.5, 2]];
   function genModel(c) { return GEN_MODELS.find(m => m[0] === c.genModel) || GEN_MODELS[0]; }
   function genCredits(c) { return +((c.genDur || 5) * genModel(c)[c.genMode === 'pro' ? 4 : 3]).toFixed(2); }
   async function animSend(c, now) {
@@ -1425,7 +1506,7 @@
           await probe(rec); media[rec.id] = rec;
           DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster });
           // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size)
-          Object.assign(c, { mid: rec.id, in: 0, out: rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: true });
+          Object.assign(c, { mid: rec.id, in: 0, out: rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
           delete c.job; changed = true;
           api('/api/animate/placed', { id: j.id }).catch(() => {});
           toast('The animated clip is on the timeline.');

@@ -36,9 +36,9 @@ def hf_args(job, photo):
          '--aspect_ratio', job.get('aspect') or '9:16', '--start-image', photo]
     if a[0] == 'seedance_2_5':
         a += ['--mode', 'omni_reference', '--resolution', '1080p' if pro else '720p',
-              '--bitrate_mode', 'high' if pro else 'standard', '--generate_audio', 'false']
+              '--bitrate_mode', 'high' if pro else 'standard', '--generate_audio', 'true']
     else:                                   # kling3_0, cinematic_studio_video_v2
-        a += ['--mode', 'pro' if pro else 'std', '--sound', 'off']
+        a += ['--mode', 'pro' if pro else 'std', '--sound', 'on']
     return a
 
 

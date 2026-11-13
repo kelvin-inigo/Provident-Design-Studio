@@ -214,3 +214,22 @@ The Higgsfield voice model has no speed or length setting, so length is fitted, 
 Tested: 28 words, target 10 s, Mac voice -> 9.21 s file at 92% = exactly 10.00 s; Fit 4 s clamps at
 135% (6.8 s) with the message; Fit 8 s -> 115%. NOT tested: how a stretched voice sounds, a
 Higgsfield voice with a target, and export of a speed-changed item.
+
+## Transitions, callouts, generated sound (2026-11-13, by request)
+
+- **Generated clips carry sound.** The user's line ("Add natural sound of the environment in each
+  scene, every interaction with the environment, accurate sound details") is appended to
+  `MOVE_BASE`; `hf_args` and the skill now send `sound: on` / `generate_audio: true`; a placed clip
+  is no longer muted. Prices with sound on, per second Draft / Full: Seedance 7 / 16 (unchanged),
+  Kling 1.75 / 2, Cinema Studio 1.5 / 2. No clip has been generated with sound yet.
+- **Transitions.** A clip has `tr` (cut | fade | wipe | slats | dip) and `trD` (0.2-1.5 s, default
+  0.5): how it ARRIVES. The track stays end to end; for the first `trD` seconds of the incoming
+  clip, `draw()` paints the previous clip underneath, held on its last frame (`sync()` parks that
+  video at `out - 0.04`), then the incoming one through alpha, a clip rect, twelve slats, or a navy
+  dip. `picOf(c)` is the one place that says whether a clip can be drawn. Audio still cuts.
+- **Callouts.** Text-track items with `call` (ruler | count | box), drawn by `drawCallout`, added
+  from the Text tab. x/y/w/h are % of the canvas, set with sliders (no canvas drag). White only:
+  gold is not on the recorded exemptions list, though the reference reel used gold.
+Checked on a contact sheet: count 50 -> 72 -> 73, the ruler growing then its figure, the box
+drawing round its label, a fade mid-way and slats mid-way. NOT checked: wipe and dip, transitions
+during real-time playback and export, 1:1, a photo-to-video transition.
