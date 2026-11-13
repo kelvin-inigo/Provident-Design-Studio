@@ -3998,9 +3998,17 @@
     const host = document.querySelector('[data-rvh-host]');
     if (host && st.parentNode !== host) host.appendChild(st);
   };
-  // THE ENGLISH, BEFORE THE ARABIC (2026-11-10, by request): an audience whose English copy is
-  // approved can be downloaded in English while its Arabic is still on its way
-  const engOk = a => !a.done && !!(a.eng && a.eng.design && a.eng.copy);
+  // PM DOWNLOADS WHAT THE DESIGNER SENT FOR REVIEW (2026-11-13, by request; replaces the
+  // English-once-approved rule of 2026-11-10): every project the designer has marked Design done
+  // can be downloaded, whatever its copy check says. A finished audience zips every project.
+  const dlIts = a => a.done ? a.items : a.items.filter(it => it.design);
+  const canDl = a => dlIts(a).length > 0;
+  // only its English is designed while it has (or wants) an Arabic: the button says so
+  const dlEn = a => !a.done && !a.engOnly && dlIts(a).every(it => it.lang !== 'ARB');
+  const dlWord = a => dlEn(a) ? 'Download English' : 'Download';
+  const dlTip = a => a.done ? 'Every image of ' + a.label + ', English and Arabic, in one zip'
+    : canDl(a) ? 'The images of ' + a.label + ' the designer has sent for review, as they are now, in one zip — not approved yet, so the copy may still change'
+    : 'It can be downloaded once the designer sends it for review';
   RV.barRender = function () {
     const el = this.bar; if (!el) return;
     // a step moved: the studio redraws the window's title line and the nav's dots and words
@@ -4011,8 +4019,9 @@
     const ico = d => '<svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + d + '"/></svg>';
     const DL = 'M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z';
     const TICK = 'M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z';
-    const dlBtn = '<button type="button" class="' + (all.done ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (all.done && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : all.done ? 'The audiences that are done, in one zip' : 'Nothing is ready yet') + '">' + ico(DL) +
-      (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download ' + all.done + ' of ' + all.n) + '</button>';
+    const nDl = auds.filter(canDl).length;
+    const dlBtn = '<button type="button" class="' + (nDl ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (nDl && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : nDl ? 'Every audience the designer has sent for review, in one zip — the ones not yet approved as they are now' : 'Nothing has been sent for review yet') + '">' + ico(DL) +
+      (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download ' + nDl + ' of ' + all.n) + '</button>';
     // 1 — the top bar: status, then the actions, the download last and loudest
     const html = pillHtml(all.ready, all.ready ? 'Package ready' : all.done + ' of ' + all.n + ' ready') +
       (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
@@ -4022,7 +4031,7 @@
     if (bh && el.parentNode !== bh) bh.appendChild(el);
     // 2 — the pane's strip: the audience on screen, or every audience under All audiences
     const st = this.strip;
-    const dlA = a => '<button type="button" class="' + (a.done || engOk(a) ? 'p-btn' : 'p-ghost') + ' rvp-dl" data-dl="' + esc(a.key) + '"' + ((a.done || engOk(a)) && !busy ? '' : ' disabled') + ' title="' + esc(a.done ? 'Every image of ' + a.label + ', English and Arabic, in one zip' : engOk(a) ? 'The English images of ' + a.label + ', in one zip — the Arabic follows once it is approved' : 'It can be downloaded once its English copy is approved') + '">' + ico(DL) + (busy === a.key ? 'Zipping…' : engOk(a) ? 'Download English' : 'Download') + '</button>';
+    const dlA = a => '<button type="button" class="' + (canDl(a) ? 'p-btn' : 'p-ghost') + ' rvp-dl" data-dl="' + esc(a.key) + '"' + (canDl(a) && !busy ? '' : ' disabled') + ' title="' + esc(dlTip(a)) + '">' + ico(DL) + (busy === a.key ? 'Zipping…' : dlWord(a)) + '</button>';
     const who = a => { const e = a.eng, r = a.arb, out = []; if (e && e.design) out.push('Design · ' + e.design.by); if (e && e.copy) out.push('Copy · ' + e.copy.by); if (r && r.copy) out.push('Arabic · ' + r.copy.by); return out.join('   '); };
     const line = a => a.done ? 'Ready to run' + (a.at ? ' · ' + dayS(a.at) : '') : (a.now ? a.now.label + ' — ' + a.now.sub : '');
     const goKey = a => this.pathOf(a.eng || a.items[0]).join('\u0001');
@@ -4044,7 +4053,7 @@
     const dlg = this.dlg; if (!dlg) return;
     const meta = [PRODUCT_NAME[rs.product], 'Created ' + day(rs.created) + (rs.by ? ' by ' + String(rs.by).split(' ')[0] : '')].filter(Boolean).join(' · ');
     const audCard = a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><div class="rvh-ah"><div><b>' + esc(a.label) + '</b><s>' + esc(a.done ? 'Ready to run' : a.now ? a.now.sub : '') + '</s></div>' +
-      (a.done || engOk(a) ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a.key ? 'Zipping…' : engOk(a) ? 'Download English' : 'Download') + '</button>' : '') + '</div>' +
+      (canDl(a) ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(dlTip(a)) + '">' + (busy === a.key ? 'Zipping…' : dlWord(a)) + '</button>' : '') + '</div>' +
       stepperHtml(a.steps, false, true) + '</li>';
     const det = '<header class="rvh-dh"><div><h2>' + esc(rs.name || 'Ad set') + '</h2><p class="rvh-sub">' + esc(meta) + '</p></div>' +
       '<div class="rvh-dhr">' + pillHtml(all.ready) + '<button type="button" class="p-ghost rvh-x" data-x="1" aria-label="Close">×</button></div></header>' +
@@ -4054,13 +4063,13 @@
       '<footer class="rvh-df">' + dlBtn + '</footer>';
     if (det !== this._dlgH) { this._dlgH = det; dlg.innerHTML = det; }
   };
-  // one flat zip of a finished audience (both languages), or of every finished audience
+  // one flat zip of an audience, or of every audience: the projects sent for review (all of a
+  // finished audience), whatever their copy check says
   RV.download = async function (key) {
     if (this.dl) return;
-    // one audience whose English alone is approved zips its English; the package stays finished audiences
-    const auds = rsAuds(this.rs).filter(a => (a.done || (key !== '*' && engOk(a))) && (key === '*' || a.key === key));
-    const en = key !== '*' && auds.length === 1 && engOk(auds[0]);
-    const want = new Set(); auds.forEach(a => a.items.forEach(it => { if (!en || (it.lang !== 'ARB' && it.copy)) want.add(this.pathOf(it).join('\u0001')); }));
+    const auds = rsAuds(this.rs).filter(a => canDl(a) && (key === '*' || a.key === key));
+    const en = key !== '*' && auds.length === 1 && dlEn(auds[0]);
+    const want = new Set(); auds.forEach(a => dlIts(a).forEach(it => want.add(this.pathOf(it).join('\u0001'))));
     const a = this.shell._as || {}, items = [];
     for (const m of a.mains || []) for (const au of m.auds) if (want.has(au.key)) for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles) items.push({ t, name: String(t.name).split('/').pop(), pre: au.key.replace('\u0001', ' ') });
     if (!items.length) return;
@@ -4075,7 +4084,8 @@
       }
       const nm = clean(this.rs.name) + (key === '*' ? '' : ' - ' + clean(auds[0].label)) + (en ? ' - English' : '');
       const how = await this.eng.saveAs(this.eng.zip(files), nm + '.zip', 'Zip archive', 'application/zip', '.zip');
-      if (how !== 'cancelled') this.logDl(key === '*' ? (auds.length > 1 ? 'every finished audience (' + auds.length + ')' : 'the images of ' + auds[0].label) : (en ? 'the English images of ' : 'the images of ') + auds[0].label);
+      const not = auds.filter(x => !x.done).length;
+      if (how !== 'cancelled') this.logDl(key === '*' ? (auds.length > 1 ? 'every audience sent for review (' + auds.length + (not ? ', ' + not + ' not yet approved' : '') + ')' : 'the images of ' + auds[0].label + (not ? ' (not yet approved)' : '')) : (en ? 'the English images of ' : 'the images of ') + auds[0].label + (not ? ' (not yet approved)' : ''));
     } catch (e) { this.ui.flash('Could not zip — ' + (e.message || e)); }
     this.dl = null; this.barRender();
   };

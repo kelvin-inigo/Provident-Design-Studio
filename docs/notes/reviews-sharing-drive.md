@@ -2028,6 +2028,19 @@ Verified on the stand-in PM link (Sobha Hartland II): Local · Investor (done) D
 International · Family (English approved, Arabic with Omar) Download English → 4 files, the
 English feed / portrait / story / landscape; Investor · Design 2 (in design) disabled.
 
+## Performance marketing downloads whatever the designer sent for review (2026-11-13, by request)
+"Anything that is done by DD and was opened for review, in PM's view have the download button for PM
+regardless the status of the project." Replaces `engOk` (2026-11-10). Beside `RV.barRender`:
+`dlIts(a)` = all items of a done audience, else the items with `design`; `canDl(a)` = any;
+`dlEn(a)` (not done, not engOnly, no ARB among them) labels the button **Download English**;
+`dlTip(a)` says it is not approved yet. The strip, All audiences rows, the details card and the
+package button (`Download n of N`, n = audiences with `canDl`, `Download package` when ready) all
+read them; `RV.download` zips `dlIts` and logs "(not yet approved)" when so. Back to in process
+clears `design`, so the button goes off again.
+Verified on the stand-in PM link (Beyond · Beachfront Living): Family (ENG, copy check) Download
+English → "… - Local · Family - English.zip", logged; Investor (in design) disabled with the
+tip; top bar Download 1 of 2. Damac Lagoons (all done): Download package / Download unchanged.
+
 ## Moving a design to another ad set; a second design recognised (2026-11-11, by request)
 "Give users the ability to change an existing design's ad set, so they can move designs to other ad
 sets; detach it from its existing ad set and make sure on Drive it follows." `rsset` body

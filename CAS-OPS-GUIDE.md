@@ -411,8 +411,10 @@ Ad set tab's **Arabic copy** card has **Write the Arabic** to run it again after
 changed. Undo puts the English back. The content team checks the Arabic at the translation step.
 
 When every audience is done, performance marketing downloads the package from their link. They
-don't have to wait for the Arabic: once an audience's English copy is approved, its button reads
-**Download English** and saves just the English images (the zip ends in `- English`). Each
+don't have to wait for the approvals: anything the designer has marked **Design done** (sent for
+review) can be downloaded straight away, whatever its copy check says. If only an audience's
+English is designed so far, its button reads **Download English** and saves just the English
+images (the zip ends in `- English`). Images that aren't approved yet can still change. Each
 download (the package, or one audience) shows in the ad set's **Activity** with who and when. Once
 the ads are running, they press **Launch** on the home's Next up card (or on its row under Also waiting on you): the campaign reads
 **Launched** on its page, the log says who launched it, and it leaves everyone's Home for the **Closed** column on Status (shown with **Show closed**).
@@ -502,7 +504,7 @@ performance marketing), and the button beside it opens that team's view in a new
 |---|---|---|
 | **Designer** | the ad set's overview, with each project one click from the full studio | design, mark steps done, add projects, put work back in progress |
 | **Content team** | the words of every project beside its images | change the words, approve the English copy and the translation |
-| **Performance marketing** | every project's images, always the latest | change the words in **Edit text**, download each audience when it's done |
+| **Performance marketing** | every project's images, always the latest | change the words in **Edit text**, download each audience once the designer sends it for review |
 
 **Markets:** Local, International, International EUR. **Audiences:** for Residential, Family and
 Investor. For Commercial, Investor and Hybrid (an end user who rents but may buy a commercial
@@ -540,9 +542,10 @@ steps: **Design › ENG copy check › Translation › Done**.
 6. **Done.** An audience is done when its design, English copy and translation are signed off.
    The ad set is **Package ready** when every audience is.
 7. **Performance marketing** opens their link. A bar at the top shows the ad set's progress and
-   one row per audience. Each finished audience has **Download**, which zips its English and Arabic
-   images, named the way an export names them. **Download package** (or **Download finished
-   audiences** before then) takes every finished audience. Images are rendered from the projects as
+   one row per audience. Each audience the designer has sent for review has **Download**, which
+   zips its designed images (English and Arabic once both are), named the way an export names
+   them, approved or not. **Download package** (or **Download 1 of 2** before then) takes every
+   audience that has been sent for review. Images are rendered from the projects as
    they are now. **Images | Edit text** at the top switches to the words: change them as the
    content team does, the images update as you type, and your name goes beside the change. Words
    are all it can change. There is no side panel on this link: the bar's **See details**
