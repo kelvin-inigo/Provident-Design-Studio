@@ -104,3 +104,17 @@ Studio offers them. **The studio never talks to Higgsfield.** It queues; Claude 
   through it yet**, so the result URL's shape and the model's settings are unproven.
 - The main checkout has a symlink `.claude/skills/animate-photos` → this worktree's copy, so the
   skill is listed in sessions started from the main folder. Untracked there.
+
+## First real Higgsfield run (2026-11-13)
+
+One photo went through `/animate-photos` end to end: queued from the studio (Push in, 5 s, 9:16),
+`cinematic_studio_video_v2` with `start_image`, `sound: "off"`, `mode: "std"`, and the studio
+swapped the clip on its own (job file ended `placed`).
+
+- **Cost: 5 credits** for 5 s std. `get_cost: true` works without an upload.
+- **About 2.5 minutes** to generate one clip.
+- **The result is 720x1280**, not 1080x1920, and 5.04 s long. The compositor scales it to fill, so
+  it is softer than native footage. A sharper result needs another mode or an upscale; not tried.
+- `jobs_wait` returns the MP4 as `result_url` (a plain cloudfront link `animate.py done` downloads).
+- The server filled `genre: auto`, `speedramp: auto`, `multi_shots: false`, `cfg_scale: 0.5`.
+- Nobody has judged the motion yet: whether "Push in" reads as a push in is still the user's call.
