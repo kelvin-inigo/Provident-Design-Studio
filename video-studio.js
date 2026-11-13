@@ -983,17 +983,19 @@
       if (vid) h += '<div class="vs-sec"><span class="vs-h">Sound</span>' + seg('mute', [[false, 'On'], [true, 'Muted']]) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
       else {
         h += '<div class="vs-sec"><span class="vs-h">Timing</span>' + f('Lasts', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
-        const j = it.job, busy = j && (j.status === 'queued' || j.status === 'working');
-        h += '<div class="vs-sec"><span class="vs-h">Animate with Higgsfield · Seedance 2.5</span>' +
+        const j = it.job, busy = j && (j.status === 'queued' || j.status === 'working' || j.status === 'confirm');
+        h += '<div class="vs-sec"><span class="vs-h">Animate with Higgsfield</span>' +
           '<div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + m[1] + '</button>').join('') + '</div>' +
           f('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+          f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
           f('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-          '<span class="vs-note">About ' + ((it.genDur || 5) * (it.genMode === 'pro' ? 16 : 7)) + ' credits. Claude confirms the exact cost before it generates.</span>' +
+          '<span class="vs-note">About ' + (genCredits(it)) + ' credits. The exact cost is shown before anything is spent.</span>' +
           f('Extra direction', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Optional, e.g. golden hour light"' + (busy ? ' disabled' : '') + '>') +
-          (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'
+          (j && j.status === 'confirm' ? '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="animGo">Generate</button><button class="p-ghost p-sm" id="animCancel">Cancel</button>' : (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'
             : (j && j.status === 'failed' ? '<span class="vs-note"><b>That did not work:</b> ' + esc(j.error || 'no reason given') + '</span>' : '') +
-              '<button class="p-btn p-sm" id="animBtn"' + (it.move ? '' : ' disabled') + '>Send to the animate queue</button>' +
-              '<span class="vs-note">' + (it.move ? 'Sends the photo as it is framed here. Then run <b>/animate-photos</b> in Claude; it spends Higgsfield credits and shows the cost first.' : 'Pick a camera move first.') + '</span>') +
+              '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>Generate now</button>' +
+              '<button class="p-ghost p-sm" id="animBtn"' + (it.move ? '' : ' disabled') + '>Send to the animate queue</button>' +
+              '<span class="vs-note">' + (it.move ? '<b>Generate now</b> uses Higgsfield\'s tool on this computer and shows the cost first. <b>Send to the animate queue</b> waits for <b>/animate-photos</b> in Claude.' : 'Pick a camera move first.') + '</span>')) +
           '</div>';
       }
       h += '<div class="vs-sec"><span class="vs-h">Framing</span>' + seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
@@ -1052,8 +1054,11 @@
     if (!it) return;
     if (b.dataset.mv) { mark(); it.move = b.dataset.mv; renderAll(); return; }
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
+    if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; renderAll(); return; }
     if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
+    if (b.id === 'animNow') return animSend(it, true);
+    if (b.id === 'animGo') return animRun(it);
     if (b.id === 'animCancel') return animCancel(it);
     if (b.dataset.hi) {                       // wrap the selection (or the word under the caret) in the marker, or unwrap it
       const ta = insp.querySelector('[data-s="' + b.dataset.hi + '"]'), v = ta.value; let a = ta.selectionStart, z = ta.selectionEnd;
@@ -1122,7 +1127,11 @@
   // The local server keeps the queue in `_animate/`; the animate-photos skill (Claude, talking to
   // Higgsfield) works through it. The studio never talks to Higgsfield itself.
   const api = (path, body) => fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined).then(r => r.json());
-  async function animSend(c) {
+  // [key, label, Higgsfield model id, credits per second Draft, Full] — measured 2026-11-13, sound off
+  const GEN_MODELS = [['seedance', 'Seedance 2.5', 'seedance_2_5', 7, 16], ['kling', 'Kling 3.0', 'kling3_0', 1.25, 1.5], ['cinema', 'Cinema Studio', 'cinematic_studio_video_v2', 1, 1.5]];
+  function genModel(c) { return GEN_MODELS.find(m => m[0] === c.genModel) || GEN_MODELS[0]; }
+  function genCredits(c) { return +((c.genDur || 5) * genModel(c)[c.genMode === 'pro' ? 4 : 3]).toFixed(2); }
+  async function animSend(c, now) {
     const m = media[c.mid], mv = MOVES.find(x => x[0] === c.move); if (!m || !mv) return;
     const im = imgFor(m); if (!im.complete || !im.naturalWidth) { toast('The photo is still loading. Try again in a moment.'); return; }
     // the start frame is the photo exactly as this clip frames it, at the video's size
@@ -1134,11 +1143,23 @@
     const id = uid() + uid().slice(0, 3);
     const prompt = MOVE_BASE.replace('{move}', mv[2]) + (c.moveNote ? ' ' + String(c.moveNote).trim() : '');
     try {
-      const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, model: 'seedance_2_5', mode: c.genMode === 'pro' ? 'pro' : 'std', aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
+      const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std', aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
       if (r.error) throw new Error(r.error);
-      mark(); c.job = { id, status: 'queued' }; renderAll(); animWatch();
-      toast('Queued. Run /animate-photos in Claude to generate it.');
+      mark(); c.job = { id, status: 'queued' }; renderAll();
+      if (!now) { animWatch(); toast('Queued. Run /animate-photos in Claude to generate it.'); return; }
+      // Generate now: Higgsfield's command-line tool on this computer, no Claude. Price first, then a yes.
+      const q = await api('/api/animate/cost', { id });
+      if (q.error) { await api('/api/animate/cancel', { id }).catch(() => {}); delete c.job; renderAll(); toast(q.error); return; }
+      c.job = { id, status: 'confirm', credits: q.credits }; renderAll();
     } catch (e) { toast('Could not reach the local server\'s animate queue (' + e.message + ').'); }
+  }
+  async function animRun(c) {
+    if (!c.job || c.job.status !== 'confirm') return;
+    try {
+      const r = await api('/api/animate/run', { id: c.job.id });
+      if (r.error) throw new Error(r.error);
+      c.job = { id: c.job.id, status: 'working' }; renderAll(); animWatch();
+    } catch (e) { toast('Could not start the generation (' + e.message + ').'); }
   }
   async function animCancel(c) {
     if (!c.job) return;
@@ -1171,7 +1192,7 @@
           api('/api/animate/placed', { id: j.id }).catch(() => {});
           toast('The animated clip is on the timeline.');
         } catch (e) { c.job = { id: j.id, status: 'failed', error: 'the finished video could not be loaded' }; changed = true; }
-      } else if (j.status !== c.job.status) {
+      } else if (j.status !== c.job.status && !(c.job.status === 'confirm' && j.status === 'queued')) {
         c.job = j.status === 'failed' ? { id: j.id, status: 'failed', error: j.error } : { id: j.id, status: j.status }; changed = true;
       }
     }

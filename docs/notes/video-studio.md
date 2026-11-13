@@ -137,3 +137,15 @@ generated through the skill yet**, so its `start_image` round trip is unproven.
 CASV always queues `seedance_2_5`. Quality stays Draft 720p (7 credits/s) / Full 1080p (16/s).
 The skill's table still lists Cinema Studio for old jobs. Kling was priced but never built in.
 A real Seedance run through the skill is still unproven.
+
+**Three models again, and Generate now (2026-11-13, by request):** Model is Seedance 2.5 (default) /
+Kling 3.0 / Cinema Studio (`GEN_MODELS` in video-studio.js holds ids and credits per second:
+7/16, 1.25/1.5, 1/1.5, sound off). **Generate now** runs Higgsfield's command-line tool from
+`tools/video-dev/serve.py` (`@higgsfield/cli` 1.2.2, installed globally with npm; `higgsfield auth
+login` is the user's step): `/api/animate/cost` prices the job (`generate cost`), the page shows
+"This will spend N credits" with Generate / Cancel, `/api/animate/run` starts a thread that runs
+`generate create`, `generate wait`, `generate get`, downloads the MP4 and marks the job `done`; the
+page's existing poll places it. Send to the animate queue (the Claude skill) is unchanged.
+UNPROVEN until the tool is signed in: the param flag spelling (`--aspect_ratio`, `--bitrate_mode`,
+`--generate_audio false`), the JSON shapes (the server only regex-reads a UUID, a credits number
+and an .mp4 URL), and any real run. Kling's output size is not measured.

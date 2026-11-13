@@ -51,6 +51,8 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
    |---|---|---|---|---|
    | `cinematic_studio_video_v2` (or none) | `std` (or none) | `sound: "off"`, `mode: "std"` | 720x1280 | 1 |
    | `cinematic_studio_video_v2` | `pro` | `sound: "off"`, `mode: "pro"` | 1080x1920 | 1.5 |
+   | `kling3_0` | `std` | `sound: "off"`, `mode: "std"` | not measured | 1.25 |
+   | `kling3_0` | `pro` | `sound: "off"`, `mode: "pro"` | not measured | 1.5 |
    | `seedance_2_5` | `std` | `mode: "omni_reference"`, `resolution: "720p"`, `bitrate_mode: "standard"`, `generate_audio: false` | 720p | 7 |
    | `seedance_2_5` | `pro` | `mode: "omni_reference"`, `resolution: "1080p"`, `bitrate_mode: "high"`, `generate_audio: false` | 1080p | 16 |
 

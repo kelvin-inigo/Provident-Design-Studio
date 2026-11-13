@@ -8,13 +8,78 @@ import base64
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import threading
 import time
+import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8794
 QUEUE = os.path.join(ROOT, '_animate')
+
+
+# ── Generate now: Higgsfield's own command-line tool (`npm i -g @higgsfield/cli`, then
+# `higgsfield auth login` once). It spends the signed-in account's plan credits, the same as the
+# website, and needs no Claude and no API key. Nothing here runs without the studio's explicit
+# /api/animate/run, which the page only sends after showing the cost.
+HF = shutil.which('higgsfield') or os.path.expanduser('~/.local/node/bin/higgsfield')
+SIGN_IN = "Higgsfield's tool is not signed in on this computer. Run `higgsfield auth login` in Terminal, or use Send to the animate queue."
+
+
+def hf_args(job, photo):
+    """The tool's params for one job. Same settings table as the animate-photos skill."""
+    pro = job.get('mode') == 'pro'
+    a = [job.get('model') or 'seedance_2_5', '--prompt', job.get('prompt') or '', '--duration', str(int(job.get('duration') or 5)),
+         '--aspect_ratio', job.get('aspect') or '9:16', '--start-image', photo]
+    if a[0] == 'seedance_2_5':
+        a += ['--mode', 'omni_reference', '--resolution', '1080p' if pro else '720p',
+              '--bitrate_mode', 'high' if pro else 'standard', '--generate_audio', 'false']
+    else:                                   # kling3_0, cinematic_studio_video_v2
+        a += ['--mode', 'pro' if pro else 'std', '--sound', 'off']
+    return a
+
+
+def hf(*args, timeout=120):
+    if not os.path.exists(HF):
+        return 1, "Higgsfield's tool is not installed on this computer (npm i -g @higgsfield/cli)."
+    try:
+        r = subprocess.run([HF, *args, '--json', '--no-color'], capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return 1, 'Higgsfield did not answer in time.'
+    out = (r.stdout or '') + (r.stderr or '')
+    if r.returncode and re.search(r'auth login|No workspace|not logged|unauthor', out, re.I):
+        return 1, SIGN_IN
+    return r.returncode, out.strip()
+
+
+def hf_run(jp):
+    """Create, wait, download. Runs in its own thread; the job file carries the state."""
+    def save(**k):
+        job = json.load(open(jp)); job.update(k); json.dump(job, open(jp, 'w'), indent=1); return job
+    try:
+        job = json.load(open(jp))
+        rc, out = hf('generate', 'create', *hf_args(job, os.path.join(QUEUE, job['photo'])), timeout=300)
+        m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
+        if rc or not m:
+            return save(status='failed', error=(out or 'no job id came back')[-300:])
+        save(job_id=m.group(0))
+        hf('generate', 'wait', m.group(0), '--timeout', '25m', '--interval', '5s', '--quiet', timeout=1600)
+        rc, out = hf('generate', 'get', m.group(0))
+        u = re.search(r'https://[^"\s]+\.mp4[^"\s]*', out)
+        if rc or not u:
+            return save(status='failed', error=(out or 'no video came back')[-300:])
+        mp4 = os.path.join(QUEUE, job['id'] + '.mp4')
+        with urllib.request.urlopen(u.group(0), timeout=300) as r, open(mp4, 'wb') as f:
+            shutil.copyfileobj(r, f)
+        save(status='done', video=job['id'] + '.mp4')
+    except Exception as e:                   # never leave a clip reading "Generating…" forever
+        try:
+            save(status='failed', error='%s: %s' % (type(e).__name__, e))
+        except Exception:
+            pass
 
 
 class H(SimpleHTTPRequestHandler):
@@ -68,6 +133,20 @@ class H(SimpleHTTPRequestHandler):
             job = {k: body.get(k) for k in ('id', 'name', 'move', 'prompt', 'duration', 'aspect', 'mode', 'model')}
             job.update(status='queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
+            return self._json(200, job)
+        if path in ('/api/animate/cost', '/api/animate/run') and os.path.exists(jp):
+            job = json.load(open(jp))
+            if job.get('status') != 'queued':
+                return self._json(200, {'error': 'That job is already %s.' % job.get('status')})
+            if path.endswith('cost'):
+                rc, out = hf('generate', 'cost', *hf_args(job, os.path.join(QUEUE, job['photo'])))
+                m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out) or re.search(r'([0-9]+(?:\.[0-9]+)?)\s*credits', out, re.I)
+                if rc or not m:
+                    return self._json(200, {'error': out[-300:] or 'Higgsfield gave no price.'})
+                return self._json(200, {'id': jid, 'credits': float(m.group(1))})
+            job['status'] = 'working'
+            json.dump(job, open(jp, 'w'), indent=1)
+            threading.Thread(target=hf_run, args=(jp,), daemon=True).start()
             return self._json(200, job)
         if path in ('/api/animate/placed', '/api/animate/cancel') and os.path.exists(jp):
             if path.endswith('cancel'):
