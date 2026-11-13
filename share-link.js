@@ -380,7 +380,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -429,7 +429,7 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -634,6 +634,39 @@
     }
     // A DOWNLOAD, IN THE LOG (2026-11-09, by request): performance marketing zipped the package or
     // one audience (the bar's Download, or the Ad sets window's); the ad set's Activity says so
+    // VIDEO (2026-11-13, CASV): an ad set can carry videos made in the Video Studio, which runs on
+    // the designer's own computer. They are NOT items: nothing in rsAuds, the steps or the image
+    // scan knows them. `rs.video = { on, list: [{ id, title, aud, dur, by, at, f: { '9x16', '1x1' }
+    // (Drive file ids in <Main>/Video/), bytes, thumb (small data URL), casv (the outbox id on the
+    // designer's computer), notes: [{ id, t, text, by, em, at, done }] }] }`. Who may do what is the
+    // signed-in role's, in the page (vidPanel); every Status row opens with the designer's link.
+    if (op === 'rsvideo') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      const V = R.rs.video = R.rs.video || { on: false, list: [] }; V.list = V.list || [];
+      const by = dsWho(body.by), txt = (v, n) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, n);
+      const one = () => { const v = V.list.find(x => x.id === body.vid); if (!v) throw dsFail(404, 'That video is no longer on this ad set.'); return v; };
+      if (body.act === 'on') { V.on = !!body.on; dsLog(R.rs, by, [{ kind: 'step', text: V.on ? 'Added a video to this ad set’s deliverables' : 'Removed the video from this ad set’s deliverables' }]); }
+      else if (body.act === 'add') {
+        const n = body.v || {}, was = V.list.find(x => x.id === n.id);
+        const rec = { id: txt(n.id, 24) || dsRand(8), title: txt(n.title, 80) || 'Video', aud: txt(n.aud, 120), dur: +n.dur || 0, by, at: dsNow(),
+          f: { '9x16': txt((n.f || {})['9x16'], 80), '1x1': txt((n.f || {})['1x1'], 80) }, bytes: n.bytes || {}, casv: txt(n.casv, 24),
+          thumb: /^data:image\//.test(n.thumb || '') && n.thumb.length < 120000 ? n.thumb : '', notes: was ? was.notes || [] : [], n: was ? (was.n || 1) + 1 : 1 };
+        if (was) V.list[V.list.indexOf(was)] = rec; else V.list.push(rec);
+        V.on = true;
+        dsLog(R.rs, by, [{ kind: 'step', text: (was ? 'Replaced the video “' : 'Added the video “') + rec.title + '”' + (was ? ' (version ' + rec.n + ')' : '') }]);
+      } else if (body.act === 'rm') { const v = one(); V.list = V.list.filter(x => x !== v); dsLog(R.rs, by, [{ kind: 'step', text: 'Removed the video “' + v.title + '”' }]); }
+      else if (body.act === 'note') {
+        const v = one(), text = String(body.text || '').trim().slice(0, 600); if (!text) throw dsFail(400, 'Write the comment first.');
+        v.notes = (v.notes || []).concat({ id: dsRand(6), t: Math.max(0, Math.round((+body.t || 0) * 100) / 100), text, by, em: txt(body.em, 120), at: dsNow(), done: false }).sort((a, b) => a.t - b.t).slice(0, 200);
+        dsLog(R.rs, by, [{ kind: 'step', text: 'Commented on the video “' + v.title + '” at ' + Math.floor((+body.t || 0) / 60) + ':' + ('0' + Math.floor((+body.t || 0) % 60)).slice(-2) }]);
+      } else if (body.act === 'notedone' || body.act === 'noterm') {
+        const v = one(), k = (v.notes || []).find(x => x.id === body.nid); if (!k) throw dsFail(404, 'That comment is gone.');
+        if (body.act === 'noterm') v.notes = v.notes.filter(x => x !== k); else { k.done = !!body.done; k.doneBy = k.done ? by : ''; }
+      } else if (body.act === 'dl') { const v = one(); dsLog(R.rs, by, [{ kind: 'step', text: 'Downloaded the video “' + v.title + '” · ' + (body.size === '1x1' ? 'Square 1:1' : 'Reel 9:16') }]); }
+      else throw dsFail(400, 'Unknown video action.');
+      await dsWrite(R.rid, R.rs);
+      return { rs: pub() };
+    }
     if (op === 'rsdl') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
       if (R.role !== 'pm') throw dsFail(403, 'Only performance marketing’s downloads are logged.');
@@ -2293,12 +2326,12 @@
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident' };
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on) };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
     // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
     d.phn = {}; const phL = k => k in d.phn ? phClean(d.phn[k]) : phN(k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand]);
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video]);
     const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
     ord();
     const was = sig();
@@ -2311,6 +2344,8 @@
       (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: every audience is branded and can also run unbranded, with its own words — Start the unbranded on Status copies its branded design. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
+      // VIDEO (2026-11-13): the ad set also delivers a video, made in the Video Studio; Status then shows an Add video placeholder
+      (phOk ? '<div class="rsp-f"><span id="rss-vid-l" title="The ad set also delivers a video, made in the Video Studio (CASV). Status shows an Add video placeholder until it is added.">Video</span><div class="p-tabs rsp-vid" role="radiogroup" aria-labelledby="rss-vid-l"></div></div>' : '') +
       (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div>' +
         '<div class="rss-phx"><input class="p-in" data-phx-in maxlength="40" placeholder="Name a phase, e.g. Ad Fatigue 03" aria-label="A phase of your own" autocomplete="off" spellcheck="false"><button type="button" class="p-ghost" data-phx="">Add phase</button></div></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
@@ -2326,6 +2361,8 @@
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
       const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
+      const vt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.video === k) + '" data-vidon="' + (k ? '1' : '0') + '"' + (d.video === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+      if ($('.rsp-vid')) $('.rsp-vid').innerHTML = vt(false, 'No video') + vt(true, 'Includes a video');
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
@@ -2394,6 +2431,7 @@
         if (b.dataset.x) return close(null);
         if (b.dataset.prod) return setProd(b.dataset.prod);
         if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
+        if (b.dataset.vidon) { d.video = b.dataset.vidon === '1'; st(''); draw(); return; }
         if (b.dataset.ph) {
           const k = b.dataset.ph;
           if (d.phases.length === 1) return st('Keep at least one phase.');
@@ -2431,7 +2469,7 @@
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
               if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
-            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; }
+            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
         }
@@ -2443,7 +2481,12 @@
   // Drive keeps the whole plan on the ad set; the old share store keeps the name and product, the
   // Arabic as eng_only, and the plan on this computer (PLAN_LOCAL), as it did when it was made
   async function rsSettingsSave(id, rs, p, by) {
-    if (isDs(id) || isDs((rs.tok || {}).dd) || Array.isArray(rs.plan)) return (await api('rsset', { id }, Object.assign({ by }, p))).rs;
+    if (isDs(id) || isDs((rs.tok || {}).dd) || Array.isArray(rs.plan)) {
+      const vid = p.video; p = Object.assign({}, p); delete p.video;
+      let out = (await api('rsset', { id }, Object.assign({ by }, p))).rs;
+      if (vid !== undefined) out = (await api('rsvideo', { id }, { by, act: 'on', on: vid })).rs;
+      return out;
+    }
     const eo = {}; p.plan.forEach(c => { eo[c.market + '|' + c.aud] = !c.arb; });
     const r = await api('rsset', { id }, { by, name: p.name, product: p.product, eng_only: eo });
     if (rs.tok && rs.tok.dd) lsSet(PLAN_LOCAL + rs.tok.dd, JSON.stringify(p.plan));
@@ -3226,7 +3269,9 @@
         (log.length ? log.slice(0, 60).map((e, i, l) => logEntryHtml(e, { max: 8, cont: logCont(l[i - 1], e), mine: e.by === StudioBase.shareName() })).join('') : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
       const links = dd ? '<details class="adt-card adt-lk"><summary class="adt-ch"><h3>Links for the teams</h3>' + PICO.more + '</summary><div class="rv-lks">' + linkRows(rs.tok) + '</div>' +
         (/^https?:\/\//.test(rs.drive || '') ? '<a class="adt-drv" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + PICO.folder + '<span>Drive folder</span></a>' : '') + '</details>' : '';
-      bot = audCard + briefHtml(rs.ticket) + act + links;
+      // the ad set's video (CASV): the same tiles and Add video placeholder as Status
+      const vsec = vidSecHtml(rs), vid = vsec ? '<section class="adt-card adt-vid">' + vsec.replace(/^<section[^>]*>/, '').replace('<h3>', '<div class="adt-ch"><h3>').replace('</h3>', '</h3></div>') : '';
+      bot = audCard + vid + briefHtml(rs.ticket) + act + links;
     }
     hosts.forEach(el => {
       const html = el.dataset.adt === 'top' ? top : bot;
@@ -3243,6 +3288,11 @@
     if (b.dataset.a === 'setup') return this.reviewCreate();
     if (b.dataset.a === 'find') return this.rsFind(true);
     if (b.dataset.a === 'overview') return this.rsOverview();
+    if ((b.dataset.a === 'vid' || b.dataset.a === 'vidadd') && rs) {
+      const by = StudioBase.shareName() || 'Designer', after = r => { if (r) { this.rsSet(r); this.adtRender(); } };
+      if (b.dataset.a === 'vid') vidOpen(S.id, rs, b.dataset.vid, by, after); else vidAdd(S.id, rs, by, after);
+      return;
+    }
     if (b.dataset.a === 'settings' && rs && rs.tok) {
       const by = StudioBase.shareName() || 'Designer';
       const r = await rsSettings(rs, p => rsSettingsSave(S.id, rs, p, by));
@@ -3918,9 +3968,10 @@
     dlg.className = 'rvh-dlg'; dlg.setAttribute('aria-label', 'Ad set details');
     document.body.appendChild(dlg);
     const click = e => {
-      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf],[data-go],[data-act],[data-pnl]');
+      const b = e.target.closest('[data-dl],[data-det],[data-x],[data-ntf],[data-go],[data-act],[data-pnl],[data-vid]');
       if (e.target === dlg) { dlg.close(); return; }          // a click on the backdrop
       if (!b) return;
+      if (b.dataset.vid) { vidOpen(this.tok, this.rs, b.dataset.vid, StudioBase.shareName() || 'Performance marketing', r => { if (r) { this.rs = r; this._barH = ''; this.barRender(); } }); return; }
       if (b.dataset.dl) this.download(b.dataset.dl);
       if (b.dataset.det) { this.barRender(); dlg.showModal(); }
       if (b.dataset.ntf) askNotify().then(() => { this._barH = ''; this.barRender(); });
@@ -4025,6 +4076,8 @@
     // 1 — the top bar: status, then the actions, the download last and loudest
     const html = pillHtml(all.ready, all.ready ? 'Package ready' : all.done + ' of ' + all.n + ' ready') +
       (window.Notification && Notification.permission === 'default' ? '<button type="button" class="p-ghost rvh-ntf" data-ntf="1" title="A Chrome notification when an audience moves on">Notify me</button>' : '') +
+      // the ad set's videos (CASV): play, comment on the timeline, download the Reel and the Square
+      vidList(rs).map((v, i, l) => '<button type="button" class="p-ghost rvh-vid" data-vid="' + esc(v.id) + '" title="' + esc(v.title + ' — play it, comment on its timeline, download the Reel 9:16 and the Square 1:1') + '">' + (l.length > 1 ? 'Video ' + (i + 1) : 'Video') + '</button>').join('') +
       '<button type="button" class="p-ghost rvh-det" data-det="1" title="Who did what and when, audience by audience">See details</button>' + dlBtn;
     if (html !== this._barH) { this._barH = html; el.innerHTML = html; }
     const bh = document.querySelector('[data-rvh-bar]');
@@ -4716,6 +4769,11 @@
     }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
+    if (a === 'vid' || a === 'vidadd') {
+      const rs = this.det && this.det.rs; if (!rs) return;
+      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again); else vidAdd(this.sel, rs, by, again);
+      return;
+    }
     if (a === 'settings') {
       const rs = this.det && this.det.rs; if (!rs) return;
       const id = this.sel, phWas = phList(rs), r = await rsSettings(rs, p => rsSettingsSave(id, rs, p, by), { ticket: isDs(id) || !!rs.ticket });
@@ -4891,6 +4949,271 @@
         '<button type="button" class="p-ghost" data-a="phtype">Add</button></span></span>' : '') + '</span>' : '';
     return '<div class="rvd-phs" role="tablist" aria-label="Phases">' + t + add + '</div>';
   };
+  // ════ VIDEO ON AN AD SET (2026-11-13, CASV) ═══════════════════════════════════════════
+  // The Video Studio (CASV) runs on the designer's own computer; this page holds the Google
+  // sign-in. So the designer's "Add video" FETCHES the two recorded sizes from CASV's local server
+  // (its outbox, http://localhost:8794) or takes two chosen files, and uploads them to the ad
+  // set's Drive folder, in Video/. Everyone else plays them here, comments on the timeline and
+  // downloads the Reel 9:16 and the Square 1:1. The record is rs.video (dsApi op `rsvideo`).
+  // Comments go back to CASV the same way they came: this page posts them to the local server
+  // whenever the designer has the video open, and CASV pins them on its timeline.
+  const CASV_AT = () => (lsGet('provident-casv-local') || 'http://localhost:8794').replace(/\/+$/, '');
+  const vidCan = () => { const r = accRole(); return !r || r === 'designer' || r === 'admin'; };
+  const vidT = t => { t = Math.max(0, +t || 0); return Math.floor(t / 60) + ':' + ('0' + Math.floor(t % 60)).slice(-2); };
+  const vidList = rs => ((rs && rs.video && rs.video.list) || []);
+  const vidOn = rs => !!(rs && rs.video && (rs.video.on || vidList(rs).length));
+  const VID_SIZE = { '9x16': 'Reel 9:16', '1x1': 'Square 1:1' };
+  const VID_BLOBS = {};
+  function vidBlob(fid) {
+    return VID_BLOBS[fid] || (VID_BLOBS[fid] = dsFetch('/drive/v3/files/' + fid + '?alt=media&supportsAllDrives=true').then(r => r.blob())
+      .then(b => new Blob([b], { type: 'video/mp4' })).catch(e => { delete VID_BLOBS[fid]; throw e; }));
+  }
+  let vidCssDone = false;
+  function vidCss() {
+    injectCss(); if (vidCssDone) return; vidCssDone = true;
+    const s = document.createElement('style'); s.id = 'vdo-css';
+    s.textContent = `
+.vdo-sec .rvd-aut,.adt-vid .rvd-aut{margin-top:0;padding-top:0;border-top:none}
+.rss .rsp-vid{align-self:flex-start}
+.vdo-th{position:relative}
+.vdo-th img{width:100%;height:100%;object-fit:cover;display:block}
+.vdo-dlg .shl-dlg-c.vdo{width:min(980px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;padding:20px 24px 24px;overflow:hidden}
+.vdo-h{display:flex;align-items:baseline;gap:12px;margin:0 0 16px}
+.vdo-h h2{margin:0;font:500 20px/1.25 var(--ps-font);color:var(--ps-ink)}
+.vdo-h span{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vdo-h .vdo-x{margin-left:auto;flex:none}
+.vdo-b{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:24px;min-height:0;overflow:auto}
+.vdo-l{display:flex;flex-direction:column;gap:12px;min-width:0}
+.vdo-stage{position:relative;height:min(56vh,560px);border-radius:12px;background:#0A0B0D;overflow:hidden}
+.vdo-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.vdo-stage p{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);margin:0;padding:0 16px;text-align:center;font:400 13px/1.4 var(--ps-font);color:#fff}
+.vdo-tl{position:relative;height:28px;border-radius:8px;background:var(--ps-fill-h);cursor:pointer}
+.vdo-tl i{position:absolute;top:0;bottom:0;left:0;width:0;border-right:2px solid var(--ps-ink);pointer-events:none}
+.vdo-tl button{position:absolute;top:4px;width:20px;height:20px;margin-left:-10px;padding:0;border:none;border-radius:10px;background:var(--ps-ink);color:var(--ps-card);font:600 11px/20px var(--ps-font);text-align:center;cursor:pointer}
+.vdo-tl button[data-done]{opacity:.45}
+.vdo-tl button:focus-visible,.vdo-notes button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.vdo-dl{display:flex;flex-wrap:wrap;gap:8px}
+.vdo-r{display:flex;flex-direction:column;gap:12px;min-width:0}
+.vdo-r h3{margin:0;font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.vdo-r h3 s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.vdo-new{display:flex;flex-direction:column;gap:8px;margin:0}
+.vdo-new span{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.vdo-new textarea{resize:vertical;min-height:56px}
+.vdo-notes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.vdo-notes li{padding:10px 12px;border-radius:12px;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.vdo-notes li[data-done]{opacity:.6}
+.vdo-notes .vdo-nt{display:flex;align-items:center;gap:8px;width:100%;padding:0;border:none;background:none;color:var(--ps-ink);font:500 13px/1.3 var(--ps-font);text-align:left;cursor:pointer}
+.vdo-notes .vdo-nt b{flex:none;min-width:20px;height:20px;border-radius:10px;background:var(--ps-ink);color:var(--ps-card);font:600 11px/20px var(--ps-font);text-align:center}
+.vdo-notes .vdo-nt s{text-decoration:none;font-weight:400;color:var(--ps-ink-2);margin-left:auto}
+.vdo-notes p{margin:6px 0 0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.vdo-notes .vdo-na{display:flex;gap:12px;margin-top:6px}
+.vdo-notes .vdo-na button{padding:0;border:none;background:none;color:var(--ps-ink-2);font:500 12px/1.3 var(--ps-font);text-decoration:underline;cursor:pointer}
+.vdo-empty{margin:0;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.vdo-own{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid var(--ps-hair)}
+.vdo-add{display:flex;flex-direction:column;gap:16px}
+.vdo-add select{width:100%}
+.vdo-src{display:flex;flex-direction:column;gap:8px}
+.vdo-src>b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.vdo-pick{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink);font:400 14px/1.3 var(--ps-font);text-align:left;cursor:pointer}
+.vdo-pick[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--ps-ink)}
+.vdo-pick s{text-decoration:none;margin-left:auto;color:var(--ps-ink-2);font-size:13px}
+.vdo-files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.vdo-files label{display:flex;flex-direction:column;gap:6px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);min-width:0}
+.vdo-files input{min-width:0;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink)}
+@media (max-width:760px){.vdo-b{grid-template-columns:minmax(0,1fr)}.vdo-stage{height:46vh}.vdo-files{grid-template-columns:minmax(0,1fr)}}
+`;
+    document.head.appendChild(s);
+  }
+  // The Status ad set page's Video section: a tile per video, then the Add video placeholder.
+  function vidSecHtml(rs) {
+    if (!vidOn(rs)) return '';
+    vidCss();
+    const can = vidCan(), list = vidList(rs);
+    const card = v => { const all = v.notes || [], open = all.filter(n => !n.done).length;
+      return '<div class="rva-lt"><button type="button" class="rva-pj" data-a="vid" data-vid="' + esc(v.id) + '" title="Play it, comment on its timeline, download the Reel and the Square">' +
+        '<span class="rva-lt-th vdo-th">' + (v.thumb ? '<img src="' + esc(v.thumb) + '" alt="">' : '') + '</span>' +
+        '<span class="rva-lt-t"><b>' + esc(v.title) + '</b><s>' + esc([vidT(v.dur), v.aud || 'All audiences', '9:16 and 1:1'].join(' · ')) + '</s><u><i></i>' +
+        (open ? open + (open === 1 ? ' comment' : ' comments') + ' open' : all.length ? 'Comments dealt with' : 'No comments yet') + '</u></span>' + ico('ext') + '</button></div>'; };
+    const ph = can ? '<button type="button" class="rvd-ph" data-a="vidadd" title="Takes the two sizes from the Video Studio on this computer, or two files you choose, into this ad set’s Drive folder">' +
+        '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Add video</b><s>From CASV on this computer, or choose the two files</s></span></button>'
+      : list.length ? '' : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Video</b><s>Not added yet — the designer adds it from the Video Studio</s></span></div>';
+    return '<section class="rvd-sec vdo-sec"><h3>Video <s>' + list.length + '</s></h3><div class="rvd-aut">' + list.map(card).join('') + ph + '</div></section>';
+  }
+  // (the download buttons are data-vdl, never data-dl: the home page's own click handler takes every
+  // [data-dl] on the page for an OPS post's files and answers with an alert)
+  // a small still for the tiles: from a poster image, or a frame a third of the way into a video
+  async function vidThumb(blob, video) {
+    const url = URL.createObjectURL(blob);
+    try {
+      let src, w, h;
+      if (video) {
+        src = document.createElement('video'); src.muted = true; src.playsInline = true; src.preload = 'auto'; src.src = url;
+        await new Promise((res, rej) => { src.onloadeddata = res; src.onerror = rej; setTimeout(rej, 15000); });
+        await new Promise(res => { src.onseeked = res; src.currentTime = Math.min((src.duration || 3) * .33, 4); setTimeout(res, 4000); });
+        w = src.videoWidth; h = src.videoHeight;
+      } else {
+        src = new Image(); src.src = url; await new Promise((res, rej) => { src.onload = res; src.onerror = rej; });
+        w = src.naturalWidth; h = src.naturalHeight;
+      }
+      const c = document.createElement('canvas'); c.width = 220; c.height = Math.max(1, Math.round(220 * h / w));
+      c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+      return { thumb: c.toDataURL('image/webp', .7), dur: video ? src.duration || 0 : 0, w, h };
+    } catch (e) { return { thumb: '', dur: 0 }; } finally { URL.revokeObjectURL(url); }
+  }
+  // ADD (or replace) a video. `rep` is the record being replaced: its id, comments and name stay.
+  function vidAdd(id, rs, by, after, rep) {
+    vidCss();
+    const auds = [...new Set(rsAuds(rs).map(a => a.label))];
+    let pick = null, out = [];
+    const el = document.createElement('div'); el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c vdo-add" role="dialog" aria-modal="true" aria-labelledby="vda-t">' +
+      '<div><h2 id="vda-t">' + (rep ? 'Replace the video' : 'Add video') + '</h2><p class="shl-lead">Made in the Video Studio (CASV). The Reel 9:16 and the Square 1:1 are saved in this ad set’s Drive folder, in Video.' + (rep ? ' Its comments stay.' : '') + '</p></div>' +
+      '<label class="rsp-f"><span>Name</span><input class="p-in" data-f="title" maxlength="80" autocomplete="off"></label>' +
+      '<label class="rsp-f"><span>Audience</span><select class="p-in" data-f="aud"><option value="">All audiences</option>' + auds.map(a => '<option>' + esc(a) + '</option>').join('') + '</select></label>' +
+      '<div class="vdo-src"><b>From CASV on this computer</b><div data-out><p class="vdo-empty">Looking for the Video Studio…</p></div></div>' +
+      '<div class="vdo-src"><b>Or choose the two files</b><div class="vdo-files"><label>Reel 9:16<input type="file" accept="video/mp4,.mp4" data-file="9x16"></label><label>Square 1:1<input type="file" accept="video/mp4,.mp4" data-file="1x1"></label></div></div>' +
+      '<p class="shl-st" aria-live="polite"></p>' +
+      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">' + (rep ? 'Replace video' : 'Add video') + '</button></div></div>';
+    document.body.appendChild(el);
+    const $ = q => el.querySelector(q), st = (t, bad) => { const p = $('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
+    const ti = $('[data-f="title"]'), au = $('[data-f="aud"]');
+    if (rep) { ti.value = rep.title || ''; au.value = rep.aud || ''; }
+    const drawOut = () => {
+      $('[data-out]').innerHTML = out.length ? out.slice(0, 6).map(o => '<button type="button" class="vdo-pick" data-pick="' + esc(o.id) + '" aria-pressed="' + (pick === o.id) + '"><span>' + esc(o.title || 'Video') + '</span><s>' + esc(vidT(o.dur) + ' · sent ' + ago((o.at || 0) * 1000)) + '</s></button>').join('')
+        : '<p class="vdo-empty">Nothing is waiting. In the Video Studio on this computer press <b>Send to CAS</b>, then open this again. On another computer, choose the two files below.</p>';
+    };
+    fetch(CASV_AT() + '/api/outbox/list').then(r => r.json()).then(j => {
+      out = (j.videos || []).filter(o => o.sizes && o.sizes['9x16'] && o.sizes['1x1']);
+      if (rep && rep.casv && out.some(o => o.id === rep.casv)) pick = rep.casv; else if (out.length === 1) pick = out[0].id;
+      if (pick && !ti.value) ti.value = (out.find(o => o.id === pick) || {}).title || '';
+      drawOut();
+    }).catch(() => drawOut());
+    const close = () => el.remove();
+    el.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    el.addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.x) return close();
+      if (b.dataset.pick) { pick = pick === b.dataset.pick ? null : b.dataset.pick; if (pick && !ti.value.trim()) ti.value = (out.find(o => o.id === pick) || {}).title || ''; st(''); drawOut(); return; }
+      if (!b.dataset.go) return;
+      const files = { '9x16': $('[data-file="9x16"]').files[0], '1x1': $('[data-file="1x1"]').files[0] }, own = files['9x16'] || files['1x1'];
+      const title = ti.value.replace(/\s+/g, ' ').trim();
+      if (!title) { st('Name the video.'); ti.focus(); return; }
+      if (own && !(files['9x16'] && files['1x1'])) return st('Choose both files: the Reel 9:16 and the Square 1:1.');
+      if (!own && !pick) return st('Pick the video CASV sent, or choose the two files.');
+      const btns = el.querySelectorAll('button,input,select'); btns.forEach(x => { x.disabled = true; });
+      try {
+        const blobs = {}, bytes = {}; let th = { thumb: '', dur: 0 }, casv = '';
+        if (own) {
+          for (const k of ['9x16', '1x1']) { blobs[k] = files[k]; }
+          th = await vidThumb(files['9x16'], true);
+          // the right file in the right slot: a Reel is taller than wide, a Square is not
+          if (th.w && th.h && th.w >= th.h) throw new Error('The file chosen as the Reel 9:16 is not a tall video. Check the two files are the right way round.');
+        } else {
+          const o = out.find(x => x.id === pick), get = async part => { const r = await fetch(CASV_AT() + '/api/outbox/file?id=' + o.id + '&part=' + part); if (!r.ok) throw new Error('The Video Studio no longer has that file. Send it to CAS again.'); return r.blob(); };
+          st('Taking the video from the Video Studio…', false);
+          for (const k of ['9x16', '1x1']) blobs[k] = new Blob([await get(k)], { type: 'video/mp4' });
+          try { th = await vidThumb(await get('poster'), false); } catch (er) { th = await vidThumb(blobs['9x16'], true); }
+          th.dur = o.dur || th.dur; casv = o.id;
+        }
+        st('Opening the ad set’s Video folder…', false);
+        const folder = await dsFolder(rs.folder, 'Video'), f = {}, base = dsSafe(title);
+        for (const k of ['9x16', '1x1']) {
+          st('Uploading the ' + VID_SIZE[k] + ' (' + Math.max(1, Math.round(blobs[k].size / 1048576)) + ' MB)…', false);
+          f[k] = (await dsUpsert(folder, base + '_' + k + '.mp4', new Blob([blobs[k]], { type: 'video/mp4' }))).id; bytes[k] = blobs[k].size;
+          delete VID_BLOBS[f[k]];
+        }
+        st('Saving…', false);
+        const r = await api('rsvideo', { id }, { by, act: 'add', v: { id: rep ? rep.id : '', title, aud: au.value, dur: th.dur, f, bytes, casv: casv || (rep && rep.casv) || '', thumb: th.thumb } });
+        close(); if (after) after(r.rs);
+      } catch (er) { btns.forEach(x => { x.disabled = false; }); st(er.message || String(er)); }
+    });
+    setTimeout(() => ti.focus(), 0);
+  }
+  // PLAY, COMMENT, DOWNLOAD. Anyone on the ad set comments; the designer replaces or removes.
+  function vidOpen(id, rs, vid, by, after) {
+    vidCss();
+    let v = vidList(rs).find(x => x.id === vid); if (!v) return;
+    let size = v.f['9x16'] ? '9x16' : '1x1', changed = false, told = '';
+    const can = vidCan(), urls = {};
+    let em = ''; try { em = (window.providentAccess.now().email || '').toLowerCase(); } catch (e) {}
+    const el = document.createElement('div'); el.className = 'shl-dlg vdo-dlg';
+    el.innerHTML = '<div class="shl-dlg-c vdo" role="dialog" aria-modal="true" aria-labelledby="vdo-t">' +
+      '<div class="vdo-h"><h2 id="vdo-t"></h2><span data-meta></span><button type="button" class="p-ghost vdo-x" data-x="1">Close</button></div>' +
+      '<div class="vdo-b"><div class="vdo-l">' +
+      '<div class="p-tabs" role="radiogroup" aria-label="Size" data-sz></div>' +
+      '<div class="vdo-stage"><video playsinline controls preload="auto"></video><p data-wait>Loading the video…</p></div>' +
+      '<div class="vdo-tl" data-tl title="Click to move to that moment. The numbered pins are comments."><i></i></div>' +
+      '<div class="vdo-dl"><button type="button" class="p-ghost" data-vdl="9x16">Download Reel 9:16</button><button type="button" class="p-ghost" data-vdl="1x1">Download Square 1:1</button></div>' +
+      '</div><div class="vdo-r"><h3>Comments <s data-n></s></h3>' +
+      '<form class="vdo-new"><span data-at>Comment at 0:00</span><textarea class="p-in" rows="2" maxlength="600" placeholder="What should change at this moment?" aria-label="Comment"></textarea><div><button type="submit" class="p-btn">Add comment</button></div></form>' +
+      '<ol class="vdo-notes"></ol><p class="shl-st" aria-live="polite"></p>' +
+      (can ? '<div class="vdo-own"><button type="button" class="p-ghost" data-rep="1">Replace video</button><button type="button" class="p-ghost" data-rm="1">Remove</button></div>' : '') +
+      '</div></div></div>';
+    document.body.appendChild(el);
+    const $ = q => el.querySelector(q), vd = $('video'), tl = $('[data-tl]'), ta = $('textarea');
+    const st = (t, bad) => { const p = $('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
+    const dur = () => (isFinite(vd.duration) && vd.duration) || v.dur || 1;
+    // the designer's own computer hears about every comment, so CASV can pin them on its timeline
+    const push = () => {
+      if (!can || !v.casv) return;
+      fetch(CASV_AT() + '/api/outbox/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: v.casv, notes: (v.notes || []).map(n => ({ t: n.t, text: n.text, by: n.by, done: !!n.done })) }) })
+        .then(r => { if (r.ok) { told = 'The comments are pinned on the Video Studio’s timeline on this computer.'; if (!$('.shl-st').textContent) st(told, false); } }).catch(() => {});
+    };
+    const draw = () => {
+      const all = v.notes || [], open = all.filter(n => !n.done).length;
+      $('#vdo-t').textContent = v.title;
+      $('[data-meta]').textContent = [vidT(v.dur), v.aud || 'All audiences', 'Added ' + dayS(v.at) + ' by ' + v.by, v.n > 1 ? 'version ' + v.n : ''].filter(Boolean).join(' · ');
+      $('[data-sz]').innerHTML = ['9x16', '1x1'].filter(k => v.f[k]).map(k => '<button type="button" role="radio" aria-checked="' + (size === k) + '" data-size="' + k + '"' + (size === k ? ' data-on="1"' : '') + '>' + VID_SIZE[k] + '</button>').join('');
+      el.querySelectorAll('[data-vdl]').forEach(b => { b.hidden = !v.f[b.dataset.vdl]; });
+      $('[data-n]').textContent = all.length ? open + ' open of ' + all.length : '';
+      tl.querySelectorAll('button').forEach(b => b.remove());
+      all.forEach((n, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1; b.dataset.seek = n.t; if (n.done) b.dataset.done = '1'; b.style.left = Math.min(100, n.t / dur() * 100) + '%'; b.title = vidT(n.t) + ' · ' + n.by + ': ' + n.text; b.setAttribute('aria-label', 'Comment ' + (i + 1) + ' at ' + vidT(n.t)); tl.appendChild(b); });
+      $('.vdo-notes').innerHTML = all.length ? all.map((n, i) => '<li' + (n.done ? ' data-done="1"' : '') + '><button type="button" class="vdo-nt" data-seek="' + n.t + '" title="Go to this moment"><b>' + (i + 1) + '</b>' + vidT(n.t) + ' · ' + esc(n.by) + '<s>' + (n.done ? 'Done' : esc(ago(n.at))) + '</s></button><p>' + esc(n.text) + '</p>' +
+        '<div class="vdo-na"><button type="button" data-done="' + esc(n.id) + '" data-to="' + (n.done ? '0' : '1') + '">' + (n.done ? 'Reopen' : 'Mark done') + '</button>' + (can || (em && n.em === em) ? '<button type="button" data-del="' + esc(n.id) + '">Delete</button>' : '') + '</div></li>').join('')
+        : '<li class="vdo-empty" style="box-shadow:none;padding:0">No comments yet. Play the video, pause where something should change, and write it above.</li>';
+    };
+    const load = async () => {
+      const k = size, w = $('[data-wait]'); w.hidden = false; w.textContent = 'Loading the video…'; vd.removeAttribute('src'); vd.load();
+      try { if (!urls[k]) urls[k] = URL.createObjectURL(await vidBlob(v.f[k])); if (k !== size) return; const at = vd.currentTime || 0; vd.src = urls[k]; vd.currentTime = at; w.hidden = true; }
+      catch (er) { w.textContent = er.gdAuth ? 'Sign in with Google to play this video.' : 'The video could not be read from the ad set’s Drive folder.'; }
+    };
+    const call = async body => {
+      st('Saving…', false);
+      try { const r = await api('rsvideo', { id }, Object.assign({ by, vid: v.id, em }, body)); rs = r.rs; v = vidList(rs).find(x => x.id === vid) || v; changed = true; st(''); draw(); push(); return true; }
+      catch (er) { st(er.message || String(er)); return false; }
+    };
+    const tick = () => { tl.firstElementChild.style.width = Math.min(100, vd.currentTime / dur() * 100) + '%'; $('[data-at]').textContent = 'Comment at ' + vidT(vd.currentTime); };
+    vd.addEventListener('timeupdate', tick); vd.addEventListener('seeked', tick); vd.addEventListener('loadedmetadata', draw);
+    const close = () => { try { vd.pause(); } catch (e) {} Object.keys(urls).forEach(k => URL.revokeObjectURL(urls[k])); el.remove(); if (changed && after) after(rs); };
+    el.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    tl.addEventListener('click', e => { if (e.target.closest('button')) return; const r = tl.getBoundingClientRect(); vd.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur(); });
+    $('.vdo-new').addEventListener('submit', async e => {
+      e.preventDefault(); const text = ta.value.trim(); if (!text) { st('Write the comment first.'); ta.focus(); return; }
+      try { vd.pause(); } catch (er) {}
+      if (await call({ act: 'note', t: vd.currentTime || 0, text })) ta.value = '';
+    });
+    el.addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b || b.type === 'submit') return;
+      if (b.dataset.x) return close();
+      if (b.dataset.size) { size = b.dataset.size; draw(); return load(); }
+      if (b.dataset.seek != null) { vd.currentTime = +b.dataset.seek; try { vd.pause(); } catch (er) {} return; }
+      if (b.dataset.done) return void call({ act: 'notedone', nid: b.dataset.done, done: b.dataset.to === '1' });
+      if (b.dataset.del) { if (window.confirm('Delete this comment?')) call({ act: 'noterm', nid: b.dataset.del }); return; }
+      if (b.dataset.vdl) {
+        const k = b.dataset.vdl, was = b.textContent; b.disabled = true; b.textContent = 'Preparing…';
+        try {
+          const u = URL.createObjectURL(await vidBlob(v.f[k])), a = document.createElement('a'); a.href = u; a.download = dsSafe(v.title) + '_' + k + '.mp4';
+          document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
+          if (accRole() === 'pm') api('rsvideo', { id }, { by, vid: v.id, act: 'dl', size: k }).then(() => { changed = true; }).catch(() => {});
+        } catch (er) { st('That file could not be read from Drive.'); }
+        b.disabled = false; b.textContent = was; return;
+      }
+      if (b.dataset.rep) { const was = v; close(); return vidAdd(id, rs, by, after, was); }
+      if (b.dataset.rm && window.confirm('Remove “' + v.title + '” from this ad set?\n\nIts comments go with it. The two files stay in the Drive folder.')) { if (await call({ act: 'rm' })) close(); }
+    });
+    draw(); load(); push();
+    setTimeout(() => { const x = $('.vdo-x'); if (x) x.focus(); }, 0);
+  }
   AV.detHtml = function () {
     const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">' + ico('back') + 'All campaigns</button>';
     if (!d) return back + '<p class="rva-wait">Reading the ad set…</p>';
@@ -5042,7 +5365,7 @@
       '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + (pmV ? '' : audiences) + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + (pmV ? '' : audiences) + vidSecHtml(rs) + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
