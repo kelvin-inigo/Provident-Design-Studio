@@ -300,3 +300,12 @@ The user's end card sat on top of a caption. Three ways to clear it, all on the 
 Verified in Chrome with a real pointer on the user's project, saving blocked in the test tab: drag up
 → 36%, caption clear below; drag far down → stops at 54% (safe area); Higher → 32%; Hidden → the
 caption is gone. 1:1 not checked.
+
+### Headline line spacing (2026-11-13)
+By request: a wrapped headline at Small was too tight (the Reel thumbnail's 158/168 leading).
+`ART.leads = { tight: 158/168, normal: 1.1, open: 1.26 }`, per text as `lead`; unset = Normal at
+Small and Medium, Tight at Large and Jumbo (`leadOf`). "Line spacing" Tight / Normal / Open sits under
+Size on the text panel. Seen in Chrome: the user's two-line Small headline now sets at about 1.1.
+The Tight / Normal / Open buttons themselves were NOT clicked in a browser (the user was working in
+the test tab). Test hygiene: never `delete Storage.prototype.setItem` to undo a patch — it removes the
+native method; keep the original and assign it back.

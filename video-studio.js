@@ -23,6 +23,9 @@
     font: "'Google Sans Flex', system-ui, sans-serif",
     logoPx: 41, logoTrack: .04,               // the wordmark, as on the Reel thumbnail
     headTrack: -.046, headLead: 158 / 168,    // RCV.headTrack / RCV.headLead
+    // 2026-11-13, by request: the thumbnail's leading is too tight on a wrapped headline at the smaller
+    // sizes. Per text (`lead`); unset = Normal at Small and Medium, Tight (the thumbnail's) above.
+    leads: { tight: 158 / 168, normal: 1.1, open: 1.26 },
     // 2026-11-13, by request: Small was too big. Now steps of the x1.2 scale (59.7, 86, 123.8), with
     // the Reel thumbnail's 168 kept as the top size. Was 116.7 / 140 / 168 / 201.6.
     sizes: { Small: 59.7, Medium: 86, Large: 123.8, Jumbo: 168 },
@@ -494,7 +497,7 @@
       if (tx.eyebrow) { setFont(eb, 500, .1); y += eb; rows.push({ s: plain(tx.eyebrow).toUpperCase(), px: eb, wt: 500, tr: .1, y }); y += px * .16; }
       if (tx.text) {
         setFont(px, 400, ART.headTrack);
-        wrapHi(tx.text, maxW).forEach((ln, i) => { y += i ? px * ART.headLead : px * .8; rows.push(Object.assign(ln, { px, wt: 400, tr: ART.headTrack, y, head: 1 })); });
+        wrapHi(tx.text, maxW).forEach((ln, i) => { y += i ? px * ART.leads[leadOf(tx)] : px * .8; rows.push(Object.assign(ln, { px, wt: 400, tr: ART.headTrack, y, head: 1 })); });
       }
       if (tx.sub) {
         setFont(sb, 300, 0); y += px * .22;
@@ -673,6 +676,7 @@
   // loudness (media.peaks, 40 a second): words are spread across the SPOKEN stretches in
   // proportion to their length, so pauses hold the caption and fast passages speed it up. It is
   // an estimate, usually within a word; capShift nudges it. Times are in the file's own seconds.
+  function leadOf(tx) { return ART.leads[tx.lead] ? tx.lead : (tx.size === 'Small' || tx.size === 'Medium' ? 'normal' : 'tight'); }
   const CAP = { sizes: { S: 34.6, M: 41.5, L: 49.8 }, wt: 500, tr: .02, lead: 1.18, padX: 26, padY: 14, r: 18, pill: .78 };
   const capCache = {};
   function capTiming(a) {
@@ -1431,6 +1435,7 @@
         '<div class="vs-f"><label>Headline <button class="vs-hi" data-hi="text" title="Paint the selected words, or the word under the caret, in brass. Press again to remove."><i></i>Brass highlight</button></label><textarea class="p-in" data-s="text" rows="3">' + esc(it.text) + '</textarea></div>' +
         f('Line under it', '<textarea class="p-in" data-s="sub" rows="2" placeholder="Optional">' + esc(it.sub) + '</textarea>') + '</div>' +
         '<div class="vs-sec"><span class="vs-h">Layout</span>' + f('Size', seg('size', ART.order.map(s => [s, s]))) +
+        f('Line spacing', '<div class="vs-seg">' + [['tight', 'Tight'], ['normal', 'Normal'], ['open', 'Open']].map(o => '<button data-k="lead" data-v="' + o[0] + '"' + (leadOf(it) === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
         f('Position', seg('pos', [['top', 'Top'], ['centre', 'Centre'], ['bottom', 'Bottom']])) + f('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
         rng('i', 'scrim', 'Wash under the text', it.scrim, 0, 100, '%') + '</div>' +
         '<div class="vs-sec"><span class="vs-h">Effect</span><select class="p-in" data-s="anim" style="width:100%">' + ANIMS.map(a => '<option value="' + a[0] + '"' + (it.anim === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>' +
