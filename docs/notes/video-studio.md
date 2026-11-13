@@ -174,3 +174,5 @@ Tested with a macOS `say` voiceover (3 sentences, 11.4 s): twelve sampled frames
 right words, and the two pauses cleared. NOT tested: a real recorded voice, music under the
 voice (the threshold will read music as speech), a script that does not match the audio, 1:1.
 The default height collides with a bottom-anchored text block; the user moves one of them.
+
+**Make a voiceover (2026-11-13, by request):** Audio tab > Make a voiceover: script, voice, button. `/api/voice/list` gives Mac voices (`say`, free, offline) and the account's Higgsfield voices (3 of the user's own + 114 presets, from `higgsfield voices list`); `/api/voice/cost` and `/api/voice/make` use `text2speech_v2` with `--variant elevenlabs`. The result is added to the library and the Sound track at the playhead with captions on and the script filled in. Tested: Mac voice end to end (8.1 s file, captions on); Higgsfield price step (0.45 credits for 140 characters) then Cancel. NOT tested: an actual Higgsfield voice generation (the audio URL regex and download are unproven).

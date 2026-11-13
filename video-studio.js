@@ -948,6 +948,51 @@
     let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (e) {}
     return (window.providentDevLogos || []).concat(own.map(o => Object.assign({ own: 1 }, o)));
   }
+  // ── make a voiceover: a script, a voice, and it lands on the Sound track with captions on ──
+  // Mac voices are free (the local server runs `say`); Higgsfield voices cost credits, so they are
+  // priced first and need a yes. Both need the local server.
+  const VO = { text: '', voice: '', list: null, busy: '', quote: null };
+  function voHtml() {
+    if (!VO.list) { VO.list = { mac: [], hf: [] }; api('/api/voice/list').then(r => { VO.list = r; if (!VO.voice) VO.voice = r.mac && r.mac[0] ? 'mac:' + r.mac[0] : ''; renderLib(); }).catch(() => { VO.list = { mac: [], hf: [], note: 'off' }; renderLib(); }); }
+    const L = VO.list, opt = (v, t) => '<option value="' + esc(v) + '"' + (VO.voice === v ? ' selected' : '') + '>' + esc(t) + '</option>';
+    const mine = (L.hf || []).filter(v => v.type !== 'preset'), pre = (L.hf || []).filter(v => v.type === 'preset');
+    return '<div class="vs-sec"><span class="vs-h">Make a voiceover</span>' +
+      '<div class="vs-f"><label>Script</label><textarea class="p-in" id="voText" rows="5" placeholder="Type what the voice should say"' + (VO.busy ? ' disabled' : '') + '>' + esc(VO.text) + '</textarea></div>' +
+      '<div class="vs-f"><label>Voice</label><select class="p-in" id="voVoice" style="width:100%"' + (VO.busy ? ' disabled' : '') + '>' +
+        ((L.mac || []).length ? '<optgroup label="On this Mac, free">' + L.mac.map(v => opt('mac:' + v, v)).join('') + '</optgroup>' : '') +
+        (mine.length ? '<optgroup label="Your Higgsfield voices">' + mine.map(v => opt('hf:' + v.type + ':' + v.id, v.name)).join('') + '</optgroup>' : '') +
+        (pre.length ? '<optgroup label="Higgsfield voices">' + pre.map(v => opt('hf:' + v.type + ':' + v.id, v.name + (v.about ? ' · ' + v.about : ''))).join('') + '</optgroup>' : '') +
+      '</select></div>' +
+      (VO.busy ? '<span class="vs-note"><b>' + VO.busy + '</b></span>'
+        : VO.quote != null ? '<span class="vs-note"><b>This will spend ' + VO.quote + ' credits</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="voGo">Make it</button><button class="p-ghost p-sm" id="voCancel">Cancel</button>'
+        : '<button class="p-btn p-sm" id="voBtn">Make voiceover</button>') +
+      '<span class="vs-note">' + (L.note === 'off' ? 'The local server is not running, so voiceovers cannot be made here.' : 'It lands on the Sound track at the playhead with captions already on. Mac voices are free; Higgsfield voices show their cost first.') + '</span></div>';
+  }
+  async function voMake(confirmed) {
+    const text = VO.text.trim(), v = VO.voice.split(':'); if (!text) { toast('Type the script first.'); return; }
+    if (!v[0]) { toast('Pick a voice.'); return; }
+    const body = v[0] === 'mac' ? { text, mac: v[1] } : { text, voice_type: v[1], voice_id: v[2] };
+    try {
+      if (v[0] === 'hf' && !confirmed) {
+        VO.busy = 'Asking Higgsfield for the price…'; renderLib();
+        const q = await api('/api/voice/cost', Object.assign({ id: uid() + 'vo' }, body)); VO.busy = '';
+        if (q.error) { toast(q.error); renderLib(); return; }
+        VO.quote = q.credits; renderLib(); return;
+      }
+      VO.quote = null; VO.busy = 'Making the voiceover…'; renderLib();
+      const r = await api('/api/voice/make', Object.assign({ id: uid() + 'vo' }, body));
+      if (r.error) throw new Error(r.error);
+      const blob = await (await fetch('/_animate/' + r.file)).blob(), ext = r.file.split('.').pop();
+      const name = 'Voiceover ' + (v[0] === 'mac' ? v[1] : ((VO.list.hf || []).find(x => x.id === v[2]) || {}).name || 'Higgsfield') + ' ' + uid().slice(0, 3);
+      await addFiles([new File([blob], name + '.' + ext, { type: ext === 'wav' ? 'audio/wav' : 'audio/mpeg' })], 'audio');
+      const m = Object.values(media).filter(x => x.kind === 'audio' && x.name === name).pop();
+      if (!m) throw new Error('the audio could not be read');
+      addAudio(m.id, 'sfx');
+      const a = P.audio[P.audio.length - 1];
+      Object.assign(a, { capOn: true, cap: text, capN: '2', capStyle: 'plain', capSize: 'M', capCase: 'caps', capHi: true });
+      VO.busy = ''; save(); renderAll(); toast('The voiceover is on the Sound track, with captions.');
+    } catch (e) { VO.busy = ''; renderLib(); toast('The voiceover could not be made (' + e.message + ').'); }
+  }
   function renderLib() {
     $('#tabs').querySelectorAll('button').forEach(b => { if (b.dataset.tab === tab) b.dataset.on = '1'; else delete b.dataset.on; });
     const M = Object.values(media); let h = '';
@@ -961,6 +1006,7 @@
     } else if (tab === 'audio') {
       const a = M.filter(m => m.kind === 'audio');
       h += '<div class="vs-sec">' + drop('audio', 'Upload music or sound', 'MP3, WAV, M4A') + '</div>';
+      h += voHtml();
       h += '<div class="vs-sec"><span class="vs-h">Your audio</span>' + (a.length ? a.map(m =>
         '<div class="vs-arow"><div class="n"><b>' + esc(m.name) + '</b><s>' + fmt(m.dur) + '</s></div><button class="p-ghost p-sm" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music</button><button class="p-ghost p-sm" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></div>').join('') +
         '<span class="vs-note">Music starts at 0:00 and is trimmed to the video. Sound lands at the playhead.</span>'
@@ -994,6 +1040,7 @@
     return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
   }
   let upWant = 'media';
+  $('#lib').addEventListener('input', e => { if (e.target.id === 'voText') VO.text = e.target.value; else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');
     let el;
@@ -1010,6 +1057,9 @@
     }
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
+    else if (e.target.closest('#voBtn')) voMake(false);
+    else if (e.target.closest('#voGo')) voMake(true);
+    else if (e.target.closest('#voCancel')) { VO.quote = null; renderLib(); }
     else if ((el = q('data-addtext'))) addText(el.dataset.addtext);
     else if ((el = q('data-addlogo'))) addLogo(el.dataset.addlogo);
     else if ((el = q('data-partner'))) {

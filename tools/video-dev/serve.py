@@ -82,6 +82,37 @@ def hf_run(jp):
             pass
 
 
+# ── voiceovers: a script spoken by a chosen voice. Mac voices are free and offline (`say`);
+# Higgsfield voices go through the same tool as Generate now (text2speech_v2, ElevenLabs engine)
+# and spend credits, so the page prices them first and asks.
+MAC_VOICES = ['Samantha', 'Daniel', 'Karen', 'Moira', 'Tessa', 'Rishi']
+_voices = {}
+
+
+def voice_list():
+    if not _voices:
+        try:
+            have = subprocess.run(['say', '-v', '?'], capture_output=True, text=True, timeout=10).stdout
+        except Exception:
+            have = ''
+        _voices['mac'] = [v for v in MAC_VOICES if re.search(r'^%s\s' % v, have, re.M)]
+        rc, out = hf('voices', 'list', '--size', '100')
+        try:
+            items = json.loads(out)
+            items = items if isinstance(items, list) else (items.get('items') or items.get('voices') or items.get('data') or [])
+            _voices['hf'] = [{'id': v['id'], 'name': v.get('name'), 'type': v.get('voice_type'), 'about': (v.get('description') or v.get('category') or '')[:80]}
+                             for v in items if v.get('status') == 'completed']
+        except Exception:
+            _voices['hf'] = []
+            _voices['note'] = out[-200:] if rc else ''
+    return _voices
+
+
+def tts_args(body):
+    return ['text2speech_v2', '--prompt', str(body.get('text') or '')[:5000], '--variant', 'elevenlabs',
+            '--voice_id', str(body.get('voice_id') or ''), '--voice_type', str(body.get('voice_type') or 'preset')]
+
+
 class H(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=ROOT, **k)
@@ -134,6 +165,37 @@ class H(SimpleHTTPRequestHandler):
             job.update(status='queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
             return self._json(200, job)
+        if path == '/api/voice/cost':
+            rc, out = hf('generate', 'cost', *tts_args(body))
+            m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out)
+            if rc or not m:
+                return self._json(200, {'error': out[-300:] or 'Higgsfield gave no price.'})
+            return self._json(200, {'credits': float(m.group(1))})
+        if path == '/api/voice/make':
+            text = str(body.get('text') or '').strip()[:5000]
+            if not text:
+                return self._json(200, {'error': 'There is no script to speak.'})
+            if body.get('mac'):
+                if body['mac'] not in MAC_VOICES:
+                    return self._json(200, {'error': 'That Mac voice is not available.'})
+                out = os.path.join(QUEUE, jid + '.wav')
+                r = subprocess.run(['say', '-v', body['mac'], '--data-format=LEI16@44100', '-o', out, text], capture_output=True, text=True, timeout=120)
+                if r.returncode or not os.path.exists(out):
+                    return self._json(200, {'error': (r.stderr or 'The Mac voice failed.')[-200:]})
+                return self._json(200, {'file': jid + '.wav'})
+            rc, out = hf('generate', 'create', *tts_args(body), timeout=180)
+            m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
+            if rc or not m:
+                return self._json(200, {'error': (out or 'no job id came back')[-300:]})
+            hf('generate', 'wait', m.group(0), '--timeout', '5m', '--interval', '3s', '--quiet', timeout=330)
+            rc, out = hf('generate', 'get', m.group(0))
+            u = re.search(r'https://[^"\s]+\.(mp3|wav|m4a|ogg)[^"\s]*', out)
+            if rc or not u:
+                return self._json(200, {'error': (out or 'no audio came back')[-300:]})
+            name = jid + '.' + u.group(1)
+            with urllib.request.urlopen(u.group(0), timeout=120) as r, open(os.path.join(QUEUE, name), 'wb') as f:
+                shutil.copyfileobj(r, f)
+            return self._json(200, {'file': name})
         if path in ('/api/animate/cost', '/api/animate/run') and os.path.exists(jp):
             job = json.load(open(jp))
             if job.get('status') != 'queued':
@@ -163,6 +225,8 @@ class H(SimpleHTTPRequestHandler):
         return self._json(404, {'error': 'not found'})
 
     def do_GET(self):
+        if self.path.split('?')[0] == '/api/voice/list':
+            return self._json(200, voice_list())
         if self.path.split('?')[0] == '/api/animate/jobs':
             return self._json(200, {'jobs': self._jobs()})
         if self.path in ('/', '/index.html'):
