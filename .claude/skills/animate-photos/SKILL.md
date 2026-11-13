@@ -28,11 +28,11 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
 ## Steps
 
 1. **Read the queue.** `python3 "$A" list`. Each line has `id`, `photo_path`, `prompt`,
-   `duration` (seconds) and `aspect` (`9:16` or `1:1`). No lines: say so and stop.
+   `duration` (seconds), `aspect` (`9:16` or `1:1`) and `mode` (`std` or `pro`). No lines: say so and stop.
 
 2. **Show the cost and get a yes.** Generating spends the user's Higgsfield credits. Call
-   `generate_video` once with `get_cost: true` and the settings from step 4 (any one job's
-   duration; no upload is needed for a cost check if the tool allows it, otherwise do step 3
+   `generate_video` once with `get_cost: true` and the settings from step 4 (one check per
+   distinct duration and mode in the queue; no upload is needed for a cost check if the tool allows it, otherwise do step 3
    first). Tell the user: how many clips, the credits each, the total. **Wait for a clear yes**
    unless the message that started this run already said to go ahead and spend. Never use
    `use_unlim` or `use_free_gens` unless the user asked for that in words.
@@ -52,7 +52,7 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
    | `aspect_ratio` | the job's `aspect` |
    | `medias` | `[{ "role": "start_image", "value": "<media id>" }]` |
    | `sound` | `"off"` (the studio adds its own music) |
-   | `mode` | `"std"` |
+   | `mode` | the job's `mode` (`"std"` = 720x1280 draft, `"pro"` = 1080x1920); `"std"` if the job has none |
 
    One job: `generate_video`. Two to twelve: `generate_video_batch`, one item per job (load its
    schema with ToolSearch first; same settings). More than twelve: groups of twelve.

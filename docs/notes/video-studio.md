@@ -118,3 +118,8 @@ swapped the clip on its own (job file ended `placed`).
 - `jobs_wait` returns the MP4 as `result_url` (a plain cloudfront link `animate.py done` downloads).
 - The server filled `genre: auto`, `speedramp: auto`, `multi_shots: false`, `cfg_scale: 0.5`.
 - Nobody has judged the motion yet: whether "Push in" reads as a push in is still the user's call.
+
+**Pro mode (same day):** `mode: "pro"` returns **1080x1920** (5.04 s, about 21 MB against 8 MB) for
+**7.5 credits per 5 s** (15 for 10 s; std is 5 and 10), again about 2.5 minutes. The photo clip's
+inspector now has **Quality: Draft 720p / Full 1080p** (`genMode` on the clip, `mode` in the job,
+read by the skill; a job without one is `std`) and a credit estimate (1 or 1.5 per second).

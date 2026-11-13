@@ -987,6 +987,8 @@
         h += '<div class="vs-sec"><span class="vs-h">Animate with Higgsfield</span>' +
           '<div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + m[1] + '</button>').join('') + '</div>' +
           f('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+          f('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+          '<span class="vs-note">About ' + ((it.genDur || 5) * (it.genMode === 'pro' ? 1.5 : 1)) + ' credits. Claude confirms the exact cost before it generates.</span>' +
           f('Extra direction', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Optional, e.g. golden hour light"' + (busy ? ' disabled' : '') + '>') +
           (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'
             : (j && j.status === 'failed' ? '<span class="vs-note"><b>That did not work:</b> ' + esc(j.error || 'no reason given') + '</span>' : '') +
@@ -1050,6 +1052,7 @@
     if (!it) return;
     if (b.dataset.mv) { mark(); it.move = b.dataset.mv; renderAll(); return; }
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
+    if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animCancel') return animCancel(it);
     if (b.dataset.hi) {                       // wrap the selection (or the word under the caret) in the marker, or unwrap it
@@ -1131,7 +1134,7 @@
     const id = uid() + uid().slice(0, 3);
     const prompt = MOVE_BASE.replace('{move}', mv[2]) + (c.moveNote ? ' ' + String(c.moveNote).trim() : '');
     try {
-      const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
+      const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, mode: c.genMode === 'pro' ? 'pro' : 'std', aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
       if (r.error) throw new Error(r.error);
       mark(); c.job = { id, status: 'queued' }; renderAll(); animWatch();
       toast('Queued. Run /animate-photos in Claude to generate it.');
