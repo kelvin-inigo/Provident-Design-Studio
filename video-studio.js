@@ -297,7 +297,7 @@
       const st = span('clip', it)[0]; nb.in = it.in + (T - st); it.out = nb.in;
     } else {
       const d = T - it.at; nb.at = T; nb.dur = it.dur - d; it.dur = d;
-      if (tg.kind === 'audio') { nb.in = it.in + d; it.fo = 0; nb.fi = 0; }
+      if (tg.kind === 'audio') { nb.in = it.in + d * (it.rate || 1); it.fo = 0; nb.fi = 0; }
     }
     L.splice(L.indexOf(it) + 1, 0, nb);
     sel = { kind: tg.kind, id: nb.id }; renderAll();
@@ -377,7 +377,9 @@
       let g = a.vol;
       if (a.fi > 0) g *= clamp(rel / a.fi, 0, 1);
       if (a.fo > 0) g *= clamp((a.dur - rel) / a.fo, 0, 1);
-      drive(el, a.in + rel, on && playing, g);
+      const r = a.rate || 1;                 // speed: the timeline length covers dur * rate seconds of the file, pitch kept
+      if (el.playbackRate !== r) { el.playbackRate = r; try { el.preservesPitch = true; } catch (e) {} }
+      drive(el, a.in + rel * r, on && playing, g);
     });
     Object.keys(ael).forEach(id => { if (!liveA[id]) { ael[id].pause(); ael[id].removeAttribute('src'); delete ael[id]; } });
     return hold;
@@ -721,7 +723,7 @@
   function drawCaption(a) {
     if (!a.capOn || T < a.at || T >= a.at + a.dur) return;
     const c = capTiming(a); if (!c) return;
-    const t = a.in + (T - a.at) - (+a.capShift || 0);
+    const t = a.in + (T - a.at) * (a.rate || 1) - (+a.capShift || 0);
     let gi = -1; for (let i = 0; i < c.groups.length; i++) { if (c.groups[i].t0 <= t) gi = i; else break; }
     if (gi < 0) return;
     const grp = c.groups[gi], nx = c.groups[gi + 1];
@@ -827,7 +829,7 @@
       const a = P.audio.find(x => x.id === c.dataset.wave), m = a && media[a.mid]; if (!m || !m.peaks) return;
       const w = c.width = Math.max(2, Math.min(4000, Math.round(a.dur * pps))), hh = c.height = 36, x = c.getContext('2d');
       x.fillStyle = '#fff';
-      for (let i = 0; i < w; i++) { const p = m.peaks[Math.floor((a.in + i / w * a.dur) * 40)] || 0, bh = Math.max(1, p * hh * .9); x.fillRect(i, (hh - bh) / 2, 1, bh); }
+      for (let i = 0; i < w; i++) { const p = m.peaks[Math.floor((a.in + i / w * a.dur * (a.rate || 1)) * 40)] || 0, bh = Math.max(1, p * hh * .9); x.fillRect(i, (hh - bh) / 2, 1, bh); }
     });
     paintPlayhead();
   }
@@ -895,9 +897,10 @@
         if (s1 !== at) at = s1; else if (s2 !== at + o.dur) at = Math.max(0, s2 - o.dur);
         it.at = at;
       } else if (drag.mode === 'triml') {
-        let nat = clamp(snapT(o.at + d, it.id), Math.max(0, isA ? o.at - o.in : 0), o.at + o.dur - .2);
-        it.at = nat; it.dur = o.dur - (nat - o.at); if (isA) it.in = o.in + (nat - o.at);
-      } else it.dur = clamp(snapT(o.at + o.dur + d, it.id) - o.at, .2, isA ? lim - o.in : lim);
+        const rt = isA ? (o.rate || 1) : 1;
+        let nat = clamp(snapT(o.at + d, it.id), Math.max(0, isA ? o.at - o.in / rt : 0), o.at + o.dur - .2);
+        it.at = nat; it.dur = o.dur - (nat - o.at); if (isA) it.in = o.in + (nat - o.at) * rt;
+      } else it.dur = clamp(snapT(o.at + o.dur + d, it.id) - o.at, .2, isA ? (lim - o.in) / (o.rate || 1) : lim);
     }
     dirty = true; renderTimeline();
   });
@@ -992,13 +995,34 @@
   // ── make a voiceover: a script, a voice, and it lands on the Sound track with captions on ──
   // Mac voices are free (the local server runs `say`); Higgsfield voices cost credits, so they are
   // priced first and need a yes. Both need the local server.
-  const VO = { text: '', voice: '', list: null, busy: '', quote: null };
+  // an audio item can play 25% slower to 35% faster with its pitch kept; beyond that it sounds wrong
+  const RATE = [.75, 1.35], PACE = 2.5;                    // PACE: natural speech, words a second
+  function rateNote(a, asked) {
+    const r = a.rate || 1, pct = Math.round(r * 100);
+    const lim = asked != null && Math.abs(a.dur - asked) > .05 ? ' <b>That is as far as it goes:</b> ' + a.dur.toFixed(1) + ' s. To reach ' + (+asked).toFixed(1) + ' s, ' + (asked < a.dur ? 'shorten' : 'lengthen') + ' the script or trim the audio.' : '';
+    return (pct === 100 ? 'Playing at natural speed.' : 'Playing at ' + pct + '% speed, pitch kept.') + lim;
+  }
+  function voHint() {
+    const w = VO.text.trim().split(/\s+/).filter(Boolean).length, nat = w / PACE, tg = parseFloat(VO.target);
+    if (!w) return 'About 2.5 words fit in a second of natural speech.';
+    let h = w + ' words, about ' + nat.toFixed(1) + ' s at a natural pace.';
+    if (tg > 0) {
+      const r = nat / tg;
+      h += r > RATE[1] ? ' <b>Too long for ' + tg + ' s:</b> cut about ' + Math.ceil(w - tg * PACE * RATE[1]) + ' words, or it will overrun.'
+        : r < RATE[0] ? ' <b>Too short for ' + tg + ' s:</b> add about ' + Math.ceil(tg * PACE * RATE[0] - w) + ' words, or it will end early.'
+        : ' Fits ' + tg + ' s' + (r > 1.08 ? ', spoken a little fast.' : r < .92 ? ', spoken a little slowly.' : '.');
+    }
+    return h;
+  }
+  const VO = { text: '', voice: '', list: null, busy: '', quote: null, target: '' };
   function voHtml() {
     if (!VO.list) { VO.list = { mac: [], hf: [] }; api('/api/voice/list').then(r => { VO.list = r; if (!VO.voice) VO.voice = r.mac && r.mac[0] ? 'mac:' + r.mac[0] : ''; renderLib(); }).catch(() => { VO.list = { mac: [], hf: [], note: 'off' }; renderLib(); }); }
     const L = VO.list, opt = (v, t) => '<option value="' + esc(v) + '"' + (VO.voice === v ? ' selected' : '') + '>' + esc(t) + '</option>';
     const mine = (L.hf || []).filter(v => v.type !== 'preset'), pre = (L.hf || []).filter(v => v.type === 'preset');
     return '<div class="vs-sec"><span class="vs-h">Make a voiceover</span>' +
       '<div class="vs-f"><label>Script</label><textarea class="p-in" id="voText" rows="5" placeholder="Type what the voice should say"' + (VO.busy ? ' disabled' : '') + '>' + esc(VO.text) + '</textarea></div>' +
+      '<div class="vs-f"><label>Length, in seconds (optional)</label><input class="p-in" type="number" id="voTarget" min="1" step="0.5" placeholder="Leave empty for natural speed" value="' + esc(VO.target) + '"' + (VO.busy ? ' disabled' : '') + '></div>' +
+      '<span class="vs-note" id="voHint">' + voHint() + '</span>' +
       '<div class="vs-f"><label>Voice</label><select class="p-in" id="voVoice" style="width:100%"' + (VO.busy ? ' disabled' : '') + '>' +
         ((L.mac || []).length ? '<optgroup label="On this Mac, free">' + L.mac.map(v => opt('mac:' + v, v)).join('') + '</optgroup>' : '') +
         (mine.length ? '<optgroup label="Your Higgsfield voices">' + mine.map(v => opt('hf:' + v.type + ':' + v.id, v.name)).join('') + '</optgroup>' : '') +
@@ -1026,7 +1050,9 @@
   async function voMake(confirmed) {
     const text = VO.text.trim(), v = VO.voice.split(':'); if (!text) { toast('Type the script first.'); return; }
     if (!v[0]) { toast('Pick a voice.'); return; }
-    const body = v[0] === 'mac' ? { text, mac: v[1] } : { text, voice_type: v[1], voice_id: v[2] };
+    const tg = parseFloat(VO.target) > 0 ? parseFloat(VO.target) : 0, words = text.split(/\s+/).filter(Boolean).length;
+    // a Mac voice can be asked for a pace directly (words a minute); a Higgsfield voice cannot, so it is fitted afterwards
+    const body = v[0] === 'mac' ? { text, mac: v[1], wpm: tg ? Math.round(clamp(words / tg * 60 * 1.12, 110, 300)) : 0 } : { text, voice_type: v[1], voice_id: v[2] };
     try {
       if (v[0] === 'hf' && !confirmed) {
         VO.busy = 'Asking Higgsfield for the price…'; renderLib();
@@ -1045,7 +1071,12 @@
       addAudio(m.id, 'sfx');
       const a = P.audio[P.audio.length - 1];
       Object.assign(a, { capOn: true, cap: text, capN: '2', capStyle: 'plain', capSize: 'M', capCase: 'caps', capHi: true });
-      VO.busy = ''; save(); renderAll(); toast('The voiceover is on the Sound track, with captions.');
+      let msg = 'The voiceover is on the Sound track, with captions.';
+      if (tg) {                                            // land on the asked length exactly, within what still sounds natural
+        a.rate = clamp(m.dur / tg, RATE[0], RATE[1]); a.dur = m.dur / a.rate;
+        msg = Math.abs(a.dur - tg) < .05 ? 'The voiceover is exactly ' + tg + ' s (' + Math.round(a.rate * 100) + '% speed).' : 'The voice took ' + m.dur.toFixed(1) + ' s; the closest natural fit is ' + a.dur.toFixed(1) + ' s. Edit the script to reach ' + tg + ' s.';
+      }
+      VO.busy = ''; save(); renderAll(); toast(msg);
     } catch (e) { VO.busy = ''; renderLib(); toast('The voiceover could not be made (' + e.message + ').'); }
   }
   function renderLib() {
@@ -1095,7 +1126,7 @@
     return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
   }
   let upWant = 'media';
-  $('#lib').addEventListener('input', e => { if (e.target.id === 'voText') VO.text = e.target.value; else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
+  $('#lib').addEventListener('input', e => { if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');
     let el;
@@ -1193,6 +1224,8 @@
       h = '<div class="vs-sec"><span class="vs-h">Audio</span><span class="vs-note">' + esc(m.name) + '</span>' + seg('track', [['music', 'Music'], ['sfx', 'Sound']]) + '</div>' +
         '<div class="vs-sec"><span class="vs-h">Level</span>' + rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%') +
         rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) + '</div>' +
+        '<div class="vs-sec"><span class="vs-h">Speed</span>' + f('Fit to exactly (seconds)', '<input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') +
+          '<span class="vs-note" id="rateNote">' + rateNote(it) + '</span>' + ((it.rate || 1) !== 1 ? '<button class="p-ghost p-sm" id="rateReset">Back to natural speed</button>' : '') + '</div>' +
         '<div class="vs-sec"><span class="vs-h">Captions</span>' + seg('capOn', [[false, 'Off'], [true, 'On']]) +
         (it.capOn ? f('Voiceover script', '<textarea class="p-in" data-s="cap" rows="6" placeholder="Paste exactly what is said in this audio">' + esc(it.cap || '') + '</textarea>') +
           f('Words at a time', seg('capN', [['1', 'One'], ['2', 'Two'], ['3', 'Three']])) +
@@ -1239,7 +1272,11 @@
       const v = parseFloat(e.target.value); if (!isFinite(v)) return;
       const m = media[it.mid];
       if (d.n === 'at') it.at = Math.max(0, v);
-      else if (d.n === 'dur') it.dur = clamp(v, .2, sel.kind === 'audio' && m ? m.dur - it.in : 600);
+      else if (d.n === 'dur') it.dur = clamp(v, .2, sel.kind === 'audio' && m ? (m.dur - it.in) / (it.rate || 1) : 600);
+      else if (d.n === 'fit' && sel.kind === 'audio') {      // play the same stretch of the file in exactly v seconds
+        const span = it.dur * (it.rate || 1); it.rate = clamp(span / Math.max(.2, v), RATE[0], RATE[1]); it.dur = span / it.rate;
+        const o = insp.querySelector('#rateNote'); if (o) o.innerHTML = rateNote(it, v);
+      }
       else if (d.n === 'out') it.out = clamp(v, .2, 120);
     } else return;
     dirty = true; save(); renderTimeline();
@@ -1255,6 +1292,7 @@
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
     if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; renderAll(); return; }
     if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; renderAll(); return; }
+    if (b.id === 'rateReset') { mark(); const span = it.dur * (it.rate || 1); it.rate = 1; it.dur = span; save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animNow') return animSend(it, true);
     if (b.id === 'animGo') return animRun(it);

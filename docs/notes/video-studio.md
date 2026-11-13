@@ -199,3 +199,18 @@ The default height collides with a bottom-anchored text block; the user moves on
 - **Text sizes.** Headline ladder was 116.7 / 140 / 168 / 201.6; now 59.7 / 86 / 123.8 / 168.
   Captions were 41.5 / 49.8 / 59.7; now 34.6 / 41.5 / 49.8. Existing items keep their size NAME,
   so they shrank.
+
+## Voiceover to an exact length (2026-11-13, by request)
+
+The Higgsfield voice model has no speed or length setting, so length is fitted, not asked for.
+- **Audio items have a speed**, `rate` (default 1, limits `RATE = [.75, 1.35]`): the item's timeline
+  `dur` covers `dur * rate` seconds of the file. `sync` sets `playbackRate` with `preservesPitch`;
+  the waveform, captions, both trims, the Lasts field and split all multiply by it.
+- **Inspector > Speed > Fit to exactly (seconds)** (`data-n="fit"`) sets the rate so the same stretch
+  of audio lasts that long; past a limit it stops there and says to edit the script.
+- **Make a voiceover > Length** (`VO.target`): a live hint counts words against `PACE = 2.5` words a
+  second and says fits / too long (cut N words) / too short. Mac voices are generated near the pace
+  (`say -r`, wpm x 1.12 because `say` runs slow of its nominal rate), then every voice is fitted.
+Tested: 28 words, target 10 s, Mac voice -> 9.21 s file at 92% = exactly 10.00 s; Fit 4 s clamps at
+135% (6.8 s) with the message; Fit 8 s -> 115%. NOT tested: how a stretched voice sounds, a
+Higgsfield voice with a target, and export of a speed-changed item.

@@ -197,7 +197,8 @@ class H(SimpleHTTPRequestHandler):
                 if body['mac'] not in MAC_VOICES:
                     return self._json(200, {'error': 'That Mac voice is not available.'})
                 out = os.path.join(QUEUE, jid + '.wav')
-                r = subprocess.run(['say', '-v', body['mac'], '--data-format=LEI16@44100', '-o', out, text], capture_output=True, text=True, timeout=120)
+                wpm = int(body.get('wpm') or 0)
+                r = subprocess.run(['say', '-v', body['mac']] + (['-r', str(max(90, min(320, wpm)))] if wpm else []) + ['--data-format=LEI16@44100', '-o', out, text], capture_output=True, text=True, timeout=120)
                 if r.returncode or not os.path.exists(out):
                     return self._json(200, {'error': (r.stderr or 'The Mac voice failed.')[-200:]})
                 return self._json(200, {'file': jid + '.wav'})
