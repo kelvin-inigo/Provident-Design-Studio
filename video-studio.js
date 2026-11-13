@@ -1521,8 +1521,8 @@
         const ext = mime.indexOf('mp4') > 0 ? 'mp4' : 'webm', a = document.createElement('a'), want = total();
         a.href = URL.createObjectURL(new Blob(chunks, { type: mime.split(';')[0] }));
         a.download = 'provident-video_' + P.size + '.' + ext;
-        // 2026-11-13: two exports of four came out 1.6 s and 2.9 s long from a 32 s video (cause not
-        // found; both were soon after the page loaded). Never hand over a short file silently: measure it.
+        // 2026-11-13: two exports of four came out 1.6 s and 2.9 s long from a 32 s video (the sound
+        // engine was suspended; see ready() below). Never hand over a short file silently: measure it.
         const chk = document.createElement('video'); chk.muted = true; chk.preload = 'metadata';
         const give = () => { document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); toast('Saved ' + a.download + ' to Downloads.'); };
         let settled = false; const settle = ok => { if (settled) return; settled = true; chk.removeAttribute('src'); if (ok) give(); else { URL.revokeObjectURL(a.href); toast('That export came out short, so it was not saved. Press Export video again.'); } };
@@ -1534,7 +1534,13 @@
     };
     // wait for the first frame to be decoded before recording
     let n = 0; const wait = () => { sync(); const a = clipAt(0), el = a && vel[a.c.id]; if (!el || (el.readyState >= 2 && !el.seeking) || n++ > 80) { draw(); start(); } else setTimeout(wait, 50); };
-    wait();
+    // The sound engine must be RUNNING before anything is recorded. Suspended (the browser has not
+    // seen a real click on this page yet), the recording's sound track carries no time, the file
+    // comes out a few seconds long, and the videos refuse to play so the timeline crawls. That was
+    // the cause of the short exports of 2026-11-13 (the test pressed Export from a script).
+    const stop = () => { delete $('#ov').dataset.on; toast('The sound could not start, so nothing was exported. Click anywhere on the page, then press Export video again.'); };
+    let m = 0; const ready = () => { if (actx.state === 'running') return wait(); if (m++ > 30) return stop(); const p = actx.resume(); if (p && p.catch) p.catch(() => {}); setTimeout(ready, 50); };
+    ready();
   }
   function finishExport() { setTimeout(() => { if (rec && rec.state !== 'inactive') rec.stop(); }, 200); }
   setInterval(() => { if (exporting) $('#ovP').style.width = (T / Math.max(.01, total()) * 100) + '%'; }, 120);

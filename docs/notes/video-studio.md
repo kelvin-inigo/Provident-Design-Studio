@@ -270,3 +270,22 @@ save one shorter than 90% of the timeline ("came out short ... Press Export vide
 Test hygiene: the download was intercepted (anchor click patched), and the test's transitions were
 never saved. The saved project DID change during the test (the user was editing in another tab) and
 the test wrote its starting snapshot back over it — do not restore a snapshot while the user works.
+
+### Short exports: cause found and fixed (2026-11-13, later)
+**Cause: the AudioContext was suspended.** The earlier test pressed Export from a script, so the
+page had no user activation; `actx.resume()` does nothing then. With the context suspended the
+recording's audio track carries no time and the MP4 comes out a few seconds long, and unmuted
+videos refuse `play()`, so `drive()` re-seeks every frame, `sync()` holds, and the clock crawls at
+about half speed. Runs 3 and 4 were fine only because the page had been clicked by then. The shot
+scan was NOT the cause. A person's own click on Export gives activation, so the user was unlikely to
+hit this, but nothing guaranteed it.
+Reproduced on a fresh load with a script click: context `suspended` for the whole run, 0.45 s of
+timeline per second, short file (the 90% guard refused it — that guard is now proven).
+**Fix:** `exportVideo` waits in `ready()` until `actx.state === 'running'` (retrying `resume()` for
+1.5 s) before it waits for the first frame and starts the recorder; otherwise it closes the overlay
+and says "The sound could not start, so nothing was exported. Click anywhere on the page, then press
+Export video again."
+Verified in Chrome on the 8-clip 32.07 s project: script click on a fresh load → refused in under
+2 s with that message; real click immediately after a fresh load → context `running`, 32.25 s,
+1080x1920, 48.9 MB, done in 40 s of wall time. Nothing was written to the saved project this time.
+**Testing rule: drive Export with a real pointer click, never `el.click()` from a script.**
