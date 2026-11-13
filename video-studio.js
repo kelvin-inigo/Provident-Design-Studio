@@ -12,6 +12,15 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const IC = window.providentVideoIcons || {};
   const ico = n => '<i class="vs-i"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="' + (IC[n] || '') + '"/></svg></i>';
+  // the few icons the Material file does not carry, drawn on a 24 grid at the same weight
+  const ICS = {
+    keyboard: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.3 10h.01M13.7 10h.01M17 10h.01M7 14h.01M17 14h.01M10 14h4"/>',
+    add_box: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'
+  };
+  const sico = n => '<i class="vs-i vs-is"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICS[n] || '') + '</svg></i>';
+  const CHEV = '<svg class="vs-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  // a section head: the title, and what it holds in the quiet ink beside it
+  const H = (t, meta) => '<div class="vs-h"><b>' + t + '</b>' + (meta ? '<s>' + meta + '</s>' : '') + '</div>';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const uid = () => Math.random().toString(36).slice(2, 9);
@@ -968,7 +977,7 @@
     tlin.querySelectorAll('canvas[data-wave]').forEach(c => {
       const a = P.audio.find(x => x.id === c.dataset.wave), m = a && media[a.mid]; if (!m || !m.peaks) return;
       const w = c.width = Math.max(2, Math.min(4000, Math.round(a.dur * pps))), hh = c.height = 36, x = c.getContext('2d');
-      x.fillStyle = '#fff';
+      x.fillStyle = getComputedStyle(c).color;
       for (let i = 0; i < w; i++) { const p = m.peaks[Math.floor((a.in + i / w * a.dur * (a.rate || 1)) * 40)] || 0, bh = Math.max(1, p * hh * .9); x.fillRect(i, (hh - bh) / 2, 1, bh); }
     });
     paintPlayhead();
@@ -1162,24 +1171,27 @@
     return h;
   }
   const VO = { text: '', voice: '', list: null, busy: '', quote: null, target: '' };
+  // which generator is unfolded in the Audio tab; one that is working or showing a price stays open
+  const ACC = { vo: false, mu: false };
+  const acc = (k, title, meta, body) => '<details class="vs-acc" data-acc="' + k + '"' + (ACC[k] ? ' open' : '') + '><summary><b>' + title + '</b><s>' + meta + '</s>' + CHEV + '</summary><div class="vs-acc-b">' + body + '</div></details>';
   function voHtml() {
     if (!VO.list) { VO.list = { mac: [], hf: [] }; api('/api/voice/list').then(r => { VO.list = r; if (!VO.voice) VO.voice = r.mac && r.mac[0] ? 'mac:' + r.mac[0] : ''; renderLib(); }).catch(() => { VO.list = { mac: [], hf: [], note: 'off' }; renderLib(); }); }
     const L = VO.list, opt = (v, t) => '<option value="' + esc(v) + '"' + (VO.voice === v ? ' selected' : '') + '>' + esc(t) + '</option>';
     const mine = (L.hf || []).filter(v => v.type !== 'preset'), pre = (L.hf || []).filter(v => v.type === 'preset');
-    return '<div class="vs-sec"><span class="vs-h">Make a voiceover</span>' +
+    if (VO.busy || VO.quote != null) ACC.vo = true;
+    return acc('vo', 'Make a voiceover', 'From a script',
       '<div class="vs-f"><label>Script</label><textarea class="p-in" id="voText" rows="5" placeholder="Type what the voice should say"' + (VO.busy ? ' disabled' : '') + '>' + esc(VO.text) + '</textarea></div>' +
-      '<div class="vs-f"><label>Length, in seconds (optional)</label><input class="p-in" type="number" id="voTarget" min="1" step="0.5" placeholder="Leave empty for natural speed" value="' + esc(VO.target) + '"' + (VO.busy ? ' disabled' : '') + '></div>' +
+      '<div class="vs-f"><label>Length <s>seconds, optional</s></label><input class="p-in" type="number" id="voTarget" min="1" step="0.5" placeholder="Leave empty for natural speed" value="' + esc(VO.target) + '"' + (VO.busy ? ' disabled' : '') + '></div>' +
       '<span class="vs-note" id="voHint">' + voHint() + '</span>' +
-      '<div class="vs-f"><label>Voice</label><select class="p-in" id="voVoice" style="width:100%"' + (VO.busy ? ' disabled' : '') + '>' +
+      '<div class="vs-f"><label>Voice</label><select class="p-in" id="voVoice"' + (VO.busy ? ' disabled' : '') + '>' +
         ((L.mac || []).length ? '<optgroup label="On this Mac, free">' + L.mac.map(v => opt('mac:' + v, v)).join('') + '</optgroup>' : '') +
         (mine.length ? '<optgroup label="Your Higgsfield voices">' + mine.map(v => opt('hf:' + v.type + ':' + v.id, v.name)).join('') + '</optgroup>' : '') +
         (pre.length ? '<optgroup label="Higgsfield voices">' + pre.map(v => opt('hf:' + v.type + ':' + v.id, v.name + (v.gender ? ' · ' + v.gender : ''))).join('') + '</optgroup>' : '') +
       '</select></div>' +
-      '<button class="p-ghost p-sm" id="voHear"' + (VO.busy ? ' disabled' : '') + '>' + (VO.playing ? 'Stop' : 'Hear this voice') + '</button>' +
       (VO.busy ? '<span class="vs-note"><b>' + VO.busy + '</b></span>'
-        : VO.quote != null ? '<span class="vs-note"><b>This will spend ' + VO.quote + ' credits</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="voGo">Make it</button><button class="p-ghost p-sm" id="voCancel">Cancel</button>'
-        : '<button class="p-btn p-sm" id="voBtn">Make voiceover</button>') +
-      '<span class="vs-note">' + (L.note === 'off' ? 'The local server is not running, so voiceovers cannot be made here.' : 'It lands on the Sound track at the playhead with captions already on. Mac voices are free; Higgsfield voices show their cost first.') + '</span></div>';
+        : VO.quote != null ? '<span class="vs-note"><b>This will spend ' + VO.quote + ' credits</b> from your Higgsfield balance.</span><div class="vs-acts"><button class="p-ghost p-sm" id="voCancel">Cancel</button><button class="p-btn p-sm" id="voGo">Make it</button></div>'
+        : '<div class="vs-acts"><button class="p-ghost p-sm" id="voHear">' + (VO.playing ? 'Stop' : 'Hear this voice') + '</button><button class="p-btn p-sm" id="voBtn">Make voiceover</button></div>') +
+      '<span class="vs-note">' + (L.note === 'off' ? 'The local server is not running, so voiceovers cannot be made here.' : 'It lands on the Sound track at the playhead with captions already on. Mac voices are free; Higgsfield voices show their cost first.') + '</span>');
   }
   // a short sample of the chosen voice: Higgsfield's own preview clip (free), or a Mac voice
   // reading one line (free). Nothing is added to the project.
@@ -1188,14 +1200,15 @@
   const MU = { text: '', len: '', model: 'sonilo', busy: '', quote: null };
   function muHtml() {
     const dis = MU.busy ? ' disabled' : '', end = videoEnd();
-    return '<div class="vs-sec"><span class="vs-h">Make music</span>' +
+    if (MU.busy || MU.quote != null) ACC.mu = true;
+    return acc('mu', 'Make music', 'From a description',
       '<div class="vs-f"><label>Describe it</label><textarea class="p-in" id="muText" rows="3" placeholder="Calm cinematic piano with soft strings, slow build"' + dis + '>' + esc(MU.text) + '</textarea></div>' +
-      '<div class="vs-f"><label>Length, in seconds</label><input class="p-in" type="number" id="muLen" min="5" max="180" step="1" placeholder="' + (end > 0 ? Math.ceil(end) + ' (your video)' : '30') + '" value="' + esc(MU.len) + '"' + dis + '></div>' +
-      '<div class="vs-f"><label>Model</label><div class="vs-seg">' + [['sonilo', 'Sonilo'], ['elevenlabs', 'ElevenLabs']].map(o => '<button data-mum="' + o[0] + '"' + (MU.model === o[0] ? ' data-on="1"' : '') + dis + '>' + o[1] + '</button>').join('') + '</div></div>' +
+      '<div class="vs-f"><label>Length <s>seconds</s></label><input class="p-in" type="number" id="muLen" min="5" max="180" step="1" placeholder="' + (end > 0 ? Math.ceil(end) + ' (your video)' : '30') + '" value="' + esc(MU.len) + '"' + dis + '></div>' +
+      '<div class="vs-row"><span>Model</span><div class="vs-seg">' + [['sonilo', 'Sonilo'], ['elevenlabs', 'ElevenLabs']].map(o => '<button data-mum="' + o[0] + '"' + (MU.model === o[0] ? ' data-on="1"' : '') + dis + '>' + o[1] + '</button>').join('') + '</div></div>' +
       (MU.busy ? '<span class="vs-note"><b>' + MU.busy + '</b></span>'
-        : MU.quote != null ? '<span class="vs-note"><b>This will spend ' + MU.quote + ' credits</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="muGo">Make it</button><button class="p-ghost p-sm" id="muCancel">Cancel</button>'
-        : '<button class="p-btn p-sm" id="muBtn">Make music</button>') +
-      '<span class="vs-note">Instrumental only. It lands as the music bed from 0:00, trimmed to the video. The cost is shown first.</span></div>';
+        : MU.quote != null ? '<span class="vs-note"><b>This will spend ' + MU.quote + ' credits</b> from your Higgsfield balance.</span><div class="vs-acts"><button class="p-ghost p-sm" id="muCancel">Cancel</button><button class="p-btn p-sm" id="muGo">Make it</button></div>'
+        : '<div class="vs-acts"><button class="p-btn p-sm" id="muBtn">Make music</button></div>') +
+      '<span class="vs-note">Instrumental only. It lands as the music bed from 0:00, trimmed to the video. The cost is shown first.</span>');
   }
   async function muMake(confirmed) {
     const text = MU.text.trim(); if (!text) { toast('Describe the music first.'); return; }
@@ -1260,69 +1273,120 @@
       VO.busy = ''; save(); renderAll(); toast(msg);
     } catch (e) { VO.busy = ''; renderLib(); toast('The voiceover could not be made (' + e.message + ').'); }
   }
+  // THE LEFT RAIL IS WHAT CAN BE ADDED, and nothing else (2026-11-13 redesign, after CAS's
+  // "Add a component"): uploads and the library as tiles, text and callouts as specimen tiles,
+  // the two generators folded away. What is set once for the whole video (the wordmark, the
+  // collaboration logo, the logo colour) moved to the right rail's Whole video (docHtml).
   function renderLib() {
-    $('#tabs').querySelectorAll('button').forEach(b => { if (b.dataset.tab === tab) b.dataset.on = '1'; else delete b.dataset.on; });
+    $('#tabs').querySelectorAll('button').forEach(b => { const on = b.dataset.tab === tab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
     const M = Object.values(media); let h = '';
-    const drop = (want, label, sub) => '<button class="vs-drop" data-up="' + want + '">' + ico('upload') + '<span>' + label + '</span><span class="vs-note">' + sub + '</span></button>';
+    const count = c => c ? c + (c === 1 ? ' file' : ' files') : '';
+    const drop = (want, label, sub) => '<button class="vs-drop" data-up="' + want + '">' + ico('upload') + '<span>' + label + '</span><s>' + sub + '</s></button>';
+    const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
+    const none = (t, body) => '<div class="vs-none"><b>' + t + '</b>' + body + '</div>';
     if (tab === 'media') {
       const v = M.filter(m => m.kind === 'video' || m.kind === 'image');
-      h += '<div class="vs-sec">' + drop('media', 'Upload video or photos', 'MP4, MOV, WebM, JPG, PNG') + '</div>';
-      h += '<div class="vs-sec"><span class="vs-h">Your media</span>' + (v.length ? '<div class="vs-grid">' + v.map(m =>
-        '<button class="vs-tile" data-addclip="' + m.id + '" title="Add to the end of the video track" style="background-image:url(\'' + (m.poster || m.url) + '\')"><s>' + (m.kind === 'image' ? 'Photo' : fmt(m.dur)) + '</s><b>' + esc(m.name) + '</b><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></button>').join('') + '</div><span class="vs-note">Click a tile to add it to the end of the video track.</span>'
-        : '<span class="vs-note">Nothing uploaded yet.</span>') + '</div>';
+      h += '<div class="vs-sec">' + drop('media', 'Drop video or photos', 'or browse · MP4, MOV, WebM, JPG, PNG') + '</div>';
+      h += '<div class="vs-sec">' + H('Your media', count(v.length)) + (v.length ? '<div class="vs-grid">' + v.map(m =>
+        '<button class="vs-t" data-pic="1" data-addclip="' + m.id + '" title="' + esc(m.name) + '. Click to add it to the end of the video track."><i style="background-image:url(\'' + (m.poster || m.url) + '\')"><s>' + (m.kind === 'image' ? 'Photo' : fmt(m.dur)) + '</s></i><b>' + esc(m.name) + '</b>' + rm(m.id) + '</button>').join('') + '</div><span class="vs-note">Click one to add it to the end of the video track.</span>'
+        : none('Nothing here yet', 'Videos and photos you upload stay in this list, ready to add again.')) + '</div>';
     } else if (tab === 'audio') {
       const a = M.filter(m => m.kind === 'audio');
-      h += '<div class="vs-sec">' + drop('audio', 'Upload music or sound', 'MP3, WAV, M4A') + '</div>';
+      h += '<div class="vs-sec">' + drop('audio', 'Drop music or sound', 'or browse · MP3, WAV, M4A') + '</div>';
+      h += '<div class="vs-sec">' + H('Your audio', count(a.length)) + (a.length ? a.map(m =>
+        '<div class="vs-arow"><span class="mk">' + ico('music_note') + '</span><div class="n"><b title="' + esc(m.name) + '">' + esc(m.name) + '</b><s>' + fmt(m.dur) + '</s></div>' +
+        '<div class="a"><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music bed</button><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button></div>' + rm(m.id) + '</div>').join('') +
+        '<span class="vs-note">A music bed starts at 0:00 and is trimmed to the video. A sound lands at the playhead.</span>'
+        : none('Nothing here yet', 'Upload a track or a voiceover, or make one below.')) + '</div>';
       h += voHtml() + muHtml();
-      h += '<div class="vs-sec"><span class="vs-h">Your audio</span>' + (a.length ? a.map(m =>
-        '<div class="vs-arow"><div class="n"><b>' + esc(m.name) + '</b><s>' + fmt(m.dur) + '</s></div><button class="p-ghost p-sm" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music</button><button class="p-ghost p-sm" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></div>').join('') +
-        '<span class="vs-note">Music starts at 0:00 and is trimmed to the video. Sound lands at the playhead.</span>'
-        : '<span class="vs-note">Nothing uploaded yet.</span>') + '</div>';
     } else if (tab === 'text') {
-      const pre = [['headline', 'Headline', 'Regular 400, bottom left, rises in'], ['full', 'Eyebrow, headline and line', 'Tracked caps over the headline, a Light line under'], ['caption', 'Caption', 'A small line at the bottom, fades'], ['centre', 'Centre stage', 'Large, centred, revealed line by line'], ['number', 'Big number', 'Jumbo figure under an eyebrow, word by word']];
-      h += '<div class="vs-sec"><span class="vs-h">Add a callout at the playhead</span>' + [['ruler', 'Measure line', 'A line that grows, with a figure: 380 m tall'], ['count', 'Counting figure', 'A number that counts up over a label'], ['box', 'Outline box', 'An outline that draws round a label'], ['cta', 'End card', 'A frosted panel at the end: your message, a button and the wordmark']].map(p2 => '<button class="vs-pre" data-addcall="' + p2[0] + '"><b>' + p2[1] + '</b><s>' + p2[2] + '</s></button>').join('') + '</div>';
-      h += '<div class="vs-sec"><span class="vs-h">Add text at the playhead</span>' + pre.map(p => '<button class="vs-pre" data-addtext="' + p[0] + '"><b>' + p[1] + '</b><s>' + p[2] + '</s></button>').join('') +
+      // each tile is a specimen of what it adds, in the chrome's ink; the full description is its tooltip
+      const tile = (attr, o) => '<button class="vs-t" ' + attr + '="' + o[0] + '" title="' + o[2] + '"><i>' + o[3] + '</i><b>' + o[1] + '</b></button>';
+      const pre = [
+        ['headline', 'Headline', 'Headline: Regular 400, bottom left, rises in', '<span class="vs-m"><em>Skyline</em></span>'],
+        ['full', 'Three lines', 'Eyebrow, headline and line: tracked caps over the headline, a Light line under', '<span class="vs-m"><small>LAUNCH</small><em style="font-size:11px">Skyline</em><u class="t" style="width:34px"></u></span>'],
+        ['caption', 'Caption', 'Caption: a small line at the bottom, fades', '<span class="vs-m" data-a="b"><q>Now selling</q></span>'],
+        ['centre', 'Centred', 'Centre stage: large, centred, revealed line by line', '<span class="vs-m" data-a="c"><u style="width:40px"></u><u style="width:26px"></u></span>'],
+        ['number', 'Big number', 'Big number: a Jumbo figure under an eyebrow, word by word', '<span class="vs-m"><small>HOMES</small><em style="font-size:16px">73</em></span>']
+      ];
+      const call = [
+        ['ruler', 'Measure', 'Measure line: a line that grows, with a figure, such as 380 m tall', '<span class="vs-m" data-a="c"><span class="r"><i></i><q>380 m</q></span></span>'],
+        ['count', 'Count up', 'Counting figure: a number that counts up over a label', '<span class="vs-m" data-a="c"><span class="n">71 72 <em>73</em></span></span>'],
+        ['box', 'Outline box', 'Outline box: an outline that draws round a label', '<span class="vs-m" data-a="c"><span class="o"><small>HOME</small></span></span>'],
+        ['cta', 'End card', 'End card: a frosted panel at the end with your message, a button and the wordmark', '<span class="vs-m" data-a="c"><span class="k"><u style="width:26px"></u><u class="t" style="width:18px"></u><b></b></span></span>']
+      ];
+      h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div>' +
         '<span class="vs-note">The type follows the Reel thumbnail: one typeface, the headline on the brand scale, a wash under the copy only.</span></div>';
+      h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div>' +
+        '<span class="vs-note">Callouts draw themselves on. The end card takes the last four seconds.</span></div>';
     } else {
-      const b = P.brand, lib = devLib();
-      const seg = (k, opts) => '<div class="vs-seg">' + opts.map(o => '<button data-bk="' + k + '" data-bv="' + o[0] + '"' + (String(b[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
-      h += '<div class="vs-sec"><span class="vs-h">Provident wordmark</span>' + seg('on', [[true, 'Shown'], [false, 'Hidden']]) +
-        '<div class="vs-two">' + seg('align', [['left', 'Left'], ['centre', 'Centre']]) + seg('vpos', [['top', 'Top'], ['bottom', 'Bottom']]) + '</div>' +
-        '<div class="vs-f"><label>Colour</label>' + seg('ink', [['white', 'White'], ['navy', 'Navy']]) + '</div>' +
-        rng('b', 'scale', 'Size', b.scale, 60, 200, '%') + rng('b', 'wash', 'Wash behind it', b.wash, 0, 100, '%') + '</div>';
-      h += '<div class="vs-sec"><span class="vs-h">Collaboration logo</span><div class="vs-lgs">' +
-        '<button class="vs-lg" data-partner=""' + (!b.partner ? ' data-on="1"' : '') + '>None</button>' +
-        lib.map(l => '<button class="vs-lg" data-partner="' + esc(l.id) + '" title="' + esc(l.name) + '"' + (b.partner && b.partner.id === l.id ? ' data-on="1"' : '') + '><i class="m" style="-webkit-mask-image:url(\'' + l.u + '\');mask-image:url(\'' + l.u + '\')"></i>' + (l.own ? '<span class="vs-x" data-rmdev="' + esc(l.id) + '" title="Remove from this computer">' + ico('close') + '</span>' : '') + '</button>').join('') +
-        '<button class="vs-lg" data-up="partner" title="Add a developer logo">' + ico('add') + '</button></div>' +
-        (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') : '') +
-        '<span class="vs-note">Prints provident. | partner beside the wordmark, for the whole video. A logo you add stays on this computer.</span></div>';
-      h += '<div class="vs-sec"><span class="vs-h">Logo colour</span>' + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) +
-        '<span class="vs-note">Match wordmark paints the collaboration logo and every graphic you place in the wordmark\'s colour. Original keeps each file\'s own colours. A logo saved on a flat background has that background removed.</span></div>';
       const lg = M.filter(m => m.kind === 'logo' || m.kind === 'image');
-      h += '<div class="vs-sec"><span class="vs-h">Graphics and other logos</span>' + drop('logo', 'Upload a graphic or logo', 'PNG or SVG with a clear background') +
-        (lg.length ? '<div class="vs-grid">' + lg.map(m => '<button class="vs-tile" data-addlogo="' + m.id + '" title="Place at the playhead" style="background-image:url(\'' + m.url + '\');background-size:70%"><b>' + esc(m.name) + '</b><span class="vs-x" data-rm="' + m.id + '" title="Remove">' + ico('close') + '</span></button>').join('') + '</div><span class="vs-note">Click one to place it at the playhead, then drag it on the canvas.</span>' : '<span class="vs-note">Upload one, or drop an image on the video.</span>') + '</div>';
+      h += '<div class="vs-sec">' + drop('logo', 'Drop a graphic or logo', 'or browse · PNG or SVG, clear background') + '</div>';
+      h += '<div class="vs-sec">' + H('Your graphics', count(lg.length)) + (lg.length ? '<div class="vs-grid">' + lg.map(m =>
+        '<button class="vs-t" data-pic="fit" data-addlogo="' + m.id + '" title="' + esc(m.name) + '. Click to place it at the playhead."><i style="background-image:url(\'' + m.url + '\')"></i><b>' + esc(m.name) + '</b>' + rm(m.id) + '</button>').join('') + '</div><span class="vs-note">Click one to place it at the playhead, then drag it on the picture.</span>'
+        : none('Nothing here yet', 'Upload one, or drop an image on the video.')) + '</div>';
+      h += '<div class="vs-sec"><div class="vs-none"><b>Looking for the wordmark?</b>The Provident wordmark and the collaboration logo are set once for the whole video.<button class="vs-link" data-go="doc">Open Whole video</button></div></div>';
     }
     $('#lib').innerHTML = h;
   }
+  // THE RIGHT RAIL'S "WHOLE VIDEO": what is set once (CAS's Layout column). Comments from CAS
+  // first when the video has been sent, then the wordmark, the collaboration logo, the logo colour.
+  function docHtml() {
+    const b = P.brand, lib = devLib(), g = G();
+    const seg = (k, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-bk="' + k + '" data-bv="' + o[0] + '"' + (String(b[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
+    const row = (label, body) => '<div class="vs-row"><span>' + label + '</span>' + body + '</div>';
+    return '<div class="vs-cap"><b>Whole video</b><s>' + g.name + (total() ? ' · ' + fmt(total()) : '') + '</s></div>' + casNotesHtml() +
+      '<div class="vs-sec">' + H('Provident wordmark') + row('Show', seg('on', [[true, 'Shown'], [false, 'Hidden']], 's')) +
+        (b.on ? row('Align', seg('align', [['left', 'Left'], ['centre', 'Centre']])) + row('Position', seg('vpos', [['top', 'Top'], ['bottom', 'Bottom']])) +
+          row('Colour', seg('ink', [['white', 'White'], ['navy', 'Navy']])) +
+          rng('b', 'scale', 'Size', b.scale, 60, 200, '%') + rng('b', 'wash', 'Wash behind it', b.wash, 0, 100, '%') : '') + '</div>' +
+      '<div class="vs-sec">' + H('Collaboration logo', b.partner ? esc(b.partner.name) : 'None') + '<div class="vs-grid">' +
+        '<button class="vs-t" data-partner=""' + (!b.partner ? ' data-on="1"' : '') + ' title="No collaboration logo"><i><span class="vs-m" data-a="c"><u class="t" style="width:14px"></u></span></i><b>None</b></button>' +
+        lib.map(l => '<button class="vs-t" data-partner="' + esc(l.id) + '" title="' + esc(l.name) + '"' + (b.partner && b.partner.id === l.id ? ' data-on="1"' : '') + '><i><u style="-webkit-mask-image:url(\'' + l.u + '\');mask-image:url(\'' + l.u + '\')"></u></i><b>' + esc(l.name) + '</b>' + (l.own ? '<span class="vs-x" data-rmdev="' + esc(l.id) + '" title="Remove from this computer">' + ico('close') + '</span>' : '') + '</button>').join('') +
+        '<button class="vs-t" data-up="partner" title="Add a developer logo from this computer"><i>' + ico('add') + '</i><b>Add a logo</b></button></div>' +
+        (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') : '') +
+        '<span class="vs-note">Prints provident. | partner beside the wordmark, for the whole video. A logo you add stays on this computer.</span></div>' +
+      '<div class="vs-sec">' + H('Logo colour') + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) +
+        '<span class="vs-note">Match wordmark paints the collaboration logo and every graphic you place in the wordmark\'s colour. Original keeps each file\'s own colours. A logo saved on a flat background has that background removed.</span></div>';
+  }
   function rng(scope, k, label, v, min, max, unit, step) {
-    return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
+    return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" class="p-range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
   }
   let upWant = 'media';
+  function pickFiles(want) {
+    upWant = want; const fi = $('#fileIn');
+    fi.accept = want === 'media' ? 'video/*,image/*,.mov' : want === 'audio' ? 'audio/*' : 'image/*';
+    fi.multiple = want !== 'partner'; fi.value = ''; fi.click();
+  }
+  // the wordmark, collaboration logo and logo colour controls, wherever they are drawn
+  function brandClick(e) {
+    const q = a => e.target.closest('[' + a + ']'); let el;
+    if ((el = q('data-rmdev'))) {
+      e.stopPropagation();
+      let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (x) {}
+      localStorage.setItem(LKEY, JSON.stringify(own.filter(o => o.id !== el.dataset.rmdev))); renderInspector(); return true;
+    }
+    if ((el = q('data-up')) && el.dataset.up === 'partner') { pickFiles('partner'); return true; }
+    if ((el = q('data-partner'))) {
+      mark(); const l = devLib().find(x => x.id === el.dataset.partner);
+      P.brand.partner = l ? { id: l.id, name: l.name, u: l.u } : null; if (l) P.brand.on = true;
+      partnerLoad(); renderAll(); return true;
+    }
+    if ((el = q('data-bk'))) {
+      mark(); const v = el.dataset.bv; P.brand[el.dataset.bk] = v === 'true' ? true : v === 'false' ? false : v;
+      if (el.dataset.bk === 'tint') P.logos.forEach(l => { l.tint = v; });   // the one switch reaches every placed graphic
+      pTint = null; renderAll(); return true;
+    }
+    return false;
+  }
+  $('#lib').addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.acc) ACC[d.dataset.acc] = d.open; }, true);
   $('#lib').addEventListener('input', e => { if (e.target.id === 'muText') MU.text = e.target.value; else if (e.target.id === 'muLen') { MU.len = e.target.value; MU.quote = null; } else if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');
     let el;
     if ((el = q('data-rm'))) { e.stopPropagation(); removeMedia(el.dataset.rm); }
-    else if ((el = q('data-rmdev'))) {
-      e.stopPropagation();
-      let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (x) {}
-      localStorage.setItem(LKEY, JSON.stringify(own.filter(o => o.id !== el.dataset.rmdev))); renderLib();
-    }
-    else if ((el = q('data-up'))) {
-      upWant = el.dataset.up; const fi = $('#fileIn');
-      fi.accept = upWant === 'media' ? 'video/*,image/*,.mov' : upWant === 'audio' ? 'audio/*' : 'image/*';
-      fi.multiple = upWant !== 'partner'; fi.value = ''; fi.click();
-    }
+    else if ((el = q('data-up'))) pickFiles(el.dataset.up);
+    else if ((el = q('data-go'))) { rtab = el.dataset.go; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
     else if (e.target.closest('#voHear')) voHear();
@@ -1336,23 +1400,6 @@
     else if ((el = q('data-addtext'))) addText(el.dataset.addtext);
     else if ((el = q('data-addcall'))) (el.dataset.addcall === 'cta' ? addCta() : addCallout(el.dataset.addcall));
     else if ((el = q('data-addlogo'))) addLogo(el.dataset.addlogo);
-    else if ((el = q('data-partner'))) {
-      mark(); const l = devLib().find(x => x.id === el.dataset.partner);
-      P.brand.partner = l ? { id: l.id, name: l.name, u: l.u } : null; if (l) P.brand.on = true;
-      partnerLoad(); renderAll();
-    }
-    else if ((el = q('data-bk'))) {
-      mark(); const v = el.dataset.bv; P.brand[el.dataset.bk] = v === 'true' ? true : v === 'false' ? false : v;
-      if (el.dataset.bk === 'tint') P.logos.forEach(l => { l.tint = v; });   // the one switch reaches every placed graphic
-      pTint = null; renderAll();
-    }
-  });
-  $('#lib').addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
-  $('#lib').addEventListener('input', e => {
-    const k = e.target.dataset.br; if (!k) return;
-    P.brand[k] = +e.target.value; pTint = null;
-    const o = $('#lib [data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (e.target.dataset.unit || '');
-    dirty = true; save();
   });
   $('#fileIn').addEventListener('change', e => {
     const files = e.target.files; if (!files.length) return;
@@ -1370,109 +1417,128 @@
   $('#tabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; renderLib(); } });
 
   // ── right rail: the selected item ────────────────────────────────────────────────────
+  // TWO VIEWS BEHIND ONE SWITCH (2026-11-13 redesign): Selected is the item picked on the
+  // timeline or the picture (CAS's "This component"); Whole video is what is set once (CAS's
+  // Layout column). Picking something turns to Selected, dropping it turns back to Whole video,
+  // and the switch lets either be opened by hand.
+  let rtab = 'doc', selKey = '';
+  function paintPane() {
+    const p = document.body.dataset.pane || 'add';
+    $('#mseg').querySelectorAll('button').forEach(b => { const on = b.dataset.pane === p; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
+  }
   function renderInspector() {
     const it = find(sel), el = $('#insp'); let h = '';
-    const seg = (k, opts) => '<div class="vs-seg">' + opts.map(o => '<button data-k="' + k + '" data-v="' + o[0] + '"' + (String(it[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
+    const key = it ? sel.kind + ':' + sel.id : '';
+    if (key !== selKey) { selKey = key; rtab = it ? 'sel' : 'doc'; if (it) { document.body.dataset.pane = 'edit'; paintPane(); } }
+    $('#rtabs').querySelectorAll('button').forEach(b => { const on = b.dataset.rtab === rtab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
+    if (rtab === 'doc') { el.innerHTML = docHtml(); return; }
+    const segv = (k, cur, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-k="' + k + '" data-v="' + o[0] + '"' + (String(cur) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
+    const seg = (k, opts, cls) => segv(k, it[k], opts, cls);
     const f = (label, body) => '<div class="vs-f"><label>' + label + '</label>' + body + '</div>';
-    const timing = () => '<div class="vs-sec"><span class="vs-h">Timing</span><div class="vs-two">' +
+    const row = (label, body) => '<div class="vs-row"><span>' + label + '</span>' + body + '</div>';
+    const cap = (t, meta) => '<div class="vs-cap"><b>' + t + '</b>' + (meta ? '<s title="' + meta + '">' + meta + '</s>' : '') + '</div>';
+    const sec = (title, meta, body) => '<div class="vs-sec">' + H(title, meta) + body + '</div>';
+    const timing = () => sec('Timing', 'seconds', '<div class="vs-two">' +
       f('Starts at', '<input class="p-in" type="number" data-n="at" min="0" step="0.1" value="' + it.at.toFixed(2) + '">') +
-      f('Lasts', '<input class="p-in" type="number" data-n="dur" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') + '</div></div>';
+      f('Lasts', '<input class="p-in" type="number" data-n="dur" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') + '</div>');
     if (!it) {
-      h = '<div class="vs-sec"><span class="vs-h">' + G().name + ' · ' + G().w + ' × ' + G().h + '</span>' +
-        '<span class="vs-note">Select anything on the timeline to edit it here.</span></div>' + casNotesHtml() +
-        '<div class="vs-sec"><span class="vs-h">How to cut</span><span class="vs-note">Move the playhead and press <b>S</b> (or the scissors) to cut the clip under it. Drag a clip\'s edge to trim, drag its body to reorder, <b>⌫</b> to delete. The video track closes its own gaps.</span></div>' +
-        '<div class="vs-sec"><span class="vs-h">Keys</span><span class="vs-note">Space play · S cut · ⌫ delete · ⌘D duplicate · ⌘Z undo · ← → one frame (⇧ one second) · ⌘ scroll to zoom the timeline</span></div>' +
-        '<div class="vs-sec"><button class="p-ghost" id="clearBtn">Start a new video</button></div>';
+      h = '<div class="vs-sec"><div class="vs-none"><b>Nothing selected</b>Click a clip, a text, a graphic or a sound on the timeline, or anything on the picture, to edit it here.</div></div>';
     } else if (sel.kind === 'clip') {
       const m = media[it.mid] || {}, vid = m.kind === 'video';
-      h = '<div class="vs-sec"><span class="vs-h">' + (vid ? 'Video clip' : 'Photo clip') + '</span><span class="vs-note">' + esc(m.name) + ' · ' + fmt(clipLen(it)) + (vid ? ' of ' + fmt(m.dur) : '') + '</span></div>';
-      if (P.clips.indexOf(it) > 0) h += '<div class="vs-sec"><span class="vs-h">Transition in</span><select class="p-in" data-s="tr" style="width:100%">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : '') + '<span class="vs-note">How this clip arrives from the one before it.</span></div>';
-      if (vid) h += '<div class="vs-sec"><span class="vs-h">Sound</span>' + seg('mute', [[false, 'On'], [true, 'Muted']]) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
-      else {
-        h += '<div class="vs-sec"><span class="vs-h">Timing</span>' + f('Lasts', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
+      h = cap(vid ? 'Video clip' : 'Photo clip', esc(m.name));
+      if (vid) h += '<div class="vs-sec">' + row('Length', '<s>' + fmt(clipLen(it)) + ' of ' + fmt(m.dur) + '</s>') +
+        row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
+      else h += '<div class="vs-sec">' + f('Lasts <s>seconds</s>', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
+      if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
+      if (!vid) {
         const j = it.job, busy = j && (j.status === 'queued' || j.status === 'working' || j.status === 'confirm');
-        h += '<div class="vs-sec"><span class="vs-h">Animate with Higgsfield</span>' +
-          '<div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + m[1] + '</button>').join('') + '</div>' +
-          f('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+        h += sec('Animate with Higgsfield', 'photo to video',
+          '<div class="vs-f"><label>Camera move</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + m[1] + '</button>').join('') + '</div></div>' +
+          row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + d + ' s</button>').join('') + '</div>') +
           f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-          f('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+          row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+          f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light"' + (busy ? ' disabled' : '') + '>') +
           '<span class="vs-note">About ' + (genCredits(it)) + ' credits. The exact cost is shown before anything is spent.</span>' +
-          f('Extra direction', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Optional, e.g. golden hour light"' + (busy ? ' disabled' : '') + '>') +
-          (j && j.status === 'confirm' ? '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance.</span><button class="p-btn p-sm" id="animGo">Generate</button><button class="p-ghost p-sm" id="animCancel">Cancel</button>' : (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'
+          (j && j.status === 'confirm' ? '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance.</span><div class="vs-acts"><button class="p-ghost p-sm" id="animCancel">Cancel</button><button class="p-btn p-sm" id="animGo">Generate</button></div>' : (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><div class="vs-acts"><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button></div>'
             : (j && j.status === 'failed' ? '<span class="vs-note"><b>That did not work:</b> ' + esc(j.error || 'no reason given') + '</span>' : '') +
-              '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>Generate now</button>' +
-              '<button class="p-ghost p-sm" id="animBtn"' + (it.move ? '' : ' disabled') + '>Send to the animate queue</button>' +
-              '<span class="vs-note">' + (it.move ? '<b>Generate now</b> uses Higgsfield\'s tool on this computer and shows the cost first. <b>Send to the animate queue</b> waits for <b>/animate-photos</b> in Claude.' : 'Pick a camera move first.') + '</span>')) +
-          '</div>';
+              '<div class="vs-acts"><button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>Generate now</button>' +
+              '<button class="p-ghost p-sm" id="animBtn"' + (it.move ? '' : ' disabled') + '>Send to the animate queue</button></div>' +
+              '<span class="vs-note">' + (it.move ? '<b>Generate now</b> uses Higgsfield\'s tool on this computer and shows the cost first. <b>Send to the animate queue</b> waits for <b>/animate-photos</b> in Claude.' : 'Pick a camera move first.') + '</span>')));
       }
-      h += '<div class="vs-sec"><span class="vs-h">Framing</span>' + seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
-        rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, '') + '</div>';
+      h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
+        rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, ''));
     } else if (sel.kind === 'audio') {
       const m = media[it.mid] || {};
-      h = '<div class="vs-sec"><span class="vs-h">Audio</span><span class="vs-note">' + esc(m.name) + '</span>' + seg('track', [['music', 'Music'], ['sfx', 'Sound']]) + '</div>' +
-        '<div class="vs-sec"><span class="vs-h">Level</span>' + rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%') +
+      h = cap('Audio', esc(m.name)) +
+        '<div class="vs-sec">' + row('Track', seg('track', [['music', 'Music'], ['sfx', 'Sound']])) + rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%') +
         rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) + '</div>' +
-        '<div class="vs-sec"><span class="vs-h">Speed</span>' + f('Fit to exactly (seconds)', '<input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') +
-          '<span class="vs-note" id="rateNote">' + rateNote(it) + '</span>' + ((it.rate || 1) !== 1 ? '<button class="p-ghost p-sm" id="rateReset">Back to natural speed</button>' : '') + '</div>' +
-        '<div class="vs-sec"><span class="vs-h">Captions</span>' + seg('capOn', [[false, 'Off'], [true, 'On']]) +
+        sec('Speed', Math.round((it.rate || 1) * 100) + '%', f('Fit to exactly <s>seconds</s>', '<input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') +
+          '<span class="vs-note" id="rateNote">' + rateNote(it) + '</span>' + ((it.rate || 1) !== 1 ? '<div class="vs-acts"><button class="p-ghost p-sm" id="rateReset">Back to natural speed</button></div>' : '')) +
+        sec('Captions', it.capOn ? '' : 'Off', row('Show', seg('capOn', [[true, 'On'], [false, 'Off']], 's')) +
         (it.capOn ? f('Voiceover script', '<textarea class="p-in" data-s="cap" rows="6" placeholder="Paste exactly what is said in this audio">' + esc(it.cap || '') + '</textarea>') +
-          f('Words at a time', seg('capN', [['1', 'One'], ['2', 'Two'], ['3', 'Three']])) +
-          f('Style', seg('capStyle', [['plain', 'Plain'], ['pill', 'Navy pill']])) +
-          f('Size', seg('capSize', [['S', 'Small'], ['M', 'Medium'], ['L', 'Large']])) +
-          f('Letters', seg('capCase', [['caps', 'Capitals'], ['as', 'As typed']])) +
-          f('Spoken word in brass', seg('capHi', [[true, 'On'], [false, 'Off']])) +
+          row('Words at a time', seg('capN', [['1', 'One'], ['2', 'Two'], ['3', 'Three']])) +
+          row('Style', seg('capStyle', [['plain', 'Plain'], ['pill', 'Navy pill']])) +
+          row('Size', seg('capSize', [['S', 'Small'], ['M', 'Medium'], ['L', 'Large']])) +
+          row('Letters', seg('capCase', [['caps', 'Capitals'], ['as', 'As typed']])) +
+          row('Spoken word in brass', seg('capHi', [[true, 'On'], [false, 'Off']], 's')) +
           rng('i', 'capY', 'Height', it.capY == null ? 90 : it.capY, 0, 100, '%') +
           rng('i', 'capShift', 'Earlier / later', it.capShift || 0, -1.5, 1.5, 's', .05) +
-          '<span class="vs-note">The words are timed from the loudness of the speech, not from a transcript, so they are an estimate. If they run ahead or behind, nudge them with Earlier / later. Music under the voice makes the timing less accurate.</span>' : '') +
-        '</div>' + timing();
+          '<span class="vs-note">The words are timed from the loudness of the speech, not from a transcript, so they are an estimate. If they run ahead or behind, nudge them with Earlier / later. Music under the voice makes the timing less accurate.</span>' : '')) + timing();
     } else if (sel.kind === 'text' && it.call === 'cta') {
-      h = '<div class="vs-sec"><span class="vs-h">End card</span>' +
-        f('Line above', '<textarea class="p-in" data-s="line" rows="2" placeholder="Optional">' + esc(it.line || '') + '</textarea>') +
+      h = cap('End card', esc(it.head || '')) + '<div class="vs-sec">' +
+        f('Line above <s>optional</s>', '<textarea class="p-in" data-s="line" rows="2">' + esc(it.line || '') + '</textarea>') +
         f('Headline', '<textarea class="p-in" data-s="head" rows="2">' + esc(it.head || '') + '</textarea>') +
-        f('Button', '<input class="p-in" data-s="btn" value="' + esc(it.btn || '') + '" placeholder="Leave empty for no button">') +
-        f('Provident wordmark', seg('mark', [[true, 'Shown'], [false, 'Hidden']])) +
-        f('Panel', seg('glass', [['glass', 'Frosted glass'], ['plain', 'Navy']])) +
-        f('Position', '<div class="vs-seg">' + [[32, 'Higher'], [50, 'Middle'], [62, 'Lower']].map(o => '<button data-k="y" data-v="' + o[0] + '"' + (+(it.y == null ? 50 : it.y) === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
+        f('Button', '<input class="p-in" data-s="btn" value="' + esc(it.btn || '') + '" placeholder="Leave empty for no button">') + '</div>' +
+        sec('Look', '', row('Wordmark', seg('mark', [[true, 'Shown'], [false, 'Hidden']], 's')) +
+        row('Panel', seg('glass', [['glass', 'Frosted glass'], ['plain', 'Navy']])) +
+        row('Position', segv('y', +(it.y == null ? 50 : it.y), [[32, 'Higher'], [50, 'Middle'], [62, 'Lower']])) +
         rng('i', 'y', 'Up or down', it.y == null ? 50 : it.y, 15, 85, '%') +
         rng('i', 'wash', 'Background wash', it.wash == null ? 45 : it.wash, 0, 80, '%') +
-        f('Captions while it shows', '<div class="vs-seg">' + [['show', 'Shown'], ['hide', 'Hidden']].map(o => '<button data-k="capHide" data-v="' + o[0] + '"' + ((it.capHide || 'show') === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
-        '<span class="vs-note">Drag the card on the picture to move it up or down. It stays inside the safe area. The corner logo hides while the end card is showing, so the wordmark appears once.</span></div>' + timing();
+        row('Captions under it', segv('capHide', it.capHide || 'show', [['show', 'Shown'], ['hide', 'Hidden']], 's')) +
+        '<span class="vs-note">Drag the card on the picture to move it up or down. It stays inside the safe area. The corner logo hides while the end card is showing, so the wordmark appears once.</span>') + timing();
     } else if (sel.kind === 'text' && it.call) {
       const nm = { ruler: 'Measure line', count: 'Counting figure', box: 'Outline box' }[it.call];
-      h = '<div class="vs-sec"><span class="vs-h">' + nm + '</span>' +
+      h = cap(nm, esc(it.value || it.label || '')) + '<div class="vs-sec">' +
         (it.call !== 'box' ? f(it.call === 'count' ? 'Figure it counts to' : 'Figure', '<input class="p-in" data-s="value" value="' + esc(it.value || '') + '">') : '') +
         f('Label', '<input class="p-in" data-s="label" value="' + esc(it.label || '') + '" placeholder="Set in capitals">') +
         (it.call === 'ruler' ? f('Figure sits', seg('side', [['right', 'Left of the line'], ['left', 'Right of the line']])) : '') + '</div>' +
-        '<div class="vs-sec"><span class="vs-h">Place and size</span>' + rng('i', 'x', 'Across', it.x, 0, 100, '%') + rng('i', 'y', 'Down', it.y, 0, 100, '%') +
+        sec('Place and size', '', rng('i', 'x', 'Across', it.x, 0, 100, '%') + rng('i', 'y', 'Down', it.y, 0, 100, '%') +
         (it.call === 'box' ? rng('i', 'w', 'Width', it.w, 10, 100, '%') : '') + (it.call !== 'count' ? rng('i', 'h', it.call === 'ruler' ? 'Line length' : 'Height', it.h, 4, 90, '%') : '') +
-        rng('i', 'scale', 'Type size', it.scale || 100, 50, 200, '%') + '</div>' + timing();
+        rng('i', 'scale', 'Type size', it.scale || 100, 50, 200, '%')) + timing();
     } else if (sel.kind === 'text') {
-      h = '<div class="vs-sec"><span class="vs-h">Text</span>' +
-        f('Eyebrow', '<input class="p-in" data-s="eyebrow" value="' + esc(it.eyebrow) + '" placeholder="Optional, set in caps">') +
+      h = cap('Text', esc(plain(it.text || it.eyebrow || it.sub || '').split('\n')[0])) + '<div class="vs-sec">' +
+        f('Eyebrow <s>optional</s>', '<input class="p-in" data-s="eyebrow" value="' + esc(it.eyebrow) + '" placeholder="Set in capitals">') +
         '<div class="vs-f"><label>Headline <button class="vs-hi" data-hi="text" title="Paint the selected words, or the word under the caret, in brass. Press again to remove."><i></i>Brass highlight</button></label><textarea class="p-in" data-s="text" rows="3">' + esc(it.text) + '</textarea></div>' +
-        f('Line under it', '<textarea class="p-in" data-s="sub" rows="2" placeholder="Optional">' + esc(it.sub) + '</textarea>') + '</div>' +
-        '<div class="vs-sec"><span class="vs-h">Layout</span>' + f('Size', seg('size', ART.order.map(s => [s, s]))) +
-        f('Line spacing', '<div class="vs-seg">' + [['tight', 'Tight'], ['normal', 'Normal'], ['open', 'Open']].map(o => '<button data-k="lead" data-v="' + o[0] + '"' + (leadOf(it) === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>') +
-        f('Position', seg('pos', [['top', 'Top'], ['centre', 'Centre'], ['bottom', 'Bottom']])) + f('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
-        rng('i', 'scrim', 'Wash under the text', it.scrim, 0, 100, '%') + '</div>' +
-        '<div class="vs-sec"><span class="vs-h">Effect</span><select class="p-in" data-s="anim" style="width:100%">' + ANIMS.map(a => '<option value="' + a[0] + '"' + (it.anim === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>' +
-        '<button class="p-ghost p-sm" id="previewBtn">Play this text</button></div>' + timing();
+        f('Line under it <s>optional</s>', '<textarea class="p-in" data-s="sub" rows="2">' + esc(it.sub) + '</textarea>') + '</div>' +
+        sec('Layout', '', f('Size', seg('size', ART.order.map(s => [s, s]))) +
+        row('Line spacing', segv('lead', leadOf(it), [['tight', 'Tight'], ['normal', 'Normal'], ['open', 'Open']])) +
+        row('Position', seg('pos', [['top', 'Top'], ['centre', 'Centre'], ['bottom', 'Bottom']])) + row('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
+        rng('i', 'scrim', 'Wash under the text', it.scrim, 0, 100, '%')) +
+        sec('Effect', 'how it arrives', '<select class="p-in" data-s="anim">' + ANIMS.map(a => '<option value="' + a[0] + '"' + (it.anim === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>' +
+        '<div class="vs-acts"><button class="p-ghost p-sm" id="previewBtn">' + ico('play_arrow') + 'Play this text</button></div>') + timing();
     } else {
       const m = media[it.mid] || {};
-      h = '<div class="vs-sec"><span class="vs-h">Graphic</span><span class="vs-note">' + esc(m.name) + ' — drag it on the canvas to move it. Reel and Square each keep their own place and size.</span>' +
+      h = cap('Graphic', esc(m.name)) + '<div class="vs-sec">' +
         rng('i', 'w', 'Size', Math.round(lgeo(it).w), 3, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
         f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']])) +
-        f('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']])) +
-        '<div class="vs-two"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div></div>' + timing();
+        row('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']], 's')) +
+        '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
+        '<span class="vs-note">Drag it on the picture to move it. Reel and Square each keep their own place and size.</span></div>' + timing();
     }
-    if (it) h += '<div class="vs-sec"><div class="vs-two"><button class="p-ghost p-sm" id="iDup">Duplicate</button><button class="p-danger p-sm" id="iDel">Delete</button></div></div>';
+    if (it) h += '<div class="vs-sec"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
     el.innerHTML = h;
   }
   const insp = $('#insp');
   insp.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
   insp.addEventListener('focusin', e => { if (e.target.matches('input:not([type=range]),textarea,select')) mark(); });
   insp.addEventListener('input', e => {
-    const it = find(sel), d = e.target.dataset; if (!it) return;
+    const it = find(sel), d = e.target.dataset;
+    if (d.br) {                               // a Whole video slider: the wordmark's or the partner's
+      P.brand[d.br] = +e.target.value; pTint = null;
+      const o = insp.querySelector('[data-out="' + d.br + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
+      dirty = true; save(); return;
+    }
+    if (!it || rtab !== 'sel') return;
     if (d.ir) {
       let v = +e.target.value; const k = d.ir;
       const o = insp.querySelector('[data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
@@ -1492,14 +1558,12 @@
     } else return;
     dirty = true; save(); renderTimeline();
   });
+  $('#rtabs').addEventListener('click', e => { const b = e.target.closest('[data-rtab]'); if (b) { rtab = b.dataset.rtab; renderInspector(); } });
   insp.addEventListener('click', e => {
+    if (brandClick(e)) return;
     const it = find(sel), b = e.target.closest('button'); if (!b) return;
     if (b.dataset.nt != null) { if (playing) pause(); seek(+b.dataset.nt); return; }
-    if (b.id === 'clearBtn') {
-      if (!total() || confirm('Clear the timeline and start a new video? Uploaded files stay in the library.')) { mark(); const keep = P.size; P = fresh(); P.size = keep; sel = null; T = 0; partnerLoad(); renderAll(); }
-      return;
-    }
-    if (!it) return;
+    if (!it || rtab !== 'sel') return;
     if (b.dataset.mv) { mark(); it.move = b.dataset.mv; renderAll(); return; }
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
     if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; renderAll(); return; }
@@ -1582,7 +1646,7 @@
     ready();
   }
   function finishExport() { setTimeout(() => { if (rec && rec.state !== 'inactive') rec.stop(); }, 200); }
-  setInterval(() => { if (exporting) $('#ovP').style.width = (T / Math.max(.01, total()) * 100) + '%'; }, 120);
+  setInterval(() => { if (exporting) { $('#ovP').style.width = (T / Math.max(.01, total()) * 100) + '%'; $('#ovC').textContent = fmt(T) + ' of ' + fmt(total()); } }, 120);
   $('#ovX').addEventListener('click', () => { recCancel = true; casStop = true; pause(); if (rec && rec.state !== 'inactive') rec.stop(); else { exporting = false; delete $('#ov').dataset.on; } });
   // ── Send to CAS ──────────────────────────────────────────────────────────────────────
   // The editor stays on this computer; CAS on the website holds the Google sign-in and the ad
@@ -1598,7 +1662,7 @@
     if (casBusy || exporting) return;
     if (!total()) { toast('Add a video first.'); return; }
     const first = P.texts.find(t => !t.call && t.text), def = (P.cas && P.cas.title) || (first ? plain(first.text).replace(/\s+/g, ' ').slice(0, 60) : 'Video');
-    const title = prompt('Send this video to CAS.\n\nCASV records the Reel 9:16 and then the Square 1:1, which takes twice the video\'s length. Keep this tab in front until it finishes.\n\nName of the video:', def);
+    const title = await ask('Send this video to CAS', 'CASV records the Reel 9:16 and then the Square 1:1, which takes twice the video\'s length. Keep this tab in front until it finishes.', 'Record and send', def);
     if (title == null) return;
     const keep = P.size, id = (P.cas && P.cas.id) || uid() + uid().slice(0, 2), out = {};
     casBusy = true; casStop = false;
@@ -1635,23 +1699,23 @@
   function casNotesHtml() {
     if (!P.cas) return '';
     const open = CASN.filter(n => !n.done);
-    return '<div class="vs-sec"><span class="vs-h">Comments from CAS</span>' + (CASN.length
-      ? CASN.map((n, i) => '<button class="vs-pre" data-nt="' + (+n.t || 0) + '"' + (n.done ? ' style="opacity:.55"' : '') + '><b>' + (i + 1) + ' · ' + fmt(+n.t || 0) + (n.by ? ' · ' + esc(n.by) : '') + (n.done ? ' · done' : '') + '</b><s>' + esc(n.text) + '</s></button>').join('') +
-        '<span class="vs-note">' + open.length + ' open. Click one to jump to it. Send the video to CAS again once they are dealt with.</span>'
-      : '<span class="vs-note">“' + esc(P.cas.title) + '” was sent to CAS. Comments left on its timeline there appear here.</span>') + '</div>';
+    return '<div class="vs-sec">' + H('Comments from CAS', CASN.length ? open.length + ' open' : '') + (CASN.length
+      ? CASN.map((n, i) => '<button class="vs-cm" data-nt="' + (+n.t || 0) + '"' + (n.done ? ' data-done="1"' : '') + ' title="Jump to this moment"><i>' + (i + 1) + '</i><b>' + fmt(+n.t || 0) + (n.by ? ' · ' + esc(n.by) : '') + (n.done ? ' · done' : '') + '</b><s>' + esc(n.text) + '</s></button>').join('') +
+        '<span class="vs-note">Click one to jump to it. Send the video to CAS again once they are dealt with.</span>'
+      : '<div class="vs-none">“' + esc(P.cas.title) + '” was sent to CAS. Comments left on its timeline there appear here.</div>') + '</div>';
   }
   async function casNotes() {
     if (!P.cas || document.hidden || exporting) return;
     try {
       const r = await fetch('/api/outbox/notes?id=' + P.cas.id), j = await r.json(), n = Array.isArray(j.notes) ? j.notes : [];
-      if (JSON.stringify(n) !== JSON.stringify(CASN)) { CASN = n; renderTimeline(); if (!sel) renderInspector(); }
+      if (JSON.stringify(n) !== JSON.stringify(CASN)) { CASN = n; renderTimeline(); if (rtab === 'doc') renderInspector(); }
     } catch (e) {}
   }
   setInterval(casNotes, 15000); setTimeout(casNotes, 1200);
   function casDone() {
     const d = document.createElement('div'); d.className = 'vs-ov'; d.dataset.on = '1';
-    d.innerHTML = '<div class="vs-dlg"><b>Ready for CAS</b><span class="vs-note" style="display:block;margin:8px 0 14px">The Reel 9:16 and the Square 1:1 are waiting on this computer. In CAS, open the ad set, press <b>Add video</b> on the audience and choose <b>From CASV on this computer</b>.</span>' +
-      '<div class="vs-two"><button class="p-btn" data-go="1">Open CAS</button><button class="p-ghost" data-go="0">Close</button></div></div>';
+    d.innerHTML = '<div class="vs-dlg" role="dialog" aria-modal="true"><b>Ready for CAS</b><p>The Reel 9:16 and the Square 1:1 are waiting on this computer. In CAS, open the ad set, press <b>Add video</b> on the audience and choose <b>From CASV on this computer</b>.</p>' +
+      '<div class="vs-dlg-a"><button class="p-ghost" data-go="0">Close</button><button class="p-btn" data-go="1">Open CAS</button></div></div>';
     d.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b && e.target !== d) return; if (b && b.dataset.go === '1') window.open(CAS_SITE(), '_blank', 'noopener'); d.remove(); });
     document.body.appendChild(d);
   }
@@ -1812,8 +1876,11 @@
 
   // ── chrome wiring ────────────────────────────────────────────────────────────────────
   function renderAll() {
-    $('#sizeSeg').querySelectorAll('button').forEach(b => { if (b.dataset.size === P.size) b.dataset.on = '1'; else delete b.dataset.on; });
-    $('#empty').style.display = total() ? 'none' : '';
+    $('#sizeSeg').querySelectorAll('button').forEach(b => { const on = b.dataset.size === P.size; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-checked', on); });
+    const g = G(), nm = g.name.split(' '), has = total() > 0;
+    $('#szName').textContent = nm[0]; $('#szRatio').textContent = nm[1] || ''; $('#szMeta').textContent = g.w + ' × ' + g.h + (has ? ' · ' + fmt(total()) : '');
+    $('#empty').style.display = has ? 'none' : '';
+    $('#exportBtn').disabled = $('#sendBtn').disabled = $('#frameBtn').disabled = $('#previewBtn2').disabled = !has;
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
     $('#delBtn').disabled = $('#dupBtn').disabled = !find(sel);
     T = clamp(T, 0, Math.max(0, total()));
@@ -1821,27 +1888,54 @@
   }
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
   $('#dupBtn').innerHTML = ico('content_copy'); $('#delBtn').innerHTML = ico('delete'); $('#homeBtn').innerHTML = ico('skip_previous');
-  $('#safeBtn').innerHTML = ico('smartphone');
+  $('#safeBtn').innerHTML = ico('smartphone') + 'Safe zones';
+  $('#newBtn').innerHTML = sico('add_box'); $('#keysBtn').innerHTML = sico('keyboard'); $('#emptyUp').innerHTML = ico('upload') + 'Upload video or photos';
+  $('#emptyUp').addEventListener('click', () => pickFiles('media'));
+  // one small dialog for the questions the studio asks (the kit's card; Esc cancels). With `value`
+  // it carries a field and answers with the text; without, it answers true. Cancelled, null.
+  function ask(title, body, yes, value) {
+    const d = $('#ask'), inp = $('#askIn');
+    $('#askT').textContent = title; $('#askN').textContent = body; $('#askYes').textContent = yes;
+    inp.hidden = value == null; inp.value = value || '';
+    return new Promise(res => {
+      d.onclose = () => res(d.returnValue === 'yes' ? (value == null ? true : inp.value) : null);
+      d.returnValue = ''; d.showModal(); if (value != null) { inp.focus(); inp.select(); }
+    });
+  }
+  $('#askYes').addEventListener('click', () => $('#ask').close('yes')); $('#askNo').addEventListener('click', () => $('#ask').close(''));
+  $('#askIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#ask').close('yes'); } });
+  $('#newBtn').addEventListener('click', async () => {
+    if (total() && !(await ask('Start a new video?', 'The timeline is cleared. Everything you uploaded stays in the library, and Undo brings this video back.', 'Start new'))) return;
+    mark(); const keep = P.size; P = fresh(); P.size = keep; sel = null; T = 0; partnerLoad(); renderAll();
+  });
+  // the shortcuts card opens above its button
+  $('#keys').addEventListener('toggle', e => {
+    const open = e.newState === 'open', k = $('#keys'), r = $('#keysBtn').getBoundingClientRect();
+    $('#keysBtn').setAttribute('aria-expanded', open);
+    if (open) { k.style.left = Math.max(12, Math.min(innerWidth - k.offsetWidth - 12, r.right - k.offsetWidth)) + 'px'; k.style.top = Math.max(12, r.top - k.offsetHeight - 8) + 'px'; }
+  });
+  $('#mseg').addEventListener('click', e => { const b = e.target.closest('[data-pane]'); if (b) { document.body.dataset.pane = b.dataset.pane; paintPane(); } });
+  paintPane();
   $('#safeBtn').addEventListener('click', () => { showSafe = !showSafe; $('#safeBtn').setAttribute('aria-pressed', showSafe); if (showSafe) guideShow(); else guideHide(); });
   $('#zoIc').innerHTML = ico('zoom_out'); $('#ziIc').innerHTML = ico('zoom_in');
-  $('#frameBtn').innerHTML = ico('photo_camera') + 'Save frame'; $('#exportBtn').innerHTML = ico('download') + 'Export video';
+  $('#frameBtn').innerHTML = ico('photo_camera') + '<span class="vs-l">Save frame</span>'; $('#exportBtn').innerHTML = ico('download') + '<span class="vs-l2">Export video</span>';
   function paintTheme() { const light = document.documentElement.dataset.theme === 'light'; $('#themeBtn').innerHTML = ico(light ? 'dark_mode' : 'light_mode'); }
   if (localStorage.getItem(TKEY) === 'light') document.documentElement.dataset.theme = 'light';
   $('#themeBtn').addEventListener('click', () => {
     const r = document.documentElement; if (r.dataset.theme === 'light') delete r.dataset.theme; else r.dataset.theme = 'light';
-    localStorage.setItem(TKEY, r.dataset.theme || 'dark'); paintTheme();
+    localStorage.setItem(TKEY, r.dataset.theme || 'dark'); paintTheme(); renderTimeline();   // the waveforms take the theme's tint
   });
   $('#sizeSeg').addEventListener('click', e => { const b = e.target.closest('[data-size]'); if (b && b.dataset.size !== P.size) { mark(); P.size = b.dataset.size; pTint = null; fitCanvas(); renderAll(); } });
   $('#undoBtn').addEventListener('click', () => restore(undo, redo)); $('#redoBtn').addEventListener('click', () => restore(redo, undo));
   $('#splitBtn').addEventListener('click', split); $('#delBtn').addEventListener('click', del); $('#dupBtn').addEventListener('click', dup);
   $('#homeBtn').addEventListener('click', () => { seek(0); tl.scrollLeft = 0; });
   $('#playBtn').addEventListener('click', () => (playing ? pause() : play()));
-  $('#previewBtn2').innerHTML = ico('visibility') + 'Preview'; $('#previewBtn2').addEventListener('click', pvOpen);
-  $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + 'Send to CAS'; $('#sendBtn').addEventListener('click', sendToCas); $('#frameBtn').addEventListener('click', saveFrame);
+  $('#previewBtn2').innerHTML = ico('visibility') + '<span class="vs-l">Preview</span>'; $('#previewBtn2').addEventListener('click', pvOpen);
+  $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + '<span class="vs-l2">Send to CAS</span>'; $('#sendBtn').addEventListener('click', sendToCas); $('#frameBtn').addEventListener('click', saveFrame);
   $('#zoom').addEventListener('input', e => { pps = +e.target.value; renderTimeline(); });
   window.addEventListener('resize', () => { fitCanvas(); renderTimeline(); });
   document.addEventListener('keydown', e => {
-    if (exporting) return;
+    if (exporting || $('#ask').open) return;
     const tg = e.target, typing = tg.matches && tg.matches('input:not([type=range]),textarea,select');
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); e.shiftKey ? restore(redo, undo) : restore(undo, redo); return; }
@@ -1858,7 +1952,12 @@
   // files dropped anywhere on the page
   const stage = $('#cvw');
   document.addEventListener('dragover', e => { if (e.dataTransfer && Array.from(e.dataTransfer.types).indexOf('Files') >= 0) e.preventDefault(); });
+  let dragN = 0;
+  const hasFiles = e => e.dataTransfer && Array.from(e.dataTransfer.types).indexOf('Files') >= 0;
+  document.addEventListener('dragenter', e => { if (hasFiles(e)) { dragN++; document.body.dataset.drag = '1'; } });
+  document.addEventListener('dragleave', e => { if (hasFiles(e) && --dragN <= 0) { dragN = 0; delete document.body.dataset.drag; } });
   document.addEventListener('drop', e => {
+    dragN = 0; delete document.body.dataset.drag;
     if (!e.dataTransfer || !e.dataTransfer.files.length) return;
     e.preventDefault();
     addFiles(e.dataTransfer.files, stage.contains(e.target) || tl.contains(e.target) ? 'stage' : (tab === 'logos' ? 'logo' : tab));

@@ -335,3 +335,40 @@ native method; keep the original and assign it back.
 Seen in Chrome on the user's project, both sizes: the Palm Springs and Nakheel marks are apart in
 Square and unchanged on the Reel; "Aliso Townhouses / 3 to 4-BR townhouses / From AED 3.8M" has clear
 gaps. Moving a graphic in Square (the `sq` write path) was NOT exercised.
+
+## Chrome redesign to match CAS (2026-11-13, branch `casv-redesign`, by request)
+
+"Redesign the UI and UX of CASV, make the design of the UI same to CAS." Chrome only: the diff touches
+`renderLib`, `renderInspector`, the handlers and the wiring; nothing between `setFont` and `fitCanvas`
+(the paint path) changed except the waveform's fill, which now reads the track tint from the stylesheet.
+Built on its own branch and worktree (`.claude/worktrees/casv-redesign`, served on 8798) because another
+session was committing to `video-studio` at the same time.
+
+- **Measured off CAS's Design tab** (computed values, light and dark): section heads 13/600 with a quiet
+  11.5 meta beside them (no tracked caps anywhere in the chrome), switches as a fill track with the chosen
+  half on the resting tint (`--ps-accent`, never the navy), rows as label left / control right, tiles as a
+  swatch over an 11.5/500 label three across, dashed 14px drop, 16px cards with a ring and no shadow.
+- **Top bar is CAS's**: wordmark (links home), a file group (Start a new video, which used to hide in the
+  idle inspector, now behind a small dialog), the size switch, then theme, Undo / Redo (moved up from the
+  transport), Preview, Save frame, Export video (ghost) and Send to CAS (the one navy action).
+- **Left rail = what can be added.** Media, Audio, Text, Graphics. Text presets and callouts are specimen
+  tiles; Make a voiceover and Make music fold away under Your audio (`ACC`).
+- **Right rail = Selected | Whole video** (`rtab`). Whole video holds what is set once: comments from CAS,
+  the wordmark, the collaboration logo, the logo colour. These left the old Logos tab, which is now
+  Graphics and carries a pointer ("Looking for the wordmark?"). Selecting turns the rail to Selected,
+  deselecting turns it back. `brandClick` serves the brand controls wherever they are drawn.
+- **Stage** has CAS's size heading (Reel · 9:16 · 1080 × 1920 · length) with Safe zones at its right.
+- **Timeline**: layer colours kept, as tints of the desk (`--tc` mixed into the card, a light and a dark set)
+  instead of saturated fills; the playhead and the selection are the ink; shot markers are dim; comment
+  pins are the link colour so they do not read as the playhead.
+- **Help** (How to cut, Keys) left the idle inspector for a Shortcuts card on the transport bar (popover).
+- **Dialogs**: `ask()` (a `<dialog>`) replaces `confirm()` and Send to CAS's `prompt()`; the export box
+  shows time recorded.
+- **Phones** (≤860px): picture, bar and timeline on top; the two rails become one panel behind Add / Edit.
+
+Checked in the Browser pane at 1440, 1280, 1100 and 375, both themes: no console errors, the top bar fits,
+no sideways scroll, every inspector kind renders without overflow, quiet inks ≥ 4.9:1 after a reload into
+each theme. Canvas hashes at six times in both sizes equal the pre-change page served alongside (after a
+reload; a logo uploaded in the same session hashes differently until then, in both versions).
+NOT exercised: Export and Send to CAS end to end (real click needed), the generators' paid steps, the
+comments list with real comments, drag on the picture, the placement preview, Safari.
