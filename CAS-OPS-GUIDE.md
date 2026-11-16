@@ -862,6 +862,18 @@ What's on the screen, from left to right:
 - **Background photo:** use **Background image** → **Photo**.
   - Double-click the photo on the canvas to reframe it.
   - **Image opacity** dims it.
+- **Video background (the Animated deliverable):** **Background image** › **Background** ›
+  **Video**, then **Upload video** (the clip you made from the photo, in Higgsfield or any MP4).
+  - The clip plays behind the design on the **1:1** and the **9:16**. The other sizes, and every
+    still image, keep the photo, so keep the photo too.
+  - The video is framed by the photo: double-click the photo on the canvas and reframe it, and the
+    video moves with it. A clip shaped like the photo frames the same.
+  - **Share** › **Animated** › **Export animated** records the 1:1 and 9:16 as MP4 video
+    (`…_feed_animated.mp4`, `…_Story_animated.mp4`), beside the stills. It takes as long as the
+    clip; keep the tab in front.
+  - **Photo** turns the video off without forgetting it; **Remove** forgets it. The clip is kept on
+    this computer only: it is not in the project file, its link or Drive, so another computer shows
+    the photo until the clip is uploaded there too.
   - **Overlap image** sits in front of the headline, for a parallax look. Drop a photo and its background is removed for you (10–20 seconds), or drop a PNG already cut out. If background removal is not running on that computer the line under the picture says so, and a picture that still has its background is flagged "background not removed".
 - **Layout** (right rail) lists the choices in words. **Point at one and the canvas shows it**,
   outlined and tagged Preview, before anything changes; click to keep it, move away to drop it.

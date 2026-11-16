@@ -59,3 +59,33 @@ values, new methods before `doExport`), nothing inside `buildOps` or either rend
 - The Deliverables card on main does not tick Animated when this exports; they are on different
   branches.
 - Carousel pages, the 4:5 and banner sizes are left out on purpose (1:1 and 9:16 only).
+
+## MOVED TO THE BACKGROUND PANEL; THE CLIP PLAYS ON THE CANVAS (2026-11-16, later)
+
+By request: "can it be on CAS but just an option to upload a video on the background". The branch
+was merged with main first (260a927).
+
+- **Background image › Background: Photo | Video** (`anSetPhoto` / `anSetVideo`, flag `bgVid: '1'`
+  on the variant, saved with the project; buildOps never reads it). Video shows the clip's name,
+  **Upload video / Replace video** and **Remove**. Uploading a clip sets Video. The Photo group
+  stays below it: the stills and the other sizes use it, and its crop frames the video.
+- **Share › Animated** now only exports, and only shows when a variant has Video AND its clip here
+  (`anVis`). Add / Remove left the Share panel.
+- **The canvas plays it** (`anPreview`, every 250 ms from the first `anClip`): a muted looping
+  `<video class="an-pv">` appended inside the 1:1's and 9:16's photo slot SHADOW `.frame` (React
+  never reaches it), sized from the clip's own width/height with the slot's live `_view` — the
+  same cover × zoom and 50% + x / y as image-slot's `_applyView` and as `anRecord`'s stand-in
+  photo, so a reframe moves the video exactly as it will be recorded. The videos are tracked in
+  `_anPvs` (a document-level querySelectorAll cannot see into shadow roots — the first cut left
+  them playing after Photo was chosen).
+- **Proof the artwork did not move:** `git diff main` on the .dc.html is additions only (styles,
+  the Share and Background markup, the methods before `doExport`, two render-value spreads) — no
+  hunk in buildOps, renderOpsToCanvas or renderOpsToSvg.
+- **Verified** (share-dev :8795 from this worktree, a test clip made in the page): Video tab →
+  the panel prompt; a 720×1280 clip → playing on the 1:1 (cover: 100% × 177.8%) and 9:16, not the
+  3:4; a view of s 2, x 10, y −5 → 200% × 355.6% at 60% / 45%; Export animated → two H.264 MP4s
+  (90 frames in 3 s); the clip saved, the page reloaded → Video still chosen, the clip back and
+  playing; Photo → no video on the canvas, Video → back; Remove → gone from the canvas and from the
+  clip store.
+- Not run: a real Higgsfield MP4 through the file picker, a design with a real photo / glass / a
+  cut-out over the moving clip, Safari, phones, dark theme; carousel pages.
