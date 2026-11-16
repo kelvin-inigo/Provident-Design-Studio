@@ -694,9 +694,10 @@ at the top.
   downloads are written to the ad set's Activity.
 - Performance marketing also has a **Video** button in the bar of **Open the package**.
 
-**Back to the designer.** When the designer opens the video on the computer that made it, the
-comments are sent to the Video Studio and show as numbered pins on its timeline and under **Comments
-from CAS**. After the changes, **Send to CAS** again and use **Replace video** in the window: the
+**Back to the designer.** When the designer has the home page, Status or the ad set open on the
+computer that made the video, the comments are sent to the Video Studio on their own (the video does
+not need to be opened) and show as numbered pins on its timeline and under **Comments from CAS**
+within a few seconds. A page that is already open picks up new comments when it is reloaded. After the changes, **Send to CAS** again and use **Replace video** in the window: the
 comments stay and the version number goes up.
 
 ## 3. CAS: build an ad
