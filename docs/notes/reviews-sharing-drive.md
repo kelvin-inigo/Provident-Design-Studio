@@ -2150,3 +2150,20 @@ comments on its next read (reload, Refresh, opening an ad set). Verified on the 
 CASV's server on 8794: designer added a video, PM (Dennis) commented through `rsvideo`, the PM's page
 posted nothing, the designer's home page load alone delivered the comment to
 `/api/outbox/notes` (200), no player opened. Not verified on the live site until pushed.
+
+### The Video Studio project is saved in the ad set's folder (2026-11-16, by request)
+"It needs to be on the ad set folders in Google Drive": CASV's project lived only in one browser
+(localStorage + IndexedDB). The user chose **through CAS** over a Drive-for-desktop folder: CASV
+still never signs in. `rs.video.list[]` gains `proj` (Drive file id of `<name>.casv` in `Video/`),
+`projBytes`, `projAt`; `rsvideo` add keeps the old ones when a replacement brings none.
+- **Add / Replace video** from CASV: when the outbox row has `project`, the page fetches
+  `part=project` and `dsUpsert`s `<name>.casv` beside the two mp4s. A failure there does not stop
+  the video being added. Choosing the two files by hand saves no project.
+- **Open in Video Studio** (player, designer/admin, only when `v.proj`): Drive -> this page ->
+  `PUT <CASV>/api/outbox/back?id=&title=`. The path is under `/api/outbox/` on purpose: the local
+  server's CORS answers only that prefix.
+Verified on the stand-in (8791) with a separate CASV server (8796, its own origin, so the user's
+project was never at risk): Send to CAS parked a 21,274,585-byte project; Add video saved it
+(`proj` set, same byte count); storage wiped; Open in Video Studio -> Open it restored the same
+clips and the 21,270,767-byte media file. NOT exercised: real Drive, a project of hundreds of MB
+(the upload is one request, as the videos are), Replace, two computers.

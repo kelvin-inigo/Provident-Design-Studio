@@ -436,3 +436,17 @@ Tested: a synthetic click track at 100 a minute, first click at 0.30 s, came bac
 test voiceovers gave pauses at 1.30 3.78 7.40 10.40 and 4.47 8.98; Scene changes off and on with a real
 click changed the count 9 -> 0 -> 9. NOT tested: whether the pauses and bars sit where a person hears
 them, snapping to the new kinds with a real drag, music under a voice, a tempo that changes.
+
+### The project travels with the video: .casv, the outbox and the inbox (2026-11-16, by request)
+The project used to exist only in one browser. Now **Send to CAS** also parks `<id>.casv` in the
+outbox (`part=project`, up to 2 GB): `casPack` writes 'CASV' + the header's length + the header
+JSON (`project`, this computer's own logos, a row per media file) + the media blobs end to end.
+Only media whose id appears in the project goes in. CAS saves it in the ad set's Drive folder.
+- **Back:** CAS's Open in Video Studio PUTs the file to `/api/outbox/back` -> `_inbox/<id>.casv`
+  + `<id>.json` (git-ignored). `casInbox` (every 15 s, and 2.5 s after load) asks before opening,
+  because it REPLACES the one project here; declining deletes the inbox copy.
+- **Opening** stores the new media first, sets `loading` (which makes `save()` a no-op so a pending
+  autosave cannot write the old project back), writes the project, deletes media the new project
+  does not use, clears the inbox and reloads. A full browser store changes nothing.
+- `DB.tx` now rejects on `onabort` too: a quota failure aborts the transaction without `onerror`.
+- Test on another port (another origin) — never on 8794, where the user's project lives.

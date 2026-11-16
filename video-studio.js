@@ -111,14 +111,15 @@
     },
     async tx(mode, fn) {
       const db = await this.open();
-      return new Promise((res, rej) => { const t = db.transaction('media', mode); const q = fn(t.objectStore('media')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); });
+      return new Promise((res, rej) => { const t = db.transaction('media', mode); const q = fn(t.objectStore('media')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('aborted')); });
     },
     put(rec) { return this.tx('readwrite', s => s.put(rec)).catch(() => {}); },
     del(id) { return this.tx('readwrite', s => s.delete(id)).catch(() => {}); },
     all() { return this.tx('readonly', s => s.getAll()).catch(() => []); }
   };
   let saveT = 0;
-  function save() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(PKEY, JSON.stringify(P)); } catch (e) {} }, 250); }
+  let loading = false;               // a project from CAS is being put in place: nothing may save over it
+  function save() { if (loading) return; clearTimeout(saveT); saveT = setTimeout(() => { if (loading) return; try { localStorage.setItem(PKEY, JSON.stringify(P)); } catch (e) {} }, 250); }
   function mark() { const s = JSON.stringify(P); if (undo[undo.length - 1] !== s) { undo.push(s); if (undo.length > 80) undo.shift(); redo.length = 0; } }
   function restore(from, to) {
     if (!from.length) return;
@@ -1848,10 +1849,14 @@
         await up(size, blob);
         out[size] = { bytes: blob.size, w: SIZES[size].w, h: SIZES[size].h };
       }
-      const r = await fetch('/api/outbox/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, title: title.trim() || 'Video', dur: Math.round(total() * 100) / 100, sizes: out }) });
+      const cas = { id, title: title.trim() || 'Video', at: Date.now() };
+      // the project and its media ride along, so CAS can keep them in the ad set's Drive folder
+      let packed = 0;
+      try { $('#ovT').textContent = 'Packing the project'; const pk = await casPack(Object.assign({}, P, { size: keep, cas })); await up('project', pk); packed = pk.size; } catch (e) {}
+      const r = await fetch('/api/outbox/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, title: cas.title, dur: Math.round(total() * 100) / 100, sizes: out, project: packed }) });
       if (!r.ok) throw new Error('outbox');
-      P.cas = { id, title: title.trim() || 'Video', at: Date.now() };
-      casDone();
+      P.cas = cas;
+      casDone(!!packed);
     } catch (e) {
       toast(e.message === 'mp4' ? 'This browser did not record an MP4. Use Chrome.' : e.message === 'outbox' ? 'Could not reach the local server, so nothing was sent. Is serve.py running?' : 'Nothing was sent to CAS.');
     } finally {
@@ -1878,9 +1883,56 @@
     } catch (e) {}
   }
   setInterval(casNotes, 15000); setTimeout(casNotes, 1200);
-  function casDone() {
+  // ONE FILE HOLDS THE PROJECT (2026-11-16): 'CASV', the header's length, the header (the project,
+  // this computer's own logos, a row per media file), then the media files end to end. Only the
+  // media the project uses goes in. CAS keeps the file in the ad set's Drive folder; casUnpack
+  // reads it back on any computer.
+  async function casPack(proj) {
+    const used = JSON.stringify(proj), recs = ((await DB.all()) || []).filter(r => r.blob && used.indexOf('"' + r.id + '"') >= 0);
+    let logos = []; try { logos = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (e) {}
+    const head = new TextEncoder().encode(JSON.stringify({ casv: 1, at: Date.now(), project: proj, logos,
+      media: recs.map(r => ({ id: r.id, kind: r.kind, name: r.name, type: r.blob.type, size: r.blob.size, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV })) }));
+    const pre = new DataView(new ArrayBuffer(8)); pre.setUint32(0, 0x43415356); pre.setUint32(4, head.length);
+    return new Blob([pre.buffer, head].concat(recs.map(r => r.blob)), { type: 'application/octet-stream' });
+  }
+  async function casUnpack(blob) {
+    const pre = new DataView(await blob.slice(0, 8).arrayBuffer());
+    if (blob.size < 8 || pre.getUint32(0) !== 0x43415356) throw new Error('not a project');
+    const n = pre.getUint32(4), head = JSON.parse(await blob.slice(8, 8 + n).text()); let off = 8 + n;
+    if (!head.project || head.project.v !== 1) throw new Error('not a project');
+    const recs = (head.media || []).map(m => { const b = blob.slice(off, off + m.size, m.type); off += m.size; return { id: m.id, kind: m.kind, name: m.name, blob: b, dur: m.dur, w: m.w, h: m.h, poster: m.poster, peaks: m.peaks, cuts: m.cuts, cutsV: m.cutsV }; });
+    if (off !== blob.size) throw new Error('cut short');
+    return { head, recs };
+  }
+  // CAS's "Open in Video Studio" left a project on this computer (the local server's inbox). Opening
+  // it REPLACES the project here, so it asks first. The new media is stored before anything old is
+  // removed; if the browser has no room, nothing changes.
+  const inboxSeen = {};
+  async function casInbox() {
+    if (document.hidden || exporting || casBusy || loading || $('#ask').open) return;
+    let row = null;
+    try { const j = await (await fetch('/api/inbox/list')).json(); row = (j.projects || []).find(p => !inboxSeen[p.id + ':' + p.at]); } catch (e) { return; }
+    if (!row) return;
+    inboxSeen[row.id + ':' + row.at] = 1;
+    const done = () => fetch('/api/inbox/done', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: row.id }) }).catch(() => {});
+    const yes = await ask('Open “' + row.title + '” from CAS', 'CAS sent this project from its ad set’s Drive folder. Opening it replaces the project that is open here now' + (total() ? ', which is not saved anywhere else unless you sent it to CAS' : '') + '.', 'Open it');
+    if (!yes) { done(); return; }
+    try {
+      const u = await casUnpack(await (await fetch('/api/inbox/file?id=' + row.id)).blob());
+      const old = ((await DB.all()) || []).map(r => r.id), keep = {};
+      for (const r of u.recs) { keep[r.id] = 1; await DB.tx('readwrite', s => s.put(r)); }
+      loading = true; clearTimeout(saveT);
+      localStorage.setItem(PKEY, JSON.stringify(u.head.project));
+      try { const own = JSON.parse(localStorage.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); localStorage.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
+      for (const id of old) if (!keep[id]) await DB.del(id);
+      await done();
+      location.reload();
+    } catch (e) { loading = false; toast(e && e.name === 'QuotaExceededError' ? 'This browser has no room for that project’s media. Nothing was changed.' : 'That project could not be opened. Nothing was changed.'); }
+  }
+  setInterval(casInbox, 15000); setTimeout(casInbox, 2500);
+  function casDone(packed) {
     const d = document.createElement('div'); d.className = 'vs-ov'; d.dataset.on = '1';
-    d.innerHTML = '<div class="vs-dlg" role="dialog" aria-modal="true"><b>Ready for CAS</b><p>The Reel 9:16 and the Square 1:1 are waiting on this computer. In CAS, open the ad set, press <b>Add video</b> on the audience and choose <b>From CASV on this computer</b>.</p>' +
+    d.innerHTML = '<div class="vs-dlg" role="dialog" aria-modal="true"><b>Ready for CAS</b><p>The Reel 9:16 and the Square 1:1 are waiting on this computer' + (packed ? ', with this project and its media' : '') + '. In CAS, open the ad set, press <b>Add video</b> on the audience and choose <b>From CASV on this computer</b>.' + (packed ? ' CAS saves the project in the ad set’s Drive folder with the video.' : ' The project could not be packed, so only the video goes to the ad set.') + '</p>' +
       '<div class="vs-dlg-a"><button class="p-ghost" data-go="0">Close</button><button class="p-btn" data-go="1">Open CAS</button></div></div>';
     d.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b && e.target !== d) return; if (b && b.dataset.go === '1') window.open(CAS_SITE(), '_blank', 'noopener'); d.remove(); });
     document.body.appendChild(d);

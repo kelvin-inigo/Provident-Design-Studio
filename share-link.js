@@ -650,6 +650,9 @@
         const n = body.v || {}, was = V.list.find(x => x.id === n.id);
         const rec = { id: txt(n.id, 24) || dsRand(8), title: txt(n.title, 80) || 'Video', aud: txt(n.aud, 120), dur: +n.dur || 0, by, at: dsNow(),
           f: { '9x16': txt((n.f || {})['9x16'], 80), '1x1': txt((n.f || {})['1x1'], 80) }, bytes: n.bytes || {}, casv: txt(n.casv, 24),
+          // the Video Studio's project file (<name>.casv, beside the two videos): kept when a
+          // replacement brings none, so "Open in Video Studio" always has the last one saved
+          proj: txt(n.proj, 80) || (was && was.proj) || '', projBytes: n.proj ? +n.projBytes || 0 : (was && was.projBytes) || 0, projAt: n.proj ? dsNow() : (was && was.projAt) || '',
           thumb: /^data:image\//.test(n.thumb || '') && n.thumb.length < 120000 ? n.thumb : '', notes: was ? was.notes || [] : [], n: was ? (was.n || 1) + 1 : 1 };
         if (was) V.list[V.list.indexOf(was)] = rec; else V.list.push(rec);
         V.on = true;
@@ -5115,7 +5118,7 @@
       if (!own && !pick) return st('Pick the video CASV sent, or choose the two files.');
       const btns = el.querySelectorAll('button,input,select'); btns.forEach(x => { x.disabled = true; });
       try {
-        const blobs = {}, bytes = {}; let th = { thumb: '', dur: 0 }, casv = '';
+        const blobs = {}, bytes = {}; let th = { thumb: '', dur: 0 }, casv = '', pget = null, proj = '', projBytes = 0;
         if (own) {
           for (const k of ['9x16', '1x1']) { blobs[k] = files[k]; }
           th = await vidThumb(files['9x16'], true);
@@ -5126,7 +5129,7 @@
           st('Taking the video from the Video Studio…', false);
           for (const k of ['9x16', '1x1']) blobs[k] = new Blob([await get(k)], { type: 'video/mp4' });
           try { th = await vidThumb(await get('poster'), false); } catch (er) { th = await vidThumb(blobs['9x16'], true); }
-          th.dur = o.dur || th.dur; casv = o.id;
+          th.dur = o.dur || th.dur; casv = o.id; if (o.project) pget = () => get('project');
         }
         st('Opening the ad set’s Video folder…', false);
         const folder = await dsFolder(rs.folder, 'Video'), f = {}, base = dsSafe(title);
@@ -5135,8 +5138,17 @@
           f[k] = (await dsUpsert(folder, base + '_' + k + '.mp4', new Blob([blobs[k]], { type: 'video/mp4' }))).id; bytes[k] = blobs[k].size;
           delete VID_BLOBS[f[k]];
         }
+        // THE PROJECT GOES WITH IT (2026-11-16): CASV's one-file project (.casv: the project and its
+        // media) is saved beside the two videos. If it cannot be saved the video is still added.
+        if (pget) {
+          try {
+            const pb = await pget();
+            st('Saving the Video Studio project (' + Math.max(1, Math.round(pb.size / 1048576)) + ' MB)…', false);
+            proj = (await dsUpsert(folder, base + '.casv', new Blob([pb], { type: 'application/octet-stream' }))).id; projBytes = pb.size;
+          } catch (er) { proj = ''; }
+        }
         st('Saving…', false);
-        const r = await api('rsvideo', { id }, { by, act: 'add', v: { id: rep ? rep.id : '', title, aud: au.value, dur: th.dur, f, bytes, casv: casv || (rep && rep.casv) || '', thumb: th.thumb } });
+        const r = await api('rsvideo', { id }, { by, act: 'add', v: { id: rep ? rep.id : '', title, aud: au.value, dur: th.dur, f, bytes, casv: casv || (rep && rep.casv) || '', thumb: th.thumb, proj, projBytes } });
         close(); if (after) after(r.rs);
       } catch (er) { btns.forEach(x => { x.disabled = false; }); st(er.message || String(er)); }
     });
@@ -5162,7 +5174,7 @@
       '</div><div class="vdo-r"><h3>Comments <s data-n></s></h3>' +
       '<form class="vdo-new"><span data-at>Comment at 0:00</span><textarea class="p-in" rows="2" maxlength="600" placeholder="What should change at this moment?" aria-label="Comment"></textarea><div><button type="submit" class="p-btn">Add comment</button></div></form>' +
       '<ol class="vdo-notes"></ol><p class="shl-st" aria-live="polite"></p>' +
-      (can ? '<div class="vdo-own"><button type="button" class="p-ghost" data-rep="1">Replace video</button><button type="button" class="p-ghost" data-rm="1">Remove</button></div>' : '') +
+      (can ? '<div class="vdo-own">' + (v.proj ? '<button type="button" class="p-ghost" data-proj="1" title="Sends the saved project and its media from this ad set’s Drive folder to the Video Studio on this computer">Open in Video Studio</button>' : '') + '<button type="button" class="p-ghost" data-rep="1">Replace video</button><button type="button" class="p-ghost" data-rm="1">Remove</button></div>' : '') +
       '</div></div></div>';
     document.body.appendChild(el);
     const $ = q => el.querySelector(q), vd = $('video'), tl = $('[data-tl]'), ta = $('textarea');
@@ -5221,6 +5233,21 @@
           document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
           if (isPm) api('rsvideo', { id }, { by, vid: v.id, act: 'dl', size: k }).then(() => { changed = true; }).catch(() => {});
         } catch (er) { st('That file could not be read from Drive.'); }
+        b.disabled = false; b.textContent = was; return;
+      }
+      if (b.dataset.proj) {
+        // the project file travels Drive -> this page -> the Video Studio's local server, which asks
+        // before it replaces what is open there
+        const was = b.textContent; b.disabled = true; b.textContent = 'Preparing…';
+        try {
+          st('Reading the project from the ad set’s Drive folder…', false);
+          const pb = await (await dsFetch('/drive/v3/files/' + v.proj + '?alt=media&supportsAllDrives=true')).blob();
+          st('Sending it to the Video Studio (' + Math.max(1, Math.round(pb.size / 1048576)) + ' MB)…', false);
+          let r = null;
+          try { r = await fetch(CASV_AT() + '/api/outbox/back?id=' + (v.casv || 'p' + Date.now().toString(36)) + '&title=' + encodeURIComponent(v.title), { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: pb }); } catch (er) {}
+          if (!r || !r.ok) st('The Video Studio is not running on this computer. Start it, then press Open in Video Studio again.');
+          else { lsSet('provident-casv-seen', '1'); st('The project is waiting in the Video Studio on this computer. Switch to it and press Open it.', false); }
+        } catch (er) { st(er.gdAuth ? 'Sign in with Google to read the project.' : 'The project could not be read from the ad set’s Drive folder.'); }
         b.disabled = false; b.textContent = was; return;
       }
       if (b.dataset.rep) { const was = v; close(); return vidAdd(id, rs, by, after, was); }

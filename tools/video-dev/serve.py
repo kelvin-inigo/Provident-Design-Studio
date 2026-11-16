@@ -26,7 +26,13 @@ QUEUE = os.path.join(ROOT, '_animate')
 OUTBOX = os.path.join(ROOT, '_outbox')
 # Only these pages may read the outbox from a browser. Add more with CASV_ORIGINS="https://a,https://b".
 SITES = ['https://provident-design-studio.vercel.app'] + [o.strip() for o in os.environ.get('CASV_ORIGINS', '').split(',') if o.strip()]
-PARTS = {'9x16': ('_9x16.mp4', 'video/mp4'), '1x1': ('_1x1.mp4', 'video/mp4'), 'poster': ('.jpg', 'image/jpeg')}
+PARTS = {'9x16': ('_9x16.mp4', 'video/mp4'), '1x1': ('_1x1.mp4', 'video/mp4'), 'poster': ('.jpg', 'image/jpeg'),
+         'project': ('.casv', 'application/octet-stream')}
+# THE PROJECT GOES WITH THE VIDEO (2026-11-16). Send to CAS also parks <id>.casv: the project and
+# the media it uses, one file. CAS saves it in the ad set's Drive folder beside the two videos, and
+# its "Open in Video Studio" hands it back here: PUT /api/outbox/back writes `_inbox/<id>.casv`
+# (git-ignored), which the studio page offers to open (/api/inbox/list, /file, /done).
+INBOX = os.path.join(ROOT, '_inbox')
 
 
 def site_ok(origin):
@@ -188,12 +194,20 @@ class H(SimpleHTTPRequestHandler):
 
     def do_PUT(self):                         # CASV parks one recorded file: raw bytes, no JSON
         q, n = self._q(), int(self.headers.get('Content-Length') or 0)
-        if self.path.split('?')[0] != '/api/outbox/file' or not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or q.get('part') not in PARTS:
+        path, back = self.path.split('?')[0], False
+        if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')):
             return self._json(400, {'error': 'bad request'})
-        if n <= 0 or n > 600 * 1024 * 1024:
+        if path == '/api/outbox/back':            # CAS hands a saved project back to this computer
+            back = True
+        elif path != '/api/outbox/file' or q.get('part') not in PARTS:
+            return self._json(400, {'error': 'bad request'})
+        if n <= 0 or n > (2048 if back or q.get('part') == 'project' else 600) * 1024 * 1024:
             return self._json(400, {'error': 'bad size'})
-        os.makedirs(OUTBOX, exist_ok=True)
-        with open(os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0]), 'wb') as f:
+        os.makedirs(INBOX if back else OUTBOX, exist_ok=True)
+        if back:
+            json.dump({'id': q['id'], 'title': (q.get('title') or 'Video')[:80], 'at': int(time.time()), 'bytes': n},
+                      open(os.path.join(INBOX, q['id'] + '.json'), 'w'), indent=1)
+        with open(os.path.join(INBOX, q['id'] + '.casv') if back else os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0]), 'wb') as f:
             left = n
             while left > 0:
                 chunk = self.rfile.read(min(left, 1 << 20))
@@ -236,9 +250,16 @@ class H(SimpleHTTPRequestHandler):
         jid = str(body.get('id') or '')
         if not re.match(r'^[a-z0-9]{4,16}$', jid):
             return self._json(400, {'error': 'bad id'})
+        if path == '/api/inbox/done':             # the studio opened (or declined) a project handed back
+            for ext in ('.json', '.casv'):
+                try:
+                    os.remove(os.path.join(INBOX, jid + ext))
+                except OSError:
+                    pass
+            return self._json(200, {'ok': True})
         if path == '/api/outbox/meta':            # the record for a parked video, written last
             os.makedirs(OUTBOX, exist_ok=True)
-            rec = {k: body.get(k) for k in ('id', 'title', 'dur', 'sizes')}
+            rec = {k: body.get(k) for k in ('id', 'title', 'dur', 'sizes', 'project')}
             rec['at'] = int(time.time())
             json.dump(rec, open(os.path.join(OUTBOX, jid + '.json'), 'w'), indent=1)
             return self._json(200, {'ok': True})
@@ -347,6 +368,32 @@ class H(SimpleHTTPRequestHandler):
         path = self.path.split('?')[0]
         if path == '/api/outbox/list':
             return self._json(200, {'videos': self._out()})
+        if path == '/api/inbox/list':
+            rows = []
+            if os.path.isdir(INBOX):
+                for f in os.listdir(INBOX):
+                    if f.endswith('.json') and os.path.exists(os.path.join(INBOX, f[:-5] + '.casv')):
+                        try:
+                            rows.append(json.load(open(os.path.join(INBOX, f))))
+                        except Exception:
+                            pass
+            return self._json(200, {'projects': sorted(rows, key=lambda r: -r.get('at', 0))})
+        if path == '/api/inbox/file':
+            q = self._q()
+            fp = os.path.join(INBOX, q.get('id', '') + '.casv')
+            if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or not os.path.exists(fp):
+                return self._json(404, {'error': 'not found'})
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/octet-stream')
+            self.send_header('Content-Length', str(os.path.getsize(fp)))
+            self.end_headers()
+            with open(fp, 'rb') as f:
+                while True:
+                    chunk = f.read(1 << 20)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+            return
         if path == '/api/outbox/notes':
             q = self._q()
             fp = os.path.join(OUTBOX, q.get('id', '') + '.notes.json')

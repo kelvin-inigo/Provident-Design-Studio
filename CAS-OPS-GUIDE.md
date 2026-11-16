@@ -685,6 +685,14 @@ admin see Add video.
    into the ad set's Drive folder, in **Video**.
 3. On another computer, use **Or choose the two files** and pick the Reel and the Square.
 
+**The project is saved with it.** Send to CAS also packs the Video Studio project and the media it
+uses into one file. Add video (or Replace video) saves that file in the ad set's Drive folder, in
+**Video**, beside the two sizes, named like the video and ending in `.casv`. To carry on with it, on
+any computer that runs the Video Studio: open the video's tile and press **Open in Video Studio**,
+then switch to the Video Studio and press **Open it**. It replaces the project open there, so it
+asks first. The Drive copy is only as new as the last Send to CAS; choosing the two files by hand
+saves no project.
+
 **Everyone reviews it.** Click the video's tile. The window plays it, with **Reel 9:16 | Square 1:1**
 at the top.
 - **Comment on the timeline:** pause where something should change, write under **Comment at 0:12**
