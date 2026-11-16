@@ -5441,7 +5441,7 @@
     el.innerHTML = '<div class="shl-dlg-c vdo-add" role="dialog" aria-modal="true" aria-labelledby="vdc-t">' +
       '<div><h2 id="vdc-t">Add video</h2><p class="shl-lead">The MVP video is made in the Video Studio (CASV) on this computer.</p></div>' +
       '<div class="vdo-src"><button type="button" class="vdo-pick vdo-opt" data-c="have"><span><b>Add one made in CASV</b><s>A video sent from the Video Studio, or its two files</s></span></button>' +
-      '<button type="button" class="vdo-pick vdo-opt" data-c="new"><span><b>Make a new one in CASV</b><s>Opens the Video Studio. Press Send to CAS there when it’s done.</s></span></button></div>' +
+      '<button type="button" class="vdo-pick vdo-opt" data-c="new"><span><b>Make a new one in CASV</b><s>Opens the Video Studio on a new, empty video. Press Send to CAS there when it’s done.</s></span></button></div>' +
       '<p class="shl-st" aria-live="polite"></p>' +
       '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
     document.body.appendChild(el);
@@ -5458,7 +5458,8 @@
       let seen;
       try { seen = new Set(await ids()); }
       catch (er) { return st('The Video Studio is not running on this computer. Start it, then press Make a new one again.'); }
-      window.open(CASV_PAGE(), '_blank');
+      // #new: CASV starts a new video (asking first, keeping the one open as its last video), named after the ad set
+      window.open(CASV_PAGE() + '#new=' + encodeURIComponent(rs.name || ''), '_blank');
       el.querySelectorAll('.vdo-opt').forEach(x => { x.disabled = true; });
       st('The Video Studio is open in a new tab. Make the video there and press Send to CAS — it comes back here. You can also close this and press Add video later.', false);
       clearInterval(poll);

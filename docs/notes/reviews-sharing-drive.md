@@ -2389,3 +2389,8 @@ page saying it's not your view … they can request access, but the link varies 
   logged "Let … open the performance marketing view", the card shows Remove; CT then opens PM's
   link; PM on CT's link → the page. Not run: the live site, real Google accounts, a pending
   account, an admin preview, dark theme, phones.
+
+- (2026-11-16, later) "Make a new one in CASV" now opens `CASV_PAGE() + '#new=' + ad set name`:
+  CASV starts a new video (asking first, keeping the open one as "the last video"), instead of
+  reopening whatever was open. The CASV half is on the local `video-studio` branch
+  (docs/notes/video-studio.md there); without it, the hash is ignored and CASV opens as before.

@@ -751,8 +751,10 @@ admin see Add video.
      **Audience** (or All audiences) and press **Add video**. Both sizes are uploaded into the ad
      set's Drive folder, in **Video**.
    - **Make a new one in CASV**: opens the Video Studio on this computer in a new tab (it must be
-     running). Make the video there and press **Send to CAS**; the Add video window comes back with
-     that video picked and named. Then choose its audience and press **Add video**.
+     running) and starts a new, empty video named after the ad set. If a video is open there it
+     asks first, and keeps that one: **Reopen the last video** (on the empty timeline) brings it
+     back. Make the video and press **Send to CAS**; the Add video window comes back with that
+     video picked and named. Then choose its audience and press **Add video**.
 3. On another computer, use **Or choose the two files** and pick the Reel and the Square.
 
 **The project is saved with it.** Send to CAS also packs the Video Studio project and the media it
