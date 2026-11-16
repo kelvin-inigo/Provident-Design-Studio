@@ -2274,3 +2274,50 @@ the video section".
 - Verified on share-dev 8791: 0 contrast failures and no overflow, dark and light, 1440 / 1280 /
   375; filter and Show all keep focus. Not run: an Edits entry (the seed has no project-level edits,
   so Show the changes is unexercised), the video player, CAS's Ad set tab video card.
+
+# BROAD REACH PER PHASE, SEND TO… ANY TASK, AND THE DELIVERABLES CHECKLIST (2026-11-16)
+
+By request: a new campaign's minimum is Static + Animated (1:1, 9:16, the static design over a
+video) + the CASV MVP video; phases 1 and 2 run broad (ENG + ARB, no audiences), audiences start
+at phase 3; and the designer picks which task a project goes to instead of Design › Copy › Arabic
+› Done. All in share-link.js (Drive ad sets; the old share store has none of it) + one line in
+access.js. No canvas code was touched.
+
+- **Reach.** `rs.broad` = the phase keys that run broad. `BROAD = 'Broad'` is an ordinary audience
+  (plan cell, folder, steps, Design 2, unbranded twin); `isBroad(aud)`, `broadIn(rs, ph)`.
+  **`rsCellsIn(rs, ph)` is the one list of a PHASE's audiences**: a broad phase keeps the Broad
+  cells, any other the rest; a cell holding a project in that phase always stays; a broad phase with
+  no Broad cell planned gets one per planned market (Arabic on). `planTodo`, `adtRender`'s audience
+  card, `AV.phTabsHtml`'s count and `AV.detHtml`'s cells read it. `rsCells(rs)` is still every
+  phase's cells (settings, `rsAuds`). `rsset {broad: [keys]}` logs each change; a phase added after
+  a broad one inherits it (server, and the settings dialog); a rename rekeys `rs.broad` and `rs.dl`.
+  Settings: a **Broad** toggle on each phase chip (`[data-reach]`, `d.broad`), Broad first among the
+  Audiences toggles; pressing it adds Broad × the plan's markets if none is planned. Home's setup
+  (`PlanView`): **Reach: Broad reach | Audience-based** (`d.reach`, default broad; `PV.auds()` is
+  the card list), `plan.reach` → `rs.broad = [phase0]` in both makers. `'broad'` and `'dl'` joined
+  the `dsPub` whitelist.
+- **Tasks.** `TASK_L` design · copy · arabic · animated · video · done. Design and Copy stay the
+  review's own steps (`design-open`, `design-done` / `copy-open`), so the pre-check, the Roam note
+  and the content team's queue are untouched. The other four are `rsstep {act: 'task', k}` (dd
+  only): `it.task = {k, by, at}`, `it.to` from the picker, hist act `task-<k>`, logged. **Any other
+  step deletes `it.task`.** Read it only through `taskOf(it)`. `rsAuds`: an audience is done when
+  its sign-offs are and no project carries an open task, OR every project was sent to Done;
+  `a.now` becomes `{label, sub, task}` for the latest open task (it is NOT one of `a.steps`, so
+  `a.steps.indexOf(a.now)` is -1 there). `rsMine` counts an open task assigned to a designer.
+  `SP.sendTo(sid)` is the list (`.sto`), called by `adtNext()`'s new `{send}` shape (top bar and Ad
+  set tab) and the tab header's quiet **Send to…**; `SP.rvStep('task-<k>:<sid>')`.
+  `teamFor` (access.js): `task-arabic|animated|video` → designers; `task-done` asks nobody.
+- **Deliverables.** `dlRows(rs, a)` / `dlCount` / `dlCardHtml`: Static is derived (the project was
+  sent on: `it.design` or task done); `anim-*` and `video-*` are ticks in `rs.dl[a.key][id]`
+  (`rsset {dl: {key, id, on}}`, logged). Arabic cells read Not needed for an English-only audience.
+  Shown in the Ad set tab only. It blocks nothing.
+- Verified on share-dev 8793 (Drive stand-in, admin): Sobha's Launch set broad in settings, a typed
+  phase inherited broad and showed only International · Broad; Start the English opened a real
+  Broad project in CAS; Send to… › Animated asked for a designer and showed "Animated · With …";
+  the Animated tick saved and logged; › Copy check ran the pre-check and the English copy picker
+  and cleared the task; › Done read "Done — ready to run". Light theme contrast 6.2–19.7:1.
+- **Not done / not run:** the animated export itself (video background + MP4) is not built; the
+  Status ad set page shows no deliverables count (another session was rewriting its look row);
+  `RV`'s link windows still offer the old step buttons only; Copy from Claude has no Broad
+  section to fill from; dark theme, phones, real Drive and the content team's and PM's views of a
+  Broad audience were not exercised; `v.aud` of an ad set video does not tick MVP video by itself.

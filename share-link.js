@@ -380,7 +380,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video', 'broad', 'dl'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -458,6 +458,22 @@
     }
     if (op === 'rsstep') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      // PICK THE NEXT TASK (2026-11-16, by request): the designer sends a project to any task, in any
+      // order. Arabic, Animated, Video and Done land here; Copy check and Design are the steps below.
+      // It records where the work is (it.task) and who has it (it.to); no sign-off moves.
+      if (body.act === 'task') {
+        if (isPost(R.rs) || R.role !== 'dd') throw dsFail(403, 'Your link cannot change that step.');
+        const k = String(body.k || ''), tsid = body.p || R.sid, ti = (R.rs.items || []).find(x => x.sid === tsid);
+        if (!TASK_L[k] || k === 'design' || k === 'copy') throw dsFail(400, 'Unknown task.');
+        if (!ti) throw dsFail(404, 'That project is not in this ad set.');
+        const by = dsWho(body.by), now = dsNow(), to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
+        ti.task = { k, by, at: now };
+        ti.to = to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null;
+        R.rs.hist = (R.rs.hist || []).concat({ act: 'task-' + k, by, at: now, sid: tsid }).slice(-400);
+        dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(ti, R.rs), text: (k === 'done' ? 'Marked it done' : 'Sent it to ' + TASK_L[k]) + (ti.to ? ' → ' + (ti.to.name || ti.to.email) : '') }]);
+        await dsWrite(R.rid, R.rs);
+        return { rs: pub() };
+      }
       const st = DS_STEP[body.act]; if (!st) throw dsFail(400, 'Unknown step.');
       const sid = body.p || R.sid, it = (R.rs.items || []).find(x => x.sid === sid);
       if (!it) throw dsFail(404, 'That project is not in this ad set.');
@@ -468,6 +484,7 @@
       // (body.to, chosen in the hand-off picker); a step sent back goes to whoever did it last
       const em = String(body.em || '').trim().toLowerCase().slice(0, 120), prev = it[field];
       it[field] = done ? Object.assign({ by, at: now }, em ? { em } : {}) : null;
+      delete it.task;   // a step moves the work: the task picked before no longer says where it is
       const to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
       it.to = done ? (to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null)
         : (prev && prev.em ? { email: prev.em, name: prev.by || '', by, at: now } : null);
@@ -547,6 +564,26 @@
         rs.phases = want;
         want.filter(k => was.indexOf(k) < 0).forEach(k => chg.push('Added the ' + phN(k) + ' phase'));
         was.filter(k => want.indexOf(k) < 0).forEach(k => chg.push('Dropped the ' + phN(k) + ' phase'));
+        // a phase added after a broad one starts broad too (the first waves of a campaign run broad)
+        const bw = Array.isArray(rs.broad) ? rs.broad.slice() : [];
+        if (was.length && bw.indexOf(was[was.length - 1]) >= 0) want.filter(k => was.indexOf(k) < 0).forEach(k => bw.push(k));
+        if (bw.length || rs.broad) rs.broad = bw.filter(k => want.indexOf(k) >= 0);
+      }
+      // REACH, PER PHASE (2026-11-16, by request): a broad phase runs one Broad audience per market,
+      // in English and Arabic, and plans no audience-based designs; the others run the plan's audiences
+      if (Array.isArray(body.broad)) {
+        const have = phList(rs), was = (rs.broad || []).filter(k => have.indexOf(k) >= 0), set = [...new Set(body.broad.filter(k => have.indexOf(k) >= 0))];
+        set.filter(k => was.indexOf(k) < 0).forEach(k => chg.push(phN(k) + ' runs broad — no audience-based designs'));
+        was.filter(k => set.indexOf(k) < 0).forEach(k => chg.push(phN(k) + ' runs audience-based'));
+        rs.broad = set;
+      }
+      // THE DELIVERABLES' TICKS (2026-11-16): { key: 'phase|market|aud', id: 'anim-ENG'…, on }
+      if (body.dl && typeof body.dl === 'object' && DL_IDS.indexOf(body.dl.id) >= 0 && typeof body.dl.key === 'string') {
+        const k = body.dl.key.slice(0, 200), all = rs.dl = rs.dl || {}, row = all[k] = all[k] || {};
+        if (body.dl.on) row[body.dl.id] = { by, at: dsNow() }; else delete row[body.dl.id];
+        if (!Object.keys(row).length) delete all[k];
+        const dp = body.dl.id.split('-');
+        chg.push((body.dl.on ? 'Ticked ' : 'Unticked ') + DL_L[dp[0]] + ' · ' + (dp[1] === 'ARB' ? 'Arabic' : 'English') + ' for ' + k.split('|').slice(1).join(' · '));
       }
       // RENAMING A PHASE (2026-11-06, by request): [[key, new name]…]. The phase takes the new
       // name's key in its list, its projects, the plan's Arabic and its launch; a phase after the
@@ -563,6 +600,8 @@
           const sw = k => k === from ? to : k;
           (rs.items || []).forEach(x => { if (phOf(rs, x) === from) x.phase = to; });
           rs.phases = have.map(sw);
+          if (Array.isArray(rs.broad)) rs.broad = rs.broad.map(sw);
+          if (rs.dl) Object.keys(rs.dl).forEach(k => { if (k.split('|')[0] === from) { rs.dl[to + k.slice(from.length)] = rs.dl[k]; delete rs.dl[k]; } });
           if (base === from) rs.phase0 = to;
           if (Array.isArray(rs.plan)) rs.plan.forEach(c => { if (Array.isArray(c.arbOff)) c.arbOff = c.arbOff.map(sw); });
           if (rs.live && rs.live[from]) { rs.live[to] = rs.live[from]; delete rs.live[from]; }
@@ -907,6 +946,7 @@
       if (ans.mode === 'new') {
         if (ans.plan) { rs.plan = planCells(ans.plan); rs.plan.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; }); }
         if (ans.plan && phN(ans.plan.phase) && !(rs.items || []).length) { rs.phase0 = ans.plan.phase; rs.phases = [ans.plan.phase]; }
+        if (ans.plan && ans.plan.reach === 'broad' && !(rs.items || []).length) rs.broad = [phBase(rs)];
         if (ans.plan && ans.plan.brand && !(rs.items || []).length) rs.brand = ans.plan.brand === 'unbranded' ? 'unbranded' : 'provident';
         const same = files.find(x => x.name === dsSetName(ans.name));
         const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
@@ -974,6 +1014,7 @@
     cells.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; });
     // the package the ad set starts with; more phases are added later
     rs.phase0 = phN(plan.phase) ? plan.phase : 'launch'; rs.phases = [rs.phase0];
+    if (plan.reach === 'broad') rs.broad = [rs.phase0];
     // BRANDED OR UNBRANDED: every project made in the ad set opens with the Provident look or the unbranded one
     rs.brand = plan.brand === 'unbranded' ? 'unbranded' : 'provident';
     busy('Filing the ticket…', .12);
@@ -2150,7 +2191,8 @@
       tip: arb ? 'Hands the Arabic version to the content team to check the translation.' : 'Hands the design to the content team to check the English copy.' };
     else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back in progress' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
     else back = { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check', tip: 'Sends the words back to the content team to check again.' };
-    const st = !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
+    const tkS = taskOf(it);
+    const st = tkS && tkS !== 'done' ? TASK_L[tkS] + ' · ' + withWho(it, 'designers') : !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
       : !it.copy ? (arb ? 'Translation ' : 'English copy ') + withWho(it, 'content team').replace(/^With/, 'with')
         : mine && mine.done ? 'Done — ready to run' : (now ? now.label + ' · ' + now.sub : 'Approved');
     const note = !it.design ? (arb ? 'Lay out the Arabic words, then mark it laid out — the content team checks the translation from their link.'
@@ -2171,15 +2213,15 @@
       // THE MAIN SCREEN'S ONE ACTION: Design done, then Create next audience — the Ad set tab's own
       ...(() => { const nx = this.adtNext(), b = this._rvBusy || this._rsNextBusy;
         return { rsFlowOn: !!nx, rsFlowLabel: nx ? (b && (b === nx.act || b === nx.next) ? 'Saving…' : nx.label) : '', rsFlowTip: nx ? nx.tip : '',
-          rsFlow: nx ? () => (nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
+          rsFlow: nx ? () => (nx.send ? this.sendTo(nx.send) : nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
       cvAdTip: 'In the ad set ' + (rs.name || '') + ' as ' + where + '. Opens the ad set overview: every audience and language, rendered from the latest work.',
       // THE TOP BAR'S FLOW: this audience's four steps as segments, the step it is on, and (beside
       // it, rsFlow) the designer's one action — always in view, on both workspaces
       rsBarOn: '1',
-      rsBarState: mine && mine.done ? 'done' : !it.design ? 'design' : !it.copy ? 'ct' : 'next',
+      rsBarState: mine && mine.done ? 'done' : tkS || !it.design ? 'design' : !it.copy ? 'ct' : 'next',
       rsBarSegs: (mine ? mine.steps : []).map(x => ({ s: x.s === 'pend' ? 'todo' : x.s, t: x.label + (x.sub ? ' · ' + x.sub : '') })),
-      rsBarStep: mine && mine.done ? 'Done' : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
-      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN') + (it.design && !it.copy && it.to ? ' · ' + withWho(it, '') : ''),
+      rsBarStep: mine && mine.done ? 'Done' : tkS ? TASK_L[tkS] : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
+      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN') + (((it.design && !it.copy) || (tkS && tkS !== 'done')) && it.to ? ' · ' + withWho(it, '') : ''),
       rsBarTip: (rs.name || 'Ad set') + ' · ' + where + ' — ' + st + '. Opens the Ad set tab.',
       rsBarGo: () => this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }),
     };
@@ -2203,6 +2245,13 @@
   const MARKETS = ['Local', 'International', 'International EUR'];
   const AUDS = { residential: ['Family', 'Investor'], commercial: ['Investor', 'Hybrid'] };
   const PRODUCT_NAME = { residential: 'Residential', commercial: 'Commercial' };
+  // BROAD REACH (2026-11-16, by request): a campaign's first waves tell the key facts to everyone,
+  // so a phase can run BROAD (rs.broad lists those phases): one audience called Broad per market,
+  // in English and Arabic, and none of the plan's audience-based designs. Broad is an audience like
+  // any other everywhere else (its own projects, folder, steps, Design 2, unbranded twin).
+  const BROAD = 'Broad';
+  const isBroad = a => audRoot(String(a || '')) === BROAD;
+  const broadIn = (rs, ph) => ((rs && rs.broad) || []).indexOf(phN(ph) ? ph : phBase(rs)) >= 0;
   // ---- PHASES (2026-10-30): an ad set runs in phases, each its own package of audiences ----
   // An ad set starts with ONE phase (rs.phases, default Launch) and the designer can add more at
   // any time (Ad set settings, or the + tab on its Status page). Each phase holds its own project
@@ -2270,8 +2319,23 @@
       cells.push(bc ? { market: x.market, aud: x.aud, arb: bc.arb, arbOff: bc.arbOff.slice() } : { market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] });
     } });
     items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud), p = phOf(rs, x); if (c) { c.arb = true; c.arbOff = c.arbOff.filter(k => k !== p); } } });
-    const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
+    const as = [BROAD].concat(AUDS[rs && rs.product] || AUDS.residential, ['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
     return cells.sort((x, y) => (at(x.market) - at(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud)));
+  }
+  // ONE PHASE'S AUDIENCES: a broad phase takes the Broad cells, any other the audience-based ones;
+  // a cell that already holds a project in the phase always stays. A broad phase with no Broad
+  // cell planned (reach switched on an older ad set) gets one per planned market, with Arabic.
+  function rsCellsIn(rs, ph) {
+    ph = phN(ph) ? ph : phBase(rs);
+    const b = broadIn(rs, ph), all = rsCells(rs), held = c => ((rs && rs.items) || []).some(x => phOf(rs, x) === ph && x.market === c.market && x.aud === c.aud);
+    const out = all.filter(c => isBroad(c.aud) === b || held(c));
+    if (b && !out.some(c => c.aud === BROAD)) {
+      const ms = MARKETS.filter(m => all.some(c => c.market === m)), mi = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
+      if (!ms.length) ms.push(MARKETS[0]);
+      ms.forEach(m => out.push({ market: m, aud: BROAD, arb: true, arbOff: [], brand: 'provident' }));
+      out.sort((x, y) => (mi(x.market) - mi(y.market)) || ((isBroad(y.aud) ? 1 : 0) - (isBroad(x.aud) ? 1 : 0)));
+    }
+    return out;
   }
   // an audience's place in the list: its product order, its unbranded version straight after it,
   // then its further designs (each with its own unbranded version)
@@ -2293,7 +2357,7 @@
     ph = phN(ph) ? ph : phBase(rs);
     const items = ((rs && rs.items) || []).filter(x => phOf(rs, x) === ph), has = (c, l) => items.some(x => x.market === c.market && x.aud === c.aud && (x.lang || 'ENG') === l);
     // every English version first, then the Arabic ones — the order the review runs in
-    const cells = rsCells(rs);
+    const cells = rsCellsIn(rs, ph);
     return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG', phase: ph }))
       .concat(cells.filter(c => arbIn(c, ph) && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB', phase: ph })));
   }
@@ -2330,13 +2394,13 @@
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on) };
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice() };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
     // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
     d.phn = {}; const phL = k => k in d.phn ? phClean(d.phn[k]) : phN(k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video]);
-    const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video, d.broad.slice().sort()]);
+    const ord = () => { const as = [BROAD].concat(AUDS[d.product], ['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
     ord();
     const was = sig();
     const el = document.createElement('div');
@@ -2370,12 +2434,15 @@
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
-      $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
+      $('[data-g="a"]').innerHTML = [BROAD].concat(AUDS[d.product], [...as].filter(a => a !== BROAD && AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
       if (phOk) $('[data-g="ph"]').innerHTML = d.phases.map(k => { const l = phL(k), lock = phBusy(k);
         return '<span class="rss-pc"><input class="rss-pn" data-phn="' + esc(k) + '" maxlength="40" value="' + esc(k in d.phn ? d.phn[k] : l) + '" size="' + Math.max(6, (l || '').length + 1) + '" aria-label="Phase name — type to rename it" title="Type to rename the phase" autocomplete="off" spellcheck="false">' +
+          '<button type="button" data-reach="' + esc(k) + '" aria-pressed="' + (d.broad.indexOf(k) >= 0) + '" title="' + esc(d.broad.indexOf(k) >= 0 ? l + ' runs broad: one Broad audience per market, in English and Arabic, and no audience-based designs. Click for audience-based.' : l + ' is audience-based. Click to run it broad, with no audience-based designs.') + '">Broad</button>' +
           '<button type="button" data-ph="' + esc(k) + '" aria-label="' + esc('Drop the ' + l + ' phase') + '" title="' + esc(lock ? l + ' has projects — remove them first to drop it' : 'Drop the ' + l + ' phase') + '"' + (lock || d.phases.length === 1 ? ' data-lock="1"' : '') + '>' + PICO.x + '</button></span>'; }).join('');
       const phs = phOk ? d.phases : [null], multi = phOk && d.phases.length > 1;
-      const n = phs.reduce((t, k) => t + cells.length + cells.filter(c => k ? arbIn(c, k) : c.arb).length, 0);
+      // a broad phase makes only the Broad audience; any other, only the audience-based ones
+      const inPh = (c, k) => !k || isBroad(c.aud) === (d.broad.indexOf(k) >= 0) || has(c.market, c.aud, null, k);
+      const n = phs.reduce((t, k) => { const cs = cells.filter(c => inPh(c, k)); return t + cs.length + cs.filter(c => k ? arbIn(c, k) : c.arb).length; }, 0);
       $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (phOk && d.phases.length > 1 ? ' · ' + d.phases.length + ' phases' : '');
       $('.rsp-tiles').innerHTML = cells.map(c => {
         const k = c.market + '|' + c.aud, busy = has(c.market, c.aud), arLock = has(c.market, c.aud, 'ARB');
@@ -2397,6 +2464,8 @@
       if (!k) { inp.focus(); return st('Type the phase’s name first.'); }
       if (same) { inp.focus(); return st('There is already a phase called ' + phL(same) + '.'); }
       if (d.phases.indexOf(k) >= 0) { inp.focus(); return st('Save first — a phase you renamed still holds ' + phN(k) + ' until then.'); }
+      // a phase added after a broad one starts broad too
+      if (d.phases.length && d.broad.indexOf(d.phases[d.phases.length - 1]) >= 0) d.broad = d.broad.concat(k);
       d.phases = d.phases.concat(k);
       inp.value = ''; st(''); draw(); inp.focus();
     };
@@ -2412,16 +2481,16 @@
         cells = cells.filter(c => drop.indexOf(c) < 0);
       } else {
         const nm = g === 'm' ? [v] : ms, na = g === 'a' ? [v] : as;
-        nm.forEach(m => na.forEach(a => { if (!cells.some(c => c.market === m && c.aud === a)) cells.push({ market: m, aud: a, arb: false }); }));
+        nm.forEach(m => na.forEach(a => { if (!cells.some(c => c.market === m && c.aud === a)) cells.push({ market: m, aud: a, arb: a === BROAD }); }));
       }
       st(''); ord(); draw();
     };
     const setProd = p => {
       if (p === d.product) return;
-      const na = AUDS[p], busy = cells.find(c => na.indexOf(audRoot(c.aud)) < 0 && has(c.market, c.aud));
+      const na = AUDS[p], ok = c => isBroad(c.aud) || na.indexOf(audRoot(c.aud)) >= 0, busy = cells.find(c => !ok(c) && has(c.market, c.aud));
       if (busy) return st(busyMsg(busy) + ' ' + (PRODUCT_NAME[p] || p) + ' has no ' + busy.aud + ' audience.');
       const ms = [...new Set(cells.map(c => c.market))];
-      cells = cells.filter(c => na.indexOf(audRoot(c.aud)) >= 0);
+      cells = cells.filter(ok);
       if (!cells.length) ms.forEach(m => na.forEach(a => cells.push({ market: m, aud: a, arb: false })));
       d.product = p; st(''); ord(); draw();
     };
@@ -2435,12 +2504,19 @@
         if (b.dataset.x) return close(null);
         if (b.dataset.prod) return setProd(b.dataset.prod);
         if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
+        if (b.dataset.reach) {
+          const k = b.dataset.reach, on = d.broad.indexOf(k) < 0;
+          d.broad = on ? d.broad.concat(k) : d.broad.filter(x => x !== k);
+          // a broad phase needs its Broad audience: one per market, with Arabic, unless planned already
+          if (on && !cells.some(c => c.aud === BROAD)) { [...new Set(cells.map(c => c.market))].forEach(m => cells.push({ market: m, aud: BROAD, arb: true })); ord(); }
+          st(''); draw(); return;
+        }
         if (b.dataset.vidon) { d.video = b.dataset.vidon === '1'; st(''); draw(); return; }
         if (b.dataset.ph) {
           const k = b.dataset.ph;
           if (d.phases.length === 1) return st('Keep at least one phase.');
           if (phBusy(k)) return st(phL(k) + ' has projects. Remove them first to drop the phase.');
-          d.phases = d.phases.filter(x => x !== k); delete d.phn[k];
+          d.phases = d.phases.filter(x => x !== k); delete d.phn[k]; d.broad = d.broad.filter(x => x !== k);
           st(''); draw(); return;
         }
         if (b.dataset.phx !== undefined) return phAdd();
@@ -2473,7 +2549,7 @@
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
               if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
-            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; }
+            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; p.broad = d.broad.filter(k => d.phases.indexOf(k) >= 0); const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
         }
@@ -2791,6 +2867,33 @@
     setTimeout(() => this.reviewCreate({ plan: g.plan }), 600);
   };
   const STEP_LABELS = ['Design', 'ENG copy check', 'Translation', 'Done'];
+  // THE TASKS A PROJECT CAN BE SENT TO (2026-11-16): design and copy are the review's own steps
+  // (it.design / it.copy); the others are kept as it.task = { k, by, at }, read through taskOf
+  const TASK_L = { design: 'Design', copy: 'Copy check', arabic: 'Arabic', animated: 'Animated', video: 'Video', done: 'Done' };
+  const taskOf = it => it && it.task && TASK_L[it.task.k] && it.task.k !== 'design' && it.task.k !== 'copy' ? it.task.k : '';
+  // THE MINIMUM DELIVERABLES of an audience: static, animated, the MVP video — each in English and
+  // Arabic. Static is read off the projects; the other four are ticked by hand (rs.dl[audience key])
+  const DL_L = { 'static': 'Static', anim: 'Animated', video: 'MVP video' }, DL_IDS = ['anim-ENG', 'anim-ARB', 'video-ENG', 'video-ARB'];
+  function dlRows(rs, a) {
+    const tick = ((rs && rs.dl) || {})[a.key] || {}, sent = it => !!it && (!!it.design || taskOf(it) === 'done');
+    return ['static', 'anim', 'video'].map(k => ({ k, label: DL_L[k], cells: ['ENG', 'ARB'].map(l => {
+      if (l === 'ARB' && a.engOnly) return { na: true };
+      if (k === 'static') return { auto: true, on: sent(l === 'ARB' ? a.arb : a.eng) };
+      const t = tick[k + '-' + l];
+      return { id: k + '-' + l, on: !!t, by: t && t.by };
+    }) }));
+  }
+  // the audience's checklist: what is delivered and what is still missing (it blocks nothing)
+  function dlCardHtml(rs, a, can) {
+    const rows = dlRows(rs, a), c = dlCount(rows);
+    const cell = x => x.na ? '<span class="dlv-c" data-na="1">Not needed</span>'
+      : x.auto || !can ? '<span class="dlv-c"' + (x.on ? ' data-on="1"' : '') + '>' + (x.on ? PICO.tick + 'Done' : 'Missing') + '</span>'
+        : '<button type="button" class="dlv-c" aria-pressed="' + x.on + '"' + (x.on ? ' data-on="1"' : '') + ' data-dl="' + x.id + '" data-dlk="' + esc(a.key) + '" title="' + esc(x.on ? 'Ticked by ' + (x.by || 'someone') + '. Click to untick.' : 'Click when it is delivered') + '">' + (x.on ? PICO.tick + 'Done' : 'Missing') + '</button>';
+    return '<section class="adt-card adt-dl"><div class="adt-ch"><h3>Deliverables <s>' + c.on + ' of ' + c.n + '</s></h3></div>' +
+      '<div class="dlv"><div class="dlv-r dlv-h"><span></span><span>English</span><span>Arabic</span></div>' +
+      rows.map(r => '<div class="dlv-r"><b>' + r.label + '</b>' + r.cells.map(cell).join('') + '</div>').join('') + '</div></section>';
+  }
+  const dlCount = rows => { const c = rows.flatMap(r => r.cells).filter(x => !x.na); return { on: c.filter(x => x.on).length, n: c.length }; };
   const day = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   const dayS = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '';
   const itemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
@@ -2820,7 +2923,10 @@
       a.phOff = a.engOnly && !!(cl && cl.arb);
       const e = a.eng, r = a.arb;
       const d1 = !!(e && e.design), d2 = !!(e && e.copy), d3 = a.engOnly || !!(r && r.design && r.copy);
-      a.done = d1 && d2 && d3;
+      // THE TASK THE DESIGNER PICKED says where the work is, over the derived steps: an audience is
+      // done when its sign-offs are and nothing was sent on since, or when every project was sent to Done
+      const tks = a.items.filter(x => taskOf(x) && taskOf(x) !== 'done');
+      a.done = (d1 && d2 && d3 && !tks.length) || (!!e && a.items.every(x => taskOf(x) === 'done'));
       a.steps = [
         { label: STEP_LABELS[0], s: d1 ? 'done' : 'cur', sub: !e ? 'No English project yet' : d1 ? 'Done · ' + e.design.by + ' · ' + dayS(e.design.at) : 'In progress' },
         { label: STEP_LABELS[1], s: d2 ? 'done' : d1 ? 'cur' : 'pend', sub: d2 ? 'Approved · ' + e.copy.by + ' · ' + dayS(e.copy.at) : d1 ? withWho(e, 'content team') : 'After the design' },
@@ -2828,8 +2934,10 @@
           sub: a.engOnly ? 'Not needed' : d3 ? 'Approved · ' + r.copy.by + ' · ' + dayS(r.copy.at) : !r ? 'Waiting for the Arabic version' : !r.design ? 'Arabic being laid out' : 'Arabic ' + withWho(r, 'content team').replace(/^With/, 'with') },
         { label: STEP_LABELS[3], s: a.done ? 'done' : 'pend', sub: a.done ? 'Ready to run' : 'Not yet' }
       ];
-      a.at = a.done ? Math.max(e.design.at, e.copy.at, r && r.design ? r.design.at : 0, r && r.copy ? r.copy.at : 0) : 0;
-      a.now = !a.done ? a.steps.find(x => x.s !== 'done') : null;
+      a.at = a.done ? Math.max(0, ...a.items.flatMap(x => [x.design, x.copy, x.task]).filter(Boolean).map(v => v.at || 0)) : 0;
+      a.now = !a.done ? a.steps.find(x => x.s !== 'done') || a.steps[3] : null;
+      const tk = !a.done && tks.sort((x, y) => y.task.at - x.task.at)[0];
+      if (tk) a.now = { label: TASK_L[taskOf(tk)], s: 'cur', sub: withWho(tk, 'designers'), task: taskOf(tk) };
     });
     return out;
   }
@@ -2935,10 +3043,10 @@
     let r = null; try { r = window.providentAccess && window.providentAccess.now().role; } catch (e) {}
     if (!rs || !r) return false;
     const em = myEmail();
-    if (r === 'admin') return isOpen(rs) ? !!(rs.ticket && rs.ticket.to && rs.ticket.to.email === em) : (rs.items || []).some(it => !it.copy && it.to && it.to.email === em);
+    if (r === 'admin') return isOpen(rs) ? !!(rs.ticket && rs.ticket.to && rs.ticket.to.email === em) : (rs.items || []).some(it => (!it.copy || (taskOf(it) && taskOf(it) !== 'done')) && it.to && it.to.email === em);
     if (r === 'designer') {
       if (isOpen(rs)) return !rs.ticket || !rs.ticket.to || rs.ticket.to.email === em;
-      return (rs.items || []).some(it => !it.design && it.to && it.to.email === em);
+      return (rs.items || []).some(it => (!it.design || (taskOf(it) && taskOf(it) !== 'done')) && it.to && it.to.email === em);
     }
     if (r === 'ct') return (rs.items || []).some(it => it.design && !it.copy && ctLangOk(it) && toMine(it));
     return false;
@@ -3033,7 +3141,8 @@
       }
       const it = (now.items || []).find(x => x.sid === h.sid), lab = it ? itemLabel(it) : '';
       const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'put the design back in progress',
-        'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act] || 'changed a step';
+        'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act]
+        || (/^task-/.test(h.act) && TASK_L[h.act.slice(5)] ? (h.act === 'task-done' ? 'marked it done' : 'sent it to ' + TASK_L[h.act.slice(5)]) : 'changed a step');
       const t = h.by + ' ' + what + (lab ? ' · ' + lab : '');
       if (ui) ui.flash(t);
       sysNotify((now.name || 'Ad set') + ' · review', t, 'rs-' + h.at);
@@ -3086,7 +3195,7 @@
   };
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
-    const [a, sid] = String(act).split(':');
+    const [a, sid] = String(act).split(':'), tkk = /^task-/.test(a) ? a.slice(5) : '';
     if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(isPost(S.rs) ? (accRole() === 'smm' ? POST_DONE_Q : POST_SEND_Q) : APPROVE_Q(it && itemLabel(it)))) return; }
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
@@ -3103,15 +3212,50 @@
       // the sign-off covers the latest work: whatever is waiting to save goes first
       const pend = () => S.busy || canon(this.shPub()) !== S.baseS || S.dirty.size > 0;
       for (let i = 0; i < 40 && pend(); i++) { if (!S.busy) await this.shSave(); else await new Promise(r => setTimeout(r, 250)); if (pend()) await new Promise(r => setTimeout(r, 250)); }
-      const body = Object.assign({ act: a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' }, ho);
+      const body = Object.assign({ act: tkk ? 'task' : a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' }, tkk ? { k: tkk } : {}, ho);
       if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
       if (a === 'design-done') this.roamPic().then(pic => roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic));
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
-      S.ui.flash(isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
+      S.ui.flash(tkk ? (tkk === 'done' ? 'Marked done' : 'Sent to ' + TASK_L[tkk]) : isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
     finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
+  };
+  // SEND TO… (2026-11-16, by request): the hand-off is no longer one fixed next step. The designer
+  // picks the task this project goes to — in any order, back included — then who gets it (the
+  // picker of access.js). Copy check and Design are the review's own steps; the rest are it.task.
+  SP.sendTo = function (sid) {
+    const S = this._sh, rs = S && S.rs, it = rs && (rs.items || []).find(x => x.sid === (sid || S.id));
+    if (!it || this._rvBusy) return;
+    injectCss();
+    const arb = it.lang === 'ARB', tk = taskOf(it), cur = tk || (!it.design ? 'design' : !it.copy ? 'copy' : '');
+    const rows = [
+      ['copy', arb ? 'Translation check' : 'Copy check', 'The content team checks the words'],
+      ['arabic', 'Arabic', 'A designer lays out the Arabic version'],
+      ['animated', 'Animated', 'A designer makes the animated version: this design over a video background'],
+      ['video', 'Video', 'A designer makes the MVP video in the Video Studio'],
+      ['design', 'Design', 'Back in design, to change the ad'],
+      ['done', 'Done', 'Nothing is left on this project']
+    ].filter(r => !(arb && r[0] === 'arabic'));
+    const el = document.createElement('div'); el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c sto" role="dialog" aria-modal="true" aria-labelledby="sto-t"><h2 id="sto-t">Send to</h2>' +
+      '<p class="shl-lead">' + esc(itemLabel(it)) + ' — pick the task it goes to next.</p><div class="sto-l">' +
+      rows.map(r => '<button type="button" class="sto-o" data-k="' + r[0] + '"' + (r[0] === cur ? ' disabled aria-current="true"' : '') + '><b>' + r[1] + '</b><s>' + r[2] + '</s>' + (r[0] === cur ? '<i>It is here now</i>' : '') + '</button>').join('') +
+      '</div><div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
+    document.body.appendChild(el);
+    const close = () => { document.removeEventListener('keydown', key, true); el.remove(); };
+    const key = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    document.addEventListener('keydown', key, true);
+    el.addEventListener('click', e => {
+      if (e.target === el) return close();
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.x) return close();
+      const k = b.dataset.k; if (!k) return;
+      close();
+      this.rvStep((k === 'copy' ? (it.copy ? 'copy-open' : 'design-done') : k === 'design' ? 'design-open' : 'task-' + k) + ':' + it.sid);
+    });
+    const f = el.querySelector('.sto-o:not([disabled])'); if (f) f.focus();
   };
   SP.rvDrive = async function (v) {
     const S = this._sh; if (!S || !S.rs) return;
@@ -3215,8 +3359,11 @@
     const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null;
     if (!it) return null;
     const arb = it.lang === 'ARB', ph = phOf(rs, it), todo = rs.tok ? planTodo(rs, ph) : [];
-    if (!it.design) return { act: 'design-done:' + it.sid, label: arb ? 'Send for translation check' : 'Send to copy check', tip: arb ? 'Design done: sends the Arabic to the content team to check the translation' : 'Design done: sends this audience to the content team to check the English copy' };
-    const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud);
+    const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud), tk = taskOf(it);
+    // sent to Arabic, and the Arabic is not made yet: making it is the task
+    if (tk === 'arabic' && !arb && ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
+    // WITH THE DESIGNER: the hand-off opens the list of tasks, and the designer picks where it goes
+    if (!it.design || (tk && tk !== 'done')) return { send: it.sid, label: 'Send to…', tip: 'Pick the task this project goes to next — copy check, Arabic, animated, video or done — and who gets it' };
     if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from the pasted copy' };
     if (ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
@@ -3240,19 +3387,20 @@
       const ph = phOf(rs, it), auds = rsAuds(rs).filter(a => a.phase === ph), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
       const nx = this.adtNext(), done = mine && mine.done;
       const back = !it.design ? null : !it.copy ? { act: 'design-open', label: 'Back to design' } : { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check' };
-      const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
+      const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.send ? 'data-send="' + esc(nx.send) + '"' : nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
         '<span>' + esc(busy && (busy === nx.act || busy === nx.next) ? 'Saving…' : nx.label) + '</span>' + PICO.go + '</button>' : '';
-      const now = done ? 'Done — ready to run' : mine && mine.now ? mine.now.sub : '';
+      const now = done ? 'Done — ready to run' : mine && mine.now ? (mine.now.task ? mine.now.label + ' · ' : '') + mine.now.sub : '';
       top = '<section class="adt"><div class="adt-h"><div class="adt-ht">' +
         '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product], phMulti(rs) ? phN(ph) + ' phase' : ''].filter(Boolean).join(' · ')) + '</span>' +
         '<h2>' + esc([it.market, it.aud].filter(Boolean).join(' · ') || 'This project') + ' <s>' + (arb ? 'Arabic' : 'English') + '</s></h2>' +
         '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p></div>' +
         '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
         (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
+        (rs.tok && rs.tok.dd && !(nx && nx.send) ? '<button type="button" class="adt-q" data-send="' + esc(it.sid) + '" title="Pick the task this project goes to next, and who gets it"' + (busy ? ' disabled' : '') + '>Send to…</button>' : '') +
         '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + '</div></div>' +
         (mine ? stepperHtml(mine.steps, false, true) : '') + '</section>';
       // the campaign's audiences: each planned cell, with its progress; the designer sets them here
-      const cells = rsCells(rs), byK = {};
+      const cells = rsCellsIn(rs, ph), byK = {};
       auds.forEach(a => { byK[a.market + '|' + a.aud] = a; });
       const keys = cells.map(c => c.market + '|' + c.aud);
       auds.forEach(a => { const ak = a.market + '|' + a.aud; if (keys.indexOf(ak) < 0 && a.market) { keys.push(ak); cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); } });
@@ -3275,7 +3423,7 @@
         (/^https?:\/\//.test(rs.drive || '') ? '<a class="adt-drv" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + PICO.folder + '<span>Drive folder</span></a>' : '') + '</details>' : '';
       // the ad set's video (CASV): the same tiles and Add video placeholder as Status
       const vsec = vidSecHtml(rs), vid = vsec ? '<section class="adt-card adt-vid">' + vsec.replace(/^<section[^>]*>/, '').replace('<h3>', '<div class="adt-ch"><h3>').replace('</h3>', '</h3></div>') : '';
-      bot = audCard + vid + briefHtml(rs.ticket) + act + links;
+      bot = audCard + (mine ? dlCardHtml(rs, mine, dd) : '') + vid + briefHtml(rs.ticket) + act + links;
     }
     hosts.forEach(el => {
       const html = el.dataset.adt === 'top' ? top : bot;
@@ -3304,8 +3452,17 @@
       return;
     }
     if (b.dataset.act) return this.rvStep(b.dataset.act);
+    if (b.dataset.send) return this.sendTo(b.dataset.send);
     if (b.dataset.next) return this.rsNext(b.dataset.next);
     if (!rs || !rs.tok) return;
+    // a deliverable ticked by hand (animated, the MVP video), saved on the ad set and logged
+    if (b.dataset.dl) {
+      if (this._dlBusy) return; this._dlBusy = true;
+      try { const r = await api('rsset', { id: S.id }, { by: StudioBase.shareName() || 'Designer', dl: { key: b.dataset.dlk, id: b.dataset.dl, on: b.getAttribute('aria-pressed') !== 'true' } }); this.rsSet(r.rs); }
+      catch (er) { S.ui.flash(er.message || String(er)); }
+      this._dlBusy = false; this.adtRender();
+      return;
+    }
     // the designer's settings: the planned audiences and their Arabic
     let cells = planCells(planOf(rs)).map(c => Object.assign({}, c));
     rsAuds(rs).forEach(a => { if (a.market && !cells.some(c => c.market === a.market && c.aud === a.aud)) cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); });
@@ -3484,7 +3641,7 @@
     const known = id => o.known.find(k => k.id === id) || {};
     const fillAud = () => {
       const p = mode === 'new' ? prod : (known($('[data-f="dd"]').value).product || '');
-      const list = AUDS[p] || ['Family', 'Investor', 'Hybrid'], cur = $('[data-f="aud"]').value;
+      const list = (AUDS[p] || ['Family', 'Investor', 'Hybrid']).concat(BROAD), cur = $('[data-f="aud"]').value;
       $('[data-f="aud"]').innerHTML = list.map(a => opt(a, a, a === cur)).join('');
     };
     const setMode = m => {
@@ -4315,6 +4472,7 @@
         '<div class="rsp-q">' +
           '<div class="rsp-f rsp-fp"><span class="rsp-sr" id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
           '<div class="rsp-f rsp-fp" title="Branded: the Provident wordmark and colours. Unbranded: no wordmark or QR — each project opens on the unbranded look, its colours read from the photo."><span class="rsp-sr" id="rsp-br-l">Brand</span><div class="p-tabs rsp-prod rsp-brand" role="radiogroup" aria-labelledby="rsp-br-l"></div></div>' +
+          '<div class="rsp-f rsp-fp" title="Broad reach: one design for everyone in each market, in English and Arabic — how a campaign starts. Audience-based: a design per audience."><span class="rsp-sr" id="rsp-re-l">Reach</span><div class="p-tabs rsp-prod rsp-reach" role="radiogroup" aria-labelledby="rsp-re-l"></div></div>' +
           '<label class="rsp-chip rsp-dl" title="Deadline"><span class="rsp-dlt">Deadline</span><input type="date" data-f="deadline"></label>' +
           '<label class="rsp-chip rsp-phs" title="The package this ad set starts with. Add more phases later from the ad set’s page on Status, or its settings."><span class="rsp-dlt">Phase</span><input data-f="phase" maxlength="40" placeholder="Launch" size="12" autocomplete="off" spellcheck="false"></label>' +
           '<label class="rsp-chip rsp-fo" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language.">' + PICO.folder + '<span class="rsp-sr">Drive folder</span>' +
@@ -4348,6 +4506,7 @@
       const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
       if (b.dataset.prod) this.setProd(b.dataset.prod);
       if (b.dataset.brand) { d.brand = b.dataset.brand; this.save(); this.draw(); }
+      if (b.dataset.reach) { d.reach = b.dataset.reach; this.st(''); this.save(); this.draw(); }
       if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
       if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
       if (b.dataset.coinA) this.coin(b.dataset.coinA, b.dataset.coinM);
@@ -4368,8 +4527,18 @@
   PV.save = function () { lsSet(PLAN_KEY, JSON.stringify(this.d)); };
   PV.st = function (t, bad) { const p = this.el.querySelector('.rsp-st'); if (!p) return; p.textContent = t; p.classList.toggle('bad', !!t && bad !== false); };
   // the plan's cells, market first (the order the review runs in), from each audience's coins
+  // REACH (2026-11-16): a campaign starts broad — one Broad audience, its markets and its Arabic —
+  // unless the setup says audience-based, which lists the product's audiences as before
+  PV.auds = function () {
+    const d = this.d;
+    if (d.reach !== 'aud') d.reach = 'broad';
+    if (d.reach !== 'broad') return AUDS[d.product];
+    if (!Array.isArray(d.am[BROAD])) { d.am[BROAD] = ['Local']; d.arA[BROAD] = true; }
+    if (!d.am[BROAD].length) d.am[BROAD] = ['Local'];
+    return [BROAD];
+  };
   PV.cells = function () {
-    const d = this.d, as = AUDS[d.product], out = [];
+    const d = this.d, as = this.auds(), out = [];
     MARKETS.forEach(m => as.forEach(a => { if ((d.am[a] || []).indexOf(m) >= 0) out.push({ market: m, aud: a, arb: !!d.arA[a] }); }));
     return out;
   };
@@ -4392,12 +4561,12 @@
     else a.push(v);
     this.st(''); this.save(); this.draw();
   };
-  const AUD_TIP = { Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
+  const AUD_TIP = { Broad: 'Everyone — the key facts', Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
   const MKT_TIP = { Local: 'AED', International: 'USD', 'International EUR': 'EUR' };
   const MKT_SYM = { Local: 'AED', International: '$', 'International EUR': '€' };
   const MKT_SHORT = { Local: 'Local', International: 'Intl', 'International EUR': 'EUR' };
-  const AUD_PL = { Family: 'Families', Investor: 'Investors', Hybrid: 'Hybrid' };
-  const AUD_ICO = { Family: 'M240-200h133.85v-201.54q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h140q15.36 0 25.76 10.39 10.39 10.4 10.39 25.76V-200H720v-353.85q0-3.07-1.35-5.57-1.34-2.5-3.65-4.43L487.31-735q-3.08-2.69-7.31-2.69-4.23 0-7.31 2.69L245-563.85q-2.31 1.93-3.65 4.43-1.35 2.5-1.35 5.57V-200Zm-60 0v-353.85q0-17.17 7.68-32.53 7.69-15.37 21.24-25.31l227.7-171.54q18.95-14.46 43.32-14.46t43.44 14.46l227.7 171.54q13.55 9.94 21.24 25.31 7.68 15.36 7.68 32.53V-200q0 24.54-17.73 42.27Q744.54-140 720-140H562.31q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-201.53h-92.3v201.53q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4H240q-24.54 0-42.27-17.73Q180-175.46 180-200Zm300-269.23Z', Investor: 'M121.08-269.62q-9.31-9.3-8.81-21.38.5-12.08 8.81-20.38l201.77-204.39q20.69-21.08 51.23-21.08 30.53 0 51.61 21.08l99.92 100.54q3.47 3.46 8.47 3.46t8.84-3.46l215.7-213.31H670q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h153.84q15.47 0 25.81 10.35Q860-667.84 860-652.38v153.84q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61t-21.38-8.42q-8.62-8.42-8.62-21.19v-88.24l-214.69 214.7Q564.61-351 534.08-351q-30.54 0-51.23-20.69l-99.93-99.93q-3.46-3.46-8.84-3.46-5.39 0-8.85 3.46l-202 202q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7Z', Hybrid: 'M234.27-434.27q-18.88-18.88-18.88-45.73 0-26.85 18.88-45.73 18.88-18.88 45.73-18.88 26.85 0 45.73 18.88 18.88 18.88 18.88 45.73 0 26.85-18.88 45.73-18.88 18.88-45.73 18.88-26.85 0-45.73-18.88ZM280-260q-91.54 0-155.77-64.23T60-480q0-91.54 64.23-155.77T280-700q64.31 0 116.31 33.19 52 33.2 79.38 86.81h345q7.23 0 13.77 2.62 6.54 2.61 12.15 8.23l63.85 63.84q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L804.62-349.23q-4.62 4.61-10.85 7.42-6.23 2.81-12.46 3.42-6.23.62-12.46-1.19T757-345.62l-49.31-37.07-55.84 41.46q-4.62 3.61-9.85 5.23-5.23 1.61-10.85 1.61-5.61 0-11.15-1.8-5.54-1.81-10.15-5.04L553.46-380h-77.77q-27.38 53.23-79.38 86.61Q344.31-260 280-260Zm0-60q57.54 0 99.65-34.77 42.12-34.77 54.97-85.23h137.69l57.61 39.85q-.38 0-.19.3.19.31.19-.3l78.16-57.16L776-405.38v-.2.2L850.62-480h-.31.31l-40-40v-.31.31h-376q-12.85-50.46-54.97-85.23Q337.54-640 280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z' };
+  const AUD_PL = { Broad: 'Broad reach', Family: 'Families', Investor: 'Investors', Hybrid: 'Hybrid' };
+  const AUD_ICO = { Broad: 'M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z', Family: 'M240-200h133.85v-201.54q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h140q15.36 0 25.76 10.39 10.39 10.4 10.39 25.76V-200H720v-353.85q0-3.07-1.35-5.57-1.34-2.5-3.65-4.43L487.31-735q-3.08-2.69-7.31-2.69-4.23 0-7.31 2.69L245-563.85q-2.31 1.93-3.65 4.43-1.35 2.5-1.35 5.57V-200Zm-60 0v-353.85q0-17.17 7.68-32.53 7.69-15.37 21.24-25.31l227.7-171.54q18.95-14.46 43.32-14.46t43.44 14.46l227.7 171.54q13.55 9.94 21.24 25.31 7.68 15.36 7.68 32.53V-200q0 24.54-17.73 42.27Q744.54-140 720-140H562.31q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-201.53h-92.3v201.53q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4H240q-24.54 0-42.27-17.73Q180-175.46 180-200Zm300-269.23Z', Investor: 'M121.08-269.62q-9.31-9.3-8.81-21.38.5-12.08 8.81-20.38l201.77-204.39q20.69-21.08 51.23-21.08 30.53 0 51.61 21.08l99.92 100.54q3.47 3.46 8.47 3.46t8.84-3.46l215.7-213.31H670q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h153.84q15.47 0 25.81 10.35Q860-667.84 860-652.38v153.84q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61t-21.38-8.42q-8.62-8.42-8.62-21.19v-88.24l-214.69 214.7Q564.61-351 534.08-351q-30.54 0-51.23-20.69l-99.93-99.93q-3.46-3.46-8.84-3.46-5.39 0-8.85 3.46l-202 202q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7Z', Hybrid: 'M234.27-434.27q-18.88-18.88-18.88-45.73 0-26.85 18.88-45.73 18.88-18.88 45.73-18.88 26.85 0 45.73 18.88 18.88 18.88 18.88 45.73 0 26.85-18.88 45.73-18.88 18.88-45.73 18.88-26.85 0-45.73-18.88ZM280-260q-91.54 0-155.77-64.23T60-480q0-91.54 64.23-155.77T280-700q64.31 0 116.31 33.19 52 33.2 79.38 86.81h345q7.23 0 13.77 2.62 6.54 2.61 12.15 8.23l63.85 63.84q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L804.62-349.23q-4.62 4.61-10.85 7.42-6.23 2.81-12.46 3.42-6.23.62-12.46-1.19T757-345.62l-49.31-37.07-55.84 41.46q-4.62 3.61-9.85 5.23-5.23 1.61-10.85 1.61-5.61 0-11.15-1.8-5.54-1.81-10.15-5.04L553.46-380h-77.77q-27.38 53.23-79.38 86.61Q344.31-260 280-260Zm0-60q57.54 0 99.65-34.77 42.12-34.77 54.97-85.23h137.69l57.61 39.85q-.38 0-.19.3.19.31.19-.3l78.16-57.16L776-405.38v-.2.2L850.62-480h-.31.31l-40-40v-.31.31h-376q-12.85-50.46-54.97-85.23Q337.54-640 280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z' };
   const fsize = n => n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB';
   PV.drawFiles = function () {
     const box = this.el.querySelector('.rsp-files'); if (!box) return;
@@ -4417,9 +4586,11 @@
     const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
     if (d.brand !== 'unbranded') d.brand = 'provident';
     $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded');
+    const rt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.reach === k) + '" data-reach="' + k + '"' + (d.reach === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+    if ($('.rsp-reach')) $('.rsp-reach').innerHTML = rt('broad', 'Broad reach') + rt('aud', 'Audience-based');
     const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
     $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (arbN ? ' · ' + arbN + ' in Arabic' : '');
-    $('.rsp-auds').innerHTML = AUDS[d.product].map(a => {
+    $('.rsp-auds').innerHTML = this.auds().map(a => {
       const ms = d.am[a] || [], on = ms.length > 0, ar = on && !!d.arA[a];
       const coins = MARKETS.map(m => { const c = ms.indexOf(m) >= 0;
         return '<button type="button" class="rsp-coin" aria-pressed="' + c + '" data-coin-a="' + esc(a) + '" data-coin-m="' + esc(m) + '" title="' + esc(m) + ' · prices in ' + MKT_TIP[m] + (c ? ' — click to leave it out' : ' — click to add') + '"><b>' + MKT_TIP[m] + '</b><s>' + (m === 'Local' ? 'Local' : 'International') + '</s></button>'; }).join('');
@@ -4450,7 +4621,7 @@
     if (design && this.eng.confirmDiscard && !this.eng.confirmDiscard()) return;
     const btns = this.el.querySelectorAll('.rsp-ft button'); btns.forEach(b => { b.disabled = true; });
     const cells = this.cells(), arb = {}; cells.forEach(c => { if (c.arb) arb[c.market + '|' + c.aud] = true; });
-    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: phKey(d.phase) || 'launch', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
+    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: phKey(d.phase) || 'launch', reach: d.reach === 'aud' ? 'aud' : 'broad', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
     try {
       this.busy('Signing in to Google…', .02);
       await window.providentDrive.signIn();   // first: the popup needs the click
@@ -4955,7 +5126,7 @@
     const plan = rsCells(rs), n = plan.length || 0;
     const r = accRole(), canAdd = isDs(d.id) && (!r || r === 'designer' || r === 'admin');
     const t = phs.map(k => {
-      const au = allAuds.filter(a => a.phase === k), dn = au.filter(a => a.done).length, tot = Math.max(n, au.length);
+      const au = allAuds.filter(a => a.phase === k), dn = au.filter(a => a.done).length, tot = Math.max(rsCellsIn(rs, k).length, au.length);
       const st = tot && dn === tot ? 'done' : au.length ? 'prog' : 'new';
       return '<button type="button" role="tab" class="rvd-pt" data-a="phtab" data-ph="' + k + '" aria-selected="' + (k === tab) + '" data-s="' + st + '" title="' + esc(phN(k) + ' — ' + (au.length ? dn + ' of ' + tot + ' audiences done' : 'not started')) + '">' +
         '<i></i>' + esc(phN(k)) + '<s>' + dn + '/' + tot + '</s></button>';
@@ -5316,7 +5487,7 @@
     const lv = all.ready ? rsLive(rs) : null;
     const nowLine = lv ? '<p class="rvd-now" data-s="ready"><i></i>Launched ' + esc(dayS(lv.at)) + ' by ' + esc(lv.by) + '.</p>'
       : all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
-      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCells(rs).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
+      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCellsIn(rs, tab).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
         : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
           const tip = esc(a.now.label + ' — ' + a.now.sub), in_ = '<i></i>' + esc(audName(a)) + '<s>' + esc(a.now.sub) + '</s>';
           return pmV ? '<span class="rvd-wc" data-i="' + i + '" title="' + tip + '">' + in_ + '</span>'
@@ -5343,7 +5514,7 @@
     const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
-    const cells = rsCells(rs);
+    const cells = rsCellsIn(rs, tab);
     const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste the copy">' +
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (isUb(aud) ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
@@ -5501,7 +5672,7 @@
     const opt = (v, l, on) => '<option value="' + esc(v) + '"' + (on ? ' selected' : '') + '>' + esc(l) + '</option>';
     // a mixed ad set (or an unbranded project) also lists each audience's unbranded version, so
     // moving an unbranded project keeps it unbranded
-    const base0 = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'], its = (rs.items || []).filter(x => x.aud);
+    const base0 = ((rs.broad || []).length || isBroad(it.aud) ? [BROAD] : []).concat(AUDS[rs.product] || ['Family', 'Investor', 'Hybrid']), its = (rs.items || []).filter(x => x.aud);
     const dz = [...new Set(its.map(x => ubBase(x.aud)).filter(a => dsgOf(a) > 1))];
     const root = audRoot(it.aud || base0[0]), nx = root + DSG + (Math.max(1, ...its.filter(x => x.market === it.market && audRoot(x.aud) === root).map(x => dsgOf(x.aud))) + 1);
     const base = base0.concat(dz, dz.indexOf(nx) < 0 ? [nx] : []).sort((x, y) => audOrd(base0, x) - audOrd(base0, y));
@@ -7577,6 +7748,29 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rss-phx .p-ghost{flex:none;height:34px}
 .rss-q{grid-template-columns:repeat(2,minmax(0,1fr))}
 .rss-q .rsp-prod,.rss-q .rsp-brand{width:max-content}
+.rss-pc button[data-reach]{width:auto;height:26px;margin-left:6px;padding:0 10px;border-radius:9999px;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font)}
+.rss-pc button[data-reach][aria-pressed=true]{background:var(--ps-ink);box-shadow:none;color:var(--ps-card)}
+.sto{width:min(440px,100%)}
+.sto-l{display:grid;gap:8px;margin:16px 0 0}
+.sto-o{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;text-align:left;padding:12px 16px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink);font:400 14px/1.3 var(--ps-font);cursor:pointer}
+.sto-o b{grid-column:1;font-weight:500}
+.sto-o s{grid-column:1;text-decoration:none;color:var(--ps-ink-2);font-size:13px}
+.sto-o i{grid-column:2;grid-row:1/span 2;font:500 12px/1 var(--ps-font);font-style:normal;color:var(--ps-ink-2)}
+.sto-o:hover:not([disabled]){background:var(--ps-fill-h)}
+.sto-o:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.sto-o[disabled]{cursor:default;box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.dlv{display:grid;gap:8px}
+.dlv-r{display:grid;grid-template-columns:minmax(96px,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center}
+.dlv-h span{font:500 12px/1 var(--ps-font);letter-spacing:.06em;text-transform:uppercase;color:var(--ps-ink-2)}
+.dlv-r>b{font:400 14px/1.2 var(--ps-font);color:var(--ps-ink)}
+.dlv-c{display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;height:40px;padding:0 12px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:400 13px/1 var(--ps-font);white-space:nowrap}
+button.dlv-c{cursor:pointer}
+button.dlv-c:hover{background:var(--ps-fill-h)}
+button.dlv-c:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.dlv-c svg{flex:none;width:16px;height:16px;fill:currentColor}
+.dlv-c[data-on]{color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.dlv-c[data-na]{box-shadow:none;padding-left:0}
+.rvd-dl{display:block;margin-top:6px;font:400 12px/1.2 var(--ps-font);color:var(--ps-ink-2)}
 .shl-dlg-c.rss{overflow-x:hidden}
 `;
     document.head.appendChild(s);

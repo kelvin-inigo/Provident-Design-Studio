@@ -420,6 +420,29 @@ the ads are running, they press **Launch** on the home's Next up card (or on its
 **Launched** on its page, the log says who launched it, and it leaves everyone's Home for the **Closed** column on Status (shown with **Show closed**).
 A phase added later (say Ad Fatigue 01) brings it back once that phase is ready.
 
+#### Broad reach or audience-based
+
+A campaign starts **broad**: its first waves tell the key facts to everyone, so there is one
+design per market, in English and Arabic, and no audience-based designs. The setup on Home has
+**Reach: Broad reach | Audience-based** (Broad reach is the default). A broad ad set plans one
+audience called **Broad**.
+
+Reach is set **per phase**. In **Ad set settings**, every phase under **Phases** has a **Broad**
+button: pressed, that phase makes only the Broad audience; not pressed, it makes the audiences
+ticked under **Audiences** (Family, Investor…). A phase added after a broad one starts broad too.
+So the usual run is phase 1 and 2 with **Broad** pressed, then, on the third phase, tick the
+audiences you want and un-press **Broad** on that phase. A project already made always stays
+where it is, whatever the reach.
+
+#### The minimum deliverables
+
+Every audience has three deliverables, each in English and Arabic: **Static**, **Animated** (the
+same design over a video background, 1:1 and 9:16) and the **MVP video** (the short key-facts
+video from the Video Studio). The **Ad set** tab shows them in a **Deliverables** card. **Static**
+ticks itself when the project is sent on. Press **Missing** beside **Animated** or **MVP video**
+when it is delivered; it turns to **Done** and the Activity says who ticked it. The card only shows
+what is missing: it never stops a project being sent to **Done**.
+
 #### Phases
 
 A campaign runs in **phases**, and each phase is its own package of every planned audience. You
@@ -519,8 +542,12 @@ steps: **Design › ENG copy check › Translation › Done**.
 2. **Design.** The top bar, beside **Ad set | Design**, always shows where this project stands
    in its campaign: four small bars for the four steps, the step it is on, and its market,
    audience and language (for example *Design · Local · Family · EN*). Beside it is the one
-   thing to do next. When the design is ready, press **Send to copy check** (an Arabic project
-   says **Send for translation check**). It first lists anything missing: empty words, a page or
+   thing to do next. When the design is ready, press **Send to…** and pick the task the project
+   goes to: **Copy check** (an Arabic project says **Translation check**), **Arabic**,
+   **Animated**, **Video**, **Design** or **Done**. Any order works, and you can send it back.
+   Then pick who gets it (the content team for a copy check, a designer for Arabic, Animated and
+   Video). After the first hand-off, **Send to…** stays in the **Ad set** tab's header. Sending
+   to **Copy check** first lists anything missing: empty words, a page or
    variant with no background photo, a QR code switched on with none added, or copy covering
    more than 40% of a canvas. Fix them, or press OK to send anyway. While the content team has
    it, the current bar turns amber and the step reads **Copy check**; the button moves on to
