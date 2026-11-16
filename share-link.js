@@ -194,6 +194,9 @@
   const dsOn = () => !!(window.providentDrive && window.providentDrive.clientId && window.providentDrive.clientId());
   // a person's Google photo in an avatar circle, where access.js knows it (2026-11-11); else ini
   const avIn = (n, ini, em) => { const A = window.providentAccess; return A && A.avIn ? A.avIn(n, em, ini) : esc(ini); };
+  // the three ad set links, as people say them, and the account roles each one opens for
+  const LINK_WHO = { dd: 'designer', ct: 'content team', pm: 'performance marketing' };
+  const LINK_FOR = { dd: ['designer'], ct: ['designer', 'ct', 'cten', 'ctar'], pm: ['designer', 'pm', 'dmt'] };
   function dsFail(code, msg) { const e = new Error(msg); e.code = code; return e; }
   function dsAuth() { const e = new Error('Sign in with Google to open this review — it is stored in the ad set’s Drive folder.'); e.gdAuth = true; return e; }
   async function dsFetch(path, opt) {
@@ -380,7 +383,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video', 'broad', 'dl'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video', 'broad', 'dl', 'grant', 'areq'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -429,7 +432,7 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1, rsreq: 1, rsgrant: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -717,6 +720,34 @@
         if (body.act === 'noterm') v.notes = v.notes.filter(x => x !== k); else { k.done = !!body.done; k.doneBy = k.done ? by : ''; }
       } else if (body.act === 'dl') { const v = one(); dsLog(R.rs, by, [{ kind: 'step', text: 'Downloaded the video “' + v.title + '” · ' + (body.size === '1x1' ? 'Square 1:1' : 'Reel 9:16') }]); }
       else throw dsFail(400, 'Unknown video action.');
+      await dsWrite(R.rid, R.rs);
+      return { rs: pub() };
+    }
+    // ACCESS PER AD SET (2026-11-16, by request): an ad set link opens for the account role it was
+    // made for (linkGate, in the page). Anyone else may ask for that view of THIS ad set:
+    // `rs.areq = [{ em, name, have (their account role), role (the link's: ct | pm | dd), at }]`;
+    // the designer (Status) allows it into `rs.grant = { ct: [em…], pm: [em…], dd: [em…] }`,
+    // declines it, or takes an allowed person off again. Nothing carries to another ad set.
+    if (op === 'rsreq') {
+      if (!R.rs) throw dsFail(404, 'This ad set is no longer there.');
+      const em = String(body.em || '').trim().toLowerCase().slice(0, 120), role = R.role;
+      if (!em || !/^(dd|ct|pm)$/.test(role)) throw dsFail(400, 'Sign in with Google to ask for access.');
+      const nm = String(body.name || '').replace(/\s+/g, ' ').trim().slice(0, 80) || em;
+      R.rs.areq = (R.rs.areq || []).filter(x => !(x.em === em && x.role === role)).concat({ em, name: nm, have: String(body.have || '').slice(0, 20), role, at: dsNow() }).slice(-50);
+      dsLog(R.rs, nm, [{ kind: 'step', text: 'Asked to open the ' + LINK_WHO[role] + ' view' }]);
+      await dsWrite(R.rid, R.rs);
+      return { rs: pub() };
+    }
+    if (op === 'rsgrant') {
+      if (!R.rs || R.role !== 'dd') throw dsFail(403, 'Only the designer lets people into an ad set’s views.');
+      const em = String(body.em || '').trim().toLowerCase(), role = String(body.role || ''), by = dsWho(body.by);
+      if (!em || !LINK_WHO[role]) throw dsFail(400, 'Unknown request.');
+      const q0 = (R.rs.areq || []).find(x => x.em === em && x.role === role), nm = (q0 && q0.name) || em;
+      R.rs.areq = (R.rs.areq || []).filter(x => x !== q0);
+      const G = R.rs.grant = R.rs.grant || {}, l = G[role] = (G[role] || []).filter(x => x !== em);
+      if (body.act === 'allow') l.push(em);
+      if (!l.length) delete G[role];
+      dsLog(R.rs, by, [{ kind: 'step', text: (body.act === 'allow' ? 'Let ' + nm + ' open the ' : body.act === 'revoke' ? 'Took ' + nm + ' off the ' : 'Declined ' + nm + '’s request for the ') + LINK_WHO[role] + ' view' }]);
       await dsWrite(R.rid, R.rs);
       return { rs: pub() };
     }
@@ -1510,6 +1541,54 @@
     }
     go();
   };
+  // NOT YOUR VIEW (2026-11-16, by request): an ad set link opens only for the account role it was
+  // made for — the content team's for the content team, performance marketing's for performance
+  // marketing (and the Digital Marketing Team), the designer's for designers; designers and the
+  // admin open all three (Status's Team links open each view "as that team sees it"). Anyone else
+  // gets a page saying so, with Request access: asked of THIS ad set only (rsreq), allowed by its
+  // designer on Status (rsgrant). Open when the access check is off or unreachable, as before,
+  // and for OPS posts. It is a door sign, not a lock: Drive's own sharing is the lock.
+  async function linkGate(id, d) {
+    const A = window.providentAccess;
+    if (!d || !d.rs || isPost(d.rs) || !LINK_FOR[d.role] || !A || !A.who) return true;
+    let w; try { w = await A.who(); } catch (e) { return true; }
+    if (!w || w.on !== true) return true;
+    if (w.admin) return true;
+    const mine = w.email && w.status === 'active' && w.role;
+    if (mine && LINK_FOR[d.role].indexOf(w.role) >= 0) return true;
+    if (w.email && ((d.rs.grant || {})[d.role] || []).indexOf(w.email) >= 0) return true;
+    notYourView(id, d, w);
+    return false;
+  }
+  function notYourView(id, d, w) {
+    injectCss();
+    const A = window.providentAccess, rs = d.rs, view = LINK_WHO[d.role];
+    const asked = w.email && (rs.areq || []).find(x => x.em === w.email && x.role === d.role);
+    const why = w.out ? 'Sign in with your Google account to see whether this view is yours.'
+      : w.err ? w.err
+      : w.status && w.status !== 'active' ? 'Your account is waiting for the admin to let you in.'
+      : 'You’re signed in as ' + (w.name || w.email) + (w.role ? ' (' + A.roleName(w.role) + ')' : '') + ', so it doesn’t open for you.';
+    const el = document.createElement('div'); el.className = 'nyv';
+    el.innerHTML = '<main class="nyv-c" role="main" aria-labelledby="nyv-t"><p class="nyv-k">404 · Not your view</p>' +
+      '<h1 id="nyv-t">This isn’t your view</h1>' +
+      '<p class="nyv-l">This link opens the <b>' + esc(view) + '</b> view of <b>' + esc(rs.name || 'this ad set') + '</b>. ' + esc(why) + '</p>' +
+      '<div class="nyv-a">' + (w.email && w.status === 'active' && isDs(id)
+        ? '<button type="button" class="p-btn" data-req="1"' + (asked ? ' disabled' : '') + '>' + (asked ? 'Access requested' : 'Request access') + '</button>' : '') +
+        '<a class="p-ghost" href="index.html#status">Go to Status</a></div>' +
+      '<p class="nyv-s" aria-live="polite">' + (asked ? 'You asked on ' + esc(day(asked.at)) + '. The designer lets you in from the ad set’s page in Status; open this link again then.' : w.email && w.status === 'active' && isDs(id) ? 'Access is asked for this ad set only. Its designer allows or declines it.' : '') + '</p></main>';
+    document.body.appendChild(el);
+    document.documentElement.classList.remove('lnk-wait');
+    const b = el.querySelector('[data-req]');
+    if (b) b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Asking…';
+      try {
+        await api('rsreq', { id }, { em: w.email, name: w.name, have: w.role || '' });
+        b.textContent = 'Access requested';
+        el.querySelector('.nyv-s').textContent = 'Asked. The designer lets you in from the ad set’s page in Status; open this link again then.';
+      } catch (e) { b.disabled = false; b.textContent = 'Request access'; el.querySelector('.nyv-s').textContent = e.message || String(e); }
+    });
+    const h = el.querySelector('h1'); h.tabIndex = -1; h.focus();
+  }
   SP.shareOpenLink = async function (id) {
     if (isDs(id) && !(await dsGate(isRsId(id) ? 'Open the ad set' : 'Open a shared project'))) return;
     // an ad set link: the content team, performance marketing or the designer's overview
@@ -1517,7 +1596,9 @@
       if (this.shApp() !== 'provident-ad-studio') { goCas(id); return; }
       const dl = nameDialog({ title: 'Open the ad set', lead: 'Loading the ad set…', btn: 'Open', busy: true });
       try {
-        const d = await api('rsget', { id, full: '1' }); dl.close();
+        const d = await api('rsget', { id, full: '1' });
+        if (!(await linkGate(id, d))) { dl.close(); return; }
+        dl.close();
         // THE DESIGNER'S LINK OPENS THE AD SET'S STATUS PAGE (2026-10-29). It used to open the old
         // "Designer overview" window, which the Status page and each project's Ad set tab replaced.
         if (d.role === 'dd') { ssSet(RS_KEY, null); this.rsShowStatus(id, d.rs); return; }
@@ -5053,6 +5134,12 @@
     if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set?\n\nIts folder in the ad set’s Google Drive folder (the project, its pictures and exports) goes to Drive’s trash, where it can be restored for 30 days.')) {
       try { await api('rsset', { id: this.sel }, { by, remove: t.dataset.sid }); again(); } catch (er) { window.alert(er.message || String(er)); }
     }
+    if (a === 'grant') {
+      t.disabled = true;
+      try { await api('rsgrant', { id: this.sel }, { by, em: t.dataset.em, role: t.dataset.r, act: t.dataset.g }); again(); }
+      catch (er) { t.disabled = false; window.alert(er.message || String(er)); }
+      return;
+    }
     if (a === 'delset' && window.confirm('Delete this whole ad set for everyone?\n\nIts three links stop working and its review history goes. On Google Drive every project folder, the videos and the ad set’s record go to the trash (restorable for 30 days), then the campaign folder if nothing else is in it.')) {
       try { await api('rsdel', { id: this.sel }, {}); Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
       catch (er) { window.alert(er.message || String(er)); }
@@ -5752,7 +5839,17 @@
     // PERFORMANCE MARKETING'S DETAILS (2026-11-04, by request): no audiences and no team links —
     // the package itself is behind Open the package
     // and the content team's (same day): their copy check is behind Check the copy
-    const side = '<aside class="rvd-side">' + (pmV ? '' : links) +
+    // ACCESS (2026-11-16): who asked for a view of this ad set that isn't their role's (linkGate),
+    // and who has been let in; allowed here, for this ad set only
+    const rqs = rs.areq || [], grs = Object.keys(rs.grant || {}).flatMap(r => (rs.grant[r] || []).map(em => ({ em, role: r })));
+    const rName = r => { const A = window.providentAccess; return A && A.roleName ? A.roleName(r) : r; };
+    const access = pmV || !(rqs.length || grs.length) ? '' : '<section class="rvd-card rvd-acc"><h3>Access' + (rqs.length ? ' <s>' + rqs.length + ' waiting</s>' : '') + '</h3><ul class="rvd-acl">' +
+      rqs.map(q => '<li><span class="rvd-acn"><b>' + esc(q.name || q.em) + '</b><s>Asks for the ' + esc(LINK_WHO[q.role] || q.role) + ' view' + (q.have ? ' · ' + esc(rName(q.have)) : '') + ' · ' + esc(ago(q.at)) + '</s></span>' +
+        '<span class="rvd-acb"><button type="button" class="p-btn" data-a="grant" data-g="allow" data-em="' + esc(q.em) + '" data-r="' + esc(q.role) + '">Allow</button>' +
+        '<button type="button" class="p-ghost" data-a="grant" data-g="decline" data-em="' + esc(q.em) + '" data-r="' + esc(q.role) + '">Decline</button></span></li>').join('') +
+      grs.map(g => '<li><span class="rvd-acn"><b>' + esc(g.em) + '</b><s>Can open the ' + esc(LINK_WHO[g.role] || g.role) + ' view</s></span>' +
+        '<span class="rvd-acb"><button type="button" class="p-ghost" data-a="grant" data-g="revoke" data-em="' + esc(g.em) + '" data-r="' + esc(g.role) + '">Remove</button></span></li>').join('') + '</ul></section>';
+    const side = '<aside class="rvd-side">' + (pmV ? '' : links + access) +
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
       '<section class="rvd-card"><h3>Drive location</h3>' +
       '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
@@ -6429,6 +6526,16 @@
 .shl-pill{position:fixed;right:16px;bottom:16px;z-index:157;display:flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 13px;border:none;border-radius:9999px;
   background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line);font:600 14px/1 var(--ps-font);letter-spacing:.16px;cursor:pointer}
 .shl-pill:hover{background:var(--ps-fill-h)}
+.nyv{position:fixed;inset:0;z-index:4200;display:grid;place-items:center;padding:24px 16px;background:var(--ps-app);overflow:auto}
+.nyv-c{width:min(520px,100%);display:flex;flex-direction:column;gap:16px}
+.nyv-k{margin:0;font:500 12px/1.2 var(--ps-font);letter-spacing:.08em;text-transform:uppercase;color:var(--ps-ink-2)}
+.nyv h1{margin:0;font:400 32px/1.2 var(--ps-font);color:var(--ps-ink);outline:none}
+.nyv-l{margin:0;font:400 16px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.nyv-l b{font-weight:500;color:var(--ps-ink)}
+.nyv-a{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nyv-a>*{display:inline-flex;align-items:center;justify-content:center;height:40px;margin:0;box-sizing:border-box}
+.nyv-a a{text-decoration:none}
+.nyv-s{margin:0;min-height:1.4em;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
 .shl-pill:focus-visible,.shl button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .shl-pill svg{width:18px;height:18px;fill:currentColor}
 .shl-n{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:9999px;background:var(--ps-primary);color:var(--ps-primary-i);font:600 11px/20px var(--ps-font);text-align:center}
@@ -7758,6 +7865,12 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-op .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
 .rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
+.rvd-acl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.rvd-acl li{display:flex;flex-direction:column;gap:8px}
+.rvd-acn{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvd-acn b{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rvd-acn s{text-decoration:none;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-acb{display:flex;flex-wrap:wrap;gap:8px}
 .rvd-card .rva-sub{margin-top:-8px}
 .rvd-ph{display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;min-width:0;min-height:71px;padding:8px 12px 8px 14px;border:none;border-radius:12px;background:none;outline:1px dashed var(--ps-line);outline-offset:-1px;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
 .rvd-ph:hover{background:var(--ps-fill)}

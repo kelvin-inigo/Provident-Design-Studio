@@ -114,6 +114,10 @@ exports download as a zip. The studios fit tablets and phones.
   **Branded** one, with **Start the unbranded**.
 - **More than one design per audience:** **Add a design** at the foot of an audience's card on
   Status starts the next one (**Local · Investor · Design 2**), with its own copy check and Arabic.
+- **Each ad set link is for its own team.** Someone opening another team's link (say the content
+  team on performance marketing's) sees **This isn't your view** and can press **Request access**
+  for that ad set only; the designer allows it in Status, in the **Access** card under Team links.
+  Designers and the admin open every link.
 - On the content team's and performance marketing's links, groups that are done from their side
   are hidden under **Show finished** at the foot of the list.
 - **Already approved** skips the content team for an ad signed off before it came in. On Status it

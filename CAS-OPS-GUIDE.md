@@ -699,6 +699,14 @@ its designs, each design's look (branded or unbranded) and its languages.
   Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
   set tab, under **Audiences**.
 - **Ad set links:** one row per team, with **Copy link**.
+- **Each link is for its own team.** The content team's link opens for the content team (English
+  or Arabic), performance marketing's for performance marketing and the Digital Marketing Team, the
+  designer's for designers. Designers and the admin open all three. Anyone else signed in sees
+  **This isn't your view** with **Request access**, which asks for that view of this ad set only.
+- **Access** (on the right, under Team links, when someone has asked): each request with **Allow**
+  and **Decline**, and everyone already let in with **Remove**. Allowing lets that person open that
+  link of this ad set; it gives nothing in any other ad set. When the access check is off, every
+  link opens as before.
 - **Video** (when the ad set has video on): a card with each video and **Add video**. The **⋯** on a
   video's tile holds **Replace video** and **Remove**.
 - **Activity:** every step and every word changed in every project, newest first, under its day,

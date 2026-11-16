@@ -2361,3 +2361,31 @@ uploaded video background (the `cas-animated` branch). `TASK_L.video` now reads 
   Delete for everyone left no file of it. No console errors.
 - **Not run:** real Google Drive (the stand-in does not cascade a folder's trash to its children;
   Drive does), a real Send to CAS round trip, dark theme, phones, the PM / content team views.
+
+
+## EACH AD SET LINK IS FOR ITS OWN TEAM; REQUEST ACCESS PER AD SET (2026-11-16)
+
+By request: "verify the role assigned to the viewer … I don't want CT to view PM's link … a 404
+page saying it's not your view … they can request access, but the link varies only per project."
+
+- `access.js` gains `providentAccess.who()` (accstatus, then `accme` with the Drive token; the
+  admin previewing a role is judged as that role) and `roleName(r)`.
+- `share-link.js` `linkGate(id, d)` runs in `shareOpenLink` right after `rsget` for an ad set
+  link. `LINK_FOR`: dd ← designer; ct ← designer, ct, cten, ctar; pm ← designer, pm, dmt. The
+  admin opens everything. DESIGNERS OPEN ALL THREE on purpose: Status's Team links open each view
+  "as that team sees it". Open as before when the access check is off or unreachable, for OPS posts,
+  or for a role the link has no rule for. `rs.grant[role]` (emails) also opens it.
+- `notYourView`: a full-page `.nyv` ("404 · Not your view", This isn't your view) with Request
+  access (Drive ad sets only, an active signed-in account) and Go to Status.
+- Ops `rsreq` (any link's holder: `rs.areq` entry {em, name, have, role, at}, logged) and
+  `rsgrant` (dd only: act allow | decline | revoke). `dsPub` passes `grant`, `areq`.
+- Status: an **Access** card under Team links (designer/admin side only) with Allow / Decline per
+  request and Remove per person let in.
+- It is a door sign, not a lock: the page has already read the ad set (rsget) before it decides,
+  and Drive's own sharing is what really guards the files.
+- **Verified** on share-dev :8793 with the dev sign-in accounts on Palm Springs by Nakheel:
+  content team (English) on PM's link → the page; Request access → saved, button "Access
+  requested"; CT's own link opens its view; designer on Status sees "Access · 1 waiting", Allow →
+  logged "Let … open the performance marketing view", the card shows Remove; CT then opens PM's
+  link; PM on CT's link → the page. Not run: the live site, real Google accounts, a pending
+  account, an admin preview, dark theme, phones.
