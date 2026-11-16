@@ -194,6 +194,9 @@
   const dsOn = () => !!(window.providentDrive && window.providentDrive.clientId && window.providentDrive.clientId());
   // a person's Google photo in an avatar circle, where access.js knows it (2026-11-11); else ini
   const avIn = (n, ini, em) => { const A = window.providentAccess; return A && A.avIn ? A.avIn(n, em, ini) : esc(ini); };
+  // the three ad set links, as people say them, and the account roles each one opens for
+  const LINK_WHO = { dd: 'designer', ct: 'content team', pm: 'performance marketing' };
+  const LINK_FOR = { dd: ['designer'], ct: ['designer', 'ct', 'cten', 'ctar'], pm: ['designer', 'pm', 'dmt'] };
   function dsFail(code, msg) { const e = new Error(msg); e.code = code; return e; }
   function dsAuth() { const e = new Error('Sign in with Google to open this review — it is stored in the ad set’s Drive folder.'); e.gdAuth = true; return e; }
   async function dsFetch(path, opt) {
@@ -380,7 +383,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video', 'broad', 'dl', 'grant', 'areq'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -429,7 +432,7 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1, rsreq: 1, rsgrant: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -458,6 +461,22 @@
     }
     if (op === 'rsstep') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      // PICK THE NEXT TASK (2026-11-16, by request): the designer sends a project to any task, in any
+      // order. Arabic, Animated, Video and Done land here; Copy check and Design are the steps below.
+      // It records where the work is (it.task) and who has it (it.to); no sign-off moves.
+      if (body.act === 'task') {
+        if (isPost(R.rs) || R.role !== 'dd') throw dsFail(403, 'Your link cannot change that step.');
+        const k = String(body.k || ''), tsid = body.p || R.sid, ti = (R.rs.items || []).find(x => x.sid === tsid);
+        if (!TASK_L[k] || k === 'design' || k === 'copy') throw dsFail(400, 'Unknown task.');
+        if (!ti) throw dsFail(404, 'That project is not in this ad set.');
+        const by = dsWho(body.by), now = dsNow(), to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
+        ti.task = { k, by, at: now };
+        ti.to = to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null;
+        R.rs.hist = (R.rs.hist || []).concat({ act: 'task-' + k, by, at: now, sid: tsid }).slice(-400);
+        dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(ti, R.rs), text: (k === 'done' ? 'Marked it done' : 'Sent it to ' + TASK_L[k]) + (ti.to ? ' → ' + (ti.to.name || ti.to.email) : '') }]);
+        await dsWrite(R.rid, R.rs);
+        return { rs: pub() };
+      }
       const st = DS_STEP[body.act]; if (!st) throw dsFail(400, 'Unknown step.');
       const sid = body.p || R.sid, it = (R.rs.items || []).find(x => x.sid === sid);
       if (!it) throw dsFail(404, 'That project is not in this ad set.');
@@ -468,6 +487,7 @@
       // (body.to, chosen in the hand-off picker); a step sent back goes to whoever did it last
       const em = String(body.em || '').trim().toLowerCase().slice(0, 120), prev = it[field];
       it[field] = done ? Object.assign({ by, at: now }, em ? { em } : {}) : null;
+      delete it.task;   // a step moves the work: the task picked before no longer says where it is
       const to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
       it.to = done ? (to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null)
         : (prev && prev.em ? { email: prev.em, name: prev.by || '', by, at: now } : null);
@@ -547,6 +567,26 @@
         rs.phases = want;
         want.filter(k => was.indexOf(k) < 0).forEach(k => chg.push('Added the ' + phN(k) + ' phase'));
         was.filter(k => want.indexOf(k) < 0).forEach(k => chg.push('Dropped the ' + phN(k) + ' phase'));
+        // a phase added after a broad one starts broad too (the first waves of a campaign run broad)
+        const bw = Array.isArray(rs.broad) ? rs.broad.slice() : [];
+        if (was.length && bw.indexOf(was[was.length - 1]) >= 0) want.filter(k => was.indexOf(k) < 0).forEach(k => bw.push(k));
+        if (bw.length || rs.broad) rs.broad = bw.filter(k => want.indexOf(k) >= 0);
+      }
+      // REACH, PER PHASE (2026-11-16, by request): a broad phase runs one Broad audience per market,
+      // in English and Arabic, and plans no audience-based designs; the others run the plan's audiences
+      if (Array.isArray(body.broad)) {
+        const have = phList(rs), was = (rs.broad || []).filter(k => have.indexOf(k) >= 0), set = [...new Set(body.broad.filter(k => have.indexOf(k) >= 0))];
+        set.filter(k => was.indexOf(k) < 0).forEach(k => chg.push(phN(k) + ' runs broad — no audience-based designs'));
+        was.filter(k => set.indexOf(k) < 0).forEach(k => chg.push(phN(k) + ' runs audience-based'));
+        rs.broad = set;
+      }
+      // THE DELIVERABLES' TICKS (2026-11-16): { key: 'phase|market|aud', id: 'anim-ENG'…, on }
+      if (body.dl && typeof body.dl === 'object' && DL_IDS.indexOf(body.dl.id) >= 0 && typeof body.dl.key === 'string') {
+        const k = body.dl.key.slice(0, 200), all = rs.dl = rs.dl || {}, row = all[k] = all[k] || {};
+        if (body.dl.on) row[body.dl.id] = { by, at: dsNow() }; else delete row[body.dl.id];
+        if (!Object.keys(row).length) delete all[k];
+        const dp = body.dl.id.split('-');
+        chg.push((body.dl.on ? 'Ticked ' : 'Unticked ') + DL_L[dp[0]] + ' · ' + (dp[1] === 'ARB' ? 'Arabic' : 'English') + ' for ' + k.split('|').slice(1).join(' · '));
       }
       // RENAMING A PHASE (2026-11-06, by request): [[key, new name]…]. The phase takes the new
       // name's key in its list, its projects, the plan's Arabic and its launch; a phase after the
@@ -563,6 +603,8 @@
           const sw = k => k === from ? to : k;
           (rs.items || []).forEach(x => { if (phOf(rs, x) === from) x.phase = to; });
           rs.phases = have.map(sw);
+          if (Array.isArray(rs.broad)) rs.broad = rs.broad.map(sw);
+          if (rs.dl) Object.keys(rs.dl).forEach(k => { if (k.split('|')[0] === from) { rs.dl[to + k.slice(from.length)] = rs.dl[k]; delete rs.dl[k]; } });
           if (base === from) rs.phase0 = to;
           if (Array.isArray(rs.plan)) rs.plan.forEach(c => { if (Array.isArray(c.arbOff)) c.arbOff = c.arbOff.map(sw); });
           if (rs.live && rs.live[from]) { rs.live[to] = rs.live[from]; delete rs.live[from]; }
@@ -626,7 +668,9 @@
         const gone = (rs.items || []).find(x => x.sid === body.remove);
         rs.items = (rs.items || []).filter(x => x.sid !== body.remove);
         try { const d = await dsRead(body.remove.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(body.remove.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; }
-        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set' }]);
+        // its folder goes to Drive's trash with it (see dsTrash)
+        if (gone) await dsTrashProject(rs, gone.sid);
+        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set — its Drive folder is in the trash' }]);
       }
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
@@ -657,7 +701,16 @@
         if (was) V.list[V.list.indexOf(was)] = rec; else V.list.push(rec);
         V.on = true;
         dsLog(R.rs, by, [{ kind: 'step', text: (was ? 'Replaced the video “' : 'Added the video “') + rec.title + '”' + (was ? ' (version ' + rec.n + ')' : '') }]);
-      } else if (body.act === 'rm') { const v = one(); V.list = V.list.filter(x => x !== v); dsLog(R.rs, by, [{ kind: 'step', text: 'Removed the video “' + v.title + '”' }]); }
+      } else if (body.act === 'rm') {
+        // the two sizes and the CASV project go to Drive's trash, then the Video folder if empty
+        const v = one(); V.list = V.list.filter(x => x !== v);
+        const ids = [v.f && v.f['9x16'], v.f && v.f['1x1'], v.proj].filter(Boolean), held = new Set();
+        V.list.forEach(x => [x.f && x.f['9x16'], x.f && x.f['1x1'], x.proj].forEach(k => k && held.add(k)));
+        let dir = '';
+        for (const k of ids) { if (held.has(k)) continue; if (!dir) try { dir = ((await dsMeta(k)).parents || [])[0] || ''; } catch (e) { if (e.gdAuth) throw e; } await dsTrash(k); }
+        if (dir) try { await dsPrune(dir, R.rs.folder); } catch (e) { if (e.gdAuth) throw e; }
+        dsLog(R.rs, by, [{ kind: 'step', text: 'Removed the video “' + v.title + '” — its files are in Drive’s trash' }]);
+      }
       else if (body.act === 'note') {
         const v = one(), text = String(body.text || '').trim().slice(0, 600); if (!text) throw dsFail(400, 'Write the comment first.');
         v.notes = (v.notes || []).concat({ id: dsRand(6), t: Math.max(0, Math.round((+body.t || 0) * 100) / 100), text, by, em: txt(body.em, 120), at: dsNow(), done: false }).sort((a, b) => a.t - b.t).slice(0, 200);
@@ -667,6 +720,34 @@
         if (body.act === 'noterm') v.notes = v.notes.filter(x => x !== k); else { k.done = !!body.done; k.doneBy = k.done ? by : ''; }
       } else if (body.act === 'dl') { const v = one(); dsLog(R.rs, by, [{ kind: 'step', text: 'Downloaded the video “' + v.title + '” · ' + (body.size === '1x1' ? 'Square 1:1' : 'Reel 9:16') }]); }
       else throw dsFail(400, 'Unknown video action.');
+      await dsWrite(R.rid, R.rs);
+      return { rs: pub() };
+    }
+    // ACCESS PER AD SET (2026-11-16, by request): an ad set link opens for the account role it was
+    // made for (linkGate, in the page). Anyone else may ask for that view of THIS ad set:
+    // `rs.areq = [{ em, name, have (their account role), role (the link's: ct | pm | dd), at }]`;
+    // the designer (Status) allows it into `rs.grant = { ct: [em…], pm: [em…], dd: [em…] }`,
+    // declines it, or takes an allowed person off again. Nothing carries to another ad set.
+    if (op === 'rsreq') {
+      if (!R.rs) throw dsFail(404, 'This ad set is no longer there.');
+      const em = String(body.em || '').trim().toLowerCase().slice(0, 120), role = R.role;
+      if (!em || !/^(dd|ct|pm)$/.test(role)) throw dsFail(400, 'Sign in with Google to ask for access.');
+      const nm = String(body.name || '').replace(/\s+/g, ' ').trim().slice(0, 80) || em;
+      R.rs.areq = (R.rs.areq || []).filter(x => !(x.em === em && x.role === role)).concat({ em, name: nm, have: String(body.have || '').slice(0, 20), role, at: dsNow() }).slice(-50);
+      dsLog(R.rs, nm, [{ kind: 'step', text: 'Asked to open the ' + LINK_WHO[role] + ' view' }]);
+      await dsWrite(R.rid, R.rs);
+      return { rs: pub() };
+    }
+    if (op === 'rsgrant') {
+      if (!R.rs || R.role !== 'dd') throw dsFail(403, 'Only the designer lets people into an ad set’s views.');
+      const em = String(body.em || '').trim().toLowerCase(), role = String(body.role || ''), by = dsWho(body.by);
+      if (!em || !LINK_WHO[role]) throw dsFail(400, 'Unknown request.');
+      const q0 = (R.rs.areq || []).find(x => x.em === em && x.role === role), nm = (q0 && q0.name) || em;
+      R.rs.areq = (R.rs.areq || []).filter(x => x !== q0);
+      const G = R.rs.grant = R.rs.grant || {}, l = G[role] = (G[role] || []).filter(x => x !== em);
+      if (body.act === 'allow') l.push(em);
+      if (!l.length) delete G[role];
+      dsLog(R.rs, by, [{ kind: 'step', text: (body.act === 'allow' ? 'Let ' + nm + ' open the ' : body.act === 'revoke' ? 'Took ' + nm + ' off the ' : 'Declined ' + nm + '’s request for the ') + LINK_WHO[role] + ' view' }]);
       await dsWrite(R.rid, R.rs);
       return { rs: pub() };
     }
@@ -708,9 +789,26 @@
     }
     if (op === 'rsdel') {
       if (!R.rs || R.role !== 'dd') throw dsFail(403, 'Only the designer deletes an ad set.');
-      for (const it of R.rs.items || []) { try { const d = await dsRead(it.sid.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(it.sid.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; } }
-      R.rs.deleted = dsNow(); R.rs.items = []; R.rs.tok = {};
-      await dsWrite(R.rid, R.rs);
+      // DELETE FOR EVERYONE (2026-11-16, by request) empties the ad set on Drive too: every
+      // project's folder, the Video folder and the Ad set.json go to Drive's trash, then the
+      // campaign folder if nothing else is left in it. The record is marked deleted first, so a
+      // computer still holding its link reads it as deleted rather than as missing.
+      const rs = R.rs, items = rs.items || [];
+      rs.deleted = dsNow(); rs.items = []; rs.tok = {};
+      await dsWrite(R.rid, rs);
+      await dsTrash(R.rid);
+      for (const it of items) await dsTrashProject(rs, it.sid);
+      if (rs.folder) {
+        try {
+          for (const f of await dsList(rs.folder)) {
+            if (f.mimeType !== DS_FOLDER) continue;
+            if (f.name === 'Video') { await dsTrash(f.id); continue; }
+            // a phase folder (or a market folder) nothing else uses any more
+            await dsPrune(f.id, rs.folder);
+          }
+        } catch (e) { if (e.gdAuth) throw e; }
+      }
+      if (rs.folder) try { await dsPrune(rs.folder, ''); } catch (e) { if (e.gdAuth) throw e; }
       return { deleted: true };
     }
     // Put a project that lost its link back in its ad set (see dsKeepReview): the designer's
@@ -837,6 +935,33 @@
       { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DS_LANG[to.lang] || to.lang }) });
     delete DSP[sid];
   }
+  // DRIVE FOLLOWS STATUS (2026-11-16, by request): what leaves an ad set on Status leaves its Drive
+  // folder too — to Drive's trash, never a hard delete, so it can be restored for 30 days.
+  // `dsTrash` moves one file or folder there (a file already gone is fine); `dsPrune` then trashes
+  // the folders above it that are left empty, stopping at `stop` (the ad set's own folder).
+  async function dsTrash(id) {
+    if (!id) return;
+    try { await dsFetch('/drive/v3/files/' + id + '?supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); }
+    catch (e) { if (e.gdAuth) throw e; }
+  }
+  async function dsPrune(folder, stop) {
+    for (let i = 0; i < 4 && folder && folder !== stop && folder !== dsHome(); i++) {
+      if ((await dsList(folder)).length) return;
+      const up = ((await dsMeta(folder)).parents || [])[0];
+      await dsTrash(folder); folder = up;
+    }
+  }
+  // a project's own folder (<Market>/<Audience>/<Language>: its file, Assets, its exports), then
+  // the audience, market and phase folders it leaves empty
+  async function dsTrashProject(rs, sid) {
+    try {
+      const lang = ((await dsMeta(sid.slice(1))).parents || [])[0];
+      if (!lang || lang === (rs && rs.folder)) return dsTrash(sid.slice(1));
+      const up = ((await dsMeta(lang)).parents || [])[0];
+      await dsTrash(lang); delete DSP[sid];
+      await dsPrune(up, rs && rs.folder);
+    } catch (e) { if (e.gdAuth) throw e; }
+  }
   // A picture's file name in Assets/: what it is, then which variant.
   function dsAssetName(sl) {
     let m;
@@ -907,6 +1032,7 @@
       if (ans.mode === 'new') {
         if (ans.plan) { rs.plan = planCells(ans.plan); rs.plan.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; }); }
         if (ans.plan && phN(ans.plan.phase) && !(rs.items || []).length) { rs.phase0 = ans.plan.phase; rs.phases = [ans.plan.phase]; }
+        if (ans.plan && ans.plan.reach === 'broad' && !(rs.items || []).length) rs.broad = [phBase(rs)];
         if (ans.plan && ans.plan.brand && !(rs.items || []).length) rs.brand = ans.plan.brand === 'unbranded' ? 'unbranded' : 'provident';
         const same = files.find(x => x.name === dsSetName(ans.name));
         const f = same ? { id: same.id } : await dsCreate(folder.id, dsSetName(ans.name), dsJson(rs));
@@ -974,6 +1100,7 @@
     cells.forEach(c => { if (!c.arb) rs.eng_only[c.market + '|' + c.aud] = true; });
     // the package the ad set starts with; more phases are added later
     rs.phase0 = phN(plan.phase) ? plan.phase : 'launch'; rs.phases = [rs.phase0];
+    if (plan.reach === 'broad') rs.broad = [rs.phase0];
     // BRANDED OR UNBRANDED: every project made in the ad set opens with the Provident look or the unbranded one
     rs.brand = plan.brand === 'unbranded' ? 'unbranded' : 'provident';
     busy('Filing the ticket…', .12);
@@ -1414,6 +1541,54 @@
     }
     go();
   };
+  // NOT YOUR VIEW (2026-11-16, by request): an ad set link opens only for the account role it was
+  // made for — the content team's for the content team, performance marketing's for performance
+  // marketing (and the Digital Marketing Team), the designer's for designers; designers and the
+  // admin open all three (Status's Team links open each view "as that team sees it"). Anyone else
+  // gets a page saying so, with Request access: asked of THIS ad set only (rsreq), allowed by its
+  // designer on Status (rsgrant). Open when the access check is off or unreachable, as before,
+  // and for OPS posts. It is a door sign, not a lock: Drive's own sharing is the lock.
+  async function linkGate(id, d) {
+    const A = window.providentAccess;
+    if (!d || !d.rs || isPost(d.rs) || !LINK_FOR[d.role] || !A || !A.who) return true;
+    let w; try { w = await A.who(); } catch (e) { return true; }
+    if (!w || w.on !== true) return true;
+    if (w.admin) return true;
+    const mine = w.email && w.status === 'active' && w.role;
+    if (mine && LINK_FOR[d.role].indexOf(w.role) >= 0) return true;
+    if (w.email && ((d.rs.grant || {})[d.role] || []).indexOf(w.email) >= 0) return true;
+    notYourView(id, d, w);
+    return false;
+  }
+  function notYourView(id, d, w) {
+    injectCss();
+    const A = window.providentAccess, rs = d.rs, view = LINK_WHO[d.role];
+    const asked = w.email && (rs.areq || []).find(x => x.em === w.email && x.role === d.role);
+    const why = w.out ? 'Sign in with your Google account to see whether this view is yours.'
+      : w.err ? w.err
+      : w.status && w.status !== 'active' ? 'Your account is waiting for the admin to let you in.'
+      : 'You’re signed in as ' + (w.name || w.email) + (w.role ? ' (' + A.roleName(w.role) + ')' : '') + ', so it doesn’t open for you.';
+    const el = document.createElement('div'); el.className = 'nyv';
+    el.innerHTML = '<main class="nyv-c" role="main" aria-labelledby="nyv-t"><p class="nyv-k">404 · Not your view</p>' +
+      '<h1 id="nyv-t">This isn’t your view</h1>' +
+      '<p class="nyv-l">This link opens the <b>' + esc(view) + '</b> view of <b>' + esc(rs.name || 'this ad set') + '</b>. ' + esc(why) + '</p>' +
+      '<div class="nyv-a">' + (w.email && w.status === 'active' && isDs(id)
+        ? '<button type="button" class="p-btn" data-req="1"' + (asked ? ' disabled' : '') + '>' + (asked ? 'Access requested' : 'Request access') + '</button>' : '') +
+        '<a class="p-ghost" href="index.html#status">Go to Status</a></div>' +
+      '<p class="nyv-s" aria-live="polite">' + (asked ? 'You asked on ' + esc(day(asked.at)) + '. The designer lets you in from the ad set’s page in Status; open this link again then.' : w.email && w.status === 'active' && isDs(id) ? 'Access is asked for this ad set only. Its designer allows or declines it.' : '') + '</p></main>';
+    document.body.appendChild(el);
+    document.documentElement.classList.remove('lnk-wait');
+    const b = el.querySelector('[data-req]');
+    if (b) b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Asking…';
+      try {
+        await api('rsreq', { id }, { em: w.email, name: w.name, have: w.role || '' });
+        b.textContent = 'Access requested';
+        el.querySelector('.nyv-s').textContent = 'Asked. The designer lets you in from the ad set’s page in Status; open this link again then.';
+      } catch (e) { b.disabled = false; b.textContent = 'Request access'; el.querySelector('.nyv-s').textContent = e.message || String(e); }
+    });
+    const h = el.querySelector('h1'); h.tabIndex = -1; h.focus();
+  }
   SP.shareOpenLink = async function (id) {
     if (isDs(id) && !(await dsGate(isRsId(id) ? 'Open the ad set' : 'Open a shared project'))) return;
     // an ad set link: the content team, performance marketing or the designer's overview
@@ -1421,7 +1596,9 @@
       if (this.shApp() !== 'provident-ad-studio') { goCas(id); return; }
       const dl = nameDialog({ title: 'Open the ad set', lead: 'Loading the ad set…', btn: 'Open', busy: true });
       try {
-        const d = await api('rsget', { id, full: '1' }); dl.close();
+        const d = await api('rsget', { id, full: '1' });
+        if (!(await linkGate(id, d))) { dl.close(); return; }
+        dl.close();
         // THE DESIGNER'S LINK OPENS THE AD SET'S STATUS PAGE (2026-10-29). It used to open the old
         // "Designer overview" window, which the Status page and each project's Ad set tab replaced.
         if (d.role === 'dd') { ssSet(RS_KEY, null); this.rsShowStatus(id, d.rs); return; }
@@ -2150,7 +2327,8 @@
       tip: arb ? 'Hands the Arabic version to the content team to check the translation.' : 'Hands the design to the content team to check the English copy.' };
     else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back in progress' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
     else back = { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check', tip: 'Sends the words back to the content team to check again.' };
-    const st = !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
+    const tkS = taskOf(it);
+    const st = tkS && tkS !== 'done' ? TASK_L[tkS] + ' · ' + withWho(it, 'designers') : !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
       : !it.copy ? (arb ? 'Translation ' : 'English copy ') + withWho(it, 'content team').replace(/^With/, 'with')
         : mine && mine.done ? 'Done — ready to run' : (now ? now.label + ' · ' + now.sub : 'Approved');
     const note = !it.design ? (arb ? 'Lay out the Arabic words, then mark it laid out — the content team checks the translation from their link.'
@@ -2171,15 +2349,15 @@
       // THE MAIN SCREEN'S ONE ACTION: Design done, then Create next audience — the Ad set tab's own
       ...(() => { const nx = this.adtNext(), b = this._rvBusy || this._rsNextBusy;
         return { rsFlowOn: !!nx, rsFlowLabel: nx ? (b && (b === nx.act || b === nx.next) ? 'Saving…' : nx.label) : '', rsFlowTip: nx ? nx.tip : '',
-          rsFlow: nx ? () => (nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
+          rsFlow: nx ? () => (nx.send ? this.sendTo(nx.send) : nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
       cvAdTip: 'In the ad set ' + (rs.name || '') + ' as ' + where + '. Opens the ad set overview: every audience and language, rendered from the latest work.',
       // THE TOP BAR'S FLOW: this audience's four steps as segments, the step it is on, and (beside
       // it, rsFlow) the designer's one action — always in view, on both workspaces
       rsBarOn: '1',
-      rsBarState: mine && mine.done ? 'done' : !it.design ? 'design' : !it.copy ? 'ct' : 'next',
+      rsBarState: mine && mine.done ? 'done' : tkS || !it.design ? 'design' : !it.copy ? 'ct' : 'next',
       rsBarSegs: (mine ? mine.steps : []).map(x => ({ s: x.s === 'pend' ? 'todo' : x.s, t: x.label + (x.sub ? ' · ' + x.sub : '') })),
-      rsBarStep: mine && mine.done ? 'Done' : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
-      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN') + (it.design && !it.copy && it.to ? ' · ' + withWho(it, '') : ''),
+      rsBarStep: mine && mine.done ? 'Done' : tkS ? TASK_L[tkS] : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
+      rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN') + (((it.design && !it.copy) || (tkS && tkS !== 'done')) && it.to ? ' · ' + withWho(it, '') : ''),
       rsBarTip: (rs.name || 'Ad set') + ' · ' + where + ' — ' + st + '. Opens the Ad set tab.',
       rsBarGo: () => this.upd(x => { x.screen = 'copy'; x.sel = null; return x; }),
     };
@@ -2203,6 +2381,13 @@
   const MARKETS = ['Local', 'International', 'International EUR'];
   const AUDS = { residential: ['Family', 'Investor'], commercial: ['Investor', 'Hybrid'] };
   const PRODUCT_NAME = { residential: 'Residential', commercial: 'Commercial' };
+  // BROAD REACH (2026-11-16, by request): a campaign's first waves tell the key facts to everyone,
+  // so a phase can run BROAD (rs.broad lists those phases): one audience called Broad per market,
+  // in English and Arabic, and none of the plan's audience-based designs. Broad is an audience like
+  // any other everywhere else (its own projects, folder, steps, Design 2, unbranded twin).
+  const BROAD = 'Broad';
+  const isBroad = a => audRoot(String(a || '')) === BROAD;
+  const broadIn = (rs, ph) => ((rs && rs.broad) || []).indexOf(phN(ph) ? ph : phBase(rs)) >= 0;
   // ---- PHASES (2026-10-30): an ad set runs in phases, each its own package of audiences ----
   // An ad set starts with ONE phase (rs.phases, default Launch) and the designer can add more at
   // any time (Ad set settings, or the + tab on its Status page). Each phase holds its own project
@@ -2270,8 +2455,23 @@
       cells.push(bc ? { market: x.market, aud: x.aud, arb: bc.arb, arbOff: bc.arbOff.slice() } : { market: x.market, aud: x.aud, arb: !eo[x.market + '|' + x.aud], arbOff: [] });
     } });
     items.forEach(x => { if (x.lang === 'ARB') { const c = cells.find(y => y.market === x.market && y.aud === x.aud), p = phOf(rs, x); if (c) { c.arb = true; c.arbOff = c.arbOff.filter(k => k !== p); } } });
-    const as = (AUDS[rs && rs.product] || AUDS.residential).concat(['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
+    const as = [BROAD].concat(AUDS[rs && rs.product] || AUDS.residential, ['Family', 'Investor', 'Hybrid']), at = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
     return cells.sort((x, y) => (at(x.market) - at(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud)));
+  }
+  // ONE PHASE'S AUDIENCES: a broad phase takes the Broad cells, any other the audience-based ones;
+  // a cell that already holds a project in the phase always stays. A broad phase with no Broad
+  // cell planned (reach switched on an older ad set) gets one per planned market, with Arabic.
+  function rsCellsIn(rs, ph) {
+    ph = phN(ph) ? ph : phBase(rs);
+    const b = broadIn(rs, ph), all = rsCells(rs), held = c => ((rs && rs.items) || []).some(x => phOf(rs, x) === ph && x.market === c.market && x.aud === c.aud);
+    const out = all.filter(c => isBroad(c.aud) === b || held(c));
+    if (b && !out.some(c => c.aud === BROAD)) {
+      const ms = MARKETS.filter(m => all.some(c => c.market === m)), mi = m => { const i = MARKETS.indexOf(m); return i < 0 ? 99 : i; };
+      if (!ms.length) ms.push(MARKETS[0]);
+      ms.forEach(m => out.push({ market: m, aud: BROAD, arb: true, arbOff: [], brand: 'provident' }));
+      out.sort((x, y) => (mi(x.market) - mi(y.market)) || ((isBroad(y.aud) ? 1 : 0) - (isBroad(x.aud) ? 1 : 0)));
+    }
+    return out;
   }
   // an audience's place in the list: its product order, its unbranded version straight after it,
   // then its further designs (each with its own unbranded version)
@@ -2293,7 +2493,7 @@
     ph = phN(ph) ? ph : phBase(rs);
     const items = ((rs && rs.items) || []).filter(x => phOf(rs, x) === ph), has = (c, l) => items.some(x => x.market === c.market && x.aud === c.aud && (x.lang || 'ENG') === l);
     // every English version first, then the Arabic ones — the order the review runs in
-    const cells = rsCells(rs);
+    const cells = rsCellsIn(rs, ph);
     return cells.filter(c => !has(c, 'ENG')).map(c => ({ market: c.market, aud: c.aud, lang: 'ENG', phase: ph }))
       .concat(cells.filter(c => arbIn(c, ph) && !has(c, 'ARB')).map(c => ({ market: c.market, aud: c.aud, lang: 'ARB', phase: ph })));
   }
@@ -2330,13 +2530,13 @@
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on) };
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice() };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
     // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
     d.phn = {}; const phL = k => k in d.phn ? phClean(d.phn[k]) : phN(k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video]);
-    const ord = () => { const as = AUDS[d.product].concat(['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video, d.broad.slice().sort()]);
+    const ord = () => { const as = [BROAD].concat(AUDS[d.product], ['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
     ord();
     const was = sig();
     const el = document.createElement('div');
@@ -2370,12 +2570,15 @@
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
-      $('[data-g="a"]').innerHTML = AUDS[d.product].concat([...as].filter(a => AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
+      $('[data-g="a"]').innerHTML = [BROAD].concat(AUDS[d.product], [...as].filter(a => a !== BROAD && AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
       if (phOk) $('[data-g="ph"]').innerHTML = d.phases.map(k => { const l = phL(k), lock = phBusy(k);
         return '<span class="rss-pc"><input class="rss-pn" data-phn="' + esc(k) + '" maxlength="40" value="' + esc(k in d.phn ? d.phn[k] : l) + '" size="' + Math.max(6, (l || '').length + 1) + '" aria-label="Phase name — type to rename it" title="Type to rename the phase" autocomplete="off" spellcheck="false">' +
+          '<button type="button" data-reach="' + esc(k) + '" aria-pressed="' + (d.broad.indexOf(k) >= 0) + '" title="' + esc(d.broad.indexOf(k) >= 0 ? l + ' runs broad: one Broad audience per market, in English and Arabic, and no audience-based designs. Click for audience-based.' : l + ' is audience-based. Click to run it broad, with no audience-based designs.') + '">Broad</button>' +
           '<button type="button" data-ph="' + esc(k) + '" aria-label="' + esc('Drop the ' + l + ' phase') + '" title="' + esc(lock ? l + ' has projects — remove them first to drop it' : 'Drop the ' + l + ' phase') + '"' + (lock || d.phases.length === 1 ? ' data-lock="1"' : '') + '>' + PICO.x + '</button></span>'; }).join('');
       const phs = phOk ? d.phases : [null], multi = phOk && d.phases.length > 1;
-      const n = phs.reduce((t, k) => t + cells.length + cells.filter(c => k ? arbIn(c, k) : c.arb).length, 0);
+      // a broad phase makes only the Broad audience; any other, only the audience-based ones
+      const inPh = (c, k) => !k || isBroad(c.aud) === (d.broad.indexOf(k) >= 0) || has(c.market, c.aud, null, k);
+      const n = phs.reduce((t, k) => { const cs = cells.filter(c => inPh(c, k)); return t + cs.length + cs.filter(c => k ? arbIn(c, k) : c.arb).length; }, 0);
       $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (phOk && d.phases.length > 1 ? ' · ' + d.phases.length + ' phases' : '');
       $('.rsp-tiles').innerHTML = cells.map(c => {
         const k = c.market + '|' + c.aud, busy = has(c.market, c.aud), arLock = has(c.market, c.aud, 'ARB');
@@ -2397,6 +2600,8 @@
       if (!k) { inp.focus(); return st('Type the phase’s name first.'); }
       if (same) { inp.focus(); return st('There is already a phase called ' + phL(same) + '.'); }
       if (d.phases.indexOf(k) >= 0) { inp.focus(); return st('Save first — a phase you renamed still holds ' + phN(k) + ' until then.'); }
+      // a phase added after a broad one starts broad too
+      if (d.phases.length && d.broad.indexOf(d.phases[d.phases.length - 1]) >= 0) d.broad = d.broad.concat(k);
       d.phases = d.phases.concat(k);
       inp.value = ''; st(''); draw(); inp.focus();
     };
@@ -2412,16 +2617,16 @@
         cells = cells.filter(c => drop.indexOf(c) < 0);
       } else {
         const nm = g === 'm' ? [v] : ms, na = g === 'a' ? [v] : as;
-        nm.forEach(m => na.forEach(a => { if (!cells.some(c => c.market === m && c.aud === a)) cells.push({ market: m, aud: a, arb: false }); }));
+        nm.forEach(m => na.forEach(a => { if (!cells.some(c => c.market === m && c.aud === a)) cells.push({ market: m, aud: a, arb: a === BROAD }); }));
       }
       st(''); ord(); draw();
     };
     const setProd = p => {
       if (p === d.product) return;
-      const na = AUDS[p], busy = cells.find(c => na.indexOf(audRoot(c.aud)) < 0 && has(c.market, c.aud));
+      const na = AUDS[p], ok = c => isBroad(c.aud) || na.indexOf(audRoot(c.aud)) >= 0, busy = cells.find(c => !ok(c) && has(c.market, c.aud));
       if (busy) return st(busyMsg(busy) + ' ' + (PRODUCT_NAME[p] || p) + ' has no ' + busy.aud + ' audience.');
       const ms = [...new Set(cells.map(c => c.market))];
-      cells = cells.filter(c => na.indexOf(audRoot(c.aud)) >= 0);
+      cells = cells.filter(ok);
       if (!cells.length) ms.forEach(m => na.forEach(a => cells.push({ market: m, aud: a, arb: false })));
       d.product = p; st(''); ord(); draw();
     };
@@ -2435,12 +2640,19 @@
         if (b.dataset.x) return close(null);
         if (b.dataset.prod) return setProd(b.dataset.prod);
         if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
+        if (b.dataset.reach) {
+          const k = b.dataset.reach, on = d.broad.indexOf(k) < 0;
+          d.broad = on ? d.broad.concat(k) : d.broad.filter(x => x !== k);
+          // a broad phase needs its Broad audience: one per market, with Arabic, unless planned already
+          if (on && !cells.some(c => c.aud === BROAD)) { [...new Set(cells.map(c => c.market))].forEach(m => cells.push({ market: m, aud: BROAD, arb: true })); ord(); }
+          st(''); draw(); return;
+        }
         if (b.dataset.vidon) { d.video = b.dataset.vidon === '1'; st(''); draw(); return; }
         if (b.dataset.ph) {
           const k = b.dataset.ph;
           if (d.phases.length === 1) return st('Keep at least one phase.');
           if (phBusy(k)) return st(phL(k) + ' has projects. Remove them first to drop the phase.');
-          d.phases = d.phases.filter(x => x !== k); delete d.phn[k];
+          d.phases = d.phases.filter(x => x !== k); delete d.phn[k]; d.broad = d.broad.filter(x => x !== k);
           st(''); draw(); return;
         }
         if (b.dataset.phx !== undefined) return phAdd();
@@ -2473,7 +2685,7 @@
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
               if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
-            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; }
+            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; p.broad = d.broad.filter(k => d.phases.indexOf(k) >= 0); const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
         }
@@ -2791,6 +3003,33 @@
     setTimeout(() => this.reviewCreate({ plan: g.plan }), 600);
   };
   const STEP_LABELS = ['Design', 'ENG copy check', 'Translation', 'Done'];
+  // THE TASKS A PROJECT CAN BE SENT TO (2026-11-16): design and copy are the review's own steps
+  // (it.design / it.copy); the others are kept as it.task = { k, by, at }, read through taskOf
+  const TASK_L = { design: 'Design', copy: 'Copy check', arabic: 'Arabic', animated: 'Animated', video: 'MVP video', done: 'Done' };
+  const taskOf = it => it && it.task && TASK_L[it.task.k] && it.task.k !== 'design' && it.task.k !== 'copy' ? it.task.k : '';
+  // THE MINIMUM DELIVERABLES of an audience: static, animated, the MVP video — each in English and
+  // Arabic. Static is read off the projects; the other four are ticked by hand (rs.dl[audience key])
+  const DL_L = { 'static': 'Static', anim: 'Animated', video: 'MVP video' }, DL_IDS = ['anim-ENG', 'anim-ARB', 'video-ENG', 'video-ARB'];
+  function dlRows(rs, a) {
+    const tick = ((rs && rs.dl) || {})[a.key] || {}, sent = it => !!it && (!!it.design || taskOf(it) === 'done');
+    return ['static', 'anim', 'video'].map(k => ({ k, label: DL_L[k], cells: ['ENG', 'ARB'].map(l => {
+      if (l === 'ARB' && a.engOnly) return { na: true };
+      if (k === 'static') return { auto: true, on: sent(l === 'ARB' ? a.arb : a.eng) };
+      const t = tick[k + '-' + l];
+      return { id: k + '-' + l, on: !!t, by: t && t.by };
+    }) }));
+  }
+  // the audience's checklist: what is delivered and what is still missing (it blocks nothing)
+  function dlCardHtml(rs, a, can) {
+    const rows = dlRows(rs, a), c = dlCount(rows);
+    const cell = x => x.na ? '<span class="dlv-c" data-na="1">Not needed</span>'
+      : x.auto || !can ? '<span class="dlv-c"' + (x.on ? ' data-on="1"' : '') + '>' + (x.on ? PICO.tick + 'Done' : 'Missing') + '</span>'
+        : '<button type="button" class="dlv-c" aria-pressed="' + x.on + '"' + (x.on ? ' data-on="1"' : '') + ' data-dl="' + x.id + '" data-dlk="' + esc(a.key) + '" title="' + esc(x.on ? 'Ticked by ' + (x.by || 'someone') + '. Click to untick.' : 'Click when it is delivered') + '">' + (x.on ? PICO.tick + 'Done' : 'Missing') + '</button>';
+    return '<section class="adt-card adt-dl"><div class="adt-ch"><h3>Deliverables <s>' + c.on + ' of ' + c.n + '</s></h3></div>' +
+      '<div class="dlv"><div class="dlv-r dlv-h"><span></span><span>English</span><span>Arabic</span></div>' +
+      rows.map(r => '<div class="dlv-r"><b>' + r.label + '</b>' + r.cells.map(cell).join('') + '</div>').join('') + '</div></section>';
+  }
+  const dlCount = rows => { const c = rows.flatMap(r => r.cells).filter(x => !x.na); return { on: c.filter(x => x.on).length, n: c.length }; };
   const day = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   const dayS = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '';
   const itemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
@@ -2820,7 +3059,10 @@
       a.phOff = a.engOnly && !!(cl && cl.arb);
       const e = a.eng, r = a.arb;
       const d1 = !!(e && e.design), d2 = !!(e && e.copy), d3 = a.engOnly || !!(r && r.design && r.copy);
-      a.done = d1 && d2 && d3;
+      // THE TASK THE DESIGNER PICKED says where the work is, over the derived steps: an audience is
+      // done when its sign-offs are and nothing was sent on since, or when every project was sent to Done
+      const tks = a.items.filter(x => taskOf(x) && taskOf(x) !== 'done');
+      a.done = (d1 && d2 && d3 && !tks.length) || (!!e && a.items.every(x => taskOf(x) === 'done'));
       a.steps = [
         { label: STEP_LABELS[0], s: d1 ? 'done' : 'cur', sub: !e ? 'No English project yet' : d1 ? 'Done · ' + e.design.by + ' · ' + dayS(e.design.at) : 'In progress' },
         { label: STEP_LABELS[1], s: d2 ? 'done' : d1 ? 'cur' : 'pend', sub: d2 ? 'Approved · ' + e.copy.by + ' · ' + dayS(e.copy.at) : d1 ? withWho(e, 'content team') : 'After the design' },
@@ -2828,8 +3070,10 @@
           sub: a.engOnly ? 'Not needed' : d3 ? 'Approved · ' + r.copy.by + ' · ' + dayS(r.copy.at) : !r ? 'Waiting for the Arabic version' : !r.design ? 'Arabic being laid out' : 'Arabic ' + withWho(r, 'content team').replace(/^With/, 'with') },
         { label: STEP_LABELS[3], s: a.done ? 'done' : 'pend', sub: a.done ? 'Ready to run' : 'Not yet' }
       ];
-      a.at = a.done ? Math.max(e.design.at, e.copy.at, r && r.design ? r.design.at : 0, r && r.copy ? r.copy.at : 0) : 0;
-      a.now = !a.done ? a.steps.find(x => x.s !== 'done') : null;
+      a.at = a.done ? Math.max(0, ...a.items.flatMap(x => [x.design, x.copy, x.task]).filter(Boolean).map(v => v.at || 0)) : 0;
+      a.now = !a.done ? a.steps.find(x => x.s !== 'done') || a.steps[3] : null;
+      const tk = !a.done && tks.sort((x, y) => y.task.at - x.task.at)[0];
+      if (tk) a.now = { label: TASK_L[taskOf(tk)], s: 'cur', sub: withWho(tk, 'designers'), task: taskOf(tk) };
     });
     return out;
   }
@@ -2935,10 +3179,10 @@
     let r = null; try { r = window.providentAccess && window.providentAccess.now().role; } catch (e) {}
     if (!rs || !r) return false;
     const em = myEmail();
-    if (r === 'admin') return isOpen(rs) ? !!(rs.ticket && rs.ticket.to && rs.ticket.to.email === em) : (rs.items || []).some(it => !it.copy && it.to && it.to.email === em);
+    if (r === 'admin') return isOpen(rs) ? !!(rs.ticket && rs.ticket.to && rs.ticket.to.email === em) : (rs.items || []).some(it => (!it.copy || (taskOf(it) && taskOf(it) !== 'done')) && it.to && it.to.email === em);
     if (r === 'designer') {
       if (isOpen(rs)) return !rs.ticket || !rs.ticket.to || rs.ticket.to.email === em;
-      return (rs.items || []).some(it => !it.design && it.to && it.to.email === em);
+      return (rs.items || []).some(it => (!it.design || (taskOf(it) && taskOf(it) !== 'done')) && it.to && it.to.email === em);
     }
     if (r === 'ct') return (rs.items || []).some(it => it.design && !it.copy && ctLangOk(it) && toMine(it));
     return false;
@@ -3033,7 +3277,8 @@
       }
       const it = (now.items || []).find(x => x.sid === h.sid), lab = it ? itemLabel(it) : '';
       const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'put the design back in progress',
-        'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act] || 'changed a step';
+        'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act]
+        || (/^task-/.test(h.act) && TASK_L[h.act.slice(5)] ? (h.act === 'task-done' ? 'marked it done' : 'sent it to ' + TASK_L[h.act.slice(5)]) : 'changed a step');
       const t = h.by + ' ' + what + (lab ? ' · ' + lab : '');
       if (ui) ui.flash(t);
       sysNotify((now.name || 'Ad set') + ' · review', t, 'rs-' + h.at);
@@ -3086,7 +3331,7 @@
   };
   SP.rvStep = async function (act) {
     const S = this._sh; if (!S || this._rvBusy) return;
-    const [a, sid] = String(act).split(':');
+    const [a, sid] = String(act).split(':'), tkk = /^task-/.test(a) ? a.slice(5) : '';
     if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(isPost(S.rs) ? (accRole() === 'smm' ? POST_DONE_Q : POST_SEND_Q) : APPROVE_Q(it && itemLabel(it)))) return; }
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
@@ -3103,15 +3348,50 @@
       // the sign-off covers the latest work: whatever is waiting to save goes first
       const pend = () => S.busy || canon(this.shPub()) !== S.baseS || S.dirty.size > 0;
       for (let i = 0; i < 40 && pend(); i++) { if (!S.busy) await this.shSave(); else await new Promise(r => setTimeout(r, 250)); if (pend()) await new Promise(r => setTimeout(r, 250)); }
-      const body = Object.assign({ act: a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' }, ho);
+      const body = Object.assign({ act: tkk ? 'task' : a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' }, tkk ? { k: tkk } : {}, ho);
       if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
       if (a === 'design-done') this.roamPic().then(pic => roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic));
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
-      S.ui.flash(isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
+      S.ui.flash(tkk ? (tkk === 'done' ? 'Marked done' : 'Sent to ' + TASK_L[tkk]) : isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
     } catch (e) { S.ui.flash(e.message || String(e)); }
     finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
+  };
+  // SEND TO… (2026-11-16, by request): the hand-off is no longer one fixed next step. The designer
+  // picks the task this project goes to — in any order, back included — then who gets it (the
+  // picker of access.js). Copy check and Design are the review's own steps; the rest are it.task.
+  SP.sendTo = function (sid) {
+    const S = this._sh, rs = S && S.rs, it = rs && (rs.items || []).find(x => x.sid === (sid || S.id));
+    if (!it || this._rvBusy) return;
+    injectCss();
+    const arb = it.lang === 'ARB', tk = taskOf(it), cur = tk || (!it.design ? 'design' : !it.copy ? 'copy' : '');
+    const rows = [
+      ['copy', arb ? 'Translation check' : 'Copy check', 'The content team checks the words'],
+      ['arabic', 'Arabic', 'A designer lays out the Arabic version'],
+      ['animated', 'Animated', 'A designer makes the animated version in CAS: this design over a video background'],
+      ['video', 'MVP video', 'A designer makes the MVP video in the Video Studio (CASV) and adds it to the ad set’s Video section'],
+      ['design', 'Design', 'Back in design, to change the ad'],
+      ['done', 'Done', 'Nothing is left on this project']
+    ].filter(r => !(arb && r[0] === 'arabic'));
+    const el = document.createElement('div'); el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c sto" role="dialog" aria-modal="true" aria-labelledby="sto-t"><h2 id="sto-t">Send to</h2>' +
+      '<p class="shl-lead">' + esc(itemLabel(it)) + ' — pick the task it goes to next.</p><div class="sto-l">' +
+      rows.map(r => '<button type="button" class="sto-o" data-k="' + r[0] + '"' + (r[0] === cur ? ' disabled aria-current="true"' : '') + '><b>' + r[1] + '</b><s>' + r[2] + '</s>' + (r[0] === cur ? '<i>It is here now</i>' : '') + '</button>').join('') +
+      '</div><div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
+    document.body.appendChild(el);
+    const close = () => { document.removeEventListener('keydown', key, true); el.remove(); };
+    const key = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+    document.addEventListener('keydown', key, true);
+    el.addEventListener('click', e => {
+      if (e.target === el) return close();
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.x) return close();
+      const k = b.dataset.k; if (!k) return;
+      close();
+      this.rvStep((k === 'copy' ? (it.copy ? 'copy-open' : 'design-done') : k === 'design' ? 'design-open' : 'task-' + k) + ':' + it.sid);
+    });
+    const f = el.querySelector('.sto-o:not([disabled])'); if (f) f.focus();
   };
   SP.rvDrive = async function (v) {
     const S = this._sh; if (!S || !S.rs) return;
@@ -3215,8 +3495,11 @@
     const S = this._sh, rs = S && S.rs, it = rs ? this.rsItem() : null;
     if (!it) return null;
     const arb = it.lang === 'ARB', ph = phOf(rs, it), todo = rs.tok ? planTodo(rs, ph) : [];
-    if (!it.design) return { act: 'design-done:' + it.sid, label: arb ? 'Send for translation check' : 'Send to copy check', tip: arb ? 'Design done: sends the Arabic to the content team to check the translation' : 'Design done: sends this audience to the content team to check the English copy' };
-    const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud);
+    const eng = todo.find(t => t.lang === 'ENG'), ar = todo.find(t => t.lang === 'ARB' && t.market === it.market && t.aud === it.aud), tk = taskOf(it);
+    // sent to Arabic, and the Arabic is not made yet: making it is the task
+    if (tk === 'arabic' && !arb && ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
+    // WITH THE DESIGNER: the hand-off opens the list of tasks, and the designer picks where it goes
+    if (!it.design || (tk && tk !== 'done')) return { send: it.sid, label: 'Send to…', tip: 'Pick the task this project goes to next — copy check, Arabic, animated, video or done — and who gets it' };
     if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from the pasted copy' };
     if (ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
@@ -3240,19 +3523,20 @@
       const ph = phOf(rs, it), auds = rsAuds(rs).filter(a => a.phase === ph), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
       const nx = this.adtNext(), done = mine && mine.done;
       const back = !it.design ? null : !it.copy ? { act: 'design-open', label: 'Back to design' } : { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check' };
-      const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
+      const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.send ? 'data-send="' + esc(nx.send) + '"' : nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
         '<span>' + esc(busy && (busy === nx.act || busy === nx.next) ? 'Saving…' : nx.label) + '</span>' + PICO.go + '</button>' : '';
-      const now = done ? 'Done — ready to run' : mine && mine.now ? mine.now.sub : '';
+      const now = done ? 'Done — ready to run' : mine && mine.now ? (mine.now.task ? mine.now.label + ' · ' : '') + mine.now.sub : '';
       top = '<section class="adt"><div class="adt-h"><div class="adt-ht">' +
         '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product], phMulti(rs) ? phN(ph) + ' phase' : ''].filter(Boolean).join(' · ')) + '</span>' +
         '<h2>' + esc([it.market, it.aud].filter(Boolean).join(' · ') || 'This project') + ' <s>' + (arb ? 'Arabic' : 'English') + '</s></h2>' +
         '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p></div>' +
         '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
         (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
+        (rs.tok && rs.tok.dd && !(nx && nx.send) ? '<button type="button" class="adt-q" data-send="' + esc(it.sid) + '" title="Pick the task this project goes to next, and who gets it"' + (busy ? ' disabled' : '') + '>Send to…</button>' : '') +
         '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + '</div></div>' +
         (mine ? stepperHtml(mine.steps, false, true) : '') + '</section>';
       // the campaign's audiences: each planned cell, with its progress; the designer sets them here
-      const cells = rsCells(rs), byK = {};
+      const cells = rsCellsIn(rs, ph), byK = {};
       auds.forEach(a => { byK[a.market + '|' + a.aud] = a; });
       const keys = cells.map(c => c.market + '|' + c.aud);
       auds.forEach(a => { const ak = a.market + '|' + a.aud; if (keys.indexOf(ak) < 0 && a.market) { keys.push(ak); cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); } });
@@ -3275,7 +3559,7 @@
         (/^https?:\/\//.test(rs.drive || '') ? '<a class="adt-drv" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + PICO.folder + '<span>Drive folder</span></a>' : '') + '</details>' : '';
       // the ad set's video (CASV): the same tiles and Add video placeholder as Status
       const vsec = vidSecHtml(rs), vid = vsec ? '<section class="adt-card adt-vid">' + vsec.replace(/^<section[^>]*>/, '').replace('<h3>', '<div class="adt-ch"><h3>').replace('</h3>', '</h3></div>') : '';
-      bot = audCard + vid + briefHtml(rs.ticket) + act + links;
+      bot = audCard + (mine ? dlCardHtml(rs, mine, dd) : '') + vid + briefHtml(rs.ticket) + act + links;
     }
     hosts.forEach(el => {
       const html = el.dataset.adt === 'top' ? top : bot;
@@ -3304,8 +3588,17 @@
       return;
     }
     if (b.dataset.act) return this.rvStep(b.dataset.act);
+    if (b.dataset.send) return this.sendTo(b.dataset.send);
     if (b.dataset.next) return this.rsNext(b.dataset.next);
     if (!rs || !rs.tok) return;
+    // a deliverable ticked by hand (animated, the MVP video), saved on the ad set and logged
+    if (b.dataset.dl) {
+      if (this._dlBusy) return; this._dlBusy = true;
+      try { const r = await api('rsset', { id: S.id }, { by: StudioBase.shareName() || 'Designer', dl: { key: b.dataset.dlk, id: b.dataset.dl, on: b.getAttribute('aria-pressed') !== 'true' } }); this.rsSet(r.rs); }
+      catch (er) { S.ui.flash(er.message || String(er)); }
+      this._dlBusy = false; this.adtRender();
+      return;
+    }
     // the designer's settings: the planned audiences and their Arabic
     let cells = planCells(planOf(rs)).map(c => Object.assign({}, c));
     rsAuds(rs).forEach(a => { if (a.market && !cells.some(c => c.market === a.market && c.aud === a.aud)) cells.push({ market: a.market, aud: a.aud, arb: !a.engOnly }); });
@@ -3484,7 +3777,7 @@
     const known = id => o.known.find(k => k.id === id) || {};
     const fillAud = () => {
       const p = mode === 'new' ? prod : (known($('[data-f="dd"]').value).product || '');
-      const list = AUDS[p] || ['Family', 'Investor', 'Hybrid'], cur = $('[data-f="aud"]').value;
+      const list = (AUDS[p] || ['Family', 'Investor', 'Hybrid']).concat(BROAD), cur = $('[data-f="aud"]').value;
       $('[data-f="aud"]').innerHTML = list.map(a => opt(a, a, a === cur)).join('');
     };
     const setMode = m => {
@@ -4315,6 +4608,7 @@
         '<div class="rsp-q">' +
           '<div class="rsp-f rsp-fp"><span class="rsp-sr" id="rsp-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rsp-prod-l"></div></div>' +
           '<div class="rsp-f rsp-fp" title="Branded: the Provident wordmark and colours. Unbranded: no wordmark or QR — each project opens on the unbranded look, its colours read from the photo."><span class="rsp-sr" id="rsp-br-l">Brand</span><div class="p-tabs rsp-prod rsp-brand" role="radiogroup" aria-labelledby="rsp-br-l"></div></div>' +
+          '<div class="rsp-f rsp-fp" title="Broad reach: one design for everyone in each market, in English and Arabic — how a campaign starts. Audience-based: a design per audience."><span class="rsp-sr" id="rsp-re-l">Reach</span><div class="p-tabs rsp-prod rsp-reach" role="radiogroup" aria-labelledby="rsp-re-l"></div></div>' +
           '<label class="rsp-chip rsp-dl" title="Deadline"><span class="rsp-dlt">Deadline</span><input type="date" data-f="deadline"></label>' +
           '<label class="rsp-chip rsp-phs" title="The package this ad set starts with. Add more phases later from the ad set’s page on Status, or its settings."><span class="rsp-dlt">Phase</span><input data-f="phase" maxlength="40" placeholder="Launch" size="12" autocomplete="off" spellcheck="false"></label>' +
           '<label class="rsp-chip rsp-fo" title="The Google Drive folder the campaign lives in: the ticket, the files, then one folder per market, audience and language.">' + PICO.folder + '<span class="rsp-sr">Drive folder</span>' +
@@ -4348,6 +4642,7 @@
       const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
       if (b.dataset.prod) this.setProd(b.dataset.prod);
       if (b.dataset.brand) { d.brand = b.dataset.brand; this.save(); this.draw(); }
+      if (b.dataset.reach) { d.reach = b.dataset.reach; this.st(''); this.save(); this.draw(); }
       if (b.dataset.tg) this.toggle(b.dataset.tg, b.dataset.v);
       if (b.dataset.arb) { d.arb[b.dataset.arb] = !d.arb[b.dataset.arb]; this.save(); this.draw(); }
       if (b.dataset.coinA) this.coin(b.dataset.coinA, b.dataset.coinM);
@@ -4368,8 +4663,18 @@
   PV.save = function () { lsSet(PLAN_KEY, JSON.stringify(this.d)); };
   PV.st = function (t, bad) { const p = this.el.querySelector('.rsp-st'); if (!p) return; p.textContent = t; p.classList.toggle('bad', !!t && bad !== false); };
   // the plan's cells, market first (the order the review runs in), from each audience's coins
+  // REACH (2026-11-16): a campaign starts broad — one Broad audience, its markets and its Arabic —
+  // unless the setup says audience-based, which lists the product's audiences as before
+  PV.auds = function () {
+    const d = this.d;
+    if (d.reach !== 'aud') d.reach = 'broad';
+    if (d.reach !== 'broad') return AUDS[d.product];
+    if (!Array.isArray(d.am[BROAD])) { d.am[BROAD] = ['Local']; d.arA[BROAD] = true; }
+    if (!d.am[BROAD].length) d.am[BROAD] = ['Local'];
+    return [BROAD];
+  };
   PV.cells = function () {
-    const d = this.d, as = AUDS[d.product], out = [];
+    const d = this.d, as = this.auds(), out = [];
     MARKETS.forEach(m => as.forEach(a => { if ((d.am[a] || []).indexOf(m) >= 0) out.push({ market: m, aud: a, arb: !!d.arA[a] }); }));
     return out;
   };
@@ -4392,12 +4697,12 @@
     else a.push(v);
     this.st(''); this.save(); this.draw();
   };
-  const AUD_TIP = { Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
+  const AUD_TIP = { Broad: 'Everyone — the key facts', Family: 'Buys to live in', Investor: 'Buys for returns', Hybrid: 'Rents, may convert to buying' };
   const MKT_TIP = { Local: 'AED', International: 'USD', 'International EUR': 'EUR' };
   const MKT_SYM = { Local: 'AED', International: '$', 'International EUR': '€' };
   const MKT_SHORT = { Local: 'Local', International: 'Intl', 'International EUR': 'EUR' };
-  const AUD_PL = { Family: 'Families', Investor: 'Investors', Hybrid: 'Hybrid' };
-  const AUD_ICO = { Family: 'M240-200h133.85v-201.54q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h140q15.36 0 25.76 10.39 10.39 10.4 10.39 25.76V-200H720v-353.85q0-3.07-1.35-5.57-1.34-2.5-3.65-4.43L487.31-735q-3.08-2.69-7.31-2.69-4.23 0-7.31 2.69L245-563.85q-2.31 1.93-3.65 4.43-1.35 2.5-1.35 5.57V-200Zm-60 0v-353.85q0-17.17 7.68-32.53 7.69-15.37 21.24-25.31l227.7-171.54q18.95-14.46 43.32-14.46t43.44 14.46l227.7 171.54q13.55 9.94 21.24 25.31 7.68 15.36 7.68 32.53V-200q0 24.54-17.73 42.27Q744.54-140 720-140H562.31q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-201.53h-92.3v201.53q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4H240q-24.54 0-42.27-17.73Q180-175.46 180-200Zm300-269.23Z', Investor: 'M121.08-269.62q-9.31-9.3-8.81-21.38.5-12.08 8.81-20.38l201.77-204.39q20.69-21.08 51.23-21.08 30.53 0 51.61 21.08l99.92 100.54q3.47 3.46 8.47 3.46t8.84-3.46l215.7-213.31H670q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h153.84q15.47 0 25.81 10.35Q860-667.84 860-652.38v153.84q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61t-21.38-8.42q-8.62-8.42-8.62-21.19v-88.24l-214.69 214.7Q564.61-351 534.08-351q-30.54 0-51.23-20.69l-99.93-99.93q-3.46-3.46-8.84-3.46-5.39 0-8.85 3.46l-202 202q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7Z', Hybrid: 'M234.27-434.27q-18.88-18.88-18.88-45.73 0-26.85 18.88-45.73 18.88-18.88 45.73-18.88 26.85 0 45.73 18.88 18.88 18.88 18.88 45.73 0 26.85-18.88 45.73-18.88 18.88-45.73 18.88-26.85 0-45.73-18.88ZM280-260q-91.54 0-155.77-64.23T60-480q0-91.54 64.23-155.77T280-700q64.31 0 116.31 33.19 52 33.2 79.38 86.81h345q7.23 0 13.77 2.62 6.54 2.61 12.15 8.23l63.85 63.84q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L804.62-349.23q-4.62 4.61-10.85 7.42-6.23 2.81-12.46 3.42-6.23.62-12.46-1.19T757-345.62l-49.31-37.07-55.84 41.46q-4.62 3.61-9.85 5.23-5.23 1.61-10.85 1.61-5.61 0-11.15-1.8-5.54-1.81-10.15-5.04L553.46-380h-77.77q-27.38 53.23-79.38 86.61Q344.31-260 280-260Zm0-60q57.54 0 99.65-34.77 42.12-34.77 54.97-85.23h137.69l57.61 39.85q-.38 0-.19.3.19.31.19-.3l78.16-57.16L776-405.38v-.2.2L850.62-480h-.31.31l-40-40v-.31.31h-376q-12.85-50.46-54.97-85.23Q337.54-640 280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z' };
+  const AUD_PL = { Broad: 'Broad reach', Family: 'Families', Investor: 'Investors', Hybrid: 'Hybrid' };
+  const AUD_ICO = { Broad: 'M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z', Family: 'M240-200h133.85v-201.54q0-15.36 10.39-25.76 10.4-10.39 25.76-10.39h140q15.36 0 25.76 10.39 10.39 10.4 10.39 25.76V-200H720v-353.85q0-3.07-1.35-5.57-1.34-2.5-3.65-4.43L487.31-735q-3.08-2.69-7.31-2.69-4.23 0-7.31 2.69L245-563.85q-2.31 1.93-3.65 4.43-1.35 2.5-1.35 5.57V-200Zm-60 0v-353.85q0-17.17 7.68-32.53 7.69-15.37 21.24-25.31l227.7-171.54q18.95-14.46 43.32-14.46t43.44 14.46l227.7 171.54q13.55 9.94 21.24 25.31 7.68 15.36 7.68 32.53V-200q0 24.54-17.73 42.27Q744.54-140 720-140H562.31q-15.37 0-25.76-10.4-10.4-10.39-10.4-25.76v-201.53h-92.3v201.53q0 15.37-10.4 25.76-10.39 10.4-25.76 10.4H240q-24.54 0-42.27-17.73Q180-175.46 180-200Zm300-269.23Z', Investor: 'M121.08-269.62q-9.31-9.3-8.81-21.38.5-12.08 8.81-20.38l201.77-204.39q20.69-21.08 51.23-21.08 30.53 0 51.61 21.08l99.92 100.54q3.47 3.46 8.47 3.46t8.84-3.46l215.7-213.31H670q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h153.84q15.47 0 25.81 10.35Q860-667.84 860-652.38v153.84q0 12.77-8.62 21.39-8.61 8.61-21.38 8.61t-21.38-8.42q-8.62-8.42-8.62-21.19v-88.24l-214.69 214.7Q564.61-351 534.08-351q-30.54 0-51.23-20.69l-99.93-99.93q-3.46-3.46-8.84-3.46-5.39 0-8.85 3.46l-202 202q-8.69 8.7-21.08 8.7-12.38 0-21.07-8.7Z', Hybrid: 'M234.27-434.27q-18.88-18.88-18.88-45.73 0-26.85 18.88-45.73 18.88-18.88 45.73-18.88 26.85 0 45.73 18.88 18.88 18.88 18.88 45.73 0 26.85-18.88 45.73-18.88 18.88-45.73 18.88-26.85 0-45.73-18.88ZM280-260q-91.54 0-155.77-64.23T60-480q0-91.54 64.23-155.77T280-700q64.31 0 116.31 33.19 52 33.2 79.38 86.81h345q7.23 0 13.77 2.62 6.54 2.61 12.15 8.23l63.85 63.84q5.62 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.3 6.23-7.92 11.85L804.62-349.23q-4.62 4.61-10.85 7.42-6.23 2.81-12.46 3.42-6.23.62-12.46-1.19T757-345.62l-49.31-37.07-55.84 41.46q-4.62 3.61-9.85 5.23-5.23 1.61-10.85 1.61-5.61 0-11.15-1.8-5.54-1.81-10.15-5.04L553.46-380h-77.77q-27.38 53.23-79.38 86.61Q344.31-260 280-260Zm0-60q57.54 0 99.65-34.77 42.12-34.77 54.97-85.23h137.69l57.61 39.85q-.38 0-.19.3.19.31.19-.3l78.16-57.16L776-405.38v-.2.2L850.62-480h-.31.31l-40-40v-.31.31h-376q-12.85-50.46-54.97-85.23Q337.54-640 280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z' };
   const fsize = n => n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB';
   PV.drawFiles = function () {
     const box = this.el.querySelector('.rsp-files'); if (!box) return;
@@ -4417,9 +4722,11 @@
     const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
     if (d.brand !== 'unbranded') d.brand = 'provident';
     $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded');
+    const rt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.reach === k) + '" data-reach="' + k + '"' + (d.reach === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+    if ($('.rsp-reach')) $('.rsp-reach').innerHTML = rt('broad', 'Broad reach') + rt('aud', 'Audience-based');
     const arbN = cells.filter(c => c.arb).length, n = cells.length + arbN;
     $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (arbN ? ' · ' + arbN + ' in Arabic' : '');
-    $('.rsp-auds').innerHTML = AUDS[d.product].map(a => {
+    $('.rsp-auds').innerHTML = this.auds().map(a => {
       const ms = d.am[a] || [], on = ms.length > 0, ar = on && !!d.arA[a];
       const coins = MARKETS.map(m => { const c = ms.indexOf(m) >= 0;
         return '<button type="button" class="rsp-coin" aria-pressed="' + c + '" data-coin-a="' + esc(a) + '" data-coin-m="' + esc(m) + '" title="' + esc(m) + ' · prices in ' + MKT_TIP[m] + (c ? ' — click to leave it out' : ' — click to add') + '"><b>' + MKT_TIP[m] + '</b><s>' + (m === 'Local' ? 'Local' : 'International') + '</s></button>'; }).join('');
@@ -4450,7 +4757,7 @@
     if (design && this.eng.confirmDiscard && !this.eng.confirmDiscard()) return;
     const btns = this.el.querySelectorAll('.rsp-ft button'); btns.forEach(b => { b.disabled = true; });
     const cells = this.cells(), arb = {}; cells.forEach(c => { if (c.arb) arb[c.market + '|' + c.aud] = true; });
-    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: phKey(d.phase) || 'launch', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
+    const plan = { name: d.name, product: d.product, brand: d.brand === 'unbranded' ? 'unbranded' : 'provident', phase: phKey(d.phase) || 'launch', reach: d.reach === 'aud' ? 'aud' : 'broad', folder: (d.folder || '').trim(), cells: cells, markets: MARKETS.filter(m => cells.some(c => c.market === m)), auds: AUDS[d.product].filter(a => cells.some(c => c.aud === a)), arb: arb };
     try {
       this.busy('Signing in to Google…', .02);
       await window.providentDrive.signIn();   // first: the popup needs the click
@@ -4726,6 +5033,8 @@
   AV.click = async function (e) {
     this.el.querySelectorAll('details.rvd-mn[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
     let t = e.target.closest('button,[data-id],.rva-mod'); if (!t || !this.el.contains(t)) return;
+    if (t.dataset.a === 'actcat') { this.actCat = t.dataset.c; this.actAll = false; this.draw(); const b = this.el.querySelector('.act-f [data-c="' + t.dataset.c + '"]'); if (b) b.focus(); return; }
+    if (t.dataset.a === 'actmore') { this.actAll = !this.actAll; this.draw(); const b = this.el.querySelector('.act-m'); if (b) b.focus(); return; }
     if (t.dataset.a === 'jump') {
       const r = [...this.el.querySelectorAll('.rvd-lk[data-k]')].find(x => x.dataset.k === t.dataset.k); if (!r) return;
       let calm = false; try { calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (er) {}
@@ -4782,9 +5091,14 @@
     }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
-    if (a === 'vid' || a === 'vidadd') {
+    if (a === 'vid' || a === 'vidadd' || a === 'vidrep' || a === 'vidrm') {
       const rs = this.det && this.det.rs; if (!rs) return;
-      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again); else vidAdd(this.sel, rs, by, again);
+      const m = t.closest('details'); if (m) m.open = false;
+      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again);
+      else if (a === 'vidadd') vidAdd(this.sel, rs, by, again);
+      else { const v = vidList(rs).find(x => x.id === t.dataset.vid); if (!v) return;
+        if (a === 'vidrep') vidAdd(this.sel, rs, by, again, v);
+        else if (window.confirm(VID_RM_Q(v))) { try { await api('rsvideo', { id: this.sel }, { by, vid: v.id, act: 'rm' }); again(); } catch (er) { window.alert(er.message || String(er)); } } }
       return;
     }
     if (a === 'settings') {
@@ -4817,10 +5131,16 @@
       try { await api('rsset', { id: this.sel }, body); this.edit = null; if (to) this.load(true); again(); }
       catch (er) { t.disabled = false; t.textContent = 'Save'; window.alert(er.message || String(er)); }
     }
-    if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set? The project itself is not deleted and its own edit link keeps working; it just leaves the ad set and its review.')) {
+    if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set?\n\nIts folder in the ad set’s Google Drive folder (the project, its pictures and exports) goes to Drive’s trash, where it can be restored for 30 days.')) {
       try { await api('rsset', { id: this.sel }, { by, remove: t.dataset.sid }); again(); } catch (er) { window.alert(er.message || String(er)); }
     }
-    if (a === 'delset' && window.confirm('Delete this whole ad set for everyone? Its three links stop working and its review history goes. The projects themselves stay, each on its own edit link.')) {
+    if (a === 'grant') {
+      t.disabled = true;
+      try { await api('rsgrant', { id: this.sel }, { by, em: t.dataset.em, role: t.dataset.r, act: t.dataset.g }); again(); }
+      catch (er) { t.disabled = false; window.alert(er.message || String(er)); }
+      return;
+    }
+    if (a === 'delset' && window.confirm('Delete this whole ad set for everyone?\n\nIts three links stop working and its review history goes. On Google Drive every project folder, the videos and the ad set’s record go to the trash (restorable for 30 days), then the campaign folder if nothing else is in it.')) {
       try { await api('rsdel', { id: this.sel }, {}); Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
       catch (er) { window.alert(er.message || String(er)); }
     }
@@ -4953,7 +5273,7 @@
     const plan = rsCells(rs), n = plan.length || 0;
     const r = accRole(), canAdd = isDs(d.id) && (!r || r === 'designer' || r === 'admin');
     const t = phs.map(k => {
-      const au = allAuds.filter(a => a.phase === k), dn = au.filter(a => a.done).length, tot = Math.max(n, au.length);
+      const au = allAuds.filter(a => a.phase === k), dn = au.filter(a => a.done).length, tot = Math.max(rsCellsIn(rs, k).length, au.length);
       const st = tot && dn === tot ? 'done' : au.length ? 'prog' : 'new';
       return '<button type="button" role="tab" class="rvd-pt" data-a="phtab" data-ph="' + k + '" aria-selected="' + (k === tab) + '" data-s="' + st + '" title="' + esc(phN(k) + ' — ' + (au.length ? dn + ' of ' + tot + ' audiences done' : 'not started')) + '">' +
         '<i></i>' + esc(phN(k)) + '<s>' + dn + '/' + tot + '</s></button>';
@@ -4977,6 +5297,7 @@
   const vidCan = () => { const r = accRole(); return !r || r === 'designer' || r === 'admin'; };
   const vidT = t => { t = Math.max(0, +t || 0); return Math.floor(t / 60) + ':' + ('0' + Math.floor(t % 60)).slice(-2); };
   const vidList = rs => ((rs && rs.video && rs.video.list) || []);
+  const VID_RM_Q = v => 'Remove “' + v.title + '” from this ad set?\n\nIts comments go with it. The Reel, the Square and its Video Studio project go to Google Drive’s trash, where they can be restored for 30 days.';
   const vidOn = rs => !!(rs && rs.video && (rs.video.on || vidList(rs).length));
   const VID_SIZE = { '9x16': 'Reel 9:16', '1x1': 'Square 1:1' };
   const VID_BLOBS = {};
@@ -5055,6 +5376,13 @@
 .vdo-pick{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink);font:400 14px/1.3 var(--ps-font);text-align:left;cursor:pointer}
 .vdo-pick[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--ps-ink)}
 .vdo-pick s{text-decoration:none;margin-left:auto;color:var(--ps-ink-2);font-size:13px}
+.vdo-opt{padding:14px 16px}
+.vdo-opt span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.vdo-opt b{font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.vdo-opt s{margin-left:0;font:400 13px/1.4 var(--ps-font)}
+.vdo-opt:hover:not(:disabled){background:var(--ps-fill)}
+.vdo-opt:disabled{opacity:.55;cursor:default}
+.vdo-opt:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .vdo-files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .vdo-files label{display:flex;flex-direction:column;gap:6px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);min-width:0}
 .vdo-files input{min-width:0;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink)}
@@ -5063,7 +5391,8 @@
     document.head.appendChild(s);
   }
   // The Status ad set page's Video section: a tile per video, then the Add video placeholder.
-  function vidSecHtml(rs) {
+  // `menu`: the Status page's ··· on each tile (Replace video, Remove), as its project tiles have
+  function vidSecHtml(rs, menu) {
     if (!vidOn(rs)) return '';
     vidCss(); vidTell(rs);
     const can = vidCan(), list = vidList(rs);
@@ -5071,7 +5400,10 @@
       return '<div class="rva-lt"><button type="button" class="rva-pj" data-a="vid" data-vid="' + esc(v.id) + '" title="Play it, comment on its timeline, download the Reel and the Square">' +
         '<span class="rva-lt-th vdo-th">' + (v.thumb ? '<img src="' + esc(v.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-lt-t"><b>' + esc(v.title) + '</b><s>' + esc([vidT(v.dur), v.aud || 'All audiences', '9:16 and 1:1'].join(' · ')) + '</s><u><i></i>' +
-        (open ? open + (open === 1 ? ' comment' : ' comments') + ' open' : all.length ? 'Comments dealt with' : 'No comments yet') + '</u></span>' + ico('ext') + '</button></div>'; };
+        (open ? open + (open === 1 ? ' comment' : ' comments') + ' open' : all.length ? 'Comments dealt with' : 'No comments yet') + '</u></span>' + ico('ext') + '</button>' +
+        (menu && can ? '<details class="rvd-mn" name="rvd-mn"><summary title="Replace or remove this video" aria-label="' + esc('Actions for ' + v.title) + '">' + MORE + '</summary><span class="rvd-mnl">' +
+          '<button type="button" data-a="vidrep" data-vid="' + esc(v.id) + '">Replace video</button>' +
+          '<button type="button" class="rva-dng" data-a="vidrm" data-vid="' + esc(v.id) + '">Remove</button></span></details>' : '') + '</div>'; };
     const ph = can ? '<button type="button" class="rvd-ph" data-a="vidadd" title="Takes the two sizes from the Video Studio on this computer, or two files you choose, into this ad set’s Drive folder">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Add video</b><s>From CASV on this computer, or choose the two files</s></span></button>'
       : list.length ? '' : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Video</b><s>Not added yet — the designer adds it from the Video Studio</s></span></div>';
@@ -5098,8 +5430,51 @@
       return { thumb: c.toDataURL('image/webp', .7), dur: video ? src.duration || 0 : 0, w, h };
     } catch (e) { return { thumb: '', dur: 0 }; } finally { URL.revokeObjectURL(url); }
   }
-  // ADD (or replace) a video. `rep` is the record being replaced: its id, comments and name stay.
+  // ADD VIDEO ASKS FIRST (2026-11-16, by request): one made in CASV already (the dialog below), or
+  // a new one: that opens the Video Studio on this computer and waits here, and the video it sends
+  // (Send to CAS) comes back picked. The MVP video is CASV's alone; the animated ads are CAS's.
+  const CASV_PAGE = () => CASV_AT() + '/Provident%20Video%20Studio.html';
   function vidAdd(id, rs, by, after, rep) {
+    if (rep) return vidAddFrom(id, rs, by, after, rep);
+    vidCss();
+    const el = document.createElement('div'); el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c vdo-add" role="dialog" aria-modal="true" aria-labelledby="vdc-t">' +
+      '<div><h2 id="vdc-t">Add video</h2><p class="shl-lead">The MVP video is made in the Video Studio (CASV) on this computer.</p></div>' +
+      '<div class="vdo-src"><button type="button" class="vdo-pick vdo-opt" data-c="have"><span><b>Add one made in CASV</b><s>A video sent from the Video Studio, or its two files</s></span></button>' +
+      '<button type="button" class="vdo-pick vdo-opt" data-c="new"><span><b>Make a new one in CASV</b><s>Opens the Video Studio on a new, empty video. Press Send to CAS there when it’s done.</s></span></button></div>' +
+      '<p class="shl-st" aria-live="polite"></p>' +
+      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
+    document.body.appendChild(el);
+    const st = (t, bad) => { const p = el.querySelector('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
+    let poll = 0;
+    const close = () => { clearInterval(poll); el.remove(); };
+    const ids = async () => ((await (await fetch(CASV_AT() + '/api/outbox/list')).json()).videos || []).filter(o => o.sizes && o.sizes['9x16'] && o.sizes['1x1']).map(o => o.id + ':' + (o.at || ''));
+    el.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    el.addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.x) return close();
+      if (b.dataset.c === 'have') { close(); return vidAddFrom(id, rs, by, after); }
+      if (b.dataset.c !== 'new') return;
+      let seen;
+      try { seen = new Set(await ids()); }
+      catch (er) { return st('The Video Studio is not running on this computer. Start it, then press Make a new one again.'); }
+      // #new: CASV starts a new video (asking first, keeping the one open as its last video), named after the ad set
+      window.open(CASV_PAGE() + '#new=' + encodeURIComponent(rs.name || ''), '_blank');
+      el.querySelectorAll('.vdo-opt').forEach(x => { x.disabled = true; });
+      st('The Video Studio is open in a new tab. Make the video there and press Send to CAS — it comes back here. You can also close this and press Add video later.', false);
+      clearInterval(poll);
+      poll = setInterval(async () => {
+        if (!el.isConnected) return clearInterval(poll);
+        let now; try { now = await ids(); } catch (er) { return; }
+        const got = now.find(k => !seen.has(k));
+        if (got) { close(); vidAddFrom(id, rs, by, after, null, got.split(':')[0]); }
+      }, 3000);
+    });
+    setTimeout(() => { const f = el.querySelector('.vdo-opt'); if (f) f.focus(); }, 0);
+  }
+  // ADD (or replace) a video. `rep` is the record being replaced: its id, comments and name stay.
+  // `want`: the CASV video to have picked (one just sent from a new project).
+  function vidAddFrom(id, rs, by, after, rep, want) {
     vidCss();
     const auds = [...new Set(rsAuds(rs).map(a => a.label))];
     let pick = null, out = [];
@@ -5122,7 +5497,7 @@
     };
     fetch(CASV_AT() + '/api/outbox/list').then(r => r.json()).then(j => {
       out = (j.videos || []).filter(o => o.sizes && o.sizes['9x16'] && o.sizes['1x1']);
-      if (rep && rep.casv && out.some(o => o.id === rep.casv)) pick = rep.casv; else if (out.length === 1) pick = out[0].id;
+      if (rep && rep.casv && out.some(o => o.id === rep.casv)) pick = rep.casv; else if (want && out.some(o => o.id === want)) pick = want; else if (out.length === 1) pick = out[0].id;
       if (pick && !ti.value) ti.value = (out.find(o => o.id === pick) || {}).title || '';
       drawOut();
     }).catch(() => drawOut());
@@ -5273,7 +5648,7 @@
         b.disabled = false; b.textContent = was; return;
       }
       if (b.dataset.rep) { const was = v; close(); return vidAdd(id, rs, by, after, was); }
-      if (b.dataset.rm && window.confirm('Remove “' + v.title + '” from this ad set?\n\nIts comments go with it. The two files stay in the Drive folder.')) { if (await call({ act: 'rm' })) close(); }
+      if (b.dataset.rm && window.confirm(VID_RM_Q(v))) { if (await call({ act: 'rm' })) close(); }
     });
     draw(); load(); push();
     setTimeout(() => { const x = $('.vdo-x'); if (x) x.focus(); }, 0);
@@ -5314,7 +5689,7 @@
     const lv = all.ready ? rsLive(rs) : null;
     const nowLine = lv ? '<p class="rvd-now" data-s="ready"><i></i>Launched ' + esc(dayS(lv.at)) + ' by ' + esc(lv.by) + '.</p>'
       : all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
-      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCells(rs).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
+      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCellsIn(rs, tab).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
         : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
           const tip = esc(a.now.label + ' — ' + a.now.sub), in_ = '<i></i>' + esc(audName(a)) + '<s>' + esc(a.now.sub) + '</s>';
           return pmV ? '<span class="rvd-wc" data-i="' + i + '" title="' + tip + '">' + in_ + '</span>'
@@ -5341,7 +5716,7 @@
     const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
-    const cells = rsCells(rs);
+    const cells = rsCellsIn(rs, tab);
     const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste the copy">' +
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (isUb(aud) ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
@@ -5376,9 +5751,10 @@
     // in a mixed ad set), each with its own four steps at the left and its English and Arabic in two
     // fixed columns. A slot nothing fills yet is dashed and says how it starts, so Start the Arabic
     // and Start the unbranded read as empty places in the grid, not as finished designs.
-    const stage = a => { const i = a.done ? 3 : a.steps.indexOf(a.now);
-      return '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b></span><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s>' + segHtml(a.steps) + '</span>'; };
-    const stage0 = sub => '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b></span><s>' + sub + '</s>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span>';
+    // A LOOK'S HEAD (2026-11-16, by request: "why did you cramp all the text here"): two lines, not
+    // five — the look's name with its four segments beside it, then the step and who it is with
+    const stage = a => ({ i: a.done ? 3 : a.steps.indexOf(a.now), step: a.done ? 'Done' : a.now.label, sub: esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub), seg: segHtml(a.steps) });
+    const stage0 = sub => ({ i: 0, step: 'Not started', sub, seg: segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) });
     const noArb = c => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(phN(tab)) : 'Not needed for this audience') + '</s></span></div>';
     // a: this look's projects in this phase · c: its planned cell · base: the branded part of the same design
     const lookRow = (market, aud, a, c, base, lab) => {
@@ -5388,7 +5764,9 @@
       else if (rs.brand === 'mixed' && isUb(aud) && base && base.eng) { st = stage0('A copy of the branded English'); tiles = ubTile(base); }
       else if (c) { st = stage0(phs.length > 1 ? 'No ' + esc(phN(tab)) + ' project yet' : 'Planned in Ad set settings'); tiles = ph(market, aud, 'ENG') + (arbIn(c, tab) ? ph(market, aud, 'ARB') : noArb(c)); }
       else { st = stage0('After the branded English'); tiles = ubTile({ market, aud: ubBase(aud), eng: null }); }
-      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '><div class="rvd-lkh">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '') + st + '</div><div class="rvd-lkc">' + tiles + '</div></div>';
+      const head = '<div class="rvd-lkh" data-i="' + st.i + '"><span class="rvd-lkl">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '<b class="rvd-lkn"><i></i>' + esc(st.step) + '</b>') + st.seg + '</span>' +
+        '<span class="rvd-lkm" title="' + (lab ? esc(st.step) + ' — ' : '') + st.sub + '">' + (lab ? '<i></i><b>' + esc(st.step) + '</b> · ' : '') + st.sub + '</span></div>';
+      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '>' + head + '<div class="rvd-lkc">' + tiles + '</div></div>';
     };
     const groups = [];
     const grp = (market, aud, key) => { const k = market ? market + '|' + audRoot(aud) : 'p:' + key; let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, market, root: market ? audRoot(aud) : '', ds: [], solo: null }); return g; };
@@ -5414,8 +5792,36 @@
     }).join('');
     const nNew = groups.filter(g => !partsOf(g).length).length;
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
-    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
-      : '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol></section>';
+    // ACTIVITY, COMPRESSED (2026-11-16, by request): a row per entry under its day, a filter by kind
+    // (Progress · Projects · Edits · Video and downloads, each only when it has entries), and the
+    // latest six until Show all. A project's own edits are one line, their words behind Show changes.
+    const actOf = e => { const c = e.changes || [], t = String((c[0] || {}).text || '');
+      if (c.some(x => x.kind !== 'step' && x.kind !== 'note') || !c.length) return 'edit';
+      if (/^(Downloaded|Commented on the video|Removed the video)/.test(t)) return 'file';
+      if (/^(Added|Removed|Moved|Changed |Filed the ticket|Picked up|Launched|Shared)/.test(t)) return 'proj';
+      return 'prog'; };
+    const ACTS = [['all', 'All'], ['prog', 'Progress'], ['proj', 'Projects'], ['edit', 'Edits'], ['file', 'Video and downloads']];
+    const actN = k => k === 'all' ? log.length : log.filter(e => actOf(e) === k).length;
+    const aCat = ACTS.some(([k]) => k === this.actCat && actN(k)) ? this.actCat : 'all';
+    const aList = aCat === 'all' ? log : log.filter(e => actOf(e) === aCat), aCap = this.actAll ? 300 : 6;
+    const dayOf = ms => { const x = new Date(ms), n = new Date(), y = new Date(n - 864e5), same = (a, b) => a.toDateString() === b.toDateString();
+      return same(x, n) ? 'Today' : same(x, y) ? 'Yesterday' : x.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }); };
+    const hm = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const cap1 = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+    const actRow = e => { const c = e.changes || [], k = actOf(e), c0 = c[0] || {};
+      const what = k === 'edit' ? (c.length === 1 ? cap1(line(c0, true)) : c.length + ' changes') : c.map(x => x.text || '').filter(Boolean).join(' · ');
+      const where = String(c0.page || '') || (k === 'edit' ? '' : String(c0.label || ''));
+      return '<li class="act-r" data-c="' + k + '"><span class="shl-av">' + avIn(e.by, (e.by || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<div class="act-t"><p><b>' + esc(e.by || 'Someone') + '</b> ' + esc(what) + '</p>' + (where ? '<p class="act-w">' + esc(where) + '</p>' : '') +
+        (k === 'edit' ? '<details class="act-d"><summary>Show ' + (c.length === 1 ? 'the change' : 'the changes') + '</summary><ol class="shl-list rva-log">' + logEntryHtml(e, { max: 20 }) + '</ol></details>' : '') +
+        '</div><time datetime="' + new Date(e.at).toISOString() + '" title="' + esc(new Date(e.at).toLocaleString()) + '">' + esc(hm(e.at)) + '</time></li>'; };
+    let aDay = '';
+    const actRows = aList.slice(0, aCap).map(e => { const dd = dayOf(e.at), h = dd !== aDay ? '<li class="act-day">' + esc(dd) + '</li>' : ''; aDay = dd; return h + actRow(e); }).join('');
+    const actChips = log.length > 1 ? '<div class="act-f" role="group" aria-label="Show activity of one kind">' + ACTS.filter(([k]) => actN(k)).map(([k, l]) =>
+      '<button type="button" data-a="actcat" data-c="' + k + '" aria-pressed="' + (k === aCat) + '">' + l + '<s>' + actN(k) + '</s></button>').join('') + '</div>' : '';
+    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3>' + actChips + '<ol class="act-l">' +
+      (actRows || '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol>' +
+      (aList.length > 6 ? '<button type="button" class="act-m" data-a="actmore" aria-expanded="' + !!this.actAll + '">' + (this.actAll ? 'Show the latest 6' : 'Show all ' + aList.length) + '</button>' : '') + '</section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     const LSAY = { ct: 'Content Review', pm: 'AdSet Overview' };
@@ -5434,14 +5840,24 @@
     // PERFORMANCE MARKETING'S DETAILS (2026-11-04, by request): no audiences and no team links —
     // the package itself is behind Open the package
     // and the content team's (same day): their copy check is behind Check the copy
-    const side = '<aside class="rvd-side">' + (pmV ? '' : links) +
+    // ACCESS (2026-11-16): who asked for a view of this ad set that isn't their role's (linkGate),
+    // and who has been let in; allowed here, for this ad set only
+    const rqs = rs.areq || [], grs = Object.keys(rs.grant || {}).flatMap(r => (rs.grant[r] || []).map(em => ({ em, role: r })));
+    const rName = r => { const A = window.providentAccess; return A && A.roleName ? A.roleName(r) : r; };
+    const access = pmV || !(rqs.length || grs.length) ? '' : '<section class="rvd-card rvd-acc"><h3>Access' + (rqs.length ? ' <s>' + rqs.length + ' waiting</s>' : '') + '</h3><ul class="rvd-acl">' +
+      rqs.map(q => '<li><span class="rvd-acn"><b>' + esc(q.name || q.em) + '</b><s>Asks for the ' + esc(LINK_WHO[q.role] || q.role) + ' view' + (q.have ? ' · ' + esc(rName(q.have)) : '') + ' · ' + esc(ago(q.at)) + '</s></span>' +
+        '<span class="rvd-acb"><button type="button" class="p-btn" data-a="grant" data-g="allow" data-em="' + esc(q.em) + '" data-r="' + esc(q.role) + '">Allow</button>' +
+        '<button type="button" class="p-ghost" data-a="grant" data-g="decline" data-em="' + esc(q.em) + '" data-r="' + esc(q.role) + '">Decline</button></span></li>').join('') +
+      grs.map(g => '<li><span class="rvd-acn"><b>' + esc(g.em) + '</b><s>Can open the ' + esc(LINK_WHO[g.role] || g.role) + ' view</s></span>' +
+        '<span class="rvd-acb"><button type="button" class="p-ghost" data-a="grant" data-g="revoke" data-em="' + esc(g.em) + '" data-r="' + esc(g.role) + '">Remove</button></span></li>').join('') + '</ul></section>';
+    const side = '<aside class="rvd-side">' + (pmV ? '' : links + access) +
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
       '<section class="rvd-card"><h3>Drive location</h3>' +
       '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
       '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs) + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -5468,7 +5884,7 @@
     const opt = (v, l, on) => '<option value="' + esc(v) + '"' + (on ? ' selected' : '') + '>' + esc(l) + '</option>';
     // a mixed ad set (or an unbranded project) also lists each audience's unbranded version, so
     // moving an unbranded project keeps it unbranded
-    const base0 = AUDS[rs.product] || ['Family', 'Investor', 'Hybrid'], its = (rs.items || []).filter(x => x.aud);
+    const base0 = ((rs.broad || []).length || isBroad(it.aud) ? [BROAD] : []).concat(AUDS[rs.product] || ['Family', 'Investor', 'Hybrid']), its = (rs.items || []).filter(x => x.aud);
     const dz = [...new Set(its.map(x => ubBase(x.aud)).filter(a => dsgOf(a) > 1))];
     const root = audRoot(it.aud || base0[0]), nx = root + DSG + (Math.max(1, ...its.filter(x => x.market === it.market && audRoot(x.aud) === root).map(x => dsgOf(x.aud))) + 1);
     const base = base0.concat(dz, dz.indexOf(nx) < 0 ? [nx] : []).sort((x, y) => audOrd(base0, x) - audOrd(base0, y));
@@ -6111,6 +6527,16 @@
 .shl-pill{position:fixed;right:16px;bottom:16px;z-index:157;display:flex;align-items:center;gap:8px;height:40px;padding:0 16px 0 13px;border:none;border-radius:9999px;
   background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line);font:600 14px/1 var(--ps-font);letter-spacing:.16px;cursor:pointer}
 .shl-pill:hover{background:var(--ps-fill-h)}
+.nyv{position:fixed;inset:0;z-index:4200;display:grid;place-items:center;padding:24px 16px;background:var(--ps-app);overflow:auto}
+.nyv-c{width:min(520px,100%);display:flex;flex-direction:column;gap:16px}
+.nyv-k{margin:0;font:500 12px/1.2 var(--ps-font);letter-spacing:.08em;text-transform:uppercase;color:var(--ps-ink-2)}
+.nyv h1{margin:0;font:400 32px/1.2 var(--ps-font);color:var(--ps-ink);outline:none}
+.nyv-l{margin:0;font:400 16px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.nyv-l b{font-weight:500;color:var(--ps-ink)}
+.nyv-a{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nyv-a>*{display:inline-flex;align-items:center;justify-content:center;height:40px;margin:0;box-sizing:border-box}
+.nyv-a a{text-decoration:none}
+.nyv-s{margin:0;min-height:1.4em;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
 .shl-pill:focus-visible,.shl button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .shl-pill svg{width:18px;height:18px;fill:currentColor}
 .shl-n{min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:9999px;background:var(--ps-primary);color:var(--ps-primary-i);font:600 11px/20px var(--ps-font);text-align:center}
@@ -7314,10 +7740,10 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-steps [data-cur] span{color:var(--ps-ink);font-weight:500}
 .rvd-steps em{display:block;height:4px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
 .rvd-steps em s{display:block;height:100%;border-radius:inherit;text-decoration:none}
-.rvd-steps [data-i="0"] i,.rvd-steps [data-i="0"] em s,.rvd-wc[data-i="0"] i,.rvd-aus[data-i="0"] i{background:var(--ps-dim)}
-.rvd-steps [data-i="1"] i,.rvd-steps [data-i="1"] em s,.rvd-wc[data-i="1"] i,.rvd-aus[data-i="1"] i{background:var(--ps-warn)}
-.rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-aus[data-i="2"] i{background:var(--ps-link)}
-.rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-aus[data-i="3"] i{background:var(--ps-good)}
+.rvd-steps [data-i="0"] i,.rvd-steps [data-i="0"] em s,.rvd-wc[data-i="0"] i,.rvd-lkh[data-i="0"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-dim)}
+.rvd-steps [data-i="1"] i,.rvd-steps [data-i="1"] em s,.rvd-wc[data-i="1"] i,.rvd-lkh[data-i="1"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-warn)}
+.rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-lkh[data-i="2"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-link)}
+.rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-lkh[data-i="3"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-good)}
 .rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .rvd-now>i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
 .rvd-now[data-s="ready"]>i{background:var(--ps-good)}
@@ -7339,18 +7765,18 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-ausm{flex:none;padding-bottom:2px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
 .rvd-aun s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rvd-aun b{font:500 18px/1.25 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
-.rvd-aus{display:flex;flex-direction:column;gap:6px;min-width:0}
-.rvd-aus>span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
-.rvd-aus>span:first-child i{flex:none;width:8px;height:8px;border-radius:50%}
-.rvd-aus>span:first-child b{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rvd-aus>s{text-decoration:none;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
-.rvd-aus .rv-seg{max-width:132px;margin-top:2px}
-.rvd-aus .rv-seg i{background:var(--ps-fill-h)}
-.rvd-aus .rv-seg i[data-s="done"]{background:var(--ps-ink-2)}
-.rvd-aus[data-i="0"] .rv-seg i[data-s="cur"]{background:var(--ps-dim)}
-.rvd-aus[data-i="1"] .rv-seg i[data-s="cur"]{background:var(--ps-warn)}
-.rvd-aus[data-i="2"] .rv-seg i[data-s="cur"]{background:var(--ps-link)}
-.rvd-aus[data-i="3"] .rv-seg i{background:var(--ps-good)}
+
+
+
+
+
+
+.rvd-lkh .rv-seg i{background:var(--ps-fill-h)}
+.rvd-lkh .rv-seg i[data-s="done"]{background:var(--ps-ink-2)}
+.rvd-lkh[data-i="0"] .rv-seg i[data-s="cur"]{background:var(--ps-dim)}
+.rvd-lkh[data-i="1"] .rv-seg i[data-s="cur"]{background:var(--ps-warn)}
+.rvd-lkh[data-i="2"] .rv-seg i[data-s="cur"]{background:var(--ps-link)}
+.rvd-lkh[data-i="3"] .rv-seg i{background:var(--ps-good)}
 .rvd-sec h3 .rvd-add{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 14px 0 10px;font-size:13px;flex:none;white-space:nowrap}
 .rvd-sec h3 .rvd-add .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-sec h3{align-items:center}
@@ -7360,11 +7786,17 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    in two fixed columns */
 .rvd-dzb{padding:14px 20px 18px;border-top:1px solid var(--ps-hair)}
 .rvd-dzh{margin:0;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rvd-lk{display:grid;grid-template-columns:168px minmax(0,1fr);gap:16px;align-items:start;margin-top:12px;border-radius:12px;transition:background-color .3s var(--ps-ease,ease),box-shadow .3s var(--ps-ease,ease)}
-.rvd-lk+.rvd-lk{margin-top:16px}
+.rvd-lk{display:grid;grid-template-columns:208px minmax(0,1fr);gap:24px;align-items:center;margin-top:14px;border-radius:12px;transition:background-color .3s var(--ps-ease,ease),box-shadow .3s var(--ps-ease,ease)}
+.rvd-lk+.rvd-lk{margin-top:20px}
 .rvd-lk[data-hit]{background:var(--ps-fill);box-shadow:0 0 0 8px var(--ps-fill)}
-.rvd-lkh{display:flex;flex-direction:column;gap:6px;min-width:0;padding-top:4px}
-.rvd-lkn{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-lkh{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rvd-lkl{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.rvd-lkl .rv-seg{flex:none;width:68px;gap:3px}
+.rvd-lkh :is(.rvd-lkn,.rvd-lkm)>i{flex:none;display:inline-block;width:8px;height:8px;border-radius:50%}
+.rvd-lkm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.rvd-lkm i{margin:0 7px 1px 0;vertical-align:middle}
+.rvd-lkm b{font-weight:400;color:var(--ps-ink)}
+.rvd-lkn{display:inline-flex;align-items:center;gap:8px;min-width:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
 .rvd-lkc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
 /* a project: one ringed tile that opens it, its actions behind the menu at its end */
 .rvd-lkc .rva-lt{position:relative;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
@@ -7388,7 +7820,36 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-mnl{position:absolute;right:0;top:calc(100% + 4px);z-index:6;display:flex;flex-direction:column;min-width:184px;padding:6px;border-radius:12px;background:var(--ps-card-h);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-mnl button{height:36px;padding:0 12px;border:none;border-radius:8px;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);text-align:left;white-space:nowrap;cursor:pointer}
 .rvd-mnl button:hover,.rvd-mnl button:focus-visible{background:var(--ps-fill-h);outline:none}
-.rvd-act{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-act{padding:20px 20px 12px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-act h3{margin-bottom:12px}
+.act-f{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.act-f button{display:inline-flex;align-items:center;gap:6px;height:32px;margin:0;padding:0 12px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.act-f button:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.act-f button[aria-pressed="true"]{background:var(--ps-fill-on);color:var(--ps-ink);box-shadow:none}
+.act-f button s{text-decoration:none;font-weight:400;color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.act-f button:focus-visible,.act-m:focus-visible,.act-d summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.act-l{list-style:none;margin:0;padding:0}
+.act-day{padding:16px 0 6px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.act-r{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding:8px 0}
+.act-r+.act-r{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.act-r .shl-av{width:24px;height:24px;font-size:11px}
+.act-t{min-width:0}
+.act-t p{margin:0;font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.act-t p b{font-weight:500;color:var(--ps-ink)}
+.act-t p.act-w{font-size:12.5px;color:var(--ps-ink-2)}
+.act-r time{padding-top:2px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.act-d{margin-top:4px}
+.act-d summary{display:inline-flex;align-items:center;min-height:28px;border-radius:6px;list-style:none;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-link);cursor:pointer}
+.act-d summary::-webkit-details-marker{display:none}
+.act-d summary:hover{text-decoration:underline;text-underline-offset:3px}
+.act-d .lg-h{display:none}
+.act-d .rva-log>li{padding:4px 0 0;box-shadow:none}
+.act-d .shl-list ul{padding-left:0}
+.act-m{display:block;width:100%;height:40px;margin:6px 0 0;border:none;border-top:1px solid var(--ps-hair);background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.act-m:hover{color:var(--ps-ink)}
+/* the Video section: a card like an audience's, its tiles in the same cells */
+.vdo-card{padding:16px 20px}
+.vdo-card .rvd-lkc .rva-lt[data-empty] .rva-lt-t b{display:inline}
 .rvd-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 .rvd-card{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
 .rvd-lks{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
@@ -7405,6 +7866,12 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-op .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
 .rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
+.rvd-acl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.rvd-acl li{display:flex;flex-direction:column;gap:8px}
+.rvd-acn{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvd-acn b{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rvd-acn s{text-decoration:none;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-acb{display:flex;flex-wrap:wrap;gap:8px}
 .rvd-card .rva-sub{margin-top:-8px}
 .rvd-ph{display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;min-width:0;min-height:71px;padding:8px 12px 8px 14px;border:none;border-radius:12px;background:none;outline:1px dashed var(--ps-line);outline-offset:-1px;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
 .rvd-ph:hover{background:var(--ps-fill)}
@@ -7509,6 +7976,29 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rss-phx .p-ghost{flex:none;height:34px}
 .rss-q{grid-template-columns:repeat(2,minmax(0,1fr))}
 .rss-q .rsp-prod,.rss-q .rsp-brand{width:max-content}
+.rss-pc button[data-reach]{width:auto;height:26px;margin-left:6px;padding:0 10px;border-radius:9999px;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font)}
+.rss-pc button[data-reach][aria-pressed=true]{background:var(--ps-ink);box-shadow:none;color:var(--ps-card)}
+.sto{width:min(440px,100%)}
+.sto-l{display:grid;gap:8px;margin:16px 0 0}
+.sto-o{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;text-align:left;padding:12px 16px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink);font:400 14px/1.3 var(--ps-font);cursor:pointer}
+.sto-o b{grid-column:1;font-weight:500}
+.sto-o s{grid-column:1;text-decoration:none;color:var(--ps-ink-2);font-size:13px}
+.sto-o i{grid-column:2;grid-row:1/span 2;font:500 12px/1 var(--ps-font);font-style:normal;color:var(--ps-ink-2)}
+.sto-o:hover:not([disabled]){background:var(--ps-fill-h)}
+.sto-o:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.sto-o[disabled]{cursor:default;box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.dlv{display:grid;gap:8px}
+.dlv-r{display:grid;grid-template-columns:minmax(96px,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center}
+.dlv-h span{font:500 12px/1 var(--ps-font);letter-spacing:.06em;text-transform:uppercase;color:var(--ps-ink-2)}
+.dlv-r>b{font:400 14px/1.2 var(--ps-font);color:var(--ps-ink)}
+.dlv-c{display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;height:40px;padding:0 12px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:400 13px/1 var(--ps-font);white-space:nowrap}
+button.dlv-c{cursor:pointer}
+button.dlv-c:hover{background:var(--ps-fill-h)}
+button.dlv-c:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.dlv-c svg{flex:none;width:16px;height:16px;fill:currentColor}
+.dlv-c[data-on]{color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.dlv-c[data-na]{box-shadow:none;padding-left:0}
+.rvd-dl{display:block;margin-top:6px;font:400 12px/1.2 var(--ps-font);color:var(--ps-ink-2)}
 .shl-dlg-c.rss{overflow-x:hidden}
 `;
     document.head.appendChild(s);

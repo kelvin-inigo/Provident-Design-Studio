@@ -604,6 +604,8 @@
     const post = rs && rs.kind === 'post';
     if (act === 'ticket') return 'designer-cas';
     if (act === 'draft-done') return 'designer-ops';
+    // a project sent to the Arabic, the animated version or the video goes to a designer
+    if (/^task-(arabic|animated|video)$/.test(act)) return 'designer-cas';
     if (act === 'design-done') return post ? 'copy' : it && it.lang === 'ARB' ? 'copy-ar' : 'copy-en';
     // the copy approved, or a designer finishing without a copy check: the post is ready for social media
     if (post && (act === 'copy-done' || (act === 'approved' && role() !== 'smm'))) return 'smm';
@@ -717,6 +719,23 @@
       return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(), previewWho: viewWho(), previewKey: viewRaw(),
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: (viewWho() && viewWho().email) || me() };
     },
+    // WHO IS OPENING THIS LINK (2026-11-16, by request): an ad set link checks the account's role
+    // against the link's own (share-link.js, linkGate). { on: false } when the access check is
+    // off or unreachable (the link opens as it always did); { on: true, out } signed out;
+    // { on: true, email, name, role, admin, status } signed in. The admin previewing a role is
+    // judged as that role.
+    async who() {
+      const on = await status();
+      if (on !== true) return { on: false };
+      const d = D();
+      let signed = false; try { signed = !!(d && (d.ensure ? await d.ensure() : d.valid && d.valid())); } catch (e) {}
+      if (!signed) return { on: true, out: true };
+      try {
+        const m = await post('accme'), pv = m.admin ? viewAs() : null;
+        return { on: true, email: String(m.email || '').toLowerCase(), name: m.name || '', role: pv || m.role || null, admin: !!m.admin && !pv, status: m.status || '' };
+      } catch (e) { return { on: true, err: e.message || String(e), code: e.code }; }
+    },
+    roleName: r => ROLE[r] || r || '',
     team, handOff, me,
     // a person's Google photo (or ''), and the inside of an avatar circle: photo or initials
     photo: (n, e) => photoOf(n, e), avIn,

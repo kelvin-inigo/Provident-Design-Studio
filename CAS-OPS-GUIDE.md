@@ -420,6 +420,30 @@ the ads are running, they press **Launch** on the home's Next up card (or on its
 **Launched** on its page, the log says who launched it, and it leaves everyone's Home for the **Closed** column on Status (shown with **Show closed**).
 A phase added later (say Ad Fatigue 01) brings it back once that phase is ready.
 
+#### Broad reach or audience-based
+
+A campaign starts **broad**: its first waves tell the key facts to everyone, so there is one
+design per market, in English and Arabic, and no audience-based designs. The setup on Home has
+**Reach: Broad reach | Audience-based** (Broad reach is the default). A broad ad set plans one
+audience called **Broad**.
+
+Reach is set **per phase**. In **Ad set settings**, every phase under **Phases** has a **Broad**
+button: pressed, that phase makes only the Broad audience; not pressed, it makes the audiences
+ticked under **Audiences** (Family, Investor…). A phase added after a broad one starts broad too.
+So the usual run is phase 1 and 2 with **Broad** pressed, then, on the third phase, tick the
+audiences you want and un-press **Broad** on that phase. A project already made always stays
+where it is, whatever the reach.
+
+#### The minimum deliverables
+
+Every audience has three deliverables, each in English and Arabic: **Static**, **Animated** (the
+same CAS design with a video as its background instead of the photo, 1:1 and 9:16, made in CAS) and
+the **MVP video** (the short key-facts video, made only in the Video Studio, CASV, and added in the
+ad set's **Video** section). The **Ad set** tab shows them in a **Deliverables** card. **Static**
+ticks itself when the project is sent on. Press **Missing** beside **Animated** or **MVP video**
+when it is delivered; it turns to **Done** and the Activity says who ticked it. The card only shows
+what is missing: it never stops a project being sent to **Done**.
+
 #### Phases
 
 A campaign runs in **phases**, and each phase is its own package of every planned audience. You
@@ -519,8 +543,12 @@ steps: **Design › ENG copy check › Translation › Done**.
 2. **Design.** The top bar, beside **Ad set | Design**, always shows where this project stands
    in its campaign: four small bars for the four steps, the step it is on, and its market,
    audience and language (for example *Design · Local · Family · EN*). Beside it is the one
-   thing to do next. When the design is ready, press **Send to copy check** (an Arabic project
-   says **Send for translation check**). It first lists anything missing: empty words, a page or
+   thing to do next. When the design is ready, press **Send to…** and pick the task the project
+   goes to: **Copy check** (an Arabic project says **Translation check**), **Arabic**,
+   **Animated**, **Video**, **Design** or **Done**. Any order works, and you can send it back.
+   Then pick who gets it (the content team for a copy check, a designer for Arabic, Animated and
+   Video). After the first hand-off, **Send to…** stays in the **Ad set** tab's header. Sending
+   to **Copy check** first lists anything missing: empty words, a page or
    variant with no background photo, a QR code switched on with none added, or copy covering
    more than 40% of a canvas. Fix them, or press OK to send anyway. While the content team has
    it, the current bar turns amber and the step reads **Copy check**; the button moves on to
@@ -643,15 +671,16 @@ its designs, each design's look (branded or unbranded) and its languages.
   chip to jump to it in the list below.
 - **Audiences:** one card per market and audience, in the plan's order, started or not. Inside a
   card, each design has its own block (**Design 1**, **Design 2**…), and each design has one row
-  per look: **Branded** and, in a Mixed ad set, **Unbranded**. A row shows its own four steps and
-  who it is with at the left, then **English** and **Arabic** side by side. A project that exists
+  per look: **Branded** and, in a Mixed ad set, **Unbranded**. At the left of a row, the look's name
+  with its four step bars, and under it the step it is on and who it is with; then **English** and **Arabic** side by side. A project that exists
   is a tile that opens it in the full studio. A place nothing fills yet is a dashed slot that says
   how it starts: **Start the English**, **Start the Arabic**, **Start the unbranded**. Where the
   audience has no Arabic, the place says **Not needed**.
   The **⋯** button at the end of a project's tile holds its actions:
   **Change audience** (its market, audience and language — **Set its audience** on a project that
-  has none, shown as "Project"), **Already approved**, and **Remove**, which takes it out of the ad set. The project
-  itself is not deleted and its own edit link keeps working. **Change audience** also has an
+  has none, shown as "Project"), **Already approved**, and **Remove**, which takes it out of the ad set. Its folder in the ad
+  set's Google Drive folder (the project, its pictures and exports) goes to Drive's trash, where it
+  can be restored for 30 days, with the audience and market folders it leaves empty. **Change audience** also has an
   **Ad set** field: pick **Move to <another ad set>** (and its phase, when it has more than one),
   then **Move**. The project leaves this ad set and joins the other one with its steps, and its
   Drive folder moves into the other ad set's folder at its new market, audience and language.
@@ -670,14 +699,35 @@ its designs, each design's look (branded or unbranded) and its languages.
   Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
   set tab, under **Audiences**.
 - **Ad set links:** one row per team, with **Copy link**.
-- **Activity:** every step and every word changed in every project, newest first.
+- **Each link is for its own team.** The content team's link opens for the content team (English
+  or Arabic), performance marketing's for performance marketing and the Digital Marketing Team, the
+  designer's for designers. Designers and the admin open all three. Anyone else signed in sees
+  **This isn't your view** with **Request access**, which asks for that view of this ad set only.
+- **Access** (on the right, under Team links, when someone has asked): each request with **Allow**
+  and **Decline**, and everyone already let in with **Remove**. Allowing lets that person open that
+  link of this ad set; it gives nothing in any other ad set. When the access check is off, every
+  link opens as before.
+- **Video** (when the ad set has video on): a card with each video and **Add video**. The **⋯** on a
+  video's tile holds **Replace video** and **Remove**.
+- **Activity:** every step and every word changed in every project, newest first, under its day,
+  one line each. The latest six show; **Show all** lists the rest. The buttons above it show one
+  kind at a time: **Progress** (designs done, copy approved, sent on), **Projects** (added,
+  removed, moved, the ticket), **Edits** (words and photos changed in a project; **Show the
+  changes** opens the old and new words) and **Video and downloads**. A kind with nothing in it
+  has no button.
 - **On the right:** **Team links**, the **Brief** and **Drive location**.
 
 To add an ad set from another computer, paste its **designer** link into the box at the top.
 **Remove from this list** only removes it from this computer, and it stays removed. Opening one of
 its projects no longer brings it back; paste its designer link to add it again. The links keep
-working. **Delete this ad set for everyone** ends it: its three links stop working and its review
-history goes. Its projects stay, each on its own edit link. The record
+working. **Delete for everyone** ends it: its three links stop working and its review history goes. On
+Google Drive, every project's folder, the **Video** folder and the ad set's record go to Drive's
+trash (restorable for 30 days), then the campaign folder itself if nothing else is left in it.
+
+**Drive follows Status.** Whatever changes on the ad set page changes in its Drive folder too:
+**Change audience** and **Move to** move the project's folder, renaming a phase renames its folder,
+a new project gets its own folder, and **Remove** (a project or a video) and **Delete for everyone**
+send their files to Drive's trash. The record
 (status, dates, log, links) is kept even after a project expires. Full-size photos expire after
 60 days unused; the project and its previews stay.
 
@@ -696,9 +746,15 @@ admin see Add video.
 1. In the Video Studio press **Send to CAS**, name the video and press **Record and send**. It records
    the **Reel 9:16** and then the **Square 1:1** (twice the video's length) and keeps both on that
    computer.
-2. In Status, open the ad set and press **Add video**. Under **From CASV on this computer** pick the
-   video, choose its **Audience** (or All audiences) and press **Add video**. Both sizes are uploaded
-   into the ad set's Drive folder, in **Video**.
+2. In Status, open the ad set and press **Add video**. It asks first:
+   - **Add one made in CASV**: under **From CASV on this computer** pick the video, choose its
+     **Audience** (or All audiences) and press **Add video**. Both sizes are uploaded into the ad
+     set's Drive folder, in **Video**.
+   - **Make a new one in CASV**: opens the Video Studio on this computer in a new tab (it must be
+     running) and starts a new, empty video named after the ad set. If a video is open there it
+     asks first, and keeps that one: **Reopen the last video** (on the empty timeline) brings it
+     back. Make the video and press **Send to CAS**; the Add video window comes back with that
+     video picked and named. Then choose its audience and press **Add video**.
 3. On another computer, use **Or choose the two files** and pick the Reel and the Square.
 
 **The project is saved with it.** Send to CAS also packs the Video Studio project and the media it
@@ -717,6 +773,10 @@ at the top.
 - **Download Reel 9:16** and **Download Square 1:1** save the two MP4 files. Performance marketing's
   downloads are written to the ad set's Activity.
 - Performance marketing also has a **Video** button in the bar of **Open the package**.
+
+**Remove a video.** The **⋯** on its tile, or **Remove** in its window. Its comments go with it,
+and the Reel, the Square and its `.casv` project go to Google Drive's trash (restorable for 30
+days), then the **Video** folder if it is empty.
 
 **Back to the designer.** When the designer has the home page, Status or the ad set open on the
 computer that made the video, the comments are sent to the Video Studio on their own (the video does
@@ -1219,8 +1279,8 @@ the project's name, so looking at a template no longer leaves an "Untitled post"
 
 **Delete for everyone** (a post's page, under the brief; the admin, designers and the social media
 manager) takes the post off Status and Home on every computer. Click it once, then click again
-(**Click again to delete …**) within a few seconds. Its files stay in
-its Google Drive folder. **Take off this computer's Status** only hides it here.
+(**Click again to delete …**) within a few seconds. Its Google Drive folder goes to Drive's trash,
+where it can be restored for 30 days. **Take off this computer's Status** only hides it here.
 
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most
 urgent first, with their step, who handed them over and when they're due. A post's page there has

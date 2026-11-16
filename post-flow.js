@@ -901,7 +901,7 @@
       // browser that suppresses window.confirm (an embedded pane) made the button do nothing at all
       if (b.dataset.armed !== '1') {
         b.dataset.armed = '1'; b.textContent = 'Click again to delete “' + b.dataset.nm + '” for everyone';
-        b.title = 'It leaves Status and Home on every computer. Its files stay in its Google Drive folder.';
+        b.title = 'It leaves Status and Home on every computer, and its Google Drive folder goes to Drive’s trash (restorable for 30 days).';
         clearTimeout(b._arm); b._arm = setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete for everyone'; } }, 6000);
         return;
       }
@@ -996,7 +996,7 @@
           ((t.files || []).length ? '<ul class="psd-files">' + t.files.map(f => '<li><a href="https://drive.google.com/file/d/' + esc(f.id) + '/view" target="_blank" rel="noopener">' + esc(f.name) + '</a></li>').join('') + '</ul>' : '') + '</section>' +
         '<button type="button" class="pf-a psd-rm" data-ps="remove" data-id="' + esc(x.id) + '">Take off this computer’s Status</button>' +
         // DELETE FOR EVERYONE (2026-11-04, by request: clearing out empty "Untitled post" drafts):
-        // dsApi rsdel marks the post deleted, so discover() skips it; its files stay in its Drive folder
+        // dsApi rsdel marks the post deleted, so discover() skips it, and sends its files to Drive's trash
         (['admin', 'designer', 'smm'].indexOf(role()) >= 0 ? '<button type="button" class="pf-a psd-rm psd-del" data-ps="delete" data-id="' + esc(x.id) + '" data-nm="' + esc(rs.name || 'this post') + '">Delete for everyone</button>' : '') +
       '</aside></div></div>';
   };

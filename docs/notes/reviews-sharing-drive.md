@@ -2244,3 +2244,153 @@ audience › design › look › language, and `AV.detHtml` now nests the page t
   elementFromPoint; Already approved run through the menu end to end; Change audience form,
   the jump chip, a single-phase non-mixed ad set. Not run: Start slots opening CAS, Remove, Move
   to another ad set, the content-team role, Status inside CAS itself, real Drive, Safari.
+
+# STATUS › AD SET PAGE: LOOK HEADS, ACTIVITY, VIDEO (2026-11-16, second pass, by request)
+
+From the user's marked-up screenshots: "why did you cramp all the text here", "find a way to
+compress or collapse this activity section, maybe categorize them by type of activity", "also fix
+the video section".
+- **Look head** (`.rvd-lkh`, `data-i` = the step): two lines instead of five. Line one
+  `.rvd-lkl`: the look's name (`.rvd-lkn`, 14/500) with the four segments at its right (68px);
+  without a look name (a single-look design) the step's dot and name take that place. Line two
+  `.rvd-lkm`: "● Step · who / when", clamped to two lines, full text in its title. Column 208px,
+  24px gap, rows centred on their tiles, 20px between looks. `stage`/`stage0` now return
+  `{ i, step, sub, seg }`. Trap: `.rvd-lkt` is the Team links' text class (flex column) — the
+  look label is `.rvd-lkl`; and the dot rules are `:is(.rvd-lkn,.rvd-lkm)>i`, because `.rv-seg`'s
+  bars are `<i>` too.
+- **Activity** (`.rvd-act`): a row per entry (`.act-r`: 24px avatar, "**Name** what", where under
+  it, time at the right) under day headings (`.act-day`: Today / Yesterday / Sat, Oct 31). `actOf`
+  sorts entries into prog / proj / edit / file (step text prefixes; any non-step change is an
+  edit); `.act-f` filter buttons (`data-a="actcat"`, aria-pressed, the resting tint when on) show
+  only kinds with entries. The latest 6, then `.act-m` Show all N / Show the latest 6
+  (`data-a="actmore"`); `this.actCat` / `this.actAll` survive the timed redraw. An edit entry is
+  one line ("Changed headline" or "N changes") with `details.act-d` Show the changes holding the
+  old `logEntryHtml` (its header hidden). The Changes panel in the studios still uses
+  `logEntryHtml` unchanged.
+- **Video**: `vidSecHtml`'s grid is wrapped on this page only into `.rvd-au.vdo-card > .rvd-lkc`,
+  so the video tiles and Add video take the audience tiles' ring and dashed slot. CAS's Ad set
+  tab (`.adt-vid`) still gets the plain markup.
+- seed.js: Palm Springs carries a video (`rs.video`, no files: the card, not the player).
+- Verified on share-dev 8791: 0 contrast failures and no overflow, dark and light, 1440 / 1280 /
+  375; filter and Show all keep focus. Not run: an Edits entry (the seed has no project-level edits,
+  so Show the changes is unexercised), the video player, CAS's Ad set tab video card.
+
+# BROAD REACH PER PHASE, SEND TO… ANY TASK, AND THE DELIVERABLES CHECKLIST (2026-11-16)
+
+By request: a new campaign's minimum is Static + Animated (1:1, 9:16, the static design over a
+video) + the CASV MVP video; phases 1 and 2 run broad (ENG + ARB, no audiences), audiences start
+at phase 3; and the designer picks which task a project goes to instead of Design › Copy › Arabic
+› Done. All in share-link.js (Drive ad sets; the old share store has none of it) + one line in
+access.js. No canvas code was touched.
+
+- **Reach.** `rs.broad` = the phase keys that run broad. `BROAD = 'Broad'` is an ordinary audience
+  (plan cell, folder, steps, Design 2, unbranded twin); `isBroad(aud)`, `broadIn(rs, ph)`.
+  **`rsCellsIn(rs, ph)` is the one list of a PHASE's audiences**: a broad phase keeps the Broad
+  cells, any other the rest; a cell holding a project in that phase always stays; a broad phase with
+  no Broad cell planned gets one per planned market (Arabic on). `planTodo`, `adtRender`'s audience
+  card, `AV.phTabsHtml`'s count and `AV.detHtml`'s cells read it. `rsCells(rs)` is still every
+  phase's cells (settings, `rsAuds`). `rsset {broad: [keys]}` logs each change; a phase added after
+  a broad one inherits it (server, and the settings dialog); a rename rekeys `rs.broad` and `rs.dl`.
+  Settings: a **Broad** toggle on each phase chip (`[data-reach]`, `d.broad`), Broad first among the
+  Audiences toggles; pressing it adds Broad × the plan's markets if none is planned. Home's setup
+  (`PlanView`): **Reach: Broad reach | Audience-based** (`d.reach`, default broad; `PV.auds()` is
+  the card list), `plan.reach` → `rs.broad = [phase0]` in both makers. `'broad'` and `'dl'` joined
+  the `dsPub` whitelist.
+- **Tasks.** `TASK_L` design · copy · arabic · animated · video · done. Design and Copy stay the
+  review's own steps (`design-open`, `design-done` / `copy-open`), so the pre-check, the Roam note
+  and the content team's queue are untouched. The other four are `rsstep {act: 'task', k}` (dd
+  only): `it.task = {k, by, at}`, `it.to` from the picker, hist act `task-<k>`, logged. **Any other
+  step deletes `it.task`.** Read it only through `taskOf(it)`. `rsAuds`: an audience is done when
+  its sign-offs are and no project carries an open task, OR every project was sent to Done;
+  `a.now` becomes `{label, sub, task}` for the latest open task (it is NOT one of `a.steps`, so
+  `a.steps.indexOf(a.now)` is -1 there). `rsMine` counts an open task assigned to a designer.
+  `SP.sendTo(sid)` is the list (`.sto`), called by `adtNext()`'s new `{send}` shape (top bar and Ad
+  set tab) and the tab header's quiet **Send to…**; `SP.rvStep('task-<k>:<sid>')`.
+  `teamFor` (access.js): `task-arabic|animated|video` → designers; `task-done` asks nobody.
+- **Deliverables.** `dlRows(rs, a)` / `dlCount` / `dlCardHtml`: Static is derived (the project was
+  sent on: `it.design` or task done); `anim-*` and `video-*` are ticks in `rs.dl[a.key][id]`
+  (`rsset {dl: {key, id, on}}`, logged). Arabic cells read Not needed for an English-only audience.
+  Shown in the Ad set tab only. It blocks nothing.
+- Verified on share-dev 8793 (Drive stand-in, admin): Sobha's Launch set broad in settings, a typed
+  phase inherited broad and showed only International · Broad; Start the English opened a real
+  Broad project in CAS; Send to… › Animated asked for a designer and showed "Animated · With …";
+  the Animated tick saved and logged; › Copy check ran the pre-check and the English copy picker
+  and cleared the task; › Done read "Done — ready to run". Light theme contrast 6.2–19.7:1.
+- **Not done / not run:** the animated export itself (video background + MP4) is not built; the
+  Status ad set page shows no deliverables count (another session was rewriting its look row);
+  `RV`'s link windows still offer the old step buttons only; Copy from Claude has no Broad
+  section to fill from; dark theme, phones, real Drive and the content team's and PM's views of a
+  Broad audience were not exercised; `v.aud` of an ad set video does not tick MVP video by itself.
+
+
+## DRIVE FOLLOWS STATUS; THE VIDEO TILE'S ⋯; ADD VIDEO ASKS FIRST (2026-11-16)
+
+By request (annotated screenshots of a Status ad set page): Remove on the video card, Add video
+asks "existing from CASV or new in CASV", Delete for everyone clears Drive, and anything removed
+from the audiences block is removed on Drive too. The user also settled the split: **the MVP video
+is CASV's alone** (the ad set's Video section); **Animated is CAS** — the same design with an
+uploaded video background (the `cas-animated` branch). `TASK_L.video` now reads "MVP video".
+
+- **What already followed Drive** (unchanged): Change audience / Move to (`dsMove`), renaming a
+  phase (renames its folder), a new project (`dsProject`), Start the Arabic.
+- **New, all in `dsApi`, all to Drive's TRASH (never a hard delete; 30 days to restore):**
+  `dsTrash(id)`, `dsPrune(folder, stop)` (trashes folders left empty, upward, never past the ad
+  set's folder or the campaigns home), `dsTrashProject(rs, sid)` (the project's language folder,
+  or the file alone when it sits flat in the campaign folder as the seeded ones do).
+  - `rsset remove` trashes the project's folder after clearing its `rid`. This REVERSES the old
+    rule "the project is not deleted, its edit link keeps working" — the user asked for it.
+  - `rsvideo rm` trashes the Reel, the Square and the `.casv` (any file still used by another
+    video on the list is kept), then the Video folder if empty.
+  - `rsdel` writes `deleted` first (a computer holding the link still reads "deleted", Drive
+    can read a trashed file by id), trashes the record, every project, the Video folder, the
+    empty phase / market folders, then the campaign folder if empty. OPS posts go through the same
+    `rsdel`, so a post's Delete for everyone now trashes its folder too (post-flow.js wording).
+- **Video tile ⋯** (`vidSecHtml(rs, menu)`; Status passes `true`, CAS's Ad set tab does not, its
+  stylesheet has no `.rvd-mn`): Replace video (`vidAdd` with `rep`) and Remove (`VID_RM_Q`).
+- **Add video asks first**: `vidAdd` without `rep` is now a chooser; the old dialog is
+  `vidAddFrom(id, rs, by, after, rep, want)`. "Make a new one in CASV" checks CASV's server
+  (`/api/outbox/list`) answers, opens `CASV_PAGE()` in a new tab, then polls the outbox every 3 s;
+  the first new `id:at` closes the chooser and opens `vidAddFrom` with it picked (`want`). CASV
+  itself has no "new project" action — it opens on whatever project is open there.
+- **Verified** on share-dev :8793 (stand-in Drive), a nested project made by hand
+  (Local/Family/English/Assets) and a hand-made video record: ⋯ on the tile shows Replace video /
+  Remove; Remove trashed the two MP4s, the .casv and Video/; the chooser's two options; "Make a new
+  one" opened `http://localhost:8794/Provident%20Video%20Studio.html` (window.open stubbed) and a
+  stubbed new outbox entry came back picked and named; project Remove trashed English/, Family/,
+  Local/; Delete for everyone on Damac Lagoons removed its folder and nothing else; an OPS post's
+  Delete for everyone left no file of it. No console errors.
+- **Not run:** real Google Drive (the stand-in does not cascade a folder's trash to its children;
+  Drive does), a real Send to CAS round trip, dark theme, phones, the PM / content team views.
+
+
+## EACH AD SET LINK IS FOR ITS OWN TEAM; REQUEST ACCESS PER AD SET (2026-11-16)
+
+By request: "verify the role assigned to the viewer … I don't want CT to view PM's link … a 404
+page saying it's not your view … they can request access, but the link varies only per project."
+
+- `access.js` gains `providentAccess.who()` (accstatus, then `accme` with the Drive token; the
+  admin previewing a role is judged as that role) and `roleName(r)`.
+- `share-link.js` `linkGate(id, d)` runs in `shareOpenLink` right after `rsget` for an ad set
+  link. `LINK_FOR`: dd ← designer; ct ← designer, ct, cten, ctar; pm ← designer, pm, dmt. The
+  admin opens everything. DESIGNERS OPEN ALL THREE on purpose: Status's Team links open each view
+  "as that team sees it". Open as before when the access check is off or unreachable, for OPS posts,
+  or for a role the link has no rule for. `rs.grant[role]` (emails) also opens it.
+- `notYourView`: a full-page `.nyv` ("404 · Not your view", This isn't your view) with Request
+  access (Drive ad sets only, an active signed-in account) and Go to Status.
+- Ops `rsreq` (any link's holder: `rs.areq` entry {em, name, have, role, at}, logged) and
+  `rsgrant` (dd only: act allow | decline | revoke). `dsPub` passes `grant`, `areq`.
+- Status: an **Access** card under Team links (designer/admin side only) with Allow / Decline per
+  request and Remove per person let in.
+- It is a door sign, not a lock: the page has already read the ad set (rsget) before it decides,
+  and Drive's own sharing is what really guards the files.
+- **Verified** on share-dev :8793 with the dev sign-in accounts on Palm Springs by Nakheel:
+  content team (English) on PM's link → the page; Request access → saved, button "Access
+  requested"; CT's own link opens its view; designer on Status sees "Access · 1 waiting", Allow →
+  logged "Let … open the performance marketing view", the card shows Remove; CT then opens PM's
+  link; PM on CT's link → the page. Not run: the live site, real Google accounts, a pending
+  account, an admin preview, dark theme, phones.
+
+- (2026-11-16, later) "Make a new one in CASV" now opens `CASV_PAGE() + '#new=' + ad set name`:
+  CASV starts a new video (asking first, keeping the open one as "the last video"), instead of
+  reopening whatever was open. The CASV half is on the local `video-studio` branch
+  (docs/notes/video-studio.md there); without it, the hash is ignored and CASV opens as before.

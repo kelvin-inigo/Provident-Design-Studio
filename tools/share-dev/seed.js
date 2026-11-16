@@ -93,7 +93,7 @@
         ['Local', 'Family · Design 2', 'ENG', 'design', 'admin', 'launch'],
         ['Local', 'Investor', 'ENG', 'design', 'd1', 'launch'],
         ['Local', 'Family', 'ENG', 'design', 'admin', 'x:Showcase']],
-      cells: [['Local', 'Family', true], ['Local', 'Investor', false], ['International', 'Investor', false]] }
+      cells: [['Local', 'Family', true], ['Local', 'Investor', false], ['International', 'Investor', false]], video: true }
   ];
   const SIZES = ['Feed 1:1', 'Portrait 4:5', 'Story 9:16', 'Horizontal 1.91:1'];
   const ymd = days => { const d = new Date(now + days * D); return d.toISOString().slice(0, 10); };
@@ -134,6 +134,9 @@
       tcur += 9 * H;
     }
     if (lastThumb) rs.thumb = lastThumb;
+    // a video from CASV on the ad set (no files on the stand-in: the card, not the player)
+    if (c.video) rs.video = { on: true, list: [{ id: 'v' + k.dsRand(8).toLowerCase(), title: 'Palm Springs walkthrough', aud: 'Local · Family', dur: 32, by: designer.name, at: tcur, f: {}, thumb: lastThumb,
+      notes: [{ t: 4.2, text: 'Hold the logo a beat longer', by: TEAM.pm.name, at: tcur + H }, { t: 18, text: 'Price card reads well', by: TEAM.pm.name, at: tcur + 2 * H, done: true }] }] };
     await k.dsWrite(rid, rs);
     say('Campaign · ' + c.name + (c.auds ? ' (' + c.auds.length + ' audiences)' : ' (ticket)'));
     return { rs, folder };
