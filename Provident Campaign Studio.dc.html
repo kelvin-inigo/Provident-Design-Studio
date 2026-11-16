@@ -4314,6 +4314,15 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sx-go:hover{background:var(--ps-primary-h)}
 .sx-go:active{transform:translateY(1px)}
 .sx-gi{width:18px;height:18px;fill:currentColor}
+.sx-an-n{margin:0;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.sx-an-r{display:flex;gap:8px;flex-wrap:wrap}
+.an-dlg{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ps-app) 55%,transparent)}
+.an-dlg-c{width:min(420px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font);display:grid;gap:12px;justify-items:start}
+.an-dlg-c h2{margin:0;font:400 20px/1.2 var(--ps-font)}
+.an-dlg-s{margin:0;font:400 14px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.an-dlg-cv{max-width:100%;max-height:46vh;border-radius:8px;background:var(--ps-line);justify-self:center}
+.an-dlg-b{width:100%;height:4px;border-radius:2px;background:var(--ps-line);overflow:hidden}
+.an-dlg-b i{display:block;height:100%;width:0;background:var(--ps-ink)}
 .sx-status{margin:-6px 0 0;font:400 12px/1.45 var(--ps-font);color:var(--ps-dim);text-align:center}
 @media (prefers-reduced-motion: reduce){.sx-go:active{transform:none}}
 /* Tighter corners in the Share panel (2026-10-19, by request: "why would you have them very
@@ -5924,6 +5933,17 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <button onClick="{{ pickPng }}" data-on="{{ exportPngOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtPngAria }}" title="{{ exportPngDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M590-366.15V-330q0 10.31 6.77 17.08 6.77 6.77 17.08 6.77 10.3 0 17.07-6.77t6.77-17.08v-36.15h28.46q17.39 0 29.46-12.08 12.08-12.08 12.08-29.46v-144.62q0-17.38-12.08-29.46-12.07-12.08-29.46-12.08H561.54q-17.39 0-29.46 12.08Q520-569.69 520-552.31v144.62q0 17.38 12.08 29.46 12.07 12.08 29.46 12.08H590Zm-290-80h92.31V-390q0 10.31 6.77 17.08 6.77 6.77 17.07 6.77 10.31 0 17.08-6.77Q440-379.69 440-390v-180q0-10.31-6.77-17.08-6.77-6.77-17.08-6.77-10.3 0-17.07 6.77T392.31-570v76.15H300V-570q0-10.31-6.77-17.08-6.77-6.77-17.08-6.77-10.3 0-17.07 6.77T252.31-570v180q0 10.31 6.77 17.08 6.77 6.77 17.07 6.77 10.31 0 17.08-6.77Q300-379.69 300-390v-56.15Zm273.85 32.3q-2.31 0-4.24-1.92-1.92-1.92-1.92-4.23v-120q0-2.31 1.92-4.23 1.93-1.92 4.24-1.92h80q2.3 0 4.23 1.92Q660-542.31 660-540v120q0 2.31-1.92 4.23-1.93 1.92-4.23 1.92h-80ZM172.31-180Q142-180 121-201q-21-21-21-51.31v-455.38Q100-738 121-759q21-21 51.31-21h615.38Q818-780 839-759q21 21 21 51.31v455.38Q860-222 839-201q-21 21-51.31 21H172.31Zm0-60h615.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H172.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM160-240v-480 480Z"/></svg></span><b>PNG</b><s>{{ shFmtPngFact }}</s></button>
       <sc-if value="{{ exportSvgRowOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pickSvg }}" data-on="{{ exportSvgOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtSvgAria }}" title="{{ exportSvgDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.38-364.62Zm-187.69 260q-29.82 0-51.06-21.24-21.24-21.24-21.24-51.06V-210q0-12.75 8.62-21.38 8.63-8.62 21.39-8.62 12.75 0 21.37 8.62 8.61 8.63 8.61 21.38v33.08q0 5.38 3.47 8.84 3.46 3.46 8.84 3.46h375.39q5.38 0 8.84-3.46t3.46-8.84v-375.39q0-5.38-3.46-8.84-3.46-3.47-8.84-3.47H750q-12.75 0-21.38-8.62-8.62-8.63-8.62-21.39 0-12.75 8.62-21.37 8.63-8.61 21.38-8.61h33.08q29.82 0 51.06 21.24 21.24 21.24 21.24 51.06v375.39q0 29.82-21.24 51.06-21.24 21.24-51.06 21.24H407.69ZM180.35-411.04q-75.73-75.66-75.73-184.27 0-108.61 75.65-184.34 75.66-75.73 184.27-75.73 108.61 0 184.34 75.65 75.73 75.66 75.73 184.27 0 108.61-75.65 184.34-75.66 75.73-184.27 75.73-108.61 0-184.34-75.65Zm325.77-42.84q58.5-58.5 58.5-141.5t-58.5-141.5q-58.5-58.5-141.5-58.5t-141.5 58.5q-58.5 58.5-58.5 141.5t58.5 141.5q58.5 58.5 141.5 58.5t141.5-58.5Zm-141.5-141.5Z"/></svg></span><b>SVG</b><s>{{ shFmtSvgFact }}</s></button></sc-if>
       <sc-if value="{{ exportPdfOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ pickPdf }}" data-on="{{ exportPdfSelOn }}" class="p-rc" role="radio" aria-checked="{{ shFmtPdfAria }}" title="{{ exportPdfDesc }}"><svg class="p-rc-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg><span class="p-rc-i"><svg class="p-rc-g sx-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M388.46-542.31h44.62q15.07 0 25.23-10.15 10.15-10.16 10.15-25.23v-44.62q0-15.07-10.15-25.23-10.16-10.15-25.23-10.15h-62.31q-7.23 0-12.46 5.23T353.08-640v160q0 7.23 5.23 12.46t12.46 5.23q7.23 0 12.46-5.23t5.23-12.46v-62.31Zm0-35.38v-44.62h44.62v44.62h-44.62Zm199.23 115.38q15.08 0 25.23-10.15 10.16-10.16 10.16-25.23v-124.62q0-15.07-10.16-25.23-10.15-10.15-25.23-10.15h-60.77q-7.23 0-12.46 5.23T509.23-640v160q0 7.23 5.23 12.46t12.46 5.23h60.77Zm-43.08-35.38v-124.62h43.08v124.62h-43.08Zm158.47-44.62h30q7.23 0 12.46-5.23t5.23-12.46q0-7.23-5.23-12.46t-12.46-5.23h-30v-44.62h30q7.23 0 12.46-5.23t5.23-12.46q0-7.23-5.23-12.46t-12.46-5.23h-47.7q-7.23 0-12.46 5.23T667.69-640v160q0 7.23 5.23 12.46t12.46 5.23q7.23 0 12.46-5.23 5.24-5.23 5.24-12.46v-62.31ZM322.31-260Q292-260 271-281q-21-21-21-51.31v-455.38Q250-818 271-839q21-21 51.31-21h455.38Q808-860 829-839q21 21 21 51.31v455.38Q850-302 829-281q-21 21-51.31 21H322.31Zm0-60h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-455.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H322.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v455.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85Zm-140 200Q152-120 131-141q-21-21-21-51.31v-485.38q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.39 8.61q8.61 8.62 8.61 21.39v485.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h485.38q12.77 0 21.39 8.61 8.61 8.62 8.61 21.39 0 12.77-8.61 21.38-8.62 8.62-21.39 8.62H182.31ZM310-800v480-480Z"/></svg></span><b>PDF</b><s>{{ shFmtPdfFact }}</s></button></sc-if>
+    </div>
+  </div>
+  <!-- ANIMATED (2026-11-16, branch cas-animated): the same design over a video clip instead of
+       the background photo, exported as 1:1 and 9:16 video. The clip is dropped in here. -->
+  <div class="sx-sec sx-an">
+    <span class="sx-cap">Animated</span>
+    <p class="sx-an-n">{{ anNote }}</p>
+    <div class="sx-an-r">
+      <button onClick="{{ anAdd }}" class="p-ghost">{{ anAddLabel }}</button>
+      <sc-if value="{{ anOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ anRemove }}" class="p-ghost">Remove clip</button></sc-if>
+      <sc-if value="{{ anOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ anExport }}" class="p-ghost">Export animated</button></sc-if>
     </div>
   </div>
   <!-- The Saves-to row was removed by request (2026-10-19): the top bar's Source folder button
@@ -12501,6 +12521,165 @@ class CampaignStudio extends StudioBase {
     // `Variant A/` folders an older export left behind.
     return name + '_' + who + '_' + job + '.' + ext;
   }
+  // ---- ANIMATED ADS (2026-11-16, branch cas-animated; not on main until tested) ----
+  // The static design, drawn over a video clip in place of the background photo, recorded as
+  // 1:1 and 9:16 video. The clip is generated outside CAS (Higgsfield, from the same photo) and
+  // dropped into the export panel, one per variant. It lives in its own IndexedDB store on this
+  // computer (`provident-cas-clips`, key pid|variant) — never in the photo store, so it is not
+  // saved into the project file, the share link or Drive.
+  //
+  // NOTHING IN THE ARTWORK PATH CHANGES. Each frame is the clip's current picture copied to a
+  // canvas that stands in for the photo (`naturalWidth` / `naturalHeight` set on it, which is all
+  // buildOps and the image op read), then the SAME built ops through renderOpsToCanvas. So the
+  // framing is the photo's own zoom and position, and glass blurs the moving picture under it.
+  static anDb() {
+    return CampaignStudio._anDb || (CampaignStudio._anDb = new Promise((res, rej) => {
+      const r = indexedDB.open('provident-cas-clips', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('clips');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }));
+  }
+  static async anIo(mode, fn) {
+    const db = await CampaignStudio.anDb();
+    return new Promise((res, rej) => { const tx = db.transaction('clips', mode), q = fn(tx.objectStore('clips')); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); });
+  }
+  // this variant's clip, or null; the first call for a project reads its clips back
+  anClip(vi) {
+    const pid = this.state.pid || '';
+    // local test server only: a handle for driving the export without the file picker
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) window.__casAn = this;
+    if (this._anPid !== pid) { this._anPid = pid; this._clips = {}; this.anLoad(pid); }
+    return this._clips[vi == null ? (this.state.activeVi || 0) : vi] || null;
+  }
+  async anLoad(pid) {
+    try {
+      const n = (this.state.variants || []).length; let any = false;
+      for (let vi = 0; vi < n; vi++) {
+        const rec = await CampaignStudio.anIo('readonly', st => st.get(pid + '|' + vi));
+        if (rec && rec.blob && this._anPid === pid) { this._clips[vi] = { name: rec.name || 'Clip', blob: rec.blob, url: URL.createObjectURL(rec.blob), dur: rec.dur || 0 }; any = true; }
+      }
+      if (any) this.forceUpdate();
+    } catch (e) {}
+  }
+  anAdd() {
+    this.anClip();
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'video/mp4,video/quicktime,video/webm';
+    inp.onchange = async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      if (f.size > 300e6) { this.setState({ exportStatus: f.name + ' is over 300 MB. Use a shorter or smaller clip.' }); return; }
+      const url = URL.createObjectURL(f), vid = document.createElement('video'); vid.muted = true; vid.preload = 'metadata'; vid.src = url;
+      const ok = await new Promise(res => { vid.onloadedmetadata = () => res(true); vid.onerror = () => res(false); });
+      if (!ok || !vid.videoWidth) { URL.revokeObjectURL(url); this.setState({ exportStatus: f.name + ' could not be read as a video. Use an MP4.' }); return; }
+      const vi = this.state.activeVi || 0, pid = this._anPid, old = this._clips[vi], dur = isFinite(vid.duration) ? vid.duration : 0;
+      if (old) URL.revokeObjectURL(old.url);
+      this._clips[vi] = { name: f.name, blob: f, url, dur };
+      let kept = true;
+      try { await CampaignStudio.anIo('readwrite', st => st.put({ name: f.name, blob: f, dur }, pid + '|' + vi)); } catch (e) { kept = false; }
+      this.setState({ exportStatus: 'Clip added: ' + f.name + (dur ? ' \u00b7 ' + Math.round(dur) + ' s' : '') + (kept ? '. It is kept on this computer only.' : '. It could not be kept: add it again after a reload.') });
+    };
+    inp.click();
+  }
+  async anRemove() {
+    const vi = this.state.activeVi || 0, c = this.anClip(vi); if (!c) return;
+    URL.revokeObjectURL(c.url); delete this._clips[vi];
+    try { await CampaignStudio.anIo('readwrite', st => st.delete(this._anPid + '|' + vi)); } catch (e) {}
+    this.setState({ exportStatus: 'Clip removed. The design uses its photo again.' });
+  }
+  anDlg() {
+    const el = document.createElement('div'); el.className = 'an-dlg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Exporting the animated ads');
+    el.innerHTML = '<div class="an-dlg-c"><h2>Exporting the animated ads</h2><p class="an-dlg-s" role="status"></p><canvas class="an-dlg-cv"></canvas><div class="an-dlg-b"><i></i></div><button type="button" class="p-ghost">Cancel</button></div>';
+    document.body.appendChild(el);
+    const ui = { el, canvas: el.querySelector('canvas'), cancelled: false,
+      say: t => { el.querySelector('.an-dlg-s').textContent = t; },
+      progress: p => { el.querySelector('.an-dlg-b i').style.width = Math.max(0, Math.min(100, p * 100)).toFixed(1) + '%'; },
+      close: () => el.remove() };
+    el.querySelector('button').onclick = () => { ui.cancelled = true; ui.say('Stopping…'); };
+    return ui;
+  }
+  static anMime() {
+    if (typeof MediaRecorder === 'undefined') return '';
+    return ['video/mp4;codecs=avc1.640028', 'video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } }) || '';
+  }
+  // one size of one variant, recorded as the clip plays through once; null when cancelled
+  async anRecord(state, vi, sizeKey, assets, clip, mime, ui) {
+    const T = CampaignStudio.PXT[sizeKey], v = state.variants[vi];
+    const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = clip.url;
+    await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = () => rej(new Error('The clip could not be read.')); });
+    // the picture the design reads as its background photo
+    const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight;
+    fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
+    const fx = fc.getContext('2d');
+    // the size's own photo slot keeps its zoom and position, so the video is framed as the photo is
+    const psz = CampaignStudio.photoSize(sizeKey);
+    const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
+    const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, { img: fc, u: 'clip' });
+    const built = this.buildOps(state, vi, sizeKey, A);
+    const rc = ui.canvas; rc.width = T.W; rc.height = T.H;
+    const rx = rc.getContext('2d');
+    let frames = 0;
+    // every painted frame is pushed to the recorder by hand (captureStream(0) + requestFrame), so
+    // the file holds exactly what was drawn
+    const stream = rc.captureStream(0), track = stream.getVideoTracks()[0];
+    const paint = () => { fx.drawImage(vid, 0, 0, fc.width, fc.height); rx.drawImage(this.renderOpsToCanvas(built, 1), 0, 0); frames++; if (track && track.requestFrame) track.requestFrame(); };
+    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12e6 }), chunks = [];
+    rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    const stopped = new Promise(res => { rec.onstop = res; });
+    rec.start();
+    paint();
+    const t0 = performance.now();
+    await vid.play();
+    // A TIMER, not requestAnimationFrame or requestVideoFrameCallback: both are throttled to a
+    // couple of frames a second wherever the page is not being composited (measured in the
+    // Browser pane: 2 rAF a second against 31 timers), and the file then stutters. 30 a second,
+    // skipping a tick whose picture has not moved on.
+    await new Promise(res => {
+      let done = false, last = -1; const end = () => { if (!done) { done = true; res(); } };
+      const tick = () => {
+        if (done) return; if (ui.cancelled || vid.ended) return end();
+        const t = performance.now();
+        if (vid.currentTime !== last) { last = vid.currentTime; paint(); ui.progress(vid.duration ? vid.currentTime / vid.duration : 0); }
+        setTimeout(tick, Math.max(0, 33 - (performance.now() - t)));
+      };
+      vid.onended = end; vid.onerror = end;
+      setTimeout(tick, 33);
+    });
+    vid.pause(); rec.stop(); await stopped; stream.getTracks().forEach(t => t.stop());
+    this._anLast = { size: sizeKey, frames, secs: (performance.now() - t0) / 1000, mime };
+    if (ui.cancelled) return null;
+    return new Uint8Array(await new Blob(chunks, { type: mime }).arrayBuffer());
+  }
+  async anExport() {
+    if (this._anBusy) return;
+    const state = this.state, name = (state.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
+    this.anClip();
+    const vis = (state.variants || []).map((v, vi) => vi).filter(vi => this._clips[vi]);
+    if (!vis.length) { this.setState({ exportStatus: 'Add a video clip first.' }); return; }
+    const mime = CampaignStudio.anMime();
+    if (!mime) { this.setState({ exportStatus: 'This browser cannot record video. Use Chrome.' }); return; }
+    const ext = /mp4/.test(mime) ? 'mp4' : 'webm';
+    this._anBusy = true;
+    const ui = this.anDlg();
+    try {
+      const safeLoad = f => { try { return document.fonts.load(f).catch(() => null); } catch (e) { return Promise.resolve(null); } };
+      await Promise.all(['100 103px "Google Sans Flex"', '300 41px "Google Sans Flex"', '500 28px "Google Sans Flex"'].map(safeLoad));
+      const assets = await this.loadAssets(state);
+      const jobs = [];
+      vis.forEach(vi => ['sq', 'st'].forEach(k => { if (CampaignStudio.sizesFor(state, state.variants[vi]).includes(k)) jobs.push([vi, k]); }));
+      const files = [];
+      for (let i = 0; i < jobs.length; i++) {
+        const [vi, k] = jobs[i];
+        ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + (k === 'sq' ? '1:1' : '9:16') + '. It takes as long as the clip; keep this tab in front.');
+        const data = await this.anRecord(state, vi, k, assets, this._clips[vi], mime, ui);
+        if (!data) { this.setState({ exportStatus: 'Animated export cancelled — nothing was saved.' }); return; }
+        files.push({ name: this.exportPath(name, vi, k, ext).replace(/\.(mp4|webm)$/, '_animated.$1'), data });
+      }
+      ui.say('Saving…');
+      await this.deliver(files, name, { overwrite: true });
+    } catch (err) {
+      console.warn(err);
+      this.setState({ exportStatus: 'Animated export failed: ' + (err && err.message || err) });
+    } finally { this._anBusy = false; ui.close(); }
+  }
   async doExport(kind) {
     const state = this.state;
     const name = (state.campaign || 'Campaign').replace(/[^\w\-. ]/g, '').trim() || 'Campaign';
@@ -16488,7 +16667,13 @@ class CampaignStudio extends StudioBase {
           shDestSub: sel === 'pdf' ? 'One PDF, every page in order' : (inFolder ? where + extra + ' \u00b7 replaces the last export' : 'One zip \u00b7 ' + where + extra),
           shDestActOn: (fa && fa.supported) ? '1' : undefined, shDestAct: inFolder ? 'Change' : 'Choose folder',
           shExportLabel: sel === 'pdf' ? 'Export PDF' : 'Export ' + nImg + ' ' + (nImg === 1 ? one[sel] : plural[sel]),
-          shStatus: s.exportStatus || '', shStatusOn: (s.exportStatus && s.exportStatus !== 'Ready.') ? '1' : undefined
+          shStatus: s.exportStatus || '', shStatusOn: (s.exportStatus && s.exportStatus !== 'Ready.') ? '1' : undefined,
+          // ANIMATED: this variant's clip (kept on this computer), and its export
+          ...(() => { const c = this.anClip();
+            return { anOn: c ? '1' : undefined, anAddLabel: c ? 'Replace clip' : 'Add a video clip',
+              anNote: c ? c.name + (c.dur ? ' \u00b7 ' + Math.round(c.dur) + ' s' : '') + ' \u00b7 plays behind this design in place of the photo, framed as the photo is.'
+                : 'The same design over a video instead of the photo, as 1:1 and 9:16 video. Add the clip you generated from this background photo.',
+              anAdd: () => this.anAdd(), anRemove: () => this.anRemove(), anExport: () => this.anExport() }; })()
         };
       })(),
       ...this.splashNoteVals(),
