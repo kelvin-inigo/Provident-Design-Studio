@@ -97,12 +97,13 @@ exports download as a zip. The studios fit tablets and phones.
   Un-press it on the phase that goes audience-based (usually the third) and tick its audiences
   under **Audiences**. Projects already made stay where they are.
 - **Send to…** lists **Copy check** (**Translation check** on an Arabic project), **Arabic**,
-  **Animated**, **Video**, **Design** and **Done**, then asks who gets it: the content team for a
+  **Animated**, **MVP video**, **Design** and **Done**, then asks who gets it: the content team for a
   check, a designer for Arabic, Animated and Video, nobody for Done. After the first hand-off it
   stays in the **Ad set** tab's header.
 - **Deliverables** (a card in the **Ad set** tab): every audience needs **Static**, **Animated**
-  (the same design over a video background, 1:1 and 9:16) and the **MVP video** (the short
-  key-facts video from the Video Studio), each in English and Arabic. Static ticks itself once the
+  (the same CAS design with a video as its background instead of the photo, 1:1 and 9:16 — made
+  in CAS) and the **MVP video** (the short key-facts video — made only in the Video Studio, CASV,
+  and added in the ad set's **Video** section), each in English and Arabic. Static ticks itself once the
   project is sent on; press **Missing** beside the other two when they are delivered. It shows
   what is missing and never blocks **Done**. CAS does not make the animated version yet: it is
   made outside CAS for now.
@@ -131,7 +132,9 @@ Steps: **Draft** (social media manager) › **Design** (designer) › **Copy che
 **Approve copy** or **Back to design**) › **Ready**. At Ready a picker asks **Which social media
 manager gets it?**; a post that needs no copy check goes there with the designer's **Send to SMM**.
 The social media manager opens **Open the files**, publishes, and presses **Posted**.
-**Delete for everyone** is on the post's page.
+**Delete for everyone** is on the post's page; it also sends the post's Drive folder to Drive's
+trash (restorable for 30 days). The same goes for an ad set's **Delete for everyone**, and for
+**Remove** on a project or a video in Status: Drive follows what Status shows.
 
 Filling a post: the **guided run** goes page by page (**Pages in this post**, **Layout**, **Words**,
 **Agent**, **Pictures**, **QR code & listing number**), **Next** lists anything missing, and the

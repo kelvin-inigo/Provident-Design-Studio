@@ -665,7 +665,9 @@
         const gone = (rs.items || []).find(x => x.sid === body.remove);
         rs.items = (rs.items || []).filter(x => x.sid !== body.remove);
         try { const d = await dsRead(body.remove.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(body.remove.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; }
-        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set' }]);
+        // its folder goes to Drive's trash with it (see dsTrash)
+        if (gone) await dsTrashProject(rs, gone.sid);
+        if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set — its Drive folder is in the trash' }]);
       }
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
@@ -696,7 +698,16 @@
         if (was) V.list[V.list.indexOf(was)] = rec; else V.list.push(rec);
         V.on = true;
         dsLog(R.rs, by, [{ kind: 'step', text: (was ? 'Replaced the video “' : 'Added the video “') + rec.title + '”' + (was ? ' (version ' + rec.n + ')' : '') }]);
-      } else if (body.act === 'rm') { const v = one(); V.list = V.list.filter(x => x !== v); dsLog(R.rs, by, [{ kind: 'step', text: 'Removed the video “' + v.title + '”' }]); }
+      } else if (body.act === 'rm') {
+        // the two sizes and the CASV project go to Drive's trash, then the Video folder if empty
+        const v = one(); V.list = V.list.filter(x => x !== v);
+        const ids = [v.f && v.f['9x16'], v.f && v.f['1x1'], v.proj].filter(Boolean), held = new Set();
+        V.list.forEach(x => [x.f && x.f['9x16'], x.f && x.f['1x1'], x.proj].forEach(k => k && held.add(k)));
+        let dir = '';
+        for (const k of ids) { if (held.has(k)) continue; if (!dir) try { dir = ((await dsMeta(k)).parents || [])[0] || ''; } catch (e) { if (e.gdAuth) throw e; } await dsTrash(k); }
+        if (dir) try { await dsPrune(dir, R.rs.folder); } catch (e) { if (e.gdAuth) throw e; }
+        dsLog(R.rs, by, [{ kind: 'step', text: 'Removed the video “' + v.title + '” — its files are in Drive’s trash' }]);
+      }
       else if (body.act === 'note') {
         const v = one(), text = String(body.text || '').trim().slice(0, 600); if (!text) throw dsFail(400, 'Write the comment first.');
         v.notes = (v.notes || []).concat({ id: dsRand(6), t: Math.max(0, Math.round((+body.t || 0) * 100) / 100), text, by, em: txt(body.em, 120), at: dsNow(), done: false }).sort((a, b) => a.t - b.t).slice(0, 200);
@@ -747,9 +758,26 @@
     }
     if (op === 'rsdel') {
       if (!R.rs || R.role !== 'dd') throw dsFail(403, 'Only the designer deletes an ad set.');
-      for (const it of R.rs.items || []) { try { const d = await dsRead(it.sid.slice(1), true); if (d.review) { delete d.review.rid; await dsWrite(it.sid.slice(1), d); } } catch (e) { if (e.gdAuth) throw e; } }
-      R.rs.deleted = dsNow(); R.rs.items = []; R.rs.tok = {};
-      await dsWrite(R.rid, R.rs);
+      // DELETE FOR EVERYONE (2026-11-16, by request) empties the ad set on Drive too: every
+      // project's folder, the Video folder and the Ad set.json go to Drive's trash, then the
+      // campaign folder if nothing else is left in it. The record is marked deleted first, so a
+      // computer still holding its link reads it as deleted rather than as missing.
+      const rs = R.rs, items = rs.items || [];
+      rs.deleted = dsNow(); rs.items = []; rs.tok = {};
+      await dsWrite(R.rid, rs);
+      await dsTrash(R.rid);
+      for (const it of items) await dsTrashProject(rs, it.sid);
+      if (rs.folder) {
+        try {
+          for (const f of await dsList(rs.folder)) {
+            if (f.mimeType !== DS_FOLDER) continue;
+            if (f.name === 'Video') { await dsTrash(f.id); continue; }
+            // a phase folder (or a market folder) nothing else uses any more
+            await dsPrune(f.id, rs.folder);
+          }
+        } catch (e) { if (e.gdAuth) throw e; }
+      }
+      if (rs.folder) try { await dsPrune(rs.folder, ''); } catch (e) { if (e.gdAuth) throw e; }
       return { deleted: true };
     }
     // Put a project that lost its link back in its ad set (see dsKeepReview): the designer's
@@ -875,6 +903,33 @@
     await dsFetch('/drive/v3/files/' + lang + '?addParents=' + a2 + '&removeParents=' + ((lm.parents || [])[0] || '') + '&supportsAllDrives=true&fields=' + DS_F,
       { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: DS_LANG[to.lang] || to.lang }) });
     delete DSP[sid];
+  }
+  // DRIVE FOLLOWS STATUS (2026-11-16, by request): what leaves an ad set on Status leaves its Drive
+  // folder too — to Drive's trash, never a hard delete, so it can be restored for 30 days.
+  // `dsTrash` moves one file or folder there (a file already gone is fine); `dsPrune` then trashes
+  // the folders above it that are left empty, stopping at `stop` (the ad set's own folder).
+  async function dsTrash(id) {
+    if (!id) return;
+    try { await dsFetch('/drive/v3/files/' + id + '?supportsAllDrives=true&fields=' + DS_F, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); }
+    catch (e) { if (e.gdAuth) throw e; }
+  }
+  async function dsPrune(folder, stop) {
+    for (let i = 0; i < 4 && folder && folder !== stop && folder !== dsHome(); i++) {
+      if ((await dsList(folder)).length) return;
+      const up = ((await dsMeta(folder)).parents || [])[0];
+      await dsTrash(folder); folder = up;
+    }
+  }
+  // a project's own folder (<Market>/<Audience>/<Language>: its file, Assets, its exports), then
+  // the audience, market and phase folders it leaves empty
+  async function dsTrashProject(rs, sid) {
+    try {
+      const lang = ((await dsMeta(sid.slice(1))).parents || [])[0];
+      if (!lang || lang === (rs && rs.folder)) return dsTrash(sid.slice(1));
+      const up = ((await dsMeta(lang)).parents || [])[0];
+      await dsTrash(lang); delete DSP[sid];
+      await dsPrune(up, rs && rs.folder);
+    } catch (e) { if (e.gdAuth) throw e; }
   }
   // A picture's file name in Assets/: what it is, then which variant.
   function dsAssetName(sl) {
@@ -2869,7 +2924,7 @@
   const STEP_LABELS = ['Design', 'ENG copy check', 'Translation', 'Done'];
   // THE TASKS A PROJECT CAN BE SENT TO (2026-11-16): design and copy are the review's own steps
   // (it.design / it.copy); the others are kept as it.task = { k, by, at }, read through taskOf
-  const TASK_L = { design: 'Design', copy: 'Copy check', arabic: 'Arabic', animated: 'Animated', video: 'Video', done: 'Done' };
+  const TASK_L = { design: 'Design', copy: 'Copy check', arabic: 'Arabic', animated: 'Animated', video: 'MVP video', done: 'Done' };
   const taskOf = it => it && it.task && TASK_L[it.task.k] && it.task.k !== 'design' && it.task.k !== 'copy' ? it.task.k : '';
   // THE MINIMUM DELIVERABLES of an audience: static, animated, the MVP video — each in English and
   // Arabic. Static is read off the projects; the other four are ticked by hand (rs.dl[audience key])
@@ -3233,8 +3288,8 @@
     const rows = [
       ['copy', arb ? 'Translation check' : 'Copy check', 'The content team checks the words'],
       ['arabic', 'Arabic', 'A designer lays out the Arabic version'],
-      ['animated', 'Animated', 'A designer makes the animated version: this design over a video background'],
-      ['video', 'Video', 'A designer makes the MVP video in the Video Studio'],
+      ['animated', 'Animated', 'A designer makes the animated version in CAS: this design over a video background'],
+      ['video', 'MVP video', 'A designer makes the MVP video in the Video Studio (CASV) and adds it to the ad set’s Video section'],
       ['design', 'Design', 'Back in design, to change the ad'],
       ['done', 'Done', 'Nothing is left on this project']
     ].filter(r => !(arb && r[0] === 'arabic'));
@@ -4955,9 +5010,14 @@
     }
     if (a === 'addopen') { this.addOpen = true; this.draw(); const f = this.el.querySelector('.rva-mod button[data-a="addproj"],.rva-mod-x'); if (f) f.focus(); return; }
     if (a === 'addx') { if (t.classList.contains('rva-mod') && e.target !== t) return; this.addOpen = false; this.draw(); const o = this.el.querySelector('[data-a="addopen"]'); if (o) o.focus(); return; }
-    if (a === 'vid' || a === 'vidadd') {
+    if (a === 'vid' || a === 'vidadd' || a === 'vidrep' || a === 'vidrm') {
       const rs = this.det && this.det.rs; if (!rs) return;
-      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again); else vidAdd(this.sel, rs, by, again);
+      const m = t.closest('details'); if (m) m.open = false;
+      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again);
+      else if (a === 'vidadd') vidAdd(this.sel, rs, by, again);
+      else { const v = vidList(rs).find(x => x.id === t.dataset.vid); if (!v) return;
+        if (a === 'vidrep') vidAdd(this.sel, rs, by, again, v);
+        else if (window.confirm(VID_RM_Q(v))) { try { await api('rsvideo', { id: this.sel }, { by, vid: v.id, act: 'rm' }); again(); } catch (er) { window.alert(er.message || String(er)); } } }
       return;
     }
     if (a === 'settings') {
@@ -4990,10 +5050,10 @@
       try { await api('rsset', { id: this.sel }, body); this.edit = null; if (to) this.load(true); again(); }
       catch (er) { t.disabled = false; t.textContent = 'Save'; window.alert(er.message || String(er)); }
     }
-    if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set? The project itself is not deleted and its own edit link keeps working; it just leaves the ad set and its review.')) {
+    if (a === 'rmproj' && window.confirm('Remove ' + (t.dataset.lab || 'this project') + ' from the ad set?\n\nIts folder in the ad set’s Google Drive folder (the project, its pictures and exports) goes to Drive’s trash, where it can be restored for 30 days.')) {
       try { await api('rsset', { id: this.sel }, { by, remove: t.dataset.sid }); again(); } catch (er) { window.alert(er.message || String(er)); }
     }
-    if (a === 'delset' && window.confirm('Delete this whole ad set for everyone? Its three links stop working and its review history goes. The projects themselves stay, each on its own edit link.')) {
+    if (a === 'delset' && window.confirm('Delete this whole ad set for everyone?\n\nIts three links stop working and its review history goes. On Google Drive every project folder, the videos and the ad set’s record go to the trash (restorable for 30 days), then the campaign folder if nothing else is in it.')) {
       try { await api('rsdel', { id: this.sel }, {}); Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
       catch (er) { window.alert(er.message || String(er)); }
     }
@@ -5150,6 +5210,7 @@
   const vidCan = () => { const r = accRole(); return !r || r === 'designer' || r === 'admin'; };
   const vidT = t => { t = Math.max(0, +t || 0); return Math.floor(t / 60) + ':' + ('0' + Math.floor(t % 60)).slice(-2); };
   const vidList = rs => ((rs && rs.video && rs.video.list) || []);
+  const VID_RM_Q = v => 'Remove “' + v.title + '” from this ad set?\n\nIts comments go with it. The Reel, the Square and its Video Studio project go to Google Drive’s trash, where they can be restored for 30 days.';
   const vidOn = rs => !!(rs && rs.video && (rs.video.on || vidList(rs).length));
   const VID_SIZE = { '9x16': 'Reel 9:16', '1x1': 'Square 1:1' };
   const VID_BLOBS = {};
@@ -5228,6 +5289,13 @@
 .vdo-pick{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink);font:400 14px/1.3 var(--ps-font);text-align:left;cursor:pointer}
 .vdo-pick[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--ps-ink)}
 .vdo-pick s{text-decoration:none;margin-left:auto;color:var(--ps-ink-2);font-size:13px}
+.vdo-opt{padding:14px 16px}
+.vdo-opt span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.vdo-opt b{font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
+.vdo-opt s{margin-left:0;font:400 13px/1.4 var(--ps-font)}
+.vdo-opt:hover:not(:disabled){background:var(--ps-fill)}
+.vdo-opt:disabled{opacity:.55;cursor:default}
+.vdo-opt:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .vdo-files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .vdo-files label{display:flex;flex-direction:column;gap:6px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);min-width:0}
 .vdo-files input{min-width:0;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink)}
@@ -5236,7 +5304,8 @@
     document.head.appendChild(s);
   }
   // The Status ad set page's Video section: a tile per video, then the Add video placeholder.
-  function vidSecHtml(rs) {
+  // `menu`: the Status page's ··· on each tile (Replace video, Remove), as its project tiles have
+  function vidSecHtml(rs, menu) {
     if (!vidOn(rs)) return '';
     vidCss(); vidTell(rs);
     const can = vidCan(), list = vidList(rs);
@@ -5244,7 +5313,10 @@
       return '<div class="rva-lt"><button type="button" class="rva-pj" data-a="vid" data-vid="' + esc(v.id) + '" title="Play it, comment on its timeline, download the Reel and the Square">' +
         '<span class="rva-lt-th vdo-th">' + (v.thumb ? '<img src="' + esc(v.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-lt-t"><b>' + esc(v.title) + '</b><s>' + esc([vidT(v.dur), v.aud || 'All audiences', '9:16 and 1:1'].join(' · ')) + '</s><u><i></i>' +
-        (open ? open + (open === 1 ? ' comment' : ' comments') + ' open' : all.length ? 'Comments dealt with' : 'No comments yet') + '</u></span>' + ico('ext') + '</button></div>'; };
+        (open ? open + (open === 1 ? ' comment' : ' comments') + ' open' : all.length ? 'Comments dealt with' : 'No comments yet') + '</u></span>' + ico('ext') + '</button>' +
+        (menu && can ? '<details class="rvd-mn" name="rvd-mn"><summary title="Replace or remove this video" aria-label="' + esc('Actions for ' + v.title) + '">' + MORE + '</summary><span class="rvd-mnl">' +
+          '<button type="button" data-a="vidrep" data-vid="' + esc(v.id) + '">Replace video</button>' +
+          '<button type="button" class="rva-dng" data-a="vidrm" data-vid="' + esc(v.id) + '">Remove</button></span></details>' : '') + '</div>'; };
     const ph = can ? '<button type="button" class="rvd-ph" data-a="vidadd" title="Takes the two sizes from the Video Studio on this computer, or two files you choose, into this ad set’s Drive folder">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Add video</b><s>From CASV on this computer, or choose the two files</s></span></button>'
       : list.length ? '' : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Video</b><s>Not added yet — the designer adds it from the Video Studio</s></span></div>';
@@ -5271,8 +5343,50 @@
       return { thumb: c.toDataURL('image/webp', .7), dur: video ? src.duration || 0 : 0, w, h };
     } catch (e) { return { thumb: '', dur: 0 }; } finally { URL.revokeObjectURL(url); }
   }
-  // ADD (or replace) a video. `rep` is the record being replaced: its id, comments and name stay.
+  // ADD VIDEO ASKS FIRST (2026-11-16, by request): one made in CASV already (the dialog below), or
+  // a new one: that opens the Video Studio on this computer and waits here, and the video it sends
+  // (Send to CAS) comes back picked. The MVP video is CASV's alone; the animated ads are CAS's.
+  const CASV_PAGE = () => CASV_AT() + '/Provident%20Video%20Studio.html';
   function vidAdd(id, rs, by, after, rep) {
+    if (rep) return vidAddFrom(id, rs, by, after, rep);
+    vidCss();
+    const el = document.createElement('div'); el.className = 'shl-dlg';
+    el.innerHTML = '<div class="shl-dlg-c vdo-add" role="dialog" aria-modal="true" aria-labelledby="vdc-t">' +
+      '<div><h2 id="vdc-t">Add video</h2><p class="shl-lead">The MVP video is made in the Video Studio (CASV) on this computer.</p></div>' +
+      '<div class="vdo-src"><button type="button" class="vdo-pick vdo-opt" data-c="have"><span><b>Add one made in CASV</b><s>A video sent from the Video Studio, or its two files</s></span></button>' +
+      '<button type="button" class="vdo-pick vdo-opt" data-c="new"><span><b>Make a new one in CASV</b><s>Opens the Video Studio. Press Send to CAS there when it’s done.</s></span></button></div>' +
+      '<p class="shl-st" aria-live="polite"></p>' +
+      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
+    document.body.appendChild(el);
+    const st = (t, bad) => { const p = el.querySelector('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
+    let poll = 0;
+    const close = () => { clearInterval(poll); el.remove(); };
+    const ids = async () => ((await (await fetch(CASV_AT() + '/api/outbox/list')).json()).videos || []).filter(o => o.sizes && o.sizes['9x16'] && o.sizes['1x1']).map(o => o.id + ':' + (o.at || ''));
+    el.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    el.addEventListener('click', async e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.x) return close();
+      if (b.dataset.c === 'have') { close(); return vidAddFrom(id, rs, by, after); }
+      if (b.dataset.c !== 'new') return;
+      let seen;
+      try { seen = new Set(await ids()); }
+      catch (er) { return st('The Video Studio is not running on this computer. Start it, then press Make a new one again.'); }
+      window.open(CASV_PAGE(), '_blank');
+      el.querySelectorAll('.vdo-opt').forEach(x => { x.disabled = true; });
+      st('The Video Studio is open in a new tab. Make the video there and press Send to CAS — it comes back here. You can also close this and press Add video later.', false);
+      clearInterval(poll);
+      poll = setInterval(async () => {
+        if (!el.isConnected) return clearInterval(poll);
+        let now; try { now = await ids(); } catch (er) { return; }
+        const got = now.find(k => !seen.has(k));
+        if (got) { close(); vidAddFrom(id, rs, by, after, null, got.split(':')[0]); }
+      }, 3000);
+    });
+    setTimeout(() => { const f = el.querySelector('.vdo-opt'); if (f) f.focus(); }, 0);
+  }
+  // ADD (or replace) a video. `rep` is the record being replaced: its id, comments and name stay.
+  // `want`: the CASV video to have picked (one just sent from a new project).
+  function vidAddFrom(id, rs, by, after, rep, want) {
     vidCss();
     const auds = [...new Set(rsAuds(rs).map(a => a.label))];
     let pick = null, out = [];
@@ -5295,7 +5409,7 @@
     };
     fetch(CASV_AT() + '/api/outbox/list').then(r => r.json()).then(j => {
       out = (j.videos || []).filter(o => o.sizes && o.sizes['9x16'] && o.sizes['1x1']);
-      if (rep && rep.casv && out.some(o => o.id === rep.casv)) pick = rep.casv; else if (out.length === 1) pick = out[0].id;
+      if (rep && rep.casv && out.some(o => o.id === rep.casv)) pick = rep.casv; else if (want && out.some(o => o.id === want)) pick = want; else if (out.length === 1) pick = out[0].id;
       if (pick && !ti.value) ti.value = (out.find(o => o.id === pick) || {}).title || '';
       drawOut();
     }).catch(() => drawOut());
@@ -5446,7 +5560,7 @@
         b.disabled = false; b.textContent = was; return;
       }
       if (b.dataset.rep) { const was = v; close(); return vidAdd(id, rs, by, after, was); }
-      if (b.dataset.rm && window.confirm('Remove “' + v.title + '” from this ad set?\n\nIts comments go with it. The two files stay in the Drive folder.')) { if (await call({ act: 'rm' })) close(); }
+      if (b.dataset.rm && window.confirm(VID_RM_Q(v))) { if (await call({ act: 'rm' })) close(); }
     });
     draw(); load(); push();
     setTimeout(() => { const x = $('.vdo-x'); if (x) x.focus(); }, 0);
@@ -5645,7 +5759,7 @@
       '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.

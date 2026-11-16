@@ -2321,3 +2321,43 @@ access.js. No canvas code was touched.
   `RV`'s link windows still offer the old step buttons only; Copy from Claude has no Broad
   section to fill from; dark theme, phones, real Drive and the content team's and PM's views of a
   Broad audience were not exercised; `v.aud` of an ad set video does not tick MVP video by itself.
+
+
+## DRIVE FOLLOWS STATUS; THE VIDEO TILE'S ⋯; ADD VIDEO ASKS FIRST (2026-11-16)
+
+By request (annotated screenshots of a Status ad set page): Remove on the video card, Add video
+asks "existing from CASV or new in CASV", Delete for everyone clears Drive, and anything removed
+from the audiences block is removed on Drive too. The user also settled the split: **the MVP video
+is CASV's alone** (the ad set's Video section); **Animated is CAS** — the same design with an
+uploaded video background (the `cas-animated` branch). `TASK_L.video` now reads "MVP video".
+
+- **What already followed Drive** (unchanged): Change audience / Move to (`dsMove`), renaming a
+  phase (renames its folder), a new project (`dsProject`), Start the Arabic.
+- **New, all in `dsApi`, all to Drive's TRASH (never a hard delete; 30 days to restore):**
+  `dsTrash(id)`, `dsPrune(folder, stop)` (trashes folders left empty, upward, never past the ad
+  set's folder or the campaigns home), `dsTrashProject(rs, sid)` (the project's language folder,
+  or the file alone when it sits flat in the campaign folder as the seeded ones do).
+  - `rsset remove` trashes the project's folder after clearing its `rid`. This REVERSES the old
+    rule "the project is not deleted, its edit link keeps working" — the user asked for it.
+  - `rsvideo rm` trashes the Reel, the Square and the `.casv` (any file still used by another
+    video on the list is kept), then the Video folder if empty.
+  - `rsdel` writes `deleted` first (a computer holding the link still reads "deleted", Drive
+    can read a trashed file by id), trashes the record, every project, the Video folder, the
+    empty phase / market folders, then the campaign folder if empty. OPS posts go through the same
+    `rsdel`, so a post's Delete for everyone now trashes its folder too (post-flow.js wording).
+- **Video tile ⋯** (`vidSecHtml(rs, menu)`; Status passes `true`, CAS's Ad set tab does not, its
+  stylesheet has no `.rvd-mn`): Replace video (`vidAdd` with `rep`) and Remove (`VID_RM_Q`).
+- **Add video asks first**: `vidAdd` without `rep` is now a chooser; the old dialog is
+  `vidAddFrom(id, rs, by, after, rep, want)`. "Make a new one in CASV" checks CASV's server
+  (`/api/outbox/list`) answers, opens `CASV_PAGE()` in a new tab, then polls the outbox every 3 s;
+  the first new `id:at` closes the chooser and opens `vidAddFrom` with it picked (`want`). CASV
+  itself has no "new project" action — it opens on whatever project is open there.
+- **Verified** on share-dev :8793 (stand-in Drive), a nested project made by hand
+  (Local/Family/English/Assets) and a hand-made video record: ⋯ on the tile shows Replace video /
+  Remove; Remove trashed the two MP4s, the .casv and Video/; the chooser's two options; "Make a new
+  one" opened `http://localhost:8794/Provident%20Video%20Studio.html` (window.open stubbed) and a
+  stubbed new outbox entry came back picked and named; project Remove trashed English/, Family/,
+  Local/; Delete for everyone on Damac Lagoons removed its folder and nothing else; an OPS post's
+  Delete for everyone left no file of it. No console errors.
+- **Not run:** real Google Drive (the stand-in does not cascade a folder's trash to its children;
+  Drive does), a real Send to CAS round trip, dark theme, phones, the PM / content team views.

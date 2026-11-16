@@ -437,8 +437,9 @@ where it is, whatever the reach.
 #### The minimum deliverables
 
 Every audience has three deliverables, each in English and Arabic: **Static**, **Animated** (the
-same design over a video background, 1:1 and 9:16) and the **MVP video** (the short key-facts
-video from the Video Studio). The **Ad set** tab shows them in a **Deliverables** card. **Static**
+same CAS design with a video as its background instead of the photo, 1:1 and 9:16, made in CAS) and
+the **MVP video** (the short key-facts video, made only in the Video Studio, CASV, and added in the
+ad set's **Video** section). The **Ad set** tab shows them in a **Deliverables** card. **Static**
 ticks itself when the project is sent on. Press **Missing** beside **Animated** or **MVP video**
 when it is delivered; it turns to **Done** and the Activity says who ticked it. The card only shows
 what is missing: it never stops a project being sent to **Done**.
@@ -677,8 +678,9 @@ its designs, each design's look (branded or unbranded) and its languages.
   audience has no Arabic, the place says **Not needed**.
   The **⋯** button at the end of a project's tile holds its actions:
   **Change audience** (its market, audience and language — **Set its audience** on a project that
-  has none, shown as "Project"), **Already approved**, and **Remove**, which takes it out of the ad set. The project
-  itself is not deleted and its own edit link keeps working. **Change audience** also has an
+  has none, shown as "Project"), **Already approved**, and **Remove**, which takes it out of the ad set. Its folder in the ad
+  set's Google Drive folder (the project, its pictures and exports) goes to Drive's trash, where it
+  can be restored for 30 days, with the audience and market folders it leaves empty. **Change audience** also has an
   **Ad set** field: pick **Move to <another ad set>** (and its phase, when it has more than one),
   then **Move**. The project leaves this ad set and joins the other one with its steps, and its
   Drive folder moves into the other ad set's folder at its new market, audience and language.
@@ -697,7 +699,8 @@ its designs, each design's look (branded or unbranded) and its languages.
   Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
   set tab, under **Audiences**.
 - **Ad set links:** one row per team, with **Copy link**.
-- **Video** (when the ad set has video on): a card with each video and **Add video**.
+- **Video** (when the ad set has video on): a card with each video and **Add video**. The **⋯** on a
+  video's tile holds **Replace video** and **Remove**.
 - **Activity:** every step and every word changed in every project, newest first, under its day,
   one line each. The latest six show; **Show all** lists the rest. The buttons above it show one
   kind at a time: **Progress** (designs done, copy approved, sent on), **Projects** (added,
@@ -709,8 +712,14 @@ its designs, each design's look (branded or unbranded) and its languages.
 To add an ad set from another computer, paste its **designer** link into the box at the top.
 **Remove from this list** only removes it from this computer, and it stays removed. Opening one of
 its projects no longer brings it back; paste its designer link to add it again. The links keep
-working. **Delete this ad set for everyone** ends it: its three links stop working and its review
-history goes. Its projects stay, each on its own edit link. The record
+working. **Delete for everyone** ends it: its three links stop working and its review history goes. On
+Google Drive, every project's folder, the **Video** folder and the ad set's record go to Drive's
+trash (restorable for 30 days), then the campaign folder itself if nothing else is left in it.
+
+**Drive follows Status.** Whatever changes on the ad set page changes in its Drive folder too:
+**Change audience** and **Move to** move the project's folder, renaming a phase renames its folder,
+a new project gets its own folder, and **Remove** (a project or a video) and **Delete for everyone**
+send their files to Drive's trash. The record
 (status, dates, log, links) is kept even after a project expires. Full-size photos expire after
 60 days unused; the project and its previews stay.
 
@@ -729,9 +738,13 @@ admin see Add video.
 1. In the Video Studio press **Send to CAS**, name the video and press **Record and send**. It records
    the **Reel 9:16** and then the **Square 1:1** (twice the video's length) and keeps both on that
    computer.
-2. In Status, open the ad set and press **Add video**. Under **From CASV on this computer** pick the
-   video, choose its **Audience** (or All audiences) and press **Add video**. Both sizes are uploaded
-   into the ad set's Drive folder, in **Video**.
+2. In Status, open the ad set and press **Add video**. It asks first:
+   - **Add one made in CASV**: under **From CASV on this computer** pick the video, choose its
+     **Audience** (or All audiences) and press **Add video**. Both sizes are uploaded into the ad
+     set's Drive folder, in **Video**.
+   - **Make a new one in CASV**: opens the Video Studio on this computer in a new tab (it must be
+     running). Make the video there and press **Send to CAS**; the Add video window comes back with
+     that video picked and named. Then choose its audience and press **Add video**.
 3. On another computer, use **Or choose the two files** and pick the Reel and the Square.
 
 **The project is saved with it.** Send to CAS also packs the Video Studio project and the media it
@@ -750,6 +763,10 @@ at the top.
 - **Download Reel 9:16** and **Download Square 1:1** save the two MP4 files. Performance marketing's
   downloads are written to the ad set's Activity.
 - Performance marketing also has a **Video** button in the bar of **Open the package**.
+
+**Remove a video.** The **⋯** on its tile, or **Remove** in its window. Its comments go with it,
+and the Reel, the Square and its `.casv` project go to Google Drive's trash (restorable for 30
+days), then the **Video** folder if it is empty.
 
 **Back to the designer.** When the designer has the home page, Status or the ad set open on the
 computer that made the video, the comments are sent to the Video Studio on their own (the video does
@@ -1252,8 +1269,8 @@ the project's name, so looking at a template no longer leaves an "Untitled post"
 
 **Delete for everyone** (a post's page, under the brief; the admin, designers and the social media
 manager) takes the post off Status and Home on every computer. Click it once, then click again
-(**Click again to delete …**) within a few seconds. Its files stay in
-its Google Drive folder. **Take off this computer's Status** only hides it here.
+(**Click again to delete …**) within a few seconds. Its Google Drive folder goes to Drive's trash,
+where it can be restored for 30 days. **Take off this computer's Status** only hides it here.
 
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most
 urgent first, with their step, who handed them over and when they're due. A post's page there has
