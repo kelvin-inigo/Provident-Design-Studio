@@ -82,7 +82,18 @@
       cells: [['Local', 'Family', true], ['Local', 'Investor', false]] },
     { name: 'Ellington Belgrove Residences', product: 'residential', img: 'campaign-d', filed: 15 * D, by: 'pm', deadline: -6, unbranded: true,
       auds: [['International EUR', 'Investor', 'ENG', 'done'], ['International', 'Investor', 'ENG', 'done']],
-      cells: [['International', 'Investor', false], ['International EUR', 'Investor', false]] }
+      cells: [['International', 'Investor', false], ['International EUR', 'Investor', false]] },
+    // several phases, a mixed look and a second design: an audience entry may end with its phase,
+    // and its name may carry " · Design 2" and " · Unbranded" (the ad set page's whole structure)
+    { name: 'Palm Springs by Nakheel', product: 'residential', img: 'campaign-f', filed: 19 * D, by: 'pm', deadline: 6, brand: 'mixed',
+      phases: ['teaser', 'launch', 'x:Showcase'],
+      auds: [['Local', 'Family', 'ENG', 'done', '', 'teaser'], ['Local', 'Family', 'ARB', 'done', '', 'teaser'], ['Local', 'Investor', 'ENG', 'done', '', 'teaser'],
+        ['Local', 'Family', 'ENG', 'arb', '', 'launch'], ['Local', 'Family', 'ARB', 'arbcopy', 'ctar', 'launch'],
+        ['Local', 'Family · Unbranded', 'ENG', 'copy', 'cten', 'launch'],
+        ['Local', 'Family · Design 2', 'ENG', 'design', 'admin', 'launch'],
+        ['Local', 'Investor', 'ENG', 'design', 'd1', 'launch'],
+        ['Local', 'Family', 'ENG', 'design', 'admin', 'x:Showcase']],
+      cells: [['Local', 'Family', true], ['Local', 'Investor', false], ['International', 'Investor', false]] }
   ];
   const SIZES = ['Feed 1:1', 'Portrait 4:5', 'Story 9:16', 'Horizontal 1.91:1'];
   const ymd = days => { const d = new Date(now + days * D); return d.toISOString().slice(0, 10); };
@@ -94,7 +105,7 @@
       folder, eng_only: {}, items: [], hist: [{ act: 'ticket', by: by.name, at }], log: [],
       plan: c.cells.map(x => ({ market: x[0], aud: x[1], arb: x[2] })),
       ticket: { brief: c.brief || 'Launch campaign. Brief in the Drive folder.', deadline: ymd(c.deadline), by: by.name, at, files: [], to: c.for ? { email: TEAM[c.for].email, name: TEAM[c.for].name } : null },
-      phase0: 'launch', phases: ['launch'], brand: c.unbranded ? 'unbranded' : 'provident' };
+      phase0: (c.phases || ['launch'])[0], phases: c.phases || ['launch'], brand: c.brand || (c.unbranded ? 'unbranded' : 'provident') };
     c.cells.forEach(x => { if (!x[2]) rs.eng_only[x[0] + '|' + x[1]] = true; });
     rs.log.push(entry(by, at, 'Filed the ticket' + (rs.ticket.to ? ' for ' + rs.ticket.to.name : '')));
     const f = await k.dsCreate(folder, k.dsSafe(c.name) + '_Adset.json', k.dsJson(rs)), rid = f.id, t = () => 'R' + k.dsRand(10) + '.' + rid;
@@ -102,7 +113,7 @@
     const designer = i % 2 ? TEAM.d1 : TEAM.admin;
     let tcur = at + 3 * H, lastThumb = '';
     for (const a of (c.auds || [])) {
-      const [market, aud, lang, st, who] = a;
+      const [market, aud, lang, st, who, ph] = a;
       if (st === 'plan') continue;
       if (!rs.picked) { rs.picked = { by: designer.name, at: tcur }; rs.log.push(entry(designer, tcur, 'Picked up the ticket')); }
       const label = market + ' · ' + aud + (lang === 'ARB' ? ' · Arabic' : '');
@@ -111,7 +122,7 @@
         { campaign: c.name, mode: 'single', variants: 2, sizes: SIZES.slice(0, 3 + (i % 2)), comps: 5, brand: rs.brand });
       lastThumb = th;
       const designDone = st !== 'design', copyDone = st === 'done' || st === 'arb' || (lang === 'ENG' && st === 'arbcopy');
-      const it = { sid: p.sid, market, aud, lang, phase: 'launch', added: tcur, by: designer.name,
+      const it = { sid: p.sid, market, aud, lang, phase: ph || 'launch', added: tcur, by: designer.name,
         design: designDone ? step(designer, tcur + 20 * H) : null,
         copy: copyDone ? step(lang === 'ARB' ? TEAM.ctar : TEAM.cten, tcur + 30 * H) : null,
         to: !designDone ? to(TEAM[who || 'admin'], designer, tcur) : (!copyDone ? to(TEAM[who || (lang === 'ARB' ? 'ctar' : 'cten')], designer, tcur + 20 * H) : null) };

@@ -2198,3 +2198,49 @@ replaced; the open-and-replace step is proven on the stand-in only.
   page (a hash-only navigation does not reload): the video was replaced (version 2) and NO project
   was saved, silently. Reload the site before testing a site-side change; users get it on their
   next full load.
+# STATUS › AN AD SET'S PAGE SHOWS ITS STRUCTURE (2026-11-16, /impeccable)
+
+By request ("the goal is to show the structure properly"). The hierarchy is campaign › phase ›
+audience › design › look › language, and `AV.detHtml` now nests the page the same way. Every
+`data-a` action and its dataset is unchanged; nothing in the data model moved.
+
+- **Header card = the campaign only** (`.rvd-h`): thumbnail, product + brand, name, pill, dates,
+  and one facts line (`.rvd-fx`: markets · projects across audiences · sizes). The **Details card
+  is gone** from the side — it restated the header and the tabs; its facts are that line.
+- **Phase card** (`.rvd-phc`) heads the MAIN column, over what it governs: the tabs
+  (`phTabsHtml`), the four steps (numerals 22px) and the now-line. The old `.rvd-hs` half of the
+  header is gone. The side column (Team links, Brief, Drive location, Remove/Delete) is
+  campaign-level and starts level with it.
+- **Waiting on** chips drop the phase name (`audName`: market · audience); for the designer they
+  are buttons (`data-a="jump"`, `data-k` = the audience key) that scroll to that row and flash it
+  (`.rvd-lk[data-hit]`). Spans for ct / pm, who have no audience list.
+- **Audiences**: `groups` are built from `rsCells` FIRST (plan order), then `rsAuds` — so a card
+  per market|`audRoot` whether started or not; the separate "Not started" rows at the foot
+  (`planRows`) and the per-design/per-look cards are gone. A group holds `ds[]` (one per
+  `dsgOf`), each with `b` / `u` (branded / unbranded) = `{ aud, a?, c? }`.
+  - card head `.rvd-auh`: market over the name (h4), and at the right "2 designs · 1 of 3 done".
+  - a design is `.rvd-dzb` with an h5 **Design n** (always shown for a planned audience).
+  - a look is one `.rvd-lk` row (`lookRow`): `.rvd-lkh` at the left (Branded / Unbranded when the
+    design has both, then `.rvd-aus` — step, sub-line, segments), `.rvd-lkc` a two-column grid of
+    language cells. Unbranded with no project: **Start the unbranded** (`ubTile`, spans both
+    columns) once the branded English exists; else the planned cell's blank Start the English /
+    Arabic when it is in the plan; else the quiet "Start the English first". The blank unbranded
+    start is no longer offered once the branded English exists (the copy is the flow).
+  - a project tile is one ringed `.rva-lt` (ring on the wrapper inside `.rvd-lkc`); its three
+    actions sit in `details.rvd-mn` (the **⋯** summary, `MORE` icon) — same buttons, same
+    `data-a` (relab / approve / rmproj). `AV.click` closes menus on a click elsewhere, Escape
+    closes and refocuses, and `AV.draw` reopens the open one after a timed redraw. While Change
+    audience is open the tile carries `data-ed` and spans the row.
+  - an empty slot keeps `.rvd-ph` (access.js hides it for limited accounts): dashed, a 32px ring
+    plus, min-height 71 = a tile. "Not needed" is words with no box.
+  - **Add a design** is a quiet row at the card's foot; the next number counts planned designs too.
+- `.rvd-aut` stays for the Video section (`vidSecHtml`), which sits under the audiences.
+- Removed CSS: `.rvd-hs`, `.rvd-tw`, `.rvd-chs`, `.rvd-brc`, `.rvd-dzc`, `[data-mx]`.
+- Under 760px of container: look rows and language cells stack, the ⋯ target is 40px.
+- `tools/share-dev/seed.js` gained **Palm Springs by Nakheel**: three phases, Mixed, a Design 2,
+  an unbranded twin, a planned-only audience. A seed audience may end with its phase.
+- Verified on the share-dev server (8791) as admin and as pm: 0 text-contrast failures and no
+  horizontal overflow in dark and light at 1440, 1280 and 375; menu hit-tested with
+  elementFromPoint; Already approved run through the menu end to end; Change audience form,
+  the jump chip, a single-phase non-mixed ad set. Not run: Start slots opening CAS, Remove, Move
+  to another ad set, the content-team role, Status inside CAS itself, real Drive, Safari.

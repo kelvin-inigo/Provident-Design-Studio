@@ -466,7 +466,8 @@ To run both in one ad set, pick **Mixed** under **Brand** in **Ad set settings**
 the top right of the ad set's header on Status). Every audience is then branded and can **also**
 run unbranded, with its own words:
 
-**More than one design for an audience.** Each audience card on Status ends with **Add a design**.
+**More than one design for an audience.** Each audience card on Status ends with **Add a design**,
+under its last design.
 It opens a new window on a new project for the next design, for example
 **Local · Investor · Design 2** (then Design 3, and so on). Each design has its own steps, copy
 check, Arabic (when the audience has one) and Drive folder (`Local/Investor · Design 2/English`),
@@ -481,12 +482,12 @@ audience that already has an English design makes it that audience's next design
 for the **Phase**. It starts on the Status tab you added the project from, otherwise on the
 newest phase.
 
-- Each audience card on Status ends with **Start the unbranded**. Press it once the audience's
-  English exists: the English project opens in a new window and a copy of its design is saved
+- On Status, each design in an audience's card has an **Unbranded** row under its **Branded** one,
+  with a **Start the unbranded** slot. Press it once that design's English exists: the English project opens in a new window and a copy of its design is saved
   on the unbranded look as its own audience, for example **Local · Family · Unbranded**.
 - That unbranded version has its own steps, copy check, Arabic (when its branded audience has
-  one) and Drive folder (`Local/Family · Unbranded/English`), in every phase. On Status it sits in
-  its audience's card, under the branded part; each part is tagged **Branded** or **Unbranded**.
+  one) and Drive folder (`Local/Family · Unbranded/English`), in every phase. On Status it is the
+  **Unbranded** row of its design, under the **Branded** row, in its audience's card.
 - Its words: give it its own block in the Copy card, named for it (`Family unbranded:`). An
   unbranded project picks the block whose name says unbranded.
 
@@ -537,7 +538,7 @@ steps: **Design › ENG copy check › Translation › Done**.
 
    **Already approved.** For an ad that was signed off before it came into the studio, the designer
    can skip the content team: **Already approved** (in the Ad set tab's header, the review panel,
-   and under each project in Status) marks it designed and approved in one step, after asking once.
+   and in each project's **⋯** menu on Status) marks it designed and approved in one step, after asking once.
    The activity log says who marked it. **Reopen copy check** undoes it.
 6. **Done.** An audience is done when its design, English copy and translation are signed off.
    The ad set is **Package ready** when every audience is.
@@ -600,7 +601,7 @@ opened as the designer on this computer: **Open tickets** first (waiting for a d
 brief, files, deadline and audiences, and **Pick up**. A ticket filed on another computer is
 listed once you paste its designer link in **Add a campaign link**. Each card says whether the ads are **Provident** (branded: the
 wordmark and QR) or **Unbranded** — or **Mixed** when its projects differ — and so does the
-ad set's Details.
+top of the ad set's page.
 
 The page refreshes itself every minute while it is on screen, and again as soon as you come
 back to the window. A step someone takes elsewhere shows up without a reload.
@@ -631,13 +632,25 @@ Ad sets on Drive you have not signed in for, and missing ones, are not counted; 
 How full the share store is lives on `share-admin.html` now, not here.
 
 Open one to see its record:
-- **At the top:** the name, its product, its status, the dates, **Drive folder** (once a link is
-  saved) and **Open the ad set**.
-- **Progress:** the four steps, counted in audiences, and one line saying what is still waiting.
-- **Audiences:** each audience's own four steps, who signed off and when, and its English and
-  Arabic projects. Each project opens in the full studio. Under each project:
+The page is laid out the way an ad set is built: the campaign, then its phase, then each audience,
+its designs, each design's look (branded or unbranded) and its languages.
+
+- **At the top:** the campaign's card. The name, its product, its status, the dates, one line of
+  facts (markets, how many projects and audiences, the sizes), **Drive folder** (once a link is
+  saved) and **Ad set settings**.
+- **The phase:** a tab per phase and **Add phase**. Under the tabs, the four steps counted for that
+  phase, and **Waiting on**: a chip for each audience not done yet, with what it waits for. Press a
+  chip to jump to it in the list below.
+- **Audiences:** one card per market and audience, in the plan's order, started or not. Inside a
+  card, each design has its own block (**Design 1**, **Design 2**…), and each design has one row
+  per look: **Branded** and, in a Mixed ad set, **Unbranded**. A row shows its own four steps and
+  who it is with at the left, then **English** and **Arabic** side by side. A project that exists
+  is a tile that opens it in the full studio. A place nothing fills yet is a dashed slot that says
+  how it starts: **Start the English**, **Start the Arabic**, **Start the unbranded**. Where the
+  audience has no Arabic, the place says **Not needed**.
+  The **⋯** button at the end of a project's tile holds its actions:
   **Change audience** (its market, audience and language — **Set its audience** on a project that
-  has none, shown as "Project") and **Remove**, which takes it out of the ad set. The project
+  has none, shown as "Project"), **Already approved**, and **Remove**, which takes it out of the ad set. The project
   itself is not deleted and its own edit link keeps working. **Change audience** also has an
   **Ad set** field: pick **Move to <another ad set>** (and its phase, when it has more than one),
   then **Move**. The project leaves this ad set and joins the other one with its steps, and its
@@ -658,7 +671,7 @@ Open one to see its record:
   set tab, under **Audiences**.
 - **Ad set links:** one row per team, with **Copy link**.
 - **Activity:** every step and every word changed in every project, newest first.
-- **On the right:** **Details** and **Google Drive**.
+- **On the right:** **Team links**, the **Brief** and **Drive location**.
 
 To add an ad set from another computer, paste its **designer** link into the box at the top.
 **Remove from this list** only removes it from this computer, and it stays removed. Opening one of

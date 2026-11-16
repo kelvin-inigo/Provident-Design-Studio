@@ -4501,6 +4501,8 @@
     setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
     el.addEventListener('click', e => this.click(e));
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && this.addOpen) { this.addOpen = false; this.draw(); } });
+    // a project's actions menu: Escape closes it and hands focus back to its button
+    el.addEventListener('keydown', e => { const m = e.key === 'Escape' && el.querySelector('details.rvd-mn[open]'); if (m) { m.open = false; m.querySelector('summary').focus(); } });
     // the Add phase menu's own-name field: kept across redraws, Enter adds it
     el.addEventListener('input', e => { if (e.target.matches && e.target.matches('[data-phx-st]')) this.phTyped = e.target.value; });
     // Change audience's ad set field: the phase field lists the picked ad set's phases (shown
@@ -4722,7 +4724,14 @@
     if (this.det && this.det.stale) this.heal([this.det]);
   };
   AV.click = async function (e) {
+    this.el.querySelectorAll('details.rvd-mn[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
     let t = e.target.closest('button,[data-id],.rva-mod'); if (!t || !this.el.contains(t)) return;
+    if (t.dataset.a === 'jump') {
+      const r = [...this.el.querySelectorAll('.rvd-lk[data-k]')].find(x => x.dataset.k === t.dataset.k); if (!r) return;
+      let calm = false; try { calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (er) {}
+      r.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' }); r.setAttribute('data-hit', '1'); setTimeout(() => r.removeAttribute('data-hit'), 1800);
+      return;
+    }
     if (t.dataset.copy) { const ok = await copyText(t.dataset.copy), sp = t.querySelector('span') || t, was = sp.textContent; sp.textContent = ok ? 'Copied' : 'Select it'; t.dataset.done = ok ? '1' : ''; setTimeout(() => { sp.textContent = was; t.dataset.done = ''; }, 1600); return; }
     if (t.dataset.id) { this.edit = null; this.open(t.dataset.id); return; }
     const a = t.dataset.a;
@@ -4865,7 +4874,9 @@
     if (this.sel) {
       // a redraw (a refresh, the clock) keeps the caret in the Add phase field
       const f = document.activeElement, keep = f && f.matches && f.matches('[data-phx-st]') ? [f.selectionStart, f.selectionEnd] : null;
+      const mo = body.querySelector('details.rvd-mn[open] [data-sid]'), moSid = mo && mo.dataset.sid;
       body.innerHTML = this.detHtml();
+      if (moSid) { const b = [...body.querySelectorAll('details.rvd-mn [data-a="relab"]')].find(x => x.dataset.sid === moSid); if (b) b.closest('details').open = true; }
       if (keep) { const i = body.querySelector('[data-phx-st]'); if (i) { i.focus(); try { i.setSelectionRange(keep[0], keep[1]); } catch (e) {} } }
       return;
     }
@@ -4934,6 +4945,7 @@
     ext: 'M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z',
     del: 'M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z'
   };
+  const MORE = '<svg class="rva-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M240-420q-25 0-42.500-17.500T180-480q0-25 17.500-42.500T240-540q25 0 42.500 17.500T300-480q0 25-17.500 42.500T240-420Zm240 0q-25 0-42.500-17.500T420-480q0-25 17.500-42.500T480-540q25 0 42.500 17.500T540-480q0 25-17.500 42.500T480-420Zm240 0q-25 0-42.500-17.500T660-480q0-25 17.500-42.500T720-540q25 0 42.500 17.500T780-480q0 25-17.500 42.500T720-420Z"/></svg>';
   const ico = (k, c) => '<svg class="' + (c || 'rva-i') + '" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + ICO[k] + '"/></svg>';
   // The phase tabs on an ad set's page: one per package, its done/planned count, and (for the
   // designer, on a Drive ad set) "Add phase", a menu of the phases not added yet.
@@ -5281,7 +5293,6 @@
     const tab = phs.indexOf(tabs[d.id]) >= 0 ? tabs[d.id] : (used[used.length - 1] || phs[0]);
     this.curTab = tab;
     const auds = allAuds.filter(a => a.phase === tab), all = rsOverall(auds);
-    const row = (k, v) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>';
     const log = (d.log || []).concat((d.plog || []).filter(e => (e.changes || []).some(c => c.kind !== 'note')).map(e => Object.assign({}, e, { changes: (e.changes || []).map(c => Object.assign({}, c, { page: e.page + (c.page ? ' · ' + c.page : '') })) })))
       .sort((a, b) => b.at - a.at);
     const sizes = []; Object.keys(proj).forEach(s => ((proj[s].sum || {}).sizes || []).forEach(z => { if (sizes.indexOf(z) < 0) sizes.push(z); }));
@@ -5296,19 +5307,26 @@
     const steps = '<ol class="rvd-steps">' + STEP_LABELS.map((l, i) => { const n = need(i).length;
       return '<li data-i="' + i + '"' + (i === cur ? ' data-cur="1"' : '') + (n && cnt(i) === n ? ' data-done="1"' : '') + '>' +
       '<span><i></i>' + esc(l) + '</span><b>' + (auds.length && !n ? '<s>Not needed</s>' : cnt(i) + '<s>/' + n + '</s>') + '</b><em><s style="width:' + (n ? Math.round(cnt(i) / n * 100) : 0) + '%"></s></em></li>'; }).join('') + '</ol>';
+    const lr = accRole(), pmV = lr === 'pm' || lr === 'ct';
+    // the tab already names the phase: a chip says only market · audience (· design · look)
+    const audName = a => [a.market, a.aud].filter(Boolean).join(' · ') || 'Project';
     const waiting = auds.filter(a => !a.done);
     const lv = all.ready ? rsLive(rs) : null;
     const nowLine = lv ? '<p class="rvd-now" data-s="ready"><i></i>Launched ' + esc(dayS(lv.at)) + ' by ' + esc(lv.by) + '.</p>'
       : all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
       : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCells(rs).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
         : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
-          return '<span class="rvd-wc" data-i="' + i + '" title="' + esc(a.now.label + ' — ' + a.now.sub) + '"><i></i>' + esc(a.label) + '<s>' + esc(a.now.sub) + '</s></span>'; }).join('') + '</p>';
+          const tip = esc(a.now.label + ' — ' + a.now.sub), in_ = '<i></i>' + esc(audName(a)) + '<s>' + esc(a.now.sub) + '</s>';
+          return pmV ? '<span class="rvd-wc" data-i="' + i + '" title="' + tip + '">' + in_ + '</span>'
+            : '<button type="button" class="rvd-wc" data-a="jump" data-k="' + esc(a.key) + '" data-i="' + i + '" title="' + tip + ' · shows it below">' + in_ + '</button>'; }).join('') + '</p>';
     const changed = modOf({ rs, mod: d.mod });
     const meta = [rs.by ? 'Created ' + dayS(rs.created) + ' by ' + rs.by : 'Created ' + dayS(rs.created), changed ? 'changed ' + ago(changed) : ''].filter(Boolean).join(' · ');
+    const mk = [...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', '), nP = (rs.items || []).length;
+    const fx = [mk, nP ? nP + (nP === 1 ? ' project' : ' projects') + ' across ' + allAuds.length + (allAuds.length === 1 ? ' audience' : ' audiences') : '', sizes.join(', ')].filter(Boolean).join(' · ');
     const head = '<header class="rvd-h"><div class="rvd-hb">' +
       '<span class="rvd-th">' + (d.thumb ? '<img src="' + esc(d.thumb) + '" alt="">' : '') + '</span>' +
       '<div class="rvd-ht"><span class="rvd-k">' + esc(PRODUCT_NAME[rs.product] || 'Ad set') + brandHtml(d.brands) + '</span>' +
-      '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready, lv ? 'Launched' : '') + '<span>' + esc(meta) + '</span></p></div>' +
+      '<h2>' + esc(name) + '</h2><p>' + pillHtml(all.ready, lv ? 'Launched' : '') + '<span>' + esc(meta) + '</span></p>' + (fx ? '<p class="rvd-fx">' + esc(fx) + '</p>' : '') + '</div>' +
       '<div class="rvd-ha">' + (() => {
         let r = null; try { r = window.providentAccess && window.providentAccess.now().role; } catch (e) {}
         const tk = rs.tok || {};
@@ -5318,7 +5336,9 @@
       })() +
       (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button></div></div>' +
-      '<div class="rvd-hs">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</div></header>';
+      '</header>';
+    // THE PHASE (2026-11-16): its tabs, the four steps and what waits lead the column they govern
+    const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const cells = rsCells(rs);
@@ -5334,13 +5354,13 @@
       if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
       if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.phOff ? 'Not needed in ' + esc(phN(tab)) : a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
-      return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
+      return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + (this.edit === it.sid ? ' data-ed="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u></span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
-          : '<span class="rva-pja"><button type="button" class="rva-lkb" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
-            (it.copy ? '' : '<button type="button" class="rva-lkb" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
-            '<button type="button" class="rva-lkb rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span>') + '</div>';
+          : '<details class="rvd-mn" name="rvd-mn"><summary title="Change audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl"><button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
+            (it.copy ? '' : '<button type="button" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
+            '<button type="button" class="rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span></details>') + '</div>';
     };
     // A MIXED AD SET: every branded audience can also run unbranded. Until it does, the card ends
     // on one placeholder that copies its English design (in a new window) onto the unbranded look
@@ -5350,48 +5370,57 @@
       return '<button type="button" class="rvd-ph rvd-ub" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + UB + '|ENG|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design, on the unbranded look, as ' + esc(a.market + ' · ' + a.aud + UB) + '">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the unbranded</b><s>Copies this English design onto the unbranded look · its own copy, check and Arabic</s></span>' + ico('ext') + '</button>';
     };
-    // ONE CARD PER AUDIENCE (2026-11-05, by request): in a mixed ad set the unbranded version sits
-    // in its branded audience's card as a second part, each part tagged Branded or Unbranded on the
-    // right; its own steps, tiles and links are unchanged
-    const twinOf = a => !isUb(a.aud) && a.market ? auds.find(x => x.market === a.market && x.aud === a.aud + UB) : null;
-    const brChip = a => rs.brand === 'mixed' && a.market ? '<span class="rvd-brc"' + (isUb(a.aud) ? ' data-ub="1"' : '') + '>' + (isUb(a.aud) ? 'Unbranded' : 'Branded') + '</span>' : '';
-    // an audience with more than one design tags each part "Design 1", "Design 2"…
-    const chips = (a, many) => { const c = (many && a.market ? '<span class="rvd-brc rvd-dzc">Design ' + dsgOf(a.aud) + '</span>' : '') + brChip(a); return c ? '<span class="rvd-chs">' + c + '</span>' : ''; };
-    const part = (a, many) => {
-      const extra = a.items.filter(it => it !== a.eng && it !== a.arb), i = a.done ? 3 : a.steps.indexOf(a.now);
-      return '<div class="rvd-auh">' +
-        '<span class="rvd-aun">' + (a.market ? '<s>' + esc(a.market) + '</s>' : '') + '<b>' + esc(audRoot(a.aud) || a.label) + '</b></span>' +
-        '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s></span>' + segHtml(a.steps) + '</span>' + chips(a, many) + '</div>' +
-        '<div class="rvd-aut">' + tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join('') + ubTile(a) + '</div>';
+    // THE STRUCTURE, DRAWN AS IT IS (2026-11-16, /impeccable): audience › design › look › language.
+    // One card per market · audience, in the plan's order whether started or not. Inside it a block
+    // per design ("Design 1", "Design 2"…); inside a design one ROW per look (Branded, and Unbranded
+    // in a mixed ad set), each with its own four steps at the left and its English and Arabic in two
+    // fixed columns. A slot nothing fills yet is dashed and says how it starts, so Start the Arabic
+    // and Start the unbranded read as empty places in the grid, not as finished designs.
+    const stage = a => { const i = a.done ? 3 : a.steps.indexOf(a.now);
+      return '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b></span><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s>' + segHtml(a.steps) + '</span>'; };
+    const stage0 = sub => '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b></span><s>' + sub + '</s>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span>';
+    const noArb = c => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(phN(tab)) : 'Not needed for this audience') + '</s></span></div>';
+    // a: this look's projects in this phase · c: its planned cell · base: the branded part of the same design
+    const lookRow = (market, aud, a, c, base, lab) => {
+      let st, tiles;
+      if (a) { const extra = a.items.filter(it => it !== a.eng && it !== a.arb);
+        st = stage(a); tiles = tile(a, a.eng, 'English') + tile(a, a.arb, 'Arabic') + extra.map(it => tile(a, it, it.lang === 'ARB' ? 'Arabic' : 'English')).join(''); }
+      else if (rs.brand === 'mixed' && isUb(aud) && base && base.eng) { st = stage0('A copy of the branded English'); tiles = ubTile(base); }
+      else if (c) { st = stage0(phs.length > 1 ? 'No ' + esc(phN(tab)) + ' project yet' : 'Planned in Ad set settings'); tiles = ph(market, aud, 'ENG') + (arbIn(c, tab) ? ph(market, aud, 'ARB') : noArb(c)); }
+      else { st = stage0('After the branded English'); tiles = ubTile({ market, aud: ubBase(aud), eng: null }); }
+      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '><div class="rvd-lkh">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '') + st + '</div><div class="rvd-lkc">' + tiles + '</div></div>';
     };
-    // ONE CARD PER AUDIENCE, ITS DESIGNS INSIDE (2026-11-10, by request): Design 2, 3… follow the
-    // first, each a part with its own steps and tiles (and its unbranded twin); the card ends on Add
-    // a design, which starts the next one's English in a new window (startcell, as Start the English)
     const groups = [];
-    auds.forEach(a => { const k = a.market ? a.market + '|' + audRoot(a.aud) : 'p:' + a.key; let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, m: [] }); g.m.push(a); });
+    const grp = (market, aud, key) => { const k = market ? market + '|' + audRoot(aud) : 'p:' + key; let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, market, root: market ? audRoot(aud) : '', ds: [], solo: null }); return g; };
+    const look = (g, aud) => { const n = dsgOf(aud), u = isUb(aud) ? 'u' : 'b'; let ds = g.ds.find(x => x.n === n); if (!ds) g.ds.push(ds = { n }); return ds[u] || (ds[u] = { aud }); };
+    cells.forEach(c => { look(grp(c.market, c.aud), c.aud).c = c; });
+    auds.forEach(a => { const g = grp(a.market, a.aud, a.key); if (a.market) look(g, a.aud).a = a; else g.solo = a; });
     const canDz = isDs(d.id);
+    const partsOf = g => g.solo ? [g.solo] : g.ds.flatMap(x => [x.b, x.u]).filter(x => x && x.a).map(x => x.a);
     const audRows = groups.map(g => {
-      const heads = g.m.filter(a => !(isUb(a.aud) && g.m.some(x => x.aud === ubBase(a.aud)))).sort((x, y) => dsgOf(x.aud) - dsgOf(y.aud));
-      const many = heads.length > 1 || heads.some(a => dsgOf(a.aud) > 1), done = g.m.every(a => a.done), a0 = heads[0];
-      const body = heads.map((a, i) => { const tw = twinOf(a), p = part(a, many) + (tw ? '<div class="rvd-tw">' + part(tw, many) + '</div>' : ''); return i ? '<div class="rvd-tw">' + p + '</div>' : p; }).join('');
-      const nx = audRoot(a0.aud) + DSG + (Math.max(...g.m.map(a => dsgOf(a.aud))) + 1);
-      const add = canDz && a0.market ? '<div class="rvd-dza"><button type="button" class="p-ghost rvd-dz" data-a="startcell" data-cell="' + esc(a0.market + '|' + nx + '|ENG|' + tab) + '" title="' + esc('Another design for ' + a0.market + ' · ' + audRoot(a0.aud) + ': ' + nx + ', a new project in a new window, with its own copy check and Arabic') + '">' + ico('add') + 'Add a design</button></div>' : '';
-      return '<li class="rvd-au"' + (done ? ' data-done="1"' : '') + (rs.brand === 'mixed' || many ? ' data-mx="1"' : '') + '>' + body + add + '</li>';
+      const parts = partsOf(g), dn = parts.filter(a => a.done).length;
+      const sum = !parts.length ? 'Not started' : dn === parts.length ? 'Done' : parts.length > 1 ? dn + ' of ' + parts.length + ' done' : '';
+      const li = '<li class="rvd-au"' + (parts.length && dn === parts.length ? ' data-done="1"' : '') + (parts.length ? '' : ' data-plan="1"') + '>';
+      if (g.solo) return li + '<div class="rvd-auh"><h4 class="rvd-aun"><b>' + esc(audRoot(g.solo.aud) || g.solo.label) + '</b></h4></div><div class="rvd-dzb">' + lookRow('', g.solo.aud, g.solo, null, null, '') + '</div></li>';
+      g.ds.sort((x, y) => x.n - y.n);
+      const body = g.ds.map(x => { const b = x.b, u = x.u, two = rs.brand === 'mixed' || !!u;
+        return '<div class="rvd-dzb"><h5 class="rvd-dzh">Design ' + x.n + '</h5>' +
+          (b ? lookRow(g.market, b.aud, b.a, b.c, null, two ? 'Branded' : '') : '') +
+          (u ? lookRow(g.market, u.aud, u.a, u.c, b && b.a, 'Unbranded') : two ? lookRow(g.market, b.aud + UB, null, null, b.a, 'Unbranded') : '') + '</div>'; }).join('');
+      const nx = g.root + DSG + (Math.max(...g.ds.map(x => x.n)) + 1);
+      const add = canDz ? '<div class="rvd-dza"><button type="button" class="rvd-dz" data-a="startcell" data-cell="' + esc(g.market + '|' + nx + '|ENG|' + tab) + '" title="' + esc('Another design for ' + g.market + ' · ' + g.root + ': ' + nx + ', a new project in a new window, with its own copy check and Arabic') + '">' + ico('add') + 'Add a design</button></div>' : '';
+      return li + '<div class="rvd-auh"><h4 class="rvd-aun"><s>' + esc(g.market) + '</s><b>' + esc(g.root) + '</b></h4>' +
+        '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></div>' + body + add + '</li>';
     }).join('');
-    // planned in Ad set settings, no project yet: a row each at the foot, both languages as placeholders
-    const todoA = cells.filter(c => !auds.some(a => a.market === c.market && a.aud === c.aud));
-    const planRows = todoA.map(c => '<li class="rvd-au" data-plan="1"><div class="rvd-auh">' +
-      '<span class="rvd-aun"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></span>' +
-      '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b><s>' + (phs.length > 1 ? 'No ' + esc(phN(tab)) + ' project yet' : 'Planned in Ad set settings — no project yet') + '</s></span>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span></div>' +
-      '<div class="rvd-aut">' + ph(c.market, c.aud, 'ENG') + (arbIn(c, tab) ? ph(c.market, c.aud, 'ARB') : '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(phN(tab)) : 'Not needed for this audience') + '</s></span></div>') + ubTile({ market: c.market, aud: c.aud, eng: null }) + '</div></li>').join('');
-    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + auds.length + (todoA.length ? ' · ' + todoA.length + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + ((audRows + planRows) || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
+    const nNew = groups.filter(g => !partsOf(g).length).length;
+    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
       : '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol></section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     const LSAY = { ct: 'Content Review', pm: 'AdSet Overview' };
     // the designer's link opens the whole ad set: only designers (and the admin) are given it
-    const lr = accRole(), rows = !lr || lr === 'designer' || lr === 'admin' ? LINK_ROWS : LINK_ROWS.filter(([r]) => r !== 'dd');
+    const rows = !lr || lr === 'designer' || lr === 'admin' ? LINK_ROWS : LINK_ROWS.filter(([r]) => r !== 'dd');
     const links = '<section class="rvd-card"><h3>Team links</h3><ul class="rvd-lks">' + rows.map(([r, who, what]) => {
       const link = rsLink((rs.tok || {})[r] || '');
       // COPY PASTES READY TO SEND (2026-11-05, by request): the content team's and performance
@@ -5402,22 +5431,17 @@
         (LSAY[r] ? '<a class="p-ghost rvd-op" href="' + esc(link) + '" target="_blank" rel="noopener" title="Opens the ' + esc(who.toLowerCase()) + ' view in a new tab" aria-label="Open the ' + esc(who.toLowerCase()) + ' view">' + ico('ext') + '</a>' : '') +
         '<button type="button" class="p-ghost rvd-cp" data-copy="' + esc(say) + '" title="' + esc(say) + '" aria-label="Copy the ' + who.toLowerCase() + ' link">' + ico('copy') + '<span>Copy</span></button></span></li>';
     }).join('') + '</ul></section>';
-    const mk = [...new Set((rs.items || []).map(x => x.market).filter(Boolean))].join(', ');
-    const facts = [['Product', esc(PRODUCT_NAME[rs.product] || '')], ['Phases', esc(phs.map(k => phN(k)).join(', '))], ['Markets', esc(mk)], ['Projects', (rs.items || []).length + ' across ' + allAuds.length + (allAuds.length === 1 ? ' audience' : ' audiences')],
-      ['Sizes', sizes.length ? '<span class="rva-chips">' + sizes.map(z => '<span>' + esc(z) + '</span>').join('') + '</span>' : '']].filter(f => f[1]);
     // PERFORMANCE MARKETING'S DETAILS (2026-11-04, by request): no audiences and no team links —
     // the package itself is behind Open the package
     // and the content team's (same day): their copy check is behind Check the copy
-    const pmV = lr === 'pm' || lr === 'ct';
     const side = '<aside class="rvd-side">' + (pmV ? '' : links) +
-      '<section class="rvd-card"><h3>Details</h3><dl class="rva-dl">' + facts.map(f => row(f[0], f[1])).join('') + '</dl></section>' +
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
       '<section class="rvd-card"><h3>Drive location</h3>' +
       '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
       '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + (pmV ? '' : audiences) + vidSecHtml(rs) + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs) + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -7260,7 +7284,10 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rsp-plan3 button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:3px}
 @media (max-width:600px){.rsp-auds{grid-template-columns:1fr}.rsp-ac{padding:16px;gap:14px}.rsp-coin{height:58px;padding:0 10px}}
 @media (prefers-reduced-motion:reduce){.rsp-ac,.rsp-coin,.rsp-sw i,.rsp-sw i:after{transition:none}}
-/* THE AD SET PAGE (redesigned 2026-10-29). A header card (what it is, where it stands), the
+/* THE AD SET PAGE (2026-10-29; its structure redrawn 2026-11-16). Campaign, then phase, then audience,
+   design, look and language, each inside the one before: a header card for the campaign; in the
+   main column the phase card (tabs, the four steps, what waits) over one card per audience, whose
+   designs are blocks and whose looks are rows of two language cells. Links and reference beside.
    audiences as the main column, and a narrow column of links and reference beside them. */
 .rvd{display:flex;flex-direction:column;gap:28px;max-width:1280px;min-width:0;container-type:inline-size}
 .rvd-h{border-radius:20px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line);overflow:hidden}
@@ -7275,13 +7302,14 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-ha .p-btn,.rvd-ha .p-ghost{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;white-space:nowrap;text-decoration:none}
 .rvd-ha .rva-i{width:17px;height:17px;fill:currentColor}
 .rvd-ha .rvd-ic{width:36px;padding:0;justify-content:center}
-.rvd-hs{padding:24px 28px 22px}
+.rvd-ht p.rvd-fx{color:var(--ps-ink-2)}
+.rvd-phc{padding:12px 24px 20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
 .rvd-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin:0;padding:0;list-style:none}
-.rvd-steps li{display:flex;flex-direction:column;gap:10px;min-width:0}
+.rvd-steps li{display:flex;flex-direction:column;gap:8px;min-width:0}
 .rvd-steps span{display:flex;align-items:center;gap:8px;font:400 13px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rvd-steps span i{flex:none;width:8px;height:8px;border-radius:50%}
-.rvd-steps b{font:400 30px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
-.rvd-steps b s{text-decoration:none;font-size:15px;color:var(--ps-dim)}
+.rvd-steps b{font:400 22px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.rvd-steps b s{text-decoration:none;font-size:13.5px;color:var(--ps-dim)}
 .rvd-steps [data-done] b,.rvd-steps [data-cur] b{color:var(--ps-ink)}
 .rvd-steps [data-cur] span{color:var(--ps-ink);font-weight:500}
 .rvd-steps em{display:block;height:4px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
@@ -7290,11 +7318,14 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-steps [data-i="1"] i,.rvd-steps [data-i="1"] em s,.rvd-wc[data-i="1"] i,.rvd-aus[data-i="1"] i{background:var(--ps-warn)}
 .rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-aus[data-i="2"] i{background:var(--ps-link)}
 .rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-aus[data-i="3"] i{background:var(--ps-good)}
-.rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:18px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .rvd-now>i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
 .rvd-now[data-s="ready"]>i{background:var(--ps-good)}
 .rvd-wk{margin-right:4px;color:var(--ps-dim)}
-.rvd-wc{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;height:30px;white-space:nowrap;padding:0 12px;border-radius:9999px;background:var(--ps-fill);font:500 12.5px/1 var(--ps-font);color:var(--ps-ink)}
+.rvd-wc{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%;height:30px;margin:0;white-space:nowrap;padding:0 12px;border:none;border-radius:9999px;background:var(--ps-fill);font:500 12.5px/1 var(--ps-font);color:var(--ps-ink)}
+button.rvd-wc{cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+button.rvd-wc:hover{background:var(--ps-fill-h)}
+button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-wc i{flex:none;width:7px;height:7px;border-radius:50%}
 .rvd-wc s{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;font-weight:400;color:var(--ps-ink-2)}
 .rvd-cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:28px;align-items:start}
@@ -7302,27 +7333,61 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-sec h3,.rvd-card h3{display:flex;align-items:baseline;gap:6px;margin:0 0 14px;font:500 15px/1.3 var(--ps-font);color:var(--ps-ink)}
 .rvd-sec h3 s,.rvd-card h3 s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
 .rvd-auds{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none}
-.rvd-au{padding:18px 20px 16px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
-.rvd-auh{display:grid;grid-template-columns:minmax(120px,200px) minmax(0,1fr);gap:20px;align-items:center}
-.rvd-aun{display:flex;flex-direction:column;gap:3px;min-width:0}
+.rvd-au{border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-auh{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:16px 20px 14px}
+.rvd-aun{display:flex;flex-direction:column;gap:3px;min-width:0;margin:0;font:inherit}
+.rvd-ausm{flex:none;padding-bottom:2px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
 .rvd-aun s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rvd-aun b{font:500 18px/1.25 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
-.rvd-aus{display:flex;flex-direction:column;gap:10px;min-width:0}
+.rvd-aus{display:flex;flex-direction:column;gap:6px;min-width:0}
 .rvd-aus>span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
 .rvd-aus>span:first-child i{flex:none;width:8px;height:8px;border-radius:50%}
-.rvd-aus>span:first-child b{flex:none;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rvd-aus>span:first-child s{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
-.rvd-aus .rv-seg{max-width:420px}
+.rvd-aus>span:first-child b{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-aus>s{text-decoration:none;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.rvd-aus .rv-seg{max-width:132px;margin-top:2px}
 .rvd-aus .rv-seg i{background:var(--ps-fill-h)}
 .rvd-aus .rv-seg i[data-s="done"]{background:var(--ps-ink-2)}
 .rvd-aus[data-i="0"] .rv-seg i[data-s="cur"]{background:var(--ps-dim)}
 .rvd-aus[data-i="1"] .rv-seg i[data-s="cur"]{background:var(--ps-warn)}
 .rvd-aus[data-i="2"] .rv-seg i[data-s="cur"]{background:var(--ps-link)}
 .rvd-aus[data-i="3"] .rv-seg i{background:var(--ps-good)}
-.rvd-sec h3 .rvd-add{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 14px 0 10px;font-size:13px}
+.rvd-sec h3 .rvd-add{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 14px 0 10px;font-size:13px;flex:none;white-space:nowrap}
 .rvd-sec h3 .rvd-add .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-sec h3{align-items:center}
+/* the Video section's grid of cards (vidSecHtml) */
 .rvd-aut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--ps-hair)}
+/* a design: its name, then a row per look — the look and its steps at the left, English and Arabic
+   in two fixed columns */
+.rvd-dzb{padding:14px 20px 18px;border-top:1px solid var(--ps-hair)}
+.rvd-dzh{margin:0;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-lk{display:grid;grid-template-columns:168px minmax(0,1fr);gap:16px;align-items:start;margin-top:12px;border-radius:12px;transition:background-color .3s var(--ps-ease,ease),box-shadow .3s var(--ps-ease,ease)}
+.rvd-lk+.rvd-lk{margin-top:16px}
+.rvd-lk[data-hit]{background:var(--ps-fill);box-shadow:0 0 0 8px var(--ps-fill)}
+.rvd-lkh{display:flex;flex-direction:column;gap:6px;min-width:0;padding-top:4px}
+.rvd-lkn{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-lkc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+/* a project: one ringed tile that opens it, its actions behind the menu at its end */
+.rvd-lkc .rva-lt{position:relative;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rvd-lkc .rva-lt .rva-pj{flex:1 1 0;width:auto;min-width:0;background:none;box-shadow:none}
+.rvd-lkc .rva-lt .rva-pj:hover:not(:disabled){box-shadow:none}
+.rvd-lkc .rva-lt:has(>.rva-pj:hover:not(:disabled)){box-shadow:inset 0 0 0 2px var(--ps-link)}
+.rvd-lkc .rva-lt .rva-pj:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
+.rvd-lkc .rva-lt[data-ed]{grid-column:1 / -1;padding-bottom:10px}
+.rvd-lkc .rva-lt .rva-rl{flex:1 1 100%;padding:2px 10px 0}
+/* nothing goes here (Arabic not needed, or the English comes first): words alone, no box */
+.rvd-lkc .rva-lt[data-empty]{box-sizing:border-box;min-height:71px;padding:8px 12px;background:none;box-shadow:none}
+.rvd-lkc .rva-lt[data-empty] .rva-lt-th{display:none}
+.rvd-lkc .rva-lt[data-empty] .rva-lt-t b{font-weight:400;color:var(--ps-ink-2)}
+.rvd-lkc .rvd-ub[data-empty] .rva-lt-t b{display:none}   /* its row already says Unbranded */
+.rvd-mn{position:relative;flex:none;margin-right:6px}
+.rvd-mn>summary{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;list-style:none;color:var(--ps-ink-2);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rvd-mn>summary::-webkit-details-marker{display:none}
+.rvd-mn>summary:hover,.rvd-mn[open]>summary{background:var(--ps-fill);color:var(--ps-ink)}
+.rvd-mn>summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-mn>summary .rva-i{width:20px;height:20px;fill:currentColor}
+.rvd-mnl{position:absolute;right:0;top:calc(100% + 4px);z-index:6;display:flex;flex-direction:column;min-width:184px;padding:6px;border-radius:12px;background:var(--ps-card-h);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rvd-mnl button{height:36px;padding:0 12px;border:none;border-radius:8px;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);text-align:left;white-space:nowrap;cursor:pointer}
+.rvd-mnl button:hover,.rvd-mnl button:focus-visible{background:var(--ps-fill-h);outline:none}
 .rvd-act{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
 .rvd-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 .rvd-card{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
@@ -7341,22 +7406,18 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
 .rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
 .rvd-card .rva-sub{margin-top:-8px}
-.rvd-ph{display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:8px;border:none;border-radius:12px;background:none;outline:1px dashed var(--ps-line);outline-offset:-1px;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
+.rvd-ph{display:flex;align-items:center;gap:12px;box-sizing:border-box;width:100%;min-width:0;min-height:71px;padding:8px 12px 8px 14px;border:none;border-radius:12px;background:none;outline:1px dashed var(--ps-line);outline-offset:-1px;color:var(--ps-ink);font:inherit;text-align:left;cursor:pointer}
 .rvd-ph:hover{background:var(--ps-fill)}
 /* a mixed ad set's unbranded version: one placeholder across the foot of the branded card */
 .rvd-ub{grid-column:1 / -1}
 /* ...and once made, the second part of that card: a hairline, its own head and tiles */
-.rvd-tw{margin-top:18px;padding-top:18px;border-top:1px solid var(--ps-line)}
-.rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(120px,200px) minmax(0,1fr) auto}
-.rvd-chs{align-self:start;justify-self:end;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
-.rvd-dzc{background:var(--ps-fill);color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-line)}
-.rvd-dza{display:flex;margin-top:14px}
-.rvd-dz{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px 0 10px;font-size:13px}
+.rvd-dza{display:flex;padding:8px 12px;border-top:1px solid var(--ps-hair)}
+.rvd-dz{display:inline-flex;align-items:center;gap:6px;height:36px;margin:0;padding:0 14px 0 8px;border:none;border-radius:9999px;background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rvd-dz:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.rvd-dz:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-dz .rva-i{width:18px;height:18px;fill:currentColor}
-.rvd-brc{align-self:start;justify-self:end;padding:5px 10px;border-radius:var(--ps-pill);background:var(--ps-fill-on);color:var(--ps-ink);font:500 12px/1 var(--ps-font);white-space:nowrap}
-.rvd-brc[data-ub]{background:var(--ps-fill);color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-ph:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
-.rvd-phi{flex:none;display:grid;place-items:center;width:44px;height:55px;border-radius:8px;background:var(--ps-fill)}
+.rvd-phi{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-phi .rva-i{width:20px;height:20px;fill:var(--ps-ink-2)}
 .rvd-ph>.rva-i{flex:none;width:16px;height:16px;fill:var(--ps-dim)}
 .rvd-ph .rva-lt-t s{white-space:normal}
@@ -7365,9 +7426,9 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 @container (max-width:1000px){.rvd-cols{grid-template-columns:minmax(0,1fr)}}
 @container (max-width:760px){
   .rvd-hb{flex-wrap:wrap;gap:16px;padding:20px}.rvd-th{width:72px;height:72px}.rvd-ht{flex-basis:calc(100% - 88px)}.rvd-ht h2{font-size:23px}
-  .rvd-ha{max-width:none;width:100%;justify-content:flex-start}.rvd-hs{padding:20px}
-  .rvd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}.rvd-steps b{font-size:24px}
-  .rvd-auh,.rvd-au[data-mx] .rvd-auh{grid-template-columns:minmax(0,1fr);gap:12px}.rvd-brc,.rvd-chs{justify-self:start}.rvd-chs{justify-content:flex-start}.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-au{padding:16px}
+  .rvd-ha{max-width:none;width:100%;justify-content:flex-start}.rvd-phc{padding:8px 16px 16px}
+  .rvd-steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}
+  .rvd-auh{padding:14px 16px 12px}.rvd-dzb{padding:12px 16px 16px}.rvd-lk{grid-template-columns:minmax(0,1fr);gap:10px}.rvd-lkc,.rvd-aut{grid-template-columns:minmax(0,1fr)}.rvd-mn>summary{width:40px;height:40px}.rvd-dza{padding:6px 8px}.rvd-sec h3{flex-wrap:wrap}
 }
 /* OPEN A SHARED PROJECT (2026-10-30, /impeccable): the project is the title, what it is in sits
    above it as one quiet line, and loading is three steps — each done, running with its own count
@@ -7413,7 +7474,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .sho .shl-acts{margin-top:20px}
 .sho[data-busy] .shl-go{display:none}
 /* PHASES (2026-10-30): a tab per package on an ad set's page, and the start phase on the setup */
-.rvd-phs{display:flex;align-items:flex-end;flex-wrap:wrap;gap:4px 22px;margin:-6px 0 22px;border-bottom:1px solid var(--ps-hair)}
+.rvd-phs{display:flex;align-items:flex-end;flex-wrap:wrap;gap:4px 22px;margin:0 0 20px;border-bottom:1px solid var(--ps-hair)}
 .rvd-pt{display:inline-flex;align-items:center;gap:8px;height:40px;margin:0 0 -1px;padding:0 2px;border:none;border-bottom:2px solid transparent;background:none;color:var(--ps-ink-2);font:500 14px/1 var(--ps-font);cursor:pointer;white-space:nowrap;transition:color var(--ps-motion,.15s) var(--ps-ease,ease),border-color var(--ps-motion,.15s) var(--ps-ease,ease)}
 .rvd-pt:hover{color:var(--ps-ink)}
 .rvd-pt[aria-selected="true"]{color:var(--ps-ink);border-bottom-color:var(--ps-ink)}

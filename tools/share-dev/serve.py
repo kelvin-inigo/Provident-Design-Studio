@@ -190,7 +190,7 @@ main{width:min(520px,calc(100vw - 32px))}h1{font-weight:400;font-size:24px;margi
 button{height:44px;padding:0 20px;border:0;border-radius:999px;background:#fff;color:#131519;font:500 15px system-ui,sans-serif;cursor:pointer}
 button:disabled{opacity:.6;cursor:default}ol{margin:20px 0 0;padding-left:20px;color:#b8bcc6;font-size:13.5px}</style>
 <main><h1>Fill with demo data</h1>
-<p>Local test server only. Adds 7 campaigns and 7 posts across every stage (ticket, design, copy check, translation, ready), the team's names, 3 access requests, and 12 saved projects on this computer. Run it once after the server starts; it starts empty each time.</p>
+<p>Local test server only. Adds 8 campaigns and 7 posts across every stage (ticket, design, copy check, translation, ready), the team's names, 3 access requests, and 12 saved projects on this computer. Run it once after the server starts; it starts empty each time.</p>
 <button id="go" type="button">Fill it</button><ol id="log"></ol></main>
 <script src="/tools/share-dev/seed.js"></script>''').replace('__ROOT__', _j.dumps(drive_mock.SEED['id'])).replace('__ADMIN__', _j.dumps(share.acc_admin())).encode()
         self.send_response(200)
