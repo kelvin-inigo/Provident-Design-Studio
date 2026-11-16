@@ -4726,6 +4726,8 @@
   AV.click = async function (e) {
     this.el.querySelectorAll('details.rvd-mn[open]').forEach(m => { if (!m.contains(e.target)) m.open = false; });
     let t = e.target.closest('button,[data-id],.rva-mod'); if (!t || !this.el.contains(t)) return;
+    if (t.dataset.a === 'actcat') { this.actCat = t.dataset.c; this.actAll = false; this.draw(); const b = this.el.querySelector('.act-f [data-c="' + t.dataset.c + '"]'); if (b) b.focus(); return; }
+    if (t.dataset.a === 'actmore') { this.actAll = !this.actAll; this.draw(); const b = this.el.querySelector('.act-m'); if (b) b.focus(); return; }
     if (t.dataset.a === 'jump') {
       const r = [...this.el.querySelectorAll('.rvd-lk[data-k]')].find(x => x.dataset.k === t.dataset.k); if (!r) return;
       let calm = false; try { calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (er) {}
@@ -5376,9 +5378,10 @@
     // in a mixed ad set), each with its own four steps at the left and its English and Arabic in two
     // fixed columns. A slot nothing fills yet is dashed and says how it starts, so Start the Arabic
     // and Start the unbranded read as empty places in the grid, not as finished designs.
-    const stage = a => { const i = a.done ? 3 : a.steps.indexOf(a.now);
-      return '<span class="rvd-aus" data-i="' + i + '"><span><i></i><b>' + esc(a.done ? 'Done' : a.now.label) + '</b></span><s>' + esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub) + '</s>' + segHtml(a.steps) + '</span>'; };
-    const stage0 = sub => '<span class="rvd-aus" data-i="0"><span><i></i><b>Not started</b></span><s>' + sub + '</s>' + segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) + '</span>';
+    // A LOOK'S HEAD (2026-11-16, by request: "why did you cramp all the text here"): two lines, not
+    // five — the look's name with its four segments beside it, then the step and who it is with
+    const stage = a => ({ i: a.done ? 3 : a.steps.indexOf(a.now), step: a.done ? 'Done' : a.now.label, sub: esc(a.done ? 'Ready to run · ' + dayS(a.at) : a.now.sub), seg: segHtml(a.steps) });
+    const stage0 = sub => ({ i: 0, step: 'Not started', sub, seg: segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) });
     const noArb = c => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(phN(tab)) : 'Not needed for this audience') + '</s></span></div>';
     // a: this look's projects in this phase · c: its planned cell · base: the branded part of the same design
     const lookRow = (market, aud, a, c, base, lab) => {
@@ -5388,7 +5391,9 @@
       else if (rs.brand === 'mixed' && isUb(aud) && base && base.eng) { st = stage0('A copy of the branded English'); tiles = ubTile(base); }
       else if (c) { st = stage0(phs.length > 1 ? 'No ' + esc(phN(tab)) + ' project yet' : 'Planned in Ad set settings'); tiles = ph(market, aud, 'ENG') + (arbIn(c, tab) ? ph(market, aud, 'ARB') : noArb(c)); }
       else { st = stage0('After the branded English'); tiles = ubTile({ market, aud: ubBase(aud), eng: null }); }
-      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '><div class="rvd-lkh">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '') + st + '</div><div class="rvd-lkc">' + tiles + '</div></div>';
+      const head = '<div class="rvd-lkh" data-i="' + st.i + '"><span class="rvd-lkl">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '<b class="rvd-lkn"><i></i>' + esc(st.step) + '</b>') + st.seg + '</span>' +
+        '<span class="rvd-lkm" title="' + (lab ? esc(st.step) + ' — ' : '') + st.sub + '">' + (lab ? '<i></i><b>' + esc(st.step) + '</b> · ' : '') + st.sub + '</span></div>';
+      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '>' + head + '<div class="rvd-lkc">' + tiles + '</div></div>';
     };
     const groups = [];
     const grp = (market, aud, key) => { const k = market ? market + '|' + audRoot(aud) : 'p:' + key; let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, market, root: market ? audRoot(aud) : '', ds: [], solo: null }); return g; };
@@ -5414,8 +5419,36 @@
     }).join('');
     const nNew = groups.filter(g => !partsOf(g).length).length;
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
-    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3><ol class="shl-list rva-log">' + (log.length ? log.slice(0, 300).map((e, i, l) => logEntryHtml(e, { max: 20, cont: logCont(l[i - 1], e) })).join('')
-      : '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol></section>';
+    // ACTIVITY, COMPRESSED (2026-11-16, by request): a row per entry under its day, a filter by kind
+    // (Progress · Projects · Edits · Video and downloads, each only when it has entries), and the
+    // latest six until Show all. A project's own edits are one line, their words behind Show changes.
+    const actOf = e => { const c = e.changes || [], t = String((c[0] || {}).text || '');
+      if (c.some(x => x.kind !== 'step' && x.kind !== 'note') || !c.length) return 'edit';
+      if (/^(Downloaded|Commented on the video|Removed the video)/.test(t)) return 'file';
+      if (/^(Added|Removed|Moved|Changed |Filed the ticket|Picked up|Launched|Shared)/.test(t)) return 'proj';
+      return 'prog'; };
+    const ACTS = [['all', 'All'], ['prog', 'Progress'], ['proj', 'Projects'], ['edit', 'Edits'], ['file', 'Video and downloads']];
+    const actN = k => k === 'all' ? log.length : log.filter(e => actOf(e) === k).length;
+    const aCat = ACTS.some(([k]) => k === this.actCat && actN(k)) ? this.actCat : 'all';
+    const aList = aCat === 'all' ? log : log.filter(e => actOf(e) === aCat), aCap = this.actAll ? 300 : 6;
+    const dayOf = ms => { const x = new Date(ms), n = new Date(), y = new Date(n - 864e5), same = (a, b) => a.toDateString() === b.toDateString();
+      return same(x, n) ? 'Today' : same(x, y) ? 'Yesterday' : x.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }); };
+    const hm = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const cap1 = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+    const actRow = e => { const c = e.changes || [], k = actOf(e), c0 = c[0] || {};
+      const what = k === 'edit' ? (c.length === 1 ? cap1(line(c0, true)) : c.length + ' changes') : c.map(x => x.text || '').filter(Boolean).join(' · ');
+      const where = String(c0.page || '') || (k === 'edit' ? '' : String(c0.label || ''));
+      return '<li class="act-r" data-c="' + k + '"><span class="shl-av">' + avIn(e.by, (e.by || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<div class="act-t"><p><b>' + esc(e.by || 'Someone') + '</b> ' + esc(what) + '</p>' + (where ? '<p class="act-w">' + esc(where) + '</p>' : '') +
+        (k === 'edit' ? '<details class="act-d"><summary>Show ' + (c.length === 1 ? 'the change' : 'the changes') + '</summary><ol class="shl-list rva-log">' + logEntryHtml(e, { max: 20 }) + '</ol></details>' : '') +
+        '</div><time datetime="' + new Date(e.at).toISOString() + '" title="' + esc(new Date(e.at).toLocaleString()) + '">' + esc(hm(e.at)) + '</time></li>'; };
+    let aDay = '';
+    const actRows = aList.slice(0, aCap).map(e => { const dd = dayOf(e.at), h = dd !== aDay ? '<li class="act-day">' + esc(dd) + '</li>' : ''; aDay = dd; return h + actRow(e); }).join('');
+    const actChips = log.length > 1 ? '<div class="act-f" role="group" aria-label="Show activity of one kind">' + ACTS.filter(([k]) => actN(k)).map(([k, l]) =>
+      '<button type="button" data-a="actcat" data-c="' + k + '" aria-pressed="' + (k === aCat) + '">' + l + '<s>' + actN(k) + '</s></button>').join('') + '</div>' : '';
+    const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3>' + actChips + '<ol class="act-l">' +
+      (actRows || '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol>' +
+      (aList.length > 6 ? '<button type="button" class="act-m" data-a="actmore" aria-expanded="' + !!this.actAll + '">' + (this.actAll ? 'Show the latest 6' : 'Show all ' + aList.length) + '</button>' : '') + '</section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     const LSAY = { ct: 'Content Review', pm: 'AdSet Overview' };
@@ -5441,7 +5474,7 @@
       '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs) + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -7314,10 +7347,10 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-steps [data-cur] span{color:var(--ps-ink);font-weight:500}
 .rvd-steps em{display:block;height:4px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
 .rvd-steps em s{display:block;height:100%;border-radius:inherit;text-decoration:none}
-.rvd-steps [data-i="0"] i,.rvd-steps [data-i="0"] em s,.rvd-wc[data-i="0"] i,.rvd-aus[data-i="0"] i{background:var(--ps-dim)}
-.rvd-steps [data-i="1"] i,.rvd-steps [data-i="1"] em s,.rvd-wc[data-i="1"] i,.rvd-aus[data-i="1"] i{background:var(--ps-warn)}
-.rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-aus[data-i="2"] i{background:var(--ps-link)}
-.rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-aus[data-i="3"] i{background:var(--ps-good)}
+.rvd-steps [data-i="0"] i,.rvd-steps [data-i="0"] em s,.rvd-wc[data-i="0"] i,.rvd-lkh[data-i="0"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-dim)}
+.rvd-steps [data-i="1"] i,.rvd-steps [data-i="1"] em s,.rvd-wc[data-i="1"] i,.rvd-lkh[data-i="1"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-warn)}
+.rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-lkh[data-i="2"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-link)}
+.rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-lkh[data-i="3"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-good)}
 .rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .rvd-now>i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
 .rvd-now[data-s="ready"]>i{background:var(--ps-good)}
@@ -7339,18 +7372,18 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-ausm{flex:none;padding-bottom:2px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
 .rvd-aun s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rvd-aun b{font:500 18px/1.25 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
-.rvd-aus{display:flex;flex-direction:column;gap:6px;min-width:0}
-.rvd-aus>span:first-child{display:flex;align-items:center;gap:8px;min-width:0}
-.rvd-aus>span:first-child i{flex:none;width:8px;height:8px;border-radius:50%}
-.rvd-aus>span:first-child b{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rvd-aus>s{text-decoration:none;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
-.rvd-aus .rv-seg{max-width:132px;margin-top:2px}
-.rvd-aus .rv-seg i{background:var(--ps-fill-h)}
-.rvd-aus .rv-seg i[data-s="done"]{background:var(--ps-ink-2)}
-.rvd-aus[data-i="0"] .rv-seg i[data-s="cur"]{background:var(--ps-dim)}
-.rvd-aus[data-i="1"] .rv-seg i[data-s="cur"]{background:var(--ps-warn)}
-.rvd-aus[data-i="2"] .rv-seg i[data-s="cur"]{background:var(--ps-link)}
-.rvd-aus[data-i="3"] .rv-seg i{background:var(--ps-good)}
+
+
+
+
+
+
+.rvd-lkh .rv-seg i{background:var(--ps-fill-h)}
+.rvd-lkh .rv-seg i[data-s="done"]{background:var(--ps-ink-2)}
+.rvd-lkh[data-i="0"] .rv-seg i[data-s="cur"]{background:var(--ps-dim)}
+.rvd-lkh[data-i="1"] .rv-seg i[data-s="cur"]{background:var(--ps-warn)}
+.rvd-lkh[data-i="2"] .rv-seg i[data-s="cur"]{background:var(--ps-link)}
+.rvd-lkh[data-i="3"] .rv-seg i{background:var(--ps-good)}
 .rvd-sec h3 .rvd-add{display:inline-flex;align-items:center;gap:6px;height:32px;margin-left:auto;padding:0 14px 0 10px;font-size:13px;flex:none;white-space:nowrap}
 .rvd-sec h3 .rvd-add .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-sec h3{align-items:center}
@@ -7360,11 +7393,17 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
    in two fixed columns */
 .rvd-dzb{padding:14px 20px 18px;border-top:1px solid var(--ps-hair)}
 .rvd-dzh{margin:0;font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
-.rvd-lk{display:grid;grid-template-columns:168px minmax(0,1fr);gap:16px;align-items:start;margin-top:12px;border-radius:12px;transition:background-color .3s var(--ps-ease,ease),box-shadow .3s var(--ps-ease,ease)}
-.rvd-lk+.rvd-lk{margin-top:16px}
+.rvd-lk{display:grid;grid-template-columns:208px minmax(0,1fr);gap:24px;align-items:center;margin-top:14px;border-radius:12px;transition:background-color .3s var(--ps-ease,ease),box-shadow .3s var(--ps-ease,ease)}
+.rvd-lk+.rvd-lk{margin-top:20px}
 .rvd-lk[data-hit]{background:var(--ps-fill);box-shadow:0 0 0 8px var(--ps-fill)}
-.rvd-lkh{display:flex;flex-direction:column;gap:6px;min-width:0;padding-top:4px}
-.rvd-lkn{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rvd-lkh{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rvd-lkl{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.rvd-lkl .rv-seg{flex:none;width:68px;gap:3px}
+.rvd-lkh :is(.rvd-lkn,.rvd-lkm)>i{flex:none;display:inline-block;width:8px;height:8px;border-radius:50%}
+.rvd-lkm{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.rvd-lkm i{margin:0 7px 1px 0;vertical-align:middle}
+.rvd-lkm b{font-weight:400;color:var(--ps-ink)}
+.rvd-lkn{display:inline-flex;align-items:center;gap:8px;min-width:0;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
 .rvd-lkc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
 /* a project: one ringed tile that opens it, its actions behind the menu at its end */
 .rvd-lkc .rva-lt{position:relative;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
@@ -7388,7 +7427,36 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-mnl{position:absolute;right:0;top:calc(100% + 4px);z-index:6;display:flex;flex-direction:column;min-width:184px;padding:6px;border-radius:12px;background:var(--ps-card-h);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-mnl button{height:36px;padding:0 12px;border:none;border-radius:8px;background:none;color:var(--ps-ink);font:400 14px/1 var(--ps-font);text-align:left;white-space:nowrap;cursor:pointer}
 .rvd-mnl button:hover,.rvd-mnl button:focus-visible{background:var(--ps-fill-h);outline:none}
-.rvd-act{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-act{padding:20px 20px 12px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-act h3{margin-bottom:12px}
+.act-f{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.act-f button{display:inline-flex;align-items:center;gap:6px;height:32px;margin:0;padding:0 12px;border:none;border-radius:9999px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.act-f button:hover{background:var(--ps-fill);color:var(--ps-ink)}
+.act-f button[aria-pressed="true"]{background:var(--ps-fill-on);color:var(--ps-ink);box-shadow:none}
+.act-f button s{text-decoration:none;font-weight:400;color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.act-f button:focus-visible,.act-m:focus-visible,.act-d summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.act-l{list-style:none;margin:0;padding:0}
+.act-day{padding:16px 0 6px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.act-r{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding:8px 0}
+.act-r+.act-r{box-shadow:inset 0 1px 0 var(--ps-hair)}
+.act-r .shl-av{width:24px;height:24px;font-size:11px}
+.act-t{min-width:0}
+.act-t p{margin:0;font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.act-t p b{font-weight:500;color:var(--ps-ink)}
+.act-t p.act-w{font-size:12.5px;color:var(--ps-ink-2)}
+.act-r time{padding-top:2px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.act-d{margin-top:4px}
+.act-d summary{display:inline-flex;align-items:center;min-height:28px;border-radius:6px;list-style:none;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-link);cursor:pointer}
+.act-d summary::-webkit-details-marker{display:none}
+.act-d summary:hover{text-decoration:underline;text-underline-offset:3px}
+.act-d .lg-h{display:none}
+.act-d .rva-log>li{padding:4px 0 0;box-shadow:none}
+.act-d .shl-list ul{padding-left:0}
+.act-m{display:block;width:100%;height:40px;margin:6px 0 0;border:none;border-top:1px solid var(--ps-hair);background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer}
+.act-m:hover{color:var(--ps-ink)}
+/* the Video section: a card like an audience's, its tiles in the same cells */
+.vdo-card{padding:16px 20px}
+.vdo-card .rvd-lkc .rva-lt[data-empty] .rva-lt-t b{display:inline}
 .rvd-side{display:flex;flex-direction:column;gap:16px;min-width:0}
 .rvd-card{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
 .rvd-lks{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}

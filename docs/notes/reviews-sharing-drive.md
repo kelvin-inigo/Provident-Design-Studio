@@ -2244,3 +2244,33 @@ audience › design › look › language, and `AV.detHtml` now nests the page t
   elementFromPoint; Already approved run through the menu end to end; Change audience form,
   the jump chip, a single-phase non-mixed ad set. Not run: Start slots opening CAS, Remove, Move
   to another ad set, the content-team role, Status inside CAS itself, real Drive, Safari.
+
+# STATUS › AD SET PAGE: LOOK HEADS, ACTIVITY, VIDEO (2026-11-16, second pass, by request)
+
+From the user's marked-up screenshots: "why did you cramp all the text here", "find a way to
+compress or collapse this activity section, maybe categorize them by type of activity", "also fix
+the video section".
+- **Look head** (`.rvd-lkh`, `data-i` = the step): two lines instead of five. Line one
+  `.rvd-lkl`: the look's name (`.rvd-lkn`, 14/500) with the four segments at its right (68px);
+  without a look name (a single-look design) the step's dot and name take that place. Line two
+  `.rvd-lkm`: "● Step · who / when", clamped to two lines, full text in its title. Column 208px,
+  24px gap, rows centred on their tiles, 20px between looks. `stage`/`stage0` now return
+  `{ i, step, sub, seg }`. Trap: `.rvd-lkt` is the Team links' text class (flex column) — the
+  look label is `.rvd-lkl`; and the dot rules are `:is(.rvd-lkn,.rvd-lkm)>i`, because `.rv-seg`'s
+  bars are `<i>` too.
+- **Activity** (`.rvd-act`): a row per entry (`.act-r`: 24px avatar, "**Name** what", where under
+  it, time at the right) under day headings (`.act-day`: Today / Yesterday / Sat, Oct 31). `actOf`
+  sorts entries into prog / proj / edit / file (step text prefixes; any non-step change is an
+  edit); `.act-f` filter buttons (`data-a="actcat"`, aria-pressed, the resting tint when on) show
+  only kinds with entries. The latest 6, then `.act-m` Show all N / Show the latest 6
+  (`data-a="actmore"`); `this.actCat` / `this.actAll` survive the timed redraw. An edit entry is
+  one line ("Changed headline" or "N changes") with `details.act-d` Show the changes holding the
+  old `logEntryHtml` (its header hidden). The Changes panel in the studios still uses
+  `logEntryHtml` unchanged.
+- **Video**: `vidSecHtml`'s grid is wrapped on this page only into `.rvd-au.vdo-card > .rvd-lkc`,
+  so the video tiles and Add video take the audience tiles' ring and dashed slot. CAS's Ad set
+  tab (`.adt-vid`) still gets the plain markup.
+- seed.js: Palm Springs carries a video (`rs.video`, no files: the card, not the player).
+- Verified on share-dev 8791: 0 contrast failures and no overflow, dark and light, 1440 / 1280 /
+  375; filter and Show all keep focus. Not run: an Edits entry (the seed has no project-level edits,
+  so Show the changes is unexercised), the video player, CAS's Ad set tab video card.

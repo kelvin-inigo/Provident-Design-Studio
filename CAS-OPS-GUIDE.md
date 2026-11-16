@@ -643,8 +643,8 @@ its designs, each design's look (branded or unbranded) and its languages.
   chip to jump to it in the list below.
 - **Audiences:** one card per market and audience, in the plan's order, started or not. Inside a
   card, each design has its own block (**Design 1**, **Design 2**…), and each design has one row
-  per look: **Branded** and, in a Mixed ad set, **Unbranded**. A row shows its own four steps and
-  who it is with at the left, then **English** and **Arabic** side by side. A project that exists
+  per look: **Branded** and, in a Mixed ad set, **Unbranded**. At the left of a row, the look's name
+  with its four step bars, and under it the step it is on and who it is with; then **English** and **Arabic** side by side. A project that exists
   is a tile that opens it in the full studio. A place nothing fills yet is a dashed slot that says
   how it starts: **Start the English**, **Start the Arabic**, **Start the unbranded**. Where the
   audience has no Arabic, the place says **Not needed**.
@@ -670,7 +670,13 @@ its designs, each design's look (branded or unbranded) and its languages.
   Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
   set tab, under **Audiences**.
 - **Ad set links:** one row per team, with **Copy link**.
-- **Activity:** every step and every word changed in every project, newest first.
+- **Video** (when the ad set has video on): a card with each video and **Add video**.
+- **Activity:** every step and every word changed in every project, newest first, under its day,
+  one line each. The latest six show; **Show all** lists the rest. The buttons above it show one
+  kind at a time: **Progress** (designs done, copy approved, sent on), **Projects** (added,
+  removed, moved, the ticket), **Edits** (words and photos changed in a project; **Show the
+  changes** opens the old and new words) and **Video and downloads**. A kind with nothing in it
+  has no button.
 - **On the right:** **Team links**, the **Brief** and **Drive location**.
 
 To add an ad set from another computer, paste its **designer** link into the box at the top.
