@@ -206,6 +206,7 @@ body[data-drag] #cv{box-shadow:0 0 0 2px var(--ps-focus)}
 .vs-empty b{font:500 17px/1.3 var(--ps-font);color:var(--ps-ink)}
 .vs-empty span{font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2);text-wrap:pretty}
 .vs-empty .p-btn{margin-top:10px}
+.vs-empty .vs-prev{margin-top:4px}
 
 /* ── transport: the timeline's own bar ── */
 .vs-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;min-height:48px;padding:0 16px;
@@ -470,6 +471,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
         <b>Start with a video</b>
         <span>Drop one here, or upload it. Photos work too, as still clips you can animate.</span>
         <button class="p-btn p-ico-t" id="emptyUp"></button>
+        <button class="p-ghost vs-prev" id="prevBtn" hidden>Reopen the last video</button>
       </div></div>
     </div>
   </section>

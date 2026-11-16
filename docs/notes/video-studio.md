@@ -450,3 +450,24 @@ Only media whose id appears in the project goes in. CAS saves it in the ad set's
   does not use, clears the inbox and reloads. A full browser store changes nothing.
 - `DB.tx` now rejects on `onabort` too: a quota failure aborts the transaction without `onerror`.
 - Test on another port (another origin) — never on 8794, where the user's project lives.
+
+## START NEW KEEPS THE LAST VIDEO; CAS'S "MAKE A NEW ONE" STARTS ONE (2026-11-16)
+
+The user: "when I'm creating something new on CASV, the old session is still there." CASV holds ONE
+project (localStorage `provident-video-project`) and reopens it on every load; Status's Add video ›
+Make a new one in CASV only opened the page. Now:
+
+- `startNew(name, from)` replaces the old `#newBtn` handler: asks when the timeline has anything
+  (naming the ad set when CAS sent it, and saying when it was never sent to CAS), keeps the
+  replaced project in `provident-video-project-prev` (PREV), starts `fresh()` keeping the size,
+  sets `P.name` (Send to CAS's suggested name, after `P.cas.title`). `fresh()` has no `P.cas`, so
+  the new video's Send to CAS is a new outbox video and the old one's comments stay with the old.
+- **Reopen the last video** (`#prevBtn`, in the empty-timeline card, shown while PREV holds one)
+  swaps PREV and the open project (asks first when the open one has anything).
+- `#new=<name>` on load: the hash is dropped, then `startNew(name, name)` after 600 ms. Status
+  (share-link.js on main) opens `CASV_PAGE() + '#new=' + ad set name`.
+- Verified on a throwaway server (:8796, its own storage — :8794 is the user's): a seeded old
+  video, `#new=Palm Springs by Nakheel` → "Start a new video for Palm Springs by Nakheel?" → empty
+  timeline, `P.name` set, PREV holds the old, Reopen the last video brings it back and empties PREV.
+  Not run: a real Send to CAS from a new video, media-heavy projects (PREV is the project JSON
+  only; its media stays in the library because Start new never deletes media).

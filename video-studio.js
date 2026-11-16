@@ -1828,7 +1828,7 @@
   async function sendToCas() {
     if (casBusy || exporting) return;
     if (!total()) { toast('Add a video first.'); return; }
-    const first = P.texts.find(t => !t.call && t.text), def = (P.cas && P.cas.title) || (first ? plain(first.text).replace(/\s+/g, ' ').slice(0, 60) : 'Video');
+    const first = P.texts.find(t => !t.call && t.text), def = (P.cas && P.cas.title) || P.name || (first ? plain(first.text).replace(/\s+/g, ' ').slice(0, 60) : 'Video');
     const title = await ask('Send this video to CAS', 'CASV records the Reel 9:16 and then the Square 1:1, which takes twice the video\'s length. Keep this tab in front until it finishes.', 'Record and send', def);
     if (title == null) return;
     const keep = P.size, id = (P.cas && P.cas.id) || uid() + uid().slice(0, 2), out = {};
@@ -2122,10 +2122,32 @@
   }
   $('#askYes').addEventListener('click', () => $('#ask').close('yes')); $('#askNo').addEventListener('click', () => $('#ask').close(''));
   $('#askIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#ask').close('yes'); } });
-  $('#newBtn').addEventListener('click', async () => {
-    if (total() && !(await ask('Start a new video?', 'The timeline is cleared. Everything you uploaded stays in the library, and Undo brings this video back.', 'Start new'))) return;
-    mark(); const keep = P.size; P = fresh(); P.size = keep; sel = null; T = 0; partnerLoad(); renderAll();
+  // START NEW (2026-11-16): the video being replaced is kept as "the last video" (PREV), so a new
+  // one never loses it: the empty timeline offers Reopen the last video. CAS's Make a new one in
+  // CASV opens this page with #new=<ad set name>: the same question, and the name is what Send to
+  // CAS suggests (P.name). A new video has no P.cas, so its Send to CAS is a new outbox video.
+  const PREV = 'provident-video-project-prev';
+  const prevOn = () => { let ok = false; try { ok = !!localStorage.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = !ok; };
+  async function startNew(name, from) {
+    if (total() && !(await ask(from ? 'Start a new video for ' + from + '?' : 'Start a new video?',
+      'The timeline is cleared for a new video. This one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '. Everything you uploaded stays in the library.', 'Start new'))) return false;
+    if (total()) { try { localStorage.setItem(PREV, JSON.stringify(P)); } catch (e) {} }
+    mark(); const keep = P.size; P = fresh(); P.size = keep; if (name) P.name = String(name).slice(0, 60); sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
+    return true;
+  }
+  $('#newBtn').addEventListener('click', () => startNew());
+  $('#prevBtn').addEventListener('click', async () => {
+    let old = null; try { old = JSON.parse(localStorage.getItem(PREV) || 'null'); } catch (e) {}
+    if (!old || old.v !== 1) { prevOn(); return; }
+    if (total() && !(await ask('Reopen the last video?', 'It swaps places with the video open now, which becomes the last video.', 'Reopen'))) return;
+    try { if (total()) localStorage.setItem(PREV, JSON.stringify(P)); else localStorage.removeItem(PREV); } catch (e) {}
+    mark(); P = Object.assign(fresh(), old); P.brand = Object.assign(fresh().brand, old.brand); if (!SIZES[P.size]) P.size = '9x16';
+    sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
   });
+  prevOn();
+  { const m = /^#new=(.*)$/.exec(location.hash || '');
+    if (m) { history.replaceState(null, '', location.pathname + location.search); let nm = ''; try { nm = decodeURIComponent(m[1]); } catch (e) {}
+      setTimeout(() => startNew(nm, nm || 'CAS'), 600); } }
   // a card opens above its button (the shortcuts, the markers)
   const popAt = (pop, btn) => e => {
     const open = e.newState === 'open', r = btn.getBoundingClientRect();
