@@ -114,10 +114,28 @@ exports download as a zip. The studios fit tablets and phones.
   **Branded** one, with **Start the unbranded**.
 - **More than one design per audience:** **Add a design** at the foot of an audience's card on
   Status starts the next one (**Local · Investor · Design 2**), with its own copy check and Arabic.
-- **Each ad set link is for its own team.** Someone opening another team's link (say the content
-  team on performance marketing's) sees **This isn't your view** and can press **Request access**
-  for that ad set only; the designer allows it in Status, in the **Access** card under Team links.
-  Designers and the admin open every link.
+- **Each ad set link is for its own team.** The content team's link opens for the content team
+  (English or Arabic), performance marketing's for performance marketing and the Digital Marketing
+  Team, the designer's for designers. Designers and the admin open all three.
+  - Someone signed in with another role (say the content team on performance marketing's link)
+    sees **404 · Not your view – This isn't your view**, with **Request access** and **Go to
+    Status**. The request is for that view of that one ad set; it gives nothing anywhere else.
+  - Signed out, the page asks them to sign in with Google first. An account still waiting for the
+    admin gets no Request access button: the admin has to let them in under **Access** first.
+  - The designer answers in Status, on the ad set's page, in the **Access** card under Team links:
+    **Allow** or **Decline** per request, and **Remove** for anyone already let in. Each answer is
+    in the ad set's Activity. Once allowed, the person opens the same link again.
+  - If someone asks why a link "says 404", tell them it's a link for another team: use their own
+    team's link, or press Request access and ask the designer to allow it.
+- **Video** (the MVP video, on the ad set's Status page): **Add video** asks first. **Add one made
+  in CASV** takes a video sent from the Video Studio (or its two files). **Make a new one in CASV**
+  opens the Video Studio on that computer (it must be running), and the video comes back picked
+  when the designer presses **Send to CAS** there. A video tile's **⋯** holds **Replace video** and
+  **Remove**.
+- **Drive follows Status.** **Remove** on a project or a video, and the ad set's **Delete for
+  everyone** (under the brief on its page), send their files to Google Drive's trash, where they
+  can be restored for 30 days. Delete for everyone also trashes the campaign folder if nothing else
+  is in it. Change audience, Move to and renaming a phase move or rename the folders.
 - On the content team's and performance marketing's links, groups that are done from their side
   are hidden under **Show finished** at the foot of the list.
 - **Already approved** skips the content team for an ad signed off before it came in. On Status it
@@ -137,8 +155,7 @@ Steps: **Draft** (social media manager) › **Design** (designer) › **Copy che
 manager gets it?**; a post that needs no copy check goes there with the designer's **Send to SMM**.
 The social media manager opens **Open the files**, publishes, and presses **Posted**.
 **Delete for everyone** is on the post's page; it also sends the post's Drive folder to Drive's
-trash (restorable for 30 days). The same goes for an ad set's **Delete for everyone**, and for
-**Remove** on a project or a video in Status: Drive follows what Status shows.
+trash (restorable for 30 days).
 
 Filling a post: the **guided run** goes page by page (**Pages in this post**, **Layout**, **Words**,
 **Agent**, **Pictures**, **QR code & listing number**), **Next** lists anything missing, and the
