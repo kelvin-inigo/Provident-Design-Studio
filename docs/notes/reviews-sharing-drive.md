@@ -2167,3 +2167,17 @@ project was never at risk): Send to CAS parked a 21,274,585-byte project; Add vi
 (`proj` set, same byte count); storage wiped; Open in Video Studio -> Open it restored the same
 clips and the 21,270,767-byte media file. NOT exercised: real Drive, a project of hundreds of MB
 (the upload is one request, as the videos are), Replace, two computers.
+
+### The project file proven on the live site with real Drive (2026-11-16, by request)
+Palm Springs by Nakheel, admin, real clicks. CASV in the user's Chrome (the project lives in THAT
+browser's storage, not the Browser pane's — check `VideoStudio.project.cas` before sending): Send
+to CAS parked the Reel, the Square and a 56,644,763-byte `.casv` (the project's ~120 MB media
+library packs to 54 MB: only what the timeline uses). Replace video uploaded all three (the project
+in ~10 s, one request); `proj` and `projBytes` set, version 3, the comment kept. Open in Video
+Studio brought the file back to `_inbox/`: **`cmp` identical** to the one sent (sha256 0a2444a0…).
+The inbox copy was then removed instead of pressing Open it, so the user's open project was not
+replaced; the open-and-replace step is proven on the stand-in only.
+- **A page loaded before a push runs the old share-link.js.** The first Replace here ran on such a
+  page (a hash-only navigation does not reload): the video was replaced (version 2) and NO project
+  was saved, silently. Reload the site before testing a site-side change; users get it on their
+  next full load.
