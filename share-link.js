@@ -784,6 +784,7 @@
         const R = await dsResolve(id, null, false, true);
         if (R.role !== 'dd' || !R.rs) return { id, gone: true };
         const e = { id, dd: R.rs.tok.dd, rs: dsPub(R.rs, 'dd'), thumb: R.rs.thumb || '', live: {} };
+        vidTell(R.rs);
         let thAt = 0;
         const plog = [], proj = {};
         await Promise.all((R.rs.items || []).map(async it => {
@@ -4964,6 +4965,28 @@
   const vidOn = rs => !!(rs && rs.video && (rs.video.on || vidList(rs).length));
   const VID_SIZE = { '9x16': 'Reel 9:16', '1x1': 'Square 1:1' };
   const VID_BLOBS = {};
+  // COMMENTS REACH CASV WITHOUT THE PLAYER (2026-11-16). A PM's comment used to sit on Drive until
+  // the designer opened that video's player here. Now every read of an ad set by a designer's page
+  // (the Status list, the ad set page, the Ad set tab) hands the comments of its CASV videos to the
+  // local server. Only a browser that has talked to CASV before, or the person who added the
+  // video, tries: nobody else's browser is asked for this computer's local network. One post per
+  // change; a computer with no CASV running is left alone for five minutes.
+  const VID_TOLD = {}; let vidTellOff = 0;
+  function vidTell(rs) {
+    try {
+      if (!vidCan() || Date.now() < vidTellOff) return;
+      const me = (StudioBase.shareName && StudioBase.shareName()) || '', seen = lsGet('provident-casv-seen');
+      vidList(rs).forEach(v => {
+        if (!v.casv || !(seen || (me && v.by === me))) return;
+        const notes = (v.notes || []).map(n => ({ t: n.t, text: n.text, by: n.by, done: !!n.done })), sig = JSON.stringify(notes);
+        if (VID_TOLD[v.casv] === sig) return;
+        VID_TOLD[v.casv] = sig;
+        fetch(CASV_AT() + '/api/outbox/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: v.casv, notes }) })
+          .then(r => { if (r.ok) lsSet('provident-casv-seen', '1'); else delete VID_TOLD[v.casv]; })
+          .catch(() => { delete VID_TOLD[v.casv]; vidTellOff = Date.now() + 300000; });
+      });
+    } catch (e) {}
+  }
   function vidBlob(fid) {
     return VID_BLOBS[fid] || (VID_BLOBS[fid] = dsFetch('/drive/v3/files/' + fid + '?alt=media&supportsAllDrives=true').then(r => r.blob())
       .then(b => new Blob([b], { type: 'video/mp4' })).catch(e => { delete VID_BLOBS[fid]; throw e; }));
@@ -5027,7 +5050,7 @@
   // The Status ad set page's Video section: a tile per video, then the Add video placeholder.
   function vidSecHtml(rs) {
     if (!vidOn(rs)) return '';
-    vidCss();
+    vidCss(); vidTell(rs);
     const can = vidCan(), list = vidList(rs);
     const card = v => { const all = v.notes || [], open = all.filter(n => !n.done).length;
       return '<div class="rva-lt"><button type="button" class="rva-pj" data-a="vid" data-vid="' + esc(v.id) + '" title="Play it, comment on its timeline, download the Reel and the Square">' +
@@ -5159,7 +5182,7 @@
     const push = () => {
       if (!can || !v.casv) return;
       fetch(CASV_AT() + '/api/outbox/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: v.casv, notes: (v.notes || []).map(n => ({ t: n.t, text: n.text, by: n.by, done: !!n.done })) }) })
-        .then(r => { if (r.ok) { told = 'The comments are pinned on the Video Studio’s timeline on this computer.'; if (!$('.shl-st').textContent) st(told, false); } }).catch(() => {});
+        .then(r => { if (r.ok) { lsSet('provident-casv-seen', '1'); told = 'The comments are pinned on the Video Studio’s timeline on this computer.'; if (!$('.shl-st').textContent) st(told, false); } }).catch(() => {});
     };
     const draw = () => {
       const all = v.notes || [], open = all.filter(n => !n.done).length;

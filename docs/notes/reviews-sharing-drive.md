@@ -2145,3 +2145,25 @@ came back byte for byte (47,683,046 and 47,456,885); a comment saved, reached CA
 video … at 0:00" from that test. Still NOT exercised anywhere: Or choose the two files, Replace,
 Remove, Mark done, the Ad set tab's Video section inside CAS, a non-admin account on the live site,
 Safari.
+
+### PM view on the live site, and comments reach CASV without the player (2026-11-16, by request)
+**PM view, live, real Drive** (admin's Preview as › Performance marketing, Palm Springs by Nakheel,
+real clicks): Status ad set page shows the Video section with no Add video; Open the package has
+the Video button; the player has no Replace / Remove; Reel 1080x1920 and Square 1080x1080 play;
+both downloads byte for byte and logged to Activity; a comment at 0:12 saved, pinned, Mark done,
+deleted. A REAL PM Google account (its own Drive access to the folder) is still not exercised.
+
+**The gap that test found:** only `vidOpen`'s `push()` told CASV about comments, and only when a
+designer opened that video's player — a PM's comment sat on Drive. **`vidTell(rs)`** now posts the
+comments of every video that has a `casv` id to the local server on every read of an ad set by a
+designer's or admin's page: `dsInfo1` (the home page's and Status's list) and `vidSecHtml` (the ad
+set page, the Ad set tab). Guards, each for a reason:
+- only if this browser has talked to CASV before (`provident-casv-seen`, set by a successful post)
+  or the signed-in name is the video's `by` — nobody else's browser is asked for local network;
+- one post per change (`VID_TOLD` by notes signature); a failed fetch backs off five minutes;
+- CASV's server answers 400 "bad id" to an id with an underscore — test ids must be alphanumeric.
+It is still the designer's PAGE that carries them (CASV never signs in): a page left open sees new
+comments on its next read (reload, Refresh, opening an ad set). Verified on the stand-in (8791) with
+CASV's server on 8794: designer added a video, PM (Dennis) commented through `rsvideo`, the PM's page
+posted nothing, the designer's home page load alone delivered the comment to
+`/api/outbox/notes` (200), no player opened. Not verified on the live site until pushed.
