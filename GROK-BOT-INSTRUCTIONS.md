@@ -105,8 +105,10 @@ exports download as a zip. The studios fit tablets and phones.
   in CAS) and the **MVP video** (the short key-facts video — made only in the Video Studio, CASV,
   and added in the ad set's **Video** section), each in English and Arabic. Static ticks itself once the
   project is sent on; press **Missing** beside the other two when they are delivered. It shows
-  what is missing and never blocks **Done**. CAS does not make the animated version yet: it is
-  made outside CAS for now.
+  what is missing and never blocks **Done**. The animated version is made in CAS: **Background image** › **Background** › **Video**, upload
+  the clip made from the photo (Higgsfield), and it plays behind the design on the 1:1 and 9:16;
+  **Share** › **Export animated** records them as MP4. The clip stays on the computer it was
+  uploaded on.
 - **Phases** are rounds of the whole campaign (Teaser, Launch, Price Drop, Ad Fatigue 01… any name):
   **Add phase** on Status, or in **Ad set settings**, where phases are also renamed.
 - **Branded | Unbranded | Mixed** under **Brand** in **Ad set settings**. Unbranded: no wordmark or
