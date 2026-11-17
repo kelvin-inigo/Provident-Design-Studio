@@ -108,7 +108,11 @@ exports download as a zip. The studios fit tablets and phones.
   what is missing and never blocks **Done**. The animated version is made in CAS: **Background image** › **Background** › **Video**, upload
   the clip made from the photo (Higgsfield), and it plays behind the design on the 1:1 and 9:16;
   **Share** › **Export animated** records them as MP4. The clip stays on the computer it was
-  uploaded on.
+  uploaded on. Instead of uploading, the same place has **Generate from this photo**: pick a
+  camera move, 5 or 10 s, the model (Kling, Cinema, Seedance) and Draft or Full, press
+  **Generate**, check the credit price, press **Generate** again; the clip lands on the design by
+  itself in a few minutes. It needs CASV running on that computer, signed in to Higgsfield.
+  **Edit in CASV** opens a new CASV video with the ad's photo on it, for a longer, more detailed video.
 - **Phases** are rounds of the whole campaign (Teaser, Launch, Price Drop, Ad Fatigue 01… any name):
   **Add phase** on Status, or in **Ad set settings**, where phases are also renamed.
 - **Branded | Unbranded | Mixed** under **Brand** in **Ad set settings**. Unbranded: no wordmark or

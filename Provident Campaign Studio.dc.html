@@ -4321,6 +4321,17 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .an-clip-n b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
 .an-clip-n s{text-decoration:none;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .an-clip-r{display:flex;gap:8px;flex-wrap:wrap}
+.an-gen{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--ps-line)}
+.an-gen-h{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.an-gen-l{font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.an-mvs{display:flex;flex-wrap:wrap;gap:6px}
+.an-mv{border:none;border-radius:var(--ps-pill);padding:7px 12px;background:var(--ps-fill);color:var(--ps-ink);font:400 12.5px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}
+.an-mv:hover{background:var(--ps-fill-h)}
+.an-mv[data-on],.an-mv[data-on]:hover{background:var(--ps-accent);color:var(--ps-accent-i);font-weight:500;box-shadow:inset 0 0 0 1px var(--ps-focus)}
+.an-mv:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.an-gen-n{margin:0;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.an-gen-n[data-warn]{color:var(--ps-bad)}
+.an-clip-r .p-ghost.an-go,.an-clip-r .p-ghost.an-go:hover{background:var(--ps-primary);color:var(--ps-primary-i);border-color:transparent}
 .an-dlg{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ps-app) 55%,transparent)}
 .an-dlg-c{width:min(420px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font);display:grid;gap:12px;justify-items:start}
 .an-dlg-c h2{margin:0;font:400 20px/1.2 var(--ps-font)}
@@ -6958,6 +6969,21 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-if value="{{ anHas }}" hint-placeholder-val="{{ false }}"><p class="an-clip-n"><b>{{ anClipName }}</b><s>{{ anClipSub }}</s></p></sc-if>
             <sc-if value="{{ anNone }}" hint-placeholder-val="{{ true }}"><p class="an-clip-n"><s>Upload the clip you made from this photo (Higgsfield or any MP4). It plays on the 1:1 and 9:16.</s></p></sc-if>
             <div class="an-clip-r"><button onClick="{{ anAdd }}" class="p-ghost">{{ anAddLabel }}</button><sc-if value="{{ anHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ anRemove }}" class="p-ghost">Remove</button></sc-if></div>
+          </div>
+          <!-- GENERATE WITH HIGGSFIELD (2026-11-17): through CASV's local server; priced, then a yes -->
+          <div class="an-gen">
+            <span class="an-gen-h">Generate from this photo</span>
+            <span class="an-gen-l">Camera move</span>
+            <div class="an-mvs" role="radiogroup" aria-label="Camera move"><sc-for list="{{ anMoves }}" as="mv" hint-placeholder-count="8"><button onClick="{{ mv.pick }}" data-on="{{ mv.on }}" class="an-mv">{{ mv.label }}</button></sc-for></div>
+            <span class="an-gen-l">Length</span>
+            <div class="p-tabs"><button onClick="{{ anSetD5 }}" data-on="{{ anD5 }}">5 s</button><button onClick="{{ anSetD10 }}" data-on="{{ anD10 }}">10 s</button></div>
+            <span class="an-gen-l">Model</span>
+            <div class="p-tabs"><sc-for list="{{ anModels }}" as="md" hint-placeholder-count="3"><button onClick="{{ md.pick }}" data-on="{{ md.on }}">{{ md.label }}</button></sc-for></div>
+            <span class="an-gen-l">Quality</span>
+            <div class="p-tabs"><button onClick="{{ anSetDraft }}" data-on="{{ anDraft }}">Draft</button><button onClick="{{ anSetFull }}" data-on="{{ anFull }}">Full</button></div>
+            <p class="an-gen-n" data-warn="{{ anGenWarn }}" role="status">{{ anGenNote }}</p>
+            <sc-if value="{{ anGenIdle }}" hint-placeholder-val="{{ true }}"><div class="an-clip-r"><button onClick="{{ anGenGo }}" class="p-ghost">{{ anGenLabel }}</button><button onClick="{{ anToCasv }}" class="p-ghost" title="Opens a new video in CASV with this photo on its timeline, for a longer, more detailed video">Edit in CASV</button></div></sc-if>
+            <sc-if value="{{ anGenConfirm }}" hint-placeholder-val="{{ false }}"><div class="an-clip-r"><button onClick="{{ anGenYes }}" class="p-ghost an-go">Generate</button><button onClick="{{ anGenNo }}" class="p-ghost">Cancel</button></div></sc-if>
           </div>
         </sc-if>
       </div>
@@ -12640,6 +12666,165 @@ class CampaignStudio extends StudioBase {
     try { await CampaignStudio.anIo('readwrite', st => st.delete(this._anPid + '|' + vi)); } catch (e) {}
     this.setState({ exportStatus: 'Clip removed. The design uses its photo again.' });
   }
+  // a finished clip (generated) becomes this variant's clip, as an upload would
+  async anSetClip(vi, pid, blob, name) {
+    const url = URL.createObjectURL(blob), vid = document.createElement('video'); vid.muted = true; vid.preload = 'metadata'; vid.src = url;
+    await new Promise(res => { vid.onloadedmetadata = res; vid.onerror = res; });
+    const dur = isFinite(vid.duration) ? vid.duration : 0;
+    if (this._anPid === pid) {
+      const old = this._clips[vi]; if (old) URL.revokeObjectURL(old.url);
+      this._clips[vi] = { name, blob, url, dur };
+      this.upd(x => { const vv = x.variants[vi]; if (vv) vv.bgVid = '1'; return x; });
+    }
+    try { await CampaignStudio.anIo('readwrite', st => st.put({ name, blob, dur }, pid + '|' + vi)); } catch (e) {}
+  }
+
+  // ---- GENERATE WITH HIGGSFIELD (2026-11-17) ----
+  // Background › Video's simple controls: a camera move, the length, the model and Draft / Full.
+  // CAS never talks to Higgsfield itself: it hands the job to CASV's local server (the same
+  // `_animate/` queue, prompt and settings table as CASV's own photo clips; the server runs
+  // Higgsfield's command-line tool with this computer's sign-in), prices it first, and only
+  // generates on a yes. The start frame is the variant's photo, centre-cropped to 9:16 (the 1:1
+  // plays the centre of it). The finished MP4 comes back as this variant's clip. Edit in CASV
+  // opens a new CASV video with the same photo on its timeline, for a more detailed video.
+  static AN_MOVES = [
+    ['push_in', 'Push in', 'slow, steady dolly push-in toward the centre of the frame'],
+    ['pull_back', 'Pull back', 'slow, steady dolly pull-back that reveals more of the space'],
+    ['pan_left', 'Pan left', 'smooth, slow camera pan to the left'],
+    ['pan_right', 'Pan right', 'smooth, slow camera pan to the right'],
+    ['tilt_up', 'Tilt up', 'smooth, slow camera tilt upward'],
+    ['crane_up', 'Crane up', 'crane shot rising smoothly straight up'],
+    ['orbit', 'Orbit', 'slow orbit, the camera arcing gently to the right around the subject'],
+    ['hold', 'Hold', 'locked-off camera with no camera movement']
+  ];
+  // the words CASV's MOVE_BASE uses, so a clip made here matches one made there
+  static AN_PROMPT = 'Photorealistic real estate footage from this exact photograph. Camera: {move}. Keep the architecture, layout, furniture, materials and proportions exactly as in the image. Do not add people, objects, text or logos, and do not warp or morph anything. Only gentle natural motion: light, foliage, water, curtains. Stable, smooth, cinematic, no cuts. Add natural sound of the environment in each scene, every interaction with the environment, accurate sound details.';
+  // [key, label, Higgsfield model, credits a second Draft, Full] — CASV's GEN_MODELS figures
+  static AN_MODELS = [['kling', 'Kling', 'kling3_0', 1.75, 2], ['cinema', 'Cinema', 'cinematic_studio_video_v2', 1.5, 2], ['seedance', 'Seedance', 'seedance_2_5', 7, 16]];
+  static anCasv() { let u = ''; try { u = localStorage.getItem('provident-casv-local') || ''; } catch (e) {} return (u || 'http://localhost:8794').replace(/\/+$/, ''); }
+  anG() { return this._anG || (this._anG = { move: 'push_in', dur: 5, model: 'kling', mode: 'std' }); }
+  anGSet(k, v) { this.anG()[k] = v; this.forceUpdate(); }
+  anGCredits() { const g = this.anG(), m = CampaignStudio.AN_MODELS.find(x => x[0] === g.model) || CampaignStudio.AN_MODELS[0]; return +(g.dur * m[g.mode === 'pro' ? 4 : 3]).toFixed(2); }
+  // jobs by pid|variant, kept so a reload picks a running generation up again
+  anJobs() {
+    if (!this._anJobs) { try { this._anJobs = JSON.parse(localStorage.getItem('provident-cas-hfjobs') || '{}') || {}; } catch (e) { this._anJobs = {}; } }
+    return this._anJobs;
+  }
+  anJobSet(key, j) {
+    const all = this.anJobs(); if (j) all[key] = j; else delete all[key];
+    try { localStorage.setItem('provident-cas-hfjobs', JSON.stringify(all)); } catch (e) {}
+    this.forceUpdate();
+  }
+  async anApi(path, body) {
+    const r = await fetch(CampaignStudio.anCasv() + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined);
+    return r.json();
+  }
+  // the variant's photo, centre-cropped to 9:16 at 1080 × 1920, as a JPEG data URL
+  async anFrame(vi) {
+    const assets = await this.loadAssets(this.state), a = assets['bg' + vi], im = a && a.img;
+    const iw = im && (im.naturalWidth || im.width), ih = im && (im.naturalHeight || im.height);
+    if (!iw || !ih) return '';
+    const k = document.createElement('canvas'); k.width = 1080; k.height = 1920;
+    const x = k.getContext('2d'), sc = Math.max(1080 / iw, 1920 / ih);
+    x.drawImage(im, (1080 - iw * sc) / 2, (1920 - ih * sc) / 2, iw * sc, ih * sc);
+    return k.toDataURL('image/jpeg', .92);
+  }
+  static anId() { return (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).slice(-12); }
+  async anGen() {
+    const vi = this.state.activeVi || 0, pid = this._anPid || this.state.pid || '', key = pid + '|' + vi, g = this.anG();
+    const mv = CampaignStudio.AN_MOVES.find(m => m[0] === g.move) || CampaignStudio.AN_MOVES[0];
+    const md = CampaignStudio.AN_MODELS.find(m => m[0] === g.model) || CampaignStudio.AN_MODELS[0];
+    this.anJobSet(key, { status: 'pricing' });
+    const photo = await this.anFrame(vi).catch(() => '');
+    if (!photo) { this.anJobSet(key, { status: 'failed', error: 'Add a background photo first: the clip is made from it.' }); return; }
+    const id = CampaignStudio.anId(), v = (this.state.variants || [])[vi] || {};
+    try {
+      const r = await this.anApi('/api/animate/job', { id, name: (this.state.campaign || 'CAS') + ' ' + (v.name || ''), move: mv[1], prompt: CampaignStudio.AN_PROMPT.replace('{move}', mv[2]), duration: g.dur, model: md[2], mode: g.mode, aspect: '9:16', photo });
+      if (r.error) throw new Error(r.error);
+      const q = await this.anApi('/api/animate/cost', { id });
+      if (q.error) { this.anApi('/api/animate/cancel', { id }).catch(() => {}); this.anJobSet(key, { status: 'failed', error: q.error }); return; }
+      this.anJobSet(key, { id, status: 'confirm', credits: q.credits, move: mv[1], dur: g.dur });
+    } catch (e) {
+      this.anJobSet(key, { status: 'failed', error: 'CASV is not running on this computer (' + CampaignStudio.anCasv() + '). Start it, then try again.' });
+    }
+  }
+  async anGenRun() {
+    const key = (this._anPid || '') + '|' + (this.state.activeVi || 0), j = this.anJobs()[key];
+    if (!j || j.status !== 'confirm') return;
+    try {
+      const r = await this.anApi('/api/animate/run', { id: j.id });
+      if (r.error) throw new Error(r.error);
+      this.anJobSet(key, Object.assign({}, j, { status: 'working', at: Date.now() })); this.anWatch();
+    } catch (e) { this.anJobSet(key, { status: 'failed', error: 'Could not start it: ' + e.message }); }
+  }
+  async anGenCancel() {
+    const key = (this._anPid || '') + '|' + (this.state.activeVi || 0), j = this.anJobs()[key];
+    if (j && j.id && j.status === 'confirm') this.anApi('/api/animate/cancel', { id: j.id }).catch(() => {});
+    this.anJobSet(key, null);
+  }
+  anWatch() {
+    clearTimeout(this._anWT);
+    if (!Object.values(this.anJobs()).some(j => j.status === 'working')) return;
+    this._anWT = setTimeout(() => this.anPoll(), 4000);
+  }
+  async anPoll() {
+    let jobs = [];
+    try { jobs = (await this.anApi('/api/animate/jobs')).jobs || []; } catch (e) { return this.anWatch(); }
+    const all = this.anJobs();
+    for (const key of Object.keys(all)) {
+      const j = all[key]; if (j.status !== 'working') continue;
+      const s = jobs.find(x => x.id === j.id);
+      if (!s) { this.anJobSet(key, { status: 'failed', error: 'CASV no longer has this job.' }); continue; }
+      if (s.status === 'failed') { this.anJobSet(key, { status: 'failed', error: s.error || 'Higgsfield could not make it.' }); continue; }
+      if (s.status !== 'done') continue;
+      try {
+        const res = await fetch(CampaignStudio.anCasv() + '/api/animate/file?id=' + j.id);
+        if (!res.ok) throw new Error(res.status);
+        const blob = await res.blob(), i = key.lastIndexOf('|');
+        await this.anSetClip(+key.slice(i + 1), key.slice(0, i), blob, 'Higgsfield · ' + (j.move || 'clip') + '.mp4');
+        this.anApi('/api/animate/placed', { id: j.id }).catch(() => {});
+        this.anJobSet(key, null);
+        this.setState({ exportStatus: 'The generated clip is on the 1:1 and 9:16.' });
+      } catch (e) { this.anJobSet(key, { status: 'failed', error: 'The clip is made but could not be fetched from CASV (' + e.message + ').' }); }
+    }
+    this.anWatch();
+  }
+  // a more detailed video: a new CASV video, named after the campaign, with this photo on its timeline
+  async anToCasv() {
+    // the window opens on the click itself (after the upload below the browser calls it a pop-up)
+    const w = window.open('', '_blank');
+    if (!w) { this.setState({ exportStatus: 'The browser blocked the CASV window. Allow pop-ups for this site.' }); return; }
+    const vi = this.state.activeVi || 0, photo = await this.anFrame(vi).catch(() => '');
+    const name = (this.state.campaign || '').slice(0, 60), id = CampaignStudio.anId();
+    let ok = false;
+    if (photo) { try { ok = !(await this.anApi('/api/inbox/photo', { id, photo })).error; } catch (e) {} }
+    w.location.href = CampaignStudio.anCasv() + '/Provident%20Video%20Studio.html#new=' + encodeURIComponent(name) + (ok ? '&photo=' + id : '');
+    if (photo && !ok) this.setState({ exportStatus: 'CASV opened without the photo: its local server could not be reached or is an older copy.' });
+  }
+  anGenVals(vi) {
+    const g = this.anG(), j = this.anJobs()[(this._anPid || '') + '|' + vi] || null, st = j ? j.status : '';
+    if (st === 'working' && !this._anWT) this.anWatch();
+    const busy = st === 'pricing' || st === 'working' || st === 'confirm';
+    return {
+      anMoves: CampaignStudio.AN_MOVES.map(m => ({ label: m[1], on: g.move === m[0] ? '1' : undefined, pick: () => this.anGSet('move', m[0]) })),
+      anModels: CampaignStudio.AN_MODELS.map(m => ({ label: m[1], on: g.model === m[0] ? '1' : undefined, pick: () => this.anGSet('model', m[0]) })),
+      anD5: g.dur === 5 ? '1' : undefined, anD10: g.dur === 10 ? '1' : undefined,
+      anSetD5: () => this.anGSet('dur', 5), anSetD10: () => this.anGSet('dur', 10),
+      anDraft: g.mode !== 'pro' ? '1' : undefined, anFull: g.mode === 'pro' ? '1' : undefined,
+      anSetDraft: () => this.anGSet('mode', 'std'), anSetFull: () => this.anGSet('mode', 'pro'),
+      anGenIdle: busy ? undefined : '1', anGenConfirm: st === 'confirm' ? '1' : undefined,
+      anGenNote: st === 'pricing' ? 'Getting the price from Higgsfield…'
+        : st === 'confirm' ? j.move + ', ' + j.dur + ' s: ' + j.credits + ' credits from your Higgsfield plan.'
+        : st === 'working' ? 'Generating… usually a few minutes. It lands here on its own; you can keep working.'
+        : st === 'failed' ? j.error
+        : 'About ' + this.anGenCredits() + ' credits. Made at 9:16 from this photo; the 1:1 plays its centre.',
+      anGenWarn: st === 'failed' ? '1' : undefined,
+      anGenLabel: 'Generate',
+      anGenGo: () => this.anGen(), anGenYes: () => this.anGenRun(), anGenNo: () => this.anGenCancel(),
+      anToCasv: () => this.anToCasv()
+    };
+  }
+  anGenCredits() { return this.anGCredits(); }
   anDlg() {
     const el = document.createElement('div'); el.className = 'an-dlg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Exporting the animated ads');
     el.innerHTML = '<div class="an-dlg-c"><h2>Exporting the animated ads</h2><p class="an-dlg-s" role="status"></p><canvas class="an-dlg-cv"></canvas><div class="an-dlg-b"><i></i></div><button type="button" class="p-ghost">Cancel</button></div>';
@@ -16746,7 +16931,7 @@ class CampaignStudio extends StudioBase {
           anSetPhoto: () => setAv(vv => { delete vv.bgVid; }), anSetVideo: () => setAv(vv => { vv.bgVid = '1'; }),
           anHas: c ? '1' : undefined, anNone: c ? undefined : '1', anAddLabel: c ? 'Replace video' : 'Upload video',
           anClipName: c ? c.name : '', anClipSub: c ? (c.dur ? Math.round(c.dur) + ' s \u00b7 ' : '') + 'on this computer only' : '',
-          anAdd: () => this.anAdd(), anRemove: () => this.anRemove() }; })(),
+          anAdd: () => this.anAdd(), anRemove: () => this.anRemove(), ...this.anGenVals(s.activeVi || 0) }; })(),
       fgOffOn: av.fg ? undefined : '1',
       fgScopeWord: CampaignStudio.isCarousel(s) ? 'page' : 'variant',
       fgToggleStyle: btn(!!av.fg),

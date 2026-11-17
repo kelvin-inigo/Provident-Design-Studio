@@ -871,6 +871,14 @@ What's on the screen, from left to right:
   - **Share** › **Animated** › **Export animated** records the 1:1 and 9:16 as MP4 video
     (`…_feed_animated.mp4`, `…_Story_animated.mp4`), beside the stills. It takes as long as the
     clip; keep the tab in front.
+  - **Generate from this photo** (under the upload) makes the clip with Higgsfield instead: pick a
+    **Camera move**, the **Length** (5 or 10 s), the **Model** (Kling, Cinema or Seedance) and
+    **Quality** (Draft or Full), press **Generate**. It shows the price in credits first; press
+    **Generate** again to spend them, or **Cancel**. It takes a few minutes and lands on the design
+    by itself; you can keep working. The clip is made at 9:16 from the photo (the 1:1 plays its
+    centre). It needs CASV running on the same computer, with Higgsfield signed in.
+  - **Edit in CASV** opens a new CASV video, named after the campaign, with this photo on its
+    timeline, for a longer or more detailed video.
   - **Photo** turns the video off without forgetting it; **Remove** forgets it. The clip is kept on
     this computer only: it is not in the project file, its link or Drive, so another computer shows
     the photo until the clip is uploaded there too.

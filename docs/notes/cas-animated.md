@@ -89,3 +89,33 @@ was merged with main first (260a927).
   clip store.
 - Not run: a real Higgsfield MP4 through the file picker, a design with a real photo / glass / a
   cut-out over the moving clip, Safari, phones, dark theme; carousel pages.
+
+## GENERATE WITH HIGGSFIELD IN CAS; EDIT IN CASV (2026-11-17)
+
+By request (annotated screenshot): "add the higgsfield generation control on this, the simple
+controls, then maybe have a button that calls CASV to edit a more detailed video".
+
+- **Background › Video › Generate from this photo:** Camera move (8 of CASV's moves), Length 5 / 10 s,
+  Model Kling / Cinema / Seedance (CASV's GEN_MODELS ids and credit rates), Quality Draft / Full.
+  Settings are per session (`_anG`), not saved. Methods `anG*`, `anGen`, `anGenRun`, `anPoll`,
+  `anToCasv`, `anGenVals` (spread into the Background render values).
+- **CAS never talks to Higgsfield.** It posts the job to CASV's local server (`anCasv()`:
+  `provident-casv-local` or http://localhost:8794) — the same `/api/animate/job → cost → run` and
+  the same prompt text (`AN_PROMPT` = CASV's MOVE_BASE) as CASV's own photo clips; the server runs
+  Higgsfield's CLI with this computer's sign-in. Price first, a second Generate spends. Jobs are kept
+  in localStorage `provident-cas-hfjobs` (pid|variant) so a reload resumes the poll (4 s,
+  `/api/animate/jobs`); done → `GET /api/animate/file?id` → `anSetClip` (same store and `bgVid` as an
+  upload) → `/api/animate/placed`.
+- **Start frame:** the variant's photo (`loadAssets` bg slot) centre-cropped to 9:16, 1080×1920.
+- **Edit in CASV:** opens the window on the click (a window opened after the upload is a blocked
+  pop-up — the first cut was), posts the frame to `/api/inbox/photo` (`_inbox/<id>.jpg`), then
+  points the window at `…/Provident Video Studio.html#new=<campaign>&photo=<id>`; CASV's startNew
+  then puts the photo on the new timeline.
+- **CASV server (local `video-studio` branch, never pushed):** CORS now also for `/api/animate/*` and
+  `/api/inbox/photo`; new `GET /api/animate/file`, `POST|GET /api/inbox/photo`. A running CASV server
+  must be restarted to pick this up.
+- **Verified** (Chrome, share-dev :8795 serving this file, CASV server :8796): the controls render;
+  Orbit 10 s Kling Draft → Higgsfield's real price, 17.5 credits (nothing spent), kept over a
+  reload; Cancel → the job left the queue; a stand-in done job (an existing MP4) → became the clip,
+  playing 1080×1920 on the 1:1 and 9:16, job `placed`; Edit in CASV (real click) → CASV opened a
+  new video with the photo on its timeline. Not run: a real paid generation, the live site → localhost.
