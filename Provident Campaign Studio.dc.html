@@ -4355,7 +4355,10 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 canvas.an-mk{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}
 canvas.an-mk[data-live]{opacity:1}
 .as-img[data-an],.ae-shot>span[data-an]{position:relative}
-.as-an-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.as-an-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;opacity:0}
+.as-an-cv[data-live]{opacity:1}
+.as-big-img[data-an]{position:relative}
+.as-big-img .as-an-cv{object-fit:contain}
 .as-anim{position:absolute;left:8px;bottom:8px;z-index:1;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 6px;border-radius:var(--ps-pill);background:var(--ps-card);color:var(--ps-ink);box-shadow:0 1px 4px color-mix(in srgb,var(--ps-ink) 25%,transparent);font:500 11px/1.3 var(--ps-font);pointer-events:none}
 .as-anim svg{width:13px;height:13px;fill:currentColor}
 .an-gen-h{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
@@ -6215,7 +6218,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                         <div class="as-tiles">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
                             <figure class="as-t" data-shape="{{ t.shape }}">
-                              <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}" data-an="{{ t.animOn }}" data-tid="{{ t.tid }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"><sc-if value="{{ t.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="Plays a video behind the design. Point at it to play."><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></button>
+                              <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}" data-an="{{ t.animOn }}" data-tid="{{ t.tid }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"><sc-if value="{{ t.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="This design plays a video behind it on the 1:1 and 9:16"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></button>
                               <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
                             </figure>
                           </sc-for>
@@ -6279,7 +6282,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                         <header class="as-vrow-h"><b>{{ g.title }}</b><s>{{ g.sub }}</s></header>
                         <div class="ae-shots">
                           <sc-for list="{{ g.shots }}" as="sh" hint-placeholder-count="2">
-                            <figure class="ae-shot" data-shape="{{ sh.shape }}" data-wait="{{ sh.wait }}"><span data-an="{{ sh.animOn }}" data-tid="{{ sh.tid }}"><img data-src="{{ sh.url }}" alt="{{ sh.label }}"><sc-if value="{{ sh.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="Plays a video behind the design. Point at it to play."><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></span><figcaption>{{ sh.label }}</figcaption></figure>
+                            <figure class="ae-shot" data-shape="{{ sh.shape }}" data-wait="{{ sh.wait }}"><span data-an="{{ sh.animOn }}" data-tid="{{ sh.tid }}"><img data-src="{{ sh.url }}" alt="{{ sh.label }}"><sc-if value="{{ sh.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="This design plays a video behind it on the 1:1 and 9:16"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></span><figcaption>{{ sh.label }}</figcaption></figure>
                           </sc-for>
                         </div>
                       </section>
@@ -6338,7 +6341,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <button onClick="{{ asBigClose }}" class="as-big-x" title="Close (Esc)">Close <svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M256-213.85 213.85-256l224-224-224-224L256-746.15l224 224 224-224L746.15-704l-224 224 224 224L704-213.85l-224-224-224 224Z"/></svg></button>
           </div>
           <button onClick="{{ asBigPrev }}" disabled="{{ asBigPrevOff }}" class="as-big-nav" data-d="prev" title="Previous (←)" aria-label="Previous image"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="m418.15-480 162.93 162.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L359.15-454.69q-5.61-5.62-7.92-11.85-2.31-6.23-2.31-13.46t2.31-13.46q2.31-6.23 7.92-11.85l179.77-179.77q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L418.15-480Z"/></svg></button>
-          <div class="as-big-img" onClick="{{ asBigClose }}"><img data-src="{{ asBigUrl }}" alt="{{ asBigName }}" onClick="{{ asBigStop }}"></div>
+          <div class="as-big-img" onClick="{{ asBigClose }}" data-an="{{ asBigAn }}" data-tid="{{ asBigTid }}"><img data-src="{{ asBigUrl }}" alt="{{ asBigName }}" onClick="{{ asBigStop }}"></div>
           <button onClick="{{ asBigNext }}" disabled="{{ asBigNextOff }}" class="as-big-nav" data-d="next" title="Next (→)" aria-label="Next image"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M517.85-480 354.92-642.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69l179.77 179.77q5.61 5.62 7.92 11.85 2.31 6.23 2.31 13.46t-2.31 13.46q-2.31 6.23-7.92 11.85L397.08-274.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L517.85-480Z"/></svg></button>
         </div>
       </sc-if>
@@ -12736,6 +12739,10 @@ class CampaignStudio extends StudioBase {
     } else URL.revokeObjectURL(url);
     try { await CampaignStudio.anIo('readwrite', st => st.put({ name, blob, dur }, pid + '|' + vi)); } catch (e) {}
     if (!here || !this.clipUp) { this.setState({ exportStatus: 'Video added: ' + name + '. It is on this computer only (the project is not on Drive).' }); return; }
+    await this.anDriveUp(vi, pid, blob, name, dur);
+  }
+  // the clip up to the project's Drive Assets folder, and the variant told where it is
+  async anDriveUp(vi, pid, blob, name, dur) {
     (this._anUp || (this._anUp = {}))[vi] = 1; this.forceUpdate();
     let fid = null, err = '';
     try { fid = await this.clipUp(vi, blob); } catch (e) { err = (e && e.message) || 'Drive did not take it'; }
@@ -12938,6 +12945,14 @@ class CampaignStudio extends StudioBase {
     if ((st === 'working' || st === 'casv') && !this._anWT) this.anWatch();
     const v = (this.state.variants || [])[vi] || {}, c = this._clips && this._clips[vi], bc = v.bgClip && v.bgClip.f ? v.bgClip : null;
     const dl = this._anDl && this._anDl[vi], up = this._anUp && this._anUp[vi], has = !!(c || bc);
+    // A CLIP FROM BEFORE CLIPS WENT TO DRIVE (2026-11-17): it is only on this computer, so Status,
+    // the PM and CT views had nothing to play. Once the project is following its ad set on Drive
+    // it goes up by itself, once per page.
+    const S = this._sh;
+    if (c && v.bgVid && !bc && !up && this.clipUp && S && /^D/.test(S.id || '') && S.role !== 'pm' && !(this._anTry && this._anTry[vi])) {
+      (this._anTry = this._anTry || {})[vi] = 1;
+      setTimeout(() => this.anDriveUp(vi, this._anPid, c.blob, c.name, c.dur), 0);
+    }
     const md = CampaignStudio.AN_MODELS.find(m => m[0] === g.model) || CampaignStudio.AN_MODELS[0];
     const mv = CampaignStudio.AN_MOVES.find(m => m[0] === g.move) || CampaignStudio.AN_MOVES[0];
     const open = !!(this._anOpen && this._anOpen[vi]);
@@ -18791,19 +18806,32 @@ class Component extends DCLogic {
   // A tile whose design plays a video (its review file says `anim`) carries an Animated badge and
   // plays live while pointed at; the placement preview plays the 1:1 and 9:16 on its own. Both
   // draw through the engine's anLive — the export's method at a small scale — over the picture.
+  // AUTOPLAY, LIKE A GIF (2026-11-17, "where is the gif preview"): a tile or preview whose design
+  // has a video background plays on its own while it is on screen — no hover — and stops when
+  // scrolled away or gone (an IntersectionObserver; a light scan picks up tiles drawn later). The
+  // canvas shows once its first frame is drawn, so the still never blinks out.
   anHoverInit() {
     if (this._anHov) return; this._anHov = true;
-    document.addEventListener('pointerover', e => {
-      const b = e.target && e.target.closest && e.target.closest('.as-img[data-an], .ae-shot>span[data-an]');
-      if (!b || b._anOn) return;
-      const t = (this._anTiles || {})[b.dataset.tid]; if (!t || !t.anim) return;
-      b._anOn = true;
-      const cv = document.createElement('canvas'); cv.className = 'as-an-cv'; b.appendChild(cv);
-      let stop = null, out = false;
-      const leave = () => { out = true; b.removeEventListener('pointerleave', leave); b._anOn = false; if (stop) stop(); cv.remove(); };
-      b.addEventListener('pointerleave', leave);
-      t.anim().then(info => { if (out || !info) return leave(); stop = info.eng.anLive(() => [cv], info, .5); }, leave);
+    const io = new IntersectionObserver(es => es.forEach(e => { e.target._anVis = e.isIntersecting; if (e.isIntersecting) this.anTileStart(e.target); else this.anTileStop(e.target); }), { rootMargin: '120px' });
+    const scan = () => document.querySelectorAll('.as-img[data-an], .ae-shot>span[data-an], .as-big-img[data-an]').forEach(b => {
+      if (!b._anObs) { b._anObs = true; io.observe(b); return; }
+      if (b._anOn && b._anTid !== b.dataset.tid) { this.anTileStop(b); if (b._anVis) this.anTileStart(b); }
+      else if (!b._anOn && b._anVis) this.anTileStart(b);
     });
+    this._anScan = setInterval(scan, 700); scan();
+  }
+  anTileStart(b) {
+    if (b._anOn || !b.isConnected) return;
+    const t = (this._anTiles || {})[b.dataset.tid]; if (!t || !t.anim) return;
+    b._anOn = true; b._anTid = b.dataset.tid;
+    const cv = document.createElement('canvas'); cv.className = 'as-an-cv'; b.appendChild(cv); b._anCv = cv;
+    const big = b.classList.contains('as-big-img'), sc = big ? .9 : Math.min(.55, Math.max(.2, (b.clientWidth * (window.devicePixelRatio || 1)) / 1080));
+    t.anim().then(info => { if (!b._anOn || b._anCv !== cv || !info) return; b._anStop = info.eng.anLive(() => [cv], info, sc); }, () => this.anTileStop(b));
+  }
+  anTileStop(b) {
+    b._anOn = false;
+    if (b._anStop) { try { b._anStop(); } catch (e) {} }
+    b._anStop = null; if (b._anCv) b._anCv.remove(); b._anCv = null;
   }
   anMockKick() { clearTimeout(this._anMkT); this._anMkT = setTimeout(() => this.anMockRun(), 250); }
   async anMockRun() {
@@ -19123,7 +19151,7 @@ class Component extends DCLogic {
       asSetImg: () => this.asSetMode('images'), asSetTxt: () => this.asSetMode('text'),
       ...this.aeVals(),
       asBigOn: big ? '1' : undefined,
-      asBigUrl: big ? big.url || big.thumb : '', asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
+      asBigUrl: big ? big.url || big.thumb : '', asBigAn: big && big.animOn ? '1' : undefined, asBigTid: big && big.animOn ? big.tid : undefined, asBigName: big ? big.name : '', asBigMeta: big ? big.meta : '',
       asBigCtx: big ? big.ctx : '',
       asBigPos: big && list.length > 1 ? (bi + 1) + ' of ' + list.length : '',
       asBigPrev: () => step(-1), asBigNext: () => step(1),

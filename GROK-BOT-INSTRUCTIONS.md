@@ -115,9 +115,9 @@ exports download as a zip. The studios fit tablets and phones.
   on the design, like Edit in Photoshop). On a project in an ad set the clip is saved in the
   project's Drive **Assets** folder, so it reaches other computers. Status marks such a design
   **Animated**; performance marketing sees **Animated** on the Feed and Story tiles (they play on
-  hover) and the **Preview** plays the video; their **Download** zip includes the animated MP4s
+  their own while on screen, like a GIF, as does the enlarged image) and the **Preview** plays the video; their **Download** zip includes the animated MP4s
   (`…_feed_animated.mp4`, `…_Story_animated.mp4`), recorded while they wait (as long as each clip;
-  keep the tab in front, Chrome). The content team's Edit text previews are badged and play on hover too.
+  keep the tab in front, Chrome). The content team's Edit text previews are badged and play on their own too. If none of this shows for an older design, its video was added before clips were saved to Drive: the designer opens the project once on the computer it was added on, and it goes up by itself.
 - **Phases** are rounds of the whole campaign (Teaser, Launch, Price Drop, Ad Fatigue 01… any name):
   **Add phase** on Status, or in **Ad set settings**, where phases are also renamed.
 - **Branded | Unbranded | Mixed** under **Brand** in **Ad set settings**. Unbranded: no wordmark or

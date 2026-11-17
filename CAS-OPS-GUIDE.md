@@ -888,11 +888,15 @@ What's on the screen, from left to right:
     (`…_feed_animated.mp4`, `…_Story_animated.mp4`), beside the stills. It takes as long as the
     clip; keep the tab in front.
   - **Where it shows:** on Status the design's tile says **Animated**; in the performance
-    marketing view the Feed and Story tiles say **Animated** and play when you point at them; the
-    **Preview** (placement preview) plays the video in the phones by itself, in the studio and in
-    the performance marketing view.
+    marketing view the Feed and Story tiles say **Animated** and play on their own while they are
+    on screen, like a GIF, and so does the enlarged image; the **Preview** (placement preview)
+    plays the video in the phones by itself, in the studio and in the performance marketing view.
+    (Status shows the badge only: it cannot draw designs.)
   - **Content team:** in Edit text the previews of an animated design say **Animated** and play
-    when you point at them.
+    on their own too.
+  - **A video added before clips were saved to Drive** (before 17 Nov 2026) is only on the computer
+    it was added on. Open the project there once: it goes up to Drive by itself, and then it shows
+    and plays for everyone.
   - **Performance marketing's download** puts the animated ads in the zip beside the stills
     (`…_feed_animated.mp4`, `…_Story_animated.mp4`). They are recorded in the browser at download
     time, so a dialog shows each one as it records; it takes as long as each clip (a second

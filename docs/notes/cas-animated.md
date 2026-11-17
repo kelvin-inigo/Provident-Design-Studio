@@ -185,3 +185,22 @@ By request ("yes as well for CT's view").
   (1080×1920, 3.0 s), Landscape. (`saveAs` was stubbed to capture the zip.)
 - Note for tests: Send to › Copy check can raise a native `confirm` ("Before it goes to the
   content team…"), which freezes an automated browser; stub `window.confirm` first.
+
+## AUTOPLAY, NOT HOVER; OLD LOCAL CLIPS GO UP TO DRIVE (2026-11-17, later)
+
+"where is the gif preview, where is the autoplay preview on PM and CT view" / "on hover its not
+working at all".
+- **Tiles autoplay while on screen** (`anHoverInit` now an IntersectionObserver plus a 700 ms scan;
+  `anTileStart` / `anTileStop`): PM tiles (`.as-img[data-an]`), CT previews (`.ae-shot>span`) and
+  the enlarged image (`.as-big-img`, `asBigAn` / `asBigTid`, scale .9). The canvas fades in on its
+  first frame. Scale from the tile's width × DPR, .2–.55. A recycled element whose tile id changed
+  restarts. No GIF file: the live draw IS the export.
+- **Why nothing showed on the live site:** a clip added before 16f503e was never on Drive, so its
+  variant had no `bgClip` — no badge, nothing to play. **`anDriveUp`** (split out of `anSetClip`)
+  is now also called from `anGenVals` when the variant has Video and a local clip but no `bgClip`
+  and the project is following a Drive ad set (`_sh.id` starts with D, not pm): once per page.
+- **Status cannot autoplay**: index.html loads no CAS engine, so it keeps the badge.
+- **Verified** (Chrome, share-dev :8795): PM link → Feed and Story canvases live with no pointer
+  (red bar moving); enlarged Feed live (972×972); CT preview live with no pointer; `bgClip`
+  deleted from the project → reopened → uploaded by itself ("saved with the project on Drive"); no
+  console errors.
