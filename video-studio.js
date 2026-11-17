@@ -351,6 +351,7 @@
         toast(kind === 'video' ? 'This browser cannot play ' + f.name + '. Try an MP4 (H.264).' : 'Could not read ' + f.name + '.'); continue;
       }
       media[rec.id] = rec; added++;
+      if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
       DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks });
       // the first video dropped goes straight onto the timeline; so does anything dropped on the stage
       if (kind === 'image' && want === 'stage' && P.clips.length) addLogo(rec.id, true);
@@ -1399,7 +1400,10 @@
   // collaboration logo, the logo colour) moved to the right rail's Whole video (docHtml).
   function renderLib() {
     $('#tabs').querySelectorAll('button').forEach(b => { const on = b.dataset.tab === tab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
-    const M = Object.values(media); let h = '';
+    // A VIDEO CAS STARTED (Edit in CASV) is a fresh canvas: the library shows only what this video
+    // brought or uses, so nothing from earlier sessions is in the way; one click shows everything.
+    const used = P.casBg && !P.casBg.all ? JSON.stringify([P.clips, P.audio, P.logos]) : '';
+    const M = Object.values(media).filter(m => !used || (P.casBg.media || []).indexOf(m.id) >= 0 || used.indexOf(m.id) >= 0); let h = '';
     const count = c => c ? c + (c === 1 ? ' file' : ' files') : '';
     const drop = (want, label, sub) => '<button class="vs-drop" data-up="' + want + '">' + ico('upload') + '<span>' + label + '</span><s>' + sub + '</s></button>';
     const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
@@ -1409,7 +1413,8 @@
       h += '<div class="vs-sec">' + drop('media', 'Drop video or photos', 'or browse · MP4, MOV, WebM, JPG, PNG') + '</div>';
       h += '<div class="vs-sec">' + H('Your media', count(v.length)) + (v.length ? '<div class="vs-grid">' + v.map(m =>
         '<button class="vs-t" data-pic="1" data-addclip="' + m.id + '" title="' + esc(m.name) + '. Click to add it to the end of the video track."><i style="background-image:url(\'' + (m.poster || m.url) + '\')"><s>' + (m.kind === 'image' ? 'Photo' : fmt(m.dur)) + '</s></i><b>' + esc(m.name) + '</b>' + rm(m.id) + '</button>').join('') + '</div><span class="vs-note">Click one to add it to the end of the video track.</span>'
-        : none('Nothing here yet', 'Videos and photos you upload stay in this list, ready to add again.')) + '</div>';
+        : none('Nothing here yet', 'Videos and photos you upload stay in this list, ready to add again.')) +
+        (P.casBg ? '<button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button>' : '') + '</div>';
     } else if (tab === 'audio') {
       const a = M.filter(m => m.kind === 'audio');
       h += '<div class="vs-sec">' + drop('audio', 'Drop music or sound', 'or browse · MP3, WAV, M4A') + '</div>';
@@ -1505,6 +1510,7 @@
     const q = a => e.target.closest('[' + a + ']');
     let el;
     if ((el = q('data-rm'))) { e.stopPropagation(); removeMedia(el.dataset.rm); }
+    else if ((el = q('data-liball')) && P.casBg) { P.casBg.all = !P.casBg.all; save(); renderLib(); }
     else if ((el = q('data-up'))) pickFiles(el.dataset.up);
     else if ((el = q('data-go'))) { rtab = el.dataset.go; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
@@ -1863,6 +1869,29 @@
       P.size = keep; pTint = null; fitCanvas(); $('#ovT').textContent = 'Exporting the video'; casBusy = false; save(); renderAll();
     }
   }
+  // SEND BACK TO CAS (2026-11-17): the video CAS asked for (Edit in CASV) is recorded once at 9:16 and
+  // parked as the outbox part `bg` of the id CAS gave; CAS is watching for it and places it as the
+  // design's video background (and saves it with the project on Drive). Sending again replaces it.
+  async function sendBack() {
+    if (casBusy || exporting || !P.casBg) return;
+    if (!total()) { toast('Add a video first.'); return; }
+    const keep = P.size; casBusy = true; casStop = false;
+    try {
+      P.size = '9x16'; pTint = null; fitCanvas(); renderAll();
+      $('#ovT').textContent = 'Recording the 9:16 for CAS';
+      const blob = await recordOnce();
+      if (!blob || casStop) throw new Error('stopped');
+      if (blob.type.indexOf('mp4') < 0) throw new Error('mp4');
+      const r = await fetch('/api/outbox/file?id=' + P.casBg.id + '&part=bg', { method: 'PUT', body: blob });
+      if (!r.ok) throw new Error('outbox');
+      P.casBg.sent = Date.now();
+      toast('Sent back to CAS. It plays behind the design there in a few seconds.');
+    } catch (e) {
+      toast(e.message === 'mp4' ? 'This browser did not record an MP4. Use Chrome.' : e.message === 'outbox' ? 'Could not reach the local server, so nothing was sent. Is serve.py running?' : 'Nothing was sent back to CAS.');
+    } finally {
+      P.size = keep; pTint = null; fitCanvas(); $('#ovT').textContent = 'Exporting the video'; casBusy = false; save(); renderAll();
+    }
+  }
   // Comments a reviewer left on the video's timeline in CAS. CAS posts them to the local server when
   // the designer opens the video there ("Send comments to CASV"); they show as numbered pins on the
   // ruler and as a list while nothing is selected. Read-only here: they are answered in CAS.
@@ -2099,6 +2128,8 @@
     $('#szName').textContent = nm[0]; $('#szRatio').textContent = nm[1] || ''; $('#szMeta').textContent = g.w + ' × ' + g.h + (has ? ' · ' + fmt(total()) : '');
     $('#empty').style.display = has ? 'none' : '';
     $('#exportBtn').disabled = $('#sendBtn').disabled = $('#frameBtn').disabled = $('#previewBtn2').disabled = !has;
+    { const l = $('#sendBtn').querySelector('.vs-l2'), want = P.casBg ? 'Send back to CAS' : 'Send to CAS'; if (l && l.textContent !== want) l.textContent = want;
+      $('#sendBtn').title = P.casBg ? 'Records this video at 9:16 and places it behind the design in CAS' + (P.casBg.name ? ' (' + P.casBg.name + ')' : '') : ''; }
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
     $('#delBtn').disabled = $('#dupBtn').disabled = !find(sel);
     T = clamp(T, 0, Math.max(0, total()));
@@ -2128,8 +2159,8 @@
   // CAS suggests (P.name). A new video has no P.cas, so its Send to CAS is a new outbox video.
   const PREV = 'provident-video-project-prev';
   const prevOn = () => { let ok = false; try { ok = !!localStorage.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = !ok; };
-  async function startNew(name, from) {
-    if (total() && !(await ask(from ? 'Start a new video for ' + from + '?' : 'Start a new video?',
+  async function startNew(name, from, quiet) {
+    if (total() && !quiet && !(await ask(from ? 'Start a new video for ' + from + '?' : 'Start a new video?',
       'The timeline is cleared for a new video. This one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '. Everything you uploaded stays in the library.', 'Start new'))) return false;
     if (total()) { try { localStorage.setItem(PREV, JSON.stringify(P)); } catch (e) {} }
     mark(); const keep = P.size; P = fresh(); P.size = keep; if (name) P.name = String(name).slice(0, 60); sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
@@ -2147,10 +2178,15 @@
   prevOn();
   // CAS's Edit in CASV adds &photo=<id>: the ad's photo (parked by the local server in `_inbox/`)
   // goes onto the new video's timeline
-  { const m = /^#new=([^&]*)(?:&photo=([a-z0-9]{4,16}))?$/.exec(location.hash || '');
+  // &back=1 (2026-11-17): CAS's Edit in CASV, like Edit in Photoshop. A fresh canvas — no question,
+  // the open video kept as the last one, no wordmark (the video goes BEHIND a CAS design), the
+  // library showing only this video's media — and the top button becomes Send back to CAS.
+  { const m = /^#new=([^&]*)(?:&photo=([a-z0-9]{4,16}))?(&back=1)?$/.exec(location.hash || '');
     if (m) { history.replaceState(null, '', location.pathname + location.search); let nm = ''; try { nm = decodeURIComponent(m[1]); } catch (e) {}
       setTimeout(async () => {
-        if (!(await startNew(nm, nm || 'CAS')) || !m[2]) return;
+        const back = !!(m[3] && m[2]);
+        if (!(await startNew(nm, nm || 'CAS', back)) || !m[2]) return;
+        if (back) { P.casBg = { id: m[2], name: nm, media: [] }; P.brand.on = false; save(); renderAll(); }
         try {
           const r = await fetch('/api/inbox/photo?id=' + m[2]); if (!r.ok) throw new Error(r.status);
           await addFiles([new File([await r.blob()], (nm || 'CAS') + ' photo.jpg', { type: 'image/jpeg' })]);
@@ -2188,7 +2224,7 @@
   $('#homeBtn').addEventListener('click', () => { seek(0); tl.scrollLeft = 0; });
   $('#playBtn').addEventListener('click', () => (playing ? pause() : play()));
   $('#previewBtn2').innerHTML = ico('visibility') + '<span class="vs-l">Preview</span>'; $('#previewBtn2').addEventListener('click', pvOpen);
-  $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + '<span class="vs-l2">Send to CAS</span>'; $('#sendBtn').addEventListener('click', sendToCas); $('#frameBtn').addEventListener('click', saveFrame);
+  $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + '<span class="vs-l2">Send to CAS</span>'; $('#sendBtn').addEventListener('click', () => P.casBg ? sendBack() : sendToCas()); $('#frameBtn').addEventListener('click', saveFrame);
   $('#zoom').addEventListener('input', e => { pps = +e.target.value; renderTimeline(); });
   // THE TIMELINE CAN BE PULLED TALLER (2026-11-13, by request): drag the top edge of its bar, or
   // focus it and use the arrow keys; double-click puts it back. Kept per computer.

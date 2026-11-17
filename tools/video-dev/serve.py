@@ -27,7 +27,10 @@ OUTBOX = os.path.join(ROOT, '_outbox')
 # Only these pages may read the outbox from a browser. Add more with CASV_ORIGINS="https://a,https://b".
 SITES = ['https://provident-design-studio.vercel.app'] + [o.strip() for o in os.environ.get('CASV_ORIGINS', '').split(',') if o.strip()]
 PARTS = {'9x16': ('_9x16.mp4', 'video/mp4'), '1x1': ('_1x1.mp4', 'video/mp4'), 'poster': ('.jpg', 'image/jpeg'),
-         'project': ('.casv', 'application/octet-stream')}
+         'project': ('.casv', 'application/octet-stream'),
+         # CAS's Edit in CASV: the video CASV's "Send back to CAS" records, which CAS places as the
+         # design's video background (2026-11-17). Not a video of its own: no <id>.json is written.
+         'bg': ('_bg.mp4', 'video/mp4')}
 # THE PROJECT GOES WITH THE VIDEO (2026-11-16). Send to CAS also parks <id>.casv: the project and
 # the media it uses, one file. CAS saves it in the ad set's Drive folder beside the two videos, and
 # its "Open in Video Studio" hands it back here: PUT /api/outbox/back writes `_inbox/<id>.casv`
@@ -209,7 +212,9 @@ class H(SimpleHTTPRequestHandler):
         if back:
             json.dump({'id': q['id'], 'title': (q.get('title') or 'Video')[:80], 'at': int(time.time()), 'bytes': n},
                       open(os.path.join(INBOX, q['id'] + '.json'), 'w'), indent=1)
-        with open(os.path.join(INBOX, q['id'] + '.casv') if back else os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0]), 'wb') as f:
+        # written beside, then renamed: a reader polling for the file never gets half of it
+        dest = os.path.join(INBOX, q['id'] + '.casv') if back else os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0])
+        with open(dest + '.part', 'wb') as f:
             left = n
             while left > 0:
                 chunk = self.rfile.read(min(left, 1 << 20))
@@ -217,7 +222,11 @@ class H(SimpleHTTPRequestHandler):
                     break
                 f.write(chunk)
                 left -= len(chunk)
-        return self._json(200, {'ok': True, 'bytes': n - left})
+        if left:
+            os.remove(dest + '.part')
+            return self._json(400, {'error': 'incomplete'})
+        os.replace(dest + '.part', dest)
+        return self._json(200, {'ok': True, 'bytes': n})
 
     # ── the animate queue: photos waiting to be turned into video by the animate-photos skill ──
     # One folder, `_animate/` (git-ignored): <id>.json is the job, <id>.jpg the start frame the
