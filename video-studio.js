@@ -475,9 +475,15 @@
   function drive(el, want, on, vol) {
     if (!on) { if (!el.paused) el.pause(); return; }
     const end = isFinite(el.duration) ? el.duration - .03 : want;
+    const tail = want >= end;                 // the last frames of the file: nothing left to play
     want = clamp(want, 0, Math.max(0, end));
     setVol(el, vol);
     if (playing) {
+      // THE END OF A FILE RESTS ON ITS LAST FRAME (2026-11-17). A video that has run out is
+      // "ended", which reads as paused, and play() on an ended video starts it again from 0. So a
+      // clip that used its file to the very end flashed its first frame, was sought back, ran out
+      // again, and the clock (held while a clip seeks) never reached the next clip.
+      if (tail || el.ended) { if (!el.paused) el.pause(); if (!tail && !el.seeking) el.currentTime = want; return; }
       if (el.paused) { if (Math.abs(el.currentTime - want) > .05) el.currentTime = want; const p = el.play(); if (p && p.catch) p.catch(() => {}); }
       else if (Math.abs(el.currentTime - want) > .3) el.currentTime = want;
     } else {

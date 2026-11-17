@@ -471,3 +471,20 @@ Make a new one in CASV only opened the page. Now:
   timeline, `P.name` set, PREV holds the old, Reopen the last video brings it back and empties PREV.
   Not run: a real Send to CAS from a new video, media-heavy projects (PREV is the project JSON
   only; its media stays in the library because Start new never deletes media).
+
+## Playback froze at the cut when a clip ran to the end of its file (2026-11-17)
+
+Reported as "when the playhead is on the next timeline layer, it glitches". Measured in the pane on
+a three-clip project: playing from 4.3 s, the clock stopped at 5.039 s (the cut is at 5.042) and
+never reached clip 2. Cause, in `drive()`: a video that has run out is `ended`, which reads as
+`paused`, and `play()` on an ended video restarts it from 0. So each frame it restarted, was sought
+back to the tail, went `seeking` (which holds the clock in `tick`), and ran out again. Only clips
+whose out point is the end of the file were hit, which is every untrimmed clip.
+
+Fix: within the last 30 ms of the file (`tail`), or when `ended`, `drive()` pauses the element on
+its last frame and does not call `play()`.
+
+- Tested: before, real playback in the pane, 50+ consecutive frames held at 5.039. After, with the
+  clock stepped by hand (the pane was hidden, so `requestAnimationFrame` did not run): clip 1 rests
+  paused at 5.00, clip 2 is playing at 5.3 s, 2 `play()` calls and 1 seek across the cut.
+- NOT tested: real-time playback after the fix, Export across a cut, Safari.
