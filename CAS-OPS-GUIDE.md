@@ -891,6 +891,13 @@ What's on the screen, from left to right:
     marketing view the Feed and Story tiles say **Animated** and play when you point at them; the
     **Preview** (placement preview) plays the video in the phones by itself, in the studio and in
     the performance marketing view.
+  - **Content team:** in Edit text the previews of an animated design say **Animated** and play
+    when you point at them.
+  - **Performance marketing's download** puts the animated ads in the zip beside the stills
+    (`…_feed_animated.mp4`, `…_Story_animated.mp4`). They are recorded in the browser at download
+    time, so a dialog shows each one as it records; it takes as long as each clip (a second
+    download of an unchanged design in the same tab is instant). Keep the tab in front; Cancel
+    stops the download. Use Chrome.
   - **Photo** turns the video off without forgetting it.
   - **Overlap image** sits in front of the headline, for a parallax look. Drop a photo and its background is removed for you (10–20 seconds), or drop a PNG already cut out. If background removal is not running on that computer the line under the picture says so, and a picture that still has its background is flagged "background not removed".
 - **Layout** (right rail) lists the choices in words. **Point at one and the canvas shows it**,

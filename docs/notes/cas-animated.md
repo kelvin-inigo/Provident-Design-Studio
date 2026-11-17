@@ -166,3 +166,22 @@ CASV to render the video and bring it back … saved in assets folder").
   templates and the Ad sets window.
 - Not run: real Google Drive (the stand-in only), a real Higgsfield generation, big clips through
   Drive's media upload, Safari. The PM's **Download package** does not include animated MP4s yet.
+
+## THE PM DOWNLOAD CARRIES THE ANIMATED MP4s; CT'S VIEW SHOWS THEM (2026-11-17, later)
+
+By request ("yes as well for CT's view").
+- **`RV.download`** (share-link.js): tiles with `anim` are recorded before zipping — `eng.anRecord`
+  with the project, its Drive photos and the clip (from `RV.animOf`), in the export's own dialog
+  (`anDlg`, retitled "Recording the animated ads", "n of N · <file>"). The MP4 sits after its still:
+  `<name>_feed_animated.mp4`, `<name>_Story_animated.mp4`. Kept per project state (`WeakMap` on
+  `info.st`) for the tab, so a second download is instant. Cancel stops the download; no MediaRecorder
+  → a flash and the stills only.
+- **CT (Edit text):** `aeVars` shots of a 1:1 / 9:16 with `bgVid` + `bgClip.f` carry `animOn` and a
+  tile id; the badge and hover playback are the PM tiles' (`anHoverInit` now matches
+  `.ae-shot>span[data-an]` too), drawn from the live edited state (`ae.st`, `ae.assets`).
+- **Verified** (Chrome, share-dev :8795): CT link → Feed preview badged, hover plays (red bar x 180 →
+  333); project sent to Copy check; PM link → Download English → the dialog recorded 1 of 2, 2 of 2 →
+  zip: feed.jpg, feed_animated.mp4 (1080×1080, 3.0 s), Portrait, Story.jpg, Story_animated.mp4
+  (1080×1920, 3.0 s), Landscape. (`saveAs` was stubbed to capture the zip.)
+- Note for tests: Send to › Copy check can raise a native `confirm` ("Before it goes to the
+  content team…"), which freezes an automated browser; stub `window.confirm` first.

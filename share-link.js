@@ -4469,10 +4469,37 @@
     try {
       // the window renders tiles in the background, the audience on screen first: wait for the rest
       await Promise.all(items.map(async it => { it.file = it.t.load ? await it.t.load() : it.t.file; }));
+      // THE ANIMATED ADS GO IN THE PACKAGE (2026-11-17): a design with a video background also
+      // gets its 1:1 and 9:16 as MP4, recorded here by the export's own method (anRecord) from the
+      // project and the clip on Drive — in real time, so the dialog says so. Kept for the session:
+      // a second download of an unchanged design is instant.
+      const anims = items.filter(it => it.t.anim);
+      if (anims.length) {
+        const C = this.eng.constructor, mime = C.anMime && C.anMime();
+        if (!mime) this.ui.flash('This browser cannot record video, so the animated ads are not in the zip. Use Chrome.');
+        else {
+          const ui = this.eng.anDlg(), cache = this.anMp4 || (this.anMp4 = new WeakMap());
+          ui.el.querySelector('h2').textContent = 'Recording the animated ads';
+          try {
+            for (let i = 0; i < anims.length && !ui.cancelled; i++) {
+              const it = anims[i], info = await it.t.anim(); if (!info) continue;
+              const got = cache.get(info.st) || {}, ck = info.vi + ':' + info.sk;
+              ui.say((i + 1) + ' of ' + anims.length + ' · ' + String(it.name).replace(/\.jpg$/i, '') + '. Each takes as long as its clip; keep this tab in front.');
+              ui.progress(0);
+              const data = got[ck] || await info.eng.anRecord(info.st, info.vi, info.sk, info.assets, { url: info.url }, mime, ui);
+              if (!data) break;
+              got[ck] = data; cache.set(info.st, got);
+              it.mp4 = { name: String(it.name).replace(/\.jpg$/i, '') + '_animated.' + (/mp4/.test(mime) ? 'mp4' : 'webm'), data };
+            }
+          } finally { ui.close(); }
+          if (ui.cancelled) { this.ui.flash('Download stopped.'); this.dl = null; this.barRender(); return; }
+        }
+      }
       const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim(), used = new Set(), files = [];
+      const put = (nm, pre, data) => { let n = clean(nm); if (used.has(n)) n = clean(pre) + ' ' + n; used.add(n); files.push({ name: n, data }); };
       for (const it of items) {
-        let n = clean(it.name); if (used.has(n)) n = clean(it.pre) + ' ' + n;
-        used.add(n); files.push({ name: n, data: new Uint8Array(await it.file.arrayBuffer()) });
+        put(it.name, it.pre, new Uint8Array(await it.file.arrayBuffer()));
+        if (it.mp4) put(it.mp4.name, it.pre, it.mp4.data);
       }
       const nm = clean(this.rs.name) + (key === '*' ? '' : ' - ' + clean(auds[0].label)) + (en ? ' - English' : '');
       const how = await this.eng.saveAs(this.eng.zip(files), nm + '.zip', 'Zip archive', 'application/zip', '.zip');

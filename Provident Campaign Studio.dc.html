@@ -4354,7 +4354,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .an-gen .an-mv,.an-gen .p-tabs{background:var(--ps-card)}
 canvas.an-mk{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}
 canvas.an-mk[data-live]{opacity:1}
-.as-img[data-an]{position:relative}
+.as-img[data-an],.ae-shot>span[data-an]{position:relative}
 .as-an-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .as-anim{position:absolute;left:8px;bottom:8px;z-index:1;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 6px;border-radius:var(--ps-pill);background:var(--ps-card);color:var(--ps-ink);box-shadow:0 1px 4px color-mix(in srgb,var(--ps-ink) 25%,transparent);font:500 11px/1.3 var(--ps-font);pointer-events:none}
 .as-anim svg{width:13px;height:13px;fill:currentColor}
@@ -6279,7 +6279,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                         <header class="as-vrow-h"><b>{{ g.title }}</b><s>{{ g.sub }}</s></header>
                         <div class="ae-shots">
                           <sc-for list="{{ g.shots }}" as="sh" hint-placeholder-count="2">
-                            <figure class="ae-shot" data-shape="{{ sh.shape }}" data-wait="{{ sh.wait }}"><span><img data-src="{{ sh.url }}" alt="{{ sh.label }}"></span><figcaption>{{ sh.label }}</figcaption></figure>
+                            <figure class="ae-shot" data-shape="{{ sh.shape }}" data-wait="{{ sh.wait }}"><span data-an="{{ sh.animOn }}" data-tid="{{ sh.tid }}"><img data-src="{{ sh.url }}" alt="{{ sh.label }}"><sc-if value="{{ sh.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="Plays a video behind the design. Point at it to play."><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></span><figcaption>{{ sh.label }}</figcaption></figure>
                           </sc-for>
                         </div>
                       </section>
@@ -18769,7 +18769,12 @@ class Component extends DCLogic {
     keep.forEach(x => {
       let g = vars.find(v => v.letter === x.letter);
       if (!g) { g = { letter: x.letter, title: carousel ? 'Page ' + (x.vi + 1) : 'Variant ' + x.letter, shots: [] }; vars.push(g); }
-      g.shots.push({ label: x.label, url: ae.prev[x.key] || '', shape: x.sk, wait: ae.prev[x.key] ? undefined : '1' });
+      // a design with a video background (on Drive): badged, and it plays on hover, as in Images
+      const av = ae.st.variants[x.vi] || {}, af = (x.sk === 'sq' || x.sk === 'st') && av.bgVid && av.bgClip && av.bgClip.f && StudioBase.clipGet ? av.bgClip.f : '';
+      const tid = af ? 'ae' + x.key : undefined;
+      if (af) (this._anTiles = this._anTiles || {})[tid] = { anim: () => StudioBase.clipGet(af).then(b => ({ eng: this.eng, st: ae.st, vi: x.vi, sk: x.sk, assets: ae.assets, url: (this._anUrls = this._anUrls || {})[af] || (this._anUrls[af] = URL.createObjectURL(b)) })) };
+      if (af) this.anHoverInit();
+      g.shots.push({ label: x.label, url: ae.prev[x.key] || '', shape: x.sk, wait: ae.prev[x.key] ? undefined : '1', animOn: af ? '1' : undefined, tid });
     });
     vars.forEach(g => { const n = shots.filter(x => x.letter === g.letter).length; g.sub = all || n === g.shots.length ? n + (n === 1 ? ' image' : ' images') : g.shots[0].label + ' · 1 of ' + n; });
     base.aeVars = vars;
@@ -18789,7 +18794,7 @@ class Component extends DCLogic {
   anHoverInit() {
     if (this._anHov) return; this._anHov = true;
     document.addEventListener('pointerover', e => {
-      const b = e.target && e.target.closest && e.target.closest('.as-img[data-an]');
+      const b = e.target && e.target.closest && e.target.closest('.as-img[data-an], .ae-shot>span[data-an]');
       if (!b || b._anOn) return;
       const t = (this._anTiles || {})[b.dataset.tid]; if (!t || !t.anim) return;
       b._anOn = true;
