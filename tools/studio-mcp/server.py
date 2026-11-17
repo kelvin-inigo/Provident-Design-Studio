@@ -19,11 +19,13 @@ import http.server
 import json
 import mimetypes
 import os
+import re
 import sys
 import threading
 import time
 import traceback
 import urllib.parse
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -203,6 +205,48 @@ def _summary(path):
     return s
 
 
+IMAGE_MAX = 30 * 1024 * 1024
+MAGIC = ((b"\x89PNG", "image/png"), (b"\xff\xd8", "image/jpeg"), (b"GIF8", "image/gif"), (b"RIFF", "image/webp"),
+         (b"<svg", "image/svg+xml"), (b"<?xml", "image/svg+xml"))
+IMAGE_EXT = {"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg"}
+
+
+def sniff(data):
+    """The image type from the bytes, when the name or the server did not say."""
+    head = data[:16].lstrip()
+    for magic, mime in MAGIC:
+        if head.startswith(magic) and (mime != "image/webp" or data[8:12] == b"WEBP"):
+            return mime
+    return None
+
+
+def fetch_image(url):
+    """An image from the web, for a caller that is not on this Mac (the remote bridge). https only, 30 MB at most.
+    Returns (bytes, mime, a file name)."""
+    if not url.lower().startswith("https://"):
+        raise ToolError("url must start with https:// (got %r)." % url)
+    req = urllib.request.Request(url, headers={"User-Agent": "provident-studio/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            data = r.read(IMAGE_MAX + 1)
+            ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+            disp = r.headers.get("Content-Disposition") or ""
+            final = r.geturl()
+    except Exception as e:
+        raise ToolError("Could not fetch %s — %s" % (url, e))
+    if len(data) > IMAGE_MAX:
+        raise ToolError("%s is over %d MB." % (url, IMAGE_MAX // (1024 * 1024)))
+    mime = sniff(data) or (ctype if ctype.startswith("image/") else "")
+    if not mime:
+        raise ToolError("%s did not return an image (it sent %s). A Google Drive file needs a direct download link — "
+                        "https://drive.google.com/uc?export=download&id=<file id> — and must be shared with anyone with the link." % (url, ctype or "no content type"))
+    m = re.search(r'filename\*?=(?:UTF-8\'\')?"?([^";]+)', disp)
+    name = urllib.parse.unquote(m.group(1)) if m else (os.path.basename(urllib.parse.urlsplit(final).path) or "image")
+    if not os.path.splitext(name)[1]:
+        name += IMAGE_EXT.get(mime, "")
+    return data, mime, name
+
+
 # ── tools ──────────────────────────────────────────────────────────────────────────────────
 def t_catalog(a):
     studio = _studio(a)
@@ -242,6 +286,34 @@ def t_read(a):
     return _summary(path)
 
 
+def t_list(a):
+    """The session files under the projects folder, newest first — no Chrome needed."""
+    want = str(a.get("studio") or "").lower() or None
+    q = str(a.get("query") or "").lower()
+    out = []
+    for dirpath, dirs, files in os.walk(OUT):
+        dirs[:] = sorted(d for d in dirs if not d.startswith((".", "_")) and d != "Assets")
+        if dirpath[len(OUT):].count(os.sep) >= 2:
+            dirs[:] = []
+        for f in files:
+            for st, ext in EXT.items():
+                if f.endswith(ext) and (not want or want == st):
+                    p = os.path.join(dirpath, f)
+                    name = f[: -len(ext)]
+                    if q and q not in name.lower() and q not in os.path.basename(dirpath).lower():
+                        continue
+                    try:
+                        mt = os.path.getmtime(p)
+                    except OSError:
+                        continue
+                    out.append({"name": name, "studio": st, "project_file": p,
+                                "modified": time.strftime("%Y-%m-%d %H:%M", time.localtime(mt)), "_t": mt})
+    out.sort(key=lambda d: -d["_t"])
+    for d in out:
+        del d["_t"]
+    return {"folder": OUT, "count": len(out), "projects": out[:60]}
+
+
 def t_edit(a):
     path, _ = _load(a.get("path"))
     ops = a.get("edits") or []
@@ -267,13 +339,17 @@ def t_image(a):
         S.ev("__ps.clear(%s)" % json.dumps(slot))
         _save(path)
         return {"slot": slot, "cleared": True, "project_file": path}
-    src = os.path.expanduser(str(a.get("file") or ""))
-    if not src or not os.path.isfile(src):
-        raise ToolError("file must be the path of an image on this Mac (got %r)." % src)
-    data = open(src, "rb").read()
-    mime = mimetypes.guess_type(src)[0] or "application/octet-stream"
-    if not mime.startswith("image/"):
-        raise ToolError("%s is not an image." % src)
+    url = str(a.get("url") or "").strip()
+    if url:
+        data, mime, src = fetch_image(url)
+    else:
+        src = os.path.expanduser(str(a.get("file") or ""))
+        if not src or not os.path.isfile(src):
+            raise ToolError("file must be the path of an image on this Mac, or pass url (got %r)." % src)
+        data = open(src, "rb").read()
+        mime = mimetypes.guess_type(src)[0] or sniff(data) or "application/octet-stream"
+        if not mime.startswith("image/"):
+            raise ToolError("%s is not an image." % src)
     cut = a.get("remove_background")
     if cut is None:
         cut = bool(known[slot].get("remove_background"))
@@ -366,6 +442,13 @@ TOOLS = [
         "fn": t_new,
     },
     {
+        "name": "studio_list_projects",
+        "description": "List the projects (CAS .adstudio.json and OPS .smpstudio.json session files) in the Provident Studio folder, newest first, to find one to read, edit or export. query filters by name; studio limits to cas or ops.",
+        "inputSchema": {"type": "object", "properties": {
+            "query": {"type": "string"}, "studio": {"type": "string", "enum": ["cas", "ops"]}}},
+        "fn": t_list,
+    },
+    {
         "name": "studio_read_project",
         "description": "Read a CAS or OPS session file and summarise it: every slide or component with its fields and values, the image slots and whether each is filled, and (OPS) what is still missing before export.",
         "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
@@ -394,12 +477,14 @@ TOOLS = [
     {
         "name": "studio_set_image",
         "description": (
-            "Put an image file from this Mac into one of the project's image slots (photo, portrait, QR code, logo, icon), "
-            "through the studio's own encoder. Agent photos are cut out automatically by the local background-removal "
+            "Put an image into one of the project's image slots (photo, portrait, QR code, logo, icon), "
+            "through the studio's own encoder: file (a path on this Mac) or url (an https link to the image, for a caller "
+            "that is not on this Mac). Agent photos are cut out automatically by the local background-removal "
             "service when it is running (remove_background overrides). remove:true empties the slot."
         ),
         "inputSchema": {"type": "object", "properties": {
             "path": {"type": "string"}, "slot": {"type": "string"}, "file": {"type": "string"},
+            "url": {"type": "string", "description": "https address of the image. A Google Drive file: share it with anyone with the link and pass https://drive.google.com/uc?export=download&id=<file id>."},
             "remove_background": {"type": "boolean"}, "remove": {"type": "boolean"}}, "required": ["path", "slot"]},
         "fn": t_image,
     },
@@ -435,7 +520,7 @@ BY_NAME = {t["name"]: t for t in TOOLS}
 INSTRUCTIONS = (
     "Tools for Provident's two design studios. CAS = Campaign Ads Studio (paid Meta ads), OPS = Organic "
     "Post Studio (organic posts from locked templates). Workflow: studio_catalog → studio_new_project (or "
-    "studio_read_project on an existing .adstudio.json/.smpstudio.json) → studio_edit / studio_set_image → "
+    "studio_list_projects + studio_read_project for an existing .adstudio.json/.smpstudio.json) → studio_edit / studio_set_image → "
     "studio_preview to look at it → studio_export. Fill every required field; never invent listing numbers, "
     "prices or names — ask. Brand rules (fonts, colours, margins, layout) are enforced by the templates; "
     "you supply words and pictures. Projects default to: " + OUT

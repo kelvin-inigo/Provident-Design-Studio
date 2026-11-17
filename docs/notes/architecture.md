@@ -1402,3 +1402,48 @@ throwing setItem: edit → focus → reverted. Carousels are the biggest project
   then retries; if it still fails, `StudioBase.warn()` says once that changes would be lost on a
   reload and to press Save.
 OPS has no focus sync, so it never reverted this way.
+
+# THE STUDIO TOOLS OVER HTTPS, FOR THE GROK BOT (2026-11-10)
+
+The team's Grok bot (`GROK-BOT-INSTRUCTIONS.md`) could only explain the studios and draft copy. The
+request was a bot that **works in PDS on a user's behalf**. xAI had shipped two doors that spring:
+grok.com's custom connectors (New connector › Custom › a name and a URL — any paid plan; Business
+and Enterprise have an admin provision it in the console first) and the API's `{"type": "mcp",
+"server_url", "server_label", "authorization", "headers", "allowed_tools"}` tool on the Responses
+API, both speaking MCP over Streamable HTTP or the older SSE pair. So the job was a transport, not
+a product: `tools/studio-mcp/remote.py` serves the SAME `TOOLS` as `server.py` (it imports it) over
+HTTP, and one office Mac runs it as a login item behind ngrok or Cloudflare Tunnel
+(`install-remote.sh`, `env.sh`; the pattern is `tools/rembg`'s, port 7313 after 7311/7312).
+
+**Decisions, and what was rejected:**
+
+- **A Vercel function was rejected.** The tools need Chrome to render; the Python functions have
+  none, and a Node function with a bundled Chromium is heavy and slow, and would still need the
+  repository's fonts served beside it. The office Mac that already runs rembg has Chrome and a
+  loopback copy of the studios; the tunnel pattern is the Content Hub's.
+- **The Google gate does not apply, so the token is the gate.** `access.js` is off when the page
+  cannot reach the server; the headless studio never can. `page.js` reaches the engine through the
+  React fiber anyway. So `remote.py` requires a token on every call — `Authorization: Bearer`, or in
+  the path (`/t/<token>/mcp`) for the grok.com form that takes only a URL — one per person in
+  `tokens.json` under Application Support, logged by name on every call, revocable. OAuth with
+  Google was **deferred**, not rejected: it becomes necessary when the bot acts on Status, hand-offs
+  or Drive, which name a signed-in person. Until then a per-person token is the same accountability.
+- **Confined to the projects folder.** The stdio server lets `path`, `out_dir` and `file` point
+  anywhere on the Mac, which is fine for Claude on the same machine and not for the internet.
+  `remote.py` resolves the three against `PROVIDENT_STUDIO_OUT` and refuses anything outside; a
+  picture comes in by https `url` (added to `studio_set_image` in `server.py`, with a byte sniff
+  because Drive answers `application/octet-stream`). `studio_list_projects` (disk only, no Chrome)
+  was added so a remote caller can find a project by name.
+- **Files go out as signed links.** `/f/<expiry>/<hmac>/<relative path>`, HMAC over path and
+  expiry with a per-Mac secret, 14 days, no token needed, so the bot can paste them in chat.
+  Previews are written to `<project>/_previews/` and returned as links beside the MCP image blocks
+  (`PROVIDENT_REMOTE_IMAGES=0` drops the blocks for a client that chokes on them).
+- **Chrome is closed after 30 idle minutes** (a janitor thread; the next call reopens it).
+
+**Measured** (local, 2026-11-10): 26 scripted checks across both transports — 401 without a token,
+token in header and in path, `Mcp-Session-Id` on initialize, 202 for notifications, the path guard,
+a real OPS reel-thumbnail project through Chrome (catalog 5.8 s cold, new project 1.7 s, edit
+1.5 s, picture by https URL 4.4 s, preview and export under a second warm), link serving with a
+tampered signature → 403 and an expired link → 410, and the SSE pair end to end. The stdio server
+is untouched in behaviour: `tools/list` grew by one tool and `studio_set_image` by one optional
+field. Setup and the sign-in reasoning for the team: `docs/grok-bot-setup.md`.

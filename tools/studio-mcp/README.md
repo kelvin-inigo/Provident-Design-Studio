@@ -1,7 +1,7 @@
 # Provident Studio MCP server
 
 CAS (Campaign Ads Studio) and OPS (Organic Post Studio) as tools for Claude in **Cowork** —
-or any MCP client. Claude can start a project from a template, fill in the words, drop in
+or any MCP client, including the **Grok bot** from outside this Mac (see *Remote*, below). Claude can start a project from a template, fill in the words, drop in
 photos, look at the result and export the final files, without anyone clicking through the
 studio.
 
@@ -24,9 +24,10 @@ Without it, photos are stored as they are and the tool says so.
 |---|---|
 | `studio_catalog` | templates, the fields each slide asks for (required, options, formats), CAS component types and styles |
 | `studio_new_project` | a project from a template, saved as a session file |
+| `studio_list_projects` | the session files in the projects folder, newest first — to find one by name |
 | `studio_read_project` | every field and its value, the image slots, what is still missing |
 | `studio_edit` | fill fields, add/remove/move slides, switch carousel layouts; CAS components, styles, sizes, variants, carousel mode |
-| `studio_set_image` | an image file into a slot (photo, portrait, QR, logo, icon), cut out automatically where the studio would |
+| `studio_set_image` | an image into a slot (photo, portrait, QR, logo, icon) — a file on this Mac, or an https `url` for a remote caller — cut out automatically where the studio would |
 | `studio_preview` | renders returned as images, so Claude can see the post |
 | `studio_export` | PNG / JPG / SVG / PDF with the studio's own names and folders |
 
@@ -53,6 +54,24 @@ localStorage are its own; the on-disk `.image-slots.state.json` is only ever rea
 | `chrome.py` | launches headless Chrome and speaks the DevTools protocol (a 60-line WebSocket client) |
 | `page.js` | injected into every studio page: reaches the engine and implements each tool's in-page half |
 | `install.sh` | adds or removes the entry in `claude_desktop_config.json` (backup beside it) |
+| `remote.py` | the same tools over HTTP (MCP Streamable HTTP and the older SSE pair), behind per-person tokens, for the Grok bot |
+| `install-remote.sh` · `env.sh` | the remote service and its tunnel as login items; tokens; a copy of the repo in Application Support |
+
+## Remote: the Grok bot, or any client off this Mac
+
+`remote.py` serves the same `TOOLS` over HTTP so a connector on the internet — Grok's custom
+connector, the xAI API's `mcp` tool, Claude's remote connectors — can drive the studios through a
+tunnel. One Mac in the office runs it as a login item, with ngrok or Cloudflare Tunnel in front.
+
+- **Gate:** every call carries a token — `Authorization: Bearer <token>`, or in the path for a
+  form that takes only a URL: `https://<host>/t/<token>/mcp`. One token per person
+  (`install-remote.sh --token "Name"`), never in the repo. The headless studio has no Google
+  sign-in, so this is the only gate.
+- **Confined:** a remote caller reads and writes only inside the projects folder
+  (`~/Library/Application Support/Provident/studio-remote/projects`); pictures come in by https
+  `url`; exports and previews go back as signed links that open for 14 days.
+- **Setup and the reasoning:** `docs/grok-bot-setup.md`. The bot's own instructions:
+  `GROK-BOT-INSTRUCTIONS.md`, Part 3.
 
 ## When it breaks
 

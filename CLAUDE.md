@@ -22,7 +22,7 @@ area**; it records why things are the way they are and what was tried and reject
 | `docs/notes/web-image-studio.md` | `web-image-studio.html` |
 
 Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,
-`docs/studio-access-setup.md`, `docs/studio-endpoint.md`.
+`docs/studio-access-setup.md`, `docs/studio-endpoint.md`, `docs/grok-bot-setup.md`.
 
 ## Files
 
@@ -38,7 +38,8 @@ Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,
 | `image-slot.js` · `support.js` · `_ds/` · `fonts/` · `icon-tags.js` · `vendor/` | shared |
 | `ui-design-system/` | the chrome design system; CAS, OPS and the image tool mirror it |
 | `CAS-OPS-GUIDE.md` | the user-facing guide (for Claude Cowork) — update it when a label, button, flow or export name a user sees changes |
-| `tools/` | rembg cut-out service, Photoshop helper, studio-mcp server, share dev server + Drive stand-in |
+| `GROK-BOT-INSTRUCTIONS.md` | the Grok bot's instructions (help, copy, and Part 3: the studio tools) — update it with the guide |
+| `tools/` | rembg cut-out service, Photoshop helper, studio-mcp server (stdio for Claude; `remote.py` over https for the Grok bot), share dev server + Drive stand-in |
 
 Head order in both studios: `runtime.js` → `support.js` → `studio-base.js` (then the
 studio-specific scripts), parser-inserted, never in the helmet.
