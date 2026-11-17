@@ -107,12 +107,15 @@ exports download as a zip. The studios fit tablets and phones.
   project is sent on; press **Missing** beside the other two when they are delivered. It shows
   what is missing and never blocks **Done**. The animated version is made in CAS: **Background image** › **Background** › **Video**, upload
   the clip made from the photo (Higgsfield), and it plays behind the design on the 1:1 and 9:16;
-  **Share** › **Export animated** records them as MP4. The clip stays on the computer it was
-  uploaded on. Instead of uploading, the same place has **Generate from this photo**: pick a
-  camera move, 5 or 10 s, the model (Kling, Cinema, Seedance) and Draft or Full, press
-  **Generate**, check the credit price, press **Generate** again; the clip lands on the design by
-  itself in a few minutes. It needs CASV running on that computer, signed in to Higgsfield.
-  **Edit in CASV** opens a new CASV video with the ad's photo on it, for a longer, more detailed video.
+  **Share** › **Export animated** records them as MP4. Under **Video** there are three ways to
+  get the clip: **Generate from the photo** (camera move, 5 or 10 s, Draft or Full, Kling / Cinema /
+  Seedance; **See the price** first, then **Generate · N credits**; it lands by itself in a few
+  minutes; needs CASV running on that computer, signed in to Higgsfield), **Upload a clip** (an
+  MP4), or **Edit in CASV** (a fresh CASV video with the photo; **Send back to CAS** there places it
+  on the design, like Edit in Photoshop). On a project in an ad set the clip is saved in the
+  project's Drive **Assets** folder, so it reaches other computers. Status marks such a design
+  **Animated**; performance marketing sees **Animated** on the Feed and Story tiles (they play on
+  hover) and the **Preview** plays the video.
 - **Phases** are rounds of the whole campaign (Teaser, Launch, Price Drop, Ad Fatigue 01… any name):
   **Add phase** on Status, or in **Ad set settings**, where phases are also renamed.
 - **Branded | Unbranded | Mixed** under **Brand** in **Ad set settings**. Unbranded: no wordmark or

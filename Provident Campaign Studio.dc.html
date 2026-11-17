@@ -4321,7 +4321,43 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .an-clip-n b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
 .an-clip-n s{text-decoration:none;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .an-clip-r{display:flex;gap:8px;flex-wrap:wrap}
-.an-gen{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--ps-line)}
+.an-box{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.an-cur{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 12px;border-radius:12px;background:var(--ps-fill)}
+.an-cur-i{flex:none;width:20px;height:20px;fill:currentColor;color:var(--ps-ink)}
+.an-cur .an-clip-n{flex:1}
+.an-x{flex:none;display:grid;place-items:center;width:32px;height:32px;border:none;border-radius:50%;background:transparent;color:var(--ps-ink-2);cursor:pointer}
+.an-x:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.an-x svg{width:18px;height:18px;fill:currentColor}
+.an-x:focus-visible,.an-way:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.an-job{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:var(--ps-fill)}
+.an-job{flex-wrap:wrap}
+.an-job .an-clip-n{flex:1 1 calc(100% - 30px);min-width:0}
+.an-job>.p-ghost{flex:none;width:auto;margin-left:26px}
+.an-job-q>.an-clip-r{margin:0}
+.an-job-q{flex-direction:column;align-items:stretch}
+.an-job-q .an-clip-n{flex:none}
+.an-spin{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--ps-line);border-top-color:var(--ps-ink);animation:anSpin 1s linear infinite}
+@keyframes anSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.an-spin{animation-duration:3s}}
+.an-ways{display:flex;flex-direction:column;gap:6px}
+.an-way{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:none;border-radius:12px;background:var(--ps-fill);color:var(--ps-ink);text-align:left;cursor:pointer;font:inherit;transition:background-color var(--ps-motion) var(--ps-ease)}
+.an-way:hover{background:var(--ps-fill-h)}
+.an-way[data-on]{border-bottom-left-radius:4px;border-bottom-right-radius:4px}
+.an-way svg{flex:none;width:20px;height:20px;fill:currentColor;color:var(--ps-ink-2)}
+.an-way span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.an-way b{font:500 13px/1.3 var(--ps-font)}
+.an-way s{text-decoration:none;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.an-gen{display:flex;flex-direction:column;gap:8px;margin:-4px 0 4px;padding:12px;border-radius:4px 4px 12px 12px;background:var(--ps-fill)}
+.an-gen-2{display:grid;grid-template-columns:1fr;gap:8px}
+.an-gen-2>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.an-wide{width:100%;height:auto;min-height:40px;margin-top:4px;padding:10px 13px;line-height:1.3;white-space:normal}
+.an-gen .an-mv,.an-gen .p-tabs{background:var(--ps-card)}
+canvas.an-mk{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}
+canvas.an-mk[data-live]{opacity:1}
+.as-img[data-an]{position:relative}
+.as-an-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.as-anim{position:absolute;left:8px;bottom:8px;z-index:1;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 6px;border-radius:var(--ps-pill);background:var(--ps-card);color:var(--ps-ink);box-shadow:0 1px 4px color-mix(in srgb,var(--ps-ink) 25%,transparent);font:500 11px/1.3 var(--ps-font);pointer-events:none}
+.as-anim svg{width:13px;height:13px;fill:currentColor}
 .an-gen-h{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
 .an-gen-l{font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
 .an-mvs{display:flex;flex-wrap:wrap;gap:6px}
@@ -4331,7 +4367,7 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .an-mv:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .an-gen-n{margin:0;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .an-gen-n[data-warn]{color:var(--ps-bad)}
-.an-clip-r .p-ghost.an-go,.an-clip-r .p-ghost.an-go:hover{background:var(--ps-primary);color:var(--ps-primary-i);border-color:transparent}
+.an-box .p-ghost.an-go,.an-box .p-ghost.an-go:hover{background:var(--ps-primary);color:var(--ps-primary-i);border-color:transparent}
 .an-dlg{position:fixed;inset:0;z-index:4000;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ps-app) 55%,transparent)}
 .an-dlg-c{width:min(420px,100%);box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font);display:grid;gap:12px;justify-items:start}
 .an-dlg-c h2{margin:0;font:400 20px/1.2 var(--ps-font)}
@@ -6179,7 +6215,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                         <div class="as-tiles">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
                             <figure class="as-t" data-shape="{{ t.shape }}">
-                              <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"></button>
+                              <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}" data-an="{{ t.animOn }}" data-tid="{{ t.tid }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"><sc-if value="{{ t.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="Plays a video behind the design. Point at it to play."><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></button>
                               <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
                             </figure>
                           </sc-for>
@@ -6333,7 +6369,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                 <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-ignav"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg><b class="mk-igwm">Instagram<svg class="mk-i mk-igwm-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.5l5 5 5-5"/></svg></b><span class="p-spring"></span><span class="mk-badge"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg><i class="mk-dot"></i></span></div></sc-if>
                 <div class="mk-post">
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-igph"><i class="mk-av mk-av-b"><b>p.</b></i><div class="mk-phn"><b>{{ mkCopy.handle }}</b><s>Sponsored</s></div><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></div></sc-if>
-                  <div class="mk-cw"><sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if></div>
+                  <div class="mk-cw"><sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" data-sk="{{ ph.k }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if></div>
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-igcta"><b>{{ mkCopy.cta }}</b><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg></div>
                     <div class="mk-igacts"><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg><em>1,284</em></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 16.6A9 9 0 1 0 17 20.1l4.2 1.1Z"/></svg><em>32</em></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2.8l3.2 3.2L17 9.2M20.2 6H8.6A4.6 4.6 0 0 0 4 10.6v1.2M7 21.2 3.8 18 7 14.8M3.8 18h11.6a4.6 4.6 0 0 0 4.6-4.6v-1.2"/></svg><em>9</em></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.6 2.6 10.2 13.6M21.6 2.6 14.7 21.4l-4.5-7.8-7.9-4.4Z"/></svg><em>18</em></span><span class="p-spring"></span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.8 21 12 15.2 5.2 21V4.2A1.2 1.2 0 0 1 6.4 3h11.2a1.2 1.2 0 0 1 1.2 1.2Z"/></svg></span></div>
                     <div class="mk-igcap"><b>{{ mkCopy.handle }}</b> {{ mkCopy.primary }}</div>
@@ -6348,7 +6384,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                 <div class="mk-post mk-fbpost">
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-fbph"><i class="mk-av mk-av-b mk-av-fb"><b>p.</b></i><div class="mk-phn"><b>{{ mkCopy.page }}</b><s>Sponsored · <svg class="mk-i mk-glb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2M12 3.4c2.4 2.4 3.4 5.3 3.4 8.6s-1 6.2-3.4 8.6c-2.4-2.4-3.4-5.3-3.4-8.6s1-6.2 3.4-8.6Z"/></svg></s></div><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
                     <div class="mk-fbcopy">{{ mkCopy.primary }}</div></sc-if>
-                  <div class="mk-cw"><sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if></div>
+                  <div class="mk-cw"><sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" data-sk="{{ ph.k }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if></div>
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-fbcard"><div class="mk-fbt"><s>{{ mkCopy.domain }}</s><b>{{ mkCopy.headline }}</b><em>{{ mkCopy.desc }}</em></div><span class="mk-fbbtn">{{ mkCopy.cta }}</span></div>
                     <div class="mk-fbsum"><span class="mk-fbrx"><i class="mk-rx-l"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.2 10.6v9.6M7.2 10.6l3.7-7a2 2 0 0 1 3.1 2.3l-.9 3.6h5.4a2 2 0 0 1 2 2.4l-1.5 7a2 2 0 0 1-2 1.5H7.2M7.2 10.6H4.2a1 1 0 0 0-1 1v7.6a1 1 0 0 0 1 1h3"/></svg></i><i class="mk-rx-h"><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.4s-8.2-4.7-8.2-10.6A4.6 4.6 0 0 1 12 7.2a4.6 4.6 0 0 1 8.2 2.6c0 5.9-8.2 10.6-8.2 10.6Z"/></svg></i></span><em>1.2K</em><span class="p-spring"></span><em>48 comments · 12 shares</em></div>
                     <div class="mk-fbacts"><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.2 10.6v9.6M7.2 10.6l3.7-7a2 2 0 0 1 3.1 2.3l-.9 3.6h5.4a2 2 0 0 1 2 2.4l-1.5 7a2 2 0 0 1-2 1.5H7.2M7.2 10.6H4.2a1 1 0 0 0-1 1v7.6a1 1 0 0 0 1 1h3"/></svg> Like</span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.4c-5 0-9 3.5-9 7.9 0 2.4 1.2 4.6 3.1 6l-.6 3.4 3.7-1.9c.9.2 1.8.3 2.8.3 5 0 9-3.5 9-7.8S17 3.4 12 3.4Z"/></svg> Comment</span><span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.6 4.6 21 11.4l-7.4 6.8v-3.9C8.4 14.3 5.3 16 3 19.4c.6-5.6 3.8-10 10.6-10.7Z"/></svg> Share</span></div></sc-if>
@@ -6358,7 +6394,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-if value="{{ ph.isReel }}" hint-placeholder-val="{{ false }}">
               <div class="mk-vwrap" data-igr="{{ ph.igr }}" data-fbr="{{ ph.fbr }}">
                 <div class="mk-media mk-media-f">
-                  <sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
+                  <sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" data-sk="{{ ph.k }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
                   
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ mkIsIg }}" hint-placeholder-val="{{ true }}"><div class="mk-vtop"><b>Reels</b><svg class="mk-i mk-vtop-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9.5l5 5 5-5"/></svg><span class="p-spring"></span><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="6.4" width="18.4" height="13.6" rx="3.2"/><path d="M8.4 6.4l1.5-2.6h4.2l1.5 2.6"/><circle cx="12" cy="13.1" r="3.6"/></svg></div><div class="mk-igr">
                         <svg class="mk-igr-g mk-igr-heart" viewBox="962 1370.91 75 66.14" aria-hidden="true"><path d="M43.569,63.085c-3.851,3.5-8.109,4.254-11.78.911L7,41.425C.467,35.472-.878,26.672.476,18.637,1.933,9.991,7.337,3.659,14.523,1.325c8.444-2.743,16.308-.913,22.525,6.1,8.275-9.01,20.22-9.759,29.139-2.583A24.379,24.379,0,0,1,74.994,24.3c-.162,7.039-4.063,13.89-9.619,18.945ZM62.481,37.75A18.841,18.841,0,0,0,65.189,12.3c-3.862-5.024-9.709-6.944-16.068-5.568C44.3,7.772,40.4,12.227,37.237,18.452,33.3,11.678,28.925,6.524,22.631,6.261A15.564,15.564,0,0,0,6.936,16.353,19.731,19.731,0,0,0,12.22,38.237l24.968,22.33Z" transform="translate(962 1370.912)"/></svg>
@@ -6388,7 +6424,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-if value="{{ ph.isStory }}" hint-placeholder-val="{{ false }}">
               <div class="mk-vwrap mk-story">
                 <div class="mk-media mk-media-r">
-                  <sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
+                  <sc-if value="{{ ph.has }}" hint-placeholder-val="{{ true }}"><img class="mk-shot" data-src="{{ ph.src }}" data-sk="{{ ph.k }}" alt="creative"></sc-if><sc-if value="{{ ph.none }}" hint-placeholder-val="{{ false }}"><div class="mk-wait">Rendering&#8230;</div></sc-if>
                   
                   <sc-if value="{{ mkChromeOn }}" hint-placeholder-val="{{ true }}"><div class="mk-prog"><i class="on"></i><i></i><i></i></div>
                     <div class="mk-stop"><i class="mk-av mk-av-b"><b>p.</b></i><div class="mk-phn"><b>{{ mkStoryName }}</b><s>Sponsored</s></div><span class="p-spring"></span><svg class="mk-i " viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><svg class="mk-i " viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
@@ -6962,28 +6998,37 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <!-- VIDEO BACKGROUND (2026-11-16, branch cas-animated): the 1:1 and 9:16 play a clip where the
            photo is, framed by the photo's own zoom and position; the photo stays for the stills. -->
       <div class="p-grp">
-        <span class="p-lab">Background <span class="tip" data-tip="Video plays a clip behind this design on the 1:1 and 9:16, framed by the photo's zoom and position — reframe the photo to move it. The photo below is still used for the still images, and Share › Export animated records the 1:1 and 9:16 as video. The clip is kept on this computer only." style="{{ infoStyle }}">i</span></span>
+        <span class="p-lab">Background <span class="tip" data-tip="Video plays a clip behind this design on the 1:1 and 9:16, framed by the photo's zoom and position — reframe the photo to move it. The photo below still makes the still images. Share › Export animated records the 1:1 and 9:16 as video. The clip is saved with the project in its Drive Assets folder." style="{{ infoStyle }}">i</span></span>
         <div class="p-tabs"><button onClick="{{ anSetPhoto }}" data-on="{{ anPhotoOn }}">Photo</button><button onClick="{{ anSetVideo }}" data-on="{{ anVideoOn }}">Video</button></div>
+        <!-- THE VIDEO PANEL, REWORKED (2026-11-17, "currently this is confusing"): the clip on top;
+             under it ONE list of the three ways to get one; Generate opens its few settings in place;
+             a job in progress or waiting on a yes replaces the list until it ends. -->
         <sc-if value="{{ anVideoOn }}" hint-placeholder-val="{{ false }}">
-          <div class="an-clip">
-            <sc-if value="{{ anHas }}" hint-placeholder-val="{{ false }}"><p class="an-clip-n"><b>{{ anClipName }}</b><s>{{ anClipSub }}</s></p></sc-if>
-            <sc-if value="{{ anNone }}" hint-placeholder-val="{{ true }}"><p class="an-clip-n"><s>Upload the clip you made from this photo (Higgsfield or any MP4). It plays on the 1:1 and 9:16.</s></p></sc-if>
-            <div class="an-clip-r"><button onClick="{{ anAdd }}" class="p-ghost">{{ anAddLabel }}</button><sc-if value="{{ anHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ anRemove }}" class="p-ghost">Remove</button></sc-if></div>
-          </div>
-          <!-- GENERATE WITH HIGGSFIELD (2026-11-17): through CASV's local server; priced, then a yes -->
-          <div class="an-gen">
-            <span class="an-gen-h">Generate from this photo</span>
-            <span class="an-gen-l">Camera move</span>
-            <div class="an-mvs" role="radiogroup" aria-label="Camera move"><sc-for list="{{ anMoves }}" as="mv" hint-placeholder-count="8"><button onClick="{{ mv.pick }}" data-on="{{ mv.on }}" class="an-mv">{{ mv.label }}</button></sc-for></div>
-            <span class="an-gen-l">Length</span>
-            <div class="p-tabs"><button onClick="{{ anSetD5 }}" data-on="{{ anD5 }}">5 s</button><button onClick="{{ anSetD10 }}" data-on="{{ anD10 }}">10 s</button></div>
-            <span class="an-gen-l">Model</span>
-            <div class="p-tabs"><sc-for list="{{ anModels }}" as="md" hint-placeholder-count="3"><button onClick="{{ md.pick }}" data-on="{{ md.on }}">{{ md.label }}</button></sc-for></div>
-            <span class="an-gen-l">Quality</span>
-            <div class="p-tabs"><button onClick="{{ anSetDraft }}" data-on="{{ anDraft }}">Draft</button><button onClick="{{ anSetFull }}" data-on="{{ anFull }}">Full</button></div>
-            <p class="an-gen-n" data-warn="{{ anGenWarn }}" role="status">{{ anGenNote }}</p>
-            <sc-if value="{{ anGenIdle }}" hint-placeholder-val="{{ true }}"><div class="an-clip-r"><button onClick="{{ anGenGo }}" class="p-ghost">{{ anGenLabel }}</button><button onClick="{{ anToCasv }}" class="p-ghost" title="Opens a new video in CASV with this photo on its timeline, for a longer, more detailed video">Edit in CASV</button></div></sc-if>
-            <sc-if value="{{ anGenConfirm }}" hint-placeholder-val="{{ false }}"><div class="an-clip-r"><button onClick="{{ anGenYes }}" class="p-ghost an-go">Generate</button><button onClick="{{ anGenNo }}" class="p-ghost">Cancel</button></div></sc-if>
+          <div class="an-box">
+            <sc-if value="{{ anHas }}" hint-placeholder-val="{{ false }}"><div class="an-cur"><svg class="an-cur-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg><p class="an-clip-n"><b>{{ anClipName }}</b><s>{{ anClipSub }}</s></p><button onClick="{{ anRemove }}" class="an-x" title="Remove the video: the design shows its photo again" aria-label="Remove the video"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/></svg></button></div></sc-if>
+            <sc-if value="{{ anNone }}" hint-placeholder-val="{{ true }}"><p class="an-gen-n">Plays behind the design on the 1:1 and 9:16. The photo below frames it and still makes the stills.</p></sc-if>
+            <sc-if value="{{ anBusyOn }}" hint-placeholder-val="{{ false }}"><div class="an-job" role="status"><i class="an-spin" aria-hidden="true"></i><p class="an-clip-n"><b>{{ anJobHead }}</b><s>{{ anJobSub }}</s></p><button onClick="{{ anGenNo }}" class="p-ghost">{{ anBusyX }}</button></div></sc-if>
+            <sc-if value="{{ anConfirmOn }}" hint-placeholder-val="{{ false }}"><div class="an-job an-job-q"><p class="an-clip-n"><b>Generate this clip?</b><s>{{ anJobSub }}</s></p><div class="an-clip-r"><button onClick="{{ anGenYes }}" class="p-ghost an-go">{{ anYesLabel }}</button><button onClick="{{ anGenNo }}" class="p-ghost">Cancel</button></div></div></sc-if>
+            <sc-if value="{{ anErrOn }}" hint-placeholder-val="{{ false }}"><p class="an-gen-n" data-warn="1" role="alert">{{ anErr }}</p></sc-if>
+            <sc-if value="{{ anIdleOn }}" hint-placeholder-val="{{ true }}">
+              <span class="an-gen-l">{{ anWaysHead }}</span>
+              <div class="an-ways">
+                <button onClick="{{ anOpenGen }}" class="an-way" data-on="{{ anGenOpenOn }}" aria-expanded="{{ anGenAria }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m706-706-70-32q-6-3-8.5-8t-2.5-10q0-5 2.5-10t8.5-8l70-32 32-70q3-6 8-9t10-3q5 0 10 3t8 9l32 70 70 32q6 3 9 8t3 10q0 5-3 10t-9 8l-70 32-32 70q-3 6-8 8.5t-10 2.5q-5 0-10-2.5t-8-8.5l-32-70ZM260-380l-160-73q-9-4-13-11.5T83-480q0-8 4-15.5t13-11.5l160-73 73-160q4-9 11.5-13t15.5-4q8 0 15.5 4t11.5 13l73 160 160 73q9 4 13 11.5t4 15.5q0 8-4 15.5T620-453l-160 73-73 160q-4 9-11.5 13t-15.5 4q-8 0-15.5-4T333-220l-73-160Zm100 26 40-86 86-40-86-40-40-86-40 86-86 40 86 40 40 86Zm350 204-70-32q-6-3-9-8t-3-10q0-5 3-10t9-8l70-32 32-70q3-6 8-9t10-3q5 0 10 3t8 9l32 70 70 32q6 3 9 8t3 10q0 5-3 10t-9 8l-70 32-32 70q-3 6-8 9t-10 3q-5 0-10-3t-8-9l-32-70ZM360-480Z"/></svg><span><b>Generate from the photo</b><s>Higgsfield · a camera move, 5 or 10 s · priced first</s></span></button>
+                <sc-if value="{{ anGenOpenOn }}" hint-placeholder-val="{{ false }}">
+                  <div class="an-gen">
+                    <span class="an-gen-l">Camera move</span>
+                    <div class="an-mvs" role="radiogroup" aria-label="Camera move"><sc-for list="{{ anMoves }}" as="mv" hint-placeholder-count="8"><button onClick="{{ mv.pick }}" data-on="{{ mv.on }}" class="an-mv" role="radio" aria-checked="{{ mv.aria }}">{{ mv.label }}</button></sc-for></div>
+                    <div class="an-gen-2"><div><span class="an-gen-l">Length</span><div class="p-tabs"><button onClick="{{ anSetD5 }}" data-on="{{ anD5 }}">5 s</button><button onClick="{{ anSetD10 }}" data-on="{{ anD10 }}">10 s</button></div></div>
+                    <div><span class="an-gen-l">Quality</span><div class="p-tabs"><button onClick="{{ anSetDraft }}" data-on="{{ anDraft }}" title="720p, fewer credits">Draft</button><button onClick="{{ anSetFull }}" data-on="{{ anFull }}" title="1080p">Full</button></div></div></div>
+                    <span class="an-gen-l">Model</span>
+                    <div class="p-tabs"><sc-for list="{{ anModels }}" as="md" hint-placeholder-count="3"><button onClick="{{ md.pick }}" data-on="{{ md.on }}" title="{{ md.tip }}">{{ md.label }}</button></sc-for></div>
+                    <button onClick="{{ anGenGo }}" class="p-ghost an-go an-wide">{{ anPriceLabel }}</button>
+                  </div>
+                </sc-if>
+                <button onClick="{{ anAdd }}" class="an-way"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span><b>Upload a clip</b><s>An MP4 from this computer</s></span></button>
+                <button onClick="{{ anToCasv }}" class="an-way"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M160-240v-320 320Zm0 80q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h80l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h80l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h120q33 0 56.5 23.5T880-720v120q0 17-11.5 28.5T840-560H160v320h280q17 0 28.5 11.5T480-200q0 17-11.5 28.5T440-160H160Zm400 0v-66q0-8 3-15.5t9-13.5l209-208q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q8 9 12.5 20t4.5 22q0 11-4 22.5T903-340L695-132q-6 6-13.5 9t-15.5 3h-66q-17 0-28.5-11.5T560-160Zm300-223-37-37 37 37ZM620-180h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z"/></svg><span><b>Edit in CASV</b><s>A longer, edited video. Send back to CAS there places it here</s></span></button>
+              </div>
+            </sc-if>
           </div>
         </sc-if>
       </div>
@@ -12630,14 +12675,28 @@ class CampaignStudio extends StudioBase {
       });
     });
   }
+  // local first; a clip that is only on Drive (saved from another computer) is fetched once and
+  // kept here too
   async anLoad(pid) {
     try {
-      const n = (this.state.variants || []).length; let any = false;
-      for (let vi = 0; vi < n; vi++) {
+      const vs = this.state.variants || []; let any = false;
+      for (let vi = 0; vi < vs.length; vi++) {
         const rec = await CampaignStudio.anIo('readonly', st => st.get(pid + '|' + vi));
         if (rec && rec.blob && this._anPid === pid) { this._clips[vi] = { name: rec.name || 'Clip', blob: rec.blob, url: URL.createObjectURL(rec.blob), dur: rec.dur || 0 }; any = true; }
       }
       if (any) this.forceUpdate();
+      for (let vi = 0; vi < vs.length; vi++) {
+        const bc = vs[vi] && vs[vi].bgClip;
+        if (this._clips[vi] || !bc || !bc.f || !StudioBase.clipGet) continue;
+        (this._anDl || (this._anDl = {}))[vi] = 1; this.forceUpdate();
+        try {
+          const blob = await StudioBase.clipGet(bc.f);
+          if (this._anPid !== pid) return;
+          this._clips[vi] = { name: bc.n || 'Clip', blob, url: URL.createObjectURL(blob), dur: bc.d || 0, drive: bc.f };
+          try { await CampaignStudio.anIo('readwrite', st => st.put({ name: bc.n || 'Clip', blob, dur: bc.d || 0 }, pid + '|' + vi)); } catch (e) {}
+        } catch (e) {}
+        delete this._anDl[vi]; this.forceUpdate();
+      }
     } catch (e) {}
   }
   anAdd() {
@@ -12646,37 +12705,88 @@ class CampaignStudio extends StudioBase {
     inp.onchange = async () => {
       const f = inp.files && inp.files[0]; if (!f) return;
       if (f.size > 300e6) { this.setState({ exportStatus: f.name + ' is over 300 MB. Use a shorter or smaller clip.' }); return; }
-      const url = URL.createObjectURL(f), vid = document.createElement('video'); vid.muted = true; vid.preload = 'metadata'; vid.src = url;
+      const vid = document.createElement('video'), url = URL.createObjectURL(f); vid.muted = true; vid.preload = 'metadata'; vid.src = url;
       const ok = await new Promise(res => { vid.onloadedmetadata = () => res(true); vid.onerror = () => res(false); });
-      if (!ok || !vid.videoWidth) { URL.revokeObjectURL(url); this.setState({ exportStatus: f.name + ' could not be read as a video. Use an MP4.' }); return; }
-      const vi = this.state.activeVi || 0, pid = this._anPid, old = this._clips[vi], dur = isFinite(vid.duration) ? vid.duration : 0;
-      if (old) URL.revokeObjectURL(old.url);
-      this._clips[vi] = { name: f.name, blob: f, url, dur };
-      // uploading a clip chooses Video for this variant
-      this.upd(x => { const vv = x.variants[vi]; if (vv) vv.bgVid = '1'; return x; });
-      let kept = true;
-      try { await CampaignStudio.anIo('readwrite', st => st.put({ name: f.name, blob: f, dur }, pid + '|' + vi)); } catch (e) { kept = false; }
-      this.setState({ exportStatus: 'Clip added: ' + f.name + (dur ? ' \u00b7 ' + Math.round(dur) + ' s' : '') + (kept ? '. It is kept on this computer only.' : '. It could not be kept: add it again after a reload.') });
+      URL.revokeObjectURL(url);
+      if (!ok || !vid.videoWidth) { this.setState({ exportStatus: f.name + ' could not be read as a video. Use an MP4.' }); return; }
+      await this.anSetClip(this.state.activeVi || 0, this._anPid, f, f.name);
     };
     inp.click();
   }
   async anRemove() {
-    const vi = this.state.activeVi || 0, c = this.anClip(vi); if (!c) return;
-    URL.revokeObjectURL(c.url); delete this._clips[vi]; this.anPreview();
+    const vi = this.state.activeVi || 0, c = this.anClip(vi);
+    if (c) { URL.revokeObjectURL(c.url); delete this._clips[vi]; }
+    this.anPreview();
+    this.upd(x => { const vv = x.variants[vi]; if (vv) delete vv.bgClip; return x; });
     try { await CampaignStudio.anIo('readwrite', st => st.delete(this._anPid + '|' + vi)); } catch (e) {}
-    this.setState({ exportStatus: 'Clip removed. The design uses its photo again.' });
+    this.setState({ exportStatus: 'Video removed. The design shows its photo again.' });
   }
-  // a finished clip (generated) becomes this variant's clip, as an upload would
+  // A clip (uploaded, generated or sent back from CASV) becomes this variant's clip: Video is
+  // chosen, it is kept on this computer, and — when the project is on Drive — it goes into the
+  // project's Assets folder and the variant keeps the file id (`bgClip`), which is what Status,
+  // the PM view and the placement preview play, and how another computer gets it back.
   async anSetClip(vi, pid, blob, name) {
     const url = URL.createObjectURL(blob), vid = document.createElement('video'); vid.muted = true; vid.preload = 'metadata'; vid.src = url;
     await new Promise(res => { vid.onloadedmetadata = res; vid.onerror = res; });
-    const dur = isFinite(vid.duration) ? vid.duration : 0;
-    if (this._anPid === pid) {
+    const dur = isFinite(vid.duration) ? vid.duration : 0, here = this._anPid === pid;
+    if (here) {
       const old = this._clips[vi]; if (old) URL.revokeObjectURL(old.url);
       this._clips[vi] = { name, blob, url, dur };
-      this.upd(x => { const vv = x.variants[vi]; if (vv) vv.bgVid = '1'; return x; });
-    }
+      this.upd(x => { const vv = x.variants[vi]; if (vv) { vv.bgVid = '1'; delete vv.bgClip; } return x; });
+    } else URL.revokeObjectURL(url);
     try { await CampaignStudio.anIo('readwrite', st => st.put({ name, blob, dur }, pid + '|' + vi)); } catch (e) {}
+    if (!here || !this.clipUp) { this.setState({ exportStatus: 'Video added: ' + name + '. It is on this computer only (the project is not on Drive).' }); return; }
+    (this._anUp || (this._anUp = {}))[vi] = 1; this.forceUpdate();
+    let fid = null, err = '';
+    try { fid = await this.clipUp(vi, blob); } catch (e) { err = (e && e.message) || 'Drive did not take it'; }
+    delete this._anUp[vi];
+    if (fid && this._anPid === pid && this._clips[vi] && this._clips[vi].blob === blob) {
+      this._clips[vi].drive = fid;
+      this.upd(x => { const vv = x.variants[vi]; if (vv) vv.bgClip = { f: fid, n: String(name).slice(0, 80), d: Math.round(dur * 10) / 10 }; return x; });
+      this.setState({ exportStatus: 'Video added and saved with the project on Drive.' });
+    } else this.setState({ exportStatus: fid ? 'Video added.' : err ? 'Video added on this computer; saving it to Drive failed (' + err + '). Upload it again to retry.' : 'Video added. It is on this computer only (the project is not on Drive).' });
+    this.forceUpdate();
+  }
+  // the editor's placement preview: the open variant's design over its clip, when it has Video
+  async anMockInfo(sk) {
+    const st = this.state, vi = Math.max(0, Math.min(st.activeVi || 0, (st.variants || []).length - 1));
+    this.anClip();
+    if (this.anVis().indexOf(vi) < 0) return null;
+    return { eng: this, st, vi, sk, assets: await this.loadAssets(st), url: this._clips[vi].url };
+  }
+  // THE DESIGN PLAYING OVER ITS CLIP, live, for the placement preview and the Ad sets tiles: the
+  // export's own method (anRecord) at a small scale — the clip's picture stands in for the photo,
+  // the ops are built once and redrawn on every new video frame. `cvs()` returns the canvases to
+  // paint (one render feeds a Reel and a Story); it stops when none is left on the page.
+  anLive(cvs, info, scale) {
+    const C = CampaignStudio, st = info.st, vi = info.vi, sk = info.sk, v = (st.variants || [])[vi] || {};
+    const vid = document.createElement('video'); vid.muted = true; vid.loop = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = info.url;
+    let stop = false, T = 0;
+    const end = () => { stop = true; clearTimeout(T); try { vid.pause(); vid.removeAttribute('src'); vid.load(); } catch (e) {} };
+    vid.onloadeddata = () => {
+      if (stop) return;
+      const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight; fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
+      const fx = fc.getContext('2d'), assets = info.assets || {}, psz = C.photoSize(sk);
+      const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
+      const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, { img: fc, u: 'clip' });
+      let built; try { built = this.buildOps(st, vi, sk, A); } catch (e) { return end(); }
+      vid.play().catch(() => {});
+      let last = -1;
+      const tick = () => {
+        if (stop) return;
+        const list = cvs().filter(c => c.isConnected);
+        if (!list.length) return end();
+        if (vid.readyState >= 2 && vid.currentTime !== last) {
+          last = vid.currentTime; fx.drawImage(vid, 0, 0, fc.width, fc.height);
+          const out = this.renderOpsToCanvas(built, scale);
+          list.forEach(c => { if (c.width !== out.width || c.height !== out.height) { c.width = out.width; c.height = out.height; } c.getContext('2d').drawImage(out, 0, 0); c.dataset.live = '1'; });
+        }
+        T = setTimeout(tick, 40);
+      };
+      tick();
+    };
+    vid.onerror = end;
+    return end;
   }
 
   // ---- GENERATE WITH HIGGSFIELD (2026-11-17) ----
@@ -12757,74 +12867,110 @@ class CampaignStudio extends StudioBase {
       this.anJobSet(key, Object.assign({}, j, { status: 'working', at: Date.now() })); this.anWatch();
     } catch (e) { this.anJobSet(key, { status: 'failed', error: 'Could not start it: ' + e.message }); }
   }
+  // Cancel (asking the price, or the yes) withdraws the job; Stop waiting (generating, or waiting
+  // on CASV) only stops this page watching — credits already spent are not refunded
   async anGenCancel() {
     const key = (this._anPid || '') + '|' + (this.state.activeVi || 0), j = this.anJobs()[key];
     if (j && j.id && j.status === 'confirm') this.anApi('/api/animate/cancel', { id: j.id }).catch(() => {});
     this.anJobSet(key, null);
   }
   anWatch() {
-    clearTimeout(this._anWT);
-    if (!Object.values(this.anJobs()).some(j => j.status === 'working')) return;
+    clearTimeout(this._anWT); this._anWT = 0;
+    if (!Object.values(this.anJobs()).some(j => j.status === 'working' || j.status === 'casv')) return;
     this._anWT = setTimeout(() => this.anPoll(), 4000);
   }
   async anPoll() {
-    let jobs = [];
-    try { jobs = (await this.anApi('/api/animate/jobs')).jobs || []; } catch (e) { return this.anWatch(); }
-    const all = this.anJobs();
-    for (const key of Object.keys(all)) {
-      const j = all[key]; if (j.status !== 'working') continue;
-      const s = jobs.find(x => x.id === j.id);
-      if (!s) { this.anJobSet(key, { status: 'failed', error: 'CASV no longer has this job.' }); continue; }
-      if (s.status === 'failed') { this.anJobSet(key, { status: 'failed', error: s.error || 'Higgsfield could not make it.' }); continue; }
-      if (s.status !== 'done') continue;
-      try {
-        const res = await fetch(CampaignStudio.anCasv() + '/api/animate/file?id=' + j.id);
-        if (!res.ok) throw new Error(res.status);
-        const blob = await res.blob(), i = key.lastIndexOf('|');
-        await this.anSetClip(+key.slice(i + 1), key.slice(0, i), blob, 'Higgsfield · ' + (j.move || 'clip') + '.mp4');
-        this.anApi('/api/animate/placed', { id: j.id }).catch(() => {});
-        this.anJobSet(key, null);
-        this.setState({ exportStatus: 'The generated clip is on the 1:1 and 9:16.' });
-      } catch (e) { this.anJobSet(key, { status: 'failed', error: 'The clip is made but could not be fetched from CASV (' + e.message + ').' }); }
+    this._anWT = 0;
+    const all = this.anJobs(), keys = Object.keys(all);
+    let jobs = null;
+    if (keys.some(k => all[k].status === 'working')) { try { jobs = (await this.anApi('/api/animate/jobs')).jobs || []; } catch (e) { jobs = null; } }
+    const land = async (key, blob, name) => {
+      const i = key.lastIndexOf('|');
+      this.anJobSet(key, null);
+      await this.anSetClip(+key.slice(i + 1), key.slice(0, i), blob, name);
+    };
+    for (const key of keys) {
+      const j = all[key];
+      if (j.status === 'working' && jobs) {
+        const s = jobs.find(x => x.id === j.id);
+        if (!s) { this.anJobSet(key, { status: 'failed', error: 'CASV no longer has this job.' }); continue; }
+        if (s.status === 'failed') { this.anJobSet(key, { status: 'failed', error: s.error || 'Higgsfield could not make it.' }); continue; }
+        if (s.status !== 'done') continue;
+        try {
+          const res = await fetch(CampaignStudio.anCasv() + '/api/animate/file?id=' + j.id);
+          if (!res.ok) throw new Error(res.status);
+          const blob = await res.blob();
+          this.anApi('/api/animate/placed', { id: j.id }).catch(() => {});
+          await land(key, blob, 'Higgsfield · ' + (j.move || 'clip') + '.mp4');
+        } catch (e) { this.anJobSet(key, { status: 'failed', error: 'The clip is made but could not be fetched from CASV (' + e.message + ').' }); }
+      } else if (j.status === 'casv') {
+        // CASV's Send back to CAS parks the recorded 9:16 as the outbox part `bg` of this id
+        try {
+          const res = await fetch(CampaignStudio.anCasv() + '/api/outbox/file?id=' + j.id + '&part=bg');
+          if (!res.ok) continue;
+          await land(key, await res.blob(), 'CASV · ' + ((this.state.campaign || 'video').slice(0, 40)) + '.mp4');
+        } catch (e) {}
+      }
     }
     this.anWatch();
   }
-  // a more detailed video: a new CASV video, named after the campaign, with this photo on its timeline
+  // EDIT IN CASV (2026-11-17), like Edit in Photoshop: a new CASV video — a fresh canvas with only
+  // this photo, no wordmark — and its "Send back to CAS" records the 9:16 and parks it with the local
+  // server; this page watches for it and places it as this variant's video (and on Drive).
   async anToCasv() {
     // the window opens on the click itself (after the upload below the browser calls it a pop-up)
     const w = window.open('', '_blank');
     if (!w) { this.setState({ exportStatus: 'The browser blocked the CASV window. Allow pop-ups for this site.' }); return; }
-    const vi = this.state.activeVi || 0, photo = await this.anFrame(vi).catch(() => '');
+    const vi = this.state.activeVi || 0, key = (this._anPid || '') + '|' + vi, photo = await this.anFrame(vi).catch(() => '');
     const name = (this.state.campaign || '').slice(0, 60), id = CampaignStudio.anId();
     let ok = false;
     if (photo) { try { ok = !(await this.anApi('/api/inbox/photo', { id, photo })).error; } catch (e) {} }
-    w.location.href = CampaignStudio.anCasv() + '/Provident%20Video%20Studio.html#new=' + encodeURIComponent(name) + (ok ? '&photo=' + id : '');
-    if (photo && !ok) this.setState({ exportStatus: 'CASV opened without the photo: its local server could not be reached or is an older copy.' });
+    if (!ok) {
+      w.close();
+      this.anJobSet(key, { status: 'failed', error: photo ? 'CASV is not running on this computer (' + CampaignStudio.anCasv() + '), or it is an older copy. Start it, then try again.' : 'Add a background photo first: CASV starts from it.' });
+      return;
+    }
+    w.location.href = CampaignStudio.anCasv() + '/Provident%20Video%20Studio.html#new=' + encodeURIComponent(name) + '&photo=' + id + '&back=1';
+    this.anJobSet(key, { id, status: 'casv', at: Date.now() }); this.anWatch();
   }
   anGenVals(vi) {
     const g = this.anG(), j = this.anJobs()[(this._anPid || '') + '|' + vi] || null, st = j ? j.status : '';
-    if (st === 'working' && !this._anWT) this.anWatch();
-    const busy = st === 'pricing' || st === 'working' || st === 'confirm';
+    if ((st === 'working' || st === 'casv') && !this._anWT) this.anWatch();
+    const v = (this.state.variants || [])[vi] || {}, c = this._clips && this._clips[vi], bc = v.bgClip && v.bgClip.f ? v.bgClip : null;
+    const dl = this._anDl && this._anDl[vi], up = this._anUp && this._anUp[vi], has = !!(c || bc);
+    const md = CampaignStudio.AN_MODELS.find(m => m[0] === g.model) || CampaignStudio.AN_MODELS[0];
+    const mv = CampaignStudio.AN_MOVES.find(m => m[0] === g.move) || CampaignStudio.AN_MOVES[0];
+    const open = !!(this._anOpen && this._anOpen[vi]);
+    const dur = c ? c.dur : bc ? bc.d : 0;
     return {
-      anMoves: CampaignStudio.AN_MOVES.map(m => ({ label: m[1], on: g.move === m[0] ? '1' : undefined, pick: () => this.anGSet('move', m[0]) })),
-      anModels: CampaignStudio.AN_MODELS.map(m => ({ label: m[1], on: g.model === m[0] ? '1' : undefined, pick: () => this.anGSet('model', m[0]) })),
+      anHas: has ? '1' : undefined, anNone: has ? undefined : '1',
+      anClipName: c ? c.name : bc ? (bc.n || 'Video') : '',
+      anClipSub: (dur ? Math.round(dur) + ' s \u00b7 ' : '') + (dl ? 'Loading from Drive\u2026' : up ? 'Saving to Drive\u2026' : bc ? 'Saved with the project on Drive' : 'On this computer only'),
+      anBusyOn: st === 'pricing' || st === 'working' || st === 'casv' ? '1' : undefined,
+      anConfirmOn: st === 'confirm' ? '1' : undefined,
+      anErrOn: st === 'failed' ? '1' : undefined, anErr: st === 'failed' ? j.error : '',
+      anIdleOn: st === 'pricing' || st === 'working' || st === 'casv' || st === 'confirm' ? undefined : '1',
+      anJobHead: st === 'pricing' ? 'Asking Higgsfield for the price' : st === 'working' ? 'Generating with Higgsfield' : st === 'casv' ? 'Waiting for CASV' : '',
+      anJobSub: st === 'pricing' ? 'Nothing is spent yet.'
+        : st === 'working' ? (j.move || '') + ', ' + (j.dur || '') + ' s \u00b7 usually a few minutes. It lands here by itself; keep working.'
+        : st === 'casv' ? 'Edit the video there, then press Send back to CAS. It lands here by itself.'
+        : st === 'confirm' ? (j.move || '') + ', ' + (j.dur || '') + ' s \u00b7 ' + j.credits + ' credits from your Higgsfield plan.' : '',
+      anBusyX: st === 'pricing' ? 'Cancel' : 'Stop waiting',
+      anYesLabel: st === 'confirm' ? 'Generate \u00b7 ' + j.credits + ' credits' : 'Generate',
+      anWaysHead: has ? 'Replace it' : 'Add a video',
+      anGenOpenOn: open ? '1' : undefined, anGenAria: open ? 'true' : 'false',
+      anOpenGen: () => { (this._anOpen || (this._anOpen = {}))[vi] = !open; if (st === 'failed') this.anJobSet((this._anPid || '') + '|' + vi, null); else this.forceUpdate(); },
+      anMoves: CampaignStudio.AN_MOVES.map(m => ({ label: m[1], on: g.move === m[0] ? '1' : undefined, aria: g.move === m[0] ? 'true' : 'false', pick: () => this.anGSet('move', m[0]) })),
+      anModels: CampaignStudio.AN_MODELS.map(m => ({ label: m[1], on: g.model === m[0] ? '1' : undefined, tip: m[1] + ' \u00b7 about ' + m[3] + ' credits a second on Draft, ' + m[4] + ' on Full', pick: () => this.anGSet('model', m[0]) })),
       anD5: g.dur === 5 ? '1' : undefined, anD10: g.dur === 10 ? '1' : undefined,
       anSetD5: () => this.anGSet('dur', 5), anSetD10: () => this.anGSet('dur', 10),
       anDraft: g.mode !== 'pro' ? '1' : undefined, anFull: g.mode === 'pro' ? '1' : undefined,
       anSetDraft: () => this.anGSet('mode', 'std'), anSetFull: () => this.anGSet('mode', 'pro'),
-      anGenIdle: busy ? undefined : '1', anGenConfirm: st === 'confirm' ? '1' : undefined,
-      anGenNote: st === 'pricing' ? 'Getting the price from Higgsfield…'
-        : st === 'confirm' ? j.move + ', ' + j.dur + ' s: ' + j.credits + ' credits from your Higgsfield plan.'
-        : st === 'working' ? 'Generating… usually a few minutes. It lands here on its own; you can keep working.'
-        : st === 'failed' ? j.error
-        : 'About ' + this.anGenCredits() + ' credits. Made at 9:16 from this photo; the 1:1 plays its centre.',
-      anGenWarn: st === 'failed' ? '1' : undefined,
-      anGenLabel: 'Generate',
+      anPriceLabel: 'See the price \u00b7 ~' + this.anGCredits() + ' credits',
       anGenGo: () => this.anGen(), anGenYes: () => this.anGenRun(), anGenNo: () => this.anGenCancel(),
       anToCasv: () => this.anToCasv()
     };
   }
-  anGenCredits() { return this.anGCredits(); }
   anDlg() {
     const el = document.createElement('div'); el.className = 'an-dlg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Exporting the animated ads');
     el.innerHTML = '<div class="an-dlg-c"><h2>Exporting the animated ads</h2><p class="an-dlg-s" role="status"></p><canvas class="an-dlg-cv"></canvas><div class="an-dlg-b"><i></i></div><button type="button" class="p-ghost">Cancel</button></div>';
@@ -17981,6 +18127,8 @@ class Component extends DCLogic {
         if (e.file) { got(e.file); t.load = () => Promise.resolve(t.file); }
         else t.load = () => t._ld || (t._ld = e.h.getFile().then(got, er => { t._ld = null; throw er; }));
         t.open = () => { this._asBig = t; this.forceUpdate(); if (!t.file) t.load().then(() => this.forceUpdate(), () => {}); };
+        // a design with a video background (review links on Drive): badged, and it plays on hover
+        if (e.h.anim) { t.anim = e.h.anim; t.animOn = '1'; t.tid = 't' + (this._anTid = (this._anTid || 0) + 1); (this._anTiles = this._anTiles || {})[t.tid] = t; this.anHoverInit(); }
         list.push(t);
         return t;
       };
@@ -18634,6 +18782,53 @@ class Component extends DCLogic {
     base.aeSaveOn = !!ae.dirty && ae.can === 'yes';
     return base;
   }
+  // ---- VIDEO BACKGROUNDS IN THE AD SETS WINDOW AND THE PLACEMENT PREVIEW (2026-11-17) ----
+  // A tile whose design plays a video (its review file says `anim`) carries an Animated badge and
+  // plays live while pointed at; the placement preview plays the 1:1 and 9:16 on its own. Both
+  // draw through the engine's anLive — the export's method at a small scale — over the picture.
+  anHoverInit() {
+    if (this._anHov) return; this._anHov = true;
+    document.addEventListener('pointerover', e => {
+      const b = e.target && e.target.closest && e.target.closest('.as-img[data-an]');
+      if (!b || b._anOn) return;
+      const t = (this._anTiles || {})[b.dataset.tid]; if (!t || !t.anim) return;
+      b._anOn = true;
+      const cv = document.createElement('canvas'); cv.className = 'as-an-cv'; b.appendChild(cv);
+      let stop = null, out = false;
+      const leave = () => { out = true; b.removeEventListener('pointerleave', leave); b._anOn = false; if (stop) stop(); cv.remove(); };
+      b.addEventListener('pointerleave', leave);
+      t.anim().then(info => { if (out || !info) return leave(); stop = info.eng.anLive(() => [cv], info, .5); }, leave);
+    });
+  }
+  anMockKick() { clearTimeout(this._anMkT); this._anMkT = setTimeout(() => this.anMockRun(), 250); }
+  async anMockRun() {
+    if (this._anMkBusy) return this.anMockKick();
+    const root = document.querySelector('.mk-ov'); if (!root) return;
+    this._anMkBusy = true;
+    try {
+      const ext = this._mkExt, eng = this.active();
+      for (const sk of ['sq', 'st']) {
+        const imgs = [...root.querySelectorAll('img.mk-shot[data-sk="' + sk + '"]')];
+        const cvsOf = () => [...root.querySelectorAll('canvas.an-mk[data-an-sk="' + sk + '"]')];
+        const cur = (this._anMk = this._anMk || {})[sk];
+        const key = ext ? 'x' + ext.label : (eng && eng.mockKey ? eng.mockKey() : '');
+        const bare = () => imgs.filter(im => im.isConnected && !(im.nextElementSibling && im.nextElementSibling.classList.contains('an-mk')));
+        if (cur && cur.key === key && !bare().length && cvsOf().length) continue;
+        if (cur && cur.stop) cur.stop();
+        cvsOf().forEach(c => c.remove()); delete this._anMk[sk];
+        if (!imgs.length) continue;
+        let info = null;
+        try { info = ext ? (ext.anim && ext.anim[sk] ? await ext.anim[sk]() : null) : (eng && eng.anMockInfo ? await eng.anMockInfo(sk) : null); } catch (e) { info = null; }
+        if (!info || !root.isConnected) continue;
+        bare().forEach(im => {
+          const c = document.createElement('canvas'); c.className = 'mk-shot an-mk'; c.dataset.anSk = sk;
+          const par = im.parentElement; if (par && getComputedStyle(par).position === 'static') par.style.position = 'relative';
+          im.after(c);
+        });
+        this._anMk[sk] = { key, stop: info.eng.anLive(cvsOf, info, .5) };
+      }
+    } finally { this._anMkBusy = false; }
+  }
   asCard(key, label, p, letter, tiles, ctx) {
     const C = CampaignStudio, st = (p && p.state) || {}, yt = false;
     const rows = [];
@@ -18658,9 +18853,9 @@ class Component extends DCLogic {
     const SK = { feed: 'sq', portrait_3x4: 'pt', story: 'st' };
     card.prevOn = tiles.some(t => SK[t.kk]) ? '1' : undefined;
     card.mk = () => {
-      const vi = Math.max(0, letter.charCodeAt(0) - 65), shots = {};
-      tiles.forEach(t => { if (SK[t.kk]) shots[SK[t.kk]] = t.url; });
-      return { card, shots, label: ctx, copy: st.variants ? C.mockCopyOf(st, vi) : C.mockCopyOf({ campaign: label }, 0) };
+      const vi = Math.max(0, letter.charCodeAt(0) - 65), shots = {}, anim = {};
+      tiles.forEach(t => { if (SK[t.kk]) { shots[SK[t.kk]] = t.url; if (t.anim) anim[SK[t.kk]] = t.anim; } });
+      return { card, shots, anim, label: ctx, copy: st.variants ? C.mockCopyOf(st, vi) : C.mockCopyOf({ campaign: label }, 0) };
     };
     card.prev = async () => {
       await Promise.all(tiles.filter(t => SK[t.kk]).map(t => t.load().catch(() => null)));
@@ -19341,6 +19536,7 @@ class Component extends DCLogic {
       mkDark: () => this.setState({ mockMode: 'dark' }),
       mkStoryName: (() => { const c = this._mkExt ? this._mkExt.copy : (eng && eng.mockCopy ? eng.mockCopy() : {}); return this.state.mockPlat === 'fb' ? (c.page || '') : (c.handle || ''); })(),
       mkPhones: (() => {
+        if (this.state.mockOpen) this.anMockKick();
         const fb = this.state.mockPlat === 'fb';
         const sh = this._mkExt ? this._mkExt.shots : (eng && eng.mockShots ? eng.mockShots() : {});
         const PX = eng ? eng.constructor.PXT : {};
@@ -19348,7 +19544,7 @@ class Component extends DCLogic {
         return [['feed', 'Feed', fb ? 'sq' : 'pt', fb ? '1:1' : '3:4'], ['reel', 'Reels', 'st', '9:16'], ['story', 'Story', 'st', '9:16']].map(([v, label, k, r]) => ({
           label, size: r + ' \u00b7 ' + dim(k), view: v,
           isFeed: v === 'feed', isReel: v === 'reel', isStory: v === 'story',
-          src: sh[k] || '', has: !!sh[k], none: !sh[k],
+          src: sh[k] || '', has: !!sh[k], none: !sh[k], k,
           full: v === 'reel' ? '1' : undefined,
           fbr: (v === 'reel' && fb) ? '1' : undefined,
           igr: (v === 'reel' && !fb) ? '1' : undefined

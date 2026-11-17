@@ -119,3 +119,50 @@ controls, then maybe have a button that calls CASV to edit a more detailed video
   reload; Cancel → the job left the queue; a stand-in done job (an existing MP4) → became the clip,
   playing 1080×1920 on the 1:1 and 9:16, job `placed`; Edit in CASV (real click) → CASV opened a
   new video with the photo on its timeline. Not run: a real paid generation, the live site → localhost.
+
+## THE CLIP IS ON DRIVE; ANIMATED SHOWS EVERYWHERE; THE PANEL REWORKED; CASV ROUND TRIP (2026-11-17, later)
+
+By request (five annotated screenshots): mark animated designs on Status and in the PM view
+("maybe a gif preview"), autoplay in the placement preview, "currently this is confusing, fix the
+UX and UI", and Edit in CASV as a round trip like Photoshop ("load as a fresh canvas … a button on
+CASV to render the video and bring it back … saved in assets folder").
+
+- **The clip goes to Drive** (`share-link.js`: `dsClipPut` / `dsClipGet`, `SP.clipUp`,
+  `StudioBase.clipGet`): the project's `Assets/video-background-variant-<x>.mp4`, created empty
+  then a media PATCH (a clip is bigger than a multipart body). The variant keeps
+  `bgClip: {f, n, d}`; `anSetClip` (upload, generate and CASV all end there) uploads and sets it,
+  `anRemove` drops it, `anLoad` fetches a Drive-only clip into this computer's store. A project not
+  on Drive keeps the clip locally, as before. `buildOps` never reads `bgClip`.
+- **Status:** `rvSum` counts `anim` (variants with `bgVid` and `bgClip.f`); the tile shows an
+  **Animated** pill (`.rvd-anim`). Updated on the project's next save.
+- **PM view / Ad sets window:** RV.build's 1:1 and 9:16 files carry `anim` → `RV.animOf` (project,
+  Drive photos, clip). A tile with it gets the **Animated** badge (`.as-anim`) and plays on hover
+  (`anHoverInit`, a canvas over the picture). No GIF: the live render is the export itself, and a
+  GIF would be a second file to keep current.
+- **Placement preview autoplays** (editor and PM view): `img.mk-shot` carries `data-sk`;
+  `anMockRun` (kicked from `mkPhones`) lays a canvas over each 1:1 / 9:16 picture. Editor:
+  `anMockInfo`; PM view: `card.mk().anim`. One live render feeds the Reel and the Story.
+- **`anLive(cvs, info, scale)`** is anRecord's method at a small scale (stand-in canvas in the
+  size's photo slot, ops built once, redrawn per new video frame on a 40 ms timer); it stops when
+  its canvases leave the page.
+- **The panel** (Background › Video): the clip card on top (name, length, Drive state, × removes);
+  one list of three ways (Generate from the photo / Upload a clip / Edit in CASV) under "Add a
+  video" or "Replace it"; Generate opens its settings in place with **See the price · ~N credits**;
+  a job in progress (pricing, generating, Waiting for CASV) or the yes (**Generate · N credits**)
+  replaces the list. Stop waiting only stops watching.
+- **Edit in CASV round trip:** CAS keeps a `casv` job and polls `GET /api/outbox/file?part=bg`.
+  CASV (`video-studio` branch, local): `#new=…&photo=…&back=1` starts a new video WITHOUT the
+  question (the old one kept as the last video), wordmark off, library filtered to this video's
+  media (`P.casBg`, "Show everything in the library"), and the top button is **Send back to CAS**
+  (`sendBack`: records the 9:16 once, PUTs part `bg`). The server writes every PUT to `.part` and
+  renames, so a poll never reads half a file.
+- **Verified** (Chrome; share-dev :8795 serving these files, CASV server :8796 from the branch):
+  the reworked panel at each state (clip, ways, Generate open, Waiting for CASV, the yes); Edit in
+  CASV → CASV fresh with the photo, no wordmark, Send back to CAS (real click) → `_bg.mp4` →
+  placed in CAS, uploaded to `Assets/video-background-variant-a.mp4`, kept over a reload; a moving
+  test clip → the editor preview's 1:1, Reel and Story move (red bar x 212 → 448); Status shows
+  Animated; the PM link: Feed and Story badged, hover plays (from Drive), Preview plays on all
+  three phones; no console errors. All CAS hunks sit after the renderers (line 12611+), in styles,
+  templates and the Ad sets window.
+- Not run: real Google Drive (the stand-in only), a real Higgsfield generation, big clips through
+  Drive's media upload, Safari. The PM's **Download package** does not include animated MP4s yet.

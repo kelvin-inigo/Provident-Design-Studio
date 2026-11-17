@@ -863,25 +863,34 @@ What's on the screen, from left to right:
   - Double-click the photo on the canvas to reframe it.
   - **Image opacity** dims it.
 - **Video background (the Animated deliverable):** **Background image** › **Background** ›
-  **Video**, then **Upload video** (the clip you made from the photo, in Higgsfield or any MP4).
-  - The clip plays behind the design on the **1:1** and the **9:16**. The other sizes, and every
-    still image, keep the photo, so keep the photo too.
-  - The video is framed by the photo: double-click the photo on the canvas and reframe it, and the
-    video moves with it. A clip shaped like the photo frames the same.
+  **Video**. The video you have sits on top (its name, length, and whether it is saved on Drive;
+  **×** removes it). Under it, one list of the ways to get one — **Add a video**, or **Replace
+  it** once there is one:
+  - **Generate from the photo** opens a few settings in place: **Camera move**, **Length** (5 or
+    10 s), **Quality** (Draft or Full) and **Model** (Kling, Cinema or Seedance). **See the price**
+    asks Higgsfield first and spends nothing; **Generate · N credits** spends them, or **Cancel**.
+    It takes a few minutes and lands on the design by itself; keep working. The clip is made at
+    9:16 from the photo (the 1:1 plays its centre). It needs CASV running on the same computer,
+    signed in to Higgsfield.
+  - **Upload a clip:** an MP4 from this computer (Higgsfield or anything else).
+  - **Edit in CASV:** like Edit in Photoshop. CASV opens a fresh video with only this photo (no
+    wordmark, and its library shows only this video's media). Edit it, then press **Send back to
+    CAS** at the top: it records the 9:16, and CAS places it behind the design by itself. CAS shows
+    **Waiting for CASV** meanwhile; **Stop waiting** stops watching.
+  - The video plays behind the design on the **1:1** and the **9:16**. The other sizes, and every
+    still image, keep the photo, so keep the photo too. The video is framed by the photo: reframe
+    the photo on the canvas and the video moves with it.
+  - **Saved with the project:** when the project is in an ad set on Drive, the video goes into
+    the project's **Assets** folder (`video-background-variant-a.mp4`), so another computer, Status
+    and performance marketing get it too.
   - **Share** › **Animated** › **Export animated** records the 1:1 and 9:16 as MP4 video
     (`…_feed_animated.mp4`, `…_Story_animated.mp4`), beside the stills. It takes as long as the
     clip; keep the tab in front.
-  - **Generate from this photo** (under the upload) makes the clip with Higgsfield instead: pick a
-    **Camera move**, the **Length** (5 or 10 s), the **Model** (Kling, Cinema or Seedance) and
-    **Quality** (Draft or Full), press **Generate**. It shows the price in credits first; press
-    **Generate** again to spend them, or **Cancel**. It takes a few minutes and lands on the design
-    by itself; you can keep working. The clip is made at 9:16 from the photo (the 1:1 plays its
-    centre). It needs CASV running on the same computer, with Higgsfield signed in.
-  - **Edit in CASV** opens a new CASV video, named after the campaign, with this photo on its
-    timeline, for a longer or more detailed video.
-  - **Photo** turns the video off without forgetting it; **Remove** forgets it. The clip is kept on
-    this computer only: it is not in the project file, its link or Drive, so another computer shows
-    the photo until the clip is uploaded there too.
+  - **Where it shows:** on Status the design's tile says **Animated**; in the performance
+    marketing view the Feed and Story tiles say **Animated** and play when you point at them; the
+    **Preview** (placement preview) plays the video in the phones by itself, in the studio and in
+    the performance marketing view.
+  - **Photo** turns the video off without forgetting it.
   - **Overlap image** sits in front of the headline, for a parallax look. Drop a photo and its background is removed for you (10–20 seconds), or drop a PNG already cut out. If background removal is not running on that computer the line under the picture says so, and a picture that still has its background is flagged "background not removed".
 - **Layout** (right rail) lists the choices in words. **Point at one and the canvas shows it**,
   outlined and tagged Preview, before anything changes; click to keep it, move away to drop it.

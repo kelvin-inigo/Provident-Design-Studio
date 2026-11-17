@@ -989,6 +989,30 @@
     const m = Object.assign({}, rec); delete m.u;
     return { h, n: 1, f: f.id, m };
   }
+  // VIDEO BACKGROUNDS ON DRIVE (2026-11-17). A variant's background clip goes into the project's
+  // own Assets folder beside its pictures (video-background-variant-a.mp4) and the variant keeps
+  // the file id (`v.bgClip.f`), so Status, the PM view and the placement preview — which all
+  // draw the design from the project on Drive — can play it, and another computer gets it back.
+  // Created empty, then its bytes as a media upload (a clip is bigger than a multipart body).
+  async function dsClipPut(sid, vi, blob) {
+    const parent = await dsAssets(sid), name = 'video-background-variant-' + String.fromCharCode(97 + (Number(vi) || 0)) + (/webm/.test(blob.type || '') ? '.webm' : '.mp4');
+    let f = (await dsList(parent, name)).find(x => x.mimeType !== DS_FOLDER);
+    if (!f) f = await (await dsFetch('/drive/v3/files?supportsAllDrives=true&fields=' + DS_F, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, parents: [parent], mimeType: blob.type || 'video/mp4' }) })).json();
+    return dsPut(f.id, blob);
+  }
+  const DS_CLIPS = {};
+  function dsClipGet(fid) {
+    return DS_CLIPS[fid] || (DS_CLIPS[fid] = dsFetch('/drive/v3/files/' + fid + '?alt=media&supportsAllDrives=true')
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+      .catch(e => { delete DS_CLIPS[fid]; throw e; }));
+  }
+  StudioBase.clipGet = fid => dsClipGet(fid);
+  // the open project's clip for variant `vi`, up to Drive; null when this project is not on Drive
+  SP.clipUp = async function (vi, blob) {
+    const S = this._sh; if (!S || !isDs(S.id) || S.role === 'pm') return null;
+    const f = await dsClipPut(S.id, vi, blob);
+    return f && f.id ? f.id : null;
+  };
   async function dsFetchRec(e) {
     const b = await (await dsFetch('/drive/v3/files/' + e.f + '?alt=media&supportsAllDrives=true')).blob();
     const u = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
@@ -3208,7 +3232,9 @@
       const sz = []; (st.variants || []).forEach(v => C.sizesFor(st, v).forEach(k => { if (sz.indexOf(k) < 0) sz.push(k); }));
       return { campaign: String(st.campaign || ''), mode: C.isCarousel(st) ? 'carousel' : 'single', variants: (st.variants || []).length,
         sizes: sz.map(k => SIZE_LAB[k] || k), comps: C.allMods(st).length, updated: Date.now(), pid: st.pid || '',
-        brand: st.look && st.look.on ? 'unbranded' : 'provident' };
+        brand: st.look && st.look.on ? 'unbranded' : 'provident',
+        // variants with a video background on Drive: Status marks the design Animated
+        anim: (st.variants || []).filter(v => v && v.bgVid && v.bgClip && v.bgClip.f).length || undefined };
     } catch (e) { return undefined; }
   };
   // a small picture of a project's first design, for the archive
@@ -3966,6 +3992,20 @@
     })();
     return p.cache[k];
   };
+  // A variant's design over its video background, for the window's tiles and placement preview:
+  // the project, its photos and the clip from Drive (CampaignStudio.anLive draws it)
+  RV.animOf = function (sid, vi, sk) {
+    const p = this.proj[sid], v = p && p.st && (p.st.variants || [])[vi];
+    if (!v || !v.bgClip || !v.bgClip.f) return Promise.resolve(null);
+    const k = 'a' + vi;
+    if (!p.cache[k]) p.cache[k] = (async () => {
+      if (!p.assets) p.assets = (async () => { await warmFonts(); return this.eng.loadAssets(p.st, await this.photos(sid)); })();
+      const [a, b] = await Promise.all([p.assets, dsClipGet(v.bgClip.f)]);
+      await projFonts(p.st);
+      return { eng: this.eng, st: p.st, vi, assets: a, url: URL.createObjectURL(b) };
+    })().catch(e => { delete p.cache[k]; throw e; });
+    return p.cache[k].then(x => x && Object.assign({}, x, { sk }));
+  };
   // English first: "Family" sorts before "Family · Arabic" in the window's list
   // (with more than one phase the market folder carries it: "Launch · Local", "Teaser · Local")
   RV.pathOf = function (it) { return it.market && it.aud ? [phPre(this.rs, it) + it.market, it.aud + (it.lang === 'ARB' ? ' · Arabic' : '')] : ['Ad set', ((this.proj[it.sid] || {}).st || {}).campaign || 'Project']; };
@@ -3998,7 +4038,9 @@
         const dim = sk => { const t = C.PXT[sk] || {}, sc = C.exportScale(sk, st); return t.W ? Math.round(t.W * sc) + ' × ' + Math.round(t.H * sc) : ''; };
         const files = C.sizesFor(st, v).filter(k => RV_SIZES.indexOf(k) >= 0)
           .map(sk => file(nm + '_' + L + '_' + (C.EXPORT_NAME[sk] || sk) + '.jpg', 'image/jpeg', () => me.render(sid, vi, sk),
-            { lazy: true, dim: dim(sk), thumb: async () => new Blob([await me.render(sid, vi, sk, true)], { type: 'image/jpeg' }) }));
+            { lazy: true, dim: dim(sk), thumb: async () => new Blob([await me.render(sid, vi, sk, true)], { type: 'image/jpeg' }),
+              // a video background (1:1 and 9:16): what the window needs to play the design live
+              anim: (sk === 'sq' || sk === 'st') && v.bgVid && v.bgClip && v.bgClip.f ? () => me.animOf(sid, vi, sk) : undefined }));
         if (files.length) kids.push(dirH(L, files));
       });
       (tree[m] || (tree[m] = [])).push(dirH(a, kids));
@@ -5265,6 +5307,8 @@
     ext: 'M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h222.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38T456-768.62q-8.62 8.62-21.39 8.62h-222.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-222.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v222.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.85-367.69q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L717.85-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.84q15.47 0 25.81 10.35Q820-799.31 820-783.84V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z',
     del: 'M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z'
   };
+  // Material Rounded play_circle, for a design with a video background
+  const PLAY_I = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>';
   const MORE = '<svg class="rva-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M240-420q-25 0-42.500-17.500T180-480q0-25 17.500-42.500T240-540q25 0 42.500 17.500T300-480q0 25-17.500 42.500T240-420Zm240 0q-25 0-42.500-17.500T420-480q0-25 17.500-42.500T480-540q25 0 42.500 17.500T540-480q0 25-17.500 42.500T480-420Zm240 0q-25 0-42.500-17.500T660-480q0-25 17.500-42.500T720-540q25 0 42.500 17.500T780-480q0 25-17.500 42.500T720-420Z"/></svg>';
   const ico = (k, c) => '<svg class="' + (c || 'rva-i') + '" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + ICO[k] + '"/></svg>';
   // The phase tabs on an ad set's page: one per package, its done/planned count, and (for the
@@ -5731,7 +5775,8 @@
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + (this.edit === it.sid ? ' data-ed="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
-        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u></span>' + ico('ext') + '</button>' +
+        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
+        ((pj.sum || {}).anim ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '') + '</span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
           : '<details class="rvd-mn" name="rvd-mn"><summary title="Change audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl"><button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
             (it.copy ? '' : '<button type="button" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
@@ -7311,6 +7356,8 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-lt-t b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
 .rva-lt-t s{overflow:hidden;text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;text-overflow:ellipsis;max-width:none}
 .rva-lt-t u{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rvd-anim{display:inline-flex;align-items:center;gap:4px;align-self:flex-start;margin-top:4px;padding:2px 8px 2px 6px;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink);font:500 11px/1.4 var(--ps-font);font-style:normal}
+.rvd-anim svg{width:12px;height:12px;fill:currentColor}
 .rva-lt-t u i{width:6px;height:6px;border-radius:50%;background:var(--ps-warn)}
 .rva-lt[data-ok] .rva-lt-t u i{background:var(--ps-good)}
 .rva-lt .rva-pj>.rva-i{flex:none;width:16px;height:16px;fill:currentColor;color:var(--ps-dim)}
