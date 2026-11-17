@@ -488,3 +488,113 @@ its last frame and does not call `play()`.
   clock stepped by hand (the pane was hidden, so `requestAnimationFrame` did not run): clip 1 rests
   paused at 5.00, clip 2 is playing at 5.3 s, 2 `play()` calls and 1 seek across the cut.
 - NOT tested: real-time playback after the fix, Export across a cut, Safari.
+
+## Several texts at once on the Text track (2026-11-17, by request)
+
+Shift- or Cmd-click adds a text to a group (`multi`, a Set of ids beside `sel`; `group()` returns
+the members only while `sel` is a text inside it, and `renderAll` drops a stale set). Dragging
+either end of any member scales the whole group about its far end, so starts, lengths and the gaps
+between them all scale by one factor (no member goes under 0.2 s). Dragging a body moves the group;
+Delete removes all of it; a plain click on a member goes back to that one; a second Shift-click
+takes one out. The right rail shows "N texts selected" in place of one text's controls.
+`edges(skipId)` takes a Set so the group does not snap to itself. Text track only: clips, sounds
+and graphics still select one at a time.
+
+- Tested in the pane with synthetic pointer events: three texts 2–12 s pulled 100 px in from the
+  right end became 2–10.4 s, each scaled by 0.84 and still butted up; a pair pulled in from the left
+  kept its end at 12 s; move shifted both by the same amount; undo restored each step.
+- NOT tested: a real pointer (Shift-click and the drag), Cmd-click, Delete on a group, phones.
+
+## Left rail: Media and Audio panels (2026-11-17, by request)
+
+- Upload is one 56 px row (icon, label, formats) on all three tabs that have it, not an 80 px block.
+- Media: two tiles across (`.vs-grid[data-m]`, 4:3 thumbs) so a name reads on two lines; an
+  "In video" pill (×n) on files already on the video track; a plus over the thumb on hover says what
+  a click does, so the instruction line under the grid went into the section meta ("click to add").
+- Audio: a row is two lines, not three: name, then length (whole seconds) with "used" beside the
+  two targets, now labelled Music and Sound (the note explaining them sits above the list). The
+  round button plays the file in the library (`hearToggle`, one `Audio` outside the timeline graph,
+  so it cannot reach an export); playing the video or removing the file stops it.
+- Tested in the pane, dark, 1440: no horizontal overflow, rows 61 px (were about 124), play/stop
+  toggles the row state and label, text contrast 6.5 or better. "used ×2" ellipsises (title carries it).
+- NOT tested: light theme, 1280 and phone widths, hearing the preview, the hover plus with a real pointer.
+
+## The library is organised: search, filters, stars, folders, names, grid or list (2026-11-17)
+
+Asked for after the rail pass above, which only restyled it: with 17 files named by hash there was
+still no way to tell them apart. Media, Audio and Graphics now share one builder (`libSec` /
+`libList` / `libPick`), under the upload row:
+
+- Search by name (also matches the folder name). Typing repaints only `#libList` and the count
+  (`libRefresh`), so the field keeps its caret.
+- Filter chips, one at a time: All, Starred, In video, Not used; Media adds Videos and Photos.
+- Folders: a select (All folders, Not in a folder, each folder) with New, and Rename and Delete
+  when a folder is open. Deleting a folder leaves its files in the library. One folder list for
+  all three tabs.
+- A star and a "more" menu on every file (on the thumbnail in the grid; at the right of a row):
+  Rename, Star, Move to (folders, New folder), Remove from the library. The old × is gone from
+  these lists (it stays on the collaboration-logo tiles).
+- Media has a Grid / List switch (`LIB.view`); the list shows a thumbnail, the name on two lines,
+  kind, length, use and folder. Audio is always rows; Graphics always a grid.
+- Storage: stars, folders and the view in localStorage `provident-video-lib` (`LIB`), keyed by
+  media id and dropped when the file is removed. Rename writes `media[id].name` and the IndexedDB
+  record (`dbRec`), so the timeline label follows. Search, filter and open folder are per tab and
+  last for the session. `LKEY` was already the developer-logo key, hence `LIBKEY`.
+- Tested in the pane (scripted clicks, dark, 1024 wide): search 5 → 1 with focus kept; star and the
+  Starred filter; list view; the menu opens; New folder from the menu files the item; folder
+  rename; file rename reaches the timeline label; folder delete unfiles; no console errors; no
+  horizontal overflow in grid, list or folder view.
+- NOT tested: a real pointer and keyboard on the star and menu, light theme, 1440 and phone widths,
+  many folders, Graphics tab beyond rendering, the menu near the bottom of the window.
+
+## Animate panel: one state at a time, a visible queue, results come home (2026-11-17, by request)
+
+The panel was a form with two dead-looking buttons and the missing step named at the very bottom;
+a running job showed one line of text; the queue was invisible; a finished clip only arrived if a
+clip on the open timeline was still waiting for it.
+
+- `animHtml(it)` builds the section ("Animate this photo"). No job: the form, "choose one" beside
+  Camera move, then a summary line (what will be made, about how many credits), **Generate now** as
+  the one primary, and "Or add it to the queue for Claude" as a link, each with its own line saying
+  what it costs and when. With a job the form is replaced by a status card (`.vs-job`): Ready to
+  generate (exact credits on the button), Waiting in the queue (position: "2nd of 3 waiting"),
+  Generating (busy bar, step, running clock), That did not work (the error, form back, "Try again").
+- No percentage: Higgsfield's tool reports none, so the bar is indeterminate beside a clock
+  (`jobSince`, ticked each second through `time[data-since]`). `serve.py` now writes `started`,
+  `step` (sending / rendering / downloading) and `done_at` into the job; the page falls back to
+  `at` and a generic step until the server is restarted.
+- The queue is in the Media tab (`queueHtml`, "Animating · 1 generating · 2 waiting"): every job
+  on the server that is waiting or generating, with its start frame, move, length, state, clock,
+  and a remove button; a row for a clip in this video selects it. A job "working" for over 40
+  minutes reads "Stalled" (the tool gives up at 25).
+- Polling is always on (`animPoll` at start; 4 s while anything is active, 20 s otherwise), not
+  only while a clip here has a job. `JOBS` holds the last answer.
+- Finished clips: one waited for by a clip still replaces the photo and is in Your media
+  (`jobToMedia`). One nobody here is waiting for (photo deleted, page closed, another video) is
+  added to Your media once per browser (`provident-video-anim-got`); its server status is left
+  alone, so CAS can still collect a job it asked for.
+- Tested in the pane: the queue lists the server's three live jobs with counts; form disabled
+  until a move is chosen, then the summary and "about 35 credits"; the four cards render from a job
+  set by hand; no overflow at 320; no console errors.
+- NOT tested: a real generation end to end (it spends credits), the orphan import with a real
+  finished job, the restarted server's `step` values, cancel from the queue row, light theme.
+
+## The library rail can be resized (2026-11-17, by request)
+
+Drag the left rail's right edge (`#libRz`, `.vs-rzx`, a child of `.vs-body`). Width is `--vs-lw`
+on the root (default `--vs-lwd`: 272, 240 under 1180), clamped 220 to 640 and so the stage keeps
+380; kept per browser in `provident-video-libw`; double-click resets; arrow keys step 24 while the
+handle has focus; hidden on phones. The left rail's grids are now `auto-fill` (media tiles 108 min,
+other tiles 72 min), so a wider rail shows more across.
+
+- Tested in the pane at 1385 (scripted pointer events; `elementFromPoint` reaches the handle):
+  272 → 432 on a 160 px drag, media grid 2 → 3 across, stored, no page overflow; arrow key −24;
+  capped at 640 with the stage at 464; double-click back to 272 and the key removed.
+- NOT tested: a real pointer, reload restoring the width, light theme, 1180 and below.
+
+## A selected clip is plainly selected (2026-11-17, by request)
+
+The 2 px ink outline on a selected Video-track clip disappeared against a pale filmstrip. The clip
+now carries a two-tone ring drawn over the frames (`::after`: 2.5 px `--ps-ink`, then 2 px
+`--ps-sb` inside it) and its name chip inverts (ink ground, rail-ground text). Other tracks keep the
+plain outline, which reads on their flat tints. Seen in the pane, dark theme; light theme not checked.

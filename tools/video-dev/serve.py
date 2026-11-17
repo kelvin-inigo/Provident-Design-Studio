@@ -92,21 +92,22 @@ def hf_run(jp):
     def save(**k):
         job = json.load(open(jp)); job.update(k); json.dump(job, open(jp, 'w'), indent=1); return job
     try:
-        job = json.load(open(jp))
+        job = save(step='sending', started=int(time.time()))
         rc, out = hf('generate', 'create', *hf_args(job, os.path.join(QUEUE, job['photo'])), timeout=300)
         m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
         if rc or not m:
             return save(status='failed', error=(out or 'no job id came back')[-300:])
-        save(job_id=m.group(0))
+        save(job_id=m.group(0), step='rendering')
         hf('generate', 'wait', m.group(0), '--timeout', '25m', '--interval', '5s', '--quiet', timeout=1600)
         rc, out = hf('generate', 'get', m.group(0))
         u, _ = hf_result(out, 'mp4|mov|webm')
         if rc or not u:
             return save(status='failed', error=(out or 'no video came back')[-300:])
+        save(step='downloading')
         mp4 = os.path.join(QUEUE, job['id'] + '.mp4')
         with urllib.request.urlopen(u, timeout=300) as r, open(mp4, 'wb') as f:
             shutil.copyfileobj(r, f)
-        save(status='done', video=job['id'] + '.mp4')
+        save(status='done', video=job['id'] + '.mp4', done_at=int(time.time()))
     except Exception as e:                   # never leave a clip reading "Generating…" forever
         try:
             save(status='failed', error='%s: %s' % (type(e).__name__, e))

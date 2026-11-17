@@ -16,7 +16,15 @@
   const ICS = {
     keyboard: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.3 10h.01M13.7 10h.01M17 10h.01M7 14h.01M17 14h.01M10 14h4"/>',
     add_box: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
-    flag: '<path d="M6 20.5V4.5"/><path d="M6 5.5h11l-2.2 3.5 2.2 3.5H6"/>'
+    flag: '<path d="M6 20.5V4.5"/><path d="M6 5.5h11l-2.2 3.5 2.2 3.5H6"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
+    star: '<path d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/>',
+    folder: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>',
+    folder_add: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11.3v5M9.5 13.8h5"/>',
+    more: '<circle cx="6" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18" cy="12" r="1.2" fill="currentColor"/>',
+    grid: '<rect x="4.5" y="4.5" width="6" height="6" rx="1.5"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.5"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.5"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.5"/>',
+    list: '<path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01"/>',
+    edit: '<path d="m5 19 1-4L16.5 4.5l3 3L9 18z"/>'
   };
   const sico = n => '<i class="vs-i vs-is"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICS[n] || '') + '</svg></i>';
   const CHEV = '<svg class="vs-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
@@ -88,6 +96,13 @@
   if (!SIZES[P.size]) P.size = '9x16';
   const media = {};                 // id -> { id, kind, name, url, dur, w, h, poster, peaks }
   let sel = null;                   // { kind: 'clip'|'audio'|'text'|'logo', id }
+  // SEVERAL TEXTS AT ONCE (2026-11-17, by request): Shift- or Cmd-click on the Text track adds a
+  // text to the group. `sel` stays the one last clicked; `multi` holds every id in the group and
+  // only counts while `sel` is a text inside it (renderAll drops it otherwise). Dragging an end of
+  // any member stretches or shrinks the whole group about its far end, so the spacing between the
+  // texts scales with them; dragging a body moves them together; Delete removes them all.
+  const multi = new Set();
+  const group = () => sel && sel.kind === 'text' && multi.size > 1 && multi.has(sel.id) ? P.texts.filter(t => multi.has(t.id)) : null;
   let T = 0, playing = false, exporting = false, dirty = true;
   let pps = 60, tab = 'media';
   const undo = [], redo = [];
@@ -365,6 +380,8 @@
     }
   }
   function removeMedia(id) {
+    if (hear && hear.id === id) hearStop();
+    if (LIB.meta[id]) { delete LIB.meta[id]; libSave(); }
     mark();
     P.clips = P.clips.filter(c => c.mid !== id); P.audio = P.audio.filter(c => c.mid !== id); P.logos = P.logos.filter(c => c.mid !== id);
     if (media[id]) URL.revokeObjectURL(media[id].url);
@@ -434,7 +451,8 @@
   }
   function del() {
     const it = find(sel); if (!it) return;
-    mark(); const L = listOf(sel.kind); L.splice(L.indexOf(it), 1); sel = null;
+    const g = group();
+    mark(); if (g) P.texts = P.texts.filter(t => !multi.has(t.id)); else { const L = listOf(sel.kind); L.splice(L.indexOf(it), 1); } sel = null;
     T = Math.min(T, total()); renderAll();
   }
   function dup() {
@@ -527,7 +545,7 @@
   let lastNow = 0;
   function play() {
     if (!total()) return;
-    ensureCtx();
+    ensureCtx(); if (hearStop()) renderLib();
     if (T >= total() - .02) T = 0;
     playing = true; lastNow = performance.now(); paintTransport();
   }
@@ -536,7 +554,7 @@
   // Scrubbing lands on whole frames, and locks onto the start and end of whatever is near.
   function edges(skipId) {
     const c = [0]; let acc = 0; P.clips.forEach(k => { acc += clipLen(k); c.push(acc); });
-    [P.audio, P.texts, P.logos].forEach(L => L.forEach(i => { if (i.id !== skipId) c.push(i.at, i.at + i.dur); }));
+    [P.audio, P.texts, P.logos].forEach(L => L.forEach(i => { if (!(skipId instanceof Set ? skipId.has(i.id) : i.id === skipId)) c.push(i.at, i.at + i.dur); }));
     markers().forEach(t => c.push(t));
     return c;
   }
@@ -1067,7 +1085,7 @@
     const step = [.5, 1, 2, 5, 10, 15, 30, 60].find(s => s * pps >= 64) || 60;
     for (let t = 0; t * pps < W - LBL; t += step) h += '<span class="vs-tick" style="left:' + (t * pps) + 'px">' + (step < 1 ? t.toFixed(1) : Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0')) + '</span>';
     h += '</div>';
-    const on = (k, id) => sel && sel.kind === k && sel.id === id ? ' data-on="1"' : '';
+    const grp = group(), on = (k, id) => sel && sel.kind === k && (sel.id === id || (grp && k === 'text' && multi.has(id))) ? ' data-on="1"' : '';
     const hd = '<span class="vs-hd l" data-h="l"></span><span class="vs-hd r" data-h="r"></span>';
     TRACKS.forEach(tr => {
       let body = '', rowH = 38;
@@ -1135,8 +1153,17 @@
     if (e.target.closest('.vs-ph')) { drag = { mode: 'seek' }; if (playing) pause(); }
     else if (itEl) {
       const kind = itEl.dataset.kind, id = itEl.dataset.id, h = e.target.closest('.vs-hd');
-      sel = { kind, id }; const it = find(sel);
-      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e) };
+      const add = kind === 'text' && (e.shiftKey || e.metaKey);
+      if (add) {
+        if (sel && sel.kind === 'text') multi.add(sel.id); else multi.clear();
+        if (multi.has(id) && multi.size > 1 && !h) {          // a second Shift-click takes it back out
+          multi.delete(id); sel = { kind: 'text', id: [...multi].pop() }; renderAll(); e.preventDefault(); return;
+        }
+        multi.add(id);
+      } else if (!(kind === 'text' && multi.has(id))) multi.clear();
+      sel = { kind, id }; const it = find(sel), g = group();
+      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e), add,
+        g: g && g.map(t => ({ id: t.id, at: t.at, dur: t.dur })) };
       renderAll();
     } else {
       drag = { mode: 'seek' };
@@ -1166,6 +1193,20 @@
         for (let i = 0; i < rest.length; i++) { const L = clipLen(rest[i]); if (t < acc + L / 2) { idx = i; break; } acc += L; }
         rest.splice(idx, 0, it); P.clips = rest;
       }
+    } else if (drag.g) {                      // the group: one span, scaled about its far end
+      const g = drag.g, ids = new Set(g.map(x => x.id)), a0 = Math.min(...g.map(x => x.at)), e0 = Math.max(...g.map(x => x.at + x.dur));
+      const L = e0 - a0, least = L * .2 / Math.min(...g.map(x => x.dur)), put = (x, at, dur) => { const t = P.texts.find(q => q.id === x.id); if (t) { t.at = Math.max(0, at); t.dur = dur; } };
+      if (drag.mode === 'move') {
+        let dd = Math.max(-a0, d); const s1 = snapT(a0 + dd, ids), s2 = snapT(e0 + dd, ids);
+        if (s1 !== a0 + dd) dd = s1 - a0; else if (s2 !== e0 + dd) dd = Math.max(-a0, s2 - e0);
+        g.forEach(x => put(x, x.at + dd, x.dur));
+      } else if (drag.mode === 'trimr') {
+        const f = (clamp(snapT(e0 + d, ids), a0 + least, 600) - a0) / L;
+        g.forEach(x => put(x, a0 + (x.at - a0) * f, x.dur * f));
+      } else {
+        const f = (e0 - clamp(snapT(a0 + d, ids), 0, e0 - least)) / L;
+        g.forEach(x => put(x, e0 - (e0 - x.at) * f, x.dur * f));
+      }
     } else {
       const isA = drag.kind === 'audio', lim = isA && m ? m.dur : 600;
       if (drag.mode === 'move') {
@@ -1182,7 +1223,8 @@
   });
   const endDrag = () => {
     if (drag && drag.moved) renderAll();
-    else if (drag && drag.kind) {             // a plain click on an item also brings the playhead to it
+    else if (drag && drag.kind) {
+      if (drag.g && !drag.add) { multi.clear(); renderAll(); }   // a plain click on one of the group goes back to that one             // a plain click on an item also brings the playhead to it
       const it = find(drag), sp = it && span(drag.kind, it);
       if (sp && (drag.kind === 'clip' || T < sp[0] || T >= sp[1])) { if (playing) pause(); seek(clamp(magnet(drag.t), sp[0], Math.max(sp[0], sp[1] - 1 / 30))); }
     }
@@ -1404,32 +1446,160 @@
   // "Add a component"): uploads and the library as tiles, text and callouts as specimen tiles,
   // the two generators folded away. What is set once for the whole video (the wordmark, the
   // collaboration logo, the logo colour) moved to the right rail's Whole video (docHtml).
+  // LISTEN TO A FILE IN THE LIBRARY (2026-11-17): one player, outside the timeline's audio graph,
+  // so it never reaches an export. Playing the video, or removing the file, stops it.
+  let hear = null;                  // { id, el }
+  function hearStop() { if (hear) { hear.el.pause(); hear = null; return true; } return false; }
+  function hearToggle(id) {
+    const same = hear && hear.id === id; hearStop();
+    if (!same && media[id]) {
+      if (playing) pause();
+      const el = new Audio(media[id].url); hear = { id, el };
+      el.addEventListener('ended', () => { if (hear && hear.el === el) { hear = null; renderLib(); } });
+      const p = el.play(); if (p && p.catch) p.catch(() => {});
+    }
+    renderLib();
+  }
+  // ── THE LIBRARY, ORGANISED (2026-11-17, by request: "how should I know which is which") ──
+  // Search, filters, stars, folders, a name of your own, and a grid or list view. What a person
+  // adds to a file (star, folder) lives in localStorage beside the project, keyed by the file's
+  // id; a new name is written to the file's own record, so the timeline shows it too. Folders are
+  // one list shared by Media, Audio and Graphics. The search and filter are per tab, per session.
+  const LIBKEY = 'provident-video-lib';
+  const LIB = Object.assign({ meta: {}, folders: [], view: 'grid' }, (() => { try { return JSON.parse(localStorage.getItem(LIBKEY)) || {}; } catch (e) { return {}; } })());
+  const libSave = () => { try { localStorage.setItem(LIBKEY, JSON.stringify(LIB)); } catch (e) {} };
+  const lm = id => LIB.meta[id] || {};
+  const lset = (id, k, v) => { const o = LIB.meta[id] = LIB.meta[id] || {}; if (v) o[k] = v; else delete o[k]; if (!Object.keys(o).length) delete LIB.meta[id]; libSave(); };
+  const LQ = { media: { q: '', f: 'all', dir: '' }, audio: { q: '', f: 'all', dir: '' }, logos: { q: '', f: 'all', dir: '' } };
+  const LKIND = { media: ['video', 'image'], audio: ['audio'], logos: ['logo', 'image'] };
+  const LNAME = { media: 'Your media', audio: 'Your audio', logos: 'Your graphics' };
+  const libUses = (key, id) => (key === 'media' ? P.clips : key === 'audio' ? P.audio : P.logos).filter(x => x.mid === id).length;
+  const libAll = (key, M) => M.filter(m => LKIND[key].indexOf(m.kind) >= 0);
+  function libPick(key, M) {
+    const st = LQ[key], q = st.q.trim().toLowerCase();
+    return libAll(key, M).filter(m => {
+      const x = lm(m.id), u = libUses(key, m.id);
+      if (q && String(m.name).toLowerCase().indexOf(q) < 0 && String(x.dir || '').toLowerCase().indexOf(q) < 0) return false;
+      if (st.dir === '~' ? x.dir : st.dir && x.dir !== st.dir) return false;
+      return st.f === 'star' ? !!x.star : st.f === 'used' ? u > 0 : st.f === 'free' ? !u : st.f === 'video' ? m.kind === 'video' : st.f === 'photo' ? m.kind === 'image' : true;
+    });
+  }
+  const libM = () => { const used = P.casBg && !P.casBg.all ? JSON.stringify([P.clips, P.audio, P.logos]) : ''; return Object.values(media).filter(m => !used || (P.casBg.media || []).indexOf(m.id) >= 0 || used.indexOf(m.id) >= 0); };
+  const sBtn = (id, cls) => { const on = !!lm(id).star; return '<span class="vs-st' + (cls || '') + '" role="button" tabindex="0" data-star="' + id + '"' + (on ? ' data-on="1"' : '') + ' aria-pressed="' + on + '" aria-label="' + (on ? 'Remove the star' : 'Star') + '" title="' + (on ? 'Starred' : 'Star') + '">' + sico('star') + '</span>'; };
+  const mBtn = id => '<span class="vs-mo" role="button" tabindex="0" data-more="' + id + '" aria-haspopup="menu" aria-label="Rename, move or remove" title="Rename, move or remove">' + sico('more') + '</span>';
+  function libList(key, M) {
+    const v = libPick(key, M), all = libAll(key, M).length, st = LQ[key];
+    if (!all) return '<div class="vs-none"><b>Nothing here yet</b>' + (key === 'media' ? 'Videos and photos you upload stay in this list, ready to add again.' : key === 'audio' ? 'Upload a track or a voiceover, or make one below.' : 'Upload one, or drop an image on the video.') + '</div>';
+    if (!v.length) return '<div class="vs-none"><b>No file matches</b>' + (st.q.trim() ? 'Nothing is named “' + esc(st.q.trim()) + '”' + (st.f !== 'all' || st.dir ? ' in this view.' : '.') : 'Nothing fits this filter or folder.') + '<button class="vs-link" data-libclear="1">Show every file</button></div>';
+    const dirTag = m => { const d = lm(m.id).dir; return d && !st.dir ? '<span class="vs-dir">' + sico('folder') + esc(d) + '</span>' : ''; };
+    const usedTxt = u => u ? 'In video' + (u > 1 ? ' ×' + u : '') : '';
+    if (key === 'audio') return v.map(m => { const u = libUses(key, m.id), on = hear && hear.id === m.id; return (
+      '<div class="vs-arow"' + (on ? ' data-on="1"' : '') + '><button class="mk" data-hear="' + m.id + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Stop ' : 'Play ') + esc(m.name) + '" title="' + (on ? 'Stop' : 'Listen') + '">' + ico(on ? 'pause' : 'play_arrow') + '</button>' +
+      '<div class="n"><b title="' + esc(m.name) + '">' + esc(m.name) + '</b>' + dirTag(m) + '</div>' +
+      '<div class="a"><s' + (u ? ' title="On the timeline' + (u > 1 ? ' ' + u + ' times' : '') + '"' : '') + '>' + fmt(m.dur).slice(0, -3) + (u ? ' · used' + (u > 1 ? ' ×' + u : '') : '') + '</s><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music</button><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button></div>' +
+      '<span class="vs-rt">' + sBtn(m.id) + mBtn(m.id) + '</span></div>'); }).join('');
+    const add = key === 'media' ? 'data-addclip' : 'data-addlogo', tip = key === 'media' ? 'Click to add it to the end of the video track.' : 'Click to place it at the playhead.';
+    const bg = m => "background-image:url('" + (key === 'media' ? (m.poster || m.url) : m.url) + "')", kindTxt = m => m.kind === 'video' ? fmt(m.dur) : key === 'media' ? 'Photo' : '';
+    if (key === 'media' && LIB.view === 'list') return '<div class="vs-ml">' + v.map(m => { const u = libUses(key, m.id); return (
+      '<button class="vs-mr" ' + add + '="' + m.id + '" title="' + esc(m.name) + '. ' + tip + '"><i style="' + bg(m) + '"></i><span class="n"><b>' + esc(m.name) + '</b><s>' + [m.kind === 'video' ? 'Video · ' + fmt(m.dur).slice(0, -3) : 'Photo', usedTxt(u), lm(m.id).dir && !st.dir ? esc(lm(m.id).dir) : ''].filter(Boolean).join(' · ') + '</s></span>' +
+      '<span class="vs-rt">' + sBtn(m.id) + mBtn(m.id) + '</span></button>'); }).join('') + '</div>';
+    return '<div class="vs-grid"' + (key === 'media' ? ' data-m="1"' : '') + '>' + v.map(m => { const u = libUses(key, m.id), k = kindTxt(m); return (
+      '<button class="vs-t" data-pic="' + (key === 'media' ? '1' : 'fit') + '" ' + add + '="' + m.id + '" title="' + esc(m.name) + '. ' + tip + '"><i style="' + bg(m) + '">' +
+      (u && key === 'media' ? '<q>' + usedTxt(u) + '</q>' : '') + (k ? '<s>' + k + '</s>' : '') + '<em>' + ico('add') + '</em>' + sBtn(m.id) + mBtn(m.id) + '</i><b>' + esc(m.name) + '</b>' + dirTag(m) + '</button>'); }).join('') + '</div>';
+  }
+  function libSec(key, M) {
+    const st = LQ[key], all = libAll(key, M), n = libPick(key, M).length;
+    const chip = (f, label) => '<button class="vs-fc" data-libf="' + f + '" aria-pressed="' + (st.f === f) + '">' + label + '</button>';
+    const dirs = LIB.folders, inDir = st.dir && st.dir !== '~';
+    const tools = !all.length ? '' :
+      '<div class="vs-lt"><label class="vs-q">' + sico('search') + '<input class="p-in" type="search" id="libQ" placeholder="Search by name" aria-label="Search ' + LNAME[key].toLowerCase() + '" value="' + esc(st.q) + '"></label>' +
+        (key === 'media' ? '<span class="vs-vw" role="group" aria-label="View"><button data-libview="grid" aria-pressed="' + (LIB.view !== 'list') + '" title="Grid" aria-label="Grid view">' + sico('grid') + '</button><button data-libview="list" aria-pressed="' + (LIB.view === 'list') + '" title="List" aria-label="List view">' + sico('list') + '</button></span>' : '') + '</div>' +
+      '<div class="vs-fl">' + chip('all', 'All') + chip('star', 'Starred') + chip('used', 'In video') + chip('free', 'Not used') + (key === 'media' ? chip('video', 'Videos') + chip('photo', 'Photos') : '') + '</div>' +
+      '<div class="vs-lt"><select class="p-in" id="libDir" aria-label="Folder"><option value="">All folders</option><option value="~"' + (st.dir === '~' ? ' selected' : '') + '>Not in a folder</option>' +
+        dirs.map(d => '<option value="' + esc(d) + '"' + (st.dir === d ? ' selected' : '') + '>' + esc(d) + '</option>').join('') + '</select>' +
+        (inDir ? '<button class="vs-sq" data-dirren="1" title="Rename this folder" aria-label="Rename this folder">' + sico('edit') + '</button><button class="vs-sq" data-dirdel="1" title="Delete this folder. Its files stay in the library." aria-label="Delete this folder">' + ico('delete') + '</button>' : '') +
+        '<button class="vs-sq" data-dirnew="1" title="New folder" aria-label="New folder">' + sico('folder_add') + '</button></div>';
+    return '<div class="vs-sec">' + '<div class="vs-h"><b>' + LNAME[key] + '</b><s id="libN">' + libCount(n, all.length) + '</s></div>' + tools +
+      (key === 'audio' && all.length ? '<span class="vs-note"><b>Music</b> starts at 0:00 and is trimmed to the video. <b>Sound</b> lands at the playhead.</span>' : '') +
+      '<div id="libList">' + libList(key, M) + '</div></div>';
+  }
+  const libCount = (n, all) => !all ? '' : n === all ? all + (all === 1 ? ' file' : ' files') : n + ' of ' + all;
+  const libKey = () => tab === 'media' || tab === 'audio' ? tab : 'logos';
+  function libRefresh() {                     // the list and its count only, so the search field keeps its caret
+    const key = libKey(), M = libM(), box = $('#libList'), n = $('#libN');
+    if (!box) return renderLib();
+    box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
+  }
+  const dbRec = r => ({ id: r.id, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks });
+  async function libRename(id) {
+    const m = media[id]; if (!m) return;
+    const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
+    const name = v && String(v).trim().slice(0, 80); if (!name || name === m.name) return;
+    m.name = name; DB.put(dbRec(m)); renderAll();
+  }
+  async function dirNew(forId) {
+    const v = await ask('New folder', forId ? 'The file moves into it.' : 'Folders are shared by Media, Audio and Graphics.', 'Create', '');
+    const name = v && String(v).trim().slice(0, 40); if (!name || name === '~') return;
+    if (LIB.folders.indexOf(name) < 0) { LIB.folders.push(name); LIB.folders.sort((a, b) => a.localeCompare(b)); }
+    if (forId) lset(forId, 'dir', name); else { LQ[libKey()].dir = name; libSave(); }
+    renderLib();
+  }
+  async function dirRename() {
+    const st = LQ[libKey()], old = st.dir, v = await ask('Rename folder', 'Its files stay in it.', 'Rename', old);
+    const name = v && String(v).trim().slice(0, 40); if (!name || name === old || name === '~' || LIB.folders.indexOf(name) >= 0) return;
+    LIB.folders = LIB.folders.map(d => d === old ? name : d).sort((a, b) => a.localeCompare(b));
+    Object.keys(LIB.meta).forEach(id => { if (LIB.meta[id].dir === old) LIB.meta[id].dir = name; });
+    Object.keys(LQ).forEach(k => { if (LQ[k].dir === old) LQ[k].dir = name; }); libSave(); renderLib();
+  }
+  async function dirDelete() {
+    const st = LQ[libKey()], old = st.dir;
+    if (!(await ask('Delete the folder “' + old + '”?', 'Its files stay in the library, outside any folder.', 'Delete folder'))) return;
+    LIB.folders = LIB.folders.filter(d => d !== old);
+    Object.keys(LIB.meta).forEach(id => { if (LIB.meta[id].dir === old) lset(id, 'dir', ''); });
+    Object.keys(LQ).forEach(k => { if (LQ[k].dir === old) LQ[k].dir = ''; }); libSave(); renderLib();
+  }
+  // the per-file menu: one popover, filled when it opens
+  const lmenu = document.createElement('div'); lmenu.className = 'vs-pop vs-menu'; lmenu.id = 'libMenu'; lmenu.setAttribute('popover', ''); lmenu.setAttribute('role', 'menu'); document.body.appendChild(lmenu);
+  function libMenu(id, btn) {
+    const m = media[id]; if (!m) return; const x = lm(id);
+    const it = (attr, label, icon, on) => '<button role="menuitem" ' + attr + (on ? ' data-on="1"' : '') + '>' + icon + '<span>' + label + '</span></button>';
+    lmenu.dataset.id = id;
+    lmenu.innerHTML = '<b title="' + esc(m.name) + '">' + esc(m.name) + '</b>' + it('data-mrename="1"', 'Rename', sico('edit')) + it('data-mstar="1"', x.star ? 'Remove the star' : 'Star', sico('star')) +
+      '<s>Move to</s>' + it('data-mdir=""', 'No folder', sico('folder'), !x.dir) + LIB.folders.map(d => it('data-mdir="' + esc(d) + '"', esc(d), sico('folder'), x.dir === d)).join('') + it('data-mdirnew="1"', 'New folder', sico('folder_add')) +
+      '<hr>' + it('data-mremove="1"', 'Remove from the library', ico('delete'));
+    try { lmenu.showPopover(); } catch (e) { return; }
+    const r = btn.getBoundingClientRect(), w = lmenu.offsetWidth, hh = lmenu.offsetHeight;
+    lmenu.style.left = clamp(r.left, 8, innerWidth - w - 8) + 'px'; lmenu.style.top = clamp(r.bottom + 6, 8, Math.max(8, innerHeight - hh - 8)) + 'px';
+    const f = lmenu.querySelector('button'); if (f) f.focus();
+  }
+  lmenu.addEventListener('click', e => {
+    const b = e.target.closest('button'), id = lmenu.dataset.id; if (!b) return;
+    try { lmenu.hidePopover(); } catch (er) {}
+    if (b.dataset.mrename) libRename(id);
+    else if (b.dataset.mstar) { lset(id, 'star', lm(id).star ? 0 : 1); renderLib(); }
+    else if (b.dataset.mdirnew) dirNew(id);
+    else if (b.dataset.mremove) removeMedia(id);
+    else if ('mdir' in b.dataset) { lset(id, 'dir', b.dataset.mdir); renderLib(); }
+  });
+  lmenu.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const bs = [...lmenu.querySelectorAll('button')], i = bs.indexOf(document.activeElement); e.preventDefault();
+    bs[(i + (e.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus();
+  });
   function renderLib() {
     $('#tabs').querySelectorAll('button').forEach(b => { const on = b.dataset.tab === tab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
     // A VIDEO CAS STARTED (Edit in CASV) is a fresh canvas: the library shows only what this video
     // brought or uses, so nothing from earlier sessions is in the way; one click shows everything.
-    const used = P.casBg && !P.casBg.all ? JSON.stringify([P.clips, P.audio, P.logos]) : '';
-    const M = Object.values(media).filter(m => !used || (P.casBg.media || []).indexOf(m.id) >= 0 || used.indexOf(m.id) >= 0); let h = '';
+    const M = libM(); let h = '';
     const count = c => c ? c + (c === 1 ? ' file' : ' files') : '';
     const drop = (want, label, sub) => '<button class="vs-drop" data-up="' + want + '">' + ico('upload') + '<span>' + label + '</span><s>' + sub + '</s></button>';
     const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
     const none = (t, body) => '<div class="vs-none"><b>' + t + '</b>' + body + '</div>';
-    if (tab === 'media') {
-      const v = M.filter(m => m.kind === 'video' || m.kind === 'image');
-      h += '<div class="vs-sec">' + drop('media', 'Drop video or photos', 'or browse · MP4, MOV, WebM, JPG, PNG') + '</div>';
-      h += '<div class="vs-sec">' + H('Your media', count(v.length)) + (v.length ? '<div class="vs-grid">' + v.map(m =>
-        '<button class="vs-t" data-pic="1" data-addclip="' + m.id + '" title="' + esc(m.name) + '. Click to add it to the end of the video track."><i style="background-image:url(\'' + (m.poster || m.url) + '\')"><s>' + (m.kind === 'image' ? 'Photo' : fmt(m.dur)) + '</s></i><b>' + esc(m.name) + '</b>' + rm(m.id) + '</button>').join('') + '</div><span class="vs-note">Click one to add it to the end of the video track.</span>'
-        : none('Nothing here yet', 'Videos and photos you upload stay in this list, ready to add again.')) +
-        (P.casBg ? '<button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button>' : '') + '</div>';
-    } else if (tab === 'audio') {
-      const a = M.filter(m => m.kind === 'audio');
-      h += '<div class="vs-sec">' + drop('audio', 'Drop music or sound', 'or browse · MP3, WAV, M4A') + '</div>';
-      h += '<div class="vs-sec">' + H('Your audio', count(a.length)) + (a.length ? a.map(m =>
-        '<div class="vs-arow"><span class="mk">' + ico('music_note') + '</span><div class="n"><b title="' + esc(m.name) + '">' + esc(m.name) + '</b><s>' + fmt(m.dur) + '</s></div>' +
-        '<div class="a"><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music bed</button><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button></div>' + rm(m.id) + '</div>').join('') +
-        '<span class="vs-note">A music bed starts at 0:00 and is trimmed to the video. A sound lands at the playhead.</span>'
-        : none('Nothing here yet', 'Upload a track or a voiceover, or make one below.')) + '</div>';
-      h += voHtml() + muHtml();
+    if (tab === 'media' || tab === 'audio') {
+      if (tab === 'media') h += queueHtml();
+      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A')) + '</div>';
+      h += libSec(tab, M) + (tab === 'media' && P.casBg ? '<div class="vs-sec"><button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button></div>' : '');
+      if (tab === 'audio') h += voHtml() + muHtml();
     } else if (tab === 'text') {
       // each tile is a specimen of what it adds, in the chrome's ink; the full description is its tooltip
       const tile = (attr, o) => '<button class="vs-t" ' + attr + '="' + o[0] + '" title="' + o[2] + '"><i>' + o[3] + '</i><b>' + o[1] + '</b></button>';
@@ -1451,11 +1621,8 @@
       h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div>' +
         '<span class="vs-note">Callouts draw themselves on. The end card takes the last four seconds.</span></div>';
     } else {
-      const lg = M.filter(m => m.kind === 'logo' || m.kind === 'image');
-      h += '<div class="vs-sec">' + drop('logo', 'Drop a graphic or logo', 'or browse · PNG or SVG, clear background') + '</div>';
-      h += '<div class="vs-sec">' + H('Your graphics', count(lg.length)) + (lg.length ? '<div class="vs-grid">' + lg.map(m =>
-        '<button class="vs-t" data-pic="fit" data-addlogo="' + m.id + '" title="' + esc(m.name) + '. Click to place it at the playhead."><i style="background-image:url(\'' + m.url + '\')"></i><b>' + esc(m.name) + '</b>' + rm(m.id) + '</button>').join('') + '</div><span class="vs-note">Click one to place it at the playhead, then drag it on the picture.</span>'
-        : none('Nothing here yet', 'Upload one, or drop an image on the video.')) + '</div>';
+      h += '<div class="vs-sec">' + drop('logo', 'Drop a graphic or logo', 'PNG or SVG, clear background') + '</div>';
+      h += libSec('logos', M);
       h += '<div class="vs-sec"><div class="vs-none"><b>Looking for the wordmark?</b>The Provident wordmark and the collaboration logo are set once for the whole video.<button class="vs-link" data-go="doc">Open Whole video</button></div></div>';
     }
     $('#lib').innerHTML = h;
@@ -1511,15 +1678,32 @@
     return false;
   }
   $('#lib').addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.acc) ACC[d.dataset.acc] = d.open; }, true);
-  $('#lib').addEventListener('input', e => { if (e.target.id === 'muText') MU.text = e.target.value; else if (e.target.id === 'muLen') { MU.len = e.target.value; MU.quote = null; } else if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
+  $('#lib').addEventListener('keydown', e => {      // the star and the menu are spans inside a tile that is itself a button
+    const el = e.target.closest('[data-star],[data-more],[data-qcancel],[data-qsel]');
+    if (el && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); el.click(); }
+  });
+  $('#lib').addEventListener('change', e => { if (e.target.id === 'libDir') { LQ[libKey()].dir = e.target.value; renderLib(); } });
+  $('#lib').addEventListener('input', e => { if (e.target.id === 'libQ') { LQ[libKey()].q = e.target.value; libRefresh(); return; } if (e.target.id === 'muText') MU.text = e.target.value; else if (e.target.id === 'muLen') { MU.len = e.target.value; MU.quote = null; } else if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');
     let el;
     if ((el = q('data-rm'))) { e.stopPropagation(); removeMedia(el.dataset.rm); }
+    else if ((el = q('data-qcancel'))) { e.stopPropagation(); const id = el.dataset.qcancel, c = P.clips.find(x => x.job && x.job.id === id);
+      if (c) animCancel(c); else api('/api/animate/cancel', { id }).catch(() => {}).then(() => { JOBS = JOBS.filter(j => j.id !== id); renderLib(); }); }
+    else if ((el = q('data-qsel'))) { sel = { kind: 'clip', id: el.dataset.qsel }; const sp = span('clip', find(sel)); if (sp) seek(sp[0]); renderAll(); }
+    else if ((el = q('data-star'))) { e.stopPropagation(); lset(el.dataset.star, 'star', lm(el.dataset.star).star ? 0 : 1); libRefresh(); }
+    else if ((el = q('data-more'))) { e.stopPropagation(); libMenu(el.dataset.more, el); }
+    else if ((el = q('data-libf'))) { LQ[libKey()].f = el.dataset.libf; renderLib(); }
+    else if ((el = q('data-libview'))) { LIB.view = el.dataset.libview; libSave(); renderLib(); }
+    else if ((el = q('data-libclear'))) { LQ[libKey()] = { q: '', f: 'all', dir: '' }; renderLib(); }
+    else if ((el = q('data-dirnew'))) dirNew();
+    else if ((el = q('data-dirren'))) dirRename();
+    else if ((el = q('data-dirdel'))) dirDelete();
     else if ((el = q('data-liball')) && P.casBg) { P.casBg.all = !P.casBg.all; save(); renderLib(); }
     else if ((el = q('data-up'))) pickFiles(el.dataset.up);
     else if ((el = q('data-go'))) { rtab = el.dataset.go; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
+    else if ((el = q('data-hear'))) hearToggle(el.dataset.hear);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
     else if (e.target.closest('#voHear')) voHear();
     else if (e.target.closest('#muBtn')) muMake(false);
@@ -1609,6 +1793,12 @@
     if (key !== selKey) { selKey = key; rtab = it ? 'sel' : 'doc'; if (it) { document.body.dataset.pane = 'edit'; paintPane(); } }
     $('#rtabs').querySelectorAll('button').forEach(b => { const on = b.dataset.rtab === rtab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
     if (rtab === 'doc') { el.innerHTML = docHtml(); return; }
+    { const g = group(); if (g) {
+      const a0 = Math.min(...g.map(t => t.at)), e0 = Math.max(...g.map(t => t.at + t.dur));
+      el.innerHTML = '<div class="vs-cap"><b>' + g.length + ' texts selected</b><s>' + fmt(a0) + ' to ' + fmt(e0) + '</s></div>' +
+        '<div class="vs-sec"><div class="vs-none"><b>They move as one</b>Drag either end of any of them to stretch or shrink them together, or drag one to move them all. Click one on its own to edit it.</div></div>';
+      return;
+    } }
     const segv = (k, cur, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-k="' + k + '" data-v="' + o[0] + '"' + (String(cur) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
     const seg = (k, opts, cls) => segv(k, it[k], opts, cls);
     const f = (label, body) => '<div class="vs-f"><label>' + label + '</label>' + body + '</div>';
@@ -1627,21 +1817,7 @@
         row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
       else h += '<div class="vs-sec">' + f('Lasts <s>seconds</s>', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
-      if (!vid) {
-        const j = it.job, busy = j && (j.status === 'queued' || j.status === 'working' || j.status === 'confirm');
-        h += sec('Animate with Higgsfield', 'photo to video',
-          '<div class="vs-f"><label>Camera move</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + m[1] + '</button>').join('') + '</div></div>' +
-          row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + d + ' s</button>').join('') + '</div>') +
-          f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-          row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + (busy ? ' disabled' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-          f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light"' + (busy ? ' disabled' : '') + '>') +
-          '<span class="vs-note">About ' + (genCredits(it)) + ' credits. The exact cost is shown before anything is spent.</span>' +
-          (j && j.status === 'confirm' ? '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance.</span><div class="vs-acts"><button class="p-ghost p-sm" id="animCancel">Cancel</button><button class="p-btn p-sm" id="animGo">Generate</button></div>' : (busy ? '<span class="vs-note"><b>' + (j.status === 'working' ? 'Generating…' : 'In the queue.') + '</b> ' + (j.status === 'working' ? 'The clip swaps in here when it is ready.' : 'Run <b>/animate-photos</b> in Claude to generate it.') + '</span><div class="vs-acts"><button class="p-ghost p-sm" id="animCancel">Take it off the queue</button></div>'
-            : (j && j.status === 'failed' ? '<span class="vs-note"><b>That did not work:</b> ' + esc(j.error || 'no reason given') + '</span>' : '') +
-              '<div class="vs-acts"><button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>Generate now</button>' +
-              '<button class="p-ghost p-sm" id="animBtn"' + (it.move ? '' : ' disabled') + '>Send to the animate queue</button></div>' +
-              '<span class="vs-note">' + (it.move ? '<b>Generate now</b> uses Higgsfield\'s tool on this computer and shows the cost first. <b>Send to the animate queue</b> waits for <b>/animate-photos</b> in Claude.' : 'Pick a camera move first.') + '</span>')));
-      }
+      if (!vid) h += animHtml(it, sec, f, row);
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
         rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, ''));
     } else if (sel.kind === 'audio') {
@@ -1985,6 +2161,79 @@
   const GEN_MODELS = [['seedance', 'Seedance 2.5', 'seedance_2_5', 7, 16], ['kling', 'Kling 3.0', 'kling3_0', 1.75, 2], ['cinema', 'Cinema Studio', 'cinematic_studio_video_v2', 1.5, 2]];
   function genModel(c) { return GEN_MODELS.find(m => m[0] === c.genModel) || GEN_MODELS[0]; }
   function genCredits(c) { return +((c.genDur || 5) * genModel(c)[c.genMode === 'pro' ? 4 : 3]).toFixed(2); }
+  // THE ANIMATE PANEL, ONE STATE AT A TIME (2026-11-17, by request: "confusing to use"). With no
+  // job the panel is the form, and the one thing still missing is said beside the buttons. Once a
+  // job exists the form gives way to a status card: what was asked for, where it stands, how long
+  // it has been, and what happens when it lands. The server gives no percentage, so the bar is an
+  // honest "busy" bar beside a running clock, never a made-up number.
+  let JOBS = [];                    // the server's queue as last polled (every job, any project)
+  const jobActive = j => j.status === 'queued' || j.status === 'working';
+  // the tool waits 25 minutes at most, so a job still "working" after 40 has lost its worker (the server was restarted)
+  const jobStale = j => j.status === 'working' && Date.now() / 1000 - (j.started || j.at || 0) > 2400;
+  const jobSince = j => { const t0 = (j.status === 'working' && j.started) || j.at || 0, d = Math.max(0, Math.floor(Date.now() / 1000 - t0)); return !t0 ? '' : d < 3600 ? Math.floor(d / 60) + ':' + String(d % 60).padStart(2, '0') : d < 172800 ? Math.round(d / 3600) + ' h' : Math.round(d / 86400) + ' days'; };
+  const jobStep = j => ({ sending: 'Sending the photo to Higgsfield', rendering: 'Higgsfield is rendering the clip', downloading: 'Downloading the finished clip' })[j.step] || 'Higgsfield is rendering the clip';
+  function queueLine(id) {            // "2nd of 3 waiting · 1 generating"
+    const w = JOBS.filter(j => j.status === 'queued').sort((a, b) => (a.at || 0) - (b.at || 0)), g = JOBS.filter(j => j.status === 'working' && !jobStale(j)).length;
+    const i = w.findIndex(j => j.id === id), ord = n => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
+    return [i >= 0 ? (w.length > 1 ? ord(i + 1) + ' of ' + w.length + ' waiting' : 'The only one waiting') : '', g ? g + ' generating' : ''].filter(Boolean).join(' · ');
+  }
+  function animHtml(it, sec, f, row) {
+    const j = it.job, st = j && j.status, sj = j && JOBS.find(x => x.id === j.id) || {}, mv = MOVES.find(m => m[0] === it.move);
+    const what = [mv ? mv[1] : '', (it.genDur || 5) + ' s', genModel(it)[1], it.genMode === 'pro' ? 'Full 1080p' : 'Draft 720p'].filter(Boolean).join(' · ');
+    const card = (state, title, body, acts) => '<div class="vs-job" data-st="' + state + '"><b>' + title + '</b><s>' + what + '</s>' + body + (acts ? '<div class="vs-acts">' + acts + '</div>' : '') + '</div>';
+    const lands = '<span class="vs-note">When it is ready the clip takes this photo\'s place on the timeline and is added to <b>Your media</b>.</span>';
+    if (st === 'confirm') return sec('Animate this photo', 'Higgsfield', card('confirm', 'Ready to generate',
+      '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance. Nothing has been spent yet.</span>',
+      '<button class="p-ghost p-sm" id="animCancel">Cancel</button><button class="p-btn p-sm" id="animGo">Generate' + (j.credits == null ? '' : ' · ' + j.credits + ' credits') + '</button>'));
+    if (st === 'working') return sec('Animate this photo', 'Higgsfield', card('working', 'Generating',
+      '<div class="vs-busy" role="progressbar" aria-label="Generating"><i></i></div><div class="vs-jl"><span>' + jobStep(sj) + '</span><time data-since="' + j.id + '">' + jobSince(sj) + '</time></div>' +
+      (queueLine(j.id) ? '<span class="vs-note">' + queueLine(j.id) + ' in the whole queue.</span>' : '') + lands,
+      '<button class="p-ghost p-sm" id="animCancel" title="Stops waiting for this clip here. Higgsfield may already have charged for it.">Stop waiting for it</button>'));
+    if (st === 'queued') return sec('Animate this photo', 'Higgsfield', card('queued', 'Waiting in the queue',
+      '<div class="vs-jl"><span>' + (queueLine(j.id) || 'Waiting') + '</span><time data-since="' + j.id + '">' + jobSince(sj) + '</time></div>' +
+      '<span class="vs-note">Nothing runs until you start it: run <b>/animate-photos</b> in Claude, and it works through the queue.</span>' + lands,
+      '<button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'));
+    const dis = '';
+    return sec('Animate this photo', 'Higgsfield',
+      (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
+      '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '>' + m[1] + '</button>').join('') + '</div></div>' +
+      row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+      f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+      row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+      f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
+      '<div class="vs-go"><div class="vs-jl"><span>' + (it.move ? what : 'Choose a camera move to continue') + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
+        '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate now') + '</button>' +
+        '<span class="vs-note">Runs on this computer. You see the exact cost and confirm before anything is spent.</span>' +
+        '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Or add it to the queue for Claude</button>' +
+        '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude, which works through everything waiting.</span></div>');
+  }
+  // the queue, in the Media tab: every job still waiting or generating, whichever video it is for
+  function queueHtml() {
+    const act = JOBS.filter(jobActive).sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1) || (a.at || 0) - (b.at || 0));
+    if (!act.length) return '';
+    const g = act.filter(j => j.status === 'working' && !jobStale(j)).length, w = act.filter(j => j.status === 'queued').length, x = act.length - g - w;
+    return '<div class="vs-sec" id="animQ"><div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
+      act.map(j => { const c = P.clips.find(x => x.job && x.job.id === j.id); return (
+        '<div class="vs-qr" data-st="' + j.status + '"' + (c ? ' data-qsel="' + c.id + '" role="button" tabindex="0" title="Show this clip"' : '') + '><i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i>' +
+        '<span class="n"><b>' + esc(j.name || 'Photo') + '</b><s>' + esc(j.move || '') + ' · ' + (j.duration || 5) + ' s' + (c ? '' : ' · not in this video') + '</s>' +
+        (j.status === 'working' && !jobStale(j) ? '<div class="vs-busy"><i></i></div>' : '') +
+        '<s class="t"' + (jobStale(j) ? ' title="No result came back. It has probably stopped; remove it and generate again."' : '') + '>' + (jobStale(j) ? 'Stalled' : j.status === 'working' ? 'Generating' : 'Waiting') + ' · <time data-since="' + j.id + '">' + jobSince(j) + '</time></s></span>' +
+        '<span class="vs-mo" role="button" tabindex="0" data-qcancel="' + j.id + '" aria-label="Remove from the queue" title="Remove from the queue">' + ico('close') + '</span></div>'); }).join('') +
+      (w ? '<span class="vs-note">Waiting clips start when you run <b>/animate-photos</b> in Claude, or press <b>Generate now</b> on the photo.</span>' : '') + '</div>';
+  }
+  setInterval(() => { document.querySelectorAll('time[data-since]').forEach(t => { const j = JOBS.find(x => x.id === t.dataset.since); if (j) t.textContent = jobSince(j); }); }, 1000);
+  // a finished clip nobody on this timeline is waiting for (the photo was deleted, another video
+  // asked for it, the page was closed) still comes home: into Your media, once per browser
+  const GOTKEY = 'provident-video-anim-got';
+  let GOT = {}; try { GOT = JSON.parse(localStorage.getItem(GOTKEY)) || {}; } catch (e) {}
+  async function jobToMedia(j) {
+    const blob = await (await fetch('/_animate/' + j.video)).blob();
+    const rec = { id: uid(), kind: 'video', name: (j.name || 'Photo') + ' · ' + (j.move || 'animated'), blob: new File([blob], j.video, { type: 'video/mp4' }) };
+    await probe(rec); media[rec.id] = rec; DB.put(dbRec(rec));
+    if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
+    GOT[j.id] = 1; try { localStorage.setItem(GOTKEY, JSON.stringify(GOT)); } catch (e) {}
+    return rec;
+  }
   async function animSend(c, now) {
     const m = media[c.mid], mv = MOVES.find(x => x[0] === c.move); if (!m || !mv) return;
     const im = imgFor(m); if (!im.complete || !im.naturalWidth) { toast('The photo is still loading. Try again in a moment.'); return; }
@@ -1999,8 +2248,8 @@
     try {
       const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std', aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
       if (r.error) throw new Error(r.error);
-      mark(); c.job = { id, status: 'queued' }; renderAll();
-      if (!now) { animWatch(); toast('Queued. Run /animate-photos in Claude to generate it.'); return; }
+      mark(); c.job = { id, status: 'queued' }; JOBS.push({ id, status: 'queued', name: m.name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) }); renderAll();
+      if (!now) { animWatch(); toast('Added to the queue. Run /animate-photos in Claude to generate it.'); return; }
       // Generate now: Higgsfield's command-line tool on this computer, no Claude. Price first, then a yes.
       const q = await api('/api/animate/cost', { id });
       if (q.error) { await api('/api/animate/cancel', { id }).catch(() => {}); delete c.job; renderAll(); toast(q.error); return; }
@@ -2012,45 +2261,53 @@
     try {
       const r = await api('/api/animate/run', { id: c.job.id });
       if (r.error) throw new Error(r.error);
+      const sj = JOBS.find(x => x.id === c.job.id); if (sj) Object.assign(sj, { status: 'working', started: Math.floor(Date.now() / 1000) });
       c.job = { id: c.job.id, status: 'working' }; renderAll(); animWatch();
     } catch (e) { toast('Could not start the generation (' + e.message + ').'); }
   }
   async function animCancel(c) {
     if (!c.job) return;
     try { await api('/api/animate/cancel', { id: c.job.id }); } catch (e) {}
-    delete c.job; renderAll();
+    JOBS = JOBS.filter(j => j.id !== c.job.id); delete c.job; renderAll();
   }
-  let animT = 0;
-  function animWatch() {
+  let animT = 0, animSig = '';
+  function animWatch() {              // fast while anything is waiting or generating, slow otherwise (CAS or Claude may add a job)
     clearTimeout(animT);
-    if (!P.clips.some(c => c.job && (c.job.status === 'queued' || c.job.status === 'working'))) return;
-    animT = setTimeout(animPoll, 4000);
+    const busy = JOBS.some(jobActive) || P.clips.some(c => c.job && (c.job.status === 'queued' || c.job.status === 'working'));
+    animT = setTimeout(animPoll, busy ? 4000 : 20000);
   }
   async function animPoll() {
     let jobs = [];
     try { jobs = (await api('/api/animate/jobs')).jobs || []; } catch (e) { return animWatch(); }
-    let changed = false;
+    JOBS = jobs.filter(j => j && j.id);
+    let changed = false; const mine = {};
     for (const c of P.clips) {
-      if (!c.job || c.job.status === 'failed') continue;
-      const j = jobs.find(x => x.id === c.job.id);
+      if (!c.job) continue; mine[c.job.id] = 1;
+      if (c.job.status === 'failed') continue;
+      const j = JOBS.find(x => x.id === c.job.id);
       if (!j) { delete c.job; changed = true; continue; }                   // taken off the queue elsewhere
       if (j.status === 'done' && j.video) {
         try {
-          const blob = await (await fetch('/_animate/' + j.video)).blob();
-          const rec = { id: uid(), kind: 'video', name: (media[c.mid] ? media[c.mid].name : 'Photo') + ' · ' + (j.move || 'animated'), blob: new File([blob], j.video, { type: 'video/mp4' }) };
-          await probe(rec); media[rec.id] = rec;
-          DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster });
+          const rec = await jobToMedia(j);
           // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size)
           Object.assign(c, { mid: rec.id, in: 0, out: rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
           delete c.job; changed = true;
           api('/api/animate/placed', { id: j.id }).catch(() => {});
-          toast('The animated clip is on the timeline.');
+          toast('The animated clip is on the timeline and in Your media.');
         } catch (e) { c.job = { id: j.id, status: 'failed', error: 'the finished video could not be loaded' }; changed = true; }
       } else if (j.status !== c.job.status && !(c.job.status === 'confirm' && j.status === 'queued')) {
         c.job = j.status === 'failed' ? { id: j.id, status: 'failed', error: j.error } : { id: j.id, status: j.status }; changed = true;
       }
     }
-    if (changed) renderAll();
+    let got = 0;
+    for (const j of JOBS) {
+      if (j.status !== 'done' || !j.video || mine[j.id] || GOT[j.id]) continue;
+      try { await jobToMedia(j); got++; } catch (e) { GOT[j.id] = 1; }      // a file that will not load is not asked for again
+    }
+    if (got) { changed = true; toast(got === 1 ? 'A finished clip was added to Your media.' : got + ' finished clips were added to Your media.'); }
+    const sig = JOBS.filter(jobActive).map(j => j.id + j.status + (j.step || '')).join();
+    if (changed) renderAll(); else if (sig !== animSig) { renderLib(); if (sel && sel.kind === 'clip') renderInspector(); }
+    animSig = sig;
     animWatch();
   }
 
@@ -2139,6 +2396,7 @@
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
     $('#delBtn').disabled = $('#dupBtn').disabled = !find(sel);
     T = clamp(T, 0, Math.max(0, total()));
+    if (!sel || sel.kind !== 'text' || !multi.has(sel.id)) multi.clear();
     renderLib(); renderInspector(); renderTimeline(); dirty = true; save();
   }
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
@@ -2253,6 +2511,27 @@
   rz.addEventListener('dblclick', () => setTlh(null));
   rz.addEventListener('keydown', e => { if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); setTlh(tl.offsetHeight + (e.key === 'ArrowUp' ? 24 : -24), true); } });
   window.addEventListener('resize', () => { const h = parseFloat(document.documentElement.style.getPropertyValue('--vs-tlh')); if (h > 0) setTlh(h); else { fitCanvas(); renderTimeline(); } });
+  // THE LIBRARY'S WIDTH IS THE USER'S (2026-11-17, by request): drag the rail's right edge. Kept
+  // per browser; double-click puts the default back; the arrow keys move it while it has focus.
+  const WKEY = 'provident-video-libw', lz = $('#libRz'), railL = document.querySelector('.vs-rail.l');
+  function setLibW(px, keep) {
+    const root = document.documentElement;
+    if (px == null) { root.style.removeProperty('--vs-lw'); try { localStorage.removeItem(WKEY); } catch (e) {} }
+    else {
+      px = Math.round(clamp(px, 220, Math.max(240, Math.min(640, innerWidth - 332 - 380))));
+      root.style.setProperty('--vs-lw', px + 'px'); if (keep) { try { localStorage.setItem(WKEY, px); } catch (e) {} }
+    }
+    fitCanvas();
+  }
+  { const w0 = parseFloat(localStorage.getItem(WKEY)); if (w0 > 0) setLibW(w0); }
+  let lzD = null;
+  lz.addEventListener('pointerdown', e => { if (e.button) return; lzD = { x: e.clientX, w: railL.offsetWidth }; lz.setPointerCapture(e.pointerId); lz.dataset.on = '1'; e.preventDefault(); });
+  lz.addEventListener('pointermove', e => { if (lzD) setLibW(lzD.w + (e.clientX - lzD.x), true); });
+  const lzEnd = () => { lzD = null; delete lz.dataset.on; };
+  lz.addEventListener('pointerup', lzEnd); lz.addEventListener('pointercancel', lzEnd);
+  lz.addEventListener('dblclick', () => setLibW(null));
+  lz.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); setLibW(railL.offsetWidth + (e.key === 'ArrowRight' ? 24 : -24), true); } });
+  window.addEventListener('resize', () => { const w = parseFloat(document.documentElement.style.getPropertyValue('--vs-lw')); if (w > 0) setLibW(w); });
   document.addEventListener('keydown', e => {
     if (exporting || $('#ask').open) return;
     const tg = e.target, typing = tg.matches && tg.matches('input:not([type=range]),textarea,select');
@@ -2290,7 +2569,7 @@
     const ok = i => !!media[i.mid];
     P.clips = P.clips.filter(ok); P.audio = P.audio.filter(ok); P.logos = P.logos.filter(ok);
     if (document.fonts && document.fonts.load) { try { await Promise.all([300, 400, 500].map(w => document.fonts.load(w + " 40px 'Google Sans Flex'"))); } catch (e) {} }
-    fitCanvas(); renderAll(); animWatch();
+    fitCanvas(); renderAll(); animPoll();
     requestAnimationFrame(tick);
   })();
 
