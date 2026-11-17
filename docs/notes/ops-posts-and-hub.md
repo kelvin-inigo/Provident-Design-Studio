@@ -753,3 +753,19 @@ Design. Test post deleted. **Not exercised:** an SMM account, real Drive.
   `hubLoad(true)`. The hub is not told; its next push of that post wins. Verified on the stand-in
   (pushed task 4242 in review, preview as cten): Copy approved → Ready, ok.by recorded.
 
+
+# OPS'S DESIGN KEY COMES FROM THE SERVER, NOT THE BROWSER (2026-11-17)
+
+By request: the **Design key** field is gone from **Share › Import hub**. `HUB_DESIGN_KEY` lives in
+the environment — Vercel env in production, `.env` locally (`tools/share-dev/serve.py` reads
+**only** `HUB_DESIGN_KEY` from `.env`, so Roam and the live store stay out of the dev server).
+`api/share.py` op **`hubkey`** (`hub_design_key`, in `ACC_OPS`) checks the Google token
+(`acc_who`) and answers `{key}` to the admin or any **active** account; 403 otherwise, 503 when the
+variable is unset. OPS's `epKey()` asks it through `providentAccess.call('hubkey')` the first time
+Send / From the hub needs it and caches it in memory (`_epKeyVal`, dropped on a hub 401/403).
+`epCfg()` carries only the URL and rewrites a stored record that still has a `key`;
+`StudioBase.hubCfg()` scrubs `key` from both studios' endpoint records once per tab, and
+`hubFetch` awaits `epKey()`. **Not a proxy, on purpose:** a delivery is up to 50 MB and a Vercel
+function takes 4.5 MB, so the browser still posts straight to the hub with the key in memory.
+Verified on share-dev with a dummy key: Send's POST and From the hub's GET carry it; signed out,
+Send stops with "Not sent — Sign in with Google first."; the field is gone and the stored key wiped.

@@ -1184,15 +1184,13 @@ class StudioBase {
   // Read-only: nothing here ever deletes or changes an import.
   static HUB_KEYS = ['provident-cas-endpoint', 'provident-ops-endpoint'];
   static HUB_THUMBS = 3;
-  // The Send endpoint IS the list (…/api/imports). Own studio's URL and token first; with no
-  // token there, the other studio's (one hub, one token, two studios on one computer).
+  // The Send endpoint IS the list (…/api/imports). The URL is per computer; the key is not kept
+  // anywhere in the browser (2026-11-17): hubFetch asks the studio's server for it (epKey, OPS).
   hubCfg() {
+    // a design key an older studio kept in either studio's endpoint record is dropped, once a tab
+    if (!StudioBase._hubScrub) { StudioBase._hubScrub = 1; for (const k of StudioBase.HUB_KEYS) { try { const c = JSON.parse(localStorage.getItem(k) || 'null'); if (c && c.key) { delete c.key; localStorage.setItem(k, JSON.stringify(c)); } } catch (e) {} } }
     const own = (typeof this.epCfg === 'function' && this.epCfg()) || {};
-    let url = own.url || '', key = own.key || '';
-    if (!key) for (const k of StudioBase.HUB_KEYS) {
-      try { const c = JSON.parse(localStorage.getItem(k) || '{}') || {}; if (c.key && (!c.url || c.url === url)) { key = c.key; break; } } catch (e) {}
-    }
-    return { url: String(url).trim().replace(/\/+$/, ''), key };
+    return { url: String(own.url || '').trim().replace(/\/+$/, '') };
   }
   static hubHost(u) { try { return new URL(u).host; } catch (e) { return u || 'the hub'; } }
   // ngrok's free domains answer a browser's request with a warning page unless it carries this
@@ -1204,9 +1202,9 @@ class StudioBase {
   // Same Local Network Access dance as Send (epPost): an https page reading an http:// office
   // address is mixed content unless the request says it is for the local network.
   async hubFetch(url, ms, cache) {
-    const c = this.hubCfg();
     const headers = {};
-    if (c.key) headers.Authorization = 'Bearer ' + c.key;
+    const key = typeof this.epKey === 'function' ? (await this.epKey()).key : '';
+    if (key) headers.Authorization = 'Bearer ' + key;
     StudioBase.hubTunnel(url, headers);
     const ac = new AbortController(), to = setTimeout(() => ac.abort(), ms || 30000);
     const opts = { headers, signal: ac.signal, mode: 'cors', credentials: 'omit', cache: cache || 'no-store' };
@@ -1226,7 +1224,7 @@ class StudioBase {
     return 'Could not reach the hub at ' + host + ' — check you are on the office network and the hub is up.';
   }
   hubRefused(r, url) {
-    if (r.status === 401 || r.status === 403) return 'The hub at ' + StudioBase.hubHost(url) + ' refused the key — set the Design key in Share › Import hub.';
+    if (r.status === 401 || r.status === 403) return 'The hub at ' + StudioBase.hubHost(url) + ' refused the design key — check HUB_DESIGN_KEY on the studio’s server matches the hub’s.';
     if (r.status === 404) return 'Nothing answers at ' + url + ' — the Endpoint URL in Share › Import hub should end in /api/imports.';
     return 'The hub at ' + StudioBase.hubHost(url) + ' answered HTTP ' + r.status + '.';
   }

@@ -1616,6 +1616,21 @@ def hub_ok(d):
     return ok({'ok': True, 'task': t})
 
 
+def hub_design_key(d):
+    """OPS'S DESIGN KEY COMES FROM THE SERVER (2026-11-17, by request): HUB_DESIGN_KEY lives in
+    the environment (Vercel env; .env for tools/share-dev), never in a studio file or a browser's
+    storage. OPS asks for it at Send time ({tok}) and holds it in memory only; Send still goes
+    straight to the hub, because a delivery (up to 50 MB) does not fit through a Vercel function.
+    Only a signed-in account the admin has let in gets it."""
+    email, _ = acc_who(d.get('tok'))
+    if email != acc_admin() and (acc_users().get(email) or {}).get('status') != 'active':
+        raise Fail(403, 'Only an account the admin has let in can send to the Content Hub.')
+    key = (os.environ.get('HUB_DESIGN_KEY') or '').strip()
+    if not key:
+        raise Fail(503, 'The Content Hub\'s design key is not set on this site (HUB_DESIGN_KEY).')
+    return ok({'key': key})
+
+
 def hub_team(d):
     """The designers, for the hub's picker: name and email only."""
     hub_key_ok(d)
@@ -1741,7 +1756,7 @@ def ar_copy(d):
 
 ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
            'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'hubok': hub_ok, 'roamnote': roam_note,
-           'arcopy': ar_copy}
+           'arcopy': ar_copy, 'hubkey': hub_design_key}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.

@@ -9,10 +9,17 @@ sends JPEGs) and uploads the result to the import hub instead of writing it to a
 Open the **Import hub** fold under the Send button (pressing Send with nothing set opens it):
 
 - **Endpoint URL** — defaults to `https://provident-content-hub.ngrok-free.dev/api/imports`.
-- **Design key** — the hub's `HUB_DESIGN_KEY`. OPS sends it as `X-Design-Key` (and, for an older hub, as `Authorization: Bearer …`). The hub accepts it on `POST /api/imports` only; every other route still needs `HUB_IMPORT_TOKEN`.
+The URL is kept in this browser's `localStorage` (`provident-ops-endpoint`).
 
-Both are kept in this browser's `localStorage` (`provident-ops-endpoint` /
-`provident-cas-endpoint`). **The token is never in the repo** — this repository is public.
+**The design key is not typed or stored anywhere in the browser (2026-11-17).** It is the hub's
+`HUB_DESIGN_KEY`, set on the studio's server: Vercel's environment variables, and `.env` for the
+local test server (`tools/share-dev/serve.py` reads only that line from `.env`). When Send or From
+the hub needs it, OPS asks `/api/share?op=hubkey` with the signed-in Google account (any account
+the admin has let in) and holds the answer in memory for that tab. OPS sends it as `X-Design-Key`
+(and, for an older hub, as `Authorization: Bearer …`). The hub accepts it on `POST /api/imports`
+only; every other route still needs `HUB_IMPORT_TOKEN`. Send itself still goes straight from the
+browser to the hub: a delivery (up to 50 MB) does not fit through a Vercel function (4.5 MB).
+**The key is never in the repo** — this repository is public.
 The URL must be `https://`, or plain `http://` to this computer or the office network
 (10.x, 172.16–31.x, 192.168.x).
 

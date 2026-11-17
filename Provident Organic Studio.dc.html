@@ -4775,10 +4775,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <input value="{{ epUrl }}" onChange="{{ onEpUrl }}" placeholder="https://provident-content-hub.ngrok-free.dev/api/imports" class="p-in" type="url" inputmode="url" spellcheck="false" autocomplete="off">
     </label>
     <sc-if value="{{ epBadOn }}" hint-placeholder-val="{{ false }}"><p class="sx-epw">Use https — plain http only to this computer or the office network.</p></sc-if>
-    <label class="p-fld">Design key <span style="opacity:.6">(sent as X-Design-Key)</span>
-      <input value="{{ epKey }}" onChange="{{ onEpKey }}" class="p-in" type="password" spellcheck="false" autocomplete="off">
-    </label>
-    <p class="sx-epn">The key the Content Hub checks on each delivery. Kept on this computer only. Sends the project .json as content and every exported image as images.</p>
+    <p class="sx-epn">The Content Hub's design key comes from the studio's server (HUB_DESIGN_KEY) when you send — nothing to type. Sends the project .json as content and every exported image as images.</p>
   </details>
   </sc-if>
   <!-- Shared edit link (share-link.js): a link others open to view and edit this project, with a Changes panel. -->
@@ -14177,7 +14174,9 @@ class OrganicStudio extends StudioBase {
   // and the file names are the export's own. A PDF is one local file, so Send ships images.
   static EP_KEY = 'provident-ops-endpoint';
   epCfg() {
-    if (!this._epCfg) { let c = {}; try { c = JSON.parse(localStorage.getItem(OrganicStudio.EP_KEY) || '{}') || {}; } catch (e) {} this._epCfg = { url: c.url || OrganicStudio.EP_DEFAULT, key: c.key || '' };
+    if (!this._epCfg) { let c = {}; try { c = JSON.parse(localStorage.getItem(OrganicStudio.EP_KEY) || '{}') || {}; } catch (e) {} this._epCfg = { url: c.url || OrganicStudio.EP_DEFAULT };
+      // 2026-11-17: the design key comes from the server (epKey), so a key this browser kept is dropped.
+      if (c.key) try { localStorage.setItem(OrganicStudio.EP_KEY, JSON.stringify(this._epCfg)); } catch (e) {}
       // 2026-10-26: a URL left on this computer's local hub moves to the office hub, once.
       try { if (!localStorage.getItem('provident-ep-office:' + OrganicStudio.EP_KEY) && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(this._epCfg.url)) { this._epCfg.url = OrganicStudio.EP_DEFAULT; localStorage.setItem(OrganicStudio.EP_KEY, JSON.stringify(this._epCfg)); } } catch (e) {}
       try { localStorage.setItem('provident-ep-office:' + OrganicStudio.EP_KEY, '1'); } catch (e) {}
@@ -14190,6 +14189,17 @@ class OrganicStudio extends StudioBase {
     this._epCfg = c;
     try { localStorage.setItem(OrganicStudio.EP_KEY, JSON.stringify(c)); } catch (e) {}
     this.forceUpdate();
+  }
+  // THE DESIGN KEY COMES FROM THE SERVER (2026-11-17, by request). HUB_DESIGN_KEY lives in the
+  // environment (Vercel; .env for share-dev), never in this file or the browser's storage. It is
+  // asked for with the signed-in account (api/share.py op 'hubkey') when Send needs it and held in
+  // memory for this tab only. Resolves to { key } or { error }.
+  async epKey() {
+    if (this._epKeyVal) return { key: this._epKeyVal };
+    const A = window.providentAccess;
+    if (!A || !A.call) return { error: 'Sign in to the studio to send to the Content Hub.' };
+    try { const j = await A.call('hubkey'); if (j && j.key) { this._epKeyVal = String(j.key); return { key: this._epKeyVal }; } return { error: 'The studio\u2019s server gave no design key.' }; }
+    catch (e) { return { error: (e && e.message) || 'Could not get the design key from the studio\u2019s server.' }; }
   }
   // https anywhere; plain http only to this machine or the office network (10.x, 172.16-31.x,
   // 192.168.x) — never across the internet in the clear
@@ -14205,11 +14215,8 @@ class OrganicStudio extends StudioBase {
       const d = document.querySelector('.sx-ep'); if (d) { d.open = true; const i = d.querySelector('input'); if (i) i.focus(); }
       return;
     }
-    if (!c.key) {
-      this.setState({ exportStatus: 'Type the design key below, then press Send again.' });
-      const d = document.querySelector('.sx-ep'); if (d) { d.open = true; const i = d.querySelector('input[type=password]'); if (i) i.focus(); }
-      return;
-    }
+    const k = await this.epKey();
+    if (!k.key) { this.setState({ exportStatus: 'Not sent \u2014 ' + k.error }); return; }
     this._ep = OrganicStudio.epKind(this.state.exportKind || 'jpg');
     try { await this.doExport(this._ep); } finally { this._ep = null; }
   }
@@ -14287,7 +14294,8 @@ class OrganicStudio extends StudioBase {
     const headers = { 'X-Source': 'Design system' };
     // The hub checks the design key (X-Design-Key) on deliveries; Bearer stays for a hub that
     // still only knows the import token.
-    if (c.key) { headers['X-Design-Key'] = c.key; headers.Authorization = 'Bearer ' + c.key; }
+    const key = (await this.epKey()).key;
+    if (key) { headers['X-Design-Key'] = key; headers.Authorization = 'Bearer ' + key; }
     StudioBase.hubTunnel(c.url, headers);
     // A project opened from a Content Hub design job carries that post's id (`hubCardId`), so the
     // hub attaches these pages to the post and moves it to Ready to publish.
@@ -14312,7 +14320,7 @@ class OrganicStudio extends StudioBase {
       try { const t = (await r.text()).trim(); if (t) { try { const j = JSON.parse(t); msg = j.message || j.error || j.status || (j.card_id ? (j.version ? 'added to the hub post as v' + j.version + ', waiting for review' : 'attached to the hub post') : '');
           if (r.ok && j.card_id && j.version) this.upd(x => { if (x.hubPost) x.hubPost = Object.assign({}, x.hubPost, { opened: j.version, next: j.version + 1 }); return x; }); } catch (e) { msg = t.length < 120 ? t : ''; } } } catch (e) {}
       if (typeof msg !== 'string') msg = '';
-      if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — check the key.' : '.') }); return false; }
+      if (!r.ok) { this.setState({ exportStatus: 'The hub refused it — HTTP ' + r.status + (msg ? ' · ' + msg : (r.statusText ? ' ' + r.statusText : '')) + (r.status === 401 || r.status === 403 ? ' — the hub refused the design key; check HUB_DESIGN_KEY on the studio\u2019s server matches the hub\u2019s.' : '.') }); if (r.status === 401 || r.status === 403) this._epKeyVal = null; return false; }
       // the post is with the hub for approval now: Status shows it under Copy check (StudioBase.hubSeen)
       if (hub) { try { const o = new URL(c.url).origin, t = (this.state.hubPost && this.state.hubPost.title) || this.state.customName;
         this.postThumb().then(th => StudioBase.hubSeen(o + '/api/items/' + hub + '/studio', t, 'review', th)).catch(() => StudioBase.hubSeen(o + '/api/items/' + hub + '/studio', t, 'review')); } catch (e) {} }
@@ -14385,7 +14393,7 @@ class OrganicStudio extends StudioBase {
   autoSendAfterSave() {
     try { if (localStorage.getItem('ops-save-sends') === 'off') return; } catch (e) {}
     const c = this.epCfg();
-    if (this.state.tpl !== 'carousel' || !StudioBase.hubCardOf(this.state) || !c.key || !OrganicStudio.epUrlOk(c.url)) return;
+    if (this.state.tpl !== 'carousel' || !StudioBase.hubCardOf(this.state) || !OrganicStudio.epUrlOk(c.url)) return;
     this.sendExport();
   }
   legacyRecentsKey() { return 'smp-recents'; }
@@ -17074,9 +17082,9 @@ class OrganicStudio extends StudioBase {
             const n = nImg, w = n === 1 ? one[k] : plural[k];
             return {
               epOn: s.tpl === 'carousel' ? '1' : undefined,
-              epUrl: c.url, epKey: c.key, epOkOn: ok ? '1' : undefined,
+              epUrl: c.url, epOkOn: ok ? '1' : undefined,
               epBadOn: c.url && !ok ? '1' : undefined,
-              onEpUrl: e => this.epSet('url', e.target.value), onEpKey: e => this.epSet('key', e.target.value),
+              onEpUrl: e => this.epSet('url', e.target.value),
               epSend: () => this.sendExport(), 
               // The Hub post bar (above the stage): the post this project belongs to, its brief and the
               // change notes. Set by hubDraftOpen from the hub's `hub` block; Send updates the version.

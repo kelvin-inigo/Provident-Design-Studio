@@ -87,8 +87,9 @@ moves, because it records where the folder is.
 Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"` first).
 
 **5. Settings each computer keeps for itself.** Ask the person who set up yours for the values:
-- **Design key**, in OPS's **Share › Import hub**, for **Send** and **From the hub** (OPS only).
-  The hub is `https://provident-content-hub.ngrok-free.dev`, reachable from anywhere.
+- Nothing for the Content Hub: OPS's **Send** and **From the hub** get the hub's design key from
+  the studio's server (`HUB_DESIGN_KEY`) once you're signed in. The hub is
+  `https://provident-content-hub.ngrok-free.dev`, reachable from anywhere.
 - **Google Drive client ID**, in Ad sets' **Google Drive** box. The admin's steps are in
   `docs/google-drive-setup.md`.
 - **Your name** in a campaign's activity comes from your Google account.
@@ -283,8 +284,8 @@ nothing in it goes there.
 - **From the hub** (OPS only; sidebar, under Library) lists what the Content Hub has received from **Send**,
   newest first, with a few of the sent images on each card. Click one to open it as a project:
   its words, layout and the photos it was sent with all come back. A delivery made in the other
-  studio (an older CAS delivery) opens there. The hub keeps its copy; nothing is deleted. It uses the **Endpoint URL** and
-  **Design key** from **Share › Import hub**; **Refresh** asks the hub again.
+  studio (an older CAS delivery) opens there. The hub keeps its copy; nothing is deleted. It uses the **Endpoint URL** from
+  **Share › Import hub** and the design key from the studio's server; **Refresh** asks the hub again.
 - If there's unsaved work when you leave, the studio asks first.
 
 ### Share an edit link
@@ -1474,8 +1475,8 @@ This is the full editor.
   **Download as PDF** appears when the post has more than one page.
 - Unlike CAS, OPS asks before replacing files that are already there.
 - **Send … + .json** (under the Export button in **Share**, **carousel posts only**) sends the project `.json` and every
-  exported image to the import hub. The first time, press it and type the design key into
-  the **Import hub** fold that opens (the URL is already filled in); both stay on this computer.
+  exported image to the import hub. There is no key to type: the design key comes from
+  the studio's server while you're signed in, and the URL is already filled in.
   A PDF stays local, so Send sends JPEGs. On the website, Chrome asks to allow access to
   your local network the first time: press **Allow**. If the delivery is over the hub's 50 MB,
   the images are sent as JPEGs, compressed just enough to fit. See `docs/studio-endpoint.md`.
@@ -1559,7 +1560,7 @@ You don't need to set these; the layouts already follow them.
 | Old files are still in the export folder | Exports overwrite but never delete. Remove old files by hand. |
 | A project isn't in **Projects** | Only saved projects are listed. Press **Save**. |
 | **From the hub** says it can't reach the hub | Be on the office network. On the website, press **Allow** when Chrome asks about devices on your local network (and allow Chrome under System Settings › Privacy & Security › Local Network on a Mac). Safari and Firefox can't read the hub from the website. |
-| **From the hub** says the key was refused | Set the **Design key** in **Share › Import hub**. |
+| **Send** or **From the hub** says the key was refused or is not set | The design key lives on the studio's server: the admin sets `HUB_DESIGN_KEY` in Vercel (and in `.env` for the local test server) to the hub's own. |
 | A project from the hub has no photo | It was sent before a photo was added, or the photo was never in the studio (the sent pictures are the finished exports, which aren't put back). Drop the photo again. |
 | ⌘V does nothing after `/cas-component` | Make sure CAS is showing the **editor** (not the project browser or Copy), then press ⌘V again. Claude also saved it in `custom-components/` — open that file and copy its contents if the clipboard was overwritten. |
 | **Share an edit link** says it isn't switched on | The website's share store hasn't been connected. An admin sets it up once: `docs/share-links-setup.md`. |

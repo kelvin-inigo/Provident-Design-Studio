@@ -18,6 +18,18 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import urllib.parse
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+# OPS's design key (op 'hubkey') comes from the repo's .env. Only these names are read from it —
+# the rest of .env (Roam, live stores) stays out of the dev server unless the shell exports it.
+# A value already in the environment wins.
+ENV_KEYS = ('HUB_DESIGN_KEY',)
+try:
+    with open(os.path.join(ROOT, '.env'), encoding='utf-8') as fh:
+        for line in fh:
+            k, sep, v = line.strip().partition('=')
+            if sep and k.strip() in ENV_KEYS and v.strip():
+                os.environ.setdefault(k.strip(), v.strip().strip('"\''))
+except OSError:
+    pass
 if not (os.environ.get('KV_REST_API_URL') or os.environ.get('UPSTASH_REDIS_REST_URL')):
     os.environ['SHARE_DEV'] = '1'
 spec = importlib.util.spec_from_file_location('share', os.path.join(ROOT, 'api', 'share.py'))
