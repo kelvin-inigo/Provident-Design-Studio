@@ -19,7 +19,7 @@ area**; it records why things are the way they are and what was tried and reject
 | `docs/notes/reviews-sharing-drive.md` | ad sets, review links, Status, share-link.js, api/share.py, Drive, sign-in and roles |
 | `docs/notes/ops-posts-and-hub.md` | post-flow.js, OPS Home, the Content Hub, Send |
 | `docs/notes/landing-page.md` | root `index.html` |
-| `docs/notes/web-image-studio.md` | `web-image-studio.html` |
+| `docs/notes/web-image-studio.md` | `web-image-studio.html` — a standalone tool, detached from PDS (2026-11-17); not in the architecture PDF |
 
 Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,
 `docs/studio-access-setup.md`, `docs/studio-endpoint.md`, `docs/grok-bot-setup.md`.
@@ -36,7 +36,8 @@ Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,
 | `access.js` | Google sign-in gate and roles, both studios and the landing page |
 | `api/share.py`, `api/gauth.py` | Vercel functions (share store on Upstash, Google refresh tokens) |
 | `image-slot.js` · `support.js` · `_ds/` · `fonts/` · `icon-tags.js` · `vendor/` | shared |
-| `ui-design-system/` | the chrome design system; CAS, OPS and the image tool mirror it |
+| `ui-design-system/` | the chrome design system; CAS and OPS mirror it |
+| `docs/architecture/` | the PDS architecture reference for the AI engineers: `pds-architecture.html` → `build.sh` → `PDS-Architecture.pdf`, with a timestamped Changelog (section 17) |
 | `CAS-OPS-GUIDE.md` | the user-facing guide (for Claude Cowork) — update it when a label, button, flow or export name a user sees changes |
 | `GROK-BOT-INSTRUCTIONS.md` | the Grok bot's instructions (help, copy, and Part 3: the studio tools) — update it with the guide |
 | `tools/` | rembg cut-out service, Photoshop helper, studio-mcp server (stdio for Claude; `remote.py` over https for the Grok bot), share dev server + Drive stand-in |
@@ -46,13 +47,20 @@ studio-specific scripts), parser-inserted, never in the helmet.
 
 ## Standing rules
 
+**Keep the architecture PDF current.** Every change that lands on `main` (a feature, route,
+endpoint, auth/role, storage, external service, skill, file move, branch state) is written into the
+matching section of `docs/architecture/pds-architecture.html` in the same pass: raise the revision
+(cover + `@bottom-left` footer), add a row at the top of the section 17 Changelog with the date and
+time in GST (`date "+%d %b %Y, %H:%M"`), the sections touched and the commit, then run
+`docs/architecture/build.sh` and commit the PDF with the change. Never put secret values in it.
+
 **Canvas and chrome are separate systems.** Artwork reads `CampaignStudio.PAL` /
 `OrganicStudio.ART` literals; chrome reads `--ps-*` tokens. Never put a `var(--ps-*)` or a
 colour literal at a call site in `buildOps` or a canvas preview style. Merging the two leaked
 the UI's blue into finished posts once.
 
-**A kit change fans out.** Edit `ui-design-system/` first, then mirror into all three
-consumers' stylesheets AND their JS style objects (inline styles beat every rule) in the same
+**A kit change fans out.** Edit `ui-design-system/` first, then mirror into both
+studios' stylesheets AND their JS style objects (inline styles beat every rule) in the same
 pass, then verify in the browser.
 
 **Preview and export share one geometry.** Each template/component has one layout source

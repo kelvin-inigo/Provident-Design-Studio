@@ -7,7 +7,7 @@
 @font-face{font-family:'Google Sans Flex';src:url('../../_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/assets/fonts/GoogleSansFlex-Variable.woff2') format('woff2');font-weight:1 1000}
 :root{--navy:#1A2942;--pnavy:#2F4960;--orange:#F3793C;--paper:#FAF8F4;--cream:#F4F1EC;--mist:#ECE7DF;--stone:#D4CFC4;--muted:#5E6573;--brass:#8C6F3F}
 @page{size:A4;margin:17mm 17mm 19mm;
-  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  17th November 2026";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
+  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  Revision 1.3  ·  17 Nov 2026, 17:39 GST";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
   @bottom-right{content:counter(page);font:500 7.5pt 'Google Sans Flex';color:#1A2942}}
 @page cover{margin:0;@bottom-left{content:none}@bottom-right{content:none}}
 html{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -93,7 +93,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     </div>
   </div>
   <div class="foot">
-    <div><b>Current state as of 17th November 2026</b><br>Written for the AI engineering team · internal</div>
+    <div><b>Current state as of 17th November 2026</b> · Revision 1.3<br>Changes are logged with a timestamp in section 17<br>Written for the AI engineering team · internal</div>
     <div style="text-align:right">Repository <b>kelvin-inigo/Provident-Design-Studio</b><br>Live site provident-design-studio.vercel.app</div>
   </div>
 </section>
@@ -111,7 +111,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <div><span>05</span>CAS: Campaign Ads Studio</div>
     <div><span>06</span>OPS: Organic Post Studio</div>
     <div><span>07</span>CASV: Video Studio prototype</div>
-    <div><span>08</span>Home, Status and Web Image Studio</div>
+    <div><span>08</span>Home and Status</div>
     <div><span>09</span>UX flows across the teams</div>
     <div><span>10</span>Authentication and roles</div>
     <div><span>11</span>Endpoints</div>
@@ -120,10 +120,11 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <div><span>14</span>Agent surface: MCP, Grok bot and skills</div>
     <div><span>15</span>Security posture and known risks</div>
     <div><span>16</span>Engineering rules, traps and removed features</div>
+    <div><span>17</span>Changelog</div>
   </div>
 
   <h3>Sources and how current this is</h3>
-  <p>This document was compiled from the code on <code>main</code> (commit <code>4205db7</code>, four commits ahead of <code>origin/main</code>, not yet pushed), the <code>video-studio</code> worktree (HEAD <code>01007c5</code>), the dated engineering notes in <code>docs/notes/</code>, and the setup docs in <code>docs/</code>. The notes are logs where later entries replace earlier ones. Where a note and the code disagree, the code wins. Section 15 lists the setup docs that are out of date.</p>
+  <p>This document was first compiled from the code on <code>main</code> (commit <code>4205db7</code>) and is kept current: every later change to PDS lands here in the same pass, with a timestamped entry in section 17. It also draws on the <code>video-studio</code> worktree (HEAD <code>01007c5</code>), the dated engineering notes in <code>docs/notes/</code>, and the setup docs in <code>docs/</code>. The notes are logs where later entries replace earlier ones. Where a note and the code disagree, the code wins. Section 15 lists the setup docs that are out of date.</p>
   <div class="note">No secret values appear in this document. Environment variables, tokens and keys are named only. Their values live in Vercel, in per-computer files, or in browser storage, never in the repository, which is <b>public</b>.</div>
 
   <!-- 01 -->
@@ -177,15 +178,13 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <rect x="24" y="98" width="612" height="42" rx="6" class="bn"/>
     <text x="330" y="116" text-anchor="middle" class="h w">Home · index.html</text>
     <text x="330" y="131" text-anchor="middle" class="sm s">Next up · Status board · Ready files · Projects · Access (admin) · Google sign-in gate (access.js)</text>
-    <path d="M97 140 V154 M252 140 V154 M407 140 V154 M562 140 V154" class="ll"/>
-    <rect x="24" y="156" width="146" height="62" rx="6" class="bn"/>
-    <text x="97" y="176" text-anchor="middle" class="h w">CAS</text><text x="97" y="191" text-anchor="middle" class="sm s">Campaign Ads Studio · Meta ads</text><text x="97" y="206" text-anchor="middle" class="sm s">Provident Campaign Studio.dc.html</text>
-    <rect x="179" y="156" width="146" height="62" rx="6" class="bn"/>
-    <text x="252" y="176" text-anchor="middle" class="h w">OPS</text><text x="252" y="191" text-anchor="middle" class="sm s">Organic Post Studio · feed + story</text><text x="252" y="206" text-anchor="middle" class="sm s">Provident Organic Studio.dc.html</text>
-    <rect x="334" y="156" width="146" height="62" rx="6" class="bp"/>
-    <text x="407" y="176" text-anchor="middle" class="h w">CASV</text><text x="407" y="191" text-anchor="middle" class="sm s">Video Studio · localhost:8794</text><text x="407" y="206" text-anchor="middle" class="sm s">video-studio branch (local only)</text>
-    <rect x="489" y="156" width="147" height="62" rx="6" class="bp"/>
-    <text x="562" y="176" text-anchor="middle" class="h w">Web Image Studio</text><text x="562" y="191" text-anchor="middle" class="sm s">website photo sizes</text><text x="562" y="206" text-anchor="middle" class="sm s">web-image-studio.html</text>
+    <path d="M123 140 V154 M330 140 V154 M537 140 V154" class="ll"/>
+    <rect x="24" y="156" width="198" height="62" rx="6" class="bn"/>
+    <text x="123" y="176" text-anchor="middle" class="h w">CAS</text><text x="123" y="191" text-anchor="middle" class="sm s">Campaign Ads Studio · Meta ads</text><text x="123" y="206" text-anchor="middle" class="sm s">Provident Campaign Studio.dc.html</text>
+    <rect x="231" y="156" width="198" height="62" rx="6" class="bn"/>
+    <text x="330" y="176" text-anchor="middle" class="h w">OPS</text><text x="330" y="191" text-anchor="middle" class="sm s">Organic Post Studio · feed + story</text><text x="330" y="206" text-anchor="middle" class="sm s">Provident Organic Studio.dc.html</text>
+    <rect x="438" y="156" width="198" height="62" rx="6" class="bp"/>
+    <text x="537" y="176" text-anchor="middle" class="h w">CASV</text><text x="537" y="191" text-anchor="middle" class="sm s">Video Studio · localhost:8794</text><text x="537" y="206" text-anchor="middle" class="sm s">video-studio branch (local only)</text>
     <rect x="24" y="228" width="612" height="22" rx="4" class="bm"/>
     <text x="330" y="242.5" text-anchor="middle" class="sm">Shared scripts: runtime.js · support.js · studio-base.js · image-slot.js · share-link.js · access.js · post-flow.js</text>
 
@@ -250,7 +249,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
       <h4>Branches and worktrees</h4>
       <table>
         <tr><th>Branch</th><th>State</th></tr>
-        <tr><td><code>main</code></td><td>Live. Four commits ahead of origin (CAS animated export, the CASV hand-off), not pushed. The Grok bridge files (<code>remote.py</code>, <code>install-remote.sh</code>, <code>env.sh</code>) are not committed yet</td></tr>
+        <tr><td><code>main</code></td><td>Live, level with <code>origin/main</code> at <code>ab33159</code> (CAS animated export, Higgsfield generation and clips on Drive, the CASV hand-off, the Grok bridge, this document)</td></tr>
         <tr><td><code>video-studio</code></td><td>CASV. Worktree in <code>.claude/worktrees/video-studio</code>. <b>Local only; never pushed, by instruction</b></td></tr>
         <tr><td><code>cas-animated</code></td><td>Merged into main (<code>4205db7</code>)</td></tr>
         <tr><td><code>cas-framework</code></td><td>CAS ad-engine work, kept off main until tested</td></tr>
@@ -272,8 +271,8 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <tr><td><code>access.js</code></td><td>The Google sign-in gate and role checks for both studios and Home</td></tr>
     <tr><td><code>image-slot.js</code></td><td>The photo slot element: upload, Replace, Remove, Reframe, cut-out and the Photoshop round trip</td></tr>
     <tr><td><code>api/share.py</code>, <code>api/gauth.py</code></td><td>Vercel Python functions: the share and access store (Upstash), and the Google refresh-token exchange</td></tr>
-    <tr><td><code>web-image-studio.html</code>, <code>share-admin.html</code></td><td>The standalone website-photo tool, and the share-store admin page</td></tr>
-    <tr><td><code>ui-design-system/</code></td><td>The chrome design system (tokens, CSS, gallery). CAS, OPS and the image tool mirror it</td></tr>
+    <tr><td><code>share-admin.html</code></td><td>The share-store admin page</td></tr>
+    <tr><td><code>ui-design-system/</code></td><td>The chrome design system (tokens, CSS, gallery). CAS and OPS mirror it</td></tr>
     <tr><td><code>_ds/</code>, <code>fonts/</code>, <code>vendor/</code></td><td>The brand design system (Google Sans Flex, colour tokens), Arabic web fonts and third-party scripts</td></tr>
     <tr><td><code>tools/</code></td><td><code>rembg/</code> cut-out service · <code>photoshop/</code> helper · <code>studio-mcp/</code> MCP server and https remote · <code>share-dev/</code> local dev server with a Drive stand-in</td></tr>
     <tr><td><code>CAS-OPS-GUIDE.md</code>, <code>GROK-BOT-INSTRUCTIONS.md</code></td><td>The user-facing guide (for Claude Cowork) and the Grok bot's instructions. Update both when a visible label or flow changes</td></tr>
@@ -398,7 +397,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <tr><td><code>st</code></td><td>1080 × 1920</td><td><code>Story</code></td><td>Reels safe area 260 / 100 / 460 / 100, with a 170 px rail reserve on the bottom cluster</td></tr>
     <tr><td><code>ls</code></td><td>1200 × 628</td><td><code>Landscape_1.91x1</code></td><td>Laid out at 1920 wide. On by default</td></tr>
     <tr><td><code>bn</code> / <code>bs</code></td><td>1880 × 940 / 758 × 380</td><td><code>EventBrite_Banner_wide</code> / <code>_Small</code></td><td>One design, two sizes</td></tr>
-    <tr><td>Animated</td><td>1:1 and 9:16</td><td><code>_feed_animated.mp4</code>, <code>_Story_animated.mp4</code></td><td>MediaRecorder in real time, 12 Mbps, H.264 MP4 or WebM, no sound</td></tr>
+    <tr><td>Animated</td><td>1:1 and 9:16</td><td><code>_feed_animated.mp4</code>, <code>_Story_animated.mp4</code></td><td>MediaRecorder in real time, 12 Mbps, H.264 MP4 or WebM, no sound. Also recorded into the PM's download package</td></tr>
   </table>
   <p>Exports are written flat as <code>&lt;Variant A|B|C or Carousel&gt;/&lt;name&gt;_&lt;Variant X&gt;_&lt;size&gt;.&lt;ext&gt;</code>. They overwrite but never delete. Without a source folder, the same paths go into one zip.</p>
 
@@ -411,7 +410,8 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <div class="card">
       <h4>Video background</h4>
       <p>Background › <b>Photo | Video</b> on a variant. A muted <code>&lt;video&gt;</code> plays inside the photo slot's frame, using the slot's crop.</p>
-      <p style="margin:0">Clips live only in IndexedDB <code>provident-cas-clips</code> (key <code>pid|variant</code>). They aren't saved in the session file, share links or Drive. The finished MP4 goes to Drive through the export.</p>
+      <p>The panel shows the clip card (name, length, Drive state) and three ways to add or replace it. <b>Generate from the photo</b> uses Higgsfield (camera move, 5 or 10 s, Kling, Cinema or Seedance, Draft or Full): it shows the price first, and a second press spends the credits. CAS never calls Higgsfield itself. It posts a 1080×1920 start frame to CASV's local server (<code>/api/animate/job → cost → run</code>) and polls every 4 s. <b>Upload a clip</b> takes an MP4. <b>Edit in CASV</b> is a round trip: CASV opens a fresh video with the photo, its <b>Send back to CAS</b> records the 9:16, and CAS picks it up from <code>/api/outbox/file?part=bg</code>.</p>
+      <p style="margin:0">The clip is saved to Drive as the project's <code>Assets/video-background-variant-&lt;x&gt;.mp4</code> (the variant keeps <code>bgClip</code>), with a copy in IndexedDB <code>provident-cas-clips</code>. A clip added before this goes up to Drive by itself when the project is reopened. Animated designs get an <b>Animated</b> pill on Status. They autoplay in the placement preview and in the PM's and content team's views. The PM's <b>Download</b> records the animated MP4s into the zip beside the stills.</p>
     </div>
   </div>
 </section>
@@ -482,11 +482,11 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
       </ul>
       <h4>Server routes (serve.py, port 8794)</h4>
       <table>
-        <tr><td><code>/api/animate/*</code></td><td>Animate queue (<code>_animate/</code>): job, jobs, placed, cancel, cost, run</td></tr>
+        <tr><td><code>/api/animate/*</code></td><td>Animate queue (<code>_animate/</code>): job, jobs, placed, cancel, cost, run, file. Also used by CAS's Generate from this photo</td></tr>
         <tr><td><code>/api/music/*</code></td><td>Generate music (cost, make)</td></tr>
         <tr><td><code>/api/voice/*</code></td><td>Voiceover: macOS <code>say</code> or Higgsfield text-to-speech</td></tr>
         <tr><td><code>/api/outbox/*</code></td><td>file, meta, list, notes, back. Hand-off to CAS (<code>_outbox/</code>)</td></tr>
-        <tr><td><code>/api/inbox/*</code></td><td>list, file, done. Videos sent back from CAS (<code>_inbox/</code>)</td></tr>
+        <tr><td><code>/api/inbox/*</code></td><td>list, file, done. Videos sent back from CAS (<code>_inbox/</code>). <code>photo</code>: CAS's Edit in CASV start frame</td></tr>
       </table>
       <p class="small">CORS allows the live site, localhost and <code>CASV_ORIGINS</code>, and answers Chrome's private-network preflight.</p>
     </div>
@@ -513,7 +513,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
 <!-- ============ 08 HOME ============ -->
 <section class="sec">
   <div class="eb">Section 08</div>
-  <h2>Home, Status and Web Image Studio</h2>
+  <h2>Home and Status</h2>
   <p class="lede">Home (<code>index.html</code>) is the front door for every role. The studios are now only for designing; everything about what to work on next, who has what, and where finished files are lives on Home.</p>
   <h4>Home routes</h4>
   <table>
@@ -527,9 +527,6 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <tr><td><code>#/access</code></td><td>Admin only: Requests, People, Activity, Roles and "Preview as"</td></tr>
   </table>
   <p>Home links out to CAS (<code>#share=</code>, <code>#pick=</code>, <code>#recent=</code>), to OPS (<code>#view=new</code>, <code>#share=</code>, <code>#hubopen=</code>), to CASV on <code>localhost:8794</code> for roles with <code>design-cas</code> (overridable per computer), and to the Drive folders. It refreshes the review summary and the post feed every 60 seconds.</p>
-
-  <h3>Web Image Studio</h3>
-  <p><code>web-image-studio.html</code> is a standalone single-file tool that prepares photos for three websites: providentestate.com, offplan-dubai.com and the provident.ae landing pages. Pick a site, drop one photo per group, frame each placement, and export every placement as a JPEG at its exact pixel size, under 300 KB. The files are written flat into a folder chosen with <code>showDirectoryPicker</code>. The Developers logo slot exports a transparent SVG. All sizes live in its SPEC section. It makes no network calls and keeps its sources in IndexedDB.</p>
 </section>
 
 <!-- ============ 09 UX FLOWS ============ -->
@@ -739,6 +736,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <tr><td>POST</td><td><code>accteam</code></td><td>Active people and their roles (hand-off pickers)</td><td>Google token, active</td></tr>
     <tr><td>POST</td><td><code>arcopy</code></td><td>Claude writes the Arabic copy</td><td>Google token, active</td></tr>
     <tr><td>POST</td><td><code>roamnote</code></td><td>Post "send to copy check" to Roam</td><td>Google token, active</td></tr>
+    <tr><td>POST</td><td><code>hubkey</code></td><td>Hands OPS the Content Hub design key (<code>HUB_DESIGN_KEY</code>) for Send and From the hub</td><td>Google token, active or admin. 503 if unset</td></tr>
     <tr><td>POST</td><td><code>hubpush</code>, <code>hubteam</code></td><td>The Content Hub pushes tasks; reads the designer list</td><td><code>HUB_PUSH_KEY</code> (constant-time compare)</td></tr>
     <tr><td>POST</td><td><code>hubtasks</code>, <code>hubseen</code>, <code>hubok</code></td><td>Hub tasks on Status; mark seen; mark copy approved</td><td>Google token, active</td></tr>
     <tr><td>POST</td><td><code>create</code>, <code>save</code>, <code>part</code>, <code>pvput</code>, <code>thumb</code></td><td>Plain share links: create and update a project and its photo parts</td><td>The link id; a <code>pm</code> token can't write</td></tr>
@@ -771,7 +769,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
         <tr><td>Google Drive</td><td><code>www.googleapis.com/drive/v3</code> and <code>/upload/drive/v3</code>, with a bearer token</td></tr>
         <tr><td>Google sign-in</td><td><code>accounts.google.com/gsi/client</code></td></tr>
         <tr><td>Google Translate</td><td><code>translate.googleapis.com/translate_a/single</code> (Arabic fallback)</td></tr>
-        <tr><td>Content Hub</td><td><code>GET/POST /api/imports</code>, <code>/api/imports/&lt;id&gt;</code> at the hub's ngrok address. Headers <code>X-Design-Key</code>, <code>X-Source</code>, <code>X-Card-Id</code>. The URL and key are set per browser (<code>provident-ops-endpoint</code>)</td></tr>
+        <tr><td>Content Hub</td><td><code>GET/POST /api/imports</code>, <code>/api/imports/&lt;id&gt;</code> at the hub's ngrok address. Headers <code>X-Design-Key</code>, <code>X-Source</code>, <code>X-Card-Id</code>. The URL is set per browser (<code>provident-ops-endpoint</code>). The key comes from <code>op=hubkey</code> and is held in memory for the tab. Deliveries go straight from the browser to the hub, because a delivery (up to 50 MB) is too big for a Vercel function (4.5 MB)</td></tr>
         <tr><td>Google Fonts</td><td>Unbranded looks only</td></tr>
       </table>
       <h4>Outbound calls from <code>/api/share</code></h4>
@@ -820,17 +818,17 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
         <tr><td>localStorage <code>ws:&lt;id&gt;:*</code></td><td>The open project, per workspace (tab)</td></tr>
         <tr><td>IndexedDB <code>provident-design-studio~&lt;id&gt;</code></td><td>The photo sidecar for that workspace</td></tr>
         <tr><td>IndexedDB base <code>recents:*</code>, <code>dir:&lt;pid&gt;</code>, <code>lib:uses</code></td><td>Recents (saved projects, 10 per studio) and their photos, each project's source folder, component usage</td></tr>
-        <tr><td>IndexedDB <code>provident-cas-clips</code></td><td>CAS video-background clips</td></tr>
+        <tr><td>IndexedDB <code>provident-cas-clips</code></td><td>CAS video-background clips, a local copy of <code>Assets/video-background-variant-&lt;x&gt;.mp4</code> on Drive</td></tr>
         <tr><td>IndexedDB <code>provident-video</code></td><td>CASV media</td></tr>
         <tr><td>localStorage <code>provident-drive-tok</code>, <code>-who</code>, <code>-srv</code></td><td>Google access token, account hint, "has refresh cookie"</td></tr>
-        <tr><td>localStorage <code>provident-ops-endpoint</code></td><td>Content Hub URL and design key (per computer)</td></tr>
+        <tr><td>localStorage <code>provident-ops-endpoint</code></td><td>Content Hub URL only. The design key is no longer stored in the browser</td></tr>
         <tr><td>localStorage <code>adstudio-custom-lib</code></td><td>Custom CAS components</td></tr>
         <tr><td>localStorage <code>provident-inbox-cas|ops</code></td><td>Home's queues</td></tr>
         <tr><td>localStorage <code>provident-video-project</code>, <code>-prev</code></td><td>CASV's current and previous project</td></tr>
       </table>
       <h4>Environment variables (names only)</h4>
       <table class="wrap">
-        <tr><td>Vercel</td><td><code>GOOGLE_CLIENT_ID</code> · <code>GOOGLE_CLIENT_SECRET</code> · <code>KV_REST_API_URL</code> / <code>KV_REST_API_TOKEN</code> (or <code>UPSTASH_REDIS_REST_*</code>) · <code>SHARE_ADMIN_KEY</code> · <code>SHARE_STORE_MB</code> · <code>ACCESS_ADMIN</code> · <code>ACCESS_DOMAIN</code> · <code>ACCESS_ADMIN_ROLE</code> · <code>HUB_PUSH_KEY</code> · <code>ROAM_API_KEY</code> · <code>ROAM_GROUP_ID</code> · <code>ROAM_TAG_*</code> · <code>ANTHROPIC_API_KEY</code> · <code>ARCOPY_MODEL</code></td></tr>
+        <tr><td>Vercel</td><td><code>GOOGLE_CLIENT_ID</code> · <code>GOOGLE_CLIENT_SECRET</code> · <code>KV_REST_API_URL</code> / <code>KV_REST_API_TOKEN</code> (or <code>UPSTASH_REDIS_REST_*</code>) · <code>SHARE_ADMIN_KEY</code> · <code>SHARE_STORE_MB</code> · <code>ACCESS_ADMIN</code> · <code>ACCESS_DOMAIN</code> · <code>ACCESS_ADMIN_ROLE</code> · <code>HUB_PUSH_KEY</code> · <code>HUB_DESIGN_KEY</code> · <code>ROAM_API_KEY</code> · <code>ROAM_GROUP_ID</code> · <code>ROAM_TAG_*</code> · <code>ANTHROPIC_API_KEY</code> · <code>ARCOPY_MODEL</code></td></tr>
         <tr><td>Test only</td><td><code>SHARE_DEV</code> · <code>SHARE_DEV_QUOTA</code> · <code>ROAM_DRY</code> · <code>ARCOPY_DRY</code> · <code>GAUTH_*</code> · <code>ACCESS_GOOGLE_BASE</code></td></tr>
         <tr><td>Remote MCP</td><td><code>PROVIDENT_REMOTE_HOME</code> · <code>_PORT</code> · <code>_PUBLIC_URL</code> · <code>_LINK_DAYS</code> · <code>_IMAGES</code> · <code>_IDLE_MIN</code> · <code>PROVIDENT_STUDIO_OUT</code></td></tr>
         <tr><td>CASV</td><td><code>CASV_ORIGINS</code></td></tr>
@@ -854,7 +852,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <tr><td><b>Grok (xAI)</b></td><td>Team assistant bot</td><td>A Grok custom connector or the xAI Responses API <code>mcp</code> tool, through a tunnel to <code>remote.py</code>. Instructions live in <code>GROK-BOT-INSTRUCTIONS.md</code></td></tr>
     <tr><td><b>ngrok / Cloudflare Tunnel</b></td><td>Public https addresses</td><td>A login item in front of port 7313 (studio tools); the hub uses its own ngrok address</td></tr>
     <tr><td><b>Claude Desktop / Cowork</b></td><td>Agentic design work</td><td>The stdio MCP server <code>provident-studio</code>; <code>CAS-OPS-GUIDE.md</code> is the guide Cowork reads</td></tr>
-    <tr><td><b>Higgsfield</b></td><td>Photo-to-video for CASV and CAS animated ads</td><td>The Higgsfield MCP (through the <code>/animate-photos</code> skill) or the Higgsfield CLI run by CASV's server, always after a cost quote. People can also upload clips made on the Higgsfield site</td></tr>
+    <tr><td><b>Higgsfield</b></td><td>Photo-to-video for CASV and CAS animated ads</td><td>The Higgsfield MCP (through the <code>/animate-photos</code> skill) or the Higgsfield CLI run by CASV's server, always after a cost quote. CAS generates only through CASV's server, so it needs CASV running on the same computer. People can also upload clips made on the Higgsfield site</td></tr>
     <tr><td><b>Adobe Photoshop / Illustrator</b></td><td>Retouching and extending pictures</td><td>The local helper on :7312 runs <code>open -a</code> and watches for the save. PSD, TIFF and HEIC are converted with <code>sips</code>; SVG goes to Illustrator</td></tr>
     <tr><td><b>rembg</b> (bria-rmbg + vitmatte)</td><td>Cutting out agent photos</td><td>The local service on :7311 loads its model on first use and exits after 10 idle minutes</td></tr>
     <tr><td><b>Meta</b>, <b>Eventbrite</b></td><td>Where ads run</td><td>Output formats only. PDS has no Meta or Eventbrite API connection; the PM uploads the package</td></tr>
@@ -959,7 +957,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <div>
       <h4>Standing rules</h4>
       <ul>
-        <li><b>A kit change fans out:</b> edit <code>ui-design-system/</code> first, then mirror into all three consumers' stylesheets and their JS style objects (inline styles win), then verify in the browser.</li>
+        <li><b>A kit change fans out:</b> edit <code>ui-design-system/</code> first, then mirror into both studios' stylesheets and their JS style objects (inline styles win), then verify in the browser.</li>
         <li><b>Prove the artwork didn't move:</b> run an op-signature census against the pre-change file (both warm), or show a diff with zero artwork-path lines.</li>
         <li><b>Check the winning value, not the rule:</b> measure computed styles in the browser. The contrast bar is WCAG AA.</li>
         <li>Brand on canvas: Google Sans Flex only (400 headers, 300 everything else, 500 tracked caps). No gold except the recorded exemptions. No orange on dark grounds. The wordmark goes left or centre, never right.</li>
@@ -982,7 +980,21 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
   </div>
   <h4>Deleted on purpose: don't rebuild</h4>
   <p>YouTube Demand Gen · the Meta Ads kit bridge · CAS's Publish tab and Meta ad text · the OPS support desk · the iOS app shell · CAS's Send and From the hub · the Projects folder view · the old in-editor guided wizard · the single-file chooser (<code>Provident Design Studio.dc.html</code>) · the DLD page scraper · blank projects and single-project reviews (every CAS project now belongs to a campaign).</p>
-  <div class="note">For the reasoning behind any of these, read the matching file in <code>docs/notes/</code>: <code>architecture.md</code>, <code>cas.md</code>, <code>ops-templates.md</code>, <code>reviews-sharing-drive.md</code>, <code>ops-posts-and-hub.md</code>, <code>chrome-and-design-system.md</code>, <code>landing-page.md</code>, <code>web-image-studio.md</code>, <code>brand-rules.md</code>. The CASV notes live on the <code>video-studio</code> branch in <code>docs/notes/video-studio.md</code>.</div>
+  <div class="note">For the reasoning behind any of these, read the matching file in <code>docs/notes/</code>: <code>architecture.md</code>, <code>cas.md</code>, <code>ops-templates.md</code>, <code>reviews-sharing-drive.md</code>, <code>ops-posts-and-hub.md</code>, <code>chrome-and-design-system.md</code>, <code>landing-page.md</code>, <code>brand-rules.md</code>. The CASV notes live on the <code>video-studio</code> branch in <code>docs/notes/video-studio.md</code>.</div>
+</section>
+<!-- ============ 17 CHANGELOG ============ -->
+<section class="sec">
+  <div class="eb">Section 17</div>
+  <h2>Changelog</h2>
+  <p class="lede">This document follows the code. Every change to PDS that lands on <code>main</code> is written into the matching section in the same pass and logged here, newest first. Times are Gulf Standard Time (UTC+4).</p>
+  <table>
+    <tr><th style="width:11mm">Rev.</th><th style="width:30mm">Date and time</th><th>Change</th><th style="width:20mm">Sections</th><th style="width:15mm">Commit</th></tr>
+    <tr><td>1.3</td><td>17 Nov 2026, 17:39</td><td><b>OPS carousel fix:</b> switching the Logo to a brand mark (PVH, PB, PS, Prism) no longer drops the wash under it. The mark is an icon in <code>csBox</code>, not a text run, so the every-run-sits-in-a-wash pass now covers it by its box. Preview and export both read <code>csBox</code>; no architecture change.</td><td>17</td><td><code>7319be1</code></td></tr>
+    <tr><td>1.2</td><td>17 Nov 2026, 13:26</td><td><b>Web Image Studio detached from PDS:</b> removed from the system map, section 8, the file list and the design-system mirrors. <b>CAS video backgrounds</b> are now saved to Drive (<code>Assets/</code>), show an Animated pill on Status, autoplay in the PM and content-team views, and are included in the PM download. Edit in CASV is now a round trip. <b>OPS:</b> the Content Hub design key now comes from the server (<code>op=hubkey</code>, <code>HUB_DESIGN_KEY</code>) and is no longer stored in the browser.</td><td>2, 3, 5, 8, 11, 12, 16, 17</td><td><code>ab33159</code></td></tr>
+    <tr><td>1.1</td><td>17 Nov 2026, 13:00</td><td>Added CAS's <b>Generate from this photo</b> (Higgsfield, through CASV's local server) and <b>Edit in CASV</b>, with the new CASV routes <code>/api/animate/file</code> and <code>/api/inbox/photo</code>. <code>main</code> is now pushed and level with origin. Added this changelog.</td><td>3, 5, 7, 13, 17</td><td><code>3364d8b</code></td></tr>
+    <tr><td>1.0</td><td>17 Nov 2026, 11:45</td><td>First issue: the three studios, runtime, sign-in and roles, endpoints, storage, external services, agent surface, security, rules and traps.</td><td>All</td><td><code>4205db7</code></td></tr>
+  </table>
+  <div class="note">To update: edit <code>docs/architecture/pds-architecture.html</code>, raise the revision on the cover and in the page footer, add a row at the top of this table, then run <code>docs/architecture/build.sh</code>. It rebuilds <code>PDS-Architecture.pdf</code> beside it.</div>
 </section>
 </body>
 </html>
