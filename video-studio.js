@@ -2145,9 +2145,17 @@
     sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
   });
   prevOn();
-  { const m = /^#new=(.*)$/.exec(location.hash || '');
+  // CAS's Edit in CASV adds &photo=<id>: the ad's photo (parked by the local server in `_inbox/`)
+  // goes onto the new video's timeline
+  { const m = /^#new=([^&]*)(?:&photo=([a-z0-9]{4,16}))?$/.exec(location.hash || '');
     if (m) { history.replaceState(null, '', location.pathname + location.search); let nm = ''; try { nm = decodeURIComponent(m[1]); } catch (e) {}
-      setTimeout(() => startNew(nm, nm || 'CAS'), 600); } }
+      setTimeout(async () => {
+        if (!(await startNew(nm, nm || 'CAS')) || !m[2]) return;
+        try {
+          const r = await fetch('/api/inbox/photo?id=' + m[2]); if (!r.ok) throw new Error(r.status);
+          await addFiles([new File([await r.blob()], (nm || 'CAS') + ' photo.jpg', { type: 'image/jpeg' })]);
+        } catch (e) { toast('The photo from CAS could not be opened (' + e.message + ').'); }
+      }, 600); } }
   // a card opens above its button (the shortcuts, the markers)
   const popAt = (pop, btn) => e => {
     const open = e.newState === 'open', r = btn.getBoundingClientRect();

@@ -164,7 +164,9 @@ class H(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Cache-Control', 'no-store')
         o = self.headers.get('Origin')
-        if self.path.startswith('/api/outbox/') and site_ok(o):
+        # CAS (the website or a local copy) reads the outbox, and since 2026-11-17 also generates its
+        # video backgrounds through the animate queue and hands CASV a photo (/api/inbox/photo)
+        if self.path.startswith(('/api/outbox/', '/api/animate/', '/api/inbox/photo')) and site_ok(o):
             self.send_header('Access-Control-Allow-Origin', o)
             self.send_header('Vary', 'Origin')
         super().end_headers()
@@ -256,6 +258,13 @@ class H(SimpleHTTPRequestHandler):
                     os.remove(os.path.join(INBOX, jid + ext))
                 except OSError:
                     pass
+            return self._json(200, {'ok': True})
+        if path == '/api/inbox/photo':            # CAS's Edit in CASV: the photo a new video starts with
+            m = re.match(r'^data:image/jpeg;base64,(.+)$', body.get('photo') or '', re.S)
+            if not m:
+                return self._json(400, {'error': 'photo must be a JPEG data URL'})
+            os.makedirs(INBOX, exist_ok=True)
+            open(os.path.join(INBOX, jid + '.jpg'), 'wb').write(base64.b64decode(m.group(1)))
             return self._json(200, {'ok': True})
         if path == '/api/outbox/meta':            # the record for a parked video, written last
             os.makedirs(OUTBOX, exist_ok=True)
@@ -366,6 +375,18 @@ class H(SimpleHTTPRequestHandler):
         if self.path.split('?')[0] == '/api/animate/jobs':
             return self._json(200, {'jobs': self._jobs()})
         path = self.path.split('?')[0]
+        if path in ('/api/animate/file', '/api/inbox/photo'):   # a finished clip for CAS; CAS's photo for the page
+            q = self._q()
+            fp = os.path.join(QUEUE, q.get('id', '') + '.mp4') if path.endswith('file') else os.path.join(INBOX, q.get('id', '') + '.jpg')
+            if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or not os.path.exists(fp):
+                return self._json(404, {'error': 'not found'})
+            self.send_response(200)
+            self.send_header('Content-Type', 'video/mp4' if path.endswith('file') else 'image/jpeg')
+            self.send_header('Content-Length', str(os.path.getsize(fp)))
+            self.end_headers()
+            with open(fp, 'rb') as f:
+                shutil.copyfileobj(f, self.wfile)
+            return
         if path == '/api/outbox/list':
             return self._json(200, {'videos': self._out()})
         if path == '/api/inbox/list':
