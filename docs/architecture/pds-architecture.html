@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>PDS Architecture</title>
+<style>
+@font-face{font-family:'Google Sans Flex';src:url('../../_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/assets/fonts/GoogleSansFlex-Variable.woff2') format('woff2');font-weight:1 1000}
+:root{--navy:#1A2942;--pnavy:#2F4960;--orange:#F3793C;--paper:#FAF8F4;--cream:#F4F1EC;--mist:#ECE7DF;--stone:#D4CFC4;--muted:#5E6573;--brass:#8C6F3F}
+@page{size:A4;margin:17mm 17mm 19mm;
+  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  17th November 2026";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
+  @bottom-right{content:counter(page);font:500 7.5pt 'Google Sans Flex';color:#1A2942}}
+@page cover{margin:0;@bottom-left{content:none}@bottom-right{content:none}}
+html{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;font-family:'Google Sans Flex',sans-serif;font-weight:300;color:var(--navy);font-size:9pt;line-height:1.48}
+/* cover */
+.cover{page:cover;width:210mm;height:297mm;background:var(--navy);color:#fff;position:relative;overflow:hidden;break-after:page}
+.cover .wm{position:absolute;left:20mm;top:20mm;font-size:22pt;font-weight:350;letter-spacing:.04em}
+.cover .mid{position:absolute;left:20mm;right:24mm;top:92mm}
+.cover .eb{font-weight:500;font-size:8pt;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.cover h1{font-weight:400;font-size:40pt;line-height:1.08;letter-spacing:-.02em;margin:7mm 0 6mm}
+.cover .sub{font-size:13pt;color:var(--mist);max-width:140mm;line-height:1.45}
+.cover .apps{display:flex;gap:4mm;margin-top:14mm}
+.cover .apps div{border:1px solid rgba(236,231,223,.35);border-radius:3mm;padding:4mm 5mm;width:46mm}
+.cover .apps b{display:block;font-weight:400;font-size:15pt}
+.cover .apps span{font-size:8.5pt;color:var(--stone)}
+.cover .foot{position:absolute;left:20mm;right:20mm;bottom:18mm;display:flex;justify-content:space-between;font-size:8.5pt;color:var(--stone);border-top:1px solid rgba(236,231,223,.25);padding-top:5mm}
+.cover .foot b{color:#fff;font-weight:400}
+/* type */
+h2{font-weight:400;font-size:21pt;line-height:1.15;letter-spacing:-.01em;margin:0 0 3mm}
+h3{font-weight:400;font-size:12.5pt;margin:6mm 0 2mm;break-after:avoid}
+h4{font-weight:500;font-size:7.5pt;letter-spacing:.14em;text-transform:uppercase;color:var(--pnavy);margin:4.5mm 0 1.5mm;break-after:avoid}
+.eb{font-weight:500;font-size:7.5pt;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin-bottom:2mm}
+.sec{break-before:page}
+.lede{font-size:11pt;line-height:1.5;color:var(--pnavy);margin:0 0 5mm;max-width:160mm}
+p{margin:0 0 2.5mm}
+ul{margin:0 0 3mm;padding-left:0;list-style:none}
+li{position:relative;padding-left:4.5mm;margin-bottom:1mm}
+li::before{content:"";position:absolute;left:.6mm;top:.62em;width:1.5mm;height:1.5mm;border-radius:50%;background:var(--orange)}
+b,strong{font-weight:500}
+code{font-family:'Google Sans Flex',sans-serif;font-weight:400;font-size:.94em;background:var(--mist);border-radius:1mm;padding:0 1mm;white-space:nowrap}
+.wrap code{white-space:normal}
+table{width:100%;border-collapse:collapse;margin:1.5mm 0 4mm;font-size:8.4pt;line-height:1.4;break-inside:auto}
+tr{break-inside:avoid}
+th{font-weight:500;font-size:7pt;letter-spacing:.12em;text-transform:uppercase;text-align:left;color:var(--pnavy);border-bottom:1.2px solid var(--navy);padding:1.6mm 2mm 1.4mm 0}
+td{border-bottom:1px solid var(--stone);padding:1.6mm 2mm 1.6mm 0;vertical-align:top}
+td code{white-space:normal}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4mm}
+.card{background:var(--paper);border:1px solid var(--mist);border-radius:2.5mm;padding:4mm 4.5mm;break-inside:avoid}
+.card h4{margin-top:0}
+.navy{background:var(--navy);color:#fff;border:0}
+.navy h4{color:var(--stone)}
+.navy code{background:rgba(255,255,255,.12);color:#fff}
+.stat b{display:block;font-weight:300;font-size:22pt;line-height:1.1}
+.stat span{font-size:8pt;color:var(--muted)}
+.navy.stat span{color:var(--stone)}
+.note{border-left:2px solid var(--pnavy);background:var(--cream);padding:2.5mm 4mm;margin:3mm 0 4mm;font-size:8.8pt;break-inside:avoid}
+.risk{border-left-color:var(--navy)}
+figure{margin:3mm 0 5mm;break-inside:avoid}
+figcaption{font-size:8pt;color:var(--muted);margin-top:2mm}
+figure svg{width:100%;height:auto;display:block}
+.toc{columns:2;column-gap:10mm;font-size:10pt}
+.toc div{display:flex;gap:4mm;padding:2mm 0;border-bottom:1px solid var(--stone);break-inside:avoid}
+.toc span{font-weight:500;font-size:7.5pt;letter-spacing:.12em;color:var(--brass);width:8mm;padding-top:.6mm}
+.small{font-size:8pt;color:var(--muted)}
+/* svg */
+svg text{font-family:'Google Sans Flex',sans-serif;fill:#1A2942;font-weight:300;font-size:9px}
+svg .w{fill:#fff} svg .s{fill:#D4CFC4} svg .mu{fill:#5E6573}
+svg .h{font-weight:500;font-size:10.5px} svg .c{font-weight:500;font-size:7.5px;letter-spacing:.12em}
+svg .sm{font-size:7.6px}
+svg .bn{fill:#1A2942} svg .bp{fill:#2F4960} svg .bc{fill:#F4F1EC;stroke:#D4CFC4} svg .bw{fill:#fff;stroke:#D4CFC4} svg .bm{fill:#ECE7DF}
+svg .bo{fill:#fff;stroke:#1A2942;stroke-width:1.2}
+svg .ln{stroke:#2F4960;stroke-width:1.1;fill:none;marker-end:url(#ar)}
+svg .ld{stroke:#2F4960;stroke-width:1;fill:none;stroke-dasharray:3 3;marker-end:url(#ar)}
+svg .ll{stroke:#2F4960;stroke-width:1;fill:none}
+svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8z" fill="#2F4960"/></marker></defs></svg>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="wm">provident.</div>
+  <div class="mid">
+    <div class="eb">Engineering reference · Architecture</div>
+    <h1>Provident Design Studio</h1>
+    <div class="sub">How PDS works today: the three studios, the shared runtime, sign-in and roles, every endpoint, where data lives, the external services it talks to, and the flows that connect the teams.</div>
+    <div class="apps">
+      <div><b>CAS</b><span>Campaign Ads Studio<br>paid Meta and Eventbrite ads</span></div>
+      <div><b>OPS</b><span>Organic Post Studio<br>feed and story posts</span></div>
+      <div><b>CASV</b><span>Video Studio prototype<br>Reels and squares</span></div>
+    </div>
+  </div>
+  <div class="foot">
+    <div><b>Current state as of 17th November 2026</b><br>Written for the AI engineering team · internal</div>
+    <div style="text-align:right">Repository <b>kelvin-inigo/Provident-Design-Studio</b><br>Live site provident-design-studio.vercel.app</div>
+  </div>
+</section>
+
+<!-- ============ CONTENTS ============ -->
+<section>
+  <div class="eb">Contents</div>
+  <h2>What's in this document</h2>
+  <p class="lede">Read sections 1 to 3 first. They explain the shape of the system. The later sections are reference material for whichever area you're changing.</p>
+  <div class="toc">
+    <div><span>01</span>PDS at a glance</div>
+    <div><span>02</span>System map: how everything connects</div>
+    <div><span>03</span>Repository, branches and file locations</div>
+    <div><span>04</span>In-browser runtime and shared code</div>
+    <div><span>05</span>CAS: Campaign Ads Studio</div>
+    <div><span>06</span>OPS: Organic Post Studio</div>
+    <div><span>07</span>CASV: Video Studio prototype</div>
+    <div><span>08</span>Home, Status and Web Image Studio</div>
+    <div><span>09</span>UX flows across the teams</div>
+    <div><span>10</span>Authentication and roles</div>
+    <div><span>11</span>Endpoints</div>
+    <div><span>12</span>Data and storage</div>
+    <div><span>13</span>External apps and services</div>
+    <div><span>14</span>Agent surface: MCP, Grok bot and skills</div>
+    <div><span>15</span>Security posture and known risks</div>
+    <div><span>16</span>Engineering rules, traps and removed features</div>
+  </div>
+
+  <h3>Sources and how current this is</h3>
+  <p>This document was compiled from the code on <code>main</code> (commit <code>4205db7</code>, four commits ahead of <code>origin/main</code>, not yet pushed), the <code>video-studio</code> worktree (HEAD <code>01007c5</code>), the dated engineering notes in <code>docs/notes/</code>, and the setup docs in <code>docs/</code>. The notes are logs where later entries replace earlier ones. Where a note and the code disagree, the code wins. Section 15 lists the setup docs that are out of date.</p>
+  <div class="note">No secret values appear in this document. Environment variables, tokens and keys are named only. Their values live in Vercel, in per-computer files, or in browser storage, never in the repository, which is <b>public</b>.</div>
+
+  <!-- 01 -->
+  </section>
+<section class="sec">
+  <div class="eb">Section 01</div>
+  <h2>PDS at a glance</h2>
+  <p class="lede">PDS is Provident's in-house brand production suite. Designers, performance marketing, the content team and social media use it to make on-brand ads and posts and pass them between teams for review. It's a static web app with no build step: plain HTML and JavaScript documents, two small Python serverless functions, Google Drive as the system of record, and optional helper services on the designers' Macs.</p>
+  <div class="grid3">
+    <div class="card navy stat"><b>3</b><span>studios: CAS and OPS (live), CASV (local prototype)</span></div>
+    <div class="card stat"><b>2</b><span>serverless functions: <code>/api/share</code>, <code>/api/gauth</code> (Python, Vercel)</span></div>
+    <div class="card stat"><b>8</b><span>studio tools exposed over MCP, to Claude (stdio) and the Grok bot (https)</span></div>
+    <div class="card stat"><b>0</b><span>build steps. Every file is served as written; there's no bundler and no npm</span></div>
+    <div class="card stat"><b>~62k</b><span>lines across the two studio documents and their shared scripts</span></div>
+    <div class="card stat"><b>8</b><span>roles, from <code>admin</code> to <code>ctar</code>, with an admin-editable capability map</span></div>
+  </div>
+  <h4>Design principles worth knowing before you touch anything</h4>
+  <ul>
+    <li><b>The canvas and the chrome are separate systems.</b> Artwork reads brand palette literals (<code>CampaignStudio.PAL</code>, <code>OrganicStudio.ART</code>). The UI reads <code>--ps-*</code> CSS tokens. Mixing them once leaked UI blue into finished posts.</li>
+    <li><b>Preview and export share one geometry.</b> Every component and template has a single layout function, read by both the on-screen preview and the exporter.</li>
+    <li><b>Drive is the record of truth</b> for ad sets, projects, posts and exports. Access to the data is Drive sharing. The in-app role gate only shapes the UI.</li>
+    <li><b>Local helpers are capabilities, never requirements.</b> When rembg, the Photoshop helper or CASV isn't running, the feature that uses it disappears and nothing else breaks.</li>
+    <li><b>Agents drive the real app.</b> The MCP server opens the actual studio documents in headless Chrome, so no artwork logic is duplicated for AI use.</li>
+  </ul>
+
+  <h3>Three ways in</h3>
+  <div class="grid3">
+    <div class="card"><h4>People, in a browser</h4>Open the live site on Vercel (or a local copy). Home is the starting point; it opens CAS or OPS on the right project and links out to CASV on <code>localhost:8794</code>.</div>
+    <div class="card"><h4>Claude, on a Mac</h4>Claude Desktop and Cowork reach CAS and OPS through the <code>provident-studio</code> MCP server (stdio). Skills such as <code>/hub-design-queue</code> build on those tools.</div>
+    <div class="card"><h4>The Grok bot, remotely</h4>The same eight tools are served over https by <code>remote.py</code> on the office Mac, behind a tunnel. Each person gets their own token.</div>
+  </div>
+</section>
+
+<!-- ============ 02 SYSTEM MAP ============ -->
+<section class="sec">
+  <div class="eb">Section 02</div>
+  <h2>System map: how everything connects</h2>
+  <p class="lede">People work in a browser. The studios talk directly to Google for sign-in and Drive, to the Vercel functions for access and sharing, and, when they're running, to helper services on the same Mac. The office Mac exposes the studio tools to the Grok bot through a tunnel.</p>
+  <figure>
+  <svg viewBox="0 0 660 612">
+    <text x="10" y="31" class="c mu">PEOPLE</text>
+    <rect x="90" y="14" width="95" height="26" rx="13" class="bc"/><text x="137.5" y="31" text-anchor="middle">PM · DMT</text>
+    <rect x="195" y="14" width="95" height="26" rx="13" class="bc"/><text x="242.5" y="31" text-anchor="middle">Designer</text>
+    <rect x="300" y="14" width="125" height="26" rx="13" class="bc"/><text x="362.5" y="31" text-anchor="middle">Content team EN · AR</text>
+    <rect x="435" y="14" width="95" height="26" rx="13" class="bc"/><text x="482.5" y="31" text-anchor="middle">SMM</text>
+    <rect x="540" y="14" width="110" height="26" rx="13" class="bc"/><text x="595" y="31" text-anchor="middle">Admin</text>
+    <path d="M330 42 V66" class="ln"/>
+
+    <rect x="10" y="70" width="640" height="190" rx="10" class="bw"/>
+    <text x="24" y="90" class="c mu">BROWSER · PROVIDENT-DESIGN-STUDIO.VERCEL.APP</text>
+    <rect x="24" y="98" width="612" height="42" rx="6" class="bn"/>
+    <text x="330" y="116" text-anchor="middle" class="h w">Home · index.html</text>
+    <text x="330" y="131" text-anchor="middle" class="sm s">Next up · Status board · Ready files · Projects · Access (admin) · Google sign-in gate (access.js)</text>
+    <path d="M97 140 V154 M252 140 V154 M407 140 V154 M562 140 V154" class="ll"/>
+    <rect x="24" y="156" width="146" height="62" rx="6" class="bn"/>
+    <text x="97" y="176" text-anchor="middle" class="h w">CAS</text><text x="97" y="191" text-anchor="middle" class="sm s">Campaign Ads Studio · Meta ads</text><text x="97" y="206" text-anchor="middle" class="sm s">Provident Campaign Studio.dc.html</text>
+    <rect x="179" y="156" width="146" height="62" rx="6" class="bn"/>
+    <text x="252" y="176" text-anchor="middle" class="h w">OPS</text><text x="252" y="191" text-anchor="middle" class="sm s">Organic Post Studio · feed + story</text><text x="252" y="206" text-anchor="middle" class="sm s">Provident Organic Studio.dc.html</text>
+    <rect x="334" y="156" width="146" height="62" rx="6" class="bp"/>
+    <text x="407" y="176" text-anchor="middle" class="h w">CASV</text><text x="407" y="191" text-anchor="middle" class="sm s">Video Studio · localhost:8794</text><text x="407" y="206" text-anchor="middle" class="sm s">video-studio branch (local only)</text>
+    <rect x="489" y="156" width="147" height="62" rx="6" class="bp"/>
+    <text x="562" y="176" text-anchor="middle" class="h w">Web Image Studio</text><text x="562" y="191" text-anchor="middle" class="sm s">website photo sizes</text><text x="562" y="206" text-anchor="middle" class="sm s">web-image-studio.html</text>
+    <rect x="24" y="228" width="612" height="22" rx="4" class="bm"/>
+    <text x="330" y="242.5" text-anchor="middle" class="sm">Shared scripts: runtime.js · support.js · studio-base.js · image-slot.js · share-link.js · access.js · post-flow.js</text>
+
+    <text x="10" y="290" class="c mu">CLOUD SERVICES</text>
+    <path d="M70 260 V296" class="ln"/><path d="M200 260 V296" class="ln"/>
+    <rect x="10" y="298" width="120" height="74" rx="6" class="bo"/>
+    <text x="70" y="319" text-anchor="middle" class="h">Vercel</text><text x="70" y="334" text-anchor="middle" class="sm">/api/share · /api/gauth</text><text x="70" y="347" text-anchor="middle" class="sm">static hosting</text><text x="70" y="360" text-anchor="middle" class="sm mu">Python functions</text>
+    <rect x="140" y="298" width="120" height="74" rx="6" class="bc"/>
+    <text x="200" y="319" text-anchor="middle" class="h">Google</text><text x="200" y="334" text-anchor="middle" class="sm">Sign-in (GIS) · OAuth</text><text x="200" y="347" text-anchor="middle" class="sm">Drive v3 (record of truth)</text><text x="200" y="360" text-anchor="middle" class="sm mu">Translate (Arabic fallback)</text>
+    <rect x="270" y="298" width="120" height="74" rx="6" class="bc"/>
+    <text x="330" y="319" text-anchor="middle" class="h">Upstash Redis</text><text x="330" y="334" text-anchor="middle" class="sm">access list · roles</text><text x="330" y="347" text-anchor="middle" class="sm">share links · hub tasks</text><text x="330" y="360" text-anchor="middle" class="sm mu">REST, via Vercel env</text>
+    <rect x="400" y="298" width="120" height="74" rx="6" class="bc"/>
+    <text x="460" y="319" text-anchor="middle" class="h">Anthropic</text><text x="460" y="334" text-anchor="middle" class="sm">Claude writes Arabic copy</text><text x="460" y="347" text-anchor="middle" class="sm">op arcopy</text><text x="460" y="360" text-anchor="middle" class="sm mu">claude-opus-5-5</text>
+    <rect x="530" y="298" width="120" height="74" rx="6" class="bc"/>
+    <text x="590" y="319" text-anchor="middle" class="h">Roam</text><text x="590" y="334" text-anchor="middle" class="sm">"send to copy check"</text><text x="590" y="347" text-anchor="middle" class="sm">notes to the team</text><text x="590" y="360" text-anchor="middle" class="sm mu">op roamnote</text>
+    <path d="M70 372 V386 H590" class="ll"/><path d="M200 386 V374" class="ln"/><path d="M330 386 V374" class="ln"/><path d="M460 386 V374" class="ln"/><path d="M590 386 V374" class="ln"/>
+    <text x="395" y="398" text-anchor="middle" class="sm mu">server-side calls made by /api/share</text>
+
+    <rect x="10" y="412" width="315" height="190" rx="10" class="bw"/>
+    <text x="24" y="431" class="c mu">A DESIGNER'S MAC · 127.0.0.1</text>
+    <rect x="24" y="440" width="140" height="48" rx="6" class="bc"/><text x="94" y="460" text-anchor="middle" class="h">rembg cut-out :7311</text><text x="94" y="476" text-anchor="middle" class="sm">agent photos, on upload</text>
+    <rect x="174" y="440" width="138" height="48" rx="6" class="bc"/><text x="243" y="460" text-anchor="middle" class="h">Photoshop helper :7312</text><text x="243" y="476" text-anchor="middle" class="sm">Edit in Photoshop / Illustrator</text>
+    <rect x="24" y="498" width="140" height="48" rx="6" class="bc"/><text x="94" y="518" text-anchor="middle" class="h">CASV server :8794</text><text x="94" y="534" text-anchor="middle" class="sm">outbox · inbox · animate queue</text>
+    <rect x="174" y="498" width="138" height="48" rx="6" class="bc"/><text x="243" y="518" text-anchor="middle" class="h">studio-mcp (stdio)</text><text x="243" y="534" text-anchor="middle" class="sm">Claude Desktop · Cowork</text>
+    <text x="167" y="572" text-anchor="middle" class="sm mu">launchd login items ae.provident.* · logs in ~/Library/Logs/Provident</text>
+    <text x="167" y="586" text-anchor="middle" class="sm mu">each one optional: the feature hides when it's down</text>
+
+    <rect x="335" y="412" width="315" height="190" rx="10" class="bw"/>
+    <text x="349" y="431" class="c mu">OFFICE MAC · TUNNELS</text>
+    <rect x="349" y="440" width="140" height="48" rx="6" class="bc"/><text x="419" y="460" text-anchor="middle" class="h">remote.py :7313</text><text x="419" y="476" text-anchor="middle" class="sm">studio tools over https</text>
+    <rect x="499" y="440" width="137" height="48" rx="6" class="bc"/><text x="567" y="460" text-anchor="middle" class="h">ngrok / cloudflared</text><text x="567" y="476" text-anchor="middle" class="sm">public https address</text>
+    <rect x="349" y="498" width="140" height="48" rx="6" class="bc"/><text x="419" y="518" text-anchor="middle" class="h">Grok bot (xAI)</text><text x="419" y="534" text-anchor="middle" class="sm">per-person bearer token</text>
+    <rect x="499" y="498" width="137" height="48" rx="6" class="bc"/><text x="567" y="518" text-anchor="middle" class="h">Content Hub</text><text x="567" y="534" text-anchor="middle" class="sm">separate app · /api/imports</text>
+    <path d="M497 464 H491" class="ln"/><path d="M489 522 H520 V490" class="ln"/>
+    <text x="492" y="572" text-anchor="middle" class="sm mu">The hub pushes tasks to /api/share (hubpush);</text>
+    <text x="492" y="586" text-anchor="middle" class="sm mu">OPS sends finished carousels to the hub's /api/imports</text>
+
+    <path d="M10 240 H4 V464 H22" class="ld"/>
+    <path d="M650 200 H656 V522 H638" class="ld"/>
+  </svg>
+  <figcaption>Figure 1. System context. Solid navy marks PDS-owned studios; the outlined Vercel box is PDS's own backend; cream boxes are third parties or optional helpers. The dashed lines on the left and right are browser calls to local helpers (127.0.0.1) and to the Content Hub.</figcaption>
+  </figure>
+
+</section>
+
+<!-- ============ 03 REPO ============ -->
+<section class="sec">
+  <div class="eb">Section 03</div>
+  <h2>Repository, branches and file locations</h2>
+  <div class="grid2">
+    <div>
+      <h4>Repository</h4>
+      <table>
+        <tr><td style="width:30mm">Remote</td><td><code>github.com/kelvin-inigo/Provident-Design-Studio</code>. <b>Public</b>, so nothing secret may be committed</td></tr>
+        <tr><td>Default branch</td><td><code>main</code>. Vercel deploys it to <code>provident-design-studio.vercel.app</code></td></tr>
+        <tr><td>History</td><td>395 commits since 10th September 2026</td></tr>
+        <tr><td>Main working copy</td><td class="wrap"><code>/Users/rizi/Documents/Provident Design Studio</code></td></tr>
+        <tr><td>Build</td><td>None. There's no <code>vercel.json</code>; <code>api/*.py</code> are detected automatically. <code>requirements.txt</code> lists only <code>anthropic</code></td></tr>
+      </table>
+    </div>
+    <div>
+      <h4>Branches and worktrees</h4>
+      <table>
+        <tr><th>Branch</th><th>State</th></tr>
+        <tr><td><code>main</code></td><td>Live. Four commits ahead of origin (CAS animated export, the CASV hand-off), not pushed. The Grok bridge files (<code>remote.py</code>, <code>install-remote.sh</code>, <code>env.sh</code>) are not committed yet</td></tr>
+        <tr><td><code>video-studio</code></td><td>CASV. Worktree in <code>.claude/worktrees/video-studio</code>. <b>Local only; never pushed, by instruction</b></td></tr>
+        <tr><td><code>cas-animated</code></td><td>Merged into main (<code>4205db7</code>)</td></tr>
+        <tr><td><code>cas-framework</code></td><td>CAS ad-engine work, kept off main until tested</td></tr>
+        <tr><td><code>landing-*</code>, <code>home/*</code>, <code>prototype/*</code></td><td>Earlier landing-page and home iterations</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h4>Top-level files</h4>
+  <table>
+    <tr><th style="width:52mm">File or folder</th><th>What it is</th></tr>
+    <tr><td><code>Provident Campaign Studio.dc.html</code></td><td>CAS: about 19.2k lines. Markup, chrome CSS and the <code>CampaignStudio</code> engine in one Design Cursor (DC) document</td></tr>
+    <tr><td><code>Provident Organic Studio.dc.html</code></td><td>OPS: about 17.6k lines, with the <code>OrganicStudio</code> engine</td></tr>
+    <tr><td><code>index.html</code></td><td>Home: Next up, the Status board, ready files, projects and the admin Access panel</td></tr>
+    <tr><td><code>studio-base.js</code></td><td><code>StudioBase</code>: text metrics, zip, PDF, sessions, the project folder, Google Drive sign-in (<code>providentDrive</code>), Content Hub fetches. One copy, shared</td></tr>
+    <tr><td><code>runtime.js</code></td><td>Storage stand-in (IndexedDB), the <code>?ws=</code> workspaces, Safari fallbacks, the single image encoder. One long function</td></tr>
+    <tr><td><code>share-link.js</code></td><td>About 8k lines: ad sets, review links, Status, the brief sheet (<code>PlanView</code>) and the Drive store (<code>dsApi</code>)</td></tr>
+    <tr><td><code>post-flow.js</code></td><td>OPS posts on Drive: Draft › Design › Copy check › Ready, and the post feed Home reads</td></tr>
+    <tr><td><code>access.js</code></td><td>The Google sign-in gate and role checks for both studios and Home</td></tr>
+    <tr><td><code>image-slot.js</code></td><td>The photo slot element: upload, Replace, Remove, Reframe, cut-out and the Photoshop round trip</td></tr>
+    <tr><td><code>api/share.py</code>, <code>api/gauth.py</code></td><td>Vercel Python functions: the share and access store (Upstash), and the Google refresh-token exchange</td></tr>
+    <tr><td><code>web-image-studio.html</code>, <code>share-admin.html</code></td><td>The standalone website-photo tool, and the share-store admin page</td></tr>
+    <tr><td><code>ui-design-system/</code></td><td>The chrome design system (tokens, CSS, gallery). CAS, OPS and the image tool mirror it</td></tr>
+    <tr><td><code>_ds/</code>, <code>fonts/</code>, <code>vendor/</code></td><td>The brand design system (Google Sans Flex, colour tokens), Arabic web fonts and third-party scripts</td></tr>
+    <tr><td><code>tools/</code></td><td><code>rembg/</code> cut-out service · <code>photoshop/</code> helper · <code>studio-mcp/</code> MCP server and https remote · <code>share-dev/</code> local dev server with a Drive stand-in</td></tr>
+    <tr><td><code>CAS-OPS-GUIDE.md</code>, <code>GROK-BOT-INSTRUCTIONS.md</code></td><td>The user-facing guide (for Claude Cowork) and the Grok bot's instructions. Update both when a visible label or flow changes</td></tr>
+    <tr><td><code>docs/notes/*.md</code></td><td>The engineering history for each area: decisions, measurements and approaches that were rejected. Read the relevant note before changing an area</td></tr>
+  </table>
+
+  <h4>Where things live outside the repository</h4>
+  <table>
+    <tr><th style="width:68mm">Location</th><th>Contents</th></tr>
+    <tr><td><code>~/Library/Application Support/Provident/cutout</code></td><td>The installed rembg service. Login items can't read <code>~/Documents</code>, so each service is copied here</td></tr>
+    <tr><td><code>~/Library/Application Support/Provident/studio-remote</code></td><td>The remote MCP: a repo copy, <code>projects/</code>, <code>tokens.json</code>, the link-signing <code>secret</code> (mode 0600) and <code>public-url</code></td></tr>
+    <tr><td><code>~/Library/LaunchAgents/ae.provident.*.plist</code></td><td>Login items: <code>cutout</code>, <code>photoshop</code>, <code>studio-remote</code>, <code>studio-tunnel</code></td></tr>
+    <tr><td><code>~/Library/Logs/Provident/</code></td><td>Service logs, including the per-person call log of the remote MCP</td></tr>
+    <tr><td><code>~/Documents/Provident Studio/</code></td><td>Projects and exports made through the stdio MCP server and the hub-design-queue skill</td></tr>
+    <tr><td><code>~/Library/Application Support/Claude/claude_desktop_config.json</code></td><td>Registers the <code>provident-studio</code> MCP server for Claude Desktop and Cowork</td></tr>
+    <tr><td><code>~/Documents/provident-content-hub</code></td><td>The Content Hub, a separate project. Its integration contract is in its own <code>docs/design-studio-integration.md</code></td></tr>
+    <tr><td><code>github.com/UIUX-Haseeb/marketing-tools</code></td><td>"Prov Toys", a separate live Next.js app. OPS templates are being re-derived there as tools. PDS isn't a dependency of it</td></tr>
+  </table>
+</section>
+
+<!-- ============ 04 RUNTIME ============ -->
+<section class="sec">
+  <div class="eb">Section 04</div>
+  <h2>In-browser runtime and shared code</h2>
+  <p class="lede">Each studio is one self-contained Design Cursor document (<code>.dc.html</code>): markup with <code>{{ }}</code> interpolation, a <code>&lt;helmet&gt;</code> stylesheet, and a <code>text/x-dc</code> script holding the engine class and the shell <code>Component</code>. The two studios share code through plain script files that load before the DC block.</p>
+  <figure>
+  <svg viewBox="0 0 660 250">
+    <rect x="10" y="10" width="640" height="34" rx="6" class="bm"/><text x="22" y="31" class="c">HEAD, IN ORDER</text>
+    <rect x="130" y="16" width="110" height="22" rx="4" class="bw"/><text x="185" y="31" text-anchor="middle">runtime.js</text>
+    <path d="M242 27 H258" class="ln"/>
+    <rect x="260" y="16" width="110" height="22" rx="4" class="bw"/><text x="315" y="31" text-anchor="middle">support.js</text>
+    <path d="M372 27 H388" class="ln"/>
+    <rect x="390" y="16" width="110" height="22" rx="4" class="bw"/><text x="445" y="31" text-anchor="middle">studio-base.js</text>
+    <path d="M502 27 H518" class="ln"/>
+    <rect x="520" y="16" width="122" height="22" rx="4" class="bw"/><text x="581" y="31" text-anchor="middle">studio-specific scripts</text>
+
+    <rect x="10" y="58" width="315" height="120" rx="8" class="bn"/>
+    <text x="24" y="78" class="c s">CAS · TEXT/X-DC BLOCK</text>
+    <text x="24" y="98" class="h w">class CampaignStudio extends StudioBase</text>
+    <text x="24" y="114" class="sm s">modLayout → buildOps → renderOpsToCanvas / renderOpsToSvg</text>
+    <text x="24" y="128" class="sm s">PAL · TYPE ladder · PXT sizes · EXPORT_NAME · look (Unbranded)</text>
+    <text x="24" y="148" class="h w">class Component extends DCLogic</text>
+    <text x="24" y="164" class="sm s">shell: top bar, tooltips, link to OPS, one engine this.eng</text>
+
+    <rect x="335" y="58" width="315" height="120" rx="8" class="bn"/>
+    <text x="349" y="78" class="c s">OPS · TEXT/X-DC BLOCK</text>
+    <text x="349" y="98" class="h w">class OrganicStudio extends StudioBase</text>
+    <text x="349" y="114" class="sm s">template layouts (csBox, listedBox …) → buildOps → renderers</text>
+    <text x="349" y="128" class="sm s">ART tokens · FIELDS / LOCKED · guided run gdPlan · FILETPL</text>
+    <text x="349" y="148" class="h w">class Component extends DCLogic</text>
+    <text x="349" y="164" class="sm s">shell + document-level Enter for the guided run</text>
+
+    <rect x="10" y="192" width="640" height="48" rx="8" class="bc"/>
+    <text x="24" y="211" class="c">STORAGE (PER BROWSER TAB)</text>
+    <text x="24" y="229">localStorage <tspan font-weight="400">ws:&lt;id&gt;:*</tspan> · IndexedDB <tspan font-weight="400">provident-design-studio~&lt;id&gt;</tspan> (photo sidecar) · shared: <tspan font-weight="400">recents:*</tspan>, theme, component library</text>
+  </svg>
+  <figcaption>Figure 2. Inside one studio document. Renderers are duplicated per studio on purpose; anything that changes how an op paints has to land in both renderers of both studios.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <div>
+      <h4>runtime.js</h4>
+      <ul>
+        <li><b>Workspaces.</b> Every tab gets <code>?ws=&lt;id&gt;</code> (from the URL, else <code>sessionStorage</code>, else a new id). Per-workspace localStorage keys are prefixed <code>ws:&lt;id&gt;:</code>. This stopped parallel Cowork sessions from overwriting each other. <code>?ws=shared</code> is the opt-out. Workspaces older than 30 days are pruned.</li>
+        <li><b>Storage stand-in.</b> <code>image-slot.js</code> gates editing on <code>window.omelette.writeFile</code>, which only Design Cursor provides. The runtime backs it with IndexedDB and serves <code>.image-slots.state.json</code> from there. A new workspace starts with an empty photo store.</li>
+        <li><b>One image encoder,</b> <code>providentEncodeFile</code>: one export-grade copy per image, long side capped at 3840 px. WebP, JPEG on older Safari, PNG when the image needs alpha.</li>
+        <li><b>Safari fallbacks</b> for letter-spacing, WebP, <code>roundRect</code> and <code>backdrop-filter</code>.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>studio-base.js</h4>
+      <ul>
+        <li>The DC logic surface (<code>state</code>, <code>setState</code>), text metrics (<code>meas</code>, <code>wrapRuns</code>), <code>zip</code>, <code>buildPdf</code>, <code>saveAs</code>, session load and save, the project folder (File System Access API) and recents.</li>
+        <li><code>window.providentDrive</code>: Google sign-in, token renewal and Drive <code>fetch</code> with a retry on 401 (section 10).</li>
+        <li>Content Hub reads (<code>hubFetch</code>, <code>hubLoad</code>, <code>hubOpenItem</code>), home navigation (<code>goHome</code>) and the inbox queues.</li>
+      </ul>
+      <h4>Session files and hand-over</h4>
+      <ul>
+        <li>CAS saves <code>.adstudio.json</code>; OPS saves <code>.smpstudio.json</code>. Opening one studio's file in the other navigates to the right studio.</li>
+        <li>Photo slot ids are prefixed per studio (<code>adstudio-*</code>, <code>smp-*</code>), so the shared photo store never collides.</li>
+        <li>Recents hold saved projects only (10 per studio), with their photos kept apart per project.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 CAS ============ -->
+<section class="sec">
+  <div class="eb">Section 05</div>
+  <h2>CAS: Campaign Ads Studio</h2>
+  <p class="lede">CAS makes paid ads for real-estate campaigns: branded or Unbranded Meta statics, Eventbrite banners, an animated video-background version, and the review hand-off between designer, content team and performance marketing. Every project belongs to a campaign "ad set" on Drive.</p>
+
+  <div class="grid2">
+    <div>
+      <h4>Flow, from brief to export</h4>
+      <ul>
+        <li><b>Brief sheet</b> (<code>PlanView</code>): the campaign name, product, deadline and Drive folder, the brief and attachments, audiences, and broad or audience-based reach. Then <b>Start designing</b> or <b>File as ticket</b>.</li>
+        <li><b>A ticket is an ad set with no project yet.</b> <code>dsMakeSet</code> writes <code>&lt;name&gt;_Adset.json</code> and <code>Brief/</code> into the campaign's Drive folder. <b>Pick up</b> creates the project.</li>
+        <li><b>Ad set tab</b>: overview, stage action, steps, audiences, brief, activity, team links, the Deliverables checklist (Static · Animated · MVP video), the Copy card and the Video section.</li>
+        <li><b>Design view</b>: a layers rail over a component palette, one canvas plate per variant, the component inspector and Layout rail, and the all-variants dock (QR, typeface pair, co-brand logo, Add variant).</li>
+        <li><b>Share › Export</b>: JPEG 2×, PNG 2×, SVG or PDF, then a counted button such as "Export 6 JPEGs". Animated export appears when a variant has a video background.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Component system</h4>
+      <ul>
+        <li>Component types: eyebrow, hero, hook, body, list, tags, spec, steps, price, cta, divider, spacer, graphic, and <code>cust</code>. Custom components come from the <code>/cas-component</code> skill.</li>
+        <li><b>Type ladder</b>: a minor third ×1.2 from a 24 px floor, <code>TYPE = [24, 28, 35, 41, 50, 59, 71, 85, 103, 123, 148, 177, 212]</code>.</li>
+        <li><b>S / M / L / XL</b> steps the ladder by −1 to +2. They're applied only where layout is computed (<code>tkMod</code>), so the preview and the export can't drift apart.</li>
+        <li><code>modLayout</code> → <code>buildOps</code> → <code>renderOpsToCanvas</code> / <code>renderOpsToSvg</code>. Changes are proven with an op census against the previous build.</li>
+        <li><b>Carousel mode</b>: up to 10 pages. Each page is a variant with its own component list.</li>
+        <li><b>Unbranded look</b>: tone, a five-role palette, Google Fonts, radius, blur and tracking. There's no wordmark or QR. It's set per project and can be mixed per audience.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h4>Sizes and export names</h4>
+  <table>
+    <tr><th>Key</th><th>Canvas</th><th>Export suffix</th><th>Notes</th></tr>
+    <tr><td><code>sq</code></td><td>1080 × 1080</td><td><code>feed</code></td><td>1:1, 80 px margins</td></tr>
+    <tr><td><code>pt</code></td><td>1080 × 1440</td><td><code>Portrait_3x4</code></td><td>On by default</td></tr>
+    <tr><td><code>st</code></td><td>1080 × 1920</td><td><code>Story</code></td><td>Reels safe area 260 / 100 / 460 / 100, with a 170 px rail reserve on the bottom cluster</td></tr>
+    <tr><td><code>ls</code></td><td>1200 × 628</td><td><code>Landscape_1.91x1</code></td><td>Laid out at 1920 wide. On by default</td></tr>
+    <tr><td><code>bn</code> / <code>bs</code></td><td>1880 × 940 / 758 × 380</td><td><code>EventBrite_Banner_wide</code> / <code>_Small</code></td><td>One design, two sizes</td></tr>
+    <tr><td>Animated</td><td>1:1 and 9:16</td><td><code>_feed_animated.mp4</code>, <code>_Story_animated.mp4</code></td><td>MediaRecorder in real time, 12 Mbps, H.264 MP4 or WebM, no sound</td></tr>
+  </table>
+  <p>Exports are written flat as <code>&lt;Variant A|B|C or Carousel&gt;/&lt;name&gt;_&lt;Variant X&gt;_&lt;size&gt;.&lt;ext&gt;</code>. They overwrite but never delete. Without a source folder, the same paths go into one zip.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Copy and Arabic</h4>
+      <p>Pasted copy is parsed line by line (<code>brPlain</code>; an audience line reads <code>Family:</code>) and inserted in reading order. The content team edits in the Edit text layer.</p>
+      <p style="margin:0"><b>Write the Arabic</b> calls <code>/api/share?op=arcopy</code>, where Claude (<code>claude-opus-5-5</code>, team rules in <code>AR_RULES</code>, structured output) writes the translation. If that fails, Chrome's built-in translator and the Google Translate endpoint are the fallbacks. The whole ad mirrors for right-to-left.</p>
+    </div>
+    <div class="card">
+      <h4>Video background</h4>
+      <p>Background › <b>Photo | Video</b> on a variant. A muted <code>&lt;video&gt;</code> plays inside the photo slot's frame, using the slot's crop.</p>
+      <p style="margin:0">Clips live only in IndexedDB <code>provident-cas-clips</code> (key <code>pid|variant</code>). They aren't saved in the session file, share links or Drive. The finished MP4 goes to Drive through the export.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 OPS ============ -->
+<section class="sec">
+  <div class="eb">Section 06</div>
+  <h2>OPS: Organic Post Studio</h2>
+  <p class="lede">OPS makes Instagram and organic social posts from locked brand templates. The studio exposes fields, not free positioning. Each template owns its layout, scrims and fixed text; the person fills in the content.</p>
+  <div class="grid2">
+    <div>
+      <h4>Templates</h4>
+      <table>
+        <tr><th>Id</th><th>Template</th><th>Pages</th></tr>
+        <tr><td><code>listed</code></td><td>Just listed / Just sold</td><td>1</td></tr>
+        <tr><td><code>weekly</code></td><td>Weekly listings: cover, one page per property (each with its own QR and listing number), closing page</td><td>many</td></tr>
+        <tr><td><code>agents</code></td><td>Top agents: cover and five ranks. Weekly, monthly, quarterly or yearly</td><td>6</td></tr>
+        <tr><td><code>agentsolo</code></td><td>Top agent, solo rank card</td><td>1</td></tr>
+        <tr><td><code>review</code></td><td>Google reviews</td><td>≤ 10</td></tr>
+        <tr><td><code>award</code></td><td>Congratulations award</td><td>1</td></tr>
+        <tr><td><code>carousel</code></td><td>Carousel: 13 page layouts (<code>cfront</code>, <code>ctext</code>, <code>cbul</code>, <code>ctable</code> …)</td><td>≤ 10</td></tr>
+        <tr><td><code>rcover</code></td><td>Reel thumbnail, 9:16 only, readable in the 4:5 crop</td><td>1</td></tr>
+      </table>
+    </div>
+    <div>
+      <h4>Sizes and export</h4>
+      <ul>
+        <li>Feed 1080 × 1440 (3:4, 80 / 90 margins). Story 1080 × 1920 (9:16, 200 top margin), included only while the Story switch is on.</li>
+        <li>Exports are flat: <code>&lt;name&gt;_3x4.&lt;ext&gt;</code> and <code>&lt;name&gt;_9x16.&lt;ext&gt;</code> in PNG, JPG or PDF. The PDF contains the feed pages only.</li>
+        <li>Name prefixes come from <code>FILETPL</code>: <code>Carousel_&lt;head&gt;</code>, <code>Weekly Listing_&lt;Week&gt;</code>, <code>Top Agents_&lt;date&gt;_&lt;team&gt;</code>, <code>Reel_Thumbnail_&lt;date&gt;</code> and so on.</li>
+        <li>A property page can't be exported until it has both its QR and a listing number.</li>
+        <li>Fonts, textures and award layers are bundled as data URIs, so OPS renders offline.</li>
+      </ul>
+      <h4>Guided run and All controls</h4>
+      <ul>
+        <li>The <b>guided run</b> is a page-by-page view of the same workspace, not a separate flow. It asks only for per-post content (<code>FIELDS</code>); <code>LOCKED</code> and <code>FIXEDTEXT</code> name what the template owns.</li>
+        <li><b>All controls</b>: pages as layers with real thumbnails, the size row, and the post-look inspector (Story, scrim, wash, photo strength, logo, panel colour).</li>
+        <li>Both are rendered from one markup. A change lands in both, and both directions are checked.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Posts on Drive (post-flow.js)</h3>
+  <p>A post is a folder in the shared Drive posts root (<code>FILES_ROOT</code> in <code>post-flow.js</code>), filed by type: <code>Weekly Listings/&lt;Month Year&gt;</code>, <code>Top Agents/&lt;Team&gt;</code>, <code>Reel Thumbnail</code>, <code>Just Listed &amp; Sold</code>, <code>Google Reviews</code>, <code>Awards</code> or <code>Carousel</code>. The folder holds:</p>
+  <ul>
+    <li><code>&lt;name&gt;_Post.json</code>: the record (ticket, items, steps, log, role tokens)</li>
+    <li><code>&lt;name&gt;.smpstudio.json</code>: the project</li>
+    <li><code>Assets/</code>, <code>Brief/</code> and the exports</li>
+  </ul>
+  <p>The project syncs to Drive about every 2.5 seconds. A "Just me" post has no record and doesn't appear on Status. A new post stays hidden from Status until its first save.</p>
+  <div class="note">The content team never gets the OPS editor. They review words only, in a frame opened at <code>OPS?cc=1#share=&lt;sid&gt;</code>, with Approve copy or Back to design. The one exception is Content Hub posts, whose copy is already approved in the hub.</div>
+</section>
+
+<!-- ============ 07 CASV ============ -->
+<section class="sec">
+  <div class="eb">Section 07</div>
+  <h2>CASV: Video Studio prototype</h2>
+  <p class="lede">CASV is a simple multi-track video editor for the "MVP video" deliverable of an ad set. It runs on the designer's own Mac, never signs in, and never touches Drive itself; the website does the Drive work when the video comes back to CAS.</p>
+  <div class="grid2">
+    <div>
+      <h4>What it is</h4>
+      <ul>
+        <li>Files: <code>Provident Video Studio.html</code>, <code>video-studio.js</code> (plain JS, not DC), <code>video-dev-logos.js</code>, <code>video-icons.js</code>, <code>tools/video-dev/serve.py</code>.</li>
+        <li>Sizes: Reel 9:16 (1080 × 1920) and Square 1:1 (1080 × 1080).</li>
+        <li>Tracks: Text, Graphics, Video (magnetic), Music, Sound. Captions timed to a voiceover; cut, fade, wipe, slats and dip transitions; callouts; an end card; markers.</li>
+        <li>Text follows the OPS reel-thumbnail style. The co-brand logo is CAS's lockup.</li>
+        <li>Branch <code>video-studio</code>, local only and never pushed. The prototype has a single project and no Recents.</li>
+      </ul>
+      <h4>Server routes (serve.py, port 8794)</h4>
+      <table>
+        <tr><td><code>/api/animate/*</code></td><td>Animate queue (<code>_animate/</code>): job, jobs, placed, cancel, cost, run</td></tr>
+        <tr><td><code>/api/music/*</code></td><td>Generate music (cost, make)</td></tr>
+        <tr><td><code>/api/voice/*</code></td><td>Voiceover: macOS <code>say</code> or Higgsfield text-to-speech</td></tr>
+        <tr><td><code>/api/outbox/*</code></td><td>file, meta, list, notes, back. Hand-off to CAS (<code>_outbox/</code>)</td></tr>
+        <tr><td><code>/api/inbox/*</code></td><td>list, file, done. Videos sent back from CAS (<code>_inbox/</code>)</td></tr>
+      </table>
+      <p class="small">CORS allows the live site, localhost and <code>CASV_ORIGINS</code>, and answers Chrome's private-network preflight.</p>
+    </div>
+    <div>
+      <h4>Higgsfield: turning photos into motion</h4>
+      <ul>
+        <li>A photo clip's inspector offers <b>Animate with Higgsfield</b>: 10 camera moves, 5, 8 or 10 seconds, Draft 720p or Full 1080p, and a choice of model (Seedance 2.5, Kling 3.0 or Cinema Studio).</li>
+        <li><b>Send to the animate queue</b>: the <code>/animate-photos</code> skill quotes the cost and waits for a yes, then runs Higgsfield through its MCP and marks the job done. The page polls every 4 seconds and swaps the clip in.</li>
+        <li><b>Generate now</b>: <code>serve.py</code> runs the Higgsfield CLI after showing the cost. A Kling draft has been proven; Seedance by either path hasn't.</li>
+      </ul>
+      <h4>Round trip with CAS</h4>
+      <ul>
+        <li>In CAS, Ad set › Video › <b>Add video</b> offers "existing from CASV" or "Make a new one in CASV". The second opens <code>…/Provident Video Studio.html#new=&lt;ad set&gt;</code>; CASV keeps the previous project as "Reopen the last video".</li>
+        <li><b>Send to CAS</b> records both sizes and a poster into <code>_outbox/</code>: <code>&lt;id&gt;_9x16.mp4</code>, <code>&lt;id&gt;_1x1.mp4</code>, <code>&lt;id&gt;.jpg</code>, <code>&lt;id&gt;.json</code> and <code>&lt;id&gt;.casv</code>. CAS polls the outbox every 3 seconds and uploads to <code>&lt;Main&gt;/Video/</code> on Drive.</li>
+        <li>Timeline comments from CAS reach CASV through <code>/api/outbox/notes</code> (polled every 15 seconds) and show as ruler pins.</li>
+        <li><b>Open in Video Studio</b> sends the <code>.casv</code> back through <code>/api/outbox/back</code> into <code>_inbox/</code>.</li>
+        <li>The ad set records the video as <code>rs.video</code> (op <code>rsvideo</code>). Who may add, replace or remove it depends on the signed-in role.</li>
+      </ul>
+      <div class="note">Exports record in real time (<code>captureStream</code> plus a WebAudio mix into MediaRecorder), so the tab must stay in front while it records.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 HOME ============ -->
+<section class="sec">
+  <div class="eb">Section 08</div>
+  <h2>Home, Status and Web Image Studio</h2>
+  <p class="lede">Home (<code>index.html</code>) is the front door for every role. The studios are now only for designing; everything about what to work on next, who has what, and where finished files are lives on Home.</p>
+  <h4>Home routes</h4>
+  <table>
+    <tr><th style="width:36mm">Route</th><th>What it shows</th></tr>
+    <tr><td><code>#/</code></td><td>A greeting, then <b>Next up</b> (a card that flips through your queue), Waiting on you, Where everything is, and Pick up where you left off</td></tr>
+    <tr><td><code>#/status</code></td><td>The board: New · Design · Copy check · Ready, plus Closed behind "Show closed". It mixes CAS ad sets, OPS posts and Content Hub tasks</td></tr>
+    <tr><td><code>#/item/&lt;cas|ops&gt;/&lt;id&gt;</code></td><td>The item page: CAS's ad set view or the OPS post page, mounted inside Home</td></tr>
+    <tr><td><code>#/files/&lt;id&gt;</code></td><td>The SMM's ready files, with Download all (zip) and Posted</td></tr>
+    <tr><td><code>#/new</code>, <code>#/new/cas</code></td><td>Start a post or a campaign</td></tr>
+    <tr><td><code>#/projects</code></td><td>Saved projects from IndexedDB</td></tr>
+    <tr><td><code>#/access</code></td><td>Admin only: Requests, People, Activity, Roles and "Preview as"</td></tr>
+  </table>
+  <p>Home links out to CAS (<code>#share=</code>, <code>#pick=</code>, <code>#recent=</code>), to OPS (<code>#view=new</code>, <code>#share=</code>, <code>#hubopen=</code>), to CASV on <code>localhost:8794</code> for roles with <code>design-cas</code> (overridable per computer), and to the Drive folders. It refreshes the review summary and the post feed every 60 seconds.</p>
+
+  <h3>Web Image Studio</h3>
+  <p><code>web-image-studio.html</code> is a standalone single-file tool that prepares photos for three websites: providentestate.com, offplan-dubai.com and the provident.ae landing pages. Pick a site, drop one photo per group, frame each placement, and export every placement as a JPEG at its exact pixel size, under 300 KB. The files are written flat into a folder chosen with <code>showDirectoryPicker</code>. The Developers logo slot exports a transparent SVG. All sizes live in its SPEC section. It makes no network calls and keeps its sources in IndexedDB.</p>
+</section>
+
+<!-- ============ 09 UX FLOWS ============ -->
+<section class="sec">
+  <div class="eb">Section 09</div>
+  <h2>UX flows across the teams</h2>
+  <p class="lede">Figure 3 maps the screens and how a person moves between them. Figures 4 and 5 follow one campaign and one post across the teams that touch them.</p>
+  <figure>
+  <svg viewBox="0 0 660 472">
+    <rect x="220" y="8" width="220" height="28" rx="14" class="bc"/><text x="330" y="26" text-anchor="middle">Google sign-in · access.js checks the role</text>
+    <path d="M330 36 V54" class="ln"/>
+    <rect x="150" y="56" width="360" height="48" rx="6" class="bn"/>
+    <text x="330" y="76" text-anchor="middle" class="h w">Home · index.html</text>
+    <text x="330" y="92" text-anchor="middle" class="sm s">#/ Next up · Waiting on you · Where everything is · Pick up where you left off</text>
+    <path d="M330 104 V118 H70 M330 118 H590" class="ll"/>
+    <path d="M70 118 V132" class="ln"/><path d="M200 118 V132" class="ln"/><path d="M330 118 V132" class="ln"/><path d="M460 118 V132" class="ln"/><path d="M590 118 V132" class="ln"/>
+    <rect x="10" y="134" width="120" height="44" rx="6" class="bw"/><text x="70" y="153" text-anchor="middle" class="h">Status board</text><text x="70" y="168" text-anchor="middle" class="sm mu">#/status</text>
+    <rect x="140" y="134" width="120" height="44" rx="6" class="bw"/><text x="200" y="153" text-anchor="middle" class="h">Item page</text><text x="200" y="168" text-anchor="middle" class="sm mu">#/item/cas|ops/&lt;id&gt;</text>
+    <rect x="270" y="134" width="120" height="44" rx="6" class="bw"/><text x="330" y="153" text-anchor="middle" class="h">New</text><text x="330" y="168" text-anchor="middle" class="sm mu">#/new · campaign or post</text>
+    <rect x="400" y="134" width="120" height="44" rx="6" class="bw"/><text x="460" y="153" text-anchor="middle" class="h">Ready files</text><text x="460" y="168" text-anchor="middle" class="sm mu">#/files/&lt;id&gt; · SMM</text>
+    <rect x="530" y="134" width="120" height="44" rx="6" class="bw"/><text x="590" y="153" text-anchor="middle" class="h">Access</text><text x="590" y="168" text-anchor="middle" class="sm mu">#/access · admin</text>
+    <path d="M70 178 V198 H545 M200 178 V198 M330 178 V198" class="ll"/>
+    <path d="M115 198 V218" class="ln"/><path d="M330 198 V218" class="ln"/><path d="M545 198 V218" class="ln"/>
+    <text x="440" y="212" class="sm mu">Add video › Make a new one in CASV</text>
+
+    <rect x="10" y="220" width="210" height="244" rx="8" class="bw"/>
+    <rect x="10" y="220" width="210" height="30" rx="8" class="bn"/><text x="115" y="240" text-anchor="middle" class="h w">CAS</text>
+    <rect x="20" y="258" width="190" height="34" rx="5" class="bc"/><text x="115" y="279" text-anchor="middle">Brief sheet (PlanView) · File as ticket</text>
+    <rect x="20" y="298" width="190" height="34" rx="5" class="bc"/><text x="115" y="314" text-anchor="middle">Ad set tab</text><text x="115" y="326" text-anchor="middle" class="sm mu">Deliverables · Copy · Video · Team links</text>
+    <rect x="20" y="338" width="190" height="34" rx="5" class="bc"/><text x="115" y="354" text-anchor="middle">Design view</text><text x="115" y="366" text-anchor="middle" class="sm mu">layers · plates per variant · inspector</text>
+    <rect x="20" y="378" width="190" height="34" rx="5" class="bc"/><text x="115" y="394" text-anchor="middle">Edit text (CT EN) · Write the Arabic</text><text x="115" y="406" text-anchor="middle" class="sm mu">CT AR approves</text>
+    <rect x="20" y="418" width="190" height="34" rx="5" class="bc"/><text x="115" y="434" text-anchor="middle">Share › Export</text><text x="115" y="446" text-anchor="middle" class="sm mu">JPEG · PNG · SVG · PDF · MP4 → Drive</text>
+
+    <rect x="225" y="220" width="210" height="244" rx="8" class="bw"/>
+    <rect x="225" y="220" width="210" height="30" rx="8" class="bn"/><text x="330" y="240" text-anchor="middle" class="h w">OPS</text>
+    <rect x="235" y="258" width="190" height="34" rx="5" class="bc"/><text x="330" y="274" text-anchor="middle">Pick a template</text><text x="330" y="286" text-anchor="middle" class="sm mu">8 locked templates · brief sheet</text>
+    <rect x="235" y="298" width="190" height="34" rx="5" class="bc"/><text x="330" y="314" text-anchor="middle">Guided run</text><text x="330" y="326" text-anchor="middle" class="sm mu">page by page, content fields only</text>
+    <rect x="235" y="338" width="190" height="34" rx="5" class="bc"/><text x="330" y="354" text-anchor="middle">All controls</text><text x="330" y="366" text-anchor="middle" class="sm mu">pages rail · post-look inspector</text>
+    <rect x="235" y="378" width="190" height="34" rx="5" class="bc"/><text x="330" y="394" text-anchor="middle">Copy check frame (CT)</text><text x="330" y="406" text-anchor="middle" class="sm mu">?cc=1 · words only</text>
+    <rect x="235" y="418" width="190" height="34" rx="5" class="bc"/><text x="330" y="434" text-anchor="middle">Share › Export · Send to hub</text><text x="330" y="446" text-anchor="middle" class="sm mu">_3x4 / _9x16 → Drive · /api/imports</text>
+
+    <rect x="440" y="220" width="210" height="244" rx="8" class="bw"/>
+    <rect x="440" y="220" width="210" height="30" rx="8" class="bp"/><text x="545" y="240" text-anchor="middle" class="h w">CASV (localhost)</text>
+    <rect x="450" y="258" width="190" height="34" rx="5" class="bc"/><text x="545" y="274" text-anchor="middle">#new=&lt;ad set&gt; starts a video</text><text x="545" y="286" text-anchor="middle" class="sm mu">previous one kept to reopen</text>
+    <rect x="450" y="298" width="190" height="34" rx="5" class="bc"/><text x="545" y="314" text-anchor="middle">Timeline</text><text x="545" y="326" text-anchor="middle" class="sm mu">Text · Graphics · Video · Music · Sound</text>
+    <rect x="450" y="338" width="190" height="34" rx="5" class="bc"/><text x="545" y="354" text-anchor="middle">Animate with Higgsfield</text><text x="545" y="366" text-anchor="middle" class="sm mu">queue (skill) or Generate now</text>
+    <rect x="450" y="378" width="190" height="34" rx="5" class="bc"/><text x="545" y="394" text-anchor="middle">Export video · Save frame</text><text x="545" y="406" text-anchor="middle" class="sm mu">MP4 H.264/AAC or WebM</text>
+    <rect x="450" y="418" width="190" height="34" rx="5" class="bc"/><text x="545" y="434" text-anchor="middle">Send to CAS</text><text x="545" y="446" text-anchor="middle" class="sm mu">_outbox → CAS uploads to Drive</text>
+  </svg>
+  <figcaption>Figure 3. Screen map. Sign-in leads to Home; Home's routes open the studios on the right project. The role decides which tiles and routes appear: SMM sees OPS only, PM sees CAS only, the content team sees its own hand-offs, and designers and the admin see everything.</figcaption>
+  </figure>
+</section>
+
+<section class="sec">
+  <h3 style="margin-top:0">A campaign, end to end (CAS)</h3>
+  <figure>
+  <svg viewBox="0 0 660 330">
+    <rect x="10" y="10" width="78" height="60" class="bn"/><text x="49" y="44" text-anchor="middle" class="h w">PM · DMT</text>
+    <rect x="88" y="10" width="562" height="60" class="bw"/>
+    <rect x="10" y="72" width="78" height="60" class="bn"/><text x="49" y="106" text-anchor="middle" class="h w">Designer</text>
+    <rect x="88" y="72" width="562" height="60" class="bc"/>
+    <rect x="10" y="134" width="78" height="60" class="bn"/><text x="49" y="161" text-anchor="middle" class="h w">Content</text><text x="49" y="175" text-anchor="middle" class="h w">team</text>
+    <rect x="88" y="134" width="562" height="60" class="bw"/>
+    <rect x="10" y="196" width="78" height="60" class="bp"/><text x="49" y="230" text-anchor="middle" class="h w">CASV</text>
+    <rect x="88" y="196" width="562" height="60" class="bc"/>
+    <rect x="10" y="258" width="78" height="60" class="bp"/><text x="49" y="285" text-anchor="middle" class="h w">Google</text><text x="49" y="299" text-anchor="middle" class="h w">Drive</text>
+    <rect x="88" y="258" width="562" height="60" class="bw"/>
+
+    <rect x="96" y="20" width="88" height="40" rx="5" class="bo"/><text x="140" y="37" text-anchor="middle" class="sm">Brief sheet</text><text x="140" y="49" text-anchor="middle" class="sm">File as ticket</text>
+    <rect x="190" y="82" width="88" height="40" rx="5" class="bo"/><text x="234" y="99" text-anchor="middle" class="sm">Next up →</text><text x="234" y="111" text-anchor="middle" class="sm">Pick up</text>
+    <rect x="284" y="82" width="88" height="40" rx="5" class="bo"/><text x="328" y="99" text-anchor="middle" class="sm">Design + Copy card</text><text x="328" y="111" text-anchor="middle" class="sm">static · animated</text>
+    <rect x="378" y="206" width="88" height="40" rx="5" class="bo"/><text x="422" y="223" text-anchor="middle" class="sm">MVP video</text><text x="422" y="235" text-anchor="middle" class="sm">Send to CAS</text>
+    <rect x="378" y="144" width="88" height="40" rx="5" class="bo"/><text x="422" y="161" text-anchor="middle" class="sm">Copy check EN</text><text x="422" y="173" text-anchor="middle" class="sm">Edit text · approve</text>
+    <rect x="472" y="144" width="88" height="40" rx="5" class="bo"/><text x="516" y="161" text-anchor="middle" class="sm">Arabic: Claude</text><text x="516" y="173" text-anchor="middle" class="sm">writes · CT AR OK</text>
+    <rect x="562" y="82" width="84" height="40" rx="5" class="bo"/><text x="604" y="99" text-anchor="middle" class="sm">Export →</text><text x="604" y="111" text-anchor="middle" class="sm">Package ready</text>
+    <rect x="562" y="20" width="84" height="40" rx="5" class="bo"/><text x="604" y="37" text-anchor="middle" class="sm">Download pkg</text><text x="604" y="49" text-anchor="middle" class="sm">→ Meta Ads</text>
+
+    <rect x="96" y="268" width="88" height="40" rx="5" class="bm"/><text x="140" y="285" text-anchor="middle" class="sm">_Adset.json</text><text x="140" y="297" text-anchor="middle" class="sm">Brief/</text>
+    <rect x="284" y="268" width="88" height="40" rx="5" class="bm"/><text x="328" y="285" text-anchor="middle" class="sm">.adstudio.json</text><text x="328" y="297" text-anchor="middle" class="sm">per market/aud</text>
+    <rect x="378" y="268" width="88" height="40" rx="5" class="bm"/><text x="422" y="285" text-anchor="middle" class="sm">Video/</text><text x="422" y="297" text-anchor="middle" class="sm">_9x16 · _1x1 .mp4</text>
+    <rect x="562" y="268" width="84" height="40" rx="5" class="bm"/><text x="604" y="285" text-anchor="middle" class="sm">Variant A…/</text><text x="604" y="297" text-anchor="middle" class="sm">flat exports</text>
+
+    <path d="M184 40 H187 V102 H188" class="ln"/>
+    <path d="M278 102 H282" class="ln"/>
+    <path d="M372 102 H375 V164 H376" class="ln"/>
+    <path d="M466 164 H470" class="ln"/>
+    <path d="M516 144 V102 H560" class="ln"/>
+    <path d="M604 82 V62" class="ln"/>
+    <path d="M350 122 V226 H376" class="ld"/>
+    <path d="M140 60 V266" class="ld"/>
+    <path d="M328 122 V266" class="ld"/>
+    <path d="M422 246 V266" class="ld"/>
+    <path d="M604 122 V266" class="ld"/>
+  </svg>
+  <figcaption>Figure 4. Campaign lifecycle. Solid arrows are hand-offs between teams (each one moves the ad set to a new column on Status). Dashed arrows are writes to Drive. Each team opens the same ad set through its own role link; <code>linkGate</code> shows "Not your view" to the wrong team.</figcaption>
+  </figure>
+
+  <h3>An organic post, and the Content Hub path (OPS)</h3>
+  <figure>
+  <svg viewBox="0 0 660 270">
+    <text x="10" y="20" class="c mu">OPS POST · POST-FLOW.JS · DRIVE RECORD &lt;NAME&gt;_POST.JSON</text>
+    <rect x="10" y="32" width="96" height="54" rx="6" class="bn"/><text x="58" y="52" text-anchor="middle" class="h w">Draft</text><text x="58" y="66" text-anchor="middle" class="sm s">SMM · Home ›</text><text x="58" y="77" text-anchor="middle" class="sm s">New post + brief</text>
+    <rect x="118" y="32" width="96" height="54" rx="6" class="bn"/><text x="166" y="52" text-anchor="middle" class="h w">Design</text><text x="166" y="66" text-anchor="middle" class="sm s">Designer · guided</text><text x="166" y="77" text-anchor="middle" class="sm s">run / All controls</text>
+    <rect x="226" y="32" width="96" height="54" rx="6" class="bn"/><text x="274" y="52" text-anchor="middle" class="h w">Copy check</text><text x="274" y="66" text-anchor="middle" class="sm s">CT EN / AR ·</text><text x="274" y="77" text-anchor="middle" class="sm s">?cc=1 frame</text>
+    <rect x="334" y="32" width="96" height="54" rx="6" class="bn"/><text x="382" y="52" text-anchor="middle" class="h w">Ready</text><text x="382" y="66" text-anchor="middle" class="sm s">files in Drive ·</text><text x="382" y="77" text-anchor="middle" class="sm s">#/files for SMM</text>
+    <rect x="442" y="32" width="96" height="54" rx="6" class="bn"/><text x="490" y="52" text-anchor="middle" class="h w">Posted</text><text x="490" y="66" text-anchor="middle" class="sm s">SMM marks it</text><text x="490" y="77" text-anchor="middle" class="sm s">rsposted</text>
+    <rect x="550" y="32" width="100" height="54" rx="6" class="bp"/><text x="600" y="52" text-anchor="middle" class="h w">Closed</text><text x="600" y="66" text-anchor="middle" class="sm s">behind Show</text><text x="600" y="77" text-anchor="middle" class="sm s">closed on Status</text>
+    <path d="M106 59 H116" class="ln"/><path d="M214 59 H224" class="ln"/><path d="M322 59 H332" class="ln"/><path d="M430 59 H440" class="ln"/><path d="M538 59 H548" class="ln"/>
+    <path d="M274 86 V100 H166 V88" class="ld"/><text x="220" y="112" text-anchor="middle" class="sm mu">Back to design</text>
+
+    <text x="10" y="150" class="c mu">CONTENT HUB PATH · SEPARATE APP · OPS ONLY</text>
+    <rect x="10" y="162" width="96" height="58" rx="6" class="bc"/><text x="58" y="182" text-anchor="middle" class="h">Hub</text><text x="58" y="196" text-anchor="middle" class="sm">Approve and send</text><text x="58" y="207" text-anchor="middle" class="sm">to design</text>
+    <rect x="118" y="162" width="96" height="58" rx="6" class="bo"/><text x="166" y="182" text-anchor="middle" class="h">hubpush</text><text x="166" y="196" text-anchor="middle" class="sm">/api/share</text><text x="166" y="207" text-anchor="middle" class="sm">→ hub:tasks</text>
+    <rect x="226" y="162" width="96" height="58" rx="6" class="bo"/><text x="274" y="182" text-anchor="middle" class="h">Status board</text><text x="274" y="196" text-anchor="middle" class="sm">tagged</text><text x="274" y="207" text-anchor="middle" class="sm">Content Hub</text>
+    <rect x="334" y="162" width="96" height="58" rx="6" class="bo"/><text x="382" y="182" text-anchor="middle" class="h">Design in OPS</text><text x="382" y="196" text-anchor="middle" class="sm">designer, or the</text><text x="382" y="207" text-anchor="middle" class="sm">/hub-design-queue skill</text>
+    <rect x="442" y="162" width="96" height="58" rx="6" class="bo"/><text x="490" y="182" text-anchor="middle" class="h">Send to hub</text><text x="490" y="196" text-anchor="middle" class="sm">POST /api/imports</text><text x="490" y="207" text-anchor="middle" class="sm">X-Card-Id</text>
+    <rect x="550" y="162" width="100" height="58" rx="6" class="bc"/><text x="600" y="182" text-anchor="middle" class="h">Hub</text><text x="600" y="196" text-anchor="middle" class="sm">Ready to publish</text><text x="600" y="207" text-anchor="middle" class="sm">(hubseen / hubok)</text>
+    <path d="M106 191 H116" class="ln"/><path d="M214 191 H224" class="ln"/><path d="M322 191 H332" class="ln"/><path d="M430 191 H440" class="ln"/><path d="M538 191 H548" class="ln"/>
+    <path d="M382 162 V126 H190 V88" class="ld"/><text x="390" y="140" class="sm mu">same OPS editor; copy already approved in the hub</text>
+    <text x="10" y="250" class="sm mu">The Send button appears on the carousel template only. Uploads are compressed to fit under 48 MB. A hub-linked project re-sends automatically after each save.</text>
+  </svg>
+  <figcaption>Figure 5. OPS post flow and the Content Hub path. Who can press each step depends on the role: Draft is SMM or designer, Design is designer, Copy check is the content team, and the admin can press any step.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ 10 AUTH ============ -->
+<section class="sec">
+  <div class="eb">Section 10</div>
+  <h2>Authentication and roles</h2>
+  <p class="lede">There's one identity: the person's Google Workspace account at providentestate.com. Google gives the browser a Drive token; PDS's own server learns who the person is by asking Drive with that token, then looks up their role in its access list.</p>
+  <figure>
+  <svg viewBox="0 0 660 330">
+    <rect x="15" y="8" width="110" height="30" rx="5" class="bn"/><text x="70" y="27" text-anchor="middle" class="h w">Browser</text>
+    <rect x="155" y="8" width="110" height="30" rx="5" class="bc"/><text x="210" y="27" text-anchor="middle" class="h">Google OAuth</text>
+    <rect x="295" y="8" width="110" height="30" rx="5" class="bo"/><text x="350" y="27" text-anchor="middle" class="h">/api/gauth</text>
+    <rect x="425" y="8" width="110" height="30" rx="5" class="bo"/><text x="480" y="27" text-anchor="middle" class="h">/api/share</text>
+    <rect x="550" y="8" width="100" height="30" rx="5" class="bc"/><text x="600" y="27" text-anchor="middle" class="h">Drive /about</text>
+    <path d="M70 38 V322 M210 38 V322 M350 38 V322 M480 38 V322 M600 38 V322" class="lf"/>
+    <path d="M70 62 H208" class="ln"/><text x="140" y="57" text-anchor="middle" class="sm">1 · sign-in popup, scope drive</text>
+    <path d="M210 88 H72" class="ln"/><text x="140" y="83" text-anchor="middle" class="sm">2 · authorisation code</text>
+    <path d="M70 114 H348" class="ln"/><text x="210" y="109" text-anchor="middle" class="sm">3 · POST op=exchange (header X-Provident: 1)</text>
+    <path d="M350 140 H212" class="ln"/><text x="280" y="135" text-anchor="middle" class="sm">4 · code → tokens</text>
+    <path d="M350 166 H72" class="ln"/><text x="210" y="161" text-anchor="middle" class="sm">5 · access token; refresh token sealed in cookie pgr</text>
+    <path d="M70 194 H478" class="ln"/><text x="275" y="189" text-anchor="middle" class="sm">6 · POST op=accme {tok}</text>
+    <path d="M480 220 H598" class="ln"/><text x="540" y="215" text-anchor="middle" class="sm">7 · who is this?</text>
+    <path d="M480 246 H72" class="ln"/><text x="275" y="241" text-anchor="middle" class="sm">8 · role + capabilities (identity cached 5 min)</text>
+    <path d="M70 272 H112 V284 H72" class="ln"/><text x="120" y="281" class="sm">9 · access.js shows or hides features; re-checks every 5 min</text>
+    <path d="M70 308 H348" class="ln"/><text x="210" y="303" text-anchor="middle" class="sm">10 · POST op=refresh when under 5 min remain</text>
+  </svg>
+  <figcaption>Figure 6. Sign-in sequence (code flow). When the server has no client secret, the page falls back to the token model: a one-hour access token from a popup, with no refresh cookie.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <div>
+      <h4>Google sign-in (<code>providentDrive</code> in studio-base.js)</h4>
+      <ul>
+        <li>OAuth client: an "Internal" consent screen, so only providentestate.com accounts can sign in. The client id is public by design; the secret is <code>GOOGLE_CLIENT_SECRET</code> in Vercel.</li>
+        <li>One scope, full <code>auth/drive</code>. Identity comes from <code>/drive/v3/about</code>, so no profile scope is requested.</li>
+        <li>The access token (about an hour) is kept in localStorage <code>provident-drive-tok</code>, shared by every tab and both studios.</li>
+        <li>The refresh cookie <code>pgr</code> is HttpOnly, Secure, SameSite=Strict and scoped to <code>/api/gauth</code>. It lasts 180 days, sliding, and is sealed with keys derived from the client secret, so rotating the secret signs everyone out.</li>
+        <li><code>invalid_grant</code> clears the cookie. Sign-out revokes the token at Google.</li>
+      </ul>
+      <h4>The access gate (<code>access.js</code> + the <code>acc*</code> ops)</h4>
+      <ul>
+        <li>The gate is on only when <code>ACCESS_ADMIN</code> is set. The domain is <code>ACCESS_DOMAIN</code> (default providentestate.com); other domains get a 403.</li>
+        <li>An unknown company account becomes <b>pending</b> until the admin lets it in.</li>
+        <li>It applies to CAS and OPS. On Home it runs only for the admin panel. Review links (<code>#share=</code>) bypass it.</li>
+        <li>With no answer from the server, the hosted site fails closed. A file opened from disk opens normally.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Roles</h4>
+      <table>
+        <tr><th>Role</th><th>Who and what</th></tr>
+        <tr><td><code>admin</code></td><td>One account (<code>ACCESS_ADMIN</code>). Every capability, plus Access: Requests, People, Roles, Activity, Preview as</td></tr>
+        <tr><td><code>designer</code></td><td>Both studios: design, export, Status, CASV</td></tr>
+        <tr><td><code>pm</code></td><td>Performance marketing: files campaign tickets, follows Status, downloads packages. CAS only</td></tr>
+        <tr><td><code>dmt</code></td><td>Digital marketing (email, SMS, WhatsApp). Treated as <code>pm</code></td></tr>
+        <tr><td><code>smm</code></td><td>Social media: drafts OPS posts, takes ready files, marks Posted. OPS only</td></tr>
+        <tr><td><code>cten</code> / <code>ctar</code></td><td>Content team, English copy / Arabic translation. Sees only its own hand-offs</td></tr>
+        <tr><td><code>ct</code></td><td>Older content-team role; approves either language</td></tr>
+      </table>
+      <h4>Capability map (<code>acc:perms</code>, edited under Access › Roles)</h4>
+      <table>
+        <tr><td><code>design-cas</code>, <code>design-ops</code></td><td>designer</td></tr>
+        <tr><td><code>tickets</code></td><td>designer, pm, dmt</td></tr>
+        <tr><td><code>posts</code></td><td>designer, smm</td></tr>
+        <tr><td><code>copy-en</code> / <code>copy-ar</code></td><td>cten / ctar</td></tr>
+      </table>
+      <h4>Role links on an ad set</h4>
+      <p>Each ad set carries three 16-character role tokens: <code>dd</code> (designer), <code>ct</code> (content team) and <code>pm</code>. A link opens <code>#share=R&lt;token&gt;.&lt;fileId&gt;</code>. On Drive the person must be signed in <i>and</i> have Drive access to the folder; <code>linkGate</code> then matches the role to the link, and named people can be granted access with <code>rsreq</code> / <code>rsgrant</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 ENDPOINTS ============ -->
+<section class="sec">
+  <div class="eb">Section 11</div>
+  <h2>Endpoints</h2>
+  <p class="lede">PDS's own server is two Vercel functions, called with <code>?op=</code>. Everything else is either Google's API, a third party, or a helper on 127.0.0.1.</p>
+  <h4><code>/api/share</code> (api/share.py) · CORS <code>*</code></h4>
+  <table>
+    <tr><th style="width:12mm">Verb</th><th style="width:58mm">op</th><th>Purpose</th><th style="width:44mm">Auth</th></tr>
+    <tr><td>GET</td><td><code>health</code>, <code>accstatus</code></td><td>Store status; whether access is on and for which domain</td><td>None</td></tr>
+    <tr><td>POST</td><td><code>accme</code>, <code>accreq</code></td><td>Who am I; request access</td><td>Google token</td></tr>
+    <tr><td>POST</td><td><code>acclist</code>, <code>accset</code>, <code>accperms</code></td><td>Admin: people, roles, capability map</td><td>Google token of <code>ACCESS_ADMIN</code></td></tr>
+    <tr><td>POST</td><td><code>accteam</code></td><td>Active people and their roles (hand-off pickers)</td><td>Google token, active</td></tr>
+    <tr><td>POST</td><td><code>arcopy</code></td><td>Claude writes the Arabic copy</td><td>Google token, active</td></tr>
+    <tr><td>POST</td><td><code>roamnote</code></td><td>Post "send to copy check" to Roam</td><td>Google token, active</td></tr>
+    <tr><td>POST</td><td><code>hubpush</code>, <code>hubteam</code></td><td>The Content Hub pushes tasks; reads the designer list</td><td><code>HUB_PUSH_KEY</code> (constant-time compare)</td></tr>
+    <tr><td>POST</td><td><code>hubtasks</code>, <code>hubseen</code>, <code>hubok</code></td><td>Hub tasks on Status; mark seen; mark copy approved</td><td>Google token, active</td></tr>
+    <tr><td>POST</td><td><code>create</code>, <code>save</code>, <code>part</code>, <code>pvput</code>, <code>thumb</code></td><td>Plain share links: create and update a project and its photo parts</td><td>The link id; a <code>pm</code> token can't write</td></tr>
+    <tr><td>GET</td><td><code>get</code>, <code>rev</code>, <code>sync</code>, <code>chunk</code>, <code>pv</code>, <code>have</code></td><td>Read a shared project, its photos and previews</td><td>The link id</td></tr>
+    <tr><td>both</td><td><code>rsinfo</code>, <code>rsmake</code>, <code>rsadd</code>, <code>rsget</code>, <code>rsstep</code>, <code>rsset</code>, <code>rsdel</code></td><td>Older ad sets stored in Upstash (before 27th October). Current ad sets use the same op names against Drive through <code>dsApi</code></td><td>Role token; per-step rules in <code>STEP</code></td></tr>
+    <tr><td>POST</td><td><code>adminlist</code>, <code>admindel</code>, <code>adminreclaim</code></td><td><code>share-admin.html</code>: list, delete, free space</td><td><code>SHARE_ADMIN_KEY</code></td></tr>
+  </table>
+  <h4><code>/api/gauth</code> (api/gauth.py) · no CORS · <code>Cache-Control: no-store</code></h4>
+  <table>
+    <tr><td style="width:12mm">GET</td><td style="width:58mm"><code>status</code></td><td>Whether the server flow is on, and the client id</td><td style="width:44mm">None</td></tr>
+    <tr><td>POST</td><td><code>exchange</code>, <code>refresh</code>, <code>signout</code></td><td>Code for tokens; silent renewal; revoke and clear the cookie</td><td>Header <code>X-Provident: 1</code>, cookie <code>pgr</code></td></tr>
+  </table>
+
+  <div class="grid2">
+    <div>
+      <h4>Helpers on the Mac (127.0.0.1)</h4>
+      <table>
+        <tr><th>Service</th><th>Routes</th></tr>
+        <tr><td>rembg <b>:7311</b></td><td><code>GET /health</code>, <code>POST /cutout</code></td></tr>
+        <tr><td>Photoshop <b>:7312</b></td><td><code>GET /health</code>, <code>/stat</code>, <code>/file</code>; <code>POST /edit?name=</code>, <code>/open</code></td></tr>
+        <tr><td>studio-mcp remote <b>:7313</b></td><td><code>POST /mcp</code> (Streamable HTTP), <code>GET /sse</code> + <code>POST /messages</code>, <code>DELETE /mcp</code>, <code>GET /f/&lt;exp&gt;/&lt;sig&gt;/&lt;file&gt;</code>, <code>/health</code></td></tr>
+        <tr><td>CASV <b>:8794</b></td><td><code>/api/animate|music|voice|outbox|inbox/*</code> (section 7)</td></tr>
+        <tr><td>share-dev <b>:8790</b></td><td>Dev only: the static repo, <code>/api/share</code>, <code>/api/gauth</code>, a Drive stand-in at <code>/drive/v3</code>, <code>/dev-signin?as=</code></td></tr>
+      </table>
+      <p class="small">rembg and Photoshop URLs can be overridden per browser (<code>provident-cutout-url</code>, <code>provident-photoshop-url</code>).</p>
+    </div>
+    <div>
+      <h4>Outbound calls from the browser</h4>
+      <table>
+        <tr><td>Google Drive</td><td><code>www.googleapis.com/drive/v3</code> and <code>/upload/drive/v3</code>, with a bearer token</td></tr>
+        <tr><td>Google sign-in</td><td><code>accounts.google.com/gsi/client</code></td></tr>
+        <tr><td>Google Translate</td><td><code>translate.googleapis.com/translate_a/single</code> (Arabic fallback)</td></tr>
+        <tr><td>Content Hub</td><td><code>GET/POST /api/imports</code>, <code>/api/imports/&lt;id&gt;</code> at the hub's ngrok address. Headers <code>X-Design-Key</code>, <code>X-Source</code>, <code>X-Card-Id</code>. The URL and key are set per browser (<code>provident-ops-endpoint</code>)</td></tr>
+        <tr><td>Google Fonts</td><td>Unbranded looks only</td></tr>
+      </table>
+      <h4>Outbound calls from <code>/api/share</code></h4>
+      <table>
+        <tr><td>Upstash</td><td>REST, with <code>KV_REST_API_*</code> or <code>UPSTASH_REDIS_REST_*</code></td></tr>
+        <tr><td>Google</td><td><code>/drive/v3/about</code> to identify the caller</td></tr>
+        <tr><td>Anthropic</td><td>The <code>anthropic</code> SDK, <code>ANTHROPIC_API_KEY</code>, model <code>ARCOPY_MODEL</code></td></tr>
+        <tr><td>Roam</td><td><code>api.ro.am/v1</code> with <code>ROAM_API_KEY</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 DATA ============ -->
+<section class="sec">
+  <div class="eb">Section 12</div>
+  <h2>Data and storage</h2>
+  <div class="grid2">
+    <div>
+      <h4>Google Drive: the record of truth</h4>
+      <table>
+        <tr><th>Path</th><th>Holds</th></tr>
+        <tr><td><code>&lt;Main&gt;/&lt;name&gt;_Adset.json</code></td><td>The ad set: items (market, audience, language, phase, task), steps, log, role tokens, grants, video list</td></tr>
+        <tr><td><code>&lt;Main&gt;/Brief/</code></td><td>Brief attachments</td></tr>
+        <tr><td><code>&lt;Main&gt;/&lt;Market&gt;/&lt;Audience&gt;/&lt;English|Arabic&gt;/</code></td><td><code>&lt;name&gt;.adstudio.json</code>, <code>Assets/</code> and flat exports</td></tr>
+        <tr><td><code>&lt;Main&gt;/Video/</code></td><td>CASV renders <code>_9x16.mp4</code>, <code>_1x1.mp4</code> and the <code>.casv</code> project</td></tr>
+        <tr><td>Posts root <code>/&lt;type&gt;/&lt;post&gt;/</code></td><td><code>_Post.json</code>, <code>.smpstudio.json</code>, <code>Assets/</code>, <code>Brief/</code>, exports</td></tr>
+      </table>
+      <p class="small">Ids: a Drive project link is <code>D&lt;fileId&gt;</code>; an ad set link is <code>R&lt;token&gt;.&lt;fileId&gt;</code>. Writes from one page go through a serial queue. There's no compare-and-set across pages.</p>
+      <h4>Upstash Redis (through /api/share)</h4>
+      <table>
+        <tr><th>Key</th><th>Holds · expiry</th></tr>
+        <tr><td><code>acc:users</code>, <code>acc:perms</code>, <code>acc:log</code></td><td>Access list, capability map, log (cap 400)</td></tr>
+        <tr><td><code>hub:tasks</code></td><td>Tasks pushed by the Content Hub</td></tr>
+        <tr><td><code>sh:&lt;id&gt;:*</code></td><td>One plain share link: state, revision, log (cap 500), summary, thumbnail</td></tr>
+        <tr><td><code>sh:&lt;id&gt;:img:*</code></td><td>Full photo parts (~0.9 MB each); <b>60 days</b> after the link was last opened</td></tr>
+        <tr><td><code>pv:&lt;hash&gt;</code></td><td>Photo preview, about 640 px</td></tr>
+        <tr><td><code>rs:&lt;rid&gt;*</code>, <code>rvt:&lt;token&gt;</code></td><td>Older Upstash ad sets and their role tokens</td></tr>
+      </table>
+      <p class="small">Free plan, 250 MB. When the store fills up (HTTP 507), it frees space in two levels; the second deletes full photos not opened for 14 days.</p>
+    </div>
+    <div>
+      <h4>In the browser</h4>
+      <table>
+        <tr><th>Store</th><th>Holds</th></tr>
+        <tr><td>localStorage <code>ws:&lt;id&gt;:*</code></td><td>The open project, per workspace (tab)</td></tr>
+        <tr><td>IndexedDB <code>provident-design-studio~&lt;id&gt;</code></td><td>The photo sidecar for that workspace</td></tr>
+        <tr><td>IndexedDB base <code>recents:*</code>, <code>dir:&lt;pid&gt;</code>, <code>lib:uses</code></td><td>Recents (saved projects, 10 per studio) and their photos, each project's source folder, component usage</td></tr>
+        <tr><td>IndexedDB <code>provident-cas-clips</code></td><td>CAS video-background clips</td></tr>
+        <tr><td>IndexedDB <code>provident-video</code></td><td>CASV media</td></tr>
+        <tr><td>localStorage <code>provident-drive-tok</code>, <code>-who</code>, <code>-srv</code></td><td>Google access token, account hint, "has refresh cookie"</td></tr>
+        <tr><td>localStorage <code>provident-ops-endpoint</code></td><td>Content Hub URL and design key (per computer)</td></tr>
+        <tr><td>localStorage <code>adstudio-custom-lib</code></td><td>Custom CAS components</td></tr>
+        <tr><td>localStorage <code>provident-inbox-cas|ops</code></td><td>Home's queues</td></tr>
+        <tr><td>localStorage <code>provident-video-project</code>, <code>-prev</code></td><td>CASV's current and previous project</td></tr>
+      </table>
+      <h4>Environment variables (names only)</h4>
+      <table class="wrap">
+        <tr><td>Vercel</td><td><code>GOOGLE_CLIENT_ID</code> · <code>GOOGLE_CLIENT_SECRET</code> · <code>KV_REST_API_URL</code> / <code>KV_REST_API_TOKEN</code> (or <code>UPSTASH_REDIS_REST_*</code>) · <code>SHARE_ADMIN_KEY</code> · <code>SHARE_STORE_MB</code> · <code>ACCESS_ADMIN</code> · <code>ACCESS_DOMAIN</code> · <code>ACCESS_ADMIN_ROLE</code> · <code>HUB_PUSH_KEY</code> · <code>ROAM_API_KEY</code> · <code>ROAM_GROUP_ID</code> · <code>ROAM_TAG_*</code> · <code>ANTHROPIC_API_KEY</code> · <code>ARCOPY_MODEL</code></td></tr>
+        <tr><td>Test only</td><td><code>SHARE_DEV</code> · <code>SHARE_DEV_QUOTA</code> · <code>ROAM_DRY</code> · <code>ARCOPY_DRY</code> · <code>GAUTH_*</code> · <code>ACCESS_GOOGLE_BASE</code></td></tr>
+        <tr><td>Remote MCP</td><td><code>PROVIDENT_REMOTE_HOME</code> · <code>_PORT</code> · <code>_PUBLIC_URL</code> · <code>_LINK_DAYS</code> · <code>_IMAGES</code> · <code>_IDLE_MIN</code> · <code>PROVIDENT_STUDIO_OUT</code></td></tr>
+        <tr><td>CASV</td><td><code>CASV_ORIGINS</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13 EXTERNAL ============ -->
+<section class="sec">
+  <div class="eb">Section 13</div>
+  <h2>External apps and services</h2>
+  <table>
+    <tr><th style="width:36mm">Service</th><th style="width:40mm">Used for</th><th>How PDS connects</th></tr>
+    <tr><td><b>Vercel</b></td><td>Hosting and functions</td><td>Deploys <code>main</code> to <code>provident-design-studio.vercel.app</code>; <code>api/*.py</code> run as Python functions. Secrets live in its environment variables</td></tr>
+    <tr><td><b>Google Workspace</b></td><td>Identity, Drive, translation</td><td>Google Identity Services in the browser; Drive v3 with a bearer token; refresh tokens through <code>/api/gauth</code>; identity checks through <code>/drive/v3/about</code></td></tr>
+    <tr><td><b>Upstash Redis</b></td><td>Access list, share links, hub tasks</td><td>REST from <code>/api/share</code> (Vercel Marketplace integration)</td></tr>
+    <tr><td><b>Anthropic Claude</b></td><td>Arabic copy</td><td>The <code>arcopy</code> op calls the API with the team's Arabic rules and structured output</td></tr>
+    <tr><td><b>Roam (ro.am)</b></td><td>Team notifications</td><td>"Send to copy check" posts a note to the team's group, tagging the content team</td></tr>
+    <tr><td><b>Provident Content Hub</b></td><td>Social copy and approvals</td><td>A separate app on the office Mac behind ngrok. It pushes tasks in with <code>hubpush</code>; OPS sends finished carousels to its <code>/api/imports</code>; <code>#hubopen=</code> links open a hub post in OPS</td></tr>
+    <tr><td><b>Grok (xAI)</b></td><td>Team assistant bot</td><td>A Grok custom connector or the xAI Responses API <code>mcp</code> tool, through a tunnel to <code>remote.py</code>. Instructions live in <code>GROK-BOT-INSTRUCTIONS.md</code></td></tr>
+    <tr><td><b>ngrok / Cloudflare Tunnel</b></td><td>Public https addresses</td><td>A login item in front of port 7313 (studio tools); the hub uses its own ngrok address</td></tr>
+    <tr><td><b>Claude Desktop / Cowork</b></td><td>Agentic design work</td><td>The stdio MCP server <code>provident-studio</code>; <code>CAS-OPS-GUIDE.md</code> is the guide Cowork reads</td></tr>
+    <tr><td><b>Higgsfield</b></td><td>Photo-to-video for CASV and CAS animated ads</td><td>The Higgsfield MCP (through the <code>/animate-photos</code> skill) or the Higgsfield CLI run by CASV's server, always after a cost quote. People can also upload clips made on the Higgsfield site</td></tr>
+    <tr><td><b>Adobe Photoshop / Illustrator</b></td><td>Retouching and extending pictures</td><td>The local helper on :7312 runs <code>open -a</code> and watches for the save. PSD, TIFF and HEIC are converted with <code>sips</code>; SVG goes to Illustrator</td></tr>
+    <tr><td><b>rembg</b> (bria-rmbg + vitmatte)</td><td>Cutting out agent photos</td><td>The local service on :7311 loads its model on first use and exits after 10 idle minutes</td></tr>
+    <tr><td><b>Meta</b>, <b>Eventbrite</b></td><td>Where ads run</td><td>Output formats only. PDS has no Meta or Eventbrite API connection; the PM uploads the package</td></tr>
+    <tr><td><b>Prov Toys</b></td><td>Related marketing-tools site</td><td>A separate repository; OPS templates are being re-derived there. There's no runtime link</td></tr>
+  </table>
+
+  <!-- 14 -->
+  </section>
+<section class="sec">
+  <div class="eb">Section 14</div>
+  <h2>Agent surface: MCP, Grok bot and skills</h2>
+  <figure>
+  <svg viewBox="0 0 660 200">
+    <rect x="10" y="12" width="150" height="44" rx="6" class="bc"/><text x="85" y="31" text-anchor="middle" class="h">Claude Desktop · Cowork</text><text x="85" y="46" text-anchor="middle" class="sm">same Mac</text>
+    <rect x="10" y="80" width="150" height="44" rx="6" class="bc"/><text x="85" y="99" text-anchor="middle" class="h">Claude Code skills</text><text x="85" y="114" text-anchor="middle" class="sm">hub-design-queue · animate-photos</text>
+    <rect x="10" y="148" width="150" height="44" rx="6" class="bc"/><text x="85" y="167" text-anchor="middle" class="h">Grok bot</text><text x="85" y="182" text-anchor="middle" class="sm">per-person token</text>
+    <rect x="200" y="12" width="160" height="44" rx="6" class="bo"/><text x="280" y="31" text-anchor="middle" class="h">server.py (stdio)</text><text x="280" y="46" text-anchor="middle" class="sm">provident-studio</text>
+    <rect x="200" y="148" width="160" height="44" rx="6" class="bo"/><text x="280" y="167" text-anchor="middle" class="h">tunnel → remote.py :7313</text><text x="280" y="182" text-anchor="middle" class="sm">confined to projects/</text>
+    <rect x="400" y="12" width="250" height="112" rx="8" class="bn"/>
+    <text x="414" y="34" class="c s">SAME 8 TOOLS · TOOLS LIST</text>
+    <text x="414" y="54" class="sm w">studio_catalog · studio_new_project</text>
+    <text x="414" y="68" class="sm w">studio_list_projects · studio_read_project</text>
+    <text x="414" y="82" class="sm w">studio_edit · studio_set_image</text>
+    <text x="414" y="96" class="sm w">studio_preview · studio_export</text>
+    <text x="414" y="114" class="sm s">page.js drives the real .dc.html in headless Chrome</text>
+    <rect x="400" y="138" width="250" height="54" rx="8" class="bc"/>
+    <text x="525" y="158" text-anchor="middle" class="sm">Session files + exports on disk</text>
+    <text x="525" y="171" text-anchor="middle" class="sm">signed /f/ download links (14 days)</text>
+    <text x="525" y="184" text-anchor="middle" class="sm">previews in &lt;project&gt;/_previews/</text>
+    <path d="M160 34 H198" class="ln"/><path d="M160 170 H198" class="ln"/>
+    <path d="M160 102 H180 V36" class="ll"/>
+    <path d="M360 34 H398" class="ln"/><path d="M360 170 H380 V100 H398" class="ln"/>
+    <path d="M525 124 V136" class="ln"/>
+  </svg>
+  <figcaption>Figure 7. One tool set, two transports. Because the tools drive the real studio documents, a template change reaches the agents without any extra work. Skills also call the Content Hub API (hub.py) and the Higgsfield MCP directly. The Grok bot is confined to projects/ and https image URLs; the stdio server can reach any path on the Mac.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h4>Skills that work with PDS</h4>
+  <table>
+    <tr><th style="width:38mm">Skill</th><th style="width:30mm">Where</th><th>What it does</th></tr>
+    <tr><td><code>/hub-design-queue</code></td><td><code>.claude/skills/</code></td><td>Claims a post the Content Hub queued for design (<code>scripts/hub.py jobs | claim | deliver | status</code>), lays it out in OPS as a carousel through the MCP tools, exports it and sends the pages back so the card moves to Ready to publish. Token from <code>HUB_IMPORT_TOKEN</code> or <code>~/.config/provident/hub-token</code></td></tr>
+    <tr><td><code>/cas-component</code></td><td><code>.claude/skills/</code></td><td>Turns a screenshot into an on-brand CAS component spec (colour roles, not hex values), checks it (<code>catalog.py</code>, <code>check.py</code>), saves it to <code>custom-components/</code> (git-ignored) and puts it on the clipboard for ⌘V in CAS</td></tr>
+    <tr><td><code>/animate-photos</code></td><td><code>.claude/skills/</code> (a symlink to the <code>video-studio</code> worktree, untracked on main)</td><td>Works through CASV's animate queue: quotes the Higgsfield cost and waits for a yes, generates, then hands each finished clip back to the timeline (<code>scripts/animate.py list | start | done | fail</code>)</td></tr>
+    <tr><td><code>impeccable</code></td><td><code>.claude/skills/</code></td><td>The frontend design skill (v4.1.3) used for chrome and UX work on the studios and Home</td></tr>
+    <tr><td><code>meta-ad-design-copy</code></td><td>Claude account skill</td><td>Turns a pasted brief, script or fact sheet into Meta ad copy for Families and Investors, builds it in CAS, and produces Local (AED), International (USD) and EUR sets in Drive</td></tr>
+  </table>
+
+  <h4>The Grok bridge in detail</h4>
+  <ul>
+    <li><b>The token is the gate.</b> The Google gate can't apply to a headless page, so <code>remote.py</code> requires <code>Authorization: Bearer</code>, or the token in the path (<code>/t/&lt;token&gt;/mcp</code>) for grok.com's URL-only connector form.</li>
+    <li>Tokens are made per person with <code>install-remote.sh --token "Name"</code>, stored in <code>tokens.json</code>, logged by name on every call, and revoked with <code>--revoke</code>.</li>
+    <li>Files go out as HMAC-signed links <code>/f/&lt;expiry&gt;/&lt;sig&gt;/&lt;path&gt;</code>, valid for 14 days. A tampered signature returns 403; an expired link returns 410.</li>
+    <li>Chrome closes after 30 idle minutes. <code>install-remote.sh</code> copies the repo into Application Support, so <b>run it again after every <code>git pull</code></b>.</li>
+    <li>Google OAuth for the bot was deferred, not rejected. It will be needed once the bot acts on Status, hand-offs or Drive, which have to name a signed-in person.</li>
+  </ul>
+</section>
+
+<!-- ============ 15 SECURITY ============ -->
+<section class="sec">
+  <div class="eb">Section 15</div>
+  <h2>Security posture and known risks</h2>
+  <p class="lede">PDS protects data with Google Workspace and Drive sharing. The in-app role gate decides what people see, not what they can reach. Engineers adding features should keep that split in mind.</p>
+  <div class="grid2">
+    <div class="card">
+      <h4>Controls in place</h4>
+      <ul>
+        <li>Internal OAuth consent screen: providentestate.com accounts only. The server re-checks the domain.</li>
+        <li>The server learns identity from Google, never from what the page claims.</li>
+        <li>Refresh tokens are kept out of JavaScript in an HttpOnly, Secure, SameSite=Strict cookie scoped to one path. <code>/api/gauth</code> needs a custom header and sends no CORS.</li>
+        <li>Admin and hub operations need their own keys, compared in constant time.</li>
+        <li>The public repo holds no secrets. They live in Vercel, a git-ignored <code>.env</code>, per-browser storage or per-Mac files (mode 0600).</li>
+        <li>The remote MCP needs a per-person token, logs every call, and keeps remote callers inside one folder.</li>
+        <li>Cost-bearing generation (Higgsfield, music) always shows a quote and waits for a yes.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Known risks, in order of priority</h4>
+      <ul>
+        <li><b>Full Drive scope, with the access token in localStorage.</b> Any script injection on the site could act on the person's whole Drive. A narrower scope (<code>drive.file</code>) or keeping the token in memory would reduce this.</li>
+        <li><b>The role gate is client-side.</b> Review links bypass it, <code>linkGate</code> runs after the ad set is already loaded, and Drive-link roles aren't enforced on any server.</li>
+        <li><b>Plain share links are bearer URLs</b> on a CORS <code>*</code> API. Anyone holding a link can edit.</li>
+        <li><b>Loopback helpers send CORS <code>*</code>.</b> Any web page could call <code>/cutout</code>, or <code>/edit</code> and <code>/open</code>, which launch Photoshop.</li>
+        <li><b>A token in the remote MCP path</b> can end up in tunnel logs. Signed <code>/f/</code> links open without a token for 14 days.</li>
+        <li>The refresh cookie is sealed with a home-made cipher (SHA-256 keystream + HMAC) rather than a vetted AEAD.</li>
+        <li>Identity is cached for 5 minutes, so a revoked person keeps access that long.</li>
+        <li><code>hubtasks</code> accepts any Google token while <code>ACCESS_ADMIN</code> is unset. <code>health</code> and <code>accstatus</code> are public.</li>
+        <li>Employee email addresses are hard-coded in <code>api/share.py</code> (access seed, Roam tags) and in <code>tools/share-dev/serve.py</code>, in a public repo.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note risk"><b>Out-of-date docs to fix:</b> <code>docs/google-drive-setup.md</code> still says "no secret, no server"; <code>docs/handover-cas-task-app.md</code> says CAS has no sign-in; <code>docs/studio-access-setup.md</code> says OPS is ungated; the hub-design-queue skill names the office LAN address instead of the ngrok one. Several Google flows were verified only against the share-dev stand-ins, not real Google popups.</div>
+  <p class="small"><code>dashboard_sso_guard.py</code> at the repo root isn't used by PDS. It's a paste-in Flask guard for the separate Provident OS dashboards.</p>
+
+<!-- ============ 16 RULES ============ -->
+  </section>
+<section class="sec">
+  <div class="eb">Section 16</div>
+  <h2>Engineering rules, traps and removed features</h2>
+  <div class="grid2">
+    <div>
+      <h4>Standing rules</h4>
+      <ul>
+        <li><b>A kit change fans out:</b> edit <code>ui-design-system/</code> first, then mirror into all three consumers' stylesheets and their JS style objects (inline styles win), then verify in the browser.</li>
+        <li><b>Prove the artwork didn't move:</b> run an op-signature census against the pre-change file (both warm), or show a diff with zero artwork-path lines.</li>
+        <li><b>Check the winning value, not the rule:</b> measure computed styles in the browser. The contrast bar is WCAG AA.</li>
+        <li>Brand on canvas: Google Sans Flex only (400 headers, 300 everything else, 500 tracked caps). No gold except the recorded exemptions. No orange on dark grounds. The wordmark goes left or centre, never right.</li>
+        <li>Update <code>CAS-OPS-GUIDE.md</code> and <code>GROK-BOT-INSTRUCTIONS.md</code> whenever something a user sees changes.</li>
+        <li>CAS ad-engine and video work stays off <code>main</code> until it's tested. Never push <code>video-studio</code>.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Recurring traps</h4>
+      <ul>
+        <li>No interpolated <code>src=</code>, <code>d=</code> or <code>points=</code>; use <code>data-src</code>. The browser fetches before DC interpolates.</li>
+        <li><code>data-x="{{ bool }}"</code> renders <code>"false"</code>, which <code>[data-x]</code> still matches.</li>
+        <li>A later duplicate key in an object literal silently wins; scan <code>renderVals</code> after edits.</li>
+        <li>Shrink the preview with a transform (<code>StudioBase.scaleBox</code>), never <code>zoom</code>.</li>
+        <li>Read photos only through <code>StudioBase.sidecar()</code> / <code>img()</code>. Use pointer events for drag, never native drag and drop.</li>
+        <li>In <code>runtime.js</code>, never declare a second <code>var</code> with an existing name. Bust the cache after editing <code>studio-base.js</code> or a <code>.dc.html</code>.</li>
+        <li><code>page.js</code> in the MCP server calls engine internals by name. Rename one, and rename it there too.</li>
+      </ul>
+    </div>
+  </div>
+  <h4>Deleted on purpose: don't rebuild</h4>
+  <p>YouTube Demand Gen · the Meta Ads kit bridge · CAS's Publish tab and Meta ad text · the OPS support desk · the iOS app shell · CAS's Send and From the hub · the Projects folder view · the old in-editor guided wizard · the single-file chooser (<code>Provident Design Studio.dc.html</code>) · the DLD page scraper · blank projects and single-project reviews (every CAS project now belongs to a campaign).</p>
+  <div class="note">For the reasoning behind any of these, read the matching file in <code>docs/notes/</code>: <code>architecture.md</code>, <code>cas.md</code>, <code>ops-templates.md</code>, <code>reviews-sharing-drive.md</code>, <code>ops-posts-and-hub.md</code>, <code>chrome-and-design-system.md</code>, <code>landing-page.md</code>, <code>web-image-studio.md</code>, <code>brand-rules.md</code>. The CASV notes live on the <code>video-studio</code> branch in <code>docs/notes/video-studio.md</code>.</div>
+</section>
+</body>
+</html>
