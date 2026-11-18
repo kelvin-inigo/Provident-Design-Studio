@@ -620,3 +620,60 @@ on the designer's own computer, so the row is a plain link to `casvAt()` (`http:
 or `localStorage['provident-casv-local']`), in a new tab; it has no `data-k`, so the "continue the
 newest project" rewrite leaves it alone. The page is not on the website. See
 `docs/notes/reviews-sharing-drive.md`, "A video on the ad set".
+
+
+## Status, organised: an Overdue lane, combining filters, list view, sort, group, density, folding columns (2026-11-18, by request)
+"Make this more usable with additional filters, conditional filters, and view controls, also the
+overdue task i need it hidden somehow, or at least a toggle to turn them off or maybe they go to
+other kanban board." Nine of fifteen cards were overdue, so the board read as an alarm. All of it
+is in `index.html` (`viewStatus`, the click handler, the "STATUS, ORGANISED" CSS block); no data
+change, no kit change (page-local styles on `--ps-*` tokens), the writers `inboxCas` / `inboxOps`
+untouched.
+
+- **Two kinds of state.** `sxV` is the viewer's layout, kept in `provident-sx-view`
+  (`{v: board|list, sort: due|name|updated|stage, grp: stage|from|kind, den: cozy|compact,
+  late: lane|stage|hide, col: {<group key>: 'c'|'o'}}`, every value validated against `SXV`).
+  `sxFl = {stage, due, from}` are the facet filters; like `sxF`, `sxMine` and `sxQ` they last for
+  the visit. `sxClosed` keeps its own key.
+- **Overdue** (`dueK(x) === 'late'`; a closed row has no due state). `mode` is `sxV.late` when the
+  scope holds any overdue row. **lane** (default): overdue rows leave their groups for one
+  **Overdue** group (`k: 'late'`, `#col-late`) at the end, folded until opened; their date is quiet
+  (`.due[data-q]`, ink-2 with the red dot) because the lane already says it. **stage**: as before,
+  with the "n overdue" badge on a column. **hide**: filtered out, and `.sx-n` says "n overdue
+  hidden". The button (`data-mn="late"`) appears only when something is overdue and always carries
+  the count. **Due: Overdue ticked beats the mode** (`wantLate`): hidden work shows, and the lane
+  opens even if it was folded by hand.
+- **Filters combine.** `pass(x, skip)`: kind chip AND waits on me AND the name AND every facet;
+  inside a facet any ticked value. `opts(k)` counts each value under the *other* filters and lists
+  only values that exist (plus any still ticked); a facet with one value is not drawn. The
+  **Content Hub** chip (`sxF === 'hub'`, a subset of Organic posts, whose count is unchanged) is
+  drawn only when the scope has hub rows. **From is the row's `from`** (who last handed it on; the
+  hub's rows say Content Hub) — the rows carry no assignee, and none was invented. Active filters
+  are `.fc` chips (`data-fx`), **Clear all** from two up.
+- **Groups** (`gs`): stages (only the ticked ones when the Stage facet is in use), or `from`, or
+  kind (cas / ops / hub, here a partition), each `{k, id, n, who, f, rows}`, then the lane. Stage
+  groups keep `id="col-<stage>"`, so Home's `#/status?stage=` ring still lands, and that stage is
+  never folded. `folded(g)`: the viewer's own `col[k]`, else the lane, else a stage with no rows
+  that is empty in the scope or was emptied by a discrete filter — **never by the search**, so
+  nothing moves under typing.
+- **Board** is a flex row now (`.col{flex:1 1 0; min-width:200px; max-width:460px}`; a folded
+  column is a 44px `.col-r` rail with vertical text; 641–1100px wraps two-up with the rail as a
+  full-width bar; a phone keeps 84vw snap columns). `--n` is gone.
+- **List** (`.lv`): the same groups as collapsible sections, rows are the same links; headings
+  Name / Stage / Due / Updated sort (`data-ss`). ≤1100 drops From, a phone stacks the row.
+- **Sort** `cmp`: due (mine first, soonest, as before), name, updated, stage (offered only when not
+  grouped by stage; `so` falls back to due).
+- **Menus** are drawn by `viewStatus` (`sxMenu`), not popovers, because every tick redraws the
+  page: `.pm[data-in]` animates on opening only, a click outside `.pp` or Escape closes, `sxDraw(fk)`
+  redraws and puts the focus back on `[data-fk]`, and `redraw()` skips while a menu is open. On a
+  phone the menu is a fixed sheet at the foot.
+- **Verified** on the stand-in (15 rows, 8 overdue), dark and light, reloaded into each: 0 contrast
+  failures over 18–139 text nodes per state (board with filters, each menu, stage mode, compact,
+  list, the empty state); no sideways scroll and a 55px top bar at 1440 and 1280; two-up at 900;
+  phone 375. Every facet, three combined (Campaign ads + Stage: Design + Due this week → 3 of 15),
+  chip removal, Clear all, the three overdue modes, Due: Overdue against Hidden and against a
+  folded lane, group by From and Kind, each sort, compact (card 141 → 100px), list sort headings,
+  `?stage=ready`, a card's click-through to its ad set page and back, an injected hub task (chip,
+  kind group, `#hubopen=` link), Preview as content team (nothing, no waits-on-me switch) and as
+  performance marketing (campaigns only). **Not run:** real Drive, Safari, a real phone, the
+  keyboard through a screen reader.

@@ -337,9 +337,8 @@ button{font-family:inherit}
 .tg[aria-pressed="true"] i{background:var(--ps-primary)}
 .tg[aria-pressed="true"] i::after{transform:translateX(12px); background:var(--ps-primary-i)}
 .tg small{margin-left:-4px; font:400 12.5px/1 var(--ps-font); color:var(--ps-dim); font-variant-numeric:tabular-nums}
-.bd{display:grid; grid-template-columns:repeat(var(--n,4),minmax(200px,1fr)); gap:14px; align-items:start; overflow-x:auto; padding-bottom:8px;
-  scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
-.col{min-width:0; border-radius:16px; background:var(--ps-fill); padding:12px 10px 10px}
+.bd{display:flex; gap:14px; align-items:flex-start; overflow-x:auto; padding-bottom:8px; scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
+.col{flex:1 1 0; min-width:200px; max-width:460px; border-radius:16px; background:var(--ps-fill); padding:12px 10px 10px; box-sizing:border-box}
 .col-h{display:flex; align-items:center; gap:8px; padding:2px 6px 12px; font:600 14px/1.2 var(--ps-font)}
 .col-h > i{width:8px; height:8px; border-radius:50%; background:var(--c,var(--ps-line))}
 .col-h small{margin-left:auto; font:500 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
@@ -362,6 +361,110 @@ button{font-family:inherit}
 .col-late{margin-left:auto; font:500 12px/1 var(--ps-font); color:var(--ps-bad)}
 .col-late + small{margin-left:8px}
 .col-empty{padding:14px 8px; font:400 13px/1.4 var(--ps-font); color:var(--ps-dim); text-align:center}
+
+/* STATUS, ORGANISED (2026-11-18, by request): a second tool row (Filter, the two switches, Overdue,
+   Board | List, View), the filters in force as chips, columns that fold to a rail, an Overdue lane,
+   a list view and a compact density. Chrome tokens only. */
+.sx-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; margin-bottom:14px}
+.sx-bar .sp{flex:1}
+.pp{position:relative; display:inline-flex}
+.pb{display:inline-flex; align-items:center; gap:8px; height:36px; padding:0 14px 0 12px; border:0; border-radius:var(--ps-pill); background:var(--ps-fill); color:var(--ps-ink);
+  font:500 13px/1 var(--ps-font); cursor:pointer; white-space:nowrap; transition:background-color var(--ps-motion) var(--ps-ease)}
+.pb:hover,.pb[aria-expanded="true"]{background:var(--ps-fill-h)}
+.pb svg.i{width:16px; height:16px; color:var(--ps-ink-2)}
+.pb small{font:400 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
+.pb .pb-n{display:inline-grid; place-items:center; min-width:18px; height:18px; padding:0 5px; box-sizing:border-box; border-radius:var(--ps-pill); background:var(--ps-fill-on); color:var(--ps-ink); font:600 11.5px/1 var(--ps-font)}
+.pb .pb-d{width:7px; height:7px; border-radius:50%; background:var(--ps-bad)}
+.pb .pb-v{width:14px; height:14px; margin-right:-4px}
+.pm{position:absolute; z-index:30; top:42px; left:0; width:264px; max-height:min(70vh,520px); overflow-y:auto; padding:8px; box-sizing:border-box; border-radius:16px; background:var(--ps-card); color:var(--ps-ink);
+  box-shadow:inset 0 0 0 1px var(--ps-line), 0 0 0 4px color-mix(in srgb, var(--ps-app) 70%, transparent);
+  scrollbar-width:thin; scrollbar-color:var(--ps-line) transparent}
+.pm[data-in]{animation:mnin 200ms cubic-bezier(.16,1,.3,1)}   /* on opening only, never on a redraw under a tick */
+.pm[data-r]{left:auto; right:0}
+.pm-h{margin:0; padding:10px 10px 6px; font:500 12.5px/1.2 var(--ps-font); color:var(--ps-ink-2)}
+.pm-h:first-child{padding-top:4px}
+.pm-n{margin:0; padding:2px 10px 8px; font:400 12.5px/1.4 var(--ps-font); color:var(--ps-ink-2)}
+.po{display:grid; grid-template-columns:18px minmax(0,1fr) auto; align-items:center; gap:10px; width:100%; min-height:36px; padding:6px 10px; border:0; border-radius:10px; background:none; box-sizing:border-box;
+  color:var(--ps-ink); font:400 14px/1.25 var(--ps-font); text-align:left; cursor:pointer}
+.po:hover{background:var(--ps-fill)}
+.po[aria-pressed="true"]{font-weight:500}
+.po-c{display:grid; place-items:center; width:18px; height:18px; border-radius:6px; box-shadow:inset 0 0 0 1.5px var(--ps-line)}
+.po[data-rd] .po-c{border-radius:50%}
+.po[aria-pressed="true"] .po-c{background:var(--ps-fill-on); box-shadow:none}
+.po-c svg.i{width:13px; height:13px; stroke-width:2.25}
+.po-l{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.po small{font:400 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
+.po-s{display:block; margin-top:2px; font:400 12.5px/1.3 var(--ps-font); color:var(--ps-ink-2); white-space:normal}
+.vs{display:inline-flex; padding:3px; border-radius:var(--ps-pill); background:var(--ps-fill)}
+.vs button{display:inline-flex; align-items:center; gap:7px; height:30px; padding:0 12px 0 10px; border:0; border-radius:var(--ps-pill); background:none; color:var(--ps-ink-2); font:500 13px/1 var(--ps-font); cursor:pointer}
+.vs button svg.i{width:16px; height:16px}
+.vs button:hover{color:var(--ps-ink)}
+.vs button[aria-pressed="true"]{background:var(--ps-fill-on); color:var(--ps-ink)}
+.sx-act{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:-2px 0 16px}
+.fc{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 6px 0 11px; border:0; border-radius:var(--ps-pill); background:var(--ps-fill-on); color:var(--ps-ink); font:500 12.5px/1 var(--ps-font); cursor:pointer}
+.fc svg.i{width:14px; height:14px; padding:2px; box-sizing:content-box; border-radius:50%; color:var(--ps-ink-2)}
+.fc:hover svg.i{background:var(--ps-fill-h); color:var(--ps-ink)}
+.sx-act .b-l{margin-left:6px; font-size:13px}
+.sx-n{margin-left:auto; font:400 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
+.pb:focus-visible,.po:focus-visible,.vs button:focus-visible,.fc:focus-visible,.col-x:focus-visible,.col-r:focus-visible,.lv-gh:focus-visible,.lv-h button:focus-visible,.lr:focus-visible,.cd:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+/* a column folds to a rail: its dot, its count and its name, one click to open it again */
+.col-h span.col-t{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.col-h .uh-av{margin:-3px 0}
+.col-x{display:inline-grid; place-items:center; width:24px; height:24px; margin:-4px -2px -4px 2px; padding:0; border:0; border-radius:50%; background:none; color:var(--ps-ink-2); cursor:pointer}
+.col-x:hover{background:var(--ps-fill-h); color:var(--ps-ink)}
+.col-x svg.i{width:15px; height:15px}
+.col[data-c]{flex:0 0 44px; min-width:0; padding:0}
+.col-r{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; min-height:168px; padding:14px 0 16px; border:0; border-radius:16px; background:none; color:var(--ps-ink); font:600 14px/1 var(--ps-font); cursor:pointer}
+.col-r:hover{background:var(--ps-fill-h)}
+.col-r > i{width:8px; height:8px; border-radius:50%; background:var(--c,var(--ps-line)); flex:none}
+.col-r small{font:500 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
+.col-r span{writing-mode:vertical-rl; white-space:nowrap}
+.due[data-q]{color:var(--ps-ink-2)}
+/* compact cards: the render small, the name on one line, the step and the date on one row */
+.bd[data-den="compact"] .cd{padding:8px 10px}
+.bd[data-den="compact"] .cd-g{gap:10px; align-items:center}
+.bd[data-den="compact"] .cd b{-webkit-line-clamp:1; margin-top:4px; font-size:13.5px}
+.bd[data-den="compact"] .cd-st{margin-top:6px; font-size:12px}
+.bd[data-den="compact"] .cd-ft{margin-top:6px; padding-top:0; box-shadow:none}
+.bd[data-den="compact"] .cd-ft .uh-av{display:none}
+.bd[data-den="compact"] .cd-ft .due{margin-left:0; font-size:12px}
+.bd[data-den="compact"] .cd-ft:empty{display:none}
+.bd[data-den="compact"] .cds{gap:6px}
+/* the list: one row a campaign or post, the same groups as the board */
+.lv{--cols:minmax(0,1fr) 184px 150px 178px 92px}
+.lv-h,.lr{display:grid; grid-template-columns:var(--cols); align-items:center; column-gap:16px}
+.lv-h{padding:0 14px 8px; font:500 12.5px/1 var(--ps-font); color:var(--ps-ink-2)}
+.lv-h button{display:inline-flex; align-items:center; gap:4px; justify-self:start; height:24px; margin-left:-6px; padding:0 6px; border:0; border-radius:8px; background:none; color:inherit; font:inherit; cursor:pointer}
+.lv-h button:hover{color:var(--ps-ink); background:var(--ps-fill)}
+.lv-h button[aria-pressed="true"]{color:var(--ps-ink)}
+.lv-h button svg.i{width:13px; height:13px; visibility:hidden}
+.lv-h button[aria-pressed="true"] svg.i{visibility:visible}
+.lv-g{margin-bottom:10px; border-radius:16px; background:var(--ps-fill)}
+.lv-gh{display:flex; align-items:center; gap:8px; width:100%; height:44px; padding:0 14px 0 10px; border:0; border-radius:16px; background:none; color:var(--ps-ink); font:600 14px/1 var(--ps-font); text-align:left; cursor:pointer}
+.lv-gh:hover{background:var(--ps-fill-h)}
+.lv-gh svg.i{width:16px; height:16px; color:var(--ps-ink-2); transition:transform var(--ps-motion) var(--ps-ease)}
+.lv-gh[aria-expanded="true"] svg.i{transform:rotate(90deg)}
+.lv-gh > i{width:8px; height:8px; border-radius:50%; background:var(--c,var(--ps-line))}
+.lv-gh small{font:500 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
+.lv-gh em{margin-left:auto; font:400 12.5px/1 var(--ps-font); color:var(--ps-ink-2); font-style:normal}
+.lv-g ul{list-style:none; margin:0; padding:0 6px 6px}
+.lv-g li + li{margin-top:4px}
+.lr{padding:8px; border-radius:12px; background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-hair); color:inherit; text-decoration:none; transition:box-shadow var(--ps-motion) var(--ps-ease)}
+.lr:hover{box-shadow:inset 0 0 0 1px var(--ps-line)}
+.lr[data-mine]{box-shadow:inset 0 0 0 1px var(--ps-link)}
+.lr-n{display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:12px; min-width:0}
+.lr-n b{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:500 14px/1.3 var(--ps-font); color:var(--ps-ink)}
+.lr-k{display:flex; align-items:center; gap:10px; margin-top:4px}
+.lr-k .mk,.lr-k .mk-h{font-size:12px}
+.lr-s,.lr-f{display:flex; align-items:center; gap:8px; min-width:0; font:400 13px/1.2 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap}
+.lr-f span:last-child{overflow:hidden; text-overflow:ellipsis}
+.lr-0,.lr-u{font:400 13px/1 var(--ps-font); color:var(--ps-ink-2); white-space:nowrap; font-variant-numeric:tabular-nums}
+.lv[data-den="compact"] .lr{padding:5px 8px}
+.lv[data-den="compact"] .lr-k{display:none}
+.lv[data-den="compact"] .lr-n b{font-size:13.5px}
+.lv[data-den="compact"] .lv-g li + li{margin-top:3px}
+.sx-none{margin-top:4px}
+@media (prefers-reduced-motion:reduce){ .pm[data-in]{animation:none} .lv-gh svg.i{transition:none} }
 
 /* ═════ ITEM: CAS's ad set page carried over — one head card with the step counters, the work as
    tiles, activity with the words that changed, and a rail of team links, details and the brief ═════ */
@@ -524,7 +627,16 @@ button{font-family:inherit}
   .nx .rd{--h:200px !important}
   .nx h3{font-size:26px}
   .it-b{grid-template-columns:minmax(0,1fr)}
-  .bd{grid-template-columns:repeat(2,minmax(0,1fr)); overflow:visible}
+  .bd{flex-wrap:wrap; overflow:visible}
+  .col{flex:1 1 calc(50% - 7px); min-width:0; max-width:none}
+  .lv{--cols:minmax(0,1fr) 170px 164px 84px}
+  .lv-h > :nth-child(3),.lr-f{display:none}
+}
+@media (min-width:641px) and (max-width:1100px){
+  .col[data-c]{flex:1 1 100%}
+  .col-r{flex-direction:row; min-height:0; height:44px; padding:0 14px}
+  .col-r span{writing-mode:horizontal-tb; order:1}
+  .col-r small{order:2; margin-left:auto}
 }
 @media (max-width:900px){
   .hm{grid-template-columns:minmax(0,1fr)}
@@ -550,8 +662,17 @@ button{font-family:inherit}
   .flt::-webkit-scrollbar{display:none}
   .flt button{flex:none}
   .sx-tools .flt{width:100%}
-  .bd{grid-template-columns:repeat(var(--n,4),84vw); overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -16px; padding:0 16px 8px; scroll-padding:0 16px}
-  .col{scroll-snap-align:start}
+  .bd{flex-wrap:nowrap; overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -16px; padding:0 16px 8px; scroll-padding:0 16px}
+  .col{flex:0 0 84vw; max-width:none; scroll-snap-align:start}
+  .col[data-c]{flex:0 0 44px}
+  .sx-bar .sp{display:none}
+  .sx-bar .tg{order:5; width:100%; height:32px}
+  .pm,.pm[data-r]{position:fixed; top:auto; bottom:16px; left:16px; right:16px; width:auto; max-height:70vh}
+  .lv-h,.lv-gh em{display:none}
+  .lr{grid-template-columns:minmax(0,1fr) auto; row-gap:8px}
+  .lr-n{grid-column:1 / -1}
+  .lr-u{display:none}
+  .lr-d{justify-self:end}
   .nx-acts .b-p{flex:1}
   .row{grid-template-columns:auto minmax(0,1fr); gap:10px 12px}
   .row .due{grid-column:2}
@@ -756,6 +877,11 @@ body{-webkit-tap-highlight-color:transparent;
 <symbol id="g-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
 <symbol id="g-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 <symbol id="g-eye" viewBox="0 0 24 24"><path d="M2.75 12S6.25 5.75 12 5.75 21.25 12 21.25 12 17.75 18.25 12 18.25 2.75 12 2.75 12z"/><circle cx="12" cy="12" r="2.75"/></symbol>
+<symbol id="g-filter" viewBox="0 0 24 24"><path d="M4 7h16M7 12h10M10 17h4"/></symbol>
+<symbol id="g-board" viewBox="0 0 24 24"><rect x="4" y="5" width="6.5" height="14" rx="1.5"/><rect x="13.5" y="5" width="6.5" height="9" rx="1.5"/></symbol>
+<symbol id="g-list" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="g-tune" viewBox="0 0 24 24"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></symbol>
+<symbol id="g-chevd" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
 <symbol id="g-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></symbol>
 <symbol id="g-tray" viewBox="0 0 24 24"><path d="M4 13.5l2.2-7.1A2 2 0 0 1 8.1 5h7.8a2 2 0 0 1 1.9 1.4L20 13.5V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18z"/><path d="M4 13.5h4.5l1.2 2h4.6l1.2-2H20"/></symbol>
 <symbol id="g-down" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></symbol>
@@ -919,7 +1045,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (n < 7) return { n: n, k: '', t: 'Due ' + t.toLocaleDateString(undefined, { weekday: 'long' }) };
     return { n: n, k: '', t: 'Due ' + dm };
   }
-  function dueEl(x){ var d = due(x.due); return d ? '<span class="due" data-k="' + d.k + '">' + esc(d.t) + '</span>' : ''; }
+  function dueEl(x, q){ var d = due(x.due); return d ? '<span class="due" data-k="' + d.k + '"' + (q ? ' data-q' : '') + '>' + esc(d.t) + '</span>' : ''; }
   function mk(s){ return '<span class="mk" data-s="' + s + '"><i></i>' + STUDIO[s].n + '</span>'; }
   function rd(x, h, t){
     var a = x.ratio || STUDIO[x.studio].a, st = 'style="--a:' + a + ';--h:' + h + 'px"';
@@ -952,6 +1078,28 @@ body{-webkit-tap-highlight-color:transparent;
   var data = null, cur = 0, flip = 0, homeF = 'all', sxF = 'all', sxMine = false, sxQ = '';
   // Status's Closed column is hidden until asked for (2026-11-06); the choice is this viewer's own
   var sxClosed = ls('provident-sx-closed') === '1';
+  // STATUS, ORGANISED (2026-11-18, by request). How the board is laid out is this viewer's own and is
+  // kept (provident-sx-view): board or list, the sort, the grouping, the density, what happens to
+  // overdue work (its own lane, in its stage, or hidden) and which columns are folded. The filters
+  // (stage, due, from) last for the visit, like the kind chips and the search.
+  var SXV = { v: ['board', 'list'], sort: ['due', 'name', 'updated', 'stage'], grp: ['stage', 'from', 'kind'], den: ['cozy', 'compact'], late: ['lane', 'stage', 'hide'] };
+  var sxV = (function(){
+    var s = js('provident-sx-view') || {}, o = { col: s.col && typeof s.col === 'object' ? s.col : {} };
+    Object.keys(SXV).forEach(function(k){ o[k] = SXV[k].indexOf(s[k]) >= 0 ? s[k] : SXV[k][0]; });
+    return o;
+  })();
+  function sxKeep(){ try { localStorage.setItem('provident-sx-view', JSON.stringify(sxV)); } catch (x) {} }
+  var sxFl = { stage: [], due: [], from: [] }, sxMenu = '', sxMenuIn = false;
+  var DUEK = [['late', 'Overdue'], ['week', 'Due this week'], ['later', 'Due later'], ['none', 'No date']];
+  var KIND = { cas: 'Campaign ads', ops: 'Organic posts', hub: 'Content Hub' };
+  // a closed row has no due state: it is never overdue and never matches a due filter
+  function dueK(x){ if (x.stage === 'closed') return ''; var d = due(x.due); return !d ? 'none' : d.n < 0 ? 'late' : d.n < 7 ? 'week' : 'later'; }
+  function isLate(x){ return dueK(x) === 'late'; }
+  // FROM is the row's own field (who last handed it on; the hub's posts say Content Hub)
+  function fromK(x){ return String(x.from || '').trim(); }
+  function fromN(k){ return !k ? 'No one yet' : /^you$/i.test(k) ? 'You' : k; }
+  function kindK(x){ return x.hub ? 'hub' : x.studio; }
+  var FV = { stage: function(x){ return x.stage; }, due: dueK, from: fromK };
 
   // access.js's answer first (it carries the admin's Preview as), else what it last left here
   function roleOf(){
@@ -1263,27 +1411,158 @@ body{-webkit-tap-highlight-color:transparent;
     var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : 'Your organic posts, from draft to ready.') + '</p></div></div>';
     if (!data.known || !me || !me.email) return h + quiet('status');
     var all = sxClosed ? data.rows.concat(data.closed) : data.rows, stg = sxClosed ? STAGES : MOVING;
+    var hubN = all.filter(function(x){ return x.hub; }).length;
+    if (sxF === 'hub' && !(both && hubN)) sxF = 'all';
+    var ql = sxQ.toLowerCase();
+    // FILTERS COMBINE: every one in force must hold (kind AND waits on me AND the name AND each
+    // facet); inside one facet any of its ticked values will do. skip leaves one facet out, for
+    // that facet's own counts
+    function pass(x, skip){
+      if (sxF !== 'all' && (sxF === 'hub' ? !x.hub : x.studio !== sxF)) return false;
+      if (sxMine && !x.mine) return false;
+      if (ql && String(x.name).toLowerCase().indexOf(ql) < 0) return false;
+      for (var k in FV) if (k !== skip && sxFl[k].length && sxFl[k].indexOf(FV[k](x)) < 0) return false;
+      return true;
+    }
+    // OVERDUE HAS ITS OWN PLACE: a lane of its own (the default), its stage as before, or hidden.
+    // Asking for it by name (Due: Overdue) always shows it.
+    var lateAll = all.filter(isLate).length, mode = lateAll ? sxV.late : 'stage', wantLate = sxFl.due.indexOf('late') >= 0;
+    var shown = all.filter(function(x){ return pass(x); });
+    var hid = mode === 'hide' && !wantLate ? shown.filter(isLate).length : 0;
+    var vis = hid ? shown.filter(function(x){ return !isLate(x); }) : shown;
+    var lane = mode === 'lane' ? vis.filter(isLate) : [], main = mode === 'lane' ? vis.filter(function(x){ return !isLate(x); }) : vis;
+    var base = mode === 'stage' || (mode === 'hide' && wantLate) ? all : all.filter(function(x){ return !isLate(x); });
+    // a facet lists only the values the board holds under the other filters (and any still ticked)
+    function opts(k){
+      var m = {}; all.forEach(function(x){ if (pass(x, k)) { var v = FV[k](x); m[v] = (m[v] || 0) + 1; } });
+      sxFl[k].forEach(function(v){ if (!(v in m)) m[v] = 0; });
+      var ks = Object.keys(m);
+      if (k === 'stage') return STAGES.filter(function(s){ return s.k in m; }).map(function(s){ return [s.k, s.n, m[s.k]]; });
+      if (k === 'due') return DUEK.filter(function(d){ return d[0] in m; }).map(function(d){ return [d[0], d[1], m[d[0]]]; });
+      return ks.sort(function(p, q){ return m[q] - m[p] || fromN(p).localeCompare(fromN(q)); }).map(function(v){ return [v, fromN(v), m[v]]; });
+    }
+    function po(attr, val, label, count, on, radio, sub){
+      return '<button type="button" class="po"' + (radio ? ' data-rd' : '') + ' ' + attr + '="' + esc(val) + '" data-fk="' + esc(attr + ':' + val) + '" aria-pressed="' + !!on + '"><span class="po-c">' + (on ? ico('check') : '') + '</span>' +
+        '<span class="po-l">' + esc(label) + (sub ? '<span class="po-s">' + sub + '</span>' : '') + '</span>' + (count != null ? '<small>' + count + '</small>' : '<small></small>') + '</button>';
+    }
+    var nF = sxFl.stage.length + sxFl.due.length + sxFl.from.length, pmIn = sxMenuIn ? ' data-in' : ''; sxMenuIn = false;
+    var so = sxV.sort === 'stage' && sxV.grp === 'stage' ? 'due' : sxV.sort, compact = sxV.den === 'compact';
+
+    // the kind chips and the search, as before; Content Hub joins the chips only when it has posts
     h += '<div class="sx-tools">';
-    if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
-      var c = all.filter(function(x){ return f[0] === 'all' || x.studio === f[0]; }).length;
-      return '<button type="button" data-sf="' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
-    if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
-    if (data.closed.length) h += '<button class="tg" type="button" id="sx-closed" aria-pressed="' + sxClosed + '" title="Launched campaigns and posted posts"><i></i>Show closed <small>' + data.closed.length + '</small></button>';
+    if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].concat(hubN ? [['hub', 'Content Hub']] : []).map(function(f){
+      var c = all.filter(function(x){ return f[0] === 'all' || (f[0] === 'hub' ? x.hub : x.studio === f[0]); }).length;
+      return '<button type="button" data-sf="' + f[0] + '" data-fk="sf:' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
     h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
-    var shown = all.filter(function(x){
-      return (sxF === 'all' || x.studio === sxF) && (!sxMine || x.mine) && (!sxQ || String(x.name).toLowerCase().indexOf(sxQ.toLowerCase()) >= 0);
-    });
-    h += '<div class="bd" id="bd" style="--n:' + stg.length + '">' + stg.map(function(s){
-      var cl = s.k === 'closed', c = shown.filter(function(x){ return x.stage === s.k; });
-      if (!cl) c.sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
-      var late = cl ? 0 : c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
-      return '<section class="col" id="col-' + s.k + '" aria-label="' + s.n + '"><div class="col-h"><i style="--c:' + s.c + '"></i>' + s.n + (late ? '<span class="col-late">' + late + ' overdue</span>' : '') + '<small>' + c.length + '</small></div>' +
-        '<span class="col-who">' + esc(whoOf(s)) + '</span>' +
+
+    // the second row: Filter, the two switches, Overdue | Board or List, View
+    h += '<div class="sx-bar"><div class="pp"><button class="pb" type="button" data-mn="filter" data-fk="mn:filter" aria-expanded="' + (sxMenu === 'filter') + '">' + ico('filter') + 'Filter' + (nF ? '<span class="pb-n">' + nF + '</span>' : '') + '</button>';
+    if (sxMenu === 'filter') {
+      var secs = [['stage', 'Stage'], ['due', 'Due'], ['from', 'From']].map(function(f){
+        var o = opts(f[0]);
+        // a facet with one value is no choice: it shows only while something in it is ticked
+        if (o.length < 2 && !sxFl[f[0]].length) return '';
+        return '<p class="pm-h">' + f[1] + '</p>' + o.map(function(v){ return po('data-ff', f[0] + ':' + v[0], v[1], v[2], sxFl[f[0]].indexOf(v[0]) >= 0); }).join('');
+      }).join('');
+      h += '<div class="pm"' + pmIn + ' role="group" aria-label="Filter">' + (secs || '<p class="pm-n">Everything here is at the same stage, from the same person, with the same due state. There is nothing to narrow.</p>') + '</div>';
+    }
+    h += '</div>';
+    if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" data-fk="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
+    if (data.closed.length) h += '<button class="tg" type="button" id="sx-closed" data-fk="sx-closed" aria-pressed="' + sxClosed + '" title="Launched campaigns and posted posts"><i></i>Show closed <small>' + data.closed.length + '</small></button>';
+    if (lateAll) {
+      h += '<div class="pp"><button class="pb" type="button" data-mn="late" data-fk="mn:late" aria-expanded="' + (sxMenu === 'late') + '"><i class="pb-d"></i>' + { lane: 'Overdue in its own lane', stage: 'Overdue in its stage', hide: 'Overdue hidden' }[sxV.late] + ' <small>' + lateAll + '</small>' + '<svg class="i pb-v" aria-hidden="true"><use href="#g-chevd"/></svg></button>';
+      if (sxMenu === 'late') h += '<div class="pm"' + pmIn + ' role="group" aria-label="Overdue work"><p class="pm-h">Overdue work</p>' +
+        po('data-sl', 'lane', 'In its own lane', null, sxV.late === 'lane', 1, 'One Overdue lane; the stages hold what is on time') +
+        po('data-sl', 'stage', 'In its stage', null, sxV.late === 'stage', 1, 'Each card stays in its column, marked overdue') +
+        po('data-sl', 'hide', 'Hidden', null, sxV.late === 'hide', 1, 'Off the board; this count stays') + '</div>';
+      h += '</div>';
+    }
+    h += '<span class="sp"></span><div class="vs" role="group" aria-label="View as">' + [['board', 'Board'], ['list', 'List']].map(function(v){
+      return '<button type="button" data-sv="' + v[0] + '" data-fk="sv:' + v[0] + '" aria-pressed="' + (sxV.v === v[0]) + '">' + ico(v[0]) + v[1] + '</button>'; }).join('') + '</div>';
+    h += '<div class="pp"><button class="pb" type="button" data-mn="view" data-fk="mn:view" aria-expanded="' + (sxMenu === 'view') + '">' + ico('tune') + 'View</button>';
+    if (sxMenu === 'view') h += '<div class="pm" data-r' + pmIn + ' role="group" aria-label="View"><p class="pm-h">Sort by</p>' +
+      [['due', 'Due date', 'Yours first, then the soonest'], ['name', 'Name', ''], ['updated', 'Last updated', '']].concat(sxV.grp === 'stage' ? [] : [['stage', 'Stage', '']]).map(function(o){ return po('data-ss', o[0], o[1], null, so === o[0], 1, o[2]); }).join('') +
+      '<p class="pm-h">Group by</p>' + [['stage', 'Stage'], ['from', 'From'], ['kind', 'Kind']].map(function(o){ return po('data-sg', o[0], o[1], null, sxV.grp === o[0], 1); }).join('') +
+      '<p class="pm-h">Density</p>' + [['cozy', 'Comfortable'], ['compact', 'Compact']].map(function(o){ return po('data-sd', o[0], o[1], null, sxV.den === o[0], 1); }).join('') + '</div>';
+    h += '</div></div>';
+
+    // what is in force, each removable, and how much of the board it leaves
+    var act = [];
+    if (sxF !== 'all') act.push(['kind', KIND[sxF]]);
+    if (sxMine) act.push(['mine', 'Waits on me']);
+    sxFl.stage.forEach(function(v){ act.push(['stage:' + v, 'Stage: ' + (SC[v] ? SC[v].n : v)]); });
+    sxFl.due.forEach(function(v){ act.push(['due:' + v, (DUEK.filter(function(d){ return d[0] === v; })[0] || [0, v])[1]]); });
+    sxFl.from.forEach(function(v){ act.push(['from:' + v, 'From: ' + fromN(v)]); });
+    if (sxQ) act.push(['q', '“' + sxQ + '”']);
+    if (act.length || hid) h += '<div class="sx-act">' + act.map(function(c){ return '<button class="fc" type="button" data-fx="' + esc(c[0]) + '" aria-label="Remove the filter ' + esc(c[1]) + '">' + esc(c[1]) + ico('x') + '</button>'; }).join('') +
+      (act.length > 1 ? '<button class="b b-l" type="button" data-fx="*">Clear all</button>' : '') +
+      '<span class="sx-n" role="status">' + vis.length + ' of ' + all.length + ' shown' + (hid ? ' · ' + hid + ' overdue hidden' : '') + '</span></div>';
+
+    if (!vis.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3>' + (act.length ? 'Nothing matches these filters' : hid ? 'Only overdue work is left' : 'Nothing on the board yet') + '</h3>' +
+      '<p>' + (hid ? (hid === 1 ? 'One overdue campaign or post is' : hid + ' overdue campaigns and posts are') + ' hidden.' : act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' +
+      '<div class="qk-a">' + (act.length ? '<button class="b b-g" type="button" data-fx="*">Clear the filters</button>' : '') + (hid ? '<button class="b b-g" type="button" data-sl="lane">Show overdue in its own lane</button>' : '') + '</div></div></div>' + freshLine();
+
+    // the groups: the stages, or who each came from, or its kind; then the Overdue lane
+    var SI = {}; STAGES.forEach(function(s, i){ SI[s.k] = i; });
+    function dn(x){ return x.stage === 'closed' ? 9999 : (due(x.due) || { n: 999 }).n; }
+    function cmp(a, b){
+      if (so === 'name') return String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' });
+      if (so === 'updated') return (b.live > 1 ? b.live : b.at || 0) - (a.live > 1 ? a.live : a.at || 0);
+      if (so === 'stage') return SI[a.stage] - SI[b.stage] || dn(a) - dn(b);
+      return (b.mine - a.mine) || dn(a) - dn(b) || (b.live || 0) - (a.live || 0);
+    }
+    var gs;
+    if (sxV.grp === 'stage') gs = stg.filter(function(s){ return !sxFl.stage.length || sxFl.stage.indexOf(s.k) >= 0; }).map(function(s){
+      return { k: 'stage:' + s.k, id: 'col-' + s.k, n: s.n, who: whoOf(s), c: s.c, keep: true, f: function(x){ return x.stage === s.k; } }; });
+    else if (sxV.grp === 'from') { var fm = {}; main.forEach(function(x){ var v = fromK(x); fm[v] = (fm[v] || 0) + 1; });
+      gs = Object.keys(fm).sort(function(p, q){ return fm[q] - fm[p] || fromN(p).localeCompare(fromN(q)); }).map(function(v){
+        return { k: 'from:' + v, n: fromN(v), who: v ? 'Last handed on by ' + (/^you$/i.test(v) ? 'you' : v === 'Content Hub' ? 'the Content Hub' : first(v)) : 'Not handed on yet', av: v, f: function(x){ return fromK(x) === v; } }; }); }
+    else gs = ['cas', 'ops', 'hub'].filter(function(k){ return main.some(function(x){ return kindK(x) === k; }); }).map(function(k){
+      return { k: 'kind:' + k, n: KIND[k], who: k === 'cas' ? 'Paid Meta ads' : k === 'ops' ? 'Feed and story posts' : 'Posts the Content Hub queued for design', c: 'var(--ps-line)', f: function(x){ return kindK(x) === k; } }; });
+    gs.forEach(function(g){ g.rows = main.filter(g.f).sort(cmp); });
+    if (mode === 'lane') gs.push({ k: 'late', id: 'col-late', n: 'Overdue', who: 'Past its due date, from every stage', c: 'var(--ps-bad)', lane: true, rows: lane.slice().sort(cmp) });
+    // FOLDED: what this viewer folded; else the Overdue lane (until it is asked for) and a stage
+    // with nothing in it. A stage Home linked to (?stage=) is always open.
+    function folded(g){
+      var st = sxV.col[g.k];
+      if ((q && q.stage && g.k === 'stage:' + q.stage) || (g.lane && wantLate)) return false;
+      return st === 'c' || (st !== 'o' && (g.lane || (!!g.keep && !g.rows.length && (disc || !base.some(g.f)))));
+    }
+    // an empty stage folds by itself, and so does one a filter emptied (not the search: nothing moves under typing)
+    var filt = act.length ? ' for these filters' : '', disc = sxF !== 'all' || sxMine || nF > 0;
+    function lead(g){ return g.av != null ? '<span class="uh-av" data-sm data-q>' + avIn(g.av || '?') + '</span>' : '<i style="--c:' + g.c + '"></i>'; }
+
+    if (sxV.v === 'list') {
+      var hb = function(k, n){ return so === k || !(k === 'stage' && sxV.grp === 'stage') ? '<button type="button" data-ss="' + k + '" data-fk="lh:' + k + '" aria-pressed="' + (so === k) + '" title="Sort by ' + n.toLowerCase() + '">' + n + '<svg class="i" aria-hidden="true"><use href="#g-chevd"/></svg></button>' : '<span>' + n + '</span>'; };
+      h += '<div class="lv" id="bd" data-den="' + sxV.den + '"><div class="lv-h">' + hb('name', 'Name') + hb('stage', 'Stage') + '<span>From</span>' + hb('due', 'Due') + hb('updated', 'Updated') + '</div>' + gs.map(function(g){
+        var fo = folded(g);
+        return '<section class="lv-g"' + (g.id ? ' id="' + g.id + '"' : '') + ' aria-label="' + esc(g.n) + '"><button class="lv-gh" type="button" data-sc="' + esc(g.k) + '" data-fk="sc:' + esc(g.k) + '" aria-expanded="' + !fo + '">' + ico('chev') + lead(g) + esc(g.n) + '<small>' + g.rows.length + '</small><em>' + esc(g.who) + '</em></button>' +
+          (fo ? '' : g.rows.length ? '<ul>' + g.rows.map(function(x){
+            var cl = x.stage === 'closed';
+            return '<li><a class="lr" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="lr-n"><span class="th" style="--w:' + (compact ? 28 : 40) + 'px">' + rd(x, compact ? 28 : 40) + '</span><span style="min-width:0"><b title="' + esc(x.name) + '">' + esc(x.name) + '</b>' +
+              '<span class="lr-k">' + mkOf(x) + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + '</span></span></span>' +
+              '<span class="lr-s">' + segs(x) + esc(x.step || '') + '</span>' +
+              '<span class="lr-f">' + (x.from ? '<span class="uh-av" data-sm data-q>' + avIn(x.from) + '</span><span>' + esc(fromN(fromK(x))) + '</span>' : '') + '</span>' +
+              '<span class="lr-d">' + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x, g.lane) || '<span class="lr-0">No date</span>') + '</span>' +
+              '<span class="lr-u">' + esc(ago(x.at)) + '</span></a></li>';
+          }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + filt + '.</p>') + '</section>';
+      }).join('') + '</div>' + freshLine();
+      return h;
+    }
+
+    h += '<div class="bd" id="bd" data-den="' + sxV.den + '">' + gs.map(function(g){
+      var c = g.rows, id = g.id ? ' id="' + g.id + '"' : '';
+      if (folded(g)) return '<section class="col" data-c' + id + ' aria-label="' + esc(g.n) + '"><button class="col-r" type="button" data-sc="' + esc(g.k) + '" data-fk="sc:' + esc(g.k) + '" aria-expanded="false" aria-label="Open ' + esc(g.n) + ', ' + c.length + '" title="Open ' + esc(g.n) + '">' + lead(g) + '<small>' + c.length + '</small><span>' + esc(g.n) + '</span></button></section>';
+      var late = mode === 'stage' && !g.lane ? c.filter(isLate).length : 0;
+      return '<section class="col"' + id + ' aria-label="' + esc(g.n) + '"><div class="col-h">' + lead(g) + '<span class="col-t">' + esc(g.n) + '</span>' + (late ? '<span class="col-late">' + late + ' overdue</span>' : '') + '<small>' + c.length + '</small>' +
+        '<button class="col-x" type="button" data-sc="' + esc(g.k) + '" data-fk="sc:' + esc(g.k) + '" aria-expanded="true" aria-label="Fold ' + esc(g.n) + '" title="Fold this column">' + ico('chevl') + '</button></div>' +
+        '<span class="col-who">' + esc(g.who) + '</span>' +
         (c.length ? '<ul class="cds">' + c.map(function(x){
-          return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:44px">' + rd(x, 44) + '</span><span class="cd-n">' + mkOf(x) + '<b title="' + esc(x.name) + '">' + esc(x.name).replace(/_/g, '_<wbr>') + '</b></span></span>' +
+          var cl = x.stage === 'closed', th = compact ? 28 : 44;
+          return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:' + th + 'px">' + rd(x, th) + '</span><span class="cd-n">' + mkOf(x) + '<b title="' + esc(x.name) + '">' + esc(x.name).replace(/_/g, '_<wbr>') + '</b></span></span>' +
             '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
-            '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + avIn(x.from) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x)) + '</span></a></li>';
-        }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + (sxF !== 'all' || sxMine || sxQ ? ' for this filter' : '') + '.</p>') + '</section>';
+            '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + avIn(x.from) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x, g.lane)) + '</span></a></li>';
+        }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + filt + '.</p>') + '</section>';
     }).join('') + '</div>' + freshLine();
     return h;
   }
@@ -1394,12 +1673,29 @@ body{-webkit-tap-highlight-color:transparent;
   var lastNav = '';
   window.addEventListener('hashchange', function(){ route(true); });
   document.addEventListener('click', function(e){
+    // a Status menu closes on a click anywhere outside it
+    if (sxMenu && !(e.target.closest && e.target.closest('.pp'))) { sxMenu = ''; setTimeout(sxDraw, 0); }
     var t = e.target.closest && e.target.closest('button, a'); if (!t) return;
+    var D = t.dataset;
+    if (D.mn){ sxMenu = sxMenu === D.mn ? '' : D.mn; sxMenuIn = !!sxMenu; sxDraw(D.fk); return; }
+    if (D.ff){ var fv = D.ff.split(':'), fa = sxFl[fv[0]], fx = fv.slice(1).join(':'), fi = fa.indexOf(fx); if (fi >= 0) fa.splice(fi, 1); else fa.push(fx); sxDraw(D.fk); return; }
+    if (D.fx){
+      if (D.fx === '*') { sxF = 'all'; sxMine = false; sxQ = ''; sxFl = { stage: [], due: [], from: [] }; }
+      else if (D.fx === 'kind') sxF = 'all'; else if (D.fx === 'mine') sxMine = false; else if (D.fx === 'q') sxQ = '';
+      else { var xv = D.fx.split(':'), xa = sxFl[xv[0]] || [], xi = xa.indexOf(xv.slice(1).join(':')); if (xi >= 0) xa.splice(xi, 1); }
+      sxDraw('mn:filter'); return;
+    }
+    if (D.sl){ sxV.late = D.sl; sxKeep(); sxDraw(D.fk); return; }
+    if (D.sv){ sxV.v = D.sv; sxKeep(); sxDraw(D.fk); return; }
+    if (D.ss){ sxV.sort = D.ss; sxKeep(); sxDraw(D.fk); return; }
+    if (D.sg){ sxV.grp = D.sg; sxKeep(); sxDraw(D.fk); return; }
+    if (D.sd){ sxV.den = D.sd; sxKeep(); sxDraw(D.fk); return; }
+    if (D.sc){ sxV.col[D.sc] = t.getAttribute('aria-expanded') === 'true' ? 'c' : 'o'; sxKeep(); sxDraw(D.fk); return; }
     if (t.dataset.nx){ var n = data.mine.length, i = Math.max(0, Math.min(n - 1, cur + +t.dataset.nx)); if (i === cur) return; flip = +t.dataset.nx; cur = i; route(); var b = document.querySelector('[data-nx="' + t.dataset.nx + '"]'); if (b && !b.disabled) b.focus(); return; }
     if (t.dataset.hf){ homeF = t.dataset.hf; route(); return; }
     if (t.dataset.pf){ pjF = t.dataset.pf; paintProjects(); return; }
-    if (t.dataset.sf){ sxF = t.dataset.sf; route(); return; }
-    if (t.id === 'sx-mine'){ sxMine = !sxMine; route(); return; }
+    if (t.dataset.sf){ sxF = t.dataset.sf; sxDraw(D.fk); return; }
+    if (t.id === 'sx-mine'){ sxMine = !sxMine; sxDraw(D.fk); return; }
     if (t.id === 'sx-closed'){ sxClosed = !sxClosed; try { localStorage.setItem('provident-sx-closed', sxClosed ? '1' : '0'); } catch (x) {} route(); if (sxClosed) { var cc = $('col-closed'); if (cc) cc.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } return; }
     if (t.hasAttribute('data-drive')){ e.preventDefault(); connectDrive(); return; }
     if (t.hasAttribute('data-refresh')){ e.preventDefault(); refreshAll(true); return; }
@@ -1410,6 +1706,13 @@ body{-webkit-tap-highlight-color:transparent;
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
   });
+  // Status redrawn in place, the focus put back on the control that was pressed
+  function sxDraw(fk){
+    if (!/^#\/status/.test(location.hash)) return;
+    route();
+    var el = fk && document.querySelector('[data-fk="' + String(fk).replace(/["\\]/g, '\\$&') + '"]'); if (el) el.focus();
+  }
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && sxMenu) { var m = sxMenu; sxMenu = ''; sxDraw('mn:' + m); } });
   document.addEventListener('input', function(e){
     if (e.target.id === 'pj-q'){ pjQ = e.target.value; paintProjects(); return; }
     if (e.target.id === 'sx-q'){ sxQ = e.target.value; var pos = e.target.selectionStart; route(); var q = $('sx-q'); q.focus(); q.setSelectionRange(pos, pos); }
@@ -1605,6 +1908,7 @@ body{-webkit-tap-highlight-color:transparent;
       var hs = location.hash.replace(/^#\/?/, '').split('/')[0] || 'home';
       if (hs !== 'home' && hs !== 'status' && hs !== 'files') return;   // the item pages draw themselves
       var a = document.activeElement; if (a && a.id === 'sx-q') return;   // never under someone typing
+      if (sxMenu) return;   // nor under an open Status menu
       route();
     }, 120);
   }

@@ -117,7 +117,9 @@ say so and point to the step above.
     **Design**, **Copy check**, **Ready**) with the work in it, and **Your studios**. Your last
     saved projects sit at the bottom under **Pick up where you left off**.
   - **Status** is one board for both studios, in the same four stages. **Only what waits on me**
-    and **Find by name** narrow it. Click a card for its page — the same page the studios had:
+    and **Find by name** narrow it, and so do the kind chips (**Everything**, **Campaign ads**,
+    **Organic posts**, and **Content Hub** when the hub has posts) and **Filter** (see *Organising
+    Status* below). Click a card for its page — the same page the studios had:
     a campaign's ticket or ad set page (brief, audiences, **Pick up**, **Ticket settings**,
     phases, Remove, Delete) or a post's page (progress, the step buttons such as **Send to
     designer**, **Send to copy check** and **Approve copy**, Copy link, the brief, activity). A step
@@ -1394,6 +1396,30 @@ columns — New (drafts), Design, Copy check, Ready. **Show closed** (beside Onl
 me, with its count) adds a fifth, **Closed**: every campaign that performance marketing launched
 and every post marked posted, the newest first, with how long ago. It is off until you turn it on,
 and this computer remembers your choice.
+
+**Organising Status.** The row under the kind chips holds the controls; the layout choices are
+remembered on this computer, the filters last for the visit.
+- **Overdue** (the button with the red dot and the count; it appears only when something is
+  overdue) decides where overdue work goes: **In its own lane** (the default: one **Overdue** lane
+  at the end of the board, folded until you open it, so the stage columns hold only what is on
+  time), **In its stage** (each card stays in its column, marked overdue, as before) or **Hidden**
+  (off the board; the count stays on the button and the line under the tools says how many are
+  hidden).
+- **Filter** opens **Stage**, **Due** (**Overdue**, **Due this week**, **Due later**, **No date**)
+  and **From** (who last handed it on). Tick as many as you like: ticks in one group widen it,
+  groups narrow each other, and they combine with the kind chips, **Only what waits on me** and
+  **Find by name**. Each option shows how many it would leave, and options that would leave
+  nothing are not listed. Every filter in force is a chip under the tools — click one to remove
+  it, or **Clear all** — beside "n of n shown". Ticking **Overdue** always shows the overdue work,
+  whatever the Overdue button says.
+- **Board | List** switches between the columns and a compact list (Name, Stage, From, Due,
+  Updated; click a heading to sort by it).
+- **View** holds **Sort by** (**Due date** — yours first, then the soonest — **Name**, **Last
+  updated**, and **Stage** when the board is not grouped by stage), **Group by** (**Stage**,
+  **From**, **Kind**) and **Density** (**Comfortable**, **Compact**).
+- The arrow on a column's heading folds it to a narrow rail (its count stays); click the rail to
+  open it. A stage with nothing in it folds by itself. In the list, click a group's heading.
+
 Home's **Where everything is** counts only the four still moving. **Only what waits on me** shows only yours; a
 card with a blue ring and **Waits on you** is yours. Click a card for its page: progress, the step buttons, **Open in
 the studio**, **Copy link**, the brief and files, and everything that happened. Every export is
