@@ -598,3 +598,25 @@ The 2 px ink outline on a selected Video-track clip disappeared against a pale f
 now carries a two-tone ring drawn over the frames (`::after`: 2.5 px `--ps-ink`, then 2 px
 `--ps-sb` inside it) and its name chip inverts (ink ground, rail-ground text). Other tracks keep the
 plain outline, which reads on their flat tints. Seen in the pane, dark theme; light theme not checked.
+
+## One Generate panel in the right rail (2026-11-18, by request)
+
+Everything that is generated moved out of the left rail (which is now only what can be added) into
+the right rail's third tab, **Generate**, with one inner tab each: **Animate** (the queue,
+`queueHtml`), **Voiceover** (`voHtml`), **Music** (`muHtml`). This supersedes "the queue is in the
+Media tab" and "Audio tab > Make a voiceover / Make music" above.
+
+- It is its own container, `#gen`, beside `#insp`; `renderInspector` shows one or the other. Its
+  handlers are on `#gen`, so the inspector's `mark()` on focus and its `rtab !== 'sel'` guards never
+  see it. The folding sections (`acc` / `ACC`) are gone.
+- `renderGen()` replaces `renderLib()` in the voiceover and music code and on a queue change.
+  `paintGen` puts the caret back after a repaint, because the 4 s queue poll repaints while a script
+  is being typed.
+- The rail tab reads "Generate · 3" while jobs are waiting or generating (`genTab`), since the queue
+  is no longer in view on Media. A generator that is working or showing a price pulls its inner tab
+  forward.
+- Selecting something still turns the rail to Selected (a queue row selects its clip). Animate's
+  settings for one photo stay under Selected.
+- Tested in the pane on a spare port with an empty project: the three tabs, the server's three live
+  jobs, typing a script through a poll (caret kept, hint updated), the script kept across tabs, no
+  console errors. Not tested: making a voiceover or music from the new place, light theme, phones.

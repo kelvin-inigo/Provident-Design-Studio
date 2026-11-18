@@ -1340,15 +1340,13 @@
     return h;
   }
   const VO = { text: '', voice: '', list: null, busy: '', quote: null, target: '' };
-  // which generator is unfolded in the Audio tab; one that is working or showing a price stays open
-  const ACC = { vo: false, mu: false };
-  const acc = (k, title, meta, body) => '<details class="vs-acc" data-acc="' + k + '"' + (ACC[k] ? ' open' : '') + '><summary><b>' + title + '</b><s>' + meta + '</s>' + CHEV + '</summary><div class="vs-acc-b">' + body + '</div></details>';
+  // the generators live in the right rail's Generate panel (genHtml), one tab each
+  const gsec = body => '<div class="vs-sec">' + body + '</div>';
   function voHtml() {
-    if (!VO.list) { VO.list = { mac: [], hf: [] }; api('/api/voice/list').then(r => { VO.list = r; if (!VO.voice) VO.voice = r.mac && r.mac[0] ? 'mac:' + r.mac[0] : ''; renderLib(); }).catch(() => { VO.list = { mac: [], hf: [], note: 'off' }; renderLib(); }); }
+    if (!VO.list) { VO.list = { mac: [], hf: [] }; api('/api/voice/list').then(r => { VO.list = r; if (!VO.voice) VO.voice = r.mac && r.mac[0] ? 'mac:' + r.mac[0] : ''; renderGen(); }).catch(() => { VO.list = { mac: [], hf: [], note: 'off' }; renderGen(); }); }
     const L = VO.list, opt = (v, t) => '<option value="' + esc(v) + '"' + (VO.voice === v ? ' selected' : '') + '>' + esc(t) + '</option>';
     const mine = (L.hf || []).filter(v => v.type !== 'preset'), pre = (L.hf || []).filter(v => v.type === 'preset');
-    if (VO.busy || VO.quote != null) ACC.vo = true;
-    return acc('vo', 'Make a voiceover', 'From a script',
+    return gsec(
       '<div class="vs-f"><label>Script</label><textarea class="p-in" id="voText" rows="5" placeholder="Type what the voice should say"' + (VO.busy ? ' disabled' : '') + '>' + esc(VO.text) + '</textarea></div>' +
       '<div class="vs-f"><label>Length <s>seconds, optional</s></label><input class="p-in" type="number" id="voTarget" min="1" step="0.5" placeholder="Leave empty for natural speed" value="' + esc(VO.target) + '"' + (VO.busy ? ' disabled' : '') + '></div>' +
       '<span class="vs-note" id="voHint">' + voHint() + '</span>' +
@@ -1369,8 +1367,7 @@
   const MU = { text: '', len: '', model: 'sonilo', busy: '', quote: null };
   function muHtml() {
     const dis = MU.busy ? ' disabled' : '', end = videoEnd();
-    if (MU.busy || MU.quote != null) ACC.mu = true;
-    return acc('mu', 'Make music', 'From a description',
+    return gsec(
       '<div class="vs-f"><label>Describe it</label><textarea class="p-in" id="muText" rows="3" placeholder="Calm cinematic piano with soft strings, slow build"' + dis + '>' + esc(MU.text) + '</textarea></div>' +
       '<div class="vs-f"><label>Length <s>seconds</s></label><input class="p-in" type="number" id="muLen" min="5" max="180" step="1" placeholder="' + (end > 0 ? Math.ceil(end) + ' (your video)' : '30') + '" value="' + esc(MU.len) + '"' + dis + '></div>' +
       '<div class="vs-row"><span>Model</span><div class="vs-seg">' + [['sonilo', 'Sonilo'], ['elevenlabs', 'ElevenLabs']].map(o => '<button data-mum="' + o[0] + '"' + (MU.model === o[0] ? ' data-on="1"' : '') + dis + '>' + o[1] + '</button>').join('') + '</div></div>' +
@@ -1384,12 +1381,12 @@
     const duration = clamp(parseFloat(MU.len) || Math.ceil(videoEnd()) || 30, 5, 180), body = { text, duration, model: MU.model };
     try {
       if (!confirmed) {
-        MU.busy = 'Asking Higgsfield for the price…'; renderLib();
+        MU.busy = 'Asking Higgsfield for the price…'; renderGen();
         const q = await api('/api/music/cost', Object.assign({ id: uid() + 'mu' }, body)); MU.busy = '';
-        if (q.error) { toast(q.error); renderLib(); return; }
-        MU.quote = q.credits; renderLib(); return;
+        if (q.error) { toast(q.error); renderGen(); return; }
+        MU.quote = q.credits; renderGen(); return;
       }
-      MU.quote = null; MU.busy = 'Making the music… this can take a minute or two.'; renderLib();
+      MU.quote = null; MU.busy = 'Making the music… this can take a minute or two.'; renderGen();
       const r = await api('/api/music/make', Object.assign({ id: uid() + 'mu' }, body));
       if (r.error) throw new Error(r.error);
       const blob = await (await fetch('/_animate/' + r.file)).blob(), ext = r.file.split('.').pop(), name = 'Music ' + text.split(/\s+/).slice(0, 3).join(' ') + ' ' + uid().slice(0, 3);
@@ -1397,18 +1394,18 @@
       const m = Object.values(media).filter(x => x.kind === 'audio' && x.name === name).pop();
       if (!m) throw new Error('the audio could not be read');
       addAudio(m.id, 'music'); MU.busy = ''; save(); renderAll(); toast('The music is on the Music track.');
-    } catch (e) { MU.busy = ''; renderLib(); toast('The music could not be made (' + e.message + ').'); }
+    } catch (e) { MU.busy = ''; renderGen(); toast('The music could not be made (' + e.message + ').'); }
   }
   async function voHear() {
-    if (VO.playing) { try { VO.playing.pause(); } catch (e) {} VO.playing = null; renderLib(); return; }
+    if (VO.playing) { try { VO.playing.pause(); } catch (e) {} VO.playing = null; renderGen(); return; }
     const v = VO.voice.split(':'); let src = '';
     if (v[0] === 'hf') { src = ((VO.list.hf || []).find(x => x.id === v[2]) || {}).preview || ''; if (!src) { toast('There is no sample for that voice.'); return; } }
     else if (v[0] === 'mac') {
       try { const r = await api('/api/voice/make', { id: uid() + 'pv', text: 'This is how I sound reading your script.', mac: v[1] }); if (r.error) throw new Error(r.error); src = '/_animate/' + r.file; }
       catch (e) { toast('The sample could not be made (' + e.message + ').'); return; }
     } else return;
-    const a = new Audio(src); VO.playing = a; a.onended = a.onerror = () => { if (VO.playing === a) { VO.playing = null; renderLib(); } };
-    renderLib(); a.play().catch(() => { VO.playing = null; renderLib(); toast('The sample could not be played.'); });
+    const a = new Audio(src); VO.playing = a; a.onended = a.onerror = () => { if (VO.playing === a) { VO.playing = null; renderGen(); } };
+    renderGen(); a.play().catch(() => { VO.playing = null; renderGen(); toast('The sample could not be played.'); });
   }
   async function voMake(confirmed) {
     const text = VO.text.trim(), v = VO.voice.split(':'); if (!text) { toast('Type the script first.'); return; }
@@ -1418,12 +1415,12 @@
     const body = v[0] === 'mac' ? { text, mac: v[1], wpm: tg ? Math.round(clamp(words / tg * 60 * 1.12, 110, 300)) : 0 } : { text, voice_type: v[1], voice_id: v[2] };
     try {
       if (v[0] === 'hf' && !confirmed) {
-        VO.busy = 'Asking Higgsfield for the price…'; renderLib();
+        VO.busy = 'Asking Higgsfield for the price…'; renderGen();
         const q = await api('/api/voice/cost', Object.assign({ id: uid() + 'vo' }, body)); VO.busy = '';
-        if (q.error) { toast(q.error); renderLib(); return; }
-        VO.quote = q.credits; renderLib(); return;
+        if (q.error) { toast(q.error); renderGen(); return; }
+        VO.quote = q.credits; renderGen(); return;
       }
-      VO.quote = null; VO.busy = 'Making the voiceover…'; renderLib();
+      VO.quote = null; VO.busy = 'Making the voiceover…'; renderGen();
       const r = await api('/api/voice/make', Object.assign({ id: uid() + 'vo' }, body));
       if (r.error) throw new Error(r.error);
       const blob = await (await fetch('/_animate/' + r.file)).blob(), ext = r.file.split('.').pop();
@@ -1440,7 +1437,7 @@
         msg = Math.abs(a.dur - tg) < .05 ? 'The voiceover is exactly ' + tg + ' s (' + Math.round(a.rate * 100) + '% speed).' : 'The voice took ' + m.dur.toFixed(1) + ' s; the closest natural fit is ' + a.dur.toFixed(1) + ' s. Edit the script to reach ' + tg + ' s.';
       }
       VO.busy = ''; save(); renderAll(); toast(msg);
-    } catch (e) { VO.busy = ''; renderLib(); toast('The voiceover could not be made (' + e.message + ').'); }
+    } catch (e) { VO.busy = ''; renderGen(); toast('The voiceover could not be made (' + e.message + ').'); }
   }
   // THE LEFT RAIL IS WHAT CAN BE ADDED, and nothing else (2026-11-13 redesign, after CAS's
   // "Add a component"): uploads and the library as tiles, text and callouts as specimen tiles,
@@ -1596,10 +1593,8 @@
     const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
     const none = (t, body) => '<div class="vs-none"><b>' + t + '</b>' + body + '</div>';
     if (tab === 'media' || tab === 'audio') {
-      if (tab === 'media') h += queueHtml();
       h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A')) + '</div>';
       h += libSec(tab, M) + (tab === 'media' && P.casBg ? '<div class="vs-sec"><button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button></div>' : '');
-      if (tab === 'audio') h += voHtml() + muHtml();
     } else if (tab === 'text') {
       // each tile is a specimen of what it adds, in the chrome's ink; the full description is its tooltip
       const tile = (attr, o) => '<button class="vs-t" ' + attr + '="' + o[0] + '" title="' + o[2] + '"><i>' + o[3] + '</i><b>' + o[1] + '</b></button>';
@@ -1677,20 +1672,16 @@
     }
     return false;
   }
-  $('#lib').addEventListener('toggle', e => { const d = e.target; if (d.dataset && d.dataset.acc) ACC[d.dataset.acc] = d.open; }, true);
   $('#lib').addEventListener('keydown', e => {      // the star and the menu are spans inside a tile that is itself a button
-    const el = e.target.closest('[data-star],[data-more],[data-qcancel],[data-qsel]');
+    const el = e.target.closest('[data-star],[data-more]');
     if (el && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); el.click(); }
   });
   $('#lib').addEventListener('change', e => { if (e.target.id === 'libDir') { LQ[libKey()].dir = e.target.value; renderLib(); } });
-  $('#lib').addEventListener('input', e => { if (e.target.id === 'libQ') { LQ[libKey()].q = e.target.value; libRefresh(); return; } if (e.target.id === 'muText') MU.text = e.target.value; else if (e.target.id === 'muLen') { MU.len = e.target.value; MU.quote = null; } else if (e.target.id === 'voText' || e.target.id === 'voTarget') { VO[e.target.id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); } else if (e.target.id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderLib(); } });
+  $('#lib').addEventListener('input', e => { if (e.target.id === 'libQ') { LQ[libKey()].q = e.target.value; libRefresh(); return; } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');
     let el;
     if ((el = q('data-rm'))) { e.stopPropagation(); removeMedia(el.dataset.rm); }
-    else if ((el = q('data-qcancel'))) { e.stopPropagation(); const id = el.dataset.qcancel, c = P.clips.find(x => x.job && x.job.id === id);
-      if (c) animCancel(c); else api('/api/animate/cancel', { id }).catch(() => {}).then(() => { JOBS = JOBS.filter(j => j.id !== id); renderLib(); }); }
-    else if ((el = q('data-qsel'))) { sel = { kind: 'clip', id: el.dataset.qsel }; const sp = span('clip', find(sel)); if (sp) seek(sp[0]); renderAll(); }
     else if ((el = q('data-star'))) { e.stopPropagation(); lset(el.dataset.star, 'star', lm(el.dataset.star).star ? 0 : 1); libRefresh(); }
     else if ((el = q('data-more'))) { e.stopPropagation(); libMenu(el.dataset.more, el); }
     else if ((el = q('data-libf'))) { LQ[libKey()].f = el.dataset.libf; renderLib(); }
@@ -1705,14 +1696,6 @@
     else if ((el = q('data-addclip'))) addClip(el.dataset.addclip);
     else if ((el = q('data-hear'))) hearToggle(el.dataset.hear);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
-    else if (e.target.closest('#voHear')) voHear();
-    else if (e.target.closest('#muBtn')) muMake(false);
-    else if (e.target.closest('#muGo')) muMake(true);
-    else if (e.target.closest('#muCancel')) { MU.quote = null; renderLib(); }
-    else if ((el = q('data-mum'))) { MU.model = el.dataset.mum; MU.quote = null; renderLib(); }
-    else if (e.target.closest('#voBtn')) voMake(false);
-    else if (e.target.closest('#voGo')) voMake(true);
-    else if (e.target.closest('#voCancel')) { VO.quote = null; renderLib(); }
     else if ((el = q('data-addtext'))) addText(el.dataset.addtext);
     else if ((el = q('data-addcall'))) (el.dataset.addcall === 'cta' ? addCta() : addCallout(el.dataset.addcall));
     else if ((el = q('data-addlogo'))) addLogo(el.dataset.addlogo);
@@ -1792,6 +1775,8 @@
     const key = it ? sel.kind + ':' + sel.id : '';
     if (key !== selKey) { selKey = key; rtab = it ? 'sel' : 'doc'; if (it) { document.body.dataset.pane = 'edit'; paintPane(); } }
     $('#rtabs').querySelectorAll('button').forEach(b => { const on = b.dataset.rtab === rtab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
+    genTab(); $('#gen').hidden = rtab !== 'gen'; el.hidden = rtab === 'gen';
+    if (rtab === 'gen') { paintGen(); return; }
     if (rtab === 'doc') { el.innerHTML = docHtml(); return; }
     { const g = group(); if (g) {
       const a0 = Math.min(...g.map(t => t.at)), e0 = Math.max(...g.map(t => t.at + t.dur));
@@ -1882,6 +1867,51 @@
     if (it) h += '<div class="vs-sec"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
     el.innerHTML = h;
   }
+  // THE GENERATE PANEL (2026-11-18, by request): everything that is generated sits in one place,
+  // the right rail's third tab, one inner tab each: the animate queue, the voiceover, the music.
+  // It is its own container (#gen) beside #insp, so the inspector's handlers never see it.
+  let gtab = 'anim';
+  const genN = () => JOBS.filter(jobActive).length;
+  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Generate' + (n ? ' · ' + n : ''); if (b && b.textContent !== t) b.textContent = t; }
+  function genHtml() {
+    const n = genN();
+    if (VO.busy || VO.quote != null) gtab = 'vo'; else if (MU.busy || MU.quote != null) gtab = 'mu';
+    return '<div class="vs-sec"><div class="vs-seg" id="gtabs" role="tablist" aria-label="What to generate">' +
+      [['anim', 'Animate' + (n ? ' · ' + n : '')], ['vo', 'Voiceover'], ['mu', 'Music']].map(o => '<button role="tab" data-gtab="' + o[0] + '" aria-selected="' + (gtab === o[0]) + '"' + (gtab === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div></div>' +
+      (gtab === 'vo' ? voHtml() : gtab === 'mu' ? muHtml()
+        : queueHtml() || '<div class="vs-sec"><div class="vs-none"><b>Nothing is animating</b>Select a photo on the timeline and choose a camera move under Selected. What is waiting or generating is listed here, whichever video it is for.</div></div>');
+  }
+  // repainting must not take the caret out of a script somebody is typing
+  function paintGen() {
+    const el = $('#gen'), a = document.activeElement, id = a && el.contains(a) && a.id, s0 = id && a.selectionStart, s1 = id && a.selectionEnd, top = el.parentNode.scrollTop;
+    el.innerHTML = genHtml();
+    if (id) { const b = document.getElementById(id); if (b) { b.focus(); try { if (s0 != null) b.setSelectionRange(s0, s1); } catch (e) {} } }
+    el.parentNode.scrollTop = top;
+  }
+  function renderGen() { genTab(); if (rtab === 'gen') paintGen(); }
+  const gen = $('#gen');
+  gen.addEventListener('keydown', e => { const el = e.target.closest('[data-qcancel],[data-qsel]'); if (el && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); el.click(); } });
+  gen.addEventListener('input', e => {
+    const id = e.target.id;
+    if (id === 'muText') MU.text = e.target.value; else if (id === 'muLen') { MU.len = e.target.value; MU.quote = null; }
+    else if (id === 'voText' || id === 'voTarget') { VO[id === 'voText' ? 'text' : 'target'] = e.target.value; const hn = document.getElementById('voHint'); if (hn) hn.innerHTML = voHint(); }
+    else if (id === 'voVoice') { VO.voice = e.target.value; VO.quote = null; renderGen(); }
+  });
+  gen.addEventListener('click', e => {
+    const q = a => e.target.closest('[' + a + ']'); let el;
+    if ((el = q('data-gtab'))) { gtab = el.dataset.gtab; renderGen(); }
+    else if ((el = q('data-qcancel'))) { e.stopPropagation(); const id = el.dataset.qcancel, c = P.clips.find(x => x.job && x.job.id === id);
+      if (c) animCancel(c); else api('/api/animate/cancel', { id }).catch(() => {}).then(() => { JOBS = JOBS.filter(j => j.id !== id); renderGen(); }); }
+    else if ((el = q('data-qsel'))) { sel = { kind: 'clip', id: el.dataset.qsel }; const sp = span('clip', find(sel)); if (sp) seek(sp[0]); renderAll(); }
+    else if (e.target.closest('#voHear')) voHear();
+    else if (e.target.closest('#muBtn')) muMake(false);
+    else if (e.target.closest('#muGo')) muMake(true);
+    else if (e.target.closest('#muCancel')) { MU.quote = null; renderGen(); }
+    else if ((el = q('data-mum'))) { MU.model = el.dataset.mum; MU.quote = null; renderGen(); }
+    else if (e.target.closest('#voBtn')) voMake(false);
+    else if (e.target.closest('#voGo')) voMake(true);
+    else if (e.target.closest('#voCancel')) { VO.quote = null; renderGen(); }
+  });
   const insp = $('#insp');
   insp.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
   insp.addEventListener('focusin', e => { if (e.target.matches('input:not([type=range]),textarea,select')) mark(); });
@@ -2207,7 +2237,7 @@
         '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Or add it to the queue for Claude</button>' +
         '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude, which works through everything waiting.</span></div>');
   }
-  // the queue, in the Media tab: every job still waiting or generating, whichever video it is for
+  // the queue, in the Generate panel's Animate tab: every job still waiting or generating, whichever video it is for
   function queueHtml() {
     const act = JOBS.filter(jobActive).sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1) || (a.at || 0) - (b.at || 0));
     if (!act.length) return '';
@@ -2306,7 +2336,7 @@
     }
     if (got) { changed = true; toast(got === 1 ? 'A finished clip was added to Your media.' : got + ' finished clips were added to Your media.'); }
     const sig = JOBS.filter(jobActive).map(j => j.id + j.status + (j.step || '')).join();
-    if (changed) renderAll(); else if (sig !== animSig) { renderLib(); if (sel && sel.kind === 'clip') renderInspector(); }
+    if (changed) renderAll(); else if (sig !== animSig) { renderGen(); if (sel && sel.kind === 'clip' && rtab !== 'gen') renderInspector(); }
     animSig = sig;
     animWatch();
   }
