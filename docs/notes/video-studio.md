@@ -650,3 +650,20 @@ Right rail › Whole video › **QR code**, under Collaboration logo: Upload a Q
 - Tested in the pane on a spare port: upload, the plate's pixels at each of the three positions on
   9:16, reload keeps it, labels fit. Not tested: 1:1, a bottom wordmark, the export file, Send to CAS,
   scanning a real code.
+
+## Top bar and right rail tidy-up (2026-11-18, /impeccable, by request)
+
+- **Top bar:** the quiet buttons (theme, Preview, Save frame) carried the class `vs-q`, which is
+  also the library search box (`flex:1`, icon absolutely placed). That is why they stretched across
+  the bar with the icon far from, or on top of, the label. They are `vs-tq` now; never reuse `vs-q`.
+- **Right rail, every Selected panel:** the title row (`.vs-cap`) sticks under the tabs and
+  Duplicate / Delete (`.vs-foot`) stick to the foot, so what is selected and its actions are always
+  in view. `#insp` is a flex column so the foot sits at the bottom of a short panel.
+- **Photo clip:** Lasts is a compact row with a small number field (`.vs-num`), Transition's style
+  is a row, Framing comes before Animate, and **Animate this photo** is folded (`details.vs-acc`,
+  `animOpen`) until opened, or once a move is chosen or a job exists. The whole panel fits one view.
+- **Camera moves** are filled chips, so they read as buttons.
+- **Whole video:** the three long notes are one line each.
+- Checked in the pane at 1385 wide, dark theme: top bar positions, photo clip folded and open,
+  Whole video, no sideways overflow, no console errors. Not checked: light theme, phones, the text,
+  graphic, audio and end card panels beyond the shared sticky title and foot.

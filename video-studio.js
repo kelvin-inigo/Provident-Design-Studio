@@ -1676,16 +1676,16 @@
         lib.map(l => '<button class="vs-t" data-partner="' + esc(l.id) + '" title="' + esc(l.name) + '"' + (b.partner && b.partner.id === l.id ? ' data-on="1"' : '') + '><i><u style="-webkit-mask-image:url(\'' + l.u + '\');mask-image:url(\'' + l.u + '\')"></u></i><b>' + esc(l.name) + '</b>' + (l.own ? '<span class="vs-x" data-rmdev="' + esc(l.id) + '" title="Remove from this computer">' + ico('close') + '</span>' : '') + '</button>').join('') +
         '<button class="vs-t" data-up="partner" title="Add a developer logo from this computer"><i>' + ico('add') + '</i><b>Add a logo</b></button></div>' +
         (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') : '') +
-        '<span class="vs-note">Prints provident. | partner beside the wordmark, for the whole video. A logo you add stays on this computer.</span></div>' +
+        '<span class="vs-note">Sits beside the wordmark. A logo you add stays on this computer.</span></div>' +
       '<div class="vs-sec">' + H('QR code', b.qr ? esc(b.qr.name) : 'None') +
         (b.qr ? '<div class="vs-f"><label>Position</label><div class="vs-seg">' + [['bl', 'Bottom left'], ['br', 'Bottom right'], ['tr', 'Top right']].map(o => { const off = o[0] === 'tr' && !qrTopOk(), cur = b.qrPos === 'tr' && !qrTopOk() ? 'bl' : b.qrPos || 'bl';
             return '<button data-bk="qrPos" data-bv="' + o[0] + '"' + (cur === o[0] ? ' data-on="1"' : '') + (off ? ' disabled title="Top right shares the wordmark\'s row: show the wordmark at the top left first"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>' +
             rng('b', 'qrScale', 'Size', b.qrScale || 100, 60, 160, '%') +
             '<div class="vs-acts"><button class="p-ghost p-sm" data-qrrm="1">Remove</button><button class="p-ghost p-sm" data-up="qr">Replace</button></div>'
           : '<div class="vs-acts"><button class="p-btn p-sm" data-up="qr">Upload a QR code</button></div>') +
-        '<span class="vs-note">A small square on a white plate, on for the whole video; it rests while the end card shows. Use a square image of the code. Text is not moved out of its way.</span></div>' +
+        '<span class="vs-note">Shown for the whole video, except over the end card. Keep bottom text on the other side.</span></div>' +
       '<div class="vs-sec">' + H('Logo colour') + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) +
-        '<span class="vs-note">Match wordmark paints the collaboration logo and every graphic you place in the wordmark\'s colour. Original keeps each file\'s own colours. A logo saved on a flat background has that background removed.</span></div>';
+        '<span class="vs-note">Applies to the collaboration logo and every graphic you place.</span></div>';
   }
   function rng(scope, k, label, v, min, max, unit, step) {
     return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" class="p-range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
@@ -1826,6 +1826,7 @@
     pTint = null; dirty = true; save(); renderAll();
     toast(g[0] + ' applied to ' + a.peers.length + ' more on the ' + a.track + ' track. ⌘Z undoes it.');
   }
+  let animOpen = false;             // Animate this photo is folded until asked for, or once a move is chosen
   function renderInspector() {
     const it = find(sel), el = $('#insp'); let h = '';
     const key = it ? sel.kind + ':' + sel.id : '';
@@ -1861,11 +1862,12 @@
       h = cap(vid ? 'Video clip' : 'Photo clip', esc(m.name));
       if (vid) h += '<div class="vs-sec">' + row('Length', '<s>' + fmt(clipLen(it)) + ' of ' + fmt(m.dur) + '</s>') +
         row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
-      else h += '<div class="vs-sec">' + f('Lasts <s>seconds</s>', '<input class="p-in" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '">') + '</div>';
-      if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
-      if (!vid) h += animHtml(it, sec, f, row);
+      else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') + '</div>';
+      if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
         rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, ''));
+      if (!vid) { const open = animOpen || it.move || it.job;
+        h += animHtml(it, (t, meta, body) => '<details class="vs-acc" data-acc="anim"' + (open ? ' open' : '') + '><summary><b>' + t + '</b><s>Turn it into video</s>' + CHEV + '</summary><div class="vs-acc-b">' + body + '</div></details>', f, row); }
     } else if (sel.kind === 'audio') {
       const m = media[it.mid] || {};
       h = cap('Audio', esc(m.name)) +
@@ -1925,7 +1927,7 @@
         '<span class="vs-note">Drag it on the picture to move it. Reel and Square each keep their own place and size.</span></div>' + timing();
     }
     if (it) h += allHtml(it);
-    if (it) h += '<div class="vs-sec"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
+    if (it) h += '<div class="vs-sec vs-foot"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
     el.innerHTML = h;
   }
   // THE GENERATE PANEL (2026-11-18, by request): everything that is generated sits in one place,
@@ -1974,6 +1976,7 @@
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderGen(); }
   });
   const insp = $('#insp');
+  insp.addEventListener('toggle', e => { if (e.target.dataset && e.target.dataset.acc === 'anim') animOpen = e.target.open; }, true);
   insp.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
   insp.addEventListener('focusin', e => { if (e.target.matches('input:not([type=range]),textarea,select')) mark(); });
   insp.addEventListener('input', e => {

@@ -34,10 +34,10 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .p-top .p-seg button:not([data-on]):hover{color:var(--ps-ink);background:none}
 .p-top .p-tgrp > .p-ghost{padding:0 11px}
 .p-top .p-tgrp > .p-ghost:disabled{color:var(--ps-dim);cursor:default;background:transparent}
-.p-top .vs-q{background:transparent;color:var(--ps-ink);box-shadow:none}
-.p-top .vs-q:hover{background:var(--ps-fill)}
+.p-top .vs-tq{background:transparent;color:var(--ps-ink);box-shadow:none}
+.p-top .vs-tq:hover{background:var(--ps-fill)}
 .p-top .p-btn:disabled,.p-top > .p-ghost:disabled{background:var(--ps-fill);color:var(--ps-dim);cursor:default}
-.p-top .vs-q:disabled{background:transparent}
+.p-top .vs-tq:disabled{background:transparent}
 .vs-tag{font:500 11px/1 var(--ps-font);color:var(--ps-dim);padding:5px 9px;border-radius:var(--ps-pill);background:var(--ps-fill);white-space:nowrap}
 
 /* ── the three columns ── */
@@ -443,6 +443,21 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 @keyframes vs-busy{from{transform:translateX(-100%)}to{transform:translateX(264%)}}
 .vs-go{display:flex;flex-direction:column;gap:8px;margin-top:4px;padding-top:14px;border-top:1px solid var(--ps-hair)}
 .vs-go .vs-link{margin-top:4px;text-align:left}
+.p-top .vs-tq{flex:none;gap:8px}
+.p-top #histGrp{margin-right:6px}
+.p-top #frameBtn{margin-right:6px}
+.vs-rail.r .vs-cap{position:sticky;top:52px;z-index:1;background:var(--ps-sb);padding-top:2px;padding-bottom:10px;border-bottom:1px solid var(--ps-hair)}
+.vs-rail.r .vs-cap + .vs-sec{border-top:0}
+.vs-foot{position:sticky;bottom:0;z-index:1;margin-top:auto;background:var(--ps-sb);padding-top:12px;padding-bottom:12px;border-top:1px solid var(--ps-hair)}
+#insp{display:flex;flex-direction:column;flex:1 0 auto}
+.vs-mvs{gap:6px}
+.vs-mv{background:var(--ps-fill);text-align:center;padding:0 8px}
+.vs-mv:hover:not(:disabled){background:var(--ps-fill-h)}
+.vs-numw{display:inline-flex;align-items:center;gap:6px;flex:none}
+.vs-numw i{font:400 12.5px/1 var(--ps-font);font-style:normal;color:var(--ps-dim)}
+.vs-row .p-in.vs-num{width:84px;height:32px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums}
+.vs-row > select.p-in{flex:0 1 188px;min-width:0;height:32px;font-size:13px}
+.vs-rail.r .vs-acc > summary b{color:var(--ps-ink)}
 .vs-go .vs-link:disabled{color:var(--ps-dim);cursor:default;text-decoration-color:transparent}
 .vs-f label s{color:var(--ps-ink-2)}
 .vs-qr{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr);align-items:start;gap:10px;padding:6px;margin:0 -6px;border-radius:10px}
@@ -478,7 +493,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   .vs-body{grid-template-columns:var(--vs-lw,var(--vs-lwd)) minmax(0,1fr) 296px}
   .p-top{gap:10px}
   .p-top .vs-l{display:none}
-  .p-top .vs-q{width:36px;padding:0;justify-content:center}
+  .p-top .vs-tq{width:36px;padding:0;justify-content:center}
 }
 /* phones and narrow tablets: the picture, its bar and the timeline stay on top; the two rails
    become one panel under them, behind an Add / Edit switch */
@@ -504,6 +519,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   .vs-mseg{order:4;display:block;padding:12px 16px 4px;background:var(--ps-sb);border-top:1px solid var(--ps-hair)}
   .vs-rail{order:5;overflow:visible;border:0!important}
   .vs-rh{position:static}
+  .vs-rail.r .vs-cap{position:static}
   body:not([data-pane="edit"]) .vs-rail.r,body[data-pane="edit"] .vs-rail.l{display:none}
   .vs-grid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
   .vs-toast{bottom:16px}
@@ -560,13 +576,13 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   </div>
   <span class="vs-sp"></span>
   <i class="vs-brk"></i>
-  <button class="p-ghost p-ico-o vs-q" id="themeBtn" title="Switch theme" aria-label="Switch theme"></button>
+  <button class="p-ghost p-ico-o vs-tq" id="themeBtn" title="Switch theme" aria-label="Switch theme"></button>
   <div class="p-tgrp" id="histGrp">
     <button class="p-ghost p-ico-t" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo"></button>
     <button class="p-ghost p-ico-t" id="redoBtn" title="Redo (⇧⌘Z)" aria-label="Redo"></button>
   </div>
-  <button class="p-ghost p-ico-t vs-q" id="previewBtn2" title="See the video inside Facebook and Instagram" aria-label="Preview"></button>
-  <button class="p-ghost p-ico-t vs-q" id="frameBtn" title="Save the current frame as a PNG" aria-label="Save frame"></button>
+  <button class="p-ghost p-ico-t vs-tq" id="previewBtn2" title="See the video inside Facebook and Instagram" aria-label="Preview"></button>
+  <button class="p-ghost p-ico-t vs-tq" id="frameBtn" title="Save the current frame as a PNG" aria-label="Save frame"></button>
   <button class="p-ghost p-ico-t" id="exportBtn" title="Record the video and save it to Downloads"></button>
   <button class="p-btn p-ico-t" id="sendBtn" title="Record both sizes and hand them to CAS for the ad set"></button>
 </header>
