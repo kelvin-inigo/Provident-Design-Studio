@@ -30,7 +30,11 @@ language — under one record (`rs:<rid>`) and three role links (`rvt:<token>`).
 
 Every request is /api/share?op=...  (create, part, save, get, rev, sync, chunk; for ad sets
 rsmake, rsadd, rsget, rsstep, rsset, rsinfo; pvput and pv for photo previews; adminlist and admindel for share-admin.html,
-which need SHARE_ADMIN_KEY set in the deployment).
+which need SHARE_ADMIN_KEY set in the deployment). Signed-in ops, POST with the Google token (ACC_OPS):
+accme, accreq, acclist, accset, accteam, accperms, accrole (the admin names a team role), hubteam,
+hubkey, hubpush, hubtasks, hubseen, hubok, roamnote, arcopy, and engine (the home's Engine page:
+commits and Vercel deployments from GitHub; the admin and roles with 'arch'). The full table is in
+docs/architecture/pds-architecture.html, section 11.
 """
 import base64
 import fnmatch

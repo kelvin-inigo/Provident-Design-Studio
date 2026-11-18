@@ -267,6 +267,9 @@ status page, kept live while it is open:
   narrow it to one area or to what was deployed. New commits slide in at the top as they are pushed.
 - **How PDS is built**: each part of PDS, its files, what it does and when it last changed; click one
   to see only its commits. **Architecture reference** opens the PDF.
+- **Endpoints**: every address on the site this page and Access use (`/api/share?op=engine` feeds
+  this page, `op=accrole` names roles, `op=accstatus`, `op=accme`, `op=health`, `/api/gauth?op=status`),
+  what each is for, who may call it, and a dot for how it answered just now.
 Work on a Mac shows here once it is pushed to GitHub.
 
 ## 2. Projects: new, open, save

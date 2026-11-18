@@ -139,6 +139,7 @@
         '<div class="eg-f" id="eg-f" role="group" aria-label="Show"></div>' +
         '<div id="eg-list"></div></section>' +
       '<aside class="eg-built" aria-labelledby="eg-b-h"><h2 class="eg-h2" id="eg-b-h">How PDS is built</h2><ul class="eg-b" id="eg-b"></ul>' +
+        '<h2 class="eg-h2" id="eg-ep-h">Endpoints</h2><ul class="eg-ep" id="eg-ep" aria-labelledby="eg-ep-h"></ul>' +
         '<div class="eg-links"><a class="b b-g" href="docs/architecture/PDS-Architecture.pdf" target="_blank" rel="noopener">' + ico('file') + 'Architecture reference</a>' +
         '<a class="b b-q" href="' + REPO_URL + '" target="_blank" rel="noopener">' + ico('out') + 'Repository</a></div>' +
         '<p class="eg-note" id="eg-feed"></p></aside></div></div>';
@@ -171,12 +172,34 @@
   }
   function paintServices() {
     var S = document.getElementById('eg-sv'); if (!S) return;
-    var r = E.rate, gh = E.err ? { s: E.commits.length ? 'warn' : 'bad', t: E.err } : r ? { s: r.left < (r.limit || 60) * 0.1 ? 'warn' : 'ok', t: r.left.toLocaleString() + ' of ' + (r.limit || 0).toLocaleString() + ' left this hour' } : null;
+    var r = E.rate && E.rate.left != null ? E.rate : null, gh = E.err ? { s: E.commits.length ? 'warn' : 'bad', t: E.err } : r ? { s: r.left < (r.limit || 60) * 0.1 ? 'warn' : 'ok', t: r.left.toLocaleString() + ' of ' + (r.limit || 0).toLocaleString() + ' left this hour' } : null;
     var rows = [['server', 'Studio server', E.health.server], ['gauth', 'Google sign-in', E.health.gauth], ['store', 'Share store', E.health.store], ['gh', 'GitHub feed', gh]];
     S.innerHTML = rows.map(function (x) {
       var v = x[2] || { s: 'wait', t: 'Checking…' };
       return '<div class="eg-s" data-s="' + v.s + '"><span class="eg-dot" data-s="' + v.s + '"><i></i></span><span><b>' + x[1] + '</b><small title="' + esc(v.t) + '">' + esc(v.t) + '</small></span></div>';
     }).join('');
+    paintEndpoints();
+  }
+  // THE ENDPOINTS THIS PAGE AND ACCESS USE (2026-11-18, by request): each path on this site, what
+  // it is for, who may call it, and how it answered from here (the same probes as the services)
+  var EPS = [
+    ['POST', '/api/share?op=engine', 'This page: commits on main and Vercel deployments, from GitHub', 'Admin, or a role with See the engine', 'gh'],
+    ['GET', '/api/share?op=accstatus', 'Whether sign-in is on, and for which domain', 'Anyone', 'server'],
+    ['GET', '/api/gauth?op=status', 'Google sign-in that stays signed in', 'Anyone', 'gauth'],
+    ['GET', '/api/share?op=health', 'The share store: answering, how full', 'Anyone', 'store'],
+    ['POST', '/api/share?op=accrole', 'Name, rename or remove a team role (Access › New role…)', 'The admin', ''],
+    ['POST', '/api/share?op=accme', 'Who is signed in, their role and the role map', 'Any Google account on the domain', 'server']
+  ];
+  function paintEndpoints() {
+    var U = document.getElementById('eg-ep'); if (!U) return;
+    var base = (window.StudioBase && StudioBase.shareBase ? StudioBase.shareBase() : '') || location.origin;
+    var gh = E.err ? { s: E.commits.length ? 'warn' : 'bad' } : E.at ? { s: 'ok' } : null;
+    U.innerHTML = EPS.map(function (x) {
+      var v = x[4] === 'gh' ? gh : x[4] ? E.health[x[4]] : null, sv = v ? v.s : 'old';
+      return '<li><span class="eg-dot" data-s="' + sv + '" title="' + (v ? ({ ok: 'Answering', warn: 'Answering, with a warning', bad: 'Not answering', old: 'Retired' }[sv] || 'Checking') : 'Not checked from this page') + '"><i></i></span>' +
+        '<span class="eg-ep-t"><span class="eg-ep-p"><small>' + x[0] + '</small><code>' + esc(x[1]) + '</code></span><span>' + esc(x[2]) + '</span><small>' + esc(x[3]) + '</small></span></li>';
+    }).join('');
+    var F = document.getElementById('eg-ep-h'); if (F) F.title = 'On ' + base;
   }
   function paintStrip() {
     var S = document.getElementById('eg-strip'), M = document.getElementById('eg-months'); if (!S || !E.commits.length) return;
@@ -248,7 +271,7 @@
         '<small>' + (lastC ? 'Changed ' + esc(ago(lastC.at)) + (w ? ' · ' + w + ' this week' : '') : E.commits.length ? 'No commit names it yet' : '&nbsp;') + '</small></button></li>';
     }).join('');
     var F = document.getElementById('eg-feed');
-    if (F) F.innerHTML = 'Read from the public repository on GitHub by the studio’s server' + (E.rate ? (E.rate.token ? ', with its token' : ', without a token: GitHub allows it 60 reads an hour. A read-only GITHUB_TOKEN in Vercel lifts that') : '') + '. Commits made on a Mac show here once they are pushed.';
+    if (F) F.innerHTML = 'Read from the public repository on GitHub by the studio’s server (<code>/api/share?op=engine</code>)' + (E.rate && E.rate.left != null ? (E.rate.token ? ', with its token' : ', without a token: GitHub allows it 60 reads an hour. A read-only GITHUB_TOKEN in Vercel lifts that') : '') + '. Commits made on a Mac show here once they are pushed.';
   }
   function paint() { if (!E.root || !document.body.contains(E.root)) return; paintHead(); paintNow(); paintServices(); paintStrip(); paintFilters(); paintList(); paintBuilt(); }
 
@@ -378,7 +401,9 @@
     '.eg-more small,.eg-end{font:400 13px/1.4 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}',
     '.eg-end{margin:18px 0 0 76px}',
     '.eg-sk-l{display:grid;gap:10px}.eg-sk-l i{display:block;height:46px;border-radius:12px;background:var(--ps-fill);animation:egbusy 1.2s ease-in-out infinite alternate}',
-    '.eg-built{position:sticky;top:84px;display:flex;flex-direction:column;gap:14px}',
+    '.eg-built{display:flex;flex-direction:column;gap:14px}',
+    '.eg-built > .eg-h2 + .eg-ep,.eg-built > .eg-h2 + .eg-b{margin-top:-2px}',
+    '#eg-ep-h{margin-top:14px}',
     '.eg-b{list-style:none;margin:0;padding:0;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair);overflow:hidden}',
     '.eg-b li + li{box-shadow:inset 0 1px 0 var(--ps-hair)}',
     '.eg-b button{display:grid;gap:4px;width:100%;padding:14px 18px;border:0;background:none;color:var(--ps-ink);text-align:left;cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease)}',
@@ -388,6 +413,16 @@
     '.eg-b span{font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}',
     '.eg-b small{margin-top:2px;font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}',
     '.eg-links{display:flex;flex-wrap:wrap;gap:8px}',
+    '.eg-ep{list-style:none;margin:0;padding:0;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}',
+    '.eg-ep li{display:grid;grid-template-columns:12px minmax(0,1fr);gap:12px;padding:12px 18px}',
+    '.eg-ep li + li{box-shadow:inset 0 1px 0 var(--ps-hair)}',
+    '.eg-ep .eg-dot{margin-top:4px}',
+    '.eg-ep-t{display:grid;gap:3px;min-width:0}',
+    '.eg-ep-p{display:flex;align-items:baseline;gap:8px;min-width:0}',
+    '.eg-ep-p small{flex:none;font:600 11.5px/1 var(--ps-font);color:var(--ps-ink-2)}',
+    '.eg-ep code,.eg-note code{font:500 13px/1.35 var(--ps-font);color:var(--ps-link);overflow-wrap:anywhere;user-select:all}',
+    '.eg-ep-t > span:not(.eg-ep-p){font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}',
+    '.eg-ep-t > small{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}',
     '.eg-note{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim)}',
     '@media (max-width:1100px){.eg-cols{grid-template-columns:minmax(0,1fr)}.eg-built{position:static}.eg-sv{grid-template-columns:repeat(2,minmax(0,1fr))}}',
     '@media (max-width:640px){.eg-sv{grid-template-columns:minmax(0,1fr)}.eg-r{grid-template-columns:44px minmax(0,1fr);gap:6px 14px}.eg-r-x{grid-column:2;padding-left:14px;flex-wrap:wrap}.eg-c::before{left:56px}.eg-r::before{left:53px}.eg-more,.eg-end{margin-left:58px}.eg-strip{height:64px;gap:1px;padding:8px 8px 0}.eg-months{padding:0 8px}.eg-tl-bar{flex-wrap:wrap}.eg-q{flex:1 1 100%}.eg-dh{top:56px}}',
