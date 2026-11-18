@@ -7,6 +7,7 @@
      or a role family — smm, pm (performance marketing and the Digital Marketing Team), ct (both
        content roles), admin — for work that belongs to a role rather than a capability;
      or 'all' (everyone signed in) and 'out' (shown before signing in).
+   A guide's thumbnail is its first step's frame, or th: [frame, part] where that crops badly.
    Each step may point at a captured frame (f, in help/frames/) and a part of it (s, a rect
    recorded at capture time in help/frames.json). Frames are captured from the local test server
    with its demo data (tools/share-dev, /dev-seed), so the names in them are demo names.
@@ -70,7 +71,7 @@
       ],
       more: ['**Overdue** (the red-dot button, only when something is late) puts late work in its own lane, in its stage, or hides it.', 'Content Hub posts show too, tagged **Content Hub**.'] },
 
-    { id: 'home-ticket', area: 'home', group: 'Starting work', who: ['tickets'], min: 3,
+    { id: 'home-ticket', th: ['new-cas', 'aud'], area: 'home', group: 'Starting work', who: ['tickets'], min: 3,
       title: 'File a campaign as a ticket',
       sum: 'Set up a campaign on the home page and hand it to a designer.',
       steps: [
@@ -140,7 +141,7 @@
       ] },
 
     // ═════════════ CAS ═════════════
-    { id: 'cas-pickup', area: 'cas', group: 'From ticket to package', who: ['design-cas'], min: 3,
+    { id: 'cas-pickup', th: ['item-cas', 'phases'], area: 'cas', group: 'From ticket to package', who: ['design-cas'], min: 3,
       title: 'Pick up a ticket and fill the copy',
       sum: 'Open the ticket on Status, pick it up, paste the copy and fill.',
       steps: [

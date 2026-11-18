@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "help.js"
+        ],
+        "createdAt": "2026-11-18T09:20:08.606Z",
+        "reason": "builder's decision: the walkthrough ring is one absolutely positioned element moving between parts; scaling it with transform would distort its 2.5px line; it lays out nothing else"
+      }
+    ]
+  }
+}

@@ -36,7 +36,7 @@ ARGS = ap.parse_args()
 ONLY = set(x for x in ARGS.only.split(',') if x)
 OUT = os.path.join(ROOT, 'help', 'frames')
 FJ = os.path.join(ROOT, 'help', 'frames.json')
-W, H, DPR = 1440, 900, 1.25
+W, H, DPR = 1440, 900, 2   # 2x: the player zooms up to 1.8x on a desktop stage and must stay sharp
 B = ARGS.base
 TEAM = {'designer': 'exec4.graphics@providentestate.com', 'smm': 'exec10.media@providentestate.com', 'cten': 'exec1.content@providentestate.com',
         'pm': 'digitalmarketing.lead1@providentestate.com', 'admin': 'kelvin.inigo@providentestate.com'}

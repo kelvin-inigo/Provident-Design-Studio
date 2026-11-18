@@ -80,7 +80,8 @@
     return framesP;
   }
   var src = function (f) { return 'help/frames/' + f + '.webp'; };
-  function firstShot(a) { for (var i = 0; i < a.steps.length; i++) if (a.steps[i].f) return a.steps[i]; return null; }
+  // a guide's thumbnail: its own pick (th: [frame, part]) where its first screen crops badly
+  function firstShot(a) { if (a.th) return { f: a.th[0], s: a.th[1] }; for (var i = 0; i < a.steps.length; i++) if (a.steps[i].f) return a.steps[i]; return null; }
   // a thumbnail is the frame, zoomed onto the part its first step names
   function thumb(a, big) {
     var s = firstShot(a);

@@ -774,7 +774,7 @@ docs reader. Surface brief: `.impeccable/surfaces/help-js.md`.
 **Files.** `help-content.js` is the words only (33 guides, 6 view maps, 14 troubleshooting
 answers, one line and three "Start here" guides per role), written from `CAS-OPS-GUIDE.md` with
 on-screen names in **bold**. `help.js` is the page and the player, mounted like `engine.js`
-(`render(parts, q, ctx)` / `mount(pg)`). `help/frames/*.webp` (28, ~2 MB) and `help/frames.json`
+(`render(parts, q, ctx)` / `mount(pg)`). `help/frames/*.webp` (28, captured at 2× so the player's zoom stays sharp, ~3.3 MB) and `help/frames.json`
 (the box of each part a step rings, in % of a 1440 × 900 viewport).
 
 **Who sees what.** A guide's `who` is a list of capabilities from Access › Roles (`design-cas`,
@@ -854,4 +854,9 @@ step) and the article says it apart from the time the job takes (`min`); a tab's
 rows it lists (Start here guides are not counted twice); the rows' step segments fill from what
 this viewer has watched (`provident-help-seen`, this computer only); `text-wrap:pretty` on the
 job line.
+After that verdict (the second and last review round): the two bad thumbnails got their own
+pick (`th: [frame, part]` on the guide: `home-ticket`, `cas-pickup`), the frames were
+recaptured at device pixel ratio 2 (the 1.25× set went soft under the camera's zoom), and the
+watched-segments fill was proven with `provident-help-seen` seeded in the review capture. Not
+re-reviewed after these three.
 
