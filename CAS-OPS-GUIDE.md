@@ -190,7 +190,9 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Everyone but the admin** | The top bar shows only the pages you use: **Home** and **Status** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
 | **Digital Marketing Team** | Runs the same campaigns as the Meta ads on email, SMS and WhatsApp. It sees and does exactly what **Performance marketing** does (above): file tickets, follow campaigns on Status, open an ad set's performance-marketing link to see the finished ads, change words in **Edit text**, download and **Launch**. It has its own name and its own column (**Digital**) under Access › Roles. |
-| **Admin** | Everything a designer has, plus **Access** on the home page (CAS's sidebar row opens it there too). There is one admin. |
+| **AI Engineers** | The **Engine** page on the home (they land on it): how PDS is built, every commit and every deployment, live. Home and Status as everyone else, no editor. marketing.ads@ and ai.engineer1@ are let in as AI Engineers from the start. |
+| **A role the admin named** | A team that fits none of the above (for example Video production). It opens only what the admin ticks for it under Access › Roles; until then, Home and Status. |
+| **Admin** | Everything a designer has, plus **Access** and **Engine** on the home page (CAS's sidebar row opens Access there too). There is one admin. |
 
 **Hand-offs name a person.** Each team has two people. Whenever you send work on — **File as
 ticket** (to a designer), **Send to designer**, **Send to copy check**, **Send for translation
@@ -203,7 +205,7 @@ is offered for an English project, and only an Arabic one for the translation; f
 
 The team is set up already: exec10.media (social media manager), exec1.content (English copy),
 exec2.content (Arabic copy), exec4.graphics and exec5.graphics (designers),
-digitalmarketing.lead1 (performance marketing). They can sign in straight away; their names fill in
+digitalmarketing.lead1 (performance marketing), marketing.ads and ai.engineer1 (AI Engineers). They can sign in straight away; their names fill in
 from Google the first time they do. The admin can still change or remove anyone in **Access**.
 
 - **First time?** Sign in anyway. You land on **Waiting for access**, and the admin sees your
@@ -219,11 +221,15 @@ from Google the first time they do. The admin can still change or remove anyone 
 
 - **Requests**: everyone who signed in but hasn't been let in, with how often they tried and their
   note. Pick their role from the dropdown (Designer, Social media manager, Content team · English,
-  Content team · Arabic, Performance marketing or Digital Marketing Team), then press **Let in**, or **Decline**.
+  Content team · Arabic, Performance marketing, Digital Marketing Team, AI Engineers, or a role you named), then press **Let in**, or **Decline**.
+  **A team that isn't listed?** Pick **New role…** at the end of the dropdown, type the team's name
+  (say "Video production") and press **Add role**: it is made and picked for that person. The same
+  works under **People** and **Add someone**. A new role opens nothing until you tick what it may do
+  under **Roles**.
 - **People**: everyone with access. Change a role from its dropdown, or **Remove access** (they're
   shut out within five minutes). Declined or removed people can be let in again, or **Forget** removes them from the list.
 - **Preview the home as** is a dropdown beside the tabs. Choose **a role** (Designer, Social media
-  manager, Content team · English, Content team · Arabic, Performance marketing, Digital Marketing Team) to see the home and
+  manager, Content team · English, Content team · Arabic, Performance marketing, Digital Marketing Team, AI Engineers, or a role you named) to see the home and
   studios as that role does, or **a person** (everyone let in, listed by name and role) to see
   exactly what waits on them — their Status, their "Waits on you", and in OPS the view they get
   (for the content team, the copy check). A line under the top bar says **Viewing as** that person
@@ -235,7 +241,9 @@ from Google the first time they do. The admin can still change or remove anyone 
   **Add someone** lets in an @providentestate.com email before they've signed in.
 - **Roles**: what each role opens. One row per capability (Design campaign ads, Design organic
   posts, File campaign tickets, Draft organic posts, Approve English copy, Approve the Arabic
-  translation), one tick box per role. Change the ticks, then **Save changes** (**Discard** drops
+  translation, See the engine), one tick box per role, including AI Engineers and every role you
+  named. **Roles you named** above the table lists those; **Name a role** adds one, and × removes one
+  nobody has any more. Change the ticks, then **Save changes** (**Discard** drops
   them, **Back to defaults** restores the studio's own). It reaches everyone with that role within
   five minutes: what **New** offers, **Your studios** and **Projects** on the home, whether the
   Campaign Ads Studio opens for them, and who appears in the "Which designer" and "Who checks the
@@ -244,6 +252,22 @@ from Google the first time they do. The admin can still change or remove anyone 
 - **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
 - **Preview the studio as**: see the studio exactly as that role sees it. A bar
   at the bottom says you're previewing; **Back to Access** returns.
+
+**Engine (the admin and AI Engineers).** **Engine** at the top of the home page is PDS's own
+status page, kept live while it is open:
+- **In production**: the deployment the site runs now, its commit and when it went live; a build in
+  progress or a failed one shows under it.
+- The services the studios lean on (the studio server, Google sign-in, the share store, the GitHub
+  feed), each with a dot: green answering, amber slow or nearly full, red down.
+- **Every day since the first commit**: one bar per day since 10 September 2026, taller for more
+  commits, darker on days something was shipped to Vercel. Click a bar to jump to that day.
+- **Timeline**: every commit on main, newest first, by day, with its time, its area (CAS, OPS, Home,
+  Server…), its commit id (opens it on GitHub) and, when Vercel shipped it, **Live**, **Deployed**,
+  **Replaced**, **Building** or **Failed**. **Find a commit** searches the messages; the chips
+  narrow it to one area or to what was deployed. New commits slide in at the top as they are pushed.
+- **How PDS is built**: each part of PDS, its files, what it does and when it last changed; click one
+  to see only its commits. **Architecture reference** opens the PDF.
+Work on a Mac shows here once it is pushed to GitHub.
 
 ## 2. Projects: new, open, save
 

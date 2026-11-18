@@ -34,6 +34,7 @@ Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,
 | `share-link.js` | edit links, ad set reviews, Status, Drive store (`dsApi`) |
 | `post-flow.js` | OPS posts on Drive (Draft › Design › Copy check › Ready), OPS Home |
 | `access.js` | Google sign-in gate and roles, both studios and the landing page |
+| `engine.js` | the home's **Engine** page (`#/engine`): architecture, every commit and deployment, live; admin and AI Engineers (capability `arch`) |
 | `api/share.py`, `api/gauth.py` | Vercel functions (share store on Upstash, Google refresh tokens) |
 | `image-slot.js` · `support.js` · `_ds/` · `fonts/` · `icon-tags.js` · `vendor/` | shared |
 | `ui-design-system/` | the chrome design system; CAS and OPS mirror it |

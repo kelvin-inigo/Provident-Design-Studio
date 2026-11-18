@@ -32,8 +32,8 @@
   // the same campaigns as the Meta ads on email, SMS and WhatsApp: its own name and its own
   // column under Roles, and 'pm' everywhere else — its home, queue, ad set link and downloads.
   const ROLE = { admin: 'Admin', designer: 'Designer', pm: 'Performance marketing', dmt: 'Digital Marketing Team', smm: 'Social media manager', ct: 'Content team',
-                 cten: 'Content team · English', ctar: 'Content team · Arabic' };
-  const SEGL = { designer: 'Designer', smm: 'Social media', cten: 'Copy · English', ctar: 'Copy · Arabic', ct: 'Content team', pm: 'Performance', dmt: 'Digital' };
+                 cten: 'Content team · English', ctar: 'Content team · Arabic', ai: 'AI Engineers' };
+  const SEGL = { designer: 'Designer', smm: 'Social media', cten: 'Copy · English', ctar: 'Copy · Arabic', ct: 'Content team', pm: 'Performance', dmt: 'Digital', ai: 'AI Engineers' };
   const ROLE_SUB = {
     designer: 'Both studios: design, export, Status',
     pm: 'Set up campaigns as tickets, and follow them on Status',
@@ -41,26 +41,47 @@
     smm: 'Draft organic posts in OPS and send them to a designer',
     ct: 'Check the copy of posts, and of campaigns through their links',
     cten: 'Check the English copy of posts and campaigns',
-    ctar: 'Check the Arabic translation of campaigns'
+    ctar: 'Check the Arabic translation of campaigns',
+    ai: 'The engine page: how PDS is built, every commit and deployment, live'
   };
-  const ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt'];
+  // AI ENGINEERS (ai, 2026-11-18, by request) open the engine page (capability 'arch'). TEAM ROLES
+  // THE ADMIN NAMES (x-<slug>, same day): typed under Let in as when a request fits no team; they
+  // start with no capability and get theirs under Roles. Their names come with the role map
+  // (perms._names) and are merged into the lists below by names().
+  const ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt', 'ai'];
   const WANT = { designer: ['Design', 'Designer'], smm: ['Draft organic posts', 'Social media manager'], cten: ['Check English copy', 'Content team · English'],
                  ctar: ['Check Arabic copy', 'Content team · Arabic'], ct: ['Check copy', 'Content team'], pm: ['File campaigns', 'Performance marketing'],
-                 dmt: ['Email, SMS and WhatsApp', 'Digital Marketing Team'] };
+                 dmt: ['Email, SMS and WhatsApp', 'Digital Marketing Team'], ai: ['Check the PDS architecture', 'AI Engineers'] };
   // WHAT EACH ROLE OPENS (2026-11-03, by request): the admin edits it under Access › Roles; the
   // server keeps it (acc:perms) and sends it with every sign-in. These are its defaults, and
   // what a page uses before the server has answered. The admin has everything; ct (the older
   // either-language content role) has a copy capability when either language's role has it.
-  const PERM_ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt'];
-  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm', 'dmt'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'] };
+  const PERM_ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt', 'ai'];
+  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm', 'dmt'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'], arch: ['ai'] };
   const CAPS = [
     ['design-cas', 'Design campaign ads', 'Open and edit projects in the Campaign Ads Studio'],
     ['design-ops', 'Design organic posts', 'Open and edit posts in the Organic Post Studio'],
     ['tickets', 'File campaign tickets', 'Start a campaign for the designers'],
     ['posts', 'Draft organic posts', 'Start a post for the designers'],
     ['copy-en', 'Approve English copy', 'Picked to check the words before anything goes out'],
-    ['copy-ar', 'Approve the Arabic translation', 'Picked to check the Arabic version of campaigns']
+    ['copy-ar', 'Approve the Arabic translation', 'Picked to check the Arabic version of campaigns'],
+    ['arch', 'See the engine', 'How PDS is built, every commit and every deployment, live']
   ];
+  const CUSTOM = k => /^x-[a-z0-9-]+$/.test(String(k || ''));
+  let namesAt = '';
+  // the admin's named roles, from the role map: labels, Roles columns, Let in as and Preview as
+  function names(p) {
+    const n = (p && p._names && typeof p._names === 'object') ? p._names : null, key = n ? JSON.stringify(n) : '';
+    if (!n || key === namesAt) return;
+    namesAt = key;
+    [ROLES, PERM_ROLES].forEach(l => { for (let i = l.length - 1; i >= 0; i--) if (CUSTOM(l[i]) && !n[l[i]]) l.splice(i, 1); });
+    Object.keys(n).sort().forEach(k => {
+      if (!CUSTOM(k)) return;
+      ROLE[k] = SEGL[k] = String(n[k]); ROLE_SUB[k] = 'A team role you named: it opens only what Roles gives it';
+      if (ROLES.indexOf(k) < 0) ROLES.push(k);
+      if (PERM_ROLES.indexOf(k) < 0) PERM_ROLES.push(k);
+    });
+  }
   const LS_PERMS = 'provident-acc-perms';
   const roleWord = r => ({ pm: 'performance marketing', designer: 'a designer', smm: 'a social media manager', ct: 'the content team',
                            cten: 'the content team (English)', ctar: 'the content team (Arabic)' }[r] || r);
@@ -108,6 +129,8 @@
     person: 'M480-492.31q-57.75 0-98.87-41.12Q340-574.56 340-632.31q0-57.75 41.13-98.87 41.12-41.13 98.87-41.13 57.75 0 98.87 41.13Q620-690.06 620-632.31q0 57.75-41.13 98.88-41.12 41.12-98.87 41.12ZM180-247.69v-28.16q0-29.38 15.96-54.42 15.96-25.04 42.66-38.5 59.3-29.07 119.65-43.61 60.35-14.54 121.73-14.54t121.73 14.54q60.35 14.54 119.65 43.61 26.7 13.46 42.66 38.5Q780-305.23 780-275.85v28.16q0 25.3-17.73 43.04-17.73 17.73-43.04 17.73H240.77q-25.31 0-43.04-17.73Q180-222.39 180-247.69Z',
     shield: 'M480-114.23q-6.46 0-12.69-1-6.23-1-12.08-3Q320-163.08 240-286.35q-80-123.27-80-266.11v-181.46q0-22.82 13.13-41.04 13.14-18.21 33.95-26.27l227.69-85q12.84-4.62 25.23-4.62 12.39 0 25.23 4.62l227.69 85q20.81 8.06 33.95 26.27Q800-756.74 800-733.92v181.46q0 142.84-80 266.11-80 123.27-214.31 168.12-5.85 2-12.08 3-6.23 1-12.69 1Z',
     send: 'M792.15-449.08 175.38-189.39q-18.07 7.23-33.73-3.11Q126-202.85 126-221.92v-516.16q0-19.07 15.65-29.42 15.66-10.34 33.73-3.11l616.77 259.69q22.31 9.85 22.31 30.92 0 21.08-22.31 30.92ZM186-264l474-196-474-196v139.23L428.31-480 186-420.77V-264Zm0 0v-392 392Z',
+    plus: 'M450-450H230q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q217.25-510 230-510h220v-220q0-12.75 8.63-21.37 8.63-8.63 21.38-8.63 12.76 0 21.37 8.63Q510-742.75 510-730v220h220q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q742.75-450 730-450H510v220q0 12.75-8.63 21.37-8.63 8.63-21.38 8.63-12.76 0-21.37-8.63Q450-217.25 450-230v-220Z',
+    close: 'M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z',
     refresh: 'M480-160q-133.85 0-226.92-93.08Q160-346.15 160-480t93.08-226.92Q346.15-800 480-800q71.69 0 133.85 29.31 62.15 29.31 106.15 82.38V-770q0-12.77 8.62-21.38Q737.23-800 750-800t21.38 8.62Q780-782.77 780-770v192.31q0 15.36-10.39 25.75-10.4 10.4-25.76 10.4H551.54q-12.77 0-21.39-8.61-8.61-8.62-8.61-21.39 0-12.77 8.61-21.38 8.62-8.62 21.39-8.62h137.69q-35.08-57.08-91.96-90.77Q540.38-740 480-740q-108.33 0-184.17 75.79Q220-588.42 220-480.13q0 108.28 75.83 184.21Q371.67-220 480-220q73.38 0 135.65-38.08 62.27-38.07 95.66-102.38 6.23-10.92 17.73-15.73 11.5-4.81 23.04-.73 12.3 4.07 17.11 15.8 4.81 11.74-1.42 22.27-40.69 79.31-115.61 128.08Q577.23-160 480-160Z'
   };
   const ic = (k, cls) => '<svg class="acx-i' + (cls ? ' ' + cls : '') + '" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + P[k] + '"/></svg>';
@@ -134,6 +157,7 @@
   const perms = () => {
     let p = (A.me && A.me.perms) || (A.list && A.list.perms) || (A.quiet && A.quiet.perms) || A.teamPerms || null;
     if (!p) { try { p = JSON.parse(localStorage.getItem(LS_PERMS) || 'null'); } catch (e) {} }
+    names(p);
     return Object.assign({}, PERMS0, p || {});
   };
   // can(cap[, raw role]): the admin (not previewing) has everything
@@ -151,7 +175,11 @@
   // social media manager and the content team get Home's setup and Status there. OPS is open to
   // all but performance marketing, which gets OPS's Status only.
   // The home page (index.html) carries CAS's Status and setup, so CAS's limits apply there.
-  const lim = () => { const r = role(); return !!r && (CAS || HOME ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'); };
+  // AI Engineers and the roles the admin names (2026-11-18) are limited like performance marketing
+  // unless Roles lets them design in this studio
+  const lim = () => { const r = role(); if (!r) return false;
+    if (['designer', 'pm', 'smm', 'ct', 'admin'].indexOf(r) < 0) return !can(CAS || HOME ? 'design-cas' : 'design-ops');
+    return CAS || HOME ? ['pm', 'smm', 'ct'].indexOf(r) >= 0 : r === 'pm'; };
   // NOT THIS STUDIO AT ALL (2026-10-30, by request): the social media manager works in OPS only
   // and sees nothing of CAS — signed in, CAS shows a page that sends them to OPS
   // since Roles (2026-11-03): a designer or social media manager whose role cannot design
@@ -413,11 +441,19 @@
   const people = () => ((A.list && A.list.users) || []).filter(u => u.status !== 'pending');
   // THE ROLE IS A DROPDOWN (2026-10-30, by request): five roles side by side ran wider than the
   // table. One select per person; each option's tooltip says what that role can do.
+  // NEW ROLE… (2026-11-18, by request): the last choice turns the dropdown into a field for the
+  // team's name, in place; Add makes the role (op accrole) and picks it
   function seg(name, val, sel) {
+    if (A.naming && A.naming.k === name && A.naming.e === val)
+      return '<form class="ac-nr" data-ac="newrole" data-k2="' + name + '" data-e="' + esc(val) + '"><input class="ac-nr-in" name="n" required minlength="2" maxlength="40" placeholder="Name the team" aria-label="New role name" autocomplete="off"' + (A.naming.v ? ' value="' + esc(A.naming.v) + '"' : '') + '>' +
+        '<button type="submit" class="acx-ghost"' + (A.naming.busy ? ' disabled' : '') + '>' + (A.naming.busy ? 'Adding…' : 'Add role') + '</button><button type="button" class="acx-link" data-ac="nrcancel">Cancel</button>' +
+        (A.naming.err ? '<span class="ac-nr-err" role="alert">' + esc(A.naming.err) + '</span>' : '') + '</form>';
+    const std = ROLES.filter(k => !CUSTOM(k)), mine = ROLES.filter(CUSTOM);
+    const opt = k => '<option value="' + k + '"' + (sel === k ? ' selected' : '') + ' title="' + esc(ROLE_SUB[k] || '') + '">' + esc(ROLE[k] || k) + '</option>';
     return '<span class="ac-dd"><select class="ac-sel" aria-label="Role" data-k="' + name + '" data-e="' + esc(val) + '" title="' + esc(ROLE_SUB[sel] || '') + '">' +
-      ROLES.map(k => '<option value="' + k + '"' + (sel === k ? ' selected' : '') + ' title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') +
+      std.map(opt).join('') + (mine.length ? '<optgroup label="Roles you named">' + mine.map(opt).join('') + '</optgroup>' : '') +
       (sel && ROLES.indexOf(sel) < 0 ? '<option value="' + esc(sel) + '" selected>' + esc(ROLE[sel] || sel) + '</option>' : '') +
-      '</select></span>';
+      '<option value="__new">New role…</option></select></span>';
   }
   const LOGW = {
     request: e => 'tried to sign in for the first time',
@@ -430,19 +466,23 @@
     decline: e => 'was declined',
     revoke: e => 'lost access',
     remove: e => 'was taken off the list',
-    perms: e => 'changed what the roles open'
+    perms: e => 'changed what the roles open',
+    'role-add': e => 'named a new role, ' + (ROLE[e.role] || e.name),
+    'role-rename': e => 'renamed a role to ' + e.name,
+    'role-remove': e => 'removed the role ' + e.name
   };
   const LOGK = { request: 'ask', retry: 'ask', note: 'ask', outside: 'bad', grant: 'good', add: 'good', role: 'good', decline: 'bad', revoke: 'bad', remove: 'bad' };
   function adminHtml() {
     if (!A.list) return A.listErr ? '<div class="ac-empty"><b>Couldn’t load who has access</b><span>' + esc(A.listErr) + '</span><button type="button" class="acx-btn" data-ac="reload">' + ic('refresh') + 'Try again</button></div>'
       : '<div class="ac-load"><i></i><i></i><i></i></div>';
+    perms();   // merges the named roles into the lists before anything is drawn
     const R = reqs(), Pp = people(), L = A.list.log || [];
     const tabs = [['req', 'Requests', R.length], ['ppl', 'People', Pp.length + 1], ['roles', 'Roles', null], ['log', 'Activity', null]];
     let h = '<div class="ac-top"><div class="ac-tabs" role="tablist">' + tabs.map(([k, l, n]) =>
       '<button type="button" role="tab" aria-selected="' + (A.tab === k) + '" data-ac="tab" data-v="' + k + '"' + (A.tab === k ? ' data-on' : '') + '>' + l + (n != null ? '<s' + (k === 'req' && n ? ' data-hot' : '') + '>' + n + '</s>' : '') + '</button>').join('') + '</div>' +
       '<div class="ac-pv"><label for="ac-pvs">' + (HOME ? 'Preview the home as' : 'Preview the studio as') + '</label><span class="ac-dd ac-dd-eye">' + ic('eye') +
         '<select id="ac-pvs" class="ac-sel" data-pv="1" title="Opens the studio as that role, or that person, would see it, until you end the preview"><option value="" selected disabled>Choose a role or a person</option>' +
-        '<optgroup label="A role">' + ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt'].map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</optgroup>' +
+        '<optgroup label="A role">' + PERM_ROLES.map(k => '<option value="' + k + '" title="' + esc(ROLE_SUB[k]) + '">' + esc(ROLE[k]) + '</option>').join('') + '</optgroup>' +
         (() => { const pp = people().filter(u => u.status === 'active' && u.role && ROLE[u.role] && u.role !== 'admin' && String(u.email || '').toLowerCase() !== me());
           return pp.length ? '<optgroup label="A person">' + pp.map(u => '<option value="' + esc(u.role + '|' + String(u.email).toLowerCase() + '|' + (u.name || '')) + '" title="' + esc(u.email) + '">' + esc((u.name || u.email) + ' \u00b7 ' + ROLE[u.role]) + '</option>').join('') + '</optgroup>' : ''; })() +
         '</select></span></div></div>';
@@ -461,7 +501,11 @@
     } else if (A.tab === 'roles') {
       const cur = perms(), ed = A.permEd || cur, dirty = !!A.permEd && JSON.stringify(A.permEd) !== JSON.stringify(cur);
       const same = JSON.stringify(PERM_ROLES.map(r => CAPS.map(c => (ed[c[0]] || []).indexOf(r) >= 0))) === JSON.stringify(PERM_ROLES.map(r => CAPS.map(c => PERMS0[c[0]].indexOf(r) >= 0)));
+      const named = PERM_ROLES.filter(CUSTOM);
       h += '<p class="ac-rl-lede">What each role opens in the studios and on the home. A change applies to everyone with that role the next time their page checks in, within five minutes. You always have everything.</p>' +
+        '<div class="ac-nm"><span class="ac-nm-l">Roles you named</span>' + (named.length ? named.map(k => '<span class="ac-nm-c">' + esc(ROLE[k]) +
+          '<button type="button" data-ac="rmrole" data-r="' + esc(k) + '" aria-label="Remove the role ' + esc(ROLE[k]) + '" title="Remove this role (only while nobody has it)">' + ic('close') + '</button></span>').join('') : '<span class="ac-dim">None yet. Pick New role… under Let in as, or name one here.</span>') +
+          '<span class="ac-rl-sp"></span>' + (A.naming && A.naming.k === 'roles' ? seg('roles', '', '') : '<button type="button" class="acx-ghost" data-ac="nrstart">' + ic('plus') + 'Name a role</button>') + '</div>' +
         '<div class="ac-rl-wrap"><table class="ac-rl"><thead><tr><th scope="col"><span class="ac-sr">Capability</span></th>' + PERM_ROLES.map(r => '<th scope="col" title="' + esc(ROLE_SUB[r]) + '">' + esc(SEGL[r]) + '</th>').join('') + '</tr></thead><tbody>' +
         CAPS.map(c => '<tr><th scope="row"><b>' + esc(c[1]) + '</b><small>' + esc(c[2]) + '</small></th>' + PERM_ROLES.map(r => {
           const on = (ed[c[0]] || []).indexOf(r) >= 0, was = (cur[c[0]] || []).indexOf(r) >= 0;
@@ -510,8 +554,11 @@
     if (!root) { root = document.createElement('div'); root.className = 'ac'; host.appendChild(root); root.addEventListener('click', onAdmin); root.addEventListener('submit', onAdmin); root.addEventListener('change', e => { if (e.target.matches('select[data-k], input[data-perm]')) onAdmin(e); else if (e.target.matches('select[data-pv]') && e.target.value) { const v = e.target.value; e.target.value = ''; preview(v); } }); force = true; if (!A.list) loadList(); }
     if (!force) return;
     const ae = document.activeElement, keepEm = ae && ae.id === 'ac-em' ? ae.value : null;
+    const nr = root.querySelector('.ac-nr-in'); if (nr && A.naming) A.naming.v = nr.value;
+    const nrFocus = !!(nr && ae === nr);
     root.innerHTML = adminHtml();
     if (keepEm != null) { const i = root.querySelector('#ac-em'); if (i) { i.value = keepEm; i.focus(); } }
+    if (nrFocus || (A.naming && A.naming.focus)) { const i = root.querySelector('.ac-nr-in'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } if (A.naming) A.naming.focus = false; }
   }
   async function savePerms() {
     A.permBusy = true; drawAdmin(true);
@@ -523,6 +570,33 @@
       window.dispatchEvent(new CustomEvent('provident-access', { detail: { phase: A.phase, perms: true } }));
     } catch (e) { A.listErr = e.message; }
     A.permBusy = false; drawAdmin(true); loadList();
+  }
+  // the role map the server answers after a named role changes: everywhere at once
+  function takePerms(p) {
+    if (!p) return;
+    if (A.list) A.list.perms = p; if (A.me) A.me.perms = p;
+    try { localStorage.setItem(LS_PERMS, JSON.stringify(p)); } catch (e) {}
+    names(p); teamP = null;
+    window.dispatchEvent(new CustomEvent('provident-access', { detail: { phase: A.phase, perms: true } }));
+  }
+  async function roleCall(body, btn) {
+    if (btn) btn.disabled = true;
+    try { const j = await post('accrole', body); takePerms(j.perms); A.listErr = ''; return j; }
+    catch (e) { A.listErr = e.message; drawAdmin(true); return null; }
+    finally { if (btn) btn.disabled = false; }
+  }
+  async function nameRole(form) {
+    const N = A.naming, i = form.querySelector('.ac-nr-in'), name = (i && i.value || '').trim();
+    if (!N || name.length < 2) return;
+    N.v = name; N.busy = true; N.err = ''; drawAdmin(true);
+    let j = null;
+    try { j = await post('accrole', { action: 'add', name }); }
+    catch (e) { N.busy = false; N.err = e.message; N.focus = true; drawAdmin(true); return; }
+    takePerms(j.perms); A.naming = null; A.listErr = '';
+    if (N.k === 'pick') A.pick = Object.assign({}, A.pick, { [N.e]: j.key });
+    else if (N.k === 'add') A.addRole = j.key;
+    drawAdmin(true);
+    if (N.k === 'role') await change(N.e, 'role', j.key); else loadList();
   }
   async function change(email, action, rl, btn) {
     if (btn) btn.disabled = true;
@@ -544,12 +618,17 @@
     if (t.dataset.k) {   // a role dropdown: it acts on change, never on the click that opens it
       if (t.tagName === 'SELECT' && e.type !== 'change') return;
       const em = t.dataset.e, v = t.tagName === 'SELECT' ? t.value : t.dataset.v;
+      if (v === '__new') { A.naming = { k: t.dataset.k, e: em, focus: true }; drawAdmin(true); return; }
       if (t.dataset.k === 'pick') { A.pick = Object.assign({}, A.pick, { [em]: v }); drawAdmin(true); }
       else if (t.dataset.k === 'add') { A.addRole = v; drawAdmin(true); }
       else if (t.dataset.k === 'role') change(em, 'role', v, t);
       return;
     }
     const a = t.dataset.ac, em = t.dataset.e;
+    if (a === 'newrole') { nameRole(t); return; }
+    if (a === 'nrcancel') { A.naming = null; drawAdmin(true); return; }
+    if (a === 'nrstart') { A.naming = { k: 'roles', e: '', focus: true }; drawAdmin(true); return; }
+    if (a === 'rmrole') { roleCall({ action: 'remove', key: t.dataset.r }, t); return; }
     if (a === 'tab') { A.tab = t.dataset.v; drawAdmin(true); }
     else if (a === 'permundo') { A.permEd = null; drawAdmin(true); }
     else if (a === 'permdef') { A.permEd = JSON.parse(JSON.stringify(PERMS0)); drawAdmin(true); }
@@ -589,7 +668,7 @@
   // which team a step goes to: a post's draft to a designer, a design to the content team (an ad
   // set's English to English copy, its Arabic to Arabic copy); every other step names nobody
   // since Roles (2026-11-03) each list is the roles that have that capability
-  const withCap = (...caps) => ['designer', 'smm', 'pm', 'dmt', 'cten', 'ctar', 'ct'].filter(r => caps.some(c => can(c, r)));
+  const withCap = (...caps) => ['designer', 'smm', 'pm', 'dmt', 'cten', 'ctar', 'ct', 'ai'].concat(PERM_ROLES.filter(CUSTOM)).filter(r => caps.some(c => can(c, r)));
   const TEAMS = {
     get designer() { return { roles: withCap('design-cas', 'design-ops'), word: 'designer', head: 'Which designer picks it up?' }; },
     get 'designer-cas'() { return { roles: withCap('design-cas'), word: 'designer', head: 'Which designer picks it up?' }; },
@@ -925,6 +1004,20 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 .ac .ac-sel option{background:var(--ps-card);color:var(--ps-ink)}
 .ac .ac-dd::after{content:'';position:absolute;right:16px;top:50%;width:7px;height:7px;margin-top:-6px;border-right:1.5px solid var(--ps-ink-2);border-bottom:1.5px solid var(--ps-ink-2);transform:rotate(45deg);pointer-events:none}
 .ac .ac-add .ac-sel{min-width:240px}
+.ac .ac-nr{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;max-width:100%}
+.ac .ac-nr-in{width:220px;max-width:100%;height:36px;box-sizing:border-box;padding:0 14px;border:0;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink);font:400 14px/1 var(--ps-font);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.ac .ac-nr-in::placeholder{color:var(--ps-dim)}
+.ac .ac-nr-in:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.ac .ac-nr-err{flex-basis:100%;text-align:right;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-bad)}
+.ac .ac-add .ac-nr{justify-content:flex-start}
+.ac .ac-nm{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 16px;padding:10px 12px 10px 16px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.ac .ac-nm-l{font:500 14px/1 var(--ps-font);margin-right:4px}
+.ac .ac-nm-c{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 4px 0 12px;border-radius:9999px;background:var(--ps-fill);font:500 13px/1 var(--ps-font)}
+.ac .ac-nm-c button{display:inline-grid;place-items:center;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-ink-2);cursor:pointer}
+.ac .ac-nm-c button:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.ac .ac-nm-c button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
+.ac .ac-nm-c .acx-i{width:16px;height:16px;fill:currentColor}
+.ac .ac-nm .acx-ghost .acx-i{width:18px;height:18px;fill:currentColor}
 .ac .ac-seg{display:inline-flex;gap:2px;padding:3px;border-radius:9999px;background:var(--ps-fill)}
 .ac .ac-seg button{height:30px;padding:0 12px;border:0;border-radius:9999px;background:transparent;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;white-space:nowrap}
 .ac .ac-seg button:hover{color:var(--ps-ink)}

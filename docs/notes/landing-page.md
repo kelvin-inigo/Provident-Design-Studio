@@ -677,3 +677,32 @@ untouched.
   kind group, `#hubopen=` link), Preview as content team (nothing, no waits-on-me switch) and as
   performance marketing (campaigns only). **Not run:** real Drive, Safari, a real phone, the
   keyboard through a screen reader.
+
+# ENGINE: PDS'S OWN STATUS PAGE (2026-11-18)
+
+By request ("an AI dashboard … a live engine status page where everything updates … a log of
+timelines, dates and times when the commit was done, and constantly logs new commits and
+deployments"; /impeccable). `#/engine`, for the admin and roles that open `arch` (AI Engineers by
+default). All of it is **engine.js** (its own file, own `<style id="engine-css">`, chrome tokens
+only); index.html adds the script, the `g-sync` symbol, the nav link (hidden unless `seesEngine()`),
+the route, and lands an AI Engineer (or a named role) whose role opens nothing else on it.
+
+- **Data**: `acc.call('engine', {have: newest sha})` → api/share.py `engine` (gated server-side the
+  same way): GitHub's commits on main (walks back to the first commit when the server or the page
+  holds nothing) and deployments with their latest status, cached per instance with ETags; final
+  states are never re-asked. Re-read every 30 s with `GITHUB_TOKEN`, every 3 min without one —
+  measured: GitHub counts an unauthenticated 304 against the 60/hour limit, which is why the
+  browser does not call GitHub itself. The page keeps the list in `provident-engine-v1` and polls
+  every 30 s while visible.
+- **Layout** (Operate, the Quiet Desk): headline + live dot (good / Behind / Not connected) +
+  Refresh; **In production** (the newest successful Production deployment, a build in progress or
+  a failure under it); four services as one ruled strip (studio server and Google sign-in timed from
+  the browser, the share store's health — "Retired" on a 410 — and GitHub's remaining reads); a day
+  strip since the first commit (√-scaled bars, darker on deploy days, click jumps to the day); the
+  timeline (24-hour times, the commit's own label kept in ink-2, area tag, deploy chip, sha → GitHub,
+  sticky day heads, search, area chips, 60 at a time) beside **How PDS is built** (eight areas, their
+  files, last change derived from commit labels; click filters the timeline). No hero metrics, no
+  kicker labels, no monospace: the sha is Google Sans Flex with tabular figures.
+- **Verified** on share-dev :8799 with the real GitHub (unauthenticated): 406 commits, 99 deployed,
+  the live deployment c386e41; light, dark, 1440, 1280 (top bar fits, 1265 of 1280), 375 (no overflow);
+  the AI engineer lands on Engine with Home, Status, Engine in the bar. Not run: on Vercel, with a token.

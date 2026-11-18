@@ -41,6 +41,26 @@ The admin (`ACCESS_ADMIN`) is also listed on a team for hand-offs: designer, unl
 `ACCESS_ADMIN_ROLE` says otherwise. `op=accteam` gives anyone let in the list of active people and
 their roles, which is what the hand-off picker shows.
 
+## AI Engineers and the Engine page (2026-11-18)
+
+`marketing.ads@` and `ai.engineer1@` are let in once as **AI Engineers** (`ACC_SEED_AI`, marked
+done by `acc:seed-ai`; a waiting request from either is let in too). The role opens **Engine** on
+the home (capability `arch`, ticked for AI Engineers by default under Access › Roles).
+
+Engine reads the public repository's commits and Vercel's deployments from GitHub, through
+`/api/share?op=engine`, so one server cache serves everyone. Without a token GitHub allows the
+server 60 reads an hour, so it re-reads every 3 minutes. For a steady 30-second feed, add a
+**read-only** token in Vercel as `GITHUB_TOKEN` (GitHub › Settings › Developer settings › Fine-grained
+tokens, this repository only, Contents: read and Deployments: read). `ENGINE_REPO` overrides the
+repository (default `kelvin-inigo/Provident-Design-Studio`).
+
+## Roles the admin names (2026-11-18)
+
+Under **Let in as**, **New role…** makes a team role the admin types (`op=accrole`), kept in
+`acc:roles` as `x-<slug>`. It starts with no capability; the admin ticks what it opens under
+**Roles**. In the studios it is treated like performance marketing (Home and Status) unless Roles
+lets it design. A role can be removed only while nobody active or waiting has it.
+
 ## What it does not protect
 
 - It guards the **studio and its access list**, not the files. Campaign data lives in Google

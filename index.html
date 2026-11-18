@@ -24,6 +24,7 @@
 <script src="share-link.js"></script>
 <script src="access.js"></script>
 <script src="post-flow.js"></script>
+<script src="engine.js"></script>
 
 <style>
 /* THE HOME (2026-11-02, "one home"). One page for every role over both studios: Home (what is
@@ -889,6 +890,7 @@ body{-webkit-tap-highlight-color:transparent;
 <symbol id="g-folder" viewBox="0 0 24 24"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/></symbol>
 <symbol id="g-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
 <symbol id="g-file" viewBox="0 0 24 24"><path d="M13.5 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8.5z"/><path d="M13.5 3.5v5h5"/></symbol>
+<symbol id="g-sync" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 0 1-13.1 5M4.5 12a7.5 7.5 0 0 1 13.1-5M17.6 3.5V7h-3.5M6.4 20.5V17h3.5"/></symbol>
 <symbol id="g-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5L19 4M16 7l2.5 2.5M14 9l2 2"/></symbol>
 </defs>
 </svg>
@@ -925,6 +927,7 @@ body{-webkit-tap-highlight-color:transparent;
     <a href="#/status" data-nav="status">Status</a>
     <a href="#/projects" data-nav="projects">Projects</a>
     <a href="#/access" data-nav="access">Access <span class="uh-n" id="acc-n" hidden></span></a>
+    <a href="#/engine" data-nav="engine" hidden>Engine</a>
   </nav>
   <span class="sp"></span>
   <a class="b b-p" id="newbtn" href="#/new"><svg class="i"><use href="#g-plus"/></svg><span id="newlbl">New</span></a>
@@ -984,7 +987,7 @@ body{-webkit-tap-highlight-color:transparent;
    - provident-acc-me: the account access.js last confirmed, and access.js itself (home mode);
    - provident-drive-who: the Google account, when nothing else is known;
    - recents in IndexedDB (provident-design-studio, recents:<studio>), never created from here.
-   Routes are hash routes: #/ Home, #/status, #/item/<cas|ops>/<id>, #/new, #/access. */
+   Routes are hash routes: #/ Home, #/status, #/item/<cas|ops>/<id>, #/new, #/access, #/engine (engine.js). */
 (function(){
   'use strict';
   var CAS = 'Provident%20Campaign%20Studio.dc.html', OPS = 'Provident%20Organic%20Studio.dc.html';
@@ -993,7 +996,11 @@ body{-webkit-tap-highlight-color:transparent;
     ops: { n: 'Organic posts', long: 'Organic Post Studio', a: .75, file: OPS, desc: 'Feed and story posts', start: OPS + '#view=new' }
   };
   var ROLE = { designer: 'Designer', admin: 'Designer', pm: 'Performance marketing', smm: 'Social media', ct: 'Content team',
-    cten: 'Content team · English', ctar: 'Content team · Arabic', dmt: 'Digital Marketing Team' };
+    cten: 'Content team · English', ctar: 'Content team · Arabic', dmt: 'Digital Marketing Team', ai: 'AI Engineers' };
+  // a role the admin named (x-<slug>, 2026-11-18) is labelled from access.js's merged list
+  function roleLabel(r){ return ROLE[r] || (acc && acc.roleName ? acc.roleName(r) : '') || r || ''; }
+  // THE ENGINE (2026-11-18, by request): engine.js, for the admin and roles that open 'arch'
+  function seesEngine(){ return phase === 'in' && !!window.providentEngine && (isAdmin() || !!(acc && acc.can && acc.can('arch'))); }
   // the board's columns; each studio's own step names map onto them. CLOSED (2026-11-06, by
   // request) is Status's alone: launched campaigns and posted posts, the newest first. Home's
   // "Where everything is" keeps to the four stages still in motion (MOVING).
@@ -1602,7 +1609,7 @@ body{-webkit-tap-highlight-color:transparent;
     var raw = rawRole() || '', P = me, can = CAN.map(function(c){ return c[2] === 'admin' ? isAdmin() : !!(acc && acc.can && acc.can(c[2])); });
     h = '<div class="ax2"><div class="ax2-main">' + h + '<p class="lede">Who you are signed in as, and what your role lets you do.</p>' +
       '<section class="idc"><span class="uh-av">' + avIn(P.name, P.email) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
-        (raw ? '<span class="idc-r">' + esc(ROLE[raw] || raw) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (isAdmin() ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
+        (raw ? '<span class="idc-r">' + esc(roleLabel(raw)) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (isAdmin() ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
       '<section class="pan"><div class="sh">What your role opens<small>' + can.filter(Boolean).length + ' of ' + CAN.length + '</small></div><ul class="cn">' + CAN.map(function(c, i){
         return '<li data-on="' + (can[i] ? 1 : 0) + '"><span class="cn-i">' + (can[i] ? ico('check') : '') + '</span><span><b>' + c[0] + '</b><small>' + c[1] + '</small></span><span class="cn-s">' + (can[i] ? 'Yes' : 'No') + '</span></li>';
       }).join('') + '</ul></section></div><aside class="ax2-side">' +
@@ -1618,6 +1625,8 @@ body{-webkit-tap-highlight-color:transparent;
     var hs = location.hash.replace(/^#\/?/, ''), q = {}, path = hs.split('?')[0], parts = path.split('/');
     (hs.split('?')[1] || '').split('&').forEach(function(p){ var kv = p.split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); });
     var nav = parts[0] || 'home', html, pg = $('pg');
+    // a role that only opens the engine (AI Engineers) lands there instead of an empty home
+    if (nav === 'home' && !parts[0] && seesEngine() && !isAdmin() && !designs().length && !canStart(data.r).length && (rawRole() === 'ai' || /^x-/.test(rawRole() || ''))) nav = 'engine';
     var host = null;
     document.body.toggleAttribute('data-gate', gated());
     if (gated()) { html = viewGate(); nav = 'gate'; }
@@ -1626,6 +1635,7 @@ body{-webkit-tap-highlight-color:transparent;
     else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
     else if (nav === 'new') html = viewNew();
     else if (nav === 'access') html = viewAccess();
+    else if (nav === 'engine') html = seesEngine() ? window.providentEngine.shell() : '<h1 class="h1">Engine</h1><p class="lede" style="margin-bottom:24px">PDS’s architecture, commits and deployments, live.</p><div class="quiet"><b>This page is for the admin and AI Engineers</b><p>Ask the admin if your work needs it: they can give your role “See the engine” under Access › Roles.</p></div>';
     else if (nav === 'files' && parts[1]) { html = viewFiles(decodeURIComponent(parts.slice(1).join('/'))); nav = 'home'; }
     else if (nav === 'projects') html = viewProjects();
     else { html = viewHome(); nav = 'home'; }
@@ -1640,7 +1650,7 @@ body{-webkit-tap-highlight-color:transparent;
     // ONE QUIET LINE (2026-11-05, /impeccable): who you are seeing the home as, their role, the one
     // thing to know, and the way out, under the header on the page's own gutter
     if (pv) pb.innerHTML = '<div class="pv-in"><span class="pv-ic">' + ico('eye') + '</span>' +
-      '<span class="pv-t">Viewing as ' + (pw ? '<span class="uh-av" data-sm>' + avIn(pw.name, pw.email) + '</span>' : '') + '<b>' + esc(pw ? (pw.name || pw.email) : ROLE[pv] || pv) + '</b>' + (pw ? '<span class="pv-r">' + esc(ROLE[pv] || pv) + '</span>' : '') + '</span>' +
+      '<span class="pv-t">Viewing as ' + (pw ? '<span class="uh-av" data-sm>' + avIn(pw.name, pw.email) + '</span>' : '') + '<b>' + esc(pw ? (pw.name || pw.email) : roleLabel(pv)) + '</b>' + (pw ? '<span class="pv-r">' + esc(roleLabel(pv)) + '</span>' : '') + '</span>' +
       '<span class="pv-n" title="' + (pw ? 'What waits on them, ' : 'Their queue, ') + 'board, New and Access. Nothing here changes their account.">A step you press here is really taken</span>' +
       '<button type="button" data-endpv>' + ico('x') + 'End preview</button></div>';
     document.querySelectorAll('[data-nav]').forEach(function(a){ if (a.dataset.nav === nav) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
@@ -1649,6 +1659,7 @@ body{-webkit-tap-highlight-color:transparent;
     var navTop = document.querySelector('[data-nav="projects"]'), navAcc = document.querySelector('[data-nav="access"]');
     if (navTop) navTop.hidden = !!data.r && !designs().length;
     if (navAcc) navAcc.hidden = !!(me && me.email) && phase === 'in' && !isAdmin();
+    var navEng = document.querySelector('[data-nav="engine"]'); if (navEng) navEng.hidden = !seesEngine();
     var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0, an = $('acc-n'); an.textContent = pend; an.hidden = !pend;
     var cs = canStart(data.r), nb = $('newbtn');
     nb.hidden = !cs.length; nb.href = cs.length > 1 ? '#/new' : cs.length ? STUDIO[cs[0]].start : '#/new';
@@ -1657,14 +1668,15 @@ body{-webkit-tap-highlight-color:transparent;
     var avh = nm ? avIn(me.name, me.email) : '?';
     if ($('meav')._h !== avh) { $('meav').innerHTML = $('mn-av').innerHTML = avh; $('meav')._h = avh; }
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
-    $('mn-r').textContent = data.r ? (ROLE[rawRole()] || ROLE[data.r] || data.r) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
+    $('mn-r').textContent = data.r ? (roleLabel(rawRole()) || roleLabel(data.r)) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio' }[nav];
+    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio' }[nav];
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
     if (nav === 'home') { desk(); skyPaint(); if (anim || !skyT0) skyT0 = Date.now(); var sk = $('sky'), ago0 = Date.now() - skyT0; if (sk && ago0 < SKY_ENTRY) { sk.setAttribute('data-in', ''); sk.style.setProperty('--ent', -ago0 + 'ms'); } }
     if (nav === 'projects') loadDesk(paintProjects);
+    if (nav === 'engine' && seesEngine()) window.providentEngine.mount(pg);
     // coming back from filing, a campaign or post page, read the queues afresh: a ticket filed
     // a moment ago, or a step taken there, is on the board at once (2026-11-03)
     if ((nav === 'status' || nav === 'home') && /^(new|item)/.test(lastNav) && !host) refreshAll(true);

@@ -2394,3 +2394,19 @@ page saying it's not your view … they can request access, but the link varies 
   CASV starts a new video (asking first, keeping the open one as "the last video"), instead of
   reopening whatever was open. The CASV half is on the local `video-studio` branch
   (docs/notes/video-studio.md there); without it, the hash is ignored and CASV opens as before.
+
+# AI ENGINEERS, AND ROLES THE ADMIN NAMES (2026-11-18)
+
+By request. **ai** (AI Engineers) joins ACC_ROLES / PERM_ROLES with the new capability **arch**
+("See the engine", default ['ai']); marketing.ads@ and ai.engineer1@ are seeded once (`acc:seed-ai`,
+also lifting a pending request). **Named roles**: Let in as › **New role…** (and Roles › **Name a
+role**) → op `accrole` {add | rename | remove} → `acc:roles` {'x-<slug>': {name, by, at}}; a name
+can't repeat a standard role's or another named one's; remove is refused while anyone active or
+pending has it. `acc_perms()` adds the named roles to every capability's role list and sends their
+names as `perms._names`, so every page that holds the role map labels them (access.js `names()`
+merges them into ROLE / SEGL / ROLES / PERM_ROLES; Home's `roleLabel`). access.js `lim()`: a role
+outside designer / pm / smm / ct is limited like performance marketing unless Roles lets it design;
+`withCap` includes ai and named roles in the hand-off pickers. Verified on share-dev: seed, New role…
+on a request (field in place, Add role, picked, Let in), the Roles column and chip, duplicate and
+standard names refused, removal refused while held, non-admin refused. **Note for the
+remove-upstash branch**: `acc:roles` and `acc:seed-ai` must move into the Drive access file there.

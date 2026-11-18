@@ -48,7 +48,8 @@ Everything that waits on someone — tickets, hand-offs, copy checks, packages, 
 | change how Status looks | **Board \| List**; **View** › **Sort by** (Due date, Name, Last updated, Stage), **Group by** (Stage, From, Kind), **Density** (Comfortable, Compact); the arrow on a column folds it |
 | a saved project | home › **Projects** (people who design), or **Pick up where you left off** on Home |
 | start something | home › **New** (top right; the options depend on the role) |
-| roles and people | home › **Access** (admin only); everyone else: the account menu (their initials) |
+| roles and people | home › **Access** (admin only); everyone else: the account menu (their initials). A team that isn't listed: **Let in as** › **New role…** |
+| how PDS is built, every commit and deployment | home › **Engine** (the admin and AI Engineers) |
 | switch CAS ↔ OPS | go back to the home page |
 | sign out | the account menu (their initials) › **Sign out** |
 
@@ -66,7 +67,9 @@ exports download as a zip. The studios fit tablets and phones.
 | **Content team · English / · Arabic** | only what's handed to them: **Approve English copy** / **Approve translation** on campaigns, **Approve copy** on posts (inside the post's page; never the OPS editor) |
 | **Performance marketing** | campaigns only: **New ticket** › **File as ticket**, follow Status, the package link (**Edit text**, downloads), **Launch** |
 | **Digital Marketing Team** | exactly what performance marketing does (email, SMS, WhatsApp runs of the same campaigns) |
-| **Admin** | everything a designer has, plus **Access** (let people in, roles, **Preview the home as**) |
+| **AI Engineers** | the **Engine** page: PDS's architecture, every commit and deployment, live |
+| **a role the admin named** | only what the admin ticks for it under Access › Roles |
+| **Admin** | everything a designer has, plus **Access** (let people in, roles, **Preview the home as**) and **Engine** |
 
 **Hand-offs name a person**: every send asks who picks it up, and the work then reads "With <name>".
 

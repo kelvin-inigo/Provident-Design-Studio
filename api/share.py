@@ -1068,7 +1068,11 @@ ACC_LOG = 400
 # smm (social media manager) and ct (content team) arrived with OPS's posts (2026-10-30):
 # the social media manager drafts a post in OPS, the designer finishes it, the content team
 # checks the copy. Both studios read the same list.
-ACC_ROLES = ('designer', 'pm', 'smm', 'ct', 'cten', 'ctar', 'dmt')   # ct = either language; cten / ctar = one
+ACC_ROLES = ('designer', 'pm', 'smm', 'ct', 'cten', 'ctar', 'dmt', 'ai')   # ct = either language; cten / ctar = one
+# ai, AI Engineers (2026-11-18, by request): the engine page — PDS's architecture, every commit and
+# deployment, live (op 'engine'). TEAM ROLES THE ADMIN NAMES (2026-11-18, by request): a request
+# whose team is none of these can be let in as a role the admin types; it is kept in acc:roles as
+# 'x-<slug>' -> {name, by, at}, starts with no capability, and gets them under Access › Roles.
 # dmt, the Digital Marketing Team (2026-11-09): email, SMS and WhatsApp on the same campaigns; the
 # studios treat it as pm (access.js fam), Roles gives it its own column
 _acc_seen = {}
@@ -1128,6 +1132,9 @@ ACC_SEED = {
     'exec5.graphics@providentestate.com': 'designer',
     'digitalmarketing.lead1@providentestate.com': 'pm',
 }
+# THE AI ENGINEERS (2026-11-18, by request), let in once as AI Engineers (acc:seed-ai), on the same
+# terms as the team above: a later change or removal under Access sticks.
+ACC_SEED_AI = ('marketing.ads@providentestate.com', 'ai.engineer1@providentestate.com')
 # the admin is also on a team for hand-offs: a designer unless the deployment says otherwise
 ACC_ADMIN_ROLE = 'designer'
 
@@ -1136,7 +1143,7 @@ ACC_ADMIN_ROLE = 'designer'
 # under Roles. One JSON map, capability -> roles that have it (acc:perms); a capability missing
 # from the stored map keeps its default. The admin has everything and is never in a list; ct
 # (the older either-language content role) has a copy capability when cten or ctar has it.
-ACC_PERM_ROLES = ('designer', 'smm', 'cten', 'ctar', 'pm', 'dmt')
+ACC_PERM_ROLES = ('designer', 'smm', 'cten', 'ctar', 'pm', 'dmt', 'ai')
 ACC_PERMS = {
     'design-cas': ['designer'],
     'design-ops': ['designer'],
@@ -1144,7 +1151,24 @@ ACC_PERMS = {
     'posts': ['designer', 'smm'],
     'copy-en': ['cten'],
     'copy-ar': ['ctar'],
+    'arch': ['ai'],
 }
+
+
+def acc_customs():
+    """The team roles the admin named: {'x-<slug>': {name, by, at}}."""
+    try:
+        d = json.loads(store().cmd('GET', 'acc:roles') or '{}')
+    except ValueError:
+        d = {}
+    return {k: v for k, v in (d if isinstance(d, dict) else {}).items() if ACC_CUSTOM_RE.match(k) and isinstance(v, dict) and v.get('name')}
+
+
+ACC_CUSTOM_RE = re.compile(r'^x-[a-z0-9][a-z0-9-]{0,30}$')
+
+
+def acc_role_ok(r, customs=None):
+    return r in ACC_ROLES or (isinstance(r, str) and ACC_CUSTOM_RE.match(r) and r in (customs if customs is not None else acc_customs()))
 
 
 def acc_perms():
@@ -1153,28 +1177,37 @@ def acc_perms():
     except ValueError:
         d = {}
     d = d if isinstance(d, dict) else {}
-    # a role added after the map was saved (dmt) keeps its defaults: the map names the roles it knew
+    customs = acc_customs()
+    # a role added after the map was saved (dmt, ai) keeps its defaults: the map names the roles it knew
     known = d.get('_roles') if isinstance(d.get('_roles'), list) else ['designer', 'smm', 'cten', 'ctar', 'pm']
+    every = list(ACC_PERM_ROLES) + sorted(customs)
     out = {}
     for k, v in ACC_PERMS.items():
         got = d.get(k) if isinstance(d.get(k), list) else v
-        out[k] = [r for r in ACC_PERM_ROLES if r in got or (r in v and r not in known)]
+        out[k] = [r for r in every if r in got or (r in v and r not in known)]
+    # the named roles travel with the map, so every page that knows the map can label them
+    out['_names'] = {k: v['name'] for k, v in customs.items()}
     return out
 
 
 def acc_users():
     try:
-        raw, seeded = store().pipe([['GET', 'acc:users'], ['GET', 'acc:seed1']])
+        raw, seeded, seed_ai = store().pipe([['GET', 'acc:users'], ['GET', 'acc:seed1'], ['GET', 'acc:seed-ai']])
         d = json.loads(raw or '{}')
         d = d if isinstance(d, dict) else {}
     except ValueError:
-        d, seeded = {}, '1'
-    if not seeded:
+        d, seeded, seed_ai = {}, '1', '1'
+    if not seeded or not seed_ai:
         now = int(time.time() * 1000)
-        for em, rl in ACC_SEED.items():
+        for em, rl in (ACC_SEED.items() if not seeded else ()):
             if em not in d and em != acc_admin():
                 d[em] = {'email': em, 'name': '', 'role': rl, 'status': 'active', 'first': None, 'n': 0, 'by': 'seed', 'at': now}
-        store().pipe([['SET', 'acc:users', json.dumps(d, separators=(',', ':'))], ['SET', 'acc:seed1', '1']])
+        # the AI engineers, once: let in (or out of a waiting request) as AI Engineers
+        for em in (ACC_SEED_AI if not seed_ai else ()):
+            u = d.get(em)
+            if em != acc_admin() and (not u or u.get('status') == 'pending'):
+                d[em] = dict(u or {'email': em, 'name': '', 'first': None, 'n': 0}, role='ai', status='active', by='seed', at=now)
+        store().pipe([['SET', 'acc:users', json.dumps(d, separators=(',', ':'))], ['SET', 'acc:seed1', '1'], ['SET', 'acc:seed-ai', '1']])
     return d
 
 
@@ -1249,7 +1282,7 @@ def acc_req(d):
         raise Fail(409, 'The admin declined this request.')
     u['note'] = str(d.get('note') or '').strip()[:400]
     want = d.get('want')
-    u['want'] = want if want in ACC_ROLES else None
+    u['want'] = want if want in ACC_ROLES else None   # a request names one of the standard teams
     u['status'] = 'pending'
     u['asked'] = int(time.time() * 1000)
     acc_put(users)
@@ -1283,11 +1316,16 @@ def acc_setperms(d):
     if not isinstance(want, dict):
         raise Fail(400, 'Send the roles for each capability.')
     cur = acc_perms()
+    every = list(ACC_PERM_ROLES) + sorted(acc_customs())
+    cur.pop('_names', None)
     for k, v in want.items():
+        if k == '_names':
+            continue
         if k not in ACC_PERMS or not isinstance(v, list):
             raise Fail(400, 'Unknown capability.')
-        cur[k] = [r for r in ACC_PERM_ROLES if r in v]
-    store().cmd('SET', 'acc:perms', json.dumps(dict(cur, _roles=list(ACC_PERM_ROLES)), separators=(',', ':')))
+        cur[k] = [r for r in every if r in v]
+    store().cmd('SET', 'acc:perms', json.dumps(dict(cur, _roles=every), separators=(',', ':')))
+    cur = acc_perms()
     acc_log({'email': me, 'name': '', 'what': 'perms', 'by': me})
     return ok({'ok': True, 'perms': cur})
 
@@ -1307,7 +1345,7 @@ def acc_set(d):
     now = int(time.time() * 1000)
     u = users.get(email)
     if act == 'add':
-        if role not in ACC_ROLES:
+        if not acc_role_ok(role):
             raise Fail(400, 'Pick a role.')
         u = users.setdefault(email, {'email': email, 'name': '', 'first': None, 'n': 0})
         u.update(role=role, status='active', by=me, at=now)
@@ -1315,11 +1353,11 @@ def acc_set(d):
         if not u:
             raise Fail(404, 'Nobody with that email has signed in or been added.')
         if act == 'grant':
-            if role not in ACC_ROLES:
+            if not acc_role_ok(role):
                 raise Fail(400, 'Pick a role.')
             u.update(role=role, status='active', by=me, at=now)
         elif act == 'role':
-            if role not in ACC_ROLES:
+            if not acc_role_ok(role):
                 raise Fail(400, 'Pick a role.')
             u.update(role=role, by=me, at=now)
         elif act in ('decline', 'revoke'):
@@ -1754,9 +1792,168 @@ def ar_copy(d):
     return ok({'lines': [str(x) for x in out], 'by': 'Claude'})
 
 
+# ── TEAM ROLES THE ADMIN NAMES (2026-11-18, by request) ───────────────────────────────────────
+# {tok, action: add, name} -> a new role 'x-<slug>'; {action: rename, key, name}; {action: remove,
+# key} only while nobody active has it. Answers the role map (perms, with _names) to redraw from.
+def acc_role(d):
+    me, _ = acc_need_admin(d)
+    act, customs = d.get('action'), acc_customs()
+    name = re.sub(r'\s+', ' ', str(d.get('name') or '')).strip()[:40]
+    if act in ('add', 'rename') and len(name) < 2:
+        raise Fail(400, 'Name the role (two letters or more).')
+    if act == 'add':
+        taken = [v['name'].lower() for v in customs.values()] + [n.lower() for n in ACC_ROLE_NAMES.values()]
+        if name.lower() in taken:
+            raise Fail(409, 'There is already a role called %s.' % name)
+        slug = re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')[:24] or 'role'
+        key, i = 'x-' + slug, 2
+        while key in customs:
+            key, i = 'x-%s-%d' % (slug, i), i + 1
+        customs[key] = {'name': name, 'by': me, 'at': int(time.time() * 1000)}
+    else:
+        key = str(d.get('key') or '')
+        if key not in customs:
+            raise Fail(404, 'That role is not one you added.')
+        if act == 'rename':
+            customs[key]['name'] = name
+        elif act == 'remove':
+            held = [u['email'] for u in acc_users().values() if u.get('role') == key and u.get('status') in ('active', 'pending')]
+            if held:
+                raise Fail(409, '%d %s this role. Give them another one first.' % (len(held), 'person has' if len(held) == 1 else 'people have'))
+            customs.pop(key)
+        else:
+            raise Fail(400, 'Unknown change.')
+    store().cmd('SET', 'acc:roles', json.dumps(customs, separators=(',', ':')))
+    acc_log({'email': me, 'name': name or key, 'what': 'role-' + act, 'by': me, 'role': key})
+    return ok({'ok': True, 'key': key, 'perms': acc_perms()})
+
+
+# the standard roles' names, so a named role cannot borrow one
+ACC_ROLE_NAMES = {'designer': 'Designer', 'pm': 'Performance marketing', 'smm': 'Social media manager', 'ct': 'Content team',
+                  'cten': 'Content team · English', 'ctar': 'Content team · Arabic', 'dmt': 'Digital Marketing Team', 'ai': 'AI Engineers'}
+
+
+# ── THE ENGINE: PDS'S COMMITS AND DEPLOYMENTS, LIVE (2026-11-18, by request) ──────────────────
+# For the admin and anyone whose role opens 'arch' (AI Engineers by default). Reads the public
+# repository on GitHub: every commit on main since the first, and every deployment Vercel reports
+# there, with its state. GITHUB_TOKEN (Vercel env, a read-only token; never this repo) lifts
+# GitHub's limit from 60 an hour per address to 5000, and lets an unchanged answer (304) cost
+# nothing; without it the feed still works, more slowly. Kept per server instance: the commit
+# list, ETags, and every deployment state that can no longer change.
+ENGINE_REPO = os.environ.get('ENGINE_REPO') or 'kelvin-inigo/Provident-Design-Studio'
+_eng = {'commits': [], 'deploys': [], 'etag': {}, 'states': {}, 'at': 0, 'rate': {}, 'err': ''}
+ENG_FINAL = ('success', 'failure', 'error', 'inactive')
+
+
+def gh(path, etag_key=None):
+    """GitHub's REST API -> (status, json or None). 304 when unchanged since the last ETag."""
+    base = (os.environ.get('ENGINE_GITHUB_BASE') or 'https://api.github.com').rstrip('/')
+    h = {'Accept': 'application/vnd.github+json', 'User-Agent': 'pds-engine', 'X-GitHub-Api-Version': '2022-11-28'}
+    tok = (os.environ.get('GITHUB_TOKEN') or '').strip()
+    if tok:
+        h['Authorization'] = 'Bearer ' + tok
+    if etag_key and _eng['etag'].get(etag_key):
+        h['If-None-Match'] = _eng['etag'][etag_key]
+    req = urllib.request.Request(base + path, headers=h)
+    try:
+        with urllib.request.urlopen(req, timeout=8) as r:
+            hd, code, body = r.headers, r.status, r.read()
+    except urllib.error.HTTPError as e:
+        hd, code, body = e.headers, e.code, b''
+    except Exception as e:  # noqa: BLE001
+        raise Fail(502, 'GitHub could not be reached (%s).' % e.__class__.__name__)
+    if hd.get('X-RateLimit-Remaining') is not None:
+        _eng['rate'] = {'left': int(hd.get('X-RateLimit-Remaining') or 0), 'limit': int(hd.get('X-RateLimit-Limit') or 0),
+                        'reset': int(hd.get('X-RateLimit-Reset') or 0) * 1000, 'token': bool(tok)}
+    if code == 304:
+        return 304, None
+    if code in (403, 429) and _eng['rate'].get('left') == 0:
+        raise Fail(429, 'GitHub\'s hourly limit for this server is used up; it resets at %s UTC.%s' % (
+            time.strftime('%H:%M', time.gmtime(_eng['rate']['reset'] / 1000)), '' if tok else ' Setting GITHUB_TOKEN in Vercel lifts it.'))
+    if code >= 400:
+        raise Fail(502, 'GitHub answered HTTP %d for %s.' % (code, path.split('?')[0]))
+    if etag_key and hd.get('ETag'):
+        _eng['etag'][etag_key] = hd.get('ETag')
+    return code, json.loads(body or b'null')
+
+
+def eng_commit(c):
+    cm = c.get('commit') or {}
+    au = cm.get('author') or {}
+    return {'sha': c.get('sha', ''), 'msg': str(cm.get('message') or '')[:1200], 'at': au.get('date') or '', 'by': au.get('name') or '',
+            'login': (c.get('author') or {}).get('login') or ''}
+
+
+def eng_refresh():
+    """Bring the commits and deployments up to date (see the interval below)."""
+    # every 30 s with a token; every 3 min without one, so 60 reads an hour last (GitHub counts
+    # even an unchanged answer when there is no token)
+    if time.time() - _eng['at'] < (30 if (os.environ.get('GITHUB_TOKEN') or '').strip() else 180):
+        return
+    _eng['at'] = time.time()
+    repo = '/repos/' + ENGINE_REPO
+    code, page = gh(repo + '/commits?sha=main&per_page=100', 'c1')
+    if code == 200 and isinstance(page, list):
+        have = {c['sha'] for c in _eng['commits']}
+        fresh = [eng_commit(c) for c in page]
+        if not _eng['commits'] or fresh[-1]['sha'] not in have:
+            # the first read, or more than a page since the last: walk back to the beginning
+            out, n = fresh, 2
+            while len(page) == 100 and n <= 20 and not (have and out[-1]['sha'] in have):
+                code, page = gh(repo + '/commits?sha=main&per_page=100&page=%d' % n)
+                page = page if isinstance(page, list) else []
+                out += [eng_commit(c) for c in page]
+                n += 1
+            known = {c['sha'] for c in out}
+            _eng['commits'] = out + [c for c in _eng['commits'] if c['sha'] not in known]
+        else:
+            known = {c['sha'] for c in fresh}
+            _eng['commits'] = fresh + [c for c in _eng['commits'] if c['sha'] not in known]
+    code, deps = gh(repo + '/deployments?per_page=100', 'd1')
+    if code == 200 and isinstance(deps, list):
+        _eng['deploys'] = [{'id': x.get('id'), 'sha': x.get('sha', ''), 'env': x.get('environment') or '', 'at': x.get('created_at') or '',
+                            'by': (x.get('creator') or {}).get('login') or ''} for x in deps]
+    # each deployment's latest state; a final one is never asked again
+    asked = 0
+    for x in _eng['deploys']:
+        st = _eng['states'].get(x['id'])
+        if st and st['state'] in ENG_FINAL:
+            continue
+        if asked >= 8:
+            break
+        asked += 1
+        code, sts = gh(repo + '/deployments/%s/statuses?per_page=1' % x['id'], 's%s' % x['id'])
+        if code == 200 and isinstance(sts, list) and sts:
+            s0 = sts[0]
+            _eng['states'][x['id']] = {'state': s0.get('state') or '', 'at': s0.get('created_at') or '',
+                                       'url': s0.get('environment_url') or s0.get('target_url') or ''}
+
+
+def engine(d):
+    email, _ = acc_who(d.get('tok'))
+    if email != acc_admin():
+        u = acc_users().get(email) or {}
+        if u.get('status') != 'active' or u.get('role') not in acc_perms().get('arch', []):
+            raise Fail(403, 'The engine page is for the admin and AI Engineers.')
+    try:
+        eng_refresh()
+        _eng['err'] = ''
+    except Fail as e:
+        _eng['err'] = e.msg
+        if not _eng['commits']:
+            raise
+    have = str(d.get('have') or '')
+    shas = [c['sha'] for c in _eng['commits']]
+    commits = _eng['commits'][:shas.index(have)] if have in shas else _eng['commits']
+    deps = [dict(x, **(_eng['states'].get(x['id']) and {'state': _eng['states'][x['id']]['state'], 'stateAt': _eng['states'][x['id']]['at'],
+                                                        'url': _eng['states'][x['id']]['url']} or {})) for x in _eng['deploys']]
+    return ok({'repo': ENGINE_REPO, 'commits': commits, 'full': have not in shas, 'total': len(shas), 'deploys': deps,
+               'rate': _eng['rate'], 'err': _eng['err'], 'at': int(time.time() * 1000)})
+
+
 ACC_OPS = {'accme': acc_me, 'accreq': acc_req, 'acclist': acc_list, 'accset': acc_set, 'accteam': acc_team, 'accperms': acc_setperms,
            'hubpush': hub_push, 'hubtasks': hub_list, 'hubteam': hub_team, 'hubseen': hub_seen, 'hubok': hub_ok, 'roamnote': roam_note,
-           'arcopy': ar_copy, 'hubkey': hub_design_key}
+           'arcopy': ar_copy, 'hubkey': hub_design_key, 'accrole': acc_role, 'engine': engine}
 
 
 # Named route, not app: Vercel's Python runtime treats a module-level `app` as a WSGI/ASGI app.
