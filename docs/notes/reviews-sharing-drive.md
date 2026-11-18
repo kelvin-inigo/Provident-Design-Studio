@@ -2410,3 +2410,73 @@ outside designer / pm / smm / ct is limited like performance marketing unless Ro
 on a request (field in place, Add role, picked, Let in), the Roles column and chip, duplicate and
 standard names refused, removal refused while held, non-admin refused. **Note for the
 remove-upstash branch**: `acc:roles` and `acc:seed-ai` must move into the Drive access file there.
+
+# VIEW AD SETS: A READ-ONLY WAY IN FOR ROLES OUTSIDE THE PROCESS (2026-11-18)
+
+By request (the admin, on Access › Roles with the named roles Video Creatives and CMO): "allow
+certain roles that doesnt require to much input in the process, they just need to view adsets, so
+also give them the adset window, no editing and downloading functions, they still need to see the
+status of the adset and maybe add the activity window".
+
+- **Capability `view-adsets`** ("View ad sets"), in access.js `PERMS0` / `CAPS` and api/share.py
+  `ACC_PERMS`, default `['ai']`. Before this nothing gated Status for a role outside the workflow:
+  `studiosFor` gave AI Engineers and every named role both studios, with a half-hidden ad set page
+  (`lim` hid some buttons; Drive location Save, Remove from this list, the Access card, the team
+  links and the video's comments and downloads were all live). AI Engineers keep campaigns by the
+  default; a named role with nothing ticked now has none.
+- **access.js** answers two questions, both exported on `providentAccess`:
+  - `sees('cas' | 'ops')`: does the role have campaigns / posts on Home and Status at all.
+    `OWN_VIEW = designer, admin, pm, ct` see what they always did. Anyone else (named roles, ai,
+    smm) has campaigns with `view-adsets`, `tickets` or `design-cas`, and posts with `design-ops`,
+    `posts` or a copy capability (smm always has posts; pm never).
+  - `viewOnly()`: outside `OWN_VIEW` and without `design-cas`. It says HOW an ad set page is drawn
+    for the role, whichever capability let it reach one (so a CMO who only files tickets is
+    view-only too). `now().view`, `html[data-acc-view]`. `viewOnly` ⊂ `lim`.
+  - Roles grid: the `view-adsets` row shows **Own view** (`.ac-own`) in the `OWN_VIEW` columns
+    instead of a dead tick box. The row sits after File campaign tickets.
+- **index.html**: `studiosFor` asks `acc.sees` when signed in (the old rule stays for a page with
+  no access answer); a role with neither studio gets a quiet "Your role doesn't follow campaigns or
+  posts" on Home and Status, and `#/item/<kind>/<id>` for a kind it does not see falls to Status.
+  For a view-only role "With others" reads **In progress** and "You're clear" says it follows them
+  on Status. New, Projects, Your studios and Launch were already capability- or role-bound.
+- **share-link.js**, the ad set page (`AV.detHtml`, `ro = viewOnly()`): the header ends on a
+  **View only** mark (`.rvd-ro`, the `EYE` icon) in place of Drive folder and settings; phase tabs,
+  steps and the Waiting-on jump chips stay; audiences are drawn in full, a project tile as a plain
+  `span.rva-pj.rva-pj-ro` (no `data-a="proj"`, no ⋯ menu), every Start / Start the Arabic / Start
+  the unbranded slot as a "Not made yet" tile (`roSlot`), no Add a design / Add a project / Add
+  phase; the video tile opens `vidOpen(…, 'ro')` (plays, comments listed; no Download, no comment
+  form, no Mark done / Delete, `controlslist="nodownload"`); Activity whole, with its filters and
+  Show all; the side column is the brief only, its files named but not linked (`briefHtml(tk,
+  open, ro)`). No team links, Access card, Drive location or Remove / Delete. A ticket's page
+  (`AV.ticketHtml`) loses Pick up, Use an existing design, Ticket settings, Drive folder, Remove
+  and Delete. `inboxCas`'s verb is "View the ad set".
+- **A hidden button is not a guard.** Three layers: access.js's capture-phase click guard (inside
+  `[data-rv-arch]`, any `data-a` not in `VIEW_OK` = back, refresh, actcat, actmore, jump, phtab,
+  vid and the Google sign-in controls); `AV.click` drops the same (and `data-copy`); and
+  **`dsApi1` refuses every write** (`DS_WRITES` except `rsreq`) to a record that is a campaign ad
+  set (`R.rs && !isPost(R.rs)`) with a 403 `RO_ERR`. The first cut put that refusal before the
+  resolve and would have blocked social media's own post writes (posts go through the same
+  `dsApi`): it must stay after `dsResolve`, on `!isPost`. The old share store's `rs*` writes are
+  refused in `api()` the same way.
+- **The server cannot refuse these writes.** A Drive ad set is written by the browser straight to
+  Google Drive with the person's own token; api/share.py is not on that path, and its old
+  share-store `rs*` ops judge the link's token, not the account. So api/share.py only stores the
+  capability. The real lock is Drive sharing: give a view-only account Viewer on the campaigns
+  folder. A team link opened by such a role already ends on "This isn't your view" (`linkGate`).
+- The preview heal's `thumb` write is refused quietly for a view-only role (its try/catch); the
+  preview still draws on their page.
+- **Verified** on share-dev (new code on :8797, the pre-change commit on :8798, both seeded): the
+  designer's, performance marketing's, the content team's (English) and social media's Status and
+  Palm Springs ad set page are the same text hash and the same set of `data-a` controls before and
+  after. A named role "Video Creatives", ticked in the grid and saved, as an admin preview and as a
+  real account: Home, Status (campaigns only), the ad set page and a ticket page; 0 links, 0
+  inputs, only view controls; `AV.click` called directly with 22 forbidden actions did nothing;
+  nine write ops answered 403 and the record was unchanged; social media's post write still went
+  through and its campaign write was refused; unticked, the role has no campaigns and
+  `#/item/cas/<id>` falls to Status. 0 contrast failures and no sideways scroll, light and dark
+  (reloaded into each, animations finished), 1440 / 1280 / 375.
+- **Not run:** the live site, real Google Drive and real accounts; Safari; a real phone; a video
+  that actually plays (the seed's video has no files); CAS's own Status for such a role (CAS sends
+  a limited role with no campaign capability to the home); an old share-store ad set.
+- **Seen, not changed:** the admin's "Viewing as" bar overflows a 375px page by 20px with a long
+  role name; the Access tab's pending count measured 3.41:1 in the light theme.

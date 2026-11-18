@@ -759,3 +759,99 @@ notification if something is disconnected … make sure there's no security risk
   — title, "n of N · filters · Clear", search; then All | Deployed as a switch and the areas as one
   row that scrolls sideways (masked edge) instead of wrapping. Only + area combine (`E.only`,
   `E.area`). Day heads stick under it (`--tbh`). Verified 1440 and 375 (107 / 237 / 237 px stack).
+
+# HELP: THE SUPPORT PAGE, BY ROLE (2026-11-18, by request)
+
+"Create an entire tutorial and how-to articles and video walkthrough, support page of CAS + CASV,
+then separate for OPS, separate for the unified home, how to navigate in each view (roles)" — and
+"the access and views only filter to the roles". Asked first and answered: the videos are
+**captured walkthroughs** (real screens, played step by step, silent), each with a slot for a
+recorded video later (`video:` on a guide: an MP4 plays inline, any other URL in an iframe); it
+lives on the home as **`#/help`**, not a separate page. Structure chosen on the impeccable
+decision page: **"I need to…"** (a role's jobs as rows) over "view maps first" and a three-column
+docs reader. Surface brief: `.impeccable/surfaces/help-js.md`.
+
+**Files.** `help-content.js` is the words only (33 guides, 6 view maps, 14 troubleshooting
+answers, one line and three "Start here" guides per role), written from `CAS-OPS-GUIDE.md` with
+on-screen names in **bold**. `help.js` is the page and the player, mounted like `engine.js`
+(`render(parts, q, ctx)` / `mount(pg)`). `help/frames/*.webp` (28, ~2 MB) and `help/frames.json`
+(the box of each part a step rings, in % of a 1440 × 900 viewport).
+
+**Who sees what.** A guide's `who` is a list of capabilities from Access › Roles (`design-cas`,
+`tickets`, `copy-en`…) or a role family (`smm`, `pm` = pm + dmt, `ct` = cten + ctar + ct,
+`admin`), or `all` / `out`. So ticking a capability under Roles changes that role's Help with no
+code change, and a named role (`x-…`) gets exactly the guides its ticks earn. The admin sees all;
+**Preview the home as** a role or a person shows that role's Help (the ctx is built from
+`acc.now()`, whose `raw` is the previewed role and whose `admin` is false while previewing).
+Signed out, `#/help` is the only route the gate lets through, and it shows only "Sign in and get
+access". **It is a view, not a lock**: `help-content.js` is a public file in a public repo, and
+nothing in it is secret. A guide opened by URL that the role does not see says "This guide is for
+another role".
+
+**The capture route** (`tools/help-capture/capture.py`, standard library, drives Chrome through
+`tools/studio-mcp/chrome.py`). A fresh `share-dev` server, `--seed` once (it runs `/dev-seed` in
+the capture browser's OWN profile, because the demo's saved projects live in that browser's
+IndexedDB; seeding twice doubles the server's demo data — it happened once here), `--photo` a
+picture to drop into the CAS and OPS photo slots (the frames use a still of CASV's Palm Springs
+test clip, taken through a canvas on the 8794 origin). Three things it had to learn:
+- **A studio with nothing open goes to the home's Projects**, and a seeded saved project opened by
+  `#recent=` lands on the splash and then goes there too. The tool opens the card's own
+  `#recent=` link, waits for the engine (`__ps.eng()` from `page.js`), then sets
+  `screen` to `workScreen()`; an injected script holds `html.rs-on` (the class that already stops
+  the move for an ad set window) until it has. Never on a `#share=` page, which it blanks.
+- **Opening a saved project reloads the page**, so the wait runs in a retry loop.
+- **Image slots take a dropped file only on the `<image-slot>` element itself**
+  (`handleEvent`), not on its `.p-drop` wrapper; a synthetic `DragEvent` with a `DataTransfer`
+  works.
+Campaigns, posts and review links are found by name each run (the seed's ids change).
+
+**The player.** One ring (`box-shadow` 2.5px link + a 9999px dim spread, zero offset and blur — a
+mask, not elevation) glides between the step's part on each frame (520 ms on the kit's ease); a
+step with no screen of its own shows as a card over the last one. The four-capsule step
+segments are the progress bar (each fills over 5.6 s). Space, ← → and the segments move it;
+it pauses while the tab is hidden; reduced motion starts it paused with no transitions. The home
+re-renders `#pg` on every queue refresh, so the route leaves a Help page alone when its path and
+role have not changed (`pg._hk`) — otherwise the walkthrough restarted every minute.
+
+**Traps hit.** `help.js` appends its stylesheet before `index.html`'s own `<style>` is parsed,
+so an equal-specificity rule there wins: the phone rule hiding the Watch button needed `.hp .hp-go`.
+`loading="lazy"` on the zoomed, absolutely placed thumbnails never fired in the phone emulation;
+they load eagerly.
+
+**The studios** link to it from a **?** in the sidebar's account chip (`access.js`, both studios
+in one place), opening `#/help?a=cas` or `?a=ops`. The icon is Material Rounded `help` wght300.
+
+## The content team's row names their check (2026-11-18, by request: "Fatema's tasks not showing properly")
+
+Seen on the live site (Preview as Fatema, ctar): The Vault by Imtiaz had its 4 Arabic designs sent
+to her (design done, `it.to` = exec2.content) while the 4 English designs were still in design.
+`rsMine` counted it as hers, but `inboxCas` took the row's `step` from the campaign's first
+unfinished audience step, so she saw **"Design · Local · Broad · In progress"**, the step bar at
+Design, and the card in Status's **Design** column ("With design") — nothing said a translation
+check was waiting.
+
+- `inboxCas` (share-link.js): for role `ct`, the items waiting on this viewer (`it.design && !it.copy
+  && ctLangOk && toMine`, the same test as `rsMine`) set `step` to `Translation` (all Arabic) or
+  `ENG copy check`, `sub` to "N Arabic|English design(s) to check", and the verb to "Check the
+  translation" for Arabic. `stageOf` then puts the row in Copy check. Other roles' rows unchanged.
+- index.html: `viewerName()` — the greeting and the "from you" rewrite use the previewed person's
+  name (`now().previewWho`), not the admin's, so a preview no longer says "Good afternoon, Kelvin"
+  or "from you" on work the admin sent.
+- Verified: the patched `inboxCas` run on a copy of the ad set as ctar → "Translation · 4 Arabic
+  designs to check", mine; as cten → unchanged, not mine. Not yet live: needs a deploy.
+
+**Finish review (impeccable-finish-reviewer, fresh context).** First pass: "recapture" — the
+full-page shots were taken before the frames painted (now: scroll through, wait for every
+`img.complete && naturalWidth`, `decode()`), and signed-out Help had been let out of the gate's
+bare bar (`body[data-gate]` now applies to it; it carries its own **Sign in with Google**).
+Second pass: "fix", eight items, all taken: the studio switch moved up beside the search, above
+Start here (it had straddled the fold at 1440 × 900); frames at 120 px; **the camera** — the
+player scales and moves `.wt-cam` (the frames and the ring together, transform only) onto the
+step's part, up to 1.8× on a wide stage and 2.6× under 600 px, the ring's line divided by the
+zoom so it stays 2.5 px; tabs never wrap (`nowrap`, the track scrolls on a phone); thumbnails
+crop wider (1.22×) so words are not cut; rows say the real runtime ("22 s to watch", 5.6 s a
+step) and the article says it apart from the time the job takes (`min`); a tab's count is the
+rows it lists (Start here guides are not counted twice); the rows' step segments fill from what
+this viewer has watched (`provident-help-seen`, this computer only); `text-wrap:pretty` on the
+job line.
+

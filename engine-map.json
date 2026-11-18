@@ -69,7 +69,7 @@
    "id": "home",
    "lane": "web",
    "name": "Home",
-   "about": "index.html · engine.js",
+   "about": "index.html · engine.js · help.js",
    "check": "self",
    "own": true
   },

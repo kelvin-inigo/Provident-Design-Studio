@@ -57,11 +57,12 @@
   // what a page uses before the server has answered. The admin has everything; ct (the older
   // either-language content role) has a copy capability when either language's role has it.
   const PERM_ROLES = ['designer', 'smm', 'cten', 'ctar', 'pm', 'dmt', 'ai'];
-  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm', 'dmt'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'], arch: ['ai'] };
+  const PERMS0 = { 'design-cas': ['designer'], 'design-ops': ['designer'], tickets: ['designer', 'pm', 'dmt'], 'view-adsets': ['ai'], posts: ['designer', 'smm'], 'copy-en': ['cten'], 'copy-ar': ['ctar'], arch: ['ai'] };
   const CAPS = [
     ['design-cas', 'Design campaign ads', 'Open and edit projects in the Campaign Ads Studio'],
     ['design-ops', 'Design organic posts', 'Open and edit posts in the Organic Post Studio'],
     ['tickets', 'File campaign tickets', 'Start a campaign for the designers'],
+    ['view-adsets', 'View ad sets', 'See every campaign on Status, its steps and its activity. Nothing to edit or download'],
     ['posts', 'Draft organic posts', 'Start a post for the designers'],
     ['copy-en', 'Approve English copy', 'Picked to check the words before anything goes out'],
     ['copy-ar', 'Approve the Arabic translation', 'Picked to check the Arabic version of campaigns'],
@@ -122,6 +123,7 @@
 
   // ── icons: Material Symbols Rounded, wght 300 (the studio's family) ─────────────────────
   const P = {
+    help: 'M508.5-267.21q11.81-11.83 11.81-28.97 0-17.13-11.83-28.94-11.83-11.8-28.96-11.8-17.13 0-28.94 11.83-11.81 11.83-11.81 28.96 0 17.13 11.83 28.94 11.83 11.8 28.96 11.8 17.13 0 28.94-11.82ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Zm3.24-171.23q27.68 0 47.91 17.43 20.24 17.43 20.24 43.57 0 22-12.93 39.38-12.92 17.39-29.54 32.39-21.78 19.32-38.35 42.51-16.57 23.18-17.72 51.64-.39 10.93 7.69 18.31 8.08 7.38 18.84 7.38 11.54 0 19.54-7.69t10.23-18.84q4-20.62 17.04-36.73 13.04-16.12 28.25-30.65 21.87-21.32 38.17-46.48 16.31-25.17 16.31-56.14 0-47.54-37.46-78.12Q534-703.84 484-703.84q-35.69 0-67.31 15.8-31.61 15.81-49.23 46.12-5.46 9.31-3.5 19.59 1.95 10.29 10.55 15.62 10.95 6.09 22.49 3.48 11.54-2.62 19.61-13.15 12.16-15.77 29.43-25.31t37.2-9.54Z',
     logout: 'M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h238.08q12.76 0 21.38 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.38 8.62H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h238.08q12.76 0 21.38 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.38 8.62H212.31Zm492.38-310H393.85q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38t8.61-21.38q8.62-8.62 21.39-8.62h310.84l-76.92-76.92q-8.31-8.31-8.5-20.27-.19-11.96 8.5-21.27 8.69-9.31 21.08-9.62 12.38-.3 21.69 9l123.77 123.77q10.84 10.85 10.84 25.31 0 14.46-10.84 25.31L670.54-310.23q-8.92 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-8.38-21.38.3-12.08 9-20.77l76.3-77Z',
     check: 'm382-354 339.38-339.38q8.93-8.93 21.2-9.12 12.27-.19 21.58 9.12 9.3 9.3 9.3 21.38 0 12.08-9.3 21.39L407.31-294.15q-10.85 10.84-25.31 10.84-14.46 0-25.31-10.84L195.85-455q-8.93-8.92-8.81-21.19.11-12.27 9.42-21.58 9.31-9.31 21.39-9.31 12.07 0 21.38 9.31L382-354Z',
     eye: 'M480.09-336.92q62.76 0 106.79-43.93 44.04-43.92 44.04-106.68 0-62.76-43.93-106.8-43.92-44.03-106.68-44.03-62.77 0-106.8 43.92-44.03 43.93-44.03 106.69 0 62.76 43.92 106.79 43.93 44.04 106.69 44.04ZM480-392q-38 0-64.5-26.5T389-483q0-38 26.5-64.5T480-574q38 0 64.5 26.5T571-483q0 38-26.5 64.5T480-392Zm.11 172q-129.96 0-237.38-71.08-107.42-71.07-164.27-189.38-3-5.39-4.5-11.06-1.5-5.67-1.5-11.99 0-6.33 1.5-12 1.5-5.67 4.5-11.06 56.85-118.31 164.16-189.38 107.3-71.07 237.27-71.07 129.96 0 237.38 71.07 107.42 71.07 164.27 189.38 3 5.39 4.5 11.06 1.5 5.67 1.5 12 0 6.32-1.5 11.99t-4.5 11.06q-56.85 118.31-164.16 189.38Q610.08-220 480.11-220Z',
@@ -171,6 +173,18 @@
   // gated, so there the account is looked up quietly (A.quiet) when Google is already signed in.
   const copyLang = () => { const r = rawRole() || viewAs() || (A.quiet && A.quiet.status === 'active' ? A.quiet.role : null);
     return r === 'cten' ? 'en' : r === 'ctar' ? 'ar' : null; };
+  // VIEW AD SETS (2026-11-18, by request): a role that takes no part in a campaign (the roles the
+  // admin names, AI Engineers, social media) follows it without touching it. Designers,
+  // performance marketing and the content team have their own ad set views (OWN_VIEW) and are
+  // not changed by any of this. sees(k): does this role have campaigns ('cas') or posts ('ops')
+  // on Home and Status at all; viewOnly(): an ad set's page is read-only for it — no step, no
+  // setting, no download, no way into the studio (share-link.js draws it so and refuses the rest).
+  const OWN_VIEW = ['designer', 'admin', 'pm', 'ct'];
+  const viewOnly = () => { const r = role(); return !!r && OWN_VIEW.indexOf(r) < 0 && !can('design-cas'); };
+  const sees = k => { const r = role(), own = OWN_VIEW.indexOf(r) >= 0;
+    if (!r) return true;
+    if (k === 'cas') return own || can('design-cas') || can('tickets') || can('view-adsets');
+    return r === 'pm' ? false : own || r === 'smm' || can('design-ops') || can('posts') || can('copy-en') || can('copy-ar'); };
   // LIMITED in this studio: CAS is the designer's (and the admin's); performance marketing, the
   // social media manager and the content team get Home's setup and Status there. OPS is open to
   // all but performance marketing, which gets OPS's Status only.
@@ -260,10 +274,12 @@
   // (window.providentAccess.now) refuse them too, so a hidden button cannot be pressed by
   // other means. The server still holds the data rules: Drive sharing, the review links.
   const PM_BLOCK = ['pick', 'proj', 'startcell', 'addopen', 'addproj', 'addx', 'approve', 'relab', 'relabsave', 'rmproj', 'delset', 'overview', 'settings'];
+  const VIEW_OK = ['back', 'refresh', 'actcat', 'actmore', 'jump', 'phtab', 'vid', 'gsign', 'gdref', 'gdre', 'gdsw'];
   function apply() {
     const h = document.documentElement, r = role();
     if (r) h.setAttribute('data-acc-role', r); else h.removeAttribute('data-acc-role');
     h.toggleAttribute('data-acc-lim', lim());
+    h.toggleAttribute('data-acc-view', viewOnly());
     const cl = copyLang(); if (cl) h.setAttribute('data-acc-copy', cl); else h.removeAttribute('data-acc-copy');
     h.toggleAttribute('data-acc-isadmin', !!(A.me && A.me.admin && A.phase === 'in'));
     h.toggleAttribute('data-acc-preview', !!viewAs());
@@ -293,6 +309,8 @@
     const t = e.target && e.target.closest && e.target.closest('[data-a],.rsp-go,.p-sbf button,.rc-c');
     if (!t || (HOME && !t.closest('[data-rv-arch],[data-rs-plan]'))) return;
     if (t.matches('.rsp-go,.p-sbf button,.rc-c') || PM_BLOCK.indexOf(t.dataset.a) >= 0 || (role() === 'ct' && t.dataset.a === 'newt')) { e.preventDefault(); e.stopPropagation(); }
+    // a view-only role: only what changes the view (VIEW_OK), never a step, a setting or a file
+    else if (viewOnly() && t.dataset.a && t.closest('[data-rv-arch]') && VIEW_OK.indexOf(t.dataset.a) < 0) { e.preventDefault(); e.stopPropagation(); }
   }, true);
 
   // ── the gate ─────────────────────────────────────────────────────────────────────────────
@@ -420,6 +438,8 @@
     }
     if (c.parentNode !== sb || sb.lastElementChild !== c) sb.appendChild(c);
     const html = '<span class="acx-av">' + avIn(A.me.name, A.me.email) + '</span><span class="acx-me-t" title="' + esc((A.me.name ? A.me.name + ' · ' : '') + A.me.email + ' · ' + (ROLE[A.me.role] || '')) + '"><b>' + esc(A.me.name || A.me.email) + '</b><small>' + esc(ROLE[A.me.role] || '') + '</small></span>' +
+      // HELP (2026-11-18): the home's support page, opened on this studio's guides
+      '<a class="acx-me-out" href="index.html#/help?a=' + (CAS ? 'cas' : 'ops') + '" title="Help: the guides for your role" aria-label="Help">' + ic('help') + '</a>' +
       '<button type="button" class="acx-me-out" data-x="out" title="Sign out of ' + esc(A.me.email) + '" aria-label="Sign out">' + ic('logout') + '</button>';
     if (c._h !== html) { c.innerHTML = html; c._h = html; }
   }
@@ -509,6 +529,8 @@
         '<div class="ac-rl-wrap"><table class="ac-rl"><thead><tr><th scope="col"><span class="ac-sr">Capability</span></th>' + PERM_ROLES.map(r => '<th scope="col" title="' + esc(ROLE_SUB[r]) + '">' + esc(SEGL[r]) + '</th>').join('') + '</tr></thead><tbody>' +
         CAPS.map(c => '<tr><th scope="row"><b>' + esc(c[1]) + '</b><small>' + esc(c[2]) + '</small></th>' + PERM_ROLES.map(r => {
           const on = (ed[c[0]] || []).indexOf(r) >= 0, was = (cur[c[0]] || []).indexOf(r) >= 0;
+          // a team that works on ad sets has its own view of them: nothing to switch here
+          if (c[0] === 'view-adsets' && OWN_VIEW.indexOf(fam(r)) >= 0) return '<td><span class="ac-own" title="' + esc(ROLE[r] + ' already works on ad sets, in its own view') + '">Own view</span></td>';
           return '<td><label class="ac-ck"' + (on !== was ? ' data-ch' : '') + '><input type="checkbox" data-perm="' + c[0] + '" data-r="' + r + '"' + (on ? ' checked' : '') + ' aria-label="' + esc(SEGL[r] + ': ' + c[1]) + '"><i aria-hidden="true">' + ic('check') + '</i></label></td>';
         }).join('') + '</tr>').join('') +
         '<tr class="ac-rl-fix"><th scope="row"><b>Let people in</b><small>Answer access requests and change roles</small></th><td colspan="' + PERM_ROLES.length + '"><span class="ac-dim">Only you, the admin</span></td></tr>' +
@@ -795,7 +817,7 @@
   window.providentAccess = {
     // { role, admin, preview, pending } — role null while nobody is signed in or the gate is off
     now() {
-      return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(), previewWho: viewWho(), previewKey: viewRaw(),
+      return { role: role(), copy: copyLang(), raw: rawRole(), lim: lim(), view: viewOnly(), studio: CAS ? 'cas' : 'ops', admin: !!(A.me && A.me.admin && A.phase === 'in' && !viewAs()), preview: viewAs(), previewWho: viewWho(), previewKey: viewRaw(),
                pending: A.list ? reqs().length : 0, gated: A.on === true && gated(), only: only(), blocked: blocked(), email: (viewWho() && viewWho().email) || me() };
     },
     // WHO IS OPENING THIS LINK (2026-11-16, by request): an ad set link checks the account's role
@@ -822,6 +844,8 @@
     call: (op, body) => post(op, body),
     // what each role opens (Access › Roles): can('tickets'), can('design-ops', 'smm'), perms()
     can, perms, caps: () => CAPS.slice(),
+    // campaigns ('cas') or posts ('ops') on Home and Status for this role; the ad set page read-only
+    sees, viewOnly, viewOk: a => VIEW_OK.indexOf(a) >= 0,
     attach(shell) { A.host = shell; apply(); },
     signIn: () => signIn(false),
     preview: r => preview(r || null),
@@ -917,7 +941,7 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-me{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 6px 2px 4px;border-top:1px solid var(--ps-hair)}
 .acx-me .acx-av{width:30px;height:30px;font-size:11.5px}
 .acx-me-t{min-width:0;flex:1}.acx-me-t b,.acx-me-t small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acx-me-t b{font-size:13px}.acx-me-t small{font-size:11.5px}
-.acx-me-out{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--ps-ink-2);cursor:pointer}
+.acx-me-out{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--ps-ink-2);cursor:pointer;text-decoration:none}
 .acx-me-out:hover{background:var(--ps-fill);color:var(--ps-ink)}
 html[data-acc-lim] .acx-me{margin-top:auto}
 @media (max-width:760px){.acx-me{flex:1 0 100%;margin-top:6px}}
@@ -941,6 +965,7 @@ html[data-acc-lim] .rvd-ph,html[data-acc-lim] [data-a=settings]{display:none !im
 /* the content team's CAS is its copy requests on Status: no Home, no tickets */
 html[data-acc-role="ct"][data-acc-only] .p-sbn .p-nav2:first-child,html[data-acc-role="ct"][data-acc-only] .rva-new{display:none !important}
 html[data-acc-lim] [data-a=proj]{pointer-events:none;cursor:default}
+html[data-acc-view] .rva-new,html[data-acc-view] .rva-add{display:none !important}
 html[data-acc-lim] .rsp-tk{background:var(--ps-primary);color:var(--ps-primary-i);box-shadow:none}
 html[data-acc-lim] .rsp-tk:hover{background:var(--ps-primary-h)}
 html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{display:none}
@@ -979,6 +1004,7 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 .ac .ac-ck input:checked + i{background:var(--ps-ink);box-shadow:none}
 .ac .ac-ck input:checked + i .acx-i{opacity:1}
 .ac .ac-ck input:focus-visible + i{outline:2px solid var(--ps-link);outline-offset:3px}
+.ac .ac-own{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap}
 .ac .ac-ck[data-ch]::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ps-warn)}
 .ac .ac-rl-bar{position:sticky;bottom:12px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:16px;padding:12px 12px 12px 20px;border-radius:14px;font:400 14px/1.4 var(--ps-font);background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .ac .ac-rl-bar[data-on]{box-shadow:inset 0 0 0 1.5px var(--ps-warn)}

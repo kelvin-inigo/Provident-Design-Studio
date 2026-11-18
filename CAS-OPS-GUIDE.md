@@ -145,6 +145,19 @@ say so and point to the step above.
     as before and attaches the design to that hub post.
   - **Access**: the admin gets the whole Access panel (requests to let in, people and their roles,
     activity, and Preview as). Everyone else sees their role and what it lets them do.
+  - **Help** is the support page, for everyone (even before signing in, when it shows only how
+    to get in). It shows only the guides for what your role opens, following Access › Roles:
+    a switch of the studios you use, **CAS + CASV**, **OPS** and **Home**, beside **Search help**
+    (it finds a guide by the words on its buttons); **Start here** (your role's first three
+    guides); then the chosen studio's guides by job, **Getting around** (each view you use,
+    captured, with its parts numbered: point at a number to ring that part) and **Something not
+    working?**. Open a guide (**Watch**) for its walkthrough: the real screens play step by step,
+    moving in on the part each step names and ringing it, with the steps listed beside it. A
+    guide's small bars fill as you watch it on this computer. **Pause**, **‹ ›**, a click on a
+    step or on its bar, and the arrow keys and space move it. The screens are captured from the
+    test server, so the names in them are demo names (**Demo data**). The admin sees every guide;
+    **Preview the home as** shows one role's Help. In CAS and OPS, the **?** beside your name at
+    the foot of the sidebar opens Help on that studio's guides.
 - **New** (top right) follows your role: a designer picks **A campaign** or **An organic post**;
   performance marketing gets **New ticket**. **A campaign** is CAS's campaign setup, on the home
   page (**File as ticket**, or **Start designing**, which opens CAS on its first audience).
@@ -187,11 +200,12 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published (on Next up and on every row of Also waiting on you). **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
 | **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link in a new tab, where only **Approve English copy** shows. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
-| **Everyone but the admin** | The top bar shows only the pages you use: **Home** and **Status** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
+| **Everyone but the admin** | The top bar shows only the pages you use: **Home**, **Status** and **Help** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
 | **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
 | **Digital Marketing Team** | Runs the same campaigns as the Meta ads on email, SMS and WhatsApp. It sees and does exactly what **Performance marketing** does (above): file tickets, follow campaigns on Status, open an ad set's performance-marketing link to see the finished ads, change words in **Edit text**, download and **Launch**. It has its own name and its own column (**Digital**) under Access › Roles. |
-| **AI Engineers** | The **Engine** page on the home (they land on it): how PDS is built, every commit and every deployment, live. Home and Status as everyone else, no editor. marketing.ads@ and ai.engineer1@ are let in as AI Engineers from the start. |
-| **A role the admin named** | A team that fits none of the above (for example Video production). It opens only what the admin ticks for it under Access › Roles; until then, Home and Status. |
+| **AI Engineers** | The **Engine** page on the home (they land on it): how PDS is built, every commit and every deployment, live. They also have **View ad sets** (below) from the start: campaigns on Status, read-only, no posts, no editor. marketing.ads@ and ai.engineer1@ are let in as AI Engineers from the start. |
+| **A role the admin named** | A team that fits none of the above (for example Video production). It opens only what the admin ticks for it under Access › Roles; until then Home and Status are there but list no campaigns or posts. |
+| **A role with View ad sets** | For people who follow campaigns without working on them (for example a CMO or Video Creatives). **Status** lists every campaign with its stage (no organic posts, unless the role also has a posts capability), and Home lists them under **In progress**; nothing ever waits on them. A campaign opens on its ad set page marked **View only**: the phases and the four steps, every audience with its designs and looks and where each stands, the video (it plays, and its comments can be read) and the whole **Activity** log with its filters. There is no Pick up, Start, Add, Remove, Delete, Move, settings, Approve or Launch, no Download, no Drive folder or team links, no way into the studio, and no comment box. If a team link is sent to them it says **This isn't your view**. |
 | **Admin** | Everything a designer has, plus **Access** and **Engine** on the home page (CAS's sidebar row opens Access there too). There is one admin. |
 
 **Hand-offs name a person.** Each team has two people. Whenever you send work on — **File as
@@ -241,13 +255,18 @@ from Google the first time they do. The admin can still change or remove anyone 
   **Add someone** lets in an @providentestate.com email before they've signed in.
 - **Roles**: what each role opens. One row per capability (Design campaign ads, Design organic
   posts, File campaign tickets, Draft organic posts, Approve English copy, Approve the Arabic
-  translation, See the engine), one tick box per role, including AI Engineers and every role you
+  translation, See the engine, and **View ad sets**), one tick box per role, including AI Engineers and every role you
   named. **Roles you named** above the table lists those; **Name a role** adds one, and × removes one
   nobody has any more. Change the ticks, then **Save changes** (**Discard** drops
   them, **Back to defaults** restores the studio's own). It reaches everyone with that role within
   five minutes: what **New** offers, **Your studios** and **Projects** on the home, whether the
   Campaign Ads Studio opens for them, and who appears in the "Which designer" and "Who checks the
-  copy" pickers. **Let people in** is always the admin's alone. Each person sees their own role's
+  copy" pickers. **View ad sets** is for a role that takes no part in a campaign: tick it and
+  that role follows every campaign on Status and opens each ad set read-only (designs, steps,
+  video, Activity; nothing to edit or download). Designers, performance marketing, the Digital
+  Marketing Team and the content team show **Own view** in that row, because they already work on
+  ad sets in their own way and the tick changes nothing for them. A named role with nothing ticked
+  sees no campaigns or posts at all. **Let people in** is always the admin's alone. Each person sees their own role's
   list on their Access page.
 - **Activity**: every sign-in attempt (including accounts from outside Provident) and every decision.
 - **Preview the studio as**: see the studio exactly as that role sees it. A bar

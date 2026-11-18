@@ -19,6 +19,7 @@ for designing.** When a user asks "where is…", the answer is almost always the
 | roles, requests, who can do what | home › **Access** (the admin); everyone else: the account menu (their initials) |
 | their role, **Sign out** | the account menu (their initials, top right) |
 | switching between CAS and OPS | back to the home page (the editors' top bar no longer has the switch) |
+| a step-by-step guide, "how do I…" with the real screens | home › **Help** (18 Nov: only their role's guides, with captured walkthroughs); in a studio, the **?** beside their name in the sidebar |
 
 ## New from 4 to 10 Nov
 

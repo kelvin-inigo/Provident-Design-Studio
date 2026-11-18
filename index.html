@@ -25,6 +25,9 @@
 <script src="access.js"></script>
 <script src="post-flow.js"></script>
 <script src="engine.js"></script>
+<!-- HELP (2026-11-18): the support page, #/help — the guides each role sees, with captured walkthroughs -->
+<script src="help-content.js"></script>
+<script src="help.js"></script>
 
 <style>
 /* THE HOME (2026-11-02, "one home"). One page for every role over both studios: Home (what is
@@ -928,6 +931,7 @@ body{-webkit-tap-highlight-color:transparent;
     <a href="#/projects" data-nav="projects">Projects</a>
     <a href="#/access" data-nav="access">Access <span class="uh-n" id="acc-n" hidden></span></a>
     <a href="#/engine" data-nav="engine" hidden>Engine</a>
+    <a href="#/help" data-nav="help">Help</a>
   </nav>
   <span class="sp"></span>
   <a class="b b-p" id="newbtn" href="#/new"><svg class="i"><use href="#g-plus"/></svg><span id="newlbl">New</span></a>
@@ -987,7 +991,8 @@ body{-webkit-tap-highlight-color:transparent;
    - provident-acc-me: the account access.js last confirmed, and access.js itself (home mode);
    - provident-drive-who: the Google account, when nothing else is known;
    - recents in IndexedDB (provident-design-studio, recents:<studio>), never created from here.
-   Routes are hash routes: #/ Home, #/status, #/item/<cas|ops>/<id>, #/new, #/access, #/engine (engine.js). */
+   Routes are hash routes: #/ Home, #/status, #/item/<cas|ops>/<id>, #/new, #/access, #/engine (engine.js),
+   #/help (help.js; ?a=<cas|ops|home>, ?q=, #/help/<guide>). */
 (function(){
   'use strict';
   var CAS = 'Provident%20Campaign%20Studio.dc.html', OPS = 'Provident%20Organic%20Studio.dc.html';
@@ -1001,6 +1006,14 @@ body{-webkit-tap-highlight-color:transparent;
   function roleLabel(r){ return ROLE[r] || (acc && acc.roleName ? acc.roleName(r) : '') || r || ''; }
   // THE ENGINE (2026-11-18, by request): engine.js, for the admin and roles that open 'arch'
   function seesEngine(){ return phase === 'in' && !!window.providentEngine && (isAdmin() || !!(acc && acc.can && acc.can('arch'))); }
+  // HELP (2026-11-18, by request): help.js, for everyone. What it shows follows the role (or the one
+  // the admin previews) through Access › Roles; signed out, only how to get in
+  function helpCtx(){
+    var n = acc && acc.now && phase === 'in' ? acc.now() : null, r = rawRole();
+    return { out: phase !== 'in' || !(me && me.email), admin: isAdmin(), raw: r, preview: !!(n && n.preview),
+      name: n && n.previewWho ? (n.previewWho.name || n.previewWho.email) : (me && (me.name || me.email)) || '', roleLabel: r ? roleLabel(r) : '',
+      can: function(cap, role){ return !!(acc && acc.can && acc.can(cap, role)); } };
+  }
   // the board's columns; each studio's own step names map onto them. CLOSED (2026-11-06, by
   // request) is Status's alone: launched campaigns and posted posts, the newest first. Home's
   // "Where everything is" keeps to the four stages still in motion (MOVING).
@@ -1119,17 +1132,28 @@ body{-webkit-tap-highlight-color:transparent;
   function cap(c){ return !rawRole() || !acc || !acc.can || acc.can(c); }
   // PERFORMANCE MARKETING SEES CAMPAIGNS ONLY (2026-11-04, by request): no posts on Home or Status
   function casvAt(){ var v = ''; try { v = localStorage.getItem('provident-casv-local') || ''; } catch (x) {} return (/^https?:\/\//.test(v) ? v.replace(/\/+$/, '') : 'http://localhost:8794') + '/'; }
-  function studiosFor(r){ return r === 'pm' ? ['cas'] : r === 'smm' && !cap('design-cas') && !cap('tickets') ? ['ops'] : ['cas', 'ops']; }
+  // VIEW AD SETS (2026-11-18, by request): which of the two a signed-in role has on Home and Status
+  // is access.js's answer (sees): a role outside the campaign process gets campaigns only with
+  // "View ad sets" (or by filing tickets or designing), and posts only with a posts capability
+  function studiosFor(r){ if (acc && acc.sees && phase === 'in' && acc.now().role) return ['cas', 'ops'].filter(function(k){ return acc.sees(k); });
+    return r === 'pm' ? ['cas'] : r === 'smm' && !cap('design-cas') && !cap('tickets') ? ['ops'] : ['cas', 'ops']; }
   function canStart(r){ void r; return (cap('tickets') ? ['cas'] : []).concat(cap('posts') ? ['ops'] : []); }
   // the studios a role designs in (Your studios, Projects): drafting a post counts for OPS
   function designs(){ return ['cas', 'ops'].filter(function(k){ return cap('design-' + k) || (k === 'ops' && cap('posts')); }); }
   function rawRole(){ var n = acc && acc.now && phase === 'in' ? acc.now() : null; return (n && n.raw) || (me && me.role) || null; }
+  // an ad set's page is read-only for this role (access.js viewOnly)
+  function viewOnly(){ return !!(acc && acc.viewOnly && phase === 'in' && acc.viewOnly()); }
   function isAdmin(){ var n = acc && acc.now ? acc.now() : null; return !!(phase === 'in' && (n ? n.admin : me && me.admin)); }
 
+  // whose home this is: the person the admin previews (Preview the home as a named person), else
+  // the signed-in account — so the greeting and "from you" are theirs, not the admin's
+  function viewerName(){ var n = acc && acc.now && phase === 'in' ? acc.now() : null;
+    return n && n.previewWho && n.previewWho.name ? n.previewWho.name : me && me.name ? me.name : ''; }
   function build(){
     // previewing one person (Access › Preview the home as): their email, so "mine" is theirs
     var nw = acc && acc.now && phase === 'in' ? acc.now() : null;
     var r = roleOf(), em = nw && nw.email ? String(nw.email).toLowerCase() : me && me.email ? String(me.email).toLowerCase() : '';
+    var vname = viewerName();
     var rows = [], closed = [], at = 0;
     studiosFor(r).forEach(function(k){
       var b = inbox[k]; if (!b || !Array.isArray(b.items)) return;
@@ -1142,7 +1166,7 @@ body{-webkit-tap-highlight-color:transparent;
         // "With you" never prints on a row that is not the viewer's
         if (!y.mine) { var wn = !same ? (first(b.me.name) || String(b.me.email).split('@')[0]) : '';
           y.sub = String(y.sub || '').replace(/\b(With|For) you\b/g, wn ? '$1 ' + wn : 'With the team'); }
-        if (y.from && me && me.name && y.from === me.name) y.from = 'you';
+        if (y.from && vname && y.from === vname) y.from = 'you';
         // performance marketing's work is the finished package
         if (r === 'pm') y.mine = same && k === 'cas' && !!x.ready;
         // THE SOCIAL MEDIA MANAGER'S WORK IS THE FINISHED POST (2026-11-04, by request): ready to download
@@ -1181,12 +1205,16 @@ body{-webkit-tap-highlight-color:transparent;
     if (!me || !me.email) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('key') + '</span><div><h3>Sign in to see your work</h3>' +
       '<p>Use your Provident Google account. What is waiting on you, and what is with others, follows your role.</p>' +
       (acc ? '<div class="qk-a"><button class="b b-p b-lg" type="button" data-sign="in"' + (phase === 'busy' ? ' disabled' : '') + '>' + (phase === 'busy' ? 'Signing in…' : 'Sign in with Google') + '</button></div>' : '') + '</div></div>';
+    if (!studiosFor(r).length) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Your role doesn’t follow campaigns or posts</h3>' +
+      '<p>Status lists them for the people who work on them. To follow every campaign without changing anything, ask the admin to give your role “View ad sets” under Access › Roles.</p></div></div>';
     if (!data.known) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (busy ? 'Reading your work from Google Drive\u2026' : 'Connect Google Drive') + '</h3>' +
       '<p>' + (busy ? 'Campaigns and posts are kept on the team\u2019s Drive. This takes a few seconds the first time.' : 'Campaigns and posts are kept on the team\u2019s Drive. Connect it once on this computer and ' + (where === 'status' ? 'every campaign and post you can see is on this board.' : 'what is waiting on you, and what is with others, appears here.')) + '</p>' +
       (busy ? '' : '<div class="qk-a"><button class="b b-p b-lg" type="button" data-drive>Connect Google Drive' + ico('r') + '</button></div>') + '</div></div>';
     var o = data.others.length, cs = canStart(r);
     return '<div class="qk"><span class="qk-o">' + ico('check') + '</span><div><h3>You’re clear</h3>' +
-      '<p>' + (o ? (o === 1 ? 'One campaign or post is' : o + ' campaigns and posts are') + ' with others. Nothing needs you until someone hands it back.' : 'Nothing is in flight right now.') + '</p>' +
+      '<p>' + (viewOnly() ? (o ? (o === 1 ? 'One campaign is' : o + ' campaigns are') + ' in progress. You follow them on Status; nothing there waits on you.' : 'No campaign is in progress right now.')
+        : o ? (o === 1 ? 'One campaign or post is' : o + ' campaigns and posts are') + ' with others. Nothing needs you until someone hands it back.' : 'Nothing is in flight right now.') + '</p>' +
+      (!cs.length && viewOnly() && o ? '<div class="qk-a"><a class="b b-p b-lg" href="#/status">See Status' + ico('r') + '</a></div>' : '') +
       (cs.length ? '<div class="qk-a"><a class="b b-p b-lg" href="' + (cs.length > 1 ? '#/new' : STUDIO[cs[0]].start) + '">Start something' + ico('r') + '</a><a class="b b-l" href="#/status">See Status</a></div>' : '') + '</div></div>';
   }
   function freshLine(){
@@ -1219,8 +1247,9 @@ body{-webkit-tap-highlight-color:transparent;
   // ═════ HOME ═════
   function viewHome(){
     var r = data.r, list = data.mine, hr = new Date().getHours();
-    var hi = 'Good ' + (hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening') + (me && me.name ? ', ' + esc(first(me.name)) : '') + '.';
-    var n = list.length, tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !data.known ? 'Your queue fills in from Status.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
+    var vn = viewerName();
+    var hi = 'Good ' + (hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening') + (vn ? ', ' + esc(first(vn)) : '') + '.';
+    var n = list.length, tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !studiosFor(r).length ? 'Nothing is waiting on you.' : !data.known ? 'Your queue fills in from Status.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
     if (cur >= n) cur = Math.max(0, n - 1);
     var top = list[cur], fd = flip; flip = 0;
     // the greeting spans the page; the side column starts level with Next up (2026-11-03)
@@ -1261,7 +1290,7 @@ body{-webkit-tap-highlight-color:transparent;
       h += '<ol class="rows">' + rest.filter(function(x){ return homeF === 'all' || homeF === x.studio; }).map(function(x){ return row(x); }).join('') + '</ol></section>';
     }
     if (data.others.length){
-      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" id="h-oth" style="color:var(--ps-ink-2)">With others<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/status">All on Status</a></div><ol class="rows">' +
+      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/status">All on Status</a></div><ol class="rows">' +
         data.others.slice(0, 5).map(function(x){ return row(x, true); }).join('') + '</ol></section>';
     }
     h += freshLine();
@@ -1415,8 +1444,8 @@ body{-webkit-tap-highlight-color:transparent;
   // ═════ STATUS ═════
   function viewStatus(q){
     var r = data.r, both = studiosFor(r).length > 1;
-    var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : 'Your organic posts, from draft to ready.') + '</p></div></div>';
-    if (!data.known || !me || !me.email) return h + quiet('status');
+    var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : studiosFor(r).length ? 'Your organic posts, from draft to ready.' : 'Campaigns and posts, from ticket or draft to ready.') + '</p></div></div>';
+    if (!data.known || !me || !me.email || !studiosFor(r).length) return h + quiet('status');
     var all = sxClosed ? data.rows.concat(data.closed) : data.rows, stg = sxClosed ? STAGES : MOVING;
     var hubN = all.filter(function(x){ return x.hub; }).length;
     if (sxF === 'hub' && !(both && hubN)) sxF = 'all';
@@ -1577,7 +1606,7 @@ body{-webkit-tap-highlight-color:transparent;
   // ═════ NEW: the studio follows the role ═════
   function viewNew(){
     var r = data.r, ok = canStart(r);
-    if (!ok.length) return '<div class="nw nw-w"><h1 class="h1">New</h1><div class="qk" style="margin-top:24px"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>The content team checks, it doesn’t start</h3><p>Campaigns start as a ticket from performance marketing, and posts as a draft from social media. Copy checks come to your Home.</p></div></div></div>';
+    if (!ok.length) return '<div class="nw nw-w"><h1 class="h1">New</h1><div class="qk" style="margin-top:24px"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (r === 'ct' ? 'The content team checks, it doesn’t start' : 'Your role doesn’t start campaigns or posts') + '</h3><p>Campaigns start as a ticket from performance marketing, and posts as a draft from social media.' + (r === 'ct' ? ' Copy checks come to your Home.' : '') + '</p></div></div></div>';
     // the stages: real template renders, never cropped to a shape they weren't made in
     var casStage = '<span class="cg"><span class="cg-f cg-191"><b>1.91:1</b></span><span class="cg-f cg-45"><b>4:5</b></span><span class="cg-f cg-916"><b>9:16</b></span>' +
       '<span class="cg-f cg-11"><img src="preview/campaign-d.webp" alt=""><b>1:1</b></span></span>';
@@ -1629,8 +1658,11 @@ body{-webkit-tap-highlight-color:transparent;
     if (nav === 'home' && !parts[0] && seesEngine() && !isAdmin() && !designs().length && !canStart(data.r).length && (rawRole() === 'ai' || /^x-/.test(rawRole() || ''))) nav = 'engine';
     var host = null;
     document.body.toggleAttribute('data-gate', gated());
-    if (gated()) { html = viewGate(); nav = 'gate'; }
+    var hctx = nav === 'help' && window.providentHelp ? helpCtx() : null, hk = hctx ? parts.join('/') + '|' + [hctx.out, hctx.admin, hctx.raw].join('|') : '';
+    if (hctx) { html = pg._hk === hk && !anim ? null : window.providentHelp.render(parts.slice(1), q, hctx); }
+    else if (gated()) { html = viewGate(); nav = 'gate'; }
     else if (nav === 'status') html = viewStatus(q);
+    else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops') && !sees(parts[1])) { html = viewStatus(q); nav = 'status'; }
     else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops')) { html = ''; host = parts[1]; openItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'status'; }
     else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
     else if (nav === 'new') html = viewNew();
@@ -1639,7 +1671,10 @@ body{-webkit-tap-highlight-color:transparent;
     else if (nav === 'files' && parts[1]) { html = viewFiles(decodeURIComponent(parts.slice(1).join('/'))); nav = 'home'; }
     else if (nav === 'projects') html = viewProjects();
     else { html = viewHome(); nav = 'home'; }
-    pg.innerHTML = html; pg.hidden = !!host;
+    // a help page already on screen for the same guide and role is left alone, so a refresh of the
+    // queues does not restart its walkthrough
+    if (html !== null) pg.innerHTML = html;
+    pg._hk = hk; pg.hidden = !!host;
     ['cas', 'ops', 'plan'].forEach(function(k){ $(k + '-host').hidden = host !== k; });
     $('plan-host').firstChild.innerHTML = ico('l') + (canStart(data.r).length > 1 ? 'Something else' : 'Home');
     $('plan-host').firstChild.href = canStart(data.r).length > 1 ? '#/new' : '#/';
@@ -1670,13 +1705,15 @@ body{-webkit-tap-highlight-color:transparent;
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
     $('mn-r').textContent = data.r ? (roleLabel(rawRole()) || roleLabel(data.r)) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio' }[nav];
+    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
     if (nav === 'home') { desk(); skyPaint(); if (anim || !skyT0) skyT0 = Date.now(); var sk = $('sky'), ago0 = Date.now() - skyT0; if (sk && ago0 < SKY_ENTRY) { sk.setAttribute('data-in', ''); sk.style.setProperty('--ent', -ago0 + 'ms'); } }
     if (nav === 'projects') loadDesk(paintProjects);
     if (nav === 'engine' && seesEngine()) window.providentEngine.mount(pg);
+    if (hctx && html !== null) window.providentHelp.mount(pg);
+    if (nav !== 'help' && window.providentHelp) window.providentHelp.stop();
     // coming back from filing, a campaign or post page, read the queues afresh: a ticket filed
     // a moment ago, or a step taken there, is on the board at once (2026-11-03)
     if ((nav === 'status' || nav === 'home') && /^(new|item)/.test(lastNav) && !host) refreshAll(true);

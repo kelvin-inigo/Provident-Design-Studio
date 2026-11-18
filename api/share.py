@@ -1152,6 +1152,10 @@ ACC_PERMS = {
     'design-cas': ['designer'],
     'design-ops': ['designer'],
     'tickets': ['designer', 'pm', 'dmt'],
+    # VIEW AD SETS (2026-11-18): a role outside the campaign process follows every ad set on Status,
+    # read-only. The page draws it so (access.js viewOnly, share-link.js); ad sets live on Drive, so
+    # this server is not on the path of a write to one and Drive's own sharing is the lock.
+    'view-adsets': ['ai'],
     'posts': ['designer', 'smm'],
     'copy-en': ['cten'],
     'copy-ar': ['ctar'],

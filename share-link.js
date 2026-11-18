@@ -131,6 +131,8 @@
   };
   async function api(op, q, body, raw) {
     if (q && isDs(q.id)) return dsApi(op, q, body);
+    // an ad set from the old share store: the same refusal for a view-only role (posts are Drive-only)
+    if (/^rs(step|set|del|launch|video|grant|dl)$/.test(op) && viewOnly()) throw dsFail(403, RO_ERR);
     if (op === 'rsinfo' && q && q.ids && String(q.ids).split(',').some(isDs)) {
       // an archive holding both kinds: Drive ad sets from Drive, the rest from the share store
       const all = String(q.ids).split(','), dsIds = all.filter(isDs), up = all.filter(x => !isDs(x));
@@ -444,6 +446,11 @@
     if (op === 'rsinfo') return dsInfo(String(q.ids || '').split(',').filter(Boolean), q.full === '1');
     const writes = DS_WRITES;
     const R = await dsResolve(q.id, q.p, writes[op] ? true : q.warm ? 'warm' : false);
+    // VIEW ONLY (2026-11-18): such a role writes nothing to a CAMPAIGN ad set or a project in one.
+    // An OPS post is the same kind of record (isPost) and stays writable — social media drafts and
+    // closes posts through here — and so does a project that is in no ad set. rsreq, asking the
+    // designer for a view, is its own door.
+    if (writes[op] && op !== 'rsreq' && R.rs && !isPost(R.rs) && viewOnly()) throw dsFail(403, RO_ERR);
     const pub = () => dsPub(R.rs, R.role);
     if (op === 'rsget') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
@@ -3196,6 +3203,13 @@
       .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
   }
   function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }
+  // VIEW AD SETS (2026-11-18, by request): a role outside the campaign process (access.js viewOnly)
+  // reads an ad set and changes nothing. The pages draw no control for it, AV.click drops whatever
+  // is not a view control, and dsApi refuses every write (RO_ERR) — the last one is the guard.
+  // a role Roles gives no campaigns at all (no View ad sets, tickets or design) reads none here either
+  function seesAds() { try { const A = window.providentAccess; return !A || !A.sees || A.sees('cas'); } catch (e) { return true; } }
+  function viewOnly() { try { const A = window.providentAccess; return !!(A && A.viewOnly && A.viewOnly()); } catch (e) { return false; } }
+  const RO_ERR = 'Your role can view ad sets, not change or download them. Ask the admin if your work needs more.';
   // is anything in this ad set the signed-in person's to do? A designer: a ticket for them (or
   // for nobody yet), or a project sent back to them. The content team: a project sent to them
   // (or to nobody) in their language.
@@ -4598,13 +4612,20 @@
       const tok = rs.tok || {}, link = (r === 'ct' && tok.ct) || (r === 'pm' && tok.pm) || x.id;
       // launched (rsLive): no longer ready, and the home drops it; launch is the id Launch writes through
       const lv = ov && ov.ready ? rsLive(rs) : null, lid = tok.pm || x.id;
+      // THE CONTENT TEAM'S ROW IS THEIR CHECK (2026-11-18): the Arabic can reach its checker while
+      // the English is still being designed, and the campaign's first unfinished step then read
+      // "Design · In progress" — on Home, and in Status's Design column. For the content team the
+      // row names what is waiting on them: the check in their language, and how many designs.
+      const chk = r === 'ct' && !open && !lv ? (rs.items || []).filter(it => it.design && !it.copy && ctLangOk(it) && toMine(it)) : [];
+      const chkAr = chk.length && chk.every(it => it.lang === 'ARB'), chkEn = chk.length && chk.every(it => it.lang !== 'ARB');
+      const chkSub = chk.length ? chk.length + (chkAr ? ' Arabic' : chkEn ? ' English' : '') + (chk.length > 1 ? ' designs' : ' design') + ' to check' : '';
       return {
         studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready) && !lv, open,
         live: lv ? lv.at || 1 : 0, launch: ov && ov.ready && !lv && isDs(lid) ? lid : '',
-        step: open ? 'Ticket' : lv ? 'Launched' : ov.ready ? 'Ready to run' : STEP_LABELS[k] || 'Design',
-        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : lv ? 'Launched by ' + lv.by : ov.ready ? 'Package ready' : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
+        step: open ? 'Ticket' : lv ? 'Launched' : ov.ready ? 'Ready to run' : chk.length ? (chkAr ? STEP_LABELS[2] : STEP_LABELS[1]) : STEP_LABELS[k] || 'Design',
+        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : lv ? 'Launched by ' + lv.by : ov.ready ? 'Package ready' : chkSub ? chkSub : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
         segs: open ? [] : ov.steps.map(s => s.s), steps: STEP_LABELS,
-        verb: open ? 'Pick up the ticket' : r === 'ct' ? 'Check the copy' : r === 'pm' ? 'Open the package' : 'Open the design',
+        verb: open ? 'Pick up the ticket' : r === 'ct' ? (chkAr ? 'Check the translation' : 'Check the copy') : r === 'pm' ? 'Open the package' : viewOnly() ? 'View the ad set' : 'Open the design',
         due: t.deadline || '', from: last ? last.by : rs.by || '', at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
         thumb: x.thumb || '', ratio: 1, href: file + '#share=' + encodeURIComponent(link)
       };
@@ -4924,9 +4945,10 @@
     return t.toLocaleDateString([], t.getFullYear() === new Date().getFullYear() ? { day: 'numeric', month: 'short' } : { day: 'numeric', month: 'short', year: 'numeric' }); };
   const fileUrl = f => 'https://drive.google.com/file/d/' + encodeURIComponent(f.id) + '/view';
   // The ticket's raw material, read by the Status page and the Ad set tab alike.
-  function briefHtml(tk, open) {
+  function briefHtml(tk, open, ro) {
     if (!tk || !(tk.brief || (tk.files || []).length)) return '';
-    const files = (tk.files || []).map(f => '<a class="rva-fl" href="' + esc(fileUrl(f)) + '" target="_blank" rel="noopener" title="' + esc(f.name) + '">' +
+    // view only: the files are named, not linked (a Drive link is a download)
+    const files = ro ? (tk.files || []).map(f => '<span class="rva-fl" title="' + esc(f.name) + '">' + ico(/^image\//.test(f.type) ? 'img' : 'doc', 'rva-fi') + '<span>' + esc(f.name) + '</span></span>').join('') : (tk.files || []).map(f => '<a class="rva-fl" href="' + esc(fileUrl(f)) + '" target="_blank" rel="noopener" title="' + esc(f.name) + '">' +
       ico(/^image\//.test(f.type) ? 'img' : 'doc', 'rva-fi') + '<span>' + esc(f.name) + '</span></a>').join('');
     return '<section class="rva-card rva-brief"><h3>Brief' + (tk.by ? ' <s>from ' + esc(tk.by) + '</s>' : '') + '</h3>' +
       (tk.brief ? '<details class="rva-bt"' + (open ? ' open' : '') + '><summary>' + esc(tk.brief.split(/\n/)[0].slice(0, 140)) + '</summary><p>' + esc(tk.brief) + '</p></details>' : '') +
@@ -4956,7 +4978,7 @@
     const at = this.at ? 'Updated ' + new Date(this.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Updating…';
     const up = '<span class="rvo-up">' + at + '<button type="button" class="rvo-re" data-a="refresh" aria-label="Refresh" title="Refresh">' + ico('ref', 'rvo-re-i') + '</button></span>';
     if (this.items === null) { hl.dataset.s = 'wait'; head.innerHTML = '<div class="rvo-t"><h2>Reading the campaigns…</h2><p>' + up + '</p></div>'; box.innerHTML = ''; box.hidden = true; return; }
-    if (!(this.items || []).length) { hl.dataset.s = 'empty'; head.innerHTML = '<div class="rvo-t"><h2>No campaigns yet</h2><p><span>' + (accRole() === 'ct' ? 'Copy requests show up here when a designer sends one to you.' : 'File one with New ticket, or paste a campaign link below.') + '</span></p></div>'; box.hidden = true; return; }
+    if (!(this.items || []).length) { hl.dataset.s = 'empty'; head.innerHTML = '<div class="rvo-t"><h2>No campaigns yet</h2><p><span>' + (accRole() === 'ct' ? 'Copy requests show up here when a designer sends one to you.' : viewOnly() ? 'Campaigns show up here as they are filed.' : 'File one with New ticket, or paste a campaign link below.') + '</span></p></div>'; box.hidden = true; return; }
     const sets = (this.items || []).filter(x => !x.gone), miss = (this.items || []).length - sets.length;
     const all = sets.map(x => ({ x, auds: rsAuds(x.rs || {}) })), done = all.filter(o => rsOverall(o.auds).ready);
     const auds = [].concat(...all.map(o => o.auds));
@@ -4992,6 +5014,7 @@
     lsSet(LIST_KEY, j);
   }
   AV.load = async function (quiet) {
+    if (!seesAds()) { this.items = []; this.sign = 0; this.at = Date.now(); if (!this.sel) this.draw(); return; }
     const cache = !quiet && !this.items ? listCache() : null;
     if (cache) {
       const on = new Set(Arch.list().map(x => x.id));
@@ -5089,6 +5112,7 @@
     if (this.el && document.body.contains(this.el)) { if (this.sel) this.open(this.sel, true); else this.load(true); }
   };
   AV.open = async function (id, quiet) {
+    if (!seesAds()) { this.sel = id; this.det = { id, error: 'Your role doesn’t follow ad sets. The admin can give it “View ad sets” under Access › Roles.' }; this.draw(); return; }
     // THE PAGE DRAWS AT ONCE (2026-11-05) from the ad set's card on the list (this page's, or the
     // one kept on this computer) — name, audiences and steps; `part` until the full read lands
     // with the previews, the brief's files and the activity
@@ -5110,9 +5134,12 @@
       r.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' }); r.setAttribute('data-hit', '1'); setTimeout(() => r.removeAttribute('data-hit'), 1800);
       return;
     }
+    if (t.dataset.copy && viewOnly()) return;
     if (t.dataset.copy) { const ok = await copyText(t.dataset.copy), sp = t.querySelector('span') || t, was = sp.textContent; sp.textContent = ok ? 'Copied' : 'Select it'; t.dataset.done = ok ? '1' : ''; setTimeout(() => { sp.textContent = was; t.dataset.done = ''; }, 1600); return; }
     if (t.dataset.id) { this.edit = null; this.open(t.dataset.id); return; }
     const a = t.dataset.a;
+    // a view-only role: the view's own controls and nothing else, whatever the page happens to hold
+    if (viewOnly() && !window.providentAccess.viewOk(a)) return;
     if (a === 'back') { this.sel = null; this.det = null; this.addOpen = false; this.load(); }
     if (a === 'newt') { const h = this.eng.host; if (h) h.setState({ splashView: 'all' }, () => setTimeout(() => { const i = document.querySelector('.rsp [data-f="name"]'); if (i) { i.scrollIntoView({ block: 'center' }); i.focus(); } }, 60)); return; }
     if (a === 'pick') { const dd = (this.det && this.det.dd) || this.sel; t.disabled = true; t.lastChild.textContent = 'Opening…'; if (!pickUp(this.eng, dd)) { t.disabled = false; t.lastChild.textContent = 'Pick up'; } return; }
@@ -5163,7 +5190,8 @@
     if (a === 'vid' || a === 'vidadd' || a === 'vidrep' || a === 'vidrm') {
       const rs = this.det && this.det.rs; if (!rs) return;
       const m = t.closest('details'); if (m) m.open = false;
-      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again);
+      if (a === 'vid') vidOpen(this.sel, rs, t.dataset.vid, by, again, viewOnly() ? 'ro' : undefined);
+      else if (viewOnly()) return;
       else if (a === 'vidadd') vidAdd(this.sel, rs, by, again);
       else { const v = vidList(rs).find(x => x.id === t.dataset.vid); if (!v) return;
         if (a === 'vidrep') vidAdd(this.sel, rs, by, again, v);
@@ -5272,7 +5300,7 @@
     if (this.items === null) { body.innerHTML = errHtml + '<p class="rva-wait">Reading the ad sets…</p>'; return; }
     const signHtml = this.sign ? '<div class="rva-sign"><span><b>' + (this.sign === 1 ? 'One ad set is' : this.sign + ' ad sets are') + ' stored on Google Drive.</b><s>Sign in with your Provident Google account to list ' + (this.sign === 1 ? 'it' : 'them') + ' here. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>' : '';
     if (!this.items.length && this.sign) { body.innerHTML = errHtml + signHtml; return; }
-    if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">' + (accRole() === 'ct' ? 'No copy requests yet.' : 'No campaigns yet. File one with New ticket.') + '</div>'; return; }
+    if (!this.items.length) { body.innerHTML = errHtml + '<div class="p-empty2">' + (accRole() === 'ct' ? 'No copy requests yet.' : viewOnly() ? 'No campaigns yet.' : 'No campaigns yet. File one with New ticket.') + '</div>'; return; }
     const names = {}; Arch.list().forEach(x => { names[x.id] = x.name; });
     // THE BOARD (2026-10-29). Status is read as "where is everything", so every campaign sits in
     // the column of the step it is waiting on — its least advanced audience — and the card lists
@@ -5336,6 +5364,8 @@
   };
   // Material Rounded play_circle, for a design with a video background
   const PLAY_I = '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>';
+  // Material Rounded visibility, for the View only mark
+  const EYE = '<svg class="rva-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480.09-336.92q62.76 0 106.79-43.93 44.04-43.92 44.04-106.68 0-62.76-43.93-106.8-43.92-44.03-106.68-44.03-62.77 0-106.8 43.92-44.03 43.93-44.03 106.69 0 62.76 43.92 106.79 43.93 44.04 106.69 44.04ZM480-392q-38 0-64.5-26.5T389-483q0-38 26.5-64.5T480-574q38 0 64.5 26.5T571-483q0 38-26.5 64.5T480-392Zm.11 172q-129.96 0-237.38-71.08-107.42-71.07-164.27-189.38-3-5.39-4.5-11.06-1.5-5.67-1.5-11.99 0-6.33 1.5-12 1.5-5.67 4.5-11.06 56.85-118.31 164.16-189.38 107.3-71.07 237.27-71.07 129.96 0 237.38 71.07 107.42 71.07 164.27 189.38 3 5.39 4.5 11.06 1.5 5.67 1.5 12 0 6.32-1.5 11.99t-4.5 11.06q-56.85 118.31-164.16 189.38Q610.08-220 480.11-220Z"/></svg>';
   const MORE = '<svg class="rva-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M240-420q-25 0-42.500-17.500T180-480q0-25 17.500-42.500T240-540q25 0 42.500 17.500T300-480q0 25-17.500 42.500T240-420Zm240 0q-25 0-42.500-17.500T420-480q0-25 17.500-42.500T480-540q25 0 42.500 17.500T540-480q0 25-17.500 42.500T480-420Zm240 0q-25 0-42.500-17.500T660-480q0-25 17.500-42.500T720-540q25 0 42.500 17.500T780-480q0 25-17.500 42.500T720-420Z"/></svg>';
   const ico = (k, c) => '<svg class="' + (c || 'rva-i') + '" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + ICO[k] + '"/></svg>';
   // The phase tabs on an ad set's page: one per package, its done/planned count, and (for the
@@ -5468,7 +5498,7 @@
     vidCss(); vidTell(rs);
     const can = vidCan(), list = vidList(rs);
     const card = v => { const all = v.notes || [], open = all.filter(n => !n.done).length;
-      return '<div class="rva-lt"><button type="button" class="rva-pj" data-a="vid" data-vid="' + esc(v.id) + '" title="Play it, comment on its timeline, download the Reel and the Square">' +
+      return '<div class="rva-lt"><button type="button" class="rva-pj" data-a="vid" data-vid="' + esc(v.id) + '" title="' + (viewOnly() ? 'Play it and read its comments' : 'Play it, comment on its timeline, download the Reel and the Square') + '">' +
         '<span class="rva-lt-th vdo-th">' + (v.thumb ? '<img src="' + esc(v.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-lt-t"><b>' + esc(v.title) + '</b><s>' + esc([vidT(v.dur), v.aud || 'All audiences', '9:16 and 1:1'].join(' · ')) + '</s><u><i></i>' +
         (open ? open + (open === 1 ? ' comment' : ' comments') + ' open' : all.length ? 'Comments dealt with' : 'No comments yet') + '</u></span>' + ico('ext') + '</button>' +
@@ -5629,18 +5659,20 @@
     vidCss();
     let v = vidList(rs).find(x => x.id === vid); if (!v) return;
     let size = v.f['9x16'] ? '9x16' : '1x1', changed = false, told = '';
-    const can = role ? role === 'dd' && vidCan() : vidCan(), isPm = role ? role === 'pm' : accRole() === 'pm', urls = {};
+    // 'ro' (2026-11-18): a view-only role plays it and reads the comments; no download, no comment
+    const ro = role === 'ro' || viewOnly();
+    const can = !ro && (role ? role === 'dd' && vidCan() : vidCan()), isPm = role ? role === 'pm' : accRole() === 'pm', urls = {};
     let em = ''; try { em = (window.providentAccess.now().email || '').toLowerCase(); } catch (e) {}
     const el = document.createElement('div'); el.className = 'shl-dlg vdo-dlg';
     el.innerHTML = '<div class="shl-dlg-c vdo" role="dialog" aria-modal="true" aria-labelledby="vdo-t">' +
       '<div class="vdo-h"><h2 id="vdo-t"></h2><span data-meta></span><button type="button" class="p-ghost vdo-x" data-x="1">Close</button></div>' +
       '<div class="vdo-b"><div class="vdo-l">' +
       '<div class="p-tabs" role="radiogroup" aria-label="Size" data-sz></div>' +
-      '<div class="vdo-stage"><video playsinline controls preload="auto"></video><p data-wait>Loading the video…</p></div>' +
+      '<div class="vdo-stage"><video playsinline controls preload="auto"' + (ro ? ' controlslist="nodownload noremoteplayback" disablepictureinpicture oncontextmenu="return false"' : '') + '></video><p data-wait>Loading the video…</p></div>' +
       '<div class="vdo-tl" data-tl title="Click to move to that moment. The numbered pins are comments."><i></i></div>' +
-      '<div class="vdo-dl"><button type="button" class="p-ghost" data-vdl="9x16">Download Reel 9:16</button><button type="button" class="p-ghost" data-vdl="1x1">Download Square 1:1</button></div>' +
+      (ro ? '' : '<div class="vdo-dl"><button type="button" class="p-ghost" data-vdl="9x16">Download Reel 9:16</button><button type="button" class="p-ghost" data-vdl="1x1">Download Square 1:1</button></div>') +
       '</div><div class="vdo-r"><h3>Comments <s data-n></s></h3>' +
-      '<form class="vdo-new"><span data-at>Comment at 0:00</span><textarea class="p-in" rows="2" maxlength="600" placeholder="What should change at this moment?" aria-label="Comment"></textarea><div><button type="submit" class="p-btn">Add comment</button></div></form>' +
+      (ro ? '' : '<form class="vdo-new"><span data-at>Comment at 0:00</span><textarea class="p-in" rows="2" maxlength="600" placeholder="What should change at this moment?" aria-label="Comment"></textarea><div><button type="submit" class="p-btn">Add comment</button></div></form>') +
       '<ol class="vdo-notes"></ol><p class="shl-st" aria-live="polite"></p>' +
       (can ? '<div class="vdo-own">' + (v.proj ? '<button type="button" class="p-ghost" data-proj="1" title="Sends the saved project and its media from this ad set’s Drive folder to the Video Studio on this computer">Open in Video Studio</button>' : '') + '<button type="button" class="p-ghost" data-rep="1">Replace video</button><button type="button" class="p-ghost" data-rm="1">Remove</button></div>' : '') +
       '</div></div></div>';
@@ -5664,8 +5696,8 @@
       tl.querySelectorAll('button').forEach(b => b.remove());
       all.forEach((n, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1; b.dataset.seek = n.t; if (n.done) b.dataset.done = '1'; b.style.left = Math.min(100, n.t / dur() * 100) + '%'; b.title = vidT(n.t) + ' · ' + n.by + ': ' + n.text; b.setAttribute('aria-label', 'Comment ' + (i + 1) + ' at ' + vidT(n.t)); tl.appendChild(b); });
       $('.vdo-notes').innerHTML = all.length ? all.map((n, i) => '<li' + (n.done ? ' data-done="1"' : '') + '><button type="button" class="vdo-nt" data-seek="' + n.t + '" title="Go to this moment"><b>' + (i + 1) + '</b>' + vidT(n.t) + ' · ' + esc(n.by) + '<s>' + (n.done ? 'Done' : esc(ago(n.at))) + '</s></button><p>' + esc(n.text) + '</p>' +
-        '<div class="vdo-na"><button type="button" data-done="' + esc(n.id) + '" data-to="' + (n.done ? '0' : '1') + '">' + (n.done ? 'Reopen' : 'Mark done') + '</button>' + (can || (em && n.em === em) ? '<button type="button" data-del="' + esc(n.id) + '">Delete</button>' : '') + '</div></li>').join('')
-        : '<li class="vdo-empty" style="box-shadow:none;padding:0">No comments yet. Play the video, pause where something should change, and write it above.</li>';
+        (ro ? '' : '<div class="vdo-na"><button type="button" data-done="' + esc(n.id) + '" data-to="' + (n.done ? '0' : '1') + '">' + (n.done ? 'Reopen' : 'Mark done') + '</button>' + (can || (em && n.em === em) ? '<button type="button" data-del="' + esc(n.id) + '">Delete</button>' : '') + '</div>') + '</li>').join('')
+        : '<li class="vdo-empty" style="box-shadow:none;padding:0">' + (ro ? 'No comments yet.' : 'No comments yet. Play the video, pause where something should change, and write it above.') + '</li>';
     };
     const load = async () => {
       const k = size, w = $('[data-wait]'); w.hidden = false; w.textContent = 'Loading the video…'; vd.removeAttribute('src'); vd.load();
@@ -5677,12 +5709,12 @@
       try { const r = await api('rsvideo', { id }, Object.assign({ by, vid: v.id, em }, body)); rs = r.rs; v = vidList(rs).find(x => x.id === vid) || v; changed = true; st(''); draw(); push(); return true; }
       catch (er) { st(er.message || String(er)); return false; }
     };
-    const tick = () => { tl.firstElementChild.style.width = Math.min(100, vd.currentTime / dur() * 100) + '%'; $('[data-at]').textContent = 'Comment at ' + vidT(vd.currentTime); };
+    const tick = () => { tl.firstElementChild.style.width = Math.min(100, vd.currentTime / dur() * 100) + '%'; const at = $('[data-at]'); if (at) at.textContent = 'Comment at ' + vidT(vd.currentTime); };
     vd.addEventListener('timeupdate', tick); vd.addEventListener('seeked', tick); vd.addEventListener('loadedmetadata', draw);
     const close = () => { try { vd.pause(); } catch (e) {} Object.keys(urls).forEach(k => URL.revokeObjectURL(urls[k])); el.remove(); if (changed && after) after(rs); };
     el.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     tl.addEventListener('click', e => { if (e.target.closest('button')) return; const r = tl.getBoundingClientRect(); vd.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur(); });
-    $('.vdo-new').addEventListener('submit', async e => {
+    if (!ro) $('.vdo-new').addEventListener('submit', async e => {
       e.preventDefault(); const text = ta.value.trim(); if (!text) { st('Write the comment first.'); ta.focus(); return; }
       try { vd.pause(); } catch (er) {}
       if (await call({ act: 'note', t: vd.currentTime || 0, text })) ta.value = '';
@@ -5692,6 +5724,7 @@
       if (b.dataset.x) return close();
       if (b.dataset.size) { size = b.dataset.size; draw(); return load(); }
       if (b.dataset.seek != null) { vd.currentTime = +b.dataset.seek; try { vd.pause(); } catch (er) {} return; }
+      if (ro) return;
       if (b.dataset.done) return void call({ act: 'notedone', nid: b.dataset.done, done: b.dataset.to === '1' });
       if (b.dataset.del) { if (window.confirm('Delete this comment?')) call({ act: 'noterm', nid: b.dataset.del }); return; }
       if (b.dataset.vdl) {
@@ -5728,7 +5761,8 @@
     const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">' + ico('back') + 'All campaigns</button>';
     if (!d) return back + '<p class="rva-wait">Reading the ad set…</p>';
     if (d.auth) return back + '<div class="rva-sign"><span><b>This ad set is stored on Google Drive.</b><s>Sign in with your Provident Google account to open it. Your account needs access to the ad set’s folder.</s></span><button type="button" class="p-btn" data-a="gsign">Sign in with Google</button></div>';
-    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || (isDs(d.id) ? 'This ad set’s Ad set.json was not found in Google Drive, or your account has no access to its folder.' : 'This ad set has no record on the share store.')) + '</p><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>';
+    const ro = viewOnly();
+    if (d.error || d.gone) return back + '<p class="rva-err" role="alert">' + esc(d.error || (isDs(d.id) ? 'This ad set’s Ad set.json was not found in Google Drive, or your account has no access to its folder.' : 'This ad set has no record on the share store.')) + '</p>' + (ro ? '' : '<button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>');
     const rs = d.rs || {}, name = rs.name || 'Ad set';
     const drv = rs.drive || '', url = /^https?:\/\//.test(drv), proj = d.proj || {}, live = d.live || {};
     if (isOpen(rs)) return back + this.ticketHtml(d);
@@ -5760,7 +5794,7 @@
     const lv = all.ready ? rsLive(rs) : null;
     const nowLine = lv ? '<p class="rvd-now" data-s="ready"><i></i>Launched ' + esc(dayS(lv.at)) + ' by ' + esc(lv.by) + '.</p>'
       : all.ready ? '<p class="rvd-now" data-s="ready"><i></i>Package ready since ' + esc(dayS(all.at)) + ' — performance marketing can download it.</p>'
-      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCellsIn(rs, tab).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet — start each audience below.' : 'No projects yet — add the first one.') + '</p>'
+      : !auds.length ? '<p class="rvd-now"><i></i>' + (rsCellsIn(rs, tab).length ? 'Nothing started' + (phs.length > 1 ? ' in ' + esc(phN(tab)) : '') + ' yet' + (ro ? '.' : ' — start each audience below.') : ro ? 'No projects yet.' : 'No projects yet — add the first one.') + '</p>'
         : '<p class="rvd-now"><span class="rvd-wk">Waiting on</span>' + waiting.map(a => { const i = a.steps.indexOf(a.now);
           const tip = esc(a.now.label + ' — ' + a.now.sub), in_ = '<i></i>' + esc(audName(a)) + '<s>' + esc(a.now.sub) + '</s>';
           return pmV ? '<span class="rvd-wc" data-i="' + i + '" title="' + tip + '">' + in_ + '</span>'
@@ -5780,26 +5814,34 @@
         if (r === 'pm' && tk.pm) return '<a class="p-btn" href="' + esc(rsLink(tk.pm)) + '" target="_blank" rel="noopener" title="Every project’s images, always the latest; download each audience when it is done">' + ico('pm') + 'Open the package</a>';
         return '';
       })() +
-      (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
-      '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button></div></div>' +
+      (ro ? '<span class="rvd-ro" title="Your role follows ad sets: their designs, steps and activity. Nothing here can be changed or downloaded.">' + EYE + 'View only</span>'
+        : (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
+      '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button>') + '</div></div>' +
       '</header>';
     // THE PHASE (2026-11-16): its tabs, the four steps and what waits lead the column they govern
     const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
     const cells = rsCellsIn(rs, tab);
-    const ph = (market, aud, lang) => '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste the copy">' +
+    // (a view-only role sees a slot nothing fills yet as a plain "Not made yet", never a way to start it)
+    const roSlot = (lab, why) => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lab + '</b><s>' + (why || 'Not made yet') + '</s></span></div>';
+    const ph = (market, aud, lang) => ro ? roSlot(lang === 'ARB' ? 'Arabic' : 'English') : '<button type="button" class="rvd-ph" data-a="startcell" data-cell="' + esc(market + '|' + aud + '|' + lang + '|' + tab) + '" title="Opens a new window on the Ad set tab, where you paste the copy">' +
       '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the ' + (lang === 'ARB' ? 'Arabic' : 'English') + '</b><s>' + (rs.brand === 'mixed' && lang !== 'ARB' ? (isUb(aud) ? 'Unbranded' : 'Branded') + ' · ' : '') + 'New window · paste the copy</s></span>' + ico('ext') + '</button>';
     const tile = (a, it, lang) => {
       const cl = !it && cells.find(c => c.market === a.market && c.aud === a.aud);
       // START THE ARABIC once the English exists (2026-11-05, by request): the English project opens
       // in a new window and a copy of its design becomes the Arabic — the Arabic layout on and the
       // words through Google Translate — the same as its own Make the Arabic (`startub` → rsNext)
-      if (cl && lang === 'Arabic' && arbIn(cl, tab) && !a.engOnly && a.eng) return '<button type="button" class="rvd-ph" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + '|ARB|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design as the Arabic, laid out right to left, its words through Google Translate">' +
+      if (cl && lang === 'Arabic' && arbIn(cl, tab) && !a.engOnly && a.eng && !ro) return '<button type="button" class="rvd-ph" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + '|ARB|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design as the Arabic, laid out right to left, its words through Google Translate">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the Arabic</b><s>Copies the English · Arabic layout · Google Translate</s></span>' + ico('ext') + '</button>';
       if (cl && (lang === 'English' || (arbIn(cl, tab) && !a.engOnly))) return ph(a.market, a.aud, lang === 'Arabic' ? 'ARB' : 'ENG');
       if (!it) return '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lang + '</b><s>' + (lang === 'Arabic' ? (a.phOff ? 'Not needed in ' + esc(phN(tab)) : a.engOnly ? 'Not needed for this audience' : 'Not made yet') : 'Not made yet') + '</s></span></div>';
       const pj = proj[it.sid] || {}, dead = live[it.sid] === false;
+      // view only: the same tile, as a picture and its state — not a button, no way into the studio, no menu
+      if (ro) return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><span class="rva-pj rva-pj-ro">' +
+        '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
+        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
+        ((pj.sum || {}).anim ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '') + '</span></span></div>';
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + (this.edit === it.sid ? ' data-ed="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
         '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
@@ -5813,6 +5855,7 @@
     // on one placeholder that copies its English design (in a new window) onto the unbranded look
     const ubTile = a => {
       if (rs.brand !== 'mixed' || !a.market || isUb(a.aud) || auds.some(x => x.market === a.market && x.aud === a.aud + UB)) return '';
+      if (ro) return roSlot('Unbranded').replace('class="rva-lt"', 'class="rva-lt rvd-ub"');
       if (!a.eng) return '<div class="rva-lt rvd-ub" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Unbranded</b><s>Start the English first — the unbranded version is a copy of its design</s></span></div>';
       return '<button type="button" class="rvd-ph rvd-ub" data-a="startub" data-sid="' + esc(a.eng.sid) + '" data-cell="' + esc(a.market + '|' + a.aud + UB + '|ENG|' + tab) + '" title="Opens the English project in a new window and saves a copy of its design, on the unbranded look, as ' + esc(a.market + ' · ' + a.aud + UB) + '">' +
         '<span class="rvd-phi">' + ico('add') + '</span><span class="rva-lt-t"><b>Start the unbranded</b><s>Copies this English design onto the unbranded look · its own copy, check and Arabic</s></span>' + ico('ext') + '</button>';
@@ -5845,7 +5888,7 @@
     const look = (g, aud) => { const n = dsgOf(aud), u = isUb(aud) ? 'u' : 'b'; let ds = g.ds.find(x => x.n === n); if (!ds) g.ds.push(ds = { n }); return ds[u] || (ds[u] = { aud }); };
     cells.forEach(c => { look(grp(c.market, c.aud), c.aud).c = c; });
     auds.forEach(a => { const g = grp(a.market, a.aud, a.key); if (a.market) look(g, a.aud).a = a; else g.solo = a; });
-    const canDz = isDs(d.id);
+    const canDz = isDs(d.id) && !ro;
     const partsOf = g => g.solo ? [g.solo] : g.ds.flatMap(x => [x.b, x.u]).filter(x => x && x.a).map(x => x.a);
     const audRows = groups.map(g => {
       const parts = partsOf(g), dn = parts.filter(a => a.done).length;
@@ -5863,7 +5906,7 @@
         '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></div>' + body + add + '</li>';
     }).join('');
     const nNew = groups.filter(g => !partsOf(g).length).length;
-    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s><button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button></h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">No projects yet. Add the first one.</li>') + '</ul></section>';
+    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s>' + (ro ? '' : '<button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button>') + '</h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">' + (ro ? 'No projects yet.' : 'No projects yet. Add the first one.') + '</li>') + '</ul></section>';
     // ACTIVITY, COMPRESSED (2026-11-16, by request): a row per entry under its day, a filter by kind
     // (Progress · Projects · Edits · Video and downloads, each only when it has entries), and the
     // latest six until Show all. A project's own edits are one line, their words behind Show changes.
@@ -5922,6 +5965,9 @@
         '<button type="button" class="p-ghost" data-a="grant" data-g="decline" data-em="' + esc(q.em) + '" data-r="' + esc(q.role) + '">Decline</button></span></li>').join('') +
       grs.map(g => '<li><span class="rvd-acn"><b>' + esc(g.em) + '</b><s>Can open the ' + esc(LINK_WHO[g.role] || g.role) + ' view</s></span>' +
         '<span class="rvd-acb"><button type="button" class="p-ghost" data-a="grant" data-g="revoke" data-em="' + esc(g.em) + '" data-r="' + esc(g.role) + '">Remove</button></span></li>').join('') + '</ul></section>';
+    if (ro) return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + audiences +
+      vidSecHtml(rs, false).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' +
+      '<aside class="rvd-side">' + briefHtml(rs.ticket, false, true).replace('rva-card rva-brief', 'rvd-card rva-brief') + '</aside></div></div>';
     const side = '<aside class="rvd-side">' + (pmV ? '' : links + access) +
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
       '<section class="rvd-card"><h3>Drive location</h3>' +
@@ -5934,22 +5980,23 @@
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
   AV.ticketHtml = function (d) {
-    const rs = d.rs || {}, tk = rs.ticket || {}, cells = planCells(planOf(rs)), url = /^https?:\/\//.test(rs.drive || '');
+    const rs = d.rs || {}, tk = rs.ticket || {}, cells = planCells(planOf(rs)), ro = viewOnly(), url = !ro && /^https?:\/\//.test(rs.drive || '');
     const facts = [rs.product ? PRODUCT_NAME[rs.product] : '', tk.deadline ? 'Due ' + dueLabel(tk.deadline) : '', 'Filed ' + dayS(tk.at || rs.created) + (tk.by ? ' by ' + tk.by : '')].filter(Boolean);
     const tiles = cells.map(c => '<li class="rva-tkt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b><span>' + (c.arb ? 'EN · AR' : 'EN') + '</span></li>').join('');
     return '<header class="rva-dh"><span class="rva-th rva-th-l rva-th-t">' + ico('ticket', 'rva-ti') + '</span>' +
       '<div class="rva-dt"><span class="rv-k">Open ticket</span><h2>' + esc(rs.name || 'Campaign') + '</h2>' +
       '<div class="rva-st"><span class="rv-pill" data-s="open">' + (tk.to ? 'Waiting for ' + esc(tk.to.email === myEmail() ? 'you' : (tk.to.name || tk.to.email)) : 'Waiting for a designer') + '</span><span>' + facts.map(esc).join(' · ') + '</span></div></div>' +
       '<div class="rva-da">' + (url ? '<a class="p-ghost rva-a" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
-      '<button type="button" class="p-ghost rva-a" data-a="addopen" title="Pick up the ticket with a design that already exists: a project saved in the studio, or a project folder on this computer">' + ico('add') + 'Use an existing design</button>' +
-      '<button type="button" class="p-btn" data-a="pick" title="Opens the campaign’s first audience in a new project, ready to design">' + ico('go') + '<span>Pick up</span></button></div></header>' +
+      (ro ? '<span class="rvd-ro" title="Your role follows ad sets. Nothing here can be changed or downloaded.">' + EYE + 'View only</span>'
+        : '<button type="button" class="p-ghost rva-a" data-a="addopen" title="Pick up the ticket with a design that already exists: a project saved in the studio, or a project folder on this computer">' + ico('add') + 'Use an existing design</button>' +
+      '<button type="button" class="p-btn" data-a="pick" title="Opens the campaign’s first audience in a new project, ready to design">' + ico('go') + '<span>Pick up</span></button>') + '</div></header>' +
       '<div class="rva-det rva-tk">' +
-      (briefHtml(tk, true) || '<section class="rva-card"><h3>Brief</h3><p class="rva-sub">No brief or files were filed with this ticket.</p></section>') +
+      (briefHtml(tk, true, ro) || '<section class="rva-card"><h3>Brief</h3><p class="rva-sub">No brief or files were filed with this ticket.</p></section>') +
       '<section class="rva-card"><h3>Audiences <s>' + cells.length + '</s></h3><ul class="rva-tks">' + (tiles || '<li class="shl-empty">None chosen — the designer sets them up.</li>') + '</ul></section>' +
-      '<div class="rva-tools"><button type="button" class="p-ghost rva-tl" data-a="settings" title="Name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + 'Ticket settings</button>' +
+      (ro ? '</div>' : '<div class="rva-tools"><button type="button" class="p-ghost rva-tl" data-a="settings" title="Name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + 'Ticket settings</button>' +
       '<span class="rva-tools-r"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
-      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete the ticket</button></span></div></div>' +
-      (this.addOpen ? this.addHtml({}, true) : '');
+      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete the ticket</button></span></div></div>') +
+      (this.addOpen && !ro ? this.addHtml({}, true) : '');
   };
   // a project's market, audience and language, edited in place
   AV.relabHtml = function (it, rs) {
@@ -7876,7 +7923,11 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-lkc .rva-lt{position:relative;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0;border-radius:12px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line)}
 .rvd-lkc .rva-lt .rva-pj{flex:1 1 0;width:auto;min-width:0;background:none;box-shadow:none}
 .rvd-lkc .rva-lt .rva-pj:hover:not(:disabled){box-shadow:none}
-.rvd-lkc .rva-lt:has(>.rva-pj:hover:not(:disabled)){box-shadow:inset 0 0 0 2px var(--ps-link)}
+.rvd-lkc .rva-lt:has(>button.rva-pj:hover:not(:disabled)){box-shadow:inset 0 0 0 2px var(--ps-link)}
+.rva-pj-ro{cursor:default}
+span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
+.rvd-ro{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px 0 12px;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);white-space:nowrap;cursor:default}
+.rvd-ro .rva-i{width:17px;height:17px;fill:currentColor}
 .rvd-lkc .rva-lt .rva-pj:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .rvd-lkc .rva-lt[data-ed]{grid-column:1 / -1;padding-bottom:10px}
 .rvd-lkc .rva-lt .rva-rl{flex:1 1 100%;padding:2px 10px 0}

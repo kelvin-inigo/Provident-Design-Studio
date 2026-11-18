@@ -60,6 +60,9 @@ Under **Let in as**, **New role…** makes a team role the admin types (`op=accr
 `acc:roles` as `x-<slug>`. It starts with no capability; the admin ticks what it opens under
 **Roles**. In the studios it is treated like performance marketing (Home and Status) unless Roles
 lets it design. A role can be removed only while nobody active or waiting has it.
+Tick **View ad sets** (capability `view-adsets`, AI Engineers by default) for a role that only
+follows campaigns: Status and each ad set's page, read-only. The page enforces it; Drive sharing is
+the real lock, so share the campaigns folder with such accounts as Viewer.
 
 ## What it does not protect
 

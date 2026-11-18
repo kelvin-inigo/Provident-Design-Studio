@@ -49,7 +49,9 @@ Everything that waits on someone — tickets, hand-offs, copy checks, packages, 
 | a saved project | home › **Projects** (people who design), or **Pick up where you left off** on Home |
 | start something | home › **New** (top right; the options depend on the role) |
 | roles and people | home › **Access** (admin only); everyone else: the account menu (their initials). A team that isn't listed: **Let in as** › **New role…** |
+| let a role follow campaigns without editing them | home › **Access** › **Roles** › tick **View ad sets** for that role › **Save changes** (admin only) |
 | how PDS is built, every commit and deployment | home › **Engine** (the admin and AI Engineers) |
+| a step-by-step guide with the real screens | home › **Help** (everyone; it shows only their role's guides): **Start here**, then **CAS + CASV**, **OPS** or **Home**, then **Watch**. In a studio: the **?** beside their name at the foot of the sidebar |
 | switch CAS ↔ OPS | go back to the home page |
 | sign out | the account menu (their initials) › **Sign out** |
 
@@ -67,8 +69,9 @@ exports download as a zip. The studios fit tablets and phones.
 | **Content team · English / · Arabic** | only what's handed to them: **Approve English copy** / **Approve translation** on campaigns, **Approve copy** on posts (inside the post's page; never the OPS editor) |
 | **Performance marketing** | campaigns only: **New ticket** › **File as ticket**, follow Status, the package link (**Edit text**, downloads), **Launch** |
 | **Digital Marketing Team** | exactly what performance marketing does (email, SMS, WhatsApp runs of the same campaigns) |
-| **AI Engineers** | the **Engine** page: PDS's architecture, every commit and deployment, live |
-| **a role the admin named** | only what the admin ticks for it under Access › Roles |
+| **AI Engineers** | the **Engine** page: PDS's architecture, every commit and deployment, live; campaigns on Status read-only (**View ad sets**) |
+| **a role the admin named** | only what the admin ticks for it under Access › Roles; with nothing ticked, no campaigns or posts |
+| **a role with View ad sets** | follows every campaign on **Status** and opens an ad set marked **View only**: designs, steps, video and **Activity**. No editing, no downloads, no studio, no team links |
 | **Admin** | everything a designer has, plus **Access** (let people in, roles, **Preview the home as**) and **Engine** |
 
 **Hand-offs name a person**: every send asks who picks it up, and the work then reads "With <name>".
