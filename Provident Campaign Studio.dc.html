@@ -7130,7 +7130,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           <input type="range" min="0" max="2" step="1" value="{{ gapStep }}" onChange="{{ onGapStep }}" class="p-tri-in" aria-label="Vertical spacing" title="{{ gapName }}">
         </div>
       </div>
-      <details class="lm-f p-acc" data-acc="scaling">
+      <details class="lm-f p-acc" data-acc="scaling" data-def="1">
         <summary class="lm-row lm-sum"><span class="lm-l"><span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins stay fixed, so the brand grid holds. Each size scales on its own; the background photo is untouched.">Scaling</span></span><span class="lm-v"><span class="lm-vt">{{ scaleSummary }}</span><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
         <div class="lm-b">
       <sc-for list="{{ scaleRows }}" as="sc" hint-placeholder-count="2">
@@ -7147,7 +7147,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
         <span class="lm-l"><span class="tip" data-tip="Dark is white copy on a dark canvas; Light flips the canvas to white with navy copy. Switching resets the scrim colour to that mode’s default.">Background</span></span>
         <div class="lm-seg" role="group" aria-label="Background"><sc-for list="{{ lmMap.grounds }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" onPointerEnter="{{ o.enter }}" onPointerLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}">{{ o.label }}</button></sc-for></div>
       </div>
-      <details class="lm-f p-acc" data-acc="scrim">
+      <details class="lm-f p-acc" data-acc="scrim" data-def="1">
         <summary class="lm-row lm-sum"><span class="lm-l"><span class="tip" data-tip="{{ scrimTip }}">Scrim</span></span><span class="lm-v"><i class="p-acc-sw" style="{{ scrimChipStyle }}"></i><span class="lm-vt">{{ scrimSummary }}</span><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
         <div class="lm-b">
       <div class="p-tabs">

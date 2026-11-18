@@ -4015,3 +4015,9 @@ against `meas()`: within 0.02 canvas px.
 - The font has one weight. The sign reads heavier than Light 300 figures beside it; the package's
   SVG weight variants could be drawn as paths if that is ever wanted.
 - CAS only. OPS's stacks are untouched (the face is not declared there).
+
+## Scaling and Scrim open by default (2026-11-18, by request)
+
+The user: "on CAS you had Scale and Scrim hidden by default, show it by default". Both `details`
+in the Layout column carry `data-def="1"` now. `accBind` still lets a stored choice win, so a
+computer that has toggled either keeps what it chose; `data-acc` keys are unchanged.

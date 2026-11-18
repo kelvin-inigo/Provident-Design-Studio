@@ -991,8 +991,9 @@ What's on the screen, from left to right:
 
   Then: **Spacing** (Tight, Medium or Roomy), **Scaling** (the size of all the content,
   in steps of the type scale, set per canvas size), **Background** (Dark or Light) and **Scrim**
-  (the wash behind the copy: Opacity, Fade and Colour). **Scaling** and **Scrim** fold away and
-  show their setting when closed; the app remembers which ones you leave open. A reset button only
+  (the wash behind the copy: Opacity, Fade and Colour). **Scaling** and **Scrim** are open to start
+  with; you can fold either away and it shows its setting when closed. The app remembers which ones
+  you leave open or closed. A reset button only
   appears once a value has been moved.
   In the middle rail, the style previews show every style at once, two to a row.
 
