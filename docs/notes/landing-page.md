@@ -726,3 +726,36 @@ Chrome asks for local-network permission. Hover or focus a box: its lines stay, 
 Verified on share-dev :8799 at 1440 (light, dark), 375 (no overflow after the heading wraps); this
 Mac's four helpers really listening matched the four green boxes; the hub's tunnel now redirects
 to idp.ngrok.com, shown amber.
+
+# ENGINE: THE MAP IS DATA, ALERTS, SHARE, A SECURITY PASS, THE TIMELINE BAR (2026-11-18, later)
+
+By request ("make sure this diagram updates every time a push and commit affects it, also have
+notification if something is disconnected … make sure there's no security risk … the share feature
+… /impeccable redesign this section").
+- **engine-map.json** (site root) is the map: lanes, nodes {id, lane, name, about, check, own},
+  wires {from, to, check, carries}. engine.js fetches it on mount and again when the live
+  production deployment changes (poll sees a new `liveSha`; toast "PDS updated"). op engine reports
+  `mapAt`, the commit that last touched the file (commits?path=engine-map.json, ETag). CLAUDE.md
+  has the standing rule. Values are cut to 200 characters, ids to [\w-].
+- **Alerts** (`alerts()`, `watch()`): engine.js starts a 60 s watch on any home page once
+  providentAccess says admin or `arch`; each poll and each probe re-judges. Only red ('bad') alerts;
+  'wait' (still checking) is never news — a recovery is announced only after a real answer (a test
+  caught "answering again · Checking…"). State kept in `provident-engine-alerts`; desktop
+  notifications only after a click (`provident-engine-notify`) and only when the tab is hidden or
+  on another page. Badge `.eg-nb` on the Engine link, "(n) " in the title, `#eg-down` banner.
+- **Stale states**: what the server reports (Upstash, Anthropic, Roam, keys) reads "Unknown while
+  the studio server is not answering" while accstatus fails or the last engine read failed — a
+  screenshot showed Upstash "Answering" beside a dead /api/share.
+- **Share**: `#eg-share` popover (Escape and outside click close): the live link + Copy, the AI
+  Engineers (acc.team), and for the admin `accset {add, role ai}` then a mailto with the link; no
+  mail is sent by the page.
+- **Security pass**: op engine and accrole gated server-side (verified: designer, outsider → 403;
+  AI engineer can't accset/accrole); `links.keys` booleans only, no values; GITHUB_TOKEN server-only;
+  every HTML write escaped; states whitelisted before attributes; commit/deploy ids must be 40-hex;
+  a deployment's link must be https; external links `noopener noreferrer`; local probes are GETs to
+  health routes only, on a click. Residual: the Engine shows public repo data; the role gate for the
+  page shell is client-side (the data isn't).
+- **Timeline bar** (/impeccable): one sticky bar (`.eg-tb`, under Home's real top-bar height `--hdh`)
+  — title, "n of N · filters · Clear", search; then All | Deployed as a switch and the areas as one
+  row that scrolls sideways (masked edge) instead of wrapping. Only + area combine (`E.only`,
+  `E.area`). Day heads stick under it (`--tbh`). Verified 1440 and 375 (107 / 237 / 237 px stack).

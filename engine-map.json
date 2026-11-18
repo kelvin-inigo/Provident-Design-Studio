@@ -1,0 +1,298 @@
+{
+ "_about": "How it connects, on the Engine page (engine.js). One entry per part of PDS or outside service, one per connection. Change it in the same pass as any change that adds, removes or rewires a part (CLAUDE.md). check: the live check that colours it (engine.js stateOf).",
+ "lanes": [
+  {
+   "id": "mac",
+   "name": "This Mac and the office",
+   "about": "Helpers on a designer’s Mac, and the office Mac’s tunnels"
+  },
+  {
+   "id": "web",
+   "name": "In the browser",
+   "about": "PDS itself, on the site or from the disk"
+  },
+  {
+   "id": "srv",
+   "name": "PDS server · Vercel",
+   "about": "Two Python functions; keys live in Vercel’s environment"
+  },
+  {
+   "id": "cloud",
+   "name": "Outside services",
+   "about": "Called by the browser or by the server"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "rembg",
+   "lane": "mac",
+   "name": "Cut-out service",
+   "about": "rembg · 127.0.0.1:7311",
+   "check": "rembg"
+  },
+  {
+   "id": "ps",
+   "lane": "mac",
+   "name": "Photoshop helper",
+   "about": "127.0.0.1:7312",
+   "check": "ps"
+  },
+  {
+   "id": "casv",
+   "lane": "mac",
+   "name": "CASV",
+   "about": "Video Studio · localhost:8794",
+   "check": "casv"
+  },
+  {
+   "id": "mcp",
+   "lane": "mac",
+   "name": "Studio tools (MCP)",
+   "about": "remote.py · 127.0.0.1:7313",
+   "check": "mcp"
+  },
+  {
+   "id": "hub",
+   "lane": "mac",
+   "name": "Content Hub",
+   "about": "Office Mac, through ngrok",
+   "check": "hub"
+  },
+  {
+   "id": "grok",
+   "lane": "mac",
+   "name": "Grok bot",
+   "about": "xAI, through the tunnel to remote.py",
+   "check": "grok"
+  },
+  {
+   "id": "home",
+   "lane": "web",
+   "name": "Home",
+   "about": "index.html · engine.js",
+   "check": "self",
+   "own": true
+  },
+  {
+   "id": "cas",
+   "lane": "web",
+   "name": "CAS",
+   "about": "Campaign Ads Studio",
+   "check": "self",
+   "own": true
+  },
+  {
+   "id": "ops",
+   "lane": "web",
+   "name": "OPS",
+   "about": "Organic Post Studio",
+   "check": "self",
+   "own": true
+  },
+  {
+   "id": "share",
+   "lane": "srv",
+   "name": "/api/share",
+   "about": "Sign-in, roles, Roam, Arabic, Engine",
+   "check": "server",
+   "own": true
+  },
+  {
+   "id": "gauth",
+   "lane": "srv",
+   "name": "/api/gauth",
+   "about": "Keeps people signed in",
+   "check": "gauth",
+   "own": true
+  },
+  {
+   "id": "google",
+   "lane": "cloud",
+   "name": "Google sign-in",
+   "about": "Who is who (Drive about)",
+   "check": "google"
+  },
+  {
+   "id": "drive",
+   "lane": "cloud",
+   "name": "Google Drive",
+   "about": "Ad sets, posts, exports",
+   "check": "drive"
+  },
+  {
+   "id": "translate",
+   "lane": "cloud",
+   "name": "Google Translate",
+   "about": "Arabic fallback",
+   "check": "translate"
+  },
+  {
+   "id": "store",
+   "lane": "cloud",
+   "name": "Upstash",
+   "about": "Access list, links, hub tasks",
+   "check": "store"
+  },
+  {
+   "id": "anthropic",
+   "lane": "cloud",
+   "name": "Anthropic Claude",
+   "about": "Writes the Arabic copy",
+   "check": "anthropic"
+  },
+  {
+   "id": "roam",
+   "lane": "cloud",
+   "name": "Roam",
+   "about": "Copy check notes",
+   "check": "roam"
+  },
+  {
+   "id": "github",
+   "lane": "cloud",
+   "name": "GitHub",
+   "about": "The code, and this feed",
+   "check": "gh"
+  }
+ ],
+ "wires": [
+  {
+   "from": "home",
+   "to": "share",
+   "check": "server",
+   "carries": "Sign-in and roles"
+  },
+  {
+   "from": "cas",
+   "to": "share",
+   "check": "server",
+   "carries": "Sign-in, Arabic copy, Roam notes"
+  },
+  {
+   "from": "ops",
+   "to": "share",
+   "check": "server",
+   "carries": "Sign-in, the hub key"
+  },
+  {
+   "from": "home",
+   "to": "gauth",
+   "check": "gauth",
+   "carries": "Stay signed in"
+  },
+  {
+   "from": "cas",
+   "to": "gauth",
+   "check": "gauth",
+   "carries": "Stay signed in"
+  },
+  {
+   "from": "share",
+   "to": "google",
+   "check": "google",
+   "carries": "Checks every token"
+  },
+  {
+   "from": "gauth",
+   "to": "google",
+   "check": "gauth",
+   "carries": "Refresh tokens"
+  },
+  {
+   "from": "share",
+   "to": "store",
+   "check": "store",
+   "carries": "Access list, links, hub tasks"
+  },
+  {
+   "from": "share",
+   "to": "anthropic",
+   "check": "anthropic",
+   "carries": "op arcopy"
+  },
+  {
+   "from": "share",
+   "to": "roam",
+   "check": "roam",
+   "carries": "op roamnote"
+  },
+  {
+   "from": "share",
+   "to": "github",
+   "check": "gh",
+   "carries": "op engine"
+  },
+  {
+   "from": "home",
+   "to": "drive",
+   "check": "drive",
+   "carries": "Status, ready files"
+  },
+  {
+   "from": "cas",
+   "to": "drive",
+   "check": "drive",
+   "carries": "Ad sets, photos, exports"
+  },
+  {
+   "from": "ops",
+   "to": "drive",
+   "check": "drive",
+   "carries": "Posts and exports"
+  },
+  {
+   "from": "cas",
+   "to": "translate",
+   "check": "translate",
+   "carries": "Arabic when Claude is away"
+  },
+  {
+   "from": "cas",
+   "to": "rembg",
+   "check": "rembg",
+   "carries": "Agent photo cut-outs"
+  },
+  {
+   "from": "ops",
+   "to": "rembg",
+   "check": "rembg",
+   "carries": "Agent photo cut-outs"
+  },
+  {
+   "from": "cas",
+   "to": "ps",
+   "check": "ps",
+   "carries": "Edit in Photoshop"
+  },
+  {
+   "from": "ops",
+   "to": "ps",
+   "check": "ps",
+   "carries": "Edit in Photoshop"
+  },
+  {
+   "from": "cas",
+   "to": "casv",
+   "check": "casv",
+   "carries": "Video hand-off, Higgsfield"
+  },
+  {
+   "from": "ops",
+   "to": "hub",
+   "check": "hub",
+   "carries": "Send, From the hub"
+  },
+  {
+   "from": "hub",
+   "to": "share",
+   "check": "hubkeys",
+   "carries": "Tasks and designers (hubpush, hubteam)"
+  },
+  {
+   "from": "grok",
+   "to": "mcp",
+   "check": "mcp",
+   "carries": "Studio tools over https"
+  }
+ ]
+}

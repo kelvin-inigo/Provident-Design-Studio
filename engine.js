@@ -14,7 +14,7 @@
   'use strict';
   var LS = 'provident-engine-v1', POLL = 30000, PAGE = 60;
   var REPO_URL = 'https://github.com/kelvin-inigo/Provident-Design-Studio';
-  var E = { commits: [], deploys: [], rate: null, err: '', at: 0, busy: false, total: 0, filter: 'all', q: '', shown: PAGE,
+  var E = { commits: [], deploys: [], rate: null, err: '', at: 0, busy: false, total: 0, only: 'all', area: '', q: '', shown: PAGE,
             fresh: {}, health: {}, root: null, timer: null, grown: false, repo: '' };
   try { var c0 = JSON.parse(localStorage.getItem(LS) || 'null'); if (c0 && Array.isArray(c0.commits)) { E.commits = c0.commits; E.deploys = c0.deploys || []; E.at = c0.at || 0; E.total = E.commits.length; } } catch (x) {}
 
@@ -93,15 +93,26 @@
     E.busy = true; paintHead();
     var have = E.commits[0] ? E.commits[0].sha : '';
     A.call('engine', { have: have }).then(function (r) {
+      // only real commit ids reach a link or an element id
+      var hex = function (x) { return x && /^[0-9a-f]{40}$/.test(x.sha); };
+      r.commits = (r.commits || []).filter(hex); r.deploys = (r.deploys || []).filter(function (d) { return /^[0-9a-f]{40}$/.test(d.sha || ''); });
+      if (r.mapAt && !hex(r.mapAt)) r.mapAt = null;
       var before = {}; E.commits.forEach(function (c) { before[c.sha] = 1; });
       if (r.full) E.commits = r.commits || [];
       else if (r.commits && r.commits.length) E.commits = r.commits.concat(E.commits);
       if (have) (r.commits || []).forEach(function (c) { if (!before[c.sha]) E.fresh[c.sha] = Date.now(); });
       E.deploys = r.deploys || E.deploys; E.rate = r.rate || null; E.err = r.err || ''; E.total = r.total || E.commits.length;
-      E.repo = r.repo || ''; E.at = r.at || Date.now(); if (r.links) E.links = r.links;
+      E.repo = r.repo || ''; E.at = r.at || Date.now(); if (r.links) E.links = r.links; if (r.mapAt) E.mapAt = r.mapAt;
+      var lv = liveDeploy();
+      if (lv && E.liveSha && lv.sha !== E.liveSha) {
+        var lc = E.commits.filter(function (c) { return c.sha === lv.sha; })[0];
+        toast('ok', 'PDS updated', 'Now live: ' + (lc ? titleOf(lc) : lv.sha.slice(0, 7)) + '. The map was read again.', 'deploy');
+        loadMap(lv.sha);
+      }
+      if (lv) E.liveSha = lv.sha;
       try { localStorage.setItem(LS, JSON.stringify({ commits: E.commits.map(function (c) { return { sha: c.sha, msg: c.msg, at: c.at, by: c.by, login: c.login }; }), deploys: E.deploys, at: E.at })); } catch (x) {}
-    }).catch(function (e) { E.err = (e && e.message) || 'The engine feed could not be read.'; })
-      .then(function () { E.busy = false; paint(); });
+    }).catch(function (e) { E.err = (e && e.message) || 'The engine feed could not be read.'; E.errAt = Date.now(); })
+      .then(function () { E.busy = false; paint(); alerts(); });
     health();
   }
   // the services, timed from this browser
@@ -118,7 +129,7 @@
       function (e) { clearTimeout(to); throw e; });
   }
   function linkProbes(mac) {
-    var D = window.providentDrive, done = function () { paintMap(); };
+    var D = window.providentDrive, done = function () { paintMap(); alerts(); };
     if (D && D.valid && D.valid()) timed(D.base() + '/drive/v3/about?fields=user(emailAddress)', { headers: { Authorization: 'Bearer ' + D.tok.at } })
       .then(function (x) { E.health.drive = x.r.ok ? { s: 'ok', t: 'Signed in · ' + x.ms + ' ms' } : { s: x.r.status === 401 ? 'warn' : 'bad', t: x.r.status === 401 ? 'Sign-in ran out on this computer' : 'HTTP ' + x.r.status }; })
       .catch(function () { E.health.drive = { s: 'bad', t: 'Not reachable' }; }).then(done);
@@ -155,7 +166,7 @@
       fetch(url, { cache: 'no-store' }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return [r, j]; }); })
         .then(function (x) { E.health[k] = read(x[0], x[1], Math.round(performance.now() - t0)); })
         .catch(function () { E.health[k] = { s: 'bad', t: 'Not reachable' }; })
-        .then(paintServices);
+        .then(function () { paintServices(); alerts(); });
     }
     probe('server', base + '/api/share?op=accstatus', function (r, j, ms) { return r.ok ? { s: 'ok', t: (j.on ? 'Sign-in on' : 'Sign-in off') + ' · ' + ms + ' ms' } : { s: 'bad', t: 'HTTP ' + r.status }; });
     probe('gauth', base + '/api/gauth?op=status', function (r, j, ms) { return r.ok ? { s: 'ok', t: (j.on === false ? 'Popup sign-in' : 'Stays signed in') + ' · ' + ms + ' ms' } : { s: 'bad', t: 'HTTP ' + r.status }; });
@@ -171,7 +182,10 @@
   function shell() {
     return '<div class="eg" id="eg">' +
       '<header class="eg-hd"><div class="eg-hd-t"><h1 class="h1">Engine</h1><p class="lede" id="eg-lede">How PDS is built, and everything that changes in it, as it happens.</p></div>' +
-        '<div class="eg-live" id="eg-live"></div></header>' +
+        '<div class="eg-hd-a"><div class="eg-live" id="eg-live"></div>' +
+        '<div class="eg-pop"><button class="b b-g" type="button" data-eg="share" aria-expanded="false" aria-controls="eg-share">' + ico('out') + 'Share</button><div class="eg-share" id="eg-share" hidden></div></div>' +
+        '<button class="b b-q" type="button" data-eg="alerts" id="eg-al-b"></button></div></header>' +
+        '<div class="eg-down" id="eg-down" role="alert" hidden></div>' +
       '<section class="eg-now" id="eg-now" aria-label="In production"></section>' +
       '<section class="eg-sv" id="eg-sv" aria-label="Services"></section>' +
       '<section class="eg-map-s" aria-labelledby="eg-map-h"><div class="sh eg-map-hd"><span id="eg-map-h">How it connects</span><small id="eg-map-n"></small><span class="sp"></span>' +
@@ -181,14 +195,14 @@
       '<section class="eg-days" aria-labelledby="eg-days-h"><div class="sh"><span id="eg-days-h">Every day since the first commit</span><small id="eg-days-n"></small></div><div class="eg-strip" id="eg-strip"></div><div class="eg-months" id="eg-months"></div>' +
         '<p class="eg-key"><span><i data-k="c"></i>Commits that day</span><span><i data-k="d"></i>Shipped to Vercel that day</span><span class="eg-key-n">GitHub keeps the last 100 deployments; older days show commits only.</span></p></section>' +
       '<div class="eg-cols"><section class="eg-tl" aria-labelledby="eg-tl-h">' +
-        '<div class="eg-tl-bar"><h2 class="eg-h2" id="eg-tl-h">Timeline</h2><span class="sp"></span>' +
+        '<div class="eg-tb" id="eg-tb"><div class="eg-tb-r1"><h2 class="eg-h2" id="eg-tl-h">Timeline</h2><span class="eg-tb-n" id="eg-tl-n" aria-live="polite"></span><span class="sp"></span>' +
           '<label class="eg-q">' + ico('search') + '<input id="eg-q" type="search" placeholder="Find a commit" aria-label="Find a commit" autocomplete="off"></label></div>' +
-        '<div class="eg-f" id="eg-f" role="group" aria-label="Show"></div>' +
+        '<div class="eg-tb-r2"><div class="eg-seg" id="eg-seg" role="group" aria-label="Which commits"></div><span class="eg-tb-div" aria-hidden="true"></span><div class="eg-f" id="eg-f" role="group" aria-label="Area"></div></div></div>' +
         '<div id="eg-list"></div></section>' +
       '<aside class="eg-built" aria-labelledby="eg-b-h"><h2 class="eg-h2" id="eg-b-h">How PDS is built</h2><ul class="eg-b" id="eg-b"></ul>' +
         '<h2 class="eg-h2" id="eg-ep-h">Endpoints</h2><ul class="eg-ep" id="eg-ep" aria-labelledby="eg-ep-h"></ul>' +
-        '<div class="eg-links"><a class="b b-g" href="docs/architecture/PDS-Architecture.pdf" target="_blank" rel="noopener">' + ico('file') + 'Architecture reference</a>' +
-        '<a class="b b-q" href="' + REPO_URL + '" target="_blank" rel="noopener">' + ico('out') + 'Repository</a></div>' +
+        '<div class="eg-links"><a class="b b-g" href="docs/architecture/PDS-Architecture.pdf" target="_blank" rel="noopener noreferrer">' + ico('file') + 'Architecture reference</a>' +
+        '<a class="b b-q" href="' + REPO_URL + '" target="_blank" rel="noopener noreferrer">' + ico('out') + 'Repository</a></div>' +
         '<p class="eg-note" id="eg-feed"></p></aside></div></div>';
   }
   function paintHead() {
@@ -210,12 +224,12 @@
     if (!live && !E.deploys.length) { N.innerHTML = E.commits.length || E.err ? '<p class="eg-now-e">' + esc(E.err || 'No deployments reported yet.') + '</p>' : '<div class="eg-sk"></div>'; return; }
     var c = live && E.commits.filter(function (x) { return x.sha === live.sha; })[0];
     N.innerHTML = '<div class="eg-now-r"><span class="eg-now-l">In production</span>' +
-      (live ? depChip(live, true) + '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(live.sha) + '" target="_blank" rel="noopener">' + esc(live.sha.slice(0, 7)) + '</a>' +
+      (live ? depChip(live, true) + '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(live.sha) + '" target="_blank" rel="noopener noreferrer">' + esc(live.sha.slice(0, 7)) + '</a>' +
         '<b class="eg-now-m">' + esc(c ? titleOf(c) : 'Commit ' + live.sha.slice(0, 7)) + '</b><small>deployed ' + esc(ago(live.stateAt || live.at)) + '</small>' +
-        (live.url ? '<a class="b b-l" href="' + esc(live.url) + '" target="_blank" rel="noopener">Open the site</a>' : '')
+        (/^https:\/\/[^\s"'<>]+$/.test(live.url || '') ? '<a class="b b-l" href="' + esc(live.url) + '" target="_blank" rel="noopener noreferrer">Open the site</a>' : '')
         : '<b class="eg-now-m">No live deployment reported</b>') + '</div>' +
-      (newer ? '<div class="eg-now-r eg-now-n">' + depChip(newer) + '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(newer.sha) + '" target="_blank" rel="noopener">' + esc(newer.sha.slice(0, 7)) + '</a><span>Started ' + esc(ago(newer.at)) + '; it replaces production when it is ready.</span></div>' : '') +
-      (bad && !newer ? '<div class="eg-now-r eg-now-n">' + depChip(bad) + '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(bad.sha) + '" target="_blank" rel="noopener">' + esc(bad.sha.slice(0, 7)) + '</a><span>The newest deployment failed ' + esc(ago(bad.stateAt || bad.at)) + '; production stays on the one above.</span></div>' : '');
+      (newer ? '<div class="eg-now-r eg-now-n">' + depChip(newer) + '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(newer.sha) + '" target="_blank" rel="noopener noreferrer">' + esc(newer.sha.slice(0, 7)) + '</a><span>Started ' + esc(ago(newer.at)) + '; it replaces production when it is ready.</span></div>' : '') +
+      (bad && !newer ? '<div class="eg-now-r eg-now-n">' + depChip(bad) + '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(bad.sha) + '" target="_blank" rel="noopener noreferrer">' + esc(bad.sha.slice(0, 7)) + '</a><span>The newest deployment failed ' + esc(ago(bad.stateAt || bad.at)) + '; production stays on the one above.</span></div>' : '');
   }
   function paintServices() {
     var S = document.getElementById('eg-sv'); if (!S) return;
@@ -251,48 +265,37 @@
   // ── HOW IT CONNECTS (2026-11-18, by request): every app and outside service PDS talks to, in
   // lanes, with a line for each connection coloured by its live check. Boxes are laid out by CSS;
   // the lines are drawn over them from the boxes' real positions (and again on resize).
-  var LANES = [
-    ['mac', 'This Mac and the office', 'Helpers on a designer’s Mac, and the office Mac’s tunnels'],
-    ['web', 'In the browser', 'PDS itself, on the site or from the disk'],
-    ['srv', 'PDS server · Vercel', 'Two Python functions; keys live in Vercel’s environment'],
-    ['cloud', 'Outside services', 'Called by the browser or by the server']
-  ];
-  var NODES = [
-    { id: 'rembg', l: 'mac', n: 'Cut-out service', s: 'rembg · 127.0.0.1:7311', k: 'rembg' },
-    { id: 'ps', l: 'mac', n: 'Photoshop helper', s: '127.0.0.1:7312', k: 'ps' },
-    { id: 'casv', l: 'mac', n: 'CASV', s: 'Video Studio · localhost:8794', k: 'casv' },
-    { id: 'mcp', l: 'mac', n: 'Studio tools (MCP)', s: 'remote.py · 127.0.0.1:7313', k: 'mcp' },
-    { id: 'hub', l: 'mac', n: 'Content Hub', s: 'Office Mac, through ngrok', k: 'hub' },
-    { id: 'grok', l: 'mac', n: 'Grok bot', s: 'xAI, through the tunnel to remote.py', k: 'grok' },
-    { id: 'home', l: 'web', n: 'Home', s: 'index.html · engine.js', k: 'self', own: 1 },
-    { id: 'cas', l: 'web', n: 'CAS', s: 'Campaign Ads Studio', k: 'self', own: 1 },
-    { id: 'ops', l: 'web', n: 'OPS', s: 'Organic Post Studio', k: 'self', own: 1 },
-    { id: 'share', l: 'srv', n: '/api/share', s: 'Sign-in, roles, Roam, Arabic, Engine', k: 'server', own: 1 },
-    { id: 'gauth', l: 'srv', n: '/api/gauth', s: 'Keeps people signed in', k: 'gauth', own: 1 },
-    { id: 'google', l: 'cloud', n: 'Google sign-in', s: 'Who is who (Drive about)', k: 'google' },
-    { id: 'drive', l: 'cloud', n: 'Google Drive', s: 'Ad sets, posts, exports', k: 'drive' },
-    { id: 'translate', l: 'cloud', n: 'Google Translate', s: 'Arabic fallback', k: 'translate' },
-    { id: 'store', l: 'cloud', n: 'Upstash', s: 'Access list, links, hub tasks', k: 'store' },
-    { id: 'anthropic', l: 'cloud', n: 'Anthropic Claude', s: 'Writes the Arabic copy', k: 'anthropic' },
-    { id: 'roam', l: 'cloud', n: 'Roam', s: 'Copy check notes', k: 'roam' },
-    { id: 'github', l: 'cloud', n: 'GitHub', s: 'The code, and this feed', k: 'gh' }
-  ];
-  // [from, to, the check that colours it, what it carries]
-  var WIRES = [
-    ['home', 'share', 'server', 'Sign-in and roles'], ['cas', 'share', 'server', 'Sign-in, Arabic copy, Roam notes'], ['ops', 'share', 'server', 'Sign-in, the hub key'],
-    ['home', 'gauth', 'gauth', 'Stay signed in'], ['cas', 'gauth', 'gauth', 'Stay signed in'],
-    ['share', 'google', 'google', 'Checks every token'], ['gauth', 'google', 'gauth', 'Refresh tokens'],
-    ['share', 'store', 'store', 'Access list, links, hub tasks'], ['share', 'anthropic', 'anthropic', 'op arcopy'], ['share', 'roam', 'roam', 'op roamnote'], ['share', 'github', 'gh', 'op engine'],
-    ['home', 'drive', 'drive', 'Status, ready files'], ['cas', 'drive', 'drive', 'Ad sets, photos, exports'], ['ops', 'drive', 'drive', 'Posts and exports'],
-    ['cas', 'translate', 'translate', 'Arabic when Claude is away'],
-    ['cas', 'rembg', 'rembg', 'Agent photo cut-outs'], ['ops', 'rembg', 'rembg', 'Agent photo cut-outs'],
-    ['cas', 'ps', 'ps', 'Edit in Photoshop'], ['ops', 'ps', 'ps', 'Edit in Photoshop'],
-    ['cas', 'casv', 'casv', 'Video hand-off, Higgsfield'],
-    ['ops', 'hub', 'hub', 'Send, From the hub'], ['hub', 'share', 'hubkeys', 'Tasks and designers (hubpush, hubteam)'],
-    ['grok', 'mcp', 'mcp', 'Studio tools over https']
-  ];
-  function stateOf(k) {
+  // THE MAP IS DATA (2026-11-18, by request: "make sure this diagram updates every time a push and
+  // commit affects it"): engine-map.json at the site root, written in the same pass as any change
+  // that adds, removes or rewires a part (CLAUDE.md's standing rule). It is fetched on mount, again
+  // whenever a new production deployment goes live, and the server reports the commit that last
+  // changed it (op engine, mapAt).
+  var LANES = [], NODES = [], WIRES = [], MAPV = '';
+  function takeMap(m) {
+    var ok = m && Array.isArray(m.lanes) && Array.isArray(m.nodes) && Array.isArray(m.wires);
+    if (!ok) throw new Error('engine-map.json is not a map');
+    var str = function (v) { return String(v == null ? '' : v).slice(0, 200); };
+    LANES = m.lanes.map(function (l) { return [str(l.id), str(l.name), str(l.about)]; });
+    NODES = m.nodes.map(function (n) { return { id: str(n.id).replace(/[^\w-]/g, ''), l: str(n.lane), n: str(n.name), s: str(n.about), k: str(n.check), own: !!n.own }; });
+    var idc = function (v) { return str(v).replace(/[^\w-]/g, ''); };
+    WIRES = m.wires.map(function (w) { return [idc(w.from), idc(w.to), str(w.check), str(w.carries)]; });
+  }
+  function loadMap(v) {
+    return fetch('engine-map.json?v=' + encodeURIComponent(v || Date.now()), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (m) { takeMap(m); MAPV = v || ''; E.mapErr = ''; paintMap(); alerts(); })
+      .catch(function (e) { E.mapErr = 'The map could not be read (' + ((e && e.message) || 'error') + ').'; paintMap(); });
+  }
+  // every state that reaches an attribute is one of these words, whatever a check returned
+  var STATES = { ok: 1, warn: 1, bad: 1, off: 1, wait: 1, old: 1 };
+  function stateOf(k) { var v = stateOf0(k) || {}; return { s: STATES[v.s] ? v.s : 'wait', t: String(v.t == null ? '' : v.t).slice(0, 240) }; }
+  // what the server reports (Upstash, Anthropic, Roam, its keys) is only as good as the server's
+  // last answer: while the studio server or the engine feed is failing, those boxes say unknown
+  // instead of repeating an old "Answering"
+  var VIA_SERVER = { store: 1, anthropic: 1, roam: 1, hubkeys: 1 };
+  function serverDown() { var h = E.health.server; return !!((h && h.s === 'bad') || (E.err && E.errAt && (!E.at || E.errAt > E.at))); }
+  function stateOf0(k) {
     var L = E.links || {};
+    if (VIA_SERVER[k] && serverDown()) return { s: 'wait', t: 'Unknown while the studio server is not answering' };
     if (k === 'self') return { s: 'ok', t: 'Open' };
     if (k === 'gh') return E.err ? { s: E.commits.length ? 'warn' : 'bad', t: E.err } : E.at ? { s: 'ok', t: E.rate && E.rate.left != null ? E.rate.left + ' of ' + E.rate.limit + ' reads left' : 'Answering' } : { s: 'wait', t: 'Checking…' };
     if (k === 'google') return E.at && !E.err ? { s: 'ok', t: 'Your sign-in was confirmed' } : E.health.server ? E.health.server : { s: 'wait', t: 'Checking…' };
@@ -318,7 +321,9 @@
     M.insertAdjacentHTML('beforeend', html);
     if (svg) M.appendChild(svg);
     var good = WIRES.filter(function (w) { return stateOf(w[2]).s === 'ok'; }).length, bad = WIRES.filter(function (w) { return stateOf(w[2]).s === 'bad'; }).length;
-    var mn = document.getElementById('eg-map-n'); if (mn) mn.textContent = NODES.length + ' parts · ' + WIRES.length + ' connections · ' + good + ' working' + (bad ? ' · ' + bad + ' not working' : '');
+    var mn = document.getElementById('eg-map-n'), ma = E.mapAt;
+    if (mn) mn.textContent = E.mapErr || (NODES.length + ' parts · ' + WIRES.length + ' connections · ' + good + ' working' + (bad ? ' · ' + bad + ' not working' : '') +
+      (ma && ma.sha ? ' · map last changed ' + ago(ma.at) + ' in ' + ma.sha.slice(0, 7) : ''));
     var mb = document.getElementById('eg-mac-b'); if (mb) { var on = false; try { on = localStorage.getItem(MAC_LS) === '1'; } catch (x) {} mb.lastChild.textContent = on ? 'Check this Mac again' : 'Check this Mac'; }
     setTimeout(drawWires, 0);
   }
@@ -349,6 +354,129 @@
       n.toggleAttribute('data-dim', !linked);
     });
   }
+  // ── ALERTS (2026-11-18, by request: "notification if something is disconnected") ───────────
+  // Whenever Home is open for the admin or an AI Engineer (watch(), below), the checks run every
+  // minute. A connection that turns red raises a toast on any page of the home, a red count on the
+  // Engine link and in the tab title, a banner on this page, and, when the person turned it on
+  // here, a desktop notification. One that recovers says so once. Amber and grey never alert.
+  // What was last said is kept in localStorage (provident-engine-alerts), so a reload repeats nothing.
+  var AL_LS = 'provident-engine-alerts', NOTE_LS = 'provident-engine-notify';
+  function readJ(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (x) { return null; } }
+  function down() {
+    return NODES.filter(function (n) { return n.k !== 'self' && stateOf(n.k).s === 'bad'; }).map(function (n) { return { id: n.id, n: n.n, t: stateOf(n.k).t }; });
+  }
+  function alerts() {
+    if (!NODES.length || !E.at) return;
+    var now = down(), was = readJ(AL_LS) || {}, seen = {};
+    now.forEach(function (d) {
+      seen[d.id] = 1;
+      if (!was[d.id]) toast('bad', d.n + ' is not working', d.t, d.id, true);
+    });
+    Object.keys(was).forEach(function (id) {
+      // still being checked (or unknown): not news yet, keep it as it was
+      var nn = NODES.filter(function (x) { return x.id === id; })[0];
+      if (!seen[id] && nn && stateOf(nn.k).s === 'wait') { seen[id] = 1; return; }
+      if (!seen[id]) { var n = NODES.filter(function (x) { return x.id === id; })[0]; if (n) toast('ok', n.n + ' is answering again', stateOf(n.k).t, id, true); }
+    });
+    try { localStorage.setItem(AL_LS, JSON.stringify(seen)); } catch (x) {}
+    badge(now);
+  }
+  function badge(now) {
+    var a = document.querySelector('[data-nav="engine"]');
+    if (a) {
+      var b = a.querySelector('.eg-nb');
+      if (now.length) { if (!b) { b = document.createElement('span'); b.className = 'eg-nb'; a.appendChild(b); } b.textContent = now.length; b.title = now.length + ' connection' + (now.length > 1 ? 's' : '') + ' not working'; }
+      else if (b) b.remove();
+    }
+    var t = document.title.replace(/^\(\d+\) /, ''); document.title = now.length ? '(' + now.length + ') ' + t : t;
+    var D = document.getElementById('eg-down');
+    if (D) {
+      D.hidden = !now.length;
+      D.innerHTML = now.length ? '<span class="eg-dot" data-s="bad"><i></i></span><span><b>' + now.length + ' connection' + (now.length > 1 ? 's are' : ' is') + ' not working</b><small>' +
+        now.map(function (d) { return esc(d.n) + ': ' + esc(d.t); }).join(' · ') + '</small></span><button class="b b-q" type="button" data-eg="tomap">Show on the map</button>' : '';
+    }
+  }
+  function toast(kind, head, body, key, desk) {
+    var T = document.getElementById('eg-toasts');
+    if (!T) { T = document.createElement('div'); T.id = 'eg-toasts'; T.className = 'eg-toasts'; T.setAttribute('aria-live', 'polite'); document.body.appendChild(T); }
+    var old = T.querySelector('[data-k="' + key + '"]'); if (old) old.remove();
+    var el = document.createElement('div'); el.className = 'eg-toast'; el.dataset.k = key; el.dataset.s = kind; el.setAttribute('role', kind === 'bad' ? 'alert' : 'status');
+    var onPage = !!(E.root && document.body.contains(E.root));
+    el.innerHTML = '<span class="eg-dot" data-s="' + kind + '"><i></i></span><span class="eg-toast-t"><b>' + esc(head) + '</b><small>' + esc(body) + '</small></span>' +
+      (onPage ? '' : '<a class="b b-l" href="#/engine">Open Engine</a>') + '<button type="button" aria-label="Dismiss">' + ico('x') + '</button>';
+    el.querySelector('button').addEventListener('click', function () { el.remove(); });
+    T.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.remove(); }, kind === 'bad' ? 30000 : 10000);
+    var on = false; try { on = localStorage.getItem(NOTE_LS) === '1'; } catch (x) {}
+    if (desk && on && window.Notification && Notification.permission === 'granted' && (document.hidden || !onPage)) {
+      try { var nt = new Notification('PDS · ' + head, { body: body, tag: 'pds-' + key }); nt.onclick = function () { window.focus(); location.hash = '#/engine'; nt.close(); }; } catch (x) {}
+    }
+  }
+  function paintAlertsBtn() {
+    var b = document.getElementById('eg-al-b'); if (!b) return;
+    var on = false; try { on = localStorage.getItem(NOTE_LS) === '1'; } catch (x) {}
+    var can = !!window.Notification, denied = can && Notification.permission === 'denied';
+    b.disabled = !can || denied;
+    b.innerHTML = ico(on && !denied ? 'check' : 'tray') + (denied ? 'Alerts blocked in this browser' : on ? 'Desktop alerts on' : 'Turn on desktop alerts');
+    b.title = denied ? 'Chrome is blocking notifications for this site: allow them in the address bar’s site settings' : on ? 'Click to turn off. You are told when a connection stops or starts working again.' : 'Get a desktop notification when a connection stops working, even with this tab in the background';
+  }
+  // ── SHARE (2026-11-18, by request) ─────────────────────────────────────────────────────────
+  // The page's link (it opens only for the admin and AI Engineers, after a Google sign-in), and for
+  // the admin: let an engineer in as AI Engineers by email (op accset, the same as Access) and open
+  // an email to them with the link. Nothing is sent from here: the mail opens in the admin's own
+  // mail app.
+  var LINK = 'https://provident-design-studio.vercel.app/#/engine';
+  function paintShare() {
+    var P = document.getElementById('eg-share'); if (!P) return;
+    var A = window.providentAccess, adm = !!(A && A.now && A.now().admin), sh = E.share || {};
+    var ai = (sh.team || []).filter(function (p) { return p.role === 'ai'; });
+    P.innerHTML = '<b class="eg-sh-h">Share the Engine</b>' +
+      '<p>It opens for the admin and AI Engineers only, after they sign in with their Provident Google account.</p>' +
+      '<div class="eg-sh-l"><input readonly value="' + esc(LINK) + '" aria-label="Link to the Engine" id="eg-sh-in"><button class="b b-g" type="button" data-eg="copy">' + ico(sh.copied ? 'check' : 'copy') + (sh.copied ? 'Copied' : 'Copy link') + '</button></div>' +
+      (ai.length ? '<div class="eg-sh-w"><small>AI Engineers</small>' + ai.map(function (p) { return '<span>' + esc(p.name || p.email) + '</span>'; }).join('') + '</div>' : '') +
+      (adm ? '<form class="eg-sh-f" data-eg="invite"><label for="eg-sh-em">Let an engineer in</label><div><input id="eg-sh-em" type="email" required placeholder="name@providentestate.com" autocomplete="off"' + (sh.em ? ' value="' + esc(sh.em) + '"' : '') + '>' +
+        '<button class="b b-p" type="submit"' + (sh.busy ? ' disabled' : '') + '>' + (sh.busy ? 'Letting in…' : 'Let in as AI Engineer') + '</button></div>' +
+        (sh.err ? '<p class="eg-sh-e" role="alert">' + esc(sh.err) + '</p>' : '') +
+        (sh.done ? '<p class="eg-sh-ok">' + esc(sh.done) + ' can open the Engine now. <a class="b b-l" href="' + esc(mailto(sh.done)) + '">Email them the link</a></p>' : '') + '</form>'
+        : '<p class="eg-sh-n">To bring in another engineer, ask the admin: they let them in as AI Engineers.</p>');
+  }
+  function mailto(to) {
+    return 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent('PDS Engine: the architecture and every change, live') +
+      '&body=' + encodeURIComponent('Hi,\n\nYou can now open the PDS Engine page: how Provident Design Studio is built, every commit and deployment, and a live map of its connections.\n\n' +
+        LINK + '\n\nSign in with your Provident Google account. It opens for the admin and AI Engineers only.\n\nThe architecture reference (PDF) is linked from the page.');
+  }
+  function shareOpen(open) {
+    var P = document.getElementById('eg-share'), B = document.querySelector('[data-eg="share"]'); if (!P || !B) return;
+    P.hidden = !open; B.setAttribute('aria-expanded', String(!!open));
+    if (open) {
+      E.share = E.share || {}; paintShare();
+      var A = window.providentAccess;
+      if (A && A.team) A.team().then(function (t) { E.share.team = t; paintShare(); }).catch(function () {});
+    }
+  }
+  function invite(form) {
+    var A = window.providentAccess, i = form.querySelector('#eg-sh-em'), em = (i && i.value || '').trim().toLowerCase();
+    if (!em || !A || !A.call) return;
+    E.share = Object.assign(E.share || {}, { em: em, busy: true, err: '', done: '' }); paintShare();
+    A.call('accset', { email: em, action: 'add', role: 'ai' }).then(function () { E.share = Object.assign(E.share, { busy: false, done: em, em: '' }); return A.team ? A.team(true) : null; })
+      .then(function (t) { if (t) E.share.team = t; paintShare(); })
+      .catch(function (e) { E.share = Object.assign(E.share, { busy: false, err: (e && e.message) || 'The studio refused.' }); paintShare(); });
+  }
+  // ── the background watch: Home open, the admin or an AI Engineer signed in ───────────────
+  function allowed() { var A = window.providentAccess; return !!(A && A.now && (A.now().admin || (A.can && A.now().role && A.can('arch')))); }
+  var watching = null;
+  function watch() {
+    if (watching || !allowed()) return;
+    if (!NODES.length) loadMap('');
+    watching = setInterval(function () {
+      if (!allowed()) { clearInterval(watching); watching = null; badge([]); return; }
+      if (E.root && document.body.contains(E.root)) return;   // the page polls on its own
+      poll(true);
+    }, 60000);
+    poll(true);
+  }
+  window.addEventListener('provident-access', function () { setTimeout(watch, 0); });
+  setTimeout(watch, 4000);
   function paintStrip() {
     var S = document.getElementById('eg-strip'), M = document.getElementById('eg-months'); if (!S || !E.commits.length) return;
     var per = {}, dep = {}, first = new Date(E.commits[E.commits.length - 1].at), today = new Date(), days = [];
@@ -373,17 +501,39 @@
   function filtered() {
     var q = E.q.trim().toLowerCase(), dm = depBySha();
     return E.commits.filter(function (c) {
-      if (E.filter === 'deployed' && !dm[c.sha]) return false;
-      if (E.filter !== 'all' && E.filter !== 'deployed' && areaOf(c) !== E.filter) return false;
+      if (E.only === 'deployed' && !dm[c.sha]) return false;
+      if (E.area && areaOf(c) !== E.area) return false;
       return !q || String(c.msg).toLowerCase().indexOf(q) >= 0 || c.sha.indexOf(q) === 0;
     });
   }
+  // THE TIMELINE'S TOOLBAR (2026-11-18, /impeccable): one line for the title, what is shown and
+  // the search; under it, which commits (All | Deployed, a switch) and which area (one row that
+  // scrolls sideways rather than wrapping). The two combine. The bar sticks under the top bar
+  // while the list scrolls, and each day's heading sticks under the bar.
   function paintFilters() {
-    var F = document.getElementById('eg-f'); if (!F) return;
-    var dm = depBySha(), n = { all: E.commits.length, deployed: E.commits.filter(function (c) { return dm[c.sha]; }).length };
-    E.commits.forEach(function (c) { var a = areaOf(c); if (a) n[a] = (n[a] || 0) + 1; });
-    var opts = [['all', 'All'], ['deployed', 'Deployed']].concat(AREAS.map(function (a) { return [a.k, a.n]; })).filter(function (o) { return n[o[0]]; });
-    F.innerHTML = opts.map(function (o) { return '<button type="button" data-eg="f" data-v="' + o[0] + '" aria-pressed="' + (E.filter === o[0]) + '">' + o[1] + '<small>' + n[o[0]] + '</small></button>'; }).join('');
+    var F = document.getElementById('eg-f'), G = document.getElementById('eg-seg'), N = document.getElementById('eg-tl-n'); if (!F) return;
+    var dm = depBySha(), pool = E.only === 'deployed' ? E.commits.filter(function (c) { return dm[c.sha]; }) : E.commits, n = {};
+    pool.forEach(function (c) { var a = areaOf(c); if (a) n[a] = (n[a] || 0) + 1; });
+    var nd = E.commits.filter(function (c) { return dm[c.sha]; }).length;
+    if (G) G.innerHTML = [['all', 'All', E.commits.length], ['deployed', 'Deployed', nd]].map(function (o) {
+      return '<button type="button" data-eg="only" data-v="' + o[0] + '" aria-pressed="' + (E.only === o[0]) + '">' + o[1] + '<small>' + o[2].toLocaleString() + '</small></button>'; }).join('');
+    F.innerHTML = AREAS.filter(function (a) { return n[a.k] || E.area === a.k; }).map(function (a) {
+      return '<button type="button" data-eg="f" data-v="' + a.k + '" aria-pressed="' + (E.area === a.k) + '">' + a.n + '<small>' + (n[a.k] || 0) + '</small></button>'; }).join('');
+    if (N) {
+      var shown = filtered().length, parts = [];
+      if (E.only === 'deployed') parts.push('deployed');
+      if (E.area) parts.push(AREA_N[E.area]);
+      if (E.q.trim()) parts.push('matching “' + esc(E.q.trim()) + '”');
+      N.innerHTML = parts.length ? shown.toLocaleString() + ' of ' + E.commits.length.toLocaleString() + ' · ' + parts.join(' · ') + ' <button type="button" class="b b-l" data-eg="clear">Clear</button>'
+        : E.commits.length ? E.commits.length.toLocaleString() + ' commits' : '';
+    }
+    sizes();
+  }
+  // the sticky toolbar sits under Home's own top bar, whatever height that is (two rows on a phone)
+  function sizes() {
+    var eg = document.getElementById('eg'), tb = document.getElementById('eg-tb'), hd = document.querySelector('header.p-top'); if (!eg) return;
+    if (hd) eg.style.setProperty('--hdh', Math.round(hd.getBoundingClientRect().height) + 'px');
+    if (tb) eg.style.setProperty('--tbh', tb.offsetHeight + 'px');
   }
   function paintList() {
     var Lh = document.getElementById('eg-list'); if (!Lh) return;
@@ -403,11 +553,12 @@
         '<span class="eg-r-m"><b>' + tt + '</b>' + (b ? '<small>' + esc(b) + '</small>' : '') + '</span>' +
         '<span class="eg-r-x">' + (a ? '<span class="eg-tag">' + AREA_N[a] + '</span>' : '') +
           (deps.length ? depChip(deps[0], live && live.id === deps[0].id) : '') +
-          '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(c.sha) + '" target="_blank" rel="noopener" title="Open this commit on GitHub">' + esc(c.sha.slice(0, 7)) + '</a></span></li>';
+          '<a class="eg-sha" href="' + REPO_URL + '/commit/' + esc(c.sha) + '" target="_blank" rel="noopener noreferrer" title="Open this commit on GitHub">' + esc(c.sha.slice(0, 7)) + '</a></span></li>';
     });
     h += '</ol>';
     if (all.length > list.length) h += '<div class="eg-more"><button class="b b-g" type="button" data-eg="more">Show ' + Math.min(PAGE, all.length - list.length) + ' more</button><small>' + list.length + ' of ' + all.length + '</small></div>';
-    else h += '<p class="eg-end">The first commit. ' + esc(new Date(all[all.length - 1].at).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })) + '.</p>';
+    else h += '<p class="eg-end">' + (all.length < E.commits.length ? 'That’s every match: ' + all.length + ' of ' + E.commits.length + '.'
+      : 'The first commit. ' + esc(new Date(all[all.length - 1].at).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })) + '.') + '</p>';
     Lh.innerHTML = h;
   }
   function paintBuilt() {
@@ -428,11 +579,22 @@
     var t = e.target.closest && e.target.closest('[data-eg]'); if (!t) return;
     var a = t.dataset.eg;
     if (a === 'refresh') poll(true);
+    else if (a === 'share') shareOpen(document.getElementById('eg-share').hidden);
+    else if (a === 'copy') { var inp = document.getElementById('eg-sh-in'); (navigator.clipboard ? navigator.clipboard.writeText(LINK) : Promise.reject()).catch(function () { if (inp) { inp.select(); document.execCommand('copy'); } })
+      .then(function () { E.share.copied = true; paintShare(); setTimeout(function () { if (E.share) { E.share.copied = false; paintShare(); } }, 2000); }); }
+    else if (a === 'alerts') {
+      var on = false; try { on = localStorage.getItem(NOTE_LS) === '1'; } catch (x) {}
+      if (on) { try { localStorage.removeItem(NOTE_LS); } catch (x) {} paintAlertsBtn(); }
+      else Notification.requestPermission().then(function (p) { if (p === 'granted') { try { localStorage.setItem(NOTE_LS, '1'); } catch (x) {} toast('ok', 'Desktop alerts are on', 'You will be told when a connection stops or starts working again.', 'al-on'); } paintAlertsBtn(); });
+    }
+    else if (a === 'tomap') { var mh = document.getElementById('eg-map-h'); if (mh) mh.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     else if (a === 'mac') { try { localStorage.setItem(MAC_LS, '1'); } catch (x) {} linkProbes(true); paintMap(); }
     else if (a === 'more') { E.shown += PAGE; paintList(); }
-    else if (a === 'f') { E.filter = E.filter === t.dataset.v && t.closest('#eg-b') ? 'all' : t.dataset.v; E.shown = PAGE; paintFilters(); paintList(); var tl = document.getElementById('eg-tl-h'); if (t.closest('#eg-b') && tl) tl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (a === 'f') { E.area = E.area === t.dataset.v ? '' : t.dataset.v; E.shown = PAGE; paintFilters(); paintList(); var tl = document.getElementById('eg-tb'); if (t.closest('#eg-b') && tl) tl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (a === 'only') { E.only = t.dataset.v; E.shown = PAGE; paintFilters(); paintList(); }
+    else if (a === 'clear') { E.only = 'all'; E.area = ''; E.q = ''; var q0 = document.getElementById('eg-q'); if (q0) q0.value = ''; E.shown = PAGE; paintFilters(); paintList(); }
     else if (a === 'day') {
-      var k = t.dataset.k; E.filter = 'all'; E.q = ''; var qi = document.getElementById('eg-q'); if (qi) qi.value = '';
+      var k = t.dataset.k; E.only = 'all'; E.area = ''; E.q = ''; var qi = document.getElementById('eg-q'); if (qi) qi.value = '';
       var idx = E.commits.findIndex(function (c) { return dayKey(new Date(c.at)) === k; });
       var lastIdx = E.commits.length - 1 - E.commits.slice().reverse().findIndex(function (c) { return dayKey(new Date(c.at)) === k; });
       if (idx >= 0) E.shown = Math.max(E.shown, Math.ceil((lastIdx + 1) / PAGE) * PAGE);
@@ -441,17 +603,22 @@
     }
   }
   var qT = null;
-  function onInput(e) { if (e.target.id !== 'eg-q') return; clearTimeout(qT); qT = setTimeout(function () { E.q = e.target.value; E.shown = PAGE; paintList(); }, 120); }
+  function onSubmit(e) { var f = e.target.closest && e.target.closest('[data-eg="invite"]'); if (f) { e.preventDefault(); invite(f); } }
+  function onKey(e) { if (e.key === 'Escape' && !document.getElementById('eg-share').hidden) { shareOpen(false); var b = document.querySelector('[data-eg="share"]'); if (b) b.focus(); } }
+  function onInput(e) { if (e.target.id !== 'eg-q') return; clearTimeout(qT); qT = setTimeout(function () { E.q = e.target.value; E.shown = PAGE; paintFilters(); paintList(); }, 120); }
   function mount(root) {
     E.root = root.querySelector('#eg') || root;
     if (!E.root._wired) {
-      E.root._wired = true; E.root.addEventListener('click', onClick); E.root.addEventListener('input', onInput);
+      E.root._wired = true; E.root.addEventListener('click', onClick); E.root.addEventListener('input', onInput); E.root.addEventListener('submit', onSubmit); E.root.addEventListener('keydown', onKey);
+      document.addEventListener('click', function (e) { var P = document.getElementById('eg-share'); if (P && !P.hidden && !e.target.closest('.eg-pop')) shareOpen(false); });
       var over = function (e) { var n = e.target.closest && e.target.closest('.eg-n'); focusNode(n ? n.dataset.n : null); };
       E.root.addEventListener('mouseover', over); E.root.addEventListener('focusin', over);
       E.root.addEventListener('mouseleave', function () { focusNode(null); });
       var mp = E.root.querySelector('#eg-map'); if (mp && window.ResizeObserver) new ResizeObserver(function () { setTimeout(drawWires, 0); }).observe(mp);
+      var tb = E.root.querySelector('#eg-tb'), hd = document.querySelector('header.p-top');
+      if (window.ResizeObserver) { var ro = new ResizeObserver(sizes); if (tb) ro.observe(tb); if (hd) ro.observe(hd); }
     }
-    E.grown = false; paint(); poll(true);
+    E.grown = false; paint(); paintAlertsBtn(); loadMap(E.liveSha || ''); poll(true); watch();
     clearInterval(E.timer);
     E.timer = setInterval(function () {
       if (!E.root || !document.body.contains(E.root)) { clearInterval(E.timer); E.timer = null; return; }
@@ -493,6 +660,43 @@
     '.eg-s b{display:block;font:500 14px/1.3 var(--ps-font)}',
     '.eg-s small{display:block;margin-top:3px;font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
     '.eg-s[data-s="bad"] small{color:var(--ps-bad)}',
+    /* header actions, share, alerts */
+    '.eg-hd-a{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}',
+    '.eg-hd-a .eg-live{margin-right:6px}',
+    '.eg-pop{position:relative}',
+    '.eg-share{position:absolute;z-index:40;top:44px;right:0;width:min(420px,calc(100vw - 32px));box-sizing:border-box;padding:18px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line),0 0 0 4px color-mix(in srgb,var(--ps-app) 70%,transparent);display:grid;gap:12px}',
+    '.eg-share[hidden]{display:none}',
+    '.eg-sh-h{font:500 16px/1.3 var(--ps-font)}',
+    '.eg-share p{margin:0;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}',
+    '.eg-sh-l{display:flex;gap:8px}',
+    '.eg-sh-l input,.eg-sh-f input{flex:1 1 auto;min-width:0;height:36px;box-sizing:border-box;padding:0 14px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink);font:400 13.5px/1 var(--ps-font)}',
+    '.eg-sh-l input:focus-visible,.eg-sh-f input:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}',
+    '.eg-sh-w{display:flex;flex-wrap:wrap;align-items:center;gap:6px}',
+    '.eg-sh-w small{font:400 12.5px/1 var(--ps-font);color:var(--ps-dim);margin-right:4px}',
+    '.eg-sh-w span{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:var(--ps-pill);background:var(--ps-fill);font:500 12.5px/1 var(--ps-font)}',
+    '.eg-sh-f{display:grid;gap:8px;padding-top:12px;box-shadow:inset 0 1px 0 var(--ps-hair)}',
+    '.eg-sh-f label{font:500 14px/1.3 var(--ps-font)}',
+    '.eg-sh-f > div{display:flex;flex-wrap:wrap;gap:8px}',
+    '.eg-sh-e{color:var(--ps-bad)!important}',
+    '.eg-sh-ok{color:var(--ps-ink)!important}',
+    '.eg-down{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px 12px 16px;border-radius:16px;background:var(--ps-bad-q);box-shadow:inset 0 0 0 1px var(--ps-bad)}',
+    '.eg-down[hidden]{display:none}',
+    '.eg-down > span:nth-child(2){flex:1 1 300px;min-width:0}',
+    '.eg-down b{display:block;font:500 14.5px/1.3 var(--ps-font)}',
+    '.eg-down small{display:block;margin-top:3px;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}',
+    '.eg-nb{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:6px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--ps-bad);color:#fff;font:600 11.5px/1 var(--ps-font);font-variant-numeric:tabular-nums}',
+    '.eg-toasts{position:fixed;z-index:200;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100vw - 32px))}',
+    '.eg-toast{display:flex;align-items:flex-start;gap:10px;padding:12px 10px 12px 14px;border-radius:14px;background:var(--ps-card);color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line),0 0 0 4px color-mix(in srgb,var(--ps-app) 70%,transparent);animation:egtoast 260ms cubic-bezier(.16,1,.3,1)}',
+    '.eg-toast[data-s="bad"]{box-shadow:inset 0 0 0 1.5px var(--ps-bad),0 0 0 4px color-mix(in srgb,var(--ps-app) 70%,transparent)}',
+    '.eg-toast .eg-dot{margin-top:3px}',
+    '.eg-toast-t{flex:1;min-width:0}',
+    '.eg-toast b{display:block;font:500 14px/1.3 var(--ps-font)}',
+    '.eg-toast small{display:block;margin-top:2px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}',
+    '.eg-toast .b-l{align-self:center;font-size:13px;white-space:nowrap}',
+    '.eg-toast button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-ink-2);cursor:pointer}',
+    '.eg-toast button:hover{background:var(--ps-fill)}',
+    '.eg-toast button svg.i{width:15px;height:15px}',
+    '@keyframes egtoast{from{opacity:0;transform:translateY(8px)}}',
     /* how it connects */
     '.eg-map-hd{flex-wrap:wrap;row-gap:8px}',
     '.eg-map-hd > small{flex:1 1 auto}',
@@ -548,22 +752,33 @@
     /* timeline + built */
     '.eg-cols{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:28px 40px;align-items:start;margin-top:6px}',
     '.eg-h2{margin:0;font:500 18px/1.3 var(--ps-font);letter-spacing:-.005em}',
-    '.eg-tl-bar{display:flex;align-items:center;gap:12px;margin-bottom:12px;scroll-margin-top:88px}',
-    '.eg-q{position:relative;display:flex;align-items:center;flex:0 1 280px}',
+    '.eg-tb{position:sticky;top:var(--hdh,64px);z-index:4;display:grid;gap:10px;margin:0 -12px 6px;padding:12px 12px 12px;background:var(--ps-app);box-shadow:0 1px 0 var(--ps-hair);scroll-margin-top:72px}',
+    '.eg-tb-r1{display:flex;align-items:center;gap:8px 14px;min-width:0}',
+    '.eg-tb-n{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}',
+    '.eg-tb-n .b-l{margin-left:6px;font-size:13px}',
+    '.eg-q{position:relative;display:flex;align-items:center;flex:0 1 300px;min-width:180px}',
     '.eg-q svg.i{position:absolute;left:12px;width:17px;height:17px;color:var(--ps-ink-2);pointer-events:none}',
     '.eg-q input{width:100%;height:36px;box-sizing:border-box;padding:0 14px 0 38px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink);font:400 14px/1 var(--ps-font)}',
     '.eg-q input::placeholder{color:var(--ps-dim)}',
     '.eg-q input:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}',
-    '.eg-f{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}',
-    '.eg-f button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px;border:0;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}',
-    '.eg-f button:hover{background:var(--ps-fill-h);color:var(--ps-ink)}',
+    '.eg-tb-r2{display:flex;align-items:center;gap:12px;min-width:0}',
+    '.eg-seg{flex:none;display:inline-flex;padding:3px;border-radius:var(--ps-pill);background:var(--ps-fill)}',
+    '.eg-seg button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 13px;border:0;border-radius:var(--ps-pill);background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}',
+    '.eg-seg button:hover{color:var(--ps-ink)}',
+    '.eg-seg button[aria-pressed="true"]{background:var(--ps-fill-on);color:var(--ps-ink)}',
+    '.eg-tb-div{flex:none;width:1px;height:22px;background:var(--ps-line)}',
+    '.eg-f{flex:1 1 auto;min-width:0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);padding-right:28px}',
+    '.eg-f::-webkit-scrollbar{display:none}',
+    '.eg-f button{flex:none;display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border:0;border-radius:var(--ps-pill);background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;white-space:nowrap;transition:background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}',
+    '.eg-f button:hover{background:var(--ps-fill);color:var(--ps-ink)}',
     '.eg-f button[aria-pressed="true"]{background:var(--ps-fill-on);color:var(--ps-ink)}',
-    '.eg-f button small{font:400 12px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}',
-    '.eg-f button[aria-pressed="true"] small{color:var(--ps-ink-2)}',
-    '.eg-f button:focus-visible,.eg-built button:focus-visible,.eg-sha:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}',
+    '.eg-seg small,.eg-f small{font:400 12px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}',
+    '.eg-seg button[aria-pressed="true"] small,.eg-f button[aria-pressed="true"] small{color:var(--ps-ink-2)}',
+    '.eg-seg button:focus-visible,.eg-f button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}',
+    '.eg-built button:focus-visible,.eg-sha:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}',
     '.eg-c{list-style:none;margin:0;padding:0;position:relative}',
     '.eg-c::before{content:"";position:absolute;left:62px;top:52px;bottom:12px;width:1px;background:var(--ps-hair)}',
-    '.eg-dh{position:sticky;top:64px;z-index:2;display:flex;align-items:baseline;gap:10px;margin:18px 0 4px;padding:10px 0 8px;background:var(--ps-app);font:600 14px/1.3 var(--ps-font);scroll-margin-top:72px}',
+    '.eg-dh{position:sticky;top:calc(var(--hdh,64px) + var(--tbh,108px));z-index:2;display:flex;align-items:baseline;gap:10px;margin:18px 0 4px;padding:10px 0 8px;background:var(--ps-app);font:600 14px/1.3 var(--ps-font);scroll-margin-top:calc(72px + var(--tbh,108px))}',
     '.eg-dh small{font:400 13px/1.3 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}',
     '.eg-dh[data-hit] span{color:var(--ps-link)}',
     '.eg-r{position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:4px 28px;align-items:start;padding:11px 12px 11px 0;border-radius:12px;transition:background-color 1.6s var(--ps-ease)}',
@@ -614,8 +829,8 @@
     '.eg-note{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim)}',
     '@media (max-width:1100px){.eg-cols{grid-template-columns:minmax(0,1fr)}.eg-built{position:static}.eg-sv{grid-template-columns:repeat(2,minmax(0,1fr))}}',
     '@media (max-width:900px){.eg-lane{grid-template-columns:minmax(0,1fr);gap:10px}.eg-lane-h{text-align:center}}',
-    '@media (max-width:640px){.eg-map{padding:12px;gap:40px}.eg-n{flex:1 1 140px}.eg-sv{grid-template-columns:minmax(0,1fr)}.eg-r{grid-template-columns:44px minmax(0,1fr);gap:6px 14px}.eg-r-x{grid-column:2;padding-left:14px;flex-wrap:wrap}.eg-c::before{left:56px}.eg-r::before{left:53px}.eg-more,.eg-end{margin-left:58px}.eg-strip{height:64px;gap:1px;padding:8px 8px 0}.eg-months{padding:0 8px}.eg-tl-bar{flex-wrap:wrap}.eg-q{flex:1 1 100%}.eg-dh{top:56px}}',
-    '@media (prefers-reduced-motion:reduce){.eg-wire[data-s="ok"]{animation:none}.eg-dot[data-s="ok"]::after,.eg-dot[data-busy] i,.eg-d[data-s="run"] i,.eg-sk,.eg-sk-l i{animation:none}.eg-strip[data-grow] .eg-day i,.eg-r[data-new]{animation:none}}'
+    '@media (max-width:640px){.eg-map{padding:12px;gap:40px}.eg-n{flex:1 1 140px}.eg-sv{grid-template-columns:minmax(0,1fr)}.eg-r{grid-template-columns:44px minmax(0,1fr);gap:6px 14px}.eg-r-x{grid-column:2;padding-left:14px;flex-wrap:wrap}.eg-c::before{left:56px}.eg-r::before{left:53px}.eg-more,.eg-end{margin-left:58px}.eg-strip{height:64px;gap:1px;padding:8px 8px 0}.eg-months{padding:0 8px}.eg-tb{margin:0 -16px 6px;padding:10px 16px}.eg-tb-r1{flex-wrap:wrap}.eg-q{flex:1 1 100%;order:3}}',
+    '@media (prefers-reduced-motion:reduce){.eg-toast{animation:none}.eg-wire[data-s="ok"]{animation:none}.eg-dot[data-s="ok"]::after,.eg-dot[data-busy] i,.eg-d[data-s="run"] i,.eg-sk,.eg-sk-l i{animation:none}.eg-strip[data-grow] .eg-day i,.eg-r[data-new]{animation:none}}'
   ].join('\n');
   var st = document.createElement('style'); st.id = 'engine-css'; st.textContent = css; document.head.appendChild(st);
 

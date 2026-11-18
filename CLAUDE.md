@@ -34,7 +34,7 @@ Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,
 | `share-link.js` | edit links, ad set reviews, Status, Drive store (`dsApi`) |
 | `post-flow.js` | OPS posts on Drive (Draft › Design › Copy check › Ready), OPS Home |
 | `access.js` | Google sign-in gate and roles, both studios and the landing page |
-| `engine.js` | the home's **Engine** page (`#/engine`): architecture, every commit and deployment, live; admin and AI Engineers (capability `arch`). Fed by `POST /api/share?op=engine`; named roles by `op=accrole` |
+| `engine.js` · `engine-map.json` | the home's **Engine** page (`#/engine`): architecture, the live connection map (from `engine-map.json`), alerts, Share, every commit and deployment; admin and AI Engineers (capability `arch`). Fed by `POST /api/share?op=engine`; named roles by `op=accrole` |
 | `api/share.py`, `api/gauth.py` | Vercel functions (share store on Upstash, Google refresh tokens) |
 | `image-slot.js` · `support.js` · `_ds/` · `fonts/` · `icon-tags.js` · `vendor/` | shared |
 | `ui-design-system/` | the chrome design system; CAS and OPS mirror it |
@@ -54,6 +54,12 @@ matching section of `docs/architecture/pds-architecture.html` in the same pass: 
 (cover + `@bottom-left` footer), add a row at the top of the section 17 Changelog with the date and
 time in GST (`date "+%d %b %Y, %H:%M"`), the sections touched and the commit, then run
 `docs/architecture/build.sh` and commit the PDF with the change. Never put secret values in it.
+
+**Keep the Engine's map current.** `engine-map.json` is the Engine page's "How it connects": every
+part of PDS and every outside service, and each connection between them. A change that adds,
+removes or rewires one (a new service, endpoint, helper, studio or key) updates it in the same pass,
+with the architecture PDF. Each box's `check` must be one `engine.js` knows (`stateOf0`); a new kind
+of check is added there too. The live page re-reads the file whenever a new deployment goes live.
 
 **Canvas and chrome are separate systems.** Artwork reads `CampaignStudio.PAL` /
 `OrganicStudio.ART` literals; chrome reads `--ps-*` tokens. Never put a `var(--ps-*)` or a

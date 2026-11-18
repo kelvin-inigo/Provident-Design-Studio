@@ -266,13 +266,28 @@ status page, kept live while it is open:
   partly working, red not working, grey dots not set up or not running here. Hover a box to follow
   its lines. **Check this Mac** also checks the helpers on your own Mac (cut-outs, Photoshop, CASV,
   the studio tools); Chrome may ask to let the page reach your local network. The server-side
-  checks (Upstash, Anthropic, Roam) run at most every five minutes.
+  checks (Upstash, Anthropic, Roam) run at most every five minutes; while the studio server itself
+  isn't answering, they say "Unknown" rather than an old result. The map updates by itself: it is
+  read again whenever a new version of PDS goes live, and its heading says which commit last
+  changed it.
+- **Alerts**: while the home is open (any page), you're told when a connection stops working: a
+  note in the corner, a red number on **Engine** in the top bar and in the tab's title, and a red
+  line at the top of the Engine page with **Show on the map**. You're told again when it answers
+  again. **Turn on desktop alerts** (Engine, top right) also sends a desktop notification when the
+  tab is in the background. Amber (slow) and grey (not set up) never alert.
+- **Share** (Engine, top right): the page's link with **Copy link**, and who the AI Engineers are.
+  The admin also gets **Let an engineer in**: type their @providentestate.com email, press **Let in
+  as AI Engineer**, then **Email them the link** opens a ready email in your own mail app (nothing is
+  sent for you). The link opens only after they sign in with Google, and only for the admin and AI
+  Engineers.
 - **Every day since the first commit**: one bar per day since 10 September 2026, taller for more
   commits, darker on days something was shipped to Vercel. Click a bar to jump to that day.
 - **Timeline**: every commit on main, newest first, by day, with its time, its area (CAS, OPS, Home,
   Server…), its commit id (opens it on GitHub) and, when Vercel shipped it, **Live**, **Deployed**,
   **Replaced**, **Building** or **Failed**. **Find a commit** searches the messages; the chips
-  narrow it to one area or to what was deployed. New commits slide in at the top as they are pushed.
+  narrow it: **All | Deployed**, and an area (CAS, OPS, Home, Server…), which combine. The bar stays
+  at the top while you scroll, says how many are shown ("3 of 411 · deployed · OPS") and has
+  **Clear**. New commits slide in at the top as they are pushed.
 - **How PDS is built**: each part of PDS, its files, what it does and when it last changed; click one
   to see only its commits. **Architecture reference** opens the PDF.
 - **Endpoints**: every address on the site this page and Access use (`/api/share?op=engine` feeds

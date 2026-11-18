@@ -1913,6 +1913,10 @@ def eng_refresh():
         else:
             known = {c['sha'] for c in fresh}
             _eng['commits'] = fresh + [c for c in _eng['commits'] if c['sha'] not in known]
+    # the commit that last changed the Engine's map (engine-map.json)
+    code, mc = gh(repo + '/commits?sha=main&path=engine-map.json&per_page=1', 'm1')
+    if code == 200 and isinstance(mc, list) and mc:
+        _eng['map'] = eng_commit(mc[0])
     code, deps = gh(repo + '/deployments?per_page=100', 'd1')
     if code == 200 and isinstance(deps, list):
         _eng['deploys'] = [{'id': x.get('id'), 'sha': x.get('sha', ''), 'env': x.get('environment') or '', 'at': x.get('created_at') or '',
@@ -2003,7 +2007,7 @@ def engine(d):
         links = eng_links()
     except Exception as e:  # noqa: BLE001  never let a probe stop the feed
         links = {'err': e.__class__.__name__}
-    return ok({'repo': ENGINE_REPO, 'commits': commits, 'full': have not in shas, 'total': len(shas), 'deploys': deps, 'links': links,
+    return ok({'repo': ENGINE_REPO, 'commits': commits, 'full': have not in shas, 'total': len(shas), 'deploys': deps, 'links': links, 'mapAt': _eng.get('map'),
                'rate': _eng['rate'], 'err': _eng['err'], 'at': int(time.time() * 1000)})
 
 
