@@ -620,3 +620,15 @@ Media tab" and "Audio tab > Make a voiceover / Make music" above.
 - Tested in the pane on a spare port with an empty project: the three tabs, the server's three live
   jobs, typing a script through a poll (caret kept, hint updated), the script kept across tabs, no
   console errors. Not tested: making a voiceover or music from the new place, light theme, phones.
+
+## Several video clips at once (2026-11-18, by request)
+
+The texts' group selection (`multi` / `group()`) now also works on the Video track (`GK`): Shift- or
+Cmd-click adds a clip, a second one takes it out. Clips sit end to end, so the group is not a span:
+dragging an end of any member multiplies every member's length by one factor (right end moves each
+`out`, left end each `in`; each clamped to 0.2 s and, for video, its own footage, so a clip at its
+limit stops while the others carry on). Dragging a body moves the members as one block, in their
+order. Delete removes them all. The inspector shows "N clips selected".
+Tested in the pane with three photo clips: Shift-click, the right end shrinking two of three by the
+same share with the middle one untouched, ⌘Z. Not tested: the left end, the block move, Delete,
+video clips at their footage limit.

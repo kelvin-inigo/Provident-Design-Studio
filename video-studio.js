@@ -102,7 +102,11 @@
   // any member stretches or shrinks the whole group about its far end, so the spacing between the
   // texts scales with them; dragging a body moves them together; Delete removes them all.
   const multi = new Set();
-  const group = () => sel && sel.kind === 'text' && multi.size > 1 && multi.has(sel.id) ? P.texts.filter(t => multi.has(t.id)) : null;
+  // VIDEO CLIPS TOO (2026-11-18, by request): the same Shift- or Cmd-click on the Video track.
+  // Clips sit end to end, so an end of any member scales every member's length by one factor
+  // (the right end moves each clip's end, the left end its start); a body moves them as a block.
+  const GK = { text: 1, clip: 1 };
+  const group = () => sel && GK[sel.kind] && multi.size > 1 && multi.has(sel.id) ? listOf(sel.kind).filter(t => multi.has(t.id)) : null;
   let T = 0, playing = false, exporting = false, dirty = true;
   let pps = 60, tab = 'media';
   const undo = [], redo = [];
@@ -452,7 +456,7 @@
   function del() {
     const it = find(sel); if (!it) return;
     const g = group();
-    mark(); if (g) P.texts = P.texts.filter(t => !multi.has(t.id)); else { const L = listOf(sel.kind); L.splice(L.indexOf(it), 1); } sel = null;
+    mark(); if (g && sel.kind === 'clip') P.clips = P.clips.filter(t => !multi.has(t.id)); else if (g) P.texts = P.texts.filter(t => !multi.has(t.id)); else { const L = listOf(sel.kind); L.splice(L.indexOf(it), 1); } sel = null;
     T = Math.min(T, total()); renderAll();
   }
   function dup() {
@@ -1085,7 +1089,7 @@
     const step = [.5, 1, 2, 5, 10, 15, 30, 60].find(s => s * pps >= 64) || 60;
     for (let t = 0; t * pps < W - LBL; t += step) h += '<span class="vs-tick" style="left:' + (t * pps) + 'px">' + (step < 1 ? t.toFixed(1) : Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0')) + '</span>';
     h += '</div>';
-    const grp = group(), on = (k, id) => sel && sel.kind === k && (sel.id === id || (grp && k === 'text' && multi.has(id))) ? ' data-on="1"' : '';
+    const grp = group(), on = (k, id) => sel && sel.kind === k && (sel.id === id || (grp && multi.has(id))) ? ' data-on="1"' : '';
     const hd = '<span class="vs-hd l" data-h="l"></span><span class="vs-hd r" data-h="r"></span>';
     TRACKS.forEach(tr => {
       let body = '', rowH = 38;
@@ -1153,17 +1157,17 @@
     if (e.target.closest('.vs-ph')) { drag = { mode: 'seek' }; if (playing) pause(); }
     else if (itEl) {
       const kind = itEl.dataset.kind, id = itEl.dataset.id, h = e.target.closest('.vs-hd');
-      const add = kind === 'text' && (e.shiftKey || e.metaKey);
+      const add = !!GK[kind] && (e.shiftKey || e.metaKey);
       if (add) {
-        if (sel && sel.kind === 'text') multi.add(sel.id); else multi.clear();
+        if (sel && sel.kind === kind) multi.add(sel.id); else multi.clear();
         if (multi.has(id) && multi.size > 1 && !h) {          // a second Shift-click takes it back out
-          multi.delete(id); sel = { kind: 'text', id: [...multi].pop() }; renderAll(); e.preventDefault(); return;
+          multi.delete(id); sel = { kind, id: [...multi].pop() }; renderAll(); e.preventDefault(); return;
         }
         multi.add(id);
-      } else if (!(kind === 'text' && multi.has(id))) multi.clear();
+      } else if (!(sel && sel.kind === kind && multi.has(id))) multi.clear();
       sel = { kind, id }; const it = find(sel), g = group();
       drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e), add,
-        g: g && g.map(t => ({ id: t.id, at: t.at, dur: t.dur })) };
+        g: g && g.map(t => ({ id: t.id, at: t.at, dur: t.dur, in: t.in, out: t.out })) };
       renderAll();
     } else {
       drag = { mode: 'seek' };
@@ -1184,7 +1188,20 @@
     const dx = e.clientX - drag.x0;
     if (!drag.moved) { if (Math.abs(dx) < 3) return; drag.moved = true; undo.push(drag.snap); redo.length = 0; }
     const it = find(drag), o = drag.o, d = dx / pps, m = media[it.mid];
-    if (drag.kind === 'clip') {
+    if (drag.kind === 'clip' && drag.g) {     // several clips: every length by one factor, or the block moves
+      const g = drag.g, L = g.reduce((a, x) => a + (x.out - x.in), 0), least = .2 / Math.min(...g.map(x => x.out - x.in));
+      if (drag.mode === 'move') {
+        const ids = new Set(g.map(x => x.id)), blk = P.clips.filter(c => ids.has(c.id)), rest = P.clips.filter(c => !ids.has(c.id));
+        const t = xToT(e); let acc = 0, idx = rest.length;
+        for (let i = 0; i < rest.length; i++) { const l = clipLen(rest[i]); if (t < acc + l / 2) { idx = i; break; } acc += l; }
+        rest.splice(idx, 0, ...blk); P.clips = rest;
+      } else {
+        const f = Math.max(least, (L + (drag.mode === 'trimr' ? d : -d)) / L);
+        g.forEach(x => { const c = P.clips.find(q => q.id === x.id), cm = c && media[c.mid]; if (!c) return;
+          const len = (x.out - x.in) * f, lim = cm && cm.kind === 'video' ? cm.dur : 120;
+          if (drag.mode === 'trimr') c.out = clamp(x.in + len, x.in + .2, lim); else c.in = clamp(x.out - len, 0, x.out - .2); });
+      }
+    } else if (drag.kind === 'clip') {
       const lim = m && m.kind === 'video' ? m.dur : 120;
       if (drag.mode === 'triml') it.in = clamp(o.in + d, 0, o.out - .2);
       else if (drag.mode === 'trimr') it.out = clamp(o.out + d, o.in + .2, lim);
@@ -1778,7 +1795,12 @@
     genTab(); $('#gen').hidden = rtab !== 'gen'; el.hidden = rtab === 'gen';
     if (rtab === 'gen') { paintGen(); return; }
     if (rtab === 'doc') { el.innerHTML = docHtml(); return; }
-    { const g = group(); if (g) {
+    { const g = group(); if (g && sel.kind === 'clip') {
+      const st = clipStarts(), ix = g.map(c => P.clips.indexOf(c)), a0 = Math.min(...ix.map(k => st[k])), L = g.reduce((a, c) => a + clipLen(c), 0);
+      el.innerHTML = '<div class="vs-cap"><b>' + g.length + ' clips selected</b><s>' + fmt(L) + ' in all, from ' + fmt(a0) + '</s></div>' +
+        '<div class="vs-sec"><div class="vs-none"><b>They change as one</b>Drag either end of any of them to make them all longer or shorter by the same share, or drag one to move them together. A video clip cannot grow past its own footage. Click one on its own to edit it.</div></div>';
+      return;
+    } if (g) {
       const a0 = Math.min(...g.map(t => t.at)), e0 = Math.max(...g.map(t => t.at + t.dur));
       el.innerHTML = '<div class="vs-cap"><b>' + g.length + ' texts selected</b><s>' + fmt(a0) + ' to ' + fmt(e0) + '</s></div>' +
         '<div class="vs-sec"><div class="vs-none"><b>They move as one</b>Drag either end of any of them to stretch or shrink them together, or drag one to move them all. Click one on its own to edit it.</div></div>';
@@ -2426,7 +2448,7 @@
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
     $('#delBtn').disabled = $('#dupBtn').disabled = !find(sel);
     T = clamp(T, 0, Math.max(0, total()));
-    if (!sel || sel.kind !== 'text' || !multi.has(sel.id)) multi.clear();
+    if (!sel || !GK[sel.kind] || !multi.has(sel.id)) multi.clear();
     renderLib(); renderInspector(); renderTimeline(); dirty = true; save();
   }
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
