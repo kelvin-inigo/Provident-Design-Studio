@@ -88,7 +88,7 @@
   function fresh() {
     return {
       v: 1, size: '9x16', clips: [], audio: [], texts: [], logos: [],
-      brand: { on: true, align: 'left', vpos: 'top', scale: 100, wash: 40, partner: null, pScale: 100, tint: 'match', ink: 'white' }
+      brand: { on: true, align: 'left', vpos: 'top', scale: 100, wash: 40, partner: null, pScale: 100, tint: 'match', ink: 'white', qr: null, qrPos: 'bl', qrScale: 100 }
     };
   }
   let P = fresh();
@@ -791,6 +791,27 @@
     im.onload = () => { pInk = inkBox(im); pKey = keyed(im, 'partner' + (++pSeq)); pKeyInk = pKey ? inkBox(pKey) : null; pTint = null; dirty = true; };
     pImg = im; pInk = null; pKey = null; im.src = p.u;
   }
+  // THE QR CODE (2026-11-18, by request): one uploaded image for the whole video, a small rounded
+  // square on a white plate (so it scans over any footage) in a bottom corner of the safe area, or
+  // top right in the wordmark's row. qrBox is the one geometry. Bottom right keeps clear of the
+  // Reels buttons (QR.rail, 9:16 only); a bottom wordmark lifts a bottom QR above its row; top
+  // right needs the wordmark top left, otherwise it falls back to bottom left.
+  const QR = { w: .16, pad: .07, r: .13, rail: 170, plate: '#ffffff' };
+  let qImg = null;
+  const qrTopOk = () => { const b = P.brand; return b.on && b.vpos === 'top' && b.align === 'left'; };
+  function qrBox() {
+    const b = P.brand, g = G(), S = g.w * QR.w * (b.qrScale || 100) / 100, pos = b.qrPos === 'tr' && !qrTopOk() ? 'bl' : b.qrPos || 'bl';
+    const lift = b.on && b.vpos === 'bottom' ? ART.logoPx * (b.scale / 100) * 2.4 : 0;
+    return { S, x: pos === 'bl' ? g.l : g.w - g.r - S - (pos === 'br' && P.size === '9x16' ? QR.rail : 0), y: pos === 'tr' ? g.t : g.h - g.b - S - lift };
+  }
+  function drawQr() {
+    const q = P.brand.qr; if (!q) return;
+    if (!qImg || qImg._u !== q.u) { const im = new Image(); im._u = q.u; im.onload = () => { dirty = true; }; qImg = im; im.src = q.u; }
+    if (!qImg.complete || !qImg.naturalWidth) return;
+    const k = qrBox(), pd = k.S * QR.pad;
+    cx.save(); cx.fillStyle = QR.plate; cx.beginPath(); cx.roundRect(k.x, k.y, k.S, k.S, k.S * QR.r); cx.fill();
+    cx.imageSmoothingEnabled = k.S - pd * 2 < qImg.naturalWidth; cx.drawImage(qImg, k.x + pd, k.y + pd, k.S - pd * 2, k.S - pd * 2); cx.restore();
+  }
   function drawBrand() {
     const b = P.brand; if (!b.on) return;
     const g = G(), L = ART.logoPx * (b.scale / 100), innerW = g.w - g.l - g.r;
@@ -1062,7 +1083,7 @@
     const ctas = P.texts.filter(t => t.call === 'cta' && T >= t.at && T < t.at + t.dur);
     ctas.forEach(ctaWash);
     if (!ctas.some(t => t.capHide === 'hide')) P.audio.forEach(drawCaption);
-    if (ctas.length) ctas.forEach(drawCta); else drawBrand();
+    if (ctas.length) ctas.forEach(drawCta); else { drawBrand(); drawQr(); }
     pvMirror();
   }
   function fitCanvas() {
@@ -1656,6 +1677,13 @@
         '<button class="vs-t" data-up="partner" title="Add a developer logo from this computer"><i>' + ico('add') + '</i><b>Add a logo</b></button></div>' +
         (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') : '') +
         '<span class="vs-note">Prints provident. | partner beside the wordmark, for the whole video. A logo you add stays on this computer.</span></div>' +
+      '<div class="vs-sec">' + H('QR code', b.qr ? esc(b.qr.name) : 'None') +
+        (b.qr ? '<div class="vs-f"><label>Position</label><div class="vs-seg">' + [['bl', 'Bottom left'], ['br', 'Bottom right'], ['tr', 'Top right']].map(o => { const off = o[0] === 'tr' && !qrTopOk(), cur = b.qrPos === 'tr' && !qrTopOk() ? 'bl' : b.qrPos || 'bl';
+            return '<button data-bk="qrPos" data-bv="' + o[0] + '"' + (cur === o[0] ? ' data-on="1"' : '') + (off ? ' disabled title="Top right shares the wordmark\'s row: show the wordmark at the top left first"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>' +
+            rng('b', 'qrScale', 'Size', b.qrScale || 100, 60, 160, '%') +
+            '<div class="vs-acts"><button class="p-ghost p-sm" data-qrrm="1">Remove</button><button class="p-ghost p-sm" data-up="qr">Replace</button></div>'
+          : '<div class="vs-acts"><button class="p-btn p-sm" data-up="qr">Upload a QR code</button></div>') +
+        '<span class="vs-note">A small square on a white plate, on for the whole video; it rests while the end card shows. Use a square image of the code. Text is not moved out of its way.</span></div>' +
       '<div class="vs-sec">' + H('Logo colour') + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) +
         '<span class="vs-note">Match wordmark paints the collaboration logo and every graphic you place in the wordmark\'s colour. Original keeps each file\'s own colours. A logo saved on a flat background has that background removed.</span></div>';
   }
@@ -1666,7 +1694,7 @@
   function pickFiles(want) {
     upWant = want; const fi = $('#fileIn');
     fi.accept = want === 'media' ? 'video/*,image/*,.mov' : want === 'audio' ? 'audio/*' : 'image/*';
-    fi.multiple = want !== 'partner'; fi.value = ''; fi.click();
+    fi.multiple = want !== 'partner' && want !== 'qr'; fi.value = ''; fi.click();
   }
   // the wordmark, collaboration logo and logo colour controls, wherever they are drawn
   function brandClick(e) {
@@ -1676,7 +1704,8 @@
       let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (x) {}
       localStorage.setItem(LKEY, JSON.stringify(own.filter(o => o.id !== el.dataset.rmdev))); renderInspector(); return true;
     }
-    if ((el = q('data-up')) && el.dataset.up === 'partner') { pickFiles('partner'); return true; }
+    if ((el = q('data-up')) && (el.dataset.up === 'partner' || el.dataset.up === 'qr')) { pickFiles(el.dataset.up); return true; }
+    if (q('data-qrrm')) { mark(); P.brand.qr = null; renderAll(); return true; }
     if ((el = q('data-partner'))) {
       mark(); const l = devLib().find(x => x.id === el.dataset.partner);
       P.brand.partner = l ? { id: l.id, name: l.name, u: l.u } : null; if (l) P.brand.on = true;
@@ -1719,7 +1748,17 @@
   });
   $('#fileIn').addEventListener('change', e => {
     const files = e.target.files; if (!files.length) return;
-    if (upWant === 'partner') {
+    if (upWant === 'qr') {                    // kept in the project itself, at most 600 px, so it travels with it
+      const f = files[0], im = new Image(), url = URL.createObjectURL(f);
+      im.onload = () => {
+        const sc = Math.min(1, 600 / Math.max(im.naturalWidth, im.naturalHeight)), k = document.createElement('canvas');
+        k.width = Math.max(1, Math.round(im.naturalWidth * sc)); k.height = Math.max(1, Math.round(im.naturalHeight * sc));
+        const x = k.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, k.width, k.height); x.imageSmoothingEnabled = sc < 1; x.drawImage(im, 0, 0, k.width, k.height);
+        URL.revokeObjectURL(url); mark(); P.brand.qr = { name: f.name.replace(/\.[^.]+$/, ''), u: k.toDataURL('image/png') }; renderAll();
+      };
+      im.onerror = () => { URL.revokeObjectURL(url); toast('That file could not be read as an image.'); };
+      im.src = url;
+    } else if (upWant === 'partner') {
       const f = files[0], rd = new FileReader();
       rd.onload = () => {
         const l = { id: 'own-' + uid(), name: f.name.replace(/\.[^.]+$/, ''), u: rd.result };

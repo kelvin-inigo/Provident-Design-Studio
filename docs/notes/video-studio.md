@@ -632,3 +632,21 @@ order. Delete removes them all. The inspector shows "N clips selected".
 Tested in the pane with three photo clips: Shift-click, the right end shrinking two of three by the
 same share with the middle one untouched, ⌘Z. Not tested: the left end, the block move, Delete,
 video clips at their footage limit.
+
+## QR code for the whole video (2026-11-18, by request; positions agreed first)
+
+Right rail › Whole video › **QR code**, under Collaboration logo: Upload a QR code, then Position
+(Bottom left / Bottom right / Top right), Size (60–160%), Remove, Replace.
+
+- Stored in the project itself: `P.brand.qr = { name, u }` (a PNG data URL, at most 600 px), with
+  `qrPos` and `qrScale`, so it survives a reload and travels in the `.casv` bundle.
+- `qrBox()` is the one geometry, `drawQr()` paints it in `draw()` right after `drawBrand()`, so the
+  preview, Save frame and the export all get it. It rests while an end card shows, like the wordmark.
+- 16% of the width (173 px at 100%), on a white rounded plate (`QR`). Bottom positions end on the
+  safe area's bottom edge (460 up on 9:16); Bottom right is pulled 170 further in on 9:16 for the
+  Reels buttons; a bottom wordmark lifts a bottom QR above its row. Top right is offered only while
+  the wordmark is shown top left (brand rule: in the wordmark's row); otherwise it draws bottom left.
+- Text is not moved out of its way.
+- Tested in the pane on a spare port: upload, the plate's pixels at each of the three positions on
+  9:16, reload keeps it, labels fit. Not tested: 1:1, a bottom wordmark, the export file, Send to CAS,
+  scanning a real code.
