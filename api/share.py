@@ -1933,6 +1933,54 @@ def eng_refresh():
                                        'url': s0.get('environment_url') or s0.get('target_url') or ''}
 
 
+# ── THE CONNECTIONS ONLY THE SERVER CAN SEE (2026-11-18, by request: "show also live status if
+# connections are working"): the share store, Anthropic and Roam (each key checked with a call that
+# costs nothing), and which keys the deployment has. Names only, never values. Every 5 minutes.
+_links = {'at': 0, 'v': {}}
+
+
+def eng_links():
+    if time.time() - _links['at'] < 300 and _links['v']:
+        return _links['v']
+    out = {}
+
+    def ms(t0):
+        return int((time.time() - t0) * 1000)
+    t0 = time.time()
+    try:
+        store().cmd('PING')
+        out['store'] = {'s': 'ok', 't': 'Answering · %d ms' % ms(t0)}
+    except Fail as e:
+        out['store'] = {'s': 'bad', 't': e.msg[:140]}
+    key = (os.environ.get('ANTHROPIC_API_KEY') or '').strip()
+    if not key:
+        out['anthropic'] = {'s': 'off', 't': 'No key: the Arabic falls back to Google Translate'}
+    else:
+        t0 = time.time()
+        req = urllib.request.Request('https://api.anthropic.com/v1/models?limit=1', headers={'x-api-key': key, 'anthropic-version': '2023-06-01'})
+        try:
+            with urllib.request.urlopen(req, timeout=6):
+                out['anthropic'] = {'s': 'ok', 't': 'Key accepted · %d ms' % ms(t0)}
+        except urllib.error.HTTPError as e:
+            out['anthropic'] = {'s': 'bad' if e.code in (401, 403) else 'warn', 't': 'Key refused' if e.code in (401, 403) else 'HTTP %d' % e.code}
+        except Exception as e:  # noqa: BLE001
+            out['anthropic'] = {'s': 'bad', 't': 'Not reachable (%s)' % e.__class__.__name__}
+    if not (os.environ.get('ROAM_API_KEY') or '').strip():
+        out['roam'] = {'s': 'off', 't': 'No key: Send to copy check posts nothing'}
+    else:
+        t0 = time.time()
+        try:
+            roam_call('user.list?limit=1')
+            out['roam'] = {'s': 'ok', 't': 'Key accepted · %d ms' % ms(t0)}
+        except Fail as e:
+            out['roam'] = {'s': 'bad', 't': e.msg[:140]}
+    have = lambda k: bool((os.environ.get(k) or '').strip())  # noqa: E731
+    out['keys'] = {k: have(k) for k in ('HUB_PUSH_KEY', 'HUB_DESIGN_KEY', 'GITHUB_TOKEN', 'GOOGLE_CLIENT_SECRET', 'ACCESS_ADMIN')}
+    out['at'] = int(time.time() * 1000)
+    _links.update(at=time.time(), v=out)
+    return out
+
+
 def engine(d):
     email, _ = acc_who(d.get('tok'))
     if email != acc_admin():
@@ -1951,7 +1999,11 @@ def engine(d):
     commits = _eng['commits'][:shas.index(have)] if have in shas else _eng['commits']
     deps = [dict(x, **(_eng['states'].get(x['id']) and {'state': _eng['states'][x['id']]['state'], 'stateAt': _eng['states'][x['id']]['at'],
                                                         'url': _eng['states'][x['id']]['url']} or {})) for x in _eng['deploys']]
-    return ok({'repo': ENGINE_REPO, 'commits': commits, 'full': have not in shas, 'total': len(shas), 'deploys': deps,
+    try:
+        links = eng_links()
+    except Exception as e:  # noqa: BLE001  never let a probe stop the feed
+        links = {'err': e.__class__.__name__}
+    return ok({'repo': ENGINE_REPO, 'commits': commits, 'full': have not in shas, 'total': len(shas), 'deploys': deps, 'links': links,
                'rate': _eng['rate'], 'err': _eng['err'], 'at': int(time.time() * 1000)})
 
 

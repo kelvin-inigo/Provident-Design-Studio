@@ -706,3 +706,23 @@ the route, and lands an AI Engineer (or a named role) whose role opens nothing e
 - **Verified** on share-dev :8799 with the real GitHub (unauthenticated): 406 commits, 99 deployed,
   the live deployment c386e41; light, dark, 1440, 1280 (top bar fits, 1265 of 1280), 375 (no overflow);
   the AI engineer lands on Engine with Home, Status, Engine in the bar. Not run: on Vercel, with a token.
+
+# ENGINE › HOW IT CONNECTS (2026-11-18, later)
+
+By request ("a diagram view how all apps are connected, and what external apps are connected, show
+also live status if connections are working"). A map between the services row and the day strip:
+four lanes (this Mac and the office · the browser · PDS server · outside services), 18 boxes and 23
+lines (`NODES`, `WIRES` in engine.js). Boxes are laid out by CSS (they wrap on a phone); the lines
+are an SVG drawn over them from the boxes' real rectangles (`drawWires`, on a timer, not rAF — a
+background pane never fires rAF — and again on resize), routed down, up or sideways by where the
+boxes sit. Each line takes its colour from one check (`stateOf`): the browser's own probes (Drive
+about with this computer's token, Google Translate, the Content Hub's `/api/imports` — 200 or 401
+both mean up; a CORS failure with an opaque no-cors answer means the ngrok tunnel answers but the
+hub did not, which is what an ngrok sign-in in front of it looks like), the server's `links` in the
+engine answer (`eng_links()`: Upstash PING, Anthropic `/v1/models?limit=1`, Roam `user.list?limit=1`,
+the key names set; every 5 min), and **Check this Mac** (127.0.0.1:7311 / 7312 / 7313 and
+localhost:8794, CORS then no-cors; remembered in `provident-engine-mac`) — only on a click, because
+Chrome asks for local-network permission. Hover or focus a box: its lines stay, the rest dim.
+Verified on share-dev :8799 at 1440 (light, dark), 375 (no overflow after the heading wraps); this
+Mac's four helpers really listening matched the four green boxes; the hub's tunnel now redirects
+to idp.ngrok.com, shown amber.

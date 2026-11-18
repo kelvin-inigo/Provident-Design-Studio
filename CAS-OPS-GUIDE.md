@@ -259,6 +259,14 @@ status page, kept live while it is open:
   progress or a failed one shows under it.
 - The services the studios lean on (the studio server, Google sign-in, the share store, the GitHub
   feed), each with a dot: green answering, amber slow or nearly full, red down.
+- **How it connects**: a map of every part of PDS and every outside service it talks to, in four
+  lanes (this Mac and the office; the browser; PDS's server on Vercel; outside services such as
+  Google, Upstash, Anthropic, Roam and GitHub). Each box says how its check went just now, and each
+  line is coloured by whether that connection works: green moving dashes working, amber slow or
+  partly working, red not working, grey dots not set up or not running here. Hover a box to follow
+  its lines. **Check this Mac** also checks the helpers on your own Mac (cut-outs, Photoshop, CASV,
+  the studio tools); Chrome may ask to let the page reach your local network. The server-side
+  checks (Upstash, Anthropic, Roam) run at most every five minutes.
 - **Every day since the first commit**: one bar per day since 10 September 2026, taller for more
   commits, darker on days something was shipped to Vercel. Click a bar to jump to that day.
 - **Timeline**: every commit on main, newest first, by day, with its time, its area (CAS, OPS, Home,
