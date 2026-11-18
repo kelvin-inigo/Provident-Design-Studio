@@ -96,6 +96,8 @@ exports download as a zip. The studios fit tablets and phones.
    earlier, approved or not. The campaign moves to **Closed**.
 
 - **Markets:** Local (AED), International (USD), International EUR.
+- **The Dirham sign:** in CAS, "AED" typed in any component draws as the UAE Dirham sign on the
+  ad and in every export. The copy itself keeps "AED" (fields, Copy view, ad text), so write AED.
 - **Audiences:** Residential: Family, Investor. Commercial: Investor, Hybrid (an end user who rents
   but may buy).
 - **Each audience's steps:** Design › ENG copy check › Translation › Done. The designer is not held

@@ -40,6 +40,11 @@
 @font-face{font-family:'Readex Pro';src:url('./fonts/ReadexPro-arabic.woff2') format('woff2');font-weight:300 500;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC}
 @font-face{font-family:'Readex Pro';src:url('./fonts/ReadexPro-latin-ext.woff2') format('woff2');font-weight:300 500;font-style:normal;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Readex Pro';src:url('./fonts/ReadexPro-latin.woff2') format('woff2');font-weight:300 500;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+/* The UAE Dirham sign, U+20C3 — vendor/dirham (npm dirham 1.5.3, MIT). One glyph, so the
+   range is that one code point: it leads every canvas stack (CampaignStudio.dirhamStack)
+   and draws "AED" as the sign, never any other character. One weight, declared across the
+   whole axis so the browser never fakes a bolder one. */
+@font-face{font-family:'Dirham-Sans';src:url('./vendor/dirham/dirham-sans.woff2') format('woff2');font-weight:100 1000;font-style:normal;font-display:block;unicode-range:U+20C3}
 /* Every run inside a canvas preview resolves its OWN base direction from its first
    strong character — the DOM half of what StudioBase.dirOf() does for the export, so
    "4.85 مليون درهم" orders identically in the editor and in the render. A browser
@@ -9358,9 +9363,54 @@ class CampaignStudio extends StudioBase {
       return { fam: window.providentFontFam, stack: window.providentFont, label: window.providentFontFam };
     };
     StudioBase.ensureFont = function (key) {
-      return Promise.all([ef.call(StudioBase, key), CampaignStudio.lookReady()]).then(() => {});
+      return Promise.all([ef.call(StudioBase, key), CampaignStudio.lookReady(), CampaignStudio.dirhamReady()]).then(() => {});
     };
   }
+  // ── The UAE Dirham sign (U+20C3, Unicode 18.0) in place of "AED" ──────────────────────
+  // Typed copy keeps "AED" — the Copy view, the price parser, review links and the ad text
+  // all read it — and the ARTWORK draws the sign: meas() below, both renderers and the
+  // editor's element views all go through aed(), so the width that is measured is the width
+  // that is drawn. "AED" only as a word of its own ("AED 2.6M", "AED2.6M"), never inside one.
+  // System fonts do not carry U+20C3 yet, so vendor/dirham/dirham-sans.woff2 (npm `dirham`)
+  // is declared with unicode-range U+20C3 and put FIRST in every canvas stack: it draws that
+  // one character and nothing else, and as it has no space glyph it is never the primary
+  // font, so ascent, line boxes and every other glyph are the stack's own.
+  static AED_RE = /(^|[^A-Za-z])AED(?![A-Za-z])/g;
+  static aed(t) { return (t == null || String(t).indexOf('AED') < 0) ? t : String(t).replace(CampaignStudio.AED_RE, '$1⃃'); }
+  static DIRHAM_FAM = 'Dirham-Sans';
+  static dirhamStack() {
+    const D = "'" + CampaignStudio.DIRHAM_FAM + "',";
+    ['providentFont', 'providentFontHead'].forEach(k => { const s = window[k]; if (s && s.indexOf(CampaignStudio.DIRHAM_FAM) < 0) window[k] = D + s; });
+  }
+  // a canvas never pulls a webfont, so the face is asked for once, with the sign itself
+  static dirhamReady() {
+    if (!CampaignStudio._dhP) {
+      CampaignStudio._dhP = (document.fonts ? document.fonts.load('300 40px "' + CampaignStudio.DIRHAM_FAM + '"', '⃃') : Promise.resolve())
+        .catch(() => {}).then(() => {});
+    }
+    return CampaignStudio._dhP;
+  }
+  // the SVG export carries the face itself (it is 1 KB) when a run draws the sign
+  static dirhamFace() {
+    if (CampaignStudio._dhFace != null) return Promise.resolve(CampaignStudio._dhFace);
+    return fetch('./vendor/dirham/dirham-sans.woff2').then(r => r.ok ? r.arrayBuffer() : null).then(b => {
+      let s = '';
+      if (b) { const u = new Uint8Array(b); for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); s = btoa(s); }
+      return (CampaignStudio._dhFace = s);
+    }).catch(() => (CampaignStudio._dhFace = ''));
+  }
+  static { // after the look wrapper above, so the sign leads whichever stack it published
+    const ap = StudioBase.applyFont;
+    StudioBase.applyFont = function (state) {
+      const f = ap.call(StudioBase, state);
+      CampaignStudio.dirhamStack();
+      return Object.assign({}, f, { stack: window.providentFont });
+    };
+    CampaignStudio.dirhamStack();
+    CampaignStudio.dirhamReady();
+    CampaignStudio.dirhamFace();
+  }
+  meas(text, px, weight, serif, ls) { return super.meas(CampaignStudio.aed(text), px, weight, serif, ls); }
   // ascent of a given stack (the headline face), cached beside fontAsc's own
   static ascOf(stack) {
     StudioBase._asc = StudioBase._asc || {};
@@ -11077,7 +11127,7 @@ class CampaignStudio extends StudioBase {
         // a headline-face run takes that face, and the line-height that puts ITS baseline px below the top
         const hdS = e.hd && window.providentFontHead && window.providentFontHead !== window.providentFont ? window.providentFontHead : null;
         const fa = hdS ? CampaignStudio.ascOf(hdS) : null;
-        return { t: e.text, style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(fa ? e.px * (2 - fa.a + fa.d) : StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre', fontFamily: hdS || undefined }) };
+        return { t: CampaignStudio.aed(e.text), style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(fa ? e.px * (2 - fa.a + fa.d) : StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre', fontFamily: hdS || undefined }) };
       }
       if (e.k === 'icon') return { t: '', isIcon: '1', slot: 'adstudio-ic-' + m.id + '-' + e.slot, tint: e.ink,
         style: { position: 'absolute', left: cq(e.x), top: cq(e.y), width: cq(e.w), height: cq(e.h) } };
@@ -12367,7 +12417,8 @@ class CampaignStudio extends StudioBase {
         // Base direction per run. textAlign is pinned to 'left' because the default
         // 'start' means the RIGHT edge once direction is rtl, which would move every
         // Arabic run to the far side of its own x.
-        const dir = StudioBase.dirOf(o.text);
+        const txt = CampaignStudio.aed(o.text);   // AED draws as the Dirham sign — see aed()
+        const dir = StudioBase.dirOf(txt);
         ctx.direction = dir; ctx.textAlign = 'left';
         // Safari has no ctx.letterSpacing and the old try/catch swallowed that
         // silently, so tracked caps exported narrower than they rendered.
@@ -12376,15 +12427,15 @@ class CampaignStudio extends StudioBase {
         // never run on an RTL run: advancing glyph by glyph left to right would undo
         // the bidi reordering entirely. Arabic carries no tracking, so there is
         // nothing to fall back FOR.
-        if (dir === 'rtl') ctx.fillText(o.text, o.x, o.y);
-        else window.providentFillText(ctx, o.text, o.x, o.y, o.ls || 0);
+        if (dir === 'rtl') ctx.fillText(txt, o.x, o.y);
+        else window.providentFillText(ctx, txt, o.x, o.y, o.ls || 0);
       }
     });
     return c;
   }
   renderOpsToSvg(built) {
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    let defs = '', body = '', gi = 0, ci = 0;
+    let defs = '', body = '', gi = 0, ci = 0, dhUsed = false;
     // The ids a `blur` op's backdrop can re-draw, in PAINT ORDER, accumulated as the walk
     // emits them. PARITY: Organic names a ground texture and a ranking numeral here and this
     // engine names neither, but the `blur` op is exactly the op whose one-sided handling once
@@ -12456,9 +12507,11 @@ class CampaignStudio extends StudioBase {
           body += `<rect x="0" y="0" width="${built.W}" height="${built.H}" fill="url(#tg${gi})" mask="url(#tm${gi})"${o.clip ? ` clip-path="url(#c${ci})"` : ''}/>`;
         }
       } else if (o.op === 'text') {
+        const txt = CampaignStudio.aed(o.text);   // AED draws as the Dirham sign — see aed()
+        if (txt !== o.text) dhUsed = true;
         const fam = (o.serif === 'hd' && window.providentFontHead && window.providentFontHead !== window.providentFont)
           ? window.providentFontHead.replace(/'/g, '')
-          : (window.providentFontFam || 'Google Sans Flex') + ', Google Sans Flex, sans-serif';
+          : CampaignStudio.DIRHAM_FAM + ', ' + (window.providentFontFam || 'Google Sans Flex') + ', Google Sans Flex, sans-serif';
         let fill = o.fill;
         if (o.grad) {
           gi++;
@@ -12473,12 +12526,14 @@ class CampaignStudio extends StudioBase {
         // relative to the base direction, so under rtl `start` is the RIGHT edge. The
         // run is therefore anchored at `end` and placed at its right edge, which puts
         // its left edge back on the op's x exactly where the canvas draws it.
-        const dir = StudioBase.dirOf(o.text);
-        const tw = dir === 'rtl' ? this.meas(o.text, o.px, o.weight, o.serif, o.ls || 0) : 0;
+        const dir = StudioBase.dirOf(txt);
+        const tw = dir === 'rtl' ? this.meas(txt, o.px, o.weight, o.serif, o.ls || 0) : 0;
         const bidi = dir === 'rtl' ? ` direction="rtl" text-anchor="end"` : '';
-        body += `<text x="${dir === 'rtl' ? o.x + tw : o.x}" y="${o.y}" font-family="${fam}" font-size="${o.px}" font-weight="${o.weight}" fill="${fill}"${o.ls ? ` letter-spacing="${o.ls}"` : ''}${bidi}>${esc(o.text)}</text>`;
+        body += `<text x="${dir === 'rtl' ? o.x + tw : o.x}" y="${o.y}" font-family="${fam}" font-size="${o.px}" font-weight="${o.weight}" fill="${fill}"${o.ls ? ` letter-spacing="${o.ls}"` : ''}${bidi}>${esc(txt)}</text>`;
       }
     });
+    // the file carries the sign's face, so it draws wherever the SVG is opened
+    if (dhUsed && CampaignStudio._dhFace) defs = `<style>@font-face{font-family:'${CampaignStudio.DIRHAM_FAM}';src:url(data:font/woff2;base64,${CampaignStudio._dhFace}) format('woff2');font-weight:100 1000;unicode-range:U+20C3}</style>` + defs;
     // A size with a file size of its own (the 758 banner is laid out at 1880) states that
     // size; the viewBox stays in canvas units, and the two share one aspect exactly.
     const svgW = built.out ? built.out[0] : built.W, svgH = built.out ? built.out[1] : built.H;
@@ -15749,7 +15804,7 @@ class CampaignStudio extends StudioBase {
           view.tStyle = { position: 'relative', width: cq(gW), height: cq(L.h) };
           view.custEls = L.els.map(e => {
             const at = { position: 'absolute', left: cq(e.x), top: cq(e.k === 'text' ? e.y - e.px : e.y) };
-            if (e.k === 'text') return { t: e.text, style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre' }) };
+            if (e.k === 'text') return { t: CampaignStudio.aed(e.text), style: Object.assign(at, { fontSize: cq(e.px), lineHeight: cq(StudioBase.baseLH(e.px)), fontWeight: e.weight, color: e.fill, letterSpacing: e.ls ? cq(e.ls) : 'normal', whiteSpace: 'pre' }) };
             if (e.k === 'icon') return { t: '', isIcon: '1', slot: 'adstudio-ic-' + m.id + '-' + e.slot,
               tint: m.icoOrig ? undefined : CampaignStudio.icoInk(m, e.ink), style: Object.assign(at, { width: cq(e.w), height: cq(e.h) }) };
             // a stroke is a ring half in, half out — a canvas stroke is centred on the edge, and
@@ -17946,6 +18001,8 @@ class Component extends DCLogic {
     // not the localStorage key — CampaignStudio.load() owns that — so it stays exactly as
     // it was and no saved project moves.
     this.eng = new CampaignStudio(this, 'campaign');
+    // the Dirham face lands after the first layout; lay out again so "AED" measures as the sign
+    CampaignStudio.dirhamReady().then(() => { try { this.forceUpdate(); } catch (e) {} });
   }
 
   // The studio this document is, and the one it links to. An entry carrying `file` IS

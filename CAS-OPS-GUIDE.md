@@ -882,6 +882,9 @@ What's on the screen, from left to right:
 - **Edit its words:** click the component on the canvas, then type in **This component**.
   - Headline, hook and body take line breaks (Enter), up to 4 lines.
   - Tag chips and spec rows have one field per item. Use **+** to add one and × to remove one.
+  - **AED becomes the Dirham sign on the ad.** Type "AED" as usual ("From AED 2.6M"); the canvas and
+    every export draw the UAE Dirham sign in its place. The field, the layers list and the Copy view
+    keep "AED", so the ad text Meta shows is unchanged.
 - **Change its style:** **This component** → **Style**. Each tile is your component, with your
   words, drawn in that style — click the one you want. Hover a tile to see what it's for.
 

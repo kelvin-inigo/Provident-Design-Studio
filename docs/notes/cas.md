@@ -3976,3 +3976,42 @@ the request against a fake Claude endpoint with the current SDK (2.8.0, Python 3
 beta header, `fallbacks`, cached system, schema, the line roles; in CAS on the stand-in, both
 paths on a real layout (7 lines, one Undo each) — Claude (dry) and the fallback with the call
 failing. **Not exercised:** a real Claude call (no key here) and the Arabic card's look.
+
+# "AED" DRAWS AS THE UAE DIRHAM SIGN ON THE CANVAS (2026-11-18, by request)
+
+By request: wherever "AED" is typed in CAS, the ad shows the UAE Dirham sign (U+20C3, Unicode
+18.0, unveiled by the CBUAE 27 Mar 2025) instead. The source is npm `dirham` 1.5.3
+(github.com/pooyagolchian/dirham, MIT), **vendored** in `vendor/dirham/` because this machine has
+no JS toolchain: only `dirham-sans.woff2` (1 KB, the package's `dist/fonts/sans/`), its LICENSE, the
+sign's SVG and a README with the tarball's integrity hash.
+
+**The copy keeps "AED"; only the artwork draws the sign.** The fields, the layers rail, the Copy
+view, the price parser (`/(AED|USD|EUR…)\s?\d/`), review links, the Arabic translation and the ad
+text all still read and write "AED" — Meta's text and most phones have no glyph for U+20C3 yet,
+and rewriting stored copy would break every one of those readers. `CampaignStudio.aed(t)` swaps
+"AED" as a word of its own (`AED 2.6M`, `AED2.6M`, `(AED)`; never `DAED` or `AEDX`; case as typed)
+and is called at exactly four places, so measuring and drawing cannot disagree:
+- `meas()` — CampaignStudio overrides StudioBase's, so every wrap, centre and box width is the
+  sign's width (narrower than "AED": a centred hook moved 12.8 px at 35 px).
+- `renderOpsToCanvas` and `renderOpsToSvg` text ops. The ops themselves still carry "AED".
+- `elsView` (built-in components) and the `cust` element map in the editor.
+
+**The face leads every canvas stack.** `@font-face 'Dirham-Sans'` (CAS stylesheet, after Readex
+Pro) has `unicode-range: U+20C3` and `font-weight: 100 1000` (one weight, never synthesised bold).
+A second static block after the look wrapper wraps `StudioBase.applyFont` again and prefixes
+`'Dirham-Sans',` to `providentFont` and `providentFontHead` (`dirhamStack`), so the canvas, the
+preview box and `meas()` all name it. It has no space glyph, so it is never the primary font:
+`fontAsc`, line boxes and every other glyph are the stack's own. **Proven: op census with the
+swap off, 4 templates x dark/light x left/centre x sq/pt/st/ls/bn/bs = 96 groups, 1,194 ops, 0
+differing against the pre-change file.** With it on, 46 groups differ, every one containing AED;
+the 26 AED groups that do not are left-aligned runs with nothing after them. Preview DOM width
+against `meas()`: within 0.02 canvas px.
+- A canvas never pulls a webfont: `dirhamReady()` loads it once with the sign as the probe text,
+  `ensureFont` waits for it, and the shell `forceUpdate`s when it lands (the first layout can
+  otherwise measure the fallback box).
+- The SVG export names `Dirham-Sans` first and, when a run draws the sign, embeds the woff2 as a
+  data URI in a `<style>` in `<defs>` (`dirhamFace()` fetches it once at boot; from disk the fetch
+  fails and the SVG falls back to naming the family).
+- The font has one weight. The sign reads heavier than Light 300 figures beside it; the package's
+  SVG weight variants could be drawn as paths if that is ever wanted.
+- CAS only. OPS's stacks are untouched (the face is not declared there).
