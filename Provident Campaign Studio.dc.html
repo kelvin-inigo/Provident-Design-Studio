@@ -13061,6 +13061,8 @@ class CampaignStudio extends StudioBase {
     const T = CampaignStudio.PXT[sizeKey], v = state.variants[vi];
     const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = clip.url;
     await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = () => rej(new Error('The clip could not be read.')); });
+    // wait until the browser says it can play straight through, so the first seconds do not stall
+    if (vid.readyState < 4) await new Promise(res => { vid.oncanplaythrough = res; setTimeout(res, 3000); });
     // the picture the design reads as its background photo
     const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight;
     fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
@@ -13072,7 +13074,7 @@ class CampaignStudio extends StudioBase {
     const built = this.buildOps(state, vi, sizeKey, A);
     const rc = ui.canvas; rc.width = T.W; rc.height = T.H;
     const rx = rc.getContext('2d');
-    let frames = 0;
+    let frames = 0, lost = 0;
     // every painted frame is pushed to the recorder by hand (captureStream(0) + requestFrame), so
     // the file holds exactly what was drawn
     const stream = rc.captureStream(0), track = stream.getVideoTracks()[0];
@@ -13089,18 +13091,25 @@ class CampaignStudio extends StudioBase {
     // Browser pane: 2 rAF a second against 31 timers), and the file then stutters. 30 a second,
     // skipping a tick whose picture has not moved on.
     await new Promise(res => {
-      let done = false, last = -1; const end = () => { if (!done) { done = true; res(); } };
+      let done = false, last = -1, lastW = 0; const end = () => { if (!done) { done = true; res(); } };
       const tick = () => {
         if (done) return; if (ui.cancelled || vid.ended) return end();
         const t = performance.now();
-        if (vid.currentTime !== last) { last = vid.currentTime; paint(); ui.progress(vid.duration ? vid.currentTime / vid.duration : 0); }
+        if (vid.currentTime !== last) {
+          // A HITCH IS MEASURED (2026-11-18): the recording is real time, so a tick that arrives late
+          // (the clip ran on without being painted) or a clip that stood still leaves a freeze or a
+          // skip in the file. Anything past 0.12 s between two painted frames is counted as time lost;
+          // anExport records the size again when it adds up.
+          if (last >= 0) { const gm = vid.currentTime - last, gw = (t - lastW) / 1000, g = Math.max(gm, gw); if (g > .12) lost += g - .04; }
+          last = vid.currentTime; lastW = t; paint(); ui.progress(vid.duration ? vid.currentTime / vid.duration : 0);
+        }
         setTimeout(tick, Math.max(0, 33 - (performance.now() - t)));
       };
       vid.onended = end; vid.onerror = end;
       setTimeout(tick, 33);
     });
     vid.pause(); rec.stop(); await stopped; stream.getTracks().forEach(t => t.stop());
-    this._anLast = { size: sizeKey, frames, secs: (performance.now() - t0) / 1000, mime };
+    this._anLast = { size: sizeKey, frames, secs: (performance.now() - t0) / 1000, mime, lost };
     if (ui.cancelled) return null;
     return new Uint8Array(await new Blob(chunks, { type: mime }).arrayBuffer());
   }
@@ -13125,7 +13134,14 @@ class CampaignStudio extends StudioBase {
       for (let i = 0; i < jobs.length; i++) {
         const [vi, k] = jobs[i];
         ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + (k === 'sq' ? '1:1' : '9:16') + '. It takes as long as the clip; keep this tab in front.');
-        const data = await this.anRecord(state, vi, k, assets, this._clips[vi], mime, ui);
+        let data = await this.anRecord(state, vi, k, assets, this._clips[vi], mime, ui);
+        // one that stuttered is recorded once more and the smoother of the two is kept
+        if (data && this._anLast && this._anLast.lost > .25) {
+          const first = this._anLast.lost;
+          ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + (k === 'sq' ? '1:1' : '9:16') + ' again: the first pass stuttered. Keep this tab in front.');
+          const again = await this.anRecord(state, vi, k, assets, this._clips[vi], mime, ui);
+          if (!again) data = null; else if (this._anLast.lost < first) data = again; else this._anLast.lost = first;
+        }
         if (!data) { this.setState({ exportStatus: 'Animated export cancelled — nothing was saved.' }); return; }
         files.push({ name: this.exportPath(name, vi, k, ext).replace(/\.(mp4|webm)$/, '_animated.$1'), data });
       }

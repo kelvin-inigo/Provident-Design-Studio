@@ -4021,3 +4021,18 @@ against `meas()`: within 0.02 canvas px.
 The user: "on CAS you had Scale and Scrim hidden by default, show it by default". Both `details`
 in the Layout column carry `data-def="1"` now. `accBind` still lets a stored choice win, so a
 computer that has toggled either keeps what it chose; `data-acc` keys are unchanged.
+
+## Animated export: a stuttering pass is recorded again (2026-11-18, by request)
+
+The user sent a 1:1 `_feed_animated.mp4` (The Vault by Imtiaz) and asked to "fix this glitch on 1:1
+video background". Measured by seeking the file at 30 steps a second: 19 repeated frames between
+0:04 and 0:06 (0 to 3 a second elsewhere), just before a scene cut in the clip at 5.23 s; the 9:16
+of the same export had them spread evenly (about 4 a second, a lower frame rate, no freeze). No
+spatial fault was found in single frames. My reading: a real-time hitch during the first job.
+- `anRecord` measures it: more than 0.12 s between two painted frames (clip time or wall time) is
+  time lost, summed in `_anLast.lost`. It also waits for `canplaythrough` before starting.
+- `anExport` records that size once more when `lost > 0.25` and keeps the pass that lost less.
+- Still real time: a muxer with explicit timestamps (WebCodecs) would remove the cause, and there is
+  none in `vendor/`. Not built.
+- Not tested: an actual export after the change (needs sign-in and a clip). The script passes a
+  syntax check only. Whether this was the glitch the user saw is not confirmed.
