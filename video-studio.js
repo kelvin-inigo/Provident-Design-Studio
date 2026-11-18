@@ -1826,7 +1826,7 @@
     pTint = null; dirty = true; save(); renderAll();
     toast(g[0] + ' applied to ' + a.peers.length + ' more on the ' + a.track + ' track. ⌘Z undoes it.');
   }
-  let animOpen = false;             // Animate this photo is folded until asked for, or once a move is chosen
+  let animOpen = true;              // Animate this photo is open by default (by request, 2026-11-18); folding it is remembered until reload
   function renderInspector() {
     const it = find(sel), el = $('#insp'); let h = '';
     const key = it ? sel.kind + ':' + sel.id : '';
@@ -1866,7 +1866,7 @@
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
         rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, ''));
-      if (!vid) { const open = animOpen || it.move || it.job;
+      if (!vid) { const open = animOpen || it.job;
         h += animHtml(it, (t, meta, body) => '<details class="vs-acc" data-acc="anim"' + (open ? ' open' : '') + '><summary><b>' + t + '</b><s>Turn it into video</s>' + CHEV + '</summary><div class="vs-acc-b">' + body + '</div></details>', f, row); }
     } else if (sel.kind === 'audio') {
       const m = media[it.mid] || {};
