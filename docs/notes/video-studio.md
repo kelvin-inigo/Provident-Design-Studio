@@ -667,3 +667,15 @@ Right rail › Whole video › **QR code**, under Collaboration logo: Upload a Q
 - Checked in the pane at 1385 wide, dark theme: top bar positions, photo clip folded and open,
   Whole video, no sideways overflow, no console errors. Not checked: light theme, phones, the text,
   graphic, audio and end card panels beyond the shared sticky title and foot.
+
+## Camera moves show themselves (2026-11-18, by request: "so i know what i will generate")
+
+Each camera move button carries a small copy of the selected photo (`.vs-mvp u`, the media's own
+blob URL, placed with the clip's Left to right / Top to bottom) that loops the move in CSS
+(`@keyframes vs-m-<move>`): push in and pull back scale, pans and tilts slide the picture the
+opposite way, crane rises while widening, orbit turns in perspective, slide travels further, hold
+stays still. No GIF files. It is an indication of direction only: Higgsfield's result adds depth and
+parallax the flat preview cannot. Off under reduced motion; paused while a job is running.
+Animate this photo is open by default (`animOpen = true`).
+Checked in the pane: ten previews, each with its own running animation, buttons 70 px, no sideways
+overflow. The pane cannot play animations, so the motion itself was not watched.

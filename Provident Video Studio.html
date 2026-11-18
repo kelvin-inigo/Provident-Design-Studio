@@ -453,6 +453,31 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .vs-mvs{gap:6px}
 .vs-mv{background:var(--ps-fill);text-align:center;padding:0 8px}
 .vs-mv:hover:not(:disabled){background:var(--ps-fill-h)}
+.vs-mv{height:70px;display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;text-align:left}
+.vs-mv > span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs-mvp{flex:none;width:44px;height:58px;border-radius:6px;overflow:hidden;background:var(--ps-fill-h);perspective:90px}
+.vs-mvp u{display:block;width:100%;height:100%;background:center/cover no-repeat;animation:3.2s cubic-bezier(.45,0,.2,1) infinite}
+.vs-mv:disabled .vs-mvp u{animation-play-state:paused;opacity:.6}
+.vs-mvp u[data-m=push_in]{animation-name:vs-m-push-in}
+@keyframes vs-m-push-in{0%,8%{transform:scale(1)}86%,100%{transform:scale(1.45)}}
+.vs-mvp u[data-m=pull_back]{animation-name:vs-m-pull-back}
+@keyframes vs-m-pull-back{0%,8%{transform:scale(1.45)}86%,100%{transform:scale(1)}}
+.vs-mvp u[data-m=pan_left]{animation-name:vs-m-pan-left}
+@keyframes vs-m-pan-left{0%,8%{transform:scale(1.35) translateX(-11%)}86%,100%{transform:scale(1.35) translateX(11%)}}
+.vs-mvp u[data-m=pan_right]{animation-name:vs-m-pan-right}
+@keyframes vs-m-pan-right{0%,8%{transform:scale(1.35) translateX(11%)}86%,100%{transform:scale(1.35) translateX(-11%)}}
+.vs-mvp u[data-m=tilt_up]{animation-name:vs-m-tilt-up}
+@keyframes vs-m-tilt-up{0%,8%{transform:scale(1.35) translateY(-11%)}86%,100%{transform:scale(1.35) translateY(11%)}}
+.vs-mvp u[data-m=tilt_down]{animation-name:vs-m-tilt-down}
+@keyframes vs-m-tilt-down{0%,8%{transform:scale(1.35) translateY(11%)}86%,100%{transform:scale(1.35) translateY(-11%)}}
+.vs-mvp u[data-m=crane_up]{animation-name:vs-m-crane-up}
+@keyframes vs-m-crane-up{0%,8%{transform:scale(1.5) translateY(-14%)}86%,100%{transform:scale(1.25) translateY(9%)}}
+.vs-mvp u[data-m=orbit]{animation-name:vs-m-orbit}
+@keyframes vs-m-orbit{0%,8%{transform:scale(1.5) rotateY(-22deg) translateX(7%)}86%,100%{transform:scale(1.5) rotateY(22deg) translateX(-7%)}}
+.vs-mvp u[data-m=slide]{animation-name:vs-m-slide}
+@keyframes vs-m-slide{0%,8%{transform:scale(1.6) translateX(15%)}86%,100%{transform:scale(1.6) translateX(-15%)}}
+.vs-mvp u[data-m=hold]{animation-name:vs-m-hold}
+@keyframes vs-m-hold{0%,8%{transform:scale(1.04)}86%,100%{transform:scale(1.04)}}
 .vs-numw{display:inline-flex;align-items:center;gap:6px;flex:none}
 .vs-numw i{font:400 12.5px/1 var(--ps-font);font-style:normal;color:var(--ps-dim)}
 .vs-row .p-in.vs-num{width:84px;height:32px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums}
@@ -524,7 +549,6 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   .vs-grid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
   .vs-toast{bottom:16px}
   .vs-seg button,.vs-mini{min-height:32px}
-  .vs-mv{height:40px}
 }
 @media (max-width:520px){
   .p-top #sendBtn .vs-l2{display:none}
@@ -532,6 +556,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 }
 @media (prefers-reduced-motion:reduce){
   .vs-busy i{animation:none;width:100%;opacity:.45}
+  .vs-mvp u{animation:none}
   .vs-toast[data-on]{animation:none}
   .vs-t:active{transform:none}
   .vs-seg button,.vs-t,.vs-x,.vs-arow,.vs-mini,.vs-chev,.vs-mv,.vs-chipb,.vs-ib,.vs-drop,.vs-hd::after{transition:none}
