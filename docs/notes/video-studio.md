@@ -778,3 +778,13 @@ it, no sideways overflow, no console errors.
 **Not tested:** a real generation with a 14-section prompt (whether Seedance, Kling and Cinema
 Studio follow it better than the old one-line prompt is still the user's call), a real
 `/animate-photos` run in a fresh session, light theme, phones, Square 1:1.
+
+**Follow-ups (same day):** "Have Claude write it from the photo" checks the server's answer: a
+server from before this change drops `kind` and would file the photo as a video to generate, so the
+page takes it straight back off the queue and says to restart `serve.py` (tested against the old
+`serve.py` on a spare port). The home's Help (on `main`, `bfb881b`) has two CASV guides, **Start a
+video from a script** (`casv-script`) and **Turn a photo into video** (`casv-animate`), with frames
+captured from a demo script and the Palm Springs brochure in this checkout's `_test-media/`
+(`palm-springs-demo-script.md`, `palm-springs-brochure.pdf`; git-ignored, needed to recapture).
+When the Animate panel or From the script changes, change `help-content.js` on main and recapture
+with `tools/help-capture/capture.py casv-script,casv-anim,casv-prompt`.
