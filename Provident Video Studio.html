@@ -45,8 +45,8 @@ a.p-wm{text-decoration:none;border-radius:6px}
 /* the left rail's width is the user's: drag its edge (2026-11-17) */
 .vs-rzx{position:absolute;top:0;bottom:0;left:calc(var(--vs-lw,var(--vs-lwd)) - 5px);width:9px;z-index:6;cursor:ew-resize;touch-action:none}
 .vs-rzx::after{content:"";position:absolute;top:50%;left:3px;width:3px;height:44px;margin-top:-22px;border-radius:2px;background:var(--ps-line);opacity:0;
-  transition:background-color var(--ps-motion) var(--ps-ease),height var(--ps-motion) var(--ps-ease),margin var(--ps-motion) var(--ps-ease),opacity var(--ps-motion) var(--ps-ease)}
-.vs-rzx:hover::after,.vs-rzx[data-on]::after,.vs-rzx:focus-visible::after{opacity:1;background:var(--ps-ink);height:72px;margin-top:-36px}
+  transition:background-color var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease),opacity var(--ps-motion) var(--ps-ease)}
+.vs-rzx:hover::after,.vs-rzx[data-on]::after,.vs-rzx:focus-visible::after{opacity:1;background:var(--ps-ink);transform:scaleY(1.636)}
 .vs-rzx:focus-visible{outline:none}
 .vs-rail.l .vs-grid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr))}
 .vs-rail.l .vs-grid[data-m]{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}
@@ -321,8 +321,8 @@ body[data-drag] #cv{box-shadow:0 0 0 2px var(--ps-focus)}
   background:var(--ps-sb);border-top:1px solid var(--ps-hair)}
 .vs-bar{position:relative}
 .vs-rz{position:absolute;left:0;right:0;top:-5px;height:9px;z-index:6;cursor:ns-resize;touch-action:none}
-.vs-rz::after{content:"";position:absolute;left:50%;top:3px;width:44px;height:3px;margin-left:-22px;border-radius:2px;background:var(--ps-line);transition:background-color var(--ps-motion) var(--ps-ease),width var(--ps-motion) var(--ps-ease),margin var(--ps-motion) var(--ps-ease)}
-.vs-rz:hover::after,.vs-rz[data-on]::after,.vs-rz:focus-visible::after{background:var(--ps-ink);width:72px;margin-left:-36px}
+.vs-rz::after{content:"";position:absolute;left:50%;top:3px;width:44px;height:3px;margin-left:-22px;border-radius:2px;background:var(--ps-line);transition:background-color var(--ps-motion) var(--ps-ease),transform var(--ps-motion) var(--ps-ease)}
+.vs-rz:hover::after,.vs-rz[data-on]::after,.vs-rz:focus-visible::after{background:var(--ps-ink);transform:scaleX(1.636)}
 .vs-rz:focus-visible{outline:none}
 .vs-bar > div{display:flex;align-items:center;gap:6px;min-width:0}
 .vs-bar > div:last-child{justify-content:flex-end}
