@@ -16,6 +16,7 @@
   const ICS = {
     keyboard: '<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.3 10h.01M13.7 10h.01M17 10h.01M7 14h.01M17 14h.01M10 14h4"/>',
     add_box: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
+    folder: '<path d="M3.5 8V6.5a2 2 0 0 1 2-2h3.6l2 2.2h7.4a2 2 0 0 1 2 2V17.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 10h17"/>',
     flag: '<path d="M6 20.5V4.5"/><path d="M6 5.5h11l-2.2 3.5 2.2 3.5H6"/>',
     search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
     star: '<path d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/>',
@@ -2281,6 +2282,28 @@
     } catch (e) { loading = false; toast(e && e.name === 'QuotaExceededError' ? 'This browser has no room for that project’s media. Nothing was changed.' : 'That project could not be opened. Nothing was changed.'); }
   }
   setInterval(casInbox, 15000); setTimeout(casInbox, 2500);
+  // OPEN PROJECT (2026-11-19, by request: "theres casv made by grok bots"): a .casv file from disk,
+  // by the top bar's button, the empty timeline's link or dropped on the window. Unlike the inbox it
+  // keeps the replaced video as the last video (PREV) and deletes no media, so Reopen the last video
+  // brings it back whole.
+  const isCasv = f => !!f && /\.casv$/i.test(f.name || '');
+  async function openProject(file) {
+    if (!file || exporting || casBusy || loading || $('#ask').open) return;
+    let u = null;
+    try { u = await casUnpack(file); } catch (e) { toast('“' + (file.name || 'That file') + '” is not a Video Studio project (.casv). Nothing was changed.'); return; }
+    const nm = (u.head.project.name || (u.head.project.cas && u.head.project.cas.title) || String(file.name || '').replace(/\.casv$/i, '') || 'this project').slice(0, 60);
+    if (total() && !(await ask('Open “' + nm + '”?', 'It replaces the video open here. That one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '.', 'Open it'))) return;
+    try {
+      for (const r of u.recs) await DB.tx('readwrite', s => s.put(r));
+      loading = true; clearTimeout(saveT);
+      if (total()) localStorage.setItem(PREV, JSON.stringify(P));
+      localStorage.setItem(PKEY, JSON.stringify(u.head.project));
+      try { const own = JSON.parse(localStorage.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); localStorage.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
+      location.reload();
+    } catch (e) { loading = false; toast(e && e.name === 'QuotaExceededError' ? 'This browser has no room for that project’s media. Nothing was changed.' : 'That project could not be opened. Nothing was changed.'); }
+  }
+  const projIn = document.createElement('input'); projIn.type = 'file'; projIn.accept = '.casv'; projIn.hidden = true; document.body.appendChild(projIn);
+  projIn.addEventListener('change', () => { const f = projIn.files[0]; projIn.value = ''; openProject(f); });
   function casDone(packed) {
     const d = document.createElement('div'); d.className = 'vs-ov'; d.dataset.on = '1';
     d.innerHTML = '<div class="vs-dlg" role="dialog" aria-modal="true"><b>Ready for CAS</b><p>The Reel 9:16 and the Square 1:1 are waiting on this computer' + (packed ? ', with this project and its media' : '') + '. In CAS, open the ad set, press <b>Add video</b> on the audience and choose <b>From CASV on this computer</b>.' + (packed ? ' CAS saves the project in the ad set’s Drive folder with the video.' : ' The project could not be packed, so only the video goes to the ad set.') + '</p>' +
@@ -2921,6 +2944,7 @@
     return true;
   }
   $('#newBtn').addEventListener('click', () => startNew());
+  $('#openBtn').innerHTML = sico('folder'); $('#openBtn').addEventListener('click', () => projIn.click()); $('#emptyOpen').addEventListener('click', () => projIn.click());
   $('#scriptBtn').addEventListener('click', () => pickFiles('script')); $('#emptyScript').addEventListener('click', () => pickFiles('script'));
   scriptFill(false);
   $('#prevBtn').addEventListener('click', async () => {
@@ -3050,6 +3074,7 @@
     dragN = 0; delete document.body.dataset.drag;
     if (!e.dataTransfer || !e.dataTransfer.files.length) return;
     e.preventDefault();
+    { const pf = Array.from(e.dataTransfer.files).find(isCasv); if (pf) { openProject(pf); return; } }
     addFiles(e.dataTransfer.files, stage.contains(e.target) || tl.contains(e.target) ? 'stage' : (tab === 'logos' ? 'logo' : tab));
   });
 

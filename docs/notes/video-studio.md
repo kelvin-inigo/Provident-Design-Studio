@@ -788,3 +788,20 @@ captured from a demo script and the Palm Springs brochure in this checkout's `_t
 (`palm-springs-demo-script.md`, `palm-springs-brochure.pdf`; git-ignored, needed to recapture).
 When the Animate panel or From the script changes, change `help-content.js` on main and recapture
 with `tools/help-capture/capture.py casv-script,casv-anim,casv-prompt`.
+
+## Open project: a .casv file from disk (2026-11-19, by request)
+
+The user: "add an open project button, because theres casv made by grok bots". Until now a `.casv`
+only came back through CAS's Open in Video Studio (the inbox).
+
+- `#openBtn` (top bar, after Start new, `ICS.folder`), `#emptyOpen` (the empty timeline's link) and
+  a `.casv` dropped anywhere on the window (the drop handler looks for one before `addFiles`) all
+  call `openProject(file)`; the picker is a hidden input made in JS (`accept=".casv"`).
+- `openProject` reads it with `casUnpack`, asks when the timeline has anything, stores the file's
+  media, keeps the replaced video in PREV and reloads. **Unlike the inbox it deletes no media**, so
+  Reopen the last video brings the old one back whole.
+- Not a project → a toast, nothing changes.
+- Verified on :8797 with built files (no media): the wrong-file toast, the question, the project
+  replaced and PREV written. Not run: a real drop, a file carrying media, the empty-card link, a
+  bot-made file (nothing in the bot bridge writes a `.casv` yet — a direct hand-over tool is a
+  separate step, on `main`).
