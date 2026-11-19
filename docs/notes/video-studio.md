@@ -844,3 +844,33 @@ Text is stored plain (`**` is the only markup), never HTML-escaped.
   no media is deleted. CAS's rows (no `from`) behave as before.
 - **The user's running server (:8794) must be restarted to carry `from`** — an older one drops it
   and the hand-over reads as if CAS sent it (and replaces without keeping the last video).
+
+## Time stretch on video clips and sounds (2026-11-19)
+
+- A video clip carries `rate` (absent = 1). `clipLen(c) = (out - in) / rate`: the clip still covers
+  `out - in` seconds of its file, played `rate` times as fast. Every reader of a clip's length goes
+  through `clipLen`; the places that map timeline time to file time multiply by the rate (`sync`,
+  the filmstrip, scene markers, `split`, the trims). Export records what `sync` plays, so it follows.
+- Sounds already had `rate`; the range is now `ARATE` 50–200% (was 75–135%). `RATE` 75–135% stays as
+  the natural-voice range: the voiceover's automatic fit uses it and the Speed note warns past it.
+  Video is `VRATE` 25–400%. Pitch is kept (`preservesPitch`).
+- One setter, `setRate(it, kind, r)`. Three ways in: Option-drag an end on the timeline
+  (`drag.st`, single clip or sound; a group ignores it), the Speed section in Selected (`speedSec`:
+  slider, Fit to exactly, Back to natural speed), and the bot's `speed` (percent) on `add_clip`,
+  `add_audio` and `set` for a clip. Photos have no speed.
+- Tested with synthetic pointer events for Option: the Browser pane's drag tool sends no modifier.
+  The handle itself was proven reachable with a real pointer.
+- The bridge's `video_edit` description on main does not mention `speed` yet.
+
+## The Higgsfield library (2026-11-19)
+
+- Media tab › **From Higgsfield** (and a link in the empty state, both `data-hf`) opens `#hfOv`:
+  a grid of the account's finished videos, the chosen one playing beside it, All · 9:16 · 1:1,
+  tick several, **Import** or **Import and add to timeline**, Load more (24 at a time, to 120).
+- `serve.py`: `GET /api/hf/list?size=` runs `higgsfield generate list --video` (free, read-only)
+  and remembers id → result URL in `HF_SEEN`; `GET /api/hf/file?id=` fetches that URL for the page.
+  The page names only an id, never a URL. Thumbnails and the preview play straight from Higgsfield.
+- Imported ids are kept in `localStorage['provident-video-hf']` (hf id → media id) so a tile reads
+  "Imported" and a second import reuses the file.
+- While it is open no timeline shortcut fires (keydown returns early); Esc and a click on the
+  backdrop close it.

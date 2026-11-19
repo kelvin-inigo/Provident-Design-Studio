@@ -179,7 +179,8 @@
   }
 
   // ── model helpers ────────────────────────────────────────────────────────────────────
-  const clipLen = c => c.out - c.in;
+  const clipLen = c => (c.out - c.in) / (c.rate || 1);        // rate: time stretch. The clip covers out - in seconds of the file, played rate times as fast
+  const VRATE = [.25, 4], ARATE = [.5, 2];                    // how far a video clip, and a sound, can be stretched
   // ── shot markers: where the picture cuts INSIDE one continuous video ─────────────────────
   // The file is played once, muted and fast, into a 36x64 canvas; a frame that differs from the
   // one before by far more than the video's usual motion is a cut. Kept on the media record
@@ -244,7 +245,7 @@
       k.width = Math.max(2, Math.round(wpx * sc)); k.height = Math.round(46 * sc);
       const x = k.getContext('2d');
       for (let px = 0; px < wpx; px += tw) {
-        const i = Math.max(0, Math.min(st.n - 1, Math.floor((c.in + (px + tw / 2) / pps) / st.step)));
+        const i = Math.max(0, Math.min(st.n - 1, Math.floor((c.in + (px + tw / 2) / pps * (c.rate || 1)) / st.step)));
         if (st.got[i]) x.drawImage(st.c, i * st.fw, 0, st.fw, st.fh, px * sc, 0, tw * sc, k.height);
       }
     });
@@ -312,7 +313,7 @@
   }
   function markersAll() {
     const out = [], st = clipStarts();
-    if (MK.scene) P.clips.forEach((c, i) => { const m = media[c.mid]; if (m && m.cuts) m.cuts.forEach(t => { if (t > c.in + .05 && t < c.out - .05) out.push({ t: st[i] + t - c.in, k: 'scene' }); }); });
+    if (MK.scene) P.clips.forEach((c, i) => { const m = media[c.mid]; if (m && m.cuts) m.cuts.forEach(t => { if (t > c.in + .05 && t < c.out - .05) out.push({ t: st[i] + (t - c.in) / (c.rate || 1), k: 'scene' }); }); });
     if (MK.cut) st.forEach((t, i) => { if (i) out.push({ t, k: 'cut' }); });
     P.audio.forEach(a => {
       const m = media[a.mid]; if (!m) return;
@@ -323,6 +324,7 @@
     return out;
   }
   function markers() { return markersAll().map(x => x.t); }
+  const spdTag = x => (x.rate || 1) !== 1 ? ' · ' + Math.round(x.rate * 100) + '%' : '';
   function clipStarts() { let t = 0; return P.clips.map(c => { const s = t; t += clipLen(c); return s; }); }
   function videoEnd() { return P.clips.reduce((a, c) => a + clipLen(c), 0); }
   function total() {
@@ -476,7 +478,7 @@
     mark();
     const it = tg.it, L = listOf(tg.kind), nb = Object.assign({}, it, { id: uid() });
     if (tg.kind === 'clip') {
-      const st = span('clip', it)[0]; nb.in = it.in + (T - st); it.out = nb.in;
+      const st = span('clip', it)[0]; nb.in = it.in + (T - st) * (it.rate || 1); it.out = nb.in;
     } else {
       const d = T - it.at; nb.at = T; nb.dur = it.dur - d; it.dur = d;
       if (tg.kind === 'audio') { nb.in = it.in + d * (it.rate || 1); it.fo = 0; nb.fi = 0; }
@@ -552,7 +554,9 @@
       live[c.id] = 1;
       const el = elFor(vel, c.id, 'video', m.url), len = clipLen(c);
       const on = T >= st[i] && T < st[i] + len;
-      drive(el, c.in + (T - st[i]), on, c.mute ? 0 : c.vol);
+      const vr = c.rate || 1;
+      if (el.playbackRate !== vr) { el.playbackRate = vr; try { el.preservesPitch = true; } catch (e) {} }
+      drive(el, c.in + (T - st[i]) * vr, on, c.mute ? 0 : c.vol);
       if (on && playing && (el.seeking || el.readyState < 2)) hold = true;
       // pre-roll the next clip so the cut lands on a decoded frame
       if (!on && st[i] > T && st[i] - T < 1.2 && !el.seeking && Math.abs(el.currentTime - c.in) > .02) el.currentTime = c.in;
@@ -1150,7 +1154,7 @@
         P.clips.forEach((c, i) => {
           const m = media[c.mid] || {};
           body += '<div class="vs-it" data-kind="clip" data-id="' + c.id + '"' + on('clip', c.id) + ' style="left:' + (LBL + st[i] * pps) + 'px;width:' + Math.max(6, clipLen(c) * pps - 1) + 'px;top:4px;' +
-            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + (m.kind === 'video' ? '<canvas data-strip="' + c.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(m.name || 'Clip') + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
+            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + (m.kind === 'video' ? '<canvas data-strip="' + c.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(m.name || 'Clip') + spdTag(c) + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
         });
       } else {
         const kind = tr.id === 'text' ? 'text' : tr.id === 'logo' ? 'logo' : 'audio';
@@ -1162,7 +1166,7 @@
           const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
-            (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + '</span></div>';
+            (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' ? spdTag(it) : '') + '</span></div>';
         });
       }
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
@@ -1218,7 +1222,7 @@
         multi.add(id);
       } else if (!(sel && sel.kind === kind && multi.has(id))) multi.clear();
       sel = { kind, id }; const it = find(sel), g = group();
-      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e), add,
+      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, st: !!(h && e.altKey && (kind === 'audio' || (kind === 'clip' && (media[it.mid] || {}).kind === 'video'))), x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e), add,
         g: g && g.map(t => ({ id: t.id, at: t.at, dur: t.dur, in: t.in, out: t.out })) };
       renderAll();
     } else {
@@ -1240,7 +1244,12 @@
     const dx = e.clientX - drag.x0;
     if (!drag.moved) { if (Math.abs(dx) < 3) return; drag.moved = true; undo.push(drag.snap); redo.length = 0; }
     const it = find(drag), o = drag.o, d = dx / pps, m = media[it.mid];
-    if (drag.kind === 'clip' && drag.g) {     // several clips: every length by one factor, or the block moves
+    if (drag.st && !(drag.kind === 'clip' && drag.g)) {   // Option-drag an end: TIME STRETCH. The same stretch of the file, faster or slower
+      const lim = drag.kind === 'clip' ? VRATE : ARATE, r0 = o.rate || 1, len0 = drag.kind === 'clip' ? (o.out - o.in) / r0 : o.dur, span = len0 * r0;
+      const len = clamp(len0 + (drag.mode === 'trimr' ? d : -d), span / lim[1], span / lim[0]);
+      it.rate = +(span / len).toFixed(4); if (Math.abs(it.rate - 1) < .015) it.rate = 1;
+      if (drag.kind === 'audio') { it.dur = span / it.rate; if (drag.mode === 'triml') it.at = Math.max(0, o.at + o.dur - it.dur); }
+    } else if (drag.kind === 'clip' && drag.g) {     // several clips: every length by one factor, or the block moves
       const g = drag.g, L = g.reduce((a, x) => a + (x.out - x.in), 0), least = .2 / Math.min(...g.map(x => x.out - x.in));
       if (drag.mode === 'move') {
         const ids = new Set(g.map(x => x.id)), blk = P.clips.filter(c => ids.has(c.id)), rest = P.clips.filter(c => !ids.has(c.id));
@@ -1255,8 +1264,9 @@
       }
     } else if (drag.kind === 'clip') {
       const lim = m && m.kind === 'video' ? m.dur : 120;
-      if (drag.mode === 'triml') it.in = clamp(o.in + d, 0, o.out - .2);
-      else if (drag.mode === 'trimr') it.out = clamp(o.out + d, o.in + .2, lim);
+      const r = o.rate || 1;                 // the pointer moves timeline seconds; the file moves r times as far
+      if (drag.mode === 'triml') it.in = clamp(o.in + d * r, 0, o.out - .2 * r);
+      else if (drag.mode === 'trimr') it.out = clamp(o.out + d * r, o.in + .2 * r, lim);
       else {                                  // reorder: the clip lands before every clip whose middle is past the pointer
         const t = xToT(e), rest = P.clips.filter(c => c !== it); let acc = 0, idx = rest.length;
         for (let i = 0; i < rest.length; i++) { const L = clipLen(rest[i]); if (t < acc + L / 2) { idx = i; break; } acc += L; }
@@ -1391,10 +1401,24 @@
   // priced first and need a yes. Both need the local server.
   // an audio item can play 25% slower to 35% faster with its pitch kept; beyond that it sounds wrong
   const RATE = [.75, 1.35], PACE = 2.5;                    // PACE: natural speech, words a second
+  // Speed, for a video clip and a sound: a slider, an exact length, and the way back. Option-drag an end on the timeline does the same.
+  function speedSec(it, len, lim) {
+    return rng('i', 'spd', 'Plays at', Math.round((it.rate || 1) * 100), lim[0] * 100, lim[1] * 100, '%') +
+      '<div class="vs-f"><label>Fit to exactly <s>seconds</s></label><input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + len.toFixed(2) + '"></div>' +
+      '<span class="vs-note"><span id="rateNote">' + rateNote(it) + '</span> Hold Option and drag an end on the timeline to stretch it there.</span>' +
+      ((it.rate || 1) !== 1 ? '<div class="vs-acts"><button class="p-ghost p-sm" id="rateReset">Back to natural speed</button></div>' : '');
+  }
+  // one place sets a speed: a sound keeps the same stretch of its file, so its length follows; a clip's length is worked out from its rate
+  function setRate(it, kind, r) {
+    const lim = kind === 'clip' ? VRATE : ARATE; r = clamp(r, lim[0], lim[1]);
+    if (kind === 'audio') { const span = it.dur * (it.rate || 1); it.rate = r; it.dur = span / r; } else it.rate = r;
+    if (it.rate === 1 && kind === 'clip') delete it.rate;
+  }
   function rateNote(a, asked) {
     const r = a.rate || 1, pct = Math.round(r * 100);
     const lim = asked != null && Math.abs(a.dur - asked) > .05 ? ' <b>That is as far as it goes:</b> ' + a.dur.toFixed(1) + ' s. To reach ' + (+asked).toFixed(1) + ' s, ' + (asked < a.dur ? 'shorten' : 'lengthen') + ' the script or trim the audio.' : '';
-    return (pct === 100 ? 'Playing at natural speed.' : 'Playing at ' + pct + '% speed, pitch kept.') + lim;
+    const far = !a.out && (r < RATE[0] - .005 || r > RATE[1] + .005) ? ' A voice sounds natural between 75% and 135%.' : '';
+    return (pct === 100 ? 'Playing at natural speed.' : 'Playing at ' + pct + '% speed, pitch kept.') + far + lim;
   }
   function voHint() {
     const w = VO.text.trim().split(/\s+/).filter(Boolean).length, nat = w / PACE, tg = parseFloat(VO.target);
@@ -1662,7 +1686,7 @@
     const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
     const none = (t, body) => '<div class="vs-none"><b>' + t + '</b>' + body + '</div>';
     if (tab === 'media' || tab === 'audio') {
-      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A') + '<span class="vs-mkl">Or make one</span><div class="vs-mk2"><button class="p-ghost p-sm" data-mk="vo" title="Type the words and choose a voice">Voiceover</button><button class="p-ghost p-sm" data-mk="mu" title="Describe the music you want">Music</button></div>') + '</div>';
+      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') + '<span class="vs-mkl">Or bring one in</span><div class="vs-mk2" style="grid-template-columns:1fr"><button class="p-ghost p-sm" data-hf="1" title="Browse the videos you made on Higgsfield and import them">From Higgsfield</button></div>' : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A') + '<span class="vs-mkl">Or make one</span><div class="vs-mk2"><button class="p-ghost p-sm" data-mk="vo" title="Type the words and choose a voice">Voiceover</button><button class="p-ghost p-sm" data-mk="mu" title="Describe the music you want">Music</button></div>') + '</div>';
       h += libSec(tab, M) + (tab === 'media' && P.casBg ? '<div class="vs-sec"><button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button></div>' : '');
     } else if (tab === 'text') {
       // each tile is a specimen of what it adds, in the chrome's ink; the full description is its tooltip
@@ -1893,7 +1917,7 @@
       const m = media[it.mid] || {}, vid = m.kind === 'video';
       h = cap(vid ? 'Video clip' : 'Photo clip', esc(m.name));
       if (vid) h += '<div class="vs-sec">' + row('Length', '<s>' + fmt(clipLen(it)) + ' of ' + fmt(m.dur) + '</s>') +
-        row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>';
+        row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>' + sec('Speed', '', speedSec(it, clipLen(it), VRATE));
       else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') + '</div>';
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
@@ -1905,8 +1929,7 @@
       h = cap('Audio', esc(m.name)) +
         '<div class="vs-sec">' + row('Track', seg('track', [['music', 'Music'], ['sfx', 'Sound']])) + rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%') +
         rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) + '</div>' +
-        sec('Speed', Math.round((it.rate || 1) * 100) + '%', f('Fit to exactly <s>seconds</s>', '<input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') +
-          '<span class="vs-note" id="rateNote">' + rateNote(it) + '</span>' + ((it.rate || 1) !== 1 ? '<div class="vs-acts"><button class="p-ghost p-sm" id="rateReset">Back to natural speed</button></div>' : '')) +
+        sec('Speed', '', speedSec(it, it.dur, ARATE)) +
         sec('Captions', it.capOn ? '' : 'Off', row('Show', seg('capOn', [[true, 'On'], [false, 'Off']], 's')) +
         (it.capOn ? f('Voiceover script', '<textarea class="p-in" data-s="cap" rows="6" placeholder="Paste exactly what is said in this audio">' + esc(it.cap || '') + '</textarea>') +
           row('Words at a time', seg('capN', [['1', 'One'], ['2', 'Two'], ['3', 'Three']])) +
@@ -2033,7 +2056,11 @@
     if (d.ir) {
       let v = +e.target.value; const k = d.ir;
       const o = insp.querySelector('[data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
-      if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
+      if (k === 'spd') {
+        setRate(it, sel.kind, v / 100);
+        const fi = insp.querySelector('[data-n="fit"]'), nt = insp.querySelector('#rateNote'); if (fi) fi.value = (sel.kind === 'clip' ? clipLen(it) : it.dur).toFixed(2); if (nt) nt.innerHTML = rateNote(it);
+      }
+      else if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
       else it[k] = k === 'vol' ? v / 100 : v;
     } else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
     else if (d.n) {
@@ -2041,9 +2068,10 @@
       const m = media[it.mid];
       if (d.n === 'at') it.at = Math.max(0, v);
       else if (d.n === 'dur') it.dur = clamp(v, .2, sel.kind === 'audio' && m ? (m.dur - it.in) / (it.rate || 1) : 600);
-      else if (d.n === 'fit' && sel.kind === 'audio') {      // play the same stretch of the file in exactly v seconds
-        const span = it.dur * (it.rate || 1); it.rate = clamp(span / Math.max(.2, v), RATE[0], RATE[1]); it.dur = span / it.rate;
-        const o = insp.querySelector('#rateNote'); if (o) o.innerHTML = rateNote(it, v);
+      else if (d.n === 'fit') {                              // play the same stretch of the file in exactly v seconds
+        const clip = sel.kind === 'clip', span = clip ? it.out - it.in : it.dur * (it.rate || 1); setRate(it, sel.kind, span / Math.max(.2, v));
+        const o = insp.querySelector('#rateNote'), len = clip ? clipLen(it) : it.dur; if (o) o.innerHTML = rateNote(clip ? { rate: it.rate, dur: len, out: 1 } : it, v);
+        const sl = insp.querySelector('[data-ir="spd"]'), so = insp.querySelector('[data-out="spd"]'), pc = Math.round((it.rate || 1) * 100); if (sl) sl.value = pc; if (so) so.textContent = pc + '%';
       }
       else if (d.n === 'out') it.out = clamp(v, .2, 120);
     } else return;
@@ -2064,7 +2092,7 @@
     if (b.id === 'descBtn') return descSend(it);
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
-    if (b.id === 'rateReset') { mark(); const span = it.dur * (it.rate || 1); it.rate = 1; it.dur = span; save(); renderAll(); return; }
+    if (b.id === 'rateReset') { mark(); setRate(it, sel.kind, 1); save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animNow') return animSend(it, true);
     if (b.id === 'animGo') return animRun(it);
@@ -2456,6 +2484,97 @@
   // asked for it, the page was closed) still comes home: into Your media, once per browser
   const GOTKEY = 'provident-video-anim-got';
   let GOT = {}; try { GOT = JSON.parse(localStorage.getItem(GOTKEY)) || {}; } catch (e) {}
+  // ── THE HIGGSFIELD LIBRARY (2026-11-19): a pop-up of the account's finished videos, to play and
+  // import. The local server lists them with Higgsfield's own tool (free, read-only) and fetches a
+  // chosen file; the page never talks to Higgsfield except to show a thumbnail and play a preview.
+  const HFL = { open: false, items: null, err: '', busy: false, more: false, size: 24, f: 'all', pick: new Set(), cur: null, imp: '' }, HFKEY = 'provident-video-hf';
+  let HFGOT = {}; try { HFGOT = JSON.parse(localStorage.getItem(HFKEY) || '{}'); } catch (e) {}
+  const hfAsp = x => x.aspect || (x.w && x.h ? (x.w === x.h ? '1:1' : x.w < x.h ? '9:16' : '16:9') : '');
+  const hfWhen = x => { const d = new Date(x.at); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
+  const hfHas = x => !!media[HFGOT[x.id]];
+  const hfShown = () => (HFL.items || []).filter(x => HFL.f === 'all' || hfAsp(x) === HFL.f);
+  function hfOpen() { HFL.open = true; HFL.pick.clear(); HFL.imp = ''; $('#hfOv').dataset.on = '1'; if (playing) pause(); hfRender(); hfLoad(); $('#hfX').focus(); }
+  function hfClose() { if (HFL.imp) return; HFL.open = false; delete $('#hfOv').dataset.on; $('#hfP').innerHTML = ''; }
+  async function hfLoad() {
+    HFL.busy = true; hfRender();
+    try { const r = await api('/api/hf/list?size=' + HFL.size); if (r.error) HFL.err = r.error; else { HFL.items = r.items || []; HFL.more = !!r.more; HFL.err = ''; } }
+    catch (e) { HFL.err = 'off'; }
+    HFL.busy = false; if (HFL.open) hfRender();
+  }
+  function hfRender() {
+    const none = (t, b) => '<div class="vs-none"><b>' + t + '</b>' + b + '</div>', v = hfShown();
+    $('#hfF').innerHTML = [['all', 'All'], ['9:16', '9:16'], ['1:1', '1:1']].map(o => '<button data-hff="' + o[0] + '"' + (HFL.f === o[0] ? ' data-on="1"' : '') + ' aria-pressed="' + (HFL.f === o[0]) + '">' + o[1] + '</button>').join('');
+    let g;
+    if (HFL.err === 'off') g = none('The local server is not running', 'The library is read through the Video Studio server on this computer. Start it, then open this again.');
+    else if (HFL.err === 'signin') g = none('Higgsfield is not signed in on this computer', 'Run <b>higgsfield auth login</b> in Terminal once, then open this again.');
+    else if (HFL.err) g = none('Higgsfield did not answer', esc(HFL.err));
+    else if (!HFL.items) g = none('Asking Higgsfield for your videos…', 'This takes a few seconds.');
+    else if (!v.length) g = none(HFL.items.length ? 'No ' + HFL.f + ' videos here' : 'No finished videos yet', HFL.items.length ? 'Choose All to see the other sizes.' : 'Videos you generate on Higgsfield appear here.');
+    else g = v.map(x => '<div class="vs-hft"' + (HFL.cur === x.id ? ' data-on="1"' : '') + '><button class="pv" data-hfpv="' + x.id + '" aria-label="Play ' + esc(x.model) + ', ' + esc(hfWhen(x)) + '"><img loading="lazy" alt="" data-src="' + esc(x.thumb) + '"></button>' +
+        '<button class="ck" data-hfck="' + x.id + '" aria-pressed="' + HFL.pick.has(x.id) + '" aria-label="Select to import" title="Select to import"></button>' +
+        '<s>' + [x.seconds ? x.seconds + ' s' : '', hfAsp(x)].filter(Boolean).join(' · ') + '<em>' + (hfHas(x) ? 'Imported' : esc(hfWhen(x))) + '</em></s></div>').join('') +
+      (HFL.more ? '<div class="vs-hf-more"><button class="p-ghost p-sm" id="hfMore"' + (HFL.busy ? ' disabled' : '') + '>' + (HFL.busy ? 'Loading…' : 'Load more') + '</button></div>' : '');
+    $('#hfG').innerHTML = g;
+    $('#hfG').querySelectorAll('img[data-src]').forEach(i => { if (i.dataset.src) i.src = i.dataset.src; });
+    hfFoot();
+  }
+  function hfIds() { return HFL.pick.size ? [...HFL.pick] : HFL.cur ? [HFL.cur] : []; }
+  function hfFoot() {
+    const n = hfIds().length;
+    $('#hfN').textContent = HFL.imp || (n ? n + (n === 1 ? ' video chosen' : ' videos chosen') : HFL.items && HFL.items.length ? 'Click a video to play it. Tick several to import them together.' : '');
+    $('#hfAdd').disabled = $('#hfAddT').disabled = !n || !!HFL.imp;
+    $('#hfAdd').textContent = n > 1 ? 'Import ' + n : 'Import';
+  }
+  function hfShow(id) {
+    const x = (HFL.items || []).find(q => q.id === id); HFL.cur = x ? id : null;
+    $('#hfG').querySelectorAll('.vs-hft').forEach(t => { if (t.querySelector('.pv').dataset.hfpv === HFL.cur) t.dataset.on = '1'; else delete t.dataset.on; });
+    const p = $('#hfP'); p.innerHTML = '';
+    if (x) {
+      const vd = document.createElement('video'); vd.controls = true; vd.loop = true; vd.playsInline = true; vd.autoplay = true; vd.src = x.url; p.appendChild(vd);
+      const d = document.createElement('div');
+      d.innerHTML = '<b>' + esc(x.model) + '</b><p>' + [hfWhen(x), x.seconds ? x.seconds + ' s' : '', hfAsp(x), x.w && x.h ? x.w + ' × ' + x.h : ''].filter(Boolean).map(esc).join(' · ') + (hfHas(x) ? ' · already in Media' : '') + '</p>' +
+        (x.prompt ? '<p class="q">' + esc(x.prompt.replace(/\s+/g, ' ').slice(0, 220)) + (x.prompt.length > 220 ? '…' : '') + '</p>' : '');
+      p.appendChild(d);
+    }
+    hfFoot();
+  }
+  async function hfImport(toTimeline) {
+    const ids = hfIds(); if (!ids.length || HFL.imp) return;
+    const pv = $('#hfP video'); if (pv) pv.pause();
+    let ok = 0, marked = false; const bad = [];
+    for (let i = 0; i < ids.length; i++) {
+      const x = HFL.items.find(q => q.id === ids[i]); if (!x) continue;
+      HFL.imp = 'Importing ' + (i + 1) + ' of ' + ids.length + '…'; hfFoot();
+      try {
+        let rec = media[HFGOT[x.id]];          // already here: use it again, never a second copy
+        if (!rec) {
+          const r = await fetch('/api/hf/file?id=' + x.id); if (!r.ok) throw new Error('download');
+          const blob = await r.blob(), ext = (blob.type.split('/')[1] || 'mp4').replace('quicktime', 'mov');
+          rec = { id: uid(), kind: 'video', name: x.model + ' · ' + hfWhen(x), blob: new File([blob], 'higgsfield-' + x.id.slice(0, 8) + '.' + ext, { type: blob.type || 'video/mp4' }) };
+          await probe(rec); media[rec.id] = rec; DB.put(dbRec(rec));
+          if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
+          HFGOT[x.id] = rec.id; try { localStorage.setItem(HFKEY, JSON.stringify(HFGOT)); } catch (e) {}
+        }
+        if (toTimeline) { if (!marked) { mark(); marked = true; } addClip(rec.id, true); }
+        ok++;
+      } catch (e) { bad.push(x.model); }
+    }
+    HFL.imp = ''; HFL.pick.clear();
+    if (ok) { tab = 'media'; hfClose(); renderAll(); toast(ok + (ok === 1 ? ' video' : ' videos') + (toTimeline ? ' added to the timeline.' : ' imported into Media.') + (bad.length ? ' ' + bad.length + ' could not be downloaded.' : '')); }
+    else { hfRender(); toast('The video could not be downloaded. Check the local server and try again.'); }
+  }
+  $('#hfX').innerHTML = ico('close');
+  $('#hfX').addEventListener('click', hfClose);
+  $('#hfOv').addEventListener('pointerdown', e => { if (e.target === e.currentTarget) hfClose(); });
+  $('#hfOv').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.hff) { HFL.f = b.dataset.hff; hfRender(); }
+    else if (b.dataset.hfck) { const id = b.dataset.hfck; if (HFL.pick.has(id)) HFL.pick.delete(id); else HFL.pick.add(id); b.setAttribute('aria-pressed', HFL.pick.has(id)); hfFoot(); }
+    else if (b.dataset.hfpv) hfShow(b.dataset.hfpv);
+    else if (b.id === 'hfMore') { HFL.size = Math.min(120, HFL.size + 24); hfLoad(); }
+    else if (b.id === 'hfAdd') hfImport(false);
+    else if (b.id === 'hfAddT') hfImport(true);
+  });
   async function jobToMedia(j) {
     const blob = await (await fetch('/_animate/' + j.video)).blob();
     const rec = { id: uid(), kind: 'video', name: (j.name || 'Photo') + ' · ' + (j.move || 'animated'), blob: new File([blob], j.video, { type: 'video/mp4' }) };
@@ -2517,7 +2636,7 @@
           // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size);
           // a clip from a script keeps its scene's length, so the voiceover and texts stay on their cues
           const was = clipLen(c);
-          Object.assign(c, { mid: rec.id, in: 0, out: c.sc ? Math.min(rec.dur, was) : rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
+          delete c.rate; Object.assign(c, { mid: rec.id, in: 0, out: c.sc ? Math.min(rec.dur, was) : rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
           delete c.job; changed = true;
           api('/api/animate/placed', { id: j.id }).catch(() => {});
           toast('The animated clip is on the timeline and in Your media.');
@@ -3010,6 +3129,7 @@
   document.addEventListener('click', e => {
     let el;
     if ((el = e.target.closest('[data-ltab]'))) { const b = document.querySelector('[data-tab="' + el.dataset.ltab + '"]'); if (b) b.click(); }
+    else if (e.target.closest('[data-hf]')) hfOpen();
     else if ((el = e.target.closest('[data-go2]'))) { rtab = el.dataset.go2; renderInspector(); }
     else if ((el = e.target.closest('[data-mk]'))) { gtab = el.dataset.mk; rtab = 'gen'; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
   });
@@ -3084,6 +3204,7 @@
   window.addEventListener('resize', () => { const w = parseFloat(document.documentElement.style.getPropertyValue('--vs-lw')); if (w > 0) setLibW(w); });
   document.addEventListener('keydown', e => {
     if (exporting || $('#ask').open) return;
+    if (HFL.open) { if (e.key === 'Escape') hfClose(); return; }   // the library is a modal: no timeline shortcut reaches under it
     const tg = e.target, typing = tg.matches && tg.matches('input:not([type=range]),textarea,select');
     const mod = e.metaKey || e.ctrlKey;
     if (mod && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); e.shiftKey ? restore(redo, undo) : restore(undo, redo); return; }
@@ -3140,9 +3261,9 @@
     summary() {
       const used = JSON.stringify(P);
       return { name: P.name || '', size: P.size === '1x1' ? '1:1' : '9:16', seconds: +total().toFixed(2),
-        clips: P.clips.map(c => { const m = media[c.mid] || {}; return { id: c.id, media: c.mid, name: m.name, kind: m.kind, from: +c.in.toFixed(2), to: +c.out.toFixed(2), fit: c.fit, mute: !!c.mute }; }),
+        clips: P.clips.map(c => { const m = media[c.mid] || {}; return { id: c.id, media: c.mid, name: m.name, kind: m.kind, from: +c.in.toFixed(2), to: +c.out.toFixed(2), speed: Math.round((c.rate || 1) * 100), seconds: +clipLen(c).toFixed(2), fit: c.fit, mute: !!c.mute }; }),
         texts: P.texts.map(t => ({ id: t.id, at: t.at, seconds: t.dur, eyebrow: t.eyebrow, text: plain(t.text), sub: t.sub, size: t.size, pos: t.pos, align: t.align, anim: t.anim })),
-        audio: P.audio.map(a => ({ id: a.id, media: a.mid, name: (media[a.mid] || {}).name, track: a.track, at: a.at, seconds: a.dur, volume: a.vol })),
+        audio: P.audio.map(a => ({ id: a.id, media: a.mid, name: (media[a.mid] || {}).name, track: a.track, at: a.at, seconds: a.dur, speed: Math.round((a.rate || 1) * 100), volume: a.vol })),
         wordmark: { on: P.brand.on, align: P.brand.align, vpos: P.brand.vpos, ink: P.brand.ink },
         media: Object.values(media).filter(m => used.indexOf('"' + m.id + '"') >= 0 || m.bot).map(m => ({ id: m.id, kind: m.kind, name: m.name, seconds: m.dur ? +m.dur.toFixed(2) : undefined, width: m.w, height: m.h })) };
     },
@@ -3175,7 +3296,7 @@
       const clipSet = (c, o) => {
         const m = media[c.mid];
         if (m.kind === 'image') { if (o.seconds != null) { c.in = 0; c.out = clamp(bnum(o.seconds, 3), .2, 30); } }
-        else { if (o.from != null) c.in = clamp(bnum(o.from, 0), 0, Math.max(0, m.dur - .2)); if (o.to != null || o.from != null) c.out = clamp(bnum(o.to, c.out), c.in + .2, m.dur); }
+        else { if (o.from != null) c.in = clamp(bnum(o.from, 0), 0, Math.max(0, m.dur - .2)); if (o.to != null || o.from != null) c.out = clamp(bnum(o.to, c.out), c.in + .2, m.dur); if (o.speed != null) setRate(c, 'clip', bnum(o.speed, 100) / 100); }
         inList(o.fit, ['fill', 'fit'], 'fit'); bpick(c, o, ['fit']); if (o.mute != null) c.mute = !!o.mute;
       };
       for (const o of ops || []) {
@@ -3189,7 +3310,7 @@
         } else if (o.op === 'add_audio') {
           const m = media[o.media]; if (!m || m.kind !== 'audio') throw new Error('add_audio: no sound has the media id ' + o.media + '.');
           const track = o.track === 'sound' ? 'sound' : 'music'; T = Math.max(0, bnum(o.at, 0)); addAudio(o.media, track, true);
-          const a = P.audio[P.audio.length - 1]; if (o.volume != null) a.vol = clamp(bnum(o.volume, a.vol), 0, 1); done.push({ op: o.op, id: a.id });
+          const a = P.audio[P.audio.length - 1]; if (o.volume != null) a.vol = clamp(bnum(o.volume, a.vol), 0, 1); if (o.speed != null) setRate(a, 'audio', bnum(o.speed, 100) / 100); done.push({ op: o.op, id: a.id });
         } else if (o.op === 'set') {
           const w = byId(o.id), it = P[w[0]][w[1]];
           if (w[0] === 'clips') { clipSet(it, o); if (o.index != null) { P.clips.splice(w[1], 1); P.clips.splice(clamp(o.index | 0, 0, P.clips.length), 0, it); } }

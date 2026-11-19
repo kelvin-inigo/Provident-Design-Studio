@@ -76,6 +76,33 @@ def hf(*args, timeout=120):
     return r.returncode, out.strip()
 
 
+HF_SEEN = {}                               # id -> result_url, from the last listing; the page only ever names an id
+
+
+def hf_library(size):
+    """The account's finished videos, newest first (`generate list --video`): free, read-only."""
+    rc, out = hf('generate', 'list', '--video', '--size', str(size), timeout=60)
+    if rc:
+        return {'error': 'signin' if out == SIGN_IN else (out[-300:] or 'Higgsfield gave no list.')}
+    try:
+        rows = json.loads(out)
+    except Exception:
+        return {'error': 'Higgsfield gave no list.'}
+    if isinstance(rows, dict):
+        rows = rows.get('items') or rows.get('jobs') or []
+    items = []
+    for r in rows:
+        u = r.get('result_url') or ''
+        if r.get('status') != 'completed' or not re.match(r'^https://[^ ]+\.(mp4|mov|webm)(\?|$)', u) or not r.get('id'):
+            continue
+        p = r.get('params') or {}
+        HF_SEEN[r['id']] = u
+        items.append({'id': r['id'], 'model': r.get('display_name') or r.get('job_type') or 'Video', 'at': r.get('created_at'),
+                      'seconds': p.get('duration'), 'w': p.get('width'), 'h': p.get('height'), 'aspect': p.get('aspect_ratio') or '',
+                      'thumb': r.get('thumbnail_url') or '', 'url': u, 'prompt': (p.get('prompt') or '')[:400]})
+    return {'items': items, 'more': len(rows) >= size}
+
+
 def hf_result(out, exts):
     """The finished file's URL from `generate get --json`: result_url, never a URL buried in the
     params (a voice's preview sample is an .mp3 too, and was once downloaded by mistake)."""
@@ -385,6 +412,29 @@ class H(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.split('?')[0] == '/api/voice/list':
             return self._json(200, voice_list())
+        if self.path.split('?')[0] == '/api/hf/list':            # the Higgsfield library pop-up
+            try:
+                size = max(1, min(120, int(self._q().get('size') or 24)))
+            except ValueError:
+                size = 24
+            return self._json(200, hf_library(size))
+        if self.path.split('?')[0] == '/api/hf/file':            # one listed video, fetched here so the page gets it same-origin
+            hid = self._q().get('id', '')
+            u = HF_SEEN.get(hid) if re.match(r'^[0-9a-f-]{36}$', hid) else None
+            if not u:
+                return self._json(404, {'error': 'not found'})
+            ext = re.search(r'\.(mp4|mov|webm)(\?|$)', u).group(1)
+            try:
+                with urllib.request.urlopen(u, timeout=300) as r:
+                    data = r.read()
+            except Exception as e:
+                return self._json(502, {'error': '%s: %s' % (type(e).__name__, e)})
+            self.send_response(200)
+            self.send_header('Content-Type', {'mp4': 'video/mp4', 'mov': 'video/quicktime', 'webm': 'video/webm'}[ext])
+            self.send_header('Content-Length', str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+            return
         if self.path.split('?')[0] == '/api/animate/jobs':
             return self._json(200, {'jobs': self._jobs()})
         path = self.path.split('?')[0]

@@ -451,6 +451,38 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .vs-dlg > p{margin:0;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2);text-wrap:pretty}
 .vs-dlg-a{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:8px}
 .vs-dlg > .p-in{margin-top:4px}
+/* the Higgsfield library: a grid to pick from, the chosen one playing beside it */
+.vs-dlg.vs-hf{width:min(980px,100%);height:min(700px,100%);padding:18px 20px 16px;gap:12px}
+.vs-hf-h{display:flex;align-items:center;gap:12px}
+.vs-hf-h b{font:500 18px/1.3 var(--ps-font);margin-right:auto}
+.vs-hf-h .vs-seg{flex:0 0 auto}.vs-hf-h .vs-seg button{padding:0 14px}
+.vs-hf-b{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px}
+.vs-hf-g{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;align-content:start;grid-auto-rows:max-content;padding:2px}
+.vs-hf-g > .vs-none,.vs-hf-g > .vs-hf-more{grid-column:1 / -1}
+.vs-hf-more{display:flex;justify-content:center;padding:6px 0 2px}
+.vs-hft{position:relative;aspect-ratio:9 / 16;border-radius:10px;overflow:hidden;background:var(--ps-fill)}
+.vs-hft .pv{position:absolute;inset:0;border:0;padding:0;background:#0a0b0d;cursor:pointer;border-radius:inherit}
+.vs-hft .pv img{width:100%;height:100%;object-fit:contain;display:block}
+.vs-hft[data-on] .pv{box-shadow:inset 0 0 0 2px var(--ps-ink)}
+.vs-hft s{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;text-decoration:none;font:500 11.5px/1.2 var(--ps-font);color:#fff;
+  background:linear-gradient(transparent,rgba(10,11,13,.82));pointer-events:none;font-variant-numeric:tabular-nums}
+.vs-hft s em{display:block;font-style:normal;font-weight:400;opacity:.86;margin-top:2px}
+.vs-hft .ck{position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:8px;border:0;cursor:pointer;background:rgba(10,11,13,.6);
+  box-shadow:inset 0 0 0 1.5px #fff}
+.vs-hft .ck[aria-pressed="true"]{background:#fff}
+.vs-hft .ck[aria-pressed="true"]::after{content:"";position:absolute;left:9px;top:5px;width:6px;height:11px;border:solid #0a0b0d;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.vs-hft .ck::before{content:"";position:absolute;inset:-8px}
+.vs-hf-p{min-height:0;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.vs-hf-p video{width:100%;max-height:62%;border-radius:10px;background:#0a0b0d;display:block}
+.vs-hf-p b{font:500 14px/1.3 var(--ps-font)}
+.vs-hf-p p{margin:0;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-ink-2);overflow-wrap:anywhere}
+.vs-hf-p p.q{color:var(--ps-dim)}
+@media (max-width:720px){
+  .vs-hf-b{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .vs-hf-p{order:-1;flex-direction:row;align-items:flex-start}.vs-hf-p video{width:96px;max-height:none}.vs-hf-p p.q{display:none}
+  .vs-hf-h .vs-seg button{padding:0 9px}
+  #hfAdd{display:none}
+}
 .vs-dlg-a > s{margin-right:auto;text-decoration:none;font:400 12.5px/1 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 /* animate: the status card, the busy bar, the queue rows (2026-11-17) */
 .vs-job{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--ps-fill);box-shadow:inset 0 0 0 1px var(--ps-line)}
@@ -673,6 +705,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
         <button class="p-btn p-ico-t" id="emptyUp"></button>
         <button class="p-ghost vs-prev" id="prevBtn" hidden>Reopen the last video</button>
         <button class="vs-link" id="emptyOpen">Or open a project file (.casv)</button>
+        <button class="vs-link" data-hf="1">Or bring one in from Higgsfield</button>
         <button class="vs-link" id="emptyScript">Or start from a video script</button>
       </div></div>
     </div>
@@ -756,6 +789,11 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   <p id="ovN">The video is recorded as it plays, so this takes as long as the video. Keep this tab in front until it finishes.</p>
   <div class="vs-prog"><i id="ovP"></i></div>
   <div class="vs-dlg-a"><s id="ovC"></s><button class="p-ghost" id="ovX">Cancel</button></div>
+</div></div>
+<div class="vs-ov" id="hfOv"><div class="vs-dlg vs-hf" role="dialog" aria-modal="true" aria-labelledby="hfT">
+  <div class="vs-hf-h"><b id="hfT">Your Higgsfield videos</b><div class="vs-seg" id="hfF" role="group" aria-label="Show sizes"></div><button class="p-ghost p-ico-t" id="hfX" aria-label="Close" title="Close (Esc)"></button></div>
+  <div class="vs-hf-b"><div class="vs-hf-g" id="hfG"></div><div class="vs-hf-p" id="hfP"></div></div>
+  <div class="vs-dlg-a"><s id="hfN"></s><button class="p-ghost" id="hfAdd">Import</button><button class="p-btn" id="hfAddT">Import and add to timeline</button></div>
 </div></div>
 <dialog class="vs-dlg" id="ask" aria-labelledby="askT">
   <b id="askT"></b>
