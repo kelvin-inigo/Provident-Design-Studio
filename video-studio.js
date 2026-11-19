@@ -2394,6 +2394,8 @@
     try {
       const r = await api('/api/animate/job', Object.assign(jobBase(c, mv), { id, kind: 'describe', prompt: promptFor(c), photo }));
       if (r.error) throw new Error(r.error);
+      // a server from before 2026-11-19 drops `kind` and files it as a video to generate: take it back off
+      if (r.status !== 'describe') { await api('/api/animate/cancel', { id }).catch(() => {}); toast('The local server is an older copy. Restart it (python3 tools/video-dev/serve.py), then try again.'); return; }
       mark(); c.descJob = id; delete c.descErr; promptOpen = true;
       JOBS.push({ id, kind: 'describe', status: 'describe', name: media[c.mid].name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) });
       renderAll(); animWatch(); toast('Run /animate-photos in Claude: it reads the photo and writes the prompt back here.');
