@@ -137,7 +137,7 @@
    "id": "anthropic",
    "lane": "cloud",
    "name": "Anthropic Claude",
-   "about": "Writes the Arabic copy",
+   "about": "Writes the Arabic copy and CASV photo prompts",
    "check": "anthropic"
   },
   {
@@ -299,6 +299,12 @@
    "to": "casv",
    "check": "casv",
    "carries": "Bot video tools, hand-over to the designer"
+  },
+  {
+   "from": "casv",
+   "to": "anthropic",
+   "check": "casv",
+   "carries": "Prompts written from photos (Claude Code, signed in on the Mac)"
   }
  ]
 }

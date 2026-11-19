@@ -886,9 +886,10 @@ people, so their faces and clothes are kept and only small movements are asked f
   frame, format, optics, camera, action, performance, physics, lighting, audio, style, and what
   must not change). The studio fills it from the choices above (**The studio's template**); type in
   it to change it (**Edited by you**). It must stay under 2,500 characters.
-- **Have Claude write it from the photo** is free: run **/animate-photos** in Claude and it looks
-  at the photo, describes what it sees, and writes the 14 parts from that. The prompt comes back to
-  the clip marked **Written by Claude from the photo**. If the camera move, length or People change
+- **Have Claude write it from the photo** (just under **Length**) is free: Claude looks at the
+  photo, describes what it sees, and writes the 14 parts from that. The prompt comes back to the
+  clip in about a minute, marked **Written by Claude from the photo**. The first time, Claude must be
+  signed in on the computer: run `python3 tools/video-dev/serve.py --claude-login` in Terminal once. If the camera move, length or People change
   afterwards, the box says so: **Have Claude write it again**, or **Back to the studio's template**.
 - **Generate now** shows the exact credits and waits for a yes. **Or add it to the queue for
   Claude** waits for **/animate-photos**, which writes the prompt from the photo first when the box

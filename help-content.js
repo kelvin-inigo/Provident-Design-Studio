@@ -279,7 +279,7 @@
         { t: 'Select a photo on the timeline. Under **Selected › Animate this photo**, choose a **Camera move** (each button plays the move on your photo), then **Length**, **Model** and **Quality**.', f: 'casv-anim', s: 'moves' },
         { t: 'Set **People in it** to **Yes** when the photo has people, so the prompt keeps their faces, hair and clothes and asks only for small movements.', f: 'casv-prompt', s: 'people' },
         { t: '**Prompt** is exactly what Higgsfield gets, in 14 parts: the scene, camera, action, light, sound, and what must not change. The studio fills it from your choices, and you can type in it.', f: 'casv-prompt', s: 'prompt' },
-        { t: 'For a prompt written from what is actually in the picture, press **Have Claude write it from the photo**, then run **/animate-photos** in Claude. It is free; the prompt comes back here marked **Written by Claude from the photo**.', f: 'casv-prompt', s: 'write' },
+        { t: 'For a prompt written from what is actually in the picture, press **Have Claude write it from the photo**, just under **Length**. Claude looks at the photo and the prompt comes back in about a minute, marked **Written by Claude from the photo**. It is free.', f: 'casv-prompt', s: 'write' },
         { t: '**Generate now** shows the exact credits and waits for your yes. **Or add it to the queue for Claude** waits for **/animate-photos**, which writes the prompt from the photo first. Either way the finished clip takes the photo’s place on the timeline.' }
       ] },
 
@@ -432,7 +432,7 @@
     { area: 'cas', who: ['pm', 'tickets'], q: 'The package isn’t ready to download', a: 'Each audience can be downloaded as soon as the designer sends it for review, before the copy approvals. **Download 1 of 2** means one of two is ready so far.' },
     { area: 'cas', who: ['design-cas'], q: 'Generate from the photo or Edit in CASV does nothing', a: 'Both need the Video Studio (CASV) running on the same computer. Start it, then try again.' },
     { area: 'cas', who: ['design-cas'], q: 'CASV says its local server is an older copy', a: 'Restart CASV’s server: stop it, then run `python3 tools/video-dev/serve.py` again in the Video Studio folder, and press the button again.' },
-    { area: 'cas', who: ['design-cas'], q: 'I pressed Have Claude write it from the photo and nothing came back', a: 'It waits for you: run **/animate-photos** in Claude. The prompt appears in the clip’s **Prompt** box a few seconds after it finishes.' },
+    { area: 'cas', who: ['design-cas'], q: 'I pressed Have Claude write it from the photo and nothing came back', a: 'It takes about a minute. If it says Claude is not signed in on this computer, run `python3 tools/video-dev/serve.py --claude-login` in Terminal once, sign in, and press it again.' },
     { area: 'cas', who: ['design-cas'], q: 'The prompt says the settings have changed since', a: 'It was written for another camera move, length or People choice. Press **Have Claude write it again**, or **Back to the studio’s template**; left as it is, it is used as written.' },
     { area: 'ops', who: ['posts', 'design-ops'], q: 'An agent photo keeps its background', a: 'The cut-out service is set up once per computer with `./tools/rembg/install.sh`. Until then, upload a PNG that is already cut out.' },
     { area: 'ops', who: ['posts', 'design-ops', 'design-cas'], q: 'Saved in Photoshop but nothing changed', a: 'Keep the same file name (⌘S). Without the Photoshop helper, save as PNG or JPEG, not PSD.' },
