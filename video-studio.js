@@ -2267,6 +2267,13 @@
     if (!row) return;
     inboxSeen[row.id + ':' + row.at] = 1;
     const done = () => fetch('/api/inbox/done', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: row.id }) }).catch(() => {});
+    // handed over by the Grok bot (row.from): like Open project, the video open here is kept as the last video
+    if (row.from) {
+      if (!(await ask('Open “' + row.title + '” from ' + row.from + '?', row.from + ' made this video and handed it over to you.' + (total() ? ' It replaces the video open here, which is kept: Reopen the last video brings it back.' : ''), 'Open it'))) { done(); return; }
+      let u = null;
+      try { u = await casUnpack(await (await fetch('/api/inbox/file?id=' + row.id)).blob()); } catch (e) { toast('That project could not be opened. Nothing was changed.'); return; }
+      await putProject(u, done); return;
+    }
     const yes = await ask('Open “' + row.title + '” from CAS', 'CAS sent this project from its ad set’s Drive folder. Opening it replaces the project that is open here now' + (total() ? ', which is not saved anywhere else unless you sent it to CAS' : '') + '.', 'Open it');
     if (!yes) { done(); return; }
     try {
@@ -2293,12 +2300,16 @@
     try { u = await casUnpack(file); } catch (e) { toast('“' + (file.name || 'That file') + '” is not a Video Studio project (.casv). Nothing was changed.'); return; }
     const nm = (u.head.project.name || (u.head.project.cas && u.head.project.cas.title) || String(file.name || '').replace(/\.casv$/i, '') || 'this project').slice(0, 60);
     if (total() && !(await ask('Open “' + nm + '”?', 'It replaces the video open here. That one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '.', 'Open it'))) return;
+    await putProject(u);
+  }
+  async function putProject(u, after) {
     try {
       for (const r of u.recs) await DB.tx('readwrite', s => s.put(r));
       loading = true; clearTimeout(saveT);
       if (total()) localStorage.setItem(PREV, JSON.stringify(P));
       localStorage.setItem(PKEY, JSON.stringify(u.head.project));
       try { const own = JSON.parse(localStorage.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); localStorage.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
+      if (after) await after();
       location.reload();
     } catch (e) { loading = false; toast(e && e.name === 'QuotaExceededError' ? 'This browser has no room for that project’s media. Nothing was changed.' : 'That project could not be opened. Nothing was changed.'); }
   }
@@ -3111,8 +3122,98 @@
     if (document.fonts && document.fonts.load) { try { await Promise.all([300, 400, 500].map(w => document.fonts.load(w + " 40px 'Google Sans Flex'"))); } catch (e) {} }
     fitCanvas(); renderAll(); animPoll();
     requestAnimationFrame(tick);
+    bot.ready = true;
   })();
 
+  // THE BOT'S DOOR (2026-11-19, by request: "give them ability to handover me what they did").
+  // The Grok bot's video tools (tools/studio-mcp/video.py on main) drive this page in their own
+  // headless Chrome, whose storage is not the user's. Files cross in base64 pieces (push / chunk);
+  // the .casv on the bridge's disk is the truth, this page only holds it while a tool runs.
+  const botBuf = {}; let botOut = null;
+  const b64In = t => { const bin = atob(t), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; };
+  const bnum = (v, d) => (v != null && isFinite(+v) ? +v : d);
+  const bpick = (to, from, keys) => { keys.forEach(k => { if (from[k] != null) to[k] = from[k]; }); };
+  const bot = {
+    ready: false,
+    push(key, b64) { (botBuf[key] = botBuf[key] || []).push(b64In(b64)); return botBuf[key].length; },
+    take(key, type) { const b = new Blob(botBuf[key] || [], { type: type || '' }); delete botBuf[key]; return b; },
+    summary() {
+      const used = JSON.stringify(P);
+      return { name: P.name || '', size: P.size === '1x1' ? '1:1' : '9:16', seconds: +total().toFixed(2),
+        clips: P.clips.map(c => { const m = media[c.mid] || {}; return { id: c.id, media: c.mid, name: m.name, kind: m.kind, from: +c.in.toFixed(2), to: +c.out.toFixed(2), fit: c.fit, mute: !!c.mute }; }),
+        texts: P.texts.map(t => ({ id: t.id, at: t.at, seconds: t.dur, eyebrow: t.eyebrow, text: plain(t.text), sub: t.sub, size: t.size, pos: t.pos, align: t.align, anim: t.anim })),
+        audio: P.audio.map(a => ({ id: a.id, media: a.mid, name: (media[a.mid] || {}).name, track: a.track, at: a.at, seconds: a.dur, volume: a.vol })),
+        wordmark: { on: P.brand.on, align: P.brand.align, vpos: P.brand.vpos, ink: P.brand.ink },
+        media: Object.values(media).filter(m => used.indexOf('"' + m.id + '"') >= 0 || m.bot).map(m => ({ id: m.id, kind: m.kind, name: m.name, seconds: m.dur ? +m.dur.toFixed(2) : undefined, width: m.w, height: m.h })) };
+    },
+    start(name, size) {
+      P = fresh(); if (size === '1:1' || size === '1x1') P.size = '1x1'; if (name) P.name = String(name).slice(0, 60);
+      Object.values(media).forEach(m => { delete m.bot; }); sel = null; T = 0; partnerLoad(); renderAll(); return bot.summary();
+    },
+    async open(key) {
+      const u = await casUnpack(bot.take(key));
+      for (const r of u.recs) { await probe(r); media[r.id] = r; r.bot = 1; DB.put(dbRec(r)); }
+      P = Object.assign(fresh(), u.head.project); P.brand = Object.assign(fresh().brand, u.head.project.brand); if (!SIZES[P.size]) P.size = '9x16';
+      sel = null; T = 0; partnerLoad(); renderAll(); return bot.summary();
+    },
+    async addMedia(key, name, type, as) {
+      const had = new Set(Object.keys(media)), n = P.clips.length;
+      await addFiles([new File([bot.take(key, type)], name, { type })], as === 'logo' ? 'logo' : 'media');
+      P.clips.length = Math.min(P.clips.length, n);          // nothing lands on the timeline unasked
+      const id = Object.keys(media).find(k => !had.has(k)); if (!id) throw new Error('The studio could not read ' + name + '. Video must be MP4 (H.264); photos JPG or PNG; sound MP3, WAV or M4A.');
+      const m = media[id]; m.bot = 1; await DB.put(dbRec(m)); sel = null; renderAll();
+      return { id, kind: m.kind, name: m.name, seconds: m.dur ? +m.dur.toFixed(2) : undefined, width: m.w, height: m.h };
+    },
+    edit(ops) {
+      const done = [], byId = id => { for (const k of ['clips', 'texts', 'audio']) { const i = P[k].findIndex(x => x.id === id); if (i >= 0) return [k, i]; } throw new Error('Nothing on the timeline has the id ' + id + '.'); };
+      const SZ = ['Small', 'Medium', 'Large', 'Jumbo'], inList = (v, l, what) => { if (v != null && l.indexOf(v) < 0) throw new Error(what + ' must be one of: ' + l.join(', ') + '.'); };
+      const textSet = (t, o) => {
+        inList(o.size, SZ, 'size'); inList(o.pos, ['top', 'centre', 'bottom'], 'pos'); inList(o.align, ['left', 'centre'], 'align'); inList(o.anim, ANIMS.map(a => a[0]), 'anim');
+        bpick(t, o, ['size', 'pos', 'align', 'anim']); ['eyebrow', 'sub'].forEach(k => { if (o[k] != null) t[k] = String(o[k]).slice(0, 200); });
+        if (o.text != null) t.text = String(o.text).slice(0, 300); if (o.at != null) t.at = Math.max(0, bnum(o.at, t.at)); if (o.seconds != null) t.dur = clamp(bnum(o.seconds, t.dur), .2, 120);
+      };
+      const clipSet = (c, o) => {
+        const m = media[c.mid];
+        if (m.kind === 'image') { if (o.seconds != null) { c.in = 0; c.out = clamp(bnum(o.seconds, 3), .2, 30); } }
+        else { if (o.from != null) c.in = clamp(bnum(o.from, 0), 0, Math.max(0, m.dur - .2)); if (o.to != null || o.from != null) c.out = clamp(bnum(o.to, c.out), c.in + .2, m.dur); }
+        inList(o.fit, ['fill', 'fit'], 'fit'); bpick(c, o, ['fit']); if (o.mute != null) c.mute = !!o.mute;
+      };
+      for (const o of ops || []) {
+        if (o.op === 'add_clip') {
+          const m = media[o.media]; if (!m || (m.kind !== 'video' && m.kind !== 'image')) throw new Error('add_clip: no video or photo has the media id ' + o.media + '.');
+          addClip(o.media, true); const c = P.clips.pop(); clipSet(c, o);
+          P.clips.splice(o.index == null ? P.clips.length : clamp(o.index | 0, 0, P.clips.length), 0, c); done.push({ op: o.op, id: c.id });
+        } else if (o.op === 'add_text') {
+          const pre = o.preset || 'headline'; inList(pre, ['headline', 'full', 'caption', 'centre', 'number'], 'preset');
+          T = Math.max(0, bnum(o.at, 0)); addText(pre); const t = P.texts[P.texts.length - 1]; if (pre === 'full') { t.eyebrow = ''; t.sub = ''; } textSet(t, o); done.push({ op: o.op, id: t.id });
+        } else if (o.op === 'add_audio') {
+          const m = media[o.media]; if (!m || m.kind !== 'audio') throw new Error('add_audio: no sound has the media id ' + o.media + '.');
+          const track = o.track === 'sound' ? 'sound' : 'music'; T = Math.max(0, bnum(o.at, 0)); addAudio(o.media, track, true);
+          const a = P.audio[P.audio.length - 1]; if (o.volume != null) a.vol = clamp(bnum(o.volume, a.vol), 0, 1); done.push({ op: o.op, id: a.id });
+        } else if (o.op === 'set') {
+          const w = byId(o.id), it = P[w[0]][w[1]];
+          if (w[0] === 'clips') { clipSet(it, o); if (o.index != null) { P.clips.splice(w[1], 1); P.clips.splice(clamp(o.index | 0, 0, P.clips.length), 0, it); } }
+          else if (w[0] === 'texts') textSet(it, o);
+          else { if (o.at != null) it.at = Math.max(0, bnum(o.at, it.at)); if (o.seconds != null) it.dur = clamp(bnum(o.seconds, it.dur), .2, (media[it.mid] || {}).dur || 600); if (o.volume != null) it.vol = clamp(bnum(o.volume, it.vol), 0, 1); }
+          done.push({ op: o.op, id: o.id });
+        } else if (o.op === 'remove') { const w = byId(o.id); P[w[0]].splice(w[1], 1); done.push({ op: o.op, id: o.id }); }
+        else if (o.op === 'wordmark') {
+          inList(o.align, ['left', 'centre'], 'align'); inList(o.vpos, ['top', 'bottom'], 'vpos'); inList(o.ink, ['white', 'navy'], 'ink');
+          bpick(P.brand, o, ['align', 'vpos', 'ink']); if (o.on != null) P.brand.on = !!o.on; done.push({ op: o.op });
+        } else if (o.op === 'size') { inList(o.size, ['9:16', '1:1'], 'size'); P.size = o.size === '1:1' ? '1x1' : '9x16'; done.push({ op: o.op }); }
+        else if (o.op === 'name') { P.name = String(o.name || '').slice(0, 60); done.push({ op: o.op }); }
+        else throw new Error('Unknown op ' + o.op + '. Use add_clip, add_text, add_audio, set, remove, wordmark, size or name.');
+      }
+      sel = null; T = 0; renderAll();
+      return { done, project: bot.summary() };
+    },
+    async pack() { botOut = await casPack(P); return botOut.size; },
+    async chunk(i, n) {
+      const u = new Uint8Array(await botOut.slice(i, i + n).arrayBuffer()); let t = '';
+      for (let k = 0; k < u.length; k += 32768) t += String.fromCharCode.apply(null, u.subarray(k, k + 32768));
+      return btoa(t);
+    }
+  };
   // a small handle for tests and the console
-  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, addFiles, importScript, parseScript, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
+  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, bot, addFiles, importScript, parseScript, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
 })();

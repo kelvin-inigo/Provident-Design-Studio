@@ -211,7 +211,7 @@ class H(SimpleHTTPRequestHandler):
             return self._json(400, {'error': 'bad size'})
         os.makedirs(INBOX if back else OUTBOX, exist_ok=True)
         if back:
-            json.dump({'id': q['id'], 'title': (q.get('title') or 'Video')[:80], 'at': int(time.time()), 'bytes': n},
+            json.dump({'id': q['id'], 'title': (q.get('title') or 'Video')[:80], 'at': int(time.time()), 'bytes': n, 'from': (q.get('from') or '')[:40]},
                       open(os.path.join(INBOX, q['id'] + '.json'), 'w'), indent=1)
         # written beside, then renamed: a reader polling for the file never gets half of it
         dest = os.path.join(INBOX, q['id'] + '.casv') if back else os.path.join(OUTBOX, q['id'] + PARTS[q['part']][0])

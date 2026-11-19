@@ -828,3 +828,19 @@ The user: "with all these new feature built the UX is so confusing". Plan shown 
   the folded Animate (1374 → 1083 px), the top bar at 1327 and 1280 (no overflow, no overlap).
   Not run: the light theme, phones, renaming by typing, an export from the new menu, the help
   page's CASV frames (they show the old top bar and tab names).
+
+## The bot's door: VideoStudio.bot, and hand-overs that name who sent them (2026-11-19, by request)
+
+The Grok bot's four video tools (`tools/studio-mcp/video.py` on **main**; see main's
+`docs/notes/architecture.md`) drive this page in their own headless Chrome through
+`window.VideoStudio.bot`: `ready`, `push`/`take` (files in, base64 pieces), `start(name, size)`,
+`open(key)` (a .casv), `addMedia(key, name, type)` (library only — it undoes addFiles' "first video
+goes on the timeline"), `edit(ops)` (add_clip, add_text, add_audio, set, remove, wordmark, size,
+name; values checked against the studio's own lists), `summary()`, `pack()` + `chunk(i, n)` (out).
+Text is stored plain (`**` is the only markup), never HTML-escaped.
+
+- `serve.py`'s `/api/outbox/back` keeps `from`; `casInbox` asks "Open … from <from>?" for such a
+  row and goes through `putProject` (shared with Open project): the open video is kept as PREV and
+  no media is deleted. CAS's rows (no `from`) behave as before.
+- **The user's running server (:8794) must be restarted to carry `from`** — an older one drops it
+  and the hand-over reads as if CAS sent it (and replaces without keeping the last video).
