@@ -3982,7 +3982,8 @@ failing. **Not exercised:** a real Claude call (no key here) and the Arabic card
 By request: wherever "AED" is typed in CAS, the ad shows the UAE Dirham sign (U+20C3, Unicode
 18.0, unveiled by the CBUAE 27 Mar 2025) instead. The source is npm `dirham` 1.5.3
 (github.com/pooyagolchian/dirham, MIT), **vendored** in `vendor/dirham/` because this machine has
-no JS toolchain: only `dirham-sans.woff2` (1 KB, the package's `dist/fonts/sans/`), its LICENSE, the
+no JS toolchain: only `dirham-sans.woff2` (1 KB, the package's `dist/fonts/sans/`; **replaced
+2026-11-19 by `dirham-sans.ttf` + the cap-height `dirham-sans-cap.woff`, see below**), its LICENSE, the
 sign's SVG and a README with the tarball's integrity hash.
 
 **The copy keeps "AED"; only the artwork draws the sign.** The fields, the layers rail, the Copy
@@ -4037,6 +4038,19 @@ spatial fault was found in single frames. My reading: a real-time hitch during t
 - Not tested: an actual export after the change (needs sign-in and a clip). The script passes a
   syntax check only. Whether this was the glitch the user saw is not confirmed.
 
+**THE SIGN IS SET TO THE FIGURES' CAP HEIGHT (2026-11-19, by request: "make the same height").**
+The package draws U+20C3 one em tall, 90/1000 above the baseline and 100 below, so beside "2.6M"
+it stood 1.4x the figures' height and hung under the line. `size-adjust` could only shrink it
+toward the baseline (it would still hang), so the outline itself is rebuilt:
+`vendor/dirham/make-cap.py` (standard library; no fontTools or brotli here) scales the one glyph to
+716/1000 — Google Sans Flex's H and M, measured in the browser at 300 and 400 — puts its bottom on
+the baseline, adds 60-unit sidebearings and writes `dirham-sans-cap.woff` (WOFF 1.0, 1.5 KB). The
+package's `dirham-sans.ttf` is kept as the source; the woff2 is gone. Measured: the sign's ink
+ascent 71.6 at 100px, descent 0 — the capitals' 71.6 exactly; the SVG export embeds the same file
+(`font/woff`). Unbranded looks keep this height, which is Google Sans Flex's, not their own face's.
+Only runs holding AED move (the sign is narrower: 94.3 per 100px against 114.9); the face's
+`unicode-range` is still U+20C3 alone, so nothing else can.
+
 # ADM & CN CAN TAKE THE QR'S CORNER (2026-11-18, by request)
 
 By request, "similar to the QR code": the All-variants dock's QR block now asks **Print: QR code |
@@ -4051,7 +4065,8 @@ same number OPS's reel thumbnail carries.
 - **Geometry:** `CampaignStudio.qrBox(st, tk)` is now the ONE source of the code's box (buildOps'
   frame, rail clearance and the mirror's corner swap included); the QR op reads it, and
   `admEls(st, tk, pal)` lays the numbers out inside the same box: tracked caps (`trackOf`) at the
-  eyebrow size, Medium 500, `pal.ink`, ADM over CN on the eyebrow's 1.25 lead, hugging the
+  eyebrow size, Light 300 (`ADM_W`; it was Medium 500 for a day and was asked to be lighter,
+  2026-11-19), `pal.ink`, ADM over CN on the eyebrow's 1.25 lead, hugging the
   corner's outer edge (left corner → flush left, right and top → flush right), last line on the
   box's bottom (bottom corners) or first on its top (Top). Two lines at the eyebrow lead are
   shorter than the code, so every cluster, scrim and `qrTopRes` reserve that clears the code

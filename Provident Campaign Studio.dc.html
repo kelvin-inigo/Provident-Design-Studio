@@ -43,8 +43,10 @@
 /* The UAE Dirham sign, U+20C3 — vendor/dirham (npm dirham 1.5.3, MIT). One glyph, so the
    range is that one code point: it leads every canvas stack (CampaignStudio.dirhamStack)
    and draws "AED" as the sign, never any other character. One weight, declared across the
-   whole axis so the browser never fakes a bolder one. */
-@font-face{font-family:'Dirham-Sans';src:url('./vendor/dirham/dirham-sans.woff2') format('woff2');font-weight:100 1000;font-style:normal;font-display:block;unicode-range:U+20C3}
+   whole axis so the browser never fakes a bolder one. The file is the package's outline set
+   to Google Sans Flex's cap height and on the baseline (vendor/dirham/make-cap.py), so the
+   sign stands as tall as the figures beside it. */
+@font-face{font-family:'Dirham-Sans';src:url('./vendor/dirham/dirham-sans-cap.woff') format('woff');font-weight:100 1000;font-style:normal;font-display:block;unicode-range:U+20C3}
 /* Every run inside a canvas preview resolves its OWN base direction from its first
    strong character — the DOM half of what StudioBase.dirOf() does for the export, so
    "4.85 مليون درهم" orders identically in the editor and in the render. A browser
@@ -9385,7 +9387,8 @@ class CampaignStudio extends StudioBase {
   // all read it — and the ARTWORK draws the sign: meas() below, both renderers and the
   // editor's element views all go through aed(), so the width that is measured is the width
   // that is drawn. "AED" only as a word of its own ("AED 2.6M", "AED2.6M"), never inside one.
-  // System fonts do not carry U+20C3 yet, so vendor/dirham/dirham-sans.woff2 (npm `dirham`)
+  // System fonts do not carry U+20C3 yet, so vendor/dirham/dirham-sans-cap.woff (npm `dirham`'s
+  // outline at the figures' cap height, make-cap.py)
   // is declared with unicode-range U+20C3 and put FIRST in every canvas stack: it draws that
   // one character and nothing else, and as it has no space glyph it is never the primary
   // font, so ascent, line boxes and every other glyph are the stack's own.
@@ -9404,10 +9407,10 @@ class CampaignStudio extends StudioBase {
     }
     return CampaignStudio._dhP;
   }
-  // the SVG export carries the face itself (it is 1 KB) when a run draws the sign
+  // the SVG export carries the face itself (1.5 KB) when a run draws the sign
   static dirhamFace() {
     if (CampaignStudio._dhFace != null) return Promise.resolve(CampaignStudio._dhFace);
-    return fetch('./vendor/dirham/dirham-sans.woff2').then(r => r.ok ? r.arrayBuffer() : null).then(b => {
+    return fetch('./vendor/dirham/dirham-sans-cap.woff').then(r => r.ok ? r.arrayBuffer() : null).then(b => {
       let s = '';
       if (b) { const u = new Uint8Array(b); for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); s = btoa(s); }
       return (CampaignStudio._dhFace = s);
@@ -11257,11 +11260,13 @@ class CampaignStudio extends StudioBase {
   // ── ADM & CN IN PLACE OF THE QR (2026-11-18, by request) ──────────────────────────────
   // The QR block offers QR code | ADM & CN. ADM is the permit, typed per project (digits);
   // CN is the company's licence, fixed. Chosen, the QR is not drawn and its corner carries the
-  // two numbers as tracked caps at the eyebrow size, Medium, in the canvas ink — ADM over CN,
+  // two numbers as tracked caps at the eyebrow size, Light 300 (by request), in the canvas ink — ADM over CN,
   // hugging the corner's outer edge, inside the QR's own box (two lines at the eyebrow lead are
   // shorter than the code), so the clusters, scrims and the wordmark row clear it exactly as
   // they clear the code. A blank ADM prints CN alone, as OPS's blank chip draws nothing.
   static CN_NO = '6323926';
+  // Light, not the 500 of the eyebrow's tracked caps: asked for lighter (2026-11-19)
+  static ADM_W = 300;
   static admOn(st) { return !!(st && st.qr && st.qr.show && st.qr.mode === 'adm'); }
   static admDigits(v) { return String(v == null ? '' : v).replace(/\D/g, '').slice(0, 24); }
   static admLines(st) {
@@ -11282,8 +11287,8 @@ class CampaignStudio extends StudioBase {
     const hugL = B.left;
     const y0 = B.top ? B.qy : B.qy + B.qs - n * lh;
     return lines.map((t, i) => {
-      const w = this.meas(t, px, 500, false, ls) - ls;
-      return { k: 'text', x: hugL ? B.qx : B.qx + B.qs - w, y: y0 + i * lh + (lh - px * (F.a + F.d)) / 2 + px * F.a, px, weight: 500, fill: pal.ink, text: t, ls, hd: 0 };
+      const w = this.meas(t, px, C.ADM_W, false, ls) - ls;
+      return { k: 'text', x: hugL ? B.qx : B.qx + B.qs - w, y: y0 + i * lh + (lh - px * (F.a + F.d)) / 2 + px * F.a, px, weight: C.ADM_W, fill: pal.ink, text: t, ls, hd: 0 };
     });
   }
   static railBox(tk, center, innerW, pL) {
@@ -12587,7 +12592,7 @@ class CampaignStudio extends StudioBase {
       }
     });
     // the file carries the sign's face, so it draws wherever the SVG is opened
-    if (dhUsed && CampaignStudio._dhFace) defs = `<style>@font-face{font-family:'${CampaignStudio.DIRHAM_FAM}';src:url(data:font/woff2;base64,${CampaignStudio._dhFace}) format('woff2');font-weight:100 1000;unicode-range:U+20C3}</style>` + defs;
+    if (dhUsed && CampaignStudio._dhFace) defs = `<style>@font-face{font-family:'${CampaignStudio.DIRHAM_FAM}';src:url(data:font/woff;base64,${CampaignStudio._dhFace}) format('woff');font-weight:100 1000;unicode-range:U+20C3}</style>` + defs;
     // A size with a file size of its own (the 758 banner is laid out at 1880) states that
     // size; the viewBox stays in canvas units, and the two share one aspect exactly.
     const svgW = built.out ? built.out[0] : built.W, svgH = built.out ? built.out[1] : built.H;
